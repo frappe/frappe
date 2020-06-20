@@ -35,6 +35,9 @@ class TestDashboardChart(unittest.TestCase):
 		self.assertEqual(get_period_ending('2019-10-01', 'Quarterly'),
 			getdate('2019-12-31'))
 
+		self.assertEqual(get_period_ending('2019-10-01', 'Yearly'),
+			getdate('2019-12-31'))
+
 	def test_dashboard_chart(self):
 		if frappe.db.exists('Dashboard Chart', 'Test Dashboard Chart'):
 			frappe.delete_doc('Dashboard Chart', 'Test Dashboard Chart')
@@ -47,7 +50,7 @@ class TestDashboardChart(unittest.TestCase):
 			based_on = 'creation',
 			timespan = 'Last Year',
 			time_interval = 'Monthly',
-			filters_json = '{}',
+			filters_json = '[]',
 			timeseries = 1
 		)).insert()
 
@@ -79,7 +82,7 @@ class TestDashboardChart(unittest.TestCase):
 			based_on = 'creation',
 			timespan = 'Last Year',
 			time_interval = 'Monthly',
-			filters_json = '{}',
+			filters_json = '[]',
 			timeseries = 1
 		)).insert()
 
@@ -111,7 +114,7 @@ class TestDashboardChart(unittest.TestCase):
 			based_on = 'creation',
 			timespan = 'Last Year',
 			time_interval = 'Monthly',
-			filters_json = '{}',
+			filters_json = '[]',
 			timeseries = 1
 		)).insert()
 
@@ -146,7 +149,7 @@ class TestDashboardChart(unittest.TestCase):
 			time_interval = 'Weekly',
 			from_date = datetime(2018, 12, 30),
 			to_date = datetime(2019, 1, 15),
-			filters_json = '{}',
+			filters_json = '[]',
 			timeseries = 1
 		)).insert()
 
@@ -169,7 +172,7 @@ class TestDashboardChart(unittest.TestCase):
 			chart_type = 'Group By',
 			document_type = 'ToDo',
 			group_by_based_on = 'status',
-			filters_json = '{}',
+			filters_json = '[]',
 		)).insert()
 
 		result = get(chart_name ='Test Group By Dashboard Chart', refresh = 1)

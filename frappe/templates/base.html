@@ -20,20 +20,22 @@
 	>
 	{% endblock %}
 
+	<link rel="canonical" href="{{ canonical }}">
+
 	{%- block head -%}
 		{% if head_html is defined -%}
 		{{ head_html or "" }}
 		{%- endif %}
 
-		{% if theme.theme_url %}
+		{%- if theme.name != 'Standard' -%}
 		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
-		{% else %}
+		{%- else -%}
 		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
+		{%- endif -%}
 
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
 		{%- endfor -%}
-		{% endif %}
 	{%- endblock -%}
 
 	{%- block head_include %}
@@ -50,7 +52,7 @@
 		}
 		window.dev_server = {{ dev_server }};
 		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
-    </script>
+	</script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {% endif -%}>
 	{%- block banner -%}

@@ -11,12 +11,6 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Company",
-					"label": _("Company"),
-					"description": _("Company (not Customer or Supplier) master."),
-				},
-				{
-					"type": "doctype",
 					"name": "System Settings",
 					"label": _("System Settings"),
 					"description": _("Language, Date and Time settings"),
@@ -183,28 +177,7 @@ def get_data():
 					"description": _("Actions for workflow (e.g. Approve, Cancel).")
 				},
 			]
-		},
-		{
-			"label": _("Automation"),
-			"icon": "fa fa-random",
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Assignment Rule",
-					"description": _("Set up rules for user assignments.")
-				},
-				{
-					"type": "doctype",
-					"name": "Milestone",
-					"description": _("Tracks milestones on the lifecycle of a document if it undergoes multiple stages.")
-				},
-				{
-					"type": "doctype",
-					"name": "Auto Repeat",
-					"description": _("Automatically generates recurring documents.")
-				},
-			]
-		},
+		}
 	]
 	add_setup_section(data, "frappe", "website", _("Website"), "fa fa-globe")
 	return data

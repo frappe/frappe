@@ -19,7 +19,6 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	},
 	make_color_input: function () {
 		this.$wrapper
-			.find('.control-input-wrapper')
 			.append(`<div class="color-picker">
 				<div class="color-picker-pallete"></div>
 			</div>`);

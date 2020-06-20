@@ -12,19 +12,12 @@ no_cache = 1
 expected_keys = ('amount', 'title', 'description', 'reference_doctype', 'reference_docname',
 	'payer_name', 'payer_email', 'order_id')
 
-
-class TokenAlreadyUsedError(Exception):
-	pass
-
-
 def get_context(context):
 	context.no_cache = 1
 	context.api_key = get_api_key()
 
 	try:
 		doc = frappe.get_doc("Integration Request", frappe.form_dict['token'])
-		if doc.status != 'Queued':
-			raise TokenAlreadyUsedError
 		payment_details = json.loads(doc.data)
 
 		for key in expected_keys:
@@ -35,17 +28,9 @@ def get_context(context):
 		context['subscription_id'] = payment_details['subscription_id'] \
 			if payment_details.get('subscription_id') else ''
 
-	except frappe.exceptions.DoesNotExistError as e:
+	except Exception as e:
 		frappe.redirect_to_message(_('Invalid Token'),
 			_('Seems token you are using is invalid!'),
-			http_status_code=400, indicator_color='red')
-
-		frappe.local.flags.redirect_location = frappe.local.response.location
-		raise frappe.Redirect
-
-	except TokenAlreadyUsedError as e:
-		frappe.redirect_to_message(_('Token Already Used'),
-			_('It seems you have already paid through this link!'),
 			http_status_code=400, indicator_color='red')
 
 		frappe.local.flags.redirect_location = frappe.local.response.location

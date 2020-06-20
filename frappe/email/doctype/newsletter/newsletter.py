@@ -9,10 +9,9 @@ from frappe import throw, _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.utils.background_jobs import enqueue
-from frappe.utils.scheduler import log
 from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
-from frappe.utils import parse_addr
+from frappe.utils import parse_addr, now_datetime
 from frappe.utils import validate_email_address
 
 
@@ -43,7 +42,6 @@ class Newsletter(WebsiteGenerator):
 		if self.recipients:
 			if getattr(frappe.local, "is_ajax", False):
 				self.validate_send()
-
 				# using default queue with a longer timeout as this isn't a scheduled task
 				enqueue(send_newsletter, queue='default', timeout=6000, event='send_newsletter',
 					newsletter=self.name)
@@ -53,8 +51,6 @@ class Newsletter(WebsiteGenerator):
 
 			frappe.msgprint(_("Scheduled to send to {0} recipients").format(len(self.recipients)))
 
-			frappe.db.set(self, "email_sent", 1)
-			frappe.db.set(self, 'scheduled_to_send', len(self.recipients))
 		else:
 			frappe.msgprint(_("Newsletter should have atleast one recipient"))
 
@@ -71,9 +67,9 @@ class Newsletter(WebsiteGenerator):
 			frappe.db.auto_commit_on_many_writes = True
 
 		attachments = []
-		if self.send_attachements:
-			files = frappe.get_all("File", fields = ["name"], filters = {"attached_to_doctype": "Newsletter",
-				"attached_to_name":self.name}, order_by="creation desc")
+		if self.send_attachments:
+			files = frappe.get_all("File", fields=["name"], filters={"attached_to_doctype": "Newsletter",
+				"attached_to_name": self.name}, order_by="creation desc")
 
 			for file in files:
 				try:
@@ -83,16 +79,20 @@ class Newsletter(WebsiteGenerator):
 				except IOError:
 					frappe.throw(_("Unable to find attachment {0}").format(file.name))
 
-		send(recipients = self.recipients, sender = sender,
-			subject = self.subject, message = self.message,
-			reference_doctype = self.doctype, reference_name = self.name,
-			add_unsubscribe_link = self.send_unsubscribe_link, attachments=attachments,
-			unsubscribe_method = "/unsubscribe",
-			unsubscribe_params = {"name": self.name},
-			send_priority = 0, queue_separately=True)
+		send(recipients=self.recipients, sender=sender,
+			subject=self.subject, message=self.message,
+			reference_doctype=self.doctype, reference_name=self.name,
+			add_unsubscribe_link=self.send_unsubscribe_link, attachments=attachments,
+			unsubscribe_method="/unsubscribe",
+			unsubscribe_params={"name": self.name},
+			send_priority=0, queue_separately=True)
 
 		if not frappe.flags.in_test:
 			frappe.db.auto_commit_on_many_writes = False
+
+		self.db_set("email_sent", 1)
+		self.db_set("schedule_send", now_datetime())
+		self.db_set("scheduled_to_send", len(self.recipients))
 
 	def get_recipients(self):
 		"""Get recipients from Email Group"""
@@ -161,39 +161,52 @@ def create_lead(email_id):
 
 
 @frappe.whitelist(allow_guest=True)
-def subscribe(email):
+def subscribe(email, email_group=_('Website')):
 	url = frappe.utils.get_url("/api/method/frappe.email.doctype.newsletter.newsletter.confirm_subscription") +\
-		"?" + get_signed_params({"email": email})
+		"?" + get_signed_params({"email": email, "email_group": email_group})
 
-	messages = (
-		_("Thank you for your interest in subscribing to our updates"),
-		_("Please verify your Email Address"),
-		url,
-		_("Click here to verify")
-	)
+	email_template = frappe.db.get_value('Email Group', email_group, ['confirmation_email_template'])
 
-	content = """
-	<p>{0}. {1}.</p>
-	<p><a href="{2}">{3}</a></p>
-	"""
+	content=''
+	if email_template:
+		args = dict(
+			email=email,
+			confirmation_url=url,
+			email_group=email_group
+		)
 
-	frappe.sendmail(email, subject=_("Confirm Your Email"), content=content.format(*messages))
+		email_template = frappe.get_doc("Email Template", email_template)
+		content = frappe.render_template(email_template.response, args)
+
+	if not content:
+		messages = (
+			_("Thank you for your interest in subscribing to our updates"),
+			_("Please verify your Email Address"),
+			url,
+			_("Click here to verify")
+		)
+
+		content = """
+		<p>{0}. {1}.</p>
+		<p><a href="{2}">{3}</a></p>
+		""".format(*messages)
+
+	frappe.sendmail(email, subject=getattr('email_template', 'subject', '') or _("Confirm Your Email"), content=content)
 
 @frappe.whitelist(allow_guest=True)
-def confirm_subscription(email):
+def confirm_subscription(email, email_group=_('Website')):
 	if not verify_request():
 		return
 
-	if not frappe.db.exists("Email Group", _("Website")):
+	if not frappe.db.exists("Email Group", email_group):
 		frappe.get_doc({
 			"doctype": "Email Group",
-			"title": _("Website")
+			"title": email_group
 		}).insert(ignore_permissions=True)
-
 
 	frappe.flags.ignore_permissions = True
 
-	add_subscribers(_("Website"), email)
+	add_subscribers(email_group, email)
 	frappe.db.commit()
 
 	frappe.respond_as_web_page(_("Confirmed"),
@@ -213,7 +226,7 @@ def send_newsletter(newsletter):
 		doc.db_set("email_sent", 0)
 		frappe.db.commit()
 
-		log("send_newsletter")
+		frappe.log_error(title='Send Newsletter')
 
 		raise
 
@@ -251,3 +264,11 @@ def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20
 			'''.format(','.join(['%s'] * len(email_group_list)),
 					limit_page_length, limit_start), email_group_list, as_dict=1)
 
+def send_scheduled_email():
+	"""Send scheduled newsletter to the recipients."""
+	scheduled_newsletter = frappe.get_all('Newsletter', filters = {
+		'schedule_send': ('<=', now_datetime()),
+		'email_sent': 0
+	}, fields = ['name'], ignore_ifnull=True)
+	for newsletter in scheduled_newsletter:
+		send_newsletter(newsletter.name)

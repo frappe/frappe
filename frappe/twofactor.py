@@ -248,9 +248,7 @@ def get_link_for_qrcode(user, totp_uri):
 	key = frappe.generate_hash(length=20)
 	key_user = "{}_user".format(key)
 	key_uri = "{}_uri".format(key)
-	lifespan = int(frappe.db.get_value('System Settings', 'System Settings', 'lifespan_qrcode_image'))
-	if lifespan<=0:
-		lifespan = 240
+	lifespan = int(frappe.db.get_value('System Settings', 'System Settings', 'lifespan_qrcode_image')) or 240
 	frappe.cache().set_value(key_uri, totp_uri, expires_in_sec=lifespan)
 	frappe.cache().set_value(key_user, user, expires_in_sec=lifespan)
 	return get_url('/qrcode?k={}'.format(key))
@@ -387,7 +385,7 @@ def should_remove_barcode_image(barcode):
 	'''Check if it's time to delete barcode image from server. '''
 	if isinstance(barcode, string_types):
 		barcode = frappe.get_doc('File', barcode)
-	lifespan = frappe.db.get_value('System Settings', 'System Settings', 'lifespan_qrcode_image')
+	lifespan = frappe.db.get_value('System Settings', 'System Settings', 'lifespan_qrcode_image') or 240
 	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):
 		return True
 	return False

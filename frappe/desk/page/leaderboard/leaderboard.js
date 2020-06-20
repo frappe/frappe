@@ -13,7 +13,7 @@ class Leaderboard {
 	constructor(parent) {
 		frappe.ui.make_app_page({
 			parent: parent,
-			title: "Leaderboard",
+			title: __("Leaderboard"),
 			single_column: false
 		});
 		this.parent = parent;
@@ -41,7 +41,16 @@ class Leaderboard {
 					return field;
 				});
 			}
-			this.timespans = ["Week", "Month", "Quarter", "Year", "All Time"];
+
+			// For translation. Do not remove this
+			// __("This Week"), __("This Month"), __("This Quarter"), __("This Year"),
+			//	__("Last Week"), __("Last Month"), __("Last Quarter"), __("Last Year"),
+			//	__("All Time"), __("Select From Date")
+			this.timespans = [
+				"This Week", "This Month", "This Quarter", "This Year",
+				"Last Week", "Last Month", "Last Quarter", "Last Year",
+				"All Time", "Select From Date"
+			];
 
 			// for saving current selected filters
 			const _initial_doctype = frappe.get_route()[1] || this.doctypes[0];
@@ -104,6 +113,7 @@ class Leaderboard {
 				return {"label": __(d), value: d };
 			})
 		);
+		this.create_from_date_field();
 
 		this.type_select = this.page.add_select(__("Field"),
 			this.options.selected_filter.map(d => {
@@ -113,12 +123,39 @@ class Leaderboard {
 
 		this.timespan_select.on("change", (e) => {
 			this.options.selected_timespan = e.currentTarget.value;
-			this.make_request();
+			if (this.options.selected_timespan === 'Select From Date') {
+				this.from_date_field.show();
+			} else {
+				this.from_date_field.hide();
+				this.make_request();
+			}
 		});
 
 		this.type_select.on("change", (e) => {
 			this.options.selected_filter_item = e.currentTarget.value;
 			this.make_request();
+		});
+	}
+
+	create_from_date_field() {
+		let timespan_field = $(this.parent).find(`.frappe-control[data-original-title='Timespan']`);
+		this.from_date_field = $(`<div class="from-date-field"></div>`).insertAfter(timespan_field).hide();
+
+		let date_field = frappe.ui.form.make_control({
+			df: {
+				fieldtype: 'Date',
+				fieldname: 'selected_from_date',
+				placeholder: frappe.datetime.month_start(),
+				default: frappe.datetime.month_start(),
+				input_class: 'input-sm',
+				reqd: 1,
+				change: () => {
+					this.selected_from_date = date_field.get_value();
+					if (this.selected_from_date) this.make_request();
+				}
+			},
+			parent: $(this.parent).find('.from-date-field'),
+			render_input: 1
 		});
 	}
 
@@ -155,29 +192,11 @@ class Leaderboard {
 	render_search_box() {
 
 		this.$search_box =
-			$(`<div class="leaderboard-search col-md-3">
-				<input type="text" placeholder="Search" class="form-control leaderboard-search-input input-sm">
+			$(`<div class="leaderboard-search form-group col-md-3">
+				<input type="text" placeholder="Search" data-element="search" class="form-control leaderboard-search-input input-sm">
 			</div>`);
 
 		$(this.parent).find(".page-form").append(this.$search_box);
-	}
-
-	setup_search(list_items) {
-		let $search_input = this.$search_box.find(".leaderboard-search-input");
-
-		this.$search_box.on("keyup", ()=> {
-			let text_filter = $search_input.val().toLowerCase();
-			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
-			for (var i = 0; i < list_items.length; i++) {
-				let text = list_items.eq(i).find(".list-id").text().trim().toLowerCase();
-
-				if (text.includes(text_filter)) {
-					list_items.eq(i).css("display", "");
-				} else {
-					list_items.eq(i).css("display", "none");
-				}
-			}
-		});
 	}
 
 	show_leaderboard(doctype) {
@@ -207,7 +226,6 @@ class Leaderboard {
 			this.leaderboard_config[this.options.selected_doctype].method,
 			{
 				'from_date': this.get_from_date(),
-				'timespan': this.options.selected_timespan,
 				'company': this.options.selected_company,
 				'field': this.options.selected_filter_item,
 				'limit': this.leaderboard_limit,
@@ -242,7 +260,7 @@ class Leaderboard {
 		if (res && res.message.length) {
 			me.message = null;
 			me.$container.find(".leaderboard-list").html(me.render_list_view(res.message));
-			me.setup_search($(me.parent).find('.list-item-container'));
+			frappe.utils.setup_search($(me.parent), ".list-item-container", ".list-id");
 		} else {
 			me.$graph_area.hide();
 			me.message = __("No items found.");
@@ -332,7 +350,7 @@ class Leaderboard {
 
 		const link = `#Form/${this.options.selected_doctype}/${item.name}`;
 		const name_html = item.formatted_name ?
-			`<span class="text-muted ellipsis">${item.formatted_name}</span>`
+			`<span class="text-muted ellipsis list-id">${item.formatted_name}</span>`
 			: `<a class="grey list-id ellipsis" href="${link}"> ${item.name} </a>`;
 		const html =
 			`<div class="list-item">
@@ -360,17 +378,20 @@ class Leaderboard {
 	get_from_date() {
 		let timespan = this.options.selected_timespan.toLowerCase();
 		let current_date = frappe.datetime.now_date();
-		let date = '';
-		if (timespan === "month") {
-			date = frappe.datetime.add_months(current_date, -1);
-		} else if (timespan === "quarter") {
-			date = frappe.datetime.add_months(current_date, -3);
-		} else if (timespan === "year") {
-			date = frappe.datetime.add_months(current_date, -12);
-		} else if (timespan === "week") {
-			date = frappe.datetime.add_days(current_date, -7);
+		let get_from_date = {
+			"this week": frappe.datetime.week_start(),
+			"this month": frappe.datetime.month_start(),
+			"this quarter": frappe.datetime.quarter_start(),
+			"this year": frappe.datetime.year_start(),
+			"last week": frappe.datetime.add_days(current_date, -7),
+			"last month": frappe.datetime.add_months(current_date, -1),
+			"last quarter": frappe.datetime.add_months(current_date, -3),
+			"last year": frappe.datetime.add_months(current_date, -12),
+			"all time": "",
+			"select from date": this.selected_from_date || frappe.datetime.month_start()
 		}
-		return date;
+
+		return get_from_date[timespan];
 	}
 
 }

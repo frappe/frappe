@@ -33,7 +33,7 @@ def clear_sessions(user=None, keep_current=False, device=None, force=False):
 
 	:param user: user name (default: current user)
 	:param keep_current: keep current session (default: false)
-	:param device: delete sessions of this device (default: desktop)
+	:param device: delete sessions of this device (default: desktop, mobile)
 	:param force: triggered by the user (default false)
 	'''
 
@@ -49,13 +49,16 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 
 	:param user: user name (default: current user)
 	:param keep_current: keep current session (default: false)
-	:param device: delete sessions of this device (default: desktop)
+	:param device: delete sessions of this device (default: desktop, mobile)
 	'''
 	if not user:
 		user = frappe.session.user
 
 	if not device:
-		device = frappe.session.data.device or "desktop"
+		device = ("desktop", "mobile")
+
+	if not isinstance(device, (tuple, list)):
+		device = (device,)
 
 	offset = 0
 	if user == frappe.session.user:
@@ -68,12 +71,12 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 
 	return frappe.db.sql_list("""
 		SELECT `sid` FROM `tabSessions`
-		WHERE user=%s
-		AND device=%s
+		WHERE user=%(user)s
+		AND device in %(device)s
 		{condition}
 		ORDER BY `lastupdate` DESC
 		LIMIT 100 OFFSET {offset}""".format(condition=condition, offset=offset),
-		(user, device))
+		{"user": user, "device": device})
 
 def delete_session(sid=None, user=None, reason="Session Expired"):
 	from frappe.core.doctype.activity_log.feed import logout_feed
@@ -155,7 +158,7 @@ def get():
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
 	bootinfo["setup_complete"] = cint(frappe.db.get_single_value('System Settings', 'setup_complete'))
-
+	bootinfo["is_first_startup"] = cint(frappe.db.get_single_value('System Settings', 'is_first_startup'))
 
 	return bootinfo
 

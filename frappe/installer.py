@@ -18,16 +18,16 @@ from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render
 from frappe.modules.utils import sync_customizations
 from frappe.database import setup_database
+from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
-			   db_type=None, db_host=None, db_port=None,
-			   db_password=None, no_mariadb_socket=False):
+			   db_password=None, db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
 
-	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type)
+	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
 	frappe.flags.in_install_db = True
 
 	frappe.flags.root_login = root_login
@@ -92,6 +92,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
+	sync_jobs()
 	sync_fixtures(name)
 	sync_customizations(name)
 
@@ -112,12 +113,12 @@ def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
 	if app_name in installed_apps:
 		installed_apps.remove(app_name)
-		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
+		frappe.db.set_value("DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps))
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
 
-def remove_app(app_name, dry_run=False, yes=False):
+def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 	"""Delete app and all linked to the app's module with the app."""
 
 	if not dry_run and not yes:
@@ -125,9 +126,10 @@ def remove_app(app_name, dry_run=False, yes=False):
 		if confirm!="y":
 			return
 
-	from frappe.utils.backups import scheduled_backup
-	print("Backing up...")
-	scheduled_backup(ignore_files=True)
+	if not no_backup:
+		from frappe.utils.backups import scheduled_backup
+		print("Backing up...")
+		scheduled_backup(ignore_files=True)
 
 	drop_doctypes = []
 
@@ -190,14 +192,14 @@ def init_singles():
 			doc.flags.ignore_validate=True
 			doc.save()
 
-def make_conf(db_name=None, db_password=None, site_config=None, db_type=None):
+def make_conf(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
 	site = frappe.local.site
-	make_site_config(db_name, db_password, site_config, db_type=db_type)
+	make_site_config(db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)
 
-def make_site_config(db_name=None, db_password=None, site_config=None, db_type=None):
+def make_site_config(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
 
@@ -207,6 +209,12 @@ def make_site_config(db_name=None, db_password=None, site_config=None, db_type=N
 
 			if db_type:
 				site_config['db_type'] = db_type
+
+			if db_host:
+				site_config['db_host'] = db_host
+
+			if db_port:
+				site_config['db_port'] = db_port
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
@@ -262,6 +270,7 @@ def make_site_dirs():
 			os.path.join(site_private_path, 'backups'),
 			os.path.join(site_public_path, 'files'),
 			os.path.join(site_private_path, 'files'),
+			os.path.join(frappe.local.site_path, 'logs'),
 			os.path.join(frappe.local.site_path, 'task-logs')):
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
@@ -291,7 +300,8 @@ def remove_missing_apps():
 
 def extract_sql_gzip(sql_gz_path):
 	try:
-		subprocess.check_call(['gzip', '-d', '-v', '-f', sql_gz_path])
+		# kdvf - keep, decompress, verbose, force
+		subprocess.check_call(['gzip', '-kdvf', sql_gz_path])
 	except:
 		raise
 

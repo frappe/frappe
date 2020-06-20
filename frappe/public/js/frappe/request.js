@@ -211,7 +211,7 @@ frappe.request.call = function(opts) {
 	};
 
 	if (opts.args && opts.args.doctype) {
-		ajax_args.headers["X-Frappe-Doctype"] = opts.args.doctype;
+		ajax_args.headers["X-Frappe-Doctype"] = encodeURIComponent(opts.args.doctype);
 	}
 
 	frappe.last_request = ajax_args.data;
@@ -394,11 +394,11 @@ frappe.after_ajax = function(fn) {
 	return new Promise(resolve => {
 		if(frappe.request.ajax_count) {
 			frappe.request.waiting_for_ajax.push(() => {
-				if(fn) fn();
+				if(fn) return resolve(fn());
 				resolve();
 			});
 		} else {
-			if(fn) fn();
+			if(fn) return resolve(fn());
 			resolve();
 		}
 	});

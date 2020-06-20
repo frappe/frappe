@@ -76,6 +76,23 @@ def create_contact_phone_nos_records():
 	doc.insert()
 
 @frappe.whitelist()
+def create_doctype(name, fields):
+	fields = frappe.parse_json(fields)
+	if frappe.db.exists('DocType', name):
+		return
+	frappe.get_doc({
+		"doctype": "DocType",
+		"module": "Core",
+		"custom": 1,
+		"fields": fields,
+		"permissions": [{
+			"role": "System Manager",
+			"read": 1
+		}],
+		"name": name
+	}).insert()
+
+@frappe.whitelist()
 def create_contact_records():
 	if frappe.db.get_all('Contact', {'first_name': 'Test Form Contact 1'}):
 		return

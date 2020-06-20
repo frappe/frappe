@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 
-from frappe.tests.test_website import set_request
+from frappe.utils import set_request
 from frappe.website.render import render
 from frappe.utils import random_string
 
@@ -19,7 +19,7 @@ class TestBlogPost(unittest.TestCase):
 		self.assertTrue(response.status_code, 200)
 
 		html = response.get_data().decode()
-		self.assertTrue('<article class="blog-content mb-3" itemscope itemtype="http://schema.org/BlogPosting">' in html)
+		self.assertTrue('<article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">' in html)
 
 	def test_generator_not_found(self):
 		pages = frappe.get_all('Blog Post', fields=['name', 'route'],

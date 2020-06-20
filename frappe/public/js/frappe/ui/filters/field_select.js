@@ -119,7 +119,14 @@ frappe.ui.FieldSelect = Class.extend({
 		// child tables
 		$.each(me.table_fields, function(i, table_df) {
 			if(table_df.options) {
-				var child_table_fields = [].concat(frappe.meta.docfield_list[table_df.options]);
+				let child_table_fields = [].concat(frappe.meta.docfield_list[table_df.options]);
+
+				if (table_df.fieldtype === "Table MultiSelect") {
+					const link_field = frappe.meta.get_docfields(table_df.options)
+						.find(df => df.fieldtype === 'Link');
+					child_table_fields = link_field ? [link_field] : [];
+				}
+
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
 					// show fields where user has read access and if report hide flag is not set
 					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
@@ -130,15 +137,22 @@ frappe.ui.FieldSelect = Class.extend({
 	},
 
 	add_field_option(df) {
-		if (df.fieldname == 'docstatus' && !frappe.model.is_submittable(this.doctype))
+		let me = this;
+
+		if (df.fieldname == 'docstatus' && !frappe.model.is_submittable(me.doctype))
 			return;
 
-		var me = this;
-		var label, table;
+		if (frappe.model.table_fields.includes(df.fieldtype)) {
+			me.table_fields.push(df);
+			return;
+		}
+
+		let label = null;
+		let table = null;
+
 		if(me.doctype && df.parent==me.doctype) {
 			label = __(df.label);
 			table = me.doctype;
-			if(frappe.model.table_fields.includes(df.fieldtype)) me.table_fields.push(df);
 		} else {
 			label = __(df.label) + ' (' + __(df.parent) + ')';
 			table = df.parent;

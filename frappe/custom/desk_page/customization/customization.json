@@ -1,0 +1,54 @@
+{
+ "cards": [
+  {
+   "hidden": 0,
+   "label": "Dashboards",
+   "links": "[\n    {\n        \"label\": \"Dashboard\",\n        \"name\": \"Dashboard\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"Dashboard Chart\",\n        \"name\": \"Dashboard Chart\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"Dashboard Chart Source\",\n        \"name\": \"Dashboard Chart Source\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Form Customization",
+   "links": "[\n    {\n        \"description\": \"Change field properties (hide, readonly, permission etc.)\",\n        \"label\": \"Customize Form\",\n        \"name\": \"Customize Form\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Add fields to forms.\",\n        \"label\": \"Custom Field\",\n        \"name\": \"Custom Field\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Add custom javascript to forms.\",\n        \"label\": \"Custom Script\",\n        \"name\": \"Custom Script\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Add custom forms.\",\n        \"label\": \"DocType\",\n        \"name\": \"DocType\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Other",
+   "links": "[\n    {\n        \"description\": \"Add your own translations\",\n        \"label\": \"Custom Translations\",\n        \"name\": \"Translation\",\n        \"type\": \"doctype\"\n    }\n]"
+  }
+ ],
+ "category": "Administration",
+ "charts": [],
+ "creation": "2020-03-02 15:15:03.839594",
+ "developer_mode_only": 0,
+ "disable_user_customization": 0,
+ "docstatus": 0,
+ "doctype": "Desk Page",
+ "extends_another_page": 0,
+ "idx": 0,
+ "is_standard": 1,
+ "label": "Customization",
+ "modified": "2020-04-01 11:24:40.787109",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Customization",
+ "owner": "Administrator",
+ "pin_to_bottom": 0,
+ "pin_to_top": 0,
+ "shortcuts": [
+  {
+   "label": "Customize Form",
+   "link_to": "Customize Form",
+   "type": "DocType"
+  },
+  {
+   "label": "Custom Role",
+   "link_to": "Custom Role",
+   "type": "DocType"
+  },
+  {
+   "label": "Custom Script",
+   "link_to": "Custom Script",
+   "type": "DocType"
+  }
+ ]
+}

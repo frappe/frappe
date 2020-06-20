@@ -12,7 +12,7 @@ from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields, core_doctypes_list
-from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, check_email_append_to
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.docfield import supports_translation
 
@@ -31,7 +31,11 @@ doctype_properties = {
 	'track_changes': 'Check',
 	'track_views': 'Check',
 	'allow_auto_repeat': 'Check',
-	'allow_import': 'Check'
+	'allow_import': 'Check',
+	'show_preview_popup': 'Check',
+	'email_append_to': 'Check',
+	'subject_field': 'Data',
+	'sender_field': 'Data'
 }
 
 docfield_properties = {
@@ -50,6 +54,7 @@ docfield_properties = {
 	'in_list_view': 'Check',
 	'in_standard_filter': 'Check',
 	'in_global_search': 'Check',
+	'in_preview': 'Check',
 	'bold': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
@@ -59,6 +64,8 @@ docfield_properties = {
 	'report_hide': 'Check',
 	'allow_on_submit': 'Check',
 	'translatable': 'Check',
+	'mandatory_depends_on': 'Data',
+	'read_only_depends_on': 'Data',
 	'depends_on': 'Data',
 	'description': 'Text',
 	'default': 'Text',
@@ -69,7 +76,10 @@ docfield_properties = {
 	'remember_last_selected_value': 'Check',
 	'allow_bulk_edit': 'Check',
 	'auto_repeat': 'Link',
-	'allow_in_quick_entry': 'Check'
+	'allow_in_quick_entry': 'Check',
+	'hide_border': 'Check',
+	'hide_days': 'Check',
+	'hide_seconds': 'Check'
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
@@ -111,7 +121,7 @@ class CustomizeForm(Document):
 
 		# load custom translation
 		translation = self.get_name_translation()
-		self.label = translation.target_name if translation else ''
+		self.label = translation.translated_text if translation else ''
 
 		#If allow_auto_repeat is set, add auto_repeat custom field.
 		if self.allow_auto_repeat:
@@ -124,16 +134,17 @@ class CustomizeForm(Document):
 
 	def get_name_translation(self):
 		'''Get translation object if exists of current doctype name in the default language'''
-		return frappe.get_value('Translation',
-			{'source_name': self.doc_type, 'language': frappe.local.lang or 'en'},
-			['name', 'target_name'], as_dict=True)
+		return frappe.get_value('Translation', {
+				'source_text': self.doc_type,
+				'language': frappe.local.lang or 'en'
+			}, ['name', 'translated_text'], as_dict=True)
 
 	def set_name_translation(self):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
 		if current:
-			if self.label and current.target_name != self.label:
-				frappe.db.set_value('Translation', current.name, 'target_name', self.label)
+			if self.label and current.translated_text != self.label:
+				frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
 				frappe.translate.clear_cache()
 			else:
 				# clear translation
@@ -142,8 +153,8 @@ class CustomizeForm(Document):
 		else:
 			if self.label:
 				frappe.get_doc(dict(doctype='Translation',
-					source_name=self.doc_type,
-					target_name=self.label,
+					source_text=self.doc_type,
+					translated_text=self.label,
 					language_code=frappe.local.lang or 'en')).insert()
 
 	def clear_existing_doc(self):
@@ -168,6 +179,7 @@ class CustomizeForm(Document):
 		self.update_custom_fields()
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
+		check_email_append_to(self)
 
 		if self.flags.update_db:
 			frappe.db.updatedb(self.doc_type)

@@ -179,7 +179,7 @@ def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_pat
 						  backup_path_private_files=backup_path_private_files,
 						  db_host = frappe.db.host,
 						  db_port = frappe.db.port,
-						  verbose = verbose)
+						  verbose=verbose)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
 

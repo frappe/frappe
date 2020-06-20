@@ -1,0 +1,59 @@
+{
+ "cards": [
+  {
+   "hidden": 0,
+   "label": "Users",
+   "links": "[\n    {\n        \"description\": \"System and Website Users\",\n        \"label\": \"User\",\n        \"name\": \"User\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"User Roles\",\n        \"label\": \"Role\",\n        \"name\": \"Role\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Role Profile\",\n        \"label\": \"Role Profile\",\n        \"name\": \"Role Profile\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Logs",
+   "links": "[\n    {\n        \"description\": \"Activity Log by \",\n        \"label\": \"Activity Log\",\n        \"name\": \"Activity Log\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"View Log of all print, download and export events\",\n        \"label\": \"Access Log\",\n        \"name\": \"Access Log\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Permissions",
+   "links": "[\n    {\n        \"description\": \"Set Permissions on Document Types and Roles\",\n        \"icon\": \"fa fa-lock\",\n        \"label\": \"Role Permissions Manager\",\n        \"name\": \"permission-manager\",\n        \"type\": \"page\"\n    },\n    {\n        \"description\": \"Restrict user for specific document\",\n        \"icon\": \"fa fa-lock\",\n        \"label\": \"User Permissions\",\n        \"name\": \"User Permission\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Set custom roles for page and report\",\n        \"label\": \"Role Permission for Page and Report\",\n        \"name\": \"Role Permission for Page and Report\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"dependencies\": [\n            \"User\"\n        ],\n        \"description\": \"Check which Documents are readable by a User\",\n        \"doctype\": \"User\",\n        \"icon\": \"fa fa-eye-open\",\n        \"is_query_report\": true,\n        \"label\": \"Permitted Documents For User\",\n        \"name\": \"Permitted Documents For User\",\n        \"type\": \"report\"\n    },\n    {\n        \"dependencies\": [\n            \"DocShare\"\n        ],\n        \"description\": \"Report of all document shares\",\n        \"doctype\": \"DocShare\",\n        \"icon\": \"fa fa-share\",\n        \"label\": \"Document Share Report\",\n        \"name\": \"Document Share Report\",\n        \"type\": \"report\"\n    }\n]"
+  }
+ ],
+ "category": "Administration",
+ "charts": [],
+ "creation": "2020-03-02 15:12:16.754449",
+ "developer_mode_only": 0,
+ "disable_user_customization": 0,
+ "docstatus": 0,
+ "doctype": "Desk Page",
+ "extends_another_page": 0,
+ "idx": 0,
+ "is_standard": 1,
+ "label": "Users",
+ "modified": "2020-04-26 22:36:14.311554",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Users",
+ "owner": "Administrator",
+ "pin_to_bottom": 0,
+ "pin_to_top": 0,
+ "shortcuts": [
+  {
+   "label": "User",
+   "link_to": "User",
+   "type": "DocType"
+  },
+  {
+   "label": "Role",
+   "link_to": "Role",
+   "type": "DocType"
+  },
+  {
+   "label": "Permission Manager",
+   "link_to": "permission-manager",
+   "type": "Page"
+  },
+  {
+   "label": "User Profile",
+   "link_to": "user-profile",
+   "type": "Page"
+  }
+ ]
+}

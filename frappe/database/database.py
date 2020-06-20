@@ -15,7 +15,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast_fieldtype
+from frappe.utils import now, getdate, cast_fieldtype, get_datetime
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils import cint
@@ -48,7 +48,7 @@ class Database(object):
 
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0, port=None):
 		self.setup_type_map()
-		self.host = host or frappe.conf.db_host or 'localhost'
+		self.host = host or frappe.conf.db_host or '127.0.0.1'
 		self.port = port or frappe.conf.db_port or ''
 		self.user = user or frappe.conf.db_name
 		self.db_name = frappe.conf.db_name
@@ -123,6 +123,8 @@ class Database(object):
 
 		# in transaction validations
 		self.check_transaction_status(query)
+
+		self.clear_db_table_cache(query)
 
 		# autocommit
 		if auto_commit: self.commit()
@@ -276,6 +278,11 @@ class Database(object):
 
 			ret.append(frappe._dict(zip(keys, values)))
 		return ret
+
+	@staticmethod
+	def clear_db_table_cache(query):
+		if query and query.strip().split()[0].lower() in {'drop', 'create'}:
+			frappe.cache().delete_key('db_tables')
 
 	@staticmethod
 	def needs_formatting(result, formatted):
@@ -769,7 +776,16 @@ class Database(object):
 		return ("tab" + doctype) in self.get_tables()
 
 	def get_tables(self):
-		return [d[0] for d in self.sql("select table_name from information_schema.tables where table_schema not in ('pg_catalog', 'information_schema')")]
+		tables = frappe.cache().get_value('db_tables')
+		if not tables:
+			table_rows = self.sql("""
+				SELECT table_name
+				FROM information_schema.tables
+				WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
+			""")
+			tables = {d[0] for d in table_rows}
+			frappe.cache().set_value('db_tables', tables)
+		return tables
 
 	def a_row_exists(self, doctype):
 		"""Returns True if atleast one row exists."""
@@ -940,6 +956,16 @@ class Database(object):
 			), values)
 		else:
 			frappe.throw(_('No conditions provided'))
+
+	def get_last_created(self, doctype):
+		last_record = self.get_all(doctype, ('creation'), limit=1, order_by='creation desc')
+		if last_record:
+			return get_datetime(last_record[0].creation)
+		else:
+			return None
+
+	def clear_table(self, doctype):
+		self.sql('truncate `tab{}`'.format(doctype))
 
 	def log_touched_tables(self, query, values=None):
 		if values:

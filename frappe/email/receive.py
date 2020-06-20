@@ -12,7 +12,6 @@ import frappe
 from frappe import _, safe_decode, safe_encode
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown, parse_addr)
-from frappe.utils.scheduler import log
 from frappe.core.doctype.file.file import get_random_filename, MaxFileSizeReachedError
 
 class EmailSizeExceededError(frappe.ValidationError): pass
@@ -80,7 +79,7 @@ class EmailServer:
 
 		except _socket.error:
 			# log performs rollback and logs error in Error Log
-			log("receive.connect_pop")
+			frappe.log_error("receive.connect_pop")
 
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
@@ -255,7 +254,7 @@ class EmailServer:
 
 			else:
 				# log performs rollback and logs error in Error Log
-				log("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
+				frappe.log_error("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
 				self.errors = True
 				frappe.db.rollback()
 

@@ -4,9 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
+from frappe import _, safe_encode
 from frappe.model.document import Document
-from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, confirm_otp_token)
+from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,confirm_otp_token)
 
 class LDAPSettings(Document):
 	def validate(self):
@@ -19,7 +19,7 @@ class LDAPSettings(Document):
 			else:
 				frappe.throw(_("LDAP Search String needs to end with a placeholder, eg sAMAccountName={0}"))
 
-	def connect_to_ldap(self, base_dn, password):
+	def connect_to_ldap(self, base_dn, password, read_only=True):
 		try:
 			import ldap3
 			import ssl
@@ -44,7 +44,7 @@ class LDAPSettings(Document):
 				user=base_dn,
 				password=password,
 				auto_bind=bind_type,
-				read_only=True,
+				read_only=read_only,
 				raise_exceptions=True)
 
 			return conn
@@ -170,6 +170,36 @@ class LDAPSettings(Document):
 		else:
 			frappe.throw(_("Invalid username or password"))
 
+	def reset_password(self, user, password, logout_sessions=False):
+		from ldap3 import HASHED_SALTED_SHA, MODIFY_REPLACE
+		from ldap3.utils.hashed import hashed
+
+		search_filter = "({0}={1})".format(self.ldap_email_field, user)
+
+		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False),
+			read_only=False)
+
+		if conn.search(
+			search_base=self.organizational_unit,
+			search_filter=search_filter,
+			attributes=self.get_ldap_attributes()
+		):
+			if conn.entries and conn.entries[0]:
+				entry_dn = conn.entries[0].entry_dn
+				hashed_password = hashed(HASHED_SALTED_SHA, safe_encode(password))
+				changes = {'userPassword': [(MODIFY_REPLACE, [hashed_password])]}
+				if conn.modify(entry_dn, changes=changes):
+					if logout_sessions:
+						from frappe.sessions import clear_sessions
+						clear_sessions(user=user, force=True)
+					frappe.msgprint(_("Password changed successfully."))
+				else:
+					frappe.throw(_("Failed to change password."))
+			else:
+				frappe.throw(_("No Entry for the User {0} found within LDAP!").format(user))
+		else:
+			frappe.throw(_("No LDAP User found for email: {0}").format(user))
+
 	def convert_ldap_entry_to_dict(self, user_entry):
 
 		# support multiple email values
@@ -215,3 +245,11 @@ def login():
 
 	# because of a GET request!
 	frappe.db.commit()
+
+
+@frappe.whitelist()
+def reset_password(user, password, logout):
+	ldap = frappe.get_doc("LDAP Settings")
+	if not ldap.enabled:
+		frappe.throw(_("LDAP is not enabled."))
+	ldap.reset_password(user, password, logout_sessions=int(logout))

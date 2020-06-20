@@ -1,7 +1,7 @@
 context('Control Barcode', () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit('/desk');
+		cy.visit('/desk#workspace/Website');
 	});
 
 	function get_dialog_with_barcode() {

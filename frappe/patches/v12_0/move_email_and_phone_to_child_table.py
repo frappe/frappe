@@ -1,21 +1,24 @@
 import frappe
 
 def execute():
+	frappe.reload_doc("contacts", "doctype", "contact_email")
+	frappe.reload_doc("contacts", "doctype", "contact_phone")
+	frappe.reload_doc("contacts", "doctype", "contact")
+
 	contact_details = frappe.db.sql("""
 		SELECT
 			`name`, `email_id`, `phone`, `mobile_no`, `modified_by`, `creation`, `modified`
 		FROM `tabContact`
+		where not exists (select * from `tabContact Email`
+			where `tabContact Email`.parent=`tabContact`.name
+			and `tabContact Email`.email_id=`tabContact`.email_id)
 	""", as_dict=True)
-	frappe.reload_doc("contacts", "doctype", "contact_email")
-	frappe.reload_doc("contacts", "doctype", "contact_phone")
-	frappe.reload_doc("contacts", "doctype", "contact")
 
 	email_values = []
 	phone_values = []
 	for count, contact_detail in enumerate(contact_details):
 		phone_counter = 1
 		is_primary = 1
-
 		if contact_detail.email_id:
 			email_values.append((
 				1,

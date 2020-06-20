@@ -203,6 +203,7 @@ frappe.views.BaseList = class BaseList {
 		show_sidebar = !show_sidebar;
 		localStorage.show_sidebar = show_sidebar;
 		this.show_or_hide_sidebar();
+		$(document.body).trigger('toggleListSidebar');
 	}
 
 	show_or_hide_sidebar() {
@@ -335,6 +336,11 @@ frappe.views.BaseList = class BaseList {
 		return this.filter_area
 			? this.filter_area.get().map(filter => filter.slice(0, 4))
 			: [];
+	}
+
+	get_filter_value(fieldname) {
+		return this.get_filters_for_args().filter(f => f[1] == fieldname)[0] &&
+			this.get_filters_for_args().filter(f => f[1] == fieldname)[0][3];
 	}
 
 	get_args() {
@@ -686,5 +692,5 @@ class FilterArea {
 }
 
 // utility function to validate view modes
-frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report'];
+frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report', 'Dashboard'];
 frappe.views.is_valid = view_mode => frappe.views.view_modes.includes(view_mode);

@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe, json
 import frappe.defaults
+from frappe.model.document import Document
 from frappe.desk.notifications import (delete_notification_count_for,
 	clear_notifications)
 
@@ -14,14 +15,16 @@ global_cache_keys = ("app_hooks", "installed_apps",
 		"app_modules", "module_app", "system_settings",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
 		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
-		'domain_restricted_doctypes', 'domain_restricted_pages', 'information_schema:counts')
+		'domain_restricted_doctypes', 'domain_restricted_pages', 'information_schema:counts',
+		'sitemap_routes', 'db_tables')
 
 user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "home_page", "linked_with",
-		"desktop_icons", 'portal_menu_items')
+		"desktop_icons", 'portal_menu_items', 'user_perm_can_read',
+		"has_role:Page", "has_role:Report")
 
 doctype_cache_keys = ("meta", "form_meta", "table_columns", "last_modified",
-		"linked_doctypes", 'notifications', 'workflow' ,'energy_point_rule_map')
+		"linked_doctypes", 'notifications', 'workflow' ,'energy_point_rule_map', 'data_import_column_header_map')
 
 
 def clear_user_cache(user=None):
@@ -122,13 +125,14 @@ def clear_doctype_map(doctype, name):
 	cache_key = frappe.scrub(doctype) + '_map'
 	frappe.cache().hdel(cache_key, name)
 
-def build_table_count_cache(*args, **kwargs):
+def build_table_count_cache():
 	if (frappe.flags.in_patch
 		or frappe.flags.in_install
 		or frappe.flags.in_migrate
 		or frappe.flags.in_import
 		or frappe.flags.in_setup_wizard):
 		return
+
 	_cache = frappe.cache()
 	data = frappe.db.multisql({
 		"mariadb": """

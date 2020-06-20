@@ -28,10 +28,11 @@ def get_info(show_failed=False):
 		if j.kwargs.get('site')==frappe.local.site:
 			jobs.append({
 				'job_name': j.kwargs.get('kwargs', {}).get('playbook_method') \
+					or j.kwargs.get('kwargs', {}).get('job_type') \
 					or str(j.kwargs.get('job_name')),
-				'status': j.status, 'queue': name,
+				'status': j.get_status(), 'queue': name,
 				'creation': format_datetime(convert_utc_to_user_timezone(j.created_at)),
-				'color': colors[j.status]
+				'color': colors[j.get_status()]
 			})
 			if j.exc_info:
 				jobs[-1]['exc_info'] = j.exc_info

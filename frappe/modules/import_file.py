@@ -12,8 +12,12 @@ ignore_values = {
 	"Report": ["disabled", "prepared_report"],
 	"Print Format": ["disabled"],
 	"Notification": ["enabled"],
-	"Print Style": ["disabled"]
+	"Print Style": ["disabled"],
+	"Module Onboarding": ['is_complete'],
+	"Onboarding Step": ['is_complete', 'is_skipped']
 }
+
+ignore_doctypes = [""]
 
 def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_permissions=False):
 	if type(module) is list:
@@ -92,8 +96,6 @@ def read_doc_from_file(path):
 
 	return doc
 
-ignore_doctypes = [""]
-
 def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		ignore_version=None, reset_permissions=False):
 	frappe.flags.in_import = True
@@ -114,7 +116,7 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 	ignore = []
 
 	if frappe.db.exists(doc.doctype, doc.name):
-		# import pdb; pdb.set_trace()
+
 		old_doc = frappe.get_doc(doc.doctype, doc.name)
 
 		if doc.doctype in ignore_values:

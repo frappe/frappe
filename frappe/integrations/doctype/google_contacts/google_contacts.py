@@ -147,11 +147,14 @@ def sync_contacts_from_google_contacts(g_contact):
 	results = []
 	contacts_updated = 0
 
+	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
+	contacts = frappe._dict()
+
 	while True:
 		try:
-			sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
-			contacts = google_contacts.people().connections().list(resourceName='people/me',syncToken=sync_token,
-				personFields="names,emailAddresses,organizations,phoneNumbers").execute()
+			contacts = google_contacts.people().connections().list(resourceName='people/me', pageToken=contacts.get("nextPageToken"),
+				syncToken=sync_token, pageSize=2000, requestSyncToken=True, personFields="names,emailAddresses,organizations,phoneNumbers").execute()
+
 		except HttpError as err:
 			frappe.throw(_("Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}.").format(account.name, err.resp.status))
 

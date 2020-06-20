@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
+from dateutil.parser._parser import ParserError
 import subprocess
 import operator
 import re, datetime, math, time
@@ -43,8 +44,12 @@ def getdate(string_date=None):
 
 	if is_invalid_date_string(string_date):
 		return None
-
-	return parser.parse(string_date).date()
+	try:
+		return parser.parse(string_date).date()
+	except ParserError:
+		frappe.throw(frappe._('{} is not a valid date string.').format(
+			frappe.bold(string_date)
+		), title=frappe._('Invalid Date'))
 
 def get_datetime(datetime_str=None):
 	if not datetime_str:
@@ -174,7 +179,7 @@ def nowtime():
 	"""return current time in hh:mm"""
 	return now_datetime().strftime(TIME_FORMAT)
 
-def get_first_day(dt, d_years=0, d_months=0):
+def get_first_day(dt, d_years=0, d_months=0, as_str=False):
 	"""
 	 Returns the first day of the month for the date specified by date object
 	 Also adds `d_years` and `d_months` if specified
@@ -185,10 +190,27 @@ def get_first_day(dt, d_years=0, d_months=0):
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
-	return datetime.date(year, month + 1, 1)
+	return datetime.date(year, month + 1, 1).strftime(DATE_FORMAT) if as_str else datetime.date(year, month + 1, 1)
 
-def get_first_day_of_week(dt):
-	return dt - datetime.timedelta(days=dt.weekday())
+def get_quarter_start(dt, as_str=False):
+	date = getdate(dt)
+	quarter = (date.month - 1) // 3 + 1
+	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
+	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
+
+def get_first_day_of_week(dt, as_str=False):
+	dt = getdate(dt)
+	date = dt - datetime.timedelta(days=dt.weekday())
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_year_start(dt, as_str=False):
+	dt = getdate(dt)
+	date = datetime.date(dt.year, 1, 1)
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_last_day_of_week(dt):
+	dt = get_first_day_of_week(dt)
+	return dt + datetime.timedelta(days=6)
 
 def get_last_day(dt):
 	"""
@@ -213,22 +235,44 @@ def get_datetime_str(datetime_obj):
 		datetime_obj = get_datetime(datetime_obj)
 	return datetime_obj.strftime(DATETIME_FORMAT)
 
-def get_user_format():
-	if getattr(frappe.local, "user_format", None) is None:
-		frappe.local.user_format = frappe.db.get_default("date_format")
+def get_date_str(date_obj):
+	if isinstance(date_obj, string_types):
+		date_obj = get_datetime(date_obj)
+	return date_obj.strftime(DATE_FORMAT)
 
-	return frappe.local.user_format or "yyyy-mm-dd"
+def get_time_str(timedelta_obj):
+	if isinstance(timedelta_obj, string_types):
+		timedelta_obj = to_timedelta(timedelta_obj)
 
-def formatdate(string_date=None, format_string=None):
-	"""
-		Converts the given string date to :data:`user_format`
-		User format specified in defaults
+	hours, remainder = divmod(timedelta_obj.seconds, 3600)
+	minutes, seconds = divmod(remainder, 60)
+	return "{0}:{1}:{2}".format(hours, minutes, seconds)
 
-		 Examples:
+def get_user_date_format():
+	"""Get the current user date format. The result will be cached."""
+	if getattr(frappe.local, "user_date_format", None) is None:
+		frappe.local.user_date_format = frappe.db.get_default("date_format")
 
-		 * dd-mm-yyyy
-		 * mm-dd-yyyy
-		 * dd/mm/yyyy
+	return frappe.local.user_date_format or "yyyy-mm-dd"
+
+get_user_format = get_user_date_format  # for backwards compatibility
+
+def get_user_time_format():
+	"""Get the current user time format. The result will be cached."""
+	if getattr(frappe.local, "user_time_format", None) is None:
+		frappe.local.user_time_format = frappe.db.get_default("time_format")
+
+	return frappe.local.user_time_format or "HH:mm:ss"
+
+def format_date(string_date=None, format_string=None):
+	"""Converts the given string date to :data:`user_date_format`
+	User format specified in defaults
+
+	Examples:
+
+	* dd-mm-yyyy
+	* mm-dd-yyyy
+	* dd/mm/yyyy
 	"""
 
 	if not string_date:
@@ -236,35 +280,94 @@ def formatdate(string_date=None, format_string=None):
 
 	date = getdate(string_date)
 	if not format_string:
-		format_string = get_user_format()
+		format_string = get_user_date_format()
 	format_string = format_string.replace("mm", "MM")
 	try:
-		formatted_date = babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+		formatted_date = babel.dates.format_date(
+			date, format_string,
+			locale=(frappe.local.lang or "").replace("-", "_"))
 	except UnknownLocaleError:
 		format_string = format_string.replace("MM", "%m").replace("dd", "%d").replace("yyyy", "%Y")
 		formatted_date = date.strftime(format_string)
 	return formatted_date
 
-def format_time(txt):
+formatdate = format_date  # For backwards compatibility
+
+def format_time(time_string=None, format_string=None):
+	"""Converts the given string time to :data:`user_time_format`
+	User format specified in defaults
+
+	Examples:
+
+	* HH:mm:ss
+	* HH:mm
+	"""
+
+	if not time_string:
+		return ''
+
+	time_ = get_time(time_string)
+	if not format_string:
+		format_string = get_user_time_format()
 	try:
-		formatted_time = babel.dates.format_time(get_time(txt), locale=(frappe.local.lang or "").replace("-", "_"))
+		formatted_time = babel.dates.format_time(
+			time_, format_string,
+			locale=(frappe.local.lang or "").replace("-", "_"))
 	except UnknownLocaleError:
-		formatted_time = get_time(txt).strftime("%H:%M:%S")
+		formatted_time = time_.strftime("%H:%M:%S")
 	return formatted_time
 
 def format_datetime(datetime_string, format_string=None):
+	"""Converts the given string time to :data:`user_datetime_format`
+	User format specified in defaults
+
+	Examples:
+
+	* dd-mm-yyyy HH:mm:ss
+	* mm-dd-yyyy HH:mm
+	"""
 	if not datetime_string:
 		return
 
 	datetime = get_datetime(datetime_string)
 	if not format_string:
-		format_string = get_user_format().replace("mm", "MM") + " HH:mm:ss"
+		format_string = (
+			get_user_date_format().replace("mm", "MM")
+			+ ' ' + get_user_time_format())
 
 	try:
 		formatted_datetime = babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 	except UnknownLocaleError:
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
+
+def format_duration(seconds, hide_days=False):
+	total_duration = {
+		'days': math.floor(seconds / (3600 * 24)),
+		'hours': math.floor(seconds % (3600 * 24) / 3600),
+		'minutes': math.floor(seconds % 3600 / 60),
+		'seconds': math.floor(seconds % 60)
+	}
+
+	if hide_days:
+		total_duration['hours'] = math.floor(seconds / 3600)
+		total_duration['days'] = 0
+
+	duration = ''
+	if total_duration:
+		if total_duration.get('days'):
+			duration += str(total_duration.get('days')) + 'd'
+		if total_duration.get('hours'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('hours')) + 'h'
+		if total_duration.get('minutes'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('minutes')) + 'm'
+		if total_duration.get('seconds'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('seconds')) + 's'
+
+	return duration
 
 def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -274,6 +377,27 @@ def get_weekday(datetime=None):
 		datetime = now_datetime()
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
+
+def get_timespan_date_range(timespan):
+	date_range_map = {
+		"last week": [add_to_date(nowdate(), days=-7), nowdate()],
+		"last month": [add_to_date(nowdate(), months=-1), nowdate()],
+		"last quarter": [add_to_date(nowdate(), months=-3), nowdate()],
+		"last 6 months": [add_to_date(nowdate(), months=-6), nowdate()],
+		"last year": [add_to_date(nowdate(), years=-1), nowdate()],
+		"today": [nowdate(), nowdate()],
+		"this week": [get_first_day_of_week(nowdate(), as_str=True), nowdate()],
+		"this month": [get_first_day(nowdate(), as_str=True), nowdate()],
+		"this quarter": [get_quarter_start(nowdate(), as_str=True), nowdate()],
+		"this year": [get_year_start(nowdate(), as_str=True), nowdate()],
+		"next week": [nowdate(), add_to_date(nowdate(), days=7)],
+		"next month": [nowdate(), add_to_date(nowdate(), months=1)],
+		"next quarter": [nowdate(), add_to_date(nowdate(), months=3)],
+		"next 6 months": [nowdate(), add_to_date(nowdate(), months=6)],
+		"next year": [nowdate(), add_to_date(nowdate(), years=1)],
+	}
+
+	return date_range_map.get(timespan)
 
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
@@ -295,7 +419,7 @@ def flt(s, precision=None):
 		if precision is not None:
 			num = rounded(num, precision)
 	except Exception:
-		num = 0
+		num = 0.0
 
 	return num
 
@@ -367,14 +491,14 @@ def rounded(num, precision=0):
 	# avoid rounding errors
 	num = round(num * multiplier if precision else num, 8)
 
-	floor = math.floor(num)
-	decimal_part = num - floor
+	floor_num = math.floor(num)
+	decimal_part = num - floor_num
 
 	if not precision and decimal_part == 0.5:
-		num = floor if (floor % 2 == 0) else floor + 1
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
 	else:
 		if decimal_part == 0.5:
-			num = floor + 1
+			num = floor_num + 1
 		else:
 			num = round(num)
 
@@ -617,6 +741,47 @@ def is_image(filepath):
 	filepath = filepath.split('?')[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
+def get_thumbnail_base64_for_image(src):
+	from PIL import Image
+	from frappe.core.doctype.file.file import get_local_image
+	from frappe import safe_decode, cache
+
+	if not src:
+		frappe.throw('Invalid source for image: {0}'.format(src))
+
+	if not src.startswith('/files'):
+		return
+
+	def _get_base64():
+		try:
+			image, unused_filename, extn = get_local_image(src)
+		except IOError:
+			return
+
+		original_size = image.size
+		size = 50, 50
+		image.thumbnail(size, Image.ANTIALIAS)
+
+		base64_string = image_to_base64(image, extn)
+		return {
+			'base64': 'data:image/{0};base64,{1}'.format(extn, safe_decode(base64_string)),
+			'width': original_size[0],
+			'height': original_size[1]
+		}
+
+	return cache().hget('thumbnail_base64', src, generator=_get_base64)
+
+def image_to_base64(image, extn):
+	import base64
+	from io import BytesIO
+
+	buffered = BytesIO()
+	if extn.lower() == 'jpg':
+		extn = 'JPEG'
+	image.save(buffered, extn)
+	img_str = base64.b64encode(buffered.getvalue())
+	return img_str
+
 
 # from Jinja2 code
 _striptags_re = re.compile(r'(<!--.*?-->|<[^>]*>)')
@@ -625,6 +790,9 @@ def strip_html(text):
 	return _striptags_re.sub("", text)
 
 def escape_html(text):
+	if not isinstance(text, string_types):
+		return text
+
 	html_escape_table = {
 		"&": "&amp;",
 		'"': "&quot;",
@@ -685,13 +853,13 @@ def pretty_date(iso_datetime):
 	else:
 		return '{0} years ago'.format(cint(math.floor(dt_diff_days / 365.0)))
 
-def comma_or(some_list):
-	return comma_sep(some_list, frappe._("{0} or {1}"))
+def comma_or(some_list, add_quotes=True):
+	return comma_sep(some_list, frappe._("{0} or {1}"), add_quotes)
 
-def comma_and(some_list):
-	return comma_sep(some_list, frappe._("{0} and {1}"))
+def comma_and(some_list ,add_quotes=True):
+	return comma_sep(some_list, frappe._("{0} and {1}"), add_quotes)
 
-def comma_sep(some_list, pattern):
+def comma_sep(some_list, pattern, add_quotes=True):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
 		some_list = [text_type(s) for s in list(some_list)]
@@ -700,7 +868,7 @@ def comma_sep(some_list, pattern):
 		elif len(some_list) == 1:
 			return some_list[0]
 		else:
-			some_list = ["'%s'" % s for s in some_list]
+			some_list = ["'%s'" % s for s in some_list] if add_quotes else ["%s" % s for s in some_list]
 			return pattern.format(", ".join(frappe._(s) for s in some_list[:-1]), some_list[-1])
 	else:
 		return some_list
@@ -871,7 +1039,7 @@ def compare(val1, condition, val2):
 
 	return ret
 
-def get_filter(doctype, f):
+def get_filter(doctype, f, filters_config=None):
 	"""Returns a _dict like
 
 		{
@@ -906,7 +1074,15 @@ def get_filter(doctype, f):
 		f.operator = "="
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "is",
-		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "previous", "next")
+		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of",
+		"timespan", "previous", "next")
+
+	if filters_config:
+		additional_operators = []
+		for key in filters_config:
+			additional_operators.append(key.lower())
+		valid_operators = tuple(set(valid_operators + tuple(additional_operators)))
+
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
@@ -1030,6 +1206,7 @@ def md_to_html(markdown_text):
 		'fenced-code-blocks': None,
 		'tables': None,
 		'header-ids': None,
+		'toc': None,
 		'highlightjs-lang': None,
 		'html-classes': {
 			'table': 'table table-bordered',
@@ -1055,3 +1232,78 @@ def get_source_value(source, key):
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''
 	return len(list(set(list_a) & set(list_b))) == len(list_a)
+
+def generate_hash(*args, **kwargs):
+	return frappe.generate_hash(*args, **kwargs)
+
+
+
+def guess_date_format(date_string):
+	DATE_FORMATS = [
+		r"%d-%m-%Y",
+		r"%m-%d-%Y",
+		r"%Y-%m-%d",
+		r"%d-%m-%y",
+		r"%m-%d-%y",
+		r"%y-%m-%d",
+		r"%d/%m/%Y",
+		r"%m/%d/%Y",
+		r"%Y/%m/%d",
+		r"%d/%m/%y",
+		r"%m/%d/%y",
+		r"%y/%m/%d",
+		r"%d.%m.%Y",
+		r"%m.%d.%Y",
+		r"%Y.%m.%d",
+		r"%d.%m.%y",
+		r"%m.%d.%y",
+		r"%y.%m.%d",
+	]
+
+	TIME_FORMATS = [
+		r"%H:%M:%S.%f",
+		r"%H:%M:%S",
+		r"%H:%M",
+		r"%I:%M:%S.%f %p",
+		r"%I:%M:%S %p",
+		r"%I:%M %p",
+	]
+
+	date_string = date_string.strip()
+
+	_date = None
+	_time = None
+
+	if " " in date_string:
+		_date, _time = date_string.split(" ", 1)
+	else:
+		_date = date_string
+
+	date_format = None
+	time_format = None
+
+	for f in DATE_FORMATS:
+		try:
+			# if date is parsed without any exception
+			# capture the date format
+			datetime.datetime.strptime(_date, f)
+			date_format = f
+			break
+		except ValueError:
+			pass
+
+	if _time:
+		for f in TIME_FORMATS:
+			try:
+				# if time is parsed without any exception
+				# capture the time format
+				datetime.datetime.strptime(_time, f)
+				time_format = f
+				break
+			except ValueError:
+				pass
+
+	full_format = date_format
+	if time_format:
+		full_format += " " + time_format
+	return full_format

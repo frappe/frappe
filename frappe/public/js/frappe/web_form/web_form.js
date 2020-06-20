@@ -83,7 +83,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_cancel_button() {
-		this.add_button_to_header("Cancel", "light", () => this.cancel());
+		this.add_button_to_header(__("Cancel"), "light", () => this.cancel());
 	}
 
 	setup_delete_button() {
@@ -108,13 +108,14 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		}
 
 		// validation hack: get_values will check for missing data
-		let isvalid = super.get_values(this.allow_incomplete);
+		let doc_values = super.get_values(this.allow_incomplete);
 
-		if (!isvalid) return;
+		if (!doc_values) return;
 
 		if (window.saving) return;
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
 
+		Object.assign(this.doc, doc_values);
 		this.doc.doctype = this.doc_type;
 		this.doc.web_form_name = this.name;
 
@@ -138,6 +139,16 @@ export default class WebForm extends frappe.ui.FieldGroup {
 					this.handle_success(response.message);
 					frappe.web_form.events.trigger('after_save');
 					this.after_save && this.after_save();
+					// args doctype and docname added to link doctype in file manager
+					frappe.call({
+						type: 'POST',
+						method: "frappe.handler.upload_file",
+						args: {
+							file_url: response.message.attachment,
+							doctype: response.message.doctype,
+							docname: response.message.name
+						}
+					});
 				}
 			},
 			always: function() {

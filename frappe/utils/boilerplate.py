@@ -151,6 +151,10 @@ app_license = "{app_license}"
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
 # web_include_js = "/assets/{app_name}/js/{app_name}.js"
 
+# include js, css files in header of web form
+# webform_include_js = {{"doctype": "public/js/doctype.js"}}
+# webform_include_css = {{"doctype": "public/css/doctype.css"}}
+
 # include js in page
 # page_js = {{"page" : "public/js/file.js"}}
 
@@ -255,6 +259,10 @@ app_license = "{app_license}"
 # override_doctype_dashboards = {{
 # 	"Task": "{app_name}.task.get_dashboard_data"
 # }}
+
+# exempt linked doctypes from being automatically cancelled
+#
+# auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
 """
 

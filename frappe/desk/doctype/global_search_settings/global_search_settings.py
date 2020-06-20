@@ -61,7 +61,7 @@ def update_global_search_doctypes():
 			if search_doctypes.get(domain):
 				global_search_doctypes.extend(search_doctypes.get(domain))
 
-	doctype_list = set([dt.name for dt in frappe.get_list("DocType")])
+	doctype_list = set([dt.name for dt in frappe.get_all("DocType")])
 	allowed_in_global_search = []
 
 	for dt in global_search_doctypes:

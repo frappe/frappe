@@ -43,6 +43,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 				me.multilingual_preview();
 			});
 
+		this.wrapper
+			.find(".print-preview-refresh")
+			.on("click", function () {
+				me.set_default_print_language();
+				me.multilingual_preview();
+			});
+
 		//On selection of language get code and pass it to preview method
 		this.language_sel = this.wrapper
 			.find(".languages")

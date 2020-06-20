@@ -81,6 +81,12 @@ class Monitor:
 				self.data.request.status_code = response.status_code
 				self.data.request.response_length = int(response.headers.get("Content-Length", 0))
 
+				if hasattr(frappe.local, "rate_limiter"):
+					limiter = frappe.local.rate_limiter
+					self.data.request.counter = limiter.counter
+					if limiter.rejected:
+						self.data.request.reset = limiter.reset
+
 			self.store()
 		except Exception:
 			traceback.print_exc()

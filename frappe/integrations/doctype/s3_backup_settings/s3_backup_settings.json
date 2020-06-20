@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2017-09-04 20:57:20.129205",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -36,6 +37,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Send Notifications To",
+   "mandatory_depends_on": "enabled",
    "reqd": 1
   },
   {
@@ -50,6 +52,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Backup Frequency",
+   "mandatory_depends_on": "enabled",
    "options": "Daily\nWeekly\nMonthly\nNone",
    "reqd": 1
   },
@@ -58,6 +61,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Access Key ID",
+   "mandatory_depends_on": "enabled",
    "reqd": 1
   },
   {
@@ -65,6 +69,7 @@
    "fieldtype": "Password",
    "in_list_view": 1,
    "label": "Access Key Secret",
+   "mandatory_depends_on": "enabled",
    "reqd": 1
   },
   {
@@ -84,13 +89,15 @@
    "fieldname": "bucket",
    "fieldtype": "Data",
    "label": "Bucket Name",
+   "mandatory_depends_on": "enabled",
    "reqd": 1
   },
   {
-   "description": "Set to 0 for no limit on the number of backups taken.",
+   "description": "Set to 0 for no limit on the number of backups taken",
    "fieldname": "backup_limit",
    "fieldtype": "Int",
    "label": "Backup Limit",
+   "mandatory_depends_on": "enabled",
    "reqd": 1
   },
   {
@@ -143,7 +150,8 @@
  ],
  "hide_toolbar": 1,
  "issingle": 1,
- "modified": "2020-04-13 21:15:35.197420",
+ "links": [],
+ "modified": "2020-04-13 20:57:24.432183",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "S3 Backup Settings",

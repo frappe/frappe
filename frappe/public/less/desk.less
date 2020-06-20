@@ -35,6 +35,10 @@ a[disabled="disabled"] {
 	background-color: @light-bg;
 	padding: 7px;
 	border-radius: 3px;
+
+	&:hover {
+		background-color: #cfdce5;
+	}
 }
 
 .alert-badge {
@@ -309,6 +313,23 @@ li.user-progress {
 	.progress-bar {
 		transition: unset;
 		background-color: #98d85b;
+	}
+}
+
+.restricted-button {
+	padding: 0px 10px;
+	border: 1px solid @yellow;
+	height: 25px;
+	font-weight: 600;
+	border-radius:  5px;
+	background: lightyellow;
+	color: @text-light;
+	margin: auto 5px auto auto;
+	font-size: @text-small;
+	outline: 0;
+	.octicon-lock {
+		padding-right: 5px;
+		font-size: 12px;
 	}
 }
 
@@ -898,6 +919,7 @@ input[type="checkbox"] {
 	&:focus {
 		outline: none;
 	}
+
 	.fa-circle {
 		font-size: 10px;
 		margin: 0px 2px;
@@ -929,6 +951,7 @@ input[type="checkbox"] {
 	}
 	.lead {
 		margin-top: 20px;
+		font-weight: 500;
 	}
 	.success-state {
 		margin-bottom: 20px;
@@ -960,30 +983,60 @@ input[type="checkbox"] {
 	}
 }
 
-// User Progress Dialog
-.user-progress-dialog {
+// Onboarding Dialog
+.onboarding-dialog {
+
+	.slide-body {
+		margin-right: auto;
+		margin-left: auto;
+	}
+
+	.slides-wrapper {
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.modal-content {
+		border: 1px solid #d1d8dd;
+  		box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
+	}
+
+	.modal-backdrop {
+		background-color: #ffffff;
+	}
+
+	.modal-backdrop.in {
+		opacity: 1;
+	}
+
+	.modal-dialog {
+		height: 80%;
+		max-width: none;
+	}
+
+	.onboarding-icon {
+		color: @text-muted;
+		margin-right: 5px;
+	}
+
+	.modal-content .slide-container {
+		height: auto;
+		min-height: 100%;
+		bottom: 0;
+	}
+
+	img {
+		max-height: 175px;
+		width: auto;
+	}
+
 	.slides-progress {
 		margin-top: 15px;
 	}
 
-	.done-state {
-		.check-container {
-			font-size: 64px;
-			margin: 40px;
-		}
-
-		.title {
-			font-weight: normal;
-		}
-
-		.help-links {
-
-			a {
-				margin: 0px 10px;
-			}
-		}
+	.skip-btn {
+		padding: 5px 0px 5px 0px;
 	}
-
 }
 
 /* broken image styling */
@@ -1132,5 +1185,15 @@ body.no-sidebar {
 .app-change-log-body {
 	h1 {
 		font-size: 20px;
+	}
+}
+
+.new-version-log {
+	.new-version-links {
+		padding: 5px 0px;
+	}
+
+	&:not(:last-child) {
+		margin-bottom: 1em;
 	}
 }

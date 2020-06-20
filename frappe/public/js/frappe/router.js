@@ -12,6 +12,7 @@ frappe.route_history = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
 frappe.route_options = null;
+frappe.route_hooks = {};
 
 frappe.route = function() {
 
@@ -46,8 +47,7 @@ frappe.route = function() {
 
 	if(route[0]) {
 		const title_cased_route = frappe.utils.to_title_case(route[0]);
-
-		if (title_cased_route === 'Desktop') {
+		if (title_cased_route === 'Workspace') {
 			frappe.views.pageview.show('');
 		}
 

@@ -37,10 +37,16 @@ class S3BackupSettings(Document):
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
 		try:
-			conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
-				'LocationConstraint': self.region})
-		except ClientError:
-			frappe.throw(_("Unable to create bucket: {0}. Change it to a more unique name.").format(bucket_lower))
+			# Head_bucket returns a 200 OK if the bucket exists and have access to it.
+			conn.head_bucket(Bucket=bucket_lower)
+		except ClientError as e:
+			error_code = e.response['Error']['Code']
+			if error_code == '403':
+				frappe.throw(_("Do not have permission to access {0} bucket.").format(bucket_lower))
+			else:   # '400'-Bad request or '404'-Not Found return
+				# try to create bucket
+				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
+					'LocationConstraint': self.region})
 
 
 @frappe.whitelist()
@@ -61,12 +67,10 @@ def take_backups_weekly():
 def take_backups_monthly():
 	take_backups_if("Monthly")
 
-
 def take_backups_if(freq):
 	if cint(frappe.db.get_value("S3 Backup Settings", None, "enabled")):
 		if frappe.db.get_value("S3 Backup Settings", None, "frequency") == freq:
 			take_backups_s3()
-
 
 @frappe.whitelist()
 def take_backups_s3(retry_count=0):
@@ -109,7 +113,7 @@ def backup_to_s3():
 
 	if frappe.flags.create_new_backup:
 		backup = new_backup(ignore_files=False, backup_path_db=None,
-							backup_path_files=None, backup_path_private_files=None, force=True)
+						backup_path_files=None, backup_path_private_files=None, force=True)
 		db_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
 		if backup_files:
 			files_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_files))
@@ -119,6 +123,7 @@ def backup_to_s3():
 			db_filename, files_filename, private_files = get_latest_backup_file(with_files=backup_files)
 		else:
 			db_filename = get_latest_backup_file()
+
 	folder = os.path.basename(db_filename)[:15] + '/'
 	# for adding datetime to folder name
 

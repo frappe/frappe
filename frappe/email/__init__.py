@@ -65,7 +65,7 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 	com_doctypes = []
 	if len(txt)<2:
 
-		for name in ["Customer", "Supplier"]:
+		for name in frappe.get_hooks("communication_doctypes"):
 			try:
 				module = load_doctype_module(name, suffix='_dashboard')
 				if hasattr(module, 'get_data'):

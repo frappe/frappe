@@ -196,8 +196,6 @@ class FormMeta(Meta):
 				self.get("__messages").update(messages, as_value=True)
 
 	def load_dashboard(self):
-		if self.custom:
-			return
 		self.set('__dashboard', self.get_dashboard_data())
 
 	def load_kanban_meta(self):

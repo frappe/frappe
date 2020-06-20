@@ -95,7 +95,7 @@ def get_reference_details(reference_doctype, doctype, reference_list, reference_
 		temp_records.append(d[1:])
 
 	if not reference_list:
-		frappe.throw(_("No records present in {0}".format(reference_doctype)))
+		frappe.throw(_("No records present in {0}").format(reference_doctype))
 
 	reference_details[reference_list[0]][frappe.scrub(doctype)] = temp_records
 	return reference_details

@@ -58,7 +58,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 	elif report.report_type == 'Script Report':
 		res = report.execute_script_report(filters)
 
-	columns, result, message, chart, data_to_be_printed, skip_total_row = \
+	columns, result, message, chart, report_summary, skip_total_row = \
 		ljust_list(res, 6)
 
 	if report.custom_columns:
@@ -89,7 +89,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		"columns": columns,
 		"message": message,
 		"chart": chart,
-		"data_to_be_printed": data_to_be_printed,
+		"report_summary": report_summary,
 		"skip_total_row": skip_total_row or 0,
 		"status": None,
 		"execution_time": frappe.cache().hget('report_execution_time', report.name) or 0
@@ -450,9 +450,10 @@ def get_data_for_custom_report(columns):
 def save_report(reference_report, report_name, columns):
 	report_doc = get_report_doc(reference_report)
 
-	docname = frappe.db.exists("Report", report_name)
+	docname = frappe.db.exists("Report",
+		{'report_name': report_name, 'is_standard': 'No', 'report_type': 'Custom Report'})
 	if docname:
-		report = frappe.get_doc("Report", {'report_name': docname, 'is_standard': 'No', 'report_type': 'Custom Report'})
+		report = frappe.get_doc("Report", docname)
 		report.update({"json": columns})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
@@ -468,7 +469,7 @@ def save_report(reference_report, report_name, columns):
 			'report_type': 'Custom Report',
 			'reference_report': reference_report
 		}).insert(ignore_permissions = True)
-		frappe.msgprint(_("{0} saved successfully".format(new_report.name)))
+		frappe.msgprint(_("{0} saved successfully").format(new_report.name))
 		return new_report.name
 
 

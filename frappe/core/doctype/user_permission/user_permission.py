@@ -53,7 +53,7 @@ class UserPermission(Document):
 			}, limit=1)
 		if overlap_exists:
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
-			frappe.throw(_("{0} has already assigned default value for {1}.".format(ref_link, self.allow)))
+			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
 
 @frappe.whitelist()
 def get_user_permissions(user=None):

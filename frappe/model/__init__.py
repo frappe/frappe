@@ -34,7 +34,8 @@ data_fieldtypes = (
 	'Signature',
 	'Color',
 	'Barcode',
-	'Geolocation'
+	'Geolocation',
+	'Duration'
 )
 
 no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Table MultiSelect', 'Button', 'Image',
@@ -45,9 +46,10 @@ default_fields = ('doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus')
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 table_fields = ('Table', 'Table MultiSelect')
-core_doctypes_list = ('DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
+core_doctypes_list = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link', 'User', 'Role', 'Has Role',
 	'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
 	'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script')
+data_field_options = ('Email', 'Name', 'Phone')
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
 	if not tarfields:

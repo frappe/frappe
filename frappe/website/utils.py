@@ -3,10 +3,14 @@
 
 from __future__ import unicode_literals
 import functools
-import frappe, re, os
+import re
+import os
+import frappe
+
 from six import iteritems
 from past.builtins import cmp
 from frappe.utils import markdown
+
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -20,7 +24,7 @@ def delete_page_cache(path):
 			cache.delete_key(name)
 
 def find_first_image(html):
-	m = re.finditer("""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
+	m = re.finditer(r"""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
 	try:
 		return next(m).groups()[0]
 	except StopIteration:
@@ -33,16 +37,34 @@ def can_cache(no_cache=False):
 		return False
 	return not no_cache
 
+
 def get_comment_list(doctype, name):
-	return frappe.get_all('Comment',
-			fields = ['name', 'creation', 'owner', 'comment_email', 'comment_by', 'content'],
-			filters = dict(
-				reference_doctype = doctype,
-				reference_name = name,
-				comment_type = 'Comment',
-				published = 1
-			),
-			order_by = 'creation asc')
+	comments = frappe.get_all('Comment',
+		fields=['name', 'creation', 'owner',
+				'comment_email', 'comment_by', 'content'],
+		filters=dict(
+			reference_doctype=doctype,
+			reference_name=name,
+			comment_type='Comment',
+		),
+		or_filters=[
+			['owner', '=', frappe.session.user],
+			['published', '=', 1]])
+
+	communications = frappe.get_all("Communication",
+		fields=['name', 'creation', 'owner', 'owner as comment_email',
+				'sender_full_name as comment_by', 'content', 'recipients'],
+		filters=dict(
+			reference_doctype=doctype,
+			reference_name=name,
+		),
+		or_filters=[
+			['recipients', 'like', '%{0}%'.format(frappe.session.user)],
+			['cc', 'like', '%{0}%'.format(frappe.session.user)],
+			['bcc', 'like', '%{0}%'.format(frappe.session.user)]])
+
+	return sorted((comments + communications), key=lambda comment: comment['creation'], reverse=True)
+
 
 def get_home_page():
 	if frappe.local.flags.home_page:
@@ -89,10 +111,10 @@ def is_signup_enabled():
 def cleanup_page_name(title):
 	"""make page name from title"""
 	if not title:
-		return title
+		return ''
 
 	name = title.lower()
-	name = re.sub('[~!@#$%^&*+()<>,."\'\?]', '', name)
+	name = re.sub(r'[~!@#$%^&*+()<>,."\'\?]', '', name)
 	name = re.sub('[:/]', '-', name)
 
 	name = '-'.join(name.split())
@@ -194,7 +216,6 @@ def abs_url(path):
 
 def get_toc(route, url_prefix=None, app=None):
 	'''Insert full index (table of contents) for {index} tag'''
-	from frappe.website.utils import get_full_index
 
 	full_index = get_full_index(app=app)
 
@@ -287,7 +308,9 @@ def extract_title(source, path):
 	if not title and "<h1>" in source:
 		# extract title from h1
 		match = re.findall('<h1>([^<]*)', source)
-		title = match[0].strip()[:300]
+		title_content = match[0].strip()[:300]
+		if '{{' not in title_content:
+			title = title_content
 
 	if not title:
 		# make title from name

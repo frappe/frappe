@@ -86,6 +86,14 @@ frappe.Application = Class.extend({
 			this.show_update_available();
 		}
 
+		if (!frappe.boot.developer_mode) {
+			let console_security_message = __("Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand.");
+			console.log(
+				`%c${console_security_message}`,
+				"font-size: large"
+			);
+		}
+
 		this.show_notes();
 
 		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
@@ -172,7 +180,7 @@ frappe.Application = Class.extend({
 	email_password_prompt: function(email_account,user,i) {
 		var me = this;
 		var d = new frappe.ui.Dialog({
-			title: __('Email Account setup please enter your password for: '+email_account[i]["email_id"]),
+			title: __('Email Account setup please enter your password for: {0}', [email_account[i]["email_id"]]),
 			fields: [
 				{	'fieldname': 'password',
 					'fieldtype': 'Password',
@@ -481,7 +489,7 @@ frappe.Application = Class.extend({
 		// Iterate over changelog
 		var change_log_dialog = frappe.msgprint({
 			message: frappe.render_template("change_log", {"change_log": change_log}),
-			title: __("Updated To New Version 🎉"),
+			title: __("Updated To A New Version 🎉"),
 			wide: true,
 			scroll: true
 		});

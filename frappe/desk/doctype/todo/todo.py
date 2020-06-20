@@ -8,8 +8,6 @@ import json
 from frappe.model.document import Document
 from frappe.utils import get_fullname
 
-subject_field = "description"
-sender_field = "sender"
 exclude_from_linked_with = True
 
 class ToDo(Document):
@@ -31,7 +29,7 @@ class ToDo(Document):
 			# NOTE the previous value is only available in validate method
 			if self.get_db_value("status") != self.status:
 				self._assignment = {
-					"text": frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
+					"text": frappe._("Assignment closed by {0}").format(get_fullname(frappe.session.user)),
 					"comment_type": "Assignment Completed"
 				}
 
@@ -66,7 +64,7 @@ class ToDo(Document):
 				filters={
 					"reference_type": self.reference_type,
 					"reference_name": self.reference_name,
-					"status": "Open"
+					"status": ("!=", "Cancelled")
 				},
 				fields=["owner"], as_list=True)]
 

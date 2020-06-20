@@ -8,6 +8,7 @@ import unittest
 import json
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import get_user_data
 from frappe.contacts.doctype.contact.contact import get_contact_name
+from frappe.core.doctype.user.user import create_contact
 
 class TestRequestPersonalData(unittest.TestCase):
 	def setUp(self):
@@ -51,7 +52,7 @@ class TestRequestPersonalData(unittest.TestCase):
 def create_user_if_not_exists(email, first_name = None):
 	frappe.delete_doc_if_exists("User", email)
 
-	frappe.get_doc({
+	user = frappe.get_doc({
 		"doctype": "User",
 		"user_type": "Website User",
 		"email": email,
@@ -59,3 +60,4 @@ def create_user_if_not_exists(email, first_name = None):
 		"first_name": first_name or email.split("@")[0],
 		"birth_date": frappe.utils.now_datetime()
 	}).insert(ignore_permissions=True)
+	create_contact(user=user)

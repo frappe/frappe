@@ -40,6 +40,8 @@ CREATE TABLE `tabDocField` (
   `show_preview_popup` int(1) NOT NULL DEFAULT 0,
   `trigger` varchar(255) DEFAULT NULL,
   `collapsible_depends_on` text,
+  `mandatory_depends_on` text,
+  `read_only_depends_on` text,
   `depends_on` text,
   `permlevel` int(11) NOT NULL DEFAULT 0,
   `ignore_user_permissions` int(1) NOT NULL DEFAULT 0,
@@ -61,6 +63,9 @@ CREATE TABLE `tabDocField` (
   `precision` varchar(255) DEFAULT NULL,
   `length` int(11) NOT NULL DEFAULT 0,
   `translatable` int(1) NOT NULL DEFAULT 0,
+  `hide_border` int(1) NOT NULL DEFAULT 0,
+  `hide_days` int(1) NOT NULL DEFAULT 0,
+  `hide_seconds` int(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `label` (`label`),
@@ -104,6 +109,53 @@ CREATE TABLE `tabDocPerm` (
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `tabDocType Action`
+--
+
+CREATE TABLE `tabDocType Action` (
+  `name` varchar(140) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `creation` datetime(6) DEFAULT NULL,
+  `modified` datetime(6) DEFAULT NULL,
+  `modified_by` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `owner` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `docstatus` int(1) NOT NULL DEFAULT 0,
+  `parent` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `parentfield` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `parenttype` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `idx` int(8) NOT NULL DEFAULT 0,
+  `label` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `group` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `action_type` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `action` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`name`),
+  KEY `parent` (`parent`),
+  KEY `modified` (`modified`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED;
+
+--
+-- Table structure for table `tabDocType Action`
+--
+
+CREATE TABLE `tabDocType Link` (
+  `name` varchar(140) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `creation` datetime(6) DEFAULT NULL,
+  `modified` datetime(6) DEFAULT NULL,
+  `modified_by` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `owner` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `docstatus` int(1) NOT NULL DEFAULT 0,
+  `parent` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `parentfield` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `parenttype` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `idx` int(8) NOT NULL DEFAULT 0,
+  `group` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `link_doctype` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `link_fieldname` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`name`),
+  KEY `parent` (`parent`),
+  KEY `modified` (`modified`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED;
 
 --
 -- Table structure for table `tabDocType`
@@ -168,6 +220,9 @@ CREATE TABLE `tabDocType` (
   `allow_guest_to_view` int(1) NOT NULL DEFAULT 0,
   `route` varchar(255) DEFAULT NULL,
   `is_published_field` varchar(255) DEFAULT NULL,
+  `email_append_to` int(1) NOT NULL DEFAULT 0,
+  `subject_field` varchar(255) DEFAULT NULL,
+  `sender_field` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

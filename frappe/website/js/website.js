@@ -65,7 +65,7 @@ $.extend(frappe, {
 			url: "/",
 			data: opts.args,
 			dataType: "json",
-			headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
+			headers: { "X-Frappe-CSRF-Token": frappe.csrf_token, "X-Frappe-CMD": (opts.args && opts.args.cmd  || '') || '' },
 			statusCode: opts.statusCode || {
 				404: function() {
 					frappe.msgprint(__("Not found"));
@@ -112,9 +112,8 @@ $.extend(frappe, {
 			opts.args.cmd = opts.method;
 		}
 
-		// stringify
 		$.each(opts.args, function(key, val) {
-			if(typeof val != "string") {
+			if (typeof val != "string" && val !== null) {
 				opts.args[key] = JSON.stringify(val);
 			}
 		});
@@ -329,6 +328,22 @@ $.extend(frappe, {
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
 	},
+	add_link_to_headings: function() {
+		$('.doc-content .from-markdown').find('h2, h3, h4, h5, h6').each((i, $heading) => {
+			let id = $heading.id;
+			let $a = $('<a class="no-underline">')
+				.prop('href', '#' + id)
+				.attr('aria-hidden', 'true')
+				.html(`
+					<svg xmlns="http://www.w3.org/2000/svg" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+						stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link">
+						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+					</svg>
+				`);
+			$($heading).append($a);
+		});
+	},
 	setup_lazy_images: function() {
 		// Use IntersectionObserver to only load images that are visible in the viewport
 		// Fallback for browsers that don't support it
@@ -375,7 +390,8 @@ $.extend(frappe, {
 
 window.valid_email = function(id) {
 	// eslint-disable-next-line
-	return /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(id.toLowerCase());
+	// copied regex from frappe/utils.js validate_type
+	return /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/.test(id.toLowerCase());
 }
 
 window.validate_email = valid_email;
@@ -444,6 +460,7 @@ $(document).on("page-change", function() {
 	frappe.trigger_ready();
 	frappe.bind_filters();
 	frappe.highlight_code_blocks();
+	frappe.add_link_to_headings();
 	frappe.make_navbar_active();
 	// scroll to hash
 	if (window.location.hash) {

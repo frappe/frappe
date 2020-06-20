@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "hash",
  "creation": "2013-02-22 01:27:33",
  "doctype": "DocType",
@@ -10,9 +11,11 @@
   "label",
   "fieldtype",
   "fieldname",
-  "reqd",
   "precision",
   "length",
+  "hide_days",
+  "hide_seconds",
+  "reqd",
   "search_index",
   "in_list_view",
   "in_standard_filter",
@@ -42,6 +45,11 @@
   "report_hide",
   "remember_last_selected_value",
   "ignore_xss_filter",
+  "hide_border",
+  "property_depends_on_section",
+  "mandatory_depends_on",
+  "column_break_38",
+  "read_only_depends_on",
   "display",
   "in_filter",
   "no_copy",
@@ -81,7 +89,7 @@
    "label": "Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
+   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
    "reqd": 1,
    "search_index": 1
   },
@@ -97,6 +105,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!in_list([\"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
    "fieldname": "reqd",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -421,11 +430,54 @@
    "hidden": 1,
    "oldfieldname": "oldfieldtype",
    "oldfieldtype": "Data"
+  },
+  {
+   "fieldname": "mandatory_depends_on",
+   "fieldtype": "Code",
+   "label": "Mandatory Depends On",
+   "options": "JS"
+  },
+  {
+   "fieldname": "read_only_depends_on",
+   "fieldtype": "Code",
+   "label": "Read Only Depends On",
+   "options": "JS"
+  },
+  {
+   "fieldname": "property_depends_on_section",
+   "fieldtype": "Section Break",
+   "label": "Property Depends On"
+  },
+  {
+   "fieldname": "column_break_38",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "fieldname": "hide_days",
+   "fieldtype": "Check",
+   "label": "Hide Days"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "fieldname": "hide_seconds",
+   "fieldtype": "Check",
+   "label": "Hide Seconds"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Section Break'",
+   "fieldname": "hide_border",
+   "fieldtype": "Check",
+   "label": "Hide Border"
   }
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2020-03-17 21:29:59.983533",
+ "links": [],
+ "modified": "2020-02-06 09:06:25.224413",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

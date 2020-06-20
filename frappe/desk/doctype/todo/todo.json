@@ -1,8 +1,10 @@
 {
+ "actions": [],
  "autoname": "hash",
  "creation": "2012-07-03 13:30:35",
  "doctype": "DocType",
  "document_type": "Setup",
+ "email_append_to": 1,
  "engine": "InnoDB",
  "field_order": [
   "description_and_status",
@@ -142,7 +144,8 @@
    "fieldname": "sender",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Sender"
+   "label": "Sender",
+   "options": "Email"
   },
   {
    "fieldname": "assignment_rule",
@@ -154,7 +157,8 @@
  ],
  "icon": "fa fa-check",
  "idx": 2,
- "modified": "2019-09-10 14:34:59.161750",
+ "links": [],
+ "modified": "2020-01-14 17:04:36.971002",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",
@@ -185,8 +189,10 @@
  ],
  "quick_entry": 1,
  "search_fields": "description, reference_type, reference_name",
+ "sender_field": "sender",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "subject_field": "description",
  "title_field": "description",
  "track_changes": 1,
  "track_seen": 1
