@@ -15,12 +15,16 @@ import frappe.monitor
 
 default_timeout = 300
 queue_timeout = {
-	'background': 2500,
-	'firebase_long': 2500,
-	'firebase_short': 2500,
+	'short': 300,
 	'long': 1500,
 	'default': 300,
-	'short': 300
+	'background': 2500,
+	'firebase_long': 1500,
+	'firebase_short': 300,
+	'auto_assign_short': 300,
+	'auto_assign_long': 1500,
+	'third_party_sync_short': 300,
+	'third_party_sync_long': 1500
 }
 
 redis_connection = None
