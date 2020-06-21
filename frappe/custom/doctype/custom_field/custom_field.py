@@ -74,8 +74,7 @@ class CustomField(Document):
 	def on_trash(self):
 		#check if Admin owned field
 		if self.owner == 'Administrator' and frappe.session.user != 'Administrator':
-			frappe.throw(_('''Custom Field {0} is created by Administrator.
-				Administrator owned custom fields can only be deleted by Administrator''').format(
+			frappe.throw(_("Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account.").format(
 					frappe.bold(self.label)))
 
 		# delete property setter entries
