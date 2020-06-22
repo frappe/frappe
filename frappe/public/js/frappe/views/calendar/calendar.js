@@ -280,7 +280,7 @@ frappe.views.Calendar = Class.extend({
 				// Set defaults from filters
 				cur_list.filter_area.get() // [[...], [...], [...]]
 					.filter(f => (f[2] == '=') && (f[0] == me.doctype)) // [[me.doctype, 'key', '=', 'value'], ...]
-					.forEach(filter => event[filter[1]] = filter[3]) // event['key'] = 'value'
+					.forEach(filter => event[filter[1]] = filter[3]); // event['key'] = 'value'
 
 				frappe.ui.form.make_quick_entry(me.doctype, null, null, event);
 			},
