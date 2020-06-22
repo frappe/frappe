@@ -7,6 +7,7 @@ from frappe import msgprint, _
 import json
 import csv
 import six
+import requests
 from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
@@ -172,3 +173,33 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
+
+def get_csv_content_from_google_sheets(url):
+	validate_google_sheets_url(url)
+
+	# remove /edit path
+	url = url.rsplit('/edit', 1)[0]
+	# add /export path, defaults to first sheet
+	url = url + '/export?format=csv&gid=0'
+	headers = {
+		'Accept': 'text/csv'
+	}
+	response = requests.get(url, headers=headers)
+	response.raise_for_status()
+
+	if response.ok:
+		# if it returns html, it couldn't find the CSV content
+		# because of invalid url or no access
+		if response.text.strip().endswith('</html>'):
+			frappe.throw(
+				_('Google Sheets URL is invalid or not publicly accessible.'),
+				title=_("Invalid URL")
+			)
+		return response.content
+
+def validate_google_sheets_url(url):
+	if "docs.google.com/spreadsheets" not in url:
+		frappe.throw(
+			_('"{0}" is not a valid Google Sheets URL').format(url),
+			title=_("Invalid URL"),
+		)

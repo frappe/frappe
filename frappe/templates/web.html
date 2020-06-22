@@ -1,10 +1,6 @@
 {% extends base_template_path %}
 {% block hero %}{% endblock %}
 
-{% macro page_content() %}
-{%- block page_content -%}{%- endblock -%}
-{% endmacro %}
-
 {% block content %}
 
 {% macro main_content() %}
@@ -31,7 +27,7 @@
 		</div>
 
 		<div class="page_content">
-			{{ page_content() }}
+			{%- block page_content -%}{%- endblock -%}
 		</div>
 
 		<div class="page-footer">
