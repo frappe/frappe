@@ -277,7 +277,12 @@ frappe.views.Calendar = Class.extend({
 						event[me.field_map.end] = me.get_system_datetime(moment(endDate).subtract(1, "s"));
 				}
 
-				frappe.set_route("Form", me.doctype, event.name);
+				// Set defaults from filters
+				cur_list.filter_area.get() // [[...], [...], [...]]
+					.filter(f => (f[2] == '=') && (f[0] == me.doctype)) // [[me.doctype, 'key', '=', 'value'], ...]
+					.forEach(filter => event[filter[1]] = filter[3]) // event['key'] = 'value'
+
+				frappe.ui.form.make_quick_entry(me.doctype, null, null, event);
 			},
 			dayClick: function(date, jsEvent, view) {
 				if(view.name === 'month') {
