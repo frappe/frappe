@@ -67,7 +67,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				me.options = [];
 				if (txt && txt.length > 1) {
 					if (last_space !== -1) {
-						me.set_specifics(txt.slice(0,last_space), txt.slice(last_space+1));
+					me.set_specifics(txt.slice(0,last_space), txt.slice(last_space+1));
 					}
 					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
