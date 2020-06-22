@@ -199,7 +199,7 @@ def check_google_calendar(account, google_calendar):
 	except HttpError as err:
 		frappe.throw(_("Google Calendar - Could not create Calendar for {0}, error code {1}.").format(account.name, err.resp.status))
 
-def sync_events_from_google_calendar(g_calendar, method=None, page_length=10):
+def sync_events_from_google_calendar(g_calendar, method=None):
 	"""
 		Syncs Events from Google Calendar in Framework Calendar.
 		Google Calendar returns nextSyncToken when all the events in Google Calendar are fetched.
@@ -211,13 +211,14 @@ def sync_events_from_google_calendar(g_calendar, method=None, page_length=10):
 	if not account.pull_from_google_calendar:
 		return
 
+	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
+	events = frappe._dict()
 	results = []
 	while True:
 		try:
 			# API Response listed at EOF
-			sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
-			events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
-				singleEvents=False, showDeleted=True, syncToken=sync_token).execute()
+			events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=2000,
+				pageToken=events.get("nextPageToken"), singleEvents=False, showDeleted=True, syncToken=sync_token).execute()
 		except HttpError as err:
 			msg = _("Google Calendar - Could not fetch event from Google Calendar, error code {0}.").format(err.resp.status)
 
