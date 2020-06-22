@@ -766,8 +766,9 @@ class Header(Row):
 
 		for j, header in enumerate(row):
 			column_values = [get_item_at_index(r, j) for r in raw_data]
+			map_to_field = column_to_field_map.get(str(j))
 			column = Column(
-				j, header, self.doctype, column_values, column_to_field_map.get(header), self.seen
+				j, header, self.doctype, column_values, map_to_field, self.seen
 			)
 			self.seen.append(header)
 			self.columns.append(column)
@@ -944,6 +945,9 @@ class Column:
 		d.map_to_field = self.map_to_field
 		d.date_format = self.date_format
 		d.df = self.df
+		if hasattr(self.df, 'is_child_table_field'):
+			d.is_child_table_field = self.df.is_child_table_field
+			d.child_table_df = self.df.child_table_df
 		d.skip_import = self.skip_import
 		d.warnings = self.warnings
 		return d

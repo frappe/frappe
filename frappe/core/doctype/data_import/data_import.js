@@ -301,8 +301,8 @@ frappe.ui.form.on('Data Import', {
 				events: {
 					remap_column(changed_map) {
 						let template_options = JSON.parse(frm.doc.template_options || '{}');
-						template_options.remap_column = template_options.remap_column || {};
-						Object.assign(template_options.remap_column, changed_map);
+						template_options.column_to_field_map = template_options.column_to_field_map || {};
+						Object.assign(template_options.column_to_field_map, changed_map);
 						frm.set_value('template_options', JSON.stringify(template_options));
 						frm.save().then(() => frm.trigger('import_file'));
 					}
