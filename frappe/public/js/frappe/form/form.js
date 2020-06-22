@@ -1572,6 +1572,17 @@ frappe.ui.form.Form = class FrappeForm {
 		}, 1000);
 	}
 
+	get_visible_data_fields() {
+		let visible_fields_filter = f =>
+			!['Section Break', 'Column Break'].includes(f.df.fieldtype)
+			&& !f.df.hidden
+			&& f.disp_status !== 'None';
+
+		return this.fields
+			.filter(visible_fields_filter)
+			.map(f => ({ label: f.df.label, value: f.df.fieldname }));
+	}
+
 	show_tour(on_finish) {
 		if (!Array.isArray(frappe.tour[this.doctype])) {
 			return;

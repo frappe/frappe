@@ -498,14 +498,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 
 	show_jump_to_field_dialog() {
-		let visible_fields_filter = f =>
-			!['Section Break', 'Column Break'].includes(f.df.fieldtype)
-			&& !f.df.hidden
-			&& f.disp_status !== 'None';
-
-		let fields = this.frm.fields
-			.filter(visible_fields_filter)
-			.map(f => ({ label: f.df.label, value: f.df.fieldname }));
+		let fields = this.frm.get_visible_data_fields();
 
 		let dialog = new frappe.ui.Dialog({
 			title: __('Jump to field'),
