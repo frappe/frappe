@@ -12,6 +12,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 from googleapiclient.errors import HttpError
+from frappe.utils.password import set_encrypted_password
 from frappe.utils import add_days, get_datetime, get_weekdays, now_datetime, add_to_date, get_time_zone
 from dateutil import parser
 from datetime import datetime, timedelta
@@ -218,15 +219,23 @@ def sync_events_from_google_calendar(g_calendar, method=None, page_length=10):
 			events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 				singleEvents=False, showDeleted=True, syncToken=sync_token).execute()
 		except HttpError as err:
-			frappe.throw(_("Google Calendar - Could not fetch event from Google Calendar, error code {0}.").format(err.resp.status))
+			msg = _("Google Calendar - Could not fetch event from Google Calendar, error code {0}.").format(err.resp.status)
+
+			if err.resp.status == 410:
+				set_encrypted_password("Google Calendar", account.name, "", "next_sync_token")
+				frappe.db.commit()
+				msg += _(' Sync token was invalid and has been resetted, Retry syncing.')
+				frappe.msgprint(msg, title='Invalid Sync Token', indicator='blue')
+			else:
+				frappe.throw(msg)
 
 		for event in events.get("items", []):
 			results.append(event)
 
 		if not events.get("nextPageToken"):
 			if events.get("nextSyncToken"):
-				frappe.db.set_value("Google Calendar", account.name, "next_sync_token", events.get("nextSyncToken"))
-				frappe.db.commit()
+				account.next_sync_token = events.get("nextSyncToken")
+				account.save()
 			break
 
 	for idx, event in enumerate(results):
