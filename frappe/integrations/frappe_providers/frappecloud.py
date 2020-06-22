@@ -1,6 +1,7 @@
 # imports - standard imports
 import getpass
 import json
+import os
 import re
 import sys
 
@@ -8,6 +9,7 @@ import sys
 import click
 from html2text import html2text
 import requests
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 # imports - module imports
 import frappe
@@ -138,6 +140,7 @@ def select_team(session):
 	return team
 
 
+@retry(stop=stop_after_attempt(5))
 def get_new_site_options():
 	site_options_sc = session.post(options_url)
 
@@ -158,6 +161,7 @@ def is_valid_subdomain(subdomain):
 	print("Subdomain contains invalid characters. Use lowercase characters, numbers and hyphens")
 
 
+@retry(stop=stop_after_attempt(5))
 def is_subdomain_available(subdomain):
 	res = session.post(site_exists_url, {"subdomain": subdomain})
 	if res.ok:
@@ -252,6 +256,17 @@ def get_subdomain(domain):
 			return subdomain
 
 
+@retry(stop=stop_after_attempt(2), wait=wait_fixed(5))
+def upload_backup_file(file_type, file_path):
+	return session.post(files_url, data={}, files={
+		"file": open(file_path, "rb"),
+		"is_private": 1,
+		"folder": "Home",
+		"method": "press.api.site.upload_backup",
+		"type": file_type
+	})
+
+
 @add_line_after
 def upload_backup(local_site):
 	# take backup
@@ -265,14 +280,11 @@ def upload_backup(local_site):
 				("public", odb.backup_path_files),
 				("private", odb.backup_path_private_files)
 			]):
-		file_upload_response = session.post(files_url, data={}, files={
-			"file": open(file_path, "rb"),
-			"is_private": 1,
-			"folder": "Home",
-			"method": "press.api.site.upload_backup",
-			"type": file_type
-		})
-		print("Uploading files ({}/3)".format(x+1), end="\r")
+		file_name = file_path.split(os.sep)[-1]
+
+		print("Uploading {} file: {} ({}/3)".format(file_type, file_name, x+1))
+		file_upload_response = upload_backup_file(file_type, file_path)
+
 		if file_upload_response.ok:
 			files_session[file_type] = file_upload_response.json()["message"]
 		else:
@@ -362,7 +374,10 @@ def create_session():
 	if login_sc.ok:
 		print("Authorization Successful! ✅")
 		team = select_team(session)
-		session.headers.update({"X-Press-Team": team })
+		session.headers.update({
+			"X-Press-Team": team,
+			"Connection": "keep-alive"
+		})
 		return session
 	else:
 		handle_request_failure(message="Authorization Failed with Error Code {}".format(login_sc.status_code), traceback=False)

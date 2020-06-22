@@ -81,7 +81,7 @@ def build_context(context):
 	# for backward compatibility
 	context.docs_base_url = '/docs'
 
-	context.update(get_website_settings())
+	context.update(get_website_settings(context))
 	context.update(frappe.local.conf.get("website_context") or {})
 
 	# provide doc

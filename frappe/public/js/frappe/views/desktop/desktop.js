@@ -3,6 +3,7 @@ export default class Desktop {
 		this.wrapper = wrapper;
 		this.pages = {};
 		this.sidebar_items = {};
+		this.mobile_sidebar_items = {};
 		this.sidebar_categories = [
 			"Modules",
 			"Domains",
@@ -84,10 +85,13 @@ export default class Desktop {
 				this.current_page = item.name;
 			}
 			let $item = get_sidebar_item(item);
-
-			$item.appendTo(this.mobile_list);
-			$item.clone().appendTo(this.sidebar);
+			let $mobile_item = $item.clone();
+			
+			$item.appendTo(this.sidebar);
 			this.sidebar_items[item.name] = $item;
+
+			$mobile_item.appendTo(this.mobile_list);
+			this.mobile_sidebar_items[item.name] = $mobile_item;
 		};
 
 		const make_category_title = name => {
@@ -122,7 +126,10 @@ export default class Desktop {
 
 		if (this.sidebar_items && this.sidebar_items[this.current_page]) {
 			this.sidebar_items[this.current_page].removeClass("selected");
+			this.mobile_sidebar_items[this.current_page].removeClass("selected");
+			
 			this.sidebar_items[page].addClass("selected");
+			this.mobile_sidebar_items[page].addClass("selected");
 		}
 		this.current_page = page;
 		this.mobile_list.hide();
@@ -134,11 +141,13 @@ export default class Desktop {
 	get_page_to_show() {
 		const default_page = this.desktop_settings
 			? this.desktop_settings["Modules"][0].name
-			: "Website";
+			: frappe.boot.allowed_workspaces[0].name;
+
 		let page =
 			frappe.get_route()[1] ||
 			localStorage.current_desk_page ||
 			default_page;
+
 		return page;
 	}
 
@@ -299,7 +308,6 @@ class DesktopPage {
 			steps: this.data.onboarding.items,
 			success: this.data.onboarding.success,
 			docs_url: this.data.onboarding.docs_url,
-			user_can_dismiss: this.data.onboarding.user_can_dismiss,
 			widget_type: 'onboarding',
 			container: this.page,
 			options: {
