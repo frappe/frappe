@@ -123,6 +123,10 @@ frappe.search.utils = {
 	},
 
 	get_fields_in_form: function(keywords) {
+		if (!cur_frm || frappe.get_route()[0] != "Form") {
+			return [];
+		}
+		
 		let fields = cur_frm.get_visible_data_fields();
 		let out = [];
 
@@ -137,6 +141,29 @@ frappe.search.utils = {
 			});
 		
 		return out;
+	},
+
+	get_form_actions: function(keywords) {
+		if (!cur_frm || frappe.get_route()[0] != "Form") {
+			return [];
+		}
+		
+		let actions = [{
+			label: __("Print Document {0}", [cur_frm.doc.name.bold()]),
+			value: `print`,
+			onclick: () => cur_frm.print_doc()
+		}];
+
+		Object.keys(cur_frm.custom_buttons).forEach(label => {
+			let button = cur_frm.custom_buttons[label];
+			actions.push({
+				label: __("Action: {}", [label.bold()]),
+				value: label,
+				onclick: () => button.click()
+			});
+		});
+
+		return actions.filter(action => this.fuzzy_search(keywords, action.value));
 	},
 
 	get_creatables: function(keywords) {
