@@ -29,6 +29,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show() {
+		this.parent.disable_scroll_to_top = true;
+
 		if (!this.has_permissions()) {
 			frappe.set_route('');
 			frappe.msgprint(__(`Not permitted to view ${this.doctype}`));
@@ -241,20 +243,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	refresh(refresh_header=false) {
-		this.freeze(true);
-		// fetch data from server
-		return frappe.call(this.get_call_args()).then(r => {
-			// render
-			this.prepare_data(r);
-			this.toggle_result_area();
-			this.before_render();
+		super.refresh().then(() => {
 			this.render_header(refresh_header);
-			this.render();
-			this.after_render();
-			this.freeze(false);
-			if (this.settings.refresh) {
-				this.settings.refresh(this);
-			}
 		});
 	}
 

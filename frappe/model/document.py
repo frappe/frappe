@@ -961,7 +961,8 @@ class Document(BaseDocument):
 
 		update_global_search(self)
 
-		if getattr(self.meta, 'track_changes', False) and self._doc_before_save and not self.flags.ignore_version:
+		if getattr(self.meta, 'track_changes', False) and not self.flags.ignore_version \
+			and not self.doctype == 'Version' and not frappe.flags.in_install:
 			self.save_version()
 
 		self.run_method('on_change')
@@ -1058,8 +1059,13 @@ class Document(BaseDocument):
 
 	def save_version(self):
 		"""Save version info"""
+		if not self._doc_before_save and frappe.flags.in_patch: return
+
 		version = frappe.new_doc('Version')
-		if version.set_diff(self._doc_before_save, self):
+		if not self._doc_before_save:
+			version.for_insert(self)
+			version.insert(ignore_permissions=True)
+		elif version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
 				follow_document(self.doctype, self.name, frappe.session.user)

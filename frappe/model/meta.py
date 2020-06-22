@@ -483,6 +483,9 @@ class Meta(Document):
 	def get_row_template(self):
 		return self.get_web_template(suffix='_row')
 
+	def get_list_template(self):
+		return self.get_web_template(suffix='_list')
+
 	def get_web_template(self, suffix=''):
 		'''Returns the relative path of the row template for this doctype'''
 		module_name = frappe.scrub(self.module)

@@ -126,7 +126,7 @@ def doctor(context, site=None):
 	"Get diagnostic info about background workers"
 	from frappe.utils.doctor import doctor as _doctor
 	if not site:
-		site = get_site(context)
+		site = get_site(context, raise_err=False)
 	return _doctor(site=site)
 
 @click.command('show-pending-jobs')
