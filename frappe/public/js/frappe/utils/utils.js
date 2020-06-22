@@ -886,6 +886,22 @@ Object.assign(frappe.utils, {
 			hide_seconds: docfield.hide_seconds
 		};
 		return duration_options;
+	},
+
+	lstrip: function(str, c = '\\s', ignore_case=false) {
+		let expression = ignore_case
+			? new RegExp(`^([${c}]*)(.*)$`, 'i')
+			: new RegExp(`^([${c}]*)(.*)$`);
+
+		return str.replace(expression, '$2');
+	},
+
+	rstrip: function(str, c = '\\s', ignore_case=false) {
+		let expression = ignore_case
+			? new RegExp(`^(.*?)([${c}]*)$`, 'i')
+			: new RegExp(`^(.*?)([${c}]*)$`);
+
+		return str.replace(expression, '$1');
 	}
 });
 

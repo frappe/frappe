@@ -67,7 +67,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				me.options = [];
 				if (txt && txt.length > 1) {
 					if (last_space !== -1) {
-					me.set_specifics(txt.slice(0,last_space), txt.slice(last_space+1));
+						me.set_specifics(txt.slice(0,last_space), txt.slice(last_space+1));
 					}
 					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
@@ -192,11 +192,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		
 		if (this.in_form()) {
 			if (txt.toLowerCase().startsWith("find")) {
-				let search_term = txt
-					.trim()
-					.substr(5, txt.length);
-	
+				let search_term = frappe.utils.lstrip(txt, "find ", true);
 				options = frappe.search.utils.get_fields_in_form(search_term);
+			} else {
+				options = frappe.search.utils.get_form_actions(txt).concat(options);
 			}
 		}
 
