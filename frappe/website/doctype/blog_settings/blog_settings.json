@@ -7,9 +7,15 @@
  "field_order": [
   "blog_title",
   "blog_introduction",
-  "writers_introduction",
-  "section_break_4",
-  "social_share_settings"
+  "column_break",
+  "enable_social_sharing",
+  "show_cta_in_blog",
+  "cta_section",
+  "title",
+  "subtitle",
+  "column_break_11",
+  "cta_label",
+  "cta_url"
  ],
  "fields": [
   {
@@ -23,27 +29,62 @@
    "label": "Blog Introduction"
   },
   {
-   "fieldname": "writers_introduction",
-   "fieldtype": "Small Text",
-   "label": "Writers Introduction"
+   "default": "0",
+   "fieldname": "enable_social_sharing",
+   "fieldtype": "Check",
+   "label": "Enable Social Sharing"
   },
   {
    "collapsible": 1,
-   "fieldname": "section_break_4",
-   "fieldtype": "Section Break"
+   "fieldname": "column_break",
+   "fieldtype": "Column Break"
   },
   {
-   "fieldname": "social_share_settings",
-   "fieldtype": "Table",
-   "label": "Social Share Settings",
-   "options": "Social Link Settings"
+   "default": "0",
+   "fieldname": "show_cta_in_blog",
+   "fieldtype": "Check",
+   "label": "Show CTA in Blog"
+  },
+  {
+   "depends_on": "eval:doc.show_cta_in_blog",
+   "fieldname": "cta_section",
+   "fieldtype": "Section Break",
+   "label": "CTA"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "mandatory_depends_on": "eval:doc.show_cta_in_blog"
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "mandatory_depends_on": "eval:doc.show_cta_in_blog"
+  },
+  {
+   "fieldname": "cta_label",
+   "fieldtype": "Data",
+   "label": "CTA Label",
+   "mandatory_depends_on": "eval:doc.show_cta_in_blog"
+  },
+  {
+   "fieldname": "cta_url",
+   "fieldtype": "Data",
+   "label": "CTA URL",
+   "mandatory_depends_on": "eval:doc.show_cta_in_blog"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-05-04 09:10:41.815238",
+ "modified": "2020-06-01 15:57:21.564652",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",
@@ -57,6 +98,13 @@
    "role": "Website Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Blogger",
+   "share": 1
   }
  ],
  "sort_field": "modified",

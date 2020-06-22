@@ -113,12 +113,12 @@ def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
 	if app_name in installed_apps:
 		installed_apps.remove(app_name)
-		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
+		frappe.db.set_value("DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps))
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
 
-def remove_app(app_name, dry_run=False, yes=False):
+def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 	"""Delete app and all linked to the app's module with the app."""
 
 	if not dry_run and not yes:
@@ -126,9 +126,10 @@ def remove_app(app_name, dry_run=False, yes=False):
 		if confirm!="y":
 			return
 
-	from frappe.utils.backups import scheduled_backup
-	print("Backing up...")
-	scheduled_backup(ignore_files=True)
+	if not no_backup:
+		from frappe.utils.backups import scheduled_backup
+		print("Backing up...")
+		scheduled_backup(ignore_files=True)
 
 	drop_doctypes = []
 
