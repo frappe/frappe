@@ -222,3 +222,7 @@ def update_index_for_path(index_name, path):
 def remove_document_from_index(index_name, path):
 	fts = FullTextSearch(index_name)
 	return fts.remove_document_from_index(path)
+
+def build_index_for_all_routes(index_name):
+	fts = FullTextSearch(index_name)
+	return fts.build()

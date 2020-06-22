@@ -83,8 +83,8 @@ Otherwise, check the server logs and ensure that all the required services are r
 
 		# add static pages to global search
 		if not skip_search_index:
-			global_search.update_global_search_for_all_web_pages()
-			full_text_search.build_index_for_all_routes()
+			# global_search.update_global_search_for_all_web_pages()
+			full_text_search.build_index_for_all_routes("web_routes")
 
 		# updating installed applications data
 		frappe.get_single('Installed Applications').update_versions()
