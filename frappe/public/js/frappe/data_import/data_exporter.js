@@ -285,11 +285,9 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	get_filters() {
-		return this.filter_group.get_filters().reduce((acc, filter) => {
-			return Object.assign(acc, {
-				[filter[1]]: [filter[2], filter[3]]
-			});
-		}, {});
+		return this.filter_group.get_filters().map(filter => {
+			return filter.slice(0, 4)
+		});
 	}
 
 	get_multicheck_options(doctype, child_fieldname = null) {
