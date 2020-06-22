@@ -136,7 +136,7 @@ export default class OnboardingWidget extends Widget {
 		if (step.is_single) {
 			route = `Form/${step.reference_document}`;
 		} else {
-			route = `Form/${step.reference_document}/New ${step.reference_document}`;
+			route = `Form/${step.reference_document}/__('New')+ ' ' + __(${step.reference_document})`;
 		}
 
 		let current_route = frappe.get_route();
