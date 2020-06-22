@@ -203,32 +203,6 @@ frappe.ui.Filter = class {
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
 
-		if(["Previous", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
-			df.fieldtype = 'Select';
-			df.options = [
-				{
-					label: __('1 week'),
-					value: '1 week'
-				},
-				{
-					label: __('1 month'),
-					value: '1 month'
-				},
-				{
-					label: __('3 months'),
-					value: '3 months'
-				},
-				{
-					label: __('6 months'),
-					value: '6 months'
-				},
-				{
-					label: __('1 year'),
-					value: '1 year'
-				}
-			];
-		}
-
 		this.make_field(df, cur.fieldtype);
 	}
 
@@ -439,6 +413,11 @@ frappe.ui.filter_utils = {
 		if(condition == "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
 			df.fieldtype = 'DateRange';
 		}
+		if(["Previous", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(df.fieldtype)) {
+			df.fieldtype = 'Select';
+			df.options = this.get_relative_timespan_options();
+		}
+
 		if (condition === 'is') {
 			df.fieldtype = 'Select';
 			df.options = [
@@ -446,5 +425,30 @@ frappe.ui.filter_utils = {
 				{ label: __('Not Set'), value: 'not set' },
 			];
 		}
+	},
+
+	get_relative_timespan_options() {
+		return [
+			{
+				label: __('1 week'),
+				value: '1 week'
+			},
+			{
+				label: __('1 month'),
+				value: '1 month'
+			},
+			{
+				label: __('3 months'),
+				value: '3 months'
+			},
+			{
+				label: __('6 months'),
+				value: '6 months'
+			},
+			{
+				label: __('1 year'),
+				value: '1 year'
+			}
+		];
 	}
 };
