@@ -21,6 +21,17 @@ class Version(Document):
 		else:
 			return False
 
+	def for_insert(self, doc):
+		updater_reference = doc.flags.updater_reference
+		data = {
+			'creation': doc.creation,
+			'updater_reference': updater_reference,
+			'created_by': doc.owner
+		}
+		self.ref_doctype = doc.doctype
+		self.docname = doc.name
+		self.data = frappe.as_json(data)
+
 	def get_data(self):
 		return json.loads(self.data)
 

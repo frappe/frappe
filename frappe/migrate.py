@@ -61,6 +61,9 @@ def migrate(verbose=True, rebuild_website=False, skip_failing=False):
 		# add static pages to global search
 		global_search.update_global_search_for_all_web_pages()
 
+		# updating installed applications data
+		frappe.get_single('Installed Applications').update_versions()
+
 		#run after_migrate hooks
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks('after_migrate', app_name=app):
