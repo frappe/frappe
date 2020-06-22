@@ -1099,12 +1099,12 @@ frappe.ui.form.Form = class FrappeForm {
 
 	add_custom_button(label, fn, group) {
 		// temp! old parameter used to be icon
-		if(group && group.indexOf("fa fa-")!==-1) group = null;
-		var btn = this.page.add_inner_button(label, fn, group);
-		if(btn) {
-			this.custom_buttons[label] = btn;
+		if (group && group.indexOf("fa fa-")!==-1) group = null;
+		var $btn = this.page.add_inner_button(label, fn, group);
+		if ($btn) {
+			this.custom_buttons[label] = { label, group, fn, $btn };
 		}
-		return btn;
+		return $btn;
 	}
 
 	clear_custom_buttons() {

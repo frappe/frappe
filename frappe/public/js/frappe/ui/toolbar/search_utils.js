@@ -156,14 +156,17 @@ frappe.search.utils = {
 
 		Object.keys(cur_frm.custom_buttons).forEach(label => {
 			let button = cur_frm.custom_buttons[label];
+			let result_label = button.group
+				? `${__(button.group)}: ${__(button.label).bold()}`
+				: __("Action: {}", [button.label.bold()]);
 			actions.push({
-				label: __("Action: {}", [label.bold()]),
+				label: result_label,
 				value: label,
-				onclick: () => button.click()
+				onclick: () => button.fn()
 			});
 		});
 
-		return actions.filter(action => this.fuzzy_search(keywords, action.value));
+		return actions.filter(action => this.fuzzy_search(keywords, action.label));
 	},
 
 	get_creatables: function(keywords) {
