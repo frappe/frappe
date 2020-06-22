@@ -15,4 +15,4 @@ class InstalledApplications(Document):
 				"app_version": app.get("version"),
 				"git_branch": app.get("branch")
 			})
-		self.save()
+		self.save(ignore_permissions=True)
