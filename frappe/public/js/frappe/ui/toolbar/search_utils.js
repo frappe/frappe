@@ -122,6 +122,23 @@ frappe.search.utils = {
 		return out;
 	},
 
+	get_fields_in_form: function(keywords) {
+		let fields = cur_frm.get_visible_data_fields();
+		let out = [];
+
+		fields
+			.filter(field => this.fuzzy_search(keywords, field.label))
+			.forEach(field => {
+				out.push({
+					label: __('Find {0} field', [field.label.bold(), cur_frm.doctype]),
+					value: field.value,
+					onclick: () => cur_frm.scroll_to_field(field.value)
+				});
+			});
+		
+		return out;
+	},
+
 	get_creatables: function(keywords) {
 		var me = this;
 		var out = [];
@@ -470,6 +487,7 @@ frappe.search.utils = {
 				return b.index - a.index;
 			});
 		}
+
 		var lists = [], setup = [];
 		var all_doctypes = sort_uniques(this.get_doctypes(keywords));
 		all_doctypes.forEach(function(d) {
@@ -479,7 +497,9 @@ frappe.search.utils = {
 				lists.push(d);
 			}
 		});
+
 		var in_keyword = keywords.split(" in ")[0];
+		
 		return [{
 			title: "Recents",
 			fetch_type: "Nav",

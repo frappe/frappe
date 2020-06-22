@@ -174,8 +174,12 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.make_random(txt);
 	}
 
+	in_form() {
+		return Boolean(frappe.get_route()[0] == "Form" && cur_frm);
+	}
+
 	build_options(txt) {
-		var options = frappe.search.utils.get_creatables(txt).concat(
+		let options = frappe.search.utils.get_creatables(txt).concat(
 			frappe.search.utils.get_search_in_list(txt),
 			frappe.search.utils.get_doctypes(txt),
 			frappe.search.utils.get_reports(txt),
@@ -185,6 +189,17 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			frappe.search.utils.get_recent_pages(txt || ""),
 			frappe.search.utils.get_executables(txt)
 		);
+		
+		if (this.in_form()) {
+			if (txt.toLowerCase().startsWith("find")) {
+				let search_term = txt
+					.trim()
+					.substr(5, txt.length);
+	
+				options = frappe.search.utils.get_fields_in_form(search_term);
+			}
+		}
+
 		if (txt.charAt(0) === "#") {
 			options = frappe.tags.utils.get_tags(txt);
 		}
