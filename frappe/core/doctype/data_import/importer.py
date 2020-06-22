@@ -607,7 +607,7 @@ class Row:
 				self.warnings.append(
 					{
 						"row": self.row_number,
-						"field": df.as_dict(convert_dates_to_str=True),
+						"field": df_as_json(df),
 						"message": msg,
 					}
 				)
@@ -622,7 +622,7 @@ class Row:
 				self.warnings.append(
 					{
 						"row": self.row_number,
-						"field": df.as_dict(convert_dates_to_str=True),
+						"field": df_as_json(df),
 						"message": msg,
 					}
 				)
@@ -635,7 +635,7 @@ class Row:
 					{
 						"row": self.row_number,
 						"col": col.column_number,
-						"field": df.as_dict(convert_dates_to_str=True),
+						"field": df_as_json(df),
 						"message": _("Value {0} must in {1} format").format(
 							frappe.bold(value), frappe.bold(get_user_format(col.date_format))
 						),
@@ -646,7 +646,7 @@ class Row:
 		return value
 
 	def link_exists(self, value, df):
-		key = df.options + "::" + value
+		key = df.options + "::" + cstr(value)
 		if Row.link_values_exist_map.get(key) is None:
 			Row.link_values_exist_map[key] = frappe.db.exists(df.options, value)
 		return Row.link_values_exist_map.get(key)
@@ -1117,3 +1117,13 @@ def get_user_format(date_format):
 		.replace("%m", "mm")
 		.replace("%d", "dd")
 	)
+
+def df_as_json(df):
+	return {
+		'fieldname': df.fieldname,
+		'fieldtype': df.fieldtype,
+		'label': df.label,
+		'options': df.options,
+		'parent': df.parent,
+		'default': df.default
+	}
