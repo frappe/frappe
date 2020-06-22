@@ -439,8 +439,8 @@ frappe.setup_search = function (target, search_scope) {
 					return `<a class="dropdown-item" href="/${r.path}">
 						<h6>${r.title_highlights || r.title}</h6>
 						<div style="white-space: normal;">${r.content_highlights}</div>
-					</a>`
-				}).join('')
+					</a>`;
+				}).join('');
 			}
 			$dropdown_menu.html(dropdown_html);
 			$dropdown_menu.addClass('show');
@@ -463,7 +463,7 @@ frappe.setup_search = function (target, search_scope) {
 		$dropdown_menu.html('');
 		$dropdown_menu.removeClass('show');
 	}
-}
+};
 
 
 // Utility functions
