@@ -351,12 +351,13 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 
 			if isinstance(row, dict) and row:
 				for idx in range(len(data.columns)):
-					label = columns[idx]["label"]
-					fieldname = columns[idx]["fieldname"]
-					cell_value = row.get(fieldname, row.get(label, ""))
-					if cint(include_indentation) and 'indent' in row and idx == 0:
-						cell_value = ('    ' * cint(row['indent'])) + cell_value
-					row_data.append(cell_value)
+					if not columns[idx].get("hidden"):
+						label = columns[idx]["label"]
+						fieldname = columns[idx]["fieldname"]
+						cell_value = row.get(fieldname, row.get(label, ""))
+						if cint(include_indentation) and 'indent' in row and idx == 0:
+							cell_value = ('    ' * cint(row['indent'])) + cell_value
+						row_data.append(cell_value)
 			else:
 				row_data = row
 

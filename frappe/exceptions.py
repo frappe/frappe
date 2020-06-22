@@ -13,6 +13,11 @@ if sys.version_info.major == 2:
 else:
 	from builtins import FileNotFoundError
 
+class SiteNotSpecifiedError(Exception):
+	def __init__(self, *args, **kwargs):
+		self.message = "Please specify --site sitename"
+		super(Exception, self).__init__(self.message)
+
 class ValidationError(Exception):
 	http_status_code = 417
 
@@ -48,6 +53,11 @@ class Redirect(Exception):
 
 class CSRFTokenError(Exception):
 	http_status_code = 400
+
+
+class TooManyRequestsError(Exception):
+	http_status_code = 429
+
 
 class ImproperDBConfigurationError(Exception):
 	"""
@@ -91,3 +101,8 @@ class InvalidColumnName(ValidationError): pass
 class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
+class FileAlreadyAttachedException(Exception): pass
+# OAuth exceptions
+class InvalidAuthorizationHeader(CSRFTokenError): pass
+class InvalidAuthorizationPrefix(CSRFTokenError): pass
+class InvalidAuthorizationToken(CSRFTokenError): pass

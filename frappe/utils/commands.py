@@ -27,6 +27,15 @@ def add_line_after(function):
 	return empty_line
 
 
+def add_line_before(function):
+	"""Adds an extra line to STDOUT before the execution of a function this decorates"""
+	def empty_line(*args, **kwargs):
+		print()
+		result = function(*args, **kwargs)
+		return result
+	return empty_line
+
+
 def log(message, colour=''):
 	"""Coloured log outputs to STDOUT"""
 	colours = {

@@ -283,6 +283,25 @@ Object.assign(frappe.utils, {
 		return frappe.utils.guess_style(text, null, true);
 	},
 
+	get_indicator_color: function(state) {
+		return frappe.db.get_list('Workflow State', {filters: {name: state}, fields: ['name', 'style']}).then(res => {
+			const state = res[0];
+			if (!state.style) {
+				return frappe.utils.guess_colour(state.name);
+			}
+			const style = state.style;
+			const colour_map = {
+				"Success": "green",
+				"Warning": "orange",
+				"Danger": "red",
+				"Primary": "blue",
+			};
+
+			return colour_map[style];
+		});
+
+	},
+
 	sort: function(list, key, compare_type, reverse) {
 		if(!list || list.length < 2)
 			return list || [];
@@ -687,7 +706,32 @@ Object.assign(frappe.utils, {
 			return null;
 		}
 	},
+	setup_search($wrapper, el_class, text_class, data_attr) {
+		const $search_input = $wrapper.find('[data-element="search"]').show();
+		$search_input.focus().val('');
+		const $elements = $wrapper.find(el_class).show();
 
+		$search_input.off('keyup').on('keyup', () => {
+			let text_filter = $search_input.val().toLowerCase();
+			// Replace trailing and leading spaces
+			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
+			for (let i = 0; i < $elements.length; i++) {
+				const text_element = $elements.eq(i).find(text_class);
+				const text = text_element.text().toLowerCase();
+
+				let name = '';
+				if (data_attr && text_element.attr(data_attr)) {
+					name = text_element.attr(data_attr).toLowerCase();
+				}
+
+				if (text.includes(text_filter) || name.includes(text_filter)) {
+					$elements.eq(i).css('display', '');
+				} else {
+					$elements.eq(i).css('display', 'none');
+				}
+			}
+		});
+	},
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	},

@@ -23,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.6.1'
+__version__ = '12.7.2'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -220,9 +220,8 @@ def get_site_config(sites_path=None, site_path=None):
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
 		elif local.site and not local.flags.new_site:
-			print("{0} does not exist".format(local.site))
+			print("Site {0} does not exist".format(local.site))
 			sys.exit(1)
-			#raise IncorrectSitePath, "{0} does not exist".format(site_config)
 
 	return _dict(config)
 
