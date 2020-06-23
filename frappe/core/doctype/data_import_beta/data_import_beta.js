@@ -91,7 +91,13 @@ frappe.ui.form.on('Data Import Beta', {
 				() => frappe.set_route('List', frm.doc.reference_doctype)
 			);
 		}
+	},
 
+	onload_post_render(frm) {
+		frm.trigger('update_primary_action');
+	},
+
+	update_primary_action(frm) {
 		frm.disable_save();
 		if (frm.doc.status !== 'Success') {
 			if (!frm.is_new() && frm.doc.import_file) {
@@ -177,8 +183,8 @@ frappe.ui.form.on('Data Import Beta', {
 	start_import(frm) {
 		frm
 			.call({
-				doc: frm.doc,
-				method: 'start_import',
+				method: 'form_start_import',
+				args: { data_import: frm.doc.name },
 				btn: frm.page.btn_primary
 			})
 			.then(r => {
@@ -222,6 +228,7 @@ frappe.ui.form.on('Data Import Beta', {
 
 	import_file(frm) {
 		frm.toggle_display('section_import_preview', frm.doc.import_file);
+		frm.trigger('update_primary_action');
 		if (!frm.doc.import_file) {
 			frm.get_field('import_preview').$wrapper.empty();
 			return;
@@ -235,7 +242,6 @@ frappe.ui.form.on('Data Import Beta', {
 
 		frm
 			.call({
-				doc: frm.doc,
 				method: 'get_preview_from_template',
 				args: { data_import: frm.doc.name, import_file: frm.doc.import_file },
 				error_handlers: {
