@@ -48,15 +48,11 @@
    "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Enabled",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Enabled"
   },
   {
    "fieldname": "column_break_2",
-   "fieldtype": "Column Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Column Break"
   },
   {
    "default": "Email",
@@ -65,9 +61,7 @@
    "fieldtype": "Select",
    "label": "Channel",
    "options": "Email\nSlack\nSystem Notification",
-   "reqd": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "reqd": 1
   },
   {
    "depends_on": "eval:doc.channel=='Slack'",
@@ -75,16 +69,12 @@
    "fieldtype": "Link",
    "label": "Slack Channel",
    "mandatory_depends_on": "eval:doc.channel=='Slack'",
-   "options": "Slack Webhook URL",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Slack Webhook URL"
   },
   {
    "fieldname": "filters",
    "fieldtype": "Section Break",
-   "label": "Filters",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Filters"
   },
   {
    "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>",
@@ -93,9 +83,7 @@
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Subject",
-   "reqd": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "reqd": 1
   },
   {
    "fieldname": "document_type",
@@ -105,17 +93,13 @@
    "label": "Document Type",
    "options": "DocType",
    "reqd": 1,
-   "search_index": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "search_index": 1
   },
   {
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Is Standard"
   },
   {
    "depends_on": "is_standard",
@@ -123,86 +107,67 @@
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "Module",
-   "options": "Module Def",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Module Def"
   },
   {
    "fieldname": "col_break_1",
-   "fieldtype": "Column Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval: doc.document_type",
    "fieldname": "event",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Send Alert On",
    "options": "\nNew\nSave\nSubmit\nCancel\nDays After\nDays Before\nValue Change\nMethod\nCustom",
    "reqd": 1,
-   "search_index": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "search_index": 1
   },
   {
    "depends_on": "eval:doc.event=='Method'",
    "description": "Trigger on valid methods like \"before_insert\", \"after_update\", etc (will depend on the DocType selected)",
    "fieldname": "method",
    "fieldtype": "Data",
-   "label": "Trigger Method",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Trigger Method"
   },
   {
-   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"",
+   "depends_on": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send alert if date matches this field's value",
    "fieldname": "date_changed",
    "fieldtype": "Select",
-   "label": "Reference Date",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Reference Date"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"",
+   "depends_on": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send days before or after the reference date",
    "fieldname": "days_in_advance",
    "fieldtype": "Int",
-   "label": "Days Before or After",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Days Before or After"
   },
   {
-   "depends_on": "eval:doc.event==\"Value Change\"",
+   "depends_on": "eval:doc.document_type && doc.event==\"Value Change\"",
    "description": "Send alert if this field's value changes",
    "fieldname": "value_changed",
    "fieldtype": "Select",
-   "label": "Value Changed",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Value Changed"
   },
   {
    "fieldname": "sender",
    "fieldtype": "Link",
    "label": "Sender",
-   "options": "Email Account",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Email Account"
   },
   {
    "fieldname": "sender_email",
    "fieldtype": "Data",
    "label": "Sender Email",
    "options": "Email",
-   "read_only": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only": 1
   },
   {
    "fieldname": "section_break_9",
-   "fieldtype": "Section Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Section Break"
   },
   {
    "description": "Optional: The alert will be sent if this expression is true",
@@ -210,128 +175,96 @@
    "fieldtype": "Code",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
-   "label": "Condition",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Condition"
   },
   {
    "fieldname": "column_break_6",
-   "fieldtype": "Column Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "html_7",
    "fieldtype": "HTML",
-   "options": "<p><strong>Condition Examples:</strong></p>\n<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</pre>\n",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "<p><strong>Condition Examples:</strong></p>\n<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</pre>\n"
   },
   {
    "collapsible": 1,
    "fieldname": "property_section",
    "fieldtype": "Section Break",
-   "label": "Set Property After Alert",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Set Property After Alert"
   },
   {
    "fieldname": "set_property_after_alert",
    "fieldtype": "Select",
-   "label": "Set Property After Alert",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Set Property After Alert"
   },
   {
    "fieldname": "property_value",
    "fieldtype": "Data",
-   "label": "Value To Be Set",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Value To Be Set"
   },
   {
    "depends_on": "eval:doc.channel!=='Slack'",
    "fieldname": "column_break_5",
    "fieldtype": "Section Break",
-   "label": "Recipients",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Recipients"
   },
   {
    "fieldname": "recipients",
    "fieldtype": "Table",
    "label": "Recipients",
    "mandatory_depends_on": "eval:doc.channel!=='Slack'",
-   "options": "Notification Recipient",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Notification Recipient"
   },
   {
    "fieldname": "message_sb",
    "fieldtype": "Section Break",
-   "label": "Message",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Message"
   },
   {
    "default": "Add your message here",
    "fieldname": "message",
    "fieldtype": "Code",
    "ignore_xss_filter": 1,
-   "label": "Message",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Message"
   },
   {
    "depends_on": "eval:doc.channel=='Email'",
    "fieldname": "message_examples",
    "fieldtype": "HTML",
    "label": "Message Examples",
-   "options": "<h5>Message Example</h5>\n\n<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;\n\n&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;\n\n&lt;!-- show last comment --&gt;\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n&lt;h4&gt;Details&lt;/h4&gt;\n\n&lt;ul&gt;\n&lt;li&gt;Customer: {{ doc.customer }}\n&lt;li&gt;Amount: {{ doc.grand_total }}\n&lt;/ul&gt;\n</pre>",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "<h5>Message Example</h5>\n\n<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;\n\n&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;\n\n&lt;!-- show last comment --&gt;\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n&lt;h4&gt;Details&lt;/h4&gt;\n\n&lt;ul&gt;\n&lt;li&gt;Customer: {{ doc.customer }}\n&lt;li&gt;Amount: {{ doc.grand_total }}\n&lt;/ul&gt;\n</pre>"
   },
   {
    "depends_on": "eval:doc.channel=='Slack'",
    "fieldname": "slack_message_examples",
    "fieldtype": "HTML",
    "label": "Message Examples",
-   "options": "<h5>Message Example</h5>\n\n<pre>*Order Overdue*\n\nTransaction {{ doc.name }} has exceeded Due Date. Please take necessary action.\n\n<!-- show last comment -->\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n*Details*\n\n\u2022 Customer: {{ doc.customer }}\n\u2022 Amount: {{ doc.grand_total }}\n</pre>",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "<h5>Message Example</h5>\n\n<pre>*Order Overdue*\n\nTransaction {{ doc.name }} has exceeded Due Date. Please take necessary action.\n\n<!-- show last comment -->\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n*Details*\n\n\u2022 Customer: {{ doc.customer }}\n\u2022 Amount: {{ doc.grand_total }}\n</pre>"
   },
   {
    "fieldname": "view_properties",
    "fieldtype": "Button",
-   "label": "View Properties (via Customize Form)",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "View Properties (via Customize Form)"
   },
   {
    "collapsible": 1,
    "collapsible_depends_on": "attach_print",
    "fieldname": "column_break_25",
    "fieldtype": "Section Break",
-   "label": "Print Settings",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Print Settings"
   },
   {
    "default": "0",
    "fieldname": "attach_print",
    "fieldtype": "Check",
-   "label": "Attach Print",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Attach Print"
   },
   {
    "depends_on": "attach_print",
    "fieldname": "print_format",
    "fieldtype": "Link",
    "label": "Print Format",
-   "options": "Print Format",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Print Format"
   },
   {
    "default": "0",
@@ -339,14 +272,12 @@
    "description": "If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",
    "fieldname": "send_system_notification",
    "fieldtype": "Check",
-   "label": "Send System Notification",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Send System Notification"
   }
  ],
  "icon": "fa fa-envelope",
  "links": [],
- "modified": "2020-05-29 16:03:10.914526",
+ "modified": "2020-06-23 14:01:25.462544",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
