@@ -213,10 +213,34 @@
    "fieldtype": "Data",
    "label": "URL",
    "reqd": 0
+  },
+  {
+   "fieldname": "card_9",
+   "fieldtype": "Section Break",
+   "label": "Card 9",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_9_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_9_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_9_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
   }
  ],
  "idx": 0,
- "modified": "2020-04-29 22:40:03.362229",
+ "modified": "2020-05-15 13:52:02.984001",
  "modified_by": "Administrator",
  "name": "Section with Cards",
  "owner": "Administrator",

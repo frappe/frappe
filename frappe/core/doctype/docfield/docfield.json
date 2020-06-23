@@ -13,6 +13,8 @@
   "fieldname",
   "precision",
   "length",
+  "hide_days",
+  "hide_seconds",
   "reqd",
   "search_index",
   "in_list_view",
@@ -87,7 +89,7 @@
    "label": "Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
+   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
    "reqd": 1,
    "search_index": 1
   },
@@ -452,6 +454,20 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "fieldname": "hide_days",
+   "fieldtype": "Check",
+   "label": "Hide Days"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "fieldname": "hide_seconds",
+   "fieldtype": "Check",
+   "label": "Hide Seconds"
+  },
+  {
+   "default": "0",
    "depends_on": "eval:doc.fieldtype=='Section Break'",
    "fieldname": "hide_border",
    "fieldtype": "Check",
@@ -461,7 +477,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-04-27 11:38:21.223185",
+ "modified": "2020-02-06 09:06:25.224413",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

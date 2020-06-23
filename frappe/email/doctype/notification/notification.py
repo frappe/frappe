@@ -13,6 +13,7 @@ from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 
 class Notification(Document):
 	def onload(self):
@@ -118,12 +119,17 @@ def get_context(context):
 
 		if self.is_standard:
 			self.load_standard_properties(context)
+		try:
+			if self.channel == 'Email':
+				self.send_an_email(doc, context)
 
-		if self.channel == 'Email':
-			self.send_an_email(doc, context)
+			if self.channel == 'Slack':
+				self.send_a_slack_msg(doc, context)
 
-		if self.channel == 'Slack':
-			self.send_a_slack_msg(doc, context)
+			if self.channel == 'System Notification' or self.send_system_notification:
+				self.create_system_notification(doc, context)
+		except:
+			frappe.log_error(title='Failed to send notification', message=frappe.get_traceback())
 
 		if self.set_property_after_alert:
 			allow_update = True
@@ -142,6 +148,25 @@ def get_context(context):
 					doc.flags.in_notification_update = False
 			except Exception:
 				frappe.log_error(title='Document update failed', message=frappe.get_traceback())
+
+	def create_system_notification(self, doc, context):
+		subject = self.subject
+		if "{" in subject:
+			subject = frappe.render_template(self.subject, context)
+
+		attachments = self.get_attachment(doc)
+		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
+		users = recipients + cc + bcc
+
+		notification_doc = {
+			'type': 'Alert',
+			'document_type': doc.doctype,
+			'document_name': doc.name,
+			'subject': subject,
+			'email_content': frappe.render_template(self.message, context),
+			'attached_file': attachments and json.dumps(attachments[0])
+		}
+		enqueue_create_notification(users, notification_doc)
 
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
@@ -228,8 +253,7 @@ def get_context(context):
 
 			# ignoring attachment as draft and cancelled documents are not allowed to print
 			status = "Draft" if doc.docstatus == 0 else "Cancelled"
-			frappe.throw(_("""Not allowed to attach {0} document,
-				please enable Allow Print For {0} in Print Settings""".format(status)),
+			frappe.throw(_("""Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings""").format(status),
 				title=_("Error in Notification"))
 		else:
 			return [{

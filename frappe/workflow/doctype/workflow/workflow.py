@@ -59,7 +59,7 @@ class Workflow(Document):
 
 	def update_doc_status(self):
 		'''
-			Checks if the docstatus of a state was updated. 
+			Checks if the docstatus of a state was updated.
 			If yes then the docstatus of the document with same state will be updated
 		'''
 		doc_before_save = self.get_doc_before_save()
@@ -112,3 +112,15 @@ class Workflow(Document):
 def get_fieldnames_for(doctype):
 	return [f.fieldname for f in frappe.get_meta(doctype).fields \
 		if f.fieldname not in no_value_fields]
+
+@frappe.whitelist()
+def get_workflow_state_count(doctype, workflow_state_field, states):
+	states = frappe.parse_json(states)
+	result = frappe.get_all(
+		doctype,
+		fields=[workflow_state_field, 'count(*) as count', 'docstatus'],
+		filters = {'workflow_state': ['not in', states]},
+		group_by = workflow_state_field
+	)
+	return [r for r in result if r[workflow_state_field]]
+

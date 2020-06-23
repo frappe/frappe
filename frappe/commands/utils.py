@@ -6,6 +6,7 @@ import json, os, sys, subprocess
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
+from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import update_progress_bar, get_bench_path
 from frappe.utils.response import json_handler
 from coverage import Coverage
@@ -51,7 +52,8 @@ def clear_cache(context):
 			frappe.website.render.clear_cache()
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('clear-website-cache')
 @pass_context
@@ -65,7 +67,8 @@ def clear_website_cache(context):
 			frappe.website.render.clear_cache()
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('destroy-all-sessions')
 @click.option('--reason')
@@ -81,7 +84,8 @@ def destroy_all_sessions(context, reason=None):
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('show-config')
 @pass_context
@@ -117,7 +121,8 @@ def reset_perms(context):
 					reset_perms(d)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('execute')
 @click.argument('method')
@@ -164,6 +169,9 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 		if ret:
 			print(json.dumps(ret, default=json_handler))
 
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 
 @click.command('add-to-email-queue')
 @click.argument('email-path')
@@ -197,7 +205,8 @@ def export_doc(context, doctype, docname):
 			frappe.modules.export_doc(doctype, docname)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('export-json')
 @click.argument('doctype')
@@ -206,15 +215,16 @@ def export_doc(context, doctype, docname):
 @pass_context
 def export_json(context, doctype, path, name=None):
 	"Export doclist as json to the given path, use '-' as name for Singles."
-	from frappe.core.doctype.data_import import data_import
+	from frappe.core.doctype.data_import.data_import import export_json
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import.export_json(doctype, path, name=name)
+			export_json(doctype, path, name=name)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('export-csv')
 @click.argument('doctype')
@@ -222,15 +232,16 @@ def export_json(context, doctype, path, name=None):
 @pass_context
 def export_csv(context, doctype, path):
 	"Export data import template with data for DocType"
-	from frappe.core.doctype.data_import import data_import
+	from frappe.core.doctype.data_import.data_import import export_csv
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import.export_csv(doctype, path)
+			export_csv(doctype, path)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('export-fixtures')
 @click.option('--app', default=None, help='Export fixtures of a specific app')
@@ -245,14 +256,15 @@ def export_fixtures(context, app=None):
 			export_fixtures(app=app)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('import-doc')
 @click.argument('path')
 @pass_context
 def import_doc(context, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
-	from frappe.core.doctype.data_import import data_import
+	from frappe.core.doctype.data_import.data_import import import_doc
 
 	if not os.path.exists(path):
 		path = os.path.join('..', path)
@@ -264,10 +276,11 @@ def import_doc(context, path, force=False):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import.import_doc(path, overwrite=context.force)
+			import_doc(path, overwrite=context.force)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('import-csv')
 @click.argument('path')
@@ -280,7 +293,7 @@ def import_doc(context, path, force=False):
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
 	"Import CSV using data import"
-	from frappe.core.doctype.data_import import importer
+	from frappe.core.doctype.data_import_legacy import importer
 	from frappe.utils.csvutils import read_csv_content
 	site = get_site(context)
 
@@ -316,20 +329,12 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 @pass_context
 def data_import(context, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True):
 	"Import documents in bulk from CSV or XLSX using data import"
-	from frappe.core.doctype.data_import.importer_new import Importer
+	from frappe.core.doctype.data_import.data_import import import_file
 	site = get_site(context)
 
 	frappe.init(site=site)
 	frappe.connect()
-
-	data_import = frappe.new_doc('Data Import Beta')
-	data_import.submit_after_import = submit_after_import
-	data_import.mute_emails = mute_emails
-	data_import.import_type = 'Insert New Records' if import_type.lower() == 'insert' else 'Update Existing Records'
-
-	i = Importer(doctype=doctype, file_path=file_path, data_import=data_import, console=True)
-	i.import_data()
-
+	import_file(doctype, file_path, import_type, submit_after_import, console=True)
 	frappe.destroy()
 
 
@@ -364,6 +369,8 @@ def mariadb(context):
 	import os
 
 	site  = get_site(context)
+	if not site:
+		raise SiteNotSpecifiedError
 	frappe.init(site=site)
 
 	# This is assuming you're within the bench instance.
@@ -487,7 +494,17 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 	if coverage:
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		cov = Coverage(source=[source_path], omit=['*.html', '*.js', '*.xml', '*.css', '*/doctype/*/*_dashboard.py', '*/patches/*'])
+		cov = Coverage(source=[source_path], omit=[
+			'*.html',
+			'*.js',
+			'*.xml',
+			'*.css',
+			'*.less',
+			'*.scss',
+			'*.vue',
+			'*/doctype/*/*_dashboard.py',
+			'*/patches/*'
+		])
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
@@ -577,7 +594,8 @@ def request(context, args=None, path=None):
 			print(frappe.response)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('make-app')
 @click.argument('destination')
@@ -658,7 +676,8 @@ def rebuild_global_search(context, static_pages=False):
 
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('auto-deploy')
 @click.argument('app')

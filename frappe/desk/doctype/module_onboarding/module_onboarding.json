@@ -13,7 +13,6 @@
   "column_break_4",
   "success_message",
   "documentation_url",
-  "user_can_dismiss",
   "is_complete",
   "section_break_6",
   "steps"
@@ -54,13 +53,6 @@
    "reqd": 1
   },
   {
-   "default": "1",
-   "description": "Allow users to dismiss onboarding temporarily for a day",
-   "fieldname": "user_can_dismiss",
-   "fieldtype": "Check",
-   "label": "User Can Dismiss "
-  },
-  {
    "fieldname": "documentation_url",
    "fieldtype": "Data",
    "label": "Documentation URL",
@@ -90,7 +82,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-18 19:42:39.738869",
+ "modified": "2020-06-08 15:36:04.701049",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Onboarding",

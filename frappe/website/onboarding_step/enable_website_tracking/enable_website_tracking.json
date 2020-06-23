@@ -7,12 +7,15 @@
  "idx": 0,
  "is_complete": 0,
  "is_mandatory": 0,
+ "is_single": 0,
  "is_skipped": 0,
  "modified": "2020-04-30 20:22:50.778590",
  "modified_by": "Administrator",
  "name": "Enable Website Tracking",
  "owner": "Administrator",
  "reference_document": "Website Settings",
+ "show_full_form": 0,
  "title": "Enable Website Tracking",
+ "validate_action": 0,
  "value_to_validate": "1"
 }
