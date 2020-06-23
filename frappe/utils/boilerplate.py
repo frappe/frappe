@@ -74,6 +74,9 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
 		f.write(frappe.as_unicode(setup_template.format(**hooks)))
 
+	with open(os.path.join(dest, hooks.app_name, "setup.cfg"), "w") as f:
+		f.write(frappe.as_unicode(setup_template.format(**hooks)))
+
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
 		f.write("frappe")
 
@@ -283,25 +286,26 @@ def get_data():
 """
 
 setup_template = """# -*- coding: utf-8 -*-
-from setuptools import setup, find_packages
+from setuptools import setup
 
-with open('requirements.txt') as f:
-	install_requires = f.read().strip().split('\\n')
+setup()
+"""
 
-# get version from __version__ variable in {app_name}/__init__.py
-from {app_name} import __version__ as version
+setup_cfg_template = """[metadata]
+name={app_name}
+version = attr: {app_name}.__version__
+description = {app_description}
+author = {app_publisher}
+author_email = {app_email}
+license = {app_license}
 
-setup(
-	name='{app_name}',
-	version=version,
-	description='{app_description}',
-	author='{app_publisher}',
-	author_email='{app_email}',
-	packages=find_packages(),
-	zip_safe=False,
-	include_package_data=True,
-	install_requires=install_requires
-)
+[options]
+python_requires = >=3.6
+packages = find:
+include_package_data = True
+zip_safe = False
+install_requires =
+    frappe
 """
 
 gitignore_template = """.DS_Store
