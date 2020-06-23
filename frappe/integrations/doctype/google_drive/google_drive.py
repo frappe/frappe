@@ -196,7 +196,7 @@ def upload_system_backup_to_google_drive():
 		fileurl_backup, fileurl_public_files, fileurl_private_files = get_latest_backup_file(with_files=True)
 
 	for fileurl in [fileurl_backup, fileurl_public_files, fileurl_private_files]:
-		if not file_url:
+		if not fileurl:
 			continue
 
 		file_metadata = {
