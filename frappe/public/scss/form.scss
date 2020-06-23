@@ -31,7 +31,7 @@
 		padding: 15px;
 		margin: 0;
 		font-size: var(--text-lg);
-		font-weight: bold;
+		font-weight: 500;
 		color: var(--grey-900);
 		cursor: pointer;
 
@@ -63,6 +63,11 @@
   font-size: 12px;
 }
 
+.form-inner-toolbar {
+	padding: $padding-sm $padding-lg 0px;
+	text-align: right;
+}
+
 // .form-print-wrapper {
 // 	border: 1px solid $border-color;
 // 	border-top: none;
@@ -83,16 +88,6 @@
 // 	}
 // 	> div:last-child {
 // 		padding-right: 15px;
-// 	}
-// }
-
-// .form-inner-toolbar {
-// 	padding: 10px 15px 0px;
-// 	background-color: @light-bg;
-// 	text-align: right;
-
-// 	.btn {
-// 		margin-bottom: 10px;
 // 	}
 // }
 

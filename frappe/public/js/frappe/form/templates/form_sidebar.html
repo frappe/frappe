@@ -48,22 +48,22 @@
 			<span class="badge n-comments">0</span>
 		</a>
 	</li>
-    {% if(frappe.help.has_help(doctype)) { %}
-    <li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
-    {% } %}
+	{% if(frappe.help.has_help(doctype)) { %}
+	<li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
+	{% } %}
 </ul>
 <ul class="list-unstyled sidebar-menu form-assignments">
-	<li class="h6 assigned-to-label">{%= __("Assigned To") %}</li>
+	<li class="sidebar-label">{%= __("Assigned To") %}</li>
 	<li><a class="add-assignment text-muted">{%= __("Assign") %}
 		<i class="octicon octicon-plus" style="margin-left: 2px;"></i></a></li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-attachments">
-	<li class="h6 attachments-label">{%= __("Attachments") %}</li>
+	<li class="sidebar-label attachments-label">{%= __("Attachments") %}</li>
 	<li><a class="add-attachment text-muted">{%= __("Attach File") %}
 		<i class="octicon octicon-plus" style="margin-left: 2px;"></i></li></a>
 </ul>
 <ul class="list-unstyled sidebar-menu">
-	<li class="h6 tags-label">{%= __("Tags") %}</li>
+	<li class="tags-label">{%= __("Tags") %}</li>
 	<li class="form-tags">
 		<div class="tag-area"></div>
 		<div class="clearfix"></div>
@@ -71,11 +71,11 @@
 </ul>
 <span class="form-reviews"></span>
 <ul class="list-unstyled sidebar-menu">
-	<li class="h6 shared-with-label">{%= __("Shared With") %}</li>
+	<li class="sidebar-label">{%= __("Shared With") %}</li>
 	<li class="form-shared"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu">
-	<li class="h6 viewers-label">{%= __("Currently Viewing") %}</li>
+	<li class="sidebar-label">{%= __("Currently Viewing") %}</li>
 	<li class="form-viewers"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu">
@@ -90,7 +90,7 @@
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu followed-by-section">
-	<li class="h6 followed-by-label text-medium hidden">{%= __("Followed by") %}</li>
+	<li class="sidebar-label followed-by-label hidden">{%= __("Followed by") %}</li>
 	<li class="followed-by"></li>
 	<li class="document-follow">
 		<a class="badge-hover follow-document-link hidden">
@@ -107,7 +107,7 @@
 	<li class="created-by"></li>
 </ul>
 {% if(frappe.get_form_sidebar_extension) { %}
-    {{ frappe.get_form_sidebar_extension() }}
+	{{ frappe.get_form_sidebar_extension() }}
 {% } %}
 <ul class="list-unstyled visible-xs visible-sm">
 

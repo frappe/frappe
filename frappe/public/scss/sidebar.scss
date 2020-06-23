@@ -53,6 +53,13 @@ body[data-route^="Module"] .main-menu {
 	.sidebar-menu {
 		padding: 15px 0px 5px 0px;
 		margin: 0px;
+		&.sidebar-image-section {
+			padding-top: $padding-lg;
+		}
+		.sidebar-label {
+			font-weight: 500;
+			color: var(--grey-900);
+		}
 	}
 }
 
@@ -65,14 +72,6 @@ body[data-route^="Module"] .main-menu {
 }
 
 .sidebar-menu {
-	// .badge {
-	// 	position: absolute;
-	// 	font-weight: normal;
-	// 	right: 0px;
-	// 	top: 0px;
-	// 	padding-bottom: 4px;
-	// }
-
 	.octicon {
 		font-size: 12px;
 	}
@@ -202,50 +201,6 @@ body[data-route^="Module"] .main-menu {
 		.octicon-plus {
 			color: $text-color !important;
 		}
-	}
-}
-
-.sidebar-left .form-sidebar {
-	.form-tags,
-	.assignment-row,
-	.form-shared,
-	.liked-by,
-	.modified-by,
-	.created-by,
-	.tags-label,
-	.shared-with-label,
-	.form-viewers,
-	.viewers-label {
-		@extend .sidebar-padding;
-	}
-
-	.assigned-to-label,
-	.attachments-label,
-	.tags-label,
-	.shared-with-label,
-	.viewers-label {
-		@extend .sidebar-padding;
-		margin-bottom: 0px;
-	}
-
-	.assigned-to-label,
-	.tags-label,
-	.attachments-label.has-attachments,
-	.shared-with-label,
-	.viewers-label {
-		padding-bottom: 0px;
-	}
-
-	a.close {
-		right: 5px;
-	}
-
-	.assignment-row a.close {
-		margin-top: -12px;
-	}
-
-	.attachment-row {
-		margin-bottom: 4px;
 	}
 }
 
