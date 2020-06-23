@@ -75,7 +75,7 @@ def make_boilerplate(dest, app_name):
 		f.write(frappe.as_unicode(setup_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, "setup.cfg"), "w") as f:
-		f.write(frappe.as_unicode(setup_template.format(**hooks)))
+		f.write(frappe.as_unicode(setup_cfg_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
 		f.write("frappe")
