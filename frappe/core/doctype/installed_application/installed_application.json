@@ -3,20 +3,7 @@
  "creation": "2020-05-11 17:44:54.674657",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": [
-  "app_name",
-  "app_version",
-  "git_branch"
- ],
  "fields": [
-  {
-   "fieldname": "git_branch",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Git Branch",
-   "read_only": 1,
-   "reqd": 1
-  },
   {
    "fieldname": "app_name",
    "fieldtype": "Data",
@@ -30,6 +17,14 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Application Version",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "git_branch",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Git Branch",
    "read_only": 1,
    "reqd": 1
   }

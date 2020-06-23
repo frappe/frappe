@@ -4,9 +4,6 @@
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
- "field_order": [
-  "installed_applications"
- ],
  "fields": [
   {
    "fieldname": "installed_applications",
