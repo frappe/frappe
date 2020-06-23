@@ -27,7 +27,7 @@ class CleanCommand(Clean):
 			path.unlink()
 
 		for path in Path('.').rglob('__pycache__'):
-			path.rmdir()
+			rm_tree(path)
 
 
 setup(cmdclass={'clean': CleanCommand})
