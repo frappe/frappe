@@ -120,9 +120,11 @@ frappe.ui.form.Timeline = class Timeline {
 	display_automatic_link_email() {
 		let docinfo = this.frm.get_docinfo();
 
-		if (docinfo.document_email){
+		if (docinfo.document_email) {
 			let link = __("Send an email to {0} to link it here", [`<b><a class="timeline-email-import-link copy-to-clipboard">${docinfo.document_email}</a></b>`]);
-			$('.timeline-email-import').html(link);
+			const email_link = $('.timeline-email-import');
+			email_link.removeClass('hide');
+			email_link.html(link);
 		}
 	}
 

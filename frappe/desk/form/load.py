@@ -281,8 +281,11 @@ def get_automatic_email_link():
 
 def get_additional_timeline_content(doctype, docname):
 	contents = []
-	for method in frappe.get_hooks().get('additional_timeline_content', []):
+	hooks = frappe.get_hooks().get('additional_timeline_content', {})
+	methods_for_all_doctype = hooks.get('*', [])
+	methods_for_current_doctype = hooks.get(doctype, [])
+
+	for method in methods_for_all_doctype + methods_for_current_doctype:
 		contents.extend(frappe.get_attr(method)(doctype, docname) or [])
 
-	print(contents)
 	return contents
