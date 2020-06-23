@@ -1,7 +1,7 @@
 {% from "frappe/templates/includes/macros.html" import square_image_with_fallback %}
 
 <div class="comment-row media">
-    {{ square_image_with_fallback(src=frappe.get_gravatar(comment.comment_email or comment.sender), size='48px', alt=comment.sender_full_name, class='align-self-start mr-3') }}
+    {{ square_image_with_fallback(src=frappe.get_gravatar(comment.comment_email or comment.sender), size='extra-small', alt=comment.sender_full_name, class='align-self-start mr-3') }}
     <div class="media-body">
         <div class="d-flex justify-content-between align-items-start">
             <span class="font-weight-bold text-muted">

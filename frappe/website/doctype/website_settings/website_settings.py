@@ -103,9 +103,10 @@ class WebsiteSettings(Document):
 		return res.get("access_token")
 
 
-def get_website_settings():
+def get_website_settings(context=None):
 	hooks = frappe.get_hooks()
-	context = frappe._dict({
+	context = context or frappe._dict()
+	context = context.update({
 		'top_bar_items': get_items('top_bar_items'),
 		'footer_items': get_items('footer_items'),
 		"post_login": [

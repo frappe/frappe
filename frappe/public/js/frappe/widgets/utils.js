@@ -128,7 +128,7 @@ function go_to_list_with_filters(doctype, filters) {
 }
 
 function shorten_number(number, country) {
-	country = country || '';
+	country = (country == 'India') ? country : '';
 	const number_system = get_number_system(country);
 	let x = Math.abs(Math.round(number));
 	for (const map of number_system) {
