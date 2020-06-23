@@ -27,15 +27,15 @@
 }
 
 .filter-popover {
-    min-width: 500px;
-    min-height: 50px;
-    font-size: var(--text-md);
+	min-width: 500px;
+	min-height: 50px;
+	font-size: var(--text-md);
 
 	.filter-box {
 		padding: 5px 15px 5px 0;
 
 		.form-group {
-            @include media-breakpoint-up(xs) {
+			@include media-breakpoint-up(xs) {
 				margin-bottom: 0;
 			}
 		}
@@ -50,28 +50,28 @@
 				position: relative;
 				margin-bottom: 0;
 			}
-        }
-    }
+		}
+	}
 
-    .filter-action-buttons {
-        display: flex;
-        justify-content: space-between;
+	.filter-action-buttons {
+		display: flex;
+		justify-content: space-between;
 
-        .add-filter {
-            line-height: 2;
-            cursor: pointer;
-        }
-    }
+		.add-filter {
+			line-height: 2;
+			cursor: pointer;
+		}
+	}
 
-    .divider {
-        margin-right: -10px;
-        margin-left: -10px;
-    }
+	.divider {
+		margin-right: -10px;
+		margin-left: -10px;
+	}
 
 }
 
 // for sm and above
-@include media-breakpoint-up(xs) {
+@include media-breakpoint-up(sm) {
 	.filter-box .row > div[class*="col-sm-"] {
 		padding-right: 0px;
 	}
