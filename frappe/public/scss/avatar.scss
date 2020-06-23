@@ -21,22 +21,41 @@
 	border-radius: 50%;
 }
 
-.avatar-empty {
-	border: 1px dashed #d1d8dd;
-	border-radius: 50%;
-}
+// .avatar-empty {
+// 	border: 1px dashed #d1d8dd;
+// 	border-radius: 50%;
+// }
+
+// .avatar-small {
+// 	width: 36px;
+// 	height: 36px;
+// 	.standard-image {
+// 		font-size: 14px;
+// 	}
+// }
 
 .avatar-small {
-	width: 36px;
-	height: 36px;
+	width: 24px;
+	height: 24px;
+	text-align: center;
+
 	.standard-image {
-		font-size: 14px;
+		font-size: $font-size-sm;
+		width: 24px;
+		height: 24px;
+		padding: 2px;
+		border-radius: 50%;
+	}
+
+	.avatar-empty::after {
+		content: '\002D';
+		line-height: 24px;
 	}
 }
 
 .avatar-medium {
-	width: 36px;
-	height: 36px;
+	width: 24px;
+	height: 24px;
 
 	.standard-image {
 		font-size: 18px;
