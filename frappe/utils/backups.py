@@ -50,7 +50,7 @@ class BackupGenerator:
 			last_db, last_file, last_private_file, site_config_backup_path = self.get_recent_backup(older_than)
 		else:
 			last_db, last_file, last_private_file, site_config_backup_path = False, False, False, False
-			
+
 		self.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
 
 		if not (self.backup_path_files and self.backup_path_db and self.backup_path_private_files):
@@ -118,7 +118,7 @@ class BackupGenerator:
 				print('Backed up files', os.path.abspath(backup_path))
 
 	def copy_site_config(self):
-		site_config_backup_path = os.path.join(get_backup_path(), "site_config_backup_{}.json".format(self.todays_date))
+		site_config_backup_path = os.path.join(get_backup_path(), "{}-site_config_backup.json".format(self.todays_date))
 		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
 		site_config = {}
 		if os.path.exists(site_config_path):
