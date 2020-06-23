@@ -400,7 +400,11 @@ def call_hook_method(hook, *args, **kwargs):
 def update_progress_bar(txt, i, l):
 	if not getattr(frappe.local, 'request', None):
 		lt = len(txt)
-		col = 40 if os.get_terminal_size().columns > 80 else 20
+		try:
+			col = 40 if os.get_terminal_size().columns > 80 else 20
+		except OSError:
+			# in case function isn't being called from a terminal
+			col = 40
 
 		if lt < 36:
 			txt = txt + " "*(36-lt)
