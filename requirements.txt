@@ -1,3 +1,7 @@
+# requirements.txt will soon be replaced with declarative configuration
+# all requirements are now defined in setup.cfg
+# make any requirement changes or updates to setup.cfg as well
+
 Babel==2.6.0
 beautifulsoup4==4.8.2
 bleach-whitelist==0.0.10
