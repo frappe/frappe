@@ -354,6 +354,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
+
+		if (
+			!this.settings.hide_name_column &&
+			this.meta.title_field !== 'name'
+		) {
+			this.columns.push({
+				type: "Field",
+				df: {
+					label: __("Name"),
+					fieldname: "name",
+				},
+			});
+		}
 	}
 
 	reorder_listview_fields() {
@@ -791,32 +804,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_meta_html(doc) {
 		let html = "";
-		if (
-			!this.settings.hide_name_column &&
-			doc[this.meta.title_field || ""] !== doc.name
-		) {
-			html += `
-				<div class="level-item ellipsis">
-					<a class="text-muted ellipsis" href="${this.get_form_link(doc)}">
-						${doc.name}
-					</a>
-				</div>
-			`;
-		}
 
+		let settings_button = ''
 		if (this.settings.button && this.settings.button.show(doc)) {
-			html += `
-				<div class="level-item hidden-xs">
+			settings_button = `
+			<span>
 					<button class="btn btn-action btn-default btn-xs"
 						data-name="${doc.name}" data-idx="${doc._idx}"
 						title="${this.settings.button.get_description(doc)}">
 						${this.settings.button.get_label(doc)}
-					</a>
-				</div>
+					</button>
+					</span>
 			`;
 		}
 
-		const modified = comment_when(doc.modified, true);
+		const modified = comment_when(doc.modified);
 
 		const last_assignee = JSON.parse(doc._assign || "[]").slice(-1)[0];
 		const assigned_to = last_assignee
@@ -824,7 +826,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				data-filter="_assign,like,%${last_assignee}%">
 				${frappe.avatar(last_assignee)}
 			</span>`
-			: `<span class="avatar avatar-small avatar-empty"></span>`;
+			: `<span class="avatar avatar-small">
+				<span class="avatar-empty"></span>
+			</span>`;
 
 		const comment_count = `<span class="${
 			!doc._comment_count ? "text-extra-muted" : ""
@@ -837,8 +841,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		html += `
 			<div class="level-item list-row-activity">
-				${modified}
+				${settings_button}
 				${assigned_to}
+				${modified}
 				${comment_count}
 			</div>
 			<div class="level-item visible-xs text-right">

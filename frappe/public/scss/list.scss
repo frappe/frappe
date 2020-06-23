@@ -90,7 +90,7 @@
 
 	.level-left {
 		flex: 3;
-		width: 75%;
+		min-width: 75%;
 	}
 	.level-right {
 		flex: 1;
@@ -100,23 +100,26 @@
 
 	.list-row-activity {
 		justify-content: flex-end;
-		min-width: 120px;
-
-		.avatar:not(.avatar-empty) {
-			margin: 0;
-		}
+		// min-width: 120px;
 
 		&> span {
 			display: inline-block;
 
 			&:not(:last-child) {
-				margin-right: 8px;
+				margin-right: 15px;
 			}
 		}
 
 		.comment-count {
 			min-width: 35px;
 		}
+
+		.frappe-timestamp {
+			font-size: var(--text-xs);
+			white-space: nowrap;
+			min-width: 80px;
+		}
+
 	}
 }
 
@@ -272,11 +275,6 @@ input.list-check-all, input.list-row-checkbox {
 		justify-content: flex-end;
 	}
 }
-
-.frappe-timestamp {
-	white-space: nowrap;
-}
-
 // .like-action.octicon-heart {
 // 	color: $heart-color;
 // }
@@ -316,7 +314,8 @@ input.list-check-all, input.list-row-checkbox {
 
 	.standard-filter-section {
 		flex-wrap: wrap;
-		width: 70%;
+		width: 65%;
+		// flex: 1;
 
 		.form-group {
 			min-width: 150px;
