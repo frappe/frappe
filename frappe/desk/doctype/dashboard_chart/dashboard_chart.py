@@ -8,7 +8,8 @@ from frappe import _
 import datetime
 import json
 from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime, cint
+from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate,\
+	get_datetime, cint, now_datetime
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 from frappe.model.document import Document
@@ -134,7 +135,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
 	if not to_date:
-		to_date = datetime.datetime.now()
+		to_date = now_datetime()
 
 	doctype = chart.document_type
 	datefield = chart.based_on
@@ -260,7 +261,7 @@ def get_result(data, timegrain, from_date, to_date):
 	end_date = getdate(to_date)
 	result = []
 
-	while start_date <= end_date:
+	while start_date < end_date:
 		next_date = get_next_expected_date(start_date, timegrain)
 		result.append([next_date, 0.0])
 		start_date = next_date
