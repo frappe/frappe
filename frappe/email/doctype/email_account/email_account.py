@@ -483,8 +483,8 @@ class EmailAccount(Document):
 					# document ID is appended to subject
 					# example "Re: Your email (#OPP-2020-2334343)"
 					parent_id = email.subject.rsplit('#', 1)[-1].strip(' ()')
-					if frappe.db.exists(self.append_to, parent_id):
-						parent = frappe._dict(name=parent_id)
+					parent = frappe.db.get_all(self.append_to, filters = dict(name = parent_id),
+						fields = 'name')
 
 				if not parent:
 					# try and match by subject and sender
@@ -497,7 +497,7 @@ class EmailAccount(Document):
 						self.sender_field: email.from_email,
 						self.subject_field: ("like", "%{0}%".format(subject)),
 						"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
-					}, fields="name")
+					}, fields = "name", limit = 1)
 
 				if not parent and len(subject) > 10 and is_system_user(email.from_email):
 					# match only subject field
@@ -506,7 +506,7 @@ class EmailAccount(Document):
 					parent = frappe.db.get_all(self.append_to, filters={
 						self.subject_field: ("like", "%{0}%".format(subject)),
 						"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
-					}, fields="name")
+					}, fields = "name", limit = 1)
 
 
 
