@@ -843,7 +843,7 @@ class Column:
 
 		self.meta = frappe.get_meta(doctype)
 		self.parse()
-		self.parse_date_format()
+		self.validate_values()
 
 	def parse(self):
 		header_title = self.header_title
@@ -916,10 +916,6 @@ class Column:
 		self.df = df
 		self.skip_import = skip_import
 
-	def parse_date_format(self):
-		if self.df and self.df.fieldtype in ("Date", "Time", "Datetime"):
-			self.date_format = self.guess_date_format_for_column()
-
 	def guess_date_format_for_column(self):
 		""" Guesses date format for a column by parsing all the values in the column,
 		getting the date format and then returning the one which has the maximum frequency
@@ -953,6 +949,26 @@ class Column:
 			)
 
 		return max_occurred_date_format
+
+	def validate_values(self):
+		if not self.df:
+			return
+
+		if self.df.fieldtype == 'Link':
+			# find all values that dont exist
+			values = list(set([v for v in self.column_values[1:] if v]))
+			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={'name': ('in', values)})]
+			not_exists = list(set(values) - set(exists))
+			if not_exists:
+				missing_values = ', '.join(not_exists)
+				self.warnings.append({
+					'col': self.column_number,
+					'message': "The following values do not exist for {}: {}".format(self.df.options, missing_values),
+					'type': 'warning'
+				})
+		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
+			# guess date format
+			self.date_format = self.guess_date_format_for_column()
 
 	def as_dict(self):
 		d = frappe._dict()
