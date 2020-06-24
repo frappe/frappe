@@ -6,6 +6,10 @@ import frappe
 
 
 def execute():
+	if not frappe.db.exists("DocType", "Data Import Beta"):
+		return
+
+	frappe.db.sql("DROP TABLE IF EXISTS `tabData Import Legacy`")
 	frappe.rename_doc('DocType', 'Data Import', 'Data Import Legacy')
 	frappe.db.commit()
 	frappe.db.sql("DROP TABLE IF EXISTS `tabData Import`")
