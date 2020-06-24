@@ -112,6 +112,12 @@ $.extend(frappe, {
 			opts.args.cmd = opts.method;
 		}
 
+		$.each(opts.args, function(key, val) {
+			if (typeof val != "string" && val !== null) {
+				opts.args[key] = JSON.stringify(val);
+			}
+		});
+
 		if(!opts.no_spinner) {
 			//NProgress.start();
 		}

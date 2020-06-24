@@ -13,8 +13,8 @@
   "fieldname",
   "precision",
   "length",
-  "show_days",
-  "show_seconds",
+  "hide_days",
+  "hide_seconds",
   "reqd",
   "search_index",
   "in_list_view",
@@ -453,18 +453,18 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "1",
-   "depends_on": "eval:doc.fieldtype === \"Duration\";",
-   "fieldname": "show_days",
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "fieldname": "hide_days",
    "fieldtype": "Check",
-   "label": "Show Days"
+   "label": "Hide Days"
   },
   {
-   "default": "1",
-   "depends_on": "eval:doc.fieldtype === \"Duration\";",
-   "fieldname": "show_seconds",
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "fieldname": "hide_seconds",
    "fieldtype": "Check",
-   "label": "Show Seconds"
+   "label": "Hide Seconds"
   },
   {
    "default": "0",
@@ -477,7 +477,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-05-15 09:06:25.224411",
+ "modified": "2020-02-06 09:06:25.224413",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
