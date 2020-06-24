@@ -564,7 +564,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 
 	frappe.local.login_manager.user = user_doc.name
 	if should_run_2fa(user_doc.name):
-		authenticate_for_2factor(user.name)
+		authenticate_for_2factor(user_doc.name)
 		if not confirm_otp_token(frappe.local.login_manager):
 			return False
 
