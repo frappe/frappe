@@ -773,11 +773,12 @@ class Row:
 
 
 class Header(Row):
-	def __init__(self, index, row, doctype, raw_data, column_to_field_map):
+	def __init__(self, index, row, doctype, raw_data, column_to_field_map=None):
 		self.index = index
 		self.row_number = index + 1
 		self.data = row
 		self.doctype = doctype
+		column_to_field_map = column_to_field_map or frappe._dict()
 
 		self.seen = []
 		self.columns = []
