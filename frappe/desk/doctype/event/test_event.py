@@ -71,7 +71,7 @@ class TestEvent(unittest.TestCase):
 		ev = frappe.get_doc(self.test_records[0]).insert()
 
 		add({
-			"assign_to": "test@example.com",
+			"assign_to": ["test@example.com"],
 			"doctype": "Event",
 			"name": ev.name,
 			"description": "Test Assignment"
@@ -83,7 +83,7 @@ class TestEvent(unittest.TestCase):
 
 		# add another one
 		add({
-			"assign_to": self.test_user,
+			"assign_to": [self.test_user],
 			"doctype": "Event",
 			"name": ev.name,
 			"description": "Test Assignment"
@@ -93,10 +93,10 @@ class TestEvent(unittest.TestCase):
 
 		self.assertEqual(set(json.loads(ev._assign)), set(["test@example.com", self.test_user]))
 
-		# close an assignment
+		# Remove an assignment
 		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
 			"owner": self.test_user})
-		todo.status = "Closed"
+		todo.status = "Cancelled"
 		todo.save()
 
 		ev = frappe.get_doc("Event", ev.name)

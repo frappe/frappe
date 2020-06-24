@@ -186,7 +186,7 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
 	if (fieldtype === 'Select') {
 		cy.get('@input').select(value);
 	} else {
-		cy.get('@input').type(value, { waitForAnimations: false });
+		cy.get('@input').type(value, { waitForAnimations: false, force: true });
 	}
 	return cy.get('@input');
 });

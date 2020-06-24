@@ -70,7 +70,12 @@ class ScheduledJobType(Document):
 		self.scheduler_log = None
 		try:
 			self.log_status('Start')
-			frappe.get_attr(self.method)()
+			if self.server_script:
+				script_name = frappe.db.get_value("Server Script", self.server_script)
+				if script_name:
+					frappe.get_doc('Server Script', script_name).execute_scheduled_method()
+			else:
+				frappe.get_attr(self.method)()
 			frappe.db.commit()
 			self.log_status('Complete')
 		except Exception:
@@ -79,7 +84,7 @@ class ScheduledJobType(Document):
 
 	def log_status(self, status):
 		# log file
-		frappe.logger(__name__).info('Scheduled Job {0}: {1} for {2}'.format(status, self.method, frappe.local.site))
+		frappe.logger("scheduler").info('Scheduled Job {0}: {1} for {2}'.format(status, self.method, frappe.local.site))
 		self.update_scheduler_log(status)
 
 	def update_scheduler_log(self, status):

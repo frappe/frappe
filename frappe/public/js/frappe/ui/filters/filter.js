@@ -6,6 +6,12 @@ frappe.ui.Filter = class {
 		}
 
 		this.utils = frappe.ui.filter_utils;
+		this.set_conditions();
+		this.set_conditions_from_config();
+		this.make();
+	}
+
+	set_conditions() {
 		this.conditions = [
 			["=", __("Equals")],
 			["!=", __("Not Equals")],
@@ -19,8 +25,7 @@ frappe.ui.Filter = class {
 			[">=", ">="],
 			["<=", "<="],
 			["Between", __("Between")],
-			["Previous", __("Previous")],
-			["Next", __("Next")]
+			["Timespan", __("Timespan")],
 		];
 
 		this.nested_set_conditions = [
@@ -35,17 +40,28 @@ frappe.ui.Filter = class {
 		this.invalid_condition_map = {
 			Date: ['like', 'not like'],
 			Datetime: ['like', 'not like'],
-			Data: ['Between', 'Previous', 'Next'],
-			Select: ['like', 'not like', 'Between', 'Previous', 'Next'],
-			Link: ["Between", 'Previous', 'Next', '>', '<', '>=', '<='],
-			Currency: ["Between", 'Previous', 'Next'],
-			Color: ["Between", 'Previous', 'Next'],
+			Data: ['Between', 'Timespan'],
+			Select: ['like', 'not like', 'Between', 'Timespan'],
+			Link: ["Between", 'Timespan', '>', '<', '>=', '<='],
+			Currency: ["Between", 'Timespan'],
+			Color: ["Between", 'Timespan'],
 			Check: this.conditions.map(c => c[0]).filter(c => c !== '=')
 		};
-		this.make();
-		this.make_select();
-		this.set_events();
-		this.setup();
+	}
+
+	set_conditions_from_config() {
+		if (frappe.boot.additional_filters_config) {
+			this.filters_config = frappe.boot.additional_filters_config;
+			for (let key of Object.keys(this.filters_config)) {
+				const filter = this.filters_config[key];
+				this.conditions.push([key, __(`{0}`, [filter.label])]);
+				for (let fieldtype of Object.keys(this.invalid_condition_map)) {
+					if (!filter.valid_for_fieldtypes.includes(fieldtype)) {
+						this.invalid_condition_map[fieldtype].push(filter.label);
+					}
+				}
+			}
+		}
 	}
 
 	make() {
@@ -53,6 +69,10 @@ frappe.ui.Filter = class {
 			conditions: this.conditions
 		}))
 			.appendTo(this.parent.find('.filter-edit-area'));
+
+		this.make_select();
+		this.set_events();
+		this.setup();
 	}
 
 	make_select() {
@@ -203,33 +223,23 @@ frappe.ui.Filter = class {
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
 
-		if(["Previous", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
-			df.fieldtype = 'Select';
-			df.options = [
-				{
-					label: __('1 week'),
-					value: '1 week'
-				},
-				{
-					label: __('1 month'),
-					value: '1 month'
-				},
-				{
-					label: __('3 months'),
-					value: '3 months'
-				},
-				{
-					label: __('6 months'),
-					value: '6 months'
-				},
-				{
-					label: __('1 year'),
-					value: '1 year'
-				}
-			];
+		if (this.filters_config && this.filters_config[condition]
+				&& this.filters_config[condition].valid_for_fieldtypes.includes(df.fieldtype)) {
+			let args = {};
+			if (this.filters_config[condition].depends_on) {
+				const field_name = this.filters_config[condition].depends_on;
+				const filter_value = this.base_list.get_filter_value(field_name);
+				args[field_name] = filter_value;
+			}
+			frappe.xcall(this.filters_config[condition].get_field, args).then(field => {
+				df.fieldtype = field.fieldtype;
+				df.options = field.options;
+				df.fieldname = fieldname;
+				this.make_field(df, cur.fieldtype);
+			});
+		} else {
+			this.make_field(df, cur.fieldtype);
 		}
-
-		this.make_field(df, cur.fieldtype);
 	}
 
 	make_field(df, old_fieldtype) {
@@ -440,6 +450,10 @@ frappe.ui.filter_utils = {
 		if(condition == "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
 			df.fieldtype = 'DateRange';
 		}
+		if (condition == 'Timespan' && ['Date', 'Datetime', 'DateRange', 'Select'].includes(df.fieldtype)) {
+			df.fieldtype = 'Select';
+			df.options = this.get_timespan_options(['Last', 'Today', 'This', 'Next']);
+		}
 		if (condition === 'is') {
 			df.fieldtype = 'Select';
 			df.options = [
@@ -447,5 +461,32 @@ frappe.ui.filter_utils = {
 				{ label: __('Not Set'), value: 'not set' },
 			];
 		}
+		return;
+	},
+
+	get_timespan_options(periods) {
+		const period_map = {
+			'Last': ['Week', 'Month', 'Quarter', '6 months', 'Year'],
+			'Today': null,
+			'This': ['Week', 'Month', 'Quarter', 'Year'],
+			'Next': ['Week', 'Month', 'Quarter', '6 months', 'Year']
+		};
+		let options = [];
+		periods.forEach(period => {
+			if (period_map[period]) {
+				period_map[period].forEach(p => {
+					options.push({
+						label: __(`{0} {1}`, [period, p]),
+						value: `${period.toLowerCase()} ${p.toLowerCase()}`,
+					});
+				});
+			} else {
+				options.push({
+					label: __(`{0}`, [period]),
+					value: `${period.toLowerCase()}`,
+				});
+			}
+		});
+		return options;
 	}
 };

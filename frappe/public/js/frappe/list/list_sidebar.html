@@ -26,6 +26,8 @@
 	<li class="divider"></li>
 	<li class="list-link" data-view="List">
 		<a href="#List/{%= doctype %}/List">{%= __("List") %}</a></li>
+	<li class="list-link" data-view="Dashboard">
+		<a href="#List/{%= doctype %}/Dashboard">{%= __("Dashboard") %}</a></li>
 	<li class="hide list-link" data-view="Image">
 		<a href="#List/{%= doctype %}/Image">{%= __("Images") %}</a></li>
 	<li class="hide list-link" data-view="Gantt">
@@ -69,7 +71,7 @@
 			</a>
 			<ul class="dropdown-menu list-stats-dropdown" role="menu">
 				<div class="dropdown-search">
-					<input type="text" placeholder="Search" class="form-control dropdown-search-input input-xs">
+					<input type="text" placeholder="Search" data-element="search" class="form-control input-xs">
 				</div>
 			</ul>
 		</div>

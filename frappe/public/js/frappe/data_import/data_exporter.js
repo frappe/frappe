@@ -1,9 +1,9 @@
-import ColumnPickerFields from './column_picker_fields';
 frappe.provide('frappe.data_import');
 
 frappe.data_import.DataExporter = class DataExporter {
-	constructor(doctype) {
+	constructor(doctype, exporting_for) {
 		this.doctype = doctype;
+		this.exporting_for = exporting_for;
 		frappe.model.with_doctype(doctype, () => {
 			this.make_dialog();
 		});
@@ -13,6 +13,36 @@ frappe.data_import.DataExporter = class DataExporter {
 		this.dialog = new frappe.ui.Dialog({
 			title: __('Export Data'),
 			fields: [
+				{
+					fieldtype: 'Select',
+					fieldname: 'exporting_for',
+					label: __('Exporting For'),
+					options: [
+						{
+							label: __('Insert New Records'),
+							value: 'Insert New Records'
+						},
+						{
+							label: __('Update Existing Records'),
+							value: 'Update Existing Records'
+						}
+					],
+					change: () => {
+						let exporting_for = this.dialog.get_value('exporting_for');
+						this.dialog.set_value(
+							'export_records',
+							exporting_for === 'Insert New Records' ? 'blank_template' : 'all'
+						);
+
+						// Force ID field to be exported when updating existing records
+						let id_field = this.dialog.get_field(this.doctype).options[0];
+						if (id_field.value === 'name' && id_field.$checkbox) {
+							id_field.$checkbox
+								.find('input')
+								.prop('disabled', exporting_for === 'Update Existing Records');
+						}
+					}
+				},
 				{
 					fieldtype: 'Select',
 					fieldname: 'export_records',
@@ -67,26 +97,31 @@ frappe.data_import.DataExporter = class DataExporter {
 					on_change: () => this.update_primary_action(),
 					options: this.get_multicheck_options(this.doctype)
 				},
-				...frappe.meta.get_table_fields(this.doctype)
-					.map(df => {
-						let doctype = df.options;
-						let label = df.reqd
-							? __('{0} (1 row mandatory)', [doctype])
-							: __(doctype);
-						return {
-							label,
-							fieldname: doctype,
-							fieldtype: 'MultiCheck',
-							columns: 2,
-							on_change: () => this.update_primary_action(),
-							options: this.get_multicheck_options(doctype)
-						};
-					})
+				...frappe.meta.get_table_fields(this.doctype).map(df => {
+					let doctype = df.options;
+					let child_fieldname = df.fieldname;
+					let label = df.reqd
+						? // prettier-ignore
+						  __('{0} ({1}) (1 row mandatory)', [df.label || df.fieldname, doctype])
+						: __('{0} ({1})', [df.label || df.fieldname, doctype]);
+					return {
+						label,
+						fieldname: child_fieldname,
+						fieldtype: 'MultiCheck',
+						columns: 2,
+						on_change: () => this.update_primary_action(),
+						options: this.get_multicheck_options(doctype, child_fieldname)
+					};
+				})
 			],
 			primary_action_label: __('Export'),
 			primary_action: values => this.export_records(values),
 			on_page_show: () => this.select_mandatory()
 		});
+
+		if (this.exporting_for) {
+			this.dialog.set_value('exporting_for', this.exporting_for);
+		}
 
 		this.make_filter_area();
 		this.make_select_all_buttons();
@@ -97,7 +132,7 @@ frappe.data_import.DataExporter = class DataExporter {
 
 	export_records() {
 		let method =
-			'/api/method/frappe.core.doctype.data_import_beta.data_import_beta.download_template';
+			'/api/method/frappe.core.doctype.data_import.data_import.download_template';
 
 		let multicheck_fields = this.dialog.fields
 			.filter(df => df.fieldtype === 'MultiCheck')
@@ -165,16 +200,16 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	select_mandatory() {
-		let mandatory_table_doctypes = frappe.meta
+		let mandatory_table_fields = frappe.meta
 			.get_table_fields(this.doctype)
 			.filter(df => df.reqd)
-			.map(df => df.options);
-		mandatory_table_doctypes.push(this.doctype);
+			.map(df => df.fieldname);
+		mandatory_table_fields.push(this.doctype);
 
 		let multicheck_fields = this.dialog.fields
 			.filter(df => df.fieldtype === 'MultiCheck')
 			.map(df => df.fieldname)
-			.filter(doctype => mandatory_table_doctypes.includes(doctype));
+			.filter(doctype => mandatory_table_fields.includes(doctype));
 
 		let checkboxes = [].concat(
 			...multicheck_fields.map(fieldname => {
@@ -192,8 +227,12 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	unselect_all() {
+		let update_existing_records =
+			this.dialog.get_value('exporting_for') == 'Update Existing Records';
 		this.dialog.$wrapper
-			.find(':checkbox')
+			.find(
+				`:checkbox${update_existing_records ? ':not([data-unit=name])' : ''}`
+			)
 			.prop('checked', false)
 			.trigger('change');
 	}
@@ -253,11 +292,9 @@ frappe.data_import.DataExporter = class DataExporter {
 		}, {});
 	}
 
-	get_multicheck_options(doctype) {
+	get_multicheck_options(doctype, child_fieldname = null) {
 		if (!this.column_map) {
-			this.column_map = new ColumnPickerFields({
-				doctype: this.doctype
-			}).get_columns_for_picker();
+			this.column_map = get_columns_for_picker(this.doctype);
 		}
 
 		let autoname_field = null;
@@ -267,7 +304,11 @@ frappe.data_import.DataExporter = class DataExporter {
 			autoname_field = frappe.meta.get_field(doctype, fieldname);
 		}
 
-		return this.column_map[doctype]
+		let fields = child_fieldname
+			? this.column_map[child_fieldname]
+			: this.column_map[doctype];
+
+		return fields
 			.filter(df => {
 				if (autoname_field && df.fieldname === autoname_field.fieldname) {
 					return false;
@@ -289,3 +330,52 @@ frappe.data_import.DataExporter = class DataExporter {
 			});
 	}
 };
+
+export function get_columns_for_picker(doctype) {
+	let out = {};
+
+	const exportable_fields = df => {
+		let keep = true;
+		if (frappe.model.no_value_type.includes(df.fieldtype)) {
+			keep = false;
+		}
+		if (['lft', 'rgt'].includes(df.fieldname)) {
+			keep = false;
+		}
+		return keep;
+	};
+
+	// parent
+	let doctype_fields = frappe.meta
+		.get_docfields(doctype)
+		.filter(exportable_fields);
+
+	out[doctype] = [
+		{
+			label: __('ID'),
+			fieldname: 'name',
+			fieldtype: 'Data',
+			reqd: 1
+		}
+	].concat(doctype_fields);
+
+	// children
+	const table_fields = frappe.meta.get_table_fields(doctype);
+	table_fields.forEach(df => {
+		const cdt = df.options;
+		const child_table_fields = frappe.meta
+			.get_docfields(cdt)
+			.filter(exportable_fields);
+
+		out[df.fieldname] = [
+			{
+				label: __('ID'),
+				fieldname: 'name',
+				fieldtype: 'Data',
+				reqd: 1
+			}
+		].concat(child_table_fields);
+	});
+
+	return out;
+}

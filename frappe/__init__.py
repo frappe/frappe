@@ -23,7 +23,7 @@ if PY2:
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.0.0-dev'
+__version__ = '13.0.0-dev'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -48,8 +48,12 @@ class _dict(dict):
 	def copy(self):
 		return _dict(dict(self).copy())
 
-def _(msg, lang=None):
-	"""Returns translated string in current lang, if exists."""
+def _(msg, lang=None, context=None):
+	"""Returns translated string in current lang, if exists.
+		Usage:
+			_('Change')
+			_('Change', context='Coins')
+	"""
 	from frappe.translate import get_full_dict
 	from frappe.utils import strip_html_tags, is_html
 
@@ -59,7 +63,7 @@ def _(msg, lang=None):
 	if not lang:
 		lang = local.lang
 
-	non_translated_msg = msg
+	non_translated_string = msg
 
 	if is_html(msg):
 		msg = strip_html_tags(msg)
@@ -67,8 +71,16 @@ def _(msg, lang=None):
 	# msg should always be unicode
 	msg = as_unicode(msg).strip()
 
+	translated_string = ''
+	if context:
+		string_key = '{msg}:{context}'.format(msg=msg, context=context)
+		translated_string = get_full_dict(lang).get(string_key)
+
+	if not translated_string:
+		translated_string = get_full_dict(lang).get(msg)
+
 	# return lang_full_dict according to lang passed parameter
-	return get_full_dict(lang).get(msg) or non_translated_msg
+	return translated_string or non_translated_string
 
 def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
@@ -219,9 +231,8 @@ def get_site_config(sites_path=None, site_path=None):
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
 		elif local.site and not local.flags.new_site:
-			print("{0} does not exist".format(local.site))
+			print("Site {0} does not exist".format(local.site))
 			sys.exit(1)
-			#raise IncorrectSitePath, "{0} does not exist".format(site_config)
 
 	return _dict(config)
 
@@ -333,7 +344,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			style="margin: 0;">{}</table>'''.format(table_rows)
 
 	if flags.print_messages and out.message:
-		print("Message: " + repr(out.message).encode("utf-8"))
+		print(f"Message: {repr(out.message).encode('utf-8')}")
 
 	if title:
 		out.title = title
@@ -832,6 +843,8 @@ def rename_doc(*args, **kwargs):
 		Calls `frappe.model.rename_doc.rename_doc`
 	"""
 	kwargs.pop('ignore_permissions', None)
+	kwargs.pop('cmd', None)
+
 	from frappe.model.rename_doc import rename_doc
 	return rename_doc(*args, **kwargs)
 
@@ -1132,8 +1145,8 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 	"""Import a file using Data Import."""
-	from frappe.core.doctype.data_import import data_import
-	data_import.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
+	from frappe.core.doctype.data_import.data_import import import_doc
+	import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
 
 def copy_doc(doc, ignore_no_copy=True):
 	""" No_copy fields also get copied."""
@@ -1545,10 +1558,10 @@ def get_doctype_app(doctype):
 
 loggers = {}
 log_level = None
-def logger(module=None, with_more_info=True):
+def logger(module=None, with_more_info=False):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
-	return get_logger(module or 'default', with_more_info=with_more_info)
+	return get_logger(module=module, with_more_info=with_more_info)
 
 def log_error(message=None, title=_("Error")):
 	'''Log error to Error Log'''

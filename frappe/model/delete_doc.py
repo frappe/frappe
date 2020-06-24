@@ -77,7 +77,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
-			if not (for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_test):
+			if not (for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_uninstall or frappe.flags.in_test):
 				try:
 					delete_controllers(name, doc.module)
 				except (FileNotFoundError, OSError, KeyError):
@@ -210,7 +210,7 @@ def check_permission_and_not_submitted(doc):
 
 	# check if submitted
 	if doc.docstatus == 1:
-		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted.").format(_(doc.doctype), doc.name),
+		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.").format(_(doc.doctype), doc.name, "<a href='https://docs.erpnext.com//docs/user/manual/en/setting-up/articles/delete-submitted-document' target='_blank'>", "</a>"),
 			raise_exception=True)
 
 def check_if_doc_is_linked(doc, method="Delete"):

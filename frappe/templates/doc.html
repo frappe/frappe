@@ -1,0 +1,189 @@
+{% extends "templates/base.html" %}
+{%- from "templates/includes/navbar/navbar_items.html" import render_item -%}
+
+{%- block head_include %}
+<link rel="stylesheet" href="/assets/frappe/css/hljs-night-owl.css">
+{% endblock -%}
+
+{%- block navbar -%}
+<nav class="navbar navbar-light navbar-expand-lg doc-navbar fixed-top">
+	<div class="container-fluid doc-container">
+		<div class="row no-gutters w-100">
+			<div class="col-12 col-lg-2">
+				<a class="navbar-brand" href="{{ url_prefix }}{{ home_page or "/" }}">
+					{%- if brand_html -%}
+					{{ brand_html }}
+					{%- elif banner_image -%}
+					<img src='{{ banner_image }}'>
+					{%- else -%}
+					<span>{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
+					{%- endif -%}
+				</a>
+			</div>
+			<div class="col-12 col-lg-8">
+				<div class="doc-search-container">
+					<div class="doc-search">
+						<div class="dropdown">
+							<div class="search-icon">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor" stroke-width="2" stroke-linecap="round"
+									stroke-linejoin="round"
+									class="feather feather-search">
+									<circle cx="11" cy="11" r="8"></circle>
+									<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+								</svg>
+							</div>
+							<input type="search" class="form-control" placeholder="Search the docs (Press ? to focus)" />
+							<div class="overflow-hidden shadow dropdown-menu w-100">
+							</div>
+						</div>
+					</div>
+					<button class="navbar-toggler" type="button"
+						data-toggle="collapse"
+						data-target="#navbarSupportedContent"
+						aria-controls="navbarSupportedContent"
+						aria-expanded="false"
+						aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+				</div>
+			</div>
+			<div class="col-12 col-lg-2">
+				<div class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="navbar-nav">
+						{%- set items = docs_navbar_items or [] -%}
+						{%- for item in items -%}
+						{{ render_item(item, parent=True) }}
+						{%- endfor -%}
+					</ul>
+					{% include "templates/includes/web_sidebar.html" %}
+				</div>
+			</div>
+		</div>
+	</div>
+</nav>
+{%- endblock -%}
+
+{% block content %}
+
+
+{% macro container_attributes() -%}
+id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
+{%- if page_or_generator=="Generator" %}source-type="Generator" data-doctype="{{ doctype }}"{%- endif %}
+{%- if source_content_type %}source-content-type="{{ source_content_type }}"{%- endif %}
+{%- endmacro %}
+
+<div class="container-fluid doc-layout doc-container">
+	<div class="row no-gutters" {{ container_attributes() }}>
+		<div class="sidebar-column col-sm-2">
+			<aside class="doc-sidebar">
+				{% block page_sidebar %}
+				{% include "templates/includes/web_sidebar.html" %}
+				{% endblock %}
+			</aside>
+		</div>
+		<div class="main-column doc-main col-12 col-lg-10 col-xl-8">
+			<div class="page-content-wrapper">
+				{% block page_container %}
+				<main>
+					<div class="page_content page-content doc-content">
+						{%- if add_breadcrumbs -%}
+						{% include "templates/includes/breadcrumbs.html" %}
+						{%- endif -%}
+						{%- block page_content -%}{%- endblock -%}
+					</div>
+				</main>
+				{% endblock %}
+			</div>
+		</div>
+		{%- if page_toc_html -%}
+		<div class="page-toc col-sm-2 d-none d-xl-block">
+			{% block page_toc %}
+			{% if page_toc_html %}
+			<div>
+				<h5>On this page</h5>
+				{{ page_toc_html }}
+			</div>
+			{% endif %}
+			{% endblock %}
+		</div>
+		{%- endif -%}
+	</div>
+</div>
+
+{% endblock %}
+
+{%- block script -%}
+<script>
+	frappe.ready(() => {
+		setup_search();
+
+		$('.web-footer .container')
+			.removeClass('container')
+			.addClass('container-fluid doc-container');
+	});
+
+	function setup_search() {
+		let $dropdown = $('.doc-search .dropdown');
+		let $dropdown_menu = $('.doc-search .dropdown-menu');
+		let $input = $('.doc-search input');
+
+		$(document).on('keypress', e => {
+			if (e.key === '/') {
+				e.preventDefault();
+				$input.focus();
+			}
+		});
+
+		$input.on('input', frappe.utils.debounce(() => {
+			if (!$input.val()) {
+				clear_dropdown();
+				return;
+			}
+
+			frappe.call({
+				method: 'frappe.modules.full_text_search.web_search',
+				args: {
+					index_name: 'web_routes',
+					scope: '{{ docs_search_scope or "" }}' || null,
+					query: $input.val(),
+					limit: 5
+				}
+			}).then(r => {
+				let results = r.message || [];
+				let dropdown_html;
+				if (results.length == 0) {
+					dropdown_html = `<div class="dropdown-item">No results found</div>`;
+				} else {
+					dropdown_html = results.map(r => {
+						return `<a class="dropdown-item" href="/${r.path}">
+							<h6>${r.title_highlights || r.title}</h6>
+							<div style="white-space: normal;">${r.content_highlights}</div>
+						</a>`
+					}).join('')
+				}
+				$dropdown_menu.html(dropdown_html);
+				$dropdown_menu.addClass('show');
+			});
+		}, 500));
+
+		$input.on('focus', () => {
+			if (!$input.val()) {
+				clear_dropdown();
+			}
+		});
+
+		$input.on('blur', () => {
+			setTimeout(() => {
+				clear_dropdown();
+			}, 300);
+		});
+
+		function clear_dropdown() {
+			$dropdown_menu.html('');
+			$dropdown_menu.removeClass('show');
+		}
+	}
+</script>
+{%- endblock -%}
