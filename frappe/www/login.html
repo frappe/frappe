@@ -68,7 +68,7 @@
 		<a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 	</div>
 </section>
-<section class='for-signup'>
+<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
 	<div class="login-content page-card" style="margin-top: 20px;">
 	{%- if not disable_signup -%}
 		<form class="form-signin form-signup hide" role="form">
