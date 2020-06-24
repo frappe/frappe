@@ -36,6 +36,10 @@ class BackupGenerator:
 		self.backup_path_files = backup_path_files
 		self.backup_path_db = backup_path_db
 		self.backup_path_private_files = backup_path_private_files
+
+		site = frappe.local.site or frappe.generate_hash(length=8)
+		self.site_slug = site.replace('.', '_')
+
 		self.verbose = verbose
 		_verbose = verbose
 
@@ -69,13 +73,10 @@ class BackupGenerator:
 			self.site_config_backup_path = site_config_backup_path
 
 	def set_backup_file_name(self):
-		site = frappe.local.site or frappe.generate_hash(length=8)
-		site = site.replace('.', '_')
-
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = self.todays_date + "-" + site + "-database.sql.gz"
-		for_public_files = self.todays_date + "-" + site + "-files.tar"
-		for_private_files = self.todays_date + "-" + site + "-private-files.tar"
+		for_db = self.todays_date + "-" + self.site_slug + "-database.sql.gz"
+		for_public_files = self.todays_date + "-" + self.site_slug + "-files.tar"
+		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files.tar"
 		backup_path = get_backup_path()
 
 		if not self.backup_path_db:
@@ -118,7 +119,11 @@ class BackupGenerator:
 				print('Backed up files', os.path.abspath(backup_path))
 
 	def copy_site_config(self):
-		site_config_backup_path = os.path.join(get_backup_path(), "{}-site_config_backup.json".format(self.todays_date))
+		site_config_backup_path = os.path.join(
+			get_backup_path(),
+			"{time_stamp}-{site_slug}-site_config_backup.json".format(
+				time_stamp=self.todays_date,
+				site_slug=self.site_slug))
 		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
 		site_config = {}
 		if os.path.exists(site_config_path):
