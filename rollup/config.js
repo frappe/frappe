@@ -11,6 +11,7 @@ const buble = require('rollup-plugin-buble');
 const { terser } = require('rollup-plugin-terser');
 const vue = require('rollup-plugin-vue');
 const frappe_html = require('./frappe-html-plugin');
+const less_loader = require('./less-loader');
 
 const production = process.env.FRAPPE_ENV === 'production';
 
@@ -108,14 +109,18 @@ function get_rollup_options_for_js(output_file, input_files) {
 
 function get_rollup_options_for_css(output_file, input_files) {
 	const output_path = path.resolve(assets_path, output_file);
-	const minimize_css = output_path.startsWith('css/') && production;
+	const starts_with_css = output_file.startsWith('css/');
 
 	const plugins = [
 		// enables array of inputs
 		multi_entry(),
 		// less -> css
 		postcss({
+			plugins: [
+				starts_with_css && production ? require('cssnano')({ preset: 'default' }) : null
+			].filter(Boolean),
 			extract: output_path,
+			loaders: [less_loader],
 			use: [
 				['less', {
 					// import other less/css files starting from these folders
@@ -123,14 +128,18 @@ function get_rollup_options_for_css(output_file, input_files) {
 						path.resolve(get_public_path('frappe'), 'less')
 					]
 				}],
-				['sass', get_options_for_scss()]
+				['sass', {
+					...get_options_for_scss(),
+					outFile: output_path,
+					sourceMapContents: true
+				}]
 			],
 			include: [
 				path.resolve(bench_path, '**/*.less'),
 				path.resolve(bench_path, '**/*.scss'),
 				path.resolve(bench_path, '**/*.css')
 			],
-			minimize: minimize_css
+			sourceMap: starts_with_css && !production
 		})
 	];
 
@@ -144,6 +153,7 @@ function get_rollup_options_for_css(output_file, input_files) {
 
 				// console.warn everything else
 				log(chalk.yellow.underline(warning.code), ':', warning.message);
+				log(warning);
 			}
 		},
 		outputOptions: {

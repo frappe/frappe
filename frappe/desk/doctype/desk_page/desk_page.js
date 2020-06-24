@@ -3,16 +3,26 @@
 
 frappe.ui.form.on('Desk Page', {
 	refresh: function(frm) {
+		frm.enable_save();
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.get_field("extends_another_page").toggle(frappe.boot.developer_mode);
-		if (!frappe.boot.developer_mode) {
-			frm.set_read_only();
-			frm.fields
-				.filter(field => field.has_input)
-				.forEach(field => {
-					frm.set_df_property(field.df.fieldname, "read_only", "1");
-				});
-			frm.disable_save();
+		frm.get_field("developer_mode_only").toggle(frappe.boot.developer_mode);
+
+		if (frm.doc.for_user) {
+			frm.set_df_property("extends", "read_only", true);
 		}
+
+		if (frm.doc.for_user || (frm.doc.is_standard && !frappe.boot.developer_mode)) {
+			frm.trigger('disable_form');
+		}
+	},
+
+	disable_form: function(frm) {
+		frm.fields
+			.filter(field => field.has_input)
+			.forEach(field => {
+				frm.set_df_property(field.df.fieldname, "read_only", "1");
+			});
+		frm.disable_save();
 	}
 });

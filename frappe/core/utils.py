@@ -67,3 +67,19 @@ def find_all(list_of_dict, match_function):
 		if match_function(entry):
 			found.append(entry)
 	return found
+
+def ljust_list(_list, length, fill_word=None):
+	"""
+	Similar to ljust but for list.
+
+	Usage:
+		$ ljust_list([1, 2, 3], 5)
+		> [1, 2, 3, None, None]
+	"""
+	# make a copy to avoid mutation of passed list
+	_list = list(_list)
+	fill_length = length - len(_list)
+	if fill_length > 0:
+		_list.extend([fill_word] * fill_length)
+
+	return _list

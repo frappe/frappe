@@ -10,7 +10,7 @@ import socket
 import time
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
+from frappe.utils import validate_email_address, cint, cstr, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html, add_days
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
@@ -169,19 +169,20 @@ class EmailAccount(Document):
 		try:
 			email_server.connect()
 		except (error_proto, imaplib.IMAP4.error) as e:
-			message = e.message.lower().replace(" ","")
-			if in_receive and any(map(lambda t: t in message, ['authenticationfail', 'loginviayourwebbrowser', #abbreviated to work with both failure and failed
+			e = cstr(e)
+			message = e.lower().replace(" ","")
+			if in_receive and any(map(lambda t: t in message, ['authenticationfailed', 'loginviayourwebbrowser', #abbreviated to work with both failure and failed
 				'loginfailed', 'err[auth]', 'errtemporaryerror'])): #temporary error to deal with godaddy
 				# if called via self.receive and it leads to authentication error, disable incoming
 				# and send email to system manager
 				self.handle_incoming_connect_error(
-					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}').format(self.name, e.message)
+					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}').format(self.name, e)
 				)
 
 				return None
 
 			else:
-				frappe.throw(e.message)
+				frappe.throw(e)
 
 		except socket.error:
 			if in_receive:
@@ -452,16 +453,15 @@ class EmailAccount(Document):
 	def set_sender_field_and_subject_field(self):
 		'''Identify the sender and subject fields from the `append_to` DocType'''
 		# set subject_field and sender_field
-		meta_module = frappe.get_meta_module(self.append_to)
 		meta = frappe.get_meta(self.append_to)
+		self.subject_field = None
+		self.sender_field = None
 
-		self.subject_field = getattr(meta_module, "subject_field", "subject")
-		if not meta.get_field(self.subject_field):
-			self.subject_field = None
+		if hasattr(meta, "subject_field"):
+			self.subject_field = meta.subject_field
 
-		self.sender_field = getattr(meta_module, "sender_field", "sender")
-		if not meta.get_field(self.sender_field):
-			self.sender_field = None
+		if hasattr(meta, "sender_field"):
+			self.sender_field = meta.sender_field
 
 	def find_parent_based_on_subject_and_sender(self, communication, email):
 		'''Find parent document based on subject and sender match'''
@@ -534,28 +534,37 @@ class EmailAccount(Document):
 		parent = None
 		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
 
-		if in_reply_to and "@{0}".format(frappe.local.site) in in_reply_to:
-			# reply to a communication sent from the system
-			email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['communication','reference_doctype', 'reference_name'])
-			if email_queue:
-				parent_communication, parent_doctype, parent_name = email_queue
-				if parent_communication:
-					communication.in_reply_to = parent_communication
+		if in_reply_to:
+			if "@{0}".format(frappe.local.site) in in_reply_to:
+				# reply to a communication sent from the system
+				email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['communication','reference_doctype', 'reference_name'])
+				if email_queue:
+					parent_communication, parent_doctype, parent_name = email_queue
+					if parent_communication:
+						communication.in_reply_to = parent_communication
+				else:
+					reference, domain = in_reply_to.split("@", 1)
+					parent_doctype, parent_name = 'Communication', reference
+
+				if frappe.db.exists(parent_doctype, parent_name):
+					parent = frappe._dict(doctype=parent_doctype, name=parent_name)
+
+					# set in_reply_to of current communication
+					if parent_doctype=='Communication':
+						# communication.in_reply_to = email_queue.communication
+
+						if parent.reference_name:
+							# the true parent is the communication parent
+							parent = frappe.get_doc(parent.reference_doctype,
+								parent.reference_name)
 			else:
-				reference, domain = in_reply_to.split("@", 1)
-				parent_doctype, parent_name = 'Communication', reference
-
-			if frappe.db.exists(parent_doctype, parent_name):
-				parent = frappe._dict(doctype=parent_doctype, name=parent_name)
-
-				# set in_reply_to of current communication
-				if parent_doctype=='Communication':
-					# communication.in_reply_to = email_queue.communication
-
-					if parent.reference_name:
-						# the true parent is the communication parent
-						parent = frappe.get_doc(parent.reference_doctype,
-							parent.reference_name)
+				comm = frappe.db.get_value('Communication',
+						dict(
+							message_id=in_reply_to,
+							creation=['>=', add_days(get_datetime(), -30)]),
+						['reference_doctype', 'reference_name'], as_dict=1)
+				if comm:
+					parent = frappe._dict(doctype=comm.reference_doctype, name=comm.reference_name)
 
 		return parent
 
@@ -675,8 +684,21 @@ class EmailAccount(Document):
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
-	if not txt: txt = ""
-	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
+	txt = txt if txt else ""
+	email_append_to_list = []
+
+	# Set Email Append To DocTypes via DocType
+	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
+	for dt in frappe.get_all("DocType", filters=filters, fields=["name", "email_append_to"]):
+		email_append_to_list.append(dt.name)
+
+	# Set Email Append To DocTypes set via Customize Form
+	for dt in frappe.get_list("Property Setter", filters={"property": "email_append_to", "value": 1}, fields=["doc_type"]):
+		email_append_to_list.append(dt.doc_type)
+
+	email_append_to = [[d] for d in set(email_append_to_list) if txt in d]
+
+	return email_append_to
 
 def test_internet(host="8.8.8.8", port=53, timeout=3):
 	"""Returns True if internet is connected

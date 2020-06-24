@@ -54,6 +54,10 @@
   "color",
   "show_preview_popup",
   "show_name_in_global_search",
+  "email_settings_sb",
+  "email_append_to",
+  "sender_field",
+  "subject_field",
   "sb2",
   "permissions",
   "restrict_to_domain",
@@ -488,11 +492,37 @@
    "fieldtype": "Table",
    "label": "Links",
    "options": "DocType Link"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "subject_field",
+   "fieldtype": "Data",
+   "label": "Subject Field"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "sender_field",
+   "fieldtype": "Data",
+   "label": "Sender Field",
+   "mandatory_depends_on": "email_append_to"
+  },
+  {
+   "default": "0",
+   "fieldname": "email_append_to",
+   "fieldtype": "Check",
+   "label": "Allow document creation via Email"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "email_settings_sb",
+   "fieldtype": "Section Break",
+   "label": "Email Settings"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-11-25 17:24:03.690192",
+ "links": [],
+ "modified": "2020-03-27 14:51:44.581128",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

@@ -4,8 +4,7 @@
 from __future__ import unicode_literals, print_function
 import frappe
 from frappe.model.document import Document
-from frappe.utils import (cint, has_gravatar, format_datetime,
-				now_datetime, get_formatted_email, today, get_url)
+from frappe.utils import cint, flt, has_gravatar, format_datetime, now_datetime, get_formatted_email, today, get_url
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password
 from frappe.desk.notifications import clear_notifications
@@ -103,7 +102,7 @@ class User(Document):
 			'frappe.core.doctype.user.user.create_contact',
 			user=self,
 			ignore_mandatory=True,
-			now=frappe.flags.in_test
+			now=frappe.flags.in_test or frappe.flags.in_install
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
@@ -206,7 +205,7 @@ class User(Document):
 						_update_password(user=self.name, pwd=new_password,
 							logout_all_sessions=self.logout_all_sessions)
 
-					if not self.flags.no_welcome_mail and self.send_welcome_email:
+					if not self.flags.no_welcome_mail and cint(self.send_welcome_email):
 						self.send_welcome_mail_to_user()
 						self.flags.email_sent = 1
 						if frappe.session.user != 'Guest':
@@ -550,6 +549,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 
 	res = _get_user_for_update_password(key, old_password)
 	if res.get('message'):
+		frappe.local.response.http_status_code = 410
 		return res['message']
 	else:
 		user = res['user']
@@ -576,7 +576,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 		return redirect_url if redirect_url else "/"
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password, key=None, old_password=None, user_data=[]):
+def test_password_strength(new_password, key=None, old_password=None, user_data=None):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
 	password_policy = frappe.db.get_value("System Settings", None,
@@ -717,7 +717,7 @@ def _get_user_for_update_password(key, old_password):
 		user = frappe.db.get_value("User", {"reset_password_key": key})
 		if not user:
 			return {
-				'message': _("Cannot Update: Incorrect / Expired Link.")
+				'message': _("The Link specified has either been used before or Invalid")
 			}
 
 	elif old_password:
@@ -846,11 +846,11 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 
 def get_total_users():
 	"""Returns total no. of system users"""
-	return frappe.db.sql('''SELECT SUM(`simultaneous_sessions`)
+	return flt(frappe.db.sql('''SELECT SUM(`simultaneous_sessions`)
 		FROM `tabUser`
 		WHERE `enabled` = 1
 		AND `user_type` = 'System User'
-		AND `name` NOT IN ({})'''.format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
+		AND `name` NOT IN ({})'''.format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0])
 
 def get_system_users(exclude_users=None, limit=None):
 	if not exclude_users:

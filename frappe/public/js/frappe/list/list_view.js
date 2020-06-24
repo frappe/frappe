@@ -1,4 +1,5 @@
 import BulkOperations from "./bulk_operations";
+import ListSettings from "./list_settings";
 
 frappe.provide('frappe.views');
 
@@ -28,6 +29,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show() {
+		this.parent.disable_scroll_to_top = true;
+
 		if (!this.has_permissions()) {
 			frappe.set_route('');
 			frappe.msgprint(__(`Not permitted to view ${this.doctype}`));
@@ -139,7 +142,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	show_restricted_list_indicator_if_applicable() {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
 		if (match_rules_list.length) {
-			this.restricted_list = $(`<button class="restricted-list form-group">${__('Restricted')}</button>`)
+			this.restricted_list = $(`<button class="restricted-button">${__('Restricted')}</button>`)
 				.prepend('<span class="octicon octicon-lock"></span>')
 				.click(() => this.show_restrictions(match_rules_list))
 				.appendTo(this.page.page_form);
@@ -231,6 +234,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	}
 
+	refresh_columns(meta, list_view_settings) {
+		this.meta = meta;
+		this.list_view_settings = list_view_settings;
+
+		this.setup_columns();
+		this.refresh(true);
+	}
+
+	refresh(refresh_header=false) {
+		super.refresh().then(() => {
+			this.render_header(refresh_header);
+		});
+	}
+
 	setup_freeze_area() {
 		this.$freeze =
 			$(`<div class="freeze flex justify-center align-center text-muted">${__('Loading')}...</div>`)
@@ -287,19 +304,49 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}))
 		);
 
-		// limit max to 8 columns
+		if (this.list_view_settings.fields) {
+			this.columns = this.reorder_listview_fields();
+		}
+
+		// limit max to 8 columns if no total_fields is set in List View Settings
 		// Screen with low density no of columns 4
 		// Screen with medium density no of columns 6
 		// Screen with high density no of columns 8
-		let column_count = 6;
+		let total_fields = 6;
 
-		if (window.innerWidth <= 1200) {
-			column_count = 4;
-		} else if (window.innerWidth > 1440) {
-			column_count = 8;
+		if (window.innerWidth <= 1366) {
+			total_fields = 4;
+		} else if (window.innerWidth >= 1920) {
+			total_fields = 8;
 		}
 
-		this.columns = this.columns.slice(0, column_count);
+		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
+	}
+
+	reorder_listview_fields() {
+		let fields_order = [];
+		let fields = JSON.parse(this.list_view_settings.fields);
+
+		//title_field is fixed
+		fields_order.push(this.columns[0]);
+		this.columns.splice(0, 1);
+
+		for (let fld in fields) {
+			for (let col in this.columns) {
+				let field = fields[fld];
+				let column = this.columns[col];
+
+				if (column.type == "Status" && field.fieldname == "status_field") {
+					fields_order.push(column);
+					break;
+				} else if (column.type == "Field" && field.fieldname === column.df.fieldname) {
+					fields_order.push(column);
+					break;
+				}
+			}
+		}
+
+		return fields_order;
 	}
 
 	get_documentation_link() {
@@ -386,7 +433,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
-	render_header() {
+	render_header(refresh_header=false) {
+		if (refresh_header) {
+			this.$result.find('.list-row-head').remove();
+		}
+
 		if (this.$result.find('.list-row-head').length === 0) {
 			// append header once
 			this.$result.prepend(this.get_header_html());
@@ -586,7 +637,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (this.settings.formatters && this.settings.formatters[fieldname]) {
 				_value = this.settings.formatters[fieldname](value, df, doc);
 			} else {
-				_value = typeof value === 'string' ? frappe.utils.escape_html(value) : value;
+				let strip_html_required = df.fieldtype == 'Text Editor'
+					|| (df.fetch_from && ['Text', 'Small Text'].includes(df.fieldtype));
+				if (strip_html_required) {
+					_value = strip_html(value);
+				} else {
+					_value = typeof value === 'string' ? frappe.utils.escape_html(value) : value;
+				}
 			}
 
 			if (df.fieldtype === 'Image') {
@@ -1278,18 +1335,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show_list_settings() {
-		frappe.model.with_doctype("List View Setting", () => {
-			let d = new frappe.ui.Dialog({
-				title: __("Settings"),
-				fields: frappe.get_meta("List View Setting").fields
-			});
-			d.set_values(this.list_view_settings);
-			d.show();
-			d.set_primary_action(__('Save'), () => {
-				let values = d.get_values();
-				frappe.call("frappe.desk.listview.set_list_settings", {doctype: this.doctype, values: values});
-				Object.assign(this.list_view_settings, values);
-				d.hide();
+		frappe.model.with_doctype(this.doctype, () => {
+			new ListSettings({
+				listview: this,
+				doctype: this.doctype,
+				settings: this.list_view_settings,
+				meta: frappe.get_meta(this.doctype)
 			});
 		});
 	}

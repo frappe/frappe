@@ -8,12 +8,12 @@
  "engine": "InnoDB",
  "field_order": [
   "label",
+  "for_user",
   "extends",
   "module",
   "category",
   "restrict_to_domain",
   "onboarding",
-  "icon",
   "column_break_3",
   "extends_another_page",
   "is_standard",
@@ -21,6 +21,7 @@
   "disable_user_customization",
   "pin_to_top",
   "pin_to_bottom",
+  "hide_custom",
   "section_break_2",
   "charts_label",
   "charts",
@@ -36,7 +37,6 @@
    "fieldname": "label",
    "fieldtype": "Data",
    "label": "Name",
-   "length": 22,
    "unique": 1
   },
   {
@@ -52,16 +52,11 @@
    "options": "Desk Chart"
   },
   {
+   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard",
    "fieldname": "shortcuts",
    "fieldtype": "Table",
    "label": "Shortcuts",
    "options": "Desk Shortcut"
-  },
-  {
-   "depends_on": "eval:doc.extends_another_page == 0",
-   "fieldname": "onboarding",
-   "fieldtype": "Data",
-   "label": "Onboarding"
   },
   {
    "fieldname": "restrict_to_domain",
@@ -78,12 +73,6 @@
    "in_standard_filter": 1,
    "label": "Module",
    "options": "Module Def"
-  },
-  {
-   "depends_on": "eval:doc.extends_another_page == 0",
-   "fieldname": "icon",
-   "fieldtype": "Data",
-   "label": "Icon"
   },
   {
    "fieldname": "column_break_3",
@@ -136,16 +125,19 @@
    "search_index": 1
   },
   {
+   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard",
    "fieldname": "charts_label",
    "fieldtype": "Data",
    "label": "Label"
   },
   {
+   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard",
    "fieldname": "shortcuts_label",
    "fieldtype": "Data",
    "label": "Label"
   },
   {
+   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard",
    "fieldname": "cards_label",
    "fieldtype": "Data",
    "label": "Label"
@@ -166,24 +158,49 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Is Standard",
+   "search_index": 1
   },
   {
    "default": "0",
    "fieldname": "extends_another_page",
    "fieldtype": "Check",
-   "label": "Extends Another Page"
+   "label": "Extends Another Page",
+   "search_index": 1
   },
   {
-   "depends_on": "eval:doc.extends_another_page == 1",
+   "depends_on": "eval:doc.extends_another_page == 1 || doc.for_user",
    "fieldname": "extends",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Extends",
-   "options": "Desk Page"
+   "options": "Desk Page",
+   "search_index": 1
+  },
+  {
+   "fieldname": "for_user",
+   "fieldtype": "Data",
+   "label": "For User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "onboarding",
+   "fieldtype": "Link",
+   "label": "Onboarding",
+   "options": "Module Onboarding"
+  },
+  {
+   "default": "0",
+   "description": "Checking this will hide custom doctypes and reports cards in Links section",
+   "fieldname": "hide_custom",
+   "fieldtype": "Check",
+   "label": "Hide Custom DocTypes and Reports"
   }
  ],
  "links": [],
- "modified": "2020-03-12 16:38:16.206732",
+ "modified": "2020-05-18 19:17:27.206646",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",

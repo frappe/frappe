@@ -92,6 +92,9 @@ frappe.ui.GroupBy = class {
 	}
 
 	apply_settings(settings) {
+		if (!settings.group_by.startsWith('`tab')) {
+			settings.group_by = '`tab' + this.doctype + '`.`' + settings.group_by + '`';
+		}
 
 		// Extract fieldname from `tabdoctype`.`fieldname`
 		let group_by_fieldname = settings.group_by.split('.')[1].replace(/`/g, '');
@@ -106,15 +109,22 @@ frappe.ui.GroupBy = class {
 	}
 
 	make_group_by_button() {
-		let group_by_button =  $(`<div class="tag-groupby-area">
+		this.group_by_button =  $(`<div class="tag-groupby-area">
 			<div class="active-tag-groupby">
 				<button class="btn btn-default btn-xs add-groupby text-muted">
 						${__("Add Group")}
 				</button>
 			</div>
 		</div>`);
-		this.page.wrapper.find(".sort-selector").before(group_by_button);
-		group_by_button.click(() => this.groupby_edit_area.show());
+		this.page.wrapper.find(".sort-selector").before(this.group_by_button);
+		this.group_by_button.click(() => {
+			this.toggle_group_by_area(true);
+		});
+	}
+
+	toggle_group_by_area(show) {
+		this.groupby_edit_area.toggle(show);
+		this.group_by_button.toggle(!show);
 	}
 
 	apply_group_by() {
@@ -160,7 +170,7 @@ frappe.ui.GroupBy = class {
 			if (this.aggregate_function === 'count') {
 				aggregate_column = 'count(`tab'+ this.doctype + '`.`name`)';
 			} else {
-				aggregate_column = 
+				aggregate_column =
 					`${this.aggregate_function}(\`tab${this.aggregate_on_doctype}\`.\`${this.aggregate_on}\`)`;
 				aggregate_on_field = '`tab' + this.aggregate_on_doctype + '`.`' + this.aggregate_on + '`';
 			}
@@ -227,10 +237,11 @@ frappe.ui.GroupBy = class {
 	}
 
 	remove_group_by() {
-		this.groupby_edit_area.hide();
+		this.toggle_group_by_area(false);
 
 		this.order_by = '';
 		this.group_by = null;
+		this.report_view.group_by = null;
 		this.aggregate_function = null;
 		this.aggregate_on = null;
 		$(".groupby").val("");

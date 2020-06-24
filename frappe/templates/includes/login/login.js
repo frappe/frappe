@@ -57,12 +57,13 @@ login.bind_events = function() {
 	});
 
 	$(".toggle-password").click(function() {
-		$(this).toggleClass("fa-eye fa-eye-slash");
 		var input = $($(this).attr("toggle"));
 		if (input.attr("type") == "password") {
 			input.attr("type", "text");
+			$(this).text('{{ _("Hide") }}')
 		} else {
 			input.attr("type", "password");
+			$(this).text('{{ _("Show") }}')
 		}
 	});
 
@@ -141,6 +142,14 @@ login.set_indicator = function(message, color) {
 		.removeClass().addClass('indicator').addClass(color).text(message)
 }
 
+login.set_invalid = function(message) {
+	$(".login-content.page-card").addClass('invalid-login');
+	setTimeout(() => {
+		$(".login-content.page-card").removeClass('invalid-login');
+	}, 500)
+	login.set_indicator(message, 'red');
+}
+
 login.login_handlers = (function() {
 	var get_error_handler = function(default_message) {
 		return function(xhr, data) {
@@ -161,7 +170,7 @@ login.login_handlers = (function() {
 			}
 
 			if(message===default_message) {
-				login.set_indicator(message, 'red');
+				login.set_invalid(message);
 			} else {
 				login.reset_sections(false);
 			}
@@ -175,7 +184,7 @@ login.login_handlers = (function() {
 				login.set_indicator('{{ _("Success") }}', 'green');
 				window.location.href = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to")) || data.home_page;
 			} else if(data.message == 'Password Reset'){
-				window.location.href = data.redirect_to;
+				window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
 			} else if(data.message=="No App") {
 				login.set_indicator("{{ _("Success") }}", 'green');
 				if(localStorage) {
@@ -186,7 +195,7 @@ login.login_handlers = (function() {
 				}
 
 				if(data.redirect_to) {
-					window.location.href = data.redirect_to;
+					window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
 				}
 
 				if(last_visited && last_visited != "/login") {

@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "Prompt",
  "creation": "2019-09-11 22:15:44.851526",
  "doctype": "DocType",
@@ -21,52 +22,68 @@
    "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Enabled"
+   "label": "Enabled",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "subscribed_documents",
    "fieldtype": "Table MultiSelect",
    "label": "Subscribed Documents",
-   "options": "Notification Subscribed Document"
+   "options": "Notification Subscribed Document",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "column_break_3",
    "fieldtype": "Section Break",
-   "label": "Email Settings"
+   "label": "Email Settings",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
    "fieldname": "enable_email_notifications",
    "fieldtype": "Check",
-   "label": "Enable Email Notifications"
+   "label": "Enable Email Notifications",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
    "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_mention",
    "fieldtype": "Check",
-   "label": "Mentions"
+   "label": "Mentions",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
    "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_assignment",
    "fieldtype": "Check",
-   "label": "Assignments"
+   "label": "Assignments",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
    "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_energy_point",
    "fieldtype": "Check",
-   "label": "Energy Points"
+   "label": "Energy Points",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
    "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_share",
    "fieldtype": "Check",
-   "label": "Document Share"
+   "label": "Document Share",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "__user",
@@ -75,18 +92,23 @@
    "hidden": 1,
    "label": "User",
    "options": "User",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
    "fieldname": "seen",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Seen"
+   "label": "Seen",
+   "show_days": 1,
+   "show_seconds": 1
   }
  ],
  "in_create": 1,
- "modified": "2019-11-19 12:57:59.356786",
+ "links": [],
+ "modified": "2020-05-31 22:16:40.798019",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",

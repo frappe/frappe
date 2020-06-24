@@ -110,7 +110,11 @@ def make_autoname(key="", doctype="", doc=""):
 	if "#" not in key:
 		key = key + ".#####"
 	elif "." not in key:
-		frappe.throw(_("Invalid naming series (. missing)") + (_(" for {0}").format(doctype) if doctype else ""))
+		error_message = _("Invalid naming series (. missing)")
+		if doctype:
+			error_message = _("Invalid naming series (. missing) for {0}").format(doctype)
+
+		frappe.throw(error_message)
 
 	parts = key.split('.')
 	n = parse_naming_series(parts, doctype, doc)

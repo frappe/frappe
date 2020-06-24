@@ -7,8 +7,10 @@ from frappe import _
 import frappe.sessions
 from frappe.utils import cstr
 import os, mimetypes, json
+import re
 
 import six
+from bs4 import BeautifulSoup
 from six import iteritems
 from werkzeug.wrappers import Response
 from werkzeug.routing import Map, Rule, NotFound
@@ -92,7 +94,7 @@ def is_static_file(path):
 	if ('.' not in path):
 		return False
 	extn = path.rsplit('.', 1)[-1]
-	if extn in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py'):
+	if extn in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json'):
 		return False
 
 	for app in frappe.get_installed_apps():
@@ -128,11 +130,34 @@ def build_response(path, data, http_status_code, headers=None):
 	response.headers["X-Page-Name"] = path.encode("ascii", errors="xmlcharrefreplace")
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
 
+	add_preload_headers(response)
 	if headers:
 		for key, val in iteritems(headers):
 			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
 
 	return response
+
+
+def add_preload_headers(response):
+	try:
+		preload = []
+		soup = BeautifulSoup(response.data, "lxml")
+		for elem in soup.find_all('script', src=re.compile(".*")):
+			preload.append(("script", elem.get("src")))
+
+		for elem in soup.find_all('link', rel="stylesheet"):
+			preload.append(("style", elem.get("href")))
+
+		links = []
+		for type, link in preload:
+			links.append("</{}>; rel=preload; as={}".format(link.lstrip("/"), type))
+
+		if links:
+			response.headers["Link"] = ",".join(links)
+	except Exception:
+		import traceback
+		traceback.print_exc()
+
 
 def render_page_by_language(path):
 	translated_languages = frappe.get_hooks("translated_languages_for_website")
@@ -180,6 +205,8 @@ def build(path):
 			return build_page(path)
 		else:
 			raise
+	except Exception:
+		raise
 
 def build_page(path):
 	if not getattr(frappe.local, "path", None):
@@ -189,7 +216,6 @@ def build_page(path):
 
 	if context.source:
 		html = frappe.render_template(context.source, context)
-
 	elif context.template:
 		if path.endswith('min.js'):
 			html = frappe.get_jloader().get_source(frappe.get_jenv(), context.template)[0]
@@ -350,3 +376,4 @@ def raise_if_disabled(path):
 		_path = r.route.lstrip('/')
 		if path == _path and not r.enabled:
 			raise frappe.PermissionError
+

@@ -1,31 +1,40 @@
+let imports_in_progress = [];
+
 frappe.listview_settings['Data Import'] = {
-	add_fields: ["import_status"],
-	has_indicator_for_draft: 1,
-	get_indicator: function(doc) {
-
-		let status = {
-			'Successful': [__("Success"), "green", "import_status,=,Successful"],
-			'Partially Successful': [__("Partial Success"), "blue", "import_status,=,Partially Successful"],
-			'In Progress': [__("In Progress"), "orange", "import_status,=,In Progress"],
-			'Failed': [__("Failed"), "red", "import_status,=,Failed"],
-			'Pending': [__("Pending"), "orange", "import_status,=,"]
-		}
-
-		if (doc.import_status) {
-			return status[doc.import_status];
-		}
-
-		if (doc.docstatus == 0) {
-			return status['Pending'];
-		}
-
-		return status['Pending'];
-	},
 	onload(listview) {
-		listview.page.set_title_sub(`
-			<span class="indicator blue">
-				<a class="text-muted" href="#List/Data Import Beta">${__('Try the new Data Import')}</a>
-			</span>
-		`);
-	}
+		frappe.realtime.on('data_import_progress', data => {
+			if (!imports_in_progress.includes(data.data_import)) {
+				imports_in_progress.push(data.data_import);
+			}
+		});
+		frappe.realtime.on('data_import_refresh', data => {
+			imports_in_progress = imports_in_progress.filter(
+				d => d !== data.data_import
+			);
+			listview.refresh();
+		});
+	},
+	get_indicator: function(doc) {
+		var colors = {
+			'Pending': 'orange',
+			'Partial Success': 'orange',
+			'Success': 'green',
+			'In Progress': 'orange',
+			'Error': 'red'
+		};
+		let status = doc.status;
+		if (imports_in_progress.includes(doc.name)) {
+			status = 'In Progress';
+		}
+		return [__(status), colors[status], 'status,=,' + doc.status];
+	},
+	formatters: {
+		import_type(value) {
+			return {
+				'Insert New Records': __('Insert'),
+				'Update Existing Records': __('Update')
+			}[value];
+		}
+	},
+	hide_name_column: true
 };

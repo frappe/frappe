@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cstr, has_gravatar
+from frappe.utils import cstr, has_gravatar, cint
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
@@ -69,23 +69,25 @@ class Contact(Document):
 				return True
 
 	def add_email(self, email_id, is_primary=0, autosave=False):
-		self.append("email_ids", {
-			"email_id": email_id,
-			"is_primary": is_primary
-		})
+		if not frappe.db.exists("Contact Email", {"email_id": email_id, "parent": self.name}):
+			self.append("email_ids", {
+				"email_id": email_id,
+				"is_primary": is_primary
+			})
 
-		if autosave:
-			self.save(ignore_permissions=True)
+			if autosave:
+				self.save(ignore_permissions=True)
 
 	def add_phone(self, phone, is_primary_phone=0, is_primary_mobile_no=0, autosave=False):
-		self.append("phone_nos", {
-			"phone": phone,
-			"is_primary_phone": is_primary_phone,
-			"is_primary_mobile_no": is_primary_mobile_no
-		})
+		if not frappe.db.exists("Contact Phone", {"phone": phone, "parent": self.name}):
+			self.append("phone_nos", {
+				"phone": phone,
+				"is_primary_phone": is_primary_phone,
+				"is_primary_mobile_no": is_primary_mobile_no
+			})
 
-		if autosave:
-			self.save(ignore_permissions=True)
+			if autosave:
+				self.save(ignore_permissions=True)
 
 	def set_primary_email(self):
 		if not self.email_ids:
@@ -121,7 +123,7 @@ class Contact(Document):
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
 	out = frappe.db.sql('''select parent,
-			(select is_primary_contact from tabContact c where c.name = dl.parent)
+			IFNULL((select is_primary_contact from tabContact c where c.name = dl.parent), 0)
 				as is_primary_contact
 		from
 			`tabDynamic Link` dl
@@ -131,7 +133,7 @@ def get_default_contact(doctype, name):
 			dl.parenttype = "Contact"''', (doctype, name))
 
 	if out:
-		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
+		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(cint(y[1]), cint(x[1]))))[0][0]
 	else:
 		return None
 

@@ -70,7 +70,10 @@ frappe.form.formatters = {
 
 			if ( decimals.length < 3 || decimals.length < precision ) {
 				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
-				precision      = cstr(fraction).length - 1;
+
+				if (decimals.length < cstr(fraction).length) {
+					precision = cstr(fraction).length - 1;
+				}
 			}
 		}
 
@@ -142,10 +145,7 @@ frappe.form.formatters = {
 	},
 	DateRange: function(value) {
 		if($.isArray(value)) {
-			return __("{0} to {1}", [
-				frappe.datetime.str_to_user(value[0]),
-				frappe.datetime.str_to_user(value[1])
-			]);
+			return __("{0} to {1}", [frappe.datetime.str_to_user(value[0]), frappe.datetime.str_to_user(value[1])]);
 		} else {
 			return value || "";
 		}
@@ -184,6 +184,14 @@ frappe.form.formatters = {
 	Time: function(value) {
 		if (value) {
 			value = frappe.datetime.str_to_user(value, true);
+		}
+
+		return value || "";
+	},
+	Duration: function(value, docfield) {
+		if (value) {
+			let duration_options = frappe.utils.get_duration_options(docfield);
+			value = frappe.utils.get_formatted_duration(value, duration_options);
 		}
 
 		return value || "";
