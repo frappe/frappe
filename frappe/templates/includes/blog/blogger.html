@@ -1,7 +1,7 @@
 {% from "frappe/templates/includes/macros.html" import square_image_with_fallback %}
 
 <div class="media">
-	{{ square_image_with_fallback(src=blogger_info.avatar, size='72px', alt=blogger_info.full_name, class='align-self-start mr-3 rounded') }}
+	{{ square_image_with_fallback(src=blogger_info.avatar, size='small', alt=blogger_info.full_name, class='align-self-start mr-3 rounded') }}
 	<div class="media-body">
 		<h5 class="mt-0">
 			<a href="/blog?blogger={{ blogger_info.name }}" class="text-dark">{{ blogger_info.full_name }}</a>

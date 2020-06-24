@@ -1,7 +1,7 @@
 <div align="center">
     <img src=".github/frappe-framework-logo.png" height="150">
     <h1>
-        <a href="https://frappe.io">
+        <a href="https://frappeframework.com">
             frappe
         </a>
     </h1>
@@ -33,8 +33,8 @@
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for [ERPNext](https://erpnext.com)
 
 ### Table of Contents
-* [Installation](#installation)
-* [Documentation](https://frappe.io/docs)
+* [Installation](https://frappeframework.com/docs/user/en/installation)
+* [Documentation](https://frappeframework.com/docs)
 * [License](#license)
 
 ### Installation
@@ -49,7 +49,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 ### Website
 
 For details and documentation, see the website
-[https://frappe.io](https://frappe.io)
+[https://frappeframework.com](https://frappeframework.com)
 
 ### License
 This repository has been released under the [MIT License](LICENSE).

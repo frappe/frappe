@@ -15,6 +15,7 @@ import frappe
 from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.commands.scheduler import _is_scheduler_enabled
+from frappe.exceptions import SiteNotSpecifiedError
 from frappe.installer import update_site_config
 from frappe.utils import get_site_path, touch_file
 
@@ -43,14 +44,16 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username,
 			  mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 			  verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
-			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
+			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
+			  db_port=db_port, new_site=True)
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
 def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None,
 			  admin_password=None, verbose=False, install_apps=None, source_sql=None, force=False,
-			  no_mariadb_socket=False, reinstall=False,  db_password=None, db_type=None, db_host=None, db_port=None):
+			  no_mariadb_socket=False, reinstall=False,  db_password=None, db_type=None, db_host=None,
+			  db_port=None, new_site=False):
 	"""Install a new Frappe site"""
 
 	if not force and os.path.exists(site):
@@ -79,7 +82,6 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	make_site_dirs()
 
 	installing = touch_file(get_site_path('locks', 'installing.lock'))
-	atexit.register(_new_site_cleanup, site, mariadb_root_username, mariadb_root_password)
 
 	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
 		admin_password=admin_password, verbose=verbose, source_sql=source_sql, force=force, reinstall=reinstall,
@@ -96,15 +98,6 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
 	print("*** Scheduler is", scheduler_status, "***")
 
-def _new_site_cleanup(site, mariadb_root_username, mariadb_root_password):
-	installing = get_site_path('locks', 'installing.lock')
-
-	if installing and os.path.exists(installing):
-		if mariadb_root_password:
-			_drop_site(site, mariadb_root_username, mariadb_root_password, force=True, no_backup=True)
-		shutil.rmtree(site)
-
-	frappe.destroy()
 
 @click.command('restore')
 @click.argument('sql-file-path')
@@ -122,29 +115,46 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
 
 	if not os.path.exists(sql_file_path):
-		sql_file_path = '../' + sql_file_path
+		base_path = '..'
+		sql_file_path = os.path.join(base_path, sql_file_path)
 		if not os.path.exists(sql_file_path):
 			print('Invalid path {0}'.format(sql_file_path[3:]))
 			sys.exit(1)
+	elif sql_file_path.startswith(os.sep):
+		base_path = os.sep
+	else:
+		base_path = '.'
+
 
 	if sql_file_path.endswith('sql.gz'):
-		sql_file_path = extract_sql_gzip(os.path.abspath(sql_file_path))
+		decompressed_file_name = extract_sql_gzip(os.path.abspath(sql_file_path))
+	else:
+		decompressed_file_name = sql_file_path
 
 	site = get_site(context)
 	frappe.init(site=site)
 	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
 		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-		verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path,
-		force=context.force)
+		verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
+		force=True)
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
+		with_public_files = os.path.join(base_path, with_public_files)
 		public = extract_tar_files(site, with_public_files, 'public')
 		os.remove(public)
 
 	if with_private_files:
+		with_private_files = os.path.join(base_path, with_private_files)
 		private = extract_tar_files(site, with_private_files, 'private')
 		os.remove(private)
+
+	# Removing temporarily created file
+	if decompressed_file_name != sql_file_path:
+		os.remove(decompressed_file_name)
+
+	success_message = "Site {0} has been restored{1}".format(site, " with files" if (with_public_files or with_private_files) else "")
+	click.secho(success_message, fg="green")
 
 @click.command('reinstall')
 @click.option('--admin-password', help='Administrator Password for reinstalled site')
@@ -192,6 +202,8 @@ def install_app(context, apps):
 				_install_app(app, verbose=context.verbose)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('list-apps')
 @pass_context
@@ -221,7 +233,8 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('disable-user')
 @click.argument('email')
@@ -252,6 +265,8 @@ def migrate(context, rebuild_website=False, skip_failing=False):
 			migrate(context.verbose, rebuild_website=rebuild_website, skip_failing=skip_failing)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 	print("Compiling Python Files...")
 	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
@@ -263,7 +278,12 @@ def migrate_to(context, frappe_provider):
 	"Migrates site to the specified provider"
 	from frappe.integrations.frappe_providers import migrate_to
 	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
 		migrate_to(site, frappe_provider)
+		frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('run-patch')
 @click.argument('module')
@@ -278,6 +298,8 @@ def run_patch(context, module):
 			frappe.modules.patch_handler.run_single(module, force=context.force)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('reload-doc')
 @click.argument('module')
@@ -294,6 +316,8 @@ def reload_doc(context, module, doctype, docname):
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('reload-doctype')
 @click.argument('doctype')
@@ -308,6 +332,8 @@ def reload_doctype(context, doctype):
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('add-to-hosts')
 @pass_context
@@ -315,6 +341,8 @@ def add_to_hosts(context):
 	"Add site to hosts"
 	for site in context.sites:
 		frappe.commands.popen('echo 127.0.0.1\t{0} | sudo tee -a /etc/hosts'.format(site))
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('use')
 @click.argument('site')
@@ -328,7 +356,7 @@ def use(site, sites_path='.'):
 			sitefile.write(site)
 		print("Current Site set to {}".format(site))
 	else:
-		print("{} does not exist".format(site))
+		print("Site {} does not exist".format(site))
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
@@ -361,6 +389,9 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 				print("Private files:  ", odb.backup_path_private_files)
 
 		frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 	sys.exit(exit_code)
 
 @click.command('remove-from-installed-apps')
@@ -376,22 +407,27 @@ def remove_from_installed_apps(context, app):
 			remove_from_installed_apps(app)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('uninstall-app')
 @click.argument('app')
 @click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False, multiple=True)
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
+@click.option('--no-backup', help='Do not backup the site', is_flag=True, default=False)
 @pass_context
-def uninstall(context, app, dry_run=False, yes=False):
+def uninstall(context, app, dry_run=False, yes=False, no_backup=False):
 	"Remove app and linked modules from site"
 	from frappe.installer import remove_app
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			remove_app(app, dry_run, yes)
+			remove_app(app, dry_run, yes, no_backup)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 
 @click.command('drop-site')
@@ -422,7 +458,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 		else:
 			click.echo("="*80)
 			click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
-			click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
+			click.echo("Reason: {reason}{sep}".format(reason=str(err), sep="\n"))
 			click.echo("Fix the issue and try again.")
 			click.echo(
 				"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)
@@ -483,6 +519,8 @@ def set_admin_password(context, admin_password, logout_all_sessions=False):
 			admin_password = None
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('set-last-active-for-user')
 @click.option('--user', help="Setup last active date for user")
@@ -528,6 +566,8 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('browse')
 @click.argument('site', required=False)
@@ -555,6 +595,8 @@ def start_recording(context):
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.recorder.start()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 
 @click.command('stop-recording')
@@ -563,6 +605,8 @@ def stop_recording(context):
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.recorder.stop()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 
 commands = [

@@ -145,10 +145,7 @@ frappe.form.formatters = {
 	},
 	DateRange: function(value) {
 		if($.isArray(value)) {
-			return __("{0} to {1}", [
-				frappe.datetime.str_to_user(value[0]),
-				frappe.datetime.str_to_user(value[1])
-			]);
+			return __("{0} to {1}", [frappe.datetime.str_to_user(value[0]), frappe.datetime.str_to_user(value[1])]);
 		} else {
 			return value || "";
 		}
@@ -187,6 +184,14 @@ frappe.form.formatters = {
 	Time: function(value) {
 		if (value) {
 			value = frappe.datetime.str_to_user(value, true);
+		}
+
+		return value || "";
+	},
+	Duration: function(value, docfield) {
+		if (value) {
+			let duration_options = frappe.utils.get_duration_options(docfield);
+			value = frappe.utils.get_formatted_duration(value, duration_options);
 		}
 
 		return value || "";

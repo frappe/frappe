@@ -48,6 +48,8 @@ class File(Document):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
+		if self.file_name:
+			self.file_name = re.sub(r'/', '', self.file_name)
 		self.content = self.get("content", None)
 		self.decode = self.get("decode", False)
 		if self.content:
@@ -180,11 +182,11 @@ class File(Document):
 			if duplicate_file:
 				duplicate_file_doc = frappe.get_cached_doc('File', duplicate_file.name)
 				if duplicate_file_doc.exists_on_disk():
-					# if it is attached to a document then throw DuplicateEntryError
+					# if it is attached to a document then throw FileAlreadyAttachedException
 					if self.attached_to_doctype and self.attached_to_name:
 						self.duplicate_entry = duplicate_file.name
 						frappe.throw(_("Same file has already been attached to the record"),
-							frappe.DuplicateEntryError)
+							frappe.FileAlreadyAttachedException)
 					# else just use the url, to avoid uploading a duplicate
 					else:
 						self.file_url = duplicate_file.file_url
@@ -192,6 +194,8 @@ class File(Document):
 	def set_file_name(self):
 		if not self.file_name and self.file_url:
 			self.file_name = self.file_url.split('/')[-1]
+		else:
+			self.file_name = re.sub(r'/', '', self.file_name)
 
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.file_url.startswith('http'):
@@ -405,6 +409,12 @@ class File(Document):
 				frappe.throw(_("URL must start with 'http://' or 'https://'"))
 				return
 
+			if not self.file_url.startswith(("http://", "https://")):
+				# local file
+				root_files_path = get_files_path(is_private=self.is_private)
+				if not os.path.commonpath([root_files_path]) == os.path.commonpath([root_files_path, self.get_full_path()]):
+					# basically the file url is skewed to not point to /files/ or /private/files
+					frappe.throw(_("{0} is not a valid file url").format(self.file_url))
 			self.file_url = unquote(self.file_url)
 			self.file_size = frappe.form_dict.file_size or self.file_size
 
@@ -704,7 +714,12 @@ def remove_all(dt, dn, from_delete=False):
 	try:
 		for fid in frappe.db.sql_list("""select name from `tabFile` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
-			remove_file(fid=fid, attached_to_doctype=dt, attached_to_name=dn, from_delete=from_delete)
+			if from_delete:
+				# If deleting a doc, directly delete files
+				frappe.delete_doc("File", fid, ignore_permissions=True)
+			else:
+				# Removes file and adds a comment in the document it is attached to
+				remove_file(fid=fid, attached_to_doctype=dt, attached_to_name=dn, from_delete=from_delete)
 	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 

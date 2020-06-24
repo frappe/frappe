@@ -66,6 +66,10 @@ frappe.views.CommunicationComposer = Class.extend({
 		})
 		this.prepare();
 		this.dialog.show();
+
+		if (this.frm) {
+			$(document).trigger('form-typing', [this.frm]);
+		}
 	},
 
 	get_fields: function() {
@@ -262,6 +266,10 @@ frappe.views.CommunicationComposer = Class.extend({
 				subject: me.dialog.get_value("subject"),
 				content: me.dialog.get_value("content"),
 			});
+
+			if (me.frm) {
+				$(document).trigger("form-stopped-typing", [me.frm]);
+			}
 		}
 
 		this.dialog.on_page_show = function() {
