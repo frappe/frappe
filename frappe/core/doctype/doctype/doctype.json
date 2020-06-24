@@ -22,6 +22,7 @@
   "track_views",
   "custom",
   "beta",
+  "allow_workflow",
   "fields_section_break",
   "fields",
   "sb1",
@@ -517,12 +518,18 @@
    "fieldname": "email_settings_sb",
    "fieldtype": "Section Break",
    "label": "Email Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_workflow",
+   "fieldtype": "Check",
+   "label": "Allow Workflow"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2020-03-27 14:51:44.581128",
+ "modified": "2020-06-24 19:45:29.491311",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
