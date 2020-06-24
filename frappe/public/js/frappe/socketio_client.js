@@ -89,6 +89,14 @@ frappe.socketio = {
 			frappe.socketio.doc_close(frm.doctype, frm.docname);
 		});
 
+		$(document).on('form-typing', function(e, frm) {
+			frappe.socketio.form_typing(frm.doctype, frm.docname);
+		});
+
+		$(document).on('form-stopped-typing', function(e, frm) {
+			frappe.socketio.form_stopped_typing(frm.doctype, frm.docname);
+		});
+
 		window.onbeforeunload = function() {
 			if (!cur_frm || cur_frm.is_new()) {
 				return;
@@ -161,8 +169,18 @@ frappe.socketio = {
 	doc_close: function(doctype, docname) {
 		// notify that the user has closed this doc
 		frappe.socketio.socket.emit('doc_close', doctype, docname);
-	},
 
+		// if the doc is closed the user has also stopped typing
+		frappe.socketio.socket.emit('doc_typing_stopped', doctype, docname);
+	},
+	form_typing: function(doctype, docname) {
+		// notifiy that the user is typing on the doc
+		frappe.socketio.socket.emit('doc_typing', doctype, docname);
+	},
+	form_stopped_typing: function(doctype, docname) {
+		// notifiy that the user has stopped typing
+		frappe.socketio.socket.emit('doc_typing_stopped', doctype, docname);
+	},
 	setup_listeners: function() {
 		frappe.socketio.socket.on('task_status_change', function(data) {
 			frappe.socketio.process_response(data, data.status.toLowerCase());

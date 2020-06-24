@@ -119,15 +119,17 @@ def get_context(context):
 
 		if self.is_standard:
 			self.load_standard_properties(context)
+		try:
+			if self.channel == 'Email':
+				self.send_an_email(doc, context)
 
-		if self.channel == 'Email':
-			self.send_an_email(doc, context)
+			if self.channel == 'Slack':
+				self.send_a_slack_msg(doc, context)
 
-		if self.channel == 'Slack':
-			self.send_a_slack_msg(doc, context)
-
-		if self.channel == 'System Notification' or self.send_system_notification:
-			self.create_system_notification(doc, context)
+			if self.channel == 'System Notification' or self.send_system_notification:
+				self.create_system_notification(doc, context)
+		except:
+			frappe.log_error(title='Failed to send notification', message=frappe.get_traceback())
 
 		if self.set_property_after_alert:
 			allow_update = True

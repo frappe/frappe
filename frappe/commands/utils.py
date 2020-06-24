@@ -215,12 +215,12 @@ def export_doc(context, doctype, docname):
 @pass_context
 def export_json(context, doctype, path, name=None):
 	"Export doclist as json to the given path, use '-' as name for Singles."
-	from frappe.core.doctype.data_import import data_import
+	from frappe.core.doctype.data_import.data_import import export_json
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import.export_json(doctype, path, name=name)
+			export_json(doctype, path, name=name)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -232,12 +232,12 @@ def export_json(context, doctype, path, name=None):
 @pass_context
 def export_csv(context, doctype, path):
 	"Export data import template with data for DocType"
-	from frappe.core.doctype.data_import import data_import
+	from frappe.core.doctype.data_import.data_import import export_csv
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import.export_csv(doctype, path)
+			export_csv(doctype, path)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -264,7 +264,7 @@ def export_fixtures(context, app=None):
 @pass_context
 def import_doc(context, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
-	from frappe.core.doctype.data_import import data_import
+	from frappe.core.doctype.data_import.data_import import import_doc
 
 	if not os.path.exists(path):
 		path = os.path.join('..', path)
@@ -276,7 +276,7 @@ def import_doc(context, path, force=False):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import.import_doc(path, overwrite=context.force)
+			import_doc(path, overwrite=context.force)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -293,7 +293,7 @@ def import_doc(context, path, force=False):
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
 	"Import CSV using data import"
-	from frappe.core.doctype.data_import import importer
+	from frappe.core.doctype.data_import_legacy import importer
 	from frappe.utils.csvutils import read_csv_content
 	site = get_site(context)
 
@@ -329,20 +329,12 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 @pass_context
 def data_import(context, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True):
 	"Import documents in bulk from CSV or XLSX using data import"
-	from frappe.core.doctype.data_import.importer_new import Importer
+	from frappe.core.doctype.data_import.data_import import import_file
 	site = get_site(context)
 
 	frappe.init(site=site)
 	frappe.connect()
-
-	data_import = frappe.new_doc('Data Import Beta')
-	data_import.submit_after_import = submit_after_import
-	data_import.mute_emails = mute_emails
-	data_import.import_type = 'Insert New Records' if import_type.lower() == 'insert' else 'Update Existing Records'
-
-	i = Importer(doctype=doctype, file_path=file_path, data_import=data_import, console=True)
-	i.import_data()
-
+	import_file(doctype, file_path, import_type, submit_after_import, console=True)
 	frappe.destroy()
 
 
