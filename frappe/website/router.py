@@ -380,7 +380,10 @@ def load_properties_from_source(page_info):
 def load_properties_from_controller(page_info):
 	if not page_info.controller: return
 
-	module = frappe.get_module(page_info.controller)
+	try:
+		module = frappe.get_module(page_info.controller)
+	except ModuleNotFoundError:
+		raise frappe.DoesNotExistError
 	if not module: return
 
 	for prop in ("base_template_path", "template", "no_cache",
