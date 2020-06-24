@@ -52,7 +52,7 @@ def getdate(string_date=None):
 		), title=frappe._('Invalid Date'))
 
 def get_datetime(datetime_str=None):
-	if not datetime_str:
+	if datetime_str is None:
 		return now_datetime()
 
 	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
@@ -513,7 +513,7 @@ def remainder(numerator, denominator, precision=2):
 	else:
 		_remainder = numerator % denominator
 
-	return flt(_remainder, precision);
+	return flt(_remainder, precision)
 
 def safe_div(numerator, denominator, precision=2):
 	"""

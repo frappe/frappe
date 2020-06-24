@@ -6,6 +6,7 @@
 from __future__ import print_function, unicode_literals
 
 import os
+import json
 from datetime import datetime
 
 import frappe
@@ -46,15 +47,18 @@ class BackupGenerator:
 		#Check if file exists and is less than a day old
 		#If not Take Dump
 		if not force:
-			last_db, last_file, last_private_file = self.get_recent_backup(older_than)
+			last_db, last_file, last_private_file, site_config_backup_path = self.get_recent_backup(older_than)
 		else:
-			last_db, last_file, last_private_file = False, False, False
+			last_db, last_file, last_private_file, site_config_backup_path = False, False, False, False
+
+		self.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
 
 		if not (self.backup_path_files and self.backup_path_db and self.backup_path_private_files):
 			self.set_backup_file_name()
 
-		if not (last_db and last_file and last_private_file):
+		if not (last_db and last_file and last_private_file and site_config_backup_path):
 			self.take_dump()
+			self.copy_site_config()
 			if not ignore_files:
 				self.zip_files()
 
@@ -62,16 +66,16 @@ class BackupGenerator:
 			self.backup_path_files = last_file
 			self.backup_path_db = last_db
 			self.backup_path_private_files = last_private_file
+			self.site_config_backup_path = site_config_backup_path
 
 	def set_backup_file_name(self):
-		todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		site = site.replace('.', '_')
 
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = todays_date + "-" + site + "-database.sql.gz"
-		for_public_files = todays_date + "-" + site + "-files.tar"
-		for_private_files = todays_date + "-" + site + "-private-files.tar"
+		for_db = self.todays_date + "-" + site + "-database.sql.gz"
+		for_public_files = self.todays_date + "-" + site + "-files.tar"
+		for_private_files = self.todays_date + "-" + site + "-private-files.tar"
 		backup_path = get_backup_path()
 
 		if not self.backup_path_db:
@@ -97,8 +101,10 @@ class BackupGenerator:
 					backup_path_files = this_file_path
 				elif "_database" in this_file_path:
 					backup_path_db = this_file_path
+				elif "site_config" in this_file_path:
+					site_config_backup_path = this_file_path
 
-		return (backup_path_db, backup_path_files, backup_path_private_files)
+		return (backup_path_db, backup_path_files, backup_path_private_files, site_config_backup_path)
 
 	def zip_files(self):
 		for folder in ("public", "private"):
@@ -110,6 +116,17 @@ class BackupGenerator:
 
 			if self.verbose:
 				print('Backed up files', os.path.abspath(backup_path))
+
+	def copy_site_config(self):
+		site_config_backup_path = os.path.join(get_backup_path(), "{}-site_config_backup.json".format(self.todays_date))
+		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
+		site_config = {}
+		if os.path.exists(site_config_path):
+			site_config.update(frappe.get_file_json(site_config_path))
+		with open(site_config_backup_path, "w") as f:
+			f.write(json.dumps(site_config, indent=2))
+			f.flush()
+		self.site_config_backup_path = site_config_backup_path
 
 	def take_dump(self):
 		import frappe.utils

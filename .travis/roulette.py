@@ -27,8 +27,11 @@ if __name__ == "__main__":
     commit_range = os.environ.get("TRAVIS_COMMIT_RANGE")
     print("Build Type: {}".format(build_type))
     print("Commit Range: {}".format(commit_range))
-
-    files_changed = get_output("git diff --name-only {}".format(commit_range), shell=False)
+    
+    try:
+        files_changed = get_output("git diff --name-only {}".format(commit_range), shell=False)
+    except Exception:
+        sys.exit(2)
 
     if "fatal" not in files_changed:
         files_list = files_changed.split()
