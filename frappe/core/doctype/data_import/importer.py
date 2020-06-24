@@ -16,6 +16,7 @@ from frappe.utils.xlsxutils import (
 	read_xls_file_from_attached_file,
 )
 from frappe.model import no_value_fields, table_fields as table_fieldtypes
+from frappe.core.doctype.version.version import get_diff
 
 INVALID_VALUES = ("", None)
 MAX_ROWS_IN_PREVIEW = 10
@@ -216,14 +217,22 @@ class Importer:
 	def update_record(self, doc):
 		id_field = get_id_field(self.doctype)
 		existing_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
-		existing_doc.flags.updater_reference = {
-			"doctype": self.data_import.doctype,
-			"docname": self.data_import.name,
-			"label": _("via Data Import"),
-		}
-		existing_doc.update(doc)
-		existing_doc.save()
-		return existing_doc
+
+		updated_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
+		updated_doc.update(doc)
+
+		if get_diff(existing_doc, updated_doc):
+			# update doc if there are changes
+			updated_doc.flags.updater_reference = {
+				"doctype": self.data_import.doctype,
+				"docname": self.data_import.name,
+				"label": _("via Data Import"),
+			}
+			updated_doc.save()
+			return updated_doc
+		else:
+			# throw if no changes
+			frappe.throw('No changes to update')
 
 	def get_eta(self, current, total, processing_time):
 		self.last_eta = getattr(self, "last_eta", 0)
@@ -306,8 +315,9 @@ class ImportFile:
 		)
 		self.column_to_field_map = self.template_options.column_to_field_map
 		self.import_type = import_type
+		self.warnings = []
 
-		self.file_doc = self.file_path = None
+		self.file_doc = self.file_path = self.google_sheets_url = None
 		if isinstance(file, frappe.string_types):
 			if frappe.db.exists("File", {"file_url": file}):
 				self.file_doc = frappe.get_doc("File", {"file_url": file})
@@ -462,38 +472,46 @@ class ImportFile:
 					parent_doc[table_df.fieldname].append(child_doc)
 
 		doc = parent_doc
-		# check if there is atleast one row for mandatory table fields
-		meta = frappe.get_meta(self.doctype)
-		mandatory_table_fields = [
-			df
-			for df in meta.fields
-			if df.fieldtype in table_fieldtypes
-			and df.reqd
-			and len(doc.get(df.fieldname, [])) == 0
-		]
-		if len(mandatory_table_fields) == 1:
-			self.warnings.append(
-				{
-					"row": first_row.row_number,
-					"message": _("There should be atleast one row for {0} table").format(
-						mandatory_table_fields[0].label
-					),
-				}
-			)
-		elif mandatory_table_fields:
-			fields_string = ", ".join([df.label for df in mandatory_table_fields])
-			message = _("There should be atleast one row for the following tables: {0}").format(
-				fields_string
-			)
-			self.warnings.append({"row": first_row.row_number, "message": message})
+
+		if self.import_type == INSERT:
+			# check if there is atleast one row for mandatory table fields
+			meta = frappe.get_meta(self.doctype)
+			mandatory_table_fields = [
+				df
+				for df in meta.fields
+				if df.fieldtype in table_fieldtypes
+				and df.reqd
+				and len(doc.get(df.fieldname, [])) == 0
+			]
+			if len(mandatory_table_fields) == 1:
+				self.warnings.append(
+					{
+						"row": first_row.row_number,
+						"message": _("There should be atleast one row for {0} table").format(
+							frappe.bold(mandatory_table_fields[0].label)
+						),
+					}
+				)
+			elif mandatory_table_fields:
+				fields_string = ", ".join([df.label for df in mandatory_table_fields])
+				message = _("There should be atleast one row for the following tables: {0}").format(
+					fields_string
+				)
+				self.warnings.append({"row": first_row.row_number, "message": message})
 
 		return doc, rows, data[len(rows) :]
 
 	def get_warnings(self):
 		warnings = []
+
+		# ImportFile warnings
+		warnings += self.warnings
+
+		# Column warnings
 		for col in self.header.columns:
 			warnings += col.warnings
 
+		# Row warnings
 		for row in self.data:
 			warnings += row.warnings
 
