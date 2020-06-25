@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
+from dateutil.parser._parser import ParserError
 import subprocess
 import operator
 import re, datetime, math, time
@@ -43,8 +44,12 @@ def getdate(string_date=None):
 
 	if is_invalid_date_string(string_date):
 		return None
-
-	return parser.parse(string_date).date()
+	try:
+		return parser.parse(string_date).date()
+	except ParserError:
+		frappe.throw(frappe._('{} is not a valid date string.').format(
+			frappe.bold(string_date)
+		), title=frappe._('Invalid Date'))
 
 def get_datetime(datetime_str=None):
 	if not datetime_str:
@@ -1055,3 +1060,78 @@ def get_source_value(source, key):
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''
 	return len(list(set(list_a) & set(list_b))) == len(list_a)
+
+def generate_hash(*args, **kwargs):
+	return frappe.generate_hash(*args, **kwargs)
+
+
+
+def guess_date_format(date_string):
+	DATE_FORMATS = [
+		r"%d-%m-%Y",
+		r"%m-%d-%Y",
+		r"%Y-%m-%d",
+		r"%d-%m-%y",
+		r"%m-%d-%y",
+		r"%y-%m-%d",
+		r"%d/%m/%Y",
+		r"%m/%d/%Y",
+		r"%Y/%m/%d",
+		r"%d/%m/%y",
+		r"%m/%d/%y",
+		r"%y/%m/%d",
+		r"%d.%m.%Y",
+		r"%m.%d.%Y",
+		r"%Y.%m.%d",
+		r"%d.%m.%y",
+		r"%m.%d.%y",
+		r"%y.%m.%d",
+	]
+
+	TIME_FORMATS = [
+		r"%H:%M:%S.%f",
+		r"%H:%M:%S",
+		r"%H:%M",
+		r"%I:%M:%S.%f %p",
+		r"%I:%M:%S %p",
+		r"%I:%M %p",
+	]
+
+	date_string = date_string.strip()
+
+	_date = None
+	_time = None
+
+	if " " in date_string:
+		_date, _time = date_string.split(" ", 1)
+	else:
+		_date = date_string
+
+	date_format = None
+	time_format = None
+
+	for f in DATE_FORMATS:
+		try:
+			# if date is parsed without any exception
+			# capture the date format
+			datetime.datetime.strptime(_date, f)
+			date_format = f
+			break
+		except ValueError:
+			pass
+
+	if _time:
+		for f in TIME_FORMATS:
+			try:
+				# if time is parsed without any exception
+				# capture the time format
+				datetime.datetime.strptime(_time, f)
+				time_format = f
+				break
+			except ValueError:
+				pass
+
+	full_format = date_format
+	if time_format:
+		full_format += " " + time_format
+	return full_format

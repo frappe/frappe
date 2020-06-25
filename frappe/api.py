@@ -182,13 +182,13 @@ def validate_oauth(authorization_header):
 
 	form_dict = frappe.local.form_dict
 	token = authorization_header[1]
-	r = frappe.request
-	parsed_url = urlparse(r.url)
+	req = frappe.request
+	parsed_url = urlparse(req.url)
 	access_token = {"access_token": token}
 	uri = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
-	http_method = r.method
-	body = r.get_data()
-	headers = r.headers
+	http_method = req.method
+	body = req.get_data()
+	headers = req.headers
 
 	try:
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(get_url_delimiter())

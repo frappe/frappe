@@ -93,11 +93,8 @@ class Leaderboard {
 			options: "Company",
 			default: frappe.defaults.get_default("company"),
 			reqd: 1,
-			change: (e) => {
-				this.options.selected_company = e.currentTarget.value;
-				this.make_request();
-			}
 		});
+
 
 		this.timespan_select = this.page.add_select(__("Timespan"),
 			this.timespans.map(d => {
@@ -110,6 +107,11 @@ class Leaderboard {
 				return {"label": __(frappe.model.unscrub(d)), value: d };
 			})
 		);
+
+		this.company_select.$input.on("change", (e) => {
+			this.options.selected_company = e.currentTarget.value;
+			this.make_request();
+		});
 
 		this.timespan_select.on("change", (e) => {
 			this.options.selected_timespan = e.currentTarget.value;
@@ -155,29 +157,11 @@ class Leaderboard {
 	render_search_box() {
 
 		this.$search_box =
-			$(`<div class="leaderboard-search col-md-3">
-				<input type="text" placeholder="Search" class="form-control leaderboard-search-input input-sm">
+			$(`<div class="leaderboard-search form-group col-md-3">
+				<input type="text" placeholder="Search" data-element="search" class="form-control leaderboard-search-input input-sm">
 			</div>`);
 
 		$(this.parent).find(".page-form").append(this.$search_box);
-	}
-
-	setup_search(list_items) {
-		let $search_input = this.$search_box.find(".leaderboard-search-input");
-
-		this.$search_box.on("keyup", ()=> {
-			let text_filter = $search_input.val().toLowerCase();
-			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
-			for (var i = 0; i < list_items.length; i++) {
-				let text = list_items.eq(i).find(".list-id").text().trim().toLowerCase();
-
-				if (text.includes(text_filter)) {
-					list_items.eq(i).css("display", "");
-				} else {
-					list_items.eq(i).css("display", "none");
-				}
-			}
-		});
 	}
 
 	show_leaderboard(doctype) {
@@ -242,7 +226,7 @@ class Leaderboard {
 		if (res && res.message.length) {
 			me.message = null;
 			me.$container.find(".leaderboard-list").html(me.render_list_view(res.message));
-			me.setup_search($(me.parent).find('.list-item-container'));
+			frappe.utils.setup_search($(me.parent), ".list-item-container", ".list-id");
 		} else {
 			me.$graph_area.hide();
 			me.message = __("No items found.");
