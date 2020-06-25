@@ -96,19 +96,23 @@ img {
 	}
 }
 
-.btn-active-blue {
+.btn-primary-light {
 	@include button-variant(
-		$background: #EBF5FF,
-		$border: #EBF5FF,
-		$hover-background: lighten(#EBF5FF, 1%),
-		$hover-border: #EBF5FF,
-		$active-background: lighten(#EBF5FF, 1%),
-		$active-border: darken(#EBF5FF, 12.5%)
+		$background: $primary-light,
+		$border: $primary-light,
+		$hover-background: lighten($primary-light, 1%),
+		$hover-border: $primary-light,
+		$active-background: lighten($primary-light, 1%),
+		$active-border: darken($primary-light, 12.5%)
 	);
 
 	color: var(--blue-500);
-	&:hover, &:active, &:focus {
+	&:hover, &:active {
 		color: var(--blue-500);
+	}
+
+	&:focus {
+		box-shadow: 0 0 0 0.2rem var(--blue-50)
 	}
 }
 

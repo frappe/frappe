@@ -423,7 +423,7 @@ frappe.ui.GroupBy = class {
 
 		this.group_by_button
 			.toggleClass('btn-default', !group_by_applied)
-			.toggleClass('btn-active-blue', group_by_applied);
+			.toggleClass('btn-primary-light', group_by_applied);
 
 		this.group_by_button.find('.group-by-icon')
 			.toggleClass('active', group_by_applied);
