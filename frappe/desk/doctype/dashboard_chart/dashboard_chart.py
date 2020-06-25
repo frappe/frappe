@@ -258,7 +258,7 @@ def get_aggregate_function(chart_type):
 def get_result(data, timegrain, from_date, to_date):
 	start_date = getdate(from_date)
 	end_date = getdate(to_date)
-	result = []
+	result = [[start_date, 0.0]]
 
 	while start_date <= end_date:
 		next_date = get_next_expected_date(start_date, timegrain)
