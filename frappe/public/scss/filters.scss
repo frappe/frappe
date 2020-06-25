@@ -1,25 +1,3 @@
-.active-tag-filters {
-	.add-filter, .filter-tag, .clear-filters {
-		margin: 0 10px 10px 0;
-	}
-}
-
-.toggle-filter {
-	max-width: 200px !important;
-}
-
-.active-tag-filters .btn-group {
-	white-space: nowrap;
-	font-size: 0;
-}
-
-.active-tag-filters .btn-group .btn-default {
-	background-color: transparent;
-	border: 1px solid $border-color;
-	color: $text-muted;
-	float: none;
-}
-
 .filter-icon.active {
 	use {
 		stroke: var(--blue-500);
@@ -32,7 +10,7 @@
 	font-size: var(--text-md);
 
 	.filter-box {
-		padding: 5px 15px 5px 0;
+		padding: $padding-xs $padding-md $padding-xs 0;
 
 		.form-group {
 			@include media-breakpoint-up(xs) {
