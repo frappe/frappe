@@ -47,16 +47,17 @@ def get_latest_backup_file(with_files=False):
 
 	def get_latest(file_ext):
 		file_list = glob.glob(os.path.join(get_backups_path(), file_ext))
-		return max(file_list, key=os.path.getctime)
+		return max(file_list, key=os.path.getctime) if file_list else None
 
 	latest_file = get_latest('*.sql.gz')
+	latest_site_config = get_latest('*.json')
 
 	if with_files:
 		latest_public_file_bak = get_latest('*-files.tar')
 		latest_private_file_bak = get_latest('*-private-files.tar')
-		return latest_file, latest_public_file_bak, latest_private_file_bak
+		return latest_file, latest_site_config, latest_public_file_bak, latest_private_file_bak
 
-	return latest_file
+	return latest_file, latest_site_config
 
 
 def get_file_size(file_path, unit):
@@ -76,7 +77,7 @@ def get_file_size(file_path, unit):
 
 def validate_file_size():
 	frappe.flags.create_new_backup = True
-	latest_file = get_latest_backup_file()
+	latest_file, site_config = get_latest_backup_file()
 	file_size = get_file_size(latest_file, unit='GB')
 
 	if file_size > 1:
