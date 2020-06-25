@@ -110,6 +110,10 @@
 	color: $light;
 }
 
+.page-content-wrapper {
+	margin: 2rem 0;
+}
+
 .breadcrumb-container {
 	margin-top: 1rem;
 }
@@ -326,4 +330,10 @@ h5.modal-title {
 	left: 0;
 	width: 100%;
 	height: 100%;
+}
+
+.ellipsis {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
