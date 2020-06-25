@@ -73,7 +73,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.setup_paging_area();
 		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
 		this.$paging_area.find('.level-left').append(
-			`<p class="text-muted text-medium margin-left">${message}</p>`
+			`<span class="comparison-message text-muted">${message}</span>`
 		)
 	}
 
@@ -199,9 +199,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	render_count() {
 		let $list_count = this.$paging_area.find('.list-count');
 		if (!$list_count.length) {
-			this.$paging_area.find('.btn-more').addClass('margin-left');
 			$list_count = $('<span>')
-				.addClass('text-muted text-medium list-count')
+				.addClass('text-muted list-count')
 				.prependTo(this.$paging_area.find('.level-right'));
 		}
 		this.get_count_str()

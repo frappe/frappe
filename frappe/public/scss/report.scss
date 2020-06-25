@@ -90,13 +90,23 @@
 	}
 }
 
+.comparison-message {
+	margin-left: $margin-sm;
+	font-size: $font-size-md;
+}
+
+.list-count {
+	margin-right: $margin-sm;
+	font-size: $font-size-md;
+}
+
 .group-by-popover {
 	min-width: 500px;
 	min-height: 50px;
 	font-size: var(--text-md);
 
 	.group-by-box {
-		padding: 5px 15px 5px 0;
+		padding: $margin-xs $margin-md $margin-xs 0;
 
 		.remove-group-by {
 			line-height: 2em;

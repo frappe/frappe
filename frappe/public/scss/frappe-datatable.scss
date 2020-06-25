@@ -79,7 +79,8 @@
 	}
 
 	.dt-filter.dt-input {
-		border-radius: 3px;
+		border-radius: $border-radius;
+		height: 100%;
 		background-color: $gray-100;
 	}
 

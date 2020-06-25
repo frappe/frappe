@@ -326,7 +326,7 @@ frappe.views.BaseList = class BaseList {
 				</div>
 				<div class="level-right">
 					<button class="btn btn-default btn-more btn-sm">
-						${__("More")}...
+						${__("Load More")}
 					</button>
 				</div>
 			</div>`
