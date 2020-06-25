@@ -174,13 +174,12 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 
 			if (!this.subject) {
-				let title = this.frm.doc.name;
+				this.subject = this.frm.doc.name;
 				if (this.frm.meta.subject_field && this.frm.doc[this.frm.meta.subject_field]) {
-					title = this.frm.doc[this.frm.meta.subject_field];
+					this.subject = this.frm.doc[this.frm.meta.subject_field];
 				} else if (this.frm.meta.title_field && this.frm.doc[this.frm.meta.title_field]) {
-					title = this.frm.doc[this.frm.meta.title_field];
+					this.subject = this.frm.doc[this.frm.meta.title_field];
 				}
-				this.subject = __("Re: {0}", [title]);
 			}
 
 			// always add an identifier to catch a reply

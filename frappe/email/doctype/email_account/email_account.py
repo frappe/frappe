@@ -483,8 +483,9 @@ class EmailAccount(Document):
 					# document ID is appended to subject
 					# example "Re: Your email (#OPP-2020-2334343)"
 					parent_id = email.subject.rsplit('#', 1)[-1].strip(' ()')
-					parent = frappe.db.get_all(self.append_to, filters = dict(name = parent_id),
-						fields = 'name')
+					if parent_id:
+						parent = frappe.db.get_all(self.append_to, filters = dict(name = parent_id),
+							fields = 'name')
 
 				if not parent:
 					# try and match by subject and sender
