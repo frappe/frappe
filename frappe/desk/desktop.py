@@ -57,7 +57,6 @@ class Workspace:
 		self.restricted_pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 
 	def is_page_allowed(self):
-		found = False
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module) + self.extended_cards
 		shortcuts = self.doc.shortcuts + self.extended_shortcuts
 		
