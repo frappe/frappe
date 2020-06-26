@@ -825,7 +825,7 @@ class Document(BaseDocument):
 
 	def run_notifications(self, method):
 		"""Run notifications for this method"""
-		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
+		if (frappe.flags.in_import and frappe.flags.mute_emails) or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
 		if self.flags.notifications_executed==None:
