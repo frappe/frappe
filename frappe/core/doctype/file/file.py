@@ -108,17 +108,18 @@ class File(Document):
 				private_files = frappe.get_site_path('private', 'files')
 				public_files = frappe.get_site_path('public', 'files')
 
+				file_name = self.file_url.split('/')[-1]
 				if not self.is_private:
-					shutil.move(os.path.join(private_files, self.file_name),
-						os.path.join(public_files, self.file_name))
+					shutil.move(os.path.join(private_files, file_name),
+						os.path.join(public_files, file_name))
 
-					self.file_url = "/files/{0}".format(self.file_name)
+					self.file_url = "/files/{0}".format(file_name)
 
 				else:
-					shutil.move(os.path.join(public_files, self.file_name),
-						os.path.join(private_files, self.file_name))
+					shutil.move(os.path.join(public_files, file_name),
+						os.path.join(private_files, file_name))
 
-					self.file_url = "/private/files/{0}".format(self.file_name)
+					self.file_url = "/private/files/{0}".format(file_name)
 
 				update_existing_file_docs(self)
 
