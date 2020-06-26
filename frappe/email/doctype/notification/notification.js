@@ -10,7 +10,7 @@ this.frm.fields_dict.sender.get_query = function(){
 		}
 	}
 };
-
+var options;
 frappe.notification = {
 	setup_fieldname_select: function(frm) {
 		// get the doctype to update fields
@@ -20,9 +20,8 @@ frappe.notification = {
 
 		frappe.model.with_doctype(frm.doc.document_type, function() {
 			let get_select_options = function(df) {
-				return {value: df.fieldname, label: df.fieldname + " (" + __(df.label) + ")"};
+				return {value: df.fieldname, label: df.fieldname + " (" + __(df.label) + ")", title: __(df.label)};
 			}
-
 			let get_date_change_options = function() {
 				let date_options = $.map(fields, function(d) {
 					return (d.fieldtype=="Date" || d.fieldtype=="Datetime")?
@@ -36,9 +35,12 @@ frappe.notification = {
 			}
 
 			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
-			let options = $.map(fields,
+			options = $.map(fields,
 				function(d) { return in_list(frappe.model.no_value_type, d.fieldtype) ?
 					null : get_select_options(d); });
+
+			frappe.meta.get_docfield("Notification", "message_placeholder", frm.doc.name).options = [""].concat(options);			
+			frm.refresh_field('message_placeholder');
 
 			// set value changed options
 			frm.set_df_property("value_changed", "options", [""].concat(options));
@@ -112,5 +114,24 @@ frappe.ui.form.on("Notification", {
 	},
 	channel: function(frm) {
 		frm.toggle_reqd("recipients", frm.doc.channel=="Email");
+	},
+	msg_placeholder: function(frm) {
+		var dialog = new frappe.ui.Dialog({
+			title: __('Message Placeholder'),
+			fields: [
+				{
+					fieldtype: 'Autocomplete',
+					fieldname: 'fieldname',
+					label: __('Select Field'),
+					options: options,
+					reqd: 1,
+					onchange: function() {
+						frm.set_value('message', `${frm.doc.message} {{ doc.${this.value} }} `);
+						dialog.hide();
+					}
+				}
+			]
+		});
+		dialog.show();
 	}
 });
