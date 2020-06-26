@@ -25,6 +25,7 @@
 		<span class="text-muted small mr-2">{{ _("Was this article helpful?") }}</span>
 		<button class="feedback btn btn-outline-primary btn-sm" data-value="Yes" style="width: 50px;">{{ _("Yes") }}</button>
 		<button class="feedback btn btn-outline-primary btn-sm" data-value="No" style="width: 50px;">{{ _("No") }}</button>
+		<button class="feedback-msg btn btn-sm disabled hide">{{ _("Thank you for your feedback!") }}</button>
 	</div>
 </div>
 <div class="help-article-comments">
@@ -41,20 +42,14 @@ frappe.ready(function() {
 			helpful: this.getAttribute("data-value"),
 		}
 
-		let disable_button = function(btn) {
-			btn.classList.remove("btn-outline-primary");
-			btn.classList.add("btn-light");
-			btn.disabled = true
-		}
-
 		frappe.call({
 			btn: this,
 			method: "frappe.website.doctype.help_article.help_article.add_feedback",
 			args: args,
 			callback: function(r) {
-				disable_button($(".feedback")[0]);
-				disable_button($(".feedback")[1]);
-				frappe.msgprint(__("Thank you for your feedback!"));
+				$(".feedback")[0].classList.add("hide");
+				$(".feedback")[1].classList.add("hide");
+				$(".feedback-msg")[0].classList.remove("hide");
 			}
 		})
 	});
