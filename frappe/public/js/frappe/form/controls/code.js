@@ -39,7 +39,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 
 	toggle_label() {
 		const button_label = this.expanded ? __('Collapse') : __('Expand');
-		this.$expand_button.text(button_label);
+		this.$expand_button && this.$expand_button.text(button_label);
 	},
 
 	set_language() {

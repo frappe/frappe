@@ -118,18 +118,20 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 
-def remove_app(app_name, dry_run=False, yes=False):
-	"""Delete app and all linked to the app's module with the app."""
+def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
+	"""Remove app and all linked to the app's module with the app from a site."""
 
 	if not dry_run and not yes:
 		confirm = input("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue (y/n) ? ")
 		if confirm!="y":
 			return
 
-	from frappe.utils.backups import scheduled_backup
-	print("Backing up...")
-	scheduled_backup(ignore_files=True)
+	if not no_backup:
+		from frappe.utils.backups import scheduled_backup
+		print("Backing up...")
+		scheduled_backup(ignore_files=True)
 
+	frappe.flags.in_uninstall = True
 	drop_doctypes = []
 
 	# remove modules, doctypes, roles
@@ -163,6 +165,8 @@ def remove_app(app_name, dry_run=False, yes=False):
 
 		for doctype in set(drop_doctypes):
 			frappe.db.sql("drop table `tab{0}`".format(doctype))
+
+	frappe.flags.in_uninstall = False
 
 def post_install(rebuild_website=False):
 	if rebuild_website:
@@ -299,12 +303,15 @@ def remove_missing_apps():
 
 def extract_sql_gzip(sql_gz_path):
 	try:
-		# kdvf - keep, decompress, verbose, force
-		subprocess.check_call(['gzip', '-kdvf', sql_gz_path])
+		# dvf - decompress, verbose, force
+		original_file = sql_gz_path
+		decompressed_file = original_file.rstrip(".gz")
+		cmd = 'gzip -dvf < {0} > {1}'.format(original_file, decompressed_file)
+		subprocess.check_call(cmd, shell=True)
 	except:
 		raise
 
-	return sql_gz_path[:-3]
+	return decompressed_file
 
 def extract_tar_files(site_name, file_path, folder_name):
 	# Need to do frappe.init to maintain the site locals
