@@ -29,31 +29,57 @@ def handle_not_exist(fn):
 
 
 class Workspace:
-	def __init__(self, page_name):
+	def __init__(self, page_name, minimal=False):
 		self.page_name = page_name
 		self.extended_cards = []
 		self.extended_charts = []
 		self.extended_shortcuts = []
 
 		self.user = frappe.get_user()
-		self.allowed_modules = self.get_cached_value('user_allowed_modules', self.get_allowed_modules)
+		self.allowed_modules = self.get_cached('user_allowed_modules', self.get_allowed_modules)
+
 		self.doc = self.get_page_for_user()
 
 		if self.doc.module not in self.allowed_modules:
 			raise frappe.PermissionError
 
-		self.can_read = self.get_cached_value('user_perm_can_read', self.get_can_read_items)
+		self.can_read = self.get_cached('user_perm_can_read', self.get_can_read_items)
 
 		self.allowed_pages = get_allowed_pages(cache=True)
 		self.allowed_reports = get_allowed_reports(cache=True)
-		self.onboarding_doc = self.get_onboarding_doc()
-		self.onboarding = None
-
-		self.table_counts = get_table_with_counts()
+		
+		if not minimal:
+			self.onboarding_doc = self.get_onboarding_doc()
+			self.onboarding = None
+		
+			self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
 		self.restricted_pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 
-	def get_cached_value(self, cache_key, fallback_fn):
+	def is_page_allowed(self):
+		found = False
+		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module) + self.extended_cards
+		shortcuts = self.doc.shortcuts + self.extended_shortcuts
+		
+		for section in cards:
+			links = loads(section.links) if isinstance(section.links, string_types) else section.links
+			for item in links:
+				if self.is_item_allowed(item.get('name'), item.get('type')):
+					return True
+
+		def _in_active_domains(item):
+			if not item.restrict_to_domain:
+				return True
+			else:
+				return item.restrict_to_domain in frappe.get_active_domains()
+
+		for item in shortcuts:
+			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
+				return True
+
+		return False
+
+	def get_cached(self, cache_key, fallback_fn):
 		_cache = frappe.cache()
 
 		value = _cache.get_value(cache_key, user=frappe.session.user)
@@ -170,6 +196,7 @@ class Workspace:
 				'docs_url': self.onboarding_doc.documentation_url,
 				'items': self.get_onboarding_steps()
 			}
+	
 	@handle_not_exist
 	def get_cards(self):
 		cards = self.doc.cards
@@ -341,9 +368,22 @@ def get_desk_sidebar_items(flatten=False):
 
 	# pages sorted based on pinned to top and then by name
 	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
-	pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+	all_pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+	pages = []
+	
+	# Filter Page based on Permission
+	for page in all_pages:
+		try:
+			wspace = Workspace(page.get('name'), True)
+			if wspace.is_page_allowed():
+				pages.append(page)
+		except frappe.PermissionError:
+			pass
+
 	if flatten:
 		return pages
+
+	user_hidden_items = []
 
 	from collections import defaultdict
 	sidebar_items = defaultdict(list)
@@ -352,6 +392,7 @@ def get_desk_sidebar_items(flatten=False):
 	for page in pages:
 		# Translate label
 		page['label'] = _(page.get('name'))
+		page['hidden'] = page.get('name') in user_hidden_items
 		sidebar_items[page["category"]].append(page)
 	return sidebar_items
 
