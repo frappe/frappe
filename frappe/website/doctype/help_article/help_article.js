@@ -14,7 +14,7 @@ frappe.ui.form.on('Help Article', {
 				</div>
 				<div class="col-md-6 col-xs-12">
 					<span class="indicator whitespace-nowrap red">
-						<span>Not Helpful ${frm.doc.helpful}</span>
+						<span>Not Helpful ${frm.doc.not_helpful}</span>
 					</span>
 				</div>
 			</div>
