@@ -120,6 +120,7 @@ class File(Document):
 
 					self.file_url = "/private/files/{0}".format(self.file_name)
 
+				update_existing_file_docs(self)
 
 			# update documents image url with new file url
 			if self.attached_to_doctype and self.attached_to_name:
@@ -903,3 +904,20 @@ def get_files_in_folder(folder):
 		{ 'folder': folder },
 		['name', 'file_name', 'file_url', 'is_folder', 'modified']
 	)
+
+def update_existing_file_docs(doc):
+	# Update is private and file url of all file docs that point to the same file
+	frappe.db.sql("""
+		UPDATE `tabFile`
+		SET
+			`tabFile`.file_url = '{file_url}',
+			`tabFile`.is_private = {is_private}
+		WHERE
+			`tabFile`.content_hash = '{content_hash}'
+			and `tabFile`.name != '{file_name}'
+	""".format(
+		file_url=doc.file_url,
+		is_private=doc.is_private,
+		content_hash=doc.content_hash,
+		file_name=doc.name
+	))
