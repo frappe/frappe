@@ -287,13 +287,13 @@ if __name__ == "__main__":
 	db_type = 'mariadb'
 	try:
 		db_type = sys.argv[6]
-	except IndexError as error:
+	except IndexError:
 		pass
 
 	db_port = 3306
 	try:
 		db_port = int(sys.argv[7])
-	except IndexError as error:
+	except IndexError:
 		pass
 
 	if cmd == "is_file_old":
