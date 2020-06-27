@@ -102,9 +102,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		columns[2] = [];
 
 		if ($.isArray(this.setters)) {
-			for (const df of this.setters) {
-				columns[1].push(df, {fieldtype: "Column Break"});
-			}
+			this.setters.forEach((setter, index) => {
+				columns[(index + 1) % 3].push(setter);
+			});
 		} else {
 			Object.keys(this.setters).forEach((setter, index) => {
 				let df_prop = frappe.meta.docfield_map[this.doctype][setter];
