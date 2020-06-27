@@ -9,6 +9,8 @@
  "field_order": [
   "sb0_5",
   "enabled",
+  "column_break_3",
+  "suspend_all_auto_assignment",
   "section_break_3",
   "email",
   "first_name",
@@ -583,6 +585,16 @@
    "fieldtype": "Password",
    "label": "API Secret",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "suspend_all_auto_assignment",
+   "fieldtype": "Check",
+   "label": "Suspend All Auto Assignment"
   }
  ],
  "icon": "fa fa-user",
@@ -590,7 +602,7 @@
  "image_field": "user_image",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-04-08 12:27:36.716490",
+ "modified": "2020-06-26 13:10:02.088497",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

@@ -44,6 +44,25 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar-toggle-full-width').click(() => {
 			frappe.ui.toolbar.toggle_full_width();
 		});
+
+		$('.user-active-status').click(() =>{
+			frappe.db.get_value('User', frappe.user.name, 'suspend_all_auto_assignment',(r) => { 
+				if(r.suspend_all_auto_assignment) {
+					frappe.db.set_value('User' , frappe.user.name, 'suspend_all_auto_assignment' , 0, (r) =>{
+						$('.user-active-status').find('a').html(__("Go Offline"));
+						console.log("Online");
+					});
+					
+				}
+				else {
+					frappe.db.set_value('User' , frappe.user.name, 'suspend_all_auto_assignment' , 1, (r) =>{
+						$('.user-active-status').find('a').html(__("Go Online"));
+						console.log("Offline");
+					});
+				}
+			});
+			// $('.user-active-status').find('a').html(__("Go Online"))
+		})
 	},
 
 	setup_sidebar: function() {

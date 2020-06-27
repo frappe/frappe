@@ -69,6 +69,12 @@ class AssignmentRule(Document):
 		'''
 		Get the next user for assignment
 		'''
+		print("=============================================")
+		print(self.users)
+		# for x in self.users:
+		# 	if(x.suspend_all_auto_assignment):
+		# 		del(x)
+		# print(self.users)
 		if self.rule == 'Round Robin':
 			return self.get_user_round_robin()
 		elif self.rule == 'Load Balancing':
@@ -78,7 +84,7 @@ class AssignmentRule(Document):
 		'''
 		Get next user based on round robin
 		'''
-
+		print(self.users)
 		# first time, or last in list, pick the first
 		if not self.last_user or self.last_user == self.users[-1].user:
 			return self.users[0].user
