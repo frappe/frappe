@@ -84,18 +84,20 @@ class AssignmentRule(Document):
 		'''
 		Get next user based on round robin
 		'''
-		print(self.users)
+		user_order = []
 		# first time, or last in list, pick the first
-		if not self.last_user or self.last_user == self.users[-1].user:
-			return self.users[0].user
+		if not self.last_user:
+			user_order = self.order
 
-		# find out the next user in the list
-		for i, d in enumerate(self.users):
-			if self.last_user == d.user:
-				return self.users[i+1].user
-
-		# bad last user, assign to the first one
-		return self.users[0].user
+		else:
+			for i, d in enumerate(self.users):
+				if self.last_user == d.user:
+					user_order = self.users[i:] + self.users[:i]
+					break
+		for user in user_order:
+			if frappe.get_value('User', user.user, 'suspend_all_auto_assignment'):
+				continue
+			return user.user
 
 	def get_user_load_balancing(self):
 		'''Assign to the user with least number of open assignments'''
