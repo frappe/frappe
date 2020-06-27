@@ -101,7 +101,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		columns[1] = [];
 		columns[2] = [];
 
-		if($.isArray(this.setters)) {
+		if ($.isArray(this.setters)) {
 			for (const df of this.setters) {
 				columns[1].push(df, {fieldtype: "Column Break"});
 			}
@@ -223,7 +223,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		let contents = ``;
 		let columns = ["name"];
 
-		if($.isArray(this.setters)) {
+		if ($.isArray(this.setters)) {
 			for (let df of this.setters) {
 				columns.push(df.fieldname);
 			}
@@ -302,7 +302,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		let filters = this.get_query ? this.get_query().filters : {} || {};
 		let filter_fields = [];
 
-		if($.isArray(this.setters)) {
+		if ($.isArray(this.setters)) {
 			for (let df of this.setters) {
 				filters[df.fieldname] = me.dialog.fields_dict[df.fieldname].get_value() || undefined;
 				me.args[df.fieldname] = filters[df.fieldname];
