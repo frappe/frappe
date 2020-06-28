@@ -269,3 +269,4 @@ frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v12_0.email_unsubscribe
 frappe.patches.v12_0.replace_old_data_import
+frappe.patches.v12_0.set_correct_url_in_files
