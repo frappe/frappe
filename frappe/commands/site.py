@@ -136,8 +136,9 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	frappe.init(site=site)
 
 	# dont allow downgrading to older versions of frappe without force
-	if not force and is_downgrade(decompressed_file_name):
-		click.confirm("Downgrading sites may lead to a broken site. Do you wish to continue?", abort=True)
+	if not force and is_downgrade(decompressed_file_name, verbose=True):
+		warn_message = "This is not recommended and may lead to unexpected behaviour. Do you want to continue anyway?"
+		click.confirm(warn_message, abort=True)
 
 	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
 		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
