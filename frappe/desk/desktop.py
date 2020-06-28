@@ -108,12 +108,12 @@ class Workspace:
 			'extends': self.page_name,
 			'for_user': frappe.session.user
 		}
-		pages = frappe.get_all("Desk Page", filters=filters)
+		pages = frappe.get_all("Desk Page", filters=filters, limit=1)
 		if pages:
-			return frappe.get_doc("Desk Page", pages[0])
+			return frappe.get_cached_doc("Desk Page", pages[0])
 
 		self.get_pages_to_extend()
-		return frappe.get_doc("Desk Page", self.page_name)
+		return frappe.get_cached_doc("Desk Page", self.page_name)
 
 	def get_onboarding_doc(self):
 		# Check if onboarding is enabled
@@ -148,7 +148,7 @@ class Workspace:
 			'module': ['in', self.allowed_modules]
 		})
 
-		pages = [frappe.get_doc("Desk Page", page['name']) for page in pages]
+		pages = [frappe.get_cached_doc("Desk Page", page['name']) for page in pages]
 
 		for page in pages:
 			self.extended_cards = self.extended_cards + page.cards
