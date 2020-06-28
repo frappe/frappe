@@ -108,7 +108,7 @@ class Workspace:
 			'extends': self.page_name,
 			'for_user': frappe.session.user
 		}
-		pages = frappe.get_list("Desk Page", filters=filters)
+		pages = frappe.get_all("Desk Page", filters=filters)
 		if pages:
 			return frappe.get_doc("Desk Page", pages[0])
 
@@ -349,40 +349,46 @@ def get_desktop_page(page):
 	}
 
 @frappe.whitelist()
-def get_desk_sidebar_items(flatten=False):
+def get_desk_sidebar_items(flatten=False, cache=True):
 	"""Get list of sidebar items for desk
 	"""
-	# don't get domain restricted pages
-	blocked_modules = frappe.get_doc('User', frappe.session.user).get_blocked_modules()
-
-	filters = {
-		'restrict_to_domain': ['in', frappe.get_active_domains()],
-		'extends_another_page': 0,
-		'for_user': '',
-		'module': ['not in', blocked_modules]
-	}
-
-	if not frappe.local.conf.developer_mode:
-		filters['developer_mode_only'] = '0'
-
-	# pages sorted based on pinned to top and then by name
-	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
-	all_pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
 	pages = []
+	_cache = frappe.cache()
+	if cache:
+		pages = _cache.get_value("desk_sidebar_items", user=frappe.session.user)
 	
-	# Filter Page based on Permission
-	for page in all_pages:
-		try:
-			wspace = Workspace(page.get('name'), True)
-			if wspace.is_page_allowed():
-				pages.append(page)
-		except frappe.PermissionError:
-			pass
+	if not pages or not cache:
+		# don't get domain restricted pages
+		blocked_modules = frappe.get_doc('User', frappe.session.user).get_blocked_modules()
+
+		filters = {
+			'restrict_to_domain': ['in', frappe.get_active_domains()],
+			'extends_another_page': 0,
+			'for_user': '',
+			'module': ['not in', blocked_modules]
+		}
+
+		if not frappe.local.conf.developer_mode:
+			filters['developer_mode_only'] = '0'
+
+		# pages sorted based on pinned to top and then by name
+		order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
+		all_pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+		pages = []
+		
+		# Filter Page based on Permission
+		for page in all_pages:
+			try:
+				wspace = Workspace(page.get('name'), True)
+				if wspace.is_page_allowed():
+					pages.append(page)
+			except frappe.PermissionError:
+				pass
+
+		_cache.set_value("desk_sidebar_items", pages, frappe.session.user)
 
 	if flatten:
 		return pages
-
-	user_hidden_items = []
 
 	from collections import defaultdict
 	sidebar_items = defaultdict(list)
@@ -391,7 +397,6 @@ def get_desk_sidebar_items(flatten=False):
 	for page in pages:
 		# Translate label
 		page['label'] = _(page.get('name'))
-		page['hidden'] = page.get('name') in user_hidden_items
 		sidebar_items[page["category"]].append(page)
 	return sidebar_items
 
@@ -415,7 +420,7 @@ def get_custom_reports_and_doctypes(module):
 	]
 
 def get_custom_doctype_list(module):
-	doctypes =  frappe.get_list("DocType", fields=["name"], filters={"custom": 1, "istable": 0, "module": module}, order_by="name", ignore_permissions=True)
+	doctypes =  frappe.get_all("DocType", fields=["name"], filters={"custom": 1, "istable": 0, "module": module}, order_by="name")
 
 	out = []
 	for d in doctypes:
@@ -430,9 +435,9 @@ def get_custom_doctype_list(module):
 
 def get_custom_report_list(module):
 	"""Returns list on new style reports for modules."""
-	reports =  frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], filters=
+	reports =  frappe.get_all("Report", fields=["name", "ref_doctype", "report_type"], filters=
 		{"is_standard": "No", "disabled": 0, "module": module},
-		order_by="name", ignore_permissions=True)
+		order_by="name")
 
 	out = []
 	for r in reports:
