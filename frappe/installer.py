@@ -323,7 +323,7 @@ def extract_tar_files(site_name, file_path, folder_name):
 
 	return tar_path
 
-def is_downgrade(sql_file_path):
+def is_downgrade(sql_file_path, verbose=False):
 	"""checks if input db backup will get downgraded on current bench"""
 	from semantic_version import Version
 	head = "INSERT INTO `tabInstalled Application` VALUES"
@@ -331,9 +331,9 @@ def is_downgrade(sql_file_path):
 	with open(sql_file_path) as f:
 		for line in f:
 			if head in line:
-				# ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'press','0.0.1','master')
+				# 'line' (str) format: ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master')
 				line = line.strip().lstrip(head).rstrip(";").strip()
-				# [('frappe', '12.x.x-develop ()', 'develop'), ('press', '0.0.1', 'master')]
+				# 'all_apps' (list) format: [('frappe', '12.x.x-develop ()', 'develop'), ('your_custom_app', '0.0.1', 'master')]
 				all_apps = [ x[-3:] for x in frappe.safe_eval(line) ]
 
 				for app in all_apps:
@@ -347,4 +347,9 @@ def is_downgrade(sql_file_path):
 						except ValueError:
 							return False
 
-						return backup_version > current_version
+						downgrade = backup_version > current_version
+
+						if verbose and downgrade:
+							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
+
+						return downgrade
