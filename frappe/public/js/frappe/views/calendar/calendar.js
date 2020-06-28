@@ -277,7 +277,7 @@ frappe.views.Calendar = Class.extend({
 						event[me.field_map.end] = me.get_system_datetime(moment(endDate).subtract(1, "s"));
 				}
 
-				me.options.list_view.make_new_doc();
+				me.list_view.make_new_doc();
 			},
 			dayClick: function(date, jsEvent, view) {
 				if(view.name === 'month') {
