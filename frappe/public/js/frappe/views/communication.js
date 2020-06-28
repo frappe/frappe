@@ -185,9 +185,9 @@ frappe.views.CommunicationComposer = Class.extend({
 			// always add an identifier to catch a reply
 			// some email clients (outlook) may not send the message id to identify
 			// the thread. So as a backup we use the name of the document as identifier
-			let identifier = `#{this.frm.doc.name}`;
+			let identifier = `#${this.frm.doc.name}`;
 			if (!this.subject.includes(identifier)) {
-				this.subject = `{this.subject} ({identifier})`;
+				this.subject = `${this.subject} (${identifier})`;
 			}
 		}
 
