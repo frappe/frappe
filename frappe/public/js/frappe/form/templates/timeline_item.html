@@ -77,8 +77,8 @@
 							<span class="text-muted hidden-xs">&ndash;</span>
 							<span class="indicator-right {%= indicator_class %}
 								delivery-status-indicator"
-								title="{%= data.delivery_status %}"><span class="hidden-xs">
-								{%= data.delivery_status %}</span></span>
+								title="{%= __(data.delivery_status) %}"><span class="hidden-xs">
+								{%= __(data.delivery_status) %}</span></span>
 
 							{% } else { %}
 								{% if (frappe.model.can_read(\'Communication\')) { %}
