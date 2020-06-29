@@ -91,6 +91,7 @@ class BackupGenerator:
 		backup_path_files = None
 		backup_path_db = None
 		backup_path_private_files = None
+		site_config_backup_path = None
 
 		for this_file in file_list:
 			this_file = cstr(this_file)
