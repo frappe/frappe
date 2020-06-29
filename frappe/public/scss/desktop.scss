@@ -374,10 +374,22 @@ $panel-bg: $gray-50;
 	&.links-widget-box {
 		padding-left: 0px;
 		.link-item {
-			color: var(--gray-900);
-			position: relative;
-			margin: 10px 0px;
-			cursor: default;
+			display: block;
+			text-decoration: none;
+			color: var(--grey-900);
+			padding: 5px;
+			margin: 1px 0px;
+			border-radius: 6px;
+			cursor: pointer;
+
+			&:hover {
+				background-color: var(--grey-50);
+
+				.indicator-pill,
+				.indicator-pill-right {
+					background: white;
+				}
+			}
 
 			&:first-child {
 				margin-top: 15px;
@@ -408,8 +420,6 @@ $panel-bg: $gray-50;
 			.indicator-pill {
 				margin-right: 0px;
 				margin-right: 5px;
-				color: inherit;
-				font-weight: inherit;
 			}
 		}
 	}
