@@ -19,6 +19,11 @@
 	vertical-align: middle;
 }
 
+.indicator-pill.no-margin::before,
+.indicator-pill-right.no-margin::after {
+	margin-right: 0px;
+}
+
 .indicator-pill-right::after {
 	margin:0 0 0 4px;
 }
