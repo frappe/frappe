@@ -6,7 +6,7 @@ frappe.provide("frappe.dashboards.chart_sources");
 export default class ChartWidget extends Widget {
 	constructor(opts) {
 		super(opts);
-		this.height = this.height || 240;
+		this.height = this.height || 300;
 	}
 
 	get_config() {
