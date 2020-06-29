@@ -358,25 +358,25 @@ class DesktopPage {
 
 		this.sections["cards"] = cards;
 
-		const legend = [
-			{
-				color: "blue",
-				description: __("Important")
-			},
-			{
-				color: "orange",
-				description: __("No Records Created")
-			}
-		].map(item => {
-			return `<div class="legend-item small text-muted justify-flex-start">
-				<span class="indicator ${item.color}"></span>
-				<span class="link-content ellipsis" draggable="false">${item.description}</span>
-			</div>`;
-		});
+		// const legend = [
+		// 	{
+		// 		color: "blue",
+		// 		description: __("Important")
+		// 	},
+		// 	{
+		// 		color: "yellow",
+		// 		description: __("No Records Created")
+		// 	}
+		// ].map(item => {
+		// 	return `<div class="legend-item text-muted justify-flex-start">
+		// 		<span class="indicator-pill no-margin ${item.color}"></span>
+		// 		<span class="link-content ellipsis" draggable="false">${item.description}</span>
+		// 	</div>`;
+		// });
 
-		$(`<div class="legend">
-			${legend.join("\n")}
-		</div>`).insertAfter(cards.body);
+		// $(`<div class="legend">
+		// 	${legend.join("\n")}
+		// </div>`).insertAfter(cards.body);
 	}
 }
 
