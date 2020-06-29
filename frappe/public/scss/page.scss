@@ -19,6 +19,13 @@
 		padding: 4px 20px;
 		font-size: var(--text-md);
 	}
+	.btn-primary {
+		.icon-select {
+			use {
+				stroke: white;
+			}
+		}
+	}
 	.custom-btn-group .btn {
 		padding: 4px 15px;
 	}
