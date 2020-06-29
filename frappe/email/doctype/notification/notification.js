@@ -63,7 +63,7 @@ frappe.notification = {
 		});
 	}
 }
-
+var last_touched ='message';
 frappe.ui.form.on("Notification", {
 	onload: function(frm) {
 		frm.set_query("document_type", function() {
@@ -115,6 +115,12 @@ frappe.ui.form.on("Notification", {
 	channel: function(frm) {
 		frm.toggle_reqd("recipients", frm.doc.channel=="Email");
 	},
+	subject: function(frm) {
+		last_touched = 'subject';
+	},
+	message: function(frm) {
+		last_touched = 'message';
+	},
 	msg_placeholder: function(frm) {
 		var dialog = new frappe.ui.Dialog({
 			title: __('Message Placeholder'),
@@ -126,7 +132,7 @@ frappe.ui.form.on("Notification", {
 					options: options,
 					reqd: 1,
 					onchange: function() {
-						frm.set_value('message', `${frm.doc.message} {{ doc.${this.value} }} `);
+						frm.set_value(last_touched, `${frm.doc[last_touched]} {{ doc.${this.value} }} `);
 						dialog.hide();
 					}
 				}
