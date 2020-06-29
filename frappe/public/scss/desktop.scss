@@ -48,7 +48,7 @@ $panel-bg: $gray-50;
 }
 
 .widget-group {
-	margin-bottom: 25px;
+	margin-bottom: 40px;
 
 	.widget-group-head {
 		display: flex;
@@ -405,7 +405,8 @@ $panel-bg: $gray-50;
 				}
 			}
 
-			.indicator {
+			.indicator-pill {
+				margin-right: 0px;
 				margin-right: 5px;
 				color: inherit;
 				font-weight: inherit;

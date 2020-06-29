@@ -31,7 +31,7 @@ export default class LinksWidget extends Widget {
 				return "red";
 			}
 			if (item.onboard) {
-				return item.count ? "blue" : "orange";
+				return item.count ? "blue" : "yellow";
 			}
 			return "grey";
 		};
@@ -60,10 +60,10 @@ export default class LinksWidget extends Widget {
 		};
 
 		this.link_list = this.links.map(item => {
-			return $(`<div class="link-item flush-top text-medium ${
+			return $(`<div class="link-item ${
 				item.onboard ? "onboard-spotlight" : ""
 			} ${disabled_dependent(item)}" type="${item.type}">
-					<span class="indicator ${get_indicator_color(item)}"></span>
+					<span class="indicator-pill no-margin ${get_indicator_color(item)}"></span>
 					${get_link_for_item(item)}
 			</div>`);
 		});
