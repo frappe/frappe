@@ -73,10 +73,11 @@ frappe.views.pageview = {
 	}
 };
 
-frappe.views.Page = Class.extend({
-	init: function(name) {
+frappe.views.Page = class Page {
+	constructor(name) {
 		this.name = name;
 		var me = this;
+		
 		// web home page
 		if(name==window.page_name) {
 			this.wrapper = document.getElementById('page-' + name);
@@ -104,20 +105,22 @@ frappe.views.Page = Class.extend({
 		}
 
 		this.trigger_page_event('on_page_load');
+		
 		// set events
-		$(this.wrapper).on('show', function() {
+		$(this.wrapper).on('show', () => {
 			window.cur_frm = null;
-			me.trigger_page_event('on_page_show');
-			me.trigger_page_event('refresh');
+			this.trigger_page_event('on_page_show');
+			this.trigger_page_event('refresh');
 		});
-	},
-	trigger_page_event: function(eventname) {
+	}
+
+	trigger_page_event(eventname) {
 		var me = this;
 		if(me.wrapper[eventname]) {
 			me.wrapper[eventname](me.wrapper);
 		}
 	}
-});
+};
 
 frappe.show_not_found = function(page_name) {
 	frappe.show_message_page({
