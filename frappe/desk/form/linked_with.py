@@ -13,7 +13,7 @@ from frappe.modules import load_doctype_module
 
 
 @frappe.whitelist()
-def get_submitted_linked_docs(doctype, name, docs=None, linked=None, visited=None):
+def get_submitted_linked_docs(doctype, name, docs=None, visited=None):
 	"""
 	Get all nested submitted linked doctype linkinfo
 
@@ -31,33 +31,26 @@ def get_submitted_linked_docs(doctype, name, docs=None, linked=None, visited=Non
 	if not docs:
 		docs = []
 
-	if not linked:
-		linked = {}
-
 	if not visited:
-		visited = []
+		visited = {}
 
-	if name in visited:
+	if doctype not in visited:
+		visited[doctype] = []
+
+	if name in visited[doctype]:
 		return
 
 	linkinfo = get_linked_doctypes(doctype)
 	linked_docs = get_linked_docs(doctype, name, linkinfo)
 
 	link_count = 0
-	visited.append(name)
-	
+	visited[doctype].append(name)
+
 	for link_doctype, link_names in linked_docs.items():
-		if link_doctype not in linked:
-			linked[link_doctype] = []
 
 		for link in link_names:
 			if link['name'] == name:
 				continue
-
-			if linked and name in linked[link_doctype]:
-				continue
-
-			linked[link_doctype].append(link['name'])
 
 			docinfo = link.update({"doctype": link_doctype})
 			validated_doc = validate_linked_doc(docinfo)
@@ -66,10 +59,8 @@ def get_submitted_linked_docs(doctype, name, docs=None, linked=None, visited=Non
 				continue
 
 			link_count += 1
-			if link.name in [doc.get("name") for doc in docs]:
-				continue
 
-			links = get_submitted_linked_docs(link_doctype, link.name, docs, linked, visited)
+			links = get_submitted_linked_docs(link_doctype, link.name, docs, visited)
 			if links:
 				docs.append({
 					"doctype": link_doctype,
