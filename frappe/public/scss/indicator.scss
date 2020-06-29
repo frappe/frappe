@@ -32,6 +32,51 @@
 	}
 }
 
+.indicator-pill.blue,
+.indicator-pill-right.blue {
+	background: var(--blue-50);
+	color: var(--blue-500);
+	&::before, &::after {
+		background: var(--blue-500);
+	}
+}
+
+.indicator-pill.orange,
+.indicator-pill-right.orange {
+	background: var(--orange-100);
+	color: var(--orange-500);
+	&::before, &::after {
+		background: var(--orange-500);
+	}
+}
+
+.indicator-pill.yellow,
+.indicator-pill-right.yellow {
+	background: var(--yellow-50);
+	color: var(--yellow-500);
+	&::before, &::after {
+		background: var(--yellow-500);
+	}
+}
+
+.indicator-pill.grey,
+.indicator-pill-right.grey {
+	background: var(--grey-50);
+	color: var(--grey-500);
+	&::before, &::after {
+		background: var(--grey-500);
+	}
+}
+
+.indicator-pill.red,
+.indicator-pill-right.red {
+	background: var(--red-50);
+	color: var(--red-500);
+	&::before, &::after {
+		background: var(--red-500);
+	}
+}
+
 // .indicator.grey::before,
 // .indicator-pill-right.grey::after {
 //     background: @btn-bg;
