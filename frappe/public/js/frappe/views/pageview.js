@@ -1,6 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-import Desktop from './desktop/desktop.js';
 
 frappe.provide('frappe.views.pageview');
 frappe.provide("frappe.standard_pages");
@@ -41,23 +40,6 @@ frappe.views.pageview = {
 	show: function(name) {
 		if(!name) {
 			name = (frappe.boot ? frappe.boot.home_page : window.page_name);
-
-			if(name === "workspace") {
-				if(!frappe.workspace) {
-					let page = frappe.container.add_page('workspace');
-					let container = $('<div class="container"></div>').appendTo(page);
-					container = $('<div></div>').appendTo(container);
-
-					frappe.workspace = new Desktop({
-						wrapper: container
-					})
-				}
-
-				frappe.container.change_to('workspace');
-				frappe.workspace.route();
-				frappe.utils.set_title(__('Desk'));
-				return;
-			}
 		}
 		frappe.model.with_doctype("Page", function() {
 			frappe.views.pageview.with_page(name, function(r) {
@@ -107,10 +89,10 @@ frappe.views.Page = class Page {
 		this.trigger_page_event('on_page_load');
 		
 		// set events
-		$(this.wrapper).on('show', () => {
+		$(this.wrapper).on('show', function() {
 			window.cur_frm = null;
-			this.trigger_page_event('on_page_show');
-			this.trigger_page_event('refresh');
+			me.trigger_page_event('on_page_show');
+			me.trigger_page_event('refresh');
 		});
 	}
 

@@ -38,15 +38,19 @@ export default class WidgetGroup {
 
 	make() {
 		this.make_container();
-		this.title && this.set_title();
+		if (this.title) {
+			this.set_title()
+		} else {
+			this.title_area.remove();
+		}
 		this.widgets && this.make_widgets();
 	}
 
 	make_container() {
 		const widget_area = $(`<div class="widget-group">
 				<div class="widget-group-head">
-					<div class="widget-group-title h6 uppercase"></div>
-					<div class="widget-group-control h6 text-muted"></div>
+					<div class="widget-group-title"></div>
+					<div class="widget-group-control"></div>
 				</div>
 				<div class="widget-group-body grid-col-${this.columns}">
 				</div>

@@ -12,7 +12,7 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 		single_column: true
 	});
 
-	frappe.dashboard = new Dashboard(wrapper);
+	frappe.dashboard = new Desktop(wrapper);
 	$(wrapper).bind('show', function() {
 		frappe.dashboard.show();
 	});

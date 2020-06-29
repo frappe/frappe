@@ -3,6 +3,7 @@ import { generate_route } from "./utils";
 
 export default class ShortcutWidget extends Widget {
 	constructor(opts) {
+		opts.shadow = true;
 		super(opts);
 	}
 
