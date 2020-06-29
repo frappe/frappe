@@ -42,6 +42,9 @@ class AssignmentRule(Document):
 		assign_to.clear(doc.get('doctype'), doc.get('name'))
 
 		user = self.get_user()
+		
+		if not user:
+			return
 
 		assign_to.add(dict(
 			assign_to = [user],
@@ -69,12 +72,6 @@ class AssignmentRule(Document):
 		'''
 		Get the next user for assignment
 		'''
-		print("=============================================")
-		print(self.users)
-		# for x in self.users:
-		# 	if(x.suspend_all_auto_assignment):
-		# 		del(x)
-		# print(self.users)
 		if self.rule == 'Round Robin':
 			return self.get_user_round_robin()
 		elif self.rule == 'Load Balancing':
@@ -84,15 +81,13 @@ class AssignmentRule(Document):
 		'''
 		Get next user based on round robin
 		'''
-		user_order = []
 		# first time, or last in list, pick the first
-		if not self.last_user:
-			user_order = self.order
-
-		else:
+		user_order = self.users
+		if self.last_user:
 			for i, d in enumerate(self.users):
 				if self.last_user == d.user:
-					user_order = self.users[i:] + self.users[:i]
+					user_order = list(self.users[i:] + self.users[:i])
+					user_order.append(user_order.pop(0))
 					break
 		for user in user_order:
 			if frappe.get_value('User', user.user, 'suspend_all_auto_assignment'):
@@ -103,19 +98,21 @@ class AssignmentRule(Document):
 		'''Assign to the user with least number of open assignments'''
 		counts = []
 		for d in self.users:
-			counts.append(dict(
-				user = d.user,
-				count = frappe.db.count('ToDo', dict(
-					reference_type = self.document_type,
-					owner = d.user,
-					status = "Open"))
-			))
+			if not frappe.get_value('User', d.user, 'suspend_all_auto_assignment'):
+				counts.append(dict(
+					user = d.user,
+					count = frappe.db.count('ToDo', dict(
+						reference_type = self.document_type,
+						owner = d.user,
+						status = "Open"))
+				))
 
 		# sort by dict value
 		sorted_counts = sorted(counts, key = lambda k: k['count'])
 
 		# pick the first user
-		return sorted_counts[0].get('user')
+		if sorted_counts:
+			return sorted_counts[0].get('user')
 
 	def safe_eval(self, fieldname, doc):
 		try:

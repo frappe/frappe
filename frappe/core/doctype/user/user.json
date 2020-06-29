@@ -594,6 +594,7 @@
    "default": "0",
    "fieldname": "suspend_all_auto_assignment",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Suspend All Auto Assignment"
   }
  ],
@@ -602,7 +603,7 @@
  "image_field": "user_image",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-06-26 13:10:02.088497",
+ "modified": "2020-06-29 17:05:57.766307",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

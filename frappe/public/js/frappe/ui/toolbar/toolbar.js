@@ -45,23 +45,27 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			frappe.ui.toolbar.toggle_full_width();
 		});
 
-		$('.user-active-status').click(() =>{
+		$('.user-auto-assignment-status').click(() =>{
 			frappe.db.get_value('User', frappe.user.name, 'suspend_all_auto_assignment',(r) => { 
 				if(r.suspend_all_auto_assignment) {
 					frappe.db.set_value('User' , frappe.user.name, 'suspend_all_auto_assignment' , 0, (r) =>{
-						$('.user-active-status').find('a').html(__("Go Offline"));
-						console.log("Online");
+						$('.user-auto-assignment-status').find('a').html(__("Go Offline"));
+						frappe.show_alert({
+							indicator: 'green',
+							message:  __('All auto assignments resumed again.')
+						});
 					});
-					
 				}
 				else {
 					frappe.db.set_value('User' , frappe.user.name, 'suspend_all_auto_assignment' , 1, (r) =>{
-						$('.user-active-status').find('a').html(__("Go Online"));
-						console.log("Offline");
+						$('.user-auto-assignment-status').find('a').html(__("Go Online"));
+					});
+					frappe.show_alert({
+						indicator: 'red',
+						message:  __('All auto assignments suspended for you.')
 					});
 				}
 			});
-			// $('.user-active-status').find('a').html(__("Go Online"))
 		})
 	},
 
@@ -238,7 +242,7 @@ $.extend(frappe.ui.toolbar, {
 frappe.ui.toolbar.clear_cache = frappe.utils.throttle(function() {
 	frappe.assets.clear_local_storage();
 	frappe.xcall('frappe.sessions.clear').then(message => {
-		frappe.show_alert({
+		addert({
 			message: message,
 			indicator: 'green'
 		});

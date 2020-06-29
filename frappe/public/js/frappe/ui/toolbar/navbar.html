@@ -38,8 +38,8 @@
 					<li class="navbar-toggle-full-width">
 						<a href="#" onclick="return false">{%= __("Toggle Full Width") %}</a>
 					</li>
-					<li class="user-active-status">
-						<a href="#" onclick="return false">{%= __("Go Offline") %}</a>
+					<li class="user-auto-assignment-status">
+						<a href="#" onclick="return false">{%= frappe.user_info().suspend_all_auto_assignment ? __("Go Online") : __("Go Offline") %}</a>
 					</li>
 					<li><a href="#background_jobs">
 						{%= __("Background Jobs") %}</a></li>
