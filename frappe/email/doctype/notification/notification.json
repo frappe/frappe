@@ -111,6 +111,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval: doc.document_type",
    "fieldname": "event",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -120,14 +121,14 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval:doc.event=='Method'",
+   "depends_on": "eval:doc.event=='Method' && doc.document_type",
    "description": "Trigger on valid methods like \"before_insert\", \"after_update\", etc (will depend on the DocType selected)",
    "fieldname": "method",
    "fieldtype": "Data",
    "label": "Trigger Method"
   },
   {
-   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"",
+   "depends_on": "eval: doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send alert if date matches this field's value",
    "fieldname": "date_changed",
    "fieldtype": "Select",
@@ -135,14 +136,14 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"",
+   "depends_on": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send days before or after the reference date",
    "fieldname": "days_in_advance",
    "fieldtype": "Int",
    "label": "Days Before or After"
   },
   {
-   "depends_on": "eval:doc.event==\"Value Change\"",
+   "depends_on": "eval: doc.document_type && doc.event==\"Value Change\"",
    "description": "Send alert if this field's value changes",
    "fieldname": "value_changed",
    "fieldtype": "Select",
@@ -263,7 +264,7 @@
   }
  ],
  "icon": "fa fa-envelope",
- "modified": "2019-07-15 13:17:02.585013",
+ "modified": "2020-06-29 15:18:42.646726",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
