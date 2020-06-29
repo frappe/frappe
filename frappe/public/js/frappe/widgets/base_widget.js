@@ -110,9 +110,17 @@ export default class Widget {
 	}
 
 	set_title(max_chars) {
-		this.title_field[0].innerHTML = max_chars ? frappe.ellipsis(this.label, max_chars) : this.label;
-		if (max_chars) {
-			this.title_field[0].setAttribute('title', this.label);
+		let base = this.label || this.name;
+		let title = max_chars ? frappe.ellipsis(base, max_chars) : base;
+		
+		if (this.icon) {
+			let icon = frappe.utils.icon(this.icon)
+			this.title_field[0].innerHTML = `${icon} <span>${title}</span>`;
+		} else {
+			this.title_field[0].innerHTML = title
+			if (max_chars) {
+				this.title_field[0].setAttribute('title', this.label);
+			}
 		}
 	}
 

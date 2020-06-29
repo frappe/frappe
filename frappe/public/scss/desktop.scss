@@ -152,12 +152,19 @@ $panel-bg: $gray-50;
 		justify-content: space-between;
 
 		.widget-title {
+			display: flex;
 			align-self: center;
+			align-items: center;
 			font-size: var(--text-lg);
 			font-family: inherit;
 			font-weight: 500;
 			line-height: 1.3em;
 			color: var(--grey-900);
+
+			svg {
+				margin-right: 6px;
+				box-shadow: none;
+			}
 		}
 		.widget-control {
 			align-self: center;
@@ -361,14 +368,6 @@ $panel-bg: $gray-50;
 		.widget-head {
 			margin-top: 5px;
 			margin-bottom: 5px;
-
-			.widget-title {
-				i {
-					color: $text-muted;
-					font-size: var(--text-lg);
-					margin-right: 6px;
-				}
-			}
 		}
 	}
 

@@ -65,17 +65,6 @@ export default class ShortcutWidget extends Widget {
 		return null;
 	}
 
-	set_title() {
-		if (this.icon) {
-			this.title_field[0].innerHTML = `<div>
-				<i class="${this.icon}" style=""></i>
-				${this.label || this.name}
-				</div>`;
-		} else {
-			super.set_title();
-		}
-	}
-
 	set_count(count) {
 		const get_label = () => {
 			if (this.format) {
