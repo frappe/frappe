@@ -1,6 +1,7 @@
 import Widget from "./base_widget.js";
 import { generate_route } from "./utils";
 
+const indicator_colors = ["grey", "green", "red", "orange", "pink", "yellow", "blue", "cyan", "teal"]
 export default class ShortcutWidget extends Widget {
 	constructor(opts) {
 		opts.shadow = true;
@@ -75,15 +76,11 @@ export default class ShortcutWidget extends Widget {
 
 		this.action_area.empty();
 		const label = get_label();
-		const buttons = $(`<div class="small pill">${label}</div>`);
-		if (this.color) {
-			buttons.css("background-color", this.color);
-			buttons.css(
-				"color",
-				frappe.ui.color.get_contrast_color(this.color)
-			);
-		}
-
+		let color = indicator_colors.includes(this.color)
+			? this.color
+			: 'grey';
+		
+		const buttons = $(`<div class="small indicator-pill ${color}">${label}</div>`);
 		buttons.appendTo(this.action_area);
 	}
 }
