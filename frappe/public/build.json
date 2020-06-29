@@ -97,7 +97,6 @@
 		"public/less/sidebar.less",
 		"public/less/page.less",
 		"public/less/tree.less",
-		"public/less/desktop.less",
 		"public/less/link_preview.less",
 		"public/less/form.less",
 		"public/less/mobile.less",

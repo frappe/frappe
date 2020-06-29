@@ -1,129 +1,65 @@
-$disabled-background: var(--gray-100);
-$panel-bg: var(--gray-50);
+$disabled-background: var(--grey-100);
+$panel-bg: $gray-50;
 
-.desk-container {
-	padding-top: 2rem;
-	.desk-sidebar {
-		width: 20rem;
-		display: block;
-		position: fixed;
-		z-index: 1;
-		min-height: 1px;
-		padding-right: 15px;
-		scroll-behavior: auto;
-		overflow-y: scroll;
-		top: $navbar-height;
-		scrollbar-width: none;
-		bottom: 0;
-		float: left;
-
-		&::-webkit-scrollbar {
-			display: none;
-		}
-
-		.sidebar-item {
-			font-size: var(--text-sm);
-			font-weight: bold;
-			margin-bottom: 1px;
-			display: flex;
-			padding: 10px 15px;
-			border-radius: 4px;
-			text-decoration: none;
-			cursor: pointer;
-			text-rendering: optimizelegibility;
-
-			&:focus {
-				background-color: $panel-bg;
-				outline: 0;
-			}
-
-			&:hover {
-				background-color: $panel-bg;
-			}
-
-			&.selected {
-				background-color: $panel-bg;
-			}
-
-			&:last-child {
-				margin-bottom: 30px;
-			}
-
-			.icon {
-				color: $text-muted;
-				padding-right: 1rem;
-				align-self: center;
-			}
-		}
-
-		.sidebar-group-title {
-			margin-top: 30px;
-			padding: 0px 15px;
-			text-rendering: optimizelegibility;
-
-			&:first-child {
-				// To compensate for top value in desk-sidebar
-				margin-top: 20px;
-			}
-		}
+.desk-sidebar {
+	.list-sidebar-label {
+		margin-bottom: 1rem;
 	}
-
-	.desk-body {
-		padding-left: calc(20rem + 15px);
+	.desk-sidebar-item {
 		display: flex;
-		flex-direction: column;
-		height: 100%;
-		position: relative;
-		min-height: 1px;
-		padding-right: 15px;
-		flex: 1;
-
-		.desk-page.allow-customization {
-			.customize-options {
-				text-align: right;
-				margin-bottom: 0.5rem;
-				color: $text-muted;
-				z-index: 99;
-				float: right;
-
-				.save-customization {
-					cursor: pointer;
-					color: $text-color;
-				}
-
-				.discard-customization {
-					cursor: pointer;
-				}
-			}
+		align-items: center;
+		font-size: var(--text-base);
+		padding: 8px 12px;
+		margin-bottom: 1px;
+		border-radius: 4px;
+		cursor: pointer;
+		text-rendering: optimizelegibility;
+	
+		&:focus {
+			background-color: $panel-bg;
+			outline: 0;
 		}
-	}
 
-	@media (max-width: 768px) {
-		.desk-sidebar {
-			display: none;
+		&:first-child {
+			margin-top: 100px;
 		}
-		.desk-body {
-			padding-left: 15px !important;
+	
+		&:hover {
+			background-color: $panel-bg;
 		}
-	}
+	
+		&.selected {
+			background-color: $panel-bg;
+		}
+	
+		a {
+			color: $gray-800;
+			text-decoration: none;
+		}
+	
+		svg {
+			margin-right: 0.875rem;
+		}
+	}	
+}
+
+.desk-page {
+	padding: 15px;
 }
 
 .widget-group {
 	margin-bottom: 25px;
-	// -webkit-animation-name: slideInUp;
-	// animation-name: slideInUp;
-	// animation-duration: 0.4s;
 
 	.widget-group-head {
 		display: flex;
+		align-items: center;
 		justify-content: space-between;
 
 		.widget-group-title {
-			align-self: center;
-		}
-
-		.widget-group-control {
-			align-self: center;
+			color: var(--grey-900);
+			font-weight: 600;
+			font-size: var(--text-lg);
+			margin-bottom: 1.2rem;
 		}
 	}
 
@@ -138,8 +74,7 @@ $panel-bg: var(--gray-50);
 
 	.grid-col-3 {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-		// grid-auto-rows: minmax(62px, 1fr);
+		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 		column-gap: 15px;
 		row-gap: 15px;
 		align-items: center;
@@ -197,9 +132,20 @@ $panel-bg: var(--gray-50);
 	flex-direction: column;
 	min-height: 1px;
 	padding: 15px;
-	border-radius: 5px;
-	border: 1px solid $border-color;
+	border-radius: 8px;
 	height: 100%;
+
+	&.widget-shadow {
+		box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1);
+
+		&:hover {
+			box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
+		}
+	}
+
+	&.border {
+		border: 1px solid $border-color;
+	}
 
 	.widget-head {
 		display: flex;
@@ -211,7 +157,7 @@ $panel-bg: var(--gray-50);
 			font-family: inherit;
 			font-weight: 500;
 			line-height: 1.3em;
-			color: inherit;
+			color: var(--grey-900);
 		}
 		.widget-control {
 			align-self: center;
@@ -266,12 +212,12 @@ $panel-bg: var(--gray-50);
 
 	// Overrides for each widgets
 	&.dashboard-widget-box {
-		padding: 10px 15px !important;
 		min-height: 260px;
+		padding: 0px;
 
-		.chart-column-container {
-			padding-right: 0px !important;
-			padding-left: 0px !important;
+		.chart-container {
+			margin-right: -10px;
+			margin-left: -10px;
 		}
 
 		.widget-footer {
@@ -297,7 +243,6 @@ $panel-bg: var(--gray-50);
 
 	&.onboarding-widget-box {
 		margin-bottom: 50px;
-		margin-top: 10px;
 
 		.widget-head {
 			display: flex;
@@ -413,10 +358,6 @@ $panel-bg: var(--gray-50);
 	&.shortcut-widget-box {
 		cursor: pointer;
 
-		&:hover {
-			border-color: $text-muted;
-		}
-
 		.widget-head {
 			margin-top: 5px;
 			margin-bottom: 5px;
@@ -424,7 +365,7 @@ $panel-bg: var(--gray-50);
 			.widget-title {
 				i {
 					color: $text-muted;
-					font-size: 18px;
+					font-size: var(--text-lg);
 					margin-right: 6px;
 				}
 			}
@@ -432,7 +373,9 @@ $panel-bg: var(--gray-50);
 	}
 
 	&.links-widget-box {
+		padding-left: 0px;
 		.link-item {
+			color: var(--gray-900);
 			position: relative;
 			margin: 10px 0px;
 			cursor: default;
@@ -476,16 +419,12 @@ $panel-bg: var(--gray-50);
 		height: 110px;
 		padding: 10px;
 
-		&:hover {
-			border-color: $text-muted;
-		}
-
 		.widget-head {
 
 			.widget-title {
 				font-weight: normal;
 				color: $text-muted;
-				font-size: 14px;
+				font-size: var(--text-base);
 				margin-top: -5px;
 			}
 
