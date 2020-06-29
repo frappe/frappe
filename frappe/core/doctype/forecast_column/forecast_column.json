@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "creation": "2020-06-23 14:47:36.575770",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "fieldname",
+  "document_type",
+  "column_break_4",
+  "field_type",
+  "field_options",
+  "field_label",
+  "width"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fieldname",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Doctype",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "field_type",
+   "fieldtype": "Data",
+   "label": "Fieldtype",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "field_options",
+   "fieldtype": "Data",
+   "label": "Options",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "field_label",
+   "fieldtype": "Data",
+   "label": "Field Label"
+  },
+  {
+   "fieldname": "width",
+   "fieldtype": "Int",
+   "label": "width"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-06-25 15:19:47.202616",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Forecast Column",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

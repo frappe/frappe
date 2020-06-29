@@ -1100,6 +1100,10 @@ def get_filter(doctype, f, filters_config=None):
 
 	return f
 
+def get_months(start_date, end_date):
+	diff = (12 * end_date.year + end_date.month) - (12 * start_date.year + start_date.month)
+	return diff + 1
+
 def make_filter_tuple(doctype, key, value):
 	'''return a filter tuple like [doctype, key, operator, value]'''
 	if isinstance(value, (list, tuple)):
