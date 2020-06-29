@@ -81,7 +81,6 @@ class AssignmentRule(Document):
 		'''
 		Get next user based on round robin
 		'''
-		# first time, or last in list, pick the first
 		user_order = self.users
 		if self.last_user:
 			for i, d in enumerate(self.users):
