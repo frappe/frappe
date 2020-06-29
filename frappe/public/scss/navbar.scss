@@ -2,6 +2,11 @@
 	height: $navbar-height;
 	background: white;
 	box-shadow: $box-shadow;
+
+	.navbar-brand {
+		padding: 0rem 1rem;
+	}
+
 	.vertical-bar {
 		border-right: 1px solid var(--grey-200);
 		height: 24px;
