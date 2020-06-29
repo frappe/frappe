@@ -66,10 +66,10 @@
 
 .indicator-pill.grey,
 .indicator-pill-right.grey {
-	background: var(--grey-50);
-	color: var(--grey-500);
+	background: var(--grey-100);
+	color: var(--grey-600);
 	&::before, &::after {
-		background: var(--grey-500);
+		background: var(--grey-600);
 	}
 }
 
