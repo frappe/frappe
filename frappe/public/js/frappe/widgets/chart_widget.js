@@ -612,6 +612,9 @@ export default class ChartWidget extends Widget {
 	}
 
 	update_last_synced() {
+		if (!this.chart_doc.last_synced_on) {
+			return
+		}
 		let last_synced_text = __("Last synced {0}", [
 			comment_when(this.chart_doc.last_synced_on)
 		]);
