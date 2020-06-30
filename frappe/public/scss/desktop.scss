@@ -211,6 +211,7 @@ $panel-bg: $gray-50;
 		min-height: 65px;
 		background-color: $disabled-background;
 		color: $text-muted;
+		border: 1px dashed var(--grey-300);
 		display: flex;
 		align-content: center;
 		justify-content: center;
