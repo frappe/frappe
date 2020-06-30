@@ -107,17 +107,8 @@ class Workspace {
 						href="${"desk#workspace/" + item.name}"
 						class="desk-sidebar-item ${ item.selected ? "selected" : "" }"
 				>
-				<svg width="19" height="20" viewBox="0 0 19 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-					<path d="M5.40909 11.8182H2C1.17157 11.8182 0.5 11.1466 0.5 10.3182V2.5C0.5 1.67157 1.17157 1 2 1H13.7273C14.5557 1 15.2273 1.67157 15.2273 2.5V7.68536" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-					<path d="M8.68182 10V13.2727C8.68182 14.6285 10.8795 15.7273 13.5909 15.7273C16.3024 15.7273 18.5 14.6285 18.5 13.2727V10" stroke="#4C5A67" stroke-miterlimit="10"/>
-					<path d="M8.68182 13.2729V16.5457C8.68182 17.9014 10.8795 19.0002 13.5909 19.0002C16.3024 19.0002 18.5 17.9014 18.5 16.5457V13.2729" stroke="#4C5A67" stroke-miterlimit="10"/>
-					<path d="M13.5909 12.4545C16.3021 12.4545 18.5 11.3556 18.5 9.99996C18.5 8.64435 16.3021 7.54541 13.5909 7.54541C10.8797 7.54541 8.68182 8.64435 8.68182 9.99996C8.68182 11.3556 10.8797 12.4545 13.5909 12.4545Z" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="square"/>
-					<path d="M7.86364 6.72718C8.31551 6.72718 8.68182 6.36087 8.68182 5.909C8.68182 5.45713 8.31551 5.09082 7.86364 5.09082C7.41177 5.09082 7.04546 5.45713 7.04546 5.909C7.04546 6.36087 7.41177 6.72718 7.86364 6.72718Z" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="square"/>
-					<path d="M8.18182 5.909C8.18182 6.08473 8.03936 6.22718 7.86364 6.22718C7.68791 6.22718 7.54546 6.08473 7.54546 5.909C7.54546 5.73328 7.68791 5.59082 7.86364 5.59082C8.03936 5.59082 8.18182 5.73328 8.18182 5.909Z" fill="#74808B" stroke="#4C5A67"/>
-				</svg>			
-				<span>
-					${item.label || item.name}
-				</span>
+				<div> ${frappe.utils.icon(item.icon || "folder-normal", "md")} </div>
+				<div> ${item.label || item.name} </div>
 			</a>`);
 		};
 
