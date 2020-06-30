@@ -209,16 +209,24 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		let filters = this.get_query ? this.get_query().filters : {} || {};
 		let filter_fields = [];
 
-		Object.keys(this.setters).forEach(function (setter) {
-			var value = me.dialog.fields_dict[setter].get_value();
-			if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
-				filters[setter] = ["like", "%" + value + "%"];
-			} else {
-				filters[setter] = value || undefined;
-				me.args[setter] = filters[setter];
-				filter_fields.push(setter);
+		if ($.isArray(this.setters)) {
+			for (let df of this.setters) {
+				filters[df.fieldname] = me.dialog.fields_dict[df.fieldname].get_value() || undefined;
+				me.args[df.fieldname] = filters[df.fieldname];
+				filter_fields.push(df.fieldname);
 			}
-		});
+		} else {
+			Object.keys(this.setters).forEach(function (setter) {
+				var value = me.dialog.fields_dict[setter].get_value();
+				if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
+					filters[setter] = ["like", "%" + value + "%"];
+				} else {
+					filters[setter] = value || undefined;
+					me.args[setter] = filters[setter];
+					filter_fields.push(setter);
+				}
+			});
+		}
 
 		let filter_group = this.get_custom_filters();
 		Object.assign(filters, filter_group);

@@ -10,7 +10,7 @@ import socket
 import time
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html, add_days
+from frappe.utils import validate_email_address, cint, cstr, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html, add_days
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
@@ -169,19 +169,20 @@ class EmailAccount(Document):
 		try:
 			email_server.connect()
 		except (error_proto, imaplib.IMAP4.error) as e:
-			message = e.message.lower().replace(" ","")
-			if in_receive and any(map(lambda t: t in message, ['authenticationfail', 'loginviayourwebbrowser', #abbreviated to work with both failure and failed
+			e = cstr(e)
+			message = e.lower().replace(" ","")
+			if in_receive and any(map(lambda t: t in message, ['authenticationfailed', 'loginviayourwebbrowser', #abbreviated to work with both failure and failed
 				'loginfailed', 'err[auth]', 'errtemporaryerror'])): #temporary error to deal with godaddy
 				# if called via self.receive and it leads to authentication error, disable incoming
 				# and send email to system manager
 				self.handle_incoming_connect_error(
-					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}').format(self.name, e.message)
+					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}').format(self.name, e)
 				)
 
 				return None
 
 			else:
-				frappe.throw(e.message)
+				frappe.throw(e)
 
 		except socket.error:
 			if in_receive:
@@ -273,6 +274,8 @@ class EmailAccount(Document):
 
 			for idx, msg in enumerate(incoming_mails):
 				uid = None if not uid_list else uid_list[idx]
+				self.flags.notify = True
+
 				try:
 					args = {
 						"uid": uid,
@@ -293,7 +296,11 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					if communication:
+					if communication and self.flags.notify:
+
+						# If email already exists in the system
+						# then do not send notifications for the same email.
+
 						attachments = []
 
 						if hasattr(communication, '_attachments'):
@@ -362,6 +369,9 @@ class EmailAccount(Document):
 				name = names[0].get("name")
 				# email is already available update communication uid instead
 				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
+
+				self.flags.notify = False
+
 				return frappe.get_doc("Communication", name)
 
 		if email.content_type == 'text/html':

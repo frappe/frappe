@@ -56,7 +56,8 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)
 			if did_not_upload: raise Exception
 
-			send_email(True, "Dropbox", "Dropbox Settings", "send_notifications_to")
+			if cint(frappe.db.get_value("Dropbox Settings", None, "send_email_for_successful_backup")):
+				send_email(True, "Dropbox", "Dropbox Settings", "send_notifications_to")
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
@@ -96,10 +97,12 @@ def backup_to_dropbox(upload_db_backup=True):
 		if frappe.flags.create_new_backup:
 			backup = new_backup(ignore_files=True)
 			filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
+			site_config = os.path.join(get_backups_path(), os.path.basename(backup.site_config_backup_path))
 		else:
-			filename = get_latest_backup_file()
+			filename, site_config = get_latest_backup_file()
 
 		upload_file_to_dropbox(filename, "/database", dropbox_client)
+		upload_file_to_dropbox(site_config, "/database", dropbox_client)
 
 		# delete older databases
 		if dropbox_settings['no_of_backups']:
