@@ -47,7 +47,7 @@ def get_latest_backup_file(with_files=False):
 
 	def get_latest(file_ext):
 		file_list = glob.glob(os.path.join(get_backups_path(), file_ext))
-		return max(file_list, key=os.path.getctime)
+		return max(file_list, key=os.path.getctime) if file_list else None
 
 	latest_file = get_latest('*.sql.gz')
 	latest_site_config = get_latest('*.json')
