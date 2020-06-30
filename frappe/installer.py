@@ -148,7 +148,8 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 
 
 		linked_doctypes = frappe.get_all("DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=['parent'])
-		doctypes_with_linked_modules = ["Desk Page", "Reports", "Pages", "Web Forms"] + [doctype.parent for doctype in linked_doctypes]
+		ordered_doctypes = ["Desk Page", "Reports", "Pages", "Web Forms"]
+		doctypes_with_linked_modules = ordered_doctypes + [doctype.parent for doctype in linked_doctypes if doctype.parent not in ordered_doctypes]
 
 		# remove desk page, reports, pages, web forms and chart sources
 		for doctype in doctypes_with_linked_modules:
