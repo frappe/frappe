@@ -16,7 +16,18 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		let me = this;
 		this.page_length = 20;
 		this.start = 0;
-		let fields = this.get_primary_filters();
+
+		// create filters
+		this.selector = new frappe.ui.form.Selector();
+		let fields = this.selector.get_filters(this.doctype, this.setters);
+		if (this.add_filters_group) {
+			fields.push(
+				{
+					fieldtype: 'HTML',
+					fieldname: 'filter_area',
+				}
+			);
+		}
 
 		// Make results area
 		fields = fields.concat([
@@ -75,71 +86,13 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			style="border: 1px solid #d1d8dd; border-radius: 3px; height: 300px; overflow: auto;"></div>`);
 
 		this.$results = this.$wrapper.find('.results');
-		this.$results.append(this.make_list_row());
+		this.$results.append(this.selector.make_list_row(this.doctype, this.setters));
 
 		this.args = {};
 
 		this.bind_events();
 		this.get_results();
 		this.dialog.show();
-	}
-
-	get_primary_filters() {
-		let fields = [];
-
-		let columns = new Array(3);
-
-		// Hack for three column layout
-		// To add column break
-		columns[0] = [
-			{
-				fieldtype: "Data",
-				label: __("Search"),
-				fieldname: "search_term"
-			}
-		];
-		columns[1] = [];
-		columns[2] = [];
-
-		Object.keys(this.setters).forEach((setter, index) => {
-			let df_prop = frappe.meta.docfield_map[this.doctype][setter];
-
-			// Index + 1 to start filling from index 1
-			// Since Search is a standrd field already pushed
-			columns[(index + 1) % 3].push({
-				fieldtype: df_prop.fieldtype,
-				label: df_prop.label,
-				fieldname: setter,
-				options: df_prop.options,
-				default: this.setters[setter]
-			});
-		});
-
-		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal
-		if (Object.seal) {
-			Object.seal(columns);
-			// now a is a fixed-size array with mutable entries
-		}
-
-		fields = [
-			...columns[0],
-			{ fieldtype: "Column Break" },
-			...columns[1],
-			{ fieldtype: "Column Break" },
-			...columns[2],
-			{ fieldtype: "Section Break", fieldname: "primary_filters_sb" }
-		];
-
-		if (this.add_filters_group) {
-			fields.push(
-				{
-					fieldtype: 'HTML',
-					fieldname: 'filter_area',
-				}
-			);
-		}
-
-		return fields;
 	}
 
 	make_filter_area() {
@@ -209,40 +162,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		return this.results.filter(res => checked_values.includes(res.name));
 	}
 
-	make_list_row(result = {}) {
-		var me = this;
-		// Make a head row by default (if result not passed)
-		let head = Object.keys(result).length === 0;
-
-		let contents = ``;
-		let columns = ["name"];
-
-		columns = columns.concat(Object.keys(this.setters));
-
-		columns.forEach(function (column) {
-			contents += `<div class="list-item__content ellipsis">
-				${
-	head ? `<span class="ellipsis text-muted" title="${__(frappe.model.unscrub(column))}">${__(frappe.model.unscrub(column))}</span>`
-		: (column !== "name" ? `<span class="ellipsis result-row" title="${__(result[column] || '')}">${__(result[column] || '')}</span>`
-			: `<a href="${"#Form/" + me.doctype + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
-							${__(result[column] || '')}</a>`)}
-			</div>`;
-		});
-
-		let $row = $(`<div class="list-item">
-			<div class="list-item__content" style="flex: 0 0 10px;">
-				<input type="checkbox" class="list-row-check" data-item-name="${result.name}" ${result.checked ? 'checked' : ''}>
-			</div>
-			${contents}
-		</div>`);
-
-		head ? $row.addClass('list-item--head')
-			: $row = $(`<div class="list-item-container" data-item-name="${result.name}"></div>`).append($row);
-
-		$(".modal-dialog .list-item--head").css("z-index", 0);
-		return $row;
-	}
-
 	render_result_list(results, more = 0, empty = true) {
 		var me = this;
 		var more_btn = me.dialog.fields_dict.more_btn.$wrapper;
@@ -261,7 +180,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		results
 			.filter(result => !checked.includes(result.name))
 			.forEach(result => {
-				me.$results.append(me.make_list_row(result));
+				me.$results.append(me.selector.make_list_row(me.doctype, me.setters, result));
 			});
 
 		if (frappe.flags.auto_scroll) {

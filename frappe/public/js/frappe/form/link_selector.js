@@ -7,28 +7,24 @@ frappe.ui.form.LinkSelector = class {
 		// doctype, setters, get_query, on_select(action), view
 		$.extend(this, opts);
 
+		this.get_image_field() ? this.view = "Card View" : this.view = "List View";
+
 		var me = this;
 		if (this.doctype != "[Select]") {
 			frappe.model.with_doctype(this.doctype, function (r) {
 				me.make();
 			});
-		} else if (this.view == 'List View') {
-			// make Multiselect List view
 		} else {
-			if (get_image_field()) {
-				this.make();
-			}
-			else{
-				// multiselect
-			}
+			this.make();
 		}
 	}
 
 	make () {
 		var me = this;
 
-		// create filter fields (array of objects)
-		let fields = this.get_filters();
+		// create filter fields
+		this.selector = new frappe.ui.form.Selector();
+		let fields = this.selector.get_filters(this.doctype, this.setters);
 		fields = fields.concat([
 			{ fieldtype: "HTML", fieldname: "results_area" }
 		]);
@@ -47,8 +43,6 @@ frappe.ui.form.LinkSelector = class {
 		this.$parent = $(this.dialog.body);
 		this.$results_area = me.dialog.fields_dict.results_area.$wrapper;
 
-		this.$grid_wrapper = this.$results_area.find(".grid-container");
-
 		if (this.txt)
 			this.dialog.fields_dict.search_term.set_input(this.txt);
 
@@ -59,56 +53,8 @@ frappe.ui.form.LinkSelector = class {
 	}
 
 	get_image_field () {
-
-	}
-
-	get_filters () {
-		let fields = [];
-		let columns = new Array(3);
-
-		// Hack for three column layout
-		// To add column break
-		columns[0] = [
-			{
-				fieldtype: "Data",
-				label: __("Search"),
-				fieldname: "search_term",
-				description: __("You can use wildcard %")
-			}
-		];
-		columns[1] = [];
-		columns[2] = [];
-
-		Object.keys(this.setters).forEach((setter, index) => {
-			let df_prop = frappe.meta.docfield_map[this.doctype][setter];
-
-			// Index + 1 to start filling from index 1
-			// Since Search is a standrd field already pushed
-			columns[(index + 1) % 3].push({
-				fieldtype: df_prop.fieldtype,
-				label: df_prop.label,
-				fieldname: setter,
-				options: df_prop.options,
-				default: this.setters[setter]
-			});
-		});
-
-		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal
-		if (Object.seal) {
-			Object.seal(columns);
-			// now a is a fixed-size array with mutable entries
-		}
-
-		fields = [
-			...columns[0],
-			{ fieldtype: "Column Break" },
-			...columns[1],
-			{ fieldtype: "Column Break" },
-			...columns[2],
-			{ fieldtype: "Section Break", fieldname: "primary_filters_sb" }
-		];
-
-		return fields;
+		// Check if doctype has image field
+		return false;
 	}
 
 	bind_events () {
@@ -128,7 +74,6 @@ frappe.ui.form.LinkSelector = class {
 	}
 
 	get_results () {
-		//get first three setters excluding search
 		let me = this;
 		let filters = this.get_query ? this.get_query().filters : {} || {};
 		let filter_fields = [];
@@ -161,7 +106,6 @@ frappe.ui.form.LinkSelector = class {
 			no_spinner: true,
 			args: args,
 			callback: function (r) {
-
 				me.render_results(r);
 			},
 			btn: this.dialog.get_primary_btn()
@@ -169,17 +113,31 @@ frappe.ui.form.LinkSelector = class {
 	}
 
 	render_results (results) {
+		var me = this;
 		this.$results_area.empty();
 
 		if (results && results.values.length) {
-			this.render_card_view(results);
+			// Render card/list view and bind action to checkboxes
+			this.view === "Card View" ? this.render_card_view(results) : this.render_list_view(results);
+
+			// bind primary action to each checkbox
+			var checkboxes = this.$wrapper.find(this.checkbox_class);
+			for (let checkbox of checkboxes) {
+				checkbox.addEventListener('click', () => {
+					if (checkbox.checked) {
+						// Pass result name to primary action
+						me.action(checkbox.getAttribute("data-name"));
+					}
+				});
+			}
 		} else {
+			// No Results View
 			$('<p style="text-align: center;"><br><span class="text-muted">' + __("No Results") + '</span>'
 				+ (frappe.model.can_create(this.doctype) ?
 					('<br><br><a class="new-doc btn btn-default btn-sm">'
 						+ __('Create a new {0}', [__(this.doctype)]) + "</a>") : '')
 				+ '</p>').appendTo(this.$results_area).find(".new-doc").click(function () {
-					frappe.new_doc(this.doctype);
+				frappe.new_doc(me.doctype);
 			});
 		}
 	}
@@ -188,122 +146,42 @@ frappe.ui.form.LinkSelector = class {
 		var me = this;
 		this.$results_area.append(`<div class="grid-container"></div>`);
 
-		var wrapper = this.$results_area.find(".grid-container")
+		var $wrapper = this.$results_area.find(".grid-container");
 
-		let card_fields = Object.keys(this.setters).slice(0,2);
-		let columns = ["name", ...card_fields]
+		// take first two setters as card additional information
+		let card_fields = Object.keys(this.setters).slice(0, 2);
+		let columns = ["name", ...card_fields];
 
-		$.each(results.values, function (i, v) {
-			$(`<div class="grid-item">
-				${me.get_image_html(v["image"], v["name"])}
-				<div style="text-align: left;">
-					<div class= "card-content">${frappe.ellipsis(v["name"], 20)}</div>
-					<div class="card-content-muted">${frappe.ellipsis(v[columns[1]], 18)}</div>
-					<div class="card-content-muted">${frappe.ellipsis(v[columns[2]], 18)}</div>
-				</div>
-				</div>`).appendTo(wrapper);
-		})
+		$.each(results.values, function (i, result) {
+			$wrapper.append(me.selector.make_card(columns, result));
+		});
+
+		this.checkbox_class = ".Check";
+		this.$wrapper = this.$results_area.find(".grid-container");
 	}
 
-	get_image_html (image, name) {
-		if (image) {
-			return `<img class= "thumb" src=${image} alt=${name} title=${name}>
-				</img>`
-		} else {
-			return `<div class="thumb" style="background-color: #fafbfc;">
-				<span style="color:#d1d8dd; font-size:48px; margin-top: 20px;">${frappe.get_abbr(name)}</span>
-				</div>`
-		}
+	render_list_view (results) {
+		var me = this;
 
+		this.$results_area.append(`<div class="results"
+			style="border: 1px solid #d1d8dd; border-radius: 3px; height: 300px; overflow: auto;"></div>`);
+		this.$results = this.$results_area.find('.results');
+		this.$results.append(this.selector.make_list_row(this.doctype, this.setters));
+
+		results.values.forEach(result => {
+			me.$results.append(me.selector.make_list_row(me.doctype, me.setters, result));
+		});
+
+		this.checkbox_class = ".list-row-check";
+		this.$wrapper = this.$results_area.find(".results");
+	}
+
+	action (name) {
+		// for testing
+		frappe.prompt({
+			fieldname: "qty", fieldtype: "Float", label: "Qty",
+			default: 1,
+			reqd: 1
+		});
 	}
 };
-
-// frappe.link_search = function (doctype, args, callback, btn) {
-
-// }
-
-//<div class="row link-select-row">\
-/* <div class="col-xs-4">\
-<b><a href="#">%(name)s</a></b></div>\
-<div class="col-xs-8">\
-<span class="text-muted">%(values)s</span></div>\
-</div> */
-
-
-// row.find("a")
-// 	.attr('data-value', v[0])
-// 	.click(function () {
-// 		var value = $(this).attr("data-value");
-// 		var $link = this;
-// 		if (me.target.is_grid) {
-// 			// set in grid
-// 			me.set_in_grid(value);
-// 		} else {
-// 			if (me.target.doctype)
-// 				me.target.parse_validate_and_set_in_model(value);
-// 			else {
-// 				me.target.set_input(value);
-// 				me.target.$input.trigger("change");
-// 			}
-// 			me.dialog.hide();
-// 		}
-// 		return false;
-// 	})
-
-
-// set_in_grid: function (value) {
-	// 	var me = this, updated = false;
-	// 	var d = null;
-	// 	if (this.qty_fieldname) {
-	// 		frappe.prompt({
-	// 			fieldname: "qty", fieldtype: "Float", label: "Qty",
-	// 			"default": 1, reqd: 1
-	// 		}, function (data) {
-	// 			$.each(me.target.frm.doc[me.target.df.fieldname] || [], function (i, d) {
-	// 				if (d[me.fieldname] === value) {
-	// 					frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, data.qty);
-	// 					frappe.show_alert(__("Added {0} ({1})", [value, d[me.qty_fieldname]]));
-	// 					updated = true;
-	// 					return false;
-	// 				}
-	// 			});
-	// 			if (!updated) {
-	// 				frappe.run_serially([
-	// 					() => {
-	// 						d = me.target.add_new_row();
-	// 					},
-	// 					() => frappe.timeout(0.1),
-	// 					() => frappe.model.set_value(d.doctype, d.name, me.fieldname, value),
-	// 					() => frappe.timeout(0.5),
-	// 					() => frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, data.qty),
-	// 					() => frappe.show_alert(__("Added {0} ({1})", [value, data.qty]))
-	// 				]);
-	// 			}
-	// 		}, __("Set Quantity"), __("Set"));
-	// 	} else if (me.dynamic_link_field) {
-	// 		var d = me.target.add_new_row();
-	// 		frappe.model.set_value(d.doctype, d.name, me.dynamic_link_field, me.dynamic_link_reference);
-	// 		frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
-	// 		frappe.show_alert(__("{0} {1} added", [me.dynamic_link_reference, value]));
-	// 	} else {
-	// 		var d = me.target.add_new_row();
-	// 		frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
-	// 		frappe.show_alert(__("{0} added", [value]));
-	// 	}
-	// }
-
-		// if (r.values.length < 20) {
-			// 	var more_btn = me.dialog.fields_dict.more.$wrapper;
-			// 	more_btn.hide();
-			// }
-
-	// if (this.target.set_custom_query) {
-		// 	this.target.set_custom_query(args);
-		// }
-
-		// // load custom query from grid
-		// if (this.target.is_grid && this.target.fieldinfo[this.fieldname]
-		// 	&& this.target.fieldinfo[this.fieldname].get_query) {
-		// 	$.extend(args,
-		// 		this.target.fieldinfo[this.fieldname].get_query(cur_frm.doc));
-		// }

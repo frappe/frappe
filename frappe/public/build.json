@@ -172,6 +172,7 @@
 		"public/js/frappe/form/layout.js",
 		"public/js/frappe/ui/field_group.js",
 		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/form/selector_utils.js",
 		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js",
 		"public/js/frappe/ui/capture.js",

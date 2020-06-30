@@ -746,6 +746,7 @@ export default class Grid {
 		btn.on("click", () => {
 			new frappe.ui.form.LinkSelector({
 				doctype: link_field.options,
+				setters: {item_name: null, item_group: null},
 				fieldname: link,
 				qty_fieldname: qty,
 				target: this,

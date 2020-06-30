@@ -1200,7 +1200,7 @@ body.no-sidebar {
 
 .grid-container {
 	display: grid;
-	grid-gap: 20px;
+	grid-gap: 25px;
 	grid-template-columns: 170px 170px 170px;
 	padding: 10px;
 	height: 400px;
@@ -1216,11 +1216,25 @@ body.no-sidebar {
 	text-align: center;
 	height: 182px;
 	width: 166px;
+	position: relative;
+}
+.check{
+	position: absolute;
+	left: 8px;
+	top: 8px;
+	padding: 0.25rem;
+	background: #2490ef; //make white
+	color: white;
+	border-radius: 50%;
+	font-size: 12px;
+	border: 1px solid #E5E5E5;
+	width: 20px;
+	height: 20px;
 }
 
 .thumb {
 	display: flex;
-	height: 60%;
+	height: 65%;
 	width: 100%;
 	border-radius: 5px 5px 0 0;
 	object-fit: cover;
@@ -1230,12 +1244,16 @@ body.no-sidebar {
 
 .card-content{
 	font-size: 12px;
-	padding: 0.7rem 1rem;
+	padding: 0.5rem 0.7rem 0.3rem 1rem;
 	font-weight: 600;
 }
 .card-content-muted {
-	font-size: 12px;
+	font-size: 11px;
 	color: @text-muted;
 	padding: 0.1rem 1rem;
-	font-weight: lighter;
+}
+.round input[type="checkbox"] {
+	position: absolute;
+	top: 8px;
+	left: 8px;
 }
