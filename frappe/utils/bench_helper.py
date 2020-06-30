@@ -50,14 +50,16 @@ def app_group(ctx, site=False, force=False, verbose=False, profile=False):
 		ctx.info_name = ''
 
 def get_sites(site_arg):
-	if site_arg and site_arg == 'all':
+	if site_arg == 'all':
 		return frappe.utils.get_sites()
-	else:
-		if site_arg:
-			return [site_arg]
-		if os.path.exists('currentsite.txt'):
-			with open('currentsite.txt') as f:
-				return [f.read().strip()]
+	elif site_arg:
+		return [site_arg]
+	elif os.path.exists('currentsite.txt'):
+		with open('currentsite.txt') as f:
+			site = f.read().strip()
+			if site:
+				return [site]
+	return []
 
 def get_app_commands(app):
 	if os.path.exists(os.path.join('..', 'apps', app, app, 'commands.py'))\

@@ -27,17 +27,22 @@
   }
  ],
  "category": "Modules",
- "charts": [],
+ "charts": [
+  {
+   "chart_name": "Website Analytics"
+  }
+ ],
  "creation": "2020-03-02 14:13:51.089373",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
  "docstatus": 0,
  "doctype": "Desk Page",
  "extends_another_page": 0,
+ "hide_custom": 0,
  "idx": 0,
  "is_standard": 1,
  "label": "Website",
- "modified": "2020-04-26 13:03:49.094728",
+ "modified": "2020-05-28 13:53:10.736212",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -47,7 +52,7 @@
  "pin_to_top": 0,
  "shortcuts": [
   {
-   "color": "",
+   "color": "#cef6d1",
    "format": "{} Published",
    "label": "Blog Post",
    "link_to": "Blog Post",
@@ -55,6 +60,7 @@
    "type": "DocType"
   },
   {
+   "color": "#cef6d1",
    "format": "{} Active",
    "label": "Blogger",
    "link_to": "Blogger",
@@ -62,8 +68,11 @@
    "type": "DocType"
   },
   {
+   "color": "#cef6d1",
+   "format": "{} Published",
    "label": "Web Page",
    "link_to": "Web Page",
+   "stats_filter": "{ \"published\": 1 }",
    "type": "DocType"
   },
   {

@@ -1,0 +1,19 @@
+{
+ "action": "Show Form Tour",
+ "creation": "2020-05-13 12:32:15.966570",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_mandatory": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2020-05-28 13:51:54.264456",
+ "modified_by": "Administrator",
+ "name": "Web Page Tour",
+ "owner": "Administrator",
+ "reference_document": "Web Page",
+ "show_full_form": 0,
+ "title": "Learn about Web Pages",
+ "validate_action": 0
+}

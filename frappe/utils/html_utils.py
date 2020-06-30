@@ -68,12 +68,9 @@ def sanitize_html(html, linkify=False):
 	styles = bleach_whitelist.all_styles
 	strip_comments = False
 
-	# retuns html with escaped tags, escaped orphan >, <, etc.
+	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,
 		strip_comments=strip_comments, protocols=['cid', 'http', 'https', 'mailto'])
-
-	if linkify:
-		escaped_html = bleach.linkify(escaped_html, callbacks=[])
 
 	return escaped_html
 

@@ -3,8 +3,42 @@
 .desk-container {
 	margin-top: 20px;
 
+	.page-switcher {
+		border-radius: 5px;
+		display: none;
+		border: 1px solid @border-color;
+		background-color: @panel-bg;
+		padding: 8px 15px;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 10px;
+	}
+
+	.mobile-list {
+		display: none;
+		border-radius: 5px;
+		padding: 8px 15px;
+		border: 1px solid @border-color;
+
+		.sidebar-item {
+			font-size: 12px;
+			font-weight: bold;
+			margin-bottom: 1px;
+			display: flex;
+			padding: 10px 15px;
+			border-radius: 4px;
+			text-decoration: none;
+			cursor: pointer;
+			text-rendering: optimizelegibility;
+
+			&.selected {
+				background-color: @panel-bg;
+			}
+		}
+	}
+
 	.desk-sidebar {
-		width: 24rem;
+		width: 20rem;
 		display: block;
 		position: fixed;
 		z-index: 1;
@@ -69,7 +103,7 @@
 	}
 
 	.desk-body {
-		padding-left: calc(24rem + 15px);
+		padding-left: 20rem;
 		display: flex;
 		flex-direction: column;
   		height: 100%;
@@ -102,6 +136,9 @@
 		}
 		.desk-body {
 			padding-left: 15px !important;
+		}
+		.page-switcher {
+			display: flex;
 		}
 	}
 }

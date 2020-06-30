@@ -190,12 +190,13 @@ def upload_system_backup_to_google_drive():
 		set_progress(1, "Backing up Data.")
 		backup = new_backup()
 		fileurl_backup = os.path.basename(backup.backup_path_db)
+		fileurl_site_config = os.path.basename(backup.site_config_backup_path)
 		fileurl_public_files = os.path.basename(backup.backup_path_files)
 		fileurl_private_files = os.path.basename(backup.backup_path_private_files)
 	else:
-		fileurl_backup, fileurl_public_files, fileurl_private_files = get_latest_backup_file(with_files=True)
+		fileurl_backup, fileurl_site_config, fileurl_public_files, fileurl_private_files = get_latest_backup_file(with_files=True)
 
-	for fileurl in [fileurl_backup, fileurl_public_files, fileurl_private_files]:
+	for fileurl in [fileurl_backup, fileurl_site_config, fileurl_public_files, fileurl_private_files]:
 		file_metadata = {
 			"name": fileurl,
 			"parents": [account.backup_folder_id]

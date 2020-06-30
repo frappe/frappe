@@ -250,6 +250,8 @@
 		"public/less/form_grid.less"
 	],
 	"js/form.min.js": [
+		"public/js/frappe/form/templates/address_list.html",
+		"public/js/frappe/form/templates/contact_list.html",
 		"public/js/frappe/form/templates/print_layout.html",
 		"public/js/frappe/form/templates/users_in_sidebar.html",
 		"public/js/frappe/form/templates/set_sharing.html",

@@ -94,7 +94,7 @@ def is_static_file(path):
 	if ('.' not in path):
 		return False
 	extn = path.rsplit('.', 1)[-1]
-	if extn in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py'):
+	if extn in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json'):
 		return False
 
 	for app in frappe.get_installed_apps():
@@ -216,7 +216,6 @@ def build_page(path):
 
 	if context.source:
 		html = frappe.render_template(context.source, context)
-
 	elif context.template:
 		if path.endswith('min.js'):
 			html = frappe.get_jloader().get_source(frappe.get_jenv(), context.template)[0]

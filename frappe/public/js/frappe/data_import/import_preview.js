@@ -1,5 +1,5 @@
 import DataTable from 'frappe-datatable';
-import ColumnPickerFields from './column_picker_fields';
+import { get_columns_for_picker } from './data_exporter';
 
 frappe.provide('frappe.data_import');
 
@@ -236,9 +236,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	show_column_mapper() {
-		let column_picker_fields = new ColumnPickerFields({
-			doctype: this.doctype
-		});
+		let column_picker_fields = get_columns_for_picker(this.doctype);
 		let changed = [];
 		let fields = this.preview_data.columns.map((col, i) => {
 			let df = col.df;
@@ -247,11 +245,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			let fieldname;
 			if (!df) {
 				fieldname = null;
+			} else if (col.map_to_field) {
+				fieldname = col.map_to_field;
+			} else if (col.is_child_table_field) {
+				fieldname = `${col.child_table_df.fieldname}.${df.fieldname}`;
 			} else {
-				fieldname =
-					df.parent === this.doctype
-						? df.fieldname
-						: `${df.parent}:${df.fieldname}`;
+				fieldname = df.fieldname;
 			}
 			return [
 				{
@@ -274,7 +273,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 							label: __("Don't Import"),
 							value: "Don't Import"
 						}
-					].concat(column_picker_fields.get_fields_as_options()),
+					].concat(get_fields_as_options(this.doctype, column_picker_fields)),
 					default: fieldname || "Don't Import",
 					change() {
 						changed.push(i);
@@ -330,3 +329,29 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 };
+
+function get_fields_as_options(doctype, column_map) {
+	let keys = [doctype];
+	frappe.meta.get_table_fields(doctype).forEach(df => {
+		keys.push(df.fieldname);
+	});
+	// flatten array
+	return [].concat(
+		...keys.map(key => {
+			return column_map[key].map(df => {
+				let label = df.label;
+				let value = df.fieldname;
+				if (doctype !== key) {
+					let table_field = frappe.meta.get_docfield(doctype, key);
+					label = `${df.label} (${table_field.label})`;
+					value = `${table_field.fieldname}.${df.fieldname}`;
+				}
+				return {
+					label,
+					value,
+					description: value
+				};
+			});
+		})
+	);
+}

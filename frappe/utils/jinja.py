@@ -21,7 +21,8 @@ def get_jenv():
 		jenv.globals.update(get_jenv_customization('methods'))
 		jenv.globals.update({
 			'resolve_class': resolve_class,
-			'inspect': inspect
+			'inspect': inspect,
+			'web_blocks': web_blocks
 		})
 
 		frappe.local.jenv = jenv
@@ -87,9 +88,9 @@ def render_template(template, context, is_path=None, safe_render=True):
 def guess_is_path(template):
 	# template can be passed as a path or content
 	# if its single line and ends with a html, then its probably a path
-	if not '\n' in template and '.' in template:
+	if '\n' not in template and '.' in template:
 		extn = template.rsplit('.')[-1]
-		if extn in ('html', 'css', 'scss', 'py'):
+		if extn in ('html', 'css', 'scss', 'py', 'md', 'json', 'js', 'xml'):
 			return True
 
 	return False
@@ -108,7 +109,7 @@ def get_jloader():
 				apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
 				apps.reverse()
 
-		if not "frappe" in apps:
+		if "frappe" not in apps:
 			apps.append('frappe')
 
 		frappe.local.jloader = ChoiceLoader(
@@ -189,3 +190,30 @@ def inspect(var, render=True):
 	else:
 		html = ""
 	return get_jenv().from_string(html).render(context)
+
+def web_blocks(blocks):
+	from frappe import get_doc
+	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
+
+	web_blocks = []
+	for block in blocks:
+		doc = {
+			'doctype': 'Web Page Block',
+			'web_template': block['template'],
+			'web_template_values': block['values'],
+			'add_top_padding': 1,
+			'add_bottom_padding': 1,
+			'add_container': 1,
+			'hide_block': 0,
+			'css_class': ''
+		}
+		doc.update(block)
+		web_blocks.append(get_doc(doc))
+
+	out = get_web_blocks_html(web_blocks)
+
+	html = out.html
+	for script in out.scripts:
+		html += '<script>{}</script>'.format(script)
+
+	return html
