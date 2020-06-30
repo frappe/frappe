@@ -74,7 +74,7 @@ class WidgetDialog {
 		this.filters = [];
 
 		if (this.values && this.values.stats_filter) {
-			const filters_json = JSON.parse(this.values.stats_filter);
+			const filters_json = new Function(`return ${this.values.stats_filter}`)();
 			this.filters = Object.keys(filters_json).map((filter) => {
 				let val = filters_json[filter];
 				return [this.values.link_to, filter, val[0], val[1], false];
@@ -241,11 +241,14 @@ class ShortcutDialog extends WidgetDialog {
 
 		if (this.dialog.get_value("type") == "DocType" && this.filter_group) {
 			let filters = this.filter_group.get_filters();
-			filters.forEach((arr) => {
-				stats_filter[arr[1]] = [arr[2], arr[3]];
-			});
 
-			data.stats_filter = JSON.stringify(stats_filter);
+			if (filters.length) {
+				filters.forEach((arr) => {
+					stats_filter[arr[1]] = [arr[2], arr[3]];
+				});
+
+				data.stats_filter = JSON.stringify(stats_filter);
+			}
 		}
 
 		data.label = data.label

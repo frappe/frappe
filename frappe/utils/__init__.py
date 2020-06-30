@@ -6,6 +6,7 @@
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
+import functools
 from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
@@ -360,6 +361,7 @@ def decode_dict(d, encoding="utf-8"):
 
 	return d
 
+@functools.lru_cache()
 def get_site_name(hostname):
 	return hostname.split(':')[0]
 
@@ -398,10 +400,17 @@ def call_hook_method(hook, *args, **kwargs):
 def update_progress_bar(txt, i, l):
 	if not getattr(frappe.local, 'request', None):
 		lt = len(txt)
+		try:
+			col = 40 if os.get_terminal_size().columns > 80 else 20
+		except OSError:
+			# in case function isn't being called from a terminal
+			col = 40
+
 		if lt < 36:
 			txt = txt + " "*(36-lt)
-		complete = int(float(i+1) / l * 40)
-		completion_bar = ("=" * complete).ljust(40, ' ')
+
+		complete = int(float(i+1) / l * col)
+		completion_bar = ("=" * complete).ljust(col, ' ')
 		percent_complete = str(int(float(i+1) / l * 100))
 		sys.stdout.write("\r{0}: [{1}] {2}%".format(txt, completion_bar, percent_complete))
 		sys.stdout.flush()

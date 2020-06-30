@@ -1,7 +1,9 @@
 <div class="testimonial">
+	{% if logo %}
 	<div class="testimonial-logo">
 		<img src="{{ logo }}" alt="{{ name }}">
 	</div>
+	{% endif %}
 	<div class="testimonial-content">
 		<span>“</span>
 		{{ content }}

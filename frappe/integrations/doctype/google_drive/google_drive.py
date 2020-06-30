@@ -190,12 +190,16 @@ def upload_system_backup_to_google_drive():
 		set_progress(1, "Backing up Data.")
 		backup = new_backup()
 		fileurl_backup = os.path.basename(backup.backup_path_db)
+		fileurl_site_config = os.path.basename(backup.site_config_backup_path)
 		fileurl_public_files = os.path.basename(backup.backup_path_files)
 		fileurl_private_files = os.path.basename(backup.backup_path_private_files)
 	else:
-		fileurl_backup, fileurl_public_files, fileurl_private_files = get_latest_backup_file(with_files=True)
+		fileurl_backup, fileurl_site_config, fileurl_public_files, fileurl_private_files = get_latest_backup_file(with_files=True)
 
-	for fileurl in [fileurl_backup, fileurl_public_files, fileurl_private_files]:
+	for fileurl in [fileurl_backup, fileurl_site_config, fileurl_public_files, fileurl_private_files]:
+		if not fileurl:
+			continue
+
 		file_metadata = {
 			"name": fileurl,
 			"parents": [account.backup_folder_id]
@@ -218,11 +222,13 @@ def upload_system_backup_to_google_drive():
 	return _("Google Drive Backup Successful.")
 
 def daily_backup():
-	if frappe.db.get_single_value("Google Drive", "frequency") == "Daily":
+	drive_settings = frappe.db.get_singles_dict('Google Drive')
+	if drive_settings.enable and drive_settings.frequency == "Daily":
 		upload_system_backup_to_google_drive()
 
 def weekly_backup():
-	if frappe.db.get_single_value("Google Drive", "frequency") == "Weekly":
+	drive_settings = frappe.db.get_singles_dict('Google Drive')
+	if drive_settings.enable and drive_settings.frequency == "Weekly":
 		upload_system_backup_to_google_drive()
 
 def get_absolute_path(filename):
