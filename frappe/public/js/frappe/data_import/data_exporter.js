@@ -254,7 +254,7 @@ frappe.data_import.DataExporter = class DataExporter {
 
 	get_filters() {
 		return this.filter_group.get_filters().map(filter => {
-			return filter.slice(0, 4)
+			return filter.slice(0, 4);
 		});
 	}
 
@@ -275,7 +275,7 @@ frappe.data_import.DataExporter = class DataExporter {
 			: this.column_map[doctype];
 
 		let is_field_mandatory = df => (df.fieldname === 'name' && !child_fieldname)
-			|| (df.reqd && this.exporting_for == 'Insert New Records')
+			|| (df.reqd && this.exporting_for == 'Insert New Records');
 
 		return fields
 			.filter(df => {
