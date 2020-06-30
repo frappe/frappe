@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "creation": "2020-06-30 10:57:10.883499",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "dt",
+  "type",
+  "section_break_3",
+  "fieldname",
+  "operator",
+  "value",
+  "section_break_7",
+  "condition"
+ ],
+ "fields": [
+  {
+   "fieldname": "dt",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "DocField\nEval"
+  },
+  {
+   "depends_on": "eval:doc.type == \"DocField\"",
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "label": "Fieldname"
+  },
+  {
+   "fieldname": "operator",
+   "fieldtype": "Select",
+   "label": "Operator",
+   "options": "=\n!=\n>\n>=\n<\n<="
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "label": "Value"
+  },
+  {
+   "collapsible_depends_on": "eval:doc.type == \"Eval\"",
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-06-30 11:00:08.464368",
+ "modified_by": "Administrator",
+ "module": "Event Streaming",
+ "name": "Event Condition",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
