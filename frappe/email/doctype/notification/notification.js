@@ -39,9 +39,6 @@ frappe.notification = {
 				function(d) { return in_list(frappe.model.no_value_type, d.fieldtype) ?
 					null : get_select_options(d); });
 
-			frappe.meta.get_docfield("Notification", "message_placeholder", frm.doc.name).options = [""].concat(options);			
-			frm.refresh_field('message_placeholder');
-
 			// set value changed options
 			frm.set_df_property("value_changed", "options", [""].concat(options));
 			frm.set_df_property("set_property_after_alert", "options", [""].concat(options));
@@ -80,6 +77,7 @@ frappe.ui.form.on("Notification", {
 				}
 			}
 		});
+		$('[data-fieldname="insert_dynamic_value"]').css({'margin-top': '-33px','float':'right'});
 	},
 	refresh: function(frm) {
 		frappe.notification.setup_fieldname_select(frm);
@@ -88,10 +86,6 @@ frappe.ui.form.on("Notification", {
 	},
 	document_type: function(frm) {
 		frappe.notification.setup_fieldname_select(frm);
-	},
-	view_properties: function(frm) {
-		frappe.route_options = {doc_type:frm.doc.document_type};
-		frappe.set_route("Form", "Customize Form");
 	},
 	event: function(frm) {
 		if(in_list(['Days Before', 'Days After'], frm.doc.event)) {
@@ -121,9 +115,9 @@ frappe.ui.form.on("Notification", {
 	message: function(frm) {
 		last_touched = 'message';
 	},
-	msg_placeholder: function(frm) {
+	insert_dynamic_value: function(frm) {
 		var dialog = new frappe.ui.Dialog({
-			title: __('Message Placeholder'),
+			title: __('Insert Dynamic Value'),
 			fields: [
 				{
 					fieldtype: 'Autocomplete',

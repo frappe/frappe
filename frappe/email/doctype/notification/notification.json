@@ -10,19 +10,19 @@
   "enabled",
   "column_break_2",
   "channel",
+  "send_system_notification",
   "slack_webhook_url",
   "filters",
   "document_type",
   "is_standard",
   "module",
+  "sender",
   "col_break_1",
   "event",
   "method",
   "date_changed",
   "days_in_advance",
   "value_changed",
-  "sender",
-  "send_system_notification",
   "sender_email",
   "section_break_9",
   "condition",
@@ -35,13 +35,10 @@
   "recipients",
   "message_sb",
   "subject",
+  "column_break_29",
+  "insert_dynamic_value",
+  "data_30",
   "message",
-  "message_examples",
-  "slack_message_examples",
-  "view_properties",
-  "column_break_33",
-  "msg_placeholder",
-  "column_break_25",
   "attach_print",
   "print_format"
  ],
@@ -79,7 +76,6 @@
    "label": "Filters"
   },
   {
-   "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>",
    "fieldname": "subject",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
@@ -229,32 +225,6 @@
    "label": "Message"
   },
   {
-   "depends_on": "eval:doc.channel=='Email'",
-   "fieldname": "message_examples",
-   "fieldtype": "HTML",
-   "label": "Message Examples",
-   "options": "<h5>Message Example</h5>\n\n<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;\n\n&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;\n\n&lt;!-- show last comment --&gt;\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n&lt;h4&gt;Details&lt;/h4&gt;\n\n&lt;ul&gt;\n&lt;li&gt;Customer: {{ doc.customer }}\n&lt;li&gt;Amount: {{ doc.grand_total }}\n&lt;/ul&gt;\n</pre>"
-  },
-  {
-   "depends_on": "eval:doc.channel=='Slack'",
-   "fieldname": "slack_message_examples",
-   "fieldtype": "HTML",
-   "label": "Message Examples",
-   "options": "<h5>Message Example</h5>\n\n<pre>*Order Overdue*\n\nTransaction {{ doc.name }} has exceeded Due Date. Please take necessary action.\n\n<!-- show last comment -->\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n*Details*\n\n\u2022 Customer: {{ doc.customer }}\n\u2022 Amount: {{ doc.grand_total }}\n</pre>"
-  },
-  {
-   "fieldname": "view_properties",
-   "fieldtype": "Button",
-   "label": "View Properties (via Customize Form)"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "attach_print",
-   "fieldname": "column_break_25",
-   "fieldtype": "Section Break",
-   "label": "Print Settings"
-  },
-  {
    "default": "0",
    "fieldname": "attach_print",
    "fieldtype": "Check",
@@ -276,18 +246,23 @@
    "label": "Send System Notification"
   },
   {
-   "fieldname": "column_break_33",
+   "fieldname": "column_break_29",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "msg_placeholder",
+   "fieldname": "data_30",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "fieldname": "insert_dynamic_value",
    "fieldtype": "Button",
-   "label": "Message Placeholder"
+   "label": "Insert Dynamic Value"
   }
  ],
  "icon": "fa fa-envelope",
  "links": [],
- "modified": "2020-06-29 18:12:57.790646",
+ "modified": "2020-06-30 11:58:52.411855",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
