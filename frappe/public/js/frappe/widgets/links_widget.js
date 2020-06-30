@@ -3,7 +3,7 @@ import { generate_route } from "./utils";
 
 export default class LinksWidget extends Widget {
 	constructor(opts) {
-		opts.icon = 'calendar';
+		opts.icon = opts.icon || 'file';
 		super(opts);
 	}
 
