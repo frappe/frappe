@@ -1,8 +1,8 @@
 .icon {
 	display: inline-block;
 	font-size: 0;
-	width: 24px;
-	height: 24px;
+	width: 20px;
+	height: 20px;
 	margin: 0 auto;
 	background-size: cover;
 	background-repeat: no-repeat;
@@ -25,7 +25,18 @@
 	height: 16px;
 }
 
+.icon-base,
+.icon-md {
+	width: 20px;
+	height: 20px;
+}
+
 .icon-lg {
+	width: 24px;
+	height: 24px;
+}
+
+.icon-xl {
 	width: 75px;
 	height: 75px;
 }
