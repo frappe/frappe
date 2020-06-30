@@ -112,6 +112,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval: doc.document_type",
    "fieldname": "event",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -128,7 +129,7 @@
    "label": "Trigger Method"
   },
   {
-   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"",
+   "depends_on": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send alert if date matches this field's value",
    "fieldname": "date_changed",
    "fieldtype": "Select",
@@ -136,14 +137,14 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"",
+   "depends_on": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send days before or after the reference date",
    "fieldname": "days_in_advance",
    "fieldtype": "Int",
    "label": "Days Before or After"
   },
   {
-   "depends_on": "eval:doc.event==\"Value Change\"",
+   "depends_on": "eval:doc.document_type && doc.event==\"Value Change\"",
    "description": "Send alert if this field's value changes",
    "fieldname": "value_changed",
    "fieldtype": "Select",

@@ -406,9 +406,13 @@ class DocType(Document):
 				with open(fname, 'r') as f:
 					code = f.read()
 				with open(fname, 'w') as f:
-					file_content = code.replace(old, new) # replace str with full str (js controllers)
-					file_content = file_content.replace(frappe.scrub(old), frappe.scrub(new)) # replace str with _ (py imports)
-					file_content = file_content.replace(old.replace(' ', ''), new.replace(' ', '')) # replace str (py controllers)
+					if fname.endswith('.js'):
+						file_content = code.replace(old, new) # replace str with full str (js controllers)
+
+					elif fname.endswith('.py'):
+						file_content = code.replace(frappe.scrub(old), frappe.scrub(new)) # replace str with _ (py imports)
+						file_content = file_content.replace(old.replace(' ', ''), new.replace(' ', '')) # replace str (py controllers)
+
 					f.write(file_content)
 
 		# updating json file with new name

@@ -1,7 +1,7 @@
 import frappe, subprocess, os
 from six.moves import input
 
-def setup_database(force, source_sql, verbose):
+def setup_database(force, source_sql=None, verbose=False):
 	root_conn = get_root_connection()
 	root_conn.commit()
 	root_conn.sql("DROP DATABASE IF EXISTS `{0}`".format(frappe.conf.db_name))
@@ -16,10 +16,12 @@ def setup_database(force, source_sql, verbose):
 	subprocess_env = os.environ.copy()
 	subprocess_env['PGPASSWORD'] = str(frappe.conf.db_password)
 	# bootstrap db
+	if not source_sql:
+		source_sql = os.path.join(os.path.dirname(__file__), 'framework_postgres.sql')
+
 	subprocess.check_output([
 		'psql', frappe.conf.db_name, '-h', frappe.conf.db_host or 'localhost', '-U',
-		frappe.conf.db_name, '-f',
-		os.path.join(os.path.dirname(__file__), 'framework_postgres.sql')
+		frappe.conf.db_name, '-f', source_sql
 	], env=subprocess_env)
 
 	frappe.connect()
