@@ -225,7 +225,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 			if err.resp.status == 410:
 				set_encrypted_password("Google Calendar", account.name, "", "next_sync_token")
 				frappe.db.commit()
-				msg += _(' Sync token was invalid and has been resetted, Retry syncing.')
+				msg += ' ' +  _('Sync token was invalid and has been resetted, Retry syncing.')
 				frappe.msgprint(msg, title='Invalid Sync Token', indicator='blue')
 			else:
 				frappe.throw(msg)
