@@ -452,10 +452,10 @@ export default class ChartWidget extends Widget {
 	set_chart_actions(actions) {
 		/* eslint-disable indent */
 		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
-			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				<button class="btn btn-default btn-xs"><span class="caret"></span></button>
-			</a>
-			<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
+			<button data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-xs">
+				${frappe.utils.icon('dot-horizontal')}
+			</button>
+			<ul class="dropdown-menu dropdown-menu-right">
 				${actions
 					.map(
 						action =>
