@@ -47,11 +47,12 @@ class ExponentialSmoothingForecast(object):
 					"trend_" + period.key, "seasonal_" + period.key, "forecast_" + period.key]
 
 				value[self.forecast_key] = 0.0
-				if (period.current_period_start_date == period_start_date and
-					period.current_period_end_date == period_end_date) or not forecast_data:
+
+				if (period.current_period_start_date == self.starting_period.current_period_start_date and
+					period.current_period_end_date == self.starting_period.current_period_end_date):
 					value[self.seasonal_key] = flt(value.get(period.key) / value.get("avg")
 						if value.get(period.key) and value.get("avg") else 0.0)
-				else:
+				elif forecast_data:
 					self.get_level_trend_for_seasonal(value, period, forecast_data)
 
 					value[self.seasonal_key] = flt(flt(self.gamma) *
@@ -74,7 +75,7 @@ class ExponentialSmoothingForecast(object):
 			value[self.trend_key] = value["level_" + period.key] - ((value.get(period.key) / last_period_data[2])
 				if last_period_data[2] else 0)
 			self.index = 1
-		else:
+		elif value.get(period.key):
 			value[self.level_key] = (self.alpha *
 				( (value.get(period.key) / value.get("seasonal_" + period.last_period_key))
 					if value.get("seasonal_" + period.last_period_key) else 0.0 ) +

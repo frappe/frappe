@@ -92,26 +92,26 @@ class ForecastTemplate(Document, ExponentialSmoothingForecast):
 			if self.forecasting_method == "Single Exponential Smoothing":
 				list_of_period_value = [value.get(p.key, 0) for p in self.period_list]
 			else:
-				index = 0
-				months_to_add = get_months_to_add.get(self.periodicity)
-				no_of_slots_in_year = 12.0 / months_to_add
-
 				if not list_of_period_value:
-					while list_of_period_value:
-						self.get_average_value_for_seasonal(value, list_of_period_value, index)
-						index += no_of_slots_in_year
+					self.get_average_value_for_seasonal(value, list_of_period_value)
 
 			if list_of_period_value:
 				total_qty = [1 for d in list_of_period_value if d]
 				if total_qty:
 					value["avg"] = flt(sum(list_of_period_value)) / flt(sum(total_qty))
 
-	def get_average_value_for_seasonal(self, value, list_of_period_value, index):
-		period_start_date = self.period_list[index].current_period_start_date
-		period_end_date = self.period_list[index].current_period_end_date
+	def get_average_value_for_seasonal(self, value, list_of_period_value):
+		self.starting_period = None
 		for p in self.period_list:
-			if (p.current_period_start_date == period_start_date and
-				p.current_period_end_date == period_end_date) and value.get(p.key, 0):
+			if value.get(p.key, 0):
+				self.starting_period = p
+				break
+
+		if not self.starting_period: return
+
+		for p in self.period_list:
+			if (p.current_period_start_date == self.starting_period.current_period_start_date and
+				p.current_period_end_date == self.starting_period.current_period_end_date):
 				list_of_period_value.append(value.get(p.key, 0))
 
 	def get_data_for_forecast(self):
