@@ -546,7 +546,8 @@ export default class ChartWidget extends Widget {
 			height: this.height,
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
-				shortenYAxisNumbers: 1
+				shortenYAxisNumbers: 1,
+				xAxisMode: 'tick'
 			}
 		};
 

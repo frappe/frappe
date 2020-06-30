@@ -1,7 +1,6 @@
 frappe.provide('frappe.report_utils');
 
 frappe.report_utils = {
-
 	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, colors }) {
 		const type = chart_type.toLowerCase();
 
@@ -27,7 +26,8 @@ frappe.report_utils = {
 			type: type,
 			colors: colors,
 			axisOptions: {
-				shortenYAxisNumbers: 1
+				shortenYAxisNumbers: 1,
+				xAxisMode: 'tick'
 			}
 		};
 
