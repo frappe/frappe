@@ -14,7 +14,9 @@
   "column_break_6",
   "user",
   "incoming_change",
-  "in_test"
+  "in_test",
+  "section_break_10",
+  "conditions"
  ],
  "fields": [
   {
@@ -74,11 +76,21 @@
    "label": "Event Consumer Document Types",
    "options": "Event Consumer Document Type",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "conditions",
+   "fieldtype": "Table",
+   "label": "Conditions",
+   "options": "Event Condition"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2019-12-30 11:52:16.276047",
+ "modified": "2020-06-30 12:29:18.728363",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Consumer",

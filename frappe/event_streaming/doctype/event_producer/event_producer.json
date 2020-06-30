@@ -14,7 +14,9 @@
   "column_break_6",
   "user",
   "last_update",
-  "incoming_change"
+  "incoming_change",
+  "section_break_10",
+  "conditions"
  ],
  "fields": [
   {
@@ -71,10 +73,20 @@
    "label": "Event Producer Document Types",
    "options": "Event Producer Document Type",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "conditions",
+   "fieldtype": "Table",
+   "label": "Conditions",
+   "options": "Event Condition"
   }
  ],
  "links": [],
- "modified": "2019-12-26 13:04:11.438349",
+ "modified": "2020-06-30 12:29:42.629244",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Producer",
