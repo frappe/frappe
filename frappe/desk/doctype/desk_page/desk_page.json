@@ -12,6 +12,7 @@
   "extends",
   "module",
   "category",
+  "icon",
   "restrict_to_domain",
   "onboarding",
   "column_break_3",
@@ -197,10 +198,15 @@
    "fieldname": "hide_custom",
    "fieldtype": "Check",
    "label": "Hide Custom DocTypes and Reports"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
   }
  ],
  "links": [],
- "modified": "2020-05-18 19:17:27.206646",
+ "modified": "2020-06-30 15:34:23.910922",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
