@@ -24,19 +24,19 @@ export default class Widget {
 		this.in_customize_mode = true;
 		this.action_area.empty();
 
+		options.allow_sorting &&
+			this.add_custom_button(
+				frappe.utils.icon('drag', 'xs'),
+				null,
+				"drag-handle",
+			);
+
 		options.allow_delete &&
 			this.add_custom_button(
-				'<i class="fa fa-trash" aria-hidden="true"></i>',
+				frappe.utils.icon('delete', 'xs'),
 				() => this.delete(),
 				"",
 				`${__('Delete')}`
-			);
-
-		options.allow_sorting &&
-			this.add_custom_button(
-				'<i class="fa fa-arrows" aria-hidden="true"></i>',
-				null,
-				"drag-handle",
 			);
 
 		if (options.allow_hiding) {
@@ -62,7 +62,7 @@ export default class Widget {
 
 		options.allow_edit &&
 			this.add_custom_button(
-				'<i class="fa fa-pencil" aria-hidden="true"></i>',
+				frappe.utils.icon("edit", "xs"),
 				() => this.edit()
 			);
 
