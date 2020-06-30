@@ -333,3 +333,34 @@ def extract_tar_files(site_name, file_path, folder_name):
 		frappe.destroy()
 
 	return tar_path
+
+def is_downgrade(sql_file_path, verbose=False):
+	"""checks if input db backup will get downgraded on current bench"""
+	from semantic_version import Version
+	head = "INSERT INTO `tabInstalled Application` VALUES"
+
+	with open(sql_file_path) as f:
+		for line in f:
+			if head in line:
+				# 'line' (str) format: ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master')
+				line = line.strip().lstrip(head).rstrip(";").strip()
+				# 'all_apps' (list) format: [('frappe', '12.x.x-develop ()', 'develop'), ('your_custom_app', '0.0.1', 'master')]
+				all_apps = [ x[-3:] for x in frappe.safe_eval(line) ]
+
+				for app in all_apps:
+					app_name = app[0]
+					app_version = app[1].split(" ")[0]
+
+					if app_name == "frappe":
+						try:
+							current_version = Version(frappe.__version__)
+							backup_version = Version(app_version[1:] if app_version[0] == "v" else app_version)
+						except ValueError:
+							return False
+
+						downgrade = backup_version > current_version
+
+						if verbose and downgrade:
+							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
+
+						return downgrade
