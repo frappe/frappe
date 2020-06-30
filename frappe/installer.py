@@ -9,6 +9,7 @@ from __future__ import unicode_literals, print_function
 from six.moves import input
 
 import os, json, subprocess, shutil
+import click
 import frappe
 import frappe.database
 import importlib
@@ -118,12 +119,20 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 
-def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
+def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
 	"""Remove app and all linked to the app's module with the app from a site."""
 
+	# dont allow uninstall app if not installed unless forced
+	if not force:
+		if app_name not in frappe.get_installed_apps():
+			click.secho("App {0} not installed on Site {1}".format(app_name, frappe.local.site), fg="yellow")
+			return
+
+	print("Uninstalling App {0} from Site {1}...".format(app_name, frappe.local.site))
+
 	if not dry_run and not yes:
-		confirm = input("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue (y/n) ? ")
-		if confirm!="y":
+		confirm = click.confirm("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue?")
+		if not confirm:
 			return
 
 	if not no_backup:
@@ -170,6 +179,8 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 
 		for doctype in set(drop_doctypes):
 			frappe.db.sql("drop table `tab{0}`".format(doctype))
+
+		click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
 
 	frappe.flags.in_uninstall = False
 
