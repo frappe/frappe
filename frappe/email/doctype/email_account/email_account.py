@@ -274,6 +274,8 @@ class EmailAccount(Document):
 
 			for idx, msg in enumerate(incoming_mails):
 				uid = None if not uid_list else uid_list[idx]
+				self.flags.notify = True
+
 				try:
 					args = {
 						"uid": uid,
@@ -294,7 +296,11 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					if communication:
+					if communication and self.flags.notify:
+
+						# If email already exists in the system
+						# then do not send notifications for the same email.
+
 						attachments = []
 
 						if hasattr(communication, '_attachments'):
@@ -363,6 +369,9 @@ class EmailAccount(Document):
 				name = names[0].get("name")
 				# email is already available update communication uid instead
 				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
+
+				self.flags.notify = False
+
 				return frappe.get_doc("Communication", name)
 
 		if email.content_type == 'text/html':
