@@ -760,26 +760,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let current_count = this.data.length;
 		let count_without_children = this.data.uniqBy(d => d.name).length;
 
-		const filters = this.get_filters_for_args();
-		const with_child_table_filter = filters.some(filter => {
-			return filter[0] !== this.doctype;
-		});
-
-		const fields = [
-			// cannot break this line as it adds extra \n's and \t's which breaks the query
-			`count(${with_child_table_filter ? 'distinct': ''}${frappe.model.get_full_column_name('name', this.doctype)}) AS total_count`
-		];
-
-		return frappe.call({
-			type: 'GET',
-			method: this.method,
-			args: {
-				doctype: this.doctype,
-				filters,
-				fields,
-			}
-		}).then(r => {
-			this.total_count = r.message.values[0][0] || current_count;
+		return frappe.db.count(this.doctype, {
+			filters: this.get_filters_for_args()
+		}).then(total_count => {
+			this.total_count = total_count || current_count;
 			let str = __('{0} of {1}', [current_count, this.total_count]);
 			if (count_without_children !== current_count) {
 				str = __('{0} of {1} ({2} rows with children)', [count_without_children, this.total_count, current_count]);
