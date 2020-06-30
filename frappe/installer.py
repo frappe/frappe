@@ -144,8 +144,12 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
 
+
+		linked_doctypes = frappe.get_all("DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=['parent'])
+		doctypes_with_linked_modules = ["Desk Page", "Reports", "Pages", "Web Forms"] + [doctype.parent for doctype in linked_doctypes]
+
 		# remove desk page, reports, pages, web forms and chart sources
-		for doctype in ("Desk Page", "Report", "Page", "Web Form", "Dashboard Chart Source"):
+		for doctype in doctypes_with_linked_modules:
 			for record in frappe.get_list(doctype, filters={"module": module_name}):
 				print("removing {0} {1}...".format(doctype, record.name))
 				if not dry_run:
