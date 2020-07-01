@@ -2,7 +2,7 @@ frappe.provide("frappe.core")
 
 frappe.ui.form.on("Workflow", {
 	onload: function(frm) {
-		frm.set_query("document_type", {"issingle": 0, "istable": 0, "allow_workflow": 1});
+		frm.set_query("document_type", {"issingle": 0, "istable": 0, "dont_allow_workflow": 0});
 	},
 	refresh: function(frm) {
 		if (frm.doc.document_type) {

@@ -22,7 +22,7 @@
   "track_views",
   "custom",
   "beta",
-  "allow_workflow",
+  "dont_allow_workflow",
   "fields_section_break",
   "fields",
   "sb1",
@@ -521,15 +521,15 @@
   },
   {
    "default": "0",
-   "fieldname": "allow_workflow",
+   "fieldname": "dont_allow_workflow",
    "fieldtype": "Check",
-   "label": "Allow Workflow"
+   "label": "Don't Allow Workflow"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2020-06-24 19:45:29.491311",
+ "modified": "2020-07-01 15:18:14.457429",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
