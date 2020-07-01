@@ -103,3 +103,124 @@ def check_docstatus(out, old, new, for_child):
 	if not for_child and old.docstatus != new.docstatus:
 		out.changed['docstatus'] = new.docstatus
 	return out
+
+
+def is_consumer_uptodate(update_log, consumer):
+	"""
+	Checks if Consumer has read all the UpdateLogs before the specified update_log
+	:param update_log: The UpdateLog Doc in context
+	:param consumer: The EventConsumer doc
+	"""
+	if update_log.update_type == "Create":
+		# consumer is obviously up to date
+		return True
+
+	prev_logs = frappe.get_all("Event Update Log", fields=["name", "ref_doctype", "docname"],	filters={
+			"ref_doctype": update_log.ref_doctype,
+			"docname": update_log.docname,
+			"name": ["!=", update_log.name]
+		}
+	)
+
+	for prev_log in prev_logs:
+		prev_log_consumers = [
+			x.consumer
+			for x in frappe.get_all(
+				"Event Consumer Selector",
+				fields=["consumer"],
+				filters={
+						"parent": prev_log.name,
+						"parenttype": "Event Update Log"
+				}
+			)
+		]
+		if consumer.name not in prev_log_consumers:
+			return False
+
+	return True
+
+
+def mark_consumer_read(update_log_name, consumer_name):
+	"""
+	This function appends the Consumer to the list of Consumers that has 'read' an Update Log
+	"""
+	update_log = frappe.get_doc("Event Update Log", update_log_name)
+	if len([x for x in update_log.consumers if x.consumer == consumer_name]):
+		return
+
+	frappe.get_doc(frappe._dict(
+			doctype="Event Consumer Selector",
+			consumer=consumer_name,
+			parent=update_log_name,
+			parenttype="Event Update Log",
+			parentfield="consumers"
+	)).insert(ignore_permissions=True)
+
+
+def get_old_unread_logs(consumer_name, dt, dn):
+	"""
+	Get old logs unread by the consumer on a particular document
+	"""
+	already_consumed = [x[0] for x in frappe.db.sql("""
+		SELECT
+			update_log.name
+		FROM `tabEvent Update Log` update_log
+		JOIN `tabEvent Consumer Selector` consumer ON consumer.parent = update_log.name
+		WHERE
+			consumer.consumer = %(consumer)s
+	""", {"consumer": consumer_name}, as_dict=0)]
+
+	logs = frappe.get_all(
+			"Event Update Log",
+			fields=['update_type', 'ref_doctype',
+							'docname', 'data', 'name', 'creation'],
+			filters={
+					"ref_doctype": dt,
+					"docname": dn,
+					"name": ["not in", already_consumed]
+			},
+			order_by="creation"
+	)
+
+	return logs
+
+
+@frappe.whitelist()
+def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
+	"""
+	Fetches all the UpdateLogs for the consumer
+	It will inject old un-consumed Update Logs if a doc was just found to be accessible to the Consumer
+	"""
+
+	if isinstance(doctypes, str):
+		doctypes = frappe.parse_json(doctypes)
+	
+	from frappe.event_streaming.doctype.event_consumer.event_consumer import has_consumer_access
+
+	consumer = frappe.get_doc("Event Consumer", event_consumer)
+	docs = frappe.get_list(
+			doctype='Event Update Log',
+			filters={'ref_doctype': ('in', doctypes),
+							 'creation': ('>', last_update)},
+			fields=['update_type', 'ref_doctype',
+							'docname', 'data', 'name', 'creation'],
+			order_by='creation desc'
+	)
+
+	result = []
+	for d in docs:
+		if not has_consumer_access(consumer, frappe.get_doc(d.ref_doctype, d.docname)):
+			continue
+		
+		result.append(d)
+		if not is_consumer_uptodate(d, consumer):
+			old_logs = get_old_unread_logs()
+			old_logs.reverse()
+			result.append(...old_logs)
+
+	for d in result:
+		frappe.enqueue(mark_consumer_read, update_log_name=d.name,
+										consumer_name=consumer.name, enqueue_after_commit=True)
+
+	result.reverse()
+	return result

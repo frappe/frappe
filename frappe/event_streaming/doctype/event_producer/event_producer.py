@@ -311,12 +311,12 @@ def set_delete(update):
 
 def get_updates(producer_site, last_update, doctypes):
 	"""Get all updates generated after the last update timestamp"""
-	docs = producer_site.get_list(
-		doctype='Event Update Log',
-		filters={'ref_doctype': ('in', doctypes), 'creation': ('>', last_update)},
-		fields=['update_type', 'ref_doctype', 'docname', 'data', 'name', 'creation']
-	)
-	docs.reverse()
+	docs = producer_site.post_request({
+			'cmd': 'frappe.event_streaming.doctype.event_update_log.event_update_log.get_update_logs_for_consumer',
+			'event_consumer': get_url(),
+			'doctypes': frappe.as_json(doctypes),
+			'last_update': last_update
+	})
 	return [frappe._dict(d) for d in docs]
 
 
