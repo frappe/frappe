@@ -15,36 +15,6 @@ frappe.data_import.DataExporter = class DataExporter {
 			fields: [
 				{
 					fieldtype: 'Select',
-					fieldname: 'exporting_for',
-					label: __('Exporting For'),
-					options: [
-						{
-							label: __('Insert New Records'),
-							value: 'Insert New Records'
-						},
-						{
-							label: __('Update Existing Records'),
-							value: 'Update Existing Records'
-						}
-					],
-					change: () => {
-						let exporting_for = this.dialog.get_value('exporting_for');
-						this.dialog.set_value(
-							'export_records',
-							exporting_for === 'Insert New Records' ? 'blank_template' : 'all'
-						);
-
-						// Force ID field to be exported when updating existing records
-						let id_field = this.dialog.get_field(this.doctype).options[0];
-						if (id_field.value === 'name' && id_field.$checkbox) {
-							id_field.$checkbox
-								.find('input')
-								.prop('disabled', exporting_for === 'Update Existing Records');
-						}
-					}
-				},
-				{
-					fieldtype: 'Select',
 					fieldname: 'export_records',
 					label: __('Export Type'),
 					options: [
@@ -65,7 +35,7 @@ frappe.data_import.DataExporter = class DataExporter {
 							value: 'blank_template'
 						}
 					],
-					default: 'blank_template',
+					default: this.exporting_for === 'Insert New Records' ? 'blank_template' : 'all',
 					change: () => {
 						this.update_record_count_message();
 					}
@@ -119,10 +89,6 @@ frappe.data_import.DataExporter = class DataExporter {
 			on_page_show: () => this.select_mandatory()
 		});
 
-		if (this.exporting_for) {
-			this.dialog.set_value('exporting_for', this.exporting_for);
-		}
-
 		this.make_filter_area();
 		this.make_select_all_buttons();
 		this.update_record_count_message();
@@ -172,15 +138,17 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	make_select_all_buttons() {
+		let for_insert = this.exporting_for === 'Insert New Records';
+		let section_title = for_insert ? __('Select Fields To Insert') : __('Select Fields To Update');
 		let $select_all_buttons = $(`
 			<div>
-				<h6 class="form-section-heading uppercase">${__('Select fields to export')}</h6>
+				<h6 class="form-section-heading uppercase">${section_title}</h6>
 				<button class="btn btn-default btn-xs" data-action="select_all">
 					${__('Select All')}
 				</button>
-				<button class="btn btn-default btn-xs" data-action="select_mandatory">
+				${for_insert ? `<button class="btn btn-default btn-xs" data-action="select_mandatory">
 					${__('Select Mandatory')}
-				</button>
+				</button>`: ''}
 				<button class="btn btn-default btn-xs" data-action="unselect_all">
 					${__('Unselect All')}
 				</button>
@@ -285,11 +253,9 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	get_filters() {
-		return this.filter_group.get_filters().reduce((acc, filter) => {
-			return Object.assign(acc, {
-				[filter[1]]: [filter[2], filter[3]]
-			});
-		}, {});
+		return this.filter_group.get_filters().map(filter => {
+			return filter.slice(0, 4);
+		});
 	}
 
 	get_multicheck_options(doctype, child_fieldname = null) {
@@ -308,6 +274,9 @@ frappe.data_import.DataExporter = class DataExporter {
 			? this.column_map[child_fieldname]
 			: this.column_map[doctype];
 
+		let is_field_mandatory = df => (df.fieldname === 'name' && !child_fieldname)
+			|| (df.reqd && this.exporting_for == 'Insert New Records');
+
 		return fields
 			.filter(df => {
 				if (autoname_field && df.fieldname === autoname_field.fieldname) {
@@ -323,7 +292,7 @@ frappe.data_import.DataExporter = class DataExporter {
 				return {
 					label,
 					value: df.fieldname,
-					danger: df.reqd,
+					danger: is_field_mandatory(df),
 					checked: false,
 					description: `${df.fieldname} ${df.reqd ? __('(Mandatory)') : ''}`
 				};
