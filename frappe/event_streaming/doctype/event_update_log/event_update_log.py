@@ -216,7 +216,7 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 		if not is_consumer_uptodate(d, consumer):
 			old_logs = get_old_unread_logs()
 			old_logs.reverse()
-			result.append(...old_logs)
+			result.extend(old_logs)
 
 	for d in result:
 		frappe.enqueue(mark_consumer_read, update_log_name=d.name,
