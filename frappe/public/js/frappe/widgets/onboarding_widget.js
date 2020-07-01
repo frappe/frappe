@@ -432,16 +432,6 @@ export default class OnboardingWidget extends Widget {
 		return false;
 	}
 
-	set_title(title) {
-		super.set_title(title);
-		if (this.subtitle) {
-			let subtitle = $(
-				`<div class="widget-subtitle">${this.subtitle}</div>`
-			);
-			subtitle.appendTo(this.title_field);
-		}
-	}
-
 	set_actions() {
 		this.action_area.empty();
 		if (!this.user_can_dismiss) return;

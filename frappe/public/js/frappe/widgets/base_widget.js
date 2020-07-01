@@ -92,7 +92,10 @@ export default class Widget {
 			${ this.shadow ? "widget-shadow" : " " }
 		" data-widget-name="${this.name ? this.name : ''}">
 			<div class="widget-head">
-				<div class="widget-title ellipsis"></div>
+				<div>
+					<div class="widget-title ellipsis"></div>
+					<div class="widget-subtitle"></div>
+				</div>
 				<div class="widget-control"></div>
 			</div>
 			<div class="widget-body">
@@ -102,6 +105,7 @@ export default class Widget {
 		</div>`);
 
 		this.title_field = this.widget.find(".widget-title");
+		this.subtitle_field = this.widget.find(".widget-subtitle");
 		this.body = this.widget.find(".widget-body");
 		this.action_area = this.widget.find(".widget-control");
 		this.head = this.widget.find(".widget-head");
@@ -122,6 +126,7 @@ export default class Widget {
 				this.title_field[0].setAttribute('title', this.label);
 			}
 		}
+		this.subtitle && this.subtitle_field.html(this.subtitle);
 	}
 
 	add_custom_button(html, action, class_name = "", title="") {
