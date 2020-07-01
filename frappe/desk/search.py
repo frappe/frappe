@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr, unique, cint
 from frappe.permissions import has_permission
+from frappe.handler import is_whitelisted
 from frappe import _
 from six import string_types
 import re
@@ -74,6 +75,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 	if query and query.split()[0].lower()!="select":
 		# by method
+		is_whitelisted(query)
 		frappe.response["values"] = frappe.call(query, doctype, txt,
 			searchfield, start, page_length, filters, as_dict=as_dict)
 	elif not query and doctype in standard_queries:
