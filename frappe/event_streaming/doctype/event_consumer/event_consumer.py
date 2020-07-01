@@ -26,7 +26,7 @@ class EventConsumer(Document):
 			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
 
 	def on_trash(self):
-		for i in frappe.get_all("Event Consumer Selector", {"consumer": event_consumer}):
+		for i in frappe.get_all("Event Consumer Selector", {"consumer": self.name}):
 			frappe.delete_doc("Event Consumer Selector", i.name)
 
 	def update_consumer_status(self):
@@ -184,7 +184,7 @@ def has_consumer_access(consumer, doc):
 	for dt_condn in frappe.get_all("Event DocType Condition", {"dt": doc.doctype}):
 		dt_condn = frappe.get_doc("Event DocType Condition")
 		for condition in dt_condn.conditions:
-			if not event_condition_satisfied(ref_doc, consumer, condition):
+			if not event_condition_satisfied(doc, consumer, condition):
 				return False
 
 	if isinstance(consumer, str):
@@ -193,7 +193,7 @@ def has_consumer_access(consumer, doc):
 	# Consumer Level Perms
 	if consumer.get("conditions") and len(consumer.conditions):
 		for condition in consumer.conditions:
-			if not event_condition_satisfied(ref_doc, consumer, condition):
+			if not event_condition_satisfied(doc, consumer, condition):
 				return False
 
 	return True
