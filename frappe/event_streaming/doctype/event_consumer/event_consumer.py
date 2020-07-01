@@ -75,6 +75,10 @@ def register_consumer(data):
 			'status': 'Pending'
 		})
 
+	conditions = json.loads(data['conditions'])
+	for condition in conditions:
+		consumer.append('conditions', condition)
+
 	api_key = frappe.generate_hash(length=10)
 	api_secret = frappe.generate_hash(length=10)
 	consumer.api_key = api_key

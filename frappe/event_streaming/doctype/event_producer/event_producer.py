@@ -72,9 +72,22 @@ class EventProducer(Document):
 			else:
 				consumer_doctypes.append(entry.ref_doctype)
 
+	conditions = [
+			frappe._dict(
+					dt=x.dt,
+					type=x.type,
+					fieldname=x.fieldname,
+					operator=x.operator,
+					value=x.value,
+					eval=x.eval
+			)
+			for x in doc.get("conditions", [])
+	]
+
 		return {
 			'event_consumer': get_url(),
 			'consumer_doctypes': json.dumps(consumer_doctypes),
+			'conditions': frappe.as_json(conditions),
 			'user': self.user,
 			'in_test': frappe.flags.in_test
 		}
@@ -113,6 +126,19 @@ class EventProducer(Document):
 					event_consumer.in_test = True
 				event_consumer.user = self.user
 				event_consumer.incoming_change = True
+
+				event_consumer.conditions = [
+						frappe._dict(
+								dt=x.dt,
+								type=x.type,
+								fieldname=x.fieldname,
+								operator=x.operator,
+								value=x.value,
+								condition=x.condition
+						)
+						for x in self.get("conditions", [])
+				]
+
 				producer_site.update(event_consumer)
 
 	def is_producer_online(self):
