@@ -443,6 +443,7 @@ frappe.PrintFormatBuilder = Class.extend({
 	setup_field_settings: function() {
 		this.page.main.find(".field-settings").on("click", e => {
 			const field = $(e.currentTarget).parent();
+			const is_table = field.attr('data-fieldtype') !== 'Table';
 			// new dialog
 			var d = new frappe.ui.Dialog({
 				title: "Set Properties",
@@ -456,7 +457,8 @@ frappe.PrintFormatBuilder = Class.extend({
 						label: __("Align Value"),
 						fieldname: "align",
 						fieldtype: "Select",
-						options: [{'label': __('Left'), 'value': 'left'}, {'label': __('Right'), 'value': 'right'}]
+						options: [{'label': __('Left'), 'value': 'left'}, {'label': __('Right'), 'value': 'right'}],
+						depends_on: `eval: ${is_table}`,
 					},
 					{
 						label: __("Remove Field"),
