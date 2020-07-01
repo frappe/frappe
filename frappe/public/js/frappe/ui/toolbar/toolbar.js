@@ -221,7 +221,7 @@ frappe.ui.toolbar.clear_cache = frappe.utils.throttle(function() {
 	frappe.xcall('frappe.sessions.clear').then(message => {
 		frappe.show_alert({
 			message: message,
-			indicator: 'green'
+			indicator: 'info'
 		});
 		location.reload(true);
 	});

@@ -348,40 +348,52 @@ frappe.hide_progress = function() {
 
 // Floating Message
 frappe.show_alert = function(message, seconds=7, actions={}) {
-	if(typeof message==='string') {
+	console.log(message, actions)
+	let indicator_icon_map = {
+		'orange': "solid-warning",
+		'yellow': "solid-warning",
+		'blue': "solid-success",
+		'green': "solid-success",
+		'red': "solid-red"
+	};
+
+	if (typeof message==='string') {
 		message = {
 			message: message
 		};
 	}
-	if(!$('#dialog-container').length) {
+	
+	if (!$('#dialog-container').length) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
 
-	let body_html;
-
-	if (message.body) {
-		body_html = message.body;
+	let icon;
+	if (message.indicator) {
+		icon = indicator_icon_map[message.indicator.toLowerCase()] || 'solid-' + message.indicator;
+	} else {
+		icon = 'solid-info'
 	}
+		
 
 	const div = $(`
 		<div class="alert desk-alert">
-			<div class="alert-message small"></div>
+			<div class="alert-message-container">
+				<div class="alert-title-container">
+					<div>${frappe.utils.icon(icon, 'lg')}</div>
+					<div class="alert-message">${message.message}</div>
+				</div>
+				<div class="alert-subtitle">${message.subtitle || '' }</div>
+			</div>
 			<div class="alert-body" style="display: none"></div>
-			<a class="close">&times;</a>
+			<a class="close">${frappe.utils.icon('close-alt')}</a>
 		</div>`);
-
-	if(message.indicator) {
-		div.find('.alert-message').append(`<span class="indicator ${message.indicator}"></span>`);
-	}
-
-	div.find('.alert-message').append(message.message);
-
-	if (body_html) {
-		div.find('.alert-body').show().html(body_html);
-	}
 
 	div.hide().appendTo("#alert-container").show()
 		.css('transform', 'translateX(0)');
+
+	if (message.body) {
+		div.find('.alert-body').show().html(message.body);
+	}
 
 	div.find('.close, button').click(function() {
 		div.remove();
@@ -392,7 +404,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 		div.find(`[data-action=${key}]`).on('click', actions[key]);
 	});
 
-	div.delay(seconds * 1000).fadeOut(300);
+	// div.delay(seconds * 1000).fadeOut(300);
 	return div;
 }
 

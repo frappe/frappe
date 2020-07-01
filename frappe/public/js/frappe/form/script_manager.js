@@ -202,7 +202,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		this.trigger('setup');
 	},
 	log_error: function(caller, e) {
-		frappe.show_alert("Error in Client Script.");
+		frappe.show_alert({message: __("Error in Client Script."), indicator: "error"});
 		console.group && console.group();
 		console.log("----- error in client script -----");
 		console.log("method: " + caller);

@@ -336,7 +336,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						],
 						primary_action: ({ column, insert_before }) => {
 							if (!columns_in_picker.map(col => col.value).includes(column)) {
-								frappe.show_alert(__('Invalid column'));
+								frappe.show_alert({message: __('Invalid column'), indicator: 'orange'});
 								d.hide();
 								return;
 							}

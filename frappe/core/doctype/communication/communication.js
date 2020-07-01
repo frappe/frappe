@@ -139,7 +139,7 @@ frappe.ui.form.on("Communication", {
 						});
 					},
 					function () {
-						frappe.show_alert('Document not Relinked')
+						frappe.show_alert({message:__('Document not Relinked'), 'indicator': 'info'})
 					}
 				);
 			}
