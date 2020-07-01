@@ -12,7 +12,7 @@
   "operator",
   "value",
   "section_break_7",
-  "condition"
+  "eval"
  ],
  "fields": [
   {
@@ -43,7 +43,7 @@
    "fieldname": "operator",
    "fieldtype": "Select",
    "label": "Operator",
-   "options": "=\n!=\n>\n>=\n<\n<="
+   "options": "==\n!=\n>\n>=\n<\n<="
   },
   {
    "fieldname": "value",
@@ -56,14 +56,14 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "condition",
+   "fieldname": "eval",
    "fieldtype": "Code",
-   "label": "Condition"
+   "label": "Eval Code"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-06-30 11:00:08.464368",
+ "modified": "2020-07-01 09:02:17.682857",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Condition",

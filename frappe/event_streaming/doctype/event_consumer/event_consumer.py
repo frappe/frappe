@@ -8,7 +8,7 @@ import json
 import requests
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
-from frappe.utils.data import get_url
+from frappe.utils.data import get_url, flt, get_datetime
 from frappe.utils.background_jobs import get_jobs
 
 
@@ -139,3 +139,57 @@ def notify(consumer):
 		jobs = get_jobs()
 		if not jobs or enqueued_method not in jobs[frappe.local.site] and not consumer.flags.notifed:
 			frappe.enqueue(enqueued_method, queue='long', enqueue_after_commit=True, **{'consumer': consumer})
+
+
+def has_consumer_access(consumer, doc):
+	"""Checks if consumer has completely satisfied all the conditions on the doc"""
+
+	def event_condition_satisfied(doc, consumer, condition):
+		from frappe.model import numeric_fieldtypes
+		try:
+			if condition.type == "DocField":
+				"""==, !=, >, >=, <, <="""
+				df = doc.meta.get_field(condition.fieldname)
+				if df.fieldtype in numeric_fieldtypes:
+					condition.value = flt(condition.value)
+				elif df.fieldtype in ("Date", "Datetime"):
+					condition.value = get_datetime(condition.value)
+
+				docvalue = doc.get(df.fieldname)
+				cond_value = condition.value
+				if condition.operator == "==":
+					return docvalue == cond_value
+				elif condition.operator == "!=":
+					return docvalue != cond_value
+				elif condition.operator == ">":
+					return docvalue > cond_value
+				elif condition.operator == ">=":
+					return docvalue >= cond_value
+				elif condition.operator == "<":
+					return docvalue < cond_value
+				elif condition.operator == "<=":
+					return docvalue <= cond_value
+
+			elif condition.type == "Eval":
+				return frappe.safe_eval(condition.eval, frappe._dict(doc=doc))
+		except:
+			pass
+		return False
+
+	# Global Perms
+	for dt_condn in frappe.get_all("Event DocType Condition", {"dt": doc.doctype}):
+		dt_condn = frappe.get_doc("Event DocType Condition")
+		for condition in dt_condn.conditions:
+			if not event_condition_satisfied(ref_doc, consumer, condition):
+				return False
+
+	if isinstance(consumer, str):
+		consumer = frappe.get_doc("Event Consumer", consumer)
+
+	# Consumer Level Perms
+	if consumer.get("conditions") and len(consumer.conditions):
+		for condition in consumer.conditions:
+			if not event_condition_satisfied(ref_doc, consumer, condition):
+				return False
+
+	return True
