@@ -513,7 +513,7 @@ def remainder(numerator, denominator, precision=2):
 	else:
 		_remainder = numerator % denominator
 
-	return flt(_remainder, precision);
+	return flt(_remainder, precision)
 
 def safe_div(numerator, denominator, precision=2):
 	"""

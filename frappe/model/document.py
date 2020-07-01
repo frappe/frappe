@@ -396,6 +396,11 @@ class Document(BaseDocument):
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
+	def has_value_changed(self, fieldname):
+		'''Returns true if value is changed before and after saving'''
+		previous = self.get_doc_before_save()
+		return previous.get(fieldname)!=self.get(fieldname) if previous else True
+
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
 		if self.flags.name_set and not force:
@@ -825,7 +830,7 @@ class Document(BaseDocument):
 
 	def run_notifications(self, method):
 		"""Run notifications for this method"""
-		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
+		if (frappe.flags.in_import and frappe.flags.mute_emails) or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
 		if self.flags.notifications_executed==None:
