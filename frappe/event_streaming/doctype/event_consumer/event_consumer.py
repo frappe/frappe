@@ -25,6 +25,10 @@ class EventConsumer(Document):
 		else:
 			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
 
+	def on_trash(self):
+		for i in frappe.get_all("Event Consumer Selector", {"consumer": event_consumer}):
+    	frappe.delete_doc("Event Consumer Selector", i.name)
+
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)
 		event_producer = consumer_site.get_doc('Event Producer', get_url())
