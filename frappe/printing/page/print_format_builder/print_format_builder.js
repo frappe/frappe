@@ -270,7 +270,7 @@ frappe.PrintFormatBuilder = Class.extend({
 				set_column();
 
 			} else if(!in_list(["Section Break", "Column Break", "Fold"], f.fieldtype)
-				&& f.label) {
+				&& (![undefined, null].includes(f.label))) {
 				if(!column) set_column();
 
 				if(f.fieldtype==="Table") {
@@ -477,7 +477,7 @@ frappe.PrintFormatBuilder = Class.extend({
 
 			d.set_primary_action(__("Update"), function() {
 				field.attr('data-align', d.get_value('align'));
-				field.attr('data-label', d.get_value('label'));
+				field.attr('data-label', d.get_value('label') || '');
 				field.find('.field-label').html(d.get_value('label'));
 				d.hide();
 			});
@@ -755,7 +755,7 @@ frappe.PrintFormatBuilder = Class.extend({
 						df.align = align;
 					}
 
-					if(label) {
+					if (![null, undefined].includes(label)) {
 						df.label = label;
 					}
 

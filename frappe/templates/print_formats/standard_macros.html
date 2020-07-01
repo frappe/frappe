@@ -35,7 +35,9 @@
 		{%- set visible_columns = get_visible_columns(doc.get(df.fieldname),
 			table_meta, df) -%}
 		<div {{ fieldmeta(df) }}>
+			{% if df.label != None %}
 			<label>{{ _(df.label) }}</label>
+			{% endif %}
 			<table class="table table-bordered table-condensed">
 				<thead>
 					<tr>
@@ -78,11 +80,15 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 
 				{% if df.fieldtype not in ("Image", "HTML", "Check") and
 					doc.get(df.fieldname) != None %}
-				<label>{{ _(df.label) }}</label>
+					{% if df.label != None %}
+					<label>{{ _(df.label) }}</label>
+					{% endif %}
 				{% endif %}
 				{% if df.fieldtype == "Check" and
 				doc.get(df.fieldname) != 0 %}
-				<label>{{ _(df.label) }}</label>
+					{% if df.label != None %}
+					<label>{{ _(df.label) }}</label>
+					{% endif %}
 				{% endif %}
 			</div>
 			<div class="col-xs-{{ "3" if df.fieldtype=="Check" else "7" }}
@@ -96,7 +102,11 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- macro render_text_field(df, doc) -%}
 {%- if doc.get(df.fieldname) != None -%}
 <div style="padding: 10px 0px" {{ fieldmeta(df) }}>
-	{%- if df.fieldtype in ("Text", "Code", "Long Text", "Text Editor") %}<label>{{ _(df.label) }}</label>{%- endif %}
+	{%- if df.fieldtype in ("Text", "Code", "Long Text", "Text Editor") %}
+		{% if df.label != None %}
+		<label>{{ _(df.label) }}</label>
+		{%- endif %}
+	{%- endif %}
 	{%- if df.fieldtype=="Code" %}
 		<pre class="value">{{ doc.get(df.fieldname) }}</pre>
 	{% else -%}

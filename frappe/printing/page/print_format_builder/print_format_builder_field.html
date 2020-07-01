@@ -10,9 +10,9 @@
         data-columns="{%= me.get_visible_columns_string(field) %}"
         data-doctype="{%= field.options %}"
     {% } %}>
-	{% if !in_list(["Table", "HTML", "Custom HTML"], field.fieldtype) %}
+	{% if !in_list(["HTML", "Custom HTML"], field.fieldtype) %}
     <a class="field-settings pull-right
-        btn-default btn-xs" style="padding-top: 3px">
+        btn-default btn-xs" style="padding-top: 3px; margin-left: 5px;">
         <span class="octicon octicon-gear text-muted"></span></a>
 	{% endif %}
     {% if(field.fieldtype==="Custom HTML") { %}
@@ -26,6 +26,7 @@
 			{{ field.options || me.get_no_content() }}</div>
     {% } else { %}
         <span class="field-label">{{ __(field.label) }}</span>
+        <span class="field-name text-muted">[{{ __(field.fieldname) }}]</span>
         {% if(field.fieldtype==="Table") { %}
             <span> ({%= __("Table") %})</span>
             <a class="pull-right select-columns btn btn-default btn-xs">
