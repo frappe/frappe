@@ -404,7 +404,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 		div.find(`[data-action=${key}]`).on('click', actions[key]);
 	});
 
-	// div.delay(seconds * 1000).fadeOut(300);
+	div.delay(seconds * 1000).fadeOut(300);
 	return div;
 }
 
