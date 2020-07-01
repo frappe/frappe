@@ -348,7 +348,6 @@ frappe.hide_progress = function() {
 
 // Floating Message
 frappe.show_alert = function(message, seconds=7, actions={}) {
-	console.log(message, actions)
 	let indicator_icon_map = {
 		'orange': "solid-warning",
 		'yellow': "solid-warning",
@@ -373,7 +372,6 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 	} else {
 		icon = 'solid-info'
 	}
-		
 
 	const div = $(`
 		<div class="alert desk-alert">
