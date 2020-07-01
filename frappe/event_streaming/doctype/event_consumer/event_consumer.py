@@ -27,7 +27,7 @@ class EventConsumer(Document):
 
 	def on_trash(self):
 		for i in frappe.get_all("Event Consumer Selector", {"consumer": event_consumer}):
-    	frappe.delete_doc("Event Consumer Selector", i.name)
+			frappe.delete_doc("Event Consumer Selector", i.name)
 
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)
@@ -176,7 +176,7 @@ def has_consumer_access(consumer, doc):
 
 			elif condition.type == "Eval":
 				return frappe.safe_eval(condition.eval, frappe._dict(doc=doc))
-		except:
+		except Exception:
 			pass
 		return False
 
