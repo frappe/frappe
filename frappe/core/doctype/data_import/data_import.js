@@ -102,6 +102,10 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	update_primary_action(frm) {
+		if (frm.is_dirty()) {
+			frm.enable_save();
+			return;
+		}
 		frm.disable_save();
 		if (frm.doc.status !== 'Success') {
 			if (!frm.is_new() && (frm.has_import_file())) {
@@ -199,20 +203,12 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	download_template(frm) {
-		if (
-			frm.data_exporter &&
-			frm.data_exporter.doctype === frm.doc.reference_doctype
-		) {
-			frm.data_exporter.exporting_for = frm.doc.import_type;
-			frm.data_exporter.dialog.show();
-		} else {
-			frappe.require('/assets/js/data_import_tools.min.js', () => {
-				frm.data_exporter = new frappe.data_import.DataExporter(
-					frm.doc.reference_doctype,
-					frm.doc.import_type
-				);
-			});
-		}
+		frappe.require('/assets/js/data_import_tools.min.js', () => {
+			frm.data_exporter = new frappe.data_import.DataExporter(
+				frm.doc.reference_doctype,
+				frm.doc.import_type
+			);
+		});
 	},
 
 	reference_doctype(frm) {
@@ -301,8 +297,8 @@ frappe.ui.form.on('Data Import', {
 				events: {
 					remap_column(changed_map) {
 						let template_options = JSON.parse(frm.doc.template_options || '{}');
-						template_options.remap_column = template_options.remap_column || {};
-						Object.assign(template_options.remap_column, changed_map);
+						template_options.column_to_field_map = template_options.column_to_field_map || {};
+						Object.assign(template_options.column_to_field_map, changed_map);
 						frm.set_value('template_options', JSON.stringify(template_options));
 						frm.save().then(() => frm.trigger('import_file'));
 					}
@@ -435,10 +431,10 @@ frappe.ui.form.on('Data Import', {
 						.join('');
 					let id = frappe.dom.get_unique_id();
 					html = `${messages}
-						<button class="btn btn-default btn-xs margin-top" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}">
+						<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}" style="margin-top: 15px;">
 							${__('Show Traceback')}
 						</button>
-						<div class="collapse margin-top" id="${id}">
+						<div class="collapse" id="${id}" style="margin-top: 15px;">
 							<div class="well">
 								<pre>${log.exception}</pre>
 							</div>
