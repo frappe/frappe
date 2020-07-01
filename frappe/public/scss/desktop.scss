@@ -132,7 +132,7 @@ $panel-bg: $gray-50;
 	flex-direction: column;
 	min-height: 1px;
 	padding: 15px;
-	border-radius: 8px;
+	border-radius: var(--border-radius-md);
 	height: 100%;
 
 	&.widget-shadow {
