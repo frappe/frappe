@@ -66,6 +66,13 @@ class TestDocument(unittest.TestCase):
 
 		self.assertEqual(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
 
+	def test_value_changed(self):
+		d = self.test_insert()
+		d.subject = "subject changed again"
+		d.save()
+		self.assertTrue(d.has_value_changed('subject'))
+		self.assertFalse(d.has_value_changed('event_type'))
+
 	def test_mandatory(self):
 		# TODO: recheck if it is OK to force delete
 		frappe.delete_doc_if_exists("User", "test_mandatory@example.com", 1)
