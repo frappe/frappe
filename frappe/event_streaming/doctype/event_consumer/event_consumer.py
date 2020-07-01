@@ -26,8 +26,8 @@ class EventConsumer(Document):
 			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
 
 	def on_trash(self):
-		for i in frappe.get_all("Event Consumer Selector", {"consumer": self.name}):
-			frappe.delete_doc("Event Consumer Selector", i.name)
+		for i in frappe.get_all('Event Consumer Selector', {'consumer': self.name}):
+			frappe.delete_doc('Event Consumer Selector', i.name)
 
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)
@@ -149,49 +149,44 @@ def has_consumer_access(consumer, doc):
 	"""Checks if consumer has completely satisfied all the conditions on the doc"""
 
 	def event_condition_satisfied(doc, consumer, condition):
+		import operator
 		from frappe.model import numeric_fieldtypes
 		try:
-			if condition.type == "DocField":
+			if condition.type == 'DocField':
 				"""==, !=, >, >=, <, <="""
+				op_map = {
+					'==': operator.eq,
+					'!=': operator.ne,
+					'>': operator.gt,
+					'>=': operator.ge,
+					'<': operator.lt,
+					'<=': operator.le
+				}
 				df = doc.meta.get_field(condition.fieldname)
 				if df.fieldtype in numeric_fieldtypes:
 					condition.value = flt(condition.value)
-				elif df.fieldtype in ("Date", "Datetime"):
+				elif df.fieldtype in ('Date', 'Datetime'):
 					condition.value = get_datetime(condition.value)
 
-				docvalue = doc.get(df.fieldname)
-				cond_value = condition.value
-				if condition.operator == "==":
-					return docvalue == cond_value
-				elif condition.operator == "!=":
-					return docvalue != cond_value
-				elif condition.operator == ">":
-					return docvalue > cond_value
-				elif condition.operator == ">=":
-					return docvalue >= cond_value
-				elif condition.operator == "<":
-					return docvalue < cond_value
-				elif condition.operator == "<=":
-					return docvalue <= cond_value
-
-			elif condition.type == "Eval":
+				return op_map[condition.operator](doc.get(df.fieldname), condition.value)
+			elif condition.type == 'Eval':
 				return frappe.safe_eval(condition.eval, frappe._dict(doc=doc))
 		except Exception:
 			pass
 		return False
 
 	# Global Perms
-	for dt_condn in frappe.get_all("Event DocType Condition", {"dt": doc.doctype}):
-		dt_condn = frappe.get_doc("Event DocType Condition")
+	for dt_condn in frappe.get_all('Event DocType Condition', {'dt': doc.doctype}):
+		dt_condn = frappe.get_doc('Event DocType Condition')
 		for condition in dt_condn.conditions:
 			if not event_condition_satisfied(doc, consumer, condition):
 				return False
 
 	if isinstance(consumer, str):
-		consumer = frappe.get_doc("Event Consumer", consumer)
+		consumer = frappe.get_doc('Event Consumer', consumer)
 
 	# Consumer Level Perms
-	if consumer.get("conditions") and len(consumer.conditions):
+	if consumer.get('conditions') and len(consumer.conditions):
 		for condition in consumer.conditions:
 			if not event_condition_satisfied(doc, consumer, condition):
 				return False
