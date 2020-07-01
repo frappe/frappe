@@ -10,13 +10,17 @@
     width: 400px;
     min-height: 50px;
 	max-height: 200px;
-	background-color: $white;
+    background-color: $white;
+    
+    -webkit-animation-name: backInRight;
+    animation-name: backInRight;
+    animation-duration: 600ms;
 
 	// word-break: break-all;
 	overflow-y: auto;
 	position: relative;
-	transform: translateX(calc(100% + 20px));
-	transition: transform 300ms ease;
+	// transform: translateX(calc(100% + 20px));
+	// transition: transform 300ms ease;
     padding: 0px;
     border-radius: var(--border-radius-md);
 
@@ -76,5 +80,51 @@
 				border-right: none;
 			}
 		}
-	}
+    }
+    
+    &.out {
+        -webkit-animation-name: backOutRight;
+        animation-name: backOutRight;
+        animation-duration: 1.6s;
+    }
+}
+
+@keyframes backInRight {
+    0% {
+        -webkit-transform: translateX(2000px) scale(0.8);
+        transform: translateX(2000px) scale(0.8);
+        opacity: 0.7;
+    }
+
+    80% {
+        -webkit-transform: translateX(0px) scale(0.8);
+        transform: translateX(0px) scale(0.8);
+        opacity: 0.7;
+    }
+
+    100% {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes backOutRight {
+    0% {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    20% {
+        -webkit-transform: translateX(0px) scale(0.8);
+        transform: translateX(0px) scale(0.8);
+        opacity: 0.7;
+    }
+
+    100% {
+        -webkit-transform: translateX(2000px) scale(0.8);
+        transform: translateX(2000px) scale(0.8);
+        opacity: 0.7;
+    }
 }

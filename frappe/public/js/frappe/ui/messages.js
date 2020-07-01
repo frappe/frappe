@@ -386,15 +386,15 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 			<a class="close">${frappe.utils.icon('close-alt')}</a>
 		</div>`);
 
-	div.hide().appendTo("#alert-container").show()
-		.css('transform', 'translateX(0)');
+	div.hide().appendTo("#alert-container").show();
 
 	if (message.body) {
 		div.find('.alert-body').show().html(message.body);
 	}
 
 	div.find('.close, button').click(function() {
-		div.remove();
+		div.addClass('out')
+		setTimeout(() => div.remove(), 800);
 		return false;
 	});
 
@@ -402,7 +402,17 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 		div.find(`[data-action=${key}]`).on('click', actions[key]);
 	});
 
-	div.delay(seconds * 1000).fadeOut(300);
+	if (seconds > 2) {
+		// Delay for animation
+		seconds = seconds - 0.8
+	}
+
+	setTimeout(() => {
+		div.addClass('out')
+		setTimeout(() => div.remove(), 800);
+		return false;
+	}, seconds * 1000)
+	
 	return div;
 }
 
