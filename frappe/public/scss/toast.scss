@@ -6,31 +6,41 @@
 }
 
 #alert-container .desk-alert {
-	box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
+	box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
     width: 400px;
     min-height: 50px;
 	max-height: 200px;
 	background-color: $white;
-	border: 1px solid $border-color;
 
 	// word-break: break-all;
 	overflow-y: auto;
 	position: relative;
 	transform: translateX(calc(100% + 20px));
 	transition: transform 300ms ease;
-	padding: 0px;
+    padding: 0px;
+    border-radius: var(--border-radius-md);
 
 	.alert-message-container {
         padding: 16px 40px 16px 16px;
-        display: flex;
         
         .icon {
             margin-right: 10px;
+        }
+        
+        .alert-title-container {
+            display: flex;
+            align-items: center;
         }
 
         .alert-message {
             font-weight: 500;
             color: var(--grey-900);
+            line-height: 20px;
+        }
+
+        .alert-subtitle {
+            font-size: 13px;
+            padding-left: 34px;
         }
 	}
 
@@ -54,9 +64,13 @@
 			border-right: 1px solid $border-color;
 			padding: 7px;
 			outline: none;
-			font-size: 12px;
-			font-weight: bold;
-			color: $text-light;
+            font-size: 12px;
+            font-weight: 500;
+            color: $text-muted;
+            
+            &:hover {
+                color: var(--grey-900)
+            }
 
 			&:last-child {
 				border-right: none;
