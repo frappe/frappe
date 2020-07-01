@@ -22,6 +22,7 @@
   "allow_import",
   "show_preview_popup",
   "image_view",
+  "dont_allow_workflow",
   "column_break_5",
   "title_field",
   "image_field",
@@ -210,7 +211,13 @@
    "fieldname": "show_preview_popup",
    "fieldtype": "Check",
    "label": "Show Preview Popup"
-  }
+  },
+  {
+    "default": "0",
+    "fieldname": "dont_allow_workflow",
+    "fieldtype": "Check",
+    "label": "Don't Allow Workflow"
+   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-glass",
