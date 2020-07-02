@@ -80,10 +80,11 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			}
 
 			return `<li class="group-by-field list-link">
-					<a class="btn btn-default btn-sm list-sidebar-button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+					<a class="btn btn-default btn-sm list-sidebar-button" data-toggle="dropdown"
+					aria-haspopup="true" aria-expanded="false"
 					data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 					href="#" onclick="return false;">
-						<span class="text-muted ellipsis">${__(label)}</span>
+						<span class="ellipsis">${__(label)}</span>
 						<span>${frappe.utils.icon('select', 'xs')}</span>
 					</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
