@@ -347,7 +347,7 @@ def flush(from_test=False):
 			if not smtpserver:
 				smtpserver = SMTPServer()
 				smtpserver_dict[email.sender] = smtpserver
-				
+
 			if from_test:
 				send_one(email.name, smtpserver, auto_commit)
 			else:
@@ -390,12 +390,12 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 		where
 			name=%s
 		for update''', email, as_dict=True)
-	
+
 	if len(email):
 		email = email[0]
 	else:
 		return
-	
+
 	recipients_list = frappe.db.sql('''select name, recipient, status from
 		`tabEmail Queue Recipient` where parent=%s''', email.name, as_dict=1)
 
@@ -416,6 +416,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 
 	if email.communication:
 		frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
+
+	email_sent_to_any_recipient = None
 
 	try:
 		message = None

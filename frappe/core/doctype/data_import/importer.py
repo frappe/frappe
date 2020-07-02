@@ -16,6 +16,7 @@ from frappe.utils.xlsxutils import (
 	read_xls_file_from_attached_file,
 )
 from frappe.model import no_value_fields, table_fields as table_fieldtypes
+from frappe.core.doctype.version.version import get_diff
 
 INVALID_VALUES = ("", None)
 MAX_ROWS_IN_PREVIEW = 10
@@ -216,14 +217,22 @@ class Importer:
 	def update_record(self, doc):
 		id_field = get_id_field(self.doctype)
 		existing_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
-		existing_doc.flags.updater_reference = {
-			"doctype": self.data_import.doctype,
-			"docname": self.data_import.name,
-			"label": _("via Data Import"),
-		}
-		existing_doc.update(doc)
-		existing_doc.save()
-		return existing_doc
+
+		updated_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
+		updated_doc.update(doc)
+
+		if get_diff(existing_doc, updated_doc):
+			# update doc if there are changes
+			updated_doc.flags.updater_reference = {
+				"doctype": self.data_import.doctype,
+				"docname": self.data_import.name,
+				"label": _("via Data Import"),
+			}
+			updated_doc.save()
+			return updated_doc
+		else:
+			# throw if no changes
+			frappe.throw('No changes to update')
 
 	def get_eta(self, current, total, processing_time):
 		self.last_eta = getattr(self, "last_eta", 0)
@@ -306,8 +315,9 @@ class ImportFile:
 		)
 		self.column_to_field_map = self.template_options.column_to_field_map
 		self.import_type = import_type
+		self.warnings = []
 
-		self.file_doc = self.file_path = None
+		self.file_doc = self.file_path = self.google_sheets_url = None
 		if isinstance(file, frappe.string_types):
 			if frappe.db.exists("File", {"file_url": file}):
 				self.file_doc = frappe.get_doc("File", {"file_url": file})
@@ -462,38 +472,46 @@ class ImportFile:
 					parent_doc[table_df.fieldname].append(child_doc)
 
 		doc = parent_doc
-		# check if there is atleast one row for mandatory table fields
-		meta = frappe.get_meta(self.doctype)
-		mandatory_table_fields = [
-			df
-			for df in meta.fields
-			if df.fieldtype in table_fieldtypes
-			and df.reqd
-			and len(doc.get(df.fieldname, [])) == 0
-		]
-		if len(mandatory_table_fields) == 1:
-			self.warnings.append(
-				{
-					"row": first_row.row_number,
-					"message": _("There should be atleast one row for {0} table").format(
-						mandatory_table_fields[0].label
-					),
-				}
-			)
-		elif mandatory_table_fields:
-			fields_string = ", ".join([df.label for df in mandatory_table_fields])
-			message = _("There should be atleast one row for the following tables: {0}").format(
-				fields_string
-			)
-			self.warnings.append({"row": first_row.row_number, "message": message})
+
+		if self.import_type == INSERT:
+			# check if there is atleast one row for mandatory table fields
+			meta = frappe.get_meta(self.doctype)
+			mandatory_table_fields = [
+				df
+				for df in meta.fields
+				if df.fieldtype in table_fieldtypes
+				and df.reqd
+				and len(doc.get(df.fieldname, [])) == 0
+			]
+			if len(mandatory_table_fields) == 1:
+				self.warnings.append(
+					{
+						"row": first_row.row_number,
+						"message": _("There should be atleast one row for {0} table").format(
+							frappe.bold(mandatory_table_fields[0].label)
+						),
+					}
+				)
+			elif mandatory_table_fields:
+				fields_string = ", ".join([df.label for df in mandatory_table_fields])
+				message = _("There should be atleast one row for the following tables: {0}").format(
+					fields_string
+				)
+				self.warnings.append({"row": first_row.row_number, "message": message})
 
 		return doc, rows, data[len(rows) :]
 
 	def get_warnings(self):
 		warnings = []
+
+		# ImportFile warnings
+		warnings += self.warnings
+
+		# Column warnings
 		for col in self.header.columns:
 			warnings += col.warnings
 
+		# Row warnings
 		for row in self.data:
 			warnings += row.warnings
 
@@ -607,7 +625,7 @@ class Row:
 				self.warnings.append(
 					{
 						"row": self.row_number,
-						"field": df.as_dict(convert_dates_to_str=True),
+						"field": df_as_json(df),
 						"message": msg,
 					}
 				)
@@ -622,7 +640,7 @@ class Row:
 				self.warnings.append(
 					{
 						"row": self.row_number,
-						"field": df.as_dict(convert_dates_to_str=True),
+						"field": df_as_json(df),
 						"message": msg,
 					}
 				)
@@ -635,7 +653,7 @@ class Row:
 					{
 						"row": self.row_number,
 						"col": col.column_number,
-						"field": df.as_dict(convert_dates_to_str=True),
+						"field": df_as_json(df),
 						"message": _("Value {0} must in {1} format").format(
 							frappe.bold(value), frappe.bold(get_user_format(col.date_format))
 						),
@@ -646,7 +664,7 @@ class Row:
 		return value
 
 	def link_exists(self, value, df):
-		key = df.options + "::" + value
+		key = df.options + "::" + cstr(value)
 		if Row.link_values_exist_map.get(key) is None:
 			Row.link_values_exist_map[key] = frappe.db.exists(df.options, value)
 		return Row.link_values_exist_map.get(key)
@@ -755,19 +773,21 @@ class Row:
 
 
 class Header(Row):
-	def __init__(self, index, row, doctype, raw_data, column_to_field_map):
+	def __init__(self, index, row, doctype, raw_data, column_to_field_map=None):
 		self.index = index
 		self.row_number = index + 1
 		self.data = row
 		self.doctype = doctype
+		column_to_field_map = column_to_field_map or frappe._dict()
 
 		self.seen = []
 		self.columns = []
 
 		for j, header in enumerate(row):
 			column_values = [get_item_at_index(r, j) for r in raw_data]
+			map_to_field = column_to_field_map.get(str(j))
 			column = Column(
-				j, header, self.doctype, column_values, column_to_field_map.get(header), self.seen
+				j, header, self.doctype, column_values, map_to_field, self.seen
 			)
 			self.seen.append(header)
 			self.columns.append(column)
@@ -824,7 +844,7 @@ class Column:
 
 		self.meta = frappe.get_meta(doctype)
 		self.parse()
-		self.parse_date_format()
+		self.validate_values()
 
 	def parse(self):
 		header_title = self.header_title
@@ -897,10 +917,6 @@ class Column:
 		self.df = df
 		self.skip_import = skip_import
 
-	def parse_date_format(self):
-		if self.df and self.df.fieldtype in ("Date", "Time", "Datetime"):
-			self.date_format = self.guess_date_format_for_column()
-
 	def guess_date_format_for_column(self):
 		""" Guesses date format for a column by parsing all the values in the column,
 		getting the date format and then returning the one which has the maximum frequency
@@ -935,6 +951,26 @@ class Column:
 
 		return max_occurred_date_format
 
+	def validate_values(self):
+		if not self.df:
+			return
+
+		if self.df.fieldtype == 'Link':
+			# find all values that dont exist
+			values = list(set([v for v in self.column_values[1:] if v]))
+			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={'name': ('in', values)})]
+			not_exists = list(set(values) - set(exists))
+			if not_exists:
+				missing_values = ', '.join(not_exists)
+				self.warnings.append({
+					'col': self.column_number,
+					'message': "The following values do not exist for {}: {}".format(self.df.options, missing_values),
+					'type': 'warning'
+				})
+		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
+			# guess date format
+			self.date_format = self.guess_date_format_for_column()
+
 	def as_dict(self):
 		d = frappe._dict()
 		d.index = self.index
@@ -944,6 +980,9 @@ class Column:
 		d.map_to_field = self.map_to_field
 		d.date_format = self.date_format
 		d.df = self.df
+		if hasattr(self.df, 'is_child_table_field'):
+			d.is_child_table_field = self.df.is_child_table_field
+			d.child_table_df = self.df.child_table_df
 		d.skip_import = self.skip_import
 		d.warnings = self.warnings
 		return d
@@ -1113,3 +1152,13 @@ def get_user_format(date_format):
 		.replace("%m", "mm")
 		.replace("%d", "dd")
 	)
+
+def df_as_json(df):
+	return {
+		'fieldname': df.fieldname,
+		'fieldtype': df.fieldtype,
+		'label': df.label,
+		'options': df.options,
+		'parent': df.parent,
+		'default': df.default
+	}
