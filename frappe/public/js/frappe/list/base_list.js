@@ -166,7 +166,15 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_view_menu() {
-		this.views_menu = this.page.add_custom_button_group(__(`View as {0}`, [this.view_name]), 'list');
+		const icon_map = {
+			'Image': 'image-view',
+			'List': 'list',
+			'Calendar': 'calendar',
+			'Gantt': 'gantt',
+			'Kanban': 'kanban'
+		}
+
+		this.views_menu = this.page.add_custom_button_group(__(`View as {0}`, [this.view_name]), icon_map[this.view_name] || 'list');
 		this.views_list = new frappe.views.Views({
 			doctype: this.doctype,
 			parent: this.views_menu,
