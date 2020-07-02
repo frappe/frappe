@@ -13,8 +13,8 @@ from frappe import _
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
 	doc = frappe.get_doc(reference_doctype, reference_name)
 
-	if not comment.strip() or len(comment) < 10:
-		frappe.msgprint(_('Your comment should be atleast 10 characters long'))
+	if not comment.strip():
+		frappe.msgprint(_('The comment cannot be empty'))
 		return False
 
 	url_regex = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", re.IGNORECASE)
@@ -25,8 +25,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		return False
 
 	if not comment_email == frappe.session.user:
-		frappe.msgprint(_('Please comment as the logged in user'))
-		return False
+		comment_email = frappe.session.user
 
 	comments_count = frappe.db.count("Comment", {
 		"comment_type": "Comment",
