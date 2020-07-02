@@ -140,6 +140,46 @@ class TestEventProducer(unittest.TestCase):
 
 		reset_configuration(producer_url)
 
+	def test_conditional_events(self):
+		producer = get_remote_site()
+		
+		# Add Condition
+		event_producer = frappe.get_doc('Event Producer', producer_url)
+		event_producer.conditions = []
+		event_producer.append('conditions', {
+			'dt': 'Note',
+			'type': 'eval',
+			'eval': 'doc.public == 1'
+		})
+		event_producer.save()
+
+		# Make test doc
+		producer_note1 = frappe._dict(doctype='Note', public=0, title='test conditional sync')
+		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note1['title']})
+		producer_note1 = producer.insert(producer_note1)
+
+		# Make Update
+		producer_note1['content'] = 'Test Conditional Sync Content'
+		producer_note1 = producer.update(producer_note1)
+
+		self.pull_producer_data()
+
+		# Check if synced here
+		self.assertFalse(frappe.db.exists('Note', producer_note1.name))
+
+		# Lets satisfy the condition
+		producer_note1['public'] = 1
+		producer_note1 = producer.update(producer_note1)
+
+		self.pull_producer_data()
+
+		# it should sync now
+		self.assertTrue(frappe.db.exists('Note', producer_note1.name))
+		local_note = frappe.get_doc('Note', producer_note1.name)
+		self.assertEqual(local_note['content', producer_note1['content']])
+
+		reset_configuration(producer_url)
+
 	def test_update_log(self):
 		producer = get_remote_site()
 		producer_doc = insert_into_producer(producer, 'test update log')
