@@ -343,7 +343,7 @@ def get_updates(producer_site, last_update, doctypes):
 			'doctypes': frappe.as_json(doctypes),
 			'last_update': last_update
 	})
-	return [frappe._dict(d) for d in docs]
+	return [frappe._dict(d) for d in (docs or [])]
 
 
 def get_local_doc(update):

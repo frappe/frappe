@@ -148,7 +148,7 @@ class TestEventProducer(unittest.TestCase):
 		event_producer.conditions = []
 		event_producer.append('conditions', {
 			'dt': 'Note',
-			'type': 'eval',
+			'type': 'Eval',
 			'eval': 'doc.public == 1'
 		})
 		event_producer.save()
