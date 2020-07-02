@@ -134,7 +134,7 @@ class EventProducer(Document):
 								fieldname=x.fieldname,
 								operator=x.operator,
 								value=x.value,
-								condition=x.condition
+								eval=x.eval
 						)
 						for x in self.get("conditions", [])
 				]
