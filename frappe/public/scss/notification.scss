@@ -1,0 +1,198 @@
+.dropdown-notifications .header {
+	margin: 7px 15px 10px 15px;
+	cursor: pointer;
+}
+
+.mark-all-read {
+	margin-top: 2px;
+	margin-right: 15px;
+}
+
+.notification-settings {
+	margin-top: 2px;
+}
+
+.collapse-indicator {
+	padding: 0px 5px;
+    color: #d1d8dd;
+}
+
+.category-list[data-category="Open Documents"] li a {
+	text-decoration: none;
+	display: block;
+    padding: 14px;
+    clear: both;
+    font-weight: normal;
+    line-height: 1.42857143;
+    color: #333;
+    white-space: normal;
+}
+
+.category-list[data-category="Open Documents"] li a:hover {
+	background-color: #f0f4f7;
+}
+
+.open-doc-count {
+	margin-left: 150px;
+}
+
+.notifications-indicator {
+	font-size: 7px;
+	position: absolute;
+	top: 4px;
+	right: 8px;
+	// color: @indicator-orange;
+	display: none;
+}
+
+.mark-read {
+	display: none;
+	margin-left: 10px;
+	font-size: 11px;
+}
+
+.mark-read:hover {
+	text-decoration: underline;
+}
+
+.notifications-list {
+	min-width: 480px;
+	padding: 0px 10px;
+	min-height: 560px;
+	border: none;
+	position: absolute;
+	box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
+
+	.notification-list-header {
+		margin: 0px 10px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1px solid $border-color;
+	}
+
+	.notification-list-body {
+		// margin: 10px 0px;
+		max-height: 500px;
+    	overflow-y: auto;
+	}
+
+	.notification-item-tabs {
+		border: none;
+
+		.notifications-category {
+			padding: 15px 0px;
+			margin-bottom: -1px;
+			margin-right: 20px;
+			color: $text-muted;
+			font-weight: 500;
+			cursor: pointer;
+
+			&.active {
+				color: var(--grey-800);
+				border-bottom: 2px solid $primary;
+			}
+		}
+	}
+}
+
+.date-range {
+	padding: 10px 0 2px 10px;
+	font-weight: 500;
+}
+
+.recent-item {
+	padding: 10px 10px 10px 4px;
+	margin: 4px 0px;
+	border-radius: var(--border-radius-md, 8px);
+
+	white-space: normal;
+	font-weight: normal;
+
+	display: flex;
+
+	font-size: var(--text-md);
+	line-height: 20px;
+
+
+	b {
+		font-weight: 500;
+		color: var(--grey-800)
+	}
+
+	.notification-timestamp {
+		font-size: var(--text-xs);
+	}
+
+	.user-avatar {
+		margin-right: 10px;
+
+		.avatar-frame {
+			height: 36px;
+			width: 36px;
+		}
+	}
+
+	&:first-child {
+		margin-top: 10px;
+	}
+
+	&:hover {
+		color: $text-muted;
+		text-decoration: none;
+		background-color: var(--grey-100);
+	}
+
+	&::before {
+		content: '';
+		display:inline-block;
+		height: 4px;
+		width: 4px;
+		margin-top: 14px;
+		border-radius: 10px;
+		margin-right: 5px;
+	}
+
+	&.unread::before {
+		background: var(--blue-500);
+	}
+}
+
+.list-footer {
+	display: block;
+	text-align: center;
+	padding: 10px;
+	color: $text-muted;
+
+	&:hover {
+		text-decoration: none;
+		color: var(--text-grey-900)
+	}
+}
+
+.event-time {
+	margin-right: 10px;
+}
+
+.notifications-loading {
+	margin-bottom: 15px;
+}
+
+@media (max-width: 767px) {
+
+	.dropdown-notifications {
+		.notifications-list {
+			max-height: 100vh;
+			min-width: 100vw;
+		}
+
+		.category-list[data-category="Open Documents"] li a {
+			margin: 0 15px;
+		}
+
+		.recent-item .user-avatar {
+			margin-right: 10px;
+			margin-left: 5px;
+		}
+	}
+}
