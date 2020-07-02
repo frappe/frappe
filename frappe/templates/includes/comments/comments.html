@@ -91,7 +91,7 @@
 				route: "{{ pathname }}",
 			}
 
-			if(!args.comment) {
+			if(!args.comment || !args.comment.trim()) {
 				frappe.msgprint("{{ _("Please add a valid comment.") }}");
 				return false;
 			}
