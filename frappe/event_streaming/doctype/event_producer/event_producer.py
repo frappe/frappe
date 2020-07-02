@@ -81,7 +81,7 @@ class EventProducer(Document):
 						value=x.value,
 						eval=x.eval
 				)
-				for x in doc.get("conditions", [])
+				for x in self.get("conditions", [])
 		]
 
 		return {
