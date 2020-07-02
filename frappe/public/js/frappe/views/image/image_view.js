@@ -54,21 +54,31 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	render_image_view() {
 		var html = this.items.map(this.item_html.bind(this)).join("");
 
+	 	this.$page.find('.layout-main-section-wrapper').addClass('image-view');
+
 		this.$result.html(`
 			${this.get_header_html()}
-			<div class="image-view-container small">
+			<hr class="image-view-divider">
+			<div class="image-view-container">
 				${html}
 			</div>
 		`);
+
+		this.render_count();
 	}
 
 	item_details_html(item) {
-		const info_fields = this.get_fields_in_list_view().map((el)=> el.fieldname)  || [];
+		// TODO: Image view field in DocType
+		let info_fields = this.get_fields_in_list_view().map((el)=> el.fieldname)  || [];
+		const title_field = this.meta.title_field || 'name';
+		info_fields = info_fields.filter(field => field !== title_field);
 		let info_html = `<div><ul class="list-unstyled image-view-info">`;
+		let set = false;
 		info_fields.forEach((field, index) => {
-			if (item[field]) {
+			if (item[field] && !set) {
 				if (index == 0) info_html += `<li>${item[field]}</li>`;
 				else info_html += `<li class="text-muted">${item[field]}</li>`;
+				set = true;
 			}
 		})
 		info_html += `</ul></div>`;
@@ -79,6 +89,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		item._name = encodeURI(item.name);
 		const encoded_name = item._name;
 		const title = strip_html(item[this.meta.title_field || 'name']);
+		const escaped_title = frappe.utils.escape_html(title);
 		const _class = !item._image_url ? 'no-image' : '';
 		const _html = item._image_url ?
 			`<img data-name="${encoded_name}" src="${ item._image_url }" alt="${ title }">` :
@@ -86,14 +97,33 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 				${ frappe.get_abbr(title) }
 			</span>`;
 
+		const user = frappe.session.user;
+
+
 		let details = this.item_details_html(item);
 
+		const liked_by = JSON.parse(item._liked_by || "[]");
+
+		let heart_class = liked_by.includes(user)
+			? "liked-by"
+			: "text-extra-muted not-liked";
+
 		return `
-			<div class="image-view-item">
+			<div class="image-view-item ellipsis">
 				<div class="image-view-header">
-					<div class="list-row-col list-subject ellipsis level">
-						${this.get_subject_html(item)}
-					</div>
+					<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${escape(
+						item.name
+					)}">
+					<span
+						class="like-action ${heart_class}"
+						data-name="${item.name}" data-doctype="${this.doctype}"
+						data-liked-by="${encodeURI(item._liked_by) || "[]"}">
+						${frappe.utils.icon('heart')}
+					</span>
+					<span class="likes-count">
+						${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
+					</span>
+				</span>
 				</div>
 				<div class="image-view-body">
 					<a  data-name="${encoded_name}"
@@ -109,6 +139,17 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 							</button>
 						</div>
 					</a>
+				</div>
+				<div class="image-title">
+					<span class="ellipsis" title="${escaped_title}">
+						<a class="ellipsis" href="${this.get_form_link(
+							item
+						)}" title="${escaped_title}" data-doctype="${
+							this.doctype
+						}" data-name="${item.name}">
+							${title}
+						</a>
+					</span>
 				</div>
 				${details}
 			</div>
@@ -143,12 +184,18 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 	get_header_html() {
 		return this.get_header_html_skeleton(`
-			<div class="list-row-col list-subject level ">
-				<input class="level-item list-check-all hidden-xs" type="checkbox" title="Select All">
-				<span class="level-item list-liked-by-me">
-					<i class="octicon octicon-heart text-extra-muted" title="Likes"></i>
-				</span>
-				<span class="level-item"></span>
+			<div class="list-image-header">
+				<div class="list-image-header-item">
+					<input class="level-item list-check-all hidden-xs" type="checkbox" title="Select All">
+					<div>${__(this.doctype)} &nbsp;</div>
+					(<span class="text-muted list-count"></span>)
+				</div>
+				<div class="list-image-header-item">
+					<div class="level-item list-liked-by-me">
+						${frappe.utils.icon('heart')}
+					</div>
+					<div>${__('Liked')}</div>
+				</div>
 			</div>
 		`);
 	}

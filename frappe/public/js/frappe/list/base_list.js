@@ -166,6 +166,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_view_menu() {
+		// TODO: add all icons
 		const icon_map = {
 			'Image': 'image-view',
 			'List': 'list',

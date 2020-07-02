@@ -451,6 +451,18 @@
 		stroke-linejoin="round"></path>
 		<path d="M8 9.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" stroke="#192734" stroke-miterlimit="10" stroke-linecap="square"></path>
 	</symbol>
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-image-view">
+		<path d="M2.5 3.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h-3a1 1 0 0 1-1-1v-2zm0 7a1 1 0 0 1 1-1h3v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2zm7-7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3v-3zm0 6h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3z"></path>
+	</symbol>
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-gant">
+		<path d="M2.5 3.5h2m7 9h2m-10-6h6m-3 3h6" stroke="#192734" stroke-linecap="round" stroke-linejoin="round"></path>
+	</symbol>
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-kanban">
+		<g>
+			<rect x="2.5" y="2.5" width="4" height="11" rx="1"></rect>
+			<rect x="9.5" y="2.5" width="4" height="7" rx="1"></rect>
+		</g>
+	</symbol>
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-income">
 		<path d="M2 4.182V7.09c0 1.205 1.953 2.182 4.364 2.182 2.41 0 4.363-.977 4.363-2.182V4.18" stroke="#192734" stroke-miterlimit="10"></path>
 		<path d="M2 7.09V10c0 1.205 1.953 2.182 4.364 2.182 1.117 0 2.136-.211 2.909-.556" stroke="#192734" stroke-miterlimit="10"></path>
@@ -498,5 +510,13 @@
 		<path d="M20 5.5H4C3.44772 5.5 3 5.94772 3 6.5V10.5C3 11.0523 3.44772 11.5 4 11.5H20C20.5523 11.5 21 11.0523 21 10.5V6.5C21 5.94772 20.5523 5.5 20 5.5Z" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="square"/>
 		<path d="M20 13.5V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V13.5" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M13.5 10.5H10.5C9.94772 10.5 9.5 10.9477 9.5 11.5C9.5 12.0523 9.94772 12.5 10.5 12.5H13.5C14.0523 12.5 14.5 12.0523 14.5 11.5C14.5 10.9477 14.0523 10.5 13.5 10.5Z" fill="white" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="square"/>
+	</symbol>
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-heart">
+		<path d="M7.606 3.799L8 4.302l.394-.503.106-.14c.048-.065.08-.108.129-.159a3.284 3.284 0 0 1 4.72 0c.424.434.655 1.245.65 2.278-.006 1.578-.685 2.931-1.728 4.159-1.05 1.234-2.439 2.308-3.814 3.328a.763.763 0 0 1-.914 0c-1.375-1.02-2.764-2.094-3.814-3.328C2.686 8.709 2.007 7.357 2 5.778c-.004-1.033.227-1.844.651-2.278a3.284 3.284 0 0 1 4.72 0c.05.05.081.094.129.158.028.038.061.083.106.14z">
+		</path>
+	</symbol>
+	<symbol viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-heart-active">
+	<path d="M12.706 1.15a3.784 3.784 0 0 0-5.434 0c-.104.106-.183.227-.272.34-.089-.113-.168-.234-.272-.34a3.784 3.784 0 0 0-5.434 0C.73 1.727.495 2.704.5 3.78c.015 3.468 3 5.85 5.745 7.886.45.334 1.06.334 1.51 0 2.746-2.035 5.73-4.418 5.745-7.886.005-1.077-.231-2.054-.794-2.63z"
+		stroke="none" fill="#E24C4C"></path>
 	</symbol>
 </svg>
