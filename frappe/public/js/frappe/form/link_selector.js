@@ -21,12 +21,21 @@ frappe.ui.form.LinkSelector = class {
 
 	make () {
 		var me = this;
+		this.page_length = 20;
+		this.start = 0;
 
 		// create filter fields
 		this.selector = new frappe.ui.form.Selector();
 		let fields = this.selector.get_filters(this.doctype, this.setters);
 		fields = fields.concat([
-			{ fieldtype: "HTML", fieldname: "results_area" }
+			{ fieldtype: "HTML", fieldname: "results_area" },
+			{
+				fieldtype: "Button", fieldname: "more_btn", label: __("More"),
+				click: () => {
+					this.start += 20;
+					this.get_results();
+				}
+			}
 		]);
 
 		let doctype_plural = this.doctype.plural();
@@ -54,7 +63,7 @@ frappe.ui.form.LinkSelector = class {
 
 	get_image_field () {
 		// Check if doctype has image field
-		return false;
+		return true;
 	}
 
 	bind_events () {
@@ -106,17 +115,34 @@ frappe.ui.form.LinkSelector = class {
 			no_spinner: true,
 			args: args,
 			callback: function (r) {
-				me.render_results(r);
+				let more = 0;
+				me.results = [];
+				if (r.values.length) {
+					if (r.values.length > me.page_length) {
+						r.values.pop();
+						more = 1;
+					}
+					r.values.forEach(function (result) {
+						result.checked = 0;
+						me.results.push(result);
+					});
+				}
+				me.render_results(me.results, more);
 			},
 			btn: this.dialog.get_primary_btn()
 		});
 	}
 
-	render_results (results) {
+	render_results (results, more=0) {
 		var me = this;
+		var more_btn = me.dialog.fields_dict.more_btn.$wrapper;
 		this.$results_area.empty();
 
-		if (results && results.values.length) {
+		more_btn.hide();
+		if (results.length === 0) return;
+		if (more) more_btn.show();
+
+		if (results) {
 			// Render card/list view and bind action to checkboxes
 			this.view === "Card View" ? this.render_card_view(results) : this.render_list_view(results);
 
@@ -152,8 +178,8 @@ frappe.ui.form.LinkSelector = class {
 		let card_fields = Object.keys(this.setters).slice(0, 2);
 		let columns = ["name", ...card_fields];
 
-		$.each(results.values, function (i, result) {
-			$wrapper.append(me.selector.make_card(columns, result));
+		$.each(results, function (i, result) {
+			$wrapper.append(me.selector.make_card(columns, result, i));
 		});
 
 		this.checkbox_class = ".Check";
@@ -168,7 +194,7 @@ frappe.ui.form.LinkSelector = class {
 		this.$results = this.$results_area.find('.results');
 		this.$results.append(this.selector.make_list_row(this.doctype, this.setters));
 
-		results.values.forEach(result => {
+		results.forEach(result => {
 			me.$results.append(me.selector.make_list_row(me.doctype, me.setters, result));
 		});
 

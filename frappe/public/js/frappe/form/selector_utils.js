@@ -95,15 +95,16 @@ frappe.ui.form.Selector = class Selector {
 		return $row;
 	}
 
-	make_card (columns, result={}) {
+	make_card (columns, result={}, index) {
 		/**
 		 * Formats result in Card View
 		 */
 		return $(`<div class="grid-item">
 				${ this.get_image_html(result["image"], result["name"]) }
 				<div class="round">
-   					 <input class="Check" type="checkbox" data-name="${result["name"]}"/>
-  				</div>
+					<input class="Check" type="checkbox" data-name="${result["name"]}" id="${"checkbox"+index}"/>
+					<label for="${"checkbox"+index}"></label>
+				</div>
 				<div style="text-align: left;">
 					<div class= "card-content">${frappe.ellipsis(result["name"], 20)}</div>
 					<div class="card-content-muted">${frappe.ellipsis(result[columns[1]], 18)}</div>
