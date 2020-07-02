@@ -284,16 +284,18 @@ frappe.ui.form.PrintPreview = Class.extend({
 						});
 					} else {
 						frappe.show_alert({
-							message: __('PDF printing via "Raw Print" is not yet supported. Please remove the printer mapping in Printer Settings and try again.'),
-							indicator: 'blue'
+							message: __('PDF printing via "Raw Print" is not supported.'),
+							subtitle: __('Please remove the printer mapping in Printer Settings and try again.'),
+							indicator: 'info'
 						}, 14);
 						//Note: need to solve "Error: Cannot parse (FILE)<URL> as a PDF file" to enable qz pdf printing.
 					}
 				} else if (me.is_raw_printing()) {
 					// printer not mapped in localstorage and the current print format is raw printing
 					frappe.show_alert({
-						message: __('Please set a printer mapping for this print format in the Printer Settings'),
-						indicator: 'blue'
+						message: __('Printer mapping not set.'),
+						subtitle: __('Please set a printer mapping for this print format in the Printer Settings'),
+						indicator: 'warning'
 					}, 14);
 					me.printer_setting_dialog();
 				} else {

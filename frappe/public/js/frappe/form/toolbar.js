@@ -71,7 +71,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	show_unchanged_document_alert: function() {
 		frappe.show_alert({
-			indicator: "yellow",
+			indicator: "info",
 			message: __("Unchanged")
 		});
 	},

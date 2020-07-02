@@ -24,19 +24,19 @@ export default class Widget {
 		this.in_customize_mode = true;
 		this.action_area.empty();
 
+		options.allow_sorting &&
+			this.add_custom_button(
+				frappe.utils.icon('drag', 'xs'),
+				null,
+				"drag-handle",
+			);
+
 		options.allow_delete &&
 			this.add_custom_button(
-				'<i class="fa fa-trash" aria-hidden="true"></i>',
+				frappe.utils.icon('delete', 'xs'),
 				() => this.delete(),
 				"",
 				`${__('Delete')}`
-			);
-
-		options.allow_sorting &&
-			this.add_custom_button(
-				'<i class="fa fa-arrows" aria-hidden="true"></i>',
-				null,
-				"drag-handle",
 			);
 
 		if (options.allow_hiding) {
@@ -62,7 +62,7 @@ export default class Widget {
 
 		options.allow_edit &&
 			this.add_custom_button(
-				'<i class="fa fa-pencil" aria-hidden="true"></i>',
+				frappe.utils.icon("edit", "xs"),
 				() => this.edit()
 			);
 
@@ -92,7 +92,10 @@ export default class Widget {
 			${ this.shadow ? "widget-shadow" : " " }
 		" data-widget-name="${this.name ? this.name : ''}">
 			<div class="widget-head">
-				<div class="widget-title ellipsis"></div>
+				<div>
+					<div class="widget-title ellipsis"></div>
+					<div class="widget-subtitle"></div>
+				</div>
 				<div class="widget-control"></div>
 			</div>
 			<div class="widget-body">
@@ -102,6 +105,7 @@ export default class Widget {
 		</div>`);
 
 		this.title_field = this.widget.find(".widget-title");
+		this.subtitle_field = this.widget.find(".widget-subtitle");
 		this.body = this.widget.find(".widget-body");
 		this.action_area = this.widget.find(".widget-control");
 		this.head = this.widget.find(".widget-head");
@@ -122,6 +126,7 @@ export default class Widget {
 				this.title_field[0].setAttribute('title', this.label);
 			}
 		}
+		this.subtitle && this.subtitle_field.html(this.subtitle);
 	}
 
 	add_custom_button(html, action, class_name = "", title="") {

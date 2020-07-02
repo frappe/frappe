@@ -29,7 +29,8 @@ frappe.call = function(opts) {
 	if (!frappe.is_online()) {
 		frappe.show_alert({
 			indicator: 'orange',
-			message: __('You are not connected to Internet. Retry after sometime.')
+			message: __('Connection Lost'),
+			subtitle: __('You are not connected to Internet. Retry after sometime.')
 		}, 3);
 		opts.always && opts.always();
 		return $.ajax();

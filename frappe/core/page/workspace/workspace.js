@@ -16,6 +16,7 @@ class Workspace {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
 		this.prepare_container();
+		this.setup_dropdown();
 		this.pages = {};
 		this.sidebar_items = {};
 		this.sidebar_categories = [
@@ -115,7 +116,7 @@ class Workspace {
 		const make_sidebar_category_item = item => {
 			if (item.name == this.get_page_to_show()) {
 				item.selected = true;
-				this.current_page = item.name;
+				this.current_page_name = item.name;
 			}
 			
 			let $item = get_sidebar_item(item);
@@ -130,18 +131,20 @@ class Workspace {
 	}
 
 	show_page(page) {
-		if (this.current_page && this.pages[this.current_page]) {
-			this.pages[this.current_page].hide();
+		if (this.current_page_name && this.pages[this.current_page_name]) {
+			this.pages[this.current_page_name].hide();
 		}
 
-		if (this.sidebar_items && this.sidebar_items[this.current_page]) {
-			this.sidebar_items[this.current_page].removeClass("selected");
+		if (this.sidebar_items && this.sidebar_items[this.current_page_name]) {
+			this.sidebar_items[this.current_page_name].removeClass("selected");
 			this.sidebar_items[page].addClass("selected");
 		}
-		this.current_page = page;
+		this.current_page_name = page;
 		localStorage.current_desk_page = page;
 		
 		this.pages[page] ? this.pages[page].show() : this.make_page(page);
+		this.current_page = this.pages[page];
+		this.setup_dropdown();
 	}
 
 	make_page(page) {
@@ -152,6 +155,47 @@ class Workspace {
 
 		this.pages[page] = $page;
 		return $page;
+	}
+
+	customize() {
+		if (this.current_page && this.current_page.allow_customization) {
+			this.page.clear_menu()
+			this.current_page.customize();
+			
+			this.page.set_primary_action(
+				__("Save Customizations"),
+				() => {
+					this.current_page.save_customization();
+					this.page.clear_primary_action();
+					this.setup_dropdown();
+				},
+				null,
+				__("Saving")
+			)
+
+			this.page.set_secondary_action(
+				__("Discard"),
+				() => {
+					this.current_page.reload();
+					this.page.clear_secondary_action();
+					this.setup_dropdown();
+				}
+			)
+		}
+	}	
+
+	setup_dropdown() {
+		this.page.clear_menu();
+		
+		this.page.add_menu_item('Customize', () => {
+			this.customize();
+		}, 1);
+
+		// this.page.add_menu_item('Reset', () => {
+		// }, 1);
+
+		// this.page.add_menu_item('Hide Page', () => {
+		// }, 1)
 	}
 }
 
@@ -234,9 +278,6 @@ class DesktopPage {
 
 		// We need to remove this as the  chart group will be visible during customization
 		$('.widget.onboarding-widget-box').hide();
-
-		this.customize_link.hide();
-		this.save_or_discard_link.show();
 
 		Object.keys(this.sections).forEach(section => {
 			this.sections[section].customize();

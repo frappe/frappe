@@ -216,7 +216,7 @@ frappe.Application = Class.extend({
 					s.hide();
 					d.hide();//hide waiting indication
 					if (!passed["message"]) {
-						frappe.show_alert("Login Failed please try again", 5);
+						frappe.show_alert({message: __("Login Failed please try again"), indicator: 'error'}, 5);
 						me.email_password_prompt(email_account, user, i);
 					} else {
 						if (i + 1 < email_account.length) {

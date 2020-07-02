@@ -36,7 +36,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 				freeze_message: freeze_message
 			});
 		} else {
-			!frm.is_dirty() && frappe.show_alert({message: __("No changes in document"), indicator: "blue"});
+			!frm.is_dirty() && frappe.show_alert({message: __("No changes in document"), indicator: "orange"});
 			$(btn).prop("disabled", false);
 		}
 	};

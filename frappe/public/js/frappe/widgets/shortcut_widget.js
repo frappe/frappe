@@ -80,7 +80,7 @@ export default class ShortcutWidget extends Widget {
 			? this.color.toLowerCase()
 			: 'grey';
 		
-		const buttons = $(`<div class="small indicator-pill ${color}">${label}</div>`);
+		const buttons = $(`<div class="indicator-pill ${color}">${label}</div>`);
 		buttons.appendTo(this.action_area);
 	}
 }
