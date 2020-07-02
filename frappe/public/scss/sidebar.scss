@@ -328,7 +328,7 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.list-sidebar-label {
-		color: var(--grey-500);
+		color: var(--grey-600);
 		text-transform: uppercase;
 		letter-spacing: 0.04rem;
 		font-size: var(--text-xs);
@@ -339,6 +339,10 @@ body[data-route^="Module"] .main-menu {
 		display: flex;
 		justify-content: space-between;
 		padding: 4px 8px;
+
+		&:hover {
+			text-decoration: none;
+		}
 	}
 
 	.group-by-count {
@@ -359,6 +363,9 @@ body[data-route^="Module"] .main-menu {
 		.dropdown-item {
 			display: flex;
 			justify-content: space-between;
+			&:hover {
+				text-decoration: none;
+			}
 		}
 
 		.empty-state {
