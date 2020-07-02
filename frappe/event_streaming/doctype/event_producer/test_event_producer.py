@@ -176,7 +176,7 @@ class TestEventProducer(unittest.TestCase):
 		# it should sync now
 		self.assertTrue(frappe.db.exists('Note', producer_note1.name))
 		local_note = frappe.get_doc('Note', producer_note1.name)
-		self.assertEqual(local_note['content'], producer_note1['content']])
+		self.assertEqual(local_note['content'], producer_note1['content'])
 
 		reset_configuration(producer_url)
 
