@@ -53,8 +53,8 @@ frappe.ui.Notifications = class Notifications {
 
 		this.categories = [
 			{ label: __("Notifications"), id: "notifications", view: NotificationsView },
-			{ label: __("Today's Events"), id: "todays_events", view: NotificationsView },
-			{ label: __("Open Documents"), id: "open_documents", view: NotificationsView }
+			{ label: __("Today's Events"), id: "todays_events", view: EventsView },
+			{ label: __("Open Documents"), id: "open_documents", view: OpenDocsView }
 		];
 
 		let get_headers_html = (item) => {
@@ -89,12 +89,17 @@ frappe.ui.Notifications = class Notifications {
 		});
 		item.dom.addClass("active");
 		this.current_tab && this.current_tab.hide();
-		this.tabs[item.id] ? this.tabs[item.id].show() : this.make_tab_view(item);
+		if (this.tabs[item.id]) {
+			this.tabs[item.id].show()
+			this.current_tab = this.tabs[item.id]
+		} else {
+			this.make_tab_view(item);
+		}
 	}
 
 	make_tab_view(item) {
 		let tabView = new item.view({
-			container: this.body,
+			wrapper: this.body,
 			max_length: this.max_length
 		});
 		this.tabs[item.id] = tabView;
@@ -128,40 +133,6 @@ frappe.ui.Notifications = class Notifications {
 	// ------------------------------------------------------------------------------------------------------------------
 	// ------------------------------------------------------------------------------------------------------------------
 	// ------------------------------------------------------------------------------------------------------------------
-
-
-	render_todays_events(e, $target) {
-		let hide = $target.next().hasClass('in');
-		if (!hide) {
-			let today = frappe.datetime.get_today();
-			frappe.xcall('frappe.desk.doctype.event.event.get_events', {
-				start: today,
-				end: today
-			}).then(event_list => {
-				this.render_events_html(event_list);
-			});
-		}
-	}
-
-	render_events_html(event_list) {
-		let html = '';
-		if (event_list.length) {
-			let get_event_html = event => {
-				let time = frappe.datetime.get_time(event.starts_on);
-				return `<a class="recent-item event" href="#Form/Event/${event.name}">
-					<span class="event-time bold">${time}</span>
-					<span class="event-subject">${event.subject}</span>
-				</a>`;
-			};
-			html = event_list.map(get_event_html).join('');
-		} else {
-			html = `<li class="recent-item text-center">
-					<span class="text-muted">${__('No Events Today')}</span>
-				</li>`;
-		}
-
-		this.$today_events.html(html);
-	}
 
 	get_open_document_config(e) {
 		this.open_docs_config = {
@@ -366,17 +337,6 @@ frappe.ui.Notifications = class Notifications {
 			}
 		});
 	}
-
-	toggle_collapse_indicator($el) {
-		$el
-			.prev()
-			.find('.collapse-indicator')
-			.toggleClass('octicon-chevron-down');
-		$el
-			.prev()
-			.find('.collapse-indicator')
-			.toggleClass('octicon-chevron-up');
-	}
 };
 
 
@@ -410,19 +370,29 @@ frappe.ui.notifications = {
 	}
 };
 
-class NotificationsView {
+class BaseNotificaitonsView {
 	constructor(opts) {
 		// wrapper, max_length
 		Object.assign(this, opts)
+		this.container = $(`<div></div>`).appendTo(this.wrapper);
 		this.make();
 	}
 
 	show() {
-		console.log("show")
+		this.container.show()
 	}
 
 	hide() {
-		console.log("hide")
+		this.container.hide()
+	}
+}
+
+class NotificationsView extends BaseNotificaitonsView {
+	make() {
+		this.get_notifications_list(this.max_length).then(list => {
+			this.dropdown_items = list;
+			this.render_notifications_dropdown();
+		});
 	}
 
 	get_dropdown_item_html(field) {
@@ -447,7 +417,7 @@ class NotificationsView {
 		let user_avatar = frappe.avatar(user, 'avatar-medium user-avatar');
 
 		let item_html =
-			`<a class="recent-item ${read_class}"
+			`<a class="recent-item notification-item ${read_class}"
 				href="${doc_link}"
 				data-name="${field.name}"
 				${mark_read_action}
@@ -465,7 +435,7 @@ class NotificationsView {
 		let dropdown_html;
 
 		if (this.notifications_settings && !this.notifications_settings.enabled) {
-			dropdown_html = `<li class="recent-item text-center">
+			dropdown_html = `<li class="recent-item notification-item">
 				<span class="text-muted">
 					${__('Notifications Disabled')}
 				</span></li>`;
@@ -491,13 +461,6 @@ class NotificationsView {
 		this.container.html(dropdown_html);
 	}
 
-	make() {
-		this.get_notifications_list(this.max_length).then(list => {
-			this.dropdown_items = list;
-			this.render_notifications_dropdown();
-		});
-	}
-
 	get_notifications_list(limit) {
 		return frappe.db.get_list('Notification Log', {
 			fields: ['*'],
@@ -515,5 +478,61 @@ class NotificationsView {
 			link_doctype,
 			link_docname
 		);
+	}
+}
+
+class EventsView extends BaseNotificaitonsView {
+	make() {
+		let today = frappe.datetime.get_today();
+		frappe.xcall('frappe.desk.doctype.event.event.get_events', {
+			start: today,
+			end: today
+		}).then(event_list => {
+			console.log(event_list);
+			this.render_events_html(event_list);
+		});
+	}
+
+	render_events_html(event_list) {
+		let html = '';
+		if (event_list.length) {
+			let get_event_html = (event) => {
+				let time;
+				if (event.all_day) {
+					time = __("All Day")
+				} else {
+					let start_time = frappe.datetime.get_time(event.starts_on);
+					let days_diff = frappe.datetime.get_day_diff(event.ends_on, event.starts_on)
+					let end_time;
+					if (days_diff > 1) {
+						end_time = __("Rest of the Day");
+					} else {
+						end_time = frappe.datetime.get_time(event.ends_on);
+					}
+
+					time = `${start_time} - ${end_time}`
+				}
+				return `<a class="recent-item event" href="#Form/Event/${event.name}">
+					<div class="event-border" style="border-color: ${event.color}"></div>
+					<div class="event-item">
+						<div class="event-subject">${event.subject}</div>
+						<div class="event-time">${time}</div>
+					</div>
+				</a>`;
+			};
+			html = event_list.map(get_event_html).join('');
+		} else {
+			html = `<li class="recent-item text-center">
+					<span class="text-muted">${__('No Events Today')}</span>
+				</li>`;
+		}
+
+		this.container.html(html);
+	}
+}
+
+class OpenDocsView extends BaseNotificaitonsView {
+	make() {
+		console.log("docs hello");
 	}
 }
