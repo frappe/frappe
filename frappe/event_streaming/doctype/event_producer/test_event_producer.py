@@ -334,6 +334,7 @@ def create_event_producer(producer_url):
 def reset_configuration(producer_url):
 	event_producer = frappe.get_doc('Event Producer', producer_url)
 	event_producer.producer_doctypes = []
+	event_producer.conditions = []
 	event_producer.producer_url = producer_url
 	event_producer.append('producer_doctypes', {
 		'ref_doctype': 'ToDo',
