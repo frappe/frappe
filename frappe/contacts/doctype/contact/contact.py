@@ -180,6 +180,7 @@ def update_contact(doc, method):
 		contact.flags.ignore_mandatory = True
 		contact.save(ignore_permissions=True)
 
+@frappe.whitelist()
 def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
