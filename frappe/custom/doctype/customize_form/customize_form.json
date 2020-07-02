@@ -22,7 +22,7 @@
   "allow_import",
   "show_preview_popup",
   "image_view",
-  "dont_allow_workflow",
+  "allow_workflow",
   "column_break_5",
   "title_field",
   "image_field",
@@ -213,10 +213,10 @@
    "label": "Show Preview Popup"
   },
   {
-    "default": "0",
-    "fieldname": "dont_allow_workflow",
+    "default": "1",
+    "fieldname": "allow_workflow",
     "fieldtype": "Check",
-    "label": "Don't Allow Workflow"
+    "label": "Allow Workflow"
    }
  ],
  "hide_toolbar": 1,
@@ -244,5 +244,6 @@
  "search_fields": "doc_type",
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1
+ "track_changes": 1,
+ "allow_workflow": 1
 }
