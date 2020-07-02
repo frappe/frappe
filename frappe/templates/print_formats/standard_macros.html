@@ -35,7 +35,6 @@
 		{%- set visible_columns = get_visible_columns(doc.get(df.fieldname),
 			table_meta, df) -%}
 		<div {{ fieldmeta(df) }}>
-			<label>{{ _(df.label) }}</label>
 			<table class="table table-bordered table-condensed">
 				<thead>
 					<tr>
@@ -96,7 +95,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- macro render_text_field(df, doc) -%}
 {%- if doc.get(df.fieldname) != None -%}
 <div style="padding: 10px 0px" {{ fieldmeta(df) }}>
-	{%- if df.fieldtype in ("Text", "Code", "Long Text", "Text Editor") %}<label>{{ _(df.label) }}</label>{%- endif %}
+	{%- if df.fieldtype in ("Text", "Code", "Long Text") %}<label>{{ _(df.label) }}</label>{%- endif %}
 	{%- if df.fieldtype=="Code" %}
 		<pre class="value">{{ doc.get(df.fieldname) }}</pre>
 	{% else -%}
