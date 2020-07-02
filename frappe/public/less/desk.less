@@ -722,43 +722,6 @@ li.user-progress {
 	height: 12px;
 }
 
-// custom font awesome checkbox
-input[type="checkbox"] {
-	position: relative;
-	visibility: hidden;
-
-	&:before {
-		position: absolute;
-		font-family: 'FontAwesome';
-		content: '\f096';
-		visibility: visible;
-		font-style: normal;
-		font-weight: normal;
-		font-variant: normal;
-		text-transform: none;
-		line-height: 14px;
-		display: inline-block;
-		font-size: 14px;
-		color: @text-extra-muted;
-		.transition(150ms color);
-		left: 0px;
-	}
-
-	&:focus:before {
-		color: @text-muted;
-	}
-
-	&:checked:before {
-		content: '\f14a';
-		font-size: 13px;
-		color: @checkbox-color;
-	}
-
-	&:focus {
-		outline: none;
-	}
-}
-
 // Will not be required after commonifying lists with empty state
 .multiselect-empty-state{
 	min-height: 300px;
