@@ -72,17 +72,17 @@ class EventProducer(Document):
 			else:
 				consumer_doctypes.append(entry.ref_doctype)
 
-	conditions = [
-			frappe._dict(
-					dt=x.dt,
-					type=x.type,
-					fieldname=x.fieldname,
-					operator=x.operator,
-					value=x.value,
-					eval=x.eval
-			)
-			for x in doc.get("conditions", [])
-	]
+		conditions = [
+				frappe._dict(
+						dt=x.dt,
+						type=x.type,
+						fieldname=x.fieldname,
+						operator=x.operator,
+						value=x.value,
+						eval=x.eval
+				)
+				for x in doc.get("conditions", [])
+		]
 
 		return {
 			'event_consumer': get_url(),

@@ -181,7 +181,7 @@ def has_consumer_access(consumer, doc):
 
 	# Global Perms
 	for dt_condn in frappe.get_all('Event DocType Condition', {'dt': doc.doctype}):
-		dt_condn = frappe.get_doc('Event DocType Condition')
+		dt_condn = frappe.get_doc('Event DocType Condition', dt_condn.name)
 		for condition in dt_condn.conditions:
 			if not event_condition_satisfied(doc, consumer, condition):
 				return False
@@ -192,6 +192,8 @@ def has_consumer_access(consumer, doc):
 	# Consumer Level Perms
 	if consumer.get('conditions') and len(consumer.conditions):
 		for condition in consumer.conditions:
+			if condition.dt != doc.doctype:
+				continue
 			if not event_condition_satisfied(doc, consumer, condition):
 				return False
 

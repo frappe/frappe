@@ -157,7 +157,7 @@ def mark_consumer_read(update_log_name, consumer_name):
 	)).insert(ignore_permissions=True)
 
 
-def get_old_unread_logs(consumer_name, dt, dn):
+def get_unread_update_logs(consumer_name, dt, dn):
 	"""
 	Get old logs unread by the consumer on a particular document
 	"""
@@ -208,19 +208,29 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 	)
 
 	result = []
+	to_update_history = []
 	for d in docs:
-		if not has_consumer_access(consumer, frappe.get_doc(d.ref_doctype, d.docname)):
+		if (d.ref_doctype, d.docname) in to_update_history:
+			# will be notified by background jobs
 			continue
-		
-		result.append(d)
+
+		if not has_consumer_access(consumer, frappe.get_doc(d.ref_doctype, d.docname)):
+			frappe.log_error(title=f"AccessDenied: {d.name} {consumer.name}")
+			continue
+
 		if not is_consumer_uptodate(d, consumer):
-			old_logs = get_old_unread_logs()
+			to_update_history.append((d.ref_doctype, d.docname))
+			# get_unread_update_logs will have the current log
+			old_logs = get_unread_update_logs(consumer.name, d.ref_doctype, d.docname)
 			old_logs.reverse()
 			result.extend(old_logs)
+		else:
+			result.append(d)
+
 
 	for d in result:
 		frappe.enqueue(mark_consumer_read, update_log_name=d.name,
-										consumer_name=consumer.name, enqueue_after_commit=True)
+										consumer_name=consumer.name)
 
 	result.reverse()
 	return result
