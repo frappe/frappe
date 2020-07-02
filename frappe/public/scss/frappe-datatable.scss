@@ -1,5 +1,6 @@
 .datatable {
 	--dt-border-color: var(--grey-100);
+	background-color: $white;
 
 	margin-left: -1px;
 	margin-top: -1px;
@@ -92,6 +93,22 @@
 		margin-left: 4px;
 	}
 
+	// Enable tnum for report
+	.dt-scrollable .dt-cell__content {
+		font-feature-settings: "tnum", "zero";
+	}
+
+	.dt-scrollable--highlight-all {
+		.dt-cell__content {
+			background: var(--grey-50)!important;
+		}
+	}
+
+	.dt-scrollable .dt-row--highlight {
+		.dt-cell__content {
+			background: var(--grey-50)!important;
+		}
+	}
 }
 
 table td.dt-cell {
