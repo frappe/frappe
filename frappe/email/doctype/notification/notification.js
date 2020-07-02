@@ -10,7 +10,6 @@ this.frm.fields_dict.sender.get_query = function(){
 		}
 	}
 };
-var options;
 frappe.notification = {
 	setup_fieldname_select: function(frm) {
 		// get the doctype to update fields
@@ -20,7 +19,10 @@ frappe.notification = {
 
 		frappe.model.with_doctype(frm.doc.document_type, function() {
 			let get_select_options = function(df) {
-				return {value: df.fieldname, label: df.fieldname + " (" + __(df.label) + ")", title: __(df.label)};
+				return {
+					value: df.fieldname, 
+					label: df.fieldname + " (" + __(df.label) + ")"
+				};
 			}
 			let get_date_change_options = function() {
 				let date_options = $.map(fields, function(d) {
@@ -35,13 +37,13 @@ frappe.notification = {
 			}
 
 			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
-			options = $.map(fields,
+			frm.options = $.map(fields,
 				function(d) { return in_list(frappe.model.no_value_type, d.fieldtype) ?
 					null : get_select_options(d); });
 
 			// set value changed options
-			frm.set_df_property("value_changed", "options", [""].concat(options));
-			frm.set_df_property("set_property_after_alert", "options", [""].concat(options));
+			frm.set_df_property("value_changed", "options", [""].concat(frm.options));
+			frm.set_df_property("set_property_after_alert", "options", [""].concat(frm.options));
 
 			// set date changed options
 			frm.set_df_property("date_changed", "options", get_date_change_options());
@@ -60,7 +62,7 @@ frappe.notification = {
 		});
 	}
 }
-var last_touched ='message';
+
 frappe.ui.form.on("Notification", {
 	onload: function(frm) {
 		frm.set_query("document_type", function() {
@@ -78,6 +80,25 @@ frappe.ui.form.on("Notification", {
 			}
 		});
 		$('[data-fieldname="insert_dynamic_value"]').css({'margin-top': '-33px','float':'right'});
+	},
+	onload_post_render(frm) {
+		$("[data-fieldname='subject']").on("keyup", e =>{
+			console.log("Postion : "+ e.target.selectionStart);
+			
+		});
+		$("[data-fieldname='subject']").on("focus", e =>{
+			console.log("Current position: " + $("[data-fieldname='subject']").caret().start);
+			console.log("Focus : "+ e.target.value.length);
+		});
+		$("[data-fieldname='message']").on("keyup", e =>{
+			console.log("Postion : "+ e.target.selectionStart);
+		});
+		$("[data-fieldname='message']").on("focus", e =>{
+			console.log("Focus : "+ e.target.value.length);
+		});
+		$("[data-fieldname='message']").on("click", e =>{
+			console.log("Focus : "+ e.target);
+		});
 	},
 	refresh: function(frm) {
 		frappe.notification.setup_fieldname_select(frm);
@@ -110,10 +131,10 @@ frappe.ui.form.on("Notification", {
 		frm.toggle_reqd("recipients", frm.doc.channel=="Email");
 	},
 	subject: function(frm) {
-		last_touched = 'subject';
+		frm.last_touched = 'subject';
 	},
 	message: function(frm) {
-		last_touched = 'message';
+		frm.last_touched = 'message';
 	},
 	insert_dynamic_value: function(frm) {
 		var dialog = new frappe.ui.Dialog({
@@ -123,15 +144,16 @@ frappe.ui.form.on("Notification", {
 					fieldtype: 'Autocomplete',
 					fieldname: 'fieldname',
 					label: __('Select Field'),
-					options: options,
+					options: frm.options,
 					reqd: 1,
 					onchange: function() {
-						frm.set_value(last_touched, `${frm.doc[last_touched]} {{ doc.${this.value} }} `);
+						frm.set_value(frm.last_touched, `${frm.doc[frm.last_touched]} {{ doc.${this.value} }} `);
 						dialog.hide();
 					}
 				}
 			]
 		});
 		dialog.show();
-	}
+	},
+	
 });
