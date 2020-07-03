@@ -598,6 +598,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_header_html() {
+		if (!this.columns) {
+			return;
+		}
+
 		const subject_field = this.columns[0].df;
 		let subject_html = `
 			<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__(
