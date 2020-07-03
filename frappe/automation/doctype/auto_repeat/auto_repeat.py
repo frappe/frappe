@@ -372,7 +372,8 @@ def make_auto_repeat(doctype, docname, frequency = 'Daily', start_date = None, e
 	doc.save()
 	return doc
 
-#method for reference_doctype filter
+# method for reference_doctype filter
+@frappe.whitelist()
 def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	res = frappe.db.get_all('Property Setter', {
 		'property': 'allow_auto_repeat',

@@ -260,9 +260,7 @@ def get_result(data, timegrain, from_date, to_date):
 	start_date = getdate(from_date)
 	end_date = getdate(to_date)
 
-	result = []
-	if timegrain == 'Daily':
-		result.append([start_date, 0.0])
+	result = [[start_date, 0.0]]
 
 	while start_date < end_date:
 		next_date = get_next_expected_date(start_date, timegrain)
@@ -280,11 +278,8 @@ def get_result(data, timegrain, from_date, to_date):
 
 def get_next_expected_date(date, timegrain):
 	next_date = None
-	if timegrain=='Daily':
-		next_date = add_to_date(date, days=1)
-	else:
-		# given date is always assumed to be the period ending date
-		next_date = get_period_ending(add_to_date(date, days=1), timegrain)
+	# given date is always assumed to be the period ending date
+	next_date = get_period_ending(add_to_date(date, days=1), timegrain)
 	return getdate(next_date)
 
 def get_period_ending(date, timegrain):
