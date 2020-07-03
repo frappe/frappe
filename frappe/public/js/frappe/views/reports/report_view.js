@@ -641,12 +641,21 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_fields() {
+		// remove fields that don't exist any more
+		let remove_non_existent_fields = fields =>
+			fields.filter(f =>
+				frappe.model.std_fields_list.includes(f[0])
+				|| frappe.meta.has_field(f[1], f[0])
+			);
+
 		if (this.report_name && this.report_doc.json.fields) {
 			this.fields = this.report_doc.json.fields.slice();
+			this.fields = remove_non_existent_fields(this.fields);
 			return;
 		} else if (this.view_user_settings.fields) {
 			// get from user_settings
 			this.fields = this.view_user_settings.fields;
+			this.fields = remove_non_existent_fields(this.fields);
 			return;
 		}
 
