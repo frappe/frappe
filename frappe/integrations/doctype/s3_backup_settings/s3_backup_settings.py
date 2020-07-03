@@ -19,6 +19,9 @@ from botocore.exceptions import ClientError
 class S3BackupSettings(Document):
 
 	def validate(self):
+		if not self.enabled:
+			return
+
 		if not self.endpoint_url:
 			self.endpoint_url = 'https://s3.amazonaws.com'
 		conn = boto3.client(
