@@ -235,11 +235,15 @@ def get_config(app, module):
 	sections = [s for s in config if s.get("condition", True)]
 
 	disabled_reports = get_disabled_reports()
+	has_report_permission = frappe.permissions.has_permission('Report', 'read', user=frappe.session.user,\
+		raise_exception=False)
+
 	for section in sections:
 		items = []
 		for item in section["items"]:
-			if item["type"]=="report" and item["name"] in disabled_reports:
-				continue
+			if item["type"]=="report":
+				if item["name"] in disabled_reports or not has_report_permission:
+					continue
 			# some module links might not have name
 			if not item.get("name"):
 				item["name"] = item.get("label")
