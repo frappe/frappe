@@ -9,7 +9,9 @@
 
 .form-section .section-body {
 	width: 100%;
-	padding: 15px;
+	padding: $padding-md;
+	padding-top: 0;
+	padding-left: 0;
 	@extend .row;
 }
 
@@ -28,7 +30,8 @@
 		background: $white;
 		z-index: 1;
 		width: 100%;
-		padding: 15px;
+		padding: $padding-lg;
+		padding-left: 0px;
 		margin: 0;
 		font-size: var(--text-lg);
 		font-weight: 500;
@@ -66,6 +69,20 @@
 .form-inner-toolbar {
 	padding: $padding-sm $padding-lg 0px;
 	text-align: right;
+}
+
+.form-control.bold {
+	color: #000;
+	font-weight: 500;
+}
+
+.like-disabled-input {
+	margin-bottom: 7px;
+	border-radius: $border-radius;
+	min-height: 30px;
+	font-weight: 400;
+	background-color: $control-bg;
+	padding: $padding-xs $padding-sm;
 }
 
 // .form-print-wrapper {
