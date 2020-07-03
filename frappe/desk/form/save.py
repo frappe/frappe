@@ -21,8 +21,7 @@ def savedocs(doc, action):
 			try:
 				doc.save()
 			except frappe.NameError as e:
-				doctype, name, original_exception = e if isinstance(e, tuple) else (doc.doctype or "", doc.name or "", None)
-				frappe.msgprint(frappe._("{0} {1} already exists").format(doctype, name))
+				# Duplicate Error message already shown on db_insert
 				raise
 
 		# update recent documents
