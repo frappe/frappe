@@ -75,9 +75,17 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 	if query and query.split()[0].lower()!="select":
 		# by method
-		is_whitelisted(query)
-		frappe.response["values"] = frappe.call(query, doctype, txt,
-			searchfield, start, page_length, filters, as_dict=as_dict)
+		try:
+			is_whitelisted(frappe.get_attr(query))
+			frappe.response["values"] = frappe.call(query, doctype, txt,
+				searchfield, start, page_length, filters, as_dict=as_dict)
+		except Exception as e:
+			if frappe.local.conf.developer_mode:
+				raise e
+			else:
+				frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+				indicator_color='red', http_status_code=404)
+			return
 	elif not query and doctype in standard_queries:
 		# from standard queries
 		search_widget(doctype, txt, standard_queries[doctype][0],
