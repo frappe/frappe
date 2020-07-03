@@ -34,6 +34,11 @@ class _dict(dict):
 
 	__setattr__ = dict.__setitem__
 
+	__setstate__ = dict.update
+
+	def __getstate__(self):
+		return self
+
 	def update(self, d):
 		"""update and return self -- the missing dict feature in python"""
 		super(_dict, self).update(d)
