@@ -9,7 +9,7 @@ import frappe.permissions
 import re, csv, os
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint
-from frappe.core.doctype.data_import.importer import get_data_keys
+from frappe.core.doctype.data_import_legacy.importer import get_data_keys
 from six import string_types
 from frappe.core.doctype.access_log.access_log import make_access_log
 

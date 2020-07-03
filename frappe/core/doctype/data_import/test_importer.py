@@ -84,7 +84,7 @@ class TestImporter(unittest.TestCase):
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, 'child title again')
 
 	def get_importer(self, doctype, import_file, update=False):
-		data_import = frappe.new_doc('Data Import Beta')
+		data_import = frappe.new_doc('Data Import')
 		data_import.import_type = 'Insert New Records' if not update else 'Update Existing Records'
 		data_import.reference_doctype = doctype
 		data_import.import_file = import_file.file_url
@@ -180,4 +180,4 @@ def get_import_file(csv_file_name, force=False):
 
 
 def get_csv_file_path(file_name):
-	return frappe.get_app_path('frappe', 'core', 'doctype', 'data_import_beta', 'fixtures', file_name)
+	return frappe.get_app_path('frappe', 'core', 'doctype', 'data_import', 'fixtures', file_name)
