@@ -911,12 +911,12 @@ def update_existing_file_docs(doc):
 	frappe.db.sql("""
 		UPDATE `tabFile`
 		SET
-			`tabFile`.file_url = '{file_url}',
-			`tabFile`.is_private = {is_private}
+			file_url = %(file_url)s,
+			is_private = %(is_private)s
 		WHERE
-			`tabFile`.content_hash = '{content_hash}'
-			and `tabFile`.name != '{file_name}'
-	""".format(
+			content_hash = %(content_hash)s
+			and name != %(file_name)s
+	""", dict(
 		file_url=doc.file_url,
 		is_private=doc.is_private,
 		content_hash=doc.content_hash,
