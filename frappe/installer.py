@@ -291,12 +291,15 @@ def remove_missing_apps():
 
 def extract_sql_gzip(sql_gz_path):
 	try:
-		# kdvf - keep, decompress, verbose, force
-		subprocess.check_call(['gzip', '-kdvf', sql_gz_path])
+		# dvf - decompress, verbose, force
+		original_file = sql_gz_path
+		decompressed_file = original_file.rstrip(".gz")
+		cmd = 'gzip -dvf < {0} > {1}'.format(original_file, decompressed_file)
+		subprocess.check_call(cmd, shell=True)
 	except:
 		raise
 
-	return sql_gz_path[:-3]
+	return decompressed_file
 
 def extract_tar_files(site_name, file_path, folder_name):
 	# Need to do frappe.init to maintain the site locals
