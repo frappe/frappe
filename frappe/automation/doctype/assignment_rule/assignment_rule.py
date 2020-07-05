@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 
-import frappe
+import frappe, json
 from frappe.model.document import Document
 from frappe.desk.form import assign_to
 import frappe.cache_manager
@@ -144,7 +144,6 @@ def get_assignments(doc):
 
 @frappe.whitelist()
 def bulk_apply(doctype, docnames):
-	import json
 	docnames = json.loads(docnames)
 
 	background = len(docnames) > 5
@@ -244,3 +243,13 @@ def get_repeated(values):
 			if value not in diff:
 				diff.append(str(value))
 	return " ".join(diff)
+
+@frappe.whitelist()
+def bulk_assignment(user):
+	assignment_rules = frappe.get_all('Assignment Rule', filters={ 'disabled':0 })
+	for assignment_rule in assignment_rules:
+		rule = frappe.get_doc('Assignment Rule', assignment_rule)
+		if user in list(x.user for x in rule.users):
+			unassign_docs = frappe.get_all(rule.document_type, or_filters = [["_assign", "=", "[]"], ["_assign", "=", ""]])
+			unassign_docs = list(x['name'] for x in unassign_docs)
+			bulk_apply(rule.document_type, json.dumps(unassign_docs))

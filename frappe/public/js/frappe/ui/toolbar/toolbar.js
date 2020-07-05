@@ -55,6 +55,12 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 							message: __('All auto assignments resumed again.')
 						});
 					});
+					frappe.call({
+						method: "frappe.automation.doctype.assignment_rule.assignment_rule.bulk_assignment",
+						args: {
+							user: frappe.user.name
+						}
+					})
 				} else {
 					frappe.db.set_value('User', frappe.user.name, 'suspend_all_auto_assignment', 1, () =>{
 						$('.user-auto-assignment-status').find('a').html(__("Available For Assignments"));
