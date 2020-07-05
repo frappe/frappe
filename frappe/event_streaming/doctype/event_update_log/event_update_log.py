@@ -111,33 +111,35 @@ def is_consumer_uptodate(update_log, consumer):
 	:param update_log: The UpdateLog Doc in context
 	:param consumer: The EventConsumer doc
 	"""
-	if update_log.update_type == "Create":
+	if update_log.update_type == 'Create':
 		# consumer is obviously up to date
 		return True
 
-	prev_logs = frappe.get_all("Event Update Log", fields=["name", "ref_doctype", "docname"],	filters={
-			"ref_doctype": update_log.ref_doctype,
-			"docname": update_log.docname,
-			"name": ["!=", update_log.name]
+	prev_logs = frappe.get_all(
+		'Event Update Log',
+		filters={
+			'ref_doctype': update_log.ref_doctype,
+			'docname': update_log.docname,
+			'creation': ['<', update_log.creation]
+		},
+		order_by='creation desc',
+		limit_page_length=1
+	)
+
+	if not len(prev_logs):
+		return False
+
+	prev_log_consumers = frappe.get_all(
+		'Event Consumer Selector',
+		fields=['consumer'],
+		filters={
+				'parent': prev_logs[0].name,
+				'parenttype': 'Event Update Log',
+				'consumer': consumer.name
 		}
 	)
 
-	for prev_log in prev_logs:
-		prev_log_consumers = [
-			x.consumer
-			for x in frappe.get_all(
-				"Event Consumer Selector",
-				fields=["consumer"],
-				filters={
-						"parent": prev_log.name,
-						"parenttype": "Event Update Log"
-				}
-			)
-		]
-		if consumer.name not in prev_log_consumers:
-			return False
-
-	return True
+	return len(prev_log_consumers) > 0
 
 
 def mark_consumer_read(update_log_name, consumer_name):
@@ -228,8 +230,7 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 
 
 	for d in result:
-		frappe.enqueue(mark_consumer_read, update_log_name=d.name,
-										consumer_name=consumer.name)
+		mark_consumer_read(update_log_name=d.name, consumer_name=consumer.name)
 
 	result.reverse()
 	return result
