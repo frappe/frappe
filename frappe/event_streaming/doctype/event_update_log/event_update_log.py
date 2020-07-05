@@ -214,8 +214,7 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 			# will be notified by background jobs
 			continue
 
-		if not has_consumer_access(consumer, frappe.get_doc(d.ref_doctype, d.docname)):
-			frappe.log_error(title=f"AccessDenied: {d.name} {consumer.name}")
+		if not has_consumer_access(consumer=consumer, update_log=d):
 			continue
 
 		if not is_consumer_uptodate(d, consumer):
