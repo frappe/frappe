@@ -8,12 +8,12 @@
 	<!-- breadcrumbs -->
 	<div class="page-breadcrumbs">
 		{% block breadcrumbs %}
-		{% include 'templates/includes/breadcrumbs.html' %}
+			{% include 'templates/includes/breadcrumbs.html' %}
 		{% endblock %}
 	</div>
 
 	{% block page_container %}
-	<main class="{% if not full_width %}container my-5{% endif %}">
+	<main class="{% if not full_width %}container my-4{% endif %}">
 		<div class="d-flex justify-content-between align-items-center">
 			<div class="page-header">
 				{% block header %}{% endblock %}
