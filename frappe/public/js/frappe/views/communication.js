@@ -44,26 +44,6 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 		});
 
-		$(document).on("upload_complete", function(event, attachment) {
-			if(me.dialog.display) {
-				var wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
-
-				// find already checked items
-				var checked_items = wrapper.find('[data-file-name]:checked').map(function() {
-					return $(this).attr("data-file-name");
-				});
-
-				// reset attachment list
-				me.render_attach();
-
-				// check latest added
-				checked_items.push(attachment.name);
-
-				$.each(checked_items, function(i, filename) {
-					wrapper.find('[data-file-name="'+ filename +'"]').prop("checked", true);
-				});
-			}
-		})
 		this.prepare();
 		this.dialog.show();
 
@@ -401,7 +381,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					this.render_attachment_rows(attachment);
 				}
 			};
-			}
+		}
 
 		$(`
 			<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>
@@ -429,22 +409,22 @@ frappe.views.CommunicationComposer = Class.extend({
 			attachment_rows.append(this.get_attachment_row(attachment, true));
 		} else {
 			let files = [];
-		if (this.attachments && this.attachments.length) {
-			files = files.concat(this.attachments);
-		}
+			if (this.attachments && this.attachments.length) {
+				files = files.concat(this.attachments);
+			}
 			if (this.frm) {
 				files = files.concat(this.frm.get_files());
-		}
+			}
 
 			if (files.length) {
 				$.each(files, (i, f) => {
-				if (!f.file_name) return;
+					if (!f.file_name) return;
 					if (!attachment_rows.find(`[data-file-name="${f.name}"]`).length) {
-				f.file_url = frappe.urllib.get_full_url(f.file_url);
+						f.file_url = frappe.urllib.get_full_url(f.file_url);
 						attachment_rows.append(this.get_attachment_row(f));
 					}
-			});
-		}
+				});
+			}
 		}
 	},
 
@@ -467,7 +447,6 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	setup_email: function() {
 		// email
-		var me = this;
 		var fields = this.dialog.fields_dict;
 
 		if(this.attach_document_print) {
