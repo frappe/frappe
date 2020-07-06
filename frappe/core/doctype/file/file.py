@@ -525,6 +525,9 @@ class File(Document):
 			delete_file(self.file_url, to_be_trashed=True)
 			delete_file(self.thumbnail_url)
 
+	def get_trash_path(self):
+		return _get_trash_path(self.file_name, self.is_private)
+
 	def is_downloadable(self):
 		return has_permission(self, 'read')
 
@@ -874,6 +877,10 @@ def get_random_filename(extn=None, content_type=None):
 		extn = mimetypes.guess_extension(content_type)
 
 	return random_string(7) + (extn or "")
+
+
+def _get_trash_path(file_name, is_private=False):
+	return frappe.get_site_path("private" if is_private else "public", ".trash", file_name)
 
 
 @frappe.whitelist()
