@@ -522,7 +522,7 @@ class File(Document):
 		if only_thumbnail:
 			delete_file(self.thumbnail_url)
 		else:
-			delete_file(self.file_url)
+			delete_file(self.file_url, to_be_trashed=True)
 			delete_file(self.thumbnail_url)
 
 	def is_downloadable(self):
@@ -664,20 +664,30 @@ def get_web_image(file_url):
 	return image, filename, extn
 
 
-def delete_file(path):
+def delete_file(path, to_be_trashed=False):
 	"""Delete file from `public folder`"""
 	if path:
 		if ".." in path.split("/"):
 			frappe.msgprint(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
 
 		parts = os.path.split(path.strip("/"))
-		if parts[0]=="files":
+		is_private = False if parts[0]=="files" else True
+		if not is_private:
 			path = frappe.utils.get_site_path("public", "files", parts[-1])
 
 		else:
 			path = frappe.utils.get_site_path("private", "files", parts[-1])
 
 		path = encode(path)
+		if to_be_trashed:
+			trash_dir = frappe.get_site_path("private" if is_private else "public", ".trash")
+
+			if not os.path.exists(trash_dir):
+				os.mkdir(trash_dir)
+			
+			if os.path.exists(path):
+				shutil.copy2(path, '/'.join([trash_dir, parts[-1]]))
+
 		if os.path.exists(path):
 			os.remove(path)
 
