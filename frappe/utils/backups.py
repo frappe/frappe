@@ -6,6 +6,7 @@
 from __future__ import print_function, unicode_literals
 
 import os
+import json
 from datetime import datetime
 
 import frappe
@@ -25,16 +26,27 @@ class BackupGenerator:
 		If specifying db_file_name, also append ".sql.gz"
 	"""
 	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
-		backup_path_private_files=None, db_host="localhost", db_port=3306, verbose=False):
+		backup_path_private_files=None, db_host="localhost", db_port=None, verbose=False,
+		db_type='mariadb'):
 		global _verbose
 		self.db_host = db_host
-		self.db_port = db_port or 3306
+		self.db_port = db_port
 		self.db_name = db_name
+		self.db_type = db_type
 		self.user = user
 		self.password = password
 		self.backup_path_files = backup_path_files
 		self.backup_path_db = backup_path_db
 		self.backup_path_private_files = backup_path_private_files
+
+		if not self.db_port and self.db_type == 'mariadb':
+			self.db_port = 3306
+		elif not self.db_port and self.db_type == 'postgres':
+			self.db_port = 5432
+
+		site = frappe.local.site or frappe.generate_hash(length=8)
+		self.site_slug = site.replace('.', '_')
+
 		self.verbose = verbose
 		_verbose = verbose
 
@@ -46,15 +58,18 @@ class BackupGenerator:
 		#Check if file exists and is less than a day old
 		#If not Take Dump
 		if not force:
-			last_db, last_file, last_private_file = self.get_recent_backup(older_than)
+			last_db, last_file, last_private_file, site_config_backup_path = self.get_recent_backup(older_than)
 		else:
-			last_db, last_file, last_private_file = False, False, False
+			last_db, last_file, last_private_file, site_config_backup_path = False, False, False, False
+
+		self.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
 
 		if not (self.backup_path_files and self.backup_path_db and self.backup_path_private_files):
 			self.set_backup_file_name()
 
-		if not (last_db and last_file and last_private_file):
+		if not (last_db and last_file and last_private_file and site_config_backup_path):
 			self.take_dump()
+			self.copy_site_config()
 			if not ignore_files:
 				self.zip_files()
 
@@ -62,16 +77,13 @@ class BackupGenerator:
 			self.backup_path_files = last_file
 			self.backup_path_db = last_db
 			self.backup_path_private_files = last_private_file
+			self.site_config_backup_path = site_config_backup_path
 
 	def set_backup_file_name(self):
-		todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
-		site = frappe.local.site or frappe.generate_hash(length=8)
-		site = site.replace('.', '_')
-
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = todays_date + "-" + site + "-database.sql.gz"
-		for_public_files = todays_date + "-" + site + "-files.tar"
-		for_private_files = todays_date + "-" + site + "-private-files.tar"
+		for_db = self.todays_date + "-" + self.site_slug + "-database.sql.gz"
+		for_public_files = self.todays_date + "-" + self.site_slug + "-files.tar"
+		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files.tar"
 		backup_path = get_backup_path()
 
 		if not self.backup_path_db:
@@ -86,6 +98,7 @@ class BackupGenerator:
 		backup_path_files = None
 		backup_path_db = None
 		backup_path_private_files = None
+		site_config_backup_path = None
 
 		for this_file in file_list:
 			this_file = cstr(this_file)
@@ -97,8 +110,10 @@ class BackupGenerator:
 					backup_path_files = this_file_path
 				elif "_database" in this_file_path:
 					backup_path_db = this_file_path
+				elif "site_config" in this_file_path:
+					site_config_backup_path = this_file_path
 
-		return (backup_path_db, backup_path_files, backup_path_private_files)
+		return (backup_path_db, backup_path_files, backup_path_private_files, site_config_backup_path)
 
 	def zip_files(self):
 		for folder in ("public", "private"):
@@ -111,6 +126,21 @@ class BackupGenerator:
 			if self.verbose:
 				print('Backed up files', os.path.abspath(backup_path))
 
+	def copy_site_config(self):
+		site_config_backup_path = os.path.join(
+			get_backup_path(),
+			"{time_stamp}-{site_slug}-site_config_backup.json".format(
+				time_stamp=self.todays_date,
+				site_slug=self.site_slug))
+		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
+		site_config = {}
+		if os.path.exists(site_config_path):
+			site_config.update(frappe.get_file_json(site_config_path))
+		with open(site_config_backup_path, "w") as f:
+			f.write(json.dumps(site_config, indent=2))
+			f.flush()
+		self.site_config_backup_path = site_config_backup_path
+
 	def take_dump(self):
 		import frappe.utils
 
@@ -119,6 +149,17 @@ class BackupGenerator:
 			for item in self.__dict__.copy().items())
 
 		cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s -P %(db_port)s | gzip > %(backup_path_db)s """ % args
+
+		if self.db_type == 'postgres':
+			cmd_string = "pg_dump postgres://{user}:{password}@{db_host}:{db_port}/{db_name} | gzip > {backup_path_db}".format(
+				user=args.get('user'),
+				password=args.get('password'),
+				db_host=args.get('db_host'),
+				db_port=args.get('db_port'),
+				db_name=args.get('db_name'),
+				backup_path_db=args.get('backup_path_db')
+			)
+
 		err, out = frappe.utils.execute_in_shell(cmd_string)
 
 	def send_email(self):
@@ -159,7 +200,8 @@ def get_backup():
 	"""
 	delete_temp_backups()
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
-						  frappe.conf.db_password, db_host = frappe.db.host)
+						  frappe.conf.db_password, db_host = frappe.db.host,\
+							db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
 	odb.get_backup()
 	recipient_list = odb.send_email()
 	frappe.msgprint(_("Download link for your backup will be emailed on the following email address: {0}").format(', '.join(recipient_list)))
@@ -179,6 +221,7 @@ def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_pat
 						  backup_path_private_files=backup_path_private_files,
 						  db_host = frappe.db.host,
 						  db_port = frappe.db.port,
+						  db_type = frappe.conf.db_type,
 						  verbose=verbose)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
@@ -236,25 +279,38 @@ def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=
 
 if __name__ == "__main__":
 	"""
-		is_file_old db_name user password db_host
-		get_backup  db_name user password db_host
+		is_file_old db_name user password db_host db_type db_port
+		get_backup  db_name user password db_host db_type db_port
 	"""
 	import sys
 	cmd = sys.argv[1]
+
+	db_type = 'mariadb'
+	try:
+		db_type = sys.argv[6]
+	except IndexError:
+		pass
+
+	db_port = 3306
+	try:
+		db_port = int(sys.argv[7])
+	except IndexError:
+		pass
+
 	if cmd == "is_file_old":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost", db_type=db_type, db_port=db_port)
 		is_file_old(odb.db_file_name)
 
 	if cmd == "get_backup":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost", db_type=db_type, db_port=db_port)
 		odb.get_backup()
 
 	if cmd == "take_dump":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost", db_type=db_type, db_port=db_port)
 		odb.take_dump()
 
 	if cmd == "send_email":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost", db_type=db_type, db_port=db_port)
 		odb.send_email("abc.sql.gz")
 
 	if cmd == "delete_temp_backups":

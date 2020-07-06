@@ -7,12 +7,6 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	make_body() {
-		this.body.addClass("grid");
-		if (this.steps.length < 5) {
-			this.body.addClass(`grid-rows-${this.steps.length}`);
-		} else if (this.steps.length >= 5) {
-			this.body.addClass("grid-rows-5");
-		}
 		this.steps.forEach((step) => {
 			this.add_step(step);
 		});
@@ -57,10 +51,14 @@ export default class OnboardingWidget extends Widget {
 		let actions = {
 			"Watch Video": () => this.show_video(step),
 			"Create Entry": () => {
-				if (step.show_full_form) {
-					this.create_entry(step);
+				if (step.is_complete) {
+					frappe.set_route(`#List/${step.reference_document}`);
 				} else {
-					this.show_quick_entry(step);
+					if (step.show_full_form) {
+						this.create_entry(step);
+					} else {
+						this.show_quick_entry(step);
+					}
 				}
 			},
 			"Show Form Tour": () => this.show_form_tour(step),
@@ -138,7 +136,7 @@ export default class OnboardingWidget extends Widget {
 		if (step.is_single) {
 			route = `Form/${step.reference_document}`;
 		} else {
-			route = `Form/${step.reference_document}/New ${step.reference_document}`;
+			route = `Form/${step.reference_document}/__('New')+ ' ' + ${step.reference_document}`;
 		}
 
 		let current_route = frappe.get_route();
@@ -264,7 +262,7 @@ export default class OnboardingWidget extends Widget {
 			frappe.route_hooks.after_save = callback;
 		}
 
-		frappe.set_route(`Form/${step.reference_document}/New ${step.reference_document} 1`);
+		frappe.set_route(`Form/${step.reference_document}/__('New')+ ' ' + ${step.reference_document}`);
 	}
 
 	show_quick_entry(step) {
@@ -434,8 +432,6 @@ export default class OnboardingWidget extends Widget {
 
 	set_actions() {
 		this.action_area.empty();
-		if (!this.user_can_dismiss) return;
-
 		const dismiss = $(
 			`<div class="small" style="cursor:pointer;">Dismiss</div>`
 		);

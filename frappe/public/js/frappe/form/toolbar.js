@@ -36,6 +36,11 @@ frappe.ui.form.Toolbar = Class.extend({
 				this.page.set_title_sub("");
 			} else {
 				this.page.set_title_sub(this.frm.docname);
+				this.page.$sub_title_area.css("cursor", "copy");
+				this.page.$sub_title_area.on('click', (event) => {
+					event.stopImmediatePropagation();
+					frappe.utils.copy_to_clipboard(this.frm.docname);
+				});
 			}
 		} else {
 			var title = this.frm.docname;
@@ -376,10 +381,10 @@ frappe.ui.form.Toolbar = Class.extend({
 		var status = this.get_action_status();
 		if (status) {
 			// When moving from a page with status amend to another page with status amend
-			// We need to check if document is already amened specifcally and hide
+			// We need to check if document is already amend specifically and hide
 			// or clear the menu actions accordingly
 
-			if (status !== this.current_status || status === 'Amend') {
+			if (status !== this.current_status && status === 'Amend') {
 				let doc = this.frm.doc;
 				frappe.xcall('frappe.client.is_document_amended', {
 					'doctype': doc.doctype,
@@ -396,7 +401,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		} else {
 			this.page.clear_actions();
-			this.current_status = null
+			this.current_status = null;
 		}
 	},
 	get_action_status: function() {

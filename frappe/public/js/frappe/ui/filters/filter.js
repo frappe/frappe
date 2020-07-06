@@ -106,6 +106,8 @@ frappe.ui.Filter = class {
 			if (['in', 'like', 'not in', 'not like'].includes(condition)) {
 				fieldtype = 'Data';
 				this.add_condition_help(condition);
+			} else {
+				this.filter_edit_area.find('.filter-description').empty();
 			}
 
 			if (
@@ -128,6 +130,34 @@ frappe.ui.Filter = class {
 		const fieldname = this.fieldname || 'name';
 		// set the field
 		return this.set_values(this.doctype, fieldname, this.condition, this.value);
+	}
+
+	setup_state(is_new) {
+		let promise = Promise.resolve();
+		if (is_new) {
+			this.filter_edit_area.addClass('new-filter');
+		} else {
+			promise = this.update_filter_tag();
+		}
+
+		if (this.hidden) {
+			promise.then(() => this.$filter_tag.hide());
+		}
+	}
+
+	freeze() {
+		this.update_filter_tag();
+	}
+
+	update_filter_tag() {
+		if (this._filter_value_set) {
+			return this._filter_value_set.then(() => {
+				!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
+				this.filter_edit_area.hide();
+			});
+		} else {
+			return Promise.resolve();
+		}
 	}
 
 	remove() {
@@ -218,7 +248,7 @@ frappe.ui.Filter = class {
 			}
 			frappe
 				.xcall(this.filters_config[condition].get_field, args)
-				.then((field) => {
+				.then(field => {
 					df.fieldtype = field.fieldtype;
 					df.options = field.options;
 					df.fieldname = fieldname;
@@ -250,6 +280,14 @@ frappe.ui.Filter = class {
 			this.field.set_value(old_text);
 		}
 
+		// run on enter
+		$(this.field.wrapper)
+			.find(':input')
+			.keydown(e => {
+				if (e.which == 13 && this.field.df.fieldtype !== 'MultiSelect') {
+					this.on_change();
+				}
+			});
 	}
 
 	get_value() {
@@ -277,16 +315,59 @@ frappe.ui.Filter = class {
 	}
 
 	add_condition_help(condition) {
-		let $desc = this.field.desc_area;
-		if (!$desc) {
-			$desc = $('<div class="text-muted small">').appendTo(this.field.wrapper);
-		}
-		// set description
-		$desc.html(
-			(in_list(['in', 'not in'], condition) === 'in'
-				? __('values separated by commas')
-				: __('use % as wildcard')) + '</div>'
+		const description = ['in', 'not in'].includes(condition)
+			? __('values separated by commas')
+			: __('use % as wildcard');
+
+		this.filter_edit_area.find('.filter-description').html(description);
+	}
+
+	make_tag() {
+		if (!this.field) return;
+		this.$filter_tag = this.get_filter_tag_element().insertAfter(
+			this.parent.find('.active-tag-filters .clear-filters')
 		);
+		this.set_filter_button_text();
+		this.bind_tag();
+	}
+
+	bind_tag() {
+		this.$filter_tag.find('.remove-filter').on('click', this.remove.bind(this));
+
+		let filter_button = this.$filter_tag.find('.toggle-filter');
+		filter_button.on('click', () => {
+			filter_button
+				.closest('.tag-filters-area')
+				.find('.filter-edit-area')
+				.show();
+			this.filter_edit_area.toggle();
+		});
+	}
+
+	set_filter_button_text() {
+		this.$filter_tag.find('.toggle-filter').html(this.get_filter_button_text());
+	}
+
+	get_filter_button_text() {
+		let value = this.utils.get_formatted_value(
+			this.field,
+			this.get_selected_value()
+		);
+		return `${__(this.field.df.label)} ${__(this.get_condition())} ${__(
+			value
+		)}`;
+	}
+
+	get_filter_tag_element() {
+		return $(`<div class="filter-tag btn-group">
+			<button class="btn btn-default btn-xs toggle-filter"
+				title="${__('Edit Filter')}">
+			</button>
+			<button class="btn btn-default btn-xs remove-filter"
+				title="${__('Remove Filter')}">
+				<i class="fa fa-remove text-muted"></i>
+			</button>
+		</div>`);
 	}
 
 	hide_invalid_conditions(fieldtype, original_type) {
@@ -383,12 +464,12 @@ frappe.ui.filter_utils = {
 
 		// scrub
 		if (df.fieldname == 'docstatus') {
-			(df.fieldtype = 'Select'),
-				(df.options = [
-					{ value: 0, label: __('Draft') },
-					{ value: 1, label: __('Submitted') },
-					{ value: 2, label: __('Cancelled') },
-				]);
+			df.fieldtype = 'Select';
+			df.options = [
+				{ value: 0, label: __('Draft') },
+				{ value: 1, label: __('Submitted') },
+				{ value: 2, label: __('Cancelled') },
+			];
 		} else if (df.fieldtype == 'Check') {
 			df.fieldtype = 'Select';
 			df.options = 'No\nYes';

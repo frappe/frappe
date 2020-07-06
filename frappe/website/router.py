@@ -300,7 +300,11 @@ def setup_source(page_info):
 					css = f.read()
 				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
 
-	page_info.source = html
+	if html:
+		page_info.source = html
+		page_info.base_template =  page_info.base_template or 'templates/web.html'
+	else:
+		page_info.source = ''
 
 	# show table of contents
 	setup_index(page_info)

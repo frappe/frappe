@@ -20,11 +20,13 @@ def get_context(path, args=None):
 		# for <body data-path=""> (remove leading slash)
 		# path could be overriden in render.resolve_from_map
 		context["path"] = frappe.local.request.path.strip('/ ')
+		scheme = frappe.local.request.scheme
 	else:
 		context["path"] = path
+		scheme = 'http'
 
+	context.canonical = scheme + '://' + frappe.local.site + '/' + context.path
 	context.route = context.path
-
 	context = build_context(context)
 
 	# set using frappe.respond_as_web_page
@@ -79,7 +81,7 @@ def build_context(context):
 	# for backward compatibility
 	context.docs_base_url = '/docs'
 
-	context.update(get_website_settings())
+	context.update(get_website_settings(context))
 	context.update(frappe.local.conf.get("website_context") or {})
 
 	# provide doc
@@ -236,14 +238,13 @@ def add_metatags(context):
 
 		image = tags.get('image', context.image or None)
 		if image:
-			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(image)
+			tags["og:image"] = tags["twitter:image"] = tags["image"] = frappe.utils.get_url(image)
 			tags['twitter:card'] = "summary_large_image"
 
 		if context.author or tags.get('author'):
 			tags['author'] = context.author or tags.get('author')
 
-		if context.path:
-			tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
+		tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
 
 		if context.published_on:
 			tags['datePublished'] = context.published_on

@@ -191,7 +191,7 @@ def subscribe(email, email_group=_('Website')):
 		<p><a href="{2}">{3}</a></p>
 		""".format(*messages)
 
-	frappe.sendmail(email, subject=getattr('email_template', 'subject', '') or _("Confirm Your Email"), content=content)
+	frappe.sendmail(email, subject=getattr('email_template', 'subject', '') or _("Confirm Your Email"), content=content, now=True)
 
 @frappe.whitelist(allow_guest=True)
 def confirm_subscription(email, email_group=_('Website')):

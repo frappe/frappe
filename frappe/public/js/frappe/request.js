@@ -102,6 +102,7 @@ frappe.call = function(opts) {
 		error_handlers: opts.error_handlers || {},
 		// show_spinner: !opts.no_spinner,
 		async: opts.async,
+		silent: opts.silent,
 		url,
 	});
 }

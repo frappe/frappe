@@ -14,7 +14,7 @@ $panel-bg: $gray-50;
 		border-radius: 4px;
 		cursor: pointer;
 		text-rendering: optimizelegibility;
-	
+
 		&:focus {
 			background-color: $panel-bg;
 			outline: 0;
@@ -23,24 +23,24 @@ $panel-bg: $gray-50;
 		&:first-child {
 			margin-top: 100px;
 		}
-	
+
 		&:hover {
 			background-color: $panel-bg;
 		}
-	
+
 		&.selected {
 			background-color: $panel-bg;
 		}
-	
+
 		a {
 			color: $gray-800;
 			text-decoration: none;
 		}
-	
+
 		svg {
 			margin-right: 0.875rem;
 		}
-	}	
+	}
 }
 
 .desk-page {
@@ -255,14 +255,11 @@ $panel-bg: $gray-50;
 		.widget-head {
 			display: flex;
 
-			.widget-title {
-				font-size: 20px;
-			}
-
 			.widget-subtitle {
-				font-size: 16px;
 				margin-top: 5px;
 				color: $text-muted;
+				font-size: 14px;
+				font-weight: 400;
 			}
 
 			.widget-control {
@@ -275,31 +272,8 @@ $panel-bg: $gray-50;
 		.widget-body {
 			margin-top: 20px;
 
-			&.grid {
-				display: grid;
-				grid-template-columns: 1fr 1fr 1fr;
-				grid-auto-flow: column;
-
-				&.grid-rows-2 {
-					grid-template-rows: repeat(3, 1fr);
-				}
-
-				&.grid-rows-3 {
-					grid-template-rows: repeat(3, 1fr);
-				}
-
-				&.grid-rows-4 {
-					grid-template-rows: repeat(4, 1fr);
-				}
-
-				&.grid-rows-5 {
-					grid-template-rows: repeat(5, 1fr);
-				}
-			}
-
 			.onboarding-step {
 				margin-bottom: 8px;
-				font-size: 16px;
 				letter-spacing: 0.015em;
 
 				i {
