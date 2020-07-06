@@ -795,8 +795,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let heart_class = liked_by.includes(user) ?
 			'liked-by' : 'text-extra-muted not-liked';
 
-		const seen = JSON.parse(doc._seen || '[]')
-			.includes(user) ? '' : 'bold';
+		const seen = this.get_seen
+			? this.get_seen(doc)
+			: JSON.parse(doc._seen || '[]')
+				.includes(user) ? '' : 'bold';
 
 		let subject_html = `
 			<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${escape(doc.name)}">

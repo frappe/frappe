@@ -48,6 +48,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		this.email_account = frappe.get_route()[3];
 		this.page_title = this.email_account;
 		this.filters = this.get_inbox_filters();
+		this.get_seen = (doc) => this.set_seen(doc);
 	}
 
 	setup_columns() {
@@ -69,6 +70,14 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		});
 	}
 
+	set_seen(doc) {
+		const seen =
+			Boolean(doc.seen) || JSON.parse(doc._seen || '[]').includes(frappe.session.user)
+				? ''
+				: 'bold';
+		return seen;
+	}
+
 	get is_sent_emails() {
 		const f = this.filter_area.get()
 			.find(filter => filter[1] === 'sent_or_received');
@@ -77,7 +86,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	render_header() {
 		this.$result.find('.list-row-head').remove();
-		this.$result.prepend(this.get_header_html());		
+		this.$result.prepend(this.get_header_html());
 	}
 
 	render() {
