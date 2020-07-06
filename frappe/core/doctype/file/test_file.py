@@ -10,6 +10,7 @@ import unittest
 from frappe import _
 from frappe.core.doctype.file.file import move_file
 from frappe.utils import get_files_path
+from frappe.core.doctype.deleted_document.deleted_document import restore
 # test_records = frappe.get_test_records('File')
 
 test_content1 = 'Hello'
@@ -21,6 +22,48 @@ def make_test_doc():
 	d.description = 'Test'
 	d.save()
 	return d.doctype, d.name
+
+
+class TestTrashFunctionality(unittest.TestCase):
+
+
+	def test_delete_file_and_check_in_trash(self):
+		_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "to-be-deleted.txt",
+			"content": "To be deleted"})
+		_file.save()
+		trash_path = _file.get_trash_path()
+		frappe.delete_doc("File", _file.name)
+
+		self.assertTrue(os.path.exists(trash_path), "File Trashing Failed")
+
+		deleted_document = frappe.get_last_doc("Deleted Document")
+		restore(deleted_document.name)
+		deleted_document.reload()
+		file = frappe.get_doc("File", deleted_document.get('new_name'))
+
+		self.assertTrue(not os.path.exists(trash_path) and file.exists_on_disk(), "File Restoring Failed")
+
+
+	def test_delete_private_file_and_check_in_trash(self):
+		_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "to-be-deleted-private.txt",
+			"is_private": 1,
+			"content": "To be deleted from private"})
+		_file.save()
+		trash_path = _file.get_trash_path()
+		frappe.delete_doc("File", _file.name)
+
+		self.assertTrue(os.path.exists(trash_path))
+
+		deleted_document = frappe.get_last_doc("Deleted Document")
+		restore(deleted_document.name)
+		deleted_document.reload()
+		file = frappe.get_doc("File", deleted_document.get('new_name'))
+
+		self.assertTrue(not os.path.exists(trash_path) and file.exists_on_disk(), "File Restoring Failed")
 
 
 class TestSimpleFile(unittest.TestCase):
