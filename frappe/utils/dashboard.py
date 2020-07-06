@@ -118,5 +118,5 @@ def make_records(path, filters=None):
 				doc_dict = frappe.get_file_json("{path}/{fname}/{fname}.json".format(path=path, fname=fname))
 				import_doc(doc_dict)
 			except FileNotFoundError:
-				frappe.log_error(message=frappe.get_traceback(), title="Dashboard Sync")
+				frappe.log_error(message=frappe.get_traceback(), title="Dashboard Import Error")
 				pass
