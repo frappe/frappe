@@ -173,7 +173,7 @@ def upload_file():
 	folder = frappe.form_dict.folder or 'Home'
 	method = frappe.form_dict.method
 	content = None
-	filename = None
+	filename = frappe.form_dict.file_name
 
 	if 'file' in files:
 		file = files['file']
