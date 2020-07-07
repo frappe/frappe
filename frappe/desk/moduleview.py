@@ -544,8 +544,8 @@ def get_last_modified(doctype):
 def get_report_list(module, is_standard="No"):
 	"""Returns list on new style reports for modules."""
 	try:
-		reports =  frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], filters=
-			{"is_standard": is_standard, "disabled": 0, "module": module},
+		reports = frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], 
+			filters={"is_standard": is_standard, "disabled": 0, "module": module},
 			order_by="name")
 	except frappe.PermissionError:
 		return
