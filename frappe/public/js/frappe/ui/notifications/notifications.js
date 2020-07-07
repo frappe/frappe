@@ -53,8 +53,7 @@ frappe.ui.Notifications = class Notifications {
 
 		this.categories = [
 			{ label: __("Notifications"), id: "notifications", view: NotificationsView },
-			{ label: __("Today's Events"), id: "todays_events", view: EventsView },
-			{ label: __("Open Documents"), id: "open_documents", view: OpenDocsView }
+			{ label: __("Today's Events"), id: "todays_events", view: EventsView }
 		];
 
 		let get_headers_html = (item) => {
@@ -528,11 +527,5 @@ class EventsView extends BaseNotificaitonsView {
 		}
 
 		this.container.html(html);
-	}
-}
-
-class OpenDocsView extends BaseNotificaitonsView {
-	make() {
-		console.log("docs hello");
 	}
 }
