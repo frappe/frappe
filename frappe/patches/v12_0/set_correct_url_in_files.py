@@ -19,11 +19,26 @@ def execute():
 			if file_path.startswith('/private/files/'):
 				public_file_url = os.path.join(public_file_path, file_name)
 				if os.path.exists(public_file_url):
-					frappe.db.set_value('File', doc.name, 'file_url', '/files/{0}'.format(file_name))
-					frappe.db.set_value('File', doc.name, 'is_private', 0)
+					frappe.db.set_value(
+						'File',
+						doc.name,
+						{
+							'file_url': '/files/{0}'.format(file_name),
+							'is_private': 0
+						},
+						update_modified=False
+					)
 
 			elif file_path.startswith('/files/'):
 				private_file_url = os.path.join(private_file_path, file_name)
 				if os.path.exists(private_file_url):
-					frappe.db.set_value('File', doc.name, 'file_url', '/private/files/{0}'.format(file_name))
-					frappe.db.set_value('File', doc.name, 'is_private', 1)
+					frappe.db.set_value(
+						'File',
+						doc.name,
+						{
+							'file_url': '/private/files/{0}'.format(file_name),
+							'is_private': 1
+						},
+						update_modified=False
+					)
+
