@@ -487,7 +487,6 @@ class EventsView extends BaseNotificaitonsView {
 			start: today,
 			end: today
 		}).then(event_list => {
-			console.log(event_list);
 			this.render_events_html(event_list);
 		});
 	}
@@ -496,26 +495,35 @@ class EventsView extends BaseNotificaitonsView {
 		let html = '';
 		if (event_list.length) {
 			let get_event_html = (event) => {
-				let time;
-				if (event.all_day) {
-					time = __("All Day")
-				} else {
+				let time = __("All Day");
+				if (!event.all_day) {
 					let start_time = frappe.datetime.get_time(event.starts_on);
 					let days_diff = frappe.datetime.get_day_diff(event.ends_on, event.starts_on)
-					let end_time;
+					let end_time = frappe.datetime.get_time(event.ends_on);
 					if (days_diff > 1) {
-						end_time = __("Rest of the Day");
-					} else {
-						end_time = frappe.datetime.get_time(event.ends_on);
+						end_time = __("Rest of the day");
 					}
-
-					time = `${start_time} - ${end_time}`
+					time = `${start_time} - ${end_time}`;
 				}
+
+				// REDESIGN-TODO: Add Participants to get_events query
+				let particpants = '';
+				if (event.particpants) {
+					particpants = frappe.avatar_group(event.particpants, 3)
+				}
+
+				// REDESIGN-TODO: Add location to calendar field
+				let location = '';
+				if (event.location) {
+					location = `, ${event.location}`;
+				}
+
 				return `<a class="recent-item event" href="#Form/Event/${event.name}">
 					<div class="event-border" style="border-color: ${event.color}"></div>
 					<div class="event-item">
 						<div class="event-subject">${event.subject}</div>
-						<div class="event-time">${time}</div>
+						<div class="event-time">${time}${location}</div>
+						${particpants}
 					</div>
 				</a>`;
 			};
