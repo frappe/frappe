@@ -17,21 +17,6 @@
     color: #d1d8dd;
 }
 
-.category-list[data-category="Open Documents"] li a {
-	text-decoration: none;
-	display: block;
-    padding: 14px;
-    clear: both;
-    font-weight: normal;
-    line-height: 1.42857143;
-    color: #333;
-    white-space: normal;
-}
-
-.category-list[data-category="Open Documents"] li a:hover {
-	background-color: #f0f4f7;
-}
-
 .open-doc-count {
 	margin-left: 150px;
 }
@@ -90,7 +75,7 @@
 
 			&.active {
 				color: var(--grey-800);
-				border-bottom: 2px solid $primary;
+				border-bottom: 1px solid $primary;
 			}
 		}
 	}
@@ -116,7 +101,7 @@
 		margin-top: 10px;
 	}
 
-	&:hover {
+	&:not(.no-hover):hover {
 		color: $text-muted;
 		text-decoration: none;
 		background-color: var(--grey-100);
@@ -168,13 +153,86 @@
 
 	.event-item {
 		padding-left: 10px;
+
 		.event-subject {
+			font-size: var(--text-md);
 			color: var(--grey-800);
 			font-weight: 500;
 		}
 
 		.event-time {
+			font-size: var(--text-sm);
 			margin-right: 10px;
+		}
+
+		.avatar-group {
+			margin-top: 10px;
+		}
+	}
+
+	&:hover {
+		.avatar-frame {
+			border-color: var(--grey-100);
+		}
+	}
+}
+
+.recent-item.open-docs {
+	display: flex;
+	justify-content: space-between;
+
+	.indicator-pill {
+		margin: 0px;
+	}
+}
+
+.targets-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+
+	.recent-item.target-company {
+		display: block;
+		text-align: center;
+
+		svg {
+			max-width: 100px;
+			margin: auto;
+		}
+
+		.target-title {
+			margin: auto;
+			font-size: var(--text-md);
+			color: var(--grey-800);
+		}
+
+		.target-progress {
+			max-width: 150px;
+			margin: 10px auto auto auto;
+
+			.progress,
+			.progress-bar {
+				height: 8px;
+			}
+		}
+
+		&:first-child {
+			grid-column-start: 1;
+			grid-column-end: 3;
+
+			svg {
+				max-width: 200px;
+				margin: auto;
+			}
+
+			.target-progress {
+				max-width: 200px;
+				margin: 10px auto auto auto;
+
+				.progress,
+				.progress-bar {
+					height: 8px;
+				}
+			}
 		}
 	}
 }
