@@ -7,6 +7,17 @@
 		</a>
 		<div class="input-group">
 			<div class="input-group-addon">
+				<span class="text-muted text-medium">{{ __('Name') }}</span>
+			</div>
+			<input
+				type="text"
+				class="form-control"
+				:placeholder="__('Name')"
+				v-model="name"
+			>
+		</div>
+		<div class="input-group">
+			<div class="input-group-addon">
 				<span class="text-muted text-medium">{{ __('Web Link') }}</span>
 			</div>
 			<input
@@ -24,6 +35,7 @@ export default {
 	data() {
 		return {
 			url: '',
+			name: ''
 		}
 	}
 }
