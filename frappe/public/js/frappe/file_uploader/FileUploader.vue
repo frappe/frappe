@@ -374,6 +374,38 @@ export default {
 								indicator: 'red',
 								message: response._error_message
 							});
+						} else if ( xhr.status === 417) {
+							file.failed = true;
+							let error = null;
+							try {
+								error = JSON.parse(xhr.responseText);
+							} catch(e) {
+								// pass
+							}
+
+							if ( error._server_messages) {
+								try {
+									for(let msg of JSON.parse(error._server_messages)) {
+										if ( typeof msg === 'string' ) {
+											msg = JSON.parse(msg);
+										}
+										frappe.msgprint({
+											title: __("Validation Error"),
+											indicator: msg.indicator || 'red',
+											message: msg.message
+										});
+									}
+								} catch(e) {
+									// pass
+								}
+							} else {
+								frappe.msgprint({
+									title: __("Unexpected Validation Error"),
+									indicator: 'red',
+									message: __("There was an error uploading your file.")
+								});
+							}
+
 						} else {
 							file.failed = true;
 							let error = null;

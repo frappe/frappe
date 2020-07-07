@@ -35,6 +35,7 @@
 		"public/js/frappe/utils/pretty_date.js",
 		"public/js/frappe/microtemplate.js",
 		"public/js/frappe/query_string.js",
+		"public/js/frappe/request.js",
 
 		"public/js/frappe/ui/dropzone.js",
 		"public/js/frappe/ui/upload.html",
