@@ -235,8 +235,8 @@ def get_config(app, module):
 	sections = [s for s in config if s.get("condition", True)]
 
 	disabled_reports = get_disabled_reports()
-	has_report_permission = frappe.permissions.has_permission('Report', 'read', user=frappe.session.user,\
-		raise_exception=False)
+	has_report_permission = frappe.permissions.has_permission('Report', 'read',
+		user=frappe.session.user, raise_exception=False)
 
 	for section in sections:
 		items = []
