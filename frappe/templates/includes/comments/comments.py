@@ -20,7 +20,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 	url_regex = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", re.IGNORECASE)
 	email_regex = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", re.IGNORECASE)
 
-	if url_regex.match(comment) or email_regex.match(comment):
+	if url_regex.search(comment) or email_regex.search(comment):
 		frappe.msgprint(_('Comments cannot have links or email addresses'))
 		return False
 
