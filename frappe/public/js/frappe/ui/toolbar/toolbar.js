@@ -44,34 +44,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar-toggle-full-width').click(() => {
 			frappe.ui.toolbar.toggle_full_width();
 		});
-
-		$('.user-auto-assignment-status').click(() =>{
-			frappe.db.get_value('User', frappe.user.name, 'suspend_all_auto_assignment', (r) => { 
-				if (r.suspend_all_auto_assignment) {
-					frappe.db.set_value('User', frappe.user.name, 'suspend_all_auto_assignment', 0, () =>{
-						$('.user-auto-assignment-status').find('a').html(__("Unavailable For Assignments"));
-						frappe.show_alert({
-							indicator: 'green',
-							message: __('All auto assignments resumed again.')
-						});
-					});
-					frappe.call({
-						method: "frappe.automation.doctype.assignment_rule.assignment_rule.bulk_assignment",
-						args: {
-							user: frappe.user.name
-						}
-					})
-				} else {
-					frappe.db.set_value('User', frappe.user.name, 'suspend_all_auto_assignment', 1, () =>{
-						$('.user-auto-assignment-status').find('a').html(__("Available For Assignments"));
-						frappe.show_alert({
-							indicator: 'red',
-							message: __('All auto assignments suspended for you.')
-						});
-					});
-				}
-			});
-		});
 	},
 
 	setup_sidebar: function() {
