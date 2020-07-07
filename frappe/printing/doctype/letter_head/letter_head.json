@@ -17,8 +17,7 @@
   "header_section",
   "content",
   "footer_section",
-  "footer",
-  "add_image"
+  "footer"
  ],
  "fields": [
   {
@@ -100,20 +99,15 @@
    "depends_on": "eval:!doc.__islocal",
    "description": "Footer will display correctly only in PDF",
    "fieldname": "footer",
-   "fieldtype": "HTML Editor",
-   "label": "Footer HTML"
-  },
-  {
-   "fieldname": "add_image",
-   "fieldtype": "Button",
-   "label": "Add Image"
+   "fieldtype": "Text Editor",
+   "label": "Footer"
   }
  ],
  "icon": "fa fa-font",
  "idx": 1,
  "links": [],
  "max_attachments": 3,
- "modified": "2020-06-15 13:03:08.074121",
+ "modified": "2020-07-07 15:19:18.390464",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
