@@ -48,7 +48,6 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		this.email_account = frappe.get_route()[3];
 		this.page_title = this.email_account;
 		this.filters = this.get_inbox_filters();
-		this.get_seen = (doc) => this.set_seen(doc);
 	}
 
 	setup_columns() {
@@ -70,7 +69,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		});
 	}
 
-	set_seen(doc) {
+	get_seen_class(doc) {
 		const seen =
 			Boolean(doc.seen) || JSON.parse(doc._seen || '[]').includes(frappe.session.user)
 				? ''
