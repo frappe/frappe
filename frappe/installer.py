@@ -155,7 +155,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 
 		linked_doctypes = frappe.get_all("DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=['parent'])
-		ordered_doctypes = ["Desk Page", "Report", "Page", "Web Form"]
+		ordered_doctypes = ["Report", "Page", "Web Form"]
 		doctypes_with_linked_modules = ordered_doctypes + [doctype.parent for doctype in linked_doctypes if doctype.parent not in ordered_doctypes]
 
 		for doctype in doctypes_with_linked_modules:
