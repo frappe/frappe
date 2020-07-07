@@ -45,6 +45,18 @@ frappe.avatar = function (user, css_class, title, image_url = null) {
 	}
 };
 
+frappe.avatar_group = function(users,  limit=4, css_class="avatar avatar-small") {
+	let extra_count = users.length - limit;
+	let html = users.splice(0, limit).map((user) => frappe.avatar(user, css_class)).join('')
+	if (extra_count > 0) {
+		return `<div class="avatar-group small">${html}
+			<span class="extra-count">${__(' and {} others', [extra_count])}</span>
+		</div>`;
+	} else {
+		return `<div class="avatar-group">${html}</div>`;
+	}
+}
+
 frappe.ui.scroll = function(element, animate, additional_offset) {
 	var header_offset = $(".navbar").height() + $(".page-head").height();
 	var top = $(element).offset().top - header_offset - cint(additional_offset);
