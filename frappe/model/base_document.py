@@ -511,12 +511,18 @@ class BaseDocument(object):
 	def set_fetch_from_value(self, doctype, df, values):
 		fetch_from_fieldname = df.fetch_from.split('.')[-1]
 		value = values[fetch_from_fieldname]
-		if df.fieldtype == 'Small Text' or df.fieldtype == 'Text' or df.fieldtype == 'Data':
+		if df.fieldtype in ['Small Text', 'Text', 'Data']:
 			if fetch_from_fieldname in default_fields:
 				from frappe.model.meta import get_default_df
 				fetch_from_df = get_default_df(fetch_from_fieldname)
 			else:
 				fetch_from_df = frappe.get_meta(doctype).get_field(fetch_from_fieldname)
+
+			if not fetch_from_df:
+				frappe.throw(
+					_('Please check the value of "Fetch From" set for field {0}').format(frappe.bold(df.label)),
+					title = _('Wrong Fetch From value')
+				)
 
 			fetch_from_ft = fetch_from_df.get('fieldtype')
 			if fetch_from_ft == 'Text Editor' and value:
