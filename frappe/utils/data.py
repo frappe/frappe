@@ -121,7 +121,7 @@ def date_diff(string_ed_date, string_st_date):
 def month_diff(string_ed_date, string_st_date):
 	ed_date = getdate(string_ed_date)
 	st_date = getdate(string_st_date)
-	return (ed_date.year - st_date.year) * 12 + ed_date.month - st_date.month + 1
+	return (ed_date.year - st_date.year) * 12 + ed_date.month - st_date.month
 
 def time_diff(string_ed_date, string_st_date):
 	return get_datetime(string_ed_date) - get_datetime(string_st_date)
