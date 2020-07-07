@@ -307,13 +307,19 @@ export default {
 		},
 		upload_via_web_link() {
 			let file_url = this.$refs.web_link.url;
+			let file_name = this.$refs.web_link.name;
 			if (!file_url) {
 				frappe.msgprint(__('Invalid URL'));
 				return Promise.reject();
 			}
+			if (!file_name) {
+				frappe.msgprint(__('Invalid Name'));
+				return Promise.reject();
+			}
 
 			return this.upload_file({
-				file_url
+				file_url,
+				file_name
 			});
 		},
 		return_as_dataurl() {
@@ -399,6 +405,9 @@ export default {
 
 				if (file.file_url) {
 					form_data.append('file_url', file.file_url);
+				}
+				if (file.file_name) {
+					form_data.append('file_name', file.file_name);
 				}
 
 				if (this.doctype && this.docname) {
