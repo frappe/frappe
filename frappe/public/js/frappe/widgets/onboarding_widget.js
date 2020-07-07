@@ -136,7 +136,7 @@ export default class OnboardingWidget extends Widget {
 		if (step.is_single) {
 			route = `Form/${step.reference_document}`;
 		} else {
-			route = __(`Form/${step.reference_document}/{0} {1}`, [__('New'), __(step.reference_document)]);
+			route = `Form/${step.reference_document}/{__('New')} {__(step.reference_document)}`;
 		}
 
 		let current_route = frappe.get_route();
@@ -262,7 +262,7 @@ export default class OnboardingWidget extends Widget {
 			frappe.route_hooks.after_save = callback;
 		}
 
-		frappe.set_route(__(`Form/${step.reference_document}/{0} {1}`, [__('New'), __(step.reference_document)]));
+		frappe.set_route(`Form/${step.reference_document}/{__('New')} {__(step.reference_document)}`);
 	}
 
 	show_quick_entry(step) {
