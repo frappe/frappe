@@ -139,6 +139,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		print("Backing up...")
 		scheduled_backup(ignore_files=True)
 
+	frappe.flags.in_uninstall = True
 	drop_doctypes = []
 
 	# remove modules, doctypes, roles
