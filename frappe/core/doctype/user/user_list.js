@@ -10,7 +10,7 @@ frappe.listview_settings['User'] = {
 	get_indicator: function(doc) {
 		if (doc.suspend_all_auto_assignments && doc.enabled) {
 			return [__("Unavailable For Assignments"), "yellow", "enabled,=,1"];
-		} else if(doc.enabled) {
+		} else if (doc.enabled) {
 			return [__("Active"), "green", "enabled,=,1"];
 		} else {
 			return [__("Disabled"), "grey", "enabled,=,0"];
