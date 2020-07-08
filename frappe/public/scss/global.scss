@@ -181,7 +181,8 @@ select.input-xs {
 	line-height: 1.2;
 }
 
-// popover
+/* popover */
+
 .popover {
 	border-radius: 4px;
 
@@ -195,7 +196,37 @@ select.input-xs {
 }
 
 
-// custom checkbox
+/* dropdowns */
+
+.dropdown-backdrop {
+	display: none;
+}
+
+// .dropdown-menu > li > a {
+// 	padding: 14px;
+// 	white-space: normal;
+// }
+
+.dropdown-item {
+	border-radius: 4px;
+	padding: 0.75rem;
+}
+
+.dropdown-menu {
+	min-width: 200px;
+	padding: 4px 0;
+	font-size: $font-size-md;
+	max-height: 500px;
+	overflow: auto;
+	color: $text-color;
+	border-radius: 6px;
+}
+
+.dropdown-menu .divider {
+	margin: 0px;
+}
+
+/* checkbox */
 input[type="checkbox"] {
 	position: relative;
 	visibility: hidden;
