@@ -2,7 +2,6 @@ frappe.provide('frappe.search');
 
 frappe.ui.Notifications = class Notifications {
 	constructor() {
-		window.not = this;
 		this.tabs = {};
 		frappe.model
 			.with_doc('Notification Settings', frappe.session.user)
