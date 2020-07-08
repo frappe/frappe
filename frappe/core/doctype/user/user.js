@@ -79,7 +79,7 @@ frappe.ui.form.on('User', {
 			let alert_message = frm.doc.suspend_all_auto_assignments ? __('All auto assignments resumed again.') :
 				__('All auto assignments suspended for you.');
 
-			let indicator = frm.doc.suspend_all_auto_assignments ? 'red' : 'green';
+			let indicator = frm.doc.suspend_all_auto_assignments ? 'green' : 'red';
 
 			frm.add_custom_button(button_label, function() {
 				frm.set_value('suspend_all_auto_assignments', 1 - frm.doc.suspend_all_auto_assignments);
