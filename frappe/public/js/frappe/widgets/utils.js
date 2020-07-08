@@ -100,6 +100,11 @@ function generate_grid(data) {
 }
 
 const build_summary_item = (summary) => {
+	if (summary.type == "separator") {
+		return $(`<div class="summary-separator">
+			<div class="summary-value ${summary.color ? summary.color.toLowerCase() : 'text-muted' }">${ summary.value }</div>
+		</div>`);
+	}
 	let df = {fieldtype: summary.datatype};
 	let doc = null;
 
@@ -116,7 +121,7 @@ const build_summary_item = (summary) => {
 			: '';
 
 	return $(`<div class="summary-item">
-		<span class="summary-label small text-muted">${summary.label}</span>
+		<span class="summary-label">${summary.label}</span>
 		<div class="summary-value ${color}">${ value }</div>
 	</div>`);
 };
