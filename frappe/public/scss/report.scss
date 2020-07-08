@@ -157,6 +157,10 @@
 		font-size: var(--text-base);
 		font-weight: normal !important;
 		text-align: center;
+
+		overflow: hidden !important;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.summary-value {
