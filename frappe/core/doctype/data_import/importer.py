@@ -379,7 +379,7 @@ class ImportFile:
 
 		if len(data) < 1:
 			frappe.throw(
-				_("Import template should contain a Header and atleast one row."),
+				_("Import template should contain a Header and at least one row."),
 				title=_("Template Error"),
 			)
 
@@ -474,7 +474,7 @@ class ImportFile:
 		doc = parent_doc
 
 		if self.import_type == INSERT:
-			# check if there is atleast one row for mandatory table fields
+			# check if there is at least one row for mandatory table fields
 			meta = frappe.get_meta(self.doctype)
 			mandatory_table_fields = [
 				df
@@ -487,14 +487,14 @@ class ImportFile:
 				self.warnings.append(
 					{
 						"row": first_row.row_number,
-						"message": _("There should be atleast one row for {0} table").format(
+						"message": _("There should be at least one row for {0} table").format(
 							frappe.bold(mandatory_table_fields[0].label)
 						),
 					}
 				)
 			elif mandatory_table_fields:
 				fields_string = ", ".join([df.label for df in mandatory_table_fields])
-				message = _("There should be atleast one row for the following tables: {0}").format(
+				message = _("There should be at least one row for the following tables: {0}").format(
 					fields_string
 				)
 				self.warnings.append({"row": first_row.row_number, "message": message})
@@ -632,8 +632,16 @@ class Row:
 				return
 
 		elif df.fieldtype == "Link":
-			exists = self.link_exists(value, df)
-			if not exists:
+			if not self.link_exists(value, df):
+				if df.options == self.doctype:
+					msg = _("Note: {0} refers to {1}, which does not currently exist. Make sure it is defined earlier in the import file.").format(df.label, frappe.bold(value))
+					self.warnings.append({
+						"row": self.row_number,
+						"field": df_as_json(df),
+						"message": msg,
+						"type": 'info'}
+					)
+					return value
 				msg = _("Value {0} missing for {1}").format(
 					frappe.bold(value), frappe.bold(df.options)
 				)
@@ -962,11 +970,18 @@ class Column:
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
 				missing_values = ', '.join(not_exists)
-				self.warnings.append({
-					'col': self.column_number,
-					'message': "The following values do not exist for {}: {}".format(self.df.options, missing_values),
-					'type': 'warning'
-				})
+				if self.doctype == self.df.options:
+					self.warnings.append({
+						'col': self.column_number,
+						'message': _("Make sure the following entries in {0} are defined before they are used: {1}").format(self.df.label, missing_values),
+						'type': 'info'
+					})
+				else:
+					self.warnings.append({
+						'col': self.column_number,
+						'message': "The following values do not exist for {}: {}".format(self.df.options, missing_values),
+						'type': 'warning'
+					})
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date format
 			self.date_format = self.guess_date_format_for_column()
