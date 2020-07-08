@@ -257,7 +257,6 @@ class NotificationsView extends BaseNotificaitonsView {
 		this.get_notifications_list(this.max_length).then(list => {
 			this.dropdown_items = list;
 			this.render_notifications_dropdown();
-			this.setup_events();
 		});
 	}
 
