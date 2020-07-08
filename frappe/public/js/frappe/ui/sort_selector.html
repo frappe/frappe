@@ -9,21 +9,17 @@
 				</svg>
 			</span>
 		</button>
-		<button class="btn btn-default btn-xs sort-selector-button">
-			<div class="dropdown">
-				<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-					<span class="dropdown-text">{{ __(sort_by_label) }}</span>
-				</a>
-				<ul class="dropdown-menu">
-					{% for value in options %}
-					<li>
-						<a class="dropdown-item option" data-value="{{ value.fieldname }}">
-							{{ __(value.label) }}
-						</a>
-					</li>
-					{% endfor %}
-				</ul>
-			</div>
+		<button type="button" class="btn btn-default btn-xs sort-selector-button" data-toggle="dropdown">
+			<span class="dropdown-text">{{ __(sort_by_label) }}</span>
+			<ul class="dropdown-menu">
+				{% for value in options %}
+				<li>
+					<a class="dropdown-item option" data-value="{{ value.fieldname }}">
+						{{ __(value.label) }}
+					</a>
+				</li>
+				{% endfor %}
+			</ul>
 		</button>
 	</div>
 </div>
