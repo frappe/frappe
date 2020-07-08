@@ -2,6 +2,7 @@ frappe.provide('frappe.search');
 
 frappe.ui.Notifications = class Notifications {
 	constructor() {
+		window.not = this;
 		this.tabs = {};
 		frappe.model
 			.with_doc('Notification Settings', frappe.session.user)
@@ -104,8 +105,7 @@ frappe.ui.Notifications = class Notifications {
 
 	go_to_settings(e) {
 		e.stopImmediatePropagation();
-		this.dropdown.removeClass('open');
-		this.dropdown.trigger('hide.bs.dropdown');
+		this.dropdown.dropdown('hide');
 		this.route_to_settings();
 	}
 
@@ -190,11 +190,7 @@ frappe.ui.Notifications = class Notifications {
 		});
 
 		this.dropdown.on('click', e => {
-			if ($(e.target).closest('.dropdown-toggle').length) {
-				$(e.currentTarget).data('closable', true);
-			} else {
-				$(e.currentTarget).data('closable', false);
-			}
+			$(e.currentTarget).data('closable', true);
 		});
 	}
 };
