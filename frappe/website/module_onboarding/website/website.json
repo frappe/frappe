@@ -10,7 +10,7 @@
  "documentation_url": "https://docs.erpnext.com/docs/user/manual/en/website",
  "idx": 0,
  "is_complete": 0,
- "modified": "2020-05-28 13:51:57.535269",
+ "modified": "2020-07-04 13:51:57.535269",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -32,8 +32,8 @@
    "step": "Web Page Tour"
   }
  ],
- "subtitle": "Blogs, website view tracking, and more.",
- "success_message": "Yayy! Your website is all setup!",
- "title": "Let's Setup Your Website",
+ "subtitle": "Blogs, Website View Tracking, and more.",
+ "success_message": "Yayy! Your website is all set up!",
+ "title": "Let's Set Up Your Website",
  "user_can_dismiss": 1
 }

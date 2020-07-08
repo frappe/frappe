@@ -174,16 +174,20 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 
 			if (!this.subject) {
-				if (this.frm.subject_field && this.frm.doc[this.frm.subject_field]) {
-					this.subject = __("Re: {0}", [this.frm.doc[this.frm.subject_field]]);
-				} else {
-					let title = this.frm.doc.name;
-					if(this.frm.meta.title_field && this.frm.doc[this.frm.meta.title_field]
-						&& this.frm.doc[this.frm.meta.title_field] != this.frm.doc.name) {
-						title = `${this.frm.doc[this.frm.meta.title_field]} (#${this.frm.doc.name})`;
-					}
-					this.subject = `${__(this.frm.doctype)}: ${title}`;
+				this.subject = this.frm.doc.name;
+				if (this.frm.meta.subject_field && this.frm.doc[this.frm.meta.subject_field]) {
+					this.subject = this.frm.doc[this.frm.meta.subject_field];
+				} else if (this.frm.meta.title_field && this.frm.doc[this.frm.meta.title_field]) {
+					this.subject = this.frm.doc[this.frm.meta.title_field];
 				}
+			}
+
+			// always add an identifier to catch a reply
+			// some email clients (outlook) may not send the message id to identify
+			// the thread. So as a backup we use the name of the document as identifier
+			let identifier = `#${this.frm.doc.name}`;
+			if (!this.subject.includes(identifier)) {
+				this.subject = `${this.subject} (${identifier})`;
 			}
 		}
 
