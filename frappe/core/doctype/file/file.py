@@ -100,8 +100,6 @@ class File(Document):
 				self.validate_file()
 			self.generate_content_hash()
 
-		self.validate_url()
-
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
 			old_file_url = self.file_url
 			if not self.is_folder and (self.is_private != self.db_get('is_private')):
@@ -136,6 +134,8 @@ class File(Document):
 				if self.attached_to_field:
 					frappe.db.set_value(self.attached_to_doctype, self.attached_to_name,
 						self.attached_to_field, self.file_url)
+
+		self.validate_url()
 
 		if self.file_url and (self.is_private != self.file_url.startswith('/private')):
 			frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
