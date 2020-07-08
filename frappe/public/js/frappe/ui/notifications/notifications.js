@@ -272,7 +272,7 @@ class NotificationsView extends BaseNotificaitonsView {
 	insert_into_dropdown() {
 		let new_item = this.dropdown_items[0];
 		let new_item_html = this.get_dropdown_item_html(new_item);
-		$(new_item_html).prependTo(this.dropdown_list.find(this.$notifications));
+		$(new_item_html).prependTo(this.container);
 		this.change_activity_status();
 	}
 
@@ -361,12 +361,12 @@ class NotificationsView extends BaseNotificaitonsView {
 
 	setup_notification_listeners() {
 		frappe.realtime.on('notification', () => {
-			this.dropdown.find('.notifications-indicator').show();
+			// this.dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
 		});
 
 		frappe.realtime.on('indicator_hide', () => {
-			this.dropdown.find('.notifications-indicator').hide();
+			// this.dropdown.find('.notifications-indicator').hide();
 		});
 	}
 }
