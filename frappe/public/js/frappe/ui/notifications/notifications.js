@@ -360,6 +360,7 @@ class NotificationsView extends BaseNotificaitonsView {
 	}
 
 	setup_notification_listeners() {
+		// REDESIGN-TODO: toggle icon indicator
 		frappe.realtime.on('notification', () => {
 			// this.dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
