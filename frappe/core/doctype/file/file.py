@@ -106,18 +106,20 @@ class File(Document):
 				private_files = frappe.get_site_path('private', 'files')
 				public_files = frappe.get_site_path('public', 'files')
 
+				file_name = self.file_url.split('/')[-1]
 				if not self.is_private:
-					shutil.move(os.path.join(private_files, self.file_name),
-						os.path.join(public_files, self.file_name))
+					shutil.move(os.path.join(private_files, file_name),
+						os.path.join(public_files, file_name))
 
-					self.file_url = "/files/{0}".format(self.file_name)
+					self.file_url = "/files/{0}".format(file_name)
 
 				else:
-					shutil.move(os.path.join(public_files, self.file_name),
-						os.path.join(private_files, self.file_name))
+					shutil.move(os.path.join(public_files, file_name),
+						os.path.join(private_files, file_name))
 
-					self.file_url = "/private/files/{0}".format(self.file_name)
+					self.file_url = "/private/files/{0}".format(file_name)
 
+				update_existing_file_docs(self)
 
 			# update documents image url with new file url
 			if self.attached_to_doctype and self.attached_to_name:
@@ -898,3 +900,20 @@ def get_files_in_folder(folder):
 		{ 'folder': folder },
 		['name', 'file_name', 'file_url', 'is_folder', 'modified']
 	)
+
+def update_existing_file_docs(doc):
+	# Update is private and file url of all file docs that point to the same file
+	frappe.db.sql("""
+		UPDATE `tabFile`
+		SET
+			file_url = %(file_url)s,
+			is_private = %(is_private)s
+		WHERE
+			content_hash = %(content_hash)s
+			and name != %(file_name)s
+	""", dict(
+		file_url=doc.file_url,
+		is_private=doc.is_private,
+		content_hash=doc.content_hash,
+		file_name=doc.name
+	))
