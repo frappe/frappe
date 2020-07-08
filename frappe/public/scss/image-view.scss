@@ -98,9 +98,10 @@
 		}
 
 		.image-view-info {
-			margin-top: 10px;
+			margin-top: 5px;
 			font-size: $font-size-sm;
 			color: var(--grey-600);
+			margin-bottom: 0;
 		}
 
 		.image-view-body {
@@ -117,21 +118,13 @@
 			// margin-bottom: 25px;
 			height: 130px;
 			width: 130px;
-			margin: 0 auto 25px auto;
+			margin: 0 auto;
 		}
 
 		.image-field {
-			// display: flex;
-			// align-content: center;
-			// align-items: center;
-			// justify-content: center;
-			// height: 130px;
-			// width: 130px;
-			// border-radius: $border-radius;
-
 			position: relative;
 			display: block;
-			height: 130px;
+			width: 130px;
 			text-align: center;
 			margin: 0 auto;
 			border-radius: var(--border-radius);
@@ -172,6 +165,7 @@
 			&.no-image {
 				// background-color: var(--blue-50);
 				line-height: 130px;
+				height: 130px;
 				background-color: var(--grey-50);
 				border-radius: $border-radius;
 			}
@@ -190,6 +184,7 @@
 			font-weight: 500;
 			justify-content: start;
 			align-items: center;
+			margin-top: 30px;
 		}
 
 		.placeholder-text {
@@ -199,17 +194,24 @@
 		}
 
 		.zoom-view {
-			width: 24px;
-			height: 24px;
+			width: 18px;
+			height: 18px;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			bottom: 5px;
-			right: 5px;
+			bottom: 3px;
+			right: 3px;
 			opacity: 0;
 			font-size: 16px;
-			color: $text-color;
 			position: absolute;
+			background: var(--grey-300);
+			border-radius: $border-radius;
+
+			.icon {
+				use {
+					stroke: $text-color;
+				}
+			}
 
 			// show zoom button on mobile devices
 			// @media (max-width: $screen-xs) {

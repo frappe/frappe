@@ -99,7 +99,6 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 		const user = frappe.session.user;
 
-
 		let details = this.item_details_html(item);
 
 		const liked_by = JSON.parse(item._liked_by || "[]");
@@ -107,6 +106,14 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		let heart_class = liked_by.includes(user)
 			? "liked-by"
 			: "text-extra-muted not-liked";
+
+		const expand_button_html = item._image_url
+			? `<div class="zoom-view" data-name="${encoded_name}">
+				<svg class="icon icon-xs">
+					<use xlink:href="#icon-expand"></use>
+				</svg>
+			</div>`
+			: '';
 
 		return `
 			<div class="image-view-item ellipsis">
@@ -134,9 +141,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 							data-name="${encoded_name}"
 						>
 							${_html}
-							<button class="btn btn-default zoom-view" data-name="${encoded_name}">
-								<i class="fa fa-search-plus"></i>
-							</button>
+							${expand_button_html}
 						</div>
 					</a>
 				</div>
@@ -208,7 +213,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 			wrapper: this.$result,
 			images_map: this.images_map
 		});
-		this.$result.on('click', '.btn.zoom-view', function (e) {
+		this.$result.on('click', '.zoom-view', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
 			var name = $(this).data().name;
