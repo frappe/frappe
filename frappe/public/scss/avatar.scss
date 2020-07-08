@@ -39,6 +39,10 @@
 	height: 24px;
 	text-align: center;
 
+	.avatar-frame {
+		padding: 12px;
+	}
+
 	.standard-image {
 		font-size: $font-size-sm;
 		width: 24px;
@@ -55,6 +59,10 @@
 	width: 36px;
 	height: 36px;
 
+	.avatar-frame {
+		padding: 18px;
+	}
+
 	.standard-image {
 		font-size: 18px;
 	}
@@ -63,6 +71,11 @@
 .avatar-large {
 	width: 72px;
 	height: 72px;
+
+	.avatar-frame {
+		padding: 36px;
+	}
+
 
 	.standard-image {
 		font-size: 36px;
@@ -73,14 +86,22 @@
 	width: 108px;
 	height: 108px;
 
+	.avatar-frame {
+		padding: 54px;
+	}
+
 	.standard-image {
 		font-size: 36px;
 	}
 }
 
 .avatar-xs {
-	width: 17px;
-	height: 17px;
+	width: 16px;
+	height: 16px;
+
+	.avatar-frame {
+		padding: 8px;
+	}
 
 	.standard-image {
 		font-size: 9px;
@@ -107,4 +128,31 @@
 	color: $text-muted;
 	border: 1px solid $border-color;
 	font-weight: normal;
+}
+
+.avatar-group {
+	display: flex;
+	align-items: center;
+
+	.avatar {
+		position: relative;
+		z-index: 2;
+
+		.avatar-frame {
+			border: 2px solid $white;
+		}
+
+		&:hover {
+			z-index: 3;
+		}
+	}
+
+	.extra-count {
+		margin-left: 8px;
+		margin-top: 2px;
+	}
+
+	.avatar+.avatar {
+		margin-left: -0.5rem;
+	}
 }
