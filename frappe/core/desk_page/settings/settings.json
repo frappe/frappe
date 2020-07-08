@@ -44,7 +44,7 @@
  "idx": 0,
  "is_standard": 1,
  "label": "Settings",
- "modified": "2020-06-30 18:35:16.114908",
+ "modified": "2020-07-08 12:46:52.264510",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Settings",
@@ -53,19 +53,19 @@
  "pin_to_top": 0,
  "shortcuts": [
   {
-   "icon": "octicon octicon-settings",
+   "icon": "setting",
    "label": "System Settings",
    "link_to": "System Settings",
    "type": "DocType"
   },
   {
-   "icon": "fa fa-print",
+   "icon": "printer",
    "label": "Print Settings",
    "link_to": "Print Settings",
    "type": "DocType"
   },
   {
-   "icon": "fa fa-globe",
+   "icon": "website",
    "label": "Website Settings",
    "link_to": "Website Settings",
    "type": "DocType"
