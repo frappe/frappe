@@ -7,7 +7,7 @@ def execute():
 		SELECT
 			name, reference_type, reference_name, {} as assignees
 		FROM
-			`tabTodo`
+			`tabToDo`
 		WHERE
 			COALESCE(reference_type, '') != '' and
 			COALESCE(reference_name, '') != ''
