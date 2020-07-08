@@ -9,7 +9,8 @@ def execute():
 		FROM
 			`tabTodo`
 		WHERE
-			not reference_type IS NULL and not reference_name IS NULL
+			COALESCE(reference_type, '') != '' and
+			COALESCE(reference_name, '') != ''
 		GROUP BY
 			reference_type, reference_name
 	'''
@@ -21,7 +22,6 @@ def execute():
 
 	for doc in assignments:
 		assignments = doc.assignees.split(',')
-		print('assignments', assignments)
 		frappe.db.set_value(
 			doc.reference_type,
 			doc.reference_name,
