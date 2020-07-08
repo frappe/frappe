@@ -1,9 +1,14 @@
 <div class="kanban-card-wrapper {{ disable_click }}" data-name="{{name}}">
 	<a class="kanban-card-redirect" href="#">
 		<div class="kanban-card content">
-			<div class="kanban-card-title">
-				{{ title }}
-			</div>
+			{% for(let i=0; i<card_fields.length; i++) { %}
+				<div class="kanban-card-title">
+					{% if(show_label){ %}
+						<b> {%= card_fields[i].label %} </b>
+					{% } %} 
+					{%= card_fields[i].value %}
+				</div>
+			{% } %}
 			<div class="kanban-card-meta">
 			</div>
 		</div>

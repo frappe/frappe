@@ -28,6 +28,8 @@ frappe.ui.form.on('Kanban Board', {
 			frm.set_df_property('field_name', 'options', options);
 			frm.get_field('field_name').refresh();
 		});
+		frm.trigger("get_doctype_fields");
+
 	},
 	field_name: function(frm) {
 		var field = frappe.meta.get_field(frm.doc.reference_doctype, frm.doc.field_name);
@@ -39,5 +41,29 @@ frappe.ui.form.on('Kanban Board', {
 			d.column_name = o;
 		});
 		frm.refresh();
+	},
+	get_doctype_fields: function(frm) {
+		frappe.model.with_doctype(frm.doc.reference_doctype, () => {
+			var fields = $.map(frappe.get_doc("DocType", frm.doc.reference_doctype).fields, function(d) {
+				if (frappe.model.no_value_type.indexOf(d.fieldtype) === -1 ||
+					d.fieldtype === 'Table') {
+					return { label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname };
+				} else {
+					return null;
+				}
+			});
+			frappe.meta.get_docfield("Kanban Board Card Field", "field_name", frm.doc.name).options = [""].concat(fields);
+		});
+	}
+});
+
+frappe.ui.form.on("Kanban Board Card Field", {
+	field_name: function(frm, cdt, cdn) {
+		var doc = frappe.get_doc(cdt, cdn);
+		var df = $.map(frappe.get_doc("DocType", frm.doc.reference_doctype).fields, function(d) {
+			return doc.field_name == d.fieldname ? d : null;
+		})[0];
+		doc.label = df.label;
+		frm.refresh_field("card_fields");
 	}
 });

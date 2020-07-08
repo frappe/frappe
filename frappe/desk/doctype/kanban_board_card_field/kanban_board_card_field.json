@@ -1,0 +1,37 @@
+{
+ "actions": [],
+ "creation": "2020-07-08 22:55:34.055968",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "field_name",
+  "label"
+ ],
+ "fields": [
+  {
+   "fieldname": "field_name",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Field Name"
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-07-08 22:55:34.055968",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Kanban Board Card Field",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -29,7 +29,7 @@ frappe.provide("frappe.views");
 				var cards = opts.cards.map(function(card) {
 					return prepare_card(card, opts);
 				});
-				var columns = prepare_columns(board.columns);
+				var columns = prepare_columns(board);
 
 				updater.set({
 					doctype: opts.doctype,
@@ -181,7 +181,7 @@ frappe.provide("frappe.views");
 						var board = r.message[0];
 						var updated_cards = r.message[1];
 						var cards = update_cards_column(updated_cards);
-						var columns = prepare_columns(board.columns);
+						var columns = prepare_columns(board);
 						updater.set({
 							cards: cards,
 							columns: columns
@@ -204,7 +204,7 @@ frappe.provide("frappe.views");
 					}
 				}).then(function(r) {
 					var board = r.message;
-					var columns = prepare_columns(board.columns);
+					var columns = prepare_columns(board);
 					updater.set({
 						columns: columns
 					});
@@ -220,7 +220,7 @@ frappe.provide("frappe.views");
 					}
 				}).then(function(r) {
 					var board = r.message;
-					var columns = prepare_columns(board.columns);
+					var columns = prepare_columns(board);
 					updater.set({
 						columns: columns
 					});
@@ -230,7 +230,6 @@ frappe.provide("frappe.views");
 	});
 
 	frappe.views.KanbanBoard = function(opts) {
-
 		var self = {};
 		self.wrapper = opts.wrapper;
 		self.cur_list = opts.cur_list;
@@ -274,7 +273,7 @@ frappe.provide("frappe.views");
 			var columns = store.getState().columns;
 
 			columns.filter(is_active_column).map(function(col) {
-				frappe.views.KanbanBoardColumn(col, self.$kanban_board);
+				frappe.views.KanbanBoardColumn(opts.board, col, self.$kanban_board);
 			});
 		}
 
@@ -392,7 +391,7 @@ frappe.provide("frappe.views");
 		return self;
 	};
 
-	frappe.views.KanbanBoardColumn = function(column, wrapper) {
+	frappe.views.KanbanBoardColumn = function(board, column, wrapper) {
 		var self = {};
 		var filtered_cards = [];
 
@@ -465,40 +464,9 @@ frappe.provide("frappe.views");
 		function bind_add_card() {
 			var $wrapper = self.$kanban_column;
 			var $btn_add = $wrapper.find('.add-card');
-			var $new_card_area = $wrapper.find('.new-card-area');
-			var $textarea = $new_card_area.find('textarea');
-
-			//Add card button
-			$new_card_area.hide();
 			$btn_add.on('click', function() {
-				$btn_add.hide();
-				$new_card_area.show();
-				$textarea.focus();
-			});
-
-			//save on enter
-			$new_card_area.keydown(function(e) {
-				if (e.which == 13) {
-					e.preventDefault();
-					if (!frappe.request.ajax_count) {
-						// not already working -- double entry
-						e.preventDefault();
-						var card_title = $textarea.val();
-						$new_card_area.hide();
-						$textarea.val('');
-						fluxify.doAction('add_card', card_title, column.title)
-							.then(() => {
-								$btn_add.show();
-							});
-					}
-				}
-			});
-
-			// on textarea blur
-			$textarea.on("blur", function() {
-				$(this).val('');
-				$btn_add.show();
-				$new_card_area.hide();
+				let key = board.field_name;
+				frappe.new_doc(store.getState().doctype, { key: column.title });
 			});
 		}
 
@@ -546,6 +514,8 @@ frappe.provide("frappe.views");
 			var opts = {
 				name: card.name,
 				title: remove_img_tags(card.title),
+				card_fields: card.card_fields,
+				show_label: store.getState().board.show_label,
 				disable_click: card._disable_click ? 'disable-click' : ''
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
@@ -644,12 +614,24 @@ frappe.provide("frappe.views");
 		if (doc) {
 			card = Object.assign({}, card, doc);
 		}
+		let card_fields = [];
+		state.board.card_fields.forEach (
+			function(d){
+				let crd = new Object();
+				crd.label = d.label;
+				crd.value = card[d.field_name];
+				crd.field_name = d.field_name;
+				card_fields.push(crd);
+			}
+		);
 
 		return {
 			doctype: state.doctype,
 			name: card.name,
 			title: card[state.card_meta.title_field.fieldname],
 			column: card[state.board.field_name],
+			card_fields: card_fields,
+			card: card,
 			assigned_list: card.assigned_list || assigned_list,
 			comment_count: card.comment_count || comment_count,
 			color: card.color || null,
@@ -657,8 +639,8 @@ frappe.provide("frappe.views");
 		};
 	}
 
-	function prepare_columns(columns) {
-		return columns.map(function(col) {
+	function prepare_columns(board) {
+		return board.columns.map(function(col) {
 			return {
 				title: col.column_name,
 				status: col.status,
