@@ -23,7 +23,6 @@ frappe.ui.Notifications = class Notifications {
 		);
 
 		this.user = frappe.session.user;
-		this.max_length = 20;
 
 		this.setup_headers();
 		let me = this;
@@ -97,10 +96,7 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	make_tab_view(item) {
-		let tabView = new item.view({
-			wrapper: this.body,
-			max_length: this.max_length
-		});
+		let tabView = new item.view(this.body);
 		this.tabs[item.id] = tabView;
 		this.current_tab = tabView;
 		tabView.show();
@@ -108,8 +104,7 @@ frappe.ui.Notifications = class Notifications {
 
 	go_to_settings(e) {
 		e.stopImmediatePropagation();
-		this.dropdown.removeClass('open');
-		this.dropdown.trigger('hide.bs.dropdown');
+		this.dropdown.dropdown('hide');
 		this.route_to_settings();
 	}
 
@@ -194,11 +189,7 @@ frappe.ui.Notifications = class Notifications {
 		});
 
 		this.dropdown.on('click', e => {
-			if ($(e.target).closest('.dropdown-toggle').length) {
-				$(e.currentTarget).data('closable', true);
-			} else {
-				$(e.currentTarget).data('closable', false);
-			}
+			$(e.currentTarget).data('closable', true);
 		});
 	}
 };
@@ -235,9 +226,10 @@ frappe.ui.notifications = {
 };
 
 class BaseNotificaitonsView {
-	constructor(opts) {
+	constructor(wrapper) {
 		// wrapper, max_length
-		Object.assign(this, opts)
+		this.wrapper = wrapper;
+		this.max_length = 20;
 		this.container = $(`<div></div>`).appendTo(this.wrapper);
 		this.make();
 	}
@@ -279,7 +271,7 @@ class NotificationsView extends BaseNotificaitonsView {
 	insert_into_dropdown() {
 		let new_item = this.dropdown_items[0];
 		let new_item_html = this.get_dropdown_item_html(new_item);
-		$(new_item_html).prependTo(this.dropdown_list.find(this.$notifications));
+		$(new_item_html).prependTo(this.container);
 		this.change_activity_status();
 	}
 
@@ -367,13 +359,14 @@ class NotificationsView extends BaseNotificaitonsView {
 	}
 
 	setup_notification_listeners() {
+		// REDESIGN-TODO: toggle icon indicator
 		frappe.realtime.on('notification', () => {
-			this.dropdown.find('.notifications-indicator').show();
+			// this.dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
 		});
 
 		frappe.realtime.on('indicator_hide', () => {
-			this.dropdown.find('.notifications-indicator').hide();
+			// this.dropdown.find('.notifications-indicator').hide();
 		});
 	}
 }

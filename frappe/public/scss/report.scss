@@ -127,12 +127,17 @@
 }
 
 .report-summary {
+	background-color: var(--gray-100, #F4F5F6);
+	border-radius: var(--border-radius-md, 8px);
+	margin-top: 1rem;
+	margin-bottom: 1rem;
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 	grid-auto-rows: minmax(62px, 1fr);
 	column-gap: 15px;
-	row-gap: 20px;
+	row-gap: 15px;
 	align-items: center;
+	text-align: center;
 
 	padding: 15px 15px;
 	border-bottom: 1px solid $border-color;
@@ -146,14 +151,22 @@
 	.summary-value {
 		margin-top: 8px;
 		margin-bottom: 5px;
+		font-size: var(--text-2xl, 20px);
+		font-weight: 600;
+		line-height: 16px;
+		color: $gray-900;
 		overflow: hidden !important;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		font-feature-settings: "tnum";
 
+		&.green { color: var(--green-500); }
+		&.red { color: var(--red-500); }
+		&.blue { color: var(--blue-500); }
+
 		div {
-			text-align: left !important;
-			overflow: hidden !important;
+			text-align: center;
+			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
