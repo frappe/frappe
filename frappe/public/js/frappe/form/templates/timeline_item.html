@@ -1,4 +1,6 @@
-<div class="media timeline-item {% if (data.user_content) { %} user-content {% } else { %} notification-content {% } %} {{ data.color || "" }}"
+<div class="media timeline-item
+	{% if (data.user_content || data.template) { %} user-content {% } else { %} notification-content {% } %}
+	{% if (data.template) { %} show-indicator {% }%} {{ data.color || "" }}"
 	data-doctype="{{ data.doctype }}" data-name="{{ data.name }}" data-communication-type = "{{ data.communication_type }}">
 	{% if (data.user_content) { %}
 	<span class="pull-left avatar avatar-medium hidden-xs" style="margin-top: 1px">
@@ -77,8 +79,8 @@
 							<span class="text-muted hidden-xs">&ndash;</span>
 							<span class="indicator-right {%= indicator_class %}
 								delivery-status-indicator"
-								title="{%= data.delivery_status %}"><span class="hidden-xs">
-								{%= data.delivery_status %}</span></span>
+								title="{%= __(data.delivery_status) %}"><span class="hidden-xs">
+								{%= __(data.delivery_status) %}</span></span>
 
 							{% } else { %}
 								{% if (frappe.model.can_read(\'Communication\')) { %}
@@ -186,7 +188,7 @@
 						{% } %}
 						{%= __("Liked by {0}", [data.fullname]) %}
 					</span>
-					{% } else if (data.comment_type == "Energy Points") { %}
+					{% } else if (data.comment_type == "Energy Points" || data.template) { %}
 						{{ data.content_html }}
 					{% } else { %}
 						<b title="{{ data.comment_by }}">{%= data.fullname %}</b>
@@ -200,8 +202,11 @@
 							</a>
 						{% } %}
 					{% } %}
-					<span class="text-muted commented-on" style="font-weight: normal;">
-					&ndash; {%= data.comment_on %}</span>
+					{% if (!data.template) { %}
+						<span class="text-muted commented-on" style="font-weight: normal;">
+							&ndash; {%= data.comment_on %}
+						</span>
+					{% } %}
 				</div>
 			{% } %}
 		</div>

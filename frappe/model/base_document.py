@@ -334,7 +334,7 @@ class BaseDocument(object):
 					self.db_insert()
 					return
 
-				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
+				frappe.msgprint(_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)), title=_("Duplicate Name"), indicator="red")
 				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):

@@ -12,7 +12,7 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = '/assets/frappe/images/frappe-framework-logo.png'
 
-develop_version = '12.x.x-develop'
+develop_version = '13.x.x-develop'
 
 app_email = "info@frappe.io"
 
@@ -273,7 +273,6 @@ setup_wizard_exception = [
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 after_migrate = [
-	'frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist',
 	'frappe.modules.full_text_search.build_index_for_all_routes'
 ]
 
