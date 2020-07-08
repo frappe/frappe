@@ -23,7 +23,6 @@ frappe.ui.Notifications = class Notifications {
 		);
 
 		this.user = frappe.session.user;
-		this.max_length = 20;
 
 		this.setup_headers();
 		let me = this;
@@ -97,10 +96,7 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	make_tab_view(item) {
-		let tabView = new item.view({
-			wrapper: this.body,
-			max_length: this.max_length
-		});
+		let tabView = new item.view(this.body);
 		this.tabs[item.id] = tabView;
 		this.current_tab = tabView;
 		tabView.show();
@@ -235,9 +231,10 @@ frappe.ui.notifications = {
 };
 
 class BaseNotificaitonsView {
-	constructor(opts) {
+	constructor(wrapper) {
 		// wrapper, max_length
-		Object.assign(this, opts)
+		this.wrapper = wrapper;
+		this.max_length = 20;
 		this.container = $(`<div></div>`).appendTo(this.wrapper);
 		this.make();
 	}
