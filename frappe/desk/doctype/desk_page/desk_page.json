@@ -53,7 +53,7 @@
    "options": "Desk Chart"
   },
   {
-   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard",
+   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard || frappe.boot.developer_mode",
    "fieldname": "shortcuts",
    "fieldtype": "Table",
    "label": "Shortcuts",
@@ -206,7 +206,7 @@
   }
  ],
  "links": [],
- "modified": "2020-06-30 15:34:23.910922",
+ "modified": "2020-07-08 12:48:43.845930",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",

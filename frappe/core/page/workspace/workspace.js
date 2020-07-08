@@ -11,6 +11,10 @@ frappe.pages['workspace'].on_page_load = function(wrapper) {
 	});
 }
 
+// REDESIGN-TODO: Route modules/Accounts, administration/Tools, domains/Healthcare
+// REDESIGN-TODO: Fix sidebar item not de-selected bug
+// REDESIGN-TODO: Customize button state
+
 class Workspace {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
@@ -30,7 +34,7 @@ class Workspace {
 			this.make_sidebar();
 		})
 	}
-	
+
 	show() {
 		let page = this.get_page_to_show();
 		this.page.set_title(`${__(page)} Workspace`);
@@ -43,13 +47,13 @@ class Workspace {
 			<div class="desk-sidebar list-unstyled sidebar-menu"><div>
 		</div>`).appendTo(this.wrapper.find(".layout-side-section"));
 		this.sidebar = list_sidebar.find(".desk-sidebar");
-		
+
 		this.body = this.wrapper.find(".layout-main-section");
 	}
 
 	get_page_to_show() {
 		let default_page;
-		
+
 		if (localStorage.current_workspace) {
 			default_page = localStorage.current_workspace;
 		} else if (this.desktop_settings) {
@@ -59,9 +63,9 @@ class Workspace {
 		} else {
 			default_page = "Website";
 		}
-		
+
 		let page = frappe.get_route()[1] || default_page;
-		
+
 		return page;
 	}
 
@@ -97,14 +101,14 @@ class Workspace {
 	build_sidebar_section(title, items) {
 		let sidebar_section = $(`<div class="sidebar-section">
 		</div>`)
-		
+
 		// DO NOT REMOVE: Comment to load translation
 		// __("Modules") __("Domains") __("Places") __("Administration")
 		$(`<div class="list-sidebar-label">${__(title)}</div>`)
 			.appendTo(sidebar_section);
 
 		const get_sidebar_item = function(item) {
-			return $(`<a 
+			return $(`<a
 						href="${"desk#workspace/" + item.name}"
 						class="desk-sidebar-item ${ item.selected ? "selected" : "" }"
 				>
@@ -118,7 +122,7 @@ class Workspace {
 				item.selected = true;
 				this.current_page_name = item.name;
 			}
-			
+
 			let $item = get_sidebar_item(item);
 
 			$item.clone().appendTo(sidebar_section);
@@ -141,7 +145,7 @@ class Workspace {
 		}
 		this.current_page_name = page;
 		localStorage.current_desk_page = page;
-		
+
 		this.pages[page] ? this.pages[page].show() : this.make_page(page);
 		this.current_page = this.pages[page];
 		this.setup_dropdown();
@@ -161,12 +165,13 @@ class Workspace {
 		if (this.current_page && this.current_page.allow_customization) {
 			this.page.clear_menu()
 			this.current_page.customize();
-			
+
 			this.page.set_primary_action(
 				__("Save Customizations"),
 				() => {
 					this.current_page.save_customization();
 					this.page.clear_primary_action();
+					this.page.clear_secondary_action();
 					this.setup_dropdown();
 				},
 				null,
@@ -177,25 +182,25 @@ class Workspace {
 				__("Discard"),
 				() => {
 					this.current_page.reload();
+					frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info"});
+					this.page.clear_primary_action();
 					this.page.clear_secondary_action();
 					this.setup_dropdown();
 				}
 			)
 		}
-	}	
+	}
 
 	setup_dropdown() {
 		this.page.clear_menu();
-		
+
 		this.page.add_menu_item('Customize', () => {
 			this.customize();
 		}, 1);
 
-		// this.page.add_menu_item('Reset', () => {
-		// }, 1);
-
-		// this.page.add_menu_item('Hide Page', () => {
-		// }, 1)
+		this.page.add_menu_item('Reset Customizations', () => {
+			this.current_page.reset_customization();
+		}, 1);
 	}
 }
 
@@ -298,13 +303,22 @@ class DesktopPage {
 			config: config
 		}).then(res => {
 			if (res.message) {
-				frappe.msgprint({ message: __("Customizations Saved Successfully"), title: __("Success")});
+				frappe.show_alert({ message: __("Customizations Saved Successfully"), indicator: "green"});
 				this.reload();
 			} else {
-				frappe.throw({message: __("Something went wrong while saving customizations"), title: __("Failed")});
+				frappe.throw({message: __("Something went wrong while saving customizations"), indicator: "red"});
 				this.reload();
 			}
 		});
+	}
+
+	reset_customization() {
+		frappe.call('frappe.desk.desktop.reset_customization', {
+			page: this.page_name
+		}).then(res => {
+			frappe.show_alert({ message: __("Removed page customizations"), indicator: "green"});
+			this.reload();
+		})
 	}
 
 	make_onboarding() {
