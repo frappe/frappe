@@ -75,9 +75,7 @@
 
 .avatar .standard-image {
 	border-radius: 50%;
-	// padding: 2px;
-	// width: 100%;
-	// height: 100%;
+	border: none;
 }
 
 .standard-image {
@@ -88,7 +86,6 @@
 	align-items: center;
 	background-color: var(--blue-50) !important;
 	color: var(--blue-500);
-
 	font-weight: normal;
 }
 
