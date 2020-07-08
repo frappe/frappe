@@ -18,11 +18,7 @@ def savedocs(doc, action):
 		if doc.docstatus==1:
 			doc.submit()
 		else:
-			try:
-				doc.save()
-			except frappe.NameError as e:
-				# Duplicate Error message already shown on db_insert
-				raise
+			doc.save()
 
 		# update recent documents
 		run_onload(doc)
