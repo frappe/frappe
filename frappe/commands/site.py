@@ -201,16 +201,31 @@ def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_ro
 def install_app(context, apps):
 	"Install a new app to site, supports multiple apps"
 	from frappe.installer import install_app as _install_app
+	exit_code = 0
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
-		try:
-			for app in apps:
+
+		for app in apps:
+			try:
 				_install_app(app, verbose=context.verbose)
-		finally:
-			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
+			except frappe.IncompatibleApp as err:
+				err_msg = ":\n{}".format(err) if str(err) else ""
+				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
+				exit_code = 1
+			except Exception as err:
+				err_msg = ":\n{}".format(err if str(err) else frappe.get_traceback())
+				print("An error occurred while installing {}{}".format(app, err_msg))
+				exit_code = 1
+
+		frappe.destroy()
+
+	sys.exit(exit_code)
+
 
 @click.command('list-apps')
 @pass_context
