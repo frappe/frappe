@@ -1,6 +1,6 @@
 .user-role {
 	padding: 5px;
-	width: 50%;
+	font-size: var(--text-md);
 	float: left;
 }
 
