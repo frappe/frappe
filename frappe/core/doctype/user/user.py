@@ -15,6 +15,7 @@ import frappe.permissions
 import frappe.share
 import re
 import json
+from frappe.automation.doctype.assignment_rule.assignment_rule import bulk_apply
 
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
@@ -98,12 +99,26 @@ class User(Document):
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
+
 		frappe.enqueue(
 			'frappe.core.doctype.user.user.create_contact',
 			user=self,
 			ignore_mandatory=True,
 			now=frappe.flags.in_test or frappe.flags.in_install
 		)
+
+		if self.has_value_changed('suspend_all_auto_assignments') and not self.suspend_all_auto_assignments:
+			assignment_rules = frappe.get_all('Assignment Rule', filters={'disabled':0})
+
+			for assignment_rule in assignment_rules:
+				rule = frappe.get_doc('Assignment Rule', assignment_rule)
+				if self.name in list(x.user for x in rule.users):
+					unassign_docs = frappe.get_all(rule.document_type,
+						or_filters = [["_assign", "=", "[]"], ["_assign", "=", ""]])
+
+					unassign_docs = list(x['name'] for x in unassign_docs)
+					bulk_apply(rule.document_type, json.dumps(unassign_docs))
+
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 

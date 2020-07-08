@@ -10,7 +10,7 @@
   "sb0_5",
   "enabled",
   "column_break_3",
-  "suspend_all_auto_assignment",
+  "suspend_all_auto_assignments",
   "section_break_3",
   "email",
   "first_name",
@@ -84,7 +84,9 @@
  "fields": [
   {
    "fieldname": "sb0_5",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
@@ -93,12 +95,16 @@
    "label": "Enabled",
    "oldfieldname": "enabled",
    "oldfieldtype": "Check",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "depends_on": "enabled",
    "fieldname": "section_break_3",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "email",
@@ -108,7 +114,9 @@
    "oldfieldname": "email",
    "oldfieldtype": "Data",
    "options": "Email",
-   "reqd": 1
+   "reqd": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "first_name",
@@ -116,14 +124,18 @@
    "label": "First Name",
    "oldfieldname": "first_name",
    "oldfieldtype": "Data",
-   "reqd": 1
+   "reqd": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "middle_name",
    "fieldtype": "Data",
    "label": "Middle Name (Optional)",
    "oldfieldname": "middle_name",
-   "oldfieldtype": "Data"
+   "oldfieldtype": "Data",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "bold": 1,
@@ -131,7 +143,9 @@
    "fieldtype": "Data",
    "label": "Last Name",
    "oldfieldname": "last_name",
-   "oldfieldtype": "Data"
+   "oldfieldtype": "Data",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "full_name",
@@ -139,7 +153,9 @@
    "in_global_search": 1,
    "in_standard_filter": 1,
    "label": "Full Name",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "bold": 1,
@@ -147,7 +163,9 @@
    "depends_on": "eval:doc.__islocal",
    "fieldname": "send_welcome_email",
    "fieldtype": "Check",
-   "label": "Send Welcome Email"
+   "label": "Send Welcome Email",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
@@ -155,13 +173,17 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Unsubscribed",
-   "no_copy": 1
+   "no_copy": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "column_break0",
    "fieldtype": "Column Break",
    "oldfieldtype": "Column Break",
    "print_width": "50%",
+   "show_days": 1,
+   "show_seconds": 1,
    "width": "50%"
   },
   {
@@ -170,18 +192,24 @@
    "in_global_search": 1,
    "in_standard_filter": 1,
    "label": "Username",
+   "show_days": 1,
+   "show_seconds": 1,
    "unique": 1
   },
   {
    "fieldname": "language",
    "fieldtype": "Link",
    "label": "Language",
-   "options": "Language"
+   "options": "Language",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "time_zone",
    "fieldtype": "Select",
-   "label": "Time Zone"
+   "label": "Time Zone",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "description": "Get your globally recognized avatar from Gravatar.com",
@@ -190,7 +218,9 @@
    "hidden": 1,
    "label": "User Image",
    "no_copy": 1,
-   "print_hide": 1
+   "print_hide": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "depends_on": "enabled",
@@ -198,19 +228,25 @@
    "fieldtype": "Section Break",
    "label": "Roles",
    "permlevel": 1,
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "role_profile_name",
    "fieldtype": "Link",
    "label": "Role Profile",
-   "options": "Role Profile"
+   "options": "Role Profile",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "roles_html",
    "fieldtype": "HTML",
    "label": "Roles HTML",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "roles",
@@ -220,14 +256,18 @@
    "options": "Has Role",
    "permlevel": 1,
    "print_hide": 1,
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "collapsible": 1,
    "depends_on": "enabled",
    "fieldname": "short_bio",
    "fieldtype": "Section Break",
-   "label": "More Information"
+   "label": "More Information",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "gender",
@@ -235,19 +275,25 @@
    "label": "Gender",
    "oldfieldname": "gender",
    "oldfieldtype": "Select",
-   "options": "Gender"
+   "options": "Gender",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "phone",
    "fieldtype": "Data",
    "label": "Phone",
-   "options": "Phone"
+   "options": "Phone",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "mobile_no",
    "fieldtype": "Data",
    "label": "Mobile No",
    "options": "Phone",
+   "show_days": 1,
+   "show_seconds": 1,
    "unique": 1
   },
   {
@@ -256,58 +302,78 @@
    "label": "Birth Date",
    "no_copy": 1,
    "oldfieldname": "birth_date",
-   "oldfieldtype": "Date"
+   "oldfieldtype": "Date",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "location",
    "fieldtype": "Data",
    "label": "Location",
-   "no_copy": 1
+   "no_copy": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "banner_image",
    "fieldtype": "Attach Image",
-   "label": "Banner Image"
+   "label": "Banner Image",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "column_break_22",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "interest",
    "fieldtype": "Small Text",
-   "label": "Interests"
+   "label": "Interests",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "bio",
    "fieldtype": "Small Text",
    "label": "Bio",
-   "no_copy": 1
+   "no_copy": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
    "fieldname": "mute_sounds",
    "fieldtype": "Check",
-   "label": "Mute Sounds"
+   "label": "Mute Sounds",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "collapsible": 1,
    "depends_on": "eval:doc.enabled && (!doc.__islocal || !cint(doc.send_welcome_email))",
    "fieldname": "change_password",
    "fieldtype": "Section Break",
-   "label": "Change Password"
+   "label": "Change Password",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "new_password",
    "fieldtype": "Password",
    "label": "Set New Password",
-   "no_copy": 1
+   "no_copy": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
-   "label": "Logout From All Devices After Changing Password"
+   "label": "Logout From All Devices After Changing Password",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "reset_password_key",
@@ -316,7 +382,9 @@
    "label": "Reset Password Key",
    "no_copy": 1,
    "print_hide": 1,
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "last_password_reset_date",
@@ -325,25 +393,33 @@
    "label": "Last Password Reset Date",
    "no_copy": 1,
    "print_hide": 1,
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "redirect_url",
    "fieldtype": "Small Text",
    "hidden": 1,
-   "label": "Redirect URL"
+   "label": "Redirect URL",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "collapsible": 1,
    "fieldname": "document_follow_notifications_section",
    "fieldtype": "Section Break",
-   "label": "Document Follow"
+   "label": "Document Follow",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
    "fieldname": "document_follow_notify",
    "fieldtype": "Check",
-   "label": "Send Notifications For Documents Followed By Me"
+   "label": "Send Notifications For Documents Followed By Me",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "Daily",
@@ -351,64 +427,84 @@
    "fieldname": "document_follow_frequency",
    "fieldtype": "Select",
    "label": "Frequency",
-   "options": "Hourly\nDaily\nWeekly"
+   "options": "Hourly\nDaily\nWeekly",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "collapsible": 1,
    "depends_on": "enabled",
    "fieldname": "email_settings",
    "fieldtype": "Section Break",
-   "label": "Email Settings"
+   "label": "Email Settings",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
    "fieldname": "thread_notify",
    "fieldtype": "Check",
-   "label": "Send Notifications For Email Threads"
+   "label": "Send Notifications For Email Threads",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
    "fieldname": "send_me_a_copy",
    "fieldtype": "Check",
-   "label": "Send Me A Copy of Outgoing Emails"
+   "label": "Send Me A Copy of Outgoing Emails",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
    "fieldname": "allowed_in_mentions",
    "fieldtype": "Check",
-   "label": "Allowed In Mentions"
+   "label": "Allowed In Mentions",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "email_signature",
    "fieldtype": "Small Text",
    "label": "Email Signature",
-   "no_copy": 1
+   "no_copy": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "collapsible": 1,
    "fieldname": "email_inbox",
    "fieldtype": "Section Break",
-   "label": "Email Inbox"
+   "label": "Email Inbox",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "user_emails",
    "fieldtype": "Table",
    "label": "User Emails",
    "options": "User Email",
-   "permlevel": 1
+   "permlevel": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "collapsible": 1,
    "fieldname": "sb_allow_modules",
    "fieldtype": "Section Break",
    "label": "Allow Modules",
-   "permlevel": 1
+   "permlevel": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "modules_html",
    "fieldtype": "HTML",
    "label": "Modules HTML",
-   "permlevel": 1
+   "permlevel": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "block_modules",
@@ -416,13 +512,17 @@
    "hidden": 1,
    "label": "Block Modules",
    "options": "Block Module",
-   "permlevel": 1
+   "permlevel": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "home_settings",
    "fieldtype": "Code",
    "hidden": 1,
-   "label": "Home Settings"
+   "label": "Home Settings",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "description": "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.",
@@ -434,6 +534,8 @@
    "permlevel": 1,
    "print_width": "50%",
    "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1,
    "width": "50%"
   },
   {
@@ -443,7 +545,9 @@
    "hidden": 1,
    "label": "User Defaults",
    "no_copy": 1,
-   "options": "DefaultValue"
+   "options": "DefaultValue",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "collapsible": 1,
@@ -452,13 +556,17 @@
    "fieldtype": "Section Break",
    "label": "Security Settings",
    "oldfieldtype": "Section Break",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
    "fieldname": "simultaneous_sessions",
    "fieldtype": "Int",
-   "label": "Simultaneous Sessions"
+   "label": "Simultaneous Sessions",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "System User",
@@ -472,28 +580,36 @@
    "oldfieldtype": "Select",
    "options": "System User\nWebsite User",
    "permlevel": 1,
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "description": "Allow user to login only after this hour (0-24)",
    "fieldname": "login_after",
    "fieldtype": "Int",
    "label": "Login After",
-   "permlevel": 1
+   "permlevel": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "description": "Allow user to login only before this hour (0-24)",
    "fieldname": "login_before",
    "fieldtype": "Int",
    "label": "Login Before",
-   "permlevel": 1
+   "permlevel": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "description": "Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)",
    "fieldname": "restrict_ip",
    "fieldtype": "Data",
    "label": "Restrict IP",
-   "permlevel": 1
+   "permlevel": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
@@ -501,13 +617,17 @@
    "description": "If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings",
    "fieldname": "bypass_restrict_ip_check_if_2fa_enabled",
    "fieldtype": "Check",
-   "label": "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
+   "label": "Bypass Restricted IP Address Check If Two Factor Auth Enabled",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "column_break1",
    "fieldtype": "Column Break",
    "oldfieldtype": "Column Break",
    "print_width": "50%",
+   "show_days": 1,
+   "show_seconds": 1,
    "width": "50%"
   },
   {
@@ -517,7 +637,9 @@
    "no_copy": 1,
    "oldfieldname": "last_login",
    "oldfieldtype": "Read Only",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "last_ip",
@@ -526,14 +648,18 @@
    "no_copy": 1,
    "oldfieldname": "last_ip",
    "oldfieldtype": "Read Only",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "last_active",
    "fieldtype": "Datetime",
    "label": "Last Active",
    "no_copy": 1,
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "description": "Stores the JSON of last known versions of various installed apps. It is used to show release notes.",
@@ -541,7 +667,9 @@
    "fieldtype": "Text",
    "hidden": 1,
    "label": "Last Known Versions",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "collapsible": 1,
@@ -549,19 +677,25 @@
    "fieldname": "third_party_authentication",
    "fieldtype": "Section Break",
    "label": "Third Party Authentication",
-   "permlevel": 1
+   "permlevel": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "social_logins",
    "fieldtype": "Table",
    "label": "Social Logins",
-   "options": "User Social Login"
+   "options": "User Social Login",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "collapsible": 1,
    "fieldname": "api_access",
    "fieldtype": "Section Break",
-   "label": "Api Access"
+   "label": "Api Access",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "description": "API Key cannot be  regenerated",
@@ -569,33 +703,45 @@
    "fieldtype": "Data",
    "label": "API Key",
    "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1,
    "unique": 1
   },
   {
    "fieldname": "generate_keys",
    "fieldtype": "Button",
-   "label": "Generate Keys"
+   "label": "Generate Keys",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "column_break_65",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "api_secret",
    "fieldtype": "Password",
    "label": "API Secret",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
-   "fieldname": "suspend_all_auto_assignment",
+   "fieldname": "suspend_all_auto_assignments",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Suspend All Auto Assignment"
+   "label": "Suspend All Auto Assignments",
+   "show_days": 1,
+   "show_seconds": 1
   }
  ],
  "icon": "fa fa-user",
@@ -603,7 +749,7 @@
  "image_field": "user_image",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-06-29 17:05:57.766307",
+ "modified": "2020-07-08 13:50:21.211423",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

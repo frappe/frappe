@@ -55,36 +55,6 @@ frappe.ui.form.on('User', {
 		}
 	},
 
-	suspend_all_auto_assignment: function(frm) {
-		if (frm.doc.suspend_all_auto_assignment && frm.doc.name == frappe.session.user) {
-			frm.add_custom_button(__('Available For Assignments'), function() {
-				frm.set_value('suspend_all_auto_assignment', 0)
-				frappe.show_alert({
-					indicator: 'green',
-					message: __('All auto assignments resumed again.')
-				});
-
-				frm.save();
-
-				frappe.call({
-					method: "frappe.automation.doctype.assignment_rule.assignment_rule.bulk_assignment",
-					args: {
-						user: frappe.user.name
-					}
-				});
-			});
-		} else if (frm.doc.name == frappe.session.user) {
-			frm.add_custom_button(__('Unavailable For Assignments'), function() {
-				frm.set_value('suspend_all_auto_assignment', 1)
-				frappe.show_alert({
-					indicator: 'red',
-					message: __('All auto assignments suspended for you.')
-				});
-				frm.save();
-			});
-		}
-	},
-
 	refresh: function(frm) {
 		var doc = frm.doc;
 		if(!frm.is_new() && !frm.roles_editor && frm.can_edit_roles) {
@@ -102,7 +72,25 @@ frappe.ui.form.on('User', {
 
 		frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
 
-		frm.trigger('suspend_all_auto_assignment');
+		if (frm.doc.name == frappe.session.user) {
+			let button_label = frm.doc.suspend_all_auto_assignments ? __('Available For Assignments') :
+				__('Unavailable For Assignments');
+
+			let alert_message = frm.doc.suspend_all_auto_assignments ? __('All auto assignments resumed again.') :
+				__('All auto assignments suspended for you.');
+
+			let indicator = frm.doc.suspend_all_auto_assignments ? 'red' : 'green';
+
+			frm.add_custom_button(button_label, function() {
+				frm.set_value('suspend_all_auto_assignments', 1 - frm.doc.suspend_all_auto_assignments);
+				frappe.show_alert({
+					indicator: indicator,
+					message: alert_message
+				});
+				frm.save();
+			});
+
+		}
 
 		if(!frm.is_new()) {
 			if(has_access_to_edit_user()) {
