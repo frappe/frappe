@@ -957,7 +957,7 @@ class Column:
 
 		if self.df.fieldtype == 'Link':
 			# find all values that dont exist
-			values = list(set([v for v in self.column_values[1:] if v]))
+			values = list(set([cstr(v) for v in self.column_values[1:] if v]))
 			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={'name': ('in', values)})]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
@@ -1060,6 +1060,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		# other fields
 		fields = get_standard_fields(doctype) + frappe.get_meta(doctype).fields
 		for df in fields:
+			label = (df.label or '').strip()
 			fieldtype = df.fieldtype or "Data"
 			parent = df.parent or parent_doctype
 			if fieldtype not in no_value_fields:
@@ -1068,12 +1069,12 @@ def build_fields_dict_for_column_matching(parent_doctype):
 					# Label
 					# label
 					# Label (label)
-					if not out.get(df.label):
+					if not out.get(label):
 						# if Label is already set, don't set it again
 						# in case of duplicate column headers
-						out[df.label] = df
+						out[label] = df
 					out[df.fieldname] = df
-					label_with_fieldname = "{0} ({1})".format(df.label, df.fieldname)
+					label_with_fieldname = "{0} ({1})".format(label, df.fieldname)
 					out[label_with_fieldname] = df
 				else:
 					# in case there are multiple table fields with the same doctype
@@ -1084,7 +1085,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 						"fields", {"fieldtype": ["in", table_fieldtypes], "options": parent}
 					)
 					for table_field in table_fields:
-						by_label = "{0} ({1})".format(df.label, table_field.label)
+						by_label = "{0} ({1})".format(label, table_field.label)
 						by_fieldname = "{0}.{1}".format(table_field.fieldname, df.fieldname)
 
 						# create a new df object to avoid mutation problems
