@@ -1441,6 +1441,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	setup_report_wrapper() {
 		if (this.$report) return;
 
+		// Remove border from
+		$(".page-head-content").removeClass('border-bottom');
+
 		let page_form = this.page.main.find('.page-form');
 		this.$status = $(`<div class="form-message text-muted small"></div>`)
 			.hide().insertAfter(page_form);
