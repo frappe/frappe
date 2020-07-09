@@ -1302,9 +1302,6 @@ def guess_date_format(date_string):
 
 	# date_string doesnt look like date, it can have a time part too
 	# split the date string into date and time parts
-	_date = None
-	_time = None
-
 	if " " in date_string:
 		date_str, time_str = date_string.split(" ", 1)
 
