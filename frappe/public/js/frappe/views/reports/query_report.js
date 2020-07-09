@@ -53,6 +53,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		// throttle refresh for 300ms
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
+
+		this.menu_items = [];
 	}
 
 	set_default_secondary_action() {

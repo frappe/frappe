@@ -207,7 +207,7 @@ frappe.views.BaseList = class BaseList {
 	set_menu_items() {
 		this.set_default_secondary_action()
 
-		this.menu_items.map((item) => {
+		this.menu_items && this.menu_items.map((item) => {
 			if (item.condition && item.condition() === false) {
 				return;
 			}
