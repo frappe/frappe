@@ -49,7 +49,7 @@ class Leaderboard {
 			this.timespans = [
 				"This Week", "This Month", "This Quarter", "This Year",
 				"Last Week", "Last Month", "Last Quarter", "Last Year",
-				"All Time", "Select From Date"
+				"All Time", "Select Date Range"
 			];
 
 			// for saving current selected filters
@@ -113,7 +113,7 @@ class Leaderboard {
 				return {"label": __(d), value: d };
 			})
 		);
-		this.create_from_date_field();
+		this.create_date_range_field();
 
 		this.type_select = this.page.add_select(__("Field"),
 			this.options.selected_filter.map(d => {
@@ -123,12 +123,12 @@ class Leaderboard {
 
 		this.timespan_select.on("change", (e) => {
 			this.options.selected_timespan = e.currentTarget.value;
-			if (this.options.selected_timespan === 'Select From Date') {
-				this.from_date_field.show();
+			if (this.options.selected_timespan === 'Select Date Range') {
+				this.date_range_field.show();
 			} else {
-				this.from_date_field.hide();
-				this.make_request();
+				this.date_range_field.hide();
 			}
+			this.make_request();
 		});
 
 		this.type_select.on("change", (e) => {
@@ -137,21 +137,21 @@ class Leaderboard {
 		});
 	}
 
-	create_from_date_field() {
+	create_date_range_field() {
 		let timespan_field = $(this.parent).find(`.frappe-control[data-original-title='Timespan']`);
-		this.from_date_field = $(`<div class="from-date-field"></div>`).insertAfter(timespan_field).hide();
+		this.date_range_field = $(`<div class="from-date-field"></div>`).insertAfter(timespan_field).hide();
 
 		let date_field = frappe.ui.form.make_control({
 			df: {
-				fieldtype: 'Date',
-				fieldname: 'selected_from_date',
-				placeholder: frappe.datetime.month_start(),
-				default: frappe.datetime.month_start(),
+				fieldtype: 'DateRange',
+				fieldname: 'selected_date_range',
+				placeholder: "Date Range",
+				default: [frappe.datetime.month_start(), frappe.datetime.now_date()],
 				input_class: 'input-sm',
 				reqd: 1,
 				change: () => {
-					this.selected_from_date = date_field.get_value();
-					if (this.selected_from_date) this.make_request();
+					this.selected_date_range = date_field.get_value();
+					if (this.selected_date_range) this.make_request();
 				}
 			},
 			parent: $(this.parent).find('.from-date-field'),
@@ -225,7 +225,7 @@ class Leaderboard {
 		frappe.call(
 			this.leaderboard_config[this.options.selected_doctype].method,
 			{
-				'from_date': this.get_from_date(),
+				'date_range': this.get_date_range(),
 				'company': this.options.selected_company,
 				'field': this.options.selected_filter_item,
 				'limit': this.leaderboard_limit,
@@ -375,23 +375,22 @@ class Leaderboard {
 		</li>`);
 	}
 
-	get_from_date() {
+	get_date_range() {
 		let timespan = this.options.selected_timespan.toLowerCase();
 		let current_date = frappe.datetime.now_date();
-		let get_from_date = {
-			"this week": frappe.datetime.week_start(),
-			"this month": frappe.datetime.month_start(),
-			"this quarter": frappe.datetime.quarter_start(),
-			"this year": frappe.datetime.year_start(),
-			"last week": frappe.datetime.add_days(current_date, -7),
-			"last month": frappe.datetime.add_months(current_date, -1),
-			"last quarter": frappe.datetime.add_months(current_date, -3),
-			"last year": frappe.datetime.add_months(current_date, -12),
-			"all time": "",
-			"select from date": this.selected_from_date || frappe.datetime.month_start()
+		let date_range_map = {
+			"this week": [frappe.datetime.week_start(), current_date],
+			"this month": [frappe.datetime.month_start(), current_date],
+			"this quarter": [frappe.datetime.quarter_start(), current_date],
+			"this year": [frappe.datetime.year_start(), current_date],
+			"last week": [frappe.datetime.add_days(current_date, -7), current_date],
+			"last month": [frappe.datetime.add_months(current_date, -1), current_date],
+			"last quarter": [frappe.datetime.add_months(current_date, -3), current_date],
+			"last year": [frappe.datetime.add_months(current_date, -12), current_date],
+			"all time": null,
+			"select date range": this.selected_date_range || [frappe.datetime.month_start(), current_date]
 		}
-
-		return get_from_date[timespan];
+		return date_range_map[timespan];
 	}
 
 }
