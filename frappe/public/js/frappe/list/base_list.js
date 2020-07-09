@@ -185,7 +185,7 @@ frappe.views.BaseList = class BaseList {
 		});
 	}
 
-	set_menu_items() {
+	set_default_secondary_action() {
 		if (this.secondary_action) {
 			const $secondary_action = this.page.set_secondary_action(
 				this.secondary_action.label,
@@ -194,7 +194,7 @@ frappe.views.BaseList = class BaseList {
 			);
 			if (!this.secondary_action.icon) {
 				$secondary_action.addClass("hidden-xs");
-			} else {
+			} else if (!this.secondary_action.label) {
 				$secondary_action.addClass("visible-xs");
 			}
 		} else {
@@ -202,6 +202,10 @@ frappe.views.BaseList = class BaseList {
 				this.refresh()
 			});
 		}
+	}
+
+	set_menu_items() {
+		this.set_default_secondary_action()
 
 		this.menu_items.map((item) => {
 			if (item.condition && item.condition() === false) {
