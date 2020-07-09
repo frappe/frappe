@@ -227,6 +227,10 @@ frappe.ui.Page = Class.extend({
 		this.clear_secondary_action();
 	},
 
+	clear_custom_actions() {
+		this.custom_actions.addClass("hide").empty();
+	},
+
 	clear_icons: function() {
 		this.icon_group.addClass("hide").empty();
 	},
@@ -581,30 +585,41 @@ frappe.ui.Page = Class.extend({
 		//
 	},
 
-	add_button: function(label, click, icon) {
-		let button = $(`<button class="btn btn-secondary btn-sm">${label}</button>`)
-		button.appendTo(this.custom_actions)
-		button.onclick = click;
+	add_button: function(label, click) {
+		let button = $(`<button class="btn btn-secondary btn-sm">${label}</button>`);
+		button.appendTo(this.custom_actions);
+		button.on('click', click);
+		this.custom_actions.removeClass('hide');
 
 		return button;
 	},
 
 	add_custom_button_group: function(label, icon) {
+		let dropdown_label = `<span class="hidden-xs">
+			<span class="custom-btn-group-label">${__(label)}</span>
+			<span class="caret"></span>
+		</span>`;
+
+		if (icon) {
+			dropdown_label = `<span class="hidden-xs">
+				${frappe.utils.icon(icon)}
+				<span class="custom-btn-group-label">${__(label)}</span>
+				<span class="caret"></span>
+			</span>
+			<span class="visible-xs">
+				${frappe.utils.icon(icon)}
+			</span>`;
+		}
+
 		let custom_btn_group = $(`
 			<div class="custom-btn-group hide">
 				<button type="button" class="btn btn-default btn-sm" data-toggle="dropdown" aria-expanded="false">
-					<span class="hidden-xs">
-						${frappe.utils.icon(icon)}
-						<span class="custom-btn-group-label">${__(label)}</span>
-						<span class="caret"></span>
-					</span>
-					<span class="visible-xs">
-						${frappe.utils.icon(icon)}
-					</span>
+					${dropdown_label}
 				</button>
 				<ul class="dropdown-menu" role="menu"></ul>
 			</div>
 		`);
+
 		this.custom_actions.removeClass('hide').append(custom_btn_group);
 
 		return custom_btn_group.find('.dropdown-menu');
