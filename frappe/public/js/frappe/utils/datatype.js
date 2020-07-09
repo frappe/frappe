@@ -56,8 +56,9 @@ window.nth = function(number) {
 window.has_words = function(list, item) {
 	if(!item) return true;
 	if(!list) return false;
-	for(var i=0, j=list.length; i<j; i++) {
-		if(item.indexOf(list[i])!=-1)
+	item = item.toString();
+	for(let i=0, j=list.length; i<j; i++) {
+		if(item.indexOf(list[i])!==-1)
 			return true;
 	}
 	return false;
