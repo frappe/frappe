@@ -82,22 +82,14 @@ frappe.ui.form.on("Notification", {
 		$('[data-fieldname="insert_dynamic_value"]').css({'margin-top': '-33px','float':'right'});
 	},
 	onload_post_render(frm) {
-		$("[data-fieldname='subject']").on("keyup", e =>{
-			console.log("Postion : "+ e.target.selectionStart);
-			
+		$("[data-fieldname='subject']").on("keyup mouseup", e =>{
+			frm.last_touched = 'subject';
+			frm.last_cursor_position = e.target.selectionStart; 
 		});
-		$("[data-fieldname='subject']").on("focus", e =>{
-			console.log("Current position: " + $("[data-fieldname='subject']").caret().start);
-			console.log("Focus : "+ e.target.value.length);
-		});
-		$("[data-fieldname='message']").on("keyup", e =>{
-			console.log("Postion : "+ e.target.selectionStart);
-		});
-		$("[data-fieldname='message']").on("focus", e =>{
-			console.log("Focus : "+ e.target.value.length);
-		});
-		$("[data-fieldname='message']").on("click", e =>{
-			console.log("Focus : "+ e.target);
+
+		$("[data-fieldname='message']").on("keyup mouseup", e =>{
+			frm.last_touched = 'message';
+			frm.last_cursor_position = frm.get_field("message").editor.getCursorPosition();
 		});
 	},
 	refresh: function(frm) {
@@ -130,12 +122,6 @@ frappe.ui.form.on("Notification", {
 	channel: function(frm) {
 		frm.toggle_reqd("recipients", frm.doc.channel=="Email");
 	},
-	subject: function(frm) {
-		frm.last_touched = 'subject';
-	},
-	message: function(frm) {
-		frm.last_touched = 'message';
-	},
 	insert_dynamic_value: function(frm) {
 		var dialog = new frappe.ui.Dialog({
 			title: __('Insert Dynamic Value'),
@@ -147,7 +133,13 @@ frappe.ui.form.on("Notification", {
 					options: frm.options,
 					reqd: 1,
 					onchange: function() {
-						frm.set_value(frm.last_touched, `${frm.doc[frm.last_touched]} {{ doc.${this.value} }} `);
+						if (frm.last_touched == 'message') {
+							frm.get_field('message').editor.session.insert(frm.last_cursor_position,`{{ doc.${this.value} }}`);
+						}
+						else {
+							let value = frm.doc[frm.last_touched].slice(0, frm.last_cursor_position) + `{{ doc.${this.value} }}` + frm.doc[frm.last_touched].slice(frm.last_cursor_position);
+							frm.set_value(frm.last_touched, value);
+						}
 						dialog.hide();
 					}
 				}
