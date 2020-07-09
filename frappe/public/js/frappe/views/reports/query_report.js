@@ -50,18 +50,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		// Setup buttons
 		this.primary_action = null;
-		this.secondary_action = {
-			label: __('Refresh'),
-			action: () => {
-				this.setup_progress_bar();
-				this.refresh();
-			}
-		};
 
 		// throttle refresh for 300ms
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
+	}
 
-		this.menu_items = [];
+	set_default_secondary_action() {
+		this.refresh_button = this.page.add_action_icon("refresh", () => {
+			this.setup_progress_bar();
+			this.refresh()
+		});
 	}
 
 	setup_events() {
