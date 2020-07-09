@@ -73,6 +73,15 @@
 	}
 }
 
+.indicator-pill.darkgrey,
+.indicator-pill-right.darkgrey {
+	background: var(--grey-200);
+	color: var(--grey-600);
+	&::before, &::after {
+		background: var(--grey-700);
+	}
+}
+
 .indicator-pill.red,
 .indicator-pill-right.red {
 	background: var(--red-50);

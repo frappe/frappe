@@ -127,35 +127,93 @@
 }
 
 .report-summary {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-	grid-auto-rows: minmax(62px, 1fr);
-	column-gap: 15px;
-	row-gap: 20px;
+	// FORM
+	background-color: var(--gray-100, #F4F5F6);
+	border-radius: var(--border-radius-md, 8px);
+	border-bottom: 1px solid $border-color;
+
+	// SIZE & SPACING
+	margin: 1rem 0px;
+	padding: 20px 15px;
+
+	// LAYOUT
+	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 
-	padding: 15px 15px;
-	border-bottom: 1px solid $border-color;
-	margin-right: 0px;
-	margin-left: 0px;
+	.summary-item {
+		// SIZE & SPACING
+		margin: 0px 30px;
+		width: 180px;
+		height: 62px;
 
-	.summary-label {
-		font-weight: normal !important;
+		// LAYOUT
+		display: flex;
+		flex-direction: column;
+		place-content: center;
 	}
 
-	.summary-value {
-		margin-top: 8px;
-		margin-bottom: 5px;
+	.summary-label {
+		font-size: var(--text-base);
+		font-weight: normal !important;
+		text-align: center;
+
 		overflow: hidden !important;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+
+	.summary-value {
+		// FORM
+		font-size: var(--text-2xl, 20px);
+		font-weight: 600;
+		line-height: 16px;
+		color: $gray-900;
 		font-feature-settings: "tnum";
 
+		&.green { color: var(--green-500); }
+		&.red { color: var(--red-500); }
+		&.blue { color: var(--blue-500); }
+
+		// SIZE & SPACING
+		margin-top: 12px;
+		margin-bottom: 5px;
+
+		// LAYOUT
+		text-align: center;
+		overflow: hidden !important;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+
 		div {
-			text-align: left !important;
-			overflow: hidden !important;
+			text-align: center;
+			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
+		}
+	}
+
+	.summary-separator {
+		margin: 5px 12px;
+
+		.summary-value {
+			// FORM
+			background-color: white;
+			border-radius: var(--border-radius, 6px);
+			box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+
+			&.green { color: var(--green-500); }
+			&.red { color: var(--red-500); }
+			&.blue { color: var(--blue-500); }
+
+			// SIZE & SPACING
+			min-width: 30px;
+			margin: 0px 30px;
+			padding: 2px 8px;
+
+			// LAYOUT
+			display: flex;
+			place-content: center;
 		}
 	}
 }

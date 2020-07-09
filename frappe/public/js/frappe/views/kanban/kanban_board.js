@@ -350,12 +350,12 @@ frappe.provide("frappe.views");
 			if (!archived_columns.length) return;
 
 			var options = archived_columns.reduce(function(a, b) {
-				return a + "<li><a class='option'>" +
+				return a + `<li><a class='option'>" +
 					"<span class='ellipsis' style='max-width: 100px; display: inline-block'>" +
 					__(b.title) + "</span>" +
 					"<button style='float:right;' data-column='" + b.title +
 					"' class='btn btn-default btn-xs restore-column text-muted'>"
-					+ __('Restore') + "</button></a></li>";
+					+ __('Restore') + "</button></a></li>`;
 			}, "");
 			var $dropdown = $("<div class='dropdown pull-right'>" +
 				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
@@ -520,7 +520,7 @@ frappe.provide("frappe.views");
 				html += indicators.reduce(function(prev, curr) {
 					return prev + '<div \
 						data-action="indicator" data-indicator="'+curr+'"\
-						class="btn btn-default btn-xs indicator ' + curr + '"></div>';
+						class="btn btn-default btn-xs indicator-pill ' + curr + '"></div>';
 				}, "");
 				html += '</li>';
 				self.$kanban_column.find(".column-options .dropdown-menu")
@@ -555,10 +555,17 @@ frappe.provide("frappe.views");
 		function render_card_meta() {
 			var html = "";
 			if (card.comment_count > 0)
-				html += '<span class="list-comment-count small text-muted ">' +
-					'<i class="octicon octicon-comment"></i> ' + card.comment_count +
-					'</span>';
-			html += get_assignees_html();
+				html +=
+				`<span class="list-comment-count small text-muted ">
+					<svg class="icon icon-sm">
+						<use xlink:href="#icon-small-message"></use>
+					</svg>
+					${card.comment_count}
+				</span>`;
+
+			assignees_html = get_assignees_html();
+
+			html += `<span class="kanban-assignments">${assignees_html}</span>`;
 
 			if (card.color && frappe.ui.color.validate_hex(card.color)) {
 				const $div = $('<div>');
@@ -578,7 +585,7 @@ frappe.provide("frappe.views");
 
 		function add_task_link() {
 			let taskLink = frappe.utils.get_form_link(card.doctype, card.name);
-			self.$card.find('.kanban-card-redirect').attr('href', taskLink);			
+			self.$card.find('.kanban-card-redirect').attr('href', taskLink);
 		}
 
 		function refresh_dialog() {
@@ -597,8 +604,15 @@ frappe.provide("frappe.views");
 
 		function make_assignees() {
 			var d = self.edit_dialog;
-			var html = get_assignees_html() + '<a class="add-assignment avatar avatar-small avatar-empty">\
-				<i class="octicon octicon-plus text-muted" style="margin: 3px 0 0 5px;"></i></a>';
+			var html =
+				`<span class="kanban-assignments">
+					${get_assignees_html()}
+					<a class="add-assignment avatar avatar-small avatar-empty">
+						<svg class="icon icon-sm">
+							<use xlink:href="#icon-small-message"></use>
+						</svg>
+					</a>
+				</span>`;
 
 			d.$wrapper.find("[data-fieldname='assignees'] .control-input-wrapper").empty().append(html);
 			d.$wrapper.find(".add-assignment").on("click", function() {
@@ -611,9 +625,7 @@ frappe.provide("frappe.views");
 		}
 
 		function get_assignees_html() {
-			return card.assigned_list.reduce(function(a, b) {
-				return a + frappe.avatar(b);
-			}, "");
+			return frappe.avatar_group(card.assigned_list, 3);
 		}
 
 		function show_assign_to_dialog() {

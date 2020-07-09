@@ -6,9 +6,9 @@
 .avatar-frame {
 	display: inline-block;
 	width: 100%;
-	padding: 50% 0px;
+	padding: 50%;
 	// TODO: Remove
-	background-color: var(--pink-200);
+	// background-color: var(--pink-200);
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center center;
@@ -21,32 +21,13 @@
 	border-radius: 50%;
 }
 
-// .avatar-empty {
-// 	border: 1px dashed #d1d8dd;
-// 	border-radius: 50%;
-// }
-
-// .avatar-small {
-// 	width: 36px;
-// 	height: 36px;
-// 	.standard-image {
-// 		font-size: 14px;
-// 	}
-// }
-
 .avatar-small {
 	width: 24px;
 	height: 24px;
 	text-align: center;
 
-	.avatar-frame {
-		padding: 12px;
-	}
-
 	.standard-image {
-		font-size: $font-size-sm;
-		width: 24px;
-		height: 24px;
+		font-size: $font-size-xs;
 	}
 
 	.avatar-empty::after {
@@ -59,10 +40,6 @@
 	width: 36px;
 	height: 36px;
 
-	.avatar-frame {
-		padding: 18px;
-	}
-
 	.standard-image {
 		font-size: 18px;
 	}
@@ -71,10 +48,6 @@
 .avatar-large {
 	width: 72px;
 	height: 72px;
-
-	.avatar-frame {
-		padding: 36px;
-	}
 
 
 	.standard-image {
@@ -86,10 +59,6 @@
 	width: 108px;
 	height: 108px;
 
-	.avatar-frame {
-		padding: 54px;
-	}
-
 	.standard-image {
 		font-size: 36px;
 	}
@@ -99,10 +68,6 @@
 	width: 16px;
 	height: 16px;
 
-	.avatar-frame {
-		padding: 8px;
-	}
-
 	.standard-image {
 		font-size: 9px;
 	}
@@ -110,49 +75,38 @@
 
 .avatar .standard-image {
 	border-radius: 50%;
-	padding: 2px;
-	width: 100%;
-	height: 100%;
+	border: none;
 }
 
 .standard-image {
 	width: 100%;
-	height: 0;
-	padding: 50% 0;
-	display: inline-block;
-	text-align: center;
-	border-radius: 50%;
-	font-size: 14px;
-	line-height: 0px;
-	//color: #fff;
-	color: $text-muted;
-	border: 1px solid $border-color;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: var(--blue-50) !important;
+	color: var(--blue-500);
 	font-weight: normal;
 }
 
 .avatar-group {
 	display: flex;
 	align-items: center;
+	flex-direction: row-reverse;
 
 	.avatar {
 		position: relative;
-		z-index: 2;
 
 		.avatar-frame {
 			border: 2px solid $white;
 		}
 
 		&:hover {
-			z-index: 3;
+			z-index: 1;
 		}
 	}
 
-	.extra-count {
-		margin-left: 8px;
-		margin-top: 2px;
-	}
-
 	.avatar+.avatar {
-		margin-left: -0.5rem;
+		margin-right: -0.3rem;
 	}
 }

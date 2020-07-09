@@ -50,18 +50,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		// Setup buttons
 		this.primary_action = null;
-		this.secondary_action = {
-			label: __('Refresh'),
-			action: () => {
-				this.setup_progress_bar();
-				this.refresh();
-			}
-		};
 
 		// throttle refresh for 300ms
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
+	}
 
-		this.menu_items = [];
+	set_default_secondary_action() {
+		this.refresh_button = this.page.add_action_icon("refresh", () => {
+			this.setup_progress_bar();
+			this.refresh()
+		});
 	}
 
 	setup_events() {
@@ -134,17 +132,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	add_chart_buttons_to_toolbar(show) {
 		if (show) {
-			this.page.add_inner_button(__("Set Chart"), () => {
+			this.create_chart_button && this.create_chart_button.remove()
+			this.create_chart_button = this.page.add_button(__("Set Chart"), () => {
 				this.open_create_chart_dialog();
 			});
 
 			if (this.chart_fields || this.chart_options) {
-				this.page.add_inner_button(__("Add Chart to Dashboard"), () => {
+				this.add_to_dashboard_button && this.add_to_dashboard_button.remove()
+				this.add_to_dashboard_button = this.page.add_button(__("Add Chart to Dashboard"), () => {
 					this.add_chart_to_dashboard();
 				});
 			}
 		} else {
-			this.page.clear_inner_toolbar();
+			this.create_chart_button && this.create_chart_button.remove()
+			this.add_to_dashboard_button && this.add_to_dashboard_button.remove()
 		}
 	}
 
@@ -247,6 +248,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return frappe.run_serially([
 			() => this.setup_filters(),
 			() => this.set_route_filters(),
+			() => this.page.clear_custom_actions(),
 			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => this.refresh()
 		]);
@@ -1436,6 +1438,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_report_wrapper() {
 		if (this.$report) return;
+
+		// Remove border from
+		$(".page-head-content").removeClass('border-bottom');
 
 		let page_form = this.page.main.find('.page-form');
 		this.$status = $(`<div class="form-message text-muted small"></div>`)
