@@ -366,10 +366,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
 
+		let filter_area = $(`<div class="flex flex-wrap"></div>`);
+		this.page.page_form.append(filter_area);
+
 		this.filters = filters.map(df => {
 			if (df.fieldtype === 'Break') return;
 
-			let f = this.page.add_field(df);
+			let f = this.page.add_field(df, filter_area);
 
 			if (df.default) {
 				f.set_input(df.default);
