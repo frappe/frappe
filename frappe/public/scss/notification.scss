@@ -1,3 +1,7 @@
+.navbar {
+	perspective: 3200px;
+}
+
 .dropdown-notifications .header {
 	margin: 7px 15px 10px 15px;
 	cursor: pointer;
@@ -50,6 +54,18 @@
 	position: absolute;
 	box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
 
+	opacity: 0.3;
+	transform-origin: center -20px;
+	transform: rotateX(-15deg);
+	transition:
+	  transform 0.3s,
+	  opacity 0.3s;
+
+	&.animate-list {
+		opacity: 1;
+  		transform: rotateX(0);
+	}
+
 	.notification-list-header {
 		margin: 0px 10px;
 		display: flex;
@@ -62,6 +78,19 @@
 		// margin: 10px 0px;
 		max-height: 500px;
     	overflow-y: auto;
+		width: 200%;
+		height: 100%;
+		flex: 1;
+
+		.notifcation-reel {
+			@include size(100%, null);
+			@include flex(flex, space-between, null, null);
+			transition: 0.5s;
+
+			.panel-events, .panel-notifications {
+				@include size(50%, null);
+			}
+		}
 	}
 
 	.notification-item-tabs {
