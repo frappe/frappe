@@ -184,6 +184,9 @@ def update_contact(doc, method):
 def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
+	if not frappe.get_meta("Contact").get_field(searchfield):
+		return {}
+
 	link_doctype = filters.pop('link_doctype')
 	link_name = filters.pop('link_name')
 
@@ -203,14 +206,12 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabDynamic Link`.parenttype = 'Contact' and
 			`tabDynamic Link`.link_doctype = %(link_doctype)s and
 			`tabDynamic Link`.link_name = %(link_name)s and
-			`tabContact`.`%(key)s` like %(txt)s
-			%(mcond)s
+			`tabContact`.`{key}` like %(txt)s
+			{mcond}
 		order by
 			if(locate(%(_txt)s, `tabContact`.name), locate(%(_txt)s, `tabContact`.name), 99999),
 			`tabContact`.idx desc, `tabContact`.name
-		limit %(start)s, %(page_len)s """, {
-			'mcond': get_match_cond(doctype),
-			'key': searchfield,
+		limit %(start)s, %(page_len)s """.format(mcond=get_match_cond(doctype), key=searchfield), {
 			'txt': '%' + txt + '%',
 			'_txt': txt.replace("%", ""),
 			'start': start,
