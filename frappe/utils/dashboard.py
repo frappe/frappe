@@ -94,29 +94,22 @@ def sync_dashboards(app=None):
 
 def make_records_in_module(app, module):
 	dashboards_path = frappe.get_module_path(module, "{module}_dashboard".format(module=module))
-	if os.path.isdir(dashboards_path):
-		for fname in os.listdir(dashboards_path):
-			dashboard_path = dashboards_path + '/{}'.format(fname)
-			if os.path.isdir(dashboard_path):
-				if fname == '__pycache__':
-					continue
+	charts_path = frappe.get_module_path(module, "dashboard chart")
+	cards_path = frappe.get_module_path(module, "number card")
 
-				# create records for all dashboards in the module
-				make_records(dashboards_path)
-
-		charts_path = frappe.get_module_path(module, "dashboard chart")
-		cards_path = frappe.get_module_path(module, "number card")
-		make_records(charts_path)
-		make_records(cards_path)
+	paths = [dashboards_path, charts_path, cards_path]
+	for path in paths:
+		make_records(path)
 
 def make_records(path, filters=None):
-	for fname in os.listdir(path):
-		if os.path.isdir(join(path, fname)):
-			if fname == '__pycache__':
-				continue
-			try:
-				doc_dict = frappe.get_file_json("{path}/{fname}/{fname}.json".format(path=path, fname=fname))
-				import_doc(doc_dict)
-			except FileNotFoundError:
-				frappe.log_error(message=frappe.get_traceback(), title="Dashboard Import Error")
-				pass
+	if os.path.isdir(path):
+		for fname in os.listdir(path):
+			if os.path.isdir(join(path, fname)):
+				if fname == '__pycache__':
+					continue
+				try:
+					doc_dict = frappe.get_file_json("{path}/{fname}/{fname}.json".format(path=path, fname=fname))
+					import_doc(doc_dict)
+				except FileNotFoundError:
+					frappe.log_error(message=frappe.get_traceback(), title="Dashboard Import Error")
+					pass
