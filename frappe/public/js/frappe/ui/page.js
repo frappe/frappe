@@ -586,7 +586,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	add_button: function(label, click) {
-		let button = $(`<button class="btn btn-secondary btn-sm">${label}</button>`);
+		let button = $(`<button class="btn btn-secondary btn-default btn-sm">${label}</button>`);
 		button.appendTo(this.custom_actions);
 		button.on('click', click);
 		this.custom_actions.removeClass('hide');
