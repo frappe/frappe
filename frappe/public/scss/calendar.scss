@@ -66,6 +66,9 @@ th.fc-widget-header {
 	background-color: #E8DDFF;
 }
 
+.fc-time-grid-event {
+	border: none !important;
+}
 // @media (max-width: $screen-xs) {
 // 	.fc-scroller {
 // 		height: auto !important;
@@ -89,10 +92,6 @@ th.fc-day-header {
 	font-size: 12px;
 }
 
-// .fc.fc-unthemed .fc-toolbar {
-// 	padding: 15px;
-// }
-
 .fc-event-container .fc-content {
 	padding: 3px;
 	display: flex;
@@ -101,6 +100,7 @@ th.fc-day-header {
 	.fc-time {
 		font-weight: normal;
 		margin-top: 2px;
+		height: 3.9rem;
 	}
 
 	.fc-title {
@@ -148,6 +148,7 @@ th.fc-day-header {
 	box-shadow: none !important;
 	background: var(--grey-500) !important;
 	color: white !important;
+	z-index: 0 !important;
 }
 
 .fc-day-grid-event {
