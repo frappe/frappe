@@ -5,6 +5,15 @@ html {
 body {
 	-webkit-font-smoothing: antialiased;
 	color: $body-color;
+
+	&.full-width {
+	@include media-breakpoint-up(md) {
+			.container {
+				width: 90%;
+				max-width: 100%;
+			}
+		}
+	}
 }
 
 a {
