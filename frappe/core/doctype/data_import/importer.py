@@ -618,7 +618,7 @@ class Row:
 	def validate_value(self, value, col):
 		df = col.df
 		if df.fieldtype == "Select":
-			select_options = df.get_select_options()
+			select_options = [d for d in (df.options or '').split('\n') if d]
 			if select_options and value not in select_options:
 				options_string = ", ".join([frappe.bold(d) for d in select_options])
 				msg = _("Value must be one of {0}").format(options_string)
