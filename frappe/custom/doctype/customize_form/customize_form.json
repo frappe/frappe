@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_workflow": 1,
  "autoname": "DL.####",
  "creation": "2013-01-29 17:55:08",
  "doctype": "DocType",
@@ -19,14 +20,14 @@
   "track_changes",
   "track_views",
   "allow_auto_repeat",
-  "allow_import",
-  "show_preview_popup",
-  "image_view",
-  "allow_workflow",
   "column_break_5",
   "title_field",
   "image_field",
   "search_fields",
+  "allow_workflow",
+  "allow_import",
+  "show_preview_popup",
+  "image_view",
   "section_break_8",
   "sort_field",
   "column_break_10",
@@ -213,18 +214,18 @@
    "label": "Show Preview Popup"
   },
   {
-    "default": "1",
-    "fieldname": "allow_workflow",
-    "fieldtype": "Check",
-    "label": "Allow Workflow"
-   }
+   "default": "1",
+   "fieldname": "allow_workflow",
+   "fieldtype": "Check",
+   "label": "Allow Workflow"
+  }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-glass",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-04-10 12:16:01.320411",
+ "modified": "2020-07-09 13:59:15.730017",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
@@ -244,6 +245,5 @@
  "search_fields": "doc_type",
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1,
- "allow_workflow": 1
+ "track_changes": 1
 }
