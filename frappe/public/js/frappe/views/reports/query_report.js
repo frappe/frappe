@@ -700,6 +700,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		options.axisOptions = {
 			shortenYAxisNumbers: 1
 		};
+		options.height = 280;
 
 		return options;
 	}

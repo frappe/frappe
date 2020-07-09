@@ -1,7 +1,7 @@
 frappe.provide('frappe.report_utils');
 
 frappe.report_utils = {
-	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, colors }) {
+	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, colors, height }) {
 		const type = chart_type.toLowerCase();
 
 		let rows =  raw_data.result.filter(value => Object.keys(value).length);
@@ -24,6 +24,7 @@ frappe.report_utils = {
 			},
 			truncateLegends: 1,
 			type: type,
+			height: height ? height : 280,
 			colors: colors,
 			axisOptions: {
 				shortenYAxisNumbers: 1,
