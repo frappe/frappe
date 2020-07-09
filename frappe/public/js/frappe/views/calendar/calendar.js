@@ -180,12 +180,17 @@ frappe.views.Calendar = Class.extend({
 			.removeClass("fc-state-default")
 			.addClass("btn btn-default");
 
-		this.$wrapper.find(".fc-button-group").addClass("btn-group");
+		this.$wrapper.find(".fc-right").addClass("btn-group");
 
 		this.$wrapper.find('.fc-prev-button span')
-			.attr('class', '').addClass('fa fa-chevron-left');
+			.attr('class', '').html(frappe.utils.icon('left'));
 		this.$wrapper.find('.fc-next-button span')
-			.attr('class', '').addClass('fa fa-chevron-right');
+			.attr('class', '').html(frappe.utils.icon('right'));
+
+		this.$wrapper.find('.fc-today-button')
+			.prepend(frappe.utils.icon('today'));
+
+		this.$wrapper.find('.fc-day-number').wrap('<div class="fc-day"></div>')
 
 		var btn_group = this.$wrapper.find(".fc-button-group");
 		btn_group.find(".fc-state-active").addClass("active");
@@ -213,17 +218,19 @@ frappe.views.Calendar = Class.extend({
 	},
 	setup_options: function(defaults) {
 		var me = this;
+		defaults.meridiem = 'false';
 		this.cal_options = {
 			locale: frappe.boot.user.language || "en",
 			header: {
-				left: 'title',
-				center: '',
-				right: 'prev,today,next month,agendaWeek,agendaDay'
+				left: 'today',
+				center: 'prev, title, next',
+				right: 'month, agendaWeek, agendaDay'
 			},
 			editable: true,
 			selectable: true,
 			selectHelper: true,
 			forceEventDuration: true,
+			displayEventTime: true,
 			defaultView: defaults.defaultView,
 			weekends: defaults.weekends,
 			nowIndicator: true,
@@ -239,6 +246,7 @@ frappe.views.Calendar = Class.extend({
 					}
 				});
 			},
+			displayEventEnd: true,
 			eventRender: function(event, element) {
 				element.attr('title', event.tooltip);
 			},
@@ -354,7 +362,7 @@ frappe.views.Calendar = Class.extend({
 			me.prepare_colors(d);
 
 			d.title = frappe.utils.html2text(d.title);
-			
+
 			return d;
 		});
 	},
