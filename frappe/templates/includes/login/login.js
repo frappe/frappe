@@ -96,7 +96,7 @@ login.reset_sections = function(hide) {
 		$("section.for-forgot").toggle(false);
 		$("section.for-signup").toggle(false);
 	}
-	$('section .indicator').each(function() {
+	$('section:not(.signup-disabled) .indicator').each(function() {
 		$(this).removeClass().addClass('indicator').addClass('blue')
 			.text($(this).attr('data-text'));
 	});
