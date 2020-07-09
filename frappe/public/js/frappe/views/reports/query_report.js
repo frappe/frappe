@@ -62,6 +62,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 	}
 
+	set_default_secondary_action() {
+		this.refresh_button && this.refresh_button.remove();
+		this.refresh_button = this.page.add_action_icon("refresh", () => {
+			this.setup_progress_bar();
+			this.refresh()
+		});
+	}
+
 	setup_events() {
 		frappe.realtime.on("report_generated", (data) => {
 			if(data.report_name) {
