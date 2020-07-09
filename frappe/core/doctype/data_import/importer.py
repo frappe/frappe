@@ -59,6 +59,7 @@ class Importer:
 		frappe.flags.in_import = True
 		frappe.flags.mute_emails = self.data_import.mute_emails
 
+		self.data_import.db_set("status", "Pending")
 		self.data_import.db_set("template_warnings", "")
 
 	def import_data(self):
@@ -618,7 +619,7 @@ class Row:
 	def validate_value(self, value, col):
 		df = col.df
 		if df.fieldtype == "Select":
-			select_options = df.get_select_options()
+			select_options = [d for d in (df.options or '').split('\n') if d]
 			if select_options and value not in select_options:
 				options_string = ", ".join([frappe.bold(d) for d in select_options])
 				msg = _("Value must be one of {0}").format(options_string)
@@ -970,6 +971,13 @@ class Column:
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date format
 			self.date_format = self.guess_date_format_for_column()
+			if not self.date_format:
+				self.date_format = '%Y-%m-%d'
+				self.warnings.append({
+					'col': self.column_number,
+					'message': _("Date format could not determined from the values in this column. Defaulting to yyyy-mm-dd."),
+					'type': 'info'
+				})
 
 	def as_dict(self):
 		d = frappe._dict()
