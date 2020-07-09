@@ -16,6 +16,7 @@ from frappe.utils.xlsxutils import (
 	read_xls_file_from_attached_file,
 )
 from frappe.model import no_value_fields, table_fields as table_fieldtypes
+from frappe.model.naming import set_new_name
 from frappe.core.doctype.version.version import get_diff
 
 INVALID_VALUES = ("", None)
@@ -196,12 +197,7 @@ class Importer:
 
 	def insert_record(self, doc):
 		meta = frappe.get_meta(self.doctype)
-		new_doc = frappe.new_doc(self.doctype)
-		new_doc.update(doc)
-
-		if (meta.autoname or "").lower() != "prompt":
-			# name can only be set directly if autoname is prompt
-			new_doc.set("name", None)
+		new_doc = self.import_file.prep_new_doc(doc, meta)
 
 		new_doc.flags.updater_reference = {
 			"doctype": self.data_import.doctype,
@@ -420,14 +416,19 @@ class ImportFile:
 
 	def get_payloads_for_import(self):
 		payloads = []
+		new_doc_names = []
 		# make a copy
 		data = list(self.data)
 		while data:
-			doc, rows, data = self.parse_next_row_for_import(data)
+			doc, rows, data = self.parse_next_row_for_import(data, new_doc_names)
 			payloads.append(frappe._dict(doc=doc, rows=rows))
+			if self.import_type == INSERT:
+				expected_name = self.predict_name(doc)
+				if expected_name:
+					new_doc_names.append(expected_name)
 		return payloads
 
-	def parse_next_row_for_import(self, data):
+	def parse_next_row_for_import(self, data, prior_names):
 		"""
 		Parses rows that make up a doc. A doc maybe built from a single row or multiple rows.
 		Returns the doc, rows, and data without the rows.
@@ -464,10 +465,10 @@ class ImportFile:
 		for row in rows:
 			for doctype, table_df in doctypes:
 				if doctype == self.doctype and not parent_doc:
-					parent_doc = row.parse_doc(doctype)
+					parent_doc = row.parse_doc(doctype, prior_names)
 
 				if doctype != self.doctype and table_df:
-					child_doc = row.parse_doc(doctype, parent_doc, table_df)
+					child_doc = row.parse_doc(doctype, [], parent_doc, table_df)
 					parent_doc[table_df.fieldname] = parent_doc.get(table_df.fieldname, [])
 					parent_doc[table_df.fieldname].append(child_doc)
 
@@ -500,6 +501,24 @@ class ImportFile:
 				self.warnings.append({"row": first_row.row_number, "message": message})
 
 		return doc, rows, data[len(rows) :]
+
+	def predict_name(self, doc):
+		meta = frappe.get_meta(self.doctype)
+		new_doc = self.prep_new_doc(doc, meta)
+		try:
+			set_new_name(new_doc)
+		except Exception:
+			return ''
+		return new_doc.name
+
+	def prep_new_doc(self, doc, meta):
+		new_doc = frappe.new_doc(self.doctype)
+		new_doc.update(doc)
+
+		if (meta.autoname or "").lower() != "prompt":
+			# name can only be set directly if autoname is prompt
+			new_doc.set("name", None)
+		return new_doc
 
 	def get_warnings(self):
 		warnings = []
@@ -562,22 +581,22 @@ class Row:
 		if len_row != len_columns:
 			less_than_columns = len_row < len_columns
 			message = (
-				"Row has less values than columns"
+				_("Row has fewer values than columns")
 				if less_than_columns
-				else "Row has more values than columns"
+				else _("Row has more values than columns")
 			)
 			self.warnings.append(
 				{"row": self.row_number, "message": message,}
 			)
 
-	def parse_doc(self, doctype, parent_doc=None, table_df=None):
+	def parse_doc(self, doctype, prior, parent_doc=None, table_df=None):
 		col_indexes = self.header.get_column_indexes(doctype, table_df)
 		values = self.get_values(col_indexes)
 		columns = self.header.get_columns(col_indexes)
-		doc = self._parse_doc(doctype, columns, values, parent_doc, table_df)
+		doc = self._parse_doc(doctype, columns, values, parent_doc, table_df, prior)
 		return doc
 
-	def _parse_doc(self, doctype, columns, values, parent_doc=None, table_df=None):
+	def _parse_doc(self, doctype, columns, values, parent_doc=None, table_df=None, prior=None):
 		doc = frappe._dict()
 		if self.import_type == INSERT:
 			# new_doc returns a dict with default values set
@@ -598,7 +617,7 @@ class Row:
 				value = None
 
 			if value is not None:
-				value = self.validate_value(value, col)
+				value = self.validate_value(value, col, prior)
 
 			if value is not None:
 				doc[df.fieldname] = self.parse_value(value, col)
@@ -615,7 +634,7 @@ class Row:
 		self.check_mandatory_fields(doctype, doc, table_df)
 		return doc
 
-	def validate_value(self, value, col):
+	def validate_value(self, value, col, prior):
 		df = col.df
 		if df.fieldtype == "Select":
 			select_options = df.get_select_options()
@@ -633,18 +652,13 @@ class Row:
 
 		elif df.fieldtype == "Link":
 			if not self.link_exists(value, df):
-				if df.options == self.doctype:
-					msg = _("Note: {0} refers to {1}, which does not currently exist. Make sure it is defined earlier in the import file.").format(df.label, frappe.bold(value))
-					self.warnings.append({
-						"row": self.row_number,
-						"field": df_as_json(df),
-						"message": msg,
-						"type": 'info'}
+				if self.import_type == INSERT and df.options == self.doctype:
+					if value in prior: return value
+					msg = _("Reference to {0} named {1}, which does not currently exist. Fix the reference or make sure it is defined earlier in this import file.").format(df.options, frappe.bold(value))
+				else:
+					msg = _("Value {0} missing for {1}").format(
+						frappe.bold(value), frappe.bold(df.options)
 					)
-					return value
-				msg = _("Value {0} missing for {1}").format(
-					frappe.bold(value), frappe.bold(df.options)
-				)
 				self.warnings.append(
 					{
 						"row": self.row_number,
@@ -965,7 +979,7 @@ class Column:
 
 		if self.df.fieldtype == 'Link':
 			# find all values that dont exist
-			values = list(set([cstr(v) for v in self.column_values[1:] if v]))
+			values = [cstr(v) for v in self.column_values[1:] if v]
 			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={'name': ('in', values)})]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:

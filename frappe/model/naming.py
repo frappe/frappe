@@ -149,6 +149,9 @@ def parse_naming_series(parts, doctype='', doc=''):
 			part = doc.get(e)
 		elif doc and doc.get(e):
 			part = doc.get(e)
+                        # Make sure we can include numbers and such in the name
+			if part is not None:
+				part = cstr(part)
 		else:
 			part = e
 
