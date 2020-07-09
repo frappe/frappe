@@ -79,7 +79,7 @@ frappe.ui.form.on("Notification", {
 				}
 			}
 		});
-		$('[data-fieldname="insert_dynamic_value"]').css({'margin-top': '-33px','float':'right'});
+		$('[data-fieldname="insert_dynamic_value"]').css({'margin-top': '-33px', 'float': 'right'});
 	},
 	onload_post_render(frm) {
 		$("[data-fieldname='subject']").on("keyup mouseup", e =>{
@@ -87,7 +87,7 @@ frappe.ui.form.on("Notification", {
 			frm.last_cursor_position = e.target.selectionStart; 
 		});
 
-		$("[data-fieldname='message']").on("keyup mouseup", e =>{
+		$("[data-fieldname='message']").on("keyup mouseup", () =>{
 			frm.last_touched = 'message';
 			frm.last_cursor_position = frm.get_field("message").editor.getCursorPosition();
 		});
@@ -134,9 +134,8 @@ frappe.ui.form.on("Notification", {
 					reqd: 1,
 					onchange: function() {
 						if (frm.last_touched == 'message') {
-							frm.get_field('message').editor.session.insert(frm.last_cursor_position,`{{ doc.${this.value} }}`);
-						}
-						else {
+							frm.get_field('message').editor.session.insert(frm.last_cursor_position, `{{ doc.${this.value} }}`);
+						} else {
 							let value = frm.doc[frm.last_touched].slice(0, frm.last_cursor_position) + `{{ doc.${this.value} }}` + frm.doc[frm.last_touched].slice(frm.last_cursor_position);
 							frm.set_value(frm.last_touched, value);
 						}
