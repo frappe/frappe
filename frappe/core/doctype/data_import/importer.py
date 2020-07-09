@@ -59,6 +59,7 @@ class Importer:
 		frappe.flags.in_import = True
 		frappe.flags.mute_emails = self.data_import.mute_emails
 
+		self.data_import.db_set("status", "Pending")
 		self.data_import.db_set("template_warnings", "")
 
 	def import_data(self):
