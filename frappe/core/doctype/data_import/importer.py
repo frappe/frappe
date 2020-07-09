@@ -970,6 +970,13 @@ class Column:
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date format
 			self.date_format = self.guess_date_format_for_column()
+			if not self.date_format:
+				self.date_format = '%Y-%m-%d'
+				self.warnings.append({
+					'col': self.column_number,
+					'message': _("Date format could not determined from the values in this column. Defaulting to yyyy-mm-dd."),
+					'type': 'info'
+				})
 
 	def as_dict(self):
 		d = frappe._dict()
