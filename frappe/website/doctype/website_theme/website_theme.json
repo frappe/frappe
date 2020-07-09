@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
+ "allow_workflow": 1,
  "autoname": "field:theme",
  "creation": "2015-02-18 12:46:38.168929",
  "doctype": "DocType",
@@ -170,7 +171,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-16 18:36:22.203519",
+ "modified": "2020-07-09 14:32:05.246993",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
