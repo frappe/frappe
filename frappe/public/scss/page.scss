@@ -26,8 +26,12 @@
 			}
 		}
 	}
-	.custom-btn-group .btn {
-		padding: 4px 15px;
+	.custom-btn-group {
+		display: inline;
+
+		.btn {
+			padding: 4px 15px;
+		}
 	}
 }
 
