@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "field:dashboard_name",
  "creation": "2019-01-10 12:54:40.938705",
  "doctype": "DocType",
@@ -35,11 +36,11 @@
    "reqd": 1
   },
   {
-    "description": "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])",
-    "fieldname": "chart_options",
-    "fieldtype": "Code",
-    "label": "Chart Options",
-    "options": "JSON"
+   "description": "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])",
+   "fieldname": "chart_options",
+   "fieldtype": "Code",
+   "label": "Chart Options",
+   "options": "JSON"
   },
   {
    "fieldname": "cards",
@@ -49,8 +50,8 @@
   }
  ],
  "links": [],
- "modified": "2020-04-29 13:26:37.362482",
- "modified_by": "Administrator",
+ "modified": "2020-07-10 17:48:19.468813",
+ "modified_by": "umair@erpnext.com",
  "module": "Desk",
  "name": "Dashboard",
  "owner": "Administrator",
