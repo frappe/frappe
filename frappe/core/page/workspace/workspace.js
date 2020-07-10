@@ -20,6 +20,7 @@ class Workspace {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
 		this.prepare_container();
+		this.show_or_hide_sidebar();
 		this.setup_dropdown();
 		this.pages = {};
 		this.sidebar_items = {};
@@ -194,13 +195,31 @@ class Workspace {
 	setup_dropdown() {
 		this.page.clear_menu();
 
-		this.page.add_menu_item('Customize', () => {
+		this.page.add_menu_item(__('Customize'), () => {
 			this.customize();
 		}, 1);
 
-		this.page.add_menu_item('Reset Customizations', () => {
+		this.page.add_menu_item(__('Reset Customizations'), () => {
 			this.current_page.reset_customization();
 		}, 1);
+
+		this.page.add_menu_item(__('Toggle Sidebar'), () => {
+			this.toggle_side_bar();
+		}, 1);
+	}
+
+	toggle_side_bar() {
+		let show_desk_sidebar = JSON.parse(localStorage.show_desk_sidebar || "true");
+		show_desk_sidebar = !show_desk_sidebar;
+		localStorage.show_desk_sidebar = show_desk_sidebar;
+		this.show_or_hide_sidebar();
+		$(document.body).trigger("toggleDeskSidebar");
+	}
+
+	show_or_hide_sidebar() {
+		let show_desk_sidebar = JSON.parse(localStorage.show_desk_sidebar || "true");
+		$('.layout-main-section-wrapper').toggleClass("col-md-10", show_desk_sidebar);
+		$(document.body).toggleClass("no-sidebar", !show_desk_sidebar);
 	}
 }
 
@@ -232,7 +251,6 @@ class DesktopPage {
 		this.in_customize_mode = false;
 		this.page && this.page.remove();
 		this.make();
-		this.setup_events();
 	}
 
 	make() {
@@ -270,10 +288,6 @@ class DesktopPage {
 		return frappe.call("frappe.desk.desktop.get_desktop_page", {
 			page: this.page_name
 		});
-	}
-
-	setup_events() {
-		$(document.body).on('toggleFullWidth', () => this.refresh());
 	}
 
 	customize() {
