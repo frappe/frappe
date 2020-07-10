@@ -404,8 +404,8 @@ body[data-route^="Module"] .main-menu {
 	margin-right: $margin-xs;
 	display: inline-block;
 	.assignment-pill {
-		.pill-label {
-			margin-right: $margin-xs;
+		.remove-btn {
+			margin-left: $margin-xs;
 		}
 		background-color: var(--grey-2-50);
 		border-radius: var(--border-radius);

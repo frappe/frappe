@@ -5,10 +5,8 @@
 
 frappe.ui.form.AssignTo = Class.extend({
 	init: function(opts) {
-		var me = this;
-
 		$.extend(this, opts);
-		this.btn = this.parent.find(".add-assignment").on("click", function() { me.add(); });
+		this.btn = this.parent.find(".add-assignment-btn > button").on("click", () => this.add());
 		this.btn_wrapper = this.btn.parent();
 
 		this.refresh();
@@ -44,33 +42,34 @@ frappe.ui.form.AssignTo = Class.extend({
 			user_info.description = assignment.description || "";
 
 			this.get_assignment_block(user_info).insertBefore(add_assignment_button);
-			if (assignment.owner===frappe.session.user) {
+			if (assignment.owner === frappe.session.user) {
 				this.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), () => {
 					this.remove(frappe.session.user);
 				}, "fa fa-check", "btn-success");
 			}
-
-			if (!(assignment.owner === frappe.session.user || this.frm.perm[0].write)) {
-				this.parent.find('a.remove-btn').remove();
-			}
-
 		});
 
 		// set remove
-		this.parent.find('a.remove-btn').click(el => {
-			this.remove(el.attr('data-owner'));
+		this.parent.find('.remove-btn').click(el => {
+			this.remove($(el.currentTarget).attr('data-owner'));
 			return false;
 		});
 
 	},
 	get_assignment_block(assignee_info) {
+		let remove_assignment_btn = '';
+		if (assignee_info.owner === frappe.session.user || this.frm.perm[0].write) {
+			remove_assignment_btn = `
+				<span class="remove-btn cursor-pointer" data-owner="${assignee_info.owner}">
+					${frappe.utils.icon('close')}
+				</span>
+			`;
+		}
 		return $(`
 			<li class="assignment-row">
 				<div class="assignment-pill">
 					<span class="pill-label">${assignee_info.fullname}</span>
-					<span class="remove-btn cursor-pointer" data-owner="${assignee_info.owner}">
-						${frappe.utils.icon('close')}
-					</span>
+					${remove_assignment_btn}
 				</div>
 			</li>
 		`);
