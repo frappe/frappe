@@ -646,11 +646,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	set_fields() {
 		if (this.report_name && this.report_doc.json.fields) {
-			this.fields = this.report_doc.json.fields.slice();
+			let fields = this.report_doc.json.fields.slice();
+			fields.forEach(f => this._add_field(f[0], f[1]));
 			return;
 		} else if (this.view_user_settings.fields) {
 			// get from user_settings
-			this.fields = this.view_user_settings.fields;
+			let fields = this.view_user_settings.fields;
+			fields.forEach(f => this._add_field(f[0], f[1]));
 			return;
 		}
 
