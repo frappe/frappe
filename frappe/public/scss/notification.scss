@@ -1,3 +1,15 @@
+@mixin size($w, $h) {
+	width: $w;
+	height: $h;
+}
+
+@mixin flex($dis, $x, $y, $dir) {
+	display: $dis;
+	justify-content: $x;
+	align-items: $y;
+	flex-direction: $dir;
+}
+
 .navbar {
 	perspective: 3200px;
 }
@@ -68,18 +80,15 @@
 
 	.notification-list-header {
 		margin: 0px 10px;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		@include flex(flex, space-between, center, null);
 		border-bottom: 1px solid $border-color;
 	}
 
 	.notification-list-body {
 		// margin: 10px 0px;
 		max-height: 500px;
-    	overflow-y: auto;
-		width: 200%;
-		height: 100%;
+		overflow-y: auto;
+		@include size(200%, 100%);
 		flex: 1;
 
 		.notifcation-reel {
@@ -145,8 +154,7 @@
 	&::before {
 		content: '';
 		display:inline-block;
-		height: 4px;
-		width: 4px;
+		@include size(4px, 4px);
 		margin-top: 14px;
 		border-radius: 10px;
 		margin-right: 5px;
@@ -209,8 +217,7 @@
 }
 
 .recent-item.open-docs {
-	display: flex;
-	justify-content: space-between;
+	@include flex(flex, space-between, null, null);
 
 	.indicator-pill {
 		margin: 0px;
