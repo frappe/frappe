@@ -25,7 +25,7 @@ def get_context(path, args=None):
 		context["path"] = path
 		scheme = 'http'
 
-	context.canonical = scheme + '://' + frappe.local.site + '/' + context.path
+	context.canonical = scheme + '://' + frappe.local.site + '/' + frappe.utils.escape_html(context.path)
 	context.route = context.path
 	context = build_context(context)
 

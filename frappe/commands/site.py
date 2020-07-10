@@ -201,16 +201,31 @@ def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_ro
 def install_app(context, apps):
 	"Install a new app to site, supports multiple apps"
 	from frappe.installer import install_app as _install_app
+	exit_code = 0
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
-		try:
-			for app in apps:
+
+		for app in apps:
+			try:
 				_install_app(app, verbose=context.verbose)
-		finally:
-			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
+			except frappe.IncompatibleApp as err:
+				err_msg = ":\n{}".format(err) if str(err) else ""
+				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
+				exit_code = 1
+			except Exception as err:
+				err_msg = ":\n{}".format(err if str(err) else frappe.get_traceback())
+				print("An error occurred while installing {}{}".format(app, err_msg))
+				exit_code = 1
+
+		frappe.destroy()
+
+	sys.exit(exit_code)
+
 
 @click.command('list-apps')
 @pass_context
@@ -422,15 +437,16 @@ def remove_from_installed_apps(context, app):
 @click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False, multiple=True)
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
 @click.option('--no-backup', help='Do not backup the site', is_flag=True, default=False)
+@click.option('--force', help='Force remove app from site', is_flag=True, default=False)
 @pass_context
-def uninstall(context, app, dry_run=False, yes=False, no_backup=False):
+def uninstall(context, app, dry_run, yes, no_backup, force):
 	"Remove app and linked modules from site"
 	from frappe.installer import remove_app
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			remove_app(app, dry_run, yes, no_backup)
+			remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
 		finally:
 			frappe.destroy()
 	if not context.sites:
