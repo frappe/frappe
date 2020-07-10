@@ -76,6 +76,26 @@ def get_from_date_from_timespan(to_date, timespan):
 	return add_to_date(to_date, years=years, months=months, days=days,
 		as_datetime=True)
 
+def get_dashboards_with_link(docname, doctype):
+	dashboards = []
+	links = []
+
+	if doctype == 'Dashboard Chart':
+		links = frappe.get_all('Dashboard Chart Link',
+			fields = ['parent'],
+			filters = {
+				'chart': docname
+			})
+	elif doctype == 'Number Card':
+		links = frappe.get_all('Number Card Link',
+			fields = ['parent'],
+			filters = {
+				'card': docname
+			})
+
+	dashboards = [link.parent for link in links]
+	return dashboards
+
 def sync_dashboards(app=None):
 	"""Import, overwrite fixtures from `[app]/fixtures`"""
 	if not cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
