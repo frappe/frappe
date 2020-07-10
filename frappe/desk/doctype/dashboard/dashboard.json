@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "field:dashboard_name",
  "creation": "2019-01-10 12:54:40.938705",
  "doctype": "DocType",
