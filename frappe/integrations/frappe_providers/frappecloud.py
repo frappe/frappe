@@ -1,14 +1,14 @@
 import click
 import requests
-from six import PY3
 from html2text import html2text
+
 import frappe
 
 
 def frappecloud_migrator(local_site):
-	print("Retreiving Migrator...")
+	print("Retreiving Site Migrator...")
 	remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
-	request_url = "https://{}/api/method/press.api.script".format(remote_site)
+	request_url = "http://{}/api/method/press.api.script".format("gavin.frappe.cloud:8000")
 	request = requests.get(request_url)
 
 	if request.status_code / 100 != 2:
@@ -18,7 +18,12 @@ def frappecloud_migrator(local_site):
 
 	script_contents = request.json()["message"]
 
-	if PY3:
-		exec(script_contents)
-	else:
-		exec script_contents
+	import tempfile
+	import os
+	import sys
+
+	py = sys.executable
+	script = tempfile.NamedTemporaryFile(mode="w")
+	script.write(script_contents)
+	print("Site Migrator stored at {}".format(script.name))
+	os.execv(py, [py, script.name, local_site])
