@@ -17,6 +17,9 @@ frappe.ui.Notifications = class Notifications {
 		this.header_items = this.dropdown_list.find('.header-items');
 		this.header_actions = this.dropdown_list.find('.header-actions');
 		this.body = this.dropdown_list.find('.notification-list-body');
+		this.reel = this.dropdown_list.find('.notifcation-reel')
+		this.panel_events = this.dropdown_list.find('.panel-events');
+		this.panel_notifications = this.dropdown_list.find('.panel-notifications');
 
 		this.notification_indicator = this.dropdown.find(
 			'.notifications-indicator'
@@ -51,8 +54,20 @@ frappe.ui.Notifications = class Notifications {
 			.appendTo(this.header_actions);
 
 		this.categories = [
-			{ label: __("Notifications"), id: "notifications", view: NotificationsView },
-			{ label: __("Today's Events"), id: "todays_events", view: EventsView }
+			{
+				label: __("Notifications"),
+				id: "notifications",
+				view: NotificationsView,
+				el: this.panel_notifications,
+				transform: 'translateX(0%)'
+			},
+			{
+				label: __("Today's Events"),
+				id: "todays_events",
+				view: EventsView,
+				el: this.panel_events,
+				transform: 'translateX(-50%)'
+			}
 		];
 
 		let get_headers_html = (item) => {
@@ -78,28 +93,26 @@ frappe.ui.Notifications = class Notifications {
 			return item
 		})
 		navitem.appendTo(this.header_items);
-		this.switch_tab(this.categories[0]);
+		this.make_tab_view(this.categories[0]);
+		this.make_tab_view(this.categories[1]);
 	}
 
 	switch_tab(item) {
 		this.categories.forEach((item) => {
 			item.dom.removeClass("active");
 		});
+
+		this.reel[0].style.transform = item.transform;
+
 		item.dom.addClass("active");
-		this.current_tab && this.current_tab.hide();
-		if (this.tabs[item.id]) {
-			this.tabs[item.id].show()
-			this.current_tab = this.tabs[item.id]
-		} else {
-			this.make_tab_view(item);
-		}
+
+		this.tabs[item.id]
+		this.current_tab = this.tabs[item.id]
 	}
 
 	make_tab_view(item) {
-		let tabView = new item.view(this.body);
+		let tabView = new item.view(item.el);
 		this.tabs[item.id] = tabView;
-		this.current_tab = tabView;
-		tabView.show();
 	}
 
 	go_to_settings(e) {
@@ -173,12 +186,16 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_dropdown_events() {
 		this.dropdown.on('hide.bs.dropdown', e => {
+			this.dropdown_list.removeClass('animate-list');
 			let hide = $(e.currentTarget).data('closable');
 			$(e.currentTarget).data('closable', true);
 			return hide;
 		});
 
 		this.dropdown.on('show.bs.dropdown', () => {
+			setTimeout(() => {
+				this.dropdown_list.addClass('animate-list');
+			})
 			this.toggle_seen(true);
 			if (this.notification_indicator.is(':visible')) {
 				this.notification_indicator.hide();
