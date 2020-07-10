@@ -246,8 +246,10 @@
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M3.78 2.72a.75.75 0 0 0-1.06 1.06l4.22 4.221-4.22 4.221a.75.75 0 1 0 1.06 1.06l4.221-4.22 4.221 4.22a.75.75 0 1 0 1.06-1.06l-4.22-4.22 4.22-4.222a.75.75 0 0 0-1.06-1.06l-4.22 4.22L3.78 2.72z" fill="#70818F"></path>
 	</symbol>
 	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-assign">
-		<path fill-rule="evenodd" clip-rule="evenodd" d="M6.24 9.758l1.86-.474 5.612-5.612a.98.98 0 1 0-1.385-1.385L6.713 7.9 6.24 9.758zM3 4.608a1 1 0 0 1 1-1h4.318a.5.5 0 1 0 0-1H4a2 2 0 0 0-2 2v7.39a2 2 0 0 0 2 2h7.39a2 2 0 0 0 2-2V7.68a.5.5 0 0 0-1 0v4.318a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7.39z"
-		fill="#12283A"></path>
+		<path d="M8.80039 10H6.40039C5.33952 10 4.32211 10.4214 3.57196 11.1716C2.82182 11.9217 2.40039 12.9391 2.40039 14H9.60039" stroke="#4C5A67" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M7.60029 7.6C9.14669 7.6 10.4003 6.3464 10.4003 4.8C10.4003 3.2536 9.14669 2 7.60029 2C6.0539 2 4.80029 3.2536 4.80029 4.8C4.80029 6.3464 6.0539 7.6 7.60029 7.6Z" stroke="#4C5A67" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M12.0005 10V13.2" stroke="#4C5A67" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M10.4004 11.6H13.6004" stroke="#4C5A67" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-add">
 		<path d="M8 3v10M3 8h10" stroke="#12283A" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
