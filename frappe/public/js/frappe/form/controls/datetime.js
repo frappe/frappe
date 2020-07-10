@@ -20,8 +20,6 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 		if (!frappe.datetime.is_timezone_same()) {
 			if (!description) {
 				this.df.description = time_zone;
-			} else if (!description.includes(time_zone)) {
-				this.df.description += '<br>' + time_zone;
 			}
 		}
 		this._super();
