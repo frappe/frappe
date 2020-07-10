@@ -21,4 +21,4 @@ def frappecloud_migrator(local_site):
 	if PY3:
 		exec(script_contents)
 	else:
-		execfile(script_contents)
+		exec script_contents
