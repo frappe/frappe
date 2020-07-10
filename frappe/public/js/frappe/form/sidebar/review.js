@@ -23,7 +23,10 @@ frappe.ui.form.Review = class Review {
 	make_review_container() {
 		this.parent.append(`
 			<ul class="list-unstyled sidebar-menu">
-				<li class="h6 reviews-label">${__('Reviews')}</li>
+				<li class="sidebar-label reviews-label">
+					${frappe.ui.icon('review')}
+					${__('Reviews')}
+				</li>
 				<li class="review-list"></li>
 			</ul>
 		`);

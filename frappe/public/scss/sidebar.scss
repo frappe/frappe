@@ -57,6 +57,7 @@ body[data-route^="Module"] .main-menu {
 			padding-top: $padding-lg;
 		}
 		.sidebar-label {
+			margin-bottom: $margin-xs;
 			font-weight: 500;
 			color: var(--grey-900);
 		}
@@ -399,7 +400,24 @@ body[data-route^="Module"] .main-menu {
 }
 
 .assignment-row {
-	margin-bottom: 5px;
+	margin-bottom: $margin-xs;
+	margin-right: $margin-xs;
+	display: inline-block;
+	.assignment-pill {
+		.pill-label {
+			margin-right: $margin-xs;
+		}
+		background-color: var(--grey-2-50);
+		border-radius: var(--border-radius);
+		padding: $padding-xs $padding-sm;
+	}
+}
+
+.add-assignment-btn {
+	display: inline-block;
+	.btn {
+		padding: $padding-xs;
+	}
 }
 
 .review-list {
