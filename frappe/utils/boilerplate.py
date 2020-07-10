@@ -98,7 +98,13 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
 		f.write(frappe.as_unicode(docs_template.format(**hooks)))
 
-	print("'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name)))
+	# initialize git
+	app_directory = os.path.join(dest, hooks.app_name)
+	frappe.commands.popen('git init', cwd=app_directory)
+	frappe.commands.popen('git add .', cwd=app_directory)
+	frappe.commands.popen('git commit -m "Initialize app"', cwd=app_directory)
+
+	print("'{app}' created at {path}".format(app=app_name, path=app_directory))
 
 
 manifest_template = """include MANIFEST.in
