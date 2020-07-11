@@ -47,9 +47,9 @@ frappe.ready(function() {
 			method: "frappe.website.doctype.help_article.help_article.add_feedback",
 			args: args,
 			callback: function(r) {
-				$(".feedback")[0].classList.add("hide");
-				$(".feedback")[1].classList.add("hide");
-				$(".feedback-msg")[0].classList.remove("hide");
+				$(".feedback")[0].classList.add("hidden");
+				$(".feedback")[1].classList.add("hidden");
+				$(".feedback-msg")[0].classList.remove("hidden");
 			}
 		})
 	});
