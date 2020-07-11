@@ -288,8 +288,8 @@ frappe.ui.form.on('Dashboard Chart', {
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
 			<thead>
 				<tr>
-					<th style="width: 33%">${__('Filter')}</th>
-					<th style="width: 33%">${__('Condition')}</th>
+					<th style="width: 20%">${__('Filter')}</th>
+					<th style="width: 20%">${__('Condition')}</th>
 					<th>${__('Value')}</th>
 				</tr>
 			</thead>
