@@ -1,5 +1,4 @@
 import frappe
-import json
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils.dashboard import get_dashboards_with_link
 
@@ -41,6 +40,6 @@ def rename_modified_doc(docname, doctype):
 	new_name = docname + ' Custom'
 	try:
 		frappe.rename_doc(doctype, docname, new_name)
-	except:
+	except frappe.ValidationError:
 		new_name = append_number_if_name_exists(doctype, new_name)
 		frappe.rename_doc(doctype, docname, new_name)
