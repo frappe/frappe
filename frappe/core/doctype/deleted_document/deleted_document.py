@@ -9,9 +9,17 @@ from frappe import _
 from frappe.core.doctype.file.file import _get_trash_path
 from os.path import exists
 from shutil import move
+from os import remove
 
 class DeletedDocument(Document):
-	pass
+	
+	
+	def on_trash(self):
+		data = json.loads(self.data)
+		if data.get('doctype') == "File":
+			trash_path = _get_trash_path(data.get('file_name'), data.get('is_private'))
+			if exists(trash_path):
+				remove(trash_path)
 
 @frappe.whitelist()
 def restore(name):
