@@ -683,7 +683,7 @@ def delete_file(path, to_be_trashed=False):
 
 		path = encode(path)
 		if to_be_trashed:
-			trash_dir = frappe.get_site_path("private" if is_private else "public", ".trash")
+			trash_dir = frappe.get_site_path("private" if is_private else "public", "files", ".trash")
 
 			if not os.path.exists(trash_dir):
 				os.mkdir(trash_dir)
@@ -880,7 +880,7 @@ def get_random_filename(extn=None, content_type=None):
 
 
 def _get_trash_path(file_name, is_private=False):
-	return frappe.get_site_path("private" if is_private else "public", ".trash", file_name)
+	return frappe.get_site_path("private" if is_private else "public", "files", ".trash", file_name)
 
 
 @frappe.whitelist()
