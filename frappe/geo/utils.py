@@ -5,28 +5,36 @@
 from __future__ import unicode_literals
 
 import frappe
-import json
 
 from pymysql import InternalError
-from six import string_types
 
 
 @frappe.whitelist()
-def get_coords(doctype, names):
+def get_coords(doctype, filters):
     '''Get list of coordinates in form
     returns {names: ['latitude', 'longitude']}'''
-    if isinstance(names, string_types):
-        names = json.loads(names)
-    try:
-        coords = frappe.db.get_list(doctype, filters={
-            'name': ('in', names)
-        }, fields=['latitude', 'longitude', 'name as docname'])
-    except InternalError:
-        frappe.msgprint(frappe._('This Doctype did not contains latitude and longitude fields'))
-        return
+    filters_sql = get_coords_conditions(doctype, filters)[4:]
+    if filters_sql:
+        try:
+            coords = frappe.db.sql("""SELECT * FROM `tab{}`  WHERE {}""".format(doctype, filters_sql), as_dict=True)
+        except InternalError:
+            frappe.msgprint(frappe._('This Doctype did not contains latitude and longitude fields'))
+            return
+    else:
+        coords = frappe.get_all(doctype, fields=['name', 'latitude', 'longitude'])
+    print(coords)
     out = frappe._dict()
     for i in coords:
-        out[i.docname] = out.get(i.docname, [])
-        out[i.docname].append(i.latitude)
-        out[i.docname].append(i.longitude)
+        out[i.name] = out.get(i.docname, [])
+        out[i.name].append(i.latitude)
+        out[i.name].append(i.longitude)
     return out
+
+
+def get_coords_conditions(doctype, filters=None):
+    """Returns SQL conditions with user permissions and filters for event queries"""
+    from frappe.desk.reportview import get_filters_cond
+    if not frappe.has_permission(doctype):
+        frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
+    return get_filters_cond(doctype, filters, [], with_match_conditions=True)

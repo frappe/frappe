@@ -70,11 +70,12 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
         } else{
 	         get_coords_method = frappe.listview_settings[this.doctype].get_coords_method;
          }
+	     console.log(cur_list.filter_area);
 		var results = frappe.call({
 			method: get_coords_method,
 			args: {
 				doctype: this.doctype,
-				names: this.data.map(i => i.name)
+                filters: cur_list.filter_area.get()
 			}
 		}).then(r => {
 			this.coords_map = Object.assign(r.message);
