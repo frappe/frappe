@@ -5,6 +5,15 @@ html {
 body {
 	-webkit-font-smoothing: antialiased;
 	color: $body-color;
+
+	&.full-width {
+	@include media-breakpoint-up(md) {
+			.container {
+				width: 90%;
+				max-width: 100%;
+			}
+		}
+	}
 }
 
 a {
@@ -214,7 +223,7 @@ select.input-xs {
 
 .dropdown-menu {
 	min-width: 200px;
-	padding: 4px 0;
+	padding: 4px;
 	font-size: $font-size-md;
 	max-height: 500px;
 	overflow: auto;

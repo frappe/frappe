@@ -53,9 +53,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		// throttle refresh for 300ms
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
+
+		this.menu_items = [];
 	}
 
 	set_default_secondary_action() {
+		this.refresh_button = this.page.add_action_icon("refresh", () => {
+			this.setup_progress_bar();
+			this.refresh()
+		});
+	}
+
+	set_default_secondary_action() {
+		this.refresh_button && this.refresh_button.remove();
 		this.refresh_button = this.page.add_action_icon("refresh", () => {
 			this.setup_progress_bar();
 			this.refresh()
@@ -356,10 +366,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
 
+		let filter_area = $(`<div class="flex flex-wrap"></div>`);
+		this.page.page_form.append(filter_area);
+
 		this.filters = filters.map(df => {
 			if (df.fieldtype === 'Break') return;
 
-			let f = this.page.add_field(df);
+			let f = this.page.add_field(df, filter_area);
 
 			if (df.default) {
 				f.set_input(df.default);
@@ -690,6 +703,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		options.axisOptions = {
 			shortenYAxisNumbers: 1
 		};
+		options.height = 280;
 
 		return options;
 	}
