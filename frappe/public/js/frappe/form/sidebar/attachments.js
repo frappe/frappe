@@ -10,7 +10,7 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.parent.find(".add-attachment").click(function() {
+		this.parent.find(".add-attachment-btn").click(function() {
 			me.new_attachment();
 		});
 		this.add_attachment_wrapper = this.parent.find(".add_attachment").parent();
@@ -63,29 +63,27 @@ frappe.ui.form.Attachments = Class.extend({
 
 		var me = this;
 
-		var $attach = $(frappe.render_template("attachment", {
-			"file_path": "/desk#Form/File/" + fileid,
-			"icon": attachment.is_private ? "fa fa-lock" : "fa fa-unlock-alt",
-			"file_name": file_name,
-			"file_url": frappe.urllib.get_full_url(file_url)
-		})).insertAfter(this.attachments_label.addClass("has-attachments"));
+		let file_label = `
+			<a href="${file_url}" target="_blank" title="${file_name}" class="ellipsis" style="max-width: calc(100% - 43px);">
+				<span>${file_name}</span>
+			</a>`;
 
-		var $close =
-			$attach.find(".close")
-			.data("fileid", fileid)
-			.click(function() {
-				var remove_btn = this;
+		let remove_action = null;
+		if (frappe.model.can_write(this.frm.doctype, this.frm.name)) {
+			remove_action = function(target_id, wrapper) {
 				frappe.confirm(__("Are you sure you want to delete the attachment?"),
 					function() {
-						me.remove_attachment($(remove_btn).data("fileid"))
+						me.remove_attachment(target_id);
 					}
 				);
-				return false
-			});
-
-		if(!frappe.model.can_write(this.frm.doctype, this.frm.name)) {
-			$close.remove();
+				return false;
+			};
 		}
+
+		$(`<li class="attachment-row">`)
+			.append(frappe.get_data_pill(file_label, fileid, remove_action))
+			.insertAfter(this.attachments_label.addClass("has-attachments"));
+
 	},
 	get_file_url: function(attachment) {
 		var file_url = attachment.file_url;

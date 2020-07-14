@@ -413,7 +413,8 @@ body[data-route^="Module"] .main-menu {
 	display: flex;
 	}
 
-.add-assignment-btn {
+.add-assignment-btn, .add-attachment-button {
+	margin-bottom: $margin-sm;
 	display: inline-block;
 	.btn {
 		padding: $padding-xs;
