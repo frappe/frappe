@@ -51,13 +51,9 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-menu {
-		padding: 15px 0px 5px 0px;
-		margin: 0px;
-		&.sidebar-image-section {
-			padding-top: $padding-lg;
-		}
+		margin-top: $margin-lg;
 		.sidebar-label {
-			margin-bottom: $margin-xs;
+			margin-bottom: $margin-sm;
 			font-weight: 500;
 			color: var(--grey-900);
 		}
@@ -399,19 +395,23 @@ body[data-route^="Module"] .main-menu {
 	margin-top: 15px;
 }
 
-.assignment-row {
-	margin-bottom: $margin-xs;
+.assignment-row, .attachment-row, .form-tag-row {
+	margin-bottom: $margin-sm;
 	margin-right: $margin-xs;
 	display: inline-block;
-	.assignment-pill {
+	max-width: 100%;
+}
+
+.data-pill {
 		.remove-btn {
 			margin-left: $margin-xs;
 		}
 		background-color: var(--grey-2-50);
 		border-radius: var(--border-radius);
 		padding: $padding-xs $padding-sm;
+	color: $gray-800;
+	display: flex;
 	}
-}
 
 .add-assignment-btn {
 	display: inline-block;
