@@ -522,7 +522,7 @@ class File(Document):
 		if only_thumbnail:
 			delete_file(self.thumbnail_url)
 		else:
-			delete_file(self.file_url, to_be_trashed=True)
+			delete_file(self.file_url, trash=True)
 			delete_file(self.thumbnail_url)
 
 	def get_trash_path(self):
@@ -667,7 +667,7 @@ def get_web_image(file_url):
 	return image, filename, extn
 
 
-def delete_file(path, to_be_trashed=False):
+def delete_file(path, trash=False):
 	"""Delete file from `public folder`"""
 	if path:
 		if ".." in path.split("/"):
@@ -682,7 +682,7 @@ def delete_file(path, to_be_trashed=False):
 			path = frappe.utils.get_site_path("private", "files", parts[-1])
 
 		path = encode(path)
-		if to_be_trashed:
+		if trash:
 			trash_dir = frappe.get_site_path("private" if is_private else "public", "files", ".trash")
 
 			if not os.path.exists(trash_dir):
