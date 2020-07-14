@@ -80,6 +80,7 @@ export default class WidgetGroup {
 			...widget,
 			widget_type: this.type,
 			container: this.body,
+			height: this.height || null,
 			options: {
 				...this.options,
 				on_delete: (name) => this.on_delete(name),

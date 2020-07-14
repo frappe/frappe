@@ -148,6 +148,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 			container: this.$dashboard_wrapper,
 			type: "chart",
 			columns: 2,
+			height: 240,
 			options: {
 				allow_sorting: true,
 				allow_create: true,

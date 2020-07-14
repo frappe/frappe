@@ -91,6 +91,12 @@
 	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-right-arrow">
 		<path d="M10 6.002L1 6m6.7-2.998l3 3-3 3" stroke="#12283A" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
+	<symbol viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-up-right">
+		<path d="M.85 7.15l6.3-6.3m-5.472 0H7.15v5.472" stroke="#2F9D58" stroke-linecap="round" stroke-linejoin="round"></path>
+	</symbol>
+	<symbol viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-down-left">
+		<path d="M7.15.85l-6.3 6.3m5.472 0H.85V1.678" stroke="#F56B6B" stroke-linecap="round" stroke-linejoin="round"></path>
+	</symbol>
 	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-review">
 		<path d="M7.33 3.71c.2-.662 1.14-.662 1.34 0l.68 2.243a.7.7 0 0 0 .67.497h2.437c.667 0 .956.844.43 1.253l-1.975 1.533a.7.7 0 0 0-.239.763l.763 2.424c.204.65-.544 1.178-1.088.77L8.42 11.746a.7.7 0 0 0-.84 0l-1.928 1.447c-.544.409-1.292-.12-1.088-.77L5.327 10a.7.7 0 0 0-.239-.763L3.114 7.703c-.527-.409-.238-1.253.43-1.253H5.98a.7.7 0 0 0 .67-.497l.68-2.242z"
 		stroke="#70818F" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -220,7 +226,7 @@
 		<path d="M3 5.5l5 5 5-5" stroke="#12283A" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
 	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-dot-horizontal">
-		<path fill-rule="evenodd" clip-rule="evenodd" d="M5 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm4 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="#12283A"></path>
+		<path fill-rule="evenodd" clip-rule="evenodd" d="M5 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm4 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="#313b44" stroke="#313b44"></path>
 	</symbol>
 	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-dot-vertical">
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M8 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm1 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" fill="#12283A"></path>
@@ -513,14 +519,19 @@
 		<path d="M20 13.5V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V13.5" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M13.5 10.5H10.5C9.94772 10.5 9.5 10.9477 9.5 11.5C9.5 12.0523 9.94772 12.5 10.5 12.5H13.5C14.0523 12.5 14.5 12.0523 14.5 11.5C14.5 10.9477 14.0523 10.5 13.5 10.5Z" fill="white" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="square"/>
 	</symbol>
-	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-heart">
+	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-heart" fill="currentColor">
 		<path d="M7.606 3.799L8 4.302l.394-.503.106-.14c.048-.065.08-.108.129-.159a3.284 3.284 0 0 1 4.72 0c.424.434.655 1.245.65 2.278-.006 1.578-.685 2.931-1.728 4.159-1.05 1.234-2.439 2.308-3.814 3.328a.763.763 0 0 1-.914 0c-1.375-1.02-2.764-2.094-3.814-3.328C2.686 8.709 2.007 7.357 2 5.778c-.004-1.033.227-1.844.651-2.278a3.284 3.284 0 0 1 4.72 0c.05.05.081.094.129.158.028.038.061.083.106.14z">
 		</path>
 	</symbol>
-	<symbol viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-heart-active">
+	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-heart-active">
+		<path d="M7.606 3.799L8 4.302l.394-.503.106-.14c.048-.065.08-.108.129-.159a3.284 3.284 0 0 1 4.72 0c.424.434.655 1.245.65 2.278-.006 1.578-.685 2.931-1.728 4.159-1.05 1.234-2.439 2.308-3.814 3.328a.763.763 0 0 1-.914 0c-1.375-1.02-2.764-2.094-3.814-3.328C2.686 8.709 2.007 7.357 2 5.778c-.004-1.033.227-1.844.651-2.278a3.284 3.284 0 0 1 4.72 0c.05.05.081.094.129.158.028.038.061.083.106.14z"
+		stroke="none">
+		</path>
+	</symbol>
+	<!-- <symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-heart-active">
 	<path d="M12.706 1.15a3.784 3.784 0 0 0-5.434 0c-.104.106-.183.227-.272.34-.089-.113-.168-.234-.272-.34a3.784 3.784 0 0 0-5.434 0C.73 1.727.495 2.704.5 3.78c.015 3.468 3 5.85 5.745 7.886.45.334 1.06.334 1.51 0 2.746-2.035 5.73-4.418 5.745-7.886.005-1.077-.231-2.054-.794-2.63z"
 		stroke="none" fill="#E24C4C"></path>
-	</symbol>
+	</symbol> -->
 	<symbol viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-solid-error">
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22ZM8.0429 8.04289C8.43342 7.65237 9.06659 7.65237 9.45711 8.04289L12.0011 10.5869L14.5451 8.04294C14.9356 7.65242 15.5688 7.65242 15.9593 8.04294C16.3499 8.43347 16.3499 9.06663 15.9593 9.45716L13.4154 12.0011L15.9593 14.5451C16.3499 14.9356 16.3499 15.5688 15.9593 15.9593C15.5688 16.3499 14.9357 16.3499 14.5451 15.9593L12.0011 13.4154L9.45711 15.9594C9.06659 16.3499 8.43342 16.3499 8.0429 15.9594C7.65237 15.5689 7.65237 14.9357 8.0429 14.5452L10.5869 12.0011L8.0429 9.45711C7.65237 9.06658 7.65237 8.43342 8.0429 8.04289Z" fill="#F56B6B" stroke="none"/>
 	</symbol>
@@ -537,5 +548,12 @@
 		<path d="M1 8.5L3.5 11L10 3.5" stroke="#192734" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M9.5 8H14.5" stroke="#192734" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M7.5 11H14.5" stroke="#192734" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-	</svg>
+	</symbol>
+	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-expand">
+		<path d="M10 2L6.844 5.158M7.053 2h2.948v2.948M5.158 6.842L2 10m0-2.947V10h2.947" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+	</symbol>
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-today">
+		<path d="M8 2v.857m4.243.9l-.606.606M14 8h-.857m-.9 4.243l-.606-.606M8 14v-.857m-4.243-.9l.606-.606M2 8h.857m.9-4.243l.606.606M8 10.571A2.571 2.571 0 1 0 8 5.43a2.571 2.571 0 0 0 0 5.142z" stroke="#192734" stroke-miterlimit="10" stroke-linecap="round"
+		stroke-linejoin="round"></path>
+	</symbol>
 </svg>

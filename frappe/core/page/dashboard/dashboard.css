@@ -1,5 +1,16 @@
-.restricted-button {
+.dashboard {
+	margin-top: 25px;
+	padding: 3px;
+	overflow-x: hidden;
+}
+
+.dashboard .grid-col-2 {
+	column-gap: 20px;
+	row-gap: 20px;
+}
+
+/* .restricted-button {
 	cursor: default;
 	position: relative;
 	right: -5px;
-}
+} */
