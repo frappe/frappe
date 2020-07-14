@@ -271,8 +271,7 @@
 		"public/less/list.less",
 		"public/less/calendar.less",
 		"public/less/role_editor.less",
-		"public/less/gantt.less",
-		"public/less/tags.less"
+		"public/less/gantt.less"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",

@@ -189,7 +189,7 @@ body[data-route^="Module"] .main-menu {
 	}
 }
 
-.form-sidebar .form-shared .share-doc-btn, .btn-add-review {
+.form-sidebar .form-shared .share-doc-btn, .add-review-btn {
 	&:hover,
 	&:focus,
 	&:active {
@@ -403,15 +403,15 @@ body[data-route^="Module"] .main-menu {
 }
 
 .data-pill {
-		.remove-btn {
-			margin-left: $margin-xs;
-		}
-		background-color: var(--grey-2-50);
-		border-radius: var(--border-radius);
-		padding: $padding-xs $padding-sm;
+	.remove-btn {
+		margin-left: $margin-xs;
+	}
+	background-color: var(--grey-2-50);
+	border-radius: var(--border-radius);
+	padding: $padding-xs $padding-sm;
 	color: $gray-800;
 	display: flex;
-	}
+}
 
 .add-assignment-btn, .add-attachment-button {
 	margin-bottom: $margin-sm;
@@ -426,14 +426,14 @@ body[data-route^="Module"] .main-menu {
 		font-weight: 500;
 		margin-bottom: $margin-sm;
 		cursor: pointer;
-		}
+	}
 	.add-review-btn {
 		height: 28px;
 		width: 28px;
 		border-radius: var(--border-radius);
 		border: 1px dashed var(--grey-300);
 		background: var(--grey-50);
-			text-align: center;
+		text-align: center;
 		padding: 3px;
 	}
 }
@@ -504,4 +504,17 @@ body[data-route^="Module"] .main-menu {
 		padding-left: 0.5rem;
 		margin-bottom: 2rem;
 	}
+}
+
+.tags-input {
+	margin-bottom: $margin-sm;
+	font-size: var(--text-md);
+	border: none;
+	outline: none;
+}
+
+.tags-placeholder {
+	margin-bottom: $margin-sm;
+	display: inline-block;
+	font-size: var(--text-md);
 }
