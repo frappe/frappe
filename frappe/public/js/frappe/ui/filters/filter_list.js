@@ -40,7 +40,7 @@ frappe.ui.FilterGroup = class {
 				if (
 					$(e.target).parents('.filter-popover').length === 0
 					&& $(e.target).parents('.filter-box').length === 0
-					&& $(e.target).parents('.filter-button').length === 0
+					&& this.filter_button.find($(e.target)).length === 0
 					&& !$(e.target).is(this.filter_button)
 				) {
 					this.wrapper && this.filter_button.popover('hide');
