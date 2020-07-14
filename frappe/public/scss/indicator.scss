@@ -10,6 +10,19 @@
 	height: 24px;
 }
 
+.indicator-pill-round {
+	align-items: center;
+	display: inline-flex;
+	justify-content: center;
+	font-size: var(--text-sm);
+	border-radius: 50%;
+	vertical-align: middle;
+	font-weight: 500;
+	margin: auto;
+	width: 24px;
+	height: 24px;
+}
+
 .indicator-pill::before,
 .indicator-pill-right::after {
 	content:'';
@@ -27,11 +40,12 @@
 }
 
 .indicator-pill-right::after {
-	margin:0 0 0 4px;
+	margin: 0 0 0 4px;
 }
 
 .indicator-pill.green,
-.indicator-pill-right.green {
+.indicator-pill-right.green,
+.indicator-pill-round.green {
 	background: var(--dark-green-50);
 	color: var(--dark-green-500);
 	&::before, &::after {
@@ -67,7 +81,8 @@
 }
 
 .indicator-pill.grey,
-.indicator-pill-right.grey {
+.indicator-pill-right.grey,
+.indicator-pill-round.grey {
 	background: var(--grey-100);
 	color: var(--grey-600);
 	&::before, &::after {
@@ -85,7 +100,8 @@
 }
 
 .indicator-pill.red,
-.indicator-pill-right.red {
+.indicator-pill-right.red,
+.indicator-pill-round.red {
 	background: var(--red-50);
 	color: var(--red-500);
 	&::before, &::after {

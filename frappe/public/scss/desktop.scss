@@ -136,8 +136,7 @@ $panel-bg: $gray-50;
 	height: 100%;
 
 	&.widget-shadow {
-		box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
-
+		box-shadow: $card-box-shadow;
 		&:hover {
 			box-shadow: 0px 2px 8px rgba(17, 43, 66, 0.1), 0px 3px 12px rgba(17, 43, 66, 0.08);
 		}
@@ -182,16 +181,17 @@ $panel-bg: $gray-50;
 				cursor: -webkit-grabbing;
 
 				&:active {
-				    cursor: grabbing;
-				    cursor: -moz-grabbing;
-				    cursor: -webkit-grabbing;
+					cursor: grabbing;
+					cursor: -moz-grabbing;
+					cursor: -webkit-grabbing;
 				}
 			}
 
 			.dashboard-date-field {
-				.clearfix,
-				.help-box {
-					display: none;
+				height: 27px;
+
+				.clearfix, .help-box {
+					display: none !important;
 				}
 
 				.frappe-control,
@@ -220,17 +220,37 @@ $panel-bg: $gray-50;
 
 	// Overrides for each widgets
 	&.dashboard-widget-box {
-		min-height: 260px;
-		padding: 0px;
+		min-height: 240px;
+		padding: 10px 15px;
+		box-shadow: $card-box-shadow;
 
 		.chart-container {
 			margin-right: -10px;
 			margin-left: -10px;
+
+			.frappe-chart {
+				line.line-horizontal {
+					stroke: $border-color !important;
+				}
+			}
 		}
 
-		.widget-footer {
-			font-size: 85%;
+		.btn-xs {
+			padding: 4px 8px;
+		}
+
+		.widget-subtitle {
+			font-size: $font-size-sm;
 			color: $text-muted;
+			margin-top: 5px;
+		}
+
+		.widget-head {
+			padding: 10px;
+		}
+
+		.widget-control {
+			margin-top: -10px;
 		}
 
 		.chart-loading-state {
@@ -405,14 +425,14 @@ $panel-bg: $gray-50;
 
 	&.number-widget-box {
 		cursor: pointer;
-		height: 110px;
-		padding: 10px;
+		height: 115px;
+		padding: 20px;
 
 		.widget-head {
 
 			.widget-title {
-				font-weight: normal;
-				color: $text-muted;
+				font-weight: 500;
+				color: var(--grey-900);
 				font-size: var(--text-base);
 				margin-top: -5px;
 			}
@@ -420,6 +440,10 @@ $panel-bg: $gray-50;
 			.widget-control {
 				right: -10px;
 				top: -10px;
+			}
+
+			.card-actions {
+				margin-top: -25px;
 			}
 		}
 
@@ -434,14 +458,15 @@ $panel-bg: $gray-50;
 			}
 
 			.widget-content {
-				padding-top: 30px;
+				padding-top: 25px;
 				display: flex;
 				justify-content: space-between;
 
 				.number {
 					font-weight: 600;
-					font-size: 26px;
-					line-height: 1.8em;
+					font-size: 22px;
+					line-height: 2.4em;
+					color: var(--grey-800);
 				}
 
 				.number-text {
@@ -451,31 +476,46 @@ $panel-bg: $gray-50;
 				}
 
 				.card-stats {
-					padding-top: 5px;
+					display: flex;
+					flex-direction: column;
+					align-items: flex-end;
 				}
 
-				.percentage-stat {
-					float: right;
-					clear: right;
+				.percentage-stat-area {
 					font-size: 12px;
+
+					.indicator-pill-round {
+						height: 18px;
+						width: 18px;
+
+						.icon-xs {
+							width: 8px;
+							height: 7px;
+						}
+					}
+
+					.percentage-stat {
+						margin-left: 5px;
+						vertical-align: bottom;
+						font-weight: 500;
+					}
 				}
 
 				.stat-period {
-					float: right;
-					clear: right;
+					margin-top: 5px;
 					font-size: 11px;
 				}
 
 				.green-stat {
-					color: var(--green-600);
+					color: var(--dark-green-500);
 				}
 
 				.red-stat {
-					color: var(--red-600);
+					color: var(--red-500);
 				}
 
 				.grey-stat {
-					color: $text-muted;
+					color: var(--grey-600);
 				}
 			}
 		}
