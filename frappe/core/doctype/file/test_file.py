@@ -25,8 +25,6 @@ def make_test_doc():
 
 
 class TestTrashFunctionality(unittest.TestCase):
-
-
 	def test_delete_file_and_check_in_trash(self):
 		_file = frappe.get_doc({
 			"doctype": "File",
