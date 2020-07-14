@@ -221,7 +221,7 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 	:param print_html: Send given value as HTML attachment.
 	:param print_format: Attach print format of parent document."""
 
-	view_link = frappe.utils.cint(frappe.db.get_value("Print Settings", "Print Settings", "attach_view_link"))
+	view_link = frappe.utils.cint(frappe.db.get_value("System Settings", "System Settings", "attach_view_link"))
 
 	if print_format and view_link:
 		doc.content += get_attach_link(doc, print_format)
