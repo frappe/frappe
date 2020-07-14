@@ -12,6 +12,7 @@ from frappe.model.document import Document
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 from six.moves.urllib.parse import unquote
+from requests_oauthlib import OAuth2Session
 
 
 class ConnectedApp(Document):
@@ -22,6 +23,9 @@ class ConnectedApp(Document):
 	def validate(self):
 		callback_path = 'api/method/frappe.integrations.doctype.connected_app.connected_app.callback/'
 		self.redirect_uri = frappe.request.host_url + callback_path + self.callback
+
+	def get_oauth2_session(self):
+		return OAuth2Session(self.client_id, redirect_uri=self.redirect_uri, scope=self.scope)
 
 	def get_client_token(self):
 		try:
@@ -63,12 +67,8 @@ class ConnectedApp(Document):
 	def initiate_auth_code_flow(self, user=None, redirect_to=None):
 		redirect_to = redirect_to or '/desk'
 		user = user or frappe.session.user
-
-		uid = frappe.generate_hash()
-		state = str_to_b64(json.dumps({
-			'uid': uid,
-			'redirect_to': redirect_to,
-		}))
+		oauth = self.get_oauth2_session()
+		authorization_url, state = oauth.authorization_url(self.authorization_endpoint)
 
 		try:
 			token = self.get_stored_user_token(user)
@@ -81,8 +81,7 @@ class ConnectedApp(Document):
 		token.save()
 		frappe.db.commit()
 
-		params = self.get_params(response_type='code', state=state.decode('utf-8'))
-		return self.authorization_endpoint + urlencode(params)
+		return authorization_url
 
 	def get_user_token(self, user=None, redirect_to=None):
 		redirect_to = redirect_to or '/desk'
@@ -148,25 +147,12 @@ def callback(code=None, state=None):
 	path = frappe.request.path[1:].split("/")
 	if len(path) == 4 and path[3]:
 		connected_app = path[3]
-		stored_state = frappe.get_all(
-			'Token Cache',
-			filters={
-				'user': frappe.session.user,
-				'connected_app': connected_app,
-				'name': connected_app + '-' + frappe.session.user,
-			},
-			limit=1
-		)
-		if not stored_state:
+		token_cache = frappe.get_doc('Token Cache', connected_app + '-' + frappe.session.user)
+		if not token_cache:
 			throw_error(_('State Not Found'))
 			return
 
-		stored_state = frappe.get_doc('Token Cache', stored_state[0].name)
-
-		payload = json.loads(b64_to_str(state))
-		stored_payload = json.loads(b64_to_str(stored_state.state))
-
-		if payload.get('uid') != stored_payload.get('uid'):
+		if state != token_cache.state:
 			throw_error(_('Invalid State'))
 			return
 
@@ -176,23 +162,18 @@ def callback(code=None, state=None):
 			throw_error(_('Invalid App'))
 			return
 
-		data = app.get_params(code=code, grant_type='authorization_code')
-		response = requests.post(
-			app.token_endpoint,
-			data=urlencode(data),
-			headers={'Content-Type': 'application/x-www-form-urlencoded'}
-		)
+		oauth = app.get_oauth2_session()
+		token = oauth.fetch_token(app.token_endpoint, code=code)
 
-		token = response.json()
-		stored_state.access_token = token.get('access_token')
-		stored_state.refresh_token = token.get('refresh_token')
-		stored_state.expires_in = token.get('expires_in')
-		stored_state.state = None
-		stored_state.save()
+		token_cache.access_token = token.get('access_token')
+		token_cache.refresh_token = token.get('refresh_token')
+		token_cache.expires_in = token.get('expires_in')
+		token_cache.state = None
+		token_cache.save()
 		frappe.db.commit()
 
 		frappe.local.response["type"] = "redirect"
-		frappe.local.response["location"] = payload.get('redirect_to')
+		frappe.local.response["location"] = '/desk'
 	else:
 		throw_error(_('Invalid Parameter(s)'))
 		return
