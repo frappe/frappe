@@ -7,7 +7,6 @@
 from __future__ import unicode_literals
 
 import re
-import time
 import frappe
 import datetime
 import frappe.defaults
@@ -15,10 +14,9 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast_fieldtype, get_datetime
+from frappe.utils import now, getdate, cast_fieldtype, get_datetime, cint, cstr
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils import cint, cstr
 
 # imports - compatibility imports
 from six import (
