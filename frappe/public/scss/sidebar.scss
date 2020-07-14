@@ -421,42 +421,20 @@ body[data-route^="Module"] .main-menu {
 	}
 }
 
-.review-list {
-	display: flex;
-	flex-wrap: wrap;
-
-	.btn-add-review {
+.form-reviews {
+	.review-row {
+		font-weight: 500;
+		margin-bottom: $margin-sm;
 		cursor: pointer;
-
-		.octicon {
-			position: relative;
-			left: 4.5px;
 		}
-	}
-
-	.review-pill {
-		width: 50px;
-		border: 1px solid $border-color;
-		border-radius: 4px;
-		display: flex;
-		margin: 0 10px 10px 0;
-		.avatar {
-			padding: 0px;
-			margin: 0px;
-			.avatar-frame {
-				border-radius: 3px 0 0 3px;
-			}
-		}
-		.standard-image {
-			border-left: 0;
-		}
-		span:nth-child(2) {
-			flex-basis: 50%;
+	.add-review-btn {
+		height: 28px;
+		width: 28px;
+		border-radius: var(--border-radius);
+		border: 1px dashed var(--grey-300);
+		background: var(--grey-50);
 			text-align: center;
-			align-self: center;
-			font-size: 9px;
-		}
-		cursor: pointer;
+		padding: 3px;
 	}
 }
 

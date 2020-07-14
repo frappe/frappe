@@ -22,8 +22,8 @@
 }
 
 .avatar-small {
-	width: 24px;
-	height: 24px;
+	width: 28px;
+	height: 28px;
 	text-align: center;
 
 	.standard-image {
@@ -32,7 +32,7 @@
 
 	.avatar-empty::after {
 		content: '\002D';
-		line-height: 24px;
+		line-height: 28px;
 	}
 }
 

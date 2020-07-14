@@ -231,11 +231,14 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	make_review() {
+		const review_wrapper = this.sidebar.find(".form-reviews");
 		if (frappe.boot.energy_points_enabled && !this.frm.is_new()) {
 			this.frm.reviews = new frappe.ui.form.Review({
-				parent: this.sidebar.find(".form-reviews"),
+				parent: review_wrapper,
 				frm: this.frm
 			});
+		} else {
+			review_wrapper.remove();
 		}
 	}
 
