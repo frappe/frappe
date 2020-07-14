@@ -231,6 +231,15 @@ def migrate(context, rebuild_website=False):
 
 	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
+@click.command('migrate-to')
+@click.argument('frappe_provider')
+@pass_context
+def migrate_to(context, frappe_provider):
+	"Migrates site to the specified provider"
+	from frappe.integrations.frappe_providers import migrate_to
+	for site in context.sites:
+		migrate_to(site, frappe_provider)
+
 @click.command('run-patch')
 @click.argument('module')
 @pass_context
@@ -561,6 +570,7 @@ commands = [
 	install_app,
 	list_apps,
 	migrate,
+	migrate_to,
 	new_site,
 	reinstall,
 	reload_doc,
