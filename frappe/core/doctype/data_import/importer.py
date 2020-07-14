@@ -689,6 +689,9 @@ class Row:
 		return value
 
 	def get_date(self, value, column):
+		if isinstance(value, datetime):
+			return value
+
 		date_format = column.date_format
 		if date_format:
 			try:
