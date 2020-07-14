@@ -119,12 +119,14 @@ const build_summary_item = (summary) => {
 
 function go_to_list_with_filters(doctype, filters) {
 	const route = `List/${doctype}/List`;
-	frappe.set_route(route).then(()=> {
-		let list_view = frappe.views.list_view[route];
-		let filter_area = list_view.filter_area;
-		filter_area.clear();
-		filter_area.filter_list.add_filters_to_filter_group(filters);
-	});
+
+	frappe.route_options = filters.reduce((acc, filter) => {
+		return Object.assign(acc, {
+			[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]]
+		});
+	}, {});
+
+	frappe.set_route(route);
 }
 
 function shorten_number(number, country) {
