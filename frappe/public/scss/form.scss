@@ -1,3 +1,5 @@
+$form-left-padding: $padding-xl;
+
 .form-control {
 	border: none;
 	background-color: $control-bg;
@@ -9,10 +11,8 @@
 
 .form-section .section-body {
 	width: 100%;
-	padding: $padding-md;
-	padding-top: 0;
-	padding-left: 0;
 	@extend .row;
+	margin: 0;
 }
 
 .form-section {
@@ -30,7 +30,7 @@
 		background: $white;
 		z-index: 1;
 		width: 100%;
-		padding: $padding-lg;
+		padding: $padding-md;
 		padding-left: 0px;
 		margin: 0;
 		font-size: var(--text-lg);
@@ -67,7 +67,8 @@
 }
 
 .form-inner-toolbar {
-	padding: $padding-sm $padding-lg 0px;
+	padding-top: $padding-sm;
+	padding-left: $form-left-padding;
 	text-align: right;
 }
 
@@ -85,6 +86,11 @@
 	padding: $padding-xs $padding-sm;
 }
 
+.layout-main-section {
+	.form-page {
+		padding-left: $form-left-padding;
+	}
+}
 // .form-print-wrapper {
 // 	border: 1px solid $border-color;
 // 	border-top: none;
