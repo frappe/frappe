@@ -38,8 +38,12 @@ def get_controller(doctype):
 	global _classes
 
 	if not doctype in _classes:
-		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
-			or ["Core", False]
+		module_name, custom = ["Core", False]
+		module_query = frappe.db.sql("""SELECT module, custom from `tabDocType`
+WHERE `name`=%(doctype)s""", {"doctype": doctype})
+
+		if module_query:
+			module_name, custom = module_query[0]
 
 		if custom:
 			if frappe.db.field_exists("DocType", "is_tree"):

@@ -85,7 +85,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if not filters:
 		filters = None
 
-	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
+	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug, ignore_permissions=False)
 
 @frappe.whitelist()
 def get_single_value(doctype, field):

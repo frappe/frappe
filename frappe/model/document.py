@@ -144,11 +144,12 @@ class Document(BaseDocument):
 			self._fix_numeric_types()
 
 		else:
-			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
+			d = frappe.db.sql("""SELECT * FROM `tab{0}`
+WHERE name=%(name)s""".format(self.doctype), {"name": self.name}, as_dict=1)
 			if not d:
 				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
 
-			super(Document, self).__init__(d)
+			super(Document, self).__init__(d[0])
 
 		if self.name=="DocType" and self.doctype=="DocType":
 			from frappe.model.meta import DOCTYPE_TABLE_FIELDS
@@ -157,9 +158,11 @@ class Document(BaseDocument):
 			table_fields = self.meta.get_table_fields()
 
 		for df in table_fields:
-			children = frappe.db.get_values(df.options,
-				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
-				"*", as_dict=True, order_by="idx asc")
+			children = frappe.db.sql("""SELECT * from `tab{0}`
+WHERE parent=%(parent)s AND parenttype=%(parenttype)s AND parentfield=%(parentfield)s
+ORDER BY idx ASC""".format(df.options), {"parent": self.name,
+                                         "parenttype": self.doctype,
+                                         "parentfield": df.fieldname}, as_dict=True)
 			if children:
 				self.set(df.fieldname, children)
 			else:

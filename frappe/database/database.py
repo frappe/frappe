@@ -18,7 +18,7 @@ from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 
 # imports - compatibility imports
 from six import (
@@ -378,7 +378,7 @@ class Database(object):
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, cache=False):
+		debug=False, order_by=None, cache=False, ignore_permissions=True):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -405,12 +405,12 @@ class Database(object):
 		"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
-			order_by, cache=cache)
+			order_by, cache=cache, ignore_permissions=ignore_permissions)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, update=None, cache=False):
+		debug=False, order_by=None, update=None, cache=False, ignore_permissions=True):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -447,17 +447,18 @@ class Database(object):
 				else:
 					fields = fieldname
 
-			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
+			out = None
+			if filters and (filters!=doctype or doctype=="DocType"):
 				try:
-					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
+					if not isinstance(filters, dict):
+						_, filters = self.build_conditions(filters)
+					out = self.get_list(doctype, filters=filters, fields=fields, as_list=not as_dict, debug=debug,
+								order_by=order_by, update=update, ignore_permissions=ignore_permissions)
+				except frappe.db.SQLError:
+					# try to get from Singles table
+					out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 				except Exception as e:
-					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
-						# table or column not found, return None
-						out = None
-					elif (not ignore) and frappe.db.is_table_missing(e):
-						# table not found, look in singles
-						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
-					else:
+					if not ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
 						raise
 			else:
 				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
@@ -493,21 +494,16 @@ class Database(object):
 				return [map(values.get, fields)]
 
 		else:
-			r = self.sql("""select field, value
-				from `tabSingles` where field in (%s) and doctype=%s"""
-					% (', '.join(['%s'] * len(fields)), '%s'),
-					tuple(fields) + (doctype,), as_dict=False, debug=debug)
-
-			if as_dict:
-				if r:
-					r = frappe._dict(r)
+			single_doc = self.get_singles_dict(doctype, debug=debug)
+			single_data = []
+			if single_doc:
+				if as_dict:
+					single_data = [{cstr(field): single_doc.get(field) for field in fields}]
 					if update:
-						r.update(update)
-					return [r]
+						single_data[0].update(update)
 				else:
-					return []
-			else:
-				return r and [[i[1] for i in r]] or []
+					single_data = [[single_doc.get(field) for field in fields]]
+			return single_data
 
 	def get_singles_dict(self, doctype, debug = False):
 		"""Get Single DocType as dict.
@@ -575,30 +571,6 @@ class Database(object):
 	def get_singles_value(self, *args, **kwargs):
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
-
-	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None):
-		fl = []
-		if isinstance(fields, (list, tuple)):
-			for f in fields:
-				if "(" in f or " as " in f: # function
-					fl.append(f)
-				else:
-					fl.append("`" + f + "`")
-			fl = ", ".join(fl)
-		else:
-			fl = fields
-			if fields=="*":
-				as_dict = True
-
-		conditions, values = self.build_conditions(filters)
-
-		order_by = ("order by " + order_by) if order_by else ""
-
-		r = self.sql("select {0} from `tab{1}` {2} {3} {4}"
-			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values,
-			as_dict=as_dict, debug=debug, update=update)
-
-		return r
 
 	def _get_value_for_many_names(self, doctype, names, field, debug=False):
 		names = list(filter(None, names))
