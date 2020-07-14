@@ -15,13 +15,13 @@ from six.moves.urllib.parse import unquote
 
 
 class ConnectedApp(Document):
+
 	def autoname(self):
 		self.callback = frappe.scrub(self.provider_name)
 
 	def validate(self):
-		self.redirect_uri = frappe.request.host_url
-		self.redirect_uri += 'api/method/frappe.integrations.doctype.connected_app.connected_app.callback/'
-		self.redirect_uri += self.callback
+		callback_path = 'api/method/frappe.integrations.doctype.connected_app.connected_app.callback/'
+		self.redirect_uri = frappe.request.host_url + callback_path + self.callback
 
 	def get_client_token(self):
 		try:
@@ -61,21 +61,17 @@ class ConnectedApp(Document):
 		return self.refresh_token(token)
 
 	def initiate_auth_code_flow(self, user=None, redirect_to=None):
-		if not redirect_to:
-			redirect_to = '/desk'
-
-		if not user:
-			user = frappe.session.user
+		redirect_to = redirect_to or '/desk'
+		user = user or frappe.session.user
 
 		uid = frappe.generate_hash()
-		payload = {
+		state = str_to_b64(json.dumps({
 			'uid': uid,
 			'redirect_to': redirect_to,
-		}
-		state = str_to_b64(json.dumps(payload))
+		}))
 
 		try:
-			token = frappe.get_doc('Token Cache', self.name + '-' + user)
+			token = self.get_stored_user_token(user)
 		except frappe.exceptions.DoesNotExistError:
 			token = frappe.new_doc('Token Cache')
 			token.user = user
@@ -89,8 +85,8 @@ class ConnectedApp(Document):
 		return self.authorization_endpoint + urlencode(params)
 
 	def get_user_token(self, user=None, redirect_to=None):
-		if not user:
-			user = frappe.session.user
+		redirect_to = redirect_to or '/desk'
+		user = user or frappe.session.user
 
 		try:
 			token = self.get_stored_user_token(user)
@@ -124,7 +120,7 @@ class ConnectedApp(Document):
 
 	def update_stored_client_token(self, token_data):
 		try:
-			stored_token = frappe.get_doc('Token Cache', self.name + '-user')
+			stored_token = self.get_stored_client_token()
 		except frappe.exceptions.DoesNotExistError:
 			stored_token = frappe.new_doc('Token Cache')
 
