@@ -93,9 +93,6 @@ frappe.ui.Page = Class.extend({
 
 		this.$sub_title_area = this.wrapper.find("h6");
 
-		if(this.set_document_title!==undefined)
-			this.set_document_title = this.set_document_title;
-
 		if(this.title)
 			this.set_title(this.title);
 
@@ -424,15 +421,15 @@ frappe.ui.Page = Class.extend({
 	},
 
 	get_or_add_inner_group_button: function(label) {
-		var $group = this.inner_toolbar.find(`.btn-group[data-label="${encodeURIComponent(label)}"]`);
+		var $group = this.inner_toolbar.find(`.inner-group-button[data-label="${encodeURIComponent(label)}"]`);
 		if (!$group.length) {
 			$group = $(
-				`<div class="btn-group inner-group-button" data-label="${encodeURIComponent(label)}">
+				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
 					<button type="button" class="btn btn-default btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${label}
 						${frappe.utils.icon('select', 'sm')}
 					</button>
-					<ul role="menu" class="dropdown-menu"></ul>
+					<div role="menu" class="dropdown-menu"></div>
 				</div>`
 			).appendTo(this.inner_toolbar);
 		}
@@ -440,7 +437,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	get_inner_group_button: function(label) {
-		return this.inner_toolbar.find('.btn-group[data-label="'+encodeURIComponent(label)+'"]');
+		return this.inner_toolbar.find(`.inner-group-button[data-label="${encodeURIComponent(label)}"`);
 	},
 
 	set_inner_btn_group_as_primary: function(label) {
@@ -481,21 +478,22 @@ frappe.ui.Page = Class.extend({
 			var $group = this.get_or_add_inner_group_button(group);
 			$(this.inner_toolbar).removeClass("hide");
 
-			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), 'li', label)) {
-				return $('<li><a href="#" onclick="return false;" data-label="'+encodeURIComponent(label)+'">'+label+'</a></li>')
+			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), 'a', label)) {
+				return $(`<a class="dropdown-item" href="#" onclick="return false;" data-label="${encodeURIComponent(label)}">${label}</a>`)
 					.on('click', _action)
 					.appendTo($group.find(".dropdown-menu"));
 			}
 
 		} else {
-			var button = this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]');
-			if( button.length == 0 ) {
-				return $('<button data-label="'+encodeURIComponent(label)+`" class="btn btn-${type} btn-xs" style="margin-left: 10px;">`+__(label)+'</btn>')
-					.on("click", _action)
-					.appendTo(this.inner_toolbar.removeClass("hide"));
-			} else {
-				return button;
+			let button = this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`);
+			if (button.length == 0) {
+				button = $(`<button data-label="${encodeURIComponent(label)}" class="btn btn-${type} btn-xs">
+					${__(label)}
+				</button>`)
+				button.on("click", _action)
+				button.appendTo(this.inner_toolbar.removeClass("hide"));
 			}
+			return button;
 		}
 	},
 
@@ -508,13 +506,12 @@ frappe.ui.Page = Class.extend({
 
 		if (group) {
 			var $group = this.get_inner_group_button(__(group));
-			if($group.length) {
-				$group.find('.dropdown-menu li a[data-label="'+encodeURIComponent(label)+'"]').remove();
+			if ($group.length) {
+				$group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`).remove();
 			}
-			if ($group.find('.dropdown-menu li a').length === 0) $group.remove();
+			if ($group.find('.dropdown-item').length === 0) $group.remove();
 		} else {
-
-			this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]').remove();
+			this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`).remove();
 		}
 	},
 

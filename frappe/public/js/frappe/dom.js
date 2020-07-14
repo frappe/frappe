@@ -289,6 +289,27 @@ frappe.scrub = function(text, spacer='_') {
 	return text.replace(/ /g, spacer).toLowerCase();
 };
 
+frappe.get_data_pill = (label, target_id=null, remove_action=null) => {
+	let data_pill_wrapper = $(`
+		<div class="data-pill">
+			<span class="pill-label ellipsis">${label}</span>
+		</div>
+	`);
+
+	if (remove_action) {
+		let remove_btn = $(`
+			<span class="remove-btn cursor-pointer">
+				${frappe.utils.icon('close')}
+			</span>
+		`).click(() => {
+			remove_action(target_id || label, data_pill_wrapper);
+		});
+		data_pill_wrapper.append(remove_btn);
+	}
+
+	return data_pill_wrapper;
+};
+
 frappe.get_modal = function(title, content) {
 	return $(`<div class="modal fade" style="overflow: auto;" tabindex="-1">
 		<div class="modal-dialog">

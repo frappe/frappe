@@ -49,30 +49,14 @@ frappe.ui.form.AssignTo = Class.extend({
 			}
 		});
 
-		// set remove
-		this.parent.find('.remove-btn').click(el => {
-			this.remove($(el.currentTarget).attr('data-owner'));
-			return false;
-		});
-
 	},
 	get_assignment_block(assignee_info) {
-		let remove_assignment_btn = '';
+		let remove_action = false;
 		if (assignee_info.owner === frappe.session.user || this.frm.perm[0].write) {
-			remove_assignment_btn = `
-				<span class="remove-btn cursor-pointer" data-owner="${assignee_info.owner}">
-					${frappe.utils.icon('close')}
-				</span>
-			`;
+			remove_action = this.remove.bind(this);
 		}
-		return $(`
-			<li class="assignment-row">
-				<div class="assignment-pill">
-					<span class="pill-label">${assignee_info.fullname}</span>
-					${remove_assignment_btn}
-				</div>
-			</li>
-		`);
+		return $(`<li class="assignment-row">`)
+			.append(frappe.get_data_pill(assignee_info.owner, assignee_info.owner, remove_action));
 	},
 	add: function() {
 		var me = this;
