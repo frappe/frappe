@@ -1,0 +1,81 @@
+{
+ "actions": [],
+ "autoname": "format:{connected_app}-{user}",
+ "beta": 1,
+ "creation": "2019-01-24 16:56:55.631096",
+ "doctype": "DocType",
+ "document_type": "System",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "connected_app",
+  "access_token",
+  "refresh_token",
+  "expires_in",
+  "state"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "connected_app",
+   "fieldtype": "Link",
+   "label": "Connected App",
+   "options": "Connected App",
+   "read_only": 1
+  },
+  {
+   "fieldname": "access_token",
+   "fieldtype": "Data",
+   "label": "Access Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Data",
+   "label": "Refresh Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "expires_in",
+   "fieldtype": "Int",
+   "label": "Expires In",
+   "read_only": 1
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2020-07-14 18:52:25.452744",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Token Cache",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

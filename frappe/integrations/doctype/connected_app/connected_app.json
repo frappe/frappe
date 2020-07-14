@@ -1,0 +1,151 @@
+{
+ "actions": [],
+ "autoname": "field:callback",
+ "beta": 1,
+ "creation": "2019-01-24 15:51:06.362222",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "provider_name",
+  "cb_00",
+  "openid_configuration",
+  "callback",
+  "sb_client_credentials_section",
+  "client_id",
+  "redirect_uri",
+  "cb_01",
+  "client_secret",
+  "sb_scope_section",
+  "scope",
+  "sb_endpoints_section",
+  "authorization_endpoint",
+  "token_endpoint",
+  "revocation_endpoint",
+  "cb_02",
+  "userinfo_endpoint",
+  "introspection_endpoint"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "openid_configuration",
+   "fieldtype": "Data",
+   "label": "OpenID Configuration"
+  },
+  {
+   "fieldname": "callback",
+   "fieldtype": "Data",
+   "label": "Callback",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb_client_credentials_section",
+   "fieldtype": "Section Break",
+   "label": "Client Credentials"
+  },
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "label": "Client Id"
+  },
+  {
+   "fieldname": "redirect_uri",
+   "fieldtype": "Data",
+   "label": "Redirect URI",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_01",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Password",
+   "label": "Client Secret"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb_scope_section",
+   "fieldtype": "Section Break",
+   "label": "Scope"
+  },
+  {
+   "fieldname": "scope",
+   "fieldtype": "Text",
+   "label": "Scope"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb_endpoints_section",
+   "fieldtype": "Section Break",
+   "label": "Endpoints"
+  },
+  {
+   "fieldname": "authorization_endpoint",
+   "fieldtype": "Data",
+   "label": "Authorization Endpoint"
+  },
+  {
+   "fieldname": "token_endpoint",
+   "fieldtype": "Data",
+   "label": "Token Endpoint"
+  },
+  {
+   "fieldname": "revocation_endpoint",
+   "fieldtype": "Data",
+   "label": "Revocation Endpoint"
+  },
+  {
+   "fieldname": "cb_02",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "userinfo_endpoint",
+   "fieldtype": "Data",
+   "label": "Userinfo Endpoint"
+  },
+  {
+   "fieldname": "introspection_endpoint",
+   "fieldtype": "Data",
+   "label": "Introspection Endpoint"
+  }
+ ],
+ "links": [],
+ "modified": "2020-07-14 18:52:06.041273",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Connected App",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "provider_name",
+ "track_changes": 1
+}
