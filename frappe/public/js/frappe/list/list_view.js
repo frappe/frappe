@@ -608,7 +608,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				"Select All"
 			)}">
 			<span class="level-item list-liked-by-me">
-				<i class="octicon octicon-heart text-extra-muted" title="${__("Likes")}"></i>
+				<span title="${__("Likes")}">${frappe.utils.icon('heart')}</span>
 			</span>
 			<span class="level-item">${__(subject_field.label)}</span>
 		`;
@@ -899,7 +899,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const liked_by = JSON.parse(doc._liked_by || "[]");
 		let heart_class = liked_by.includes(user)
 			? "liked-by"
-			: "text-extra-muted not-liked";
+			: "not-liked";
 
 		const seen = JSON.parse(doc._seen || "[]").includes(user) ? "" : "bold";
 
@@ -908,11 +908,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				doc.name
 			)}">
 			<span class="level-item" style="margin-bottom: 1px;">
-				<i class="octicon octicon-heart like-action ${heart_class}"
+				<span
+					class="like-action ${heart_class}"
 					data-name="${doc.name}" data-doctype="${this.doctype}"
-					data-liked-by="${encodeURI(doc._liked_by) || "[]"}"
-				>
-				</i>
+					data-liked-by="${encodeURI(doc._liked_by) || "[]"}">
+					${frappe.utils.icon('heart')}
+				</span>
 				<span class="likes-count">
 					${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
 				</span>
@@ -1103,7 +1104,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			// don't open form when checkbox, like, filterable are clicked
 			if (
 				$target.hasClass("filterable") ||
-				$target.hasClass("octicon-heart") ||
+				$target.hasClass("icon-heart") ||
 				$target.is(":checkbox") ||
 				$target.is("a")
 			) {
