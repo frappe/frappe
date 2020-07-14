@@ -12,8 +12,6 @@ from shutil import move
 from os import remove
 
 class DeletedDocument(Document):
-	
-	
 	def on_trash(self):
 		data = json.loads(self.data)
 		if data.get('doctype') == "File":
