@@ -87,6 +87,11 @@ export default class NumberCardWidget extends Widget {
 		this.prepare_actions();
 		this.set_title();
 		this.set_loading_state();
+
+		if (!this.card_doc.type) {
+			this.card_doc.type = 'Document Type';
+		}
+
 		this.settings = this.get_settings(this.card_doc.type);
 
 		frappe.run_serially([

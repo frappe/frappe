@@ -6,6 +6,10 @@ frappe.ui.form.on('Number Card', {
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.trigger('set_options');
 
+		if (!frm.doc.type) {
+			frm.set_value('type', 'Document Type');
+		}
+
 		if (frm.doc.type == 'Report') {
 			frm.trigger('set_report_filters');
 		}
