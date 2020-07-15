@@ -288,8 +288,8 @@ frappe.ui.form.on('Dashboard Chart', {
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
 			<thead>
 				<tr>
-					<th style="width: 33%">${__('Filter')}</th>
-					<th style="width: 33%">${__('Condition')}</th>
+					<th style="width: 20%">${__('Filter')}</th>
+					<th style="width: 20%">${__('Condition')}</th>
 					<th>${__('Value')}</th>
 				</tr>
 			</thead>
@@ -479,7 +479,6 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		}
 
-		let dialog_values;
 		frm.dynamic_filter_table.on('click', () => {
 			let dialog = new frappe.ui.Dialog({
 				title: __('Set Dynamic Filters'),
@@ -496,10 +495,8 @@ frappe.ui.form.on('Dashboard Chart', {
 					}
 
 					if (is_document_type) {
-						dialog_values = values;
 						frm.set_value('dynamic_filters_json', JSON.stringify(dynamic_filters));
 					} else {
-						dialog_values = frm.dynamic_filters;
 						frm.set_value('dynamic_filters_json', JSON.stringify(values));
 					}
 					frm.trigger('set_dynamic_filters_in_table');
@@ -508,7 +505,7 @@ frappe.ui.form.on('Dashboard Chart', {
 			});
 
 			dialog.show();
-			dialog.set_values(dialog_values);
+			dialog.set_values(frm.dynamic_filters);
 		});
 	},
 
