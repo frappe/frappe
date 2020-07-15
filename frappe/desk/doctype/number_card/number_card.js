@@ -18,6 +18,14 @@ frappe.ui.form.on('Number Card', {
 			frm.trigger('set_report_filters');
 		}
 
+		if (frm.doc.type == 'Custom') {
+			if (!frappe.boot.developer_mode) {
+				frm.disable_form();
+			}
+			frm.filters = eval(frm.doc.filters_config);
+			frm.trigger('set_filters_description');
+		}
+
 		frm.trigger('render_filters_table');
 		if (frappe.boot.developer_mode && frm.doc.is_standard) {
 			frm.trigger('render_dynamic_filters_table');
@@ -42,7 +50,33 @@ frappe.ui.form.on('Number Card', {
 		}
 	},
 
+	set_filters_description: function(frm) {
+		if (frm.doc.type == 'Custom') {
+			frm.fields_dict.filters_config.set_description(`
+		Set the filters here. For example:
+<pre class="small text-muted">
+<code>
+[{
+	fieldname: "company",
+	label: __("Company"),
+	fieldtype: "Link",
+	options: "Company",
+	default: frappe.defaults.get_user_default("Company"),
+	reqd: 1
+},
+{
+	fieldname: "account",
+	label: __("Account"),
+	fieldtype: "Link",
+	options: "Account",
+	reqd: 1
+}]
+</code></pre>`);
+		}
+	},
+
 	type: function(frm) {
+		frm.trigger('set_filters_description');
 		if (frm.doc.type == 'Report') {
 			frm.set_query('report_name', () => {
 				return {
@@ -63,6 +97,13 @@ frappe.ui.form.on('Number Card', {
 		frm.set_value('filters_json', '{}');
 		frm.set_value('dynamic_filters_json', '{}');
 		frm.filters = null;
+	},
+
+	filters_config: function(frm) {
+		frm.filters = eval(frm.doc.filters_config);
+		const filter_values = frappe.report_utils.get_filter_values(frm.filters);
+		frm.set_value('filters_json', JSON.stringify(filter_values));
+		frm.trigger('render_filters_table');
 	},
 
 	document_type: function(frm) {

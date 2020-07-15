@@ -12,12 +12,15 @@
   "label",
   "type",
   "report_name",
+  "method",
   "function",
   "aggregate_function_based_on",
   "column_break_2",
   "document_type",
   "report_field",
   "is_public",
+  "custom_configuration_section",
+  "filters_config",
   "stats_section",
   "show_percentage_stats",
   "stats_time_interval",
@@ -141,7 +144,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "Document Type\nReport"
+   "options": "Document Type\nReport\nCustom"
   },
   {
    "depends_on": "eval: doc.type == 'Report'",
@@ -157,10 +160,30 @@
    "fieldtype": "Select",
    "label": "Field",
    "mandatory_depends_on": "eval: doc.type == 'Report'"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Custom'",
+   "description": "This should contain the path to a whitelisted function that will return the number on the card",
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Method",
+   "mandatory_depends_on": "eval: doc.type == 'Custom'"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Custom'",
+   "fieldname": "custom_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Custom Configuration"
+  },
+  {
+   "fieldname": "filters_config",
+   "fieldtype": "Code",
+   "label": "Filters Configuration",
+   "options": "JSON"
   }
  ],
  "links": [],
- "modified": "2020-07-16 00:58:30.426929",
+ "modified": "2020-07-16 02:03:09.175701",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
