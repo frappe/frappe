@@ -33,13 +33,13 @@
   },
   {
    "fieldname": "access_token",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Access Token",
    "read_only": 1
   },
   {
    "fieldname": "refresh_token",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Refresh Token",
    "read_only": 1
   },
