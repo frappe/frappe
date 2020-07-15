@@ -1,5 +1,5 @@
 import Widget from "./base_widget.js";
-import { go_to_list_with_filters, shorten_number } from "./utils";
+import { generate_route, shorten_number } from "./utils";
 
 export default class NumberCardWidget extends Widget {
 	constructor(opts) {
@@ -66,10 +66,30 @@ export default class NumberCardWidget extends Widget {
 
 	set_events() {
 		$(this.body).click(() => {
-			if (this.in_customize_mode) return;
-			let filters = JSON.parse(this.card_doc.filters_json);
-			go_to_list_with_filters(this.card_doc.document_type, filters);
+			if (this.in_customize_mode || this.card_doc.type == 'Custom') return;
+			this.set_route();
 		});
+	}
+
+	set_route() {
+		const is_document_type = this.card_doc.type !== 'Report';
+		const name = is_document_type ? this.card_doc.document_type : this.card_doc.report_name;
+		const route = generate_route({
+			name: name,
+			type: is_document_type ? 'doctype' : 'report',
+			is_query_report: !is_document_type,
+		});
+
+		if (is_document_type) {
+			const filters = JSON.parse(this.card_doc.filters_json);
+			frappe.route_options = filters.reduce((acc, filter) => {
+					return Object.assign(acc, {
+						[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]]
+					});
+			}, {});
+		}
+
+		frappe.set_route(route);
 	}
 
 	set_doc_args() {
