@@ -4,7 +4,7 @@
 frappe.ui.form.on('Connected App', {
 	refresh: frm => {
 		frm.add_custom_button(__("Get OpenID Configuration"), async () => {
-			if(!frm.doc.openid_configuration) {
+			if (!frm.doc.openid_configuration) {
 				frappe.msgprint(__('Please enter OpenID Configuration URL'));
 			} else {
 				try {
@@ -15,7 +15,7 @@ frappe.ui.form.on('Connected App', {
 					frm.set_value('userinfo_endpoint', oidc.userinfo_endpoint);
 					frm.set_value('introspection_endpoint', oidc.introspection_endpoint);
 					frm.set_value('revocation_endpoint', oidc.revocation_endpoint);
-				} catch(error) {
+				} catch (error) {
 					frappe.msgprint(__('Please check OpenID Configuration URL'));
 				}
 			}
@@ -28,7 +28,7 @@ frappe.ui.form.on('Connected App', {
 				callback: function(r) {
 					window.open(r.message, '_blank');
 				}
-			})
+			});
 		});
 	}
 });

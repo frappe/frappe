@@ -3,15 +3,12 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import json
 import requests
 import frappe
-import base64
 from frappe import _
 from frappe.model.document import Document
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
-from six.moves.urllib.parse import unquote
 from requests_oauthlib import OAuth2Session
 
 if frappe.conf.developer_mode:
