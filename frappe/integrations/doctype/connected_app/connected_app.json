@@ -18,7 +18,7 @@
   "cb_01",
   "client_secret",
   "sb_scope_section",
-  "scope",
+  "scopes",
   "sb_endpoints_section",
   "authorization_endpoint",
   "token_endpoint",
@@ -81,12 +81,7 @@
    "collapsible": 1,
    "fieldname": "sb_scope_section",
    "fieldtype": "Section Break",
-   "label": "Scope"
-  },
-  {
-   "fieldname": "scope",
-   "fieldtype": "Text",
-   "label": "Scope"
+   "label": "Scopes"
   },
   {
    "collapsible": 1,
@@ -122,10 +117,21 @@
    "fieldname": "introspection_endpoint",
    "fieldtype": "Data",
    "label": "Introspection Endpoint"
+  },
+  {
+   "fieldname": "scopes",
+   "fieldtype": "Table",
+   "label": "Scopes",
+   "options": "OAuth Scope"
   }
  ],
- "links": [],
- "modified": "2020-07-14 18:52:06.041273",
+ "links": [
+  {
+   "link_doctype": "Token Cache",
+   "link_fieldname": "connected_app"
+  }
+ ],
+ "modified": "2020-07-15 22:10:07.122237",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",

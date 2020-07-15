@@ -13,7 +13,8 @@
   "access_token",
   "refresh_token",
   "expires_in",
-  "state"
+  "state",
+  "scopes"
  ],
  "fields": [
   {
@@ -53,10 +54,17 @@
    "fieldtype": "Data",
    "label": "State",
    "read_only": 1
+  },
+  {
+   "fieldname": "scopes",
+   "fieldtype": "Table",
+   "label": "Scopes",
+   "options": "OAuth Scope",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2020-07-14 18:52:25.452744",
+ "modified": "2020-07-15 22:32:14.268178",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Token Cache",
