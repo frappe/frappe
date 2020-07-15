@@ -209,13 +209,6 @@
    "set_only_once": 1
   },
   {
-   "default": "0",
-   "depends_on": "eval: doc.report_name",
-   "fieldname": "is_custom",
-   "fieldtype": "Check",
-   "label": "Is Custom"
-  },
-  {
    "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
    "fieldname": "y_axis",
    "fieldtype": "Table",
@@ -246,9 +239,7 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Is Standard"
   },
   {
    "depends_on": "eval: doc.is_standard",
@@ -256,28 +247,29 @@
    "fieldtype": "Link",
    "label": "Module",
    "mandatory_depends_on": "eval: doc.is_standard",
-   "options": "Module Def",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Module Def"
   },
   {
    "fieldname": "dynamic_filters_json",
    "fieldtype": "Code",
    "label": "Dynamic Filters JSON",
-   "options": "JSON",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "JSON"
   },
   {
    "fieldname": "dynamic_filters_section",
    "fieldtype": "Section Break",
-   "label": "Dynamic Filters",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Dynamic Filters"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.report_name",
+   "fieldname": "is_custom",
+   "fieldtype": "Check",
+   "label": "Is Custom Report Chart"
   }
  ],
  "links": [],
- "modified": "2020-07-10 16:09:47.102062",
+ "modified": "2020-07-15 17:25:03.432031",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
