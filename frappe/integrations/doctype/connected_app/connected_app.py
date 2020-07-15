@@ -14,6 +14,10 @@ from urllib.parse import urlencode
 from six.moves.urllib.parse import unquote
 from requests_oauthlib import OAuth2Session
 
+if frappe.conf.developer_mode:
+	# Disable mandatory TLS in developer mode
+	import os
+	os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 class ConnectedApp(Document):
 
@@ -25,7 +29,11 @@ class ConnectedApp(Document):
 		self.redirect_uri = frappe.request.host_url + callback_path + self.callback
 
 	def get_oauth2_session(self):
-		return OAuth2Session(self.client_id, redirect_uri=self.redirect_uri, scope=self.scope)
+		return OAuth2Session(
+			self.client_id,
+			redirect_uri=self.redirect_uri,
+			scope=[scope.scope for scope in self.scopes]
+		)
 
 	def get_client_token(self):
 		try:
@@ -137,37 +145,44 @@ class ConnectedApp(Document):
 def callback(code=None, state=None):
 	"""Handle client's code."""
 	if frappe.request.method != 'GET':
-		throw_error(_('Invalid Method'))
-		return
+		frappe.throw(_('Invalid Method'))
 
 	if frappe.session.user == 'Guest':
-		throw_error(_('Please Sign In'))
-		return
+		frappe.throw(_("Log in to access this page."), frappe.PermissionError)
 
 	path = frappe.request.path[1:].split("/")
 	if len(path) == 4 and path[3]:
 		connected_app = path[3]
 		token_cache = frappe.get_doc('Token Cache', connected_app + '-' + frappe.session.user)
 		if not token_cache:
-			throw_error(_('State Not Found'))
-			return
+			frappe.throw(_('State Not Found'))
 
 		if state != token_cache.state:
-			throw_error(_('Invalid State'))
-			return
+			frappe.throw(_('Invalid State'))
 
 		try:
 			app = frappe.get_doc('Connected App', connected_app)
 		except frappe.exceptions.DoesNotExistError:
-			throw_error(_('Invalid App'))
-			return
+			frappe.throw(_('Invalid App'))
 
+		client_secret = app.get_password('client_secret')
 		oauth = app.get_oauth2_session()
-		token = oauth.fetch_token(app.token_endpoint, code=code)
+		token = oauth.fetch_token(
+			app.token_endpoint,
+			code=code,
+			client_secret=client_secret
+		)
 
 		token_cache.access_token = token.get('access_token')
 		token_cache.refresh_token = token.get('refresh_token')
 		token_cache.expires_in = token.get('expires_in')
+
+		scopes = token.get('scope')
+		if isinstance(scopes, str):
+			scopes = [scopes]
+		for scope in scopes:
+			token_cache.append('scopes', {'scope': scope})
+
 		token_cache.state = None
 		token_cache.save()
 		frappe.db.commit()
@@ -175,21 +190,4 @@ def callback(code=None, state=None):
 		frappe.local.response["type"] = "redirect"
 		frappe.local.response["location"] = '/desk'
 	else:
-		throw_error(_('Invalid Parameter(s)'))
-		return
-
-
-def throw_error(error):
-	"""Set Response Status 400 and show error."""
-	frappe.local.response['http_status_code'] = 400
-	frappe.local.response['error'] = error
-
-
-def str_to_b64(string):
-	"""Return base64 encoded string."""
-	return base64.b64encode(string.encode('utf-8'))
-
-
-def b64_to_str(b64):
-	"""Return base64 decoded string."""
-	return base64.b64decode(b64).decode('utf-8')
+		frappe.throw(_('Invalid Parameter(s)'))
