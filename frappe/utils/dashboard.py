@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from functools import wraps
 from frappe.utils import add_to_date, cint, get_link_to_form
-from frappe.modules.import_file import import_doc
+from frappe.modules.import_file import import_file_by_path
 import os
 from os.path import join
 
@@ -107,9 +107,4 @@ def make_records(path, filters=None):
 			if os.path.isdir(join(path, fname)):
 				if fname == '__pycache__':
 					continue
-				try:
-					doc_dict = frappe.get_file_json("{path}/{fname}/{fname}.json".format(path=path, fname=fname))
-					import_doc(doc_dict)
-				except FileNotFoundError:
-					frappe.log_error(message=frappe.get_traceback(), title="Dashboard Import Error")
-					pass
+				import_file_by_path("{path}/{fname}/{fname}.json".format(path=path, fname=fname))
