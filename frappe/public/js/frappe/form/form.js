@@ -1604,6 +1604,7 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 
 		driver.defineSteps(steps);
+		frappe.route.on('change', () => driver.reset());
 		driver.start();
 	}
 };
