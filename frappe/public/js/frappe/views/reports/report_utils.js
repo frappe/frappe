@@ -41,7 +41,7 @@ frappe.report_utils = {
 		}
 	},
 
-	get_possible_chart_options: function(columns, data) {
+	get_field_options_from_report: function(columns, data) {
 		const rows =  data.result.filter(value => Object.keys(value).length);
 		const first_row = Array.isArray(rows[0]) ? rows[0] : columns.map(col => rows[0][col.fieldname]);
 

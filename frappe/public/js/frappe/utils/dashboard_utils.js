@@ -119,6 +119,54 @@ frappe.dashboard_utils = {
 		}
 
 		return static_filters;
+	},
+
+	get_fields_for_dynamic_filter_dialog(is_document_type, filters, dynamic_filters) {
+		let fields = [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'description',
+				options:
+					`<div>
+						<p>Set dynamic filter values in JavaScript for the required fields here.
+						</p>
+						<p>Ex:
+							<code>frappe.defaults.get_user_default("Company")</code>
+						</p>
+					</div>`
+			}
+		];
+
+		if (is_document_type) {
+			if (dynamic_filters) {
+				filters = [...filters, ...dynamic_filters];
+			}
+			filters.forEach(f => {
+				for (let field of fields) {
+					if (field.fieldname == f[0] + ':' + f[1]) {
+						return;
+					}
+				}
+				if (f[2] == '=') {
+					fields.push({
+						label: `${f[1]} (${f[0]})`,
+						fieldname: f[0] + ':' + f[1],
+						fieldtype: 'Data',
+					});
+				}
+			});
+		} else {
+			filters = {...dynamic_filters, ...filters};
+			for (let key of Object.keys(filters)) {
+				fields.push({
+					label: key,
+					fieldname: key,
+					fieldtype: 'Data',
+				});
+			}
+		}
+
+		return fields;
 	}
 
 };
