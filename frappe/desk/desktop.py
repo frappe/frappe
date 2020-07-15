@@ -164,9 +164,7 @@ class Workspace:
 			return (name in self.allowed_pages and name in self.restricted_pages)
 		if item_type == "report":
 			return name in self.allowed_reports
-		if item_type == "help":
-			return True
-		if item_type == "dashboard":
+		if item_type in ["help", "dashboard", "route"]:
 			return True
 
 		return False
@@ -305,6 +303,8 @@ class Workspace:
 						new_item['is_query_report'] = 1
 					else:
 						new_item['ref_doctype'] = report.get('ref_doctype')
+				elif item.type == "Route":
+					new_item['route'] = frappe.db.get_value('Route', item.link_to, 'route')
 
 				# Translate label
 				new_item["label"] = _(item.label) if item.label else _(item.link_to)

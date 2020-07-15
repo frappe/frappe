@@ -23,7 +23,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "DocType\nReport\nPage\nDashboard",
+   "options": "DocType\nReport\nPage\nDashboard\nRoute",
    "reqd": 1
   },
   {
