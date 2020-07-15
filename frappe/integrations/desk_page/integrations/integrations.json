@@ -18,7 +18,7 @@
   {
    "hidden": 0,
    "label": "Authentication",
-   "links": "[\n    {\n        \"description\": \"Enter keys to enable login via Facebook, Google, GitHub.\",\n        \"label\": \"Social Login Key\",\n        \"name\": \"Social Login Key\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Ldap settings\",\n        \"label\": \"LDAP Settings\",\n        \"name\": \"LDAP Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Register OAuth Client App\",\n        \"label\": \"OAuth Client\",\n        \"name\": \"OAuth Client\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Settings for OAuth Provider\",\n        \"label\": \"OAuth Provider Settings\",\n        \"name\": \"OAuth Provider Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+   "links": "[\n    {\n        \"description\": \"Enter keys to enable login via Facebook, Google, GitHub.\",\n        \"label\": \"Social Login Key\",\n        \"name\": \"Social Login Key\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Ldap settings\",\n        \"label\": \"LDAP Settings\",\n        \"name\": \"LDAP Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Register OAuth Client App\",\n        \"label\": \"OAuth Client\",\n        \"name\": \"OAuth Client\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Settings for OAuth Provider\",\n        \"label\": \"OAuth Provider Settings\",\n        \"name\": \"OAuth Provider Settings\",\n        \"type\": \"doctype\"\n    }\n    ,\n    {\n        \"description\": \"Connect to any OAuth Provider\",\n        \"label\": \"Connected App\",\n        \"name\": \"Connected App\",\n        \"type\": \"doctype\"\n    }\n]"
   },
   {
    "hidden": 0,
@@ -34,11 +34,11 @@
  "docstatus": 0,
  "doctype": "Desk Page",
  "extends_another_page": 0,
- "icon": "frapicon-dashboard",
+ "hide_custom": 0,
  "idx": 0,
  "is_standard": 1,
  "label": "Integrations",
- "modified": "2020-04-01 11:24:40.751651",
+ "modified": "2020-07-15 20:10:14.074203",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
