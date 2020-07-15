@@ -26,7 +26,7 @@ frappe.ui.form.on('Connected App', {
 				method: "initiate_auth_code_flow",
 				doc: frm.doc,
 				callback: function(r) {
-                    window.location.replace(r.message);
+					window.open(r.message, '_blank');
 				}
 			})
 		});
