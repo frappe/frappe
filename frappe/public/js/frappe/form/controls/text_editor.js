@@ -69,7 +69,6 @@ Quill.register(CustomColor, true);
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_wrapper() {
 		this._super();
-		this.$wrapper.find(".like-disabled-input").addClass('ql-editor');
 	},
 
 	make_input() {
