@@ -1,10 +1,13 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "creation": "2020-04-15 18:06:39.444683",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "is_standard",
+  "module",
   "label",
   "function",
   "aggregate_function_based_on",
@@ -16,6 +19,9 @@
   "stats_time_interval",
   "filters_section",
   "filters_json",
+  "dynamic_filters_section",
+  "dynamic_filters_json",
+  "section_break_16",
   "color"
  ],
  "fields": [
@@ -95,10 +101,47 @@
    "fieldname": "stats_section",
    "fieldtype": "Section Break",
    "label": "Stats"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard"
+  },
+  {
+   "depends_on": "eval: doc.is_standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "eval: doc.is_standard",
+   "options": "Module Def",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "dynamic_filters_json",
+   "fieldtype": "Code",
+   "label": "Dynamic Filters JSON",
+   "options": "JSON",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "dynamic_filters_section",
+   "fieldtype": "Section Break",
+   "label": "Dynamic Filters Section",
+   "show_days": 1,
+   "show_seconds": 1
   }
  ],
  "links": [],
- "modified": "2020-05-06 19:47:57.753574",
+ "modified": "2020-07-10 17:55:35.873222",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

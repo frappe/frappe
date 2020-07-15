@@ -842,6 +842,15 @@ frappe.ui.form.Form = class FrappeForm {
 		this.page.clear_primary_action();
 	}
 
+	disable_form() {
+		this.set_read_only();
+		this.fields
+			.forEach((field) => {
+				this.set_df_property(field.df.fieldname, "read_only", "1");
+			});
+		this.disable_save();
+	}
+
 	handle_save_fail(btn, on_error) {
 		$(btn).prop('disabled', false);
 		if (on_error) {

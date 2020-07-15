@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.model.naming import append_number_if_name_exists
+from frappe.modules.export_file import export_to_files
 
 class NumberCard(Document):
 	def autoname(self):
@@ -15,6 +16,10 @@ class NumberCard(Document):
 
 		if frappe.db.exists("Number Card", self.name):
 			self.name = append_number_if_name_exists('Number Card', self.name)
+
+	def on_update(self):
+		if frappe.conf.developer_mode and self.is_standard:
+			export_to_files(record_list=[['Number Card', self.name]], record_module=self.module)
 
 def get_permission_query_conditions(user=None):
 	if not user:
@@ -66,6 +71,9 @@ def get_result(doc, to_date=None):
 		fields = ['{function}({based_on}) as result'.format(function=function, based_on=doc.aggregate_function_based_on)]
 
 	filters = frappe.parse_json(doc.filters_json)
+
+	if not filters:
+			filters = []
 
 	if to_date:
 		filters.append([doc.document_type, 'creation', '<', to_date, False])
