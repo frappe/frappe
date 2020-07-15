@@ -1,3 +1,10 @@
+// REDESIGN-TODO: Verify this non sticky toolbar
+#page-query-report {
+	.page-head {
+		position: unset;
+	}
+}
+
 // grid report
 .grid-report .plot {
 	margin: 15px;
