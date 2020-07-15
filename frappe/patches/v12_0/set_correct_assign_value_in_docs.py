@@ -9,8 +9,9 @@ def execute():
 		FROM
 			`tabToDo`
 		WHERE
-			COALESCE(reference_type, '') != '' and
-			COALESCE(reference_name, '') != ''
+			COALESCE(reference_type, '') != '' AND
+			COALESCE(reference_name, '') != '' AND
+			status != 'Cancelled'
 		GROUP BY
 			reference_type, reference_name
 	'''
