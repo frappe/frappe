@@ -186,16 +186,12 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_dropdown_events() {
 		this.dropdown.on('hide.bs.dropdown', e => {
-			this.dropdown_list.removeClass('animate-list');
 			let hide = $(e.currentTarget).data('closable');
 			$(e.currentTarget).data('closable', true);
 			return hide;
 		});
 
 		this.dropdown.on('show.bs.dropdown', () => {
-			setTimeout(() => {
-				this.dropdown_list.addClass('animate-list');
-			})
 			this.toggle_seen(true);
 			if (this.notification_indicator.is(':visible')) {
 				this.notification_indicator.hide();
