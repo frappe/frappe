@@ -264,7 +264,7 @@ frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
 frappe.patches.v12_0.setup_email_linking
 frappe.patches.v12_0.fix_home_settings_for_all_users
 frappe.patches.v12_0.change_existing_dashboard_chart_filters
-frappe.patches.v12_0.set_correct_assign_value_in_docs
+frappe.patches.v12_0.set_correct_assign_value_in_docs #2020-07-13
 execute:frappe.delete_doc("Test Runner")
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
 execute:frappe.db.set_default('desktop:home_page', 'workspace')
@@ -293,3 +293,4 @@ execute:frappe.delete_doc("DocType", "Onboarding Slide Help Link")
 frappe.patches.v13_0.update_date_filters_in_user_settings
 frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
+frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
