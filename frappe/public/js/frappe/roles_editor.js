@@ -50,7 +50,7 @@ frappe.RoleEditor = Class.extend({
 		$.each(this.roles, function(i, role) {
 			$(me.wrapper).append(repl('<div class="user-role" \
 				data-user-role="%(role_value)s">\
-				<input type="checkbox" style="margin-top:0px;" class="box"> \
+				<input type="checkbox" style="margin-top:0px;" class="box checkbox"> \
 				<a href="#" class="grey role">%(role_display)s</a>\
 			</div>', {role_value: role,role_display:__(role)}));
 		});
