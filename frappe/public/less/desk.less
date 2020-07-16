@@ -790,10 +790,17 @@ li.user-progress {
 	height: 12px;
 }
 
+.frappe-control {
+	.checkbox input[type=checkbox]:before{
+		margin-top: -10px;
+	}
+}
+
+
 // custom font awesome checkbox
 input[type="checkbox"] {
 	position: relative;
-	visibility: hidden;
+	height: 0px !important;
 
 	&:before {
 		position: absolute;
