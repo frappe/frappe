@@ -277,7 +277,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 			field.doctype = me.doc.doctype;
 			field.docname = me.doc.name;
 
-			if(!is_null(me.doc[fieldname])) {
+			if (!is_null(me.doc[fieldname])) {
 				field.set_input(me.doc[fieldname]);
 			}
 		});
