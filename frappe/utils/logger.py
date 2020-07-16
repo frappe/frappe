@@ -17,7 +17,7 @@ default_log_level = logging.DEBUG
 site = getattr(frappe.local, 'site', None)
 
 
-def get_logger(module, with_more_info=False):
+def get_logger(module, with_more_info=False, _site=None):
 	global site
 	if module in frappe.loggers:
 		return frappe.loggers[module]
@@ -38,7 +38,7 @@ def get_logger(module, with_more_info=False):
 	handler = RotatingFileHandler(LOG_FILENAME, maxBytes=100_000, backupCount=20)
 	logger.addHandler(handler)
 #
-	if site:
+	if site == _site:
 		SITELOG_FILENAME = os.path.join(site, 'logs', logfile)
 		site_handler = RotatingFileHandler(SITELOG_FILENAME, maxBytes=100_000, backupCount=20)
 		site_handler.setFormatter(formatter)
