@@ -219,7 +219,8 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 
 	searchfields = meta.get_search_fields()
 
-	if searchfield:
+	if searchfield and (meta.get_field(searchfield)\
+				or searchfield in frappe.db.DEFAULT_COLUMNS):
 		searchfields.append(searchfield)
 
 	search_condition = ''
