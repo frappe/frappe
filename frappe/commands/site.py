@@ -644,7 +644,7 @@ def start_ngrok(context):
 		'host_header': site
 	})
 	print(f'Public URL: {public_url}')
-	print(f'Inspect logs at http://localhost:4040')
+	print('Inspect logs at http://localhost:4040')
 
 	ngrok_process = ngrok.get_ngrok_process()
 	try:
