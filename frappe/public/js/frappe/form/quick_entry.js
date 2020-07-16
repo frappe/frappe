@@ -240,7 +240,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		var me = this;
 		var data = this.dialog.get_values(true);
 		$.each(data, function(key, value) {
-			if(!is_null(value)) {
+			if (!is_null(value)) {
 				me.dialog.doc[key] = value;
 			}
 		});
