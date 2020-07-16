@@ -347,7 +347,7 @@ frappe.ui.form.on('Number Card', {
 
 	render_dynamic_filters_table(frm) {
 		if (!frappe.boot.developer_mode || !frm.doc.is_standard || frm.doc.type == 'Custom') {
-			return
+			return;
 		}
 
 		frm.set_df_property("dynamic_filters_section", "hidden", 0);

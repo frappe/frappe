@@ -83,9 +83,9 @@ export default class NumberCardWidget extends Widget {
 		if (is_document_type) {
 			const filters = JSON.parse(this.card_doc.filters_json);
 			frappe.route_options = filters.reduce((acc, filter) => {
-					return Object.assign(acc, {
-						[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]]
-					});
+				return Object.assign(acc, {
+					[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]]
+				});
 			}, {});
 		}
 
