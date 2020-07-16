@@ -24,6 +24,7 @@ frappe.ui.form.on('Number Card', {
 			}
 			frm.filters = eval(frm.doc.filters_config);
 			frm.trigger('set_filters_description');
+			frm.trigger('render_filters_table');
 		}
 		frm.trigger('create_add_to_dashboard_button');
 	},
@@ -278,7 +279,6 @@ frappe.ui.form.on('Number Card', {
 				filters_set = true;
 			}
 		} else if (frm.filters.length) {
-			filters_set = true;
 			fields = frm.filters.filter(f => f.fieldname);
 			fields.map(f => {
 				if (filters[f.fieldname]) {
@@ -289,8 +289,8 @@ frappe.ui.form.on('Number Card', {
 							<td>${condition}</td>
 							<td>${filters[f.fieldname] || ""}</td>
 						</tr>`);
-
 					table.find('tbody').append(filter_row);
+					if (!filters_set) filters_set = true;
 				}
 			});
 		}
@@ -346,7 +346,7 @@ frappe.ui.form.on('Number Card', {
 	},
 
 	render_dynamic_filters_table(frm) {
-		if (!frappe.boot.developer_mode || !frm.doc.is_standard) {
+		if (!frappe.boot.developer_mode || !frm.doc.is_standard || frm.doc.type == 'Custom') {
 			return
 		}
 
