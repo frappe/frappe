@@ -157,6 +157,14 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	), values)
 
 @frappe.whitelist()
+def create_report_number_card(args):
+	card = create_number_card(args)
+	args = frappe.parse_json(args)
+	args.name = card.name
+	if args.dashboard:
+		add_card_to_dashboard(frappe.as_json(args))
+
+@frappe.whitelist()
 def add_card_to_dashboard(args):
 	args = frappe.parse_json(args)
 
