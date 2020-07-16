@@ -18,7 +18,24 @@ site = getattr(frappe.local, 'site', None)
 
 
 def get_logger(module, with_more_info=False, _site=None):
+	"""Application Logger for your given module
+
+	Args:
+		module (str): Name of your logger and consequently your log file.
+		with_more_info (bool, optional): Will log the form dict using the SiteContextFilter. Defaults to False.
+		_site (str, optional): If set, validates the current site context with the passed value. The `frappe.web` logger uses this to determine that the application is logging information related to the logger called. Defaults to None.
+
+	Returns:
+		<class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
+	"""
 	global site
+
+	def allow_site():
+		allow = False
+		if site: allow = True
+		if _site: allow = site == _site
+		return allow
+
 	if module in frappe.loggers:
 		return frappe.loggers[module]
 
@@ -37,8 +54,8 @@ def get_logger(module, with_more_info=False, _site=None):
 	formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s')
 	handler = RotatingFileHandler(LOG_FILENAME, maxBytes=100_000, backupCount=20)
 	logger.addHandler(handler)
-#
-	if site == _site:
+
+	if allow_site():
 		SITELOG_FILENAME = os.path.join(site, 'logs', logfile)
 		site_handler = RotatingFileHandler(SITELOG_FILENAME, maxBytes=100_000, backupCount=20)
 		site_handler.setFormatter(formatter)
