@@ -84,29 +84,36 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	get_settings(type) {
+		this.filters = this.get_filters();
 		const settings_map = {
 			'Custom': {
 				method: this.card_doc.method,
 				args: {
-					filters: JSON.parse(this.card_doc.filters_json || '{}')
+					filters: this.filters
 				}
 			},
 			'Report': {
 				method: 'frappe.desk.query_report.run',
 				args: {
 					report_name: this.card_doc.report_name,
-					filters: JSON.parse(this.card_doc.filters_json || '{}'),
+					filters: this.filters,
 					ignore_prepared_report: 1
 				}
 			},
 			'Document Type': {
 				method: 'frappe.desk.doctype.number_card.number_card.get_result',
 				args: {
-					doc: this.card_doc
+					doc: this.card_doc,
+					filters: this.filters,
 				}
 			}
 		};
 		return settings_map[type];
+	}
+
+	get_filters() {
+		const filters = frappe.dashboard_utils.get_all_filters(this.card_doc);
+		return filters;
 	}
 
 	render_card() {
@@ -225,6 +232,7 @@ export default class NumberCardWidget extends Widget {
 	get_percentage_stats() {
 		return frappe.xcall('frappe.desk.doctype.number_card.number_card.get_percentage_difference', {
 			doc: this.card_doc,
+			filters: this.filters,
 			result: this.number
 		}).then(res => {
 			if (res !== undefined) {

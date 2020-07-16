@@ -18,6 +18,7 @@
   "column_break_2",
   "document_type",
   "report_field",
+  "report_function",
   "is_public",
   "custom_configuration_section",
   "filters_config",
@@ -180,10 +181,18 @@
    "fieldtype": "Code",
    "label": "Filters Configuration",
    "options": "JSON"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Report'",
+   "fieldname": "report_function",
+   "fieldtype": "Select",
+   "label": "Function",
+   "mandatory_depends_on": "eval: doc.type == 'Report'",
+   "options": "Sum\nAverage\nMinimum\nMaximum"
   }
  ],
  "links": [],
- "modified": "2020-07-16 02:03:09.175701",
+ "modified": "2020-07-16 13:04:03.470001",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

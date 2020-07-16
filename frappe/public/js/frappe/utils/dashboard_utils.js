@@ -167,6 +167,38 @@ frappe.dashboard_utils = {
 		}
 
 		return fields;
+	},
+
+	get_all_filters(doc) {
+		let filters = JSON.parse(doc.filters_json || "null");
+		let dynamic_filters = JSON.parse(doc.dynamic_filters_json || "null");
+
+		if (!dynamic_filters) {
+			return filters;
+		}
+
+		if ($.isArray(dynamic_filters)) {
+			dynamic_filters.forEach(f => {
+				try {
+					f[3] = eval(f[3]);
+				} catch (e) {
+					frappe.throw(__(`Invalid expression set in filter ${f[1]} (${f[0]})`));
+				}
+			});
+			filters = [...filters, ...dynamic_filters];
+		} else {
+			for (let key of Object.keys(dynamic_filters)) {
+				try {
+					const val = eval(dynamic_filters[key]);
+					dynamic_filters[key] = val;
+				} catch (e) {
+					frappe.throw(__(`Invalid expression set in filter ${key}`));
+				}
+			}
+			Object.assign(filters, dynamic_filters);
+		}
+
+		return filters;
 	}
 
 };
