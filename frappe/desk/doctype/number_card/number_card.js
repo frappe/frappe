@@ -14,7 +14,7 @@ frappe.ui.form.on('Number Card', {
 			frm.set_value('type', 'Document Type');
 		}
 
-		if (frm.doc.type == 'Report') {
+		if (frm.doc.type == 'Report' && frm.doc.report_name) {
 			frm.trigger('set_report_filters');
 		}
 
@@ -24,11 +24,6 @@ frappe.ui.form.on('Number Card', {
 			}
 			frm.filters = eval(frm.doc.filters_config);
 			frm.trigger('set_filters_description');
-		}
-
-		frm.trigger('render_filters_table');
-		if (frappe.boot.developer_mode && frm.doc.is_standard) {
-			frm.trigger('render_dynamic_filters_table');
 		}
 	},
 
@@ -43,11 +38,8 @@ frappe.ui.form.on('Number Card', {
 	},
 
 	is_standard: function(frm) {
-		if (frappe.boot.developer_mode && frm.doc.is_standard) {
-			frm.trigger('render_dynamic_filters_table');
-		} else {
-			frm.set_df_property("dynamic_filters_section", "hidden", 1);
-		}
+		frm.trigger('render_dynamic_filters_table');
+		frm.set_df_property("dynamic_filters_section", "hidden", 1);
 	},
 
 	set_filters_description: function(frm) {
@@ -85,18 +77,15 @@ frappe.ui.form.on('Number Card', {
 					}
 				};
 			});
-			frm.trigger('set_report_filters');
 		}
-		frm.set_value('filters_json', 'null');
-		frm.filters = null;
-		frm.trigger('render_filters_table');
+
 	},
 
 	report_name: function(frm) {
-		frm.trigger('set_report_filters');
 		frm.set_value('filters_json', '{}');
 		frm.set_value('dynamic_filters_json', '{}');
-		frm.filters = null;
+		frm.set_df_property('report_field', 'options', []);
+		frm.trigger('set_report_filters');
 	},
 
 	filters_config: function(frm) {
@@ -121,7 +110,7 @@ frappe.ui.form.on('Number Card', {
 	},
 
 	set_options: function(frm) {
-		if (!frm.doc.type == 'Document Type') {
+		if (frm.doc.type !== 'Document Type') {
 			return;
 		}
 
@@ -154,18 +143,19 @@ frappe.ui.form.on('Number Card', {
 				if (filters) {
 					frm.filters = filters;
 					const filter_values = frappe.report_utils.get_filter_values(filters);
-					if (!JSON.parse(frm.doc.filters_json)) {
+					if (frm.doc.filters_json.length <= 2) {
 						frm.set_value('filters_json', JSON.stringify(filter_values));
 					}
 				}
 				frm.trigger('render_filters_table');
 				frm.trigger('set_report_field_options');
+				frm.trigger('render_dynamic_filters_table');
 			});
 		}
 	},
 
 	set_report_field_options: function(frm) {
-		let filters = JSON.parse(frm.doc.filters_json);
+		let filters = frm.doc.filters_json.length > 2 ? JSON.parse(frm.doc.filters_json) : null;
 		frappe.xcall(
 			'frappe.desk.query_report.run',
 			{
@@ -174,7 +164,6 @@ frappe.ui.form.on('Number Card', {
 				ignore_prepared_report: 1
 			}
 		).then(data => {
-			frm.report_data = data;
 			if (data.result.length) {
 				frm.field_options = frappe.report_utils.get_field_options_from_report(data.columns, data);
 				frm.set_df_property('report_field', 'options', frm.field_options.numeric_fields);
@@ -311,6 +300,10 @@ frappe.ui.form.on('Number Card', {
 	},
 
 	render_dynamic_filters_table(frm) {
+		if (!frappe.boot.developer_mode || !frm.doc.is_standard) {
+			return
+		}
+
 		frm.set_df_property("dynamic_filters_section", "hidden", 0);
 
 		let is_document_type = frm.doc.type == 'Document Type';
