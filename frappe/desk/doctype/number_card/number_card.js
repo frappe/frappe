@@ -25,6 +25,47 @@ frappe.ui.form.on('Number Card', {
 			frm.filters = eval(frm.doc.filters_config);
 			frm.trigger('set_filters_description');
 		}
+		frm.trigger('create_add_to_dashboard_button');
+	},
+
+	create_add_to_dashboard_button: function(frm) {
+		frm.add_custom_button('Add Card to Dashboard', () => {
+			const d = new frappe.ui.Dialog({
+				title: __('Add to Dashboard'),
+				fields: [
+					{
+						label: __('Select Dashboard'),
+						fieldtype: 'Link',
+						fieldname: 'dashboard',
+						options: 'Dashboard',
+					}
+				],
+				primary_action: (values) => {
+					values.name = frm.doc.name;
+					frappe.xcall(
+						'frappe.desk.doctype.number_card.number_card.add_card_to_dashboard',
+						{
+							args: values
+						}
+					).then(()=> {
+						let dashboard_route_html =
+							`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
+						let message =
+							__(`Number Card ${values.name} add to Dashboard ` + dashboard_route_html);
+
+						frappe.msgprint(message);
+					});
+
+					d.hide();
+				}
+			});
+
+			if (!frm.doc.name) {
+				frappe.msgprint(__('Please create Card first'));
+			} else {
+				d.show();
+			}
+		});
 	},
 
 	before_save: function(frm) {
@@ -35,6 +76,7 @@ frappe.ui.form.on('Number Card', {
 
 		frm.set_value('filters_json', JSON.stringify(static_filters));
 		frm.trigger('render_filters_table');
+		frm.trigger('render_dynamic_filters_table');
 	},
 
 	is_standard: function(frm) {
@@ -133,6 +175,7 @@ frappe.ui.form.on('Number Card', {
 				frm.set_df_property('aggregate_function_based_on', 'options', aggregate_based_on_fields);
 			});
 			frm.trigger('render_filters_table');
+			frm.trigger('render_dynamic_filters_table');
 		}
 	},
 
@@ -156,6 +199,9 @@ frappe.ui.form.on('Number Card', {
 
 	set_report_field_options: function(frm) {
 		let filters = frm.doc.filters_json.length > 2 ? JSON.parse(frm.doc.filters_json) : null;
+		if (frm.doc.dynamic_filters_json.length > 2) {
+			filters = {...filters, ...JSON.parse(frm.doc.dynamic_filters_json)};
+		}
 		frappe.xcall(
 			'frappe.desk.query_report.run',
 			{
