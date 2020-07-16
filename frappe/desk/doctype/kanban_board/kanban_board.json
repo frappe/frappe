@@ -11,7 +11,7 @@
   "reference_doctype",
   "field_name",
   "card_fields_section",
-  "show_label",
+  "hide_label",
   "card_fields",
   "section_break_3",
   "columns",
@@ -70,20 +70,20 @@
    "label": "Card Fields"
   },
   {
-   "default": "0",
-   "fieldname": "show_label",
-   "fieldtype": "Check",
-   "label": "Show Label"
-  },
-  {
    "fieldname": "card_fields",
    "fieldtype": "Table",
-   "options": "Kanban Board Card Field",
-   "reqd": 1
+   "options": "Kanban Board Card Field"
+  },
+  {
+   "default": "0",
+   "description": "This will hide the card label.",
+   "fieldname": "hide_label",
+   "fieldtype": "Check",
+   "label": "Hide Label"
   }
  ],
  "links": [],
- "modified": "2020-07-08 23:01:55.093508",
+ "modified": "2020-07-16 14:15:13.545062",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",

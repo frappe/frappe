@@ -17,8 +17,7 @@ frappe.ui.form.on('Kanban Board', {
 		if(!frm.doc.reference_doctype) return;
 
 		frappe.model.with_doctype(frm.doc.reference_doctype, function() {
-			var options = $.map(frappe.get_meta(frm.doc.reference_doctype).fields,
-				function(d) {
+			var options = frappe.get_meta(frm.doc.reference_doctype).fields.map(function(d) {
 					if(d.fieldname && d.fieldtype === 'Select' &&
 						frappe.model.no_value_type.indexOf(d.fieldtype)===-1) {
 						return d.fieldname;
@@ -44,7 +43,7 @@ frappe.ui.form.on('Kanban Board', {
 	},
 	get_doctype_fields: function(frm) {
 		frappe.model.with_doctype(frm.doc.reference_doctype, () => {
-			var fields = $.map(frappe.get_doc("DocType", frm.doc.reference_doctype).fields, function(d) {
+			var fields = frappe.get_meta(frm.doc.reference_doctype).fields.map(function(d) {
 				if (frappe.model.no_value_type.indexOf(d.fieldtype) === -1 ||
 					d.fieldtype === 'Table') {
 					return { label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname };
