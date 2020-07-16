@@ -175,6 +175,9 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	set_chart_field_options: function(frm) {
 		let filters = frm.doc.filters_json.length > 2 ? JSON.parse(frm.doc.filters_json) : null;
+		if (frm.doc.dynamic_filters_json.length > 2) {
+			filters = {...filters, ...JSON.parse(frm.doc.dynamic_filters_json)};
+		}
 		frappe.xcall(
 			'frappe.desk.query_report.run',
 			{
