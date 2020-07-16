@@ -48,6 +48,7 @@ PyQRCode==1.2.1
 python-dateutil==2.8.1
 pytz==2019.3
 PyYAML==5.3.1
+pyngrok==4.1.6
 rauth==0.7.3
 redis==3.5.1
 requests-oauthlib==1.3.0
