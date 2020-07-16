@@ -209,13 +209,14 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	link_name = filters.pop('link_name')
 
 	condition = ""
-	for fieldname, value in iteritems(filters):
-		condition += " and {field}={value}".format(
-			field=fieldname,
-			value=value
-		)
-
 	meta = frappe.get_meta("Address")
+	for fieldname, value in iteritems(filters):
+		if meta.get_field(fieldname) or fieldname in frappe.db.DEFAULT_COLUMNS:
+			condition += " and {field}={value}".format(
+				field=fieldname,
+				value=value
+			)
+
 	searchfields = meta.get_search_fields()
 
 	if searchfield:
