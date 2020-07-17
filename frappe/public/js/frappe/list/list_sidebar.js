@@ -47,10 +47,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
-	get_cat_tags() {
-		return this.cat_tags;
-	}
-
 	get_stats() {
 		var me = this;
 		frappe.call({
@@ -129,9 +125,5 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.sidebar.find(".stat-link").remove();
 		this.sidebar.find(".stat-no-records").remove();
 		this.get_stats();
-	}
-
-	get_divider() {
-		return $('<li role="separator" class="divider"></li>');
 	}
 };
