@@ -13,7 +13,6 @@ frappe.ui.form.on('Dashboard', {
 			return {
 				filters: {
 					is_public: 1,
-					is_standard: 1,
 				}
 			};
 		});
@@ -22,7 +21,6 @@ frappe.ui.form.on('Dashboard', {
 			return {
 				filters: {
 					is_public: 1,
-					is_standard: 1,
 				}
 			};
 		});
