@@ -110,7 +110,8 @@ export default class NumberCardWidget extends Widget {
 				method: this.card_doc.method,
 				args: {
 					filters: this.filters
-				}
+				},
+				get_number: res => this.get_number_for_custom_card(res),
 			},
 			'Report': {
 				method: 'frappe.desk.query_report.run',
@@ -118,14 +119,16 @@ export default class NumberCardWidget extends Widget {
 					report_name: this.card_doc.report_name,
 					filters: this.filters,
 					ignore_prepared_report: 1
-				}
+				},
+				get_number: res => this.get_number_for_report_card(res),
 			},
 			'Document Type': {
 				method: 'frappe.desk.doctype.number_card.number_card.get_result',
 				args: {
 					doc: this.card_doc,
 					filters: this.filters,
-				}
+				},
+				get_number: res => this.get_number_for_doctype_card(res),
 			}
 		};
 		return settings_map[type];
@@ -161,27 +164,33 @@ export default class NumberCardWidget extends Widget {
 
 	get_number() {
 		return frappe.xcall(this.settings.method, this.settings.args).then(res => {
-			if (this.card_doc.type == 'Report') {
-				this.get_number_for_report(res);
-			} else if (this.card_doc.type == 'Custom') {
-				this.number = res.value;
-				this.get_formatted_number(res);
-			} else {
-				this.number = res;
-				if (this.card_doc.function !== 'Count') {
-					return frappe.model.with_doctype(this.card_doc.document_type, () => {
-						const based_on_df =
-							frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
-						this.get_formatted_number(based_on_df);
-					});
-				} else {
-					this.formatted_number = res;
-				}
-			}
+			this.settings.get_number(res);
 		});
 	}
 
-	get_number_for_report(res) {
+	get_number_for_custom_card(res) {
+		if (typeof res === 'object') {
+			this.number = res.value;
+			this.get_formatted_number(res);
+		} else {
+			this.formatted_number = res;
+		}
+	}
+
+	get_number_for_doctype_card(res) {
+		this.number = res;
+		if (this.card_doc.function !== 'Count') {
+			return frappe.model.with_doctype(this.card_doc.document_type, () => {
+				const based_on_df =
+					frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
+				this.get_formatted_number(based_on_df);
+			});
+		} else {
+			this.formatted_number = res;
+		}
+	}
+
+	get_number_for_report_card(res) {
 		const field = this.card_doc.report_field;
 		const vals = res.result.reduce((acc, col) => {
 			col[field] && acc.push(col[field]);
