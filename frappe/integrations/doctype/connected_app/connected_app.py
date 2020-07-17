@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import BackendApplicationClient
 
 if frappe.conf.developer_mode:
 	# Disable mandatory TLS in developer mode
@@ -29,48 +30,21 @@ class ConnectedApp(Document):
 		return OAuth2Session(
 			self.client_id,
 			redirect_uri=self.redirect_uri,
-			scope=[scope.scope for scope in self.scopes]
+			scope=[row.scope for row in self.scopes]
 		)
-
-	def get_client_token(self):
-		try:
-			token = self.get_stored_client_token()
-		except frappe.exceptions.DoesNotExistError:
-			token = self.retrieve_client_token()
-
-		token = self.check_validity(token)
-		return token
-
-	def get_params(self, **kwargs):
-		return {
-			'client_id': self.client_id,
-			'redirect_uri': self.redirect_uri,
-			'scope': self.scope
-		}.update(kwargs)
-
-	def retrieve_client_token(self):
-		client_secret = self.get_password('client_secret')
-		data = self.get_params(grant_type='client_credentials', client_secret=client_secret)
-		response = requests.post(
-			self.token_endpoint,
-			data=urlencode(data),
-			headers={'Content-Type': 'application/x-www-form-urlencoded'}
-		)
-		token = response.json()
-		return self.update_stored_client_token(token)
 
 	def check_validity(self, token):
 		if(token.get('__islocal') or (not token.access_token)):
 			raise frappe.exceptions.DoesNotExistError
 
-		expiry = token.modified + timedelta(seconds=token.expires_in)
-		if expiry > datetime.now():
+		if not token.is_expired():
 			return token
 
 		return self.refresh_token(token)
 
-	def initiate_auth_code_flow(self, user=None, redirect_to=None):
-		redirect_to = redirect_to or '/desk'
+	def initiate_web_application_flow(self, user=None, success_uri=None):
+		"""Return an authorization URL for the user. Save state in Token Cache."""
+		success_uri = success_uri or '/desk'
 		user = user or frappe.session.user
 		oauth = self.get_oauth2_session()
 		authorization_url, state = oauth.authorization_url(self.authorization_endpoint)
@@ -82,13 +56,14 @@ class ConnectedApp(Document):
 			token.user = user
 			token.connected_app = self.name
 
+		token.success_uri = success_uri
 		token.state = state
 		token.save()
-		frappe.db.commit()
 
 		return authorization_url
 
 	def get_user_token(self, user=None, redirect_to=None):
+		"""Return an existing user token or initiate a Web Application Flow."""
 		redirect_to = redirect_to or '/desk'
 		user = user or frappe.session.user
 
@@ -96,7 +71,7 @@ class ConnectedApp(Document):
 			token = self.get_stored_user_token(user)
 			token = self.check_validity(token)
 		except frappe.exceptions.DoesNotExistError:
-			redirect = self.initiate_auth_code_flow(user, redirect_to)
+			redirect = self.initiate_web_application_flow(user, redirect_to)
 			frappe.local.response["type"] = "redirect"
 			frappe.local.response["location"] = redirect
 			return redirect
@@ -104,10 +79,12 @@ class ConnectedApp(Document):
 		return token
 
 	def refresh_token(self, token):
-		data = self.get_params(grant_type='refresh_token', refresh_token=token.refresh_token)
-		headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-		response = requests.post(self.token_endpoint, data=urlencode(data), headers=headers)
-		new_token = response.json()
+		oauth = self.get_oauth2_session()
+		new_token = oauth.refresh_token(
+			self.token_endpoint,
+			client_secret=self.get_password('client_secret'),
+			token=token.get_json()
+		)
 
 		# Revoke old token
 		data = urlencode({'token': token.get('access_token')})
@@ -115,6 +92,28 @@ class ConnectedApp(Document):
 		requests.post(self.revocation_endpoint, data=data, headers=headers)
 
 		return self.update_stored_client_token(new_token)
+
+	def get_client_token(self):
+		"""Return an existing client token or initiate a Backend Application Flow."""
+		try:
+			token = self.get_stored_client_token()
+		except frappe.exceptions.DoesNotExistError:
+			token = self.initiate_backend_application_flow()
+
+		token = self.check_validity(token)
+		return token
+
+	def initiate_backend_application_flow(self):
+		"""Retrieve token without user interaction. Token is not user specific."""
+		client = BackendApplicationClient(client_id=self.client_id)
+		oauth = OAuth2Session(client=client)
+		token = oauth.fetch_token(
+			token_url=self.token_endpoint,
+			client_id=self.client_id,
+			client_secret=self.get_password('client_secret')
+		)
+
+		return self.update_stored_client_token(token)
 
 	def get_stored_client_token(self):
 		return frappe.get_doc('Token Cache', self.name + '-user')
