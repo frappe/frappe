@@ -370,6 +370,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 			});
 		}
+
+		this.columns.push({
+			type: "Tag"
+		});
 	}
 
 	reorder_listview_fields() {
@@ -563,38 +567,42 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
+	// render_tags() {
+	// 	const $list_rows = this.$result.find(".list-row-container");
+
+	// 	this.data.forEach((d, i) => {
+	// 		let tag_html = $(`<div class='tag-row'>
+	// 			<div class='list-tag hidden-xs'></div>
+	// 		</div>`).appendTo($list_rows.get(i));
+
+	// 		// add tags
+	// 		let tag_editor = new frappe.ui.TagEditor({
+	// 			parent: tag_html.find(".list-tag"),
+	// 			frm: {
+	// 				doctype: this.doctype,
+	// 				docname: d.name,
+	// 			},
+	// 			list_sidebar: this.list_sidebar,
+	// 			user_tags: d._user_tags,
+	// 			on_change: (user_tags) => {
+	// 				d._user_tags = user_tags;
+	// 			},
+	// 		});
+
+	// 		tag_editor.wrapper.on("click", ".tagit-label", (e) => {
+	// 			const $this = $(e.currentTarget);
+	// 			this.filter_area.add(
+	// 				this.doctype,
+	// 				"_user_tags",
+	// 				"=",
+	// 				$this.text()
+	// 			);
+	// 		});
+	// 	});
+	// }
+
 	render_tags() {
-		const $list_rows = this.$result.find(".list-row-container");
 
-		this.data.forEach((d, i) => {
-			let tag_html = $(`<div class='tag-row'>
-				<div class='list-tag hidden-xs'></div>
-			</div>`).appendTo($list_rows.get(i));
-
-			// add tags
-			let tag_editor = new frappe.ui.TagEditor({
-				parent: tag_html.find(".list-tag"),
-				frm: {
-					doctype: this.doctype,
-					docname: d.name,
-				},
-				list_sidebar: this.list_sidebar,
-				user_tags: d._user_tags,
-				on_change: (user_tags) => {
-					d._user_tags = user_tags;
-				},
-			});
-
-			tag_editor.wrapper.on("click", ".tagit-label", (e) => {
-				const $this = $(e.currentTarget);
-				this.filter_area.add(
-					this.doctype,
-					"_user_tags",
-					"=",
-					$this.text()
-				);
-			});
-		});
 	}
 
 	get_header_html() {
@@ -613,10 +621,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="level-item">${__(subject_field.label)}</span>
 		`;
 		const $columns = this.columns
-			.map((col) => {
+			.map(col => {
 				let classes = [
 					"list-row-col ellipsis",
 					col.type == "Subject" ? "list-subject level" : "hidden-xs",
+					col.type == "Tag" ? "tag-col hide": "",
 					frappe.model.is_numeric_field(col.df) ? "text-right" : "",
 				].join(" ");
 
@@ -697,6 +706,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return `
 				<div class="list-row-col hidden-xs ellipsis">
 					${this.get_indicator_html(doc)}
+				</div>
+			`;
+		}
+
+		if (col.type === "Tag") {
+			const tags_display_class = !this.tags_shown ? 'hide' : '';
+			let tags_html = doc._user_tags ? this.get_tags_html(doc._user_tags) : ''
+			return `
+				<div class="list-row-col tag-col ${tags_display_class} hidden-xs ellipsis">
+					${tags_html}
 				</div>
 			`;
 		}
@@ -807,6 +826,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				${column_html}
 			</div>
 		`;
+	}
+
+	get_tags_html(user_tags) {
+		let get_tag_html = tag => {
+			if (tag) {
+				return `<div class="tag-pill">${tag}</div>`;
+			}
+		}
+		return user_tags.split(',').map(get_tag_html).join('');
 	}
 
 	get_meta_html(doc) {
@@ -1218,7 +1246,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_tag_event() {
+		this.tags_shown = false;
 		this.list_sidebar.parent.on("click", ".list-tag-preview", () => {
+			this.tags_shown = !this.tags_shown;
 			this.toggle_tags();
 		});
 	}
@@ -1331,7 +1361,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	toggle_tags() {
-		this.$result.toggleClass("tags-shown");
+		this.$result.find('.tag-col').toggleClass("hide");
+		const preview_label = this.tags_shown ? __("Hide Tags") : __("Show Tags");
+		this.list_sidebar.parent.find(".list-tag-preview").text(preview_label);
 	}
 
 	get_checked_items(only_docnames) {
