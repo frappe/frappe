@@ -14,7 +14,9 @@
   "refresh_token",
   "expires_in",
   "state",
-  "scopes"
+  "scopes",
+  "success_uri",
+  "token_type"
  ],
  "fields": [
   {
@@ -61,10 +63,20 @@
    "label": "Scopes",
    "options": "OAuth Scope",
    "read_only": 1
+  },
+  {
+   "fieldname": "success_uri",
+   "fieldtype": "Data",
+   "label": "Success URI"
+  },
+  {
+   "fieldname": "token_type",
+   "fieldtype": "Data",
+   "label": "Token Type"
   }
  ],
  "links": [],
- "modified": "2020-07-15 22:32:14.268178",
+ "modified": "2020-07-17 19:14:46.132134",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Token Cache",
