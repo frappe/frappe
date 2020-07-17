@@ -540,7 +540,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.render_list();
 		this.on_row_checked();
 		this.render_count();
-		this.render_tags();
 	}
 
 	render_list() {
@@ -565,44 +564,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.$result.find(".list-count").html(`<span>${str}</span>`);
 			});
 		}
-	}
-
-	// render_tags() {
-	// 	const $list_rows = this.$result.find(".list-row-container");
-
-	// 	this.data.forEach((d, i) => {
-	// 		let tag_html = $(`<div class='tag-row'>
-	// 			<div class='list-tag hidden-xs'></div>
-	// 		</div>`).appendTo($list_rows.get(i));
-
-	// 		// add tags
-	// 		let tag_editor = new frappe.ui.TagEditor({
-	// 			parent: tag_html.find(".list-tag"),
-	// 			frm: {
-	// 				doctype: this.doctype,
-	// 				docname: d.name,
-	// 			},
-	// 			list_sidebar: this.list_sidebar,
-	// 			user_tags: d._user_tags,
-	// 			on_change: (user_tags) => {
-	// 				d._user_tags = user_tags;
-	// 			},
-	// 		});
-
-	// 		tag_editor.wrapper.on("click", ".tagit-label", (e) => {
-	// 			const $this = $(e.currentTarget);
-	// 			this.filter_area.add(
-	// 				this.doctype,
-	// 				"_user_tags",
-	// 				"=",
-	// 				$this.text()
-	// 			);
-	// 		});
-	// 	});
-	// }
-
-	render_tags() {
-
 	}
 
 	get_header_html() {
