@@ -164,7 +164,6 @@
   },
   {
    "depends_on": "eval: doc.type == 'Custom'",
-   "description": "This should contain the path to a whitelisted function that will return the number on the card",
    "fieldname": "method",
    "fieldtype": "Data",
    "label": "Method",
@@ -192,7 +191,7 @@
   }
  ],
  "links": [],
- "modified": "2020-07-16 13:04:03.470001",
+ "modified": "2020-07-17 18:04:00.814756",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

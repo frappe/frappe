@@ -24,6 +24,7 @@ frappe.ui.form.on('Number Card', {
 			}
 			frm.filters = eval(frm.doc.filters_config);
 			frm.trigger('set_filters_description');
+			frm.trigger('set_method_description');
 			frm.trigger('render_filters_table');
 		}
 		frm.trigger('create_add_to_dashboard_button');
@@ -107,6 +108,21 @@ frappe.ui.form.on('Number Card', {
 	reqd: 1
 }]
 </code></pre>`);
+		}
+	},
+
+	set_method_description: function(frm) {
+		console.log('called');
+		if (frm.doc.type == 'Custom') {
+			frm.fields_dict.method.set_description(`
+		Set the path to a whitelisted function that will return the number on the card in the format:
+<pre class="small text-muted">
+<code>
+{
+	"value": value,
+	"fieldtype": "Currency"
+}
+</code></pre>`)
 		}
 	},
 
