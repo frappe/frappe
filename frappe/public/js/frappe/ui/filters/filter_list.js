@@ -2,11 +2,17 @@ frappe.ui.FilterGroup = class {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.filters = [];
-		this.make();
 		window.fltr = this;
+		if (!this.filter_button) {
+			this.wrapper = this.parent;
+			this.wrapper.append(this.get_filter_area_template());
+			this.set_filter_events();
+		} else {
+			this.make_popover();
+		}
 	}
 
-	make() {
+	make_popover() {
 		this.init_filter_popover();
 		this.set_popover_events();
 	}
@@ -246,19 +252,20 @@ frappe.ui.FilterGroup = class {
 
 	get_filter_area_template() {
 		return $(`
-			<div class="filter-edit-area text-center">
-				<span class="text-muted empty-filters">No filters selected</span>
-			</div>
-			<hr class="divider"></hr>
-			<div class="filter-action-buttons">
-				<div class="text-muted add-filter">
-					${__("+ Add a Filter")}
+			<div class="filter-area">
+				<div class="filter-edit-area text-center">
+					<span class="text-muted empty-filters">No filters selected</span>
 				</div>
-				<button class="btn btn-secondary-dark btn-xs clear-filters">
-					${__("Clear Filters")}
-				</button>
-			</div>
-			`
+				<hr class="divider"></hr>
+				<div class="filter-action-buttons">
+					<div class="text-muted add-filter">
+						${__("+ Add a Filter")}
+					</div>
+					<button class="btn btn-secondary-dark btn-xs clear-filters">
+						${__("Clear Filters")}
+					</button>
+				</div>
+			</div>`
 		);
 	}
 
