@@ -163,6 +163,9 @@ export default class NumberCardWidget extends Widget {
 		return frappe.xcall(this.settings.method, this.settings.args).then(res => {
 			if (this.card_doc.type == 'Report') {
 				this.get_number_for_report(res);
+			} else if (this.card_doc.type == 'Custom') {
+				this.number = res.value;
+				this.get_formatted_number(res);
 			} else {
 				this.number = res;
 				if (this.card_doc.function !== 'Count') {
@@ -213,7 +216,7 @@ export default class NumberCardWidget extends Widget {
 			return;
 		}
 
-		let caret_html ='';
+		let caret_html = '';
 		let color_class = '';
 
 		return this.get_percentage_stats().then(() => {
