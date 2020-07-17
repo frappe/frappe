@@ -66,12 +66,12 @@
 .list-row-container {
 	border-bottom: 1px solid $border-color;
 	display: flex;
-    flex-direction: column;
-    outline: none;
+	flex-direction: column;
+	outline: none;
 
-    // &:focus {
-    //     background-color: $light-yellow;
-    // }
+	// &:focus {
+	//		background-color: $light-yellow;
+	// }
 }
 
 .list-row {
@@ -80,6 +80,7 @@
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
+	font-size: var(--text-md);
 
 	&:hover {
 		background-color: $gray-50;
@@ -95,8 +96,6 @@
 	.level-right {
 		flex: 1;
 	}
-
-	font-size: var(--text-md);
 
 	.list-row-activity {
 		justify-content: flex-end;
@@ -119,7 +118,12 @@
 			white-space: nowrap;
 			min-width: 80px;
 		}
+	}
 
+	.tag-pill {
+		&:not(:first-child) {
+			margin-left: 5px;
+		}
 	}
 }
 
