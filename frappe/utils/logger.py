@@ -31,10 +31,7 @@ def get_logger(module, with_more_info=False, _site=None):
 	global site
 
 	def allow_site():
-		allow = False
-		if site: allow = True
-		if _site: allow = site == _site
-		return allow
+		return (_site and _site == site) or bool(site)
 
 	if module in frappe.loggers:
 		return frappe.loggers[module]
