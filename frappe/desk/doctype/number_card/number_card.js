@@ -112,7 +112,6 @@ frappe.ui.form.on('Number Card', {
 	},
 
 	set_method_description: function(frm) {
-		console.log('called');
 		if (frm.doc.type == 'Custom') {
 			frm.fields_dict.method.set_description(`
 		Set the path to a whitelisted function that will return the number on the card in the format:
@@ -122,7 +121,7 @@ frappe.ui.form.on('Number Card', {
 	"value": value,
 	"fieldtype": "Currency"
 }
-</code></pre>`)
+</code></pre>`);
 		}
 	},
 
