@@ -66,18 +66,6 @@
 	position: absolute;
 	box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
 
-	opacity: 0.3;
-	transform-origin: center -20px;
-	transform: rotateX(-15deg);
-	transition:
-	  transform 0.3s,
-	  opacity 0.3s;
-
-	&.animate-list {
-		opacity: 1;
-  		transform: rotateX(0);
-	}
-
 	.notification-list-header {
 		margin: 0px 10px;
 		@include flex(flex, space-between, center, null);
