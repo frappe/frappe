@@ -23,7 +23,7 @@ frappe.ui.form.on('Connected App', {
 
 		frm.add_custom_button(__("Init"), async () => {
 			frappe.call({
-				method: "initiate_auth_code_flow",
+				method: "initiate_web_application_flow",
 				doc: frm.doc,
 				callback: function(r) {
 					window.open(r.message, '_blank');

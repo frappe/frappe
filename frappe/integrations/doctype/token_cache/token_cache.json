@@ -67,16 +67,18 @@
   {
    "fieldname": "success_uri",
    "fieldtype": "Data",
-   "label": "Success URI"
+   "label": "Success URI",
+   "read_only": 1
   },
   {
    "fieldname": "token_type",
    "fieldtype": "Data",
-   "label": "Token Type"
+   "label": "Token Type",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2020-07-17 19:14:46.132134",
+ "modified": "2020-07-17 20:10:40.268067",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Token Cache",

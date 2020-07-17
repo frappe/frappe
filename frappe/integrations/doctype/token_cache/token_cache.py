@@ -4,6 +4,8 @@
 
 from __future__ import unicode_literals
 import frappe
+import requests
+from urllib.parse import urlencode
 from datetime import datetime, timedelta
 from frappe.model.document import Document
 
@@ -15,6 +17,37 @@ class TokenCache(Document):
 			return headers
 
 		raise frappe.exceptions.DoesNotExistError
+
+	def check_validity(self):
+		if(self.get('__islocal') or (not self.access_token)):
+			raise frappe.exceptions.DoesNotExistError
+
+		if not self.is_expired():
+			return token
+
+		return self.refresh_token(token)
+
+	def refresh_token(self):
+		app = frappe.get_doc("Connected App", self.connected_app)
+		oauth = app.get_oauth2_session()
+		new_token = oauth.refresh_token(
+			app.token_endpoint,
+			client_secret=app.get_password('client_secret'),
+			token=self.get_json()
+		)
+
+		if new_token.get('access_token') and app.revocation_endpoint:
+			# Revoke old token
+			requests.post(
+				app.revocation_endpoint,
+				data=urlencode({'token': new_token.get('access_token')}),
+				headers={
+					'Authorization': 'Bearer ' + new_token.get('access_token'),
+					'Content-Type': 'application/x-www-form-urlencoded'
+				}
+			)
+
+		return self.update_data(new_token)
 
 	def update_data(self, data):
 		self.access_token = data.get('access_token')

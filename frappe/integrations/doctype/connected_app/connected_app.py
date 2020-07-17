@@ -33,15 +33,6 @@ class ConnectedApp(Document):
 			scope=[row.scope for row in self.scopes]
 		)
 
-	def check_validity(self, token):
-		if(token.get('__islocal') or (not token.access_token)):
-			raise frappe.exceptions.DoesNotExistError
-
-		if not token.is_expired():
-			return token
-
-		return self.refresh_token(token)
-
 	def initiate_web_application_flow(self, user=None, success_uri=None):
 		"""Return an authorization URL for the user. Save state in Token Cache."""
 		success_uri = success_uri or '/desk'
@@ -62,47 +53,6 @@ class ConnectedApp(Document):
 
 		return authorization_url
 
-	def get_user_token(self, user=None, redirect_to=None):
-		"""Return an existing user token or initiate a Web Application Flow."""
-		redirect_to = redirect_to or '/desk'
-		user = user or frappe.session.user
-
-		try:
-			token = self.get_stored_user_token(user)
-			token = self.check_validity(token)
-		except frappe.exceptions.DoesNotExistError:
-			redirect = self.initiate_web_application_flow(user, redirect_to)
-			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = redirect
-			return redirect
-
-		return token
-
-	def refresh_token(self, token):
-		oauth = self.get_oauth2_session()
-		new_token = oauth.refresh_token(
-			self.token_endpoint,
-			client_secret=self.get_password('client_secret'),
-			token=token.get_json()
-		)
-
-		# Revoke old token
-		data = urlencode({'token': token.get('access_token')})
-		headers['Authorization'] = 'Bearer ' + new_token.get('access_token')
-		requests.post(self.revocation_endpoint, data=data, headers=headers)
-
-		return self.update_stored_client_token(new_token)
-
-	def get_client_token(self):
-		"""Return an existing client token or initiate a Backend Application Flow."""
-		try:
-			token = self.get_stored_client_token()
-		except frappe.exceptions.DoesNotExistError:
-			token = self.initiate_backend_application_flow()
-
-		token = self.check_validity(token)
-		return token
-
 	def initiate_backend_application_flow(self):
 		"""Retrieve token without user interaction. Token is not user specific."""
 		client = BackendApplicationClient(client_id=self.client_id)
@@ -113,21 +63,42 @@ class ConnectedApp(Document):
 			client_secret=self.get_password('client_secret')
 		)
 
-		return self.update_stored_client_token(token)
+		try:
+			stored_token = self.get_stored_client_token()
+		except frappe.exceptions.DoesNotExistError:
+			stored_token = frappe.new_doc('Token Cache')
+
+		return stored_token.update_data(token)
+
+	def get_user_token(self, user=None, success_uri=None):
+		"""Return an existing user token or initiate a Web Application Flow."""
+		user = user or frappe.session.user
+
+		try:
+			token = self.get_stored_user_token(user)
+			token = token.check_validity()
+		except frappe.exceptions.DoesNotExistError:
+			redirect = self.initiate_web_application_flow(user, success_uri)
+			frappe.local.response["type"] = "redirect"
+			frappe.local.response["location"] = redirect
+			return redirect
+
+		return token
+
+	def get_client_token(self):
+		"""Return an existing client token or initiate a Backend Application Flow."""
+		try:
+			token = self.get_stored_client_token()
+		except frappe.exceptions.DoesNotExistError:
+			token = self.initiate_backend_application_flow()
+
+		return token.check_validity()
 
 	def get_stored_client_token(self):
 		return frappe.get_doc('Token Cache', self.name + '-user')
 
 	def get_stored_user_token(self, user):
 		return frappe.get_doc('Token Cache', self.name + '-' + user)
-
-	def update_stored_client_token(self, token_data):
-		try:
-			stored_token = self.get_stored_client_token()
-		except frappe.exceptions.DoesNotExistError:
-			stored_token = frappe.new_doc('Token Cache')
-
-		return stored_token.update_data(token_data)
 
 
 @frappe.whitelist(allow_guest=True)
