@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from datetime import datetime, timedelta
 from frappe.model.document import Document
 
 class TokenCache(Document):
@@ -19,6 +20,7 @@ class TokenCache(Document):
 		self.access_token = data.get('access_token')
 		self.refresh_token = data.get('refresh_token')
 		self.expires_in = data.get('expires_in')
+		self.token_type = data.get('token_type')
 
 		new_scopes = data.get('scope')
 		if new_scopes:
@@ -33,3 +35,18 @@ class TokenCache(Document):
 		self.save()
 
 		return self
+
+	def get_expires_in(self):
+		expiry_time = self.modified + datetime.timedelta(self.expires_in)
+		return (datetime.now() - expiry_time).total_seconds()
+
+	def is_expired(self):
+		return self.get_expires_in() < 0
+
+	def get_json(self):
+		return {
+			'access_token': self.access_token,
+			'refresh_token': self.refresh_token,
+			'expires_in': self.get_expires_in(),
+			'token_type': self.token_type
+		}
