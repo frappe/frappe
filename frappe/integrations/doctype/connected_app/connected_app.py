@@ -141,28 +141,28 @@ def callback(code=None, state=None):
 		frappe.throw(_("Log in to access this page."), frappe.PermissionError)
 
 	path = frappe.request.path[1:].split("/")
-	if len(path) == 4 and path[3]:
-		connected_app = path[3]
-		token_cache = frappe.get_doc('Token Cache', connected_app + '-' + frappe.session.user)
-		if not token_cache:
-			frappe.throw(_('State Not Found'))
-
-		if state != token_cache.state:
-			frappe.throw(_('Invalid State'))
-
-		try:
-			app = frappe.get_doc('Connected App', connected_app)
-		except frappe.exceptions.DoesNotExistError:
-			frappe.throw(_('Invalid App'))
-
-		oauth = app.get_oauth2_session()
-		token = oauth.fetch_token(app.token_endpoint,
-			code=code,
-			client_secret=app.get_password('client_secret')
-		)
-		token_cache.update_data(token)
-
-		frappe.local.response["type"] = "redirect"
-		frappe.local.response["location"] = '/desk'
-	else:
+	if len(path) != 4 or not path[3]:
 		frappe.throw(_('Invalid Parameter(s)'))
+
+	connected_app = path[3]
+	token_cache = frappe.get_doc('Token Cache', connected_app + '-' + frappe.session.user)
+	if not token_cache:
+		frappe.throw(_('State Not Found'))
+
+	if state != token_cache.state:
+		frappe.throw(_('Invalid State'))
+
+	try:
+		app = frappe.get_doc('Connected App', connected_app)
+	except frappe.exceptions.DoesNotExistError:
+		frappe.throw(_('Invalid App'))
+
+	oauth = app.get_oauth2_session()
+	token = oauth.fetch_token(app.token_endpoint,
+		code=code,
+		client_secret=app.get_password('client_secret')
+	)
+	token_cache.update_data(token)
+
+	frappe.local.response["type"] = "redirect"
+	frappe.local.response["location"] = token_cache.get('success_uri') or '/desk'
