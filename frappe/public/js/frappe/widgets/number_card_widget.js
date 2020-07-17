@@ -172,7 +172,7 @@ export default class NumberCardWidget extends Widget {
 						this.get_formatted_number(based_on_df);
 					});
 				} else {
-					this.number_html = res;
+					this.formatted_number = res;
 				}
 			}
 		});
@@ -197,13 +197,13 @@ export default class NumberCardWidget extends Widget {
 		const symbol = number_parts[1] || '';
 		const formatted_number = $(frappe.format(number_parts[0], df)).text();
 
-		this.number_html = formatted_number + ' ' + symbol;
+		this.formatted_number = formatted_number + ' ' + symbol;
 	}
 
 	render_number() {
 		return this.get_number().then(() => {
 			$(this.body).html(`<div class="widget-content">
-				<div class="number" style="color:${this.card_doc.color}">${this.number_html}</div>
+				<div class="number" style="color:${this.card_doc.color}">${this.formatted_number}</div>
 				</div>`);
 		});
 	}
