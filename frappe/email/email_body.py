@@ -11,6 +11,7 @@ import email.utils
 from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+from email import policy
 
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
@@ -68,7 +69,7 @@ class EMail:
 		self.subject = subject
 		self.expose_recipients = expose_recipients
 
-		self.msg_root = MIMEMultipart('mixed')
+		self.msg_root = MIMEMultipart('mixed', policy=policy.default)
 		self.msg_alternative = MIMEMultipart('alternative')
 		self.msg_root.attach(self.msg_alternative)
 		self.cc = cc or []
@@ -238,7 +239,7 @@ class EMail:
 		"""validate, build message and convert to string"""
 		self.validate()
 		self.make()
-		return self.msg_root.as_string()
+		return self.msg_root.as_string(policy=policy.default)
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
 		email_account=None, header=None, unsubscribe_link=None, sender=None):
