@@ -128,14 +128,7 @@ class ConnectedApp(Document):
 		except frappe.exceptions.DoesNotExistError:
 			stored_token = frappe.new_doc('Token Cache')
 
-		stored_token.connected_app = self.name
-		stored_token.access_token = token_data.get('access_token')
-		stored_token.refresh_token = token_data.get('refresh_token')
-		stored_token.expires_in = token_data.get('expires_in')
-		stored_token.save(ignore_permissions=True)
-		frappe.db.commit()
-
-		return frappe.get_doc('Token Cache', stored_token.name)
+		return stored_token.update_data(token_data)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -162,27 +155,12 @@ def callback(code=None, state=None):
 		except frappe.exceptions.DoesNotExistError:
 			frappe.throw(_('Invalid App'))
 
-		client_secret = app.get_password('client_secret')
 		oauth = app.get_oauth2_session()
-		token = oauth.fetch_token(
-			app.token_endpoint,
+		token = oauth.fetch_token(app.token_endpoint,
 			code=code,
-			client_secret=client_secret
+			client_secret=app.get_password('client_secret')
 		)
-
-		token_cache.access_token = token.get('access_token')
-		token_cache.refresh_token = token.get('refresh_token')
-		token_cache.expires_in = token.get('expires_in')
-
-		scopes = token.get('scope')
-		if isinstance(scopes, str):
-			scopes = [scopes]
-		for scope in scopes:
-			token_cache.append('scopes', {'scope': scope})
-
-		token_cache.state = None
-		token_cache.save()
-		frappe.db.commit()
+		token_cache.update_data(token)
 
 		frappe.local.response["type"] = "redirect"
 		frappe.local.response["location"] = '/desk'
