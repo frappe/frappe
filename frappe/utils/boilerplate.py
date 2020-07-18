@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 
 from six.moves import input
 
-import frappe, os, re
+import frappe, os, re, git
 from frappe.utils import touch_file, cstr
 
 def make_boilerplate(dest, app_name):
@@ -98,7 +98,13 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
 		f.write(frappe.as_unicode(docs_template.format(**hooks)))
 
-	print("'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name)))
+	# initialize git repository
+	app_directory = os.path.join(dest, hooks.app_name)
+	app_repo = git.Repo.init(app_directory)
+	app_repo.git.add(A=True)
+	app_repo.index.commit("feat: Initialize App")
+
+	print("'{app}' created at {path}".format(app=app_name, path=app_directory))
 
 
 manifest_template = """include MANIFEST.in

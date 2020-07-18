@@ -295,7 +295,7 @@ class NotificationsView extends BaseNotificaitonsView {
 		let message = field.subject;
 
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
-		message = title ? message.replace(title[1], frappe.ellipsis(title[1], 100)) : message;
+		message = title ? message.replace(title[1], frappe.ellipsis(strip_html(title[1]), 100)) : message;
 
 		let timestamp = frappe.datetime.comment_when(field.creation);
 		let message_html = `<div class="message">
@@ -358,6 +358,7 @@ class NotificationsView extends BaseNotificaitonsView {
 			limit: limit,
 			order_by: 'creation desc'
 		});
+	}
 	}
 
 	get_item_link(notification_doc) {

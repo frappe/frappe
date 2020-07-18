@@ -403,7 +403,14 @@ class Document(BaseDocument):
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
+
 		if self.flags.name_set and not force:
+			return
+
+		# If autoname has set as Prompt (name)
+		if self.get("__newname"):
+			self.name = self.get("__newname")
+			self.flags.name_set = True
 			return
 
 		if set_name:
