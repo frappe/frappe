@@ -223,7 +223,8 @@ class EMail:
 
 		# reset headers as values may be changed.
 		for key, val in iteritems(headers):
-			self.set_header(key, val)
+			if val:
+				self.set_header(key, val)
 
 		# call hook to enable apps to modify msg_root before sending
 		for hook in frappe.get_hooks("make_email_body_message"):
