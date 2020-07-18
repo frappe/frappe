@@ -39,7 +39,7 @@ This is the text version of this email
 			subject='Test Subject',
 			content=email_html,
 			text_content=email_text
-		).as_string()
+		).as_string().replace("\r\n", "\n")
 
 	def test_prepare_message_returns_already_encoded_string(self):
 
