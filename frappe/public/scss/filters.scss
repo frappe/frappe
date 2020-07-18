@@ -8,44 +8,43 @@
 	min-width: 500px;
 	min-height: 50px;
 	font-size: var(--text-md);
+}
 
-	.filter-box {
-		padding: $padding-xs $padding-md $padding-xs 0;
+.filter-box {
+	padding: $padding-xs $padding-md $padding-xs 0;
 
-		.form-group {
-			@include media-breakpoint-up(xs) {
-				margin-bottom: 0;
-			}
-		}
-
-		.remove-filter {
-			cursor: pointer;
-			line-height: 2;
-		}
-
-		.filter-field {
-			.frappe-control {
-				position: relative;
-				margin-bottom: 0;
-			}
+	.form-group {
+		@include media-breakpoint-up(xs) {
+			margin-bottom: 0;
 		}
 	}
 
-	.filter-action-buttons {
-		display: flex;
-		justify-content: space-between;
+	.remove-filter {
+		cursor: pointer;
+		line-height: 2;
+	}
 
-		.add-filter {
-			line-height: 2;
-			cursor: pointer;
+	.filter-field {
+		.frappe-control {
+			position: relative;
+			margin-bottom: 0;
 		}
 	}
+}
 
-	.divider {
-		margin-right: -10px;
-		margin-left: -10px;
+.filter-action-buttons {
+	display: flex;
+	justify-content: space-between;
+
+	.add-filter {
+		line-height: 2;
+		cursor: pointer;
 	}
+}
 
+.divider {
+	margin-right: -10px;
+	margin-left: -10px;
 }
 
 // for sm and above
