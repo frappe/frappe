@@ -373,7 +373,7 @@ def get_desk_sidebar_items(flatten=False, cache=True):
 
 		# pages sorted based on pinned to top and then by name
 		order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
-		all_pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+		all_pages = frappe.get_all("Desk Page", fields=["name", "category", "icon"], filters=filters, order_by=order_by, ignore_permissions=True)
 		pages = []
 
 		# Filter Page based on Permission
@@ -386,10 +386,6 @@ def get_desk_sidebar_items(flatten=False, cache=True):
 				pass
 
 		_cache.set_value("desk_sidebar_items", pages, frappe.session.user)
-
-	# pages sorted based on pinned to top and then by name
-	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
-	pages = frappe.get_all("Desk Page", fields=["name", "category", "icon"], filters=filters, order_by=order_by, ignore_permissions=True)
 
 	if flatten:
 		return pages
