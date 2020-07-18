@@ -87,6 +87,7 @@ img {
 .btn {
 	border: none;
 	border-radius: $border-radius;
+	box-shadow: var(--card-shadow);
 }
 
 .btn-secondary-dark {
@@ -128,6 +129,10 @@ img {
 .btn-secondary, .btn-default {
 	background-color: $control-bg;
 	color: var(--grey-800);
+}
+
+.btn-default {
+	background-color: white;
 }
 
 .btn-primary {

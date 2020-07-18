@@ -16,22 +16,21 @@ $form-left-padding: $padding-xl;
 }
 
 .form-section {
-	margin: 0px;
-	// padding: 15px;
+	margin: $margin-lg 0px;
+	border-radius: var(--border-radius-md);
+	box-shadow: var(--card-shadow);
+	padding: $padding-sm;
+	background: white;
 
 	.form-section-description {
 		margin-bottom: 10px;
 	}
 
 	.section-head {
-		// margin: 0px 0px 15px 15px;
-		position: sticky;
-		top: calc(#{$navbar-height} + #{$page-head-height});
 		background: $white;
 		z-index: 1;
 		width: 100%;
 		padding: $padding-md;
-		padding-left: 0px;
 		margin: 0;
 		font-size: var(--text-lg);
 		font-weight: 500;
@@ -67,7 +66,7 @@ $form-left-padding: $padding-xl;
 }
 
 .form-inner-toolbar {
-	padding-top: $padding-sm;
+	padding-top: $padding-md;
 	padding-left: $form-left-padding;
 	text-align: right;
 }

@@ -24,9 +24,6 @@
   "user_image",
   "sb1",
   "role_profile_name",
-  "column_break_18",
-  "column_break_19",
-  "section_break_20",
   "roles_html",
   "roles",
   "short_bio",
@@ -598,19 +595,6 @@
   {
    "fieldname": "section_break_63",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_18",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_19",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_20",
-   "fieldtype": "Section Break",
-   "hide_border": 1
   }
  ],
  "icon": "fa fa-user",
@@ -618,7 +602,7 @@
  "image_field": "user_image",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-06-23 07:49:33.387721",
+ "modified": "2020-07-18 02:31:18.550537",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

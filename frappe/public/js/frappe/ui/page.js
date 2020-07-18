@@ -118,7 +118,7 @@ frappe.ui.Page = Class.extend({
 		this.custom_actions = this.page_actions.find(".custom-actions");
 
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
-		this.inner_toolbar = $('<div class="form-inner-toolbar hide"></div>').prependTo(this.main);
+		this.inner_toolbar = this.custom_actions;
 		this.icon_group = this.page_actions.find(".page-icon-group");
 
 		if(this.make_page) {
@@ -143,7 +143,7 @@ frappe.ui.Page = Class.extend({
 
 	add_action_icon: function(icon, click, css_class='') {
 		return $(`
-			<button class="text-muted btn btn-default ${css_class}">
+			<button class="text-muted btn btn-default ${css_class} icon-btn">
 				${frappe.utils.icon(icon)}
 			</button>
 		`).appendTo(this.icon_group.removeClass("hide")).click(click);
