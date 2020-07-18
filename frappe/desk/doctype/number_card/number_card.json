@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "allow_workflow": 1,
  "creation": "2020-04-15 18:06:39.444683",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -191,7 +190,7 @@
   }
  ],
  "links": [],
- "modified": "2020-07-17 18:04:00.814756",
+ "modified": "2020-07-18 17:08:22.882538",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
