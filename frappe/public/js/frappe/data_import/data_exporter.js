@@ -278,12 +278,6 @@ frappe.data_import.DataExporter = class DataExporter {
 			|| (df.reqd && this.exporting_for == 'Insert New Records');
 
 		return fields
-			.filter(df => {
-				if (autoname_field && df.fieldname === autoname_field.fieldname) {
-					return false;
-				}
-				return true;
-			})
 			.map(df => {
 				let label = __(df.label);
 				if (autoname_field && df.fieldname === 'name') {
