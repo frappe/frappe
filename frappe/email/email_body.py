@@ -69,8 +69,8 @@ class EMail:
 		self.subject = subject
 		self.expose_recipients = expose_recipients
 
-		self.msg_root = MIMEMultipart('mixed', policy=policy.default)
-		self.msg_alternative = MIMEMultipart('alternative')
+		self.msg_root = MIMEMultipart('mixed', policy=policy.SMTPUTF8)
+		self.msg_alternative = MIMEMultipart('alternative', policy=policy.SMTPUTF8)
 		self.msg_root.attach(self.msg_alternative)
 		self.cc = cc or []
 		self.bcc = bcc or []
@@ -101,7 +101,7 @@ class EMail:
 			Attach message in the text portion of multipart/alternative
 		"""
 		from email.mime.text import MIMEText
-		part = MIMEText(message, 'plain', 'utf-8')
+		part = MIMEText(message, 'plain', 'utf-8', policy=policy.SMTPUTF8)
 		self.msg_alternative.attach(part)
 
 	def set_part_html(self, message, inline_images):
@@ -114,9 +114,9 @@ class EMail:
 			message, _inline_images = replace_filename_with_cid(message)
 
 			# prepare parts
-			msg_related = MIMEMultipart('related')
+			msg_related = MIMEMultipart('related', policy=policy.SMTPUTF8)
 
-			html_part = MIMEText(message, 'html', 'utf-8')
+			html_part = MIMEText(message, 'html', 'utf-8', policy=policy.SMTPUTF8)
 			msg_related.attach(html_part)
 
 			for image in _inline_images:
@@ -125,7 +125,7 @@ class EMail:
 
 			self.msg_alternative.attach(msg_related)
 		else:
-			self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8'))
+			self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8', policy=policy.SMTPUTF8))
 
 	def set_html_as_text(self, html):
 		"""Set plain text from HTML"""
@@ -136,7 +136,7 @@ class EMail:
 		from email.mime.text import MIMEText
 
 		maintype, subtype = mime_type.split('/')
-		part = MIMEText(message, _subtype = subtype)
+		part = MIMEText(message, _subtype = subtype, policy=policy.SMTPUTF8)
 
 		if as_attachment:
 			part.add_header('Content-Disposition', 'attachment', filename=filename)
