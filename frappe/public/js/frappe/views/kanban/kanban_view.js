@@ -117,6 +117,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return super.get_fields();
 	}
 
+	render_list() {
+		
+	}
+
 	render() {
 		const board_name = this.board_name;
 		if (this.kanban && board_name === this.kanban.board_name) {
