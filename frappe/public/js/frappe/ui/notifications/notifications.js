@@ -359,7 +359,6 @@ class NotificationsView extends BaseNotificaitonsView {
 			order_by: 'creation desc'
 		});
 	}
-	}
 
 	get_item_link(notification_doc) {
 		const link_doctype =
