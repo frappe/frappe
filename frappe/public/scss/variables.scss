@@ -139,27 +139,42 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--text-xl: 18px;
 	--text-2xl: 20px;
 
+	// Type Colors
 	--text-muted: var(--gray-600);
 	--text-light: var(--gray-700);
 	--text-color: var(--gray-900);
 	--heading-color: var(--gray-900);
 
+	// SVG Colors
+	--icon-fill: var(--gray-900);
+	--icon-stroke: var(--gray-900);
+
+	// Layout Colors
+	--bg-color: var(--gray-50);
+	--fg-color: white;
+	--card-bg: var(--fg-color);
+	--control-bg: var(--gray-100);
+	--modal-bg: white;
+	--toast-bg: var(--modal-bg);
+
+	--sidebar-select-color: var(--gray-100);
+
+	--shadow-inset: var(--gray-100);
+	--border-color: var(--gray-100);
+
+	// Border Sizes
 	--border-radius-sm: 4px;
 	--border-radius: 6px;
 	--border-radius-md: 8px;
 	--border-radius-lg: 12px;
-
-	--bg-color: var(--gray-50);
-	--fg-color: white;
-	--card-bg: var(--fg-color);
 }
 
 html, body {
 	font-size: 14px;
 }
 
-$border-color: var(--gray-100);
-$control-bg: var(--gray-100);
+$border-color: var(--border-color);
+$control-bg: var(--control-bg);
 $code-color: var(--purple-600);
 
 $border-radius: var(--border-radius);
@@ -205,13 +220,39 @@ $dropdown-item-padding-y: 0.5rem !default;
 $dropdown-item-padding-x: 0.5rem !default;
 
 [data-theme="dark"] {
-	--bg-color: var(--gray-900);
-	--fg-color: var(--gray-700);
+	--gray-50: #{$gray-50};
+	--gray-100: #F7FAFC;
+	--gray-200: #EDF2F7;
+	--gray-300: #E2E8F0;
+	--gray-400: #CBD5E0;
+	--gray-500: #A0AEC0;
+	--gray-600: #718096;
+	--gray-700: #4A5568;
+	--gray-800: #2D3748;
+	--gray-900: #1A202C;
 
+	// Type Colors
 	--text-muted: var(--gray-300);
 	--text-light: var(--gray-400);
 	--text-color: var(--gray-50);
 	--heading-color: var(--gray-50);
+
+	// SVG Colors
+	--icon-fill: var(--gray-50);
+	--icon-stroke: var(--gray-50);
+
+	// Layout Colors
+	--bg-color: var(--gray-900);
+	--fg-color: var(--gray-800);
+	--card-bg: var(--gray-800);
+	--control-bg: var(--gray-700);
+	--modal-bg: var(--gray-700);
+	--toast-bg: var(--modal-bg);
+
+	--sidebar-select-color: var(--gray-800);
+
+	--shadow-inset: var(--fg-color);
+	--border-color: var(--gray-100);
 }
 
 $spacer: 14px;

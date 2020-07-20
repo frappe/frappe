@@ -6,11 +6,11 @@
 }
 
 #alert-container .desk-alert {
-	box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
+	box-shadow: $card-box-shadow;
 	width: 400px;
 	min-height: 50px;
 	max-height: 200px;
-	background-color: $white;
+	background-color: var(--toast-bg);
 
 	-webkit-animation-name: backInRight;
 	animation-name: backInRight;
@@ -38,13 +38,14 @@
 
 		.alert-message {
 			font-weight: 500;
-			color: var(--gray-900);
+			color: var(--text-color);
 			line-height: 20px;
 		}
 
 		.alert-subtitle {
 			font-size: 13px;
 			padding-left: 34px;
+			color: var(--text-muted);
 		}
 	}
 

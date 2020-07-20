@@ -1,5 +1,8 @@
 $disabled-background: var(--gray-100);
-$panel-bg: $gray-50;
+
+html, body {
+	background-color: var(--bg-color);
+}
 
 .desk-sidebar {
 	.list-sidebar-label {
@@ -13,10 +16,9 @@ $panel-bg: $gray-50;
 		margin-bottom: 1px;
 		border-radius: 4px;
 		cursor: pointer;
-		text-rendering: optimizelegibility;
 
 		&:focus {
-			background-color: $panel-bg;
+			background-color: var(--sidebar-select-color);
 			outline: 0;
 		}
 
@@ -25,15 +27,15 @@ $panel-bg: $gray-50;
 		}
 
 		&:hover {
-			background-color: $panel-bg;
+			background-color: var(--sidebar-select-color);
 		}
 
 		&.selected {
-			background-color: $panel-bg;
+			background-color: var(--sidebar-select-color);
 		}
 
 		a {
-			color: $gray-800;
+			color: var(--text-color);
 			text-decoration: none;
 		}
 
@@ -63,7 +65,7 @@ $panel-bg: $gray-50;
 		justify-content: space-between;
 
 		.widget-group-title {
-			color: var(--gray-900);
+			color: var(--heading-color);
 			font-weight: 600;
 			font-size: var(--text-lg);
 			margin-bottom: 1.2rem;
@@ -142,7 +144,7 @@ $panel-bg: $gray-50;
 	border-radius: var(--border-radius-md);
 	height: 100%;
 	box-shadow: var(--card-shadow);
-	background-color: white;
+	background-color: var(--card-bg);
 
 	&.widget-shadow {
 		&:hover {
@@ -166,7 +168,7 @@ $panel-bg: $gray-50;
 			font-family: inherit;
 			font-weight: 500;
 			line-height: 1.3em;
-			color: var(--gray-900);
+			color: var(--heading-color);
 
 			svg {
 				margin-right: 6px;
@@ -218,7 +220,7 @@ $panel-bg: $gray-50;
 	&.new-widget {
 		min-height: 65px;
 		background-color: $disabled-background;
-		color: $text-muted;
+		color: var(--text-muted);
 		border: 1px dashed var(--gray-300);
 		display: flex;
 		align-content: center;
@@ -238,7 +240,7 @@ $panel-bg: $gray-50;
 
 			.frappe-chart {
 				line.line-horizontal {
-					stroke: $border-color !important;
+					stroke: var(--border-color) !important;
 				}
 			}
 		}
@@ -249,7 +251,7 @@ $panel-bg: $gray-50;
 
 		.widget-subtitle {
 			font-size: $font-size-sm;
-			color: $text-muted;
+			color: var(--text-muted);
 			margin-top: 5px;
 		}
 
@@ -285,7 +287,7 @@ $panel-bg: $gray-50;
 
 			.widget-subtitle {
 				margin-top: 5px;
-				color: $text-muted;
+				color: var(--text-muted);
 				font-size: 14px;
 				font-weight: 400;
 			}
@@ -293,7 +295,7 @@ $panel-bg: $gray-50;
 			.widget-control {
 				align-self: flex-start;
 				margin-top: -5px;
-				color: $text-muted;
+				color: var(--text-muted);
 			}
 		}
 
@@ -305,7 +307,7 @@ $panel-bg: $gray-50;
 				letter-spacing: 0.015em;
 
 				i {
-					color: $text-muted;
+					color: var(--text-muted);
 					padding-left: 5px;
 					padding-right: 2px;
 				}
@@ -318,7 +320,7 @@ $panel-bg: $gray-50;
 				}
 
 				span {
-					color: $text-muted;
+					color: var(--text-muted);
 					cursor: pointer;
 				}
 
@@ -334,16 +336,16 @@ $panel-bg: $gray-50;
 
 				&.skipped {
 					i {
-						color: $text-muted;
+						color: var(--text-muted);
 					}
 
 					span {
-						color: $text-muted;
+						color: var(--text-muted);
 					}
 
 					&:hover {
 						span {
-							color: $text-muted;
+							color: var(--text-muted);
 						}
 
 						.step-skip {
@@ -369,7 +371,7 @@ $panel-bg: $gray-50;
 		cursor: pointer;
 
 		.widget-head {
-			margin-top: 5px;
+			margin-top: var(--margin-xs);
 			margin-bottom: 5px;
 		}
 
@@ -382,19 +384,14 @@ $panel-bg: $gray-50;
 		.link-item {
 			display: block;
 			text-decoration: none;
-			color: var(--gray-900);
-			padding: 5px;
-			margin: 3px 0px;
-			border-radius: 6px;
+			color: var(--text-color);
+			padding: var(--padding-xs);
+			margin: var(--margin-xs) 0px;
+			border-radius: var(--border-radius-md);
 			cursor: pointer;
 
 			&:hover {
-				background-color: var(--gray-50);
-
-				.indicator-pill,
-				.indicator-pill-right {
-					background: white;
-				}
+				background-color: var(--bg-color);
 			}
 
 			&:first-child {
@@ -410,7 +407,7 @@ $panel-bg: $gray-50;
 			}
 
 			.disabled-link {
-				color: $text-muted;
+				color: var(--text-muted);
 			}
 
 			.popover {
@@ -439,7 +436,7 @@ $panel-bg: $gray-50;
 
 			.widget-title {
 				font-weight: 500;
-				color: var(--gray-900);
+				color: var(--heading-color);
 				font-size: var(--text-base);
 				margin-top: -5px;
 			}
@@ -477,7 +474,7 @@ $panel-bg: $gray-50;
 				}
 
 				.number-text {
-					color: $text-muted;
+					color: var(--text-muted);
 					padding: 5px;
 					font-size: 14px;
 				}
@@ -546,7 +543,7 @@ $panel-bg: $gray-50;
 	left: 2px;
 	// font-weight: bold;
 	display: inline-block;
-	background:	$text-muted;
+	background:	var(--text-muted);
 	font-size: 12px;
 	line-height: 20px;
 	padding: 0 8px;
