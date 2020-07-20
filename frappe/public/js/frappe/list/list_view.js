@@ -794,7 +794,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_tags_html(user_tags) {
 		let get_tag_html = tag => {
 			if (tag) {
-				return `<div class="tag-pill ellipsis">${tag}</div>`;
+				return `<div class="tag-pill ellipsis" title="${tag}">${tag}</div>`;
 			}
 		}
 		return user_tags.split(',').slice(1, 3).map(get_tag_html).join('');
