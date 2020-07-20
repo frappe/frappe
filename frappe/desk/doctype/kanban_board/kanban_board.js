@@ -13,21 +13,10 @@ frappe.ui.form.on('Kanban Board', {
 	},
 	reference_doctype: function(frm) {
 
-		// set field options
 		if(!frm.doc.reference_doctype) return;
 
-		frappe.model.with_doctype(frm.doc.reference_doctype, function() {
-			var options = frappe.get_meta(frm.doc.reference_doctype).fields.map(function(d) {
-					if(d.fieldname && d.fieldtype === 'Select' &&
-						frappe.model.no_value_type.indexOf(d.fieldtype)===-1) {
-						return d.fieldname;
-					}
-					return null;
-				});
-			frm.set_df_property('field_name', 'options', options);
-			frm.get_field('field_name').refresh();
-		});
-		frm.trigger("get_doctype_fields");
+		// set field options
+		frm.trigger("set_field_options");
 
 	},
 	field_name: function(frm) {
@@ -41,27 +30,33 @@ frappe.ui.form.on('Kanban Board', {
 		});
 		frm.refresh();
 	},
-	get_doctype_fields: function(frm) {
-		frappe.model.with_doctype(frm.doc.reference_doctype, () => {
-			var fields = frappe.get_meta(frm.doc.reference_doctype).fields.map(function(d) {
-				if (frappe.model.no_value_type.indexOf(d.fieldtype) === -1 ||
-					d.fieldtype === 'Table') {
-					return { label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname };
-				} else {
-					return null;
+	set_field_options: function(frm) {
+		frappe.model.with_doctype(frm.doc.reference_doctype, function() {
+			let  field_name_option = [], card_fields_option = [];
+			frappe.get_meta(frm.doc.reference_doctype).fields.map(function(d) {
+
+				if (frappe.model.no_value_type.indexOf(d.fieldtype) === -1) {			
+					card_fields_option.push({ label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname });
+
+					if (d.fieldtype === 'Select') {
+						field_name_option.push(d.fieldname);
+					}
 				}
 			});
-			frappe.meta.get_docfield("Kanban Board Card Field", "field_name", frm.doc.name).options = [""].concat(fields);
+			frappe.meta.get_docfield("Kanban Board Card Field", "field_name", frm.doc.name).options = [""].concat(card_fields_option);
+			frm.set_df_property('field_name', 'options', field_name_option);
 		});
 	}
 });
 
 frappe.ui.form.on("Kanban Board Card Field", {
 	field_name: function(frm, cdt, cdn) {
-		var doc = frappe.get_doc(cdt, cdn);
-		var df = $.map(frappe.get_doc("DocType", frm.doc.reference_doctype).fields, function(d) {
-			return doc.field_name == d.fieldname ? d : null;
+		let doc = frappe.get_doc(cdt, cdn);
+		
+		let df = frappe.get_meta(frm.doc.reference_doctype).fields.filter(function (d) {
+			return d.fieldname == doc.field_name;
 		})[0];
+		
 		doc.label = df.label;
 		frm.refresh_field("card_fields");
 	}

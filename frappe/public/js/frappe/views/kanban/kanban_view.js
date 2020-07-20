@@ -4,7 +4,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	static load_last_view() {
 		const route = frappe.get_route();
 		if (route.length === 3) {
-			console.log(route);
 			const doctype = route[1];
 			const user_settings = frappe.get_user_settings(doctype)['Kanban'] || {};
 			if (!user_settings.last_kanban_board) {
@@ -300,10 +299,10 @@ frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown)
 				`
 			}];
 		}
-
+		
 		return fields;
 	}
-
+	
 	function get_kanban_boards() {
 		return frappe.call('frappe.desk.doctype.kanban_board.kanban_board.get_kanban_boards', { doctype })
 			.then(r => r.message);

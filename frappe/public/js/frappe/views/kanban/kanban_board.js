@@ -515,7 +515,7 @@ frappe.provide("frappe.views");
 				name: card.name,
 				title: remove_img_tags(card.title),
 				card_fields: card.card_fields,
-				show_label: store.getState().board.show_label,
+				hide_label: store.getState().board.hide_label,
 				disable_click: card._disable_click ? 'disable-click' : ''
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
@@ -614,16 +614,16 @@ frappe.provide("frappe.views");
 		if (doc) {
 			card = Object.assign({}, card, doc);
 		}
-		let card_fields = [];
-		state.board.card_fields.forEach (
-			function(d){
-				let crd = new Object();
-				crd.label = d.label;
-				crd.value = card[d.field_name];
-				crd.field_name = d.field_name;
-				card_fields.push(crd);
-			}
-		);
+		
+		let card_fields = state.board.card_fields;
+	
+		card_fields = card_fields.map(function(field) {
+			return {
+				label: field.label,
+				value: card[field.field_name],
+				field_name: field.field_name
+			};
+		});
 
 		return {
 			doctype: state.doctype,
