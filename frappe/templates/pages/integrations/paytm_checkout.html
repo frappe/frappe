@@ -16,8 +16,9 @@
 
 {%- block page_content -%}
 <body>
-	<div style="margin: 30vh;">
-		<center><h2>Please do not refresh this page...</h2></center>
+	<div class="centered">
+		<h2>Please do not refresh this page...</h2>
+
 		<form method="post" action="{{ url }}" name="paytm_form">
 			{% for name, value in payment_details.items() %}
 				<input type="hidden" name="{{ name }}" value="{{ value }}">
@@ -29,9 +30,14 @@
 
 {% block style %}
 <style>
-	/* header,
-	footer {
+	.centered {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
+	.web-footer {
 		display: none;
-	} */
+	}
 </style>
 {% endblock %}
