@@ -13,7 +13,7 @@ from frappe import _
 from frappe.utils import get_url, call_hook_method, cint, flt, cstr
 from frappe.integrations.utils import create_request_log, create_payment_gateway
 from frappe.utils import get_request_site_address
-from frappe.integrations.doctype.paytm_settings.checksum import generateSignature, verifySignature
+from paytmchecksum import generateSignature, verifySignature
 from frappe.utils.password import get_decrypted_password
 
 class PaytmSettings(Document):
