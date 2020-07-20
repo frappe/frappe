@@ -74,7 +74,7 @@ class WidgetDialog {
 		this.filters = [];
 
 		if (this.values && this.values.stats_filter) {
-			const filters_json = JSON.parse(this.values.stats_filter);
+			const filters_json = new Function(`return ${this.values.stats_filter}`)();
 			this.filters = Object.keys(filters_json).map((filter) => {
 				let val = filters_json[filter];
 				return [this.values.link_to, filter, val[0], val[1], false];

@@ -3,6 +3,7 @@ export default class Desktop {
 		this.wrapper = wrapper;
 		this.pages = {};
 		this.sidebar_items = {};
+		this.mobile_sidebar_items = {};
 		this.sidebar_categories = [
 			"Modules",
 			"Domains",
@@ -26,14 +27,25 @@ export default class Desktop {
 	}
 
 	make_container() {
-		this.container = $(`<div class="desk-container row">
+		this.container = $(`
+			<div class="desk-container row">
 				<div class="desk-sidebar"></div>
-				<div class="desk-body"></div>
+				<div class="desk-body">
+					<div class="page-switcher">
+						<div class="current-title"></div>
+						<i class="fa fa-chevron-down text-muted"></i>
+					</div>
+					<div class="mobile-list">
+					</div>
+				</div>
 			</div>`);
 
 		this.container.appendTo(this.wrapper);
 		this.sidebar = this.container.find(".desk-sidebar");
 		this.body = this.container.find(".desk-body");
+		this.current_title = this.container.find(".current-title");
+		this.mobile_list = this.container.find(".mobile-list");
+		this.page_switcher = this.container.find(".page-switcher");
 	}
 
 	fetch_desktop_settings() {
@@ -41,7 +53,7 @@ export default class Desktop {
 			.call("frappe.desk.desktop.get_desk_sidebar_items")
 			.then(response => {
 				if (response.message) {
-					this.desktop_settings = response.message;
+					this.sidebar_configuration = response.message;
 				} else {
 					frappe.throw({
 						title: __("Couldn't Load Desk"),
@@ -59,10 +71,11 @@ export default class Desktop {
 
 	make_sidebar() {
 		const get_sidebar_item = function(item) {
-			return $(`<a href="${"desk#workspace/" +
-				item.name}" class="sidebar-item ${
-				item.selected ? "selected" : ""
-			}">
+			return $(`<a href="${"desk#workspace/" + item.name}"
+					class="sidebar-item 
+						${item.selected ? " selected" : ""}
+						${item.hidden ? "hidden" : ""}
+					">
 					<span>${item.label || item.name}</span>
 				</div>`);
 		};
@@ -73,8 +86,13 @@ export default class Desktop {
 				this.current_page = item.name;
 			}
 			let $item = get_sidebar_item(item);
+			let $mobile_item = $item.clone();
+			
 			$item.appendTo(this.sidebar);
 			this.sidebar_items[item.name] = $item;
+
+			$mobile_item.appendTo(this.mobile_list);
+			this.mobile_sidebar_items[item.name] = $mobile_item;
 		};
 
 		const make_category_title = name => {
@@ -84,16 +102,22 @@ export default class Desktop {
 				`<div class="sidebar-group-title h6 uppercase">${__(name)}</div>`
 			);
 			$title.appendTo(this.sidebar);
+			$title.clone().appendTo(this.mobile_list);
 		};
 
 		this.sidebar_categories.forEach(category => {
-			if (this.desktop_settings.hasOwnProperty(category)) {
+			if (this.sidebar_configuration.hasOwnProperty(category)) {
 				make_category_title(category);
-				this.desktop_settings[category].forEach(item => {
+				this.sidebar_configuration[category].forEach(item => {
 					make_sidebar_category_item(item);
 				});
 			}
 		});
+		if (frappe.is_mobile) {
+			this.page_switcher.on('click', () => {
+				this.mobile_list.toggle();
+			});
+		}
 	}
 
 	show_page(page) {
@@ -103,21 +127,28 @@ export default class Desktop {
 
 		if (this.sidebar_items && this.sidebar_items[this.current_page]) {
 			this.sidebar_items[this.current_page].removeClass("selected");
+			this.mobile_sidebar_items[this.current_page].removeClass("selected");
+			
 			this.sidebar_items[page].addClass("selected");
+			this.mobile_sidebar_items[page].addClass("selected");
 		}
 		this.current_page = page;
+		this.mobile_list.hide();
+		this.current_title.empty().append(this.current_page);
 		localStorage.current_desk_page = page;
 		this.pages[page] ? this.pages[page].show() : this.make_page(page);
 	}
 
 	get_page_to_show() {
-		const default_page = this.desktop_settings
-			? this.desktop_settings["Modules"][0].name
-			: "Website";
+		const default_page = this.sidebar_configuration
+			? this.sidebar_configuration["Modules"][0].name
+			: frappe.boot.allowed_workspaces[0].name;
+
 		let page =
 			frappe.get_route()[1] ||
 			localStorage.current_desk_page ||
 			default_page;
+
 		return page;
 	}
 
@@ -278,7 +309,6 @@ class DesktopPage {
 			steps: this.data.onboarding.items,
 			success: this.data.onboarding.success,
 			docs_url: this.data.onboarding.docs_url,
-			user_can_dismiss: this.data.onboarding.user_can_dismiss,
 			widget_type: 'onboarding',
 			container: this.page,
 			options: {

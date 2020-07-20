@@ -8,10 +8,12 @@ from frappe import _
 import datetime
 import json
 from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime, cint
+from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate,\
+	get_datetime, cint, now_datetime
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 from frappe.model.document import Document
+from frappe.modules.export_file import export_to_files
 
 
 def get_permission_query_conditions(user):
@@ -26,15 +28,15 @@ def get_permission_query_conditions(user):
 	if "System Manager" in roles:
 		return None
 
-	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	allowed_reports = tuple([key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()])
+	allowed_doctypes = ['"%s"' % doctype for doctype in frappe.permissions.get_doctypes_with_read()]
+	allowed_reports = ['"%s"' % key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()]
 
 	return '''
-			`tabDashboard Chart`.`document_type` in {allowed_doctypes}
-			or `tabDashboard Chart`.`report_name` in {allowed_reports}
+			`tabDashboard Chart`.`document_type` in ({allowed_doctypes})
+			or `tabDashboard Chart`.`report_name` in ({allowed_reports})
 		'''.format(
-			allowed_doctypes=allowed_doctypes,
-			allowed_reports=allowed_reports
+			allowed_doctypes=','.join(allowed_doctypes),
+			allowed_reports=','.join(allowed_reports)
 		)
 
 
@@ -79,7 +81,9 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 			to_date = get_datetime(chart.to_date)
 
 	timegrain = time_interval or chart.time_interval
-	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json) or []
+	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json)
+	if not filters:
+		filters = []
 
 	# don't include cancelled documents
 	filters.append([chart.document_type, 'docstatus', '<', 2, False])
@@ -134,7 +138,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
 	if not to_date:
-		to_date = datetime.datetime.now()
+		to_date = now_datetime()
 
 	doctype = chart.document_type
 	datefield = chart.based_on
@@ -258,9 +262,10 @@ def get_aggregate_function(chart_type):
 def get_result(data, timegrain, from_date, to_date):
 	start_date = getdate(from_date)
 	end_date = getdate(to_date)
-	result = []
 
-	while start_date <= end_date:
+	result = [[start_date, 0.0]]
+
+	while start_date < end_date:
 		next_date = get_next_expected_date(start_date, timegrain)
 		result.append([next_date, 0.0])
 		start_date = next_date
@@ -276,11 +281,8 @@ def get_result(data, timegrain, from_date, to_date):
 
 def get_next_expected_date(date, timegrain):
 	next_date = None
-	if timegrain=='Daily':
-		next_date = add_to_date(date, days=1)
-	else:
-		# given date is always assumed to be the period ending date
-		next_date = get_period_ending(add_to_date(date, days=1), timegrain)
+	# given date is always assumed to be the period ending date
+	next_date = get_period_ending(add_to_date(date, days=1), timegrain)
 	return getdate(next_date)
 
 def get_period_ending(date, timegrain):
@@ -348,8 +350,13 @@ class DashboardChart(Document):
 
 	def on_update(self):
 		frappe.cache().delete_key('chart-data:{}'.format(self.name))
+		if frappe.conf.developer_mode and self.is_standard:
+			export_to_files(record_list=[['Dashboard Chart', self.name]], record_module=self.module)
+
 
 	def validate(self):
+		if not frappe.conf.developer_mode and self.is_standard:
+			frappe.throw('Cannot edit Standard charts')
 		if self.chart_type != 'Custom' and self.chart_type != 'Report':
 			self.check_required_field()
 			self.check_document_type()

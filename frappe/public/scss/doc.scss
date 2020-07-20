@@ -276,3 +276,13 @@ $navbar-height-lg: 4.5rem;
 	padding-top: 1rem;
 	text-align: right;
 }
+
+.doc-content .breadcrumb-container {
+	padding-left: 0;
+	padding-right: 0;
+	margin-top: 3rem;
+
+	.breadcrumb {
+		margin-bottom: 0;
+	}
+}

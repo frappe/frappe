@@ -43,12 +43,14 @@ def pass_context(f):
 
 	return click.pass_context(_func)
 
-def get_site(context):
+def get_site(context, raise_err=True):
 	try:
 		site = context.sites[0]
 		return site
 	except (IndexError, TypeError):
-		raise frappe.SiteNotSpecifiedError
+		if raise_err:
+			raise frappe.SiteNotSpecifiedError
+		return None
 
 def popen(command, *args, **kwargs):
 	output    = kwargs.get('output', True)

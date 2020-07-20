@@ -52,7 +52,7 @@ def getdate(string_date=None):
 		), title=frappe._('Invalid Date'))
 
 def get_datetime(datetime_str=None):
-	if not datetime_str:
+	if datetime_str is None:
 		return now_datetime()
 
 	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
@@ -341,7 +341,7 @@ def format_datetime(datetime_string, format_string=None):
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
 
-def format_duration(seconds, show_days=True):
+def format_duration(seconds, hide_days=False):
 	total_duration = {
 		'days': math.floor(seconds / (3600 * 24)),
 		'hours': math.floor(seconds % (3600 * 24) / 3600),
@@ -349,7 +349,7 @@ def format_duration(seconds, show_days=True):
 		'seconds': math.floor(seconds % 60)
 	}
 
-	if not show_days:
+	if hide_days:
 		total_duration['hours'] = math.floor(seconds / 3600)
 		total_duration['days'] = 0
 
@@ -513,7 +513,7 @@ def remainder(numerator, denominator, precision=2):
 	else:
 		_remainder = numerator % denominator
 
-	return flt(_remainder, precision);
+	return flt(_remainder, precision)
 
 def safe_div(numerator, denominator, precision=2):
 	"""
@@ -1235,3 +1235,78 @@ def is_subset(list_a, list_b):
 
 def generate_hash(*args, **kwargs):
 	return frappe.generate_hash(*args, **kwargs)
+
+
+
+def guess_date_format(date_string):
+	DATE_FORMATS = [
+		r"%d-%m-%Y",
+		r"%m-%d-%Y",
+		r"%Y-%m-%d",
+		r"%d-%m-%y",
+		r"%m-%d-%y",
+		r"%y-%m-%d",
+		r"%d/%m/%Y",
+		r"%m/%d/%Y",
+		r"%Y/%m/%d",
+		r"%d/%m/%y",
+		r"%m/%d/%y",
+		r"%y/%m/%d",
+		r"%d.%m.%Y",
+		r"%m.%d.%Y",
+		r"%Y.%m.%d",
+		r"%d.%m.%y",
+		r"%m.%d.%y",
+		r"%y.%m.%d",
+		r"%d %b %Y",
+		r"%d %B %Y",
+	]
+
+	TIME_FORMATS = [
+		r"%H:%M:%S.%f",
+		r"%H:%M:%S",
+		r"%H:%M",
+		r"%I:%M:%S.%f %p",
+		r"%I:%M:%S %p",
+		r"%I:%M %p",
+	]
+
+	def _get_date_format(date_str):
+		for f in DATE_FORMATS:
+			try:
+				# if date is parsed without any exception
+				# capture the date format
+				datetime.datetime.strptime(date_str, f)
+				return f
+			except ValueError:
+				pass
+
+	def _get_time_format(time_str):
+		for f in TIME_FORMATS:
+			try:
+				# if time is parsed without any exception
+				# capture the time format
+				datetime.datetime.strptime(time_str, f)
+				return f
+			except ValueError:
+				pass
+
+	date_format = None
+	time_format = None
+	date_string = date_string.strip()
+
+	# check if date format can be guessed
+	date_format = _get_date_format(date_string)
+	if date_format:
+		return date_format
+
+	# date_string doesnt look like date, it can have a time part too
+	# split the date string into date and time parts
+	if " " in date_string:
+		date_str, time_str = date_string.split(" ", 1)
+
+		date_format = _get_date_format(date_str) or ''
+		time_format = _get_time_format(time_str) or ''
+
+		if date_format and time_format:
+			return (date_format + ' ' + time_format).strip()

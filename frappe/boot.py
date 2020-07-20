@@ -107,7 +107,7 @@ def load_desktop_data(bootinfo):
 	from frappe.config import get_modules_from_all_apps_for_user
 	from frappe.desk.desktop import get_desk_sidebar_items
 	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
-	bootinfo.allowed_workspaces = get_desk_sidebar_items(True)
+	bootinfo.allowed_workspaces = get_desk_sidebar_items(flatten=True, cache=False)
 	bootinfo.module_page_map = get_controller("Desk Page").get_module_page_map()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 

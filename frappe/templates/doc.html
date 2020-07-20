@@ -1,10 +1,6 @@
 {% extends "templates/base.html" %}
 {%- from "templates/includes/navbar/navbar_items.html" import render_item -%}
 
-{% macro page_content() %}
-{%- block page_content -%}{%- endblock -%}
-{% endmacro %}
-
 {%- block head_include %}
 <link rel="stylesheet" href="/assets/frappe/css/hljs-night-owl.css">
 {% endblock -%}
@@ -71,17 +67,6 @@
 
 {% block content %}
 
-{% macro main_content() %}
-<div class="page-content-wrapper">
-	{% block page_container %}
-	<main>
-		<div class="page_content page-content doc-content">
-			{{ page_content() }}
-		</div>
-	</main>
-	{% endblock %}
-</div>
-{% endmacro %}
 
 {% macro container_attributes() -%}
 id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
@@ -99,14 +84,31 @@ id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
 			</aside>
 		</div>
 		<div class="main-column doc-main col-12 col-lg-10 col-xl-8">
-			{{ main_content() }}
+			<div class="page-content-wrapper">
+				{% block page_container %}
+				<main>
+					<div class="page_content page-content doc-content">
+						{%- if add_breadcrumbs -%}
+						{% include "templates/includes/breadcrumbs.html" %}
+						{%- endif -%}
+						{%- block page_content -%}{%- endblock -%}
+					</div>
+				</main>
+				{% endblock %}
+			</div>
 		</div>
+		{%- if page_toc_html -%}
 		<div class="page-toc col-sm-2 d-none d-xl-block">
+			{% block page_toc %}
+			{% if page_toc_html %}
 			<div>
 				<h5>On this page</h5>
 				{{ page_toc_html }}
 			</div>
+			{% endif %}
+			{% endblock %}
 		</div>
+		{%- endif -%}
 	</div>
 </div>
 

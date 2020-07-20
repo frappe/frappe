@@ -1,8 +1,28 @@
+.hero-content {
+	.btn-primary {
+		margin-top: 1rem; 
+		margin-right: 0.5rem;
+
+		@include media-breakpoint-up(lg) {
+			margin-right: 1rem;
+		}
+	}
+
+	.btn-primary-light {
+		margin-top: 1rem;
+	}
+}
+
 .hero-subtitle {
 	@extend .lead;
 	font-weight: 400;
 	color: $gray-600;
 	max-width: 42rem;
+	font-size: 1rem;
+
+	@include media-breakpoint-up(sm) {
+		font-size: 1.25rem;
+	}
 }
 
 .section-description {
@@ -92,7 +112,7 @@
 	@include transition();
 
 	&:hover {
-		border-color: $gray-600;
+		border-color: $gray-500;
 	}
 
 	.card-title {
@@ -226,6 +246,50 @@
 		margin: 0 auto;
 		margin-top: 0.5rem;
 		font-size: $font-size-xs;
+	}
+}
+
+.section-small-cta {
+	padding: 1.8rem;
+	background-color: lighten($primary, 42%);
+	border-radius: 0.75rem;
+	display: flex;
+	flex-direction: column;
+	text-align: center;
+
+	@include media-breakpoint-up(sm) {
+		flex-direction: column;
+		text-align: left;
+	}
+
+	@include media-breakpoint-up(md) {
+		flex-direction: row;
+		justify-content: space-between;
+
+		div {
+			align-self: center;
+		}
+	}
+
+	.title {
+		max-width: 36rem;
+		font-size: $font-size-xl;
+		font-weight: 800;
+		line-height: 1.25;
+		@include media-breakpoint-up(md) {
+			font-size: $font-size-2xl;
+		}
+	}
+	.subtitle {
+		max-width: 36rem;
+		font-size: $font-size-base;
+		color: $gray-900;
+		margin-bottom: 1.2rem;
+
+		@include media-breakpoint-up(md) {
+			font-size: $font-size-lg;
+			margin-bottom: 0px;
+		}
 	}
 }
 

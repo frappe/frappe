@@ -8,50 +8,51 @@
 <hr>
 {% endif %}
 <table class="table table-bordered">
-    <!-- heading -->
-    <thead>
-        <tr>
-        {% for col in columns %}
-            {% if col.name && col._id !== "_check" %}
+	<!-- heading -->
+	<thead>
+		<tr>
+		{% for col in columns %}
+			{% if col.name && col._id !== "_check" %}
 			<th
 				{% if col.minWidth %}
 					style="min-width: {{ col.minWidth }}px"
 				{% endif %}
-                {% if col.docfield && frappe.model.is_numeric_field(col.docfield) %}
-                    class="text-right"
+				{% if col.docfield && frappe.model.is_numeric_field(col.docfield) %}
+					class="text-right"
 				{% endif %}
 			>
 				{{ __(col.name) }}</th>
-            {% endif %}
-        {% endfor %}
-        </tr>
-    </thead>
-    <!-- body -->
-    <tbody>
-        {% for row in data %}
-            <tr style="height: 30px">
-            {% for col in columns %}
-                {% if col.name && col._id !== "_check" %}
+			{% endif %}
+		{% endfor %}
+		</tr>
+	</thead>
+	<!-- body -->
+	<tbody>
+		{% for row in data %}
+			<tr style="height: 30px">
+			{% for col in columns %}
+				{% if col.name && col._id !== "_check" %}
 
-                    {% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
+					{% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
 
-                    <td {% if row.bold == 1 %} style="font-weight: bold" {% endif %}>
-                        <span {% if col._index == 0 %} style="padding-left: {%= cint(row.indent) * 2 %}em" {% endif %}>
-                            {{
-                                col.formatter
-                                    ? col.formatter(row._index, col._index, value, col, row, true)
-                                    : col.format
-                                        ? col.format(value, row, col, data)
-                                        : col.docfield
-                                            ? frappe.format(value, col.docfield)
-                                            : value
-                            }}
-                        </span>
-                    </td>
-                {% endif %}
-            {% endfor %}
-            </tr>
-        {% endfor %}
-    </tbody>
+					<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %}>
+						<span {% if col._index == 0 %} style="padding-left: {%= cint(row.indent) * 2 %}em" {% endif %}>
+							{% format_data = row.is_total_row ? data[0] : row %}
+							{{
+								col.formatter
+									? col.formatter(row._index, col._index, value, col, format_data, true)
+									: col.format
+										? col.format(value, row, col, format_data)
+										: col.docfield
+											? frappe.format(value, col.docfield)
+											: value
+							}}
+						</span>
+					</td>
+				{% endif %}
+			{% endfor %}
+			</tr>
+		{% endfor %}
+	</tbody>
 </table>
 

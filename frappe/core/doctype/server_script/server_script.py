@@ -42,7 +42,7 @@ class ServerScript(Document):
 
 @frappe.whitelist()
 def setup_scheduler_events(script_name, frequency):
-	method = frappe.scrub(script_name) + '_' + frequency.lower()
+	method = frappe.scrub('{0}-{1}'.format(script_name, frequency))
 	scheduled_script = frappe.db.get_value('Scheduled Job Type',
 		dict(method=method))
 

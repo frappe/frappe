@@ -278,8 +278,9 @@ def setup_source(page_info):
 	if not page_info.base_template:
 		page_info.base_template = get_base_template(page_info.route)
 
-	# if only content
-	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
+	if 	page_info.template.endswith(('.html', '.md', )) and \
+		'{%- extends' not in source and '{% extends' not in source:
+		# set the source only if it contains raw content
 		html = source
 
 		# load css/js files
@@ -299,7 +300,11 @@ def setup_source(page_info):
 					css = f.read()
 				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
 
-	page_info.source = html
+	if html:
+		page_info.source = html
+		page_info.base_template =  page_info.base_template or 'templates/web.html'
+	else:
+		page_info.source = ''
 
 	# show table of contents
 	setup_index(page_info)

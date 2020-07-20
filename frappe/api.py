@@ -159,14 +159,14 @@ def validate_auth():
 	authorization_type = authorization_header[0].lower()
 
 	if len(authorization_header) == 1:
-		frappe.throw(_('Invalid Authorization headers, add a token with a prefix from one of the following: {0}.'.format(VALID_AUTH_PREFIX_STRING)), frappe.InvalidAuthorizationHeader)
+		frappe.throw(_('Invalid Authorization headers, add a token with a prefix from one of the following: {0}.').format(VALID_AUTH_PREFIX_STRING), frappe.InvalidAuthorizationHeader)
 
 	if authorization_type == "bearer":
 		validate_oauth(authorization_header)
 	elif authorization_type in VALID_AUTH_PREFIX_TYPES:
 		validate_auth_via_api_keys(authorization_header)
 	else:
-		frappe.throw(_('Invalid Authorization Type {0}, must be one of {1}.'.format(authorization_type, VALID_AUTH_PREFIX_STRING)), frappe.InvalidAuthorizationPrefix)
+		frappe.throw(_('Invalid Authorization Type {0}, must be one of {1}.').format(authorization_type, VALID_AUTH_PREFIX_STRING), frappe.InvalidAuthorizationPrefix)
 
 
 def validate_oauth(authorization_header):
@@ -245,5 +245,6 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 			)
 		else:
 			user = frappe.db.get_value(doctype, doc, 'user')
-		frappe.set_user(user)
+		if frappe.local.login_manager.user in ('', 'Guest'):
+			frappe.set_user(user)
 		frappe.local.form_dict = form_dict
