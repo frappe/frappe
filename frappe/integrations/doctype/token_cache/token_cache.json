@@ -35,13 +35,13 @@
   },
   {
    "fieldname": "access_token",
-   "fieldtype": "Small Text",
+   "fieldtype": "Password",
    "label": "Access Token",
    "read_only": 1
   },
   {
    "fieldname": "refresh_token",
-   "fieldtype": "Small Text",
+   "fieldtype": "Password",
    "label": "Refresh Token",
    "read_only": 1
   },
@@ -78,7 +78,7 @@
   }
  ],
  "links": [],
- "modified": "2020-07-17 20:10:40.268067",
+ "modified": "2020-07-21 00:32:56.225300",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Token Cache",
