@@ -30,7 +30,7 @@ class ConnectedApp(Document):
 		return OAuth2Session(
 			self.client_id,
 			redirect_uri=self.redirect_uri,
-			scope=[row.scope for row in self.scopes]
+			scope=self.get_scopes()
 		)
 
 	def initiate_web_application_flow(self, user=None, success_uri=None):
@@ -100,6 +100,8 @@ class ConnectedApp(Document):
 	def get_stored_user_token(self, user):
 		return frappe.get_doc('Token Cache', self.name + '-' + user)
 
+	def get_scopes(self):
+		return [row.scope for row in self.scopes]
 
 @frappe.whitelist(allow_guest=True)
 def callback(code=None, state=None):
