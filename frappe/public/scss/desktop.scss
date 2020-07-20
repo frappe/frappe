@@ -1,5 +1,3 @@
-$disabled-background: var(--gray-100);
-
 html, body {
 	background-color: var(--bg-color);
 }
@@ -8,22 +6,20 @@ html, body {
 	.list-sidebar-label {
 		margin-bottom: 1rem;
 	}
+
 	.desk-sidebar-item {
+		@include flex(flex, null, center, null);
 		display: flex;
 		align-items: center;
 		font-size: var(--text-base);
 		padding: 8px 12px;
-		margin-bottom: 1px;
-		border-radius: 4px;
+		margin-bottom: 2px;
+		border-radius: var(--border-radius-md);
 		cursor: pointer;
 
 		&:focus {
 			background-color: var(--sidebar-select-color);
 			outline: 0;
-		}
-
-		&:first-child {
-			margin-top: 100px;
 		}
 
 		&:hover {
@@ -40,29 +36,20 @@ html, body {
 		}
 
 		svg {
-			margin-right: 0.875rem;
+			margin-right: var(--margin-sm);
 		}
 	}
 }
 
 .desk-page {
-	padding: 15px;
-}
-
-.frappe-rtl {
-	.desk-body {
-		padding-left: 0px;
-		padding-right: calc(20rem + 15px);
-	}
+	padding: var(--padding-md);
 }
 
 .widget-group {
-	margin-bottom: 40px;
+	margin-bottom: var(--margin-2xl);
 
 	.widget-group-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		@include flex(flex, space-between, center, null);
 
 		.widget-group-title {
 			color: var(--heading-color);
@@ -74,7 +61,7 @@ html, body {
 
 	.legend {
 		display: flex;
-		padding: 15px;
+		padding: var(--padding-md);
 
 		.legend-item {
 			margin-right: 20px;
@@ -114,8 +101,7 @@ html, body {
 
 	@media (max-width: 768px) {
 		.legend {
-			display: flex;
-			flex-direction: column;
+			@include flex(flex, null, null, column);
 
 			.legend-item {
 				margin-right: 20px;
@@ -137,33 +123,29 @@ html, body {
 }
 
 .widget {
-	display: flex;
-	flex-direction: column;
+	@include flex(flex, null, null, column);
 	min-height: 1px;
 	padding: 15px;
 	border-radius: var(--border-radius-md);
 	height: 100%;
-	box-shadow: var(--card-shadow);
+	box-shadow: var(--shadow-sm);
 	background-color: var(--card-bg);
 
 	&.widget-shadow {
 		&:hover {
-			box-shadow: 0px 2px 8px rgba(17, 43, 66, 0.1), 0px 3px 12px rgba(17, 43, 66, 0.08);
+			box-shadow: var(--shadow-md);
 		}
 	}
 
 	&.border {
-		border: 1px solid $border-color;
+		border: 1px solid var(--border-color);
 	}
 
 	.widget-head {
-		display: flex;
-		justify-content: space-between;
+		@include flex(flex, space-between, center, null);
 
 		.widget-title {
-			display: flex;
-			align-self: center;
-			align-items: center;
+			@include flex(flex, null, center, null);
 			font-size: var(--text-lg);
 			font-family: inherit;
 			font-weight: 500;
@@ -176,9 +158,7 @@ html, body {
 			}
 		}
 		.widget-control {
-			align-self: center;
-			display: flex;
-			flex-direction: row-reverse;
+			@include flex(flex, null, center, row-reverse);
 
 			// Any immidiate child
 			>* {
@@ -213,18 +193,17 @@ html, body {
 	}
 
 	&.sortable-ghost {
-		background-color: $disabled-background;
-		border-color: $disabled-background
+		background-color: var(--gray-100);
+		border-color: var(--gray-100)
 	}
 
 	&.new-widget {
+		@include flex(flex, center, center, null);
 		min-height: 65px;
-		background-color: $disabled-background;
+		box-shadow: none;
+		background-color: var(--gray-100);
 		color: var(--text-muted);
 		border: 1px dashed var(--gray-300);
-		display: flex;
-		align-content: center;
-		justify-content: center;
 		cursor: pointer;
 	}
 
@@ -232,7 +211,7 @@ html, body {
 	&.dashboard-widget-box {
 		min-height: 240px;
 		padding: 10px 15px;
-		box-shadow: $card-box-shadow;
+		box-shadow: var(--shadow-sm);
 
 		.chart-container {
 			margin-right: -10px;
@@ -455,16 +434,13 @@ html, body {
 			text-align: left;
 
 			.number-card-loading {
-				display: flex;
+				@include flex(flex, space-between, center, null);
 				height: 50px;
-				align-items: center;
-				justify-content: center;
 			}
 
 			.widget-content {
+				@include flex(flex, space-between, null, null);
 				padding-top: 25px;
-				display: flex;
-				justify-content: space-between;
 
 				.number {
 					font-weight: 600;
@@ -480,9 +456,7 @@ html, body {
 				}
 
 				.card-stats {
-					display: flex;
-					flex-direction: column;
-					align-items: flex-end;
+					@include flex(flex, null, flex-end, column);
 				}
 
 				.percentage-stat-area {
@@ -551,146 +525,6 @@ html, body {
 	border-radius: 10px;
 }
 
-@-webkit-keyframes smallBounce {
-  from,
-  20%,
-  53%,
-  80%,
-  to {
-    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-  }
-
-  40%,
-  43% {
-    -webkit-animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    -webkit-transform: translate3d(0, -12px, 0);
-    transform: translate3d(0, -12px, 0);
-  }
-
-  70% {
-    -webkit-animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    -webkit-transform: translate3d(0, -6px, 0);
-    transform: translate3d(0, -6px, 0);
-  }
-
-  90% {
-    -webkit-transform: translate3d(0, -4px, 0);
-    transform: translate3d(0, -4px, 0);
-  }
-}
-
-@keyframes smallBounce {
-  from,
-  20%,
-  53%,
-  80%,
-  to {
-    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-  }
-
-  40%,
-  43% {
-    -webkit-animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    -webkit-transform: translate3d(0, -12px, 0);
-    transform: translate3d(0, -12px, 0);
-  }
-
-  70% {
-    -webkit-animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    -webkit-transform: translate3d(0, -6px, 0);
-    transform: translate3d(0, -6px, 0);
-  }
-
-  90% {
-    -webkit-transform: translate3d(0, -4px, 0);
-    transform: translate3d(0, -4px, 0);
-  }
-}
-
-.small-bounce {
-  -webkit-animation-name: smallBounce;
-  animation-name: smallBounce;
-  -webkit-transform-origin: center bottom;
-  transform-origin: center bottom;
-  animation-duration: 1s;
-}
-
-@-webkit-keyframes slideInUp {
-  from {
-    -webkit-transform: translate3d(0, 100%, 0);
-    transform: translate3d(0, 100%, 0);
-    visibility: visible;
-  }
-
-  to {
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes slideInUp {
-  from {
-    -webkit-transform: translate3d(0, 100%, 0);
-    transform: translate3d(0, 100%, 0);
-    visibility: visible;
-  }
-
-  to {
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-.slide-in-up {
-  -webkit-animation-name: slideInUp;
-  animation-name: slideInUp;
-  animation-duration: 1s;
-}
-
-
-@-webkit-keyframes pulse {
-  from {
-    -webkit-transform: scale3d(1, 1, 1);
-    transform: scale3d(1, 1, 1);
-  }
-
-  50% {
-    -webkit-transform: scale3d(1.05, 1.05, 1.05);
-    transform: scale3d(1.05, 1.05, 1.05);
-  }
-
-  to {
-    -webkit-transform: scale3d(1, 1, 1);
-    transform: scale3d(1, 1, 1);
-  }
-}
-
-@keyframes pulse {
-  from {
-    -webkit-transform: scale3d(1, 1, 1);
-    transform: scale3d(1, 1, 1);
-  }
-
-  50% {
-    -webkit-transform: scale3d(1.05, 1.05, 1.05);
-    transform: scale3d(1.05, 1.05, 1.05);
-  }
-
-  to {
-    -webkit-transform: scale3d(1, 1, 1);
-    transform: scale3d(1, 1, 1);
-  }
-}
 
 .zoomOutDelete {
   transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
