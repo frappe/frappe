@@ -258,7 +258,9 @@ class EMail:
 		"""validate, build message and convert to string"""
 		self.validate()
 		self.make()
-		return self.msg_root.as_string(policy=policy.SMTPUTF8)
+		if PY3:
+			return self.msg_root.as_string(policy=policy.SMTPUTF8)
+		return self.msg_root.as_string()
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
 		email_account=None, header=None, unsubscribe_link=None, sender=None):
