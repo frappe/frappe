@@ -14,7 +14,7 @@
 		&.add-new-column {
 			order: 1;
 			border-right: none;
-			background-color: var(--grey-50);
+			background-color: var(--gray-50);
 		}
 	}
 
@@ -64,7 +64,7 @@
 
 	.kanban-column-title {
 		font-size: $font-size-lg;
-		color: var(--grey-900);
+		color: var(--gray-900);
 		display: flex;
 		align-items: center;
 		font-weight: normal;
@@ -104,8 +104,8 @@
 		justify-content: center;
 		display: flex;
 		align-items: center;
-		color: var(--grey-700);
-		background-color: var(--grey-100);
+		color: var(--gray-700);
+		background-color: var(--gray-100);
 		box-shadow: none;
 		height: 28px;
 		border-radius: 8px;

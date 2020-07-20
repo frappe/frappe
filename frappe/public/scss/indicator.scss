@@ -83,19 +83,19 @@
 .indicator-pill.grey,
 .indicator-pill-right.grey,
 .indicator-pill-round.grey {
-	background: var(--grey-100);
-	color: var(--grey-600);
+	background: var(--gray-100);
+	color: var(--gray-600);
 	&::before, &::after {
-		background: var(--grey-600);
+		background: var(--gray-600);
 	}
 }
 
 .indicator-pill.darkgrey,
 .indicator-pill-right.darkgrey {
-	background: var(--grey-200);
-	color: var(--grey-600);
+	background: var(--gray-200);
+	color: var(--gray-600);
 	&::before, &::after {
-		background: var(--grey-700);
+		background: var(--gray-700);
 	}
 }
 

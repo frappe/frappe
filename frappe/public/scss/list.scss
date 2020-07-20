@@ -158,7 +158,7 @@
 }
 
 .list-paging-area, .footnote-area {
-	padding: $padding-md;
+	padding: var(--padding-md);
 	border-top: 1px solid $border-color;
 	overflow: auto;
 }

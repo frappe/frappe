@@ -11,7 +11,7 @@
 	min-height: 50px;
 	max-height: 200px;
 	background-color: $white;
-	
+
 	-webkit-animation-name: backInRight;
 	animation-name: backInRight;
 	animation-duration: 600ms;
@@ -26,11 +26,11 @@
 
 	.alert-message-container {
 		padding: 16px 40px 16px 16px;
-		
+
 		.icon {
 			margin-right: 10px;
 		}
-		
+
 		.alert-title-container {
 			display: flex;
 			align-items: center;
@@ -38,7 +38,7 @@
 
 		.alert-message {
 			font-weight: 500;
-			color: var(--grey-900);
+			color: var(--gray-900);
 			line-height: 20px;
 		}
 
@@ -71,9 +71,9 @@
 			font-size: 12px;
 			font-weight: 500;
 			color: $text-muted;
-			
+
 			&:hover {
-				color: var(--grey-900)
+				color: var(--gray-900)
 			}
 
 			&:last-child {
@@ -81,7 +81,7 @@
 			}
 		}
 	}
-	
+
 	&.out {
 		-webkit-animation-name: backOutRight;
 		animation-name: backOutRight;

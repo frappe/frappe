@@ -20,7 +20,7 @@
 
 th.fc-widget-header {
 	border: none !important;
-	color: var(--grey-500);
+	color: var(--gray-500);
 	font-weight: 600;
 }
 
@@ -34,11 +34,11 @@ th.fc-widget-header {
 .fc-unthemed tbody,
 .fc-unthemed .fc-row,
 .fc-unthemed .fc-popover {
-	border-color: var(--grey-300) !important;
+	border-color: var(--gray-300) !important;
 }
 
 .fc-unthemed td.fc-sun {
-	background: var(--grey-50);
+	background: var(--gray-50);
 }
 
 .fc-unthemed .fc-today {
@@ -146,7 +146,7 @@ th.fc-day-header {
 
 .fc-state-active {
 	box-shadow: none !important;
-	background: var(--grey-500) !important;
+	background: var(--gray-500) !important;
 	color: white !important;
 	z-index: 0 !important;
 }

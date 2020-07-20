@@ -50,11 +50,11 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-menu {
-		margin-top: $margin-lg;
+		margin-top: var(--margin-lg);
 		.sidebar-label {
-			margin-bottom: $margin-sm;
+			margin-bottom: var(--margin-sm);
 			font-weight: 500;
-			color: var(--grey-900);
+			color: var(--gray-900);
 		}
 	}
 }
@@ -324,7 +324,7 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.list-sidebar-label {
-		color: var(--grey-600);
+		color: var(--gray-600);
 		text-transform: uppercase;
 		letter-spacing: 0.04rem;
 		font-size: var(--text-xs);
@@ -395,43 +395,43 @@ body[data-route^="Module"] .main-menu {
 }
 
 .assignment-row, .attachment-row, .form-tag-row {
-	margin-bottom: $margin-sm;
-	margin-right: $margin-xs;
+	margin-bottom: var(--margin-sm);
+	margin-right: var(--margin-xs);
 	display: inline-block;
 	max-width: 100%;
 }
 
 .data-pill {
 	.remove-btn {
-		margin-left: $margin-xs;
+		margin-left: var(--margin-xs);
 	}
-	background-color: var(--grey-2-50);
+	background-color: var(--gray-50);
 	border-radius: var(--border-radius);
-	padding: $padding-xs $padding-sm;
+	padding: var(--padding-xs) var(--padding-sm);
 	color: $gray-800;
 	display: flex;
 }
 
 .add-assignment-btn, .add-attachment-button {
-	margin-bottom: $margin-sm;
+	margin-bottom: var(--margin-sm);
 	display: inline-block;
 	.btn {
-		padding: $padding-xs;
+		padding: var(--padding-xs);
 	}
 }
 
 .form-reviews {
 	.review-row {
 		font-weight: 500;
-		margin-bottom: $margin-sm;
+		margin-bottom: var(--margin-sm);
 		cursor: pointer;
 	}
 	.add-review-btn {
 		height: 28px;
 		width: 28px;
 		border-radius: var(--border-radius);
-		border: 1px dashed var(--grey-300);
-		background: var(--grey-50);
+		border: 1px dashed var(--gray-300);
+		background: var(--gray-50);
 		text-align: center;
 		padding: 3px;
 	}
@@ -506,14 +506,14 @@ body[data-route^="Module"] .main-menu {
 }
 
 .tags-input {
-	margin-bottom: $margin-sm;
+	margin-bottom: var(--margin-sm);
 	font-size: var(--text-md);
 	border: none;
 	outline: none;
 }
 
 .tags-placeholder {
-	margin-bottom: $margin-sm;
+	margin-bottom: var(--margin-sm);
 	display: inline-block;
 	font-size: var(--text-md);
 }

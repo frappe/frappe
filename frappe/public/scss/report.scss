@@ -102,12 +102,12 @@
 }
 
 .comparison-message {
-	margin-left: $margin-sm;
+	margin-left: var(--margin-sm);
 	font-size: $font-size-md;
 }
 
 .list-count {
-	margin-right: $margin-sm;
+	margin-right: var(--margin-sm);
 	font-size: $font-size-md;
 }
 
@@ -117,7 +117,7 @@
 	font-size: var(--text-md);
 
 	.group-by-box {
-		padding: $margin-xs $margin-md $margin-xs 0;
+		padding: var(--margin-xs) var(--margin-md) var(--margin-xs) 0;
 
 		.remove-group-by {
 			line-height: 2em;

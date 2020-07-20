@@ -102,7 +102,7 @@
 			cursor: pointer;
 
 			&.active {
-				color: var(--grey-800);
+				color: var(--gray-800);
 				border-bottom: 1px solid $primary;
 			}
 		}
@@ -132,7 +132,7 @@
 	&:not(.no-hover):hover {
 		color: $text-muted;
 		text-decoration: none;
-		background-color: var(--grey-100);
+		background-color: var(--gray-100);
 	}
 }
 
@@ -154,7 +154,7 @@
 
 	b {
 		font-weight: 500;
-		color: var(--grey-800)
+		color: var(--gray-800)
 	}
 
 	.notification-timestamp {
@@ -183,7 +183,7 @@
 
 		.event-subject {
 			font-size: var(--text-md);
-			color: var(--grey-800);
+			color: var(--gray-800);
 			font-weight: 500;
 		}
 
@@ -199,7 +199,7 @@
 
 	&:hover {
 		.avatar-frame {
-			border-color: var(--grey-100);
+			border-color: var(--gray-100);
 		}
 	}
 }
@@ -228,7 +228,7 @@
 		.target-title {
 			margin: auto;
 			font-size: var(--text-md);
-			color: var(--grey-800);
+			color: var(--gray-800);
 		}
 
 		.target-progress {

@@ -1,4 +1,4 @@
-$disabled-background: var(--grey-100);
+$disabled-background: var(--gray-100);
 $panel-bg: $gray-50;
 
 .desk-sidebar {
@@ -63,7 +63,7 @@ $panel-bg: $gray-50;
 		justify-content: space-between;
 
 		.widget-group-title {
-			color: var(--grey-900);
+			color: var(--gray-900);
 			font-weight: 600;
 			font-size: var(--text-lg);
 			margin-bottom: 1.2rem;
@@ -166,7 +166,7 @@ $panel-bg: $gray-50;
 			font-family: inherit;
 			font-weight: 500;
 			line-height: 1.3em;
-			color: var(--grey-900);
+			color: var(--gray-900);
 
 			svg {
 				margin-right: 6px;
@@ -219,7 +219,7 @@ $panel-bg: $gray-50;
 		min-height: 65px;
 		background-color: $disabled-background;
 		color: $text-muted;
-		border: 1px dashed var(--grey-300);
+		border: 1px dashed var(--gray-300);
 		display: flex;
 		align-content: center;
 		justify-content: center;
@@ -382,14 +382,14 @@ $panel-bg: $gray-50;
 		.link-item {
 			display: block;
 			text-decoration: none;
-			color: var(--grey-900);
+			color: var(--gray-900);
 			padding: 5px;
 			margin: 3px 0px;
 			border-radius: 6px;
 			cursor: pointer;
 
 			&:hover {
-				background-color: var(--grey-50);
+				background-color: var(--gray-50);
 
 				.indicator-pill,
 				.indicator-pill-right {
@@ -439,7 +439,7 @@ $panel-bg: $gray-50;
 
 			.widget-title {
 				font-weight: 500;
-				color: var(--grey-900);
+				color: var(--gray-900);
 				font-size: var(--text-base);
 				margin-top: -5px;
 			}
@@ -473,7 +473,7 @@ $panel-bg: $gray-50;
 					font-weight: 600;
 					font-size: 22px;
 					line-height: 2.4em;
-					color: var(--grey-800);
+					color: var(--gray-800);
 				}
 
 				.number-text {
@@ -522,7 +522,7 @@ $panel-bg: $gray-50;
 				}
 
 				.grey-stat {
-					color: var(--grey-600);
+					color: var(--gray-600);
 				}
 			}
 		}

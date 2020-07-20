@@ -1,14 +1,14 @@
 .navbar {
 	height: $navbar-height;
-	background: white;
-	box-shadow: $box-shadow;
+	background: var(--fg-color);
+	box-shadow: inset 0px -1px 0px var(--gray-100);
 
 	.navbar-brand {
 		padding: 0rem 1rem;
 	}
 
 	.vertical-bar {
-		border-right: 1px solid var(--grey-200);
+		border-right: 1px solid var(--gray-200);
 		height: 24px;
 		margin: auto;
 	}
@@ -45,7 +45,7 @@
 		height: 32px;
 		font-size: var(--text-md);
 		&::placeholder {
-			color: var(--grey-700)
+			color: var(--gray-700)
 		}
 	}
 	input:focus {

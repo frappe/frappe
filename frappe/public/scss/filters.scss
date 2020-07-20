@@ -11,7 +11,7 @@
 }
 
 .filter-box {
-	padding: $padding-xs $padding-md $padding-xs 0;
+	padding: var(--padding-xs) var(--padding-md) var(--padding-xs) 0;
 
 	.form-group {
 		@include media-breakpoint-up(xs) {
