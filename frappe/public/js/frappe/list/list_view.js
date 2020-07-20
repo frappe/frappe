@@ -310,6 +310,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
+
+		this.columns.push({
+			type: "Tag"
+		});
+
 		// 2nd column: Status indicator
 		if (frappe.has_indicator(this.doctype)) {
 			// indicator
@@ -370,19 +375,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 			});
 		}
-
-		this.columns.push({
-			type: "Tag"
-		});
 	}
 
 	reorder_listview_fields() {
 		let fields_order = [];
 		let fields = JSON.parse(this.list_view_settings.fields);
 
-		//title_field is fixed
+		//title and tags field is fixed
 		fields_order.push(this.columns[0]);
-		this.columns.splice(0, 1);
+		fields_order.push(this.columns[1]);
+		this.columns.splice(0, 2);
 
 		for (let fld in fields) {
 			for (let col in this.columns) {
@@ -673,7 +675,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (col.type === "Tag") {
 			const tags_display_class = !this.tags_shown ? 'hide' : '';
-			let tags_html = doc._user_tags ? this.get_tags_html(doc._user_tags) : ''
+			let tags_html = doc._user_tags ? this.get_tags_html(doc._user_tags) : '<div class="tags-empty">-</div>';
 			return `
 				<div class="list-row-col tag-col ${tags_display_class} hidden-xs ellipsis">
 					${tags_html}
@@ -792,10 +794,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_tags_html(user_tags) {
 		let get_tag_html = tag => {
 			if (tag) {
-				return `<div class="tag-pill">${tag}</div>`;
+				return `<div class="tag-pill ellipsis">${tag}</div>`;
 			}
 		}
-		return user_tags.split(',').map(get_tag_html).join('');
+		return user_tags.split(',').slice(1, 3).map(get_tag_html).join('');
 	}
 
 	get_meta_html(doc) {
@@ -814,7 +816,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			`;
 		}
 
-		const modified = comment_when(doc.modified);
+		const modified = comment_when(doc.modified, true);
 
 		const last_assignee = JSON.parse(doc._assign || "[]").slice(-1)[0];
 		const assigned_to = last_assignee

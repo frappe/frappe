@@ -1,5 +1,9 @@
+// .layout-main-section {
+// 	overflow: hidden;
+
+// }
+
 .frappe-list {
-	background-color: white;
 	.result, .no-result, .freeze {
 		min-height: #{"calc(100vh - 284px)"};
 	}
@@ -76,8 +80,8 @@
 }
 
 .list-row {
-	padding: 12px 15px;
-	height: 40px;
+	padding: 15px;
+	height: 45px;
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
@@ -91,12 +95,28 @@
 	}
 
 	.level-left {
-		flex: 3;
-		min-width: 75%;
+		flex: 4;
+		min-width: 80%;
 	}
 	.level-right {
-		flex: 1;
+		flex: 1.5;
 	}
+
+	.tag-col {
+		margin-left: 10px;
+		min-width: 125px;
+		justify-content: start;
+	}
+
+	.tags-empty {
+		padding: 5px;
+		line-height: 14px;
+	}
+
+	// .list-tags {
+	// 	margin-right: var(--margin-sm);
+	// 	min-width: 60px;
+	// }
 
 	.list-row-activity {
 		justify-content: flex-end;
@@ -117,7 +137,7 @@
 		.frappe-timestamp {
 			font-size: var(--text-xs);
 			white-space: nowrap;
-			min-width: 80px;
+			min-width: 30px;
 		}
 	}
 
@@ -159,7 +179,6 @@
 
 .list-paging-area, .footnote-area {
 	padding: var(--padding-md);
-	border-top: 1px solid $border-color;
 	overflow: auto;
 }
 
@@ -312,15 +331,14 @@ input.list-check-all, input.list-row-checkbox {
 
 .page-form {
 	justify-content: space-between;
-
 	// .awesomplete > ul {
 	// 	min-width: 300px;
 	// }
 
 	.standard-filter-section {
 		flex-wrap: wrap;
-		width: 65%;
-		// flex: 1;
+		// width: 65%;
+		flex: 1;
 
 		.form-group {
 			min-width: 150px;
@@ -329,6 +347,7 @@ input.list-check-all, input.list-row-checkbox {
 
 	.filter-section {
 		display: flex;
+		padding: 0 var(--padding-xs);
 	}
 
 	.filter-button {
