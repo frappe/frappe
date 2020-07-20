@@ -3,12 +3,9 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import requests
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from datetime import datetime, timedelta
-from urllib.parse import urlencode
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
 

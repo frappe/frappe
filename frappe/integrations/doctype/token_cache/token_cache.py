@@ -23,9 +23,9 @@ class TokenCache(Document):
 			raise frappe.exceptions.DoesNotExistError
 
 		if not self.is_expired():
-			return token
+			return self
 
-		return self.refresh_token(token)
+		return self.refresh_token()
 
 	def refresh_token(self):
 		app = frappe.get_doc("Connected App", self.connected_app)
@@ -70,7 +70,7 @@ class TokenCache(Document):
 		return self
 
 	def get_expires_in(self):
-		expiry_time = self.modified + datetime.timedelta(self.expires_in)
+		expiry_time = self.modified + timedelta(self.expires_in)
 		return (datetime.now() - expiry_time).total_seconds()
 
 	def is_expired(self):
