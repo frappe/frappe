@@ -59,8 +59,8 @@ class ConnectedApp(Document):
 		oauth = OAuth2Session(client=client)
 		token = oauth.fetch_token(
 			token_url=self.token_endpoint,
-			client_id=self.client_id,
-			client_secret=self.get_password('client_secret')
+			client_secret=self.get_password('client_secret'),
+			include_client_id=True
 		)
 
 		try:
@@ -99,7 +99,7 @@ class ConnectedApp(Document):
 
 	def get_stored_user_token(self, user):
 		return frappe.get_doc('Token Cache', self.name + '-' + user)
-
+	
 	def get_scopes(self):
 		return [row.scope for row in self.scopes]
 
@@ -132,7 +132,8 @@ def callback(code=None, state=None):
 	oauth = app.get_oauth2_session()
 	token = oauth.fetch_token(app.token_endpoint,
 		code=code,
-		client_secret=app.get_password('client_secret')
+		client_secret=app.get_password('client_secret'),
+		include_client_id=True
 	)
 	token_cache.update_data(token)
 
