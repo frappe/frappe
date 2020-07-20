@@ -117,7 +117,6 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--purple-100: #EAEAFB;
 	--purple-50: #F2F2FD;
 
-	--card-shadow: 0px 0px 0.5px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.13);
 
 	--padding-xs: 5px;
 	--padding-sm: 10px;
@@ -141,6 +140,13 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--text-xl: 18px;
 	--text-2xl: 20px;
 
+	--shadow-sm: 0px 0px 0.5px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.13);
+	--shadow-md: 0px 1px 2px rgba(25, 39, 52, 0.05), 0px 0px 4px rgba(25, 39, 52, 0.1);
+	--shadow-base:  0px 4px 8px rgba(25, 39, 52, 0.06), 0px 0px 4px rgba(25, 39, 52, 0.12);
+	--shadow-lg:  0px 8px 14px rgba(25, 39, 52, 0.08), 0px 2px 6px rgba(25, 39, 52, 0.04);
+	--shadow-xl: 0px 18px 22px rgba(25, 39, 52, 0.1), 0px 1px 10px rgba(0, 0, 0, 0.06), 0px 0.5px 5px rgba(25, 39, 52, 0.04);
+	--card-shadow: var(--shadow-sm);
+
 	// Type Colors
 	--text-muted: var(--gray-600);
 	--text-light: var(--gray-700);
@@ -159,7 +165,7 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--modal-bg: white;
 	--toast-bg: var(--modal-bg);
 
-	--sidebar-select-color: var(--gray-100);
+	--sidebar-select-color: var(--gray-200);
 
 	--shadow-inset: var(--gray-100);
 	--border-color: var(--gray-100);
