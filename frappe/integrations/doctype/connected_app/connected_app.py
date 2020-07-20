@@ -55,7 +55,7 @@ class ConnectedApp(Document):
 
 	def initiate_backend_application_flow(self):
 		"""Retrieve token without user interaction. Token is not user specific."""
-		client = BackendApplicationClient(client_id=self.client_id)
+		client = BackendApplicationClient(client_id=self.client_id, scope=self.get_scopes())
 		oauth = OAuth2Session(client=client)
 		token = oauth.fetch_token(
 			token_url=self.token_endpoint,
