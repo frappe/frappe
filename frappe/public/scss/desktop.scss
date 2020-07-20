@@ -196,6 +196,7 @@ $panel-bg: $gray-50;
 			}
 
 			.dashboard-date-field {
+				width: 130px;
 				height: 27px;
 
 				.clearfix, .help-box {
@@ -229,7 +230,7 @@ $panel-bg: $gray-50;
 	// Overrides for each widgets
 	&.dashboard-widget-box {
 		min-height: 240px;
-		padding: 10px 15px;
+		padding: var(--padding-sm) var(--padding-md);
 		box-shadow: $card-box-shadow;
 
 		.chart-container {
@@ -250,15 +251,15 @@ $panel-bg: $gray-50;
 		.widget-subtitle {
 			font-size: $font-size-sm;
 			color: $text-muted;
-			margin-top: 5px;
+			margin-top: var(--margin-xs);
 		}
 
 		.widget-head {
-			padding: 10px;
+			padding: var(--padding-sm);
 		}
 
 		.widget-control {
-			margin-top: -10px;
+			margin-top: var(--margin-md);
 		}
 
 		.chart-loading-state {
@@ -433,7 +434,7 @@ $panel-bg: $gray-50;
 	&.number-widget-box {
 		cursor: pointer;
 		height: 115px;
-		padding: 20px;
+		padding: var(--padding-lg);
 
 		.widget-head {
 
@@ -441,12 +442,13 @@ $panel-bg: $gray-50;
 				font-weight: 500;
 				color: var(--gray-900);
 				font-size: var(--text-base);
-				margin-top: -5px;
+				margin-top: var(--margin-xs);
 			}
 
 			.widget-control {
 				right: -10px;
 				top: -10px;
+				height: 0px;
 			}
 
 			.card-actions {
@@ -465,7 +467,7 @@ $panel-bg: $gray-50;
 			}
 
 			.widget-content {
-				padding-top: 25px;
+				padding-top: 27px;
 				display: flex;
 				justify-content: space-between;
 
@@ -478,8 +480,8 @@ $panel-bg: $gray-50;
 
 				.number-text {
 					color: $text-muted;
-					padding: 5px;
-					font-size: 14px;
+					padding: var(--padding-xs);
+					font-size: $font-size-base;
 				}
 
 				.card-stats {
@@ -489,7 +491,7 @@ $panel-bg: $gray-50;
 				}
 
 				.percentage-stat-area {
-					font-size: 12px;
+					font-size: $font-size-sm;
 
 					.indicator-pill-round {
 						height: 18px;
@@ -502,14 +504,14 @@ $panel-bg: $gray-50;
 					}
 
 					.percentage-stat {
-						margin-left: 5px;
+						margin-left: var(--margin-xs);
 						vertical-align: bottom;
 						font-weight: 500;
 					}
 				}
 
 				.stat-period {
-					margin-top: 5px;
+					margin-top: var(--margin-xs);
 					font-size: 11px;
 				}
 
