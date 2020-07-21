@@ -420,7 +420,6 @@ frappe.setup_search = function (target, search_scope) {
 			clear_dropdown();
 			return;
 		}
-		console.log(search_scope);
 
 		frappe.call({
 			method: 'frappe.search.web_search',
