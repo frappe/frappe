@@ -15,8 +15,18 @@
 	stroke: var(--gray-700);
 }
 
-#icon-heart {
-	stroke: var(--gray-500);
+/* like icon */
+use.like-icon {
+	cursor: pointer;
+	stroke: var(--gray-600);
+	fill: white;
+}
+
+.liked {
+	use.like-icon {
+		stroke: none;
+		fill: var(--red-500);
+	}
 }
 
 .icon-xs {
