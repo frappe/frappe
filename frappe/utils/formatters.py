@@ -94,8 +94,4 @@ def format_value(value, df=None, doc=None, currency=None, translated=False):
 		hide_days = df.hide_days
 		return format_duration(value, hide_days)
 
-	elif df.get("fieldtype") == 'Text Editor':
-		if "ql-editor read-mode" not in value:
-			value = "<div class='ql-editor read-mode'>{value}</div>".format(value=value)
-
 	return value
