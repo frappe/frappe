@@ -392,12 +392,10 @@ export default class GridRow {
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 
 		var field_on_change_function = field.df.onchange;
-
 		field.df.onchange = function(e) {
 			field_on_change_function && field_on_change_function(e);
 			me.grid.grid_rows[this.doc.idx - 1].refresh_field(this.df.fieldname);
 		};
-
 		field.refresh();
 		if(field.$input) {
 			field.$input
