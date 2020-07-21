@@ -291,7 +291,7 @@ frappe.scrub = function(text, spacer='_') {
 
 frappe.get_data_pill = (label, target_id=null, remove_action=null) => {
 	let data_pill_wrapper = $(`
-		<div class="data-pill">
+		<div class="data-pill btn">
 			<span class="pill-label ellipsis">${label}</span>
 		</div>
 	`);
