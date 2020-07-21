@@ -54,7 +54,7 @@ frappe.ui.form.Sidebar = class {
 		});
 
 		this.like_icon.on("click", function() {
-			frappe.ui.toggle_like(me.like_icon, me.frm.doctype, me.frm.doc.name, function() {
+			frappe.ui.toggle_like(me.like_wrapper, me.frm.doctype, me.frm.doc.name, function() {
 				me.refresh_like();
 			});
 		});
@@ -200,9 +200,9 @@ frappe.ui.form.Sidebar = class {
 
 	make_like() {
 		this.like_wrapper = this.sidebar.find(".liked-by");
-		this.like_icon = this.sidebar.find(".liked-by .octicon-heart");
+		this.like_icon = this.sidebar.find(".liked-by .like-icon");
 		this.like_count = this.sidebar.find(".liked-by .likes-count");
-		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".liked-by");
+		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".like-icon");
 	}
 
 	make_follow() {
@@ -218,9 +218,10 @@ frappe.ui.form.Sidebar = class {
 		}
 
 		this.like_wrapper.attr("data-liked-by", this.frm.doc._liked_by);
-
-		this.like_icon.toggleClass("text-extra-muted not-liked",
-			!frappe.ui.is_liked(this.frm.doc))
+		const liked = frappe.ui.is_liked(this.frm.doc);
+		this.like_wrapper
+			.toggleClass("not-liked", !liked)
+			.toggleClass("liked", liked)
 			.attr("data-doctype", this.frm.doctype)
 			.attr("data-name", this.frm.doc.name);
 
