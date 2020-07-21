@@ -88,26 +88,20 @@ def get_doctype_routes_with_web_view():
 	return all_routes
 
 def get_static_pages_from_all_apps():
+	from glob import glob
 	apps = frappe.get_installed_apps()
 
 	routes_to_index = []
 	for app in apps:
-		base = frappe.get_app_path(app, 'www')
 		path_to_index = frappe.get_app_path(app, 'www')
 
-		for dirpath, _, filenames in os.walk(path_to_index, topdown=True):
-			for f in filenames:
-				if f.endswith(('.md', '.html')):
-					filepath = os.path.join(dirpath, f)
-
-					route = os.path.relpath(filepath, base)
-					route = route.split('.')[0]
-
-					if route.endswith('index'):
-						route = route.rsplit('index', 1)[0]
-
-					routes_to_index.append(route)
-
+		files_to_index = glob(path_to_index + '/**/*.html', recursive=True)
+		files_to_index.extend(glob(path_to_index + '/**/*.md', recursive=True))
+		for file in files_to_index:
+			route = os.path.relpath(file, path_to_index).split('.')[0]
+			if route.endswith('index'):
+				route = route.rsplit('index', 1)[0]
+			routes_to_index.append(route)
 	return routes_to_index
 
 def update_index_for_path(INDEX_NAME, path):
