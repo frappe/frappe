@@ -18,6 +18,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		this.setup_check_events();
+		this.setup_like();
 	}
 
 	set_fields() {
@@ -105,7 +106,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 		let heart_class = liked_by.includes(user)
 			? "liked-by"
-			: "text-extra-muted not-liked";
+			: "not-liked";
 
 		const expand_button_html = item._image_url
 			? `<div class="zoom-view" data-name="${encoded_name}">
@@ -125,7 +126,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 						class="like-action ${heart_class}"
 						data-name="${item.name}" data-doctype="${this.doctype}"
 						data-liked-by="${encodeURI(item._liked_by) || "[]"}">
-						${frappe.utils.icon('heart')}
+						${frappe.utils.icon('heart', 'sm', 'like-icon')}
 					</span>
 					<span class="likes-count">
 						${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
@@ -197,7 +198,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 				</div>
 				<div class="list-image-header-item">
 					<div class="level-item list-liked-by-me">
-						${frappe.utils.icon('heart')}
+						${frappe.utils.icon('heart', 'sm', 'like-icon')}
 					</div>
 					<div>${__('Liked')}</div>
 				</div>
