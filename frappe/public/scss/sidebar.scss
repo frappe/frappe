@@ -421,10 +421,31 @@ body[data-route^="Module"] .main-menu {
 }
 
 .form-reviews {
-	.review-row {
+	// REDESIGN-TODO: Refactor
+	.review {
+		display: inline-block;
 		font-weight: 500;
+		border-radius: 50%;
 		margin-bottom: var(--margin-sm);
+		margin-right: var(--margin-sm);
+		font-size: var(--text-xs);
+		height: 34px;
+		width: 34px;
+		text-align: center;
 		cursor: pointer;
+		padding: var(--padding-xs);
+		padding-top: 8px;
+		&.appreciation {
+			background-color: var(--dark-green-100);
+			color: var(--dark-green-600);
+		}
+		&.criticism {
+			background-color: var(--red-100);
+			color: var(--red-600);
+		}
+	}
+	li:last-child {
+		display: inline-block;
 	}
 	.add-review-btn {
 		height: 28px;
