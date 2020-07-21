@@ -69,6 +69,14 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		});
 	}
 
+	get_seen_class(doc) {
+		const seen =
+			Boolean(doc.seen) || JSON.parse(doc._seen || '[]').includes(frappe.session.user)
+				? ''
+				: 'bold';
+		return seen;
+	}
+
 	get is_sent_emails() {
 		const f = this.filter_area.get()
 			.find(filter => filter[1] === 'sent_or_received');
@@ -77,7 +85,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	render_header() {
 		this.$result.find('.list-row-head').remove();
-		this.$result.prepend(this.get_header_html());		
+		this.$result.prepend(this.get_header_html());
 	}
 
 	render() {

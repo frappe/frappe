@@ -42,6 +42,10 @@ class ModuleDef(Document):
 
 	def on_trash(self):
 		"""Delete module name from modules.txt"""
+
+		if frappe.flags.in_uninstall:
+			return
+
 		modules = None
 		if frappe.local.module_app.get(frappe.scrub(self.name)):
 			with open(frappe.get_app_path(self.app_name, "modules.txt"), "r") as f:

@@ -68,22 +68,31 @@
 		<a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 	</div>
 </section>
-<section class='for-signup'>
+<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
 	<div class="login-content page-card" style="margin-top: 20px;">
-	<form class="form-signin form-signup hide" role="form">
-		<div class="page-card-head">
-			<span class="indicator blue" data-text="{{ _('Sign Up') }}"></span>
+	{%- if not disable_signup -%}
+		<form class="form-signin form-signup hide" role="form">
+			<div class="page-card-head">
+				<span class="indicator blue" data-text="{{ _('Sign Up') }}"></span>
+			</div>
+			<input type="text" id="signup_fullname"
+				class="form-control" placeholder="{{ _('Full Name') }}" required autofocus>
+			<input type="email" id="signup_email"
+				class="form-control" placeholder="{{ _('Email Address') }}" required>
+			<button class="btn btn-sm btn-primary btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
+		</form>
+	{%- else -%}
+		<div class='page-card-head'>
+			<span class='indicator darkgrey'>{{_("Signup Disabled")}}</span>
 		</div>
-		<input type="text" id="signup_fullname"
-			class="form-control" placeholder="{{ _('Full Name') }}" required autofocus>
-		<input type="email" id="signup_email"
-			class="form-control" placeholder="{{ _('Email Address') }}" required>
-		<button class="btn btn-sm btn-primary btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
-	</form>
+		<p>{{_("Signups have been disabled for this website.")}}</p>
+		<div><a href='/' class='btn btn-primary btn-sm'>{{ _("Home") }}</a></div>
+	{%- endif -%}
 	</div>
 	<div class='form-footer'>
 		<a href="#login" class="blue">{{ _("Have an account? Login") }}</a>
 	</div>
+
 </section>
 
 <section class='for-forgot'>

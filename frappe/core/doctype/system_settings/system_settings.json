@@ -59,6 +59,7 @@
   "column_break_18",
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
+  "attach_view_link",
   "chat",
   "enable_chat",
   "use_socketio_to_upload_file"
@@ -422,12 +423,18 @@
    "fieldname": "enable_onboarding",
    "fieldtype": "Check",
    "label": "Enable Onboarding"
+  },
+  {
+   "default": "1",
+   "fieldname": "attach_view_link",
+   "fieldtype": "Check",
+   "label": "Send document Web View link in email"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-05-01 19:21:15.496065",
+ "modified": "2020-07-02 16:13:00.166382",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
