@@ -24,6 +24,10 @@
 	.dropdown-menu {
 		.dropdown-item {
 			padding: 1rem 0.75rem;
+
+			&:focus {
+				background-color: $gray-100;
+			}
 		}
 
 		.match {

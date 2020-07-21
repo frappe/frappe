@@ -385,7 +385,7 @@ frappe.setup_search = function (target, search_scope) {
 		target = $(target);
 	}
 
-	let $search_input = $(`<div class="dropdown">
+	let $search_input = $(`<div class="dropdown" id="dropdownMenuSearch">
 			<div class="search-icon">
 				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
 					fill="none"
@@ -397,16 +397,18 @@ frappe.setup_search = function (target, search_scope) {
 				</svg>
 			</div>
 			<input type="search" class="form-control" placeholder="Search the docs (Press / to focus)" />
-			<div class="overflow-hidden shadow dropdown-menu w-100">
+			<div class="overflow-hidden shadow dropdown-menu w-100" aria-labelledby="dropdownMenuSearch">
 			</div>
 		</div>`);
 
 	target.empty();
 	$search_input.appendTo(target);
 
-	let $dropdown = $search_input.find('.dropdown');
+	// let $dropdown = $search_input.find('.dropdown');
 	let $dropdown_menu = $search_input.find('.dropdown-menu');
 	let $input = $search_input.find('input');
+	let dropdownItems;
+	let offsetIndex = 0;
 
 	$(document).on('keypress', e => {
 		if (e.key === '/') {
@@ -443,25 +445,70 @@ frappe.setup_search = function (target, search_scope) {
 			}
 			$dropdown_menu.html(dropdown_html);
 			$dropdown_menu.addClass('show');
+			dropdownItems = $dropdown_menu.find(".dropdown-item");
 		});
 	}, 500));
 
 	$input.on('focus', () => {
 		if (!$input.val()) {
 			clear_dropdown();
+		} else {
+			$input.trigger('input');
 		}
 	});
 
-	$input.on('blur', () => {
-		setTimeout(() => {
-			clear_dropdown();
-		}, 300);
+	$input.keydown(function(e){
+		// up: 38, down: 40
+		if (e.which == 40) {
+			navigate(0);
+		}
 	});
 
+	$dropdown_menu.keydown(function(e){
+		// up: 38, down: 40
+		if (e.which == 38) {
+			navigate(-1);
+		} else if (e.which == 40) {
+			navigate(1);
+		} else if (e.which == 27) {
+			setTimeout(() => {
+				clear_dropdown();
+			}, 300);
+		}
+	});
+
+	// Clear dropdown when clicked
+	$(window).click(function() {
+		clear_dropdown();
+	});
+
+	$search_input.click(function(event){
+		event.stopPropagation();
+	});
+
+	// Navigate the list
+	var navigate = function(diff) {
+		offsetIndex += diff;
+
+		if (offsetIndex >= dropdownItems.length)
+			offsetIndex = 0;
+		if (offsetIndex < 0)
+			offsetIndex = dropdownItems.length - 1;
+		$input.off('blur');
+		dropdownItems.eq(offsetIndex).focus();
+	}
+
 	function clear_dropdown() {
+		offsetIndex = 0
 		$dropdown_menu.html('');
 		$dropdown_menu.removeClass('show');
+		dropdownItems = undefined;
 	}
+
+	// Remove focus state on hover
+	$dropdown_menu.mouseover(function(e){
+		dropdownItems.blur();
+	});
 };
 
 
