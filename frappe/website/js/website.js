@@ -420,11 +420,11 @@ frappe.setup_search = function (target, search_scope) {
 			clear_dropdown();
 			return;
 		}
+		console.log(search_scope);
 
 		frappe.call({
-			method: 'frappe.modules.full_text_search.web_search',
+			method: 'frappe.search.web_search',
 			args: {
-				index_name: 'web_routes',
 				scope: search_scope || null,
 				query: $input.val(),
 				limit: 5

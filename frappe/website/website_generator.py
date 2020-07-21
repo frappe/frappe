@@ -7,7 +7,7 @@ from frappe.model.document import Document
 from frappe.website.utils import cleanup_page_name
 from frappe.website.render import clear_cache
 from frappe.modules import get_module_name
-from frappe.modules.full_text_search import update_index_for_path, remove_document_from_index
+from frappe.search.website_search import update_index_for_path, remove_document_from_index
 
 class WebsiteGenerator(Document):
 	website = frappe._dict()
@@ -163,10 +163,9 @@ class WebsiteGenerator(Document):
 		"""
 		if not self.allow_website_search_indexing():
 			return
-		
+
 		if self.is_website_published():
 			frappe.enqueue(update_index_for_path, index_name="web_routes", path=self.route)
 		elif self.route:
 			# If the website is not published
 			remove_document_from_index("web_routes", self.route)
-			
