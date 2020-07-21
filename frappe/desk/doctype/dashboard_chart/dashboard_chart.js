@@ -187,14 +187,12 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		).then(data => {
 			frm.report_data = data;
-			if (!data.chart) {
-				frm.set_value('is_custom', 0);
-				frm.set_df_property('is_custom', 'hidden', 1);
-			} else {
-				frm.set_df_property('is_custom', 'hidden', 0);
-			}
+			let report_has_chart = Boolean(data.chart);
 
-			if (!frm.doc.is_custom) {
+			frm.set_value('use_report_chart', 0);
+			frm.set_df_property('use_report_chart', 'hidden', !report_has_chart);
+
+			if (!frm.doc.use_report_chart) {
 				if (data.result.length) {
 					frm.field_options = frappe.report_utils.get_field_options_from_report(data.columns, data);
 					frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
