@@ -441,9 +441,8 @@ class ImportFile:
 
 		# if there are child doctypes, find the subsequent rows
 		if len(doctypes) > 1:
-			# subsequent rows either dont have any parent value set
-			# or have the same value as the parent row
-			# we include a row if either of conditions match
+			# subsequent rows that have blank values in parent columns
+			# are considered as child rows
 			parent_column_indexes = self.header.get_column_indexes(self.doctype)
 			parent_row_values = first_row.get_values(parent_column_indexes)
 
@@ -454,11 +453,8 @@ class ImportFile:
 				if all([v in INVALID_VALUES for v in row_values]):
 					rows.append(row)
 					continue
-				# if the row has same values as parent row, it's a child row doc
-				if row_values == parent_row_values:
-					rows.append(row)
-					continue
-				# if any of those conditions dont match, it's the next doc
+				# if we encounter a row which has values in parent columns,
+				# then it is the next doc
 				break
 
 		parent_doc = None
@@ -693,6 +689,9 @@ class Row:
 		return value
 
 	def get_date(self, value, column):
+		if isinstance(value, datetime):
+			return value
+
 		date_format = column.date_format
 		if date_format:
 			try:
