@@ -34,8 +34,6 @@ class FullTextSearch:
 
 	def build(self):
 		"""	Build search index for all documents """
-
-		print("Building search index for all web routes...")
 		self.documents = self.get_items_to_index()
 		self.build_index()
 

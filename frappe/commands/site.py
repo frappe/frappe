@@ -661,6 +661,22 @@ def start_ngrok(context):
 		frappe.destroy()
 		ngrok.kill()
 
+@click.command('build-search-index')
+@pass_context
+def build_search_index(context):
+	from frappe.search.website_search import build_index_for_all_routes
+	site = get_site(context)
+	if not site:
+		raise SiteNotSpecifiedError
+
+	print('Building search index for {}'.format(site))
+	frappe.init(site=site)
+	frappe.connect()
+	try:
+		build_index_for_all_routes()
+	finally:
+		frappe.destroy()
+
 commands = [
 	add_system_manager,
 	backup,
@@ -686,5 +702,6 @@ commands = [
 	start_recording,
 	stop_recording,
 	add_to_hosts,
-	start_ngrok
+	start_ngrok,
+	build_search_index
 ]
