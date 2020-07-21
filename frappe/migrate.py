@@ -22,7 +22,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.search.website_search import build_index_for_all_routes
 
 
-def migrate(verbose=True, rebuild_website=False, skip_failing=False, skip_search_index=False):
+def migrate(verbose=True, rebuild_website=False, skip_failing=False, index_site=False):
 	'''Migrate all apps to the latest version, will:
 	- run before migrate hooks
 	- run patches
@@ -89,9 +89,9 @@ Otherwise, check the server logs and ensure that all the required services are r
 				frappe.get_attr(fn)()
 
 		# add static pages to global search
-		if not skip_search_index:
+		if index_site:
 			# Run this last as it updates the current session
-			full_text_search.build_index_for_all_routes()
+			build_index_for_all_routes()
 
 		frappe.db.commit()
 
