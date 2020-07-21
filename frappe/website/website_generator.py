@@ -141,9 +141,10 @@ class WebsiteGenerator(Document):
 			frappe.enqueue('frappe.website.doctype.website_settings.google_indexing.publish_site', \
 				url=url, operation_type=operation_type)
 
+	# Change the field value in doctype
 	# Override this method to disable indexing
 	def allow_website_search_indexing(self):
-		return bool(self.route)
+		return self.index_web_pages_for_search
 
 	def remove_old_route_from_index(self):
 		"""Remove page from the website index if the route has changed."""

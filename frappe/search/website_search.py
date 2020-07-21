@@ -76,7 +76,7 @@ class WebsiteSearch(FullTextSearch):
 
 def get_doctype_routes_with_web_view():
 	all_routes = []
-	filters = { "has_web_view": 1, "allow_guest_to_view": 1 }
+	filters = { "has_web_view": 1, "allow_guest_to_view": 1, "index_web_pages_for_search": 1}
 	fields = ["name", "is_published_field"]
 	doctype_with_web_views = frappe.get_all("DocType", filters=filters, fields=fields)
 
