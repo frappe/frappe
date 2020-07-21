@@ -577,7 +577,7 @@ frappe.ui.form.Section = Class.extend({
 			this.layout.page = $('<div class="form-page"></div>').appendTo(this.layout.wrapper);
 		}
 
-		this.wrapper = $(`<div class="row form-section ${this.layout.card_layout ? "card_layout" : "" }">`)
+		this.wrapper = $(`<div class="row form-section ${this.layout.card_layout ? "frappe-card" : "" }">`)
 			.appendTo(this.layout.page);
 		this.layout.sections.push(this);
 

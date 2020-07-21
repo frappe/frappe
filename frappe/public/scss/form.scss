@@ -47,12 +47,9 @@ $form-left-padding: var(--padding-xl);
 	}
 }
 
-.form-section.card_layout {
+.form-section.frappe-card {
 	margin: var(--margin-lg) 0px;
-	border-radius: var(--border-radius-md);
-	box-shadow: var(--card-shadow);
-	padding: var(--padding-sm);
-	background: var(--card-bg);
+	@include card();
 }
 
 .form-dashboard {
