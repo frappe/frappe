@@ -292,7 +292,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					'y_axis': chart_args.y_axis_fields.map(f => {
 						return {'y_field': f.y_field, 'color': f.color};
 					}),
-					'is_custom': 0
+					'use_report_chart': 0
 				}
 			);
 		} else {
@@ -300,7 +300,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			Object.assign(args,
 				{
 					'chart_name': chart_name,
-					'is_custom': 1
+					'use_report_chart': 1
 				}
 			);
 		}

@@ -216,7 +216,7 @@ frappe.ui.form.on('Number Card', {
 	set_report_field_options: function(frm) {
 		let filters = frm.doc.filters_json.length > 2 ? JSON.parse(frm.doc.filters_json) : null;
 		if (frm.doc.dynamic_filters_json.length > 2) {
-			filters = {...filters, ...JSON.parse(frm.doc.dynamic_filters_json)};
+			filters = frappe.dashboard_utils.get_all_filters(frm.doc);
 		}
 		frappe.xcall(
 			'frappe.desk.query_report.run',
