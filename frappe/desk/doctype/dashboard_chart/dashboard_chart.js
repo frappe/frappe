@@ -147,8 +147,8 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_df_property('x_field', 'options', []);
 		frm.set_value('filters_json', '{}');
 		frm.set_value('dynamic_filters_json', '{}');
-		frm.trigger('set_chart_report_filters');
 		frm.set_value('use_report_chart', 0);
+		frm.trigger('set_chart_report_filters');
 	},
 
 
