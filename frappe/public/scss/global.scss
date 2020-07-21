@@ -181,9 +181,14 @@ h2 {
 	}
 }
 
-.btn-group-sm > .btn, .btn-sm, .btn-xs {
-	padding: 4px 12px;
+.btn-group-sm > .btn, .btn-sm {
+	padding: var(--padding-xs) var(--padding-sm);
 	font-size: var(--text-md);
+}
+
+.btn-xs {
+	padding: var(--padding-xs) var(--padding-sm);
+	font-size: var(--text-xs);
 }
 
 .input-xs {
