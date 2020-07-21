@@ -579,7 +579,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				"Select All"
 			)}">
 			<span class="level-item list-liked-by-me">
-				<span title="${__("Likes")}">${frappe.utils.icon('heart')}</span>
+				<span title="${__("Likes")}">${frappe.utils.icon('heart', 'sm', 'like-icon')}</span>
 			</span>
 			<span class="level-item">${__(subject_field.label)}</span>
 		`;
@@ -895,7 +895,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const liked_by = JSON.parse(doc._liked_by || "[]");
 		let heart_class = liked_by.includes(user)
-			? "liked-by"
+			? "liked-by liked"
 			: "not-liked";
 
 		const seen = this.get_seen_class(doc);
@@ -909,7 +909,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					class="like-action ${heart_class}"
 					data-name="${doc.name}" data-doctype="${this.doctype}"
 					data-liked-by="${encodeURI(doc._liked_by) || "[]"}">
-					${frappe.utils.icon('heart')}
+					${frappe.utils.icon('heart', 'sm', 'like-icon')}
 				</span>
 				<span class="likes-count">
 					${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
@@ -1201,7 +1201,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		});
 
-		frappe.ui.setup_like_popover(this.$result, ".liked-by");
+		frappe.ui.setup_like_popover(this.$result, ".liked-by .like-icon");
 	}
 
 	setup_new_doc_event() {
