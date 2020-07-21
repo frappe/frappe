@@ -554,7 +554,6 @@ frappe.ui.form.Layout = Class.extend({
 
 frappe.ui.form.Section = Class.extend({
 	init: function(layout, df) {
-		var me = this;
 		this.layout = layout;
 		this.df = df || {};
 		this.fields_list = [];
@@ -578,7 +577,7 @@ frappe.ui.form.Section = Class.extend({
 			this.layout.page = $('<div class="form-page"></div>').appendTo(this.layout.wrapper);
 		}
 
-		this.wrapper = $('<div class="row form-section">')
+		this.wrapper = $(`<div class="row form-section ${this.layout.card_layout ? "card_layout" : "" }">`)
 			.appendTo(this.layout.page);
 		this.layout.sections.push(this);
 
