@@ -72,7 +72,6 @@ frappe.ui.form.Review = class Review {
 	}
 	show_review_dialog() {
 		const user_options = this.get_involved_users();
-		const doc_owner = this.frm.doc.owner;
 		const review_dialog = new frappe.ui.Dialog({
 			'title': __('Add Review'),
 			'fields': [{
@@ -140,12 +139,11 @@ frappe.ui.form.Review = class Review {
 		const review_logs = this.frm.get_docinfo().energy_point_logs
 			.filter(log => ['Appreciation', 'Criticism'].includes(log.type));
 
-		this.parent.find('.review-row').remove();
+		this.parent.find('.review').remove();
 		review_logs.forEach(log => {
 			let review_pill = $(`
-				<li class="review-row">
-					${frappe.avatar(log.owner)}
-					${log.points > 0 ? '+': ''}${log.points} ${ __('Points')}
+				<li class="review ${log.points < 0 ? 'criticism': 'appreciation'}">
+					${log.points > 0 ? '+': ''}${log.points}
 				</li>
 			`);
 			review_pill.insertBefore(this.add_review_button_wrapper);
