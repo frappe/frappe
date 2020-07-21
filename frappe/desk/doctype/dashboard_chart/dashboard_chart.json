@@ -12,7 +12,7 @@
   "chart_name",
   "chart_type",
   "report_name",
-  "is_custom",
+  "use_report_chart",
   "x_field",
   "y_axis",
   "source",
@@ -194,11 +194,11 @@
    "label": "To Date"
   },
   {
-   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
    "fieldname": "x_field",
    "fieldtype": "Select",
    "label": "X Field",
-   "mandatory_depends_on": "eval: doc.report_name && !doc.is_custom"
+   "mandatory_depends_on": "eval: doc.report_name && !doc.use_report_chart"
   },
   {
    "depends_on": "eval:doc.chart_type === 'Report'",
@@ -209,18 +209,11 @@
    "set_only_once": 1
   },
   {
-   "default": "0",
-   "depends_on": "eval: doc.report_name",
-   "fieldname": "is_custom",
-   "fieldtype": "Check",
-   "label": "Is Custom"
-  },
-  {
-   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
    "fieldname": "y_axis",
    "fieldtype": "Table",
    "label": "Y Axis",
-   "mandatory_depends_on": "eval:doc.report_name && !doc.is_custom",
+   "mandatory_depends_on": "eval:doc.report_name && !doc.use_report_chart",
    "options": "Dashboard Chart Field"
   },
   {
@@ -246,9 +239,7 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Is Standard"
   },
   {
    "depends_on": "eval: doc.is_standard",
@@ -256,28 +247,29 @@
    "fieldtype": "Link",
    "label": "Module",
    "mandatory_depends_on": "eval: doc.is_standard",
-   "options": "Module Def",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Module Def"
   },
   {
    "fieldname": "dynamic_filters_json",
    "fieldtype": "Code",
    "label": "Dynamic Filters JSON",
-   "options": "JSON",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "JSON"
   },
   {
    "fieldname": "dynamic_filters_section",
    "fieldtype": "Section Break",
-   "label": "Dynamic Filters",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Dynamic Filters"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.report_name",
+   "fieldname": "use_report_chart",
+   "fieldtype": "Check",
+   "label": "Use Report Chart"
   }
  ],
  "links": [],
- "modified": "2020-07-10 16:09:47.102062",
+ "modified": "2020-07-21 15:41:19.990283",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
