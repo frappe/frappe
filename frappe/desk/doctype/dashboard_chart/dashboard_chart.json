@@ -205,6 +205,7 @@
    "fieldname": "report_name",
    "fieldtype": "Link",
    "label": "Report Name",
+   "mandatory_depends_on": "eval:doc.chart_type === 'Report'",
    "options": "Report",
    "set_only_once": 1
   },
@@ -269,7 +270,7 @@
   }
  ],
  "links": [],
- "modified": "2020-07-21 15:41:19.990283",
+ "modified": "2020-07-21 16:37:07.763482",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
