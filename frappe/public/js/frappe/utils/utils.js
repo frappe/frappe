@@ -1021,9 +1021,9 @@ Object.assign(frappe.utils, {
 		return duration_options;
 	},
 
-	icon(icon_name, size="sm") {
+	icon(icon_name, size="sm", icon_class) {
 		return `<svg class="icon icon-${size}">
-			<use xlink:href="#icon-${icon_name}"></use>
+			<use class="${icon_class}" xlink:href="#icon-${icon_name}"></use>
 		</svg>`;
 	}
 });
