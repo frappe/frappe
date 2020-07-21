@@ -71,7 +71,8 @@
    "fieldname": "document_type",
    "fieldtype": "Link",
    "label": "Document Type",
-   "options": "DocType"
+   "options": "DocType",
+   "set_only_once": 1
   },
   {
    "depends_on": "eval: doc.timeseries && ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
@@ -193,25 +194,26 @@
    "label": "To Date"
   },
   {
-   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
    "fieldname": "x_field",
    "fieldtype": "Select",
    "label": "X Field",
-   "mandatory_depends_on": "eval: doc.report_name && !doc.is_custom"
+   "mandatory_depends_on": "eval: doc.report_name && !doc.use_report_chart"
   },
   {
    "depends_on": "eval:doc.chart_type === 'Report'",
    "fieldname": "report_name",
    "fieldtype": "Link",
    "label": "Report Name",
-   "options": "Report"
+   "options": "Report",
+   "set_only_once": 1
   },
   {
-   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
    "fieldname": "y_axis",
    "fieldtype": "Table",
    "label": "Y Axis",
-   "mandatory_depends_on": "eval:doc.report_name && !doc.is_custom",
+   "mandatory_depends_on": "eval:doc.report_name && !doc.use_report_chart",
    "options": "Dashboard Chart Field"
   },
   {
@@ -267,7 +269,7 @@
   }
  ],
  "links": [],
- "modified": "2020-07-21 15:19:21.462546",
+ "modified": "2020-07-21 15:41:19.990283",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
