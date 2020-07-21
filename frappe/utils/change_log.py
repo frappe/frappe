@@ -119,7 +119,7 @@ def get_app_branch(app):
 	'''Returns branch of an app'''
 	try:
 		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-			shell=True)
+			shell=True, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
@@ -129,7 +129,7 @@ def get_app_branch(app):
 def get_app_last_commit_ref(app):
 	try:
 		result = subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD --short 7'.format(app),
-			shell=True)
+			shell=True, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
