@@ -1,6 +1,6 @@
 .dashboard {
-	margin-top: 25px;
-	padding: 3px;
+	margin-top: var(--margin-xs);
+	padding: 1px;
 	overflow-x: hidden;
 }
 

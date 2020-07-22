@@ -212,7 +212,6 @@ html, body {
 	&.dashboard-widget-box {
 		min-height: 240px;
 		padding: var(--padding-sm) var(--padding-md);
-		box-shadow: $card-box-shadow;
 
 		.chart-container {
 			margin-right: -10px;
@@ -240,7 +239,7 @@ html, body {
 		}
 
 		.widget-control {
-			margin-top: var(--margin-md);
+			margin-top: -15px;
 		}
 
 		.chart-loading-state {
@@ -410,7 +409,7 @@ html, body {
 	&.number-widget-box {
 		cursor: pointer;
 		height: 115px;
-		padding: var(--padding-lg);
+		padding: var(--padding-sm) var(--padding-md);
 
 		.widget-head {
 
@@ -428,7 +427,7 @@ html, body {
 			}
 
 			.card-actions {
-				margin-top: -25px;
+				margin-top: -15px;
 			}
 		}
 
