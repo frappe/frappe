@@ -45,13 +45,13 @@
 	}
 }
 
-.page-form {
-	padding-top: 24px;
+.layout-main-section-wrapper {
+	margin-bottom: 60px;
 }
 
-.layout-main-section-wrapper {
-	padding: 0px;
-	margin-bottom: 60px;
+.layout-main-section.frappe-card {
+	overflow: hidden;
+	@include card();
 }
 
 .page-head {
@@ -75,10 +75,11 @@
 
 .page-form {
 	margin: 0;
-	padding: 5px 10px;
+	padding: var(--padding-sm);
 	display: flex;
 	flex-wrap: wrap;
 	background-color: var(--card-bg);
+	border-bottom: 1px solid var(--gray-100);
 
 	.form-group {
 		padding: 0px 5px;

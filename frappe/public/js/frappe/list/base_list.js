@@ -153,6 +153,7 @@ frappe.views.BaseList = class BaseList {
 	setup_page() {
 		this.page = this.parent.page;
 		this.$page = $(this.parent);
+		this.page.main.addClass('frappe-card');
 		this.page.page_form.removeClass("row").addClass("flex");
 		this.setup_page_head();
 	}
