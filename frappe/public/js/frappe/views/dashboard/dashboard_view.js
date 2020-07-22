@@ -8,6 +8,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	setup_defaults() {
 		return super.setup_defaults()
 			.then(() => {
+				this.page_title = __('{0} Dashboard', [this.doctype]);
 				this.dashboard_settings = frappe.get_user_settings(this.doctype)['dashboard_settings'] || null;
 			});
 	}
@@ -28,40 +29,54 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	setup_dashboard_customization() {
-		this.$customize = this.$chart_header.find('.customize-dashboard');
-		this.$save_or_discard = this.$chart_header.find('.customize-options');
+		this.page.add_menu_item(__('Customize Dashboard'), () => this.customize());
+		this.page.add_menu_item(__('Reset Dashboard Customizations'), () => this.reset_dashboard_customization());
+		this.add_customization_buttons();
 	}
 
 	setup_dashboard_page() {
-		const dashboard_name = __('{0} Dashboard', [this.doctype]);
 		const chart_wrapper_html = `<div class="dashboard-view"></div>`;
 
+		// <button class="restricted-button">
+		// 			<span class="octicon octicon-lock"></span>
+		// 			<span>${__('Restricted')}</span>
+		// 		</button>
 		this.$frappe_list.html(chart_wrapper_html);
 		this.page.clear_secondary_action();
 		this.$dashboard_page = this.$page.find('.layout-main-section-wrapper').addClass('dashboard-page');
-		this.$page.find('.page-form').empty().html(
-			`<div class="dashboard-header">
-				<div class="text-muted">
-					<span class="uppercase header-title"> ${dashboard_name} </span>
-				</div>
-				<button class="restricted-button">
-					<span class="octicon octicon-lock"></span>
-					<span>${__('Restricted')}</span>
-				</button>
-				<div class="text-muted customize-dashboard" data-action="customize">${__('Customize')}</div>
-				<div class="small text-muted customize-options small-bounce">
-					<span class="reset-customization customize-option" data-action="reset_dashboard_customization">${__('Reset')}</span>
-					<span> / </span>
-					<span class="save-customization customize-option" data-action="save_dashboard_customization">${__('Save')}</span>
-					<span> / </span>
-					<span class="discard-customization customize-option" data-action="discard_dashboard_customization">${__('Discard')}</span>
-				</div>
-			</div>`);
+		this.$page.find('.page-form').hide();
+		this.page.main.removeClass('frappe-card');
 
 		this.$dashboard_wrapper = this.$page.find('.dashboard-view');
 		this.$chart_header = this.$page.find('.dashboard-header');
 
 		frappe.utils.bind_actions_with_object(this.$dashboard_page, this);
+	}
+
+	add_customization_buttons() {
+		this.save_customizations_button = this.page.add_button(
+			__("Save Customizations"),
+			() => {
+				this.save_dashboard_customization();
+				this.page.standard_actions.show();
+			},
+			'btn-primary'
+		);
+
+		this.discard_customizations_button = this.page.add_button(
+			__("Discard"),
+			() => {
+				this.discard_dashboard_customization();
+				this.page.standard_actions.show();
+			}
+		);
+
+		this.toggle_customization_buttons(false);
+	}
+
+	toggle_customization_buttons(show) {
+		this.save_customizations_button.toggle(show);
+		this.discard_customizations_button.toggle(show);
 	}
 
 	make_dashboard() {
@@ -194,6 +209,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 			return;
 		}
 
+		this.page.standard_actions.hide();
+
 		if (this.$empty_state) {
 			this.$empty_state.remove();
 		}
@@ -246,8 +263,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	toggle_customize(show) {
-		this.$customize.toggle(!show);
-		this.$save_or_discard.toggle(show);
+		this.toggle_customization_buttons(show);
 		this.in_customize_mode = show;
 	}
 

@@ -13,35 +13,37 @@
 			<div class="flex col-md-7 col-sm-4 col-xs-6 page-actions justify-content-lg-end">
 				<!-- buttons -->
 				<div class="custom-actions hide"></div>
-				<span class="page-icon-group hide hidden-xs hidden-sm"></span>
-				<div class="menu-btn-group hide">
-					<button type="button" class="btn btn-default btn-sm" data-toggle="dropdown" aria-expanded="false">
-						<span class="hidden-xs">
-							<span class="menu-btn-group-label"> ‧‧‧ </span>
-							<span class="caret"></span>
-						</span>
-						<span class="visible-xs">
-							<i class="octicon octicon-triangle-down"></i>
-						</span>
-					</button>
-					<ul class="dropdown-menu" role="menu"></ul>
+				<div class="standard-actions flex">
+					<span class="page-icon-group hide hidden-xs hidden-sm"></span>
+					<div class="menu-btn-group hide">
+						<button type="button" class="btn btn-default btn-sm" data-toggle="dropdown" aria-expanded="false">
+							<span class="hidden-xs">
+								<span class="menu-btn-group-label"> ‧‧‧ </span>
+								<span class="caret"></span>
+							</span>
+							<span class="visible-xs">
+								<i class="octicon octicon-triangle-down"></i>
+							</span>
+						</button>
+						<ul class="dropdown-menu" role="menu"></ul>
+					</div>
+					<button class="btn btn-secondary btn-default btn-sm hide"></button>
+					<div class="btn-group actions-btn-group hide">
+						<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+							<span class="hidden-xs">
+								<span class="actions-btn-group-label">{%= __("Actions") %}</span>
+								<svg class="icon icon-xs">
+									<use xlink:href="#icon-select">
+									</use>
+								</svg>
+							</span>
+							<span class="visible-xs octicon octicon-check"></span>
+						</button>
+						<ul class="dropdown-menu" role="menu">
+						</ul>
+					</div>
+					<button class="btn btn-primary btn-sm hide primary-action"></button>
 				</div>
-				<button class="btn btn-secondary btn-default btn-sm hide"></button>
-				<div class="btn-group actions-btn-group hide">
-					<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-						<span class="hidden-xs">
-							<span class="actions-btn-group-label">{%= __("Actions") %}</span>
-							<svg class="icon icon-xs">
-								<use xlink:href="#icon-select">
-								</use>
-							</svg>
-						</span>
-						<span class="visible-xs octicon octicon-check"></span>
-					</button>
-					<ul class="dropdown-menu" role="menu">
-					</ul>
-				</div>
-				<button class="btn btn-primary btn-sm hide primary-action"></button>
 			</div>
 		</div>
 	</div>

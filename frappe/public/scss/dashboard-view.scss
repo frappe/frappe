@@ -1,7 +1,12 @@
 .dashboard-page {
 	.dashboard-view {
 		min-height: calc(100vh - 284px);
-		padding: 20px 20px 0 20px;
+		padding: var(--padding-lg) 0;
+
+		.grid-col-2 {
+			column-gap: 20px;
+			row-gap: 20px;
+		}
 
 		.new-widget {
 			text-align: center;
@@ -31,7 +36,6 @@
 
 			.header-title {
 				line-height: 1.5em;
-				vertical-align: text-bottom;
 			}
 
 			.restricted-button {

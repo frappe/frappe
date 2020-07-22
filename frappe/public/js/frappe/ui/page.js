@@ -115,6 +115,7 @@ frappe.ui.Page = Class.extend({
 		this.actions = this.page_actions.find(".actions-btn-group .dropdown-menu");
 		this.actions_btn_group = this.page_actions.find(".actions-btn-group");
 
+		this.standard_actions = this.page_actions.find(".standard-actions");
 		this.custom_actions = this.page_actions.find(".custom-actions");
 
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
@@ -587,8 +588,9 @@ frappe.ui.Page = Class.extend({
 		//
 	},
 
-	add_button: function(label, click) {
-		let button = $(`<button class="btn btn-secondary btn-default btn-sm">${label}</button>`);
+	add_button: function(label, click, button_class) {
+		if (!button_class) button_class = "btn-secondary btn-default";
+		let button = $(`<button class="btn ${button_class} btn-sm">${label}</button>`);
 		button.appendTo(this.custom_actions);
 		button.on('click', click);
 		this.custom_actions.removeClass('hide');
