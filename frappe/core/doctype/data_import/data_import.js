@@ -317,6 +317,7 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	show_import_warnings(frm, preview_data) {
+		let columns = preview_data.columns;
 		let warnings = JSON.parse(frm.doc.template_warnings || '[]');
 		warnings = warnings.concat(preview_data.warnings || []);
 
@@ -362,11 +363,13 @@ frappe.ui.form.on('Data Import', {
 			.map(warning => {
 				let header = '';
 				if (warning.col) {
-					header = __('Column {0}', [warning.col]);
+					let column_number = `<span class="text-uppercase">${__('Column {0}', [warning.col])}</span>`;
+					let column_header = columns[warning.col].header_title;
+					header = `${column_number} (${column_header})`;
 				}
 				return `
 					<div class="warning" data-col="${warning.col}">
-						<h5 class="text-uppercase">${header}</h5>
+						<h5>${header}</h5>
 						<div class="body">${warning.message}</div>
 					</div>
 				`;
