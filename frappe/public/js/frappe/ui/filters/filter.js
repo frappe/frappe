@@ -249,9 +249,7 @@ frappe.ui.Filter = class {
 			let args = {};
 			if (this.filters_config[condition].depends_on) {
 				const field_name = this.filters_config[condition].depends_on;
-				const filter_value = this.base_list
-					? this.base_list.get_filter_value(field_name)
-					: this.filter_list.get_filter_value(field_name);
+				const filter_value = this.get_filter_value(field_name);
 				args[field_name] = filter_value;
 			}
 			frappe
@@ -265,6 +263,10 @@ frappe.ui.Filter = class {
 		} else {
 			this.make_field(df, cur.fieldtype);
 		}
+	}
+
+	get_filter_value(fieldname) {
+		return this.filter_list.get_filter_value(fieldname);
 	}
 
 	make_field(df, old_fieldtype) {
