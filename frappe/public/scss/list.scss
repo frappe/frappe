@@ -4,6 +4,7 @@
 // }
 
 .frappe-list {
+	padding: 0 var(--padding-xs) var(--padding-xs) var(--padding-xs);
 	.result, .no-result, .freeze {
 		min-height: #{"calc(100vh - 284px)"};
 	}

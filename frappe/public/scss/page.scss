@@ -51,7 +51,7 @@
 
 .layout-main-section.frappe-card {
 	overflow: hidden;
-	@include card();
+	@include card($padding: 0px);
 }
 
 .page-head {
