@@ -24,6 +24,11 @@
    "hidden": 0,
    "label": "Payments",
    "links": "[\n    {\n        \"description\": \"Braintree payment gateway settings\",\n        \"label\": \"Braintree Settings\",\n        \"name\": \"Braintree Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"PayPal payment gateway settings\",\n        \"label\": \"PayPal Settings\",\n        \"name\": \"PayPal Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Razorpay Payment gateway settings\",\n        \"label\": \"Razorpay Settings\",\n        \"name\": \"Razorpay Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Stripe payment gateway settings\",\n        \"label\": \"Stripe Settings\",\n        \"name\": \"Stripe Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Settings",
+   "links": " [\n\t\t        {\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Woocommerce Settings\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Shopify Settings\",\n\t\t\t\t\t\"description\": \"Connect Shopify with ERPNext\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Amazon MWS Settings\",\n\t\t\t\t\t\"description\": \"Connect Amazon with ERPNext\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Plaid Settings\",\n\t\t\t\t\t\"description\": \"Connect your bank accounts to ERPNext\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Exotel Settings\",\n\t\t\t\t\t\"description\": \"Connect your Exotel Account to ERPNext and track call logs\"\n\t\t\t\t}\n]"
   }
  ],
  "category": "Administration",
@@ -34,11 +39,11 @@
  "docstatus": 0,
  "doctype": "Desk Page",
  "extends_another_page": 0,
- "icon": "frapicon-dashboard",
+ "hide_custom": 0,
  "idx": 0,
  "is_standard": 1,
  "label": "Integrations",
- "modified": "2020-04-01 11:24:40.751651",
+ "modified": "2020-07-22 11:16:36.202633",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
