@@ -207,7 +207,7 @@ frappe.dashboard_utils = {
 			fieldtype: 'Link',
 			fieldname: 'dashboard',
 			options: 'Dashboard',
-		}
+		};
 
 		if (!frappe.boot.developer_mode) {
 			field.get_query = () => {
