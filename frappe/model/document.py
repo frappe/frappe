@@ -396,9 +396,21 @@ class Document(BaseDocument):
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
+	def has_value_changed(self, fieldname):
+		'''Returns true if value is changed before and after saving'''
+		previous = self.get_doc_before_save()
+		return previous.get(fieldname)!=self.get(fieldname) if previous else True
+
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
+
 		if self.flags.name_set and not force:
+			return
+
+		# If autoname has set as Prompt (name)
+		if self.get("__newname"):
+			self.name = self.get("__newname")
+			self.flags.name_set = True
 			return
 
 		if set_name:
@@ -825,7 +837,7 @@ class Document(BaseDocument):
 
 	def run_notifications(self, method):
 		"""Run notifications for this method"""
-		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
+		if (frappe.flags.in_import and frappe.flags.mute_emails) or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
 		if self.flags.notifications_executed==None:
@@ -961,7 +973,8 @@ class Document(BaseDocument):
 
 		update_global_search(self)
 
-		if getattr(self.meta, 'track_changes', False) and self._doc_before_save and not self.flags.ignore_version:
+		if getattr(self.meta, 'track_changes', False) and not self.flags.ignore_version \
+			and not self.doctype == 'Version' and not frappe.flags.in_install:
 			self.save_version()
 
 		self.run_method('on_change')
@@ -1058,8 +1071,13 @@ class Document(BaseDocument):
 
 	def save_version(self):
 		"""Save version info"""
+		if not self._doc_before_save and frappe.flags.in_patch: return
+
 		version = frappe.new_doc('Version')
-		if version.set_diff(self._doc_before_save, self):
+		if not self._doc_before_save:
+			version.for_insert(self)
+			version.insert(ignore_permissions=True)
+		elif version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
 				follow_document(self.doctype, self.name, frappe.session.user)

@@ -1,0 +1,13 @@
+# Always validate the PR title AND all the commits
+titleAndCommits: true
+
+# Allow use of Merge commits (eg on github: "Merge branch 'master' into feature/ride-unicorns")
+# this is only relevant when using commitsOnly: true (or titleAndCommits: true)
+allowMergeCommits: true
+
+# Allow use of Revert commits (eg on github: "Revert "feat: ride unicorns"")
+# this is only relevant when using commitsOnly: true (or titleAndCommits: true)
+allowRevertCommits: true
+
+# For allowed PR types: https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json
+# Tool Reference: https://github.com/zeke/semantic-pull-requests

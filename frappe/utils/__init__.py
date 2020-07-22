@@ -63,10 +63,11 @@ def get_email_address(user=None):
 
 	return frappe.db.get_value("User", user, "email")
 
-def get_formatted_email(user):
+def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
-	mail = get_email_address(user)
+	if not mail:
+		mail = get_email_address(user)
 	return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 def extract_email_id(email):
@@ -400,10 +401,17 @@ def call_hook_method(hook, *args, **kwargs):
 def update_progress_bar(txt, i, l):
 	if not getattr(frappe.local, 'request', None):
 		lt = len(txt)
+		try:
+			col = 40 if os.get_terminal_size().columns > 80 else 20
+		except OSError:
+			# in case function isn't being called from a terminal
+			col = 40
+
 		if lt < 36:
 			txt = txt + " "*(36-lt)
-		complete = int(float(i+1) / l * 40)
-		completion_bar = ("=" * complete).ljust(40, ' ')
+
+		complete = int(float(i+1) / l * col)
+		completion_bar = ("=" * complete).ljust(col, ' ')
 		percent_complete = str(int(float(i+1) / l * 100))
 		sys.stdout.write("\r{0}: [{1}] {2}%".format(txt, completion_bar, percent_complete))
 		sys.stdout.flush()

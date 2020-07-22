@@ -69,7 +69,6 @@ def make_notification_logs(doc, users):
 				_doc = frappe.new_doc('Notification Log')
 				_doc.update(doc)
 				_doc.for_user = user
-				_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
 				if _doc.for_user != _doc.from_user or doc.type == 'Energy Point' or doc.type == 'Alert':
 					_doc.insert(ignore_permissions=True)
 
@@ -100,14 +99,16 @@ def send_notification_email(doc):
 	)
 
 def get_email_header(doc):
-	return {
+	docname = doc.document_name
+	header_map = {
 		'Default': _('New Notification'),
-		'Mention': _('New Mention'),
-		'Assignment': _('New Assignment'),
-		'Share': _('New Document Shared'),
-		'Energy Point': _('Energy Point Update'),
-	}[doc.type or 'Default']
+		'Mention': _('New Mention on {0}').format(docname),
+		'Assignment': _('Assignment Update on {0}').format(docname),
+		'Share': _('New Document Shared {0}').format(docname),
+		'Energy Point': _('Energy Point Update on {0}').format(docname),
+	}
 
+	return header_map[doc.type or 'Default']
 
 @frappe.whitelist()
 def mark_all_as_read():

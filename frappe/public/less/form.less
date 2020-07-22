@@ -249,6 +249,7 @@
 	}
 
 	.progress-message {
+		font-feature-settings: "tnum" 1;
 		margin-top: 0px;
 	}
 }
@@ -347,6 +348,9 @@ h6.uppercase, .h6.uppercase {
 
 	.form-section {
 		padding: 15px 7px;
+	}
+	.hide-border {
+		padding-top: 0;
 	}
 }
 
@@ -572,7 +576,13 @@ h6.uppercase, .h6.uppercase {
 		margin-left: 5px;
 	}
 
-	.media-body:after, .media-body:before {
+	.media-body {
+		.left-arrow;
+	}
+}
+
+.left-arrow {
+	&::after, &::before {
 		right: 100%;
 		top: 15px;
 		border: solid transparent;
@@ -583,13 +593,13 @@ h6.uppercase, .h6.uppercase {
 		pointer-events: none;
 	}
 
-	.media-body:after {
+	&::after {
 		border-color: rgba(136, 183, 213, 0);
 		border-right-color: #fafbfc;
 		border-width: 6px;
 		margin-top: -6px;
 	}
-	.media-body:before {
+	&::before {
 		border-color: rgba(194, 225, 245, 0);
 		border-right-color: @border-color;
 		border-width: 7px;
@@ -635,6 +645,18 @@ h6.uppercase, .h6.uppercase {
 	left: 40px;
 	border-radius: 50%;
 	top: 5px;
+}
+
+.timeline-item.user-content.show-indicator {
+	position: relative;
+	.media-body {
+		margin-left: 50px;
+	}
+	&::before {
+		.timeline-indicator();
+		left: 13px;
+		top: 13px;
+	}
 }
 
 .timeline-item.notification-content::before {
@@ -1011,7 +1033,7 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 
 .map-columns .form-section {
 	padding: 0 7px 7px;
-	border-bottom: none;
+	border-top: none;
 
 	.clearfix {
 		display: none;
@@ -1020,4 +1042,8 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 
 .map-columns .form-section:first-child {
 	padding-top: 7px;
+}
+
+.table-preview {
+	margin-top: 12px;
 }

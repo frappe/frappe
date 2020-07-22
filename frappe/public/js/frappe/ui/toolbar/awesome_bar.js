@@ -228,7 +228,7 @@ frappe.search.AwesomeBar = Class.extend({
 		}
 
 		this.options.push({
-			label: __("Search for '{0}'", [txt.bold()]),
+			label: __("Search for '{0}'", [frappe.utils.xss_sanitise(txt).bold()]),
 			value: __("Search for '{0}'", [txt]),
 			match: txt,
 			index: 100,

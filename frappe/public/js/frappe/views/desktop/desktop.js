@@ -3,6 +3,7 @@ export default class Desktop {
 		this.wrapper = wrapper;
 		this.pages = {};
 		this.sidebar_items = {};
+		this.mobile_sidebar_items = {};
 		this.sidebar_categories = [
 			"Modules",
 			"Domains",
@@ -52,7 +53,7 @@ export default class Desktop {
 			.call("frappe.desk.desktop.get_desk_sidebar_items")
 			.then(response => {
 				if (response.message) {
-					this.desktop_settings = response.message;
+					this.sidebar_configuration = response.message;
 				} else {
 					frappe.throw({
 						title: __("Couldn't Load Desk"),
@@ -70,10 +71,11 @@ export default class Desktop {
 
 	make_sidebar() {
 		const get_sidebar_item = function(item) {
-			return $(`<a href="${"desk#workspace/" +
-				item.name}" class="sidebar-item ${
-				item.selected ? "selected" : ""
-			}">
+			return $(`<a href="${"desk#workspace/" + item.name}"
+					class="sidebar-item 
+						${item.selected ? " selected" : ""}
+						${item.hidden ? "hidden" : ""}
+					">
 					<span>${item.label || item.name}</span>
 				</div>`);
 		};
@@ -84,10 +86,13 @@ export default class Desktop {
 				this.current_page = item.name;
 			}
 			let $item = get_sidebar_item(item);
-
-			$item.appendTo(this.mobile_list);
-			$item.clone().appendTo(this.sidebar);
+			let $mobile_item = $item.clone();
+			
+			$item.appendTo(this.sidebar);
 			this.sidebar_items[item.name] = $item;
+
+			$mobile_item.appendTo(this.mobile_list);
+			this.mobile_sidebar_items[item.name] = $mobile_item;
 		};
 
 		const make_category_title = name => {
@@ -101,9 +106,9 @@ export default class Desktop {
 		};
 
 		this.sidebar_categories.forEach(category => {
-			if (this.desktop_settings.hasOwnProperty(category)) {
+			if (this.sidebar_configuration.hasOwnProperty(category)) {
 				make_category_title(category);
-				this.desktop_settings[category].forEach(item => {
+				this.sidebar_configuration[category].forEach(item => {
 					make_sidebar_category_item(item);
 				});
 			}
@@ -122,7 +127,10 @@ export default class Desktop {
 
 		if (this.sidebar_items && this.sidebar_items[this.current_page]) {
 			this.sidebar_items[this.current_page].removeClass("selected");
+			this.mobile_sidebar_items[this.current_page].removeClass("selected");
+			
 			this.sidebar_items[page].addClass("selected");
+			this.mobile_sidebar_items[page].addClass("selected");
 		}
 		this.current_page = page;
 		this.mobile_list.hide();
@@ -132,13 +140,15 @@ export default class Desktop {
 	}
 
 	get_page_to_show() {
-		const default_page = this.desktop_settings
-			? this.desktop_settings["Modules"][0].name
-			: "Website";
+		const default_page = this.sidebar_configuration
+			? this.sidebar_configuration["Modules"][0].name
+			: frappe.boot.allowed_workspaces[0].name;
+
 		let page =
 			frappe.get_route()[1] ||
 			localStorage.current_desk_page ||
 			default_page;
+
 		return page;
 	}
 
@@ -299,7 +309,6 @@ class DesktopPage {
 			steps: this.data.onboarding.items,
 			success: this.data.onboarding.success,
 			docs_url: this.data.onboarding.docs_url,
-			user_can_dismiss: this.data.onboarding.user_can_dismiss,
 			widget_type: 'onboarding',
 			container: this.page,
 			options: {

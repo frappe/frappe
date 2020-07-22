@@ -120,9 +120,11 @@ frappe.ui.form.Timeline = class Timeline {
 	display_automatic_link_email() {
 		let docinfo = this.frm.get_docinfo();
 
-		if (docinfo.document_email){
+		if (docinfo.document_email) {
 			let link = __("Send an email to {0} to link it here", [`<b><a class="timeline-email-import-link copy-to-clipboard">${docinfo.document_email}</a></b>`]);
-			$('.timeline-email-import').html(link);
+			const email_link = $('.timeline-email-import');
+			email_link.removeClass('hide');
+			email_link.html(link);
 		}
 	}
 
@@ -180,12 +182,15 @@ frappe.ui.form.Timeline = class Timeline {
 		// append energy point logs
 		timeline = timeline.concat(this.get_energy_point_logs());
 
+		// custom contents
+		timeline = timeline.concat(this.get_additional_timeline_content());
+
 		// append milestones
 		timeline = timeline.concat(this.get_milestones());
 
 		// sort
 		timeline
-			.filter(a => a.content)
+			.filter(a => a.content || a.template)
 			.sort((b, c) => me.compare_dates(b, c))
 			.forEach(d => {
 				d.frm = me.frm;
@@ -205,16 +210,18 @@ frappe.ui.form.Timeline = class Timeline {
 			</div>').appendTo(me.list);
 		}
 
-		// created
-		me.render_timeline_item({
-			content: __("created"),
-			comment_type: "Created",
-			communication_type: "Comment",
-			sender: this.frm.doc.owner,
-			communication_date: this.frm.doc.creation,
-			creation: this.frm.doc.creation,
-			frm: this.frm
-		});
+		// if a created comment is not added, add the default one
+		if (!timeline.find(comment => comment.comment_type === 'Created')) {
+			me.render_timeline_item({
+				content: __("created"),
+				comment_type: "Created",
+				communication_type: "Comment",
+				sender: this.frm.doc.owner,
+				communication_date: this.frm.doc.creation,
+				creation: this.frm.doc.creation,
+				frm: this.frm
+			});
+		}
 
 		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email").change();
 
@@ -405,7 +412,10 @@ frappe.ui.form.Timeline = class Timeline {
 				c.original_content = c.content;
 				c.content = frappe.utils.toggle_blockquote(c.content);
 			}
-			if(!frappe.utils.is_html(c.content)) {
+
+			if (c.template) {
+				c.content_html = frappe.render_template(c.template, c.template_data);
+			} else if (!frappe.utils.is_html(c.content)) {
 				c.content_html = frappe.markdown(__(c.content));
 			} else {
 				c.content_html = c.content;
@@ -527,6 +537,10 @@ frappe.ui.form.Timeline = class Timeline {
 		return energy_point_logs;
 	}
 
+	get_additional_timeline_content() {
+		return this.frm.get_docinfo().additional_timeline_content || [];
+	}
+
 	get_milestones() {
 		let milestones = this.frm.get_docinfo().milestones;
 		milestones.map(log => {
@@ -564,12 +578,17 @@ frappe.ui.form.Timeline = class Timeline {
 			let updater_reference = data.updater_reference;
 			if (!$.isEmptyObject(updater_reference)) {
 				let label = updater_reference.label || __('via {0}', [updater_reference.doctype]);
-				updater_reference_link = frappe.utils.get_form_link(
-					updater_reference.doctype,
-					updater_reference.docname,
-					true,
-					label
-				);
+				let { doctype, docname } = updater_reference;
+				if (doctype && docname) {
+					updater_reference_link = frappe.utils.get_form_link(
+						doctype,
+						docname,
+						true,
+						label
+					);
+				} else {
+					updater_reference_link = label;
+				}
 			}
 
 			// value changed in parent
@@ -677,6 +696,15 @@ frappe.ui.form.Timeline = class Timeline {
 					}
 				}
 			});
+
+			// creation by updater reference
+			if (data.creation && data.created_by) {
+				if (updater_reference_link) {
+					out.push(me.get_version_comment(version, __('created {0}', [updater_reference_link]), 'Created'));
+				} else {
+					out.push(me.get_version_comment(version, __('created'), 'Created'));
+				}
+			}
 		});
 	}
 
