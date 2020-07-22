@@ -176,8 +176,8 @@ def fetch_latest_backups(with_files=True, recent=3):
 	odb.get_backup(older_than=recent, ignore_files=not with_files)
 
 	return {
-		"database": odb.backup_path_files,
-		"public": odb.backup_path_db,
+		"database": odb.backup_path_db,
+		"public": odb.backup_path_files,
 		"private": odb.backup_path_private_files
 	}
 
