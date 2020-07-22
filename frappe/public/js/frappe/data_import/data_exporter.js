@@ -285,7 +285,7 @@ frappe.data_import.DataExporter = class DataExporter {
 				return true;
 			}
 			return false;
-		}
+		};
 
 		return fields
 			.filter(df => {
