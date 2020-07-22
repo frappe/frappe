@@ -1409,7 +1409,6 @@ frappe.ui.form.Form = class FrappeForm {
 			};
 		}
 		this.perm = perm;
-		this.toolbar.set_page_action();
 	}
 
 	trigger(event, doctype, docname) {
