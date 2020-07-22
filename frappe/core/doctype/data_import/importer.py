@@ -233,7 +233,7 @@ class Importer:
 			return updated_doc
 		else:
 			# throw if no changes
-			frappe.throw('No changes to update')
+			frappe.throw("No changes to update")
 
 	def get_eta(self, current, total, processing_time):
 		self.last_eta = getattr(self, "last_eta", 0)
@@ -322,7 +322,7 @@ class ImportFile:
 		if isinstance(file, frappe.string_types):
 			if frappe.db.exists("File", {"file_url": file}):
 				self.file_doc = frappe.get_doc("File", {"file_url": file})
-			elif 'docs.google.com/spreadsheets' in file:
+			elif "docs.google.com/spreadsheets" in file:
 				self.google_sheets_url = file
 			elif os.path.exists(file):
 				self.file_path = file
@@ -348,7 +348,7 @@ class ImportFile:
 
 		elif self.google_sheets_url:
 			content = get_csv_content_from_google_sheets(self.google_sheets_url)
-			extension = 'csv'
+			extension = "csv"
 
 		if not content:
 			frappe.throw(_("Invalid or corrupted content for import"))
@@ -620,11 +620,7 @@ class Row:
 				options_string = ", ".join([frappe.bold(d) for d in select_options])
 				msg = _("Value must be one of {0}").format(options_string)
 				self.warnings.append(
-					{
-						"row": self.row_number,
-						"field": df_as_json(df),
-						"message": msg,
-					}
+					{"row": self.row_number, "field": df_as_json(df), "message": msg,}
 				)
 				return
 
@@ -635,11 +631,7 @@ class Row:
 					frappe.bold(value), frappe.bold(df.options)
 				)
 				self.warnings.append(
-					{
-						"row": self.row_number,
-						"field": df_as_json(df),
-						"message": msg,
-					}
+					{"row": self.row_number, "field": df_as_json(df), "message": msg,}
 				)
 				return
 		elif df.fieldtype in ["Date", "Datetime"]:
@@ -786,9 +778,7 @@ class Header(Row):
 		for j, header in enumerate(row):
 			column_values = [get_item_at_index(r, j) for r in raw_data]
 			map_to_field = column_to_field_map.get(str(j))
-			column = Column(
-				j, header, self.doctype, column_values, map_to_field, self.seen
-			)
+			column = Column(j, header, self.doctype, column_values, map_to_field, self.seen)
 			self.seen.append(header)
 			self.columns.append(column)
 
@@ -962,18 +952,26 @@ class Column:
 		if not self.df:
 			return
 
-		if self.df.fieldtype == 'Link':
+		if self.df.fieldtype == "Link":
 			# find all values that dont exist
 			values = list(set([cstr(v) for v in self.column_values[1:] if v]))
-			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={'name': ('in', values)})]
+			exists = [
+				d.name for d in frappe.db.get_all(self.df.options, filters={"name": ("in", values)})
+			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
-				missing_values = ', '.join(not_exists)
-				self.warnings.append({
-					'col': self.column_number,
-					'message': "The following values do not exist for {}: {}".format(self.df.options, missing_values),
-					'type': 'warning'
-				})
+				missing_values = ", ".join(not_exists)
+				self.warnings.append(
+					{
+						"col": self.column_number,
+						"message": (
+							"The following values do not exist for {}: {}".format(
+								self.df.options, missing_values
+							)
+						),
+						"type": "warning",
+					}
+				)
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date format
 			self.date_format = self.guess_date_format_for_column()
@@ -1016,7 +1014,7 @@ class Column:
 		d.map_to_field = self.map_to_field
 		d.date_format = self.date_format
 		d.df = self.df
-		if hasattr(self.df, 'is_child_table_field'):
+		if hasattr(self.df, "is_child_table_field"):
 			d.is_child_table_field = self.df.is_child_table_field
 			d.child_table_df = self.df.child_table_df
 		d.skip_import = self.skip_import
@@ -1096,7 +1094,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		# other fields
 		fields = get_standard_fields(doctype) + frappe.get_meta(doctype).fields
 		for df in fields:
-			label = (df.label or '').strip()
+			label = (df.label or "").strip()
 			fieldtype = df.fieldtype or "Data"
 			parent = df.parent or parent_doctype
 			if fieldtype not in no_value_fields:
@@ -1190,14 +1188,15 @@ def get_user_format(date_format):
 		.replace("%d", "dd")
 	)
 
+
 def df_as_json(df):
 	return {
-		'fieldname': df.fieldname,
-		'fieldtype': df.fieldtype,
-		'label': df.label,
-		'options': df.options,
-		'parent': df.parent,
-		'default': df.default
+		"fieldname": df.fieldname,
+		"fieldtype": df.fieldtype,
+		"label": df.label,
+		"options": df.options,
+		"parent": df.parent,
+		"default": df.default,
 	}
 
 
