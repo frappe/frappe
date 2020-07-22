@@ -7,7 +7,7 @@ import io
 import frappe
 import timeit
 import json
-from datetime import datetime
+from datetime import datetime, date
 from frappe import _
 from frappe.utils import cint, flt, update_progress_bar, cstr
 from frappe.utils.csvutils import read_csv_content, get_csv_content_from_google_sheets
@@ -668,7 +668,7 @@ class Row:
 
 	def parse_value(self, value, col):
 		df = col.df
-		if isinstance(value, datetime) and df.fieldtype in ["Date", "Datetime"]:
+		if isinstance(value, (datetime, date)) and df.fieldtype in ["Date", "Datetime"]:
 			return value
 
 		value = cstr(value)
@@ -689,7 +689,7 @@ class Row:
 		return value
 
 	def get_date(self, value, column):
-		if isinstance(value, datetime):
+		if isinstance(value, (datetime, date)):
 			return value
 
 		date_format = column.date_format
@@ -918,13 +918,20 @@ class Column:
 		self.skip_import = skip_import
 
 	def guess_date_format_for_column(self):
-		""" Guesses date format for a column by parsing all the values in the column,
+		"""Guesses date format for a column by parsing all the values in the column,
 		getting the date format and then returning the one which has the maximum frequency
 		"""
 
-		date_formats = [
-			frappe.utils.guess_date_format(d) for d in self.column_values if isinstance(d, str)
-		]
+		def guess_date_format(d):
+			if isinstance(d, (datetime, date)):
+				if self.df.fieldtype == "Date":
+					return "%Y-%m-%d"
+				if self.df.fieldtype == "Datetime":
+					return "%Y-%m-%d %H:%M:%S"
+			if isinstance(d, str):
+				return frappe.utils.guess_date_format(d)
+
+		date_formats = [guess_date_format(d) for d in self.column_values]
 		date_formats = [d for d in date_formats if d]
 		if not date_formats:
 			return
@@ -971,6 +978,17 @@ class Column:
 			# guess date format
 			self.date_format = self.guess_date_format_for_column()
 			if not self.date_format:
+				self.date_format = "%Y-%m-%d"
+				self.warnings.append(
+					{
+						"col": self.column_number,
+						"message": _(
+							"Date format could not be determined from the values in"
+							" this column. Defaulting to yyyy-mm-dd."
+						),
+						"type": "info",
+					}
+				)
 		elif self.df.fieldtype == "Select":
 			options = get_select_options(self.df)
 			if options:
