@@ -1,0 +1,18 @@
+@mixin flex($dis, $x, $y, $dir) {
+	display: $dis;
+	justify-content: $x;
+	align-items: $y;
+	flex-direction: $dir;
+}
+
+@mixin card(
+	$radius: var(--border-radius-md),
+	$shadow: var(--card-shadow),
+	$padding: var(--padding-sm),
+	$background-color: var(--card-bg)
+) {
+	border-radius: $radius;
+	box-shadow: $shadow;
+	padding: $padding;
+	background-color: $background-color;
+}

@@ -16,11 +16,7 @@ $form-left-padding: var(--padding-xl);
 }
 
 .form-section {
-	margin: var(--margin-lg) 0px;
-	border-radius: var(--border-radius-md);
-	box-shadow: var(--card-shadow);
-	padding: var(--padding-sm);
-	background: var(--card-bg);
+	margin: 0px;
 
 	.form-section-description {
 		margin-bottom: 10px;
@@ -49,6 +45,11 @@ $form-left-padding: var(--padding-xl);
 	.section-head.collapsed {
 		margin-bottom: 0px;
 	}
+}
+
+.form-section.frappe-card {
+	margin: var(--margin-lg) 0px;
+	@include card();
 }
 
 .form-dashboard {

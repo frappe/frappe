@@ -6,29 +6,27 @@
 }
 
 #alert-container .desk-alert {
-	box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
+	box-shadow: $card-box-shadow;
 	width: 400px;
 	min-height: 50px;
 	max-height: 200px;
-	background-color: $white;
+	background-color: var(--toast-bg);
 
 	-webkit-animation-name: backInRight;
 	animation-name: backInRight;
 	animation-duration: 600ms;
 
-	// word-break: break-all;
 	overflow-y: auto;
 	position: relative;
-	// transform: translateX(calc(100% + 20px));
-	// transition: transform 300ms ease;
 	padding: 0px;
 	border-radius: var(--border-radius-md);
 
 	.alert-message-container {
-		padding: 16px 40px 16px 16px;
+		padding: var(--padding-md);
+		padding-right: var(--padding-2xl);
 
 		.icon {
-			margin-right: 10px;
+			margin-right: var(--margin-sm);
 		}
 
 		.alert-title-container {
@@ -38,20 +36,21 @@
 
 		.alert-message {
 			font-weight: 500;
-			color: var(--gray-900);
+			color: var(--text-color);
 			line-height: 20px;
 		}
 
 		.alert-subtitle {
-			font-size: 13px;
+			font-size: var(--text-md);
 			padding-left: 34px;
+			color: var(--text-muted);
 		}
 	}
 
 	.close {
 		position: absolute;
-		top: 10px;
-		right: 10px;
+		top: var(--padding-sm);
+		right: var(--padding-sm);
 		color: inherit;
 		opacity: 1;
 		font-size: inherit;
@@ -64,16 +63,16 @@
 			border: none;
 			background: none;
 			width: 100%;
-			border-top: 1px solid $border-color;
-			border-right: 1px solid $border-color;
-			padding: 7px;
+			border-top: 1px solid var(--border-color);
+			border-right: 1px solid var(--border-color);
+			padding: var(--padding-sm);
 			outline: none;
-			font-size: 12px;
+			font-size: var(--text-sm);
 			font-weight: 500;
-			color: $text-muted;
+			color: var(--text-light);
 
 			&:hover {
-				color: var(--gray-900)
+				color: var(--text-color)
 			}
 
 			&:last-child {

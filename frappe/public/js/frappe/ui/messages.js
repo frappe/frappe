@@ -366,7 +366,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 			message: message
 		};
 	}
-	
+
 	if (!$('#dialog-container').length) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}

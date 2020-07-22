@@ -117,19 +117,20 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--purple-100: #EAEAFB;
 	--purple-50: #F2F2FD;
 
-	--card-shadow: 0px 0px 0.5px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.13);
 
 	--padding-xs: 5px;
 	--padding-sm: 10px;
 	--padding-md: 15px;
 	--padding-lg: 20px;
 	--padding-xl: 30px;
+	--padding-2xl: 40px;
 
 	--margin-xs: 5px;
 	--margin-sm: 10px;
 	--margin-md: 15px;
 	--margin-lg: 20px;
 	--margin-xl: 30px;
+	--margin-2xl: 40px;
 
 	--text-xs: 11px;
 	--text-sm: 12px;
@@ -139,27 +140,49 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--text-xl: 18px;
 	--text-2xl: 20px;
 
+	--shadow-sm: 0px 0px 0.5px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.13);
+	--shadow-md: 0px 1px 2px rgba(25, 39, 52, 0.05), 0px 0px 4px rgba(25, 39, 52, 0.1);
+	--shadow-base:  0px 4px 8px rgba(25, 39, 52, 0.06), 0px 0px 4px rgba(25, 39, 52, 0.12);
+	--shadow-lg:  0px 8px 14px rgba(25, 39, 52, 0.08), 0px 2px 6px rgba(25, 39, 52, 0.04);
+	--shadow-xl: 0px 18px 22px rgba(25, 39, 52, 0.1), 0px 1px 10px rgba(0, 0, 0, 0.06), 0px 0.5px 5px rgba(25, 39, 52, 0.04);
+	--card-shadow: var(--shadow-sm);
+
+	// Type Colors
 	--text-muted: var(--gray-600);
 	--text-light: var(--gray-700);
 	--text-color: var(--gray-900);
 	--heading-color: var(--gray-900);
 
+	// SVG Colors
+	--icon-fill: var(--gray-900);
+	--icon-stroke: var(--gray-900);
+
+	// Layout Colors
+	--bg-color: var(--gray-50);
+	--fg-color: white;
+	--card-bg: var(--fg-color);
+	--control-bg: var(--gray-100);
+	--modal-bg: white;
+	--toast-bg: var(--modal-bg);
+
+	--sidebar-select-color: var(--gray-200);
+
+	--shadow-inset: var(--gray-100);
+	--border-color: var(--gray-100);
+
+	// Border Sizes
 	--border-radius-sm: 4px;
 	--border-radius: 6px;
 	--border-radius-md: 8px;
 	--border-radius-lg: 12px;
-
-	--bg-color: var(--gray-50);
-	--fg-color: white;
-	--card-bg: var(--fg-color);
 }
 
 html, body {
 	font-size: 14px;
 }
 
-$border-color: var(--gray-100);
-$control-bg: var(--gray-100);
+$border-color: var(--border-color);
+$control-bg: var(--control-bg);
 $code-color: var(--purple-600);
 
 $border-radius: var(--border-radius);
@@ -205,13 +228,39 @@ $dropdown-item-padding-y: 0.5rem !default;
 $dropdown-item-padding-x: 0.5rem !default;
 
 [data-theme="dark"] {
-	--bg-color: var(--gray-900);
-	--fg-color: var(--gray-700);
+	--gray-50: #{$gray-50};
+	--gray-100: #F7FAFC;
+	--gray-200: #EDF2F7;
+	--gray-300: #E2E8F0;
+	--gray-400: #CBD5E0;
+	--gray-500: #A0AEC0;
+	--gray-600: #718096;
+	--gray-700: #4A5568;
+	--gray-800: #2D3748;
+	--gray-900: #1A202C;
 
+	// Type Colors
 	--text-muted: var(--gray-300);
 	--text-light: var(--gray-400);
 	--text-color: var(--gray-50);
 	--heading-color: var(--gray-50);
+
+	// SVG Colors
+	--icon-fill: var(--gray-50);
+	--icon-stroke: var(--gray-50);
+
+	// Layout Colors
+	--bg-color: var(--gray-900);
+	--fg-color: var(--gray-800);
+	--card-bg: var(--gray-800);
+	--control-bg: var(--gray-700);
+	--modal-bg: var(--gray-700);
+	--toast-bg: var(--modal-bg);
+
+	--sidebar-select-color: var(--gray-800);
+
+	--shadow-inset: var(--fg-color);
+	--border-color: var(--gray-600);
 }
 
 $spacer: 14px;

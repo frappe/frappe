@@ -159,7 +159,8 @@ frappe.ui.form.Form = class FrappeForm {
 			parent: this.body,
 			doctype: this.doctype,
 			frm: this,
-			with_dashboard: true
+			with_dashboard: true,
+			card_layout: true,
 		});
 		this.layout.make();
 
