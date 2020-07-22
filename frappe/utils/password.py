@@ -131,10 +131,6 @@ def create_auth_table():
 	frappe.db.create_auth_table()
 
 def encrypt(pwd):
-	if len(pwd) > 20000:
-		# https://github.com/frappe/frappe/issues/11039
-		frappe.throw(_('Password cannot be more than 20000 characters long'))
-
 	cipher_suite = Fernet(encode(get_encryption_key()))
 	cipher_text = cstr(cipher_suite.encrypt(encode(pwd)))
 	return cipher_text
