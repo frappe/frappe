@@ -50,7 +50,6 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-menu {
-		margin-top: var(--margin-lg);
 		.sidebar-label {
 			margin-bottom: var(--margin-sm);
 			font-weight: 500;
@@ -84,6 +83,10 @@ body[data-route^="Module"] .main-menu {
 
 // form sidebar
 .form-sidebar {
+	.sidebar-menu {
+		margin-top: var(--margin-lg);
+	}
+
 	.form-tags {
 		.tag-area {
 			margin-top: -3px;
