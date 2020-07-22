@@ -21,7 +21,7 @@
 <div class="help-article-feedback mb-4">
 	<hr />
 	<div class="feedback-view ">
-		<span class="text-muted small mr-2">{{ _("Was this article helpful?") }}</span>
+		<div class="text-muted small mr-2 mb-2">{{ _("Was this article helpful?") }}</div>
 		<button class="feedback btn btn-outline-primary btn-sm" data-value="Yes" style="width: 50px;">{{ _("Yes") }}</button>
 		<button class="feedback btn btn-outline-primary btn-sm" data-value="No" style="width: 50px;">{{ _("No") }}</button>
 		<button class="feedback-msg btn btn-sm disabled hide">{{ _("Thank you for your feedback!") }}</button>
@@ -53,9 +53,9 @@ frappe.ready(function() {
 			method: "frappe.website.doctype.help_article.help_article.add_feedback",
 			args: args,
 			callback: function(r) {
-				$(".feedback")[0].classList.add("hide");
-				$(".feedback")[1].classList.add("hide");
-				$(".feedback-msg")[0].classList.remove("hide");
+				$(".feedback")[0].classList.add("hidden");
+				$(".feedback")[1].classList.add("hidden");
+				$(".feedback-msg")[0].classList.remove("hidden");
 			}
 		})
 	});
