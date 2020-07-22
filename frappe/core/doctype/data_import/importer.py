@@ -602,12 +602,20 @@ class Row:
 
 		is_table = frappe.get_meta(doctype).istable
 		is_update = self.import_type == UPDATE
-		if is_table and is_update and doc.get("name") in INVALID_VALUES:
-			# for table rows being inserted in update
-			# create a new doc with defaults set
-			new_doc = frappe.new_doc(doctype, as_dict=True)
-			new_doc.update(doc)
-			doc = new_doc
+		if is_table and is_update:
+			# check if the row already exists
+			# if yes, fetch the original doc so that it is not updated
+			# if no, create a new doc
+			id_field = get_id_field(doctype)
+			id_value = doc.get(id_field.fieldname)
+			if id_value and frappe.db.exists(doctype, id_value):
+				doc = frappe.get_doc(doctype, id_value)
+			else:
+				# for table rows being inserted in update
+				# create a new doc with defaults set
+				new_doc = frappe.new_doc(doctype, as_dict=True)
+				new_doc.update(doc)
+				doc = new_doc
 
 		self.check_mandatory_fields(doctype, doc, table_df)
 		return doc
