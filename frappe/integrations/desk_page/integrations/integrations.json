@@ -28,7 +28,7 @@
   {
    "hidden": 0,
    "label": "Settings",
-   "links": " [\n\t\t        {\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Woocommerce Settings\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Shopify Settings\",\n\t\t\t\t\t\"description\": \"Connect Shopify with ERPNext\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Amazon MWS Settings\",\n\t\t\t\t\t\"description\": \"Connect Amazon with ERPNext\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Plaid Settings\",\n\t\t\t\t\t\"description\": \"Connect your bank accounts to ERPNext\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"doctype\",\n\t\t\t\t\t\"name\": \"Exotel Settings\",\n\t\t\t\t\t\"description\": \"Connect your Exotel Account to ERPNext and track call logs\"\n\t\t\t\t}\n]"
+   "links": " [\n\t{\n\t    \"type\": \"doctype\",\n\t\t\"name\": \"Woocommerce Settings\"\n\t},\n\t{\n\t    \"type\": \"doctype\",\n\t\t\"name\": \"Shopify Settings\",\n\t\t\"description\": \"Connect Shopify with ERPNext\"\n\t},\n\t{\n\t    \"type\": \"doctype\",\n\t\t\"name\": \"Amazon MWS Settings\",\n\t\t\"description\": \"Connect Amazon with ERPNext\"\n\t},\n\t{\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Plaid Settings\",\n\t\t\"description\": \"Connect your bank accounts to ERPNext\"\n\t},\n    {\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Exotel Settings\",\n\t\t\"description\": \"Connect your Exotel Account to ERPNext and track call logs\"\n    }\n]"
   }
  ],
  "category": "Administration",
@@ -43,7 +43,7 @@
  "idx": 0,
  "is_standard": 1,
  "label": "Integrations",
- "modified": "2020-07-22 11:16:36.202633",
+ "modified": "2020-07-22 11:32:50.034327",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
