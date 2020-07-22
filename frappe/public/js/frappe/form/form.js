@@ -1264,7 +1264,6 @@ frappe.ui.form.Form = class FrappeForm {
 			perm[p.permlevel || 0] = {read:1, print:1, cancel:1, email:1};
 		}
 		this.perm = perm;
-		this.toolbar.set_page_action();
 	}
 
 	trigger(event, doctype, docname) {
