@@ -100,6 +100,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
+		"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
 		"milestones": get_milestones(doc.doctype, doc.name),
 		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 		"tags": get_tags(doc.doctype, doc.name),
@@ -277,3 +278,14 @@ def get_document_email(doctype, name):
 
 def get_automatic_email_link():
 	return frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id")
+
+def get_additional_timeline_content(doctype, docname):
+	contents = []
+	hooks = frappe.get_hooks().get('additional_timeline_content', {})
+	methods_for_all_doctype = hooks.get('*', [])
+	methods_for_current_doctype = hooks.get(doctype, [])
+
+	for method in methods_for_all_doctype + methods_for_current_doctype:
+		contents.extend(frappe.get_attr(method)(doctype, docname) or [])
+
+	return contents

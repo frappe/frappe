@@ -6,9 +6,15 @@ import frappe
 
 
 def execute():
-	frappe.rename_doc('DocType', 'Data Import', 'Data Import Legacy')
+	if not frappe.db.table_exists("Data Import"): return
+
+	meta = frappe.get_meta("Data Import")
+	# if Data Import is the new one, return early
+	if meta.fields[1].fieldname == "import_type":
+		return
+
+	frappe.db.sql("DROP TABLE IF EXISTS `tabData Import Legacy`")
+	frappe.rename_doc("DocType", "Data Import", "Data Import Legacy")
 	frappe.db.commit()
 	frappe.db.sql("DROP TABLE IF EXISTS `tabData Import`")
-	frappe.reload_doc("core", "doctype", "data_import")
-	frappe.get_doc("DocType", "Data Import").on_update()
-	frappe.delete_doc_if_exists("DocType", "Data Import Beta")
+	frappe.rename_doc("DocType", "Data Import Beta", "Data Import")

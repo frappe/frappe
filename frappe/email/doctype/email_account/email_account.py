@@ -274,6 +274,8 @@ class EmailAccount(Document):
 
 			for idx, msg in enumerate(incoming_mails):
 				uid = None if not uid_list else uid_list[idx]
+				self.flags.notify = True
+
 				try:
 					args = {
 						"uid": uid,
@@ -294,7 +296,11 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					if communication:
+					if communication and self.flags.notify:
+
+						# If email already exists in the system
+						# then do not send notifications for the same email.
+
 						attachments = []
 
 						if hasattr(communication, '_attachments'):
@@ -363,6 +369,9 @@ class EmailAccount(Document):
 				name = names[0].get("name")
 				# email is already available update communication uid instead
 				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
+
+				self.flags.notify = False
+
 				return frappe.get_doc("Communication", name)
 
 		if email.content_type == 'text/html':
@@ -469,26 +478,38 @@ class EmailAccount(Document):
 
 		if self.append_to and self.sender_field:
 			if self.subject_field:
-				# try and match by subject and sender
-				# if sent by same sender with same subject,
-				# append it to old coversation
-				subject = frappe.as_unicode(strip(re.sub(r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*",
-					"", email.subject, 0, flags=re.IGNORECASE)))
+				if '#' in email.subject:
+					# try and match if ID is found
+					# document ID is appended to subject
+					# example "Re: Your email (#OPP-2020-2334343)"
+					parent_id = email.subject.rsplit('#', 1)[-1].strip(' ()')
+					if parent_id:
+						parent = frappe.db.get_all(self.append_to, filters = dict(name = parent_id),
+							fields = 'name')
 
-				parent = frappe.db.get_all(self.append_to, filters={
-					self.sender_field: email.from_email,
-					self.subject_field: ("like", "%{0}%".format(subject)),
-					"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
-				}, fields="name")
+				if not parent:
+					# try and match by subject and sender
+					# if sent by same sender with same subject,
+					# append it to old coversation
+					subject = frappe.as_unicode(strip(re.sub(r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*",
+						"", email.subject, 0, flags=re.IGNORECASE)))
 
-				# match only subject field
-				# when the from_email is of a user in the system
-				# and subject is atleast 10 chars long
+					parent = frappe.db.get_all(self.append_to, filters={
+						self.sender_field: email.from_email,
+						self.subject_field: ("like", "%{0}%".format(subject)),
+						"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
+					}, fields = "name", limit = 1)
+
 				if not parent and len(subject) > 10 and is_system_user(email.from_email):
+					# match only subject field
+					# when the from_email is of a user in the system
+					# and subject is atleast 10 chars long
 					parent = frappe.db.get_all(self.append_to, filters={
 						self.subject_field: ("like", "%{0}%".format(subject)),
 						"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
-					}, fields="name")
+					}, fields = "name", limit = 1)
+
+
 
 			if parent:
 				parent = frappe._dict(doctype=self.append_to, name=parent[0].name)

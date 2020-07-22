@@ -175,17 +175,22 @@ def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
 
 def get_csv_content_from_google_sheets(url):
+	# https://docs.google.com/spreadsheets/d/{sheetid}}/edit#gid={gid}
 	validate_google_sheets_url(url)
-
+	# get gid, defaults to first sheet
+	if "gid=" in url:
+		gid = url.rsplit('gid=', 1)[1]
+	else:
+		gid = 0
 	# remove /edit path
 	url = url.rsplit('/edit', 1)[0]
-	# add /export path, defaults to first sheet
-	url = url + '/export?format=csv&gid=0'
+	# add /export path,
+	url = url + '/export?format=csv&gid={0}'.format(gid)
+
 	headers = {
 		'Accept': 'text/csv'
 	}
 	response = requests.get(url, headers=headers)
-	response.raise_for_status()
 
 	if response.ok:
 		# if it returns html, it couldn't find the CSV content
@@ -196,6 +201,11 @@ def get_csv_content_from_google_sheets(url):
 				title=_("Invalid URL")
 			)
 		return response.content
+	elif response.status_code == 400:
+		frappe.throw(_('Google Sheets URL must end with "gid={number}". Copy and paste the URL from the browser address bar and try again.'),
+			title=_("Incorrect URL"))
+	else:
+		response.raise_for_status()
 
 def validate_google_sheets_url(url):
 	if "docs.google.com/spreadsheets" not in url:

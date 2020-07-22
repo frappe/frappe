@@ -117,16 +117,6 @@ const build_summary_item = (summary) => {
 	</div>`);
 };
 
-function go_to_list_with_filters(doctype, filters) {
-	const route = `List/${doctype}/List`;
-	frappe.set_route(route).then(()=> {
-		let list_view = frappe.views.list_view[route];
-		let filter_area = list_view.filter_area;
-		filter_area.clear();
-		filter_area.filter_list.add_filters_to_filter_group(filters);
-	});
-}
-
 function shorten_number(number, country) {
 	country = (country == 'India') ? country : '';
 	const number_system = get_number_system(country);
@@ -167,4 +157,4 @@ function get_number_system(country) {
 	return number_system_map[country];
 }
 
-export { generate_route, generate_grid, build_summary_item, go_to_list_with_filters, shorten_number };
+export { generate_route, generate_grid, build_summary_item, shorten_number };
