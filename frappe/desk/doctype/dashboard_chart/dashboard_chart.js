@@ -28,38 +28,16 @@ frappe.ui.form.on('Dashboard Chart', {
 		}
 
 		frm.add_custom_button('Add Chart to Dashboard', () => {
-			const d = new frappe.ui.Dialog({
-				title: __('Add to Dashboard'),
-				fields: [
-					{
-						label: __('Select Dashboard'),
-						fieldtype: 'Link',
-						fieldname: 'dashboard',
-						options: 'Dashboard',
-					}
-				],
-				primary_action: (values) => {
-					values.chart_name = frm.doc.chart_name;
-					frappe.xcall(
-						'frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard',
-						{args: values}
-					).then(()=> {
-						let dashboard_route_html =
-							`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
-						let message =
-							__(`Dashboard Chart ${values.chart_name} add to Dashboard ` + dashboard_route_html);
-
-						frappe.msgprint(message);
-					});
-
-					d.hide();
-				}
-			});
+			const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
+				frm.doc.name,
+				'Dashboard Chart',
+				'frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard'
+			);
 
 			if (!frm.doc.chart_name) {
 				frappe.msgprint(__('Please create chart first'));
 			} else {
-				d.show();
+				dialog.show();
 			}
 		});
 
@@ -338,7 +316,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		} else if (frm.chart_filters.length) {
 			fields = frm.chart_filters.filter(f => f.fieldname);
 
-			fields.map( f => {
+			fields.map(f => {
 				if (filters[f.fieldname]) {
 					let condition = '=';
 					const filter_row =
