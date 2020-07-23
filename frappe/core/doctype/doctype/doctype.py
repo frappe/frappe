@@ -645,12 +645,13 @@ class DocType(Document):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
 	def validate_auto_share_on_assignment(self):
-		if not (self.issingle or self.istable or self.is_tree):
-			if self.auto_share_on_assignment and not self.allow_read:
-				self.allow_read = 1
-		else:
-			self.auto_share_on_assignment = 0
-			self.allow_read = self.allow_write = self.allow_share = 0
+		if self.auto_share_on_assignment:
+			if not (self.issingle or self.istable or self.is_tree):
+				if not self.allow_read:
+					self.allow_read = 1
+			else:
+				self.auto_share_on_assignment = 0
+				self.allow_read = self.allow_write = self.allow_share = 0
 
 
 def validate_fields_for_doctype(doctype):
