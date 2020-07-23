@@ -112,7 +112,7 @@ frappe.ui.FilterGroup = class {
 	}
 
 	get_filter_value(fieldname) {
-		let filter_obj = this.filters.find(f => f.fieldname == filename) || {};
+		let filter_obj = this.filters.find(f => f.fieldname == fieldname) || {};
 		return filter_obj.value;
 	}
 
