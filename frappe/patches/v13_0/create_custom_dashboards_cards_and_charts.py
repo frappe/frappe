@@ -1,6 +1,7 @@
 import frappe
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils.dashboard import get_dashboards_with_link
+from frappe.model.utils.rename_field import rename_field
 
 def execute():
 	if not frappe.db.table_exists('Dashboard Chart')\
@@ -8,9 +9,13 @@ def execute():
 		or not frappe.db.table_exists('Dashboard'):
 		return
 
+
 	frappe.reload_doc('desk', 'doctype', 'dashboard_chart')
 	frappe.reload_doc('desk', 'doctype', 'number_card')
 	frappe.reload_doc('desk', 'doctype', 'dashboard')
+
+	if frappe.db.has_column('Dashboard Chart', 'is_custom'):
+		rename_field('Dashboard Chart', 'is_custom', 'use_report_chart')
 
 	modified_charts = get_modified_docs('Dashboard Chart')
 	modified_cards = get_modified_docs('Number Card')

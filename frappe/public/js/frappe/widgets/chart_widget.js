@@ -255,7 +255,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	get_report_chart_data(result) {
-		if (result.chart && this.chart_doc.is_custom) {
+		if (result.chart && this.chart_doc.use_report_chart) {
 			return result.chart.data;
 		} else {
 			let y_fields = [];
@@ -639,7 +639,7 @@ export default class ChartWidget extends Widget {
 
 	set_chart_filters() {
 		let user_saved_filters = this.chart_settings.filters || null;
-		let chart_saved_filters = this.get_all_chart_filters();
+		let chart_saved_filters = frappe.dashboard_utils.get_all_filters(this.chart_doc);
 
 		if (this.chart_doc.chart_type == 'Report') {
 			return frappe.dashboard_utils
@@ -653,38 +653,6 @@ export default class ChartWidget extends Widget {
 				user_saved_filters || this.filters || chart_saved_filters;
 			return Promise.resolve();
 		}
-	}
-
-	get_all_chart_filters() {
-		let filters = JSON.parse(this.chart_doc.filters_json || "null");
-		let dynamic_filters = JSON.parse(this.chart_doc.dynamic_filters_json || "null");
-
-		if (!dynamic_filters) {
-			return filters;
-		}
-
-		if ($.isArray(dynamic_filters)) {
-			dynamic_filters.forEach(f => {
-				try {
-					f[3] = eval(f[3]);
-				} catch (e) {
-					frappe.throw(__(`Invalid expression set in filter ${f[1]} (${f[0]})`));
-				}
-			});
-			filters = [...filters, ...dynamic_filters];
-		} else {
-			for (let key of Object.keys(dynamic_filters)) {
-				try {
-					const val = eval(dynamic_filters[key]);
-					dynamic_filters[key] = val;
-				} catch (e) {
-					frappe.throw(__(`Invalid expression set in filter ${key}`));
-				}
-			}
-			Object.assign(filters, dynamic_filters);
-		}
-
-		return filters;
 	}
 
 	update_default_date_filters(report_filters, chart_filters) {
