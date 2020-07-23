@@ -116,6 +116,7 @@ frappe.ui.form.on('Number Card', {
 	},
 
 	report_name: function(frm) {
+		frm.filters = [];
 		frm.set_value('filters_json', '{}');
 		frm.set_value('dynamic_filters_json', '{}');
 		frm.set_df_property('report_field', 'options', []);
@@ -247,7 +248,7 @@ frappe.ui.form.on('Number Card', {
 			set_filters && frm.set_value('filters_json', JSON.stringify(filters));
 		}
 
-		let fields;
+		let fields = [];
 		if (is_document_type) {
 			fields = [
 				{

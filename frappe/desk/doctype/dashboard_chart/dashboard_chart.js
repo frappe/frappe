@@ -291,7 +291,7 @@ frappe.ui.form.on('Dashboard Chart', {
 			set_filters && frm.set_value('filters_json', JSON.stringify(filters));
 		}
 
-		let fields;
+		let fields = [];
 		if (is_document_type) {
 			fields = [
 				{
