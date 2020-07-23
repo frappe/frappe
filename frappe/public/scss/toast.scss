@@ -6,7 +6,7 @@
 }
 
 #alert-container .desk-alert {
-	box-shadow: $card-box-shadow;
+	box-shadow: var(--modal-shadow);
 	width: 400px;
 	min-height: 50px;
 	max-height: 200px;
