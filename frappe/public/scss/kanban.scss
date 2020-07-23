@@ -7,14 +7,11 @@
 	.kanban-column {
 		flex: 0 0 290px;
 		max-width: 290px;
-		border-right: 1px solid $border-color;
 		padding: 15px;
 		border-radius: $border-radius;
-
-		&.add-new-column {
+		margin: var(--margin-lg) var(--margin-lg) var(--margin-lg) 1px;
+ 		&.add-new-column {
 			order: 1;
-			border-right: none;
-			background-color: var(--gray-50);
 		}
 	}
 
@@ -87,12 +84,8 @@
 	}
 
 	.kanban-card {
-		background-color: #fff;
-		background: #FFFFFF;
-		box-shadow: 0px 0px 2px rgba(17, 43, 66, 0.16), 0px 1px 5px rgba(17, 43, 66, 0.1);
-		border-radius: 8px;
-		padding: 10px 14px;
-		margin-top: 10px;
+		@include card($padding: 10px 15px);
+		margin-top: var(--margin-sm);
 		width: 260px;
 		min-height: 100px;
 		display: flex;
@@ -105,9 +98,11 @@
 		display: flex;
 		align-items: center;
 		color: var(--gray-700);
-		background-color: var(--gray-100);
+		background-color: var(--fg-color);
 		box-shadow: none;
-		height: 28px;
+		height: 27px;
+		font-size: $font-size-md;
+		margin-bottom: var(--margin-md);
 		border-radius: 8px;
 		&:hover {
 			box-shadow: none;
@@ -118,7 +113,7 @@
 		.octicon-plus {
 			top: -1px;
 			font-size: 1em;
-			margin-right: 5px;
+			margin-right: var(--margin-xs);
 			position:relative;
 		}
 	}
@@ -137,7 +132,7 @@
 	}
 
 	.kanban-card:hover, .new-card-area, .edit-card-area {
-		box-shadow: 0 2px 4px rgba(0,0,0,0.30);
+		box-shadow: var(--shadow-md);
 	}
 
 	.kanban-card-wrapper:hover {
