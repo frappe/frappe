@@ -131,18 +131,39 @@
 
 .recent-item.notification-item {
 	padding: 10px 10px 10px 4px;
+	justify-content: space-between;
 
-	&::before {
-		content: '';
-		display:inline-block;
-		@include size(4px, 4px);
-		margin-top: 14px;
-		border-radius: 10px;
-		margin-right: 5px;
+	&.unread {
+
+		&:hover {
+			.mark-as-read {
+				flex-shrink : 0;
+				align-self: center;
+				justify-self: end;
+				width: 8px;
+				height: 8px;
+				border: 2px solid var(--blue-500);
+				border-radius: 1000px;
+			}
+		}
+
+		.notification-body::before {
+			background: var(--blue-500);
+		}
 	}
 
-	&.unread::before {
-		background: var(--blue-500);
+	.notification-body {
+		display: flex;
+		padding-right: 15px;
+
+		&::before {
+			content: '';
+			display:inline-block;
+			@include size(4px, 4px);
+			margin-top: 16px;
+			border-radius: 10px;
+			margin-right: 5px;
+		}
 	}
 
 	b {
