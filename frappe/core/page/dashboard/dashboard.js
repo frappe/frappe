@@ -111,7 +111,7 @@ class Dashboard {
 
 		this.page.add_menu_item(__('Refresh All'), () => {
 			this.chart_objects.forEach(chart => {
-				chart.refresh(true)
+				chart.refresh(true);
 			});
 		});
 
