@@ -42,7 +42,11 @@
 		{{ head_include or "" }}
 	{% endblock -%}
 
-	{%- block style %}{%- endblock -%}
+	{%- block style %}
+		{% if colocated_css -%}
+			<style>{{ colocated_css }}</style>
+		{%- endif %}
+	{%- endblock -%}
 
 	<script>
 		window.frappe = {};
@@ -86,7 +90,11 @@
 	<script type="text/javascript" src="{{ link | abs_url }}"></script>
 	{%- endfor -%}
 
-	{%- block script %}{%- endblock %}
+	{%- block script %}
+		{% if colocated_js -%}
+			<script>{{ colocated_js }}</script>
+		{%- endif %}
+	{%- endblock %}
 	<!-- csrf_token -->
 	{%- block body_include %}{{ body_include or "" }}{% endblock -%}
 </body>

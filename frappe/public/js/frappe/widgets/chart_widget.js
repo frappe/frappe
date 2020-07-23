@@ -255,7 +255,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	get_report_chart_data(result) {
-		if (result.chart && this.chart_doc.is_custom) {
+		if (result.chart && this.chart_doc.use_report_chart) {
 			return result.chart.data;
 		} else {
 			let y_fields = [];

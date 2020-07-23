@@ -147,6 +147,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_df_property('x_field', 'options', []);
 		frm.set_value('filters_json', '{}');
 		frm.set_value('dynamic_filters_json', '{}');
+		frm.set_value('use_report_chart', 0);
 		frm.trigger('set_chart_report_filters');
 	},
 
@@ -175,8 +176,8 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	set_chart_field_options: function(frm) {
 		let filters = frm.doc.filters_json.length > 2 ? JSON.parse(frm.doc.filters_json) : null;
-		if (frm.doc.dynamic_filters_json.length > 2) {
-			filters = {...filters, ...JSON.parse(frm.doc.dynamic_filters_json)};
+		if (frm.doc.dynamic_filters_json && frm.doc.dynamic_filters_json.length > 2) {
+			filters = frappe.dashboard_utils.get_all_filters(frm.doc);
 		}
 		frappe.xcall(
 			'frappe.desk.query_report.run',
@@ -187,14 +188,11 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		).then(data => {
 			frm.report_data = data;
-			if (!data.chart) {
-				frm.set_value('is_custom', 0);
-				frm.set_df_property('is_custom', 'hidden', 1);
-			} else {
-				frm.set_df_property('is_custom', 'hidden', 0);
-			}
+			let report_has_chart = Boolean(data.chart);
 
-			if (!frm.doc.is_custom) {
+			frm.set_df_property('use_report_chart', 'hidden', !report_has_chart);
+
+			if (!frm.doc.use_report_chart) {
 				if (data.result.length) {
 					frm.field_options = frappe.report_utils.get_field_options_from_report(data.columns, data);
 					frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
