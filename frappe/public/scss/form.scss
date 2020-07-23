@@ -1,5 +1,3 @@
-$form-left-padding: var(--padding-xl);
-
 .form-control {
 	border: none;
 	background-color: $control-bg;
@@ -66,7 +64,6 @@ $form-left-padding: var(--padding-xl);
 
 .form-inner-toolbar {
 	padding-top: var(--padding-md);
-	padding-left: $form-left-padding;
 	text-align: right;
 }
 
@@ -82,10 +79,4 @@ $form-left-padding: var(--padding-xl);
 	font-weight: 400;
 	background-color: $control-bg;
 	padding: var(--padding-xs) var(--padding-sm);
-}
-
-.layout-main-section {
-	.form-page {
-		padding-left: $form-left-padding;
-	}
 }

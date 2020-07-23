@@ -1023,7 +1023,7 @@ Object.assign(frappe.utils, {
 
 	icon(icon_name, size="sm", icon_class) {
 		return `<svg class="icon icon-${size}">
-			<use class="${icon_class}" xlink:href="#icon-${icon_name}"></use>
+			<use class="${icon_class || icon_name}" href="#icon-${icon_name}"></use>
 		</svg>`;
 	}
 });

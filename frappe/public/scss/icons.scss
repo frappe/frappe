@@ -21,6 +21,10 @@ use.like-icon {
 	stroke: var(--gray-500);
 }
 
+.icon > .close {
+	fill: var(--gray-900);
+}
+
 .liked {
 	use.like-icon {
 		stroke: none;
