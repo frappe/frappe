@@ -1312,8 +1312,7 @@ class Document(BaseDocument):
 		from frappe.desk.doctype.tag.tag import DocTags
 		DocTags(self.doctype).add(self.name, tag)
 
-	@property
-	def tags(self):
+	def get_tags(self):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
