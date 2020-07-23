@@ -91,11 +91,11 @@ class BackupGenerator:
 			this_file = cstr(this_file)
 			this_file_path = os.path.join(get_backup_path(), this_file)
 			if not is_file_old(this_file_path, older_than):
-				if "_private_files" in this_file_path:
+				if "-private-files" in this_file_path:
 					backup_path_private_files = this_file_path
-				elif "_files" in this_file_path:
+				elif "-files" in this_file_path:
 					backup_path_files = this_file_path
-				elif "_database" in this_file_path:
+				elif "-database" in this_file_path:
 					backup_path_db = this_file_path
 
 		return (backup_path_db, backup_path_files, backup_path_private_files)
