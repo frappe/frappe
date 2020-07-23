@@ -7,9 +7,8 @@ frappe.listview_settings["Deleted Document"] = {
 					return doc.name;
 				});
 				frappe.call({
-					method:
-						"frappe.core.doctype.deleted_document.deleted_document.bulk_restore",
-					args: { docnames: docnames },
+					method: "frappe.core.doctype.deleted_document.deleted_document.bulk_restore",
+					args: { "docnames": docnames },
 					callback: function (r) {
 						if (r.message) {
 							let num = r.message.length;

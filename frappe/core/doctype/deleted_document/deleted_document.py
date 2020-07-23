@@ -19,7 +19,7 @@ def restore(name, alert=True):
 	deleted = frappe.get_doc('Deleted Document', name)
 
 	if deleted.restored:
-		frappe.throw(_("Document {0} Already Restored".format(name)), exc=frappe.DocumentAlreadyRestored)
+		frappe.throw(_("Document {0} Already Restored").format(name), exc=frappe.DocumentAlreadyRestored)
 
 	doc = frappe.get_doc(json.loads(deleted.data))
 
