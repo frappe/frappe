@@ -3,13 +3,16 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe
+import json
 from frappe.desk.doctype.bulk_update.bulk_update import show_progress
 from frappe.model.document import Document
 from frappe import _
 
+
 class DeletedDocument(Document):
 	pass
+
 
 @frappe.whitelist()
 def restore(name, alert=True):
@@ -40,21 +43,20 @@ def restore(name, alert=True):
 @frappe.whitelist()
 def bulk_restore(docnames):
 	docnames = frappe.parse_json(docnames)
-	doctype = "Deleted Document"
+	message = _('Restoring Deleted Document')
 	restored = []
-	failed = []
 
 	for i, d in enumerate(docnames):
 		try:
+			show_progress(docnames, message, i + 1, d)
 			restore(d, alert=False)
-			message = _('Restoring {0}').format(doctype)
 			frappe.db.commit()
-			show_progress(docnames, message, i+1, d)
 			restored.append(d)
+
 		except frappe.DocumentAlreadyRestored:
-			failed.append(d)
-		except Exception as e:
-			failed.append(d)
+			pass
+
+		except Exception:
 			frappe.db.rollback()
 
 	return restored
