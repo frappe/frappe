@@ -1,7 +1,7 @@
 .navbar {
 	height: $navbar-height;
 	background: var(--fg-color);
-	box-shadow: inset 0px -1px 0px var(--shadow-inset);
+	box-shadow: var(--shadow-sm);
 	.container {
 		padding: 0 1rem;
 	}
