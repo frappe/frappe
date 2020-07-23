@@ -128,12 +128,12 @@ html, body {
 	padding: 15px;
 	border-radius: var(--border-radius-md);
 	height: 100%;
-	box-shadow: var(--shadow-sm);
+	box-shadow: var(--card-shadow);
 	background-color: var(--card-bg);
 
 	&.widget-shadow {
 		&:hover {
-			box-shadow: var(--shadow-md);
+			box-shadow: var(--shadow-lg);
 		}
 	}
 
