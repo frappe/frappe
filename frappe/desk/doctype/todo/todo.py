@@ -7,6 +7,7 @@ import json
 
 from frappe.model.document import Document
 from frappe.utils import get_fullname
+from frappe.share import add, remove
 
 exclude_from_linked_with = True
 
@@ -32,6 +33,16 @@ class ToDo(Document):
 					"text": frappe._("Assignment closed by {0}").format(get_fullname(frappe.session.user)),
 					"comment_type": "Assignment Completed"
 				}
+
+		doc_meta = frappe.get_meta(self.reference_type)
+		if doc_meta.auto_share_on_assignment:
+			if self.status == "Open":
+				add(self.reference_type, self.reference_name, user=self.owner,
+						read=doc_meta.allow_read, write=doc_meta.allow_write,
+						share=doc_meta.allow_share)
+			else:
+				remove(self.reference_type, self.reference_name, self.owner)
+
 
 	def on_update(self):
 		if self._assignment:

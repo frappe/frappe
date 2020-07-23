@@ -35,7 +35,13 @@
   "sender_field",
   "subject_field",
   "fields_section_break",
-  "fields"
+  "fields",
+  "sharing_rules_section",
+  "auto_share_on_assignment",
+  "column_break_32",
+  "allow_read",
+  "allow_write",
+  "allow_share"
  ],
  "fields": [
   {
@@ -210,6 +216,43 @@
    "fieldname": "show_preview_popup",
    "fieldtype": "Check",
    "label": "Show Preview Popup"
+  },
+  {
+   "depends_on": "doc_type",
+   "fieldname": "sharing_rules_section",
+   "fieldtype": "Section Break",
+   "label": "Sharing Rules"
+  },
+  {
+   "default": "0",
+   "fieldname": "auto_share_on_assignment",
+   "fieldtype": "Check",
+   "label": "Auto Share on Assignment"
+  },
+  {
+   "default": "0",
+   "depends_on": "auto_share_on_assignment",
+   "fieldname": "allow_read",
+   "fieldtype": "Check",
+   "label": "Allow Read"
+  },
+  {
+   "default": "0",
+   "depends_on": "auto_share_on_assignment",
+   "fieldname": "allow_write",
+   "fieldtype": "Check",
+   "label": "Allow Write"
+  },
+  {
+   "default": "0",
+   "depends_on": "auto_share_on_assignment",
+   "fieldname": "allow_share",
+   "fieldtype": "Check",
+   "label": "Allow Share"
+  },
+  {
+   "fieldname": "column_break_32",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -217,7 +260,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-04-10 12:16:01.320411",
+ "modified": "2020-07-23 19:20:33.802194",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

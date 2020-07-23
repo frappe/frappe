@@ -87,6 +87,7 @@ class DocType(Document):
 		self.make_repeatable()
 		self.validate_nestedset()
 		self.validate_website()
+		self.validate_auto_share_on_assignment()
 
 		if not self.is_new():
 			self.before_update = frappe.get_doc('DocType', self.name)
@@ -642,6 +643,14 @@ class DocType(Document):
 			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name, flags = re.ASCII)
 		if not is_a_valid_name:
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
+
+	def validate_auto_share_on_assignment(self):
+		if not (self.issingle or self.istable or self.is_tree):
+			if self.auto_share_on_assignment and not self.allow_read:
+				self.allow_read = 1
+		else:
+			self.auto_share_on_assignment = 0
+			self.allow_read = self.allow_write = self.allow_share = 0
 
 
 def validate_fields_for_doctype(doctype):

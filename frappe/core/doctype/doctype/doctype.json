@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_read": 1,
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2013-02-18 13:36:19",
@@ -63,6 +64,12 @@
   "restrict_to_domain",
   "read_only",
   "in_create",
+  "sharing_rules_section",
+  "auto_share_on_assignment",
+  "column_break_58",
+  "allow_read",
+  "allow_write",
+  "allow_share",
   "actions_section",
   "actions",
   "links_section",
@@ -517,12 +524,51 @@
    "fieldname": "email_settings_sb",
    "fieldtype": "Section Break",
    "label": "Email Settings"
+  },
+  {
+   "depends_on": "eval:!doc.istable && !doc.issingle",
+   "fieldname": "sharing_rules_section",
+   "fieldtype": "Section Break",
+   "label": "Sharing Rules"
+  },
+  {
+   "default": "0",
+   "description": "Auto-share the document with the currently assigned user",
+   "fieldname": "auto_share_on_assignment",
+   "fieldtype": "Check",
+   "label": "Auto Share on Assignment"
+  },
+  {
+   "fieldname": "column_break_58",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "depends_on": "auto_share_on_assignment",
+   "fieldname": "allow_read",
+   "fieldtype": "Check",
+   "label": "Allow Read",
+   "mandatory_depends_on": "auto_share_on_assignment"
+  },
+  {
+   "default": "0",
+   "depends_on": "auto_share_on_assignment",
+   "fieldname": "allow_write",
+   "fieldtype": "Check",
+   "label": "Allow Write"
+  },
+  {
+   "default": "0",
+   "depends_on": "auto_share_on_assignment",
+   "fieldname": "allow_share",
+   "fieldtype": "Check",
+   "label": "Allow Share"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2020-03-27 14:51:44.581128",
+ "modified": "2020-07-23 18:54:48.553811",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
