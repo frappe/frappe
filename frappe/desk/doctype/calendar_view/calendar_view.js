@@ -22,6 +22,8 @@ frappe.ui.form.on('Calendar View', {
 				df => !frappe.model.no_value_type.includes(df.fieldtype)
 			).map(df => df.fieldname);
 
+			subject_options.push('name');
+			
 			const date_options = meta.fields.filter(
 				df => ['Date', 'Datetime'].includes(df.fieldtype)
 			).map(df => df.fieldname);
