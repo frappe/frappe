@@ -9,10 +9,10 @@
 	{% endif %}
 
 	<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
-        {% for comment in comment_list %}
-        <div class="my-3">
-            {% include "templates/includes/comments/comment.html" %}
-        </div>
+		{% for comment in comment_list %}
+		<div class="my-3">
+			{% include "templates/includes/comments/comment.html" %}
+		</div>
 		{% endfor %}
 	</div>
 </div>
@@ -25,26 +25,22 @@
 
 	<div class="comment-form-wrapper">
 		<a class="add-comment btn btn-light btn-sm">{{ _("Add Comment") }}</a>
-			<div style="display: none;" id="comment-form">
+		<div style="display: none;" id="comment-form">
 			<p>{{ _("Leave a Comment") }}</p>
 			<div class="alert" style="display:none;"></div>
 			<form>
 				<fieldset>
-					<div class="row {% if _login_required %} hidden {% endif %}"
-						style="margin-bottom: 15px;">
+					<div class="row" style="margin-bottom: 15px;">
 						<div class="col-sm-6">
-							<input class="form-control comment_by" name="comment_by"
-								placeholder="{{ _("Your Name") }}" type="text">
+							<input class="form-control comment_by" name="comment_by" placeholder="{{ _("Your Name") }}" type="text">
 						</div>
 						<div class="col-sm-6">
-							<input class="form-control comment_email" name="comment_email"
-								placeholder="{{ _("Your Email Address") }}" type="email">
+							<input class="form-control comment_email" name="comment_email" placeholder="{{ _("Your Email Address") }}" type="email">
 						</div>
 					</div>
 					<p><textarea class="form-control" name="comment" rows=10
-						placeholder="{{ _("Comment") }}"></textarea></p>
-                        <button class="btn btn-primary btn-sm" id="submit-comment" style="margin-top:10px">
-                            {{ _("Submit") }}</button>
+				       placeholder="{{ _("Comment") }}"></textarea></p>
+					<button class="btn btn-primary btn-sm" id="submit-comment" style="margin-top:10px">{{ _("Submit") }}</button>
 				</fieldset>
 			</form>
 		</div>
@@ -53,13 +49,9 @@
 {% endif %}
 <script>
 	frappe.ready(function() {
-		var login_required = {{ login_required and 1 or 0 }};
-
-		if (login_required && !frappe.is_user_logged_in()) {
+		if (!frappe.is_user_logged_in()) {
 			$(".login-required, .comment-form-wrapper").toggleClass("hidden");
-		}
-
-		if(frappe.is_user_logged_in()) {
+		} else {
 			$('input.comment_by').prop("disabled", true);
 			$('input.comment_email').prop("disabled", true);
 		}
@@ -75,18 +67,18 @@
 		}
 		$(".add-comment").click(function() {
 			$(this).toggle(false);
-		 	$("#comment-form").toggle();
-            var full_name = "", user_id = "";
-            if(frappe.is_user_logged_in()) {
-                full_name = frappe.get_cookie("full_name");
-                user_id = frappe.get_cookie("user_id");
-                if(user_id != "Guest") {
-        			$("[name='comment_email']").val(user_id);
-        			$("[name='comment_by']").val(full_name);
-                }
-            }
+			$("#comment-form").toggle();
+			var full_name = "", user_id = "";
+			if(frappe.is_user_logged_in()) {
+				full_name = frappe.get_cookie("full_name");
+				user_id = frappe.get_cookie("user_id");
+				if(user_id != "Guest") {
+					$("[name='comment_email']").val(user_id);
+					$("[name='comment_by']").val(full_name);
+				}
+			}
 			$("#comment-form textarea").val("");
-			})
+		})
 
 		$("#submit-comment").click(function() {
 			var args = {
@@ -99,13 +91,8 @@
 				route: "{{ pathname }}",
 			}
 
-			if(!args.comment_by || !args.comment_email || !args.comment) {
-				frappe.msgprint("{{ _("All fields are necessary to submit the comment.") }}");
-				return false;
-			}
-
-			if (args.comment_email!=='Administrator' && !validate_email(args.comment_email)) {
-				frappe.msgprint("{{ _("Please enter a valid email address.") }}");
+			if(!args.comment || !args.comment.trim()) {
+				frappe.msgprint("{{ _("Please add a valid comment.") }}");
 				return false;
 			}
 
@@ -121,15 +108,12 @@
 					} else {
 						if (r.message) {
 							$(r.message).appendTo("#comment-list");
-						} else {
-							// probably spam
-							frappe.msgprint('{{ _("Thank you for your comment. It will be published after approval") }}');
+							$(".add-comment").text(__("Add Another Comment"));
 						}
 						$(".no-comment, .add-comment").toggle(false);
 						$("#comment-form").toggle();
+						$(".add-comment").toggle();
 					}
-					$(".add-comment").text(__("Add Another Comment"));
-					$(".add-comment").toggle();
 				}
 			})
 

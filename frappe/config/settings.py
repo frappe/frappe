@@ -18,6 +18,13 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Global Defaults",
+					"label": _("Global Defaults"),
+					"description": _("Company, Fiscal Year and Currency defaults"),
+					"hide_count": True
+				},
+				{
+					"type": "doctype",
 					"name": "Error Log",
 					"description": _("Log of error on automated events (scheduler).")
 				},

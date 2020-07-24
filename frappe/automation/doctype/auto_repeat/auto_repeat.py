@@ -146,7 +146,7 @@ class AutoRepeat(Document):
 
 	def make_new_document(self):
 		reference_doc = frappe.get_doc(self.reference_doctype, self.reference_document)
-		new_doc = frappe.copy_doc(reference_doc, ignore_no_copy = False)
+		new_doc = frappe.copy_doc(reference_doc)
 		self.update_doc(new_doc, reference_doc)
 		new_doc.insert(ignore_permissions = True)
 
@@ -372,7 +372,8 @@ def make_auto_repeat(doctype, docname, frequency = 'Daily', start_date = None, e
 	doc.save()
 	return doc
 
-#method for reference_doctype filter
+# method for reference_doctype filter
+@frappe.whitelist()
 def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	res = frappe.db.get_all('Property Setter', {
 		'property': 'allow_auto_repeat',

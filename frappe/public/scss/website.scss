@@ -1,3 +1,4 @@
+@import '~quill/dist/quill.core';
 @import 'variables';
 @import 'frappe/public/css/font-awesome';
 @import '~bootstrap/scss/bootstrap';
@@ -8,7 +9,22 @@
 @import 'blog';
 @import 'markdown';
 @import 'sidebar';
+@import 'portal';
 @import 'doc';
+
+.ql-editor.read-mode {
+	padding: 0;
+	line-height: 1.6;
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5 {
+		margin-top: 0.5em;
+		margin-bottom: 0.25em;
+	}
+}
 
 .container {
 	padding-left: 1.25rem;
@@ -110,8 +126,13 @@
 	color: $light;
 }
 
+.page-content-wrapper {
+	margin: 2rem 0;
+}
+
 .breadcrumb-container {
 	margin-top: 1rem;
+	padding-top:  0.25rem;
 }
 
 .breadcrumb {
@@ -326,4 +347,10 @@ h5.modal-title {
 	left: 0;
 	width: 100%;
 	height: 100%;
+}
+
+.ellipsis {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
