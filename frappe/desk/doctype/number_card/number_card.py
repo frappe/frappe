@@ -29,7 +29,7 @@ def get_permission_query_conditions(user=None):
 
 	doctype_condition = False
 
-	allowed_doctypes = ['"%s"' % doctype for doctype in frappe.permissions.get_doctypes_with_read()]
+	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
 
 	if allowed_doctypes:
 		doctype_condition = '`tabNumber Card`.`document_type` in ({allowed_doctypes})'.format(
