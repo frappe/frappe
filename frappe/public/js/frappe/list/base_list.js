@@ -765,9 +765,7 @@ class FilterArea {
 		$(`<div class="filter-selector">
 			<button class="btn btn-default btn-sm filter-button">
 				<span class="filter-icon">
-					<svg class="icon icon-sm">
-						<use xlink:href="#icon-filter"></use>
-					</svg>
+					${frappe.utils.icon('filter')}
 				</span>
 				<span class="button-label">
 					${__("Filter")}

@@ -235,9 +235,7 @@ frappe.ui.GroupBy = class {
 			$(`<div class="group-by-selector">
 				<button class="btn btn-default btn-sm group-by-button ellipsis">
 					<span class="group-by-icon">
-						<svg class="icon icon-sm">
-							<use xlink:href="#icon-group-by"></use>
-						</svg>
+						${frappe.utils.icon('group-by')}
 					</span>
 					<span class="button-label">
 						${__('Add Group')}

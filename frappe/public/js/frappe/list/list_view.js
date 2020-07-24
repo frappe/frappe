@@ -831,9 +831,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const comment_count = `<span class="${
 			!doc._comment_count ? "text-extra-muted" : ""
 		} comment-count">
-				<svg class="icon icon-sm">
-					<use xlink:href="#icon-small-message"></use>
-				</svg>
+				${frappe.utils.icon('small-message')}
 				${doc._comment_count > 99 ? "99+" : doc._comment_count}
 			</span>`;
 
