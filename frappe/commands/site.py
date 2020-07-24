@@ -274,9 +274,9 @@ def disable_user(context, email):
 @click.command('migrate')
 @click.option('--rebuild-website', help="Rebuild webpages after migration")
 @click.option('--skip-failing', is_flag=True, help="Skip patches that fail to run")
-@click.option('--index-site', is_flag=True, help="Index public web pages")
+@click.option('--skip-search-index', is_flag=True, help="Skip patches that fail to run")
 @pass_context
-def migrate(context, rebuild_website=False, skip_failing=False, index_site=False):
+def migrate(context, rebuild_website=False, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
 	from frappe.migrate import migrate
 
@@ -289,7 +289,7 @@ def migrate(context, rebuild_website=False, skip_failing=False, index_site=False
 				context.verbose,
 				rebuild_website=rebuild_website,
 				skip_failing=skip_failing,
-				index_site=index_site
+				skip_search_index=skip_search_index
 			)
 		finally:
 			frappe.destroy()
