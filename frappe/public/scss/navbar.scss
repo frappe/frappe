@@ -45,9 +45,6 @@
 		padding-left: 36px;
 		height: 32px;
 		font-size: var(--text-md);
-		&::placeholder {
-			color: var(--gray-700)
-		}
 	}
 	input:focus {
 		background: white;

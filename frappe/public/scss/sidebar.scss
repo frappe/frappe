@@ -53,7 +53,7 @@ body[data-route^="Module"] .main-menu {
 		.sidebar-label {
 			margin-bottom: var(--margin-sm);
 			font-weight: 500;
-			color: var(--gray-900);
+			color: var(--text-color);
 		}
 	}
 }
@@ -411,7 +411,7 @@ body[data-route^="Module"] .main-menu {
 	background-color: var(--fg-color);
 	border-radius: var(--border-radius);
 	padding: var(--padding-xs) var(--padding-sm);
-	color: $gray-800;
+	color: var(--text-color);
 	display: flex;
 }
 

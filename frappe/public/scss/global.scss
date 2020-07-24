@@ -127,12 +127,12 @@ img {
 }
 
 .btn-secondary, .btn-default {
-	background-color: $control-bg;
-	color: var(--gray-800);
+	background-color: var(--control-bg);
+	color: var(--text-color);
 }
 
 .btn-default {
-	background-color: white;
+	background-color: var(--fg-color);
 }
 
 .btn-primary {
