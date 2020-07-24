@@ -68,7 +68,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def", 'DocType Action', 'DocType Link')
+	special_doctypes = ("DocField", "DocPerm", "Share Permissions", "Role", "DocType", "Module Def", 'DocType Action', 'DocType Link')
 
 	def __init__(self, doctype):
 		self._fields = {}
@@ -103,6 +103,7 @@ class Meta(Document):
 		self.sort_fields()
 		self.get_valid_columns()
 		self.set_custom_permissions()
+		self.add_custom_share_permissions()
 
 	def as_dict(self, no_nulls = False):
 		def serialize(doc):
@@ -181,6 +182,7 @@ class Meta(Document):
 		return {
 			"fields": "DocField",
 			"permissions": "DocPerm",
+			"share_permissions": "Share Permissions",
 			"actions": "DocType Action",
 			'links': 'DocType Link'
 		}.get(fieldname)
@@ -303,6 +305,19 @@ class Meta(Document):
 		""", (self.name,), as_dict=1, update={"is_custom_field": 1})
 
 		self.extend("fields", custom_fields)
+
+	def add_custom_share_permissions(self):
+		if not self.auto_share_on_assignment:
+			return
+
+		standard_share_perms = self.get("share_permissions", [])
+		custom_share_perms = frappe.db.sql("""SELECT * FROM `tabCustom Share Permissions` WHERE parenttype=%s""",
+						(self.name), as_dict=1, update={"is_custom_share_permission": 1})
+
+		perm_meta = {perm.role: perm for perm in standard_share_perms}
+		perm_meta.update({perm.role: perm for perm in custom_share_perms})
+
+		self.set("share_permissions", list(perm_meta.values()))
 
 	def apply_property_setters(self):
 		if not frappe.db.table_exists('Property Setter'):
@@ -503,6 +518,7 @@ class Meta(Document):
 DOCTYPE_TABLE_FIELDS = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
 	frappe._dict({"fieldname": "permissions", "options": "DocPerm"}),
+	frappe._dict({"fieldname": "share_permissions", "options": "Share Permissions"}),
 	frappe._dict({"fieldname": "actions", "options": "DocType Action"}),
 	frappe._dict({"fieldname": "links", "options": "DocType Link"}),
 ]

@@ -33,9 +33,6 @@ doctype_properties = {
 	'allow_auto_repeat': 'Check',
 	'allow_import': 'Check',
 	'auto_share_on_assignment': 'Check',
-	'allow_read': 'Check',
-	'allow_write': 'Check',
-	'allow_share': 'Check',
 	'show_preview_popup': 'Check',
 	'email_append_to': 'Check',
 	'subject_field': 'Data',
@@ -117,6 +114,12 @@ class CustomizeForm(Document):
 		for property in doctype_properties:
 			self.set(property, meta.get(property))
 
+		for perm in meta.get("share_permissions"):
+			new_perm = {}
+			for prop in ("name", "role", "write", "share", "is_custom_share_permission"):
+				new_perm[prop] = perm.get(prop)
+			self.append("share_permissions", new_perm)
+
 		for d in meta.get("fields"):
 			new_d = {"fieldname": d.fieldname, "is_custom_field": d.get("is_custom_field"), "name": d.name}
 			for property in docfield_properties:
@@ -181,6 +184,7 @@ class CustomizeForm(Document):
 		self.flags.rebuild_doctype_for_global_search = False
 		self.set_property_setters()
 		self.update_custom_fields()
+		self.update_auto_share_on_assignment()
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
 		check_email_append_to(self)
@@ -276,6 +280,42 @@ class CustomizeForm(Document):
 					self.update_in_custom_field(df, i)
 
 		self.delete_custom_fields()
+
+	def update_auto_share_on_assignment(self):
+		if self.auto_share_on_assignment:
+			custom_permission_fields = []
+			meta = frappe.get_meta(self.doc_type)
+			meta_dict = {perm.role: perm for perm in meta.get("share_permissions")}
+			for permission in self.get("share_permissions"):
+				if not permission.get("is_custom_share_permission"):
+					standard_perm = meta_dict.get(permission.role)
+					if not standard_perm or (standard_perm.write == permission.write and standard_perm):
+						continue
+
+				if not frappe.db.exists("Custom Share Permissions", {"parenttype": self.doc_type, "role": permission.role}):
+					custom_share_perm = frappe.new_doc("Custom Share Permissions")
+					custom_share_perm.parenttype = self.doc_type
+					custom_share_perm.parentfield = "share_permissions"
+					custom_share_perm.parent = "Customize Form"
+					custom_share_perm.is_custom_share_permission = 1
+
+					for prop in ("role", "write", "share"):
+						custom_share_perm.set(prop, permission.get(prop))
+					custom_share_perm.insert()
+				else:
+					custom_share_perm = frappe.get_doc("Custom Share Permissions",
+								{"parenttype": self.doc_type, "role": permission.role})
+					custom_share_perm.write = custom_share_perm.write or permission.write
+					custom_share_perm.share = custom_share_perm.share or permission.share
+					custom_share_perm.db_update()
+				self.flags.update_db = True
+				custom_permission_fields.append(permission.role)
+			perms_to_remove = set([df.role for df in meta.get("share_permissions")]) - set(custom_permission_fields)
+			for role in perms_to_remove:
+				perms = meta.get("share_permissions", {"role": role})
+				for perm in perms:
+					if perm.get("is_custom_share_permission"):
+						frappe.delete_doc("Custom Share Permissions", perm.name)
 
 	def add_custom_field(self, df, i):
 		d = frappe.new_doc("Custom Field")

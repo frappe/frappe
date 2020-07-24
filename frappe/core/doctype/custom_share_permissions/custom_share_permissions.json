@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2020-07-24 01:53:30.666611",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "role",
+  "write",
+  "share",
+  "is_custom_share_permission"
+ ],
+ "fields": [
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Role",
+   "options": "Role",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "write",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Write"
+  },
+  {
+   "default": "0",
+   "fieldname": "share",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Share"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_custom_share_permission",
+   "fieldtype": "Check",
+   "label": "Is Custom Share Permission"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-07-24 15:23:29.695399",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Custom Share Permissions",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "share_permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

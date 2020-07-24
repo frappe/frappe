@@ -38,10 +38,7 @@
   "fields",
   "sharing_rules_section",
   "auto_share_on_assignment",
-  "column_break_32",
-  "allow_read",
-  "allow_write",
-  "allow_share"
+  "share_permissions"
  ],
  "fields": [
   {
@@ -221,7 +218,7 @@
    "depends_on": "doc_type",
    "fieldname": "sharing_rules_section",
    "fieldtype": "Section Break",
-   "label": "Sharing Rules"
+   "label": "Share on Assignment"
   },
   {
    "default": "0",
@@ -230,29 +227,12 @@
    "label": "Auto Share on Assignment"
   },
   {
-   "default": "0",
    "depends_on": "auto_share_on_assignment",
-   "fieldname": "allow_read",
-   "fieldtype": "Check",
-   "label": "Allow Read"
-  },
-  {
-   "default": "0",
-   "depends_on": "auto_share_on_assignment",
-   "fieldname": "allow_write",
-   "fieldtype": "Check",
-   "label": "Allow Write"
-  },
-  {
-   "default": "0",
-   "depends_on": "auto_share_on_assignment",
-   "fieldname": "allow_share",
-   "fieldtype": "Check",
-   "label": "Allow Share"
-  },
-  {
-   "fieldname": "column_break_32",
-   "fieldtype": "Column Break"
+   "fieldname": "share_permissions",
+   "fieldtype": "Table",
+   "label": "Share on Assignment Roles",
+   "mandatory_depends_on": "auto_share_on_assignment",
+   "options": "Custom Share Permissions"
   }
  ],
  "hide_toolbar": 1,
@@ -260,7 +240,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-07-23 19:20:33.802194",
+ "modified": "2020-07-24 15:38:51.168451",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
@@ -278,6 +258,7 @@
  ],
  "quick_entry": 1,
  "search_fields": "doc_type",
+ "share_permissions": [],
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

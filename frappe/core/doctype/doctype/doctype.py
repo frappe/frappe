@@ -69,6 +69,7 @@ class DocType(Document):
 		elif self.istable:
 			self.allow_import = 0
 			self.permissions = []
+			self.share_permissions = []
 
 		self.scrub_field_names()
 		self.set_default_in_list_view()
@@ -80,6 +81,7 @@ class DocType(Document):
 		if self.istable:
 			# no permission records for child table
 			self.permissions = []
+			self.share_permissions = []
 		else:
 			validate_permissions(self)
 
@@ -646,12 +648,20 @@ class DocType(Document):
 
 	def validate_auto_share_on_assignment(self):
 		if self.auto_share_on_assignment:
-			if not (self.issingle or self.istable or self.is_tree):
-				if not self.allow_read:
-					self.allow_read = 1
-			else:
-				self.auto_share_on_assignment = 0
-				self.allow_read = self.allow_write = self.allow_share = 0
+			if not (self.istable or self.is_tree):
+				share_perms = {}
+				for perm in self.share_permissions:
+					role = perm.role
+					if role not in share_perms:
+						share_perms[role] = perm
+					else:
+						# duplicate role entry
+						share_perms[role].write = share_perms[role].write or perm.write
+						share_perms[role].share = share_perms[role].share or perm.share
+				self.share_permissions = list(share_perms.values())
+				return
+			self.auto_share_on_assignment = 0
+		self.allow_write = self.allow_share = 0
 
 
 def validate_fields_for_doctype(doctype):

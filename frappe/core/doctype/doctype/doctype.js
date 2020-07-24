@@ -55,5 +55,11 @@ frappe.ui.form.on('DocType', {
 
 	autoname: function(frm) {
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
+	},
+
+	auto_share_on_assignment: (frm) => {
+		if (!(frm.doc.share_permissions && frm.doc.share_permissions.length)) {
+			frm.add_child('share_permissions', {role: 'System Manager', write: 1, share: 1});
+		}
 	}
 })

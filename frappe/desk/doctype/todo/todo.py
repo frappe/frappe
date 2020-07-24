@@ -37,12 +37,22 @@ class ToDo(Document):
 		doc_meta = frappe.get_meta(self.reference_type)
 		if doc_meta.auto_share_on_assignment:
 			if self.status == "Open":
+				user_roles = frappe.get_roles(username=self.owner)
+				read = 1
+				write = share = 0
+				for share_permission in doc_meta.share_permissions:
+					# get maximum possible permissions from set roles
+					if write and share:
+						break
+					if share_permission.role in user_roles:
+						write = write or share_permission.write
+						share = share or share_permission.share
+
 				add(self.reference_type, self.reference_name, user=self.owner,
-						read=doc_meta.allow_read, write=doc_meta.allow_write,
-						share=doc_meta.allow_share)
+						read=read, write=write,
+						share=share)
 			else:
 				remove(self.reference_type, self.reference_name, self.owner)
-
 
 	def on_update(self):
 		if self._assignment:

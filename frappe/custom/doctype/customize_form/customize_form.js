@@ -160,6 +160,13 @@ frappe.ui.form.on("Customize Form Field", {
 	}
 });
 
+frappe.ui.form.on("Custom Share Permissions", {
+	share_permissions_add: function(frm, cdt, cdn) {
+		var row = frappe.model.get_doc(cdt, cdn);
+		row.is_custom_share_permission = 1;
+	}
+})
+
 frappe.customize_form.set_primary_action = function(frm) {
 	frm.page.set_primary_action(__("Update"), function() {
 		if(frm.doc.doc_type) {
