@@ -84,10 +84,9 @@ def get_paytm_params(payment_details, order_id, paytm_config):
 	return paytm_params
 
 @frappe.whitelist(allow_guest=True)
-def verify_transaction(**kwargs):
+def verify_transaction(**paytm_params):
 	'''Verify checksum for received data in the callback and then verify the transaction'''
 	paytm_config = get_paytm_config()
-	paytm_params = frappe._dict(kwargs)
 	is_valid_checksum = False
 
 	paytm_params.pop('cmd', None)
