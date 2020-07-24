@@ -165,7 +165,7 @@ frappe.ui.form.on("Custom Share Permissions", {
 		var row = frappe.model.get_doc(cdt, cdn);
 		row.is_custom_share_permission = 1;
 	}
-})
+});
 
 frappe.customize_form.set_primary_action = function(frm) {
 	frm.page.set_primary_action(__("Update"), function() {
