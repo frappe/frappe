@@ -15,10 +15,10 @@
 		<div class="sidebar-image-actions">
 			<div class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
-				<ul class="dropdown-menu" role="menu">
-					<li><a class="sidebar-image-change">{{ __("Upload") }}</a></li>
-					<li><a class="sidebar-image-remove">{{ __("Remove") }}</a></li>
-				</ul>
+				<div class="dropdown-menu" role="menu">
+					<a class="dropdown-item sidebar-image-change">{{ __("Upload") }}</a>
+					<a class="dropdown-item sidebar-image-remove">{{ __("Remove") }}</a>
+				</div>
 			</div>
 		</div>
 	</li>
@@ -54,41 +54,41 @@
 </ul>
 <ul class="list-unstyled sidebar-menu form-assignments">
 	<li class="sidebar-label">
-		<svg class="icon icon-sm"><use xlink:href="#icon-assign"></use></svg>
+		<svg class="icon icon-sm"><use href="#icon-assign"></use></svg>
 		{%= __("Assigned To") %}
 	</li>
 	<li class="add-assignment-btn">
 		<button class="text-muted btn btn-default">
-			<svg class="icon icon-sm"><use xlink:href="#icon-add"></use></svg>
+			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
 		</button>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-attachments">
 	<li class="sidebar-label attachments-label">
-		<svg class="icon icon-sm"><use xlink:href="#icon-attachment"></use></svg>
+		<svg class="icon icon-sm"><use href="#icon-attachment"></use></svg>
 		{%= __("Attachments") %}
 	</li>
 	<li class="add-assignment-btn add-attachment-btn">
 		<button class="text-muted btn btn-default">
-			<svg class="icon icon-sm"><use xlink:href="#icon-add"></use></svg>
+			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
 		</button>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-tags">
 	<li class="sidebar-label tags-label">
-		<svg class="icon icon-sm"><use xlink:href="#icon-tag"></use></svg>
+		<svg class="icon icon-sm"><use href="#icon-tag"></use></svg>
 		{%= __("Tags") %}
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-reviews">
 	<li class="sidebar-label reviews-label">
-		<svg class="icon icon-sm"><use xlink:href="#icon-review"></use></svg>
+		<svg class="icon icon-sm"><use href="#icon-review"></use></svg>
 		{%= __("Reviews") %}
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu">
 	<li class="sidebar-label">
-		<svg class="icon icon-sm"><use xlink:href="#icon-share"></use></svg>
+		<svg class="icon icon-sm"><use href="#icon-share"></use></svg>
 		{%= __("Shared With") %}
 	</li>
 	<li class="form-shared"></li>
@@ -108,7 +108,7 @@
 	<li class="liked-by-parent">
 		<span class="liked-by like-action">
 			<svg class="icon icon-sm">
-				<use xlink:href="#icon-heart" class="like-icon"></use>
+				<use href="#icon-heart" class="like-icon"></use>
 			</svg>
 			<span class="likes-count"></span>
 		</span>
