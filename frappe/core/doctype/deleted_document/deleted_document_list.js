@@ -12,13 +12,13 @@ frappe.listview_settings["Deleted Document"] = {
 					callback: function (r) {
 						if (r.message) {
 							let num = r.message.length;
-							frappe.msgprint(
-								__("{0} Document{1} {2} Restored", [
-									num,
-									num == 1 ? "" : "s",
-									num == 1 ? "was" : "were",
-								])
-							);
+							let message;
+							if (num === 1) {
+								message = "{0} Document was Restored"
+							} else {
+								message = "{0} Documents were Restored"
+							}
+							frappe.msgprint(__(message, [num])
 							if (num > 0) {
 								doclist.refresh();
 							}
