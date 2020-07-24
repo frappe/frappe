@@ -6,8 +6,6 @@ from frappe import _
 import json
 from frappe.integrations.doctype.paytm_settings.paytm_settings import get_paytm_params, get_paytm_config
 
-no_cache = 1
-
 def get_context(context):
 	context.no_cache = 1
 	paytm_config = get_paytm_config()

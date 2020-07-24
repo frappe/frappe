@@ -25,7 +25,7 @@ class PaytmSettings(Document):
 
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
-			frappe.throw(_("Please select another payment method. Stripe does not support transactions in currency '{0}'").format(currency))
+			frappe.throw(_("Please select another payment method. Paytm does not support transactions in currency '{0}'").format(currency))
 
 	def get_payment_url(self, **kwargs):
 		'''Return payment url with several params'''
@@ -87,29 +87,23 @@ def get_paytm_params(payment_details, order_id, paytm_config):
 def verify_transaction(**kwargs):
 	'''Verify checksum for received data in the callback and then verify the transaction'''
 	paytm_config = get_paytm_config()
-	received_data = frappe._dict(kwargs)
+	paytm_params = frappe._dict(kwargs)
 	is_valid_checksum = False
 
-	paytm_params = {}
-	for key, value in received_data.items(): 
-		if key == 'CHECKSUMHASH':
-			paytm_checksum = value
-		elif key == 'cmd':
-			continue
-		else:
-			paytm_params[key] = value
+	paytm_params.pop('cmd', None)
+	paytm_checksum = paytm_params.pop('CHECKSUMHASH', None)
 
 	if paytm_params and paytm_config and paytm_checksum:
 		# Verify checksum
 		is_valid_checksum = verifySignature(paytm_params, paytm_config.merchant_key, paytm_checksum)
 
-	if is_valid_checksum and received_data['RESPCODE'] == '01':
-		verify_transaction_status(paytm_config, received_data['ORDERID'])
+	if is_valid_checksum and paytm_params.get('RESPCODE') == '01':
+		verify_transaction_status(paytm_config, paytm_params['ORDERID'])
 	else:
 		frappe.respond_as_web_page("Payment Failed",
 			"Transaction failed to complete. In case of any deductions, deducted amount will get refunded to your account.",
 			http_status_code=401, indicator_color='red')
-		frappe.log_error("Order unsuccessful. Failed Response:"+cstr(received_data), 'Paytm Payment Failed')
+		frappe.log_error("Order unsuccessful. Failed Response:"+cstr(paytm_params), 'Paytm Payment Failed')
 
 def verify_transaction_status(paytm_config, order_id):
 	'''Verify transaction completion after checksum has been verified'''
