@@ -45,6 +45,8 @@ def bulk_restore(docnames):
 	docnames = frappe.parse_json(docnames)
 	message = _('Restoring Deleted Document')
 	restored = []
+	invalid = []
+	failed = []
 
 	for i, d in enumerate(docnames):
 		try:
@@ -54,9 +56,36 @@ def bulk_restore(docnames):
 			restored.append(d)
 
 		except frappe.DocumentAlreadyRestored:
-			pass
+			frappe.message_log.pop()
+			invalid.append(d)
 
 		except Exception:
+			failed.append(d)
 			frappe.db.rollback()
+			frappe.message_log.pop()
+
+	if failed or invalid:
+		tail = "</ul>"
+
+		restored_data = ""
+		restored_head = _("Documents restored successfully") + "<br><ul>"
+		for docname in restored:
+			restored_data += "<li><a href='/desk#Form/Deleted Document/{0}'>{0}</a></li>".format(docname)
+		restored_body = restored_head + restored_data + tail
+
+		invalid_data = ""
+		invalid_head = _("Documents that were already Restored") + "<br><ul>"
+		for docname in invalid:
+			invalid_data += "<li><a href='/desk#Form/Deleted Document/{0}'>{0}</a></li>".format(docname)
+		invalid_body = invalid_head + invalid_data + tail
+
+		failed_data = ""
+		failed_head = _("Documents that Failed to Restore") + "<br><ul>"
+		for docname in failed:
+			failed_data += "<li><a href='/desk#Form/Deleted Document/{0}'>{0}</a></li>".format(docname)
+		failed_body = failed_head + failed_data + tail
+
+		summary = (restored_body if restored else "") + (invalid_body if invalid else "") + (failed_body if failed else "")
+		frappe.msgprint(summary, title="Document Restoration Summary", indicator="orange", is_minimizable=True)
 
 	return restored
