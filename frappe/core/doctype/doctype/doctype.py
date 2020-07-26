@@ -661,7 +661,6 @@ class DocType(Document):
 				self.share_permissions = list(share_perms.values())
 				return
 			self.auto_share_on_assignment = 0
-		self.allow_write = self.allow_share = 0
 
 
 def validate_fields_for_doctype(doctype):
