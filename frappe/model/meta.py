@@ -307,7 +307,7 @@ class Meta(Document):
 		self.extend("fields", custom_fields)
 
 	def add_custom_share_permissions(self):
-		if not self.auto_share_on_assignment:
+		if not self.get('auto_share_on_assignment'):
 			return
 
 		standard_share_perms = self.get("share_permissions", [])
