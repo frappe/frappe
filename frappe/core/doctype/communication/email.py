@@ -263,7 +263,7 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 
 	if doc.sender:
 		# combine for sending to get the format 'Jane <jane@example.com>'
-		doc.sender = formataddr([doc.sender_full_name, doc.sender])
+		doc.sender = get_formatted_email(doc.sender_full_name, mail=doc.sender)
 
 	doc.attachments = []
 
