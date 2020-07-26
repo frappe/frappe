@@ -332,3 +332,26 @@ CREATE TABLE `tabDefaultValue` (
   KEY `parent` (`parent`),
   KEY `defaultvalue_parent_defkey_index` (`parent`,`defkey`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `tabShare Permissions`
+--
+
+DROP TABLE IF EXISTS `tabShare Permissions`;
+CREATE TABLE `tabShare Permissions` (
+  `name` varchar(255) NOT NULL,
+  `creation` datetime(6) DEFAULT NULL,
+  `modified` datetime(6) DEFAULT NULL,
+  `modified_by` varchar(255) DEFAULT NULL,
+  `owner` varchar(255) DEFAULT NULL,
+  `docstatus` int(1) NOT NULL DEFAULT 0,
+  `parent` varchar(255) DEFAULT NULL,
+  `parentfield` varchar(255) DEFAULT NULL,
+  `parenttype` varchar(255) DEFAULT NULL,
+  `idx` int(8) NOT NULL DEFAULT 0,
+  `role`varchar(255) DEFAULT NULL,
+  `write` int(1) NOT NULL DEFAULT 0,
+  `share` int(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`name`),
+  KEY `parent` (`parent`),
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

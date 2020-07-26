@@ -340,3 +340,27 @@ CREATE TABLE "tabDefaultValue" (
 
 create index on "tabDefaultValue" ("parent");
 create index on "tabDefaultValue" ("parent", "defkey");
+
+--
+-- Table structure for table "tabShare Permissions"
+--
+
+DROP TABLE IF EXISTS "tabShare Permissions";
+CREATE TABLE "tabShare Permissions" (
+  "name" varchar(255) NOT NULL,
+  "creation" timestamp(6) DEFAULT NULL,
+  "modified" timestamp(6) DEFAULT NULL,
+  "modified_by" varchar(255) DEFAULT NULL,
+  "owner" varchar(255) DEFAULT NULL,
+  "docstatus" smallint NOT NULL DEFAULT 0,
+  "parent" varchar(255) DEFAULT NULL,
+  "parentfield" varchar(255) DEFAULT NULL,
+  "parenttype" varchar(255) DEFAULT NULL,
+  "idx" bigint NOT NULL DEFAULT 0,
+  "role" varchar(255) DEFAULT NULL,
+  "write" bigint NOT NULL DEFAULT 0,
+  "share" bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY ("name")
+);
+
+create index on "tabShare Permissions" ("parent");
