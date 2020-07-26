@@ -102,11 +102,8 @@ class Leaderboard {
 			options: "Company",
 			default: frappe.defaults.get_default("company"),
 			reqd: 1,
-			change: (e) => {
-				this.options.selected_company = e.currentTarget.value;
-				this.make_request();
-			}
 		});
+
 
 		this.timespan_select = this.page.add_select(__("Timespan"),
 			this.timespans.map(d => {
@@ -120,6 +117,11 @@ class Leaderboard {
 				return {"label": __(frappe.model.unscrub(d)), value: d };
 			})
 		);
+
+		this.company_select.$input.on("change", (e) => {
+			this.options.selected_company = e.currentTarget.value;
+			this.make_request();
+		});
 
 		this.timespan_select.on("change", (e) => {
 			this.options.selected_timespan = e.currentTarget.value;

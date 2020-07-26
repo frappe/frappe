@@ -5,6 +5,7 @@ import click
 import json, os, sys, subprocess
 from distutils.spawn import find_executable
 import frappe
+from frappe.exceptions import SiteNotSpecifiedError
 from frappe.commands import pass_context, get_site
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import update_progress_bar, get_bench_path
@@ -628,6 +629,8 @@ def set_config(context, key, value, global_ = False, as_dict=False):
 			frappe.init(site=site)
 			update_site_config(key, value, validate=False)
 			frappe.destroy()
+		else:
+			raise SiteNotSpecifiedError
 
 
 @click.command('version')

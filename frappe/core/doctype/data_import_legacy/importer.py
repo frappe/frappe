@@ -222,7 +222,11 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			if (autoname not in doc) or (not doc[autoname]):
 				from frappe.model.base_document import get_controller
 				if not hasattr(get_controller(doctype), "autoname"):
+<<<<<<< HEAD
 					frappe.throw(_("{0} is a mandatory field").format(autoname))
+=======
+					frappe.throw(_("{0} is a mandatory field".format(autoname)))
+>>>>>>> e384c826dcc54f2b1f4e697e2dace3e05c849d3a
 		return True
 
 	users = frappe.db.sql_list("select name from tabUser")

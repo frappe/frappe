@@ -34,10 +34,17 @@ class RateLimiter:
 		self.window = window
 
 		self.start = datetime.utcnow()
+<<<<<<< HEAD
 		timestamp = int(frappe.utils.now_datetime().timestamp())
 
 		self.window_number, self.spent = divmod(timestamp, self.window)
 		self.key = frappe.cache().make_key(f"rate-limit-counter-{self.window_number}")
+=======
+		timestamp = get_timestamp()
+
+		self.window_number, self.spent = divmod(timestamp, self.window)
+		self.key = frappe.cache().make_key("rate-limit-counter-{}".format(self.window_number))
+>>>>>>> e384c826dcc54f2b1f4e697e2dace3e05c849d3a
 		self.counter = cint(frappe.cache().get(self.key))
 		self.remaining = max(self.limit - self.counter, 0)
 		self.reset = self.window - self.spent
@@ -79,3 +86,14 @@ class RateLimiter:
 	def respond(self):
 		if self.rejected:
 			return Response(_("Too Many Requests"), status=429)
+<<<<<<< HEAD
+=======
+
+
+def get_timestamp():
+	now = frappe.utils.now_datetime()
+	epoch = datetime(1970, 1, 1)
+	epoch = frappe.utils.convert_utc_to_user_timezone(epoch).replace(tzinfo=None)
+	timestamp = int((now - epoch).total_seconds())
+	return timestamp
+>>>>>>> e384c826dcc54f2b1f4e697e2dace3e05c849d3a
