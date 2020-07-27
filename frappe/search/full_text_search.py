@@ -8,7 +8,6 @@ from whoosh.index import create_in, open_dir
 from whoosh.fields import TEXT, ID, Schema
 from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
 from whoosh.query import Prefix
-import os
 
 class FullTextSearch:
 	""" Frappe Wrapper for Whoosh """
@@ -57,7 +56,7 @@ class FullTextSearch:
 			doc_name (str): name of the document to be removed
 		"""
 		ix = open_dir(self.index_path)
-		with ix.searcher() as searcher:
+		with ix.searcher():
 			writer = ix.writer()
 			writer.delete_by_term(self.id, doc_name)
 			writer.commit(optimize=True)
@@ -71,7 +70,7 @@ class FullTextSearch:
 		"""
 		ix = open_dir(self.index_path)
 
-		with ix.searcher() as searcher:
+		with ix.searcher():
 			writer = ix.writer()
 			writer.delete_by_term(self.id, document[self.id])
 			writer.add_document(**document)

@@ -1,8 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-import frappe
 import unittest
-from frappe.search import FullTextSearch
+from frappe.search.full_text_search import FullTextSearch
 
 class TestFullTextSearch(unittest.TestCase):
 

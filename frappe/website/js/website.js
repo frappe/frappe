@@ -457,14 +457,14 @@ frappe.setup_search = function (target, search_scope) {
 		}
 	});
 
-	$input.keydown(function(e){
+	$input.keydown(function(e) {
 		// up: 38, down: 40
 		if (e.which == 40) {
 			navigate(0);
 		}
 	});
 
-	$dropdown_menu.keydown(function(e){
+	$dropdown_menu.keydown(function(e) {
 		// up: 38, down: 40
 		if (e.which == 38) {
 			navigate(-1);
@@ -482,7 +482,7 @@ frappe.setup_search = function (target, search_scope) {
 		clear_dropdown();
 	});
 
-	$search_input.click(function(event){
+	$search_input.click(function(event) {
 		event.stopPropagation();
 	});
 
@@ -499,14 +499,14 @@ frappe.setup_search = function (target, search_scope) {
 	}
 
 	function clear_dropdown() {
-		offsetIndex = 0
+		offsetIndex = 0;
 		$dropdown_menu.html('');
 		$dropdown_menu.removeClass('show');
 		dropdownItems = undefined;
-	}
+	};
 
 	// Remove focus state on hover
-	$dropdown_menu.mouseover(function(e){
+	$dropdown_menu.mouseover(function() {
 		dropdownItems.blur();
 	});
 };
