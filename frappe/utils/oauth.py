@@ -213,6 +213,7 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 		redirect_post_login(
 			desk_user=frappe.local.response.get('message') == 'Logged In',
 			redirect_to=redirect_to,
+			provider=provider
 		)
 
 def update_oauth_user(user, data, provider):
@@ -300,12 +301,13 @@ def get_last_name(data):
 def get_email(data):
 	return data.get("email") or data.get("upn") or data.get("unique_name")
 
-def redirect_post_login(desk_user, redirect_to=None):
+def redirect_post_login(desk_user, redirect_to=None, provider=None):
 	# redirect!
 	frappe.local.response["type"] = "redirect"
 
 	if not redirect_to:
 		# the #desktop is added to prevent a facebook redirect bug
-		redirect_to = "/desk#desktop" if desk_user else "/me"
+		desk_uri = "/desk#desktop" if provider == 'facebook' else '/desk'
+		redirect_to = desk_uri if desk_user else "/me"
 
-	frappe.local.response["location"] = redirect_to
+	frappe.local.response["location"] = frappe.utils.get_url(redirect_to)
