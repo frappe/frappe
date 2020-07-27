@@ -9,8 +9,7 @@ frappe.ui.form.on('Website Settings', {
 		if (!frm.doc.banner_image) {
 			frappe.msgprint(__("Select a Brand Image first."));
 		}
-		frm.set_value("brand_html", "<img src='"+ frm.doc.banner_image
-			+"' style='max-width: 150px;'>");
+		frm.set_value("brand_html", "<img src='"+ frm.doc.banner_image + "'>");
 	},
 
 	onload_post_render: function(frm) {
@@ -96,3 +95,16 @@ frappe.ui.form.on('Top Bar Item', {
 		frm.events.set_parent_options(frm, doctype, name);
 	},
 });
+
+frappe.tour['Website Settings'] = [
+	{
+		fieldname: "enable_view_tracking",
+		title: __("Enable Tracking Page Views"),
+		description: __("Checking this will enable tracking page views for blogs, web pages, etc."),
+	},
+	{
+		fieldname: "disable_signup",
+		title: __("Disable Signup for your site"),
+		description: __("Check this if you don't want users to sign up for an account on your site. Users won't get desk access unless you explicitly provide it."),
+	}
+];

@@ -9,6 +9,7 @@ context('Form', () => {
 	it('create a new form', () => {
 		cy.visit('/desk#Form/ToDo/New ToDo 1');
 		cy.fill_field('description', 'this is a test todo', 'Text Editor').blur();
+		cy.wait(300);
 		cy.get('.page-title').should('contain', 'Not Saved');
 		cy.server();
 		cy.route({
@@ -42,6 +43,23 @@ context('Form', () => {
 		cy.window().its('frappe').then((frappe) => {
 			let list_view = frappe.get_list_view('Contact');
 			list_view.filter_area.filter_list.clear_filters();
+		});
+	});
+	it('validates behaviour of Data options validations in child table', () => {
+		// test email validations for set_invalid controller
+		let website_input = 'website.in';
+		let expectBackgroundColor = 'rgb(255, 220, 220)';
+
+		cy.visit('/desk#Form/Contact/New Contact 1');
+		cy.get('.frappe-control[data-fieldname="email_ids"]').as('table');
+		cy.get('@table').find('button.grid-add-row').click();
+		cy.get('.grid-body .rows [data-fieldname="email_id"]').click();
+		cy.get('@table').find('input.input-with-feedback.form-control').as('email_input');
+		cy.get('@email_input').type(website_input, { waitForAnimations: false });
+		cy.fill_field('company_name', 'Test Company');
+		cy.get('@email_input').should($div => {
+			const style = window.getComputedStyle($div[0]);
+			expect(style.backgroundColor).to.equal(expectBackgroundColor);
 		});
 	});
 });

@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cstr, has_gravatar
+from frappe.utils import cstr, has_gravatar, cint
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
@@ -123,7 +123,7 @@ class Contact(Document):
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
 	out = frappe.db.sql('''select parent,
-			(select is_primary_contact from tabContact c where c.name = dl.parent)
+			IFNULL((select is_primary_contact from tabContact c where c.name = dl.parent), 0)
 				as is_primary_contact
 		from
 			`tabDynamic Link` dl
@@ -133,7 +133,7 @@ def get_default_contact(doctype, name):
 			dl.parenttype = "Contact"''', (doctype, name))
 
 	if out:
-		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
+		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(cint(y[1]), cint(x[1]))))[0][0]
 	else:
 		return None
 
@@ -182,18 +182,16 @@ def update_contact(doc, method):
 		contact.flags.ignore_mandatory = True
 		contact.save(ignore_permissions=True)
 
+@frappe.whitelist()
 def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
+	if not frappe.get_meta("Contact").get_field(searchfield)\
+		or searchfield not in frappe.db.DEFAULT_COLUMNS:
+		return []
+
 	link_doctype = filters.pop('link_doctype')
 	link_name = filters.pop('link_name')
-
-	condition = ""
-	for fieldname, value in iteritems(filters):
-		condition += " and {field}={value}".format(
-			field=fieldname,
-			value=value
-		)
 
 	return frappe.db.sql("""select
 			`tabContact`.name, `tabContact`.first_name, `tabContact`.last_name
@@ -209,9 +207,7 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 		order by
 			if(locate(%(_txt)s, `tabContact`.name), locate(%(_txt)s, `tabContact`.name), 99999),
 			`tabContact`.idx desc, `tabContact`.name
-		limit %(start)s, %(page_len)s """.format(
-			mcond=get_match_cond(doctype),
-			key=searchfield), {
+		limit %(start)s, %(page_len)s """.format(mcond=get_match_cond(doctype), key=searchfield), {
 			'txt': '%' + txt + '%',
 			'_txt': txt.replace("%", ""),
 			'start': start,

@@ -8,58 +8,147 @@ from json import loads, dumps
 from frappe import _, DoesNotExistError, ValidationError, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from six import string_types
+from functools import wraps
 from frappe.cache_manager import (
 	build_domain_restriced_doctype_cache,
 	build_domain_restriced_page_cache,
 	build_table_count_cache
 )
 
+def handle_not_exist(fn):
+	@wraps(fn)
+	def wrapper(*args, **kwargs):
+		try:
+			return fn(*args, **kwargs)
+		except DoesNotExistError:
+			if frappe.message_log:
+				frappe.message_log.pop()
+			return []
+
+	return wrapper
+
+
 class Workspace:
-	def __init__(self, page_name):
+	def __init__(self, page_name, minimal=False):
 		self.page_name = page_name
 		self.extended_cards = []
 		self.extended_charts = []
 		self.extended_shortcuts = []
 
-		user = frappe.get_user()
-		user.build_permissions()
+		self.user = frappe.get_user()
+		self.allowed_modules = self.get_cached('user_allowed_modules', self.get_allowed_modules)
 
-		user_doc = frappe.get_doc('User', frappe.session.user)
-		self.blocked_modules = user_doc.get_blocked_modules()
 		self.doc = self.get_page_for_user()
 
-		if self.doc.module in self.blocked_modules:
+		if self.doc.module not in self.allowed_modules:
 			raise frappe.PermissionError
 
-		self.user = user
-		self.allowed_pages = get_allowed_pages()
-		self.allowed_reports = get_allowed_reports()
+		self.can_read = self.get_cached('user_perm_can_read', self.get_can_read_items)
 
-		self.table_counts = get_table_with_counts()
+		self.allowed_pages = get_allowed_pages(cache=True)
+		self.allowed_reports = get_allowed_reports(cache=True)
+		
+		if not minimal:
+			self.onboarding_doc = self.get_onboarding_doc()
+			self.onboarding = None
+		
+			self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
 		self.restricted_pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
+
+	def is_page_allowed(self):
+		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module) + self.extended_cards
+		shortcuts = self.doc.shortcuts + self.extended_shortcuts
+		
+		for section in cards:
+			links = loads(section.links) if isinstance(section.links, string_types) else section.links
+			for item in links:
+				if self.is_item_allowed(item.get('name'), item.get('type')):
+					return True
+
+		def _in_active_domains(item):
+			if not item.restrict_to_domain:
+				return True
+			else:
+				return item.restrict_to_domain in frappe.get_active_domains()
+
+		for item in shortcuts:
+			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
+				return True
+
+		return False
+
+	def get_cached(self, cache_key, fallback_fn):
+		_cache = frappe.cache()
+
+		value = _cache.get_value(cache_key, user=frappe.session.user)
+		if value:
+			return value
+
+		value = fallback_fn()
+
+		# Expire every six hour
+		_cache.set_value(cache_key, value, frappe.session.user, 21600)
+		return value
+
+	def get_can_read_items(self):
+		if not self.user.can_read:
+			self.user.build_permissions()
+
+		return self.user.can_read
+
+	def get_allowed_modules(self):
+		if not self.user.allow_modules:
+			self.user.build_permissions()
+
+		return self.user.allow_modules
 
 	def get_page_for_user(self):
 		filters = {
 			'extends': self.page_name,
 			'for_user': frappe.session.user
 		}
-		pages = frappe.get_list("Desk Page", filters=filters)
+		pages = frappe.get_all("Desk Page", filters=filters, limit=1)
 		if pages:
-			return frappe.get_doc("Desk Page", pages[0])
+			return frappe.get_cached_doc("Desk Page", pages[0])
 
 		self.get_pages_to_extend()
-		return frappe.get_doc("Desk Page", self.page_name)
+		return frappe.get_cached_doc("Desk Page", self.page_name)
+
+	def get_onboarding_doc(self):
+		# Check if onboarding is enabled
+		if not frappe.get_system_settings("enable_onboarding"):
+			return None
+
+		if not self.doc.onboarding:
+			return None
+
+		if frappe.db.get_value("Module Onboarding", self.doc.onboarding, "is_complete"):
+			return None
+
+		doc = frappe.get_doc("Module Onboarding", self.doc.onboarding)
+
+		# Check if user is allowed
+		allowed_roles = set(doc.get_allowed_roles())
+		user_roles = set(frappe.get_roles())
+		if not allowed_roles & user_roles:
+			return None
+
+		# Check if already complete
+		if doc.check_completion():
+			return None
+
+		return doc
 
 	def get_pages_to_extend(self):
 		pages = frappe.get_all("Desk Page", filters={
 			"extends": self.page_name,
 			'restrict_to_domain': ['in', frappe.get_active_domains()],
 			'for_user': '',
-			'module': ['not in', self.blocked_modules]
+			'module': ['in', self.allowed_modules]
 		})
 
-		pages = [frappe.get_doc("Desk Page", page['name']) for page in pages]
+		pages = [frappe.get_cached_doc("Desk Page", page['name']) for page in pages]
 
 		for page in pages:
 			self.extended_cards = self.extended_cards + page.cards
@@ -70,12 +159,14 @@ class Workspace:
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
-			return (name in self.user.can_read and name in self.restricted_doctypes)
+			return (name in self.can_read and name in self.restricted_doctypes)
 		if item_type == "page":
 			return (name in self.allowed_pages and name in self.restricted_pages)
 		if item_type == "report":
 			return name in self.allowed_reports
 		if item_type == "help":
+			return True
+		if item_type == "dashboard":
 			return True
 
 		return False
@@ -96,14 +187,27 @@ class Workspace:
 			'items': self.get_shortcuts()
 		}
 
+		if self.onboarding_doc:
+			self.onboarding = {
+				'label': _(self.onboarding_doc.title),
+				'subtitle': _(self.onboarding_doc.subtitle),
+				'success': _(self.onboarding_doc.success_message),
+				'docs_url': self.onboarding_doc.documentation_url,
+				'items': self.get_onboarding_steps()
+			}
+	
+	@handle_not_exist
 	def get_cards(self):
-		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
+		cards = self.doc.cards
+		if not self.doc.hide_custom:
+			cards = cards + get_custom_reports_and_doctypes(self.doc.module)
+
 		if len(self.extended_cards):
 			cards = cards + self.extended_cards
 		default_country = frappe.db.get_default("country")
 
 		def _doctype_contains_a_record(name):
-			exists = self.table_counts.get(name)
+			exists = self.table_counts.get(name, None)
 			if not exists:
 				if not frappe.db.get_value('DocType', name, 'issingle'):
 					exists = frappe.db.count(name)
@@ -162,6 +266,7 @@ class Workspace:
 
 		return new_data
 
+	@handle_not_exist
 	def get_charts(self):
 		all_charts = []
 		if frappe.has_permission("Dashboard Chart", throw=False):
@@ -177,6 +282,7 @@ class Workspace:
 
 		return all_charts
 
+	@handle_not_exist
 	def get_shortcuts(self):
 
 		def _in_active_domains(item):
@@ -207,6 +313,19 @@ class Workspace:
 
 		return items
 
+	@handle_not_exist
+	def get_onboarding_steps(self):
+		steps = []
+		for doc in self.onboarding_doc.get_steps():
+			step = doc.as_dict().copy()
+			step.label = _(doc.title)
+			if step.action == "Create Entry":
+				step.is_submittable = frappe.db.get_value("DocType", step.reference_document, 'is_submittable', cache=True)
+			steps.append(step)
+
+		return steps
+
+
 @frappe.whitelist()
 @frappe.read_only()
 def get_desktop_page(page):
@@ -219,42 +338,55 @@ def get_desktop_page(page):
 	Returns:
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
-	try:
-		wspace = Workspace(page)
-		wspace.build_workspace()
-		return {
-			'charts': wspace.charts,
-			'shortcuts': wspace.shortcuts,
-			'cards': wspace.cards,
-			'allow_customization': not wspace.doc.disable_user_customization
-		}
-
-	except DoesNotExistError:
-		if frappe.message_log:
-			frappe.message_log.pop()
-		return None
-
-@frappe.whitelist()
-def get_desk_sidebar_items(flatten=False):
-	"""Get list of sidebar items for desk
-	"""
-	# don't get domain restricted pages
-	blocked_modules = frappe.get_doc('User', frappe.session.user).get_blocked_modules()
-
-	filters = {
-		'restrict_to_domain': ['in', frappe.get_active_domains()],
-		'extends_another_page': 0,
-		'is_standard': 1,
-		'for_user': '',
-		'module': ['not in', blocked_modules]
+	wspace = Workspace(page)
+	wspace.build_workspace()
+	return {
+		'charts': wspace.charts,
+		'shortcuts': wspace.shortcuts,
+		'cards': wspace.cards,
+		'onboarding': wspace.onboarding,
+		'allow_customization': not wspace.doc.disable_user_customization
 	}
 
-	if not frappe.local.conf.developer_mode:
-		filters['developer_mode_only'] = '0'
+@frappe.whitelist()
+def get_desk_sidebar_items(flatten=False, cache=True):
+	"""Get list of sidebar items for desk
+	"""
+	pages = []
+	_cache = frappe.cache()
+	if cache:
+		pages = _cache.get_value("desk_sidebar_items", user=frappe.session.user)
+	
+	if not pages or not cache:
+		# don't get domain restricted pages
+		blocked_modules = frappe.get_doc('User', frappe.session.user).get_blocked_modules()
 
-	# pages sorted based on pinned to top and then by name
-	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
-	pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+		filters = {
+			'restrict_to_domain': ['in', frappe.get_active_domains()],
+			'extends_another_page': 0,
+			'for_user': '',
+			'module': ['not in', blocked_modules]
+		}
+
+		if not frappe.local.conf.developer_mode:
+			filters['developer_mode_only'] = '0'
+
+		# pages sorted based on pinned to top and then by name
+		order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
+		all_pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+		pages = []
+		
+		# Filter Page based on Permission
+		for page in all_pages:
+			try:
+				wspace = Workspace(page.get('name'), True)
+				if wspace.is_page_allowed():
+					pages.append(page)
+			except frappe.PermissionError:
+				pass
+
+		_cache.set_value("desk_sidebar_items", pages, frappe.session.user)
+
 	if flatten:
 		return pages
 
@@ -288,7 +420,7 @@ def get_custom_reports_and_doctypes(module):
 	]
 
 def get_custom_doctype_list(module):
-	doctypes =  frappe.get_list("DocType", fields=["name"], filters={"custom": 1, "istable": 0, "module": module}, order_by="name", ignore_permissions=True)
+	doctypes =  frappe.get_all("DocType", fields=["name"], filters={"custom": 1, "istable": 0, "module": module}, order_by="name")
 
 	out = []
 	for d in doctypes:
@@ -303,9 +435,9 @@ def get_custom_doctype_list(module):
 
 def get_custom_report_list(module):
 	"""Returns list on new style reports for modules."""
-	reports =  frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], filters=
+	reports =  frappe.get_all("Report", fields=["name", "ref_doctype", "report_type"], filters=
 		{"is_standard": "No", "disabled": 0, "module": module},
-		order_by="name", ignore_permissions=True)
+		order_by="name")
 
 	out = []
 	for r in reports:
@@ -360,8 +492,8 @@ def save_customization(page, config):
 		"charts_label": original_page.charts_label,
 		"cards_label": original_page.cards_label,
 		"shortcuts_label": original_page.shortcuts_label,
-		"icon": original_page.icon,
 		"module": original_page.module,
+		"onboarding": original_page.onboarding,
 		"developer_mode_only": original_page.developer_mode_only,
 		"category": original_page.category
 	})
@@ -432,3 +564,16 @@ def prepare_widget(config, doctype, parentfield):
 
 		prepare_widget_list.append(doc)
 	return prepare_widget_list
+
+
+@frappe.whitelist()
+def update_onboarding_step(name, field, value):
+	"""Update status of onboaridng step
+
+	Args:
+	    name (string): Name of the doc
+	    field (string): field to be updated
+	    value: Value to be updated
+
+	"""
+	frappe.db.set_value("Onboarding Step", name, field, value)

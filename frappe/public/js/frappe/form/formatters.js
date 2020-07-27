@@ -70,7 +70,10 @@ frappe.form.formatters = {
 
 			if ( decimals.length < 3 || decimals.length < precision ) {
 				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
-				precision      = cstr(fraction).length - 1;
+
+				if (decimals.length < cstr(fraction).length) {
+					precision = cstr(fraction).length - 1;
+				}
 			}
 		}
 
@@ -149,10 +152,7 @@ frappe.form.formatters = {
 	},
 	DateRange: function(value) {
 		if($.isArray(value)) {
-			return __("{0} to {1}", [
-				frappe.datetime.str_to_user(value[0]),
-				frappe.datetime.str_to_user(value[1])
-			]);
+			return __("{0} to {1}", [frappe.datetime.str_to_user(value[0]), frappe.datetime.str_to_user(value[1])]);
 		} else {
 			return value || "";
 		}
@@ -195,6 +195,14 @@ frappe.form.formatters = {
 
 		return value || "";
 	},
+	Duration: function(value, docfield) {
+		if (value) {
+			let duration_options = frappe.utils.get_duration_options(docfield);
+			value = frappe.utils.get_formatted_duration(value, duration_options);
+		}
+
+		return value || "";
+	},
 	LikedBy: function(value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function(i, v) {
@@ -227,7 +235,12 @@ frappe.form.formatters = {
 		return frappe.form.formatters.Text(value);
 	},
 	TextEditor: function(value) {
-		return frappe.form.formatters.Text(value);
+		let formatted_value = frappe.form.formatters.Text(value);
+		// to use ql-editor styles
+		if (!$(formatted_value).find('.ql-editor').length) {
+			formatted_value = `<div class="ql-editor read-mode">${formatted_value}</div>`;
+		}
+		return formatted_value;
 	},
 	Code: function(value) {
 		return "<pre>" + (value==null ? "" : $("<div>").text(value).html()) + "</pre>"

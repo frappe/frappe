@@ -34,7 +34,7 @@ login.bind_events = function() {
 		args.cmd = "frappe.core.doctype.user.user.sign_up";
 		args.email = ($("#signup_email").val() || "").trim();
 		args.redirect_to = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to"));
-		args.full_name = ($("#signup_fullname").val() || "").trim();
+		args.full_name = frappe.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
 		if(!args.email || !validate_email(args.email) || !args.full_name) {
 			login.set_indicator('{{ _("Valid email and name required") }}', 'red');
 			return false;
@@ -57,12 +57,13 @@ login.bind_events = function() {
 	});
 
 	$(".toggle-password").click(function() {
-		$(this).toggleClass("fa-eye fa-eye-slash");
 		var input = $($(this).attr("toggle"));
 		if (input.attr("type") == "password") {
 			input.attr("type", "text");
+			$(this).text('{{ _("Hide") }}')
 		} else {
 			input.attr("type", "password");
+			$(this).text('{{ _("Show") }}')
 		}
 	});
 
@@ -96,7 +97,7 @@ login.reset_sections = function(hide) {
 		$("section.for-forgot").toggle(false);
 		$("section.for-signup").toggle(false);
 	}
-	$('section .indicator').each(function() {
+	$('section:not(.signup-disabled) .indicator').each(function() {
 		$(this).removeClass().addClass('indicator').addClass('blue')
 			.text($(this).attr('data-text'));
 	});
@@ -183,9 +184,9 @@ login.login_handlers = (function() {
 				login.set_indicator('{{ _("Success") }}', 'green');
 				window.location.href = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to")) || data.home_page;
 			} else if(data.message == 'Password Reset'){
-				window.location.href = data.redirect_to;
+				window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
 			} else if(data.message=="No App") {
-				login.set_indicator("{{ _("Success") }}", 'green');
+				login.set_indicator("{{ _('Success') }}", 'green');
 				if(localStorage) {
 					var last_visited =
 						localStorage.getItem("last_visited")
@@ -194,7 +195,7 @@ login.login_handlers = (function() {
 				}
 
 				if(data.redirect_to) {
-					window.location.href = data.redirect_to;
+					window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
 				}
 
 				if(last_visited && last_visited != "/login") {

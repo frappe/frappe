@@ -294,4 +294,37 @@ class TestFile(unittest.TestCase):
 		folder = frappe.get_doc("File", "Home/Test Folder 1/Test Folder 3")
 		self.assertRaises(frappe.ValidationError, folder.delete)
 
+	def test_same_file_url_update(self):
+		attached_to_doctype1, attached_to_docname1 = make_test_doc()
+		attached_to_doctype2, attached_to_docname2 = make_test_doc()
+
+		file1 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'file1.txt',
+			"attached_to_doctype": attached_to_doctype1,
+			"attached_to_name": attached_to_docname1,
+			"is_private": 1,
+			"content": test_content1}).insert()
+
+		file2 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'file2.txt',
+			"attached_to_doctype": attached_to_doctype2,
+			"attached_to_name": attached_to_docname2,
+			"is_private": 1,
+			"content": test_content1}).insert()
+
+		self.assertEqual(file1.is_private, file2.is_private, 1)
+		self.assertEqual(file1.file_url, file2.file_url)
+		self.assertTrue(os.path.exists(file1.get_full_path()))
+
+		file1.is_private = 0
+		file1.save()
+
+		file2 = frappe.get_doc('File', file2.name)
+
+		self.assertEqual(file1.is_private, file2.is_private, 0)
+		self.assertEqual(file1.file_url, file2.file_url)
+		self.assertTrue(os.path.exists(file2.get_full_path()))
+
 

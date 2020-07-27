@@ -109,15 +109,22 @@ frappe.ui.GroupBy = class {
 	}
 
 	make_group_by_button() {
-		let group_by_button =  $(`<div class="tag-groupby-area">
+		this.group_by_button =  $(`<div class="tag-groupby-area">
 			<div class="active-tag-groupby">
 				<button class="btn btn-default btn-xs add-groupby text-muted">
 						${__("Add Group")}
 				</button>
 			</div>
 		</div>`);
-		this.page.wrapper.find(".sort-selector").before(group_by_button);
-		group_by_button.click(() => this.groupby_edit_area.show());
+		this.page.wrapper.find(".sort-selector").before(this.group_by_button);
+		this.group_by_button.click(() => {
+			this.toggle_group_by_area(true);
+		});
+	}
+
+	toggle_group_by_area(show) {
+		this.groupby_edit_area.toggle(show);
+		this.group_by_button.toggle(!show);
 	}
 
 	apply_group_by() {
@@ -230,10 +237,11 @@ frappe.ui.GroupBy = class {
 	}
 
 	remove_group_by() {
-		this.groupby_edit_area.hide();
+		this.toggle_group_by_area(false);
 
 		this.order_by = '';
 		this.group_by = null;
+		this.report_view.group_by = null;
 		this.aggregate_function = null;
 		this.aggregate_on = null;
 		$(".groupby").val("");

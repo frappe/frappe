@@ -39,7 +39,7 @@ This is the text version of this email
 			subject='Test Subject',
 			content=email_html,
 			text_content=email_text
-		).as_string()
+		).as_string().replace("\r\n", "\n")
 
 	def test_prepare_message_returns_already_encoded_string(self):
 
@@ -74,22 +74,6 @@ This is the text version of this email
 			self.assertTrue(result.count('\n') == result.count("\r"))
 		else:
 			self.assertTrue(True)
-
-	def test_rfc_5322_header_is_wrapped_at_998_chars(self):
-		# unfortunately the db can only hold 140 chars so this can't be tested properly. test at max chars anyway.
-		email = get_email_queue(
-			recipients=['test@example.com'],
-			sender='me@example.com',
-			subject='Test Subject',
-			content='<h1>Whatever</h1>',
-			text_content='whatever',
-			message_id="a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
-			".really.long.message.id.that.should.not.wrap.unti")
-		result = safe_decode(prepare_message(email=email, recipient='test@test.com',
-					recipients_list=[]))
-		self.assertTrue(
-			"a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
-			".really.long.message.id.that.should.not.wrap.unti" in result)
 
 	def test_image(self):
 		img_signature = '''
@@ -169,7 +153,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			subject='Test Subject',
 			content=email_html,
 			header=['Email Title', 'green']
-		).as_string()
+		).as_string().replace("\r\n", "\n")
 
 		self.assertTrue('''<span class=3D"indicator indicator-green" style=3D"background-color:#98=
 d85b; border-radius:8px; display:inline-block; height:8px; margin-right:5px=

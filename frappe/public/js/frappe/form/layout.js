@@ -498,11 +498,18 @@ frappe.ui.form.Layout = Class.extend({
 	},
 	set_dependant_property: function(condition, fieldname, property) {
 		let set_property = this.evaluate_depends_on_value(condition);
+		let form_obj;
+
 		if (this.frm) {
+			form_obj = this.frm;
+		} else if (this.is_dialog) {
+			form_obj = this;
+		}
+		if (form_obj) {
 			if (set_property) {
-				this.frm.set_df_property(fieldname, property, 1);
+				form_obj.set_df_property(fieldname, property, 1);
 			} else {
-				this.frm.set_df_property(fieldname, property, 0);
+				form_obj.set_df_property(fieldname, property, 0);
 			}
 		}
 	},
@@ -592,12 +599,15 @@ frappe.ui.form.Section = Class.extend({
 			if(this.df.cssClass) {
 				this.wrapper.addClass(this.df.cssClass);
 			}
+			if (this.df.hide_border) {
+				this.wrapper.toggleClass("hide-border", true);
+			}
 		}
-
 
 		// for bc
 		this.body = $('<div class="section-body">').appendTo(this.wrapper);
 	},
+
 	make_head: function() {
 		var me = this;
 		if(!this.df.collapsible) {
@@ -656,9 +666,11 @@ frappe.ui.form.Section = Class.extend({
 			}
 		});
 	},
+
 	is_collapsed() {
 		return this.body.hasClass('hide');
 	},
+
 	has_missing_mandatory: function() {
 		var missing_mandatory = false;
 		for (var j=0, l=this.fields_list.length; j < l; j++) {

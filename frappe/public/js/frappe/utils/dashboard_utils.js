@@ -47,7 +47,7 @@ frappe.dashboard_utils = {
 				frappe.dom.eval(config);
 				return frappe.dashboards.chart_sources[chart.source].filters;
 			});
-		} else if (chart.chart_type === 'Report') {
+		} else if (chart.chart_type === 'Report' && chart.report_name) {
 			return frappe.report_utils.get_report_filters(chart.report_name).then(filters => {
 				return filters;
 			});
@@ -57,13 +57,18 @@ frappe.dashboard_utils = {
 	},
 
 	get_dashboard_settings() {
-		return frappe.model.with_doc('Dashboard Settings', frappe.session.user).then(settings => {
-			if (!settings) {
+		return frappe.db.get_list('Dashboard Settings', {
+			filters: {
+				name: frappe.session.user
+			},
+			fields: ['*']
+		}).then(settings => {
+			if (!settings.length) {
 				return this.create_dashboard_settings().then(settings => {
 					return settings;
 				});
 			} else {
-				return settings;
+				return settings[0];
 			}
 		});
 	},
@@ -71,9 +76,129 @@ frappe.dashboard_utils = {
 	create_dashboard_settings() {
 		return frappe.xcall(
 			'frappe.desk.doctype.dashboard_settings.dashboard_settings.create_dashboard_settings',
-			{user: frappe.session.user}
+			{
+				user: frappe.session.user
+			}
 		).then(settings => {
 			return settings;
 		});
+	},
+
+	get_years_since_creation(creation) {
+		//Get years since user account created
+		let creation_year = this.get_year(creation);
+		let current_year = this.get_year(frappe.datetime.now_date());
+		let years_list = [];
+		for (var year = current_year; year >= creation_year; year--) {
+			years_list.push(year);
+		}
+		return years_list;
+	},
+
+	get_year(date_str) {
+		return date_str.substring(0, date_str.indexOf('-'));
+	},
+
+	remove_common_static_filter_values(static_filters, dynamic_filters) {
+		if (dynamic_filters) {
+			if ($.isArray(static_filters)) {
+				static_filters = static_filters.filter(static_filter => {
+					for (let dynamic_filter of dynamic_filters) {
+						if (static_filter[0] == dynamic_filter[0]
+							&& static_filter[1] == dynamic_filter[1]) {
+							return false;
+						}
+					}
+					return true;
+				});
+			} else {
+				for (let key of Object.keys(dynamic_filters)) {
+					delete static_filters[key];
+				}
+			}
+		}
+
+		return static_filters;
+	},
+
+	get_fields_for_dynamic_filter_dialog(is_document_type, filters, dynamic_filters) {
+		let fields = [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'description',
+				options:
+					`<div>
+						<p>Set dynamic filter values in JavaScript for the required fields here.
+						</p>
+						<p>Ex:
+							<code>frappe.defaults.get_user_default("Company")</code>
+						</p>
+					</div>`
+			}
+		];
+
+		if (is_document_type) {
+			if (dynamic_filters) {
+				filters = [...filters, ...dynamic_filters];
+			}
+			filters.forEach(f => {
+				for (let field of fields) {
+					if (field.fieldname == f[0] + ':' + f[1]) {
+						return;
+					}
+				}
+				if (f[2] == '=') {
+					fields.push({
+						label: `${f[1]} (${f[0]})`,
+						fieldname: f[0] + ':' + f[1],
+						fieldtype: 'Data',
+					});
+				}
+			});
+		} else {
+			filters = {...dynamic_filters, ...filters};
+			for (let key of Object.keys(filters)) {
+				fields.push({
+					label: key,
+					fieldname: key,
+					fieldtype: 'Data',
+				});
+			}
+		}
+
+		return fields;
+	},
+
+	get_all_filters(doc) {
+		let filters = JSON.parse(doc.filters_json || "null");
+		let dynamic_filters = JSON.parse(doc.dynamic_filters_json || "null");
+
+		if (!dynamic_filters) {
+			return filters;
+		}
+
+		if ($.isArray(dynamic_filters)) {
+			dynamic_filters.forEach(f => {
+				try {
+					f[3] = eval(f[3]);
+				} catch (e) {
+					frappe.throw(__(`Invalid expression set in filter ${f[1]} (${f[0]})`));
+				}
+			});
+			filters = [...filters, ...dynamic_filters];
+		} else {
+			for (let key of Object.keys(dynamic_filters)) {
+				try {
+					const val = eval(dynamic_filters[key]);
+					dynamic_filters[key] = val;
+				} catch (e) {
+					frappe.throw(__(`Invalid expression set in filter ${key}`));
+				}
+			}
+			Object.assign(filters, dynamic_filters);
+		}
+
+		return filters;
 	}
+
 };

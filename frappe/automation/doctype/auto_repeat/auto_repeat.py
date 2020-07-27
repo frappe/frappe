@@ -146,7 +146,7 @@ class AutoRepeat(Document):
 
 	def make_new_document(self):
 		reference_doc = frappe.get_doc(self.reference_doctype, self.reference_document)
-		new_doc = frappe.copy_doc(reference_doc, ignore_no_copy = False)
+		new_doc = frappe.copy_doc(reference_doc)
 		self.update_doc(new_doc, reference_doc)
 		new_doc.insert(ignore_permissions = True)
 
@@ -299,16 +299,19 @@ def get_next_schedule_date(schedule_date, frequency, start_date, repeat_on_day=N
 		next_date = get_next_date(start_date, month_count)
 	else:
 		days = 7 if frequency == 'Weekly' else 1
-		next_date = add_days(start_date, days)
+		next_date = add_days(schedule_date, days)
 
 	# next schedule date should be after or on current date
 	if not for_full_schedule:
 		while getdate(next_date) < getdate(today()):
 			if month_count:
 				month_count += month_map.get(frequency)
-			next_date = get_next_date(start_date, month_count, day_count)
+				next_date = get_next_date(start_date, month_count, day_count)
+			elif days:
+				next_date = add_days(next_date, days)
 
 	return next_date
+
 
 def get_next_date(dt, mcount, day=None):
 	dt = getdate(dt)
@@ -369,7 +372,8 @@ def make_auto_repeat(doctype, docname, frequency = 'Daily', start_date = None, e
 	doc.save()
 	return doc
 
-#method for reference_doctype filter
+# method for reference_doctype filter
+@frappe.whitelist()
 def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	res = frappe.db.get_all('Property Setter', {
 		'property': 'allow_auto_repeat',

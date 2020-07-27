@@ -4,15 +4,27 @@ import ShortcutWidget from "../widgets/shortcut_widget";
 import LinksWidget from "../widgets/links_widget";
 import OnboardingWidget from "../widgets/onboarding_widget";
 import NewWidget from "../widgets/new_widget";
+import NumberCardWidget from "../widgets/number_card_widget";
 
 frappe.provide("frappe.widget");
 
-const widget_factory = {
+frappe.widget.widget_factory = {
 	chart: ChartWidget,
 	base: BaseWidget,
 	shortcut: ShortcutWidget,
 	links: LinksWidget,
 	onboarding: OnboardingWidget,
+	number_card: NumberCardWidget,
+};
+
+frappe.widget.make_widget = (opts) => {
+	const widget_class = frappe.widget.widget_factory[opts.widget_type];
+	if (widget_class) {
+		return new widget_class(opts);
+	} else {
+		// eslint-disable-next-line
+		console.warn("Invalid Widget Name: " + opts.widget_type);
+	}
 };
 
 export default class WidgetGroup {
@@ -40,6 +52,7 @@ export default class WidgetGroup {
 				</div>
 			</div>`);
 		this.widget_area = widget_area;
+		if (this.hidden) this.widget_area.hide();
 		this.title_area = widget_area.find(".widget-group-title");
 		this.control_area = widget_area.find(".widget-group-control");
 		this.body = widget_area.find(".widget-group-body");
@@ -59,9 +72,7 @@ export default class WidgetGroup {
 	}
 
 	add_widget(widget) {
-		const widget_class = widget_factory[this.type];
-
-		let widget_object = new widget_class({
+		let widget_object = frappe.widget.make_widget({
 			...widget,
 			widget_type: this.type,
 			container: this.body,
@@ -77,8 +88,16 @@ export default class WidgetGroup {
 		return widget_object;
 	}
 
+	remove_widget(widget_obj) {
+		widget_obj.widget.remove();
+		this.widgets_list.filter((widget) => {
+			if (widget.name == widget_obj.name) return false;
+		});
+		delete this.widgets_dict[widget_obj.name];
+	}
+
 	customize() {
-		this.widget_area.show();
+		if (!this.hidden) this.widget_area.show();
 		this.widgets_list.forEach((wid) => {
 			wid.customize(this.options);
 		});
@@ -96,6 +115,8 @@ export default class WidgetGroup {
 			this.new_widget = new NewWidget({
 				container: this.body,
 				type: this.type,
+				custom_dialog: this.custom_dialog,
+				default_values: this.default_values,
 				on_create: (config) => {
 					// Remove new widget
 					this.new_widget.delete();
@@ -116,12 +137,12 @@ export default class WidgetGroup {
 		}
 	}
 
-	on_delete(name) {
+	on_delete(name, setup_new) {
 		this.widgets_list = this.widgets_list.filter((wid) => name != wid.name);
 		delete this.widgets_dict[name];
 		this.update_widget_order();
 
-		if (!this.new_widget) this.setup_new_widget();
+		if (!this.new_widget && setup_new) this.setup_new_widget();
 	}
 
 	update_widget_order() {

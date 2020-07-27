@@ -48,6 +48,8 @@ class File(Document):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
+		if self.file_name:
+			self.file_name = re.sub(r'/', '', self.file_name)
 		self.content = self.get("content", None)
 		self.decode = self.get("decode", False)
 		if self.content:
@@ -98,26 +100,26 @@ class File(Document):
 				self.validate_file()
 			self.generate_content_hash()
 
-		self.validate_url()
-
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
 			old_file_url = self.file_url
 			if not self.is_folder and (self.is_private != self.db_get('is_private')):
 				private_files = frappe.get_site_path('private', 'files')
 				public_files = frappe.get_site_path('public', 'files')
 
+				file_name = self.file_url.split('/')[-1]
 				if not self.is_private:
-					shutil.move(os.path.join(private_files, self.file_name),
-						os.path.join(public_files, self.file_name))
+					shutil.move(os.path.join(private_files, file_name),
+						os.path.join(public_files, file_name))
 
-					self.file_url = "/files/{0}".format(self.file_name)
+					self.file_url = "/files/{0}".format(file_name)
 
 				else:
-					shutil.move(os.path.join(public_files, self.file_name),
-						os.path.join(private_files, self.file_name))
+					shutil.move(os.path.join(public_files, file_name),
+						os.path.join(private_files, file_name))
 
-					self.file_url = "/private/files/{0}".format(self.file_name)
+					self.file_url = "/private/files/{0}".format(file_name)
 
+				update_existing_file_docs(self)
 
 			# update documents image url with new file url
 			if self.attached_to_doctype and self.attached_to_name:
@@ -132,6 +134,8 @@ class File(Document):
 				if self.attached_to_field:
 					frappe.db.set_value(self.attached_to_doctype, self.attached_to_name,
 						self.attached_to_field, self.file_url)
+
+		self.validate_url()
 
 		if self.file_url and (self.is_private != self.file_url.startswith('/private')):
 			frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
@@ -180,18 +184,14 @@ class File(Document):
 			if duplicate_file:
 				duplicate_file_doc = frappe.get_cached_doc('File', duplicate_file.name)
 				if duplicate_file_doc.exists_on_disk():
-					# if it is attached to a document then throw DuplicateEntryError
-					if self.attached_to_doctype and self.attached_to_name:
-						self.duplicate_entry = duplicate_file.name
-						frappe.throw(_("Same file has already been attached to the record"),
-							frappe.DuplicateEntryError)
-					# else just use the url, to avoid uploading a duplicate
-					else:
+						# just use the url, to avoid uploading a duplicate
 						self.file_url = duplicate_file.file_url
 
 	def set_file_name(self):
 		if not self.file_name and self.file_url:
 			self.file_name = self.file_url.split('/')[-1]
+		else:
+			self.file_name = re.sub(r'/', '', self.file_name)
 
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.file_url.startswith('http'):
@@ -405,6 +405,12 @@ class File(Document):
 				frappe.throw(_("URL must start with 'http://' or 'https://'"))
 				return
 
+			if not self.file_url.startswith(("http://", "https://")):
+				# local file
+				root_files_path = get_files_path(is_private=self.is_private)
+				if not os.path.commonpath([root_files_path]) == os.path.commonpath([root_files_path, self.get_full_path()]):
+					# basically the file url is skewed to not point to /files/ or /private/files
+					frappe.throw(_("{0} is not a valid file url").format(self.file_url))
 			self.file_url = unquote(self.file_url)
 			self.file_size = frappe.form_dict.file_size or self.file_size
 
@@ -704,7 +710,12 @@ def remove_all(dt, dn, from_delete=False):
 	try:
 		for fid in frappe.db.sql_list("""select name from `tabFile` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
-			remove_file(fid=fid, attached_to_doctype=dt, attached_to_name=dn, from_delete=from_delete)
+			if from_delete:
+				# If deleting a doc, directly delete files
+				frappe.delete_doc("File", fid, ignore_permissions=True)
+			else:
+				# Removes file and adds a comment in the document it is attached to
+				remove_file(fid=fid, attached_to_doctype=dt, attached_to_name=dn, from_delete=from_delete)
 	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
@@ -894,3 +905,20 @@ def get_files_in_folder(folder):
 		{ 'folder': folder },
 		['name', 'file_name', 'file_url', 'is_folder', 'modified']
 	)
+
+def update_existing_file_docs(doc):
+	# Update is private and file url of all file docs that point to the same file
+	frappe.db.sql("""
+		UPDATE `tabFile`
+		SET
+			file_url = %(file_url)s,
+			is_private = %(is_private)s
+		WHERE
+			content_hash = %(content_hash)s
+			and name != %(file_name)s
+	""", dict(
+		file_url=doc.file_url,
+		is_private=doc.is_private,
+		content_hash=doc.content_hash,
+		file_name=doc.name
+	))

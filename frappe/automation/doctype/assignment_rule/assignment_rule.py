@@ -21,7 +21,7 @@ class AssignmentRule(Document):
 	def on_update(self): # pylint: disable=no-self-use
 		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
 
-	def after_rename(self): # pylint: disable=no-self-use
+	def after_rename(self, old, new, merge): # pylint: disable=no-self-use
 		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
 
 	def apply_unassign(self, doc, assignments):
@@ -44,7 +44,7 @@ class AssignmentRule(Document):
 		user = self.get_user()
 
 		assign_to.add(dict(
-			assign_to = user,
+			assign_to = [user],
 			doctype = doc.get('doctype'),
 			name = doc.get('name'),
 			description = frappe.render_template(self.description, doc),

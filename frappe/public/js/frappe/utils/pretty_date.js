@@ -1,8 +1,10 @@
 function prettyDate(date, mini) {
 	if (!date) return '';
 
-	if (typeof (date) == "string")
+	if (typeof (date) == "string") {
+		date = frappe.datetime.convert_to_user_tz(date);
 		date = new Date((date || "").replace(/-/g, "/").replace(/[TZ]/g, " ").replace(/\.[0-9]*/, ""));
+	}
 
 	let diff = (((new Date()).getTime() - date.getTime()) / 1000);
 	let day_diff = Math.floor(diff / 86400);
@@ -76,6 +78,7 @@ window.comment_when = function(datetime, mini) {
 		+ prettyDate(datetime, mini) + '</span>';
 };
 frappe.datetime.comment_when = comment_when;
+frappe.datetime.prettyDate = prettyDate;
 
 frappe.datetime.refresh_when = function() {
 	if (jQuery) {

@@ -109,9 +109,10 @@ frappe.views.BaseList = class BaseList {
 		this.fields = this.fields.uniqBy(f => f[0] + f[1]);
 	}
 
-	_add_field(fieldname) {
+	_add_field(fieldname, doctype) {
 		if (!fieldname) return;
-		let doctype = this.doctype;
+
+		if (!doctype) doctype = this.doctype;
 
 		if (typeof fieldname === 'object') {
 			// df is passed
@@ -119,6 +120,8 @@ frappe.views.BaseList = class BaseList {
 			fieldname = df.fieldname;
 			doctype = df.parent;
 		}
+
+		if (!this.fields) this.fields = [];
 
 		const is_valid_field = frappe.model.std_fields_list.includes(fieldname)
 			|| frappe.meta.has_field(doctype, fieldname)
@@ -203,6 +206,7 @@ frappe.views.BaseList = class BaseList {
 		show_sidebar = !show_sidebar;
 		localStorage.show_sidebar = show_sidebar;
 		this.show_or_hide_sidebar();
+		$(document.body).trigger('toggleListSidebar');
 	}
 
 	show_or_hide_sidebar() {
@@ -335,6 +339,11 @@ frappe.views.BaseList = class BaseList {
 		return this.filter_area
 			? this.filter_area.get().map(filter => filter.slice(0, 4))
 			: [];
+	}
+
+	get_filter_value(fieldname) {
+		return this.get_filters_for_args().filter(f => f[1] == fieldname)[0] &&
+			this.get_filters_for_args().filter(f => f[1] == fieldname)[0][3];
 	}
 
 	get_args() {
@@ -686,5 +695,5 @@ class FilterArea {
 }
 
 // utility function to validate view modes
-frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report'];
+frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report', 'Dashboard'];
 frappe.views.is_valid = view_mode => frappe.views.view_modes.includes(view_mode);

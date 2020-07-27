@@ -79,6 +79,8 @@ class TestFormLoad(unittest.TestCase):
 		user.remove_roles('Blogger', 'Website Manager')
 		user.add_roles(*user_roles)
 
+		blog_doc.delete()
+
 	def test_fieldlevel_permissions_in_load_for_child_table(self):
 		contact = frappe.new_doc('Contact')
 		contact.first_name = '_Test Contact 1'

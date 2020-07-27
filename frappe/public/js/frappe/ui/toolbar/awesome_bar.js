@@ -177,6 +177,7 @@ frappe.search.AwesomeBar = Class.extend({
 			frappe.search.utils.get_reports(txt),
 			frappe.search.utils.get_pages(txt),
 			frappe.search.utils.get_workspaces(txt),
+			frappe.search.utils.get_dashboards(txt),
 			frappe.search.utils.get_recent_pages(txt || ""),
 			frappe.search.utils.get_executables(txt)
 		);
@@ -227,7 +228,7 @@ frappe.search.AwesomeBar = Class.extend({
 		}
 
 		this.options.push({
-			label: __("Search for '{0}'", [txt.bold()]),
+			label: __("Search for '{0}'", [frappe.utils.xss_sanitise(txt).bold()]),
 			value: __("Search for '{0}'", [txt]),
 			match: txt,
 			index: 100,

@@ -250,7 +250,8 @@ Object.assign(frappe.utils, {
 				regExp = /^\w+$/;
 				break;
 			case "email":
-				regExp = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/i;
+				// from https://emailregex.com/
+				regExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 				break;
 			case "url":
 				regExp = /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i;
@@ -289,6 +290,25 @@ Object.assign(frappe.utils, {
 
 	guess_colour: function(text) {
 		return frappe.utils.guess_style(text, null, true);
+	},
+
+	get_indicator_color: function(state) {
+		return frappe.db.get_list('Workflow State', {filters: {name: state}, fields: ['name', 'style']}).then(res => {
+			const state = res[0];
+			if (!state.style) {
+				return frappe.utils.guess_colour(state.name);
+			}
+			const style = state.style;
+			const colour_map = {
+				"Success": "green",
+				"Warning": "orange",
+				"Danger": "red",
+				"Primary": "blue",
+			};
+
+			return colour_map[style];
+		});
+
 	},
 
 	sort: function(list, key, compare_type, reverse) {
@@ -695,7 +715,32 @@ Object.assign(frappe.utils, {
 			return null;
 		}
 	},
+	setup_search($wrapper, el_class, text_class, data_attr) {
+		const $search_input = $wrapper.find('[data-element="search"]').show();
+		$search_input.focus().val('');
+		const $elements = $wrapper.find(el_class).show();
 
+		$search_input.off('keyup').on('keyup', () => {
+			let text_filter = $search_input.val().toLowerCase();
+			// Replace trailing and leading spaces
+			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
+			for (let i = 0; i < $elements.length; i++) {
+				const text_element = $elements.eq(i).find(text_class);
+				const text = text_element.text().toLowerCase();
+
+				let name = '';
+				if (data_attr && text_element.attr(data_attr)) {
+					name = text_element.attr(data_attr).toLowerCase();
+				}
+
+				if (text.includes(text_filter) || name.includes(text_filter)) {
+					$elements.eq(i).css('display', '');
+				} else {
+					$elements.eq(i).css('display', 'none');
+				}
+			}
+		});
+	},
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	},
@@ -778,6 +823,70 @@ Object.assign(frappe.utils, {
 			version: M[1],
 		};
 	},
+
+	get_formatted_duration(value, duration_options) {
+		let duration = '';
+		if (value) {
+			let total_duration = frappe.utils.seconds_to_duration(value, duration_options);
+
+			if (total_duration.days) {
+				duration += total_duration.days + __('d', null, 'Days (Field: Duration)');
+			}
+			if (total_duration.hours) {
+				duration += (duration.length ? " " : "");
+				duration += total_duration.hours + __('h', null, 'Hours (Field: Duration)');
+			}
+			if (total_duration.minutes) {
+				duration += (duration.length ? " " : "");
+				duration += total_duration.minutes + __('m', null, 'Minutes (Field: Duration)');
+			}
+			if (total_duration.seconds) {
+				duration += (duration.length ? " " : "");
+				duration += total_duration.seconds + __('s', null, 'Seconds (Field: Duration)');
+			}
+		}
+		return duration;
+	},
+
+	seconds_to_duration(value, duration_options) {
+		let secs = value;
+		let total_duration = {
+			days: Math.floor(secs / (3600 * 24)),
+			hours: Math.floor(secs % (3600 * 24) / 3600),
+			minutes: Math.floor(secs % 3600 / 60),
+			seconds: Math.floor(secs % 60)
+		};
+		if (duration_options.hide_days) {
+			total_duration.hours = Math.floor(secs / 3600);
+			total_duration.days = 0;
+		}
+		return total_duration;
+	},
+
+	duration_to_seconds(days=0, hours=0, minutes=0, seconds=0) {
+		let value = 0;
+		if (days) {
+			value += days * 24 * 60 * 60;
+		}
+		if (hours) {
+			value += hours * 60 * 60;
+		}
+		if (minutes) {
+			value += minutes * 60;
+		}
+		if (seconds) {
+			value += seconds;
+		}
+		return value;
+	},
+
+	get_duration_options: function(docfield) {
+		let duration_options = {
+			hide_days: docfield.hide_days,
+			hide_seconds: docfield.hide_seconds
+		};
+		return duration_options;
+	}
 });
 
 // Array de duplicate
@@ -797,3 +906,115 @@ if (!Array.prototype.uniqBy) {
 		}
 	});
 }
+
+// Pluralize
+String.prototype.plural = function(revert) {
+	const plural = {
+		"(quiz)$": "$1zes",
+		"^(ox)$": "$1en",
+		"([m|l])ouse$": "$1ice",
+		"(matr|vert|ind)ix|ex$": "$1ices",
+		"(x|ch|ss|sh)$": "$1es",
+		"([^aeiouy]|qu)y$": "$1ies",
+		"(hive)$": "$1s",
+		"(?:([^f])fe|([lr])f)$": "$1$2ves",
+		"(shea|lea|loa|thie)f$": "$1ves",
+		sis$: "ses",
+		"([ti])um$": "$1a",
+		"(tomat|potat|ech|her|vet)o$": "$1oes",
+		"(bu)s$": "$1ses",
+		"(alias)$": "$1es",
+		"(octop)us$": "$1i",
+		"(ax|test)is$": "$1es",
+		"(us)$": "$1es",
+		"([^s]+)$": "$1s",
+	};
+
+	const singular = {
+		"(quiz)zes$": "$1",
+		"(matr)ices$": "$1ix",
+		"(vert|ind)ices$": "$1ex",
+		"^(ox)en$": "$1",
+		"(alias)es$": "$1",
+		"(octop|vir)i$": "$1us",
+		"(cris|ax|test)es$": "$1is",
+		"(shoe)s$": "$1",
+		"(o)es$": "$1",
+		"(bus)es$": "$1",
+		"([m|l])ice$": "$1ouse",
+		"(x|ch|ss|sh)es$": "$1",
+		"(m)ovies$": "$1ovie",
+		"(s)eries$": "$1eries",
+		"([^aeiouy]|qu)ies$": "$1y",
+		"([lr])ves$": "$1f",
+		"(tive)s$": "$1",
+		"(hive)s$": "$1",
+		"(li|wi|kni)ves$": "$1fe",
+		"(shea|loa|lea|thie)ves$": "$1f",
+		"(^analy)ses$": "$1sis",
+		"((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$":
+			"$1$2sis",
+		"([ti])a$": "$1um",
+		"(n)ews$": "$1ews",
+		"(h|bl)ouses$": "$1ouse",
+		"(corpse)s$": "$1",
+		"(us)es$": "$1",
+		s$: "",
+	};
+
+	const irregular = {
+		move: "moves",
+		foot: "feet",
+		goose: "geese",
+		sex: "sexes",
+		child: "children",
+		man: "men",
+		tooth: "teeth",
+		person: "people",
+	};
+
+	const uncountable = [
+		"sheep",
+		"fish",
+		"deer",
+		"moose",
+		"series",
+		"species",
+		"money",
+		"rice",
+		"information",
+		"equipment",
+	];
+
+	// save some time in the case that singular and plural are the same
+	if (uncountable.indexOf(this.toLowerCase()) >= 0) return this;
+
+	// check for irregular forms
+	let word;
+	let pattern;
+	let replace;
+	for (word in irregular) {
+		if (revert) {
+			pattern = new RegExp(irregular[word] + "$", "i");
+			replace = word;
+		} else {
+			pattern = new RegExp(word + "$", "i");
+			replace = irregular[word];
+		}
+		if (pattern.test(this)) return this.replace(pattern, replace);
+	}
+
+	let array;
+	if (revert) array = singular;
+	else array = plural;
+
+	// check for matches using regular expressions
+	let reg;
+	for (reg in array) {
+		pattern = new RegExp(reg, "i");
+
+		if (pattern.test(this)) return this.replace(pattern, array[reg]);
+	}
+
+	return this;
+};

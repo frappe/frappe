@@ -340,7 +340,6 @@ frappe.ui.form.Form = class FrappeForm {
 	switch_doc(docname) {
 		// record switch
 		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
-			frappe.utils.scroll_to(0);
 			if (this.print_preview) {
 				this.print_preview.hide();
 			}
@@ -439,6 +438,7 @@ frappe.ui.form.Form = class FrappeForm {
 						return this.script_manager.trigger("onload_post_render");
 					}
 				},
+				() => this.run_after_load_hook(),
 				() => this.dashboard.after_refresh()
 			]);
 			// focus on first input
@@ -460,6 +460,15 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		this.scroll_to_element();
+	}
+
+	run_after_load_hook() {
+		if (frappe.route_hooks.after_load) {
+			let route_callback = frappe.route_hooks.after_load;
+			delete frappe.route_hooks.after_load;
+
+			route_callback(this);
+		}
 	}
 
 	refresh_fields() {
@@ -569,6 +578,13 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 
 				me.script_manager.trigger("after_save");
+
+				if (frappe.route_hooks.after_save) {
+					let route_callback = frappe.route_hooks.after_save;
+					delete frappe.route_hooks.after_save;
+
+					route_callback(me);
+				}
 				// submit comment if entered
 				if (me.timeline) {
 					me.timeline.comment_area.submit();
@@ -633,7 +649,14 @@ frappe.ui.form.Form = class FrappeForm {
 							frappe.utils.play_sound("submit");
 							callback && callback();
 							me.script_manager.trigger("on_submit")
-								.then(() => resolve(me));
+								.then(() => resolve(me))
+								.then(() => {
+									if (frappe.route_hooks.after_submit) {
+										let route_callback = frappe.route_hooks.after_submit;
+										delete frappe.route_hooks.after_submit;
+										route_callback(me);
+									}
+								});
 						}
 					}, btn, () => me.handle_save_fail(btn, on_error), resolve);
 				});
@@ -763,15 +786,24 @@ frappe.ui.form.Form = class FrappeForm {
 			frappe.msgprint(__('"amended_from" field must be present to do an amendment.'));
 			return;
 		}
-		this.validate_form_action("Amend");
-		var me = this;
-		var fn = function(newdoc) {
-			newdoc.amended_from = me.docname;
-			if(me.fields_dict && me.fields_dict['amendment_date'])
-				newdoc.amendment_date = frappe.datetime.obj_to_str(new Date());
-		};
-		this.copy_doc(fn, 1);
-		frappe.utils.play_sound("click");
+
+		frappe.xcall('frappe.client.is_document_amended', {
+			'doctype': this.doc.doctype,
+			'docname': this.doc.name
+		}).then(is_amended => {
+			if (is_amended) {
+				frappe.throw(__('This document is already amended, you cannot ammend it again'));
+			}
+			this.validate_form_action("Amend");
+			var me = this;
+			var fn = function(newdoc) {
+				newdoc.amended_from = me.docname;
+				if (me.fields_dict && me.fields_dict['amendment_date'])
+					newdoc.amendment_date = frappe.datetime.obj_to_str(new Date());
+			};
+			this.copy_doc(fn, 1);
+			frappe.utils.play_sound("click");
+		});
 	}
 
 	validate_form_action(action, resolve) {
@@ -808,6 +840,15 @@ frappe.ui.form.Form = class FrappeForm {
 		this.save_disabled = true;
 		this.toolbar.current_status = null;
 		this.page.clear_primary_action();
+	}
+
+	disable_form() {
+		this.set_read_only();
+		this.fields
+			.forEach((field) => {
+				this.set_df_property(field.df.fieldname, "read_only", "1");
+			});
+		this.disable_save();
 	}
 
 	handle_save_fail(btn, on_error) {
@@ -1359,7 +1400,13 @@ frappe.ui.form.Form = class FrappeForm {
 		var docperms = frappe.perm.get_perm(this.doc.doctype);
 		for (var i=0, l=docperms.length; i<l; i++) {
 			var p = docperms[i];
-			perm[p.permlevel || 0] = {read:1, print:1, cancel:1, email:1};
+			perm[p.permlevel || 0] = {
+				read: p.read,
+				cancel: p.cancel,
+				share: p.share,
+				print: p.print,
+				email: p.email
+			};
 		}
 		this.perm = perm;
 	}
@@ -1530,7 +1577,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// scroll to input
-		frappe.utils.scroll_to($el);
+		frappe.utils.scroll_to($el, true, 15);
 
 		// highlight input
 		$el.addClass('has-error');
@@ -1538,6 +1585,42 @@ frappe.ui.form.Form = class FrappeForm {
 			$el.removeClass('has-error');
 			$el.find('input, select, textarea').focus();
 		}, 1000);
+	}
+
+	show_tour(on_finish) {
+		if (!Array.isArray(frappe.tour[this.doctype])) {
+			return;
+		}
+
+		const driver = new frappe.Driver({
+			overlayClickNext: true,
+			keyboardControl: true,
+			nextBtnText: 'Next',
+			prevBtnText: 'Previous',
+			opacity: 0.25,
+			onNext: () => {
+				if (!driver.hasNextStep()) {
+					on_finish && on_finish();
+				}
+			}
+		});
+
+		this.layout.sections.forEach(section => section.collapse(false));
+
+		let steps = frappe.tour[this.doctype].map(step => {
+			let field = this.get_docfield(step.fieldname);
+			return {
+				element: `.frappe-control[data-fieldname='${step.fieldname}']`,
+				popover: {
+					title: step.title || field.label,
+					description: step.description
+				}
+			};
+		});
+
+		driver.defineSteps(steps);
+		frappe.route.on('change', () => driver.reset());
+		driver.start();
 	}
 };
 

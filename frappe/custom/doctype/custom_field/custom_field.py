@@ -31,6 +31,13 @@ class CustomField(Document):
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
 
+	def before_insert(self):
+		meta = frappe.get_meta(self.dt, cached=False)
+		fieldnames = [df.fieldname for df in meta.get("fields")]
+
+		if self.fieldname in fieldnames:
+			frappe.throw(_("A field with the name '{}' already exists in doctype {}.").format(self.fieldname, self.dt))
+
 	def validate(self):
 		meta = frappe.get_meta(self.dt, cached=False)
 		fieldnames = [df.fieldname for df in meta.get("fields")]
@@ -65,6 +72,11 @@ class CustomField(Document):
 			frappe.db.updatedb(self.dt)
 
 	def on_trash(self):
+		#check if Admin owned field
+		if self.owner == 'Administrator' and frappe.session.user != 'Administrator':
+			frappe.throw(_("Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account.").format(
+					frappe.bold(self.label)))
+
 		# delete property setter entries
 		frappe.db.sql("""\
 			DELETE FROM `tabProperty Setter`

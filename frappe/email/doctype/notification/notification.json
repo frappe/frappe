@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2014-07-11 17:18:09.923399",
@@ -22,6 +23,7 @@
   "days_in_advance",
   "value_changed",
   "sender",
+  "send_system_notification",
   "sender_email",
   "section_break_9",
   "condition",
@@ -54,18 +56,19 @@
   },
   {
    "default": "Email",
+   "depends_on": "eval: !doc.disable_channel",
    "fieldname": "channel",
    "fieldtype": "Select",
    "label": "Channel",
-   "options": "Email\nSlack",
-   "reqd": 1,
-   "set_only_once": 1
+   "options": "Email\nSlack\nSystem Notification",
+   "reqd": 1
   },
   {
    "depends_on": "eval:doc.channel=='Slack'",
    "fieldname": "slack_webhook_url",
    "fieldtype": "Link",
    "label": "Slack Channel",
+   "mandatory_depends_on": "eval:doc.channel=='Slack'",
    "options": "Slack Webhook URL"
   },
   {
@@ -111,6 +114,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval: doc.document_type",
    "fieldname": "event",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -127,7 +131,7 @@
    "label": "Trigger Method"
   },
   {
-   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"",
+   "depends_on": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send alert if date matches this field's value",
    "fieldname": "date_changed",
    "fieldtype": "Select",
@@ -135,14 +139,14 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"",
+   "depends_on": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send days before or after the reference date",
    "fieldname": "days_in_advance",
    "fieldtype": "Int",
    "label": "Days Before or After"
   },
   {
-   "depends_on": "eval:doc.event==\"Value Change\"",
+   "depends_on": "eval:doc.document_type && doc.event==\"Value Change\"",
    "description": "Send alert if this field's value changes",
    "fieldname": "value_changed",
    "fieldtype": "Select",
@@ -199,7 +203,7 @@
    "label": "Value To Be Set"
   },
   {
-   "depends_on": "eval:doc.channel=='Email'",
+   "depends_on": "eval:doc.channel!=='Slack'",
    "fieldname": "column_break_5",
    "fieldtype": "Section Break",
    "label": "Recipients"
@@ -208,6 +212,7 @@
    "fieldname": "recipients",
    "fieldtype": "Table",
    "label": "Recipients",
+   "mandatory_depends_on": "eval:doc.channel!=='Slack'",
    "options": "Notification Recipient"
   },
   {
@@ -260,10 +265,19 @@
    "fieldtype": "Link",
    "label": "Print Format",
    "options": "Print Format"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.channel !== 'System Notification'",
+   "description": "If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",
+   "fieldname": "send_system_notification",
+   "fieldtype": "Check",
+   "label": "Send System Notification"
   }
  ],
  "icon": "fa fa-envelope",
- "modified": "2019-07-15 13:17:02.585013",
+ "links": [],
+ "modified": "2020-06-23 14:01:25.462544",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

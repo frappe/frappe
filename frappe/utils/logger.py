@@ -1,30 +1,53 @@
+# imports - compatibility imports
 from __future__ import unicode_literals
-import frappe
+
+# imports - standard imports
 import logging
+import os
 from logging.handlers import RotatingFileHandler
+
+# imports - third party imports
 from six import text_type
 
-default_log_level = logging.DEBUG
-LOG_FILENAME = '../logs/{}-frappe.log'.format(frappe.local.site)
+# imports - module imports
+import frappe
 
-def get_logger(module, with_more_info=True):
+
+default_log_level = logging.DEBUG
+site = getattr(frappe.local, 'site', None)
+
+
+def get_logger(module, with_more_info=False):
+	global site
 	if module in frappe.loggers:
 		return frappe.loggers[module]
 
-	formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(pathname)s:\n%(message)s')
-	# handler = logging.StreamHandler()
+	if not module:
+		module = "frappe"
+		with_more_info = True
 
-	handler = RotatingFileHandler(
-		LOG_FILENAME, maxBytes=100000, backupCount=20)
-	handler.setFormatter(formatter)
+	logfile = module + '.log'
+	site = getattr(frappe.local, 'site', None)
+	LOG_FILENAME = os.path.join('..', 'logs', logfile)
+
+	logger = logging.getLogger(module)
+	logger.setLevel(frappe.log_level or default_log_level)
+	logger.propagate = False
+
+	formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s')
+	handler = RotatingFileHandler(LOG_FILENAME, maxBytes=100_000, backupCount=20)
+	logger.addHandler(handler)
+#
+	if site:
+		SITELOG_FILENAME = os.path.join(site, 'logs', logfile)
+		site_handler = RotatingFileHandler(SITELOG_FILENAME, maxBytes=100_000, backupCount=20)
+		site_handler.setFormatter(formatter)
+		logger.addHandler(site_handler)
 
 	if with_more_info:
 		handler.addFilter(SiteContextFilter())
 
-	logger = logging.getLogger(module)
-	logger.setLevel(frappe.log_level or default_log_level)
-	logger.addHandler(handler)
-	logger.propagate = False
+	handler.setFormatter(formatter)
 
 	frappe.loggers[module] = logger
 
@@ -33,25 +56,9 @@ def get_logger(module, with_more_info=True):
 class SiteContextFilter(logging.Filter):
 	"""This is a filter which injects request information (if available) into the log."""
 	def filter(self, record):
-		record.msg = get_more_info_for_log() + text_type(record.msg)
-		return True
-
-def get_more_info_for_log():
-	'''Adds Site, Form Dict into log entry'''
-	more_info = []
-	site = getattr(frappe.local, 'site', None)
-	if site:
-		more_info.append('Site: {0}'.format(site))
-
-	form_dict = getattr(frappe.local, 'form_dict', None)
-	if form_dict:
-		more_info.append('Form Dict: {0}'.format(frappe.as_json(form_dict)))
-
-	if more_info:
-		# to append a \n
-		more_info = more_info + ['']
-
-	return '\n'.join(more_info)
+		if "Form Dict" not in text_type(record.msg):
+			record.msg = text_type(record.msg) + "\nSite: {0}\nForm Dict: {1}".format(site, getattr(frappe.local, 'form_dict', None))
+			return True
 
 def set_log_level(level):
 	'''Use this method to set log level to something other than the default DEBUG'''

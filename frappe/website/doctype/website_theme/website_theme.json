@@ -10,7 +10,7 @@
   "theme",
   "module",
   "custom",
-  "configuration_section",
+  "bootstrap_theme_section",
   "google_font",
   "font_size",
   "font_properties",
@@ -24,9 +24,9 @@
   "dark_color",
   "background_color",
   "stylesheet_section",
-  "theme_scss",
+  "custom_overrides",
   "custom_scss",
-  "theme_json",
+  "theme_scss",
   "theme_url",
   "custom_js_section",
   "js"
@@ -80,16 +80,9 @@
    "options": "JS"
   },
   {
-   "fieldname": "theme_json",
-   "fieldtype": "Code",
-   "hidden": 1,
-   "label": "Theme JSON",
-   "options": "JSON"
-  },
-  {
-   "fieldname": "configuration_section",
+   "fieldname": "bootstrap_theme_section",
    "fieldtype": "Section Break",
-   "label": "Configuration"
+   "label": "Theme Configuration"
   },
   {
    "fieldname": "google_font",
@@ -142,7 +135,7 @@
    "options": "Color"
   },
   {
-   "default": "300,600",
+   "default": "wght@300;400;500;600;700;800",
    "fieldname": "font_properties",
    "fieldtype": "Data",
    "label": "Font Properties"
@@ -168,10 +161,16 @@
   {
    "fieldname": "column_break_11",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_overrides",
+   "fieldtype": "Code",
+   "label": "Custom Overrides",
+   "options": "SCSS"
   }
  ],
  "links": [],
- "modified": "2020-04-19 05:18:49.820803",
+ "modified": "2020-05-16 18:36:22.203519",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

@@ -261,26 +261,22 @@ frappe.utils.xss_sanitise = function (string, options) {
 }
 
 frappe.utils.sanitise_redirect = (url) => {
-	const is_absolute = ((url) => {
-		// https://github.com/sindresorhus/is-absolute-url
-		// Don't match Windows paths `c:\`
-		if (/^[a-zA-Z]:\\/.test(url)) {
-			return false;
-		}
-
-		// Scheme: https://tools.ietf.org/html/rfc3986#section-3.1
-		// Absolute URL: https://tools.ietf.org/html/rfc3986#section-4.3
-		return /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url);
-	});
-
 	const is_external = (() => {
 		return (url) => {
 			function domain(url) {
-				let base_domain = /https?:\/\/((?:[\w\d]+\.)+[\w\d]{2,})/i.exec(url);
+				let base_domain = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:/\n?]+)/img.exec(url);
 				return base_domain == null ? "" : base_domain[1];
 			}
 
-			return domain(location.href) !== domain(url);
+			function is_absolute(url) {
+				// returns true for url that have a defined scheme
+				// anything else, eg. internal urls return false
+				return /^(?:[a-z]+:)?\/\//i.test(url);
+			}
+
+			// check for base domain only if the url is absolute
+			// return true for relative url (except protocol-relative urls)
+			return is_absolute(url) ? domain(location.href) !== domain(url) : false;
 		}
 	})();
 
@@ -291,11 +287,16 @@ frappe.utils.sanitise_redirect = (url) => {
 		return url.replace(REGEX_SCRIPT, "");
 	});
 
-	if (is_absolute(url) && is_external(url)) {
-		return '';
-	}
+	url = frappe.utils.strip_url(url);
 
-	return sanitise_javascript(frappe.utils.xss_sanitise(url, {strategies: ["js"]}));
+	return is_external(url) ? "" : sanitise_javascript(frappe.utils.xss_sanitise(url, {strategies: ["js"]}));
+};
+
+frappe.utils.strip_url = (url) => {
+	// strips invalid characters from the beginning of the URL
+	// in our case, the url can start with either a protocol, //, or even #
+	// so anything except those characters can be considered invalid
+	return url.replace(/^[^A-Za-z0-9(//)#]+/g, '');
 }
 
 frappe.utils.new_auto_repeat_prompt = function(frm) {

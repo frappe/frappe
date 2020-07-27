@@ -1,6 +1,10 @@
 context('Control Link', () => {
-	beforeEach(() => {
+	before(() => {
 		cy.login();
+		cy.visit('/desk#workspace/Website');
+	});
+
+	beforeEach(() => {
 		cy.visit('/desk#workspace/Website');
 		cy.create_records({
 			doctype: 'ToDo',
@@ -30,7 +34,7 @@ context('Control Link', () => {
 
 		cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
 		cy.wait('@search_link');
-		cy.get('@input').type('todo for link');
+		cy.get('@input').type('todo for link', { delay: 200 });
 		cy.wait('@search_link');
 		cy.get('.frappe-control[data-fieldname=link] ul').should('be.visible');
 		cy.get('.frappe-control[data-fieldname=link] input').type('{enter}', { delay: 100 });
