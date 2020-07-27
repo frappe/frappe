@@ -151,7 +151,7 @@ class BackupGenerator:
 		if self.verbose:
 			print("Skipping Tables: {0}\n".format(", ".join(frappe.conf.ignore_tables_in_backup)))
 
-		args["skip_tables"] = " ".join(["--ignore-table={0}.{1}".format(frappe.conf.db_name, table) for table in frappe.conf.ignore_tables_in_backup])
+		args["skip_tables"] = " ".join(["--ignore-table={0}.{1}".format(frappe.conf.db_name, table) for table in frappe.conf.ignore_tables_in_backup or []])
 		cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s -P %(db_port)s %(skip_tables)s | gzip > %(backup_path_db)s """ % args
 
 		if self.db_type == 'postgres':
