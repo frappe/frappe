@@ -4,7 +4,7 @@
 // }
 
 .frappe-list {
-	padding: 0 var(--padding-xs) var(--padding-xs) var(--padding-xs);
+	padding: 0 var(--padding-xs);
 	.result, .no-result, .freeze {
 		min-height: #{"calc(100vh - 284px)"};
 	}
@@ -89,7 +89,7 @@
 	font-size: var(--text-md);
 
 	&:hover {
-		background-color: $gray-50;
+		background-color: var(--control-bg);
 	}
 	&:last-child {
 		border-bottom: 0px;
@@ -179,10 +179,14 @@
 }
 
 .list-paging-area, .footnote-area {
-	padding: var(--padding-md);
-	overflow: auto;
+	border-top: 1px sol var(--border-color);
 }
 
+.frappe-card {
+	.list-paging-area, .footnote-area {
+		padding: var(--padding-md);
+	}
+}
 
 .progress {
 	height: 10px;
@@ -240,7 +244,7 @@ input.list-check-all, input.list-row-checkbox {
 	font-size: var(--text-md);
 
 	&:hover {
-		background-color: $gray-50;
+		background-color: var(--control-bg);
 	}
 
 	// @media (max-width: $screen-xs) {
@@ -252,7 +256,7 @@ input.list-check-all, input.list-row-checkbox {
 	// }
 
 	&--head {
-		background-color: $gray-50;
+		background-color: var(--control-bg);
 		border-bottom: 1px solid $border-color;
 		cursor: auto;
 	}
@@ -353,7 +357,7 @@ input.list-check-all, input.list-row-checkbox {
 
 	.filter-button {
 		margin: 5px;
-		padding: 4px 8px;
+		// padding: 4px 8px;
 	}
 
 	.filter-button.btn-primary-light {
@@ -362,15 +366,7 @@ input.list-check-all, input.list-row-checkbox {
 
 	.sort-selector {
 		.btn-group {
-			margin: 5px 0 5px 5px;
-		}
-
-		.btn-order {
-			padding: 4px 4px 4px 8px;
-		}
-
-		.sort-selector-button {
-			padding: 4px 8px 4px 4px;;
+			margin: var(--margin-xs) 0 var(--margin-xs) var(--margin-xs);
 		}
 	}
 

@@ -1,6 +1,6 @@
 <div class="sort-selector">
 	<div class="btn-group">
-		<button class="btn btn-default btn-xs btn-order"
+		<button class="btn btn-default btn-sm btn-order"
 			data-value="{{ sort_order }}"
 			title="{{ sort_order==="desc" ? "descending" : "ascending" }}">
 			<span class="sort-order">
@@ -9,7 +9,7 @@
 				</svg>
 			</span>
 		</button>
-		<button type="button" class="btn btn-default btn-xs sort-selector-button" data-toggle="dropdown">
+		<button type="button" class="btn btn-default btn-sm sort-selector-button" data-toggle="dropdown">
 			<span class="dropdown-text">{{ __(sort_by_label) }}</span>
 			<ul class="dropdown-menu">
 				{% for value in options %}

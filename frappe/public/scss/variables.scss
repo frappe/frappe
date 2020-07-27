@@ -104,7 +104,7 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--orange-300: #FDAE8C;
 	--orange-200: #FECDB8;
 	--orange-100: #FFEAE1;
-	--orange-050: #FFF5F0;
+	--orange-50: #FFF5F0;
 
 	--purple-900: #343360;
 	--purple-800: #45438F;
@@ -147,7 +147,7 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--shadow-lg: 0px 18px 22px rgba(25, 39, 52, 0.1), 0px 1px 10px rgba(0, 0, 0, 0.06), 0px 0.5px 5px rgba(25, 39, 52, 0.04);
 
 	--modal-shadow: var(--shadow-md);
-	--card-shadow: var(--shadow-base);
+	--card-shadow: var(--shadow-sm);
 	--btn-shadow: var(--shadow-xs);
 
 	// Type Colors
@@ -167,6 +167,7 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--control-bg: var(--gray-100);
 	--modal-bg: white;
 	--toast-bg: var(--modal-bg);
+	--popover-bg: white;
 
 	--sidebar-select-color: var(--gray-200);
 
@@ -210,6 +211,7 @@ $navbar-height: 60px;
 $page-head-height: 68px;
 
 $body-color: $gray-700 !default;
+$input-placeholder-color: var(--text-light);
 
 $btn-padding-y-lg: 1rem !default;
 $btn-padding-x-lg: 2.5rem !default;
@@ -259,6 +261,7 @@ $dropdown-item-padding-x: 0.5rem !default;
 	--control-bg: var(--gray-700);
 	--modal-bg: var(--gray-700);
 	--toast-bg: var(--modal-bg);
+	--popover-bg: var(--bg-color);
 
 	--sidebar-select-color: var(--gray-800);
 

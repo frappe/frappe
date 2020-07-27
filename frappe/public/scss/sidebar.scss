@@ -53,7 +53,7 @@ body[data-route^="Module"] .main-menu {
 		.sidebar-label {
 			margin-bottom: var(--margin-sm);
 			font-weight: 500;
-			color: var(--gray-900);
+			color: var(--text-color);
 		}
 	}
 }
@@ -323,7 +323,7 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.list-link {
-		margin-top: 20px;
+		margin-top: var(--margin-md);
 	}
 
 	.list-sidebar-label {
@@ -411,7 +411,7 @@ body[data-route^="Module"] .main-menu {
 	background-color: var(--fg-color);
 	border-radius: var(--border-radius);
 	padding: var(--padding-xs) var(--padding-sm);
-	color: $gray-800;
+	color: var(--text-color);
 	display: flex;
 }
 
@@ -424,20 +424,18 @@ body[data-route^="Module"] .main-menu {
 }
 
 .form-reviews {
-	// REDESIGN-TODO: Refactor
 	.review {
-		display: inline-block;
+		display: inline-flex;
 		font-weight: 500;
+		width: 28px;
+		height: 28px;
 		border-radius: 50%;
-		margin-bottom: var(--margin-sm);
-		margin-right: var(--margin-sm);
+		vertical-align: middle;
+		justify-content: center;
 		font-size: var(--text-xs);
-		height: 34px;
-		width: 34px;
-		text-align: center;
-		cursor: pointer;
-		padding: var(--padding-xs);
-		padding-top: 8px;
+		align-items: center;
+		margin-bottom: var(--margin-xs);
+		margin-right: var(--margin-xs);
 		&.appreciation {
 			background-color: var(--dark-green-100);
 			color: var(--dark-green-600);
@@ -450,15 +448,17 @@ body[data-route^="Module"] .main-menu {
 	li:last-child {
 		display: inline-block;
 	}
-	.add-review-btn {
-		height: 28px;
-		width: 28px;
-		border-radius: var(--border-radius);
-		border: 1px dashed var(--gray-300);
-		background: var(--gray-50);
-		text-align: center;
-		padding: 3px;
-	}
+}
+
+.add-review-btn, .share-doc-btn {
+	height: 28px;
+	width: 28px;
+	border-radius: var(--border-radius);
+	border: 1px dashed var(--gray-300);
+	background: var(--gray-50);
+	text-align: center;
+	padding: 3px;
+	margin-bottom: var(--margin-sm);
 }
 
 .review-popover  {

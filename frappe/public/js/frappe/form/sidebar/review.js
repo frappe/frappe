@@ -143,7 +143,9 @@ frappe.ui.form.Review = class Review {
 		review_logs.forEach(log => {
 			let review_pill = $(`
 				<li class="review ${log.points < 0 ? 'criticism': 'appreciation'}">
-					${log.points > 0 ? '+': ''}${log.points}
+					<div>
+						${Math.abs(log.points)}
+					</div>
 				</li>
 			`);
 			review_pill.insertBefore(this.add_review_button_wrapper);
@@ -157,15 +159,15 @@ frappe.ui.form.Review = class Review {
 		let message_parts = [Math.abs(data.points), fullname, timestamp];
 		if (data.type === 'Appreciation') {
 			if (data.points == 1) {
-				subject = __('{0} appreciation point for {1} {2}', message_parts);
+				subject = __('{0} appreciation point for {1}', message_parts);
 			} else {
-				subject = __('{0} appreciation points for {1} {2}', message_parts);
+				subject = __('{0} appreciation points for {1}', message_parts);
 			}
 		} else {
 			if (data.points == -1) {
-				subject = __('{0} criticism point for {1} {2}', message_parts);
+				subject = __('{0} criticism point for {1}', message_parts);
 			} else {
-				subject = __('{0} criticism points for {1} {2}', message_parts);
+				subject = __('{0} criticism points for {1}', message_parts);
 			}
 		}
 		el.popover({
@@ -173,18 +175,23 @@ frappe.ui.form.Review = class Review {
 			trigger: 'hover',
 			delay: 500,
 			placement: 'top',
-			template:`
-				<div class="review-popover popover">
+			template: `
+				<div class="popover" role="tooltip">
 					<div class="arrow"></div>
-					<div class="popover-content"></div>
-				</div>
+					<h3 class="popover-header"></h3>
+					<div class="popover-body">
+					</div>
+				</div>'
 			`,
 			content: () => {
 				return `
 					<div class="text-medium">
 						<div class="subject">
+							${frappe.utils.icon('review')}
 							${subject}
 						</div>
+						<p>${__('By {0}', [frappe.user.full_name(data.owner)])} - ${timestamp}</p>
+						<hr>
 						<div class="body">
 							<div>${data.reason}</div>
 						</div>

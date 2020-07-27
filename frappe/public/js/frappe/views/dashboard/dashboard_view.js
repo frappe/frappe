@@ -17,6 +17,11 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 
 	}
 
+	setup_page() {
+		this.hide_page_form = true;
+		super.setup_page();
+	}
+
 	setup_view() {
 		if (this.chart_group || this.number_card_group) {
 			return;
@@ -37,14 +42,9 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	setup_dashboard_page() {
 		const chart_wrapper_html = `<div class="dashboard-view"></div>`;
 
-		// <button class="restricted-button">
-		// 			<span class="octicon octicon-lock"></span>
-		// 			<span>${__('Restricted')}</span>
-		// 		</button>
 		this.$frappe_list.html(chart_wrapper_html);
 		this.page.clear_secondary_action();
 		this.$dashboard_page = this.$page.find('.layout-main-section-wrapper').addClass('dashboard-page');
-		this.$page.find('.page-form').hide();
 		this.page.main.removeClass('frappe-card');
 
 		this.$dashboard_wrapper = this.$page.find('.dashboard-view');

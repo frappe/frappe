@@ -1,9 +1,10 @@
 .datatable {
 	--dt-border-color: var(--gray-100);
+	--dt-border-radius: var(--border-radius);
 	background-color: $white;
 
-	margin-left: -1px;
-	margin-top: -1px;
+	margin-left: -5px;
+	margin-top: 0px;
 	font-size: var(--text-md);
 
 	.frappe-control, .form-control {
@@ -64,6 +65,7 @@
 
 	.dt-cell__edit {
 		padding: 0;
+		border: var(--dt-focus-border-width) solid #9bccf8;
 
 		input {
 			font-size: inherit;
@@ -108,6 +110,11 @@
 		.dt-cell__content {
 			background: var(--gray-50)!important;
 		}
+	}
+
+	// REDESIGN-TODO: variable for color
+	.dt-cell--focus .dt-cell__content {
+		border-color: #9bccf8;
 	}
 }
 

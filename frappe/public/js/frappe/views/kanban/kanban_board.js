@@ -557,13 +557,11 @@ frappe.provide("frappe.views");
 			if (card.comment_count > 0)
 				html +=
 				`<span class="list-comment-count small text-muted ">
-					<svg class="icon icon-sm">
-						<use xlink:href="#icon-small-message"></use>
-					</svg>
+					${frappe.utils.icon('small-message')}
 					${card.comment_count}
 				</span>`;
 
-			assignees_html = get_assignees_html();
+			const assignees_html = get_assignees_html();
 
 			html += `<span class="kanban-assignments">${assignees_html}</span>`;
 
@@ -608,9 +606,7 @@ frappe.provide("frappe.views");
 				`<span class="kanban-assignments">
 					${get_assignees_html()}
 					<a class="add-assignment avatar avatar-small avatar-empty">
-						<svg class="icon icon-sm">
-							<use xlink:href="#icon-small-message"></use>
-						</svg>
+						${frappe.utils.icon('small-message')}
 					</a>
 				</span>`;
 

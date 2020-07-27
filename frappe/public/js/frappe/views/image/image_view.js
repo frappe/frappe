@@ -59,7 +59,6 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 		this.$result.html(`
 			${this.get_header_html()}
-			<hr class="image-view-divider">
 			<div class="image-view-container">
 				${html}
 			</div>
@@ -110,9 +109,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 		const expand_button_html = item._image_url
 			? `<div class="zoom-view" data-name="${encoded_name}">
-				<svg class="icon icon-xs">
-					<use xlink:href="#icon-expand"></use>
-				</svg>
+				${frappe.utils.icon('expand', 'xs')}
 			</div>`
 			: '';
 
