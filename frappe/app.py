@@ -100,7 +100,7 @@ def application(request):
 		frappe.recorder.dump()
 
 		_site = get_site_name(request.host)
-		frappe.logger("frappe.web", _site=_site).info({
+		frappe.logger("frappe.web", allow_site=_site).info({
 			"site": _site,
 			"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
 			"base_url": getattr(request, "base_url", "NOTFOUND"),
