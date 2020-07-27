@@ -133,7 +133,7 @@
 		<path d="M16.491 12.542v-1.925a4.492 4.492 0 1 0-8.983 0v1.925c0 2.117-1.925 2.63-1.925 3.85 0 1.09 2.503 1.925 6.417 1.925 3.914 0 6.416-.834 6.416-1.925 0-1.22-1.925-1.733-1.925-3.85z" stroke-miterlimit="10" stroke-linecap="square"></path>
 		<path d="M12.866 20.087a1.544 1.544 0 0 1-.025.019l.295.403-.295-.403a1.42 1.42 0 0 1-1.707-.02 27.386 27.386 0 0 0 1.732 0z" fill="#3E414B"></path>
 		</g>
-		<path d="M15.834 8.667a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5z" fill="#FF5858" stroke="var(--icon-stroke)" stroke-width="1.5"></path>
+		<path d="M15.834 8.667a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5z" fill="#FF5858" stroke="#FF5858" stroke-width="1.5"></path>
 	</symbol>
 	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-notification-1">
 		<g stroke="var(--icon-stroke)" stroke-miterlimit="10">
@@ -153,7 +153,7 @@
 		<path d="M8 13.001a19.4 19.4 0 0 1-1.427-.05 1.496 1.496 0 0 0 2.855 0c-.447.033-.922.05-1.428.05z" fill="#3E414B"></path>
 		<path d="M6.573 12.951l.073-.997-1.468-.108.44 1.405.955-.3zm2.855 0l.954.3.44-1.405-1.467.108.073.997zM8 12.001c-.483 0-.933-.016-1.354-.047L6.5 13.95c.474.035.974.052 1.501.052v-2zm-2.381 1.25c.159.507.475.95.904 1.265l1.184-1.612a.496.496 0 0 1-.18-.252l-1.908.599zm.904 1.265C6.95 14.83 7.469 15 8 15v-2a.496.496 0 0 1-.293-.096l-1.184 1.612zM8 15a2.5 2.5 0 0 0 1.478-.484l-1.184-1.612A.496.496 0 0 1 8 13v2zm1.478-.484c.429-.315.745-.758.904-1.265l-1.908-.599a.496.496 0 0 1-.18.252l1.184 1.612zm-.123-2.562c-.42.031-.871.047-1.355.047v2c.528 0 1.028-.017 1.502-.052l-.148-1.995z"
 		fill="#12283A" mask="url(#a)"></path>
-		<path d="M10.556 4.778a1.833 1.833 0 1 0 0-3.667 1.833 1.833 0 0 0 0 3.667z" fill="#FF5858" stroke="var(--icon-stroke)"></path>
+		<path d="M10.556 4.778a1.833 1.833 0 1 0 0-3.667 1.833 1.833 0 0 0 0 3.667z" fill="#FF5858" stroke="#FF5858"></path>
 	</symbol>
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-message-1">
 		<g stroke="var(--icon-stroke)" stroke-miterlimit="10">
@@ -175,7 +175,7 @@
 	</symbol>
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-list">
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M2.667 3.25a.75.75 0 0 0 0 1.5h.007a.75.75 0 0 0 0-1.5h-.007zm2.666.25a.5.5 0 0 0 0 1H14a.5.5 0 0 0 0-1H5.333zm0 4a.5.5 0 0 0 0 1H14a.5.5 0 0 0 0-1H5.333zm-.5 4.5a.5.5 0 0 1 .5-.5H14a.5.5 0 0 1 0 1H5.333a.5.5 0 0 1-.5-.5zM1.917 8a.75.75 0 0 1 .75-.75h.007a.75.75 0 0 1 0 1.5h-.007a.75.75 0 0 1-.75-.75zm.75 3.25a.75.75 0 0 0 0 1.5h.007a.75.75 0 0 0 0-1.5h-.007z"
-		fill="#12283A" stroke-width="0"></path>
+		fill="var(--icon-stroke)" stroke-width="0"></path>
 	</symbol>
 	<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-left">
 		<path d="M7.5 9.5L4 6l3.5-3.5" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"></path>
