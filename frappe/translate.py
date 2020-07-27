@@ -152,7 +152,10 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 	"""
 	out = {}
 	if full_dict==None:
-		full_dict = get_full_dict(frappe.local.lang, load_user_translation, False)
+		if load_user_translation:
+			full_dict = get_full_dict(frappe.local.lang)
+		else:
+			full_dict = load_lang(frappe.local.lang)
 
 	for m in messages:
 		if m[1] in full_dict:
@@ -173,7 +176,7 @@ def get_lang_js(fortype, name):
 	"""
 	return "\n\n$.extend(frappe._messages, %s)" % json.dumps(get_dict(fortype, name))
 
-def get_full_dict(lang, load_user_translation=True, cache=True):
+def get_full_dict(lang):
 	"""Load and return the entire translations dictionary for a language from :meth:`frape.cache`
 
 	:param lang: Language Code, e.g. `hi`
@@ -182,18 +185,17 @@ def get_full_dict(lang, load_user_translation=True, cache=True):
 		return {}
 
 	# found in local, return!
-	if cache and getattr(frappe.local, 'lang_full_dict', None) and frappe.local.lang_full_dict.get(lang, None):
+	if getattr(frappe.local, 'lang_full_dict', None) and frappe.local.lang_full_dict.get(lang, None):
 		return frappe.local.lang_full_dict
 
 	frappe.local.lang_full_dict = load_lang(lang)
 
-	if load_user_translation:
-		try:
-			# get user specific transaltion data
-			user_translations = get_user_translations(lang)
-			frappe.local.lang_full_dict.update(user_translations)
-		except Exception:
-			user_translations = None
+	try:
+		# get user specific transaltion data
+		user_translations = get_user_translations(lang)
+		frappe.local.lang_full_dict.update(user_translations)
+	except Exception:
+		pass
 
 	return frappe.local.lang_full_dict
 
