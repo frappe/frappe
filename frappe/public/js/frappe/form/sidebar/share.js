@@ -17,7 +17,7 @@ frappe.ui.form.Share = Class.extend({
 
 		// REDESIGN-TODO: handle "shared with everyone"
 		this.parent.append(frappe.avatar_group(shared_users, 5, null, 'left'));
-		if (!this.frm.doc.is_new()) {
+		if (!this.frm.is_new()) {
 			this.parent.append(`
 				<div class="share-doc-btn cursor-pointer" title="${__('Share')}">
 					${frappe.utils.icon('add')}
