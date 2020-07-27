@@ -84,7 +84,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-color: var(--blue-50) !important;
+	background-color: var(--blue-50);
 	color: var(--blue-500);
 	font-weight: normal;
 }
@@ -93,17 +93,29 @@
 	display: flex;
 	align-items: center;
 	flex-direction: row-reverse;
+	&.right {
+		justify-content: flex-start;
+	}
+	&.left {
+		justify-content: flex-end;
+	}
 
 	.avatar {
 		position: relative;
 
 		.avatar-frame {
-			border: 2px solid $white;
+			border: 1px solid $white;
 		}
 
 		&:hover {
 			z-index: 1;
 		}
+	}
+	.avatar-extra-count {
+		font-size: var(--text-md);
+		font-weight: 500;
+		color: $white;
+		background-color: var(--blue-500);
 	}
 
 	.avatar+.avatar {
