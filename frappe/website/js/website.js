@@ -496,14 +496,14 @@ frappe.setup_search = function (target, search_scope) {
 			offsetIndex = dropdownItems.length - 1;
 		$input.off('blur');
 		dropdownItems.eq(offsetIndex).focus();
-	}
+	};
 
 	function clear_dropdown() {
 		offsetIndex = 0;
 		$dropdown_menu.html('');
 		$dropdown_menu.removeClass('show');
 		dropdownItems = undefined;
-	};
+	}
 
 	// Remove focus state on hover
 	$dropdown_menu.mouseover(function() {
