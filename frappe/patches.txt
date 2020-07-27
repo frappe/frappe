@@ -295,3 +295,4 @@ frappe.patches.v13_0.update_date_filters_in_user_settings
 frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
 frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
+frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
