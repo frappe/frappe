@@ -115,7 +115,6 @@ def clear_expired_sessions():
 		delete_session(sid, reason="Session Expired")
 
 def get():
-
 	"""get session boot info"""
 	from frappe.boot import get_bootinfo, get_unseen_notes
 

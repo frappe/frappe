@@ -56,6 +56,20 @@ frappe.Application = Class.extend({
 		this.setup_energy_point_listeners();
 
 		frappe.ui.keys.setup();
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'shift+ctrl+g',
+			action: () => {
+				let new_theme = document.body.dataset.theme == "dark" ? "Light" : "Dark";
+				frappe.call('frappe.core.doctype.user.user.switch_theme', {
+					theme: new_theme
+				}).then(() => {
+					document.body.dataset.theme = new_theme.toLowerCase();
+					frappe.show_alert("Theme Changed");
+				})
+			}
+		})
+
 		this.set_rtl();
 
 		if(frappe.boot) {
