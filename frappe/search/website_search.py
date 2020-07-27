@@ -104,11 +104,11 @@ def get_static_pages_from_all_apps():
 			routes_to_index.append(route)
 	return routes_to_index
 
-def update_index_for_path(INDEX_NAME, path):
+def update_index_for_path(path):
 	ws = WebsiteSearch(INDEX_NAME)
 	return ws.update_index_by_name(path)
 
-def remove_document_from_index(INDEX_NAME, path):
+def remove_document_from_index(path):
 	ws = WebsiteSearch(INDEX_NAME)
 	return ws.remove_document_from_index(path)
 
