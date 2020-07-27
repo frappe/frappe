@@ -88,7 +88,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 			for fn in frappe.get_hooks('after_migrate', app_name=app):
 				frappe.get_attr(fn)()
 
-		# add static pages to global search
+		# build web_routes index
 		if not skip_search_index:
 			# Run this last as it updates the current session
 			print('Building search index for {}'.format(frappe.local.site))
