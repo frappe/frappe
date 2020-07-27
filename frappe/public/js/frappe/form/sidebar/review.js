@@ -143,7 +143,9 @@ frappe.ui.form.Review = class Review {
 		review_logs.forEach(log => {
 			let review_pill = $(`
 				<li class="review ${log.points < 0 ? 'criticism': 'appreciation'}">
-					${log.points > 0 ? '+': ''}${log.points}
+					<div>
+						${Math.abs(log.points)}
+					</div>
 				</li>
 			`);
 			review_pill.insertBefore(this.add_review_button_wrapper);
