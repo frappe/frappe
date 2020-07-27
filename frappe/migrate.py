@@ -91,7 +91,8 @@ Otherwise, check the server logs and ensure that all the required services are r
 		# add static pages to global search
 		if not skip_search_index:
 			# Run this last as it updates the current session
-			full_text_search.build_index_for_all_routes()
+			print('Building search index for {}'.format(frappe.local.site))
+			build_index_for_all_routes()
 
 		frappe.db.commit()
 
