@@ -132,7 +132,8 @@ doc_events = {
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
-			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
+			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
+			"frappe.core.doctype.file.file.attach_files_to_document"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
