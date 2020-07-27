@@ -59,7 +59,6 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 		this.$result.html(`
 			${this.get_header_html()}
-			<hr class="image-view-divider">
 			<div class="image-view-container">
 				${html}
 			</div>
