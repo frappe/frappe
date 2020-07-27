@@ -656,14 +656,15 @@ export default class ChartWidget extends Widget {
 	}
 
 	update_default_date_filters(report_filters, chart_filters) {
-		report_filters.map(f => {
-			if (['Date', 'DateRange'].includes(f.fieldtype) && f.default) {
-				if (f.reqd || chart_filters[f.fieldname]) {
-					chart_filters[f.fieldname] = f.default;
+		if (report_filters) {
+			report_filters.map(f => {
+				if (['Date', 'DateRange'].includes(f.fieldtype) && f.default) {
+					if (f.reqd || chart_filters[f.fieldname]) {
+						chart_filters[f.fieldname] = f.default;
+					}
 				}
-			}
-		});
-
+			});
+		}
 		return chart_filters;
 	}
 
