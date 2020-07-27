@@ -3,6 +3,7 @@ import os, json, inspect
 import mimetypes
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
+import RestrictedPython.Guards
 import frappe
 import frappe.utils
 import frappe.utils.data
@@ -28,7 +29,7 @@ def safe_exec(script, _globals=None, _locals=None):
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
 
 def get_safe_globals():
-	datautils = {}
+	datautils = frappe._dict()
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
 	else:
@@ -101,6 +102,7 @@ def get_safe_globals():
 			get_list = frappe.get_list,
 			get_all = frappe.get_all,
 			get_value = frappe.db.get_value,
+			set_value = frappe.db.set_value,
 			get_single_value = frappe.db.get_single_value,
 			get_default = frappe.db.get_default,
 			escape = frappe.db.escape,
@@ -114,6 +116,11 @@ def get_safe_globals():
 	# default writer allows write access
 	out._write_ = _write
 	out._getitem_ = _getitem
+
+	# allow iterators and list comprehension
+	out._getiter_ = iter
+	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
+	out.sorted = sorted
 
 	return out
 
