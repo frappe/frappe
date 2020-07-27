@@ -14,22 +14,20 @@ import frappe
 
 
 default_log_level = logging.DEBUG
-site = getattr(frappe.local, 'site', None)
 
 
-def get_logger(module, with_more_info=False, _site=None, filter=None):
+def get_logger(module, with_more_info=False, allow_site=True, filter=None):
 	"""Application Logger for your given module
 
 	Args:
 		module (str): Name of your logger and consequently your log file.
 		with_more_info (bool, optional): Will log the form dict using the SiteContextFilter. Defaults to False.
-		_site (str, optional): Overrides the global site variable set in this scope. Defaults to None.
+		allow_site ((str, bool), optional): Pass site name to explicitly log under it's logs. If True and unspecified, guesses which site the logs would be saved under. Defaults to True.
 		filter (function, optional): Add a filter function for your logger
 
 	Returns:
 		<class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
 	"""
-	global site
 
 	if module in frappe.loggers:
 		return frappe.loggers[module]
@@ -39,8 +37,14 @@ def get_logger(module, with_more_info=False, _site=None, filter=None):
 		with_more_info = True
 
 	logfile = module + '.log'
-	site = getattr(frappe.local, 'site', None)
-	equivalent_site = _site or site
+
+	if allow_site == True:
+		site = getattr(frappe.local, 'site', None)
+	elif allow_site:
+		site = allow_site
+	else:
+		site = False
+
 	LOG_FILENAME = os.path.join('..', 'logs', logfile)
 
 	logger = logging.getLogger(module)
@@ -51,8 +55,8 @@ def get_logger(module, with_more_info=False, _site=None, filter=None):
 	handler = RotatingFileHandler(LOG_FILENAME, maxBytes=100_000, backupCount=20)
 	logger.addHandler(handler)
 
-	if equivalent_site:
-		SITELOG_FILENAME = os.path.join(equivalent_site, 'logs', logfile)
+	if site:
+		SITELOG_FILENAME = os.path.join(site, 'logs', logfile)
 		site_handler = RotatingFileHandler(SITELOG_FILENAME, maxBytes=100_000, backupCount=20)
 		site_handler.setFormatter(formatter)
 		logger.addHandler(site_handler)
@@ -73,7 +77,7 @@ class SiteContextFilter(logging.Filter):
 	"""This is a filter which injects request information (if available) into the log."""
 	def filter(self, record):
 		if "Form Dict" not in text_type(record.msg):
-			record.msg = text_type(record.msg) + "\nSite: {0}\nForm Dict: {1}".format(site, getattr(frappe.local, 'form_dict', None))
+			record.msg = text_type(record.msg) + "\nSite: {0}\nForm Dict: {1}".format(getattr(frappe.local, 'site', None), getattr(frappe.local, 'form_dict', None))
 			return True
 
 def set_log_level(level):
