@@ -44,10 +44,6 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				<div class="text-muted">
 					<span class="uppercase header-title"> ${dashboard_name} </span>
 				</div>
-				<button class="restricted-button">
-					<span class="octicon octicon-lock"></span>
-					<span>${__('Restricted')}</span>
-				</button>
 				<div class="text-muted customize-dashboard" data-action="customize">${__('Customize')}</div>
 				<div class="small text-muted customize-options small-bounce">
 					<span class="reset-customization customize-option" data-action="reset_dashboard_customization">${__('Reset')}</span>

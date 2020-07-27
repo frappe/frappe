@@ -128,7 +128,13 @@ def add_chart_to_dashboard(args):
 
 	dashboard = frappe.get_doc('Dashboard', args.dashboard)
 	dashboard_link = frappe.new_doc('Dashboard Chart Link')
-	dashboard_link.chart = args.chart_name
+	dashboard_link.chart = args.chart_name or args.name
+
+	if args.set_standard:
+		chart = frappe.get_doc('Dashboard Chart', dashboard_link.chart)
+		chart.is_standard = 1
+		chart.module = dashboard.module
+		chart.save()
 
 	dashboard.append('charts', dashboard_link)
 	dashboard.save()
