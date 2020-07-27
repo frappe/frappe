@@ -89,7 +89,7 @@
 	font-size: var(--text-md);
 
 	&:hover {
-		background-color: $gray-50;
+		background-color: var(--control-bg);
 	}
 	&:last-child {
 		border-bottom: 0px;
@@ -179,7 +179,7 @@
 }
 
 .list-paging-area, .footnote-area {
-	border-top: 1px sol var(--gray-100);
+	border-top: 1px sol var(--border-color);
 }
 
 .frappe-card {
@@ -244,7 +244,7 @@ input.list-check-all, input.list-row-checkbox {
 	font-size: var(--text-md);
 
 	&:hover {
-		background-color: $gray-50;
+		background-color: var(--control-bg);
 	}
 
 	// @media (max-width: $screen-xs) {
@@ -256,7 +256,7 @@ input.list-check-all, input.list-row-checkbox {
 	// }
 
 	&--head {
-		background-color: $gray-50;
+		background-color: var(--control-bg);
 		border-bottom: 1px solid $border-color;
 		cursor: auto;
 	}

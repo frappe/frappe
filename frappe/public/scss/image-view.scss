@@ -2,11 +2,8 @@
 .image-view {
 
 	.list-header-subject {
-		// border-bottom: 1px solid $border-color;
-
 		.list-image-header {
 			display: flex;
-			margin-left: 15px;
 		}
 
 		.list-count {
@@ -17,31 +14,19 @@
 		.list-image-header-item {
 			display: flex;
 			align-items: center;
-			margin-right: 20px;
+			margin-right: var(--margin-lg);
 
 			div {
-				margin-left: 5px;
+				margin-left: var(--margin-xs);
 			}
 		}
 
 	}
 
-	.image-view-divider {
-		border-color: $border-color;
-		margin: -5px 0 0 30px
-		// margin-left: 30px;
-		// margin-top: 0;
-	}
-
 	.image-view-container {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		column-gap: 20px;
+		grid-template-columns: repeat(5, 1fr);
 		max-width: 100%;
-		row-gap: 20px;
-		padding-left: 30px;
-		padding-top: 20px;
-		padding-bottom: 20px;
 
 		.image-view-row {
 			display: flex;
@@ -49,13 +34,11 @@
 		}
 
 		.image-view-item {
-			padding: 10px 15px;
+			padding: var(--padding-sm) var(--padding-md);
 			display: flex;
 			flex-direction: column;
-			height: 260px;
-			box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 66, 0.1);
-			border-radius: 8px;
-			border: 1px solid $border-color;
+			height: 250px;
+			border-radius: var(--border-radius);
 
 			.list-row-checkbox {
 				&:before {
@@ -63,42 +46,40 @@
 				}
 
 				&:checked:before {
-					// content: url("data:image/svg+xml; utf8, <svg class='icon icon-sm' viewBox='0 0 8 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4l1.667 1.8L7 1.2' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'></path></svg>");
-					// content: url('/assets/frappe/icons/frapicon-checkbox-selected.svg');
-					// background: linear-gradient(180deg, #4AC3F8 -124.51%, #2490EF 100%);
 					display: block;
 				}
+			}
+
+			.not-liked {
+				display: none;
 			}
 		}
 
 		.image-view-item:hover {
-			// box-shadow: none;
 			border: none;
-			box-shadow: 0px 0px 2px rgba(17, 43, 66, 0.16), 0px 1px 5px rgba(17, 43, 66, 0.1);
+			background-color: var(--control-bg);
 
 			.list-row-checkbox {
 				&:before {
 					display: block;
 				}
 			}
-			// padding: 10px 15px;
-			// display: flex;
-			// flex-direction: column;
-			// height: 260px;
-			// box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 66, 0.1);
-			// border-radius: 8px;
-			// border: 1px solid $border-color;
+
+			.not-liked {
+				display: block;
+			}
 		}
 
 		.image-view-header {
-			margin-bottom: 10px;
+			height: 20px;
+			margin-bottom: var(--margin-sm);
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
 		}
 
 		.image-view-info {
-			margin-top: 5px;
+			margin-top: var(--margin-xs);
 			font-size: $font-size-sm;
 			color: var(--gray-600);
 			margin-bottom: 0;
@@ -113,9 +94,6 @@
 				text-decoration: none;
 			}
 
-			// display: flex;
-			// justify-content: center;
-			// margin-bottom: 25px;
 			height: 130px;
 			width: 130px;
 			margin: 0 auto;
@@ -138,7 +116,6 @@
 
 			img {
 				max-width: 100%;
-				// height: 100%;
 				max-height: 100%;
 				border-radius: $border-radius;
 				color: transparent;
@@ -151,19 +128,14 @@
 				justify-content: center;
 				align-items: center;
 				z-index: 1;
-				// top: -60px;
 				left: 0;
 				position: absolute;
 				min-width: 130px;
 				min-height: 130px;
 				padding: 0;
-				// border-radius: $border-radius;
-				// background-color: var(--blue-50);
 				background: var(--gray-50);
-				/* max-height: 100%; */
 			}
 			&.no-image {
-				// background-color: var(--blue-50);
 				line-height: 130px;
 				height: 130px;
 				background-color: var(--gray-50);
@@ -184,13 +156,12 @@
 			font-weight: 500;
 			justify-content: start;
 			align-items: center;
-			margin-top: 30px;
+			margin-top: var(--margin-lg);
 		}
 
 		.placeholder-text {
 			font-size: $font-size-5xl;
 			color: var(--gray-500);
-			// color: var(--blue-400);
 		}
 
 		.zoom-view {
@@ -202,7 +173,7 @@
 			bottom: 3px;
 			right: 3px;
 			opacity: 0;
-			font-size: 16px;
+			font-size: $font-size-lg;
 			position: absolute;
 			background: var(--gray-300);
 			border-radius: $border-radius;
