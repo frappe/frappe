@@ -86,17 +86,28 @@ class TestReport(unittest.TestCase):
 			report = frappe.get_doc('Report', report_name)
 
 		report.report_script = '''
+totals = {}
+for user in frappe.get_all('User', fields = ['name', 'user_type', 'creation']):
+	if not user.user_type in totals:
+		totals[user.user_type] = 0
+	totals[user.user_type] = totals[user.user_type] + 1
+
 data = [
-	[{'fieldname': 'name', 'label': 'ID'}],
-	[frappe.db.get_all('User', dict(user_type="System User"))]
+	[
+		{'fieldname': 'type', 'label': 'Type'},
+		{'fieldname': 'value', 'label': 'Value'}
+	],
+	[
+		{"type":key, "value": value} for key, value in totals.items()
+	]
 ]
 '''
 		report.save()
 		data = report.get_data()
 
 		# check columns
-		self.assertEqual(data[0][0]['label'], 'ID')
+		self.assertEqual(data[0][0]['label'], 'Type')
 
 		# check values
-		self.assertTrue('Administrator' in [d.get('name') for d in data[1][0]])
+		self.assertTrue('System User' in [d.get('type') for d in data[1]])
 
