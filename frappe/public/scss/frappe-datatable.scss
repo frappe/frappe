@@ -1,8 +1,22 @@
 .datatable {
-	--dt-border-color: var(--gray-100);
+	--dt-primary-color: $primary;
+	--dt-light-bg: var(--highlight-color);
+	--dt-light-red: var(--red-50);
+	--dt-light-yellow: var(--yellow-50);
+	--dt-orange: var(--orange-500);
+	--dt-text-color: var(--text-light);
+	--dt-text-light: var(--bg-color);
+	--dt-spacer-1: 0.25rem;
+	--dt-spacer-2: 0.5rem;
+	--dt-spacer-3: 1rem;
 	--dt-border-radius: var(--border-radius);
-	background-color: $white;
+	--dt-cell-bg: var(--fg-color);
+	--dt-border-color: var(--border-color);
+	--dt-border-radius: var(--border-radius);
+	--dt-header-cell-bg: var(--fg-color);
+	--dt-selection-highlight-color: var(--highlight-color);
 
+	background-color: var(--fg-color);
 	margin-left: -5px;
 	margin-top: 0px;
 	font-size: var(--text-md);
@@ -15,9 +29,6 @@
 	}
 
 	.dt-header {
-		// --dt-header-cell-bg: white;
-		// --dt-cell-bg: white;
-		--dt-text-color: $text-muted;
 
 		.dt-row[data-is-filter] {
 			display: flex !important;
@@ -58,9 +69,6 @@
 		min-height: 100px;
 		scrollbar-width: thin;
 
-		.dt-cell {
-			--dt-text-color: $text-muted;
-		}
 	}
 
 	.dt-cell__edit {
@@ -82,9 +90,9 @@
 	}
 
 	.dt-filter.dt-input {
-		border-radius: $border-radius;
+		border-radius: var(--border-radius);
 		height: 100%;
-		background-color: $gray-100;
+		background-color: var(--control);
 	}
 
 	.dt-scrollable {
@@ -102,13 +110,7 @@
 
 	.dt-scrollable--highlight-all {
 		.dt-cell__content {
-			background: var(--gray-50)!important;
-		}
-	}
-
-	.dt-scrollable .dt-row--highlight {
-		.dt-cell__content {
-			background: var(--gray-50)!important;
+			background: var(--dt-selection-highlight-color);
 		}
 	}
 

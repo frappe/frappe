@@ -441,7 +441,7 @@ html, body {
 
 			.widget-content {
 				@include flex(flex, space-between, null, null);
-				padding-top: 25px;
+				padding-top: var(--padding-xl);
 
 				.number {
 					font-weight: 600;
@@ -487,10 +487,18 @@ html, body {
 
 				.green-stat {
 					color: var(--dark-green-500);
+
+					use {
+						stroke: var(--dark-green-500);
+					}
 				}
 
 				.red-stat {
 					color: var(--red-500);
+
+					use {
+						stroke: var(--red-500);
+					}
 				}
 
 				.grey-stat {

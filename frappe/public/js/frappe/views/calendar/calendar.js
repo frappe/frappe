@@ -33,6 +33,11 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			});
 	}
 
+	setup_page() {
+		this.hide_page_form = true;
+		super.setup_page();
+	}
+
 	setup_view() {
 
 	}
@@ -180,7 +185,9 @@ frappe.views.Calendar = Class.extend({
 			.removeClass("fc-state-default")
 			.addClass("btn btn-default");
 
-		this.$wrapper.find(".fc-right").addClass("btn-group");
+		this.$wrapper
+			.find('.fc-month-button, .fc-agendaWeek-button, .fc-agendaDay-button')
+			.wrapAll('<div class="btn-group" />');
 
 		this.$wrapper.find('.fc-prev-button span')
 			.attr('class', '').html(frappe.utils.icon('left'));
@@ -198,7 +205,7 @@ frappe.views.Calendar = Class.extend({
 		btn_group.find(".btn").on("click", function() {
 			btn_group.find(".btn").removeClass("active");
 			$(this).addClass("active");
-		});
+		})
 	},
 	field_map: {
 		"id": "name",
@@ -222,9 +229,8 @@ frappe.views.Calendar = Class.extend({
 		this.cal_options = {
 			locale: frappe.boot.user.language || "en",
 			header: {
-				left: 'today',
-				center: 'prev, title, next',
-				right: 'month, agendaWeek, agendaDay'
+				left: 'prev, title, next',
+				right: 'today, month, agendaWeek, agendaDay'
 			},
 			editable: true,
 			selectable: true,

@@ -1,9 +1,10 @@
 .fc-unthemed {
-	padding: 0 10px 0 30px;
+	padding: 20px;
+	color: var(--text-light);
 }
 
 .fc-toolbar {
-	padding-top: 30px;
+	// padding-top: 30px;
 	padding-bottom: 15px;
 	margin-bottom: 0px !important;
 }
@@ -38,11 +39,11 @@ th.fc-widget-header {
 }
 
 .fc-unthemed td.fc-sun {
-	background: var(--gray-50);
+	background: var(--highlight-color);
 }
 
 .fc-unthemed .fc-today {
-	background-color: $white !important;
+	background-color: var(--fg-color) !important;
 
 	.fc-day-number {
 		background-color: var(--blue-500);
@@ -108,7 +109,7 @@ th.fc-day-header {
 	}
 }
 
-.fc-center h2 {
+.fc-left h2 {
 	font-size: $font-size-lg;
 	font-weight: 500;
 	line-height: 28px;
@@ -126,28 +127,22 @@ th.fc-day-header {
 }
 
 .fc-right button {
-	width: 64px;
+	min-width: 64px;
 }
 
 .fc-left button {
 	width: 80px;
 
-	svg {
-		margin-right: 5px;
-	}
+	// svg {
+	// 	margin-right: 5px;
+	// }
 }
 
-.fc-prev-button, .fc-next-button {
-	width: 28px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
 
 .fc-state-active {
 	box-shadow: none !important;
 	background: var(--gray-500) !important;
-	color: white !important;
+	color: var(--fg-color) !important;
 	z-index: 0 !important;
 }
 
@@ -157,16 +152,54 @@ th.fc-day-header {
 	padding: 1px 5px !important;
 }
 
-.result .footnote-area {
-	padding: 15px 10px 0 30px;
+// .result .footnote-area {
+// 	padding: 15px 10px 0 30px;
+// }
+
+.fc-time-grid .fc-slats .fc-minor td {
+	border-top-style: none !important;
 }
 
 .fc-highlight {
 	background: var(--blue-100) !important;
 }
 
+.fc-left {
+	.fc-prev-button, .fc-next-button {
+		width: 28px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background: var(--gray-100);
+		box-shadow: none;
+		border: none;
 
-// TODO: Fix color palette
+		use {
+			stroke-width: 0.9;
+		}
+	}
+}
+
+.fc-time-grid .fc-slats td {
+	height: 2.5em !important;
+}
+
+.fc-day-grid {
+	border-bottom: 1px solid var(--gray-300);
+	// height: 2em !important;
+}
+
+.fc-divider {
+	display: none;
+}
+
+.fc .fc-axis {
+	color: var(--gray-600) !important;
+	text-align: center;
+	width: 60px !important;
+}
+
+// REDESIGN-TODO: Fix color palette
 // @mixin fc-bg-color($color){
 // 	$light: #{"${color}-light"};
 // 	$extra-light: #{"${color}-extra-light"};
