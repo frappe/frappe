@@ -10,6 +10,7 @@ $gray-100: #F4F5F6;
 $gray-50 : #F9FAFA;
 
 $primary: #2490EF;
+$danger: #E24C4C;
 $black: #000;
 $white: #fff;
 $light: $gray-50 !default;
@@ -180,6 +181,8 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--border-radius: 6px;
 	--border-radius-md: 8px;
 	--border-radius-lg: 12px;
+
+	--primary-color: #{$primary};
 }
 
 html, body {
@@ -203,10 +206,8 @@ $container-max-widths: (
 
 $theme-colors: (
   "primary": $primary,
-  "danger": #ff4136
+  "danger": $danger
 );
-
-$brand-gradient: linear-gradient(180deg, #2C9AF1 0%, var(--blue-500) 100%);
 
 $navbar-height: 60px;
 $page-head-height: 68px;
