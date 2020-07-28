@@ -1,0 +1,36 @@
+[data-theme="dark"] {
+	--gray-50: #{$gray-50};
+	--gray-100: #F7FAFC;
+	--gray-200: #EDF2F7;
+	--gray-300: #E2E8F0;
+	--gray-400: #CBD5E0;
+	--gray-500: #A0AEC0;
+	--gray-600: #718096;
+	--gray-700: #4A5568;
+	--gray-800: #2D3748;
+	--gray-900: #1A202C;
+
+	// Type Colors
+	--text-muted: var(--gray-300);
+	--text-light: var(--gray-400);
+	--text-color: var(--gray-50);
+	--heading-color: var(--gray-50);
+
+	// SVG Colors
+	--icon-fill: transparent;
+	--icon-stroke: var(--gray-500);
+
+	// Layout Colors
+	--bg-color: var(--gray-900);
+	--fg-color: var(--gray-800);
+	--card-bg: var(--gray-800);
+	--control-bg: var(--gray-700);
+	--modal-bg: var(--gray-700);
+	--toast-bg: var(--modal-bg);
+	--popover-bg: var(--bg-color);
+
+	--sidebar-select-color: var(--gray-800);
+
+	--shadow-inset: var(--fg-color);
+	--border-color: var(--gray-600);
+}
