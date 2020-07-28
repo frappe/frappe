@@ -1,0 +1,45 @@
+{
+ "actions": [],
+ "creation": "2020-07-28 22:59:05.565389",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "default_doctype",
+  "col_break",
+  "is_default"
+ ],
+ "fields": [
+  {
+   "fieldname": "default_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType"
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Default"
+  },
+  {
+   "fieldname": "col_break",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-07-28 23:46:46.771614",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Email Template Default",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
