@@ -211,7 +211,7 @@ $brand-gradient: linear-gradient(180deg, #2C9AF1 0%, var(--blue-500) 100%);
 $navbar-height: 60px;
 $page-head-height: 68px;
 
-$body-color: $gray-700 !default;
+$body-color: var(--text-light);
 $input-placeholder-color: var(--text-light);
 
 $btn-padding-y-lg: 1rem !default;
