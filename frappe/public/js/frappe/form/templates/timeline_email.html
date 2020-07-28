@@ -1,0 +1,11 @@
+<div class="timeline-email">
+	<span class="flex justify-between">
+		<span class="text-color">
+			{{ frappe.avatar(doc.owner) }}
+			 {{ frappe.user.full_name(doc.owner) }}
+			<span class="text-muted">{{ comment_when(doc.creation) }}</span>
+		</span>
+		<span class="actions"></span>
+	</span>
+	<div class="timeline-email-content"></div>
+</div>

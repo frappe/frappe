@@ -1,0 +1,48 @@
+$timeline-item-icon-size: 34px;
+$timeline-item-left-margin: var(--margin-xl);
+$threshold: 50px;
+.new-timeline {
+	position: relative;
+	padding-left: var(--padding-xl);
+	padding-top: var(--padding-xl);
+	&:before {
+		content: ' ';
+		top: 0;
+		height: 100%;
+		position: absolute;
+		border-left: 1px solid var(--gray-300);
+	}
+
+	.timeline-item {
+		position: relative;
+		margin-bottom: var(--margin-lg);
+		.timeline-content {
+			max-width: 700px;
+			padding: var(--padding-sm);
+			margin-left: $timeline-item-left-margin;
+			&.frappe-card {
+				@include card($padding: var(--padding-lg));
+			}
+		}
+		.timeline-indicator {
+			width: $timeline-item-icon-size;
+			height: $timeline-item-icon-size;
+			border-radius: 50%;
+			position: absolute;
+			top: unquote("clamp(0px, 50% - #{$timeline-item-icon-size}/2, 50px)");
+			left: calc(-1 * (#{$timeline-item-icon-size}/2));
+			background-color: var(--gray-600);
+			display: inline-flex;
+			align-items: center;
+			.icon {
+				stroke: $white;
+			}
+		}
+
+		.timeline-email {
+			.timeline-email-content {
+				margin-top: var(--margin-sm);
+			}
+		}
+	}
+}
