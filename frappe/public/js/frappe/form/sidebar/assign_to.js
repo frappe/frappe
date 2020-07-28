@@ -194,7 +194,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 				label: __("Assign To"),
 				reqd: true,
 				get_data: function(txt) {
-					return frappe.db.get_link_options("User", txt, {user_type: "System User", enabled: 1});
+					return frappe.db.get_link_options("User", txt, {user_type: "System User", enabled: 1, disable_assignments: 0});
 				}
 			},
 			{

@@ -73,16 +73,16 @@ frappe.ui.form.on('User', {
 		frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
 
 		if (frm.doc.name == frappe.session.user) {
-			let button_label = frm.doc.suspend_all_auto_assignments ? __('Available For Assignments') :
+			let button_label = frm.doc.disable_assignments ? __('Available For Assignments') :
 				__('Unavailable For Assignments');
 
-			let alert_message = frm.doc.suspend_all_auto_assignments ? __('All auto assignments resumed again.') :
-				__('All auto assignments suspended for you.');
+			let alert_message = frm.doc.disable_assignments ? __('All auto assignments resumed again.') :
+				__('All auto assignments disabled for you.');
 
-			let indicator = frm.doc.suspend_all_auto_assignments ? 'green' : 'red';
+			let indicator = frm.doc.disable_assignments ? 'green' : 'red';
 
 			frm.add_custom_button(button_label, function() {
-				frm.set_value('suspend_all_auto_assignments', 1 - frm.doc.suspend_all_auto_assignments);
+				frm.set_value('disable_assignments', 1 - frm.doc.disable_assignments);
 				frappe.show_alert({
 					indicator: indicator,
 					message: alert_message

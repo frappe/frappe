@@ -90,7 +90,7 @@ class AssignmentRule(Document):
 					break
 
 		for user in user_order:
-			if frappe.get_value('User', user.user, 'suspend_all_auto_assignments'):
+			if frappe.get_value('User', user.user, 'disable_assignments'):
 				continue
 
 			return user.user
@@ -99,7 +99,7 @@ class AssignmentRule(Document):
 		'''Assign to the user with least number of open assignments'''
 		counts = []
 		for d in self.users:
-			if not frappe.get_value('User', d.user, 'suspend_all_auto_assignments'):
+			if not frappe.get_value('User', d.user, 'disable_assignments'):
 				counts.append(dict(
 					user = d.user,
 					count = frappe.db.count('ToDo', dict(

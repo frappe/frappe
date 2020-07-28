@@ -10,7 +10,7 @@
   "sb0_5",
   "enabled",
   "column_break_3",
-  "suspend_all_auto_assignments",
+  "disable_assignments",
   "section_break_3",
   "email",
   "first_name",
@@ -736,10 +736,11 @@
   },
   {
    "default": "0",
-   "fieldname": "suspend_all_auto_assignments",
+   "fieldname": "disable_assignments",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Suspend All Auto Assignments",
+   "label": "Disable Assignments",
+   "read_only": 1,
    "show_days": 1,
    "show_seconds": 1
   }
@@ -749,7 +750,7 @@
  "image_field": "user_image",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-07-08 13:50:21.211423",
+ "modified": "2020-07-28 16:27:19.804158",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
