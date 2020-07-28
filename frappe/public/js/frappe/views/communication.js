@@ -189,7 +189,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				callback: function(r) {
 					if (r && r.message) email_template_field.set_value(r.message);
 				}
-			})
+			});
 		}
 
 		this.dialog.fields_dict["email_template"].df.onchange = () => {

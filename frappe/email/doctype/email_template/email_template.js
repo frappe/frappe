@@ -9,6 +9,6 @@ frappe.ui.form.on('Email Template', {
 					istable: 0
 				}
 			}
-		})
+		});
 	}
 });
