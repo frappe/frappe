@@ -80,9 +80,21 @@
 
 .comment-box {
 	@include card();
-	padding: var(--padding-md);
+	padding: 25px var(--padding-xl);
 	.comment-input-header {
 		@extend .head-title;
-		width: 100%;
+		margin-bottom: var(--margin-sm);
+	}
+	.comment-input-container {
+		.frappe-control {
+			margin-bottom: var(--margin-xs);
+		}
+		.ql-editor {
+			background-color: var(--gray-200);
+		}
+	}
+
+	.btn-comment {
+		margin-top: var(--margin-md);
 	}
 }
