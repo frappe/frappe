@@ -69,7 +69,6 @@ Quill.register(CustomColor, true);
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_wrapper() {
 		this._super();
-		this.$wrapper.find(".like-disabled-input").addClass('ql-editor');
 	},
 
 	make_input() {
@@ -199,6 +198,12 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 	get_input_value() {
 		let value = this.quill ? this.quill.root.innerHTML : '';
+		// hack to retain space sequence.
+		value = value.replace(/(\s)(\s)/g, ' &nbsp;');
+
+		if (!$(value).find('.ql-editor').length) {
+			value = `<div class="ql-editor read-mode">${value}</div>`;
+		}
 		return value;
 	},
 

@@ -104,11 +104,11 @@ class BackupGenerator:
 			this_file = cstr(this_file)
 			this_file_path = os.path.join(get_backup_path(), this_file)
 			if not is_file_old(this_file_path, older_than):
-				if "_private_files" in this_file_path:
+				if "-private-files" in this_file_path:
 					backup_path_private_files = this_file_path
-				elif "_files" in this_file_path:
+				elif "-files" in this_file_path:
 					backup_path_files = this_file_path
-				elif "_database" in this_file_path:
+				elif "-database" in this_file_path:
 					backup_path_db = this_file_path
 				elif "site_config" in this_file_path:
 					site_config_backup_path = this_file_path
@@ -205,6 +205,31 @@ def get_backup():
 	odb.get_backup()
 	recipient_list = odb.send_email()
 	frappe.msgprint(_("Download link for your backup will be emailed on the following email address: {0}").format(', '.join(recipient_list)))
+
+
+@frappe.whitelist()
+def fetch_latest_backups(with_files=True, recent=3):
+	"""Takes backup on-demand if doesnt exist satisfying the `recent` parameter
+	Only for: System Managers
+
+	Args:
+		with_files (bool, optional): If set, files will backuped up. Defaults to True.
+		recent (int, optional): Won't take a new backup if backup exists within this paramter. Defaults to 3 hours
+
+	Returns:
+		dict: relative Backup Paths
+	"""
+	frappe.only_for("System Manager")
+	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name, frappe.conf.db_password, db_host=frappe.db.host, db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
+	odb.get_backup(older_than=recent, ignore_files=not with_files)
+
+	return {
+		"database": odb.backup_path_db,
+		"public": odb.backup_path_files,
+		"private": odb.backup_path_private_files,
+		"config": odb.site_config_backup_path
+	}
+
 
 def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False):
 	"""this function is called from scheduler

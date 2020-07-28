@@ -97,7 +97,7 @@ login.reset_sections = function(hide) {
 		$("section.for-forgot").toggle(false);
 		$("section.for-signup").toggle(false);
 	}
-	$('section .indicator').each(function() {
+	$('section:not(.signup-disabled) .indicator').each(function() {
 		$(this).removeClass().addClass('indicator').addClass('blue')
 			.text($(this).attr('data-text'));
 	});
@@ -186,7 +186,7 @@ login.login_handlers = (function() {
 			} else if(data.message == 'Password Reset'){
 				window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
 			} else if(data.message=="No App") {
-				login.set_indicator("{{ _("Success") }}", 'green');
+				login.set_indicator("{{ _('Success') }}", 'green');
 				if(localStorage) {
 					var last_visited =
 						localStorage.getItem("last_visited")

@@ -309,7 +309,7 @@ frappe.ui.Notifications = class Notifications {
 		let mark_read_action = field.read ? '': 'data-action="mark_as_read"';
 		let message = field.subject;
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
-		message = title ? message.replace(title[1], frappe.ellipsis(title[1], 100)): message;
+		message = title ? message.replace(title[1], frappe.ellipsis(strip_html(title[1]), 100)) : message;
 		let message_html = `<div class="message">${message}</div>`;
 		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
