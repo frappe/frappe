@@ -164,6 +164,7 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	// Layout Colors
 	--bg-color: var(--gray-50);
 	--fg-color: white;
+	--hover-fg-color: var(--gray-100);
 	--card-bg: var(--fg-color);
 	--control-bg: var(--gray-100);
 	--modal-bg: white;
@@ -215,7 +216,19 @@ $page-head-height: 68px;
 
 $body-color: var(--text-light);
 $input-placeholder-color: var(--text-light);
+$component-active-color: var(--fg-color);
+$modal-content-bg: var(--modal-bg);
 
+// dropdown
+$dropdown-bg: var(--fg-color);
+$dropdown-border-color: var(--dark-border-color);
+$dropdown-link-color: var(--text-color);
+$dropdown-link-hover-color: var(--text-color);
+$dropdown-link-hover-bg: var(--hover-fg-color);
+$dropdown-link-disabled-color: var(--gray-600);
+$dropdown-header-color: var(--gray-600);
+
+// button
 $btn-padding-y-lg: 1rem !default;
 $btn-padding-x-lg: 2.5rem !default;
 $btn-font-size-lg: 1.125rem !default;
