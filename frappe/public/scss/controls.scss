@@ -20,3 +20,10 @@
 .table-multiselect .awesomplete {
 	display: inline;
 }
+
+.frappe-control {
+	.ql-editor {
+		background-color: var(--gray-200);
+		max-width: 700px;
+	}
+}

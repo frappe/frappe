@@ -298,3 +298,9 @@ input[type="checkbox"] {
 .frappe-card {
 	@include card();
 }
+
+.head-title {
+	font-size: var(--text-lg);
+	font-weight: 500;
+	color: var(--heading-color);
+}
