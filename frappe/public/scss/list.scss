@@ -89,7 +89,7 @@
 	font-size: var(--text-md);
 
 	&:hover {
-		background-color: var(--control-bg);
+		background-color: var(--highlight-color);
 	}
 	&:last-child {
 		border-bottom: 0px;
@@ -163,11 +163,19 @@
 .list-row-col {
 	flex: 1;
 	margin-right: 15px;
+
+	a {
+		color: var(--text-light);
+	}
 }
 
 .list-subject {
 	flex: 2;
 	justify-content: start;
+
+	a {
+		color: var(--text-color);
+	}
 
 	.level-item {
 		margin-right: 8px;
@@ -244,7 +252,7 @@ input.list-check-all, input.list-row-checkbox {
 	font-size: var(--text-md);
 
 	&:hover {
-		background-color: var(--control-bg);
+		background-color: var(--highlight-color);
 	}
 
 	// @media (max-width: $screen-xs) {
@@ -256,7 +264,7 @@ input.list-check-all, input.list-row-checkbox {
 	// }
 
 	&--head {
-		background-color: var(--control-bg);
+		background-color: var(--highlight-color);
 		border-bottom: 1px solid $border-color;
 		cursor: auto;
 	}
@@ -493,52 +501,3 @@ input.list-check-all, input.list-row-checkbox {
 // 	margin-top: 5px;
 // }
 
-
-// input[type="checkbox"] {
-// 	position: relative;
-// 	visibility: hidden;
-// 	// dispxlay: none;
-
-// 	&:before {
-// 		position: absolute;
-// 		font-family: 'FontAwesome';
-// 		// width: 4px;
-// 		// height: 4px;
-// 		content: '\f096';
-// 		// content: ' ';
-// 		// background-image: url('../icons/frapicon-checkbox.svg');
-// 		// visibility: visible;
-// 		// font-style: normal;
-// 		// font-weight: normal;
-// 		// font-variant: normal;
-// 		// text-transform: none;
-// 		// line-height: 14px;
-// 		// display: inline-block;
-// 		// font-size: 14px;
-// 		// color: @text-extra-muted;
-// 		// .transition(150ms color);
-// 		// left: 0px;
-// 		// display: inline-block;
-// 		// vertical-align: middle;
-// 		// width: 45px;
-// 		// height: 45px;
-// 		// background-size: 50%;
-// 		// content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='lightgrey' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-image'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>");
-
-// 		// background: url('../icons/frapicon-checkbox.svg') 0px center no-repeat;
-// 	}
-
-// 	&:focus:before {
-// 		color: $text-muted;
-// 	}
-
-// 	&:checked:before {
-// 		content: '\f14a';
-// 		font-size: 13px;
-// 		color: $checkbox-color;
-// 	}
-
-// 	&:focus {
-// 		outline: none;
-// 	}
-// }
