@@ -251,8 +251,8 @@ $dropdown-item-padding-x: 0.5rem !default;
 	--heading-color: var(--gray-50);
 
 	// SVG Colors
-	--icon-fill: var(--gray-50);
-	--icon-stroke: var(--gray-50);
+	--icon-fill: transparent;
+	--icon-stroke: var(--gray-500);
 
 	// Layout Colors
 	--bg-color: var(--gray-900);

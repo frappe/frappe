@@ -228,3 +228,61 @@ frappe.ui.form.AssignToDialog = Class.extend({
 		];
 	}
 });
+
+
+frappe.ui.form.AssignmentDialog = class {
+	constructor(opts) {
+		// this.frm = opts.frm;
+		this.assignments = opts.assignments;
+		this.make();
+	}
+
+	make() {
+		this.dialog = new frappe.ui.Dialog({
+			title: __('Assign Users'),
+			fields: [{
+				'fieldtype': 'Link',
+				'fieldname': 'selected_user',
+				'options': 'User',
+				'label': 'User',
+				'change': () => {
+					let user = this.dialog.get_value('selected_user');
+					if (user && user !== '') {
+						this.update_assignment(user);
+						this.dialog.set_value('selected_user', null);
+					}
+				}
+			}, {
+				'fieldtype': 'HTML',
+				'fieldname': 'assignment_list'
+			}]
+		});
+
+		this.assignment_list = $(this.dialog.get_field('assignment_list').wrapper);
+
+		this.assignments.forEach(assignment => {
+			this.update_assignment(assignment);
+		});
+		this.dialog.show();
+	}
+	update_assignment(assignment) {
+		this.assignment_list.append(this.get_assignment_row(assignment));
+	}
+	get_assignment_row(assignment) {
+		let row = $(`
+			<div class="dialog-assignment-row" data-user="${assignment}">
+				<span>
+					${frappe.avatar(assignment)}
+					${frappe.user.full_name(assignment)}
+				</span>
+				<span class="remove-btn">
+					${frappe.utils.icon('close')}
+				</span>
+			</div>
+		`);
+		row.find('.remove-btn').click(() => {
+			row.remove();
+		});
+		return row;
+	}
+};

@@ -1,5 +1,3 @@
-
-
 frappe.user_info = function(uid) {
 	if(!uid)
 		uid = frappe.session.user;

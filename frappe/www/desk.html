@@ -24,7 +24,7 @@
 	<link type="text/css" rel="stylesheet" href="{{ include }}?ver={{ build_version }}">
 	{%- endfor -%}
 </head>
-<body>
+<body data-theme="{{ theme.lower() }}">
 	{% include "public/icons/timeless/symbol-defs.svg" %}
 	</svg>
 	<div class="centered splash" style="width: 100px; height: 100px;">

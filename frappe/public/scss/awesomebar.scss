@@ -1,3 +1,4 @@
+// REDESIGN-TODO: Review
 .awesomplete {
 	[hidden] {
 		display: none;
@@ -18,34 +19,21 @@
 
 	&> ul {
 		position: absolute;
-		// left: 0;
 		min-width: 100%;
-		box-sizing: border-box;
 		list-style: none;
-		padding: 0;
-		margin: 0;
-		background: #fff;
-		transition: none;
-		background-color: #fff;
+		background-color: var(--fg-color);
 		max-height: 200px;
-		overflow-y: auto;
 		overflow-x: hidden;
-		border-radius: 0px 0px 4px 4px;
-		box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
-		border: 1px solid $border-color;
-		z-index: 1041 !important;
-		text-shadow: none;
-		text-align: left;
-
-		li[aria-selected="true"] mark, mark {
-			padding: 0px;
-			background-color: inherit;
-		}
+		border-radius: 0px 0px var(--border-radius-sm) var(--border-radius-sm);
+		box-shadow: var(--shadow-md);
+		border: 1px solid var(--border-color);
+		padding: 0;
+		color: var(--text-light);
 
 		&> li {
 			cursor: pointer;
 			font-size: 12px;
-			padding: 9px 11.8px;
+			padding: var(--padding-sm);
 		}
 
 		&> li .link-option {
@@ -53,9 +41,8 @@
 		}
 
 		&> li:hover, &> li[aria-selected=true] {
-			background-color: $control-bg;
-			color: $text-color;
-			text-shadow: none;
+			background-color: var(--control-bg);
+			color: var(--text-color);
 		}
 
 		a:hover {
@@ -66,10 +53,4 @@
 			margin: 3px 0;
 		}
 	}
-
-	// @media (max-width: @screen-sm) {
-	// 	&>ul {
-	// 		top: 26px;
-	// 	}
-	// }
 }
