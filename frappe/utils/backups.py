@@ -158,29 +158,22 @@ def get_backup():
 	recipient_list = odb.send_email()
 	frappe.msgprint(_("Download link for your backup will be emailed on the following email address: {0}").format(', '.join(recipient_list)))
 
-
 @frappe.whitelist()
-def fetch_latest_backups(with_files=True, recent=3):
-	"""Takes backup on-demand if doesnt exist satisfying the `recent` parameter
+def fetch_latest_backups():
+	"""Fetches paths of the latest backup taken in the last 30 days
 	Only for: System Managers
-
-	Args:
-		with_files (bool, optional): If set, files will backuped up. Defaults to True.
-		recent (int, optional): Won't take a new backup if backup exists within this paramter. Defaults to 3 hours
-
 	Returns:
 		dict: relative Backup Paths
 	"""
 	frappe.only_for("System Manager")
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name, frappe.conf.db_password, db_host=frappe.db.host)
-	odb.get_backup(older_than=recent, ignore_files=not with_files)
+	database, public, private = odb.get_recent_backup(older_than=24 * 30)
 
 	return {
-		"database": odb.backup_path_db,
-		"public": odb.backup_path_files,
-		"private": odb.backup_path_private_files
+		"database": database,
+		"public": public,
+		"private": private
 	}
-
 
 def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False):
 	"""this function is called from scheduler
