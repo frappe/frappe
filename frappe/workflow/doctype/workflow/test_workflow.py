@@ -30,6 +30,8 @@ class TestWorkflow(unittest.TestCase):
 		'''test simple workflow'''
 		todo = doc or self.test_default_condition()
 
+		print(todo.as_dict())
+
 		apply_workflow(todo, 'Approve')
 		# default condition is set
 		self.assertEqual(todo.workflow_state, 'Approved')
