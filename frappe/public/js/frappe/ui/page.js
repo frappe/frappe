@@ -608,7 +608,7 @@ frappe.ui.Page = Class.extend({
 			dropdown_label = `<span class="hidden-xs">
 				${frappe.utils.icon(icon)}
 				<span class="custom-btn-group-label">${__(label)}</span>
-				<span class="caret"></span>
+				${frappe.utils.icon('select', 'xs')}
 			</span>
 			<span class="visible-xs">
 				${frappe.utils.icon(icon)}
