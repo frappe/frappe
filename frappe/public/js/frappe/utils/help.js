@@ -17,7 +17,7 @@ frappe.help.show = function(doctype) {
 
 frappe.help.show_video = function(youtube_id, title) {
 	if (frappe.utils.is_url(youtube_id)) {
-		const expression = '(?:youtube.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu.be/)([^\"&?/s]{11})';
+		const expression = '(?:youtube.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu.be/)([^"&?\\s]{11})';
 		youtube_id = youtube_id.match(expression)[1];
 	}
 
