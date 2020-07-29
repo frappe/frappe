@@ -83,7 +83,6 @@ def apply_workflow(doc, action):
 			transition = t
 
 	if not transition:
-		print('workflow', transitions, workflow)
 		frappe.throw(_("Not a valid Workflow Action"), WorkflowTransitionError)
 
 	if not has_approval_access(user, doc, transition):
@@ -274,7 +273,6 @@ def get_common_transition_actions(docs, doctype):
 			actions = [t.get('action') for t in get_transitions(doc, raise_exception=True) \
 				if has_approval_access(frappe.session.user, doc, t)]
 			if not actions: return []
-			print(actions)
 			common_actions = actions if i == 1 else set(common_actions).intersection(actions)
 			if not common_actions: return []
 	except WorkflowStateError:
