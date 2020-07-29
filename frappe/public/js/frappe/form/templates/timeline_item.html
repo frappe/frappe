@@ -60,7 +60,7 @@
 						{% } %}
 					</span>
 						{% if(in_list(["Communication", "Feedback"], data.communication_type)) { %}
-							{% if (frappe.model.can_read(\'Communication\')) { %}
+							{% if (frappe.model.can_read("Communication")) { %}
 							<a href="#Form/Communication/{%= data.name %}"
 								class="text-muted">
 							{% } %}
@@ -83,13 +83,13 @@
 								{%= __(data.delivery_status) %}</span></span>
 
 							{% } else { %}
-								{% if (frappe.model.can_read(\'Communication\')) { %}
+								{% if (frappe.model.can_read("Communication")) { %}
 								<span class="text-muted n-dash">&ndash;</span>
 								{%= __("Details") %}
 								{% } %}
 							{% } %}
 
-							{% if (frappe.model.can_read(\'Communication\')) { %}
+							{% if (frappe.model.can_read("Communication")) { %}
 							</a>
 							{% } %}
 
@@ -106,7 +106,7 @@
 					<span class="text-muted commented-on-small {% if (data.futur_date) { %}timeline-futur{% } %}">
 						&ndash; {%= data.comment_on_small %}</span>
 					<span class="comment-likes hidden-xs"
-						data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
+						data-liked-by="{{ JSON.stringify(data._liked_by) }}">
 						<i class="octicon octicon-heart like-action
 							{% if (!data.liked_by_user) { %}
 								text-extra-muted not-liked

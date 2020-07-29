@@ -21,12 +21,10 @@
 	}
 
 	.section-head {
+		@extend .head-title;
 		width: 100%;
 		padding: var(--padding-md);
 		margin: 0;
-		font-size: var(--text-lg);
-		font-weight: 500;
-		color: var(--heading-color);
 		cursor: pointer;
 
 		.collapse-indicator {
@@ -78,4 +76,25 @@
 	font-weight: 400;
 	background-color: $control-bg;
 	padding: var(--padding-xs) var(--padding-sm);
+}
+
+.comment-box {
+	@include card();
+	padding: 25px var(--padding-xl);
+	.comment-input-header {
+		@extend .head-title;
+		margin-bottom: var(--margin-sm);
+	}
+	.comment-input-container {
+		.frappe-control {
+			margin-bottom: var(--margin-xs);
+		}
+		.ql-editor {
+			background-color: var(--gray-200);
+		}
+	}
+
+	.btn-comment {
+		margin-top: var(--margin-md);
+	}
 }
