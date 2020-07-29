@@ -172,5 +172,11 @@ def add_card_to_dashboard(args):
 	dashboard_link = frappe.new_doc('Number Card Link')
 	dashboard_link.card = args.name
 
+	if args.set_standard:
+		card = frappe.get_doc('Number Card', dashboard_link.card)
+		card.is_standard = 1
+		card.module = dashboard.module
+		card.save()
+
 	dashboard.append('cards', dashboard_link)
 	dashboard.save()
