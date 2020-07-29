@@ -124,6 +124,7 @@ def create_number_card(args):
 	doc.insert(ignore_permissions=True)
 	return doc
 
+@frappe.whitelist()
 def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	meta = frappe.get_meta(doctype)
 	searchfields = meta.get_search_fields()
