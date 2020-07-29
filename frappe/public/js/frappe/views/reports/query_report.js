@@ -665,19 +665,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			"New": {
 				label: __("Generate New Report"),
 				click: () => {
-					this.generate_background_report()
+					this.show_warning_or_generate_report();
 				},
 			},
 			"Edit": {
 				label: __("Edit"),
 				click: () => {
-					frappe.set_route(frappe.get_route())
+					frappe.set_route(frappe.get_route());
 				}
 			},
 			"Rebuild": {
 				label:	__("Rebuild"),
 				click: () => {
-					this.generate_background_report()
+					this.show_warning_or_generate_report();
 				}
 			}
 		}
@@ -695,9 +695,69 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.primary_button.prop('disabled', disable);
 	}
 
+	show_warning_or_generate_report() {
+		frappe.xcall(
+			'frappe.core.doctype.prepared_report.prepared_report.get_reports_in_queued_state',
+			{
+				filters: this.get_filter_values(),
+				report_name: this.report_name,
+			}
+		).then(reports => {
+			this.queued_prepared_reports = reports;
+
+			if (reports.length) {
+				const message = this.get_queued_prepared_reports_warning_message(reports);
+				this.prepared_report_dialog = frappe.warn(
+					__('Reports already in Queue'),
+					message,
+					() => this.generate_background_report(),
+					__('Proceed Anyway'),
+					true
+				);
+
+				this.prepared_report_dialog.footer.prepend(`
+					<button type="button" class="btn btn-sm btn-default pull-left" data-action="delete_old_queued_reports">
+						${__('Delete and Generate New')}
+					</button>`);
+
+				frappe.utils.bind_actions_with_object(this.prepared_report_dialog.wrapper, this);
+			} else {
+				this.generate_background_report();
+			}
+		});
+	}
+
+	get_queued_prepared_reports_warning_message(reports) {
+		const route = `#List/Prepared Report/List?status=Queued&report_name=${this.report_name}`;
+		const no_of_reports_html = reports.length == 1
+			? `${__('There is already ')}<a class="underline" href="${route}">${__('1 Report')}</a>`
+			: `${__('There are already ')}<a class="underline" href="${route}">${__(`${reports.length} Reports`)}</a>`;
+
+		let warning_message = `
+			<p>
+				${__(`Are you sure you want to generate a new report?
+					${no_of_reports_html} with the same filters already in the queue:`)}
+			</p>`;
+
+		let get_item_html = item => `<a class="underline" href="#Form/Prepared Report/${item.name}">${item.name}</a>`;
+
+		warning_message += reports.map(get_item_html).join(', ');
+
+		return warning_message;
+	}
+
+	delete_old_queued_reports() {
+		this.prepared_report_dialog.hide();
+		frappe.xcall(
+			'frappe.core.doctype.prepared_report.prepared_report.delete_prepared_reports',
+			{
+				reports: this.queued_prepared_reports,
+			}
+		).then(() => this.generate_background_report());
+	}
+
 	generate_background_report() {
 		this.toggle_primary_button_disabled(true);
-
 		let mandatory = this.filters.filter(f => f.df.reqd);
 		let missing_mandatory = mandatory.filter(f => !f.get_value());
 		if (!missing_mandatory.length){
@@ -715,8 +775,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
 				let alert_message = `Report initiated. You can track its status
-					<a class='text-info' href='#Form/Prepared Report/${data.name}'>here</a>`;
-				frappe.show_alert({message: alert_message, indicator: 'orange'});
+					<a class="bold" href='#Form/Prepared Report/${data.name}'>here</a>`;
+				frappe.show_alert({message: alert_message, indicator: 'orange'}, 10);
 				this.toggle_nothing_to_show(true);
 			});
 		}
