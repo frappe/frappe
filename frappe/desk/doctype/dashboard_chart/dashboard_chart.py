@@ -13,6 +13,7 @@ from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 from frappe.model.document import Document
+from frappe.modules.export_file import export_to_files
 
 
 def get_permission_query_conditions(user):
@@ -80,7 +81,9 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 			to_date = get_datetime(chart.to_date)
 
 	timegrain = time_interval or chart.time_interval
-	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json) or []
+	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json)
+	if not filters:
+		filters = []
 
 	# don't include cancelled documents
 	filters.append([chart.document_type, 'docstatus', '<', 2, False])
@@ -125,7 +128,13 @@ def add_chart_to_dashboard(args):
 
 	dashboard = frappe.get_doc('Dashboard', args.dashboard)
 	dashboard_link = frappe.new_doc('Dashboard Chart Link')
-	dashboard_link.chart = args.chart_name
+	dashboard_link.chart = args.chart_name or args.name
+
+	if args.set_standard:
+		chart = frappe.get_doc('Dashboard Chart', dashboard_link.chart)
+		chart.is_standard = 1
+		chart.module = dashboard.module
+		chart.save()
 
 	dashboard.append('charts', dashboard_link)
 	dashboard.save()
@@ -347,8 +356,13 @@ class DashboardChart(Document):
 
 	def on_update(self):
 		frappe.cache().delete_key('chart-data:{}'.format(self.name))
+		if frappe.conf.developer_mode and self.is_standard:
+			export_to_files(record_list=[['Dashboard Chart', self.name]], record_module=self.module)
+
 
 	def validate(self):
+		if not frappe.conf.developer_mode and self.is_standard:
+			frappe.throw('Cannot edit Standard charts')
 		if self.chart_type != 'Custom' and self.chart_type != 'Report':
 			self.check_required_field()
 			self.check_document_type()
