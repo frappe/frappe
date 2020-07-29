@@ -29,8 +29,18 @@ def get_logger(module, with_more_info=False, allow_site=True, filter=None):
 		<class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
 	"""
 
+	if allow_site == True:
+		site = getattr(frappe.local, 'site', None)
+	elif allow_site:
+		site = allow_site
+	else:
+		site = False
+
 	if module in frappe.loggers:
-		return frappe.loggers[module]
+		try:
+			return frappe.loggers[module][site or "all"]
+		except:
+			pass
 
 	if not module:
 		module = "frappe"
@@ -38,12 +48,6 @@ def get_logger(module, with_more_info=False, allow_site=True, filter=None):
 
 	logfile = module + '.log'
 
-	if allow_site == True:
-		site = getattr(frappe.local, 'site', None)
-	elif allow_site:
-		site = allow_site
-	else:
-		site = False
 
 	LOG_FILENAME = os.path.join('..', 'logs', logfile)
 
@@ -69,7 +73,11 @@ def get_logger(module, with_more_info=False, allow_site=True, filter=None):
 
 	handler.setFormatter(formatter)
 
-	frappe.loggers[module] = logger
+	try:
+		frappe.loggers[module][site or "all"] = logger
+	except KeyError:
+		frappe.loggers[module] = {}
+		frappe.loggers[module][site or "all"] = logger
 
 	return logger
 
