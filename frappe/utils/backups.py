@@ -206,6 +206,27 @@ def get_backup():
 	recipient_list = odb.send_email()
 	frappe.msgprint(_("Download link for your backup will be emailed on the following email address: {0}").format(', '.join(recipient_list)))
 
+
+@frappe.whitelist()
+def fetch_latest_backups():
+	"""Fetches paths of the latest backup taken in the last 30 days
+	Only for: System Managers
+
+	Returns:
+		dict: relative Backup Paths
+	"""
+	frappe.only_for("System Manager")
+	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name, frappe.conf.db_password, db_host=frappe.db.host, db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
+	database, public, private, config = odb.get_recent_backup(older_than=24 * 30)
+
+	return {
+		"database": database,
+		"public": public,
+		"private": private,
+		"config": config
+	}
+
+
 def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
