@@ -107,7 +107,7 @@ class User(Document):
 			now=frappe.flags.in_test or frappe.flags.in_install
 		)
 
-		if self.has_value_changed('suspend_all_auto_assignments') and not self.suspend_all_auto_assignments:
+		if self.has_value_changed('disable_assignments') and not self.disable_assignments:
 			assignment_rules = frappe.get_all('Assignment Rule', filters={'disabled':0})
 
 			for assignment_rule in assignment_rules:
