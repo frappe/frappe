@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, print_function
 import frappe
 from frappe.model.document import Document
-from frappe.utils import cint, has_gravatar, format_datetime, now_datetime, get_formatted_email
+from frappe.utils import cint, has_gravatar, escape_html, format_datetime, now_datetime, get_formatted_email
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password
 from frappe.desk.notifications import clear_notifications
@@ -781,7 +781,7 @@ def sign_up(email, full_name, redirect_to):
 		user = frappe.get_doc({
 			"doctype":"User",
 			"email": email,
-			"first_name": full_name,
+			"first_name": escape_html(full_name),
 			"enabled": 1,
 			"new_password": random_string(10),
 			"user_type": "Website User"
