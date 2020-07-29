@@ -731,8 +731,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_queued_prepared_reports_warning_message(reports) {
 		const route = `#List/Prepared Report/List?status=Queued&report_name=${this.report_name}`;
 		const no_of_reports_html = reports.length == 1
-			? `${__('There is already ')}<a class="underline" href="${route}">${__('1 Report')}</a>`
-			: `${__('There are already ')}<a class="underline" href="${route}">${__(`${reports.length} Reports`)}</a>`;
+			? `${__('There is ')}<a class="underline" href="${route}">${__('1 Report')}</a>`
+			: `${__('There are ')}<a class="underline" href="${route}">${__(`${reports.length} Reports`)}</a>`;
 
 		let warning_message = `
 			<p>
