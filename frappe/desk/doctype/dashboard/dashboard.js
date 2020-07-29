@@ -5,7 +5,7 @@ frappe.ui.form.on('Dashboard', {
 	refresh: function(frm) {
 		frm.add_custom_button(__("Show Dashboard"), () => frappe.set_route('dashboard', frm.doc.name));
 
-		if (!frappe.boot.developer_mode) {
+		if (!frappe.boot.developer_mode && frm.doc.is_standard) {
 			frm.disable_form();
 		}
 
