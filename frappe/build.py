@@ -10,6 +10,7 @@ import shutil
 import warnings
 import tempfile
 from distutils.spawn import find_executable
+from subprocess import check_output
 
 from six import iteritems, text_type
 
@@ -91,7 +92,8 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False)
 
 	pacman = get_node_pacman()
 	mode = 'build' if no_compress else 'production'
-	command = '{pacman} run {mode}'.format(pacman=pacman, mode=mode)
+	available_memory = check_output(["node", "-e", "console.log(parseInt(require('os').totalmem()/2))"]).decode().strip()
+	command = '{pacman} run {mode} --max_old_space_size={available_memory}'.format(pacman=pacman, mode=mode, available_memory=available_memory)
 
 	if app:
 		command += ' --app {app}'.format(app=app)
