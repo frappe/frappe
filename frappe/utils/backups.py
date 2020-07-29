@@ -162,7 +162,6 @@ def get_backup():
 def fetch_latest_backups():
 	"""Fetches paths of the latest backup taken in the last 30 days
 	Only for: System Managers
-
 	Returns:
 		dict: relative Backup Paths
 	"""
