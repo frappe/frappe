@@ -144,7 +144,7 @@ class WebsiteGenerator(Document):
 	# Change the field value in doctype
 	# Override this method to disable indexing
 	def allow_website_search_indexing(self):
-		return self.index_web_pages_for_search
+		return self.meta.index_web_pages_for_search
 
 	def remove_old_route_from_index(self):
 		"""Remove page from the website index if the route has changed."""
