@@ -743,7 +743,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${__(_value)}
 				</span>`;
 			} else if (df.fieldtype === "Link") {
-				html = `<a class="filterable text-muted ellipsis"
+				html = `<a class="filterable ellipsis"
 					data-filter="${fieldname},=,${value}">
 					${_value}
 				</a>`;
@@ -752,11 +752,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					df.fieldtype
 				)
 			) {
-				html = `<span class="text-muted ellipsis">
+				html = `<span class="ellipsis">
 					${_value}
 				</span>`;
 			} else {
-				html = `<a class="filterable text-muted ellipsis"
+				html = `<a class="filterable ellipsis"
 					data-filter="${fieldname},=,${value}">
 					${format()}
 				</a>`;
