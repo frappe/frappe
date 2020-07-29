@@ -8,7 +8,7 @@ frappe.ui.form.on('Email Template', {
 				filters: {
 					istable: 0
 				}
-			}
+			};
 		});
 	}
 });
