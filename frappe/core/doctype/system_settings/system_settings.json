@@ -59,6 +59,7 @@
   "column_break_18",
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
+  "attach_view_link",
   "prepared_report_section",
   "enable_prepared_report_auto_deletion",
   "prepared_report_expiry_period",
@@ -427,6 +428,12 @@
    "label": "Enable Onboarding"
   },
   {
+   "default": "1",
+   "fieldname": "attach_view_link",
+   "fieldtype": "Check",
+   "label": "Send document Web View link in email"
+  },
+  {
    "default": "30",
    "depends_on": "enable_prepared_report_auto_deletion",
    "description": "System will automatically delete Prepared Reports after these many days since creation",
@@ -450,7 +457,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-07-26 15:57:34.197718",
+ "modified": "2020-07-26 17:58:34.197718",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
