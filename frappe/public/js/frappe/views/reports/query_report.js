@@ -414,7 +414,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					this.show_warning_or_generate_report();
 				}
 			}
-		}
+		};
+
 		let primary_action = this.primary_action_map[this.prepared_report_action];
 
 		if (!this.primary_button || this.primary_button.text() !== primary_action.label) {

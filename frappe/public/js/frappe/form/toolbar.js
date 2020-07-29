@@ -152,8 +152,8 @@ frappe.ui.form.Toolbar = Class.extend({
 		return this.page.add_dropdown(label);
 	},
 	set_indicator: function() {
-		if(this.frm.save_disabled)
-			return;
+		// if(this.frm.save_disabled)
+		// 	return;
 
 		var indicator = frappe.get_indicator(this.frm.doc);
 		if(indicator) {
