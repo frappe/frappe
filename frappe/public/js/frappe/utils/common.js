@@ -1,6 +1,6 @@
 // common file between desk and website
 
-frappe.avatar = function (user, css_class, title, image_url = null) {
+frappe.avatar = function (user, css_class, title, image_url=null, remove_avatar=false) {
 	let user_info;
 	if (user) {
 		// desk
@@ -47,12 +47,14 @@ frappe.avatar = function (user, css_class, title, image_url = null) {
 	}
 };
 
-frappe.avatar_group = function(users,  limit=4, css_class="avatar avatar-small", align='right') {
+frappe.avatar_group = function(users, limit=4, css_class='avatar avatar-small', align='right', icon, action) {
 	let extra_count = users.length - limit;
-	let html = users.slice(0, limit).map((user) => frappe.avatar(user, css_class)).join('');
+	let icon_html = '';
+	let html = users.slice(0, limit).map(user => frappe.avatar(user, css_class)).join('');
+
 	if (extra_count > 0) {
 		html = `
-			<span class="avatar avatar avatar-small">
+			<span class="${css_class}">
 				<div class="avatar-frame standard-image avatar-extra-count">
 					+${extra_count}
 				</div>
@@ -60,7 +62,17 @@ frappe.avatar_group = function(users,  limit=4, css_class="avatar avatar-small",
 			${html}
 		`;
 	}
-	return `<div class="avatar-group ${align}">${html}</div>`;
+
+	if (icon) icon_html = `<span class="add-avatar">${frappe.utils.icon(icon)}</span>`;
+
+	const $avatar_group =
+		$(`<div class="avatar-group ${align}">
+			${icon_html}
+			${html}
+		</div>`);
+
+	$avatar_group.find('.add-avatar').on('click', action);
+	return $avatar_group;
 };
 
 frappe.ui.scroll = function(element, animate, additional_offset) {
