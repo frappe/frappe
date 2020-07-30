@@ -36,9 +36,11 @@ def get_logger(module, with_more_info=False, allow_site=True, filter=None):
 	else:
 		site = False
 
-	if module in frappe.loggers:
+	LOGGER_NAME = "{}-{}".format(module, site or "all")
+
+	if LOGGER_NAME in frappe.loggers:
 		try:
-			return frappe.loggers[module][site or "all"]
+			return frappe.loggers[LOGGER_NAME]
 		except:
 			pass
 
@@ -51,7 +53,7 @@ def get_logger(module, with_more_info=False, allow_site=True, filter=None):
 
 	LOG_FILENAME = os.path.join('..', 'logs', logfile)
 
-	logger = logging.getLogger(module)
+	logger = logging.getLogger(LOGGER_NAME)
 	logger.setLevel(frappe.log_level or default_log_level)
 	logger.propagate = False
 
@@ -73,11 +75,7 @@ def get_logger(module, with_more_info=False, allow_site=True, filter=None):
 
 	handler.setFormatter(formatter)
 
-	try:
-		frappe.loggers[module][site or "all"] = logger
-	except KeyError:
-		frappe.loggers[module] = {}
-		frappe.loggers[module][site or "all"] = logger
+	frappe.loggers[LOGGER_NAME] = logger
 
 	return logger
 
