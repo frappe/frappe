@@ -38,26 +38,24 @@ def get_logger(module, with_more_info=False, allow_site=True, filter=None):
 
 	LOGGER_NAME = "{}-{}".format(module, site or "all")
 
-	if LOGGER_NAME in frappe.loggers:
-		try:
-			return frappe.loggers[LOGGER_NAME]
-		except:
-			pass
+	try:
+		return frappe.loggers[LOGGER_NAME]
+	except KeyError:
+		pass
 
 	if not module:
 		module = "frappe"
 		with_more_info = True
 
 	logfile = module + ".log"
-
-	LOG_FILENAME = os.path.join("..", "logs", logfile)
+	log_filename = os.path.join("..", "logs", logfile)
 
 	logger = logging.getLogger(LOGGER_NAME)
 	logger.setLevel(frappe.log_level or default_log_level)
 	logger.propagate = False
 
-	formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
-	handler = RotatingFileHandler(LOG_FILENAME, maxBytes=100_000, backupCount=20)
+	formatter = logging.Formatter("%(asctime)s %(levelname)s {0} %(message)s".format(module))
+	handler = RotatingFileHandler(log_filename, maxBytes=100_000, backupCount=20)
 	handler.setFormatter(formatter)
 	logger.addHandler(handler)
 
