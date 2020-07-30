@@ -29,7 +29,7 @@ def get_logger(module, with_more_info=False, allow_site=True, filter=None):
 		<class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
 	"""
 
-	if allow_site == True:
+	if allow_site is True:
 		site = getattr(frappe.local, "site", None)
 	elif allow_site:
 		site = allow_site
