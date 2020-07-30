@@ -110,14 +110,9 @@
 		}
 	}
 
-	// .avatar-small {
-	// 	width: 24px;
-	// 	height: 24px;
-	// }
-
 	&:hover {
-		.avatar {
-			margin-left: 12px;
+		.avatar:not(:last-child) {
+			margin-left: var(--margin-sm);
 		}
 
 		.avatar-action {
@@ -133,9 +128,12 @@
 
 	.avatar-extra-count {
 		font-size: var(--text-sm);
+		font-weight: 500;
+		color: $white;
+		background-color: var(--blue-500);
 	}
 
 	.avatar + .avatar {
-		margin-right: -0.3rem;
+		margin-right: calc(-1 * var(--margin-sm));
 	}
 }
