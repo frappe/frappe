@@ -28,38 +28,16 @@ frappe.ui.form.on('Dashboard Chart', {
 		}
 
 		frm.add_custom_button('Add Chart to Dashboard', () => {
-			const d = new frappe.ui.Dialog({
-				title: __('Add to Dashboard'),
-				fields: [
-					{
-						label: __('Select Dashboard'),
-						fieldtype: 'Link',
-						fieldname: 'dashboard',
-						options: 'Dashboard',
-					}
-				],
-				primary_action: (values) => {
-					values.chart_name = frm.doc.chart_name;
-					frappe.xcall(
-						'frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard',
-						{args: values}
-					).then(()=> {
-						let dashboard_route_html =
-							`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
-						let message =
-							__(`Dashboard Chart ${values.chart_name} add to Dashboard ` + dashboard_route_html);
-
-						frappe.msgprint(message);
-					});
-
-					d.hide();
-				}
-			});
+			const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
+				frm.doc.name,
+				'Dashboard Chart',
+				'frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard'
+			);
 
 			if (!frm.doc.chart_name) {
 				frappe.msgprint(__('Please create chart first'));
 			} else {
-				d.show();
+				dialog.show();
 			}
 		});
 
@@ -147,6 +125,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_df_property('x_field', 'options', []);
 		frm.set_value('filters_json', '{}');
 		frm.set_value('dynamic_filters_json', '{}');
+		frm.set_value('use_report_chart', 0);
 		frm.trigger('set_chart_report_filters');
 	},
 
@@ -175,6 +154,9 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	set_chart_field_options: function(frm) {
 		let filters = frm.doc.filters_json.length > 2 ? JSON.parse(frm.doc.filters_json) : null;
+		if (frm.doc.dynamic_filters_json && frm.doc.dynamic_filters_json.length > 2) {
+			filters = frappe.dashboard_utils.get_all_filters(frm.doc);
+		}
 		frappe.xcall(
 			'frappe.desk.query_report.run',
 			{
@@ -184,16 +166,13 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		).then(data => {
 			frm.report_data = data;
-			if (!data.chart) {
-				frm.set_value('is_custom', 0);
-				frm.set_df_property('is_custom', 'hidden', 1);
-			} else {
-				frm.set_df_property('is_custom', 'hidden', 0);
-			}
+			let report_has_chart = Boolean(data.chart);
 
-			if (!frm.doc.is_custom) {
+			frm.set_df_property('use_report_chart', 'hidden', !report_has_chart);
+
+			if (!frm.doc.use_report_chart) {
 				if (data.result.length) {
-					frm.field_options = frappe.report_utils.get_possible_chart_options(data.columns, data);
+					frm.field_options = frappe.report_utils.get_field_options_from_report(data.columns, data);
 					frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
 					if (!frm.field_options.numeric_fields.length) {
 						frappe.msgprint(__(`Report has no numeric fields, please change the Report Name`));
@@ -312,7 +291,7 @@ frappe.ui.form.on('Dashboard Chart', {
 			set_filters && frm.set_value('filters_json', JSON.stringify(filters));
 		}
 
-		let fields;
+		let fields = [];
 		if (is_document_type) {
 			fields = [
 				{
@@ -337,7 +316,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		} else if (frm.chart_filters.length) {
 			fields = frm.chart_filters.filter(f => f.fieldname);
 
-			fields.map( f => {
+			fields.map(f => {
 				if (filters[f.fieldname]) {
 					let condition = '=';
 					const filter_row =
@@ -435,49 +414,10 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.trigger('set_dynamic_filters_in_table');
 
 		let filters = JSON.parse(frm.doc.filters_json || '[]');
-		let fields = [
-			{
-				fieldtype: 'HTML',
-				fieldname: 'description',
-				options:
-					`<div>
-						<p>Set dynamic filter values in JavaScript for the required fields here.
-						</p>
-						<p>Ex:
-							<code>frappe.defaults.get_user_default("Company")</code>
-						</p>
-					</div>`
-			}
-		];
 
-		if (is_document_type) {
-			if (frm.dynamic_filters) {
-				filters = [...filters, ...frm.dynamic_filters];
-			}
-			filters.forEach(f => {
-				for (let field of fields) {
-					if (field.fieldname == f[0] + ':' + f[1]) {
-						return;
-					}
-				}
-				if (f[2] == '=') {
-					fields.push({
-						label: `${f[1]} (${f[0]})`,
-						fieldname: f[0] + ':' + f[1],
-						fieldtype: 'Data',
-					});
-				}
-			});
-		} else {
-			filters = {...frm.dynamic_filters, ...filters};
-			for (let key of Object.keys(filters)) {
-				fields.push({
-					label: key,
-					fieldname: key,
-					fieldtype: 'Data',
-				});
-			}
-		}
+		let fields = frappe.dashboard_utils.get_fields_for_dynamic_filter_dialog(
+			is_document_type, filters, frm.dynamic_filters
+		);
 
 		frm.dynamic_filter_table.on('click', () => {
 			let dialog = new frappe.ui.Dialog({

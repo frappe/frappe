@@ -337,7 +337,7 @@ class CookieManager:
 		if frappe.session.session_country:
 			self.set_cookie("country", frappe.session.session_country)
 
-	def set_cookie(self, key, value, expires=None, secure=False, httponly=False, samesite="Strict"):
+	def set_cookie(self, key, value, expires=None, secure=False, httponly=False, samesite="Lax"):
 		if not secure:
 			secure = frappe.local.request.scheme == "https"
 		self.cookies[key] = {
