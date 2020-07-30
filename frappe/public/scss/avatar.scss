@@ -6,7 +6,7 @@
 .avatar-frame {
 	display: inline-block;
 	width: 100%;
-	padding: 50%;
+	height: 100%;
 	// TODO: Remove
 	// background-color: var(--pink-200);
 	background-size: cover;
@@ -90,7 +90,7 @@
 }
 
 .avatar-group {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 	flex-direction: row-reverse;
 	&.right {
@@ -126,8 +126,6 @@
 	}
 
 	.avatar {
-		position: relative;
-
 		.avatar-frame {
 			border: 1px solid $white;
 		}
@@ -137,7 +135,7 @@
 		font-size: var(--text-sm);
 	}
 
-	.avatar+.avatar {
+	.avatar + .avatar {
 		margin-right: -0.3rem;
 	}
 }
