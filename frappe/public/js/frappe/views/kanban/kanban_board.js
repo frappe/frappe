@@ -587,36 +587,6 @@ frappe.provide("frappe.views");
 			self.$card.find('.kanban-card-redirect').attr('href', taskLink);
 		}
 
-		function refresh_dialog() {
-			set_dialog_fields();
-			make_assignees();
-		}
-
-		function set_dialog_fields() {
-			self.edit_dialog.fields.forEach(function(df) {
-				var value = card.doc[df.fieldname];
-				if (value) {
-					self.edit_dialog.set_value(df.fieldname, value);
-				}
-			});
-		}
-
-		function make_assignees() {
-			var d = self.edit_dialog;
-			let $assignments =
-				$(`<span class="kanban-assignments">
-				</span>`).append(get_assignees_group());
-
-			d.$wrapper.find("[data-fieldname='assignees'] .control-input-wrapper").empty().append($assignments);
-			d.$wrapper.find(".add-assignment").on("click", function() {
-				if (self.assign_to_dialog) {
-					self.assign_to_dialog.show();
-					return;
-				}
-				show_assign_to_dialog();
-			});
-		}
-
 		function get_assignees_group() {
 			return frappe.avatar_group(
 				card.assigned_list, 3, 'avatar avatar-small', 'right', 'assign', show_assign_to_dialog
