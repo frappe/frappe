@@ -73,11 +73,11 @@ frappe.ui.form.on('User', {
 		frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
 
 		if (frm.doc.name == frappe.session.user) {
-			let button_label = frm.doc.disable_assignments ? __('Available For Assignments') :
-				__('Unavailable For Assignments');
+			let button_label = frm.doc.disable_assignments ? __('Enable Assignments') :
+				__('Disable Assignments');
 
-			let alert_message = frm.doc.disable_assignments ? __('All auto assignments resumed again.') :
-				__('All auto assignments disabled for you.');
+			let alert_message = frm.doc.disable_assignments ? __('All assignments resumed again.') :
+				__('All assignments disabled for you.');
 
 			let indicator = frm.doc.disable_assignments ? 'green' : 'red';
 

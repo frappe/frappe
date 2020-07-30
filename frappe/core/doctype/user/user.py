@@ -107,18 +107,6 @@ class User(Document):
 			now=frappe.flags.in_test or frappe.flags.in_install
 		)
 
-		if self.has_value_changed('disable_assignments') and not self.disable_assignments:
-			assignment_rules = frappe.get_all('Assignment Rule', filters={'disabled':0})
-
-			for assignment_rule in assignment_rules:
-				rule = frappe.get_doc('Assignment Rule', assignment_rule)
-				if self.name in list(x.user for x in rule.users):
-					unassign_docs = frappe.get_all(rule.document_type,
-						or_filters = [["_assign", "=", "[]"], ["_assign", "=", ""]])
-
-					unassign_docs = list(x['name'] for x in unassign_docs)
-					bulk_apply(rule.document_type, json.dumps(unassign_docs))
-
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 
