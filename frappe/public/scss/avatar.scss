@@ -100,19 +100,39 @@
 		justify-content: flex-end;
 	}
 
+	.avatar-action {
+		display: none;
+		margin-left: var(--margin-sm);
+		.icon {
+			use {
+				stroke: var(--grey-500);
+			}
+		}
+	}
+
+	// .avatar-small {
+	// 	width: 24px;
+	// 	height: 24px;
+	// }
+
+	&:hover {
+		.avatar {
+			margin-left: 12px;
+		}
+
+		.avatar-action {
+			display: block;
+		}
+	}
+
 	.avatar {
 		.avatar-frame {
 			border: 1px solid $white;
 		}
-		&:hover {
-			z-index: 1;
-		}
 	}
+
 	.avatar-extra-count {
-		font-size: var(--text-md);
-		font-weight: 500;
-		color: $white;
-		background-color: var(--blue-500);
+		font-size: var(--text-sm);
 	}
 
 	.avatar + .avatar {

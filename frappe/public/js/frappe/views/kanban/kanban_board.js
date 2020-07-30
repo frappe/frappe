@@ -561,9 +561,9 @@ frappe.provide("frappe.views");
 					${card.comment_count}
 				</span>`;
 
-			const assignees_html = get_assignees_html();
+			const $assignees_group = get_assignees_group();
 
-			html += `<span class="kanban-assignments">${assignees_html}</span>`;
+			html += `<span class="kanban-assignments"></span>`;
 
 			if (card.color && frappe.ui.color.validate_hex(card.color)) {
 				const $div = $('<div>');
@@ -578,7 +578,8 @@ frappe.provide("frappe.views");
 				self.$card.find('.kanban-card.content').prepend($div);
 			}
 
-			self.$card.find(".kanban-card-meta").empty().append(html);
+			self.$card.find(".kanban-card-meta").empty().append(html)
+				.find('.kanban-assignments').append($assignees_group);
 		}
 
 		function add_task_link() {
@@ -586,55 +587,23 @@ frappe.provide("frappe.views");
 			self.$card.find('.kanban-card-redirect').attr('href', taskLink);
 		}
 
-		function refresh_dialog() {
-			set_dialog_fields();
-			make_assignees();
+		function get_assignees_group() {
+			return frappe.avatar_group(
+				card.assigned_list, 3, 'avatar avatar-small', 'right', 'assign', show_assign_to_dialog
+			);
 		}
 
-		function set_dialog_fields() {
-			self.edit_dialog.fields.forEach(function(df) {
-				var value = card.doc[df.fieldname];
-				if (value) {
-					self.edit_dialog.set_value(df.fieldname, value);
-				}
-			});
-		}
-
-		function make_assignees() {
-			var d = self.edit_dialog;
-			var html =
-				`<span class="kanban-assignments">
-					${get_assignees_html()}
-					<a class="add-assignment avatar avatar-small avatar-empty">
-						${frappe.utils.icon('small-message')}
-					</a>
-				</span>`;
-
-			d.$wrapper.find("[data-fieldname='assignees'] .control-input-wrapper").empty().append(html);
-			d.$wrapper.find(".add-assignment").on("click", function() {
-				if (self.assign_to_dialog) {
-					self.assign_to_dialog.show();
-					return;
-				}
-				show_assign_to_dialog();
-			});
-		}
-
-		function get_assignees_html() {
-			return frappe.avatar_group(card.assigned_list, 3);
-		}
-
-		function show_assign_to_dialog() {
+		function show_assign_to_dialog(e) {
+			e.preventDefault();
 			self.assign_to = new frappe.ui.form.AssignToDialog({
 				obj: self,
 				method: 'frappe.desk.form.assign_to.add',
 				doctype: card.doctype,
 				docname: card.name,
 				callback: function() {
-					var user = self.assign_to_dialog.get_values().assign_to;
-					card.assigned_list.push(user);
+					const users = self.assign_to_dialog.get_values().assign_to;;
+					card.assigned_list = [...new Set(card.assigned_list.concat(users))];
 					fluxify.doAction('update_card', card);
-					refresh_dialog();
 				}
 			});
 			self.assign_to_dialog = self.assign_to.dialog;

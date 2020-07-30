@@ -88,7 +88,7 @@
 		@include card($padding: 10px 15px);
 		margin-top: var(--margin-sm);
 		width: 260px;
-		min-height: 100px;
+		min-height: 110px;
 		display: flex;
 		justify-content: space-between;
 		flex-direction: column;
@@ -190,6 +190,10 @@
 	.kanban-card-meta {
 		.kanban-assignments {
 			float: right;
+
+			.avatar {
+				cursor: default;
+			}
 		}
 	}
 
