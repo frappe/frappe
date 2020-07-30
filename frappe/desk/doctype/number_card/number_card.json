@@ -1,39 +1,53 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "creation": "2020-04-15 18:06:39.444683",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "is_standard",
+  "module",
   "label",
+  "type",
+  "report_name",
+  "method",
   "function",
   "aggregate_function_based_on",
   "column_break_2",
   "document_type",
+  "report_field",
+  "report_function",
   "is_public",
+  "custom_configuration_section",
+  "filters_config",
   "stats_section",
   "show_percentage_stats",
   "stats_time_interval",
   "filters_section",
   "filters_json",
+  "dynamic_filters_section",
+  "dynamic_filters_json",
+  "section_break_16",
   "color"
  ],
  "fields": [
   {
+   "depends_on": "eval: doc.type == 'Document Type'",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Document Type",
-   "options": "DocType",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.type == 'Document Type'",
+   "options": "DocType"
   },
   {
-   "depends_on": "eval: doc.document_type",
+   "depends_on": "eval: doc.type == 'Document Type'",
    "fieldname": "function",
    "fieldtype": "Select",
    "label": "Function",
-   "options": "Count\nSum\nAverage\nMinimum\nMaximum",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.type == 'Document Type'",
+   "options": "Count\nSum\nAverage\nMinimum\nMaximum"
   },
   {
    "depends_on": "eval: doc.function !== 'Count'",
@@ -92,13 +106,92 @@
    "options": "Daily\nWeekly\nMonthly\nYearly"
   },
   {
+   "depends_on": "eval: doc.type == 'Document Type'",
    "fieldname": "stats_section",
    "fieldtype": "Section Break",
    "label": "Stats"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval: doc.is_standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "eval: doc.is_standard",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "dynamic_filters_json",
+   "fieldtype": "Code",
+   "label": "Dynamic Filters JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "dynamic_filters_section",
+   "fieldtype": "Section Break",
+   "label": "Dynamic Filters Section"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Document Type\nReport\nCustom"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Report'",
+   "fieldname": "report_name",
+   "fieldtype": "Link",
+   "label": "Report Name",
+   "mandatory_depends_on": "eval: doc.type == 'Report'",
+   "options": "Report"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Report'",
+   "fieldname": "report_field",
+   "fieldtype": "Select",
+   "label": "Field",
+   "mandatory_depends_on": "eval: doc.type == 'Report'"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Custom'",
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Method",
+   "mandatory_depends_on": "eval: doc.type == 'Custom'"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Custom'",
+   "fieldname": "custom_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Custom Configuration"
+  },
+  {
+   "fieldname": "filters_config",
+   "fieldtype": "Code",
+   "label": "Filters Configuration",
+   "options": "JSON"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Report'",
+   "fieldname": "report_function",
+   "fieldtype": "Select",
+   "label": "Function",
+   "mandatory_depends_on": "eval: doc.type == 'Report'",
+   "options": "Sum\nAverage\nMinimum\nMaximum"
   }
  ],
  "links": [],
- "modified": "2020-05-06 19:47:57.753574",
+ "modified": "2020-07-23 11:11:03.391719",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

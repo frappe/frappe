@@ -11,6 +11,7 @@ import email.utils
 from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+from email import policy
 
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
@@ -68,8 +69,8 @@ class EMail:
 		self.subject = subject
 		self.expose_recipients = expose_recipients
 
-		self.msg_root = MIMEMultipart('mixed')
-		self.msg_alternative = MIMEMultipart('alternative')
+		self.msg_root = MIMEMultipart('mixed', policy=policy.SMTPUTF8)
+		self.msg_alternative = MIMEMultipart('alternative', policy=policy.SMTPUTF8)
 		self.msg_root.attach(self.msg_alternative)
 		self.cc = cc or []
 		self.bcc = bcc or []
@@ -100,7 +101,7 @@ class EMail:
 			Attach message in the text portion of multipart/alternative
 		"""
 		from email.mime.text import MIMEText
-		part = MIMEText(message, 'plain', 'utf-8')
+		part = MIMEText(message, 'plain', 'utf-8', policy=policy.SMTPUTF8)
 		self.msg_alternative.attach(part)
 
 	def set_part_html(self, message, inline_images):
@@ -113,9 +114,9 @@ class EMail:
 			message, _inline_images = replace_filename_with_cid(message)
 
 			# prepare parts
-			msg_related = MIMEMultipart('related')
+			msg_related = MIMEMultipart('related', policy=policy.SMTPUTF8)
 
-			html_part = MIMEText(message, 'html', 'utf-8')
+			html_part = MIMEText(message, 'html', 'utf-8', policy=policy.SMTPUTF8)
 			msg_related.attach(html_part)
 
 			for image in _inline_images:
@@ -124,7 +125,7 @@ class EMail:
 
 			self.msg_alternative.attach(msg_related)
 		else:
-			self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8'))
+			self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8', policy=policy.SMTPUTF8))
 
 	def set_html_as_text(self, html):
 		"""Set plain text from HTML"""
@@ -135,7 +136,7 @@ class EMail:
 		from email.mime.text import MIMEText
 
 		maintype, subtype = mime_type.split('/')
-		part = MIMEText(message, _subtype = subtype)
+		part = MIMEText(message, _subtype = subtype, policy=policy.SMTPUTF8)
 
 		if as_attachment:
 			part.add_header('Content-Disposition', 'attachment', filename=filename)
@@ -222,7 +223,8 @@ class EMail:
 
 		# reset headers as values may be changed.
 		for key, val in iteritems(headers):
-			self.set_header(key, val)
+			if val:
+				self.set_header(key, val)
 
 		# call hook to enable apps to modify msg_root before sending
 		for hook in frappe.get_hooks("make_email_body_message"):
@@ -238,7 +240,7 @@ class EMail:
 		"""validate, build message and convert to string"""
 		self.validate()
 		self.make()
-		return self.msg_root.as_string()
+		return self.msg_root.as_string(policy=policy.SMTPUTF8)
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
 		email_account=None, header=None, unsubscribe_link=None, sender=None):
