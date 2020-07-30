@@ -5,7 +5,7 @@
 		@drop.prevent="dropfiles"
 	>
 		<div
-			class="file-upload-area padding border rounded text-center cursor-pointer flex align-center justify-center"
+			class="flex justify-center text-center border rounded cursor-pointer file-upload-area padding align-center"
 			@click="browse_files"
 			v-show="files.length === 0 && !show_file_browser && !show_web_link"
 		>
@@ -307,13 +307,9 @@ export default {
 		},
 		upload_via_web_link() {
 			let file_url = this.$refs.web_link.url;
-			let file_name = this.$refs.web_link.name;
-			if (!file_url) {
+			let file_name = this.$refs.web_link.name || null;
+			if (!file_url || !file_url.includes('.')) {
 				frappe.msgprint(__('Invalid URL'));
-				return Promise.reject();
-			}
-			if (!file_name) {
-				frappe.msgprint(__('Invalid Name'));
 				return Promise.reject();
 			}
 

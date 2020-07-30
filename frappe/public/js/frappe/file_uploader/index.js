@@ -52,6 +52,9 @@ export default class FileUploader {
 		return this.uploader.upload_files()
 			.then(() => {
 				this.dialog && this.dialog.hide();
+			})
+			.finally(() => {
+				this.dialog && this.dialog.get_primary_btn().prop('disabled', false);
 			});
 	}
 

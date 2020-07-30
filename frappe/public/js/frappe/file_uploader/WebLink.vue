@@ -1,31 +1,33 @@
 <template>
 	<div class="file-web-link margin-bottom">
-		<a href class="text-muted text-medium"
+		<a href class="back-link text-muted text-medium"
 			@click.prevent="$emit('hide-web-link')"
 		>
 			{{ __('← Back to upload files') }}
 		</a>
-		<div class="input-group">
-			<div class="input-group-addon">
-				<span class="text-muted text-medium">{{ __('Name') }}</span>
-			</div>
-			<input
-				type="text"
-				class="form-control"
-				:placeholder="__('Name')"
-				v-model="name"
-			>
+		<div class="form-group">
+			<label>
+				<div class="control-label">
+					{{ __('Web Link') }}
+				</div>
+				<input
+					type="text"
+					class="form-control"
+					v-model="url"
+				>
+			</label>
 		</div>
-		<div class="input-group">
-			<div class="input-group-addon">
-				<span class="text-muted text-medium">{{ __('Web Link') }}</span>
-			</div>
-			<input
-				type="text"
-				class="form-control"
-				:placeholder="__('Attach a web link')"
-				v-model="url"
-			>
+		<div class="form-group">
+			<label>
+				<div class="control-label">
+					{{ __('Link Name (Optional)') }}
+				</div>
+				<input
+					type="text"
+					class="form-control"
+					v-model="name"
+				>
+			</label>
 		</div>
 	</div>
 </template>
@@ -41,8 +43,17 @@ export default {
 }
 </script>
 
-<style>
-.file-web-link .input-group {
-	margin-top: 10px;
+<style scoped>
+.form-group label {
+	width: 100%;
+}
+
+.form-group .form-control {
+	font-weight: normal;
+}
+
+.back-link {
+	display: block;
+	margin-bottom: 15px;
 }
 </style>
