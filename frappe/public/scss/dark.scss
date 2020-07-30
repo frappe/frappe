@@ -36,4 +36,10 @@
 	--border-color: var(--gray-700);
 	--dark-border-color: var(--gray-600);
 	--highlight-color: var(--gray-700);
+
+	.frappe-card {
+		.btn-default {
+			background-color: var(--bg-color);
+		}
+	}
 }
