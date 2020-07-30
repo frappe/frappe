@@ -116,11 +116,6 @@ body[data-route^="Module"] .main-menu {
 			cursor: pointer;
 		}
 
-		.avatar-group, .share-doc-btn {
-			margin-bottom: var(--margin-sm);
-			margin-right: var(--margin-xs);
-		}
-
 		.octicon {
 			position: relative;
 			left: 4.5px;
@@ -431,8 +426,6 @@ body[data-route^="Module"] .main-menu {
 		justify-content: center;
 		font-size: var(--text-xs);
 		align-items: center;
-		margin-bottom: var(--margin-xs);
-		margin-right: var(--margin-xs);
 		&.appreciation {
 			background-color: var(--dark-green-100);
 			color: var(--dark-green-600);
@@ -451,12 +444,18 @@ body[data-route^="Module"] .main-menu {
 	height: 28px;
 	width: 28px;
 	border-radius: var(--border-radius);
-	border: 1px dashed var(--gray-300);
+	border: 1px dashed var(--dark-border-color);
 	background: var(--gray-50);
 	text-align: center;
-	padding: 3px;
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--fg-color);
+}
+
+.form-shared .avatar-group, .add-review-btn, .share-doc-btn, .review {
 	margin-bottom: var(--margin-sm);
+	margin-right: var(--margin-sm);
 }
 
 .review-popover  {
