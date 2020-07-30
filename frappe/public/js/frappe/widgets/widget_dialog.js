@@ -174,9 +174,9 @@ class ShortcutDialog extends WidgetDialog {
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						let doctype = this.dialog.get_value("link_to");
-						if (frappe.boot.single_types.includes(doctype)) {
+						if (doctype && frappe.boot.single_types.includes(doctype)) {
 							this.hide_filters();
-						} else {
+						} else if (doctype) {
 							this.setup_filter(doctype);
 							this.show_filters();
 						}
