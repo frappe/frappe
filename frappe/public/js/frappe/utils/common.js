@@ -48,14 +48,16 @@ frappe.avatar = function (user, css_class, title, image_url=null, remove_avatar=
 };
 
 frappe.avatar_group = function(users, limit=4, css_class='avatar avatar-small', align='right', icon, action) {
-	let extra_count = users.length - limit;
+	let extra_count = users.length - limit - 1;
 	let icon_html = '';
-	let html = users.slice(0, limit).map(user => frappe.avatar(user, css_class)).join('');
+	const display_users = users.slice(0, limit);
+	const extra_users = users.slice(limit, users.length);
 
+	let html = display_users.map(user => frappe.avatar(user, css_class)).join('');
 	if (extra_count > 0) {
 		html = `
 			<span class="${css_class}">
-				<div class="avatar-frame standard-image avatar-extra-count">
+				<div class="avatar-frame standard-image avatar-extra-count" title="${extra_users.join(', ')}">
 					+${extra_count}
 				</div>
 			</span>
@@ -63,7 +65,7 @@ frappe.avatar_group = function(users, limit=4, css_class='avatar avatar-small', 
 		`;
 	}
 
-	if (icon) icon_html = `<span class="add-avatar">${frappe.utils.icon(icon)}</span>`;
+	if (icon) icon_html = `<span class="avatar-action">${frappe.utils.icon(icon)}</span>`;
 
 	const $avatar_group =
 		$(`<div class="avatar-group ${align}">
@@ -71,7 +73,7 @@ frappe.avatar_group = function(users, limit=4, css_class='avatar avatar-small', 
 			${html}
 		</div>`);
 
-	$avatar_group.find('.add-avatar').on('click', action);
+	$avatar_group.find('.avatar-action').on('click', action);
 	return $avatar_group;
 };
 
