@@ -10,7 +10,7 @@
 		padding: 15px;
 		border-radius: $border-radius;
 		margin: var(--margin-lg) var(--margin-lg) var(--margin-lg) 0;
-		background-color: var(--gray-200);
+		background-color: var(--kanban-bg-color);
  		&.add-new-column {
 			order: 1;
 		}
@@ -62,7 +62,7 @@
 
 	.kanban-column-title {
 		font-size: $font-size-lg;
-		color: var(--gray-900);
+		color: var(--text-color);
 		display: flex;
 		align-items: center;
 		font-weight: normal;
@@ -85,7 +85,7 @@
 	}
 
 	.kanban-card {
-		@include card($padding: 10px 15px);
+		@include card($padding: 10px 15px, $background-color: var(--kanban-card-color));
 		margin-top: var(--margin-sm);
 		width: 260px;
 		min-height: 110px;
@@ -99,7 +99,7 @@
 		display: flex;
 		align-items: center;
 		color: var(--text-light);
-		background-color: var(--fg-color);
+		background-color: var(--kanban-card-color);
 		box-shadow: none;
 		height: 27px;
 		font-size: $font-size-md;
