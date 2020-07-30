@@ -105,25 +105,25 @@ body[data-route^="Module"] .main-menu {
 		}
 	}
 
-
 	a.close {
 		position: absolute;
 		right: 5px;
 	}
 
-
 	.form-shared, .form-viewers {
+		display: inline-flex;
 		.share-doc-btn {
 			cursor: pointer;
+		}
+
+		.avatar-group, .share-doc-btn {
+			margin-bottom: var(--margin-sm);
+			margin-right: var(--margin-xs);
 		}
 
 		.octicon {
 			position: relative;
 			left: 4.5px;
-		}
-
-		.avatar {
-			margin-top: 5px;
 		}
 
 		.shared-with-everyone {
@@ -176,7 +176,6 @@ body[data-route^="Module"] .main-menu {
 				display: block;
 			}
 		}
-
 		.sidebar-image-actions {
 			display: none;
 			position: absolute;
@@ -196,7 +195,6 @@ body[data-route^="Module"] .main-menu {
 	&:focus,
 	&:active {
 		background-color: $control-bg;
-
 		.octicon-plus {
 			color: $text-color !important;
 		}
@@ -211,7 +209,6 @@ body[data-route^="Module"] .main-menu {
 }
 
 .layout-side-section {
-
 	.overlay-sidebar {
 		@media (max-width: 991px) {
 			margin-top: 0 !important;
@@ -458,6 +455,7 @@ body[data-route^="Module"] .main-menu {
 	background: var(--gray-50);
 	text-align: center;
 	padding: 3px;
+	display: inline-block;
 	margin-bottom: var(--margin-sm);
 }
 
@@ -498,7 +496,7 @@ body[data-route^="Module"] .main-menu {
 	}
 }
 
-// Remove top margin from frist child
+// Remove top margin from first child
 .sidebar-item:first-child a {
 	margin-top: 0rem;
 }
