@@ -67,8 +67,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		# Reordered columns
 		columns = json.loads(report.custom_columns)
 
-		if report.report_type == 'Query Report':
-			result = reorder_data_for_custom_columns(columns, query_columns, result)
+		result = reorder_data_for_custom_columns(columns, query_columns, result, report.report_type)
 
 		result = add_data_to_custom_columns(columns, result)
 
@@ -216,15 +215,21 @@ def add_data_to_custom_columns(columns, result):
 
 	return data
 
-def reorder_data_for_custom_columns(custom_columns, columns, result):
+def reorder_data_for_custom_columns(custom_columns, columns, result, report_type):
+	custom_column_labels = [col["label"] for col in custom_columns]
+
+	if report_type == 'Query Report':
+		original_column_labels = [col.split(":")[0] for col in columns]
+	else:
+		original_column_labels = [col["label"] for col in columns]
+
 	reordered_result = []
-	columns = [col.split(":")[0] for col in columns]
 
 	for res in result:
 		r = []
-		for col in custom_columns:
+		for col_name in custom_column_labels:
 			try:
-				idx = columns.index(col.get("label"))
+				idx = original_column_labels.index(col_name)
 				r.append(res[idx])
 			except ValueError:
 				pass
