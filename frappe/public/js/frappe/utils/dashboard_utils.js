@@ -119,6 +119,135 @@ frappe.dashboard_utils = {
 		}
 
 		return static_filters;
+	},
+
+	get_fields_for_dynamic_filter_dialog(is_document_type, filters, dynamic_filters) {
+		let fields = [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'description',
+				options:
+					`<div>
+						<p>Set dynamic filter values in JavaScript for the required fields here.
+						</p>
+						<p>Ex:
+							<code>frappe.defaults.get_user_default("Company")</code>
+						</p>
+					</div>`
+			}
+		];
+
+		if (is_document_type) {
+			if (dynamic_filters) {
+				filters = [...filters, ...dynamic_filters];
+			}
+			filters.forEach(f => {
+				for (let field of fields) {
+					if (field.fieldname == f[0] + ':' + f[1]) {
+						return;
+					}
+				}
+				if (f[2] == '=') {
+					fields.push({
+						label: `${f[1]} (${f[0]})`,
+						fieldname: f[0] + ':' + f[1],
+						fieldtype: 'Data',
+					});
+				}
+			});
+		} else {
+			filters = {...dynamic_filters, ...filters};
+			for (let key of Object.keys(filters)) {
+				fields.push({
+					label: key,
+					fieldname: key,
+					fieldtype: 'Data',
+				});
+			}
+		}
+
+		return fields;
+	},
+
+	get_all_filters(doc) {
+		let filters = JSON.parse(doc.filters_json || "null");
+		let dynamic_filters = JSON.parse(doc.dynamic_filters_json || "null");
+
+		if (!dynamic_filters) {
+			return filters;
+		}
+
+		if ($.isArray(dynamic_filters)) {
+			dynamic_filters.forEach(f => {
+				try {
+					f[3] = eval(f[3]);
+				} catch (e) {
+					frappe.throw(__(`Invalid expression set in filter ${f[1]} (${f[0]})`));
+				}
+			});
+			filters = [...filters, ...dynamic_filters];
+		} else {
+			for (let key of Object.keys(dynamic_filters)) {
+				try {
+					const val = eval(dynamic_filters[key]);
+					dynamic_filters[key] = val;
+				} catch (e) {
+					frappe.throw(__(`Invalid expression set in filter ${key}`));
+				}
+			}
+			Object.assign(filters, dynamic_filters);
+		}
+
+		return filters;
+	},
+
+	get_dashboard_link_field() {
+		let field = {
+			label: __('Select Dashboard'),
+			fieldtype: 'Link',
+			fieldname: 'dashboard',
+			options: 'Dashboard',
+		};
+
+		if (!frappe.boot.developer_mode) {
+			field.get_query = () => {
+				return {
+					filters: {
+						is_standard: 0
+					}
+				};
+			};
+		}
+
+		return field;
+	},
+
+	get_add_to_dashboard_dialog(docname, doctype, method) {
+		const field = this.get_dashboard_link_field();
+
+		const dialog = new frappe.ui.Dialog({
+			title: __('Add to Dashboard'),
+			fields: [field],
+			primary_action: (values) => {
+				values.name = docname;
+				values.set_standard = frappe.boot.developer_mode;
+				frappe.xcall(
+					method,
+					{args: values}
+				).then(()=> {
+					let dashboard_route_html =
+						`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
+					let message =
+						__(`${doctype} ${values.name} added to Dashboard ` + dashboard_route_html);
+
+					frappe.msgprint(message);
+				});
+
+				dialog.hide();
+			}
+		});
+
+		return dialog;
 	}
 
 };

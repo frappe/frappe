@@ -57,7 +57,7 @@ frappe.ui.Filter = class {
 				this.conditions.push([key, __(`{0}`, [filter.label])]);
 				for (let fieldtype of Object.keys(this.invalid_condition_map)) {
 					if (!filter.valid_for_fieldtypes.includes(fieldtype)) {
-						this.invalid_condition_map[fieldtype].push(filter.label);
+						this.invalid_condition_map[fieldtype].push(key);
 					}
 				}
 			}
@@ -249,7 +249,7 @@ frappe.ui.Filter = class {
 			let args = {};
 			if (this.filters_config[condition].depends_on) {
 				const field_name = this.filters_config[condition].depends_on;
-				const filter_value = this.base_list.get_filter_value(field_name);
+				const filter_value = this.filter_list.get_filter_value(fieldname);
 				args[field_name] = filter_value;
 			}
 			frappe

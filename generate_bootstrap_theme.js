@@ -10,7 +10,7 @@ scss_content = scss_content.replace(/\\n/g, '\n');
 
 sass.render({
 	data: scss_content,
-	outputStyle: 'compact',
+	outputStyle: 'compressed',
 	importer: function(url) {
 		if (url.startsWith('~')) {
 			// strip ~ so that it can resolve from node_modules
