@@ -10,7 +10,7 @@
 		padding: 15px;
 		border-radius: $border-radius;
 		margin: var(--margin-lg) var(--margin-lg) var(--margin-lg) 0;
-		background-color: var(--kanban-bg-color);
+		background-color: var(--gray-200);
  		&.add-new-column {
 			order: 1;
 		}
@@ -74,7 +74,7 @@
 	}
 
 	.sortable-ghost > .kanban-card:not(.add-card) {
-		background: #ccc !important;
+		background: var(--fg-hover-color) !important;
 		color: transparent;
 
 		* {
@@ -85,7 +85,7 @@
 	}
 
 	.kanban-card {
-		@include card($padding: 10px 15px, $background-color: var(--kanban-card-color));
+		@include card($padding: 10px 15px, $background-color: var(--fg-color));
 		margin-top: var(--margin-sm);
 		width: 260px;
 		min-height: 110px;
@@ -99,7 +99,7 @@
 		display: flex;
 		align-items: center;
 		color: var(--text-light);
-		background-color: var(--kanban-card-color);
+		background-color: var(--fg-color);
 		box-shadow: none;
 		height: 27px;
 		font-size: $font-size-md;
@@ -107,7 +107,7 @@
 		border-radius: 8px;
 		&:hover {
 			box-shadow: none;
-			color: $text-color;
+			color: var(--text-color);
 			cursor: pointer;
 		}
 
@@ -133,7 +133,7 @@
 	}
 
 	.kanban-card:hover, .new-card-area, .edit-card-area {
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--shadow-base);
 	}
 
 	.kanban-card-wrapper:hover {
@@ -161,6 +161,7 @@
 		margin-bottom: 10px;
 
 		textarea {
+			color: var(--text-color);
 			font-size: 12px;
 			resize: none;
 			border: none;
@@ -184,7 +185,7 @@
 	}
 
 	.add-new-column a:hover {
-		color: $text-color !important;
+		color: var(--text-color) !important;
 	}
 
 	.kanban-card-meta {
@@ -208,7 +209,7 @@ body[data-route*="Kanban"] {
 	.modal .add-assignment:hover {
 		// border-color: @text-color;
 		i {
-			color: $text-color !important;
+			color: var(--text-color) !important;
 		}
 	}
 }
@@ -226,5 +227,15 @@ body[data-route*="Kanban"] {
 		border: none;
 		outline: none;
 		width: 100%;
+	}
+}
+
+[data-theme="dark"] {
+	.kanban-column {
+		background-color: var(--gray-800);
+	}
+
+	.kanban-card, .add-card {
+		background-color: var(--bg-color);
 	}
 }
