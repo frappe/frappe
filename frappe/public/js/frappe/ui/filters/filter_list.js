@@ -60,14 +60,19 @@ frappe.ui.FilterGroup = class {
 		});
 
 		this.filter_button.on('shown.bs.popover', (e) => {
+			let hide_empty_filters = this.filters && this.filters.length > 0;
+
 			if (!this.wrapper) {
 				this.wrapper = $('.filter-popover');
-				if (this.filters && this.filters.length > 0) {
+				console.log('shownn', this.filters);
+				if (hide_empty_filters) {
 					this.toggle_empty_filters(false);
 					this.add_filters_to_popover(this.filters);
 				}
 				this.set_filter_events();
 			}
+
+			hide_empty_filters && this.toggle_empty_filters(false);
 		});
 
 		this.filter_button.on('hidden.bs.popover', (e) => {
@@ -255,15 +260,15 @@ frappe.ui.FilterGroup = class {
 		return $(`
 			<div class="filter-area">
 				<div class="filter-edit-area text-center">
-					<span class="text-muted empty-filters">No filters selected</span>
+					<div class="text-muted empty-filters">${__('No filters selected')}</div>
 				</div>
 				<hr class="divider"></hr>
 				<div class="filter-action-buttons">
 					<div class="text-muted add-filter">
-						${__("+ Add a Filter")}
+						${__('+ Add a Filter')}
 					</div>
 					<button class="btn btn-secondary-dark btn-xs clear-filters">
-						${__("Clear Filters")}
+						${__('Clear Filters')}
 					</button>
 				</div>
 			</div>`

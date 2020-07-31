@@ -102,10 +102,10 @@
 
 	.avatar-action {
 		display: none;
-		margin-left: var(--margin-sm);
+		margin-left: var(--margin-xs);
 		.icon {
 			use {
-				stroke: var(--grey-500);
+				stroke: var(--text-muted);
 			}
 		}
 	}
@@ -123,7 +123,7 @@
 	.avatar {
 		transition: margin .1s ease-in-out;
 		.avatar-frame {
-			border: 1px solid $white;
+			border: 1px solid var(--fg-color);
 		}
 	}
 
