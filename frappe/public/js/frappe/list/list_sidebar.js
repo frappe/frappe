@@ -87,7 +87,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		if ((this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
             this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
             (JSON.stringify(frappe.listview_settings) !== '{}' &&
-            frappe.listview_settings[this.list_view.doctype].get_coords_method)){
+            frappe.listview_settings[this.list_view.doctype].get_coords_method)) {
 			this.sidebar.find('.list-link[data-view="Map"]').removeClass('hide');
 			show_list_link = true;
 		}

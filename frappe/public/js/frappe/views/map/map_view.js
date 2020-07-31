@@ -73,7 +73,6 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		} else {
 			get_coords_method = frappe.listview_settings[this.doctype].get_coords_method;
 		}
-		console.log(cur_list.filter_area);
 		return frappe.call({
 			method: get_coords_method,
 			args: {
