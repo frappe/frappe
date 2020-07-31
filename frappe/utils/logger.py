@@ -16,11 +16,11 @@ import frappe
 default_log_level = logging.DEBUG
 
 
-def get_logger(module, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
+def get_logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
 	"""Application Logger for your given module
 
 	Args:
-		module (str): Name of your logger and consequently your log file.
+		module (str, optional): Name of your logger and consequently your log file. Defaults to None.
 		with_more_info (bool, optional): Will log the form dict using the SiteContextFilter. Defaults to False.
 		allow_site ((str, bool), optional): Pass site name to explicitly log under it's logs. If True and unspecified, guesses which site the logs would be saved under. Defaults to True.
 		filter (function, optional): Add a filter function for your logger. Defaults to None.
