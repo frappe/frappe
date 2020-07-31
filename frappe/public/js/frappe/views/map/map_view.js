@@ -23,7 +23,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	prepare_data(data) {
 		super.prepare_data(data);
 		this.items = this.data.map(d => {
-		 return d; 
+			return d;
 		});
 	}
 
@@ -43,7 +43,6 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 				
 			</div>
 		`);
-
 
 
 		this.map = L.map(this.map_id).setView([12.3112899, -85.7384542], 8); //coords of India if markers does not exists
@@ -68,27 +67,24 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	get_coords() {
-        let get_coords_method;
-        if (JSON.stringify(frappe.listview_settings) === '{}') {
-            get_coords_method = 'frappe.geo.utils.get_coords';
-        } else {
-            get_coords_method = frappe.listview_settings[this.doctype].get_coords_method;
-        }
-        console.log(cur_list.filter_area);
-        var results = frappe.call({
-            method: get_coords_method,
-            args: {
-                doctype: this.doctype,
-                filters: cur_list.filter_area.get()
-            }
-        }).then(r => {
-            this.coords_map = Object.assign(r.message);
+		let get_coords_method;
+		if (JSON.stringify(frappe.listview_settings) === '{}') {
+			get_coords_method = 'frappe.geo.utils.get_coords';
+		} else {
+			get_coords_method = frappe.listview_settings[this.doctype].get_coords_method;
+		}
+		console.log(cur_list.filter_area);
+		return frappe.call({
+			method: get_coords_method,
+			args: {
+				doctype: this.doctype,
+				filters: cur_list.filter_area.get()
+			}
+		}).then(r => {
+			this.coords_map = Object.assign(r.message);
 
-        });
-        //console.log(results);
-        return results;
-    }
-
+		});
+	}
 
 
 	get required_libs() {
