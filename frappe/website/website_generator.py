@@ -96,7 +96,7 @@ class WebsiteGenerator(Document):
 		self.send_indexing_request('URL_DELETED')
 		# On deleting the doc, remove the page from the web_routes index
 		if self.allow_website_search_indexing():
-			remove_document_from_index("web_routes", self.route)
+			remove_document_from_index(self.route)
 
 	def is_website_published(self):
 		"""Return true if published in website"""
