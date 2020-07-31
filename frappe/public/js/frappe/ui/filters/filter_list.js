@@ -48,6 +48,7 @@ frappe.ui.FilterGroup = class {
 					&& $(e.target).parents('.filter-box').length === 0
 					&& this.filter_button.find($(e.target)).length === 0
 					&& !$(e.target).is(this.filter_button)
+					&& !$(e.target).is('.datepicker--cell')
 				) {
 					this.wrapper && this.filter_button.popover('hide');
 				}
