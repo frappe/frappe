@@ -22,7 +22,9 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 	prepare_data(data) {
 		super.prepare_data(data);
-		this.items = this.data.map(d => { return d; });
+		this.items = this.data.map(d => {
+		 return d; 
+		});
 	}
 
 	render() {
@@ -66,25 +68,26 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	get_coords() {
-	     let get_coords_method;
-	     if (JSON.stringify(frappe.listview_settings) === '{}') {
-	         get_coords_method = 'frappe.geo.utils.get_coords';
-        } else{
-	         get_coords_method = frappe.listview_settings[this.doctype].get_coords_method;
-         }
-		var results = frappe.call({
-			method: get_coords_method,
-			args: {
-				doctype: this.doctype,
+        let get_coords_method;
+        if (JSON.stringify(frappe.listview_settings) === '{}') {
+            get_coords_method = 'frappe.geo.utils.get_coords';
+        } else {
+            get_coords_method = frappe.listview_settings[this.doctype].get_coords_method;
+        }
+        console.log(cur_list.filter_area);
+        var results = frappe.call({
+            method: get_coords_method,
+            args: {
+                doctype: this.doctype,
                 filters: cur_list.filter_area.get()
-			}
-		}).then(r => {
-			this.coords_map = Object.assign(r.message);
+            }
+        }).then(r => {
+            this.coords_map = Object.assign(r.message);
 
-		});
-		//console.log(results);
-		return results;
-	}
+        });
+        //console.log(results);
+        return results;
+    }
 
 
 
