@@ -34,6 +34,6 @@ def get_coords_conditions(doctype, filters=None):
     """Returns SQL conditions with user permissions and filters for event queries"""
     from frappe.desk.reportview import get_filters_cond
     if not frappe.has_permission(doctype):
-        frappe.throw(_("Not Permitted"), frappe.PermissionError)
+        frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
 
     return get_filters_cond(doctype, filters, [], with_match_conditions=True)
