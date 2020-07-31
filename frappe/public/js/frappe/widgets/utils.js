@@ -8,15 +8,39 @@ function generate_route(item) {
 		if (item.link) {
 			route = strip(item.link, "#");
 		} else if (type === "doctype") {
-			if (frappe.model.is_tree(item.doctype)) {
-				route = "Tree/" + item.doctype;
-			} else if (frappe.model.is_single(item.doctype)) {
+			if (frappe.model.is_single(item.doctype)) {
 				route = "Form/" + item.doctype;
 			} else {
-				if (item.filters) {
-					frappe.route_options = item.filters;
+				if (!item.doc_view) {
+					if (frappe.model.is_tree(item.doctype)) {
+						item.doc_view = "Tree";
+					} else {
+						item.doc_view = "List";
+					}
 				}
-				route = "List/" + item.doctype;
+				switch (item.doc_view) {
+				case "List":
+					if (item.filters) {
+						frappe.route_options = item.filters;
+					}
+					route = "List/" + item.doctype;
+					break;
+				case "Tree":
+					route = "Tree/" + item.doctype;
+					break;
+				case "Report Builder":
+					route = "List/" + item.doctype + "/Report";
+					break;
+				case "Dashboard":
+				        route = "List/" + item.doctype + "/Dashboard";
+					break;
+				case "New":
+					route = "Form/" + item.doctype + "/New " + item.doctype;
+					break;
+				default:
+					frappe.throw({message: __("Not a valid DocType view:") + item.doc_view, title: __("Unknown View")});
+					route = "";
+				}
 			}
 		} else if (type === "report" && item.is_query_report) {
 			route = "query-report/" + item.name;

@@ -186,6 +186,16 @@ class ShortcutDialog extends WidgetDialog {
 				},
 			},
 			{
+				fieldtype: "Select",
+				fieldname: "doc_view",
+				label: "DocType View",
+				options: "\nList\nReport Builder\nDashboard\nTree\nNew",
+				description: "Which view of the associated DocType should this shortcut take you to?",
+				depends_on: (state) => {
+					return state.type == "DocType";
+				}
+			},
+			{
 				fieldtype: "Section Break",
 				fieldname: "filters_section_break",
 				label: "Count Filter",
