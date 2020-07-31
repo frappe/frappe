@@ -273,6 +273,15 @@ class NotificationsView extends BaseNotificaitonsView {
 		});
 	}
 
+	mark_as_read(docname, $el) {
+		frappe.call(
+			'frappe.desk.doctype.notification_log.notification_log.mark_as_read',
+			{ docname: docname }
+		).then(() => {
+			$el.removeClass('unread');
+		});
+	}
+
 	insert_into_dropdown() {
 		let new_item = this.dropdown_items[0];
 		let new_item_html = this.get_dropdown_item_html(new_item);
@@ -301,7 +310,7 @@ class NotificationsView extends BaseNotificaitonsView {
 		let user_avatar = frappe.avatar(user, 'avatar-medium user-avatar');
 
 		let item_html =
-			`<a class="recent-item notification-item ${read_class}"
+			$(`<a class="recent-item notification-item ${read_class}"
 				href="${doc_link}"
 				data-name="${field.name}"
 			>
@@ -311,41 +320,46 @@ class NotificationsView extends BaseNotificaitonsView {
 				</div>
 				<div class="mark-as-read">
 				</div>
-			</a>`;
+			</a>`);
+
+		item_html.find('.mark-as-read').on('click', (e) => {
+			e.stopImmediatePropagation();
+			if (!field.read) {
+				this.mark_as_read(field.name, item_html);
+			}
+		});
+
+		item_html.on('click', (e) => {
+			if (!field.read) {
+				this.mark_as_read(field.name, item_html);
+			}
+		});
 
 		return item_html;
 	}
 
 	render_notifications_dropdown() {
-		let body_html = '';
-		let view_full_log_html = '';
-		let dropdown_html;
-
 		if (this.notifications_settings && !this.notifications_settings.enabled) {
-			dropdown_html = `<li class="recent-item notification-item">
+			this.container.html(`<li class="recent-item notification-item">
 				<span class="text-muted">
 					${__('Notifications Disabled')}
-				</span></li>`;
+				</span></li>`);
 		} else {
 			if (this.dropdown_items.length) {
 				this.dropdown_items.forEach(field => {
-					let item_html = this.get_dropdown_item_html(field);
-					if (item_html) body_html += item_html;
+					this.container.append(this.get_dropdown_item_html(field));
 				});
-				view_full_log_html = `<a class="list-footer"
+				this.container.append(`<a class="list-footer"
 					href="#List/Notification Log">
 						<div class="full-log-btn">${__('See all Activity')}</div>
-					</a>`;
+					</a>`);
 			} else {
-				body_html += `<li class="recent-item text-center activity-status">
+				this.container.append($(`<li class="recent-item text-center activity-status">
 					<span class="text-muted">
 						${__('No activity')}
-					</span></li>`;
+					</span></li>`));
 			}
-			dropdown_html = body_html + view_full_log_html;
 		}
-
-		this.container.html(dropdown_html);
 	}
 
 	get_notifications_list(limit) {
