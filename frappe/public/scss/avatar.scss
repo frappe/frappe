@@ -121,6 +121,7 @@
 	}
 
 	.avatar {
+		transition: margin .1s ease-in-out;
 		.avatar-frame {
 			border: 1px solid $white;
 		}
