@@ -44,7 +44,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 
 
-		this.map = L.map(this.map_id).setView([12.3112899, -85.7384542], 8);
+		this.map = L.map(this.map_id).setView([12.3112899, -85.7384542], 8); //coords of India if markers does not exists
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
@@ -54,11 +54,14 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		L.control.scale().addTo(this.map);
 
 		var markers = {};
+		let lastCoords = [];
 		for (const [key, value] of Object.entries(this.coords_map)) {
 			markers = new L.marker([value[0], value[1]])
 				.bindPopup(key)
 				.addTo(this.map);
+			lastCoords = [value[0], value[1]];
 		}
+		this.map.panTo(lastCoords, 8);
 
 
 	}
