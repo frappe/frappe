@@ -53,10 +53,9 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 		L.control.scale().addTo(this.map);
 
-		var markers = {};
 		let lastCoords = [];
 		for (const [key, value] of Object.entries(this.coords_map)) {
-			markers = new L.marker([value[0], value[1]])
+			new L.marker([value[0], value[1]])
 				.bindPopup(key)
 				.addTo(this.map);
 			lastCoords = [value[0], value[1]];
@@ -67,13 +66,12 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	get_coords() {
-	    let get_coords_method;
-	     if (JSON.stringify(frappe.listview_settings) === '{}'){
+	     let get_coords_method;
+	     if (JSON.stringify(frappe.listview_settings) === '{}') {
 	         get_coords_method = 'frappe.geo.utils.get_coords';
         } else{
 	         get_coords_method = frappe.listview_settings[this.doctype].get_coords_method;
          }
-	     console.log(cur_list.filter_area);
 		var results = frappe.call({
 			method: get_coords_method,
 			args: {
