@@ -22,7 +22,6 @@ def get_coords(doctype, filters):
             return
     else:
         coords = frappe.get_all(doctype, fields=['name', 'latitude', 'longitude'])
-    print(coords)
     out = frappe._dict()
     for i in coords:
         out[i.name] = out.get(i.docname, [])
