@@ -65,7 +65,7 @@ frappe.avatar_group = function(users, limit=4, css_class='avatar avatar-small', 
 		`;
 	}
 
-	if (icon) icon_html = `<span class="avatar-action">${frappe.utils.icon(icon)}</span>`;
+	if (icon) icon_html = `<span class="avatar-action">${frappe.utils.icon(icon, 'md')}</span>`;
 
 	const $avatar_group =
 		$(`<div class="avatar-group ${align}">
