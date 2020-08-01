@@ -208,26 +208,22 @@ def get_backup():
 
 
 @frappe.whitelist()
-def fetch_latest_backups(with_files=True, recent=3):
-	"""Takes backup on-demand if doesnt exist satisfying the `recent` parameter
+def fetch_latest_backups():
+	"""Fetches paths of the latest backup taken in the last 30 days
 	Only for: System Managers
-
-	Args:
-		with_files (bool, optional): If set, files will backuped up. Defaults to True.
-		recent (int, optional): Won't take a new backup if backup exists within this paramter. Defaults to 3 hours
 
 	Returns:
 		dict: relative Backup Paths
 	"""
 	frappe.only_for("System Manager")
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name, frappe.conf.db_password, db_host=frappe.db.host, db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
-	odb.get_backup(older_than=recent, ignore_files=not with_files)
+	database, public, private, config = odb.get_recent_backup(older_than=24 * 30)
 
 	return {
-		"database": odb.backup_path_db,
-		"public": odb.backup_path_files,
-		"private": odb.backup_path_private_files,
-		"config": odb.site_config_backup_path
+		"database": database,
+		"public": public,
+		"private": private,
+		"config": config
 	}
 
 

@@ -107,6 +107,9 @@ class Newsletter(WebsiteGenerator):
 		if self.get("__islocal"):
 			throw(_("Please save the Newsletter before sending"))
 
+		if not self.recipients:
+			frappe.throw(_("Newsletter should have at least one recipient"))
+
 	def get_context(self, context):
 		newsletters = get_newsletter_list("Newsletter", None, None, 0)
 		if newsletters:
