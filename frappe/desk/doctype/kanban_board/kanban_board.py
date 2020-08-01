@@ -127,7 +127,7 @@ def update_order(board_name, order):
 
 
 @frappe.whitelist()
-def quick_kanban_board(doctype, board_name, field_name, project=None):
+def quick_kanban_board(doctype, board_name, field_name, hide_label, card_fields, project=None):
 	'''Create new KanbanBoard quickly with default options'''
 
 	doc = frappe.new_doc('Kanban Board')
@@ -152,6 +152,14 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 	doc.kanban_board_name = board_name
 	doc.reference_doctype = doctype
 	doc.field_name = field_name
+	doc.hide_label = hide_label
+	card_fields = json.loads(card_fields)
+
+	for d in card_fields:
+		doc.append("card_fields", {
+			"field_name" : d["field_name"],
+			"label" : d["label"]
+		})
 
 	if project:
 		doc.filters = '[["Task","project","=","{0}"]]'.format(project)

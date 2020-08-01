@@ -205,13 +205,15 @@ frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown)
 		dialog.show();
 	});
 
-	function make_kanban_board(board_name, field_name, project) {
+	function make_kanban_board(board_name, field_name, hide_label, card_fields, project) {
 		return frappe.call({
 			method: 'frappe.desk.doctype.kanban_board.kanban_board.quick_kanban_board',
 			args: {
 				doctype,
 				board_name,
 				field_name,
+				hide_label,
+				card_fields,
 				project
 			},
 			callback: function(r) {
@@ -234,8 +236,8 @@ frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown)
 
 		let primary_action_label = fields.length > 1 ? __('Save') : '';
 		let primary_action = fields.length > 1 ?
-			({ board_name, field_name, project }) => {
-				make_kanban_board(board_name, field_name, project)
+			({ board_name, field_name, hide_label, card_fields, project }) => {
+				make_kanban_board(board_name, field_name, hide_label, card_fields, project)
 					.then(() => dialog.hide(), (err) => frappe.msgprint(err));
 			} : null;
 
@@ -268,19 +270,23 @@ frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown)
 			});
 		}
 
-		const select_fields =
-			frappe.get_meta(doctype).fields
-				.filter(df => {
-					return df.fieldtype === 'Select' &&
-						df.fieldname !== 'kanban_column';
-				});
+		let select_fields = [], card_fields_option = [];
+		frappe.get_meta(doctype).fields.map(function(d) {
+			if (frappe.model.no_value_type.indexOf(d.fieldtype) === -1) {			
+				card_fields_option.push({ label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname });
+
+				if (d.fieldtype === 'Select') {
+					select_fields.push({ label: d.label, value: d.fieldname });
+				}
+			}
+		});
 
 		if (select_fields.length > 0) {
 			fields.push({
 				fieldtype: 'Select',
 				fieldname: 'field_name',
 				label: __('Columns based on'),
-				options: select_fields.map(df => ({label: df.label, value: df.fieldname})),
+				options: select_fields,
 				default: select_fields[0],
 				reqd: 1,
 			});
@@ -299,7 +305,43 @@ frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown)
 				`
 			}];
 		}
-		
+		fields.push(
+			{
+				fieldtype: 'Section Break',
+				label: __('Card Fields')
+			},
+			{
+				fieldtype: 'Check',
+				fieldname: 'hide_label',
+				label: __('Hide Label'),
+				default: 0
+			},
+			{
+				fieldtype: 'Table',
+				fieldname: 'card_fields',
+				in_place_edit: true,
+				fields: [{
+					label: __("Field Name"),
+					fieldtype: 'Select',
+					fieldname: "field_name",
+					in_list_view: 1,
+					options: card_fields_option,
+					change: function() {
+						let field=this.grid_row.on_grid_fields_dict.field_name.get_value();
+
+						let label= frappe.get_meta(doctype).fields.filter(function (d) {
+							return d.fieldname == field;
+						})[0].label;
+						this.grid_row.on_grid_fields_dict.label.set_value(label);
+					}
+				},
+				{
+					label: __("Label"),
+					fieldtype: 'Data',
+					fieldname: 'label',
+					in_list_view: 1
+				}],
+			});
 		return fields;
 	}
 	

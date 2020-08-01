@@ -89,47 +89,6 @@ frappe.provide("frappe.views");
 						console.error(err); // eslint-disable-line
 					});
 			},
-			add_card: function(updater, card_title, column_title) {
-				var doc = frappe.model.get_new_doc(this.doctype);
-				var field = this.card_meta.title_field;
-				var quick_entry = this.card_meta.quick_entry;
-				var state = this;
-
-				var doc_fields = {};
-				doc_fields[field.fieldname] = card_title;
-				doc_fields[this.board.field_name] = column_title;
-				this.cur_list.filter_area.get().forEach(function(f) {
-					if (f[2] !== "=") return;
-					doc_fields[f[1]] = f[3];
-				});
-
-				$.extend(doc, doc_fields);
-
-				// add the card directly
-				// for better ux
-				const card = prepare_card(doc, state);
-				card._disable_click = true;
-				const cards = [...state.cards, card];
-				// remember the name which we will override later
-				const old_name = doc.name;
-				updater.set({ cards });
-
-				if (field && !quick_entry) {
-					return insert_doc(doc)
-						.then(function(r) {
-							// update the card in place with the updated doc
-							const updated_doc = r.message;
-							const index = state.cards.findIndex(card => card.name === old_name);
-							const card = prepare_card(updated_doc, state);
-							const new_cards = state.cards.slice();
-							new_cards[index] = card;
-							updater.set({ cards: new_cards });
-							fluxify.doAction('update_order');
-						});
-				} else {
-					frappe.new_doc(this.doctype, doc);
-				}
-			},
 			update_card: function(updater, card) {
 				var index = -1;
 				this.cards.forEach(function(c, i) {
