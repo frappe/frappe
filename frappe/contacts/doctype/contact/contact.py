@@ -182,18 +182,16 @@ def update_contact(doc, method):
 		contact.flags.ignore_mandatory = True
 		contact.save(ignore_permissions=True)
 
+@frappe.whitelist()
 def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
+	if not frappe.get_meta("Contact").get_field(searchfield)\
+		or searchfield not in frappe.db.DEFAULT_COLUMNS:
+		return []
+
 	link_doctype = filters.pop('link_doctype')
 	link_name = filters.pop('link_name')
-
-	condition = ""
-	for fieldname, value in iteritems(filters):
-		condition += " and {field}={value}".format(
-			field=fieldname,
-			value=value
-		)
 
 	return frappe.db.sql("""select
 			`tabContact`.name, `tabContact`.first_name, `tabContact`.last_name
@@ -209,9 +207,7 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 		order by
 			if(locate(%(_txt)s, `tabContact`.name), locate(%(_txt)s, `tabContact`.name), 99999),
 			`tabContact`.idx desc, `tabContact`.name
-		limit %(start)s, %(page_len)s """.format(
-			mcond=get_match_cond(doctype),
-			key=searchfield), {
+		limit %(start)s, %(page_len)s """.format(mcond=get_match_cond(doctype), key=searchfield), {
 			'txt': '%' + txt + '%',
 			'_txt': txt.replace("%", ""),
 			'start': start,
