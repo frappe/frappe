@@ -130,6 +130,9 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	searchfields = meta.get_search_fields()
 	search_conditions = []
 
+	if not frappe.db.exists('DocType', doctype):
+		return
+
 	if txt:
 		for field in searchfields:
 			search_conditions.append('`tab{doctype}`.`{field}` like {txt}'.format(field=field, doctype=doctype, txt=frappe.db.escape(txt)))
