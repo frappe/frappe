@@ -135,7 +135,7 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 
 	if txt:
 		for field in searchfields:
-			search_conditions.append('`tab{doctype}`.`{field}` like {txt}'.format(field=field, doctype=doctype, txt=frappe.db.escape(txt)))
+			search_conditions.append('`tab{doctype}`.`{field}` like %(txt)s'.format(field=field, doctype=doctype, txt=txt))
 
 		search_conditions = ' or '.join(search_conditions)
 
