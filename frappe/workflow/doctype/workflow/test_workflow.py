@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from frappe.utils import random_string
-from frappe.model.workflow import apply_workflow, WorkflowTransitionError, WorkflowPermissionError, get_common_transition_actions, get_workflow
+from frappe.model.workflow import apply_workflow, WorkflowTransitionError, WorkflowPermissionError, get_common_transition_actions
 from frappe.test_runner import make_test_records
 
 make_test_records("User")
