@@ -309,5 +309,6 @@ def redirect_post_login(desk_user, redirect_to=None, provider=None):
 		# the #desktop is added to prevent a facebook redirect bug
 		desk_uri = "/desk#desktop" if provider == 'facebook' else '/desk'
 		redirect_to = desk_uri if desk_user else "/me"
+		redirect_to = frappe.utils.get_url(redirect_to)
 
-	frappe.local.response["location"] = frappe.utils.get_url(redirect_to)
+	frappe.local.response["location"] = redirect_to
