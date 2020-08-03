@@ -78,7 +78,7 @@ class TestWorkflow(unittest.TestCase):
 		frappe.set_user('test2@example.com')
 
 		doc = self.test_default_condition()
-		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
+		workflow_actions = frappe.get_all('Workflow Action', fields=['status', 'reference_name'])
 		self.assertEqual(len(workflow_actions), 1)
 
 		# test if status of workflow actions are updated on approval
@@ -102,6 +102,9 @@ class TestWorkflow(unittest.TestCase):
 		todo.reload()
 		self.assertEqual(todo.docstatus, 1)
 
+		self.workflow.states[1].doc_status = 0
+		self.workflow.save()
+
 	def test_if_workflow_set_on_action(self):
 		self.workflow.states[1].doc_status = 1
 		self.workflow.save()
@@ -110,6 +113,9 @@ class TestWorkflow(unittest.TestCase):
 		todo.submit()
 		self.assertEqual(todo.docstatus, 1)
 		self.assertEqual(todo.workflow_state, 'Approved')
+
+		self.workflow.states[1].doc_status = 0
+		self.workflow.save()
 
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):
