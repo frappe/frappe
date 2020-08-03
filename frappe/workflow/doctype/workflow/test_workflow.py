@@ -30,6 +30,9 @@ class TestWorkflow(unittest.TestCase):
 	def test_approve(self, doc=None):
 		'''test simple workflow'''
 		todo = doc or self.test_default_condition()
+		print(frappe.db.sql("select name from `tabRole`"))
+		print('------------')
+		print(frappe.get_roles(), frappe.session.user)
 
 		apply_workflow(todo, 'Approve')
 		# default condition is set

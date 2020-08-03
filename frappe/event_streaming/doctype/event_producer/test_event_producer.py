@@ -203,49 +203,49 @@ class TestEventProducer(unittest.TestCase):
 
 		reset_configuration(producer_url)
 
-	# def test_inner_mapping(self):
-	# 	producer = get_remote_site()
-	# 	event_producer = frappe.get_doc('Event Producer', producer_url)
-	# 	event_producer.producer_doctypes = []
-	# 	inner_mapping = [
-	# 		{
-	# 			'local_fieldname':'role_name',
-	# 			'remote_fieldname':'title'
-	# 		}
-	# 	]
-	# 	inner_map = get_mapping('Role to Note Dependency Creation', 'Role', 'Note', inner_mapping)
-	# 	mapping = [
-	# 		{
-	# 			'local_fieldname':'description',
-	# 			'remote_fieldname':'content',
-	# 		},
-	# 		{
-	# 			'local_fieldname': 'role',
-	# 			'remote_fieldname': 'title',
-	# 			'mapping_type': 'Document',
-	# 			'mapping': inner_map,
-	# 			'remote_value_filters': json.dumps({'title': 'title'})
-	# 		}
-	# 	]
-	# 	event_producer.append('producer_doctypes', {
-	# 		'ref_doctype': 'ToDo',
-	# 		'use_same_name': 1,
-	# 		'has_mapping': 1,
-	# 		'mapping': get_mapping('ToDo to Note Mapping', 'ToDo', 'Note', mapping)
-	# 	})
-	# 	event_producer.save()
+	def test_inner_mapping(self):
+		producer = get_remote_site()
+		event_producer = frappe.get_doc('Event Producer', producer_url)
+		event_producer.producer_doctypes = []
+		inner_mapping = [
+			{
+				'local_fieldname':'role_name',
+				'remote_fieldname':'title'
+			}
+		]
+		inner_map = get_mapping('Role to Note Dependency Creation', 'Role', 'Note', inner_mapping)
+		mapping = [
+			{
+				'local_fieldname':'description',
+				'remote_fieldname':'content',
+			},
+			{
+				'local_fieldname': 'role',
+				'remote_fieldname': 'title',
+				'mapping_type': 'Document',
+				'mapping': inner_map,
+				'remote_value_filters': json.dumps({'title': 'title'})
+			}
+		]
+		event_producer.append('producer_doctypes', {
+			'ref_doctype': 'ToDo',
+			'use_same_name': 1,
+			'has_mapping': 1,
+			'mapping': get_mapping('ToDo to Note Mapping', 'ToDo', 'Note', mapping)
+		})
+		event_producer.save()
 
-	# 	producer_note = frappe._dict(doctype='Note', title='Inner Mapping Tester', content='Test Inner Mapping')
-	# 	delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
-	# 	producer_note = producer.insert(producer_note)
-	# 	self.pull_producer_data()
+		producer_note = frappe._dict(doctype='Note', title='Inner Mapping Tester', content='Test Inner Mapping')
+		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
+		producer_note = producer.insert(producer_note)
+		self.pull_producer_data()
 
-	# 	#check dependency inserted
-	# 	self.assertTrue(frappe.db.exists('Role', {'role_name': producer_note.title}))
-	# 	#check doc inserted
-	# 	self.assertTrue(frappe.db.exists('ToDo', {'description': producer_note.content}))
+		#check dependency inserted
+		self.assertTrue(frappe.db.exists('Role', {'role_name': producer_note.title}))
+		#check doc inserted
+		self.assertTrue(frappe.db.exists('ToDo', {'description': producer_note.content}))
 
-	# 	reset_configuration(producer_url)
+		reset_configuration(producer_url)
 
 
 def insert_into_producer(producer, description):
