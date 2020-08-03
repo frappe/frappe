@@ -38,7 +38,7 @@ class Workspace {
 
 	show() {
 		let page = this.get_page_to_show();
-		this.page.set_title(`${__(page)} Workspace`);
+		this.page.set_title(`${__(page)}`);
 		frappe.set_route('workspace', page);
 		this.show_page(page);
 	}
