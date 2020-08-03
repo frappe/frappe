@@ -62,7 +62,7 @@
 	.notification-list-header {
 		margin: 0px 10px;
 		@include flex(flex, space-between, center, null);
-		border-bottom: 1px solid $border-color;
+		border-bottom: 1px solid var(--border-color);
 	}
 
 	.notification-list-body {
@@ -90,13 +90,13 @@
 			padding: 15px 0px;
 			margin-bottom: -1px;
 			margin-right: 20px;
-			color: $text-muted;
+			color: var(--text-light);
 			font-weight: 500;
 			cursor: pointer;
 
 			&.active {
-				color: var(--gray-800);
-				border-bottom: 1px solid $primary;
+				color: var(--text-color);
+				border-bottom: 1px solid var(--primary-color);
 			}
 		}
 	}
@@ -116,16 +116,16 @@
 	display: flex;
 	font-size: var(--text-md);
 	line-height: 20px;
-	color: $text-muted;
+	color: var(--text-light);
 
 	&:first-child {
 		margin-top: 10px;
 	}
 
 	&:not(.no-hover):hover {
-		color: $text-muted;
+		color: var(--text-muted);
 		text-decoration: none;
-		background-color: var(--gray-100);
+		background-color: var(--fg-hover-color);
 	}
 }
 
@@ -142,13 +142,13 @@
 				justify-self: end;
 				width: 8px;
 				height: 8px;
-				border: 2px solid var(--blue-500);
+				border: 2px solid var(--primary);
 				border-radius: 1000px;
 			}
 		}
 
 		.notification-body::before {
-			background: var(--blue-500);
+			background: var(--primary);
 		}
 	}
 
@@ -168,7 +168,7 @@
 
 	b {
 		font-weight: 500;
-		color: var(--gray-800)
+		color: var(--text-light)
 	}
 
 	.notification-timestamp {
@@ -188,7 +188,7 @@
 .recent-item.event {
 	.event-border {
 		width: 1px;
-		border: 1px solid $primary;
+		border: 1px solid var(--primary-color);
 		border-radius: 4px;
 	}
 
@@ -197,7 +197,7 @@
 
 		.event-subject {
 			font-size: var(--text-md);
-			color: var(--gray-800);
+			color: var(--text-light);
 			font-weight: 500;
 		}
 
@@ -213,7 +213,7 @@
 
 	&:hover {
 		.avatar-frame {
-			border-color: var(--gray-100);
+			border-color: var(--border-color);
 		}
 	}
 }
@@ -242,7 +242,7 @@
 		.target-title {
 			margin: auto;
 			font-size: var(--text-md);
-			color: var(--gray-800);
+			color: var(--text-light);
 		}
 
 		.target-progress {
@@ -281,11 +281,11 @@
 	display: block;
 	text-align: center;
 	padding: 10px;
-	color: $text-muted;
+	color: var(--text-muted);
 
 	&:hover {
 		text-decoration: none;
-		color: var(--text-grey-900)
+		color: var(--text-color)
 	}
 }
 
