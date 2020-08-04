@@ -32,13 +32,17 @@ def get_permission_query_conditions(user=None):
 	if "System Manager" in roles:
 		return None
 
-	allowed_doctypes = ['"%s"' % doctype for doctype in frappe.permissions.get_doctypes_with_read()]
+	doctype_condition = False
+
+	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
+
+	if allowed_doctypes:
+		doctype_condition = '`tabNumber Card`.`document_type` in ({allowed_doctypes})'.format(
+			allowed_doctypes=','.join(allowed_doctypes))
 
 	return '''
-			`tabNumber Card`.`document_type` in ({allowed_doctypes})
-		'''.format(
-			allowed_doctypes=','.join(allowed_doctypes)
-		)
+			{doctype_condition}
+		'''.format(doctype_condition=doctype_condition)
 
 def has_permission(doc, ptype, user):
 	roles = frappe.get_roles(user)
@@ -124,10 +128,14 @@ def create_number_card(args):
 	doc.insert(ignore_permissions=True)
 	return doc
 
+@frappe.whitelist()
 def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	meta = frappe.get_meta(doctype)
 	searchfields = meta.get_search_fields()
 	search_conditions = []
+
+	if not frappe.db.exists('DocType', doctype):
+		return
 
 	if txt:
 		for field in searchfields:
