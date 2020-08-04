@@ -30,9 +30,6 @@ class TestWorkflow(unittest.TestCase):
 	def test_approve(self, doc=None):
 		'''test simple workflow'''
 		todo = doc or self.test_default_condition()
-		print(frappe.db.sql("select name from `tabRole`"))
-		print('------------')
-		print(frappe.get_roles(), frappe.session.user)
 
 		apply_workflow(todo, 'Approve')
 		# default condition is set
@@ -129,6 +126,7 @@ def create_todo_workflow():
 	else:
 		frappe.get_doc(dict(doctype='Role',
 			role_name='Test Approver')).insert(ignore_if_duplicate=True)
+		frappe.cache().hdel('roles', 'Administrator')
 		workflow = frappe.new_doc('Workflow')
 		workflow.workflow_name = 'Test ToDo'
 		workflow.document_type = 'ToDo'
