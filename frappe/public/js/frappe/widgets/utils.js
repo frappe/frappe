@@ -122,7 +122,7 @@ function shorten_number(number, country) {
 	const number_system = get_number_system(country);
 	let x = Math.abs(Math.round(number));
 	for (const map of number_system) {
-		const condition = map.condition ? map.condition(x): x >= map.divisor;
+		const condition = map.condition ? map.condition(x) : x >= map.divisor;
 		if (condition) {
 			return Math.round(number/map.divisor) +  ' ' + map.symbol;
 		}
