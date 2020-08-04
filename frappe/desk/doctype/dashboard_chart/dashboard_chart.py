@@ -344,6 +344,7 @@ def get_year_ending(date):
 	# last day of this month
 	return add_to_date(date, days=-1)
 
+@frappe.whitelist()
 def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
 	or_filters = {'owner': frappe.session.user, 'is_public': 1}
 	return frappe.db.get_list('Dashboard Chart',
