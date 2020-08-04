@@ -436,7 +436,7 @@ def get_roles(username=None):
 	"""Returns roles of current user."""
 	if not local.session:
 		return ["Guest"]
-
+	import frappe.permissions
 	return frappe.permissions.get_roles(username or local.session.user)
 
 def get_request_header(key, default=None):
