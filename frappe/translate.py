@@ -117,7 +117,7 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
 
-		message_dict = make_dict_from_messages(messages)
+		message_dict = make_dict_from_messages(messages, load_user_translation=False)
 		message_dict.update(get_dict_from_hooks(fortype, name))
 		# remove untranslated
 		message_dict = {k:v for k, v in iteritems(message_dict) if k!=v}
@@ -125,6 +125,7 @@ def get_dict(fortype, name=None):
 		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
 	translation_map = translation_assets[asset_key]
+
 	if fortype == "boot":
 		translation_map.update(get_user_translations(frappe.local.lang))
 
@@ -142,6 +143,7 @@ def get_dict_from_hooks(fortype, name):
 
 	return translated_dict
 
+<<<<<<< HEAD
 def add_lang_dict(code):
 	"""Extracts messages and returns Javascript code snippet to be appened at the end
 	of the given script
@@ -153,13 +155,19 @@ def add_lang_dict(code):
 	return code
 
 def make_dict_from_messages(messages, full_dict=None):
+=======
+def make_dict_from_messages(messages, full_dict=None, load_user_translation=True):
+>>>>>>> 9b267027b5... feat: don't load user translation in make_dict_from_messages (#11120)
 	"""Returns translated messages as a dict in Language specified in `frappe.local.lang`
 
 	:param messages: List of untranslated messages
 	"""
 	out = {}
 	if full_dict==None:
-		full_dict = get_full_dict(frappe.local.lang)
+		if load_user_translation:
+			full_dict = get_full_dict(frappe.local.lang)
+		else:
+			full_dict = load_lang(frappe.local.lang)
 
 	for m in messages:
 		if m[1] in full_dict:
@@ -192,11 +200,9 @@ def get_full_dict(lang):
 	try:
 		# get user specific transaltion data
 		user_translations = get_user_translations(lang)
-	except Exception:
-		user_translations = None
-
-	if user_translations:
 		frappe.local.lang_full_dict.update(user_translations)
+	except Exception:
+		pass
 
 	return frappe.local.lang_full_dict
 
