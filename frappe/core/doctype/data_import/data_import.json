@@ -119,7 +119,7 @@
   {
    "fieldname": "import_warnings_section",
    "fieldtype": "Section Break",
-   "label": "Warnings"
+   "label": "Import File Errors and Warnings"
   },
   {
    "fieldname": "import_warnings",
@@ -127,7 +127,7 @@
    "label": "Import Warnings"
   },
   {
-   "depends_on": "reference_doctype",
+   "depends_on": "eval:!doc.__islocal",
    "fieldname": "download_template",
    "fieldtype": "Button",
    "label": "Download Template"
@@ -159,7 +159,7 @@
    "label": "Import from Google Sheets"
   },
   {
-   "depends_on": "eval:doc.google_sheets_url",
+   "depends_on": "eval:doc.google_sheets_url && !doc.__unsaved",
    "fieldname": "refresh_google_sheet",
    "fieldtype": "Button",
    "label": "Refresh Google Sheet"
@@ -167,7 +167,7 @@
  ],
  "hide_toolbar": 1,
  "links": [],
- "modified": "2020-06-18 16:05:54.211034",
+ "modified": "2020-06-24 14:33:03.173876",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import",

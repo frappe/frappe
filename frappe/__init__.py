@@ -490,7 +490,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	message = content or message
 
 	if as_markdown:
-		message = frappe.utils.md_to_html(message)
+		from frappe.utils import md_to_html
+		message = md_to_html(message)
 
 	if not delayed:
 		now = True
@@ -1558,10 +1559,10 @@ def get_doctype_app(doctype):
 
 loggers = {}
 log_level = None
-def logger(module=None, with_more_info=False):
+def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
-	return get_logger(module=module, with_more_info=with_more_info)
+	return get_logger(module=module, with_more_info=with_more_info, allow_site=allow_site, filter=filter, max_size=max_size, file_count=file_count)
 
 def log_error(message=None, title=_("Error")):
 	'''Log error to Error Log'''

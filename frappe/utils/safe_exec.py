@@ -69,6 +69,7 @@ def get_safe_globals():
 			get_url=frappe.utils.get_url,
 			render_template=frappe.render_template,
 			msgprint=frappe.msgprint,
+			throw=frappe.throw,
 
 			user=user,
 			get_fullname=frappe.utils.get_fullname,

@@ -20,6 +20,11 @@
 	}
 }
 
+// Remove top margin from frist child
+.sidebar-item:first-child a {
+	margin-top: 0rem;
+}
+
 .sidebar-item a.active {
 	color: $primary;
 	background-color: $primary-light;

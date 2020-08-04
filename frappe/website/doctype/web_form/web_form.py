@@ -122,10 +122,6 @@ def get_context(context):
 		'''Build context to render the `web_form.html` template'''
 		self.set_web_form_module()
 
-		context._login_required = False
-		if self.login_required and frappe.session.user == "Guest":
-			context._login_required = True
-
 		doc, delimeter = make_route_string(frappe.form_dict)
 		context.doc = doc
 		context.delimeter = delimeter
@@ -142,7 +138,7 @@ def get_context(context):
 		if self.is_standard:
 			self.use_meta_fields()
 
-		if not context._login_required:
+		if not frappe.session.user == "Guest":
 			if self.allow_edit:
 				if self.allow_multiple:
 					if not frappe.form_dict.name and not frappe.form_dict.new:

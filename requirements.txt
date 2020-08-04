@@ -13,8 +13,8 @@ dropbox==9.1.0
 email-reply-parser==0.5.9
 Faker==2.0.4
 future==0.18.2
-GitPython==2.1.15
 gitdb2==2.0.6;python_version<'3.4'
+GitPython==2.1.15
 google-api-python-client==1.9.3
 google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.4.1
@@ -40,6 +40,7 @@ psycopg2-binary==2.8.4
 pyasn1==0.4.8
 PyJWT==1.7.1
 PyMySQL==0.9.3
+pyngrok==4.1.6
 pyOpenSSL==19.1.0
 pyotp==2.3.0
 PyPDF2==1.26.0
@@ -59,12 +60,13 @@ semantic-version==2.8.4
 six==1.14.0
 sqlparse==0.2.4
 stripe==2.40.0
-tenacity==6.2.0
 terminaltables==3.1.0
 unittest-xml-reporting==2.5.2
 urllib3==1.25.8
 watchdog==0.8.0
 Werkzeug==0.16.1
+Whoosh==2.7.4
 xlrd==1.2.0
 zxcvbn-python==4.4.24
-Whoosh==2.7.4
+pycryptodome==3.9.8
+paytmchecksum==1.7.0

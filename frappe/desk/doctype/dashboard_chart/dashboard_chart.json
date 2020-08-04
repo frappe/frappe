@@ -7,10 +7,12 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "is_standard",
+  "module",
   "chart_name",
   "chart_type",
   "report_name",
-  "is_custom",
+  "use_report_chart",
   "x_field",
   "y_axis",
   "source",
@@ -32,10 +34,12 @@
   "type",
   "filters_section",
   "filters_json",
+  "dynamic_filters_section",
+  "dynamic_filters_json",
   "chart_options_section",
-  "color",
-  "column_break_2",
   "custom_options",
+  "column_break_2",
+  "color",
   "section_break_10",
   "last_synced_on"
  ],
@@ -67,7 +71,8 @@
    "fieldname": "document_type",
    "fieldtype": "Link",
    "label": "Document Type",
-   "options": "DocType"
+   "options": "DocType",
+   "set_only_once": 1
   },
   {
    "depends_on": "eval: doc.timeseries && ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
@@ -189,32 +194,27 @@
    "label": "To Date"
   },
   {
-   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
    "fieldname": "x_field",
    "fieldtype": "Select",
    "label": "X Field",
-   "mandatory_depends_on": "eval: doc.report_name && !doc.is_custom"
+   "mandatory_depends_on": "eval: doc.report_name && !doc.use_report_chart"
   },
   {
    "depends_on": "eval:doc.chart_type === 'Report'",
    "fieldname": "report_name",
    "fieldtype": "Link",
    "label": "Report Name",
-   "options": "Report"
+   "mandatory_depends_on": "eval:doc.chart_type === 'Report'",
+   "options": "Report",
+   "set_only_once": 1
   },
   {
-   "default": "0",
-   "depends_on": "eval: doc.report_name",
-   "fieldname": "is_custom",
-   "fieldtype": "Check",
-   "label": "Is Custom"
-  },
-  {
-   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
    "fieldname": "y_axis",
    "fieldtype": "Table",
    "label": "Y Axis",
-   "mandatory_depends_on": "eval:doc.report_name && !doc.is_custom",
+   "mandatory_depends_on": "eval:doc.report_name && !doc.use_report_chart",
    "options": "Dashboard Chart Field"
   },
   {
@@ -235,10 +235,43 @@
    "fieldname": "heatmap_year",
    "fieldtype": "Select",
    "label": "Year"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval: doc.is_standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "eval: doc.is_standard",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "dynamic_filters_json",
+   "fieldtype": "Code",
+   "label": "Dynamic Filters JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "dynamic_filters_section",
+   "fieldtype": "Section Break",
+   "label": "Dynamic Filters"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.report_name",
+   "fieldname": "use_report_chart",
+   "fieldtype": "Check",
+   "label": "Use Report Chart"
   }
  ],
  "links": [],
- "modified": "2020-05-16 15:03:02.455395",
+ "modified": "2020-07-23 11:10:33.509497",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
