@@ -11,6 +11,7 @@ from six import text_type
 
 # imports - module imports
 import frappe
+from frappe.utils import get_sites
 
 
 default_log_level = logging.DEBUG
@@ -33,7 +34,7 @@ def get_logger(module=None, with_more_info=False, allow_site=True, filter=None, 
 
 	if allow_site is True:
 		site = getattr(frappe.local, "site", None)
-	elif allow_site:
+	elif allow_site in get_sites():
 		site = allow_site
 	else:
 		site = False
