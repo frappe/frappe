@@ -14,4 +14,5 @@ class BlogCategory(WebsiteGenerator):
 		clear_cache()
 
 	def set_route(self):
+		# Override blog route since it has to been templated
 		self.route = 'blog/' + self.scrub(self.name)

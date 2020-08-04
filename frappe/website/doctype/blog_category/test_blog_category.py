@@ -4,4 +4,11 @@ from __future__ import unicode_literals
 
 import frappe
 
-test_records = frappe.get_test_records('Blog Category')
+class TestBlogCategory(unittest.TestCase):
+	def test_route(self):
+		cat = frappe.new_doc("Blog Categroy", {
+			"title": "_Yet Another Category",
+			"category_name": "test-category-yet-another-category",
+		})
+		cat.insert()
+		self.assertEqual(cat.route, 'blog/test-category-yet-another-category')
