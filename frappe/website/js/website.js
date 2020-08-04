@@ -183,10 +183,6 @@ $.extend(frappe, {
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
 				+text+'</div>').appendTo(document.body);
 	},
-	get_sid: function() {
-		var sid = frappe.get_cookie("sid");
-		return sid && sid !== "Guest";
-	},
 	send_message: function(opts, btn) {
 		return frappe.call({
 			type: "POST",
@@ -212,8 +208,7 @@ $.extend(frappe, {
 		});
 	},
 	render_user: function() {
-		var sid = frappe.get_cookie("sid");
-		if(sid && sid!=="Guest") {
+		if (frappe.is_user_logged_in()) {
 			$(".btn-login-area").toggle(false);
 			$(".logged-in").toggle(true);
 			$(".full-name").html(frappe.get_cookie("full_name"));
@@ -323,7 +318,7 @@ $.extend(frappe, {
 		return $(".navbar .search, .sidebar .search");
 	},
 	is_user_logged_in: function() {
-		return frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
+		return frappe.get_cookie("user_id") !== "Guest" && frappe.session.user !== "Guest";
 	},
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');

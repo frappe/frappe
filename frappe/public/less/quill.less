@@ -10,10 +10,6 @@
 }
 
 .ql-editor {
-	white-space: normal;
-}
-
-.ql-editor {
 	font-family: @font-stack;
 	line-height: 1.6;
 
@@ -82,7 +78,7 @@
 	}
 }
 
-.ql-editor .mention {
+.ql-editor:not(.read-mode) .mention {
 	height: auto;
 	width: auto;
 	border-radius: 10px;
@@ -136,4 +132,8 @@
 	font-size: 13px;
 	margin-top: 0px;
 	margin-bottom: 0px;
+}
+
+.ql-editor.read-mode {
+	padding: 0;
 }
