@@ -13,6 +13,5 @@ class BlogCategory(WebsiteGenerator):
 	def on_update(self):
 		clear_cache()
 
-	def validate(self):
+	def set_route(self):
 		self.route = 'blog/' + self.scrub(self.name)
-		super(BlogCategory, self).validate()
