@@ -99,7 +99,7 @@ class BlogPost(WebsiteGenerator):
 		self.load_comments(context)
 
 		context.category = frappe.db.get_value("Blog Category",
-			context.doc.blog_category, ["title", "route"], as_dict=1)
+			context.doc.blog_category, ["title", "name"], as_dict=1)
 		context.parents = [{"name": _("Home"), "route":"/"},
 			{"name": "Blog", "route": "/blog"},
 			{"label": context.category.title, "route":context.category.route}]
