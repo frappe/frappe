@@ -126,7 +126,6 @@ def create_todo_workflow():
 	else:
 		frappe.get_doc(dict(doctype='Role',
 			role_name='Test Approver')).insert(ignore_if_duplicate=True)
-		frappe.cache().hdel('roles', 'Administrator')
 		workflow = frappe.new_doc('Workflow')
 		workflow.workflow_name = 'Test ToDo'
 		workflow.document_type = 'ToDo'
