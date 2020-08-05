@@ -70,3 +70,4 @@ xlrd==1.2.0
 zxcvbn-python==4.4.24
 pycryptodome==3.9.8
 paytmchecksum==1.7.0
+wrapt==1.10.11
