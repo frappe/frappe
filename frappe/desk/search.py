@@ -206,3 +206,24 @@ def scrub_custom_query(query, key, txt):
 	if '%s' in query:
 		query = query.replace('%s', ((txt or '') + '%'))
 	return query
+
+def validate_and_sanitize_search_inputs(doctype=None):
+	def inner_fn(fn):
+		def wrapper_fn(*args, **kwargs):
+			# update kwargs with args
+			kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+			if not frappe.db.has_column(doctype or kwargs.get('doctype'), kwargs.get('searchfield')):
+				kwargs['searchfield'] = 'name'
+			else:
+				sanitize_searchfield(kwargs['searchfield'])
+
+			kwargs['txt'] = frappe.db.escape(kwargs['txt'])
+			kwargs['start'] = cint(kwargs['start'])
+			kwargs['page_len'] = cint(kwargs['page_len'])
+
+			if kwargs['doctype'] and not frappe.db.exists('DocType', kwargs['doctype']):
+				return []
+
+			return fn(**kwargs)
+		return wrapper_fn
+	return inner_fn
