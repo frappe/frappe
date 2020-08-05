@@ -53,7 +53,7 @@ def get_latest_backup_file(with_files=False):
 	latest_site_config = get_latest('*.json')
 
 	if with_files:
-		latest_public_file_bak = get_latest('*-files.tar')
+		latest_public_file_bak = get_latest('*-public-files.tar')
 		latest_private_file_bak = get_latest('*-private-files.tar')
 		return latest_file, latest_site_config, latest_public_file_bak, latest_private_file_bak
 

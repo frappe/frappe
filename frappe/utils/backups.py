@@ -82,7 +82,7 @@ class BackupGenerator:
 	def set_backup_file_name(self):
 		#Generate a random name using today's date and a 8 digit random number
 		for_db = self.todays_date + "-" + self.site_slug + "-database.sql.gz"
-		for_public_files = self.todays_date + "-" + self.site_slug + "-files.tar"
+		for_public_files = self.todays_date + "-" + self.site_slug + "-public-files.tar"
 		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files.tar"
 		backup_path = get_backup_path()
 
