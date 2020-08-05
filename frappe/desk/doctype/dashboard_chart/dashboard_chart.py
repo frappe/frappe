@@ -143,7 +143,7 @@ def add_chart_to_dashboard(args):
 	dashboard_link = frappe.new_doc('Dashboard Chart Link')
 	dashboard_link.chart = args.chart_name or args.name
 
-	if args.set_standard:
+	if args.set_standard and dashboard.is_standard:
 		chart = frappe.get_doc('Dashboard Chart', dashboard_link.chart)
 		chart.is_standard = 1
 		chart.module = dashboard.module
