@@ -28,15 +28,28 @@ def get_permission_query_conditions(user):
 	if "System Manager" in roles:
 		return None
 
-	allowed_doctypes = ['"%s"' % doctype for doctype in frappe.permissions.get_doctypes_with_read()]
-	allowed_reports = ['"%s"' % key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()]
+	doctype_condition = False
+	report_condition = False
+
+	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
+	allowed_reports = [frappe.db.escape(key) if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()]
+
+	if allowed_doctypes:
+		doctype_condition = '`tabDashboard Chart`.`document_type` in ({allowed_doctypes})'.format(
+			allowed_doctypes=','.join(allowed_doctypes))
+	if allowed_reports:
+		report_condition = '`tabDashboard Chart`.`report_name` in ({allowed_reports})'.format(
+			allowed_reports=','.join(allowed_reports))
 
 	return '''
-			`tabDashboard Chart`.`document_type` in ({allowed_doctypes})
-			or `tabDashboard Chart`.`report_name` in ({allowed_reports})
+			(`tabDashboard Chart`.`chart_type` in ('Count', 'Sum', 'Average')
+			and {doctype_condition})
+			or
+			(`tabDashboard Chart`.`chart_type` = 'Report'
+			and {report_condition})
 		'''.format(
-			allowed_doctypes=','.join(allowed_doctypes),
-			allowed_reports=','.join(allowed_reports)
+			doctype_condition=doctype_condition,
+			report_condition=report_condition
 		)
 
 
@@ -344,6 +357,7 @@ def get_year_ending(date):
 	# last day of this month
 	return add_to_date(date, days=-1)
 
+@frappe.whitelist()
 def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
 	or_filters = {'owner': frappe.session.user, 'is_public': 1}
 	return frappe.db.get_list('Dashboard Chart',
