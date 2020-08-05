@@ -218,11 +218,11 @@ class DocType(Document):
 
     def scrub_field_names(self):
         """Sluggify fieldnames if not set from Label."""
-        restricted = ('name', 'parent', 'creation', 'modified', 'modified_by',
+        restricted = ('name', '', 'creation', 'modified', 'modified_by',
                       'parentfield', 'parenttype', 'file_list', 'flags', 'docstatus')
         for d in self.get("fields"):
             if d.fieldtype:
-                if (not getattr(d, "fieldname", None)):
+                if not getattr(d, "fieldname", None):
                     if d.label:
                         d.fieldname = d.label.strip().lower().replace(' ', '_')
                         if d.fieldname in restricted:
