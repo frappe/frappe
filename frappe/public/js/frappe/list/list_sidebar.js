@@ -90,6 +90,14 @@ frappe.views.ListSidebar = class ListSidebar {
 			this.sidebar.find('.list-link[data-view="Image"]').removeClass('hide');
 			show_list_link = true;
 		}
+		// show map link if map_view doctype has get_coords or latitude and longitude
+		if ((JSON.stringify(frappe.listview_settings) !== '{}' &&
+            frappe.listview_settings[this.list_view.doctype].get_coords_method) ||
+            (this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
+            this.list_view.meta.fields.find(i => i.fieldname === "longitude"))) {
+			this.sidebar.find('.list-link[data-view="Map"]').removeClass('hide');
+			show_list_link = true;
+		}
 
 		if (show_list_link) {
 			this.sidebar.find('.list-link[data-view="List"]').removeClass('hide');
