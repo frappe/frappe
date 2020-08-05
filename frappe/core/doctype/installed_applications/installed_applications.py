@@ -12,7 +12,7 @@ class InstalledApplications(Document):
 		for app in frappe.utils.get_installed_apps_info():
 			self.append("installed_applications", {
 				"app_name": app.get("app_name"),
-				"app_version": app.get("version"),
-				"git_branch": app.get("branch")
+				"app_version": app.get("version") or "UNVERSIONED",
+				"git_branch": app.get("branch") or "UNVERSIONED"
 			})
 		self.save()

@@ -19,6 +19,9 @@ from botocore.exceptions import ClientError
 class S3BackupSettings(Document):
 
 	def validate(self):
+		if not self.enabled:
+			return
+
 		if not self.endpoint_url:
 			self.endpoint_url = 'https://s3.amazonaws.com'
 		conn = boto3.client(
@@ -37,10 +40,16 @@ class S3BackupSettings(Document):
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
 		try:
-			conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
-				'LocationConstraint': self.region})
-		except ClientError:
-			frappe.throw(_("Unable to create bucket: {0}. Change it to a more unique name.").format(bucket_lower))
+			# Head_bucket returns a 200 OK if the bucket exists and have access to it.
+			conn.head_bucket(Bucket=bucket_lower)
+		except ClientError as e:
+			error_code = e.response['Error']['Code']
+			if error_code == '403':
+				frappe.throw(_("Do not have permission to access {0} bucket.").format(bucket_lower))
+			else:   # '400'-Bad request or '404'-Not Found return
+				# try to create bucket
+				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
+					'LocationConstraint': self.region})
 
 
 @frappe.whitelist()

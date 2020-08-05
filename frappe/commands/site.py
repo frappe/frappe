@@ -1,6 +1,3 @@
-# imports - compatibility imports
-from __future__ import unicode_literals, absolute_import, print_function
-
 # imports - standard imports
 import atexit
 import compileall
@@ -28,6 +25,8 @@ from frappe.utils import get_site_path, touch_file
 @click.option('--db-name', help='Database name')
 @click.option('--db-password', help='Database password')
 @click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres']), help='Optional "postgres" or "mariadb". Default is "mariadb"')
+@click.option('--db-host', help='Database Host')
+@click.option('--db-port', type=int, help='Database Port')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--no-mariadb-socket', is_flag=True, default=False, help='Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket')
@@ -109,12 +108,14 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 @click.option('--install-app', multiple=True, help='Install app after installation')
 @click.option('--with-public-files', help='Restores the public files of the site, given path to its tar file')
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
+@click.option('--force', is_flag=True, default=False, help='Use a bit of force to get the job done')
 @pass_context
 def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
-	from frappe.installer import extract_sql_gzip, extract_tar_files
-	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
+	from frappe.installer import extract_sql_gzip, extract_tar_files, is_downgrade
+	force = context.force or force
 
+	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
 	if not os.path.exists(sql_file_path):
 		base_path = '..'
 		sql_file_path = os.path.join(base_path, sql_file_path)
@@ -126,7 +127,6 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	else:
 		base_path = '.'
 
-
 	if sql_file_path.endswith('sql.gz'):
 		decompressed_file_name = extract_sql_gzip(os.path.abspath(sql_file_path))
 	else:
@@ -134,10 +134,16 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	site = get_site(context)
 	frappe.init(site=site)
+
+	# dont allow downgrading to older versions of frappe without force
+	if not force and is_downgrade(decompressed_file_name, verbose=True):
+		warn_message = "This is not recommended and may lead to unexpected behaviour. Do you want to continue anyway?"
+		click.confirm(warn_message, abort=True)
+
 	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
 		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 		verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
-		force=True)
+		force=True, db_type=frappe.conf.db_type)
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
@@ -195,16 +201,31 @@ def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_ro
 def install_app(context, apps):
 	"Install a new app to site, supports multiple apps"
 	from frappe.installer import install_app as _install_app
+	exit_code = 0
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
-		try:
-			for app in apps:
+
+		for app in apps:
+			try:
 				_install_app(app, verbose=context.verbose)
-		finally:
-			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
+			except frappe.IncompatibleApp as err:
+				err_msg = ":\n{}".format(err) if str(err) else ""
+				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
+				exit_code = 1
+			except Exception as err:
+				err_msg = ":\n{}".format(err if str(err) else frappe.get_traceback())
+				print("An error occurred while installing {}{}".format(app, err_msg))
+				exit_code = 1
+
+		frappe.destroy()
+
+	sys.exit(exit_code)
+
 
 @click.command('list-apps')
 @pass_context
@@ -414,15 +435,17 @@ def remove_from_installed_apps(context, app):
 @click.argument('app')
 @click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False, multiple=True)
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
+@click.option('--no-backup', help='Do not backup the site', is_flag=True, default=False)
+@click.option('--force', help='Force remove app from site', is_flag=True, default=False)
 @pass_context
-def uninstall(context, app, dry_run=False, yes=False):
+def uninstall(context, app, dry_run, yes, no_backup, force):
 	"Remove app and linked modules from site"
 	from frappe.installer import remove_app
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			remove_app(app, dry_run, yes)
+			remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -457,7 +480,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 		else:
 			click.echo("="*80)
 			click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
-			click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
+			click.echo("Reason: {reason}{sep}".format(reason=str(err), sep="\n"))
 			click.echo("Fix the issue and try again.")
 			click.echo(
 				"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)
