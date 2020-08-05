@@ -10,6 +10,7 @@ from frappe.model.workflow import apply_workflow, WorkflowTransitionError, Workf
 class TestWorkflow(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql('DELETE FROM `tabToDo`')
+		frappe.db.sql("DELETE FROM `tabHas Role` WHERE `role`='Test Approver'")
 		if not getattr(self, 'workflow', None):
 			self.workflow = create_todo_workflow()
 		frappe.set_user('Administrator')
