@@ -7,7 +7,8 @@ frappe.provide('frappe.search');
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
 		$('header').append(frappe.render_template("navbar", {
-			avatar: frappe.avatar(frappe.session.user)
+			avatar: frappe.avatar(frappe.session.user),
+			navbar_items: frappe.boot.navbar_items
 		}));
 		$('.dropdown-toggle').dropdown();
 
@@ -235,6 +236,16 @@ frappe.ui.toolbar.show_about = function() {
 	}
 	return false;
 };
+
+frappe.ui.toolbar.route_to_user = function() {
+	frappe.set_route('Form', 'User', frappe.session.user);
+}
+
+frappe.ui.toolbar.view_website = function() {
+	let website_tab = window.open();
+	website_tab.opener = null;
+	website_tab.location = '/index';
+}
 
 frappe.ui.toolbar.setup_session_defaults = function() {
 	let fields = [];
