@@ -3,7 +3,7 @@
   {
    "hidden": 0,
    "label": "Tools",
-   "links": "[\n    {\n        \"description\": \"Documents assigned to you and by you.\",\n        \"label\": \"To Do\",\n        \"name\": \"ToDo\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Event and other calendars.\",\n        \"label\": \"Calendar\",\n        \"link\": \"List/Event/Calendar\",\n        \"name\": \"Event\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Private and public Notes.\",\n        \"label\": \"Note\",\n        \"name\": \"Note\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"Files\",\n        \"name\": \"File\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"Video\",\n        \"name\": \"Video\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Activity log of all users.\",\n        \"label\": \"Activity\",\n        \"name\": \"activity\",\n        \"type\": \"page\"\n    }\n]"
+   "links": "[\n    {\n        \"description\": \"Documents assigned to you and by you.\",\n        \"label\": \"To Do\",\n        \"name\": \"ToDo\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Event and other calendars.\",\n        \"label\": \"Calendar\",\n        \"link\": \"List/Event/Calendar\",\n        \"name\": \"Event\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Private and public Notes.\",\n        \"label\": \"Note\",\n        \"name\": \"Note\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"Files\",\n        \"name\": \"File\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Activity log of all users.\",\n        \"label\": \"Activity\",\n        \"name\": \"activity\",\n        \"type\": \"page\"\n    }\n]"
   },
   {
    "hidden": 0,
@@ -29,10 +29,11 @@
  "docstatus": 0,
  "doctype": "Desk Page",
  "extends_another_page": 0,
+ "hide_custom": 0,
  "idx": 0,
  "is_standard": 1,
  "label": "Tools",
- "modified": "2020-04-20 18:21:14.152537",
+ "modified": "2020-07-21 19:32:18.480700",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",

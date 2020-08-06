@@ -118,8 +118,9 @@ def get_versions():
 def get_app_branch(app):
 	'''Returns branch of an app'''
 	try:
+		null_stream = open(os.devnull, 'wb')
 		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-			shell=True)
+			shell=True, stdin=null_stream, stderr=null_stream)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
@@ -128,8 +129,9 @@ def get_app_branch(app):
 
 def get_app_last_commit_ref(app):
 	try:
+		null_stream = open(os.devnull, 'wb')
 		result = subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD --short 7'.format(app),
-			shell=True)
+			shell=True, stdin=null_stream, stderr=null_stream)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
