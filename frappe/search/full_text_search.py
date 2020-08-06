@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from whoosh.index import create_in, open_dir
+from whoosh.index import create_in, open_dir, EmptyIndexError
 from whoosh.fields import TEXT, ID, Schema
 from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
 from whoosh.query import Prefix
@@ -55,7 +55,7 @@ class FullTextSearch:
 			self (object): FullTextSearch Instance
 			doc_name (str): name of the document to be removed
 		"""
-		ix = open_dir(self.index_path)
+		ix = self.get_index()
 		with ix.searcher():
 			writer = ix.writer()
 			writer.delete_by_term(self.id, doc_name)
@@ -68,7 +68,7 @@ class FullTextSearch:
 			self (object): FullTextSearch Instance
 			document (_dict): A dictionary with title, path and content
 		"""
-		ix = open_dir(self.index_path)
+		ix = self.get_index()
 
 		with ix.searcher():
 			writer = ix.writer()
@@ -76,13 +76,19 @@ class FullTextSearch:
 			writer.add_document(**document)
 			writer.commit(optimize=True)
 
+	def get_index(self):
+		try:
+			return open_dir(self.index_path)
+		except EmptyIndexError:
+			return self.create_index()
+
 	def create_index(self):
 		frappe.create_folder(self.index_path)
 		return create_in(self.index_path, self.schema)
 
 	def build_index(self):
 		"""Build index for all parsed documents"""
-		ix = create_index()
+		ix = self.create_index()
 		writer = ix.writer()
 
 		for document in self.documents:
@@ -102,7 +108,7 @@ class FullTextSearch:
 		Returns:
 			[List(_dict)]: Search results
 		"""
-		ix = open_dir(self.index_path)
+		ix = self.get_index()
 
 		results = None
 		out = []
