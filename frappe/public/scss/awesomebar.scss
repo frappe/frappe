@@ -3,7 +3,6 @@
 	[hidden] {
 		display: none;
 	}
-
 	.visually-hidden {
 		position: absolute;
 		clip: rect(0, 0, 0, 0);
@@ -23,17 +22,22 @@
 		list-style: none;
 		background-color: var(--fg-color);
 		max-height: 200px;
+		overflow-y: auto;
 		overflow-x: hidden;
-		border-radius: 0px 0px var(--border-radius-sm) var(--border-radius-sm);
+		border-radius: var(--border-radius-sm);
 		box-shadow: var(--shadow-md);
 		border: 1px solid var(--border-color);
+		left: 0;
+		margin: 0;
 		padding: 0;
-		color: var(--text-light);
+		z-index: 1;
+		top: calc(100% + var(--margin-xs));
 
 		&> li {
 			cursor: pointer;
 			font-size: 12px;
 			padding: var(--padding-sm);
+			color: var(--text-light);
 		}
 
 		&> li .link-option {
