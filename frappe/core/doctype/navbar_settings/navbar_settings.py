@@ -20,7 +20,7 @@ class NavbarSettings(Document):
 		after_save_items = [item for item in \
 			self.help_dropdown + self.settings_dropdown if item.is_standard]
 
-		if not frappe.flags.in_patch and (len(before_save_items) != len(after_save_items)):
+		if not frappe.flags.in_patch and (len(before_save_items) > len(after_save_items)):
 			frappe.throw(_("Cannot delete standard navbar items"))
 
 @frappe.whitelist()

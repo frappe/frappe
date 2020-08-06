@@ -239,13 +239,13 @@ frappe.ui.toolbar.show_about = function() {
 
 frappe.ui.toolbar.route_to_user = function() {
 	frappe.set_route('Form', 'User', frappe.session.user);
-}
+};
 
 frappe.ui.toolbar.view_website = function() {
 	let website_tab = window.open();
 	website_tab.opener = null;
 	website_tab.location = '/index';
-}
+};
 
 frappe.ui.toolbar.setup_session_defaults = function() {
 	let fields = [];
