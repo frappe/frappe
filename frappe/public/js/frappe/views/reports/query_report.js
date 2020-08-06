@@ -128,8 +128,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.setup_progress_bar(),
 			() => this.setup_page_head(),
 			() => this.refresh_report(),
-			() => this.add_chart_buttons_to_toolbar(true)
+			() => this.add_chart_buttons_to_toolbar(true),
+			() => this.add_card_button_to_toolbar(true),
 		]);
+	}
+
+	add_card_button_to_toolbar() {
+		this.page.add_inner_button(__("Create Card"), () => {
+			this.add_card_to_dashboard();
+		});
 	}
 
 	add_chart_buttons_to_toolbar(show) {
@@ -148,29 +155,82 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 
+	add_card_to_dashboard() {
+		let field_options = frappe.report_utils.get_field_options_from_report(this.columns, this.raw_data);
+		const dashboard_field = frappe.dashboard_utils.get_dashboard_link_field();
+		const set_standard = frappe.boot.developer_mode;
+
+		const dialog = new frappe.ui.Dialog({
+			title: __('Create Card'),
+			fields: [
+				{
+					fieldname: 'report_field',
+					label: __('Field'),
+					fieldtype: 'Select',
+					options: field_options.numeric_fields,
+				},
+				{
+					fieldname: 'cb_1',
+					fieldtype: 'Column Break'
+				},
+				{
+					fieldname: 'report_function',
+					label: __('Function'),
+					options: ['Sum', 'Average', 'Minimum', 'Maximum'],
+					fieldtype: 'Select'
+				},
+				{
+					fieldname: 'sb_1',
+					label: __('Add to Dashboard'),
+					fieldtype: 'Section Break'
+				},
+				dashboard_field,
+				{
+					fieldname: 'cb_2',
+					fieldtype: 'Column Break'
+				},
+				{
+					fieldname: 'label',
+					label: __('Card Label'),
+					fieldtype: 'Data',
+				}
+			],
+			primary_action_label: __('Add'),
+			primary_action: (values) => {
+				if (!values.label) {
+					values.label = `${values.report_function} of ${toTitle(values.report_field)}`;
+				}
+				this.create_number_card(values, values.dashboard, values.label, set_standard);
+				dialog.hide();
+			}
+		});
+
+		dialog.show();
+
+	}
+
 	add_chart_to_dashboard() {
 		if (this.chart_fields || this.chart_options) {
+			const dashboard_field = frappe.dashboard_utils.get_dashboard_link_field();
+			const set_standard = frappe.boot.developer_mode;
+
 			const dialog = new frappe.ui.Dialog({
 				title: __('Create Chart'),
 				fields: [
 					{
-						fieldname: 'dashboard',
-						label: 'Choose Dashboard',
-						fieldtype: 'Link',
-						options: 'Dashboard',
-					},
-					{
 						fieldname: 'dashboard_chart_name',
 						label: 'Chart Name',
 						fieldtype: 'Data',
-					}
+					},
+					dashboard_field,
 				],
 				primary_action_label: __('Add'),
 				primary_action: (values) => {
 					this.create_dashboard_chart(
 						this.chart_fields || this.chart_options,
 						values.dashboard,
-						values.dashboard_chart_name
+						values.dashboard_chart_name,
+						set_standard
 					);
 					dialog.hide();
 				}
@@ -182,7 +242,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 
-	create_dashboard_chart(chart_args, dashboard_name, chart_name) {
+	create_number_card(values, dashboard_name, card_name, set_standard) {
+		let args = {
+			'dashboard': dashboard_name || null,
+			'type': 'Report',
+			'report_name': this.report_name,
+			'filters_json': JSON.stringify(this.get_filter_values()),
+			set_standard: set_standard,
+		};
+		Object.assign(args, values);
+
+		this.add_to_dashboard(
+			'frappe.desk.doctype.number_card.number_card.create_report_number_card',
+			args,
+			dashboard_name,
+			card_name,
+			'Number Card'
+		);
+	}
+
+	create_dashboard_chart(chart_args, dashboard_name, chart_name, set_standard) {
 		let args = {
 			'dashboard': dashboard_name || null,
 			'chart_type': 'Report',
@@ -190,7 +269,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			'type': chart_args.chart_type || frappe.model.unscrub(chart_args.type),
 			'color': chart_args.color,
 			'filters_json': JSON.stringify(this.get_filter_values()),
-			'custom_options': {}
+			'custom_options': {},
+			'set_standard': set_standard,
 		};
 
 		for (let key in chart_args) {
@@ -211,7 +291,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					'y_axis': chart_args.y_axis_fields.map(f => {
 						return {'y_field': f.y_field, 'color': f.color};
 					}),
-					'is_custom': 0
+					'use_report_chart': 0
 				}
 			);
 		} else {
@@ -219,24 +299,34 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			Object.assign(args,
 				{
 					'chart_name': chart_name,
-					'is_custom': 1
+					'use_report_chart': 1
 				}
 			);
 		}
 
-		frappe.xcall(
+		this.add_to_dashboard(
 			'frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart',
+			args,
+			dashboard_name,
+			chart_name,
+			'Dashboard Chart'
+		);
+	}
+
+	add_to_dashboard(method, args, dashboard_name, name, doctype) {
+		frappe.xcall(
+			method,
 			{args: args}
-		).then( () => {
+		).then(() => {
 			let message;
 			if (dashboard_name) {
 				let dashboard_route_html = `<a href = "#dashboard/${dashboard_name}">${dashboard_name}</a>`;
-				message = __(`New Dashboard Chart ${chart_name} added to Dashboard ` + dashboard_route_html);
+				message = __(`New {0} {1} added to Dashboard ` + dashboard_route_html, [doctype, name]);
 			} else {
-				message = __(`New chart ${chart_name} created`);
+				message = __(`New {0} {1} created`, [doctype, name]);
 			}
 
-			frappe.msgprint(message, __('New Chart Created'));
+			frappe.msgprint(message, __(`New {0} Created`, [doctype]));
 		});
 	}
 
@@ -518,6 +608,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 				this.render_datatable();
 				this.add_chart_buttons_to_toolbar(true);
+				this.add_card_button_to_toolbar();
 			} else {
 				this.data = [];
 				this.toggle_nothing_to_show(true);
@@ -700,7 +791,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	open_create_chart_dialog() {
 		const me = this;
-		let field_options = frappe.report_utils.get_possible_chart_options(this.columns, this.raw_data);
+		let field_options = frappe.report_utils.get_field_options_from_report(this.columns, this.raw_data);
 
 		function set_chart_values(values) {
 			values.y_fields = [];

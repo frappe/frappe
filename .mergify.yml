@@ -4,8 +4,7 @@ pull_request_rules:
       - status-success=Sider
       - status-success=Semantic Pull Request
       - status-success=Travis CI - Pull Request
-      - status-success=security/snyk - package.json (frappe)
-      - status-success=security/snyk - requirements.txt (frappe)
+      - status-success=security/snyk (frappe)
       - label!=don't-merge
       - label!=squash
       - "#approved-reviews-by>=1"
@@ -17,8 +16,7 @@ pull_request_rules:
       - status-success=Sider
       - status-success=Semantic Pull Request
       - status-success=Travis CI - Pull Request
-      - status-success=security/snyk - package.json (frappe)
-      - status-success=security/snyk - requirements.txt (frappe)
+      - status-success=security/snyk (frappe)
       - label!=don't-merge
       - label=squash
       - "#approved-reviews-by>=1"

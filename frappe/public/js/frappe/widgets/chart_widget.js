@@ -255,7 +255,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	get_report_chart_data(result) {
-		if (result.chart && this.chart_doc.is_custom) {
+		if (result.chart && this.chart_doc.use_report_chart) {
 			return result.chart.data;
 		} else {
 			let y_fields = [];
@@ -412,10 +412,13 @@ export default class ChartWidget extends Widget {
 		}
 
 		dialog.show();
-		//Set query report object so that it can be used while fetching filter values in the report
-		frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
-		frappe.query_reports[this.chart_doc.report_name].onload
-				&& frappe.query_reports[this.chart_doc.report_name].onload(frappe.query_report);
+
+		if (this.chart_doc.chart_type == 'Report') {
+			//Set query report object so that it can be used while fetching filter values in the report
+			frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
+			frappe.query_reports[this.chart_doc.report_name].onload
+					&& frappe.query_reports[this.chart_doc.report_name].onload(frappe.query_report);
+		}
 		dialog.set_values(this.filters);
 	}
 
@@ -612,9 +615,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	update_last_synced() {
-		let last_synced_text = __("Last synced {0}", [
-			comment_when(this.chart_doc.last_synced_on)
-		]);
+		let last_synced_text = __("Last synced {0}", [comment_when(this.chart_doc.last_synced_on)]);
 		this.footer.html(last_synced_text);
 	}
 
@@ -636,7 +637,7 @@ export default class ChartWidget extends Widget {
 
 	set_chart_filters() {
 		let user_saved_filters = this.chart_settings.filters || null;
-		let chart_saved_filters = JSON.parse(this.chart_doc.filters_json || "null");
+		let chart_saved_filters = frappe.dashboard_utils.get_all_filters(this.chart_doc);
 
 		if (this.chart_doc.chart_type == 'Report') {
 			return frappe.dashboard_utils
@@ -653,14 +654,15 @@ export default class ChartWidget extends Widget {
 	}
 
 	update_default_date_filters(report_filters, chart_filters) {
-		report_filters.map(f => {
-			if (['Date', 'DateRange'].includes(f.fieldtype) && f.default) {
-				if (f.reqd || chart_filters[f.fieldname]) {
-					chart_filters[f.fieldname] = f.default;
+		if (report_filters) {
+			report_filters.map(f => {
+				if (['Date', 'DateRange'].includes(f.fieldtype) && f.default) {
+					if (f.reqd || chart_filters[f.fieldname]) {
+						chart_filters[f.fieldname] = f.default;
+					}
 				}
-			}
-		});
-
+			});
+		}
 		return chart_filters;
 	}
 

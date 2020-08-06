@@ -59,6 +59,7 @@ class Importer:
 		frappe.flags.in_import = True
 		frappe.flags.mute_emails = self.data_import.mute_emails
 
+		self.data_import.db_set("status", "Pending")
 		self.data_import.db_set("template_warnings", "")
 
 	def import_data(self):
@@ -440,9 +441,8 @@ class ImportFile:
 
 		# if there are child doctypes, find the subsequent rows
 		if len(doctypes) > 1:
-			# subsequent rows either dont have any parent value set
-			# or have the same value as the parent row
-			# we include a row if either of conditions match
+			# subsequent rows that have blank values in parent columns
+			# are considered as child rows
 			parent_column_indexes = self.header.get_column_indexes(self.doctype)
 			parent_row_values = first_row.get_values(parent_column_indexes)
 
@@ -453,11 +453,8 @@ class ImportFile:
 				if all([v in INVALID_VALUES for v in row_values]):
 					rows.append(row)
 					continue
-				# if the row has same values as parent row, it's a child row doc
-				if row_values == parent_row_values:
-					rows.append(row)
-					continue
-				# if any of those conditions dont match, it's the next doc
+				# if we encounter a row which has values in parent columns,
+				# then it is the next doc
 				break
 
 		parent_doc = None
@@ -618,7 +615,7 @@ class Row:
 	def validate_value(self, value, col):
 		df = col.df
 		if df.fieldtype == "Select":
-			select_options = df.get_select_options()
+			select_options = [d for d in (df.options or '').split('\n') if d]
 			if select_options and value not in select_options:
 				options_string = ", ".join([frappe.bold(d) for d in select_options])
 				msg = _("Value must be one of {0}").format(options_string)
@@ -692,6 +689,9 @@ class Row:
 		return value
 
 	def get_date(self, value, column):
+		if isinstance(value, datetime):
+			return value
+
 		date_format = column.date_format
 		if date_format:
 			try:
@@ -957,7 +957,7 @@ class Column:
 
 		if self.df.fieldtype == 'Link':
 			# find all values that dont exist
-			values = list(set([v for v in self.column_values[1:] if v]))
+			values = list(set([cstr(v) for v in self.column_values[1:] if v]))
 			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={'name': ('in', values)})]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
@@ -970,6 +970,13 @@ class Column:
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date format
 			self.date_format = self.guess_date_format_for_column()
+			if not self.date_format:
+				self.date_format = '%Y-%m-%d'
+				self.warnings.append({
+					'col': self.column_number,
+					'message': _("Date format could not determined from the values in this column. Defaulting to yyyy-mm-dd."),
+					'type': 'info'
+				})
 
 	def as_dict(self):
 		d = frappe._dict()
@@ -1060,6 +1067,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		# other fields
 		fields = get_standard_fields(doctype) + frappe.get_meta(doctype).fields
 		for df in fields:
+			label = (df.label or '').strip()
 			fieldtype = df.fieldtype or "Data"
 			parent = df.parent or parent_doctype
 			if fieldtype not in no_value_fields:
@@ -1068,12 +1076,12 @@ def build_fields_dict_for_column_matching(parent_doctype):
 					# Label
 					# label
 					# Label (label)
-					if not out.get(df.label):
+					if not out.get(label):
 						# if Label is already set, don't set it again
 						# in case of duplicate column headers
-						out[df.label] = df
+						out[label] = df
 					out[df.fieldname] = df
-					label_with_fieldname = "{0} ({1})".format(df.label, df.fieldname)
+					label_with_fieldname = "{0} ({1})".format(label, df.fieldname)
 					out[label_with_fieldname] = df
 				else:
 					# in case there are multiple table fields with the same doctype
@@ -1084,7 +1092,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 						"fields", {"fieldtype": ["in", table_fieldtypes], "options": parent}
 					)
 					for table_field in table_fields:
-						by_label = "{0} ({1})".format(df.label, table_field.label)
+						by_label = "{0} ({1})".format(label, table_field.label)
 						by_fieldname = "{0}.{1}".format(table_field.fieldname, df.fieldname)
 
 						# create a new df object to avoid mutation problems

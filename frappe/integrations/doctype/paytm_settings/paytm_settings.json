@@ -1,0 +1,89 @@
+{
+ "actions": [],
+ "creation": "2020-04-02 00:11:22.846697",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "merchant_id",
+  "merchant_key",
+  "staging",
+  "column_break_4",
+  "industry_type_id",
+  "website"
+ ],
+ "fields": [
+  {
+   "fieldname": "merchant_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Merchant ID",
+   "reqd": 1,
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "merchant_key",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "Merchant Key",
+   "reqd": 1,
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "staging",
+   "fieldtype": "Check",
+   "label": "Staging",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "depends_on": "eval: !doc.staging",
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "label": "Website",
+   "mandatory_depends_on": "eval: !doc.staging",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "depends_on": "eval: !doc.staging",
+   "fieldname": "industry_type_id",
+   "fieldtype": "Data",
+   "label": "Industry Type ID",
+   "mandatory_depends_on": "eval: !doc.staging",
+   "show_days": 1,
+   "show_seconds": 1
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-06-08 13:36:09.703143",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Paytm Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

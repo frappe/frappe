@@ -23,7 +23,7 @@ if PY2:
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '13.0.0-beta.3'
+__version__ = '13.0.0-beta.4'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -490,7 +490,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	message = content or message
 
 	if as_markdown:
-		message = frappe.utils.md_to_html(message)
+		from frappe.utils import md_to_html
+		message = md_to_html(message)
 
 	if not delayed:
 		now = True
@@ -1558,10 +1559,10 @@ def get_doctype_app(doctype):
 
 loggers = {}
 log_level = None
-def logger(module=None, with_more_info=False):
+def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
-	return get_logger(module=module, with_more_info=with_more_info)
+	return get_logger(module=module, with_more_info=with_more_info, allow_site=allow_site, filter=filter, max_size=max_size, file_count=file_count)
 
 def log_error(message=None, title=_("Error")):
 	'''Log error to Error Log'''
@@ -1706,3 +1707,7 @@ def mock(type, size=1, locale='en'):
 
 	from frappe.chat.util import squashify
 	return squashify(results)
+
+def validate_and_sanitize_search_inputs(fn):
+	from frappe.desk.search import validate_and_sanitize_search_inputs as func
+	return func(fn)

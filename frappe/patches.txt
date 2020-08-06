@@ -19,6 +19,7 @@ execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 execute:frappe.reload_doc('core', 'doctype', 'communication_link') #2019-10-02
+execute:frappe.reload_doc('core', 'doctype', 'has_role')
 execute:frappe.reload_doc('core', 'doctype', 'communication') #2019-10-02
 frappe.patches.v11_0.replicate_old_user_permissions
 frappe.patches.v11_0.reload_and_rename_view_log #2019-01-03
@@ -263,6 +264,7 @@ frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
 frappe.patches.v12_0.setup_email_linking
 frappe.patches.v12_0.fix_home_settings_for_all_users
 frappe.patches.v12_0.change_existing_dashboard_chart_filters
+frappe.patches.v12_0.set_correct_assign_value_in_docs #2020-07-13
 execute:frappe.delete_doc("Test Runner")
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
 execute:frappe.db.set_default('desktop:home_page', 'workspace')
@@ -271,7 +273,9 @@ execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
 execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Account')
 execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
 frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats
+frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
+frappe.patches.v12_0.set_correct_url_in_files
 frappe.patches.v13_0.website_theme_custom_scss
 frappe.patches.v13_0.set_existing_dashboard_charts_as_public
 frappe.patches.v13_0.set_path_for_homepage_in_web_page_view
@@ -290,3 +294,5 @@ execute:frappe.delete_doc("DocType", "Onboarding Slide Help Link")
 frappe.patches.v13_0.update_date_filters_in_user_settings
 frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
+frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
+frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
