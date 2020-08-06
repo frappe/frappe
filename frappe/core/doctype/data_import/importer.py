@@ -955,6 +955,9 @@ class Column:
 		if not self.df:
 			return
 
+		if self.skip_import:
+			return
+
 		if self.df.fieldtype == 'Link':
 			# find all values that dont exist
 			values = list(set([cstr(v) for v in self.column_values[1:] if v]))

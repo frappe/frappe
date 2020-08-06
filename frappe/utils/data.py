@@ -8,6 +8,7 @@ import frappe
 from dateutil.parser._parser import ParserError
 import subprocess
 import operator
+import json
 import re, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
@@ -1236,8 +1237,6 @@ def is_subset(list_a, list_b):
 def generate_hash(*args, **kwargs):
 	return frappe.generate_hash(*args, **kwargs)
 
-
-
 def guess_date_format(date_string):
 	DATE_FORMATS = [
 		r"%d-%m-%Y",
@@ -1310,3 +1309,9 @@ def guess_date_format(date_string):
 
 		if date_format and time_format:
 			return (date_format + ' ' + time_format).strip()
+
+def validate_json_string(string):
+	try:
+		json.loads(string)
+	except (TypeError, ValueError):
+		raise frappe.ValidationError
