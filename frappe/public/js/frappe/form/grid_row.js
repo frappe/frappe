@@ -188,7 +188,8 @@ export default class GridRow {
 
 		// index (1, 2, 3 etc)
 		if(!this.row_index) {
-			var txt = (this.doc ? this.doc.idx : "&nbsp;");
+			// REDESIGN-TODO: Make translation contextual, this No is Number
+			var txt = (this.doc ? this.doc.idx : _("No."));
 			this.row_index = $(
 				`<div class="row-index sortable-handle col col-xs-1">
 					${this.row_check_html}
