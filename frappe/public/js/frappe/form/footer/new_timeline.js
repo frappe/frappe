@@ -33,7 +33,7 @@ frappe.ui.form.NewTimeline = class {
 
 	prepare_timeline_contents() {
 		const doc_info = this.frm.get_docinfo();
-		doc_info.views.forEach(view => {
+		doc_info.views && doc_info.views.forEach(view => {
 			this.timeline_items.push({
 				icon: 'view',
 				creation: view.creation,
@@ -52,14 +52,15 @@ frappe.ui.form.NewTimeline = class {
 			});
 		});
 
-		doc_info.communications.forEach(communication => {
-			this.timeline_items.push({
-				icon: 'mail',
-				creation: communication.creation,
-				card: true,
-				content: this.get_communication_content(communication),
+		doc_info.communications &&
+			doc_info.communications.forEach(communication => {
+				this.timeline_items.push({
+					icon: 'mail',
+					creation: communication.creation,
+					card: true,
+					content: this.get_communication_content(communication),
+				});
 			});
-		});
 	}
 
 	get_timeline_item(item) {
