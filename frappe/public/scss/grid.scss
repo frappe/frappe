@@ -1,22 +1,21 @@
-.form-grid {
-	border: 1px solid var(--border-color);
-	border-radius: 3px;
-}
-
 .form-grid.error {
 	border-color: var(--red-500);
 }
 
 .grid-heading-row {
 	border-bottom: 1px solid var(--border-color);
-	background-color: var(--bg-color);
-	font-weight: bold;
+	color: var(--text-muted);
+	font-size: var(--text-md);
 }
 
 .grid-row {
 	padding: 0px 15px;
 	border-bottom: 1px solid var(--border-color);
 	@include transition(.2s);
+
+	.form-control {
+		background-color: transparent;
+	}
 }
 
 .grid-row:last-child {
@@ -62,19 +61,18 @@
 
 .grid-empty, .list-loading {
 	padding: 30px 15px;
-	color: var(--border-color);
+	color: var(--text-muted);
 }
 
 .grid-static-col, .row-index {
 	height: 39px;
 	padding: 10px 15px;
 	max-height: 200px;
-	border-right: 1px solid var(--border-color);
+	// border-right: 1px solid var(--border-color);
 }
 
 .editable-form .grid-static-col.bold {
 	font-weight: bold;
-	background-color: var(--yellow-50);
 }
 
 .editable-form .grid-static-col.invalid {
@@ -292,9 +290,13 @@
 }
 
 .grid-footer {
+	padding: 10px 0px;
 	background-color: #fff;
-	border: 1px solid var(--border-color);
-	border-top: 0px;
+
+	.btn-default {
+		background-color: var(--control-bg);
+		box-shadow: none;
+	}
 }
 
 .grid-pagination {
