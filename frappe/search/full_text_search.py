@@ -76,11 +76,13 @@ class FullTextSearch:
 			writer.add_document(**document)
 			writer.commit(optimize=True)
 
+	def create_index(self):
+		frappe.create_folder(self.index_path)
+		return create_in(self.index_path, self.schema)
 
 	def build_index(self):
 		"""Build index for all parsed documents"""
-		frappe.create_folder(self.index_path)
-		ix = create_in(self.index_path, self.schema)
+		ix = create_index()
 		writer = ix.writer()
 
 		for document in self.documents:
