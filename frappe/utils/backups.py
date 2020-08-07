@@ -36,6 +36,8 @@ class BackupGenerator:
 		self.backup_path_files = backup_path_files
 		self.backup_path_db = backup_path_db
 		self.backup_path_private_files = backup_path_private_files
+		site = frappe.local.site or frappe.generate_hash(length=8)
+		self.site_slug = site.replace('.', '_')
 
 	def get_backup(self, older_than=24, ignore_files=False, force=False):
 		"""
@@ -87,7 +89,6 @@ class BackupGenerator:
 			"database": "*-{}-database.sql.gz",
 			"public": "*-{}-files.tar",
 			"private": "*-{}-private-files.tar",
-			"config": "*-{}-site_config_backup.json"
 		}
 
 		def backup_time(file_path):
@@ -96,7 +97,8 @@ class BackupGenerator:
 			return timegm(datetime.strptime(file_timestamp, "%Y%m%d_%H%M%S").utctimetuple())
 
 		def get_latest(file_pattern):
-			file_list = glob(os.path.join(backup_path, file_pattern))
+			file_pattern = os.path.join(backup_path, file_pattern.format(self.site_slug))
+			file_list = glob(file_pattern)
 			if file_list:
 				return max(file_list, key=backup_time)
 
@@ -107,14 +109,19 @@ class BackupGenerator:
 				return file_path
 
 		latest_backups = {
-			file_type: get_latest(pattern.format(self.site_slug)) for file_type, pattern in file_type_slugs.items()
+			file_type: get_latest(pattern)
+			for file_type, pattern in file_type_slugs.items()
 		}
 
 		recent_backups = {
 			file_type: old_enough(file_name) for file_type, file_name in latest_backups.items()
 		}
 
-		return recent_backups.get("database"), recent_backups.get("public"), recent_backups.get("private"), recent_backups.get("config")
+		return (
+			recent_backups.get("database"),
+			recent_backups.get("public"),
+			recent_backups.get("private"),
+		)
 
 	def zip_files(self):
 		for folder in ("public", "private"):
@@ -179,6 +186,28 @@ def get_backup():
 	odb.get_backup()
 	recipient_list = odb.send_email()
 	frappe.msgprint(_("Download link for your backup will be emailed on the following email address: {0}").format(', '.join(recipient_list)))
+
+@frappe.whitelist()
+def fetch_latest_backups():
+	"""Fetches paths of the latest backup taken in the last 30 days
+	Only for: System Managers
+	Returns:
+		dict: relative Backup Paths
+	"""
+	frappe.only_for("System Manager")
+	odb = BackupGenerator(
+		frappe.conf.db_name,
+		frappe.conf.db_name,
+		frappe.conf.db_password,
+		db_host=frappe.db.host,
+	)
+	database, public, private = odb.get_recent_backup(older_than=24 * 30)
+
+	return {
+		"database": database,
+		"public": public,
+		"private": private
+	}
 
 def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False):
 	"""this function is called from scheduler
