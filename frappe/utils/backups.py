@@ -83,14 +83,18 @@ class BackupGenerator:
 
 		for this_file in file_list:
 			this_file = cstr(this_file)
+			file_name = os.path.splitext(this_file)[0]
 			this_file_path = os.path.join(get_backup_path(), this_file)
+
 			if not is_file_old(this_file_path, older_than):
-				if "_private_files" in this_file_path:
-					backup_path_private_files = this_file_path
-				elif "_files" in this_file_path:
-					backup_path_files = this_file_path
-				elif "_database" in this_file_path:
+				if file_name.endswith("{}-database.sql".format(self.site_slug)):
 					backup_path_db = this_file_path
+				elif file_name.endswith("{}-files".format(self.site_slug)):
+					backup_path_files = this_file_path
+				elif file_name.endswith("{}-private-files".format(self.site_slug)):
+					backup_path_private_files = this_file_path
+				elif file_name.endswith("{}-site_config_backup".format(self.site_slug)):
+					site_config_backup_path = this_file_path
 
 		return (backup_path_db, backup_path_files, backup_path_private_files)
 
