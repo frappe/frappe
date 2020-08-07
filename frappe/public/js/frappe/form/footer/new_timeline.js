@@ -4,6 +4,7 @@
 frappe.ui.form.NewTimeline = class {
 	constructor(opts) {
 		Object.assign(this, opts);
+		this.doc_info = this.frm && this.frm.get_docinfo() || {};
 		this.make();
 	}
 
@@ -25,42 +26,21 @@ frappe.ui.form.NewTimeline = class {
 	render_timeline_items() {
 		this.prepare_timeline_contents();
 
-		this.timeline_items.sort((item1, item2) => item1.creation - item2.creation);
+		this.timeline_items.sort((item1, item2) => new Date(item2.creation) - new Date(item1.creation));
 		this.timeline_items.forEach(item => {
 			this.timeline_wrapper.append(this.get_timeline_item(item));
 		});
 	}
 
 	prepare_timeline_contents() {
-		const doc_info = this.frm.get_docinfo();
-		doc_info.views && doc_info.views.forEach(view => {
-			this.timeline_items.push({
-				icon: 'view',
-				creation: view.creation,
-				content: this.get_view_content(view),
-			});
-		});
-
-		Array.from(Array(5)).forEach(() => {
-			this.timeline_items.push({
-				icon: ['mail', 'view', 'call', 'edit'][Math.floor(Math.random() * 4)],
-				creation: Date(),
-				content: `Lorem Ipsum is simply dummy text of the printing and
-					typesetting industry. Lorem Ipsum has been the industry's
-					standard dummy text ever since the 1500s,`,
-				card: true
-			});
-		});
-
-		doc_info.communications &&
-			doc_info.communications.forEach(communication => {
-				this.timeline_items.push({
-					icon: 'mail',
-					creation: communication.creation,
-					card: true,
-					content: this.get_communication_content(communication),
-				});
-			});
+		this.timeline_items.push(...this.get_view_timeline_contents());
+		this.timeline_items.push(...this.get_communication_timeline_contents());
+		this.timeline_items.push(...this.get_comment_timeline_contents());
+		this.timeline_items.push(...this.get_energy_point_timeline_contents());
+		// shared
+		// milestones
+		// versions
+		// attachments
 	}
 
 	get_timeline_item(item) {
@@ -69,30 +49,85 @@ frappe.ui.form.NewTimeline = class {
 				<div class="timeline-indicator">
 					${frappe.utils.icon(item.icon, 'md')}
 				</div>
-				<div class="timeline-content ${item.card ? 'frappe-card' : ''}">
-				</div>
+				<div class="timeline-content ${item.card ? 'frappe-card' : ''}"></div>
 			</div>
 		`);
 		timeline_item.find('.timeline-content').append(item.content);
+		if (!item.hide_timestamp) {
+			timeline_item.find('.timeline-content').append(`<div>${comment_when(item.creation)}</div>`);
+		}
 		return timeline_item;
 	}
 
-	get_view_content(doc) {
-		return `
-			<div>
-				<a href="${frappe.utils.get_form_link('View Log', doc.name)}">
-					${__("{0} viewed", [frappe.user.full_name(doc.owner).bold()])}
-				</a>
-				- ${comment_when(doc.creation)}
-			</div>
-		`;
+	get_view_timeline_contents() {
+		let view_timeline_contents = [];
+		(this.doc_info.views || []).forEach(view => {
+			let view_content = `
+				<div>
+					<a href="${frappe.utils.get_form_link('View Log', view.name)}">
+						${__("{0} viewed", [frappe.user.full_name(view.owner).bold()])}
+					</a>
+				</div>
+			`;
+			view_timeline_contents.push({
+				icon: 'view',
+				creation: view.creation,
+				content: view_content,
+			});
+		});
+		return view_timeline_contents;
 	}
 
-	get_communication_content(doc) {
-		let item =  $(frappe.render_template('timeline_email', { doc }));
-		this.setup_reply(item);
-		item.find(".timeline-email-content").append(doc.content);
-		return item;
+	get_communication_timeline_contents() {
+		let communication_timeline_contents = [];
+		(this.doc_info.communications|| []).forEach(communication => {
+			let communication_content =  $(frappe.render_template('timeline_email', { doc: communication }));
+			this.setup_reply(communication_content);
+			communication_content.find(".timeline-email-content").append(communication.content);
+			communication_timeline_contents.push({
+				icon: 'mail',
+				creation: communication.creation,
+				card: true,
+				content: this.get_communication_content(communication),
+			});
+		});
+		return communication_timeline_contents;
+	}
+
+	get_comment_timeline_contents() {
+		let comment_timeline_contents = [];
+		(this.doc_info.comments || []).forEach(comment => {
+			comment_timeline_contents.push({
+				icon: 'mail',
+				creation: comment.creation,
+				content: comment.content,
+			});
+		});
+		return comment_timeline_contents;
+	}
+
+	get_version_timeline_contents() {
+		let version_timeline_contents = [];
+		(this.doc_info.versions || []).forEach(version => {
+			version_timeline_contents.push({
+				icon: 'mail',
+				creation: version.creation,
+				content: version.content,
+			});
+		});
+		return version_timeline_contents;
+	}
+
+	get_energy_point_timeline_contents() {
+		let energy_point_timeline_contents = [];
+		(this.doc_info.energy_point_logs || []).forEach(log => {
+			energy_point_timeline_contents.push({
+				icon: 'review',
+				creation: log.creation,
+				content: frappe.energy_points.format_form_log(log)
+			});
+		});
+		return energy_point_timeline_contents;
 	}
 
 	setup_reply(communication_box) {
