@@ -102,7 +102,7 @@ class BackupGenerator:
 			"database": "*-{}-database.sql.gz",
 			"public": "*-{}-files.tar",
 			"private": "*-{}-private-files.tar",
-			"config": "*-{}-site_config_backup.json"
+			"config": "*-{}-site_config_backup.json",
 		}
 
 		def backup_time(file_path):
@@ -111,7 +111,8 @@ class BackupGenerator:
 			return timegm(datetime.strptime(file_timestamp, "%Y%m%d_%H%M%S").utctimetuple())
 
 		def get_latest(file_pattern):
-			file_list = glob(os.path.join(backup_path, file_pattern))
+			file_pattern = os.path.join(backup_path, file_pattern.format(self.site_slug))
+			file_list = glob(file_pattern)
 			if file_list:
 				return max(file_list, key=backup_time)
 
@@ -122,14 +123,20 @@ class BackupGenerator:
 				return file_path
 
 		latest_backups = {
-			file_type: get_latest(pattern.format(self.site_slug)) for file_type, pattern in file_type_slugs.items()
+			file_type: get_latest(pattern)
+			for file_type, pattern in file_type_slugs.items()
 		}
 
 		recent_backups = {
 			file_type: old_enough(file_name) for file_type, file_name in latest_backups.items()
 		}
 
-		return recent_backups.get("database"), recent_backups.get("public"), recent_backups.get("private"), recent_backups.get("config")
+		return (
+			recent_backups.get("database"),
+			recent_backups.get("public"),
+			recent_backups.get("private"),
+			recent_backups.get("config"),
+		)
 
 	def zip_files(self):
 		for folder in ("public", "private"):
@@ -232,7 +239,14 @@ def fetch_latest_backups():
 		dict: relative Backup Paths
 	"""
 	frappe.only_for("System Manager")
-	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name, frappe.conf.db_password, db_host=frappe.db.host, db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
+	odb = BackupGenerator(
+		frappe.conf.db_name,
+		frappe.conf.db_name,
+		frappe.conf.db_password,
+		db_host=frappe.db.host,
+		db_type=frappe.conf.db_type,
+		db_port=frappe.conf.db_port,
+	)
 	database, public, private, config = odb.get_recent_backup(older_than=24 * 30)
 
 	return {
