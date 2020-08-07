@@ -44,20 +44,14 @@ def get_recipients(doctype, email_field):
 
 
 def get_latest_backup_file(with_files=False):
-
-	def get_latest(file_ext):
-		file_list = glob.glob(os.path.join(get_backups_path(), file_ext))
-		return max(file_list, key=os.path.getctime) if file_list else None
-
-	latest_file = get_latest('*.sql.gz')
-	latest_site_config = get_latest('*.json')
+	from frappe.utils.backups import BackupGenerator
+	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name, frappe.conf.db_password, db_host=frappe.db.host, db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
+	database, public, private, config = odb.get_recent_backup(older_than=24 * 30)
 
 	if with_files:
-		latest_public_file_bak = get_latest('*-files.tar')
-		latest_private_file_bak = get_latest('*-private-files.tar')
-		return latest_file, latest_site_config, latest_public_file_bak, latest_private_file_bak
+		return database, config, public, private
 
-	return latest_file, latest_site_config
+	return database, config
 
 
 def get_file_size(file_path, unit):
