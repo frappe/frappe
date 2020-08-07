@@ -34,9 +34,7 @@ $threshold: 50px;
 			background-color: var(--gray-600);
 			display: inline-flex;
 			align-items: center;
-			.icon {
-				stroke: $white;
-			}
+			--icon-stroke: var(--gray-50);
 		}
 
 		.timeline-email {
