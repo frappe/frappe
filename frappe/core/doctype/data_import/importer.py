@@ -465,6 +465,7 @@ class ImportFile:
 
 				if doctype != self.doctype and table_df:
 					child_doc = row.parse_doc(doctype, parent_doc, table_df)
+					if child_doc is None: continue
 					parent_doc[table_df.fieldname] = parent_doc.get(table_df.fieldname, [])
 					parent_doc[table_df.fieldname].append(child_doc)
 
@@ -589,16 +590,21 @@ class Row:
 		for key in frappe.model.default_fields + ("__islocal",):
 			doc.pop(key, None)
 
+		record_is_empty = True
 		for col, value in zip(columns, values):
 			df = col.df
 			if value in INVALID_VALUES:
 				value = None
 
 			if value is not None:
+				record_is_empty = False
 				value = self.validate_value(value, col)
 
 			if value is not None:
 				doc[df.fieldname] = self.parse_value(value, col)
+
+		if record_is_empty:
+			return None
 
 		is_table = frappe.get_meta(doctype).istable
 		is_update = self.import_type == UPDATE
