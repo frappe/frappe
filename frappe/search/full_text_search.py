@@ -55,6 +55,9 @@ class FullTextSearch:
 			self (object): FullTextSearch Instance
 			doc_name (str): name of the document to be removed
 		"""
+		if not doc_name:
+			return
+
 		ix = self.get_index()
 		with ix.searcher():
 			writer = ix.writer()
