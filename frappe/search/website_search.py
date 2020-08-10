@@ -56,11 +56,11 @@ class WebsiteSearch(FullTextSearch):
 			text_content = page_content.text if page_content else ""
 			title = soup.title.text.strip() if soup.title else route
 
-			frappe.set_user("Administrator")
-
 			return frappe._dict(title=title, content=text_content, path=route)
 		except Exception:
 			pass
+		finally:
+			frappe.set_user("Administrator")
 
 	def parse_result(self, result):
 		title_highlights = result.highlights("title")
