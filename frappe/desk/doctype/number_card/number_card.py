@@ -129,6 +129,7 @@ def create_number_card(args):
 	return doc
 
 @frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	meta = frappe.get_meta(doctype)
 	searchfields = meta.get_search_fields()
@@ -180,7 +181,7 @@ def add_card_to_dashboard(args):
 	dashboard_link = frappe.new_doc('Number Card Link')
 	dashboard_link.card = args.name
 
-	if args.set_standard:
+	if args.set_standard and dashboard.is_standard:
 		card = frappe.get_doc('Number Card', dashboard_link.card)
 		card.is_standard = 1
 		card.module = dashboard.module
