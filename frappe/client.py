@@ -107,7 +107,7 @@ def get_single_value(doctype, field):
 	value = frappe.db.get_single_value(doctype, field)
 	return value
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def set_value(doctype, name, fieldname, value=None):
 	'''Set a value using get_doc, group of values
 
@@ -142,7 +142,7 @@ def set_value(doctype, name, fieldname, value=None):
 
 	return doc.as_dict()
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def insert(doc=None):
 	'''Insert a document
 
@@ -160,7 +160,7 @@ def insert(doc=None):
 		doc = frappe.get_doc(doc).insert()
 		return doc.as_dict()
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def insert_many(docs=None):
 	'''Insert multiple documents
 
@@ -186,7 +186,7 @@ def insert_many(docs=None):
 
 	return out
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def save(doc):
 	'''Update (save) an existing document
 
@@ -199,7 +199,7 @@ def save(doc):
 
 	return doc.as_dict()
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def rename_doc(doctype, old_name, new_name, merge=False):
 	'''Rename document
 
@@ -209,7 +209,7 @@ def rename_doc(doctype, old_name, new_name, merge=False):
 	new_name = frappe.rename_doc(doctype, old_name, new_name, merge=merge)
 	return new_name
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def submit(doc):
 	'''Submit a document
 
@@ -222,7 +222,7 @@ def submit(doc):
 
 	return doc.as_dict()
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def cancel(doctype, name):
 	'''Cancel a document
 
@@ -233,7 +233,7 @@ def cancel(doctype, name):
 
 	return wrapper.as_dict()
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['DELETE'])
 def delete(doctype, name):
 	'''Delete a remote document
 
@@ -241,13 +241,13 @@ def delete(doctype, name):
 	:param name: name of the document to be deleted'''
 	frappe.delete_doc(doctype, name, ignore_missing=False)
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def set_default(key, value, parent=None):
 	"""set a user default value"""
 	frappe.db.set_default(key, value, parent or frappe.session.user)
 	frappe.clear_cache(user=frappe.session.user)
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def make_width_property_setter(doc):
 	'''Set width Property Setter
 
@@ -257,7 +257,7 @@ def make_width_property_setter(doc):
 	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
 		frappe.get_doc(doc).insert(ignore_permissions = True)
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def bulk_update(docs):
 	'''Bulk update documents
 
@@ -333,7 +333,7 @@ def get_time_zone():
 	'''Returns default time zone'''
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
 
-@frappe.whitelist()
+@frappe.whitelist(allow_http_methods=['POST', 'PUT'])
 def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder=None, decode_base64=False, is_private=None, docfield=None):
 	'''Attach a file to Document (POST)
 
