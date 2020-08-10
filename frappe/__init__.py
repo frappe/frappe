@@ -153,6 +153,7 @@ def init(site, sites_path=None, new_site=False):
 	local.site = site
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
+	local.all_apps = None
 
 	local.request_ip = None
 	local.response = _dict({"docs":[]})
@@ -921,10 +922,13 @@ def get_installed_apps(sort=False, frappe_last=False):
 	if not db:
 		connect()
 
+	if not local.all_apps:
+		local.all_apps  = get_all_apps(True)
+
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
-		installed = [app for app in get_all_apps(True) if app in installed]
+		installed = [app for app in local.all_apps if app in installed]
 
 	if frappe_last:
 		if 'frappe' in installed:
