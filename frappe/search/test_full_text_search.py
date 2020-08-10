@@ -15,7 +15,7 @@ class TestFullTextSearch(unittest.TestCase):
 		res = self.index.search("multilingual online encyclopedia")
 		self.assertEqual(res[0], 'site/wikipedia')
 
-		res = self.index.search("Linux is a family")
+		res = self.index.search("Linux kernel")
 		self.assertEqual(res[0], 'os/linux')
 
 		res = self.index.search("Enterprise Resource Planning")
