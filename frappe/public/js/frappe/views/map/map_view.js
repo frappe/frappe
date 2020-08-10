@@ -63,13 +63,12 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 				lastCoords = [value[0], value[1]];
 			}
 		}
-		if (this.type === 'location_field'){
-			for (let i = 0; i < this.coords.length; i++){
+		if (this.type === 'location_field') {
+			for (let i = 0; i < this.coords.length; i++) {
 				let features = JSON.parse(this.coords[i].location).features;
 				features.forEach(
 					coords => L.geoJSON(coords).bindPopup(this.coords[i].name).addTo(this.map)
 				);
-				console.log(features[0].geometry.coordinates);
 				lastCoords = features[0].geometry.coordinates.reverse();
 			}
 		}
@@ -84,11 +83,11 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 			get_coords_method = frappe.listview_settings[this.doctype].get_coords_method;
 		}
 		if (cur_list.meta.fields.find(i => i.fieldname === 'location') &&
-			cur_list.meta.fields.find(i => i.fieldtype === 'Geolocation')){
+			cur_list.meta.fields.find(i => i.fieldtype === 'Geolocation')) {
 			this.type = 'location_field';
 		}
 		if  (cur_list.meta.fields.find(i => i.fieldname === "latitude") &&
-			cur_list.meta.fields.find(i => i.fieldname === "longitude")){
+			cur_list.meta.fields.find(i => i.fieldname === "longitude")) {
 			this.type = 'coordinates';
 		}
 		return frappe.call({
