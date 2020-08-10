@@ -165,7 +165,7 @@ export default class NumberCardWidget extends Widget {
 
 	get_number() {
 		return frappe.xcall(this.settings.method, this.settings.args).then(res => {
-			this.settings.get_number(res);
+			return this.settings.get_number(res);
 		});
 	}
 

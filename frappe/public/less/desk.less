@@ -719,7 +719,6 @@ li.user-progress {
 	margin-right: 5px;
 	margin-left: 0px;
 	position: relative;
-	height: 12px;
 }
 
 // Will not be required after commonifying lists with empty state
@@ -731,28 +730,11 @@ li.user-progress {
 	height: 100%;
 }
 
-// mozilla doesn't support
+// Firefox doesn't support
 // pseudo elements on checkbox
-@-moz-document url-prefix() {
+@supports (-moz-appearance: none) or (-ms-ime-align:auto) {
 	input[type="checkbox"] {
-		visibility: visible;
-		left: 0;
-	}
-}
-
-@supports (-moz-appearance: none) {
-	input[type="checkbox"] {
-		visibility: visible;
-		left: 0;
-	}
-}
-
-// edge doesn't support pseudo elements on checkbox
-//Microsoft Edge Browser 12+ (All)
-@supports (-ms-ime-align:auto) {
-	input[type="checkbox"] {
-		 visibility: visible;
-		 left: 0;
+		height: @checkbox-height !important
 	}
 }
 

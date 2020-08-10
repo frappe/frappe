@@ -1,5 +1,6 @@
 @import "variables";
 @import "mixins";
+@import '~quill/dist/quill.core';
 @import 'frappe/public/css/font-awesome';
 @import "~bootstrap/scss/bootstrap";
 @import 'multilevel-dropdown';
@@ -11,6 +12,20 @@
 @import 'sidebar';
 @import 'portal';
 @import 'doc';
+
+.ql-editor.read-mode {
+	padding: 0;
+	line-height: 1.6;
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5 {
+		margin-top: 0.5em;
+		margin-bottom: 0.25em;
+	}
+}
 
 .container {
 	padding-left: 1.25rem;

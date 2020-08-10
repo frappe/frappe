@@ -266,7 +266,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	get_report_chart_data(result) {
-		if (result.chart && this.chart_doc.is_custom) {
+		if (result.chart && this.chart_doc.use_report_chart) {
 			return result.chart.data;
 		} else {
 			let y_fields = [];
@@ -638,7 +638,7 @@ export default class ChartWidget extends Widget {
 
 	update_last_synced() {
 		if (!this.chart_doc.last_synced_on) {
-			return
+			return;
 		}
 		let last_synced_text = __("Last synced {0}", [
 			comment_when(this.chart_doc.last_synced_on)
@@ -680,14 +680,15 @@ export default class ChartWidget extends Widget {
 	}
 
 	update_default_date_filters(report_filters, chart_filters) {
-		report_filters.map(f => {
-			if (['Date', 'DateRange'].includes(f.fieldtype) && f.default) {
-				if (f.reqd || chart_filters[f.fieldname]) {
-					chart_filters[f.fieldname] = f.default;
+		if (report_filters) {
+			report_filters.map(f => {
+				if (['Date', 'DateRange'].includes(f.fieldtype) && f.default) {
+					if (f.reqd || chart_filters[f.fieldname]) {
+						chart_filters[f.fieldname] = f.default;
+					}
 				}
-			}
-		});
-
+			});
+		}
 		return chart_filters;
 	}
 
