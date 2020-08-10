@@ -10,7 +10,7 @@ import frappe.desk.form.meta
 from frappe import _
 from frappe.model.meta import is_single
 from frappe.modules import load_doctype_module
-
+from six import string_types
 
 @frappe.whitelist()
 def get_submitted_linked_docs(doctype, name, docs=None, visited=None):
@@ -87,7 +87,8 @@ def cancel_all_linked_docs(docs, ignored_doctypes_on_cancel_all=[]):
 	"""
 
 	docs = json.loads(docs)
-	ignored_doctypes_on_cancel_all = json.loads(ignored_doctypes_on_cancel_all)
+	if isinstance(ignored_doctypes_on_cancel_all, string_types):
+		ignored_doctypes_on_cancel_all = json.loads(ignored_doctypes_on_cancel_all)
 	for i, doc in enumerate(docs, 1):
 		if validate_linked_doc(doc, ignored_doctypes_on_cancel_all) is True:
 			frappe.publish_progress(percent=i * 100 / ((len(docs) - len(ignored_doctypes_on_cancel_all))), title=_("Cancelling documents"))
