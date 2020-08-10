@@ -99,7 +99,7 @@ def application(request):
 		frappe.monitor.stop(response)
 		frappe.recorder.dump()
 
-		frappe.logger("frappe.web").info({
+		frappe.logger("frappe.web", allow_site=frappe.local.site).info({
 			"site": get_site_name(request.host),
 			"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
 			"base_url": getattr(request, "base_url", "NOTFOUND"),
@@ -256,9 +256,11 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 		'SERVER_NAME': 'localhost:8000'
 	}
 
+	log = logging.getLogger('werkzeug')
+	log.propagate = False
+
 	in_test_env = os.environ.get('CI')
 	if in_test_env:
-		log = logging.getLogger('werkzeug')
 		log.setLevel(logging.ERROR)
 
 	run_simple('0.0.0.0', int(port), application,

@@ -1,6 +1,6 @@
 frappe.ui.form.on('Report', {
 	refresh: function(frm) {
-		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
+		if (frm.doc.is_standard === "Yes" && !frappe.boot.developer_mode) {
 			// make the document read-only
 			frm.set_read_only();
 		}

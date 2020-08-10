@@ -49,7 +49,7 @@ class TestScheduler(TestCase):
 
 		# 2nd job not loaded
 		self.assertFalse(job.enqueue())
-		job.delete()
+		frappe.db.sql('DELETE FROM `tabScheduled Job Log` WHERE `scheduled_job_type`=%s', job.name)
 
 	def test_is_dormant(self):
 		self.assertTrue(is_dormant(check_time= get_datetime('2100-01-01 00:00:00')))
