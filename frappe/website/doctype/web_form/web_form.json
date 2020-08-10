@@ -16,6 +16,7 @@
   "route_to_success_link",
   "allow_edit",
   "allow_multiple",
+  "apply_document_permissions",
   "show_in_grid",
   "allow_delete",
   "allow_print",
@@ -346,6 +347,12 @@
    "fieldname": "custom_css_section",
    "fieldtype": "Section Break",
    "label": "Custom CSS"
+  },
+  {
+   "default": "0",
+   "fieldname": "apply_document_permissions",
+   "fieldtype": "Check",
+   "label": "Apply Document Permissions"
   }
  ],
  "has_web_view": 1,

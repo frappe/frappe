@@ -231,8 +231,7 @@ def get_site_config(sites_path=None, site_path=None):
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
 		elif local.site and not local.flags.new_site:
-			print("Site {0} does not exist".format(local.site))
-			sys.exit(1)
+			raise IncorrectSitePath("{0} does not exist".format(local.site))
 
 	return _dict(config)
 
@@ -436,12 +435,8 @@ def get_roles(username=None):
 	"""Returns roles of current user."""
 	if not local.session:
 		return ["Guest"]
-
-	if username:
-		import frappe.permissions
-		return frappe.permissions.get_roles(username)
-	else:
-		return get_user().get_roles()
+	import frappe.permissions
+	return frappe.permissions.get_roles(username or local.session.user)
 
 def get_request_header(key, default=None):
 	"""Return HTTP request header.
