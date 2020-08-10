@@ -18,7 +18,7 @@ from frappe.utils import get_wkhtmltopdf_version, scrub_urls
 
 
 PDF_CONTENT_ERRORS = ["ContentNotFoundError", "ContentOperationNotPermittedError",
-	"UnknownContentError", "RemoteHostClosedError"]
+					  "UnknownContentError", "RemoteHostClosedError"]
 
 
 def get_pdf(html, options=None, output=None):
@@ -44,7 +44,8 @@ def get_pdf(html, options=None, output=None):
 	except OSError as e:
 		if any([error in str(e) for error in PDF_CONTENT_ERRORS]):
 			if not filedata:
-				frappe.throw(_("PDF generation failed because of broken image links"))
+				frappe.throw(
+					_("PDF generation failed because of broken image links"))
 
 			# allow pdfs with missing images if file got created
 			if output:  # output is a PdfFileWriter object
@@ -96,7 +97,7 @@ def prepare_options(html, options):
 		'quiet': None,
 		# 'no-outline': None,
 		'encoding': "UTF-8",
-		#'load-error-handling': 'ignore'
+		# 'load-error-handling': 'ignore'
 	})
 
 	if not options.get("margin-right"):
@@ -108,13 +109,16 @@ def prepare_options(html, options):
 	html, html_options = read_options_from_html(html)
 	options.update(html_options or {})
 
+	# Issue - #11229 : SSRF critical issue of leaking loggedin user session
+	#				   commenting out the below piece of code.
 	# cookies
-	if frappe.session and frappe.session.sid:
-		options['cookie'] = [('sid', '{0}'.format(frappe.session.sid))]
+	# if frappe.session and frappe.session.sid:
+	# 	options['cookie'] = [('sid', '{0}'.format(frappe.session.sid))]
 
 	# page size
 	if not options.get("page-size"):
-		options['page-size'] = frappe.db.get_single_value("Print Settings", "pdf_page_size") or "A4"
+		options['page-size'] = frappe.db.get_single_value(
+			"Print Settings", "pdf_page_size") or "A4"
 
 	return html, options
 
@@ -130,7 +134,8 @@ def read_options_from_html(html):
 	# use regex instead of soup-parser
 	for attr in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size", "header-spacing", "orientation"):
 		try:
-			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
+			pattern = re.compile(
+				r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
 			match = pattern.findall(html)
 			if match:
 				options[attr] = str(match[-1][3]).strip()
@@ -146,8 +151,10 @@ def prepare_header_footer(soup):
 	head = soup.find("head").contents
 	styles = soup.find_all("style")
 
-	bootstrap = frappe.read_file(os.path.join(frappe.local.sites_path, "assets/frappe/css/bootstrap.css"))
-	fontawesome = frappe.read_file(os.path.join(frappe.local.sites_path, "assets/frappe/css/font-awesome.css"))
+	bootstrap = frappe.read_file(os.path.join(
+		frappe.local.sites_path, "assets/frappe/css/bootstrap.css"))
+	fontawesome = frappe.read_file(os.path.join(
+		frappe.local.sites_path, "assets/frappe/css/font-awesome.css"))
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
@@ -168,7 +175,8 @@ def prepare_header_footer(soup):
 			})
 
 			# create temp file
-			fname = os.path.join("/tmp", "frappe-pdf-{0}.html".format(frappe.generate_hash()))
+			fname = os.path.join(
+				"/tmp", "frappe-pdf-{0}.html".format(frappe.generate_hash()))
 			with open(fname, "wb") as f:
 				f.write(html.encode("utf-8"))
 
