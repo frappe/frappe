@@ -43,13 +43,13 @@ class TestFullTextSearch(unittest.TestCase):
 		self.assertTrue('os/gnu' in res)
 
 	def test_remove_document_from_index(self):
-		self.remove_document_from_index("os/gnu")
+		self.index.remove_document_from_index("os/gnu")
 		res = self.index.search("GNU")
 		self.assertEqual(len(res), 0)
 
 	def test_update_index(self):
 		# Update existing index
-		self.update_index({
+		self.index.update_index({
 			'name': "sw/erpnext",
 			'content': """AwesomeERPNext"""
 		})
@@ -61,7 +61,7 @@ class TestFullTextSearch(unittest.TestCase):
 		self.assertEqual(res[0], "sw/erpnext")
 
 		# Update new doc
-		self.update_index({
+		self.index.update_index({
 			'name': "sw/frappebooks",
 			'content': """DesktopAccounting"""
 		})
