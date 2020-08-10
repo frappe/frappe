@@ -231,8 +231,7 @@ def get_site_config(sites_path=None, site_path=None):
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
 		elif local.site and not local.flags.new_site:
-			print("Site {0} does not exist".format(local.site))
-			sys.exit(1)
+			raise IncorrectSitePath("{0} does not exist".format(local.site))
 
 	return _dict(config)
 
@@ -436,12 +435,8 @@ def get_roles(username=None):
 	"""Returns roles of current user."""
 	if not local.session:
 		return ["Guest"]
-
-	if username:
-		import frappe.permissions
-		return frappe.permissions.get_roles(username)
-	else:
-		return get_user().get_roles()
+	import frappe.permissions
+	return frappe.permissions.get_roles(username or local.session.user)
 
 def get_request_header(key, default=None):
 	"""Return HTTP request header.
@@ -1559,10 +1554,10 @@ def get_doctype_app(doctype):
 
 loggers = {}
 log_level = None
-def logger(module=None, with_more_info=False):
+def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
-	return get_logger(module=module, with_more_info=with_more_info)
+	return get_logger(module=module, with_more_info=with_more_info, allow_site=allow_site, filter=filter, max_size=max_size, file_count=file_count)
 
 def log_error(message=None, title=_("Error")):
 	'''Log error to Error Log'''
@@ -1707,3 +1702,7 @@ def mock(type, size=1, locale='en'):
 
 	from frappe.chat.util import squashify
 	return squashify(results)
+
+def validate_and_sanitize_search_inputs(fn):
+	from frappe.desk.search import validate_and_sanitize_search_inputs as func
+	return func(fn)

@@ -251,7 +251,7 @@ class EmailAccount(Document):
 			email_server = None
 
 			if frappe.local.flags.in_test:
-				incoming_mails = test_mails
+				incoming_mails = test_mails or []
 			else:
 				email_sync_rule = self.build_email_sync_rule()
 
