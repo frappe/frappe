@@ -13,13 +13,13 @@ class TestFullTextSearch(unittest.TestCase):
 	def test_search_term(self):
 		# Search Wikipedia
 		res = self.index.search("multilingual online encyclopedia")
-		self.assertEqual(res[0], 'wikipedia')
+		self.assertEqual(res[0], 'site/wikipedia')
 
 		res = self.index.search("Linux is a family")
-		self.assertEqual(res[0], 'linux')
+		self.assertEqual(res[0], 'os/linux')
 
 		res = self.index.search("Enterprise Resource Planning")
-		self.assertEqual(res[0], 'erpnext')
+		self.assertEqual(res[0], 'sw/erpnext')
 
 	def test_search_limit(self):
 		res = self.index.search("CommonSearchTerm")
