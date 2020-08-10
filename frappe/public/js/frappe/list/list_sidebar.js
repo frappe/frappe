@@ -13,6 +13,7 @@ frappe.views.ListSidebar = class ListSidebar {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
+		this.get_stats();
 		this.cat_tags = [];
 	}
 
@@ -25,25 +26,17 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		this.setup_reports();
 		this.setup_list_filter();
+		this.setup_assigned_to_me();
 		this.setup_views();
 		this.setup_kanban_boards();
 		this.setup_calendar_view();
 		this.setup_email_inbox();
-		this.setup_keyboard_shortcuts();
-		this.setup_list_group_by();
 
-		// do not remove
-		// used to trigger custom scripts
-		$(document).trigger('list_sidebar_setup');
+		let limits = frappe.boot.limits;
 
-		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
-			this.sidebar.find('.sidebar-stat').remove();
-		} else {
-			this.sidebar.find('.list-stats').on('click', (e) => {
-				this.reload_stats();
-			});
+		if (limits.upgrade_url && limits.expiry && !frappe.flags.upgrade_dismissed) {
+			this.setup_upgrade_box();
 		}
-
 	}
 
 	setup_views() {
@@ -61,7 +54,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			show_list_link = true;
 		}
 
-		if (frappe.treeview_settings[this.doctype] || frappe.get_meta(this.doctype).is_tree) {
+		if (frappe.treeview_settings[this.doctype]) {
 			this.sidebar.find(".tree-link").removeClass("hide");
 		}
 
@@ -94,7 +87,8 @@ frappe.views.ListSidebar = class ListSidebar {
 		if ((JSON.stringify(frappe.listview_settings) !== '{}' &&
             frappe.listview_settings[this.list_view.doctype].get_coords_method) ||
             (this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
-            this.list_view.meta.fields.find(i => i.fieldname === "longitude"))) {
+            this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
+			(this.list_view.meta.fields.find(i => i.fieldname === 'location') && this.list_view.meta.fields.find(i => i.fieldtype === 'Geolocation'))) {
 			this.sidebar.find('.list-link[data-view="Map"]').removeClass('hide');
 			show_list_link = true;
 		}
@@ -168,7 +162,7 @@ frappe.views.ListSidebar = class ListSidebar {
 				reference_doctype: doctype
 			}
 		}).then(result => {
-			if (!(result && Array.isArray(result) && result.length)) return;
+			if (!result) return;
 			const calendar_views = result;
 			const $link_calendar = this.sidebar.find('.list-link[data-view="Calendar"]');
 
@@ -217,13 +211,11 @@ frappe.views.ListSidebar = class ListSidebar {
 		accounts.forEach((account) => {
 			let email_account = (account.email_id == "All Accounts") ? "All Accounts" : account.email_account;
 			let route = ["List", "Communication", "Inbox", email_account].join('/');
-			let display_name = ["All Accounts", "Sent Mail", "Spam", "Trash"].includes(account.email_id) ? __(account.email_id) : account.email_id;
-			
 			if (!divider) {
 				this.get_divider().appendTo($dropdown);
 				divider = true;
 			}
-			$(`<li><a href="#${route}">${display_name}</a></li>`).appendTo($dropdown);
+			$(`<li><a href="#${route}">${account.email_id}</a></li>`).appendTo($dropdown);
 			if (account.email_id === "Sent Mail")
 				divider = false;
 		});
@@ -233,21 +225,40 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
-	setup_keyboard_shortcuts() {
-		this.sidebar.find('.list-link > a, .list-link > .btn-group > a').each((i, el) => {
-			frappe.ui.keys
-				.get_shortcut_group(this.page)
-				.add($(el));
+	setup_assigned_to_me() {
+		this.page.sidebar.find(".assigned-to-me a").on("click", () => {
+			this.list_view.filter_area.add(this.list_view.doctype, "_assign", "like", `%${frappe.session.user}%`);
 		});
 	}
 
-	setup_list_group_by() {
-		this.list_group_by = new frappe.views.ListGroupBy({
-			doctype: this.doctype,
-			sidebar: this,
-			list_view: this.list_view,
-			page: this.page
-		});
+	setup_upgrade_box() {
+		let upgrade_list = $(`<ul class="list-unstyled sidebar-menu"></ul>`).appendTo(this.sidebar);
+
+		// Show Renew/Upgrade button,
+		// if account is holding one user free plan or
+		// if account's expiry date within range of 30 days from today's date
+
+		let upgrade_date = frappe.datetime.add_days(frappe.datetime.get_today(), 30);
+		if (frappe.boot.limits.users === 1 || upgrade_date >= frappe.boot.limits.expiry) {
+			let upgrade_box = $(`<div class="border" style="
+					padding: 0px 10px;
+					border-radius: 3px;
+				">
+				<a><i class="octicon octicon-x pull-right close" style="margin-top: 10px;"></i></a>
+				<h5>Go Premium</h5>
+				<p>Upgrade to a premium plan with more users, storage and priority support.</p>
+				<button class="btn btn-xs btn-default btn-upgrade" style="margin-bottom: 10px;"> Renew / Upgrade </button>
+				</div>`).appendTo(upgrade_list);
+
+			upgrade_box.find('.btn-upgrade').on('click', () => {
+				frappe.set_route('usage-info');
+			});
+
+			upgrade_box.find('.close').on('click', () => {
+				upgrade_list.remove();
+				frappe.flags.upgrade_dismissed = 1;
+			});
+		}
 	}
 
 	get_cat_tags() {
@@ -258,7 +269,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		var me = this;
 		frappe.call({
 			method: 'frappe.desk.reportview.get_sidebar_stats',
-			type: 'GET',
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
@@ -266,9 +276,29 @@ frappe.views.ListSidebar = class ListSidebar {
 				filters: (me.list_view.filter_area ? me.list_filter.get_current_filters() : me.default_filters) || []
 			},
 			callback: function(r) {
-				me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
-				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
-				frappe.utils.setup_search(stats_dropdown, '.stat-link', '.stat-label');
+				me.defined_category = r.message;
+				if (r.message.defined_cat) {
+					me.defined_category = r.message.defined_cat;
+					me.cats = {};
+					//structure the tag categories
+					for (var i in me.defined_category) {
+						if (me.cats[me.defined_category[i].category] === undefined) {
+							me.cats[me.defined_category[i].category] = [me.defined_category[i].tag];
+						} else {
+							me.cats[me.defined_category[i].category].push(me.defined_category[i].tag);
+						}
+						me.cat_tags[i] = me.defined_category[i].tag;
+					}
+					me.tempstats = r.message.stats;
+
+					$.each(me.cats, function(i, v) {
+						me.render_stat(i, (me.tempstats || {})["_user_tags"], v);
+					});
+					me.render_stat("_user_tags", (me.tempstats || {})["_user_tags"]);
+				} else {
+					//render normal stats
+					me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
+				}
 			}
 		});
 	}
@@ -331,7 +361,7 @@ frappe.views.ListSidebar = class ListSidebar {
 						me.list_view.refresh();
 					});
 			})
-			.appendTo(this.sidebar.find(".list-stats-dropdown"));
+			.insertBefore(this.sidebar.find(".close-sidebar-button"));
 	}
 
 	set_fieldtype(df) {
@@ -362,8 +392,8 @@ frappe.views.ListSidebar = class ListSidebar {
 	}
 
 	reload_stats() {
-		this.sidebar.find(".stat-link").remove();
-		this.sidebar.find(".stat-no-records").remove();
+		this.sidebar.find(".sidebar-stat").remove();
+		this.sidebar.find(".list-tag-preview").remove();
 		this.get_stats();
 	}
 
