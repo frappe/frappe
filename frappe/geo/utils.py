@@ -9,11 +9,32 @@ import frappe
 from pymysql import InternalError
 
 
+
+
 @frappe.whitelist()
-def get_coords(doctype, filters):
+def get_coords(doctype, filters, type):
     '''Get list of coordinates in form
-    returns {names: ['latitude', 'longitude']}'''
+    returns {names: ['latitude', 'longitude']} or location type'''
     filters_sql = get_coords_conditions(doctype, filters)[4:]
+    out = None
+    if type == 'coordinates':
+        out = return_coordinates(doctype, filters_sql)
+    if type == 'location_field':
+        out = return_location(doctype, filters_sql)
+    return out
+
+def return_location(doctype, filters_sql):
+    if filters_sql:
+        try:
+            coords = frappe.db.sql("""SELECT * FROM `tab{}`  WHERE {}""".format(doctype, filters_sql), as_dict=True)
+        except InternalError:
+            frappe.msgprint(frappe._('This Doctype did not contains latitude and longitude fields'))
+            return
+    else:
+        coords = frappe.get_all(doctype, fields = ['location', 'name'])
+    return coords
+
+def return_coordinates(doctype, filters_sql):
     if filters_sql:
         try:
             coords = frappe.db.sql("""SELECT * FROM `tab{}`  WHERE {}""".format(doctype, filters_sql), as_dict=True)
