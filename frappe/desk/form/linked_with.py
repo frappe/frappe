@@ -14,15 +14,17 @@ from frappe.modules import load_doctype_module
 
 
 @frappe.whitelist()
-def get_submitted_linked_docs(doctype, name, docs=None):
+def get_submitted_linked_docs(doctype, name, only_submittable=True, skip_doctypes=None, docs=None):
 	"""
 	Get all nested submitted linked doctype linkinfo
 
 	Arguments:
 		doctype (str) - The doctype for which get all linked doctypes
-		name (str) - The docname for which get all linked doctypes
+		name (str) - The docname for which get all linked doctypes,
 
 	Keyword Arguments:
+		only_submittable (boolean) - Check for submittable and non-submittable doctype
+		skip_doctypes (list) - List of doctypes to skip for validate docs
 		docs (list of dict) - (Optional) Get list of dictionary for linked doctype.
 
 	Returns:
@@ -39,7 +41,7 @@ def get_submitted_linked_docs(doctype, name, docs=None):
 	for link_doctype, link_names in linked_docs.items():
 		for link in link_names:
 			docinfo = link.update({"doctype": link_doctype})
-			validated_doc = validate_linked_doc(docinfo)
+			validated_doc = validate_linked_doc(docinfo, only_submittable=only_submittable, skip_doctypes=skip_doctypes)
 
 			if not validated_doc:
 				continue
@@ -48,7 +50,7 @@ def get_submitted_linked_docs(doctype, name, docs=None):
 			if link.name in [doc.get("name") for doc in docs]:
 				continue
 
-			links = get_submitted_linked_docs(link_doctype, link.name, docs)
+			links = get_submitted_linked_docs(link_doctype, link.name, only_submittable=only_submittable, skip_doctypes=skip_doctypes, docs=docs)
 			docs.append({
 				"doctype": link_doctype,
 				"name": link.name,
@@ -81,7 +83,7 @@ def cancel_all_linked_docs(docs):
 			linked_doc.cancel()
 
 
-def validate_linked_doc(docinfo):
+def validate_linked_doc(docinfo, only_submittable=True, skip_doctypes=None):
 	"""
 	Validate a document to be submitted and non-exempted from auto-cancel.
 
@@ -91,19 +93,24 @@ def validate_linked_doc(docinfo):
 	Returns:
 		bool: True if linked document passes all validations, else False
 	"""
+		# skip doctype which is not needed for linking like ToDo, Activity Log
+	if skip_doctypes:
+		if docinfo.get('doctype') in skip_doctypes:
+			return False
 
-	# skip non-submittable doctypes since they don't need to be cancelled
-	if not frappe.get_meta(docinfo.get('doctype')).is_submittable:
-		return False
+	if only_submittable == True:
+		# skip non-submittable doctypes since they don't need to be cancelled
+		if not frappe.get_meta(docinfo.get('doctype')).is_submittable:
+			return False
 
-	# skip draft or cancelled documents
-	if docinfo.get('docstatus') != 1:
-		return False
+		# skip draft or cancelled documents
+		if docinfo.get('docstatus') != 1:
+			return False
 
-	# skip other doctypes since they don't need to be cancelled
-	auto_cancel_exempt_doctypes = get_exempted_doctypes()
-	if docinfo.get('doctype') in auto_cancel_exempt_doctypes:
-		return False
+		# skip other doctypes since they don't need to be cancelled
+		auto_cancel_exempt_doctypes = get_exempted_doctypes()
+		if docinfo.get('doctype') in auto_cancel_exempt_doctypes:
+			return False
 
 	return True
 
