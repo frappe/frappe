@@ -5,7 +5,8 @@
 	}
 	.print-format {
 		background-color: white;
-		box-shadow: var(--shadow-lg);
+		box-shadow: var(--shadow-xs);
+		border: 1px solid var(--border-color);
 		max-width: 8.3in;
 		min-height: 11.69in;
 		padding: 0.75in;
