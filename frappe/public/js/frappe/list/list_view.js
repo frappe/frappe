@@ -1,5 +1,4 @@
 import BulkOperations from "./bulk_operations";
-import ListSettings from "./list_settings";
 
 frappe.provide('frappe.views');
 
@@ -1329,7 +1328,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show_list_settings() {
 		frappe.model.with_doctype(this.doctype, () => {
-			new ListSettings({
+			new frappe.views.ListSettings({
 				listview: this,
 				doctype: this.doctype,
 				settings: this.list_view_settings,
