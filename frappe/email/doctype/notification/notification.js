@@ -84,10 +84,11 @@ frappe.notification = {
 	setup_example_message: function(frm) {
 		let template = '';
 		if (frm.doc.channel === 'WhatsApp') {
-			template = `<h5>Message Example</h5>
-<h6><strong>Warning:</strong> Only Use Pre-Approved WhatsApp for Business Template</h6>
+			template = `<h5 style='display: inline-block'>Warning:</h5> Only Use Pre-Approved WhatsApp for Business Template
+<h5>Message Example</h5>
 
-<pre>Your {{ doc.name }} order of {{ doc.total }} has shipped and should be delivered on {{ doc.date }}. Details : {{ doc.customer }}
+<pre>
+Your {{ doc.name }} order of {{ doc.total }} has shipped and should be delivered on {{ doc.date }}. Details : {{doc.customer}}
 </pre>`;
 		} else if (frm.doc.channel === 'Email') {
 			template = `<h5>Message Example</h5>
@@ -185,5 +186,11 @@ frappe.ui.form.on('Notification', {
 		frm.toggle_reqd('recipients', frm.doc.channel == 'Email');
 		frappe.notification.setup_fieldname_select(frm);
 		frappe.notification.setup_example_message(frm);
+		if (frm.doc.channel === 'SMS' && frm.doc.__islocal) {
+			frm.set_df_property('channel',
+				'description', `To use SMS Channel, initialize <a href=\"#Form/SMS Settings\">SMS Settings</a>.`);
+		} else {
+			frm.set_df_property('channel', 'description', ` `);
+		}
 	}
 });

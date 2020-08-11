@@ -28,7 +28,8 @@ class Notification(Document):
 			self.name = self.subject
 
 	def validate(self):
-		validate_template(self.subject)
+		if self.channel not in ('WhatsApp', 'SMS'):
+			validate_template(self.subject)
 		validate_template(self.message)
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
