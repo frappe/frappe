@@ -530,12 +530,13 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		def myfunc(param1, param2):
 			pass
 	"""
+
+	if not methods:
+		methods = ['GET', 'POST', 'PUT', 'DELETE']
+
 	def innerfn(fn):
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 		whitelisted.append(fn)
-
-		if not methods:
-			methods = ['GET', 'POST', 'PUT', 'DELETE']
 
 		allowed_http_methods_for_whitelisted_func[fn] = methods
 
