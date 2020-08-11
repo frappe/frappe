@@ -1,5 +1,5 @@
 .tree {
-	padding: 15px;
+	padding: var(--padding-md);
 }
 
 .tree li {
@@ -12,28 +12,28 @@
 	display: inline-flex;
 	align-items: flex-end;
 	padding: var(--padding-sm) var(--padding-xs);
-	font-size: 16px;
+	font-size: $font-size-lg;
 	font-weight: 600;
 	color: var(--text-color);
 }
 
 .tree-label {
-	margin-left: 10px;
+	margin-left: var(--margin-sm);
 	line-height: 1.4em;
 }
 
 .tree-children {
-	padding-left: 30px;
+	padding-left: var(--padding-xl);
 
 	.tree-link {
-		font-size: 13px;
+		font-size: $font-size-md;
 		font-weight: normal;
 	}
 }
 
 .tree-link .node-parent {
 	color: var(--text-muted);
-	font-size: 14px;
+	font-size: $font-size-base;
 	// width: 10px;
 	text-align: center;
 }
@@ -65,8 +65,8 @@
 
 .tree-node-toolbar {
 	display: inline-flex;
-	padding: 0px 5px;
-	margin-left: 15px;
+	padding: 0px var(--padding-xs);
+	margin-left: var(--margin-md);
 	margin-bottom: -4px;
 	margin-top: -8px;
 }
@@ -119,7 +119,7 @@
 
 .balance-area {
 	color: var(--text-color) !important;
-	font-size: 13px;
+	font-size: $font-size-md;
 }
 
 .tree-link.active ~ .balance-area {
