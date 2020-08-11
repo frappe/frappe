@@ -53,25 +53,11 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		}).addTo(this.map);
 
 		L.control.scale().addTo(this.map);
-
-		let lastCoords = [];
-		if (this.type === 'coordinates') {
-			for (const [key, value] of Object.entries(this.coords)) {
-				new L.marker([value[0], value[1]])
-					.bindPopup(key)
-					.addTo(this.map);
-				lastCoords = [value[0], value[1]];
-			}
-		}
-		if (this.type === 'location_field') {
-			for (let i = 0; i < this.coords.length; i++) {
-				let features = JSON.parse(this.coords[i].location).features;
-				features.forEach(
-					coords => L.geoJSON(coords).bindPopup(this.coords[i].name).addTo(this.map)
-				);
-				lastCoords = features[0].geometry.coordinates.reverse();
-			}
-		}
+		console.log(this.coords);
+		this.coords.features.forEach(
+			coords => L.geoJSON(coords).bindPopup(coords.properties.name).addTo(this.map)
+		);
+		let lastCoords = this.coords.features[0].geometry.coordinates.reverse();
 		this.map.panTo(lastCoords, 8);
 	}
 
@@ -98,7 +84,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 				type: this.type
 			}
 		}).then(r => {
-			this.coords = Object.assign(r.message);
+			this.coords = r.message;
 
 		});
 	}
