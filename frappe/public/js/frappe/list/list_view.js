@@ -1,5 +1,4 @@
 import BulkOperations from "./bulk_operations";
-import ListSettings from "./list_settings";
 
 frappe.provide('frappe.views');
 
