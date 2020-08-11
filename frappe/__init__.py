@@ -516,12 +516,13 @@ guest_methods = []
 xss_safe_methods = []
 allowed_http_methods_for_whitelisted_func = {}
 
-def whitelist(allow_guest=False, xss_safe=False, allow_http_methods=['GET', 'POST', 'PUT', 'DELETE']):
+def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
+	:param methods: Allowed http method to access the method.
 
 	Use as:
 
@@ -533,8 +534,10 @@ def whitelist(allow_guest=False, xss_safe=False, allow_http_methods=['GET', 'POS
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods
 		whitelisted.append(fn)
 
-		if allow_http_methods:
-			allowed_http_methods_for_whitelisted_func[fn] = allow_http_methods
+		if not methods:
+			method = ['GET', 'POST', 'PUT', 'DELETE']
+
+		allowed_http_methods_for_whitelisted_func[fn] = method
 
 		if allow_guest:
 			guest_methods.append(fn)
