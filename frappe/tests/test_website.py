@@ -28,15 +28,6 @@ class TestWebsite(unittest.TestCase):
 		user.add_roles(role.name)
 		user.save()
 
-		web_page = frappe.get_doc(dict(
-			doctype = 'Web Page',
-			title = 'Home Page Test',
-			route = 'home-page-test',
-			published = 1,
-			content_type = 'Markdown',
-			main_section_md = '# h1\n\home page test',
-		)).insert()
-
 		frappe.set_user('test-user-for-home-page@example.com')
 		self.assertEqual(get_home_page(), 'home-page-test')
 

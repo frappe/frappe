@@ -103,7 +103,7 @@ def get_home_page_via_hooks():
 
 	home_page_method = frappe.get_hooks('get_website_user_home_page')
 	if home_page_method:
-		home_page = frappe.get_attr(home_page_method[-1])(user).strip('/')
+		home_page = frappe.get_attr(home_page_method[-1])(frappe.session.user).strip('/')
 	elif frappe.get_hooks('website_user_home_page'):
 		home_page = frappe.get_hooks('website_user_home_page')[-1].strip('/')
 

@@ -173,7 +173,7 @@ app_license = "{app_license}"
 # Home Pages
 # ----------
 
-# application home page (will not override Website Settings)
+# application home page (will override Website Settings)
 # home_page = "login"
 
 # website user home page (by Role)

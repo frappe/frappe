@@ -15,4 +15,5 @@ def execute():
 			doc.generate_bootstrap_theme()
 			doc.save()
 		except:
-			pass
+			print('Ignoring....')
+			print(frappe.get_traceback())
