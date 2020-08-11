@@ -233,7 +233,7 @@ def cancel(doctype, name):
 
 	return wrapper.as_dict()
 
-@frappe.whitelist(methods=['DELETE'])
+@frappe.whitelist(methods=['DELETE', 'POST'])
 def delete(doctype, name):
 	'''Delete a remote document
 
