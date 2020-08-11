@@ -291,6 +291,7 @@
 		"public/html/print_template.html",
 
 		"public/js/frappe/list/base_list.js",
+		"public/js/frappe/list/list_settings.js",
 		"public/js/frappe/list/list_view.js",
 		"public/js/frappe/list/list_factory.js",
 
