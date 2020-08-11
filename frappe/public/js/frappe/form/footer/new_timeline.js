@@ -16,7 +16,7 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	refresh() {
-
+		this.render_timeline_items();
 	}
 
 	add_action_button() {
@@ -24,12 +24,12 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	render_timeline_items() {
+		this.timeline_wrapper.empty();
+		this.timeline_items = [];
 		this.prepare_timeline_contents();
 
-		this.timeline_items.sort((item1, item2) => new Date(item2.creation) - new Date(item1.creation));
-		this.timeline_items.forEach(item => {
-			this.timeline_wrapper.append(this.get_timeline_item(item));
-		});
+		this.timeline_items.sort((item1, item2) => new Date(item1.creation) - new Date(item2.creation));
+		this.timeline_items.forEach(this.add_timeline_item.bind(this));
 	}
 
 	prepare_timeline_contents() {
@@ -41,6 +41,12 @@ frappe.ui.form.NewTimeline = class {
 		// milestones
 		// versions
 		// attachments
+	}
+
+	add_timeline_item(item) {
+		let timeline_item = this.get_timeline_item(item);
+		this.timeline_wrapper.prepend(timeline_item);
+		return timeline_item;
 	}
 
 	get_timeline_item(item) {
@@ -88,7 +94,7 @@ frappe.ui.form.NewTimeline = class {
 				icon: 'mail',
 				creation: communication.creation,
 				card: true,
-				content: this.get_communication_content(communication),
+				content: communication_content,
 			});
 		});
 		return communication_timeline_contents;
