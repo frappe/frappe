@@ -14,7 +14,7 @@ from pymysql import InternalError
 @frappe.whitelist()
 def get_coords(doctype, filters, type):
     '''Get list of coordinates in form
-    returns {names: ['latitude', 'longitude']} or location type'''
+    returns {name, location} with location being a geojson string'''
     filters_sql = get_coords_conditions(doctype, filters)[4:]
     out = None
     if type == 'coordinates':
@@ -28,10 +28,10 @@ def return_location(doctype, filters_sql):
         try:
             coords = frappe.db.sql("""SELECT * FROM `tab{}`  WHERE {}""".format(doctype, filters_sql), as_dict=True)
         except InternalError:
-            frappe.msgprint(frappe._('This Doctype did not contains latitude and longitude fields'))
+            frappe.msgprint(frappe._('This Doctype did not contain location field'))
             return
     else:
-        coords = frappe.get_all(doctype, fields = ['location', 'name'])
+        coords = frappe.get_all(doctype, fields = ['name', 'location'])
     return coords
 
 def return_coordinates(doctype, filters_sql):
