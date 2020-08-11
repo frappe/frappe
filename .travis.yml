@@ -33,11 +33,6 @@ matrix:
     before_script: bench --site test_site execute frappe.utils.install.complete_setup_wizard
     script: bench --site test_site run-ui-tests frappe --headless
 
-  - name: "Python 2.7 MariaDB"
-    python: 2.7
-    env: DB=mariadb TYPE=server
-    script: bench --site test_site run-tests --coverage
-
 before_install:
   # install wkhtmltopdf
   - wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
