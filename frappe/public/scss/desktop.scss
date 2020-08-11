@@ -198,9 +198,9 @@ html, body {
 		@include flex(flex, center, center, null);
 		min-height: 65px;
 		box-shadow: none;
-		background-color: var(--gray-100);
+		background-color: var(--gray-200);
 		color: var(--text-muted);
-		border: 1px dashed var(--gray-300);
+		border: 1px dashed var(--gray-400);
 		cursor: pointer;
 	}
 
