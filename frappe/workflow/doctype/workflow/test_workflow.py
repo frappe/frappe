@@ -6,6 +6,9 @@ import frappe
 import unittest
 from frappe.utils import random_string
 from frappe.model.workflow import apply_workflow, WorkflowTransitionError, WorkflowPermissionError, get_common_transition_actions
+from frappe.test_runner import make_test_records
+
+make_test_records("User")
 
 class TestWorkflow(unittest.TestCase):
 	def setUp(self):
@@ -78,7 +81,7 @@ class TestWorkflow(unittest.TestCase):
 		frappe.set_user('test2@example.com')
 
 		doc = self.test_default_condition()
-		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
+		workflow_actions = frappe.get_all('Workflow Action', fields=['status', 'reference_name'])
 		self.assertEqual(len(workflow_actions), 1)
 
 		# test if status of workflow actions are updated on approval
@@ -102,6 +105,9 @@ class TestWorkflow(unittest.TestCase):
 		todo.reload()
 		self.assertEqual(todo.docstatus, 1)
 
+		self.workflow.states[1].doc_status = 0
+		self.workflow.save()
+
 	def test_if_workflow_set_on_action(self):
 		self.workflow.states[1].doc_status = 1
 		self.workflow.save()
@@ -111,12 +117,17 @@ class TestWorkflow(unittest.TestCase):
 		self.assertEqual(todo.docstatus, 1)
 		self.assertEqual(todo.workflow_state, 'Approved')
 
+		self.workflow.states[1].doc_status = 0
+		self.workflow.save()
+
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):
 		return frappe.get_doc('Workflow', 'Test ToDo').save(ignore_permissions=True)
 	else:
 		frappe.get_doc(dict(doctype='Role',
 			role_name='Test Approver')).insert(ignore_if_duplicate=True)
+		frappe.db.commit()
+		frappe.cache().hdel('roles', frappe.session.user)
 		workflow = frappe.new_doc('Workflow')
 		workflow.workflow_name = 'Test ToDo'
 		workflow.document_type = 'ToDo'
