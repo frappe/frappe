@@ -7,7 +7,7 @@ import frappe
 from frappe.model.document import Document
 from twilio.rest import Client
 from frappe import _
-
+from frappe.utils.password import get_decrypted_password
 from six import string_types
 
 class TwilioSettings(Document):
@@ -23,7 +23,8 @@ def send_whatsapp_message(sender, receiver_list, message):
 
 
 	twilio_settings = frappe.get_doc("Twilio Settings")
-	client = Client(twilio_settings.account_sid, twilio_settings.auth_token)
+	auth_token = get_decrypted_password("Twilio Settings", "Twilio Settings", 'auth_token')
+	client = Client(twilio_settings.account_sid, auth_token)
 	args = {
 		"from_": 'whatsapp:{}'.format(sender),
 		"body": message
