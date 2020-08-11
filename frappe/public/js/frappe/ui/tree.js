@@ -17,9 +17,9 @@ frappe.ui.Tree = class {
 
 		if(!icon_set) {
 			this.icon_set = {
-				open: 'fa fa-fw fa-folder-open',
-				closed: 'fa fa-fw fa-folder',
-				leaf: 'octicon octicon-primitive-dot'
+				open: frappe.utils.icon('folder-open', 'md'),
+				closed: frappe.utils.icon('folder-normal', 'md'),
+				leaf: frappe.utils.icon('primitive-dot', 'xs')
 			};
 		}
 
@@ -218,11 +218,10 @@ frappe.ui.Tree = class {
 
 			// open close icon
 			if(this.icon_set) {
-				node.$tree_link.find('i').removeClass();
 				if(!node.expanded) {
-					node.$tree_link.find('i').addClass(`${this.icon_set.open} node-parent`);
+					node.$tree_link.find('.icon').parent().html(this.icon_set.open);
 				} else {
-					node.$tree_link.find('i').addClass(`${this.icon_set.closed} node-parent`);
+					node.$tree_link.find('.icon').parent().addClass('node-parent').html(this.icon_set.closed);
 				}
 			}
 		}
@@ -256,14 +255,14 @@ frappe.ui.Tree = class {
 		let icon_html = '';
 		if(this.icon_set) {
 			if(node.expandable) {
-				icon_html = `<i class="${this.icon_set.closed} node-parent"></i>`;
+				icon_html = `<span class="node-parent">${this.icon_set.closed}</span>`;
 			} else {
-				icon_html = `<i class="${this.icon_set.leaf} node-leaf"></i>`;
+				icon_html = `<span>${this.icon_set.leaf}</span>`;
 			}
 		}
 
 		$(icon_html).appendTo(node.$tree_link);
-		$(`<a class="tree-label grey h6"> ${this.get_node_label(node)}</a>`).appendTo(node.$tree_link);
+		$(`<a class="tree-label"> ${this.get_node_label(node)}</a>`).appendTo(node.$tree_link);
 
 		node.$tree_link.on('click', () => {
 			setTimeout(() => {this.on_node_click(node);}, 100);
