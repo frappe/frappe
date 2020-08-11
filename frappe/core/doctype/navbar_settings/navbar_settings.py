@@ -21,7 +21,7 @@ class NavbarSettings(Document):
 			self.help_dropdown + self.settings_dropdown if item.is_standard]
 
 		if not frappe.flags.in_patch and (len(before_save_items) > len(after_save_items)):
-			frappe.throw(_("Cannot delete standard navbar items"))
+			frappe.throw(_("Please hide the standard navbar items instead of deleting them"))
 
 @frappe.whitelist()
 def get_app_logo():
@@ -31,34 +31,9 @@ def get_app_logo():
 
 	return app_logo
 
-def get_navbar_items():
+def get_navbar_settings():
 	navbar_settings = frappe.get_single('Navbar Settings')
-
-	navbar_items = frappe._dict()
-	navbar_items.help_dropdown = []
-	navbar_items.settings_dropdown = []
-
-	for item in navbar_settings.settings_dropdown:
-		navbar_items.settings_dropdown.append({
-			'label': item.item_label,
-			'item_type': item.item_type,
-			'route': item.route,
-			'hidden': item.hidden,
-			'action': item.action
-		})
-
-	for item in navbar_settings.help_dropdown:
-		navbar_items.help_dropdown.append({
-			'label': item.item_label,
-			'item_type': item.item_type,
-			'route': item.route,
-			'hidden': item.hidden,
-			'action': item.action
-		})
-
-	navbar_items.logo_width = navbar_settings.logo_width
-
-	return navbar_items
+	return navbar_settings
 
 
 

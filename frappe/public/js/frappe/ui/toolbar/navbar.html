@@ -5,7 +5,7 @@
 				<i class="octicon octicon-three-bars"></i>
 			</a>
 			<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">
-				<img class="app-logo" style="width: {{navbar_items.logo_width || 24}}px" src="{{ frappe.app.logo_url }}">
+				<img class="app-logo" style="width: {{navbar_settings.logo_width || 24}}px" src="{{ frappe.app.logo_url }}">
 			</a>
 			<ul class="nav navbar-nav" id="navbar-breadcrumbs">
 			</ul>
@@ -23,18 +23,18 @@
 					{%= __("Settings") %}</span>
 				<b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
-					{% for item in navbar_items.settings_dropdown %}
+					{% for item in navbar_settings.settings_dropdown %}
 						{% if (!item.hidden) { %}
 							{% if (item.route) { %}
 								<li>
 									<a href="{{ item.route }}">
-										{%= __(item.label) %}
+										{%= __(item.item_label) %}
 									</a>
 								</li>
 							{% } else if (item.action) { %}
 								<li>
 									<a onclick="return {{ item.action }}">
-										{%= __(item.label) %}
+										{%= __(item.item_label) %}
 									</a>
 								</li>
 							{% } else { %}
@@ -55,18 +55,18 @@
 					<!-- For custom links added via jquery -->
 					<li id="help-links"></li>
 					<li class="divider documentation-links"></li>
-					{% for item in navbar_items.help_dropdown %}
+					{% for item in navbar_settings.help_dropdown %}
 						{% if (!item.hidden) { %}
 							{% if (item.route) { %}
 								<li>
 									<a href="{{ item.route }}">
-										{%= __(item.label) %}
+										{%= __(item.item_label) %}
 									</a>
 								</li>
 							{% } else if (item.action) { %}
 								<li>
 									<a onclick="return {{ item.action }}">
-										{%= __(item.label) %}
+										{%= __(item.item_label) %}
 									</a>
 								</li>
 							{% } else { %}

@@ -8,7 +8,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
 		$('header').append(frappe.render_template("navbar", {
 			avatar: frappe.avatar(frappe.session.user),
-			navbar_items: frappe.boot.navbar_items
+			navbar_settings: frappe.boot.navbar_settings
 		}));
 		$('.dropdown-toggle').dropdown();
 
