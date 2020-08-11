@@ -14,7 +14,7 @@ from pymysql import InternalError
 @frappe.whitelist()
 def get_coords(doctype, filters, type):
     '''Get list of coordinates in form
-    returns {names: ['latitude', 'longitude']} or location type'''
+    returns {name, location} with location being a geojson string'''
     filters_sql = get_coords_conditions(doctype, filters)[4:]
     out = None
     if type == 'coordinates':
