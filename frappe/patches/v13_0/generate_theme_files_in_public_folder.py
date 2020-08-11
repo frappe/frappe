@@ -14,6 +14,6 @@ def execute():
 		try:
 			doc.generate_bootstrap_theme()
 			doc.save()
-		except: # pylint: disable=E722
+		except: # noqa: E722
 			print('Ignoring....')
 			print(frappe.get_traceback())
