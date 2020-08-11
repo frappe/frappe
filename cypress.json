@@ -3,5 +3,6 @@
   "projectId": "92odwv",
   "adminPassword": "admin",
   "defaultCommandTimeout": 20000,
-  "pageLoadTimeout": 15000
+  "pageLoadTimeout": 15000,
+  "env": { "RETRIES": 2 }
 }
