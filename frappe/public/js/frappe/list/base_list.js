@@ -232,7 +232,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_filter_area() {
-		this.filter_area = new FilterArea(this);
+		this.filter_area = new frappe.ui.FilterArea(this);
 
 		if (this.filters && this.filters.length > 0) {
 			return this.filter_area.set(this.filters);
@@ -449,7 +449,7 @@ frappe.views.BaseList = class BaseList {
 	}
 };
 
-class FilterArea {
+frappe.ui.FilterArea = class FilterArea {
 	constructor(list_view) {
 		this.list_view = list_view;
 		this.standard_filters_wrapper = this.list_view.page.page_form;
