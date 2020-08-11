@@ -1,4 +1,4 @@
-export default class ListSettings {
+frappe.views.ListSettings = class ListSettings {
 	constructor({ listview, doctype, meta, settings }) {
 		if (!doctype) {
 			frappe.throw(__('Doctype required'));
