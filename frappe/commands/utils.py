@@ -532,6 +532,7 @@ def run_ui_tests(context, app, headless=False):
 	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), '..'))
 	site_url = frappe.utils.get_site_url(site)
 	admin_password = frappe.get_conf(site).admin_password
+	frappe.init(site=site)
 	frappe.flags.in_test = True
 
 	# override baseUrl using env variable
