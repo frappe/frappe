@@ -48,7 +48,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.page.main.css({"border-color": "transparent"});
 
 		this.page.sidebar = $('<div class="print-format-builder-sidebar"></div>').appendTo(this.page.main);
-		this.page.main = $('<div class="border print-format-builder-main" \
+		this.page.main = $('<div class="border print-format-builder-main frappe-card" \
 			style="width: calc(100% - 160px);"></div>').appendTo(this.page.main);
 
 		// future-bindings for buttons on sections / fields
