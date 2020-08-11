@@ -37,11 +37,11 @@ def convert_to_geo_json(coords_list):
 
 
 def return_location(doctype, filters_sql):
-    if filters_sql:
+       if filters_sql:
         try:
-            coords = frappe.db.sql("""SELECT name,location FROM `tab{}`  WHERE {}""".format(doctype, filters_sql), as_dict=True)
+            coords = frappe.db.sql("""SELECT name, location FROM `tab{}`  WHERE {}""".format(doctype, filters_sql), as_dict=True)
         except InternalError:
-            frappe.msgprint(frappe._('This Doctype did not contains latitude and longitude fields'))
+            frappe.msgprint(frappe._('This Doctype did not contains location fields'))
             return
     else:
         coords = frappe.get_all(doctype, fields=['location', 'name'])
@@ -53,7 +53,7 @@ def return_coordinates(doctype, filters_sql):
     handled_geo_json = {"type": "FeatureCollection", "features": None}
     if filters_sql:
         try:
-            coords = frappe.db.sql("""SELECT * FROM `tab{}`  WHERE {}""".format(doctype, filters_sql), as_dict=True)
+            coords = frappe.db.sql("""SELECT name, latitude, longitude FROM `tab{}`  WHERE {}""".format(doctype, filters_sql), as_dict=True)
         except InternalError:
             frappe.msgprint(frappe._('This Doctype did not contains latitude and longitude fields'))
             return
