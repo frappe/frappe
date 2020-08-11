@@ -7,8 +7,7 @@ import frappe
 class TestBlogCategory(unittest.TestCase):
 	def test_route(self):
 		cat = frappe.new_doc("Blog Categroy", {
-			"title": "_Yet Another Category",
-			"category_name": "test-category-yet-another-category",
+			"title": "Test Category Yet Another Category",
 		})
 		cat.insert()
 		self.assertEqual(cat.route, 'blog/test-category-yet-another-category')

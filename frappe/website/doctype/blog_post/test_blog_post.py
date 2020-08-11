@@ -36,7 +36,6 @@ def make_test_blog():
 	if not frappe.db.exists('Blog Category', 'Test Blog Category'):
 		frappe.get_doc(dict(
 			doctype = 'Blog Category',
-			category_name = 'Test Blog Category',
 			title='Test Blog Category')).insert()
 	if not frappe.db.exists('Blogger', 'test-blogger'):
 		frappe.get_doc(dict(
@@ -45,7 +44,7 @@ def make_test_blog():
 			full_name='Test Blogger')).insert()
 	test_blog = frappe.get_doc(dict(
 		doctype = 'Blog Post',
-		blog_category = 'Test Blog Category',
+		blog_category = 'test-blog-category',
 		blogger = 'test-blogger',
 		title = random_string(20),
 		route = random_string(20),
