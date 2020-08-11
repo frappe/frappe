@@ -27,7 +27,11 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 	set_formatted_input(value) {
 		// Set values to display
 		let svg = value;
-		const barcode_value = $(svg).attr('data-barcode-value');
+		let barcode_value = '';
+
+		if (value && value.startsWith('<svg')) {
+			barcode_value = $(svg).attr('data-barcode-value');
+		}
 
 		if (!barcode_value && this.doc) {
 			svg = this.get_barcode_html(value);
@@ -44,6 +48,7 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 			const svg = this.barcode_area.find('svg')[0];
 			JsBarcode(svg, value, this.get_options(value));
 			$(svg).attr('data-barcode-value', value);
+			$(svg).attr('width', '100%');
 			return this.barcode_area.html();
 		}
 	},

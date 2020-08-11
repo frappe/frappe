@@ -16,15 +16,14 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 	"""
 		Update title from header in form view
 	"""
+	if docname and new_name and not docname == new_name:
+		docname = rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
+
 	if old_title and new_title and not old_title == new_title:
 		frappe.db.set_value(doctype, docname, title_field, new_title)
 		frappe.msgprint(_('Saved'), alert=True, indicator='green')
 
-	if docname and new_name and not docname == new_name:
-		return rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
-
 	return docname
-
 
 @frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False, show_alert=True):
@@ -57,6 +56,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	if not merge:
 		rename_parent_and_child(doctype, old, new, meta)
+	else:
+		update_assignments(old, new, doctype)
 
 	# update link fields' values
 	link_fields = get_link_fields(doctype)
@@ -105,6 +106,27 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	return new
 
+def update_assignments(old, new, doctype):
+	old_assignments = frappe.parse_json(frappe.db.get_value(doctype, old, '_assign')) or []
+	new_assignments = frappe.parse_json(frappe.db.get_value(doctype, new, '_assign')) or []
+	common_assignments = list(set(old_assignments).intersection(new_assignments))
+
+	for user in common_assignments:
+		# delete todos linked to old doc
+		todos = frappe.db.get_all('ToDo',
+			{
+				'owner': user,
+				'reference_type': doctype,
+				'reference_name': old,
+			},
+			['name', 'description']
+		)
+
+		for todo in todos:
+			frappe.delete_doc('ToDo', todo.name)
+
+	unique_assignments = list(set(old_assignments + new_assignments))
+	frappe.db.set_value(doctype, new, '_assign', frappe.as_json(unique_assignments, indent=0))
 
 def update_user_settings(old, new, link_fields):
 	'''

@@ -18,6 +18,13 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Global Defaults",
+					"label": _("Global Defaults"),
+					"description": _("Company, Fiscal Year and Currency defaults"),
+					"hide_count": True
+				},
+				{
+					"type": "doctype",
 					"name": "Error Log",
 					"description": _("Log of error on automated events (scheduler).")
 				},
@@ -177,28 +184,7 @@ def get_data():
 					"description": _("Actions for workflow (e.g. Approve, Cancel).")
 				},
 			]
-		},
-		{
-			"label": _("Automation"),
-			"icon": "fa fa-random",
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Assignment Rule",
-					"description": _("Set up rules for user assignments.")
-				},
-				{
-					"type": "doctype",
-					"name": "Milestone",
-					"description": _("Tracks milestones on the lifecycle of a document if it undergoes multiple stages.")
-				},
-				{
-					"type": "doctype",
-					"name": "Auto Repeat",
-					"description": _("Automatically generates recurring documents.")
-				},
-			]
-		},
+		}
 	]
 	add_setup_section(data, "frappe", "website", _("Website"), "fa fa-globe")
 	return data

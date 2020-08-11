@@ -73,6 +73,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 	}
 
+	render_list() {
+
+	}
+
 	on_filter_change() {
 		if (JSON.stringify(this.board.filters_array) !== JSON.stringify(this.filter_area.get())) {
 			this.page.set_indicator(__('Not Saved'), 'orange');
@@ -106,6 +110,11 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.board.filters_array = filters;
 			this.on_filter_change();
 		});
+	}
+
+	get_fields() {
+		this.fields.push([this.board.field_name, this.board.reference_doctype]);
+		return super.get_fields();
 	}
 
 	render() {

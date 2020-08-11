@@ -6,75 +6,184 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import datetime
-from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
+import json
+from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
+from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate,\
+	get_datetime, cint, now_datetime
+from frappe.model.naming import append_number_if_name_exists
+from frappe.boot import get_allowed_reports
 from frappe.model.document import Document
+from frappe.modules.export_file import export_to_files
+
+
+def get_permission_query_conditions(user):
+
+	if not user:
+		user = frappe.session.user
+
+	if user == 'Administrator':
+		return
+
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles:
+		return None
+
+	doctype_condition = False
+	report_condition = False
+
+	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
+	allowed_reports = [frappe.db.escape(key) if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()]
+
+	if allowed_doctypes:
+		doctype_condition = '`tabDashboard Chart`.`document_type` in ({allowed_doctypes})'.format(
+			allowed_doctypes=','.join(allowed_doctypes))
+	if allowed_reports:
+		report_condition = '`tabDashboard Chart`.`report_name` in ({allowed_reports})'.format(
+			allowed_reports=','.join(allowed_reports))
+
+	return '''
+			(`tabDashboard Chart`.`chart_type` in ('Count', 'Sum', 'Average')
+			and {doctype_condition})
+			or
+			(`tabDashboard Chart`.`chart_type` = 'Report'
+			and {report_condition})
+		'''.format(
+			doctype_condition=doctype_condition,
+			report_condition=report_condition
+		)
+
+
+def has_permission(doc, ptype, user):
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles:
+		return True
+
+
+	if doc.chart_type == 'Report':
+		allowed_reports = tuple([key.encode('UTF8') for key in get_allowed_reports()])
+		if doc.report_name in allowed_reports:
+			return True
+	else:
+		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+		if doc.document_type in allowed_doctypes:
+			return True
+
+	return False
 
 @frappe.whitelist()
 @cache_source
-def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_date = None, refresh = None):
+def get(chart_name = None, chart = None, no_cache = None, filters = None, from_date = None,
+	to_date = None, timespan = None, time_interval = None, heatmap_year=None, refresh = None):
 	if chart_name:
 		chart = frappe.get_doc('Dashboard Chart', chart_name)
 	else:
 		chart = frappe._dict(frappe.parse_json(chart))
 
-	timespan = chart.timespan
+	heatmap_year = heatmap_year or chart.heatmap_year
+	timespan = timespan or chart.timespan
 
-	if chart.timespan == 'Select Date Range':
-		from_date = chart.from_date
-		to_date = chart.to_date
+	if timespan == 'Select Date Range':
+		if from_date and len(from_date):
+			from_date = get_datetime(from_date)
+		else:
+			from_date = chart.from_date
 
-	timegrain = chart.time_interval
-	filters = frappe.parse_json(chart.filters_json)
+		if to_date and len(to_date):
+			to_date = get_datetime(to_date)
+		else:
+			to_date = get_datetime(chart.to_date)
+
+	timegrain = time_interval or chart.time_interval
+	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json)
+	if not filters:
+		filters = []
 
 	# don't include cancelled documents
-	filters['docstatus'] = ('<', 2)
+	filters.append([chart.document_type, 'docstatus', '<', 2, False])
 
 	if chart.chart_type == 'Group By':
 		chart_config = get_group_by_chart_config(chart, filters)
 	else:
-		chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
+		if chart.type == 'Heatmap':
+			chart_config = get_heatmap_chart_config(chart, filters, heatmap_year)
+		else:
+			chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
 
 	return chart_config
 
+@frappe.whitelist()
+def create_dashboard_chart(args):
+	args = frappe.parse_json(args)
+	doc = frappe.new_doc('Dashboard Chart')
+
+	doc.update(args)
+
+	if args.get('custom_options'):
+		doc.custom_options = json.dumps(args.get('custom_options'))
+
+	if frappe.db.exists('Dashboard Chart', args.chart_name):
+		args.chart_name = append_number_if_name_exists('Dashboard Chart', args.chart_name)
+		doc.chart_name = args.chart_name
+	doc.insert(ignore_permissions=True)
+	return doc
+
+@frappe.whitelist()
+def create_report_chart(args):
+	doc = create_dashboard_chart(args)
+	args = frappe.parse_json(args)
+	args.chart_name = doc.chart_name
+	if args.dashboard:
+		add_chart_to_dashboard(json.dumps(args))
+
+@frappe.whitelist()
+def add_chart_to_dashboard(args):
+	args = frappe.parse_json(args)
+
+	dashboard = frappe.get_doc('Dashboard', args.dashboard)
+	dashboard_link = frappe.new_doc('Dashboard Chart Link')
+	dashboard_link.chart = args.chart_name or args.name
+
+	if args.set_standard and dashboard.is_standard:
+		chart = frappe.get_doc('Dashboard Chart', dashboard_link.chart)
+		chart.is_standard = 1
+		chart.module = dashboard.module
+		chart.save()
+
+	dashboard.append('charts', dashboard_link)
+	dashboard.save()
+	frappe.db.commit()
 
 def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
 	if not to_date:
-		to_date = datetime.datetime.now()
+		to_date = now_datetime()
 
-	# get conditions from filters
-	conditions, values = frappe.db.build_conditions(filters)
-	# query will return year, unit and aggregate value
-	data = frappe.db.sql('''
-		select
-			extract(year from {datefield}) as _year,
-			{unit_function} as _unit,
-			{aggregate_function}({value_field})
-		from `tab{doctype}`
-		where
-			{conditions}
-			and {datefield} >= '{from_date}'
-			and {datefield} <= '{to_date}'
-		group by _year, _unit
-		order by _year asc, _unit asc
-	'''.format(
-		unit_function = get_unit_function(chart.based_on, timegrain),
-		datefield = chart.based_on,
-		aggregate_function = get_aggregate_function(chart.chart_type),
-		value_field = chart.value_based_on or '1',
-		doctype = chart.document_type,
-		conditions = conditions,
-		from_date = from_date.strftime('%Y-%m-%d'),
-		to_date = to_date
-	), values)
+	doctype = chart.document_type
+	datefield = chart.based_on
+	aggregate_function = get_aggregate_function(chart.chart_type)
+	value_field = chart.value_based_on or '1'
+	from_date = from_date.strftime('%Y-%m-%d')
+	to_date = to_date
 
-	# result given as year, unit -> convert it to end of period of that unit
-	result = convert_to_dates(data, timegrain)
+	filters.append([doctype, datefield, '>=', from_date, False])
+	filters.append([doctype, datefield, '<=', to_date, False])
 
-	# add missing data points for periods where there was no result
-	result = add_missing_values(result, timegrain, timespan, from_date, to_date)
+	data = frappe.db.get_list(
+		doctype,
+		fields = [
+			'{} as _unit'.format(datefield),
+			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
+		],
+		filters = filters,
+		group_by = '_unit',
+		order_by = '_unit asc',
+		as_list = True,
+		ignore_ifnull = True
+	)
+
+	result = get_result(data, timegrain, from_date, to_date)
+
 	chart_config = {
 		"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
 		"datasets": [{
@@ -85,25 +194,60 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	return chart_config
 
+def get_heatmap_chart_config(chart, filters, heatmap_year):
+	aggregate_function = get_aggregate_function(chart.chart_type)
+	value_field = chart.value_based_on or '1'
+	doctype = chart.document_type
+	datefield = chart.based_on
+	year = cint(heatmap_year) if heatmap_year else getdate(nowdate()).year
+	year_start_date = datetime.date(year, 1, 1).strftime('%Y-%m-%d')
+	next_year_start_date = datetime.date(year + 1, 1, 1).strftime('%Y-%m-%d')
+
+	filters.append([doctype, datefield, '>', "{date}".format(date=year_start_date), False])
+	filters.append([doctype, datefield, '<', "{date}".format(date=next_year_start_date), False])
+
+	if frappe.db.db_type == 'mariadb':
+		timestamp_field = 'unix_timestamp({datefield})'.format(datefield=datefield)
+	else:
+		timestamp_field = 'extract(epoch from timestamp {datefield})'.format(datefield=datefield)
+
+	data = dict(frappe.db.get_all(
+		doctype,
+		fields = [
+			timestamp_field,
+			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
+		],
+		filters = filters,
+		group_by = 'date({datefield})'.format(datefield=datefield),
+		as_list = 1,
+		order_by = '{datefield} asc'.format(datefield=datefield),
+		ignore_ifnull = True
+	))
+
+	chart_config = {
+		'labels': [],
+		'dataPoints': data,
+	}
+	return chart_config
 
 def get_group_by_chart_config(chart, filters):
-	conditions, values = frappe.db.build_conditions(filters)
-	data = frappe.db.sql('''
-		select
-			{aggregate_function}({value_field}) as count,
-			{group_by_field} as name
-		from `tab{doctype}`
-		where {conditions}
-		group by {group_by_field}
-		order by count desc
-	'''.format(
-		aggregate_function = get_aggregate_function(chart.group_by_type),
-		value_field = chart.aggregate_function_based_on or '1',
-		field = chart.aggregate_function_based_on or chart.group_by_based_on,
-		group_by_field = chart.group_by_based_on,
-		doctype = chart.document_type,
-		conditions = conditions,
-	), values, as_dict = True)
+
+	aggregate_function = get_aggregate_function(chart.group_by_type)
+	value_field = chart.aggregate_function_based_on or '1'
+	group_by_field = chart.group_by_based_on
+	doctype = chart.document_type
+
+	data = frappe.db.get_list(
+		doctype,
+		fields = [
+			'{} as name'.format(group_by_field),
+			'{aggregate_function}({value_field}) as count'.format(aggregate_function=aggregate_function, value_field=value_field),
+		],
+		filters = filters,
+		group_by = group_by_field,
+		order_by = 'count desc',
+		ignore_ifnull = True
+	)
 
 	if data:
 		if chart.number_of_groups and chart.number_of_groups < len(data):
@@ -120,6 +264,7 @@ def get_group_by_chart_config(chart, filters):
 				"values": [item['count'] for item in data]
 			}]
 		}
+
 		return chart_config
 	else:
 		return None
@@ -133,83 +278,30 @@ def get_aggregate_function(chart_type):
 	}[chart_type]
 
 
-def convert_to_dates(data, timegrain):
-	""" Converts individual dates within data to the end of period """
-	result = []
-	for d in data:
-		if timegrain == 'Daily':
-			result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1] - 1), d[2]])
-		elif timegrain == 'Weekly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), weeks = d[1] + 1), days = -1), d[2]])
-		elif timegrain == 'Monthly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=d[1]), days = -1), d[2]])
-		elif timegrain == 'Quarterly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=d[1] * 3), days = -1), d[2]])
-		elif timegrain == 'Yearly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=12), days = -1), d[2]])
-		result[-1][0] = getdate(result[-1][0])
+def get_result(data, timegrain, from_date, to_date):
+	start_date = getdate(from_date)
+	end_date = getdate(to_date)
 
-	return result
+	result = [[start_date, 0.0]]
 
-def get_unit_function(datefield, timegrain):
-	unit_function = ''
-	if timegrain=='Daily':
-		if frappe.db.db_type == 'mariadb':
-			unit_function = 'dayofyear({})'.format(datefield)
-		else:
-			unit_function = 'extract(doy from {datefield})'.format(
-				datefield=datefield)
+	while start_date < end_date:
+		next_date = get_next_expected_date(start_date, timegrain)
+		result.append([next_date, 0.0])
+		start_date = next_date
 
-	else:
-		unit_function = 'extract({unit} from {datefield})'.format(
-			unit = timegrain[:-2].lower(), datefield=datefield)
-
-	return unit_function
-
-def add_missing_values(data, timegrain, timespan, from_date, to_date):
-	# add missing intervals
-	result = []
-
-	if timespan != 'All Time':
-		first_expected_date = get_period_ending(from_date, timegrain)
-		# fill out data before the first data point
-		first_data_point_date = data[0][0] if data else getdate(add_to_date(to_date, days=1))
-		while first_data_point_date > first_expected_date:
-			result.append([first_expected_date, 0.0])
-			first_expected_date = get_next_expected_date(first_expected_date, timegrain)
-
-	# fill data points and missing points
-	for i, d in enumerate(data):
-		result.append(d)
-
-		next_expected_date = get_next_expected_date(d[0], timegrain)
-
-		if i < len(data)-1:
-			next_date = data[i+1][0]
-		else:
-			# already reached at end of data, see if we need any more dates
-			next_date = getdate(nowdate())
-
-		# if next data point is earler than the expected date
-		# need to fill out missing data points
-		while next_date > next_expected_date:
-			# fill missing value
-			result.append([next_expected_date, 0.0])
-			next_expected_date = get_next_expected_date(next_expected_date, timegrain)
-
-	# add date for the last period (if missing)
-	if result and get_period_ending(to_date, timegrain) > result[-1][0]:
-		result.append([get_period_ending(to_date, timegrain), 0.0])
+	data_index = 0
+	if data:
+		for i, d in enumerate(result):
+			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
+				d[1] += data[data_index][1]
+				data_index += 1
 
 	return result
 
 def get_next_expected_date(date, timegrain):
 	next_date = None
-	if timegrain=='Daily':
-		next_date = add_to_date(date, days=1)
-	else:
-		# given date is always assumed to be the period ending date
-		next_date = get_period_ending(add_to_date(date, days=1), timegrain)
+	# given date is always assumed to be the period ending date
+	next_date = get_period_ending(add_to_date(date, days=1), timegrain)
 	return getdate(next_date)
 
 def get_period_ending(date, timegrain):
@@ -228,14 +320,12 @@ def get_period_ending(date, timegrain):
 	return getdate(date)
 
 def get_week_ending(date):
-	# fun fact: week ends on the day before 1st Jan of the year.
-	# for 2019 it is Monday
+	# week starts on monday
+	from datetime import timedelta
+	start = date - timedelta(days = date.weekday())
+	end = start + timedelta(days=6)
 
-	week_of_the_year = int(date.strftime('%U'))
-	# first day of next week
-	date = add_to_date('{}-01-01'.format(date.year), weeks = week_of_the_year + 1)
-	# last day of this week
-	return add_to_date(date, days=-1)
+	return end
 
 def get_month_ending(date):
 	month_of_the_year = int(date.strftime('%m'))
@@ -267,15 +357,32 @@ def get_year_ending(date):
 	# last day of this month
 	return add_to_date(date, days=-1)
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
+	or_filters = {'owner': frappe.session.user, 'is_public': 1}
+	return frappe.db.get_list('Dashboard Chart',
+		fields=['name'],
+		filters=filters,
+		or_filters=or_filters,
+		as_list = 1)
 
 class DashboardChart(Document):
 
 	def on_update(self):
 		frappe.cache().delete_key('chart-data:{}'.format(self.name))
+		if frappe.conf.developer_mode and self.is_standard:
+			export_to_files(record_list=[['Dashboard Chart', self.name]], record_module=self.module)
+
 
 	def validate(self):
-		if self.chart_type != 'Custom':
+		if not frappe.conf.developer_mode and self.is_standard:
+			frappe.throw('Cannot edit Standard charts')
+		if self.chart_type != 'Custom' and self.chart_type != 'Report':
 			self.check_required_field()
+			self.check_document_type()
+
+		self.validate_custom_options()
 
 	def check_required_field(self):
 		if not self.document_type:
@@ -289,3 +396,14 @@ class DashboardChart(Document):
 		else:
 			if not self.based_on:
 				frappe.throw(_("Time series based on is required to create a dashboard chart"))
+
+	def check_document_type(self):
+		if frappe.get_meta(self.document_type).issingle:
+			frappe.throw(_("You cannot create a dashboard chart from single DocTypes"))
+
+	def validate_custom_options(self):
+		if self.custom_options:
+			try:
+				json.loads(self.custom_options)
+			except ValueError as error:
+				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))

@@ -8,6 +8,8 @@ import frappe
 import os, socket, time
 from frappe import _
 from six import string_types
+from uuid import uuid4
+import frappe.monitor
 
 # imports - third-party imports
 
@@ -71,7 +73,7 @@ def enqueue(method, queue='default', timeout=None, event=None,
 def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
 	now=False, **kwargs):
 	'''Enqueue a method to be run on a document'''
-	enqueue('frappe.utils.background_jobs.run_doc_method', doctype=doctype, name=name,
+	return enqueue('frappe.utils.background_jobs.run_doc_method', doctype=doctype, name=name,
 		doc_method=method, queue=queue, timeout=timeout, now=now, **kwargs)
 
 def run_doc_method(doctype, name, doc_method, **kwargs):
@@ -93,6 +95,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = cstr(method.__name__)
 
+	frappe.monitor.start("job", method_name, kwargs)
 	try:
 		method(**kwargs)
 
@@ -113,12 +116,12 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 				is_async=is_async, retry=retry+1)
 
 		else:
-			frappe.log_error(method_name)
+			frappe.log_error(title=method_name)
 			raise
 
 	except:
 		frappe.db.rollback()
-		frappe.log_error(method_name)
+		frappe.log_error(title=method_name)
 		frappe.db.commit()
 		print(frappe.get_traceback())
 		raise
@@ -127,6 +130,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		frappe.db.commit()
 
 	finally:
+		frappe.monitor.stop()
 		if is_async:
 			frappe.destroy()
 
@@ -142,6 +146,8 @@ def start_worker(queue=None, quiet = False):
 	with Connection(redis_connection):
 		queues = get_queue_list(queue)
 		logging_level = "INFO"
+		if quiet:
+			logging_level = "WARNING"
 		Worker(queues, name=get_worker_name(queue)).work(logging_level = logging_level)
 
 def get_worker_name(queue):
@@ -150,7 +156,8 @@ def get_worker_name(queue):
 
 	if queue:
 		# hostname.pid is the default worker name
-		name = '{hostname}.{pid}.{queue}'.format(
+		name = '{uuid}.{hostname}.{pid}.{queue}'.format(
+			uuid=uuid4().hex,
 			hostname=socket.gethostname(),
 			pid=os.getpid(),
 			queue=queue)

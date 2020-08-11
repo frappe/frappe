@@ -201,7 +201,7 @@ class TestPermissions(unittest.TestCase):
 		doc = frappe.get_doc("DocType", "Blog Post")
 
 		# change one property from the child table
-		doc.fields[-1].fieldtype = 'HTML'
+		doc.fields[-1].fieldtype = 'Check'
 		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
 		frappe.clear_cache(doctype='DocType')
 
@@ -314,6 +314,8 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user('Administrator')
 		frappe.db.sql('DELETE FROM `tabContact`')
+		frappe.db.sql('DELETE FROM `tabContact Email`')
+		frappe.db.sql('DELETE FROM `tabContact Phone`')
 
 		reset('Salutation')
 		reset('Contact')

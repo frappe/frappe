@@ -60,7 +60,8 @@ class PostgresDatabase(Database):
 			'Signature':	('text', ''),
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('text', ''),
-			'Geolocation':	('text', '')
+			'Geolocation':	('text', ''),
+			'Duration':		('decimal', '18,6')
 		}
 
 	def get_connection(self):
@@ -92,7 +93,7 @@ class PostgresDatabase(Database):
 
 	# pylint: disable=W0221
 	def sql(self, *args, **kwargs):
-		if len(args):
+		if args:
 			# since tuple is immutable
 			args = list(args)
 			args[0] = modify_query(args[0])
@@ -107,7 +108,7 @@ class PostgresDatabase(Database):
 			from information_schema.tables
 			where table_catalog='{0}'
 				and table_type = 'BASE TABLE'
-				and table_schema='public'""".format(frappe.conf.db_name))]
+				and table_schema='{1}'""".format(frappe.conf.db_name, frappe.conf.get("db_schema", "public")))]
 
 	def format_date(self, date):
 		if not date:
@@ -276,13 +277,13 @@ class PostgresDatabase(Database):
 		# pylint: disable=W1401
 		return self.sql('''
 			SELECT a.column_name AS name,
-			CASE a.data_type
+			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
-				WHEN 'timestamp without TIME zone' THEN 'timestamp'
+				WHEN 'timestamp without time zone' THEN 'timestamp'
 				ELSE a.data_type
 			END AS type,
 			COUNT(b.indexdef) AS Index,
-			COALESCE(a.column_default, NULL) AS default,
+			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
 			BOOL_OR(b.unique) AS unique
 			FROM information_schema.columns a
 			LEFT JOIN

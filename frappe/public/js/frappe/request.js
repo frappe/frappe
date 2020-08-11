@@ -101,6 +101,7 @@ frappe.call = function(opts) {
 		error_handlers: opts.error_handlers || {},
 		// show_spinner: !opts.no_spinner,
 		async: opts.async,
+		silent: opts.silent,
 		url,
 	});
 }
@@ -125,7 +126,7 @@ frappe.request.call = function(opts) {
 				message: __('The resource you are looking for is not available')});
 		},
 		403: function(xhr) {
-			if (frappe.get_cookie('sid')==='Guest') {
+			if (frappe.session.user === 'Guest') {
 				// session expired
 				frappe.app.handle_session_expired();
 			}
@@ -211,7 +212,7 @@ frappe.request.call = function(opts) {
 	};
 
 	if (opts.args && opts.args.doctype) {
-		ajax_args.headers["X-Frappe-Doctype"] = opts.args.doctype;
+		ajax_args.headers["X-Frappe-Doctype"] = encodeURIComponent(opts.args.doctype);
 	}
 
 	frappe.last_request = ajax_args.data;
@@ -320,7 +321,7 @@ frappe.request.cleanup = function(opts, r) {
 	if(r) {
 
 		// session expired? - Guest has no business here!
-		if(r.session_expired || frappe.get_cookie("sid")==="Guest") {
+		if (r.session_expired || frappe.session.user === "Guest") {
 			frappe.app.handle_session_expired();
 			return;
 		}
@@ -394,11 +395,11 @@ frappe.after_ajax = function(fn) {
 	return new Promise(resolve => {
 		if(frappe.request.ajax_count) {
 			frappe.request.waiting_for_ajax.push(() => {
-				if(fn) fn();
+				if(fn) return resolve(fn());
 				resolve();
 			});
 		} else {
-			if(fn) fn();
+			if(fn) return resolve(fn());
 			resolve();
 		}
 	});

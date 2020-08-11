@@ -53,6 +53,33 @@ frappe.confirm = function(message, ifyes, ifno) {
 	return d;
 }
 
+frappe.warn = function(title, message_html, proceed_action, primary_label) {
+	const d = new frappe.ui.Dialog({
+		title: title,
+		indicator: 'red',
+		fields: [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'warning_message',
+				options: `<div class="frappe-warning-message">${message_html}</div>`
+			}
+		],
+		primary_action_label: primary_label,
+		primary_action: () => {
+			if (proceed_action) proceed_action();
+			d.hide();
+		},
+		secondary_action_label: __("Cancel"),
+	});
+
+	d.buttons.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
+	const modal_footer = $(`<div class="modal-footer"></div>`).insertAfter($(d.modal_body));
+	modal_footer.html(d.buttons);
+
+	d.show();
+	return d;
+};
+
 frappe.prompt = function(fields, callback, title, primary_label) {
 	if (typeof fields === "string") {
 		fields = [{
@@ -79,7 +106,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	return d;
 }
 
-frappe.msgprint = function(msg, title) {
+frappe.msgprint = function(msg, title, is_minimizable) {
 	if(!msg) return;
 
 	if($.isPlainObject(msg)) {
@@ -117,7 +144,8 @@ frappe.msgprint = function(msg, title) {
 					frappe.msg_dialog.custom_onhide();
 				}
 				frappe.msg_dialog.msg_area.empty();
-			}
+			},
+			minimizable: data.is_minimizable || is_minimizable
 		});
 
 		// class "msgprint" is used in tests
@@ -139,6 +167,11 @@ frappe.msgprint = function(msg, title) {
 					method: data.primary_action.server_action,
 					args: {
 						args: data.primary_action.args
+					},
+					callback() {
+						if (data.primary_action.hide_on_success) {
+							frappe.hide_msgprint();
+						}
 					}
 				});
 			}
@@ -166,6 +199,11 @@ frappe.msgprint = function(msg, title) {
 			frappe.msg_dialog.get_primary_btn().addClass('hide');
 			frappe.msg_dialog.has_primary_action = false;
 		}
+	}
+
+	if (data.secondary_action) {
+		frappe.msg_dialog.set_secondary_action(data.secondary_action.action);
+		frappe.msg_dialog.set_secondary_action_label(__(data.secondary_action.label || "Close"));
 	}
 
 	if(data.message==null) {

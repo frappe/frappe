@@ -16,4 +16,4 @@ class OAuthClient(Document):
 	def validate_grant_and_response(self):
 		if self.grant_type == "Authorization Code" and self.response_type != "Code" or \
 			self.grant_type == "Implicit" and self.response_type != "Token":
-			frappe.throw(_("Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed".format(self.grant_type, self.response_type)))
+			frappe.throw(_("Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed").format(self.grant_type, self.response_type))

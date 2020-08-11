@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
@@ -77,12 +77,12 @@ def get_payment_gateway_controller(payment_gateway):
 		try:
 			return frappe.get_doc("{0} Settings".format(payment_gateway))
 		except Exception:
-			frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+			frappe.throw(_("{0} Settings not found").format(payment_gateway))
 	else:
 		try:
 			return frappe.get_doc(gateway.gateway_settings, gateway.gateway_controller)
 		except Exception:
-			frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+			frappe.throw(_("{0} Settings not found").format(payment_gateway))
 
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)

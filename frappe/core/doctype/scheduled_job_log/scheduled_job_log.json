@@ -16,7 +16,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Scheduled\nSuccess\nFailed",
+   "options": "Scheduled\nComplete\nFailed",
    "read_only": 1,
    "reqd": 1
   },
@@ -38,7 +38,7 @@
   }
  ],
  "links": [],
- "modified": "2019-09-25 11:55:10.646458",
+ "modified": "2020-01-22 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Log",

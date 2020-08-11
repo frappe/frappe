@@ -1,0 +1,74 @@
+{
+ "cards": [
+  {
+   "hidden": 0,
+   "label": "Data",
+   "links": "[\n    {\n        \"description\": \"Import Data from CSV / Excel files.\",\n        \"icon\": \"octicon octicon-cloud-upload\",\n        \"label\": \"Import Data\",\n        \"name\": \"Data Import\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Export Data in CSV / Excel format.\",\n        \"icon\": \"octicon octicon-cloud-upload\",\n        \"label\": \"Export Data\",\n        \"name\": \"Data Export\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Update many values at one time.\",\n        \"hide_count\": true,\n        \"label\": \"Bulk Update\",\n        \"name\": \"Bulk Update\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"List of backups available for download\",\n        \"icon\": \"fa fa-download\",\n        \"label\": \"Download Backups\",\n        \"name\": \"backups\",\n        \"type\": \"page\"\n    },\n    {\n        \"description\": \"Restore or permanently delete a document.\",\n        \"label\": \"Deleted Documents\",\n        \"name\": \"Deleted Document\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Email / Notifications",
+   "links": "[\n    {\n        \"description\": \"Add / Manage Email Accounts.\",\n        \"label\": \"Email Account\",\n        \"name\": \"Email Account\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Add / Manage Email Domains.\",\n        \"label\": \"Email Domain\",\n        \"name\": \"Email Domain\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Setup Notifications based on various criteria.\",\n        \"label\": \"Notification\",\n        \"name\": \"Notification\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Email Templates for common queries.\",\n        \"label\": \"Email Template\",\n        \"name\": \"Email Template\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Setup Reports to be emailed at regular intervals\",\n        \"label\": \"Auto Email Report\",\n        \"name\": \"Auto Email Report\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Create and manage newsletter\",\n        \"label\": \"Newsletter\",\n        \"name\": \"Newsletter\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Configure notifications for mentions, assignments, energy points and more.\",\n        \"label\": \"Notification Settings\",\n        \"name\": \"Notification Settings\",\n        \"route\": \"Form/Notification Settings/Administrator\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Website",
+   "links": "[\n    {\n        \"description\": \"Setup of top navigation bar, footer and logo.\",\n        \"label\": \"Website Settings\",\n        \"name\": \"Website Settings\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"List of themes for Website.\",\n        \"label\": \"Website Theme\",\n        \"name\": \"Website Theme\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Javascript to append to the head section of the page.\",\n        \"label\": \"Website Script\",\n        \"name\": \"Website Script\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Settings for About Us Page.\",\n        \"label\": \"About Us Settings\",\n        \"name\": \"About Us Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Settings for Contact Us Page.\",\n        \"label\": \"Contact Us Settings\",\n        \"name\": \"Contact Us Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Core",
+   "links": "[\n    {\n        \"description\": \"Language, Date and Time settings\",\n        \"hide_count\": true,\n        \"label\": \"System Settings\",\n        \"name\": \"System Settings\",\n        \"type\": \"doctype\"\n    },\n   {\n        \"description\": \"Company, Fiscal Year and Currency defaults\",\n        \"hide_count\": true,\n        \"label\": \"Global Defaults\",\n        \"name\": \"Global Defaults\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error on automated events (scheduler).\",\n        \"label\": \"Error Log\",\n        \"name\": \"Error Log\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error during requests.\",\n        \"label\": \"Error Snapshot\",\n        \"name\": \"Error Snapshot\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Enable / Disable Domains\",\n        \"hide_count\": true,\n        \"label\": \"Domain Settings\",\n        \"name\": \"Domain Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Printing",
+   "links": "[\n    {\n        \"description\": \"Drag and Drop tool to build and customize Print Formats.\",\n        \"label\": \"Print Format Builder\",\n        \"name\": \"print-format-builder\",\n        \"type\": \"page\"\n    },\n    {\n        \"description\": \"Set default format, page size, print style etc.\",\n        \"label\": \"Print Settings\",\n        \"name\": \"Print Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Customized HTML Templates for printing transactions.\",\n        \"label\": \"Print Format\",\n        \"name\": \"Print Format\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Stylesheets for Print Formats\",\n        \"label\": \"Print Style\",\n        \"name\": \"Print Style\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Workflow",
+   "links": "[\n    {\n        \"description\": \"Define workflows for forms.\",\n        \"label\": \"Workflow\",\n        \"name\": \"Workflow\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"States for workflow (e.g. Draft, Approved, Cancelled).\",\n        \"label\": \"Workflow State\",\n        \"name\": \"Workflow State\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Actions for workflow (e.g. Approve, Cancel).\",\n        \"label\": \"Workflow Action\",\n        \"name\": \"Workflow Action\",\n        \"type\": \"doctype\"\n    }\n]"
+  }
+ ],
+ "category": "Modules",
+ "charts": [],
+ "creation": "2020-03-02 15:09:40.527211",
+ "developer_mode_only": 0,
+ "disable_user_customization": 1,
+ "docstatus": 0,
+ "doctype": "Desk Page",
+ "extends_another_page": 0,
+ "hide_custom": 0,
+ "idx": 0,
+ "is_standard": 1,
+ "label": "Settings",
+ "modified": "2020-07-14 10:09:09.520557",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Settings",
+ "owner": "Administrator",
+ "pin_to_bottom": 1,
+ "pin_to_top": 0,
+ "shortcuts": [
+  {
+   "icon": "octicon octicon-settings",
+   "label": "System Settings",
+   "link_to": "System Settings",
+   "type": "DocType"
+  },
+  {
+   "icon": "fa fa-print",
+   "label": "Print Settings",
+   "link_to": "Print Settings",
+   "type": "DocType"
+  },
+  {
+   "icon": "fa fa-globe",
+   "label": "Website Settings",
+   "link_to": "Website Settings",
+   "type": "DocType"
+  }
+ ],
+ "shortcuts_label": "Settings"
+}

@@ -118,8 +118,9 @@ def get_versions():
 def get_app_branch(app):
 	'''Returns branch of an app'''
 	try:
+		null_stream = open(os.devnull, 'wb')
 		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-			shell=True)
+			shell=True, stdin=null_stream, stderr=null_stream)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
@@ -128,8 +129,9 @@ def get_app_branch(app):
 
 def get_app_last_commit_ref(app):
 	try:
+		null_stream = open(os.devnull, 'wb')
 		result = subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD --short 7'.format(app),
-			shell=True)
+			shell=True, stdin=null_stream, stderr=null_stream)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
@@ -174,9 +176,12 @@ def parse_latest_non_beta_release(response):
 	Returns
 	json   : json object pertaining to the latest non-beta release
 	"""
-	for release in response:
-		if release['prerelease'] == True: continue
-		return release
+	version_list = [release.get('tag_name').strip('v') for release in response if not release.get('prerelease')]
+
+	if version_list:
+		return sorted(version_list, key=Version, reverse=True)[0]
+
+	return None
 
 def check_release_on_github(app):
 	# Check if repo remote is on github
@@ -199,12 +204,11 @@ def check_release_on_github(app):
 
 	org_name = remote_url.split('/')[3]
 	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
-	if r.status_code == 200 and r.json():
+	if r.ok:
 		lastest_non_beta_release = parse_latest_non_beta_release(r.json())
-		return Version(lastest_non_beta_release['tag_name'].strip('v')), org_name
-	else:
-		# In case of an improper response or if there are no releases
-		return None
+		return Version(lastest_non_beta_release), org_name
+	# In case of an improper response or if there are no releases
+	return None
 
 def add_message_to_redis(update_json):
 	# "update-message" will store the update message string
@@ -233,14 +237,15 @@ def show_update_popup():
 			release_links = ""
 			for app in updates[update_type]:
 				app = frappe._dict(app)
-				release_links += "<a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'><b>{title}</b>: v{available_version}</a><br>".format(
+				release_links += "<b>{title}</b>: <a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'>v{available_version}</a><br>".format(
 					available_version = app.available_version,
 					org_name          = app.org_name,
 					app_name          = app.app_name,
 					title             = app.title
 				)
 			if release_links:
-				update_message += _("New {} releases for the following apps are available".format(update_type)) + ":<br><br>{}".format(release_links)
+				message = _("New {} releases for the following apps are available").format(_(update_type))
+				update_message += "<div class='new-version-log'>{0}<div class='new-version-links'>{1}</div></div>".format(message, release_links)
 
 	if update_message:
 		frappe.msgprint(update_message, title=_("New updates are available"), indicator='green')

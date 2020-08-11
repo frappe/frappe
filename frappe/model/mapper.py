@@ -14,6 +14,12 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	Sets selected_children as flags for the `get_mapped_doc` method.
 
 	Called from `open_mapped_doc` from create_new.js'''
+
+	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(method, []):
+		# override using the first hook
+		method = hook
+		break
+
 	method = frappe.get_attr(method)
 
 	if method not in frappe.whitelisted:
@@ -30,15 +36,20 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	return method(source_name)
 
 @frappe.whitelist()
-def map_docs(method, source_names, target_doc):
-	'''Returns the mapped document calling the given mapper method
-	with each of the given source docs on the target doc'''
+def map_docs(method, source_names, target_doc, args=None):
+	''' Returns the mapped document calling the given mapper method
+	with each of the given source docs on the target doc
+
+	:param args: Args as string to pass to the mapper method
+	E.g. args: "{ 'supplier': 'XYZ' }" '''
+
 	method = frappe.get_attr(method)
 	if method not in frappe.whitelisted:
 		raise frappe.PermissionError
 
 	for src in json.loads(source_names):
-		target_doc = method(src, target_doc)
+		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
+		target_doc = method(*_args)
 	return target_doc
 
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,

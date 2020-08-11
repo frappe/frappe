@@ -26,7 +26,7 @@ class TestDocType(unittest.TestCase):
 			}],
 			"permissions": [{
 				"role": "System Manager",
-				"read": 1
+				"read": 1,
 			}],
 			"name": name
 		})
@@ -112,6 +112,32 @@ class TestDocType(unittest.TestCase):
 				condition = field.get(depends_on)
 				if condition:
 					self.assertFalse(re.match(pattern, condition))
+
+	def test_data_field_options(self):
+		doctype_name = "Test Data Fields"
+		valid_data_field_options = frappe.model.data_field_options + ("",)
+		invalid_data_field_options = ("Invalid Option 1", frappe.utils.random_string(5))
+
+		for field_option in (valid_data_field_options + invalid_data_field_options):
+			test_doctype = frappe.get_doc({
+				"doctype": "DocType",
+				"name": doctype_name,
+				"module": "Core",
+				"custom": 1,
+				"fields": [{
+					"fieldname": "{0}_field".format(field_option),
+					"fieldtype": "Data",
+					"options": field_option
+				}]
+			})
+
+			if field_option in invalid_data_field_options:
+				# assert that only data options in frappe.model.data_field_options are valid
+				self.assertRaises(frappe.ValidationError, test_doctype.insert)
+			else:
+				test_doctype.insert()
+				self.assertEqual(test_doctype.name, doctype_name)
+				test_doctype.delete()
 
 	def test_sync_field_order(self):
 		from frappe.modules.import_file import get_file_path
@@ -295,3 +321,58 @@ class TestDocType(unittest.TestCase):
 		field_1.search_index = 1
 
 		self.assertRaises(CannotIndexedError, doc.insert)
+
+	def test_cancel_link_doctype(self):
+		import json
+		from frappe.desk.form.linked_with import get_submitted_linked_docs, cancel_all_linked_docs
+
+		#create doctype
+		link_doc = self.new_doctype('Test Linked Doctype')
+		link_doc.is_submittable = 1
+		for data in link_doc.get('permissions'):
+			data.submit = 1
+			data.cancel = 1
+		link_doc.insert()
+
+		doc = self.new_doctype('Test Doctype')
+		doc.is_submittable = 1
+		field_2 = doc.append('fields', {})
+		field_2.label = 'Test Linked Doctype'
+		field_2.fieldname  = 'test_linked_doctype'
+		field_2.fieldtype = 'Link'
+		field_2.options = 'Test Linked Doctype'
+		for data in link_doc.get('permissions'):
+			data.submit = 1
+			data.cancel = 1
+		doc.insert()
+
+		# create doctype data
+		data_link_doc = frappe.new_doc('Test Linked Doctype')
+		data_link_doc.some_fieldname = 'Data1'
+		data_link_doc.insert()
+		data_link_doc.save()
+		data_link_doc.submit()
+
+		data_doc = frappe.new_doc('Test Doctype')
+		data_doc.some_fieldname = 'Data1'
+		data_doc.test_linked_doctype = data_link_doc.name
+		data_doc.insert()
+		data_doc.save()
+		data_doc.submit()
+
+		docs = get_submitted_linked_docs(link_doc.name, data_link_doc.name)
+		dump_docs = json.dumps(docs.get('docs'))
+		cancel_all_linked_docs(dump_docs)
+		data_link_doc.cancel()
+		data_doc.load_from_db()
+		self.assertEqual(data_link_doc.docstatus, 2)
+		self.assertEqual(data_doc.docstatus, 2)
+
+		# delete doctype record
+		data_doc.delete()
+		data_link_doc.delete()
+
+		# delete doctype
+		link_doc.delete()
+		doc.delete()
+		frappe.db.commit()

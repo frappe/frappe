@@ -6,9 +6,11 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr, unique, cint
 from frappe.permissions import has_permission
+from frappe.handler import is_whitelisted
 from frappe import _
 from six import string_types
 import re
+import wrapt
 
 UNTRANSLATED_DOCTYPES = ["DocType", "Role"]
 
@@ -74,8 +76,17 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 	if query and query.split()[0].lower()!="select":
 		# by method
-		frappe.response["values"] = frappe.call(query, doctype, txt,
-			searchfield, start, page_length, filters, as_dict=as_dict)
+		try:
+			is_whitelisted(frappe.get_attr(query))
+			frappe.response["values"] = frappe.call(query, doctype, txt,
+				searchfield, start, page_length, filters, as_dict=as_dict)
+		except Exception as e:
+			if frappe.local.conf.developer_mode:
+				raise e
+			else:
+				frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+				indicator_color='red', http_status_code=404)
+			return
 	elif not query and doctype in standard_queries:
 		# from standard queries
 		search_widget(doctype, txt, standard_queries[doctype][0],
@@ -157,7 +168,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				strict=False)
 
 			if doctype in UNTRANSLATED_DOCTYPES:
-				values = tuple([v for v in list(values) if re.search(txt+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
+				values = tuple([v for v in list(values) if re.search(re.escape(txt)+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
 
 			# remove _relevance from results
 			if as_dict:
@@ -196,3 +207,15 @@ def scrub_custom_query(query, key, txt):
 	if '%s' in query:
 		query = query.replace('%s', ((txt or '') + '%'))
 	return query
+
+@wrapt.decorator
+def validate_and_sanitize_search_inputs(fn, instance, args, kwargs):
+	kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+	sanitize_searchfield(kwargs['searchfield'])
+	kwargs['start'] = cint(kwargs['start'])
+	kwargs['page_len'] = cint(kwargs['page_len'])
+
+	if kwargs['doctype'] and not frappe.db.exists('DocType', kwargs['doctype']):
+		return []
+
+	return fn(**kwargs)

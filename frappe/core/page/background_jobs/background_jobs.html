@@ -11,7 +11,7 @@
 		<tbody>
 			{% for j in jobs %}
 			<tr>
-				<td><span class="indicator {{ j.color }}" title="{{ j.get_status() }}">{{ j.queue.split(".").slice(-1)[0] }}</span></td>
+				<td><span class="indicator {{ j.color }}" title="{{ j.status }}">{{ j.queue.split(".").slice(-1)[0] }}</span></td>
 				<td style="overflow: auto;">
 					<div>
 						{{ frappe.utils.encode_tags(j.job_name) }}

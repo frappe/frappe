@@ -1,0 +1,137 @@
+{
+ "creation": "2019-09-24 22:22:05.845089",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "update_type",
+  "ref_doctype",
+  "docname",
+  "column_break_4",
+  "status",
+  "event_producer",
+  "producer_doc",
+  "event_configurations_section",
+  "use_same_name",
+  "column_break_9",
+  "mapping",
+  "section_break_8",
+  "data",
+  "error"
+ ],
+ "fields": [
+  {
+   "fieldname": "update_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Update Type",
+   "options": "Create\nUpdate\nDelete",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "label": "Doctype",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "docname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document Name",
+   "options": "ref_doctype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nSynced\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "event_producer",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Event Producer",
+   "options": "Event Producer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break",
+   "label": "Data"
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Code",
+   "label": "Data",
+   "read_only": 1
+  },
+  {
+   "fieldname": "producer_doc",
+   "fieldtype": "Data",
+   "label": "Producer Document Name",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.status=='Failed'",
+   "fieldname": "error",
+   "fieldtype": "Code",
+   "label": "Error",
+   "read_only": 1
+  },
+  {
+   "fieldname": "event_configurations_section",
+   "fieldtype": "Section Break",
+   "label": "Event Configurations"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_same_name",
+   "fieldtype": "Data",
+   "label": "Use Same Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mapping",
+   "fieldtype": "Data",
+   "label": "Mapping",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "modified": "2019-10-07 13:22:10.401479",
+ "modified_by": "Administrator",
+ "module": "Event Streaming",
+ "name": "Event Sync Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

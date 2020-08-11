@@ -3,7 +3,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		let template  = `
 			<div class="multiselect-list dropdown">
 				<div class="form-control cursor-pointer dropdown-toggle input-sm" data-toggle="dropdown" tabindex=0>
-					<span class="status-text ellipsis"></span>
+					<div class="status-text ellipsis"></div>
 				</div>
 				<ul class="dropdown-menu">
 					<li class="dropdown-input-wrapper">
@@ -18,6 +18,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		this.$list_wrapper = $(template);
 		this.$input = $('<input>');
 		this.input = this.$input.get(0);
+		this.has_input = true;
 		this.$list_wrapper.prependTo(this.input_area);
 		this.$filter_input = this.$list_wrapper.find('input');
 		this.$list_wrapper.on('click', '.dropdown-menu', e => {

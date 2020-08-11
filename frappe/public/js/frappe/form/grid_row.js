@@ -265,7 +265,9 @@ export default class GridRow {
 				if(df.reqd && !txt) {
 					column.addClass('error');
 				}
-				if (df.reqd || df.bold) {
+				if (column.is_invalid) {
+					column.addClass('invalid');
+				} else if (df.reqd || df.bold) {
 					column.addClass('bold');
 				}
 			}
@@ -390,8 +392,11 @@ export default class GridRow {
 
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
-		field.df.onchange = function() {
-			me.grid.grid_rows[this.doc.idx-1].refresh_field(this.df.fieldname);
+
+		var field_on_change_function = field.df.onchange;
+		field.df.onchange = function(e) {
+			field_on_change_function && field_on_change_function(e);
+			me.grid.grid_rows[this.doc.idx - 1].refresh_field(this.df.fieldname);
 		};
 		field.refresh();
 		if(field.$input) {
@@ -524,7 +529,7 @@ export default class GridRow {
 		return this;
 	}
 	show_form() {
-		if(!this.grid_form) {
+		if (!this.grid_form) {
 			this.grid_form = new GridRowForm({
 				row: this
 			});
@@ -533,13 +538,15 @@ export default class GridRow {
 		this.row.toggle(false);
 		// this.form_panel.toggle(true);
 		frappe.dom.freeze("", "dark");
-		if(cur_frm) cur_frm.cur_grid = this;
+		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
-		if(!frappe.dom.is_element_in_viewport(this.wrapper)) {
-			frappe.utils.scroll_to(this.wrapper, true, 15);
+		if (!frappe.dom.is_element_in_viewport(this.wrapper)
+			&& !frappe.dom.is_element_in_modal(this.wrapper)) {
+			// -15 offset to make form look visually centered
+			frappe.utils.scroll_to(this.wrapper, true, -15);
 		}
 
-		if(this.frm) {
+		if (this.frm) {
 			this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
 			this.frm.script_manager.trigger("form_render", this.doc.doctype, this.doc.name);
 		}
@@ -547,6 +554,9 @@ export default class GridRow {
 	hide_form() {
 		frappe.dom.unfreeze();
 		this.row.toggle(true);
+		if (!frappe.dom.is_element_in_modal(this.row)) {
+			frappe.utils.scroll_to(this.row, true, 15);
+		}
 		this.refresh();
 		if(cur_frm) cur_frm.cur_grid = null;
 		this.wrapper.removeClass("grid-row-open");

@@ -81,30 +81,25 @@ frappe.Application = Class.extend({
 			frappe.msgprint(frappe.boot.messages);
 		}
 
-		if (frappe.boot.change_log && frappe.boot.change_log.length && !window.Cypress) {
+		if (frappe.user_roles.includes('System Manager')) {
 			this.show_change_log();
-		} else {
-			this.show_notes();
+			this.show_update_available();
 		}
 
-		this.show_update_available();
-		if (frappe.boot.is_first_startup) {
-			this.setup_onboarding_wizard();
+		if (!frappe.boot.developer_mode) {
+			let console_security_message = __("Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand.");
+			console.log(
+				`%c${console_security_message}`,
+				"font-size: large"
+			);
 		}
 
-		if(frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
+		this.show_notes();
+
+		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
 			frappe.ui.startup_setup_dialog.pre_show();
 			frappe.ui.startup_setup_dialog.show();
 		}
-
-		// listen to csrf_update
-		frappe.realtime.on("csrf_generated", function(data) {
-			// handles the case when a user logs in again from another tab
-			// and it leads to invalid request in the current tab
-			if (data.csrf_token && data.sid===frappe.get_cookie("sid")) {
-				frappe.csrf_token = data.csrf_token;
-			}
-		});
 
 		frappe.realtime.on("version-update", function() {
 			var dialog = frappe.msgprint({
@@ -123,10 +118,10 @@ frappe.Application = Class.extend({
 		// listen to build errors
 		this.setup_build_error_listener();
 
-		if (frappe.sys_defaults.email_user_password){
+		if (frappe.sys_defaults.email_user_password) {
 			var email_list =  frappe.sys_defaults.email_user_password.split(',');
 			for (var u in email_list) {
-				if (email_list[u]===frappe.user.name){
+				if (email_list[u]===frappe.user.name) {
 					this.set_password(email_list[u]);
 				}
 			}
@@ -176,7 +171,7 @@ frappe.Application = Class.extend({
 	email_password_prompt: function(email_account,user,i) {
 		var me = this;
 		var d = new frappe.ui.Dialog({
-			title: __('Email Account setup please enter your password for: '+email_account[i]["email_id"]),
+			title: __('Email Account setup please enter your password for: {0}', [email_account[i]["email_id"]]),
 			fields: [
 				{	'fieldname': 'password',
 					'fieldtype': 'Password',
@@ -478,10 +473,14 @@ frappe.Application = Class.extend({
 		// 	"version": "12.2.0"
 		// }];
 
+		if (!Array.isArray(change_log) || !change_log.length || window.Cypress) {
+			return;
+		}
+
 		// Iterate over changelog
 		var change_log_dialog = frappe.msgprint({
 			message: frappe.render_template("change_log", {"change_log": change_log}),
-			title: __("Updated To New Version 🎉"),
+			title: __("Updated To A New Version 🎉"),
 			wide: true,
 			scroll: true
 		});
@@ -497,20 +496,6 @@ frappe.Application = Class.extend({
 	show_update_available: () => {
 		frappe.call({
 			"method": "frappe.utils.change_log.show_update_popup"
-		});
-	},
-
-	setup_onboarding_wizard: () => {
-		frappe.call('frappe.desk.doctype.onboarding_slide.onboarding_slide.get_onboarding_slides').then(res => {
-			if (res.message) {
-				let slides = res.message;
-				if (slides.length) {
-					this.progress_dialog = new frappe.setup.OnboardingDialog({
-						slides: slides
-					});
-					this.progress_dialog.show();
-				}
-			}
 		});
 	},
 

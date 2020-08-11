@@ -2,13 +2,17 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, os
 
-from frappe.website.utils import (can_cache, delete_page_cache, extract_title,
-	extract_comment_tag)
-from frappe.model.document import get_controller
-from six import text_type
 import io
+import os
+import re
+
+import yaml
+
+import frappe
+from frappe.model.document import get_controller
+from frappe.website.utils import can_cache, delete_page_cache, extract_comment_tag, extract_title
+
 
 def resolve_route(path):
 	"""Returns the page route object based on searching in pages and generators.
@@ -229,72 +233,95 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 
 	return page_info
 
+def get_frontmatter(string):
+	"""
+	Reference: https://github.com/jonbeebe/frontmatter
+	"""
+
+	fmatter = ""
+	body = ""
+	result = re.compile(r'^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$', re.S | re.M).search(string)
+
+	if result:
+		fmatter = result.group(1)
+		body = result.group(2)
+
+	return {
+		"attributes": yaml.safe_load(fmatter),
+		"body": body,
+	}
+
 def setup_source(page_info):
 	'''Get the HTML source of the template'''
-	from frontmatter import Frontmatter
-
 	jenv = frappe.get_jenv()
 	source = jenv.loader.get_source(jenv, page_info.template)[0]
 	html = ''
 
-	if page_info.template.endswith('.md'):
+	if page_info.template.endswith(('.md', '.html')):
 		# extract frontmatter block if exists
 		try:
 			# values will be used to update page_info
-			res = Frontmatter.read(source)
+			res = get_frontmatter(source)
 			if res['attributes']:
 				page_info.update(res['attributes'])
 				source = res['body']
-		except Exception as e:
+		except Exception:
 			pass
 
-		source = frappe.utils.md_to_html(source)
+		if page_info.template.endswith('.md'):
+			source = frappe.utils.md_to_html(source)
+			page_info.page_toc_html = source.toc_html
 
-		if not page_info.show_sidebar:
-			source = '<div class="from-markdown">' + source + '</div>'
+			if not page_info.show_sidebar:
+				source = '<div class="from-markdown">' + source + '</div>'
 
-	# if only content
-	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
-		html = extend_from_base_template(page_info, source)
+	if not page_info.base_template:
+		page_info.base_template = get_base_template(page_info.route)
 
-		# load css/js files
-		js, css = '', ''
+	if 	page_info.template.endswith(('.html', '.md', )) and \
+		'{%- extends' not in source and '{% extends' not in source:
+		# set the source only if it contains raw content
+		html = source
 
-		js_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.js')
-		if os.path.exists(js_path):
-			if not '{% block script %}' in html:
-				with io.open(js_path, 'r', encoding = 'utf-8') as f:
-					js = f.read()
-				html += '\n{% block script %}<script>' + js + '\n</script>\n{% endblock %}'
+	# load css/js files
+	js_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.js')
+	if os.path.exists(js_path) and '{% block script %}' not in html:
+		with io.open(js_path, 'r', encoding = 'utf-8') as f:
+			js = f.read()
+			page_info.colocated_js = js
 
-		css_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.css')
-		if os.path.exists(css_path):
-			if not '{% block style %}' in html:
-				with io.open(css_path, 'r', encoding='utf-8') as f:
-					css = f.read()
-				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
+	css_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.css')
+	if os.path.exists(css_path) and '{% block style %}' not in html:
+		with io.open(css_path, 'r', encoding='utf-8') as f:
+			css = f.read()
+			page_info.colocated_css = css
 
-	page_info.source = html
+	if html:
+		page_info.source = html
+		page_info.base_template =  page_info.base_template or 'templates/web.html'
+	else:
+		page_info.source = ''
 
 	# show table of contents
 	setup_index(page_info)
 
-def extend_from_base_template(page_info, source):
-	'''Extend the content with appropriate base template if required.
-
-	For easy composition, the users will only add the content of the page,
-	not its template. But if the user has explicitly put Jinja blocks, or <body> tags,
-	or comment tags like <!-- base_template: [path] -->
-	then the system will not try and put it inside the "web.template"
+def get_base_template(path=None):
 	'''
+	Returns the `base_template` for given `path`.
+	The default `base_template` for any web route is `templates/web.html` defined in `hooks.py`.
+	This can be overridden for certain routes in `custom_app/hooks.py` based on regex pattern.
+	'''
+	if not path:
+		path = frappe.local.request.path
 
-	if (('</body>' not in source) and ('{% block' not in source)
-		and ('<!-- base_template:' not in source)) and 'base_template' not in page_info:
-		page_info.only_content = True
-		source = '''{% extends "templates/web.html" %}
-			{% block page_content %}\n''' + source + '\n{% endblock %}'
-
-	return source
+	base_template_map = frappe.get_hooks("base_template_map") or {}
+	patterns = list(base_template_map.keys())
+	patterns_desc = sorted(patterns, key=lambda x: len(x), reverse=True)
+	for pattern in patterns_desc:
+		if re.match(pattern, path):
+			templates = base_template_map[pattern]
+			base_template = templates[-1]
+			return base_template
 
 def setup_index(page_info):
 	'''Build page sequence from index.txt'''
@@ -314,7 +341,10 @@ def load_properties_from_source(page_info):
 	if base_template:
 		page_info.base_template = base_template
 
-	if page_info.base_template:
+	if (page_info.base_template
+		and "{%- extends" not in page_info.source
+		and "{% extends" not in page_info.source
+		and "</body>" not in page_info.source):
 		page_info.source = '''{{% extends "{0}" %}}
 			{{% block page_content %}}{1}{{% endblock %}}'''.format(page_info.base_template, page_info.source)
 		page_info.no_cache = 1

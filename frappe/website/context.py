@@ -23,13 +23,20 @@ def get_context(path, args=None):
 	else:
 		context["path"] = path
 
+	context.canonical = frappe.utils.get_url(frappe.utils.escape_html(context.path))
 	context.route = context.path
-
 	context = build_context(context)
 
 	# set using frappe.respond_as_web_page
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
 		context.update(frappe.local.response.context)
+
+	# to be able to inspect the context in development
+	# Use the macro "inspect" from macros.html
+	if frappe.conf.developer_mode:
+		context._context_dict = context
+
+	context.developer_mode = frappe.conf.developer_mode
 
 	return context
 
@@ -72,7 +79,7 @@ def build_context(context):
 	# for backward compatibility
 	context.docs_base_url = '/docs'
 
-	context.update(get_website_settings())
+	context.update(get_website_settings(context))
 	context.update(frappe.local.conf.get("website_context") or {})
 
 	# provide doc
@@ -113,7 +120,7 @@ def build_context(context):
 	# determine templates to be used
 	if not context.base_template_path:
 		app_base = frappe.get_hooks("base_template")
-		context.base_template_path = app_base[0] if app_base else "templates/base.html"
+		context.base_template_path = app_base[-1] if app_base else "templates/base.html"
 
 	if context.title_prefix and context.title and not context.title.startswith(context.title_prefix):
 		context.title = '{0} - {1}'.format(context.title_prefix, context.title)
@@ -216,36 +223,30 @@ def add_metatags(context):
 	tags = frappe._dict(context.get("metatags") or {})
 
 	if tags:
-		if not "twitter:card" in tags:
-			tags["twitter:card"] = "summary_large_image"
-
-		if not "og:type" in tags:
+		if "og:type" not in tags:
 			tags["og:type"] = "article"
 
-		if tags.get("name"):
-			tags["og:title"] = tags["twitter:title"] = tags["name"]
+		name = tags.get('name') or tags.get('title')
+		if name:
+			tags["og:title"] = tags["twitter:title"] = name
 
-		if tags.get("title"):
-			tags["og:title"] = tags["twitter:title"] = tags["title"]
-
-		if tags.get("description"):
-			tags["og:description"] = tags["twitter:description"] = tags["description"]
+		description = tags.get("description") or context.description
+		if description:
+			tags['description'] = tags["og:description"] = tags["twitter:description"] = description
 
 		image = tags.get('image', context.image or None)
 		if image:
-			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(image)
+			tags["og:image"] = tags["twitter:image"] = tags["image"] = frappe.utils.get_url(image)
+			tags['twitter:card'] = "summary_large_image"
 
-		if context.path:
-			tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
+		if context.author or tags.get('author'):
+			tags['author'] = context.author or tags.get('author')
+
+		tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
 
 		if context.published_on:
 			tags['datePublished'] = context.published_on
 
-		if context.author:
-			tags['author'] = context.author
-
-		if context.description:
-			tags['description'] = context.description
 
 		tags['language'] = frappe.local.lang or 'en'
 

@@ -43,7 +43,7 @@ class RedisWrapper(redis.Redis):
 
 		try:
 			if expires_in_sec:
-				self.setex(key, expires_in_sec, pickle.dumps(val))
+				self.setex(name=key, time=expires_in_sec, value=pickle.dumps(val))
 			else:
 				self.set(key, pickle.dumps(val))
 
@@ -139,6 +139,12 @@ class RedisWrapper(redis.Redis):
 
 	def llen(self, key):
 		return super(RedisWrapper, self).llen(self.make_key(key))
+
+	def lrange(self, key, start, stop):
+		return super(RedisWrapper, self).lrange(self.make_key(key), start, stop)
+
+	def ltrim(self, key, start, stop):
+		return super(RedisWrapper, self).ltrim(self.make_key(key), start, stop)
 
 	def hset(self, name, key, value, shared=False):
 		if key is None:

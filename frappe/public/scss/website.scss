@@ -1,16 +1,98 @@
-@import "variables";
-@import "frappe/public/css/font-awesome";
-@import "~bootstrap/scss/bootstrap";
-@import "multilevel-dropdown";
-@import "website-image";
+@import '~quill/dist/quill.core';
+@import 'variables';
+@import 'frappe/public/css/font-awesome';
+@import '~bootstrap/scss/bootstrap';
+@import 'base';
+@import 'multilevel-dropdown';
+@import 'website-image';
+@import 'page-builder';
+@import 'blog';
+@import 'markdown';
+@import 'sidebar';
+@import 'portal';
+@import 'doc';
 
-body {
-	font-size: 16px;
+.ql-editor.read-mode {
+	padding: 0;
+	line-height: 1.6;
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5 {
+		margin-top: 0.5em;
+		margin-bottom: 0.25em;
+	}
+}
+
+.container {
+	padding-left: 1.25rem;
+	padding-right: 1.25rem;
+}
+
+@include media-breakpoint-up(sm) {
+	.container {
+		padding-left: 0;
+		padding-right: 0;
+	}
+}
+
+@include media-breakpoint-up(lg) {
+	.container {
+		padding-left: 2.5rem;
+		padding-right: 2.5rem;
+	}
+}
+
+@include media-breakpoint-up(xl) {
+	.container {
+		padding-left: 5rem;
+		padding-right: 5rem;
+	}
+}
+
+@include media-breakpoint-up(2xl) {
+	.container {
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
+	}
+}
+
+.navbar-light {
+	border-bottom: 1px solid $border-color;
+}
+
+.navbar-light .navbar-nav .nav-link {
+	color: $gray-700;
+	font-size: $font-size-sm;
+	font-weight: 500;
+
+	&:hover,
+	&:focus, &.active {
+		color: $primary;
+	}
+}
+
+.navbar-brand {
+	img {
+		display: inline-block;
+		max-width: 150px;
+		max-height: 25px;
+	}
+}
+
+.dropdown-menu {
+	padding: 0.25rem;
+}
+
+.dropdown-item {
+	border-radius: $dropdown-border-radius;
 }
 
 .navbar.bg-dark {
 	.dropdown-menu {
-		font-size: .75rem;
+		font-size: 0.75rem;
 		background-color: $dark;
 		border-radius: 0;
 	}
@@ -38,25 +120,29 @@ body {
 	}
 }
 
-
 .input-dark {
 	background-color: $dark;
 	border-color: darken($primary, 40%);
 	color: $light;
 }
 
+.page-content-wrapper {
+	margin: 2rem 0;
+}
+
+.breadcrumb-container {
+	margin-top: 1rem;
+	padding-top:  0.25rem;
+}
+
 .breadcrumb {
-    padding-left: 0;
-    padding-right: 0;
-    background-color: white;
+	padding: 0;
+	font-size: $font-size-sm;
+	background-color: white;
 }
 
 a.card {
 	text-decoration: none;
-}
-
-img {
-	max-width: 100%;
 }
 
 .hidden {
@@ -64,7 +150,7 @@ img {
 }
 
 .hide-control {
-    @extend .d-none;
+	@extend .d-none;
 }
 
 .text-underline {
@@ -75,10 +161,52 @@ img {
 	color: #d1d8dd !important;
 }
 
+// footer
+
 .web-footer {
 	padding: 5rem 0;
 	min-height: 140px;
-	border-top: 1px solid $border-color;
+}
+
+.footer-logo {
+	width: 5rem;
+	height: 2rem;
+	object-fit: contain;
+	object-position: left;
+}
+
+.footer-link, .footer-child-item a {
+	font-weight: 500;
+	color: $gray-700;
+
+	&:hover {
+		color: $primary;
+		text-decoration: none;
+	}
+}
+
+.footer-col-left, .footer-col-right {
+	padding-top: 0.8rem;
+	padding-bottom: 1rem;
+	line-height: 2;
+}
+
+.footer-col-right {
+	@include media-breakpoint-up(sm) {
+		text-align: right;
+	}
+}
+
+.footer-col-left .footer-link {
+	margin-right: 1rem;
+}
+
+.footer-col-right .footer-link {
+	margin-right: 1rem;
+	@include media-breakpoint-up(sm) {
+		margin-right: 0;
+		margin-left: 1rem;
+	}
 }
 
 .footer-group-label {
@@ -86,41 +214,75 @@ img {
 }
 
 .footer-parent-item {
-	margin-bottom: 1rem;
+	margin-bottom: 0.5rem;
+}
+
+.footer-info {
+	border-top: 1px solid $border-color;
+	color: $text-muted;
+	font-size: $font-size-sm;
 }
 
 .no-underline {
-    text-decoration: none !important;
+	text-decoration: none !important;
 }
 
 .indicator {
-    font-size: inherit;
+	font-size: inherit;
 }
 
 h4.modal-title {
-  font-size: 1em;
+	font-size: 1em;
 }
 
 h5.modal-title {
-  margin: 0px !important;
+	margin: 0px !important;
 }
 
-.col-xs-1 { @extend .col-1; }
-.col-xs-2 { @extend .col-2; }
-.col-xs-3 { @extend .col-3; }
-.col-xs-4 { @extend .col-4; }
-.col-xs-5 { @extend .col-5; }
-.col-xs-6 { @extend .col-6; }
-.col-xs-7 { @extend .col-7; }
-.col-xs-8 { @extend .col-8; }
-.col-xs-9 { @extend .col-9; }
-.col-xs-10 { @extend .col-10; }
-.col-xs-11 { @extend .col-11; }
-.col-xs-12 { @extend .col-12; }
+.col-xs-1 {
+	@extend .col-1;
+}
+.col-xs-2 {
+	@extend .col-2;
+}
+.col-xs-3 {
+	@extend .col-3;
+}
+.col-xs-4 {
+	@extend .col-4;
+}
+.col-xs-5 {
+	@extend .col-5;
+}
+.col-xs-6 {
+	@extend .col-6;
+}
+.col-xs-7 {
+	@extend .col-7;
+}
+.col-xs-8 {
+	@extend .col-8;
+}
+.col-xs-9 {
+	@extend .col-9;
+}
+.col-xs-10 {
+	@extend .col-10;
+}
+.col-xs-11 {
+	@extend .col-11;
+}
+.col-xs-12 {
+	@extend .col-12;
+}
 
-.btn-default { @extend .btn-light; }
+.btn-default {
+	@extend .btn-light;
+}
 
-.btn-xs { @extend .btn-sm; }
+.btn-xs {
+	@extend .btn-sm;
+}
 
 .hidden-xs {
 	@extend .d-none;
@@ -144,4 +306,51 @@ h5.modal-title {
 
 .pull-right {
 	float: right;
+}
+
+.btn-primary-light {
+	@include button-variant(
+		$background: $primary-light,
+		$border: $primary-light,
+		$hover-background: lighten($primary-light, 1%),
+		$hover-border: $primary-light,
+		$active-background: lighten($primary-light, 1%),
+		$active-border: darken($primary-light, 12.5%)
+	);
+
+	color: darken($primary, 5%);
+	&:hover {
+		color: darken($primary, 5%);
+	}
+}
+
+.image-with-blur {
+	transition: filter 300ms ease-in-out;
+	filter: blur(1.5rem);
+}
+
+.image-loaded {
+	filter: blur(0rem);
+}
+
+.embed-container {
+	position: relative;
+	padding-bottom: 56.25%;
+	height: 0;
+	overflow: hidden;
+	max-width: 100%;
+}
+
+.embed-container iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.ellipsis {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }

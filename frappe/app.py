@@ -10,8 +10,8 @@ import logging
 from werkzeug.wrappers import Request
 from werkzeug.local import LocalManager
 from werkzeug.exceptions import HTTPException, NotFound
-from werkzeug.contrib.profiler import ProfilerMiddleware
-from werkzeug.wsgi import SharedDataMiddleware
+from werkzeug.middleware.profiler import ProfilerMiddleware
+from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 import frappe
 import frappe.handler
@@ -19,12 +19,14 @@ import frappe.auth
 import frappe.api
 import frappe.utils.response
 import frappe.website.render
-from frappe.utils import get_site_name
+from frappe.utils import get_site_name, sanitize_html
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
 import frappe.recorder
+import frappe.monitor
+import frappe.rate_limiter
 
 local_manager = LocalManager([frappe.local])
 
@@ -52,6 +54,8 @@ def application(request):
 		init_request(request)
 
 		frappe.recorder.record()
+		frappe.monitor.start()
+		frappe.rate_limiter.apply()
 
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
@@ -91,7 +95,23 @@ def application(request):
 		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 
+		frappe.rate_limiter.update()
+		frappe.monitor.stop(response)
 		frappe.recorder.dump()
+
+		if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
+			frappe.logger("frappe.web", allow_site=frappe.local.site).info({
+				"site": get_site_name(request.host),
+				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
+				"base_url": getattr(request, "base_url", "NOTFOUND"),
+				"full_path": getattr(request, "full_path", "NOTFOUND"),
+				"method": getattr(request, "method", "NOTFOUND"),
+				"scheme": getattr(request, "scheme", "NOTFOUND"),
+				"http_status_code": getattr(response, "status_code", "NOTFOUND")
+			})
+
+		if response and hasattr(frappe.local, 'rate_limiter'):
+			response.headers.extend(frappe.local.rate_limiter.headers())
 
 		frappe.destroy()
 
@@ -168,8 +188,11 @@ def handle_exception(e):
 			http_status_code=http_status_code,  indicator_color='red')
 		return_as_message = True
 
+	elif http_status_code == 429:
+		response = frappe.rate_limiter.respond()
+
 	else:
-		traceback = "<pre>"+frappe.get_traceback()+"</pre>"
+		traceback = "<pre>" + sanitize_html(frappe.get_traceback()) + "</pre>"
 		if frappe.local.flags.disable_traceback:
 			traceback = ""
 
@@ -183,7 +206,6 @@ def handle_exception(e):
 			frappe.local.login_manager.clear_cookies()
 
 	if http_status_code >= 500:
-		frappe.logger().error('Request Error', exc_info=True)
 		make_error_snapshot(e)
 
 	if return_as_message:
@@ -235,9 +257,11 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 		'SERVER_NAME': 'localhost:8000'
 	}
 
+	log = logging.getLogger('werkzeug')
+	log.propagate = False
+
 	in_test_env = os.environ.get('CI')
 	if in_test_env:
-		log = logging.getLogger('werkzeug')
 		log.setLevel(logging.ERROR)
 
 	run_simple('0.0.0.0', int(port), application,

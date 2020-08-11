@@ -180,13 +180,13 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
 		cy.get('.datepickers-container .datepicker.active').should('exist');
 	}
 	if (fieldtype === 'Time') {
-		cy.get('@input').clear();
+		cy.get('@input').clear().wait(200);
 	}
 
 	if (fieldtype === 'Select') {
 		cy.get('@input').select(value);
 	} else {
-		cy.get('@input').type(value, { waitForAnimations: false });
+		cy.get('@input').type(value, { waitForAnimations: false, force: true });
 	}
 	return cy.get('@input');
 });

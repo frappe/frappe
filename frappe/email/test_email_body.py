@@ -3,9 +3,10 @@
 from __future__ import unicode_literals
 
 import unittest, os, base64
+from frappe import safe_decode
 from frappe.email.receive import Email
 from frappe.email.email_body import (replace_filename_with_cid,
-									 get_email, inline_style_in_html, get_header)
+					get_email, inline_style_in_html, get_header)
 from frappe.email.queue import prepare_message, get_email_queue
 from six import PY3
 
@@ -38,7 +39,7 @@ This is the text version of this email
 			subject='Test Subject',
 			content=email_html,
 			text_content=email_text
-		).as_string()
+		).as_string().replace("\r\n", "\n")
 
 	def test_prepare_message_returns_already_encoded_string(self):
 
@@ -57,7 +58,7 @@ This is the text version of this email
 			formatted='<h1>' + uni_chr1 + 'abcd' + uni_chr2 + '</h1>',
 			text_content='whatever')
 		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
-		self.assertTrue("<h1>=EA=80=80abcd=DE=B4</h1>" in result)
+		self.assertTrue(b"<h1>=EA=80=80abcd=DE=B4</h1>" in result)
 
 	def test_prepare_message_returns_cr_lf(self):
 		email = get_email_queue(
@@ -67,26 +68,12 @@ This is the text version of this email
 			content='<h1>\n this is a test of newlines\n' + '</h1>',
 			formatted='<h1>\n this is a test of newlines\n' + '</h1>',
 			text_content='whatever')
-		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
+		result = safe_decode(prepare_message(email=email,
+						recipient='test@test.com', recipients_list=[]))
 		if PY3:
 			self.assertTrue(result.count('\n') == result.count("\r"))
 		else:
 			self.assertTrue(True)
-
-	def test_rfc_5322_header_is_wrapped_at_998_chars(self):
-		# unfortunately the db can only hold 140 chars so this can't be tested properly. test at max chars anyway.
-		email = get_email_queue(
-			recipients=['test@example.com'],
-			sender='me@example.com',
-			subject='Test Subject',
-			content='<h1>Whatever</h1>',
-			text_content='whatever',
-			message_id= "a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
-						".really.long.message.id.that.should.not.wrap.unti")
-		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
-		self.assertTrue(
-			"a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
-			".really.long.message.id.that.should.not.wrap.unti" in result)
 
 	def test_image(self):
 		img_signature = '''
@@ -166,7 +153,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			subject='Test Subject',
 			content=email_html,
 			header=['Email Title', 'green']
-		).as_string()
+		).as_string().replace("\r\n", "\n")
 
 		self.assertTrue('''<span class=3D"indicator indicator-green" style=3D"background-color:#98=
 d85b; border-radius:8px; display:inline-block; height:8px; margin-right:5px=

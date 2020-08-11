@@ -1,0 +1,23 @@
+{
+ "content": null,
+ "creation": "2020-02-27 15:07:57.124916",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "icon-th",
+ "idx": 0,
+ "modified": "2020-02-27 15:07:57.124916",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "workspace",
+ "owner": "Administrator",
+ "page_name": "workspace",
+ "roles": [
+  {
+   "role": "All"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0
+}

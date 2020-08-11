@@ -11,14 +11,14 @@ from frappe.website.utils import (get_shade, get_toc, get_next_link)
 from frappe.modules import scrub
 from frappe.www.printview import get_visible_columns
 import frappe.exceptions
+import frappe.integrations.utils
 
 class ServerScriptNotEnabled(frappe.PermissionError): pass
 
 def safe_exec(script, _globals=None, _locals=None):
 	# script reports must be enabled via site_config.json
 	if not frappe.conf.server_script_enabled:
-		frappe.msgprint('Please Enable Server Scripts')
-		raise ServerScriptNotEnabled
+		frappe.throw('Please Enable Server Scripts', ServerScriptNotEnabled)
 
 	# build globals
 	exec_globals = get_safe_globals()
@@ -69,6 +69,8 @@ def get_safe_globals():
 			get_url=frappe.utils.get_url,
 			render_template=frappe.render_template,
 			msgprint=frappe.msgprint,
+			throw=frappe.throw,
+			sendmail = frappe.sendmail,
 
 			user=user,
 			get_fullname=frappe.utils.get_fullname,
@@ -79,8 +81,11 @@ def get_safe_globals():
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			),
+			make_get_request = frappe.integrations.utils.make_get_request,
+			make_post_request = frappe.integrations.utils.make_post_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=frappe.get_hooks,
+			sanitize_html=frappe.utils.sanitize_html
 		),
 		style=frappe._dict(
 			border_color='#d1d8dd'

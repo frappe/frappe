@@ -77,7 +77,7 @@ frappe.ui.Slide = class Slide {
 	// Form methods
 	get_atomic_fields() {
 		var fields = JSON.parse(JSON.stringify(this.fields));
-		if(this.add_more) {
+		if (this.add_more) {
 			this.count = 1;
 			fields = fields.map((field, i) => {
 				if (field.fieldname) {
@@ -149,8 +149,13 @@ frappe.ui.Slide = class Slide {
 	bind_fields_to_action_btn() {
 		var me = this;
 		this.reqd_fields.map((field) => {
-			field.$wrapper.on('change input', () => {
+			field.$wrapper.on('change input click', () => {
 				me.reset_action_button_state();
+			});
+			field.$wrapper.on('keydown', 'input', e => {
+				if (e.key == 'Enter') {
+					me.reset_action_button_state();
+				}
 			});
 		});
 	}
@@ -332,10 +337,10 @@ frappe.ui.Slides = class Slides {
 
 	make_prev_next_buttons() {
 		$(`<div class="row">
-			<div class="col-sm-4">
+			<div class="col-sm-4 text-left prev-div">
 				<a class="prev-btn btn btn-default btn-sm" tabindex="0">${__("Previous")}</a>
 			</div>
-			<div class="col-sm-8 text-right">
+			<div class="col-sm-8 text-right next-div">
 				<a class="next-btn btn btn-default btn-sm" tabindex="0">${__("Next")}</a>
 			</div>
 		</div>`).appendTo(this.$footer);

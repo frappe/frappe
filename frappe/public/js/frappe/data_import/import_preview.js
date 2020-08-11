@@ -1,10 +1,17 @@
 import DataTable from 'frappe-datatable';
-import ColumnPickerFields from './column_picker_fields';
+import { get_columns_for_picker } from './data_exporter';
 
 frappe.provide('frappe.data_import');
 
 frappe.data_import.ImportPreview = class ImportPreview {
-	constructor({ wrapper, doctype, preview_data, frm, import_log, events = {} }) {
+	constructor({
+		wrapper,
+		doctype,
+		preview_data,
+		frm,
+		import_log,
+		events = {}
+	}) {
 		this.wrapper = wrapper;
 		this.doctype = doctype;
 		this.preview_data = preview_data;
@@ -74,7 +81,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				</span>`;
 				return {
 					id: frappe.utils.get_random(6),
-					name: col.header_title || df.label,
+					name: col.header_title || (df ? df.label : 'Untitled Column'),
 					content: column_title,
 					skip_import: true,
 					editable: false,
@@ -85,10 +92,26 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				};
 			}
 
+			let date_format = col.date_format
+				? col.date_format
+					.replace('%Y', 'yyyy')
+					.replace('%y', 'yy')
+					.replace('%m', 'mm')
+					.replace('%d', 'dd')
+					.replace('%H', 'HH')
+					.replace('%M', 'mm')
+					.replace('%S', 'ss')
+				: null;
+
+			let column_title = `<span class="indicator green">
+				${col.header_title || df.label}
+				${date_format ? `(${date_format})` : ''}
+			</span>`;
+
 			return {
 				id: df.fieldname,
 				name: col.header_title,
-				content: `<span class="indicator green">${col.header_title || df.label}</span>`,
+				content: column_title,
 				df: df,
 				editable: false,
 				align: 'left',
@@ -124,11 +147,16 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			disableReorderColumn: true
 		});
 
-		let { max_rows_exceeded, max_rows_in_preview } = this.preview_data;
+		let {
+			max_rows_exceeded,
+			max_rows_in_preview,
+			total_number_of_rows
+		} = this.preview_data;
 		if (max_rows_exceeded) {
+			let parts = [max_rows_in_preview, total_number_of_rows];
 			this.wrapper.find('.table-message').html(`
 				<div class="text-muted margin-top text-medium">
-				${__('Showing only first {0} rows in preview', [max_rows_in_preview])}
+				${__('Showing only first {0} rows out of {1}', parts)}
 				</div>
 			`);
 		}
@@ -160,7 +188,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.datatable.style.setStyle(row_classes, {
 			pointerEvents: 'none',
 			backgroundColor: frappe.ui.color.get_color_shade('white', 'light'),
-			color: frappe.ui.color.get_color_shade('black', 'extra-light'),
+			color: frappe.ui.color.get_color_shade('black', 'extra-light')
 		});
 	}
 
@@ -183,12 +211,14 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			}
 		];
 
-		let html = actions.filter(action => action.condition).map(action => {
-			return `<button class="btn btn-sm btn-default" data-action="${action.handler}">
+		let html = actions
+			.filter(action => action.condition)
+			.map(action => {
+				return `<button class="btn btn-sm btn-default" data-action="${action.handler}">
 					${action.label}
 				</button>
 			`;
-		});
+			});
 
 		this.wrapper.find('.table-actions').html(html);
 	}
@@ -203,15 +233,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 	show_column_warning(_, $target) {
 		let $warning = this.frm
-			.get_field('import_warnings').$wrapper
-			.find(`[data-col=${$target.data('col')}]`);
+			.get_field('import_warnings')
+			.$wrapper.find(`[data-col=${$target.data('col')}]`);
 		frappe.utils.scroll_to($warning, true, 30);
 	}
 
 	show_column_mapper() {
-		let column_picker_fields = new ColumnPickerFields({
-			doctype: this.doctype
-		});
+		let column_picker_fields = get_columns_for_picker(this.doctype);
 		let changed = [];
 		let fields = this.preview_data.columns.map((col, i) => {
 			let df = col.df;
@@ -220,10 +248,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			let fieldname;
 			if (!df) {
 				fieldname = null;
+			} else if (col.map_to_field) {
+				fieldname = col.map_to_field;
+			} else if (col.is_child_table_field) {
+				fieldname = `${col.child_table_df.fieldname}.${df.fieldname}`;
 			} else {
-				fieldname = df.parent === this.doctype
-					? df.fieldname
-					: `${df.parent}:${df.fieldname}`;
+				fieldname = df.fieldname;
 			}
 			return [
 				{
@@ -246,7 +276,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 							label: __("Don't Import"),
 							value: "Don't Import"
 						}
-					].concat(column_picker_fields.get_fields_as_options()),
+					].concat(get_fields_as_options(this.doctype, column_picker_fields)),
 					default: fieldname || "Don't Import",
 					change() {
 						changed.push(i);
@@ -260,13 +290,14 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		// flatten the array
 		fields = fields.reduce((acc, curr) => [...acc, ...curr]);
 		let file_name = (this.frm.doc.import_file || '').split('/').pop();
+		let parts = [file_name.bold(), this.doctype.bold()];
 		fields = [
 			{
 				fieldtype: 'HTML',
 				fieldname: 'heading',
 				options: `
 					<div class="margin-top text-muted">
-					${__('Map columns from {0} to fields in {1}', [file_name.bold(), this.doctype.bold()])}
+					${__('Map columns from {0} to fields in {1}', parts)}
 					</div>
 				`
 			},
@@ -278,7 +309,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		let dialog = new frappe.ui.Dialog({
 			title: __('Map Columns'),
 			fields,
-			primary_action: (values) => {
+			primary_action: values => {
 				let changed_map = {};
 				changed.map(i => {
 					let header_row_index = i - 1;
@@ -301,3 +332,29 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 };
+
+function get_fields_as_options(doctype, column_map) {
+	let keys = [doctype];
+	frappe.meta.get_table_fields(doctype).forEach(df => {
+		keys.push(df.fieldname);
+	});
+	// flatten array
+	return [].concat(
+		...keys.map(key => {
+			return column_map[key].map(df => {
+				let label = df.label;
+				let value = df.fieldname;
+				if (doctype !== key) {
+					let table_field = frappe.meta.get_docfield(doctype, key);
+					label = `${df.label} (${table_field.label})`;
+					value = `${table_field.fieldname}.${df.fieldname}`;
+				}
+				return {
+					label,
+					value,
+					description: value
+				};
+			});
+		})
+	);
+}

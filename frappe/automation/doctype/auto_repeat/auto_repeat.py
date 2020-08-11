@@ -146,7 +146,7 @@ class AutoRepeat(Document):
 
 	def make_new_document(self):
 		reference_doc = frappe.get_doc(self.reference_doctype, self.reference_document)
-		new_doc = frappe.copy_doc(reference_doc, ignore_no_copy = False)
+		new_doc = frappe.copy_doc(reference_doc)
 		self.update_doc(new_doc, reference_doc)
 		new_doc.insert(ignore_permissions = True)
 
@@ -212,15 +212,29 @@ class AutoRepeat(Document):
 		elif "{" in self.subject:
 			subject = frappe.render_template(self.subject, {'doc': new_doc})
 
-		if not self.message:
+		print_format = self.print_format or 'Standard'
+		error_string = None
+
+		try:
+			attachments = [frappe.attach_print(new_doc.doctype, new_doc.name,
+				file_name=new_doc.name, print_format=print_format)]
+
+		except frappe.PermissionError:
+			error_string = _("A recurring {0} {1} has been created for you via Auto Repeat {2}.").format(new_doc.doctype, new_doc.name, self.name)
+			error_string += "<br><br>"
+
+			error_string += _("{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings").format(
+				frappe.bold(_('Note')),
+				frappe.bold(_('Allow Print for Draft'))
+			)
+			attachments = '[]'
+
+		if error_string:
+			message = error_string
+		elif not self.message:
 			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
 			message = frappe.render_template(self.message, {'doc': new_doc})
-
-		print_format = self.print_format or 'Standard'
-
-		attachments = [frappe.attach_print(new_doc.doctype, new_doc.name,
-			file_name=new_doc.name, print_format=print_format)]
 
 		recipients = self.recipients.split('\n')
 
@@ -276,27 +290,28 @@ def get_next_schedule_date(schedule_date, frequency, start_date, repeat_on_day=N
 
 	day_count = 0
 	if month_count and repeat_on_last_day:
-		next_date = get_next_date(start_date, month_count, 31)
 		day_count = 31
 		next_date = get_next_date(start_date, month_count, day_count)
 	elif month_count and repeat_on_day:
-		next_date = get_next_date(start_date, month_count, repeat_on_day)
 		day_count = repeat_on_day
 		next_date = get_next_date(start_date, month_count, day_count)
 	elif month_count:
 		next_date = get_next_date(start_date, month_count)
 	else:
 		days = 7 if frequency == 'Weekly' else 1
-		next_date = add_days(start_date, days)
+		next_date = add_days(schedule_date, days)
 
 	# next schedule date should be after or on current date
 	if not for_full_schedule:
 		while getdate(next_date) < getdate(today()):
 			if month_count:
 				month_count += month_map.get(frequency)
-			next_date = get_next_date(start_date, month_count, day_count)
+				next_date = get_next_date(start_date, month_count, day_count)
+			elif days:
+				next_date = add_days(next_date, days)
 
 	return next_date
+
 
 def get_next_date(dt, mcount, day=None):
 	dt = getdate(dt)
@@ -357,7 +372,9 @@ def make_auto_repeat(doctype, docname, frequency = 'Daily', start_date = None, e
 	doc.save()
 	return doc
 
-#method for reference_doctype filter
+# method for reference_doctype filter
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	res = frappe.db.get_all('Property Setter', {
 		'property': 'allow_auto_repeat',

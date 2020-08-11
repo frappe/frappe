@@ -4,7 +4,10 @@
 
 from __future__ import unicode_literals
 
+import base64
 import datetime
+import hashlib
+import hmac
 import json
 from time import sleep
 
@@ -16,11 +19,10 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 
+WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
+
 
 class Webhook(Document):
-	def autoname(self):
-		self.name = self.webhook_doctype + "-" + self.webhook_docevent
-
 	def validate(self):
 		self.validate_docevent()
 		self.validate_condition()
@@ -58,6 +60,7 @@ class Webhook(Document):
 			if self.request_structure == "Form URL-Encoded":
 				self.webhook_json = None
 			elif self.request_structure == "JSON":
+				validate_json(self.webhook_json)
 				validate_template(self.webhook_json)
 				self.webhook_data = []
 
@@ -97,10 +100,23 @@ def enqueue_webhook(doc, webhook):
 
 def get_webhook_headers(doc, webhook):
 	headers = {}
+
+	if webhook.enable_security:
+		data = get_webhook_data(doc, webhook)
+		signature = base64.b64encode(
+			hmac.new(
+				webhook.get_password("webhook_secret").encode("utf8"),
+				json.dumps(data).encode("utf8"),
+				hashlib.sha256
+			).digest()
+		)
+		headers[WEBHOOK_SECRET_HEADER] = signature
+
 	if webhook.webhook_headers:
 		for h in webhook.webhook_headers:
 			if h.get("key") and h.get("value"):
 				headers[h.get("key")] = h.get("value")
+
 	return headers
 
 
@@ -115,3 +131,10 @@ def get_webhook_data(doc, webhook):
 		data = json.loads(data)
 
 	return data
+
+
+def validate_json(string):
+	try:
+		json.loads(string)
+	except (TypeError, ValueError):
+		frappe.throw(_("Request Body consists of an invalid JSON structure"), title=_("Invalid JSON"))

@@ -1,13 +1,9 @@
 context('Depends On', () => {
-	beforeEach(() => {
-		cy.login();
-		cy.visit('/desk');
-	});
 	before(() => {
 		cy.login();
-		cy.visit('/desk');
-		cy.window().its('frappe').then(frappe => {
-			frappe.call('frappe.tests.ui_test_helpers.create_doctype', {
+		cy.visit('/desk#workspace/Website');
+		return cy.window().its('frappe').then(frappe => {
+			return frappe.call('frappe.tests.ui_test_helpers.create_doctype', {
 				name: 'Test Depends On',
 				fields: [
 					{

@@ -73,12 +73,35 @@ class Event(Document):
 		communication.subject = self.subject
 		communication.content = self.description if self.description else self.subject
 		communication.communication_date = self.starts_on
+		communication.sender = self.owner
+		communication.sender_full_name = frappe.utils.get_fullname(self.owner)
 		communication.reference_doctype = self.doctype
 		communication.reference_name = self.name
 		communication.communication_medium = communication_mapping.get(self.event_category) if self.event_category else ""
 		communication.status = "Linked"
 		communication.add_link(participant.reference_doctype, participant.reference_docname)
 		communication.save(ignore_permissions=True)
+
+	def add_participant(self, doctype, docname):
+		"""Add a single participant to event participants
+
+		Args:
+			doctype (string): Reference Doctype
+			docname (string): Reference Docname
+		"""
+		self.append("event_participants", {
+			"reference_doctype": doctype,
+			"reference_docname": docname,
+		})
+
+	def add_participants(self, participants):
+		"""Add participant entry
+
+		Args:
+			participants ([Array]): Array of a dict with doctype and docname
+		"""
+		for participant in  participants:
+			self.add_participant(participant["doctype"], participant["docname"])
 
 @frappe.whitelist()
 def delete_communication(event, reference_doctype, reference_docname):

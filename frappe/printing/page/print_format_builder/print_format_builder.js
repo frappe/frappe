@@ -441,18 +441,16 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	setup_field_settings: function() {
-		var me = this;
-		this.page.main.on("click", ".field-settings", function() {
-			var field = $(this).parent();
-
+		this.page.main.find(".field-settings").on("click", e => {
+			const field = $(e.currentTarget).parent();
 			// new dialog
 			var d = new frappe.ui.Dialog({
 				title: "Set Properties",
 				fields: [
 					{
-						label:__("Label"),
-						fieldname:"label",
-						fieldtype:"Data"
+						label: __("Label"),
+						fieldname: "label",
+						fieldtype: "Data"
 					},
 					{
 						label: __("Align Value"),
@@ -485,7 +483,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			});
 
 			// set current value
-			if(field.attr('data-align')) {
+			if (field.attr('data-align')) {
 				d.set_value('align', field.attr('data-align'));
 			} else {
 				d.set_value('align', 'left');

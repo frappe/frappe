@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 
 from six.moves import input
 
-import frappe, os, re
+import frappe, os, re, git
 from frappe.utils import touch_file, cstr
 
 def make_boilerplate(dest, app_name):
@@ -98,7 +98,13 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
 		f.write(frappe.as_unicode(docs_template.format(**hooks)))
 
-	print("'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name)))
+	# initialize git repository
+	app_directory = os.path.join(dest, hooks.app_name)
+	app_repo = git.Repo.init(app_directory)
+	app_repo.git.add(A=True)
+	app_repo.index.commit("feat: Initialize App")
+
+	print("'{app}' created at {path}".format(app=app_name, path=app_directory))
 
 
 manifest_template = """include MANIFEST.in
@@ -150,6 +156,10 @@ app_license = "{app_license}"
 # include js, css files in header of web template
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
 # web_include_js = "/assets/{app_name}/js/{app_name}.js"
+
+# include js, css files in header of web form
+# webform_include_js = {{"doctype": "public/js/doctype.js"}}
+# webform_include_css = {{"doctype": "public/css/doctype.css"}}
 
 # include js in page
 # page_js = {{"page" : "public/js/file.js"}}
@@ -255,6 +265,10 @@ app_license = "{app_license}"
 # override_doctype_dashboards = {{
 # 	"Task": "{app_name}.task.get_dashboard_data"
 # }}
+
+# exempt linked doctypes from being automatically cancelled
+#
+# auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
 """
 

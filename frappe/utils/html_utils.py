@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 import frappe
-import json, re
-import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
+import json
+import re
+import bleach
+import bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
 from bs4 import BeautifulSoup
 
@@ -47,7 +49,7 @@ def clean_script_and_style(html):
 def sanitize_html(html, linkify=False):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
-	Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults
+	Based on bleach clean, bleach whitelist and html5lib's Sanitizer defaults
 
 	Does not sanitize JSON, as it could lead to future problems
 	"""
@@ -57,18 +59,18 @@ def sanitize_html(html, linkify=False):
 	elif is_json(html):
 		return html
 
+	if not bool(BeautifulSoup(html, 'html.parser').find()):
+		return html
+
 	tags = (acceptable_elements + svg_elements + mathml_elements
 		+ ["html", "head", "meta", "link", "body", "style", "o:p"])
 	attributes = {"*": acceptable_attributes, 'svg': svg_attributes}
 	styles = bleach_whitelist.all_styles
 	strip_comments = False
 
-	# retuns html with escaped tags, escaped orphan >, <, etc.
+	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,
 		strip_comments=strip_comments, protocols=['cid', 'http', 'https', 'mailto'])
-
-	if linkify:
-		escaped_html = bleach.linkify(escaped_html, callbacks=[])
 
 	return escaped_html
 
@@ -102,6 +104,11 @@ def get_icon_html(icon, small=False):
 			'<img src="{icon}">'.format(icon=icon)
 	else:
 		return "<i class='{icon}'></i>".format(icon=icon)
+
+def unescape_html(value):
+	from six.moves.html_parser import HTMLParser
+	h = HTMLParser()
+	return h.unescape(value)
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [

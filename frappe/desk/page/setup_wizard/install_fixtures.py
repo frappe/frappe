@@ -6,18 +6,27 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.doctype.global_search_settings.global_search_settings import update_global_search_doctypes
+from frappe.utils.dashboard import sync_dashboards
 
 def install():
-	update_genders_and_salutations()
+	update_genders()
+	update_salutations()
 	update_global_search_doctypes()
 	setup_email_linking()
+	sync_dashboards()
+	add_unsubscribe()
 
 @frappe.whitelist()
-def update_genders_and_salutations():
-	default_genders = [_("Male"), _("Female"), _("Other")]
-	default_salutations = [_("Mr"), _("Ms"), _('Mx'), _("Dr"), _("Mrs"), _("Madam"), _("Miss"), _("Master"), _("Prof")]
+def update_genders():
+	default_genders = [_("Male"), _("Female"), _("Other"),_("Transgender"), _("Genderqueer"), _("Non-Conforming"),_("Prefer not to say")]
 	records = [{'doctype': 'Gender', 'gender': d} for d in default_genders]
-	records += [{'doctype': 'Salutation', 'salutation': d} for d in default_salutations]
+	for record in records:
+		frappe.get_doc(record).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+@frappe.whitelist()
+def update_salutations():
+	default_salutations = [_("Mr"), _("Ms"), _('Mx'), _("Dr"), _("Mrs"), _("Madam"), _("Miss"), _("Master"), _("Prof")]
+	records = [{'doctype': 'Salutation', 'salutation': d} for d in default_salutations]
 	for record in records:
 		doc = frappe.new_doc(record.get("doctype"))
 		doc.update(record)
@@ -29,4 +38,15 @@ def setup_email_linking():
 		"email_id": "email_linking@example.com",
 	})
 	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
-  
+
+def add_unsubscribe():
+	email_unsubscribe = [
+		{"email": "admin@example.com", "global_unsubscribe": 1},
+		{"email": "guest@example.com", "global_unsubscribe": 1}
+	]
+
+	for unsubscribe in email_unsubscribe:
+		if not frappe.get_all("Email Unsubscribe", filters=unsubscribe):
+			doc = frappe.new_doc("Email Unsubscribe")
+			doc.update(unsubscribe)
+			doc.insert(ignore_permissions=True)
