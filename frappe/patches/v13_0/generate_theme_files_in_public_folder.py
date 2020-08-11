@@ -14,6 +14,6 @@ def execute():
 		try:
 			doc.generate_bootstrap_theme()
 			doc.save()
-		except:
+		except: # pylint: disable=E722
 			print('Ignoring....')
 			print(frappe.get_traceback())
