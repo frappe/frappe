@@ -528,11 +528,11 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 @pass_context
 def run_ui_tests(context, app, headless=False):
 	"Run UI tests"
-
 	site = get_site(context)
 	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), '..'))
 	site_url = frappe.utils.get_site_url(site)
 	admin_password = frappe.get_conf(site).admin_password
+	frappe.flags.in_test = True
 
 	# override baseUrl using env variable
 	site_env = 'CYPRESS_baseUrl={}'.format(site_url)
