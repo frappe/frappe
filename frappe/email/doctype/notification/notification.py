@@ -30,6 +30,7 @@ class Notification(Document):
 	def validate(self):
 		if self.channel not in ('WhatsApp', 'SMS'):
 			validate_template(self.subject)
+
 		validate_template(self.message)
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
@@ -131,14 +132,16 @@ def get_context(context):
 
 			if self.channel == 'System Notification' or self.send_system_notification:
 				self.create_system_notification(doc, context)
+
+
+			if self.channel == 'WhatsApp':
+				self.send_whatsapp_msg(doc, context)
+
+			if self.channel == 'SMS':
+				self.send_sms(doc, context)
+
 		except:
 			frappe.log_error(title='Failed to send notification', message=frappe.get_traceback())
-
-		if self.channel == 'WhatsApp':
-			self.send_whatsapp_msg(doc, context)
-
-		if self.channel == 'SMS':
-			self.send_sms(doc, context)
 
 		if self.set_property_after_alert:
 			allow_update = True

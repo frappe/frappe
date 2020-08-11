@@ -18,7 +18,7 @@
   },
   {
    "fieldname": "auth_token",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
    "label": "Auth Token"
   },
   {
@@ -34,7 +34,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-02-28 16:38:04.589780",
+ "modified": "2020-08-11 15:28:57.860554",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Twilio Settings",
