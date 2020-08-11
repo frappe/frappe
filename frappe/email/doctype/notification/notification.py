@@ -14,7 +14,7 @@ from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.integrations.doctype.twilio_settings.twilio_settings import send_whatsapp_message
-from frappe.core.doctype.sms_settings.sms_settings import send_sms, validate_receiver_nos
+from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 
 class Notification(Document):

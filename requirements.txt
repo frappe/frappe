@@ -68,7 +68,7 @@ Werkzeug==0.16.1
 Whoosh==2.7.4
 xlrd==1.2.0
 zxcvbn-python==4.4.24
-twilio==6.35.5
 pycryptodome==3.9.8
 paytmchecksum==1.7.0
 wrapt==1.10.11
+twilio==6.44.2
