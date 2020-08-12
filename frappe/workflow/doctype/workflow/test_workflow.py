@@ -8,9 +8,12 @@ from frappe.utils import random_string
 from frappe.model.workflow import apply_workflow, WorkflowTransitionError, WorkflowPermissionError, get_common_transition_actions
 from frappe.test_runner import make_test_records
 
-make_test_records("User")
 
 class TestWorkflow(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		make_test_records("User")
+
 	def setUp(self):
 		frappe.db.sql('DELETE FROM `tabToDo`')
 		frappe.db.sql("DELETE FROM `tabHas Role` WHERE `role`='Test Approver'")
