@@ -103,6 +103,9 @@ class Document(BaseDocument):
 				else:
 					self.name = args[1]
 
+				if 'for_update' in kwargs:
+					self.flags.for_update = True
+
 			self.load_from_db()
 			return
 
@@ -144,7 +147,7 @@ class Document(BaseDocument):
 			self._fix_numeric_types()
 
 		else:
-			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
+			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1, for_update=self.flags.for_update)
 			if not d:
 				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
 
