@@ -15,8 +15,6 @@ class TestWorkflow(unittest.TestCase):
 		make_test_records("User")
 
 	def setUp(self):
-		frappe.db.sql('DELETE FROM `tabToDo`')
-		frappe.db.sql("DELETE FROM `tabHas Role` WHERE `role`='Test Approver'")
 		if not getattr(self, 'workflow', None):
 			self.workflow = create_todo_workflow()
 		frappe.set_user('Administrator')
@@ -129,8 +127,6 @@ def create_todo_workflow():
 	else:
 		frappe.get_doc(dict(doctype='Role',
 			role_name='Test Approver')).insert(ignore_if_duplicate=True)
-		frappe.db.commit()
-		frappe.cache().hdel('roles', frappe.session.user)
 		workflow = frappe.new_doc('Workflow')
 		workflow.workflow_name = 'Test ToDo'
 		workflow.document_type = 'ToDo'
@@ -148,13 +144,16 @@ def create_todo_workflow():
 			state = 'Rejected', allow_edit = 'Test Approver'
 		))
 		workflow.append('transitions', dict(
-			state = 'Pending', action='Approve', next_state = 'Approved', allowed='Test Approver', allow_self_approval= 1
+			state = 'Pending', action='Approve', next_state = 'Approved',
+			allowed='Test Approver', allow_self_approval= 1
 		))
 		workflow.append('transitions', dict(
-			state = 'Pending', action='Reject', next_state = 'Rejected', allowed='Test Approver', allow_self_approval= 1
+			state = 'Pending', action='Reject', next_state = 'Rejected',
+			allowed='Test Approver', allow_self_approval= 1
 		))
 		workflow.append('transitions', dict(
-			state = 'Rejected', action='Review', next_state = 'Pending', allowed='All', allow_self_approval= 1
+			state = 'Rejected', action='Review', next_state = 'Pending',
+			allowed='All', allow_self_approval= 1
 		))
 		workflow.insert(ignore_permissions=True)
 

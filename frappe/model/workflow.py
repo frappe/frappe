@@ -272,9 +272,11 @@ def get_common_transition_actions(docs, doctype):
 				doc['doctype'] = doctype
 			actions = [t.get('action') for t in get_transitions(doc, raise_exception=True) \
 				if has_approval_access(frappe.session.user, doc, t)]
-			if not actions: return []
+			if not actions:
+				return []
 			common_actions = actions if i == 1 else set(common_actions).intersection(actions)
-			if not common_actions: return []
+			if not common_actions:
+				return []
 	except WorkflowStateError:
 		pass
 
