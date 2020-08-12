@@ -24,7 +24,7 @@ def get_coords(doctype, filters, type):
     return out
 
 
-def convert_to_geo_json(coords_list):
+def merge_all_feature_collection_in_one(coords_list):
     handled_geo_json_dict = []
     for element in coords_list:
         handled_geo_json = json.loads(element['location'])
@@ -44,7 +44,7 @@ def return_location(doctype, filters_sql):
             return
     else:
         coords = frappe.get_all(doctype, fields=['name', 'location'])
-    handled_geo_json = convert_to_geo_json(coords)
+    handled_geo_json = merge_all_feature_collection_in_one(coords)
     return handled_geo_json
 
 
