@@ -193,7 +193,7 @@ class Database(object):
 			return self._cursor.fetchall()
 
 	def log_query(self, query, values, debug, explain):
-		def mogirfy():
+		def mogrify():
 			try:
 				return self._cursor.mogrify(query, values)
 			except TypeError:
