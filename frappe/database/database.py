@@ -601,7 +601,7 @@ class Database(object):
 				doctype = doctype,
 				where = "where" if conditions else "",
 				conditions = conditions,
-				order_by = order_by),
+				order_by = order_by)),
 			values, as_dict=as_dict, debug=debug, update=update)
 
 		return r
