@@ -180,17 +180,25 @@ class ShortcutDialog extends WidgetDialog {
 							this.setup_filter(doctype);
 							this.show_filters();
 						}
+
+						const views = ["List", "Report Builder", "Dashboard", "New"]
+						if (frappe.boot.treeviews.includes(doctype)) views.push("Tree")
+						if (frappe.boot.calendars.includes(doctype)) views.push("Calendar")
+
+						this.dialog.set_df_property("doc_view", "options", views.join("\n"))
+
 					} else {
 						this.hide_filters();
 					}
-				},
+				}
 			},
 			{
 				fieldtype: "Select",
 				fieldname: "doc_view",
 				label: "DocType View",
-				options: "\nList\nReport Builder\nDashboard\nTree\nNew",
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar",
 				description: "Which view of the associated DocType should this shortcut take you to?",
+				default: "List",
 				depends_on: (state) => {
 					if (this.dialog) {
 						let doctype = this.dialog.get_value("link_to");
