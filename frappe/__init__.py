@@ -267,7 +267,7 @@ def destroy():
 # memcache
 redis_server = None
 def cache():
-	"""Returns memcache connection."""
+	"""Returns redis connection."""
 	global redis_server
 	if not redis_server:
 		from frappe.utils.redis_wrapper import RedisWrapper
@@ -289,6 +289,9 @@ def errprint(msg):
 		print(msg)
 
 	error_log.append({"exc": msg})
+
+def print_sql(enable=True):
+	return cache().set_value('print_sql', enable)
 
 def log(msg):
 	"""Add to `debug_log`.

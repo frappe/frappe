@@ -206,8 +206,10 @@ class TestEventProducer(unittest.TestCase):
 	def test_inner_mapping(self):
 		producer = get_remote_site()
 
+		frappe.print_sql(True)
 		try:
 			setup_event_producer_for_inner_mapping()
+			frappe.print_sql(False)
 		except frappe.TimestampMismatchError:
 			# retry - event_producer keeps updating last_updated
 			# so retry if it fails the first time due to a background event
