@@ -836,8 +836,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			const child_table_fields = frappe.meta.get_docfields(cdt).filter(standard_fields_filter);
 
 			out[cdt] = child_table_fields;
-		});
 
+			// add index column for child tables
+			out[cdt].push({
+				label: __('Index'),
+				fieldname: 'idx',
+				fieldtype: 'Int',
+				parent: cdt
+			});
+		});
 		return out;
 	}
 
@@ -934,6 +941,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// group by column
 		if (fieldname === '_aggregate_column') {
 			docfield = this.group_by_control.get_group_by_docfield();
+		}
+
+		// child table index column
+		if (fieldname === 'idx' && doctype !== this.doctype) {
+			docfield = {
+				label: "Index",
+				fieldtype: "Int",
+				parent: doctype,
+			}
 		}
 
 		if (!docfield) {
