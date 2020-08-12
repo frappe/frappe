@@ -192,7 +192,13 @@ class ShortcutDialog extends WidgetDialog {
 				options: "\nList\nReport Builder\nDashboard\nTree\nNew",
 				description: "Which view of the associated DocType should this shortcut take you to?",
 				depends_on: (state) => {
-					return state.type == "DocType";
+					if (this.dialog) {
+						let doctype = this.dialog.get_value("link_to");
+						let is_single = frappe.boot.single_types.includes(doctype);
+						return state.type == "DocType" && !is_single;
+					}
+
+					return false
 				}
 			},
 			{
