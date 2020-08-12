@@ -46,6 +46,8 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		const language_map = {
 			'Javascript': 'ace/mode/javascript',
 			'JS': 'ace/mode/javascript',
+			'Python': 'ace/mode/python',
+			'Py': 'ace/mode/python',
 			'HTML': 'ace/mode/html',
 			'CSS': 'ace/mode/css',
 			'Markdown': 'ace/mode/markdown',
