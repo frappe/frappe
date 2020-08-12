@@ -181,11 +181,11 @@ class ShortcutDialog extends WidgetDialog {
 							this.show_filters();
 						}
 
-						const views = ["List", "Report Builder", "Dashboard", "New"]
-						if (frappe.boot.treeviews.includes(doctype)) views.push("Tree")
-						if (frappe.boot.calendars.includes(doctype)) views.push("Calendar")
+						const views = ["List", "Report Builder", "Dashboard", "New"];
+						if (frappe.boot.treeviews.includes(doctype)) views.push("Tree");
+						if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
 
-						this.dialog.set_df_property("doc_view", "options", views.join("\n"))
+						this.dialog.set_df_property("doc_view", "options", views.join("\n"));
 
 					} else {
 						this.hide_filters();
@@ -206,7 +206,7 @@ class ShortcutDialog extends WidgetDialog {
 						return state.type == "DocType" && !is_single;
 					}
 
-					return false
+					return false;
 				}
 			},
 			{
