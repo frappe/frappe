@@ -216,7 +216,7 @@ def sync(update, producer_site, event_producer, in_retry=False):
 			return 'Failed'
 		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
-	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.creation)
+	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.creation, update_modified=False)
 	event_producer.reload()
 	frappe.db.commit()
 
