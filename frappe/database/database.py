@@ -378,7 +378,7 @@ class Database(object):
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, cache=False):
+		debug=False, order_by=None, cache=False, for_update=False):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -405,12 +405,12 @@ class Database(object):
 		"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
-			order_by, cache=cache)
+			order_by, cache=cache, for_update=for_update)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, update=None, cache=False):
+		debug=False, order_by=None, update=None, cache=False, for_update=False):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -449,7 +449,7 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
-					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
+					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update, for_update)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
 						# table or column not found, return None
@@ -576,7 +576,7 @@ class Database(object):
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
-	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None):
+	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
 		fl = []
 		if isinstance(fields, (list, tuple)):
 			for f in fields:
@@ -594,9 +594,15 @@ class Database(object):
 
 		order_by = ("order by " + order_by) if order_by else ""
 
-		r = self.sql("select {0} from `tab{1}` {2} {3} {4}"
-			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values,
-			as_dict=as_dict, debug=debug, update=update)
+		r = self.sql("select {for_update} {fields} from `tab{doctype}` {where} {conditions} {order_by}"
+			.format(dict(
+				for_update = 'for update' if for_update else '',
+				fields = fl,
+				doctype = doctype,
+				where = "where" if conditions else "",
+				conditions = conditions,
+				order_by = order_by),
+			values, as_dict=as_dict, debug=debug, update=update)
 
 		return r
 
@@ -616,7 +622,7 @@ class Database(object):
 		return self.set_value(*args, **kwargs)
 
 	def set_value(self, dt, dn, field, val=None, modified=None, modified_by=None,
-		update_modified=True, debug=False):
+		update_modified=True, debug=False, for_update=True):
 		"""Set a single value in the database, do not call the ORM triggers
 		but update the modified timestamp (unless specified not to).
 
@@ -630,6 +636,7 @@ class Database(object):
 		:param modified_by: Set this user as `modified_by`.
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
+		:param for_update: Will add a row-level lock to the value that is being set so that it can be released on commit.
 		"""
 		if not modified:
 			modified = now()
@@ -647,7 +654,9 @@ class Database(object):
 
 		if dn and dt!=dn:
 			# with table
-			conditions, values = self.build_conditions(dn)
+			values = dict(
+				name=self.get_value(dt, dn, 'name', for_update=for_update)
+			)
 
 			values.update(to_update)
 
@@ -656,7 +665,7 @@ class Database(object):
 				set_values.append('`{0}`=%({0})s'.format(key))
 
 			self.sql("""update `tab{0}`
-				set {1} where {2}""".format(dt, ', '.join(set_values), conditions),
+				set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
 				values, debug=debug)
 
 		else:
