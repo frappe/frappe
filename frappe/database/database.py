@@ -193,23 +193,26 @@ class Database(object):
 			return self._cursor.fetchall()
 
 	def log_query(self, query, values, debug, explain):
+		def mogirfy():
+			try:
+				return self._cursor.mogrify(query, values)
+			except TypeError:
+				return [query, values]
+
 		# for debugging in tests
-		if frappe.flags.in_test and frappe.cache().get_value('print_sql'):
-			print(self._cursor.mogrify(query, values))
+		if frappe.flags.in_test and frappe.cache().get_value('flag_print_sql'):
+			print(mogrify())
 
 		# debug
 		if debug:
 			if explain and query.strip().lower().startswith('select'):
 				self.explain_query(query, values)
-			frappe.errprint(self._cursor.mogrify(query, values))
+			frappe.errprint(mogrify())
 
 		# info
 		if (frappe.conf.get("logging") or False)==2:
 			frappe.log("<<<< query")
-			frappe.log(query)
-			if values:
-				frappe.log("with values:")
-				frappe.log(values)
+			frappe.log(mogrify())
 			frappe.log(">>>>")
 
 

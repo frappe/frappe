@@ -291,7 +291,7 @@ def errprint(msg):
 	error_log.append({"exc": msg})
 
 def print_sql(enable=True):
-	return cache().set_value('print_sql', enable)
+	return cache().set_value('flag_print_sql', enable)
 
 def log(msg):
 	"""Add to `debug_log`.
