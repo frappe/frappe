@@ -860,7 +860,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				.map(df => ({
 					label: __(df.label),
 					value: df.fieldname,
-					checked: this.fields.find(f => f[0] === df.fieldname)
+					checked: this.fields.find(f => f[0] === df.fieldname && f[1] === this.doctype)
 				}))
 		});
 
