@@ -196,7 +196,7 @@ class Database(object):
 		def mogrify():
 			try:
 				return self._cursor.mogrify(query, values)
-			except TypeError:
+			except:
 				return [query, values]
 
 		# for debugging in tests
