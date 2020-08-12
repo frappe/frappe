@@ -108,7 +108,7 @@ class Document(BaseDocument):
 					self.name = args[1]
 
 				if 'for_update' in kwargs:
-					self.flags.for_update = True
+					self.flags.for_update = kwargs.get('for_update')
 
 			self.load_from_db()
 			return

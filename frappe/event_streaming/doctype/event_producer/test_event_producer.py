@@ -13,11 +13,12 @@ producer_url = 'http://test_site_producer:8000'
 
 class TestEventProducer(unittest.TestCase):
 	def setUp(self):
-		frappe.print_sql(True)
+		# frappe.print_sql(True)
 		create_event_producer(producer_url)
 
-	def tearDown(self):
-		frappe.print_sql(False)
+	# for debugging
+	# def tearDown(self):
+	# 	frappe.print_sql(False)
 
 	def test_insert(self):
 		producer = get_remote_site()
