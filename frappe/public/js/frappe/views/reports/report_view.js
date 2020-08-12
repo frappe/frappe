@@ -945,7 +945,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: "Index",
 				fieldtype: "Int",
 				parent: doctype,
-			}
+			};
 		}
 
 		if (!docfield) {
