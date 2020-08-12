@@ -53,7 +53,6 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		}).addTo(this.map);
 
 		L.control.scale().addTo(this.map);
-		console.log(this.coords);
 		this.coords.features.forEach(
 			coords => L.geoJSON(coords).bindPopup(coords.properties.name).addTo(this.map)
 		);
