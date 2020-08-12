@@ -163,7 +163,8 @@ def pull_from_node(event_producer):
 	"""pull all updates after the last update timestamp from event producer site"""
 	event_producer = frappe.get_doc('Event Producer', event_producer)
 	producer_site = get_producer_site(event_producer.producer_url)
-	last_update = event_producer.last_update
+
+	last_update = get_last_update(event_producer.name)
 
 	(doctypes, mapping_config, naming_config) = get_config(event_producer.producer_doctypes)
 
@@ -216,8 +217,6 @@ def sync(update, producer_site, event_producer, in_retry=False):
 			return 'Failed'
 		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
-	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.creation, update_modified=False)
-	event_producer.reload()
 	frappe.db.commit()
 
 
@@ -485,3 +484,11 @@ def set_custom_fields(local_doc, remote_docname, remote_site_name):
 	"""sets custom field in doc for storing remote docname"""
 	frappe.db.set_value(local_doc.doctype, local_doc.name, 'remote_docname', remote_docname)
 	frappe.db.set_value(local_doc.doctype, local_doc.name, 'remote_site_name', remote_site_name)
+
+def get_last_update(event_producer_name):
+	last_update = frappe.get_all('Event Sync Log',
+		fields=['creation'],
+		filters=dict(event_producer=event_producer_name),
+		order_by="creation DESC",
+		limit=1)
+	return last_update[0].creation if last_update else None
