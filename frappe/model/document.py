@@ -403,7 +403,14 @@ class Document(BaseDocument):
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
+
 		if self.flags.name_set and not force:
+			return
+
+		# If autoname has set as Prompt (name)
+		if self.get("__newname"):
+			self.name = self.get("__newname")
+			self.flags.name_set = True
 			return
 
 		if set_name:
@@ -1299,6 +1306,16 @@ class Document(BaseDocument):
 
 		users = set([assignment.owner for assignment in assignments])
 		return users
+
+	def add_tag(self, tag):
+		"""Add a Tag to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+		DocTags(self.doctype).add(self.name, tag)
+
+	def get_tags(self):
+		"""Return a list of Tags attached to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
 
 def execute_action(doctype, name, action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""

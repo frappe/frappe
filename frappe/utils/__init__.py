@@ -63,10 +63,11 @@ def get_email_address(user=None):
 
 	return frappe.db.get_value("User", user, "email")
 
-def get_formatted_email(user):
+def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
-	mail = get_email_address(user)
+	if not mail:
+		mail = get_email_address(user)
 	return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 def extract_email_id(email):
