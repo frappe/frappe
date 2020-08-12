@@ -31,7 +31,6 @@ def convert_to_geo_json(coords_list):
         for coord in handled_geo_json['features']:
             coord['properties']['name'] = element['name']
             handled_geo_json_dict.append(coord.copy())
-            print(handled_geo_json['features'])
     handled_geo_json = {"type": "FeatureCollection", "features": handled_geo_json_dict}
     return handled_geo_json
 
@@ -44,7 +43,7 @@ def return_location(doctype, filters_sql):
             frappe.msgprint(frappe._('This Doctype did not contains location fields'))
             return
     else:
-        coords = frappe.get_all(doctype, fields=['location', 'name'])
+        coords = frappe.get_all(doctype, fields=['name', 'location'])
     handled_geo_json = convert_to_geo_json(coords)
     return handled_geo_json
 
