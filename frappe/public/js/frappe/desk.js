@@ -5,7 +5,7 @@
 // __('Modules') __('Domains') __('Places') __('Administration') # for translation, don't remove
 
 frappe.start_app = function() {
-	if(!frappe.Application)
+	if (!frappe.Application)
 		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
@@ -14,7 +14,7 @@ frappe.start_app = function() {
 };
 
 $(document).ready(function() {
-	if(!frappe.utils.supportsES6) {
+	if (!frappe.utils.supportsES6) {
 		frappe.msgprint({
 			indicator: 'red',
 			title: __('Browser not supported'),
