@@ -408,6 +408,14 @@ def get_print_style(style=None, print_format=None, for_legacy=False):
 	if print_format and print_format.css:
 		css += "\n\n" + print_format.css
 
+	# Fix printview direction to rtl in report print for ["ar", "he", "fa"].
+	from frappe.translate import get_user_lang
+	lang = get_user_lang(frappe.session.user)
+
+	if lang in ["ar", "he", "fa"]:
+		css = css + '\n' + frappe.get_template(
+			"public/css/bootstrap-rtl.css").render(context)
+
 	return css
 
 def get_font(print_settings, print_format=None, for_legacy=False):
