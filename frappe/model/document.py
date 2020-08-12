@@ -64,7 +64,7 @@ def get_doc(*args, **kwargs):
 		else:
 			raise ValueError('First non keyword argument must be a string or dict')
 
-	if len(args) < 3 and kwargs:
+	if len(args) < 2 and kwargs:
 		if 'doctype' in kwargs:
 			doctype = kwargs['doctype']
 		else:
