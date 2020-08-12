@@ -28,6 +28,7 @@ def get_doc(*args, **kwargs):
 
 	:param arg1: Document dict or DocType name.
 	:param arg2: [optional] document name.
+	:param for_update: [optional] select document for update.
 
 	There are multiple ways to call `get_doc`
 
@@ -45,6 +46,9 @@ def get_doc(*args, **kwargs):
 
 		# create new object with keyword arguments
 		user = get_doc(doctype='User', email_id='test@example.com')
+
+		# select a document for update
+		user = get_doc("User", "test@example.com", for_update=True)
 	"""
 	if args:
 		if isinstance(args[0], BaseDocument):
@@ -60,7 +64,7 @@ def get_doc(*args, **kwargs):
 		else:
 			raise ValueError('First non keyword argument must be a string or dict')
 
-	if kwargs:
+	if len(args) < 3 and kwargs:
 		if 'doctype' in kwargs:
 			doctype = kwargs['doctype']
 		else:
