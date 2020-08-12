@@ -209,7 +209,8 @@ class TestEventProducer(unittest.TestCase):
 		try:
 			setup_event_producer_for_inner_mapping()
 		except frappe.TimestampMismatchError:
-			# retry - event_producer keeps updating via log so try again
+			# retry - event_producer keeps updating last_updated
+			# so retry if it fails the first time due to a background event
 			setup_event_producer_for_inner_mapping()
 
 		producer_note = frappe._dict(doctype='Note', title='Inner Mapping Tester', content='Test Inner Mapping')
