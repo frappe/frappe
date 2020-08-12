@@ -221,6 +221,8 @@ class Workspace:
 				incomplete_dependencies = [d for d in item.dependencies if not _doctype_contains_a_record(d)]
 				if len(incomplete_dependencies):
 					item.incomplete_dependencies = incomplete_dependencies
+				else:
+					item.incomplete_dependencies = ""
 
 			if item.onboard:
 				# Mark Spotlights for initial
