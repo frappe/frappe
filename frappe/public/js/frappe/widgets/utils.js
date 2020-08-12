@@ -32,10 +32,13 @@ function generate_route(item) {
 					route = "List/" + item.doctype + "/Report";
 					break;
 				case "Dashboard":
-				        route = "List/" + item.doctype + "/Dashboard";
+				    route = "List/" + item.doctype + "/Dashboard";
 					break;
 				case "New":
 					route = "Form/" + item.doctype + "/New " + item.doctype;
+					break;
+				case "Calendar":
+					route = "List/" + item.doctype + "/Calendar/Default";
 					break;
 				default:
 					frappe.throw({message: __("Not a valid DocType view:") + item.doc_view, title: __("Unknown View")});
