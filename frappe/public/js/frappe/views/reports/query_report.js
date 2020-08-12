@@ -732,12 +732,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const route = `#List/Prepared Report/List?status=Queued&report_name=${this.report_name}`;
 		const no_of_reports_html = reports.length == 1
 			? `${__('There is ')}<a class="underline" href="${route}">${__('1 Report')}</a>`
-			: `${__('There are ')}<a class="underline" href="${route}">${__(`${reports.length} Reports`)}</a>`;
+			: `${__('There are ')}<a class="underline" href="${route}">${__(`{} Reports`, [reports.length])}</a>`;
 
 		let warning_message = `
 			<p>
 				${__(`Are you sure you want to generate a new report?
-					${no_of_reports_html} with the same filters already in the queue:`)}
+					{} with the same filters already in the queue:`, [no_of_reports_html])}
 			</p>`;
 
 		let get_item_html = item => `<a class="underline" href="#Form/Prepared Report/${item.name}">${item.name}</a>`;
