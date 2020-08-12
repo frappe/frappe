@@ -1,5 +1,31 @@
 import Quill from 'quill';
 
+
+// specify the fonts you would
+var fonts = ['Arial', 'Courier', 'Times New Roman', 'Verdana'];
+// generate code friendly names
+function getFontName(font) {
+    return font.toLowerCase().replace(/\s/g, "-");
+}
+var fontNames = fonts.map(font => getFontName(font));
+// add fonts to style
+var fontStyles = "";
+fonts.forEach(function(font) {
+    var fontName = getFontName(font);
+    fontStyles += ".ql-snow .ql-picker.ql-font .ql-picker-label[data-value=" + fontName + "]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value=" + fontName + "]::before {" +
+        "content: '" + font + "';" +
+        "font-family: '" + font + "', sans-serif;" +
+        "}" +
+        ".ql-font-" + fontName + "{" +
+        " font-family: '" + font + "', sans-serif;" +
+        "}";
+});
+var node = document.createElement('style');
+node.innerHTML = fontStyles;
+document.body.appendChild(node);
+
+
+
 // replace <p> tag with <div>
 const Block = Quill.import('blots/block');
 Block.tagName = 'DIV';
@@ -47,12 +73,17 @@ const BackgroundStyle = Quill.import('attributors/style/background');
 const ColorStyle = Quill.import('attributors/style/color');
 const FontStyle = Quill.import('attributors/style/font');
 const AlignStyle = Quill.import('attributors/style/align');
-const DirectionStyle = Quill.import('attributors/style/direction');
+
 Quill.register(BackgroundStyle, true);
 Quill.register(ColorStyle, true);
 Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
-Quill.register(DirectionStyle, true);
+
+//Adding fonts in text editor
+var Font = Quill.import('attributors/class/font');
+Font.whitelist = fontNames;
+Quill.register(Font, true);
+
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_wrapper() {
@@ -143,10 +174,14 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	get_toolbar_options() {
 		return [
 			[{ 'header': [1, 2, 3, false] }],
+			// Adding Font dropdown to give the user the abelity to change text font by open-alt.com
+			[{ 'font': fontNames }],
 			['bold', 'italic', 'underline'],
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
 			['link', 'image'],
+			// Adding Direction tool to give the user the abelity to change text direction by open-alt.com
+			[{ 'direction': "rtl" }],
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
 			[{ 'align': [] }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
