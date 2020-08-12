@@ -62,21 +62,8 @@ def bulk_restore(docnames):
 			failed.append(d)
 			frappe.db.rollback()
 
-	if failed or invalid:
-		def body(docnames):
-			href = "<li><a href='/desk#Form/Deleted Document/{0}'>{0}</a></li>"
-			return "<br><ul>" + "".join([href.format(docname) for docname in docnames])
-
-		def message(title, docnames):
-			if docnames:
-				return _(title) + body(docnames) + "</ul>"
-			return ""
-
-		restored_summary = message("Documents restored successfully", restored)
-		invalid_summary = message("Documents that were already Restored", invalid)
-		failed_summary = message("Documents that Failed to Restore", failed)
-
-		summary = restored_summary + invalid_summary + failed_summary
-		frappe.msgprint(summary, title="Document Restoration Summary", indicator="orange", is_minimizable=True)
-
-	return restored
+	return {
+		"restored": restored,
+		"invalid": invalid,
+		"failed": failed
+	}

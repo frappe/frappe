@@ -11,17 +11,24 @@ frappe.listview_settings["Deleted Document"] = {
 					args: { "docnames": docnames },
 					callback: function (r) {
 						if (r.message) {
-							let num = r.message.length;
-							let message;
-							if (num === 0) {
-								message = __("No Documents were Restored");
-							} else if (num === 1) {
-								message = __("Document was Restored");
-							} else {
-								message = __("{0} Documents were Restored", [num]);
+							function body(docnames) {
+								const href = "<li><a href='/desk#Form/Deleted Document/%(0)s'>%(0)s</a></li>";
+								const html = docnames.map(docname => { return repl(href, {'0': docname}) });
+								return "<br><ul>" + html.join("");
 							}
-							frappe.msgprint(message);
-							if (num > 0) {
+							function message(title, docnames) {
+								return (docnames.length > 0) ? __(title) + body(docnames) + "</ul>": "";
+							}
+
+							let { restored, invalid, failed } = r.message;
+							let restored_summary = message("Documents restored successfully", restored);
+							let invalid_summary = message("Documents that were already Restored", invalid);
+							let failed_summary = message("Documents that Failed to Restore", failed);
+							let summary = restored_summary + invalid_summary + failed_summary;
+
+							frappe.msgprint(summary, "Document Restoration Summary", true);
+
+							if (restored.length > 0) {
 								doclist.refresh();
 							}
 						}
