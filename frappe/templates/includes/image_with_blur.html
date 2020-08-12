@@ -1,9 +1,7 @@
 {%- set res = frappe.utils.get_thumbnail_base64_for_image(src) if src else false -%}
 {%- if res and res['base64'].startswith('data:') -%}
 <img src="{{ res['base64'] }}" class="image-with-blur {{ resolve_class(class) }}"
-	data-src="{{ src or '' }}" alt="{{ alt or '' }}"
-	width="{{ res['width'] }}" height="{{ res['height'] }}"
-	style="width: {{ res['width'] }}px; height: {{ res['height'] }}px;" />
+	alt="{{ alt or '' }}" width="{{ res['width'] }}" height="{{ res['height'] }}" data-src="{{ src or '' }}" />
 {%- else -%}
 <img src="{{ src or '' }}" class="{{ resolve_class(class) }}" alt="{{ alt or '' }}" />
 {%- endif -%}
