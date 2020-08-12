@@ -411,7 +411,7 @@
    "label": "Prepared Report Expiry Period (Days)"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "enable_prepared_report_auto_deletion",
    "fieldtype": "Check",
    "label": "Enable Auto-deletion of Prepared Reports"
