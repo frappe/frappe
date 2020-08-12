@@ -209,11 +209,13 @@ class TestEventProducer(unittest.TestCase):
 		frappe.print_sql(True)
 		try:
 			setup_event_producer_for_inner_mapping()
-			frappe.print_sql(False)
 		except frappe.TimestampMismatchError:
 			# retry - event_producer keeps updating last_updated
 			# so retry if it fails the first time due to a background event
 			setup_event_producer_for_inner_mapping()
+		finally:
+			frappe.print_sql(False)
+
 
 		producer_note = frappe._dict(doctype='Note', title='Inner Mapping Tester', content='Test Inner Mapping')
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
