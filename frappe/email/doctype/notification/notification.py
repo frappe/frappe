@@ -7,7 +7,7 @@ import frappe
 import json, os
 from frappe import _
 from frappe.model.document import Document
-from frappe.core.doctype.role.role import get_info_based_on_role
+from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.utils import validate_email_address, nowdate, parse_val, is_html, add_to_date
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
@@ -130,15 +130,14 @@ def get_context(context):
 			if self.channel == 'Slack':
 				self.send_a_slack_msg(doc, context)
 
-			if self.channel == 'System Notification' or self.send_system_notification:
-				self.create_system_notification(doc, context)
-
-
 			if self.channel == 'WhatsApp':
 				self.send_whatsapp_msg(doc, context)
 
 			if self.channel == 'SMS':
 				self.send_sms(doc, context)
+
+			if self.channel == 'System Notification' or self.send_system_notification:
+				self.create_system_notification(doc, context)
 
 		except:
 			frappe.log_error(title='Failed to send notification', message=frappe.get_traceback())
@@ -275,7 +274,11 @@ def get_context(context):
 				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
 
-			if recipient.receiver_by_document_field:
+			# For sending messages to the owner's mobile phone number
+			if recipient.receiver_by_document_field == 'owner':
+				receiver_list.append(get_user_info(doc.get('owner'), 'mobile_no'))
+			# For sending messages to the number specified in the receiver field
+			elif recipient.receiver_by_document_field:
 				receiver_list.append(doc.get(recipient.receiver_by_document_field))
 
 			#For sending messages to specified role

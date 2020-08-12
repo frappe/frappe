@@ -63,7 +63,6 @@ frappe.notification = {
 						(d.options == 'User' && d.fieldtype == 'Link')
 						? get_select_options(d) : null;
 				});
-				receiver_fields.concat(['owner']);
 			} else if (in_list(['WhatsApp', 'SMS'], frm.doc.channel)) {
 				receiver_fields = $.map(fields, function(d) {
 					return d.options == 'Phone' ? get_select_options(d) : null;
@@ -76,7 +75,7 @@ frappe.notification = {
 				'receiver_by_document_field',
 				// set first option as blank to allow notification not to be defaulted to the owner
 				frm.doc.name
-			).options = [''].concat(receiver_fields);
+			).options = [''].concat(["owner"]).concat(receiver_fields);
 
 			frm.fields_dict.recipients.grid.refresh();
 		});

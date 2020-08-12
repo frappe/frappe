@@ -36,16 +36,18 @@ class Role(Document):
 
 def get_info_based_on_role(role, field='email'):
 	''' Get information of all users that have been assigned this role '''
-	info_list = []
-
 	users = frappe.get_list("Has Role", filters={"role": role, "parenttype": "User"},
 		fields=["parent"])
 
+	return get_user_info(users, field)
+
+def get_user_info(users, field='email'):
+	''' Fetch details about users for the specified field '''
+	info_list = []
 	for user in users:
 		user_info, enabled = frappe.db.get_value("User", user.parent, [field, "enabled"])
 		if enabled and user_info not in ["admin@example.com", "guest@example.com"]:
 			info_list.append(user_info)
-
 	return info_list
 
 def get_users(role):
