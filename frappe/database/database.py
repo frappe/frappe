@@ -449,7 +449,7 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
-					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update, for_update)
+					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
 						# table or column not found, return None
@@ -594,14 +594,14 @@ class Database(object):
 
 		order_by = ("order by " + order_by) if order_by else ""
 
-		r = self.sql("select {for_update} {fields} from `tab{doctype}` {where} {conditions} {order_by}"
-			.format(dict(
+		r = self.sql("select {fields} from `tab{doctype}` {where} {conditions} {order_by} {for_update}"
+			.format(
 				for_update = 'for update' if for_update else '',
 				fields = fl,
 				doctype = doctype,
 				where = "where" if conditions else "",
 				conditions = conditions,
-				order_by = order_by)),
+				order_by = order_by),
 			values, as_dict=as_dict, debug=debug, update=update)
 
 		return r
