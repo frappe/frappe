@@ -229,7 +229,12 @@ class Report(Document):
 				if meta.get_field(fieldname):
 					field = meta.get_field(fieldname)
 				else:
-					field = frappe._dict(fieldname=fieldname, label=meta.get_label(fieldname))
+					if fieldname == '_aggregate_column':
+						label = get_group_by_column_label(group_by_args, meta)
+					else:
+						label = meta.get_label(fieldname)
+
+					field = frappe._dict(fieldname=fieldname, label=label)
 					# since name is the primary key for a document, it will always be a Link datatype
 					if fieldname == "name":
 						field.fieldtype = "Link"
@@ -283,3 +288,18 @@ def get_group_by_field(args, doctype):
 		)
 
 	return group_by_field
+
+def get_group_by_column_label(args, meta):
+	if args['aggregate_function'] == 'count':
+		label = 'Count'
+	else:
+		sql_fn_map = {
+			'avg': 'Average',
+			'sum': 'Sum'
+		}
+		aggregate_on_label = meta.get_label(args.aggregate_on)
+		label = _('{function} of {fieldlabel}').format(
+			function=sql_fn_map[args.aggregate_function],
+			fieldlabel = aggregate_on_label
+		)
+	return label
