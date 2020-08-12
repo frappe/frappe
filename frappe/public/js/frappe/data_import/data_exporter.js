@@ -274,23 +274,29 @@ frappe.data_import.DataExporter = class DataExporter {
 			? this.column_map[child_fieldname]
 			: this.column_map[doctype];
 
-		let is_field_mandatory = df => (df.fieldname === 'name' && !child_fieldname)
-			|| (df.reqd && this.exporting_for == 'Insert New Records');
+		let is_field_mandatory = df => {
+			if (df.reqd && this.exporting_for == 'Insert New Records') {
+				return true;
+			}
+			if (autoname_field && df.fieldname == autoname_field.fieldname) {
+				return true;
+			}
+			if (df.fieldname === 'name') {
+				return true;
+			}
+			return false;
+		};
 
 		return fields
 			.filter(df => {
-				if (autoname_field && df.fieldname === autoname_field.fieldname) {
+				if (autoname_field && df.fieldname === 'name') {
 					return false;
 				}
 				return true;
 			})
 			.map(df => {
-				let label = __(df.label);
-				if (autoname_field && df.fieldname === 'name') {
-					label = label + ` (${__(autoname_field.label)})`;
-				}
 				return {
-					label,
+					label: __(df.label),
 					value: df.fieldname,
 					danger: is_field_mandatory(df),
 					checked: false,
