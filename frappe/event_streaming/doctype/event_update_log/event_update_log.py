@@ -15,7 +15,7 @@ class EventUpdateLog(Document):
 		enqueued_method = 'frappe.event_streaming.doctype.event_consumer.event_consumer.notify_event_consumers'
 		jobs = get_jobs()
 		if not jobs or enqueued_method not in jobs[frappe.local.site]:
-			frappe.enqueue(enqueued_method, doctype=doc.ref_doctype, queue='long',
+			frappe.enqueue(enqueued_method, doctype=self.ref_doctype, queue='long',
 				enqueue_after_commit=True)
 
 def notify_consumers(doc, event):
@@ -25,10 +25,7 @@ def notify_consumers(doc, event):
 		return
 
 	consumers = check_doctype_has_consumers(doc.doctype)
-
 	if consumers:
-		doc_before_save = doc.get_doc_before_save()
-
 		if event=='after_insert':
 			doc.flags.event_update_log = make_event_update_log(doc, update_type='Create')
 		elif event=='on_trash':
@@ -37,14 +34,14 @@ def notify_consumers(doc, event):
 			# on_update
 			# called after saving
 			if not doc.flags.event_update_log: # if not already inserted
-				diff = get_update(doc_before_save, doc)
+				diff = get_update(doc.get_doc_before_save(), doc)
 				if diff:
 					doc.diff = diff
 					make_event_update_log(doc, update_type='Update')
 
 def check_doctype_has_consumers(doctype):
 	"""Check if doctype has event consumers for event streaming"""
-	return frappe.cache_manager.get_doctype_map('Event Producer', doctype,
+	return frappe.cache_manager.get_doctype_map('Event Consumer', doctype,
 		dict(ref_doctype = doctype, status='Approved'))
 
 def get_update(old, new, for_child=False):

@@ -38,8 +38,6 @@ class EventProducer(Document):
 			self.db_set('incoming_change', 0)
 			self.reload()
 
-		frappe.cache_manager.clear_doctype_map('Event Producer', self.name)
-
 	def on_trash(self):
 		frappe.cache_manager.clear_doctype_map('Event Producer', self.name)
 
