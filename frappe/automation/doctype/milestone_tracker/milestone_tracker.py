@@ -11,10 +11,10 @@ from frappe.model import log_types
 
 class MilestoneTracker(Document):
 	def on_update(self):
-		frappe.cache_manager.clear_doctype_map('Milestone Tracker', self.name)
+		frappe.cache_manager.clear_doctype_map('Milestone Tracker', self.document_type)
 
 	def on_trash(self):
-		frappe.cache_manager.clear_doctype_map('Milestone Tracker', self.name)
+		frappe.cache_manager.clear_doctype_map('Milestone Tracker', self.document_type)
 
 	def apply(self, doc):
 		before_save = doc.get_doc_before_save()

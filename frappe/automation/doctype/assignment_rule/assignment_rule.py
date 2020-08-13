@@ -20,10 +20,13 @@ class AssignmentRule(Document):
 			frappe.throw(_("Assignment Day {0} has been repeated.").format(frappe.bold(repeated_days)))
 
 	def on_update(self): # pylint: disable=no-self-use
-		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
+		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.document_type)
 
 	def after_rename(self, old, new, merge): # pylint: disable=no-self-use
-		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
+		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.document_type)
+
+	def on_trash(self, old, new, merge): # pylint: disable=no-self-use
+		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.document_type)
 
 	def apply_unassign(self, doc, assignments):
 		if (self.unassign_condition and

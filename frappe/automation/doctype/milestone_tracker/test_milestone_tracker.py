@@ -15,7 +15,7 @@ class TestMilestoneTracker(unittest.TestCase):
 
 		frappe.cache().delete_key('milestone_tracker_map')
 
-		frappe.get_doc(dict(
+		milestone_tracker = frappe.get_doc(dict(
 			doctype = 'Milestone Tracker',
 			document_type = 'ToDo',
 			track_field = 'status'
@@ -47,3 +47,6 @@ class TestMilestoneTracker(unittest.TestCase):
 		self.assertEqual(milestones[0].track_field, 'status')
 		self.assertEqual(milestones[0].value, 'Closed')
 
+		# cleanup
+		frappe.db.sql('delete from tabMilestone')
+		milestone_tracker.delete()

@@ -38,9 +38,6 @@ class EventProducer(Document):
 			self.db_set('incoming_change', 0)
 			self.reload()
 
-	def on_trash(self):
-		frappe.cache_manager.clear_doctype_map('Event Producer', self.name)
-
 	def check_url(self):
 		if not validate_url(self.producer_url):
 			frappe.throw(_('Invalid URL'))
