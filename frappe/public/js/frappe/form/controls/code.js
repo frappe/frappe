@@ -59,7 +59,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		const language = this.df.options;
 
 		const valid_languages = Object.keys(language_map);
-		if (!valid_languages.includes(language)) {
+		if (language && !valid_languages.includes(language)) {
 			// eslint-disable-next-line
 			console.warn(`Invalid language option provided for field "${this.df.label}". Valid options are ${valid_languages.join(', ')}.`);
 		}
