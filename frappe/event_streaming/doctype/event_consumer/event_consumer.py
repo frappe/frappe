@@ -71,13 +71,10 @@ def register_consumer(data):
 
 	for entry in consumer_doctypes:
 		consumer.append('consumer_doctypes', {
-			'ref_doctype': entry,
-			'status': 'Pending'
+			'ref_doctype': entry.get("doctype"),
+			'status': 'Pending',
+			'condition': entry.get("condition")
 		})
-
-	conditions = json.loads(data['conditions'])
-	for condition in conditions:
-		consumer.append('conditions', condition)
 
 	api_key = frappe.generate_hash(length=10)
 	api_secret = frappe.generate_hash(length=10)
@@ -152,32 +149,8 @@ def notify(consumer):
 def has_consumer_access(consumer, update_log):
 	"""Checks if consumer has completely satisfied all the conditions on the doc"""
 
-	def event_condition_satisfied(doc, consumer, condition):
-		import operator
-		from frappe.model import numeric_fieldtypes
-		try:
-			if condition.type == 'DocField':
-				"""==, !=, >, >=, <, <="""
-				op_map = {
-					'==': operator.eq,
-					'!=': operator.ne,
-					'>': operator.gt,
-					'>=': operator.ge,
-					'<': operator.lt,
-					'<=': operator.le
-				}
-				df = doc.meta.get_field(condition.fieldname)
-				if df.fieldtype in numeric_fieldtypes:
-					condition.value = flt(condition.value)
-				elif df.fieldtype in ('Date', 'Datetime'):
-					condition.value = get_datetime(condition.value)
-
-				return op_map[condition.operator](doc.get(df.fieldname), condition.value)
-			elif condition.type == 'Eval':
-				return frappe.safe_eval(condition.eval, frappe._dict(doc=doc))
-		except Exception:
-			pass
-		return False
+	if isinstance(consumer, str):
+		consumer = frappe.get_doc('Event Consumer', consumer)
 
 	if not frappe.db.exists(update_log.ref_doctype, update_log.docname):
 		# Delete Log
@@ -199,23 +172,25 @@ def has_consumer_access(consumer, update_log):
 		return len([x for x in last_update_log.consumers if x.consumer == consumer.name])
 
 	doc = frappe.get_doc(update_log.ref_doctype, update_log.docname)
-
-	# Global Perms
-	for dt_condn in frappe.get_all('Event DocType Condition', {'dt': doc.doctype}):
-		dt_condn = frappe.get_doc('Event DocType Condition', dt_condn.name)
-		for condition in dt_condn.conditions:
-			if not event_condition_satisfied(doc, consumer, condition):
-				return False
-
-	if isinstance(consumer, str):
-		consumer = frappe.get_doc('Event Consumer', consumer)
-
-	# Consumer Level Perms
-	if consumer.get('conditions') and len(consumer.conditions):
-		for condition in consumer.conditions:
-			if condition.dt != doc.doctype:
+	try:
+		for dt_entry in consumer.consumer_doctypes:
+			if dt_entry.ref_doctype != update_log.ref_doctype:
 				continue
-			if not event_condition_satisfied(doc, consumer, condition):
-				return False
 
-	return True
+			if not dt_entry.condition:
+				return True
+
+			condition: str = dt_entry.condition
+			if condition.startswith("cmd:"):
+				cmd = condition.split("cmd:")[1].strip()
+				args = {
+					"consumer": consumer,
+					"doc": doc,
+					"update_log": update_log
+				}
+				return frappe.call(cmd, **args)
+			else:
+				return frappe.safe_eval(condition, frappe._dict(doc=doc))
+	except Exception as e:
+		frappe.log_error(title="has_consumer_access error", message=e)
+	return False
