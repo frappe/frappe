@@ -25,10 +25,10 @@ class EventConsumer(Document):
 		else:
 			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
 
-		frappe.cache_manager.clear_doctype_map('Event Consumer', self.ref_doctype)
+		frappe.cache().delete_value('event_consumer_document_type_map')
 
 	def on_trash(self):
-		frappe.cache_manager.clear_doctype_map('Event Consumer', self.ref_doctype)
+		frappe.cache().delete_value('event_consumer_document_type_map')
 
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)

@@ -12,7 +12,7 @@ from frappe.desk.notifications import (delete_notification_count_for,
 common_default_keys = ["__default", "__global"]
 
 doctype_map_keys = ('energy_point_rule_map', 'assignment_rule_map',
-	'milestone_tracker_map', 'event_consumer_map')
+	'milestone_tracker_map', 'event_consumer_document_type_map')
 
 global_cache_keys = ("app_hooks", "installed_apps",
 		"app_modules", "module_app", "system_settings",
