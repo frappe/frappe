@@ -240,9 +240,6 @@ class Document(BaseDocument):
 		self.set_docstatus()
 		self.flags.in_insert = False
 
-		# follow document on document creation
-
-
 		# run validate, on update etc.
 
 		# parent
@@ -980,28 +977,14 @@ class Document(BaseDocument):
 
 		update_global_search(self)
 
-		if getattr(self.meta, 'track_changes', False) and not self.flags.ignore_version \
-			and not self.doctype == 'Version' and not frappe.flags.in_install:
-			self.save_version()
+		self.save_version()
 
 		self.run_method('on_change')
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
-		# make event update log for doctypes having event consumers
-		if not frappe.flags.in_install and not frappe.flags.in_migrate and check_doctype_has_consumers(self.doctype):
-			if self.flags.update_log_for_doc_creation:
-				make_event_update_log(self, update_type='Create')
-				self.flags.update_log_for_doc_creation = False
-			else:
-				from frappe.event_streaming.doctype.event_update_log.event_update_log import get_update
-				diff = get_update(doc_before_save, self)
-				if diff:
-					doc = self
-					doc.diff = diff
-					make_event_update_log(doc, update_type='Update')
-
+		self.notify_consumers()
 		self.latest = None
 
 	def clear_cache(self):
@@ -1025,6 +1008,20 @@ class Document(BaseDocument):
 				"user": frappe.session.user
 			}
 			frappe.publish_realtime("list_update", data, after_commit=True)
+
+	def notify_consumers(self):
+		# make event update log for doctypes having event consumers
+		if (not frappe.flags.in_install and not frappe.flags.in_migrate
+			and check_doctype_has_consumers(self.doctype)):
+			if self.flags.update_log_for_doc_creation:
+				make_event_update_log(self, update_type='Create')
+				self.flags.update_log_for_doc_creation = False
+			else:
+				from frappe.event_streaming.doctype.event_update_log.event_update_log import get_update
+				diff = get_update(doc_before_save, self)
+				if diff:
+					self.diff = diff
+					make_event_update_log(self, update_type='Update')
 
 	def db_set(self, fieldname, value=None, update_modified=True, notify=False, commit=False):
 		"""Set a value in the document object, update the timestamp and update the database.
@@ -1078,7 +1075,14 @@ class Document(BaseDocument):
 
 	def save_version(self):
 		"""Save version info"""
-		if not self._doc_before_save and frappe.flags.in_patch: return
+
+		# don't track version under following conditions
+		if (not getattr(self.meta, 'track_changes', False)
+			or self.doctype == 'Version'
+			or self.flags.ignore_version
+			or frappe.flags.in_install
+			or (not self._doc_before_save and frappe.flags.in_patch)):
+			return
 
 		version = frappe.new_doc('Version')
 		if not self._doc_before_save:
@@ -1087,6 +1091,7 @@ class Document(BaseDocument):
 		elif version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
+				# follow since you made a change?
 				follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod

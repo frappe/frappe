@@ -194,7 +194,7 @@ class Database(object):
 
 	def log_query(self, query, values, debug, explain):
 		# for debugging in tests
-		if frappe.flags.in_test and frappe.cache().get_value('flag_print_sql'):
+		if frappe.cache().get_value('flag_print_sql'):
 			print(self.mogrify(query, values))
 
 		# debug

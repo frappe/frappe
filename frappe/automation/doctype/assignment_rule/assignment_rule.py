@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.desk.form import assign_to
 import frappe.cache_manager
 from frappe import _
+from frappe.model import log_types
 
 class AssignmentRule(Document):
 
@@ -165,7 +166,13 @@ def reopen_closed_assignment(doc):
 	return True
 
 def apply(doc, method=None, doctype=None, name=None):
-	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_setup_wizard:
+	if not doctype:
+		doctype = doc.doctype
+
+	if (frappe.flags.in_patch
+		or frappe.flags.in_install
+		or frappe.flags.in_setup_wizard
+		or doctype in log_types):
 		return
 
 	if not doc and doctype and name:
