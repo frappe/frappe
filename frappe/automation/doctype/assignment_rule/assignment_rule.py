@@ -25,7 +25,7 @@ class AssignmentRule(Document):
 	def after_rename(self, old, new, merge): # pylint: disable=no-self-use
 		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.document_type)
 
-	def on_trash(self, old, new, merge): # pylint: disable=no-self-use
+	def on_trash(self): # pylint: disable=no-self-use
 		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.document_type)
 
 	def apply_unassign(self, doc, assignments):
