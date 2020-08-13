@@ -984,7 +984,7 @@ class Document(BaseDocument):
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
-		self.notify_consumers()
+		self.notify_consumers(doc_before_save)
 		self.latest = None
 
 	def clear_cache(self):
@@ -1009,7 +1009,7 @@ class Document(BaseDocument):
 			}
 			frappe.publish_realtime("list_update", data, after_commit=True)
 
-	def notify_consumers(self):
+	def notify_consumers(self, doc_before_save):
 		# make event update log for doctypes having event consumers
 		if (not frappe.flags.in_install and not frappe.flags.in_migrate
 			and check_doctype_has_consumers(self.doctype)):
