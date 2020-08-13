@@ -340,6 +340,11 @@ class CookieManager:
 	def set_cookie(self, key, value, expires=None, secure=False, httponly=False, samesite="Lax"):
 		if not secure:
 			secure = frappe.local.request.scheme == "https"
+
+		# Cordova does not work with Lax
+		if frappe.local.session.data.device == "mobile":
+			samesite = None
+
 		self.cookies[key] = {
 			"value": value,
 			"expires": expires,
