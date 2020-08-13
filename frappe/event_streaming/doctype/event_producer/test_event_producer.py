@@ -12,13 +12,17 @@ from frappe.event_streaming.doctype.event_producer.event_producer import pull_fr
 producer_url = 'http://test_site_producer:8000'
 
 class TestEventProducer(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		frappe.print_sql(True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.print_sql(False)
+
 	def setUp(self):
-		# frappe.print_sql(True)
 		create_event_producer(producer_url)
 
-	# for debugging
-	# def tearDown(self):
-	# 	frappe.print_sql(False)
 
 	def test_insert(self):
 		producer = get_remote_site()

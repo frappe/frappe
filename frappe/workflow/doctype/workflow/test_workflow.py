@@ -13,6 +13,11 @@ class TestWorkflow(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		make_test_records("User")
+		frappe.print_sql(True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.print_sql(False)
 
 	def setUp(self):
 		if not getattr(self, 'workflow', None):

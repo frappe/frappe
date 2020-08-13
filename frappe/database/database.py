@@ -193,28 +193,28 @@ class Database(object):
 			return self._cursor.fetchall()
 
 	def log_query(self, query, values, debug, explain):
-		def mogrify():
-			try:
-				return self._cursor.mogrify(query, values)
-			except:
-				return [query, values]
-
 		# for debugging in tests
 		if frappe.flags.in_test and frappe.cache().get_value('flag_print_sql'):
-			print(mogrify())
+			print(self.mogrify(query, values))
 
 		# debug
 		if debug:
 			if explain and query.strip().lower().startswith('select'):
 				self.explain_query(query, values)
-			frappe.errprint(mogrify())
+			frappe.errprint(self.mogrify(query, values))
 
 		# info
 		if (frappe.conf.get("logging") or False)==2:
 			frappe.log("<<<< query")
-			frappe.log(mogrify())
+			frappe.log(self.mogrify(query, values))
 			frappe.log(">>>>")
 
+	def mogrify(self, query, values):
+		'''build the query string with values'''
+		if not values:
+			return query
+		else:
+			return self._cursor.mogrify(query, values)
 
 	def explain_query(self, query, values=None):
 		"""Print `EXPLAIN` in error log."""
