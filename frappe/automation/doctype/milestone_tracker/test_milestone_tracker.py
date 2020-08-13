@@ -7,8 +7,6 @@ import frappe
 import frappe.cache_manager
 import unittest
 
-from .milestone_tracker import get_milestone_trackers
-
 class TestMilestoneTracker(unittest.TestCase):
 	def test_milestone(self):
 		frappe.db.sql('delete from `tabMilestone Tracker`')
