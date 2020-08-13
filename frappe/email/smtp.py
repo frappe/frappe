@@ -82,7 +82,7 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 			email_account = get_default_outgoing_email_account(raise_exception_not_set=raise_exception_not_set)
 
 		if not email_account and raise_exception_not_set and cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
+			frappe.throw(_("Please setup default Email Account for sending from <a href=#List/Email%20Account/List>Email Account</a>."),
 				frappe.OutgoingEmailError)
 
 		if email_account:
@@ -194,7 +194,7 @@ class SMTPServer:
 
 		# check if email server specified
 		if not getattr(self, 'server'):
-			err_msg = _('Email Account not setup. Please create a new Email Account from Setup > Email > Email Account')
+			err_msg = _("Email Account not setup for sending. Please create a new <a href=#List/Email%20Account/List>Email Account</a>.")
 			frappe.msgprint(err_msg)
 			raise frappe.OutgoingEmailError(err_msg)
 
