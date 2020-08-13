@@ -26,7 +26,8 @@
   "revocation_endpoint",
   "cb_02",
   "userinfo_endpoint",
-  "introspection_endpoint"
+  "introspection_endpoint",
+  "useless_link"
  ],
  "fields": [
   {
@@ -129,6 +130,12 @@
    "fieldname": "base_url",
    "fieldtype": "Data",
    "label": "Base URL"
+  },
+  {
+   "fieldname": "useless_link",
+   "fieldtype": "Link",
+   "label": "Useless Link",
+   "options": "User"
   }
  ],
  "links": [
@@ -137,7 +144,7 @@
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2020-08-13 11:45:02.983854",
+ "modified": "2020-08-13 18:55:35.554769",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",
