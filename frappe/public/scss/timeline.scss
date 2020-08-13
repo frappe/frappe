@@ -41,6 +41,7 @@ $timeline-item-left-margin: var(--margin-xl);
 		}
 	}
 	.timeline-items .timeline-item {
+		font-size: var(--text-md);
 		position: relative;
 		margin-bottom: var(--margin-md);
 		.timeline-content {
