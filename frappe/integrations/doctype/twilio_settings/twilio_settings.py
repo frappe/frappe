@@ -34,7 +34,7 @@ def send_whatsapp_message(sender, receiver_list, message):
 	for rec in receiver_list:
 		args.update({"to": 'whatsapp:{}'.format(rec)})
 		resp = _send_whatsapp(args, client)
-		if not resp:
+		if not resp or resp.error_message:
 			failed_delivery.append(rec)
 
 	if failed_delivery:
@@ -42,9 +42,10 @@ def send_whatsapp_message(sender, receiver_list, message):
 
 
 def _send_whatsapp(message_dict, client):
+	response = frappe._dict()
 	try:
 		response = client.messages.create(**message_dict)
-	except Exception:
-		frappe.log_error(response.error_message, _('Twilio WhatsApp Message Error'))
+	except Exception as e:
+		frappe.log_error(e, title = _('Twilio WhatsApp Message Error'))
 
-	return response.sid
+	return response
