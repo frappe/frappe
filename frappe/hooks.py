@@ -127,6 +127,9 @@ standard_queries = {
 
 doc_events = {
 	"*": {
+		"after_insert": [
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
@@ -142,7 +145,8 @@ doc_events = {
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"

@@ -13,16 +13,14 @@ class TestWorkflow(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		make_test_records("User")
-		frappe.print_sql(True)
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.print_sql(False)
 
 	def setUp(self):
 		if not getattr(self, 'workflow', None):
 			self.workflow = create_todo_workflow()
 		frappe.set_user('Administrator')
+
+	def tearDown(self):
+		self.workflow.db_set('is_active', 0)
 
 	def test_default_condition(self):
 		'''test default condition is set'''
@@ -128,7 +126,9 @@ class TestWorkflow(unittest.TestCase):
 
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):
-		return frappe.get_doc('Workflow', 'Test ToDo').save(ignore_permissions=True)
+		workflow = frappe.get_doc('Workflow', 'Test ToDo').save(ignore_permissions=True)
+		workflow.db_set('is_active', 1)
+		return workflow
 	else:
 		frappe.get_doc(dict(doctype='Role',
 			role_name='Test Approver')).insert(ignore_if_duplicate=True)

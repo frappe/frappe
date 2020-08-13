@@ -19,7 +19,7 @@ class EventUpdateLog(Document):
 				enqueue_after_commit=True)
 
 def notify_consumers(doc, event):
-	'''called via triggers'''
+	'''called via hooks'''
 	# make event update log for doctypes having event consumers
 	if frappe.flags.in_install or frappe.flags.in_migrate:
 		return
@@ -28,14 +28,19 @@ def notify_consumers(doc, event):
 
 	if consumers:
 		doc_before_save = doc.get_doc_before_save()
-		if doc.flags.update_log_for_doc_creation:
-			make_event_update_log(doc, update_type='Create')
-			doc.flags.update_log_for_doc_creation = False
+
+		if event=='after_insert':
+			doc.flags.event_update_log = make_event_update_log(doc, update_type='Create')
+		elif event=='on_trash':
+			make_event_update_log(doc, update_type='Delete')
 		else:
-			diff = get_update(doc_before_save, doc)
-			if diff:
-				doc.diff = diff
-				make_event_update_log(doc, update_type='Update')
+			# on_update
+			# called after saving
+			if not doc.flags.event_update_log: # if not already inserted
+				diff = get_update(doc_before_save, doc)
+				if diff:
+					doc.diff = diff
+					make_event_update_log(doc, update_type='Update')
 
 def check_doctype_has_consumers(doctype):
 	"""Check if doctype has event consumers for event streaming"""
@@ -88,7 +93,7 @@ def make_event_update_log(doc, update_type):
 		data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
 	else:
 		data = None
-	log_doc = frappe.get_doc({
+	return frappe.get_doc({
 		'doctype': 'Event Update Log',
 		'update_type': update_type,
 		'ref_doctype': doc.doctype,

@@ -4,11 +4,17 @@
 from __future__ import unicode_literals
 
 import frappe
+import frappe.cache_manager
 import unittest
+
+from .milestone_tracker import get_milestone_trackers
 
 class TestMilestoneTracker(unittest.TestCase):
 	def test_milestone(self):
 		frappe.db.sql('delete from `tabMilestone Tracker`')
+
+		frappe.cache().delete_key('milestone_tracker_map')
+
 		frappe.get_doc(dict(
 			doctype = 'Milestone Tracker',
 			document_type = 'ToDo',
@@ -17,7 +23,8 @@ class TestMilestoneTracker(unittest.TestCase):
 
 		todo = frappe.get_doc(dict(
 			doctype = 'ToDo',
-			description = 'test milestone'
+			description = 'test milestone',
+			status = 'Open'
 		)).insert()
 
 		milestones = frappe.get_all('Milestone',

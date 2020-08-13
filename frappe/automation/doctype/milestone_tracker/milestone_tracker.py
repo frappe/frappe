@@ -38,6 +38,10 @@ def evaluate_milestone(doc, event):
 		return
 
 	# track milestones related to this doctype
-	for d in frappe.cache_manager.get_doctype_map('Milestone Tracker', doc.doctype,
-		dict(document_type = doc.doctype, disabled=0)):
-		frappe.get_doc('Milestone Tracker', d.name).apply(doc)
+	for d in get_milestone_trackers(doc.doctype):
+		frappe.get_doc('Milestone Tracker', d.get('name')).apply(doc)
+
+def get_milestone_trackers(doctype):
+	return frappe.cache_manager.get_doctype_map('Milestone Tracker', doctype,
+		dict(document_type = doctype, disabled=0))
+
