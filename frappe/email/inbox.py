@@ -97,16 +97,6 @@ def create_email_flag_queue(names, action):
 				mark_as_seen_unseen(name, action)
 
 @frappe.whitelist()
-def mark_as_closed_open(communication, status):
-	"""Set status to open or close"""
-	frappe.db.set_value("Communication", communication, "status", status)
-
-@frappe.whitelist()
-def move_email(communication, email_account):
-	"""Move email to another email account."""
-	frappe.db.set_value("Communication", communication, "email_account", email_account)
-
-@frappe.whitelist()
 def mark_as_trash(communication):
 	"""Set email status to trash."""
 	frappe.db.set_value("Communication", communication, "email_status", "Trash")
