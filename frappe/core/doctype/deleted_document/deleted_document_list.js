@@ -21,11 +21,11 @@ frappe.listview_settings["Deleted Document"] = {
 
 							const { restored, invalid, failed } = r.message;
 							const restored_summary = message(__("Documents restored successfully"), restored);
-							const invalid_summary = message(__("Documents that were already Restored"), invalid);
-							const failed_summary = message(__("Documents that Failed to Restore"), failed);
+							const invalid_summary = message(__("Documents that were already restored"), invalid);
+							const failed_summary = message(__("Documents that failed to restore"), failed);
 							const summary = restored_summary + invalid_summary + failed_summary;
 
-							frappe.msgprint(summary, "Document Restoration Summary", true);
+							frappe.msgprint(summary, __("Document Restoration Summary"), true);
 
 							if (restored.length > 0) {
 								doclist.refresh();
