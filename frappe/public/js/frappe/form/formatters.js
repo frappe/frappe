@@ -230,9 +230,14 @@ frappe.form.formatters = {
 	TextEditor: function(value) {
 		let formatted_value = frappe.form.formatters.Text(value);
 		// to use ql-editor styles
-		if (!$(formatted_value).find('.ql-editor').length) {
+		try {
+			if (!$(formatted_value).find('.ql-editor').length) {
+				formatted_value = `<div class="ql-editor read-mode">${formatted_value}</div>`;
+			}
+		} catch(e) {
 			formatted_value = `<div class="ql-editor read-mode">${formatted_value}</div>`;
 		}
+
 		return formatted_value;
 	},
 	Code: function(value) {

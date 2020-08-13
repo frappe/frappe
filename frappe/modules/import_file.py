@@ -9,7 +9,7 @@ from frappe.utils import get_datetime_str
 from frappe.model.base_document import get_controller
 
 ignore_values = {
-	"Report": ["disabled", "prepared_report"],
+	"Report": ["disabled", "prepared_report", "add_total_row"],
 	"Print Format": ["disabled"],
 	"Notification": ["enabled"],
 	"Print Style": ["disabled"],
