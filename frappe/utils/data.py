@@ -95,7 +95,10 @@ def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, se
 		as_string = True
 		if " " in date:
 			as_datetime = True
-		date = parser.parse(date)
+		try:
+			date = parser.parse(date)
+		except ParserError:
+			frappe.throw(frappe._("Please select a valid date filter"), title=frappe._("Invalid Date"))
 
 	date = date + relativedelta(years=years, months=months, weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds)
 
