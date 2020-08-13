@@ -9,17 +9,38 @@ from frappe.utils.background_jobs import get_jobs
 from frappe.model import no_value_fields, table_fields
 
 class EventUpdateLog(Document):
-	pass
+	def after_insert(self):
+		"""Send update notification updates to event consumers
+		whenever update log is generated"""
+		enqueued_method = 'frappe.event_streaming.doctype.event_consumer.event_consumer.notify_event_consumers'
+		jobs = get_jobs()
+		if not jobs or enqueued_method not in jobs[frappe.local.site]:
+			frappe.enqueue(enqueued_method, doctype=doc.ref_doctype, queue='long',
+				enqueue_after_commit=True)
 
+def notify_consumers(doc, event):
+	'''called via triggers'''
+	# make event update log for doctypes having event consumers
+	if frappe.flags.in_install or frappe.flags.in_migrate:
+		return
 
-def notify_consumers(doc, _method=None):
-	"""Send update notification updates to event consumers
-	whenever update log is generated"""
-	enqueued_method = 'frappe.event_streaming.doctype.event_consumer.event_consumer.notify_event_consumers'
-	jobs = get_jobs()
-	if not jobs or enqueued_method not in jobs[frappe.local.site]:
-		frappe.enqueue(enqueued_method, doctype=doc.ref_doctype, queue='long', enqueue_after_commit=True)
+	consumers = check_doctype_has_consumers(doc.doctype)
 
+	if consumers:
+		doc_before_save = doc.get_doc_before_save()
+		if doc.flags.update_log_for_doc_creation:
+			make_event_update_log(doc, update_type='Create')
+			doc.flags.update_log_for_doc_creation = False
+		else:
+			diff = get_update(doc_before_save, doc)
+			if diff:
+				doc.diff = diff
+				make_event_update_log(doc, update_type='Update')
+
+def check_doctype_has_consumers(doctype):
+	"""Check if doctype has event consumers for event streaming"""
+	return frappe.cache_manager.get_doctype_map('Event Producer', doctype,
+		dict(ref_doctype = doctype, status='Approved'))
 
 def get_update(old, new, for_child=False):
 	"""
@@ -60,6 +81,20 @@ def get_update(old, new, for_child=False):
 		return out
 	return None
 
+def make_event_update_log(doc, update_type):
+	"""Save update info for doctypes that have event consumers"""
+	if update_type != 'Delete':
+		# diff for update type, doc for create type
+		data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
+	else:
+		data = None
+	log_doc = frappe.get_doc({
+		'doctype': 'Event Update Log',
+		'update_type': update_type,
+		'ref_doctype': doc.doctype,
+		'docname': doc.name,
+		'data': data
+	}).insert(ignore_permissions=True)
 
 def make_maps(old_value, new_value):
 	"""make maps"""

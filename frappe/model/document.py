@@ -984,7 +984,6 @@ class Document(BaseDocument):
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
-		self.notify_consumers(doc_before_save)
 		self.latest = None
 
 	def clear_cache(self):
@@ -1008,20 +1007,6 @@ class Document(BaseDocument):
 				"user": frappe.session.user
 			}
 			frappe.publish_realtime("list_update", data, after_commit=True)
-
-	def notify_consumers(self, doc_before_save):
-		# make event update log for doctypes having event consumers
-		if (not frappe.flags.in_install and not frappe.flags.in_migrate
-			and check_doctype_has_consumers(self.doctype)):
-			if self.flags.update_log_for_doc_creation:
-				make_event_update_log(self, update_type='Create')
-				self.flags.update_log_for_doc_creation = False
-			else:
-				from frappe.event_streaming.doctype.event_update_log.event_update_log import get_update
-				diff = get_update(doc_before_save, self)
-				if diff:
-					self.diff = diff
-					make_event_update_log(self, update_type='Update')
 
 	def db_set(self, fieldname, value=None, update_modified=True, notify=False, commit=False):
 		"""Set a value in the document object, update the timestamp and update the database.
@@ -1348,34 +1333,4 @@ def execute_action(doctype, name, action, **kwargs):
 		doc.notify_update()
 
 
-def make_event_update_log(doc, update_type):
-	"""Save update info for doctypes that have event consumers"""
-	if update_type != 'Delete':
-		# diff for update type, doc for create type
-		data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
-	else:
-		data = None
-	log_doc = frappe.get_doc({
-		'doctype': 'Event Update Log',
-		'update_type': update_type,
-		'ref_doctype': doc.doctype,
-		'docname': doc.name,
-		'data': data
-	})
-	log_doc.insert(ignore_permissions=True)
-	frappe.db.commit()
 
-
-def check_doctype_has_consumers(doctype):
-	"""Check if doctype has event consumers for event streaming"""
-	if not frappe.db.exists('DocType', 'Event Consumer'):
-		return False
-
-	event_consumers = frappe.get_all('Event Consumer Document Type', {
-		'ref_doctype': doctype,
-		'status': 'Approved'
-	}, limit=1)
-
-	if len(event_consumers) and event_consumers[0]:
-		return True
-	return False

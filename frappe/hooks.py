@@ -132,7 +132,8 @@ doc_events = {
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
-			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
+			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -163,9 +164,6 @@ doc_events = {
 	"Page": {
 		"after_insert": "frappe.cache_manager.build_domain_restriced_page_cache",
 		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
-	},
-	"Event Update Log": {
-		"after_insert": "frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 	}
 }
 
