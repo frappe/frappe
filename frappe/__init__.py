@@ -153,6 +153,7 @@ def init(site, sites_path=None, new_site=False):
 	local.site = site
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
+	local.all_apps = None
 
 	local.request_ip = None
 	local.response = _dict({"docs":[]})
@@ -299,7 +300,7 @@ def log(msg):
 
 	debug_log.append(as_unicode(msg))
 
-def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None, is_minimizable=None):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None, is_minimizable=None, wide=None):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
@@ -309,6 +310,8 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	:param primary_action: [optional] Bind a primary server/client side action.
+	:param is_minimizable: [optional] Allow users to minimize the modal
+	:param wide: [optional] Show wide modal
 	"""
 	from frappe.utils import encode
 
@@ -366,6 +369,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	if primary_action:
 		out.primary_action = primary_action
 
+	if wide:
+		out.wide = wide
+
 	message_log.append(json.dumps(out))
 
 	if raise_exception and hasattr(raise_exception, '__name__'):
@@ -387,12 +393,12 @@ def clear_last_message():
 	if len(local.message_log) > 0:
 		local.message_log = local.message_log[:-1]
 
-def throw(msg, exc=ValidationError, title=None, is_minimizable=None):
+def throw(msg, exc=ValidationError, title=None, is_minimizable=None, wide=None):
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable)
+	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable, wide=wide)
 
 def emit_js(js, user=False, **kwargs):
 	if user == False:
@@ -916,10 +922,13 @@ def get_installed_apps(sort=False, frappe_last=False):
 	if not db:
 		connect()
 
+	if not local.all_apps:
+		local.all_apps  = get_all_apps(True)
+
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
-		installed = [app for app in get_all_apps(True) if app in installed]
+		installed = [app for app in local.all_apps if app in installed]
 
 	if frappe_last:
 		if 'frappe' in installed:
