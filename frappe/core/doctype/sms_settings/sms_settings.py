@@ -18,6 +18,9 @@ class SMSSettings(Document):
 def validate_receiver_nos(receiver_list):
 	validated_receiver_list = []
 	for d in receiver_list:
+		if not d:
+			break
+
 		# remove invalid character
 		for x in [' ','-', '(', ')']:
 			d = d.replace(x, '')
