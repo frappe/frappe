@@ -1,3 +1,9 @@
+.form-grid {
+	// border: 1px solid var(--border-color);
+	// border-radius: var(--border-radius);
+	color: var(--text-color);
+}
+
 .form-grid.error {
 	border-color: var(--red-500);
 }
@@ -107,7 +113,13 @@
 
 .grid-body {
 	.btn-open-row {
-		padding-top: 5px;
+		display: flex;
+		padding-top: var(--padding-sm);
+		justify-content: center;
+		div {
+			margin-left: var(--margin-xs);
+			line-height: 1.7em;
+		}
 	}
 
 	.editable-row {
