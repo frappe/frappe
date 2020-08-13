@@ -15,6 +15,9 @@ if frappe.conf.developer_mode:
 	os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 class ConnectedApp(Document):
+	"""Connect to a remote oAuth Server. Retrieve and store user's access token
+	in a Token Cache.
+	"""
 
 	def autoname(self):
 		self.callback = frappe.scrub(self.provider_name)
@@ -100,9 +103,15 @@ class ConnectedApp(Document):
 	def get_scopes(self):
 		return [row.scope for row in self.scopes]
 
+
 @frappe.whitelist(allow_guest=True)
 def callback(code=None, state=None):
-	"""Handle client's code."""
+	"""Handle client's code.
+
+	Called during the oauthorization flow by the remote oAuth2 server to 
+	transmit a code that can be used by the local server to obtain an access
+	token.
+	"""
 	if frappe.request.method != 'GET':
 		frappe.throw(_('Invalid Method'))
 
