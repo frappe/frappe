@@ -122,8 +122,7 @@ def get_doctype_map(doctype, name, filters, order_by=None):
 	return items
 
 def clear_doctype_map(doctype, name):
-	frappe.scrub(doctype) + '_map'
-	frappe.cache().hdel(cache_key, name)
+	frappe.cache().hdel(frappe.scrub(doctype) + '_map', name)
 
 def build_table_count_cache():
 	if (frappe.flags.in_patch
