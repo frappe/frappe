@@ -10,7 +10,6 @@ import frappe.desk.form.meta
 from frappe import _
 from frappe.model.meta import is_single
 from frappe.modules import load_doctype_module
-from six import string_types
 
 @frappe.whitelist()
 def get_submitted_linked_docs(doctype, name, docs=None, visited=None):
