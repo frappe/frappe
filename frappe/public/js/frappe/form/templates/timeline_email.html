@@ -1,9 +1,13 @@
 <div class="timeline-email">
 	<span class="flex justify-between">
-		<span class="text-color">
-			{{ frappe.avatar(doc.owner) }}
-			 {{ frappe.user.full_name(doc.owner) }}
-			<span class="text-muted">{{ comment_when(doc.creation) }}</span>
+		<span class="text-color flex">
+			<span>
+				{{ frappe.avatar(doc.owner, "avatar-medium") }}
+			</span>
+			<span class="margin-left">
+				{{ frappe.user.full_name(doc.owner) }}
+				<div class="text-muted">{{ comment_when(doc.creation) }}</div>
+			</span>
 		</span>
 		<span class="actions"></span>
 	</span>

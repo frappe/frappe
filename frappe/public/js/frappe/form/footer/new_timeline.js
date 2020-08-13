@@ -21,7 +21,7 @@ frappe.ui.form.NewTimeline = class {
 		this.timeline_items = [];
 		this.render_timeline_items();
 		this.add_action_button(__('Reply'), () => {});
-		this.add_action_button(__('Email'), () => {});
+		this.add_action_button(__('New Email'), this.compose_mail.bind(this));
 	}
 
 	refresh() {
@@ -71,7 +71,7 @@ frappe.ui.form.NewTimeline = class {
 			</div>
 		`);
 		timeline_item.find('.timeline-content').append(item.content);
-		if (!item.hide_timestamp) {
+		if (!item.hide_timestamp && !item.card) {
 			timeline_item.find('.timeline-content').append(`<div>${comment_when(item.creation)}</div>`);
 		}
 		return timeline_item;
@@ -165,13 +165,46 @@ frappe.ui.form.NewTimeline = class {
 
 	setup_reply(communication_box) {
 		let actions = communication_box.find('.actions');
-		let reply = $(`<a class="reply">${frappe.utils.icon('reply', 'md')}</a>`).click(e => {
-			console.log(e);
+		let reply = $(`<a class="action-btn reply">${frappe.utils.icon('reply', 'md')}</a>`).click(e => {
+			this.compose_mail(true);
 		});
-		let reply_all = $(`<a class="reply-all">${frappe.utils.icon('reply-all', 'md')}</a>`).click(e => {
-			console.log(e);
+		let reply_all = $(`<a class="action-btn reply-all">${frappe.utils.icon('reply-all', 'md')}</a>`).click(e => {
+			this.compose_mail(true);
 		});
 		actions.append(reply);
 		actions.append(reply_all);
+	}
+
+	compose_mail(is_a_reply=false) {
+		const args = {
+			doc: this.frm.doc,
+			frm: this.frm,
+			recipients: this.get_recipient(),
+			is_a_reply: is_a_reply,
+			title: is_a_reply ? __('Reply') : null,
+		};
+
+		if (this.frm.doctype === "Communication") {
+			args.txt = "";
+			args.last_email = this.frm.doc;
+			args.recipients = this.frm.doc.sender;
+			args.subject = __("Re: {0}", [this.frm.doc.subject]);
+		} else {
+			const comment_value = frappe.markdown(this.frm.comment_box.get_value());
+			args.txt = strip_html(comment_value) ? comment_value : '';
+		}
+		new frappe.views.CommunicationComposer(args);
+	}
+
+	get_recipient() {
+		if (this.frm.email_field) {
+			return this.frm.doc[this.frm.email_field];
+		} else {
+			return this.frm.doc.email_id || this.frm.doc.email || "";
+		}
+	}
+
+	get_last_email() {
+		return;
 	}
 };
