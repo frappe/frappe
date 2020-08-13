@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
+from urllib.parse import urljoin
 
 if frappe.conf.developer_mode:
 	# Disable mandatory TLS in developer mode
@@ -23,8 +24,14 @@ class ConnectedApp(Document):
 		self.callback = frappe.scrub(self.provider_name)
 
 	def validate(self):
-		callback_path = 'api/method/frappe.integrations.doctype.connected_app.connected_app.callback/'
-		self.redirect_uri = frappe.request.host_url + callback_path + self.callback
+		try:
+			base_url = frappe.request.host_url
+		except RuntimeError:
+			# for tests
+			base_url = frappe.get_site_config().host_name or 'http://localhost:8000'
+
+		callback_path = '/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/' + self.callback
+		self.redirect_uri = urljoin(base_url, callback_path)
 
 	def get_oauth2_session(self):
 		return OAuth2Session(
@@ -50,6 +57,7 @@ class ConnectedApp(Document):
 		token.success_uri = success_uri
 		token.state = state
 		token.save()
+		frappe.db.commit()
 
 		return authorization_url
 
