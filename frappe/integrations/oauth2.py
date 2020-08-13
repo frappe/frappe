@@ -14,7 +14,8 @@ def get_oauth_server():
 
 	return frappe.local.oauth_server
 
-def get_urlparams_from_kwargs(param_kwargs):
+def clean_urlparams(param_kwargs):
+	"""Remove 'data' and 'cmd' keys, if present."""
 	arguments = param_kwargs
 	if arguments.get("data"):
 		arguments.pop("data")
@@ -50,7 +51,7 @@ def approve(*args, **kwargs):
 def authorize(*args, **kwargs):
 	#Fetch provider URL from settings
 	oauth_settings = get_oauth_settings()
-	params = get_urlparams_from_kwargs(kwargs)
+	params = clean_urlparams(kwargs)
 	request_url = urlparse(frappe.request.url)
 	success_url = request_url.scheme + "://" + request_url.netloc + "/api/method/frappe.integrations.oauth2.approve?" + params
 	failure_url = frappe.form_dict["redirect_uri"] + "?error=access_denied"
