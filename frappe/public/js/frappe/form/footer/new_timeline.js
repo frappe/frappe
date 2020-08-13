@@ -10,21 +10,32 @@ frappe.ui.form.NewTimeline = class {
 
 	make() {
 		this.timeline_wrapper = $(`<div class="new-timeline">`);
+		this.timeline_items_wrapper = $(`<div class="timeline-items">`);
+		this.timeline_actions_wrapper = $(`<div class="timeline-actions">`);
+
+		this.timeline_wrapper.append(this.timeline_actions_wrapper);
+		this.timeline_wrapper.append(this.timeline_items_wrapper);
+
 		this.parent.replaceWith(this.timeline_wrapper);
 		this.timeline_items = [];
 		this.render_timeline_items();
+		this.add_action_button(__('Reply'), () => {});
+		this.add_action_button(__('Email'), () => {});
 	}
 
 	refresh() {
 		this.render_timeline_items();
 	}
 
-	add_action_button() {
-
+	add_action_button(label, action) {
+		let action_btn = $(`<button class="btn btn-xs action-btn">${label}</button>`);
+		action_btn.click(action);
+		this.timeline_actions_wrapper.append(action_btn);
+		return action_btn;
 	}
 
 	render_timeline_items() {
-		this.timeline_wrapper.empty();
+		this.timeline_items_wrapper.empty();
 		this.timeline_items = [];
 		this.prepare_timeline_contents();
 
@@ -45,7 +56,7 @@ frappe.ui.form.NewTimeline = class {
 
 	add_timeline_item(item) {
 		let timeline_item = this.get_timeline_item(item);
-		this.timeline_wrapper.prepend(timeline_item);
+		this.timeline_items_wrapper.prepend(timeline_item);
 		return timeline_item;
 	}
 

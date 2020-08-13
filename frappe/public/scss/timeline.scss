@@ -1,6 +1,19 @@
 $timeline-item-icon-size: 34px;
 $timeline-item-left-margin: var(--margin-xl);
-$threshold: 50px;
+
+@mixin timeline-indicator($indicator-size) {
+	width: $indicator-size;
+	height: $indicator-size;
+	border-radius: 50%;
+	position: absolute;
+	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, 50px)");
+	left: calc(-1 * (#{$indicator-size}/2));
+	background-color: var(--gray-600);
+	display: inline-flex;
+	align-items: center;
+	--icon-stroke: var(--gray-50);
+}
+
 .new-timeline {
 	position: relative;
 	padding-left: calc(var(--padding-xl) + #{$timeline-item-icon-size}/2);
@@ -12,10 +25,24 @@ $threshold: 50px;
 		position: absolute;
 		border-left: 1px solid var(--dark-border-color);
 	}
-
-	.timeline-item {
+	.timeline-actions {
+		margin-bottom: var(--margin-md);
+		padding: var(--padding-sm);
 		position: relative;
-		margin-bottom: var(--margin-lg);
+		&:before {
+			content: ' ';
+			@include timeline-indicator(10px);
+		}
+		.action-btn {
+			margin-left: var(--margin-md)
+		}
+		.action-btn:first-child {
+			margin-left: $timeline-item-left-margin;
+		}
+	}
+	.timeline-items .timeline-item {
+		position: relative;
+		margin-bottom: var(--margin-md);
 		.timeline-content {
 			max-width: 700px;
 			padding: var(--padding-sm);
@@ -25,16 +52,7 @@ $threshold: 50px;
 			}
 		}
 		.timeline-indicator {
-			width: $timeline-item-icon-size;
-			height: $timeline-item-icon-size;
-			border-radius: 50%;
-			position: absolute;
-			top: unquote("clamp(0px, 50% - #{$timeline-item-icon-size}/2, 50px)");
-			left: calc(-1 * (#{$timeline-item-icon-size}/2));
-			background-color: var(--gray-600);
-			display: inline-flex;
-			align-items: center;
-			--icon-stroke: var(--gray-50);
+			@include timeline-indicator($timeline-item-icon-size)
 		}
 
 		.timeline-email {
