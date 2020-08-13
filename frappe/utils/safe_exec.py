@@ -67,6 +67,8 @@ def get_safe_globals():
 			render_template = frappe.render_template,
 			msgprint = frappe.msgprint,
 			sendmail = frappe.sendmail,
+			get_print = frappe.get_print,
+			attach_print = frappe.attach_print,
 
 			user = user,
 			get_fullname = frappe.utils.get_fullname,
