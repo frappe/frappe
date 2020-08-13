@@ -131,7 +131,8 @@ def get_communications(doctype, name, start=0, limit=20):
 def get_comments(doctype, name):
 	comments = frappe.get_all('Comment', fields = ['*'], filters = dict(
 		reference_doctype = doctype,
-		reference_name = name
+		reference_name = name,
+		comment_type = 'Comment'
 	))
 
 	# convert to markdown (legacy ?)
