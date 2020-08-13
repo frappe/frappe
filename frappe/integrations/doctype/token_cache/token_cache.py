@@ -66,7 +66,7 @@ class TokenCache(Document):
 
 		self.state = None
 		self.save()
-
+		frappe.db.commit()
 		return self
 
 	def get_expires_in(self):
