@@ -8,7 +8,7 @@ import json
 import requests
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
-from frappe.utils.data import get_url, flt, get_datetime
+from frappe.utils.data import get_url
 from frappe.utils.background_jobs import get_jobs
 
 
