@@ -107,7 +107,8 @@ class EventProducer(Document):
 
 					event_consumer.consumer_doctypes.append({
 						'ref_doctype': ref_doctype,
-						'status': get_approval_status(config, ref_doctype)
+						'status': get_approval_status(config, ref_doctype),
+						'unsubscribed': entry.unsubscribe
 					})
 				if frappe.flags.in_test:
 					event_consumer.in_test = True
