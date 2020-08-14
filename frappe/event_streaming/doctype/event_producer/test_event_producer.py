@@ -107,7 +107,7 @@ class TestEventProducer(unittest.TestCase):
 	def test_dynamic_link_dependencies_synced(self):
 		producer = get_remote_site()
 		#unsubscribe for Note to check whether dependency is fulfilled
-		event_producer = frappe.get_doc('Event Producer', producer_url)
+		event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
 		event_producer.producer_doctypes = []
 		event_producer.append('producer_doctypes', {
 			'ref_doctype': 'ToDo',
@@ -135,7 +135,7 @@ class TestEventProducer(unittest.TestCase):
 	def test_naming_configuration(self):
 		#test with use_same_name = 0
 		producer = get_remote_site()
-		event_producer = frappe.get_doc('Event Producer', producer_url)
+		event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
 		event_producer.producer_doctypes = []
 		event_producer.append('producer_doctypes', {
 			'ref_doctype': 'ToDo',
@@ -176,7 +176,7 @@ class TestEventProducer(unittest.TestCase):
 
 	def test_mapping(self):
 		producer = get_remote_site()
-		event_producer = frappe.get_doc('Event Producer', producer_url)
+		event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
 		event_producer.producer_doctypes = []
 		mapping = [{
 			'local_fieldname': 'description',
