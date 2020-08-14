@@ -35,7 +35,7 @@ class TestWorkflow(unittest.TestCase):
 		'''test simple workflow'''
 		todo = doc or self.test_default_condition()
 
-		frpape.print_sql(True)
+		frappe.print_sql(True)
 		apply_workflow(todo, 'Approve')
 		frappe.print_sql(False)
 		# default condition is set
