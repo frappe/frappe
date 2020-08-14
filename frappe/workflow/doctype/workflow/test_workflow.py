@@ -35,9 +35,9 @@ class TestWorkflow(unittest.TestCase):
 		'''test simple workflow'''
 		todo = doc or self.test_default_condition()
 
-		print_sql(True)
+		frpape.print_sql(True)
 		apply_workflow(todo, 'Approve')
-		print_sql(False)
+		frappe.print_sql(False)
 		# default condition is set
 		self.assertEqual(todo.workflow_state, 'Approved')
 		self.assertEqual(todo.status, 'Closed')
