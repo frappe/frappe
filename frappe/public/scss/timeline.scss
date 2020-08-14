@@ -44,6 +44,10 @@ $timeline-item-left-margin: var(--margin-xl);
 		font-size: var(--text-md);
 		position: relative;
 		margin-bottom: var(--margin-md);
+		b {
+			color: var(--text-color);
+			font-weight: var(--text-bold);
+		}
 		.timeline-content {
 			max-width: 700px;
 			padding: var(--padding-sm);
