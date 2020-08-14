@@ -42,4 +42,11 @@
 			background-color: var(--bg-color);
 		}
 	}
+
+	.ql-editor.read-mode {
+		span, p, u {
+			background-color: inherit !important;
+			color: inherit !important;
+		}
+	}
 }
