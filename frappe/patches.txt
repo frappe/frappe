@@ -272,3 +272,4 @@ execute:from frappe.desk.page.setup_wizard.install_fixtures import update_gender
 frappe.patches.v12_0.email_unsubscribe
 frappe.patches.v12_0.replace_old_data_import
 frappe.patches.v12_0.set_correct_url_in_files
+frappe.patches.v12_0.fix_email_id_formatting
