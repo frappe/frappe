@@ -99,17 +99,20 @@ frappe.ui.form.NewTimeline = class {
 	get_communication_timeline_contents() {
 		let communication_timeline_contents = [];
 		(this.doc_info.communications|| []).forEach(communication => {
-			let communication_content =  $(frappe.render_template('timeline_email', { doc: communication }));
-			this.setup_reply(communication_content);
-			communication_content.find(".timeline-email-content").append(communication.content);
 			communication_timeline_contents.push({
 				icon: 'mail',
 				creation: communication.creation,
 				card: true,
-				content: communication_content,
+				content: this.get_communication_timeline_content(communication),
 			});
 		});
 		return communication_timeline_contents;
+	}
+
+	get_communication_timeline_content(doc) {
+		let communication_content =  $(frappe.render_template('timeline_message_box', { doc }));
+		this.setup_reply(communication_content);
+		return communication_content;
 	}
 
 	get_comment_timeline_contents() {
@@ -118,10 +121,16 @@ frappe.ui.form.NewTimeline = class {
 			comment_timeline_contents.push({
 				icon: 'small-message',
 				creation: comment.creation,
-				content: comment.content,
+				card: true,
+				content: this.get_comment_timeline_content(comment),
 			});
 		});
 		return comment_timeline_contents;
+	}
+
+	get_comment_timeline_content(doc) {
+		const comment_content = frappe.render_template('timeline_message_box', { doc });
+		return comment_content;
 	}
 
 	get_version_timeline_contents() {

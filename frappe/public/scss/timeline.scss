@@ -6,7 +6,7 @@ $timeline-item-left-margin: var(--margin-xl);
 	height: $indicator-size;
 	border-radius: 50%;
 	position: absolute;
-	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, 10px)");
+	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, 15px)");
 	left: calc(-1 * (#{$indicator-size}/2));
 	background-color: var(--gray-600);
 	display: inline-flex;
@@ -49,7 +49,7 @@ $timeline-item-left-margin: var(--margin-xl);
 			padding: var(--padding-sm);
 			margin-left: $timeline-item-left-margin;
 			&.frappe-card {
-				@include card($padding: var(--padding-lg));
+				@include card($padding: var(--padding-md));
 				margin-left: calc(#{$timeline-item-left-margin} + var(--padding-sm));
 			}
 		}
@@ -57,9 +57,9 @@ $timeline-item-left-margin: var(--margin-xl);
 			@include timeline-indicator($timeline-item-icon-size)
 		}
 
-		.timeline-email {
-			.timeline-email-content {
-				margin-top: var(--margin-sm);
+		.timeline-message-box {
+			.content {
+				margin-top: var(--margin-md);
 			}
 			.action-btn {
 				margin-left: var(--margin-sm);
