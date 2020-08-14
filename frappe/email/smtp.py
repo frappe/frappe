@@ -244,7 +244,7 @@ class SMTPServer:
 
 		except _socket.error as e:
 			# Invalid mail server -- due to refusing connection
-			frappe.msgprint(_('Invalid Outgoing Mail Server or Port'))
+			frappe.msgprint(_('Invalid Outgoing Mail Server or Port <br> {}').format(frappe.get_traceback()))
 			traceback = sys.exc_info()[2]
 			raise_(frappe.ValidationError, e, traceback)
 
