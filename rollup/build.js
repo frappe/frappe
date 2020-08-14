@@ -73,6 +73,8 @@ function build(inputOptions, outputOptions) {
 }
 
 function concatenate_files() {
+	const production = process.env.FRAPPE_ENV === 'production';
+
 	// only concatenates files, not processed through rollup
 
 	const files_to_concat = Object.keys(get_build_json('frappe'))
@@ -84,6 +86,17 @@ function concatenate_files() {
 		const file_content = input_files.map(file_name => {
 			let prefix = get_app_path('frappe');
 			if (file_name.startsWith('node_modules/')) {
+				if (production) {
+					if (file_name.endsWith('.js')) {
+						if (!file_name.endsWith('.min.js')) {
+							file_name = file_name.replace(
+								'.js',
+								'.min.js'
+							);
+						}
+					}
+				}
+
 				prefix = path.resolve(get_app_path('frappe'), '..');
 			}
 			const full_path = path.resolve(prefix, file_name);
