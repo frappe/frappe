@@ -443,7 +443,7 @@ class TestDocType(unittest.TestCase):
 		docs = get_submitted_linked_docs(link_doc.name, data_link_doc_1.name)
 		dump_docs = json.dumps(docs.get('docs'))
 
-		cancel_all_linked_docs(dump_docs, ignored_doctypes_on_cancel_all=["Test Doctype 2"])
+		cancel_all_linked_docs(dump_docs, ignore_doctypes_on_cancel_all=["Test Doctype 2"])
 
 		# checking that doc for Test Doctype 2 is not canceled
 		self.assertRaises(frappe.LinkExistsError, data_link_doc_1.cancel)
