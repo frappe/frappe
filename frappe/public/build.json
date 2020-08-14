@@ -1,7 +1,10 @@
 {
 	"css/frappe-web-b4.css": [
 		"public/scss/website.scss",
-		"public/less/indicator.less"
+		"public/less/indicator.less",
+		"public/less/page.less",
+		"public/css/list.css",
+		"public/less/avatar.less"
 	],
 	"css/frappe-chat-web.css": [
 		"public/css/font-awesome.css",
@@ -46,7 +49,13 @@
 
 		"website/js/website.js",
 		"public/js/frappe/utils/rating_icons.html",
-		"public/js/frappe/socketio_client.js"
+		"public/js/frappe/socketio_client.js",
+
+		"public/js/frappe/list/base_list.js",
+		"public/js/frappe/model/indicator.js",
+		"public/js/frappe/model/workflow.js",
+		"public/js/frappe/form/formatters.js",
+		"public/js/frappe/utils/datetime.js"
 	],
 	"js/bootstrap-4-web.min.js": [
 		"website/js/bootstrap-4.js"

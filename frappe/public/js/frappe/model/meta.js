@@ -224,6 +224,10 @@ $.extend(frappe.meta, {
 	},
 
 	get_field_currency: function(df, doc) {
+		if (!frappe.boot || !frappe.boot.sysdefaults) {
+			return "";
+		}
+
 		var currency = frappe.boot.sysdefaults.currency;
 		if(!doc && cur_frm)
 			doc = cur_frm.doc;

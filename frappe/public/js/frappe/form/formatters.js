@@ -60,6 +60,10 @@ frappe.form.formatters = {
 		</span>`;
 	},
 	Currency: function (value, docfield, options, doc) {
+		if (!frappe.boot || !frappe.boot.sysdefaults) {
+			return value;
+		}
+
 		var currency  = frappe.meta.get_field_currency(docfield, doc);
 		var precision = docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;
 

@@ -130,7 +130,7 @@
 }
 .list-subject {
   flex: 2;
-  justify-content: start;
+  justify-content: start !important;
 }
 .list-subject .level-item {
   margin-right: 8px;
