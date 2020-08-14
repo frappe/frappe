@@ -12,8 +12,10 @@ from frappe.utils import split_emails, get_backups_path
 def send_email(success, service_name, doctype, email_field, error_status=None):
 	recipients = get_recipients(doctype, email_field)
 	if not recipients:
-		frappe.log_error("No Email Recipient found for {0}".format(service_name),
-				"{0}: Failed to send backup status email".format(service_name))
+		frappe.log_error(
+			"No Email Recipient found for {0}".format(service_name),
+			"{0}: Failed to send backup status email".format(service_name),
+		)
 		return
 
 	if success:
@@ -23,7 +25,9 @@ def send_email(success, service_name, doctype, email_field, error_status=None):
 		subject = "Backup Upload Successful"
 		message = """
 <h3>Backup Uploaded Successfully!</h3>
-<p>Hi there, this is just to inform you that your backup was successfully uploaded to your {0} bucket. So relax!</p>""".format(service_name)
+<p>Hi there, this is just to inform you that your backup was successfully uploaded to your {0} bucket. So relax!</p>""".format(
+			service_name
+		)
 
 	else:
 		subject = "[Warning] Backup Upload Failed"
@@ -31,7 +35,9 @@ def send_email(success, service_name, doctype, email_field, error_status=None):
 <h3>Backup Upload Failed!</h3>
 <p>Oops, your automated backup to {0} failed.</p>
 <p>Error message: {1}</p>
-<p>Please contact your system manager for more information.</p>""".format(service_name, error_status)
+<p>Please contact your system manager for more information.</p>""".format(
+			service_name, error_status
+		)
 
 	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
@@ -45,7 +51,15 @@ def get_recipients(doctype, email_field):
 
 def get_latest_backup_file(with_files=False):
 	from frappe.utils.backups import BackupGenerator
-	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name, frappe.conf.db_password, db_host=frappe.db.host, db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
+
+	odb = BackupGenerator(
+		frappe.conf.db_name,
+		frappe.conf.db_name,
+		frappe.conf.db_password,
+		db_host=frappe.db.host,
+		db_type=frappe.conf.db_type,
+		db_port=frappe.conf.db_port,
+	)
 	database, public, private, config = odb.get_recent_backup(older_than=24 * 30)
 
 	if with_files:
@@ -56,11 +70,11 @@ def get_latest_backup_file(with_files=False):
 
 def get_file_size(file_path, unit):
 	if not unit:
-		unit = 'MB'
+		unit = "MB"
 
 	file_size = os.path.getsize(file_path)
 
-	memory_size_unit_mapper = {'KB': 1, 'MB': 2, 'GB': 3, 'TB': 4}
+	memory_size_unit_mapper = {"KB": 1, "MB": 2, "GB": 3, "TB": 4}
 	i = 0
 	while i < memory_size_unit_mapper[unit]:
 		file_size = file_size / 1000.0
@@ -72,7 +86,7 @@ def get_file_size(file_path, unit):
 def validate_file_size():
 	frappe.flags.create_new_backup = True
 	latest_file, site_config = get_latest_backup_file()
-	file_size = get_file_size(latest_file, unit='GB')
+	file_size = get_file_size(latest_file, unit="GB")
 
 	if file_size > 1:
 		frappe.flags.create_new_backup = False
