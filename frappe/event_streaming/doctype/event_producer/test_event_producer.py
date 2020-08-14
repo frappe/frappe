@@ -23,6 +23,8 @@ class TestEventProducer(unittest.TestCase):
 	def setUp(self):
 		create_event_producer(producer_url)
 
+	def tearDown(self):
+		unsubscribe_doctypes(producer_url)
 
 	def test_insert(self):
 		producer = get_remote_site()
@@ -290,7 +292,12 @@ def get_mapping(mapping_name, local, remote, field_map):
 
 def create_event_producer(producer_url):
 	if frappe.db.exists('Event Producer', producer_url):
+		event_producer = frappe.get_doc('Event Producer', producer_url)
+		for entry in event_producer.producer_doctypes:
+			entry.unsubscribe = 0
+		event_producer.save()
 		return
+
 	event_producer = frappe.new_doc('Event Producer')
 	event_producer.producer_doctypes = []
 	event_producer.producer_url = producer_url
@@ -329,3 +336,9 @@ def get_remote_site():
 		frappe_authorization_source='Event Consumer'
 	)
 	return producer_site
+
+def unsubscribe_doctypes(producer_url):
+	event_producer = frappe.get_doc('Event Producer', producer_url)
+	for entry in event_producer.producer_doctypes:
+		entry.unsubscribe = 1
+	event_producer.save()
