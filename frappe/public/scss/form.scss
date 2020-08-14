@@ -102,3 +102,49 @@
 .form-dashboard-wrapper {
 	width: 100%;
 }
+
+.form-links {
+	color: var(--text-color);
+	.form-link-title {
+		margin-top: var(--margin-md);
+		margin-bottom: var(--margin-sm);
+		font-weight: var(--text-bold);
+	}
+	.document-link {
+		margin-bottom: var(--margin-sm);
+		display: flex;
+		.badge-link {
+			font-size: var(--text-md);
+			padding: var(--padding-xs) var(--padding-sm);
+			border-radius: var(--border-radius);
+			background-color: var(--control-bg);
+			.count {
+				font-size: var(--text-xs);
+				background-color: var(--gray-500);
+				border-radius: var(--border-radius-sm);
+				color: var(--gray-50);
+				padding: 0 var(--padding-xs);
+				margin-right: var(--margin-xs);
+			}
+			&:hover:not([disabled='disabled']) {
+				text-decoration: underline;
+			}
+		}
+		.open-notification {
+			display: inline-flex;
+			align-items: center;
+			background-color: var(--red-100);
+			font-size: var(--text-xs);
+			padding: 0 var(--padding-sm);
+			color: var(--red-400);
+			border-radius: var(--border-radius);
+			cursor: pointer;
+		}
+		.btn-new, .open-notification {
+			margin-left: var(--margin-sm);
+		}
+		.btn-new {
+			box-shadow: none;
+		}
+	}
+}

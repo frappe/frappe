@@ -88,6 +88,10 @@ img {
 	border: none;
 	border-radius: $border-radius;
 	box-shadow: var(--btn-shadow);
+	&.icon-btn {
+		padding: 0px;
+		min-width: 28px;
+	}
 }
 
 .btn-secondary-dark {
@@ -129,6 +133,9 @@ img {
 .btn-secondary, .btn-default {
 	background-color: var(--control-bg);
 	color: var(--text-color);
+	&:hover, &:active {
+		background: var(--gray-200);
+	}
 }
 
 .btn-default {

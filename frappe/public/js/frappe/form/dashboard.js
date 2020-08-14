@@ -411,7 +411,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		if(count) {
 			$link.find('.count')
 				.removeClass('hidden')
-				.html((count > 99) ? '99+' : count);
+				.text((count > 99) ? '99+' : count);
 		}
 
 		if(this.data.internal_links[doctype]) {
