@@ -213,6 +213,8 @@ def sync(update, producer_site, event_producer, in_retry=False):
 
 	except Exception:
 		if in_retry:
+			if frappe.flags.in_test:
+				print(frappe.get_traceback())
 			return 'Failed'
 		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
