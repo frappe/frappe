@@ -408,7 +408,7 @@ frappe.ui.form.Dashboard = Class.extend({
 				.html((open_count > 99) ? '99+' : open_count);
 		}
 
-		if(count) {
+		if (count) {
 			$link.find('.count')
 				.removeClass('hidden')
 				.text((count > 99) ? '99+' : count);
@@ -438,8 +438,6 @@ frappe.ui.form.Dashboard = Class.extend({
 				count_label: "interactions",
 				discreteDomains: 0,
 				data: {},
-				width: 1024,
-				height: 250
 			});
 
 			// center the heatmap
