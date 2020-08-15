@@ -70,6 +70,7 @@
   "web_view",
   "has_web_view",
   "allow_guest_to_view",
+  "index_web_pages_for_search",
   "route",
   "is_published_field",
   "advanced",
@@ -517,12 +518,18 @@
    "fieldname": "email_settings_sb",
    "fieldtype": "Section Break",
    "label": "Email Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "index_web_pages_for_search",
+   "fieldtype": "Check",
+   "label": "Index Web Pages for Search"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2020-03-27 14:51:44.581128",
+ "modified": "2020-07-21 16:20:57.028802",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

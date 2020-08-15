@@ -81,44 +81,9 @@ $navbar-height-lg: 4.5rem;
 }
 
 .doc-search {
-	position: relative;
-	width: 100%;
-
 	@include media-breakpoint-up(lg) {
 		padding-left: 4rem;
 		padding-right: 4rem;
-	}
-
-	.search-icon {
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 2.5rem;
-		height: 100%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	svg {
-		color: $gray-600;
-	}
-
-	input {
-		padding-left: 2.5rem;
-	}
-
-	.dropdown-menu {
-		.dropdown-item {
-			padding: 1rem 0.75rem;
-		}
-
-		.match {
-			background-color: $primary-light;
-			color: $primary;
-			font-weight: 500;
-			padding: 0 0.125rem;
-		}
 	}
 }
 
