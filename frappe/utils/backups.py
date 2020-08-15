@@ -7,7 +7,6 @@ from __future__ import unicode_literals, print_function
 
 #Imports
 import os
-import json
 from calendar import timegm
 from datetime import datetime
 from glob import glob
