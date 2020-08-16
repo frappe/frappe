@@ -4,7 +4,7 @@ import frappe
 def execute():
 	navbar_settings = frappe.get_single("Navbar Settings")
 
-	for navbar_item in navbar_settings.settings_dropdown[4:]:
+	for navbar_item in navbar_settings.settings_dropdown[5:]:
 		navbar_item.idx = navbar_item.idx + 1
 
 	navbar_settings.append('settings_dropdown', {
