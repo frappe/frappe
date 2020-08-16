@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	navbar_settings = navbar_settings = frappe.get_single("Navbar Settings")
+	navbar_settings = frappe.get_single("Navbar Settings")
 
 	for navbar_item in navbar_settings.settings_dropdown[4:]:
 		navbar_item.idx = navbar_item.idx + 1
