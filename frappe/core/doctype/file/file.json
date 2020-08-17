@@ -26,7 +26,9 @@
   "old_parent",
   "content_hash",
   "uploaded_to_dropbox",
-  "uploaded_to_google_drive"
+  "uploaded_to_google_drive",
+  "metadata_section",
+  "mimetype"
  ],
  "fields": [
   {
@@ -170,12 +172,24 @@
    "fieldtype": "Check",
    "label": "Uploaded To Google Drive",
    "read_only": 1
+  },
+  {
+   "fieldname": "metadata_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Metadata"
+  },
+  {
+   "fieldname": "mimetype",
+   "fieldtype": "Data",
+   "label": "Mimetype"
   }
  ],
  "icon": "fa fa-file",
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-06-28 12:21:30.772386",
+ "modified": "2020-08-17 14:45:27.671724",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",
