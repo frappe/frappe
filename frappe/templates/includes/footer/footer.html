@@ -1,46 +1,12 @@
 <footer class="web-footer">
 	<div class="container">
-		{%- if footer_logo -%}
-		<div>
-			<img src="{{ footer_logo }}" alt="Footer Logo" class="footer-logo">
-		</div>
-		{%- endif -%}
-		<div class="row">
-			<div class="text-left col-sm-6">
-				{% if footer_items -%}
-				<div class="row">
-					{% include ["templates/includes/footer/footer_grouped_links.html", "templates/includes/footer/footer_items.html"] %}
-				</div>
-				{% endif %}
-			</div>
+		{% include "templates/includes/footer/footer_logo_extension.html" %}
 
-			<div class="text-right col-sm-6">
-				{% block extension %}
-				{% include "templates/includes/footer/footer_extension.html" %}
-				{% endblock %}
-			</div>
-		</div>
+		{% if footer_items -%}
+			{% include "templates/includes/footer/footer_grouped_links.html" %}
+		{% endif %}
 
 		{% include "templates/includes/footer/footer_links.html" %}
-
-		<div class="footer-info">
-			<div class="row">
-				<div class="footer-col-left col-sm-6 col-12">
-					{% if copyright %}
-					&copy; {{ copyright }}
-					{% endif %}
-					{% if footer_address %}
-					{% if copyright %}<br>{% endif %}
-					{{ footer_address }}
-					{% endif %}
-				</div>
-				{# powered #}
-				<div class="footer-col-right col-sm-6 col-12 footer-powered">
-					{% block powered %}
-					{% include "templates/includes/footer/footer_powered.html" %}
-					{% endblock %}
-				</div>
-			</div>
-		</div>
+		{% include "templates/includes/footer/footer_info.html" %}
 	</div>
 </footer>
