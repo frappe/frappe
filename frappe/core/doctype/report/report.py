@@ -199,7 +199,7 @@ class Report(Document):
 		result = result + [list(d) for d in _result]
 
 		if params.get('add_totals_row'):
-			result = append_totals_row(out)
+			result = append_totals_row(result)
 
 		return columns, result
 
