@@ -105,7 +105,7 @@ class Workspace {
 
 		// DO NOT REMOVE: Comment to load translation
 		// __("Modules") __("Domains") __("Places") __("Administration")
-		$(`<div class="list-sidebar-label">${__(title)}</div>`)
+		$(`<div class="sidebar-label">${__(title)}</div>`)
 			.appendTo(sidebar_section);
 
 		const get_sidebar_item = function(item) {

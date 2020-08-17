@@ -49,12 +49,13 @@ body[data-route^="Module"] .main-menu {
 		display: inline-block;
 	}
 
-	.sidebar-menu {
-		.sidebar-label {
-			margin-bottom: var(--margin-sm);
-			font-weight: 500;
-			color: var(--text-color);
-		}
+	.sidebar-label {
+		margin-bottom: var(--margin-sm);
+		font-weight: 500;
+		color: var(--text-light);
+		text-transform: uppercase;
+		letter-spacing: 0.04rem;
+		font-size: var(--text-xs);
 	}
 }
 
@@ -316,14 +317,6 @@ body[data-route^="Module"] .main-menu {
 
 	.list-link {
 		margin-top: var(--margin-md);
-	}
-
-	.list-sidebar-label {
-		color: var(--gray-600);
-		text-transform: uppercase;
-		letter-spacing: 0.04rem;
-		font-size: var(--text-xs);
-		font-weight: 600;
 	}
 
 	.list-sidebar-button {
