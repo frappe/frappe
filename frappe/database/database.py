@@ -216,7 +216,7 @@ class Database(object):
 		else:
 			try:
 				return self._cursor.mogrify(query, values)
-			except:
+			except: # noqa: E722
 				return (query, values)
 
 	def explain_query(self, query, values=None):
