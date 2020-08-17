@@ -214,7 +214,10 @@ class Database(object):
 		if not values:
 			return query
 		else:
-			return self._cursor.mogrify(query, values)
+			try:
+				return self._cursor.mogrify(query, values)
+			except:
+				return (query, values)
 
 	def explain_query(self, query, values=None):
 		"""Print `EXPLAIN` in error log."""
