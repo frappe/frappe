@@ -3,6 +3,7 @@
     "db_name": "test_frappe_consumer",
     "db_password": "test_frappe",
     "db_type": "postgres",
+    "allow_tests": true,
     "auto_email_id": "test@example.com",
     "mail_server": "smtp.example.com",
     "mail_login": "test@example.com",

@@ -296,7 +296,7 @@ def migrate(context, rebuild_website=False, skip_failing=False, skip_search_inde
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
-	print("Compiling Python Files...")
+	print("Compiling Python files...")
 	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
 @click.command('migrate-to')
