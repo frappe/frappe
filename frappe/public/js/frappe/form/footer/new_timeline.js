@@ -20,16 +20,19 @@ frappe.ui.form.NewTimeline = class {
 		this.parent.replaceWith(this.timeline_wrapper);
 		this.timeline_items = [];
 		this.render_timeline_items();
-		this.add_action_button(__('Reply'), () => {});
-		this.add_action_button(__('New Email'), this.compose_mail.bind(this));
+		this.setup_timeline_actions();
 	}
 
 	refresh() {
 		this.render_timeline_items();
 	}
 
+	setup_timeline_actions() {
+		this.add_action_button(__('New Email'), this.compose_mail.bind(this));
+	}
+
 	add_action_button(label, action) {
-		let action_btn = $(`<button class="btn btn-xs action-btn">${label}</button>`);
+		let action_btn = $(`<button class="btn btn-xs btn-default action-btn">${label}</button>`);
 		action_btn.click(action);
 		this.timeline_actions_wrapper.append(action_btn);
 		return action_btn;
@@ -51,8 +54,24 @@ frappe.ui.form.NewTimeline = class {
 		this.timeline_items.push(...this.get_energy_point_timeline_contents());
 		this.timeline_items.push(...this.get_share_timeline_contents());
 		this.timeline_items.push(...this.get_version_timeline_contents());
+		this.timeline_items.push(...this.get_creation_timeline_content());
 		// attachments
 		// milestones
+	}
+
+	get_creation_timeline_content() {
+		if (this.frm && this.frm.doc) {
+			return [{
+				icon: 'edit',
+				creation: this.frm.doc.creation,
+				content: __("{0} created", [this.get_user_link(this.frm.doc.owner)]),
+			}];
+		}
+	}
+
+	get_user_link(user) {
+		const user_display_text = (frappe.user_info(user).fullname || '').bold();
+		return frappe.utils.get_form_link('User', user, true, user_display_text);
 	}
 
 	add_timeline_item(item) {
@@ -83,7 +102,7 @@ frappe.ui.form.NewTimeline = class {
 			let view_content = `
 				<div>
 					<a href="${frappe.utils.get_form_link('View Log', view.name)}">
-						${__("{0} viewed", [frappe.user.full_name(view.owner).bold()])}
+						${__("{0} viewed", [this.get_user_link(view.owner)])}
 					</a>
 				</div>
 			`;
@@ -154,7 +173,10 @@ frappe.ui.form.NewTimeline = class {
 			share_timeline_contents.push({
 				icon: 'share',
 				creation: share.creation,
-				content: __("{0} shared this document with {1}", [share.owner.bold(), share.everyone ? 'everyone' : share.user.bold()]),
+				content: __("{0} shared this document with {1}", [
+					this.get_user_link(share.owner),
+					share.everyone ? 'everyone' : this.get_user_link(share.user)
+				]),
 			});
 		});
 		return share_timeline_contents;
