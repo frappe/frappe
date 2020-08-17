@@ -1,0 +1,28 @@
+<div class="section-with-right-image">
+	<div class="row">
+		<div class="col-12 col-sm-12">
+			{%- if title -%}
+			<h2 class="title">{{ title }}</h2>
+			{%- endif-%}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-12 col-sm-8">
+			{%- if subtitle -%}
+			<p class="subtitle">{{ subtitle }}</p>
+			{%- endif-%}
+			<p class="section-description">{{ content }}</p>
+			{%- if link -%}
+			<p>{{ link }}</p>
+			{%- endif-%}
+		</div>
+		<div class="col-12 col-sm-4">
+			<!-- <img src="{{ image }} " alt="{{ alt or '' }}"> -->
+			{{ frappe.render_template('templates/includes/image_with_blur.html', {
+				"src": image,
+				"alt": image_description,
+				"class": "section-image"
+			}) }}
+		</div>
+	</div>
+</div>

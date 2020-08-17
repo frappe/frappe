@@ -1,6 +1,6 @@
 .hero-content {
 	.btn-primary {
-		margin-top: 1rem; 
+		margin-top: 1rem;
 		margin-right: 0.5rem;
 
 		@include media-breakpoint-up(lg) {
@@ -327,7 +327,7 @@
 .testimonial-logo img {
 	display: inline-block;
 	max-width: 10rem;
-	max-height: 2.5rem;
+	max-height: 10rem;
 }
 
 .testimonial-content {
@@ -407,5 +407,41 @@
 				}
 			}
 		}
+	}
+}
+
+.section-with-right-image {
+	margin-left: 2rem;
+	margin-right: 2rem;
+
+	.title {
+		max-width: 36rem;
+		font-size: $font-size-xl;
+		font-weight: 800;
+		line-height: 1.25;
+		margin-bottom: 2rem;
+
+		@include media-breakpoint-up(md) {
+			font-size: $font-size-2xl;
+		}
+	}
+
+	.subtitle {
+		max-width: 36rem;
+		font-size: $font-size-base;
+		font-weight: 800;
+		color: $gray-900;
+		margin-bottom: 1.2rem;
+
+		@include media-breakpoint-up(md) {
+			font-size: $font-size-lg;
+			margin-bottom: 0px;
+		}
+	}
+
+	.section-image {
+		margin-top: 0px !important;
+		border-radius: 0.75rem;
+		width: 100%;
 	}
 }

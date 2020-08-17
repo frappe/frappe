@@ -1,0 +1,43 @@
+{
+ "creation": "2020-08-16 22:02:59.859387",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "reqd": 0
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image",
+   "reqd": 0
+  },
+  {
+   "fieldname": "link",
+   "fieldtype": "Small Text",
+   "label": "Link",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-08-16 23:02:31.390620",
+ "modified_by": "Administrator",
+ "name": "Section with Right Image",
+ "owner": "Administrator",
+ "standard": 1
+}
