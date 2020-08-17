@@ -83,6 +83,10 @@ frappe.ui.form.on('Website Settings', {
 });
 
 frappe.ui.form.on('Top Bar Item', {
+	footer_items_add(frm, cdt, cdn) {
+		frappe.model.set_value(cdt, cdn, 'right', 0);
+	},
+
 	parent_label: function(frm, doctype, name) {
 		frm.events.set_parent_options(frm, doctype, name);
 	},
