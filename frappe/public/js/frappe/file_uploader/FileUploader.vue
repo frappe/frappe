@@ -107,6 +107,7 @@
 		</div>
 		<FileBrowser
 			ref="file_browser"
+			:restrictions="restrictions"
 			v-if="show_file_browser && !disable_file_browser"
 			@hide-browser="show_file_browser = false"
 		/>

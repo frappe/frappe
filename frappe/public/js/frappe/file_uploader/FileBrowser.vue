@@ -29,11 +29,23 @@
 <script>
 import TreeNode from "./TreeNode.vue";
 
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+const restriction_mime_map = {
+	'image/*': ['image/png', 'image/jpeg', 'image/gif'],
+	'video/*': ['video/mpeg', 'video/ogg', 'video/mp2t', 'video/webm', 'video/3gpp'],
+	'application/*': ['application/pdf', 'application/msword',
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet'],
+	'.pdf': ['application/pdf']
+};
+
 export default {
 	name: 'FileBrowser',
 	components: {
 		TreeNode
 	},
+	props: ["restrictions"],
 	data() {
 		return {
 			node: {
@@ -75,8 +87,10 @@ export default {
 			}
 		},
 		get_files_in_folder(folder) {
-			return frappe.call('frappe.core.doctype.file.file.get_files_in_folder', { folder })
-				.then(r => {
+			return frappe.call('frappe.core.doctype.file.file.get_files_in_folder', {
+					folder: folder,
+					restrict_mimetypes: this.get_restrictions()
+				}).then(r => {
 					let files = r.message || [];
 					files.sort((a, b) => {
 						if (a.is_folder && b.is_folder) {
@@ -106,6 +120,17 @@ export default {
 						}
 					});
 				});
+		},
+		get_restrictions() {
+			console.log(this.restrictions)
+			let restrictions = []
+			this.restrictions.allowed_file_types.forEach(res => {
+				restrictions = restrictions.concat(restriction_mime_map[res])
+			})
+
+			console.log(restrictions);
+
+			return restrictions
 		},
 		apply_filter: frappe.utils.debounce(function() {
 			let filter_text = this.filter_text.toLowerCase();
