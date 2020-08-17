@@ -5,6 +5,7 @@ $timeline-item-left-margin: var(--margin-xl);
 	width: $indicator-size;
 	height: $indicator-size;
 	border-radius: 50%;
+	font-size: var(--text-xs);
 	position: absolute;
 	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, 15px)");
 	left: calc(-1 * (#{$indicator-size}/2));
