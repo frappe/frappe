@@ -183,10 +183,11 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
+	import mimetypes
+	mime = mimetypes.guess_type(filename)[0]
+
 	if frappe.session.user == 'Guest' or (user and not user.has_desk_access()):
-		import mimetypes
-		filetype = mimetypes.guess_type(filename)[0]
-		if filetype not in ALLOWED_MIMETYPES:
+		if mime not in ALLOWED_MIMETYPES:
 			frappe.throw(_("You can only upload JPG, PNG, PDF, or Microsoft documents."))
 
 	if method:
@@ -203,7 +204,8 @@ def upload_file():
 			"file_name": filename,
 			"file_url": file_url,
 			"is_private": cint(is_private),
-			"content": content
+			"content": content,
+			"mimetype": mime
 		})
 		ret.save(ignore_permissions=ignore_permissions)
 		return ret
