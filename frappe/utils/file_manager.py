@@ -132,7 +132,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 
 	file_size = check_max_file_size(content)
 	content_hash = get_content_hash(content)
-	content_type = mimetypes.guess_type(fname)[0]
+	content_type = guess_mimetype(fname)[0]
 	fname = get_file_name(fname, content_hash[-6:])
 	file_data = get_file_data_from_hash(content_hash, is_private=is_private)
 	if not file_data:

@@ -22,6 +22,7 @@ from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
 	get_toc, get_next_link)
 from frappe.website.router import clear_sitemap
 from frappe.translate import guess_language
+from frappe.utils.file_manager import guess_mimetype
 
 class PageNotFoundError(Exception): pass
 
@@ -119,7 +120,7 @@ def get_static_file_response():
 		raise NotFound
 
 	response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
-	response.mimetype = mimetypes.guess_type(frappe.flags.file_path)[0] or 'application/octet-stream'
+	response.mimetype = guess_mimetype(frappe.flags.file_path)[0] or 'application/octet-stream'
 	return response
 
 def build_response(path, data, http_status_code, headers=None):
@@ -296,7 +297,7 @@ def set_content_type(response, data, path):
 	response.charset = 'utf-8'
 
 	if "." in path:
-		content_type, encoding = mimetypes.guess_type(path)
+		content_type, encoding = guess_mimetype(path)
 		if content_type:
 			response.mimetype = content_type
 			if encoding:

@@ -301,9 +301,9 @@ def add_attachment(fname, fcontent, content_type=None,
 	from email.mime.image import MIMEImage
 	from email.mime.text import MIMEText
 
-	import mimetypes
+	from frappe.utils.file_manager import guess_mimetype
 	if not content_type:
-		content_type, encoding = mimetypes.guess_type(fname)
+		content_type, encoding = guess_mimetype(fname)
 
 	if not parent:
 		return

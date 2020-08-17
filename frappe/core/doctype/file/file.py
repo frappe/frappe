@@ -29,6 +29,7 @@ from six.moves.urllib.parse import quote, unquote
 import frappe
 from frappe import _, conf
 from frappe.model.document import Document
+from frappe.utils.file_manager import guess_mimetype
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
 
 
@@ -443,7 +444,7 @@ class File(Document):
 			self.is_private = 0
 		self.file_size = self.check_max_file_size()
 		self.content_hash = get_content_hash(self.content)
-		self.content_type = mimetypes.guess_type(self.file_name)[0]
+		self.content_type = guess_mimetype(self.file_name)[0]
 
 		duplicate_file = None
 
@@ -599,7 +600,7 @@ def get_extension(filename, extn, content):
 		if '?' in extn:
 			extn = extn.split('?', 1)[0]
 
-		mimetype = mimetypes.guess_type(filename + "." + extn)[0]
+		mimetype = guess_mimetype(filename + "." + extn)[0]
 
 	if mimetype is None or not mimetype.startswith("image/") and content:
 		# detect file extension by reading image header properties

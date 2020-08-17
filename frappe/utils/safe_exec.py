@@ -7,6 +7,7 @@ import RestrictedPython.Guards
 import frappe
 import frappe.utils
 import frappe.utils.data
+from frappe.utils.file_manager import guess_mimetype
 from frappe.website.utils import (get_shade, get_toc, get_next_link)
 from frappe.modules import scrub
 from frappe.www.printview import get_visible_columns
@@ -95,7 +96,7 @@ def get_safe_globals():
 		_=frappe._,
 		get_shade=get_shade,
 		scrub=scrub,
-		guess_mimetype=mimetypes.guess_type,
+		guess_mimetype=guess_mimetype,
 		html2text=html2text,
 		dev_server=1 if os.environ.get('DEV_SERVER', False) else 0
 	)

@@ -8,6 +8,7 @@ import frappe.utils
 import frappe.sessions
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
+from frappe.utils.file_manager import guess_mimetype
 from frappe.api import validate_auth
 from frappe.utils import cint
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
@@ -183,8 +184,7 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
-	import mimetypes
-	mime = mimetypes.guess_type(filename)[0]
+	mime = guess_mimetype(filename)[0]
 
 	if frappe.session.user == 'Guest' or (user and not user.has_desk_access()):
 		if mime not in ALLOWED_MIMETYPES:

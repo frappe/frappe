@@ -1,6 +1,6 @@
 import frappe
 import os
-import mimetypes
+from frappe.utils.file_manager import guess_mimetype
 
 def execute():
 	# Reload doctype changes
@@ -14,7 +14,7 @@ def execute():
 		})
 
 	for file in files:
-		guessed_type = mimetypes.guess_type(file.file_url)[0]
+		guessed_type = guess_mimetype(file.file_url)[0]
 		if guessed_type:
 			frappe.db.set_value("File", file.name, "mimetype", guessed_type)
 

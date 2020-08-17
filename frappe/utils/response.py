@@ -22,6 +22,7 @@ from frappe.utils import cint
 from six import text_type
 from six.moves.urllib.parse import quote
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.utils.file_manager import guess_mimetype
 
 
 def report_error(status_code):
@@ -70,7 +71,7 @@ def as_txt():
 
 def as_raw():
 	response = Response()
-	response.mimetype = frappe.response.get("content_type") or mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
+	response.mimetype = frappe.response.get("content_type") or guess_mimetype(frappe.response['filename'])[0] or "application/unknown"
 	response.headers["Content-Disposition"] = ("attachment; filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['filecontent']
 	return response
@@ -212,7 +213,7 @@ def send_private_file(path):
 	if extension.lower() in blacklist:
 		response.headers.add('Content-Disposition', 'attachment', filename=filename.encode("utf-8"))
 
-	response.mimetype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+	response.mimetype = guess_mimetype(filename)[0] or 'application/octet-stream'
 
 	return response
 
