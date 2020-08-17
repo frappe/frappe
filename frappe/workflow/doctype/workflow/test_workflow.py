@@ -20,6 +20,7 @@ class TestWorkflow(unittest.TestCase):
 		frappe.set_user('Administrator')
 
 	def tearDown(self):
+		frappe.print_sql(False)
 		self.workflow.db_set('is_active', 0)
 
 	def test_default_condition(self):
@@ -33,11 +34,10 @@ class TestWorkflow(unittest.TestCase):
 
 	def test_approve(self, doc=None):
 		'''test simple workflow'''
+		frappe.print_sql(True)
 		todo = doc or self.test_default_condition()
 
-		frappe.print_sql(True)
 		apply_workflow(todo, 'Approve')
-		frappe.print_sql(False)
 		# default condition is set
 		self.assertEqual(todo.workflow_state, 'Approved')
 		self.assertEqual(todo.status, 'Closed')
