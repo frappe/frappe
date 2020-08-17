@@ -197,10 +197,13 @@ def web_blocks(blocks):
 
 	web_blocks = []
 	for block in blocks:
+		if not block.get('template'):
+			frappe.throw('Web Template is not specified')
+
 		doc = {
 			'doctype': 'Web Page Block',
 			'web_template': block['template'],
-			'web_template_values': block['values'],
+			'web_template_values': block.get('values', {}),
 			'add_top_padding': 1,
 			'add_bottom_padding': 1,
 			'add_container': 1,
