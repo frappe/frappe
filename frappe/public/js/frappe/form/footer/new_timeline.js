@@ -20,16 +20,19 @@ frappe.ui.form.NewTimeline = class {
 		this.parent.replaceWith(this.timeline_wrapper);
 		this.timeline_items = [];
 		this.render_timeline_items();
-		this.add_action_button(__('Reply'), () => {});
-		this.add_action_button(__('Email'), () => {});
+		this.setup_timeline_actions();
 	}
 
 	refresh() {
 		this.render_timeline_items();
 	}
 
+	setup_timeline_actions() {
+		this.add_action_button(__('New Email'), this.compose_mail.bind(this));
+	}
+
 	add_action_button(label, action) {
-		let action_btn = $(`<button class="btn btn-xs action-btn">${label}</button>`);
+		let action_btn = $(`<button class="btn btn-xs btn-default action-btn">${label}</button>`);
 		action_btn.click(action);
 		this.timeline_actions_wrapper.append(action_btn);
 		return action_btn;
@@ -51,8 +54,24 @@ frappe.ui.form.NewTimeline = class {
 		this.timeline_items.push(...this.get_energy_point_timeline_contents());
 		this.timeline_items.push(...this.get_share_timeline_contents());
 		this.timeline_items.push(...this.get_version_timeline_contents());
+		this.timeline_items.push(...this.get_creation_timeline_content());
 		// attachments
 		// milestones
+	}
+
+	get_creation_timeline_content() {
+		if (this.frm && this.frm.doc) {
+			return [{
+				icon: 'edit',
+				creation: this.frm.doc.creation,
+				content: __("{0} created", [this.get_user_link(this.frm.doc.owner)]),
+			}];
+		}
+	}
+
+	get_user_link(user) {
+		const user_display_text = (frappe.user_info(user).fullname || '').bold();
+		return frappe.utils.get_form_link('User', user, true, user_display_text);
 	}
 
 	add_timeline_item(item) {
@@ -71,7 +90,7 @@ frappe.ui.form.NewTimeline = class {
 			</div>
 		`);
 		timeline_item.find('.timeline-content').append(item.content);
-		if (!item.hide_timestamp) {
+		if (!item.hide_timestamp && !item.card) {
 			timeline_item.find('.timeline-content').append(`<div>${comment_when(item.creation)}</div>`);
 		}
 		return timeline_item;
@@ -83,7 +102,7 @@ frappe.ui.form.NewTimeline = class {
 			let view_content = `
 				<div>
 					<a href="${frappe.utils.get_form_link('View Log', view.name)}">
-						${__("{0} viewed", [frappe.user.full_name(view.owner).bold()])}
+						${__("{0} viewed", [this.get_user_link(view.owner)])}
 					</a>
 				</div>
 			`;
@@ -99,17 +118,20 @@ frappe.ui.form.NewTimeline = class {
 	get_communication_timeline_contents() {
 		let communication_timeline_contents = [];
 		(this.doc_info.communications|| []).forEach(communication => {
-			let communication_content =  $(frappe.render_template('timeline_email', { doc: communication }));
-			this.setup_reply(communication_content);
-			communication_content.find(".timeline-email-content").append(communication.content);
 			communication_timeline_contents.push({
 				icon: 'mail',
 				creation: communication.creation,
 				card: true,
-				content: communication_content,
+				content: this.get_communication_timeline_content(communication),
 			});
 		});
 		return communication_timeline_contents;
+	}
+
+	get_communication_timeline_content(doc) {
+		let communication_content =  $(frappe.render_template('timeline_message_box', { doc }));
+		this.setup_reply(communication_content);
+		return communication_content;
 	}
 
 	get_comment_timeline_contents() {
@@ -118,10 +140,16 @@ frappe.ui.form.NewTimeline = class {
 			comment_timeline_contents.push({
 				icon: 'small-message',
 				creation: comment.creation,
-				content: comment.content,
+				card: true,
+				content: this.get_comment_timeline_content(comment),
 			});
 		});
 		return comment_timeline_contents;
+	}
+
+	get_comment_timeline_content(doc) {
+		const comment_content = frappe.render_template('timeline_message_box', { doc });
+		return comment_content;
 	}
 
 	get_version_timeline_contents() {
@@ -145,7 +173,10 @@ frappe.ui.form.NewTimeline = class {
 			share_timeline_contents.push({
 				icon: 'share',
 				creation: share.creation,
-				content: __("{0} shared this document with {1}", [share.owner.bold(), share.everyone ? 'everyone' : share.user.bold()]),
+				content: __("{0} shared this document with {1}", [
+					this.get_user_link(share.owner),
+					share.everyone ? 'everyone' : this.get_user_link(share.user)
+				]),
 			});
 		});
 		return share_timeline_contents;
@@ -165,13 +196,46 @@ frappe.ui.form.NewTimeline = class {
 
 	setup_reply(communication_box) {
 		let actions = communication_box.find('.actions');
-		let reply = $(`<a class="reply">${frappe.utils.icon('reply', 'md')}</a>`).click(e => {
-			console.log(e);
+		let reply = $(`<a class="action-btn reply">${frappe.utils.icon('reply', 'md')}</a>`).click(e => {
+			this.compose_mail(true);
 		});
-		let reply_all = $(`<a class="reply-all">${frappe.utils.icon('reply-all', 'md')}</a>`).click(e => {
-			console.log(e);
+		let reply_all = $(`<a class="action-btn reply-all">${frappe.utils.icon('reply-all', 'md')}</a>`).click(e => {
+			this.compose_mail(true);
 		});
 		actions.append(reply);
 		actions.append(reply_all);
+	}
+
+	compose_mail(is_a_reply=false) {
+		const args = {
+			doc: this.frm.doc,
+			frm: this.frm,
+			recipients: this.get_recipient(),
+			is_a_reply: is_a_reply,
+			title: is_a_reply ? __('Reply') : null,
+		};
+
+		if (this.frm.doctype === "Communication") {
+			args.txt = "";
+			args.last_email = this.frm.doc;
+			args.recipients = this.frm.doc.sender;
+			args.subject = __("Re: {0}", [this.frm.doc.subject]);
+		} else {
+			const comment_value = frappe.markdown(this.frm.comment_box.get_value());
+			args.txt = strip_html(comment_value) ? comment_value : '';
+		}
+		new frappe.views.CommunicationComposer(args);
+	}
+
+	get_recipient() {
+		if (this.frm.email_field) {
+			return this.frm.doc[this.frm.email_field];
+		} else {
+			return this.frm.doc.email_id || this.frm.doc.email || "";
+		}
+	}
+
+	get_last_email() {
+		return;
 	}
 };

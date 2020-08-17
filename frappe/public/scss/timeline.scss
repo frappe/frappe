@@ -6,7 +6,7 @@ $timeline-item-left-margin: var(--margin-xl);
 	height: $indicator-size;
 	border-radius: 50%;
 	position: absolute;
-	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, 50px)");
+	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, 15px)");
 	left: calc(-1 * (#{$indicator-size}/2));
 	background-color: var(--gray-600);
 	display: inline-flex;
@@ -21,9 +21,9 @@ $timeline-item-left-margin: var(--margin-xl);
 	&:before {
 		content: ' ';
 		top: 0;
-		height: 100%;
 		position: absolute;
 		border-left: 1px solid var(--dark-border-color);
+		bottom: -150px; // arbitrary
 	}
 	.timeline-actions {
 		margin-bottom: var(--margin-md);
@@ -44,21 +44,29 @@ $timeline-item-left-margin: var(--margin-xl);
 		font-size: var(--text-md);
 		position: relative;
 		margin-bottom: var(--margin-md);
+		b {
+			color: var(--text-color);
+			font-weight: var(--text-bold);
+		}
 		.timeline-content {
 			max-width: 700px;
 			padding: var(--padding-sm);
 			margin-left: $timeline-item-left-margin;
 			&.frappe-card {
-				@include card($padding: var(--padding-lg));
+				@include card($padding: var(--padding-md));
+				margin-left: calc(#{$timeline-item-left-margin} + var(--padding-sm));
 			}
 		}
 		.timeline-indicator {
 			@include timeline-indicator($timeline-item-icon-size)
 		}
 
-		.timeline-email {
-			.timeline-email-content {
-				margin-top: var(--margin-sm);
+		.timeline-message-box {
+			.content {
+				margin-top: var(--margin-md);
+			}
+			.action-btn {
+				margin-left: var(--margin-sm);
 			}
 		}
 	}

@@ -31,13 +31,13 @@ function get_version_timeline_content(version_doc, frm) {
 			if (p[0] === 'docstatus') {
 				if (p[2] === 1) {
 					let message = updater_reference_link
-						? __('{0} submitted this document {1}', [get_username(version_doc), updater_reference_link])
-						: __('{0} submitted this document', [get_username(version_doc)]);
+						? __('{0} submitted this document {1}', [get_user_link(version_doc), updater_reference_link])
+						: __('{0} submitted this document', [get_user_link(version_doc)]);
 					out.push(get_version_comment(version_doc, message));
 				} else if (p[2] === 2) {
 					let message = updater_reference_link
-						? __('{0} cancelled this document {1}', [get_username(version_doc), updater_reference_link])
-						: __('{0} cancelled this document', [get_username(version_doc)]);
+						? __('{0} cancelled this document {1}', [get_user_link(version_doc), updater_reference_link])
+						: __('{0} cancelled this document', [get_user_link(version_doc)]);
 					out.push(get_version_comment(version_doc, message));
 				}
 			} else {
@@ -59,9 +59,9 @@ function get_version_timeline_content(version_doc, frm) {
 		if (parts.length) {
 			let message;
 			if (updater_reference_link) {
-				message = __("{0} changed value of {1} {2}", [get_username(version_doc), parts.join(', '), updater_reference_link]);
+				message = __("{0} changed value of {1} {2}", [get_user_link(version_doc), parts.join(', '), updater_reference_link]);
 			} else {
-				message = __("{0} changed value of {1}", [get_username(version_doc), parts.join(', ')]);
+				message = __("{0} changed value of {1}", [get_user_link(version_doc), parts.join(', ')]);
 			}
 			out.push(get_version_comment(version_doc, message));
 		}
@@ -97,9 +97,9 @@ function get_version_timeline_content(version_doc, frm) {
 		if (parts.length) {
 			let message;
 			if (updater_reference_link) {
-				message = __("{0} changed values for {1} {2}", [get_username(version_doc), parts.join(', '), updater_reference_link]);
+				message = __("{0} changed values for {1} {2}", [get_user_link(version_doc), parts.join(', '), updater_reference_link]);
 			} else {
-				message = __("{0} changed values for {1}", [get_username(version_doc), parts.join(', ')]);
+				message = __("{0} changed values for {1}", [get_user_link(version_doc), parts.join(', ')]);
 			}
 			out.push(get_version_comment(version_doc, message));
 		}
@@ -133,9 +133,9 @@ function get_version_timeline_content(version_doc, frm) {
 	// creation by updater reference
 	if (data.creation && data.created_by) {
 		if (updater_reference_link) {
-			out.push(get_version_comment(version_doc, __('{0} created {1}', [get_username(version_doc), updater_reference_link])));
+			out.push(get_version_comment(version_doc, __('{0} created {1}', [get_user_link(version_doc), updater_reference_link])));
 		} else {
-			out.push(get_version_comment(version_doc, __('{0} created', [get_username(version_doc)])));
+			out.push(get_version_comment(version_doc, __('{0} created', [get_user_link(version_doc)])));
 		}
 	}
 
@@ -158,8 +158,10 @@ function format_content_for_timeline(content) {
 	return content.bold();
 }
 
-function get_username(doc) {
-	return (frappe.user_info(doc.owner).fullname || '').bold();
+function get_user_link(doc) {
+	const user = doc.owner;
+	const user_display_text = (frappe.user_info(user).fullname || '').bold();
+	return frappe.utils.get_form_link('User', user, true, user_display_text);
 }
 
 export { get_version_timeline_content };

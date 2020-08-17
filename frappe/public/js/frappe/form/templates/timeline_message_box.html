@@ -1,0 +1,19 @@
+<div class="timeline-message-box">
+	<span class="flex justify-between">
+		<span class="text-color flex">
+			<span>
+				{{ frappe.avatar(doc.owner, "avatar-medium") }}
+			</span>
+			<span class="margin-left">
+				{{ frappe.user.full_name(doc.owner) }}
+				<div class="text-muted">
+					{{ comment_when(doc.creation) }}
+				</div>
+			</span>
+		</span>
+		<span class="actions"></span>
+	</span>
+	<div class="content">
+		{{ doc.content }}
+	</div>
+</div>
