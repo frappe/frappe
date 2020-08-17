@@ -29,7 +29,7 @@ from six.moves.urllib.parse import quote, unquote
 import frappe
 from frappe import _, conf
 from frappe.model.document import Document
-from frappe.utils.file_manager import guess_mimetype
+from frappe.utils.file_manager import ALLOWED_MIMETYPES, guess_mimetype
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
 
 
@@ -901,10 +901,22 @@ def validate_filename(filename):
 	return fname
 
 @frappe.whitelist()
-def get_files_in_folder(folder):
+def get_files_in_folder(folder, restrict_mimetypes=None):
+	filters = { 'folder': folder }
+	or_filters = None
+
+	# only allow standard mimes in query, prevents SQLi
+	restrict_mimetypes = frappe.parse_json(restrict_mimetypes)
+	if restrict_mimetypes:
+		mimes = [mime for mime in restrict_mimetypes if mime in ALLOWED_MIMETYPES]
+		if mimes:
+			# Allow folders too
+			or_filters = {'mimetype': ["in", mimes], 'is_folder': 1}
+
 	return frappe.db.get_all('File',
-		{ 'folder': folder },
-		['name', 'file_name', 'file_url', 'is_folder', 'modified']
+		fields = ['name', 'file_name', 'file_url', 'is_folder', 'modified'],
+		filters = filters,
+		or_filters = or_filters
 	)
 
 def update_existing_file_docs(doc):
