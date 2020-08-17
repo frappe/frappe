@@ -28,6 +28,7 @@ def get_doc(*args, **kwargs):
 
 	:param arg1: Document dict or DocType name.
 	:param arg2: [optional] document name.
+	:param for_update: [optional] select document for update.
 
 	There are multiple ways to call `get_doc`
 
@@ -45,6 +46,9 @@ def get_doc(*args, **kwargs):
 
 		# create new object with keyword arguments
 		user = get_doc(doctype='User', email_id='test@example.com')
+
+		# select a document for update
+		user = get_doc("User", "test@example.com", for_update=True)
 	"""
 	if args:
 		if isinstance(args[0], BaseDocument):
@@ -60,7 +64,7 @@ def get_doc(*args, **kwargs):
 		else:
 			raise ValueError('First non keyword argument must be a string or dict')
 
-	if kwargs:
+	if len(args) < 2 and kwargs:
 		if 'doctype' in kwargs:
 			doctype = kwargs['doctype']
 		else:
@@ -103,6 +107,9 @@ class Document(BaseDocument):
 				else:
 					self.name = args[1]
 
+				if 'for_update' in kwargs:
+					self.flags.for_update = kwargs.get('for_update')
+
 			self.load_from_db()
 			return
 
@@ -144,7 +151,7 @@ class Document(BaseDocument):
 			self._fix_numeric_types()
 
 		else:
-			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
+			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1, for_update=self.flags.for_update)
 			if not d:
 				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
 
@@ -232,9 +239,6 @@ class Document(BaseDocument):
 		self._validate()
 		self.set_docstatus()
 		self.flags.in_insert = False
-
-		# follow document on document creation
-
 
 		# run validate, on update etc.
 
@@ -973,27 +977,12 @@ class Document(BaseDocument):
 
 		update_global_search(self)
 
-		if getattr(self.meta, 'track_changes', False) and not self.flags.ignore_version \
-			and not self.doctype == 'Version' and not frappe.flags.in_install:
-			self.save_version()
+		self.save_version()
 
 		self.run_method('on_change')
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
-
-		# make event update log for doctypes having event consumers
-		if not frappe.flags.in_install and not frappe.flags.in_migrate and check_doctype_has_consumers(self.doctype):
-			if self.flags.update_log_for_doc_creation:
-				make_event_update_log(self, update_type='Create')
-				self.flags.update_log_for_doc_creation = False
-			else:
-				from frappe.event_streaming.doctype.event_update_log.event_update_log import get_update
-				diff = get_update(doc_before_save, self)
-				if diff:
-					doc = self
-					doc.diff = diff
-					make_event_update_log(doc, update_type='Update')
 
 		self.latest = None
 
@@ -1071,7 +1060,14 @@ class Document(BaseDocument):
 
 	def save_version(self):
 		"""Save version info"""
-		if not self._doc_before_save and frappe.flags.in_patch: return
+
+		# don't track version under following conditions
+		if (not getattr(self.meta, 'track_changes', False)
+			or self.doctype == 'Version'
+			or self.flags.ignore_version
+			or frappe.flags.in_install
+			or (not self._doc_before_save and frappe.flags.in_patch)):
+			return
 
 		version = frappe.new_doc('Version')
 		if not self._doc_before_save:
@@ -1080,6 +1076,7 @@ class Document(BaseDocument):
 		elif version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
+				# follow since you made a change?
 				follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
@@ -1307,6 +1304,16 @@ class Document(BaseDocument):
 		users = set([assignment.owner for assignment in assignments])
 		return users
 
+	def add_tag(self, tag):
+		"""Add a Tag to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+		DocTags(self.doctype).add(self.name, tag)
+
+	def get_tags(self):
+		"""Return a list of Tags attached to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+
 def execute_action(doctype, name, action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""
 	doc = frappe.get_doc(doctype, name)
@@ -1326,34 +1333,4 @@ def execute_action(doctype, name, action, **kwargs):
 		doc.notify_update()
 
 
-def make_event_update_log(doc, update_type):
-	"""Save update info for doctypes that have event consumers"""
-	if update_type != 'Delete':
-		# diff for update type, doc for create type
-		data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
-	else:
-		data = None
-	log_doc = frappe.get_doc({
-		'doctype': 'Event Update Log',
-		'update_type': update_type,
-		'ref_doctype': doc.doctype,
-		'docname': doc.name,
-		'data': data
-	})
-	log_doc.insert(ignore_permissions=True)
-	frappe.db.commit()
 
-
-def check_doctype_has_consumers(doctype):
-	"""Check if doctype has event consumers for event streaming"""
-	if not frappe.db.exists('DocType', 'Event Consumer'):
-		return False
-
-	event_consumers = frappe.get_all('Event Consumer Document Type', {
-		'ref_doctype': doctype,
-		'status': 'Approved'
-	}, limit=1)
-
-	if len(event_consumers) and event_consumers[0]:
-		return True
-	return False

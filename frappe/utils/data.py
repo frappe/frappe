@@ -8,6 +8,7 @@ import frappe
 from dateutil.parser._parser import ParserError
 import subprocess
 import operator
+import json
 import re, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
@@ -94,7 +95,10 @@ def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, se
 		as_string = True
 		if " " in date:
 			as_datetime = True
-		date = parser.parse(date)
+		try:
+			date = parser.parse(date)
+		except ParserError:
+			frappe.throw(frappe._("Please select a valid date filter"), title=frappe._("Invalid Date"))
 
 	date = date + relativedelta(years=years, months=months, weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds)
 
@@ -1236,8 +1240,6 @@ def is_subset(list_a, list_b):
 def generate_hash(*args, **kwargs):
 	return frappe.generate_hash(*args, **kwargs)
 
-
-
 def guess_date_format(date_string):
 	DATE_FORMATS = [
 		r"%d-%m-%Y",
@@ -1310,3 +1312,9 @@ def guess_date_format(date_string):
 
 		if date_format and time_format:
 			return (date_format + ' ' + time_format).strip()
+
+def validate_json_string(string):
+	try:
+		json.loads(string)
+	except (TypeError, ValueError):
+		raise frappe.ValidationError

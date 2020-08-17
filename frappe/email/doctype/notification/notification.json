@@ -10,6 +10,7 @@
   "enabled",
   "column_break_2",
   "channel",
+  "twilio_number",
   "slack_webhook_url",
   "filters",
   "subject",
@@ -37,7 +38,6 @@
   "message_sb",
   "message",
   "message_examples",
-  "slack_message_examples",
   "view_properties",
   "column_break_25",
   "attach_print",
@@ -60,11 +60,13 @@
    "fieldname": "channel",
    "fieldtype": "Select",
    "label": "Channel",
-   "options": "Email\nSlack\nSystem Notification",
-   "reqd": 1
+   "options": "Email\nSlack\nSystem Notification\nWhatsApp\nSMS",
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "depends_on": "eval:doc.channel=='Slack'",
+   "description": "To use Slack Channel, add a <a href=\"\\#Form/Slack Webhook URL\">Slack Webhook URL</a>.",
    "fieldname": "slack_webhook_url",
    "fieldtype": "Link",
    "label": "Slack Channel",
@@ -77,13 +79,14 @@
    "label": "Filters"
   },
   {
+   "depends_on": "eval: !in_list(['SMS', 'WhatsApp'], doc.channel)",
    "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>",
    "fieldname": "subject",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Subject",
-   "reqd": 1
+   "mandatory_depends_on": "eval:!in_list(['SMS', 'WhatsApp'], doc.channel)"
   },
   {
    "fieldname": "document_type",
@@ -153,6 +156,7 @@
    "label": "Value Changed"
   },
   {
+   "depends_on": "eval: doc.channel == 'Email'",
    "fieldname": "sender",
    "fieldtype": "Link",
    "label": "Sender",
@@ -203,7 +207,7 @@
    "label": "Value To Be Set"
   },
   {
-   "depends_on": "eval:doc.channel!=='Slack'",
+   "depends_on": "eval:in_list(['Email', 'SMS', 'WhatsApp'], doc.channel)",
    "fieldname": "column_break_5",
    "fieldtype": "Section Break",
    "label": "Recipients"
@@ -228,18 +232,10 @@
    "label": "Message"
   },
   {
-   "depends_on": "eval:doc.channel=='Email'",
    "fieldname": "message_examples",
    "fieldtype": "HTML",
    "label": "Message Examples",
    "options": "<h5>Message Example</h5>\n\n<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;\n\n&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;\n\n&lt;!-- show last comment --&gt;\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n&lt;h4&gt;Details&lt;/h4&gt;\n\n&lt;ul&gt;\n&lt;li&gt;Customer: {{ doc.customer }}\n&lt;li&gt;Amount: {{ doc.grand_total }}\n&lt;/ul&gt;\n</pre>"
-  },
-  {
-   "depends_on": "eval:doc.channel=='Slack'",
-   "fieldname": "slack_message_examples",
-   "fieldtype": "HTML",
-   "label": "Message Examples",
-   "options": "<h5>Message Example</h5>\n\n<pre>*Order Overdue*\n\nTransaction {{ doc.name }} has exceeded Due Date. Please take necessary action.\n\n<!-- show last comment -->\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n*Details*\n\n\u2022 Customer: {{ doc.customer }}\n\u2022 Amount: {{ doc.grand_total }}\n</pre>"
   },
   {
    "fieldname": "view_properties",
@@ -267,6 +263,14 @@
    "options": "Print Format"
   },
   {
+   "depends_on": "eval: doc.channel==='WhatsApp'",
+   "description": "To use WhatsApp for Business, initialize <a href=\"#Form/Twilio Settings\">Twilio Settings</a>.",
+   "fieldname": "twilio_number",
+   "fieldtype": "Link",
+   "label": "Twilio Number",
+   "options": "Twilio Number Group"
+  },
+  {
    "default": "0",
    "depends_on": "eval: doc.channel !== 'System Notification'",
    "description": "If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",
@@ -277,7 +281,7 @@
  ],
  "icon": "fa fa-envelope",
  "links": [],
- "modified": "2020-06-23 14:01:25.462544",
+ "modified": "2020-08-11 19:24:35.479373",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
