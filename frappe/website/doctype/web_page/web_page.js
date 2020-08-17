@@ -49,15 +49,57 @@ frappe.ui.form.on('Web Page', {
 frappe.ui.form.on("Web Page Block", {
 	edit_values(frm, cdt, cdn) {
 		let row = frm.selected_doc;
+		let values = JSON.parse(row.web_template_values || "{}");
+
+		function get_fields(doc) {
+			let normal_fields = [];
+			let table_fields = [];
+
+			let current_table = null;
+			for (let df of doc.fields) {
+				if (current_table) {
+					current_table.fields = current_table.fields || [];
+
+					if (df.fieldtype != 'Table Break') {
+						current_table.fields.push(df);
+					} else {
+						table_fields.push(df);
+						current_table = df;
+					}
+				} else if (df.fieldtype != 'Table Break') {
+					normal_fields.push(df);
+				} else {
+					table_fields.push(df);
+					current_table = df;
+				}
+			}
+
+			let fields = [
+				...normal_fields,
+				...table_fields.map(tf => {
+					let data = values[tf.fieldname] || [];
+					return {
+						label: tf.label,
+						fieldname: tf.fieldname,
+						fieldtype: 'Table',
+						fields: tf.fields.map((df, i) => ({
+							...df,
+							in_list_view: i <= 1,
+							columns: tf.fields.length == 1 ? 10 : 5
+						})),
+						data,
+						get_data: () => data
+					};
+				})
+			];
+
+			return fields;
+		}
+
 		frappe.model.with_doc("Web Template", row.web_template).then((doc) => {
 			let d = new frappe.ui.Dialog({
 				title: __("Edit Values"),
-				fields: doc.fields.map((df) => {
-					if (df.fieldtype == "Section Break") {
-						df.collapsible = 1;
-					}
-					return df;
-				}),
+				fields: get_fields(doc),
 				primary_action(values) {
 					frappe.model.set_value(
 						cdt,
@@ -68,7 +110,6 @@ frappe.ui.form.on("Web Page Block", {
 					d.hide();
 				},
 			});
-			let values = JSON.parse(row.web_template_values || "{}");
 			d.set_values(values);
 			d.show();
 
