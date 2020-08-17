@@ -151,7 +151,7 @@ class Report(Document):
 			columns, result = self.run_standard_report(filters, limit, user)
 
 		if as_dict:
-			result = self.build_data_dict(result)
+			result = self.build_data_dict(result, columns)
 
 		return columns, result
 
@@ -273,7 +273,7 @@ class Report(Document):
 			_columns.append(field)
 		return _columns
 
-	def build_data_dict(self, result):
+	def build_data_dict(self, result, columns):
 		data = []
 		for row in result:
 			if isinstance(row, (list, tuple)):
