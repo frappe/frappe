@@ -667,22 +667,29 @@ frappe.ui.form.Form = class FrappeForm {
 	savecancel(btn, callback, on_error) {
 		const me = this;
 		this.validate_form_action('Cancel');
-
+		me.ignore_doctypes_on_cancel_all = me.ignore_doctypes_on_cancel_all || [];
 		frappe.call({
 			method: "frappe.desk.form.linked_with.get_submitted_linked_docs",
 			args: {
 				doctype: me.doc.doctype,
 				name: me.doc.name
 			},
-			freeze: true,
-			callback: (r) => {
-				if (!r.exc && r.message.count > 0) {
-					me._cancel_all(r, btn, callback, on_error);
-				} else {
-					me._cancel(btn, callback, on_error, false);
+			freeze: true
+		}).then(r => {
+			if (!r.exc) {
+				let doctypes_to_cancel = (r.message.docs || []).map(value => {
+					return value.doctype;
+				}).filter(value => {
+					return !me.ignore_doctypes_on_cancel_all.includes(value);
+				});
+
+				if (doctypes_to_cancel.length) {
+					return me._cancel_all(r, btn, callback, on_error);
 				}
 			}
-		});
+			return me._cancel(btn, callback, on_error, false);
+		}
+		);
 	}
 
 	_cancel_all(r, btn, callback, on_error) {
@@ -693,12 +700,16 @@ frappe.ui.form.Form = class FrappeForm {
 		let links = r.message.docs;
 		const doctypes = Array.from(new Set(links.map(link => link.doctype)));
 
+		me.ignore_doctypes_on_cancel_all = me.ignore_doctypes_on_cancel_all || [];
+
 		for (let doctype of doctypes) {
-			let docnames = links
-				.filter((link) => link.doctype == doctype)
-				.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
-				.join(", ");
-			links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`;
+			if (!me.ignore_doctypes_on_cancel_all.includes(doctype)) {
+				let docnames = links
+					.filter((link) => link.doctype == doctype)
+					.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
+					.join(", ");
+				links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`;
+			}
 		}
 		links_text = `<ul>${links_text}</ul>`;
 
@@ -728,7 +739,8 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.call({
 					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
 					args: {
-						docs: links
+						docs: links,
+						ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || []
 					},
 					freeze: true,
 					callback: (resp) => {
@@ -742,7 +754,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		d.show();
-	};
+	}
 
 	_cancel(btn, callback, on_error, skip_confirm) {
 		const me = this;
