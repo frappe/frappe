@@ -54,8 +54,7 @@
 		"public/js/frappe/list/base_list.js",
 		"public/js/frappe/model/indicator.js",
 		"public/js/frappe/model/workflow.js",
-		"public/js/frappe/form/formatters.js",
-		"public/js/frappe/utils/datetime.js"
+		"public/js/frappe/form/formatters.js"
 	],
 	"js/bootstrap-4-web.min.js": [
 		"website/js/bootstrap-4.js"
