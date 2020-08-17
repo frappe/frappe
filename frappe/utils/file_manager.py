@@ -14,6 +14,11 @@ from copy import copy
 from six.moves.urllib.parse import unquote
 from six import text_type, PY2, string_types
 
+ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/msword',
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet')
+
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass

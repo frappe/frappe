@@ -8,18 +8,12 @@ import frappe.utils
 import frappe.sessions
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
-from frappe.utils.file_manager import guess_mimetype
+from frappe.utils.file_manager import ALLOWED_MIMETYPES, guess_mimetype
 from frappe.api import validate_auth
 from frappe.utils import cint
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
 from werkzeug.wrappers import Response
 from six import string_types
-
-ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/msword',
-			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-			'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-			'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet')
-
 
 def handle():
 	"""handle request"""
