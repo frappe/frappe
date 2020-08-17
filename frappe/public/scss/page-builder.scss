@@ -1,6 +1,6 @@
 .hero-content {
 	.btn-primary {
-		margin-top: 1rem; 
+		margin-top: 1rem;
 		margin-right: 0.5rem;
 
 		@include media-breakpoint-up(lg) {
@@ -32,6 +32,15 @@
 
 	@include media-breakpoint-up(lg) {
 		font-size: $font-size-lg;
+	}
+}
+
+.section-with-image.align-center {
+	text-align: center;
+
+	.section-description, .section-image {
+		margin-left: auto;
+		margin-right: auto;
 	}
 }
 
@@ -444,6 +453,7 @@
 		text-align: center;
 	}
 	.section-description, .collapsible-items {
-		margin: 0 auto;
+		margin-left: auto;
+		margin-right: auto;
 	}
 }
