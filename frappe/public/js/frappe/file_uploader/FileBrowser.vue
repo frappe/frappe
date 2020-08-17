@@ -122,15 +122,12 @@ export default {
 				});
 		},
 		get_restrictions() {
-			console.log(this.restrictions)
-			let restrictions = []
+			let restrictions = [];
 			this.restrictions.allowed_file_types.forEach(res => {
-				restrictions = restrictions.concat(restriction_mime_map[res])
-			})
+				restrictions = restrictions.concat(restriction_mime_map[res]);
+			});
 
-			console.log(restrictions);
-
-			return restrictions
+			return restrictions;
 		},
 		apply_filter: frappe.utils.debounce(function() {
 			let filter_text = this.filter_text.toLowerCase();
