@@ -459,4 +459,4 @@ def add_attachments(doctype, name, attachments):
 
 def guess_mimetype(filename):
 	# TODO: replace with libmagic https://github.com/ahupp/python-magic
-	return mimetypes.guess_type(content_type)
+	return mimetypes.guess_type(filename)
