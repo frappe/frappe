@@ -23,8 +23,7 @@
    "fieldname": "fields",
    "fieldtype": "Table",
    "label": "Fields",
-   "options": "Web Template Field",
-   "reqd": 1
+   "options": "Web Template Field"
   },
   {
    "default": "0",
@@ -34,7 +33,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-15 17:50:51.856135",
+ "modified": "2020-08-17 13:00:11.863241",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
