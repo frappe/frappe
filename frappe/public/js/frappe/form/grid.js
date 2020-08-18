@@ -75,22 +75,22 @@ export default class Grid {
 							data-action="delete_all_rows">
 							${__("Delete All")}
 						</button>
-						<button class="grid-add-multiple-rows btn btn-xs btn-default hidden"
+						<button class="grid-add-multiple-rows btn btn-xs btn-secondary hidden"
 							style="margin-right: 4px;">
 							${__("Add Multiple")}</a>
 						</button>
 						<!-- hack to allow firefox include this in tabs -->
-						<button class="btn btn-xs btn-default grid-add-row">
+						<button class="btn btn-xs btn-secondary grid-add-row">
 							${__("Add Row")}
 						</button>
 					</div>
 					<div class="col-sm-4 grid-pagination">
 					</div>
 					<div class="col-sm-3 text-right">
-						<a href="#" class="grid-download btn btn-xs btn-default hidden"
+						<a href="#" class="grid-download btn btn-xs btn-secondary hidden"
 							style="margin-left: 4px;">
 							${__("Download")}</a>
-						<a href="#" class="grid-upload btn btn-xs btn-default hidden"
+						<a href="#" class="grid-upload btn btn-xs btn-secondary hidden"
 							style="margin-left: 4px;">
 							${__("Upload")}</a>
 					</div>
@@ -865,7 +865,7 @@ export default class Grid {
 		// add / unhide a custom button
 		var btn = this.custom_buttons[label];
 		if (!btn) {
-			btn = $('<button class="btn btn-default btn-xs btn-custom">' + label + '</button>')
+			btn = $('<button class="btn btn-secondary btn-xs btn-custom">' + label + '</button>')
 				.css('margin-right', '4px')
 				.prependTo(this.grid_buttons)
 				.on('click', click);

@@ -42,25 +42,25 @@ export default class GridRowForm {
 				<div class="toolbar grid-header-toolbar">
 					<span class="panel-title">
 						${ __("Editing Row") } #<span class="grid-form-row-index"></span></span>
-					<button class="btn btn-default btn-xs pull-right" style="margin-left: 7px;">
-						<i class="octicon octicon-check visible-xs" style="padding-bottom: 2px;"></i>
-						<span class="hidden-xs octicon octicon-triangle-up"></span></button>
+					<div class="btn btn-secondary btn-sm pull-right" style="margin-left: 7px;">
+						${frappe.utils.icon('down')}</div>
 					<span class="row-actions">
-						<button class="btn btn-default btn-xs pull-right grid-move-row hidden-xs"
+						<button class="btn btn-secondary btn-sm pull-right grid-move-row hidden-xs"
 							style="margin-left: 7px;">
 							${ __("Move") }</button>
-						<button class="btn btn-default btn-xs pull-right grid-duplicate-row hidden-xs"
+						<button class="btn btn-secondary btn-sm pull-right grid-duplicate-row hidden-xs"
 							style="margin-left: 7px;">
-							${ __("Duplicate") }</button>
-						<button class="btn btn-default btn-xs pull-right grid-insert-row"
+							${frappe.utils.icon('duplicate')}
+							${ __("Duplicate") }
+						</button>
+						<button class="btn btn-secondary btn-sm pull-right grid-insert-row"
 							style="margin-left: 7px;">
 							${ __("Insert Above") }</button>
-						<button class="btn btn-default btn-xs pull-right grid-insert-row-below hidden-xs"
+						<button class="btn btn-secondary btn-sm pull-right grid-insert-row-below hidden-xs"
 							style="margin-left: 7px;">
 							${ __("Insert Below") }</button>
-						<button class="btn btn-danger btn-xs pull-right grid-delete-row">
-							<i class="octicon octicon-trashcan"
-								style="padding-bottom: 2px; margin-top: 1px;"></i>
+						<button class="btn btn-danger btn-sm pull-right grid-delete-row">
+							${frappe.utils.icon('delete')}
 						</button>
 					</span>
 				</div>
@@ -68,11 +68,10 @@ export default class GridRowForm {
 			<div class="grid-form-body">
 				<div class="form-area"></div>
 				<div class="grid-footer-toolbar clearfix hidden-xs">
-					<span class="text-muted">
-						<i class="octicon octicon-keyboard"></i> &ndash;
-						<kbd>${ __("Ctrl + Up") }</kbd>, <kbd>${ __("Ctrl + Down") }</kbd>, <kbd>${ __("ESC") }</kbd>
-					</span>
-					<button class="btn btn-default btn-xs pull-right grid-append-row"
+					<span> ${frappe.utils.icon("keyboard", "md")} </span>
+					<span class="text-medium"> ${ __("Keyboard Shortcuts") }: </span>
+					<kbd>${ __("Ctrl + Up") }</kbd> . <kbd>${ __("Ctrl + Down") }</kbd> . <kbd>${ __("ESC") }</kbd>
+					<button class="btn btn-secondary btn-sm pull-right grid-append-row"
 						style="margin-left: 7px;">
 						${ __("Insert Below") }</button>
 				</div>
