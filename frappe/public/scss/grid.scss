@@ -1,3 +1,9 @@
+.form-grid {
+	// border: 1px solid var(--border-color);
+	// border-radius: var(--border-radius);
+	color: var(--text-color);
+}
+
 .form-grid.error {
 	border-color: var(--red-500);
 }
@@ -12,10 +18,6 @@
 	padding: 0px 15px;
 	border-bottom: 1px solid var(--border-color);
 	@include transition(.2s);
-
-	.form-control {
-		background-color: transparent;
-	}
 }
 
 .grid-row:last-child {
@@ -101,7 +103,13 @@
 
 .grid-body {
 	.btn-open-row {
-		padding-top: 5px;
+		display: flex;
+		padding-top: var(--padding-sm);
+		justify-content: center;
+		div {
+			margin-left: var(--margin-xs);
+			line-height: 1.7em;
+		}
 	}
 
 	.editable-row {
@@ -247,7 +255,36 @@
 	height: 0;
 	opacity: 0;
 	z-index: 1021;
+	border-radius: var(--border-radius-md);
 	@include base-grid();
+
+	.btn {
+		box-shadow: none;
+	}
+
+	.form-section {
+		padding: 15px;
+
+		&:not(:first-child) {
+			border-top: 1px solid var(--border-color);
+		}
+
+		.section-head {
+			padding: 0;
+		}
+
+		.form-column:first-child {
+			padding-left: 0;
+		}
+	}
+
+	.grid-delete-row {
+		padding: 4px 6px;
+
+		.icon use {
+			stroke: var(--fg-color);
+		}
+	}
 }
 
 .recorder-form-in-grid {
@@ -260,12 +297,13 @@
 	height: auto;
 	overflow: visible;
 	margin: 0px -15px;
+	padding: 10px 15px;
 }
 
 .grid-form-heading {
 	padding: 10px 15px;
 	font-size: 120%;
-	border-bottom: 1px solid var(--border-color);
+	// border-bottom: 1px solid var(--border-color);
 }
 
 .grid-form-body {
@@ -287,8 +325,7 @@
 	padding: 10px 0px;
 	background-color: #fff;
 
-	.btn-default {
-		background-color: var(--control-bg);
+	.btn {
 		box-shadow: none;
 	}
 }
@@ -320,8 +357,11 @@ a.next-page {
 }
 
 .grid-footer-toolbar {
-	padding: 10px 15px;
-	border-top: 1px solid var(--border-color);
+	padding: 15px 10px 5px 10px;
+	// border-top: 1px solid var(--border-color);
+	span {
+		margin-right: var(--margin-xs);
+	}
 }
 
 .grid-overflow-no-ellipsis {

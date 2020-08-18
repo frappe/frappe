@@ -152,13 +152,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.create_chart_button && this.create_chart_button.remove()
 			this.create_chart_button = this.page.add_button(__("Set Chart"), () => {
 				this.open_create_chart_dialog();
-			});
+			}, null, 'btn-xs');
 
 			if (this.chart_fields || this.chart_options) {
 				this.add_to_dashboard_button && this.add_to_dashboard_button.remove()
 				this.add_to_dashboard_button = this.page.add_button(__("Add Chart to Dashboard"), () => {
 					this.add_chart_to_dashboard();
-				});
+				}, null, 'btn-xs');
 			}
 		} else {
 			this.create_chart_button && this.create_chart_button.remove()
@@ -1578,26 +1578,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	show_footer_message() {
-		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
-		const execution_time_msg = __('Execution Time: {0} sec', [this.execution_time || 0.1]);
-
-		this.page.footer.removeClass('hide').addClass('text-muted col-md-12').html(`
-			<span class="text-left col-md-6">${message}</span><span class="text-right col-md-6">${execution_time_msg}</span>
-		`);
-
-		this.page.wrapper.find('.tree-footer').remove();
+		this.$report_footer && this.$report_footer.remove();
+		this.$report_footer = $(`<div class="report-footer"></div>`).appendTo(this.page.main);
 		if (this.tree_report) {
-			this.$tree_footer = this.page.footer.clone().addClass('tree-footer');
-			this.$tree_footer.html(`<div class="col-md-12">
+			this.$tree_footer = $(`<div class="tree-footer col-md-6">
 				<button class="btn btn-xs btn-default" data-action="expand_all_rows">
 					${__('Expand All')}</button>
 				<button class="btn btn-xs btn-default" data-action="collapse_all_rows">
 					${__('Collapse All')}</button>
 			</div>`);
-			this.page.footer.before(this.$tree_footer);
+			$(this.$report_footer).append(this.$tree_footer);
 			this.$tree_footer.find('[data-action=collapse_all_rows]').show();
 			this.$tree_footer.find('[data-action=expand_all_rows]').hide();
 		}
+
+		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
+		const execution_time_msg = __('Execution Time: {0} sec', [this.execution_time || 0.1]);
+
+		this.$report_footer.append(`<div class="col-md-12">
+			<span">${message}</span><span class="pull-right">${execution_time_msg}</span>
+		</div>`);
 	}
 
 	expand_all_rows() {

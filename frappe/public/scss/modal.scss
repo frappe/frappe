@@ -1,7 +1,58 @@
-h4.modal-title {
-	font-size: 1em;
-}
-
 h5.modal-title {
 	margin: 0px !important;
+}
+
+.modal {
+
+	.modal-header {
+		padding: var(--padding-md) 25px;
+
+		.modal-title {
+			font-weight: 500;
+			line-height: 2em;
+			font-size: $font-size-lg;
+		}
+	}
+
+	.buttons {
+		button:not(:last-child) {
+			margin-right: 3px;
+		}
+	}
+
+	.modal-body {
+		padding: var(--padding-lg) 25px;
+	}
+
+	.modal-footer {
+		padding: var(--padding-md);
+	}
+
+	@include media-breakpoint-up(md) {
+		.modal-dialog {
+			width: 575px;
+			max-width: 575px;
+		}
+	}
+}
+
+.modal-minimize {
+	position: initial;
+
+	.modal-dialog {
+		z-index: 101;
+		position: fixed;
+		right: 15px;
+		bottom: 0;
+		margin: 0;
+		max-width: 575px;
+
+		.modal-content {
+			min-height: 0;
+		}
+	}
+
+	.modal-body {
+		display: none;
+	}
 }

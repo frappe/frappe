@@ -43,6 +43,14 @@
 	}
 }
 
+.modal {
+	.form-section {
+		.form-column {
+			padding: 0;
+		}
+	}
+}
+
 .form-section.card-section {
 	margin: var(--margin-lg) 0px;
 	@extend .frappe-card;
@@ -214,4 +222,8 @@
 			border-radius: 3px 0px 0px 3px;
 		}
 	}
+}
+
+.form-message {
+	padding: var(--padding-md) var(--padding-xl);
 }

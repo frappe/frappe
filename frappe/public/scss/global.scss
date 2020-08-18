@@ -130,22 +130,31 @@ img {
 	}
 }
 
-.btn-secondary, .btn-default {
+.btn-secondary {
 	background-color: var(--control-bg);
 	color: var(--text-color);
 	&:hover, &:active {
-		background: var(--gray-200);
+		background: var(--gray-300);
+		color: var(--text-color);
 	}
 }
 
 .btn-default {
 	background-color: var(--fg-color);
+	color: var(--text-color);
+	&:hover, &:active {
+		background: var(--gray-200);
+		color: var(--text-color);
+	}
 }
 
 .btn-primary {
 	background-color: var(--primary-color);
 }
 
+.btn-danger {
+	background-color: var(--red-400);
+}
 
 h1, h2, h3 {
 	color: $text-color;
@@ -325,6 +334,15 @@ input[type="checkbox"] {
 	font-size: var(--text-lg);
 	font-weight: 500;
 	color: var(--heading-color);
+}
+
+kbd {
+	background-color: var(--gray-500);
+	font-family: Inter;
+	color: var(--fg-color);
+	line-height: 1.2em;
+	height: 20px;
+	padding: 4px 8px;
 }
 
 .appreciation {

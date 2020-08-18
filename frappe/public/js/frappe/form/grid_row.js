@@ -226,10 +226,13 @@ export default class GridRow {
 		if(this.doc && !this.grid.df.in_place_edit) {
 			// remove row
 			if(!this.open_form_button) {
-				this.open_form_button = $('<a class="close btn-open-row">\
-					<span class="octicon octicon-triangle-down"></span></a>')
-					.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
-					.on('click', function() { me.toggle_view(); return false; });
+				this.open_form_button = $(`
+					<div class="btn-open-row"><a>
+						${frappe.utils.icon('edit', 'xs')}</a>
+					<div>Edit</div></div>`
+				)
+				.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
+				.on('click', function() { me.toggle_view(); return false; });
 
 				if(this.is_too_small()) {
 					// narrow
