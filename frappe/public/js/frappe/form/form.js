@@ -568,9 +568,6 @@ frappe.ui.form.Form = class FrappeForm {
 		if(!save_action) save_action = "Save";
 		this.validate_form_action(save_action, resolve);
 
-		if((!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
-			frappe.utils.scroll_to(0);
-		}
 		var after_save = function(r) {
 			if(!r.exc) {
 				if (["Save", "Update", "Amend"].indexOf(save_action)!==-1) {
