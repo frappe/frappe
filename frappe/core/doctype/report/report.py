@@ -185,7 +185,7 @@ class Report(Document):
 		params = json.loads(self.json)
 		columns = self.get_standard_report_columns(params)
 		result = []
-		order_by, group_by_args = self.get_standard_report_order_by(params)
+		order_by, group_by, group_by_args = self.get_standard_report_order_by(params)
 
 		_result = frappe.get_list(self.ref_doctype,
 			fields = [
@@ -194,6 +194,7 @@ class Report(Document):
 			],
 			filters = self.get_standard_report_filters(params, filters),
 			order_by = order_by,
+			group_by = group_by,
 			as_list = True,
 			limit = limit,
 			user = user)
@@ -258,7 +259,7 @@ class Report(Document):
 			group_by = group_by_args['group_by']
 			order_by = '_aggregate_column desc'
 
-		return order_by, group_by_args
+		return order_by, group_by, group_by_args
 
 	def build_standard_report_columns(self, columns, group_by_args):
 		_columns = []
