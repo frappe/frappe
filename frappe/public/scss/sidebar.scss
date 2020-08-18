@@ -49,12 +49,13 @@ body[data-route^="Module"] .main-menu {
 		display: inline-block;
 	}
 
-	.sidebar-menu {
-		.sidebar-label {
-			margin-bottom: var(--margin-sm);
-			font-weight: 500;
-			color: var(--text-color);
-		}
+	.sidebar-label {
+		margin-bottom: var(--margin-sm);
+		font-weight: 500;
+		color: var(--text-light);
+		text-transform: uppercase;
+		letter-spacing: 0.04rem;
+		font-size: var(--text-xs);
 	}
 }
 
@@ -318,14 +319,6 @@ body[data-route^="Module"] .main-menu {
 		margin-top: var(--margin-md);
 	}
 
-	.list-sidebar-label {
-		color: var(--gray-600);
-		text-transform: uppercase;
-		letter-spacing: 0.04rem;
-		font-size: var(--text-xs);
-		font-weight: 600;
-	}
-
 	.list-sidebar-button {
 		display: flex;
 		justify-content: space-between;
@@ -426,14 +419,6 @@ body[data-route^="Module"] .main-menu {
 		justify-content: center;
 		font-size: var(--text-xs);
 		align-items: center;
-		&.appreciation {
-			background-color: var(--dark-green-100);
-			color: var(--dark-green-600);
-		}
-		&.criticism {
-			background-color: var(--red-100);
-			color: var(--red-600);
-		}
 	}
 	li:last-child {
 		display: inline-block;

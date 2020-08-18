@@ -25,7 +25,7 @@ frappe.ui.form.Share = Class.extend({
 			`);
 		}
 
-		this.parent.find(".avatar").on("click", () => {
+		this.parent.find(".share-doc-btn").on("click", () => {
 			this.frm.share_doc();
 		});
 	},

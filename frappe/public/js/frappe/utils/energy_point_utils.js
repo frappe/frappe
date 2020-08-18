@@ -12,7 +12,7 @@ Object.assign(frappe.energy_points, {
 	format_form_log(log) {
 		const separator = `<span>&nbsp;-&nbsp;</span>`;
 		const formatted_log = `<span>
-			${this.get_points(log.points)}&nbsp;
+			<!--${this.get_points(log.points)}&nbsp;-->
 			<a href="#Form/Energy Point Log/${log.name}">${this.get_form_log_message(log)}</a>
 			${log.reason ? separator + log.reason: ''}
 		</span>`;
@@ -23,7 +23,7 @@ Object.assign(frappe.energy_points, {
 		const separator = `<span>&nbsp;-&nbsp;</span>`;
 		const route = frappe.utils.get_form_link(log.reference_doctype, log.reference_name);
 		const formatted_log = `<span>
-			${this.get_points(log.points)}&nbsp;
+			<!--${this.get_points(log.points)}&nbsp;-->
 			<a href="${route}" class="text-muted">${this.get_history_log_message(log)}</a>
 			${log.reason ? separator + log.reason: ''}
 			${separator + frappe.datetime.comment_when(log.creation)}
