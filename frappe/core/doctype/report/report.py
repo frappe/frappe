@@ -190,7 +190,7 @@ class Report(Document):
 		_result = frappe.get_list(self.ref_doctype,
 			fields = [
 				get_group_by_field(group_by_args, c[1]) if c[0] == '_aggregate_column' and group_by_args
-				else _format([c[1], c[0]])
+				else Report._format([c[1], c[0]]) for c in columns
 			],
 			filters = self.get_standard_report_filters(params, filters),
 			order_by = order_by,
