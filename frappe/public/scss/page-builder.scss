@@ -494,9 +494,17 @@
 	display: grid;
 
 	&[data-columns="2"] {
-		margin-top: 3.75rem;
-		grid-template-columns: repeat(2, 1fr);
-		gap: 6rem;
+		grid-template-columns: repeat(1, 1fr);
+		gap: 2.5rem;
+
+		@include media-breakpoint-up(sm) {
+			gap: 3rem;
+		}
+
+		@include media-breakpoint-up(md) {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 6rem;
+		}
 
 		.feature-title {
 			font-size: $font-size-xl;
@@ -510,11 +518,14 @@
 		.feature-content {
 			font-size: $font-size-base;
 			margin-top: 1.75rem;
-			margin-bottom: 1.75rem;
 
 			@include media-breakpoint-up(xl) {
 				font-size: $font-size-lg;
 			}
+		}
+
+		.feature-url {
+			margin-top: 1.75rem;
 		}
 
 		.feature-icon {
@@ -526,9 +537,18 @@
 	}
 
 	&[data-columns="3"] {
-		margin-top: 3rem;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 4.875rem;
+		grid-template-columns: repeat(1, 1fr);
+		gap: 2rem;
+
+		@include media-breakpoint-up(sm) {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 2.5rem;
+		}
+
+		@include media-breakpoint-up(md) {
+			grid-template-columns: repeat(3, 1fr);
+			gap: 4.875rem;
+		}
 
 		.feature-title {
 			font-size: $font-size-lg;
@@ -538,10 +558,14 @@
 				font-size: $font-size-xl;
 			}
 		}
+
 		.feature-content {
 			font-size: $font-size-base;
 			margin-top: 1rem;
-			margin-bottom: 1rem;
+		}
+
+		.feature-url {
+			margin-top: 1rem;
 		}
 
 		.feature-icon {
@@ -553,9 +577,23 @@
 	}
 
 	&[data-columns="4"] {
-		margin-top: 2.5rem;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 3.75rem;
+		grid-template-columns: repeat(1, 1fr);
+		gap: 2rem;
+
+		@include media-breakpoint-up(sm) {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 2.5rem;
+		}
+
+		@include media-breakpoint-up(md) {
+			grid-template-columns: repeat(3, 1fr);
+			gap: 3rem;
+		}
+
+		@include media-breakpoint-up(lg) {
+			grid-template-columns: repeat(4, 1fr);
+			gap: 3.75rem;
+		}
 
 		.feature-title {
 			font-size: $font-size-base;
@@ -565,7 +603,10 @@
 		.feature-content {
 			font-size: $font-size-sm;
 			margin-top: 0.875rem;
-			margin-bottom: 0.875rem;
+		}
+
+		.feature-url {
+			margin-top: 0.875rem;
 		}
 
 		.feature-url {
@@ -581,9 +622,28 @@
 	}
 }
 
+.section-title + .section-features, .section-description + .section-features {
+	&[data-columns="2"] {
+		margin-top: 3.75rem;
+	}
+
+	&[data-columns="3"] {
+		margin-top: 3rem;
+	}
+
+	&[data-columns="4"] {
+		margin-top: 2.5rem;
+	}
+}
+
 .section-feature {
 	display: flex;
 	flex-direction: column;
+	justify-content: space-between;
+}
+
+.feature-title, .feature-content {
+	margin-bottom: 0;
 }
 
 .feature-url {
