@@ -257,19 +257,28 @@ select.input-xs {
 	margin: 0px;
 }
 
-$checkbox-size: 14px;
+.checkbox {
+	label {
+		display: inline-flex;
+		align-items: center;
+		margin-bottom: 0;
+	}
+	--checkbox-right-margin: 8px;
+}
 
 /* checkbox */
+$checkbox-size: 14px;
 input[type="checkbox"] {
 	position: relative;
-	height: 0 !important;
+	width: 0 !important;
+	margin-right: calc(#{$checkbox-size} + var(--checkbox-right-margin)) !important;
 	font-size: calc(#{$checkbox-size} - 1px);
 
 	&:before {
 		width: $checkbox-size;
 		height: $checkbox-size;
 		position: absolute;
-		top: calc(-1 * #{$checkbox-size});
+		top: 0;
 		display: inline-block;
 		line-height: 1;
 		text-align: center;
