@@ -455,18 +455,18 @@ def update_parent_document_on_communication(doc):
 			# update the modified date for document
 			parent.update_modified()
 
-	update_mins_to_first_communication(parent, doc)
+	update_first_response_time(parent, doc)
 	set_avg_response_time(parent, doc)
 	parent.run_method("notify_communication", doc)
 	parent.notify_update()
 
-def update_mins_to_first_communication(parent, communication):
-	if parent.meta.has_field("mins_to_first_response") and not parent.get("mins_to_first_response"):
+def update_first_response_time(parent, communication):
+	if parent.meta.has_field("first_response_time") and not parent.get("first_response_time"):
 		if is_system_user(communication.sender):
 			first_responded_on = communication.creation
 			if parent.meta.has_field("first_responded_on") and communication.sent_or_received == "Sent":
 				parent.db_set("first_responded_on", first_responded_on)
-			parent.db_set("mins_to_first_response", round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
+			parent.db_set("first_response_time", round(time_diff_in_seconds(first_responded_on, parent.creation), 2))
 
 def set_avg_response_time(parent, communication):
 	if parent.meta.has_field("avg_response_time") and communication.sent_or_received == "Sent":
