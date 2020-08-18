@@ -224,6 +224,14 @@
 	}
 }
 
+.report-footer {
+	padding: var(--padding-sm) 0;
+}
+
+.tree-footer {
+	margin-bottom: var(--margin-sm);
+}
+
 // for sm and above
 @include media-breakpoint-up(xs) {
 	.group-by-box .row > div[class*="col-sm-"] {
