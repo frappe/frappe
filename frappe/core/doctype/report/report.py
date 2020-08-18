@@ -185,16 +185,20 @@ class Report(Document):
 		params = json.loads(self.json)
 		columns = self.get_standard_report_columns(params)
 		result = []
+		order_by, group_by_args = self.get_standard_report_order_by(params)
 
 		_result = frappe.get_list(self.ref_doctype,
-			fields = [Report._format([c[1], c[0]]) for c in columns],
+			fields = [
+				get_group_by_field(group_by_args, c[1]) if c[0] == '_aggregate_column' and group_by_args
+				else _format([c[1], c[0]])
+			],
 			filters = self.get_standard_report_filters(params, filters),
-			order_by = self.get_standard_report_order_by(params),
+			order_by = order_by,
 			as_list = True,
 			limit = limit,
 			user = user)
 
-		columns = self.build_standard_report_columns(columns)
+		columns = self.build_standard_report_columns(columns, group_by_args)
 
 		result = result + [list(d) for d in _result]
 
@@ -236,6 +240,7 @@ class Report(Document):
 		return _filters
 
 	def get_standard_report_order_by(self, params):
+		group_by_args = None
 		if params.get('sort_by'):
 			order_by = Report._format(params.get('sort_by').split('.')) + ' ' + params.get('sort_order')
 
@@ -247,9 +252,15 @@ class Report(Document):
 		if params.get('sort_by_next'):
 			order_by += ', ' + Report._format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
 
-		return order_by
+		group_by = None
+		if params.get('group_by'):
+			group_by_args = frappe._dict(params['group_by'])
+			group_by = group_by_args['group_by']
+			order_by = '_aggregate_column desc'
 
-	def build_standard_report_columns(self, columns):
+		return order_by, group_by_args
+
+	def build_standard_report_columns(self, columns, group_by_args):
 		_columns = []
 
 		for (fieldname, doctype) in columns:
