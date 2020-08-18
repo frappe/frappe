@@ -332,9 +332,9 @@ frappe.ui.Page = Class.extend({
 			let shortcut_obj = this.prepare_shortcut_obj(shortcut, click, label);
 			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
 				<span class="menu-item-label">${label}</span>
-				<div class="text-muted pull-right menu-shorcut">
+				<kbd class="pull-right">
 					<span>${shortcut_obj.shortcut_label}</span>
-				</div>
+				</kbd>
 			</a><li>`);
 			frappe.ui.keys.add_shortcut(shortcut_obj);
 		} else {
@@ -588,9 +588,10 @@ frappe.ui.Page = Class.extend({
 		//
 	},
 
-	add_button: function(label, click, button_class) {
-		if (!button_class) button_class = "btn-secondary btn-default";
-		let button = $(`<button class="btn ${button_class} btn-sm">${label}</button>`);
+	add_button: function(label, click, button_class, button_size) {
+		if (!button_class) button_class = "btn-default";
+		if (!button_size) button_size = "btn-sm";
+		let button = $(`<button class="btn ${button_class} ${button_size}">${label}</button>`);
 		button.appendTo(this.custom_actions);
 		button.on('click', click);
 		this.custom_actions.removeClass('hide');

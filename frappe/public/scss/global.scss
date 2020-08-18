@@ -318,3 +318,12 @@ input[type="checkbox"] {
 	font-weight: 500;
 	color: var(--heading-color);
 }
+
+kbd {
+	background-color: var(--gray-500);
+	font-family: Inter;
+	color: var(--fg-color);
+	line-height: 1.2em;
+	height: 20px;
+	padding: 4px 8px;
+}
