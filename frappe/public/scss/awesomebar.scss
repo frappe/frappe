@@ -29,7 +29,7 @@
 		border: 1px solid var(--border-color);
 		left: 0;
 		margin: 0;
-		padding: 0;
+		padding: 4px;
 		z-index: 1;
 		top: calc(100% + var(--margin-xs));
 
@@ -38,6 +38,7 @@
 			font-size: 12px;
 			padding: var(--padding-sm);
 			color: var(--text-light);
+			border-radius: var(--border-radius-sm);
 		}
 
 		&> li .link-option {
