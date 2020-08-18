@@ -14,6 +14,12 @@ h5.modal-title {
 		}
 	}
 
+	.buttons {
+		button:not(:last-child) {
+			margin-right: 3px;
+		}
+	}
+
 	.modal-body {
 		padding: var(--padding-lg) 25px;
 	}
