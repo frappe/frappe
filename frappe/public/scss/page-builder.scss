@@ -446,12 +446,30 @@
 	}
 }
 
+.collapsible-title {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
 .collapsible-item a {
 	text-decoration: none;
 }
 
 .collapsible-item h3 {
 	margin-bottom: 0;
+}
+
+.collapsible-icon {
+	color: $gray-600;
+}
+
+.collapsible-icon .vertical {
+	@include transition();
+}
+
+.collapsible-icon.is-opened .vertical {
+	opacity: 0;
 }
 
 .collapsible-content {
