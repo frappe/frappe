@@ -25,6 +25,17 @@
 	}
 }
 
+.hero.align-center {
+	h1, .hero-subtitle, .hero-buttons {
+		text-align: center;
+	}
+
+	.hero-subtitle {
+		margin-left: auto;
+		margin-right: auto;
+	}
+}
+
 .section-description {
 	max-width: 56rem;
 	margin-top: 0.5rem;
