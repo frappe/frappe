@@ -271,6 +271,7 @@ $checkbox-size: 14px;
 input[type="checkbox"] {
 	position: relative;
 	width: 0 !important;
+	height: $checkbox-size;
 	margin-right: calc(#{$checkbox-size} + var(--checkbox-right-margin)) !important;
 	font-size: calc(#{$checkbox-size} - 1px);
 
