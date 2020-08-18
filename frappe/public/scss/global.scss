@@ -130,16 +130,22 @@ img {
 	}
 }
 
-.btn-secondary, .btn-default {
+.btn-secondary {
 	background-color: var(--control-bg);
 	color: var(--text-color);
 	&:hover, &:active {
-		background: var(--gray-200);
+		background: var(--gray-300);
+		color: var(--text-color);
 	}
 }
 
 .btn-default {
 	background-color: var(--fg-color);
+	color: var(--text-color);
+	&:hover, &:active {
+		background: var(--gray-200);
+		color: var(--text-color);
+	}
 }
 
 .btn-primary {
