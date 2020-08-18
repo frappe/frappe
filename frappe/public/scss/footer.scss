@@ -63,11 +63,16 @@
 	margin-bottom: 0.5rem;
 }
 
+.footer-grouped-links {
+	margin-bottom: 2rem;
+}
+
 .footer-group-links {
 	display: flex;
 	flex-direction: column;
 	flex-wrap: wrap;
 	max-height: 10rem;
+	margin-bottom: 0;
 }
 
 .footer-info {
