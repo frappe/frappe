@@ -11,7 +11,16 @@ from frappe.utils.password import get_decrypted_password
 from six import string_types
 
 class TwilioSettings(Document):
-	pass
+	def validate(self):
+		self.validate_twilio_credentials()
+
+	def validate_twilio_credentials(self):
+		try:
+			auth_token = get_decrypted_password("Twilio Settings", "Twilio Settings", 'auth_token')
+			client = Client(self.account_sid, auth_token)
+			client.api.accounts(self.account_sid).fetch()
+		except Exception:
+			frappe.throw(_("Invalid Account SID or Auth Token."))
 
 def send_whatsapp_message(sender, receiver_list, message):
 	import json
