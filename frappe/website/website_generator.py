@@ -154,7 +154,7 @@ class WebsiteGenerator(Document):
 		# Check if the route is changed
 		if old_doc and old_doc.route != self.route:
 			# Remove the route from index if the route has changed
-			remove_document_from_index("web_routes", old_doc.route)
+			remove_document_from_index(old_doc.route)
 
 	def update_website_search_index(self):
 		"""
@@ -169,4 +169,4 @@ class WebsiteGenerator(Document):
 			frappe.enqueue(update_index_for_path, path=self.route)
 		elif self.route:
 			# If the website is not published
-			remove_document_from_index("web_routes", self.route)
+			remove_document_from_index(self.route)
