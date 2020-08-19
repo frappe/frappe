@@ -334,6 +334,7 @@ frappe.PermissionEngine = Class.extend({
 		});
 
 		this.body.on("click", "input[type='checkbox']", function() {
+			frappe.dom.freeze();
 			var chk = $(this);
 			var args = {
 				role: chk.attr("data-role"),
@@ -348,6 +349,7 @@ frappe.PermissionEngine = Class.extend({
 				method: "update",
 				args: args,
 				callback: function(r) {
+					frappe.dom.unfreeze();
 					if(r.exc) {
 						// exception: reverse
 						chk.prop("checked", !chk.prop("checked"));
