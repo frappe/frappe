@@ -1,4 +1,5 @@
 from __future__ import unicode_literals, print_function
+from socket import timeout
 import redis
 from frappe.utils import cstr
 from collections import defaultdict
@@ -13,6 +14,7 @@ from uuid import uuid4
 from time import perf_counter
 import frappe.monitor
 from frappe import _dict
+from gevent import Timeout
 
 # imports - third-party imports
 
@@ -26,9 +28,8 @@ queue_timeout = {
 
 redis_connection = None
 
-def enqueue(method, queue='default', timeout=None, event=None, monitor=False, set_user=None,
-	method_name=None, job_name=None, now=False, enqueue_after_commit=False,
-	sessionless=False, partition_key=None, **kwargs):
+def enqueue(method, queue='default', timeout=None, event=None, set_user=None,
+	method_name=None, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
 
@@ -45,6 +46,9 @@ def enqueue(method, queue='default', timeout=None, event=None, monitor=False, se
 	if not queue:
 		queue = 'default'
 
+	if timeout is None:
+		timeout = queue_timeout.get(timeout, default_timeout)
+
 	if now or frappe.flags.in_migrate or frappe.flags.in_install_app:
 		if isinstance(method, str):
 			method = frappe.get_attr(method)
@@ -58,16 +62,14 @@ def enqueue(method, queue='default', timeout=None, event=None, monitor=False, se
 
 	queue_args = {
 		"site": frappe.local.site,
+		"timeout": timeout,
 		"user": set_user or frappe.session.user,
 		"method": method,
 		"method_name": method_name,
 		"event": event,
 		"job_name": job_name or cstr(method),
 		"kwargs": kwargs,
-		"partition_key": partition_key,
-		"queue": 'kafka' if partition_key else queue,
-		"request_id": frappe.flags.request_id,
-		"sessionless": sessionless,
+		"queue": queue,
 	}
 
 	if enqueue_after_commit:
@@ -92,13 +94,11 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 class Task(object):
-	__slots__ = ['id', 'site', 'method', 'user', 'method_name', 'kwargs', 'queue',
-				'request_id', 'flags']
+	__slots__ = ['id', 'site', 'method', 'user', 'method_name', 'kwargs', 'queue', 'timeout', 'flags']
 
 	pool = GeventPool(50)
 
-	def __init__(self, site, method, user, method_name, kwargs, queue,
-		request_id, **flags):
+	def __init__(self, site, method, user, method_name, kwargs, queue, timeout, **flags):
 		self.id = str(uuid4())
 		self.site = site
 		self.method = method
@@ -113,7 +113,7 @@ class Task(object):
 		self.method_name = method_name
 		self.kwargs = kwargs
 		self.queue = queue
-		self.request_id = request_id
+		self.timeout = timeout
 		self.flags = _dict(flags)
 
 	def process_task(self):
@@ -125,7 +125,6 @@ class Task(object):
 
 def fastrunner(task, throws=True, before_commit=None):
 	frappe.init(site=task.site)
-	frappe.flags.request_id = task.request_id
 	frappe.flags.task_id = str(uuid4())
 	frappe.flags.runner_type = f'fastrunner-{task.queue}'
 	frappe.connect()
@@ -136,6 +135,8 @@ def fastrunner(task, throws=True, before_commit=None):
 		'pool_size': len(task.pool),
 		'stage': 'Executing',
 	})
+	if task.timeout:
+		Timeout(task.timeout).start()
 	try:
 		if isinstance(task.method, string_types):
 			task.method = frappe.get_attr(task.method)

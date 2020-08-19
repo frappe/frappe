@@ -12,7 +12,7 @@ from frappe.integrations.offsite_backup_utils import get_latest_backup_file, sen
 from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.utils.background_jobs import enqueue
-from rq.timeouts import JobTimeoutException
+from gevent import Timeout as JobTimeoutException
 from botocore.exceptions import ClientError
 
 

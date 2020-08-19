@@ -16,7 +16,7 @@ from frappe.utils import (cint, get_request_site_address,
 from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
 from six.moves.urllib.parse import urlparse, parse_qs
-from rq.timeouts import JobTimeoutException
+from gevent import Timeout as JobTimeoutException
 from six import text_type
 
 ignore_list = [".DS_Store"]
