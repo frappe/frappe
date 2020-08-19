@@ -14,7 +14,7 @@ import frappe.defaults
 import frappe.model.meta
 
 from frappe import _
-from time import time
+from time import perf_counter
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils import cint
@@ -135,8 +135,7 @@ class Database(object):
 
 		# execute
 		try:
-			if debug:
-				time_start = time()
+			time_start = perf_counter()
 
 			self.log_query(query, values, debug, explain)
 
@@ -159,8 +158,9 @@ class Database(object):
 				if frappe.flags.in_migrate:
 					self.log_touched_tables(query)
 
+			time_end = perf_counter()
+			frappe.local.sql_time += time_end - time_start
 			if debug:
-				time_end = time()
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:

@@ -5,7 +5,7 @@ from rq.logutils import setup_loghandlers
 from frappe.utils import cstr
 from collections import defaultdict
 import frappe
-import os, socket, time
+import os, socket
 from frappe import _
 from six import string_types
 from types import FunctionType, MethodType
@@ -81,7 +81,7 @@ def enqueue_to_redis(kwargs):
 	pickled = pickle_dumps(kwargs)
 	# compressed = compress(pickled)
 	conn = get_redis_conn()
-	queue_name = f'latte:queue:{kwargs["queue"]}'
+	queue_name = f'frappe:bg:queue:{kwargs["queue"]}'
 	conn.lpush(queue_name, pickled)
 
 def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
@@ -95,12 +95,12 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 
 class Task(object):
 	__slots__ = ['id', 'site', 'method', 'user', 'method_name', 'kwargs', 'queue',
-				'request_id', 'job_run_id', 'sessionless', 'flags']
+				'request_id', 'flags']
 
 	pool = GeventPool(50)
 
-	def __init__(self, site, method, user, method_name, kwargs, queue, job_run_id,
-		request_id, sessionless=False, **flags):
+	def __init__(self, site, method, user, method_name, kwargs, queue,
+		request_id, **flags):
 		self.id = str(uuid4())
 		self.site = site
 		self.method = method
@@ -116,8 +116,6 @@ class Task(object):
 		self.kwargs = kwargs
 		self.queue = queue
 		self.request_id = request_id
-		self.job_run_id = job_run_id
-		self.sessionless = sessionless
 		self.flags = _dict(flags)
 
 	def process_task(self):
@@ -157,7 +155,7 @@ def fastrunner(task, throws=True, before_commit=None):
 			'pool_size': len(task.pool),
 			'stage': 'Completed',
 		})
-	except Exception as e:
+	except Exception:
 		frappe.db.rollback()
 		traceback = frappe.get_traceback()
 		log.info({

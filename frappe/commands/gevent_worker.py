@@ -1,11 +1,9 @@
-import re
 import frappe
 
 import signal
 import redis
 
 from sys import exit
-from frappe import errprint
 from frappe.utils.scheduler import enqueue_events_for_all_sites
 
 GRACEFUL_SHUTDOWN_WAIT = 10
@@ -18,7 +16,7 @@ def start(queues=None, enable_scheduler=False):
 	if isinstance(queues, str):
 		queues = queues.split(',')
 	frappe.init(site='')
-	errprint(f'Starting Gevent worker for queues {queues}')
+	print(f'Starting Gevent worker for queues {queues}')
 	handle_signal(signal.SIGHUP, graceful_shutdown)
 	handle_signal(signal.SIGINT, graceful_shutdown)
 	handle_signal(signal.SIGTERM, graceful_shutdown)
@@ -41,11 +39,11 @@ def fetch_jobs_from_redis(queues, conf):
 	redis_queue_host = conf.get('redis_queue', 'redis://localhost:11000')
 	log = frappe.logger('bg_info')
 	conn = None
-	errprint('Connecting to', redis_queue_host)
+	print('Connecting to', redis_queue_host)
 	conn = redis.StrictRedis.from_url(redis_queue_host)
-	errprint('Connected')
+	print('Connected')
 	lpop = True
-	rq_queues = [f'latte:queue:{queue}' for queue in queues]
+	rq_queues = [f'frappe:bg:queue:{queue}' for queue in queues]
 	while True:
 		lpop = not lpop
 		queue_name, job_meta = conn.execute_command(
@@ -65,6 +63,7 @@ def fetch_jobs_from_redis(queues, conf):
 				'stage': 'Fatal',
 				'traceback': frappe.get_traceback()
 			})
+			frappe.errprint(frappe.get_traceback())
 
 def deque_and_enqueue(queues, conf):
 	for task in fetch_jobs_from_redis(queues, conf):

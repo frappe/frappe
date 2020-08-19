@@ -182,6 +182,7 @@ def init(site, sites_path=None, new_site=False):
 	local.meta_cache = {}
 	local.form_dict = _dict()
 	local.session = _dict()
+	local.sql_time = 0
 
 	setup_module_map()
 
@@ -1681,7 +1682,6 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 @whitelist(allow_guest=True)
 def ping():
 	return "pong"
-
 
 def safe_encode(param, encoding='utf-8'):
 	try:

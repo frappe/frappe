@@ -161,7 +161,6 @@ def start_scheduler():
 	start_scheduler()
 
 def show_changes(changes):
-	frappe.cache().flushall()
 	print(changes)
 
 @click.command('worker')
