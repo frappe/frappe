@@ -11,7 +11,11 @@ import requests
 import base64
 
 class TestAPI(unittest.TestCase):
-	def insert_docs(self):
+	def test_insert_many(self):
+		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
+		frappe.db.sql("delete from `tabNote` where title in ('Sing','a','song','of','sixpence')")
+		frappe.db.commit()
+
 		server.insert_many([
 			{"doctype": "Note", "public": True, "title": "Sing"},
 			{"doctype": "Note", "public": True, "title": "a"},
@@ -19,13 +23,6 @@ class TestAPI(unittest.TestCase):
 			{"doctype": "Note", "public": True, "title": "of"},
 			{"doctype": "Note", "public": True, "title": "sixpence"},
 		])
-
-	def test_insert_many(self, server):
-		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
-		frappe.db.sql("delete from `tabNote` where title in ('Sing','a','song','of','sixpence')")
-		frappe.db.commit()
-
-		self.insert_docs(server)
 
 		self.assertTrue(frappe.db.get_value('Note', {'title': 'Sing'}))
 		self.assertTrue(frappe.db.get_value('Note', {'title': 'a'}))
@@ -44,8 +41,6 @@ class TestAPI(unittest.TestCase):
 
 	def test_list_docs(self):
 		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
-		self.insert_docs(server)
-
 		doc_list = server.get_list("Note")
 
 		self.assertTrue(len(doc_list))
