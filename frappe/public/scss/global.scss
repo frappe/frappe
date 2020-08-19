@@ -77,7 +77,7 @@ img {
 }
 
 .text-extra-muted {
-	color: #d1d8dd !important;
+	color: var(--gray-500) !important;
 }
 
 .no-underline {
@@ -273,6 +273,14 @@ select.input-xs {
 		margin-bottom: 0;
 	}
 	--checkbox-right-margin: 8px;
+
+	.label-area {
+		line-height: 1;
+	}
+
+	.input-area {
+		display: flex;
+	}
 }
 
 /* checkbox */
