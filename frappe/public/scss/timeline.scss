@@ -1,6 +1,6 @@
 $timeline-item-icon-size: 34px;
 $timeline-item-left-margin: var(--margin-xl);
-$threshold: 20;
+$threshold: 25;
 
 @mixin timeline-indicator($indicator-size) {
 	width: $indicator-size;
