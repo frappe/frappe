@@ -1,5 +1,4 @@
 from __future__ import unicode_literals, print_function
-from socket import timeout
 import redis
 from frappe.utils import cstr
 from collections import defaultdict
@@ -8,7 +7,7 @@ import os, socket
 from frappe import _
 from six import string_types
 from types import FunctionType, MethodType
-from pickle import dumps as pickle_dumps
+from pickle import dumps as pickle_dumps, loads as pickle_loads
 from gevent.pool import Pool as GeventPool
 from uuid import uuid4
 from time import perf_counter
@@ -190,29 +189,27 @@ def get_jobs(site=None, queue=None, key='method'):
 	'''Gets jobs per queue or per site or both'''
 	jobs_per_site = defaultdict(list)
 
-	def add_to_dict(job):
-		if key in job.kwargs:
-			jobs_per_site[job.kwargs['site']].append(job.kwargs[key])
-
-		elif key in job.kwargs.get('kwargs', {}):
-			# optional keyword arguments are stored in 'kwargs' of 'kwargs'
-			jobs_per_site[job.kwargs['site']].append(job.kwargs['kwargs'][key])
+	def add_to_dict(task):
+		try:
+			jobs_per_site[task.site].append(getattr(task, key))
+		except AttributeError:
+			if key in task.kwargs:
+				# optional keyword arguments are stored in 'kwargs' of 'kwargs'
+				jobs_per_site[task.site].append(task.kwargs[key])
 
 	for queue in get_queue_list(queue):
-		q = get_queue(queue)
+		for task in get_task_list(queue):
+			if site is None:
+				add_to_dict(task)
 
-		for job in q.jobs:
-			if job.kwargs.get('site'):
-				if site is None:
-					add_to_dict(job)
-
-				elif job.kwargs['site'] == site:
-					add_to_dict(job)
-
-			else:
-				print('No site found in job', job.__dict__)
+			elif task.site == site:
+				add_to_dict(task)
 
 	return jobs_per_site
+
+def get_task_list(queue):
+	conn = get_redis_conn()
+	return [Task(**pickle_loads(task_bin)) for task_bin in conn.lrange(f'frappe:bg:queue:{queue}', 0, -1)]
 
 def get_queue_list(queue_list=None):
 	'''Defines possible queues. Also wraps a given queue in a list after validating.'''
@@ -221,17 +218,10 @@ def get_queue_list(queue_list=None):
 		if isinstance(queue_list, string_types):
 			queue_list = [queue_list]
 
-		for queue in queue_list:
-			validate_queue(queue, default_queue_list)
-
 		return queue_list
 
 	else:
 		return default_queue_list
-
-def get_queue(queue, is_async=True):
-	'''Returns a Queue object tied to a redis connection'''
-	raise NotImplementedError('Unimplemented')
 
 def validate_queue(queue, default_queue_list=None):
 	if not default_queue_list:
