@@ -196,7 +196,6 @@ html, body {
 }
 
 $border-color: var(--border-color);
-$control-bg: var(--control-bg);
 $code-color: var(--purple-600);
 
 $border-radius: var(--border-radius);
@@ -219,9 +218,18 @@ $navbar-height: 60px;
 $page-head-height: 68px;
 
 $body-color: var(--text-light);
-$input-placeholder-color: var(--gray-500);
 $component-active-color: var(--fg-color);
+$component-active-bg: $gray-500;
 $modal-content-bg: var(--modal-bg);
+
+// input
+$input-bg: var(--control-bg);
+$input-placeholder-color: var(--gray-500);
+$input-disabled-bg: var(--gray-200);
+$input-color: var(--text-color);
+$input-box-shadow: none;
+$input-focus-border-color: var(--gray-500);
+$input-border-radius: var(--border-radius);
 
 // dropdown
 $dropdown-bg: var(--fg-color);
