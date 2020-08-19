@@ -16,7 +16,6 @@ import frappe.model.meta
 from frappe import _
 from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
-from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils import cint
 
@@ -43,6 +42,10 @@ class Database(object):
 	DEFAULT_COLUMNS = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',
 		'parentfield', 'parenttype', 'idx']
 
+	__slots__ = [
+		'host', 'port', 'user', 'db_name', '_conn', 'transaction_writes', 'auto_commit_on_many_writes',
+		'password', '_cursor', '__run_after_commit_queue',
+	]
 	class InvalidColumnName(frappe.ValidationError): pass
 
 
@@ -65,6 +68,7 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+		self.__run_after_commit_queue = []
 
 	def setup_type_map(self):
 		pass
@@ -757,8 +761,17 @@ class Database(object):
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
-		enqueue_jobs_after_commit()
+		self.flush_after_commit_queue()
 		flush_local_link_count()
+
+	def run_after_commit(self, fn, *args, **kwargs):
+		self.__run_after_commit_queue.append((fn, args, kwargs))
+
+	def flush_after_commit_queue(self):
+		queue = self.__run_after_commit_queue
+		self.__run_after_commit_queue = []
+		for fn, args, kwargs in queue:
+			fn(*args, **kwargs)
 
 	@staticmethod
 	def flush_realtime_log():

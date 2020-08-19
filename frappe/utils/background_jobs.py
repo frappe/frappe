@@ -11,7 +11,6 @@ from six import string_types
 from types import FunctionType, MethodType
 from pickle import dumps as pickle_dumps
 from gevent.pool import Pool as GeventPool
-from frappe.app import _sites_path as SITES_PATH
 from uuid import uuid4
 from time import perf_counter
 import frappe.monitor
@@ -125,7 +124,7 @@ class Task(object):
 		return self.pool.spawn(fastrunner, self)
 
 def fastrunner(task, throws=True, before_commit=None):
-	frappe.init(site=task.site, sites_path=SITES_PATH, force=True)
+	frappe.init(site=task.site)
 	frappe.flags.request_id = task.request_id
 	frappe.flags.task_id = str(uuid4())
 	frappe.flags.runner_type = f'fastrunner-{task.queue}'

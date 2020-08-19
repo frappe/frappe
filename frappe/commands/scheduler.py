@@ -169,7 +169,7 @@ def show_changes(changes):
 @click.option('--noreload', 'no_reload', is_flag=True, default=False)
 @click.option('--quiet', is_flag=True, default=False, help='Hide Log Outputs')
 @click.option('--enable-scheduler', is_flag=True, default=False, help='Enable Scheduler')
-def latte_worker(queue, quiet=False, no_reload=False, enable_scheduler=False):
+def start_worker(queue, quiet=False, no_reload=False, enable_scheduler=False):
 	if not queue:
 		raise Exception('Cannot run worker without queue')
 
