@@ -127,6 +127,7 @@ table.no-border, table.no-border td {
 .print-format label {
 	/* wkhtmltopdf breaks label into multiple lines when it is inline-block */
 	display: block;
+	font-weight: 700;
 }
 
 .print-format img {

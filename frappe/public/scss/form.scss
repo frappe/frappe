@@ -37,6 +37,14 @@
 	.section-head.collapsed {
 		margin-bottom: 0px;
 	}
+
+	.form-group {
+		margin-bottom: 0;
+	}
+}
+
+.empty-section {
+	display: none !important;
 }
 
 .modal {
@@ -107,7 +115,7 @@
 			margin-bottom: var(--margin-xs);
 		}
 		.ql-editor {
-			background-color: var(--gray-200);
+			background-color: var(--control-bg);
 		}
 	}
 
