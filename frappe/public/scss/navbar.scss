@@ -30,6 +30,7 @@
 .search-bar {
 	flex: 1;
 	max-width: 400px;
+	--icon-stroke: var(--text-light);
 	.search-icon {
 		position: absolute;
 		margin-left: 12px;
