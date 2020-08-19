@@ -13,6 +13,7 @@ dropbox==9.1.0
 email-reply-parser==0.5.9
 Faker==2.0.4
 future==0.18.2
+gevent==20.6.2
 gitdb2==2.0.6;python_version<'3.4'
 GitPython==2.1.15
 google-api-python-client==1.9.3
@@ -70,5 +71,6 @@ xlrd==1.2.0
 zxcvbn-python==4.4.24
 pycryptodome==3.9.8
 paytmchecksum==1.7.0
+watchgod==0.6
 wrapt==1.10.11
 twilio==6.44.2

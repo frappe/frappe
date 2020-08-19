@@ -8,8 +8,14 @@ import frappe
 import os, socket, time
 from frappe import _
 from six import string_types
+from types import FunctionType, MethodType
+from pickle import dumps as pickle_dumps
+from gevent.pool import Pool as GeventPool
+from frappe.app import _sites_path as SITES_PATH
 from uuid import uuid4
+from time import perf_counter
 import frappe.monitor
+from frappe import _dict
 
 # imports - third-party imports
 
@@ -23,8 +29,9 @@ queue_timeout = {
 
 redis_connection = None
 
-def enqueue(method, queue='default', timeout=None, event=None,
-	is_async=True, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
+def enqueue(method, queue='default', timeout=None, event=None, monitor=False, set_user=None,
+	method_name=None, job_name=None, now=False, enqueue_after_commit=False,
+	sessionless=False, partition_key=None, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
 
@@ -32,43 +39,51 @@ def enqueue(method, queue='default', timeout=None, event=None,
 		:param queue: should be either long, default or short
 		:param timeout: should be set according to the functions
 		:param event: this is passed to enable clearing of jobs from queues
-		:param is_async: if is_async=False, the method is executed immediately, else via a worker
 		:param job_name: can be used to name an enqueue call, which can be used to prevent duplicate calls
 		:param now: if now=True, the method is executed via frappe.call
 		:param kwargs: keyword arguments to be passed to the method
 	'''
-	# To handle older implementations
-	is_async = kwargs.pop('async', is_async)
+	kwargs.pop('async', None)
+	kwargs.pop('is_async', None)
+	if not queue:
+		queue = 'default'
 
-	if now or frappe.flags.in_migrate:
-		return frappe.call(method, **kwargs)
+	if now or frappe.flags.in_migrate or frappe.flags.in_install_app:
+		if isinstance(method, str):
+			method = frappe.get_attr(method)
+		return method(**kwargs)
 
-	q = get_queue(queue, is_async=is_async)
-	if not timeout:
-		timeout = queue_timeout.get(queue) or 300
+	if not method_name:
+		if type(method) in (FunctionType, MethodType):
+			method_name = f'{method.__module__}.{method.__name__}'
+		else:
+			method_name = str(method)
+
 	queue_args = {
 		"site": frappe.local.site,
-		"user": frappe.session.user,
+		"user": set_user or frappe.session.user,
 		"method": method,
+		"method_name": method_name,
 		"event": event,
 		"job_name": job_name or cstr(method),
-		"is_async": is_async,
-		"kwargs": kwargs
+		"kwargs": kwargs,
+		"partition_key": partition_key,
+		"queue": 'kafka' if partition_key else queue,
+		"request_id": frappe.flags.request_id,
+		"sessionless": sessionless,
 	}
-	if enqueue_after_commit:
-		if not frappe.flags.enqueue_after_commit:
-			frappe.flags.enqueue_after_commit = []
 
-		frappe.flags.enqueue_after_commit.append({
-			"queue": queue,
-			"is_async": is_async,
-			"timeout": timeout,
-			"queue_args":queue_args
-		})
-		return frappe.flags.enqueue_after_commit
+	if enqueue_after_commit:
+		frappe.db.run_after_commit(enqueue_to_redis, queue_args)
 	else:
-		return q.enqueue_call(execute_job, timeout=timeout,
-			kwargs=queue_args)
+		enqueue_to_redis(queue_args)
+
+def enqueue_to_redis(kwargs):
+	pickled = pickle_dumps(kwargs)
+	# compressed = compress(pickled)
+	conn = get_redis_conn()
+	queue_name = f'latte:queue:{kwargs["queue"]}'
+	conn.lpush(queue_name, pickled)
 
 def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
 	now=False, **kwargs):
@@ -79,76 +94,83 @@ def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
 def run_doc_method(doctype, name, doc_method, **kwargs):
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
-def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
-	'''Executes job in a worker, performs commit/rollback and logs if there is any error'''
-	if is_async:
-		frappe.connect(site)
-		if os.environ.get('CI'):
-			frappe.flags.in_test = True
+class Task(object):
+	__slots__ = ['id', 'site', 'method', 'user', 'method_name', 'kwargs', 'queue',
+				'request_id', 'job_run_id', 'sessionless', 'flags']
 
-		if user:
-			frappe.set_user(user)
+	pool = GeventPool(50)
 
-	if isinstance(method, string_types):
-		method_name = method
-		method = frappe.get_attr(method)
-	else:
-		method_name = cstr(method.__name__)
+	def __init__(self, site, method, user, method_name, kwargs, queue, job_run_id,
+		request_id, sessionless=False, **flags):
+		self.id = str(uuid4())
+		self.site = site
+		self.method = method
+		self.user = user
 
-	frappe.monitor.start("job", method_name, kwargs)
+		if not method_name:
+			if isinstance(method, string_types):
+				method_name = method
+			else:
+				method_name = f'{self.method.__module__}.{self.method.__name__}'
+
+		self.method_name = method_name
+		self.kwargs = kwargs
+		self.queue = queue
+		self.request_id = request_id
+		self.job_run_id = job_run_id
+		self.sessionless = sessionless
+		self.flags = _dict(flags)
+
+	def process_task(self):
+		return self.pool.spawn(fastrunner, self)
+
+def fastrunner(task, throws=True, before_commit=None):
+	frappe.init(site=task.site, sites_path=SITES_PATH, force=True)
+	frappe.flags.request_id = task.request_id
+	frappe.flags.task_id = str(uuid4())
+	frappe.flags.runner_type = f'fastrunner-{task.queue}'
+	frappe.connect()
+	frappe.local.lang = frappe.db.get_default('lang')
+	log = frappe.logger('bg_info')
+	log.info({
+		'method': task.method_name,
+		'pool_size': len(task.pool),
+		'stage': 'Executing',
+	})
 	try:
-		method(**kwargs)
-
-	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
-		frappe.db.rollback()
-
-		if (retry < 5 and
-			(isinstance(e, frappe.RetryBackgroundJobError) or
-				(frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)))):
-			# retry the job if
-			# 1213 = deadlock
-			# 1205 = lock wait timeout
-			# or RetryBackgroundJobError is explicitly raised
-			frappe.destroy()
-			time.sleep(retry+1)
-
-			return execute_job(site, method, event, job_name, kwargs,
-				is_async=is_async, retry=retry+1)
-
+		if isinstance(task.method, string_types):
+			task.method = frappe.get_attr(task.method)
+		if task.user:
+			frappe.set_user(task.user)
 		else:
-			frappe.log_error(title=method_name)
-			raise
-
-	except:
+			frappe.set_user('Administrator')
+		start_time = perf_counter()
+		task.method(**task.kwargs)
+		if before_commit:
+			before_commit(task)
+		end_time = perf_counter()
+		frappe.db.commit()
+		log.info({
+			'turnaround_time': end_time - start_time,
+			'python_time': (end_time - start_time) - frappe.local.sql_time,
+			'sql_time': frappe.local.sql_time,
+			'method': task.method_name,
+			'pool_size': len(task.pool),
+			'stage': 'Completed',
+		})
+	except Exception as e:
 		frappe.db.rollback()
-		frappe.log_error(title=method_name)
-		frappe.db.commit()
-		print(frappe.get_traceback())
-		raise
-
-	else:
-		frappe.db.commit()
-
+		traceback = frappe.get_traceback()
+		log.info({
+			'sql_time': frappe.local.sql_time,
+			'method': task.method_name,
+			'pool_size': len(task.pool),
+			'stage': 'Failed',
+			'traceback': traceback,
+		})
+		frappe.log_error(title=task.method_name, message=traceback)
 	finally:
-		frappe.monitor.stop()
-		if is_async:
-			frappe.destroy()
-
-def start_worker(queue=None, quiet = False):
-	'''Wrapper to start rq worker. Connects to redis and monitors these queues.'''
-	with frappe.init_site():
-		# empty init is required to get redis_queue from common_site_config.json
-		redis_connection = get_redis_conn()
-
-	if os.environ.get('CI'):
-		setup_loghandlers('ERROR')
-
-	with Connection(redis_connection):
-		queues = get_queue_list(queue)
-		logging_level = "INFO"
-		if quiet:
-			logging_level = "WARNING"
-		Worker(queues, name=get_worker_name(queue)).work(logging_level = logging_level)
+		frappe.destroy()
 
 def get_worker_name(queue):
 	'''When limiting worker to a specific queue, also append queue name to default worker name'''
