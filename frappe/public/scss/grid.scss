@@ -194,12 +194,6 @@
 }
 
 @media (max-width: 767px) {
-	.grid-body {
-		.btn-open-row {
-			margin-top: 0px;
-			padding: 0px;
-		}
-	}
 
 	// lesser padding for controls
 	.editable-row .frappe-control {
@@ -258,12 +252,17 @@
 	border-radius: var(--border-radius-md);
 	@include base-grid();
 
+	.panel-title {
+		line-height: 1.8em;
+	}
+
 	.btn {
 		box-shadow: none;
 	}
 
 	.form-section {
 		padding: 15px;
+		padding: 4px 8px;
 
 		&:not(:first-child) {
 			border-top: 1px solid var(--border-color);
@@ -279,11 +278,14 @@
 	}
 
 	.grid-delete-row {
-		padding: 4px 6px;
 
 		.icon use {
 			stroke: var(--fg-color);
 		}
+	}
+
+	.grid-append-row {
+		margin-top: calc(-1 * var(--margin-xs));
 	}
 }
 

@@ -227,10 +227,11 @@ export default class GridRow {
 			// remove row
 			if(!this.open_form_button) {
 				this.open_form_button = $(`
-					<div class="btn-open-row"><a>
-						${frappe.utils.icon('edit', 'xs')}</a>
-					<div>Edit</div></div>`
-				)
+					<div class="btn-open-row">
+						<a>${frappe.utils.icon('edit', 'xs')}</a>
+						<div class="hidden-xs">Edit</div>
+					</div>
+				`)
 				.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
 				.on('click', function() { me.toggle_view(); return false; });
 

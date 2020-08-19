@@ -42,7 +42,7 @@ export default class GridRowForm {
 				<div class="toolbar grid-header-toolbar">
 					<span class="panel-title">
 						${ __("Editing Row") } #<span class="grid-form-row-index"></span></span>
-					<div class="btn btn-secondary btn-sm pull-right" style="margin-left: 7px;">
+					<div class="btn btn-secondary btn-sm pull-right grid-collapse-row" style="margin-left: 7px;">
 						${frappe.utils.icon('down')}</div>
 					<span class="row-actions">
 						<button class="btn btn-secondary btn-sm pull-right grid-move-row hidden-xs"
@@ -53,7 +53,7 @@ export default class GridRowForm {
 							${frappe.utils.icon('duplicate')}
 							${ __("Duplicate") }
 						</button>
-						<button class="btn btn-secondary btn-sm pull-right grid-insert-row"
+						<button class="btn btn-secondary btn-sm pull-right grid-insert-row hidden-xs"
 							style="margin-left: 7px;">
 							${ __("Insert Above") }</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-insert-row-below hidden-xs"
@@ -67,7 +67,7 @@ export default class GridRowForm {
 			</div>
 			<div class="grid-form-body">
 				<div class="form-area"></div>
-				<div class="grid-footer-toolbar clearfix hidden-xs">
+				<div class="grid-footer-toolbar hidden-xs">
 					<span> ${frappe.utils.icon("keyboard", "md")} </span>
 					<span class="text-medium"> ${ __("Keyboard Shortcuts") }: </span>
 					<kbd>${ __("Ctrl + Up") }</kbd> . <kbd>${ __("Ctrl + Down") }</kbd> . <kbd>${ __("ESC") }</kbd>

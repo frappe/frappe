@@ -4,8 +4,8 @@
 frappe.provide("frappe.ui.toolbar");
 frappe.provide('frappe.search');
 
-frappe.ui.toolbar.Toolbar = Class.extend({
-	init: function() {
+frappe.ui.toolbar.Toolbar = class {
+	constructor () {
 		$('header').replaceWith(frappe.render_template("navbar", {
 			avatar: frappe.avatar(frappe.session.user, 'avatar-medium')
 		}));
@@ -17,18 +17,18 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		this.setup_notifications();
 		this.make();
-	},
+	}
 
-	make: function() {
+	make () {
 		this.setup_sidebar();
 		this.setup_help();
 
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
-	},
+	}
 
-	bind_events: function() {
+	bind_events () {
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
 			$("header .navbar .custom-menu").remove();
@@ -44,9 +44,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar-toggle-full-width').click(() => {
 			frappe.ui.toolbar.toggle_full_width();
 		});
-	},
+	}
 
-	setup_sidebar: function() {
+	setup_sidebar () {
 		var header = $('header');
 		header.find(".toggle-sidebar").on("click", function() {
 			var layout_side_section = $('.layout-side-section');
@@ -80,9 +80,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				});
 			}
 		});
-	},
+	}
 
-	setup_help: function() {
+	setup_help () {
 		frappe.provide('frappe.help');
 		frappe.help.show_results = show_results;
 
@@ -154,13 +154,13 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				e.preventDefault();
 			}
 		}
-	},
+	}
 
-	setup_notifications: function() {
+	setup_notifications () {
 		this.notifications = new frappe.ui.Notifications();
 	}
 
-});
+}
 
 $.extend(frappe.ui.toolbar, {
 	add_dropdown_button: function(parent, label, click, icon) {
