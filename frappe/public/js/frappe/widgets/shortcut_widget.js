@@ -13,6 +13,7 @@ export default class ShortcutWidget extends Widget {
 			label: this.label,
 			format: this.format,
 			link_to: this.link_to,
+			doc_view: this.doc_view,
 			color: this.color,
 			restrict_to_domain: this.restrict_to_domain,
 			stats_filter: this.stats_filter,
@@ -30,6 +31,7 @@ export default class ShortcutWidget extends Widget {
 				type: this.type,
 				is_query_report: this.is_query_report,
 				doctype: this.ref_doctype,
+				doc_view: this.doc_view
 			});
 
 			let filters = this.get_doctype_filter();

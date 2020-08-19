@@ -22,6 +22,21 @@ class TestDB(unittest.TestCase):
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
 
+	def test_set_value(self):
+		todo1 = frappe.get_doc(dict(doctype='ToDo', description = 'test_set_value 1')).insert()
+		todo2 = frappe.get_doc(dict(doctype='ToDo', description = 'test_set_value 2')).insert()
+
+		frappe.db.set_value('ToDo', todo1.name, 'description', 'test_set_value change 1')
+		self.assertEqual(frappe.db.get_value('ToDo', todo1.name, 'description'), 'test_set_value change 1')
+
+		# multiple set-value
+		frappe.db.set_value('ToDo', dict(description=('like', '%test_set_value%')),
+			'description', 'change 2')
+
+		self.assertEqual(frappe.db.get_value('ToDo', todo1.name, 'description'), 'change 2')
+		self.assertEqual(frappe.db.get_value('ToDo', todo2.name, 'description'), 'change 2')
+
+
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
 
