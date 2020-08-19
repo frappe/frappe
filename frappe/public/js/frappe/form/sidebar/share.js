@@ -6,23 +6,20 @@
 frappe.ui.form.Share = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.shares = this.parent.find('.shares');
 	},
 	refresh: function() {
 		this.render_sidebar();
 	},
 	render_sidebar: function() {
-		this.parent.empty();
+		this.shares.empty();
 		const shared = this.shared || this.frm.get_docinfo().shared;
 		const shared_users = shared.filter(Boolean).map(s => s.user);
 
 		// REDESIGN-TODO: handle "shared with everyone"
-		this.parent.append(frappe.avatar_group(shared_users, 5, null, 'left'));
-		if (!this.frm.is_new()) {
-			this.parent.append(`
-				<div class="share-doc-btn cursor-pointer" title="${__('Share')}">
-					${frappe.utils.icon('add')}
-				</div>
-			`);
+		this.shares.append(frappe.avatar_group(shared_users, 5, null, 'left'));
+		if (this.frm.is_new()) {
+			this.parent.find(".share-doc-btn").hide();
 		}
 
 		this.parent.find(".share-doc-btn").on("click", () => {

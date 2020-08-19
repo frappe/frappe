@@ -48,7 +48,7 @@
 			<span class="badge n-comments">0</span>
 		</a>
 	</li>
-	{% if(frappe.help.has_help(doctype)) { %}
+	{% if (frappe.help.has_help(doctype)) { %}
 	<li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
 	{% } %}
 </ul>
@@ -68,7 +68,7 @@
 		<svg class="icon icon-sm"><use href="#icon-attachment"></use></svg>
 		{%= __("Attachments") %}
 	</li>
-	<li class="add-assignment-btn add-attachment-btn">
+	<li class="add-attachment-btn">
 		<button class="text-muted btn btn-default">
 			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
 		</button>
@@ -85,13 +85,24 @@
 		<svg class="icon icon-sm"><use href="#icon-review"></use></svg>
 		{%= __("Reviews") %}
 	</li>
+	<li class="reviews"></li>
+	<li class="add-review-btn">
+		<button class="text-muted btn btn-default">
+			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
+		</button>
+	</li>
 </ul>
-<ul class="list-unstyled sidebar-menu">
+<ul class="list-unstyled sidebar-menu form-shared">
 	<li class="sidebar-label">
 		<svg class="icon icon-sm"><use href="#icon-share"></use></svg>
 		{%= __("Shared With") %}
 	</li>
-	<li class="form-shared"></li>
+	<li class="shares"></li>
+	<li class="share-doc-btn">
+		<button class="text-muted btn btn-default">
+			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
+		</button>
+	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu hidden">
 	<li class="sidebar-label viewers-label">{%= __("Currently Viewing") %}</li>

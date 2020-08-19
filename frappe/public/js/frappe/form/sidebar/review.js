@@ -8,7 +8,7 @@ frappe.ui.form.Review = class Review {
 		this.parent = parent;
 		this.frm = frm;
 		this.points = frappe.boot.points;
-		this.review_list_wrapper = this.parent;
+		this.reviews = this.parent.find('.reviews');
 		this.add_review_button();
 		this.update_reviewers();
 	}
@@ -21,17 +21,7 @@ frappe.ui.form.Review = class Review {
 		});
 	}
 	add_review_button() {
-		this.add_review_button_wrapper = $(`
-			<li>
-				<div class="add-review-btn cursor-pointer" title="${__('Add Review')}">
-					${frappe.utils.icon('add')}
-				</div>
-			</li>
-		`);
-
-		this.add_review_button_wrapper.appendTo(this.parent);
-
-		const review_button = this.add_review_button_wrapper.find('.add-review-btn');
+		const review_button = this.parent.find('.add-review-btn');
 
 		if (!this.points.review_points) {
 			review_button.click(false);
@@ -139,7 +129,7 @@ frappe.ui.form.Review = class Review {
 		const review_logs = this.frm.get_docinfo().energy_point_logs
 			.filter(log => ['Appreciation', 'Criticism'].includes(log.type));
 
-		this.parent.find('.review').remove();
+		this.reviews.empty();
 		review_logs.forEach(log => {
 			let review_pill = $(`
 				<li class="review ${log.points < 0 ? 'criticism': 'appreciation'}">
@@ -148,7 +138,7 @@ frappe.ui.form.Review = class Review {
 					</div>
 				</li>
 			`);
-			review_pill.insertBefore(this.add_review_button_wrapper);
+			this.reviews.append(review_pill);
 			this.setup_detail_popover(review_pill, log);
 		});
 	}

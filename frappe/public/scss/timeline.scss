@@ -1,5 +1,6 @@
 $timeline-item-icon-size: 34px;
 $timeline-item-left-margin: var(--margin-xl);
+$threshold: 20;
 
 @mixin timeline-indicator($indicator-size) {
 	width: $indicator-size;
@@ -7,7 +8,8 @@ $timeline-item-left-margin: var(--margin-xl);
 	border-radius: 50%;
 	font-size: var(--text-xs);
 	position: absolute;
-	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, 15px)");
+	// please do not touch this sacred code
+	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, max(0px, (#{$threshold}px - (50% - #{$indicator-size}/2)) * #{$threshold}))");
 	left: calc(-1 * (#{$indicator-size}/2));
 	background-color: var(--gray-600);
 	display: inline-flex;

@@ -30,6 +30,7 @@
 .search-bar {
 	flex: 1;
 	max-width: 400px;
+	--icon-stroke: var(--text-light);
 	.search-icon {
 		position: absolute;
 		margin-left: 12px;
@@ -50,6 +51,10 @@
 		background: white;
 		box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
 		height: 42px;
+	}
+
+	input::placeholder {
+		color: var(--text-light);
 	}
 }
 

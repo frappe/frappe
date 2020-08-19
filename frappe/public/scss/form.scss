@@ -1,9 +1,5 @@
 .form-control {
 	border: none;
-	background-color: $control-bg;
-	color: $text-color;
-	box-shadow: none;
-	border-radius: $border-radius;
 	font-size: var(--text-md);
 }
 
@@ -95,7 +91,7 @@
 	border-radius: $border-radius;
 	min-height: 30px;
 	font-weight: 400;
-	background-color: $control-bg;
+	background-color: transparent;
 	padding: var(--padding-xs) var(--padding-sm);
 }
 

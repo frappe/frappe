@@ -266,19 +266,33 @@ select.input-xs {
 	margin: 0px;
 }
 
+.checkbox {
+	label {
+		display: inline-flex;
+		align-items: center;
+		margin-bottom: 0;
+	}
+	--checkbox-right-margin: 8px;
+}
+
 /* checkbox */
+$checkbox-size: 14px;
 input[type="checkbox"] {
 	position: relative;
-	visibility: hidden;
+	width: 0 !important;
+	height: $checkbox-size;
+	margin-right: calc(#{$checkbox-size} + var(--checkbox-right-margin)) !important;
+	font-size: calc(#{$checkbox-size} - 1px);
 
 	&:before {
-		width: 14px;
-		height: 14px;
-		display: block;
+		width: $checkbox-size;
+		height: $checkbox-size;
+		position: absolute;
+		top: 0;
+		display: inline-block;
+		line-height: 1;
 		text-align: center;
-		line-height: 11px;
 		content: url('/assets/frappe/icons/frapicon-checkbox.svg');
-		visibility: visible;
 		border: 1px solid var(--gray-400);
 		box-sizing: border-box;
 		box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);

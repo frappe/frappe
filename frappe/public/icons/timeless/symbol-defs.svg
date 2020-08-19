@@ -581,6 +581,4 @@
 		<path d="M30.031 16.246c0 0.816-0.661 1.477-1.477 1.477s-1.477-0.661-1.477-1.477c0-0.816 0.661-1.477 1.477-1.477s1.477 0.661 1.477 1.477z"></path>
 		<path fill="none" stroke="#192734" style="stroke: var(--color1, #192734)" stroke-linejoin="round" stroke-linecap="round" stroke-miterlimit="4" stroke-width="2.4615" d="M12.308 22.154h17.231"></path>
 	</symbol>
-	<view xmlns="http://www.w3.org/2000/svg" id="icon-right-view" viewBox="0 0 16 16"/>
-	<use xmlns="http://www.w3.org/2000/svg" href="#icon-right" width="16" height="16" x="0" y="0"/>
 </svg>

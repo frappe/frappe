@@ -68,10 +68,6 @@ body[data-route^="Module"] .main-menu {
 }
 
 .sidebar-menu {
-	.octicon {
-		font-size: 12px;
-	}
-
 	h6, .h6 {
 		margin-top: 0px;
 		margin-bottom: 7px;
@@ -111,35 +107,8 @@ body[data-route^="Module"] .main-menu {
 		right: 5px;
 	}
 
-	.form-shared, .form-viewers {
-		display: inline-flex;
-		.share-doc-btn {
-			cursor: pointer;
-		}
-
-		.octicon {
-			position: relative;
-			left: 4.5px;
-		}
-
-		.shared-with-everyone {
-			border-style: solid;
-			border-color: $control-bg;
-			background-color: $control-bg;
-
-			.octicon {
-				color: $text-color !important;
-			}
-		}
-	}
-
 	.liked-by {
 		margin-left: -4px;
-	}
-
-	.liked-by .octicon-heart {
-		font-size: 16px;
-		cursor: pointer;
 	}
 
 	.sidebar-image-section {
@@ -183,17 +152,6 @@ body[data-route^="Module"] .main-menu {
 			z-index: 1;
 		}
 
-	}
-}
-
-.form-sidebar .form-shared .share-doc-btn, .add-review-btn {
-	&:hover,
-	&:focus,
-	&:active {
-		background-color: $control-bg;
-		.octicon-plus {
-			color: $text-color !important;
-		}
 	}
 }
 
@@ -400,9 +358,15 @@ body[data-route^="Module"] .main-menu {
 	display: flex;
 }
 
-.add-assignment-btn, .add-attachment-button {
+.add-assignment-btn,
+.add-attachment-btn,
+.shares,
+.share-doc-btn,
+.reviews,
+.add-review-btn {
 	margin-bottom: var(--margin-sm);
-	display: inline-block;
+	display: inline-flex;
+	vertical-align: top;
 	.btn {
 		padding: var(--padding-xs);
 	}
@@ -419,28 +383,9 @@ body[data-route^="Module"] .main-menu {
 		justify-content: center;
 		font-size: var(--text-xs);
 		align-items: center;
+		margin-bottom: var(--margin-sm);
+		margin-right: var(--margin-xs);
 	}
-	li:last-child {
-		display: inline-block;
-	}
-}
-
-.add-review-btn, .share-doc-btn {
-	height: 28px;
-	width: 28px;
-	border-radius: var(--border-radius);
-	border: 1px dashed var(--dark-border-color);
-	background: var(--gray-50);
-	text-align: center;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	background-color: var(--fg-color);
-}
-
-.form-shared .avatar-group, .add-review-btn, .share-doc-btn, .review {
-	margin-bottom: var(--margin-sm);
-	margin-right: var(--margin-sm);
 }
 
 .review-popover  {

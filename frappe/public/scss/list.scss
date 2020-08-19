@@ -169,6 +169,8 @@ body.no-list-sidebar {
 	}
 }
 
+$level-margin-right: 8px;
+
 .list-subject {
 	flex: 2;
 	justify-content: start;
@@ -178,7 +180,7 @@ body.no-list-sidebar {
 	}
 
 	.level-item {
-		margin-right: 8px;
+		margin-right: $level-margin-right;
 	}
 
 	&.seen {
@@ -210,6 +212,7 @@ body.no-list-sidebar {
 
 input.list-check-all, input.list-row-checkbox {
 	margin-top: 0px;
+	--checkbox-right-margin: #{$level-margin-right};
 }
 
 .filterable {
