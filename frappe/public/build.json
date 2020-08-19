@@ -5,6 +5,7 @@
 		"public/less/page.less",
 		"public/css/list.css",
 		"public/less/flex.less",
+		"public/css/octicons/octicons.css",
 		"public/less/avatar.less"
 	],
 	"css/frappe-chat-web.css": [
