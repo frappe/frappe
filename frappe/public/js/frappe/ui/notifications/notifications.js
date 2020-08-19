@@ -21,8 +21,8 @@ frappe.ui.Notifications = class Notifications {
 		this.panel_events = this.dropdown_list.find('.panel-events');
 		this.panel_notifications = this.dropdown_list.find('.panel-notifications');
 
-		this.notification_indicator = this.dropdown.find(
-			'.notifications-indicator'
+		this.notifications_icon = this.dropdown.find(
+			'.notifications-icon'
 		);
 
 		this.user = frappe.session.user;
@@ -133,17 +133,6 @@ frappe.ui.Notifications = class Notifications {
 		);
 	}
 
-	change_activity_status() {
-		if (this.dropdown_list.find('.activity-status')) {
-			this.dropdown_list.find('.activity-status').replaceWith(
-				`<a class="recent-item text-center text-muted"
-					href="#List/Notification Log">
-					<div class="full-log-btn">${__('View Full Log')}</div>
-				</a>`
-			);
-		}
-	}
-
 	set_field_as_read(docname, $el) {
 		frappe.call(
 			'frappe.desk.doctype.notification_log.notification_log.mark_as_read',
@@ -185,8 +174,8 @@ frappe.ui.Notifications = class Notifications {
 
 		this.dropdown.on('show.bs.dropdown', () => {
 			this.toggle_seen(true);
-			if (this.notification_indicator.is(':visible')) {
-				this.notification_indicator.hide();
+			if (this.notifications_icon.find('.notifications-unseen').is(':visible')) {
+				this.toggle_notification_icon(true);
 				frappe.call(
 					'frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide'
 				);
@@ -262,7 +251,7 @@ class NotificationsView extends BaseNotificaitonsView {
 			let new_item = r[0];
 			this.dropdown_items.unshift(new_item);
 			if (this.dropdown_items.length > this.max_length) {
-				this.dropdown_list
+				this.container
 					.find('.recent-notification')
 					.last()
 					.remove();
@@ -271,6 +260,17 @@ class NotificationsView extends BaseNotificaitonsView {
 
 			this.insert_into_dropdown();
 		});
+	}
+
+	change_activity_status() {
+		if (this.container.find('.activity-status')) {
+			this.container.find('.activity-status').replaceWith(
+				`<a class="recent-item text-center text-muted"
+					href="#List/Notification Log">
+					<div class="full-log-btn">${__('View Full Log')}</div>
+				</a>`
+			);
+		}
 	}
 
 	mark_as_read(docname, $el) {
@@ -323,6 +323,7 @@ class NotificationsView extends BaseNotificaitonsView {
 			</a>`);
 
 		item_html.find('.mark-as-read').on('click', (e) => {
+			e.preventDefault();
 			e.stopImmediatePropagation();
 			if (!field.read) {
 				this.mark_as_read(field.name, item_html);
@@ -381,15 +382,19 @@ class NotificationsView extends BaseNotificaitonsView {
 		);
 	}
 
+	toggle_notification_icon(seen) {
+		this.notifications_icon.find('.notifications-seen').toggle(seen);
+		this.notifications_icon.find('.notifications-unseen').toggle(!seen);
+	}
+
 	setup_notification_listeners() {
-		// REDESIGN-TODO: toggle icon indicator
 		frappe.realtime.on('notification', () => {
-			// this.dropdown.find('.notifications-indicator').show();
+			this.toggle_notification_icon(false)
 			this.update_dropdown();
 		});
 
 		frappe.realtime.on('indicator_hide', () => {
-			// this.dropdown.find('.notifications-indicator').hide();
+			this.toggle_notification_icon(true)
 		});
 	}
 }

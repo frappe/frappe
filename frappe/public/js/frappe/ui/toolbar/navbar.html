@@ -21,7 +21,6 @@
 			</form>
 			<ul class="navbar-nav ml-lg-4">
 				<li class="nav-item dropdown dropdown-notifications dropdown-mobile">
-					<span class="notifications-indicator"><i class="fa fa-circle"></i></span>
 					<a
 						class="nav-link notifications-icon text-muted"
 						data-toggle="dropdown"
@@ -29,8 +28,11 @@
 						aria-expanded="true"
 						href="#"
 						onclick="return false;">
-						<span>
+						<span class="notifications-seen">
 							<svg class="icon"><use xlink:href="#icon-notification"></use></svg>
+						</span>
+						<span class="notifications-unseen">
+							<svg class="icon"><use xlink:href="#icon-notification-with-indicator"></use></svg>
 						</span>
 					</a>
 					<div class="dropdown-menu notifications-list dropdown-menu-right" role="menu">
