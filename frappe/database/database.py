@@ -1042,14 +1042,6 @@ class Database(object):
 					), tuple(insert_list))
 				insert_list = []
 
-def enqueue_jobs_after_commit():
-	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
-		for job in frappe.flags.enqueue_after_commit:
-			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
-			q.enqueue_call(execute_job, timeout=job.get("timeout"),
-							kwargs=job.get("queue_args"))
-		frappe.flags.enqueue_after_commit = []
-
 # Helpers
 def _cast_result(doctype, result):
 	batch = [ ]

@@ -1,8 +1,5 @@
 from __future__ import unicode_literals, print_function
-from os import stat
 import redis
-from rq import Connection, Queue, Worker
-from rq.logutils import setup_loghandlers
 from frappe.utils import cstr
 from collections import defaultdict
 import frappe
@@ -233,8 +230,7 @@ def get_queue_list(queue_list=None):
 
 def get_queue(queue, is_async=True):
 	'''Returns a Queue object tied to a redis connection'''
-	validate_queue(queue)
-	return Queue(queue, connection=get_redis_conn(), is_async=is_async)
+	raise NotImplementedError('Unimplemented')
 
 def validate_queue(queue, default_queue_list=None):
 	if not default_queue_list:

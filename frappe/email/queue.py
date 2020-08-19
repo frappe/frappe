@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import sys
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
 from frappe import msgprint, _, safe_decode, safe_encode, enqueue
@@ -12,7 +11,6 @@ from frappe.email.email_body import get_email, get_formatted_html, add_attachmen
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
 from frappe.utils import get_url, nowdate, now_datetime, add_days, split_emails, cstr, cint
-from rq.timeouts import JobTimeoutException
 from six import text_type, string_types, PY3
 from email.parser import Parser
 
