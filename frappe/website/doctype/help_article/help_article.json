@@ -4,6 +4,7 @@
  "allow_import": 1,
  "creation": "2014-10-30 14:25:53.780105",
  "doctype": "DocType",
+ "engine": "InnoDB",
  "field_order": [
   "title",
   "category",
@@ -15,11 +16,7 @@
   "content",
   "likes",
   "route",
-  "owner",
-  "feedback",
-  "helpful",
-  "cb_00",
-  "not_helpful"
+  "owner"
  ],
  "fields": [
   {
@@ -27,8 +24,7 @@
    "fieldtype": "Data",
    "in_global_search": 1,
    "label": "Title",
-   "reqd": 1,
-   "search_index": 1
+   "reqd": 1
   },
   {
    "fieldname": "category",
@@ -90,39 +86,14 @@
    "fieldtype": "Link",
    "label": "Owner",
    "options": "User"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "feedback",
-   "fieldtype": "Section Break",
-   "label": "Feedback"
-  },
-  {
-   "default": "0",
-   "fieldname": "helpful",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Helpful",
-   "read_only": 1
-  },
-  {
-   "fieldname": "cb_00",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "not_helpful",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Not Helpful",
-   "read_only": 1
   }
  ],
  "has_web_view": 1,
  "icon": "icon-file-alt",
+ "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2020-05-08 10:48:19.997789",
+ "modified": "2020-07-21 16:25:18.577325",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Help Article",

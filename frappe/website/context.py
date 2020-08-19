@@ -129,8 +129,12 @@ def build_context(context):
 
 def load_sidebar(context, sidebar_json_path):
 	with open(sidebar_json_path, 'r') as sidebarfile:
-		context.sidebar_items = json.loads(sidebarfile.read())
-		context.show_sidebar = 1
+		try:
+			sidebar_json = sidebarfile.read()
+			context.sidebar_items = json.loads(sidebar_json)
+			context.show_sidebar = 1
+		except json.decoder.JSONDecodeError:
+			frappe.throw('Invalid Sidebar JSON at ' + sidebar_json_path)
 
 def get_sidebar_json_path(path, look_for=False):
 	'''
