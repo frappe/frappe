@@ -488,25 +488,10 @@ def cstr(s, encoding='utf-8'):
 	return frappe.as_unicode(s, encoding)
 
 def rounded(num, precision=0):
-	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
-	precision = cint(precision)
-	multiplier = 10 ** precision
-
-	# avoid rounding errors
-	num = round(num * multiplier if precision else num, 8)
-
-	floor_num = math.floor(num)
-	decimal_part = num - floor_num
-
-	if not precision and decimal_part == 0.5:
-		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
-	else:
-		if decimal_part == 0.5:
-			num = floor_num + 1
-		else:
-			num = round(num)
-
-	return (num / multiplier) if precision else num
+	"""round method for round halfs to nearest even"""
+	from decimal import Decimal
+	number = Decimal(str(num))
+	return float(round(number, precision))
 
 def remainder(numerator, denominator, precision=2):
 	precision = cint(precision)
