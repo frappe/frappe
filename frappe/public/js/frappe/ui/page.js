@@ -428,7 +428,7 @@ frappe.ui.Page = Class.extend({
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
 					<button type="button" class="btn btn-default btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${label}
-						${frappe.utils.icon('select', 'sm')}
+						${frappe.utils.icon('select', 'xs')}
 					</button>
 					<div role="menu" class="dropdown-menu"></div>
 				</div>`
