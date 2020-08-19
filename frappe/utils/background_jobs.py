@@ -1,4 +1,5 @@
 from __future__ import unicode_literals, print_function
+from os import stat
 import redis
 from rq import Connection, Queue, Worker
 from rq.logutils import setup_loghandlers
@@ -120,6 +121,10 @@ class Task(object):
 
 	def process_task(self):
 		return self.pool.spawn(fastrunner, self)
+
+	@staticmethod
+	def set_pool_size(size):
+		Task.pool = GeventPool(size)
 
 def fastrunner(task, throws=True, before_commit=None):
 	frappe.init(site=task.site)

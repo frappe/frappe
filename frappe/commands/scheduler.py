@@ -168,7 +168,8 @@ def show_changes(changes):
 @click.option('--noreload', 'no_reload', is_flag=True, default=False)
 @click.option('--quiet', is_flag=True, default=False, help='Hide Log Outputs')
 @click.option('--enable-scheduler', is_flag=True, default=False, help='Enable Scheduler')
-def start_worker(queue, quiet=False, no_reload=False, enable_scheduler=False):
+@click.option('--pool-size', default=50, help='Max Concurrent Jobs')
+def start_worker(queue, quiet=False, no_reload=False, enable_scheduler=False, pool_size=50):
 	if not queue:
 		raise Exception('Cannot run worker without queue')
 
@@ -178,12 +179,12 @@ def start_worker(queue, quiet=False, no_reload=False, enable_scheduler=False):
 		run_process(
 			'../apps/',
 			start_gevent_background_worker,
-			args=(queue, quiet, enable_scheduler),
+			args=(queue, quiet, enable_scheduler, pool_size),
 			min_sleep=4000,
 			callback=show_changes,
 		)
 
-def start_gevent_background_worker(queue, quiet, enable_scheduler):
+def start_gevent_background_worker(queue, quiet, enable_scheduler, pool_size):
 	import os
 	python_path = os.path.abspath('../env/bin/python')
 	print('Starting gevent background worker for', queue)
@@ -196,7 +197,7 @@ def start_gevent_background_worker(queue, quiet, enable_scheduler):
 			from gevent import monkey
 			monkey.patch_all()
 			from frappe.commands.gevent_worker import start
-			start(queues="{queue}", enable_scheduler={enable_scheduler})
+			start(queues="{queue}", enable_scheduler={enable_scheduler}, pool_size={pool_size})
 		'''.split('\n'))
 	], {
 		'GEVENT_RESOLVER': 'ares',

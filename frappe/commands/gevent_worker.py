@@ -5,10 +5,11 @@ import redis
 
 from sys import exit
 from frappe.utils.scheduler import enqueue_events_for_all_sites
+from frappe.utils.background_jobs import Task
 
 GRACEFUL_SHUTDOWN_WAIT = 10
 
-def start(queues=None, enable_scheduler=False):
+def start(queues=None, enable_scheduler=False, pool_size=50):
 	from gevent import spawn
 	from gevent.signal import signal as handle_signal
 	if not queues:
@@ -20,8 +21,9 @@ def start(queues=None, enable_scheduler=False):
 	handle_signal(signal.SIGHUP, graceful_shutdown)
 	handle_signal(signal.SIGINT, graceful_shutdown)
 	handle_signal(signal.SIGTERM, graceful_shutdown)
-	if scheduler:
+	if enable_scheduler:
 		spawn(scheduler)
+	Task.set_pool_size(int(pool_size))
 	deque_and_enqueue(queues, frappe.local.conf)
 
 def scheduler():
@@ -70,7 +72,6 @@ def deque_and_enqueue(queues, conf):
 		task.process_task()
 
 def graceful_shutdown(*args, **kwargs):
-	from frappe.utils.background_jobs import Task
 	print('Warm shutdown requested')
 	graceful = Task.pool.join(timeout=GRACEFUL_SHUTDOWN_WAIT)
 	print('Shutting down, Gracefully=', graceful)
