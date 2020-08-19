@@ -323,12 +323,22 @@ frappe.ui.form.Form = class FrappeForm {
 					if (!this.is_new()) {
 						this.add_custom_button(action.label, () => {
 							if (action.action_type==='Server Action') {
-								frappe.xcall(action.action, {doc: this.doc}).then(() => {
+								frappe.xcall(action.action, {doc: this.doc}).then((doc) => {
+									if (doc.doctype) {
+										// document is returned by the method,
+										// apply the changes locally and refresh
+										frappe.model.sync(doc);
+										this.refresh();
+									}
+
+									// feedback
 									frappe.msgprint({
 										message: __('{} Complete', [action.label]),
 										alert: true
 									});
 								});
+							} else if (action.action_type==='Route') {
+								frappe.set_route(action.action);
 							}
 						}, action.group);
 					}
