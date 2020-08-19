@@ -5,13 +5,12 @@
 				<i class="octicon octicon-three-bars"></i>
 			</a>
 			<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">
-				<img class="app-logo" src="{{ frappe.app.logo_url }}">
+				<img class="app-logo" style="width: {{navbar_settings.logo_width || 24}}px" src="{{ frappe.app.logo_url }}">
 			</a>
 			<ul class="nav navbar-nav" id="navbar-breadcrumbs">
 			</ul>
 		</div>
 		<div class="navbar-center ellipsis" style="display: none;"></div>
-
 		<ul class="nav navbar-nav navbar-right">
 			<li class="visible-xs">
 				<a class="navbar-search-button" href="#" data-toggle="modal" data-target="#search-modal"><i class="octicon octicon-search"></i></a>
@@ -24,25 +23,25 @@
 					{%= __("Settings") %}</span>
 				<b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
-					<li><a href="#user-profile">
-						{%= __("My Profile") %}</a></li>
-					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
-						{%= __("My Settings") %}</a></li>
-					<li><a href="#" onclick="return frappe.ui.toolbar.setup_session_defaults();">
-							{%= __("Session Defaults") %}</a></li>
-					<li class="navbar-reload">
-						<a href="" onclick="return frappe.ui.toolbar.clear_cache();">
-						{%= __("Reload") %}</a></li>
-					<li><a href="/index" target="_blank" rel="noopener noreferrer">
-						{%= __("View Website") %}</a></li>
-					<li class="navbar-toggle-full-width">
-						<a href="#" onclick="return false">{%= __("Toggle Full Width") %}</a>
-					</li>
-					<li><a href="#background_jobs">
-						{%= __("Background Jobs") %}</a></li>
-					<li class="divider"></li>
-					<li><a href="#" onclick="return frappe.app.logout();">
-						{%= __("Logout") %}</a></li>
+					{% for item in navbar_settings.settings_dropdown %}
+						{% if (!item.hidden) { %}
+							{% if (item.route) { %}
+								<li>
+									<a href="{{ item.route }}">
+										{%= __(item.item_label) %}
+									</a>
+								</li>
+							{% } else if (item.action) { %}
+								<li>
+									<a onclick="return {{ item.action }}">
+										{%= __(item.item_label) %}
+									</a>
+								</li>
+							{% } else { %}
+								<li class="divider"></li>
+							{% } %}
+						{% } %}
+					{% endfor %}
 				</ul>
 			</li>
 
@@ -53,13 +52,28 @@
 					<span class="visible-xs visible-sm standard-image help-icon">?</span>
 				</a>
 				<ul class="dropdown-menu" id="toolbar-help" role="menu">
+					<!-- For custom links added via jquery -->
 					<li id="help-links"></li>
-					<li class="divider"></li>
 					<li class="divider documentation-links"></li>
-					<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
-						{%= __("About") %}</a></li>
-					<li><a href="#" onclick="return frappe.ui.toolbar.show_shortcuts(event);">
-						{%= __("Keyboard Shortcuts") %}</a></li>
+					{% for item in navbar_settings.help_dropdown %}
+						{% if (!item.hidden) { %}
+							{% if (item.route) { %}
+								<li>
+									<a href="{{ item.route }}">
+										{%= __(item.item_label) %}
+									</a>
+								</li>
+							{% } else if (item.action) { %}
+								<li>
+									<a onclick="return {{ item.action }}">
+										{%= __(item.item_label) %}
+									</a>
+								</li>
+							{% } else { %}
+								<li class="divider"></li>
+							{% } %}
+						{% } %}
+					{% endfor %}
 				</ul>
 			</li>
 

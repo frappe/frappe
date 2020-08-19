@@ -63,7 +63,7 @@ class TestNotification(unittest.TestCase):
 		notification.message = "test"
 
 		recipent = frappe.new_doc("Notification Recipient")
-		recipent.email_by_document_field = "owner"
+		recipent.receiver_by_document_field = "owner"
 
 		notification.recipents = recipent
 		notification.condition = "test"
@@ -105,7 +105,7 @@ class TestNotification(unittest.TestCase):
 			"value_changed": "description1",
 			"message": "Description changed",
 			"recipients": [
-				{ "email_by_document_field": "owner" }
+				{ "receiver_by_document_field": "owner" }
 			]
 		}).insert()
 		frappe.db.commit()

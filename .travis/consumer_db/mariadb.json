@@ -2,6 +2,7 @@
     "db_host": "localhost",
     "db_name": "test_frappe_consumer",
     "db_password": "test_frappe",
+    "allow_tests": true,
     "db_type": "mariadb",
     "auto_email_id": "test@example.com",
     "mail_server": "smtp.example.com",
