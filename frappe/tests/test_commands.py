@@ -1,11 +1,11 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 
-from __future__ import unicode_literals
-
+# imports - standard imports
 import shlex
 import subprocess
 import unittest
 
+# imports - module imports
 import frappe
 
 
@@ -27,17 +27,20 @@ class BaseTestCommands:
 
 class TestCommands(BaseTestCommands, unittest.TestCase):
 	def test_execute(self):
-		# execute a command expecting a numeric output
+		# test 1: execute a command expecting a numeric output
 		self.execute("bench --site {site} execute frappe.db.get_database_size")
 		self.assertEquals(self.returncode, 0)
 		self.assertIsInstance(float(self.stdout), float)
 
-		# execute a command expecting an errored output as local won't exist
+		# test 2: execute a command expecting an errored output as local won't exist
 		self.execute("bench --site {site} execute frappe.local.site")
 		self.assertEquals(self.returncode, 1)
 		self.assertIsNotNone(self.stderr)
 
-		# execute a command with kwargs
+		# test 3: execute a command with kwargs
+		# Note:
+		# terminal command has been escaped to avoid .format string replacement
+		# The returned value has quotes which have been trimmed for the test
 		self.execute("""bench --site {site} execute frappe.bold --kwargs '{{"text": "DocType"}}'""")
 		self.assertEquals(self.returncode, 0)
 		self.assertEquals(self.stdout[1:-1], frappe.bold(text='DocType'))
