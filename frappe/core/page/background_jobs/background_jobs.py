@@ -26,7 +26,6 @@ def get_info(show_failed=False):
 	info = {
 		'pending_jobs': get_queue_info(queues),
 	}
-	print(info)
 	return info
 
 def get_queue_info(queues):
