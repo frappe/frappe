@@ -7,13 +7,14 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 import frappe.cache_manager
+from frappe.model import log_types
 
 class MilestoneTracker(Document):
 	def on_update(self):
-		frappe.cache_manager.clear_doctype_map('Milestone Tracker', self.name)
+		frappe.cache_manager.clear_doctype_map('Milestone Tracker', self.document_type)
 
 	def on_trash(self):
-		frappe.cache_manager.clear_doctype_map('Milestone Tracker', self.name)
+		frappe.cache_manager.clear_doctype_map('Milestone Tracker', self.document_type)
 
 	def apply(self, doc):
 		before_save = doc.get_doc_before_save()
@@ -32,8 +33,15 @@ class MilestoneTracker(Document):
 def evaluate_milestone(doc, event):
 	if (frappe.flags.in_install
 		or frappe.flags.in_migrate
-		or frappe.flags.in_setup_wizard):
+		or frappe.flags.in_setup_wizard
+		or doc.doctype in log_types):
 		return
-	for d in frappe.cache_manager.get_doctype_map('Milestone Tracker', doc.doctype,
-		dict(document_type = doc.doctype, disabled=0)):
-		frappe.get_doc('Milestone Tracker', d.name).apply(doc)
+
+	# track milestones related to this doctype
+	for d in get_milestone_trackers(doc.doctype):
+		frappe.get_doc('Milestone Tracker', d.get('name')).apply(doc)
+
+def get_milestone_trackers(doctype):
+	return frappe.cache_manager.get_doctype_map('Milestone Tracker', doctype,
+		dict(document_type = doctype, disabled=0))
+

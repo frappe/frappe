@@ -5,7 +5,7 @@
 // __('Modules') __('Domains') __('Places') __('Administration') # for translation, don't remove
 
 frappe.start_app = function() {
-	if(!frappe.Application)
+	if (!frappe.Application)
 		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
@@ -14,7 +14,7 @@ frappe.start_app = function() {
 };
 
 $(document).ready(function() {
-	if(!frappe.utils.supportsES6) {
+	if (!frappe.utils.supportsES6) {
 		frappe.msgprint({
 			indicator: 'red',
 			title: __('Browser not supported'),
@@ -100,15 +100,6 @@ frappe.Application = Class.extend({
 			frappe.ui.startup_setup_dialog.pre_show();
 			frappe.ui.startup_setup_dialog.show();
 		}
-
-		// listen to csrf_update
-		frappe.realtime.on("csrf_generated", function(data) {
-			// handles the case when a user logs in again from another tab
-			// and it leads to invalid request in the current tab
-			if (data.csrf_token && data.sid===frappe.get_cookie("sid")) {
-				frappe.csrf_token = data.csrf_token;
-			}
-		});
 
 		frappe.realtime.on("version-update", function() {
 			var dialog = frappe.msgprint({
@@ -436,9 +427,9 @@ frappe.Application = Class.extend({
 	},
 
 	set_app_logo_url: function() {
-		return frappe.call('frappe.client.get_hooks', { hook: 'app_logo_url' })
+		return frappe.call('frappe.core.doctype.navbar_settings.navbar_settings.get_app_logo')
 			.then(r => {
-				frappe.app.logo_url = (r.message || []).slice(-1)[0];
+				frappe.app.logo_url = r.message;
 				if (window.cordova) {
 					let host = frappe.request.url;
 					host = host.slice(0, host.length - 1);

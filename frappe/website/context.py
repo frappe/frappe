@@ -20,12 +20,10 @@ def get_context(path, args=None):
 		# for <body data-path=""> (remove leading slash)
 		# path could be overriden in render.resolve_from_map
 		context["path"] = frappe.local.request.path.strip('/ ')
-		scheme = frappe.local.request.scheme
 	else:
 		context["path"] = path
-		scheme = 'http'
 
-	context.canonical = scheme + '://' + frappe.local.site + '/' + context.path
+	context.canonical = frappe.utils.get_url(frappe.utils.escape_html(context.path))
 	context.route = context.path
 	context = build_context(context)
 
@@ -131,8 +129,12 @@ def build_context(context):
 
 def load_sidebar(context, sidebar_json_path):
 	with open(sidebar_json_path, 'r') as sidebarfile:
-		context.sidebar_items = json.loads(sidebarfile.read())
-		context.show_sidebar = 1
+		try:
+			sidebar_json = sidebarfile.read()
+			context.sidebar_items = json.loads(sidebar_json)
+			context.show_sidebar = 1
+		except json.decoder.JSONDecodeError:
+			frappe.throw('Invalid Sidebar JSON at ' + sidebar_json_path)
 
 def get_sidebar_json_path(path, look_for=False):
 	'''

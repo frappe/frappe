@@ -111,3 +111,41 @@ data = [
 		# check values
 		self.assertTrue('System User' in [d.get('type') for d in data[1]])
 
+	def test_script_report_with_columns(self):
+		report_name = 'Test Script Report With Columns'
+
+		if frappe.db.exists("Report", report_name):
+			frappe.delete_doc('Report', report_name)
+
+		report = frappe.get_doc({
+			'doctype': 'Report',
+			'ref_doctype': 'User',
+			'report_name': report_name,
+			'report_type': 'Script Report',
+			'is_standard': 'No',
+			'columns': [
+				dict(fieldname='type', label='Type', fieldtype='Data'),
+				dict(fieldname='value', label='Value', fieldtype='Int'),
+			]
+		}).insert(ignore_permissions=True)
+
+		report.report_script = '''
+totals = {}
+for user in frappe.get_all('User', fields = ['name', 'user_type', 'creation']):
+	if not user.user_type in totals:
+		totals[user.user_type] = 0
+	totals[user.user_type] = totals[user.user_type] + 1
+
+result = [
+		{"type":key, "value": value} for key, value in totals.items()
+	]
+'''
+
+		report.save()
+		data = report.get_data()
+
+		# check columns
+		self.assertEqual(data[0][0]['label'], 'Type')
+
+		# check values
+		self.assertTrue('System User' in [d.get('type') for d in data[1]])

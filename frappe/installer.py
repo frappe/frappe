@@ -9,6 +9,7 @@ from __future__ import unicode_literals, print_function
 from six.moves import input
 
 import os, json, subprocess, shutil
+import click
 import frappe
 import frappe.database
 import importlib
@@ -118,12 +119,20 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 
-def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
+def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
 	"""Remove app and all linked to the app's module with the app from a site."""
 
+	# dont allow uninstall app if not installed unless forced
+	if not force:
+		if app_name not in frappe.get_installed_apps():
+			click.secho("App {0} not installed on Site {1}".format(app_name, frappe.local.site), fg="yellow")
+			return
+
+	print("Uninstalling App {0} from Site {1}...".format(app_name, frappe.local.site))
+
 	if not dry_run and not yes:
-		confirm = input("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue (y/n) ? ")
-		if confirm!="y":
+		confirm = click.confirm("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue?")
+		if not confirm:
 			return
 
 	if not no_backup:
@@ -146,8 +155,12 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
 
-		# remove reports, pages and web forms
-		for doctype in ("Report", "Page", "Web Form"):
+
+		linked_doctypes = frappe.get_all("DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=['parent'])
+		ordered_doctypes = ["Desk Page", "Report", "Page", "Web Form"]
+		doctypes_with_linked_modules = ordered_doctypes + [doctype.parent for doctype in linked_doctypes if doctype.parent not in ordered_doctypes]
+
+		for doctype in doctypes_with_linked_modules:
 			for record in frappe.get_list(doctype, filters={"module": module_name}):
 				print("removing {0} {1}...".format(doctype, record.name))
 				if not dry_run:
@@ -165,6 +178,8 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 
 		for doctype in set(drop_doctypes):
 			frappe.db.sql("drop table `tab{0}`".format(doctype))
+
+		click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
 
 	frappe.flags.in_uninstall = False
 
