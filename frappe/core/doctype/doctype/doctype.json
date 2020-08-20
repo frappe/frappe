@@ -70,6 +70,7 @@
   "web_view",
   "has_web_view",
   "allow_guest_to_view",
+  "index_web_pages_for_search",
   "route",
   "is_published_field",
   "advanced",
@@ -472,6 +473,8 @@
    "label": "Documentation Link"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "actions",
    "fieldname": "actions_section",
    "fieldtype": "Section Break",
    "label": "Actions"
@@ -483,6 +486,8 @@
    "options": "DocType Action"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "links",
    "fieldname": "links_section",
    "fieldtype": "Section Break",
    "label": "Links Section"
@@ -517,12 +522,94 @@
    "fieldname": "email_settings_sb",
    "fieldtype": "Section Break",
    "label": "Email Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "index_web_pages_for_search",
+   "fieldtype": "Check",
+   "label": "Index Web Pages for Search"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "links": [],
- "modified": "2020-03-27 14:51:44.581128",
+ "links": [
+  {
+   "group": "Views",
+   "link_doctype": "Report",
+   "link_fieldname": "ref_doctype"
+  },
+  {
+   "group": "Workflow",
+   "link_doctype": "Workflow",
+   "link_fieldname": "document_type"
+  },
+  {
+   "group": "Workflow",
+   "link_doctype": "Notification",
+   "link_fieldname": "document_type"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Custom Field",
+   "link_fieldname": "dt"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Custom Script",
+   "link_fieldname": "dt"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Server Script",
+   "link_fieldname": "reference_doctype"
+  },
+  {
+   "group": "Workflow",
+   "link_doctype": "Webhook",
+   "link_fieldname": "webhook_doctype"
+  },
+  {
+   "group": "Views",
+   "link_doctype": "Print Format",
+   "link_fieldname": "doc_type"
+  },
+  {
+   "group": "Views",
+   "link_doctype": "Web Form",
+   "link_fieldname": "doc_type"
+  },
+  {
+   "group": "Views",
+   "link_doctype": "Calendar View",
+   "link_fieldname": "reference_doctype"
+  },
+  {
+   "group": "Views",
+   "link_doctype": "Kanban Board",
+   "link_fieldname": "reference_doctype"
+  },
+  {
+   "group": "Workflow",
+   "link_doctype": "Onboarding Step",
+   "link_fieldname": "reference_document"
+  },
+  {
+   "group": "Rules",
+   "link_doctype": "Auto Repeat",
+   "link_fieldname": "reference_doctype"
+  },
+  {
+   "group": "Rules",
+   "link_doctype": "Assignment Rule",
+   "link_fieldname": "document_type"
+  },
+  {
+   "group": "Rules",
+   "link_doctype": "Energy Point Rule",
+   "link_fieldname": "reference_doctype"
+  }
+ ],
+ "modified": "2020-08-06 12:59:32.369095",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

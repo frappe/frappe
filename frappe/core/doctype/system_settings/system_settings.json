@@ -60,6 +60,9 @@
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
+  "prepared_report_section",
+  "enable_prepared_report_auto_deletion",
+  "prepared_report_expiry_period",
   "chat",
   "enable_chat",
   "use_socketio_to_upload_file"
@@ -429,12 +432,32 @@
    "fieldname": "attach_view_link",
    "fieldtype": "Check",
    "label": "Send document Web View link in email"
+  },
+  {
+   "default": "30",
+   "depends_on": "enable_prepared_report_auto_deletion",
+   "description": "System will automatically delete Prepared Reports after these many days since creation",
+   "fieldname": "prepared_report_expiry_period",
+   "fieldtype": "Int",
+   "label": "Prepared Report Expiry Period (Days)"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_prepared_report_auto_deletion",
+   "fieldtype": "Check",
+   "label": "Enable Auto-deletion of Prepared Reports"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "prepared_report_section",
+   "fieldtype": "Section Break",
+   "label": "Prepared Report"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-07-02 16:13:00.166382",
+ "modified": "2020-08-12 14:35:45.214327",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
