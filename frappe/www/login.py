@@ -12,6 +12,7 @@ from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.utils.password import get_decrypted_password
 from frappe.utils.html_utils import get_icon_html
 from frappe.integrations.oauth2_logins import decoder_compat
+from frappe.website.utils import get_home_page
 
 no_cache = True
 
@@ -20,7 +21,10 @@ def get_context(context):
 
 	if frappe.session.user != "Guest":
 		if not redirect_to:
-			redirect_to = "/me" if frappe.session.data.user_type=="Website User" else "/desk"
+			if frappe.session.data.user_type=="Website User":
+				redirect_to = get_home_page()
+			else:
+				redirect_to = "/desk"
 		frappe.local.flags.redirect_location = redirect_to
 		raise frappe.Redirect
 

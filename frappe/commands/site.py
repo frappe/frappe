@@ -274,8 +274,9 @@ def disable_user(context, email):
 @click.command('migrate')
 @click.option('--rebuild-website', help="Rebuild webpages after migration")
 @click.option('--skip-failing', is_flag=True, help="Skip patches that fail to run")
+@click.option('--skip-search-index', is_flag=True, help="Skip search indexing for web documents")
 @pass_context
-def migrate(context, rebuild_website=False, skip_failing=False):
+def migrate(context, rebuild_website=False, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
 	from frappe.migrate import migrate
 
@@ -284,13 +285,18 @@ def migrate(context, rebuild_website=False, skip_failing=False):
 		frappe.init(site=site)
 		frappe.connect()
 		try:
-			migrate(context.verbose, rebuild_website=rebuild_website, skip_failing=skip_failing)
+			migrate(
+				context.verbose,
+				rebuild_website=rebuild_website,
+				skip_failing=skip_failing,
+				skip_search_index=skip_search_index
+			)
 		finally:
 			frappe.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
-	print("Compiling Python Files...")
+	print("Compiling Python files...")
 	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
 @click.command('migrate-to')
@@ -655,6 +661,22 @@ def start_ngrok(context):
 		frappe.destroy()
 		ngrok.kill()
 
+@click.command('build-search-index')
+@pass_context
+def build_search_index(context):
+	from frappe.search.website_search import build_index_for_all_routes
+	site = get_site(context)
+	if not site:
+		raise SiteNotSpecifiedError
+
+	print('Building search index for {}'.format(site))
+	frappe.init(site=site)
+	frappe.connect()
+	try:
+		build_index_for_all_routes()
+	finally:
+		frappe.destroy()
+
 commands = [
 	add_system_manager,
 	backup,
@@ -680,5 +702,6 @@ commands = [
 	start_recording,
 	stop_recording,
 	add_to_hosts,
-	start_ngrok
+	start_ngrok,
+	build_search_index
 ]
