@@ -98,6 +98,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
+		"share_logs": get_comments(doc.doctype, doc.name, 'share'),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 		"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
@@ -128,16 +129,21 @@ def get_communications(doctype, name, start=0, limit=20):
 	return _get_communications(doctype, name, start, limit)
 
 
-def get_comments(doctype, name):
-	comments = frappe.get_all('Comment', fields = ['*'], filters = dict(
+def get_comments(doctype, name, comment_type='Comment'):
+	comment_types = [comment_type]
+
+	if comment_type == 'share':
+		comment_types = ['Shared', 'Unshared']
+
+	comments = frappe.get_all('Comment', fields = ['creation', 'content', 'owner'], filters=dict(
 		reference_doctype = doctype,
 		reference_name = name,
-		comment_type = 'Comment'
+		comment_type = ['in', comment_types]
 	))
 
 	# convert to markdown (legacy ?)
-	for c in comments:
-		if c.comment_type == 'Comment':
+	if comment_type == 'Comment':
+		for c in comments:
 			c.content = frappe.utils.markdown(c.content)
 
 	return comments
