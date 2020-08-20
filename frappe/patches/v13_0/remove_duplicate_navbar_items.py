@@ -10,5 +10,5 @@ def execute():
 			duplicate_items.append(navbar_item)
 
 	if len(duplicate_items) > 1:
-		navbar_settings.remove(duplicate_item[0])
+		navbar_settings.remove(duplicate_items[0])
 		navbar_settings.save()
