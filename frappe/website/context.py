@@ -20,12 +20,10 @@ def get_context(path, args=None):
 		# for <body data-path=""> (remove leading slash)
 		# path could be overriden in render.resolve_from_map
 		context["path"] = frappe.local.request.path.strip('/ ')
-		scheme = frappe.local.request.scheme
 	else:
 		context["path"] = path
-		scheme = 'http'
 
-	context.canonical = scheme + '://' + frappe.local.site + '/' + context.path
+	context.canonical = frappe.utils.get_url(frappe.utils.escape_html(context.path))
 	context.route = context.path
 	context = build_context(context)
 
