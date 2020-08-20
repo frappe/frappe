@@ -609,7 +609,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2020-08-06 12:59:32.369093",
+ "modified": "2020-08-06 12:59:32.369095",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
