@@ -31,7 +31,7 @@ def log_file():
 	return os.path.join(frappe.utils.get_bench_path(), "logs", "monitor.json.log")
 
 
-class Monitor:
+class Monitor(object):
 	def __init__(self, transaction_type, method, kwargs):
 		try:
 			self.data = frappe._dict(

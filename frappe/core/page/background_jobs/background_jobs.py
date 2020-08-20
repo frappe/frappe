@@ -3,10 +3,8 @@
 
 from __future__ import unicode_literals
 import frappe
-
-from rq import Queue, Worker
+from frappe.utils import cint
 from frappe.utils.background_jobs import get_redis_conn
-from frappe.utils import format_datetime, cint, convert_utc_to_user_timezone
 from frappe.utils.scheduler import is_scheduler_inactive
 from frappe import _
 
@@ -20,38 +18,31 @@ colors = {
 @frappe.whitelist()
 def get_info(show_failed=False):
 	conn = get_redis_conn()
-	queues = Queue.all(conn)
-	workers = Worker.all(conn)
-	jobs = []
+	queues = {key.rsplit(':', -1)[-1] for key in conn.keys('frappe:bg:queue:*')}
+	queues.add('short')
+	queues.add('long')
+	queues.add('default')
 
-	def add_job(j, name):
-		if j.kwargs.get('site')==frappe.local.site:
-			jobs.append({
-				'job_name': j.kwargs.get('kwargs', {}).get('playbook_method') \
-					or j.kwargs.get('kwargs', {}).get('job_type') \
-					or str(j.kwargs.get('job_name')),
-				'status': j.get_status(), 'queue': name,
-				'creation': format_datetime(convert_utc_to_user_timezone(j.created_at)),
-				'color': colors[j.get_status()]
-			})
-			if j.exc_info:
-				jobs[-1]['exc_info'] = j.exc_info
+	info = {
+		'pending_jobs': get_queue_info(queues),
+	}
+	print(info)
+	return info
 
-	for w in workers:
-		j = w.get_current_job()
-		if j:
-			add_job(j, w.name)
-
-	for q in queues:
-		if q.name != 'failed':
-			for j in q.get_jobs(): add_job(j, q.name)
-
-	if cint(show_failed):
-		for q in queues:
-			if q.name == 'failed':
-				for j in q.get_jobs()[:10]: add_job(j, q.name)
-
-	return jobs
+def get_queue_info(queues):
+	conn = get_redis_conn()
+	queue_info = {}
+	for queue in queues:
+		queue_name = f'frappe:bg:queue:{queue}'
+		counter_name = f'frappe:bg:counter:{queue}'
+		queue_info[queue] = [
+			conn.llen(queue_name),
+		] + [cint(row) for row in conn.mget([
+			f'{counter_name}:total',
+			f'{counter_name}:success',
+			f'{counter_name}:failed'
+		])]
+	return queue_info
 
 @frappe.whitelist()
 def get_scheduler_status():

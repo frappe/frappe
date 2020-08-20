@@ -1,12 +1,17 @@
 <div style="padding: 20px;">
-	<p>
-		<div class="checkbox">
-			<label>
-			<input type="checkbox" class="show-failed"> {{ __("Show failed jobs") }}
-			</label>
-		</div>
-	</p>
-	<div class="table-area">
-
+	<div class="job-info">
+		<table class="table table-bordered pending-jobs" style="table-layout: fixed;">
+			<thead>
+				<tr>
+					<th style="width: 15%">{{ __("Queue") }}</th>
+					<th style="width: 10%">{{ __("Pending") }}</th>
+					<th></th>
+					<th style="width: 10%">{{ __("Total") }}</th>
+					<th style="width: 10%">{{ __("Success") }}</th>
+					<th style="width: 10%">{{ __("Failed") }}</th>
+				</tr>
+			</thead>
+			<tbody>
+		</table>
 	</div>
 </div>

@@ -46,8 +46,10 @@ def fetch_jobs_from_redis(queues, conf):
 	print('Connected')
 	lpop = True
 	rq_queues = [f'frappe:bg:queue:{queue}' for queue in queues]
+	import random
 	while True:
 		lpop = not lpop
+		random.shuffle(rq_queues)
 		queue_name, job_meta = conn.execute_command(
 			'blpop' if lpop else 'brpop',
 			*rq_queues,

@@ -80,8 +80,10 @@ def enqueue_to_redis(kwargs):
 	pickled = pickle_dumps(kwargs)
 	# compressed = compress(pickled)
 	conn = get_redis_conn()
-	queue_name = f'frappe:bg:queue:{kwargs["queue"]}'
+	queue = kwargs["queue"]
+	queue_name = f'frappe:bg:queue:{queue}'
 	conn.lpush(queue_name, pickled)
+	conn.incr(f'frappe:bg:counter:{queue}:total')
 
 def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
 	now=False, **kwargs):
@@ -118,6 +120,9 @@ class Task(object):
 	def process_task(self):
 		return self.pool.spawn(fastrunner, self)
 
+	def get_status(self):
+		return 'queued'
+
 	@staticmethod
 	def set_pool_size(size):
 		Task.pool = GeventPool(size)
@@ -134,6 +139,7 @@ def fastrunner(task, throws=True, before_commit=None):
 		'pool_size': len(task.pool),
 		'stage': 'Executing',
 	})
+	conn = get_redis_conn()
 	if task.timeout:
 		Timeout(task.timeout).start()
 	try:
@@ -157,6 +163,7 @@ def fastrunner(task, throws=True, before_commit=None):
 			'pool_size': len(task.pool),
 			'stage': 'Completed',
 		})
+		conn.incr(f'frappe:bg:counter:{task.queue}:success')
 	except Exception:
 		frappe.db.rollback()
 		traceback = frappe.get_traceback()
@@ -168,6 +175,7 @@ def fastrunner(task, throws=True, before_commit=None):
 			'traceback': traceback,
 		})
 		frappe.log_error(title=task.method_name, message=traceback)
+		conn.incr(f'frappe:bg:counter:{task.queue}:failed')
 	finally:
 		frappe.destroy()
 
@@ -240,7 +248,7 @@ def get_redis_conn():
 	global redis_connection
 
 	if not redis_connection:
-		redis_connection = redis.from_url(frappe.local.conf.redis_queue)
+		redis_connection = redis.from_url(frappe.local.conf.redis_queue, decode_responses=True)
 
 	return redis_connection
 
