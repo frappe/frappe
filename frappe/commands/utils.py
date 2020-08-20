@@ -158,7 +158,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 			try:
 				ret = frappe.get_attr(method)(*args, **kwargs)
 			except Exception:
-				ret = frappe.safe_eval(method + "()", eval_globals=globals(), eval_locals=locals())
+				ret = frappe.safe_eval(method + "(*args, **kwargs)", eval_globals=globals(), eval_locals=locals())
 
 			if profile:
 				pr.disable()
