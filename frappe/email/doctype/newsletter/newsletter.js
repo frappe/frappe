@@ -16,6 +16,7 @@ frappe.ui.form.on('Newsletter', {
 		}
 		if (!doc.__islocal && cint(doc.email_sent)) {
 			frm.set_df_property('schedule_send', "read_only", 1);
+			frm.set_df_property('schedule_sending', "read_only", 1);
 		}
 
 		frm.events.setup_dashboard(frm);

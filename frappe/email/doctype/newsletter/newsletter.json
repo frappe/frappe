@@ -8,7 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "send_from",
-  "column_break_2",
+  "schedule_sending",
   "schedule_send",
   "recipients",
   "email_group",
@@ -40,8 +40,7 @@
    "fieldname": "send_from",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
-   "label": "Sender",
-   "no_copy": 1
+   "label": "Sender"
   },
   {
    "default": "0",
@@ -123,13 +122,10 @@
    "label": "Recipients"
   },
   {
+   "depends_on": "eval: doc.schedule_sending",
    "fieldname": "schedule_send",
    "fieldtype": "Datetime",
    "label": "Schedule Send"
-  },
-  {
-   "fieldname": "column_break_2",
-   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -156,15 +152,22 @@
    "fieldtype": "HTML Editor",
    "label": "Message (HTML)",
    "mandatory_depends_on": "eval:doc.content_type === 'HTML'"
+  },
+  {
+   "default": "0",
+   "fieldname": "schedule_sending",
+   "fieldtype": "Check",
+   "label": "Schedule Sending"
   }
  ],
  "has_web_view": 1,
  "icon": "fa fa-envelope",
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
  "max_attachments": 3,
- "modified": "2020-08-19 17:54:13.290593",
+ "modified": "2020-08-20 10:22:24.560288",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

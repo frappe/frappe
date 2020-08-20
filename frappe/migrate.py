@@ -19,10 +19,10 @@ from frappe.website import render
 from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-from frappe.utils import global_search
+from frappe.search.website_search import build_index_for_all_routes
 
 
-def migrate(verbose=True, rebuild_website=False, skip_failing=False):
+def migrate(verbose=True, rebuild_website=False, skip_failing=False, skip_search_index=False):
 	'''Migrate all apps to the latest version, will:
 	- run before migrate hooks
 	- run patches
@@ -80,9 +80,6 @@ Otherwise, check the server logs and ensure that all the required services are r
 		# syncs statics
 		render.clear_cache()
 
-		# add static pages to global search
-		global_search.update_global_search_for_all_web_pages()
-
 		# updating installed applications data
 		frappe.get_single('Installed Applications').update_versions()
 
@@ -90,6 +87,12 @@ Otherwise, check the server logs and ensure that all the required services are r
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks('after_migrate', app_name=app):
 				frappe.get_attr(fn)()
+
+		# build web_routes index
+		if not skip_search_index:
+			# Run this last as it updates the current session
+			print('Building search index for {}'.format(frappe.local.site))
+			build_index_for_all_routes()
 
 		frappe.db.commit()
 

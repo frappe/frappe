@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.website.utils import cleanup_page_name
 from frappe.website.render import clear_cache
 from frappe.modules import get_module_name
+from frappe.search.website_search import update_index_for_path, remove_document_from_index
 
 class WebsiteGenerator(Document):
 	website = frappe._dict()
@@ -83,10 +84,19 @@ class WebsiteGenerator(Document):
 
 	def on_update(self):
 		self.send_indexing_request()
+		self.remove_old_route_from_index()
+
+	def on_change(self):
+		# Update the index on change
+		# On change is triggered last in the event lifecycle
+		self.update_website_search_index()
 
 	def on_trash(self):
 		self.clear_cache()
 		self.send_indexing_request('URL_DELETED')
+		# On deleting the doc, remove the page from the web_routes index
+		if self.allow_website_search_indexing():
+			remove_document_from_index(self.route)
 
 	def is_website_published(self):
 		"""Return true if published in website"""
@@ -130,3 +140,33 @@ class WebsiteGenerator(Document):
 			url = frappe.utils.get_url(self.route)
 			frappe.enqueue('frappe.website.doctype.website_settings.google_indexing.publish_site', \
 				url=url, operation_type=operation_type)
+
+	# Change the field value in doctype
+	# Override this method to disable indexing
+	def allow_website_search_indexing(self):
+		return self.meta.index_web_pages_for_search
+
+	def remove_old_route_from_index(self):
+		"""Remove page from the website index if the route has changed."""
+		if self.allow_website_search_indexing() or frappe.flags.in_test:
+			return
+		old_doc = self.get_doc_before_save()
+		# Check if the route is changed
+		if old_doc and old_doc.route != self.route:
+			# Remove the route from index if the route has changed
+			remove_document_from_index(old_doc.route)
+
+	def update_website_search_index(self):
+		"""
+			Update the full test index executed on document change event.
+			- remove document from index if document is unpublished
+			- update index otherwise
+		"""
+		if not self.allow_website_search_indexing() or frappe.flags.in_test:
+			return
+
+		if self.is_website_published():
+			frappe.enqueue(update_index_for_path, path=self.route)
+		elif self.route:
+			# If the website is not published
+			remove_document_from_index(self.route)

@@ -51,6 +51,9 @@ class Report(Document):
 	def on_trash(self):
 		delete_custom_role('report', self.name)
 
+	def get_columns(self):
+		return [d.as_dict(no_default_fields = True) for d in self.columns]
+
 	def set_doctype_roles(self):
 		if not self.get('roles') and self.is_standard == 'No':
 			meta = frappe.get_meta(self.ref_doctype)
@@ -99,8 +102,8 @@ class Report(Document):
 		if not self.query.lower().startswith("select"):
 			frappe.throw(_("Query must be a SELECT"), title=_('Report Document Error'))
 
-		result = [list(t) for t in frappe.db.sql(self.query, filters)]
-		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+		result = [list(t) for t in frappe.db.sql(self.query, filters, debug=True)]
+		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
 
 		return [columns, result]
 
@@ -134,121 +137,167 @@ class Report(Document):
 
 	def execute_script(self, filters):
 		# server script
-		loc = {"filters": frappe._dict(filters), 'data':[]}
+		loc = {"filters": frappe._dict(filters), 'data':None, 'result':None}
 		safe_exec(self.report_script, None, loc)
-		return loc['data']
+		if loc['data']:
+			return loc['data']
+		else:
+			return self.get_columns(), loc['result']
 
 	def get_data(self, filters=None, limit=None, user=None, as_dict=False, ignore_prepared_report=False):
-		columns = []
-		out = []
-
 		if self.report_type in ('Query Report', 'Script Report', 'Custom Report'):
-			# query and script reports
-			data = frappe.desk.query_report.run(self.name,
-				filters=filters, user=user, ignore_prepared_report=ignore_prepared_report)
-
-			for d in data.get('columns'):
-				if isinstance(d, dict):
-					col = frappe._dict(d)
-					if not col.fieldname:
-						col.fieldname = col.label
-					columns.append(col)
-				else:
-					fieldtype, options = "Data", None
-					parts = d.split(':')
-					if len(parts) > 1:
-						if parts[1]:
-							fieldtype, options = parts[1], None
-							if fieldtype and '/' in fieldtype:
-								fieldtype, options = fieldtype.split('/')
-
-					columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options))
-
-			out += data.get('result')
+			columns, result = self.run_query_report(filters, user, ignore_prepared_report)
 		else:
-			# standard report
-			params = json.loads(self.json)
-
-			if params.get('fields'):
-				columns = params.get('fields')
-			elif params.get('columns'):
-				columns = params.get('columns')
-			elif params.get('fields'):
-				columns = params.get('fields')
-			else:
-				columns = [['name', self.ref_doctype]]
-				for df in frappe.get_meta(self.ref_doctype).fields:
-					if df.in_list_view:
-						columns.append([df.fieldname, self.ref_doctype])
-
-			_filters = params.get('filters') or []
-
-			if filters:
-				for key, value in iteritems(filters):
-					condition, _value = '=', value
-					if isinstance(value, (list, tuple)):
-						condition, _value = value
-					_filters.append([key, condition, _value])
-
-			def _format(parts):
-				# sort by is saved as DocType.fieldname, covert it to sql
-				return '`tab{0}`.`{1}`'.format(*parts)
-
-			if params.get('sort_by'):
-				order_by = _format(params.get('sort_by').split('.')) + ' ' + params.get('sort_order')
-			elif params.get('order_by'):
-				order_by = params.get('order_by')
-			else:
-				order_by = _format([self.ref_doctype, 'modified']) + ' desc'
-
-			if params.get('sort_by_next'):
-				order_by += ', ' + _format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
-
-			result = frappe.get_list(self.ref_doctype,
-				fields = [_format([c[1], c[0]]) for c in columns],
-				filters=_filters,
-				order_by = order_by,
-				as_list=True,
-				limit=limit,
-				user=user)
-
-			_columns = []
-
-			for (fieldname, doctype) in columns:
-				meta = frappe.get_meta(doctype)
-
-				if meta.get_field(fieldname):
-					field = meta.get_field(fieldname)
-				else:
-					field = frappe._dict(fieldname=fieldname, label=meta.get_label(fieldname))
-					# since name is the primary key for a document, it will always be a Link datatype
-					if fieldname == "name":
-						field.fieldtype = "Link"
-						field.options = doctype
-
-				_columns.append(field)
-			columns = _columns
-
-			out = out + [list(d) for d in result]
-
-			if params.get('add_totals_row'):
-				out = append_totals_row(out)
+			columns, result = self.run_standard_report(filters, limit, user)
 
 		if as_dict:
-			data = []
-			for row in out:
-				if isinstance(row, (list, tuple)):
-					_row = frappe._dict()
-					for i, val in enumerate(row):
-						_row[columns[i].get('fieldname')] = val
-				elif isinstance(row, dict):
-					# no need to convert from dict to dict
-					_row = frappe._dict(row)
-				data.append(_row)
-		else:
-			data = out
-		return columns, data
+			result = self.build_data_dict(result, columns)
 
+		return columns, result
+
+	def run_query_report(self, filters, user, ignore_prepared_report=False):
+		columns, result = [], []
+		data = frappe.desk.query_report.run(self.name,
+			filters=filters, user=user, ignore_prepared_report=ignore_prepared_report)
+
+		for d in data.get('columns'):
+			if isinstance(d, dict):
+				col = frappe._dict(d)
+				if not col.fieldname:
+					col.fieldname = col.label
+				columns.append(col)
+			else:
+				fieldtype, options = "Data", None
+				parts = d.split(':')
+				if len(parts) > 1:
+					if parts[1]:
+						fieldtype, options = parts[1], None
+						if fieldtype and '/' in fieldtype:
+							fieldtype, options = fieldtype.split('/')
+
+				columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options))
+
+		result += data.get('result')
+
+		return columns, result
+
+	def run_standard_report(self, filters, limit, user):
+		params = json.loads(self.json)
+		columns = self.get_standard_report_columns(params)
+		result = []
+		order_by, group_by, group_by_args = self.get_standard_report_order_by(params)
+
+		_result = frappe.get_list(self.ref_doctype,
+			fields = [
+				get_group_by_field(group_by_args, c[1]) if c[0] == '_aggregate_column' and group_by_args
+				else Report._format([c[1], c[0]]) for c in columns
+			],
+			filters = self.get_standard_report_filters(params, filters),
+			order_by = order_by,
+			group_by = group_by,
+			as_list = True,
+			limit = limit,
+			user = user)
+
+		columns = self.build_standard_report_columns(columns, group_by_args)
+
+		result = result + [list(d) for d in _result]
+
+		if params.get('add_totals_row'):
+			result = append_totals_row(result)
+
+		return columns, result
+
+	@staticmethod
+	def _format(parts):
+		# sort by is saved as DocType.fieldname, covert it to sql
+		return '`tab{0}`.`{1}`'.format(*parts)
+
+	def get_standard_report_columns(self, params):
+		if params.get('fields'):
+			columns = params.get('fields')
+		elif params.get('columns'):
+			columns = params.get('columns')
+		elif params.get('fields'):
+			columns = params.get('fields')
+		else:
+			columns = [['name', self.ref_doctype]]
+			for df in frappe.get_meta(self.ref_doctype).fields:
+				if df.in_list_view:
+					columns.append([df.fieldname, self.ref_doctype])
+
+		return columns
+
+	def get_standard_report_filters(self, params, filters):
+		_filters = params.get('filters') or []
+
+		if filters:
+			for key, value in iteritems(filters):
+				condition, _value = '=', value
+				if isinstance(value, (list, tuple)):
+					condition, _value = value
+				_filters.append([key, condition, _value])
+
+		return _filters
+
+	def get_standard_report_order_by(self, params):
+		group_by_args = None
+		if params.get('sort_by'):
+			order_by = Report._format(params.get('sort_by').split('.')) + ' ' + params.get('sort_order')
+
+		elif params.get('order_by'):
+			order_by = params.get('order_by')
+		else:
+			order_by = Report._format([self.ref_doctype, 'modified']) + ' desc'
+
+		if params.get('sort_by_next'):
+			order_by += ', ' + Report._format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
+
+		group_by = None
+		if params.get('group_by'):
+			group_by_args = frappe._dict(params['group_by'])
+			group_by = group_by_args['group_by']
+			order_by = '_aggregate_column desc'
+
+		return order_by, group_by, group_by_args
+
+	def build_standard_report_columns(self, columns, group_by_args):
+		_columns = []
+
+		for (fieldname, doctype) in columns:
+			meta = frappe.get_meta(doctype)
+
+			if meta.get_field(fieldname):
+				field = meta.get_field(fieldname)
+			else:
+				if fieldname == '_aggregate_column':
+					label = get_group_by_column_label(group_by_args, meta)
+				else:
+					label = meta.get_label(fieldname)
+
+				field = frappe._dict(fieldname=fieldname, label=label)
+
+				# since name is the primary key for a document, it will always be a Link datatype
+				if fieldname == "name":
+					field.fieldtype = "Link"
+					field.options = doctype
+
+			_columns.append(field)
+		return _columns
+
+	def build_data_dict(self, result, columns):
+		data = []
+		for row in result:
+			if isinstance(row, (list, tuple)):
+				_row = frappe._dict()
+				for i, val in enumerate(row):
+					_row[columns[i].get('fieldname')] = val
+			elif isinstance(row, dict):
+				# no need to convert from dict to dict
+				_row = frappe._dict(row)
+			data.append(_row)
+
+		return data
 
 	@Document.whitelist
 	def toggle_disable(self, disable):
@@ -262,3 +311,30 @@ def is_prepared_report_disabled(report):
 def get_report_module_dotted_path(module, report_name):
 	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
 		+ ".report." + scrub(report_name) + "." + scrub(report_name)
+
+def get_group_by_field(args, doctype):
+	if args['aggregate_function'] == 'count':
+		group_by_field = 'count(*) as _aggregate_column'
+	else:
+		group_by_field = '{0}(`tab{1}`.{2}) as _aggregate_column'.format(
+			args.aggregate_function,
+			doctype,
+			args.aggregate_on
+		)
+
+	return group_by_field
+
+def get_group_by_column_label(args, meta):
+	if args['aggregate_function'] == 'count':
+		label = 'Count'
+	else:
+		sql_fn_map = {
+			'avg': 'Average',
+			'sum': 'Sum'
+		}
+		aggregate_on_label = meta.get_label(args.aggregate_on)
+		label = _('{function} of {fieldlabel}').format(
+			function=sql_fn_map[args.aggregate_function],
+			fieldlabel = aggregate_on_label
+		)
+	return label
