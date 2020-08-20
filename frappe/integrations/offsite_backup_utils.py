@@ -90,3 +90,13 @@ def validate_file_size():
 
 	if file_size > 1:
 		frappe.flags.create_new_backup = False
+
+def generate_files_backup():
+	from frappe.utils.backups import BackupGenerator
+
+	backup = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,
+		frappe.conf.db_password, db_host = frappe.db.host,
+		db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
+
+	backup.set_backup_file_name()
+	backup.zip_files()
