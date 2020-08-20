@@ -301,3 +301,4 @@ frappe.patches.v13_0.generate_theme_files_in_public_folder
 frappe.patches.v13_0.increase_password_length
 frappe.patches.v13_0.add_toggle_width_in_navbar_settings
 frappe.patches.v13_0.rename_notification_fields
+frappe.patches.v13_0.remove_duplicate_navbar_items
