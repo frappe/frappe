@@ -7,6 +7,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "type",
   "standard",
   "template",
   "fields"
@@ -30,10 +31,16 @@
    "fieldname": "standard",
    "fieldtype": "Check",
    "label": "Standard"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Section\nNavbar\nFooter"
   }
  ],
  "links": [],
- "modified": "2020-08-17 13:00:11.863241",
+ "modified": "2020-08-19 17:50:30.948659",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
