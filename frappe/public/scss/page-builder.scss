@@ -97,12 +97,23 @@
 	}
 }
 
+.section[data-section-template="Hero with Right Image"] {
+	overflow-x: hidden;
+}
+
 .hero-with-right-image {
 	position: relative;
+	display: flex;
+	flex-wrap: nowrap;
 
 	.hero-content {
 		display: flex;
 		align-items: center;
+		flex: 0 0 100%;
+
+		@include media-breakpoint-up(md) {
+			flex: 0 0 60%;
+		}
 	}
 
 	.hero-image {
