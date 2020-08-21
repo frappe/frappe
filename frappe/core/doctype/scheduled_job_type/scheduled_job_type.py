@@ -164,14 +164,19 @@ def insert_event_jobs(events, event_type):
 
 def insert_single_event(frequency, event, cron_format=None):
 	cron_expr = {"cron_format": cron_format} if cron_format else {}
+	doc = frappe.get_doc({
+		"doctype": "Scheduled Job Type",
+		"method": event,
+		"cron_format": cron_format,
+		"frequency": frequency
+	})
 
 	if not frappe.db.exists("Scheduled Job Type", {"method": event, "frequency": frequency, **cron_expr }):
-		frappe.get_doc({
-			"doctype": "Scheduled Job Type",
-			"method": event,
-			"cron_format": cron_format,
-			"frequency": frequency
-		}).insert()
+		try:
+			doc.insert()
+		except frappe.DuplicateEntryError:
+			doc.delete()
+			doc.insert()
 
 
 def clear_events(all_events):
