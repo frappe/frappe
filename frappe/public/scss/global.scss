@@ -345,12 +345,16 @@ input[type="checkbox"] {
 }
 
 kbd {
-	background-color: var(--gray-500);
+	background-color: var(--control-bg);
 	font-family: Inter;
-	color: var(--fg-color);
+	color: var(--text-light);
 	line-height: 1.2em;
 	height: 20px;
 	padding: 4px 8px;
+}
+
+.table {
+	color: var(--text-color);
 }
 
 .appreciation {
