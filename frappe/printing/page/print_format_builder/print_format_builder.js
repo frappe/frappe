@@ -42,14 +42,12 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.page = frappe.ui.make_app_page({
 			parent: this.parent,
 			title: __("Print Format Builder"),
-			single_column: true
 		});
 
 		this.page.main.css({"border-color": "transparent"});
 
-		this.page.sidebar = $('<div class="print-format-builder-sidebar"></div>').appendTo(this.page.main);
-		this.page.main = $('<div class="border print-format-builder-main frappe-card" \
-			style="width: calc(100% - 160px);"></div>').appendTo(this.page.main);
+		this.page.sidebar = $('<div class="print-format-builder-sidebar"></div>').appendTo(this.page.sidebar);
+		this.page.main = $('<div class="col-md-12 border print-format-builder-main frappe-card"></div>').appendTo(this.page.main);
 
 		// future-bindings for buttons on sections / fields
 		// bind only once
@@ -61,7 +59,6 @@ frappe.PrintFormatBuilder = Class.extend({
 	},
 	show_start: function() {
 		this.page.main.html(frappe.render_template("print_format_builder_start", {}));
-		this.page.sidebar.html("");
 		this.page.clear_actions();
 		this.page.set_title(__("Print Format Builder"));
 		this.start_edit_print_format();
@@ -168,16 +165,11 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	setup_sidebar: function() {
-		var me = this;
-		this.page.sidebar.empty();
-
 		// prepend custom HTML field
 		var fields = [this.get_custom_html_field()].concat(this.meta.fields);
-
 		$(frappe.render_template("print_format_builder_sidebar",
 			{fields: fields}))
 			.appendTo(this.page.sidebar);
-
 		this.setup_field_filter();
 	},
 	get_custom_html_field: function() {
