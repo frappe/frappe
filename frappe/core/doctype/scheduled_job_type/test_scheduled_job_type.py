@@ -44,7 +44,7 @@ class TestScheduledJobType(unittest.TestCase):
 		sync_jobs(updated_scheduler_events)
 		frappe.db.commit()
 		updated_scheduled_job = frappe.get_doc("Scheduled Job Type", {"method": "frappe.email.queue.flush"})
-		self.assertEqual(scheduled_job.frequency, "Hourly")
+		self.assertEqual(updated_scheduled_job.frequency, "Hourly")
 
 	def test_daily_job(self):
 		job = frappe.get_doc('Scheduled Job Type', dict(method = 'frappe.email.queue.clear_outbox'))
