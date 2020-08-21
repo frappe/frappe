@@ -67,19 +67,28 @@
 	margin-top: 5px;
 }
 
+.field-label.data-pill {
+	border: 1px solid var(--dark-border-color);
+	padding: 4px 8px;
+	color: var(--text-light);
+}
+
 .print-format-builder-sidebar {
-	display: inline-block;
-	width: 160px;
-	vertical-align: top;
-	position: fixed;
-	top: 120px;
-	bottom: 0px;
+	padding: 5px;
+	top: var(--navbar-height);
+	height: 85vh;
 	overflow-y: auto;
+	position: sticky;
+}
+
+.filter-searchbox {
+	padding: 10px;
+	padding-left: 0;
+	margin-bottom: 10px;
 }
 
 .print-format-builder-main {
 	display: inline-block;
 	vertical-align: top;
 	border-top: 0px;
-	margin-left: 160px;
 }

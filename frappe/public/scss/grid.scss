@@ -33,7 +33,7 @@
 }
 
 .grid-body {
-	background-color: #fff;
+	background-color: var(--fg-color);
 }
 
 .form-grid .data-row {
@@ -239,7 +239,7 @@
 }
 
 @mixin base-grid(){
-	background-color: white;
+	background-color: var(--modal-bg);
 	position: relative;
 	transition: opacity .2s ease;
 }
@@ -324,7 +324,7 @@
 
 .grid-footer {
 	padding: 10px 0px;
-	background-color: #fff;
+	background-color: var(--fg-color);
 
 	.btn {
 		box-shadow: none;
