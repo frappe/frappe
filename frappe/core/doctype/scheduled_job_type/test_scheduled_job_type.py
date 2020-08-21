@@ -33,13 +33,6 @@ class TestScheduledJobType(unittest.TestCase):
 		self.assertEqual(cron_job.cron_format, '0/15 * * * *')
 
 		# check if jobs are synced after change in hooks
-		scheduler_events = { "cron": { "0/15 * * * *": ["frappe.email.queue.flush"] } }
-		sync_jobs(scheduler_events)
-		frappe.db.commit()
-		scheduled_job = frappe.get_doc("Scheduled Job Type", {"method": "frappe.email.queue.flush"})
-		self.assertEqual(scheduled_job.frequency, "Cron")
-		self.assertEqual(scheduled_job.cron_format, "0/15 * * * *")
-
 		updated_scheduler_events = { "hourly": ["frappe.email.queue.flush"] }
 		sync_jobs(updated_scheduler_events)
 		frappe.db.commit()
