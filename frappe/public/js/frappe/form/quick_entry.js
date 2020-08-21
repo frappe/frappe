@@ -262,11 +262,11 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	render_edit_in_full_page_link: function() {
 		var me = this;
 		var $link = $(`<div>
-			<button class="edit-full btn btn-default btn-sm">
+			<button class="edit-full btn btn-secondary btn-sm pull-left">
 				${frappe.utils.icon('edit', 'xs')}
 				${__("Edit in full page")}
 			</button>
-		</div>`).appendTo(this.dialog.body);
+		</div>`).appendTo(this.dialog.custom_actions);
 
 		$link.find('.edit-full').on('click', function() {
 			// edit in form
