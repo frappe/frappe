@@ -150,16 +150,19 @@
 
 	.notification-body {
 		display: flex;
-		padding-right: 15px;
 
 		&::before {
 			content: '';
-			display:inline-block;
-			@include size(7px, 4px);
+			display: inline-block;
+			@include size(4px, 4px);
 			margin-top: 16px;
 			border-radius: 10px;
 			margin-right: var(--margin-xs);
 		}
+
+		.message {
+			max-width: 360px;
+		};
 	}
 
 	b {
