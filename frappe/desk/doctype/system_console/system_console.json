@@ -8,6 +8,7 @@
   {
    "action": "frappe.desk.doctype.system_console.system_console.execute_code",
    "action_type": "Server Action",
+   "hidden": 1,
    "label": "Execute"
   }
  ],
@@ -44,7 +45,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-08-18 20:05:36.936664",
+ "modified": "2020-08-21 14:44:35.296877",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Console",
