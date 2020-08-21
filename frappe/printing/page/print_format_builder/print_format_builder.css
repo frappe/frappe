@@ -67,10 +67,14 @@
 	margin-top: 5px;
 }
 
-.field-label.data-pill {
+.sidebar-field {
 	border: 1px solid var(--dark-border-color);
 	padding: 4px 8px;
 	color: var(--text-light);
+}
+
+.sidebar-custom-field {
+	background-color: var(--gray-300);
 }
 
 .print-format-builder-sidebar {
