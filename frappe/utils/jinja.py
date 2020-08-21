@@ -192,13 +192,13 @@ def inspect(var, render=True):
 	return get_jenv().from_string(html).render(context)
 
 def web_blocks(blocks):
-	from frappe import get_doc
+	from frappe import get_doc, throw
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
 
 	web_blocks = []
 	for block in blocks:
 		if not block.get('template'):
-			frappe.throw('Web Template is not specified')
+			throw('Web Template is not specified')
 
 		doc = {
 			'doctype': 'Web Page Block',
