@@ -11,11 +11,10 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 
 class TestScheduledJobType(unittest.TestCase):
 	def setUp(self):
-		if not frappe.get_all('Scheduled Job Type', limit=1):
-			frappe.db.rollback()
-			frappe.db.sql('truncate `tabScheduled Job Type`')
-			sync_jobs()
-			frappe.db.commit()
+		frappe.db.rollback()
+		frappe.db.sql('truncate `tabScheduled Job Type`')
+		sync_jobs()
+		frappe.db.commit()
 
 	def test_sync_jobs(self):
 		all_job = frappe.get_doc('Scheduled Job Type',
@@ -35,7 +34,6 @@ class TestScheduledJobType(unittest.TestCase):
 		# check if jobs are synced after change in hooks
 		updated_scheduler_events = { "hourly": ["frappe.email.queue.flush"] }
 		sync_jobs(updated_scheduler_events)
-		frappe.db.commit()
 		updated_scheduled_job = frappe.get_doc("Scheduled Job Type", {"method": "frappe.email.queue.flush"})
 		self.assertEqual(updated_scheduled_job.frequency, "Hourly")
 
