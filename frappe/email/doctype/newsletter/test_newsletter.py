@@ -69,6 +69,7 @@ class TestNewsletter(unittest.TestCase):
 			"send_from": "Test Sender <test_sender@example.com>",
 			"message": "Testing my news.",
 			"published": published,
+			"schedule_sending": bool(schedule_send),
 			"schedule_send": schedule_send
 		}).insert(ignore_permissions=True)
 

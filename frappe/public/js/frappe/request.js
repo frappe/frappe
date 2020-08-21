@@ -126,7 +126,7 @@ frappe.request.call = function(opts) {
 				message: __('The resource you are looking for is not available')});
 		},
 		403: function(xhr) {
-			if (frappe.get_cookie('sid')==='Guest') {
+			if (frappe.session.user === 'Guest') {
 				// session expired
 				frappe.app.handle_session_expired();
 			}
@@ -321,7 +321,7 @@ frappe.request.cleanup = function(opts, r) {
 	if(r) {
 
 		// session expired? - Guest has no business here!
-		if(r.session_expired || frappe.get_cookie("sid")==="Guest") {
+		if (r.session_expired || frappe.session.user === "Guest") {
 			frappe.app.handle_session_expired();
 			return;
 		}

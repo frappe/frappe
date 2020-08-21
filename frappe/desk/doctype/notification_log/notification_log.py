@@ -69,7 +69,6 @@ def make_notification_logs(doc, users):
 				_doc = frappe.new_doc('Notification Log')
 				_doc.update(doc)
 				_doc.for_user = user
-				_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
 				if _doc.for_user != _doc.from_user or doc.type == 'Energy Point' or doc.type == 'Alert':
 					_doc.insert(ignore_permissions=True)
 

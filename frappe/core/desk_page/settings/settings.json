@@ -18,7 +18,7 @@
   {
    "hidden": 0,
    "label": "Core",
-   "links": "[\n    {\n        \"description\": \"Language, Date and Time settings\",\n        \"hide_count\": true,\n        \"label\": \"System Settings\",\n        \"name\": \"System Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error on automated events (scheduler).\",\n        \"label\": \"Error Log\",\n        \"name\": \"Error Log\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error during requests.\",\n        \"label\": \"Error Snapshot\",\n        \"name\": \"Error Snapshot\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Enable / Disable Domains\",\n        \"hide_count\": true,\n        \"label\": \"Domain Settings\",\n        \"name\": \"Domain Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+   "links": "[\n    {\n        \"description\": \"Language, Date and Time settings\",\n        \"hide_count\": true,\n        \"label\": \"System Settings\",\n        \"name\": \"System Settings\",\n        \"type\": \"doctype\"\n    },\n   {\n        \"description\": \"Company, Fiscal Year and Currency defaults\",\n        \"hide_count\": true,\n        \"label\": \"Global Defaults\",\n        \"name\": \"Global Defaults\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error on automated events (scheduler).\",\n        \"label\": \"Error Log\",\n        \"name\": \"Error Log\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error during requests.\",\n        \"label\": \"Error Snapshot\",\n        \"name\": \"Error Snapshot\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Enable / Disable Domains\",\n        \"hide_count\": true,\n        \"label\": \"Domain Settings\",\n        \"name\": \"Domain Settings\",\n        \"type\": \"doctype\"\n    }\n]"
   },
   {
    "hidden": 0,
@@ -39,10 +39,11 @@
  "docstatus": 0,
  "doctype": "Desk Page",
  "extends_another_page": 0,
+ "hide_custom": 0,
  "idx": 0,
  "is_standard": 1,
  "label": "Settings",
- "modified": "2020-04-01 11:24:40.636747",
+ "modified": "2020-07-14 10:09:09.520557",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Settings",

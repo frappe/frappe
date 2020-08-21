@@ -172,13 +172,6 @@ def generate_csrf_token():
 	frappe.local.session.data.csrf_token = frappe.generate_hash()
 	frappe.local.session_obj.update(force=True)
 
-	# send sid and csrf token to the user
-	# handles the case when a user logs in again from another tab
-	# and it leads to invalid request in the current tab
-	frappe.publish_realtime(event="csrf_generated",
-		message={"sid": frappe.local.session.sid, "csrf_token": frappe.local.session.data.csrf_token},
-		user=frappe.session.user, after_commit=True)
-
 class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(frappe.form_dict.get('sid') or

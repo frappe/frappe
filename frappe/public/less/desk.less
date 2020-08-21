@@ -787,13 +787,14 @@ li.user-progress {
 	margin-right: 5px;
 	margin-left: 0px;
 	position: relative;
-	height: 12px;
 }
+
+@checkbox-height: 14px;
 
 // custom font awesome checkbox
 input[type="checkbox"] {
 	position: relative;
-	visibility: hidden;
+	height: 0px !important;
 
 	&:before {
 		position: absolute;
@@ -804,9 +805,10 @@ input[type="checkbox"] {
 		font-weight: normal;
 		font-variant: normal;
 		text-transform: none;
-		line-height: 14px;
-		display: inline-block;
-		font-size: 14px;
+		line-height: @checkbox-height;
+		margin-top: -10px;
+		display: inline-block !important;
+		font-size: @checkbox-height;
 		color: @text-extra-muted;
 		.transition(150ms color);
 		left: 0px;
@@ -818,8 +820,15 @@ input[type="checkbox"] {
 
 	&:checked:before {
 		content: '\f14a';
-		font-size: 13px;
+		font-size: @checkbox-height - 1px;
 		color: @checkbox-color;
+	}
+
+	&:checked:focus:before {
+		box-shadow: inset 0 0 1px 2px @text-muted;
+		padding: 0px 1px;
+		border-radius: 3px;
+		height: @checkbox-height - 1px;
 	}
 
 	&:focus {
@@ -836,28 +845,11 @@ input[type="checkbox"] {
 	height: 100%;
 }
 
-// mozilla doesn't support
+// Firefox doesn't support
 // pseudo elements on checkbox
-@-moz-document url-prefix() {
+@supports (-moz-appearance: none) or (-ms-ime-align:auto) {
 	input[type="checkbox"] {
-		visibility: visible;
-		left: 0;
-	}
-}
-
-@supports (-moz-appearance: none) {
-	input[type="checkbox"] {
-		visibility: visible;
-		left: 0;
-	}
-}
-
-// edge doesn't support pseudo elements on checkbox
-//Microsoft Edge Browser 12+ (All)
-@supports (-ms-ime-align:auto) {
-	input[type="checkbox"] {
-		 visibility: visible;
-		 left: 0;
+		height: @checkbox-height !important
 	}
 }
 

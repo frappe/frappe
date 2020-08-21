@@ -53,7 +53,7 @@ export default class Desktop {
 			.call("frappe.desk.desktop.get_desk_sidebar_items")
 			.then(response => {
 				if (response.message) {
-					this.desktop_settings = response.message;
+					this.sidebar_configuration = response.message;
 				} else {
 					frappe.throw({
 						title: __("Couldn't Load Desk"),
@@ -71,10 +71,11 @@ export default class Desktop {
 
 	make_sidebar() {
 		const get_sidebar_item = function(item) {
-			return $(`<a href="${"desk#workspace/" +
-				item.name}" class="sidebar-item ${
-				item.selected ? "selected" : ""
-			}">
+			return $(`<a href="${"desk#workspace/" + item.name}"
+					class="sidebar-item 
+						${item.selected ? " selected" : ""}
+						${item.hidden ? "hidden" : ""}
+					">
 					<span>${item.label || item.name}</span>
 				</div>`);
 		};
@@ -105,9 +106,9 @@ export default class Desktop {
 		};
 
 		this.sidebar_categories.forEach(category => {
-			if (this.desktop_settings.hasOwnProperty(category)) {
+			if (this.sidebar_configuration.hasOwnProperty(category)) {
 				make_category_title(category);
-				this.desktop_settings[category].forEach(item => {
+				this.sidebar_configuration[category].forEach(item => {
 					make_sidebar_category_item(item);
 				});
 			}
@@ -139,8 +140,8 @@ export default class Desktop {
 	}
 
 	get_page_to_show() {
-		const default_page = this.desktop_settings
-			? this.desktop_settings["Modules"][0].name
+		const default_page = this.sidebar_configuration
+			? this.sidebar_configuration["Modules"][0].name
 			: frappe.boot.allowed_workspaces[0].name;
 
 		let page =

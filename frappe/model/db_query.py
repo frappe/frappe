@@ -203,7 +203,7 @@ class DatabaseQuery(object):
 	def sanitize_fields(self):
 		'''
 			regex : ^.*[,();].*
-			purpose : The regex will look for malicious patterns like `,`, '(', ')', ';' in each
+			purpose : The regex will look for malicious patterns like `,`, '(', ')', '@', ;' in each
 					field which may leads to sql injection.
 			example :
 				field = "`DocType`.`issingle`, version()"
@@ -211,11 +211,11 @@ class DatabaseQuery(object):
 			the system will filter out this field.
 		'''
 
-		sub_query_regex = re.compile("^.*[,();].*")
-		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case']
+		sub_query_regex = re.compile("^.*[,();@].*")
+		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case', 'show']
 		blacklisted_functions = ['concat', 'concat_ws', 'if', 'ifnull', 'nullif', 'coalesce',
 			'connection_id', 'current_user', 'database', 'last_insert_id', 'session_user',
-			'system_user', 'user', 'version']
+			'system_user', 'user', 'version', 'global']
 
 		def _raise_exception():
 			frappe.throw(_('Use of sub-query or function is restricted'), frappe.DataError)
@@ -236,6 +236,10 @@ class DatabaseQuery(object):
 					_raise_exception()
 
 				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
+					_raise_exception()
+
+				if '@' in field.lower():
+					# prevent access to global variables
 					_raise_exception()
 
 			if re.compile(r"[0-9a-zA-Z]+\s*'").match(field):

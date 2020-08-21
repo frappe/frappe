@@ -8,6 +8,7 @@ import frappe
 from dateutil.parser._parser import ParserError
 import subprocess
 import operator
+import json
 import re, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
@@ -94,7 +95,10 @@ def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, se
 		as_string = True
 		if " " in date:
 			as_datetime = True
-		date = parser.parse(date)
+		try:
+			date = parser.parse(date)
+		except ParserError:
+			frappe.throw(frappe._("Please select a valid date filter"), title=frappe._("Invalid Date"))
 
 	date = date + relativedelta(years=years, months=months, weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds)
 
@@ -1236,8 +1240,6 @@ def is_subset(list_a, list_b):
 def generate_hash(*args, **kwargs):
 	return frappe.generate_hash(*args, **kwargs)
 
-
-
 def guess_date_format(date_string):
 	DATE_FORMATS = [
 		r"%d-%m-%Y",
@@ -1258,6 +1260,8 @@ def guess_date_format(date_string):
 		r"%d.%m.%y",
 		r"%m.%d.%y",
 		r"%y.%m.%d",
+		r"%d %b %Y",
+		r"%d %B %Y",
 	]
 
 	TIME_FORMATS = [
@@ -1269,41 +1273,48 @@ def guess_date_format(date_string):
 		r"%I:%M %p",
 	]
 
-	date_string = date_string.strip()
+	def _get_date_format(date_str):
+		for f in DATE_FORMATS:
+			try:
+				# if date is parsed without any exception
+				# capture the date format
+				datetime.datetime.strptime(date_str, f)
+				return f
+			except ValueError:
+				pass
 
-	_date = None
-	_time = None
-
-	if " " in date_string:
-		_date, _time = date_string.split(" ", 1)
-	else:
-		_date = date_string
-
-	date_format = None
-	time_format = None
-
-	for f in DATE_FORMATS:
-		try:
-			# if date is parsed without any exception
-			# capture the date format
-			datetime.datetime.strptime(_date, f)
-			date_format = f
-			break
-		except ValueError:
-			pass
-
-	if _time:
+	def _get_time_format(time_str):
 		for f in TIME_FORMATS:
 			try:
 				# if time is parsed without any exception
 				# capture the time format
-				datetime.datetime.strptime(_time, f)
-				time_format = f
-				break
+				datetime.datetime.strptime(time_str, f)
+				return f
 			except ValueError:
 				pass
 
-	full_format = date_format
-	if time_format:
-		full_format += " " + time_format
-	return full_format
+	date_format = None
+	time_format = None
+	date_string = date_string.strip()
+
+	# check if date format can be guessed
+	date_format = _get_date_format(date_string)
+	if date_format:
+		return date_format
+
+	# date_string doesnt look like date, it can have a time part too
+	# split the date string into date and time parts
+	if " " in date_string:
+		date_str, time_str = date_string.split(" ", 1)
+
+		date_format = _get_date_format(date_str) or ''
+		time_format = _get_time_format(time_str) or ''
+
+		if date_format and time_format:
+			return (date_format + ' ' + time_format).strip()
+
+def validate_json_string(string):
+	try:
+		json.loads(string)
+	except (TypeError, ValueError):
+		raise frappe.ValidationError

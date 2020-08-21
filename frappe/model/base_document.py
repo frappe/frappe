@@ -334,7 +334,7 @@ class BaseDocument(object):
 					self.db_insert()
 					return
 
-				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
+				frappe.msgprint(_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)), title=_("Duplicate Name"), indicator="red")
 				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
@@ -702,16 +702,13 @@ class BaseDocument(object):
 			df = self.meta.get_field(fieldname)
 			sanitized_value = value
 
-			if df and df.get("fieldtype") in ("Data", "Code", "Small Text", "Text") and df.get("options")=="Email":
-				sanitized_value = sanitize_email(value)
+			if df and (df.get("ignore_xss_filter")
+				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options")=="Email")
+				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
 
-			elif df and (df.get("ignore_xss_filter")
-						or (df.get("fieldtype")=="Code" and df.get("options")!="Email")
-						or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode")
-
-						# cancelled and submit but not update after submit should be ignored
-						or self.docstatus==2
-						or (self.docstatus==1 and not df.get("allow_on_submit"))):
+				# cancelled and submit but not update after submit should be ignored
+				or self.docstatus==2
+				or (self.docstatus==1 and not df.get("allow_on_submit"))):
 				continue
 
 			else:

@@ -100,26 +100,26 @@ class File(Document):
 				self.validate_file()
 			self.generate_content_hash()
 
-		self.validate_url()
-
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
 			old_file_url = self.file_url
 			if not self.is_folder and (self.is_private != self.db_get('is_private')):
 				private_files = frappe.get_site_path('private', 'files')
 				public_files = frappe.get_site_path('public', 'files')
 
+				file_name = self.file_url.split('/')[-1]
 				if not self.is_private:
-					shutil.move(os.path.join(private_files, self.file_name),
-						os.path.join(public_files, self.file_name))
+					shutil.move(os.path.join(private_files, file_name),
+						os.path.join(public_files, file_name))
 
-					self.file_url = "/files/{0}".format(self.file_name)
+					self.file_url = "/files/{0}".format(file_name)
 
 				else:
-					shutil.move(os.path.join(public_files, self.file_name),
-						os.path.join(private_files, self.file_name))
+					shutil.move(os.path.join(public_files, file_name),
+						os.path.join(private_files, file_name))
 
-					self.file_url = "/private/files/{0}".format(self.file_name)
+					self.file_url = "/private/files/{0}".format(file_name)
 
+				update_existing_file_docs(self)
 
 			# update documents image url with new file url
 			if self.attached_to_doctype and self.attached_to_name:
@@ -134,6 +134,8 @@ class File(Document):
 				if self.attached_to_field:
 					frappe.db.set_value(self.attached_to_doctype, self.attached_to_name,
 						self.attached_to_field, self.file_url)
+
+		self.validate_url()
 
 		if self.file_url and (self.is_private != self.file_url.startswith('/private')):
 			frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
@@ -182,13 +184,7 @@ class File(Document):
 			if duplicate_file:
 				duplicate_file_doc = frappe.get_cached_doc('File', duplicate_file.name)
 				if duplicate_file_doc.exists_on_disk():
-					# if it is attached to a document then throw FileAlreadyAttachedException
-					if self.attached_to_doctype and self.attached_to_name:
-						self.duplicate_entry = duplicate_file.name
-						frappe.throw(_("Same file has already been attached to the record"),
-							frappe.FileAlreadyAttachedException)
-					# else just use the url, to avoid uploading a duplicate
-					else:
+						# just use the url, to avoid uploading a duplicate
 						self.file_url = duplicate_file.file_url
 
 	def set_file_name(self):
@@ -909,3 +905,20 @@ def get_files_in_folder(folder):
 		{ 'folder': folder },
 		['name', 'file_name', 'file_url', 'is_folder', 'modified']
 	)
+
+def update_existing_file_docs(doc):
+	# Update is private and file url of all file docs that point to the same file
+	frappe.db.sql("""
+		UPDATE `tabFile`
+		SET
+			file_url = %(file_url)s,
+			is_private = %(is_private)s
+		WHERE
+			content_hash = %(content_hash)s
+			and name != %(file_name)s
+	""", dict(
+		file_url=doc.file_url,
+		is_private=doc.is_private,
+		content_hash=doc.content_hash,
+		file_name=doc.name
+	))

@@ -6,13 +6,22 @@ import frappe
 import unittest
 from frappe.utils import random_string
 from frappe.model.workflow import apply_workflow, WorkflowTransitionError, WorkflowPermissionError, get_common_transition_actions
+from frappe.test_runner import make_test_records
+
 
 class TestWorkflow(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		make_test_records("User")
+
 	def setUp(self):
-		frappe.db.sql('DELETE FROM `tabToDo`')
 		if not getattr(self, 'workflow', None):
 			self.workflow = create_todo_workflow()
 		frappe.set_user('Administrator')
+
+	def tearDown(self):
+		frappe.print_sql(False)
+		self.workflow.db_set('is_active', 0)
 
 	def test_default_condition(self):
 		'''test default condition is set'''
@@ -25,6 +34,7 @@ class TestWorkflow(unittest.TestCase):
 
 	def test_approve(self, doc=None):
 		'''test simple workflow'''
+		frappe.print_sql(True)
 		todo = doc or self.test_default_condition()
 
 		apply_workflow(todo, 'Approve')
@@ -77,7 +87,7 @@ class TestWorkflow(unittest.TestCase):
 		frappe.set_user('test2@example.com')
 
 		doc = self.test_default_condition()
-		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
+		workflow_actions = frappe.get_all('Workflow Action', fields=['status', 'reference_name'])
 		self.assertEqual(len(workflow_actions), 1)
 
 		# test if status of workflow actions are updated on approval
@@ -101,6 +111,9 @@ class TestWorkflow(unittest.TestCase):
 		todo.reload()
 		self.assertEqual(todo.docstatus, 1)
 
+		self.workflow.states[1].doc_status = 0
+		self.workflow.save()
+
 	def test_if_workflow_set_on_action(self):
 		self.workflow.states[1].doc_status = 1
 		self.workflow.save()
@@ -110,9 +123,14 @@ class TestWorkflow(unittest.TestCase):
 		self.assertEqual(todo.docstatus, 1)
 		self.assertEqual(todo.workflow_state, 'Approved')
 
+		self.workflow.states[1].doc_status = 0
+		self.workflow.save()
+
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):
-		return frappe.get_doc('Workflow', 'Test ToDo').save(ignore_permissions=True)
+		workflow = frappe.get_doc('Workflow', 'Test ToDo').save(ignore_permissions=True)
+		workflow.db_set('is_active', 1)
+		return workflow
 	else:
 		frappe.get_doc(dict(doctype='Role',
 			role_name='Test Approver')).insert(ignore_if_duplicate=True)
@@ -133,13 +151,16 @@ def create_todo_workflow():
 			state = 'Rejected', allow_edit = 'Test Approver'
 		))
 		workflow.append('transitions', dict(
-			state = 'Pending', action='Approve', next_state = 'Approved', allowed='Test Approver', allow_self_approval= 1
+			state = 'Pending', action='Approve', next_state = 'Approved',
+			allowed='Test Approver', allow_self_approval= 1
 		))
 		workflow.append('transitions', dict(
-			state = 'Pending', action='Reject', next_state = 'Rejected', allowed='Test Approver', allow_self_approval= 1
+			state = 'Pending', action='Reject', next_state = 'Rejected',
+			allowed='Test Approver', allow_self_approval= 1
 		))
 		workflow.append('transitions', dict(
-			state = 'Rejected', action='Review', next_state = 'Pending', allowed='All', allow_self_approval= 1
+			state = 'Rejected', action='Review', next_state = 'Pending',
+			allowed='All', allow_self_approval= 1
 		))
 		workflow.insert(ignore_permissions=True)
 

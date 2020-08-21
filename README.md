@@ -1,12 +1,12 @@
 <div align="center">
-    <img src=".github/frappe-framework-logo.png" height="150">
     <h1>
+        <br>
         <a href="https://frappeframework.com">
-            frappe
+            <img src=".github/frappe-framework-logo.svg" height="50">
         </a>
     </h1>
     <h3>
-        a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"
+        a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"</a>
     </h3>
     <h5>
         it's pronounced - <em>fra-pay</em>

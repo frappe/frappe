@@ -82,5 +82,7 @@ class MariaDBTable(DBTable):
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values").format(
 					fieldname, self.table_name))
+			elif e.args[0]==1067:
+				frappe.throw(str(e.args[1]))
 			else:
 				raise e

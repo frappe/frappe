@@ -205,7 +205,7 @@ frappe.patches.v9_1.resave_domain_settings
 frappe.patches.v9_1.revert_domain_settings
 frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
-frappe.patches.v10_0.reload_countries_and_currencies
+frappe.patches.v10_0.reload_countries_and_currencies # 20-10-2020
 frappe.patches.v10_0.refactor_social_login_keys
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
@@ -264,6 +264,7 @@ frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
 frappe.patches.v12_0.setup_email_linking
 frappe.patches.v12_0.fix_home_settings_for_all_users
 frappe.patches.v12_0.change_existing_dashboard_chart_filters
+frappe.patches.v12_0.set_correct_assign_value_in_docs #2020-07-13
 execute:frappe.delete_doc("Test Runner")
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
 execute:frappe.db.set_default('desktop:home_page', 'workspace')
@@ -272,7 +273,9 @@ execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
 execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Account')
 execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
 frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats
+frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
+frappe.patches.v12_0.set_correct_url_in_files
 frappe.patches.v13_0.website_theme_custom_scss
 frappe.patches.v13_0.set_existing_dashboard_charts_as_public
 frappe.patches.v13_0.set_path_for_homepage_in_web_page_view
@@ -291,3 +294,10 @@ execute:frappe.delete_doc("DocType", "Onboarding Slide Help Link")
 frappe.patches.v13_0.update_date_filters_in_user_settings
 frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
+frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
+frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
+frappe.patches.v13_0.add_standard_navbar_items
+frappe.patches.v13_0.generate_theme_files_in_public_folder
+frappe.patches.v13_0.increase_password_length
+frappe.patches.v13_0.add_toggle_width_in_navbar_settings
+frappe.patches.v13_0.rename_notification_fields

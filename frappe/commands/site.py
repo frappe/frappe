@@ -201,16 +201,31 @@ def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_ro
 def install_app(context, apps):
 	"Install a new app to site, supports multiple apps"
 	from frappe.installer import install_app as _install_app
+	exit_code = 0
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
-		try:
-			for app in apps:
+
+		for app in apps:
+			try:
 				_install_app(app, verbose=context.verbose)
-		finally:
-			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
+			except frappe.IncompatibleApp as err:
+				err_msg = ":\n{}".format(err) if str(err) else ""
+				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
+				exit_code = 1
+			except Exception as err:
+				err_msg = ":\n{}".format(err if str(err) else frappe.get_traceback())
+				print("An error occurred while installing {}{}".format(app, err_msg))
+				exit_code = 1
+
+		frappe.destroy()
+
+	sys.exit(exit_code)
+
 
 @click.command('list-apps')
 @pass_context
@@ -259,8 +274,9 @@ def disable_user(context, email):
 @click.command('migrate')
 @click.option('--rebuild-website', help="Rebuild webpages after migration")
 @click.option('--skip-failing', is_flag=True, help="Skip patches that fail to run")
+@click.option('--skip-search-index', is_flag=True, help="Skip search indexing for web documents")
 @pass_context
-def migrate(context, rebuild_website=False, skip_failing=False):
+def migrate(context, rebuild_website=False, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
 	from frappe.migrate import migrate
 
@@ -269,13 +285,18 @@ def migrate(context, rebuild_website=False, skip_failing=False):
 		frappe.init(site=site)
 		frappe.connect()
 		try:
-			migrate(context.verbose, rebuild_website=rebuild_website, skip_failing=skip_failing)
+			migrate(
+				context.verbose,
+				rebuild_website=rebuild_website,
+				skip_failing=skip_failing,
+				skip_search_index=skip_search_index
+			)
 		finally:
 			frappe.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
-	print("Compiling Python Files...")
+	print("Compiling Python files...")
 	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
 @click.command('migrate-to')
@@ -422,15 +443,16 @@ def remove_from_installed_apps(context, app):
 @click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False, multiple=True)
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
 @click.option('--no-backup', help='Do not backup the site', is_flag=True, default=False)
+@click.option('--force', help='Force remove app from site', is_flag=True, default=False)
 @pass_context
-def uninstall(context, app, dry_run=False, yes=False, no_backup=False):
+def uninstall(context, app, dry_run, yes, no_backup, force):
 	"Remove app and linked modules from site"
 	from frappe.installer import remove_app
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			remove_app(app, dry_run, yes, no_backup)
+			remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -615,6 +637,45 @@ def stop_recording(context):
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
+@click.command('ngrok')
+@pass_context
+def start_ngrok(context):
+	from pyngrok import ngrok
+
+	site = get_site(context)
+	frappe.init(site=site)
+
+	port = frappe.conf.http_port or frappe.conf.webserver_port
+	public_url = ngrok.connect(port=port, options={
+		'host_header': site
+	})
+	print(f'Public URL: {public_url}')
+	print('Inspect logs at http://localhost:4040')
+
+	ngrok_process = ngrok.get_ngrok_process()
+	try:
+		# Block until CTRL-C or some other terminating event
+		ngrok_process.proc.wait()
+	except KeyboardInterrupt:
+		print("Shutting down server...")
+		frappe.destroy()
+		ngrok.kill()
+
+@click.command('build-search-index')
+@pass_context
+def build_search_index(context):
+	from frappe.search.website_search import build_index_for_all_routes
+	site = get_site(context)
+	if not site:
+		raise SiteNotSpecifiedError
+
+	print('Building search index for {}'.format(site))
+	frappe.init(site=site)
+	frappe.connect()
+	try:
+		build_index_for_all_routes()
+	finally:
+		frappe.destroy()
 
 commands = [
 	add_system_manager,
@@ -640,5 +701,7 @@ commands = [
 	browse,
 	start_recording,
 	stop_recording,
-	add_to_hosts
+	add_to_hosts,
+	start_ngrok,
+	build_search_index
 ]

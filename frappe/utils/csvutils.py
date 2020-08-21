@@ -191,7 +191,6 @@ def get_csv_content_from_google_sheets(url):
 		'Accept': 'text/csv'
 	}
 	response = requests.get(url, headers=headers)
-	response.raise_for_status()
 
 	if response.ok:
 		# if it returns html, it couldn't find the CSV content
@@ -202,6 +201,11 @@ def get_csv_content_from_google_sheets(url):
 				title=_("Invalid URL")
 			)
 		return response.content
+	elif response.status_code == 400:
+		frappe.throw(_('Google Sheets URL must end with "gid={number}". Copy and paste the URL from the browser address bar and try again.'),
+			title=_("Incorrect URL"))
+	else:
+		response.raise_for_status()
 
 def validate_google_sheets_url(url):
 	if "docs.google.com/spreadsheets" not in url:

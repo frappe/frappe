@@ -99,9 +99,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{%- if df.fieldtype=="Code" %}
 		<pre class="value">{{ doc.get(df.fieldname) }}</pre>
 	{% else -%}
-		{%- if df.fieldtype=="Text Editor" -%}<div class='ql-editor'>{%- endif -%}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
-		{%- if df.fieldtype=="Text Editor" -%}</div>{%- endif -%}
   {% endif -%}
 </div>
 {%- endif -%}

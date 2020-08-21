@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "field:dashboard_name",
  "creation": "2019-01-10 12:54:40.938705",
  "doctype": "DocType",
@@ -8,6 +9,8 @@
  "field_order": [
   "dashboard_name",
   "is_default",
+  "is_standard",
+  "module",
   "charts",
   "chart_options",
   "cards"
@@ -35,21 +38,36 @@
    "reqd": 1
   },
   {
-    "description": "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])",
-    "fieldname": "chart_options",
-    "fieldtype": "Code",
-    "label": "Chart Options",
-    "options": "JSON"
+   "description": "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])",
+   "fieldname": "chart_options",
+   "fieldtype": "Code",
+   "label": "Chart Options",
+   "options": "JSON"
   },
   {
    "fieldname": "cards",
    "fieldtype": "Table",
    "label": "Cards",
    "options": "Number Card Link"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval: doc.is_standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "eval: doc.is_standard",
+   "options": "Module Def"
   }
  ],
  "links": [],
- "modified": "2020-04-29 13:26:37.362482",
+ "modified": "2020-07-23 11:05:41.890459",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",

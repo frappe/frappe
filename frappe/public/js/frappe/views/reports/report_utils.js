@@ -41,7 +41,7 @@ frappe.report_utils = {
 		}
 	},
 
-	get_possible_chart_options: function(columns, data) {
+	get_field_options_from_report: function(columns, data) {
 		const rows =  data.result.filter(value => Object.keys(value).length);
 		const first_row = Array.isArray(rows[0]) ? rows[0] : columns.map(col => rows[0][col.fieldname]);
 
@@ -136,6 +136,16 @@ frappe.report_utils = {
 				return acc;
 			}, {});
 		return filter_values;
+	},
+
+	get_result_of_fn(fn, values) {
+		const get_result = {
+			'Minimum': values => values.reduce((min, val) => Math.min(min, val), values[0]),
+			'Maximum': values => values.reduce((min, val) => Math.max(min, val), values[0]),
+			'Average': values => values.reduce((a, b) => a + b, 0) / values.length,
+			'Sum': values => values.reduce((a, b) => a + b, 0)
+		};
+		return get_result[fn](values);
 	},
 
 };

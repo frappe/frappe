@@ -26,13 +26,6 @@ class Dashboard {
 		</div>`).appendTo(this.wrapper.find(".page-content").empty());
 		this.container = this.wrapper.find(".dashboard-graph");
 		this.page = wrapper.page;
-
-		this.page.set_title_sub(
-			$(`<button class="restricted-button">
-				<span class="octicon octicon-lock"></span>
-				<span>${__('Restricted')}</span>
-			</button>`)
-		);
 	}
 
 	show() {
@@ -172,19 +165,26 @@ class Dashboard {
 	set_dropdown() {
 		this.page.clear_menu();
 
-		this.page.add_menu_item('Edit...', () => {
+		this.page.add_menu_item(__('Edit'), () => {
 			frappe.set_route('Form', 'Dashboard', frappe.dashboard.dashboard_name);
-		}, 1);
+		});
 
-		this.page.add_menu_item('New...', () => {
+		this.page.add_menu_item(__('New'), () => {
 			frappe.new_doc('Dashboard');
-		}, 1);
+		});
 
-		frappe.db.get_list("Dashboard").then(dashboards => {
+		this.page.add_menu_item(__('Refresh All'), () => {
+			this.chart_group &&
+				this.chart_group.widgets_list.forEach(chart => chart.refresh());
+			this.number_card_group &&
+				this.number_card_group.widgets_list.forEach(card => card.render_card());
+		});
+
+		frappe.db.get_list('Dashboard').then(dashboards => {
 			dashboards.map(dashboard => {
 				let name = dashboard.name;
 				if(name != this.dashboard_name){
-					this.page.add_menu_item(name, () => frappe.set_route("dashboard", name));
+					this.page.add_menu_item(name, () => frappe.set_route("dashboard", name), 1);
 				}
 			});
 		});

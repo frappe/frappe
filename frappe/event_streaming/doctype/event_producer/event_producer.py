@@ -112,6 +112,7 @@ class EventProducer(Document):
 					event_consumer.consumer_doctypes.append({
 						'ref_doctype': ref_doctype,
 						'status': get_approval_status(config, ref_doctype),
+						'unsubscribed': entry.unsubscribe,
 						'condition': entry.condition
 					})
 				if frappe.flags.in_test:
@@ -218,11 +219,12 @@ def sync(update, producer_site, event_producer, in_retry=False):
 
 	except Exception:
 		if in_retry:
+			if frappe.flags.in_test:
+				print(frappe.get_traceback())
 			return 'Failed'
 		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
-	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.creation)
-	event_producer.reload()
+	event_producer.db_set('last_update', update.creation)
 	frappe.db.commit()
 
 
