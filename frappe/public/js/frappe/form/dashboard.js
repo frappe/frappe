@@ -436,7 +436,8 @@ frappe.ui.form.Dashboard = Class.extend({
 				type: 'heatmap',
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
-				discreteDomains: 0,
+				discreteDomains: 1,
+				radius: 3,
 				data: {},
 			});
 
