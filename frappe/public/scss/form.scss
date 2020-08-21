@@ -74,7 +74,7 @@
 }
 
 .form-section.card-section {
-	margin: var(--margin-lg) 0px;
+	margin-bottom: var(--margin-lg);
 	@extend .frappe-card;
 }
 
@@ -117,7 +117,8 @@
 	border-radius: $border-radius;
 	min-height: 30px;
 	font-weight: 400;
-	background-color: transparent;
+	color: var(--gray-500);
+	background-color: var(--control-bg);
 	padding: var(--padding-xs) var(--padding-sm);
 }
 

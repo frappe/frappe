@@ -2,6 +2,10 @@
 	height: $navbar-height;
 	background: var(--fg-color);
 	box-shadow: var(--shadow-sm);
+	padding: 0;
+	.navbar-nav {
+		margin-right: 0;
+	}
 	.container {
 		padding: 0 1rem;
 	}

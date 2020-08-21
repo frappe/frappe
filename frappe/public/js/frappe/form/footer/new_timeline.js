@@ -12,7 +12,11 @@ frappe.ui.form.NewTimeline = class {
 	make() {
 		this.timeline_wrapper = $(`<div class="new-timeline">`);
 		this.timeline_items_wrapper = $(`<div class="timeline-items">`);
-		this.timeline_actions_wrapper = $(`<div class="timeline-actions">`);
+		this.timeline_actions_wrapper = $(`
+			<div class="timeline-actions">
+				<div class="timeline-dot"></div>
+			</div>
+		`);
 
 		this.timeline_wrapper.append(this.timeline_actions_wrapper);
 		this.timeline_wrapper.append(this.timeline_items_wrapper);
@@ -52,21 +56,10 @@ frappe.ui.form.NewTimeline = class {
 		this.timeline_items.push(...this.get_communication_timeline_contents());
 		this.timeline_items.push(...this.get_comment_timeline_contents());
 		this.timeline_items.push(...this.get_energy_point_timeline_contents());
-		this.timeline_items.push(...this.get_share_timeline_contents());
 		this.timeline_items.push(...this.get_version_timeline_contents());
-		this.timeline_items.push(...this.get_creation_timeline_content());
+		this.timeline_items.push(...this.get_share_timeline_contents());
 		// attachments
 		// milestones
-	}
-
-	get_creation_timeline_content() {
-		if (this.frm && this.frm.doc) {
-			return [{
-				icon: 'edit',
-				creation: this.frm.doc.creation,
-				content: __("{0} created", [this.get_user_link(this.frm.doc.owner)]),
-			}];
-		}
 	}
 
 	get_user_link(user) {
@@ -91,12 +84,14 @@ frappe.ui.form.NewTimeline = class {
 			`);
 		} else if (item.timeline_indicator) {
 			timeline_item.append(item.timeline_indicator);
+		} else {
+			timeline_item.append(`<div class="timeline-dot">`);
 		}
 
 		timeline_item.append(`<div class="timeline-content ${item.card ? 'frappe-card' : ''}">`);
 		timeline_item.find('.timeline-content').append(item.content);
 		if (!item.hide_timestamp && !item.card) {
-			timeline_item.find('.timeline-content').append(`&nbsp;-&nbsp;<span>${comment_when(item.creation)}</span>`);
+			timeline_item.find('.timeline-content').append(`<div>${comment_when(item.creation)}</div>`);
 		}
 		return timeline_item;
 	}
@@ -112,7 +107,6 @@ frappe.ui.form.NewTimeline = class {
 				</div>
 			`;
 			view_timeline_contents.push({
-				icon: 'view',
 				creation: view.creation,
 				content: view_content,
 			});
@@ -153,7 +147,10 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	get_comment_timeline_content(doc) {
-		const comment_content = frappe.render_template('timeline_message_box', { doc });
+		const comment_content = $(frappe.render_template('timeline_message_box', { doc }));
+
+		comment_content.find('.actions').append(`<a class="action-btn text-muted">${__("Edit")}</a>`);
+		comment_content.find('.actions').append(`<span class="action-btn">${frappe.utils.icon('close', 'sm')}</span>`);
 		return comment_content;
 	}
 
@@ -163,7 +160,6 @@ frappe.ui.form.NewTimeline = class {
 			const contents = get_version_timeline_content(version, this.frm);
 			contents.forEach((content) => {
 				version_timeline_contents.push({
-					icon: 'edit',
 					creation: version.creation,
 					content: content,
 				});
@@ -174,14 +170,10 @@ frappe.ui.form.NewTimeline = class {
 
 	get_share_timeline_contents() {
 		let share_timeline_contents = [];
-		(this.doc_info.shared || []).forEach(share => {
+		(this.doc_info.share_logs || []).forEach(share => {
 			share_timeline_contents.push({
-				icon: 'share',
 				creation: share.creation,
-				content: __("{0} shared this document with {1}", [
-					this.get_user_link(share.owner),
-					share.everyone ? 'everyone' : this.get_user_link(share.user)
-				]),
+				content: share.content,
 			});
 		});
 		return share_timeline_contents;

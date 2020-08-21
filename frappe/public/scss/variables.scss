@@ -189,6 +189,11 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--checkbox-right-margin: var(--margin-xs);
 
 	--primary-color: #{$primary};
+
+	--appreciation-color: var(--dark-green-600);
+	--appreciation-bg: var(--dark-green-100);
+	--criticism-color: var(--red-600);
+	--criticism-bg: var(--red-100);
 }
 
 html, body {
@@ -219,7 +224,7 @@ $page-head-height: 68px;
 
 $body-color: var(--text-light);
 $component-active-color: var(--fg-color);
-$component-active-bg: $gray-500;
+$component-active-bg: $gray-600;
 $modal-content-bg: var(--modal-bg);
 
 // input
@@ -235,7 +240,7 @@ $input-border-radius: var(--border-radius);
 $dropdown-bg: var(--fg-color);
 $dropdown-border-color: var(--dark-border-color);
 $dropdown-link-color: var(--text-color);
-$dropdown-link-hover-color: var(--text-light);
+$dropdown-link-hover-color: var(--text-color);
 $dropdown-link-hover-bg: var(--fg-hover-color);
 $dropdown-link-disabled-color: var(--gray-600);
 $dropdown-header-color: var(--gray-600);

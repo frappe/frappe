@@ -1,6 +1,6 @@
 $timeline-item-icon-size: 34px;
 $timeline-item-left-margin: var(--margin-xl);
-$threshold: 20;
+$threshold: 40;
 
 @mixin timeline-indicator($indicator-size) {
 	width: $indicator-size;
@@ -11,11 +11,12 @@ $threshold: 20;
 	// please do not touch this sacred code
 	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, max(0px, (#{$threshold}px - (50% - #{$indicator-size}/2)) * #{$threshold}))");
 	left: calc(-1 * (#{$indicator-size}/2));
-	background-color: var(--gray-600);
+	background-color: var(--bg-color);
+	border: 1px solid var(--dark-border-color);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	--icon-stroke: var(--gray-50);
+	--icon-stroke: var(--gray-600);
 }
 
 .new-timeline {
@@ -29,18 +30,24 @@ $threshold: 20;
 		border-left: 1px solid var(--dark-border-color);
 		bottom: -150px; // arbitrary
 	}
+	.timeline-dot {
+		@include timeline-indicator(16px);
+		&:before {
+			content: ' ';
+			background: var(--gray-600);
+			border-radius: 50%;
+			height: 4px;
+			width: 4px;
+		}
+	}
 	.timeline-actions {
 		margin-bottom: var(--margin-md);
 		padding: var(--padding-sm);
 		position: relative;
-		&:before {
-			content: ' ';
-			@include timeline-indicator(10px);
-		}
 		.action-btn {
 			margin-left: var(--margin-md)
 		}
-		.action-btn:first-child {
+		.action-btn:first-of-type {
 			margin-left: $timeline-item-left-margin;
 		}
 	}

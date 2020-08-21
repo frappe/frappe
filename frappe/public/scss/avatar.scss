@@ -26,7 +26,7 @@
 	text-align: center;
 
 	.standard-image {
-		font-size: $font-size-xs;
+		font-size: var(--text-xs);
 	}
 
 	.avatar-empty::after {
@@ -40,7 +40,7 @@
 	height: 36px;
 
 	.standard-image {
-		font-size: 18px;
+		font-size: var(--text-base);
 	}
 }
 
@@ -50,7 +50,7 @@
 
 
 	.standard-image {
-		font-size: 36px;
+		font-size: var(--text-2xl);
 	}
 }
 
@@ -59,7 +59,7 @@
 	height: 108px;
 
 	.standard-image {
-		font-size: 36px;
+		font-size: var(--text-2xl);
 	}
 }
 
