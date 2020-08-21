@@ -203,6 +203,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "client_script",
    "fieldname": "client_script_section",
    "fieldtype": "Section Break",
    "label": "Client Script"
@@ -344,6 +345,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "custom_css",
    "fieldname": "custom_css_section",
    "fieldtype": "Section Break",
    "label": "Custom CSS"
@@ -359,7 +361,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2020-06-30 21:49:18.237443",
+ "modified": "2020-08-07 13:12:03.945686",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
