@@ -5,27 +5,62 @@ h5.modal-title {
 .modal {
 
 	.modal-header {
-		padding: var(--padding-md) 25px;
+		padding: var(--padding-md) var(--padding-lg);
+		padding-bottom: 0;
+		border-bottom: 0;
 
 		.modal-title {
 			font-weight: 500;
 			line-height: 2em;
 			font-size: $font-size-lg;
 		}
-	}
 
-	.buttons {
-		button:not(:last-child) {
-			margin-right: 3px;
+		.btn-modal-close {
+			position: absolute;
+			top: 10px;
+			right: 15px;
+		}
+
+		.btn-modal-minimize {
+			position: absolute;
+			top: 10px;
+			right: 45px;
+			cursor: pointer;
+
+			.icon {
+				width: 14px;
+				height: 14px;
+
+				use {
+					stroke: var(--gray-500);
+				}
+			}
 		}
 	}
 
 	.modal-body {
-		padding: var(--padding-lg) 25px;
+		padding: var(--padding-md) var(--padding-lg);
 	}
 
 	.modal-footer {
-		padding: var(--padding-md);
+		padding: var(--padding-md) var(--padding-lg);
+		padding-top: 0;
+		border-top: 0;
+		justify-content: space-between;
+
+		button {
+			box-shadow: none;
+		}
+
+		.standard-actions {
+			button:not(:last-child) {
+				margin-right: var(--margin-xs);
+			}
+		}
+
+		& > * {
+			margin: 0;
+		}
 	}
 
 	@include media-breakpoint-up(md) {

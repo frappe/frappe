@@ -320,21 +320,26 @@ frappe.get_modal = function(title, content) {
 						<h4 class="modal-title">${title}</h4>
 					</div>
 					<div>
-					<div class="text-right buttons">
-							<button type="button" class="btn btn-default btn-sm btn-modal-minimize hide">
-								<i class="octicon octicon-chevron-down" style="padding: 1px 0px;"></i>
-							</button>
-							<button type="button" class="btn btn-default btn-sm btn-modal-close" data-dismiss="modal">
-								<i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i>
-								<span class="hidden-xs">${__("Close")}</span>
-							</button>
-							<button type="button" class="btn btn-primary btn-sm hide">
-								${__("Confirm")}
-							</button>
+						<div class="btn-modal-minimize hide">
+							${frappe.utils.icon('collapse')}
+						</div>
+						<div class="btn-modal-close" data-dismiss="modal">
+							${frappe.utils.icon('close-alt', 'sm', 'close-alt')}
 						</div>
 					</div>
 				</div>
 				<div class="modal-body ui-front">${content}</div>
+				<div class="modal-footer">
+					<div class="custom-actions">
+					</div>
+					<div class="standard-actions">
+						<button type="button" class="btn btn-secondary btn-sm hide btn-modal-secondary">
+						</button>
+						<button type="button" class="btn btn-primary btn-sm hide btn-modal-primary">
+							${__("Confirm")}
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>`);

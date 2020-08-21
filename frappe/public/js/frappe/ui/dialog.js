@@ -42,7 +42,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.body = this.$body.get(0);
 		this.$message = $('<div class="hide modal-message"></div>').appendTo(this.modal_body);
 		this.header = this.$wrapper.find(".modal-header");
-		this.buttons = this.header.find('.buttons');
+		this.footer = this.$wrapper.find(".modal-footer");
+		this.standard_actions = this.footer.find('.standard-actions');
+		this.custom_actions = this.footer.find('.custom-actions');
 		this.set_indicator();
 
 		// make fields (if any)
@@ -50,17 +52,17 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 		// show footer
 		this.action = this.action || { primary: { }, secondary: { } };
-		if(this.primary_action || (this.action.primary && this.action.primary.onsubmit)) {
+		if (this.primary_action || (this.action.primary && this.action.primary.onsubmit)) {
 			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"),
 				this.primary_action || this.action.primary.onsubmit);
 		}
 
-		if(this.secondary_action) {
+		if (this.secondary_action) {
 			this.set_secondary_action(this.secondary_action);
 		}
 
 		if (this.secondary_action_label || (this.action.secondary && this.action.secondary.label)) {
-			this.get_close_btn().html(this.secondary_action_label || this.action.secondary.label);
+			this.set_secondary_action_label(this.secondary_action_label || this.action.secondary.label)
 		}
 
 		if (this.minimizable) {
@@ -104,7 +106,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	get_primary_btn() {
-		return this.$wrapper.find(".modal-header .btn-primary");
+		return this.standard_actions.find(".btn-primary");
 	}
 
 	get_minimize_btn() {
@@ -145,11 +147,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	set_secondary_action(click) {
-		this.get_close_btn().on('click', click);
+		this.get_secondary_btn().removeClass('hide').on('click', click);
 	}
 
 	set_secondary_action_label(label) {
-		this.get_close_btn()
+		this.get_secondary_btn()
 			.removeClass("hide")
 			.html(label);
 	}
@@ -157,23 +159,28 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	disable_primary_action() {
 		this.get_primary_btn().addClass('disabled');
 	}
+
 	enable_primary_action() {
 		this.get_primary_btn().removeClass('disabled');
 	}
+
 	make_head() {
 		this.set_title(this.title);
 	}
+
 	set_title(t) {
 		this.$wrapper.find(".modal-title").html(t);
 	}
+
 	set_indicator() {
 		if (this.indicator) {
 			this.header.find('.indicator').removeClass().addClass('indicator ' + this.indicator);
 		}
 	}
+
 	show() {
 		// show it
-		if ( this.animate ) {
+		if (this.animate) {
 			this.$wrapper.addClass('fade');
 		} else {
 			this.$wrapper.removeClass('fade');
@@ -187,25 +194,35 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.is_visible = true;
 		return this;
 	}
+
 	hide() {
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
 	}
+
 	get_close_btn() {
 		return this.$wrapper.find(".btn-modal-close");
 	}
+
+	get_secondary_btn() {
+		return this.standard_actions.find(".btn-modal-secondary");
+	}
+
 	no_cancel() {
 		this.get_close_btn().toggle(false);
 	}
+
 	cancel() {
 		this.get_close_btn().trigger("click");
 	}
+
 	toggle_minimize() {
 		this.$wrapper.prev('.modal-backdrop').toggle();
 		let modal = this.$wrapper.closest('.modal').toggleClass('modal-minimize');
 		modal.attr('tabindex') ? modal.removeAttr('tabindex') : modal.attr('tabindex', -1);
-		this.get_minimize_btn().find('i').toggleClass('octicon-chevron-down').toggleClass('octicon-chevron-up');
 		this.is_minimized = !this.is_minimized;
+		const icon = this.is_minimized ? 'expand' : 'collapse';
+		this.get_minimize_btn().html(frappe.utils.icon(icon));
 		this.on_minimize_toggle && this.on_minimize_toggle(this.is_minimized);
 		this.header.find('.modal-title').toggleClass('cursor-pointer');
 	}

@@ -11,10 +11,6 @@
 	stroke: var(--icon-stroke);
 }
 
-#icon-close {
-	fill: var(--gray-600);
-}
-
 /* like icon */
 use.like-icon {
 	cursor: pointer;
@@ -23,6 +19,10 @@ use.like-icon {
 
 .icon > .close {
 	fill: var(--gray-900);
+}
+
+.icon > .close-alt {
+	fill: var(--gray-500);
 }
 
 .liked {

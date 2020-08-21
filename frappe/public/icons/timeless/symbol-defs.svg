@@ -246,7 +246,7 @@
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M4.146 11.217a.5.5 0 1 0 .708.708l3.182-3.182 3.181 3.182a.5.5 0 1 0 .708-.708l-3.182-3.18 3.182-3.182a.5.5 0 1 0-.708-.708l-3.18 3.181-3.183-3.182a.5.5 0 0 0-.708.708l3.182 3.182-3.182 3.181z" fill="#70818F"></path>
 	</symbol>
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-close-alt">
-		<path fill-rule="evenodd" clip-rule="evenodd" d="M3.78033 2.71967C3.48744 2.42678 3.01257 2.42678 2.71967 2.71967C2.42678 3.01256 2.42678 3.48744 2.71967 3.78033L6.94054 8.00119L2.71967 12.2221C2.42678 12.515 2.42678 12.9898 2.71967 13.2827C3.01257 13.5756 3.48744 13.5756 3.78033 13.2827L8.0012 9.06185L12.222 13.2826C12.5149 13.5755 12.9897 13.5755 13.2826 13.2826C13.5755 12.9897 13.5755 12.5148 13.2826 12.222L9.06186 8.00119L13.2826 3.78044C13.5755 3.48755 13.5755 3.01267 13.2826 2.71978C12.9897 2.42688 12.5149 2.42689 12.222 2.71978L8.0012 6.94054L3.78033 2.71967Z" fill="#8C9AA6" stroke="none"/>
+		<path fill-rule="evenodd" clip-rule="evenodd" d="M3.78033 2.71967C3.48744 2.42678 3.01257 2.42678 2.71967 2.71967C2.42678 3.01256 2.42678 3.48744 2.71967 3.78033L6.94054 8.00119L2.71967 12.2221C2.42678 12.515 2.42678 12.9898 2.71967 13.2827C3.01257 13.5756 3.48744 13.5756 3.78033 13.2827L8.0012 9.06185L12.222 13.2826C12.5149 13.5755 12.9897 13.5755 13.2826 13.2826C13.5755 12.9897 13.5755 12.5148 13.2826 12.222L9.06186 8.00119L13.2826 3.78044C13.5755 3.48755 13.5755 3.01267 13.2826 2.71978C12.9897 2.42688 12.5149 2.42689 12.222 2.71978L8.0012 6.94054L3.78033 2.71967Z" stroke="none"/>
 	</symbol>
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-close">
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M4.146 11.217a.5.5 0 1 0 .708.708l3.182-3.182 3.181 3.182a.5.5 0 1 0 .708-.708l-3.182-3.18 3.182-3.182a.5.5 0 1 0-.708-.708l-3.18 3.181-3.183-3.182a.5.5 0 0 0-.708.708l3.182 3.182-3.182 3.181z" stroke-width="0"></path>
@@ -545,6 +545,12 @@
 	</symbol>
 	<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-expand">
 		<path d="M10 2L6.844 5.158M7.053 2h2.948v2.948M5.158 6.842L2 10m0-2.947V10h2.947" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+	</symbol>
+	<symbol id="icon-collapse" viewBox="0 0 32 32">
+		<path stroke-linejoin="round" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2.6667" d="M18.246 13.754l8.421-8.421"></path>
+		<path stroke-linejoin="round" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2.6667" d="M5.333 26.667l8.421-8.421"></path>
+		<path stroke-linejoin="round" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2.6667" d="M26.106 13.754h-7.86v-7.86"></path>
+		<path stroke-linejoin="round" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2.6667" d="M13.754 26.105v-7.86h-7.86"></path>
 	</symbol>
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-today">
 		<path d="M8 2v.857m4.243.9l-.606.606M14 8h-.857m-.9 4.243l-.606-.606M8 14v-.857m-4.243-.9l.606-.606M2 8h.857m.9-4.243l.606.606M8 10.571A2.571 2.571 0 1 0 8 5.43a2.571 2.571 0 0 0 0 5.142z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round"
