@@ -366,3 +366,8 @@ kbd {
 .frappe-timestamp {
 	cursor: default;
 }
+
+.dropdown-menu {
+	margin-top: var(--margin-xs);
+	box-shadow: var(--shadow-sm);
+}
