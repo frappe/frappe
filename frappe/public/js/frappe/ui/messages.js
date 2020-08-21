@@ -72,9 +72,7 @@ frappe.warn = function(title, message_html, proceed_action, primary_label) {
 		secondary_action_label: __("Cancel"),
 	});
 
-	d.buttons.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
-	const modal_footer = $(`<div class="modal-footer"></div>`).insertAfter($(d.modal_body));
-	modal_footer.html(d.buttons);
+	d.standard_actions.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
 
 	d.show();
 	return d;
@@ -417,7 +415,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 		setTimeout(() => div.remove(), 800);
 		return false;
 	}, seconds * 1000)
-	
+
 	return div;
 }
 
