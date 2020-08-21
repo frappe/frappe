@@ -47,11 +47,11 @@ class Workspace:
 
 		self.allowed_pages = get_allowed_pages(cache=True)
 		self.allowed_reports = get_allowed_reports(cache=True)
-		
+
 		if not minimal:
 			self.onboarding_doc = self.get_onboarding_doc()
 			self.onboarding = None
-		
+
 			self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
 		self.restricted_pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
@@ -59,7 +59,7 @@ class Workspace:
 	def is_page_allowed(self):
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module) + self.extended_cards
 		shortcuts = self.doc.shortcuts + self.extended_shortcuts
-		
+
 		for section in cards:
 			links = loads(section.links) if isinstance(section.links, string_types) else section.links
 			for item in links:
@@ -195,7 +195,7 @@ class Workspace:
 				'docs_url': self.onboarding_doc.documentation_url,
 				'items': self.get_onboarding_steps()
 			}
-	
+
 	@handle_not_exist
 	def get_cards(self):
 		cards = self.doc.cards
@@ -221,6 +221,8 @@ class Workspace:
 				incomplete_dependencies = [d for d in item.dependencies if not _doctype_contains_a_record(d)]
 				if len(incomplete_dependencies):
 					item.incomplete_dependencies = incomplete_dependencies
+				else:
+					item.incomplete_dependencies = ""
 
 			if item.onboard:
 				# Mark Spotlights for initial
@@ -301,7 +303,7 @@ class Workspace:
 			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
 				if item.type == "Report":
 					report = self.allowed_reports.get(item.link_to, {})
-					if report.get("report_type") in ["Query Report", "Script Report"]:
+					if report.get("report_type") in ["Query Report", "Script Report", "Custom Report"]:
 						new_item['is_query_report'] = 1
 					else:
 						new_item['ref_doctype'] = report.get('ref_doctype')
@@ -356,7 +358,7 @@ def get_desk_sidebar_items(flatten=False, cache=True):
 	_cache = frappe.cache()
 	if cache:
 		pages = _cache.get_value("desk_sidebar_items", user=frappe.session.user)
-	
+
 	if not pages or not cache:
 		# don't get domain restricted pages
 		blocked_modules = frappe.get_doc('User', frappe.session.user).get_blocked_modules()
@@ -375,7 +377,7 @@ def get_desk_sidebar_items(flatten=False, cache=True):
 		order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
 		all_pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
 		pages = []
-		
+
 		# Filter Page based on Permission
 		for page in all_pages:
 			try:

@@ -251,7 +251,7 @@ class EmailAccount(Document):
 			email_server = None
 
 			if frappe.local.flags.in_test:
-				incoming_mails = test_mails
+				incoming_mails = test_mails or []
 			else:
 				email_sync_rule = self.build_email_sync_rule()
 
@@ -700,8 +700,10 @@ class EmailAccount(Document):
 		email_server.connect()
 
 		if email_server.imap:
-			email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
-
+			try:
+				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message.encode())
+			except Exception:
+				frappe.log_error()
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):

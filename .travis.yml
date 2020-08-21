@@ -31,12 +31,12 @@ matrix:
   - name: "Python 3.7 MariaDB"
     python: 3.7
     env: DB=mariadb TYPE=server
-    script: bench --site test_site run-tests --coverage
+    script: bench --verbose --site test_site run-tests --coverage
 
   - name: "Python 3.7 PostgreSQL"
     python: 3.7
     env: DB=postgres TYPE=server
-    script: bench --site test_site run-tests --coverage
+    script: bench --verbose --site test_site run-tests --coverage
 
   - name: "Cypress"
     python: 3.7
