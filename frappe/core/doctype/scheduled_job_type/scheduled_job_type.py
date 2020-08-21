@@ -125,9 +125,9 @@ def run_scheduled_job(job_type):
 		print(frappe.get_traceback())
 
 
-def sync_jobs():
+def sync_jobs(hooks=None):
 	frappe.reload_doc("core", "doctype", "scheduled_job_type")
-	scheduler_events = frappe.get_hooks("scheduler_events")
+	scheduler_events = hooks or frappe.get_hooks("scheduler_events")
 	all_events = insert_events(scheduler_events)
 	clear_events(all_events)
 
