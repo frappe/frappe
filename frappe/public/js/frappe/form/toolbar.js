@@ -272,12 +272,12 @@ frappe.ui.form.Toolbar = Class.extend({
 			});
 		}
 
-		if (frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
+		if (frappe.user_roles.includes("System Manager")) {
 			let is_doctype_form = me.frm.doctype === 'DocType';
 			let doctype = is_doctype_form ? me.frm.docname : me.frm.doctype;
 			let is_doctype_custom = is_doctype_form ? me.frm.doc.custom : false;
 
-			if (doctype != 'DocType' && !is_doctype_custom) {
+			if (doctype != 'DocType' && !is_doctype_custom && me.frm.meta.issingle === 0) {
 				this.page.add_menu_item(__("Customize"), function() {
 					if (me.frm.meta && me.frm.meta.custom) {
 						frappe.set_route('Form', 'DocType', doctype);
