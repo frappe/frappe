@@ -67,6 +67,10 @@ class TestAPI(unittest.TestCase):
 			{"doctype": "Note", "public": True, "title": "get_value", "content": test_content},
 		])
 		self.assertEqual(server.get_value("Note", "content", {"title": "get_value"}).get('content'), test_content)
+		name = server.get_value("Note", "name", {"title": "get_value"}).get('name')
+
+		# test by name
+		self.assertEqual(server.get_value("Note", "content", name).get('content'), test_content)
 
 		self.assertRaises(FrappeException, server.get_value, "Note", "(select (password) from(__Auth) order by name desc limit 1)", {"title": "get_value"})
 
