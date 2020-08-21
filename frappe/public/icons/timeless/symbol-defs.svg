@@ -125,25 +125,14 @@
 			<circle id="Ellipse 30" cx="12" cy="7.5" r="0.5" fill="var(--icon-stroke)"  stroke-width="0"/>
 		</g>
 	</symbol>
-	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-notification">
-		<g stroke="var(--icon-stroke)">
-		<path d="M16.491 12.542v-1.925a4.492 4.492 0 1 0-8.983 0v1.925c0 2.117-1.925 2.63-1.925 3.85 0 1.09 2.503 1.925 6.417 1.925 3.914 0 6.416-.834 6.416-1.925 0-1.22-1.925-1.733-1.925-3.85z" stroke-miterlimit="10" stroke-linecap="square"></path>
-		<path d="M12.866 20.087a1.544 1.544 0 0 1-.025.019l.295.403-.295-.403a1.42 1.42 0 0 1-1.707-.02 27.386 27.386 0 0 0 1.732 0z" fill="#3E414B"></path>
-		</g>
+	<symbol id="icon-notification-with-indicator" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" >
+		<path style="stroke: var(--color1, #192734)" stroke-linejoin="round" stroke-linecap="butt" stroke-miterlimit="4" stroke-width="1.6" d="M19.715 25.6h-6.915c0.174 1.797 1.656 3.2 3.458 3.2s3.283-1.403 3.458-3.2z"></path>
+		<path style="stroke: var(--color1, #192734)" stroke-linejoin="round" stroke-linecap="butt" stroke-miterlimit="4" stroke-width="1.6" d="M7.194 13.6c0-4.030 2.614-7.533 6.34-8.632 0.791-0.222 1.606-0.332 2.444-0.332s1.65 0.111 2.434 0.332c3.726 1.1 6.34 4.604 6.34 8.632v7.586c0 0.829 0.731 1.578 2.194 2.247v0.567c-0 0.884-0.716 1.6-1.6 1.6h-18.946c-0.884 0-1.6-0.716-1.6-1.6v-0.567c1.596-0.671 2.393-1.42 2.393-2.247v-7.586z"></path>
+		<path fill="#ff5858" style="fill: var(--color2, #ff5858); stroke: var(--color3, #fff)" stroke="#fff" stroke-linejoin="miter" stroke-linecap="butt" stroke-miterlimit="4" stroke-width="2.4" d="M21.6 9.2c2.43 0 4.4-1.97 4.4-4.4s-1.97-4.4-4.4-4.4c-2.43 0-4.4 1.97-4.4 4.4s1.97 4.4 4.4 4.4z"></path>
 	</symbol>
-	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-notification-with-indicator">
-		<g stroke="var(--icon-stroke)">
-		<path d="M16.491 12.542v-1.925a4.492 4.492 0 1 0-8.983 0v1.925c0 2.117-1.925 2.63-1.925 3.85 0 1.09 2.503 1.925 6.417 1.925 3.914 0 6.416-.834 6.416-1.925 0-1.22-1.925-1.733-1.925-3.85z" stroke-miterlimit="10" stroke-linecap="square"></path>
-		<path d="M12.866 20.087a1.544 1.544 0 0 1-.025.019l.295.403-.295-.403a1.42 1.42 0 0 1-1.707-.02 27.386 27.386 0 0 0 1.732 0z" fill="#3E414B"></path>
-		</g>
-		<path d="M15.834 8.667a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5z" fill="#FF5858" stroke="#FF5858" stroke-width="1.5"></path>
-	</symbol>
-	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-notification-1">
-		<g stroke="var(--icon-stroke)" stroke-miterlimit="10">
-		<path d="M18 5.5H6c-.398 0-.78.155-1.06.43a1.45 1.45 0 0 0-.44 1.037v7.822c0 .389.158.762.44 1.037.28.275.662.43 1.06.43h3.058a1 1 0 0 1 .74.326l1.684 1.85a.7.7 0 0 0 1.036 0l1.684-1.85a1 1 0 0 1 .74-.326H18c.398 0 .78-.155 1.06-.43a1.45 1.45 0 0 0 .44-1.037V6.967a1.45 1.45 0 0 0-.44-1.037A1.518 1.518 0 0 0 18 5.5z"
-			stroke-linecap="square"></path>
-		<path d="M7.5 8.5h6.518m-6.518 3h3.26" stroke-linecap="round"></path>
-		</g>
+	<symbol id="icon-notification" viewBox="0 0 32 32">
+		<path stroke-linejoin="round" stroke-linecap="butt" stroke-miterlimit="4" stroke-width="1.6" d="M19.715 25.6h-6.915c0.174 1.797 1.656 3.2 3.458 3.2s3.283-1.403 3.458-3.2z"></path>
+		<path stroke-linejoin="round" stroke-linecap="butt" stroke-miterlimit="4" stroke-width="1.6" d="M7.194 13.6c0-4.030 2.614-7.533 6.34-8.632 0.791-0.222 1.606-0.332 2.444-0.332s1.65 0.111 2.434 0.332c3.726 1.1 6.34 4.604 6.34 8.632v7.586c0 0.829 0.731 1.578 2.194 2.247v0.567c-0 0.884-0.716 1.6-1.6 1.6h-18.946c-0.884 0-1.6-0.716-1.6-1.6v-0.567c1.596-0.671 2.393-1.42 2.393-2.247v-7.586z"></path>
 	</symbol>
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-month-view">
 		<path d="M5 5.778v4.444m3-4.444v4.444M3 3h10c.552 0 1 .497 1 1.111v7.778c0 .614-.448 1.111-1 1.111H3c-.552 0-1-.498-1-1.111V4.11C2 3.497 2.448 3 3 3z" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"></path>
