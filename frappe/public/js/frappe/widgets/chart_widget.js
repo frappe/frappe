@@ -354,8 +354,8 @@ export default class ChartWidget extends Widget {
 			this.chart_doc.chart_type !== "Custom";
 
 		this.filter_button = $(
-			`<div class="filter-chart btn btn-default btn-xs pull-right">
-				${frappe.utils.icon('filter')}
+			`<div class="filter-chart btn btn-secondary btn-xs pull-right">
+				${frappe.utils.icon('filter', 'sm')}
 			</div>`
 		);
 
@@ -472,7 +472,7 @@ export default class ChartWidget extends Widget {
 	set_chart_actions(actions) {
 		/* eslint-disable indent */
 		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
-			<button data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-xs btn-default">
+			<button data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-xs btn-secondary">
 				${frappe.utils.icon('dot-horizontal')}
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">

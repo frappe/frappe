@@ -116,7 +116,7 @@ export default class Widget {
 	set_title(max_chars) {
 		let base = this.label || this.name;
 		let title = max_chars ? frappe.ellipsis(base, max_chars) : base;
-		
+
 		if (this.icon) {
 			let icon = frappe.utils.icon(this.icon)
 			this.title_field[0].innerHTML = `${icon} <span>${title}</span>`;
@@ -129,9 +129,10 @@ export default class Widget {
 		this.subtitle && this.subtitle_field.html(this.subtitle);
 	}
 
-	add_custom_button(html, action, class_name = "", title="") {
+	add_custom_button(html, action, class_name = "", title="", btn_type) {
+		if (!btn_type) btn_type = 'btn-secondary';
 		let button = $(
-			`<button class="btn btn-default btn-xs ${class_name}" title="${title}">${html}</button>`
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
 		);
 		button.click(event => {
 			event.stopPropagation();

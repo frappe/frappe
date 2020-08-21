@@ -156,10 +156,11 @@ html, body {
 		.widget-control {
 			@include flex(flex, null, center, row-reverse);
 
-			// Any immidiate child
+			// Any immediate child
 			>* {
 				align-self: center;
 				margin-left: 5px;
+				box-shadow: none;
 			}
 
 			.drag-handle {
@@ -198,7 +199,7 @@ html, body {
 		@include flex(flex, center, center, null);
 		min-height: 65px;
 		box-shadow: none;
-		background-color: var(--gray-200);
+		background-color: var(--control-bg);
 		color: var(--text-muted);
 		border: 1px dashed var(--gray-400);
 		cursor: pointer;
@@ -221,7 +222,13 @@ html, body {
 		}
 
 		.btn-xs {
-			padding: 4px 8px;
+			box-shadow: none;
+		}
+
+		.chart-actions {
+			.filter-label {
+				line-height: 1.6em;
+			}
 		}
 
 		.widget-subtitle {
