@@ -15,22 +15,14 @@ h5.modal-title {
 			font-size: $font-size-lg;
 		}
 
-		.btn-modal-close {
+		.modal-actions {
 			position: absolute;
 			top: 10px;
-			right: 15px;
-		}
+			right: 5px;
 
-		.btn-modal-minimize {
-			position: absolute;
-			top: 10px;
-			right: 45px;
-			cursor: pointer;
-
-			.icon {
+			.btn-modal-minimize .icon {
 				width: 14px;
 				height: 14px;
-
 				use {
 					stroke: var(--gray-500);
 				}
@@ -40,6 +32,8 @@ h5.modal-title {
 
 	.modal-body {
 		padding: var(--padding-md) var(--padding-lg);
+		overflow: scroll;
+		max-height: 500px;
 	}
 
 	.modal-footer {
@@ -89,7 +83,7 @@ h5.modal-title {
 		}
 	}
 
-	.modal-body {
+	.modal-body, .modal-footer {
 		display: none;
 	}
 }
