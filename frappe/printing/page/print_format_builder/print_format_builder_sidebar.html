@@ -7,8 +7,8 @@
 		{% if(!in_list(["Section Break", "Column Break", "Fold"], f.fieldtype)) { %}
 		<div class="print-format-builder-field-placeholder"
 			data-fieldname="{%= f.fieldname %}">
-			<div title="{{f.label}}" class="field-label data-pill ellipsis
-				{%= (f.fieldtype==="Custom HTML") ? "btn-secondary-dark" : "btn-default" %}"
+			<div title="{{f.label}}" class="field-label data-pill sidebar-field ellipsis
+				{%= (f.fieldtype==="Custom HTML") ? "sidebar-custom-field" : "" %}"
 				style="cursor: grab; display: inline-block">
 				{%= __(f.label) %}
 			</div>

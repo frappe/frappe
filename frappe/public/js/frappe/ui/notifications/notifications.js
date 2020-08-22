@@ -21,10 +21,6 @@ frappe.ui.Notifications = class Notifications {
 		this.panel_events = this.dropdown_list.find('.panel-events');
 		this.panel_notifications = this.dropdown_list.find('.panel-notifications');
 
-		this.notifications_icon = this.dropdown.find(
-			'.notifications-icon'
-		);
-
 		this.user = frappe.session.user;
 
 		this.setup_headers();
@@ -111,7 +107,11 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	make_tab_view(item) {
-		let tabView = new item.view(item.el);
+		let tabView = new item.view(
+			item.el,
+			this.dropdown,
+			this.notifications_settings
+		);
 		this.tabs[item.id] = tabView;
 	}
 
@@ -155,31 +155,11 @@ frappe.ui.Notifications = class Notifications {
 		this.set_field_as_read(df.name, $target);
 	}
 
-	toggle_seen(flag) {
-		frappe.call(
-			'frappe.desk.doctype.notification_settings.notification_settings.set_seen_value',
-			{
-				value: cint(flag),
-				user: frappe.session.user
-			}
-		);
-	}
-
 	setup_dropdown_events() {
 		this.dropdown.on('hide.bs.dropdown', e => {
 			let hide = $(e.currentTarget).data('closable');
 			$(e.currentTarget).data('closable', true);
 			return hide;
-		});
-
-		this.dropdown.on('show.bs.dropdown', () => {
-			this.toggle_seen(true);
-			if (this.notifications_icon.find('.notifications-unseen').is(':visible')) {
-				this.toggle_notification_icon(true);
-				frappe.call(
-					'frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide'
-				);
-			}
 		});
 
 		this.dropdown.on('click', e => {
@@ -220,9 +200,11 @@ frappe.ui.notifications = {
 };
 
 class BaseNotificaitonsView {
-	constructor(wrapper) {
+	constructor(wrapper, parent, settings) {
 		// wrapper, max_length
 		this.wrapper = wrapper;
+		this.parent = parent;
+		this.settings = settings;
 		this.max_length = 20;
 		this.container = $(`<div></div>`).appendTo(this.wrapper);
 		this.make();
@@ -239,11 +221,17 @@ class BaseNotificaitonsView {
 
 class NotificationsView extends BaseNotificaitonsView {
 	make() {
+		this.notifications_icon = this.parent.find('.notifications-icon');
+
 		this.setup_notification_listeners();
 		this.get_notifications_list(this.max_length).then(list => {
 			this.dropdown_items = list;
 			this.render_notifications_dropdown();
+			if (this.settings.seen == 0) {
+				this.toggle_notification_icon(false);
+			}
 		});
+
 	}
 
 	update_dropdown() {
@@ -340,7 +328,7 @@ class NotificationsView extends BaseNotificaitonsView {
 	}
 
 	render_notifications_dropdown() {
-		if (this.notifications_settings && !this.notifications_settings.enabled) {
+		if (this.settings && !this.settings.enabled) {
 			this.container.html(`<li class="recent-item notification-item">
 				<span class="text-muted">
 					${__('Notifications Disabled')}
@@ -387,6 +375,16 @@ class NotificationsView extends BaseNotificaitonsView {
 		this.notifications_icon.find('.notifications-unseen').toggle(!seen);
 	}
 
+	toggle_seen(flag) {
+		frappe.call(
+			'frappe.desk.doctype.notification_settings.notification_settings.set_seen_value',
+			{
+				value: cint(flag),
+				user: frappe.session.user
+			}
+		);
+	}
+
 	setup_notification_listeners() {
 		frappe.realtime.on('notification', () => {
 			this.toggle_notification_icon(false)
@@ -396,6 +394,17 @@ class NotificationsView extends BaseNotificaitonsView {
 		frappe.realtime.on('indicator_hide', () => {
 			this.toggle_notification_icon(true)
 		});
+
+		this.parent.on('show.bs.dropdown', () => {
+			this.toggle_seen(true);
+			if (this.notifications_icon.find('.notifications-unseen').is(':visible')) {
+				this.toggle_notification_icon(true);
+				frappe.call(
+					'frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide'
+				);
+			}
+		});
+
 	}
 }
 
