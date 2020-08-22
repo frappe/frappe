@@ -77,6 +77,7 @@ class TestAPI(unittest.TestCase):
 	def test_get_single(self):
 		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
 		server.set_value('Website Settings', 'Website Settings', 'title_prefix', 'test-prefix')
+		self.assertEqual(server.get_value('Website Settings', 'title_prefix', 'Website Settings').get('title_prefix'), 'test-prefix')
 		self.assertEqual(server.get_value('Website Settings', 'title_prefix').get('title_prefix'), 'test-prefix')
 		frappe.db.set_value('Website Settings', None, 'title_prefix', '')
 
