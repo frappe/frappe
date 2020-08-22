@@ -66,6 +66,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_events() {
 		frappe.realtime.on("report_generated", (data) => {
+			this.toggle_primary_button_disabled(false);
 			if(data.report_name) {
 				this.prepared_report_action = "Rebuild";
 				// If generated report and currently active Prepared Report has same fiters
@@ -157,6 +158,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	add_card_to_dashboard() {
 		let field_options = frappe.report_utils.get_field_options_from_report(this.columns, this.raw_data);
+		const dashboard_field = frappe.dashboard_utils.get_dashboard_link_field();
+		const set_standard = frappe.boot.developer_mode;
+
 		const dialog = new frappe.ui.Dialog({
 			title: __('Create Card'),
 			fields: [
@@ -181,12 +185,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					label: __('Add to Dashboard'),
 					fieldtype: 'Section Break'
 				},
-				{
-					fieldname: 'dashboard',
-					label: __('Choose Dashboard'),
-					fieldtype: 'Link',
-					options: 'Dashboard',
-				},
+				dashboard_field,
 				{
 					fieldname: 'cb_2',
 					fieldtype: 'Column Break'
@@ -202,7 +201,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (!values.label) {
 					values.label = `${values.report_function} of ${toTitle(values.report_field)}`;
 				}
-				this.create_number_card(values, values.dashboard, values.label);
+				this.create_number_card(values, values.dashboard, values.label, set_standard);
 				dialog.hide();
 			}
 		});
@@ -213,27 +212,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	add_chart_to_dashboard() {
 		if (this.chart_fields || this.chart_options) {
+			const dashboard_field = frappe.dashboard_utils.get_dashboard_link_field();
+			const set_standard = frappe.boot.developer_mode;
+
 			const dialog = new frappe.ui.Dialog({
 				title: __('Create Chart'),
 				fields: [
 					{
-						fieldname: 'dashboard',
-						label: 'Choose Dashboard',
-						fieldtype: 'Link',
-						options: 'Dashboard',
-					},
-					{
 						fieldname: 'dashboard_chart_name',
 						label: 'Chart Name',
 						fieldtype: 'Data',
-					}
+					},
+					dashboard_field,
 				],
 				primary_action_label: __('Add'),
 				primary_action: (values) => {
 					this.create_dashboard_chart(
 						this.chart_fields || this.chart_options,
 						values.dashboard,
-						values.dashboard_chart_name
+						values.dashboard_chart_name,
+						set_standard
 					);
 					dialog.hide();
 				}
@@ -245,12 +243,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 
-	create_number_card(values, dashboard_name, card_name) {
+	create_number_card(values, dashboard_name, card_name, set_standard) {
 		let args = {
 			'dashboard': dashboard_name || null,
 			'type': 'Report',
 			'report_name': this.report_name,
 			'filters_json': JSON.stringify(this.get_filter_values()),
+			set_standard: set_standard,
 		};
 		Object.assign(args, values);
 
@@ -263,7 +262,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		);
 	}
 
-	create_dashboard_chart(chart_args, dashboard_name, chart_name) {
+	create_dashboard_chart(chart_args, dashboard_name, chart_name, set_standard) {
 		let args = {
 			'dashboard': dashboard_name || null,
 			'chart_type': 'Report',
@@ -271,7 +270,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			'type': chart_args.chart_type || frappe.model.unscrub(chart_args.type),
 			'color': chart_args.color,
 			'filters_json': JSON.stringify(this.get_filter_values()),
-			'custom_options': {}
+			'custom_options': {},
+			'set_standard': set_standard,
 		};
 
 		for (let key in chart_args) {
@@ -366,6 +366,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						this.report_settings.html_format = settings.html_format;
 						this.report_settings.execution_time = settings.execution_time || 0;
 						frappe.query_reports[this.report_name] = this.report_settings;
+
+						if (this.report_doc.filters && !this.report_settings.filters) {
+							// add configured filters
+							this.report_settings.filters = this.report_doc.filters;
+						}
+
 						resolve();
 					});
 				}).catch(reject);
@@ -661,29 +667,104 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		// 1. First time with given filters, no data.
 		// 2. Showing data from specific report
 		// 3. Showing data from an old report without specific report name
-		if(this.prepared_report_action == "New") {
-			this.page.set_primary_action(
-				__("Generate New Report"),
-				() => {
-					this.generate_background_report();
-				}
-			);
-		} else if(this.prepared_report_action == "Edit") {
-			this.page.set_primary_action(
-				__("Edit"),
-				() => {
+		this.primary_action_map = {
+			"New": {
+				label: __("Generate New Report"),
+				click: () => {
+					this.show_warning_or_generate_report();
+				},
+			},
+			"Edit": {
+				label: __("Edit"),
+				click: () => {
 					frappe.set_route(frappe.get_route());
 				}
-			);
-		} else if(this.prepared_report_action == "Rebuild"){
-			this.page.set_primary_action(
-				__("Rebuild"),
-				this.generate_background_report.bind(this)
+			},
+			"Rebuild": {
+				label:	__("Rebuild"),
+				click: () => {
+					this.show_warning_or_generate_report();
+				}
+			}
+		};
+
+		let primary_action = this.primary_action_map[this.prepared_report_action];
+
+		if (!this.primary_button || this.primary_button.text() !== primary_action.label) {
+			this.primary_button = this.page.set_primary_action(
+				primary_action.label,
+				primary_action.click
 			);
 		}
 	}
 
+	toggle_primary_button_disabled(disable) {
+		this.primary_button.prop('disabled', disable);
+	}
+
+	show_warning_or_generate_report() {
+		frappe.xcall(
+			'frappe.core.doctype.prepared_report.prepared_report.get_reports_in_queued_state',
+			{
+				filters: this.get_filter_values(),
+				report_name: this.report_name,
+			}
+		).then(reports => {
+			this.queued_prepared_reports = reports;
+
+			if (reports.length) {
+				const message = this.get_queued_prepared_reports_warning_message(reports);
+				this.prepared_report_dialog = frappe.warn(
+					__('Reports already in Queue'),
+					message,
+					() => this.generate_background_report(),
+					__('Proceed Anyway'),
+					true
+				);
+
+				this.prepared_report_dialog.footer.prepend(`
+					<button type="button" class="btn btn-sm btn-default pull-left" data-action="delete_old_queued_reports">
+						${__('Delete and Generate New')}
+					</button>`);
+
+				frappe.utils.bind_actions_with_object(this.prepared_report_dialog.wrapper, this);
+			} else {
+				this.generate_background_report();
+			}
+		});
+	}
+
+	get_queued_prepared_reports_warning_message(reports) {
+		const route = `#List/Prepared Report/List?status=Queued&report_name=${this.report_name}`;
+		const no_of_reports_html = reports.length == 1
+			? `${__('There is ')}<a class="underline" href="${route}">${__('1 Report')}</a>`
+			: `${__('There are ')}<a class="underline" href="${route}">${__(`{} Reports`, [reports.length])}</a>`;
+
+		let warning_message = `
+			<p>
+				${__(`Are you sure you want to generate a new report?
+					{} with the same filters already in the queue:`, [no_of_reports_html])}
+			</p>`;
+
+		let get_item_html = item => `<a class="underline" href="#Form/Prepared Report/${item.name}">${item.name}</a>`;
+
+		warning_message += reports.map(get_item_html).join(', ');
+
+		return warning_message;
+	}
+
+	delete_old_queued_reports() {
+		this.prepared_report_dialog.hide();
+		frappe.xcall(
+			'frappe.core.doctype.prepared_report.prepared_report.delete_prepared_reports',
+			{
+				reports: this.queued_prepared_reports,
+			}
+		).then(() => this.generate_background_report());
+	}
+
 	generate_background_report() {
+		this.toggle_primary_button_disabled(true);
 		let mandatory = this.filters.filter(f => f.df.reqd);
 		let missing_mandatory = mandatory.filter(f => !f.get_value());
 		if (!missing_mandatory.length){
@@ -701,8 +782,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
 				let alert_message = `Report initiated. You can track its status
-					<a class='text-info' href='#Form/Prepared Report/${data.name}'>here</a>`;
-				frappe.show_alert({message: alert_message, indicator: 'orange'});
+					<a class="bold" href='#Form/Prepared Report/${data.name}'>here</a>`;
+				frappe.show_alert({message: alert_message, indicator: 'orange'}, 10);
 				this.toggle_nothing_to_show(true);
 			});
 		}
@@ -953,8 +1034,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (column.isHeader && !data && this.data) {
 					// totalRow doesn't have a data object
 					// proxy it using the first data object
-					// this is needed only for currency formatting
-					data = this.data[0];
+					// applied to Float, Currency fields, needed only for currency formatting.
+					// make first data column have value 'Total'
+					let index = 1;
+					if (this.datatable && this.datatable.options.checkboxColumn) index = 2;
+
+					if (column.colIndex === index && !value) {
+						value = "Total";
+						column.fieldtype = "Data"; // avoid type issues for value if Date column
+					} else if (in_list(["Currency", "Float"], column.fieldtype)) {
+						// proxy for currency and float
+						data = this.data[0];
+					}
 				}
 				return frappe.format(value, column,
 					{for_print: false, always_show_decimals: true}, data);
@@ -1024,8 +1115,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.map(f => {
 				var v = f.get_value();
 				// hidden fields dont have $input
-				if(f.df.hidden) v = f.value;
-				if(v === '%') v = null;
+				if (f.df.hidden) v = f.value;
+				if (v === '%') v = null;
+				if (f.df.wildcard_filter) {
+					v = `%${v}%`;
+				}
 				return {
 					[f.df.fieldname]: v
 				};
@@ -1610,7 +1704,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		if (flag && this.prepared_report) {
 			this.prepared_report_action = "New";
-			this.add_prepared_report_buttons();
+			if (!this.primary_button.is(':visible')) {
+				this.add_prepared_report_buttons();
+			}
 		}
 	}
 

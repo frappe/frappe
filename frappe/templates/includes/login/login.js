@@ -186,7 +186,7 @@ login.login_handlers = (function() {
 			} else if(data.message == 'Password Reset'){
 				window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
 			} else if(data.message=="No App") {
-				login.set_indicator("{{ _("Success") }}", 'green');
+				login.set_indicator("{{ _('Success') }}", 'green');
 				if(localStorage) {
 					var last_visited =
 						localStorage.getItem("last_visited")

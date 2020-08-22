@@ -199,6 +199,55 @@ frappe.dashboard_utils = {
 		}
 
 		return filters;
+	},
+
+	get_dashboard_link_field() {
+		let field = {
+			label: __('Select Dashboard'),
+			fieldtype: 'Link',
+			fieldname: 'dashboard',
+			options: 'Dashboard',
+		};
+
+		if (!frappe.boot.developer_mode) {
+			field.get_query = () => {
+				return {
+					filters: {
+						is_standard: 0
+					}
+				};
+			};
+		}
+
+		return field;
+	},
+
+	get_add_to_dashboard_dialog(docname, doctype, method) {
+		const field = this.get_dashboard_link_field();
+
+		const dialog = new frappe.ui.Dialog({
+			title: __('Add to Dashboard'),
+			fields: [field],
+			primary_action: (values) => {
+				values.name = docname;
+				values.set_standard = frappe.boot.developer_mode;
+				frappe.xcall(
+					method,
+					{args: values}
+				).then(()=> {
+					let dashboard_route_html =
+						`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
+					let message =
+						__(`${doctype} ${values.name} added to Dashboard ` + dashboard_route_html);
+
+					frappe.msgprint(message);
+				});
+
+				dialog.hide();
+			}
+		});
+
+		return dialog;
 	}
 
 };

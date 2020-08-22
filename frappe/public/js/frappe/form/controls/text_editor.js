@@ -201,9 +201,14 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		// hack to retain space sequence.
 		value = value.replace(/(\s)(\s)/g, ' &nbsp;');
 
-		if (!$(value).find('.ql-editor').length) {
+		try {
+			if (!$(value).find('.ql-editor').length) {
+				value = `<div class="ql-editor read-mode">${value}</div>`;
+			}
+		} catch(e) {
 			value = `<div class="ql-editor read-mode">${value}</div>`;
 		}
+
 		return value;
 	},
 

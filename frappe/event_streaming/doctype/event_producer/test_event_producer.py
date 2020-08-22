@@ -12,8 +12,19 @@ from frappe.event_streaming.doctype.event_producer.event_producer import pull_fr
 producer_url = 'http://test_site_producer:8000'
 
 class TestEventProducer(unittest.TestCase):
+	# @classmethod
+	# def setUpClass(cls):
+	# 	frappe.print_sql(True)
+
+	# @classmethod
+	# def tearDownClass(cls):
+	# 	frappe.print_sql(False)
+
 	def setUp(self):
 		create_event_producer(producer_url)
+
+	def tearDown(self):
+		unsubscribe_doctypes(producer_url)
 
 	def test_insert(self):
 		producer = get_remote_site()
@@ -98,7 +109,7 @@ class TestEventProducer(unittest.TestCase):
 	def test_dynamic_link_dependencies_synced(self):
 		producer = get_remote_site()
 		#unsubscribe for Note to check whether dependency is fulfilled
-		event_producer = frappe.get_doc('Event Producer', producer_url)
+		event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
 		event_producer.producer_doctypes = []
 		event_producer.append('producer_doctypes', {
 			'ref_doctype': 'ToDo',
@@ -126,7 +137,7 @@ class TestEventProducer(unittest.TestCase):
 	def test_naming_configuration(self):
 		#test with use_same_name = 0
 		producer = get_remote_site()
-		event_producer = frappe.get_doc('Event Producer', producer_url)
+		event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
 		event_producer.producer_doctypes = []
 		event_producer.append('producer_doctypes', {
 			'ref_doctype': 'ToDo',
@@ -167,7 +178,7 @@ class TestEventProducer(unittest.TestCase):
 
 	def test_mapping(self):
 		producer = get_remote_site()
-		event_producer = frappe.get_doc('Event Producer', producer_url)
+		event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
 		event_producer.producer_doctypes = []
 		mapping = [{
 			'local_fieldname': 'description',
@@ -205,36 +216,8 @@ class TestEventProducer(unittest.TestCase):
 
 	def test_inner_mapping(self):
 		producer = get_remote_site()
-		event_producer = frappe.get_doc('Event Producer', producer_url)
-		event_producer.producer_doctypes = []
-		inner_mapping = [
-			{
-				'local_fieldname':'role_name',
-				'remote_fieldname':'title'
-			}
-		]
-		inner_map = get_mapping('Role to Note Dependency Creation', 'Role', 'Note', inner_mapping)
-		mapping = [
-			{
-				'local_fieldname':'description',
-				'remote_fieldname':'content',
-			},
-			{
-				'local_fieldname': 'role',
-				'remote_fieldname': 'title',
-				'mapping_type': 'Document',
-				'mapping': inner_map,
-				'remote_value_filters': json.dumps({'title': 'title'})
-			}
-		]
-		event_producer.append('producer_doctypes', {
-			'ref_doctype': 'ToDo',
-			'use_same_name': 1,
-			'has_mapping': 1,
-			'mapping': get_mapping('ToDo to Note Mapping', 'ToDo', 'Note', mapping)
-		})
-		event_producer.save()
 
+		setup_event_producer_for_inner_mapping()
 		producer_note = frappe._dict(doctype='Note', title='Inner Mapping Tester', content='Test Inner Mapping')
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
 		producer_note = producer.insert(producer_note)
@@ -246,6 +229,39 @@ class TestEventProducer(unittest.TestCase):
 		self.assertTrue(frappe.db.exists('ToDo', {'description': producer_note.content}))
 
 		reset_configuration(producer_url)
+
+
+def setup_event_producer_for_inner_mapping():
+	event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
+	event_producer.producer_doctypes = []
+	inner_mapping = [
+		{
+			'local_fieldname':'role_name',
+			'remote_fieldname':'title'
+		}
+	]
+	inner_map = get_mapping('Role to Note Dependency Creation', 'Role', 'Note', inner_mapping)
+	mapping = [
+		{
+			'local_fieldname':'description',
+			'remote_fieldname':'content',
+		},
+		{
+			'local_fieldname': 'role',
+			'remote_fieldname': 'title',
+			'mapping_type': 'Document',
+			'mapping': inner_map,
+			'remote_value_filters': json.dumps({'title': 'title'})
+		}
+	]
+	event_producer.append('producer_doctypes', {
+		'ref_doctype': 'ToDo',
+		'use_same_name': 1,
+		'has_mapping': 1,
+		'mapping': get_mapping('ToDo to Note Mapping', 'ToDo', 'Note', mapping)
+	})
+	event_producer.save()
+	return event_producer
 
 
 def insert_into_producer(producer, description):
@@ -276,7 +292,12 @@ def get_mapping(mapping_name, local, remote, field_map):
 
 def create_event_producer(producer_url):
 	if frappe.db.exists('Event Producer', producer_url):
+		event_producer = frappe.get_doc('Event Producer', producer_url)
+		for entry in event_producer.producer_doctypes:
+			entry.unsubscribe = 0
+		event_producer.save()
 		return
+
 	event_producer = frappe.new_doc('Event Producer')
 	event_producer.producer_doctypes = []
 	event_producer.producer_url = producer_url
@@ -292,7 +313,7 @@ def create_event_producer(producer_url):
 	event_producer.save()
 
 def reset_configuration(producer_url):
-	event_producer = frappe.get_doc('Event Producer', producer_url)
+	event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
 	event_producer.producer_doctypes = []
 	event_producer.producer_url = producer_url
 	event_producer.append('producer_doctypes', {
@@ -315,3 +336,9 @@ def get_remote_site():
 		frappe_authorization_source='Event Consumer'
 	)
 	return producer_site
+
+def unsubscribe_doctypes(producer_url):
+	event_producer = frappe.get_doc('Event Producer', producer_url)
+	for entry in event_producer.producer_doctypes:
+		entry.unsubscribe = 1
+	event_producer.save()

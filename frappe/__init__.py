@@ -153,6 +153,7 @@ def init(site, sites_path=None, new_site=False):
 	local.site = site
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
+	local.all_apps = None
 
 	local.request_ip = None
 	local.response = _dict({"docs":[]})
@@ -231,8 +232,7 @@ def get_site_config(sites_path=None, site_path=None):
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
 		elif local.site and not local.flags.new_site:
-			print("Site {0} does not exist".format(local.site))
-			sys.exit(1)
+			raise IncorrectSitePath("{0} does not exist".format(local.site))
 
 	return _dict(config)
 
@@ -267,7 +267,7 @@ def destroy():
 # memcache
 redis_server = None
 def cache():
-	"""Returns memcache connection."""
+	"""Returns redis connection."""
 	global redis_server
 	if not redis_server:
 		from frappe.utils.redis_wrapper import RedisWrapper
@@ -290,6 +290,9 @@ def errprint(msg):
 
 	error_log.append({"exc": msg})
 
+def print_sql(enable=True):
+	return cache().set_value('flag_print_sql', enable)
+
 def log(msg):
 	"""Add to `debug_log`.
 
@@ -300,7 +303,7 @@ def log(msg):
 
 	debug_log.append(as_unicode(msg))
 
-def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None, is_minimizable=None):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None, is_minimizable=None, wide=None):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
@@ -310,6 +313,8 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	:param primary_action: [optional] Bind a primary server/client side action.
+	:param is_minimizable: [optional] Allow users to minimize the modal
+	:param wide: [optional] Show wide modal
 	"""
 	from frappe.utils import encode
 
@@ -367,6 +372,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	if primary_action:
 		out.primary_action = primary_action
 
+	if wide:
+		out.wide = wide
+
 	message_log.append(json.dumps(out))
 
 	if raise_exception and hasattr(raise_exception, '__name__'):
@@ -388,12 +396,12 @@ def clear_last_message():
 	if len(local.message_log) > 0:
 		local.message_log = local.message_log[:-1]
 
-def throw(msg, exc=ValidationError, title=None, is_minimizable=None):
+def throw(msg, exc=ValidationError, title=None, is_minimizable=None, wide=None):
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable)
+	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable, wide=wide)
 
 def emit_js(js, user=False, **kwargs):
 	if user == False:
@@ -436,12 +444,8 @@ def get_roles(username=None):
 	"""Returns roles of current user."""
 	if not local.session:
 		return ["Guest"]
-
-	if username:
-		import frappe.permissions
-		return frappe.permissions.get_roles(username)
-	else:
-		return get_user().get_roles()
+	import frappe.permissions
+	return frappe.permissions.get_roles(username or local.session.user)
 
 def get_request_header(key, default=None):
 	"""Return HTTP request header.
@@ -762,7 +766,7 @@ def get_doc(*args, **kwargs):
 
 		# insert a new document
 		todo = frappe.get_doc({"doctype":"ToDo", "description": "test"})
-		tood.insert()
+		todo.insert()
 
 		# open an existing document
 		todo = frappe.get_doc("ToDo", "TD0001")
@@ -921,10 +925,13 @@ def get_installed_apps(sort=False, frappe_last=False):
 	if not db:
 		connect()
 
+	if not local.all_apps:
+		local.all_apps  = get_all_apps(True)
+
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
-		installed = [app for app in get_all_apps(True) if app in installed]
+		installed = [app for app in local.all_apps if app in installed]
 
 	if frappe_last:
 		if 'frappe' in installed:
@@ -1559,10 +1566,10 @@ def get_doctype_app(doctype):
 
 loggers = {}
 log_level = None
-def logger(module=None, with_more_info=False):
+def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
-	return get_logger(module=module, with_more_info=with_more_info)
+	return get_logger(module=module, with_more_info=with_more_info, allow_site=allow_site, filter=filter, max_size=max_size, file_count=file_count)
 
 def log_error(message=None, title=_("Error")):
 	'''Log error to Error Log'''
@@ -1707,3 +1714,7 @@ def mock(type, size=1, locale='en'):
 
 	from frappe.chat.util import squashify
 	return squashify(results)
+
+def validate_and_sanitize_search_inputs(fn):
+	from frappe.desk.search import validate_and_sanitize_search_inputs as func
+	return func(fn)

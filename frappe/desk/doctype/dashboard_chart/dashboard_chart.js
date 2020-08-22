@@ -23,43 +23,20 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.chart_filters = null;
 
 		if (!frappe.boot.developer_mode && frm.doc.is_standard) {
-			frm.set_df_property('chart_options_section', 'hidden', 1);
 			frm.disable_form();
 		}
 
 		frm.add_custom_button('Add Chart to Dashboard', () => {
-			const d = new frappe.ui.Dialog({
-				title: __('Add to Dashboard'),
-				fields: [
-					{
-						label: __('Select Dashboard'),
-						fieldtype: 'Link',
-						fieldname: 'dashboard',
-						options: 'Dashboard',
-					}
-				],
-				primary_action: (values) => {
-					values.chart_name = frm.doc.chart_name;
-					frappe.xcall(
-						'frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard',
-						{args: values}
-					).then(()=> {
-						let dashboard_route_html =
-							`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
-						let message =
-							__(`Dashboard Chart ${values.chart_name} add to Dashboard ` + dashboard_route_html);
-
-						frappe.msgprint(message);
-					});
-
-					d.hide();
-				}
-			});
+			const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
+				frm.doc.name,
+				'Dashboard Chart',
+				'frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard'
+			);
 
 			if (!frm.doc.chart_name) {
 				frappe.msgprint(__('Please create chart first'));
 			} else {
-				d.show();
+				dialog.show();
 			}
 		});
 
@@ -79,11 +56,6 @@ frappe.ui.form.on('Dashboard Chart', {
 		if (frm.doc.report_name) {
 			frm.trigger('set_chart_report_filters');
 		}
-
-		if (!frappe.boot.developer_mode) {
-			frm.set_df_property("custom_options", "hidden", 1);
-		}
-
 	},
 
 	is_standard: function(frm) {
@@ -313,7 +285,7 @@ frappe.ui.form.on('Dashboard Chart', {
 			set_filters && frm.set_value('filters_json', JSON.stringify(filters));
 		}
 
-		let fields;
+		let fields = [];
 		if (is_document_type) {
 			fields = [
 				{
@@ -338,7 +310,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		} else if (frm.chart_filters.length) {
 			fields = frm.chart_filters.filter(f => f.fieldname);
 
-			fields.map( f => {
+			fields.map(f => {
 				if (filters[f.fieldname]) {
 					let condition = '=';
 					const filter_row =

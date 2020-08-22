@@ -11,12 +11,15 @@ from frappe.desk.notifications import (delete_notification_count_for,
 
 common_default_keys = ["__default", "__global"]
 
+doctype_map_keys = ('energy_point_rule_map', 'assignment_rule_map',
+	'milestone_tracker_map', 'event_consumer_document_type_map')
+
 global_cache_keys = ("app_hooks", "installed_apps",
 		"app_modules", "module_app", "system_settings",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
 		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
 		'domain_restricted_doctypes', 'domain_restricted_pages', 'information_schema:counts',
-		'sitemap_routes', 'db_tables')
+		'sitemap_routes', 'db_tables') + doctype_map_keys
 
 user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "home_page", "linked_with",
@@ -24,8 +27,8 @@ user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"has_role:Page", "has_role:Report", "desk_sidebar_items")
 
 doctype_cache_keys = ("meta", "form_meta", "table_columns", "last_modified",
-		"linked_doctypes", 'notifications', 'workflow' ,'energy_point_rule_map', 'data_import_column_header_map')
-
+		"linked_doctypes", 'notifications', 'workflow' ,
+		'data_import_column_header_map') + doctype_map_keys
 
 def clear_user_cache(user=None):
 	cache = frappe.cache()
@@ -102,19 +105,19 @@ def clear_doctype_cache(doctype=None):
 	# Clear all document's cache. To clear documents of a specific DocType document_cache should be restructured
 	clear_document_cache()
 
-def get_doctype_map(doctype, name, filters, order_by=None):
+def get_doctype_map(doctype, name, filters=None, order_by=None):
 	cache = frappe.cache()
 	cache_key = frappe.scrub(doctype) + '_map'
 	doctype_map = cache.hget(cache_key, name)
 
-	if doctype_map:
+	if doctype_map is not None:
 		# cached, return
 		items = json.loads(doctype_map)
 	else:
 		# non cached, build cache
 		try:
 			items = frappe.get_all(doctype, filters=filters, order_by = order_by)
-			cache.hset(cache_key, doctype, json.dumps(items))
+			cache.hset(cache_key, name, json.dumps(items))
 		except frappe.db.TableMissingError:
 			# executed from inside patch, ignore
 			items = []
@@ -122,8 +125,7 @@ def get_doctype_map(doctype, name, filters, order_by=None):
 	return items
 
 def clear_doctype_map(doctype, name):
-	cache_key = frappe.scrub(doctype) + '_map'
-	frappe.cache().hdel(cache_key, name)
+	frappe.cache().hdel(frappe.scrub(doctype) + '_map', name)
 
 def build_table_count_cache():
 	if (frappe.flags.in_patch

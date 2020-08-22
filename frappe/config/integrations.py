@@ -27,6 +27,11 @@ def get_data():
 					"name": "Stripe Settings",
 					"description": _("Stripe payment gateway settings"),
 				},
+				{
+					"type": "doctype",
+					"name": "Paytm Settings",
+					"description": _("Paytm payment gateway settings"),
+				},
 			]
 		},
 		{

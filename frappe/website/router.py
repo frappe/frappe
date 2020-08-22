@@ -283,22 +283,18 @@ def setup_source(page_info):
 		# set the source only if it contains raw content
 		html = source
 
-		# load css/js files
-		js, css = '', ''
+	# load css/js files
+	js_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.js')
+	if os.path.exists(js_path) and '{% block script %}' not in html:
+		with io.open(js_path, 'r', encoding = 'utf-8') as f:
+			js = f.read()
+			page_info.colocated_js = js
 
-		js_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.js')
-		if os.path.exists(js_path):
-			if not '{% block script %}' in html:
-				with io.open(js_path, 'r', encoding = 'utf-8') as f:
-					js = f.read()
-				html += '\n{% block script %}<script>' + js + '\n</script>\n{% endblock %}'
-
-		css_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.css')
-		if os.path.exists(css_path):
-			if not '{% block style %}' in html:
-				with io.open(css_path, 'r', encoding='utf-8') as f:
-					css = f.read()
-				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
+	css_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.css')
+	if os.path.exists(css_path) and '{% block style %}' not in html:
+		with io.open(css_path, 'r', encoding='utf-8') as f:
+			css = f.read()
+			page_info.colocated_css = css
 
 	if html:
 		page_info.source = html
