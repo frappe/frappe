@@ -77,8 +77,14 @@ $threshold: 40;
 				margin-top: var(--margin-md);
 			}
 			.action-btn {
-				margin-left: var(--margin-sm);
+				padding-top: 0;
+				padding-bottom: 0;
 			}
+		}
+		.comment-edit-box {
+			border: 1px solid var(--border-color);
+			border-radius: var(--border-radius-sm);
+			margin-top: var(--margin-sm);
 		}
 	}
 }
