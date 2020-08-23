@@ -4,29 +4,24 @@
 @import "datepicker.less";
 @import "quill.less";
 
-.unit-checkbox {
-	color: #36414c;
-	margin-top: 5px;
-	margin-bottom: 5px;
 
-	label {
-		position: relative;
+.frappe-control {
+	.bulk-select-options {
+		margin: var(--margin-sm) 0 var(--margin-md) 0;
+		.select-all {
+			margin-right: 5px;
+		}
 	}
-
-	input[type=checkbox] {
-		margin-left: 0;
-	}
-
-	& + .checkbox {
-		margin-top: 5px;
+	.unit-checkbox {
+		cursor: pointer;
+		color: var(--text-color);
 		margin-bottom: 5px;
-	}
-}
-
-.frappe-control .bulk-select-options {
-	margin: 10px 0;
-	.select-all {
-		margin-right: 5px;
+		label {
+			position: relative;
+		}
+		input[type=checkbox] {
+			margin-left: 0;
+		}
 	}
 }
 

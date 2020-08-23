@@ -1,30 +1,28 @@
-.user-role {
-	padding: var(--padding-xs);
-	font-size: var(--text-md);
-	float: left;
-}
-
 table.user-perm {
 	border-collapse: collapse;
 	width: 100%;
 	overflow-x: scroll;
 	-webkit-overflow-scrolling: touch;
 	-ms-overflow-style: -ms-autohiding-scrollbar;
+	tr td, tr th {
+		padding: 5px;
+		border-bottom: 1px solid var(--border-color);
+		min-width: 30px;
+		&:not(:first-child) {
+			text-align: center;
+		}
+	}
 }
 
-table.user-perm td, table.user-perm th {
-	padding: 5px;
-	text-align: center;
-	border-bottom: 1px solid var(--border-color);
-	min-width: 30px;
+.unit-checkbox {
+	.label-area {
+		&:hover {
+			text-decoration: underline;
+		}
+	}
 }
-
 
 .module-block-list .checkbox {
 	margin-bottom: var(--margin-xs);
-}
-
-.module-block-list .checkbox label {
 	font-size: var(--text-md);
-	width: 100%;
 }

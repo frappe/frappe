@@ -587,8 +587,8 @@ frappe.ui.form.Form = class FrappeForm {
 					route_callback(me);
 				}
 				// submit comment if entered
-				if (me.timeline) {
-					me.timeline.comment_area.submit();
+				if (me.comment_box) {
+					me.comment_box.submit();
 				}
 				me.refresh();
 			} else {

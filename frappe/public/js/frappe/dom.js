@@ -289,6 +289,10 @@ frappe.scrub = function(text, spacer='_') {
 	return text.replace(/ /g, spacer).toLowerCase();
 };
 
+frappe.unscrub = function(txt) {
+	return frappe.model.unscrub(txt);
+};
+
 frappe.get_data_pill = (label, target_id=null, remove_action=null) => {
 	let data_pill_wrapper = $(`
 		<div class="data-pill btn">
@@ -319,13 +323,13 @@ frappe.get_modal = function(title, content) {
 						<span class="indicator hidden"></span>
 						<h4 class="modal-title">${title}</h4>
 					</div>
-					<div>
-						<div class="btn-modal-minimize hide">
+					<div class="modal-actions">
+						<button class="btn btn-modal-minimize btn-link hide">
 							${frappe.utils.icon('collapse')}
-						</div>
-						<div class="btn-modal-close" data-dismiss="modal">
+						</button>
+						<button class="btn btn-modal-close btn-link" data-dismiss="modal">
 							${frappe.utils.icon('close-alt', 'sm', 'close-alt')}
-						</div>
+						</button>
 					</div>
 				</div>
 				<div class="modal-body ui-front">${content}</div>
