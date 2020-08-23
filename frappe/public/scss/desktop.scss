@@ -533,44 +533,44 @@ html, body {
 	font-size: 12px;
 	line-height: 20px;
 	padding: 0 8px;
-	color: #fff;
+	color: var(--text-color);
 	border-radius: 10px;
 }
 
 
-.zoomOutDelete {
-  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
-  transform: scale3d(0.5, 0.5, 0.5);
-  opacity: 0;
-  visibility: hidden;
+.zoom-out {
+	transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+	transform: scale3d(0.5, 0.5, 0.5);
+	opacity: 0;
+	visibility: hidden;
 }
 
-@-webkit-keyframes zoomIn {
-  from {
-    opacity: 0;
-    -webkit-transform: scale3d(0.7, 0.7, 0.7);
-    transform: scale3d(0.7, 0.7, 0.7);
-  }
+@-webkit-keyframes zoom-in {
+	from {
+		opacity: 0;
+		-webkit-transform: scale3d(0.7, 0.7, 0.7);
+		transform: scale3d(0.7, 0.7, 0.7);
+	}
 
-  50% {
-    opacity: 1;
-  }
+	50% {
+		opacity: 1;
+	}
 }
 
-@keyframes zoomIn {
-  from {
-    opacity: 0;
-    -webkit-transform: scale3d(0.7, 0.7, 0.7);
-    transform: scale3d(0.7, 0.7, 0.7);
-  }
+@keyframes zoom-in {
+	from {
+		opacity: 0;
+		-webkit-transform: scale3d(0.7, 0.7, 0.7);
+		transform: scale3d(0.7, 0.7, 0.7);
+	}
 
-  50% {
-    opacity: 1;
-  }
+	50% {
+		opacity: 1;
+	}
 }
 
-.zoomIn {
-	-webkit-animation-name: zoomIn;
-	animation-name: zoomIn;
+.zoom-in {
+	-webkit-animation-name: zoom-in;
+	animation-name: zoom-in;
 	animation-duration: 400ms;
 }

@@ -148,7 +148,7 @@ export default class Widget {
 		};
 
 		if (animate) {
-			this.widget.addClass("zoomOutDelete");
+			this.widget.addClass("zoom-out");
 			// wait for animation
 			setTimeout(() => {
 				remove_widget(true);

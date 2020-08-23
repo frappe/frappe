@@ -379,7 +379,7 @@ export default class OnboardingWidget extends Widget {
 		}
 
 		let success = $(`<div class="text-center onboarding-success">
-					<img src="${success_state_image}" alt="Success State" class="zoomIn success-state">
+					<img src="${success_state_image}" alt="Success State" class="zoom-in success-state">
 					<h3>${success_message}</h3>
 					<div class="text-muted">${documentation}</div>
 			</div>
