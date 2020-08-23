@@ -52,6 +52,7 @@ export default class Grid {
 	make() {
 		let template = `
 			<label class="control-label">${__(this.df.label || '')}</label>
+			<p class="text-muted small grid-description"></p>
 			<div class="form-grid">
 				<div class="grid-heading-row"></div>
 				<div class="grid-body">
@@ -93,7 +94,7 @@ export default class Grid {
 					</div>
 				</div>
 			</div>
-			<p class="text-muted small grid-description"></p>`;
+		`;
 
 		this.wrapper = $(template).appendTo(this.parent);
 		$(this.parent).addClass('form-group');
