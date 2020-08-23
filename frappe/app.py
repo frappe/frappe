@@ -17,6 +17,7 @@ import frappe
 import frappe.handler
 import frappe.auth
 import frappe.api
+import frappe.graphql
 import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name, sanitize_html
@@ -60,6 +61,9 @@ def application(request):
 
 		elif frappe.request.path.startswith("/api/"):
 			response = frappe.api.handle()
+
+		elif frappe.request.path.startswith("/graphql"):
+			response = frappe.graphql.handle()
 
 		elif frappe.request.path.startswith('/backups'):
 			response = frappe.utils.response.download_backup(request.path)
