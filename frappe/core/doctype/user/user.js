@@ -40,11 +40,11 @@ frappe.ui.form.on('User', {
 	onload: function(frm) {
 		frm.can_edit_roles = has_access_to_edit_user();
 
-		if(frm.can_edit_roles && !frm.is_new()) {
-			if(!frm.roles_editor) {
-				var role_area = $('<div>')
+		if (frm.can_edit_roles && !frm.is_new()) {
+			if (!frm.roles_editor) {
+				const role_area = $('<div class="role-editor">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
-				frm.roles_editor = new frappe.RoleEditor2(role_area, frm, frm.doc.role_profile_name ? 1 : 0);
+				frm.roles_editor = new frappe.RoleEditor(role_area, frm, frm.doc.role_profile_name ? 1 : 0);
 
 				var module_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.modules_html.wrapper);
