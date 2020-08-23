@@ -50,11 +50,8 @@ export default class Grid {
 	}
 
 	make() {
-
-		let template = `<div class="form-group">
-			<div class="clearfix">
-				<label class="control-label" style="padding-right: 0px;">${__(this.df.label || '')}</label>
-			</div>
+		let template = `
+			<label class="control-label">${__(this.df.label || '')}</label>
 			<div class="form-grid">
 				<div class="grid-heading-row"></div>
 				<div class="grid-body">
@@ -87,20 +84,18 @@ export default class Grid {
 					<div class="col-sm-4 grid-pagination">
 					</div>
 					<div class="col-sm-3 text-right">
-						<a href="#" class="grid-download btn btn-xs btn-secondary hidden"
-							style="margin-left: 4px;">
-							${__("Download")}</a>
-						<a href="#" class="grid-upload btn btn-xs btn-secondary hidden"
-							style="margin-left: 4px;">
-							${__("Upload")}</a>
+						<a href="#" class="grid-download btn btn-xs btn-secondary hidden">
+							${__("Download")}
+						</a>
+						<a href="#" class="grid-upload btn btn-xs btn-secondary hidden">
+							${__("Upload")}
+						</a>
 					</div>
 				</div>
-			</div>
-		</div>`;
+			</div>`;
 
-		this.wrapper = $(template)
-			.appendTo(this.parent)
-			.attr('data-fieldname', this.df.fieldname);
+		this.wrapper = $(template).appendTo(this.parent);
+		$(this.parent).addClass('form-group');
 
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 

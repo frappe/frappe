@@ -7,6 +7,9 @@
 	width: 100%;
 	@extend .row;
 	margin: 0;
+	&:first-child {
+		margin-top: var(--margin-sm);
+	}
 }
 
 .form-section {
@@ -36,10 +39,6 @@
 	}
 	.section-head.collapsed {
 		margin-bottom: 0px;
-	}
-
-	.form-group {
-		margin-bottom: 0;
 	}
 }
 
@@ -249,4 +248,8 @@
 
 .form-message {
 	padding: var(--padding-md) var(--padding-xl);
+}
+
+.frappe-control[data-fieldtype="Table"] {
+	margin-bottom: 0px
 }
