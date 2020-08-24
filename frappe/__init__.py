@@ -1648,7 +1648,8 @@ def mock(type, size = 1, locale = 'en'):
 			results.append(data)
 
 	from frappe.chat.util import squashify
+	return squashify(results)
 
-	results = squashify(results)
-
-	return results
+def validate_and_sanitize_search_inputs(fn):
+	from frappe.desk.search import validate_and_sanitize_search_inputs as func
+	return func(fn)

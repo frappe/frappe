@@ -99,7 +99,7 @@ def get_list_context(context=None):
 		hide_filters = True,
 		children = get_children(),
 		# show_search = True,
-		title = _('Blog')
+		title = frappe.db.get_single_value("Blog Settings", "blog_title"),
 	)
 
 	category = sanitize_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
@@ -115,6 +115,9 @@ def get_list_context(context=None):
 
 	elif frappe.local.form_dict.txt:
 		list_context.sub_title = _('Filtered by "{0}"').format(sanitize_html(frappe.local.form_dict.txt))
+
+	else:
+		list_context.introduction = frappe.db.get_single_value("Blog Settings", "blog_introduction")
 
 	if list_context.sub_title:
 		list_context.parents = [{"name": _("Home"), "route": "/"},

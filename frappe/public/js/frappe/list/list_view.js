@@ -712,6 +712,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return '#Form/' + this.doctype + '/' + docname;
 	}
 
+	get_seen_class(doc) {
+		return JSON.parse(doc._seen || '[]').includes(frappe.session.user)
+			? ''
+			: 'bold';
+	}
+
 	get_subject_html(doc) {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
@@ -723,8 +729,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let heart_class = liked_by.includes(user) ?
 			'liked-by' : 'text-extra-muted not-liked';
 
-		const seen = JSON.parse(doc._seen || '[]')
-			.includes(user) ? '' : 'bold';
+		const seen = this.get_seen_class(doc);
 
 		let subject_html = `
 			<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${escape(doc.name)}">
