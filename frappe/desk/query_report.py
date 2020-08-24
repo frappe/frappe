@@ -226,7 +226,7 @@ def reorder_data_for_custom_columns(custom_columns, columns, result, report_type
 		original_column_labels = [col.split(":")[0] for col in columns]
 		return get_columns_from_list(custom_column_labels, original_column_labels, result)
 
-	if type(result[0]) == "list":
+	if isinstance(result[0], list):
 		# If the result is a list of lists
 		original_column_names = [col["fieldname"] for col in columns]
 		return get_columns_from_list(custom_column_names, original_column_names, result)
