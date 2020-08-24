@@ -10,10 +10,14 @@ from frappe.utils.testutils import add_custom_field, clear_custom_fields
 from frappe.desk.form.assign_to import add as assign_to
 
 class TestEnergyPointLog(unittest.TestCase):
+	def setUp(self):
+		frappe.cache().delete_value('energy_point_rule_map')
+
 	def tearDown(self):
 		frappe.set_user('Administrator')
 		frappe.db.sql('DELETE FROM `tabEnergy Point Log`')
 		frappe.db.sql('DELETE FROM `tabEnergy Point Rule`')
+		frappe.cache().delete_value('energy_point_rule_map')
 
 	def test_user_energy_point(self):
 		frappe.set_user('test@example.com')

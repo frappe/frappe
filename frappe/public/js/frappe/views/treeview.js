@@ -14,7 +14,7 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 			};
 
 			if (!frappe.treeview_settings[route[1]] && !frappe.meta.get_docfield(route[1], "is_group")) {
-				frappe.msgprint(__("Tree view not available for {0}", [route[1]] ));
+				frappe.msgprint(__("Tree view is not available for {0}", [route[1]] ));
 				return false;
 			}
 			$.extend(options, frappe.treeview_settings[route[1]] || {});

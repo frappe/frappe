@@ -18,6 +18,7 @@ from frappe.utils.password import check_password, delete_login_failed_cache
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
+from frappe.website.utils import get_home_page
 
 from six.moves.urllib.parse import quote
 
@@ -167,7 +168,7 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
 			if not resume:
 				frappe.local.response["message"] = "No App"
-				frappe.local.response["home_page"] = get_website_user_home_page(self.user)
+				frappe.local.response["home_page"] = '/' + get_home_page()
 		else:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes")
 			if not resume:
@@ -338,8 +339,13 @@ class CookieManager:
 			self.set_cookie("country", frappe.session.session_country)
 
 	def set_cookie(self, key, value, expires=None, secure=False, httponly=False, samesite="Lax"):
-		if not secure:
+		if not secure and hasattr(frappe.local, 'request'):
 			secure = frappe.local.request.scheme == "https"
+
+		# Cordova does not work with Lax
+		if frappe.local.session.data.device == "mobile":
+			samesite = None
+
 		self.cookies[key] = {
 			"value": value,
 			"expires": expires,
@@ -376,16 +382,6 @@ def clear_cookies():
 	if hasattr(frappe.local, "session"):
 		frappe.session.sid = ""
 	frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])
-
-def get_website_user_home_page(user):
-	home_page_method = frappe.get_hooks('get_website_user_home_page')
-	if home_page_method:
-		home_page = frappe.get_attr(home_page_method[-1])(user)
-		return '/' + home_page.strip('/')
-	elif frappe.get_hooks('website_user_home_page'):
-		return '/' + frappe.get_hooks('website_user_home_page')[-1].strip('/')
-	else:
-		return '/me'
 
 def get_last_tried_login_data(user, get_last_login=False):
 	locked_account_time = frappe.cache().hget('locked_account_time', user)

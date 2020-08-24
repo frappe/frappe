@@ -1,5 +1,11 @@
 {
- "actions": [],
+ "actions": [
+  {
+   "action": "frappe.sessions.clear",
+   "action_type": "Server Action",
+   "label": "Clear Cache"
+  }
+ ],
  "creation": "2013-04-30 12:58:46",
  "doctype": "DocType",
  "document_type": "Other",
@@ -358,7 +364,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-05-15 14:12:32.907352",
+ "modified": "2020-08-07 13:34:19.181561",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

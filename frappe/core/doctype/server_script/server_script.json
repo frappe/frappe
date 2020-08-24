@@ -14,7 +14,9 @@
   "api_method",
   "allow_guest",
   "section_break_8",
-  "script"
+  "script",
+  "help_section",
+  "help_html"
  ],
  "fields": [
   {
@@ -72,10 +74,19 @@
   {
    "fieldname": "section_break_8",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "help_section",
+   "fieldtype": "Section Break",
+   "label": "Help"
+  },
+  {
+   "fieldname": "help_html",
+   "fieldtype": "HTML"
   }
  ],
  "links": [],
- "modified": "2020-04-06 11:24:38.161555",
+ "modified": "2020-08-07 13:13:02.483963",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
