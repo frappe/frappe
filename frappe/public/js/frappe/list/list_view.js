@@ -818,15 +818,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const modified = comment_when(doc.modified, true);
 
-		const last_assignee = JSON.parse(doc._assign || "[]").slice(-1)[0];
-		const assigned_to = last_assignee
-			? `<span class="filterable"
-				data-filter="_assign,like,%${last_assignee}%">
-				${frappe.avatar(last_assignee)}
-			</span>`
-			: `<span class="avatar avatar-small">
-				<span class="avatar-empty"></span>
-			</span>`;
+		let assigned_to = `<span class="avatar avatar-small">
+			<span class="avatar-empty"></span>
+		</span>`;
+
+		let assigned_users = JSON.parse(doc._assign || "[]");
+		if (assigned_users.length) {
+			// REDESIGN-TODO: Make it filterable?
+			assigned_to = frappe.avatar_group(assigned_users, 3, {'css_class': 'filterable'});
+		}
 
 		const comment_count = `<span class="${
 			!doc._comment_count ? "text-extra-muted" : ""
@@ -838,7 +838,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		html += `
 			<div class="level-item list-row-activity">
 				${settings_button}
-				${assigned_to}
+				<span class="padding-right">
+					${assigned_to}
+				</span>
 				${modified}
 				${comment_count}
 			</div>

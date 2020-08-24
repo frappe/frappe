@@ -100,22 +100,10 @@
 	}
 
 	.avatar-action {
-		display: none;
-		margin-left: var(--margin-xs);
 		.icon {
 			use {
 				stroke: var(--text-muted);
 			}
-		}
-	}
-
-	&:hover {
-		.avatar:not(:last-child) {
-			margin-left: var(--margin-sm);
-		}
-
-		.avatar-action {
-			display: block;
 		}
 	}
 
@@ -133,7 +121,13 @@
 		background-color: var(--blue-500);
 	}
 
-	.avatar + .avatar {
-		margin-right: calc(-1 * var(--margin-sm));
+	.avatar {
+		margin-right: var(--margin-xs);
+	}
+
+	&.overlap {
+		.avatar + .avatar {
+			margin-right: calc(-1 * var(--margin-sm));
+		}
 	}
 }

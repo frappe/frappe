@@ -47,33 +47,39 @@ frappe.avatar = function (user, css_class, title, image_url=null, remove_avatar=
 	}
 };
 
-frappe.avatar_group = function(users, limit=4, css_class='avatar avatar-small', align='right', icon, action) {
-	let extra_count = users.length - limit - 1;
+frappe.avatar_group = function(users, limit=4, options={}) {
 	let icon_html = '';
 	const display_users = users.slice(0, limit);
-	const extra_users = users.slice(limit, users.length);
+	const extra_users = users.slice(limit);
 
-	let html = display_users.map(user => frappe.avatar(user, css_class)).join('');
-	if (extra_count > 0) {
+	let html = display_users.map(user => frappe.avatar(user, 'avatar-small ' + options.css_class)).join('');
+	if (extra_users.length === 1) {
+		html += frappe.avatar(extra_users[0], 'avatar-small ' + options.css_class);
+	} else if (extra_users.length > 1) {
 		html = `
-			<span class="${css_class}">
-				<div class="avatar-frame standard-image avatar-extra-count" title="${extra_users.join(', ')}">
-					+${extra_count}
+			<span class="avatar avatar-small ${options.css_class}">
+				<div class="avatar-frame standard-image avatar-extra-count"
+					title="${extra_users.map(u => frappe.user_info(u).fullname).join(', ')}">
+					+${extra_users.length}
 				</div>
 			</span>
 			${html}
 		`;
 	}
 
-	if (icon) icon_html = `<span class="avatar-action">${frappe.utils.icon(icon, 'md')}</span>`;
+	if (options.action_icon) {
+		icon_html = `<span class="avatar-action">
+			${frappe.utils.icon(options.action_icon, 'md')}
+		</span>`;
+	}
 
 	const $avatar_group =
-		$(`<div class="avatar-group ${align}">
+		$(`<div class="avatar-group ${options.align || 'right'} ${options.overlap != false ? 'overlap': ''}">
 			${icon_html}
 			${html}
 		</div>`);
 
-	$avatar_group.find('.avatar-action').on('click', action);
+	$avatar_group.find('.avatar-action').on('click', options.action);
 	return $avatar_group;
 };
 

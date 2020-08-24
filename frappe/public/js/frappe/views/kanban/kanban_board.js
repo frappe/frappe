@@ -588,9 +588,11 @@ frappe.provide("frappe.views");
 		}
 
 		function get_assignees_group() {
-			return frappe.avatar_group(
-				card.assigned_list, 3, 'avatar avatar-small', 'right', 'assign', show_assign_to_dialog
-			);
+			return frappe.avatar_group(card.assigned_list, 3, {
+				css_class: 'avatar avatar-small',
+				action_icon: 'assign',
+				action: show_assign_to_dialog
+			});
 		}
 
 		function show_assign_to_dialog(e) {

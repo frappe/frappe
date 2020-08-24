@@ -437,7 +437,7 @@ class EventsView extends BaseNotificaitonsView {
 				// REDESIGN-TODO: Add Participants to get_events query
 				let particpants = '';
 				if (event.particpants) {
-					particpants = frappe.avatar_group(event.particpants, 3)
+					particpants = frappe.avatar_group(event.particpants, 3);
 				}
 
 				// REDESIGN-TODO: Add location to calendar field
