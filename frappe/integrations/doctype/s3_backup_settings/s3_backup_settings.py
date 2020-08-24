@@ -8,7 +8,7 @@ import os.path
 import frappe
 import boto3
 from frappe import _
-from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size, generate_files_backup
 from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.utils.background_jobs import enqueue
@@ -125,6 +125,11 @@ def backup_to_s3():
 	else:
 		if backup_files:
 			db_filename, site_config, files_filename, private_files = get_latest_backup_file(with_files=backup_files)
+
+			if not files_filename or not private_files:
+				generate_files_backup()
+				db_filename, site_config, files_filename, private_files = get_latest_backup_file(with_files=backup_files)
+
 		else:
 			db_filename, site_config = get_latest_backup_file()
 
