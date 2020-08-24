@@ -75,6 +75,8 @@ $threshold: 40;
 		.timeline-message-box {
 			.content {
 				margin-top: var(--margin-md);
+				overflow: scroll;
+				max-height: 500px;
 			}
 			.action-btn {
 				padding-top: 0;
