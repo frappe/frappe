@@ -222,11 +222,12 @@ def reorder_data_for_custom_columns(custom_columns, columns, result, report_type
 
 	if report_type == 'Query Report':
 		# Assume list result for query reports
-		# Query report columns exclisvuely use Label
+		# Query report columns exclusively use Label
 		custom_column_labels = [col["label"] for col in custom_columns]
 		original_column_labels = [col.split(":")[0] for col in columns]
 		return get_columns_from_list(custom_column_labels, original_column_labels, result)
 
+	custom_column_names = [col["fieldname"] for col in custom_columns]
 	if isinstance(result[0], list):
 		# If the result is a list of lists
 		original_column_names = [col["fieldname"] for col in columns]
