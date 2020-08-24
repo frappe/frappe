@@ -110,6 +110,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Email Group",
+					"description": _("Add / Manage Email Groups.")
+				},
+				{
+					"type": "doctype",
 					"name": "Notification",
 					"description": _("Setup Notifications based on various criteria.")
 				},
