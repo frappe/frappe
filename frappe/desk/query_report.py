@@ -227,11 +227,12 @@ def reorder_data_for_custom_columns(custom_columns, columns, result, report_type
 		return get_columns_from_list(custom_column_labels, original_column_labels, result)
 
 	custom_column_names = [col["fieldname"] for col in custom_columns]
-	if isinstance(result[0], list):
+	if isinstance(result[0], list) or isinstance(result[0], tuple):
 		# If the result is a list of lists
 		original_column_names = [col["fieldname"] for col in columns]
 		return get_columns_from_list(custom_column_names, original_column_names, result)
 	else:
+		print(result[0])
 		# If the result is a list of dicts
 		return get_columns_from_dict(custom_column_names, result)
 
