@@ -20,11 +20,15 @@ h5.modal-title {
 			top: 10px;
 			right: 5px;
 
-			.btn-modal-minimize .icon {
-				width: 14px;
-				height: 14px;
-				use {
-					stroke: var(--gray-500);
+			.btn-modal-minimize {
+				padding-right: 0;
+
+				.icon {
+					width: 14px;
+					height: 14px;
+					use {
+						stroke: var(--gray-500);
+					}
 				}
 			}
 		}
