@@ -48,6 +48,11 @@
 		--border-color: var(--gray-600);
 	}
 
+	.print-format {
+		--text-color: var(--gray-900);
+		--border-color: var(--gray-100);
+	}
+
 	.ql-editor.read-mode {
 		span, p, u {
 			background-color: inherit !important;

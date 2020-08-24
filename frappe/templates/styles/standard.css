@@ -11,6 +11,7 @@
 		min-height: 11.69in;
 		padding: 0.75in;
 		margin: auto;
+		color: var(--gray-900);
 	}
 
 	.print-format.landscape {

@@ -1,12 +1,12 @@
 .form-print-wrapper {
 	border: 1px solid var(--border-color);
 	border-top: none;
-	@include card($padding: 0);
+	padding: 0;
 }
 
 .print-preview-wrapper {
 	padding: var(--padding-xl) 0px;
-	background-color: var(--fg-color);
+	background-color: var(--gray-100);
 }
 
 .print-toolbar {
@@ -24,4 +24,10 @@
 
 .print-preview-refresh {
 	margin-left: var(--margin-xs);
+}
+
+[data-theme="dark"] {
+	.print-preview-wrapper {
+		background-color: var(--gray-700);
+	}
 }
