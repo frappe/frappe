@@ -331,7 +331,7 @@ class BaseDocument(object):
 					self.db_insert()
 					return
 
-				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
+				frappe.msgprint(_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)), title=_("Duplicate Name"), indicator="red")
 				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
@@ -511,12 +511,18 @@ class BaseDocument(object):
 	def set_fetch_from_value(self, doctype, df, values):
 		fetch_from_fieldname = df.fetch_from.split('.')[-1]
 		value = values[fetch_from_fieldname]
-		if df.fieldtype == 'Small Text' or df.fieldtype == 'Text' or df.fieldtype == 'Data':
+		if df.fieldtype in ['Small Text', 'Text', 'Data']:
 			if fetch_from_fieldname in default_fields:
 				from frappe.model.meta import get_default_df
 				fetch_from_df = get_default_df(fetch_from_fieldname)
 			else:
 				fetch_from_df = frappe.get_meta(doctype).get_field(fetch_from_fieldname)
+
+			if not fetch_from_df:
+				frappe.throw(
+					_('Please check the value of "Fetch From" set for field {0}').format(frappe.bold(df.label)),
+					title = _('Wrong Fetch From value')
+				)
 
 			fetch_from_ft = fetch_from_df.get('fieldtype')
 			if fetch_from_ft == 'Text Editor' and value:
@@ -662,8 +668,8 @@ class BaseDocument(object):
 			sanitized_value = value
 
 			if df and (df.get("ignore_xss_filter")
-				or (df.get("fieldtype")=="Code" and df.get("options")!="Email")
-				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode")
+				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options")=="Email")
+				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
 
 				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus==2

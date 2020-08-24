@@ -9,6 +9,7 @@ from __future__ import unicode_literals, print_function
 from six.moves import input
 
 import os, json, subprocess, shutil
+import click
 import frappe
 import frappe.database
 import importlib
@@ -117,18 +118,28 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 
-def remove_app(app_name, dry_run=False, yes=False):
-	"""Delete app and all linked to the app's module with the app."""
+def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
+	"""Remove app and all linked to the app's module with the app from a site."""
 
-	if not dry_run and not yes:
-		confirm = input("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue (y/n) ? ")
-		if confirm!="y":
+	# dont allow uninstall app if not installed unless forced
+	if not force:
+		if app_name not in frappe.get_installed_apps():
+			click.secho("App {0} not installed on Site {1}".format(app_name, frappe.local.site), fg="yellow")
 			return
 
-	from frappe.utils.backups import scheduled_backup
-	print("Backing up...")
-	scheduled_backup(ignore_files=True)
+	print("Uninstalling App {0} from Site {1}...".format(app_name, frappe.local.site))
 
+	if not dry_run and not yes:
+		confirm = click.confirm("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue?")
+		if not confirm:
+			return
+
+	if not no_backup:
+		from frappe.utils.backups import scheduled_backup
+		print("Backing up...")
+		scheduled_backup(ignore_files=True)
+
+	frappe.flags.in_uninstall = True
 	drop_doctypes = []
 
 	# remove modules, doctypes, roles
@@ -143,8 +154,12 @@ def remove_app(app_name, dry_run=False, yes=False):
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
 
-		# remove reports, pages and web forms
-		for doctype in ("Report", "Page", "Web Form"):
+
+		linked_doctypes = frappe.get_all("DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=['parent'])
+		ordered_doctypes = ["Report", "Page", "Web Form"]
+		doctypes_with_linked_modules = ordered_doctypes + [doctype.parent for doctype in linked_doctypes if doctype.parent not in ordered_doctypes]
+
+		for doctype in doctypes_with_linked_modules:
 			for record in frappe.get_list(doctype, filters={"module": module_name}):
 				print("removing {0} {1}...".format(doctype, record.name))
 				if not dry_run:
@@ -162,6 +177,10 @@ def remove_app(app_name, dry_run=False, yes=False):
 
 		for doctype in set(drop_doctypes):
 			frappe.db.sql("drop table `tab{0}`".format(doctype))
+
+		click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
+
+	frappe.flags.in_uninstall = False
 
 def post_install(rebuild_website=False):
 	if rebuild_website:
@@ -321,3 +340,34 @@ def extract_tar_files(site_name, file_path, folder_name):
 		frappe.destroy()
 
 	return tar_path
+
+def is_downgrade(sql_file_path, verbose=False):
+	"""checks if input db backup will get downgraded on current bench"""
+	from semantic_version import Version
+	head = "INSERT INTO `tabInstalled Application` VALUES"
+
+	with open(sql_file_path) as f:
+		for line in f:
+			if head in line:
+				# 'line' (str) format: ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master')
+				line = line.strip().lstrip(head).rstrip(";").strip()
+				# 'all_apps' (list) format: [('frappe', '12.x.x-develop ()', 'develop'), ('your_custom_app', '0.0.1', 'master')]
+				all_apps = [ x[-3:] for x in frappe.safe_eval(line) ]
+
+				for app in all_apps:
+					app_name = app[0]
+					app_version = app[1].split(" ")[0]
+
+					if app_name == "frappe":
+						try:
+							current_version = Version(frappe.__version__)
+							backup_version = Version(app_version[1:] if app_version[0] == "v" else app_version)
+						except ValueError:
+							return False
+
+						downgrade = backup_version > current_version
+
+						if verbose and downgrade:
+							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
+
+						return downgrade

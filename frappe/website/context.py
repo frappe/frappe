@@ -23,8 +23,8 @@ def get_context(path, args=None):
 	else:
 		context["path"] = path
 
+	context.canonical = frappe.utils.get_url(frappe.utils.escape_html(context.path))
 	context.route = context.path
-
 	context = build_context(context)
 
 	# set using frappe.respond_as_web_page
@@ -233,10 +233,9 @@ def add_metatags(context):
 
 		image = tags.get('image', context.image or None)
 		if image:
-			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(image)
+			tags["og:image"] = tags["twitter:image"] = tags["image"] = frappe.utils.get_url(image)
 
-		if context.path:
-			tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
+		tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
 
 		if context.published_on:
 			tags['datePublished'] = context.published_on

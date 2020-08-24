@@ -7,7 +7,7 @@ import io
 import frappe
 import timeit
 import json
-from datetime import datetime
+from datetime import datetime, date
 from frappe import _
 from frappe.utils import cint, flt, update_progress_bar, cstr
 from frappe.utils.csvutils import read_csv_content, get_csv_content_from_google_sheets
@@ -233,7 +233,7 @@ class Importer:
 			return updated_doc
 		else:
 			# throw if no changes
-			frappe.throw('No changes to update')
+			frappe.throw("No changes to update")
 
 	def get_eta(self, current, total, processing_time):
 		self.last_eta = getattr(self, "last_eta", 0)
@@ -322,7 +322,7 @@ class ImportFile:
 		if isinstance(file, frappe.string_types):
 			if frappe.db.exists("File", {"file_url": file}):
 				self.file_doc = frappe.get_doc("File", {"file_url": file})
-			elif 'docs.google.com/spreadsheets' in file:
+			elif "docs.google.com/spreadsheets" in file:
 				self.google_sheets_url = file
 			elif os.path.exists(file):
 				self.file_path = file
@@ -348,7 +348,7 @@ class ImportFile:
 
 		elif self.google_sheets_url:
 			content = get_csv_content_from_google_sheets(self.google_sheets_url)
-			extension = 'csv'
+			extension = "csv"
 
 		if not content:
 			frappe.throw(_("Invalid or corrupted content for import"))
@@ -441,9 +441,8 @@ class ImportFile:
 
 		# if there are child doctypes, find the subsequent rows
 		if len(doctypes) > 1:
-			# subsequent rows either dont have any parent value set
-			# or have the same value as the parent row
-			# we include a row if either of conditions match
+			# subsequent rows that have blank values in parent columns
+			# are considered as child rows
 			parent_column_indexes = self.header.get_column_indexes(self.doctype)
 			parent_row_values = first_row.get_values(parent_column_indexes)
 
@@ -454,11 +453,8 @@ class ImportFile:
 				if all([v in INVALID_VALUES for v in row_values]):
 					rows.append(row)
 					continue
-				# if the row has same values as parent row, it's a child row doc
-				if row_values == parent_row_values:
-					rows.append(row)
-					continue
-				# if any of those conditions dont match, it's the next doc
+				# if we encounter a row which has values in parent columns,
+				# then it is the next doc
 				break
 
 		parent_doc = None
@@ -606,12 +602,20 @@ class Row:
 
 		is_table = frappe.get_meta(doctype).istable
 		is_update = self.import_type == UPDATE
-		if is_table and is_update and doc.get("name") in INVALID_VALUES:
-			# for table rows being inserted in update
-			# create a new doc with defaults set
-			new_doc = frappe.new_doc(doctype, as_dict=True)
-			new_doc.update(doc)
-			doc = new_doc
+		if is_table and is_update:
+			# check if the row already exists
+			# if yes, fetch the original doc so that it is not updated
+			# if no, create a new doc
+			id_field = get_id_field(doctype)
+			id_value = doc.get(id_field.fieldname)
+			if id_value and frappe.db.exists(doctype, id_value):
+				doc = frappe.get_doc(doctype, id_value)
+			else:
+				# for table rows being inserted in update
+				# create a new doc with defaults set
+				new_doc = frappe.new_doc(doctype, as_dict=True)
+				new_doc.update(doc)
+				doc = new_doc
 
 		self.check_mandatory_fields(doctype, doc, table_df)
 		return doc
@@ -619,16 +623,12 @@ class Row:
 	def validate_value(self, value, col):
 		df = col.df
 		if df.fieldtype == "Select":
-			select_options = [d for d in (df.options or '').split('\n') if d]
+			select_options = get_select_options(df)
 			if select_options and value not in select_options:
 				options_string = ", ".join([frappe.bold(d) for d in select_options])
 				msg = _("Value must be one of {0}").format(options_string)
 				self.warnings.append(
-					{
-						"row": self.row_number,
-						"field": df_as_json(df),
-						"message": msg,
-					}
+					{"row": self.row_number, "field": df_as_json(df), "message": msg,}
 				)
 				return
 
@@ -639,11 +639,7 @@ class Row:
 					frappe.bold(value), frappe.bold(df.options)
 				)
 				self.warnings.append(
-					{
-						"row": self.row_number,
-						"field": df_as_json(df),
-						"message": msg,
-					}
+					{"row": self.row_number, "field": df_as_json(df), "message": msg,}
 				)
 				return
 		elif df.fieldtype in ["Date", "Datetime"]:
@@ -672,7 +668,7 @@ class Row:
 
 	def parse_value(self, value, col):
 		df = col.df
-		if isinstance(value, datetime) and df.fieldtype in ["Date", "Datetime"]:
+		if isinstance(value, (datetime, date)) and df.fieldtype in ["Date", "Datetime"]:
 			return value
 
 		value = cstr(value)
@@ -693,6 +689,9 @@ class Row:
 		return value
 
 	def get_date(self, value, column):
+		if isinstance(value, (datetime, date)):
+			return value
+
 		date_format = column.date_format
 		if date_format:
 			try:
@@ -787,9 +786,7 @@ class Header(Row):
 		for j, header in enumerate(row):
 			column_values = [get_item_at_index(r, j) for r in raw_data]
 			map_to_field = column_to_field_map.get(str(j))
-			column = Column(
-				j, header, self.doctype, column_values, map_to_field, self.seen
-			)
+			column = Column(j, header, self.doctype, column_values, map_to_field, self.seen)
 			self.seen.append(header)
 			self.columns.append(column)
 
@@ -919,13 +916,20 @@ class Column:
 		self.skip_import = skip_import
 
 	def guess_date_format_for_column(self):
-		""" Guesses date format for a column by parsing all the values in the column,
+		"""Guesses date format for a column by parsing all the values in the column,
 		getting the date format and then returning the one which has the maximum frequency
 		"""
 
-		date_formats = [
-			frappe.utils.guess_date_format(d) for d in self.column_values if isinstance(d, str)
-		]
+		def guess_date_format(d):
+			if isinstance(d, (datetime, date)):
+				if self.df.fieldtype == "Date":
+					return "%Y-%m-%d"
+				if self.df.fieldtype == "Datetime":
+					return "%Y-%m-%d %H:%M:%S"
+			if isinstance(d, str):
+				return frappe.utils.guess_date_format(d)
+
+		date_formats = [guess_date_format(d) for d in self.column_values]
 		date_formats = [d for d in date_formats if d]
 		if not date_formats:
 			return
@@ -956,28 +960,58 @@ class Column:
 		if not self.df:
 			return
 
-		if self.df.fieldtype == 'Link':
+		if self.df.fieldtype == "Link":
 			# find all values that dont exist
 			values = list(set([cstr(v) for v in self.column_values[1:] if v]))
-			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={'name': ('in', values)})]
+			exists = [
+				d.name for d in frappe.db.get_all(self.df.options, filters={"name": ("in", values)})
+			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
-				missing_values = ', '.join(not_exists)
-				self.warnings.append({
-					'col': self.column_number,
-					'message': "The following values do not exist for {}: {}".format(self.df.options, missing_values),
-					'type': 'warning'
-				})
+				missing_values = ", ".join(not_exists)
+				self.warnings.append(
+					{
+						"col": self.column_number,
+						"message": (
+							"The following values do not exist for {}: {}".format(
+								self.df.options, missing_values
+							)
+						),
+						"type": "warning",
+					}
+				)
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date format
 			self.date_format = self.guess_date_format_for_column()
 			if not self.date_format:
-				self.date_format = '%Y-%m-%d'
-				self.warnings.append({
-					'col': self.column_number,
-					'message': _("Date format could not determined from the values in this column. Defaulting to yyyy-mm-dd."),
-					'type': 'info'
-				})
+				self.date_format = "%Y-%m-%d"
+				self.warnings.append(
+					{
+						"col": self.column_number,
+						"message": _(
+							"Date format could not be determined from the values in"
+							" this column. Defaulting to yyyy-mm-dd."
+						),
+						"type": "info",
+					}
+				)
+		elif self.df.fieldtype == "Select":
+			options = get_select_options(self.df)
+			if options:
+				values = list(set([cstr(v) for v in self.column_values[1:] if v]))
+				invalid = list(set(values) - set(options))
+				if invalid:
+					valid_values = ", ".join([frappe.bold(o) for o in options])
+					invalid_values = ", ".join([frappe.bold(i) for i in invalid])
+					self.warnings.append(
+						{
+							"col": self.column_number,
+							"message": (
+								"The following values are invalid: {0}. Values must be"
+								" one of {1}".format(invalid_values, valid_values)
+							),
+						}
+					)
 
 	def as_dict(self):
 		d = frappe._dict()
@@ -988,7 +1022,7 @@ class Column:
 		d.map_to_field = self.map_to_field
 		d.date_format = self.date_format
 		d.df = self.df
-		if hasattr(self.df, 'is_child_table_field'):
+		if hasattr(self.df, "is_child_table_field"):
 			d.is_child_table_field = self.df.is_child_table_field
 			d.child_table_df = self.df.child_table_df
 		d.skip_import = self.skip_import
@@ -1068,7 +1102,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		# other fields
 		fields = get_standard_fields(doctype) + frappe.get_meta(doctype).fields
 		for df in fields:
-			label = (df.label or '').strip()
+			label = (df.label or "").strip()
 			fieldtype = df.fieldtype or "Data"
 			parent = df.parent or parent_doctype
 			if fieldtype not in no_value_fields:
@@ -1162,12 +1196,17 @@ def get_user_format(date_format):
 		.replace("%d", "dd")
 	)
 
+
 def df_as_json(df):
 	return {
-		'fieldname': df.fieldname,
-		'fieldtype': df.fieldtype,
-		'label': df.label,
-		'options': df.options,
-		'parent': df.parent,
-		'default': df.default
+		"fieldname": df.fieldname,
+		"fieldtype": df.fieldtype,
+		"label": df.label,
+		"options": df.options,
+		"parent": df.parent,
+		"default": df.default,
 	}
+
+
+def get_select_options(df):
+	return [d for d in (df.options or "").split("\n") if d]

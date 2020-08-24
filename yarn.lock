@@ -62,9 +62,9 @@
     "@types/jquery" "*"
 
 "@types/chai@*":
-  version "4.1.7"
-  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.1.7.tgz#1b8e33b61a8c09cbe1f85133071baa0dbf9fa71a"
-  integrity sha512-2Y8uPt0/jwjhQ6EiluT0XCri1Dbplr0ZxfFXUz+ye13gaqE8u5gL5ppao1JrUYr9cIip5S6MvQzBS7Kke7U9VA==
+  version "4.2.11"
+  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.11.tgz#d3614d6c5f500142358e6ed24e1bf16657536c50"
+  integrity sha512-t7uW6eFafjO+qJ3BIV2gGUyZs27egcNRkUdalkud+Qa3+kg//f129iuOFivHDXQ+vnU3fDXuwgv0cqMCbcE8sw==
 
 "@types/chai@4.0.8":
   version "4.0.8"
@@ -1753,24 +1753,24 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-frappe-charts@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-1.3.0.tgz#9ed033fa64833906bba16554187fa2f8a3a54ef6"
-  integrity sha512-hdLv4fOIVgIL5eV9KYlsQaEpxkcJvuEVVDJewJL8PG0ySPy5EEiG5KZGL2uj7YegVWbtsqJ4Oq/74mjgQoMdag==
+frappe-charts@^1.3.2:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-1.5.0.tgz#7be256ba392b70ca768a7d7fb190e72e22165c6f"
+  integrity sha512-npa/KgqcMLIVuMFoeb5sYbidqSs2rDrntqUe1hfh83AhHHOdT8AgUjzd8p764STHiyfoZSchgjv1atqjoVuTCQ==
 
-frappe-datatable@^1.14.0:
-  version "1.14.0"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.14.0.tgz#8e5a0f61764fd634ae01f6767ce055b04ec5c3e1"
-  integrity sha512-rxePE/UpYFnWzAFIpiLrVGFHxh+fIbpDI98gAZfraZOgO4Dz6qDcJMaeSKDosQ1Zq6imt15KyKoaePXNpsCVfg==
+frappe-datatable@^1.15.1:
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.15.2.tgz#8e82a0f08a61f1a11a62f24534fdfcf1a4782ff4"
+  integrity sha512-7d9m8vlhf+daAfJ5jVqj1kdvo6m7Ih0/ycmz7WUDgn1CL5Bxzc2/vj8+Jt9tmVdRgGAef9D5mljIPuFLxMrXCg==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
     sortablejs "^1.7.0"
 
-frappe-gantt@^0.1.0:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.1.1.tgz#63b82669a89c3e92fe74dc121cb0e6578433f716"
-  integrity sha1-Y7gmaaicPpL+dNwSHLDmV4Qz9xY=
+frappe-gantt@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.5.0.tgz#4dc7aa125f318efea64b4ae0e38f67a720238c1d"
+  integrity sha512-RAskVuBmnTcPJXh87oVhYmnNGy/9lvZlLHGui8QFB8yRBuUjzpZoZfZ+hKmDtBDmWNrE2/LRta06W5WmhTzzWQ==
 
 fresh@0.5.2:
   version "0.5.2"
@@ -1806,10 +1806,10 @@ function-bind@^1.1.1:
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
   integrity sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==
 
-fuse.js@^3.2.0:
-  version "3.4.2"
-  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-3.4.2.tgz#d7a638c436ecd7b9c4c0051478c09594eb956212"
-  integrity sha512-WVbrm+cAxPtyMqdtL7cYhR7aZJPhtOfjNClPya8GKMVukKDYs7pEnPINeRVX1C9WmWgU8MdYGYbUPAP2AJXdoQ==
+fuse.js@^3.4.6:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-3.6.1.tgz#7de85fdd6e1b3377c23ce010892656385fd9b10c"
+  integrity sha512-hT9yh/tiinkmirKrlv4KWOjztdoZo1mx9Qh4KvWqC7isoXwdUY3PNWUxceF4/qO9R6riA2C29jdTOeQOIROjgw==
 
 gauge@~2.7.3:
   version "2.7.4"
@@ -2117,10 +2117,10 @@ hex-color-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/hex-color-regex/-/hex-color-regex-1.1.0.tgz#4c06fccb4602fe2602b3c93df82d7e7dbf1a8a8e"
   integrity sha512-l9sfDFsuqtOqKDsQdqrMRk0U85RZc0RtOR9yPI7mRVOa4FsR/BVnZ0shmQRM96Ji99kYZP/7hn1cedc1+ApsTQ==
 
-highlight.js@^9.12.0:
-  version "9.15.6"
-  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-9.15.6.tgz#72d4d8d779ec066af9a17cb14360c3def0aa57c4"
-  integrity sha512-zozTAWM1D6sozHo8kqhfYgsac+B+q0PmsjXeyDrYIHHcBN0zTVT66+s2GW1GZv7DbyaROdLXKdabwS/WqPyIdQ==
+highlight.js@^9.18.1:
+  version "9.18.1"
+  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-9.18.1.tgz#ed21aa001fe6252bb10a3d76d47573c6539fe13c"
+  integrity sha512-OrVKYz70LHsnCgmbXctv/bfuvntIKDz177h0Co37DQ5jamGZLVmoCVMtjMtNZY3X9DrCcKfklHPNeA0uPZhSJg==
 
 homedir-polyfill@^1.0.1:
   version "1.0.3"
@@ -2802,12 +2802,12 @@ lodash.uniq@^4.5.0:
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
   integrity sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=
 
-lodash@4.17.11, lodash@^4.0.0, lodash@^4.14.0, lodash@^4.17.11, lodash@^4.17.5, lodash@~4.17.10:
+lodash@4.17.11:
   version "4.17.11"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
   integrity sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg==
 
-lodash@^4.17.4:
+lodash@^4.0.0, lodash@^4.14.0, lodash@^4.17.11, lodash@^4.17.4, lodash@^4.17.5, lodash@~4.17.10:
   version "4.17.15"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
   integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==

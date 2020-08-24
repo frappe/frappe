@@ -23,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.8.4'
+__version__ = '12.9.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -471,7 +471,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	message = content or message
 
 	if as_markdown:
-		message = frappe.utils.md_to_html(message)
+		from frappe.utils import md_to_html
+		message = md_to_html(message)
 
 	if not delayed:
 		now = True
@@ -1647,7 +1648,8 @@ def mock(type, size = 1, locale = 'en'):
 			results.append(data)
 
 	from frappe.chat.util import squashify
+	return squashify(results)
 
-	results = squashify(results)
-
-	return results
+def validate_and_sanitize_search_inputs(fn):
+	from frappe.desk.search import validate_and_sanitize_search_inputs as func
+	return func(fn)

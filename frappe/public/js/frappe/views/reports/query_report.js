@@ -709,8 +709,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (column.isHeader && !data && this.data) {
 					// totalRow doesn't have a data object
 					// proxy it using the first data object
-					// this is needed only for currency formatting
-					data = this.data[0];
+					// applied to Float, Currency fields, needed only for currency formatting.
+					// make first data column have value 'Total'
+					let index = 1;
+					if (this.datatable && this.datatable.options.checkboxColumn) index = 2;
+
+					if (column.colIndex === index && !value) {
+						value = "Total";
+						column.fieldtype = "Data"; // avoid type issues for value if Date column
+					} else if (in_list(["Currency", "Float"], column.fieldtype)) {
+						// proxy for currency and float
+						data = this.data[0];
+					}
 				}
 				return frappe.format(value, column,
 					{for_print: false, always_show_decimals: true}, data);

@@ -402,8 +402,16 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
 	try:
+		message = None
+
 		if not frappe.flags.in_test:
-			if not smtpserver: smtpserver = SMTPServer()
+			if not smtpserver:
+				smtpserver = SMTPServer()
+
+			# to avoid always using default email account for outgoing
+			if getattr(frappe.local, "outgoing_email_account", None):
+				frappe.local.outgoing_email_account = {}
+
 			smtpserver.setup_email_account(email.reference_doctype, sender=email.sender)
 
 		for recipient in recipients_list:

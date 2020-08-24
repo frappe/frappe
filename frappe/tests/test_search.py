@@ -50,3 +50,31 @@ class TestSearch(unittest.TestCase):
 
 	def tearDown(self):
 		frappe.local.lang = 'en'
+
+	def test_validate_and_sanitize_search_inputs(self):
+
+		# should raise error if searchfield is injectable
+		self.assertRaises(frappe.DataError,
+			get_data, *('User', 'Random', 'select * from tabSessions) --', '1', '10', dict()))
+
+		# page_len and start should be converted to int
+		self.assertListEqual(get_data('User', 'Random', 'email', 'name or (select * from tabSessions)', '10', dict()),
+			['User', 'Random', 'email', 0, 10, {}])
+		self.assertListEqual(get_data('User', 'Random', 'email', page_len='2', start='10', filters=dict()),
+			['User', 'Random', 'email', 10, 2, {}])
+
+		# DocType can be passed as None which should be accepted
+		self.assertListEqual(get_data(None, 'Random', 'email', '2', '10', dict()),
+			[None, 'Random', 'email', 2, 10, {}])
+
+		# return empty string if passed doctype is invalid
+		self.assertListEqual(get_data("Random DocType", 'Random', 'email', '2', '10', dict()), [])
+
+		# should not fail if function is called via frappe.call with extra arguments
+		args = ("Random DocType", 'Random', 'email', '2', '10', dict())
+		kwargs = {'as_dict': False}
+		self.assertListEqual(frappe.call('frappe.tests.test_search.get_data', *args, **kwargs), [])
+
+@frappe.validate_and_sanitize_search_inputs
+def get_data(doctype, txt, searchfield, start, page_len, filters):
+	return [doctype, txt, searchfield, start, page_len, filters]

@@ -55,7 +55,7 @@ $.extend(frappe.model, {
 				if(frappe.get_route()[0]==="Form" && cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
 					if(!frappe.ui.form.is_saving && data.modified!=cur_frm.doc.modified) {
 						doc.__needs_refresh = true;
-						cur_frm.check_doctype_conflict();
+						cur_frm.show_conflict_message();
 					}
 				} else {
 					if(!doc.__unsaved) {

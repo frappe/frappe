@@ -1025,6 +1025,8 @@ class Document(BaseDocument):
 
 	def save_version(self):
 		'''Save version info'''
+		if not self._doc_before_save and frappe.flags.in_patch: return
+
 		version = frappe.new_doc('Version')
 		if not self._doc_before_save:
 			version.for_insert(self)

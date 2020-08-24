@@ -19,6 +19,9 @@ from botocore.exceptions import ClientError
 class S3BackupSettings(Document):
 
 	def validate(self):
+		if not self.enabled:
+			return
+
 		if not self.endpoint_url:
 			self.endpoint_url = 'https://s3.amazonaws.com'
 		conn = boto3.client(
@@ -37,10 +40,16 @@ class S3BackupSettings(Document):
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
 		try:
-			conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
-				'LocationConstraint': self.region})
-		except ClientError:
-			frappe.throw(_("Unable to create bucket: {0}. Change it to a more unique name.").format(bucket_lower))
+			# Head_bucket returns a 200 OK if the bucket exists and have access to it.
+			conn.head_bucket(Bucket=bucket_lower)
+		except ClientError as e:
+			error_code = e.response['Error']['Code']
+			if error_code == '403':
+				frappe.throw(_("Do not have permission to access {0} bucket.").format(bucket_lower))
+			else:   # '400'-Bad request or '404'-Not Found return
+				# try to create bucket
+				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
+					'LocationConstraint': self.region})
 
 
 @frappe.whitelist()
@@ -111,18 +120,21 @@ def backup_to_s3():
 		backup = new_backup(ignore_files=False, backup_path_db=None,
 							backup_path_files=None, backup_path_private_files=None, force=True)
 		db_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
+		site_config = os.path.join(get_backups_path(), os.path.basename(backup.site_config_backup_path))
 		if backup_files:
 			files_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_files))
 			private_files = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_private_files))
 	else:
 		if backup_files:
-			db_filename, files_filename, private_files = get_latest_backup_file(with_files=backup_files)
+			db_filename, site_config, files_filename, private_files = get_latest_backup_file(with_files=backup_files)
 		else:
-			db_filename = get_latest_backup_file()
+			db_filename, site_config = get_latest_backup_file()
+
 	folder = os.path.basename(db_filename)[:15] + '/'
 	# for adding datetime to folder name
 
 	upload_file_to_s3(db_filename, folder, conn, bucket)
+	upload_file_to_s3(site_config, folder, conn, bucket)
 	if backup_files:
 		upload_file_to_s3(private_files, folder, conn, bucket)
 		upload_file_to_s3(files_filename, folder, conn, bucket)

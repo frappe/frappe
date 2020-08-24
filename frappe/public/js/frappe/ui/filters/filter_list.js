@@ -132,7 +132,6 @@ frappe.ui.FilterGroup = class {
 
 	get_filters() {
 		return this.filters.filter(f => f.field).map(f => {
-			f.freeze();
 			return f.get_value();
 		});
 		// {}: this.list.update_standard_filters(values);

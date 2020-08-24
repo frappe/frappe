@@ -39,3 +39,20 @@ class ModuleDef(Document):
 
 				frappe.clear_cache()
 				frappe.setup_module_map()
+
+	def on_trash(self):
+		"""Delete module name from modules.txt"""
+		modules = None
+		if frappe.local.module_app.get(frappe.scrub(self.name)):
+			with open(frappe.get_app_path(self.app_name, "modules.txt"), "r") as f:
+				content = f.read()
+				if self.name in content.splitlines():
+					modules = list(filter(None, content.splitlines()))
+					modules.remove(self.name)
+
+			if modules:
+				with open(frappe.get_app_path(self.app_name, "modules.txt"), "w") as f:
+					f.write("\n".join(modules))
+
+				frappe.clear_cache()
+				frappe.setup_module_map()

@@ -34,7 +34,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		clear_cache(route)
 
 	content = (comment.content
-		+ "<p><a href='{0}/desk/#Form/Comment/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
+		+ "<p><a href='{0}/desk#Form/Comment/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
 			comment.name,
 			_("View Comment")))
 
