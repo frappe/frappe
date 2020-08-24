@@ -277,8 +277,14 @@ frappe.ui.form.NewTimeline = class {
 			content_wrapper.toggle(!edit_button.edit_mode);
 		};
 
+		let delete_button = $(`
+			<button class="btn btn-link action-btn icon-btn">
+				${frappe.utils.icon('close', 'sm', 'close')}
+			</button>
+		`).click(() => this.delete_comment(doc.name));
+
 		comment_wrapper.find('.actions').append(edit_button);
-		comment_wrapper.find('.actions').append(`<btn class="btn-link action-btn">${frappe.utils.icon('close', 'sm', 'close')}</btn>`);
+		comment_wrapper.find('.actions').append(delete_button);
 	}
 
 	make_editable(container) {
@@ -324,5 +330,17 @@ frappe.ui.form.NewTimeline = class {
 		});
 
 		return last_email;
+	}
+
+	delete_comment(comment_name) {
+		frappe.confirm(__('Delete comment?'), () => {
+			return frappe.xcall("frappe.client.delete", {
+				doctype: "Comment",
+				name: comment_name
+			}).then(() => {
+				frappe.utils.play_sound("delete");
+				this.refresh();
+			});
+		});
 	}
 };
