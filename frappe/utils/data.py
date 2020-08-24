@@ -346,6 +346,11 @@ def format_datetime(datetime_string, format_string=None):
 	return formatted_datetime
 
 def format_duration(seconds, hide_days=False):
+	"""Converts the given duration value in float(seconds) to duration format
+
+	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
+	"""
+
 	total_duration = {
 		'days': math.floor(seconds / (3600 * 24)),
 		'hours': math.floor(seconds % (3600 * 24) / 3600),
@@ -372,6 +377,34 @@ def format_duration(seconds, hide_days=False):
 			duration += str(total_duration.get('seconds')) + 's'
 
 	return duration
+
+def duration_to_seconds(duration):
+	"""Converts the given duration formatted value to duration value in seconds
+
+	example: converts '3h 34m 45s' to 12885 (value in seconds)
+	"""
+	value = 0
+	if 'd' in duration:
+		val = duration.split('d')
+		days = val[0]
+		value += cint(days) * 24 * 60 * 60
+		duration = val[1]
+	if 'h' in duration:
+		val = duration.split('h')
+		hours = val[0]
+		value += cint(hours) * 60 * 60
+		duration = val[1]
+	if 'm' in duration:
+		val = duration.split('m')
+		mins = val[0]
+		value += cint(mins) * 60
+		duration = val[1]
+	if 's' in duration:
+		val = duration.split('s')
+		secs = val[0]
+		value += cint(secs)
+
+	return value
 
 def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
