@@ -989,7 +989,8 @@ def clear_permissions_cache(doctype):
 			`tabHas Role`,
 			`tabDocPerm`
 		WHERE `tabDocPerm`.`parent` = %s
-		AND `tabDocPerm`.`role` = `tabHas Role`.`role`
+			AND `tabDocPerm`.`role` = `tabHas Role`.`role`
+			AND `tabHas Role`.`parenttype` = 'User'
 		""", doctype):
 		frappe.clear_cache(user=user)
 
