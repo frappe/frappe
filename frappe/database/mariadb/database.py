@@ -46,7 +46,7 @@ class MariaDBDatabase(Database):
 			'Data':			('varchar', self.VARCHAR_LEN),
 			'Link':			('varchar', self.VARCHAR_LEN),
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
-			'Password':		('varchar', self.VARCHAR_LEN),
+			'Password':		('text', ''),
 			'Select':		('varchar', self.VARCHAR_LEN),
 			'Rating':		('int', '1'),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
@@ -186,7 +186,7 @@ class MariaDBDatabase(Database):
 				`doctype` VARCHAR(140) NOT NULL,
 				`name` VARCHAR(255) NOT NULL,
 				`fieldname` VARCHAR(140) NOT NULL,
-				`password` VARCHAR(255) NOT NULL,
+				`password` TEXT NOT NULL,
 				`encrypted` INT(1) NOT NULL DEFAULT 0,
 				PRIMARY KEY (`doctype`, `name`, `fieldname`)
 			) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")

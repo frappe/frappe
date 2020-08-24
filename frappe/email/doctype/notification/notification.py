@@ -7,12 +7,14 @@ import frappe
 import json, os
 from frappe import _
 from frappe.model.document import Document
-from frappe.core.doctype.role.role import get_emails_from_role
+from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.utils import validate_email_address, nowdate, parse_val, is_html, add_to_date
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
+from frappe.integrations.doctype.twilio_settings.twilio_settings import send_whatsapp_message
+from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 
 class Notification(Document):
@@ -26,7 +28,9 @@ class Notification(Document):
 			self.name = self.subject
 
 	def validate(self):
-		validate_template(self.subject)
+		if self.channel not in ('WhatsApp', 'SMS'):
+			validate_template(self.subject)
+
 		validate_template(self.message)
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
@@ -126,8 +130,15 @@ def get_context(context):
 			if self.channel == 'Slack':
 				self.send_a_slack_msg(doc, context)
 
+			if self.channel == 'WhatsApp':
+				self.send_whatsapp_msg(doc, context)
+
+			if self.channel == 'SMS':
+				self.send_sms(doc, context)
+
 			if self.channel == 'System Notification' or self.send_system_notification:
 				self.create_system_notification(doc, context)
+
 		except:
 			frappe.log_error(title='Failed to send notification', message=frappe.get_traceback())
 
@@ -195,11 +206,24 @@ def get_context(context):
 				and attachments[0].get('print_letterhead')) or False))
 
 	def send_a_slack_msg(self, doc, context):
-			send_slack_message(
-				webhook_url=self.slack_webhook_url,
-				message=frappe.render_template(self.message, context),
-				reference_doctype = doc.doctype,
-				reference_name = doc.name)
+		send_slack_message(
+			webhook_url=self.slack_webhook_url,
+			message=frappe.render_template(self.message, context),
+			reference_doctype=doc.doctype,
+			reference_name=doc.name)
+
+	def send_whatsapp_msg(self, doc, context):
+		send_whatsapp_message(
+			sender=self.twilio_number,
+			receiver_list=self.get_receiver_list(doc, context),
+			message=frappe.render_template(self.message, context),
+		)
+
+	def send_sms(self, doc, context):
+		send_sms(
+			receiver_list=self.get_receiver_list(doc, context),
+			msg=frappe.render_template(self.message, context)
+		)
 
 	def get_list_of_recipients(self, doc, context):
 		recipients = []
@@ -209,8 +233,8 @@ def get_context(context):
 			if recipient.condition:
 				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
-			if recipient.email_by_document_field:
-				email_ids_value = doc.get(recipient.email_by_document_field)
+			if recipient.receiver_by_document_field:
+				email_ids_value = doc.get(recipient.receiver_by_document_field)
 				if validate_email_address(email_ids_value):
 					email_ids = email_ids_value.replace(",", "\n")
 					recipients = recipients + email_ids.split("\n")
@@ -232,8 +256,8 @@ def get_context(context):
 				bcc = bcc + recipient.bcc.split("\n")
 
 			#For sending emails to specified role
-			if recipient.email_by_role:
-				emails = get_emails_from_role(recipient.email_by_role)
+			if recipient.receiver_by_role:
+				emails = get_info_based_on_role(recipient.receiver_by_role, 'email')
 
 				for email in emails:
 					recipients = recipients + email.split("\n")
@@ -241,6 +265,27 @@ def get_context(context):
 		if not recipients and not cc and not bcc:
 			return None, None, None
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
+
+	def get_receiver_list(self, doc, context):
+		''' return receiver list based on the doc field and role specified '''
+		receiver_list = []
+		for recipient in self.recipients:
+			if recipient.condition:
+				if not frappe.safe_eval(recipient.condition, None, context):
+					continue
+
+			# For sending messages to the owner's mobile phone number
+			if recipient.receiver_by_document_field == 'owner':
+				receiver_list.append(get_user_info(doc.get('owner'), 'mobile_no'))
+			# For sending messages to the number specified in the receiver field
+			elif recipient.receiver_by_document_field:
+				receiver_list.append(doc.get(recipient.receiver_by_document_field))
+
+			#For sending messages to specified role
+			if recipient.receiver_by_role:
+				receiver_list += get_info_based_on_role(recipient.receiver_by_role, 'mobile_no')
+
+		return receiver_list
 
 	def get_attachment(self, doc):
 		""" check print settings are attach the pdf """

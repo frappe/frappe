@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.desk.form import assign_to
 import frappe.cache_manager
 from frappe import _
+from frappe.model import log_types
 
 class AssignmentRule(Document):
 
@@ -19,10 +20,13 @@ class AssignmentRule(Document):
 			frappe.throw(_("Assignment Day {0} has been repeated.").format(frappe.bold(repeated_days)))
 
 	def on_update(self): # pylint: disable=no-self-use
-		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
+		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.document_type)
 
 	def after_rename(self, old, new, merge): # pylint: disable=no-self-use
-		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
+		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.document_type)
+
+	def on_trash(self): # pylint: disable=no-self-use
+		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.document_type)
 
 	def apply_unassign(self, doc, assignments):
 		if (self.unassign_condition and
@@ -165,7 +169,13 @@ def reopen_closed_assignment(doc):
 	return True
 
 def apply(doc, method=None, doctype=None, name=None):
-	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_setup_wizard:
+	if not doctype:
+		doctype = doc.doctype
+
+	if (frappe.flags.in_patch
+		or frappe.flags.in_install
+		or frappe.flags.in_setup_wizard
+		or doctype in log_types):
 		return
 
 	if not doc and doctype and name:
