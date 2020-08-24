@@ -25,6 +25,7 @@ class ServerScript(Document):
 			if frappe.session.user == 'Guest' and not self.allow_guest:
 				raise frappe.PermissionError
 			safe_exec(self.script)
+			return frappe.flags # output can be stored in flags
 		else:
 			# wrong report type!
 			raise frappe.DoesNotExistError
