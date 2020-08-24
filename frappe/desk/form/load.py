@@ -229,13 +229,12 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 
 def get_assignments(dt, dn):
 	cl = frappe.get_all("ToDo",
-			fields=['name', 'owner', 'description', 'status'],
-			limit= 5,
-			filters={
-				'reference_type': dt,
-				'reference_name': dn,
-				'status': ('!=', 'Cancelled'),
-			})
+		fields=['name', 'owner', 'description', 'status'],
+		filters={
+			'reference_type': dt,
+			'reference_name': dn,
+			'status': ('!=', 'Cancelled'),
+		})
 
 	return cl
 
