@@ -61,7 +61,7 @@ context('Recorder', () => {
 
 		cy.visit('/desk#recorder');
 
-		cy.contains('.list-row-container span', 'frappe.desk.reportview.get').click();
+		cy.get('.list-row-container span').contains('frappe.desk.reportview.get').click();
 
 		cy.location('hash').should('contain', '#recorder/request/');
 		cy.get('form').should('contain', 'frappe.desk.reportview.get');

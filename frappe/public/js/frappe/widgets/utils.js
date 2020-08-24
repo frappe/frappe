@@ -151,7 +151,7 @@ function shorten_number(number, country) {
 	for (const map of number_system) {
 		const condition = map.condition ? map.condition(x) : x >= map.divisor;
 		if (condition) {
-			return Math.round(number/map.divisor) +  ' ' + map.symbol;
+			return (number/map.divisor).toFixed(2) + ' ' + map.symbol;
 		}
 	}
 	return number.toFixed();
