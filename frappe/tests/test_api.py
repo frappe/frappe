@@ -67,9 +67,19 @@ class TestAPI(unittest.TestCase):
 			{"doctype": "Note", "public": True, "title": "get_value", "content": test_content},
 		])
 		self.assertEqual(server.get_value("Note", "content", {"title": "get_value"}).get('content'), test_content)
+		name = server.get_value("Note", "name", {"title": "get_value"}).get('name')
+
+		# test by name
+		self.assertEqual(server.get_value("Note", "content", name).get('content'), test_content)
 
 		self.assertRaises(FrappeException, server.get_value, "Note", "(select (password) from(__Auth) order by name desc limit 1)", {"title": "get_value"})
 
+	def test_get_single(self):
+		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
+		server.set_value('Website Settings', 'Website Settings', 'title_prefix', 'test-prefix')
+		self.assertEqual(server.get_value('Website Settings', 'title_prefix', 'Website Settings').get('title_prefix'), 'test-prefix')
+		self.assertEqual(server.get_value('Website Settings', 'title_prefix').get('title_prefix'), 'test-prefix')
+		frappe.db.set_value('Website Settings', None, 'title_prefix', '')
 
 	def test_update_doc(self):
 		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
