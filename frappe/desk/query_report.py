@@ -8,14 +8,13 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, get_url_to_form
+from frappe.utils import flt, cint, get_html_format, get_url_to_form, gzip_decompress, format_duration
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
-from frappe.utils import gzip_decompress
 from frappe.core.utils import ljust_list
 
 def get_report_doc(report_name):
@@ -82,6 +81,8 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 
 	if cint(report.add_total_row) and result and not skip_total_row:
 		result = add_total_row(result, columns)
+
+	result = handle_duration_fieldtype_values(columns, result)
 
 	return {
 		"result": result,
@@ -265,6 +266,32 @@ def get_columns_from_dict(columns, result):
 		reordered_result.append(r)
 
 	return reordered_result
+
+
+def handle_duration_fieldtype_values(columns, result, meta=None):
+	for i, col in enumerate(columns):
+		fieldtype, fieldname = None, None
+		if isinstance(col, string_types):
+			col = col.split(":")
+			if len(col) > 1:
+				if col[1]:
+					fieldtype = col[1]
+					if "/" in fieldtype:
+						fieldtype, options = fieldtype.split("/")
+				else:
+					fieldtype = "Data"
+		else:
+			fieldtype = col.get("fieldtype")
+			fieldname = col.get("fieldname")
+
+		if fieldtype == "Duration":
+			for entry in range(0, len(result)):
+				val_in_seconds = result[entry][i]
+				if val_in_seconds:
+					duration_val = format_duration(val_in_seconds)
+					result[entry][i] = duration_val
+	return result
+
 
 def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
