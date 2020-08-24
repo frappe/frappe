@@ -27,7 +27,7 @@ class Newsletter(WebsiteGenerator):
 	def test_send(self, doctype="Lead"):
 		self.recipients = frappe.utils.split_emails(self.test_email_id)
 		self.queue_all(test_email=True)
-		frappe.msgprint(_("Test email is send to {0}").format(self.test_email_id))
+		frappe.msgprint(_("Test email sent to {0}").format(self.test_email_id))
 
 	def send_emails(self):
 		"""send emails to leads and customers"""
@@ -86,12 +86,12 @@ class Newsletter(WebsiteGenerator):
 			self.db_set("scheduled_to_send", len(self.recipients))
 
 	def get_message(self):
-		if self.content_type == 'Rich Text':
-			return self.message
-		elif self.content_type == 'Markdown':
-			return markdown(self.message_md)
-		elif self.content_type == 'HTML':
-			return self.message_html
+		
+		return {
+			'Rich Text': self.message,
+			'Markdown': markdown(self.message_md),
+			'HTML': self.message_html
+		}[self.content_type]
 
 	def get_recipients(self):
 		"""Get recipients from Email Group"""
