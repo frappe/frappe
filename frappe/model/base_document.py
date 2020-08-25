@@ -299,7 +299,11 @@ class BaseDocument(object):
 		return frappe.as_json(self.as_dict())
 
 	def get_table_field_doctype(self, fieldname):
-		return self.meta.get_field(fieldname).options
+		try:
+			return self.meta.get_field(fieldname).options
+		except AttributeError:
+			print('Unable to find options for {}'.format(fieldname))
+			raise
 
 	def get_parentfield_of_doctype(self, doctype):
 		fieldname = [df.fieldname for df in self.meta.get_table_fields() if df.options==doctype]
