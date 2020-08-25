@@ -37,7 +37,7 @@ h5.modal-title {
 	.modal-body {
 		padding: var(--padding-md) var(--padding-lg);
 		overflow: scroll;
-		max-height: min(80vh, 650px);
+		max-height: unquote("min(80vh, 650px)");
 	}
 
 	.modal-footer {
