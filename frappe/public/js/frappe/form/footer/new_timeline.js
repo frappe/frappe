@@ -249,7 +249,7 @@ frappe.ui.form.NewTimeline = class {
 
 		let delete_button = $(`
 			<button class="btn btn-link action-btn icon-btn">
-				${frappe.utils.icon('close', 'sm', 'close')}
+				${frappe.utils.icon('close', 'sm')}
 			</button>
 		`).click(() => this.delete_comment(doc.name));
 

@@ -303,7 +303,7 @@ frappe.get_data_pill = (label, target_id=null, remove_action=null) => {
 	if (remove_action) {
 		let remove_btn = $(`
 			<span class="remove-btn cursor-pointer">
-				${frappe.utils.icon('close', 'sm', 'close')}
+				${frappe.utils.icon('close', 'sm')}
 			</span>
 		`).click(() => {
 			remove_action(target_id || label, data_pill_wrapper);
