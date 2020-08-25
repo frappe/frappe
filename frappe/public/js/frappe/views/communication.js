@@ -586,8 +586,6 @@ frappe.views.CommunicationComposer = Class.extend({
 						delete frappe.last_edited_communication[me.doc][me.key];
 					}
 					if (cur_frm) {
-						// clear input
-						cur_frm.timeline.input && cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
 					}
 
