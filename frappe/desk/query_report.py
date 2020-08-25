@@ -187,6 +187,9 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False, cust
 	return result
 
 def add_data_to_custom_columns(columns, result):
+	if not result:
+		return []
+
 	custom_fields_data = get_data_for_custom_report(columns)
 
 	data = []
@@ -217,6 +220,9 @@ def add_data_to_custom_columns(columns, result):
 	return data
 
 def reorder_data_for_custom_columns(custom_columns, columns, result):
+	if not result:
+		return []
+
 	reordered_result = []
 	columns = [col.split(":")[0] for col in columns]
 
