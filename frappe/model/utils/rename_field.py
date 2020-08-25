@@ -19,11 +19,16 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 		print("rename_field: " + (new_fieldname) + " not found in " + doctype)
 		return
 
+	if not frappe.db.has_column(doctype, old_fieldname):
+		# never had the field?
+		return
+
 	if new_field.fieldtype in table_fields:
 		# change parentfield of table mentioned in options
 		frappe.db.sql("""update `tab%s` set parentfield=%s
 			where parentfield=%s""" % (new_field.options.split("\n")[0], "%s", "%s"),
 			(new_fieldname, old_fieldname))
+
 	elif new_field.fieldtype not in no_value_fields:
 		if meta.issingle:
 			frappe.db.sql("""update `tabSingles` set field=%s
