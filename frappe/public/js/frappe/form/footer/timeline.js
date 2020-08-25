@@ -225,8 +225,6 @@ frappe.ui.form.Timeline = class Timeline {
 
 		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email").change();
 
-		this.frm.sidebar.refresh_comments();
-
 		this.frm.trigger('timeline_refresh');
 	}
 

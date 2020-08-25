@@ -137,13 +137,6 @@ frappe.ui.form.Sidebar = class {
 		}
 	}
 
-	refresh_comments() {
-		$.map(this.frm.timeline.get_communications(), function(c) {
-			return (c.communication_type==="Communication" || (c.communication_type=="Comment" && c.comment_type==="Comment")) ? c : null;
-		});
-		this.comments.find(".n-comments").html(this.frm.get_docinfo().total_comments);
-	}
-
 	make_tags() {
 		if (this.frm.meta.issingle) {
 			this.sidebar.find(".form-tags").toggle(false);
