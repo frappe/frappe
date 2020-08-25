@@ -20,6 +20,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 		return
 
 	if not frappe.db.has_column(doctype, old_fieldname):
+		print("rename_field: " + (old_fieldname) + " not found in table for: " + doctype)
 		# never had the field?
 		return
 
