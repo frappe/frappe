@@ -660,20 +660,17 @@ class Database(object):
 
 		if dn and dt!=dn:
 			# with table
-			values = dict(
-				name=self.get_value(dt, dn, 'name', for_update=for_update)
-			)
-
-			values.update(to_update)
-
 			set_values = []
 			for key in to_update:
 				set_values.append('`{0}`=%({0})s'.format(key))
 
-			self.sql("""update `tab{0}`
-				set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
-				values, debug=debug)
+			for name in self.get_values(dt, dn, 'name', for_update=for_update):
+				values = dict(name=name[0])
+				values.update(to_update)
 
+				self.sql("""update `tab{0}`
+					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
+					values, debug=debug)
 		else:
 			# for singles
 			keys = list(to_update)

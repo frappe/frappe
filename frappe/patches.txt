@@ -40,7 +40,9 @@ execute:frappe.reload_doc('core', 'doctype', 'role') #2017-05-23
 execute:frappe.reload_doc('core', 'doctype', 'user') #2017-10-27
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
-execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
+execute:frappe.reload_doc('core', 'doctype', 'report_column')
+execute:frappe.reload_doc('core', 'doctype', 'report_filter')
+execute:frappe.reload_doc('core', 'doctype', 'report') #2020-08-25
 execute:frappe.reload_doc('core', 'doctype', 'translation') #2016-03-03
 execute:frappe.reload_doc('email', 'doctype', 'email_alert') #2014-07-15
 execute:frappe.reload_doc('desk', 'doctype', 'todo') #2014-12-31-1
@@ -205,7 +207,7 @@ frappe.patches.v9_1.resave_domain_settings
 frappe.patches.v9_1.revert_domain_settings
 frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
-frappe.patches.v10_0.reload_countries_and_currencies
+frappe.patches.v10_0.reload_countries_and_currencies # 20-10-2020
 frappe.patches.v10_0.refactor_social_login_keys
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
@@ -301,3 +303,4 @@ frappe.patches.v13_0.generate_theme_files_in_public_folder
 frappe.patches.v13_0.increase_password_length
 frappe.patches.v13_0.add_toggle_width_in_navbar_settings
 frappe.patches.v13_0.rename_notification_fields
+frappe.patches.v13_0.remove_duplicate_navbar_items
