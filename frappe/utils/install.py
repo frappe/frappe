@@ -229,10 +229,6 @@ def add_standard_navbar_items():
 
 	standard_help_items = [
 		{
-			'item_type': 'Separator',
-			'is_standard': 1
-		},
-		{
 			'item_label': 'About',
 			'item_type': 'Action',
 			'action': 'frappe.ui.toolbar.show_about()',

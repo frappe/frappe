@@ -68,15 +68,15 @@
 					</a>
 					<div class="dropdown-menu dropdown-menu-right" id="toolbar-help" role="menu">
 						<div class="divider documentation-links"></div>
-						{% for item in navbar_items.help_dropdown %}
+						{% for item in navbar_settings.help_dropdown %}
 							{% if (!item.hidden) { %}
 								{% if (item.route) { %}
 									<a class="dropdown-item" href="{{ item.route }}">
-										{%= __(item.label) %}
+										{%= __(item.item_label) %}
 									</a>
 								{% } else if (item.action) { %}
 									<a class="dropdown-item" onclick="return {{ item.action }}">
-										{%= __(item.label) %}
+										{%= __(item.item_label) %}
 									</a>
 								{% } else { %}
 									<div class="dropdown-divider"></div>
@@ -90,15 +90,15 @@
 						{{ avatar }}
 					</a>
 					<div class="dropdown-menu dropdown-menu-right" id="toolbar-user" role="menu">
-						{% for item in navbar_items.settings_dropdown %}
+						{% for item in navbar_settings.settings_dropdown %}
 							{% if (!item.hidden) { %}
 								{% if (item.route) { %}
 									<a class="dropdown-item" href="{{ item.route }}">
-										{%= __(item.label) %}
+										{%= __(item.item_label) %}
 									</a>
 								{% } else if (item.action) { %}
 									<a class="dropdown-item" onclick="return {{ item.action }}">
-										{%= __(item.label) %}
+										{%= __(item.item_label) %}
 									</a>
 								{% } else { %}
 									<div class="dropdown-divider"></div>
