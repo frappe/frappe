@@ -247,6 +247,19 @@ frappe.ui.form.NewTimeline = class {
 		let edit_box = this.make_editable(edit_wrapper);
 		let content_wrapper = comment_wrapper.find('.content');
 
+		let delete_button = $(`
+			<button class="btn btn-link action-btn icon-btn">
+				${frappe.utils.icon('close', 'sm', 'close')}
+			</button>
+		`).click(() => this.delete_comment(doc.name));
+
+		let dismiss_button = $(`
+			<button class="btn btn-link action-btn icon-btn">
+				${__('Dismiss')}
+			</button>
+		`).click(() => edit_button.toggle_edit_mode());
+		dismiss_button.hide();
+
 		edit_box.set_value(doc.content);
 
 		edit_box.on_submit = (value) => {
@@ -273,17 +286,14 @@ frappe.ui.form.NewTimeline = class {
 		edit_button.toggle_edit_mode = () => {
 			edit_button.edit_mode = !edit_button.edit_mode;
 			edit_button.text(edit_button.edit_mode ? __('Save') : __('Edit'));
+			delete_button.toggle(!edit_button.edit_mode);
+			dismiss_button.toggle(edit_button.edit_mode);
 			edit_wrapper.toggle(edit_button.edit_mode);
 			content_wrapper.toggle(!edit_button.edit_mode);
 		};
 
-		let delete_button = $(`
-			<button class="btn btn-link action-btn icon-btn">
-				${frappe.utils.icon('close', 'sm', 'close')}
-			</button>
-		`).click(() => this.delete_comment(doc.name));
-
 		comment_wrapper.find('.actions').append(edit_button);
+		comment_wrapper.find('.actions').append(dismiss_button);
 		comment_wrapper.find('.actions').append(delete_button);
 	}
 
