@@ -459,6 +459,7 @@ body[data-route^="Module"] .main-menu {
 .tags-input {
 	margin-bottom: var(--margin-sm);
 	font-size: var(--text-md);
+	background: inherit;
 	border: none;
 	outline: none;
 }
