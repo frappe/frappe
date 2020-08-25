@@ -100,7 +100,8 @@ def get_safe_globals():
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=1 if os.environ.get('DEV_SERVER', False) else 0
+		dev_server=1 if os.environ.get('DEV_SERVER', False) else 0,
+		run_script=run_script
 	)
 
 	add_module_properties(frappe.exceptions, out.frappe, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception))
@@ -142,6 +143,11 @@ def read_sql(query, *args, **kwargs):
 		return frappe.db.sql(query, *args, **kwargs)
 	else:
 		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+
+def run_script(script):
+	'''run another server script'''
+	frappe.get_doc('Server Script', script).execute_method()
+	return frappe.flags
 
 def _getitem(obj, key):
 	# guard function for RestrictedPython
