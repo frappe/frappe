@@ -40,9 +40,9 @@
 		}
 	}
 }
-
+$page-bottom-margin: 60px;
 .layout-main-section-wrapper {
-	margin-bottom: 60px;
+	margin-bottom: $page-bottom-margin;
 }
 
 .layout-main-section.frappe-card {
