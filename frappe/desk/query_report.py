@@ -187,6 +187,9 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False, cust
 	return result
 
 def add_data_to_custom_columns(columns, result):
+	if not result:
+		return []
+
 	custom_fields_data = get_data_for_custom_report(columns)
 
 	data = []
