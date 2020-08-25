@@ -1,18 +1,18 @@
 <header class="navbar navbar-expand sticky-top" role="navigation">
 	<div class="container">
 		<a class="navbar-brand navbar-home" href="#">
-			<img class="d-inline-block align-top app-logo" src="{{ frappe.app.logo_url }}">
+			<img class="app-logo" style="width: {{ navbar_settings.logo_width || 24 }}px" src="{{ frappe.app.logo_url }}">
 		</a>
 		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 		<div class="collapse navbar-collapse justify-content-end">
 			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
 				<div class="input-group search-bar text-muted">
 					<input
-					id="navbar-search"
-					type="text"
-					class="form-control"
-					placeholder="{%= __("Search or type a command (Ctrl + G)") %}"
-					aria-haspopup="true"
+						id="navbar-search"
+						type="text"
+						class="form-control"
+						placeholder="{%= __("Search or type a command (Ctrl + G)") %}"
+						aria-haspopup="true"
 					>
 					<span class="search-icon">
 						<svg class="icon icon-sm"><use xlink:href="#icon-search"></use></svg>
@@ -68,46 +68,43 @@
 					</a>
 					<div class="dropdown-menu dropdown-menu-right" id="toolbar-help" role="menu">
 						<div class="divider documentation-links"></div>
-						<a class="dropdown-item" href="#" onclick="return frappe.ui.toolbar.show_about();">
-							{%= __("About") %}
-						</a>
-						<a class="dropdown-item" href="#" onclick="return frappe.ui.toolbar.show_shortcuts(event);">
-							{%= __("Keyboard Shortcuts") %}
-						</a>
+						{% for item in navbar_items.help_dropdown %}
+							{% if (!item.hidden) { %}
+								{% if (item.route) { %}
+									<a class="dropdown-item" href="{{ item.route }}">
+										{%= __(item.label) %}
+									</a>
+								{% } else if (item.action) { %}
+									<a class="dropdown-item" onclick="return {{ item.action }}">
+										{%= __(item.label) %}
+									</a>
+								{% } else { %}
+									<div class="dropdown-divider"></div>
+								{% } %}
+							{% } %}
+						{% endfor %}
 					</div>
 				</li>
 				<li class="nav-item dropdown dropdown-navbar-user dropdown-mobile ml-lg-2">
 					<a class="nav-link" data-toggle="dropdown" href="#" onclick="return false;">
 						{{ avatar }}
-						<!-- {%= __("Settings") %} -->
-						<!-- <span class="ellipsis toolbar-user-fullname d-none d-sm-none d-md-block navbar-text"></span> -->
 					</a>
 					<div class="dropdown-menu dropdown-menu-right" id="toolbar-user" role="menu">
-						<a class="dropdown-item" href="#user-profile">
-							{%= __("My Profile") %}
-						</a>
-						<a class="dropdown-item" href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
-							{%= __("My Settings") %}
-						</a>
-						<a class="dropdown-item" href="#" onclick="return frappe.ui.toolbar.setup_session_defaults();">
-							{%= __("Session Defaults") %}
-						</a>
-						<a class="dropdown-item navbar-reload" href="" onclick="return frappe.ui.toolbar.clear_cache();">
-							{%= __("Reload") %}
-						</a>
-						<a class="dropdown-item" href="/index" target="_blank" rel="noopener noreferrer">
-							{%= __("View Website") %}
-						</a>
-						<a class="dropdown-item navbar-toggle-full-width" href="#" onclick="return false">
-							{%= __("Toggle Full Width") %}
-						</a>
-						<a class="dropdown-item" href="#background_jobs">
-							{%= __("Background Jobs") %}
-						</a>
-						<div class="divider"></div>
-						<a class="dropdown-item" href="#" onclick="return frappe.app.logout();">
-							{%= __("Logout") %}
-						</a>
+						{% for item in navbar_items.settings_dropdown %}
+							{% if (!item.hidden) { %}
+								{% if (item.route) { %}
+									<a class="dropdown-item" href="{{ item.route }}">
+										{%= __(item.label) %}
+									</a>
+								{% } else if (item.action) { %}
+									<a class="dropdown-item" onclick="return {{ item.action }}">
+										{%= __(item.label) %}
+									</a>
+								{% } else { %}
+									<div class="dropdown-divider"></div>
+								{% } %}
+							{% } %}
+						{% endfor %}
 					</div>
 				</li>
 			</ul>

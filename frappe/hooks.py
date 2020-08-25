@@ -127,12 +127,17 @@ standard_queries = {
 
 doc_events = {
 	"*": {
+		"after_insert": [
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
-			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
+			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
+			"frappe.core.doctype.file.file.attach_files_to_document",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -141,7 +146,8 @@ doc_events = {
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
@@ -163,9 +169,6 @@ doc_events = {
 	"Page": {
 		"after_insert": "frappe.cache_manager.build_domain_restriced_page_cache",
 		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
-	},
-	"Event Update Log": {
-		"after_insert": "frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 	}
 }
 
@@ -212,7 +215,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
-		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails"
+		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
+		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -272,9 +276,6 @@ setup_wizard_exception = [
 ]
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
-after_migrate = [
-	'frappe.modules.full_text_search.build_index_for_all_routes'
-]
 
 otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [

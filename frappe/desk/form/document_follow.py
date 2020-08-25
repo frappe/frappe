@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import frappe.utils
 from frappe.utils import get_url_to_form
+from frappe.model import log_types
 from frappe import _
 from itertools import groupby
 
@@ -20,22 +21,26 @@ def follow_document(doctype, doc_name, user, force=False):
 		avoided for some doctype
 		follow only if track changes are set to 1
 	'''
-	avoid_follow = ["Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log",
-		"File", "Version", "View Log", "Document Follow", "Comment"]
+	if (doctype in ("Communication", "ToDo", "Email Unsubscribe", "File", "Comment")
+		or doctype in log_types):
+		return
 
-	track_changes = frappe.get_meta(doctype).track_changes
-	exists = is_document_followed(doctype, doc_name, user)
-	if exists == 0:
-		user_can_follow = frappe.db.get_value("User", user, "document_follow_notify", ignore=True)
-		if user != "Administrator" and user_can_follow and track_changes and (doctype not in avoid_follow or force):
-			doc = frappe.new_doc("Document Follow")
-			doc.update({
-				"ref_doctype": doctype,
-				"ref_docname": doc_name,
-				"user": user
-			})
-			doc.save()
-			return doc
+	if ((not frappe.get_meta(doctype).track_changes)
+		or user == "Administrator"):
+		return
+
+	if not frappe.db.get_value("User", user, "document_follow_notify", ignore=True, cache=True):
+		return
+
+	if not is_document_followed(doctype, doc_name, user):
+		doc = frappe.new_doc("Document Follow")
+		doc.update({
+			"ref_doctype": doctype,
+			"ref_docname": doc_name,
+			"user": user
+		})
+		doc.save()
+		return doc
 
 @frappe.whitelist()
 def unfollow_document(doctype, doc_name, user):

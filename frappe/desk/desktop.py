@@ -303,7 +303,7 @@ class Workspace:
 			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
 				if item.type == "Report":
 					report = self.allowed_reports.get(item.link_to, {})
-					if report.get("report_type") in ["Query Report", "Script Report"]:
+					if report.get("report_type") in ["Query Report", "Script Report", "Custom Report"]:
 						new_item['is_query_report'] = 1
 					else:
 						new_item['ref_doctype'] = report.get('ref_doctype')

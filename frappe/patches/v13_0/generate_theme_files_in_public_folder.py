@@ -11,5 +11,9 @@ def execute():
 	)
 	for theme in themes:
 		doc = frappe.get_doc("Website Theme", theme.name)
-		doc.generate_bootstrap_theme()
-		doc.save()
+		try:
+			doc.generate_bootstrap_theme()
+			doc.save()
+		except: # noqa: E722
+			print('Ignoring....')
+			print(frappe.get_traceback())

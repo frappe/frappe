@@ -8,15 +8,42 @@ function generate_route(item) {
 		if (item.link) {
 			route = strip(item.link, "#");
 		} else if (type === "doctype") {
-			if (frappe.model.is_tree(item.doctype)) {
-				route = "Tree/" + item.doctype;
-			} else if (frappe.model.is_single(item.doctype)) {
+			if (frappe.model.is_single(item.doctype)) {
 				route = "Form/" + item.doctype;
 			} else {
-				if (item.filters) {
-					frappe.route_options = item.filters;
+				if (!item.doc_view) {
+					if (frappe.model.is_tree(item.doctype)) {
+						item.doc_view = "Tree";
+					} else {
+						item.doc_view = "List";
+					}
 				}
-				route = "List/" + item.doctype;
+				switch (item.doc_view) {
+					case "List":
+						if (item.filters) {
+							frappe.route_options = item.filters;
+						}
+						route = "List/" + item.doctype;
+						break;
+					case "Tree":
+						route = "Tree/" + item.doctype;
+						break;
+					case "Report Builder":
+						route = "List/" + item.doctype + "/Report";
+						break;
+					case "Dashboard":
+						route = "List/" + item.doctype + "/Dashboard";
+						break;
+					case "New":
+						route = "Form/" + item.doctype + "/New " + item.doctype;
+						break;
+					case "Calendar":
+						route = "List/" + item.doctype + "/Calendar/Default";
+						break;
+					default:
+						frappe.throw({ message: __("Not a valid DocType view:") + item.doc_view, title: __("Unknown View") });
+						route = "";
+				}
 			}
 		} else if (type === "report" && item.is_query_report) {
 			route = "query-report/" + item.name;
@@ -36,7 +63,7 @@ function generate_route(item) {
 	if (item.route_options) {
 		route +=
 			"?" +
-			$.map(item.route_options, function(value, key) {
+			$.map(item.route_options, function (value, key) {
 				return (
 					encodeURIComponent(key) + "=" + encodeURIComponent(value)
 				);
@@ -105,20 +132,17 @@ const build_summary_item = (summary) => {
 			<div class="summary-value ${summary.color ? summary.color.toLowerCase() : 'text-muted' }">${ summary.value }</div>
 		</div>`);
 	}
-	let df = {fieldtype: summary.datatype};
+	let df = { fieldtype: summary.datatype };
 	let doc = null;
 
 	if (summary.datatype == "Currency") {
 		df.options = "currency";
-		doc = {currency: summary.currency};
+		doc = { currency: summary.currency };
 	}
 
 	let value = frappe.format(summary.value, df, { only_value: true }, doc);
-	let color = summary.indicator
-		? summary.indicator.toLowerCase()
-		: summary.color
-			? summary.color.toLowerCase()
-			: '';
+	let color = summary.indicator ? summary.indicator.toLowerCase()
+		: summary.color ? summary.color.toLowerCase() : '';
 
 	return $(`<div class="summary-item">
 		<span class="summary-label">${summary.label}</span>
@@ -133,7 +157,7 @@ function shorten_number(number, country) {
 	for (const map of number_system) {
 		const condition = map.condition ? map.condition(x) : x >= map.divisor;
 		if (condition) {
-			return Math.round(number/map.divisor) +  ' ' + map.symbol;
+			return (number/map.divisor).toFixed(2) + ' ' + map.symbol;
 		}
 	}
 	return number.toFixed();
