@@ -27,15 +27,18 @@
 		{{ head_html or "" }}
 		{%- endif %}
 
-		{%- if theme.name != 'Standard' -%}
-		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
-		{%- else -%}
+		{%- if theme.name == 'Standard' -%}
 		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
 		{%- endif -%}
 
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
 		{%- endfor -%}
+
+		{%- if theme.name != 'Standard' -%}
+		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
+		{%- endif -%}
+
 	{%- endblock -%}
 
 	{%- block head_include %}
