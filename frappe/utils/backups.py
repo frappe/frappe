@@ -41,6 +41,9 @@ class BackupGenerator:
 		self.backup_path_db = backup_path_db
 		self.backup_path_private_files = backup_path_private_files
 
+		if not self.db_type:
+			self.db_type = 'mariadb'
+
 		if not self.db_port and self.db_type == 'mariadb':
 			self.db_port = 3306
 		elif not self.db_port and self.db_type == 'postgres':
