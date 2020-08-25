@@ -32,7 +32,7 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	setup_timeline_actions() {
-		this.add_action_button(__('New Email'), this.compose_mail.bind(this));
+		this.add_action_button(__('New Email'), () => this.compose_mail());
 	}
 
 	add_action_button(label, action) {
