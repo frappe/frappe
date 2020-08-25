@@ -16,10 +16,11 @@
   "date_and_number_format",
   "date_format",
   "time_format",
-  "column_break_7",
   "number_format",
+  "column_break_7",
   "float_precision",
   "currency_precision",
+  "currency_name_instead_of_symbol",
   "sec_backup_limit",
   "backup_limit",
   "background_workers",
@@ -452,12 +453,18 @@
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
    "label": "Prepared Report"
+  },
+  {
+   "default": "0",
+   "fieldname": "currency_name_instead_of_symbol",
+   "fieldtype": "Check",
+   "label": "Currency name instead of symbol"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-08-12 14:35:45.214327",
+ "modified": "2020-08-25 16:29:31.723870",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
