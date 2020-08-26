@@ -462,7 +462,6 @@ frappe.ui.form.Toolbar = Class.extend({
 			}[status];
 
 			var icon = {
-				"Save": "octicon octicon-check",
 				"Submit": "octicon octicon-lock",
 				"Update": "octicon octicon-check",
 				"Amend": "octicon octicon-split"
