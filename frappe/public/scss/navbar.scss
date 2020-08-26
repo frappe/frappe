@@ -81,13 +81,4 @@
 		padding: 0rem 1rem;
 		@extend .my-auto;
 	}
-
-	.dropdown-item {
-		color: $light;
-
-		&:hover {
-			background-color: $dark;
-			color: $primary;
-		}
-	}
 }
