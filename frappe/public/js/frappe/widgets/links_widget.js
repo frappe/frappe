@@ -61,7 +61,7 @@ export default class LinksWidget extends Widget {
 		};
 
 		this.link_list = this.links.map(item => {
-			return $(`<a href="${generate_route(item)}" class="link-item ${
+			return $(`<a href="${generate_route(item)}" class="link-item ellipsis ${
 				item.onboard ? "onboard-spotlight" : ""
 			} ${disabled_dependent(item)}" type="${item.type}">
 					<span class="indicator-pill no-margin ${get_indicator_color(item)}"></span>
