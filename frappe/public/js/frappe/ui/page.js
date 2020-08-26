@@ -155,7 +155,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	get_icon_label: function(icon, label) {
-		return `${icon ? frappe.utils.icon(icon, 'sm') : ''}<span>${__(label)}</span>`;
+		return `${icon ? frappe.utils.icon(icon, 'xs') : ''} <span> ${__(label)} </span>`;
 	},
 
 	set_action: function(btn, opts) {
