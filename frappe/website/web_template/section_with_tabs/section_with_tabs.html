@@ -1,5 +1,8 @@
 <h2 class="section-title">{{ title }}</h2>
+
+{%- if subtitle-%}
 <p class="section-description">{{ subtitle }}</p>
+{%- endif -%}
 
 <div class="mt-5">
 	{% set ns = namespace(tabs=[]) %}
