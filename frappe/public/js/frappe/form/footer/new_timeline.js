@@ -33,6 +33,18 @@ frappe.ui.form.NewTimeline = class {
 
 	setup_timeline_actions() {
 		this.add_action_button(__('New Email'), () => this.compose_mail());
+		if (frappe.boot.developer_mode) {
+			this.timeline_actions_wrapper.append(`
+				<div class="custom-control custom-switch communication-switch">
+					<input type="checkbox" class="custom-control-input" id="only-communication-switch">
+					<label class="custom-control-label" for="only-communication-switch">${__('Show Only Communications')}</label>
+				</div>`)
+				.find('.custom-control-input')
+				.change(e => {
+					this.only_communication = e.target.checked;
+					this.render_timeline_items();
+				});
+		}
 	}
 
 	add_action_button(label, action) {
@@ -52,12 +64,14 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	prepare_timeline_contents() {
-		this.timeline_items.push(...this.get_view_timeline_contents());
 		this.timeline_items.push(...this.get_communication_timeline_contents());
 		this.timeline_items.push(...this.get_comment_timeline_contents());
-		this.timeline_items.push(...this.get_energy_point_timeline_contents());
-		this.timeline_items.push(...this.get_version_timeline_contents());
-		this.timeline_items.push(...this.get_share_timeline_contents());
+		if (!this.only_communication) {
+			this.timeline_items.push(...this.get_view_timeline_contents());
+			this.timeline_items.push(...this.get_energy_point_timeline_contents());
+			this.timeline_items.push(...this.get_version_timeline_contents());
+			this.timeline_items.push(...this.get_share_timeline_contents());
+		}
 		// attachments
 		// milestones
 	}
