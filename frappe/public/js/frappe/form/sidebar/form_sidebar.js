@@ -32,9 +32,7 @@ frappe.ui.form.Sidebar = class {
 
 		this.make_tags();
 		this.make_like();
-		if (frappe.boot.user.document_follow_notify) {
-			this.make_follow();
-		}
+		this.make_follow();
 
 		this.bind_events();
 		this.setup_keyboard_shortcuts();
