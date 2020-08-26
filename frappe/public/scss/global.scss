@@ -143,7 +143,7 @@ img {
 	background-color: var(--fg-color);
 	color: var(--text-color);
 	&:hover, &:active {
-		background: var(--gray-200);
+		background: var(--fg-hover-color);
 		color: var(--text-color);
 	}
 }
@@ -241,11 +241,6 @@ select.input-xs {
 .dropdown-backdrop {
 	display: none;
 }
-
-// .dropdown-menu > li > a {
-// 	padding: 14px;
-// 	white-space: normal;
-// }
 
 .dropdown-item {
 	border-radius: 4px;
