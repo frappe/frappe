@@ -406,6 +406,8 @@ frappe.ui.filter_utils = {
 	},
 
 	get_selected_value(field, condition) {
+		if (!field) return;
+
 		let val = field.get_value();
 
 		if (typeof val === 'string') {

@@ -79,9 +79,9 @@ body.no-list-sidebar {
 	flex-direction: column;
 	outline: none;
 
-	// &:focus {
-	//		background-color: $light-yellow;
-	// }
+	&:focus {
+		background-color: var(--yellow-highlight-color);
+	}
 }
 
 .list-row {

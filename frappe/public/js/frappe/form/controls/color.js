@@ -35,8 +35,8 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	set_formatted_input: function(value) {
 		this._super(value);
 
-		if (!value) value = '#FFFFFF';
-		const contrast    = frappe.ui.color.get_contrast_color(value);
+		if (!value) value = '#F4F5F5';
+		const contrast = frappe.ui.color.get_contrast_color(value);
 
 		this.$input.css({
 			"background-color": value, "color": contrast
