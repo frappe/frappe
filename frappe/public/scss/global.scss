@@ -41,14 +41,22 @@ a {
 
 .btn-xs { @extend .btn-sm; }
 
-.hidden-xs {
-	@extend .d-none;
-	@extend .d-sm-block;
+.hidden-xs, .hidden-sm {
+	@include media-breakpoint-between(xs, sm) {
+		display: none !important;
+	}
+}
+
+.hidden-md {
+	@include media-breakpoint-between(xs, md) {
+		display: none !important;
+	}
 }
 
 .visible-xs {
-	@extend .d-block;
-	@extend .d-sm-none;
+	@include media-breakpoint-up(sm) {
+		display: none !important;
+	}
 }
 
 footer {
@@ -88,6 +96,7 @@ img {
 	border: none;
 	border-radius: $border-radius;
 	box-shadow: var(--btn-shadow);
+	font-size: var(--text-md);
 	&.icon-btn {
 		padding: 0px;
 		min-width: 28px;

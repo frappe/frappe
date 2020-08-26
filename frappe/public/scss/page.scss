@@ -21,9 +21,11 @@
 		margin-left: 10px;
 		border-radius: var(--border-radius);
 	}
+	.btn:not(.icon-btn) {
+		padding: 4px 10px;
+	}
 	.btn-primary, .btn-secondary {
-		padding: 4px 20px;
-		font-size: var(--text-md);
+		min-width: 70px;
 	}
 	.btn-primary {
 		.icon {
@@ -33,11 +35,7 @@
 		}
 	}
 	.custom-btn-group {
-		display: inline;
-
-		.btn {
-			padding: 4px 15px;
-		}
+		display: inline-flex;
 	}
 }
 $page-bottom-margin: 60px;

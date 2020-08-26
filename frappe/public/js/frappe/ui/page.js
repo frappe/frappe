@@ -77,8 +77,8 @@ frappe.ui.Page = Class.extend({
 				</div>');
 		} else {
 			this.add_view("main", '<div class="row layout-main">\
-				<div class="col-md-2 layout-side-section"></div>\
-				<div class="col-md-10 layout-main-section-wrapper">\
+				<div class="col-lg-2 layout-side-section"></div>\
+				<div class="col-lg-10 layout-main-section-wrapper">\
 					<div class="layout-main-section"></div>\
 					<div class="layout-footer hide"></div>\
 				</div>\
@@ -155,7 +155,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	get_icon_label: function(icon, label) {
-		return '<i class="visible-xs ' + icon + '"></i><span class="hidden-xs">' + label + '</span>'
+		return `${icon ? frappe.utils.icon(icon, 'sm') : ''}<span>${__(label)}</span>`;
 	},
 
 	set_action: function(btn, opts) {
@@ -426,7 +426,7 @@ frappe.ui.Page = Class.extend({
 		if (!$group.length) {
 			$group = $(
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
-					<button type="button" class="btn btn-default btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<button type="button" class="btn btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${label}
 						${frappe.utils.icon('select', 'xs')}
 					</button>
@@ -488,10 +488,10 @@ frappe.ui.Page = Class.extend({
 		} else {
 			let button = this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`);
 			if (button.length == 0) {
-				button = $(`<button data-label="${encodeURIComponent(label)}" class="btn btn-${type} btn-xs">
+				button = $(`<button data-label="${encodeURIComponent(label)}" class="btn btn-${type} ellipsis">
 					${__(label)}
-				</button>`)
-				button.on("click", _action)
+				</button>`);
+				button.on("click", _action);
 				button.appendTo(this.inner_toolbar.removeClass("hide"));
 			}
 			return button;
@@ -591,7 +591,7 @@ frappe.ui.Page = Class.extend({
 	add_button: function(label, click, button_class, button_size) {
 		if (!button_class) button_class = "btn-default";
 		if (!button_size) button_size = "btn-sm";
-		let button = $(`<button class="btn ${button_class} ${button_size}">${label}</button>`);
+		let button = $(`<button class="btn ${button_class} ${button_size} ellipsis">${label}</button>`);
 		button.appendTo(this.custom_actions);
 		button.on('click', click);
 		this.custom_actions.removeClass('hide');
@@ -618,7 +618,7 @@ frappe.ui.Page = Class.extend({
 
 		let custom_btn_group = $(`
 			<div class="custom-btn-group hide">
-				<button type="button" class="btn btn-default btn-sm" data-toggle="dropdown" aria-expanded="false">
+				<button type="button" class="btn btn-default btn-sm ellipsis" data-toggle="dropdown" aria-expanded="false">
 					${dropdown_label}
 				</button>
 				<ul class="dropdown-menu" role="menu"></ul>
