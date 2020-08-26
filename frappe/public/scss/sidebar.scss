@@ -56,6 +56,7 @@ body[data-route^="Module"] .main-menu {
 		text-transform: uppercase;
 		letter-spacing: 0.04rem;
 		font-size: var(--text-xs);
+		--icon-stroke: var(--text-light);
 	}
 }
 
@@ -363,6 +364,7 @@ body[data-route^="Module"] .main-menu {
 .shares,
 .share-doc-btn,
 .reviews,
+.followed-by,
 .add-review-btn {
 	margin-bottom: var(--margin-sm);
 	display: inline-flex;

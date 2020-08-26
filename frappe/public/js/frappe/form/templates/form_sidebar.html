@@ -104,6 +104,23 @@
 		</button>
 	</li>
 </ul>
+<ul class="list-unstyled sidebar-menu followed-by-section">
+	<li class="sidebar-label followed-by-label hidden">
+		<svg class="icon icon-sm">
+			<use href="#icon-link-url" class="like-icon"></use>
+		</svg>
+		{%= __("Followed by") %}
+	</li>
+	<li class="followed-by"></li>
+	<li class="document-follow">
+		<a class="badge-hover follow-document-link hidden">
+			{%= __("Follow") %}
+		</a>
+		<a class="badge-hover unfollow-document-link hidden">
+			{%= __("Unfollow") %}
+		</a>
+	</li>
+</ul>
 <ul class="list-unstyled sidebar-menu hidden">
 	<li class="sidebar-label viewers-label">
 		<svg class="icon icon-sm"><use href="#icon-view"></use></svg>
@@ -129,18 +146,6 @@
 			</svg>
 			<span class="likes-count"></span>
 		</span>
-	</li>
-</ul>
-<ul class="list-unstyled sidebar-menu followed-by-section">
-	<li class="sidebar-label followed-by-label hidden">{%= __("Followed by") %}</li>
-	<li class="followed-by"></li>
-	<li class="document-follow">
-		<a class="badge-hover follow-document-link hidden">
-			{%= __("Follow") %}
-		</a>
-		<a class="badge-hover unfollow-document-link hidden">
-			{%= __("Unfollow") %}
-		</a>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu text-muted">
