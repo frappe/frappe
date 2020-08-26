@@ -3,11 +3,10 @@
 	display: inline-flex;
 	align-items: center;
 	.title-text {
-		max-width: 75%;
 		margin-bottom: 0px;
 	}
-	:not(:first-child) {
-		margin-left: var(--margin-sm)
+	:first-child {
+		margin-right: var(--margin-sm)
 	}
 }
 
