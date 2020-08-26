@@ -122,10 +122,14 @@ function format_currency(v, currency, decimals) {
 		decimals = frappe.boot.sysdefaults.currency_precision || null;
 	}
 
-	if (symbol)
+	if (symbol) {
+		if (frappe.boot.sysdefaults.currency_name_instead_of_symbol == 1)
+			return format_number(v, format, decimals) + " " + currency;
+
 		return symbol + " " + format_number(v, format, decimals);
-	else
+	} else {
 		return format_number(v, format, decimals);
+	}
 }
 
 function get_currency_symbol(currency) {
