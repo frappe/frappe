@@ -157,8 +157,8 @@ class BackupGenerator:
 		site_config_backup_path = self.backup_path_conf
 		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
 
-		with open(site_config_backup_path, "w") as f:
-			json.dump(frappe.get_file_json(site_config_path), f, indent=2)
+		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
+			n.write(c.read())
 
 	def take_dump(self):
 		import frappe.utils
