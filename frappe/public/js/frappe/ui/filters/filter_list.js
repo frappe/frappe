@@ -64,7 +64,6 @@ frappe.ui.FilterGroup = class {
 
 			if (!this.wrapper) {
 				this.wrapper = $('.filter-popover');
-				console.log('shownn', this.filters);
 				if (hide_empty_filters) {
 					this.toggle_empty_filters(false);
 					this.add_filters_to_popover(this.filters);
@@ -76,8 +75,8 @@ frappe.ui.FilterGroup = class {
 		});
 
 		this.filter_button.on('hidden.bs.popover', (e) => {
-			this.on_change();
 			this.update_filters();
+			this.on_change();
 		});
 
 		$(window).on('hashchange', () => {
@@ -243,7 +242,9 @@ frappe.ui.FilterGroup = class {
 	}
 
 	update_filters() {
-		this.filters = this.filters.filter((f) => f.field); // remove hidden filters
+		// remove hidden filters and undefined filters
+		this.filters.map(f => !f.get_selected_value() && f.remove());
+		this.filters = this.filters.filter(f => f.get_selected_value() && f.field);
 		this.update_filter_button();
 		this.filters.length === 0 &&
 			this.toggle_empty_filters(true);
