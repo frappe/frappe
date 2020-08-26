@@ -2,19 +2,16 @@
 	{
 		"doctype": "Blog Category",
 		"parent_website_route": "blog",
-		"title": "_Test Blog Category",
-		"name": "_Test Blog Category"
+		"title": "_Test Blog Category"
 	},
 	{
 		"doctype": "Blog Category",
 		"parent_website_route": "blog",
-		"title": "_Test Blog Category 1",
-		"name": "_Test Blog Category 1"
+		"title": "_Test Blog Category 1"
 	},
 	{
 		"doctype": "Blog Category",
 		"parent_website_route": "blog",
-		"title": "_Test Blog Category 2",
-		"name": "_Test Blog Category 2"
+		"title": "_Test Blog Category 2"
 	}
 ]

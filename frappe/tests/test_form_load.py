@@ -24,7 +24,7 @@ class TestFormLoad(unittest.TestCase):
 	def test_fieldlevel_permissions_in_load(self):
 		blog = frappe.get_doc({
 			"doctype": "Blog Post",
-			"blog_category": "_Test Blog Category 1",
+			"blog_category": "-test-blog-category-1",
 			"blog_intro": "Test Blog Intro",
 			"blogger": "_Test Blogger 1",
 			"content": "Test Blog Content",
