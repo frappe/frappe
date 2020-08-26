@@ -440,11 +440,11 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(status === "Edit") {
 			this.page.set_primary_action(__("Edit"), function() {
 				me.frm.page.set_view('main');
-			}, 'octicon octicon-pencil');
+			}, 'edit');
 		} else if(status === "Cancel") {
 			this.page.set_secondary_action(__(status), function() {
 				me.frm.savecancel(this);
-			}, "octicon octicon-circle-slash");
+			});
 		} else {
 			var click = {
 				"Save": function() {
@@ -462,9 +462,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			}[status];
 
 			var icon = {
-				"Submit": "octicon octicon-lock",
-				"Update": "octicon octicon-check",
-				"Amend": "octicon octicon-split"
+				"Update": "edit",
 			}[status];
 
 			this.page.set_primary_action(__(status), click, icon);

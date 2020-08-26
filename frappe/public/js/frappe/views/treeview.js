@@ -352,7 +352,7 @@ frappe.views.TreeView = Class.extend({
 		if (!this.opts.disable_add_node && this.can_create) {
 			me.page.set_primary_action(__("New"), function() {
 				me.new_node();
-			}, "octicon octicon-plus")
+			}, "add")
 		}
 	},
 	set_menu_item: function(){
