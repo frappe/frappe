@@ -12,6 +12,26 @@ table.user-perm {
 			text-align: center;
 		}
 	}
+	--icon-stroke: var(--text-muted)
+}
+
+.frappe-control {
+	.bulk-select-options {
+		margin: var(--margin-sm) 0 var(--margin-md) 0;
+		.select-all {
+			margin-right: var(--margin-xs);
+		}
+	}
+	.unit-checkbox {
+		color: var(--text-color);
+		margin-bottom: var(--margin-sm);
+		label {
+			position: relative;
+		}
+		input[type=checkbox] {
+			margin-left: 0;
+		}
+	}
 }
 
 .unit-checkbox {

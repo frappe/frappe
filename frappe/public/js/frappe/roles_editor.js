@@ -74,7 +74,7 @@ frappe.RoleEditor = class {
 							<tr>
 								<td>${perm.parent}</td>
 								<td>${perm.permlevel}</td>
-								${frappe.perm.rights.map(p => `<td>${perm[p] ? '●' : '○'}</td>`).join("")}
+								${frappe.perm.rights.map(p => `<td class="text-muted bold">${perm[p] ? frappe.utils.icon('check', 'xs') : '-'}</td>`).join("")}
 							</tr>
 						`);
 					});
