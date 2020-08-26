@@ -473,7 +473,7 @@ export default class ChartWidget extends Widget {
 		/* eslint-disable indent */
 		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
 			<button data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-xs btn-secondary">
-				${frappe.utils.icon('dot-horizontal')}
+				‧‧‧
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
 				${actions
