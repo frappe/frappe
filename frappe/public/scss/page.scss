@@ -1,9 +1,14 @@
-.title-text {
-	max-width: 75%;
-	display: inline-block;
-	vertical-align: middle;
-	line-height: unset;
-	margin-bottom: 0px;
+
+.title-area {
+	display: inline-flex;
+	align-items: center;
+	.title-text {
+		max-width: 75%;
+		margin-bottom: 0px;
+	}
+	:not(:first-child) {
+		margin-left: var(--margin-sm)
+	}
 }
 
 .page-container {
