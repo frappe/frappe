@@ -424,7 +424,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			: __("Create your first {0}", [__(this.doctype)]);
 		let empty_state_image =
 			this.settings.empty_state_image ||
-			"/assets/frappe/images/ui-states/empty.png";
+			"/assets/frappe/images/ui-states/list-empty-state.svg";
 
 		const new_button = this.can_create
 			? `<p><button class="btn btn-primary btn-sm btn-new-doc">
