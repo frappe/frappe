@@ -181,7 +181,7 @@ frappe.ui.form.NewTimeline = class {
 		let energy_point_timeline_contents = [];
 		(this.doc_info.energy_point_logs || []).forEach(log => {
 			let timeline_indicator = `
-			<div class="timeline-indicator ${log.points > 0 ? 'appreciation': 'criticism'}">
+			<div class="timeline-indicator ${log.points > 0 ? 'appreciation': 'criticism'} bold">
 				${log.points}
 			<div>`;
 
