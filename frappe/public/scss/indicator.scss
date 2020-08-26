@@ -1,12 +1,11 @@
 .indicator-pill,
 .indicator-pill-right {
-	display: inline-block;
+	display: inline-flex;
 	padding: 3px 10px;
 	font-size: var(--text-sm);
 	border-radius: var( --border-radius);
-	vertical-align: middle;
+	align-items: center;
 	font-weight: 500;
-	margin: auto;
 	height: 24px;
 }
 
@@ -16,9 +15,8 @@
 	justify-content: center;
 	font-size: var(--text-sm);
 	border-radius: 50%;
-	vertical-align: middle;
+	align-items: center;
 	font-weight: 500;
-	margin: auto;
 	width: 24px;
 	height: 24px;
 }
@@ -26,12 +24,11 @@
 .indicator-pill::before,
 .indicator-pill-right::after {
 	content:'';
-	display:inline-block;
+	display: inline-table;
 	height: 4px;
 	width: 4px;
-	border-radius: 100%;
+	border-radius: 50%;
 	margin-right: 6px;
-	vertical-align: middle;
 }
 
 .indicator-pill.no-margin::before,

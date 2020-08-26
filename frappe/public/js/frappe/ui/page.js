@@ -151,7 +151,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	clear_indicator: function() {
-		return this.indicator.removeClass().addClass("indicator-pill whitespace-nowrap hide ml-2");
+		return this.indicator.removeClass().addClass("indicator-pill whitespace-nowrap hide");
 	},
 
 	get_icon_label: function(icon, label) {
