@@ -250,8 +250,8 @@
 	padding: var(--padding-md) var(--padding-xl);
 }
 
-.frappe-control[data-fieldtype="Table"] {
-	margin-bottom: 0px
+.form-group:last-child.frappe-control[data-fieldtype="Table"] {
+	margin-bottom: 0;
 }
 
 .scroll-to-top {

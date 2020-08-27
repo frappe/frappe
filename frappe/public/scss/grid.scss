@@ -15,7 +15,7 @@
 }
 
 .grid-row {
-	padding: 0px 15px;
+	padding: 0px var(--padding-md);
 	border-bottom: 1px solid var(--border-color);
 	@include transition(.2s);
 }
@@ -58,17 +58,17 @@
 }
 
 .grid-body .data-row {
-	font-size: 12px;
+	font-size: $font-size-sm;
 }
 
 .grid-empty, .list-loading {
-	padding: 30px 15px;
+	padding: var(--padding-sm);
 	color: var(--text-muted);
 }
 
 .grid-static-col, .row-index {
 	height: 39px;
-	padding: 10px 15px;
+	padding: var(--padding-sm) var(--padding-md);
 	max-height: 200px;
 	// border-right: 1px solid var(--border-color);
 }
@@ -91,12 +91,12 @@
 
 .grid-row > .row {
 	.col:last-child {
-		margin-right: -10px;
+		margin-right: calc(-1 * var(--margin-sm));
 	}
 
 	.col {
-		padding-left: 10px;
-		padding-right: 10px;
+		padding-left: var(--padding-sm);
+		padding-right: var(--padding-sm);
 		// overflow: hidden;
 	}
 }
@@ -161,8 +161,8 @@
 	}
 
 	.grid-static-col[data-fieldtype="Button"] .field-area {
-		margin-top: 5px;
-		margin-left: 5px;
+		margin-top: var(--margin-xs);
+		margin-left: var(--margin-xs);
 
 		button {
 			height: 27px;
@@ -178,7 +178,7 @@
 		overflow: hidden;
 
 		.static-area {
-			margin-top: -5px;
+			margin-top: calc(-1 * var(--margin-xs));
 
 			pre {
 				background: none;
@@ -205,7 +205,7 @@
 }
 
 .row-data > .row {
-	margin-left: 15px;
+	margin-left: var(--margin-md);
 }
 
 .grid-row {
@@ -214,7 +214,7 @@
 	}
 
 	p {
-		margin-bottom: 5px;
+		margin-bottom: var(--margin-xs);
 	}
 
 	.frappe-control {
@@ -261,7 +261,7 @@
 	}
 
 	.form-section {
-		padding: 15px;
+		padding: var(--padding-md);
 
 		&:not(:first-child) {
 			border-top: 1px solid var(--border-color);
@@ -297,8 +297,8 @@
 	opacity: 1;
 	height: auto;
 	overflow: visible;
-	margin: 0px -15px;
-	padding: 10px 15px;
+	margin: 0px calc(-1 * var(--margin-md));
+	padding: var(--padding-sm) var(--padding-md);
 }
 
 .grid-form-heading {
@@ -342,16 +342,18 @@
 }
 
 .prev-page, .next-page {
-	font-size: 14px;
+	.icon {
+		width: 10px;
+	}
 }
 
-a.prev-page {
-	padding-left: 15px;
+.prev-page {
+	margin-left: var(--margin-xs);
 	text-decoration: none;
 }
 
-a.next-page {
-	padding-right: 15px;
+.next-page {
+	margin-right: var(--margin-xs);
 	text-decoration: none;
 }
 
@@ -360,7 +362,7 @@ a.next-page {
 }
 
 .grid-footer-toolbar {
-	padding: 15px 10px 5px 10px;
+	padding: var(--padding-md) var(--padding-sm) var(--padding-xs) var(--padding-sm);
 	// border-top: 1px solid var(--border-color);
 	span {
 		margin-right: var(--margin-xs);
@@ -381,7 +383,8 @@ a.next-page {
 }
 
 .grid-label {
-	margin-right: 8px; margin-bottom: 4px;
+	margin-right: 8px;
+	margin-bottom: 4px;
 }
 
 .form-clickable-section {
