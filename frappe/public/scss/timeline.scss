@@ -61,6 +61,14 @@ $threshold: 40;
 			}
 		}
 	}
+	.document-email-link-container {
+		position: relative;
+		padding: var(--padding-sm);
+		font-size: var(--text-sm);
+		span:first-of-type {
+			margin-left: $timeline-item-left-margin;
+		}
+	}
 	.timeline-items .timeline-item {
 		font-size: var(--text-md);
 		position: relative;

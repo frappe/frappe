@@ -24,6 +24,7 @@ frappe.ui.form.NewTimeline = class {
 		this.timeline_items = [];
 		this.render_timeline_items();
 		this.setup_timeline_actions();
+		this.setup_document_email_link();
 	}
 
 	refresh() {
@@ -31,17 +32,51 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	setup_timeline_actions() {
+		let doc_info = this.doc_info || this.frm.get_docinfo();
 		this.add_action_button(__('New Email'), () => this.compose_mail());
-		if (frappe.boot.developer_mode) {
+
+		let has_communications = () => {
+			let communications = doc_info.communications;
+			let comments = doc_info.comments;
+			return (communications || []).length || (comments || []).length;
+		};
+
+		if (has_communications()) {
 			this.timeline_actions_wrapper.append(`
 				<div class="custom-control custom-switch communication-switch">
 					<input type="checkbox" class="custom-control-input" id="only-communication-switch">
-					<label class="custom-control-label" for="only-communication-switch">${__('Show Only Communications')}</label>
+					<label class="custom-control-label" for="only-communication-switch">
+						${__('Show Only Communications')}
+					</label>
 				</div>`)
 				.find('.custom-control-input')
 				.change(e => {
 					this.only_communication = e.target.checked;
 					this.render_timeline_items();
+				});
+		}
+	}
+
+	setup_document_email_link() {
+		let doc_info = this.doc_info || this.frm.get_docinfo();
+
+		if (doc_info.document_email) {
+			const link = `<a class="document-email-link">${doc_info.document_email}</a>`;
+			const message = __("Send an email to {0} to link it here", [link.bold()]);
+
+			this.document_email_link_wrapper = $(`
+				<div class="document-email-link-container">
+					<div class="timeline-dot"></div>
+					<span>${message}</span>
+				</div>
+			`);
+			this.timeline_wrapper.prepend(this.document_email_link_wrapper);
+
+			this.document_email_link_wrapper
+				.find('.document-email-link')
+				.on("click", e => {
+					let text = $(e.target).text();
+					frappe.utils.copy_to_clipboard(text);
 				});
 		}
 	}
