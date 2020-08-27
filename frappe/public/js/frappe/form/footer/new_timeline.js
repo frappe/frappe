@@ -5,7 +5,6 @@ import { get_version_timeline_content } from "./version_timeline_content_builder
 frappe.ui.form.NewTimeline = class {
 	constructor(opts) {
 		Object.assign(this, opts);
-		this.doc_info = this.frm && this.frm.get_docinfo() || {};
 		this.make();
 	}
 
@@ -57,6 +56,7 @@ frappe.ui.form.NewTimeline = class {
 	render_timeline_items() {
 		this.timeline_items_wrapper.empty();
 		this.timeline_items = [];
+		this.doc_info = this.frm && this.frm.get_docinfo() || {};
 		this.prepare_timeline_contents();
 
 		this.timeline_items.sort((item1, item2) => new Date(item1.creation) - new Date(item2.creation));
@@ -363,7 +363,6 @@ frappe.ui.form.NewTimeline = class {
 				name: comment_name
 			}).then(() => {
 				frappe.utils.play_sound("delete");
-				this.refresh();
 			});
 		});
 	}
