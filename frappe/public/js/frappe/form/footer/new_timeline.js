@@ -142,6 +142,8 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	get_communication_timeline_content(doc) {
+		doc.owner = doc.sender;
+		doc.user_full_name = doc.sender_full_name;
 		let communication_content =  $(frappe.render_template('timeline_message_box', { doc }));
 		this.setup_reply(communication_content, doc);
 		return communication_content;
