@@ -364,11 +364,11 @@ html, body {
 
 	&.links-widget-box {
 		.link-item {
-			display: block;
+			display: flex;
 			text-decoration: none;
 			color: var(--text-color);
 			padding: var(--padding-xs);
-			margin: var(--margin-xs) 0px;
+			margin-top: var(--margin-xs);
 			border-radius: var(--border-radius-md);
 			cursor: pointer;
 
@@ -403,8 +403,7 @@ html, body {
 			}
 
 			.indicator-pill {
-				margin-right: 0px;
-				margin-right: 5px;
+				margin-right: var(--margin-sm);
 			}
 		}
 	}
