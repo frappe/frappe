@@ -91,17 +91,20 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False)
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
 	mode = 'build' if no_compress else 'production'
+	command = '{pacman} run {mode}'.format(pacman=pacman, mode=mode)
+
+	if app:
+		command += ' --app {app}'.format(app=app)
+
 	try:
 		available_memory = psutil.virtual_memory().free * 0.8
 		available_swap = psutil.swap_memory().free * 0.6
 		available_usage = int(available_memory + available_swap)
 	except Exception:
 		available_usage = 0
-	memory_restriction = "--max_old_space_size={0}".format(available_usage) if available_usage else ""
-	command = '{pacman} run {mode} {memory_restriction}'.format(pacman=pacman, mode=mode, memory_restriction=memory_restriction)
+	memory_restriction = " --max_old_space_size={0}".format(available_usage) if available_usage else ""
 
-	if app:
-		command += ' --app {app}'.format(app=app)
+	command += memory_restriction
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
 	frappe.commands.popen(command, cwd=frappe_app_path)

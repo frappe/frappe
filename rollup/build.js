@@ -1,5 +1,4 @@
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const chalk = require('chalk');
 const rollup = require('rollup');
@@ -123,11 +122,10 @@ function run_build_command_for_app(app) {
 	let package_json = path.resolve(root_app_path, 'package.json');
 	if (fs.existsSync(package_json)) {
 		let package = require(package_json);
-		let available_memory = parseInt(os.totalmem()/2);
 		if (package.scripts && package.scripts.build) {
 			console.log('\nRunning build command for', chalk.bold(app));
 			process.chdir(root_app_path);
-			execSync(`yarn --max_old_space_size=${available_memory} build`, { encoding: 'utf8', stdio: 'inherit' });
+			execSync('yarn build', { encoding: 'utf8', stdio: 'inherit' });
 		}
 	}
 }
