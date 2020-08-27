@@ -53,11 +53,11 @@
 	--indicator-yellow: var(--yellow-500);
 	--indicator-yellow-bg: var(--yellow-50);
 
-	--indicator-gray: var(--gray-500);
-	--indicator-gray-bg: var(--gray-50);
+	--indicator-gray: var(--gray-600);
+	--indicator-gray-bg: var(--gray-100);
 
-	--indicator-darkgray: var(--dark-gray-500);
-	--indicator-darkgray-bg: var(--dark-gray-50);
+	--indicator-dark-gray: var(--gray-800);
+	--indicator-dark-gray-bg: var(--gray-400);
 
 	--indicator-red: var(--red-500);
 	--indicator-red-bg: var(--red-50);
@@ -79,8 +79,8 @@
 	--indicator-gray: var(--gray-100);
 	--indicator-gray-bg: var(--gray-600);
 
-	--indicator-dark-gray: var(--dark-gray-200);
-	--indicator-dark-gray-bg: var(--dark-gray-700);
+	--indicator-dark-gray: var(--gray-500);
+	--indicator-dark-gray-bg: var(--gray-900);
 
 	--indicator-red: var(--red-50);
 	--indicator-red-bg: var(--red-500);
@@ -123,9 +123,9 @@
 	}
 }
 
-.indicator-pill.grey,
-.indicator-pill-right.grey,
-.indicator-pill-round.grey {
+.indicator-pill.gray,
+.indicator-pill-right.gray,
+.indicator-pill-round.gray {
 	background: var(--indicator-gray-bg);
 	color: var(--indicator-gray);
 	&::before, &::after {
@@ -133,10 +133,10 @@
 	}
 }
 
-.indicator-pill.darkgrey,
-.indicator-pill-right.darkgrey {
+.indicator-pill.darkgray,
+.indicator-pill-right.darkgray {
 	background: var(--indicator-dark-gray-bg);
-	color: var(--indicator-gray);
+	color: var(--indicator-dark-gray);
 	&::before, &::after {
 		background: var(--indicator-dark-gray);
 	}
