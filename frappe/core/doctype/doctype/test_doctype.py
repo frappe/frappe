@@ -376,3 +376,96 @@ class TestDocType(unittest.TestCase):
 		link_doc.delete()
 		doc.delete()
 		frappe.db.commit()
+
+	def test_ignore_cancelation_of_linked_doctype_during_cancell(self):
+		import json
+		from frappe.desk.form.linked_with import get_submitted_linked_docs, cancel_all_linked_docs
+
+		#create linked doctype
+		link_doc = self.new_doctype('Test Linked Doctype 1')
+		link_doc.is_submittable = 1
+		for data in link_doc.get('permissions'):
+			data.submit = 1
+			data.cancel = 1
+		link_doc.insert()
+
+		#create first parent doctype
+		test_doc_1 = self.new_doctype('Test Doctype 1')
+		test_doc_1.is_submittable = 1
+
+		field_2 = test_doc_1.append('fields', {})
+		field_2.label = 'Test Linked Doctype 1'
+		field_2.fieldname  = 'test_linked_doctype_a'
+		field_2.fieldtype = 'Link'
+		field_2.options = 'Test Linked Doctype 1'
+
+		for data in test_doc_1.get('permissions'):
+			data.submit = 1
+			data.cancel = 1
+		test_doc_1.insert()
+
+		#crete second parent doctype
+		doc = self.new_doctype('Test Doctype 2')
+		doc.is_submittable = 1
+
+		field_2 = doc.append('fields', {})
+		field_2.label = 'Test Linked Doctype 1'
+		field_2.fieldname  = 'test_linked_doctype_a'
+		field_2.fieldtype = 'Link'
+		field_2.options = 'Test Linked Doctype 1'
+
+		for data in link_doc.get('permissions'):
+			data.submit = 1
+			data.cancel = 1
+		doc.insert()
+
+		# create doctype data
+		data_link_doc_1 = frappe.new_doc('Test Linked Doctype 1')
+		data_link_doc_1.some_fieldname = 'Data1'
+		data_link_doc_1.insert()
+		data_link_doc_1.save()
+		data_link_doc_1.submit()
+
+		data_doc_2 = frappe.new_doc('Test Doctype 1')
+		data_doc_2.some_fieldname = 'Data1'
+		data_doc_2.test_linked_doctype_a = data_link_doc_1.name
+		data_doc_2.insert()
+		data_doc_2.save()
+		data_doc_2.submit()
+
+		data_doc = frappe.new_doc('Test Doctype 2')
+		data_doc.some_fieldname = 'Data1'
+		data_doc.test_linked_doctype_a = data_link_doc_1.name
+		data_doc.insert()
+		data_doc.save()
+		data_doc.submit()
+
+		docs = get_submitted_linked_docs(link_doc.name, data_link_doc_1.name)
+		dump_docs = json.dumps(docs.get('docs'))
+
+		cancel_all_linked_docs(dump_docs, ignore_doctypes_on_cancel_all=["Test Doctype 2"])
+
+		# checking that doc for Test Doctype 2 is not canceled
+		self.assertRaises(frappe.LinkExistsError, data_link_doc_1.cancel)
+
+		data_doc.load_from_db()
+		data_doc_2.load_from_db()
+		self.assertEqual(data_link_doc_1.docstatus, 2)
+
+		#linked doc is canceled
+		self.assertEqual(data_doc_2.docstatus, 2)
+
+		#ignored doctype 2 during cancel
+		self.assertEqual(data_doc.docstatus, 1)
+
+		# delete doctype record
+		data_doc.cancel()
+		data_doc.delete()
+		data_doc_2.delete()
+		data_link_doc_1.delete()
+
+		# delete doctype
+		link_doc.delete()
+		doc.delete()
+		test_doc_1.delete()
+		frappe.db.commit()

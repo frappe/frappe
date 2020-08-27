@@ -7,7 +7,9 @@ from __future__ import print_function, unicode_literals
 
 import os
 import json
+from calendar import timegm
 from datetime import datetime
+from glob import glob
 
 import frappe
 from frappe import _, conf
@@ -38,6 +40,9 @@ class BackupGenerator:
 		self.backup_path_files = backup_path_files
 		self.backup_path_db = backup_path_db
 		self.backup_path_private_files = backup_path_private_files
+
+		if not self.db_type:
+			self.db_type = 'mariadb'
 
 		if not self.db_port and self.db_type == 'mariadb':
 			self.db_port = 3306
@@ -94,26 +99,47 @@ class BackupGenerator:
 			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
 
 	def get_recent_backup(self, older_than):
-		file_list = os.listdir(get_backup_path())
-		backup_path_files = None
-		backup_path_db = None
-		backup_path_private_files = None
-		site_config_backup_path = None
+		backup_path = get_backup_path()
 
-		for this_file in file_list:
-			this_file = cstr(this_file)
-			this_file_path = os.path.join(get_backup_path(), this_file)
-			if not is_file_old(this_file_path, older_than):
-				if "-private-files" in this_file_path:
-					backup_path_private_files = this_file_path
-				elif "-files" in this_file_path:
-					backup_path_files = this_file_path
-				elif "-database" in this_file_path:
-					backup_path_db = this_file_path
-				elif "site_config" in this_file_path:
-					site_config_backup_path = this_file_path
+		file_type_slugs = {
+			"database": "*-{}-database.sql.gz",
+			"public": "*-{}-files.tar",
+			"private": "*-{}-private-files.tar",
+			"config": "*-{}-site_config_backup.json",
+		}
 
-		return (backup_path_db, backup_path_files, backup_path_private_files, site_config_backup_path)
+		def backup_time(file_path):
+			file_name = file_path.split(os.sep)[-1]
+			file_timestamp = file_name.split("-")[0]
+			return timegm(datetime.strptime(file_timestamp, "%Y%m%d_%H%M%S").utctimetuple())
+
+		def get_latest(file_pattern):
+			file_pattern = os.path.join(backup_path, file_pattern.format(self.site_slug))
+			file_list = glob(file_pattern)
+			if file_list:
+				return max(file_list, key=backup_time)
+
+		def old_enough(file_path):
+			if file_path:
+				if not os.path.isfile(file_path) or is_file_old(file_path, older_than):
+					return None
+				return file_path
+
+		latest_backups = {
+			file_type: get_latest(pattern)
+			for file_type, pattern in file_type_slugs.items()
+		}
+
+		recent_backups = {
+			file_type: old_enough(file_name) for file_type, file_name in latest_backups.items()
+		}
+
+		return (
+			recent_backups.get("database"),
+			recent_backups.get("public"),
+			recent_backups.get("private"),
+			recent_backups.get("config"),
+		)
 
 	def zip_files(self):
 		for folder in ("public", "private"):
@@ -208,26 +234,29 @@ def get_backup():
 
 
 @frappe.whitelist()
-def fetch_latest_backups(with_files=True, recent=3):
-	"""Takes backup on-demand if doesnt exist satisfying the `recent` parameter
+def fetch_latest_backups():
+	"""Fetches paths of the latest backup taken in the last 30 days
 	Only for: System Managers
-
-	Args:
-		with_files (bool, optional): If set, files will backuped up. Defaults to True.
-		recent (int, optional): Won't take a new backup if backup exists within this paramter. Defaults to 3 hours
 
 	Returns:
 		dict: relative Backup Paths
 	"""
 	frappe.only_for("System Manager")
-	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name, frappe.conf.db_password, db_host=frappe.db.host, db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
-	odb.get_backup(older_than=recent, ignore_files=not with_files)
+	odb = BackupGenerator(
+		frappe.conf.db_name,
+		frappe.conf.db_name,
+		frappe.conf.db_password,
+		db_host=frappe.db.host,
+		db_type=frappe.conf.db_type,
+		db_port=frappe.conf.db_port,
+	)
+	database, public, private, config = odb.get_recent_backup(older_than=24 * 30)
 
 	return {
-		"database": odb.backup_path_db,
-		"public": odb.backup_path_files,
-		"private": odb.backup_path_private_files,
-		"config": odb.site_config_backup_path
+		"database": database,
+		"public": public,
+		"private": private,
+		"config": config
 	}
 
 

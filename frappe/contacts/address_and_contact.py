@@ -147,6 +147,7 @@ def delete_contact_and_address(doctype, docname):
 				doc.delete()
 
 @frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	if not txt: txt = ""
 

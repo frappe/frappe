@@ -10,6 +10,8 @@ from cryptography.fernet import Fernet, InvalidToken
 from passlib.hash import pbkdf2_sha256, mysql41
 from passlib.registry import register_crypt_handler
 from passlib.context import CryptContext
+from pymysql.constants.ER import DATA_TOO_LONG
+from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
 
 class LegacyPassword(pbkdf2_sha256):
 	name = "frappe_legacy"
@@ -49,11 +51,17 @@ def get_decrypted_password(doctype, name, fieldname='password', raise_exception=
 		frappe.throw(_('Password not found'), frappe.AuthenticationError)
 
 def set_encrypted_password(doctype, name, pwd, fieldname='password'):
-	frappe.db.sql("""insert into `__Auth` (doctype, name, fieldname, `password`, encrypted)
-		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 1)
-		{on_duplicate_update} `password`=%(pwd)s, encrypted=1""".format(
-			on_duplicate_update=frappe.db.get_on_duplicate_update(['doctype', 'name', 'fieldname'])
-		), { 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
+	try:
+		frappe.db.sql("""insert into `__Auth` (doctype, name, fieldname, `password`, encrypted)
+			values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 1)
+			{on_duplicate_update} `password`=%(pwd)s, encrypted=1""".format(
+				on_duplicate_update=frappe.db.get_on_duplicate_update(['doctype', 'name', 'fieldname'])
+			), { 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
+	except frappe.db.DataError as e:
+		if ((frappe.db.db_type == 'mariadb' and e.args[0] == DATA_TOO_LONG) or
+			(frappe.db.db_type == 'postgres' and e.pgcode == STRING_DATA_RIGHT_TRUNCATION)):
+			frappe.throw("Most probably your password is too long.", exc=e)
+		raise e
 
 def check_password(user, pwd, doctype='User', fieldname='password'):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
@@ -131,10 +139,6 @@ def create_auth_table():
 	frappe.db.create_auth_table()
 
 def encrypt(pwd):
-	if len(pwd) > 127:
-		# encrypting > 127 chars will lead to truncation
-		frappe.throw(_('Password cannot be more than 127 characters long'))
-
 	cipher_suite = Fernet(encode(get_encryption_key()))
 	cipher_text = cstr(cipher_suite.encrypt(encode(pwd)))
 	return cipher_text

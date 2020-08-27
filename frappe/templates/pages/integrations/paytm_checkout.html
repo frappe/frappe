@@ -1,0 +1,43 @@
+{% extends "templates/web.html" %}
+
+{% block title %} Payment {% endblock %}
+
+{%- block header -%}
+<head>
+	<title>Merchant Checkout Page</title>
+</head>
+{% endblock %}
+
+{% block script %}
+<script defer type="text/javascript">
+	document.paytm_form.submit();
+</script>
+{% endblock %}
+
+{%- block page_content -%}
+<body>
+	<div class="centered">
+		<h2>Please do not refresh this page...</h2>
+
+		<form method="post" action="{{ url }}" name="paytm_form">
+			{% for name, value in payment_details.items() %}
+				<input type="hidden" name="{{ name }}" value="{{ value }}">
+			{% endfor %}
+		</form>
+	</div>
+</body>
+{% endblock %}
+
+{% block style %}
+<style>
+	.centered {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
+	.web-footer {
+		display: none;
+	}
+</style>
+{% endblock %}

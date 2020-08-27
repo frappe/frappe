@@ -17,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/frappe/frappe/issues"
   },
-  "homepage": "https://frappe.io",
+  "homepage": "https://frappeframework.com",
   "dependencies": {
     "ace-builds": "^1.4.8",
     "air-datepicker": "http://github.com/frappe/air-datepicker",
@@ -39,10 +39,11 @@
     "moment-timezone": "^0.5.28",
     "quagga": "^0.12.1",
     "quill": "2.0.0-dev.4",
+    "quill-image-resize": "^3.0.9",
     "qz-tray": "^2.0.8",
     "redis": "^2.8.0",
     "showdown": "^1.9.1",
-    "snyk": "^1.316.1",
+    "snyk": "^1.382.0",
     "socket.io": "^2.3.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",

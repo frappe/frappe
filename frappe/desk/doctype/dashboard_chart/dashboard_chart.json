@@ -240,7 +240,8 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard"
+   "label": "Is Standard",
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
   },
   {
    "depends_on": "eval: doc.is_standard",
@@ -270,7 +271,7 @@
   }
  ],
  "links": [],
- "modified": "2020-07-21 16:37:07.763482",
+ "modified": "2020-07-23 11:10:33.509497",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

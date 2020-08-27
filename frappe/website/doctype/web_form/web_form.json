@@ -16,6 +16,7 @@
   "route_to_success_link",
   "allow_edit",
   "allow_multiple",
+  "apply_document_permissions",
   "show_in_grid",
   "allow_delete",
   "allow_print",
@@ -202,12 +203,13 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "client_script",
    "fieldname": "client_script_section",
    "fieldtype": "Section Break",
    "label": "Client Script"
   },
   {
-   "description": "For help see <a href=\"https://frappe.io/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
+   "description": "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
    "fieldname": "client_script",
    "fieldtype": "Code",
    "label": "Client Script"
@@ -343,17 +345,24 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "custom_css",
    "fieldname": "custom_css_section",
    "fieldtype": "Section Break",
    "label": "Custom CSS"
+  },
+  {
+   "default": "0",
+   "fieldname": "apply_document_permissions",
+   "fieldtype": "Check",
+   "label": "Apply Document Permissions"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2019-12-24 14:15:43.497431",
- "modified_by": "faris@erpnext.com",
+ "modified": "2020-08-07 13:12:03.945686",
+ "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
  "owner": "Administrator",

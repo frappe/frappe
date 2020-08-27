@@ -21,6 +21,7 @@ from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabl
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.model.base_document import get_controller
 from frappe.social.doctype.post.post import frequently_visited_links
+from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -59,6 +60,7 @@ def get_bootinfo():
 	load_print(bootinfo, doclist)
 	doclist.extend(get_meta_bundle("Page"))
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
+	bootinfo.navbar_settings = get_navbar_settings()
 
 	# ipinfo
 	if frappe.session.data.get('ipinfo'):

@@ -104,11 +104,16 @@ frappe.ui.FilterGroup = class {
 			filter_items: (doctype, fieldname) => {
 				return !this.filter_exists([doctype, fieldname]);
 			},
-			base_list: this.base_list
+			filter_list: this.base_list || this,
 		};
 		let filter = new frappe.ui.Filter(args);
 		this.filters.push(filter);
 		return filter;
+	}
+
+	get_filter_value(fieldname) {
+		let filter_obj = this.filters.find(f => f.fieldname == fieldname) || {};
+		return filter_obj.value;
 	}
 
 	filter_exists(filter_value) {

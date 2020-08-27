@@ -82,17 +82,22 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 	get_values: function(ignore_errors) {
 		var ret = {};
 		var errors = [];
-		for(var key in this.fields_dict) {
+		for (var key in this.fields_dict) {
 			var f = this.fields_dict[key];
-			if(f.get_value) {
+			if (f.get_value) {
 				var v = f.get_value();
-				if(f.df.reqd && is_null(v))
+				if (f.df.reqd && is_null(v))
 					errors.push(__(f.df.label));
 
-				if(!is_null(v)) ret[f.df.fieldname] = v;
+				if (f.df.reqd
+					&& f.df.fieldtype === 'Text Editor'
+					&& is_null(strip_html(cstr(v))))
+					errors.push(__(f.df.label));
+
+				if (!is_null(v)) ret[f.df.fieldname] = v;
 			}
 		}
-		if(errors.length && !ignore_errors) {
+		if (errors.length && !ignore_errors) {
 			frappe.msgprint({
 				title: __('Missing Values Required'),
 				message: __('Following fields have missing values:') +
