@@ -293,7 +293,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	selected_format: function() {
-		return this.dialog.fields_dict.select_print_format.input.value || (this.frm && this.frm.meta.default_print_format) || "Standard";
+		return this.selected_print() || this.dialog.fields_dict.select_print_format.input.value || (this.frm && this.frm.meta.default_print_format) || "Standard";
 	},
 
 	get_print_format: function(format) {
@@ -356,7 +356,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			$(fields.select_print_format.input)
 				.empty()
 				.add_options(cur_frm.print_preview.print_formats)
-				.val(cur_frm.print_preview.print_formats[0]);
+				.val(this.selected_format());
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
@@ -614,6 +614,11 @@ frappe.views.CommunicationComposer = Class.extend({
 		});
 	},
 
+	selected_print: function(){
+		if (this.frm && $(this.frm.wrapper).find('.form-print-wrapper').is(':visible')){
+			return $(this.frm.wrapper).find('.print-preview-select').val();
+		}
+	},
 	is_print_letterhead_checked: function() {
 		if (this.frm && $(this.frm.wrapper).find('.form-print-wrapper').is(':visible')){
 			return $(this.frm.wrapper).find('.print-letterhead').prop('checked') ? 1 : 0;
