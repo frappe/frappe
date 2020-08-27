@@ -49,7 +49,7 @@
 
 .modal {
 	.form-section {
-		padding: 10px 0;
+		padding: var(--padding-sm) 0;
 
 		&:not(:first-child) {
 			border-top: 1px solid var(--border-color);
@@ -66,8 +66,11 @@
 
 		.section-head {
 			padding: 0;
-			padding-bottom: 10px;
 			font-size: $font-size-md;
+
+			&:not(.collapsed) {
+				padding-bottom: var(--padding-sm);
+			}
 		}
 	}
 }
