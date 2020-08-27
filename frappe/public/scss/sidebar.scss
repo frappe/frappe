@@ -376,15 +376,12 @@ body[data-route^="Module"] .main-menu {
 
 .form-reviews {
 	.review {
-		display: inline-flex;
 		font-weight: 500;
 		width: 28px;
 		height: 28px;
 		border-radius: 50%;
-		vertical-align: middle;
-		justify-content: center;
 		font-size: var(--text-xs);
-		align-items: center;
+		@extend .center-content;
 		margin-bottom: var(--margin-sm);
 		margin-right: var(--margin-xs);
 	}
