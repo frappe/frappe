@@ -61,8 +61,8 @@ export default class Grid {
 				</div>
 			</div>
 			<div class="small form-clickable-section grid-footer">
-				<div class="row">
-					<div class="col-sm-5 grid-buttons">
+				<div class="flex justify-between">
+					<div class="grid-buttons">
 						<button class="btn btn-xs btn-danger grid-remove-rows hidden"
 							style="margin-right: 4px;"
 							data-action="delete_rows">
@@ -82,9 +82,9 @@ export default class Grid {
 							${__("Add Row")}
 						</button>
 					</div>
-					<div class="col-sm-4 grid-pagination">
+					<div class="grid-pagination">
 					</div>
-					<div class="col-sm-3 text-right">
+					<div class="text-right">
 						<a href="#" class="grid-download btn btn-xs btn-secondary hidden">
 							${__("Download")}
 						</a>
