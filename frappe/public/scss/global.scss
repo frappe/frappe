@@ -395,3 +395,8 @@ kbd {
 		text-decoration: none !important;
 	}
 }
+
+.center-content {
+	display: grid;
+	place-items: center;
+}
