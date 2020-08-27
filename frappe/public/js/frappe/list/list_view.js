@@ -1206,7 +1206,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		});
 
-		frappe.ui.setup_like_popover(this.$result, ".liked-by .like-icon");
 	}
 
 	setup_new_doc_event() {
