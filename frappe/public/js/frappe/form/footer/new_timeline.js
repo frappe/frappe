@@ -199,7 +199,7 @@ frappe.ui.form.NewTimeline = class {
 			let timeline_indicator = `
 			<div class="timeline-indicator ${log.points > 0 ? 'appreciation': 'criticism'} bold">
 				${log.points}
-			<div>`;
+			</div>`;
 
 			energy_point_timeline_contents.push({
 				timeline_indicator: timeline_indicator,
