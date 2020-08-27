@@ -1822,7 +1822,14 @@ class extends Component {
 						props.page ? props.page : (
 							h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
 								h("div", { class: "panel-heading" },
-									props.heading
+									[
+										props.heading,
+										h("button", {
+											class: "test dropdown-toggle frappe-chat-toggle",
+											style: { "font-size": "9px" },
+											onclick: () => this.toggle()
+										}, "X"),
+									]
 								),
 								props.children
 							)
