@@ -398,7 +398,7 @@ Object.assign(frappe.utils, {
 	},
 	guess_style: function(text, default_style, _colour) {
 		var style = default_style || "default";
-		var colour = "darkgrey";
+		var colour = "darkgray";
 		if (text) {
 			if (has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
