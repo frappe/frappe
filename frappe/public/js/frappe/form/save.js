@@ -166,6 +166,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 					indicator: 'red',
 					title: __('Missing Fields')
 				});
+				frm.refresh();
 			}
 		});
 

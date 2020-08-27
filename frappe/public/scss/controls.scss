@@ -28,6 +28,15 @@
 
 .frappe-control {
 	font-size: var(--text-md);
+	.control-label.reqd:after {
+		content: ' *';
+		color: var(--red-400);
+	}
+	&.has-error {
+		input {
+			border: 1px solid var(--red-400);
+		}
+	}
 }
 
 .frappe-control[data-fieldtype="Select"] .control-input {
