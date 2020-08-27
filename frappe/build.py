@@ -78,7 +78,7 @@ def setup():
 
 def get_node_pacman():
 	pacman = 'yarn'
-	exec_ = find_executable(exec_)
+	exec_ = find_executable(pacman)
 	if exec_:
 		return exec_
 	raise ValueError('yarn not found in PATH')
@@ -87,9 +87,9 @@ def get_node_pacman():
 def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
 	setup()
+	pacman = get_node_pacman()
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
-	pacman = get_node_pacman()
 	mode = 'build' if no_compress else 'production'
 	try:
 		available_memory = psutil.virtual_memory().free * 0.8
@@ -110,11 +110,9 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False)
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 	setup()
-
 	pacman = get_node_pacman()
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-	check_yarn()
 	frappe_app_path = frappe.get_app_path('frappe', '..')
 	frappe.commands.popen('{pacman} run watch'.format(pacman=pacman), cwd=frappe_app_path)
 
