@@ -10,7 +10,6 @@ import shutil
 import warnings
 import tempfile
 from distutils.spawn import find_executable
-from subprocess import check_output
 
 from six import iteritems, text_type
 import psutil
@@ -78,12 +77,11 @@ def setup():
 
 
 def get_node_pacman():
-	pacmans = ['yarn', 'npm']
-	for exec_ in pacmans:
-		exec_ = find_executable(exec_)
-		if exec_:
-			return exec_
-	raise ValueError('No Node.js Package Manager found.')
+	pacman = 'yarn'
+	exec_ = find_executable(exec_)
+	if exec_:
+		return exec_
+	raise ValueError('yarn not found in PATH')
 
 
 def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False):
@@ -106,7 +104,6 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False)
 		command += ' --app {app}'.format(app=app)
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-	check_yarn()
 	frappe.commands.popen(command, cwd=frappe_app_path)
 
 
@@ -120,11 +117,6 @@ def watch(no_compress):
 	check_yarn()
 	frappe_app_path = frappe.get_app_path('frappe', '..')
 	frappe.commands.popen('{pacman} run watch'.format(pacman=pacman), cwd=frappe_app_path)
-
-
-def check_yarn():
-	if not find_executable('yarn'):
-		print('Please install yarn using below command and try again.\nnpm install -g yarn')
 
 
 def make_asset_dirs(make_copy=False, restore=False):
