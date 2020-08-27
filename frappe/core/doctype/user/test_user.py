@@ -19,6 +19,7 @@ class TestUser(unittest.TestCase):
 		# disable password strength test
 		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
 		frappe.db.set_value("System Settings", "System Settings", "minimum_password_score", "")
+		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 3)
 
 	def test_user_type(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
@@ -221,6 +222,16 @@ class TestUser(unittest.TestCase):
 		'''
 		self.assertEqual(extract_mentions(comment)[0], "test_user@example.com")
 		self.assertEqual(extract_mentions(comment)[1], "test.again@example1.com")
+
+	def test_rate_limiting_for_reset_password(self):
+		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 1)
+
+		user = frappe.get_doc("User", "testperm@example.com")
+		link = user.reset_password()
+
+		self.assertContains(link, "/update-password?key=")
+		self.assertRaises(frappe.ValidationError, user.reset_password, False)
+
 
 def delete_contact(user):
 	frappe.db.sql("DELETE FROM `tabContact` WHERE `email_id`= %s", user)
