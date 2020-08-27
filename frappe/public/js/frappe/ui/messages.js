@@ -74,13 +74,8 @@ frappe.warn = function(title, message_html, proceed_action, primary_label, is_mi
 	});
 
 	d.standard_actions.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
-	// REDESIGN-TODO: Remove following code if not required (introduced while resolving conflict)
-	// d.footer = $(`<div class="modal-footer"></div>`).insertAfter($(d.modal_body));
 
-	// d.get_close_btn().appendTo(d.footer);
-	// d.get_primary_btn().appendTo(d.footer);
-
-	// d.footer.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
+	d.standard_actions.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
 
 	d.show();
 	return d;
