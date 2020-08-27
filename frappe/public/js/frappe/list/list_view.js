@@ -886,17 +886,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			: 'bold';
 	}
 
+	get_like_html(doc) {
+		const liked_by = JSON.parse(doc._liked_by || "[]");
+		let heart_class = liked_by.includes(user)
+			? "liked-by liked"
+			: "not-liked";
+
+		return `<span
+			class="like-action ${heart_class}"
+			data-name="${doc.name}" data-doctype="${this.doctype}"
+			data-liked-by="${encodeURI(doc._liked_by) || "[]"}"
+			title="${liked_by.map(u => frappe.user_info(u).fullname).join(', ')}">
+			${frappe.utils.icon('heart', 'sm', 'like-icon')}
+		</span>
+		<span class="likes-count">
+			${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
+		</span>`;
+	}
+
 	get_subject_html(doc) {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
 		let value = doc[subject_field.fieldname] || doc.name;
 		let subject = strip_html(value.toString());
 		let escaped_subject = frappe.utils.escape_html(subject);
-
-		const liked_by = JSON.parse(doc._liked_by || "[]");
-		let heart_class = liked_by.includes(user)
-			? "liked-by liked"
-			: "not-liked";
 
 		const seen = this.get_seen_class(doc);
 
@@ -905,15 +918,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				doc.name
 			)}">
 			<span class="level-item" style="margin-bottom: 1px;">
-				<span
-					class="like-action ${heart_class}"
-					data-name="${doc.name}" data-doctype="${this.doctype}"
-					data-liked-by="${encodeURI(doc._liked_by) || "[]"}">
-					${frappe.utils.icon('heart', 'sm', 'like-icon')}
-				</span>
-				<span class="likes-count">
-					${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
-				</span>
+				${this.get_like_html(doc)}
 			</span>
 			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
 				<a class="ellipsis" href="${this.get_form_link(
