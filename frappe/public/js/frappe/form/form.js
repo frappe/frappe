@@ -112,6 +112,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		this.setup_file_drop();
 		this.setup_doctype_actions();
+		this.setup_docinfo_change_listener();
 
 		this.setup_done = true;
 	}
@@ -1631,6 +1632,29 @@ frappe.ui.form.Form = class FrappeForm {
 		driver.defineSteps(steps);
 		frappe.route.on('change', () => driver.reset());
 		driver.start();
+	}
+
+	setup_docinfo_change_listener() {
+		frappe.realtime.on(`update_docinfo_for_${this.doctype}_${this.docname}`, ({doc, key, action='update'}) => {
+			let doc_list = (frappe.model.docinfo[this.doctype][this.docname][key] || []);
+			if (action === 'add') {
+				frappe.model.docinfo[this.doctype][this.docname][key].push(doc);
+			}
+
+			let docindex = doc_list.findIndex(old_doc => {
+				return old_doc.name === doc.name;
+			});
+
+			if (docindex > -1) {
+				if (action === 'update') {
+					frappe.model.docinfo[this.doctype][this.docname][key].splice(docindex, 1, doc);
+				}
+				if (action === 'delete') {
+					frappe.model.docinfo[this.doctype][this.docname][key].splice(docindex, 1);
+				}
+			}
+			this.timeline && this.timeline.refresh();
+		});
 	}
 };
 

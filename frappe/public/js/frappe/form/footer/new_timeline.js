@@ -5,7 +5,6 @@ import { get_version_timeline_content } from "./version_timeline_content_builder
 frappe.ui.form.NewTimeline = class {
 	constructor(opts) {
 		Object.assign(this, opts);
-		this.doc_info = this.frm && this.frm.get_docinfo() || {};
 		this.make();
 	}
 
@@ -57,6 +56,7 @@ frappe.ui.form.NewTimeline = class {
 	render_timeline_items() {
 		this.timeline_items_wrapper.empty();
 		this.timeline_items = [];
+		this.doc_info = this.frm && this.frm.get_docinfo() || {};
 		this.prepare_timeline_contents();
 
 		this.timeline_items.sort((item1, item2) => new Date(item1.creation) - new Date(item2.creation));
@@ -142,6 +142,8 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	get_communication_timeline_content(doc) {
+		doc.owner = doc.sender;
+		doc.user_full_name = doc.sender_full_name;
 		let communication_content =  $(frappe.render_template('timeline_message_box', { doc }));
 		this.setup_reply(communication_content, doc);
 		return communication_content;
@@ -363,7 +365,6 @@ frappe.ui.form.NewTimeline = class {
 				name: comment_name
 			}).then(() => {
 				frappe.utils.play_sound("delete");
-				this.refresh();
 			});
 		});
 	}

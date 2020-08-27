@@ -803,7 +803,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_meta_html(doc) {
 		let html = "";
 
-		let settings_button = ''
+		let settings_button = null;
 		if (this.settings.button && this.settings.button.show(doc)) {
 			settings_button = `
 			<span>
@@ -825,7 +825,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let assigned_users = JSON.parse(doc._assign || "[]");
 		if (assigned_users.length) {
 			// REDESIGN-TODO: Make it filterable?
-			assigned_to = frappe.avatar_group(assigned_users, 3, {'css_class': 'filterable'});
+			assigned_to = frappe.avatar_group(assigned_users, 3, {'css_class': 'filterable'})[0].outerHTML;
 		}
 
 		const comment_count = `<span class="${
@@ -837,10 +837,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		html += `
 			<div class="level-item list-row-activity">
-				${settings_button}
-				<span class="padding-right">
-					${assigned_to}
-				</span>
+
+				${settings_button || assigned_to}
 				${modified}
 				${comment_count}
 			</div>

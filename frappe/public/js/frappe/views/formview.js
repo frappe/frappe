@@ -24,18 +24,6 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 				frappe.ui.form.close_grid_form();
 			});
 
-			frappe.realtime.on("new_communication", function(data) {
-				frappe.timeline.new_communication(data);
-			});
-
-			frappe.realtime.on("delete_communication", function(data) {
-				frappe.timeline.delete_communication(data);
-			});
-
-			frappe.realtime.on('update_communication', function(data) {
-				frappe.timeline.update_communication(data);
-			});
-
 			frappe.realtime.on("doc_viewers", function(data) {
 				// set users that currently viewing the form
 				frappe.ui.form.set_users(data, 'viewers');

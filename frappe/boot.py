@@ -39,7 +39,7 @@ def get_bootinfo():
 	bootinfo.server_date = frappe.utils.nowdate()
 
 	if frappe.session['user'] != 'Guest':
-		bootinfo.user_info = get_fullnames()
+		bootinfo.user_info = get_user_info()
 		bootinfo.sid = frappe.session['sid']
 
 	bootinfo.modules = {}
@@ -222,19 +222,18 @@ def load_translations(bootinfo):
 
 	bootinfo["__messages"] = messages
 
-def get_fullnames():
-	"""map of user fullnames"""
-	ret = frappe.db.sql("""select `name`, full_name as fullname,
-		user_image as image, gender, email, username, bio, location, interest, banner_image, allowed_in_mentions
-		from tabUser where enabled=1 and user_type!='Website User'""", as_dict=1)
+def get_user_info():
+	user_info = frappe.db.get_all('User', fields=['`name`', 'full_name as fullname', 'user_image as image',
+		'gender', 'email', 'username', 'bio', 'location', 'interest', 'banner_image', 'allowed_in_mentions'],
+		filters=dict(enabled=1, user_type=['!=', 'Website User']))
 
-	d = {}
-	for r in ret:
-		# if not r.image:
-		# 	r.image = get_gravatar(r.name)
-		d[r.name] = r
+	user_info_map = {d.name: d for d in user_info}
 
-	return d
+	admin_data = user_info_map.get('Administrator')
+	if admin_data:
+		user_info_map[admin_data.email] = admin_data
+
+	return user_info_map
 
 def get_user(bootinfo):
 	"""get user info"""
