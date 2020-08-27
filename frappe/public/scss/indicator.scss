@@ -71,10 +71,7 @@
 	--indicator-yellow-bg: var(--yellow-50);
 
 	--indicator-gray: var(--gray-600);
-	--indicator-gray-bg: var(--gray-100);
-
-	--indicator-dark-gray: var(--gray-700);
-	--indicator-dark-gray-bg: var(--gray-400);
+	--indicator-gray-bg: var(--gray-200);
 
 	--indicator-red: var(--red-500);
 	--indicator-red-bg: var(--red-50);
@@ -95,9 +92,6 @@
 
 	--indicator-gray: var(--gray-100);
 	--indicator-gray-bg: var(--gray-600);
-
-	--indicator-dark-gray: var(--gray-500);
-	--indicator-dark-gray-bg: var(--gray-900);
 
 	--indicator-red: var(--red-50);
 	--indicator-red-bg: var(--red-500);
@@ -154,13 +148,13 @@
 	}
 }
 
-.indicator.darkgray,
-.indicator-pill.darkgray,
-.indicator-pill-right.darkgray {
-	background: var(--indicator-dark-gray-bg);
-	color: var(--indicator-dark-gray);
+.indicator.gray,
+.indicator-pill.gray,
+.indicator-pill-right.gray {
+	background: var(--indicator-gray-bg);
+	color: var(--indicator-gray);
 	&::before, &::after {
-		background: var(--indicator-dark-gray);
+		background: var(--indicator-gray);
 	}
 }
 

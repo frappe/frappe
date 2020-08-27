@@ -44,8 +44,8 @@
 .indicator-right.purple::after {
   background: #743ee2;
 }
-.indicator.darkgray::before,
-.indicator-right.darkgray::after {
+.indicator.gray::before,
+.indicator-right.gray::after {
   background: #b8c2cc;
 }
 .indicator.black::before,
