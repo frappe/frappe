@@ -58,7 +58,6 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	 	this.$page.find('.layout-main-section-wrapper').addClass('image-view');
 
 		this.$result.html(`
-			${this.get_header_html()}
 			<div class="image-view-container">
 				${html}
 			</div>
@@ -185,23 +184,23 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		});
 	}
 
-	get_header_html() {
-		return this.get_header_html_skeleton(`
-			<div class="list-image-header">
-				<div class="list-image-header-item">
-					<input class="level-item list-check-all hidden-xs" type="checkbox" title="Select All">
-					<div>${__(this.doctype)} &nbsp;</div>
-					(<span class="text-muted list-count"></span>)
-				</div>
-				<div class="list-image-header-item">
-					<div class="level-item list-liked-by-me">
-						${frappe.utils.icon('heart', 'sm', 'like-icon')}
-					</div>
-					<div>${__('Liked')}</div>
-				</div>
-			</div>
-		`);
-	}
+	// get_header_html() {
+	// 	return this.get_header_html_skeleton(`
+	// 		<div class="list-image-header">
+	// 			<div class="list-image-header-item">
+	// 				<input class="level-item list-check-all hidden-xs" type="checkbox" title="Select All">
+	// 				<div>${__(this.doctype)} &nbsp;</div>
+	// 				(<span class="text-muted list-count"></span>)
+	// 			</div>
+	// 			<div class="list-image-header-item">
+	// 				<div class="level-item list-liked-by-me">
+	// 					${frappe.utils.icon('heart', 'sm', 'like-icon')}
+	// 				</div>
+	// 				<div>${__('Liked')}</div>
+	// 			</div>
+	// 		</div>
+	// 	`);
+	// }
 
 	setup_gallery() {
 		var me = this;

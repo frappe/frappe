@@ -1,6 +1,10 @@
 // Image view
 .image-view {
 
+	.frappe-list {
+		padding: var(--padding-xs);
+	}
+
 	.list-header-subject {
 		.list-image-header {
 			display: flex;
