@@ -32,12 +32,22 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	setup_timeline_actions() {
+		let doc_info = this.doc_info || this.frm.get_docinfo();
 		this.add_action_button(__('New Email'), () => this.compose_mail());
-		if (frappe.boot.developer_mode) {
+
+		let has_communications = () => {
+			let communications = doc_info.communications;
+			let comments = doc_info.comments;
+			return (communications || []).length || (comments || []).length;
+		};
+
+		if (has_communications()) {
 			this.timeline_actions_wrapper.append(`
 				<div class="custom-control custom-switch communication-switch">
 					<input type="checkbox" class="custom-control-input" id="only-communication-switch">
-					<label class="custom-control-label" for="only-communication-switch">${__('Show Only Communications')}</label>
+					<label class="custom-control-label" for="only-communication-switch">
+						${__('Show Only Communications')}
+					</label>
 				</div>`)
 				.find('.custom-control-input')
 				.change(e => {
