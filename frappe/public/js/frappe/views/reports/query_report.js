@@ -153,13 +153,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.create_chart_button && this.create_chart_button.remove()
 			this.create_chart_button = this.page.add_button(__("Set Chart"), () => {
 				this.open_create_chart_dialog();
-			}, null, 'btn-xs');
+			});
 
 			if (this.chart_fields || this.chart_options) {
 				this.add_to_dashboard_button && this.add_to_dashboard_button.remove()
 				this.add_to_dashboard_button = this.page.add_button(__("Add Chart to Dashboard"), () => {
 					this.add_chart_to_dashboard();
-				}, null, 'btn-xs');
+				});
 			}
 		} else {
 			this.create_chart_button && this.create_chart_button.remove()

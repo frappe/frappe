@@ -682,7 +682,7 @@ frappe.chat.profile.STATUSES
 	},
 	{
 		 name: "Offline",
-		color: "darkgrey"
+		color: "darkgray"
 	}
 ]
 

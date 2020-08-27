@@ -642,7 +642,7 @@ frappe.provide("frappe.views");
 				title: col.column_name,
 				status: col.status,
 				order: col.order,
-				indicator: col.indicator || 'darkgrey'
+				indicator: col.indicator || 'darkgray'
 			};
 		});
 	}

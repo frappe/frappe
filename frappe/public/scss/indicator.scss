@@ -1,3 +1,20 @@
+.indicator {
+	background: none !important;
+	display: inline-flex;
+	align-items: center;
+}
+
+.indicator::before {
+	content: '';
+	height: 6px;
+	width: 6px;
+	border-radius: var(--border-radius);
+}
+
+.indicator::before {
+	margin: 0px 8px 0px 0px;
+}
+
 .indicator-pill,
 .indicator-pill-right {
 	display: inline-flex;
@@ -53,11 +70,11 @@
 	--indicator-yellow: var(--yellow-500);
 	--indicator-yellow-bg: var(--yellow-50);
 
-	--indicator-gray: var(--gray-500);
-	--indicator-gray-bg: var(--gray-50);
+	--indicator-gray: var(--gray-600);
+	--indicator-gray-bg: var(--gray-100);
 
-	--indicator-darkgray: var(--dark-gray-500);
-	--indicator-darkgray-bg: var(--dark-gray-50);
+	--indicator-dark-gray: var(--gray-700);
+	--indicator-dark-gray-bg: var(--gray-400);
 
 	--indicator-red: var(--red-500);
 	--indicator-red-bg: var(--red-50);
@@ -79,13 +96,14 @@
 	--indicator-gray: var(--gray-100);
 	--indicator-gray-bg: var(--gray-600);
 
-	--indicator-dark-gray: var(--dark-gray-200);
-	--indicator-dark-gray-bg: var(--dark-gray-700);
+	--indicator-dark-gray: var(--gray-500);
+	--indicator-dark-gray-bg: var(--gray-900);
 
 	--indicator-red: var(--red-50);
 	--indicator-red-bg: var(--red-500);
 }
 
+.indicator.green,
 .indicator-pill.green,
 .indicator-pill-right.green,
 .indicator-pill-round.green {
@@ -96,6 +114,7 @@
 	}
 }
 
+.indicator.blue,
 .indicator-pill.blue,
 .indicator-pill-right.blue {
 	background: var(--indicator-blue-bg);
@@ -105,6 +124,7 @@
 	}
 }
 
+.indicator.orange,
 .indicator-pill.orange,
 .indicator-pill-right.orange {
 	background: var(--indicator-orange-bg);
@@ -114,6 +134,7 @@
 	}
 }
 
+.indicator.yellow,
 .indicator-pill.yellow,
 .indicator-pill-right.yellow {
 	background: var(--indicator-yellow-bg);
@@ -123,9 +144,9 @@
 	}
 }
 
-.indicator-pill.grey,
-.indicator-pill-right.grey,
-.indicator-pill-round.grey {
+.indicator-pill.gray,
+.indicator-pill-right.gray,
+.indicator-pill-round.gray {
 	background: var(--indicator-gray-bg);
 	color: var(--indicator-gray);
 	&::before, &::after {
@@ -133,15 +154,17 @@
 	}
 }
 
-.indicator-pill.darkgrey,
-.indicator-pill-right.darkgrey {
+.indicator.darkgray,
+.indicator-pill.darkgray,
+.indicator-pill-right.darkgray {
 	background: var(--indicator-dark-gray-bg);
-	color: var(--indicator-gray);
+	color: var(--indicator-dark-gray);
 	&::before, &::after {
 		background: var(--indicator-dark-gray);
 	}
 }
 
+.indicator.red,
 .indicator-pill.red,
 .indicator-pill-right.red,
 .indicator-pill-round.red {
@@ -150,11 +173,6 @@
 	&::before, &::after {
 		background: var(--indicator-red);
 	}
-}
-
-.modal-header .indicator {
-	margin: auto 0;
-	margin-right: 3px;
 }
 
 .indicator.blink {
