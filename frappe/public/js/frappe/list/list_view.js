@@ -825,7 +825,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let assigned_users = JSON.parse(doc._assign || "[]");
 		if (assigned_users.length) {
 			// REDESIGN-TODO: Make it filterable?
-			assigned_to = frappe.avatar_group(assigned_users, 3, {'css_class': 'filterable'});
+			assigned_to = frappe.avatar_group(assigned_users, 3, {'css_class': 'filterable'})[0].outerHTML;
 		}
 
 		const comment_count = `<span class="${
