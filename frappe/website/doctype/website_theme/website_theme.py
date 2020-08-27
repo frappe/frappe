@@ -73,7 +73,7 @@ class WebsiteTheme(Document):
 		file_name = frappe.scrub(self.name) + '_' + suffix + '.css'
 		output_path = join_path(folder_path, file_name)
 
-		content = get_scss(self)
+		self.theme_scss = content = get_scss(self)
 		content = content.replace('\n', '\\n')
 		command = ['node', 'generate_bootstrap_theme.js', output_path, content]
 
@@ -128,5 +128,6 @@ def get_active_theme():
 
 
 def get_scss(doc):
-	return frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', doc.as_dict())
-
+	opts = doc.as_dict()
+	opts['website_theme_scss'] = frappe.get_hooks('website_theme_scss')
+	return frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', opts)

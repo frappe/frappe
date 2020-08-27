@@ -26,3 +26,7 @@ body {
 
 // Custom Theme
 {{ custom_scss or '' }}
+
+{% for app_scss in website_theme_scss %}
+@import "{{ app_scss }}"
+{% endfor %}

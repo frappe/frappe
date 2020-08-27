@@ -157,6 +157,9 @@ app_license = "{app_license}"
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
 # web_include_js = "/assets/{app_name}/js/{app_name}.js"
 
+# include custom scss in every website theme (without file extension ".scss")
+# website_theme_scss = "{app_name}/public/scss/website"
+
 # include js, css files in header of web form
 # webform_include_js = {{"doctype": "public/js/doctype.js"}}
 # webform_include_css = {{"doctype": "public/css/doctype.css"}}
