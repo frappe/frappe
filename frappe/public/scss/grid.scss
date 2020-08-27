@@ -342,16 +342,18 @@
 }
 
 .prev-page, .next-page {
-	font-size: 14px;
+	.icon {
+		width: 10px;
+	}
 }
 
-a.prev-page {
-	padding-left: 15px;
+.prev-page {
+	margin-left: var(--margin-xs);
 	text-decoration: none;
 }
 
-a.next-page {
-	padding-right: 15px;
+.next-page {
+	margin-right: var(--margin-xs);
 	text-decoration: none;
 }
 
