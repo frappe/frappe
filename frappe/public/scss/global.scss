@@ -139,16 +139,16 @@ img {
 	}
 }
 
-.btn-secondary {
+.btn.btn-secondary {
 	background-color: var(--control-bg);
 	color: var(--text-color);
 	&:hover, &:active {
-		background: var(--gray-300);
+		background-color: var(--gray-300);
 		color: var(--text-color);
 	}
 }
 
-.btn-default {
+.btn.btn-default {
 	background-color: var(--fg-color);
 	color: var(--text-color);
 	&:hover, &:active {
@@ -157,11 +157,11 @@ img {
 	}
 }
 
-.btn-primary {
+.btn.btn-primary {
 	background-color: var(--primary-color);
 }
 
-.btn-danger {
+.btn.btn-danger {
 	background-color: var(--red-400);
 }
 
