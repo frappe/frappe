@@ -13,6 +13,7 @@ from distutils.spawn import find_executable
 from subprocess import check_output
 
 from six import iteritems, text_type
+import psutil
 
 import frappe
 from frappe.utils.minify import JavascriptMinify
@@ -92,8 +93,14 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False)
 
 	pacman = get_node_pacman()
 	mode = 'build' if no_compress else 'production'
-	available_memory = check_output(["node", "-e", "console.log(parseInt(require('os').totalmem()/2))"]).decode().strip()
-	command = '{pacman} run {mode} --max_old_space_size={available_memory}'.format(pacman=pacman, mode=mode, available_memory=available_memory)
+	try:
+		available_memory = psutil.virtual_memory().free * 0.8
+		available_swap = psutil.swap_memory().free * 0.6
+		available_usage = int(available_memory + available_swap)
+	except Exception:
+		available_usage = 0
+	memory_restriction = "--max_old_space_size={0}".format(available_usage) if available_usage else ""
+	command = '{pacman} run {mode} {memory_restriction}'.format(pacman=pacman, mode=mode, memory_restriction=memory_restriction)
 
 	if app:
 		command += ' --app {app}'.format(app=app)
