@@ -67,8 +67,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		# Reordered columns
 		columns = json.loads(report.custom_columns)
 
-		if report.report_type == 'Query Report':
-			result = reorder_data_for_custom_columns(columns, query_columns, result)
+		result = reorder_data_for_custom_columns(columns, query_columns, result, report.report_type)
 
 		result = add_data_to_custom_columns(columns, result)
 
@@ -216,17 +215,51 @@ def add_data_to_custom_columns(columns, result):
 
 	return data
 
-def reorder_data_for_custom_columns(custom_columns, columns, result):
+def reorder_data_for_custom_columns(custom_columns, columns, result, report_type):
+	if not result:
+		return []
+
+	if report_type == 'Query Report':
+		# Assume list result for query reports
+		# Query report columns exclusively use Label
+		custom_column_labels = [col["label"] for col in custom_columns]
+		original_column_labels = [col.split(":")[0] for col in columns]
+		return get_columns_from_list(custom_column_labels, original_column_labels, result)
+
+	custom_column_names = [col["fieldname"] for col in custom_columns]
+	if isinstance(result[0], list) or isinstance(result[0], tuple):
+		# If the result is a list of lists
+		original_column_names = [col["fieldname"] for col in columns]
+		return get_columns_from_list(custom_column_names, original_column_names, result)
+	else:
+		# If the result is a list of dicts
+		return get_columns_from_dict(custom_column_names, result)
+
+def get_columns_from_list(columns, target_columns, result):
 	reordered_result = []
-	columns = [col.split(":")[0] for col in columns]
 
 	for res in result:
 		r = []
-		for col in custom_columns:
+		for col_name in columns:
 			try:
-				idx = columns.index(col.get("label"))
+				idx = target_columns.index(col_name)
 				r.append(res[idx])
 			except ValueError:
+				pass
+
+		reordered_result.append(r)
+
+	return reordered_result
+
+def get_columns_from_dict(columns, result):
+	reordered_result = []
+
+	for res in result:
+		r = {}
+		for col_name in columns:
+			try:
+				r[col_name] = res[col_name]
+			except KeyError:
 				pass
 
 		reordered_result.append(r)

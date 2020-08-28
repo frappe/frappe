@@ -70,6 +70,9 @@ def get_safe_globals():
 			render_template=frappe.render_template,
 			msgprint=frappe.msgprint,
 			throw=frappe.throw,
+			sendmail = frappe.sendmail,
+			get_print = frappe.get_print,
+			attach_print = frappe.attach_print,
 
 			user=user,
 			get_fullname=frappe.utils.get_fullname,
@@ -113,6 +116,7 @@ def get_safe_globals():
 			get_single_value = frappe.db.get_single_value,
 			get_default = frappe.db.get_default,
 			escape = frappe.db.escape,
+			sql = read_sql
 		)
 
 	if frappe.response:
@@ -130,6 +134,13 @@ def get_safe_globals():
 	out.sorted = sorted
 
 	return out
+
+def read_sql(query, *args, **kwargs):
+	'''a wrapper for frappe.db.sql to allow reads'''
+	if query.strip().split(None, 1)[0].lower() == 'select':
+		return frappe.db.sql(query, *args, **kwargs)
+	else:
+		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 
 def _getitem(obj, key):
 	# guard function for RestrictedPython

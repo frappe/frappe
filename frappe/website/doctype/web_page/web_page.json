@@ -137,6 +137,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "insert_code",
    "fieldname": "custom_javascript",
    "fieldtype": "Section Break",
    "label": "Script"
@@ -157,6 +158,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "insert_style",
    "fieldname": "custom_css",
    "fieldtype": "Section Break",
    "label": "Style"
@@ -288,10 +290,11 @@
  "has_web_view": 1,
  "icon": "fa fa-file-alt",
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
  "max_attachments": 20,
- "modified": "2020-04-25 20:40:39.253548",
+ "modified": "2020-08-07 10:55:54.885448",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

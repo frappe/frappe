@@ -32,40 +32,16 @@ frappe.ui.form.on('Number Card', {
 
 	create_add_to_dashboard_button: function(frm) {
 		frm.add_custom_button('Add Card to Dashboard', () => {
-			const d = new frappe.ui.Dialog({
-				title: __('Add to Dashboard'),
-				fields: [
-					{
-						label: __('Select Dashboard'),
-						fieldtype: 'Link',
-						fieldname: 'dashboard',
-						options: 'Dashboard',
-					}
-				],
-				primary_action: (values) => {
-					values.name = frm.doc.name;
-					frappe.xcall(
-						'frappe.desk.doctype.number_card.number_card.add_card_to_dashboard',
-						{
-							args: values
-						}
-					).then(()=> {
-						let dashboard_route_html =
-							`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
-						let message =
-							__(`Number Card ${values.name} add to Dashboard ` + dashboard_route_html);
-
-						frappe.msgprint(message);
-					});
-
-					d.hide();
-				}
-			});
+			const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
+				frm.doc.name,
+				'Number Card',
+				'frappe.desk.doctype.number_card.number_card.add_card_to_dashboard'
+			);
 
 			if (!frm.doc.name) {
 				frappe.msgprint(__('Please create Card first'));
 			} else {
-				d.show();
+				dialog.show();
 			}
 		});
 	},
@@ -140,6 +116,7 @@ frappe.ui.form.on('Number Card', {
 	},
 
 	report_name: function(frm) {
+		frm.filters = [];
 		frm.set_value('filters_json', '{}');
 		frm.set_value('dynamic_filters_json', '{}');
 		frm.set_df_property('report_field', 'options', []);
@@ -271,7 +248,7 @@ frappe.ui.form.on('Number Card', {
 			set_filters && frm.set_value('filters_json', JSON.stringify(filters));
 		}
 
-		let fields;
+		let fields = [];
 		if (is_document_type) {
 			fields = [
 				{

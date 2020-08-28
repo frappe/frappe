@@ -67,29 +67,28 @@ def get_comment_list(doctype, name):
 
 
 def get_home_page():
-	if frappe.local.flags.home_page:
+	if frappe.local.flags.home_page and not frappe.flags.in_test:
 		return frappe.local.flags.home_page
 
 	def _get_home_page():
 		home_page = None
 
-		get_website_user_home_page = frappe.get_hooks('get_website_user_home_page')
-		if get_website_user_home_page:
-			home_page = frappe.get_attr(get_website_user_home_page[-1])(frappe.session.user)
+		# for user
+		if frappe.session.user != 'Guest':
+			# by role
+			for role in frappe.get_roles():
+				home_page = frappe.db.get_value('Role', role, 'home_page')
+				if home_page: break
 
+			# portal default
+			if not home_page:
+				home_page = frappe.db.get_value("Portal Settings", None, "default_portal_home")
+
+		# by hooks
 		if not home_page:
-			role_home_page = frappe.get_hooks("role_home_page")
-			if role_home_page:
-				for role in frappe.get_roles():
-					if role in role_home_page:
-						home_page = role_home_page[role][-1]
-						break
+			home_page = get_home_page_via_hooks()
 
-		if not home_page:
-			home_page = frappe.get_hooks("home_page")
-			if home_page:
-				home_page = home_page[-1]
-
+		# global
 		if not home_page:
 			home_page = frappe.db.get_value("Website Settings", None, "home_page") or "login"
 
@@ -98,6 +97,31 @@ def get_home_page():
 		return home_page
 
 	return frappe.cache().hget("home_page", frappe.session.user, _get_home_page)
+
+def get_home_page_via_hooks():
+	home_page = None
+
+	home_page_method = frappe.get_hooks('get_website_user_home_page')
+	if home_page_method:
+		home_page = frappe.get_attr(home_page_method[-1])(frappe.session.user).strip('/')
+	elif frappe.get_hooks('website_user_home_page'):
+		home_page = frappe.get_hooks('website_user_home_page')[-1].strip('/')
+
+	if not home_page:
+		role_home_page = frappe.get_hooks("role_home_page")
+		if role_home_page:
+			for role in frappe.get_roles():
+				if role in role_home_page:
+					home_page = role_home_page[role][-1]
+					break
+
+	if not home_page:
+		home_page = frappe.get_hooks("home_page")
+		if home_page:
+			home_page = home_page[-1]
+
+	return home_page
+
 
 def is_signup_enabled():
 	if getattr(frappe.local, "is_signup_enabled", None) is None:

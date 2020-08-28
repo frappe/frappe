@@ -10,6 +10,7 @@ from frappe.handler import is_whitelisted
 from frappe import _
 from six import string_types
 import re
+import wrapt
 
 UNTRANSLATED_DOCTYPES = ["DocType", "Role"]
 
@@ -206,3 +207,15 @@ def scrub_custom_query(query, key, txt):
 	if '%s' in query:
 		query = query.replace('%s', ((txt or '') + '%'))
 	return query
+
+@wrapt.decorator
+def validate_and_sanitize_search_inputs(fn, instance, args, kwargs):
+	kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+	sanitize_searchfield(kwargs['searchfield'])
+	kwargs['start'] = cint(kwargs['start'])
+	kwargs['page_len'] = cint(kwargs['page_len'])
+
+	if kwargs['doctype'] and not frappe.db.exists('DocType', kwargs['doctype']):
+		return []
+
+	return fn(**kwargs)
