@@ -35,6 +35,10 @@
 	&.has-error {
 		input {
 			border: 1px solid var(--red-400);
+
+			&:focus {
+				box-shadow: 0 0 0 $input-btn-focus-width var(--red-100);
+			}
 		}
 	}
 }
