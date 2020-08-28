@@ -114,9 +114,8 @@
 		}
 	}
 
-	// REDESIGN-TODO: variable for color
 	.dt-cell--focus .dt-cell__content {
-		border-color: #9bccf8;
+		border-color: var(--blue-200);
 	}
 }
 
