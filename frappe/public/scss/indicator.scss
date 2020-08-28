@@ -152,7 +152,7 @@
 	@include indicator-color('gray');
 }
 
-.indicator-pill.gray
+.indicator-pill.gray,
 .indicator-pill-right.gray,
 .indicator-pill-round.gray {
 	@include indicator-pill-color('gray');
