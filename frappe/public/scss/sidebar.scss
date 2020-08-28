@@ -118,6 +118,8 @@ body[data-route^="Module"] .main-menu {
 		.sidebar-image {
 			width: 100%;
 			height: auto;
+			max-height: 170px;
+			object-fit: cover;
 			border-radius: var(--border-radius-lg);
 		}
 
