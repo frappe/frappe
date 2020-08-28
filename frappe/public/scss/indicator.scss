@@ -42,7 +42,7 @@
 	background: var(--indicator-red-bg);
 	color: var(--indicator-red);
 	&::before, &::after {
-		background: var(--indicator-red);
+		background: var(--indicator-#{$color});
 	}
 }
 
