@@ -100,14 +100,15 @@ frappe.RoleEditor = class {
 		this.set_enable_disable();
 	}
 	set_roles_in_table() {
+		let roles = this.frm.doc.roles || [];
 		let checked_options = this.multicheck.get_checked_options();
-		(this.frm.doc.roles|| []).map(role_doc => {
+		roles.map(role_doc => {
 			if (!checked_options.includes(role_doc.role)) {
 				frappe.model.clear_doc(role_doc.doctype, role_doc.name);
 			}
 		});
 		checked_options.map(role => {
-			if (!this.frm.doc.roles.find(d => d.role === role)) {
+			if (!roles.find(d => d.role === role)) {
 				let role_doc = frappe.model.add_child(this.frm.doc, "Has Role", "roles");
 				role_doc.role = role;
 			}
