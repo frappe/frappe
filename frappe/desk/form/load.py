@@ -99,6 +99,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"share_logs": get_comments(doc.doctype, doc.name, 'share'),
+		"like_logs": get_comments(doc.doctype, doc.name, 'Like'),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 		"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),

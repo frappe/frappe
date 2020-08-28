@@ -116,8 +116,10 @@ body[data-route^="Module"] .main-menu {
 		cursor: pointer;
 
 		.sidebar-image {
-			@extend .fill-width;
+			width: 100%;
 			height: auto;
+			max-height: 170px;
+			object-fit: cover;
 			border-radius: var(--border-radius-lg);
 		}
 
@@ -152,7 +154,14 @@ body[data-route^="Module"] .main-menu {
 			text-align: center;
 			z-index: 1;
 		}
-
+		// TODO: find better fix
+		.sidebar-standard-image {
+			.standard-image {
+				height: 0;
+				padding: 50% 0;
+				border: 1px solid var(--dark-border-color);
+			}
+		}
 	}
 }
 

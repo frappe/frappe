@@ -29,8 +29,7 @@ frappe.ui.form.set_user_image = function(frm) {
 			.addClass('hide');
 
 		title_image
-			.css('background-color', '')
-			.css("background-image", 'url("' + image + '")')
+			.css("background-image", `url("${image}")`)
 			.html('');
 
 		image_actions.find('.sidebar-image-change, .sidebar-image-remove').show();
@@ -47,11 +46,9 @@ frappe.ui.form.set_user_image = function(frm) {
 			.find('.sidebar-standard-image')
 			.removeClass('hide')
 			.find('.standard-image')
-			.css({'background-color': '#fafbfc'})
 			.html(frappe.get_abbr(title));
 
 		title_image.css("background-image", '')
-			.css({'background-color': '#fafbfc'})
 			.html(frappe.get_abbr(title));
 
 		image_actions.find('.sidebar-image-change').show();
