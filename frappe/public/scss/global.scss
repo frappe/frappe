@@ -99,7 +99,7 @@ img {
 	font-size: var(--text-md);
 	&.icon-btn {
 		padding: 0px;
-		&.btn-default {
+		&.btn-default, &.btn-secondary {
 			min-width: 28px;
 		}
 	}
