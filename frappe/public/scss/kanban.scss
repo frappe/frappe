@@ -84,11 +84,15 @@
 
 	}
 
+	.kanban-cards {
+		min-height: 100px;
+	}
+
 	.kanban-card {
 		@include card($padding: 10px 15px, $background-color: var(--fg-color));
 		margin-top: var(--margin-sm);
 		width: 260px;
-		min-height: 110px;
+		min-height: 100px;
 		display: flex;
 		justify-content: space-between;
 		flex-direction: column;
