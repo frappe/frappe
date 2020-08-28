@@ -224,12 +224,15 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(extract_mentions(comment)[1], "test.again@example1.com")
 
 	def test_rate_limiting_for_reset_password(self):
+		from frappe.utils.password import delete_password_reset_cache
+		delete_password_reset_cache()
+
 		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 1)
 
 		user = frappe.get_doc("User", "testperm@example.com")
 		link = user.reset_password()
+		self.assertRegex(link, "\/update-password\?key=[A-Za-z0-9]*")
 
-		self.assertContains(link, "/update-password?key=")
 		self.assertRaises(frappe.ValidationError, user.reset_password, False)
 
 
