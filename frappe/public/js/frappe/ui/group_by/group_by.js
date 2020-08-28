@@ -131,7 +131,10 @@ frappe.ui.GroupBy = class {
 		});
 
 		this.remove_group_by_button.on('click', () => {
-			this.remove_group_by();
+			if (this.group_by) {
+				this.remove_group_by();
+				this.toggle_aggregate_on_field_display(false);
+			}
 		});
 	}
 
@@ -365,7 +368,7 @@ frappe.ui.GroupBy = class {
 		this.group_by = null;
 		this.group_by_field = null;
 		this.report_view.group_by = null;
-		this.aggregate_function = null;
+		this.aggregate_function = 'count';
 		this.aggregate_on = null;
 		this.aggregate_on_field = null;
 		this.group_by_select.val('');
@@ -379,6 +382,7 @@ frappe.ui.GroupBy = class {
 		} else {
 			this.report_view.set_default_fields();
 		}
+
 		this.report_view.setup_columns();
 		this.original_fields = null;
 		this.report_view.refresh();
