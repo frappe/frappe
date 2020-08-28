@@ -39,10 +39,10 @@
 }
 
 @mixin indicator-pill-color($color) {
-	background: var(--indicator-red-bg);
-	color: var(--indicator-red);
+	background: var(--indicator-#{$color}-bg);
+	color: var(--indicator-#{$color});
 	&::before, &::after {
-		background: var(--indicator-red);
+		background: var(--indicator-#{$color});
 	}
 }
 
