@@ -24,11 +24,6 @@
 					{% } %}
 				{% } %}
 			</select>
-			<span class="select-icon">
-				<svg class="icon icon-xs">
-					<use xlink:href="#icon-select"></use>
-				</svg>
-			</span>
 		</div>
 		<div class="col-sm-3 form-group">
 			<select class="aggregate-function form-control input-xs">
@@ -36,21 +31,11 @@
 				<option value="{{condition.name}}">{{ condition.label }}</option>
 				{% endfor %}
 			</select>
-			<span class="select-icon">
-				<svg class="icon icon-xs">
-					<use xlink:href="#icon-select"></use>
-				</svg>
-			</span>
 		</div>
 		<div class="col-sm-4 col-xs-12" style="display: none">
 			<select class="aggregate-on form-control input-xs">
 				<option value="" disabled selected>{{ __("Select Field...") }}</option>
 			</select>
-			<span class="select-icon">
-				<svg class="icon icon-xs">
-					<use xlink:href="#icon-select"></use>
-				</svg>
-			</span>
 		</div>
 		<div class="groupby-actions pull-left col-sm-1">
 			<span class="remove-group-by">
