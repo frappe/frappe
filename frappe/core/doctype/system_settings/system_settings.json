@@ -20,7 +20,7 @@
   "column_break_7",
   "float_precision",
   "currency_precision",
-  "currency_name_instead_of_symbol",
+  "currency_indicator_style",
   "sec_backup_limit",
   "backup_limit",
   "background_workers",
@@ -455,16 +455,17 @@
    "label": "Prepared Report"
   },
   {
-   "default": "0",
-   "fieldname": "currency_name_instead_of_symbol",
-   "fieldtype": "Check",
-   "label": "Currency name instead of symbol"
+   "default": "$ 10",
+   "fieldname": "currency_indicator_style",
+   "fieldtype": "Select",
+   "label": "Currency Indicator Style",
+   "options": "$ 10\n10 USD"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-08-25 16:29:31.723870",
+ "modified": "2020-08-28 20:52:17.736677",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

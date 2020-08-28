@@ -123,7 +123,7 @@ function format_currency(v, currency, decimals) {
 	}
 
 	if (symbol) {
-		if (frappe.boot.sysdefaults.currency_name_instead_of_symbol == 1)
+		if (frappe.boot.sysdefaults.currency_indicator_style == "10 USD")
 			return format_number(v, format, decimals) + " " + currency;
 
 		return symbol + " " + format_number(v, format, decimals);

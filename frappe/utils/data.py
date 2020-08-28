@@ -640,7 +640,7 @@ def fmt_money(amount, precision=None, currency=None):
 
 	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
 		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
-		if frappe.db.get_single_value("System Settings", "currency_name_instead_of_symbol") != 1:
+		if frappe.db.get_single_value("System Settings", "currency_indicator_style") != "10 USD":
 			amount = symbol + " " + amount
 		else:
 			amount = amount + " " + currency
