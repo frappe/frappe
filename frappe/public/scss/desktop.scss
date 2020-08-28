@@ -20,10 +20,12 @@ html, body {
 		&:focus {
 			background-color: var(--sidebar-select-color);
 			outline: 0;
+			text-decoration: none;
 		}
 
 		&:hover {
 			background-color: var(--sidebar-select-color);
+			text-decoration: none;
 		}
 
 		&.selected {
