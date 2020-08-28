@@ -209,7 +209,7 @@
    "label": "Client Script"
   },
   {
-   "description": "For help see <a href=\"https://frappe.io/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
+   "description": "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
    "fieldname": "client_script",
    "fieldtype": "Code",
    "label": "Client Script"
