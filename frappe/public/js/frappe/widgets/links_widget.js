@@ -34,7 +34,7 @@ export default class LinksWidget extends Widget {
 			if (item.onboard) {
 				return item.count ? "blue" : "yellow";
 			}
-			return "grey";
+			return "gray";
 		};
 
 		const get_link_for_item = item => {
