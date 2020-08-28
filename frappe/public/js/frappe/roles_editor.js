@@ -101,7 +101,7 @@ frappe.RoleEditor = class {
 	}
 	set_roles_in_table() {
 		let checked_options = this.multicheck.get_checked_options();
-		this.frm.doc.roles.map(role_doc => {
+		(this.frm.doc.roles|| []).map(role_doc => {
 			if (!checked_options.includes(role_doc.role)) {
 				frappe.model.clear_doc(role_doc.doctype, role_doc.name);
 			}
