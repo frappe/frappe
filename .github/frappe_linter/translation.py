@@ -22,7 +22,7 @@ for _file in files:
 						print(f'A syntax error has been discovered at line number: {num}')
 						print(f'Syntax error occurred with: {line}')
 if errors_encounter > 0:
-	print('You can visit "https://frappe.io/docs/user/en/translations" to resolve this error.')
+	print('You can visit "https://frappeframework.com/docs/user/en/translations" to resolve this error.')
 	assert 1+1 == 3
 else:
 	print('Good To Go!')

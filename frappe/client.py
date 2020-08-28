@@ -73,19 +73,32 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
 
 	filters = get_safe_filters(filters)
+	if isinstance(filters, string_types):
+		filters = {"name": filters}
 
 	try:
-		fieldname = json.loads(fieldname)
+		fields = json.loads(fieldname)
 	except (TypeError, ValueError):
 		# name passed, not json
-		pass
+		fields = [fieldname]
 
 	# check whether the used filters were really parseable and usable
 	# and did not just result in an empty string or dict
 	if not filters:
 		filters = None
 
-	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
+
+	if frappe.get_meta(doctype).issingle:
+		value = frappe.db.get_values_from_single(fields, filters, doctype, as_dict=as_dict, debug=debug)
+	else:
+		value = frappe.get_list(doctype, filters=filters, fields=fields, debug=debug, limit=1)
+
+	if as_dict:
+		value = value[0] if value else {}
+	else:
+		value = value[0].fieldname
+
+	return value
 
 @frappe.whitelist()
 def get_single_value(doctype, field):

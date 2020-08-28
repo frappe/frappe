@@ -136,7 +136,8 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
-			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+			"frappe.core.doctype.file.file.attach_files_to_document",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -214,7 +215,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
-		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails"
+		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
+		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
