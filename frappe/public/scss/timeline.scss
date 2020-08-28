@@ -1,6 +1,6 @@
 $timeline-item-icon-size: 34px;
 $timeline-item-left-margin: var(--margin-xl);
-$timeline-item-bottom-margin: var(--margin-md);
+$timeline-item-bottom-margin: var(--margin-sm);
 $threshold: 40;
 
 @mixin timeline-indicator($indicator-size) {
@@ -65,6 +65,7 @@ $threshold: 40;
 		position: relative;
 		padding: var(--padding-sm);
 		font-size: var(--text-sm);
+		margin-bottom: $timeline-item-bottom-margin;
 		span:first-of-type {
 			margin-left: $timeline-item-left-margin;
 		}
