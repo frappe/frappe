@@ -163,6 +163,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!in_list(['Table', 'Table MultiSelect'], doc.fieldtype);",
    "fieldname": "in_preview",
    "fieldtype": "Check",
    "label": "In Preview"
@@ -475,9 +476,10 @@
   }
  ],
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-02-06 09:06:25.224413",
+ "modified": "2020-08-28 11:28:21.252853",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
