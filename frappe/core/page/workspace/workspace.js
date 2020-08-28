@@ -126,7 +126,7 @@ class Workspace {
 
 			let $item = get_sidebar_item(item);
 
-			$item.clone().appendTo(sidebar_section);
+			$item.appendTo(sidebar_section);
 			this.sidebar_items[item.name] = $item;
 		};
 

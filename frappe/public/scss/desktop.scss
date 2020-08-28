@@ -15,15 +15,17 @@ html, body {
 		padding: 8px 12px;
 		margin-bottom: 2px;
 		border-radius: var(--border-radius-md);
-		cursor: pointer;
+		cursor: pointer;;
 
 		&:focus {
 			background-color: var(--sidebar-select-color);
 			outline: 0;
+			text-decoration: none;
 		}
 
 		&:hover {
 			background-color: var(--sidebar-select-color);
+			text-decoration: none;
 		}
 
 		&.selected {
