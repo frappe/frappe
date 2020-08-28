@@ -28,9 +28,9 @@ class TestWebsiteTheme(unittest.TestCase):
 	def test_imports_to_ignore(self):
 		frappe.delete_doc_if_exists('Website Theme', 'test-theme')
 		theme = frappe.get_doc(dict(
-			doctype = 'Website Theme',
-			theme = 'test-theme',
-			imports_to_ignore = 'frappe/public/scss/website'
+			doctype='Website Theme',
+			theme='test-theme',
+			imports_to_ignore='frappe/public/scss/website'
 		)).insert()
 
 		self.assertTrue('@import "frappe/public/scss/website"' not in theme.theme_scss)
