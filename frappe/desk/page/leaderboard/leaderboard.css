@@ -52,6 +52,21 @@
 }
 
 .rank {
-	max-width: 75px;
+	max-width: 100px;
 }
 
+.leaderboard .result {
+	border-top: 1px solid var(--border-color);
+}
+
+.leaderboard .list-item {
+	padding-left: 45px;
+}
+
+.leaderboard .list-item_content {
+	padding-right: 45px;
+}
+
+.leaderboard-sidebar {
+	padding-left: 0;
+}
