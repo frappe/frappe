@@ -26,6 +26,7 @@
   "stylesheet_section",
   "custom_overrides",
   "custom_scss",
+  "imports_to_ignore",
   "theme_scss",
   "theme_url",
   "custom_js_section",
@@ -167,10 +168,17 @@
    "fieldtype": "Code",
    "label": "Custom Overrides",
    "options": "SCSS"
+  },
+  {
+   "description": "Comma-separated list of import paths",
+   "fieldname": "imports_to_ignore",
+   "fieldtype": "Data",
+   "label": "Imports To Ignore"
   }
  ],
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-05-16 18:36:22.203519",
+ "modified": "2020-08-28 13:31:32.846474",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

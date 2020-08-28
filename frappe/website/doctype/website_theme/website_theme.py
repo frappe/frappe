@@ -128,6 +128,10 @@ def get_active_theme():
 
 
 def get_scss(doc):
+	def trim_list(list_of_strings):
+		return [s.strip() for s in list_of_strings]
+
 	opts = doc.as_dict()
-	opts['website_theme_scss'] = frappe.get_hooks('website_theme_scss')
+	opts['website_theme_scss'] = trim_list(frappe.get_hooks('website_theme_scss', []))
+	opts['imports_to_ignore'] = trim_list((opts.get('imports_to_ignore') or '').split(','))
 	return frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', opts)
