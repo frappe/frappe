@@ -126,6 +126,8 @@ frappe.ui.Page = Class.extend({
 			this.make_page();
 		}
 
+		this.card_layout && this.main.addClass('frappe-card');
+
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find('button');
 		frappe.ui.keys
