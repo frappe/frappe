@@ -61,7 +61,7 @@ class TestBlogPost(unittest.TestCase):
 		frappe.delete_doc("Blog Category", blog.blog_category)
 
 def make_test_blog():
-	if not frappe.db.exists('Blog Category', 'Test Blog Category'):
+	if not frappe.db.exists('Blog Category', '-test-blog-category'):
 		# Set different title and name for the category
 		frappe.get_doc(dict(
 			doctype = 'Blog Category',
@@ -73,7 +73,7 @@ def make_test_blog():
 			full_name='Test Blogger')).insert()
 	test_blog = frappe.get_doc(dict(
 		doctype = 'Blog Post',
-		blog_category = 'test-blog-category',
+		blog_category = '-test-blog-category',
 		blogger = 'test-blogger',
 		title = random_string(20),
 		route = random_string(20),
