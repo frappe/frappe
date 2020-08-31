@@ -366,6 +366,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						this.report_settings.html_format = settings.html_format;
 						this.report_settings.execution_time = settings.execution_time || 0;
 						frappe.query_reports[this.report_name] = this.report_settings;
+
+						if (this.report_doc.filters && !this.report_settings.filters) {
+							// add configured filters
+							this.report_settings.filters = this.report_doc.filters;
+						}
+
 						resolve();
 					});
 				}).catch(reject);
@@ -1035,7 +1041,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 					if (column.colIndex === index && !value) {
 						value = "Total";
-						column.fieldtype = "Data"; // avoid type issues for value if Date column
+						column = { fieldtype: "Data" }; // avoid type issues for value if Date column
 					} else if (in_list(["Currency", "Float"], column.fieldtype)) {
 						// proxy for currency and float
 						data = this.data[0];
@@ -1109,8 +1115,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.map(f => {
 				var v = f.get_value();
 				// hidden fields dont have $input
-				if(f.df.hidden) v = f.value;
-				if(v === '%') v = null;
+				if (f.df.hidden) v = f.value;
+				if (v === '%') v = null;
+				if (f.df.wildcard_filter) {
+					v = `%${v}%`;
+				}
 				return {
 					[f.df.fieldname]: v
 				};
