@@ -90,7 +90,6 @@ def bg_logging_enabled():
 		return value
 
 def create_job_run_log(method_name):
-	print(bg_logging_enabled())
 	if not bg_logging_enabled():
 		return
 
