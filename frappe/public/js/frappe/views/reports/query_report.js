@@ -58,18 +58,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	set_default_secondary_action() {
-		this.refresh_button = this.page.add_action_icon("refresh", () => {
-			this.setup_progress_bar();
-			this.refresh()
-		});
-	}
-
-	set_default_secondary_action() {
 		this.refresh_button && this.refresh_button.remove();
 		this.refresh_button = this.page.add_action_icon("refresh", () => {
 			this.setup_progress_bar();
-			this.refresh()
+			this.refresh();
 		});
+	}
+
+	get_no_result_message() {
+		return `<div class="msg-box no-border">
+			<div>
+				<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
+			</div>
+			<p>${__('Nothing to show')}</p>
+		</div>`;
 	}
 
 	setup_events() {
@@ -1717,7 +1719,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	toggle_nothing_to_show(flag) {
 		let message = this.prepared_report
 			? __('This is a background report. Please set the appropriate filters and then generate a new one.')
-			: __('Nothing to show')
+			: this.get_no_result_message();
 
 		this.toggle_message(flag, message);
 
