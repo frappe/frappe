@@ -40,7 +40,9 @@ execute:frappe.reload_doc('core', 'doctype', 'role') #2017-05-23
 execute:frappe.reload_doc('core', 'doctype', 'user') #2017-10-27
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
-execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
+execute:frappe.reload_doc('core', 'doctype', 'report_column')
+execute:frappe.reload_doc('core', 'doctype', 'report_filter')
+execute:frappe.reload_doc('core', 'doctype', 'report') #2020-08-25
 execute:frappe.reload_doc('core', 'doctype', 'translation') #2016-03-03
 execute:frappe.reload_doc('email', 'doctype', 'email_alert') #2014-07-15
 execute:frappe.reload_doc('desk', 'doctype', 'todo') #2014-12-31-1
