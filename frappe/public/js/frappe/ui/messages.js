@@ -24,34 +24,34 @@ frappe.throw = function(msg) {
 	throw new Error(msg.message);
 }
 
-frappe.confirm = function(message, ifyes, ifno) {
+frappe.confirm = function(message, confirm_action, reject_action) {
 	var d = new frappe.ui.Dialog({
 		title: __("Confirm"),
-		fields: [
-			{fieldtype:"HTML", options:`<p class="frappe-confirm-message">${message}</p>`}
-		],
 		primary_action_label: __("Yes"),
-		primary_action: function() {
-			if(ifyes) ifyes();
+		primary_action: () => {
+			confirm_action && confirm_action();
 			d.hide();
 		},
 		secondary_action_label: __("No")
 	});
+
+	d.$body.append(`<p class="frappe-confirm-message">${message}</p>`);
 	d.show();
 
 	// flag, used to bind "okay" on enter
 	d.confirm_dialog = true;
 
 	// no if closed without primary action
-	if(ifno) {
-		d.onhide = function() {
-			if(!d.primary_action_fulfilled) {
-				ifno();
+	if (reject_action) {
+		d.onhide = () => {
+			if (!d.primary_action_fulfilled) {
+				reject_action();
 			}
 		};
 	}
+
 	return d;
-}
+};
 
 frappe.warn = function(title, message_html, proceed_action, primary_label, is_minimizable) {
 	const d = new frappe.ui.Dialog({
