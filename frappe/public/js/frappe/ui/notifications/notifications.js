@@ -457,9 +457,12 @@ class EventsView extends BaseNotificaitonsView {
 			};
 			html = event_list.map(get_event_html).join('');
 		} else {
-			html = `<li class="recent-item text-center">
-					<span class="text-muted">${__('No Events Today')}</span>
-				</li>`;
+			html = `
+				<div class="empty-state center-content">
+					<img src="/assets/frappe/images/ui-states/event-empty-state.svg"></img>
+					${__('No Events Today')}
+				</div>
+			`;
 		}
 
 		this.container.html(html);
