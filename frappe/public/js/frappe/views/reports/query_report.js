@@ -592,7 +592,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.render_summary(data.report_summary);
 			}
 
-			if(data.message && !data.prepared_report) this.show_status(data.message);
+			if (data.message && !data.prepared_report) this.show_status(data.message);
 
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
