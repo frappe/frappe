@@ -14,11 +14,13 @@ class Leaderboard {
 		frappe.ui.make_app_page({
 			parent: parent,
 			title: __("Leaderboard"),
-			single_column: false
+			single_column: false,
+			card_layout: true,
 		});
+
 		this.parent = parent;
 		this.page = this.parent.page;
-		this.page.sidebar.html(`<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul>`);
+		this.page.sidebar.html(`<ul class="desk-sidebar leaderboard-sidebar overlay-sidebar"></ul>`);
 		this.$sidebar_list = this.page.sidebar.find('ul');
 
 		this.get_leaderboard_config();
@@ -147,7 +149,7 @@ class Leaderboard {
 				fieldname: 'selected_date_range',
 				placeholder: "Date Range",
 				default: [frappe.datetime.month_start(), frappe.datetime.now_date()],
-				input_class: 'input-sm',
+				input_class: 'input-xs',
 				reqd: 1,
 				change: () => {
 					this.selected_date_range = date_field.get_value();
@@ -193,7 +195,7 @@ class Leaderboard {
 
 		this.$search_box =
 			$(`<div class="leaderboard-search form-group col-md-3">
-				<input type="text" placeholder="Search" data-element="search" class="form-control leaderboard-search-input input-sm">
+				<input type="text" placeholder="Search" data-element="search" class="form-control leaderboard-search-input input-xs">
 			</div>`);
 
 		$(this.parent).find(".page-form").append(this.$search_box);
@@ -306,7 +308,7 @@ class Leaderboard {
 
 		const html =
 			`<div class="list-headers">
-				<div class="list-item list-item--head" data-list-renderer="List">${filters}</div>
+				<div class="list-item" data-list-renderer="List">${filters}</div>
 			</div>`;
 		return html;
 	}
@@ -369,7 +371,7 @@ class Leaderboard {
 	}
 
 	get_sidebar_item(item) {
-		return $(`<li class="strong module-sidebar-item">
+		return $(`<li class="desk-sidebar-item">
 			<a class="module-link">
 			<span doctype-value="${item}">${ __(item) }</span></a>
 		</li>`);

@@ -349,6 +349,13 @@ input[type="checkbox"] {
 	}
 }
 
+// Firefox doesn't support pseudo elements on checkbox
+@supports (-moz-appearance: none) or (-ms-ime-align:auto) {
+	input[type="checkbox"] {
+		width: $checkbox-size !important
+	}
+}
+
 .frappe-card {
 	@include card();
 }

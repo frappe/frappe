@@ -472,7 +472,10 @@ export default class ChartWidget extends Widget {
 	set_chart_actions(actions) {
 		/* eslint-disable indent */
 		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
-			<button data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-xs btn-secondary">
+			<button data-toggle="dropdown"
+				aria-haspopup="true"aria-expanded="false"
+				class="btn btn-xs btn-secondary chart-menu"
+			>
 				‧‧‧
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">

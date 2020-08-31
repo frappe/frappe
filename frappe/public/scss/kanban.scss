@@ -9,7 +9,7 @@
 		max-width: 290px;
 		padding: 15px;
 		border-radius: $border-radius;
-		margin: var(--margin-lg) var(--margin-lg) var(--margin-lg) 0;
+		margin: var(--margin-lg) var(--margin-sm) var(--margin-lg) 0;
 		background-color: var(--gray-200);
  		&.add-new-column {
 			order: 1;
@@ -84,11 +84,15 @@
 
 	}
 
+	.kanban-cards {
+		min-height: 100px;
+	}
+
 	.kanban-card {
 		@include card($padding: 10px 15px, $background-color: var(--fg-color));
 		margin-top: var(--margin-sm);
 		width: 260px;
-		min-height: 110px;
+		min-height: 100px;
 		display: flex;
 		justify-content: space-between;
 		flex-direction: column;
