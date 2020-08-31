@@ -27,9 +27,9 @@ class BackupGenerator:
 		To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
 		If specifying db_file_name, also append ".sql.gz"
 	"""
-	def __init__(self, db_name, user, password, backup_path_conf=None, backup_path_db=None, backup_path_files=None,
+	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
 		backup_path_private_files=None, db_host="localhost", db_port=None, verbose=False,
-		db_type='mariadb'):
+		db_type='mariadb', backup_path_conf=None):
 		global _verbose
 		self.db_host = db_host
 		self.db_port = db_port
