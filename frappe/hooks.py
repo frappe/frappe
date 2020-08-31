@@ -10,7 +10,7 @@ app_icon = "octicon octicon-circuit-board"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
-app_logo_url = '/assets/frappe/images/frappe-framework-logo.png'
+app_logo_url = '/assets/frappe/images/frappe-framework-logo.svg'
 
 develop_version = '13.x.x-develop'
 
