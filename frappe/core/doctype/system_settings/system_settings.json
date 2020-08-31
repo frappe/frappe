@@ -8,7 +8,7 @@
   "localization",
   "country",
   "language",
-  "column_break_3",
+  "column_break_4",
   "time_zone",
   "is_first_startup",
   "enable_onboarding",
@@ -16,7 +16,7 @@
   "date_and_number_format",
   "date_format",
   "time_format",
-  "column_break_7",
+  "column_break_12",
   "number_format",
   "float_precision",
   "currency_precision",
@@ -25,14 +25,16 @@
   "background_workers",
   "enable_scheduler",
   "dormant_days",
+  "column_break_21",
+  "enable_bg_logger",
   "permissions",
   "apply_strict_user_permissions",
-  "column_break_21",
+  "column_break_25",
   "allow_guests_to_upload_files",
   "security",
   "session_expiry",
   "session_expiry_mobile",
-  "column_break_13",
+  "column_break_30",
   "deny_multiple_sessions",
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
@@ -40,12 +42,12 @@
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
-  "column_break_31",
+  "column_break_38",
   "enable_password_policy",
   "minimum_password_score",
   "brute_force_security",
   "allow_consecutive_login_attempts",
-  "column_break_34",
+  "column_break_43",
   "allow_login_after_fail",
   "two_factor_authentication",
   "enable_two_factor_auth",
@@ -56,7 +58,7 @@
   "otp_issuer_name",
   "email",
   "email_footer_address",
-  "column_break_18",
+  "column_break_54",
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
@@ -85,10 +87,6 @@
    "label": "Language",
    "options": "Language",
    "reqd": 1
-  },
-  {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "time_zone",
@@ -132,10 +130,6 @@
    "label": "Time Format",
    "options": "HH:mm:ss\nHH:mm",
    "reqd": 1
-  },
-  {
-   "fieldname": "column_break_7",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "number_format",
@@ -218,10 +212,6 @@
    "label": "Session Expiry Mobile"
   },
   {
-   "fieldname": "column_break_13",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "0",
    "description": "Note: Multiple sessions will be allowed in case of mobile device",
    "fieldname": "deny_multiple_sessions",
@@ -261,10 +251,6 @@
    "label": "Force User to Reset Password"
   },
   {
-   "fieldname": "column_break_31",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "1",
    "description": "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",
    "fieldname": "enable_password_policy",
@@ -289,10 +275,6 @@
    "fieldname": "allow_consecutive_login_attempts",
    "fieldtype": "Int",
    "label": "Allow Consecutive Login Attempts "
-  },
-  {
-   "fieldname": "column_break_34",
-   "fieldtype": "Column Break"
   },
   {
    "default": "60",
@@ -362,10 +344,6 @@
    "fieldname": "email_footer_address",
    "fieldtype": "Small Text",
    "label": "Email Footer Address"
-  },
-  {
-   "fieldname": "column_break_18",
-   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -452,12 +430,46 @@
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
    "label": "Prepared Report"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_bg_logger",
+   "fieldtype": "Check",
+   "label": "Enable Background Job Logger"
+  },
+  {
+   "fieldname": "column_break_25",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_30",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_38",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_43",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_54",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-08-12 14:35:45.214327",
+ "modified": "2020-08-31 23:34:14.512693",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

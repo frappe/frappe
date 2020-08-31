@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "creation": "2020-08-28 23:05:51.990551",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "MyISAM",
+ "field_order": [
+  "method",
+  "status",
+  "started_at",
+  "finished_at",
+  "sql_time",
+  "python_time",
+  "total_time",
+  "error_log"
+ ],
+ "fields": [
+  {
+   "fieldname": "method",
+   "fieldtype": "Code",
+   "label": "Method"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Queued\nExecuting\nSuccess\nFailed"
+  },
+  {
+   "fieldname": "sql_time",
+   "fieldtype": "Float",
+   "label": "SQL Time"
+  },
+  {
+   "fieldname": "python_time",
+   "fieldtype": "Float",
+   "label": "Python Time"
+  },
+  {
+   "fieldname": "total_time",
+   "fieldtype": "Float",
+   "label": "Total Time"
+  },
+  {
+   "fieldname": "error_log",
+   "fieldtype": "Data",
+   "label": "Error Log"
+  },
+  {
+   "fieldname": "started_at",
+   "fieldtype": "Datetime",
+   "label": "Started At"
+  },
+  {
+   "fieldname": "finished_at",
+   "fieldtype": "Datetime",
+   "label": "Finished At"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2020-08-31 23:25:10.602534",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Job Run",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

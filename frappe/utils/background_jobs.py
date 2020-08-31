@@ -4,7 +4,7 @@ from frappe.utils import cstr
 from collections import defaultdict
 import frappe
 import os, socket
-from frappe import _
+from frappe import _, cache, error_log
 from six import string_types
 from types import FunctionType, MethodType
 from pickle import dumps as pickle_dumps, loads as pickle_loads
@@ -14,6 +14,7 @@ from time import perf_counter
 import frappe.monitor
 from frappe import _dict
 from gevent import Timeout
+from frappe import local
 
 # imports - third-party imports
 
@@ -60,21 +61,46 @@ def enqueue(method, queue='default', timeout=None, event=None, set_user=None,
 			method_name = str(method)
 
 	queue_args = {
-		"site": frappe.local.site,
+		"site": local.site,
 		"timeout": timeout,
 		"user": set_user or frappe.session.user,
 		"method": method,
 		"method_name": method_name,
 		"event": event,
 		"job_name": job_name or cstr(method),
+		"job_run_id": create_job_run_log(method_name),
 		"kwargs": kwargs,
 		"queue": queue,
 	}
 
 	if enqueue_after_commit:
-		frappe.db.run_after_commit(enqueue_to_redis, queue_args)
+		local.db.run_after_commit(enqueue_to_redis, queue_args)
 	else:
 		enqueue_to_redis(queue_args)
+
+SETTING_CACHE = {}
+def bg_logging_enabled():
+	try:
+		timer, value = SETTING_CACHE[local.site]
+		if perf_counter() - timer > 60:
+			raise KeyError
+		return value
+	except KeyError:
+		_, value = SETTING_CACHE[local.site] = (perf_counter(), local.db.get_single_value('System Settings', 'enable_bg_logger'),)
+		return value
+
+def create_job_run_log(method_name):
+	print(bg_logging_enabled())
+	if not bg_logging_enabled():
+		return
+
+	job_run = frappe.get_doc({
+		'doctype': 'Job Run',
+		'method': method_name,
+		'status': 'Queued',
+	})
+	job_run.db_insert()
+	return job_run.name
 
 def enqueue_to_redis(kwargs):
 	pickled = pickle_dumps(kwargs)
@@ -95,11 +121,22 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 class Task(object):
-	__slots__ = ['id', 'site', 'method', 'user', 'method_name', 'kwargs', 'queue', 'timeout', 'flags']
+	__slots__ = [
+		'id', 'site', 'method', 'user', 'method_name', 'kwargs', 'queue',
+		'timeout', 'flags', 'started_at', '_Task__job_run', 'job_run_id'
+	]
 
 	pool = GeventPool(50)
 
-	def __init__(self, site, method, user, method_name, kwargs, queue, timeout, **flags):
+	@staticmethod
+	def get_logger():
+		try:
+			return Task.__logger
+		except AttributeError:
+			Task.__logger = frappe.logger('bg_info')
+			return Task.__logger
+
+	def __init__(self, site, method, user, method_name, job_run_id, kwargs, queue, timeout, **flags):
 		self.id = str(uuid4())
 		self.site = site
 		self.method = method
@@ -112,9 +149,11 @@ class Task(object):
 				method_name = f'{self.method.__module__}.{self.method.__name__}'
 
 		self.method_name = method_name
+		self.job_run_id = job_run_id
 		self.kwargs = kwargs
 		self.queue = queue
 		self.timeout = timeout
+		self.__job_run = None
 		self.flags = _dict(flags)
 
 	def process_task(self):
@@ -123,58 +162,55 @@ class Task(object):
 	def get_status(self):
 		return 'queued'
 
+	def log_start(self):
+		if self.job_run_id:
+			self.__job_run = frappe.get_doc('Job Run', self.job_run_id)
+			self.started_at = self.__job_run.start()
+
+	def success(self, end_time):
+		if self.__job_run:
+			self.__job_run.finish('Success')
+
+	def failed(self, error_log):
+		if self.__job_run:
+			self.__job_run.finish('Failed', error_log.name)
+
 	@staticmethod
 	def set_pool_size(size):
 		Task.pool = GeventPool(size)
 
-def fastrunner(task, throws=True, before_commit=None):
+def fastrunner(task, before_commit=None):
 	frappe.init(site=task.site)
 	frappe.flags.task_id = str(uuid4())
 	frappe.flags.runner_type = f'fastrunner-{task.queue}'
 	frappe.connect()
-	frappe.local.lang = frappe.db.get_default('lang')
-	log = frappe.logger('bg_info')
-	log.info({
-		'method': task.method_name,
-		'pool_size': len(task.pool),
-		'stage': 'Executing',
-	})
+	local.lang = local.db.get_default('lang')
+	if task.user:
+		frappe.set_user(task.user)
+	else:
+		frappe.set_user('Administrator')
+
 	conn = get_redis_conn()
 	if task.timeout:
 		Timeout(task.timeout).start()
+
 	try:
+		task.log_start()
 		if isinstance(task.method, string_types):
 			task.method = frappe.get_attr(task.method)
-		if task.user:
-			frappe.set_user(task.user)
-		else:
-			frappe.set_user('Administrator')
-		start_time = perf_counter()
 		task.method(**task.kwargs)
 		if before_commit:
 			before_commit(task)
 		end_time = perf_counter()
-		frappe.db.commit()
-		log.info({
-			'turnaround_time': end_time - start_time,
-			'python_time': (end_time - start_time) - frappe.local.sql_time,
-			'sql_time': frappe.local.sql_time,
-			'method': task.method_name,
-			'pool_size': len(task.pool),
-			'stage': 'Completed',
-		})
+		local.db.commit()
+		task.success(end_time)
 		conn.incr(f'frappe:bg:counter:{task.queue}:success')
 	except Exception:
-		frappe.db.rollback()
+		local.db.rollback()
 		traceback = frappe.get_traceback()
-		log.info({
-			'sql_time': frappe.local.sql_time,
-			'method': task.method_name,
-			'pool_size': len(task.pool),
-			'stage': 'Failed',
-			'traceback': traceback,
-		})
-		frappe.log_error(title=task.method_name, message=traceback)
+		print(traceback)
+		error_log = frappe.log_error(title=task.method_name, message=traceback)
+		task.failed(error_log)
 		conn.incr(f'frappe:bg:counter:{task.queue}:failed')
 	finally:
 		frappe.destroy()
@@ -239,16 +275,16 @@ def validate_queue(queue, default_queue_list=None):
 		frappe.throw(_("Queue should be one of {0}").format(', '.join(default_queue_list)))
 
 def get_redis_conn():
-	if not hasattr(frappe.local, 'conf'):
+	if not hasattr(local, 'conf'):
 		raise Exception('You need to call frappe.init')
 
-	elif not frappe.local.conf.redis_queue:
+	elif not local.conf.redis_queue:
 		raise Exception('redis_queue missing in common_site_config.json')
 
 	global redis_connection
 
 	if not redis_connection:
-		redis_connection = redis.from_url(frappe.local.conf.redis_queue, decode_responses=True)
+		redis_connection = redis.from_url(local.conf.redis_queue, decode_responses=True)
 
 	return redis_connection
 
