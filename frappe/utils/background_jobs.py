@@ -4,7 +4,7 @@ from frappe.utils import cstr
 from collections import defaultdict
 import frappe
 import os, socket
-from frappe import _, cache, error_log
+from frappe import _
 from six import string_types
 from types import FunctionType, MethodType
 from pickle import dumps as pickle_dumps, loads as pickle_loads
