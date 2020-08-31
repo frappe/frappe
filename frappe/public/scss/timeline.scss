@@ -3,15 +3,15 @@ $timeline-item-left-margin: var(--margin-xl);
 $timeline-item-bottom-margin: var(--margin-sm);
 $threshold: 40;
 
-@mixin timeline-indicator($indicator-size) {
-	width: $indicator-size;
-	height: $indicator-size;
+@mixin timeline-badge($badge-size) {
+	width: $badge-size;
+	height: $badge-size;
 	border-radius: 50%;
 	font-size: var(--text-xs);
 	position: absolute;
 	// please do not touch this sacred code
-	top: unquote("clamp(0px, 50% - #{$indicator-size}/2, max(0px, (#{$threshold}px - (50% - #{$indicator-size}/2)) * #{$threshold}))");
-	left: calc(-1 * (#{$indicator-size}/2));
+	top: unquote("clamp(0px, 50% - #{$badge-size}/2, max(0px, (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
+	left: calc(-1 * (#{$badge-size}/2));
 	background-color: var(--bg-color);
 	border: 1px solid var(--dark-border-color);
 	@extend .center-content;
@@ -30,7 +30,7 @@ $threshold: 40;
 		bottom: calc(-1 * (#{$page-bottom-margin} + #{$timeline-item-bottom-margin}));
 	}
 	.timeline-dot {
-		@include timeline-indicator(16px);
+		@include timeline-badge(16px);
 		&:before {
 			content: ' ';
 			background: var(--gray-600);
@@ -84,11 +84,12 @@ $threshold: 40;
 			margin-left: $timeline-item-left-margin;
 			&.frappe-card {
 				@include card($padding: var(--padding-md));
+				margin: calc(#{$timeline-item-bottom-margin} + var(--padding-md)) 0;
 				margin-left: calc(#{$timeline-item-left-margin} + var(--padding-sm));
 			}
 		}
-		.timeline-indicator {
-			@include timeline-indicator($timeline-item-icon-size)
+		.timeline-badge {
+			@include timeline-badge($timeline-item-icon-size)
 		}
 
 		.timeline-message-box {

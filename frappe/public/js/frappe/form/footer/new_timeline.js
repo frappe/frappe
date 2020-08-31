@@ -123,16 +123,19 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	get_timeline_item(item) {
+		// item can have content*, creation*,
+		// timeline_badge, icon, icon_size,
+		// hide_timestamp, card
 		const timeline_item = $(`<div class="timeline-item">`);
 
 		if (item.icon) {
 			timeline_item.append(`
-				<div class="timeline-indicator">
-					${frappe.utils.icon(item.icon, 'md')}
+				<div class="timeline-badge">
+					${frappe.utils.icon(item.icon, item.icon_size || 'md')}
 				</div>
 			`);
-		} else if (item.timeline_indicator) {
-			timeline_item.append(item.timeline_indicator);
+		} else if (item.timeline_badge) {
+			timeline_item.append(item.timeline_badge);
 		} else {
 			timeline_item.append(`<div class="timeline-dot">`);
 		}
@@ -140,7 +143,7 @@ frappe.ui.form.NewTimeline = class {
 		timeline_item.append(`<div class="timeline-content ${item.card ? 'frappe-card' : ''}">`);
 		timeline_item.find('.timeline-content').append(item.content);
 		if (!item.hide_timestamp && !item.card) {
-			timeline_item.find('.timeline-content').append(`<div>${comment_when(item.creation)}</div>`);
+			timeline_item.find('.timeline-content').append(`<span> - ${comment_when(item.creation)}</span>`);
 		}
 		return timeline_item;
 	}
@@ -231,13 +234,13 @@ frappe.ui.form.NewTimeline = class {
 	get_energy_point_timeline_contents() {
 		let energy_point_timeline_contents = [];
 		(this.doc_info.energy_point_logs || []).forEach(log => {
-			let timeline_indicator = `
-			<div class="timeline-indicator ${log.points > 0 ? 'appreciation': 'criticism'} bold">
+			let timeline_badge = `
+			<div class="timeline-badge ${log.points > 0 ? 'appreciation': 'criticism'} bold">
 				${log.points}
 			</div>`;
 
 			energy_point_timeline_contents.push({
-				timeline_indicator: timeline_indicator,
+				timeline_badge: timeline_badge,
 				creation: log.creation,
 				content: frappe.energy_points.format_form_log(log)
 			});
