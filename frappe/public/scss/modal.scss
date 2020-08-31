@@ -3,7 +3,9 @@ h5.modal-title {
 }
 
 .modal {
-
+	.modal-content {
+		border-color: var(--border-color);
+	}
 	.modal-header {
 		padding: var(--padding-md) var(--padding-lg);
 		padding-bottom: 0;
@@ -78,10 +80,15 @@ h5.modal-title {
 		right: 15px;
 		bottom: 0;
 		margin: 0;
-		max-width: 575px;
+		max-width: 400px;
+		.modal-header {
+			padding-top: var(--padding-sm);
+			padding-bottom: var(--padding-xs);
+		}
 
 		.modal-content {
 			min-height: 0;
+			border-radius: var(--border-radius-md);
 			border-bottom-right-radius: 0;
 			border-bottom-left-radius: 0;
 		}
