@@ -1666,7 +1666,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	show_footer_message() {
 		this.$report_footer && this.$report_footer.remove();
-		this.$report_footer = $(`<div class="report-footer"></div>`).appendTo(this.page.main);
+		this.$report_footer = $(`<div class="report-footer text-muted"></div>`).appendTo(this.page.main);
 		if (this.tree_report) {
 			this.$tree_footer = $(`<div class="tree-footer col-md-6">
 				<button class="btn btn-xs btn-default" data-action="expand_all_rows">
