@@ -15,7 +15,7 @@ execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2018-05-29
 execute:frappe.reload_doc('core', 'doctype', 'comment')
 frappe.patches.v8_0.drop_is_custom_from_docperm
-execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
+execute:frappe.reload_doc('core', 'doctype', 'module_def') #2020-08-28
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 execute:frappe.reload_doc('core', 'doctype', 'communication_link') #2019-10-02
@@ -304,4 +304,5 @@ frappe.patches.v13_0.increase_password_length
 frappe.patches.v13_0.add_toggle_width_in_navbar_settings
 frappe.patches.v13_0.rename_notification_fields
 frappe.patches.v13_0.remove_duplicate_navbar_items
+frappe.patches.v13_0.enable_custom_script
 frappe.patches.v13_0.update_newsletter_content_type
