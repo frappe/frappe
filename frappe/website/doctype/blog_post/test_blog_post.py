@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from bs4 import BeautifulSoup
+import re
 
 from frappe.utils import set_request
 from frappe.website.render import render
@@ -44,8 +45,7 @@ class TestBlogPost(unittest.TestCase):
 
 		# On blog post page find link to the category page
 		soup = BeautifulSoup(blog_page_html, "lxml")
-
-		category_page_link = list(soup.find_all('a', string=blog.blog_category))[0]
+		category_page_link = list(soup.find_all('a', href=re.compile(blog.blog_category)))[0]
 		category_page_url = category_page_link["href"]
 
 		# Visit the category page (by following the link found in above stage)
@@ -61,7 +61,7 @@ class TestBlogPost(unittest.TestCase):
 		frappe.delete_doc("Blog Category", blog.blog_category)
 
 def make_test_blog():
-	if not frappe.db.exists('Blog Category', '-test-blog-category'):
+	if not frappe.db.exists('Blog Category', 'test-blog-category'):
 		# Set different title and name for the category
 		frappe.get_doc(dict(
 			doctype = 'Blog Category',
@@ -73,7 +73,7 @@ def make_test_blog():
 			full_name='Test Blogger')).insert()
 	test_blog = frappe.get_doc(dict(
 		doctype = 'Blog Post',
-		blog_category = '-test-blog-category',
+		blog_category = 'test-blog-category',
 		blogger = 'test-blogger',
 		title = random_string(20),
 		route = random_string(20),
