@@ -792,7 +792,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 					if (column.colIndex === index && !value) {
 						value = "Total";
-						column.fieldtype = "Data"; // avoid type issues for value if Date column
+						column = { fieldtype: "Data" }; // avoid type issues for value if Date column
 					} else if (in_list(["Currency", "Float"], column.fieldtype)) {
 						// proxy for currency and float
 						data = this.data[0];
