@@ -164,7 +164,7 @@ class BackupGenerator:
 
 	def zip_files(self):
 		# For backwards compatibility - pre v13
-		return backup_files(self)
+		return self.backup_files()
 
 	def backup_files(self):
 		for folder in ("public", "private"):
