@@ -22,9 +22,9 @@ frappe.ui.form.NewTimeline = class {
 
 		this.parent.replaceWith(this.timeline_wrapper);
 		this.timeline_items = [];
-		this.render_timeline_items();
-		this.setup_timeline_actions();
 		this.setup_document_email_link();
+		this.setup_timeline_actions();
+		this.render_timeline_items();
 	}
 
 	refresh() {
@@ -106,6 +106,7 @@ frappe.ui.form.NewTimeline = class {
 			this.timeline_items.push(...this.get_energy_point_timeline_contents());
 			this.timeline_items.push(...this.get_version_timeline_contents());
 			this.timeline_items.push(...this.get_share_timeline_contents());
+			this.timeline_items.push(...this.get_like_timeline_contents());
 		}
 		// attachments
 		// milestones
@@ -152,11 +153,9 @@ frappe.ui.form.NewTimeline = class {
 		let view_timeline_contents = [];
 		(this.doc_info.views || []).forEach(view => {
 			let view_content = `
-				<div>
-					<a href="${frappe.utils.get_form_link('View Log', view.name)}">
-						${__("{0} viewed", [this.get_user_link(view.owner)])}
-					</a>
-				</div>
+				<a href="${frappe.utils.get_form_link('View Log', view.name)}">
+					${__("{0} viewed", [this.get_user_link(view.owner)])}
+				</a>
 			`;
 			view_timeline_contents.push({
 				creation: view.creation,
@@ -171,6 +170,7 @@ frappe.ui.form.NewTimeline = class {
 		(this.doc_info.communications|| []).forEach(communication => {
 			communication_timeline_contents.push({
 				icon: 'mail',
+				icon_size: 'sm',
 				creation: communication.creation,
 				card: true,
 				content: this.get_communication_timeline_content(communication),
@@ -229,6 +229,19 @@ frappe.ui.form.NewTimeline = class {
 			});
 		});
 		return share_timeline_contents;
+	}
+
+	get_like_timeline_contents() {
+		let like_timeline_contents = [];
+		(this.doc_info.like_logs || []).forEach(like => {
+			like_timeline_contents.push({
+				icon: 'heart',
+				icon_size: 'sm',
+				creation: like.creation,
+				content: __('{0} Liked', [this.get_user_link(like.owner)]),
+			});
+		});
+		return like_timeline_contents;
 	}
 
 	get_energy_point_timeline_contents() {
