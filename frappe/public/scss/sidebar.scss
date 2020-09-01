@@ -52,11 +52,11 @@ body[data-route^="Module"] .main-menu {
 	.sidebar-label {
 		margin-bottom: var(--margin-sm);
 		font-weight: 500;
-		color: var(--text-light);
+		color: var(--text-muted);
 		text-transform: uppercase;
 		letter-spacing: 0.04rem;
 		font-size: var(--text-xs);
-		--icon-stroke: var(--text-light);
+		--icon-stroke: var(--text-muted);
 	}
 }
 
@@ -379,7 +379,15 @@ body[data-route^="Module"] .main-menu {
 	display: inline-flex;
 	vertical-align: top;
 	.btn {
-		padding: var(--padding-xs);
+		@include size(30px, 30px);
+		@extend .center-content;
+		padding: 0;
+		border: 1px dashed var(--dark-border-color);
+		box-shadow: none;
+		background-color: transparent;
+		.icon use {
+			stroke: var(--text-muted);
+		}
 	}
 }
 
@@ -475,5 +483,5 @@ body[data-route^="Module"] .main-menu {
 .tags-placeholder {
 	margin-bottom: var(--margin-sm);
 	display: inline-block;
-	font-size: var(--text-md);
+	font-size: var(--text-sm);
 }
