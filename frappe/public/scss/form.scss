@@ -254,13 +254,18 @@
 	padding: var(--padding-md) var(--padding-xl);
 }
 
+.help-box {
+	margin-top: 4px;
+	margin-bottom: 8px;
+	line-height: 1.6;
+}
+
 .form-group:last-child.frappe-control[data-fieldtype="Table"] {
 	margin-bottom: 0;
 }
 
 .form-footer {
 	position: relative;
-
 	.scroll-to-top {
 		position: absolute;
 		height: 28px;
