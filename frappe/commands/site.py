@@ -392,7 +392,7 @@ def use(site, sites_path='.'):
 @click.option('--verbose', default=False, is_flag=True)
 @pass_context
 def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
-	backup_path_private_files=None, quiet=False, verbose=False, compress=False):
+	backup_path_private_files=None, backup_path_conf=None, quiet=False, verbose=False, compress=False):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
 	verbose = verbose or context.verbose
@@ -401,7 +401,7 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True, verbose=verbose, compress=compress)
+			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=True, verbose=verbose, compress=compress)
 		except Exception as e:
 			if verbose:
 				print("Backup failed for {0}. Database or site_config.json may be corrupted".format(site))

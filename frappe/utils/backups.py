@@ -281,19 +281,21 @@ def fetch_latest_backups():
 	}
 
 
-def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False, compress=False):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, force=False, verbose=False, compress=False):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force, verbose=verbose, compress=compress)
+	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=force, verbose=verbose, compress=compress)
 	return odb
 
-def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False, compress=False):
+def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, force=False, verbose=False, compress=False):
 	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 24)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
-						  backup_path_db=backup_path_db, backup_path_files=backup_path_files,
+						  backup_path_db=backup_path_db,
+						  backup_path_files=backup_path_files,
 						  backup_path_private_files=backup_path_private_files,
+						  backup_path_conf=backup_path_conf,
 						  db_host = frappe.db.host,
 						  db_port = frappe.db.port,
 						  db_type = frappe.conf.db_type,
@@ -343,9 +345,9 @@ def get_backup_path():
 	backup_path = frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
 	return backup_path
 
-def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=False):
+def backup(with_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, quiet=False):
 	"Backup"
-	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=True)
+	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=True)
 	return {
 		"backup_path_db": odb.backup_path_db,
 		"backup_path_files": odb.backup_path_files,
