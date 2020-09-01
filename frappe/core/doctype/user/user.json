@@ -356,7 +356,7 @@
    "depends_on": "enabled",
    "fieldname": "email_settings",
    "fieldtype": "Section Break",
-   "label": "Email Settings"
+   "label": "Email"
   },
   {
    "default": "1",
@@ -381,12 +381,6 @@
    "fieldtype": "Small Text",
    "label": "Email Signature",
    "no_copy": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "email_inbox",
-   "fieldtype": "Section Break",
-   "label": "Email Inbox"
   },
   {
    "fieldname": "user_emails",
@@ -651,7 +645,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2020-08-06 19:48:49.677800",
+ "modified": "2020-08-26 19:48:49.677800",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

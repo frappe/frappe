@@ -203,7 +203,7 @@ class Workspace:
 			cards = cards + get_custom_reports_and_doctypes(self.doc.module)
 
 		if len(self.extended_cards):
-			cards = cards + self.extended_cards
+			cards = merge_cards_based_on_label(cards + self.extended_cards)
 		default_country = frappe.db.get_default("country")
 
 		def _doctype_contains_a_record(name):
@@ -579,3 +579,16 @@ def update_onboarding_step(name, field, value):
 
 	"""
 	frappe.db.set_value("Onboarding Step", name, field, value)
+
+def merge_cards_based_on_label(cards):
+	"""Merge cards with common label."""
+	cards_dict = {}
+	for card in cards:
+		if card.label in cards_dict:
+			links = loads(cards_dict[card.label].links) + loads(card.links)
+			cards_dict[card.label].update(dict(links=dumps(links)))
+			cards_dict[card.label] = cards_dict.pop(card.label)
+		else:
+			cards_dict[card.label] = card
+
+	return list(cards_dict.values())
