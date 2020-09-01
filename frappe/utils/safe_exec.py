@@ -28,6 +28,8 @@ def safe_exec(script, _globals=None, _locals=None):
 	# execute script compiled by RestrictedPython
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
 
+	return exec_globals, _locals
+
 def get_safe_globals():
 	datautils = frappe._dict()
 	if frappe.db:
@@ -146,8 +148,7 @@ def read_sql(query, *args, **kwargs):
 
 def run_script(script):
 	'''run another server script'''
-	frappe.get_doc('Server Script', script).execute_method()
-	return frappe.flags
+	return frappe.get_doc('Server Script', script).execute_method()
 
 def _getitem(obj, key):
 	# guard function for RestrictedPython
