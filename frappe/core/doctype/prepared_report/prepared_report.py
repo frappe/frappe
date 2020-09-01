@@ -69,6 +69,40 @@ def run_background(prepared_report):
 		user=frappe.session.user
 	)
 
+@frappe.whitelist()
+def get_reports_in_queued_state(report_name, filters):
+	reports = frappe.get_all('Prepared Report',
+		filters = {
+			'report_name': report_name,
+			'filters': json.dumps(json.loads(filters)),
+			'status': 'Queued'
+		})
+	return reports
+
+def delete_expired_prepared_reports():
+	system_settings = frappe.get_single('System Settings')
+	enable_auto_deletion = system_settings.enable_prepared_report_auto_deletion
+	if enable_auto_deletion:
+		expiry_period = system_settings.prepared_report_expiry_period
+		prepared_reports_to_delete = frappe.get_all('Prepared Report',
+			filters = {
+				'creation': ['<', frappe.utils.add_days(frappe.utils.now(), -expiry_period)]
+			})
+
+		args = {
+			'reports': prepared_reports_to_delete,
+			'limit': 50
+		}
+
+		enqueue(method=delete_prepared_reports, job_name="delete_prepared_reports", **args)
+
+@frappe.whitelist()
+def delete_prepared_reports(reports, limit=None):
+	reports = frappe.parse_json(reports)
+	for index, doc in enumerate(reports):
+		if limit and index == limit:
+			return
+		frappe.delete_doc('Prepared Report', doc['name'], ignore_permissions=True)
 
 def create_json_gz_file(data, dt, dn):
 	# Storing data in CSV file causes information loss
