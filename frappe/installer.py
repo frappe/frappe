@@ -328,7 +328,7 @@ def extract_sql_gzip(sql_gz_path):
 
 	return decompressed_file
 
-def extract_tar_files(site_name, file_path, folder_name):
+def extract_files(site_name, file_path, folder_name):
 	# Need to do frappe.init to maintain the site locals
 	frappe.init(site=site_name)
 	abs_site_path = os.path.abspath(frappe.get_site_path())
@@ -341,7 +341,10 @@ def extract_tar_files(site_name, file_path, folder_name):
 	tar_path = os.path.join(abs_site_path, tar_name)
 
 	try:
-		subprocess.check_output(['tar', 'xvf', tar_path, '--strip', '2'], cwd=abs_site_path)
+		if file_path.endswith(".tar"):
+			subprocess.check_output(['tar', 'xvf', tar_path, '--strip', '2'], cwd=abs_site_path)
+		elif file_path.endswith(".tgz"):
+			subprocess.check_output(['tar', 'zxvf', tar_path, '--strip', '2'], cwd=abs_site_path)
 	except:
 		raise
 	finally:

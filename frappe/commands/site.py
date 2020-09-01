@@ -112,7 +112,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 @pass_context
 def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
-	from frappe.installer import extract_sql_gzip, extract_tar_files, is_downgrade
+	from frappe.installer import extract_sql_gzip, extract_files, is_downgrade
 	force = context.force or force
 
 	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
@@ -148,12 +148,12 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
 		with_public_files = os.path.join(base_path, with_public_files)
-		public = extract_tar_files(site, with_public_files, 'public')
+		public = extract_files(site, with_public_files, 'public')
 		os.remove(public)
 
 	if with_private_files:
 		with_private_files = os.path.join(base_path, with_private_files)
-		private = extract_tar_files(site, with_private_files, 'private')
+		private = extract_files(site, with_private_files, 'private')
 		os.remove(private)
 
 	# Removing temporarily created file
@@ -388,10 +388,11 @@ def use(site, sites_path='.'):
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
+@click.option('--compress', default=False, is_flag=True, help="Compress private and public files")
 @click.option('--verbose', default=False, is_flag=True)
 @pass_context
 def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
-	backup_path_private_files=None, quiet=False, verbose=False):
+	backup_path_private_files=None, quiet=False, verbose=False, compress=False):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
 	verbose = verbose or context.verbose
@@ -400,7 +401,7 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True, verbose=verbose)
+			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True, verbose=verbose, compress=compress)
 		except Exception as e:
 			if verbose:
 				print("Backup failed for {0}. Database or site_config.json may be corrupted".format(site))

@@ -17,6 +17,7 @@ from frappe.utils import cstr, get_url, now_datetime
 
 # backup variable for backwards compatibility
 verbose = False
+compress = False
 _verbose = verbose
 
 
@@ -29,8 +30,9 @@ class BackupGenerator:
 	"""
 	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
 		backup_path_private_files=None, db_host="localhost", db_port=None, verbose=False,
-		db_type='mariadb'):
+		db_type='mariadb', backup_path_conf=None, compress_files=False):
 		global _verbose
+		self.compress_files = compress_files or compress
 		self.db_host = db_host
 		self.db_port = db_port
 		self.db_name = db_name
@@ -89,7 +91,7 @@ class BackupGenerator:
 			self.take_dump()
 			self.copy_site_config()
 			if not ignore_files:
-				self.zip_files()
+				self.backup_files()
 
 		else:
 			self.backup_path_files = last_file
@@ -100,8 +102,10 @@ class BackupGenerator:
 	def set_backup_file_name(self):
 		#Generate a random name using today's date and a 8 digit random number
 		for_db = self.todays_date + "-" + self.site_slug + "-database.sql.gz"
-		for_public_files = self.todays_date + "-" + self.site_slug + "-files.tar"
-		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files.tar"
+		ext = "tgz" if self.compress_files else "tar"
+
+		for_public_files = self.todays_date + "-" + self.site_slug + "-files." + ext
+		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files." + ext
 		backup_path = get_backup_path()
 
 		if not self.backup_path_db:
@@ -155,15 +159,23 @@ class BackupGenerator:
 		)
 
 	def zip_files(self):
+		# For backwards compatibility - pre v13
+		return backup_files(self)
+
+	def backup_files(self):
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder=="public" else self.backup_path_private_files
 
-			cmd_string = """tar -cf %s %s""" % (backup_path, files_path)
-			err, out = frappe.utils.execute_in_shell(cmd_string)
+			if self.compress_files:
+				cmd_string = "tar cf - {1} | gzip -v > {0}"
+			else:
+				cmd_string = "tar -cf {0} {1}"
+			import subprocess
+			output = subprocess.check_output(cmd_string.format(backup_path, files_path), shell=True)
 
 			if self.verbose:
-				print('Backed up files', os.path.abspath(backup_path))
+				print('{0}\nBacked up file: {1}'.format(output or "", os.path.abspath(backup_path)))
 
 	def copy_site_config(self):
 		site_config_backup_path = os.path.join(
@@ -273,14 +285,14 @@ def fetch_latest_backups():
 	}
 
 
-def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False, compress=False):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force, verbose=verbose)
+	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force, verbose=verbose, compress=compress)
 	return odb
 
-def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False):
+def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False, compress=False):
 	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 24)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
@@ -289,7 +301,8 @@ def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_pat
 						  db_host = frappe.db.host,
 						  db_port = frappe.db.port,
 						  db_type = frappe.conf.db_type,
-						  verbose=verbose)
+						  verbose=verbose,
+						  compress_files=compress)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
 
