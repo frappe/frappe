@@ -388,11 +388,15 @@ def use(site, sites_path='.'):
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
-@click.option('--compress', default=False, is_flag=True, help="Compress private and public files")
+@click.option('--backup-path-db', default=None, help="Compress private and public files")
+@click.option('--backup-path-files', default=None, help="Compress private and public files")
+@click.option('--backup-path-private-files', default=None, help="Compress private and public files")
+@click.option('--backup-path-conf', default=None, help="Compress private and public files")
 @click.option('--verbose', default=False, is_flag=True)
+@click.option('--compress', default=False, is_flag=True, help="Compress private and public files")
 @pass_context
 def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
-	backup_path_private_files=None, backup_path_conf=None, quiet=False, verbose=False, compress=False):
+	backup_path_private_files=None, backup_path_conf=None, verbose=False, compress=False):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
 	verbose = verbose or context.verbose
@@ -410,12 +414,11 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 
 		if verbose:
 			from frappe.utils import now
-			summary_title = "Backup Summary at {0}".format(now())
-			print(summary_title + "\n" + "-" * len(summary_title))
-			print("Database backup:", odb.backup_path_db)
+			summary = "Backup Summary at {0}".format(now())
+			summary_title = summary + "\n" + "-" * len(summary) + "\n"
+			print(summary_title + "Config file: {0}\nDatabase file: {1}".format(odb.backup_path_conf, odb.backup_path_db))
 			if with_files:
-				print("Public files:   ", odb.backup_path_files)
-				print("Private files:  ", odb.backup_path_private_files)
+				print("Public file: {0}\nPrivate file: {1}".format(odb.backup_path_files, odb.backup_path_private_files))
 
 		frappe.destroy()
 	if not context.sites:

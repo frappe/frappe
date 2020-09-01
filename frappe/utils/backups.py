@@ -59,16 +59,17 @@ class BackupGenerator:
 		_verbose = verbose
 
 	def setup_backup_directory(self):
-		specified = self.backup_path_db or self.backup_path_files or self.backup_path_private_files
+		specified = self.backup_path_db or self.backup_path_files or self.backup_path_private_files or self.backup_path_conf
 
 		if not specified:
 			backups_folder = get_backup_path()
 			if not os.path.exists(backups_folder):
 				os.makedirs(backups_folder)
 		else:
-			for file_path in [self.backup_path_files, self.backup_path_db, self.backup_path_private_files]:
-				dir = os.path.dirname(file_path)
-				os.makedirs(dir, exist_ok=True)
+			for file_path in set([self.backup_path_files, self.backup_path_db, self.backup_path_private_files, self.backup_path_conf]):
+				if file_path:
+					dir = os.path.dirname(file_path)
+					os.makedirs(dir, exist_ok=True)
 
 
 	def get_backup(self, older_than=24, ignore_files=False, force=False):
