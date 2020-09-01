@@ -258,8 +258,12 @@
 	margin-bottom: 0;
 }
 
-.scroll-to-top {
-	position: absolute;
-	height: 28px;
-	right: 0;
+.form-footer {
+	position: relative;
+
+	.scroll-to-top {
+		position: absolute;
+		height: 28px;
+		right: 0;
+	}
 }
