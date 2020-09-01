@@ -39,8 +39,9 @@ class BackupGenerator:
 		self.db_type = db_type
 		self.user = user
 		self.password = password
-		self.backup_path_files = backup_path_files
+		self.backup_path_conf = backup_path_conf
 		self.backup_path_db = backup_path_db
+		self.backup_path_files = backup_path_files
 		self.backup_path_private_files = backup_path_private_files
 
 		if not self.db_type:
@@ -101,6 +102,7 @@ class BackupGenerator:
 
 	def set_backup_file_name(self):
 		#Generate a random name using today's date and a 8 digit random number
+		for_conf = self.todays_date + "-" + self.site_slug + "-site_config_backup.json"
 		for_db = self.todays_date + "-" + self.site_slug + "-database.sql.gz"
 		ext = "tgz" if self.compress_files else "tar"
 
@@ -108,6 +110,8 @@ class BackupGenerator:
 		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files." + ext
 		backup_path = get_backup_path()
 
+		if not self.backup_path_conf:
+			self.backup_path_conf = os.path.join(backup_path, for_conf)
 		if not self.backup_path_db:
 			self.backup_path_db = os.path.join(backup_path, for_db)
 		if not self.backup_path_files:
@@ -178,19 +182,11 @@ class BackupGenerator:
 				print('{0}\nBacked up file: {1}'.format(output or "", os.path.abspath(backup_path)))
 
 	def copy_site_config(self):
-		site_config_backup_path = os.path.join(
-			get_backup_path(),
-			"{time_stamp}-{site_slug}-site_config_backup.json".format(
-				time_stamp=self.todays_date,
-				site_slug=self.site_slug))
+		site_config_backup_path = self.backup_path_conf
 		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
-		site_config = {}
-		if os.path.exists(site_config_path):
-			site_config.update(frappe.get_file_json(site_config_path))
-		with open(site_config_backup_path, "w") as f:
-			f.write(json.dumps(site_config, indent=2))
-			f.flush()
-		self.site_config_backup_path = site_config_backup_path
+
+		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
+			n.write(c.read())
 
 	def take_dump(self):
 		import frappe.utils
