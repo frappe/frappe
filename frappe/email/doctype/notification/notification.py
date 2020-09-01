@@ -189,6 +189,7 @@ def get_context(context):
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 		if not (recipients or cc or bcc):
 			return
+
 		sender = None
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
@@ -239,8 +240,6 @@ def get_context(context):
 					email_ids = email_ids_value.replace(",", "\n")
 					recipients = recipients + email_ids.split("\n")
 
-				# else:
-				# 	print "invalid email"
 			if recipient.cc and "{" in recipient.cc:
 				recipient.cc = frappe.render_template(recipient.cc, context)
 
@@ -261,6 +260,9 @@ def get_context(context):
 
 				for email in emails:
 					recipients = recipients + email.split("\n")
+
+		if self.send_to_all_assignees:
+			recipients = recipients + get_assignees(doc)
 
 		if not recipients and not cc and not bcc:
 			return None, None, None
@@ -405,3 +407,12 @@ def evaluate_alert(doc, alert, event):
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate, "frappe": frappe._dict(utils=frappe.utils)}
+
+def get_assignees(doc):
+	assignees = []
+	assignees = frappe.get_all('ToDo', filters={'status': 'Open', 'reference_name': doc.name,
+		'reference_type': doc.doctype}, fields=['owner'])
+
+	recipients = [d.owner for d in assignees]
+
+	return recipients
