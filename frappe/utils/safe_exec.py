@@ -47,7 +47,7 @@ def get_safe_globals():
 		json = json,
 		dict = dict,
 		frappe =  frappe._dict(
-			flags = frappe.flags,
+			flags = frappe._dict(),
 
 			format = frappe.format_value,
 			format_value = frappe.format_value,
