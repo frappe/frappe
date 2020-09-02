@@ -307,7 +307,7 @@ class UserProfile {
 
 	render_user_details() {
 		this.sidebar.empty().append(frappe.render_template('user_profile_sidebar', {
-			user_image: frappe.avatar(this.user_id, 'avatar-frame', 'user_image', this.user.image),
+			user_image: this.user.image,
 			user_abbr: this.user.abbr,
 			user_location: this.user.location,
 			user_interest: this.user.interest,
