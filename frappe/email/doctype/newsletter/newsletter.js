@@ -14,9 +14,6 @@ frappe.ui.form.on('Newsletter', {
 				});
 			}, "fa fa-play", "btn-success");
 		}
-		if (!doc.__islocal && cint(doc.email_sent)) {
-			frm.set_df_property('schedule_send', "read_only", 1);
-		}
 
 		frm.events.setup_dashboard(frm);
 
