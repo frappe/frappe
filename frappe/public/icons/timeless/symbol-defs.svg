@@ -584,7 +584,41 @@
   	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-small-file">
     	<path d="M5.5 8.5h5M5.5 6h3m2-4.5H4A1.5 1.5 0 0 0 2.5 3v10A1.5 1.5 0 0 0 4 14.5h8a1.5 1.5 0 0 0 1.5-1.5V4.5l-3-3z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
   	</symbol>
-	<svg viewBox="0 0 8 7" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-check">
+	<symbol viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-color-energy-points">
+		<path d="M14 28c7.732 0 14-6.268 14-14S21.732 0 14 0 0 6.268 0 14s6.268 14 14 14z" fill="#ECAC4B"></path>
+		<g clip-path="url(#clip0)">
+			<path d="M19.41 10.93a.687.687 0 0 0-.606-.361h-3.208l1.123-3.93a.687.687 0 0 0-.66-.874h-4.804c-.31 0-.58.207-.662.505l-2.06 7.55a.686.686 0 0 0 .663.866h3.296l-1.226 6.74a.686.686 0 0 0 1.247.504l6.863-10.294a.688.688 0 0 0 .033-.705z" fill="#fff"></path>
+		</g>
+		<defs>
+			<clipPath id="clip0">
+				<path fill="#fff" transform="translate(5.766 5.765)" d="M0 0h16.471v16.471H0z"></path>
+			</clipPath>
+		</defs>
+	</symbol>
+	<symbol viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-color-monthly-rank">
+		<path d="M14 28c7.732 0 14-6.268 14-14S21.732 0 14 0 0 6.268 0 14s6.268 14 14 14z" fill="#2D95F0"></path>
+		<path d="M18.9 6.912v.963h.1a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H8.999A1.998 1.998 0 0 1 7 19V9.875a2 2 0 0 1 2-2h.45v-.963a.787.787 0 1 1 1.576 0v.963h6.3v-.963a.788.788 0 0 1 1.575 0z" fill="#fff"></path>
+		<path d="M7 11.375h14v1.75H7v-1.75z" fill="#2D95F0"></path>
+	</symbol>
+	<symbol viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-color-rank">
+		<path d="M14 28C21.732 28 28 21.732 28 14C28 6.26801 21.732 0 14 0C6.26801 0 0 6.26801 0 14C0 21.732 6.26801 28 14 28Z" fill="#928EF5"/>
+			<g clip-path="url(#clip0)">
+			<path d="M13.9887 10.4172C10.3828 10.4172 7.48242 13.253 7.48242 16.7359C7.48242 20.2188 10.3828 23.0736 13.9887 23.0736C17.5945 23.0736 20.4949 20.2378 20.4949 16.7549C20.4949 13.2721 17.5945 10.4172 13.9887 10.4172ZM16.0072 19.762L13.9887 18.7343L11.9702 19.762L12.3621 17.5923L10.7355 16.0507L12.9892 15.7272L13.9887 13.7288L14.9881 15.7082L17.2418 16.0317L15.6152 17.5733L16.0072 19.762Z" fill="white"/>
+			<path d="M9.25781 4.8562V8.17354L11.6237 9.26675V4.8562H9.25781Z" fill="white"/>
+			<path d="M18.7207 4.8562V8.17354L16.3548 9.26675V4.8562H18.7207Z" fill="white"/>
+			<path d="M12.8066 4.8562V9.67921L13.9896 10.2256L15.1725 9.67921V4.8562H12.8066Z" fill="white"/>
+		</g>
+		<defs>
+			<clipPath id="clip0">
+				<rect width="13.0125" height="18.2175" fill="white" transform="translate(7.48242 4.8562)"/>
+			</clipPath>
+		</defs>
+	</symbol>
+	<symbol viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-color-review-points">
+    	<path d="M14 28c7.732 0 14-6.268 14-14S21.732 0 14 0 0 6.268 0 14s6.268 14 14 14z" fill="#48BB74"></path>
+    	<path d="M13.546 6.749a.5.5 0 0 1 .908 0l1.87 4.053 4.432.526a.5.5 0 0 1 .28.863l-3.276 3.03.87 4.378a.5.5 0 0 1-.735.534L14 17.953l-3.895 2.18a.5.5 0 0 1-.734-.534l.87-4.377-3.277-3.03a.5.5 0 0 1 .28-.864l4.433-.526 1.87-4.053z" fill="#fff"></path>
+  	</symbol>
+	<symbol viewBox="0 0 8 7" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-check">
 		<path d="M1 4.00001L2.66667 5.80001L7 1.20001" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-	</svg>
+	</symbol>
 </svg>
