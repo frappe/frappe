@@ -67,7 +67,7 @@
 		@include size(200%, 100%);
 		flex: 1;
 
-		.notifcation-reel {
+		.notification-reel {
 			@include size(100%, null);
 			@include flex(flex, space-between, null, null);
 			transition: 0.5s;

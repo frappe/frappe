@@ -17,7 +17,7 @@ frappe.ui.Notifications = class Notifications {
 		this.header_items = this.dropdown_list.find('.header-items');
 		this.header_actions = this.dropdown_list.find('.header-actions');
 		this.body = this.dropdown_list.find('.notification-list-body');
-		this.reel = this.dropdown_list.find('.notifcation-reel')
+		this.reel = this.dropdown_list.find('.notification-reel')
 		this.panel_events = this.dropdown_list.find('.panel-events');
 		this.panel_notifications = this.dropdown_list.find('.panel-notifications');
 
