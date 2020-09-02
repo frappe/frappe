@@ -253,7 +253,7 @@ class TestNotification(unittest.TestCase):
 
 		contact.save()
 
-		#change status of todo
+		#change status of contact
 		contact.status = 'Replied'
 		contact.save()
 
