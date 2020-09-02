@@ -1,0 +1,120 @@
+.chart-column-container {
+	padding: var(--padding-md);
+	margin-bottom: var(--margin-xl);
+
+	.chart-container {
+		margin: 0 -10px;
+	}
+
+	.performance-heatmap {
+		margin-top: -20px;
+
+		.chart-legend {
+			display: none;
+		}
+		.chart-container {
+			margin: 0 auto;
+		}
+	}
+
+	.performance-percentage-chart {
+		margin: -20px 0;
+	}
+
+	.title-area {
+		@include flex(flex, space-between, center, null);
+
+		.card-title {
+			font-size: var(--text-xl);
+			font-weight: 600;
+		}
+
+		.chart-filter {
+			z-index: 1;
+			margin-right: var(--padding-sm);
+		}
+	}
+
+	.btn {
+		box-shadow: none;
+	}
+}
+
+// .user-image-container {
+// 	margin-top: 7px;
+// 	padding-bottom: 100%;
+// }
+
+// .user-image-container .standard-image {
+// 	font-size: 72px;
+// }
+
+// .profile-details {
+// 	margin: -5px 5px;
+// }
+
+// .profile-links {
+// 	margin: 30px 5px;
+// }
+
+// .user-initial {
+// 	font-size: 72px;
+// }
+
+
+// .line-chart-container .chart-filter {
+// 	z-index: 1;
+// }
+
+// .recent-activity {
+// 	margin: 20px;
+// 	font-size: 12px;
+// }
+
+// .show-more-activity {
+// 	text-align: center;
+// 	margin-top: 20px;
+// }
+
+// .recent-activity-item {
+// 	margin: 15px 5px;
+// }
+
+// .interest-icon {
+// 	margin-right: 5px;
+// }
+
+// .chart-filter {
+// 	position: relative;
+// 	top: 5px;
+// 	margin-right: 10px;
+// }
+
+// .filter-label {
+// 	margin-right: 4px;
+// }
+
+// .performance-title {
+// 	position: relative;
+// 	left: 30px;
+// 	top: 20px;
+// }
+
+// @media (max-width: 991px) {
+// 	.user-profile-sidebar {
+// 		display: flex;
+// 	}
+
+// 	.percentage-chart-container {
+// 		border-top: 1px solid #d1d8dd;
+// 	}
+
+// 	.user-profile-sidebar .profile-links {
+// 		margin: 0;
+// 	}
+
+// 	.user-profile-sidebar .profile-details {
+// 		width: 50%;
+// 		margin: 0;
+// 	}
+// }
