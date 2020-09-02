@@ -343,10 +343,13 @@ class NotificationsView extends BaseNotificaitonsView {
 						<div class="full-log-btn">${__('See all Activity')}</div>
 					</a>`);
 			} else {
-				this.container.append($(`<li class="recent-item text-center activity-status">
-					<span class="text-muted">
-						${__('No activity')}
-					</span></li>`));
+				this.container.append($(`<div class="notification-null-state">
+					<div class="text-center">
+						<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
+						<div class="title">No New notifications</div>
+						<div class="subtitle">
+							${__('Looks like you haven’t received any notifications.')}
+					</div></div></div>`));
 			}
 		}
 	}
@@ -421,7 +424,7 @@ class EventsView extends BaseNotificaitonsView {
 
 	render_events_html(event_list) {
 		let html = '';
-		if (event_list.length) {
+		if (event_list.length && false) {
 			let get_event_html = (event) => {
 				let time = __("All Day");
 				if (!event.all_day) {
@@ -458,10 +461,13 @@ class EventsView extends BaseNotificaitonsView {
 			html = event_list.map(get_event_html).join('');
 		} else {
 			html = `
-				<div class="empty-state center-content">
-					<img src="/assets/frappe/images/ui-states/event-empty-state.svg"></img>
-					${__('No Events Today')}
-				</div>
+				<div class="notification-null-state">
+					<div class="text-center">
+					<img src="/assets/frappe/images/ui-states/event-empty-state.svg" alt="Generic Empty State" class="null-state">
+					<div class="title">No Upcoming Events</div>
+					<div class="subtitle">
+						${__('There are no upcoming events for you.')}
+				</div></div></div>
 			`;
 		}
 
