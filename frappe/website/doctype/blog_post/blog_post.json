@@ -110,6 +110,7 @@
    "depends_on": "eval:doc.content_type === 'Markdown'",
    "fieldname": "content_md",
    "fieldtype": "Markdown Editor",
+   "ignore_xss_filter": 1,
    "label": "Content (Markdown)"
   },
   {
@@ -193,7 +194,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-07-21 16:25:17.154911",
+ "modified": "2020-08-31 16:55:03.687862",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",

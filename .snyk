@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.14.1
+version: v1.19.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   SNYK-JS-AWESOMPLETE-174474:
@@ -63,3 +63,5 @@ patch:
         patched: '2020-04-30T23:02:32.330Z'
     - snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/dep-graph > graphlib > lodash:
         patched: '2020-04-30T23:02:32.330Z'
+    - quill-image-resize > lodash:
+        patched: '2020-08-24T23:06:37.710Z'
