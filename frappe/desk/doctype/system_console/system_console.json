@@ -26,7 +26,8 @@
    "description": "To print output use <code>log(text)</code>",
    "fieldname": "console",
    "fieldtype": "Code",
-   "label": "Console"
+   "label": "Console",
+   "options": "Python"
   },
   {
    "fieldname": "output",
