@@ -445,7 +445,7 @@ def uninstall(context, app, dry_run, yes, no_backup, force):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
+			remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force, verbose=context.verbose)
 		finally:
 			frappe.destroy()
 	if not context.sites:
