@@ -355,17 +355,30 @@ class UserProfile {
 	}
 
 	render_points_and_rank() {
-		let $profile_details = this.wrapper.find('.profile-details');
+		let $profile_details = this.wrapper.find('.user-stats');
+		let $profile_details_wrapper = this.wrapper.find('.user-stats-detail');
+
+		const _get_stat_dom = (value, label, icon) => {
+			return `<div class="user-stats-item mt-4">
+						${frappe.utils.icon(icon, "lg", "no-stroke")}
+						<div>
+							<div class="stat-value">${value}</div>
+							<div class="stat-label">${label}</div>
+						</div>
+					</div>`
+		}
 
 		this.get_user_rank().then(() => {
 			this.get_user_points().then(() => {
-				let html = $(__(`<p class="user-energy-points text-muted">${__('Energy Points: ')}<span class="rank">{0}</span></p>
-					<p class="user-energy-points text-muted">${__('Review Points: ')}<span class="rank">{1}</span></p>
-					<p class="user-energy-points text-muted">${__('Rank: ')}<span class="rank">{2}</span></p>
-					<p class="user-energy-points text-muted">${__('Monthly Rank: ')}<span class="rank">{3}</span></p>
-				`, [this.energy_points, this.review_points, this.rank, this.month_rank]));
+				let html = $(`
+					${_get_stat_dom(this.energy_points, __('Energy Points'), "color-energy-points")}
+					${_get_stat_dom(this.review_points, __('Review Points'), "color-review-points")}
+					${_get_stat_dom(this.rank, __('Rank'), "color-rank")}
+					${_get_stat_dom(this.month_rank, __('Monthly Rank'), "color-monthly-rank")}
+				`);
 
 				$profile_details.append(html);
+				$profile_details_wrapper.removeClass("hide");
 			});
 		});
 	}

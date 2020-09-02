@@ -40,81 +40,50 @@
 	}
 }
 
-// .user-image-container {
-// 	margin-top: 7px;
-// 	padding-bottom: 100%;
-// }
+.user-profile-sidebar {
+	.sidebar-image {
+		width: 100%;
+		height: 100%;
+		border-radius: var(--border-radius-lg);
+	}
 
-// .user-image-container .standard-image {
-// 	font-size: 72px;
-// }
+	.profile-details {
+		margin-top: var(--margin-lg);
 
-// .profile-details {
-// 	margin: -5px 5px;
-// }
+		.detail-item {
+			margin-top: var(--margin-2xl);
 
-// .profile-links {
-// 	margin: 30px 5px;
-// }
+			&:first-child {
+				margin-top: 0px;
+			}
+		}
 
-// .user-initial {
-// 	font-size: 72px;
-// }
+		.user-bio {
+			color: var(--text-light);
+		}
 
+		.user-stats-item {
+			// @include flex(flex, null, center, null);
+			@include flex(flex, null, null, null);
 
-// .line-chart-container .chart-filter {
-// 	z-index: 1;
-// }
+			.stat-value {
+				font-size: var(--text-lg);
+				color: var(--text-color);
+				font-weight: var(--text-bold);
+				line-height: 20px;
+			}
 
-// .recent-activity {
-// 	margin: 20px;
-// 	font-size: 12px;
-// }
+			.stat-label {
+				color: var(--text-muted);
+				line-height: 20px;
+			}
 
-// .show-more-activity {
-// 	text-align: center;
-// 	margin-top: 20px;
-// }
-
-// .recent-activity-item {
-// 	margin: 15px 5px;
-// }
-
-// .interest-icon {
-// 	margin-right: 5px;
-// }
-
-// .chart-filter {
-// 	position: relative;
-// 	top: 5px;
-// 	margin-right: 10px;
-// }
-
-// .filter-label {
-// 	margin-right: 4px;
-// }
-
-// .performance-title {
-// 	position: relative;
-// 	left: 30px;
-// 	top: 20px;
-// }
-
-// @media (max-width: 991px) {
-// 	.user-profile-sidebar {
-// 		display: flex;
-// 	}
-
-// 	.percentage-chart-container {
-// 		border-top: 1px solid #d1d8dd;
-// 	}
-
-// 	.user-profile-sidebar .profile-links {
-// 		margin: 0;
-// 	}
-
-// 	.user-profile-sidebar .profile-details {
-// 		width: 50%;
-// 		margin: 0;
-// 	}
-// }
+			.icon {
+				stroke: none;
+				width: 28px;
+				height: 28px;
+				margin: 0 var(--margin-md) 0 0;
+			}
+		}
+	}
+}
