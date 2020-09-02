@@ -306,3 +306,4 @@ frappe.patches.v13_0.add_toggle_width_in_navbar_settings
 frappe.patches.v13_0.rename_notification_fields
 frappe.patches.v13_0.remove_duplicate_navbar_items
 frappe.patches.v13_0.enable_custom_script
+frappe.patches.v13_0.update_newsletter_content_type
