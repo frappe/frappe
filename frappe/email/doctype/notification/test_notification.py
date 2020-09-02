@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe, frappe.utils, frappe.utils.scheduler
 from frappe.desk.form import assign_to
 import unittest
-import time
 
 test_records = frappe.get_test_records('Notification')
 
@@ -15,7 +14,31 @@ test_dependencies = ["User"]
 class TestNotification(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""delete from `tabEmail Queue`""")
-		frappe.set_user("test1@example.com")
+		frappe.set_user("test@example.com")
+
+		if not frappe.db.exists('Notification', {'name': 'ToDo Status Update'}, 'name'):
+			notification = frappe.new_doc('Notification')
+			notification.name = 'ToDo Status Update'
+			notification.subject = 'ToDo Status Update'
+			notification.document_type = 'ToDo'
+			notification.event = 'Value Change'
+			notification.value_changed = 'status'
+			notification.send_to_all_assignees = 1
+			notification.save()
+
+		if not frappe.db.exists('Notification', {'name': 'Contact Status Update'}, 'name'):
+			notification = frappe.new_doc('Notification')
+			notification.name = 'Contact Status Update'
+			notification.subject = 'Contact Status Update'
+			notification.document_type = 'Contact'
+			notification.event = 'Value Change'
+			notification.value_changed = 'status'
+			notification.message = 'Test Contact Update'
+			notification.append('recipients', {
+				'receiver_by_document_field': 'email_id,email_ids'
+			})
+			notification.save()
+
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -181,8 +204,6 @@ class TestNotification(unittest.TestCase):
 		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")
 
 	def test_notification_to_assignee(self):
-		frappe.set_user("Administrator")
-
 		todo = frappe.new_doc('ToDo')
 		todo.description = 'Test Notification'
 		todo.save()
@@ -201,22 +222,10 @@ class TestNotification(unittest.TestCase):
 			"description": "Close this Todo"
 		})
 
-		if not frappe.db.exists('Notification', {'name': 'ToDo Status Update'}, 'name'):
-			notification = frappe.new_doc('Notification')
-			notification.name = 'ToDo Status Update'
-			notification.subject = 'ToDo Status Update'
-			notification.document_type = 'ToDo'
-			notification.event = 'Value Change'
-			notification.value_changed = 'status'
-			notification.send_to_all_assignees = 1
-			notification.save()
-
 		#change status of todo
 		todo.status = 'Closed'
 		todo.save()
 
-		# adding sleep so that email queue is fetched once its created
-		time.sleep(10)
 		email_queue = frappe.get_doc('Email Queue', {'reference_doctype': 'ToDo',
 			'reference_name': todo.name})
 
@@ -227,21 +236,6 @@ class TestNotification(unittest.TestCase):
 		self.assertTrue('test1@example.com' in recipients)
 
 	def test_notification_by_child_table_field(self):
-		frappe.set_user("Administrator")
-
-		if not frappe.db.exists('Notification', {'name': 'Contact Status Update'}, 'name'):
-			notification = frappe.new_doc('Notification')
-			notification.name = 'Contact Status Update'
-			notification.subject = 'Contact Status Update'
-			notification.document_type = 'Contact'
-			notification.event = 'Value Change'
-			notification.value_changed = 'status'
-			notification.message = 'Test Contact Update'
-			notification.append('recipients', {
-				'receiver_by_document_field': 'email_id,email_ids'
-			})
-			notification.save()
-
 		contact = frappe.new_doc('Contact')
 		contact.first_name = 'John Doe'
 		contact.status = 'Open'
@@ -260,8 +254,6 @@ class TestNotification(unittest.TestCase):
 		contact.status = 'Replied'
 		contact.save()
 
-		# adding sleep so that email queue is fetched once its created
-		time.sleep(10)
 		email_queue = frappe.get_doc('Email Queue', {'reference_doctype': 'Contact',
 			'reference_name': contact.name})
 
