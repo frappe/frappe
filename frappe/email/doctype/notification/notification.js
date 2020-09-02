@@ -65,7 +65,7 @@ frappe.notification = {
 					if (d.fieldtype == 'Table') {
 						let child_fields = frappe.get_doc('DocType', d.options).fields;
 						return $.map(child_fields, function(df) {
-								return df.options == 'Email' ||
+							return df.options == 'Email' ||
 								(df.options == 'User' && df.fieldtype == 'Link')
 								? get_select_options(df, d.fieldname) : null;
 						});
