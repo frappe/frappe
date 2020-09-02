@@ -476,7 +476,10 @@ export default class ChartWidget extends Widget {
 				aria-haspopup="true"aria-expanded="false"
 				class="btn btn-xs btn-secondary chart-menu"
 			>
-				‧‧‧
+				<svg class="icon icon-sm">
+					<use xlink:href="#icon-dot-horizontal">
+					</use>
+				</svg>
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
 				${actions
