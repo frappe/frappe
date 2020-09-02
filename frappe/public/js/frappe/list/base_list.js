@@ -174,6 +174,7 @@ frappe.views.BaseList = class BaseList {
 		const icon_map = {
 			'Image': 'image-view',
 			'List': 'list',
+			'Report': 'small-file',
 			'Calendar': 'calendar',
 			'Gantt': 'gantt',
 			'Kanban': 'kanban',
