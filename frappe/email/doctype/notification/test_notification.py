@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe, frappe.utils, frappe.utils.scheduler
 from frappe.desk.form import assign_to
 import unittest
+import time
 
 test_records = frappe.get_test_records('Notification')
 
@@ -214,6 +215,8 @@ class TestNotification(unittest.TestCase):
 		todo.status = 'Closed'
 		todo.save()
 
+		# adding sleep so that email queue is fetched once its created
+		time.sleep(10)
 		email_queue = frappe.get_doc('Email Queue', {'reference_doctype': 'ToDo',
 			'reference_name': todo.name})
 
@@ -257,6 +260,8 @@ class TestNotification(unittest.TestCase):
 		contact.status = 'Replied'
 		contact.save()
 
+		# adding sleep so that email queue is fetched once its created
+		time.sleep(10)
 		email_queue = frappe.get_doc('Email Queue', {'reference_doctype': 'Contact',
 			'reference_name': contact.name})
 
