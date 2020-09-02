@@ -89,7 +89,7 @@ frappe.ui.Notifications = class Notifications {
 		this.categories.forEach(category => {
 			this.make_tab_view(category);
 		})
-		this.switch(this.categories[0]);
+		this.switch_tab(this.categories[0]);
 	}
 
 	switch_tab(item) {
