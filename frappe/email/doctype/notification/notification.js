@@ -19,9 +19,11 @@ frappe.notification = {
 		}
 
 		frappe.model.with_doctype(frm.doc.document_type, function() {
-			let get_select_options = function(df) {
+			let get_select_options = function(df, parent_field) {
+				let select_value = parent_field ? df.fieldname + ',' + parent_field : df.fieldname;
+
 				return {
-					value: df.fieldname,
+					value: select_value,
 					label: df.fieldname + ' (' + __(df.label) + ')'
 				};
 			};
@@ -59,9 +61,19 @@ frappe.notification = {
 			let receiver_fields = [];
 			if (frm.doc.channel === 'Email') {
 				receiver_fields = $.map(fields, function(d) {
-					return d.options == 'Email' ||
-						(d.options == 'User' && d.fieldtype == 'Link')
-						? get_select_options(d) : null;
+
+					if (d.fieldtype == 'Table') {
+						let child_fields = frappe.get_doc('DocType', d.options).fields;
+						return $.map(child_fields, function(df) {
+								return df.options == 'Email' ||
+								(df.options == 'User' && df.fieldtype == 'Link')
+								? get_select_options(df, d.fieldname) : null;
+						});
+					} else {
+						return d.options == 'Email' ||
+							(d.options == 'User' && d.fieldtype == 'Link')
+							? get_select_options(d) : null;
+					}
 				});
 			} else if (in_list(['WhatsApp', 'SMS'], frm.doc.channel)) {
 				receiver_fields = $.map(fields, function(d) {

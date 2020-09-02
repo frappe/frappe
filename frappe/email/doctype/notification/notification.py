@@ -235,10 +235,17 @@ def get_context(context):
 				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
 			if recipient.receiver_by_document_field:
-				email_ids_value = doc.get(recipient.receiver_by_document_field)
-				if validate_email_address(email_ids_value):
-					email_ids = email_ids_value.replace(",", "\n")
-					recipients = recipients + email_ids.split("\n")
+				fields = recipient.receiver_by_document_field.split(',')
+				if len(fields) > 1:
+					for d in doc.get(fields[1]):
+						email_id = d.get(fields[0])
+						if validate_email_address(email_id):
+							recipients.append(email_id)
+				else:
+					email_ids_value = doc.get(fields[0])
+					if validate_email_address(email_ids_value):
+						email_ids = email_ids_value.replace(",", "\n")
+						recipients = recipients + email_ids.split("\n")
 
 			if recipient.cc and "{" in recipient.cc:
 				recipient.cc = frappe.render_template(recipient.cc, context)
