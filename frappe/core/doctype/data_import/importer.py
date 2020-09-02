@@ -664,6 +664,20 @@ class Row:
 					}
 				)
 				return
+		elif df.fieldtype == "Duration":
+			import re
+			is_valid_duration = re.match("^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", value)
+			if not is_valid_duration:
+				self.warnings.append(
+					{
+						"row": self.row_number,
+						"col": col.column_number,
+						"field": df_as_json(df),
+						"message": _("Value {0} must be in the valid duration format: d h m s").format(
+							frappe.bold(value)
+						)
+					}
+				)
 
 		return value
 
