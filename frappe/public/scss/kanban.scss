@@ -69,7 +69,9 @@
 
 		// margin-left: 10px;
 		.kanban-title {
+			font-size: var(--text-lg);
 			margin-left: 10px;
+			font-weight: var(--text-bold, 600)
 		}
 	}
 
