@@ -16,3 +16,8 @@
 	padding: $padding;
 	background-color: $background-color;
 }
+
+@mixin size($w, $h) {
+	width: $w;
+	height: $h;
+}
