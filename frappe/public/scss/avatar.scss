@@ -83,7 +83,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-color: var(--blue-50);
+	background-color: var(--gray-50);
 	color: var(--blue-500);
 	font-weight: normal;
 }
@@ -92,6 +92,7 @@
 	display: inline-flex;
 	align-items: center;
 	flex-direction: row-reverse;
+
 	&.right {
 		justify-content: flex-start;
 	}
@@ -100,6 +101,13 @@
 	}
 
 	.avatar-action {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: var(--control-bg);
+
 		.icon {
 			use {
 				stroke: var(--text-muted);
@@ -111,6 +119,10 @@
 		transition: margin .1s ease-in-out;
 		.avatar-frame {
 			border: 1px solid var(--fg-color);
+		}
+
+		&:not(.avatar-extra-count):hover {
+			z-index: 99;
 		}
 	}
 
