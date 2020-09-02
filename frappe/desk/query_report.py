@@ -8,7 +8,7 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, get_url_to_form, gzip_decompress, format_duration
+from frappe.utils import flt, cint, get_html_format, get_url_to_form, gzip_decompress, format_duration, cstr
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
@@ -81,8 +81,6 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 
 	if cint(report.add_total_row) and result and not skip_total_row:
 		result = add_total_row(result, columns)
-
-	result = handle_duration_fieldtype_values(columns, result)
 
 	return {
 		"result": result,
@@ -267,32 +265,6 @@ def get_columns_from_dict(columns, result):
 
 	return reordered_result
 
-
-def handle_duration_fieldtype_values(columns, result, meta=None):
-	for i, col in enumerate(columns):
-		fieldtype, fieldname = None, None
-		if isinstance(col, string_types):
-			col = col.split(":")
-			if len(col) > 1:
-				if col[1]:
-					fieldtype = col[1]
-					if "/" in fieldtype:
-						fieldtype, options = fieldtype.split("/")
-				else:
-					fieldtype = "Data"
-		else:
-			fieldtype = col.get("fieldtype")
-			fieldname = col.get("fieldname")
-
-		if fieldtype == "Duration":
-			for entry in range(0, len(result)):
-				val_in_seconds = result[entry][i]
-				if val_in_seconds:
-					duration_val = format_duration(val_in_seconds)
-					result[entry][i] = duration_val
-	return result
-
-
 def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
 	doc = None
@@ -454,7 +426,7 @@ def add_total_row(result, columns, meta = None):
 			if i >= len(row): continue
 
 			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
-			if fieldtype in ["Currency", "Int", "Float", "Percent"] and flt(cell):
+			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(cell):
 				total_row[i] = flt(total_row[i]) + flt(cell)
 
 			if fieldtype == "Percent" and i not in has_percent:
