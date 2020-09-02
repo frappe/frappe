@@ -379,7 +379,8 @@ body[data-route^="Module"] .main-menu {
 	display: inline-flex;
 	vertical-align: top;
 	.btn {
-		@include size(30px, 30px);
+		height: 30px;
+		width: 30px;
 		@extend .center-content;
 		padding: 0;
 		border: 1px dashed var(--dark-border-color);
