@@ -57,13 +57,6 @@ frappe.warn = function(title, message_html, proceed_action, primary_label, is_mi
 	const d = new frappe.ui.Dialog({
 		title: title,
 		indicator: 'red',
-		fields: [
-			{
-				fieldtype: 'HTML',
-				fieldname: 'warning_message',
-				options: `<div class="frappe-warning-message">${message_html}</div>`
-			}
-		],
 		primary_action_label: primary_label,
 		primary_action: () => {
 			if (proceed_action) proceed_action();
@@ -73,8 +66,8 @@ frappe.warn = function(title, message_html, proceed_action, primary_label, is_mi
 		minimizable: is_minimizable
 	});
 
+	d.$body.append(`<div class="frappe-confirm-message">${message_html}</div>`);
 	d.standard_actions.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
-
 	d.standard_actions.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
 
 	d.show();
