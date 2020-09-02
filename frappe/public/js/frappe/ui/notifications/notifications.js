@@ -17,7 +17,6 @@ frappe.ui.Notifications = class Notifications {
 		this.header_items = this.dropdown_list.find('.header-items');
 		this.header_actions = this.dropdown_list.find('.header-actions');
 		this.body = this.dropdown_list.find('.notification-list-body');
-		this.reel = this.dropdown_list.find('.notification-reel')
 		this.panel_events = this.dropdown_list.find('.panel-events');
 		this.panel_notifications = this.dropdown_list.find('.panel-notifications');
 
@@ -55,14 +54,12 @@ frappe.ui.Notifications = class Notifications {
 				id: "notifications",
 				view: NotificationsView,
 				el: this.panel_notifications,
-				transform: 'translateX(0%)'
 			},
 			{
 				label: __("Today's Events"),
 				id: "todays_events",
 				view: EventsView,
 				el: this.panel_events,
-				transform: 'translateX(-50%)'
 			}
 		];
 
@@ -79,31 +76,33 @@ frappe.ui.Notifications = class Notifications {
 
 		let navitem = $(`<ul class="notification-item-tabs nav nav-tabs" role="tablist"></ul>`);
 		this.categories = this.categories.map(item => {
-			item.dom = $(get_headers_html(item));
-			item.dom.on('click', (e) => {
+			item.$tab = $(get_headers_html(item));
+			item.$tab.on('click', (e) => {
 				e.stopImmediatePropagation();
 				this.switch_tab(item);
 			})
-			navitem.append(item.dom);
+			navitem.append(item.$tab);
 
 			return item
 		})
 		navitem.appendTo(this.header_items);
-		this.make_tab_view(this.categories[0]);
-		this.make_tab_view(this.categories[1]);
+		this.categories.forEach(category => {
+			this.make_tab_view(category);
+		})
+		this.switch(this.categories[0]);
 	}
 
 	switch_tab(item) {
+		// Set active tab
 		this.categories.forEach((item) => {
-			item.dom.removeClass("active");
+			item.$tab.removeClass("active");
 		});
 
-		this.reel[0].style.transform = item.transform;
+		item.$tab.addClass("active");
 
-		item.dom.addClass("active");
-
-		this.tabs[item.id]
-		this.current_tab = this.tabs[item.id]
+		// Hide other tabs
+		Object.keys(this.tabs).forEach(tab_name => this.tabs[tab_name].hide());
+		this.tabs[item.id].show();
 	}
 
 	make_tab_view(item) {
@@ -335,6 +334,7 @@ class NotificationsView extends BaseNotificaitonsView {
 				</span></li>`);
 		} else {
 			if (this.dropdown_items.length) {
+				this.container.empty();
 				this.dropdown_items.forEach(field => {
 					this.container.append(this.get_dropdown_item_html(field));
 				});
@@ -424,7 +424,7 @@ class EventsView extends BaseNotificaitonsView {
 
 	render_events_html(event_list) {
 		let html = '';
-		if (event_list.length && false) {
+		if (event_list.length) {
 			let get_event_html = (event) => {
 				let time = __("All Day");
 				if (!event.all_day) {

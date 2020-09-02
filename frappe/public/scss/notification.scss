@@ -64,34 +64,26 @@
 		// margin: 10px 0px;
 		max-height: 500px;
 		overflow-y: auto;
-		@include size(200%, 100%);
-		flex: 1;
 
-		.notification-reel {
+		.panel-events, .panel-notifications {
 			@include size(100%, null);
-			@include flex(flex, space-between, null, null);
-			transition: 0.5s;
+		}
 
-			.panel-events, .panel-notifications {
-				@include size(50%, null);
+		.notification-null-state {
+			min-height: 300px;
+			@include flex(flex, null, center, null);
+			place-content: center;
+
+			.title {
+				margin-top: var(--margin-lg);
+				font-size: var(--text-base);
+				font-weight: 600;
 			}
 
-			.notification-null-state {
-				min-height: 300px;
-				@include flex(flex, null, center, null);
-				place-content: center;
-
-				.title {
-					margin-top: var(--margin-lg);
-					font-size: var(--text-base);
-					font-weight: 600;
-				}
-
-				.subtitle {
-					margin-top: var(--margin-sm);
-					font-size: var(--text-md);
-					color: var(--text-muted);
-				}
+			.subtitle {
+				margin-top: var(--margin-sm);
+				font-size: var(--text-md);
+				color: var(--text-muted);
 			}
 		}
 	}
