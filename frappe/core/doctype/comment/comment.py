@@ -33,9 +33,12 @@ class Comment(Document):
 		self.notify_change('delete')
 
 	def notify_change(self, action):
+		key_map = {
+			'Like': 'like_logs'
+		}
 		frappe.publish_realtime('update_docinfo_for_{}_{}'.format(self.reference_doctype, self.reference_name), {
 			'doc': self.as_dict(),
-			'key': 'comments',
+			'key': key_map.get(self.comment_type, 'comments'),
 			'action': action
 		}, after_commit=True)
 
