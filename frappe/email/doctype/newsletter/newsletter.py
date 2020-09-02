@@ -38,8 +38,7 @@ class Newsletter(WebsiteGenerator):
 
 		if self.recipients:
 			self.queue_all()
-			if getattr(frappe.local, "is_ajax", False):
-				frappe.msgprint(_("Email queued to {0} recipients").format(len(self.recipients)))
+			frappe.msgprint(_("Email queued to {0} recipients").format(len(self.recipients)))
 
 		else:
 			frappe.msgprint(_("Newsletter should have atleast one recipient"))
