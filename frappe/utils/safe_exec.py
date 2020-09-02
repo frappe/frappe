@@ -50,7 +50,7 @@ def get_safe_globals():
 		dict=dict,
 		_dict=frappe._dict,
 		frappe=frappe._dict(
-			flags=frappe.flags,
+			flags=frappe._dict(),
 			format=frappe.format_value,
 			format_value=frappe.format_value,
 			date_format=date_format,
