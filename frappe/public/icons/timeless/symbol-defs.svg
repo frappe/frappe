@@ -459,7 +459,7 @@
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-image-view">
 		<path d="M2.5 3.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h-3a1 1 0 0 1-1-1v-2zm0 7a1 1 0 0 1 1-1h3v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2zm7-7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3v-3zm0 6h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3z"></path>
 	</symbol>
-	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-gant">
+	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-gantt">
 		<path d="M2.5 3.5h2m7 9h2m-10-6h6m-3 3h6" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-kanban">
