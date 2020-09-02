@@ -1261,8 +1261,8 @@ frappe.ui.form.Form = class FrappeForm {
 		var docperms = frappe.perm.get_perm(this.doc.doctype);
 		for (var i=0, l=docperms.length; i<l; i++) {
 			var p = docperms[i];
-			if (Object.keys(p).length !== 0) {
-				perm[p.permlevel || 0] = {
+			if (Number.isInteger(p.permlevel)) {
+				perm[p.permlevel] = {
 					read: p.read,
 					cancel: p.cancel,
 					share: p.share,
