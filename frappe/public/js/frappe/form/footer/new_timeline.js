@@ -42,13 +42,15 @@ frappe.ui.form.NewTimeline = class {
 		};
 
 		if (has_communications()) {
-			this.timeline_actions_wrapper.append(`
-				<div class="custom-control custom-switch communication-switch">
-					<input type="checkbox" class="custom-control-input" id="only-communication-switch">
-					<label class="custom-control-label" for="only-communication-switch">
-						${__('Show Only Communications')}
-					</label>
-				</div>`)
+			this.timeline_actions_wrapper
+				.append(`
+					<div class="custom-control custom-switch communication-switch">
+						<input type="checkbox" class="custom-control-input" id="only-communication-switch">
+						<label class="custom-control-label" for="only-communication-switch">
+							${__('Show Only Communications')}
+						</label>
+					</div>
+				`)
 				.find('.custom-control-input')
 				.change(e => {
 					this.only_communication = e.target.checked;
@@ -107,6 +109,7 @@ frappe.ui.form.NewTimeline = class {
 			this.timeline_items.push(...this.get_version_timeline_contents());
 			this.timeline_items.push(...this.get_share_timeline_contents());
 			this.timeline_items.push(...this.get_like_timeline_contents());
+			this.timeline_items.push(...this.get_custom_timeline_contents());
 		}
 		// attachments
 		// milestones
@@ -242,6 +245,20 @@ frappe.ui.form.NewTimeline = class {
 			});
 		});
 		return like_timeline_contents;
+	}
+
+	get_custom_timeline_contents() {
+		let custom_timeline_contents = [];
+		(this.doc_info.additional_timeline_content || []).forEach(custom_item => {
+			custom_timeline_contents.push({
+				icon: 'call',
+				icon_size: 'sm',
+				card: true,
+				creation: custom_item.creation,
+				content: custom_item.content || frappe.render_template(custom_item.template, custom_item.template_data),
+			});
+		});
+		return custom_timeline_contents;
 	}
 
 	get_energy_point_timeline_contents() {
