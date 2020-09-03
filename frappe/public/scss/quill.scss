@@ -1,16 +1,14 @@
-@import 'variables.less';
-@import (less) 'quill/dist/quill.snow.css';
-@import (less) 'quill/dist/quill.bubble.css';
-@import (less) '../js/frappe/form/controls/quill-mention/quill.mention.css';
+@import '~quill/dist/quill.snow.css';
+@import '~quill/dist/quill.bubble.css';
 
 .ql-toolbar.ql-snow,
 .ql-container.ql-snow {
-	border-color: @border-color;
+	border-color: var(--border-color);
 	font-family: inherit;
 }
 
 .ql-editor {
-	font-family: @font-stack;
+	font-family: var(--font-stack);
 	line-height: 1.6;
 
 	h1,
@@ -24,15 +22,15 @@
 }
 
 .ql-toolbar.ql-snow {
-	border-top-left-radius: 4px;
-	border-top-right-radius: 4px;
-	background-color: @panel-bg;
+	border-top-left-radius: var(--border-radius-sm);;
+	border-top-right-radius: var(--border-radius-sm);;
+	background-color: var(--control-bg);
 	padding-bottom: 0;
 }
 
 .ql-container.ql-snow {
-	border-bottom-left-radius: 4px;
-	border-bottom-right-radius: 4px;
+	border-bottom-left-radius: var(--border-radius-sm);;
+	border-bottom-right-radius: var(--border-radius-sm);;
 }
 
 .ql-snow .ql-editor {
@@ -41,7 +39,7 @@
 }
 
 .ql-snow .ql-picker {
-	font-size: 12px;
+	font-size: var(--text-sm);
 }
 
 .ql-snow .ql-picker-label {
@@ -55,35 +53,42 @@
 .ql-bubble .ql-editor {
 	min-height: 100px;
 	max-height: 300px;
-	border-radius: 4px;
+	border-radius: var(--border-radius-sm);
 }
 
 .ql-mention-list-container {
+	width: 270px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-sm);
+	background-color: var(--bg-color);
+	box-shadow: var(--shadow-md);
 	z-index: 1;
 }
 
 .ql-mention-list {
-	border-radius: 4px;
+	border-radius: var(--border-radius-sm);
 }
 
 .ql-mention-list-item {
-	font-size: @text-small;
+	font-size: var(--text-xs);
 	padding: 10px 12px;
 	height: initial;
 	line-height: initial;
 
 	&.selected {
-		background-color: @btn-bg;
+		background-color: var(--control-bg);
 	}
 }
 
-.ql-editor:not(.read-mode) .mention {
+.mention {
+	display: inline-block;
 	height: auto;
 	width: auto;
-	border-radius: 10px;
-	border: 1px solid @light-border-color;
-	padding: 2px 3px;
-	background-color: @btn-bg;
+	border-radius: var(--border-radius-lg);
+	border: 1px solid var(--border-color);
+	padding: 2px 5px;
+	font-size: var(--text-sm);
+	background-color: var(--fg-color);
 }
 
 // table
@@ -124,15 +129,36 @@
 }
 
 .ql-editor td {
-	border: 1px solid @border-color;
+	border: 1px solid var(--border-color);
 }
 
 .ql-snow .ql-editor blockquote {
-	font-size: 13px;
+	font-size: var(--text-sm);
 	margin-top: 0px;
 	margin-bottom: 0px;
 }
 
 .ql-editor.read-mode {
 	padding: 0;
+	.mention {
+		background-color: var(--control-bg);
+	}
+}
+
+
+.ql-mention-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 300px;
+	overflow: scroll;
+}
+
+.ql-mention-list-item.selected {
+	background-color: var(--fg-color);
+	text-decoration: none;
+}
+
+.mention>span {
+	margin: 0 3px;
 }

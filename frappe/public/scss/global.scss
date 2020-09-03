@@ -428,3 +428,19 @@ kbd {
 	display: grid;
 	place-items: center;
 }
+
+.margin {
+	margin: var(--margin-sm);
+}
+.margin-top {
+	margin-top: var(--margin-sm);
+}
+.margin-bottom {
+	margin-bottom: var(--margin-sm);
+}
+.margin-left {
+	margin-left: var(--margin-sm);
+}
+.margin-right {
+	margin-right: var(--margin-sm);
+}
