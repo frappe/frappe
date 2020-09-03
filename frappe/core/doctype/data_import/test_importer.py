@@ -52,7 +52,7 @@ class TestImporter(unittest.TestCase):
 		preview = data_import.get_preview_from_template()
 
 		self.assertEqual(len(preview.data), 4)
-		self.assertEqual(len(preview.columns), 15)
+		self.assertEqual(len(preview.columns), 16)
 
 	def test_data_import_without_mandatory_values(self):
 		import_file = get_import_file('sample_import_file_without_mandatory')
