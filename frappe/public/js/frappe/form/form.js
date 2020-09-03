@@ -321,19 +321,49 @@ frappe.ui.form.Form = class FrappeForm {
 			for (let action of this.meta.actions) {
 				frappe.ui.form.on(this.doctype, 'refresh', () => {
 					if (!this.is_new()) {
-						this.add_custom_button(action.label, () => {
-							if (action.action_type==='Server Action') {
-								frappe.xcall(action.action, {doc: this.doc}).then(() => {
-									frappe.msgprint({
-										message: __('{} Complete', [action.label]),
-										alert: true
-									});
-								});
-							}
-						}, action.group);
+						if (!action.hidden) {
+							this.add_custom_button(action.label, () => {
+								this.execute_action(action);
+							}, action.group);
+						}
 					}
 				});
 			}
+		}
+	}
+
+	execute_action(action) {
+		if (typeof action === 'string') {
+			// called by label - maybe via custom script
+			// frm.execute_action('Action')
+			for (let _action of this.meta.actions) {
+				if (_action.label === action) {
+					action = _action;
+					break;
+				}
+			}
+
+			if (typeof action === 'string') {
+				frappe.throw(`Action ${action} not found`);
+			}
+		}
+		if (action.action_type==='Server Action') {
+			frappe.xcall(action.action, {doc: this.doc}).then((doc) => {
+				if (doc.doctype) {
+					// document is returned by the method,
+					// apply the changes locally and refresh
+					frappe.model.sync(doc);
+					this.refresh();
+				}
+
+				// feedback
+				frappe.msgprint({
+					message: __('{} Complete', [action.label]),
+					alert: true
+				});
+			});
+		} else if (action.action_type==='Route') {
+			frappe.set_route(action.action);
 		}
 	}
 

@@ -134,7 +134,8 @@ log_types = (
 	'Notification Log',
 	'Email Queue',
 	'DocShare',
-	'Document Follow'
+	'Document Follow',
+	'Console Log'
 )
 
 def delete_fields(args_dict, delete=0):
