@@ -18,7 +18,13 @@ const {
 	get_options_for
 } = require('./config');
 
+let memory_limit = '';
+let limiter = '--max_old_space_size=';
 const build_for_app = process.argv[2] === '--app' ? process.argv[3] : null;
+
+for (let flag of process.argv) {
+	 memory_limit = flag.startsWith(limiter) ? flag : memory_limit;
+}
 
 show_production_message();
 ensure_js_css_dirs();
@@ -49,6 +55,7 @@ function build_assets_for_app(app) {
 }
 
 function build_assets(app) {
+	if (global.gc) {global.gc();}
 	const options = get_options_for(app);
 	if (!options.length) return Promise.resolve();
 	log(chalk.yellow(`\nBuilding ${app} assets...\n`));
@@ -125,9 +132,10 @@ function run_build_command_for_app(app) {
 		if (package.scripts && package.scripts.build) {
 			console.log('\nRunning build command for', chalk.bold(app));
 			process.chdir(root_app_path);
-			execSync('yarn build', { encoding: 'utf8', stdio: 'inherit' });
+			execSync(`yarn build ${memory_limit}`, { encoding: 'utf8', stdio: 'inherit' });
 		}
 	}
+	if (global.gc) {global.gc();}
 }
 
 function ensure_js_css_dirs() {

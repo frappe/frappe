@@ -92,7 +92,7 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False)
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
 	mode = 'build' if no_compress else 'production'
-	command = '{pacman} run {mode}'.format(pacman=pacman, mode=mode)
+	command = '{pacman} run {mode} --expose-gc'.format(pacman=pacman, mode=mode)
 
 	if app:
 		command += ' --app {app}'.format(app=app)
