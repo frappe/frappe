@@ -78,7 +78,7 @@ class Webhook(Document):
 def get_context(doc):
 	context = get_safe_globals()
 	context.doc = doc
-	return turn
+	return context
 
 def enqueue_webhook(doc, webhook):
 	webhook = frappe.get_doc("Webhook", webhook.get("name"))
