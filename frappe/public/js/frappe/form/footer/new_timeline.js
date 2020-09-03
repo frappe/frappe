@@ -129,6 +129,7 @@ frappe.ui.form.NewTimeline = class {
 			this.timeline_items.push(...this.get_share_timeline_contents());
 			this.timeline_items.push(...this.get_like_timeline_contents());
 			this.timeline_items.push(...this.get_custom_timeline_contents());
+			this.timeline_items.push(...this.get_assignment_timeline_contents());
 		}
 		// attachments
 		// milestones
@@ -251,6 +252,17 @@ frappe.ui.form.NewTimeline = class {
 			});
 		});
 		return share_timeline_contents;
+	}
+
+	get_assignment_timeline_contents() {
+		let assignment_timeline_contents = [];
+		(this.doc_info.assignment_logs || []).forEach(assignment => {
+			assignment_timeline_contents.push({
+				creation: assignment.creation,
+				content: assignment.content,
+			});
+		});
+		return assignment_timeline_contents;
 	}
 
 	get_like_timeline_contents() {

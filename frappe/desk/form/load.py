@@ -96,6 +96,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		'total_comments': len(json.loads(doc.get('_comments') or '[]')),
 		'versions': get_versions(doc),
 		"assignments": get_assignments(doc.doctype, doc.name),
+		"assignment_logs": get_comments(doc.doctype, doc.name, 'assignment'),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"share_logs": get_comments(doc.doctype, doc.name, 'share'),
@@ -135,6 +136,9 @@ def get_comments(doctype, name, comment_type='Comment'):
 
 	if comment_type == 'share':
 		comment_types = ['Shared', 'Unshared']
+
+	if comment_type == 'assignment':
+		comment_types = ['Assignment Completed', 'Assigned']
 
 	comments = frappe.get_all('Comment', fields = ['name', 'creation', 'content', 'owner'], filters=dict(
 		reference_doctype = doctype,
