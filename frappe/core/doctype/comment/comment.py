@@ -37,7 +37,9 @@ class Comment(Document):
 			'Like': 'like_logs',
 			'Assigned': 'assignment_logs',
 			'Assignment Completed': 'assignment_logs',
-			'Comment': 'comments'
+			'Comment': 'comments',
+			'Attachment': 'attachment_logs',
+			'Attachment Removed': 'attachment_logs',
 		}
 		key = key_map.get(self.comment_type)
 		if not key: return

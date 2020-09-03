@@ -130,6 +130,7 @@ frappe.ui.form.NewTimeline = class {
 			this.timeline_items.push(...this.get_like_timeline_contents());
 			this.timeline_items.push(...this.get_custom_timeline_contents());
 			this.timeline_items.push(...this.get_assignment_timeline_contents());
+			this.timeline_items.push(...this.get_attachment_timeline_contents());
 		}
 		// attachments
 		// milestones
@@ -245,10 +246,10 @@ frappe.ui.form.NewTimeline = class {
 
 	get_share_timeline_contents() {
 		let share_timeline_contents = [];
-		(this.doc_info.share_logs || []).forEach(share => {
+		(this.doc_info.share_logs || []).forEach(share_log => {
 			share_timeline_contents.push({
-				creation: share.creation,
-				content: share.content,
+				creation: share_log.creation,
+				content: share_log.content,
 			});
 		});
 		return share_timeline_contents;
@@ -256,23 +257,34 @@ frappe.ui.form.NewTimeline = class {
 
 	get_assignment_timeline_contents() {
 		let assignment_timeline_contents = [];
-		(this.doc_info.assignment_logs || []).forEach(assignment => {
+		(this.doc_info.assignment_logs || []).forEach(assignment_log => {
 			assignment_timeline_contents.push({
-				creation: assignment.creation,
-				content: assignment.content,
+				creation: assignment_log.creation,
+				content: assignment_log.content,
 			});
 		});
 		return assignment_timeline_contents;
 	}
 
+	get_attachment_timeline_contents() {
+		let attachment_timeline_contents = [];
+		(this.doc_info.attachment_logs || []).forEach(attachment_log => {
+			attachment_timeline_contents.push({
+				creation: attachment_log.creation,
+				content: `${this.get_user_link(attachment_log.owner)} ${attachment_log.content}`,
+			});
+		});
+		return attachment_timeline_contents;
+	}
+
 	get_like_timeline_contents() {
 		let like_timeline_contents = [];
-		(this.doc_info.like_logs || []).forEach(like => {
+		(this.doc_info.like_logs || []).forEach(like_log => {
 			like_timeline_contents.push({
 				icon: 'heart',
 				icon_size: 'sm',
-				creation: like.creation,
-				content: __('{0} Liked', [this.get_user_link(like.owner)]),
+				creation: like_log.creation,
+				content: __('{0} Liked', [this.get_user_link(like_log.owner)]),
 			});
 		});
 		return like_timeline_contents;
