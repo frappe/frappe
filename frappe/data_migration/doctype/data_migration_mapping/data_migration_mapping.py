@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.utils import get_source_value
 
 class DataMigrationMapping(Document):
 	def get_filters(self):
@@ -70,3 +69,10 @@ def get_value_from_fieldname(field_map, fieldname_field, doc):
 	else:
 		value = get_source_value(doc, field_name)
 	return value
+
+def get_source_value(source, key):
+	'''Get value from source (object or dict) based on key'''
+	if isinstance(source, dict):
+		return source.get(key)
+	else:
+		return getattr(source, key)
