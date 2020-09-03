@@ -568,14 +568,14 @@ frappe.provide("frappe.views");
 			if (card.color && frappe.ui.color.validate_hex(card.color)) {
 				const $div = $('<div>');
 				$('<div></div>').css({
-					width: '20px',
-					height: '5px',
+					width: '30px',
+					height: '4px',
 					borderRadius: '2px',
-					marginBottom: '4px',
+					marginBottom: '8px',
 					backgroundColor: card.color
 				}).appendTo($div);
 
-				self.$card.find('.kanban-card.content').prepend($div);
+				self.$card.find('.kanban-card .kanban-title-area').prepend($div);
 			}
 
 			self.$card.find(".kanban-card-meta").empty().append(html)
