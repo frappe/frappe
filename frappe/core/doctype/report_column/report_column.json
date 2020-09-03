@@ -31,7 +31,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Fieldtype",
-   "options": "Check\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nInt\nLink\nSelect\nTime",
+   "options": "Check\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nInt\nLink\nSelect\nTime",
    "reqd": 1
   },
   {
@@ -48,7 +48,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-08-17 14:32:17.174796",
+ "modified": "2020-09-03 10:52:03.895817",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report Column",

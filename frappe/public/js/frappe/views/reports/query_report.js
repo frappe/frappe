@@ -1322,6 +1322,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return row
 				.slice(standard_column_count)
 				.map((cell, i) => {
+					if (cell.column.fieldtype === "Duration") {
+						cell.content = frappe.utils.get_formatted_duration(cell.content)
+					}
 					if (include_indentation && i===0) {
 						cell.content = '   '.repeat(row.meta.indent) + (cell.content || '');
 					}

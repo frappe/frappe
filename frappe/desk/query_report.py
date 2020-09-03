@@ -359,6 +359,7 @@ def export_query():
 		columns = get_columns_dict(data.columns)
 
 		from frappe.utils.xlsxutils import make_xlsx
+		data['result'] = handle_duration_fieldtype_values(data.get('result'), data.get('columns'))
 		xlsx_data = build_xlsx_data(columns, data, visible_idx, include_indentation)
 		xlsx_file = make_xlsx(xlsx_data, "Query Report")
 
@@ -366,6 +367,30 @@ def export_query():
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
 
+def handle_duration_fieldtype_values(result, columns):
+	for i, col in enumerate(columns):
+		fieldtype, fieldname = None, None
+		if isinstance(col, string_types):
+			col = col.split(":")
+			if len(col) > 1:
+				if col[1]:
+					fieldtype = col[1]
+					if "/" in fieldtype:
+						fieldtype, options = fieldtype.split("/")
+				else:
+					fieldtype = "Data"
+		else:
+			fieldtype = col.get("fieldtype")
+			fieldname = col.get("fieldname")
+
+		if fieldtype == "Duration":
+			for entry in range(0, len(result)):
+				val_in_seconds = result[entry][i]
+				if val_in_seconds:
+					duration_val = format_duration(val_in_seconds)
+					result[entry][i] = duration_val
+
+	return result
 
 def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	result = [[]]
@@ -385,7 +410,11 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 				for idx in range(len(data.columns)):
 					label = columns[idx]["label"]
 					fieldname = columns[idx]["fieldname"]
+					fieldtype = columns[idx]["fieldtype"]
 					cell_value = row.get(fieldname, row.get(label, ""))
+					if fieldtype == "Duration":
+						cell_value = format_duration(value)
+
 					if cint(include_indentation) and 'indent' in row and idx == 0:
 						cell_value = ('    ' * cint(row['indent'])) + cell_value
 					row_data.append(cell_value)
