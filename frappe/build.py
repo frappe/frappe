@@ -10,6 +10,7 @@ import shutil
 import warnings
 import tempfile
 from distutils.spawn import find_executable
+from shlex import split
 
 from six import iteritems, text_type
 import psutil
@@ -107,7 +108,10 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False)
 	command += memory_restriction
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-	frappe.commands.popen(command, cwd=frappe_app_path)
+
+	command = split(command)
+	os.chdir(frappe_app_path)
+	os.execv(pacman, command)
 
 
 def watch(no_compress):
@@ -117,7 +121,8 @@ def watch(no_compress):
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
 	frappe_app_path = frappe.get_app_path('frappe', '..')
-	frappe.commands.popen('{pacman} run watch'.format(pacman=pacman), cwd=frappe_app_path)
+	os.chdir(frappe_app_path)
+	os.execv(pacman, ["run", "watch"])
 
 
 def make_asset_dirs(make_copy=False, restore=False):
