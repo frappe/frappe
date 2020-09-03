@@ -95,20 +95,29 @@ function concatenate_files() {
 
 	files_to_concat.forEach(output_file => {
 		const input_files = get_build_json('frappe')[output_file];
+		let output_files = new Set();
 
-		const file_content = input_files.map(file_name => {
+		for (let file_name of input_files) {
 			let prefix = get_app_path('frappe');
 			if (file_name.startsWith('node_modules/')) {
 				prefix = path.resolve(get_app_path('frappe'), '..');
 			}
 			const full_path = path.resolve(prefix, file_name);
-			return `/* ${file_name} */\n` + fs.readFileSync(full_path);
-		}).join('\n\n');
+			const output_file_path = output_file.slice('concat:'.length);
+			const target_path = path.resolve(assets_path, output_file_path);
 
-		const output_file_path = output_file.slice('concat:'.length);
-		const target_path = path.resolve(assets_path, output_file_path);
-		fs.writeFileSync(target_path, file_content);
-		log(`${chalk.green('✔')} Built ${output_file_path}`);
+			if (!!output_files.has(output_file_path)) {
+				log(`${chalk.green('✔')} Built ${output_file_path}`);
+			} else {
+				fs.writeFileSync(target_path, "", {flag:"w"});
+			}
+
+			fs.appendFile(target_path, `/* ${file_name} */\n` + fs.readFileSync(full_path), function (err) {
+				if (err) throw err;
+				output_files.add(output_file_path)
+			});
+
+		}
 	});
 }
 
