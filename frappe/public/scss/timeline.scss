@@ -41,7 +41,6 @@ $threshold: 40;
 	}
 	.timeline-actions {
 		display: inline-flex;
-		justify-content: space-between;
 		width: 100%;
 		margin-bottom: $timeline-item-bottom-margin;
 		padding: var(--padding-sm);
@@ -53,6 +52,7 @@ $threshold: 40;
 			margin-left: $timeline-item-left-margin;
 		}
 		.communication-switch {
+			margin-left: auto;
 			display: flex;
 			font-size: var(--text-sm);
 			align-items: center;
