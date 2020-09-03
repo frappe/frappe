@@ -97,8 +97,8 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False)
 		command += ' --app {app}'.format(app=app)
 
 	try:
-		available_memory = psutil.virtual_memory().free * 0.8
-		available_swap = psutil.swap_memory().free * 0.6
+		available_memory = (psutil.virtual_memory().free / (1024 * 1024)) * 0.8
+		available_swap = (psutil.swap_memory().free / (1024 * 1024)) * 0.6
 		available_usage = int(available_memory + available_swap)
 	except Exception:
 		available_usage = 0
