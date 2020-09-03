@@ -830,7 +830,7 @@ Object.assign(frappe.utils, {
 			duration_options = {
 				hide_days: 0,
 				hide_seconds: 0
-			}
+			};
 		}
 		if (value) {
 			let total_duration = frappe.utils.seconds_to_duration(value, duration_options);

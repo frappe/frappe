@@ -8,7 +8,7 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, get_url_to_form, gzip_decompress, format_duration, cstr
+from frappe.utils import flt, cint, get_html_format, get_url_to_form, gzip_decompress, format_duration
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
@@ -369,7 +369,7 @@ def export_query():
 
 def handle_duration_fieldtype_values(result, columns):
 	for i, col in enumerate(columns):
-		fieldtype, fieldname = None, None
+		fieldtype = None
 		if isinstance(col, string_types):
 			col = col.split(":")
 			if len(col) > 1:
@@ -381,7 +381,6 @@ def handle_duration_fieldtype_values(result, columns):
 					fieldtype = "Data"
 		else:
 			fieldtype = col.get("fieldtype")
-			fieldname = col.get("fieldname")
 
 		if fieldtype == "Duration":
 			for entry in range(0, len(result)):
@@ -410,10 +409,7 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 				for idx in range(len(data.columns)):
 					label = columns[idx]["label"]
 					fieldname = columns[idx]["fieldname"]
-					fieldtype = columns[idx]["fieldtype"]
 					cell_value = row.get(fieldname, row.get(label, ""))
-					if fieldtype == "Duration":
-						cell_value = format_duration(value)
 
 					if cint(include_indentation) and 'indent' in row and idx == 0:
 						cell_value = ('    ' * cint(row['indent'])) + cell_value
