@@ -93,7 +93,8 @@ class UserProfile {
 			type: 'heatmap',
 			countLabel: 'Energy Points',
 			data: {},
-			discreteDomains: 0,
+			discreteDomains: 1,
+			height: 150
 		});
 		this.update_heatmap_data();
 		this.create_heatmap_chart_filters();
@@ -128,7 +129,6 @@ class UserProfile {
 		};
 
 		this.line_chart = new frappe.Chart( '.performance-line-chart', {
-			title: 'Energy Points',
 			type: 'line',
 			height: 200,
 			data: {
@@ -162,7 +162,6 @@ class UserProfile {
 		}).then(chart => {
 			if (chart.labels.length) {
 				this.percentage_chart = new frappe.Chart( '.performance-percentage-chart', {
-					title: title,
 					type: 'percentage',
 					data: {
 						labels: chart.labels,
@@ -173,9 +172,9 @@ class UserProfile {
 						height: 11,
 						depth: 1
 					},
-					height: 160,
+					height: 200,
 					maxSlices: 8,
-					colors: ['#5e64ff', '#743ee2', '#ff5858', '#ffa00a', '#feef72', '#28a745', '#98d85b', '#a9a7ac'],
+					colors: ['purple', 'blue', 'cyan', 'teal', 'pink', 'red', 'orange', 'yellow'],
 				});
 			} else {
 				this.wrapper.find('.percentage-chart-container').hide();
@@ -217,7 +216,7 @@ class UserProfile {
 				}
 			},
 		];
-		frappe.dashboard_utils.render_chart_filters(filters, 'chart-filter', '.line-chart-container', 1);
+		frappe.dashboard_utils.render_chart_filters(filters, 'chart-filter', '.line-chart-options', 1);
 	}
 
 	create_percentage_chart_filters() {
@@ -232,7 +231,7 @@ class UserProfile {
 				}
 			},
 		];
-		frappe.dashboard_utils.render_chart_filters(filters, 'chart-filter', '.percentage-chart-container');
+		frappe.dashboard_utils.render_chart_filters(filters, 'chart-filter', '.percentage-chart-options');
 	}
 
 	create_heatmap_chart_filters() {
@@ -245,7 +244,7 @@ class UserProfile {
 				}
 			},
 		];
-		frappe.dashboard_utils.render_chart_filters(filters, 'chart-filter', '.heatmap-container');
+		frappe.dashboard_utils.render_chart_filters(filters, 'chart-filter', '.heatmap-options');
 	}
 
 
@@ -308,7 +307,7 @@ class UserProfile {
 
 	render_user_details() {
 		this.sidebar.empty().append(frappe.render_template('user_profile_sidebar', {
-			user_image: frappe.avatar(this.user_id, 'avatar-frame', 'user_image', this.user.image),
+			user_image: this.user.image,
 			user_abbr: this.user.abbr,
 			user_location: this.user.location,
 			user_interest: this.user.interest,
@@ -356,17 +355,30 @@ class UserProfile {
 	}
 
 	render_points_and_rank() {
-		let $profile_details = this.wrapper.find('.profile-details');
+		let $profile_details = this.wrapper.find('.user-stats');
+		let $profile_details_wrapper = this.wrapper.find('.user-stats-detail');
+
+		const _get_stat_dom = (value, label, icon) => {
+			return `<div class="user-stats-item mt-4">
+						${frappe.utils.icon(icon, "lg", "no-stroke")}
+						<div>
+							<div class="stat-value">${value}</div>
+							<div class="stat-label">${label}</div>
+						</div>
+					</div>`
+		}
 
 		this.get_user_rank().then(() => {
 			this.get_user_points().then(() => {
-				let html = $(__(`<p class="user-energy-points text-muted">${__('Energy Points: ')}<span class="rank">{0}</span></p>
-					<p class="user-energy-points text-muted">${__('Review Points: ')}<span class="rank">{1}</span></p>
-					<p class="user-energy-points text-muted">${__('Rank: ')}<span class="rank">{2}</span></p>
-					<p class="user-energy-points text-muted">${__('Monthly Rank: ')}<span class="rank">{3}</span></p>
-				`, [this.energy_points, this.review_points, this.rank, this.month_rank]));
+				let html = $(`
+					${_get_stat_dom(this.energy_points, __('Energy Points'), "color-energy-points")}
+					${_get_stat_dom(this.review_points, __('Review Points'), "color-review-points")}
+					${_get_stat_dom(this.rank, __('Rank'), "color-rank")}
+					${_get_stat_dom(this.month_rank, __('Monthly Rank'), "color-monthly-rank")}
+				`);
 
 				$profile_details.append(html);
+				$profile_details_wrapper.removeClass("hide");
 			});
 		});
 	}

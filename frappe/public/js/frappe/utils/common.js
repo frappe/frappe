@@ -68,8 +68,10 @@ frappe.avatar_group = function(users, limit=4, options={}) {
 	}
 
 	if (options.action_icon) {
-		icon_html = `<span class="avatar-action">
-			${frappe.utils.icon(options.action_icon, 'md')}
+		icon_html = `<span class="avatar avatar-small avatar avatar-small">
+			<div class="avatar-frame avatar-action">
+					${frappe.utils.icon(options.action_icon, 'md')}
+			</div>
 		</span>`;
 	}
 

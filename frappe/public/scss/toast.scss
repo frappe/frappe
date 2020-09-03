@@ -54,6 +54,9 @@
 		color: inherit;
 		opacity: 1;
 		font-size: inherit;
+		.icon {
+			fill: var(--text-muted);
+		}
 	}
 
 	.next-action-container {

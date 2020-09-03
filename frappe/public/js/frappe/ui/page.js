@@ -247,13 +247,14 @@ frappe.ui.Page = Class.extend({
 		});
 	},
 
-	add_custom_menu_item: function(parent, label, click, standard, shortcut) {
+	add_custom_menu_item: function(parent, label, click, standard, shortcut, icon=null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
 			parent: parent,
 			shortcut,
+			icon
 		});
 	},
 
@@ -324,15 +325,22 @@ frappe.ui.Page = Class.extend({
 	* @param {string} shortcut - Keyboard shortcut associated with the element
 	* @param {Boolean} show_parent - Whether to show the dropdown button if dropdown item is added
 	*/
-	add_dropdown_item: function({label, click, standard, parent, shortcut, show_parent=true}) {
+	add_dropdown_item: function({label, click, standard, parent, shortcut, show_parent=true, icon=null}) {
 		if (show_parent) {
 			parent.parent().removeClass("hide");
 		}
 
 		let $li;
+		let $icon = ``;
+
+		if (icon) {
+			$icon = `<span class="menu-item-icon">${frappe.utils.icon(icon)}</span>`;
+		}
+
 		if (shortcut) {
 			let shortcut_obj = this.prepare_shortcut_obj(shortcut, click, label);
 			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
+				${$icon}
 				<span class="menu-item-label">${label}</span>
 				<kbd class="pull-right">
 					<span>${shortcut_obj.shortcut_label}</span>
@@ -341,7 +349,7 @@ frappe.ui.Page = Class.extend({
 			frappe.ui.keys.add_shortcut(shortcut_obj);
 		} else {
 			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
-				<span class="menu-item-label">${label}</span></a><li>`);
+				${$icon}<span class="menu-item-label">${label}</span></a><li>`);
 		}
 		var $link = $li.find("a").on("click", click);
 

@@ -17,7 +17,7 @@ frappe.ui.form.Share = Class.extend({
 		const shared_users = shared.filter(Boolean).map(s => s.user);
 
 		// REDESIGN-TODO: handle "shared with everyone"
-		this.shares.append(frappe.avatar_group(shared_users, 5, {'align': 'left', 'overlap': false}));
+		this.shares.append(frappe.avatar_group(shared_users, 5, {'align': 'left', 'overlap': true}));
 		if (this.frm.is_new()) {
 			this.parent.find(".share-doc-btn").hide();
 		}

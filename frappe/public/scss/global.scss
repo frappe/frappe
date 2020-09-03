@@ -263,8 +263,17 @@ select.input-xs {
 }
 
 .dropdown-item {
-	border-radius: 4px;
-	padding: 0.75rem;
+	border-radius: 6px;
+	padding: 9px;
+	margin: 6px 0;
+
+	&:first-child {
+    	margin-top: 0px;
+	}
+
+	&:last-child {
+    	margin-bottom: 0px;
+	}
 }
 
 .dropdown-menu {
@@ -275,6 +284,10 @@ select.input-xs {
 	overflow: auto;
 	color: $text-color;
 	border-radius: 6px;
+
+	.dropdown-divider {
+		margin: 4px 0;
+	}
 }
 
 .dropdown-menu .divider {

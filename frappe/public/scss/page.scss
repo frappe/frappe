@@ -20,7 +20,7 @@
 	align-items: center;
 	.btn {
 		height: 28px;
-		margin-left: 10px;
+		margin-left: var(--margin-sm, 8px);
 		border-radius: var(--border-radius);
 	}
 	.btn:not(.icon-btn) {
@@ -97,7 +97,11 @@ $page-bottom-margin: 60px;
 	}
 
 	.menu-item-label {
-		margin-right: 15px;
+		margin-right: var(--margin-md);
+	}
+
+	.menu-item-icon {
+		margin-right: var(--margin-sm);
 	}
 }
 .layout-main-section {
