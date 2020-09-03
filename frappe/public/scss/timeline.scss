@@ -1,7 +1,7 @@
 $timeline-item-icon-size: 34px;
 $timeline-item-left-margin: var(--margin-xl);
 $timeline-item-bottom-margin: var(--margin-sm);
-$threshold: 40;
+$threshold: 34;
 
 @mixin timeline-badge($badge-size) {
 	width: $badge-size;
