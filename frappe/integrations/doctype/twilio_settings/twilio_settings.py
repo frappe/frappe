@@ -11,7 +11,7 @@ from frappe.utils.password import get_decrypted_password
 from six import string_types
 
 class TwilioSettings(Document):
-	def validate(self):
+	def on_update(self):
 		self.validate_twilio_credentials()
 
 	def validate_twilio_credentials(self):

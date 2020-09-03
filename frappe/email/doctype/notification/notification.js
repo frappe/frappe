@@ -151,6 +151,7 @@ frappe.ui.form.on('Notification', {
 	},
 	refresh: function(frm) {
 		frappe.notification.setup_fieldname_select(frm);
+		frappe.notification.setup_example_message(frm);
 		frm.get_field('is_standard').toggle(frappe.boot.developer_mode);
 		frm.trigger('event');
 	},

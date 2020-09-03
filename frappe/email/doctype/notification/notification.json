@@ -66,7 +66,7 @@
   },
   {
    "depends_on": "eval:doc.channel=='Slack'",
-   "description": "To use Slack Channel, add a <a href=\"\\#Form/Slack Webhook URL\">Slack Webhook URL</a>.",
+   "description": "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>.",
    "fieldname": "slack_webhook_url",
    "fieldtype": "Link",
    "label": "Slack Channel",
@@ -281,7 +281,7 @@
  ],
  "icon": "fa fa-envelope",
  "links": [],
- "modified": "2020-08-11 19:24:35.479373",
+ "modified": "2020-09-03 08:45:21.289300",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
