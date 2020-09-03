@@ -6,6 +6,7 @@ import io
 import os
 import re
 from distutils.version import LooseVersion
+import subprocess
 
 import pdfkit
 import six
