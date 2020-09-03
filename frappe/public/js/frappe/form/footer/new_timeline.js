@@ -32,9 +32,28 @@ frappe.ui.form.NewTimeline = class {
 	}
 
 	setup_timeline_actions() {
-		let doc_info = this.doc_info || this.frm.get_docinfo();
 		this.add_action_button(__('New Email'), () => this.compose_mail());
+		this.setup_new_event_button();
+		this.setup_only_communications_switch();
+	}
 
+	setup_new_event_button() {
+		if (this.frm.meta.allow_events_in_timeline) {
+			let create_event = () => {
+				const args = {
+					doc: this.frm.doc,
+					frm: this.frm,
+					recipients: this.get_recipient(),
+					txt: frappe.markdown(this.frm.comment_box.get_value())
+				};
+				return new frappe.views.InteractionComposer(args);
+			};
+			this.add_action_button(__('New Event'), create_event);
+		}
+	}
+
+	setup_only_communications_switch() {
+		let doc_info = this.doc_info || this.frm.get_docinfo();
 		let has_communications = () => {
 			let communications = doc_info.communications;
 			let comments = doc_info.comments;
