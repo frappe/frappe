@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import unittest
+import subprocess
 
 import frappe.utils.pdf as pdfgen
 import frappe, io, six
