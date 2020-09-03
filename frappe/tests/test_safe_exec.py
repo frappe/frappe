@@ -9,6 +9,11 @@ class TestSafeExec(unittest.TestCase):
 	def test_internal_attributes(self):
 		self.assertRaises(SyntaxError, safe_exec, '().__class__.__call__')
 
+	def test_utils(self):
+		_locals = dict(out=None)
+		safe_exec('''out = frappe.utils.cint("1")''', None, _locals)
+		self.assertEqual(_locals['out'], 1)
+
 	def test_sql(self):
 		_locals = dict(out=None)
 		safe_exec('''out = frappe.db.sql("select name from tabDocType where name='DocType'")''', None, _locals)
