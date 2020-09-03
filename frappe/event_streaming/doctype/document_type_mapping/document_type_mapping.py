@@ -9,6 +9,7 @@ from frappe import _
 from six import iteritems
 from frappe.model.document import Document
 from frappe.model import default_fields
+from frappe.utils.safe_exec import get_safe_globals
 
 class DocumentTypeMapping(Document):
 	def validate(self):
@@ -102,7 +103,7 @@ class DocumentTypeMapping(Document):
 		filters = json.loads(mapping.remote_value_filters)
 		for key, value in iteritems(filters):
 			if value.startswith('eval:'):
-				val = frappe.safe_eval(value[5:], dict(frappe=frappe))
+				val = frappe.safe_eval(value[5:], get_safe_globals())
 				filters[key] = val
 			if doc.get(value):
 				filters[key] = doc.get(value)
