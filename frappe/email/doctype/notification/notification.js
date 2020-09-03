@@ -20,6 +20,7 @@ frappe.notification = {
 
 		frappe.model.with_doctype(frm.doc.document_type, function() {
 			let get_select_options = function(df, parent_field) {
+				// Append parent_field name along with fieldname for child table fields
 				let select_value = parent_field ? df.fieldname + ',' + parent_field : df.fieldname;
 
 				return {
@@ -62,6 +63,7 @@ frappe.notification = {
 			if (frm.doc.channel === 'Email') {
 				receiver_fields = $.map(fields, function(d) {
 
+					// Add User and Email fields from child into select dropdown
 					if (d.fieldtype == 'Table') {
 						let child_fields = frappe.get_doc('DocType', d.options).fields;
 						return $.map(child_fields, function(df) {
@@ -69,6 +71,7 @@ frappe.notification = {
 								(df.options == 'User' && df.fieldtype == 'Link')
 								? get_select_options(df, d.fieldname) : null;
 						});
+					// Add User and Email fields from parent into select dropdown
 					} else {
 						return d.options == 'Email' ||
 							(d.options == 'User' && d.fieldtype == 'Link')

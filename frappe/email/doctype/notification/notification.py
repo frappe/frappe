@@ -236,11 +236,13 @@ def get_context(context):
 					continue
 			if recipient.receiver_by_document_field:
 				fields = recipient.receiver_by_document_field.split(',')
+				# fields from child table
 				if len(fields) > 1:
 					for d in doc.get(fields[1]):
 						email_id = d.get(fields[0])
 						if validate_email_address(email_id):
 							recipients.append(email_id)
+				# field from parent doc
 				else:
 					email_ids_value = doc.get(fields[0])
 					if validate_email_address(email_ids_value):
