@@ -10,39 +10,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/setup-node@v1
-      with:
-        python-version: '12.x'
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Set up bench
-      run: |
-        npm install -g yarn
-        pip3 install -U frappe-bench
-        bench init frappe-bench --skip-assets --python $(which python)
-        cd frappe-bench/apps/frappe && git checkout $GITHUB_SHA
-        bench build
+      - uses: actions/setup-node@v1
+        with:
+          python-version: '12.x'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+      - name: Set up bench
+        run: |
+          npm install -g yarn
+          pip3 install -U frappe-bench
+          bench init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python)
+          cd frappe-bench/apps/frappe && git checkout $GITHUB_SHA
+          bench build
 
-    - name: Package assets
-      run: |
-        cd frappe-bench/sites/assets
-        tar -cvpzf $GITHUB_SHA.tar.gz /js /css
+      - name: Package assets
+        run: |
+          cd frappe-bench/sites/assets
+          tar -cvpzf $GITHUB_SHA.tar.gz /js /css
 
-    - name: Publish assets
-      uses: jakejarvis/s3-sync-action@master
-      with:
-        args: --acl public-read
-      env:
-        AWS_S3_BUCKET: 'frappe-assets'
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ASSETS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_ASSETS_SECRET_ACCESS_KEY }}
-        AWS_S3_ENDPOINT: 'http://s3.fr-par.scw.cloud'
-        AWS_REGION: 'fr-par'
-        SOURCE_DIR: frappe-bench/sites/assets/$GITHUB_SHA.tar.gz
+      - name: Publish assets
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read
+        env:
+          AWS_S3_BUCKET: 'frappe-assets'
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ASSETS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_ASSETS_SECRET_ACCESS_KEY }}
+          AWS_S3_ENDPOINT: 'http://s3.fr-par.scw.cloud'
+          AWS_REGION: 'fr-par'
+          SOURCE_DIR: frappe-bench/sites/assets/$GITHUB_SHA.tar.gz
 
-    - name: Generate Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: $GITHUB_SHA.tar.gz
-        path: frappe-bench/sites/assets/$GITHUB_SHA.tar.gz
+      - name: Generate Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: $GITHUB_SHA.tar.gz
+          path: frappe-bench/sites/assets/$GITHUB_SHA.tar.gz
