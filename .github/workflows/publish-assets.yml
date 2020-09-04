@@ -1,0 +1,37 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Build Assets on develop and Publish to Public bucket
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: frappe/bench:latest
+
+    steps:
+    - name: Set up bench
+      run: |
+        bench init frappe-bench --skip-assets --python $(which python)
+        cd frappe-bench/apps/frappe && git checkout $GITHUB_SHA
+        bench build
+
+    - name: Package assets
+      run: |
+        cd frappe-bench/sites/assets
+        tar -cvpzf $GITHUB_SHA.tar.gz /js /css
+
+    - name: Publish assets
+      uses: jakejarvis/s3-sync-action@master
+      with:
+        args: --acl public-read
+      env:
+        AWS_S3_BUCKET: 'frappe-assets'
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ASSETS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_ASSETS_SECRET_ACCESS_KEY }}
+        AWS_S3_ENDPOINT: 'http://s3.fr-par.scw.cloud'
+        AWS_REGION: 'fr-par'
+        SOURCE_DIR: $GITHUB_SHA.tar.gz
