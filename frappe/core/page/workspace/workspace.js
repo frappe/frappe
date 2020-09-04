@@ -11,10 +11,6 @@ frappe.pages['workspace'].on_page_load = function(wrapper) {
 	});
 }
 
-// REDESIGN-TODO: Route modules/Accounts, administration/Tools, domains/Healthcare
-// REDESIGN-TODO: Fix sidebar item not de-selected bug
-// REDESIGN-TODO: Customize button state
-
 class Workspace {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
@@ -195,9 +191,9 @@ class Workspace {
 	setup_dropdown() {
 		this.page.clear_menu();
 
-		this.page.add_menu_item(__('Customize'), () => {
+		this.page.set_secondary_action(__('Customize'), () => {
 			this.customize();
-		}, 1);
+		});
 
 		this.page.add_menu_item(__('Reset Customizations'), () => {
 			this.current_page.reset_customization();
