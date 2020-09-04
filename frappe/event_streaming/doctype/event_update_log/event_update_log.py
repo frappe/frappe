@@ -207,7 +207,9 @@ def get_unread_update_logs(consumer_name, dt, dn):
 		JOIN `tabEvent Update Log Consumer` consumer ON consumer.parent = update_log.name
 		WHERE
 			consumer.consumer = %(consumer)s
-	""", {'consumer': consumer_name}, as_dict=0)]
+			update_log.ref_doctype = %(dt)s and
+			update_log.docname = %(dn)s
+	""", {'consumer': consumer_name, "dt": dt, "dn": dn}, as_dict=0)]
 
 	logs = frappe.get_all(
 			'Event Update Log',
@@ -260,8 +262,9 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 			to_update_history.append((d.ref_doctype, d.docname))
 			# get_unread_update_logs will have the current log
 			old_logs = get_unread_update_logs(consumer.name, d.ref_doctype, d.docname)
-			old_logs.reverse()
-			result.extend(old_logs)
+			if old_logs:
+				old_logs.reverse()
+				result.extend(old_logs)
 		else:
 			result.append(d)
 
