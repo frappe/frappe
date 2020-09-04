@@ -1,0 +1,42 @@
+name: Build and Publish Assets built for releases
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: 'frappe'
+      - uses: actions/setup-node@v1
+        with:
+          python-version: '12.x'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+      - name: Set up bench for current push
+        run: |
+          npm install -g yarn
+          pip3 install -U frappe-bench
+          bench init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
+          cd frappe-bench && bench build
+
+      - name: Package assets
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/build
+          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
+
+      - name: Attach Assets to Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_ASSETS_TOKEN }}
+          file: $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz
+          asset_name: assets.tar.gz
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: "Assets automatically generated which may be used to avoid re-building on local benches"

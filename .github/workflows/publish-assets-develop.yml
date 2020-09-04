@@ -3,9 +3,6 @@ name: Build and Publish Assets
 on:
   push:
     branches: [ develop ]
-  release:
-    types:
-      - published
 
 jobs:
   build:
@@ -34,7 +31,6 @@ jobs:
           tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
 
       - name: Publish assets to S3
-        if: github.event == 'pull_request'
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl public-read
@@ -45,21 +41,3 @@ jobs:
           AWS_S3_ENDPOINT: 'http://s3.fr-par.scw.cloud'
           AWS_REGION: 'fr-par'
           SOURCE_DIR: '$GITHUB_WORKSPACE/build'
-
-      - name: Attach Assets to Release
-        if: github.event == 'release'
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz
-          asset_name: assets.tar.gz
-          tag: ${{ github.ref }}
-          overwrite: true
-          body: "Assets automatically generated which may be used to avoid re-building on local benches"
-
-      - name: Generate Action Artifacts
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: assets
-          path: $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz
