@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.utils import validate_email_address, nowdate, parse_val, is_html, add_to_date
 from frappe.utils.jinja import validate_template
+from frappe.utils.safe_exec import get_safe_globals
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
@@ -415,7 +416,7 @@ def evaluate_alert(doc, alert, event):
 			frappe.utils.get_link_to_form('Error Log', error_log.name)))
 
 def get_context(doc):
-	return {"doc": doc, "nowdate": nowdate, "frappe": frappe._dict(utils=frappe.utils)}
+	return {"doc": doc, "nowdate": nowdate, "frappe": frappe._dict(utils=get_safe_globals().get("frappe").get("utils"))}
 
 def get_assignees(doc):
 	assignees = []
