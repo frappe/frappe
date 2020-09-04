@@ -24,7 +24,6 @@ jobs:
           python-version: '3.6'
       - name: Set up bench for current push
         run: |
-          echo $GITHUB_EVENT_NAME
           npm install -g yarn
           pip3 install -U frappe-bench
           bench init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
@@ -36,7 +35,7 @@ jobs:
           tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
 
       - name: Publish assets to S3
-        if: $GITHUB_EVENT_NAME == "pull_request"
+        if: github.event == 'pull_request'
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl public-read
@@ -49,7 +48,7 @@ jobs:
           SOURCE_DIR: '$GITHUB_WORKSPACE/build'
 
       - name: Attach Assets to Release
-        if: $GITHUB_EVENT_NAME == "release"
+        if: github.event == 'release'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
