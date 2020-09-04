@@ -3,8 +3,9 @@ html, body {
 }
 
 .desk-sidebar {
-	.list-sidebar-label {
-		margin-bottom: 1rem;
+	.sidebar-section .sidebar-label {
+		margin-bottom: var(--margin-md);
+		margin-top: var(--margin-sm);
 	}
 
 	.desk-sidebar-item {
@@ -53,7 +54,7 @@ html, body {
 			color: var(--heading-color);
 			font-weight: 600;
 			font-size: var(--text-lg);
-			margin-bottom: 1.2rem;
+			margin-bottom: var(--margin-md);
 		}
 	}
 
@@ -268,7 +269,8 @@ html, body {
 	}
 
 	&.onboarding-widget-box {
-		margin-bottom: 50px;
+        margin-top: var(--margin-xs);
+		margin-bottom: var(--margin-2xl);
 
 		.widget-head {
 			display: flex;
