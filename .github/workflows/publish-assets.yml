@@ -2,8 +2,7 @@ name: Build and Publish Assets
 
 on:
   push:
-    branches: [ build-assets ] # for testing only
-    # branches: [ develop ]
+    branches: [ develop ]
   release:
     types:
       - published
