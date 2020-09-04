@@ -1,4 +1,4 @@
-name: Build and Publish Assets
+name: Build and Publish Assets for Development
 
 on:
   push:

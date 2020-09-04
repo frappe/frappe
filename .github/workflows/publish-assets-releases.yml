@@ -1,4 +1,4 @@
-name: Build and Publish Assets built for releases
+name: Build and Publish Assets built for Releases
 
 on:
   release:
@@ -34,7 +34,7 @@ jobs:
       - name: Attach Assets to Release
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_ASSETS_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz
           asset_name: assets.tar.gz
           tag: ${{ github.ref }}
