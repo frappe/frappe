@@ -28,8 +28,8 @@ jobs:
 
       - name: Package assets
         run: |
-          cd frappe-bench/sites/assets
-          tar -cvpzf $GITHUB_SHA.tar.gz ./js ./css
+          mkdir -p $GITHUB_WORKSPACE/build
+          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
 
       - name: Publish assets
         uses: jakejarvis/s3-sync-action@master
@@ -41,10 +41,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_ASSETS_SECRET_ACCESS_KEY }}
           AWS_S3_ENDPOINT: 'http://s3.fr-par.scw.cloud'
           AWS_REGION: 'fr-par'
-          SOURCE_DIR: frappe-bench/sites/assets/$GITHUB_SHA.tar.gz
+          SOURCE_DIR: '$GITHUB_WORKSPACE/build'
 
       - name: Generate Artifacts
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: $GITHUB_SHA.tar.gz
-          path: frappe-bench/sites/assets/$GITHUB_SHA.tar.gz
+          path: $GITHUB_WORKSPACE/build
