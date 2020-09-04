@@ -157,9 +157,9 @@ class TestEventProducer(unittest.TestCase):
 		# Add Condition
 		event_producer = frappe.get_doc('Event Producer', producer_url)
 		note_producer_entry = [
-			x for x in event_producer.producer_doctypes if x.ref_doctype == "Note"
+			x for x in event_producer.producer_doctypes if x.ref_doctype == 'Note'
 		][0]
-		note_producer_entry.condition = "doc.public == 1"
+		note_producer_entry.condition = 'doc.public == 1'
 		event_producer.save()
 
 		# Make test doc
@@ -195,9 +195,9 @@ class TestEventProducer(unittest.TestCase):
 		# Add Condition
 		event_producer = frappe.get_doc('Event Producer', producer_url)
 		note_producer_entry = [
-			x for x in event_producer.producer_doctypes if x.ref_doctype == "Note"
+			x for x in event_producer.producer_doctypes if x.ref_doctype == 'Note'
 		][0]
-		note_producer_entry.condition = "cmd: frappe.event_streaming.doctype.event_producer.test_event_producer.can_sync_note"
+		note_producer_entry.condition = 'cmd: frappe.event_streaming.doctype.event_producer.test_event_producer.can_sync_note'
 		event_producer.save()
 
 		# Make test doc

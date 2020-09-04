@@ -74,9 +74,9 @@ def register_consumer(data):
 
 	for entry in consumer_doctypes:
 		consumer.append('consumer_doctypes', {
-			'ref_doctype': entry.get("doctype"),
+			'ref_doctype': entry.get('doctype'),
 			'status': 'Pending',
-			'condition': entry.get("condition")
+			'condition': entry.get('condition')
 		})
 
 	api_key = frappe.generate_hash(length=10)
@@ -165,13 +165,13 @@ def has_consumer_access(consumer, update_log):
 				'docname': update_log.docname,
 				'creation': ['<', update_log.creation]
 			},
-			order_by="creation desc",
+			order_by='creation desc',
 			limit_page_length=1
 		)
 		if not len(last_update_log):
 			return False
 
-		last_update_log = frappe.get_doc("Event Update Log", last_update_log[0].name)
+		last_update_log = frappe.get_doc('Event Update Log', last_update_log[0].name)
 		return len([x for x in last_update_log.consumers if x.consumer == consumer.name])
 
 	doc = frappe.get_doc(update_log.ref_doctype, update_log.docname)
@@ -184,16 +184,16 @@ def has_consumer_access(consumer, update_log):
 				return True
 
 			condition: str = dt_entry.condition
-			if condition.startswith("cmd:"):
-				cmd = condition.split("cmd:")[1].strip()
+			if condition.startswith('cmd:'):
+				cmd = condition.split('cmd:')[1].strip()
 				args = {
-					"consumer": consumer,
-					"doc": doc,
-					"update_log": update_log
+					'consumer': consumer,
+					'doc': doc,
+					'update_log': update_log
 				}
 				return frappe.call(cmd, **args)
 			else:
 				return frappe.safe_eval(condition, frappe._dict(doc=doc))
 	except Exception as e:
-		frappe.log_error(title="has_consumer_access error", message=e)
+		frappe.log_error(title='has_consumer_access error', message=e)
 	return False

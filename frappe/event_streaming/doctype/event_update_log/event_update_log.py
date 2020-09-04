@@ -183,16 +183,16 @@ def mark_consumer_read(update_log_name, consumer_name):
 	"""
 	This function appends the Consumer to the list of Consumers that has 'read' an Update Log
 	"""
-	update_log = frappe.get_doc("Event Update Log", update_log_name)
+	update_log = frappe.get_doc('Event Update Log', update_log_name)
 	if len([x for x in update_log.consumers if x.consumer == consumer_name]):
 		return
 
 	frappe.get_doc(frappe._dict(
-			doctype="Event Consumer Selector",
+			doctype='Event Consumer Selector',
 			consumer=consumer_name,
 			parent=update_log_name,
-			parenttype="Event Update Log",
-			parentfield="consumers"
+			parenttype='Event Update Log',
+			parentfield='consumers'
 	)).insert(ignore_permissions=True)
 
 
@@ -207,18 +207,18 @@ def get_unread_update_logs(consumer_name, dt, dn):
 		JOIN `tabEvent Consumer Selector` consumer ON consumer.parent = update_log.name
 		WHERE
 			consumer.consumer = %(consumer)s
-	""", {"consumer": consumer_name}, as_dict=0)]
+	""", {'consumer': consumer_name}, as_dict=0)]
 
 	logs = frappe.get_all(
-			"Event Update Log",
+			'Event Update Log',
 			fields=['update_type', 'ref_doctype',
 							'docname', 'data', 'name', 'creation'],
 			filters={
-					"ref_doctype": dt,
-					"docname": dn,
-					"name": ["not in", already_consumed]
+					'ref_doctype': dt,
+					'docname': dn,
+					'name': ['not in', already_consumed]
 			},
-			order_by="creation"
+			order_by='creation'
 	)
 
 	return logs
@@ -236,7 +236,7 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 	
 	from frappe.event_streaming.doctype.event_consumer.event_consumer import has_consumer_access
 
-	consumer = frappe.get_doc("Event Consumer", event_consumer)
+	consumer = frappe.get_doc('Event Consumer', event_consumer)
 	docs = frappe.get_list(
 			doctype='Event Update Log',
 			filters={'ref_doctype': ('in', doctypes),
