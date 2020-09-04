@@ -207,8 +207,8 @@ def get_unread_update_logs(consumer_name, dt, dn):
 		JOIN `tabEvent Update Log Consumer` consumer ON consumer.parent = update_log.name
 		WHERE
 			consumer.consumer = %(consumer)s
-			update_log.ref_doctype = %(dt)s and
-			update_log.docname = %(dn)s
+			AND update_log.ref_doctype = %(dt)s
+			AND update_log.docname = %(dn)s
 	""", {'consumer': consumer_name, "dt": dt, "dn": dn}, as_dict=0)]
 
 	logs = frappe.get_all(
