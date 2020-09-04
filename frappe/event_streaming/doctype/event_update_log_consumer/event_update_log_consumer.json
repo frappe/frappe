@@ -22,7 +22,7 @@
  "modified": "2020-06-30 10:54:53.301787",
  "modified_by": "Administrator",
  "module": "Event Streaming",
- "name": "Event Consumer Selector",
+ "name": "Event Update Log Consumer",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,

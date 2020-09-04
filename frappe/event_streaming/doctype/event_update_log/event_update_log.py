@@ -167,7 +167,7 @@ def is_consumer_uptodate(update_log, consumer):
 		return False
 
 	prev_log_consumers = frappe.get_all(
-		'Event Consumer Selector',
+		'Event Update Log Consumer',
 		fields=['consumer'],
 		filters={
 				'parent': prev_logs[0].name,
@@ -188,7 +188,7 @@ def mark_consumer_read(update_log_name, consumer_name):
 		return
 
 	frappe.get_doc(frappe._dict(
-			doctype='Event Consumer Selector',
+			doctype='Event Update Log Consumer',
 			consumer=consumer_name,
 			parent=update_log_name,
 			parenttype='Event Update Log',
@@ -204,7 +204,7 @@ def get_unread_update_logs(consumer_name, dt, dn):
 		SELECT
 			update_log.name
 		FROM `tabEvent Update Log` update_log
-		JOIN `tabEvent Consumer Selector` consumer ON consumer.parent = update_log.name
+		JOIN `tabEvent Update Log Consumer` consumer ON consumer.parent = update_log.name
 		WHERE
 			consumer.consumer = %(consumer)s
 	""", {'consumer': consumer_name}, as_dict=0)]

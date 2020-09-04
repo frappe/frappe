@@ -28,8 +28,8 @@ class EventConsumer(Document):
 		frappe.cache().delete_value('event_consumer_document_type_map')
 
 	def on_trash(self):
-		for i in frappe.get_all('Event Consumer Selector', {'consumer': self.name}):
-			frappe.delete_doc('Event Consumer Selector', i.name)
+		for i in frappe.get_all('Event Update Log Consumer', {'consumer': self.name}):
+			frappe.delete_doc('Event Update Log Consumer', i.name)
 		frappe.cache().delete_value('event_consumer_document_type_map')
 
 	def update_consumer_status(self):
