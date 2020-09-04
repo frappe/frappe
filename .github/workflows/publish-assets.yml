@@ -1,9 +1,12 @@
-name: Build and Publish Assets built
+name: Build and Publish Assets
 
 on:
   push:
     branches: [ build-assets ] # for testing only
     # branches: [ develop ]
+  release:
+    types:
+      - published
 
 jobs:
   build:
@@ -21,6 +24,7 @@ jobs:
           python-version: '3.6'
       - name: Set up bench for current push
         run: |
+          echo $GITHUB_EVENT_NAME
           npm install -g yarn
           pip3 install -U frappe-bench
           bench init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
@@ -31,7 +35,8 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/build
           tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
 
-      - name: Publish assets
+      - name: Publish assets to S3
+        if: $GITHUB_EVENT_NAME == "pull_request"
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl public-read
@@ -43,9 +48,20 @@ jobs:
           AWS_REGION: 'fr-par'
           SOURCE_DIR: '$GITHUB_WORKSPACE/build'
 
-      - name: Generate Artifacts
+      - name: Attach Assets to Release
+        if: $GITHUB_EVENT_NAME == "release"
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz
+          asset_name: assets.tar.gz
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: "Assets automatically generated which may be used to avoid re-building on local benches"
+
+      - name: Generate Action Artifacts
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: $GITHUB_SHA.tar.gz
-          path: $GITHUB_WORKSPACE/build
+          name: assets
+          path: $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz
