@@ -2,8 +2,10 @@ name: Build and Publish Assets built for Releases
 
 on:
   release:
-    types:
-      - created
+    types: [ created ]
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
   build:
@@ -29,14 +31,17 @@ jobs:
       - name: Package assets
         run: |
           mkdir -p $GITHUB_WORKSPACE/build
-          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
+          tar -cvpzf $GITHUB_WORKSPACE/build/assets.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
 
-      - name: Attach Assets to Release
-        uses: svenstaro/upload-release-action@v2
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.2.0
+
+      - name: Upload built Assets to Release
+        uses: actions/upload-release-asset@v1.0.2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: build/assets.tar.gz
           asset_name: assets.tar.gz
-          tag: ${{ github.ref }}
-          overwrite: true
-          body: "Assets automatically generated which may be used to avoid re-building on local benches"
+          asset_content_type: application/octet-stream
+
