@@ -643,8 +643,8 @@ frappe.ui.form.Section = Class.extend({
 
 		this.body.toggleClass("hide", hide);
 		this.head.toggleClass("collapsed", hide);
-		this.indicator.toggleClass("octicon-chevron-down", hide);
-		this.indicator.toggleClass("octicon-chevron-up", !hide);
+		this.indicator && this.indicator.toggleClass("octicon-chevron-down", hide);
+		this.indicator && this.indicator.toggleClass("octicon-chevron-up", !hide);
 
 		// refresh signature fields
 		this.fields_list.forEach((f) => {
