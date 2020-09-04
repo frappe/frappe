@@ -1,4 +1,18 @@
 [data-theme="dark"] {
+	// Grays from Primer
+	// https://primer.style/css/support/color-system
+	//
+	// --gray-50: #fafbfc;
+	// --gray-100: #f6f8fa;
+	// --gray-200: #e1e4e8;
+	// --gray-300: #d1d5da;
+	// --gray-400: #959da5;
+	// --gray-500: #6a737d;
+	// --gray-600: #586069;
+	// --gray-700: #444d56;
+	// --gray-800: #2f363d;
+	// --gray-900: #24292e;
+
 	--gray-50: #{$gray-50};
 	--gray-100: #F7FAFC;
 	--gray-200: #EDF2F7;
