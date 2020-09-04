@@ -29,7 +29,7 @@ jobs:
       - name: Package assets
         run: |
           cd frappe-bench/sites/assets
-          tar -cvpzf $GITHUB_SHA.tar.gz /js /css
+          tar -cvpzf $GITHUB_SHA.tar.gz ./js ./css
 
       - name: Publish assets
         uses: jakejarvis/s3-sync-action@master
