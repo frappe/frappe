@@ -205,17 +205,22 @@ class Workspace {
 	}
 
 	toggle_side_bar() {
-		let show_desk_sidebar = JSON.parse(localStorage.show_desk_sidebar || "true");
-		show_desk_sidebar = !show_desk_sidebar;
-		localStorage.show_desk_sidebar = show_desk_sidebar;
+		let show_workspace_sidebar = JSON.parse(localStorage.show_workspace_sidebar || "true");
+		show_workspace_sidebar = !show_workspace_sidebar;
+		localStorage.show_workspace_sidebar = show_workspace_sidebar;
 		this.show_or_hide_sidebar();
 		$(document.body).trigger("toggleDeskSidebar");
 	}
 
 	show_or_hide_sidebar() {
-		let show_desk_sidebar = JSON.parse(localStorage.show_desk_sidebar || "true");
-		$('.layout-main-section-wrapper').toggleClass("col-md-12", !show_desk_sidebar);
-		$('.layout-main-section-wrapper').toggleClass("col-md-10", show_desk_sidebar);
+		let show_workspace_sidebar = JSON.parse(localStorage.show_workspace_sidebar || "true");
+		$('#page-workspace .layout-main-section-wrapper').toggleClass("col-md-12", !show_workspace_sidebar);
+		$('#page-workspace .layout-main-section-wrapper').toggleClass("col-lg-12", !show_workspace_sidebar);
+		$('#page-workspace .layout-side-section').toggleClass('hidden', !show_workspace_sidebar);
+
+		$('#page-workspace .layout-main-section-wrapper').toggleClass("col-md-10", show_workspace_sidebar);
+		$('#page-workspace .layout-main-section-wrapper').toggleClass("col-lg-10", show_workspace_sidebar);
+
 		// $(document.body).toggleClass("no-sidebar", !show_desk_sidebar);
 	}
 }
