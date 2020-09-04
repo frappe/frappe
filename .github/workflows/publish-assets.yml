@@ -15,7 +15,7 @@ jobs:
     steps:
     - name: Set up bench
       run: |
-        bench init frappe-bench --skip-assets --python $(which python)
+        sudo bench init frappe-bench --skip-assets --python $(which python)
         cd frappe-bench/apps/frappe && git checkout $GITHUB_SHA
         bench build
 
@@ -34,4 +34,10 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_ASSETS_SECRET_ACCESS_KEY }}
         AWS_S3_ENDPOINT: 'http://s3.fr-par.scw.cloud'
         AWS_REGION: 'fr-par'
-        SOURCE_DIR: $GITHUB_SHA.tar.gz
+        SOURCE_DIR: frappe-bench/sites/assets/$GITHUB_SHA.tar.gz
+
+    - name: Generate Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: $GITHUB_SHA.tar.gz
+        path: frappe-bench/sites/assets/$GITHUB_SHA.tar.gz
