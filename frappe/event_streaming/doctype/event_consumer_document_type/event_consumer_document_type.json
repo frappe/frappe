@@ -42,12 +42,13 @@
   {
    "fieldname": "condition",
    "fieldtype": "Code",
-   "label": "Condition"
+   "label": "Condition",
+   "read_only": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-08-14 12:38:40.918620",
+ "modified": "2020-09-01 12:38:40.918620",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Consumer Document Type",
