@@ -1,23 +1,28 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Build Assets on develop and Publish to Public bucket
+name: Build and Publish Assets built
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ build-assets ] # for testing only
+    # branches: [ develop ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: frappe/bench:latest
 
     steps:
+    - uses: actions/setup-node@v1
+      with:
+        python-version: '12.x'
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
     - name: Set up bench
       run: |
-        sudo -H -u frappe bash -c 'bench init frappe-bench --skip-assets --python $(which python)'
+        npm install -g yarn
+        pip3 install -U frappe-bench
+        bench init frappe-bench --skip-assets --python $(which python)
         cd frappe-bench/apps/frappe && git checkout $GITHUB_SHA
-        sudo -H -u frappe bash -c 'bench build'
+        bench build
 
     - name: Package assets
       run: |
