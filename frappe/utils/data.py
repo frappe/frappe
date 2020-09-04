@@ -738,7 +738,7 @@ def get_thumbnail_base64_for_image(src):
 	if not src:
 		frappe.throw('Invalid source for image: {0}'.format(src))
 
-	if not src.startswith('/files'):
+	if not src.startswith('/files') or '..' in src:
 		return
 
 	def _get_base64():
