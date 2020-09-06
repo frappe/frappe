@@ -9,6 +9,9 @@ def create_if_not_exists(doc):
 	:param doc: dict of field value pairs. can be a list of dict for multiple records.
 	'''
 
+	if not frappe.local.dev_server:
+		frappe.throw('This method can only be accessed in development', frappe.PermissionError)
+
 	doc = frappe.parse_json(doc)
 
 	if not isinstance(doc, list):
