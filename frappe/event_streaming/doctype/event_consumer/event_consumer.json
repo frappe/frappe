@@ -13,8 +13,7 @@
   "api_secret",
   "column_break_6",
   "user",
-  "incoming_change",
-  "in_test"
+  "incoming_change"
  ],
  "fields": [
   {
@@ -61,14 +60,6 @@
    "read_only": 1
   },
   {
-   "default": "0",
-   "fieldname": "in_test",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "In Test",
-   "read_only": 1
-  },
-  {
    "fieldname": "consumer_doctypes",
    "fieldtype": "Table",
    "label": "Event Consumer Document Types",
@@ -78,7 +69,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2019-12-30 11:52:16.276047",
+ "modified": "2020-09-06 15:42:00.746493",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Consumer",
