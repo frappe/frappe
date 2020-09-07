@@ -276,32 +276,32 @@ export default class GridRow {
 
 	make_column(df, colsize, txt, ci) {
 		let me = this;
-		var add_class = ((["Text", "Small Text"].indexOf(df.fieldtype) !== -1) ?
+		var add_class = ((["Text", "Small Text"].indexOf(df.fieldtype)!==-1) ?
 			" grid-overflow-no-ellipsis" : "");
-		add_class += (["Int", "Currency", "Float", "Percent"].indexOf(df.fieldtype) !== -1) ?
-			" text-right" : "";
-		add_class += (["Check"].indexOf(df.fieldtype) !== -1) ?
-			" text-center" : "";
+		add_class += (["Int", "Currency", "Float", "Percent"].indexOf(df.fieldtype)!==-1) ?
+			" text-right": "";
+		add_class += (["Check"].indexOf(df.fieldtype)!==-1) ?
+			" text-center": "";
 
-		var $col = $('<div class="col grid-static-col col-xs-' + colsize + ' ' + add_class + '"></div>')
+		var $col = $('<div class="col grid-static-col col-xs-'+colsize+' '+add_class+'"></div>')
 			.attr("data-fieldname", df.fieldname)
 			.attr("data-fieldtype", df.fieldtype)
 			.data("df", df)
 			.appendTo(this.row)
-			.on('click', function () {
-				if (frappe.ui.form.editable_row === me) {
+			.on('click', function() {
+				if(frappe.ui.form.editable_row===me) {
 					return;
 				}
 				var out = me.toggle_editable_row();
 				var col = this;
-				setTimeout(function () {
+				setTimeout(function() {
 					$(col).find('input[type="Text"]:first').focus();
 				}, 500);
 				return out;
 			});
 
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
-		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(frappe.utils.escape_html(txt));
+		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
 		$col.df = df;
 		$col.column_index = ci;
 
@@ -577,39 +577,39 @@ export default class GridRow {
 		var df = this.grid.get_docfield(fieldname) || undefined;
 
 		// format values if no frm
-		if (!df) {
+		if(!df) {
 			df = this.grid.visible_columns.find((col) => {
 				return col[0].fieldname === fieldname;
 			});
-			if (df && this.doc) {
+			if(df && this.doc) {
 				var txt = frappe.format(this.doc[fieldname], df[0],
 					null, this.doc);
 			}
 		}
 
-		if (txt === undefined && this.frm) {
+		if(txt===undefined && this.frm) {
 			var txt = frappe.format(this.doc[fieldname], df,
 				null, this.frm.doc);
 		}
 
 		// reset static value
 		var column = this.columns[fieldname];
-		if (column) {
-			column.static_area.html(frappe.utils.escape_html(txt) || "");
-			if (df && df.reqd) {
-				column.toggleClass('error', !!(txt === null || txt === ''));
+		if(column) {
+			column.static_area.html(txt || "");
+			if(df && df.reqd) {
+				column.toggleClass('error', !!(txt===null || txt===''));
 			}
 		}
 
 		// reset field value
 		var field = this.on_grid_fields_dict[fieldname];
-		if (field) {
+		if(field) {
 			field.docname = this.doc.name;
 			field.refresh();
 		}
 
 		// in form
-		if (this.grid_form) {
+		if(this.grid_form) {
 			this.grid_form.refresh_field(fieldname);
 		}
 	}

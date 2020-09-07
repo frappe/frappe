@@ -11,16 +11,29 @@ frappe.ui.form.on('Blog Post', {
 	},
 	title: function(frm) {
 		generate_google_search_preview(frm);
+		frm.trigger('set_route');
 	},
 	meta_description: function(frm) {
 		generate_google_search_preview(frm);
 	},
 	blog_intro: function(frm) {
 		generate_google_search_preview(frm);
+	},
+	blog_category(frm) {
+		frm.trigger('set_route');
+	},
+	set_route(frm) {
+		if (frm.doc.route) return;
+		if (frm.doc.title && frm.doc.blog_category) {
+			frm.call('make_route').then(r => {
+				frm.set_value('route', r.message);
+			});
+		}
 	}
 });
 
 function generate_google_search_preview(frm) {
+	if (!frm.doc.title) return;
 	let google_preview = frm.get_field("google_preview");
 	let seo_title = (frm.doc.title).slice(0, 60);
 	let seo_description =  (frm.doc.meta_description || frm.doc.blog_intro || "").slice(0, 160);
