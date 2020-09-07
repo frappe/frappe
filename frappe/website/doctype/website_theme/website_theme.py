@@ -11,7 +11,7 @@ class WebsiteTheme(Document):
 	def validate(self):
 		self.validate_if_customizable()
 		self.render_theme()
-		self.validate_theme()
+		self.generate_bootstrap_theme()
 
 	def on_update(self):
 		if (not self.custom
@@ -38,12 +38,6 @@ class WebsiteTheme(Document):
 
 	def render_theme(self):
 		self.theme_scss = frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', self.as_dict())
-
-	def validate_theme(self):
-		'''Generate theme css if theme_scss has changed'''
-		doc_before_save = self.get_doc_before_save()
-		if doc_before_save is None or get_scss(self) != get_scss(doc_before_save):
-			self.generate_bootstrap_theme()
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
