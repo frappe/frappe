@@ -44,7 +44,7 @@ def build_missing_files():
 	for type in ["css", "js"]:
 		current_asset_files.extend(
 			[
-				"{0}/{0}".format(type, name)
+				"{0}/{1}".format(type, name)
 				for name in os.listdir(os.path.join(sites_path, "assets", type))
 			]
 		)
@@ -136,7 +136,6 @@ def download_frappe_assets(verbose=True):
 				raise
 		except Exception:
 			assets_setup = False
-			print(frappe.get_traceback())
 		finally:
 			try:
 				shutil.rmtree(os.path.dirname(assets_archive))
