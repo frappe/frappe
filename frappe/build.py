@@ -213,22 +213,22 @@ def watch(no_compress):
 
 	pacman = get_node_pacman()
 
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
-	frappe_app_path = frappe.get_app_path('frappe', '..')
-	frappe.commands.popen('{pacman} run watch'.format(pacman=pacman), cwd=frappe_app_path)
+	frappe_app_path = frappe.get_app_path("frappe", "..")
+	frappe.commands.popen("{pacman} run watch".format(pacman=pacman), cwd=frappe_app_path)
 
 
 def check_yarn():
-	if not find_executable('yarn'):
-		print('Please install yarn using below command and try again.\nnpm install -g yarn')
+	if not find_executable("yarn"):
+		print("Please install yarn using below command and try again.\nnpm install -g yarn")
 
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 
-	for dir_path in [os.path.join(assets_path, 'js'), os.path.join(assets_path, 'css')]:
+	for dir_path in [os.path.join(assets_path, "js"), os.path.join(assets_path, "css")]:
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
 
@@ -237,24 +237,27 @@ def make_asset_dirs(make_copy=False, restore=False):
 		app_base_path = os.path.abspath(os.path.dirname(pymodule.__file__))
 
 		symlinks = []
-		app_public_path = os.path.join(app_base_path, 'public')
+		app_public_path = os.path.join(app_base_path, "public")
 		# app/public > assets/app
 		symlinks.append([app_public_path, os.path.join(assets_path, app_name)])
 		# app/node_modules > assets/app/node_modules
 		if os.path.exists(os.path.abspath(app_public_path)):
-			symlinks.append([os.path.join(app_base_path, '..', 'node_modules'), os.path.join(
-				assets_path, app_name, 'node_modules')])
+			symlinks.append(
+				[
+					os.path.join(app_base_path, "..", "node_modules"),
+					os.path.join(assets_path, app_name, "node_modules"),
+				]
+			)
 
 		app_doc_path = None
-		if os.path.isdir(os.path.join(app_base_path, 'docs')):
-			app_doc_path = os.path.join(app_base_path, 'docs')
+		if os.path.isdir(os.path.join(app_base_path, "docs")):
+			app_doc_path = os.path.join(app_base_path, "docs")
 
-		elif os.path.isdir(os.path.join(app_base_path, 'www', 'docs')):
-			app_doc_path = os.path.join(app_base_path, 'www', 'docs')
+		elif os.path.isdir(os.path.join(app_base_path, "www", "docs")):
+			app_doc_path = os.path.join(app_base_path, "www", "docs")
 
 		if app_doc_path:
-			symlinks.append([app_doc_path, os.path.join(
-				assets_path, app_name + '_docs')])
+			symlinks.append([app_doc_path, os.path.join(assets_path, app_name + "_docs")])
 
 		for source, target in symlinks:
 			source = os.path.abspath(source)
@@ -268,7 +271,7 @@ def make_asset_dirs(make_copy=False, restore=False):
 						shutil.copytree(source, target)
 				elif make_copy:
 					if os.path.exists(target):
-						warnings.warn('Target {target} already exists.'.format(target=target))
+						warnings.warn("Target {target} already exists.".format(target=target))
 					else:
 						shutil.copytree(source, target)
 				else:
@@ -280,7 +283,7 @@ def make_asset_dirs(make_copy=False, restore=False):
 					try:
 						symlink(source, target, overwrite=True)
 					except OSError:
-						print('Cannot link {} to {}'.format(source, target))
+						print("Cannot link {} to {}".format(source, target))
 			else:
 				# warnings.warn('Source {source} does not exist.'.format(source = source))
 				pass
@@ -299,7 +302,7 @@ def get_build_maps():
 
 	build_maps = {}
 	for app_path in app_paths:
-		path = os.path.join(app_path, 'public', 'build.json')
+		path = os.path.join(app_path, "public", "build.json")
 		if os.path.exists(path):
 			with open(path) as f:
 				try:
@@ -308,8 +311,7 @@ def get_build_maps():
 						source_paths = []
 						for source in sources:
 							if isinstance(source, list):
-								s = frappe.get_pymodule_path(
-									source[0], *source[1].split("/"))
+								s = frappe.get_pymodule_path(source[0], *source[1].split("/"))
 							else:
 								s = os.path.join(app_path, source)
 							source_paths.append(s)
@@ -317,36 +319,42 @@ def get_build_maps():
 						build_maps[target] = source_paths
 				except ValueError as e:
 					print(path)
-					print('JSON syntax error {0}'.format(str(e)))
+					print("JSON syntax error {0}".format(str(e)))
 	return build_maps
 
 
 def pack(target, sources, no_compress, verbose):
 	from six import StringIO
 
-	outtype, outtxt = target.split(".")[-1], ''
+	outtype, outtxt = target.split(".")[-1], ""
 	jsm = JavascriptMinify()
 
 	for f in sources:
 		suffix = None
-		if ':' in f:
-			f, suffix = f.split(':')
+		if ":" in f:
+			f, suffix = f.split(":")
 		if not os.path.exists(f) or os.path.isdir(f):
 			print("did not find " + f)
 			continue
 		timestamps[f] = os.path.getmtime(f)
 		try:
-			with open(f, 'r') as sourcefile:
-				data = text_type(sourcefile.read(), 'utf-8', errors='ignore')
+			with open(f, "r") as sourcefile:
+				data = text_type(sourcefile.read(), "utf-8", errors="ignore")
 
 			extn = f.rsplit(".", 1)[1]
 
-			if outtype == "js" and extn == "js" and (not no_compress) and suffix != "concat" and (".min." not in f):
-				tmpin, tmpout = StringIO(data.encode('utf-8')), StringIO()
+			if (
+				outtype == "js"
+				and extn == "js"
+				and (not no_compress)
+				and suffix != "concat"
+				and (".min." not in f)
+			):
+				tmpin, tmpout = StringIO(data.encode("utf-8")), StringIO()
 				jsm.minify(tmpin, tmpout)
 				minified = tmpout.getvalue()
 				if minified:
-					outtxt += text_type(minified or '', 'utf-8').strip('\n') + ';'
+					outtxt += text_type(minified or "", "utf-8").strip("\n") + ";"
 
 				if verbose:
 					print("{0}: {1}k".format(f, int(len(minified) / 1024)))
@@ -354,27 +362,27 @@ def pack(target, sources, no_compress, verbose):
 				# add to frappe.templates
 				outtxt += html_to_js_template(f, data)
 			else:
-				outtxt += ('\n/*\n *\t%s\n */' % f)
-				outtxt += '\n' + data + '\n'
+				outtxt += "\n/*\n *\t%s\n */" % f
+				outtxt += "\n" + data + "\n"
 
 		except Exception:
 			print("--Error in:" + f + "--")
 			print(frappe.get_traceback())
 
-	with open(target, 'w') as f:
+	with open(target, "w") as f:
 		f.write(outtxt.encode("utf-8"))
 
-	print("Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024))))
+	print("Wrote %s - %sk" % (target, str(int(os.path.getsize(target) / 1024))))
 
 
 def html_to_js_template(path, content):
-	'''returns HTML template content as Javascript code, adding it to `frappe.templates`'''
+	"""returns HTML template content as Javascript code, adding it to `frappe.templates`"""
 	return """frappe.templates["{key}"] = '{content}';\n""".format(
 		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content))
 
 
 def scrub_html_template(content):
-	'''Returns HTML content with removed whitespace and comments'''
+	"""Returns HTML content with removed whitespace and comments"""
 	# remove whitespace to a single space
 	content = re.sub("\s+", " ", content)
 
@@ -387,12 +395,12 @@ def scrub_html_template(content):
 def files_dirty():
 	for target, sources in iteritems(get_build_maps()):
 		for f in sources:
-			if ':' in f:
-				f, suffix = f.split(':')
+			if ":" in f:
+				f, suffix = f.split(":")
 			if not os.path.exists(f) or os.path.isdir(f):
 				continue
 			if os.path.getmtime(f) != timestamps.get(f):
-				print(f + ' dirty')
+				print(f + " dirty")
 				return True
 	else:
 		return False
