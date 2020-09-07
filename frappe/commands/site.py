@@ -1,10 +1,5 @@
 # imports - standard imports
-import atexit
-import compileall
-import hashlib
 import os
-import re
-import shutil
 import sys
 
 # imports - third party imports
@@ -12,11 +7,8 @@ import click
 
 # imports - module imports
 import frappe
-from frappe import _
 from frappe.commands import get_site, pass_context
-from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.installer import update_site_config
 from frappe.utils import get_site_path, touch_file
 
 
@@ -65,8 +57,10 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		sys.exit(1)
 
 	if not db_name:
+		import hashlib
 		db_name = '_' + hashlib.sha1(site.encode()).hexdigest()[:16]
 
+	from frappe.commands.scheduler import _is_scheduler_enabled
 	from frappe.installer import install_db, make_site_dirs
 	from frappe.installer import install_app as _install_app
 	import frappe.utils.scheduler
@@ -74,6 +68,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	frappe.init(site=site)
 
 	try:
+
 		# enable scheduler post install?
 		enable_scheduler = _is_scheduler_enabled()
 	except Exception:
@@ -278,6 +273,8 @@ def disable_user(context, email):
 @pass_context
 def migrate(context, rebuild_website=False, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
+	import compileall
+	import re
 	from frappe.migrate import migrate
 
 	for site in context.sites:
