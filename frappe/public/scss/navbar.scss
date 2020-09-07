@@ -5,6 +5,10 @@
 	padding: 0;
 	.navbar-nav {
 		margin-right: 0;
+		margin-left: var(--margin-md);
+		.nav-link {
+			padding: 0;
+		}
 	}
 	.container {
 		padding: 0 1rem;
@@ -13,14 +17,13 @@
 		border-right: 1px solid var(--gray-200);
 		height: 24px;
 		margin: auto;
+		margin-left: var(--margin-md);
 	}
 	.nav-item {
-		@extend .my-auto;
+		margin: auto;
+		margin-left: var(--margin-md);
 		font-size: var(--text-sm);
 		line-height: 1rem;
-	}
-	.dropdown-navbar-user > .nav-link {
-		padding: 0;
 	}
 }
 

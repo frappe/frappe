@@ -19,7 +19,7 @@
 					</span>
 				</div>
 			</form>
-			<ul class="navbar-nav ml-lg-4">
+			<ul class="navbar-nav">
 				<li class="nav-item dropdown dropdown-notifications dropdown-mobile">
 					<a
 						class="nav-link notifications-icon text-muted"
@@ -55,14 +55,17 @@
 						href="#"
 						onclick="return false;">
 						<span>
-							<svg class="icon"><use xlink:href="#icon-small-message"></use></svg>
+							<svg class="icon icon-sm"><use href="#icon-small-message"></use></svg>
 						</span>
 					</a>
 				</li>
-				<li class="vertical-bar ml-lg-2 d-none d-sm-block"></li>
-				<li class="nav-item dropdown dropdown-help dropdown-mobile ml-lg-2">
-					<a class="nav-link dropdown-toggle d-none d-lg-block" data-toggle="dropdown" href="#" onclick="return false;">
+				<li class="vertical-bar d-none d-sm-block"></li>
+				<li class="nav-item dropdown dropdown-help dropdown-mobile d-none d-lg-block">
+					<a class="nav-link" data-toggle="dropdown" href="#" onclick="return false;">
 						{{ __("Help") }}
+						<span>
+							<svg class="icon icon-xs"><use href="#icon-small-down"></use></svg>
+						</span>
 					</a>
 					<div class="dropdown-menu dropdown-menu-right" id="toolbar-help" role="menu">
 						<div class="divider documentation-links"></div>
@@ -83,7 +86,7 @@
 						{% endfor %}
 					</div>
 				</li>
-				<li class="nav-item dropdown dropdown-navbar-user dropdown-mobile ml-lg-2">
+				<li class="nav-item dropdown dropdown-navbar-user dropdown-mobile">
 					<a class="nav-link" data-toggle="dropdown" href="#" onclick="return false;">
 						{{ avatar }}
 					</a>
