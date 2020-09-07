@@ -62,9 +62,11 @@ class UserProfile {
 	}
 
 	setup_user_search() {
-		this.$user_search_button = this.page.set_secondary_action(__('Change User'), () => {
-			this.show_user_search_dialog();
-		});
+		this.$user_search_button = this.page.set_secondary_action(
+			__('Change User'),
+			() => this.show_user_search_dialog(),
+			{ icon: 'change', size: 'sm' }
+		);
 	}
 
 	show_user_search_dialog() {
