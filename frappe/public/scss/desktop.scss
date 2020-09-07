@@ -211,12 +211,13 @@ html, body {
 	// Overrides for each widgets
 	&.dashboard-widget-box {
 		min-height: 240px;
-		padding: var(--padding-sm) var(--padding-md);
+		padding: var(--padding-md) var(--padding-lg);
+
+		.widget-head {
+			padding: var(--padding-xs)
+		}
 
 		.chart-container {
-			margin-right: -10px;
-			margin-left: -10px;
-
 			.frappe-chart {
 				line.line-horizontal {
 					stroke: var(--border-color) !important;

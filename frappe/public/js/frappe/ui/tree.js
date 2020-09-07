@@ -269,8 +269,8 @@ frappe.ui.Tree = class {
 		});
 
 		node.$tree_link.hover(
-			function() { $(this).parent().addClass('hoverActive') },
-			function() { $(this).parent().removeClass('hoverActive') },
+			function() { $(this).parent().addClass('hover-active') },
+			function() { $(this).parent().removeClass('hover-active') },
 		)
 	}
 
