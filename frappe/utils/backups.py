@@ -28,9 +28,9 @@ class BackupGenerator:
 		To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
 		If specifying db_file_name, also append ".sql.gz"
 	"""
-	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
-		backup_path_private_files=None, db_host="localhost", db_port=None, verbose=False,
-		db_type='mariadb', backup_path_conf=None, compress_files=False):
+	def __init__(self, db_name, user, password, backup_path=None, backup_path_db=None,
+		backup_path_files=None, backup_path_private_files=None, db_host="localhost", db_port=None,
+		verbose=False, db_type='mariadb', backup_path_conf=None, compress_files=False):
 		global _verbose
 		self.compress_files = compress_files or compress
 		self.db_host = db_host
@@ -39,6 +39,7 @@ class BackupGenerator:
 		self.db_type = db_type
 		self.user = user
 		self.password = password
+		self.backup_path = backup_path
 		self.backup_path_conf = backup_path_conf
 		self.backup_path_db = backup_path_db
 		self.backup_path_files = backup_path_files
@@ -59,17 +60,22 @@ class BackupGenerator:
 		_verbose = verbose
 
 	def setup_backup_directory(self):
-		specified = self.backup_path_db or self.backup_path_files or self.backup_path_private_files or self.backup_path_conf
+		specified = self.backup_path or self.backup_path_db or self.backup_path_files or self.backup_path_private_files or self.backup_path_conf
 
 		if not specified:
 			backups_folder = get_backup_path()
 			if not os.path.exists(backups_folder):
 				os.makedirs(backups_folder)
 		else:
+			if self.backup_path:
+				dir = os.path.dirname(self.backup_path)
+				os.makedirs(dir, exist_ok=True)
+
 			for file_path in set([self.backup_path_files, self.backup_path_db, self.backup_path_private_files, self.backup_path_conf]):
 				if file_path:
 					dir = os.path.dirname(file_path)
 					os.makedirs(dir, exist_ok=True)
+
 
 
 	def get_backup(self, older_than=24, ignore_files=False, force=False):
@@ -86,7 +92,7 @@ class BackupGenerator:
 
 		self.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
 
-		if not (self.backup_path_files and self.backup_path_db and self.backup_path_private_files):
+		if not (self.backup_path_conf and self.backup_path_db and self.backup_path_files and self.backup_path_private_files):
 			self.set_backup_file_name()
 
 		if not (last_db and last_file and last_private_file and site_config_backup_path):
@@ -109,7 +115,7 @@ class BackupGenerator:
 
 		for_public_files = self.todays_date + "-" + self.site_slug + "-files." + ext
 		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files." + ext
-		backup_path = get_backup_path()
+		backup_path = self.backup_path or get_backup_path()
 
 		if not self.backup_path_conf:
 			self.backup_path_conf = os.path.join(backup_path, for_conf)
@@ -282,17 +288,18 @@ def fetch_latest_backups():
 	}
 
 
-def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, force=False, verbose=False, compress=False):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path=None, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, force=False, verbose=False, compress=False):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=force, verbose=verbose, compress=compress)
+	odb = new_backup(older_than, ignore_files, backup_path=backup_path, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=force, verbose=verbose, compress=compress)
 	return odb
 
-def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, force=False, verbose=False, compress=False):
+def new_backup(older_than=6, ignore_files=False, backup_path=None, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, force=False, verbose=False, compress=False):
 	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 24)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
+						  backup_path=backup_path,
 						  backup_path_db=backup_path_db,
 						  backup_path_files=backup_path_files,
 						  backup_path_private_files=backup_path_private_files,

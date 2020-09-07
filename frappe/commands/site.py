@@ -388,6 +388,7 @@ def use(site, sites_path='.'):
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
+@click.option('--backup-path', default=None, help="Set path for saving all the files in this operation")
 @click.option('--backup-path-db', default=None, help="Set path for saving database file")
 @click.option('--backup-path-files', default=None, help="Set path for saving public file")
 @click.option('--backup-path-private-files', default=None, help="Set path for saving private file")
@@ -395,7 +396,7 @@ def use(site, sites_path='.'):
 @click.option('--verbose', default=False, is_flag=True, help="Add verbosity")
 @click.option('--compress', default=False, is_flag=True, help="Compress private and public files")
 @pass_context
-def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
+def backup(context, with_files=False, backup_path=None, backup_path_db=None, backup_path_files=None,
 	backup_path_private_files=None, backup_path_conf=None, verbose=False, compress=False):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
@@ -405,7 +406,7 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=True, verbose=verbose, compress=compress)
+			odb = scheduled_backup(ignore_files=not with_files, backup_path=backup_path, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=True, verbose=verbose, compress=compress)
 		except Exception as e:
 			if verbose:
 				print("Backup failed for {0}. Database or site_config.json may be corrupted".format(site))
