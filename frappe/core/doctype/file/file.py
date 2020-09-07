@@ -355,6 +355,9 @@ class File(Document):
 		"""write file to disk with a random name (to compare)"""
 		file_path = get_files_path(is_private=self.is_private)
 
+		if os.path.sep in self.file_name:
+			frappe.throw(_('File name cannot have {0}').format(os.path.sep))
+
 		# create directory (if not exists)
 		frappe.create_folder(file_path)
 		# write the file
