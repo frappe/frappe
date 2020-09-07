@@ -267,6 +267,11 @@ frappe.ui.Tree = class {
 		node.$tree_link.on('click', () => {
 			setTimeout(() => {this.on_node_click(node);}, 100);
 		});
+
+		node.$tree_link.hover(
+			function() { $(this).parent().addClass('hoverActive') },
+			function() { $(this).parent().removeClass('hoverActive') },
+		)
 	}
 
 	get_toolbar(node) {
