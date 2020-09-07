@@ -388,11 +388,11 @@ def use(site, sites_path='.'):
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
-@click.option('--backup-path-db', default=None, help="Compress private and public files")
-@click.option('--backup-path-files', default=None, help="Compress private and public files")
-@click.option('--backup-path-private-files', default=None, help="Compress private and public files")
-@click.option('--backup-path-conf', default=None, help="Compress private and public files")
-@click.option('--verbose', default=False, is_flag=True)
+@click.option('--backup-path-db', default=None, help="Set path for saving database file")
+@click.option('--backup-path-files', default=None, help="Set path for saving public file")
+@click.option('--backup-path-private-files', default=None, help="Set path for saving private file")
+@click.option('--backup-path-conf', default=None, help="Set path for saving config file")
+@click.option('--verbose', default=False, is_flag=True, help="Add verbosity")
 @click.option('--compress', default=False, is_flag=True, help="Compress private and public files")
 @pass_context
 def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
