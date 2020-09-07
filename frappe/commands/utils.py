@@ -29,7 +29,7 @@ def build(app=None, make_copy=False, restore=False, verbose=False, force=False):
 
 	if not (force or app):
 		# skip building frappe if assets exist remotely
-		skip_frappe = frappe.build.download_frappe_assets()
+		skip_frappe = frappe.build.download_frappe_assets(verbose=verbose)
 	else:
 		skip_frappe = False
 

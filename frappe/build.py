@@ -36,19 +36,18 @@ def download_file(url, prefix):
 	return local_filename
 
 
-def exists(url):
-	from requests import head
-	return head(url, allow_redirects=True)
-
-
 def build_missing_files():
 	# check which files dont exist yet from the build.json and tell build.js to build only those!
 	missing_assets = []
-	current_asset_files = [
-		"js/{0}".format(x) for x in os.listdir(os.path.join(sites_path, "assets", "js"))
-	] + [
-		"css/{0}".format(x) for x in os.listdir(os.path.join(sites_path, "assets", "css"))
-	]
+	current_asset_files = []
+
+	for type in ["css", "js"]:
+		current_asset_files.extend(
+			[
+				"{0}/{0}".format(type, name)
+				for name in os.listdir(os.path.join(sites_path, "assets", type))
+			]
+		)
 
 	with open(os.path.join(sites_path, "assets", "frappe", "build.json")) as f:
 		all_asset_files = json.load(f).keys()
@@ -68,37 +67,59 @@ def build_missing_files():
 		check_call(command, cwd=os.path.join("..", "apps", "frappe"))
 
 
-def download_frappe_assets():
-	"""Downloads and sets up Frappe assets if they exist based on the current
-	commit HEAD.
-	Returns True if correctly setup else returns False.
-	"""
+def get_assets_link(frappe_head):
 	from subprocess import getoutput
+	from requests import head
 
-	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
-	exc = False
-
-	if frappe_head:
-		from tempfile import mkdtemp
-
-		tag = getoutput(
+	tag = getoutput(
 			"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
 			" refs/tags/,,' -e 's/\^{}//'"
 			% frappe_head
 		)
 
-		if tag:
-			# if tag exists, download assets from github release
-			url = "https://github.com/frappe/frappe/releases/{0}/assets.tar.gz".format(tag)
-		else:
-			url = "http://assets.frappeframework.com/{0}.tar.gz".format(frappe_head)
+	if tag:
+		# if tag exists, download assets from github release
+		url = "https://github.com/frappe/frappe/releases/download/{0}/assets.tar.gz".format(tag)
+	else:
+		url = "http://assets.frappeframework.com/{0}.tar.gz".format(frappe_head)
 
+	if not head(url):
+		raise ValueError("URL {0} doesn't exist".format(url))
+
+	return url
+
+
+def handle_verbosity():
+	import sys
+	import wrapt
+
+	@wrapt.decorator
+	def verbosity(wrapped, instance, args, kwargs):
+		verbose = kwargs.get("verbose") or False
+		if not verbose:
+			sys.stdout = open(os.devnull, "wb")
+		ret = wrapped(*args, **kwargs)
+		sys.stdout = sys.__stdout__
+		return ret
+
+	return verbosity
+
+@handle_verbosity()
+def download_frappe_assets(verbose=True):
+	"""Downloads and sets up Frappe assets if they exist based on the current
+	commit HEAD.
+	Returns True if correctly setup else returns False.
+	"""
+	from subprocess import getoutput
+	from tempfile import mkdtemp
+
+	assets_setup = False
+	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
+
+	if frappe_head:
 		try:
+			url = get_assets_link(frappe_head)
 			click.secho("Retreiving Assets...", fg="yellow")
-
-			if not exists(url):
-				return False
-
 			prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
 			assets_archive = download_file(url, prefix)
 
@@ -114,8 +135,7 @@ def download_frappe_assets():
 			else:
 				raise
 		except Exception:
-			exc = True
-			click.secho("No Assets Found...Building...", fg="yellow")
+			assets_setup = False
 			print(frappe.get_traceback())
 		finally:
 			try:
@@ -123,7 +143,7 @@ def download_frappe_assets():
 			except Exception:
 				pass
 
-	return not exc
+	return assets_setup
 
 
 def symlink(target, link_name, overwrite=False):
