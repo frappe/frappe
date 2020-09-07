@@ -82,46 +82,52 @@
 .tree.with-skeleton, .tree.with-skeleton .tree-node {
 	position: relative;
 
-	&.opened::before, &:last-child::after {
-		content: '';
-		position: absolute;
-		top: 16px;
-		left: 8px;
-		height: calc(100% - 26px);
-		width: 1px;
-		background: var(--border-color);
-	}
+	// &.opened::before, &:last-child::after {
+	// 	content: '';
+	// 	position: absolute;
+	// 	top: 16px;
+	// 	left: 8px;
+	// 	height: calc(100% - 26px);
+	// 	width: 1px;
+	// 	background: var(--border-color);
+	// }
 
-	&:last-child::after {
-		top: 11px;
-		left: -13px;
-		height: calc(100% - 15px);
-		width: 3px;
-		background: #fff;
-	}
+	// &:last-child::after {
+	// 	top: 11px;
+	// 	left: -13px;
+	// 	height: calc(100% - 15px);
+	// 	width: 3px;
+	// 	background: #fff;
+	// }
 }
 
-.tree.with-skeleton .tree-children > .tree-node > .tree-link::before {
-	content: '';
-	position: absolute;
-	width: 12px;
-	height: 1px;
-	top: 10px;
-	left: -11px;
-	background: var(--border-color);
-}
+// .tree.with-skeleton .tree-children > .tree-node > .tree-link::before {
+// 	content: '';
+// 	position: absolute;
+// 	width: 12px;
+// 	height: 1px;
+// 	top: 10px;
+// 	left: -11px;
+// 	background: var(--border-color);
+// }
 
-.tree.with-skeleton.opened::before {
-	left: 23px;
-	top: 33px;
-	height: calc(100% - 67px);
-}
+// .tree.with-skeleton.opened::before {
+// 	left: 23px;
+// 	top: 33px;
+// 	height: calc(100% - 67px);
+// }
 
 .balance-area {
 	color: var(--text-color) !important;
 	font-size: $font-size-md;
+	padding: var(--padding-sm);
 }
 
 .tree-link.active ~ .balance-area {
 	font-weight: 600;
+}
+
+.tree-node.hoverActive {
+	background-color: var(--fg-hover-color);
+	border-radius: var(--border-radius-sm);
 }
