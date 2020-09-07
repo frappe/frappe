@@ -3,10 +3,8 @@
 
 from __future__ import unicode_literals
 
-# IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 from dateutil.parser._parser import ParserError
-import subprocess
 import operator
 import json
 import re, datetime, math, time
@@ -427,19 +425,6 @@ def flt(s, precision=None):
 
 	return num
 
-def get_wkhtmltopdf_version():
-	wkhtmltopdf_version = frappe.cache().hget("wkhtmltopdf_version", None)
-
-	if not wkhtmltopdf_version:
-		try:
-			res = subprocess.check_output(["wkhtmltopdf", "--version"])
-			wkhtmltopdf_version = res.decode('utf-8').split(" ")[1]
-			frappe.cache().hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
-		except Exception:
-			pass
-
-	return (wkhtmltopdf_version or '0')
-
 def cint(s):
 	"""Convert to integer"""
 	try: num = int(float(s))
@@ -753,7 +738,7 @@ def get_thumbnail_base64_for_image(src):
 	if not src:
 		frappe.throw('Invalid source for image: {0}'.format(src))
 
-	if not src.startswith('/files'):
+	if not src.startswith('/files') or '..' in src:
 		return
 
 	def _get_base64():
@@ -1225,13 +1210,6 @@ def md_to_html(markdown_text):
 		pass
 
 	return html
-
-def get_source_value(source, key):
-	'''Get value from source (object or dict) based on key'''
-	if isinstance(source, dict):
-		return source.get(key)
-	else:
-		return getattr(source, key)
 
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''
