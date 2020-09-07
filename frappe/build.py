@@ -11,24 +11,129 @@ import warnings
 import tempfile
 from distutils.spawn import find_executable
 
-from six import iteritems, text_type
-
 import frappe
 from frappe.utils.minify import JavascriptMinify
+
+import click
+from requests import get
+from six import iteritems, text_type
+from six.moves.urllib.parse import urlparse
 
 
 timestamps = {}
 app_paths = None
+sites_path = os.path.abspath(os.getcwd())
+
+
+def download_file(url, prefix):
+	filename = urlparse(url).path.split("/")[-1]
+	local_filename = os.path.join(prefix, filename)
+	with get(url, stream=True, allow_redirects=True) as r:
+		r.raise_for_status()
+		with open(local_filename, "wb") as f:
+			for chunk in r.iter_content(chunk_size=8192):
+				f.write(chunk)
+	return local_filename
+
+
+def exists(url):
+	from requests import head
+	return head(url, allow_redirects=True)
+
+
+def build_missing_files():
+	# check which files dont exist yet from the build.json and tell build.js to build only those!
+	missing_assets = []
+	current_asset_files = [
+		"js/{0}".format(x) for x in os.listdir(os.path.join(sites_path, "assets", "js"))
+	] + [
+		"css/{0}".format(x) for x in os.listdir(os.path.join(sites_path, "assets", "css"))
+	]
+
+	with open(os.path.join(sites_path, "assets", "frappe", "build.json")) as f:
+		all_asset_files = json.load(f).keys()
+
+	for asset in all_asset_files:
+		if asset.replace("concat:", "") not in current_asset_files:
+			missing_assets.append(asset)
+
+	if missing_assets:
+		from subprocess import check_call
+		from shlex import split
+
+		click.secho("Building Missing Assets...", fg="yellow")
+		command = split(
+			"node rollup/build.js --files {0} --no-concat".format(",".join(missing_assets))
+		)
+		check_call(command, cwd=os.path.join("..", "apps", "frappe"))
+
+
+def download_frappe_assets():
+	"""Downloads and sets up Frappe assets if they exist based on the current
+	commit HEAD.
+	Returns True if correctly setup else returns False.
+	"""
+	from subprocess import getoutput
+
+	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
+	exc = False
+
+	if frappe_head:
+		from tempfile import mkdtemp
+
+		tag = getoutput(
+			"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
+			" refs/tags/,,' -e 's/\^{}//'"
+			% frappe_head
+		)
+
+		if tag:
+			# if tag exists, download assets from github release
+			url = "https://github.com/frappe/frappe/releases/{0}/assets.tar.gz".format(tag)
+		else:
+			url = "http://assets.frappeframework.com/{0}.tar.gz".format(frappe_head)
+
+		try:
+			click.secho("Retreiving Assets...", fg="yellow")
+
+			if not exists(url):
+				return False
+
+			prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
+			assets_archive = download_file(url, prefix)
+
+			if assets_archive:
+				import subprocess
+
+				click.secho("Extracting Assets...", fg="yellow")
+				subprocess.check_output(
+					["tar", "xf", assets_archive, "--strip", "3"], cwd=sites_path
+				)
+				build_missing_files()
+				return True
+			else:
+				raise
+		except Exception:
+			exc = True
+			click.secho("No Assets Found...Building...", fg="yellow")
+			print(frappe.get_traceback())
+		finally:
+			try:
+				shutil.rmtree(os.path.dirname(assets_archive))
+			except Exception:
+				pass
+
+	return not exc
 
 
 def symlink(target, link_name, overwrite=False):
-	'''
+	"""
 	Create a symbolic link named link_name pointing to target.
 	If link_name exists then FileExistsError is raised, unless overwrite=True.
 	When trying to overwrite a directory, IsADirectoryError is raised.
 
 	Source: https://stackoverflow.com/a/55742015/10309266
-	'''
+	"""
 
 	if not overwrite:
 		return os.symlink(target, link_name)
@@ -76,27 +181,28 @@ def setup():
 
 
 def get_node_pacman():
-	pacmans = ['yarn', 'npm']
-	for exec_ in pacmans:
-		exec_ = find_executable(exec_)
-		if exec_:
-			return exec_
-	raise ValueError('No Node.js Package Manager found.')
+	exec_ = find_executable("yarn")
+	if exec_:
+		return exec_
+	raise ValueError("Yarn not found")
 
 
-def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False):
+def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False, skip_frappe=False):
 	"""concat / minify js files"""
 	setup()
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
 	pacman = get_node_pacman()
-	mode = 'build' if no_compress else 'production'
-	command = '{pacman} run {mode}'.format(pacman=pacman, mode=mode)
+	mode = "build" if no_compress else "production"
+	command = "{pacman} run {mode}".format(pacman=pacman, mode=mode)
 
 	if app:
-		command += ' --app {app}'.format(app=app)
+		command += " --app {app}".format(app=app)
 
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	if skip_frappe:
+		command += " --skip_frappe"
+
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
 	frappe.commands.popen(command, cwd=frappe_app_path)
 

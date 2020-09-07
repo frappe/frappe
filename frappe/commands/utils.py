@@ -19,14 +19,22 @@ from six import StringIO
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--restore', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-def build(app=None, make_copy=False, restore = False, verbose=False):
+@click.option('--force', is_flag=True, default=False, help='Force build assets instead of downloading available')
+def build(app=None, make_copy=False, restore=False, verbose=False, force=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
 	import frappe
 	frappe.init('')
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
-	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore = restore, verbose=verbose)
+
+	if not (force or app):
+		# skip building frappe if assets exist remotely
+		skip_frappe = frappe.build.download_frappe_assets()
+	else:
+		skip_frappe = False
+
+	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore = restore, verbose=verbose, skip_frappe=skip_frappe)
 
 
 @click.command('watch')

@@ -15,17 +15,35 @@ const {
 } = require('./rollup.utils');
 
 const {
-	get_options_for
+	get_options_for,
+	get_options
 } = require('./config');
 
-const build_for_app = process.argv[2] === '--app' ? process.argv[3] : null;
+const skip_frappe = process.argv.includes("--skip_frappe")
+
+if (skip_frappe) {
+	let idx = apps_list.indexOf("frappe");
+	if (idx > -1) {
+		apps_list.splice(idx, 1);
+	}
+}
+
+const exists = (flag) => process.argv.indexOf(flag) != -1
+const value = (flag) => (process.argv.indexOf(flag) != -1) ? process.argv[process.argv.indexOf(flag) + 1] : null;
+
+const files = exists("--files") ? value("--files").split(",") : false;
+const build_for_app = exists("--app") ? value("--app") : null;
+const concat = !exists("--no-concat");
 
 show_production_message();
 ensure_js_css_dirs();
-concatenate_files();
+if (concat) concatenate_files();
 create_build_file();
 
-if (build_for_app) {
+
+if (files) {
+	build_files(files);
+} else if (build_for_app) {
 	build_assets_for_app(build_for_app)
 		.then(() => {
 			run_build_command_for_app(build_for_app);
@@ -66,6 +84,28 @@ function build_assets(app) {
 			const time = Date.now() - start;
 			log(chalk.green(`✨  Done in ${time / 1000}s`));
 		});
+}
+
+function build_files(files, app="frappe") {
+	for (let file of files) {
+		let options = get_options(file, app);
+		if (!options.length) return Promise.resolve();
+		log(chalk.yellow(`\nBuilding ${app} assets...\n`));
+
+		let promises = options.map(({ inputOptions, outputOptions, output_file}) => {
+			return build(inputOptions, outputOptions)
+				.then(() => {
+					log(`${chalk.green('✔')} Built ${output_file}`);
+				});
+		});
+
+		let start = Date.now();
+		return Promise.all(promises)
+			.then(() => {
+				let time = Date.now() - start;
+				log(chalk.green(`✨  Done in ${time / 1000}s`));
+			});
+	}
 }
 
 function build(inputOptions, outputOptions) {
