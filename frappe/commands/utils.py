@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals, absolute_import, print_function
-import click
-import json, os, sys, subprocess
+import json
+import os
+import subprocess
+import sys
 from distutils.spawn import find_executable
+
+import click
+
 import frappe
-from frappe.commands import pass_context, get_site
+from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import update_progress_bar, get_bench_path
-from frappe.utils.response import json_handler
-from coverage import Coverage
-import cProfile, pstats
-from six import StringIO
+from frappe.utils import get_bench_path, update_progress_bar
 
 
 @click.command('build')
@@ -23,7 +23,6 @@ from six import StringIO
 def build(app=None, make_copy=False, restore=False, verbose=False, force=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
-	import frappe
 	frappe.init('')
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
@@ -34,7 +33,7 @@ def build(app=None, make_copy=False, restore=False, verbose=False, force=False):
 	else:
 		skip_frappe = False
 
-	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore = restore, verbose=verbose, skip_frappe=skip_frappe)
+	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore=restore, verbose=verbose, skip_frappe=skip_frappe)
 
 
 @click.command('watch')
@@ -159,12 +158,16 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 				kwargs = {}
 
 			if profile:
+				import cProfile
 				pr = cProfile.Profile()
 				pr.enable()
 
 			ret = frappe.get_attr(method)(*args, **kwargs)
 
 			if profile:
+				import pstats
+				from six import StringIO
+
 				pr.disable()
 				s = StringIO()
 				pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats(.5)
@@ -175,6 +178,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 		finally:
 			frappe.destroy()
 		if ret:
+			from frappe.utils.response import json_handler
 			print(json.dumps(ret, default=json_handler))
 
 	if not context.sites:
@@ -500,6 +504,8 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 	frappe.flags.skip_test_records = skip_test_records
 
 	if coverage:
+		from coverage import Coverage
+
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
 		cov = Coverage(source=[source_path], omit=[
