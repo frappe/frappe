@@ -155,11 +155,11 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	prepare_datum(d) {
 		let icon_class = '';
 		if (d.is_folder) {
-			icon_class = "octicon octicon-file-directory";
+			icon_class = "folder-normal";
 		} else if (frappe.utils.is_image_file(d.file_name)) {
-			icon_class = "octicon octicon-file-media";
+			icon_class = "image";
 		} else {
-			icon_class = 'octicon octicon-file-text';
+			icon_class = 'file';
 		}
 
 		let title = d.file_name || d.file_url;
@@ -168,7 +168,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		d.icon_class = icon_class;
 
 		d.subject_html = `
-			<i class="${icon_class} text-muted" style="width: 16px;"></i>
+			${frappe.utils.icon(icon_class)}
 			<span>${title}</span>
 			${d.is_private ? '<i class="fa fa-lock fa-fw text-warning"></i>' : ''}
 		`;
