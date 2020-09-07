@@ -188,7 +188,7 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
 	if not frappe.get_meta("Contact").get_field(searchfield)\
-		or searchfield not in frappe.db.DEFAULT_COLUMNS:
+		and searchfield not in frappe.db.DEFAULT_COLUMNS:
 		return []
 
 	link_doctype = filters.pop('link_doctype')
