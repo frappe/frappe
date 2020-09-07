@@ -405,8 +405,7 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 			frappe.connect()
 			odb = scheduled_backup(ignore_files=not with_files, backup_path=backup_path, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=True, verbose=verbose, compress=compress)
 		except Exception:
-			if verbose:
-				click.echo("Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), fg="red")
+			click.echo("Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), fg="red")
 			exit_code = 1
 			continue
 
