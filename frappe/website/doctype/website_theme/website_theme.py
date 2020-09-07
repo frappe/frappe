@@ -122,6 +122,12 @@ def get_active_theme():
 
 
 def get_scss(website_theme):
+	"""
+	Render `website_theme_template.scss` with the values defined in Website Theme.
+
+	params:
+	website_theme - instance of a Website Theme
+	"""
 	def trim_list(list_of_strings):
 		return [s.strip() for s in list_of_strings]
 
