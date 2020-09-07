@@ -72,4 +72,4 @@ pycryptodome==3.9.8
 paytmchecksum==1.7.0
 wrapt==1.10.11
 twilio==6.44.2
-razorpay=1.2.0
+razorpay==1.2.0
