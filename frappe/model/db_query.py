@@ -769,6 +769,7 @@ def get_list(doctype, *args, **kwargs):
 	kwargs.pop('ignore_permissions', None)
 	kwargs.pop('data', None)
 	kwargs.pop('strict', None)
+	kwargs.pop('user', None)
 
 	# If doctype is child table
 	if frappe.is_table(doctype):
