@@ -167,15 +167,6 @@ class TestEventProducer(unittest.TestCase):
 	def pull_producer_data(self):
 		pull_from_node(producer_url)
 
-	def get_remote_site(self):
-		producer_doc = frappe.get_doc('Event Producer', producer_url)
-		producer_site = FrappeClient(
-			url=producer_doc.producer_url,
-			api_key=producer_doc.api_key,
-			api_secret=producer_doc.get_password('api_secret')
-		)
-		return producer_site
-
 	def test_mapping(self):
 		producer = get_remote_site()
 		event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
@@ -291,13 +282,21 @@ def get_mapping(mapping_name, local, remote, field_map):
 
 
 def create_event_producer(producer_url):
+	if frappe.db.exists('Event Producer', producer_url):
+		event_producer = frappe.get_doc('Event Producer', producer_url)
+		for entry in event_producer.producer_doctypes:
+			entry.unsubscribe = 0
+		event_producer.save()
+		return
+
 	generate_keys('Administrator')
 	frappe.db.commit()
 
 	producer_site = FrappeClient(
 		url=producer_url,
 		username='Administrator',
-		password='admin'
+		password='admin',
+		verify=False
 	)
 
 	response = producer_site.post_api(
@@ -305,19 +304,10 @@ def create_event_producer(producer_url):
 		params={'user': 'Administrator'}
 	)
 
-	response = json.loads(response)
-	api_secret = response.api_secret
+	api_secret = response.get('api_secret')
 
 	response = producer_site.get_value('User', 'api_key', {'name': 'Administrator'})
-	response = json.loads(response)
-	api_key = response.api_key
-
-	if frappe.db.exists('Event Producer', producer_url):
-		event_producer = frappe.get_doc('Event Producer', producer_url)
-		for entry in event_producer.producer_doctypes:
-			entry.unsubscribe = 0
-		event_producer.save()
-		return
+	api_key = response.get('api_key')
 
 	event_producer = frappe.new_doc('Event Producer')
 	event_producer.producer_doctypes = []
@@ -354,8 +344,9 @@ def get_remote_site():
 	producer_doc = frappe.get_doc('Event Producer', producer_url)
 	producer_site = FrappeClient(
 		url=producer_doc.producer_url,
-		api_key=producer_doc.api_key,
-		api_secret=producer_doc.get_password('api_secret')
+		username='Administrator',
+		password='admin',
+		verify=False
 	)
 	return producer_site
 
