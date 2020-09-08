@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 import json
+import time
 from frappe.frappeclient import FrappeClient
 from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
 from frappe.core.doctype.user.user import generate_keys
@@ -291,12 +292,7 @@ def create_event_producer(producer_url):
 
 	generate_keys('Administrator')
 
-	producer_site = FrappeClient(
-		url=producer_url,
-		username='Administrator',
-		password='admin',
-		verify=False
-	)
+	producer_site = connect()
 
 	response = producer_site.post_api(
 		'frappe.core.doctype.user.user.generate_keys',
@@ -354,3 +350,17 @@ def unsubscribe_doctypes(producer_url):
 	for entry in event_producer.producer_doctypes:
 		entry.unsubscribe = 1
 	event_producer.save()
+
+def connect():
+	try:
+		producer_site = FrappeClient(
+			url=producer_url,
+			username='Administrator',
+			password='admin',
+			verify=False
+		)
+		return producer_site
+
+	except json.decoder.JSONDecodeError:
+		time.sleep(1)
+		connect()
