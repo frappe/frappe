@@ -98,10 +98,9 @@ def set_naming_from_document_naming_rule(doc):
 			frappe.get_cached_doc('Document Naming Rule', d.name).apply(doc)
 			if doc.name:
 				break
-	except Exception as e:
+	except frappe.db.TableMissingError: # noqa: E722
 		# not yet bootstrapped
-		if not frappe.db.is_table_missing(e):
-			raise
+		pass
 
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""
