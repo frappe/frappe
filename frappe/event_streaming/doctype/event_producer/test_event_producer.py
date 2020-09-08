@@ -361,4 +361,7 @@ def connect():
 	except Exception:
 		connect()
 	else:
-		return producer_site
+		if not producer_site:
+			connect()
+		else:
+			return producer_site
