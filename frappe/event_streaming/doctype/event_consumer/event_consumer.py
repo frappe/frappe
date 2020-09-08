@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import json
 import requests
+import os
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
 from frappe.utils.data import get_url
@@ -14,10 +15,11 @@ from frappe.utils.background_jobs import get_jobs
 
 class EventConsumer(Document):
 	def validate(self):
-		if self.in_test:
+		# approve subscribed doctypes for tests
+		# frappe.flags.in_test won't work here as tests are running on the consumer site
+		if os.environ.get('CI'):
 			for entry in self.consumer_doctypes:
 				entry.status = 'Approved'
-			self.in_test = False
 
 	def on_update(self):
 		if not self.incoming_change:
@@ -80,7 +82,6 @@ def register_consumer(data):
 	api_secret = frappe.generate_hash(length=10)
 	consumer.api_key = api_key
 	consumer.api_secret = api_secret
-	consumer.in_test = data['in_test']
 	consumer.insert(ignore_permissions=True)
 	frappe.db.commit()
 

@@ -592,6 +592,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.render_summary(data.report_summary);
 			}
 
+			if (data.message && !data.prepared_report) this.show_status(data.message);
+
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
 				this.prepare_report_data(data);
@@ -1041,7 +1043,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 					if (column.colIndex === index && !value) {
 						value = "Total";
-						column.fieldtype = "Data"; // avoid type issues for value if Date column
+						column = { fieldtype: "Data" }; // avoid type issues for value if Date column
 					} else if (in_list(["Currency", "Float"], column.fieldtype)) {
 						// proxy for currency and float
 						data = this.data[0];

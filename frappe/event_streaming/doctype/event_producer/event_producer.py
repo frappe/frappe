@@ -75,8 +75,7 @@ class EventProducer(Document):
 		return {
 			'event_consumer': get_url(),
 			'consumer_doctypes': json.dumps(consumer_doctypes),
-			'user': self.user,
-			'in_test': frappe.flags.in_test
+			'user': self.user
 		}
 
 	def create_custom_fields(self):
@@ -110,8 +109,6 @@ class EventProducer(Document):
 						'status': get_approval_status(config, ref_doctype),
 						'unsubscribed': entry.unsubscribe
 					})
-				if frappe.flags.in_test:
-					event_consumer.in_test = True
 				event_consumer.user = self.user
 				event_consumer.incoming_change = True
 				producer_site.update(event_consumer)

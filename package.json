@@ -17,10 +17,11 @@
   "bugs": {
     "url": "https://github.com/frappe/frappe/issues"
   },
-  "homepage": "https://frappe.io",
+  "homepage": "https://frappeframework.com",
   "dependencies": {
     "ace-builds": "^1.4.8",
     "air-datepicker": "http://github.com/frappe/air-datepicker",
+    "autoprefixer": "^9.8.6",
     "awesomplete": "^1.1.5",
     "bootstrap": "^4.4.1",
     "cookie": "^0.4.0",
