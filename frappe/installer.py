@@ -135,8 +135,8 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False,
 		if not confirm:
 			return
 
-	if not (verbose or dry_run):
-		sys.stdout = open(os.devnull, "w")
+	if dry_run:
+		verbose = True
 
 	if not no_backup:
 		from frappe.utils.backups import scheduled_backup
