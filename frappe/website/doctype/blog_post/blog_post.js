@@ -33,9 +33,9 @@ frappe.ui.form.on('Blog Post', {
 });
 
 function generate_google_search_preview(frm) {
-	if (!frm.doc.title) return;
+	if (!(frm.doc.meta_title || frm.doc.title)) return;
 	let google_preview = frm.get_field("google_preview");
-	let seo_title = (frm.doc.title).slice(0, 60);
+	let seo_title = (frm.doc.meta_title || frm.doc.title).slice(0, 60);
 	let seo_description =  (frm.doc.meta_description || frm.doc.blog_intro || "").slice(0, 160);
 	let date = frm.doc.published_on ? new frappe.datetime.datetime(frm.doc.published_on).moment.format('ll') + ' - ' : '';
 	let route_array = frm.doc.route ? frm.doc.route.split('/') : [];
