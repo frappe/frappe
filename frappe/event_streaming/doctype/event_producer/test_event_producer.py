@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 import json
-import time
 from frappe.frappeclient import FrappeClient
 from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
 from frappe.core.doctype.user.user import generate_keys
@@ -359,8 +358,7 @@ def connect():
 			password='admin',
 			verify=False
 		)
-		return producer_site
-
-	except json.decoder.JSONDecodeError:
-		time.sleep(1)
+	except Exception:
 		connect()
+	else:
+		return producer_site
