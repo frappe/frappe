@@ -301,8 +301,10 @@ frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
 frappe.patches.v13_0.add_standard_navbar_items
 frappe.patches.v13_0.generate_theme_files_in_public_folder
 frappe.patches.v13_0.increase_password_length
+frappe.patches.v12_0.fix_email_id_formatting
 frappe.patches.v13_0.add_toggle_width_in_navbar_settings
 frappe.patches.v13_0.rename_notification_fields
 frappe.patches.v13_0.remove_duplicate_navbar_items
 frappe.patches.v13_0.set_route_for_blog_category
 frappe.patches.v13_0.enable_custom_script
+frappe.patches.v13_0.update_newsletter_content_type
