@@ -89,22 +89,6 @@ def get_assets_link(frappe_head):
 	return url
 
 
-def handle_verbosity():
-	import sys
-	import wrapt
-
-	@wrapt.decorator
-	def verbosity(wrapped, instance, args, kwargs):
-		verbose = kwargs.get("verbose") or False
-		if not verbose:
-			sys.stdout = open(os.devnull, "wb")
-		ret = wrapped(*args, **kwargs)
-		sys.stdout = sys.__stdout__
-		return ret
-
-	return verbosity
-
-
 def download_frappe_assets(verbose=True):
 	"""Downloads and sets up Frappe assets if they exist based on the current
 	commit HEAD.
