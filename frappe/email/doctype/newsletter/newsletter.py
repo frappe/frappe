@@ -101,10 +101,8 @@ class Newsletter(WebsiteGenerator):
 			for d in frappe.db.get_all("Email Group Member", ["name", "email"],
 				{"unsubscribed": 0, "email_group": email_group.email_group}):
 					if not validate_email_address(d.email):
-						frappe.msgprint(
-							_('Invalid Email Address <a href="#Form/Email Group Member/{0}">{1}</a> in Email Group {2}')
-								.format(d.name, d.email, email_group.email_group),
-						)
+						doc_link = '<a href="#Form/Email Group Member/{0}">{1}</a>'.format(d.name, d.email)
+						frappe.msgprint(_('Invalid Email Address {0} in Email Group {1}').format(doc_link, email_group.email_group))
 					else:
 						recipients_list.append(d.email)
 		return list(set(recipients_list))
