@@ -264,16 +264,6 @@ select.input-xs {
 
 .dropdown-item {
 	border-radius: 4px;
-	padding: 9px;
-	margin: 6px 0;
-
-	&:first-child {
-    	margin-top: 0px;
-	}
-
-	&:last-child {
-    	margin-bottom: 0px;
-	}
 }
 
 .dropdown-menu {

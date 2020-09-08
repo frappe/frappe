@@ -3,8 +3,11 @@
 	background: var(--fg-color);
 	box-shadow: var(--shadow-sm);
 	padding: 0;
+	.navbar-brand {
+		margin-right: 0;
+	}
 	.navbar-nav {
-		margin: auto 0;
+		margin-left: var(--margin-md);
 		.nav-link {
 			padding: 0;
 		}
