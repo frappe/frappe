@@ -1072,6 +1072,7 @@ def get_newargs(fn, kwargs):
 		if (a in fnargs) or varkw:
 			newargs[a] = kwargs.get(a)
 
+	newargs.pop('ignore_permissions', None)
 	if "flags" in newargs:
 		del newargs["flags"]
 
