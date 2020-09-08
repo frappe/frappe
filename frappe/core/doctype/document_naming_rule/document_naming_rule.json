@@ -7,10 +7,10 @@
  "field_order": [
   "document_type",
   "disabled",
+  "section_break_3",
+  "conditions",
+  "naming_section",
   "naming_by",
-  "apply_filter",
-  "filter_by",
-  "filter_value",
   "naming_field",
   "prefix",
   "prefix_digits",
@@ -36,7 +36,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Naming By",
-   "options": "Numbered\nField Value\nTimestamp\nExpression\nDefault"
+   "options": "Numbered\nField Value"
   },
   {
    "depends_on": "eval:doc.naming_by===\"Field Value\"",
@@ -46,12 +46,6 @@
    "mandatory_depends_on": "eval:doc.naming_by===\"Field Value\""
   },
   {
-   "default": "0",
-   "fieldname": "apply_filter",
-   "fieldtype": "Check",
-   "label": "Apply Filter"
-  },
-  {
    "depends_on": "eval:doc.naming_by===\"Numbered\"",
    "fieldname": "prefix",
    "fieldtype": "Data",
@@ -59,36 +53,43 @@
    "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\""
   },
   {
-   "depends_on": "apply_filter",
-   "fieldname": "filter_by",
-   "fieldtype": "Select",
-   "label": "Filter By"
-  },
-  {
-   "depends_on": "apply_filter",
-   "fieldname": "filter_value",
-   "fieldtype": "Data",
-   "label": "Filter Value"
-  },
-  {
+   "depends_on": "eval:doc.naming_by === 'Numbered'",
    "fieldname": "counter",
    "fieldtype": "Int",
    "label": "Counter",
    "read_only": 1
   },
   {
+   "default": "5",
    "depends_on": "eval:doc.naming_by==='Numbered'",
    "description": "Example: 00001",
    "fieldname": "prefix_digits",
    "fieldtype": "Int",
    "label": "Digits",
-   "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\"",
-   "options": "5"
+   "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\""
+  },
+  {
+   "fieldname": "naming_section",
+   "fieldtype": "Section Break",
+   "label": "Naming"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "conditions",
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "Rule Conditions"
+  },
+  {
+   "fieldname": "conditions",
+   "fieldtype": "Table",
+   "label": "Conditions",
+   "options": "Document Naming Rule Condition"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-07 17:03:07.995818",
+ "modified": "2020-09-08 12:30:38.870359",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Rule",

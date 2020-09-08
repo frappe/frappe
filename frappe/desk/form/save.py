@@ -23,6 +23,8 @@ def savedocs(doc, action):
 		# update recent documents
 		run_onload(doc)
 		send_updated_docs(doc)
+
+		frappe.msgprint(frappe._("Saved"), indicator='green', alert=True)
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
 		raise
@@ -36,6 +38,7 @@ def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_stat
 			doc.set(workflow_state_fieldname, workflow_state)
 		doc.cancel()
 		send_updated_docs(doc)
+		frappe.msgprint(frappe._("Cancelled"), indicator='red', alert=True)
 
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())

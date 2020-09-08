@@ -15,7 +15,7 @@ frappe.ui.form.on('Document Naming Rule', {
 						return {label: `${d.label} (${d.fieldname})`, value: d.fieldname};
 					});
 				frm.set_df_property('naming_field', 'options', fieldnames);
-				frm.set_df_property('filter_ny', 'options', fieldnames);
+				frappe.meta.get_docfield('Document Naming Rule Condition', 'field', frm.doc.name).options = fieldnames;
 			});
 		}
 	}

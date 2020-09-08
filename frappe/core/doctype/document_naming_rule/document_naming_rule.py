@@ -5,11 +5,12 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe.utils.data import evaluate_filters
 
 class DocumentNamingRule(Document):
 	def apply(self, doc):
-		if self.apply_filter:
-			if doc.get(self.filter_by) != self.filter_value:
+		if self.conditions:
+			if not evaluate_filters(doc, [(d.field, d.condition, d.value) for d in self.conditions]):
 				return
 
 		if self.naming_by == 'Field Value':

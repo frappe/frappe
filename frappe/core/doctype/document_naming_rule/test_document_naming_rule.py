@@ -51,14 +51,16 @@ class TestDocumentNamingRule(unittest.TestCase):
 			naming_by = 'Numbered',
 			prefix = 'test-high-',
 			prefix_digits = 5,
-			apply_filter = 1,
-			filter_by = 'priority',
-			filter_value = 'High'
+			conditions = [dict(
+				field = 'priority',
+				condition = '=',
+				value = 'High'
+			)]
 		)).insert()
 
 		naming_rule_1 = frappe.copy_doc(naming_rule)
 		naming_rule_1.prefix = 'test-medium-'
-		naming_rule_1.filter_value = 'Medium'
+		naming_rule_1.conditions[0].value = 'Medium'
 		naming_rule_1.insert()
 
 		todo = frappe.get_doc(dict(
