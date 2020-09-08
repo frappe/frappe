@@ -8,6 +8,7 @@ import unittest
 import json
 from frappe.frappeclient import FrappeClient
 from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
+from frappe.core.doctype.user.user import generate_keys
 
 producer_url = 'http://test_site_producer:8000'
 
@@ -171,8 +172,7 @@ class TestEventProducer(unittest.TestCase):
 		producer_site = FrappeClient(
 			url=producer_doc.producer_url,
 			api_key=producer_doc.api_key,
-			api_secret=producer_doc.get_password('api_secret'),
-			frappe_authorization_source='Event Consumer'
+			api_secret=producer_doc.get_password('api_secret')
 		)
 		return producer_site
 
@@ -291,6 +291,27 @@ def get_mapping(mapping_name, local, remote, field_map):
 
 
 def create_event_producer(producer_url):
+	generate_keys('Administrator')
+	frappe.db.commit()
+
+	producer_site = FrappeClient(
+		url=producer_url,
+		username='Administrator',
+		password='admin'
+	)
+
+	response = producer_site.post_api(
+		'frappe.core.doctype.user.user.generate_keys',
+		params={'user': 'Administrator'}
+	)
+
+	response = json.loads(response)
+	api_secret = response.api_secret
+
+	response = producer_site.get_value('User', 'api_key', {'name': 'Administrator'})
+	response = json.loads(response)
+	api_key = response.api_key
+
 	if frappe.db.exists('Event Producer', producer_url):
 		event_producer = frappe.get_doc('Event Producer', producer_url)
 		for entry in event_producer.producer_doctypes:
@@ -310,6 +331,8 @@ def create_event_producer(producer_url):
 		'use_same_name': 1
 	})
 	event_producer.user = 'Administrator'
+	event_producer.api_key = api_key
+	event_producer.api_secret = api_secret
 	event_producer.save()
 
 def reset_configuration(producer_url):
@@ -332,8 +355,7 @@ def get_remote_site():
 	producer_site = FrappeClient(
 		url=producer_doc.producer_url,
 		api_key=producer_doc.api_key,
-		api_secret=producer_doc.get_password('api_secret'),
-		frappe_authorization_source='Event Consumer'
+		api_secret=producer_doc.get_password('api_secret')
 	)
 	return producer_site
 

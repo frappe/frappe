@@ -7,6 +7,7 @@ import frappe
 import json
 import requests
 import os
+from frappe import _
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
 from frappe.utils.data import get_url
@@ -58,17 +59,26 @@ class EventConsumer(Document):
 			return 'offline'
 		return 'online'
 
-
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def register_consumer(data):
 	"""create an event consumer document for registering a consumer"""
 	data = json.loads(data)
 	# to ensure that consumer is created only once
 	if frappe.db.exists('Event Consumer', data['event_consumer']):
 		return None
+
+	user = data['user']
+	if not frappe.db.exists('User', user):
+		frappe.throw(_('User {0} not found on the producer site').format(user))
+
+	if not "System Manager" in frappe.get_roles(user):
+		frappe.throw(_("Event Subscriber has to be a System Manager."))
+
 	consumer = frappe.new_doc('Event Consumer')
 	consumer.callback_url = data['event_consumer']
 	consumer.user = data['user']
+	consumer.api_key = data['api_key']
+	consumer.api_secret = data['api_secret']
 	consumer.incoming_change = True
 	consumer_doctypes = json.loads(data['consumer_doctypes'])
 
@@ -78,18 +88,13 @@ def register_consumer(data):
 			'status': 'Pending'
 		})
 
-	api_key = frappe.generate_hash(length=10)
-	api_secret = frappe.generate_hash(length=10)
-	consumer.api_key = api_key
-	consumer.api_secret = api_secret
-	consumer.insert(ignore_permissions=True)
-	frappe.db.commit()
+	consumer.insert()
 
 	# consumer's 'last_update' field should point to the latest update
 	# in producer's update log when subscribing
 	# so that, updates after subscribing are consumed and not the old ones.
 	last_update = str(get_last_update())
-	return json.dumps({'api_key': api_key, 'api_secret': api_secret, 'last_update': last_update})
+	return json.dumps({'last_update': last_update})
 
 
 def get_consumer_site(consumer_url):
@@ -98,8 +103,7 @@ def get_consumer_site(consumer_url):
 	consumer_site = FrappeClient(
 		url=consumer_url,
 		api_key=consumer_doc.api_key,
-		api_secret=consumer_doc.get_password('api_secret'),
-		frappe_authorization_source='Event Producer'
+		api_secret=consumer_doc.get_password('api_secret')
 	)
 	return consumer_site
 
