@@ -126,6 +126,8 @@ def download_frappe_assets(verbose=True):
 			else:
 				raise
 		except Exception:
+			# TODO: log traceback in bench.log
+			click.secho("An Error occurred while downloading assets...", fg="red")
 			assets_setup = False
 		finally:
 			try:
