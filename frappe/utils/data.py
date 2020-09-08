@@ -1120,7 +1120,11 @@ def get_filter(doctype, f, filters_config=None):
 					f.doctype = df.options
 					break
 
-	df = frappe.get_meta(f.doctype).get_field(f.fieldname)
+	try:
+		df = frappe.get_meta(f.doctype).get_field(f.fieldname)
+	except frappe.exceptions.DoesNotExistError:
+		df = None
+
 	f.fieldtype = df.fieldtype if df else None
 
 	return f
