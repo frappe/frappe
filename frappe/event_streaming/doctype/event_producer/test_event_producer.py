@@ -290,7 +290,6 @@ def create_event_producer(producer_url):
 		return
 
 	generate_keys('Administrator')
-	frappe.db.commit()
 
 	producer_site = FrappeClient(
 		url=producer_url,

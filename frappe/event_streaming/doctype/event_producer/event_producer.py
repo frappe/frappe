@@ -21,6 +21,7 @@ from frappe.integrations.oauth2 import validate_url
 class EventProducer(Document):
 	def before_insert(self):
 		self.check_url()
+		self.validate_event_subscriber()
 		self.incoming_change = True
 		self.create_event_consumer()
 		self.create_custom_fields()
