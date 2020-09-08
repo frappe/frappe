@@ -9,6 +9,9 @@ from frappe.utils.data import evaluate_filters
 
 class DocumentNamingRule(Document):
 	def apply(self, doc):
+		'''
+		Apply naming rules for the given document. Will set `name` if the rule is matched.
+		'''
 		if self.conditions:
 			if not evaluate_filters(doc, [(d.field, d.condition, d.value) for d in self.conditions]):
 				return
@@ -20,6 +23,3 @@ class DocumentNamingRule(Document):
 			counter = frappe.db.get_value(self.doctype, self.name, 'counter', for_update=True) or 0
 			doc.name = self.prefix + ('%0'+str(self.prefix_digits)+'d') % (counter + 1)
 			frappe.db.set_value(self.doctype, self.name, 'counter', counter + 1)
-
-		elif self.naming_by == 'Default':
-			doc.name = frappe.generate_hash(doc.doctype, 10)

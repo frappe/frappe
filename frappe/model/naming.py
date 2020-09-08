@@ -87,13 +87,21 @@ def set_name_from_naming_options(autoname, doc):
 		doc.name = make_autoname(autoname, doc=doc)
 
 def set_naming_from_document_naming_rule(doc):
+	'''
+	Evaluate rules based on "Document Naming Series" doctype
+	'''
 	if doc.doctype in log_types:
 		return
 
-	for d in frappe.get_all('Document Naming Rule', dict(document_type=doc.doctype, disabled=0)):
-		frappe.get_cached_doc('Document Naming Rule', d.name).apply(doc)
-		if doc.name:
-			break
+	try:
+		for d in frappe.get_all('Document Naming Rule', dict(document_type=doc.doctype, disabled=0)):
+			frappe.get_cached_doc('Document Naming Rule', d.name).apply(doc)
+			if doc.name:
+				break
+	except Exception as e:
+		# not yet bootstrapped
+		if not frappe.db.is_table_missing(e):
+			raise
 
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""

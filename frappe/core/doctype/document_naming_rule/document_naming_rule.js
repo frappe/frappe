@@ -6,8 +6,9 @@ frappe.ui.form.on('Document Naming Rule', {
 		frm.trigger('document_type');
 	},
 	document_type: (frm) => {
+		// update the select field options with fieldnames
 		if (frm.doc.document_type) {
-			frappe.model.with_doctype(frm.doc.document_type, (r) => {
+			frappe.model.with_doctype(frm.doc.document_type, () => {
 				let fieldnames = frappe.get_meta(frm.doc.document_type).fields
 					.filter((d) => {
 						return frappe.model.no_value_type.indexOf(d.fieldtype) === -1;
