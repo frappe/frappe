@@ -26,10 +26,15 @@ class TestClient(unittest.TestCase):
 		from frappe.client import delete
 		from frappe.handler import execute_cmd
 
+		frappe.set_user("Administrator")
+
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = 'POST'
 
-		frappe.form_dict = dict(doc=(dict(doctype='ToDo', description='Valid http method')))
+		frappe.local.form_dict = frappe._dict({
+			'doc': dict(doctype='ToDo', description='Valid http method'),
+			'cmd': 'frappe.client.save'
+		})
 		todo = execute_cmd('frappe.client.save')
 
 		self.assertEqual(todo.get('description'), 'Valid http method')
@@ -40,9 +45,14 @@ class TestClient(unittest.TestCase):
 		from frappe.client import delete
 		from frappe.handler import execute_cmd
 
+		frappe.set_user("Administrator")
+
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = 'GET'
 
-		frappe.form_dict = dict(doc=(dict(doctype='ToDo', description='Invalid http method')))
+		frappe.local.form_dict = frappe._dict({
+			'doc': dict(doctype='ToDo', description='Invalid http method'),
+			'cmd': 'frappe.client.save'
+		})
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, 'frappe.client.save')
