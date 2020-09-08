@@ -104,12 +104,13 @@ def handle_verbosity():
 
 	return verbosity
 
-@handle_verbosity()
+
 def download_frappe_assets(verbose=True):
 	"""Downloads and sets up Frappe assets if they exist based on the current
 	commit HEAD.
 	Returns True if correctly setup else returns False.
 	"""
+	from simple_chalk import green
 	from subprocess import getoutput
 	from tempfile import mkdtemp
 
@@ -122,14 +123,20 @@ def download_frappe_assets(verbose=True):
 			click.secho("Retreiving Assets...", fg="yellow")
 			prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
 			assets_archive = download_file(url, prefix)
+			print("{0} Downloaded assets archive from {1}".format(green('✔'), url))
 
 			if assets_archive:
-				import subprocess
+				import tarfile
 
 				click.secho("Extracting Assets...", fg="yellow")
-				subprocess.check_output(
-					["tar", "xf", assets_archive, "--strip", "3"], cwd=sites_path
-				)
+				with tarfile.open(assets_archive) as tar:
+					for file in tar:
+						if not file.isdir():
+							dest = "." + file.name.replace("./frappe-bench/sites", "")
+							show = dest.replace("./assets/", "")
+							tar.makefile(file, dest)
+							print("{0} Restored {1}".format(green('✔'), show))
+
 				build_missing_files()
 				return True
 			else:
