@@ -118,7 +118,7 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 
-def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False, verbose=True):
+def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
 	"""Remove app and all linked to the app's module with the app from a site."""
 
 	# dont allow uninstall app if not installed unless forced
@@ -133,9 +133,6 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False,
 		confirm = click.confirm("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue?")
 		if not confirm:
 			return
-
-	if dry_run:
-		verbose = True
 
 	if not no_backup:
 		from frappe.utils.backups import scheduled_backup
@@ -174,13 +171,12 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False,
 
 	if not dry_run:
 		remove_from_installed_apps(app_name)
-		# drop tables after a commit
-		frappe.db.commit()
 
 		for doctype in set(drop_doctypes):
+			print("* dropping Table for '{0}'...".format(doctype))
 			frappe.db.sql("drop table `tab{0}`".format(doctype))
 
-		sys.stdout = sys.__stdout__
+		frappe.db.commit()
 		click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
 
 	frappe.flags.in_uninstall = False
