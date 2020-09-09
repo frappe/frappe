@@ -50,8 +50,7 @@ frappe.views.TreeView = Class.extend({
 	},
 	get_permissions: function(){
 		this.can_read = frappe.model.can_read(this.doctype);
-		this.can_create = frappe.boot.user.can_create.indexOf(this.doctype) !== -1 ||
-					frappe.boot.user.in_create.indexOf(this.doctype) !== -1;
+		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
 		this.can_delete = frappe.model.can_delete(this.doctype);
 	},
@@ -242,7 +241,10 @@ frappe.views.TreeView = Class.extend({
 		if (frappe.get_meta(me.doctype).quick_entry) {
 			me.new_node();
 		} else {
-			frappe.new_doc(me.doctype);
+			// set parent group
+			const node = me.tree.get_selected_node();
+			const parent_field = `parent_${frappe.scrub(me.doctype)}`;
+			frappe.new_doc(me.doctype, {[parent_field]: node.label});
 		}
 	},
 	new_node: function() {
