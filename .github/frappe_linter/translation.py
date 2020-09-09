@@ -25,12 +25,10 @@ for _file in files_to_scan:
 
 				if not match:
 					errors_encounter += 1
-					print('\n')
-					print(f'Translation syntax error at line number: {line_number + 1}\n{line.strip()[:100]}')
-					print('\n')
+					print(f'\nTranslation syntax error at line number: {line_number + 1}\n{line.strip()[:100]}')
 
 if errors_encounter > 0:
-	print('You can visit "https://frappeframework.com/docs/user/en/translations" to resolve this error.')
+	print('\nYou can visit "https://frappeframework.com/docs/user/en/translations" to resolve this error.')
 	sys.exit(1)
 else:
-	print('Good To Go!')
+	print('\nGood To Go!')
