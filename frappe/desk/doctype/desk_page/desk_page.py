@@ -29,7 +29,7 @@ class DeskPage(Document):
 
 		pages = frappe.get_all("Desk Page", fields=["name", "module"], filters=filters, as_list=1)
 
-		return { page[1]: page[0]  for page in pages }
+		return { page[1]: page[0] for page in pages if page[1] }
 
 def disable_saving_as_standard():
 	return frappe.flags.in_install or \
