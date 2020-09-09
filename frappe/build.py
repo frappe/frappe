@@ -60,7 +60,7 @@ def build_missing_files():
 		from subprocess import check_call
 		from shlex import split
 
-		click.secho("Building Missing Assets...", fg="yellow")
+		click.secho("\nBuilding missing assets...\n", fg="yellow")
 		command = split(
 			"node rollup/build.js --files {0} --no-concat".format(",".join(missing_assets))
 		)
@@ -104,15 +104,15 @@ def download_frappe_assets(verbose=True):
 	if frappe_head:
 		try:
 			url = get_assets_link(frappe_head)
-			click.secho("Retreiving Assets...", fg="yellow")
+			click.secho("Retreiving assets...", fg="yellow")
 			prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
 			assets_archive = download_file(url, prefix)
-			print("{0} Downloaded assets archive from {1}".format(green('✔'), url))
+			print("\n{0} Downloaded Frappe assets from {1}".format(green('✔'), url))
 
 			if assets_archive:
 				import tarfile
 
-				click.secho("Extracting Assets...", fg="yellow")
+				click.secho("\nExtracting assets...\n", fg="yellow")
 				with tarfile.open(assets_archive) as tar:
 					for file in tar:
 						if not file.isdir():

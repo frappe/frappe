@@ -35,7 +35,7 @@ const files = exists("--files") ? value("--files").split(",") : false;
 const build_for_app = exists("--app") ? value("--app") : null;
 const concat = !exists("--no-concat");
 
-show_production_message();
+if (!files) show_production_message();
 ensure_js_css_dirs();
 if (concat) concatenate_files();
 create_build_file();
