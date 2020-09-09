@@ -112,8 +112,7 @@ def prepare_options(html, options):
 	options.update(html_options or {})
 
 	# cookies
-	if frappe.session and frappe.session.sid:
-		options['cookie'] = [('sid', '{0}'.format(frappe.session.sid))]
+	options.update(get_cookie_options())
 
 	# page size
 	if not options.get("page-size"):
@@ -121,6 +120,22 @@ def prepare_options(html, options):
 
 	return html, options
 
+
+def get_cookie_options():
+	options = {}
+	if frappe.session and frappe.session.sid:
+		# Use wkhtmltopdf's cookie-jar feature to set cookies and restrict them to host domain
+		cookiejar = "/tmp/{}.jar".format(frappe.generate_hash())
+
+		# Remove port from request.host
+		# https://werkzeug.palletsprojects.com/en/0.16.x/wrappers/#werkzeug.wrappers.BaseRequest.host
+		domain = frappe.local.request.host.split(":", 1)[0]
+		with open(cookiejar, "w") as f:
+			f.write("sid={}; Domain={};\n".format(frappe.session.sid, domain))
+
+		options['cookie-jar'] = cookiejar
+
+	return options
 
 def read_options_from_html(html):
 	options = {}
@@ -187,7 +202,7 @@ def prepare_header_footer(soup):
 
 
 def cleanup(options):
-	for key in ("header-html", "footer-html"):
+	for key in ("header-html", "footer-html", "cookie-jar"):
 		if options.get(key) and os.path.exists(options[key]):
 			os.remove(options[key])
 
