@@ -465,8 +465,9 @@ class ImportFile:
 
 				if doctype != self.doctype and table_df:
 					child_doc = row.parse_doc(doctype, parent_doc, table_df)
-					parent_doc[table_df.fieldname] = parent_doc.get(table_df.fieldname, [])
-					parent_doc[table_df.fieldname].append(child_doc)
+					if child_doc:
+						parent_doc[table_df.fieldname] = parent_doc.get(table_df.fieldname, [])
+						parent_doc[table_df.fieldname].append(child_doc)
 
 		doc = parent_doc
 
@@ -570,6 +571,10 @@ class Row:
 	def parse_doc(self, doctype, parent_doc=None, table_df=None):
 		col_indexes = self.header.get_column_indexes(doctype, table_df)
 		values = self.get_values(col_indexes)
+
+		if values.count(None) == len(values):
+			return None
+
 		columns = self.header.get_columns(col_indexes)
 		doc = self._parse_doc(doctype, columns, values, parent_doc, table_df)
 		return doc
