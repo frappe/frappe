@@ -886,7 +886,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_like_html(doc) {
 		const liked_by = JSON.parse(doc._liked_by || "[]");
-		let heart_class = liked_by.includes(user)
+		let heart_class = liked_by.includes(frappe.session.user)
 			? "liked-by liked"
 			: "not-liked";
 
