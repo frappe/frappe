@@ -8,6 +8,7 @@ import unittest
 import json
 from frappe.frappeclient import FrappeClient
 from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
+from frappe.core.doctype.user.user import generate_keys
 
 producer_url = 'http://test_site_producer:8000'
 
@@ -166,16 +167,6 @@ class TestEventProducer(unittest.TestCase):
 	def pull_producer_data(self):
 		pull_from_node(producer_url)
 
-	def get_remote_site(self):
-		producer_doc = frappe.get_doc('Event Producer', producer_url)
-		producer_site = FrappeClient(
-			url=producer_doc.producer_url,
-			api_key=producer_doc.api_key,
-			api_secret=producer_doc.get_password('api_secret'),
-			frappe_authorization_source='Event Consumer'
-		)
-		return producer_site
-
 	def test_mapping(self):
 		producer = get_remote_site()
 		event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
@@ -298,6 +289,20 @@ def create_event_producer(producer_url):
 		event_producer.save()
 		return
 
+	generate_keys('Administrator')
+
+	producer_site = connect()
+
+	response = producer_site.post_api(
+		'frappe.core.doctype.user.user.generate_keys',
+		params={'user': 'Administrator'}
+	)
+
+	api_secret = response.get('api_secret')
+
+	response = producer_site.get_value('User', 'api_key', {'name': 'Administrator'})
+	api_key = response.get('api_key')
+
 	event_producer = frappe.new_doc('Event Producer')
 	event_producer.producer_doctypes = []
 	event_producer.producer_url = producer_url
@@ -310,6 +315,8 @@ def create_event_producer(producer_url):
 		'use_same_name': 1
 	})
 	event_producer.user = 'Administrator'
+	event_producer.api_key = api_key
+	event_producer.api_secret = api_secret
 	event_producer.save()
 
 def reset_configuration(producer_url):
@@ -331,9 +338,9 @@ def get_remote_site():
 	producer_doc = frappe.get_doc('Event Producer', producer_url)
 	producer_site = FrappeClient(
 		url=producer_doc.producer_url,
-		api_key=producer_doc.api_key,
-		api_secret=producer_doc.get_password('api_secret'),
-		frappe_authorization_source='Event Consumer'
+		username='Administrator',
+		password='admin',
+		verify=False
 	)
 	return producer_site
 
@@ -342,3 +349,16 @@ def unsubscribe_doctypes(producer_url):
 	for entry in event_producer.producer_doctypes:
 		entry.unsubscribe = 1
 	event_producer.save()
+
+def connect():
+	def _connect():
+		return FrappeClient(
+			url=producer_url,
+			username='Administrator',
+			password='admin',
+			verify=False
+		)
+	try:
+		return _connect()
+	except Exception:
+		return _connect()

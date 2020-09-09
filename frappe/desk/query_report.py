@@ -462,6 +462,9 @@ def add_total_row(result, columns, meta = None):
 @frappe.whitelist()
 def get_data_for_custom_field(doctype, field):
 
+	if not frappe.has_permission(doctype, "read"):
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
 	value_map = frappe._dict(frappe.get_all(doctype,
 		fields=["name", field],
 		as_list=1))
