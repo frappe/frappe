@@ -7,22 +7,30 @@ start_pattern = re.compile(r"_{1,2}\([\"']{1,3}")
 
 # skip first argument
 files = sys.argv[1:]
-for _file in files:
-	if not _file.endswith(('.py', '.js')):
-		continue
+files_to_scan = [_file for _file in files if _file.endswith(('.py', '.js'))]
+
+for _file in files_to_scan:
 	with open(_file, 'r') as f:
 		print(f'Checking: {_file}')
-		for num, line in enumerate(f, 1):
-			all_matches = start_pattern.finditer(line)
-			if all_matches:
-				for match in all_matches:
-					verify = pattern.search(line)
-					if not verify:
-						errors_encounter += 1
-						print(f'A syntax error has been discovered at line number: {num}')
-						print(f'Syntax error occurred with: {line}')
+		file_lines = f.readlines()
+		for line_number, line in enumerate(file_lines, 1):
+			start_matches = start_pattern.search(line)
+			if start_matches:
+				match = pattern.search(line)
+				if not match and line.endswith(',\n'):
+					# concat remaining text to validate multiline pattern
+					line = "".join(file_lines[line_number - 1:])
+					line = line[start_matches.start() + 1:]
+					match = pattern.match(line)
+
+				if not match:
+					errors_encounter += 1
+					print('\n')
+					print(f'Translation syntax error at line number: {line_number + 1}\n{line.strip()[:100]}')
+					print('\n')
+
 if errors_encounter > 0:
 	print('You can visit "https://frappeframework.com/docs/user/en/translations" to resolve this error.')
-	assert 1+1 == 3
+	sys.exit(1)
 else:
 	print('Good To Go!')
