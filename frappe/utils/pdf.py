@@ -52,6 +52,8 @@ def get_pdf(html, options=None, output=None):
 				output.appendPagesFromReader(reader)
 		else:
 			raise
+	finally:
+		cleanup(options)
 
 	if "password" in options:
 		password = options["password"]
@@ -184,10 +186,7 @@ def prepare_header_footer(soup):
 	return options
 
 
-def cleanup(fname, options):
-	if os.path.exists(fname):
-		os.remove(fname)
-
+def cleanup(options):
 	for key in ("header-html", "footer-html"):
 		if options.get(key) and os.path.exists(options[key]):
 			os.remove(options[key])
