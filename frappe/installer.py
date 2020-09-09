@@ -96,13 +96,16 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	frappe.flags.in_install = False
 
+
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
 	if not app_name in installed_apps:
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
-		post_install(rebuild_website)
+		if frappe.flags.in_install:
+			post_install(rebuild_website)
+
 
 def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
