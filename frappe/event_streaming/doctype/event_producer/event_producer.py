@@ -44,6 +44,10 @@ class EventProducer(Document):
 				if not self.api_key or not self.api_secret:
 					frappe.throw(_('Please set API Key and Secret on the producer and consumer sites first.'))
 				else:
+					doc_before_save = self.get_doc_before_save()
+					if doc_before_save.api_key != self.api_key or doc_before_save.api_secret != self.api_secret:
+						return
+
 					self.update_event_consumer()
 					self.create_custom_fields()
 		else:

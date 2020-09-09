@@ -24,6 +24,10 @@ class EventConsumer(Document):
 
 	def on_update(self):
 		if not self.incoming_change:
+			doc_before_save = self.get_doc_before_save()
+			if doc_before_save.api_key != self.api_key or doc_before_save.api_secret != self.api_secret:
+				return
+
 			self.update_consumer_status()
 		else:
 			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
