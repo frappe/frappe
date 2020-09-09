@@ -1,16 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-# called from wnf.py
-# lib/wnf.py --install [rootpassword] [dbname] [source]
+import json
+import os
 
-from __future__ import unicode_literals, print_function
-
-from six.moves import input
-
-import os, json, subprocess, shutil, sys
-import click
 import frappe
+<<<<<<< HEAD
 import frappe.database
 import importlib
 from frappe import _
@@ -24,6 +19,15 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
 			   db_type=None, db_host=None, db_port=None,
 			   db_password=None, no_mariadb_socket=False):
+=======
+
+
+def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
+			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
+			   db_password=None, db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
+	import frappe.database
+	from frappe.database import setup_database
+>>>>>>> 3ced26c3e5... fix: Optimize imports
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
@@ -46,6 +50,11 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	frappe.flags.in_install_db = False
 
 def install_app(name, verbose=False, set_as_patched=True):
+	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+	from frappe.utils.fixtures import sync_fixtures
+	from frappe.model.sync import sync_for
+	from frappe.modules.utils import sync_customizations
+
 	frappe.flags.in_install = name
 	frappe.flags.ignore_in_install = False
 
@@ -65,7 +74,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 		raise Exception("App not in apps.txt")
 
 	if name in installed_apps:
-		frappe.msgprint(_("App {0} already installed").format(name))
+		frappe.msgprint(frappe._("App {0} already installed").format(name))
 		return
 
 	print("\nInstalling {0}...".format(name))
@@ -121,6 +130,7 @@ def remove_from_installed_apps(app_name):
 
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
 	"""Remove app and all linked to the app's module with the app from a site."""
+	import click
 
 	# dont allow uninstall app if not installed unless forced
 	if not force:
@@ -183,6 +193,8 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	frappe.flags.in_uninstall = False
 
 def post_install(rebuild_website=False):
+	from frappe.website import render
+
 	if rebuild_website:
 		render.clear_cache()
 
@@ -297,6 +309,8 @@ def add_module_defs(app):
 		d.save(ignore_permissions=True)
 
 def remove_missing_apps():
+	import importlib
+
 	apps = ('frappe_subscription', 'shopping_cart')
 	installed_apps = json.loads(frappe.db.get_global("installed_apps") or "[]")
 	for app in apps:
@@ -309,6 +323,8 @@ def remove_missing_apps():
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 
 def extract_sql_gzip(sql_gz_path):
+	import subprocess
+
 	try:
 		# dvf - decompress, verbose, force
 		original_file = sql_gz_path
@@ -321,6 +337,9 @@ def extract_sql_gzip(sql_gz_path):
 	return decompressed_file
 
 def extract_tar_files(site_name, file_path, folder_name):
+	import subprocess
+	import shutil
+
 	# Need to do frappe.init to maintain the site locals
 	frappe.init(site=site_name)
 	abs_site_path = os.path.abspath(frappe.get_site_path())
