@@ -351,17 +351,14 @@ def unsubscribe_doctypes(producer_url):
 	event_producer.save()
 
 def connect():
-	try:
-		producer_site = FrappeClient(
+	def _connect():
+		return FrappeClient(
 			url=producer_url,
 			username='Administrator',
 			password='admin',
 			verify=False
 		)
+	try:
+		return _connect()
 	except Exception:
-		connect()
-	else:
-		if not producer_site:
-			connect()
-		else:
-			return producer_site
+		return _connect()
