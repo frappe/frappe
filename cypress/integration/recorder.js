@@ -61,10 +61,10 @@ context('Recorder', () => {
 
 		cy.visit('/desk#recorder');
 
-		cy.get('.list-row-container span').contains('frappe.desk.reportview.get').click();
+		cy.get('.list-row-container span').contains('/api/method/frappe').click();
 
 		cy.location('hash').should('contain', '#recorder/request/');
-		cy.get('form').should('contain', 'frappe.desk.reportview.get');
+		cy.get('form').should('contain', '/api/method/frappe');
 
 		cy.get('#page-recorder .primary-action').should('contain', 'Stop').click();
 		cy.get('#page-recorder .btn-secondary').should('contain', 'Clear').click();
