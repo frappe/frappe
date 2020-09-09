@@ -444,16 +444,15 @@ def remove_from_installed_apps(context, app):
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
 @click.option('--no-backup', help='Do not backup the site', is_flag=True, default=False)
 @click.option('--force', help='Force remove app from site', is_flag=True, default=False)
-@click.option('--verbose', help='Add verbosity', is_flag=True, default=False)
 @pass_context
-def uninstall(context, app, dry_run, yes, no_backup, force, verbose):
+def uninstall(context, app, dry_run, yes, no_backup, force):
 	"Remove app and linked modules from site"
 	from frappe.installer import remove_app
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force, verbose=context.verbose or verbose)
+			remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
 		finally:
 			frappe.destroy()
 	if not context.sites:
