@@ -66,11 +66,7 @@ function build_assets_for_app(app) {
 	return build_assets(app)
 }
 
-function build_assets(app) {
-	const options = get_options_for(app);
-	if (!options.length) return Promise.resolve();
-	log(chalk.yellow(`\nBuilding ${app} assets...\n`));
-
+function build_from_(options) {
 	const promises = options.map(({ inputOptions, outputOptions, output_file}) => {
 		return build(inputOptions, outputOptions)
 			.then(() => {
@@ -86,26 +82,21 @@ function build_assets(app) {
 		});
 }
 
+function build_assets(app) {
+	const options = get_options_for(app);
+	if (!options.length) return Promise.resolve();
+	log(chalk.yellow(`\nBuilding ${app} assets...\n`));
+	return build_from_(options);
+}
+
 function build_files(files, app="frappe") {
+	let ret;
 	for (let file of files) {
 		let options = get_options(file, app);
 		if (!options.length) return Promise.resolve();
-		log(chalk.yellow(`\nBuilding ${app} assets...\n`));
-
-		let promises = options.map(({ inputOptions, outputOptions, output_file}) => {
-			return build(inputOptions, outputOptions)
-				.then(() => {
-					log(`${chalk.green('✔')} Built ${output_file}`);
-				});
-		});
-
-		let start = Date.now();
-		return Promise.all(promises)
-			.then(() => {
-				let time = Date.now() - start;
-				log(chalk.green(`✨  Done in ${time / 1000}s`));
-			});
+		ret += build_from_(options);
 	}
+	return ret;
 }
 
 function build(inputOptions, outputOptions) {
