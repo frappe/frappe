@@ -110,7 +110,6 @@ frappe.ui.form.Layout = Class.extend({
 		this.fields.unshift({
 			fieldtype: 'Section Break',
 			fieldname: '_form_dashboard',
-			label: __('Overview'),
 			cssClass: 'form-dashboard',
 			collapsible: 1,
 			//hidden: 1
@@ -576,8 +575,8 @@ frappe.ui.form.Section = Class.extend({
 		if(!this.layout.page) {
 			this.layout.page = $('<div class="form-page"></div>').appendTo(this.layout.wrapper);
 		}
-
-		this.wrapper = $(`<div class="row form-section ${this.layout.card_layout ? "card-section" : "" }">`)
+		let make_card = this.layout.card_layout && this.df.fieldname !== '_form_dashboard';
+		this.wrapper = $(`<div class="row form-section ${ make_card ? "card-section" : "" }">`)
 			.appendTo(this.layout.page);
 		this.layout.sections.push(this);
 

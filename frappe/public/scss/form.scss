@@ -75,27 +75,20 @@
 	}
 }
 
-.form-section.card-section {
+.form-section.card-section, .form-dashboard-section {
 	margin-bottom: var(--margin-lg);
 	@extend .frappe-card;
 }
 
-
 .form-dashboard {
 	.section-head {
-		font-size: var(--text-xl);
+		padding-left: 0;
+		padding-right: 0;
 	}
 	.form-dashboard-section {
-		padding: var(--padding-md);
-		border-bottom: 1px solid var(--border-color);
-	}
-
-	.form-dashboard-section:first-child {
-		padding-top: 0px;
-	}
-
-	.form-dashboard-section:last-child {
-		border-bottom: none;
+		padding-left: calc(var(--padding-lg) + var(--padding-xs));
+		padding-right: calc(var(--padding-lg) + var(--padding-xs));
+		padding-bottom: var(--padding-lg);
 	}
 }
 
