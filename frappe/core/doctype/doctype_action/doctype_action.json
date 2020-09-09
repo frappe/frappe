@@ -8,7 +8,8 @@
   "label",
   "action_type",
   "action",
-  "group"
+  "group",
+  "hidden"
  ],
  "fields": [
   {
@@ -31,20 +32,28 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Action Type",
-   "options": "Server Action",
+   "options": "Server Action\nRoute",
    "reqd": 1
   },
   {
    "columns": 4,
    "fieldname": "action",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
-   "label": "Action",
+   "label": "Action / Route",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "label": "Hidden"
   }
  ],
+ "index_web_pages_for_search": 1,
  "istable": 1,
- "modified": "2019-09-24 09:11:39.860100",
+ "links": [],
+ "modified": "2020-08-21 14:44:03.845315",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType Action",

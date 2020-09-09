@@ -207,7 +207,7 @@ class EMail:
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
-		self.msg_root["In-Reply-To"] = in_reply_to
+		self.msg_root["In-Reply-To"] = in_reply_to.replace("\r", "").replace("\n", "")
 
 	def make(self):
 		"""build into msg_root"""

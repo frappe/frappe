@@ -49,7 +49,7 @@ class PostgresTable(DBTable):
 			elif col.fieldtype in ("Check"):
 				using_clause = "USING {}::smallint".format(col.fieldname)
 
-			query.append("ALTER COLUMN {0} TYPE {1} {2}".format(
+			query.append("ALTER COLUMN `{0}` TYPE {1} {2}".format(
 				col.fieldname,
 				get_definition(col.fieldtype, precision=col.precision, length=col.length),
 				using_clause)
