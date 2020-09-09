@@ -33,6 +33,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.flags.in_install_db = False
 
+
 def install_app(name, verbose=False, set_as_patched=True):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.utils.fixtures import sync_fixtures
@@ -113,6 +114,7 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 
+
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
 	"""Remove app and all linked to the app's module with the app from a site."""
 	import click
@@ -177,6 +179,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	frappe.flags.in_uninstall = False
 
+
 def post_install(rebuild_website=False):
 	from frappe.website import render
 
@@ -186,6 +189,7 @@ def post_install(rebuild_website=False):
 	init_singles()
 	frappe.db.commit()
 	frappe.clear_cache()
+
 
 def set_all_patches_as_completed(app):
 	patch_path = os.path.join(frappe.get_pymodule_path(app), "patches.txt")
@@ -197,6 +201,7 @@ def set_all_patches_as_completed(app):
 			}).insert(ignore_permissions=True)
 		frappe.db.commit()
 
+
 def init_singles():
 	singles = [single['name'] for single in frappe.get_all("DocType", filters={'issingle': True})]
 	for single in singles:
@@ -206,12 +211,14 @@ def init_singles():
 			doc.flags.ignore_validate=True
 			doc.save()
 
+
 def make_conf(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
 	site = frappe.local.site
 	make_site_config(db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)
+
 
 def make_site_config(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
@@ -232,6 +239,7 @@ def make_site_config(db_name=None, db_password=None, site_config=None, db_type=N
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
+
 
 def update_site_config(key, value, validate=True, site_config_path=None):
 	"""Update a value in site_config"""
@@ -262,8 +270,10 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 	if hasattr(frappe.local, "conf"):
 		frappe.local.conf[key] = value
 
+
 def get_site_config_path():
 	return os.path.join(frappe.local.site_path, "site_config.json")
+
 
 def get_conf_params(db_name=None, db_password=None):
 	if not db_name:
@@ -276,6 +286,7 @@ def get_conf_params(db_name=None, db_password=None):
 		db_password = random_string(16)
 
 	return {"db_name": db_name, "db_password": db_password}
+
 
 def make_site_dirs():
 	site_public_path = os.path.join(frappe.local.site_path, 'public')
@@ -292,6 +303,7 @@ def make_site_dirs():
 	if not os.path.exists(locks_dir):
 			os.makedirs(locks_dir)
 
+
 def add_module_defs(app):
 	modules = frappe.get_module_list(app)
 	for module in modules:
@@ -299,6 +311,7 @@ def add_module_defs(app):
 		d.app_name = app
 		d.module_name = module
 		d.save(ignore_permissions=True)
+
 
 def remove_missing_apps():
 	import importlib
@@ -314,6 +327,7 @@ def remove_missing_apps():
 				installed_apps.remove(app)
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 
+
 def extract_sql_gzip(sql_gz_path):
 	import subprocess
 
@@ -327,6 +341,7 @@ def extract_sql_gzip(sql_gz_path):
 		raise
 
 	return decompressed_file
+
 
 def extract_tar_files(site_name, file_path, folder_name):
 	import subprocess
@@ -351,6 +366,7 @@ def extract_tar_files(site_name, file_path, folder_name):
 		frappe.destroy()
 
 	return tar_path
+
 
 def is_downgrade(sql_file_path, verbose=False):
 	"""checks if input db backup will get downgraded on current bench"""
