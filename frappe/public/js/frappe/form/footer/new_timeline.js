@@ -131,9 +131,8 @@ frappe.ui.form.NewTimeline = class {
 			this.timeline_items.push(...this.get_custom_timeline_contents());
 			this.timeline_items.push(...this.get_assignment_timeline_contents());
 			this.timeline_items.push(...this.get_attachment_timeline_contents());
+			this.timeline_items.push(...this.get_milestone_timeline_contents());
 		}
-		// attachments
-		// milestones
 	}
 
 	get_user_link(user) {
@@ -269,12 +268,30 @@ frappe.ui.form.NewTimeline = class {
 	get_attachment_timeline_contents() {
 		let attachment_timeline_contents = [];
 		(this.doc_info.attachment_logs || []).forEach(attachment_log => {
+			let is_file_upload = attachment_log.comment_type == 'Attachment';
 			attachment_timeline_contents.push({
+				icon: is_file_upload ? 'upload' : 'delete',
+				icon_size: 'sm',
 				creation: attachment_log.creation,
 				content: `${this.get_user_link(attachment_log.owner)} ${attachment_log.content}`,
 			});
 		});
 		return attachment_timeline_contents;
+	}
+
+	get_milestone_timeline_contents() {
+		let milestone_timeline_contents = [];
+		(this.doc_info.milestones || []).forEach(milestone_log => {
+			milestone_timeline_contents.push({
+				icon: 'milestone',
+				creation: milestone_log.creation,
+				content: __('{0} changed {1} to {2}', [
+					this.get_user_link(milestone_log.owner),
+					frappe.meta.get_label(this.frm.doctype, milestone_log.track_field),
+					milestone_log.value.bold()]),
+			});
+		});
+		return milestone_timeline_contents;
 	}
 
 	get_like_timeline_contents() {
@@ -294,9 +311,9 @@ frappe.ui.form.NewTimeline = class {
 		let custom_timeline_contents = [];
 		(this.doc_info.additional_timeline_content || []).forEach(custom_item => {
 			custom_timeline_contents.push({
-				icon: 'call',
+				icon: custom_item.icon,
 				icon_size: 'sm',
-				card: true,
+				card: custom_item.show_card,
 				creation: custom_item.creation,
 				content: custom_item.content || frappe.render_template(custom_item.template, custom_item.template_data),
 			});

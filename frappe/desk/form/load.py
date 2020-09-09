@@ -144,7 +144,7 @@ def get_comments(doctype, name, comment_type='Comment'):
 	elif comment_type == 'attachment':
 		comment_types = ['Attachment', 'Attachment Removed']
 
-	comments = frappe.get_all('Comment', fields = ['name', 'creation', 'content', 'owner'], filters=dict(
+	comments = frappe.get_all('Comment', fields = ['name', 'creation', 'content', 'owner', 'comment_type'], filters=dict(
 		reference_doctype = doctype,
 		reference_name = name,
 		comment_type = ['in', comment_types]
