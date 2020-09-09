@@ -110,18 +110,20 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		return `
 			<div class="image-view-item ellipsis">
 				<div class="image-view-header">
-					<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${escape(
-						item.name
-					)}">
-					${this.get_like_html(item)}
+					<div>
+						<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${escape(
+							item.name
+						)}">
+						${this.get_like_html(item)}
+					</div>
 				</span>
 				</div>
-				<div class="image-view-body">
+				<div class="image-view-body ${_class}">
 					<a  data-name="${encoded_name}"
 						title="${encoded_name}"
 						href="${this.get_form_link(item)}"
 					>
-						<div class="image-field ${_class}"
+						<div class="image-field"
 							data-name="${encoded_name}"
 						>
 							${_html}

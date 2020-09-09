@@ -618,4 +618,11 @@
 	<symbol viewBox="0 0 8 7" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-check">
 		<path d="M1 4.00001L2.66667 5.80001L7 1.20001" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-change">
+		<path d="M13.2818 11.5388H2.59961" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M5.06069 14L2.59961 11.539L5.06069 9.07788" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M2.91406 4.46118H12.9679" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M10.5059 2L12.9669 4.46108L10.5059 6.92217" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
 </svg>

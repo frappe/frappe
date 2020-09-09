@@ -30,8 +30,7 @@
 		}
 
 		.alert-title-container {
-			display: flex;
-			align-items: center;
+			@include flex(flex, null, center, null);
 		}
 
 		.alert-message {
@@ -49,8 +48,8 @@
 
 	.close {
 		position: absolute;
-		top: var(--padding-sm);
-		right: var(--padding-sm);
+		top: 18px;
+		right: var(--padding-md);
 		color: inherit;
 		opacity: 1;
 		font-size: inherit;
