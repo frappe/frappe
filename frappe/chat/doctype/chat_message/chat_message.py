@@ -139,7 +139,7 @@ def send(user, room, content, type = "Content"):
 
 @frappe.whitelist(allow_guest = True)
 def seen(message, user = None):
-	authenticate(user)
+	authenticate(user, raise_err=True)
 
 	has_message = frappe.db.exists('Chat Message', message)
 
