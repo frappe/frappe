@@ -3,6 +3,8 @@
 from __future__ import unicode_literals
 import frappe
 import unittest
+from bs4 import BeautifulSoup
+import re
 
 from frappe.utils import set_request
 from frappe.website.render import render
@@ -32,11 +34,37 @@ class TestBlogPost(unittest.TestCase):
 
 		self.assertTrue(response.status_code, 404)
 
+	def test_category_link(self):
+		# Make a temporary Blog Post (and a Blog Category)
+		blog = make_test_blog()
+
+		# Visit the blog post page
+		set_request(path=blog.route)
+		blog_page_response = render()
+		blog_page_html = frappe.safe_decode(blog_page_response.get_data())
+
+		# On blog post page find link to the category page
+		soup = BeautifulSoup(blog_page_html, "lxml")
+		category_page_link = list(soup.find_all('a', href=re.compile(blog.blog_category)))[0]
+		category_page_url = category_page_link["href"]
+
+		# Visit the category page (by following the link found in above stage)
+		set_request(path=category_page_url)
+		category_page_response = render()
+		category_page_html = frappe.safe_decode(category_page_response.get_data())
+
+		# Category page should contain the blog post title
+		self.assertIn(blog.title, category_page_html)
+
+		# Cleanup afterwords
+		frappe.delete_doc("Blog Post", blog.name)
+		frappe.delete_doc("Blog Category", blog.blog_category)
+
 def make_test_blog():
-	if not frappe.db.exists('Blog Category', 'Test Blog Category'):
+	if not frappe.db.exists('Blog Category', 'test-blog-category'):
+		# Set different title and name for the category
 		frappe.get_doc(dict(
 			doctype = 'Blog Category',
-			category_name = 'Test Blog Category',
 			title='Test Blog Category')).insert()
 	if not frappe.db.exists('Blogger', 'test-blogger'):
 		frappe.get_doc(dict(
@@ -45,7 +73,7 @@ def make_test_blog():
 			full_name='Test Blogger')).insert()
 	test_blog = frappe.get_doc(dict(
 		doctype = 'Blog Post',
-		blog_category = 'Test Blog Category',
+		blog_category = 'test-blog-category',
 		blogger = 'test-blogger',
 		title = random_string(20),
 		route = random_string(20),

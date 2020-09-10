@@ -46,7 +46,8 @@ class FullTextSearch:
 			doc_name (str): name of the document to be updated
 		"""
 		document = self.get_document_to_index(doc_name)
-		self.update_index(document)
+		if document:
+			self.update_index(document)
 
 	def remove_document_from_index(self, doc_name):
 		"""Remove document from search index
