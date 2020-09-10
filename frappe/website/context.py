@@ -31,10 +31,9 @@ def get_context(path, args=None):
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
 		context.update(frappe.local.response.context)
 
-	# to be able to inspect the context in development
+	# to be able to inspect the context dict
 	# Use the macro "inspect" from macros.html
-	if frappe.conf.developer_mode:
-		context._context_dict = context
+	context._context_dict = context
 
 	context.developer_mode = frappe.conf.developer_mode
 
