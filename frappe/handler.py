@@ -73,15 +73,13 @@ def is_valid_http_method(method):
 	http_method = frappe.local.request.method
 
 	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
-		frappe.msgprint(_("Not permitted"))
-		raise frappe.PermissionError('Not Allowed, {0}'.format(method))
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 def is_whitelisted(method):
 	# check if whitelisted
 	if frappe.session['user'] == 'Guest':
 		if (method not in frappe.guest_methods):
-			frappe.msgprint(_("Not permitted"))
-			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 		if method not in frappe.xss_safe_methods:
 			# strictly sanitize form_dict
@@ -92,8 +90,7 @@ def is_whitelisted(method):
 
 	else:
 		if not method in frappe.whitelisted:
-			frappe.msgprint(_("Not permitted"))
-			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 @frappe.whitelist(allow_guest=True)
 def version():
