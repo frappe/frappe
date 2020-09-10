@@ -32,7 +32,7 @@
 		content: ' *';
 		color: var(--red-400);
 	}
-	.ql-editor {
+	.ql-editor:not(.read-mode) {
 		background-color: var(--control-bg);
 	}
 }
