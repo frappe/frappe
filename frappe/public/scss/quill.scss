@@ -10,7 +10,7 @@
 .ql-editor {
 	font-family: var(--font-stack);
 	line-height: 1.6;
-
+	background-color: var(--control-bg);
 	h1,
 	h2,
 	h3,
@@ -22,15 +22,16 @@
 }
 
 .ql-toolbar.ql-snow {
-	border-top-left-radius: var(--border-radius-sm);;
-	border-top-right-radius: var(--border-radius-sm);;
-	background-color: var(--control-bg);
+	border-top-left-radius: var(--border-radius);
+	border-top-right-radius: var(--border-radius);
+	background-color: var(--fg-color);
+	box-shadow: var(--shadow-inset);
 	padding-bottom: 0;
 }
 
 .ql-container.ql-snow {
-	border-bottom-left-radius: var(--border-radius-sm);;
-	border-bottom-right-radius: var(--border-radius-sm);;
+	border-bottom-left-radius: var(--border-radius);
+	border-bottom-right-radius: var(--border-radius);
 }
 
 .ql-snow .ql-editor {
