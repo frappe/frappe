@@ -52,11 +52,17 @@ body[data-route^="Module"] .main-menu {
 	.sidebar-label {
 		margin-bottom: var(--margin-sm);
 		font-weight: 500;
+		display: flex;
+		align-items: center;
 		color: var(--text-muted);
 		text-transform: uppercase;
 		letter-spacing: 0.04rem;
 		font-size: var(--text-xs);
-		--icon-stroke: var(--text-muted);
+		.icon {
+			margin: 0;
+			margin-right: var(--margin-xs);
+			--icon-stroke: var(--text-muted);
+		}
 	}
 }
 
