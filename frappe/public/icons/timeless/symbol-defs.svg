@@ -628,5 +628,9 @@
 		<path d="M2.91406 4.46118H12.9679" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M10.5059 2L12.9669 4.46108L10.5059 6.92217" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
-
+	<symbol viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-healthcare">
+		<path d="M7.72754 6.27273V4C7.72754 3.44771 8.17525 3 8.72754 3H15.273C15.8253 3 16.273 3.44772 16.273 4V6.27273" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="square"/>
+		<path d="M20 6.27295H4C3.44772 6.27295 3 6.72066 3 7.27295V20.0002C3 20.5525 3.44772 21.0002 4 21.0002H20C20.5523 21.0002 21 20.5525 21 20.0002V7.27295C21 6.72066 20.5523 6.27295 20 6.27295Z" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="square"/>
+		<path d="M16.091 12H13.6365V9.54541H10.3637V12H7.90918V15.2727H10.3637V17.7272H13.6365V15.2727H16.091V12Z" stroke="#4C5A67" stroke-miterlimit="10" stroke-linecap="square" stroke-linejoin="round"/>
+	</symbol>
 </svg>
