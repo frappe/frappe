@@ -535,7 +535,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			</div>
 		`);
 		this.setup_new_doc_event();
-		this.list_sidebar.reload_stats();
+		this.list_sidebar && this.list_sidebar.reload_stats();
 	}
 
 	render() {
@@ -1451,6 +1451,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		items.push({
 			label: __("Toggle Sidebar"),
 			action: () => this.toggle_side_bar(),
+			condition: () => !this.hide_sidebar,
 			standard: true,
 			shortcut: "Ctrl+K",
 		});
