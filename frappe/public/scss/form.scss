@@ -158,8 +158,8 @@
 	.document-link {
 		margin-bottom: var(--margin-sm);
 		display: flex;
-		.badge-link {
-			font-size: var(--text-md);
+		.document-link-badge {
+			font-size: var(--text-sm);
 			padding: var(--padding-xs) var(--padding-sm);
 			border-radius: var(--border-radius);
 			background-color: var(--control-bg);
@@ -171,7 +171,7 @@
 				padding: 0 var(--padding-xs);
 				margin-right: var(--margin-xs);
 			}
-			&:hover:not([disabled='disabled']) {
+			.badge-link:hover:not([disabled='disabled']) {
 				text-decoration: underline;
 			}
 		}

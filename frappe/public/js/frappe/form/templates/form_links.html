@@ -10,10 +10,10 @@
 				{% for (let j=0; j < transactions[i].items.length; j++) { %}
 					{% let doctype = transactions[i].items[j]; %}
 					<div class="document-link" data-doctype="{{ doctype }}">
-						<a class="badge-link">
+						<div class="document-link-badge" data-doctype="{{ doctype }}">
 							<span class="count hidden"></span>
-							{{ __(doctype) }}
-						</a>
+							<a class="badge-link">{{ __(doctype) }}</a>
+						</div>
 						<span class="open-notification hidden"
 							title="{{ __("Open {0}", [__(doctype)])}}">
 						</span>
