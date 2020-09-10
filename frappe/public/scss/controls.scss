@@ -35,6 +35,17 @@
 	.ql-editor:not(.read-mode) {
 		background-color: var(--control-bg);
 	}
+	.address-box {
+		background-color: var(--control-bg);
+		padding: var(--padding-sm);
+		margin-bottom: var(--margin-sm);
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+		font-size: var(--text-sm);
+		p:last-child {
+			margin-bottom: 0;
+		}
+	}
 }
 
 .frappe-control:not([data-fieldtype='MultiSelectPills']) {
