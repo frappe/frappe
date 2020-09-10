@@ -65,8 +65,14 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 	},
 
-	add_section: function(html) {
-		return $('<div class="form-dashboard-section custom">'+html+'</div>').appendTo(this.wrapper);
+	add_section: function(html, section_head=null) {
+		let section = $(`<div class="form-dashboard-section custom"></div>`);
+		if (section_head) {
+			section.append(`<div class="section-head">${section_head}</div>`);
+		}
+		section.append(html);
+		section.appendTo(this.wrapper);
+		return section;
 	},
 
 	add_progress: function(title, percent, message) {
