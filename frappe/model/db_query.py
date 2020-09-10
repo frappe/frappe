@@ -391,7 +391,10 @@ class DatabaseQuery(object):
 				ref_doctype = frappe.get_meta(f.doctype).get_field(f.fieldname).options
 
 			result=[]
-			lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
+
+			lft, rgt = '', ''
+			if f.value:
+				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
 
 			# Get descendants elements of a DocType with a tree structure
 			if f.operator.lower() in ('descendants of', 'not descendants of') :
