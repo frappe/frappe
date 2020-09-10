@@ -756,6 +756,9 @@ def get_thumbnail_base64_for_image(src):
 	if not src.startswith('/files'):
 		return
 
+	if src.endswith('.svg'):
+		return
+
 	def _get_base64():
 		try:
 			image, unused_filename, extn = get_local_image(src)
