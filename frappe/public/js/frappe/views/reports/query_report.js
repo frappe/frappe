@@ -592,6 +592,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.render_summary(data.report_summary);
 			}
 
+			if (data.message && !data.prepared_report) this.show_status(data.message);
+
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
 				this.prepare_report_data(data);
@@ -1041,7 +1043,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 					if (column.colIndex === index && !value) {
 						value = "Total";
-						column.fieldtype = "Data"; // avoid type issues for value if Date column
+						column = { fieldtype: "Data" }; // avoid type issues for value if Date column
 					} else if (in_list(["Currency", "Float"], column.fieldtype)) {
 						// proxy for currency and float
 						data = this.data[0];
@@ -1257,7 +1259,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return;
 		}
 
-		this.export_dialog = frappe.prompt([
+		let export_dialog_fields = [
 			{
 				label: __('Select File Format'),
 				fieldname: 'file_format',
@@ -1265,13 +1267,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				options: ['Excel', 'CSV'],
 				default: 'Excel',
 				reqd: 1
-			},
-			{
+			}
+		];
+
+		if (this.tree_report) {
+			export_dialog_fields.push({
 				label: __("Include indentation"),
 				fieldname: "include_indentation",
 				fieldtype: "Check",
-			}
-		], ({ file_format, include_indentation }) => {
+			});
+		}
+
+		this.export_dialog = frappe.prompt(export_dialog_fields, ({ file_format, include_indentation }) => {
 			this.make_access_log('Export', file_format);
 			if (file_format === 'CSV') {
 				const column_row = this.columns.reduce((acc, col) => {
