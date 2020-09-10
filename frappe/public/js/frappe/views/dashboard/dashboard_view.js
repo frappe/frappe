@@ -18,6 +18,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	setup_page() {
+		this.hide_sidebar = true;
 		this.hide_page_form = true;
 		super.setup_page();
 	}

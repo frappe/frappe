@@ -30,8 +30,9 @@
 	}
 }
 
-body.no-list-sidebar {
-	[data-page-route^="List/"] {
+
+.no-list-sidebar {
+	&[data-page-route^="List/"], [data-page-route^="List/"]{
 		@include media-breakpoint-up(md) {
 			.layout-side-section {
 				display: none;
@@ -44,7 +45,6 @@ body.no-list-sidebar {
 		}
 	}
 }
-
 
 .list-row-container {
 	border-bottom: 1px solid $border-color;
