@@ -21,6 +21,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Callback URL",
+   "read_only": 1,
    "reqd": 1,
    "unique": 1
   },
@@ -28,19 +29,20 @@
    "fieldname": "api_key",
    "fieldtype": "Data",
    "label": "API Key",
-   "read_only": 1
+   "reqd": 1
   },
   {
    "fieldname": "api_secret",
    "fieldtype": "Password",
    "label": "API Secret",
-   "read_only": 1
+   "reqd": 1
   },
   {
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "Event Subscriber",
    "options": "User",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -69,7 +71,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2020-09-06 15:42:00.746493",
+ "modified": "2020-09-08 16:42:39.828085",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Consumer",

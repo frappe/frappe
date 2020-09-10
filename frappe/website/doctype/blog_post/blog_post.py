@@ -36,6 +36,11 @@ class BlogPost(WebsiteGenerator):
 		if self.blog_intro:
 			self.blog_intro = self.blog_intro[:200]
 
+		if not self.meta_title:
+			self.meta_title = self.title[:60]
+		else:
+			self.meta_title = self.meta_title[:60]
+
 		if not self.meta_description:
 			self.meta_description = self.blog_intro[:140]
 		else:
@@ -88,7 +93,7 @@ class BlogPost(WebsiteGenerator):
 		context.description = self.meta_description or self.blog_intro or strip_html_tags(context.content[:140])
 
 		context.metatags = {
-			"name": self.title,
+			"name": self.meta_title,
 			"description": context.description,
 		}
 

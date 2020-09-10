@@ -308,3 +308,4 @@ frappe.patches.v13_0.remove_duplicate_navbar_items
 frappe.patches.v13_0.set_route_for_blog_category
 frappe.patches.v13_0.enable_custom_script
 frappe.patches.v13_0.update_newsletter_content_type
+frappe.patches.v13_0.delete_event_producer_and_consumer_keys
