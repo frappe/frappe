@@ -52,6 +52,9 @@ $page-bottom-margin: 60px;
 
 .page-head {
 	z-index: 2;
+	position: sticky;
+	top: var(--navbar-height);
+	background: var(--bg-color);
 	.page-head-content {
 		height: $page-head-height;
 	}
