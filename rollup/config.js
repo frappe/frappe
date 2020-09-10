@@ -117,6 +117,7 @@ function get_rollup_options_for_css(output_file, input_files) {
 		// less -> css
 		postcss({
 			plugins: [
+				starts_with_css ? require('autoprefixer')() : null,
 				starts_with_css && production ? require('cssnano')({ preset: 'default' }) : null
 			].filter(Boolean),
 			extract: output_path,

@@ -25,7 +25,6 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 
 	return docname
 
-@frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False, show_alert=True):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and
