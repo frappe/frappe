@@ -137,7 +137,8 @@ class WebPage(WebsiteGenerator):
 		context.metatags = {
 			"name": self.meta_title or self.title,
 			"description": self.meta_description,
-			"image": self.meta_image or find_first_image(context.main_section or "")
+			"image": self.meta_image or find_first_image(context.main_section or ""),
+			"og:type": "website"
 		}
 
 	def validate_dates(self):

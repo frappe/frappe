@@ -103,9 +103,9 @@ def get_home_page_via_hooks():
 
 	home_page_method = frappe.get_hooks('get_website_user_home_page')
 	if home_page_method:
-		home_page = frappe.get_attr(home_page_method[-1])(frappe.session.user).strip('/')
+		home_page = frappe.get_attr(home_page_method[-1])(frappe.session.user)
 	elif frappe.get_hooks('website_user_home_page'):
-		home_page = frappe.get_hooks('website_user_home_page')[-1].strip('/')
+		home_page = frappe.get_hooks('website_user_home_page')[-1]
 
 	if not home_page:
 		role_home_page = frappe.get_hooks("role_home_page")
@@ -119,6 +119,9 @@ def get_home_page_via_hooks():
 		home_page = frappe.get_hooks("home_page")
 		if home_page:
 			home_page = home_page[-1]
+
+	if home_page:
+		home_page = home_page.strip('/')
 
 	return home_page
 
