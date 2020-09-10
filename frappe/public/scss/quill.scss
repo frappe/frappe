@@ -10,7 +10,6 @@
 .ql-editor {
 	font-family: var(--font-stack);
 	line-height: 1.6;
-	background-color: var(--control-bg);
 	h1,
 	h2,
 	h3,
@@ -30,7 +29,7 @@
 }
 
 .ql-container.ql-snow {
-	border-bottom-left-radius: var(--border-radius);
+	border-bottom-left-radius: var(--border-radius);;
 	border-bottom-right-radius: var(--border-radius);
 }
 

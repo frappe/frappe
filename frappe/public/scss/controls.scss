@@ -32,6 +32,12 @@
 		content: ' *';
 		color: var(--red-400);
 	}
+	.ql-editor {
+		background-color: var(--control-bg);
+	}
+}
+
+.frappe-control:not([data-fieldtype='MultiSelectPills']) {
 	&.has-error {
 		input {
 			border: 1px solid var(--red-400);
@@ -39,6 +45,14 @@
 			&:focus {
 				box-shadow: 0 0 0 $input-btn-focus-width var(--red-100);
 			}
+		}
+	}
+}
+
+.frappe-control[data-fieldtype='MultiSelectPills'] {
+	&.has-error {
+		.control-input-wrapper {
+			box-shadow: 0 0 0 $input-btn-focus-width var(--red-100);
 		}
 	}
 }
