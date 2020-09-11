@@ -22,7 +22,8 @@ def get_jenv():
 		jenv.globals.update({
 			'resolve_class': resolve_class,
 			'inspect': inspect,
-			'web_blocks': web_blocks
+			'web_blocks': web_blocks,
+			'web_block': web_block
 		})
 
 		frappe.local.jenv = jenv
@@ -190,6 +191,13 @@ def inspect(var, render=True):
 	else:
 		html = ""
 	return get_jenv().from_string(html).render(context)
+
+
+def web_block(template, values, **kwargs):
+	options = {"template": template, "values": values}
+	options.update(kwargs)
+	return web_blocks([options])
+
 
 def web_blocks(blocks):
 	from frappe import get_doc, throw

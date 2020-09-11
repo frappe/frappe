@@ -68,13 +68,13 @@
 	{%- endblock -%}
 
 	{%- block navbar -%}
-		{{ web_blocks([{
-			'template': navbar_template or 'Standard Navbar',
-			'values': _context_dict,
-			'add_container': 0,
-			'add_top_padding': 0,
-			'add_bottom_padding': 0,
-		}]) }}
+		{{ web_block(
+			navbar_template or 'Standard Navbar',
+			values=_context_dict,
+			add_container=0,
+			add_top_padding=0,
+			add_bottom_padding=0,
+		) }}
 	{%- endblock -%}
 
 	{% block content %}
@@ -82,13 +82,13 @@
 	{% endblock %}
 
 	{%- block footer -%}
-		{{ web_blocks([{
-			'template': footer_template or 'Standard Footer',
-			'values': _context_dict,
-			'add_container': 0,
-			'add_top_padding': 0,
-			'add_bottom_padding': 0,
-		}]) }}
+		{{ web_block(
+			footer_template or 'Standard Footer',
+			values=_context_dict,
+			add_container=0,
+			add_top_padding=0,
+			add_bottom_padding=0
+		) }}
 	{%- endblock -%}
 
 	{% block base_scripts %}
