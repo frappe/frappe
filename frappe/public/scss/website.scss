@@ -13,6 +13,7 @@
 @import 'portal';
 @import 'search';
 @import 'doc';
+@import 'navbar';
 @import 'footer';
 
 .ql-editor.read-mode {
@@ -62,65 +63,12 @@
 	}
 }
 
-.navbar-light {
-	border-bottom: 1px solid $border-color;
-}
-
-.navbar-light .navbar-nav .nav-link {
-	color: $gray-700;
-	font-size: $font-size-sm;
-	font-weight: 500;
-
-	&:hover,
-	&:focus, &.active {
-		color: $primary;
-	}
-}
-
-.navbar-brand {
-	img {
-		display: inline-block;
-		max-width: 150px;
-		max-height: 25px;
-	}
-}
-
 .dropdown-menu {
 	padding: 0.25rem;
 }
 
 .dropdown-item {
 	border-radius: $dropdown-border-radius;
-}
-
-.navbar.bg-dark {
-	.dropdown-menu {
-		font-size: 0.75rem;
-		background-color: $dark;
-		border-radius: 0;
-	}
-
-	.nav-link {
-		white-space: nowrap;
-		color: $light;
-
-		&:hover {
-			color: $primary;
-		}
-	}
-
-	.nav-item {
-		padding: 0rem 1rem;
-	}
-
-	.dropdown-item {
-		color: $light;
-
-		&:hover {
-			background-color: $dark;
-			color: $primary;
-		}
-	}
 }
 
 .input-dark {
