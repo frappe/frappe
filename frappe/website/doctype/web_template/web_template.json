@@ -30,17 +30,22 @@
    "default": "0",
    "fieldname": "standard",
    "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Standard"
   },
   {
    "fieldname": "type",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Type",
    "options": "Section\nNavbar\nFooter"
   }
  ],
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-19 17:50:30.948659",
+ "modified": "2020-09-11 16:09:07.367280",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
