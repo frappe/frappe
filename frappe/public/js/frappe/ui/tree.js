@@ -5,17 +5,20 @@ frappe.provide('frappe.ui');
 
 frappe.ui.Tree = class {
 	constructor({
-		parent, label, icon_set, toolbar, expandable, with_skeleton=1, 	// eslint-disable-line
+		parent, label, root_value, icon_set, toolbar, expandable, with_skeleton=1, 	// eslint-disable-line
 
 		args, method, get_label, on_render, on_click 		// eslint-disable-line
 	}) {
 		$.extend(this, arguments[0]);
+		if (root_value == null) {
+			this.root_value = label;
+		}
 		this.setup_treenode_class();
 		this.nodes = {};
 		this.wrapper = $('<div class="tree">').appendTo(this.parent);
-		if(with_skeleton) this.wrapper.addClass('with-skeleton');
+		if (with_skeleton) this.wrapper.addClass('with-skeleton');
 
-		if(!icon_set) {
+		if (!icon_set) {
 			this.icon_set = {
 				open: 'fa fa-fw fa-folder-open',
 				closed: 'fa fa-fw fa-folder',
@@ -42,8 +45,9 @@ frappe.ui.Tree = class {
 		});
 	}
 
-	get_all_nodes(value, is_root) {
+	get_all_nodes(value, is_root, label) {
 		var args = Object.assign({}, this.args);
+		args.label = label || value;
 		args.parent = value;
 		args.is_root = is_root;
 
@@ -88,7 +92,7 @@ frappe.ui.Tree = class {
 			expandable: true,
 			is_root: true,
 			data: {
-				value: this.label
+				value: this.root_value
 			}
 		});
 		this.expand_node(this.root_node, false);
@@ -144,25 +148,25 @@ frappe.ui.Tree = class {
 	}
 
 	load_children(node, deep=false) {
-		let value = node.data.value, is_root = node.is_root;
+		let lab = node.label, value = node.data.value, is_root = node.is_root;
 
 		if(!deep) {
 			frappe.run_serially([
-				() => {return this.get_nodes(value, is_root);},
-				(data_set) => { this.render_node_children(node, data_set); },
-				() => { this.set_selected_node(node); }
+				() => this.get_nodes(value, is_root),
+				(data_set) => this.render_node_children(node, data_set),
+				() => this.set_selected_node(node)
 			]);
 		} else {
 			frappe.run_serially([
-				() => {return this.get_all_nodes(value, is_root);},
-				(data_list) => { this.render_children_of_all_nodes(data_list); },
-				() => { this.set_selected_node(node); }
+				() => this.get_all_nodes(value, is_root, lab),
+				(data_list) => this.render_children_of_all_nodes(data_list),
+				() => this.set_selected_node(node)
 			]);
 		}
 	}
 
 	render_children_of_all_nodes(data_list) {
-		data_list.map(d => { this.render_node_children(this.nodes[d.parent], d.data); });
+		data_list.map(d => this.render_node_children(this.nodes[d.parent], d.data));
 	}
 
 	render_node_children(node, data_set) {

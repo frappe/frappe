@@ -100,6 +100,7 @@ def export_package():
 @frappe.whitelist()
 def import_package(package=None):
 	"""Import package from JSON."""
+	frappe.only_for("System Manager")
 	if isinstance(package, string_types):
 		package = json.loads(package)
 
