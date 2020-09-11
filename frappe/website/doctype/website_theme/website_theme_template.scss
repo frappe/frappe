@@ -18,11 +18,9 @@ $enable-rounded: {{ button_rounded_corners and "true" or "false" }};
 {{ custom_overrides or '' }}
 
 // Import themes from installed apps
-{% for import_path in website_theme_scss -%}
-{% if import_path not in imports_to_ignore -%}
+{%- for import_path in website_theme_scss %}
 @import "{{ import_path }}";
-{%- endif %}
-{% endfor %}
+{%- endfor %}
 
 {% if font_size -%}
 body {

@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from os.path import join as join_path, exists as path_exists, abspath
+from frappe.utils import get_path
+from os.path import join as join_path, exists as path_exists, abspath, splitext
 
 class WebsiteTheme(Document):
 	def validate(self):
@@ -128,10 +129,30 @@ def get_scss(website_theme):
 	params:
 	website_theme - instance of a Website Theme
 	"""
-	def trim_list(list_of_strings):
-		return [s.strip() for s in list_of_strings]
+	list_of_imports_to_ignore = (website_theme.get('imports_to_ignore') or '').split(',')
+	set_of_imports_to_ignore = {s.strip() for s in list_of_imports_to_ignore}
+	set_of_available_imports = get_scss_paths()
 
 	opts = website_theme.as_dict()
-	opts['website_theme_scss'] = trim_list(frappe.get_hooks('website_theme_scss', []))
-	opts['imports_to_ignore'] = trim_list((opts.get('imports_to_ignore') or '').split(','))
+	opts['website_theme_scss'] = set_of_available_imports.difference(set_of_imports_to_ignore)
 	return frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', opts)
+
+
+def get_scss_paths():
+	"""
+	Return a set of SCSS import paths from all apps that provide `website.scss`.
+
+	If `$BENCH_PATH/apps/frappe/frappe/public/scss/website.scss` exists, the
+	returned set will contain 'frappe/public/scss/website'.
+	"""
+	import_path_list = set()
+	bench_path = frappe.utils.get_bench_path()
+
+	for app in frappe.get_installed_apps():
+		relative_path = join_path(app, 'public/scss/website.scss')
+		full_path = get_path('apps', app, relative_path, base=bench_path)
+		if path_exists(full_path):
+			import_path = splitext(relative_path)[0]
+			import_path_list.add(import_path)
+
+	return import_path_list
