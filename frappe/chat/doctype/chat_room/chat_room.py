@@ -212,7 +212,7 @@ def create(kind, owner, users = None, name = None):
 @frappe.whitelist(allow_guest = True)
 def history(room, user, fields = None, limit = 10, start = None, end = None):
 	if frappe.get_doc('Chat Room', room).type != 'Visitor':
-		authenticate(user)
+		authenticate(user, raise_err=True)
 
 	fields = safe_json_loads(fields)
 
