@@ -746,6 +746,7 @@ def is_image(filepath):
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 def get_thumbnail_base64_for_image(src):
+	from os.path import exists as file_exists
 	from PIL import Image
 	from frappe.core.doctype.file.file import get_local_image
 	from frappe import safe_decode, cache
@@ -760,6 +761,10 @@ def get_thumbnail_base64_for_image(src):
 		return
 
 	def _get_base64():
+		file_path = frappe.get_site_path("public", src.lstrip("/"))
+		if not file_exists(file_path):
+			return
+
 		try:
 			image, unused_filename, extn = get_local_image(src)
 		except IOError:
