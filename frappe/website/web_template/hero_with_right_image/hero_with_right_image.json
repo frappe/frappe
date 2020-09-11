@@ -53,10 +53,11 @@
   }
  ],
  "idx": 0,
- "modified": "2020-04-29 14:12:31.613545",
+ "modified": "2020-09-11 15:52:40.636795",
  "modified_by": "Administrator",
  "name": "Hero with Right Image",
  "owner": "Administrator",
  "standard": 1,
- "template": ""
+ "template": "",
+ "type": "Section"
 }

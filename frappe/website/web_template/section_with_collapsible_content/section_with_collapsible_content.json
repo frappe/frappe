@@ -42,10 +42,11 @@
   }
  ],
  "idx": 0,
- "modified": "2020-08-13 15:51:23.728803",
+ "modified": "2020-09-11 15:52:40.552274",
  "modified_by": "Administrator",
  "name": "Section with Collapsible Content",
  "owner": "Administrator",
  "standard": 1,
- "template": ""
+ "template": "",
+ "type": "Section"
 }

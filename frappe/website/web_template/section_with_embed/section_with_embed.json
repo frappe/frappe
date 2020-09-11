@@ -22,10 +22,11 @@
    "reqd": 0
   }
  ],
- "idx": 0,
- "modified": "2020-08-18 17:45:13.606363",
+ "idx": 2,
+ "modified": "2020-09-11 15:52:40.439927",
  "modified_by": "Administrator",
  "name": "Section with Embed",
  "owner": "Administrator",
- "standard": 1
+ "standard": 1,
+ "type": "Section"
 }

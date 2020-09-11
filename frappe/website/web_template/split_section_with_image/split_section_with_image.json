@@ -29,10 +29,11 @@
   }
  ],
  "idx": 0,
- "modified": "2020-05-17 06:37:27.461722",
+ "modified": "2020-09-11 15:52:40.604761",
  "modified_by": "Administrator",
  "name": "Split Section with Image",
  "owner": "Administrator",
  "standard": 1,
- "template": ""
+ "template": "",
+ "type": "Section"
 }

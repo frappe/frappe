@@ -47,11 +47,12 @@
    "reqd": 0
   }
  ],
- "idx": 0,
- "modified": "2020-04-20 12:27:45.760391",
+ "idx": 1,
+ "modified": "2020-09-11 15:52:40.707630",
  "modified_by": "Administrator",
  "name": "Hero",
  "owner": "Administrator",
  "standard": 1,
- "template": ""
+ "template": "",
+ "type": "Section"
 }

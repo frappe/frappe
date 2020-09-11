@@ -36,9 +36,10 @@
   }
  ],
  "idx": 0,
- "modified": "2020-08-06 16:08:12.005764",
+ "modified": "2020-09-11 15:57:55.186983",
  "modified_by": "Administrator",
  "name": "Section with Image",
  "owner": "Administrator",
- "standard": 1
+ "standard": 1,
+ "type": "Section"
 }
