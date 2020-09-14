@@ -27,7 +27,8 @@ def build(app=None, make_copy=False, restore=False, verbose=False, force=False):
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
 
-	if not (force or app):
+	# dont try downloading assets if force used, app specified or running via CI
+	if not (force or app or os.environ.get('CI')):
 		# skip building frappe if assets exist remotely
 		skip_frappe = frappe.build.download_frappe_assets(verbose=verbose)
 	else:
