@@ -336,42 +336,50 @@ class Meta(Document):
 
 	def sort_fields(self):
 		"""sort on basis of insert_after"""
-		custom_fields = sorted(self.get_custom_fields(), key=lambda df: df.idx)
 
-		if custom_fields:
-			newlist = []
+		newlist = []
+		custom_fields = []
 
-			# if custom field is at top
-			# insert_after is false
-			for c in list(custom_fields):
-				if not c.insert_after:
-					newlist.append(c)
-					custom_fields.pop(custom_fields.index(c))
+		for df in self.fields:
+			if df.get('is_custom_field'):
+				if not df.insert_after:
+					newlist.insert(0, df)
+				else:
+					# reverse sorted, looped in reverse later
+					custom_fields.insert(0, df)
+			else:
+				newlist.append(df)
 
-			# standard fields
-			newlist += [df for df in self.get('fields') if not df.get('is_custom_field')]
+		newlist_fieldnames = [df.fieldname for df in newlist]
 
-			newlist_fieldnames = [df.fieldname for df in newlist]
-			for i in range(2):
-				for df in list(custom_fields):
-					if df.insert_after in newlist_fieldnames:
-						cf = custom_fields.pop(custom_fields.index(df))
-						idx = newlist_fieldnames.index(df.insert_after)
-						newlist.insert(idx + 1, cf)
-						newlist_fieldnames.insert(idx + 1, cf.fieldname)
+		while True:
+			current_index = len(custom_fields) - 1
+			changed = False
+			while current_index >= 0:
+				df = custom_fields[current_index]
+				if df.insert_after in newlist_fieldnames:
+					# add to new list
+					idx = newlist_fieldnames.index(df.insert_after)
+					newlist.insert(idx + 1, df)
+					newlist_fieldnames.insert(idx + 1, df.fieldname)
 
-				if not custom_fields:
-					break
+					# remove from existing list
+					del custom_fields[current_index]
+					changed = True
 
-			# worst case, add remaining custom fields to last
-			if custom_fields:
-				newlist += custom_fields
+				current_index -= 1
 
-			# renum idx
-			for i, f in enumerate(newlist):
-				f.idx = i + 1
+			if not changed:
+				# avoid recursion, add remaining custom fields to end of new list
+				if custom_fields:
+					newlist += custom_fields
+				break
 
-			self.fields = newlist
+		# renum idx
+		for i, f in enumerate(newlist):
+			f.idx = i + 1
+
+		self.fields = newlist
 
 	def set_custom_permissions(self):
 		'''Reset `permissions` with Custom DocPerm if exists'''
