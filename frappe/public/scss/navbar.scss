@@ -22,7 +22,9 @@
 }
 
 .navbar-cta {
-	margin-left: 1rem;
+	@include media-breakpoint-up(lg) {
+		margin-left: 1rem;
+	}
 }
 
 
