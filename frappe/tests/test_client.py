@@ -42,7 +42,6 @@ class TestClient(unittest.TestCase):
 		delete("ToDo", todo.name)
 
 	def test_http_invalid_method_access(self):
-		from frappe.client import delete
 		from frappe.handler import execute_cmd
 
 		frappe.set_user("Administrator")
