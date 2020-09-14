@@ -73,7 +73,6 @@ def get_context(context):
 	def validate_twilio_settings(self):
 		if self.enabled and self.channel == "WhatsApp" \
 			and not frappe.db.get_single_value("Twilio Settings", "enabled"):
-			print(frappe.db.get_single_value("Twilio Settings", "enabled"))
 			frappe.throw(_("Please enable Twilio settings to send WhatsApp messages"))
 
 	def validate_condition(self):
