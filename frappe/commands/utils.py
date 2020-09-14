@@ -551,13 +551,18 @@ def run_ui_tests(context, app, headless=False):
 	if not (os.path.exists(cypress_path) or os.path.exists(plugin_path)):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen("npm install cypress@3 cypress-file-upload@^3.1 --no-save")
+		frappe.commands.popen("yarn add cypress@3 cypress-file-upload@^3.1")
 
 	# run for headless mode
 	run_or_open = 'run --browser chrome --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
-	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
+	try:
+		click.secho("Running Cypress...", fg="yellow")
+		frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
+	finally:
+		click.secho("Cleaning Up...", fg="yellow")
+		frappe.commands.popen("yarn remove cypress cypress-file-upload")
 
 
 @click.command('serve')
