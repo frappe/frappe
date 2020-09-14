@@ -788,7 +788,7 @@ def image_to_base64(image, extn):
 	from io import BytesIO
 
 	buffered = BytesIO()
-	if extn.lower() == 'jpg':
+	if extn.lower() in ('jpg', 'jpe'):
 		extn = 'JPEG'
 	image.save(buffered, extn)
 	img_str = base64.b64encode(buffered.getvalue())
