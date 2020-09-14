@@ -136,7 +136,8 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
-			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+			"frappe.core.doctype.file.file.attach_files_to_document",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -195,7 +196,8 @@ scheduler_events = {
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
-		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email"
+		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
+		"frappe.utils.password.delete_password_reset_cache"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",

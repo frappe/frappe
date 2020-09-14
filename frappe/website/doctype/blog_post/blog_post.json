@@ -26,6 +26,7 @@
   "content_html",
   "email_sent",
   "meta_tags",
+  "meta_title",
   "meta_description",
   "column_break_18",
   "meta_image",
@@ -184,6 +185,12 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Hide CTA"
+  },
+  {
+   "fieldname": "meta_title",
+   "fieldtype": "Data",
+   "label": "Meta Title",
+   "length": 60
   }
  ],
  "has_web_view": 1,
@@ -193,7 +200,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-07-21 16:25:17.154911",
+ "modified": "2020-08-31 21:01:51.100349",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",

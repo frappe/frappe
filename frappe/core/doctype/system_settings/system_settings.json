@@ -43,6 +43,8 @@
   "logout_on_password_reset",
   "force_user_to_reset_password",
   "column_break_38",
+  "password_reset_limit",
+  "column_break_31",
   "enable_password_policy",
   "minimum_password_score",
   "brute_force_security",
@@ -392,6 +394,13 @@
    "fieldname": "dormant_days",
    "fieldtype": "Int",
    "label": "Run Jobs only Daily if Inactive For (Days)"
+  },
+  {
+   "default": "3",
+   "description": "Hourly rate limit for generating password reset links",
+   "fieldname": "password_reset_limit",
+   "fieldtype": "Int",
+   "label": "Password Reset Link Generation Limit"
   },
   {
    "default": "1",

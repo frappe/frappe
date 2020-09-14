@@ -8,7 +8,7 @@ import os.path
 import frappe
 import boto3
 from frappe import _
-from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size, generate_files_backup
 from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.utils.background_jobs import enqueue
@@ -125,6 +125,11 @@ def backup_to_s3():
 	else:
 		if backup_files:
 			db_filename, site_config, files_filename, private_files = get_latest_backup_file(with_files=backup_files)
+
+			if not files_filename or not private_files:
+				generate_files_backup()
+				db_filename, site_config, files_filename, private_files = get_latest_backup_file(with_files=backup_files)
+
 		else:
 			db_filename, site_config = get_latest_backup_file()
 
@@ -133,9 +138,14 @@ def backup_to_s3():
 
 	upload_file_to_s3(db_filename, folder, conn, bucket)
 	upload_file_to_s3(site_config, folder, conn, bucket)
+
 	if backup_files:
-		upload_file_to_s3(private_files, folder, conn, bucket)
-		upload_file_to_s3(files_filename, folder, conn, bucket)
+		if private_files:
+			upload_file_to_s3(private_files, folder, conn, bucket)
+
+		if files_filename:
+			upload_file_to_s3(files_filename, folder, conn, bucket)
+
 	delete_old_backups(doc.backup_limit, bucket)
 
 
@@ -160,14 +170,15 @@ def delete_old_backups(limit, bucket):
 			aws_access_key_id=doc.access_key_id,
 			aws_secret_access_key=doc.get_password('secret_access_key'),
 			endpoint_url=doc.endpoint_url or 'https://s3.amazonaws.com'
-			)
+		)
+
 	bucket = s3.Bucket(bucket)
 	objects = bucket.meta.client.list_objects_v2(Bucket=bucket.name, Delimiter='/')
 	if objects:
 		for obj in objects.get('CommonPrefixes'):
 			all_backups.append(obj.get('Prefix'))
 
-	oldest_backup = sorted(all_backups)[0]
+	oldest_backup = sorted(all_backups)[0] if all_backups else ''
 
 	if len(all_backups) > backup_limit:
 		print("Deleting Backup: {0}".format(oldest_backup))

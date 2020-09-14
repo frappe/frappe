@@ -35,7 +35,7 @@ oauthlib==3.1.0
 openpyxl==2.6.4
 passlib==1.7.2
 pdfkit==0.6.1
-Pillow==6.2.2
+Pillow==7.1.0
 premailer==3.6.1
 psycopg2-binary==2.8.4
 pyasn1==0.4.8
@@ -74,3 +74,4 @@ paytmchecksum==1.7.0
 watchgod==0.6
 wrapt==1.10.11
 twilio==6.44.2
+razorpay==1.2.0
