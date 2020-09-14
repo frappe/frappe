@@ -67,8 +67,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		# Reordered columns
 		columns = json.loads(report.custom_columns)
 
-		if report.report_type == 'Query Report':
-			result = reorder_data_for_custom_columns(columns, query_columns, result)
+		result = reorder_data_for_custom_columns(columns, query_columns, result)
 
 		result = add_data_to_custom_columns(columns, result)
 
@@ -187,6 +186,9 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False, cust
 	return result
 
 def add_data_to_custom_columns(columns, result):
+	if not result:
+		return []
+
 	custom_fields_data = get_data_for_custom_report(columns)
 
 	data = []
@@ -217,14 +219,27 @@ def add_data_to_custom_columns(columns, result):
 	return data
 
 def reorder_data_for_custom_columns(custom_columns, columns, result):
+	if not result:
+		return []
+
+	columns = [get_column_as_dict(col) for col in columns]
+	if isinstance(result[0], list) or isinstance(result[0], tuple):
+		# If the result is a list of lists
+		custom_column_names = [col["label"] for col in custom_columns]
+		original_column_names = [col["label"] for col in columns]
+		return get_columns_from_list(custom_column_names, original_column_names, result)
+	else:
+		# columns do not need to be reordered if result is a list of dicts
+		return result
+
+def get_columns_from_list(columns, target_columns, result):
 	reordered_result = []
-	columns = [col.split(":")[0] for col in columns]
 
 	for res in result:
 		r = []
-		for col in custom_columns:
+		for col_name in columns:
 			try:
-				idx = columns.index(col.get("label"))
+				idx = target_columns.index(col_name)
 				r.append(res[idx])
 			except ValueError:
 				pass
@@ -430,6 +445,9 @@ def add_total_row(result, columns, meta = None):
 @frappe.whitelist()
 def get_data_for_custom_field(doctype, field):
 
+	if not frappe.has_permission(doctype, "read"):
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
 	value_map = frappe._dict(frappe.get_all(doctype,
 		fields=["name", field],
 		as_list=1))
@@ -602,30 +620,34 @@ def get_columns_dict(columns):
 	"""
 	columns_dict = frappe._dict()
 	for idx, col in enumerate(columns):
-		col_dict = frappe._dict()
-
-		# string
-		if isinstance(col, string_types):
-			col = col.split(":")
-			if len(col) > 1:
-				if "/" in col[1]:
-					col_dict["fieldtype"], col_dict["options"] = col[1].split("/")
-				else:
-					col_dict["fieldtype"] = col[1]
-
-			col_dict["label"] = col[0]
-			col_dict["fieldname"] = frappe.scrub(col[0])
-
-		# dict
-		else:
-			col_dict.update(col)
-			if "fieldname" not in col_dict:
-				col_dict["fieldname"] = frappe.scrub(col_dict["label"])
-
+		col_dict = get_column_as_dict(col)
 		columns_dict[idx] = col_dict
 		columns_dict[col_dict["fieldname"]] = col_dict
 
 	return columns_dict
+
+def get_column_as_dict(col):
+	col_dict = frappe._dict()
+
+	# string
+	if isinstance(col, string_types):
+		col = col.split(":")
+		if len(col) > 1:
+			if "/" in col[1]:
+				col_dict["fieldtype"], col_dict["options"] = col[1].split("/")
+			else:
+				col_dict["fieldtype"] = col[1]
+
+		col_dict["label"] = col[0]
+		col_dict["fieldname"] = frappe.scrub(col[0])
+
+	# dict
+	else:
+		col_dict.update(col)
+		if "fieldname" not in col_dict:
+			col_dict["fieldname"] = frappe.scrub(col_dict["label"])
+
+	return col_dict
 
 def get_user_match_filters(doctypes, user):
 	match_filters = {}

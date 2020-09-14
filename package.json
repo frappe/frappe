@@ -50,7 +50,7 @@
     "cypress": "^3.1.1",
     "cypress-file-upload": "^3.1.0",
     "less": "^3.0.4",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.1",
     "rollup": "^1.2.2",
     "rollup-plugin-buble": "^0.19.2",
     "rollup-plugin-commonjs": "^8.3.0",
