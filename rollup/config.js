@@ -102,7 +102,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 			globals: {
 				'jquery': 'window.jQuery'
 			},
-			sourcemap: true
+			sourcemap: !production
 		}
 	};
 }
