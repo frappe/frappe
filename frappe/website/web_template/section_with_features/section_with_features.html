@@ -6,7 +6,7 @@
 	<p class="section-description">{{ subtitle }}</p>
 	{%- endif -%}
 
-	<div class="section-features" data-columns="{{ columns }}">
+	<div class="section-features" data-columns="{{ columns or 3 }}">
 		{%- for feature in features -%}
 		<div class="section-feature">
 			<div>
