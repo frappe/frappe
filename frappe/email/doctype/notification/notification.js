@@ -102,7 +102,7 @@ frappe.notification = {
 <h5>Message Example</h5>
 
 <pre>
-Your {{ doc.name }} order of {{ doc.total }} has shipped and should be delivered on {{ doc.date }}. Details : {{doc.customer}}
+Your appointment is coming up on {{ doc.date }} at {{ doc.time }}
 </pre>`;
 		} else if (frm.doc.channel === 'Email') {
 			template = `<h5>Message Example</h5>
@@ -166,6 +166,7 @@ frappe.ui.form.on('Notification', {
 	},
 	refresh: function(frm) {
 		frappe.notification.setup_fieldname_select(frm);
+		frappe.notification.setup_example_message(frm);
 		frm.get_field('is_standard').toggle(frappe.boot.developer_mode);
 		frm.trigger('event');
 	},
