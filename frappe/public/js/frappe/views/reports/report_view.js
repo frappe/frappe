@@ -48,10 +48,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		super.setup_new_doc_event();
+	}
+
+	toggle_side_bar() {
+		super.toggle_side_bar();
 		// refresh datatable when sidebar is toggled to accomodate extra space
-		$(document.body)
-			.off('toggleListSidebar.report_view')
-			.on('toggleListSidebar.report_view', () => this.render(true));
+		this.render(true);
 	}
 
 	setup_result_area() {
