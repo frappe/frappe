@@ -208,8 +208,9 @@ def get_web_blocks_html(blocks):
 	extracted_scripts = []
 	extracted_styles = []
 	for block in blocks:
+		web_template = frappe.get_cached_doc('Web Template', block.web_template)
 		rendered_html = frappe.render_template('templates/includes/web_block.html',
-			context={'web_block': block})
+			context={'web_block': block, 'web_template': web_template})
 		html, scripts, styles = extract_script_and_style_tags(rendered_html)
 		out.html += html
 		if block.web_template not in extracted_scripts:

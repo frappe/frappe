@@ -200,7 +200,7 @@ def web_block(template, values, **kwargs):
 
 
 def web_blocks(blocks):
-	from frappe import get_doc, throw
+	from frappe import throw, _dict
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
 
 	web_blocks = []
@@ -208,7 +208,7 @@ def web_blocks(blocks):
 		if not block.get('template'):
 			throw('Web Template is not specified')
 
-		doc = {
+		doc = _dict({
 			'doctype': 'Web Page Block',
 			'web_template': block['template'],
 			'web_template_values': block.get('values', {}),
@@ -217,9 +217,9 @@ def web_blocks(blocks):
 			'add_container': 1,
 			'hide_block': 0,
 			'css_class': ''
-		}
+		})
 		doc.update(block)
-		web_blocks.append(get_doc(doc))
+		web_blocks.append(doc)
 
 	out = get_web_blocks_html(web_blocks)
 

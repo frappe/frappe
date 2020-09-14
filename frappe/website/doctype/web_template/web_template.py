@@ -36,6 +36,8 @@ class WebTemplate(Document):
 				open(path, "w").close()
 
 	def render(self, values):
+		values = values or '{}'
+		values = frappe.parse_json(values)
 		return get_rendered_template(self.name, values)
 
 
