@@ -80,11 +80,6 @@ class BackupGenerator:
 			last_db, last_file, last_private_file, site_config_backup_path = self.get_recent_backup(older_than)
 		else:
 			last_db, last_file, last_private_file, site_config_backup_path = False, False, False, False
-		print(last_db)
-		print(last_file)
-		print(last_private_file)
-		print(site_config_backup_path)
-
 
 		self.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
 
@@ -98,7 +93,6 @@ class BackupGenerator:
 				self.zip_files()
 
 		else:
-			print('inside')
 			self.backup_path_files = last_file
 			self.backup_path_db = last_db
 			self.backup_path_private_files = last_private_file
