@@ -7,11 +7,19 @@
    "fieldname": "content",
    "fieldtype": "Markdown Editor",
    "label": "Content",
+   "options": "Markdown",
+   "reqd": 0
+  },
+  {
+   "fieldname": "align",
+   "fieldtype": "Select",
+   "label": "Align",
+   "options": "Left\nCenter",
    "reqd": 0
   }
  ],
  "idx": 0,
- "modified": "2020-09-11 15:52:40.722171",
+ "modified": "2020-09-15 11:43:13.041049",
  "modified_by": "Administrator",
  "name": "Markdown",
  "owner": "Administrator",
