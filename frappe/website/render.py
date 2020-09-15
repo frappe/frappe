@@ -310,7 +310,7 @@ def clear_cache(path=None):
 
 	:param path: (optional) for the given path'''
 	for key in ('website_generator_routes', 'website_pages',
-		'website_full_index'):
+		'website_full_index', 'sitemap_routes'):
 		frappe.cache().delete_value(key)
 
 	frappe.cache().delete_value("website_404")
