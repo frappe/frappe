@@ -68,6 +68,12 @@ class BackupGenerator:
 				dir = os.path.dirname(file_path)
 				os.makedirs(dir, exist_ok=True)
 
+	@property
+	def site_config_backup_path(self):
+		# For backwards compatibility
+		import click
+		click.secho("BackupGenerator.site_config_backup_path has been deprecated in favour of BackupGenerator.backup_path_conf", fg="yellow")
+		return getattr(self, "backup_path_conf", None)
 
 	def get_backup(self, older_than=24, ignore_files=False, force=False):
 		"""
@@ -96,7 +102,7 @@ class BackupGenerator:
 			self.backup_path_files = last_file
 			self.backup_path_db = last_db
 			self.backup_path_private_files = last_private_file
-			self.site_config_backup_path = site_config_backup_path
+			self.backup_path_conf = site_config_backup_path
 
 	def set_backup_file_name(self):
 		#Generate a random name using today's date and a 8 digit random number
@@ -175,8 +181,6 @@ class BackupGenerator:
 
 		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
 			n.write(c.read())
-
-		self.site_config_backup_path = site_config_backup_path
 
 	def take_dump(self):
 		import frappe.utils
