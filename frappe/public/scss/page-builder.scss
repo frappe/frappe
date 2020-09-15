@@ -388,8 +388,13 @@
 	}
 }
 
-.split-section-content {
+.split-section-content.align-top {
 	margin-top: 2rem;
+}
+
+.split-section-content.align-middle {
+	margin-top: auto;
+	margin-bottom: auto;
 }
 
 .section-image-grid {
