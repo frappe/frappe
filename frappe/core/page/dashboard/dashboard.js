@@ -79,6 +79,7 @@ class Dashboard {
 		this.get_dashboard_doc().then((doc) => {
 			this.dashboard_doc = doc;
 			this.charts = this.dashboard_doc.charts;
+			this.chart_objects = [];
 
 			this.charts.map((chart) => {
 				let chart_container = $("<div></div>");
@@ -86,6 +87,7 @@ class Dashboard {
 
 				frappe.model.with_doc("Dashboard Chart", chart.chart).then( chart_doc => {
 					let dashboard_chart = new DashboardChart(chart_doc, chart_container);
+					this.chart_objects.push(dashboard_chart);
 					dashboard_chart.show();
 				});
 			});
@@ -99,19 +101,25 @@ class Dashboard {
 	set_dropdown() {
 		this.page.clear_menu();
 
-		this.page.add_menu_item('Edit...', () => {
+		this.page.add_menu_item(__('Edit'), () => {
 			frappe.set_route('Form', 'Dashboard', frappe.dashboard.dashboard_name);
-		}, 1);
+		});
 
-		this.page.add_menu_item('New...', () => {
+		this.page.add_menu_item(__('New'), () => {
 			frappe.new_doc('Dashboard');
-		}, 1);
+		});
+
+		this.page.add_menu_item(__('Refresh All'), () => {
+			this.chart_objects.forEach(chart => {
+				chart.refresh(true);
+			});
+		});
 
 		frappe.db.get_list("Dashboard").then(dashboards => {
 			dashboards.map(dashboard => {
 				let name = dashboard.name;
 				if(name != this.dashboard_name){
-					this.page.add_menu_item(name, () => frappe.set_route("dashboard", name));
+					this.page.add_menu_item(name, () => frappe.set_route("dashboard", name), 1);
 				}
 			});
 		});
@@ -129,11 +137,15 @@ class DashboardChart {
 			this.prepare_chart_object();
 			this.prepare_container();
 			this.prepare_chart_actions();
-			this.fetch(this.filters).then((data) => {
-				this.update_last_synced();
-				this.data = data;
-				this.render();
-			});
+			this.refresh();
+		});
+	}
+
+	refresh(refresh_data) {
+		this.fetch(this.filters, refresh_data).then(data => {
+			this.update_chart_object();
+			this.data = data;
+			this.render();
 		});
 	}
 
@@ -161,11 +173,7 @@ class DashboardChart {
 				label: __("Refresh"),
 				action: 'action-refresh',
 				handler: () => {
-					this.fetch(this.filters, true).then(data => {
-						this.update_chart_object();
-						this.data = data;
-						this.render();
-					});
+					this.refresh();
 				}
 			},
 			{

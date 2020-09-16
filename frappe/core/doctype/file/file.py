@@ -182,13 +182,7 @@ class File(Document):
 			if duplicate_file:
 				duplicate_file_doc = frappe.get_cached_doc('File', duplicate_file.name)
 				if duplicate_file_doc.exists_on_disk():
-					# if it is attached to a document then throw FileAlreadyAttachedException
-					if self.attached_to_doctype and self.attached_to_name:
-						self.duplicate_entry = duplicate_file.name
-						frappe.throw(_("Same file has already been attached to the record"),
-							frappe.FileAlreadyAttachedException)
-					# else just use the url, to avoid uploading a duplicate
-					else:
+						# just use the url, to avoid uploading a duplicate
 						self.file_url = duplicate_file.file_url
 
 	def set_file_name(self):
@@ -360,6 +354,9 @@ class File(Document):
 	def write_file(self):
 		"""write file to disk with a random name (to compare)"""
 		file_path = get_files_path(is_private=self.is_private)
+
+		if os.path.sep in self.file_name:
+			frappe.throw(_('File name cannot have {0}').format(os.path.sep))
 
 		# create directory (if not exists)
 		frappe.create_folder(file_path)
