@@ -1,0 +1,150 @@
+{
+ "actions": [],
+ "creation": "2020-09-10 13:23:13.405724",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "nextcloud_details",
+  "email",
+  "password",
+  "path_to_upload_folder",
+  "column_break_4",
+  "domain_url",
+  "webdav_url",
+  "backup_details_section",
+  "backup_frequency",
+  "backup_files",
+  "column_break_10",
+  "send_notifications_to",
+  "send_email_for_successful_backup"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "enabled",
+   "fieldname": "backup_details_section",
+   "fieldtype": "Section Break",
+   "label": "Backup Details"
+  },
+  {
+   "default": "Daily",
+   "fieldname": "backup_frequency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Backup Frequency",
+   "mandatory_depends_on": "enabled",
+   "options": "Daily\nWeekly",
+   "reqd": 1
+  },
+  {
+   "fieldname": "send_notifications_to",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Send Notifications To",
+   "mandatory_depends_on": "enabled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Backup public and private files along with the database.",
+   "fieldname": "backup_files",
+   "fieldtype": "Check",
+   "label": "Backup Files"
+  },
+  {
+   "default": "0",
+   "description": "Note: By default emails for failed backups are sent.",
+   "fieldname": "send_email_for_successful_backup",
+   "fieldtype": "Check",
+   "label": "Send Email for Successful Backup"
+  },
+  {
+   "description": "Example: /remote.php/dav/files/{username}",
+   "fieldname": "webdav_url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "WebDav URL",
+   "mandatory_depends_on": "enabled",
+   "reqd": 1
+  },
+  {
+   "depends_on": "enabled",
+   "description": "Note: If kept blank a folder named 'ERPNext Backups' will be created in the root directory.",
+   "fieldname": "path_to_upload_folder",
+   "fieldtype": "Data",
+   "label": "Path to upload folder"
+  },
+  {
+   "depends_on": "enabled",
+   "description": "Example: https://example.com\nOptionally you can also provide port number after the Domain URL as (:443) if your Domain URL consist of port.",
+   "fieldname": "domain_url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Domain URL",
+   "mandatory_depends_on": "enabled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "Password",
+   "mandatory_depends_on": "enabled",
+   "reqd": 1
+  },
+  {
+   "depends_on": "enabled",
+   "fieldname": "nextcloud_details",
+   "fieldtype": "Section Break",
+   "label": "Nextcloud Details"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email",
+   "mandatory_depends_on": "enabled",
+   "reqd": 1
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-09-16 17:11:12.941704",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Nextcloud Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
