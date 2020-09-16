@@ -478,6 +478,7 @@
 
 .collapsible-icon {
 	color: $gray-600;
+	flex-shrink: 0;
 }
 
 .collapsible-icon .vertical {
