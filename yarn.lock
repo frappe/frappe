@@ -2251,10 +2251,17 @@ frappe-charts@^1.5.1:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-1.5.1.tgz#77b9e61400b1657d4ca2eb2202053e3a4d18d54b"
   integrity sha512-Cvj6IyDkiH6LKw558A8syJUmkQSdNVnfC+WAzDaAtOfs+u2nST6HExA6JUZMaHU4+VJhC2PWwyRjRNw3B5FaUQ==
 
+<<<<<<< HEAD
 frappe-datatable@^1.15.1:
   version "1.15.1"
   resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.15.1.tgz#3895f6c42158c85a40a82ebd268b6427765facc2"
   integrity sha512-bMWJnHwCjwLWSWlZswW66wPUF3oIz7sHeRf2I5rXUd/2m6HqfAAaali0qgDDiO/6VeZBDNttCbovLitjl0ouTA==
+=======
+frappe-datatable@^1.15.3:
+  version "1.15.3"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.15.3.tgz#1737e9aebfd363ffadffced71a3534c40e350223"
+  integrity sha512-tUE3pNbxCMX0HPKvwurLBPRAOAdS0gNo1+MpoyFSqXI7b7sp6/TCBRht6qu1Luw+VyIzBtXkJdnnqU+Uoy8iow==
+>>>>>>> 59f724ed23... chore: update datatable to 1.15.3
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
