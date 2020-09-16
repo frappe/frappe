@@ -8,7 +8,6 @@ frappe.ui.form.on('Nextcloud Settings', {
 	},
 
 	take_backup: function(frm) {
-		debugger;
 		if (frm.doc.enabled && frm.doc.email && frm.doc.password) {
 			frm.add_custom_button(__("Take Backup Now"), function(){
 				frappe.call({
