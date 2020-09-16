@@ -15,7 +15,7 @@ import requests
 import os
 from rq.timeouts import JobTimeoutException
 
-class NextcloudSettings(Document):
+class NextCloudSettings(Document):
 	def validate(self):
 		if not self.enabled:
 			return

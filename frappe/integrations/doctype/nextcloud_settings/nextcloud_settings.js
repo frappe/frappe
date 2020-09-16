@@ -1,7 +1,7 @@
 // Copyright (c) 2020, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Nextcloud Settings', {
+frappe.ui.form.on('NextCloud Settings', {
 	refresh: function(frm) {
 		frm.clear_custom_buttons();
 		frm.events.take_backup(frm);
