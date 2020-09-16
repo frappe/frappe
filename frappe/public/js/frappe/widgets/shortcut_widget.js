@@ -78,6 +78,7 @@ export default class ShortcutWidget extends Widget {
 	}
 
 	set_count(count) {
+		if (!count) return;
 		const get_label = () => {
 			if (this.format) {
 				return this.format.replace(/{}/g, count);
