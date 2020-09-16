@@ -65,3 +65,9 @@ patch:
         patched: '2020-04-30T23:02:32.330Z'
     - quill-image-resize > lodash:
         patched: '2020-08-24T23:06:37.710Z'
+    - node-sass > lodash:
+        patched: '2020-09-15T23:06:41.931Z'
+    - node-sass > sass-graph > lodash:
+        patched: '2020-09-15T23:06:41.931Z'
+    - node-sass > gaze > globule > lodash:
+        patched: '2020-09-15T23:06:41.931Z'
