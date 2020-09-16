@@ -167,7 +167,10 @@ def get_context(context):
 			subject = frappe.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
+
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
+		if not (recipients or cc or bcc):
+			return
 		users = recipients + cc + bcc
 
 		notification_doc = {
