@@ -9,7 +9,7 @@ from frappe import _
 from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
 from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
-from frappe.utils import cint, get_backups_path, encode
+from frappe.utils import cint, get_backups_path
 
 import requests
 import os
