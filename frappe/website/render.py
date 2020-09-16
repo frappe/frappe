@@ -150,8 +150,8 @@ def add_preload_headers(response):
 			preload.append(("style", elem.get("href")))
 
 		links = []
-		for type, link in preload:
-			links.append("</{}>; rel=preload; as={}".format(link.lstrip("/"), type))
+		for _type, link in preload:
+			links.append("<{}>; rel=preload; as={}".format(link, _type))
 
 		if links:
 			response.headers["Link"] = ",".join(links)
@@ -310,7 +310,7 @@ def clear_cache(path=None):
 
 	:param path: (optional) for the given path'''
 	for key in ('website_generator_routes', 'website_pages',
-		'website_full_index'):
+		'website_full_index', 'sitemap_routes'):
 		frappe.cache().delete_value(key)
 
 	frappe.cache().delete_value("website_404")

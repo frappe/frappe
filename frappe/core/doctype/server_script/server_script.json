@@ -7,12 +7,12 @@
  "engine": "InnoDB",
  "field_order": [
   "script_type",
-  "disabled",
-  "column_break_3",
   "reference_doctype",
   "doctype_event",
   "api_method",
   "allow_guest",
+  "column_break_3",
+  "disabled",
   "section_break_8",
   "script",
   "help_section",
@@ -85,8 +85,9 @@
    "fieldtype": "HTML"
   }
  ],
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-07 13:13:02.483963",
+ "modified": "2020-08-24 16:44:41.060350",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

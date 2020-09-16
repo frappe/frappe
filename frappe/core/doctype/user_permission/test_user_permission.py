@@ -26,8 +26,7 @@ class TestUserPermission(unittest.TestCase):
 		user = create_user('test_user_perm1@example.com', 'Website Manager')
 		for category in ['general', 'public']:
 			if not frappe.db.exists('Blog Category', category):
-				frappe.get_doc({'doctype': 'Blog Category',
-					'category_name': category, 'title': category}).insert()
+				frappe.get_doc({'doctype': 'Blog Category', 'title': category}).insert()
 
 		param = get_params(user, 'Blog Category', 'general', is_default=1)
 		add_user_permissions(param)

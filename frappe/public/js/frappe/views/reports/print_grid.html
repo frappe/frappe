@@ -37,16 +37,20 @@
 
 					<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %}>
 						<span {% if col._index == 0 %} style="padding-left: {%= cint(row.indent) * 2 %}em" {% endif %}>
-							{% format_data = row.is_total_row ? data[0] : row %}
-							{{
-								col.formatter
-									? col.formatter(row._index, col._index, value, col, format_data, true)
-									: col.format
-										? col.format(value, row, col, format_data)
-										: col.docfield
-											? frappe.format(value, col.docfield)
-											: value
-							}}
+							{% format_data = row.is_total_row && ["Currency", "Float"].includes(col.fieldtype) ? data[0] : row %}
+							{% if (row.is_total_row && col._index == 0) { %}
+								{{ __("Total") }}
+							{% } else { %}
+								{{
+									col.formatter
+										? col.formatter(row._index, col._index, value, col, format_data, true)
+										: col.format
+											? col.format(value, row, col, format_data)
+											: col.docfield
+												? frappe.format(value, col.docfield)
+												: value
+								}}
+							{% } %}
 						</span>
 					</td>
 				{% endif %}
@@ -55,4 +59,3 @@
 		{% endfor %}
 	</tbody>
 </table>
-

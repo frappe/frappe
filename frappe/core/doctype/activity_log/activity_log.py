@@ -25,9 +25,6 @@ class ActivityLog(Document):
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
 
-	def on_trash(self): # pylint: disable=no-self-use
-		frappe.throw(_("Sorry! You cannot delete auto-generated comments"))
-
 def on_doctype_update():
 	"""Add indexes in `tabActivity Log`"""
 	frappe.db.add_index("Activity Log", ["reference_doctype", "reference_name"])
