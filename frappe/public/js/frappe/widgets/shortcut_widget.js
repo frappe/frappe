@@ -89,11 +89,10 @@ export default class ShortcutWidget extends Widget {
 		const label = get_label();
 		const buttons = $(`<div class="small pill">${label}</div>`);
 		if (this.color) {
-			buttons.css("background-color", this.color);
-			buttons.css(
-				"color",
-				frappe.ui.color.get_contrast_color(this.color)
-			);
+			let bg_color = count ? this.color: '#EEEEEE';
+			let text_color = count ? frappe.ui.color.get_contrast_color(bg_color): '#8D99A6';
+			buttons.css("background-color", bg_color);
+			buttons.css("color", text_color);
 		}
 
 		buttons.appendTo(this.action_area);
