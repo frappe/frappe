@@ -223,7 +223,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
 		"frappe.utils.change_log.check_for_update",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
-		"frappe.integrations.doctype.google_drive.google_drive.daily_backup"
+		"frappe.integrations.doctype.google_drive.google_drive.daily_backup",
+		"frappe.integrations.doctype.nextcloud_settings.nextcloud_settings.take_backups_daily",
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
@@ -231,7 +232,8 @@ scheduler_events = {
 		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
-		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup"
+		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup",
+		"frappe.integrations.doctype.nextcloud_settings.nextcloud_settings.take_backups_weekly"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
