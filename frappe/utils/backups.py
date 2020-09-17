@@ -65,7 +65,7 @@ class BackupGenerator:
 		if not specified:
 			backups_folder = get_backup_path()
 			if not os.path.exists(backups_folder):
-				os.makedirs(backups_folder)
+				os.makedirs(backups_folder, exist_ok=True)
 		else:
 			if self.backup_path:
 				os.makedirs(self.backup_path, exist_ok=True)
