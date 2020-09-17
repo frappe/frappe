@@ -234,6 +234,8 @@ class DocType(Document):
 
 		if not autoname and self.get("fields", {"fieldname":"naming_series"}):
 			self.autoname = "naming_series:"
+		elif self.autoname == "naming_series:" and not self.get("fields", {"fieldname":"naming_series"}):
+			frappe.throw(_("Invalid fieldname '{0}' in autoname").format(self.autoname))
 
 		# validate field name if autoname field:fieldname is used
 		# Create unique index on autoname field automatically.
