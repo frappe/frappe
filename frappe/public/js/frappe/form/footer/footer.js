@@ -1,9 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-
-import './timeline.js';
-import './new_timeline.js';
-
+import FormTimeline from "./form_timeline";
 frappe.ui.form.Footer = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -64,7 +61,7 @@ frappe.ui.form.Footer = Class.extend({
 		return names_for_mentions;
 	},
 	make_timeline() {
-		this.frm.timeline = new frappe.ui.form.NewTimeline({
+		this.frm.timeline = new FormTimeline({
 			parent: this.wrapper.find(".timeline"),
 			frm: this.frm
 		});
