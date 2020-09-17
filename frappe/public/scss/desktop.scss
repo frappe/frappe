@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
 	background-color: var(--bg-color);
 }
 
@@ -16,7 +17,7 @@ html, body {
 		padding: 8px 12px;
 		margin-bottom: 2px;
 		border-radius: var(--border-radius-md);
-		cursor: pointer;;
+		cursor: pointer;
 
 		&:focus {
 			background-color: var(--sidebar-select-color);
@@ -160,7 +161,7 @@ html, body {
 			@include flex(flex, null, center, row-reverse);
 
 			// Any immediate child
-			>* {
+			> * {
 				align-self: center;
 				margin-left: 5px;
 				box-shadow: none;
@@ -181,7 +182,8 @@ html, body {
 				width: 130px;
 				height: 27px;
 
-				.clearfix, .help-box {
+				.clearfix,
+				.help-box {
 					display: none !important;
 				}
 
@@ -195,7 +197,7 @@ html, body {
 
 	&.sortable-ghost {
 		background-color: var(--gray-100);
-		border-color: var(--gray-100)
+		border-color: var(--gray-100);
 	}
 
 	&.new-widget {
@@ -214,7 +216,7 @@ html, body {
 		padding: var(--padding-md) var(--padding-lg);
 
 		.widget-head {
-			padding: var(--padding-xs)
+			padding: var(--padding-xs);
 		}
 
 		.chart-container {
@@ -270,7 +272,7 @@ html, body {
 	}
 
 	&.onboarding-widget-box {
-        margin-top: var(--margin-xs);
+		margin-top: var(--margin-xs);
 		margin-bottom: var(--margin-2xl);
 
 		.widget-head {
@@ -422,7 +424,6 @@ html, body {
 		padding: var(--padding-sm) var(--padding-md);
 
 		.widget-head {
-
 			.widget-title {
 				font-weight: 500;
 				color: var(--heading-color);
@@ -517,7 +518,6 @@ html, body {
 			}
 		}
 	}
-
 }
 
 .onboarding-success {
@@ -536,14 +536,13 @@ html, body {
 	left: 2px;
 	// font-weight: bold;
 	display: inline-block;
-	background:	var(--text-muted);
+	background: var(--text-muted);
 	font-size: 12px;
 	line-height: 20px;
 	padding: 0 8px;
 	color: var(--text-color);
 	border-radius: 10px;
 }
-
 
 .zoom-out {
 	transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
