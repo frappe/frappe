@@ -169,16 +169,14 @@ def get_comments(doctype, doc_name, frequency, user):
 	return timeline
 
 def is_document_followed(doctype, doc_name, user):
-	docs = frappe.get_all(
+	return frappe.db.exists(
 		"Document Follow",
-		filters={
+		{
 			"ref_doctype": doctype,
 			"ref_docname": doc_name,
 			"user": user
-		},
-		limit=1
+		}
 	)
-	return len(docs)
 
 @frappe.whitelist()
 def get_follow_users(doctype, doc_name):
