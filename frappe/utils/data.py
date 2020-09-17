@@ -383,6 +383,7 @@ def duration_to_seconds(duration):
 
 	example: converts '3h 34m 45s' to 12885 (value in seconds)
 	"""
+	validate_duration_format(duration)
 	value = 0
 	if 'd' in duration:
 		val = duration.split('d')
@@ -405,6 +406,12 @@ def duration_to_seconds(duration):
 		value += cint(secs)
 
 	return value
+
+def validate_duration_format(duration):
+	import re
+	is_valid_duration = re.match("^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", duration)
+	if not is_valid_duration:
+		frappe.throw(frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration)))
 
 def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
