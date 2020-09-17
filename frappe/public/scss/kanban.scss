@@ -92,8 +92,8 @@
 	}
 
 	.kanban-cards {
-		min-height: 100px;
 		max-height: calc(100vh - 300px);
+		min-height: calc(100vh - 300px);
 		margin: -5px;
 		padding: 5px;
 		overflow-y: scroll;
