@@ -11,6 +11,7 @@
 		border-radius: var(--border-radius);
 		margin: var(--margin-md) var(--margin-xs) var(--margin-md) 0;
 		padding: var(--padding-md);
+		min-height: calc(100vh - 300px);
 
  		&.add-new-column {
 			order: 1;
@@ -92,8 +93,8 @@
 	}
 
 	.kanban-cards {
+		min-height: 100px;
 		max-height: calc(100vh - 300px);
-		min-height: calc(100vh - 300px);
 		margin: -5px;
 		padding: 5px;
 		overflow-y: scroll;
