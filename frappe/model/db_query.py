@@ -161,8 +161,7 @@ class DatabaseQuery(object):
 				' or '.join(self.or_conditions)
 
 		self.set_field_tables()
-
-		args.fields = ', '.join(self.fields)
+		args.fields = ", ".join([x if x.strip().startswith(("`", "count(", "avg(", "sum(", "extract(", "dayofyear(", "*")) else "`{0}`".format(x) for x in self.fields])
 
 		self.set_order_by(args)
 
