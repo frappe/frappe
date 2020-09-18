@@ -140,7 +140,7 @@
 	}
 }
 
-.card {
+.section-with-cards .card {
 	@include transition();
 
 	&:hover {
