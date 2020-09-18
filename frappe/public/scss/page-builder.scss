@@ -13,11 +13,14 @@
 	}
 }
 
+.hero-title, .hero-subtitle {
+	max-width: 42rem;
+}
+
 .hero-subtitle {
 	@extend .lead;
 	font-weight: 400;
 	color: $gray-600;
-	max-width: 42rem;
 	font-size: 1rem;
 
 	@include media-breakpoint-up(sm) {
