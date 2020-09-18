@@ -75,7 +75,8 @@ body[data-route^="Module"] .main-menu {
 }
 
 .sidebar-menu {
-	h6, .h6 {
+	h6,
+	.h6 {
 		margin-top: 0px;
 		margin-bottom: 7px;
 	}
@@ -138,12 +139,14 @@ body[data-route^="Module"] .main-menu {
 			position: relative;
 		}
 
-		.sidebar-image, .sidebar-standard-image {
+		.sidebar-image,
+		.sidebar-standard-image {
 			transition: opacity 0.3s;
 		}
 
 		.sidebar-image-wrapper:hover {
-			.sidebar-image, .sidebar-standard-image {
+			.sidebar-image,
+			.sidebar-standard-image {
 				opacity: 0.5;
 			}
 			.sidebar-image-actions {
@@ -188,7 +191,7 @@ body[data-route^="Module"] .main-menu {
 			left: 0;
 			transform: translateX(-110%);
 			z-index: 9999;
-			box-shadow: 5px 0 25px 0px rgba(0,0,0,0.3);
+			box-shadow: 5px 0 25px 0px rgba(0, 0, 0, 0.3);
 			height: 100%;
 			width: 40%;
 			display: block !important;
@@ -209,7 +212,8 @@ body[data-route^="Module"] .main-menu {
 				padding: 10px 15px;
 			}
 
-			.modified-by, .created-by {
+			.modified-by,
+			.created-by {
 				margin: 0;
 			}
 
@@ -272,7 +276,7 @@ body[data-route^="Module"] .main-menu {
 .overlay-sidebar {
 	ul.dropdown-menu {
 		li {
-			padding:0 !important;
+			padding: 0 !important;
 		}
 
 		.badge {
@@ -282,9 +286,7 @@ body[data-route^="Module"] .main-menu {
 	}
 }
 
-
 .list-sidebar {
-
 	.sidebar-section {
 		margin-bottom: 30px;
 	}
@@ -304,7 +306,7 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.group-by-count {
-		position:relative
+		position: relative;
 	}
 
 	.group-by-value {
@@ -356,7 +358,9 @@ body[data-route^="Module"] .main-menu {
 	margin-top: 15px;
 }
 
-.assignment-row, .attachment-row, .form-tag-row {
+.assignment-row,
+.attachment-row,
+.form-tag-row {
 	margin-bottom: var(--margin-sm);
 	margin-right: var(--margin-xs);
 	display: inline-block;
@@ -412,7 +416,7 @@ body[data-route^="Module"] .main-menu {
 	}
 }
 
-.review-popover  {
+.review-popover {
 	max-width: 150px;
 
 	.popover-content {
@@ -421,7 +425,8 @@ body[data-route^="Module"] .main-menu {
 	.subject {
 		border-bottom: 1px solid $border-color;
 	}
-	.subject, .body {
+	.subject,
+	.body {
 		padding: 12px;
 		overflow-wrap: break-word;
 	}
