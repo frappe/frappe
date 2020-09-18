@@ -14,6 +14,7 @@ from frappe.utils import cint, get_backups_path
 import requests
 import os
 from rq.timeouts import JobTimeoutException
+from urllib.parse import urlparse
 
 class NextCloudSettings(Document):
 	def validate(self):
@@ -40,17 +41,15 @@ def make_session(email, password):
 	return session
 
 def make_baseurl(domain_url, webdav_url):
-	port = None
-	vurl = domain_url.replace("//","").split(":")
-	if vurl[0] == "http" or vurl[0] == "https":
-		protocol = vurl[0]
-		host = vurl[1]
-		if len(vurl) == 3:
-			port = vurl[2]
+	vurl = urlparse(domain_url)
+	if not vurl.scheme:
+		return None
+	if not vurl.netloc:
+		return None
+	if not vurl.port:
+		port = 443 if vurl.scheme == 'https' else 80
 
-	if not port:
-		port = 443 if protocol == 'https' else 80
-	baseurl = '{0}://{1}:{2}'.format(protocol, host, port)
+	baseurl = '{0}://{1}:{2}'.format(vurl.scheme, vurl.netloc, vurl.port if vurl.port else port)
 	if webdav_url.startswith('/'):
 		url = '{0}{1}'.format(baseurl, webdav_url)
 	else:
@@ -73,21 +72,21 @@ def take_backups_weekly():
 	take_backups_if("Weekly")
 
 def take_backups_if(freq):
-	if frappe.db.get_value("Nextcloud Settings", None, "backup_frequency") == freq:
+	if frappe.db.get_value("NextCloud Settings", None, "backup_frequency") == freq:
 		take_backup_nextcloud()
 
 def take_backup_nextcloud(retry_count=0, upload_db_backup=True):
 	did_not_upload, error_log = [], []
 	try:
-		if cint(frappe.db.get_value("Nextcloud Settings", None, "enabled")):
+		if cint(frappe.db.get_value("NextCloud Settings", None, "enabled")):
 			validate_file_size()
 			ignore_files = True
-			if cint(frappe.db.get_value("Nextcloud Settings", None, "backup_files")):
+			if cint(frappe.db.get_value("NextCloud Settings", None, "backup_files")):
 				ignore_files = False	
 			did_not_upload, error_log = backup_to_nextcloud(upload_db_backup, ignore_files)
 			if did_not_upload: raise Exception
-			if cint(frappe.db.get_value("Nextcloud Settings", None, "send_email_for_successful_backup")):
-				send_email(True, "Nextcloud", "Nextcloud Settings", "send_notifications_to")
+			if cint(frappe.db.get_value("NextCloud Settings", None, "send_email_for_successful_backup")):
+				send_email(True, "NextCloud", "NextCloud Settings", "send_notifications_to")
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
@@ -102,7 +101,7 @@ def take_backup_nextcloud(retry_count=0, upload_db_backup=True):
 		else:
 			file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log)]
 			error_message = ("\n".join(file_and_error) + "\n" + frappe.get_traceback())
-		send_email(False, "Nextcloud", "Nextcloud Settings", "send_notifications_to", error_message)
+		send_email(False, "NextCloud", "NextCloud Settings", "send_notifications_to", error_message)
 
 def backup_to_nextcloud(upload_db_backup=True, ignore_files=True):
 	if not frappe.db:
@@ -111,12 +110,16 @@ def backup_to_nextcloud(upload_db_backup=True, ignore_files=True):
 	if upload_db_backup:
 		did_not_upload, error_log = [], []
 		path_provided = False
-		nextcloud_settings = frappe.get_doc("Nextcloud Settings")
+		nextcloud_settings = frappe.get_doc("NextCloud Settings")
 		domain_url = nextcloud_settings.domain_url
 		webdav_url = nextcloud_settings.webdav_url
 		email = nextcloud_settings.email
 		password = nextcloud_settings.get_password(fieldname='password',raise_exception=False)
 		base_url = make_baseurl(domain_url, webdav_url)
+		if not base_url:
+			did_not_upload.append('Failed')
+			error_log.append('Domain URL incorrect')
+			return did_not_upload, list(set(error_log))
 		if nextcloud_settings.path_to_upload_folder:
 			url = '{0}{1}'.format(base_url, nextcloud_settings.path_to_upload_folder)
 			path_provided = True
