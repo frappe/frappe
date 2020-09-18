@@ -181,10 +181,10 @@
 		.open-notification {
 			display: inline-flex;
 			align-items: center;
-			background-color: var(--red-100);
+			background-color: var(--indicator-red-bg);
 			font-size: var(--text-xs);
 			padding: 0 var(--padding-sm);
-			color: var(--red-400);
+			color: var(--indicator-red);
 			border-radius: var(--border-radius);
 			cursor: pointer;
 		}
