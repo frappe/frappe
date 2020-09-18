@@ -384,6 +384,7 @@ body[data-route^="Module"] .main-menu {
 	margin-bottom: var(--margin-sm);
 	display: inline-flex;
 	vertical-align: top;
+
 	.btn {
 		height: 30px;
 		width: 30px;
@@ -391,7 +392,7 @@ body[data-route^="Module"] .main-menu {
 		padding: 0;
 		border: 1px dashed var(--dark-border-color);
 		box-shadow: none;
-		background-color: transparent;
+		background-color: var(--fg-color);
 		.icon use {
 			stroke: var(--text-muted);
 		}
