@@ -36,6 +36,7 @@ def get_form_params():
 	data.pop('data', None)
 	data.pop('ignore_permissions', None)
 	data.pop('view', None)
+	data.pop('user', None)
 
 	if "csrf_token" in data:
 		del data["csrf_token"]

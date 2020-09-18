@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.utils import validate_email_address, nowdate, parse_val, is_html, add_to_date
 from frappe.utils.jinja import validate_template
+from frappe.utils.safe_exec import get_safe_globals
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
@@ -42,6 +43,7 @@ class Notification(Document):
 		self.validate_forbidden_types()
 		self.validate_condition()
 		self.validate_standard()
+		self.validate_twilio_settings()
 		frappe.cache().hdel('notifications', self.document_type)
 
 	def on_update(self):
@@ -67,6 +69,11 @@ def get_context(context):
 	def validate_standard(self):
 		if self.is_standard and not frappe.conf.developer_mode:
 			frappe.throw(_('Cannot edit Standard Notification. To edit, please disable this and duplicate it'))
+
+	def validate_twilio_settings(self):
+		if self.enabled and self.channel == "WhatsApp" \
+			and not frappe.db.get_single_value("Twilio Settings", "enabled"):
+			frappe.throw(_("Please enable Twilio settings to send WhatsApp messages"))
 
 	def validate_condition(self):
 		temp_doc = frappe.new_doc(self.document_type)
@@ -166,8 +173,13 @@ def get_context(context):
 			subject = frappe.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
+
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
+
 		users = recipients + cc + bcc
+		
+		if not users:
+			return
 
 		notification_doc = {
 			'type': 'Alert',
@@ -189,6 +201,7 @@ def get_context(context):
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 		if not (recipients or cc or bcc):
 			return
+
 		sender = None
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
@@ -234,13 +247,20 @@ def get_context(context):
 				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
 			if recipient.receiver_by_document_field:
-				email_ids_value = doc.get(recipient.receiver_by_document_field)
-				if validate_email_address(email_ids_value):
-					email_ids = email_ids_value.replace(",", "\n")
-					recipients = recipients + email_ids.split("\n")
+				fields = recipient.receiver_by_document_field.split(',')
+				# fields from child table
+				if len(fields) > 1:
+					for d in doc.get(fields[1]):
+						email_id = d.get(fields[0])
+						if validate_email_address(email_id):
+							recipients.append(email_id)
+				# field from parent doc
+				else:
+					email_ids_value = doc.get(fields[0])
+					if validate_email_address(email_ids_value):
+						email_ids = email_ids_value.replace(",", "\n")
+						recipients = recipients + email_ids.split("\n")
 
-				# else:
-				# 	print "invalid email"
 			if recipient.cc and "{" in recipient.cc:
 				recipient.cc = frappe.render_template(recipient.cc, context)
 
@@ -262,8 +282,9 @@ def get_context(context):
 				for email in emails:
 					recipients = recipients + email.split("\n")
 
-		if not recipients and not cc and not bcc:
-			return None, None, None
+		if self.send_to_all_assignees:
+			recipients = recipients + get_assignees(doc)
+
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
 	def get_receiver_list(self, doc, context):
@@ -404,4 +425,13 @@ def evaluate_alert(doc, alert, event):
 			frappe.utils.get_link_to_form('Error Log', error_log.name)))
 
 def get_context(doc):
-	return {"doc": doc, "nowdate": nowdate, "frappe": frappe._dict(utils=frappe.utils)}
+	return {"doc": doc, "nowdate": nowdate, "frappe": frappe._dict(utils=get_safe_globals().get("frappe").get("utils"))}
+
+def get_assignees(doc):
+	assignees = []
+	assignees = frappe.get_all('ToDo', filters={'status': 'Open', 'reference_name': doc.name,
+		'reference_type': doc.doctype}, fields=['owner'])
+
+	recipients = [d.owner for d in assignees]
+
+	return recipients

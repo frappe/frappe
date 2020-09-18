@@ -1259,7 +1259,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return;
 		}
 
-		this.export_dialog = frappe.prompt([
+		let export_dialog_fields = [
 			{
 				label: __('Select File Format'),
 				fieldname: 'file_format',
@@ -1267,13 +1267,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				options: ['Excel', 'CSV'],
 				default: 'Excel',
 				reqd: 1
-			},
-			{
+			}
+		];
+
+		if (this.tree_report) {
+			export_dialog_fields.push({
 				label: __("Include indentation"),
 				fieldname: "include_indentation",
 				fieldtype: "Check",
-			}
-		], ({ file_format, include_indentation }) => {
+			});
+		}
+
+		this.export_dialog = frappe.prompt(export_dialog_fields, ({ file_format, include_indentation }) => {
 			this.make_access_log('Export', file_format);
 			if (file_format === 'CSV') {
 				const column_row = this.columns.reduce((acc, col) => {

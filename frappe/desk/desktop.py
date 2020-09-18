@@ -40,7 +40,7 @@ class Workspace:
 
 		self.doc = self.get_page_for_user()
 
-		if self.doc.module not in self.allowed_modules:
+		if self.doc.module and self.doc.module not in self.allowed_modules:
 			raise frappe.PermissionError
 
 		self.can_read = self.get_cached('user_perm_can_read', self.get_can_read_items)

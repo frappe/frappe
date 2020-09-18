@@ -6,6 +6,7 @@ import io
 import os
 import re
 from distutils.version import LooseVersion
+import subprocess
 
 import pdfkit
 import six
@@ -14,7 +15,7 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 
 import frappe
 from frappe import _
-from frappe.utils import get_wkhtmltopdf_version, scrub_urls
+from frappe.utils import scrub_urls
 
 
 PDF_CONTENT_ERRORS = ["ContentNotFoundError", "ContentOperationNotPermittedError",
@@ -51,6 +52,8 @@ def get_pdf(html, options=None, output=None):
 				output.appendPagesFromReader(reader)
 		else:
 			raise
+	finally:
+		cleanup(options)
 
 	if "password" in options:
 		password = options["password"]
@@ -109,8 +112,7 @@ def prepare_options(html, options):
 	options.update(html_options or {})
 
 	# cookies
-	if frappe.session and frappe.session.sid:
-		options['cookie'] = [('sid', '{0}'.format(frappe.session.sid))]
+	options.update(get_cookie_options())
 
 	# page size
 	if not options.get("page-size"):
@@ -118,6 +120,22 @@ def prepare_options(html, options):
 
 	return html, options
 
+
+def get_cookie_options():
+	options = {}
+	if frappe.session and frappe.session.sid:
+		# Use wkhtmltopdf's cookie-jar feature to set cookies and restrict them to host domain
+		cookiejar = "/tmp/{}.jar".format(frappe.generate_hash())
+
+		# Remove port from request.host
+		# https://werkzeug.palletsprojects.com/en/0.16.x/wrappers/#werkzeug.wrappers.BaseRequest.host
+		domain = frappe.local.request.host.split(":", 1)[0]
+		with open(cookiejar, "w") as f:
+			f.write("sid={}; Domain={};\n".format(frappe.session.sid, domain))
+
+		options['cookie-jar'] = cookiejar
+
+	return options
 
 def read_options_from_html(html):
 	options = {}
@@ -183,14 +201,10 @@ def prepare_header_footer(soup):
 	return options
 
 
-def cleanup(fname, options):
-	if os.path.exists(fname):
-		os.remove(fname)
-
-	for key in ("header-html", "footer-html"):
+def cleanup(options):
+	for key in ("header-html", "footer-html", "cookie-jar"):
 		if options.get(key) and os.path.exists(options[key]):
 			os.remove(options[key])
-
 
 def toggle_visible_pdf(soup):
 	for tag in soup.find_all(attrs={"class": "visible-pdf"}):
@@ -200,3 +214,16 @@ def toggle_visible_pdf(soup):
 	for tag in soup.find_all(attrs={"class": "hidden-pdf"}):
 		# remove tag from html
 		tag.extract()
+
+def get_wkhtmltopdf_version():
+	wkhtmltopdf_version = frappe.cache().hget("wkhtmltopdf_version", None)
+
+	if not wkhtmltopdf_version:
+		try:
+			res = subprocess.check_output(["wkhtmltopdf", "--version"])
+			wkhtmltopdf_version = res.decode('utf-8').split(" ")[1]
+			frappe.cache().hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
+		except Exception:
+			pass
+
+	return (wkhtmltopdf_version or '0')

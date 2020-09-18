@@ -5,11 +5,12 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe.utils.safe_exec import get_safe_globals
 
 class DataMigrationMapping(Document):
 	def get_filters(self):
 		if self.condition:
-			return frappe.safe_eval(self.condition, dict(frappe=frappe))
+			return frappe.safe_eval(self.condition, get_safe_globals())
 
 	def get_fields(self):
 		fields = []
@@ -63,7 +64,7 @@ def get_value_from_fieldname(field_map, fieldname_field, doc):
 	field_name = get_source_value(field_map, fieldname_field)
 
 	if field_name.startswith('eval:'):
-		value = frappe.safe_eval(field_name[5:], dict(frappe=frappe))
+		value = frappe.safe_eval(field_name[5:], get_safe_globals())
 	elif field_name[0] in ('"', "'"):
 		value = field_name[1:-1]
 	else:

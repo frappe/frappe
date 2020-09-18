@@ -12,7 +12,7 @@
 			<div>
 				<a class="mr-2" href="/blog">{{ _('Blog') }}</a>
 				<span class="text-muted">/</span>
-				<a class="ml-2" href="/blog/{{ category.title }}">{{ category.title }}</a>
+				<a class="ml-2" href="/{{ category.route }}">{{ category.title }}</a>
 			</div>
 			<h1 itemprop="headline" class="blog-title">{{ title }}</h1>
 			<p class="blog-intro">

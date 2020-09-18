@@ -2,26 +2,17 @@
  "actions": [],
  "allow_guest_to_view": 1,
  "allow_import": 1,
- "autoname": "field:category_name",
+ "allow_rename": 1,
  "creation": "2013-03-08 09:41:11",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
-  "category_name",
   "title",
   "published",
   "route"
  ],
  "fields": [
-  {
-   "fieldname": "category_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Category Name",
-   "reqd": 1,
-   "unique": 1
-  },
   {
    "fieldname": "title",
    "fieldtype": "Data",
@@ -31,7 +22,7 @@
    "reqd": 1
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "published",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -42,15 +33,17 @@
    "fieldname": "route",
    "fieldtype": "Data",
    "label": "Route",
+   "read_only": 1,
    "unique": 1
   }
  ],
  "has_web_view": 1,
  "icon": "fa fa-tag",
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2020-07-29 21:14:47.210446",
+ "modified": "2020-08-21 11:40:36.919321",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Category",
@@ -78,5 +71,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "title_field": "title",
  "track_changes": 1
 }
