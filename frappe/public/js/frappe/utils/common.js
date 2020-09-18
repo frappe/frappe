@@ -1,6 +1,6 @@
 // common file between desk and website
 
-frappe.avatar = function (user, css_class, title, image_url=null, remove_avatar=false) {
+frappe.avatar = function (user, css_class, title, image_url = null, remove_avatar = false) {
 	let user_info;
 	if (user) {
 		// desk
@@ -47,7 +47,7 @@ frappe.avatar = function (user, css_class, title, image_url=null, remove_avatar=
 	}
 };
 
-frappe.avatar_group = function(users, limit=4, options={}) {
+frappe.avatar_group = function (users, limit = 4, options = {}) {
 	let icon_html = '';
 	const display_users = users.slice(0, limit);
 	const extra_users = users.slice(limit);
@@ -76,7 +76,7 @@ frappe.avatar_group = function(users, limit=4, options={}) {
 	}
 
 	const $avatar_group =
-		$(`<div class="avatar-group ${options.align || 'right'} ${options.overlap != false ? 'overlap': ''}">
+		$(`<div class="avatar-group ${options.align || 'right'} ${options.overlap != false ? 'overlap' : ''}">
 			${icon_html}
 			${html}
 		</div>`);
@@ -85,7 +85,7 @@ frappe.avatar_group = function(users, limit=4, options={}) {
 	return $avatar_group;
 };
 
-frappe.ui.scroll = function(element, animate, additional_offset) {
+frappe.ui.scroll = function (element, animate, additional_offset) {
 	var header_offset = $(".navbar").height() + $(".page-head").height();
 	var top = $(element).offset().top - header_offset - cint(additional_offset);
 	if (animate) {
@@ -131,9 +131,9 @@ frappe.get_abbr = function (txt, max_length) {
 }
 
 frappe.gravatars = {};
-frappe.get_gravatar = function(email_id, size = 0) {
+frappe.get_gravatar = function (email_id, size = 0) {
 	var param = size ? ('s=' + size) : 'd=retro';
-	if(!frappe.gravatars[email_id]) {
+	if (!frappe.gravatars[email_id]) {
 		// TODO: check if gravatar exists
 		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id) + "?" + param;
 	}
@@ -142,47 +142,47 @@ frappe.get_gravatar = function(email_id, size = 0) {
 
 // string commons
 
-window.repl =function repl(s, dict) {
-	if(s==null)return '';
-	for(var key in dict) {
-		s = s.split("%("+key+")s").join(dict[key]);
+window.repl = function repl(s, dict) {
+	if (s == null) return '';
+	for (var key in dict) {
+		s = s.split("%(" + key + ")s").join(dict[key]);
 	}
 	return s;
 }
 
-window.replace_all = function(s, t1, t2) {
+window.replace_all = function (s, t1, t2) {
 	return s.split(t1).join(t2);
 }
 
-window.strip_html = function(txt) {
+window.strip_html = function (txt) {
 	return txt.replace(/<[^>]*>/g, "");
 }
 
-window.strip = function(s, chars) {
+window.strip = function (s, chars) {
 	if (s) {
-		var s= lstrip(s, chars)
+		var s = lstrip(s, chars)
 		s = rstrip(s, chars);
 		return s;
 	}
 }
 
 window.lstrip = function lstrip(s, chars) {
-	if(!chars) chars = ['\n', '\t', ' '];
+	if (!chars) chars = ['\n', '\t', ' '];
 	// strip left
-	var first_char = s.substr(0,1);
-	while(in_list(chars, first_char)) {
+	var first_char = s.substr(0, 1);
+	while (in_list(chars, first_char)) {
 		var s = s.substr(1);
-		first_char = s.substr(0,1);
+		first_char = s.substr(0, 1);
 	}
 	return s;
 }
 
-window.rstrip = function(s, chars) {
-	if(!chars) chars = ['\n', '\t', ' '];
-	var last_char = s.substr(s.length-1);
-	while(in_list(chars, last_char)) {
-		var s = s.substr(0, s.length-1);
-		last_char = s.substr(s.length-1);
+window.rstrip = function (s, chars) {
+	if (!chars) chars = ['\n', '\t', ' '];
+	var last_char = s.substr(s.length - 1);
+	while (in_list(chars, last_char)) {
+		var s = s.substr(0, s.length - 1);
+		last_char = s.substr(s.length - 1);
 	}
 	return s;
 }
@@ -198,28 +198,28 @@ frappe.get_cookies = function getCookies() {
 		v = 1;
 	}
 	if (v === 0) {
-		c.split(/[,;]/).map(function(cookie) {
+		c.split(/[,;]/).map(function (cookie) {
 			var parts = cookie.split(/=/, 2),
 				name = decodeURIComponent(parts[0].trimLeft()),
 				value = parts.length > 1 ? decodeURIComponent(parts[1].trimRight()) : null;
-			if(value && value.charAt(0)==='"') {
-				value = value.substr(1, value.length-2);
+			if (value && value.charAt(0) === '"') {
+				value = value.substr(1, value.length - 2);
 			}
 			cookies[name] = value;
 		});
 	} else {
-		c.match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g).map(function($0, $1) {
+		c.match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g).map(function ($0, $1) {
 			var name = $0,
 				value = $1.charAt(0) === '"'
-						? $1.substr(1, -1).replace(/\\(.)/g, "$1")
-						: $1;
+					? $1.substr(1, -1).replace(/\\(.)/g, "$1")
+					: $1;
 			cookies[name] = value;
 		});
 	}
 	return cookies;
 }
 
-frappe.is_mobile = function() {
+frappe.is_mobile = function () {
 	return $(document).width() < 768;
 }
 
@@ -236,11 +236,11 @@ frappe.utils.xss_sanitise = function (string, options) {
 		"'": '&#x27',
 		'/': '&#x2F'
 	};
-	const REGEX_SCRIPT     = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi; // used in jQuery 1.7.2 src/ajax.js Line 14
-	options          	   = Object.assign({ }, DEFAULT_OPTIONS, options); // don't deep copy, immutable beauty.
+	const REGEX_SCRIPT = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi; // used in jQuery 1.7.2 src/ajax.js Line 14
+	options = Object.assign({}, DEFAULT_OPTIONS, options); // don't deep copy, immutable beauty.
 
 	// Rule 1
-	if ( options.strategies.includes('html') ) {
+	if (options.strategies.includes('html')) {
 		for (let char in HTML_ESCAPE_MAP) {
 			const escape = HTML_ESCAPE_MAP[char];
 			const regex = new RegExp(char, "g");
@@ -249,7 +249,7 @@ frappe.utils.xss_sanitise = function (string, options) {
 	}
 
 	// Rule 3 - TODO: Check event handlers?
-	if ( options.strategies.includes('js') ) {
+	if (options.strategies.includes('js')) {
 		sanitised = sanitised.replace(REGEX_SCRIPT, "");
 	}
 
@@ -285,7 +285,7 @@ frappe.utils.sanitise_redirect = (url) => {
 
 	url = frappe.utils.strip_url(url);
 
-	return is_external(url) ? "" : sanitise_javascript(frappe.utils.xss_sanitise(url, {strategies: ["js"]}));
+	return is_external(url) ? "" : sanitise_javascript(frappe.utils.xss_sanitise(url, { strategies: ["js"] }));
 };
 
 frappe.utils.strip_url = (url) => {
@@ -295,7 +295,7 @@ frappe.utils.strip_url = (url) => {
 	return url.replace(/^[^A-Za-z0-9(//)#]+/g, '');
 }
 
-frappe.utils.new_auto_repeat_prompt = function(frm) {
+frappe.utils.new_auto_repeat_prompt = function (frm) {
 	const fields = [
 		{
 			'fieldname': 'frequency',
@@ -303,12 +303,12 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 			'label': __('Frequency'),
 			'reqd': 1,
 			'options': [
-				{'label': __('Daily'), 'value': 'Daily'},
-				{'label': __('Weekly'), 'value': 'Weekly'},
-				{'label': __('Monthly'), 'value': 'Monthly'},
-				{'label': __('Quarterly'), 'value': 'Quarterly'},
-				{'label': __('Half-yearly'), 'value': 'Half-yearly'},
-				{'label': __('Yearly'), 'value': 'Yearly'}
+				{ 'label': __('Daily'), 'value': 'Daily' },
+				{ 'label': __('Weekly'), 'value': 'Weekly' },
+				{ 'label': __('Monthly'), 'value': 'Monthly' },
+				{ 'label': __('Quarterly'), 'value': 'Quarterly' },
+				{ 'label': __('Half-yearly'), 'value': 'Half-yearly' },
+				{ 'label': __('Yearly'), 'value': 'Yearly' }
 			]
 		},
 		{
@@ -324,7 +324,7 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 			'label': __('End Date')
 		}
 	];
-	frappe.prompt(fields, function(values) {
+	frappe.prompt(fields, function (values) {
 		frappe.call({
 			method: "frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat",
 			args: {
@@ -345,12 +345,12 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 			}
 		});
 	},
-	__('Auto Repeat'),
-	__('Save')
+		__('Auto Repeat'),
+		__('Save')
 	);
 }
 
-frappe.utils.get_page_view_count = function(route) {
+frappe.utils.get_page_view_count = function (route) {
 	return frappe.call("frappe.website.doctype.web_page_view.web_page_view.get_page_view_count", {
 		path: route
 	});
