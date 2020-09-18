@@ -126,7 +126,8 @@
   {
    "fieldname": "custom_scss",
    "fieldtype": "Code",
-   "label": "Custom SCSS"
+   "label": "Custom SCSS",
+   "options": "SCSS"
   },
   {
    "fieldname": "light_color",
@@ -170,7 +171,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-16 18:36:22.203519",
+ "modified": "2020-08-16 23:12:02.863833",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

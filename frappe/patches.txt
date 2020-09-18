@@ -309,4 +309,5 @@ frappe.patches.v12_0.set_default_password_reset_limit
 frappe.patches.v13_0.set_route_for_blog_category
 frappe.patches.v13_0.enable_custom_script
 frappe.patches.v13_0.update_newsletter_content_type
+execute:frappe.db.set_value('Website Settings', 'Website Settings', {'navbar_template': 'Standard Navbar', 'footer_template': 'Standard Footer'})
 frappe.patches.v13_0.delete_event_producer_and_consumer_keys
