@@ -1,4 +1,4 @@
-frappe.pages['workspace'].on_page_load = function(wrapper) {
+frappe.pages['workspace'].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		name: 'workspace',
@@ -6,7 +6,7 @@ frappe.pages['workspace'].on_page_load = function(wrapper) {
 	});
 
 	frappe.workspace = new Workspace(wrapper);
-	$(wrapper).bind('show', function() {
+	$(wrapper).bind('show', function () {
 		frappe.workspace.show();
 	});
 }
@@ -104,10 +104,10 @@ class Workspace {
 		$(`<div class="sidebar-label">${__(title)}</div>`)
 			.appendTo(sidebar_section);
 
-		const get_sidebar_item = function(item) {
+		const get_sidebar_item = function (item) {
 			return $(`<a
 						href="${"desk#workspace/" + item.name}"
-						class="desk-sidebar-item ${ item.selected ? "selected" : "" }"
+						class="desk-sidebar-item ${item.selected ? "selected" : ""}"
 				>
 				<div> ${frappe.utils.icon(item.icon || "folder-normal", "md")} </div>
 				<div> ${item.label || item.name} </div>
@@ -179,7 +179,7 @@ class Workspace {
 				__("Discard"),
 				() => {
 					this.current_page.reload();
-					frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info"});
+					frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 					this.page.clear_primary_action();
 					this.page.clear_secondary_action();
 					this.setup_dropdown();
@@ -319,10 +319,10 @@ class DesktopPage {
 			config: config
 		}).then(res => {
 			if (res.message) {
-				frappe.show_alert({ message: __("Customizations Saved Successfully"), indicator: "green"});
+				frappe.show_alert({ message: __("Customizations Saved Successfully"), indicator: "green" });
 				this.reload();
 			} else {
-				frappe.throw({message: __("Something went wrong while saving customizations"), indicator: "red"});
+				frappe.throw({ message: __("Something went wrong while saving customizations"), indicator: "red" });
 				this.reload();
 			}
 		});
@@ -332,7 +332,7 @@ class DesktopPage {
 		frappe.call('frappe.desk.desktop.reset_customization', {
 			page: this.page_name
 		}).then(res => {
-			frappe.show_alert({ message: __("Removed page customizations"), indicator: "green"});
+			frappe.show_alert({ message: __("Removed page customizations"), indicator: "green" });
 			this.reload();
 		})
 	}
@@ -360,7 +360,7 @@ class DesktopPage {
 
 	make_charts() {
 		return frappe.dashboard_utils.get_dashboard_settings().then(settings => {
-			let chart_config = settings.chart_config ? JSON.parse(settings.chart_config): {};
+			let chart_config = settings.chart_config ? JSON.parse(settings.chart_config) : {};
 			if (this.data.charts.items) {
 				this.data.charts.items.map(chart => {
 					chart.chart_settings = chart_config[chart.chart_name] || {};
