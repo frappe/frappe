@@ -25,6 +25,12 @@
 	}
 }
 
+.footer-col-right {
+	@include media-breakpoint-up(sm) {
+		text-align: right;
+	}
+}
+
 .footer-col-left, .footer-col-right {
 	padding-top: 0.8rem;
 	padding-bottom: 1rem;
@@ -32,12 +38,6 @@
 
 	&:empty {
 		padding: 0;
-	}
-}
-
-.footer-col-right {
-	@include media-breakpoint-up(sm) {
-		text-align: right;
 	}
 }
 

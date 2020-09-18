@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import os
 from frappe.model.document import Document
+from frappe import _
 from frappe.modules.export_file import (
 	export_to_files,
 	create_folder,

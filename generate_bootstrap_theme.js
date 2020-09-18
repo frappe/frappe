@@ -34,7 +34,7 @@ sass.render({
 		if (!err) {
 			console.log(output_path); // eslint-disable-line
 		} else {
-			console.error(err);
+			console.error(err); // eslint-disable-line
 		}
 	});
 });

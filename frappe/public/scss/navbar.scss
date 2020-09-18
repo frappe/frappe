@@ -2,17 +2,6 @@
 	border-bottom: 1px solid $border-color;
 }
 
-.navbar-light .navbar-nav .nav-link {
-	color: $gray-700;
-	font-size: $font-size-sm;
-	font-weight: 500;
-
-	&:hover,
-	&:focus, &.active {
-		color: $primary;
-	}
-}
-
 .navbar-brand {
 	img {
 		display: inline-block;
@@ -55,5 +44,16 @@
 			background-color: $dark;
 			color: $primary;
 		}
+	}
+}
+
+.navbar-light .navbar-nav .nav-link {
+	color: $gray-700;
+	font-size: $font-size-sm;
+	font-weight: 500;
+
+	&:hover,
+	&:focus, &.active {
+		color: $primary;
 	}
 }
