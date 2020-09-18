@@ -153,10 +153,11 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	set_indicator: function() {
 		var indicator = frappe.get_indicator(this.frm.doc);
-		if (this.frm.save_disabled && [__('Saved'), __('Not Saved')].includes(indicator[0])) {
-			return;
-		}
-		if(indicator) {
+
+		if (indicator) {
+			if (this.frm.save_disabled && [__('Saved'), __('Not Saved')].includes(indicator[0])) {
+				return;
+			}
 			this.page.set_indicator(indicator[0], indicator[1]);
 		} else {
 			this.page.clear_indicator();
