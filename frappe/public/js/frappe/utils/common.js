@@ -96,26 +96,26 @@ frappe.ui.scroll = function(element, animate, additional_offset) {
 };
 
 frappe.palette = [
-	['--orange-100', '--orange-600'],
-	['--pink-50', '--pink-500'],
-	['--blue-50', '--blue-500'],
-	['--green-50', '--green-500'],
-	['--dark-green-50', '--dark-green-500'],
-	['--red-50', '--red-500'],
-	['--yellow-50', '--yellow-500'],
-	['--purple-50', '--purple-500'],
-	['--gray-50', '--gray-500']
+	['--orange-avatar-bg', '--orange-avatar-color'],
+	['--pink-avatar-bg', '--pink-avatar-color'],
+	['--blue-avatar-bg', '--blue-avatar-color'],
+	['--green-avatar-bg', '--green-avatar-color'],
+	['--dark-green-avatar-bg', '--dark-green-avatar-color'],
+	['--red-avatar-bg', '--red-avatar-color'],
+	['--yellow-avatar-bg', '--yellow-avatar-color'],
+	['--purple-avatar-bg', '--purple-avatar-color'],
+	['--gray-avatar-bg', '--gray-avatar-color0']
 ]
 
-frappe.get_palette = function(txt) {
-	var idx = cint((parseInt(md5(txt).substr(4,2), 16) + 1) / 5.33);
-	return frappe.palette[idx%8];
+frappe.get_palette = function (txt) {
+	var idx = cint((parseInt(md5(txt).substr(4, 2), 16) + 1) / 5.33);
+	return frappe.palette[idx % 8];
 }
 
-frappe.get_abbr = function(txt, max_length) {
+frappe.get_abbr = function (txt, max_length) {
 	if (!txt) return "";
 	var abbr = "";
-	$.each(txt.split(" "), function(i, w) {
+	$.each(txt.split(" "), function (i, w) {
 		if (abbr.length >= (max_length || 2)) {
 			// break
 			return false;

@@ -1,3 +1,69 @@
+:root {
+	--avatar-frame-color: var(--blue-500);
+	--avatar-frame-bg: var(--blue-100);
+	--avatar-frame-border: var(--blue-100);
+
+	--orange-avatar-bg: var(--orange-100);
+	--orange-avatar-color: var(--orange-600);
+
+	--pink-avatar-bg: var(--pink-50);
+	--pink-avatar-color: var(--pink-500);
+
+	--blue-avatar-bg: var(--blue-50);
+	--blue-avatar-color: var(--blue-500);
+
+	--green-avatar-bg: var(--green-50);
+	--green-avatar-color: var(--green-500);
+
+	--dark-green-avatar-bg: var(--dark-green-50);
+	--dark-green-avatar-color: var(--dark-green-500);
+
+	--red-avatar-bg: var(--red-50);
+	--red-avatar-color: var(--red-500);
+
+	--yellow-avatar-bg: var(--yellow-50);
+	--yellow-avatar-color: var(--yellow-500);
+
+	--purple-avatar-bg: var(--purple-50);
+	--purple-avatar-color: var(--purple-500);
+
+	--gray-avatar-bg: var(--gray-50);
+	--gray-avatar-color: var(--gray-50);
+}
+
+[data-theme="dark"] {
+	--avatar-frame-color: var(--blue-50);
+	--avatar-frame-bg: var(--blue-400);
+	--avatar-frame-border: var(--blue-400);
+
+	--orange-avatar-bg: var(--orange-600);
+	--orange-avatar-color: var(--orange-100);
+
+	--pink-avatar-bg: var(--pink-500);
+	--pink-avatar-color: var(--pink-50);
+
+	--blue-avatar-bg: var(--blue-500);
+	--blue-avatar-color: var(--blue-50);
+
+	--green-avatar-bg: var(--green-500);
+	--green-avatar-color: var(--green-50);
+
+	--dark-green-avatar-bg: var(--dark-green-500);
+	--dark-green-avatar-color: var(--dark-green-50);
+
+	--red-avatar-bg: var(--red-500);
+	--red-avatar-color: var(--red-50);
+
+	--yellow-avatar-bg: var(--yellow-500);
+	--yellow-avatar-color: var(--yellow-50);
+
+	--purple-avatar-bg: var(--purple-500);
+	--purple-avatar-color: var(--purple-50);
+
+	--gray-avatar-bg: var(--gray-50);
+	--gray-avatar-color: var(--gray-50);
+}
+
 .avatar {
 	display: inline-block;
 	vertical-align: middle;
@@ -7,7 +73,7 @@
 	display: inline-block;
 	width: 100%;
 	height: 100%;
-	background-color: var(--blue-100);
+	background-color: var(--avatar-frame-bg);
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center center;
@@ -30,7 +96,7 @@
 	}
 
 	.avatar-empty::after {
-		content: '\002D';
+		content: "\002D";
 		line-height: 28px;
 	}
 }
@@ -47,7 +113,6 @@
 .avatar-large {
 	width: 72px;
 	height: 72px;
-
 
 	.standard-image {
 		font-size: var(--text-2xl);
@@ -83,8 +148,9 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-color: var(--gray-50);
-	color: var(--blue-500);
+	background-color: var(--avatar-frame-bg);
+	color: var(--avatar-frame-color);
+	border: 1px solid var(--avatar-frame-border);
 	font-weight: normal;
 }
 
@@ -116,9 +182,9 @@
 	}
 
 	.avatar {
-		transition: margin .1s ease-in-out;
+		transition: margin 0.1s ease-in-out;
 		.avatar-frame {
-			border: 1px solid var(--fg-color);
+			border: 1px solid var(--avatar-frame-border);
 		}
 
 		&:not(.avatar-extra-count):hover {
