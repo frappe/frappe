@@ -55,9 +55,7 @@ def make_baseurl(domain_url, webdav_url):
 		url = '{0}{1}'.format(baseurl, webdav_url)
 	else:
 		url = '{0}/{1}'.format(baseurl, webdav_url)
-	if url.endswith('/'):
-		pass
-	else:
+	if not url.endswith('/'):
 		url = '{0}/'.format(url)
 
 	return url
