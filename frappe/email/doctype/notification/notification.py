@@ -43,6 +43,7 @@ class Notification(Document):
 		self.validate_forbidden_types()
 		self.validate_condition()
 		self.validate_standard()
+		self.validate_twilio_settings()
 		frappe.cache().hdel('notifications', self.document_type)
 
 	def on_update(self):
@@ -68,6 +69,11 @@ def get_context(context):
 	def validate_standard(self):
 		if self.is_standard and not frappe.conf.developer_mode:
 			frappe.throw(_('Cannot edit Standard Notification. To edit, please disable this and duplicate it'))
+
+	def validate_twilio_settings(self):
+		if self.enabled and self.channel == "WhatsApp" \
+			and not frappe.db.get_single_value("Twilio Settings", "enabled"):
+			frappe.throw(_("Please enable Twilio settings to send WhatsApp messages"))
 
 	def validate_condition(self):
 		temp_doc = frappe.new_doc(self.document_type)
@@ -167,8 +173,13 @@ def get_context(context):
 			subject = frappe.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
+
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
+
 		users = recipients + cc + bcc
+		
+		if not users:
+			return
 
 		notification_doc = {
 			'type': 'Alert',
@@ -274,8 +285,6 @@ def get_context(context):
 		if self.send_to_all_assignees:
 			recipients = recipients + get_assignees(doc)
 
-		if not recipients and not cc and not bcc:
-			return None, None, None
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
 	def get_receiver_list(self, doc, context):

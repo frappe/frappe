@@ -514,12 +514,15 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 whitelisted = []
 guest_methods = []
 xss_safe_methods = []
-def whitelist(allow_guest=False, xss_safe=False):
+allowed_http_methods_for_whitelisted_func = {}
+
+def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
+	:param methods: Allowed http method to access the method.
 
 	Use as:
 
@@ -527,9 +530,15 @@ def whitelist(allow_guest=False, xss_safe=False):
 		def myfunc(param1, param2):
 			pass
 	"""
+
+	if not methods:
+		methods = ['GET', 'POST', 'PUT', 'DELETE']
+
 	def innerfn(fn):
-		global whitelisted, guest_methods, xss_safe_methods
+		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 		whitelisted.append(fn)
+
+		allowed_http_methods_for_whitelisted_func[fn] = methods
 
 		if allow_guest:
 			guest_methods.append(fn)

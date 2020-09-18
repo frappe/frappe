@@ -43,6 +43,11 @@ app_include_css = [
 	"assets/css/report.min.css",
 ]
 
+doctype_js = {
+	"Web Page": "public/js/frappe/utils/web_template.js",
+	"Website Settings": "public/js/frappe/utils/web_template.js"
+}
+
 web_include_js = [
 	"website_script.js"
 ]
@@ -196,7 +201,8 @@ scheduler_events = {
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
-		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email"
+		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
+		"frappe.utils.password.delete_password_reset_cache"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
