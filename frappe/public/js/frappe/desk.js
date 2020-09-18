@@ -65,15 +65,15 @@ frappe.Application = Class.extend({
 					theme: new_theme
 				}).then(() => {
 					document.body.dataset.theme = new_theme.toLowerCase();
-					frappe.show_alert("Theme Changed");
+					frappe.show_alert("Theme Changed", 3);
 				})
 			}
 		})
 
 		this.set_rtl();
 
-		if(frappe.boot) {
-			if(localStorage.getItem("session_last_route")) {
+		if (frappe.boot) {
+			if (localStorage.getItem("session_last_route")) {
 				window.location.hash = localStorage.getItem("session_last_route");
 				localStorage.removeItem("session_last_route");
 			}
