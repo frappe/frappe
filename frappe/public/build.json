@@ -213,6 +213,7 @@
 		"public/js/frappe/ui/toolbar/notifications.js",
 		"public/js/frappe/views/communication.js",
 		"public/js/frappe/views/translation_manager.js",
+		"public/js/frappe/views/workspace/workspace.js",
 
 		"public/js/frappe/widgets/widget_group.js",
 
