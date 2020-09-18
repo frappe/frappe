@@ -128,7 +128,7 @@ frappe.views.Workspace = class Workspace {
 			this.sidebar_items[page].addClass("selected");
 		}
 		this.current_page_name = page;
-		localStorage.current_desk_page = page;
+		localStorage.current_workspace = page;
 
 		this.pages[page] ? this.pages[page].show() : this.make_page(page);
 		this.current_page = this.pages[page];
@@ -249,7 +249,7 @@ class DesktopPage {
 		this.get_data().then(res => {
 			this.data = res.message;
 			if (!this.data) {
-				delete localStorage.current_desk_page;
+				delete localStorage.current_workspace;
 				frappe.set_route("workspace");
 				return;
 			}
