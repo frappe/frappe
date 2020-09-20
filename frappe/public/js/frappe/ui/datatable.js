@@ -1,3 +1,3 @@
-import DataTable from "frappe-datatable"
+import DataTable from "frappe-datatable";
 
 frappe.DataTable = DataTable;
