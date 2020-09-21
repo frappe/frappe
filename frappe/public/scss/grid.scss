@@ -1,6 +1,6 @@
 .form-grid {
-	// border: 1px solid var(--border-color);
-	// border-radius: var(--border-radius);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
 	color: var(--text-color);
 }
 
@@ -114,11 +114,16 @@
 	.col {
 		padding-left: var(--padding-sm);
 		padding-right: var(--padding-sm);
+		border-right: 1px solid var(--border-color);
 		// overflow: hidden;
 	}
 }
 
 .grid-body {
+	.col:last-child {
+		border: none;
+	}
+
 	.btn-open-row {
 		display: flex;
 		padding-top: var(--padding-sm);
