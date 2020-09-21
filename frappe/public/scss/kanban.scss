@@ -10,8 +10,8 @@
 	}
 
 	.kanban-column {
-		flex: 0 0 290px;
-		max-width: 290px;
+		flex: 0 0 260px;
+		max-width: 260px;
 		border-radius: var(--border-radius);
 		margin: var(--margin-md) var(--margin-xs) var(--margin-md) 0;
 		padding: var(--padding-sm);
@@ -23,121 +23,128 @@
 
 		&:hover {
 			background-color: var(--gray-200);
-		}
-	}
 
-	.kanban-column-header {
-		margin-top: 0;
-		margin-bottom: 15px;
-		position: relative;
-		font-weight: 500;
-		font-size: 12px;
-		display: flex;
-		justify-content: space-between;
-		// align-items: center;
-		.indicator-pill {
-			padding: 2px 8px;
-			width: 20px;
-			height: 20px;
-
-			&:before {
-				margin-right: 0px;
+			.add-card {
+				background-color: var(--white);
+				box-shadow: var(--shadow-xs);
 			}
 		}
 
-		.column-options {
-			.button-group {
-				display: flex;
-				padding: 8px;
-
-				div.indicator-pill {
-					margin: 0 5px;
-				}
-
-				.btn.indicator {
-					flex: 1;
-				}
-			}
-
-			.indicator::before {
-				margin: 0;
-			}
-		}
-
-		&:hover {
-			cursor: pointer;
-		}
-	}
-
-	.kanban-column-title {
-		font-size: $font-size-lg;
-		color: var(--text-color);
-		display: flex;
-		align-items: center;
-		font-weight: normal;
-
-		// margin-left: 10px;
-		.kanban-title {
-			font-size: var(--text-lg);
-			margin-left: 10px;
-			font-weight: var(--text-bold, 600);
-		}
-	}
-
-	.sortable-ghost > .kanban-card:not(.add-card) {
-		background: var(--fg-hover-color) !important;
-		color: transparent;
-
-		* {
-			background: transparent !important;
-			color: transparent !important;
-		}
-	}
-
-	.kanban-cards {
-		min-height: 100px;
-		max-height: calc(100vh - 360px);
-		margin: -5px;
-		padding: 5px;
-		overflow-y: scroll;
-		-ms-overflow-style: none; /* IE and Edge */
-		scrollbar-width: none; /* Firefox */
-
-		&::-webkit-scrollbar {
-			display: none;
-		}
-	}
-
-	.kanban-card {
-		@include card($padding: 10px 15px, $background-color: var(--fg-color));
-		margin-top: var(--margin-sm);
-		min-height: 100px;
-		display: flex;
-		justify-content: space-between;
-		flex-direction: column;
-	}
-
-	.add-card {
-		justify-content: center;
-		display: flex;
-		align-items: center;
-		color: var(--text-light);
-		background-color: var(--fg-color);
-		box-shadow: var(--shadow-xs);
-		height: 27px;
-		font-size: $font-size-md;
-		margin-bottom: var(--margin-md);
-		border-radius: 8px;
-		&:hover {
-			color: var(--text-color);
-			cursor: pointer;
-		}
-
-		.octicon-plus {
-			top: -1px;
-			font-size: 1em;
-			margin-right: var(--margin-xs);
+		.kanban-column-header {
+			margin-top: 0;
+			margin-bottom: 15px;
 			position: relative;
+			font-weight: 500;
+			font-size: 12px;
+			display: flex;
+			justify-content: space-between;
+			// align-items: center;
+			.indicator-pill {
+				padding: 2px 8px;
+				width: 20px;
+				height: 20px;
+
+				&:before {
+					margin-right: 0px;
+				}
+			}
+
+			.column-options {
+				.button-group {
+					display: flex;
+					padding: 8px;
+
+					div.indicator-pill {
+						margin: 0 5px;
+					}
+
+					.btn.indicator {
+						flex: 1;
+					}
+				}
+
+				.indicator::before {
+					margin: 0;
+				}
+			}
+
+			&:hover {
+				cursor: pointer;
+			}
+		}
+
+		.kanban-column-title {
+			font-size: $font-size-lg;
+			color: var(--text-color);
+			display: flex;
+			align-items: center;
+			font-weight: normal;
+
+			// margin-left: 10px;
+			.kanban-title {
+				font-size: var(--text-lg);
+				margin-left: 10px;
+				font-weight: var(--text-bold, 600);
+			}
+		}
+
+		.sortable-ghost > .kanban-card:not(.add-card) {
+			background: var(--fg-hover-color) !important;
+			color: transparent;
+
+			* {
+				background: transparent !important;
+				color: transparent !important;
+			}
+		}
+
+		.kanban-cards {
+			min-height: 100px;
+			max-height: calc(100vh - 360px);
+			margin: -5px;
+			padding: 5px;
+			overflow-y: scroll;
+			-ms-overflow-style: none; /* IE and Edge */
+			scrollbar-width: none; /* Firefox */
+
+			&::-webkit-scrollbar {
+				display: none;
+			}
+		}
+
+		.kanban-card {
+			@include card(
+				$padding: 10px 15px,
+				$background-color: var(--fg-color)
+			);
+			margin-top: var(--margin-sm);
+			min-height: 100px;
+			display: flex;
+			justify-content: space-between;
+			flex-direction: column;
+		}
+
+		.add-card {
+			justify-content: center;
+			display: flex;
+			align-items: center;
+			color: var(--text-light);
+			background-color: var(--gray-200);
+			height: 27px;
+			font-size: var(--font-md);
+			margin-bottom: var(--margin-md);
+			border-radius: 8px;
+			&:hover {
+				color: var(--text-color);
+				cursor: pointer;
+			}
+
+			.octicon-plus {
+				top: -1px;
+				font-size: 1em;
+				margin-right: var(--margin-xs);
+				position: relative;
+			}
 		}
 	}
 
