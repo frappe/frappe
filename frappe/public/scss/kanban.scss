@@ -10,15 +10,14 @@
 	}
 
 	.kanban-column {
+		@include transition();
+
 		flex: 0 0 260px;
 		max-width: 260px;
 		border-radius: var(--border-radius);
 		margin: var(--margin-md) var(--margin-xs) var(--margin-md) 0;
 		padding: var(--padding-sm);
 		min-height: calc(100vh - 340px);
-
-		transition: all 0.3s;
-		-webkit-transition: all 0.3s;
 
 		&.add-new-column {
 			order: 1;
@@ -34,17 +33,15 @@
 		}
 
 		.add-card {
-			justify-content: center;
-			display: flex;
-			align-items: center;
+			@include flex(flex, center, center, null);
+			@include transition();
+
 			color: var(--text-light);
 			background-color: var(--gray-200);
 			height: 27px;
 			font-size: var(--font-md);
-			margin-bottom: var(--margin-md);
-			border-radius: 8px;
-			transition: all 0.3s;
-			-webkit-transition: all 0.3s;
+			margin-bottom: var(--margin-sm);
+			border-radius: var(--border-radius-md);
 
 			&:hover {
 				color: var(--text-color);
@@ -60,13 +57,12 @@
 		}
 
 		.kanban-column-header {
+			@include flex(flex, space-between, null, null);
 			margin-top: 0;
 			margin-bottom: 15px;
 			position: relative;
 			font-weight: 500;
 			font-size: 12px;
-			display: flex;
-			justify-content: space-between;
 			// align-items: center;
 			.indicator-pill {
 				padding: 2px 8px;
@@ -103,10 +99,10 @@
 		}
 
 		.kanban-column-title {
-			font-size: $font-size-lg;
+			@include flex(flex, null, center, null);
+
+			font-size: var(--text-lg);
 			color: var(--text-color);
-			display: flex;
-			align-items: center;
 			font-weight: normal;
 
 			// margin-left: 10px;
@@ -142,15 +138,14 @@
 		}
 
 		.kanban-card {
+			@include flex(flex, space-between, null, column);
+
 			@include card(
 				$padding: 10px 15px,
 				$background-color: var(--fg-color)
 			);
 			margin-top: var(--margin-sm);
 			min-height: 100px;
-			display: flex;
-			justify-content: space-between;
-			flex-direction: column;
 		}
 	}
 
