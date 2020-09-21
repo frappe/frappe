@@ -411,6 +411,28 @@ def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
 	return set(l1) & set(l2)
 
+def cast_fieldtype(fieldtype, value):
+	if fieldtype in ("Currency", "Float", "Percent"):
+		value = flt(value)
+
+	elif fieldtype in ("Int", "Check"):
+		value = cint(value)
+
+	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
+		"Text Editor", "Select", "Link", "Dynamic Link"):
+		value = cstr(value)
+
+	elif fieldtype == "Date":
+		value = getdate(value)
+
+	elif fieldtype == "Datetime":
+		value = get_datetime(value)
+
+	elif fieldtype == "Time":
+		value = to_timedelta(value)
+
+	return value
+
 def flt(s, precision=None):
 	"""Convert to float (ignore commas)"""
 	if isinstance(s, string_types):
@@ -1017,20 +1039,22 @@ def evaluate_filters(doc, filters):
 	if isinstance(filters, dict):
 		for key, value in iteritems(filters):
 			f = get_filter(None, {key:value})
-			if not compare(doc.get(f.fieldname), f.operator, f.value):
+			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 				return False
 
 	elif isinstance(filters, (list, tuple)):
 		for d in filters:
 			f = get_filter(None, d)
-			if not compare(doc.get(f.fieldname), f.operator, f.value):
+			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 				return False
 
 	return True
 
 
-def compare(val1, condition, val2):
+def compare(val1, condition, val2, fieldtype=None):
 	ret = False
+	if fieldtype:
+		val2 = cast_fieldtype(fieldtype, val2)
 	if condition in operator_map:
 		ret = operator_map[condition](val1, val2)
 
@@ -1044,6 +1068,7 @@ def get_filter(doctype, f, filters_config=None):
 			"fieldname":
 			"operator":
 			"value":
+			"fieldtype":
 		}
 	"""
 	from frappe.model import default_fields, optional_fields
@@ -1094,6 +1119,13 @@ def get_filter(doctype, f, filters_config=None):
 				if frappe.get_meta(df.options).has_field(f.fieldname):
 					f.doctype = df.options
 					break
+
+	try:
+		df = frappe.get_meta(f.doctype).get_field(f.fieldname)
+	except frappe.exceptions.DoesNotExistError:
+		df = None
+
+	f.fieldtype = df.fieldtype if df else None
 
 	return f
 
