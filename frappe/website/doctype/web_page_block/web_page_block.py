@@ -6,12 +6,10 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe.model.document import Document
-from frappe.website.doctype.web_template.web_template import get_rendered_template
 
 
 class WebPageBlock(Document):
+
 	def render(self):
-		values = self.web_template_values or '{}'
-		values = frappe.parse_json(values)
-		rendered_html = get_rendered_template(self.web_template, values)
-		return rendered_html
+		web_template = frappe.get_doc("Web Template", self.web_template)
+		return web_template.render(self.web_template_values)

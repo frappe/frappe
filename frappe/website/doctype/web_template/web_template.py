@@ -46,22 +46,17 @@ class WebTemplate(Document):
 	def render(self, values):
 		values = values or "{}"
 		values = frappe.parse_json(values)
-		return get_rendered_template(self.name, values)
 
+		if self.standard:
+			module_path = get_module_path(self.module or "Website")
+			dt, dn = scrub_dt_dn("Web Template", self.name)
+			scrubbed = frappe.scrub(self.name)
+			full_path = os.path.join("frappe", module_path, dt, dn, scrubbed + ".html")
+			root_app_path = os.path.abspath(os.path.join(frappe.get_app_path("frappe"), ".."))
+			template = os.path.relpath(full_path, root_app_path)
+		else:
+			template = self.template
 
-def get_rendered_template(web_template_name, values):
-	web_template = frappe.get_doc("Web Template", web_template_name)
-
-	if web_template.standard:
-		module_path = get_module_path(web_template.module)
-		dt, dn = scrub_dt_dn("Web Template", web_template.name)
-		scrubbed = frappe.scrub(web_template.name)
-		full_path = os.path.join("frappe", module_path, dt, dn, scrubbed + ".html")
-		root_app_path = os.path.abspath(os.path.join(frappe.get_app_path("frappe"), ".."))
-		template = os.path.relpath(full_path, root_app_path)
-	else:
-		template = web_template.template
-
-	context = values or {}
-	context.update({"values": values})
-	return frappe.render_template(template, context)
+		context = values or {}
+		context.update({"values": values})
+		return frappe.render_template(template, context)
