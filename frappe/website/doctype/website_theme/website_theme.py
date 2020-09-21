@@ -7,7 +7,6 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_path
 from os.path import join as join_path, exists as path_exists, abspath, splitext
-from frappe.utils import update_progress_bar
 
 class WebsiteTheme(Document):
 	def validate(self):
