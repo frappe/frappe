@@ -66,6 +66,8 @@
   {
    "fieldname": "route",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Route",
    "unique": 1
   },
@@ -84,6 +86,7 @@
    "default": "0",
    "fieldname": "published",
    "fieldtype": "Check",
+   "in_standard_filter": 1,
    "label": "Published"
   },
   {
@@ -295,7 +298,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 20,
- "modified": "2020-08-31 16:55:52.015249",
+ "modified": "2020-09-11 16:15:17.065665",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

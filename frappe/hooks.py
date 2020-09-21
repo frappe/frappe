@@ -43,6 +43,11 @@ app_include_css = [
 	"assets/css/report.min.css",
 ]
 
+doctype_js = {
+	"Web Page": "public/js/frappe/utils/web_template.js",
+	"Website Settings": "public/js/frappe/utils/web_template.js"
+}
+
 web_include_js = [
 	"website_script.js"
 ]

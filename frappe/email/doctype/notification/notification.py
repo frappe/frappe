@@ -173,8 +173,13 @@ def get_context(context):
 			subject = frappe.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
+
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
+
 		users = recipients + cc + bcc
+		
+		if not users:
+			return
 
 		notification_doc = {
 			'type': 'Alert',
@@ -280,8 +285,6 @@ def get_context(context):
 		if self.send_to_all_assignees:
 			recipients = recipients + get_assignees(doc)
 
-		if not recipients and not cc and not bcc:
-			return None, None, None
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
 	def get_receiver_list(self, doc, context):

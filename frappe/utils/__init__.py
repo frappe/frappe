@@ -621,28 +621,6 @@ def parse_json(val):
 		val = frappe._dict(val)
 	return val
 
-def cast_fieldtype(fieldtype, value):
-	if fieldtype in ("Currency", "Float", "Percent"):
-		value = flt(value)
-
-	elif fieldtype in ("Int", "Check"):
-		value = cint(value)
-
-	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
-		"Text Editor", "Select", "Link", "Dynamic Link"):
-		value = cstr(value)
-
-	elif fieldtype == "Date":
-		value = getdate(value)
-
-	elif fieldtype == "Datetime":
-		value = get_datetime(value)
-
-	elif fieldtype == "Time":
-		value = to_timedelta(value)
-
-	return value
-
 def get_db_count(*args):
 	"""
 	Pass a doctype or a series of doctypes to get the count of docs in them
