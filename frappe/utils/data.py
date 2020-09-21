@@ -3,10 +3,8 @@
 
 from __future__ import unicode_literals
 
-# IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 from dateutil.parser._parser import ParserError
-import subprocess
 import operator
 import json
 import re, datetime, math, time
@@ -427,19 +425,6 @@ def flt(s, precision=None):
 
 	return num
 
-def get_wkhtmltopdf_version():
-	wkhtmltopdf_version = frappe.cache().hget("wkhtmltopdf_version", None)
-
-	if not wkhtmltopdf_version:
-		try:
-			res = subprocess.check_output(["wkhtmltopdf", "--version"])
-			wkhtmltopdf_version = res.decode('utf-8').split(" ")[1]
-			frappe.cache().hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
-		except Exception:
-			pass
-
-	return (wkhtmltopdf_version or '0')
-
 def cint(s):
 	"""Convert to integer"""
 	try: num = int(float(s))
@@ -746,6 +731,7 @@ def is_image(filepath):
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 def get_thumbnail_base64_for_image(src):
+	from os.path import exists as file_exists
 	from PIL import Image
 	from frappe.core.doctype.file.file import get_local_image
 	from frappe import safe_decode, cache
@@ -753,10 +739,17 @@ def get_thumbnail_base64_for_image(src):
 	if not src:
 		frappe.throw('Invalid source for image: {0}'.format(src))
 
-	if not src.startswith('/files'):
+	if not src.startswith('/files') or '..' in src:
+		return
+
+	if src.endswith('.svg'):
 		return
 
 	def _get_base64():
+		file_path = frappe.get_site_path("public", src.lstrip("/"))
+		if not file_exists(file_path):
+			return
+
 		try:
 			image, unused_filename, extn = get_local_image(src)
 		except IOError:
@@ -780,7 +773,7 @@ def image_to_base64(image, extn):
 	from io import BytesIO
 
 	buffered = BytesIO()
-	if extn.lower() == 'jpg':
+	if extn.lower() in ('jpg', 'jpe'):
 		extn = 'JPEG'
 	image.save(buffered, extn)
 	img_str = base64.b64encode(buffered.getvalue())
@@ -1225,13 +1218,6 @@ def md_to_html(markdown_text):
 		pass
 
 	return html
-
-def get_source_value(source, key):
-	'''Get value from source (object or dict) based on key'''
-	if isinstance(source, dict):
-		return source.get(key)
-	else:
-		return getattr(source, key)
 
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''

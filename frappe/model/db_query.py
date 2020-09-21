@@ -391,7 +391,10 @@ class DatabaseQuery(object):
 				ref_doctype = frappe.get_meta(f.doctype).get_field(f.fieldname).options
 
 			result=[]
-			lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
+
+			lft, rgt = '', ''
+			if f.value:
+				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
 
 			# Get descendants elements of a DocType with a tree structure
 			if f.operator.lower() in ('descendants of', 'not descendants of') :
@@ -769,6 +772,7 @@ def get_list(doctype, *args, **kwargs):
 	kwargs.pop('ignore_permissions', None)
 	kwargs.pop('data', None)
 	kwargs.pop('strict', None)
+	kwargs.pop('user', None)
 
 	# If doctype is child table
 	if frappe.is_table(doctype):

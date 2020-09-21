@@ -65,7 +65,7 @@ class WebsiteTheme(Document):
 		# create folder if not exist
 		frappe.create_folder(folder_path)
 
-		if not self.custom:
+		if self.custom:
 			self.delete_old_theme_files(folder_path)
 
 		# add a random suffix

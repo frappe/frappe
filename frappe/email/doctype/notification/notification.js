@@ -19,9 +19,12 @@ frappe.notification = {
 		}
 
 		frappe.model.with_doctype(frm.doc.document_type, function() {
-			let get_select_options = function(df) {
+			let get_select_options = function(df, parent_field) {
+				// Append parent_field name along with fieldname for child table fields
+				let select_value = parent_field ? df.fieldname + ',' + parent_field : df.fieldname;
+
 				return {
-					value: df.fieldname,
+					value: select_value,
 					label: df.fieldname + ' (' + __(df.label) + ')'
 				};
 			};
@@ -59,9 +62,21 @@ frappe.notification = {
 			let receiver_fields = [];
 			if (frm.doc.channel === 'Email') {
 				receiver_fields = $.map(fields, function(d) {
-					return d.options == 'Email' ||
-						(d.options == 'User' && d.fieldtype == 'Link')
-						? get_select_options(d) : null;
+
+					// Add User and Email fields from child into select dropdown
+					if (d.fieldtype == 'Table') {
+						let child_fields = frappe.get_doc('DocType', d.options).fields;
+						return $.map(child_fields, function(df) {
+							return df.options == 'Email' ||
+								(df.options == 'User' && df.fieldtype == 'Link')
+								? get_select_options(df, d.fieldname) : null;
+						});
+					// Add User and Email fields from parent into select dropdown
+					} else {
+						return d.options == 'Email' ||
+							(d.options == 'User' && d.fieldtype == 'Link')
+							? get_select_options(d) : null;
+					}
 				});
 			} else if (in_list(['WhatsApp', 'SMS'], frm.doc.channel)) {
 				receiver_fields = $.map(fields, function(d) {
@@ -87,7 +102,7 @@ frappe.notification = {
 <h5>Message Example</h5>
 
 <pre>
-Your {{ doc.name }} order of {{ doc.total }} has shipped and should be delivered on {{ doc.date }}. Details : {{doc.customer}}
+Your appointment is coming up on {{ doc.date }} at {{ doc.time }}
 </pre>`;
 		} else if (frm.doc.channel === 'Email') {
 			template = `<h5>Message Example</h5>
@@ -151,6 +166,7 @@ frappe.ui.form.on('Notification', {
 	},
 	refresh: function(frm) {
 		frappe.notification.setup_fieldname_select(frm);
+		frappe.notification.setup_example_message(frm);
 		frm.get_field('is_standard').toggle(frappe.boot.developer_mode);
 		frm.trigger('event');
 	},
