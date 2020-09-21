@@ -146,7 +146,7 @@ class AutoRepeat(Document):
 
 	def make_new_document(self):
 		reference_doc = frappe.get_doc(self.reference_doctype, self.reference_document)
-		new_doc = frappe.copy_doc(reference_doc)
+		new_doc = frappe.copy_doc(reference_doc, ignore_no_copy = False)
 		self.update_doc(new_doc, reference_doc)
 		new_doc.insert(ignore_permissions = True)
 
