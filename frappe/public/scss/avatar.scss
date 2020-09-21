@@ -1,7 +1,7 @@
 :root {
-	--avatar-frame-color: var(--blue-500);
-	--avatar-frame-bg: var(--blue-100);
-	--avatar-frame-border: var(--blue-100);
+	--avatar-frame-color: var(--gray-500);
+	--avatar-frame-bg: var(--gray-100);
+	--avatar-frame-border: var(--gray-100);
 
 	--orange-avatar-bg: var(--orange-100);
 	--orange-avatar-color: var(--orange-600);
@@ -32,9 +32,9 @@
 }
 
 [data-theme="dark"] {
-	--avatar-frame-color: var(--blue-50);
-	--avatar-frame-bg: var(--blue-400);
-	--avatar-frame-border: var(--blue-400);
+	--avatar-frame-color: var(--gray-50);
+	--avatar-frame-bg: var(--gray-400);
+	--avatar-frame-border: var(--gray-400);
 
 	--orange-avatar-bg: var(--orange-600);
 	--orange-avatar-color: var(--orange-100);
