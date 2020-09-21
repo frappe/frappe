@@ -1,19 +1,23 @@
 .kanban {
-	// min-height: #{"calc(100vh - 252px)"};
-	// background-color: @light-bg;
 	display: flex;
 	overflow: auto;
-	// padding-left: var(--padding-xs);
+
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
 
 	.kanban-column {
 		flex: 0 0 290px;
 		max-width: 290px;
 		border-radius: var(--border-radius);
 		margin: var(--margin-md) var(--margin-xs) var(--margin-md) 0;
-		padding: var(--padding-md);
-		min-height: calc(100vh - 300px);
+		padding: var(--padding-sm);
+		min-height: calc(100vh - 340px);
 
- 		&.add-new-column {
+		&.add-new-column {
 			order: 1;
 		}
 
@@ -36,13 +40,12 @@
 			width: 20px;
 			height: 20px;
 
-			&:before{
+			&:before {
 				margin-right: 0px;
 			}
 		}
 
 		.column-options {
-
 			.button-group {
 				display: flex;
 				padding: 8px;
@@ -77,7 +80,7 @@
 		.kanban-title {
 			font-size: var(--text-lg);
 			margin-left: 10px;
-			font-weight: var(--text-bold, 600)
+			font-weight: var(--text-bold, 600);
 		}
 	}
 
@@ -89,15 +92,20 @@
 			background: transparent !important;
 			color: transparent !important;
 		}
-
 	}
 
 	.kanban-cards {
 		min-height: 100px;
-		max-height: calc(100vh - 300px);
+		max-height: calc(100vh - 360px);
 		margin: -5px;
 		padding: 5px;
 		overflow-y: scroll;
+		-ms-overflow-style: none; /* IE and Edge */
+		scrollbar-width: none; /* Firefox */
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
 	}
 
 	.kanban-card {
@@ -129,7 +137,7 @@
 			top: -1px;
 			font-size: 1em;
 			margin-right: var(--margin-xs);
-			position:relative;
+			position: relative;
 		}
 	}
 
@@ -146,7 +154,9 @@
 		}
 	}
 
-	.kanban-card:hover, .new-card-area, .edit-card-area {
+	.kanban-card:hover,
+	.new-card-area,
+	.edit-card-area {
 		box-shadow: var(--shadow-base);
 	}
 
@@ -172,7 +182,8 @@
 		transition: 0.2s ease;
 	}
 
-	.new-card-area, .edit-card-area {
+	.new-card-area,
+	.edit-card-area {
 		margin-bottom: 10px;
 
 		textarea {
@@ -250,7 +261,8 @@ body[data-route*="Kanban"] {
 		background-color: var(--gray-800);
 	}
 
-	.kanban-card, .add-card {
+	.kanban-card,
+	.add-card {
 		background-color: var(--bg-color);
 	}
 }
