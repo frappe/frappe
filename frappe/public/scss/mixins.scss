@@ -16,3 +16,8 @@
 	padding: $padding;
 	background-color: $background-color;
 }
+
+@mixin transition($property: all, $duration: 0.2s, $timing-fn: linear) {
+	transition: $property $duration $timing-fn;
+	-webkit-transition: $property $duration $timing-fn;
+}
