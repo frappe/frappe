@@ -7,6 +7,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_path
 from os.path import join as join_path, exists as path_exists, abspath, splitext
+from frappe.utils import update_progress_bar
 
 class WebsiteTheme(Document):
 	def validate(self):
@@ -156,3 +157,16 @@ def get_scss_paths():
 			import_path_list.add(import_path)
 
 	return import_path_list
+
+
+def after_migrate():
+	"""
+	Regenerate CSS files after migration.
+
+	Necessary to reflect possible changes in the imported SCSS files. Called at
+	the end of every `bench migrate`.
+	"""
+	website_theme_list = frappe.get_list('Website Theme')
+	for website_theme in website_theme_list:
+		website_theme_doc = frappe.get_doc('Website Theme', website_theme.name)
+		website_theme_doc.validate()
