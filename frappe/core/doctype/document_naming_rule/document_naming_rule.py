@@ -16,10 +16,6 @@ class DocumentNamingRule(Document):
 			if not evaluate_filters(doc, [(d.field, d.condition, d.value) for d in self.conditions]):
 				return
 
-		if self.naming_by == 'Field Value':
-			doc.name = doc.get(self.naming_field)
-
-		elif self.naming_by == 'Numbered':
-			counter = frappe.db.get_value(self.doctype, self.name, 'counter', for_update=True) or 0
-			doc.name = self.prefix + ('%0'+str(self.prefix_digits)+'d') % (counter + 1)
-			frappe.db.set_value(self.doctype, self.name, 'counter', counter + 1)
+		counter = frappe.db.get_value(self.doctype, self.name, 'counter', for_update=True) or 0
+		doc.name = self.prefix + ('%0'+str(self.prefix_digits)+'d') % (counter + 1)
+		frappe.db.set_value(self.doctype, self.name, 'counter', counter + 1)

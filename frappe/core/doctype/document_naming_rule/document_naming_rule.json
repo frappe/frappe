@@ -7,11 +7,10 @@
  "field_order": [
   "document_type",
   "disabled",
+  "priority",
   "section_break_3",
   "conditions",
   "naming_section",
-  "naming_by",
-  "naming_field",
   "prefix",
   "prefix_digits",
   "counter"
@@ -32,28 +31,12 @@
    "label": "Disabled"
   },
   {
-   "fieldname": "naming_by",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Naming By",
-   "options": "Numbered\nField Value"
-  },
-  {
-   "depends_on": "eval:doc.naming_by===\"Field Value\"",
-   "fieldname": "naming_field",
-   "fieldtype": "Select",
-   "label": "Naming Field",
-   "mandatory_depends_on": "eval:doc.naming_by===\"Field Value\""
-  },
-  {
-   "depends_on": "eval:doc.naming_by===\"Numbered\"",
    "fieldname": "prefix",
    "fieldtype": "Data",
    "label": "Prefix",
    "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\""
   },
   {
-   "depends_on": "eval:doc.naming_by === 'Numbered'",
    "fieldname": "counter",
    "fieldtype": "Int",
    "label": "Counter",
@@ -61,7 +44,6 @@
   },
   {
    "default": "5",
-   "depends_on": "eval:doc.naming_by==='Numbered'",
    "description": "Example: 00001",
    "fieldname": "prefix_digits",
    "fieldtype": "Int",
@@ -85,11 +67,17 @@
    "fieldtype": "Table",
    "label": "Conditions",
    "options": "Document Naming Rule Condition"
+  },
+  {
+   "description": "Rules with higher priority will be applied first.",
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-08 12:30:38.870359",
+ "modified": "2020-09-21 10:23:34.401539",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Rule",
