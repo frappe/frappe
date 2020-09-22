@@ -106,6 +106,18 @@ class WebsiteTheme(Document):
 		website_settings.ignore_validate = True
 		website_settings.save()
 
+	def get_apps(self):
+		from frappe.utils.change_log import get_versions
+		apps = get_versions()
+		out = []
+		for app, values in apps.items():
+			out.append({
+				'name': app,
+				'title': values['title']
+			})
+		return out
+
+
 def add_website_theme(context):
 	context.theme = frappe._dict()
 
@@ -122,6 +134,7 @@ def get_active_theme():
 			pass
 
 
+
 def get_scss(website_theme):
 	"""
 	Render `website_theme_template.scss` with the values defined in Website Theme.
@@ -129,13 +142,12 @@ def get_scss(website_theme):
 	params:
 	website_theme - instance of a Website Theme
 	"""
-	list_of_imports_to_ignore = (website_theme.get('imports_to_ignore') or '').split(',')
-	set_of_imports_to_ignore = {s.strip() for s in list_of_imports_to_ignore}
-	set_of_available_imports = get_scss_paths()
-
-	opts = website_theme.as_dict()
-	opts['website_theme_scss'] = set_of_available_imports.difference(set_of_imports_to_ignore)
-	return frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', opts)
+	apps_to_ignore = tuple(d.app for d in website_theme.ignored_apps)
+	available_imports = get_scss_paths()
+	imports_to_include = [d for d in available_imports if not d.startswith(apps_to_ignore)]
+	context = website_theme.as_dict()
+	context['website_theme_scss'] = imports_to_include
+	return frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', context)
 
 
 def get_scss_paths():
@@ -145,7 +157,7 @@ def get_scss_paths():
 	If `$BENCH_PATH/apps/frappe/frappe/public/scss/website.scss` exists, the
 	returned set will contain 'frappe/public/scss/website'.
 	"""
-	import_path_list = set()
+	import_path_list = []
 	bench_path = frappe.utils.get_bench_path()
 
 	for app in frappe.get_installed_apps():
@@ -153,7 +165,7 @@ def get_scss_paths():
 		full_path = get_path('apps', app, relative_path, base=bench_path)
 		if path_exists(full_path):
 			import_path = splitext(relative_path)[0]
-			import_path_list.add(import_path)
+			import_path_list.append(import_path)
 
 	return import_path_list
 

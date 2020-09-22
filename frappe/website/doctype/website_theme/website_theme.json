@@ -26,9 +26,10 @@
   "stylesheet_section",
   "custom_overrides",
   "custom_scss",
-  "imports_to_ignore",
   "theme_scss",
   "theme_url",
+  "included_theme_files_section",
+  "ignored_apps",
   "custom_js_section",
   "js"
  ],
@@ -171,15 +172,21 @@
    "options": "SCSS"
   },
   {
-   "description": "Comma-separated list of import paths",
-   "fieldname": "imports_to_ignore",
-   "fieldtype": "Data",
-   "label": "Imports To Ignore"
+   "collapsible": 1,
+   "fieldname": "included_theme_files_section",
+   "fieldtype": "Section Break",
+   "label": "Included Theme Files"
+  },
+  {
+   "fieldname": "ignored_apps",
+   "fieldtype": "Table",
+   "label": "Ignored Apps",
+   "options": "Website Theme Ignore App"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-16 23:12:02.863833",
+ "modified": "2020-09-22 08:33:45.695753",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
