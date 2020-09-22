@@ -74,7 +74,7 @@ frappe.ui.form.on("Website Theme", {
 								.get_field("apps")
 								.get_unchecked_options()
 								.map(app => ({ app: app }));
-							frm.set_value("ignored_apps", value);
+							frm.set_value("ignored_apps", value.length ? value : null);
 						},
 						options: apps.map(app => ({
 							label: app.title,
