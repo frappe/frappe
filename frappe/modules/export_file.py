@@ -41,10 +41,6 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 	else:
 		folder = create_folder(module, doc.doctype, doc.name, create_init)
 
-	# override modified_by in json file
-	if not newdoc.custom:
-		newdoc.modified_by = 'Administrator'
-	
 	# write the data file
 	fname = scrub(doc.name)
 	with open(os.path.join(folder, fname + ".json"), 'w+') as txtfile:
