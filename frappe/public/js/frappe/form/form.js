@@ -1265,7 +1265,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	set_df_property(fieldname, property, value, docname, table_field) {
 		var df;
-		if (!docname && !table_field){
+		if (!docname && !table_field) {
 			df = this.get_docfield(fieldname);
 		} else {
 			var grid = this.fields_dict[table_field].grid,
@@ -1273,7 +1273,7 @@ frappe.ui.form.Form = class FrappeForm {
 			if (fname && fname.length)
 				df = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
 		}
-		if(df && df[property] != value) {
+		if (df && df[property] != value) {
 			df[property] = value;
 			refresh_field(fieldname, table_field);
 		}
