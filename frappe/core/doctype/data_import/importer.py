@@ -634,7 +634,6 @@ class Row:
 				value = None
 
 			if value is not None:
-				record_is_empty = False
 				value = self.validate_value(value, col, prior)
 
 			if value is not None:

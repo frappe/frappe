@@ -1,0 +1,5 @@
+Title,Description,Is Group,Parent DocType for Import
+alpha,leader,1,
+beta,first follower,0,leader
+gamma,subleader,1,leader
+delta,lowly follower,0,subleader

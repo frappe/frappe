@@ -98,6 +98,26 @@ class TestImporter(unittest.TestCase):
 		self.assertEqual(updated_doc.table_field_1[0].child_description, 'child description')
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, 'child title again')
 
+	def test_data_import_tree(self):
+		import_file = get_import_file('sample_import_file_for_tree')
+		data_import = self.get_importer(doctype_name, import_file)
+		data_import.start_import()
+
+		doca = frappe.get_doc(doctype_name, 'alpha')
+		docb = frappe.get_doc(doctype_name, 'beta')
+		docc = frappe.get_doc(doctype_name, 'gamma')
+		docd = frappe.get_doc(doctype_name, 'delta')
+
+		self.assertEqual(doca.description, 'leader')
+		self.assertEqual(doca.is_group, 1)
+		self.assertEqual(docb.description, 'first follower')
+		self.assertEqual(docb.parent_doctype_for_import, 'alpha')
+		self.assertEqual(docc.title, 'gamma')
+		self.assertEqual(docc.is_group, 1)
+		self.assertEqual(docc.parent_doctype_for_import, 'alpha')
+		self.assertEqual(docd.title, 'delta')
+		self.assertEqual(docd.parent_doctype_for_import, 'gamma')
+
 	def get_importer(self, doctype, import_file, update=False):
 		data_import = frappe.new_doc('Data Import')
 		data_import.import_type = 'Insert New Records' if not update else 'Update Existing Records'
@@ -168,6 +188,7 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 			{'label': 'Table Field 2', 'fieldname': 'table_field_2', 'fieldtype': 'Table', 'options': table_2_name},
 			{'label': 'Table Field 1 Again', 'fieldname': 'table_field_1_again', 'fieldtype': 'Table', 'options': table_1_name},
 		],
+		'is_tree': 1,
 		'permissions': [
 			{'role': 'System Manager'}
 		]
