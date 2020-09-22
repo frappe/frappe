@@ -384,12 +384,14 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 
 			if isinstance(row, dict) and row:
 				for idx in range(len(data.columns)):
-					label = columns[idx]["label"]
-					fieldname = columns[idx]["fieldname"]
-					cell_value = row.get(fieldname, row.get(label, ""))
-					if cint(include_indentation) and 'indent' in row and idx == 0:
-						cell_value = ('    ' * cint(row['indent'])) + cell_value
-					row_data.append(cell_value)
+					# check if column is not hidden 
+					if not columns[idx].get("hidden"):
+						label = columns[idx]["label"]
+						fieldname = columns[idx]["fieldname"]
+						cell_value = row.get(fieldname, row.get(label, ""))
+						if cint(include_indentation) and 'indent' in row and idx == 0:
+							cell_value = ('    ' * cint(row['indent'])) + cell_value
+						row_data.append(cell_value)
 			else:
 				row_data = row
 
@@ -461,6 +463,9 @@ def add_total_row(result, columns, meta = None):
 
 @frappe.whitelist()
 def get_data_for_custom_field(doctype, field):
+
+	if not frappe.has_permission(doctype, "read"):
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	value_map = frappe._dict(frappe.get_all(doctype,
 		fields=["name", field],

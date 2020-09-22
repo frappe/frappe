@@ -66,6 +66,8 @@
   {
    "fieldname": "route",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Route",
    "unique": 1
   },
@@ -84,6 +86,7 @@
    "default": "0",
    "fieldname": "published",
    "fieldtype": "Check",
+   "in_standard_filter": 1,
    "label": "Published"
   },
   {
@@ -126,6 +129,7 @@
    "depends_on": "eval:doc.content_type==='Markdown'",
    "fieldname": "main_section_md",
    "fieldtype": "Markdown Editor",
+   "ignore_xss_filter": 1,
    "label": "Main Section (Markdown)"
   },
   {
@@ -294,7 +298,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 20,
- "modified": "2020-08-07 10:55:54.885448",
+ "modified": "2020-09-11 16:15:17.065665",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

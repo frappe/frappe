@@ -13,15 +13,16 @@ from frappe.utils.user import get_system_managers
 from bs4 import BeautifulSoup
 import frappe.permissions
 import frappe.share
-import re
-import json
 
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
 
 STANDARD_USERS = ("Guest", "Administrator")
 
-class MaxUsersReachedError(frappe.ValidationError): pass
+
+class MaxUsersReachedError(frappe.ValidationError):
+	pass
+
 
 class User(Document):
 	__new_password = None
@@ -225,6 +226,11 @@ class User(Document):
 	def reset_password(self, send_email=False, password_expired=False):
 		from frappe.utils import random_string, get_url
 
+		rate_limit = frappe.db.get_single_value("System Settings", "password_reset_limit")
+
+		if rate_limit:
+			check_password_reset_limit(self.name, rate_limit)
+
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
 
@@ -236,6 +242,7 @@ class User(Document):
 		if send_email:
 			self.password_reset_mail(link)
 
+		update_password_reset_limit(self.name)
 		return link
 
 	def get_other_system_managers(self):
@@ -1110,3 +1117,16 @@ def generate_keys(user):
 
 		return {"api_secret": api_secret}
 	frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
+
+def update_password_reset_limit(user):
+	generated_link_count = get_generated_link_count(user)
+	generated_link_count += 1
+	frappe.cache().hset("password_reset_link_count", user, generated_link_count)
+
+def check_password_reset_limit(user, rate_limit):
+	generated_link_count = get_generated_link_count(user)
+	if generated_link_count >= rate_limit:
+		frappe.throw(_("You have reached the hourly limit for generating password reset links. Please try again later."))
+
+def get_generated_link_count(user):
+	return cint(frappe.cache().hget("password_reset_link_count", user)) or 0
