@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import os
+import traceback
 import frappe
 from frappe.model.document import Document
 
@@ -104,6 +105,14 @@ def start_import(data_import):
 	except Exception:
 		frappe.db.rollback()
 		data_import.db_set("status", "Error")
+		# Not clear whether it is reasonable to print the traceback.
+		# However, I couldn't find any other way to capture it;
+		# the utils/error "make_error_snapshot" function did not appear
+		# to leave anything behind in the database, even if called
+		# after the rollback above. Please feel free to replace this
+		# with any better mechanism for capturing the error report,
+		# which is critical for debugging Data Import/Importer.
+		traceback.print_exc()
 		frappe.log_error(title=data_import.name)
 	finally:
 		frappe.flags.in_import = False
