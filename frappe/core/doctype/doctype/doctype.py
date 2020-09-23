@@ -99,6 +99,10 @@ class DocType(Document):
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
 
+		if frappe.conf.get('developer_mode'):
+			self.owner = 'Administrator'
+			self.modified_by = 'Administrator'
+
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''
 		if not [d.fieldname for d in self.fields if d.in_list_view]:
