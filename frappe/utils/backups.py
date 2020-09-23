@@ -18,6 +18,7 @@ from frappe.utils import cstr, get_url, now_datetime
 # backup variable for backwards compatibility
 verbose = False
 _verbose = verbose
+base_tables = ["__Auth", "__global_search", "__UserSettings"]
 
 
 class BackupGenerator:
@@ -29,7 +30,7 @@ class BackupGenerator:
 	"""
 	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
 		backup_path_private_files=None, db_host="localhost", db_port=None, verbose=False,
-		db_type='mariadb', backup_path_conf=None):
+		db_type='mariadb', backup_path_conf=None, ignore_conf=False, include_doctypes="", exclude_doctypes=""):
 		global _verbose
 		self.db_host = db_host
 		self.db_port = db_port
@@ -41,6 +42,9 @@ class BackupGenerator:
 		self.backup_path_db = backup_path_db
 		self.backup_path_files = backup_path_files
 		self.backup_path_private_files = backup_path_private_files
+		self.ignore_conf = ignore_conf
+		self.include_doctypes = include_doctypes
+		self.exclude_doctypes = exclude_doctypes
 
 		if not self.db_type:
 			self.db_type = 'mariadb'
@@ -54,6 +58,7 @@ class BackupGenerator:
 		self.site_slug = site.replace('.', '_')
 		self.verbose = verbose
 		self.setup_backup_directory()
+		self.setup_backup_tables()
 		_verbose = verbose
 
 	def setup_backup_directory(self):
@@ -67,6 +72,35 @@ class BackupGenerator:
 			for file_path in [self.backup_path_files, self.backup_path_db, self.backup_path_private_files]:
 				dir = os.path.dirname(file_path)
 				os.makedirs(dir, exist_ok=True)
+
+	def setup_backup_tables(self):
+		"""Sets self.backup_includes, self.backup_excludes based on passed args
+		"""
+		def get_tables(doctypes):
+			tables = []
+			for doctype in doctypes:
+				if doctype:
+					if doctype.startswith("tab"):
+						tables.append(doctype)
+					else:
+						tables.append("tab" + doctype)
+			return tables
+
+		passed_tables = {
+			"include": get_tables(self.include_doctypes.strip().split(",")),
+			"exclude": get_tables(self.exclude_doctypes.strip().split(","))
+		}
+		conf_tables = {
+			"include": get_tables(frappe.conf.backup.get("includes", [])) + base_tables,
+			"exclude": get_tables(frappe.conf.backup.get("excludes", []))
+		}
+
+		self.backup_includes = passed_tables["include"]
+		self.backup_excludes = passed_tables["exclude"]
+
+		if not self.ignore_conf:
+			self.backup_includes = self.backup_includes or conf_tables["include"]
+			self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
 
 	@property
 	def site_config_backup_path(self):
@@ -189,23 +223,42 @@ class BackupGenerator:
 		args = dict([item[0], frappe.utils.esc(str(item[1]), '$ ')]
 			for item in self.__dict__.copy().items())
 
-		if self.verbose:
-			print("Skipping Tables: {0}\n".format(", ".join(frappe.conf.ignore_tables_in_backup)))
-
-		args["skip_tables"] = " ".join(["--ignore-table={0}.{1}".format(frappe.conf.db_name, table) for table in frappe.conf.ignore_tables_in_backup or []])
-		cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s -P %(db_port)s %(skip_tables)s | gzip > %(backup_path_db)s """ % args
+		if self.backup_includes:
+			print("Backing Up Tables: {0}\n".format(", ".join(self.backup_includes)))
+		elif self.backup_excludes:
+			print("Skipping Tables: {0}\n".format(", ".join(self.backup_excludes)))
 
 		if self.db_type == 'postgres':
-			cmd_string = "pg_dump postgres://{user}:{password}@{db_host}:{db_port}/{db_name} | gzip > {backup_path_db}".format(
-				user=args.get('user'),
-				password=args.get('password'),
-				db_host=args.get('db_host'),
-				db_port=args.get('db_port'),
-				db_name=args.get('db_name'),
-				backup_path_db=args.get('backup_path_db')
-			)
+			if self.backup_includes:
+				args["include"] = " ".join(["--table='{0}'".format(table) for table in self.backup_includes])
+			elif self.backup_excludes:
+				args["exclude"] = " ".join(["--exclude-table='{0}'".format(table) for table in self.backup_excludes])
 
-		err, out = frappe.utils.execute_in_shell(cmd_string)
+			cmd_string = "pg_dump postgres://{user}:{password}@{db_host}:{db_port}/{db_name} {include} {exclude} | gzip > {backup_path_db}"
+
+		else:
+			if self.backup_includes:
+				args["include"] = " ".join(["'{0}'".format(x) for x in self.backup_includes])
+
+			elif self.backup_excludes:
+				args["exclude"] = " ".join(["--ignore-table='{0}.{1}'".format(frappe.conf.db_name, table) for table in self.backup_excludes])
+
+			cmd_string = "mysqldump --single-transaction --quick --lock-tables=false -u {user} -p{password} {db_name} -h {db_host} -P {db_port} {include} {exclude} | gzip > {backup_path_db}"
+
+		command = cmd_string.format(
+			user=args.get('user'),
+			password=args.get('password'),
+			db_host=args.get('db_host'),
+			db_port=args.get('db_port'),
+			db_name=args.get('db_name'),
+			backup_path_db=args.get('backup_path_db'),
+			exclude=args.get('exclude', ''),
+			include=args.get('include', '')
+		)
+
+		print(command)
+
+		err, out = frappe.utils.execute_in_shell(command)
 
 	def send_email(self):
 		"""
@@ -279,14 +332,14 @@ def fetch_latest_backups():
 	}
 
 
-def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False, ignore_conf=False, include_doctypes="", exclude_doctypes=""):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force, verbose=verbose)
+	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force, verbose=verbose, ignore_conf=ignore_conf, include_doctypes=include_doctypes, exclude_doctypes=exclude_doctypes)
 	return odb
 
-def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False):
+def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False, ignore_conf=False, include_doctypes="", exclude_doctypes=""):
 	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 24)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
@@ -295,6 +348,9 @@ def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_pat
 						  db_host = frappe.db.host,
 						  db_port = frappe.db.port,
 						  db_type = frappe.conf.db_type,
+						  ignore_conf=ignore_conf,
+						  include_doctypes=include_doctypes,
+						  exclude_doctypes=exclude_doctypes,
 						  verbose=verbose)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb

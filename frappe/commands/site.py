@@ -387,10 +387,13 @@ def use(site, sites_path='.'):
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
+@click.option('--ignore-backup-conf', default=False, is_flag=True, help="Ignore excludes/includes set in config")
+@click.option('--include', default="", type=str, help="Specify the DocTypes to backup seperated by commas")
+@click.option('--exclude', default="", type=str, help="Specify the DocTypes to not backup seperated by commas")
 @click.option('--verbose', default=False, is_flag=True)
 @pass_context
 def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
-	backup_path_private_files=None, quiet=False, verbose=False):
+	backup_path_private_files=None, quiet=False, verbose=False, ignore_backup_conf=False, include="", exclude=""):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
 	verbose = verbose or context.verbose
@@ -399,10 +402,21 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True, verbose=verbose)
+			odb = scheduled_backup(
+				ignore_files=not with_files,
+				backup_path_db=backup_path_db,
+				backup_path_files=backup_path_files,
+				backup_path_private_files=backup_path_private_files,
+				ignore_conf=ignore_backup_conf,
+				include_doctypes=include,
+				exclude_doctypes=exclude,
+				verbose=verbose,
+				force=True,
+			)
 		except Exception as e:
 			if verbose:
 				print("Backup failed for {0}. Database or site_config.json may be corrupted".format(site))
+				print(e)
 			exit_code = 1
 			continue
 
