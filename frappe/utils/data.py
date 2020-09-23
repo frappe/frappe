@@ -218,6 +218,11 @@ def get_datetime_str(datetime_obj):
 		datetime_obj = get_datetime(datetime_obj)
 	return datetime_obj.strftime(DATETIME_FORMAT)
 
+def get_date_str(date_obj):
+	if isinstance(date_obj, string_types):
+		date_obj = get_datetime(date_obj)
+	return date_obj.strftime(DATE_FORMAT)
+
 def get_user_format():
 	if getattr(frappe.local, "user_format", None) is None:
 		frappe.local.user_format = frappe.db.get_default("date_format")
