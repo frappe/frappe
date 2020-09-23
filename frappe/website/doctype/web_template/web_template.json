@@ -9,6 +9,7 @@
  "field_order": [
   "type",
   "standard",
+  "module",
   "template",
   "fields"
  ],
@@ -41,11 +42,18 @@
    "in_standard_filter": 1,
    "label": "Type",
    "options": "Section\nNavbar\nFooter"
+  },
+  {
+   "depends_on": "standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-11 16:09:07.367280",
+ "modified": "2020-09-18 13:54:12.667877",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
