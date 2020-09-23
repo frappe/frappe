@@ -147,12 +147,13 @@ class Exporter:
 			if df.parent == doctype:
 				if df.is_child_table_field and df.child_table_df.fieldname != parentfield:
 					continue
-				row[i] = doc.get(df.fieldname, "")
+				value = doc.get(df.fieldname, None)
 
 				if df.fieldtype == "Duration":
-					value = flt(doc.get(df.fieldname, 0))
-					row[i] = format_duration(value, df.hide_days)
+					value = flt(value or 0)
+					value = format_duration(value, df.hide_days)
 
+				row[i] = value
 		return rows
 
 	def get_data_as_docs(self):
