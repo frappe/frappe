@@ -4,9 +4,15 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
 import unittest
+from random import choice
+
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.utils import random_string
+from frappe.utils.testutils import clear_custom_fields
+
 
 class TestDB(unittest.TestCase):
 	def test_get_value(self):
@@ -86,23 +92,51 @@ class TestDB(unittest.TestCase):
 		"""Tests if DB keywords work as docfield names. If they're wrapped with grave accents."""
 		# Using random.choices, picked out a list of 40 keywords for testing
 		all_keywords = {
-			"mariadb": ["CHARACTER", "DELAYED", "LINES", "EXISTS", "YEAR_MONTH", "LOCALTIME", "BOTH", "MEDIUMINT", "LEFT", "BINARY", "LEFT", "DEFAULT", "KILL", "WRITE", "SQL_SMALL_RESULT", "CURRENT_TIME", "CROSS", "SET", "TABLE", "ALTER", "CURRENT_TIMESTAMP", "XOR", "CASE", "ALL", "WHERE", "INT", "TO", "SOME", "DAY_MINUTE", "ALL", "ERRORS", "OPTIMIZE", "LOCK", "REPLACE", "HIGH_PRIORITY", "VARBINARY", "HELP", "IS", "CHAR", "DESCRIBE"],
-			"postgres": ["WORK", "LANCOMPILER", "REAL", "HAVING", "REPEATABLE", "DATA", "USING", "BIT", "DEALLOCATE", "SERIALIZABLE", "CURSOR", "INHERITS", "ARRAY", "TRUE", "IGNORE", "PARAMETER_MODE", "ROW", "CHECKPOINT", "SHOW", "BY", "SIZE", "SCALE", "UNENCRYPTED", "WITH", "AND", "CONVERT", "FIRST", "SCOPE", "WRITE", "INTERVAL", "CHARACTER_SET_SCHEMA", "ADD", "LANCOMPILER", "SCROLL", "PRECISION", "NULL", "WHEN", "TRANSACTION_ACTIVE", "INT", "FORTRAN"]
+			"mariadb": ["CHARACTER", "DELAYED", "LINES", "EXISTS", "YEAR_MONTH", "LOCALTIME", "BOTH", "MEDIUMINT",
+			"LEFT", "BINARY", "DEFAULT", "KILL", "WRITE", "SQL_SMALL_RESULT", "CURRENT_TIME", "CROSS", "INHERITS",
+			"SELECT", "TABLE", "ALTER", "CURRENT_TIMESTAMP", "XOR", "CASE", "ALL", "WHERE", "INT", "TO", "SOME",
+			"DAY_MINUTE", "ERRORS", "OPTIMIZE", "REPLACE", "HIGH_PRIORITY", "VARBINARY", "HELP", "IS",
+			"CHAR", "DESCRIBE", "KEY"],
+			"postgres": ["WORK", "LANCOMPILER", "REAL", "HAVING", "REPEATABLE", "DATA", "USING", "BIT", "DEALLOCATE",
+			"SERIALIZABLE", "CURSOR", "INHERITS", "ARRAY", "TRUE", "IGNORE", "PARAMETER_MODE", "ROW", "CHECKPOINT",
+			"SHOW", "BY", "SIZE", "SCALE", "UNENCRYPTED", "WITH", "AND", "CONVERT", "FIRST", "SCOPE", "WRITE", "INTERVAL",
+			"CHARACTER_SET_SCHEMA", "ADD", "SCROLL", "PRECISION", "NULL", "WHEN", "TRANSACTION_ACTIVE",
+			"INT", "FORTRAN", "STABLE"]
 		}
+		created_docs = []
 		fields = all_keywords[frappe.conf.db_type]
-		test_doctype = "Keywords Test"
+		test_doctype = "ToDo"
 
-		frappe.get_doc({
-			"doctype": "DocType",
-			"name": test_doctype,
-			"module": "Custom",
-			"custom": 1,
-			"fields": [{
-				"label": field.title(),
+		def add_custom_field(field):
+			create_custom_field(test_doctype, {
 				"fieldname": field.lower(),
-				"fieldtype": "Data"
-			} for field in fields]
-		}).insert()
+				"label": field.title(),
+				"fieldtype": 'Data',
+			})
 
-		frappe.delete_doc("DocType", test_doctype)
+		# Create custom fields for test_doctype
+		for field in fields:
+			add_custom_field(field)
 
+		# Create documents under that doctype and query them via ORM
+		for _ in range(10):
+			docfields = { key.lower(): random_string(10) for key in fields }
+			doc = frappe.get_doc({"doctype": test_doctype, "description": random_string(20), **docfields})
+			doc.insert()
+			created_docs.append(doc.name)
+
+		random_field = choice(fields)
+		random_doc = choice(created_docs)
+		random_value = random_string(20)
+
+		# Testing read
+		self.assertEqual(list(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])[0], random_field)
+
+		# Testing update
+		frappe.db.set_value(test_doctype, random_doc, random_field, random_value)
+		self.assertEqual(frappe.db.get_value(test_doctype, random_doc, random_field), random_value)
+
+		# Cleanup - delete records and remove custom fields
+		for doc in created_docs:
+			frappe.delete_doc(test_doctype, doc)
+		clear_custom_fields(test_doctype)
