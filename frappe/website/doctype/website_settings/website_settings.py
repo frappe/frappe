@@ -119,7 +119,8 @@ def get_website_settings(context=None):
 	for k in ["banner_html", "banner_image", "brand_html", "copyright", "twitter_share_via",
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
-		"navbar_search", "enable_view_tracking", "footer_logo", "call_to_action", "call_to_action_url"]:
+		"navbar_template", "footer_template", "navbar_search", "enable_view_tracking",
+		"footer_logo", "call_to_action", "call_to_action_url"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 

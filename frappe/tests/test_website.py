@@ -9,6 +9,7 @@ from frappe.utils import set_request
 
 
 class TestWebsite(unittest.TestCase):
+
 	def test_home_page_for_role(self):
 		frappe.delete_doc_if_exists('User', 'test-user-for-home-page@example.com')
 		frappe.delete_doc_if_exists('Role', 'home-page-test')
@@ -42,8 +43,6 @@ class TestWebsite(unittest.TestCase):
 		frappe.cache().hdel('home_page', frappe.session.user)
 		self.assertEqual(get_home_page(), 'test-portal-home')
 
-
-
 	def test_page_load(self):
 		frappe.set_user('Guest')
 		set_request(method='POST', path='login')
@@ -53,7 +52,6 @@ class TestWebsite(unittest.TestCase):
 
 		html = frappe.safe_decode(response.get_data())
 
-		self.assertTrue('/* login-css */' in html)
 		self.assertTrue('// login.js' in html)
 		self.assertTrue('<!-- login.html -->' in html)
 		frappe.set_user('Administrator')

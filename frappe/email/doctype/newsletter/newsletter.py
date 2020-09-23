@@ -85,12 +85,12 @@ class Newsletter(WebsiteGenerator):
 			self.db_set("scheduled_to_send", len(self.recipients))
 
 	def get_message(self):
-		
+
 		return {
 			'Rich Text': self.message,
 			'Markdown': markdown(self.message_md),
 			'HTML': self.message_html
-		}[self.content_type]
+		}[self.content_type or 'Rich Text']
 
 	def get_recipients(self):
 		"""Get recipients from Email Group"""

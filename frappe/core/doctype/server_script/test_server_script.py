@@ -37,6 +37,15 @@ if "validate" in doc.description:
 		script = '''
 frappe.response['message'] = 'hello'
 '''
+	),
+	dict(
+		name='test_return_value',
+		script_type = 'API',
+		api_method = 'test_return_value',
+		allow_guest = 1,
+		script = '''
+frappe.flags = 'hello'
+'''
 	)
 ]
 class TestServerScript(unittest.TestCase):
@@ -73,3 +82,6 @@ class TestServerScript(unittest.TestCase):
 		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual("hello", response.json()["message"])
+
+	def test_api_return(self):
+		self.assertEqual(frappe.get_doc('Server Script', 'test_return_value').execute_method(), 'hello')

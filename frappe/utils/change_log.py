@@ -9,7 +9,6 @@ import frappe
 import requests
 import subprocess # nosec
 from frappe.utils import cstr
-from frappe.utils.gitutils import get_app_branch
 from frappe import _, safe_decode
 
 

@@ -191,7 +191,7 @@ def upload_system_backup_to_google_drive():
 		backup = new_backup()
 		file_urls = []
 		file_urls.append(backup.backup_path_db)
-		file_urls.append(backup.site_config_backup_path)
+		file_urls.append(backup.backup_path_conf)
 
 		if account.file_backup:
 			file_urls.append(backup.backup_path_files)
