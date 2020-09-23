@@ -92,12 +92,12 @@ class TestDB(unittest.TestCase):
 		fieldnames = all_keywords[frappe.conf.db_type]
 
 		def batch(iterable, n=1):
-			l = len(iterable)
-			for ndx in range(0, l, n):
-				yield iterable[ndx:min(ndx + n, l)]
+			total = len(iterable)
+			for ndx in range(0, total, n):
+				yield iterable[ndx:min(ndx + n, total)]
 
 		for i, fields in enumerate(batch(fieldnames, n=20)):
-			new_docype = frappe.get_doc({
+			new_doctype = frappe.get_doc({
 				"doctype": "DocType",
 				"name": "Keywords Test {0}".format(i + 1),
 				"module": "Custom",
@@ -112,8 +112,9 @@ class TestDB(unittest.TestCase):
 					"fieldtype": "Data"
 				})
 
-			new_docype.insert()
+			new_doctype.insert()
 			all_doctypes.append(new_doctype.name)
 
 		for doctype in all_doctypes:
 			frappe.delete_doc("DocType", doctype)
+
