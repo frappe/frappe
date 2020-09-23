@@ -8,14 +8,13 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, get_url_to_form
+from frappe.utils import flt, cint, get_html_format, get_url_to_form, gzip_decompress, format_duration
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
-from frappe.utils import gzip_decompress
 from frappe.core.utils import ljust_list
 
 def get_report_doc(report_name):
@@ -360,6 +359,7 @@ def export_query():
 		columns = get_columns_dict(data.columns)
 
 		from frappe.utils.xlsxutils import make_xlsx
+		data['result'] = handle_duration_fieldtype_values(data.get('result'), data.get('columns'))
 		xlsx_data = build_xlsx_data(columns, data, visible_idx, include_indentation)
 		xlsx_file = make_xlsx(xlsx_data, "Query Report")
 
@@ -367,6 +367,29 @@ def export_query():
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
 
+def handle_duration_fieldtype_values(result, columns):
+	for i, col in enumerate(columns):
+		fieldtype = None
+		if isinstance(col, string_types):
+			col = col.split(":")
+			if len(col) > 1:
+				if col[1]:
+					fieldtype = col[1]
+					if "/" in fieldtype:
+						fieldtype, options = fieldtype.split("/")
+				else:
+					fieldtype = "Data"
+		else:
+			fieldtype = col.get("fieldtype")
+
+		if fieldtype == "Duration":
+			for entry in range(0, len(result)):
+				val_in_seconds = result[entry][i]
+				if val_in_seconds:
+					duration_val = format_duration(val_in_seconds)
+					result[entry][i] = duration_val
+
+	return result
 
 def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	result = [[]]
@@ -429,7 +452,7 @@ def add_total_row(result, columns, meta = None):
 			if i >= len(row): continue
 
 			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
-			if fieldtype in ["Currency", "Int", "Float", "Percent"] and flt(cell):
+			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(cell):
 				total_row[i] = flt(total_row[i]) + flt(cell)
 
 			if fieldtype == "Percent" and i not in has_percent:
