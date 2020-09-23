@@ -11,19 +11,22 @@ from jinja2.exceptions import TemplateSyntaxError
 
 import frappe
 from frappe import _
-from frappe.utils import get_datetime, now, strip_html
+from frappe.utils import get_datetime, now, strip_html, quoted
 from frappe.utils.jinja import render_template
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.router import resolve_route
 from frappe.website.utils import (extract_title, find_first_image, get_comment_list,
 	get_html_content_based_on_type)
 from frappe.website.website_generator import WebsiteGenerator
+from frappe.utils.safe_exec import safe_exec
 
 
 class WebPage(WebsiteGenerator):
 	def validate(self):
 		self.validate_dates()
 		self.set_route()
+		if not self.dynamic_route:
+			self.route = quoted(self.route)
 
 	def get_feed(self):
 		return self.title
@@ -37,6 +40,12 @@ class WebPage(WebsiteGenerator):
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, 'main_section', self.content_type)
 		context.source_content_type = self.content_type
+
+		if self.context_script:
+			_locals = dict(context = frappe._dict())
+			safe_exec(self.context_script, None, _locals)
+			context.update(_locals['context'])
+
 		self.render_dynamic(context)
 
 		# if static page, get static content
@@ -45,6 +54,7 @@ class WebPage(WebsiteGenerator):
 
 		if self.enable_comments:
 			context.comment_list = get_comment_list(self.doctype, self.name)
+
 
 		context.update({
 			"style": self.css or "",
