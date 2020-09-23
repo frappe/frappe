@@ -102,16 +102,12 @@ class TestDB(unittest.TestCase):
 				"name": "Keywords Test {0}".format(i + 1),
 				"module": "Custom",
 				"custom": 1,
-				"fields": []
-			})
-
-			for field in fields:
-				new_doctype.fields.append({
+				"fields": [{
 					"label": field.title(),
 					"fieldname": field.lower(),
 					"fieldtype": "Data"
-				})
-
+				} for field in fields]
+			})
 			new_doctype.insert()
 			all_doctypes.append(new_doctype.name)
 
