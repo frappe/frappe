@@ -38,6 +38,8 @@
 
 .grid-body {
 	background-color: var(--fg-color);
+	border-bottom-left-radius: var(--border-radius);
+	border-bottom-right-radius: var(--border-radius);
 }
 
 .form-grid .data-row {
@@ -418,8 +420,4 @@
 .grid-label {
 	margin-right: 8px;
 	margin-bottom: 4px;
-}
-
-.form-clickable-section {
-	border-top: 1px solid var(--border-color);
 }
