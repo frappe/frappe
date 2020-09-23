@@ -335,6 +335,9 @@ class BaseDocument(object):
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname=="hash":
 					# hash collision? try again
+					frappe.flags.retry_count = (frappe.flags.retry_count or 0) + 1
+					if frappe.flags.retry_count > 5:
+						raise
 					self.name = None
 					self.db_insert()
 					return
