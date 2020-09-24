@@ -37,7 +37,8 @@ class WebTemplate(Document):
 				self.create_template_file()
 
 			# standard to custom
-			if self.get_doc_before_save().standard and not self.standard:
+			was_standard = (self.get_doc_before_save() or {}).get("standard")
+			if was_standard and not self.standard:
 				self.template = self.get_template(standard=True)
 				rmtree(self.get_template_folder())
 
