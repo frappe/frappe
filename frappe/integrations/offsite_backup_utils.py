@@ -88,5 +88,5 @@ def validate_file_size():
 	latest_file, site_config = get_latest_backup_file()
 	file_size = get_file_size(latest_file, unit="GB")
 
-	if file_size > 1:
+	if file_size > 1 and not frappe.db.get_value('Google Drive', None, 'file_backup'):
 		frappe.flags.create_new_backup = False
