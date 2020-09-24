@@ -26,10 +26,9 @@
   "stylesheet_section",
   "custom_overrides",
   "custom_scss",
+  "ignored_apps",
   "theme_scss",
   "theme_url",
-  "included_theme_files_section",
-  "ignored_apps",
   "custom_js_section",
   "js"
  ],
@@ -172,12 +171,6 @@
    "options": "SCSS"
   },
   {
-   "collapsible": 1,
-   "fieldname": "included_theme_files_section",
-   "fieldtype": "Section Break",
-   "label": "Included Theme Files"
-  },
-  {
    "fieldname": "ignored_apps",
    "fieldtype": "Table",
    "label": "Ignored Apps",
@@ -186,7 +179,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-22 08:33:45.695753",
+ "modified": "2020-09-24 11:42:33.867840",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
