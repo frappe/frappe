@@ -229,7 +229,7 @@ def get_site_config(sites_path=None, site_path=None):
 			try:
 				config.update(get_file_json(common_site_config))
 			except Exception as error:
-				click.secho("Common Site Config may be corrupted", fg="red")
+				click.secho("common_site_config.json is invalid", fg="red")
 				print(error)
 
 	if site_path:
@@ -238,7 +238,7 @@ def get_site_config(sites_path=None, site_path=None):
 			try:
 				config.update(get_file_json(site_config))
 			except Exception as error:
-				click.secho("Site Config for {0} may be corrupted".format(local.site), fg="red")
+				click.secho("{0}/site_config.json is invalid".format(local.site), fg="red")
 				print(error)
 		elif local.site and not local.flags.new_site:
 			raise IncorrectSitePath("{0} does not exist".format(local.site))
