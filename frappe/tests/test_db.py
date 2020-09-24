@@ -125,7 +125,7 @@ class TestDB(unittest.TestCase):
 			doc.insert()
 			created_docs.append(doc.name)
 
-		random_field = choice(fields)
+		random_field = choice(fields).lower()
 		random_doc = choice(created_docs)
 		random_value = random_string(20)
 
