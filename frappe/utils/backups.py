@@ -76,10 +76,11 @@ class BackupGenerator:
 	def setup_backup_tables(self):
 		"""Sets self.backup_includes, self.backup_excludes based on passed args
 		"""
+		existing_doctypes = set([x.name for x in frappe.get_all("DocType")])
 		def get_tables(doctypes):
 			tables = []
 			for doctype in doctypes:
-				if doctype:
+				if doctype and doctype in existing_doctypes:
 					if doctype.startswith("tab"):
 						tables.append(doctype)
 					else:
@@ -98,7 +99,7 @@ class BackupGenerator:
 		self.backup_includes = passed_tables["include"]
 		self.backup_excludes = passed_tables["exclude"]
 
-		if not self.ignore_conf:
+		if not (self.backup_includes or self.backup_excludes) and not self.ignore_conf:
 			self.backup_includes = self.backup_includes or conf_tables["include"]
 			self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
 
@@ -239,7 +240,6 @@ class BackupGenerator:
 		else:
 			if self.backup_includes:
 				args["include"] = " ".join(["'{0}'".format(x) for x in self.backup_includes])
-
 			elif self.backup_excludes:
 				args["exclude"] = " ".join(["--ignore-table='{0}.{1}'".format(frappe.conf.db_name, table) for table in self.backup_excludes])
 
@@ -256,7 +256,8 @@ class BackupGenerator:
 			include=args.get('include', '')
 		)
 
-		print(command)
+		if self.verbose:
+			print(command)
 
 		err, out = frappe.utils.execute_in_shell(command)
 
