@@ -8,14 +8,13 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, get_url_to_form
+from frappe.utils import flt, cint, get_html_format, get_url_to_form, gzip_decompress, format_duration
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
-from frappe.utils import gzip_decompress
 from frappe.core.utils import ljust_list
 
 def get_report_doc(report_name):
@@ -67,7 +66,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		# Reordered columns
 		columns = json.loads(report.custom_columns)
 
-		result = reorder_data_for_custom_columns(columns, query_columns, result, report.report_type)
+		result = reorder_data_for_custom_columns(columns, query_columns, result)
 
 		result = add_data_to_custom_columns(columns, result)
 
@@ -215,25 +214,19 @@ def add_data_to_custom_columns(columns, result):
 
 	return data
 
-def reorder_data_for_custom_columns(custom_columns, columns, result, report_type):
+def reorder_data_for_custom_columns(custom_columns, columns, result):
 	if not result:
 		return []
 
-	if report_type == 'Query Report':
-		# Assume list result for query reports
-		# Query report columns exclusively use Label
-		custom_column_labels = [col["label"] for col in custom_columns]
-		original_column_labels = [col.split(":")[0] for col in columns]
-		return get_columns_from_list(custom_column_labels, original_column_labels, result)
-
-	custom_column_names = [col["fieldname"] for col in custom_columns]
+	columns = [get_column_as_dict(col) for col in columns]
 	if isinstance(result[0], list) or isinstance(result[0], tuple):
 		# If the result is a list of lists
-		original_column_names = [col["fieldname"] for col in columns]
+		custom_column_names = [col["label"] for col in custom_columns]
+		original_column_names = [col["label"] for col in columns]
 		return get_columns_from_list(custom_column_names, original_column_names, result)
 	else:
-		# If the result is a list of dicts
-		return get_columns_from_dict(custom_column_names, result)
+		# columns do not need to be reordered if result is a list of dicts
+		return result
 
 def get_columns_from_list(columns, target_columns, result):
 	reordered_result = []
@@ -245,21 +238,6 @@ def get_columns_from_list(columns, target_columns, result):
 				idx = target_columns.index(col_name)
 				r.append(res[idx])
 			except ValueError:
-				pass
-
-		reordered_result.append(r)
-
-	return reordered_result
-
-def get_columns_from_dict(columns, result):
-	reordered_result = []
-
-	for res in result:
-		r = {}
-		for col_name in columns:
-			try:
-				r[col_name] = res[col_name]
-			except KeyError:
 				pass
 
 		reordered_result.append(r)
@@ -360,6 +338,7 @@ def export_query():
 		columns = get_columns_dict(data.columns)
 
 		from frappe.utils.xlsxutils import make_xlsx
+		data['result'] = handle_duration_fieldtype_values(data.get('result'), data.get('columns'))
 		xlsx_data = build_xlsx_data(columns, data, visible_idx, include_indentation)
 		xlsx_file = make_xlsx(xlsx_data, "Query Report")
 
@@ -367,6 +346,29 @@ def export_query():
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
 
+def handle_duration_fieldtype_values(result, columns):
+	for i, col in enumerate(columns):
+		fieldtype = None
+		if isinstance(col, string_types):
+			col = col.split(":")
+			if len(col) > 1:
+				if col[1]:
+					fieldtype = col[1]
+					if "/" in fieldtype:
+						fieldtype, options = fieldtype.split("/")
+				else:
+					fieldtype = "Data"
+		else:
+			fieldtype = col.get("fieldtype")
+
+		if fieldtype == "Duration":
+			for entry in range(0, len(result)):
+				val_in_seconds = result[entry][i]
+				if val_in_seconds:
+					duration_val = format_duration(val_in_seconds)
+					result[entry][i] = duration_val
+
+	return result
 
 def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	result = [[]]
@@ -384,12 +386,14 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 
 			if isinstance(row, dict) and row:
 				for idx in range(len(data.columns)):
-					label = columns[idx]["label"]
-					fieldname = columns[idx]["fieldname"]
-					cell_value = row.get(fieldname, row.get(label, ""))
-					if cint(include_indentation) and 'indent' in row and idx == 0:
-						cell_value = ('    ' * cint(row['indent'])) + cell_value
-					row_data.append(cell_value)
+					# check if column is not hidden 
+					if not columns[idx].get("hidden"):
+						label = columns[idx]["label"]
+						fieldname = columns[idx]["fieldname"]
+						cell_value = row.get(fieldname, row.get(label, ""))
+						if cint(include_indentation) and 'indent' in row and idx == 0:
+							cell_value = ('    ' * cint(row['indent'])) + cell_value
+						row_data.append(cell_value)
 			else:
 				row_data = row
 
@@ -427,7 +431,7 @@ def add_total_row(result, columns, meta = None):
 			if i >= len(row): continue
 
 			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
-			if fieldtype in ["Currency", "Int", "Float", "Percent"] and flt(cell):
+			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(cell):
 				total_row[i] = flt(total_row[i]) + flt(cell)
 
 			if fieldtype == "Percent" and i not in has_percent:
@@ -638,30 +642,34 @@ def get_columns_dict(columns):
 	"""
 	columns_dict = frappe._dict()
 	for idx, col in enumerate(columns):
-		col_dict = frappe._dict()
-
-		# string
-		if isinstance(col, string_types):
-			col = col.split(":")
-			if len(col) > 1:
-				if "/" in col[1]:
-					col_dict["fieldtype"], col_dict["options"] = col[1].split("/")
-				else:
-					col_dict["fieldtype"] = col[1]
-
-			col_dict["label"] = col[0]
-			col_dict["fieldname"] = frappe.scrub(col[0])
-
-		# dict
-		else:
-			col_dict.update(col)
-			if "fieldname" not in col_dict:
-				col_dict["fieldname"] = frappe.scrub(col_dict["label"])
-
+		col_dict = get_column_as_dict(col)
 		columns_dict[idx] = col_dict
 		columns_dict[col_dict["fieldname"]] = col_dict
 
 	return columns_dict
+
+def get_column_as_dict(col):
+	col_dict = frappe._dict()
+
+	# string
+	if isinstance(col, string_types):
+		col = col.split(":")
+		if len(col) > 1:
+			if "/" in col[1]:
+				col_dict["fieldtype"], col_dict["options"] = col[1].split("/")
+			else:
+				col_dict["fieldtype"] = col[1]
+
+		col_dict["label"] = col[0]
+		col_dict["fieldname"] = frappe.scrub(col[0])
+
+	# dict
+	else:
+		col_dict.update(col)
+		if "fieldname" not in col_dict:
+			col_dict["fieldname"] = frappe.scrub(col_dict["label"])
+
+	return col_dict
 
 def get_user_match_filters(doctypes, user):
 	match_filters = {}

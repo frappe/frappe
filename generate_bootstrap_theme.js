@@ -33,6 +33,8 @@ sass.render({
 	fs.writeFile(output_path, result.css, function(err) {
 		if (!err) {
 			console.log(output_path); // eslint-disable-line
+		} else {
+			console.error(err); // eslint-disable-line
 		}
 	});
 });

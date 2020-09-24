@@ -97,7 +97,7 @@ def backup_to_dropbox(upload_db_backup=True):
 		if frappe.flags.create_new_backup:
 			backup = new_backup(ignore_files=True)
 			filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
-			site_config = os.path.join(get_backups_path(), os.path.basename(backup.site_config_backup_path))
+			site_config = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_conf))
 		else:
 			filename, site_config = get_latest_backup_file()
 

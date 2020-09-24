@@ -53,11 +53,11 @@
   }
  ],
  "links": [],
- "modified": "2020-06-15 11:24:57.639430",
+ "modified": "2020-09-18 17:26:09.703215",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Calendar View",
- "owner": "faris@erpnext.com",
+ "owner": "Administrator",
  "permissions": [
   {
    "create": 1,

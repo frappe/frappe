@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals, absolute_import, print_function
-import click
-import json, os, sys, subprocess
+import json
+import os
+import subprocess
+import sys
 from distutils.spawn import find_executable
+
+import click
+
 import frappe
-from frappe.commands import pass_context, get_site
+from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import update_progress_bar, get_bench_path
-from frappe.utils.response import json_handler
-from coverage import Coverage
-import cProfile, pstats
-from six import StringIO
+from frappe.utils import get_bench_path, update_progress_bar
 
 
 @click.command('build')
@@ -19,14 +19,22 @@ from six import StringIO
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--restore', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-def build(app=None, make_copy=False, restore = False, verbose=False):
+@click.option('--force', is_flag=True, default=False, help='Force build assets instead of downloading available')
+def build(app=None, make_copy=False, restore=False, verbose=False, force=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
-	import frappe
 	frappe.init('')
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
-	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore = restore, verbose=verbose)
+
+	# dont try downloading assets if force used, app specified or running via CI
+	if not (force or app or os.environ.get('CI')):
+		# skip building frappe if assets exist remotely
+		skip_frappe = frappe.build.download_frappe_assets(verbose=verbose)
+	else:
+		skip_frappe = False
+
+	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore=restore, verbose=verbose, skip_frappe=skip_frappe)
 
 
 @click.command('watch')
@@ -152,6 +160,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 				kwargs = {}
 
 			if profile:
+				import cProfile
 				pr = cProfile.Profile()
 				pr.enable()
 
@@ -161,6 +170,9 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 				ret = frappe.safe_eval(method + "(*args, **kwargs)", eval_globals=globals(), eval_locals=locals())
 
 			if profile:
+				import pstats
+				from six import StringIO
+
 				pr.disable()
 				s = StringIO()
 				pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats(.5)
@@ -171,6 +183,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 		finally:
 			frappe.destroy()
 		if ret:
+			from frappe.utils.response import json_handler
 			print(json.dumps(ret, default=json_handler))
 
 	if not context.sites:
@@ -292,8 +305,6 @@ def import_doc(context, path, force=False):
 @click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
 @click.option('--ignore-encoding-errors', default=False, is_flag=True, help='Ignore encoding errors while coverting to unicode')
 @click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
-
-
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
 	"Import CSV using data import"
@@ -424,7 +435,7 @@ def jupyter(context):
 		os.mkdir(jupyter_notebooks_path)
 	bin_path = os.path.abspath('../env/bin')
 	print('''
-Stating Jupyter notebook
+Starting Jupyter notebook
 Run the following in your first cell to connect notebook to frappe
 ```
 import frappe
@@ -496,6 +507,8 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 	frappe.flags.skip_test_records = skip_test_records
 
 	if coverage:
+		from coverage import Coverage
+
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
 		cov = Coverage(source=[source_path], omit=[

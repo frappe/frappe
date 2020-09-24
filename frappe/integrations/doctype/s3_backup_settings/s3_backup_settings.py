@@ -118,7 +118,7 @@ def backup_to_s3():
 		backup = new_backup(ignore_files=False, backup_path_db=None,
 						backup_path_files=None, backup_path_private_files=None, force=True)
 		db_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
-		site_config = os.path.join(get_backups_path(), os.path.basename(backup.site_config_backup_path))
+		site_config = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_conf))
 		if backup_files:
 			files_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_files))
 			private_files = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_private_files))
