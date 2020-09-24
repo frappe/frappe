@@ -490,7 +490,7 @@
    "collapsible_depends_on": "links",
    "fieldname": "links_section",
    "fieldtype": "Section Break",
-   "label": "Dashboard Links"
+   "label": "Linked Documents"
   },
   {
    "fieldname": "links",
@@ -609,7 +609,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2020-09-24 13:02:09.975230",
+ "modified": "2020-09-24 13:13:58.227153",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
