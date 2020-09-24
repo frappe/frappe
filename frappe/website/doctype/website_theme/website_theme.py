@@ -142,7 +142,7 @@ def get_scss(website_theme):
 	params:
 	website_theme - instance of a Website Theme
 	"""
-	apps_to_ignore = tuple(d.app for d in website_theme.ignored_apps)
+	apps_to_ignore = tuple((d.app + '/') for d in website_theme.ignored_apps)
 	available_imports = get_scss_paths()
 	imports_to_include = [d for d in available_imports if not d.startswith(apps_to_ignore)]
 	context = website_theme.as_dict()
