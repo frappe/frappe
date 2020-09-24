@@ -36,9 +36,9 @@ frappe.ui.SortSelector = Class.extend({
 		});
 
 		// select field
-		this.wrapper.find('.dropdown a.option').on('click', function() {
+		this.wrapper.find('.dropdown-menu a.option').on('click', function() {
 			me.sort_by = $(this).attr('data-value');
-			me.wrapper.find('.dropdown .dropdown-text').html($(this).html());
+			me.wrapper.find('.dropdown-text').html($(this).html());
 			(me.onchange || me.change)(me.sort_by, me.sort_order);
 		});
 
