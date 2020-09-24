@@ -34,7 +34,7 @@ class TestWebsiteTheme(unittest.TestCase):
 		theme = frappe.get_doc(dict(
 			doctype='Website Theme',
 			theme='test-theme',
-			imports_to_ignore='frappe/public/scss/website'
+			ignored_apps=[{ 'app': 'frappe'}]
 		)).insert()
 
 		self.assertTrue('@import "frappe/public/scss/website"' not in theme.theme_scss)
