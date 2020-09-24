@@ -11,9 +11,11 @@ not_allowed_fieldtype_change = ['naming_series']
 
 class PropertySetter(Document):
 	def autoname(self):
-		self.name = self.doc_type + "-" \
-			+ (self.field_name and (self.field_name + "-")  or "") \
-			+ self.property
+		self.name = '{doctype}-{field}-{property}'.format(
+			doctype = self.doc_type,
+			field = self.field_name or self.row_name or 'main',
+			property = self.property
+		)
 
 	def validate(self):
 		self.validate_fieldtype_change()

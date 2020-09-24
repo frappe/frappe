@@ -5,6 +5,7 @@
  "creation": "2015-03-18 06:08:32.729800",
  "doctype": "DocType",
  "document_type": "Setup",
+ "engine": "InnoDB",
  "field_order": [
   "title",
   "total_subscribers",
@@ -41,8 +42,15 @@
    "options": "Email Template"
   }
  ],
- "links": [],
- "modified": "2020-02-21 14:12:48.884738",
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "group": "Members",
+   "link_doctype": "Email Group Member",
+   "link_fieldname": "email_group"
+  }
+ ],
+ "modified": "2020-09-24 16:41:55.286377",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Group",
