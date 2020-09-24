@@ -48,6 +48,7 @@
     "socket.io": "^2.3.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
+    "twilio-client": "^1.12.4",
     "vue": "^2.6.11",
     "vue-router": "^2.0.0"
   },
