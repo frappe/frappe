@@ -79,8 +79,11 @@ frappe.ui.FilterGroup = class {
 			this.on_change();
 		});
 
+		// REDESIGN-TODO: (Temporary) Review and find best solution for this
 		$(window).on('hashchange', () => {
-			this.filter_button.popover('hide');
+			if (this.wrapper && this.wrapper.is(':visible')) {
+				this.filter_button.popover('hide');
+			}
 		});
 	}
 
