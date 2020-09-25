@@ -17,9 +17,14 @@ def clean(value):
 	return value
 
 
-class BaseTestCommands:
-	def execute(self, command):
-		command = command.format(**{"site": frappe.local.site})
+class BaseTestCommands(unittest.TestCase):
+	def execute(self, command, kwargs):
+		site = {"site": frappe.local.site}
+		if kwargs:
+			kwargs.update(site)
+		else:
+			kwargs = site
+		command = command.replace("\n", " ").format(**kwargs)
 		command = shlex.split(command)
 		self._proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		self.stdout = clean(self._proc.stdout)
