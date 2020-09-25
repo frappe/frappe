@@ -192,7 +192,7 @@ VALID_UTILS = (
 "get_time_str",
 "get_user_date_format",
 "get_user_time_format",
-"format_date",
+"formatdate",
 "format_time",
 "format_datetime",
 "format_duration",
