@@ -7,8 +7,8 @@
 		<path d="M13.706 3.15a3.784 3.784 0 0 0-5.434 0c-.104.106-.183.227-.272.34-.089-.113-.168-.234-.272-.34a3.784 3.784 0 0 0-5.434 0c-.563.576-.799 1.553-.794 2.63.015 3.468 3 5.85 5.745 7.886.45.334 1.06.334 1.51 0 2.746-2.035 5.73-4.418 5.745-7.886.005-1.077-.231-2.054-.794-2.63z"
 		fill="#E24C4C"></path>
 	</symbol>
-	<symbol width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-up-line">
-		<path d="M9.5 7.75L6 4.25L2.5 7.75" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-up-line">
+		<path d="M13 10.5L8 5.5L3 10.5" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 	<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-up">
 		<g fill="#112B42">

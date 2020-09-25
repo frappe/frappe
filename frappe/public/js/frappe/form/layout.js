@@ -600,16 +600,22 @@ frappe.ui.form.Section = Class.extend({
 		this.body = $('<div class="section-body">').appendTo(this.wrapper);
 	},
 
-	make_head: function() {
-		this.head = $(`<div class="section-head">${__(this.df.label)}</div>`);
+	make_head: function () {
+		this.head = $(`<div class="section-head">
+			${__(this.df.label)}
+			<span class="ml-2 collapse-indicator mb-1">
+			</span>
+		</div>`);
 		this.head.appendTo(this.wrapper);
+		this.indicator = this.head.find('.collapse-indicator');
+		this.indicator.hide();
 		if (this.df.collapsible) {
 			// show / hide based on status
 			this.collapse_link = this.head.on("click", () => {
 				this.collapse();
 			});
 
-			this.indicator = this.head.find('.collapse-indicator');
+			this.indicator.show();
 		}
 	},
 	refresh: function() {
@@ -642,8 +648,12 @@ frappe.ui.form.Section = Class.extend({
 
 		this.body.toggleClass("hide", hide);
 		this.head.toggleClass("collapsed", hide);
-		this.indicator && this.indicator.toggleClass("octicon-chevron-down", hide);
-		this.indicator && this.indicator.toggleClass("octicon-chevron-up", !hide);
+
+		let indicator_icon = hide ? 'down' : 'up-line';
+
+		this.indicator & this.indicator.html(frappe.utils.icon(indicator_icon, 'sm', 'mb-1'));
+		// this.indicator && this.indicator.toggleClass("octicon-chevron-down", hide);
+		// this.indicator && this.indicator.toggleClass("octicon-chevron-up", !hide);
 
 		// refresh signature fields
 		this.fields_list.forEach((f) => {
