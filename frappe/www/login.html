@@ -1,12 +1,4 @@
-{% extends "templates/web.html" %}
-
-{% block style %}
-<style>
-	{
-		% include "templates/includes/login/login.css"%
-	}
-</style>
-{% endblock %}
+{% extends "templates/web.html" %}as
 
 {% block page_content %}
 <!-- {{ for_test }} -->
@@ -22,31 +14,44 @@
 		<div class="login-content page-card">
 			<form class="form-signin form-login" role="form">
 				<div class="page-card-head">
-					<span class="indicator blue" data-text="{{ _('Login') }}"></span>
+					<img class="app-logo" src="{{ logo }}">
+					<h4>{{ _('Login into {0}').format("Frappe") }}</h4>
 				</div>
 
-				<input type="text" id="login_email" class="form-control"
-					placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('Email Address') }}{% endif %}"
-					required autofocus>
+				<div class="page-card-body">
+					<input type="text" id="login_email" class="form-control"
+						placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('Email Address') }}{% endif %}"
+						required autofocus>
 
-				<div class="password-field">
-					<input type="password" id="login_password" class="form-control" placeholder="{{ _('Password') }}"
-						required>
+					<div class="password-field">
+						<input type="password" id="login_password" class="form-control"
+							placeholder="{{ _('Password') }}" required>
 
-					<span toggle="#login_password" class="toggle-password text-muted">{{ _('Show') }}</span>
+						<span toggle="#login_password" class="toggle-password text-muted">{{ _('Show') }}</span>
+					</div>
+
+					<p class="forgot-password-message">
+						<a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 				</div>
 
-				<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
-					{{ _("Login") }}</button>
+				<div class="page-card-actions">
+					<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
+						{{ _("Login") }}</button>
 
-				{% if ldap_settings and ldap_settings.enabled %}
-				<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
-					{{ _("Login with LDAP") }}</button>
-				{% endif %}
+					{% if ldap_settings and ldap_settings.enabled %}
+					<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
+						{{ _("Login with LDAP") }}</button>
+					{% endif %}
+
+					{%- if not disable_signup -%}
+					<p class="text-center sign-up-message">
+						<a href="#signup">{{ _("Don't have an account? Sign up") }}</a>
+					</p>
+					{%- endif -%}
+				</div>
 			</form>
 		</div>
 		<div class='form-footer'>
-
 			<div class='social-logins'>
 				{%- if social_login -%}
 				<h6>{{ _("Or login with") }}</h6>
@@ -59,14 +64,6 @@
 				</p>
 				{%- endif -%}
 			</div>
-
-			{%- if not disable_signup -%}
-			<p class="text-center sign-up-message">
-				<a href="#signup">{{ _("Don't have an account? Sign up") }}</a>
-			</p>
-			{%- endif -%}
-			<p class="text-center forgot-password-message">
-				<a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 		</div>
 	</section>
 	<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
@@ -74,13 +71,23 @@
 			{%- if not disable_signup -%}
 			<form class="form-signin form-signup hide" role="form">
 				<div class="page-card-head">
-					<span class="indicator blue" data-text="{{ _('Sign Up') }}"></span>
+					<img class="app-logo" src="{{ logo }}">
+					<h4>{{ _('Sign Up') }}</h4>
 				</div>
-				<input type="text" id="signup_fullname" class="form-control" placeholder="{{ _('Full Name') }}" required
-					autofocus>
-				<input type="email" id="signup_email" class="form-control" placeholder="{{ _('Email Address') }}"
-					required>
-				<button class="btn btn-sm btn-primary btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
+				<div class="page-card-body">
+					<input type="text" id="signup_fullname" class="form-control" placeholder="{{ _('Full Name') }}"
+						required autofocus>
+					<input type="email" id="signup_email" class="form-control" placeholder="{{ _('Email Address') }}"
+						required>
+				</div>
+				<div class="page-card-actions">
+					<button class="btn btn-sm btn-primary btn-block btn-signup"
+						type="submit">{{ _("Sign up") }}</button>
+
+					<p class="text-center sign-up-message">
+						<a href="#login" class="blue">{{ _("Have an account? Login") }}</a>
+					</p>
+				</div>
 			</form>
 			{%- else -%}
 			<div class='page-card-head'>
@@ -89,9 +96,6 @@
 			<p>{{_("Signups have been disabled for this website.")}}</p>
 			<div><a href='/' class='btn btn-primary btn-sm'>{{ _("Home") }}</a></div>
 			{%- endif -%}
-		</div>
-		<div class='form-footer'>
-			<a href="#login" class="blue">{{ _("Have an account? Login") }}</a>
 		</div>
 
 	</section>
