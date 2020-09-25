@@ -1,11 +1,11 @@
-/* login-css */
-
-.hero-and-content {
+login-css .hero-and-content {
 	/*background-color: #f5f7fa;*/
 	background-color: #fafbfc;
 }
 
-.page-sidebar, #wrap-footer, .page-header {
+.page-sidebar,
+#wrap-footer,
+.page-header {
 	display: none;
 }
 
@@ -14,12 +14,14 @@
 	width: 100%;
 }
 
-.icon-twitter, .icon-twitter-sign{
-    color: #00a0d1;
+.icon-twitter,
+.icon-twitter-sign {
+	color: #00a0d1;
 }
 
-.icon-linkedin, .icon-linkedin-sign{
-    color: #4875B4;
+.icon-linkedin,
+.icon-linkedin-sign {
+	color: #4875b4;
 }
 
 #wrap {
@@ -40,23 +42,23 @@
 
 .form-signin .form-signin-heading,
 .form-signin .checkbox {
-  margin-bottom: 10px;
+	margin-bottom: 10px;
 }
 .form-signin .checkbox {
-  font-weight: normal;
+	font-weight: normal;
 }
 .form-signin .form-control {
-  position: relative;
-  height: auto;
-  -webkit-box-sizing: border-box;
-     -moz-box-sizing: border-box;
-          box-sizing: border-box;
-  padding: 6px;
-  font-size: 14px;
-  margin-bottom: 10px;
+	position: relative;
+	height: auto;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	padding: 6px;
+	font-size: 14px;
+	margin-bottom: 10px;
 }
 .form-signin .form-control:focus {
-  z-index: 2;
+	z-index: 2;
 }
 
 .btn-social {
@@ -65,7 +67,7 @@
 
 .social-logins .fa {
 	margin-right: 5px;
-	color: #8D99A6;
+	color: #8d99a6;
 }
 
 .form-footer {
@@ -73,25 +75,27 @@
 	text-align: center;
 }
 
-.form-footer, .form-footer a, .form-footer h6 {
+.form-footer,
+.form-footer a,
+.form-footer h6 {
 	font-size: 12px;
-	color: #8D99A6;
+	color: #8d99a6;
 	font-weight: bold;
 }
 
 .form-footer .btn-default {
-	color: #36414C;
+	color: #36414c;
 }
 
 h5 {
-  position: relative;
-  text-align: center;
-  margin-top:20px;
-  margin-bottom:20px;
+	position: relative;
+	text-align: center;
+	margin-top: 20px;
+	margin-bottom: 20px;
 }
 
 p {
-	margin-bottom:20px;
+	margin-bottom: 20px;
 }
 
 .login-content .btn {
@@ -100,68 +104,67 @@ p {
 }
 
 .page-card {
-  max-width: 360px;
-  padding: 15px;
-  margin: 70px auto;
-  border: 1px solid #d1d8dd;
-  border-radius: 4px;
-  background-color: #fff;
-  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+	max-width: 360px;
+	padding: 15px;
+	margin: 70px auto;
+	border: 1px solid #d1d8dd;
+	border-radius: 4px;
+	background-color: #fff;
+	box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
 }
 .page-card .page-card-head {
-  padding: 10px 15px;
-  margin: -15px;
-  margin-bottom: 15px;
-  border-bottom: 1px solid #d1d8dd;
+	padding: 10px 15px;
+	margin: -15px;
+	margin-bottom: 15px;
+	border-bottom: 1px solid #d1d8dd;
 }
 .page-card .page-card-head .indicator {
-  color: #36414C;
-  font-size: 14px;
+	color: #36414c;
+	font-size: 14px;
 }
 .page-card .page-card-head .indicator::before {
-  margin: 0 6px 0.5px 0px;
+	margin: 0 6px 0.5px 0px;
 }
 .page-card .btn {
-  margin-top: 30px;
+	margin-top: 30px;
 }
 
 .bordered {
-	border: 1px solid  #d1d8dd;
+	border: 1px solid #d1d8dd;
 	padding: 10px;
 	border-radius: 4px;
 }
 
 .toggle-password {
-  right: 9px;
-  top: 9px;
-  position: absolute;
-  z-index: 2;
-  cursor: pointer;
-  font-size: 12px;
+	right: 9px;
+	top: 9px;
+	position: absolute;
+	z-index: 2;
+	cursor: pointer;
+	font-size: 12px;
 }
 
 .invalid-login {
-   -webkit-animation: wiggle 0.5s linear;
+	-webkit-animation: wiggle 0.5s linear;
 }
 
 @-webkit-keyframes wiggle {
-  8%,
-  41% {
-    -webkit-transform: translateX(-10px);
-  }
-  25%,
-  58% {
-    -webkit-transform: translateX(10px);
-  }
-  75% {
-    -webkit-transform: translateX(-5px);
-  }
-  92% {
-    -webkit-transform: translateX(5px);
-  }
-  0%,
-  100% {
-    -webkit-transform: translateX(0);
-  }
+	8%,
+	41% {
+		-webkit-transform: translateX(-10px);
+	}
+	25%,
+	58% {
+		-webkit-transform: translateX(10px);
+	}
+	75% {
+		-webkit-transform: translateX(-5px);
+	}
+	92% {
+		-webkit-transform: translateX(5px);
+	}
+	0%,
+	100% {
+		-webkit-transform: translateX(0);
+	}
 }
-
