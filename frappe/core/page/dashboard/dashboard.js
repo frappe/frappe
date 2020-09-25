@@ -173,7 +173,7 @@ class DashboardChart {
 				label: __("Refresh"),
 				action: 'action-refresh',
 				handler: () => {
-					this.refresh();
+					this.refresh(true);
 				}
 			},
 			{

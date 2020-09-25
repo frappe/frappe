@@ -23,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.9.1'
+__version__ = '12.10.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -170,6 +170,7 @@ def init(site, sites_path=None, new_site=False):
 	local.meta_cache = {}
 	local.form_dict = _dict()
 	local.session = _dict()
+	local.dev_server = os.environ.get('DEV_SERVER', False)
 
 	setup_module_map()
 
@@ -490,7 +491,9 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 whitelisted = []
 guest_methods = []
 xss_safe_methods = []
-def whitelist(allow_guest=False, xss_safe=False):
+allowed_http_methods_for_whitelisted_func = {}
+
+def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
@@ -503,9 +506,15 @@ def whitelist(allow_guest=False, xss_safe=False):
 		def myfunc(param1, param2):
 			pass
 	"""
+
+	if not methods:
+		methods = ['GET', 'POST', 'PUT', 'DELETE']
+
 	def innerfn(fn):
-		global whitelisted, guest_methods, xss_safe_methods
+		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 		whitelisted.append(fn)
+
+		allowed_http_methods_for_whitelisted_func[fn] = methods
 
 		if allow_guest:
 			guest_methods.append(fn)
@@ -1071,8 +1080,8 @@ def get_newargs(fn, kwargs):
 		if (a in fnargs) or varkw:
 			newargs[a] = kwargs.get(a)
 
-	if "flags" in newargs:
-		del newargs["flags"]
+	newargs.pop("ignore_permissions", None)
+	newargs.pop("flags", None)
 
 	return newargs
 

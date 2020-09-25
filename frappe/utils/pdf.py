@@ -6,6 +6,7 @@ import io
 import os
 import re
 from distutils.version import LooseVersion
+import subprocess
 
 import pdfkit
 import six
@@ -14,7 +15,7 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 
 import frappe
 from frappe import _
-from frappe.utils import get_wkhtmltopdf_version, scrub_urls
+from frappe.utils import scrub_urls
 
 PDF_CONTENT_ERRORS = ["ContentNotFoundError", "ContentOperationNotPermittedError",
 	"UnknownContentError", "RemoteHostClosedError"]
@@ -190,7 +191,6 @@ def cleanup(fname, options):
 		if options.get(key) and os.path.exists(options[key]):
 			os.remove(options[key])
 
-
 def toggle_visible_pdf(soup):
 	for tag in soup.find_all(attrs={"class": "visible-pdf"}):
 		# remove visible-pdf class to unhide
@@ -199,3 +199,16 @@ def toggle_visible_pdf(soup):
 	for tag in soup.find_all(attrs={"class": "hidden-pdf"}):
 		# remove tag from html
 		tag.extract()
+
+def get_wkhtmltopdf_version():
+	wkhtmltopdf_version = frappe.cache().hget("wkhtmltopdf_version", None)
+
+	if not wkhtmltopdf_version:
+		try:
+			res = subprocess.check_output(["wkhtmltopdf", "--version"])
+			wkhtmltopdf_version = res.decode('utf-8').split(" ")[1]
+			frappe.cache().hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
+		except Exception:
+			pass
+
+	return (wkhtmltopdf_version or '0')
