@@ -218,15 +218,16 @@ def check_valid_openid_response(access_token=None):
 	return True if openid_response.status_code == 200 else False
 
 
-def get_full_url(endpoint):
-	return urljoin(frappe.utils.get_url(), endpoint)
-
-
 def login(session):
 	session.post(
-		frappe.utils.get_url() + "/api/method/login",
+		get_full_url("/api/method/login"),
 		data={
 			"usr": "test@example.com",
 			"pwd": "Eastern_43A1W"
 		}
 	)
+
+
+def get_full_url(endpoint):
+	"""Turn '/endpoint' into 'http://127.0.0.1:8000/endpoint'."""
+	return urljoin(frappe.utils.get_url(), endpoint)
