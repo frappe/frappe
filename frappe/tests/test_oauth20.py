@@ -215,7 +215,7 @@ def check_valid_openid_response(access_token=None):
 		headers=headers
 	)
 
-	return True if openid_response.status_code == 200 else False
+	return openid_response.status_code == 200
 
 
 def login(session):
