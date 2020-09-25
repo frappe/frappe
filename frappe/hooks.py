@@ -282,6 +282,7 @@ setup_wizard_exception = [
 ]
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
+after_migrate = ['frappe.website.doctype.website_theme.website_theme.after_migrate']
 
 otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [
