@@ -5,6 +5,7 @@ import os
 import shlex
 import subprocess
 import unittest
+from glob import glob
 
 # imports - module imports
 import frappe
@@ -18,7 +19,7 @@ def clean(value):
 
 
 class BaseTestCommands(unittest.TestCase):
-	def execute(self, command, kwargs):
+	def execute(self, command, kwargs=None):
 		site = {"site": frappe.local.site}
 		if kwargs:
 			kwargs.update(site)
@@ -53,7 +54,8 @@ class TestCommands(BaseTestCommands):
 		self.assertEquals(self.stdout[1:-1], frappe.bold(text='DocType'))
 
 	def test_backup(self):
-		home = os.expanduser("~")
+		home = os.path.expanduser("~")
+		site_backup_path = frappe.utils.get_site_path("private", "backups")
 
 		# test 1: take a backup
 		before_backup = fetch_latest_backups()
@@ -85,7 +87,15 @@ class TestCommands(BaseTestCommands):
 		self.assertGreaterEqual(len(os.listdir(backup_path)), 2)
 
 		# test 4: take a backup with --backup-path-db, --backup-path-files, --backup-path-private-files, --backup-path-conf
-		kwargs = { key: os.path.join(home, key) for key in ["db_path", "files_path", "private_path", "conf_path"] }
+		kwargs = {
+			key: os.path.join(home, key, value)
+			for key, value in {
+				"db_path": "database.sql.gz",
+				"files_path": "public.tar",
+				"private_path": "private.tar",
+				"conf_path": "config.json"
+			}.items()
+		}
 
 		self.execute("""bench
 			--site {site} backup --with-files
@@ -96,15 +106,15 @@ class TestCommands(BaseTestCommands):
 
 		self.assertEquals(self.returncode, 0)
 		for path in kwargs.values():
-			self.assertTrue(len(os.listdir(path)), 1)
+			self.assertTrue(os.path.exists(path))
 
 		# test 5: take a backup with --compress
 		self.execute("bench --site {site} backup --with-files --compress")
-		backup_files = fetch_latest_backups()
 
 		self.assertEquals(self.returncode, 0)
-		self.assertTrue(backup_files["private"].endswith("tgz"))
-		self.assertTrue(backup_files["public"].endswith("tgz"))
+
+		compressed_files = glob(site_backup_path + "/*.tgz")
+		self.assertGreater(len(compressed_files), 0)
 
 		# test 6: take a backup with --verbose
 		self.execute("bench --site {site} backup --verbose")
