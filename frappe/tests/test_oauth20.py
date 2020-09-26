@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import unittest, frappe, requests, time
 from frappe.test_runner import make_test_records
 from six.moves.urllib.parse import urlparse, parse_qs, urljoin
+from urllib.parse import urlencode, quote
 
 class TestOAuth20(unittest.TestCase):
 
@@ -13,7 +14,7 @@ class TestOAuth20(unittest.TestCase):
 		make_test_records("User")
 		self.client_id = frappe.get_all("OAuth Client", fields=["*"])[0].get("client_id")
 		self.form_header = {"content-type": "application/x-www-form-urlencoded"}
-		self.scope = "all"
+		self.scope = "all openid"
 		self.redirect_uri = "http://localhost"
 
 		# Set Frappe server URL reqired for id_token generation
@@ -47,12 +48,12 @@ class TestOAuth20(unittest.TestCase):
 		try:
 			session.get(
 				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
-				params={
+				params=encode_params({
 					"client_id": self.client_id,
 					"scope": self.scope,
 					"response_type": "code",
 					"redirect_uri": self.redirect_uri
-				}
+				})
 			)
 		except requests.exceptions.ConnectionError as ex:
 			redirect_destination = ex.request.url
@@ -65,12 +66,12 @@ class TestOAuth20(unittest.TestCase):
 		token_response = requests.post(
 			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
 			headers=self.form_header,
-			data={
+			data=encode_params({
 				"grant_type": "authorization_code",
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id
-			}
+			})
 		)
 
 		# Parse bearer token json
@@ -78,7 +79,7 @@ class TestOAuth20(unittest.TestCase):
 
 		self.assertTrue(bearer_token.get("access_token"))
 		self.assertTrue(bearer_token.get("expires_in"))
-		# self.assertTrue(bearer_token.get("id_token"))
+		self.assertTrue(bearer_token.get("id_token"))
 		self.assertTrue(bearer_token.get("refresh_token"))
 		self.assertTrue(bearer_token.get("scope"))
 		self.assertTrue(bearer_token.get("token_type") == "Bearer")
@@ -100,12 +101,12 @@ class TestOAuth20(unittest.TestCase):
 		try:
 			session.get(
 				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
-				params={
+				params=encode_params({
 					"client_id": self.client_id,
 					"scope": self.scope,
 					"response_type": "code",
 					"redirect_uri": self.redirect_uri
-				}
+				})
 			)
 		except requests.exceptions.ConnectionError as ex:
 			redirect_destination = ex.request.url
@@ -118,12 +119,12 @@ class TestOAuth20(unittest.TestCase):
 		token_response = requests.post(
 			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
 			headers=self.form_header,
-			data={
+			data=encode_params({
 				"grant_type": "authorization_code",
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id
-			}
+			})
 		)
 
 		# Parse bearer token json
@@ -152,13 +153,13 @@ class TestOAuth20(unittest.TestCase):
 		token_response = requests.post(
 			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
 			headers=self.form_header,
-			data={
+			data=encode_params({
 				"grant_type": "password",
 				"username": "test@example.com",
 				"password": "Eastern_43A1W",
 				"client_id":  self.client_id,
 				"scope": self.scope
-			}
+			})
 		)
 
 		# Parse bearer token json
@@ -183,12 +184,12 @@ class TestOAuth20(unittest.TestCase):
 		try:
 			session.get(
 				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
-				params={
+				params=encode_params({
 					"client_id": self.client_id,
 					"scope": self.scope,
 					"response_type": "token",
 					"redirect_uri": self.redirect_uri
-				}
+				})
 			)
 		except requests.exceptions.ConnectionError as ex:
 			redirect_destination = ex.request.url
@@ -231,3 +232,13 @@ def login(session):
 def get_full_url(endpoint):
 	"""Turn '/endpoint' into 'http://127.0.0.1:8000/endpoint'."""
 	return urljoin(frappe.utils.get_url(), endpoint)
+
+def encode_params(params):
+	"""
+	Encode a dict of params into a query string.
+
+	Use `quote_via=urllib.parse.quote` so that whitespaces will be encoded as
+	`%20` instead of as `+`. This is needed because oauthlib cannot handle `+`
+	as a whitespace.
+	"""
+	return urlencode(params, quote_via=quote)
