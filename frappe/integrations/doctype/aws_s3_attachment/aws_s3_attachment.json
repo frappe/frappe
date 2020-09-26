@@ -5,7 +5,15 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "enable"
+  "enable",
+  "sb_bucket",
+  "region",
+  "sb_iam",
+  "access_id",
+  "cb1",
+  "access_secret",
+  "sb_cognito",
+  "identity_pool_id"
  ],
  "fields": [
   {
@@ -13,11 +21,52 @@
    "fieldname": "enable",
    "fieldtype": "Check",
    "label": "Enable"
+  },
+  {
+   "description": "ie: ap-southeast-1",
+   "fieldname": "region",
+   "fieldtype": "Data",
+   "label": "Region"
+  },
+  {
+   "fieldname": "access_id",
+   "fieldtype": "Data",
+   "label": "Access Key ID"
+  },
+  {
+   "fieldname": "access_secret",
+   "fieldtype": "Password",
+   "label": "Access Secret"
+  },
+  {
+   "description": "ie: ap-southeast-1:11111111-ab12-cd34-aaqw-99999999999",
+   "fieldname": "identity_pool_id",
+   "fieldtype": "Data",
+   "label": "Identity Pool Id"
+  },
+  {
+   "fieldname": "sb_bucket",
+   "fieldtype": "Section Break",
+   "label": "Bucket Info"
+  },
+  {
+   "fieldname": "sb_iam",
+   "fieldtype": "Section Break",
+   "label": "IAM Info"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sb_cognito",
+   "fieldtype": "Section Break",
+   "label": "Cognito Info"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-09-26 21:50:57.295844",
+ "modified": "2020-09-26 22:08:18.603027",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "AWS S3 Attachment",
