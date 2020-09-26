@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "creation": "2020-09-26 21:50:35.132857",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enable"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-09-26 21:50:57.295844",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "AWS S3 Attachment",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
