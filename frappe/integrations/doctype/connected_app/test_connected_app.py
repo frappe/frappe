@@ -5,12 +5,10 @@ from __future__ import unicode_literals
 
 import unittest
 import requests
+from urllib.parse import urljoin
+
 import frappe
-from requests.auth import HTTPBasicAuth
-from urllib.parse import urljoin, urlparse, parse_qs
-from frappe.test_runner import make_test_records
 from frappe.integrations.doctype.social_login_key.test_social_login_key import create_or_update_social_login_key
-from .connected_app import callback
 
 test_dependencies = ['OAuth Client', 'User', 'Connected App']
 
