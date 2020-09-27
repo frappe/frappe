@@ -18,7 +18,7 @@ class TestConnectedApp(unittest.TestCase):
 
 	def setUp(self):
 		"""Set up a Connected App that connects to our own oAuth provider.
-		
+
 		Frappe comes with it's own oAuth2 provider that we can test against. The
 		client credentials can be obtained from an "OAuth Client". All depends
 		on "Social Login Key" so we create one as well.

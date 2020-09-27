@@ -87,8 +87,8 @@ class ConnectedApp(Document):
 			token = token.check_validity()
 		except frappe.exceptions.DoesNotExistError:
 			redirect = self.initiate_web_application_flow(user, success_uri)
-			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = redirect
+			frappe.local.response['type'] = 'redirect'
+			frappe.local.response['location'] = redirect
 			return redirect
 
 		return token
@@ -107,7 +107,7 @@ class ConnectedApp(Document):
 
 	def get_stored_user_token(self, user):
 		return frappe.get_doc('Token Cache', self.name + '-' + user)
-	
+
 	def get_scopes(self):
 		return [row.scope for row in self.scopes]
 
@@ -116,7 +116,7 @@ class ConnectedApp(Document):
 def callback(code=None, state=None):
 	"""Handle client's code.
 
-	Called during the oauthorization flow by the remote oAuth2 server to 
+	Called during the oauthorization flow by the remote oAuth2 server to
 	transmit a code that can be used by the local server to obtain an access
 	token.
 	"""
@@ -124,9 +124,9 @@ def callback(code=None, state=None):
 		frappe.throw(_('Invalid Method'))
 
 	if frappe.session.user == 'Guest':
-		frappe.throw(_("Log in to access this page."), frappe.PermissionError)
+		frappe.throw(_('Log in to access this page.'), frappe.PermissionError)
 
-	path = frappe.request.path[1:].split("/")
+	path = frappe.request.path[1:].split('/')
 	if len(path) != 4 or not path[3]:
 		frappe.throw(_('Invalid Parameter(s)'))
 
@@ -151,5 +151,5 @@ def callback(code=None, state=None):
 	)
 	token_cache.update_data(token)
 
-	frappe.local.response["type"] = "redirect"
-	frappe.local.response["location"] = token_cache.get('success_uri') or '/desk'
+	frappe.local.response['type'] = 'redirect'
+	frappe.local.response['location'] = token_cache.get('success_uri') or '/desk'
