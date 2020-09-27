@@ -31,7 +31,7 @@ maxminddb-geolite2==2018.703
 ndg-httpsclient==0.5.1
 num2words==0.5.10
 oauthlib==3.1.0
-openpyxl==2.6.4
+openpyxl==3.0.5
 passlib==1.7.2
 pdfkit==0.6.1
 Pillow==7.1.0
