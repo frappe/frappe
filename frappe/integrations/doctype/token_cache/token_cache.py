@@ -78,8 +78,8 @@ class TokenCache(Document):
 
 	def get_json(self):
 		return {
-			'access_token': self.access_token,
-			'refresh_token': self.refresh_token,
+			'access_token': self.get_password('access_token'),
+			'refresh_token': self.get_password('refresh_token'),
 			'expires_in': self.get_expires_in(),
 			'token_type': self.token_type
 		}
