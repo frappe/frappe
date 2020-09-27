@@ -8,7 +8,6 @@
  "engine": "InnoDB",
  "field_order": [
   "provider_name",
-  "base_url",
   "cb_00",
   "openid_configuration",
   "sb_client_credentials_section",
@@ -92,11 +91,6 @@
    "options": "OAuth Scope"
   },
   {
-   "fieldname": "base_url",
-   "fieldtype": "Data",
-   "label": "Base URL"
-  },
-  {
    "fieldname": "authorization_uri",
    "fieldtype": "Data",
    "label": "Authorization URI"
@@ -128,7 +122,7 @@
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2020-09-27 19:29:17.835067",
+ "modified": "2020-09-27 20:04:02.303982",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",
