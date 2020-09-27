@@ -6,6 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 import json
+from six import string_types
+from frappe.integrations.utils import json_handler
 
 class IntegrationRequest(Document):
 	def autoname(self):
@@ -20,3 +22,11 @@ class IntegrationRequest(Document):
 		self.status = status
 		self.save(ignore_permissions=True)
 		frappe.db.commit()
+
+	def process_response(self, ref_field, response):
+		if isinstance(response, string_types):
+			response = json.loads(response)
+
+		status = "Completed" if ref_field == "output" else "Failed"
+		self.db_set(ref_field, json.dumps(response, default=json_handler))
+		self.db_set("status", status)
