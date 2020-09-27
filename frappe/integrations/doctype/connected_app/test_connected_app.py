@@ -41,8 +41,8 @@ class TestConnectedApp(unittest.TestCase):
 
 		connected_app.client_id = oauth_client.get('client_id')
 		connected_app.client_secret = oauth_client.get('client_secret')
-		connected_app.authorization_endpoint = urljoin(self.base_url, social_login_key.get('authorize_url'))
-		connected_app.token_endpoint = urljoin(self.base_url, social_login_key.get('access_token_url'))
+		connected_app.authorization_uri = urljoin(self.base_url, social_login_key.get('authorize_url'))
+		connected_app.token_uri = urljoin(self.base_url, social_login_key.get('access_token_url'))
 		self.app = connected_app.save()
 		self.user_name = 'test@example.com'
 		self.user_password = 'Eastern_43A1W'

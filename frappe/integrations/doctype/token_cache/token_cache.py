@@ -31,15 +31,15 @@ class TokenCache(Document):
 		app = frappe.get_doc("Connected App", self.connected_app)
 		oauth = app.get_oauth2_session()
 		new_token = oauth.refresh_token(
-			app.token_endpoint,
+			app.token_uri,
 			client_secret=app.get_password('client_secret'),
 			token=self.get_json()
 		)
 
-		if new_token.get('access_token') and app.revocation_endpoint:
+		if new_token.get('access_token') and app.revocation_uri:
 			# Revoke old token
 			requests.post(
-				app.revocation_endpoint,
+				app.revocation_uri,
 				data=urlencode({'token': new_token.get('access_token')}),
 				headers={
 					'Authorization': 'Bearer ' + new_token.get('access_token'),

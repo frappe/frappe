@@ -45,7 +45,7 @@ class ConnectedApp(Document):
 		success_uri = success_uri or '/desk'
 		user = user or frappe.session.user
 		oauth = self.get_oauth2_session()
-		authorization_url, state = oauth.authorization_url(self.authorization_endpoint)
+		authorization_url, state = oauth.authorization_url(self.authorization_uri)
 
 		try:
 			token = self.get_stored_user_token(user)
@@ -66,7 +66,7 @@ class ConnectedApp(Document):
 		client = BackendApplicationClient(client_id=self.client_id, scope=self.get_scopes())
 		oauth = OAuth2Session(client=client)
 		token = oauth.fetch_token(
-			token_url=self.token_endpoint,
+			token_url=self.token_uri,
 			client_secret=self.get_password('client_secret'),
 			include_client_id=True
 		)

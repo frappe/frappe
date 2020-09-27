@@ -21,12 +21,12 @@
   "sb_scope_section",
   "scopes",
   "sb_endpoints_section",
-  "authorization_endpoint",
-  "token_endpoint",
-  "revocation_endpoint",
+  "authorization_uri",
+  "token_uri",
+  "revocation_uri",
   "cb_02",
-  "userinfo_endpoint",
-  "introspection_endpoint"
+  "userinfo_uri",
+  "introspection_uri"
  ],
  "fields": [
   {
@@ -91,33 +91,8 @@
    "label": "Endpoints"
   },
   {
-   "fieldname": "authorization_endpoint",
-   "fieldtype": "Data",
-   "label": "Authorization Endpoint"
-  },
-  {
-   "fieldname": "token_endpoint",
-   "fieldtype": "Data",
-   "label": "Token Endpoint"
-  },
-  {
-   "fieldname": "revocation_endpoint",
-   "fieldtype": "Data",
-   "label": "Revocation Endpoint"
-  },
-  {
    "fieldname": "cb_02",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "userinfo_endpoint",
-   "fieldtype": "Data",
-   "label": "Userinfo Endpoint"
-  },
-  {
-   "fieldname": "introspection_endpoint",
-   "fieldtype": "Data",
-   "label": "Introspection Endpoint"
   },
   {
    "fieldname": "scopes",
@@ -129,6 +104,31 @@
    "fieldname": "base_url",
    "fieldtype": "Data",
    "label": "Base URL"
+  },
+  {
+   "fieldname": "authorization_uri",
+   "fieldtype": "Data",
+   "label": "Authorization URI"
+  },
+  {
+   "fieldname": "token_uri",
+   "fieldtype": "Data",
+   "label": "Token URI"
+  },
+  {
+   "fieldname": "revocation_uri",
+   "fieldtype": "Data",
+   "label": "Revocation URI"
+  },
+  {
+   "fieldname": "userinfo_uri",
+   "fieldtype": "Data",
+   "label": "Userinfo URI"
+  },
+  {
+   "fieldname": "introspection_uri",
+   "fieldtype": "Data",
+   "label": "Introspection URI"
   }
  ],
  "links": [
@@ -137,7 +137,7 @@
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2020-09-27 18:23:15.001617",
+ "modified": "2020-09-27 19:16:31.039086",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",
