@@ -1,6 +1,5 @@
 {
  "actions": [],
- "autoname": "field:callback",
  "beta": 1,
  "creation": "2019-01-24 15:51:06.362222",
  "doctype": "DocType",
@@ -12,7 +11,6 @@
   "base_url",
   "cb_00",
   "openid_configuration",
-  "callback",
   "sb_client_credentials_section",
   "client_id",
   "redirect_uri",
@@ -44,13 +42,6 @@
    "fieldname": "openid_configuration",
    "fieldtype": "Data",
    "label": "OpenID Configuration"
-  },
-  {
-   "fieldname": "callback",
-   "fieldtype": "Data",
-   "label": "Callback",
-   "read_only": 1,
-   "unique": 1
   },
   {
    "collapsible": 1,
@@ -137,7 +128,7 @@
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2020-09-27 19:16:31.039086",
+ "modified": "2020-09-27 19:29:17.835067",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",

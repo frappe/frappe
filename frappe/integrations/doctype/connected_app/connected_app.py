@@ -20,9 +20,6 @@ class ConnectedApp(Document):
 	in a Token Cache.
 	"""
 
-	def autoname(self):
-		self.callback = frappe.scrub(self.provider_name)
-
 	def validate(self):
 		try:
 			base_url = frappe.request.host_url
@@ -30,7 +27,7 @@ class ConnectedApp(Document):
 			# for tests
 			base_url = frappe.get_site_config().host_name or 'http://localhost:8000'
 
-		callback_path = '/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/' + self.callback
+		callback_path = '/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/' + self.name
 		self.redirect_uri = urljoin(base_url, callback_path)
 
 	def get_oauth2_session(self):
