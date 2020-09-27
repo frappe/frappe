@@ -23,6 +23,7 @@
     "air-datepicker": "http://github.com/frappe/air-datepicker",
     "autoprefixer": "^9.8.6",
     "awesomplete": "^1.1.5",
+    "aws-sdk": "^2.761.0",
     "bootstrap": "^4.4.1",
     "cookie": "^0.4.0",
     "cssnano": "^4.1.10",
