@@ -30,9 +30,19 @@ class ConnectedApp(Document):
 		callback_path = '/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/' + self.name
 		self.redirect_uri = urljoin(base_url, callback_path)
 
-	def get_oauth2_session(self):
+	def get_oauth2_session(self, user=None):
+		token = None
+		token_updater = None
+		if user:
+			token_cache = self.get_user_token(user)
+			token = token_cache.get_json()
+			token_updater = token_cache.update_data
+
 		return OAuth2Session(
-			self.client_id,
+			client_id=self.client_id,
+			token=token,
+			token_updater=token_updater,
+			auto_refresh_url=self.token_uri,
 			redirect_uri=self.redirect_uri,
 			scope=self.get_scopes()
 		)

@@ -18,37 +18,6 @@ class TokenCache(Document):
 
 		raise frappe.exceptions.DoesNotExistError
 
-	def check_validity(self):
-		if(self.get('__islocal') or (not self.access_token)):
-			raise frappe.exceptions.DoesNotExistError
-
-		if not self.is_expired():
-			return self
-
-		return self.refresh_token()
-
-	def refresh_token(self):
-		app = frappe.get_doc("Connected App", self.connected_app)
-		oauth = app.get_oauth2_session()
-		new_token = oauth.refresh_token(
-			app.token_uri,
-			client_secret=app.get_password('client_secret'),
-			token=self.get_json()
-		)
-
-		if new_token.get('access_token') and app.revocation_uri:
-			# Revoke old token
-			requests.post(
-				app.revocation_uri,
-				data=urlencode({'token': new_token.get('access_token')}),
-				headers={
-					'Authorization': 'Bearer ' + new_token.get('access_token'),
-					'Content-Type': 'application/x-www-form-urlencoded'
-				}
-			)
-
-		return self.update_data(new_token)
-
 	def update_data(self, data):
 		self.access_token = data.get('access_token')
 		self.refresh_token = data.get('refresh_token')
