@@ -11,7 +11,7 @@
   "password",
   "path_to_upload_folder",
   "column_break_4",
-  "domain_url",
+  "nextcloud_url",
   "webdav_url",
   "backup_details_section",
   "backup_frequency",
@@ -25,7 +25,7 @@
    "default": "0",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Enabled"
+   "label": "Enable NextCloud Backup"
   },
   {
    "fieldname": "column_break_4",
@@ -84,20 +84,10 @@
   },
   {
    "depends_on": "enabled",
-   "description": "Note: If kept blank a folder named 'ERPNext Backups' will be created in the root directory.",
+   "description": "Path where backups will be uploaded, if not provided default is Frappe Backups",
    "fieldname": "path_to_upload_folder",
    "fieldtype": "Data",
-   "label": "Path to upload folder"
-  },
-  {
-   "depends_on": "enabled",
-   "description": "Example: https://example.com\nOptionally you can also provide port number after the Domain URL as (:443) if your Domain URL consist of port.",
-   "fieldname": "domain_url",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Domain URL",
-   "mandatory_depends_on": "enabled",
-   "reqd": 1
+   "label": "Path to Upload Folder"
   },
   {
    "fieldname": "password",
@@ -120,13 +110,23 @@
    "label": "Email",
    "mandatory_depends_on": "enabled",
    "reqd": 1
+  },
+  {
+   "depends_on": "enabled",
+   "description": "Optionally you can also provide port number after the URL as (https://example.com:443)",
+   "fieldname": "nextcloud_url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "NextCloud URL",
+   "mandatory_depends_on": "enabled",
+   "reqd": 1
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-09-16 17:11:12.941704",
+ "modified": "2020-09-27 11:10:58.275307",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "NextCloud Settings",

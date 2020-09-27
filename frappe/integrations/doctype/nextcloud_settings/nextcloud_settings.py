@@ -45,7 +45,7 @@ def start_backup():
 class NextCloudController():
 
 	def __init__(self, ignore_files=True, db_response="", site_config_response="",
-		did_not_upload=[], error_log=[], path_provided = False, nextcloud_settings=None, domain_url=None,
+		did_not_upload=[], error_log=[], path_provided = False, nextcloud_settings=None, nextcloud_url=None,
 		webdav_url=None, email=None, password=None, base_url=None, url=None, session=None):
 		self.ignore_files = ignore_files
 		self.db_response = db_response
@@ -54,7 +54,7 @@ class NextCloudController():
 		self.error_log = error_log
 		self.path_provided = path_provided
 		self.nextcloud_settings = nextcloud_settings
-		self.domain_url = domain_url
+		self.nextcloud_url = nextcloud_url
 		self.webdav_url = webdav_url
 		self.email = email
 		self.password = password
@@ -95,13 +95,13 @@ class NextCloudController():
 			self.get_account_details()
 			if not self.base_url:
 				self.did_not_upload.append('Failed')
-				self.error_log.append('Domain URL incorrect')
+				self.error_log.append('NextCloud URL incorrect')
 				return
 			if self.nextcloud_settings.path_to_upload_folder:
 				self.url = '{0}{1}'.format(self.base_url, self.nextcloud_settings.path_to_upload_folder)
 				self.path_provided = True
 			else:
-				self.url = '{0}{1}'.format(self.base_url, 'ERPNext Backups')
+				self.url = '{0}{1}'.format(self.base_url, 'Frappe Backups')
 			self.make_session()
 
 			# check if folder exist
@@ -110,14 +110,14 @@ class NextCloudController():
 
 	def get_account_details(self):
 		self.nextcloud_settings = frappe.get_doc("NextCloud Settings")
-		self.domain_url = self.nextcloud_settings.domain_url
+		self.nextcloud_url = self.nextcloud_settings.nextcloud_url
 		self.webdav_url = self.nextcloud_settings.webdav_url
 		self.email = self.nextcloud_settings.email
 		self.password = self.nextcloud_settings.get_password(fieldname='password',raise_exception=False)
 		self.make_baseurl()
 
 	def make_baseurl(self):
-		vurl = urlparse(self.domain_url)
+		vurl = urlparse(self.nextcloud_url)
 		if not vurl.scheme:
 			return
 		if not vurl.netloc:
