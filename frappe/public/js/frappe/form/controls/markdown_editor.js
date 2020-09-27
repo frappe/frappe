@@ -44,5 +44,9 @@ frappe.ui.form.ControlMarkdownEditor = frappe.ui.form.ControlCode.extend({
 			.then(() => {
 				this.update_preview();
 			});
+	},
+
+	set_disp_area(value) {
+		this.disp_area && $(this.disp_area).text(value);
 	}
 });

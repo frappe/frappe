@@ -128,7 +128,7 @@ CREATE TABLE `tabDocType Action` (
   `label` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `group` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `action_type` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `action` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `action` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `modified` (`modified`)

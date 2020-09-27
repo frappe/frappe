@@ -146,7 +146,7 @@ class AutoRepeat(Document):
 
 	def make_new_document(self):
 		reference_doc = frappe.get_doc(self.reference_doctype, self.reference_document)
-		new_doc = frappe.copy_doc(reference_doc)
+		new_doc = frappe.copy_doc(reference_doc, ignore_no_copy = False)
 		self.update_doc(new_doc, reference_doc)
 		new_doc.insert(ignore_permissions = True)
 
@@ -403,6 +403,7 @@ def update_reference(docname, reference):
 
 @frappe.whitelist()
 def generate_message_preview(reference_dt, reference_doc, message=None, subject=None):
+	frappe.has_permission("Auto Repeat", "write", throw=True)
 	doc = frappe.get_doc(reference_dt, reference_doc)
 	subject_preview = _("Please add a subject to your email")
 	msg_preview = frappe.render_template(message, {'doc': doc})

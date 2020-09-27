@@ -8,7 +8,7 @@ from frappe import _
 import frappe.permissions
 import re, csv, os
 from frappe.utils.csvutils import UnicodeWriter
-from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint
+from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint, format_duration
 from frappe.core.doctype.data_import_legacy.importer import get_data_keys
 from six import string_types
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -330,6 +330,8 @@ class DataExporter:
 						value = formatdate(value)
 					elif fieldtype == "Datetime":
 						value = format_datetime(value)
+					elif fieldtype == "Duration":
+						value = format_duration(value, df.hide_days)
 
 				row[_column_start_end.start + i + 1] = value
 
