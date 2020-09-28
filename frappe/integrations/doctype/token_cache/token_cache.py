@@ -3,10 +3,11 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
-import requests
-from urllib.parse import urlencode
 from datetime import datetime, timedelta
+
+import frappe
+from frappe import _
+from frappe.utils import cstr
 from frappe.model.document import Document
 
 class TokenCache(Document):
@@ -19,10 +20,16 @@ class TokenCache(Document):
 		raise frappe.exceptions.DoesNotExistError
 
 	def update_data(self, data):
-		self.access_token = data.get('access_token')
-		self.refresh_token = data.get('refresh_token')
-		self.expires_in = data.get('expires_in')
-		self.token_type = data.get('token_type')
+		token_type = cstr(data.get('token_type', '')).lower()
+		if token_type not in ['bearer', 'mac']:
+			frappe.throw(_('Received an invalid token type.'))
+		# 'Bearer' or 'MAC'
+		token_type = token_type.title() if token_type == 'bearer' else token_type.upper()
+
+		self.token_type = token_type
+		self.access_token = cstr(data.get('access_token', ''))
+		self.refresh_token = cstr(data.get('refresh_token', ''))
+		self.expires_in = cstr(data.get('expires_in', ''))
 
 		new_scopes = data.get('scope')
 		if new_scopes:
