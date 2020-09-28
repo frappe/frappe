@@ -399,6 +399,7 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 	from frappe.utils.backups import scheduled_backup
 	verbose = verbose or context.verbose
 	exit_code = 0
+
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
@@ -408,18 +409,10 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 			click.secho("Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), fg="red")
 			exit_code = 1
 			continue
-
-		if verbose:
-			from frappe.utils import now
-			summary = "Backup Summary at {0}".format(now())
-			summary_title = summary + "\n" + "-" * len(summary) + "\n"
-			print(summary_title + "Config file: {0}\nDatabase file: {1}".format(odb.backup_path_conf, odb.backup_path_db))
-			if with_files:
-				print("Public file: {0}\nPrivate file: {1}".format(odb.backup_path_files, odb.backup_path_private_files))
-
+		odb.print_summary()
 		click.secho("Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""), fg="green")
-
 		frappe.destroy()
+
 	if not context.sites:
 		raise SiteNotSpecifiedError
 

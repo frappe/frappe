@@ -175,22 +175,57 @@ class BackupGenerator:
 
 	def zip_files(self):
 		# For backwards compatibility - pre v13
+		click.secho("BackupGenerator.zip_files has been deprecated in favour of BackupGenerator.backup_files", fg="yellow")
 		return self.backup_files()
 
+	def get_summary(self):
+		summary = {
+			"config": {
+				"path": self.backup_path_conf,
+				"size": get_file_size(self.backup_path_conf, format=True)
+			},
+			"database": {
+				"path": self.backup_path_db,
+				"size": get_file_size(self.backup_path_db, format=True)
+			}
+		}
+
+		if os.path.exists(self.backup_path_files) and os.path.exists(self.backup_path_private_files):
+			summary.update({
+				"public": {
+					"path": self.backup_path_files,
+					"size": get_file_size(self.backup_path_files, format=True)
+				},
+				"private": {
+					"path": self.backup_path_private_files,
+					"size": get_file_size(self.backup_path_private_files, format=True)
+				}
+			})
+
+		return summary
+
+	def print_summary(self):
+		backup_summary = self.get_summary()
+		print("Backup Summary for {0} at {1}".format(frappe.local.site, now()))
+
+		for _type, info in backup_summary.items():
+			print("{0:8}: {1:85} {2}".format(_type.title(), info["path"], info["size"]))
+
 	def backup_files(self):
+		import subprocess
+
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder=="public" else self.backup_path_private_files
 
 			if self.compress_files:
-				cmd_string = "tar cf - {1} | gzip -v > {0}"
+				cmd_string = "tar cf - {1} | gzip > {0}"
 			else:
 				cmd_string = "tar -cf {0} {1}"
-			import subprocess
 			output = subprocess.check_output(cmd_string.format(backup_path, files_path), shell=True)
 
-			if self.verbose:
-				print('{0}\nBacked up file: {1}'.format(output or "", os.path.abspath(backup_path)))
+			if self.verbose and output:
+				print(output.decode("utf8"))
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
