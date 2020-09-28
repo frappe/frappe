@@ -87,8 +87,6 @@ class BackupGenerator:
 		else:
 			last_db, last_file, last_private_file, site_config_backup_path = False, False, False, False
 
-		self.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
-
 		if not (self.backup_path_files and self.backup_path_db and self.backup_path_private_files):
 			self.set_backup_file_name()
 
@@ -106,10 +104,12 @@ class BackupGenerator:
 
 	def set_backup_file_name(self):
 		#Generate a random name using today's date and a 8 digit random number
-		for_conf = self.todays_date + "-" + self.site_slug + "-site_config_backup.json"
-		for_db = self.todays_date + "-" + self.site_slug + "-database.sql.gz"
-		for_public_files = self.todays_date + "-" + self.site_slug + "-files.tar"
-		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files.tar"
+		todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
+		
+		for_conf = todays_date + "-" + self.site_slug + "-site_config_backup.json"
+		for_db = todays_date + "-" + self.site_slug + "-database.sql.gz"
+		for_public_files = todays_date + "-" + self.site_slug + "-files.tar"
+		for_private_files = todays_date + "-" + self.site_slug + "-private-files.tar"
 		backup_path = get_backup_path()
 
 		if not self.backup_path_conf:
