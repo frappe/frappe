@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import glob
 import os
-from frappe.utils import split_emails, get_backups_path
+from frappe.utils import split_emails, get_backups_path, now_datetime
 
 
 def send_email(success, service_name, doctype, email_field, error_status=None):
@@ -67,7 +67,23 @@ def get_latest_backup_file(with_files=False):
 
 	return database, config
 
+def take_files_backup():
+	"""Only zips and places public and private files in backup folder"""
+	from frappe.utils.backups import BackupGenerator
 
+	odb = BackupGenerator(
+		frappe.conf.db_name,
+		frappe.conf.db_name,
+		frappe.conf.db_password,
+		db_host=frappe.db.host,
+		db_type=frappe.conf.db_type,
+		db_port=frappe.conf.db_port,
+	)
+
+	odb.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
+	odb.set_backup_file_name()
+	odb.zip_files()
+	
 def get_file_size(file_path, unit):
 	if not unit:
 		unit = "MB"
