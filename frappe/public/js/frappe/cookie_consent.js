@@ -23,16 +23,16 @@ frappe.cookie.cookie_consent = function() {
 		type: 'opt-in', // categories, info, opt-in, opt-out
 		layout: 'basic-header',
 		content: {
-			header : __('This website uses cookies'),
+			header: __('This website uses cookies'),
 			message: __('We use cookies to ensure you get the best experience on our website.'),
 			dismiss: __('Got it!'),
-			allow  : __('Allow cookies'),
-			deny   : __('Decline'),
-			link   : __('Learn more'),
-			href   : 'https://www.cookiesandyou.com',
-			close  : '&#x274c',
-			target : '_blank',
-			policy : __('Cookie Policy')
+			allow: __('Allow cookies'),
+			deny: __('Decline'),
+			link: __('Learn more'),
+			href: 'https://www.cookiesandyou.com',
+			close: '&#x274c',
+			target: '_blank',
+			policy: __('Cookie Policy')
 		},
 		// overrideHTML: `<div>Custom HTML</div>`, // overrides everything
 		// onInitialise: function (status) {
