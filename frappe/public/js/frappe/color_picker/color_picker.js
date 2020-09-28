@@ -10,13 +10,20 @@ class Picker {
 		this.setup_picker();
 	}
 
+	refresh() {
+		this.set_selector_position(true);
+		this.update_color_map();
+	}
+
 	setup_picker() {
 		let color_picker_template = document.createElement('template');
 		color_picker_template.innerHTML = `
 			<div class="color-picker">
-				RECENT <br>
-				<div class="swatches"></div>
-				COLOR PICKER <br>
+				<div class="swatch-section">
+					${__('SWATCHES')}<br>
+					<div class="swatches"></div>
+				</div>
+				${__('COLOR PICKER')}<br>
 				<div class="color-map">
 					<div class="color-selector"></div>
 				</div>
@@ -32,10 +39,9 @@ class Picker {
 		this.hue_map = this.color_picker_wrapper.getElementsByClassName('hue-map')[0];
 		this.swatches_wrapper = this.color_picker_wrapper.getElementsByClassName('swatches')[0];
 		this.hue_selector_circle = this.hue_map.getElementsByClassName('hue-selector')[0];
-		this.set_selector_position();
+		this.refresh();
 		this.setup_events();
 		this.setup_swatches();
-		this.update_color_map();
 	}
 
 	setup_events() {
@@ -58,15 +64,15 @@ class Picker {
 		});
 	}
 
-	set_selector_position() {
+	set_selector_position(silent) {
 		this.hue = utils.get_hue(this.color);
 		this.color_selector_position = this.get_pointer_coords();
 		this.hue_selector_position = {
 			x: this.hue * this.hue_map.offsetWidth / 360,
 			y: this.hue_map.offsetHeight / 2
 		};
-		this.update_color_selector();
-		this.update_hue_selector();
+		this.update_color_selector(silent);
+		this.update_hue_selector(silent);
 	}
 
 	setup_color_event() {
@@ -91,14 +97,14 @@ class Picker {
 		);
 	}
 
-	update_color_selector() {
+	update_color_selector(silent) {
 		let x = this.color_selector_position.x;
 		let y = this.color_selector_position.y;
 		// set color selector position and background
 		this.color_selector_circle.style.top = (y - this.color_selector_circle.offsetHeight / 2) + 'px';
 		this.color_selector_circle.style.left = (x - this.color_selector_circle.offsetWidth / 2) + 'px';
 		this.color_map.style.color = this.color;
-		this.on_change && this.on_change(this.color);
+		!silent && this.on_change && this.on_change(this.color);
 	}
 
 	setup_hue_event() {
@@ -136,7 +142,7 @@ class Picker {
 		let width = this.color_map.offsetWidth;
 		let height = this.color_map.offsetHeight;
 		let x = utils.clamp(0, s * width / 100, width);
-		let y = utils.clamp(0, (1 - v * height) / 100, height);
+		let y = utils.clamp(0, (1 - (v / 100)) * height, height);
 		return {x, y};
 	}
 

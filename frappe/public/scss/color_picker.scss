@@ -1,9 +1,11 @@
 .color-picker {
 	font-size: var(--text-xs);
 	color: var(--text-muted);
+	--color-picker-width: 210px;
+	width: var(--color-picker-width);
 	.swatches {
 		margin-top: 10px;
-		margin-bottom: 15px;
+		margin-bottom: 10px;
 		display: flex;
 		flex-wrap: wrap;
 	}
@@ -34,8 +36,8 @@
 		}
 
 		&::before {
-			width: calc(100%);
-			height: calc(100%);
+			width: 100%;
+			height: 100%;
 			background-color: currentColor;
 			border: 2px solid white;
 		}
@@ -58,7 +60,7 @@
 		margin-top: 10px;
 		color: transparent;
 		position: relative;
-		width: 210px;
+		width: auto;
 		height: 140px;
 		/* background: linear-gradient(0deg, black, transparent), linear-gradient(90deg, white, transparent), red; */
 		border-radius: 6px;
@@ -67,7 +69,7 @@
 
 	.hue-map {
 		color: transparent;
-		width: 210px;
+		width: auto;
 		height: 14px;
 		position: relative;
 		background: linear-gradient(
@@ -86,48 +88,25 @@
 }
 
 .picker-arrow {
-	left: 0 !important;
+	left: 15px !important;
 }
 
-// .color-picker-wrapper {
-// 	position: relative;
-// 	z-index: 999;
-// }
-
-// .color-picker {
-// 	border-radius: 4px;
-// 	box-shadow: 0 4px 12px rgba(0,0,0,.15);
-// 	background: #fff;
-// 	border: 1px solid var(--border-color);
-// 	width: 290px;
-// 	height: 106px;
-// 	padding-top: 10px;
-// 	padding-left: 5px;
-// 	position: absolute;
-// 	top: 0;
-// 	left: 0;
-
-// 	&:after,
-// 	&:before {
-// 		border: solid transparent;
-// 		content: " ";
-// 		height: 0;
-// 		width: 0;
-// 		pointer-events: none;
-// 		position: absolute;
-// 		bottom: 100%;
-// 		left: 30px;
-// 	}
-// 	&:after {
-// 		border-color: rgba(255, 255, 255, 0);
-// 		border-bottom-color: #fff;
-// 		border-width: 8px;
-// 		margin-left: -8px;
-// 	}
-// 	&:before {
-// 		border-color: rgba(221, 221, 221, 0);
-// 		border-bottom-color: var(--border-color);
-// 		border-width: 9px;
-// 		margin-left: -9px;
-// 	}
-// }
+.frappe-control[data-fieldtype='Color']  {
+	input {
+		padding-left: 40px;
+	}
+	.selected-color {
+		width: 22px;
+		height: 22px;
+		border-radius: 5px;
+		background-color: red;
+		position: absolute;
+		top: calc(50% + 1px);
+		left: 5px;
+		content: ' ';
+		&.no-value {
+			background: url('/assets/frappe/images/color-circle.png');
+			background-size: contain;
+		}
+	}
+}
