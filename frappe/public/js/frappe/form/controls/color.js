@@ -1,3 +1,5 @@
+import Picker from '../../color_picker/color_picker';
+
 frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	make_input: function () {
 		this._super();
@@ -18,19 +20,32 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		this.make_color_input();
 	},
 	make_color_input: function () {
-		this.$wrapper
-			.append(`<div class="color-picker">
-				<div class="color-picker-pallete"></div>
-			</div>`);
-		this.$color_pallete = this.$wrapper.find('.color-picker-pallete');
+		let picker_wrapper = $('<div>');
+		this.picker = new Picker({
+			parent: picker_wrapper[0],
+			color: "#ffc4c4",
+			swatches: [
+				"#ffc4c4", "#d9f399", "#78d6ff", "#fff69c", "#d2f8ed"
+			]
+		});
 
-		var color_html = this.colors.map(this.get_color_box).join("");
-		this.$color_pallete.append(color_html);
-		this.$color_pallete.hide();
-		this.bind_events();
-	},
-	get_color_box: function (hex) {
-		return `<div class="color-box" data-color="${hex}" style="background-color: ${hex}"></div>`;
+		this.$wrapper.popover({
+			trigger: 'click',
+			offset: `${-this.$wrapper.width() / 4}, 5`,
+			placement: 'bottom',
+			template: `
+				<div class="popover">
+					<div class="picker-arrow arrow"></div>
+					<div class="popover-body popover-content"></div>
+				</div>
+			`,
+			content: () => picker_wrapper,
+			html: true
+		});
+
+		this.picker.on_change = (color) => {
+			this.set_value(color);
+		};
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
@@ -43,32 +58,32 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		});
 	},
 	bind_events: function () {
-		var mousedown_happened = false;
-		this.$wrapper.on("click", ".color-box", (e) => {
-			mousedown_happened = false;
+		// var mousedown_happened = false;
+		// this.$wrapper.on("click", ".color-box", (e) => {
+		// 	mousedown_happened = false;
 
-			var color_val = $(e.target).data("color");
-			this.set_value(color_val);
-			// set focus so that we can blur it later
-			this.set_focus();
-		});
+		// 	var color_val = $(e.target).data("color");
+		// 	this.set_value(color_val);
+		// 	// set focus so that we can blur it later
+		// 	this.set_focus();
+		// });
 
-		this.$wrapper.find(".color-box").mousedown(() => {
-			mousedown_happened = true;
-		});
+		// this.$wrapper.find(".color-box").mousedown(() => {
+		// 	mousedown_happened = true;
+		// });
 
-		this.$input.on("focus", () => {
-			this.$color_pallete.show();
-		});
-		this.$input.on("blur", () => {
-			if (mousedown_happened) {
-				// cancel the blur event
-				mousedown_happened = false;
-			} else {
-				// blur event is okay
-				$(this.$color_pallete).hide();
-			}
-		});
+		// this.$input.on("focus", () => {
+		// 	this.$color_pallete.show();
+		// });
+		// this.$input.on("blur", () => {
+		// 	if (mousedown_happened) {
+		// 		// cancel the blur event
+		// 		mousedown_happened = false;
+		// 	} else {
+		// 		// blur event is okay
+		// 		$(this.$color_pallete).hide();
+		// 	}
+		// });
 	},
 	validate: function (value) {
 		if(value === '') {
