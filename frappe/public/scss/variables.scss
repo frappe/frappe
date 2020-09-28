@@ -267,6 +267,17 @@ $btn-padding-x: 1rem !default;
 $btn-padding-y: 0.5rem !default;
 $btn-font-weight: 400 !default;
 
+// popover
+$enable-shadows: true;
+$popover-border-radius: var(--border-radius);
+$popover-bg: var(--popover-bg);
+$popover-box-shadow: var(--shadow-md);
+$popover-body-padding-x: var(--padding-md);
+$popover-body-padding-y: var(--padding-md);
+$popover-border-color: var(--dark-border-color);
+$popover-arrow-outer-color: var(--dark-border-color);
+$popover-header-bg: white;
+
 $navbar-nav-link-padding-x: 1rem !default;
 $navbar-padding-y: 1rem !default;
 $card-border-radius: 0.75rem !default;
@@ -289,6 +300,7 @@ $grid-breakpoints: (
 ) !default;
 
 @import 'dark';
+@import 'royal';
 @import 'typography';
 @import '~bootstrap/scss/functions';
 @import '~bootstrap/scss/variables';
