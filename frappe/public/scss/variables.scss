@@ -79,12 +79,12 @@ $input-border-radius: 0.375rem;
 $custom-control-indicator-bg: white;
 
 $grid-breakpoints: (
-  xs: 0,
-  sm: 576px,
-  md: 768px,
-  lg: 992px,
-  xl: 1200px,
-  2xl: 1440px
+	xs: 0,
+	sm: 576px,
+	md: 768px,
+	lg: 992px,
+	xl: 1200px,
+	2xl: 1440px
 ) !default;
 
 $spacers: (
@@ -112,11 +112,11 @@ $spacers: (
 	48: 12rem,
 	52: 13rem,
 	56: 14rem,
-	64: 16rem,
+	64: 16rem
 );
 
-@import '~bootstrap/scss/functions';
-@import '~bootstrap/scss/variables';
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
 
 $code-color: $purple;
