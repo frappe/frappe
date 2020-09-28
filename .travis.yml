@@ -44,7 +44,6 @@ install:
   - sudo chmod o+x /usr/local/bin/wkhtmltopdf
 
   - cd ~/frappe-bench
-  - ./env/bin/pip install ldap3
 
   - sed -i 's/watch:/# watch:/g' Procfile
   - sed -i 's/schedule:/# schedule:/g' Procfile
