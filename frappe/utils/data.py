@@ -500,6 +500,7 @@ def get_number_format_info(format):
 # convert currency to words
 #
 def money_in_words(number, main_currency = None, fraction_currency=None):
+	
 	"""
 	Returns string in words with currency and fraction currency.
 	"""
@@ -520,7 +521,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not main_currency:
 		main_currency = d.get('currency', 'INR')
 	if not fraction_currency:
-		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _("Cent")
+		fraction_currency = _(frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _("Cent"))
 
 	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
@@ -539,19 +540,20 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	in_million = True
 	if number_format == "#,##,###.##": in_million = False
 
+	out = ""
+
 	# 0.00
 	if main == '0' and fraction in ['00', '000']:
-		out = "{0} {1}".format(main_currency, _('Zero'))
+		out = "{0} {1}".format(_('Zero'), _(main_currency))
 	# 0.XX
 	elif main == '0':
-		out = _(in_words(fraction, in_million).title()) + ' ' + fraction_currency
+		out = str(_(in_words(fraction, in_million).title())) + ' ' + fraction_currency
 	else:
-		out = main_currency + ' ' + _(in_words(main, in_million).title())
+		out =  str(_(in_words(main, in_million).title())) + ' ' + _(main_currency)
 		if cint(fraction):
-			out = out + ' ' + _('and') + ' ' + _(in_words(fraction, in_million).title()) + ' ' + fraction_currency
+			out = out + ' ' + _('and') + ' ' + str(_(in_words(fraction, in_million).title())) + ' ' + fraction_currency
 
 	return out + ' ' + _('only.')
-
 #
 # convert number to words
 #
