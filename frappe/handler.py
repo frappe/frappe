@@ -51,15 +51,18 @@ def execute_cmd(cmd, from_async=False):
 	if run_server_script_api(cmd):
 		return None
 
-	try:
-		method = get_attr(cmd)
-	except Exception as e:
-		if frappe.local.conf.developer_mode:
-			raise e
-		else:
-			frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
-			indicator_color='red', http_status_code=404)
-		return
+	if cmd in frappe.whitelisted_alias.keys():
+		method = frappe.whitelisted_alias.get(cmd)
+	else:
+		try:
+			method = get_attr(cmd)
+		except Exception as e:
+			if frappe.local.conf.developer_mode:
+				raise e
+			else:
+				frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+				indicator_color='red', http_status_code=404)
+			return
 
 	if from_async:
 		method = method.queue
@@ -224,4 +227,6 @@ def get_attr(cmd):
 
 @frappe.whitelist(allow_guest = True)
 def ping():
+	import time
+	time.sleep(5)
 	return "pong"
