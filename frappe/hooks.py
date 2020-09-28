@@ -49,10 +49,13 @@ doctype_js = {
 }
 
 web_include_js = [
-	"website_script.js"
+	"website_script.js",
+	"/assets/frappe/node_modules/cookieconsent/build/cookieconsent.min.js"
 ]
 
-web_include_css = []
+web_include_css = [
+	"/assets/frappe/node_modules/cookieconsent/build/cookieconsent.min.css"
+]
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},

@@ -25,6 +25,7 @@
     "awesomplete": "^1.1.5",
     "bootstrap": "^4.4.1",
     "cookie": "^0.4.0",
+    "cookieconsent": "3",
     "cssnano": "^4.1.10",
     "driver.js": "^0.9.8",
     "express": "^4.17.1",

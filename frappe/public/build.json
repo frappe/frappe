@@ -46,7 +46,9 @@
 
 		"website/js/website.js",
 		"public/js/frappe/utils/rating_icons.html",
-		"public/js/frappe/socketio_client.js"
+		"public/js/frappe/socketio_client.js",
+
+		"public/js/frappe/cookie_consent.js"
 	],
 	"js/bootstrap-4-web.min.js": [
 		"website/js/bootstrap-4.js"
