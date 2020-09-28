@@ -1,19 +1,20 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-"""This module handles the On Demand Backup utility"""
-
-from __future__ import print_function, unicode_literals
-
-import os
+# imports - standard imports
 import json
+import os
 from calendar import timegm
 from datetime import datetime
 from glob import glob
 
+# imports - third party imports
+import click
+
+# imports - module imports
 import frappe
 from frappe import _, conf
-from frappe.utils import cstr, get_url, now_datetime
+from frappe.utils import cstr, get_url, now, now_datetime, get_file_size
 
 # backup variable for backwards compatibility
 verbose = False
@@ -78,7 +79,6 @@ class BackupGenerator:
 	@property
 	def site_config_backup_path(self):
 		# For backwards compatibility
-		import click
 		click.secho("BackupGenerator.site_config_backup_path has been deprecated in favour of BackupGenerator.backup_path_conf", fg="yellow")
 		return getattr(self, "backup_path_conf", None)
 
