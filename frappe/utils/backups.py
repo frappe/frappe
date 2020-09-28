@@ -14,7 +14,7 @@ import click
 # imports - module imports
 import frappe
 from frappe import _, conf
-from frappe.utils import cstr, get_url, now, now_datetime, get_file_size
+from frappe.utils import get_url, now, now_datetime, get_file_size
 
 # backup variable for backwards compatibility
 verbose = False
