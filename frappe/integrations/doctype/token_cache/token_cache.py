@@ -13,7 +13,7 @@ class TokenCache(Document):
 
 	def get_auth_header(self):
 		if self.access_token:
-			headers = {'Authorization': 'Bearer ' + self.access_token}
+			headers = {'Authorization': 'Bearer ' + self.get_password('access_token')}
 			return headers
 
 		raise frappe.exceptions.DoesNotExistError
