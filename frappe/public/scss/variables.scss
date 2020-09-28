@@ -19,6 +19,25 @@ $text-muted: $gray-600 !default;
 $border-color: $gray-300 !default;
 $headings-color: $gray-900 !default;
 
+$font-sizes: (
+	"xs": 0.75rem,
+	"sm": 0.875rem,
+	"base": 1rem,
+	"lg": 1.125rem,
+	"xl": 1.25rem,
+	"2xl": 1.5rem,
+	"3xl": 1.875rem,
+	"4xl": 2.25rem,
+	"5xl": 3rem,
+	"6xl": 4rem
+);
+
+@each $size, $value in $font-sizes {
+	.font-size-#{$size} {
+		font-size: $value;
+	}
+}
+
 $font-size-xs: 0.75rem !default;
 $font-size-sm: 0.875rem !default;
 $font-size-base: 1rem !default;
