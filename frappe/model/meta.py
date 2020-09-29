@@ -325,7 +325,7 @@ class Meta(Document):
 
 			elif ps.doctype_or_field=='DocField':
 				for d in self.fields:
-					if d.fieldname == ps.fieldname:
+					if d.fieldname == ps.field_name:
 						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
 						break
 

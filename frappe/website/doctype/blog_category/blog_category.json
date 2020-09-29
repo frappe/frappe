@@ -43,7 +43,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2020-09-29 10:45:48.810348",
+ "modified": "2020-09-29 10:48:36.886753",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Category",
@@ -69,7 +69,6 @@
   }
  ],
  "quick_entry": 1,
- "route": "/category",
  "sort_field": "modified",
  "sort_order": "DESC",
  "title_field": "title",
