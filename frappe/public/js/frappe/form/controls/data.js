@@ -1,3 +1,5 @@
+frappe.provide('frappe.phone_call');
+
 frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	html_element: "input",
 	input_type: "text",
@@ -21,9 +23,26 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.bind_change_event();
 		this.bind_focusout();
 		this.setup_autoname_check();
-
+		if (this.df.options == 'Phone') {
+			this.setup_phone();
+		}
 		// somehow this event does not bubble up to document
 		// after v7, if you can debug, remove this
+	},
+	setup_phone() {
+		if (frappe.phone_call.handler) {
+			this.$wrapper.find('.control-input')
+				.append(`
+					<span class="phone-btn">
+						<a class="btn-open no-decoration" title="${__('Make a call')}">
+							<i class="fa fa-phone"></i></a>
+					</span>
+				`)
+				.find('.phone-btn')
+				.click(() => {
+					frappe.phone_call.handler(this.get_value(), this.frm);
+				});
+		}
 	},
 	setup_autoname_check: function() {
 		if (!this.df.parent) return;
@@ -42,7 +61,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 						// check if name exists
 						frappe.db.get_value(this.doctype, this.$input.val(),
 							'name', (val) => {
-								if (val) {
+								if (val && val.name) {
 									this.set_description(__('{0} already exists. Select another name', [val.name]));
 								}
 							},
@@ -87,56 +106,32 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		return val==null ? "" : val;
 	},
 	validate: function(v) {
+		if (!v) {
+			return '';
+		}
 		if(this.df.is_filter) {
 			return v;
 		}
 		if(this.df.options == 'Phone') {
-			if(v+''=='') {
-				return '';
-			}
-			var v1 = '';
-			// phone may start with + and must only have numbers later, '-' and ' ' are stripped
-			v = v.replace(/ /g, '').replace(/-/g, '').replace(/\(/g, '').replace(/\)/g, '');
-
-			// allow initial +,0,00
-			if(v && v.substr(0,1)=='+') {
-				v1 = '+'; v = v.substr(1);
-			}
-			if(v && v.substr(0,2)=='00') {
-				v1 += '00'; v = v.substr(2);
-			}
-			if(v && v.substr(0,1)=='0') {
-				v1 += '0'; v = v.substr(1);
-			}
-			v1 += cint(v) + '';
-			return v1;
+			this.df.invalid = !validate_phone(v);
+			return v;
+		} else if (this.df.options == 'Name') {
+			this.df.invalid = !validate_name(v);
+			return v;
 		} else if(this.df.options == 'Email') {
-			if(v+''=='') {
-				return '';
-			}
-
 			var email_list = frappe.utils.split_emails(v);
 			if (!email_list) {
-				// invalid email
 				return '';
 			} else {
-				var invalid_email = false;
+				let email_invalid = false;
 				email_list.forEach(function(email) {
 					if (!validate_email(email)) {
-						frappe.msgprint(__("Invalid Email: {0}", [email]));
-						invalid_email = true;
+						email_invalid = true;
 					}
 				});
-
-				if (invalid_email) {
-					// at least 1 invalid email
-					return '';
-				} else {
-					// all good
-					return v;
-				}
+				this.df.invalid = email_invalid;
+				return v;
 			}
-
 		} else {
 			return v;
 		}

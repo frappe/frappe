@@ -15,6 +15,9 @@
 {% endblock %}
 
 {% block page_content %}
+{%- if content_type == 'Page Builder' -%}
+	{{ page_builder_html }}
+{%- else -%}
 <div class="webpage-content">
 	{% include "templates/includes/slideshow.html" %}
 	<article class="web-page-content" id="{{ name }}" {% if text_align -%}style="text-align: {{ text_align }}"{%- endif %}>
@@ -26,14 +29,25 @@
 	{% include 'templates/includes/comments/comments.html' %}
 	{%- endif %}
 </div>
+{%- endif -%}
 {% endblock %}
 
 {% block style %}
 <style>
 {{ style or "" }}
 </style>
+
+{%- for style in page_builder_styles -%}
+<style>{{ style }}</style>
+{%- endfor -%}
 {% endblock %}
 
 {% block script %}
-    <script>{{ script or "" }}</script>
+	{%- if script -%}
+	<script>{{ script }}</script>
+	{%- endif -%}
+
+	{%- for script in page_builder_scripts -%}
+	<script>{{ script }}</script>
+	{%- endfor -%}
 {% endblock %}

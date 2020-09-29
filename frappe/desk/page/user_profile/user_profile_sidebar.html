@@ -1,0 +1,23 @@
+<div class="user-profile-sidebar">
+    <div class="user-image-container hidden-xs hidden-sm">
+        {% if user_image %}
+            {{user_image}}
+        {% endif %}
+    </div>
+    <div class="profile-details">
+        {% if user_bio %}
+        <p class="user-bio">{{user_bio}}</p>
+        {% endif %}
+        {% if user_location %}
+        <p class="user-location text-muted"><span class="interest-icon"><i class="fa fa-map-marker"></i></span>{{user_location}}</p>
+        {% endif %}
+        {% if user_interest %}
+        <p class="user-interests text-muted"><span class="interest-icon"><i class="fa fa-puzzle-piece"></i></span>{{user_interest}}</p>
+        {% endif %}
+    </div>
+    <div class="profile-links">
+        <p><a class="edit-profile-link">{%=__("Edit Profile") %}</a></p>
+        <p><a class="user-settings-link">{%=__("User Settings") %}</a></p>
+        <p><a class="leaderboard-link" href="#leaderboard/User">{%=__("Leaderboard") %}</a></p>
+    </div>
+</div>

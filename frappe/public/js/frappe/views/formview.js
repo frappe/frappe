@@ -37,7 +37,13 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			});
 
 			frappe.realtime.on("doc_viewers", function(data) {
-				frappe.ui.form.set_viewers(data);
+				// set users that currently viewing the form
+				frappe.ui.form.set_users(data, 'viewers');
+			});
+
+			frappe.realtime.on("doc_typers", function(data) {
+				// set users that currently typing on the form
+				frappe.ui.form.set_users(data, 'typers');
 			});
 		}
 

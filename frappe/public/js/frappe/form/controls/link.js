@@ -140,6 +140,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
+		this.custom_awesomplete_filter && this.custom_awesomplete_filter(this.awesomplete);
+
 		this.$input.on("input", frappe.utils.debounce(function(e) {
 			var doctype = me.get_options();
 			if(!doctype) return;
@@ -171,6 +173,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					if(!me.$input.is(":focus")) {
 						return;
 					}
+					r.results = me.merge_duplicates(r.results);
 
 					// show filter description in awesomplete
 					if (args.filters) {
@@ -184,7 +187,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						}
 					}
 
-					if(!me.df.only_select && me.frm) {
+					if(!me.df.only_select) {
 						if(frappe.model.can_create(doctype)) {
 							// new item
 							r.results.push({
@@ -276,6 +279,23 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 	},
 
+	merge_duplicates(results) {
+		// in case of result like this
+		// [{value: 'Manufacturer 1', 'description': 'mobile part 1'},
+		// 	{value: 'Manufacturer 1', 'description': 'mobile part 2'}]
+		// suggestion list has two items with same value (docname) & description
+		return results.reduce((newArr, currElem) => {
+			if (newArr.length === 0) return [currElem];
+			let element_with_same_value = newArr.find(e => e.value === currElem.value);
+			if (element_with_same_value) {
+				element_with_same_value.description += `, ${currElem.description}`;
+				return [...newArr];
+			}
+			return [...newArr, currElem];
+		}, []);
+		// returns [{value: 'Manufacturer 1', 'description': 'mobile part 1, mobile part 2'}]
+	},
+
 	get_filter_description(filters) {
 		let doctype = this.get_options();
 		let filter_array = [];
@@ -311,6 +331,15 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			let fieldname = filter[1];
 			let docfield = frappe.meta.get_docfield(doctype, fieldname);
 			let label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
+
+			if (docfield && docfield.fieldtype === 'Check') {
+				filter[3] = filter[3] ? __('Yes'): __('No');
+			}
+
+			if (filter[3] && Array.isArray(filter[3]) && filter[3].length > 5) {
+				filter[3] = filter[3].slice(0, 5);
+				filter[3].push('...');
+			}
 
 			let value = filter[3] == null || filter[3] === ''
 				? __('empty')
@@ -438,15 +467,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			});
 		}
 	},
+
 	set_fetch_values: function(df, docname, fetch_values) {
 		var fl = this.frm.fetch_dict[df.fieldname].fields;
 		for(var i=0; i < fl.length; i++) {
 			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
 		}
-	}
+	},
 });
 
-if(Awesomplete) {
+if (Awesomplete) {
 	Awesomplete.prototype.get_item = function(value) {
 		return this._list.find(function(item) {
 			return item.value === value;

@@ -2,13 +2,13 @@ import WebFormList from './web_form_list'
 import WebForm from './web_form'
 
 frappe.ready(function() {
+	let query_params = frappe.utils.get_query_params();
 	let wrapper = $(".web-form-wrapper");
-	let is_list = parseInt(wrapper.data('is-list'));
+	let is_list = parseInt(wrapper.data('is-list')) || query_params.is_list;
 	let webform_doctype = wrapper.data('web-form-doctype');
 	let webform_name = wrapper.data('web-form');
 	let login_required = parseInt(wrapper.data('login-required'));
 	let allow_delete = parseInt(wrapper.data('allow-delete'));
-	let query_params = frappe.utils.get_query_params();
 	let doc_name = query_params.name || '';
 	let is_new = query_params.new;
 
@@ -38,7 +38,7 @@ frappe.ready(function() {
 			settings: {
 				allow_delete
 			}
-		})
+		});
 	}
 
 	function show_form() {
@@ -52,15 +52,24 @@ frappe.ready(function() {
 			const data = setup_fields(r.message);
 			let web_form_doc = data.web_form;
 
-			if (web_form_doc.doc_name && web_form_doc.allow_edit === 0) {
-				window.location.replace(window.location.pathname + "?new=1");
-				return;
+			if (web_form_doc.name && web_form_doc.allow_edit === 0) {
+				if (!window.location.href.includes("?new=1")) {
+					window.location.replace(window.location.pathname + "?new=1");
+				}
 			}
-
-			web_form.prepare(web_form_doc, r.message.doc || {});
+			let doc = r.message.doc || build_doc(r.message);
+			web_form.prepare(web_form_doc, r.message.doc && web_form_doc.allow_edit === 1 ? r.message.doc : {});
 			web_form.make();
 			web_form.set_default_values();
 		})
+
+		function build_doc(form_data) {
+			let doc = {};
+			form_data.web_form.web_form_fields.forEach(df => {
+				if (df.default) return doc[df.fieldname] = df.default;
+			});
+			return doc;
+		}
 
 		function get_data() {
 			return frappe.call({
@@ -86,6 +95,11 @@ frappe.ready(function() {
 					};
 
 					df.fields = form_data[df.fieldname];
+					$.each(df.fields || [], function(_i, field) {
+						if (field.fieldtype === "Link") {
+							field.only_select = true;
+						}
+					});
 
 					if (df.fieldtype === "Attach") {
 						df.is_private = true;
@@ -100,7 +114,15 @@ frappe.ready(function() {
 
 					return df;
 				}
-				if (df.fieldtype === "Link") df.only_select = true;
+				if (df.fieldtype === "Link") {
+					df.only_select = true;
+				}
+				if (["Attach", "Attach Image"].includes(df.fieldtype)) {
+					if (typeof df.options !== "object") {
+						df.options = {};
+					}
+					df.options.disable_file_browser = true;
+				}
 			});
 
 			return form_data;

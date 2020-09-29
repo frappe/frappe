@@ -273,7 +273,8 @@ body[data-route^="Module"] .main-menu {
 }
 
 .layout-side-section .form-sidebar {
-	.modified-by {
+	.modified-by,
+	.pageview-count {
 		margin-bottom: 15px;
 	}
 }
@@ -399,13 +400,22 @@ body[data-route^="Module"] .main-menu {
 	.group-by-dropdown, .list-stats-dropdown {
 		max-height: 300px;
 		overflow-y: auto;
-		max-width: 200px;
+		max-width: 250px;
+		z-index: 100;
 	}
+
 	.dropdown-search {
 		padding: 8px;
 	}
+
+	.stat-no-records {
+		margin: 5px 10px;
+	}
 }
 
+.filters-search {
+	margin-bottom: 10px;
+}
 // module sidebar
 .layout-side-section .module-sidebar-nav {
 	margin-top: 15px;
@@ -448,7 +458,7 @@ body[data-route^="Module"] .main-menu {
 			flex-basis: 50%;
 			text-align: center;
 			align-self: center;
-			font-size: @text-small;
+			font-size: 9px;
 		}
 		cursor: pointer;
 	}
@@ -465,6 +475,7 @@ body[data-route^="Module"] .main-menu {
 	}
 	.subject, .body {
 		padding: 12px;
+		overflow-wrap: break-word;
 	}
 }
 

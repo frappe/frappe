@@ -60,7 +60,7 @@ def update_last_reset_password_date():
 		SET
 			last_password_reset_date = %s
 		WHERE
-			last_password_reset_date is null or last_password_reset_date = ''""", today())
+			last_password_reset_date is null""", today())
 
 @frappe.whitelist()
 def load():

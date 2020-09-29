@@ -18,6 +18,9 @@ class SMSSettings(Document):
 def validate_receiver_nos(receiver_list):
 	validated_receiver_list = []
 	for d in receiver_list:
+		if not d:
+			break
+
 		# remove invalid character
 		for x in [' ','-', '(', ')']:
 			d = d.replace(x, '')
@@ -66,8 +69,10 @@ def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 def send_via_gateway(arg):
 	ss = frappe.get_doc('SMS Settings', 'SMS Settings')
 	headers = get_headers(ss)
+	use_json = headers.get("Content-Type") == "application/json"
 
-	args = {ss.message_parameter: arg.get('message')}
+	message = frappe.safe_decode(arg.get('message'))
+	args = {ss.message_parameter: message}
 	for d in ss.get("parameters"):
 		if not d.header:
 			args[d.parameter] = d.value
@@ -75,7 +80,7 @@ def send_via_gateway(arg):
 	success_list = []
 	for d in arg.get('receiver_list'):
 		args[ss.receiver_parameter] = d
-		status = send_request(ss.sms_gateway_url, args, headers, ss.use_post)
+		status = send_request(ss.sms_gateway_url, args, headers, ss.use_post, use_json)
 
 		if 200 <= status < 300:
 			success_list.append(d)
@@ -97,16 +102,24 @@ def get_headers(sms_settings=None):
 
 	return headers
 
-def send_request(gateway_url, params, headers=None, use_post=False):
+def send_request(gateway_url, params, headers=None, use_post=False, use_json=False):
 	import requests
 
 	if not headers:
 		headers = get_headers()
+	kwargs = {"headers": headers}
+
+	if use_json:
+		kwargs["json"] = params
+	elif use_post:
+		kwargs["data"] = params
+	else:
+		kwargs["params"] = params
 
 	if use_post:
-		response = requests.post(gateway_url, headers=headers, data=params)
+		response = requests.post(gateway_url, **kwargs)
 	else:
-		response = requests.get(gateway_url, headers=headers, params=params)
+		response = requests.get(gateway_url, **kwargs)
 	response.raise_for_status()
 	return response.status_code
 

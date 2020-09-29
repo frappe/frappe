@@ -4,9 +4,10 @@
  "engine": "InnoDB",
  "field_order": [
   "enable",
-  "google_credentials",
+  "sb_00",
   "client_id",
   "client_secret",
+  "sb_01",
   "api_key"
  ],
  "fields": [
@@ -15,12 +16,6 @@
    "fieldname": "enable",
    "fieldtype": "Check",
    "label": "Enable"
-  },
-  {
-   "depends_on": "enable",
-   "fieldname": "google_credentials",
-   "fieldtype": "Section Break",
-   "label": "Google Credentials"
   },
   {
    "fieldname": "client_id",
@@ -35,13 +30,26 @@
    "label": "Client Secret"
   },
   {
+   "description": "Used For Google Maps Integration.",
    "fieldname": "api_key",
    "fieldtype": "Data",
+   "label": "API Key"
+  },
+  {
+   "depends_on": "enable",
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break",
+   "label": "OAuth Client ID"
+  },
+  {
+   "depends_on": "enable",
+   "fieldname": "sb_01",
+   "fieldtype": "Section Break",
    "label": "API Key"
   }
  ],
  "issingle": 1,
- "modified": "2019-06-29 13:26:33.201060",
+ "modified": "2019-08-06 22:37:41.699703",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Settings",

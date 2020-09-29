@@ -10,10 +10,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return 'Report';
 	}
 
+	render_header() {
+		// Override List View Header
+	}
+
 	setup_defaults() {
 		super.setup_defaults();
 		this.page_title = __('Report:') + ' ' + this.page_title;
 		this.menu_items = this.report_menu_items();
+		this.view = 'Report';
 
 		const route = frappe.get_route();
 		if (route.length === 4) {
@@ -43,6 +48,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		super.setup_new_doc_event();
+	}
+
+	toggle_side_bar() {
+		super.toggle_side_bar();
+		// refresh datatable when sidebar is toggled to accomodate extra space
+		this.render(true);
 	}
 
 	setup_result_area() {
@@ -112,7 +123,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		} else {
 			this.save_report_settings();
 		}
-		this.init_chart();
+		if (!this.group_by) {
+			this.init_chart();
+		}
 	}
 
 	set_dirty_state_for_custom_report() {
@@ -176,9 +189,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.render_count();
 		this.setup_columns();
 
-		if (this.chart) {
+		if (this.group_by) {
+			this.$charts_wrapper.addClass('hidden');
+		} else if (this.chart) {
 			this.refresh_charts();
 		}
+
 		if (this.datatable && !force) {
 			this.datatable.refresh(this.get_data(this.data), this.columns);
 			return;
@@ -495,19 +511,20 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			title: __("{0} Chart", [this.doctype]),
 			data: data,
 			type: args.chart_type,
+			truncateLegends: 1,
 			colors: ['#70E078', 'light-blue', 'orange', 'red'],
 			axisOptions: {
 				shortenYAxisNumbers: 1
 			},
-
-			format_tooltip_x: value => value.doc.name,
-			format_tooltip_y:
-				value => frappe.format(value, get_df(value.field), { always_show_decimals: true, inline: true }, get_doc(value.doc))
+			tooltipOptions: {
+				formatTooltipY: value => frappe.format(value, get_df(this.chart_args.y_axes[0]), { always_show_decimals: true, inline: true }, get_doc(value.doc))
+			}
 		});
 	}
 
 	refresh_charts() {
-		if (!this.chart) return;
+		if (!this.chart || !this.chart_args) return;
+		this.$charts_wrapper.removeClass('hidden');
 		const { x_axis, y_axes, chart_type } = this.chart_args;
 		this.build_chart_args(x_axis, y_axes, chart_type);
 		this.chart.update(this.chart_args);
@@ -615,15 +632,18 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	is_editable(df, data) {
-		if (!df || data.docstatus !== 0) return false;
-		const is_standard_field = frappe.model.std_fields_list.includes(df.fieldname);
-		const can_edit = !(
-			is_standard_field
-			|| df.read_only
-			|| df.hidden
-			|| !frappe.model.can_write(this.doctype)
-		);
-		return can_edit;
+		if (df
+			&& frappe.model.can_write(this.doctype)
+			// not a submitted doc or field is allowed to edit after submit
+			&& (data.docstatus !== 1 || df.allow_on_submit)
+			// not a cancelled doc
+			&& data.docstatus !== 2
+			&& !df.read_only
+			&& !df.hidden
+			// not a standard field i.e., owner, modified_by, etc.
+			&& !frappe.model.std_fields_list.includes(df.fieldname))
+			return true;
+		return false;
 	}
 
 	get_data(values) {
@@ -632,11 +652,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	set_fields() {
 		if (this.report_name && this.report_doc.json.fields) {
-			this.fields = this.report_doc.json.fields.slice();
+			let fields = this.report_doc.json.fields.slice();
+			fields.forEach(f => this._add_field(f[0], f[1]));
 			return;
 		} else if (this.view_user_settings.fields) {
 			// get from user_settings
-			this.fields = this.view_user_settings.fields;
+			let fields = this.view_user_settings.fields;
+			fields.forEach(f => this._add_field(f[0], f[1]));
 			return;
 		}
 
@@ -681,7 +703,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	build_fields() {
-		this.fields.push(['docstatus', this.doctype]);
 		super.build_fields();
 	}
 
@@ -739,14 +760,26 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 	}
 
+	add_status_dependency_column(col, doctype) {
+		// Adds dependent column from which status is derived if required
+		if (!this.fields.find(f => f[0] === col)) {
+			const field = [col, doctype];
+			this.fields.push(field);
+			this.refresh();
+			frappe.show_alert(__('Also adding the status dependency field {0}', [field[0].bold()]));
+		}
+	}
+
 	remove_column_from_datatable(column) {
 		const index = this.fields.findIndex(f => column.field === f[0]);
 		if (index === -1) return;
 		const field = this.fields[index];
-		if (field[0] === 'name' && this.group_by === null) {
+
+		if (field[0] === 'name') {
 			this.refresh();
 			frappe.throw(__('Cannot remove ID field'));
 		}
+
 		this.fields.splice(index, 1);
 		this.build_fields();
 		this.setup_columns();
@@ -771,29 +804,53 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	get_columns_for_picker() {
 		let out = {};
 
-		const standard_fields_filter = df =>
-			!in_list(frappe.model.no_value_type, df.fieldtype) && !df.report_hide;
+		const standard_fields_filter = df => !in_list(frappe.model.no_value_type, df.fieldtype);
 
 		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(standard_fields_filter);
+
+		// filter out docstatus field from picker
+		let std_fields = frappe.model.std_fields.filter( df => df.fieldname !== 'docstatus');
+
+		// add status field derived from docstatus, if status is not a standard field
+		let has_status_values = false;
+
+		if (this.data) {
+			has_status_values = frappe.get_indicator(this.data[0], this.doctype);
+		}
+
+		if (!frappe.meta.has_field(this.doctype, 'status') && has_status_values) {
+			doctype_fields = [{
+				label: __('Status'),
+				fieldname: 'docstatus',
+				fieldtype: 'Data'
+			}].concat(doctype_fields);
+		}
 
 		doctype_fields = [{
 			label: __('ID'),
 			fieldname: 'name',
-			fieldtype: 'Data'
-		}].concat(doctype_fields, frappe.model.std_fields);
+			fieldtype: 'Data',
+			reqd: 1
+		}].concat(doctype_fields, std_fields);
 
 		out[this.doctype] = doctype_fields;
 
-		const table_fields = frappe.meta.get_table_fields(this.doctype)
-			.filter(df => !df.hidden);
+		const table_fields = frappe.meta.get_table_fields(this.doctype);
 
 		table_fields.forEach(df => {
 			const cdt = df.options;
 			const child_table_fields = frappe.meta.get_docfields(cdt).filter(standard_fields_filter);
 
 			out[cdt] = child_table_fields;
-		});
 
+			// add index column for child tables
+			out[cdt].push({
+				label: __('Index'),
+				fieldname: 'idx',
+				fieldtype: 'Int',
+				parent: cdt
+			});
+		});
 		return out;
 	}
 
@@ -807,10 +864,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			fieldtype: 'MultiCheck',
 			columns: 2,
 			options: columns[this.doctype]
+				.filter(df => {
+					return !df.hidden && df.fieldname !== 'name';
+				})
 				.map(df => ({
 					label: __(df.label),
 					value: df.fieldname,
-					checked: this.fields.find(f => f[0] === df.fieldname)
+					checked: this.fields.find(f => f[0] === df.fieldname && f[1] === this.doctype)
 				}))
 		});
 
@@ -828,6 +888,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				fieldtype: 'MultiCheck',
 				columns: 2,
 				options: columns[cdt]
+					.filter(df => {
+						return !df.hidden;
+					})
 					.map(df => ({
 						label: __(df.label),
 						value: df.fieldname,
@@ -856,15 +919,22 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.columns_map = {};
 
 		for (let f of this.fields) {
+			let column;
 			if (f[0]!=='docstatus') {
-				let column = this.build_column(f);
-				if (column) {
-					if (column_widths) {
-						column.width = column_widths[column.id] || column.width || 120;
-					}
-					this.columns.push(column);
-					this.columns_map[column.id] = column;
+				column = this.build_column(f);
+			} else {
+				// if status is not in fields append status column derived from docstatus
+				if (!this.fields.includes(['status', this.doctype]) && !frappe.meta.has_field(this.doctype, 'status')) {
+					column = this.build_column(['docstatus', this.doctype]);
 				}
+			}
+
+			if (column) {
+				if (column_widths) {
+					column.width = column_widths[column.id] || column.width || 120;
+				}
+				this.columns.push(column);
+				this.columns_map[column.id] = column;
 			}
 		}
 	}
@@ -879,6 +949,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			docfield = this.group_by_control.get_group_by_docfield();
 		}
 
+		// child table index column
+		if (fieldname === 'idx' && doctype !== this.doctype) {
+			docfield = {
+				label: "Index",
+				fieldtype: "Int",
+				parent: doctype,
+			};
+		}
+
 		if (!docfield) {
 			docfield = frappe.model.get_std_field(fieldname, true);
 
@@ -890,12 +969,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 				}
 				docfield.parent = this.doctype;
-				if (fieldname == "name") {
+				if (fieldname == 'name') {
 					docfield.options = this.doctype;
+				}
+				if (fieldname == 'docstatus' && !frappe.meta.has_field(this.doctype, 'status')) {
+					docfield.label = 'Status';
+					docfield.fieldtype = 'Data';
+					docfield.name = 'status';
 				}
 			}
 		}
-		if (!docfield) return;
+		if (!docfield || docfield.report_hide) return;
 
 		let title = __(docfield ? docfield.label : toTitle(fieldname));
 		if (doctype !== this.doctype) {
@@ -972,7 +1056,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					name: __('Totals Row'),
 					content: totals[col.id],
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true });
+						return frappe.format(value, col.docfield, { always_show_decimals: true }, data[0]);
 					}
 				}
 			})
@@ -980,7 +1064,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			totals_row[0].content = __('Totals').bold();
 			out.push(totals_row);
 		}
-
 		return out;
 	}
 
@@ -994,15 +1077,34 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				return {
 					name: name,
 					doctype: col.docfield.parent,
-					content: d[cdt_field(col.field)],
+					content: d[cdt_field(col.field)] || d[col.field],
 					editable: Boolean(name && this.is_editable(col.docfield, d)),
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true });
+						return frappe.format(value, col.docfield, { always_show_decimals: true }, d);
 					}
 				};
 			}
-
-			if (col.field in d) {
+			if (col.field === 'docstatus' && !frappe.meta.has_field(this.doctype, 'status')) {
+				// get status from docstatus
+				let status = frappe.get_indicator(d, this.doctype);
+				if (status) {
+					if (!status[0]) {
+						// get_indicator returns the dependent field's condition as the 3rd parameter
+						let dependent_col = status[2].split(',')[0];
+						// add status dependency column
+						this.add_status_dependency_column(dependent_col, this.doctype);
+					}
+					return {
+						name: d.name,
+						doctype: col.docfield.parent,
+						content: status[0],
+						editable: false
+					};
+				} else {
+					// no status values found
+					this.remove_column_from_datatable(col);
+				}
+			} else if (col.field in d) {
 				const value = d[col.field];
 				return {
 					name: d.name,
@@ -1019,8 +1121,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_checked_items(only_docnames) {
 		const indexes = this.datatable.rowmanager.getCheckedRows();
-		const items = indexes.filter(i => i != undefined)
-			.map(i => this.data[i]);
+		const items = indexes.map(i => this.data[i]).filter(i => i != undefined);
 
 		if (only_docnames) {
 			return items.map(d => d.name);
@@ -1169,7 +1270,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 
 					frappe.ui.get_print_settings(false, (print_settings) => {
-						var title =  __(this.doctype);
+						var title =  this.report_name || __(this.doctype);
 						frappe.render_grid({
 							title: title,
 							subtitle: this.get_filters_html_for_print(),
@@ -1186,7 +1287,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			},
 			{
 				label: __('Toggle Sidebar'),
-				action: () => this.toggle_side_bar()
+				action: () => this.toggle_side_bar(),
+				shortcut: 'Ctrl+K',
 			},
 			{
 				label: __('Pick Columns'),
@@ -1220,6 +1322,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					});
 
+					d.$body.prepend(`<div class="columns-search">
+						<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
+					</div>`);
+
+					frappe.utils.setup_search(d.$body, '.unit-checkbox', '.label-area');
 					d.show();
 				}
 			}
@@ -1231,27 +1338,32 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				action: () => {
 					const args = this.get_args();
 					const selected_items = this.get_checked_items(true);
+					let fields = [
+						{
+							fieldtype: 'Select',
+							label: __('Select File Type'),
+							fieldname:'file_format_type',
+							options: ['Excel', 'CSV'],
+							default: 'Excel'
+						}
+					];
+
+					if (this.total_count > args.page_length) {
+						fields.push({
+							fieldtype: 'Check',
+							fieldname: 'export_all_rows',
+							label: __('Export All {0} rows?', [(this.total_count + "").bold()])
+						});
+					}
 
 					const d = new frappe.ui.Dialog({
 						title: __("Export Report: {0}",[__(this.doctype)]),
-						fields: [
-							{
-								fieldtype: 'Select',
-								label: __('Select File Type'),
-								fieldname:'file_format_type',
-								options: ['Excel', 'CSV'],
-								default: 'Excel'
-							},
-							{
-								fieldtype: 'Check',
-								fieldname: 'export_all_rows',
-								label: __('Export All {0} rows?', [(this.total_count + "").bold()])
-							}
-						],
+						fields: fields,
 						primary_action_label: __('Download'),
 						primary_action: (data) => {
 							args.cmd = 'frappe.desk.reportview.export_query';
 							args.file_format_type = data.file_format_type;
+							args.title = this.report_name || this.doctype;
 
 							if(this.add_totals_row) {
 								args.add_totals_row = 1;

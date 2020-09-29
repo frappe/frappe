@@ -35,6 +35,10 @@ a[disabled="disabled"] {
 	background-color: @light-bg;
 	padding: 7px;
 	border-radius: 3px;
+
+	&:hover {
+		background-color: #cfdce5;
+	}
 }
 
 .alert-badge {
@@ -309,6 +313,23 @@ li.user-progress {
 	.progress-bar {
 		transition: unset;
 		background-color: #98d85b;
+	}
+}
+
+.restricted-button {
+	padding: 0px 10px;
+	border: 1px solid @yellow;
+	height: 25px;
+	font-weight: 600;
+	border-radius:  5px;
+	background: lightyellow;
+	color: @text-light;
+	margin: auto 5px auto auto;
+	font-size: @text-small;
+	outline: 0;
+	.octicon-lock {
+		padding-right: 5px;
+		font-size: 12px;
 	}
 }
 
@@ -713,6 +734,7 @@ li.user-progress {
 			height: 60px;
 			width: 60px;
 			background-color: #fafbfc;
+			overflow: hidden;
 
 			.flex-text {
 				display: flex;
@@ -765,13 +787,14 @@ li.user-progress {
 	margin-right: 5px;
 	margin-left: 0px;
 	position: relative;
-	height: 12px;
 }
+
+@checkbox-height: 14px;
 
 // custom font awesome checkbox
 input[type="checkbox"] {
 	position: relative;
-	left: -999999px;
+	height: 0px !important;
 
 	&:before {
 		position: absolute;
@@ -782,12 +805,13 @@ input[type="checkbox"] {
 		font-weight: normal;
 		font-variant: normal;
 		text-transform: none;
-		line-height: 14px;
-		display: inline-block;
-		font-size: 14px;
+		line-height: @checkbox-height;
+		margin-top: -10px;
+		display: inline-block !important;
+		font-size: @checkbox-height;
 		color: @text-extra-muted;
 		.transition(150ms color);
-		left: 999999px;
+		left: 0px;
 	}
 
 	&:focus:before {
@@ -796,8 +820,15 @@ input[type="checkbox"] {
 
 	&:checked:before {
 		content: '\f14a';
-		font-size: 13px;
+		font-size: @checkbox-height - 1px;
 		color: @checkbox-color;
+	}
+
+	&:checked:focus:before {
+		box-shadow: inset 0 0 1px 2px @text-muted;
+		padding: 0px 1px;
+		border-radius: 3px;
+		height: @checkbox-height - 1px;
 	}
 
 	&:focus {
@@ -814,28 +845,15 @@ input[type="checkbox"] {
 	height: 100%;
 }
 
-// mozilla doesn't support
+// Firefox doesn't support
 // pseudo elements on checkbox
-@-moz-document url-prefix() {
+html.firefox, html.safari {
 	input[type="checkbox"] {
-		visibility: visible;
-		left: 0;
-	}
-}
+		height: @checkbox-height !important;
 
-@supports (-moz-appearance: none) {
-	input[type="checkbox"] {
-		visibility: visible;
-		left: 0;
-	}
-}
-
-// edge doesn't support pseudo elements on checkbox
-//Microsoft Edge Browser 12+ (All)
-@supports (-ms-ime-align:auto) {
-	input[type="checkbox"] {
-		 visibility: visible;
-		 left: 0;
+		&:before {
+			visibility: hidden;
+		}
 	}
 }
 
@@ -897,6 +915,7 @@ input[type="checkbox"] {
 	&:focus {
 		outline: none;
 	}
+
 	.fa-circle {
 		font-size: 10px;
 		margin: 0px 2px;
@@ -928,6 +947,7 @@ input[type="checkbox"] {
 	}
 	.lead {
 		margin-top: 20px;
+		font-weight: 500;
 	}
 	.success-state {
 		margin-bottom: 20px;
@@ -959,30 +979,60 @@ input[type="checkbox"] {
 	}
 }
 
-// User Progress Dialog
-.user-progress-dialog {
+// Onboarding Dialog
+.onboarding-dialog {
+
+	.slide-body {
+		margin-right: auto;
+		margin-left: auto;
+	}
+
+	.slides-wrapper {
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.modal-content {
+		border: 1px solid #d1d8dd;
+  		box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
+	}
+
+	.modal-backdrop {
+		background-color: #ffffff;
+	}
+
+	.modal-backdrop.in {
+		opacity: 1;
+	}
+
+	.modal-dialog {
+		height: 80%;
+		max-width: none;
+	}
+
+	.onboarding-icon {
+		color: @text-muted;
+		margin-right: 5px;
+	}
+
+	.modal-content .slide-container {
+		height: auto;
+		min-height: 100%;
+		bottom: 0;
+	}
+
+	img {
+		max-height: 175px;
+		width: auto;
+	}
+
 	.slides-progress {
 		margin-top: 15px;
 	}
 
-	.done-state {
-		.check-container {
-			font-size: 64px;
-			margin: 40px;
-		}
-
-		.title {
-			font-weight: normal;
-		}
-
-		.help-links {
-
-			a {
-				margin: 0px 10px;
-			}
-		}
+	.skip-btn {
+		padding: 5px 0px 5px 0px;
 	}
-
 }
 
 /* broken image styling */
@@ -1081,6 +1131,18 @@ body.full-width {
 	}
 }
 
+body.no-sidebar {
+	@media (min-width: @screen-md) {
+		.layout-side-section {
+			display: none;
+		}
+
+		.layout-main-section-wrapper {
+			width: 100% !important;
+		}
+	}
+}
+
 // utilities
 
 .whitespace-nowrap {
@@ -1099,6 +1161,9 @@ body.full-width {
 		bottom: 0;
 		margin: 0;
 		max-width: 500px;
+		.modal-content {
+			min-height: 0;
+		}
 	}
 	.modal-body {
 		display: none;
@@ -1111,4 +1176,20 @@ body.full-width {
 
 .alt-pressed .alt-underline {
 	text-decoration: underline;
+}
+
+.app-change-log-body {
+	h1 {
+		font-size: 20px;
+	}
+}
+
+.new-version-log {
+	.new-version-links {
+		padding: 5px 0px;
+	}
+
+	&:not(:last-child) {
+		margin-bottom: 1em;
+	}
 }

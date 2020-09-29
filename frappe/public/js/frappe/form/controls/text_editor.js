@@ -1,10 +1,7 @@
 import Quill from 'quill';
+import ImageResize from 'quill-image-resize';
 
-// replace <p> tag with <div>
-const Block = Quill.import('blots/block');
-Block.tagName = 'DIV';
-Quill.register(Block, true);
-
+Quill.register('modules/imageResize', ImageResize);
 const CodeBlockContainer = Quill.import('formats/code-block-container');
 CodeBlockContainer.tagName = 'PRE';
 Quill.register(CodeBlockContainer, true);
@@ -17,7 +14,8 @@ Table.create = (value) => {
 	node.classList.add('table');
 	node.classList.add('table-bordered');
 	return node;
-}
+};
+
 Quill.register(Table, true);
 
 // link without href
@@ -28,7 +26,7 @@ class MyLink extends Link {
 		let node = super.create(value);
 		value = this.sanitize(value);
 		node.setAttribute('href', value);
-		if(value.startsWith('/') || value.indexOf(window.location.host)) {
+		if (value.startsWith('/') || value.indexOf(window.location.host)) {
 			// no href if internal link
 			node.removeAttribute('target');
 		}
@@ -36,7 +34,7 @@ class MyLink extends Link {
 	}
 }
 
-Quill.register(MyLink);
+Quill.register(MyLink, true);
 
 // image uploader
 const Uploader = Quill.import('modules/uploader');
@@ -54,10 +52,25 @@ Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
 Quill.register(DirectionStyle, true);
 
+// replace font tag with span
+const Inline = Quill.import('blots/inline');
+
+class CustomColor extends Inline {
+	constructor(domNode, value) {
+		super(domNode, value);
+		this.domNode.style.color = this.domNode.color;
+		domNode.outerHTML = this.domNode.outerHTML.replace(/<font/g, '<span').replace(/<\/font>/g, '</span>');
+	}
+}
+
+CustomColor.blotName = "customColor";
+CustomColor.tagName = "font";
+
+Quill.register(CustomColor, true);
+
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_wrapper() {
 		this._super();
-		this.$wrapper.find(".like-disabled-input").addClass('text-editor-print');
 	},
 
 	make_input() {
@@ -134,7 +147,8 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return {
 			modules: {
 				toolbar: this.get_toolbar_options(),
-				table: true
+				table: true,
+				imageResize: {}
 			},
 			theme: 'snow'
 		};
@@ -147,7 +161,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
 			['link', 'image'],
-			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
+			[{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
 			[{ 'align': [] }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
 			[{'table': [
@@ -187,89 +201,18 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 	get_input_value() {
 		let value = this.quill ? this.quill.root.innerHTML : '';
-		// quill keeps ol as a common container for both type of lists
-		// and uses css for appearances, this is not semantic
-		// so we convert ol to ul if it is unordered
-		const $value = $(`<div>${value}</div>`);
-		$value.find('ol li[data-list=bullet]:first-child').each((i, li) => {
-			let $li = $(li);
-			let $parent = $li.parent();
-			let $children = $parent.children();
-			let $ul = $('<ul>').append($children);
-			$parent.replaceWith($ul);
-		});
-		value = this.convertLists($value.html());
+		// hack to retain space sequence.
+		value = value.replace(/(\s)(\s)/g, ' &nbsp;');
+
+		try {
+			if (!$(value).find('.ql-editor').length) {
+				value = `<div class="ql-editor read-mode">${value}</div>`;
+			}
+		} catch(e) {
+			value = `<div class="ql-editor read-mode">${value}</div>`;
+		}
+
 		return value;
-	},
-
-	// hack
-	// https://github.com/quilljs/quill/issues/979
-	convertLists(richtext) {
-		const tempEl = window.document.createElement('div');
-		tempEl.setAttribute('style', 'display: none;');
-		tempEl.innerHTML = richtext;
-		const startLi = '::startli::';
-		const endLi = '::endli::';
-
-		['ul','ol'].forEach((type) => {
-			const startTag = `::start${type}::`;
-			const endTag = `::end${type}::`;
-
-			// Grab each list, and work on it in turn
-			Array.from(tempEl.querySelectorAll(type)).forEach((outerListEl) => {
-				const listChildren = Array.from(outerListEl.children).filter((el) => el.tagName === 'LI');
-
-				let lastLiLevel = 0;
-				let currentLiLevel = 0;
-				let difference = 0;
-
-				// Now work through each li in this list
-				for (let i = 0; i < listChildren.length; i++) {
-					const currentLi = listChildren[i];
-					lastLiLevel = currentLiLevel;
-					currentLiLevel = this.getListLevel(currentLi);
-					difference = currentLiLevel - lastLiLevel;
-
-					// we only need to add tags if the level is changing
-					if (difference > 0) {
-						currentLi.before((startLi + startTag).repeat(difference));
-					} else if (difference < 0) {
-						currentLi.before((endTag + endLi).repeat(-difference));
-					}
-
-					if (i === listChildren.length - 1) {
-						// last li, account for the fact that it might not be at level 0
-						currentLi.after((endTag + endLi).repeat(currentLiLevel));
-					}
-				}
-			});
-		});
-
-		//  Get the content in the element and replace the temporary tags with new ones
-		let newContent = tempEl.innerHTML;
-
-		newContent = newContent.replace(/::startul::/g, '<ul>');
-		newContent = newContent.replace(/::endul::/g, '</ul>');
-		newContent = newContent.replace(/::startol::/g, '<ol>');
-		newContent = newContent.replace(/::endol::/g, '</ol>');
-		newContent = newContent.replace(/::startli::/g, '<li>');
-		newContent = newContent.replace(/::endli::/g, '</li>');
-
-		// remove quill classes
-		newContent = newContent.replace(/data-list=.bullet./g, '');
-		newContent = newContent.replace(/class=.ql-indent-../g, '');
-
-		// ul/ol should not be inside another li
-		newContent = newContent.replace(/<\/li><li><ul>/g, '<ul>');
-		newContent = newContent.replace(/<\/li><li><ol>/g, '<ol>');
-		tempEl.remove();
-
-		return newContent;
-	},
-
-	getListLevel(el) {
-		const className = el.className || '0';
-		return +className.replace(/[^\d]/g, '');
 	},
 
 	set_focus() {

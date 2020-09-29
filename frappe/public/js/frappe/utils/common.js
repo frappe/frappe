@@ -260,6 +260,45 @@ frappe.utils.xss_sanitise = function (string, options) {
 	return sanitised;
 }
 
+frappe.utils.sanitise_redirect = (url) => {
+	const is_external = (() => {
+		return (url) => {
+			function domain(url) {
+				let base_domain = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:/\n?]+)/img.exec(url);
+				return base_domain == null ? "" : base_domain[1];
+			}
+
+			function is_absolute(url) {
+				// returns true for url that have a defined scheme
+				// anything else, eg. internal urls return false
+				return /^(?:[a-z]+:)?\/\//i.test(url);
+			}
+
+			// check for base domain only if the url is absolute
+			// return true for relative url (except protocol-relative urls)
+			return is_absolute(url) ? domain(location.href) !== domain(url) : false;
+		}
+	})();
+
+	const sanitise_javascript = ((url) => {
+		// please do not ask how or why
+		const REGEX_SCRIPT = /j[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?v[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?s[\s]*(&#x.{1,7})?c[\s]*(&#x.{1,7})?r[\s]*(&#x.{1,7})?i[\s]*(&#x.{1,7})?p[\s]*(&#x.{1,7})?t/gi;
+
+		return url.replace(REGEX_SCRIPT, "");
+	});
+
+	url = frappe.utils.strip_url(url);
+
+	return is_external(url) ? "" : sanitise_javascript(frappe.utils.xss_sanitise(url, {strategies: ["js"]}));
+};
+
+frappe.utils.strip_url = (url) => {
+	// strips invalid characters from the beginning of the URL
+	// in our case, the url can start with either a protocol, //, or even #
+	// so anything except those characters can be considered invalid
+	return url.replace(/^[^A-Za-z0-9(//)#]+/g, '');
+}
+
 frappe.utils.new_auto_repeat_prompt = function(frm) {
 	const fields = [
 		{
@@ -314,3 +353,9 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 	__('Save')
 	);
 }
+
+frappe.utils.get_page_view_count = function(route) {
+	return frappe.call("frappe.website.doctype.web_page_view.web_page_view.get_page_view_count", {
+		path: route
+	});
+};

@@ -1,74 +1,106 @@
 language: python
-dist: trusty
-sudo: required
+dist: bionic
 
 addons:
   hosts:
     - test_site
+    - test_site_producer
   mariadb: 10.3
   postgresql: 9.5
+  chrome: stable
+
+services:
+  - xvfb
+  - mysql
 
 git:
   depth: 1
 
 cache:
-  - pip
-  - npm
-  - yarn
+  pip: true
+  npm: true
+  yarn: true
+  directories:
+    # we also need to cache folder with Cypress binary
+    # https://docs.cypress.io/guides/guides/continuous-integration.html#Caching
+    - ~/.cache
+
 
 matrix:
   include:
-  - name: "Python 3.6 MariaDB"
-    python: 3.6
+  - name: "Python 3.7 MariaDB"
+    python: 3.7
     env: DB=mariadb TYPE=server
-    script: bench --site test_site run-tests --coverage
+    script: bench --verbose --site test_site run-tests --coverage
 
-  - name: "Python 3.6 PostgreSQL"
-    python: 3.6
+  - name: "Python 3.7 PostgreSQL"
+    python: 3.7
     env: DB=postgres TYPE=server
-    script: bench --site test_site run-tests --coverage
+    script: bench --verbose --site test_site run-tests --coverage
 
   - name: "Cypress"
-    python: 3.6
+    python: 3.7
     env: DB=mariadb TYPE=ui
-    before_script: bench --site test_site execute frappe.utils.install.complete_setup_wizard
+    before_script:
+    - bench --site test_site execute frappe.utils.install.complete_setup_wizard
+    - bench --site test_site_producer execute frappe.utils.install.complete_setup_wizard
     script: bench --site test_site run-ui-tests frappe --headless
 
-  - name: "Python 2.7 MariaDB"
-    python: 2.7
-    env: DB=mariadb TYPE=server
-    script: bench --site test_site run-tests --coverage
+before_install:
+ # do we really want to run travis?
+  - |
+    python ./.travis/roulette.py
+    if [[ $? != 2 ]];then
+      exit;
+    fi
 
-install:
-  - cd ~
-  - source ./.nvm/nvm.sh
-  - nvm install v8.10.0
-
-  - git clone https://github.com/frappe/bench --depth 1
-  - pip install -e ./bench
-
-  - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
-
-  - mkdir ~/frappe-bench/sites/test_site
-  - cp $TRAVIS_BUILD_DIR/.travis/$DB.json ~/frappe-bench/sites/test_site/site_config.json
-
-  - mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'"
-  - mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
-
-  - mysql -u root -e "CREATE DATABASE test_frappe"
-  - mysql -u root -e "CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'"
-  - mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'"
-
-  - mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'"
-  - mysql -u root -e "FLUSH PRIVILEGES"
-
-  - psql -c "CREATE DATABASE test_frappe" -U postgres
-  - psql -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres
-
+ # install wkhtmltopdf
   - wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
   - tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
   - sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
   - sudo chmod o+x /usr/local/bin/wkhtmltopdf
+
+  # install cups
+  - sudo apt-get install libcups2-dev
+
+install:
+  - cd ~
+  - source ./.nvm/nvm.sh
+  - nvm install 12
+
+  - pip install frappe-bench
+
+  - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
+
+  - mkdir ~/frappe-bench/sites/test_site
+  - cp $TRAVIS_BUILD_DIR/.travis/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
+
+  - mkdir ~/frappe-bench/sites/test_site_producer
+  - cp $TRAVIS_BUILD_DIR/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json
+
+  - if [ $DB == "mariadb" ];then
+      mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
+      mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
+
+      mysql -u root -e "CREATE DATABASE test_frappe_consumer";
+      mysql -u root -e "CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer'";
+      mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost'";
+
+      mysql -u root -e "CREATE DATABASE test_frappe_producer";
+      mysql -u root -e "CREATE USER 'test_frappe_producer'@'localhost' IDENTIFIED BY 'test_frappe_producer'";
+      mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_producer\`.* TO 'test_frappe_producer'@'localhost'";
+
+      mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'";
+      mysql -u root -e "FLUSH PRIVILEGES";
+    fi
+
+  - if [ $DB == "postgres" ];then
+      psql -c "CREATE DATABASE test_frappe_consumer" -U postgres;
+      psql -c "CREATE USER test_frappe_consumer WITH PASSWORD 'test_frappe'" -U postgres;
+
+      psql -c "CREATE DATABASE test_frappe_producer" -U postgres;
+      psql -c "CREATE USER test_frappe_producer WITH PASSWORD 'test_frappe'" -U postgres;
+    fi
 
   - cd ./frappe-bench
 
@@ -80,10 +112,17 @@ install:
 
   - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
 
+  # install node-sass which is required for website theme test
+  - cd ./apps/frappe
+  - yarn add node-sass@4.13.1
+  - cd ../..
+
   - bench start &
   - bench --site test_site reinstall --yes
+  - bench --site test_site_producer reinstall --yes
   - bench build --app frappe
 
 after_script:
+  - pip install coverage==4.5.4
   - pip install python-coveralls
   - coveralls -b apps/frappe -d ../../sites/.coverage

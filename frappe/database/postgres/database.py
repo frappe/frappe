@@ -51,7 +51,7 @@ class PostgresDatabase(Database):
 			'Data':			('varchar', self.VARCHAR_LEN),
 			'Link':			('varchar', self.VARCHAR_LEN),
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
-			'Password':		('varchar', self.VARCHAR_LEN),
+			'Password':		('text', ''),
 			'Select':		('varchar', self.VARCHAR_LEN),
 			'Rating':		('smallint', None),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
@@ -60,12 +60,13 @@ class PostgresDatabase(Database):
 			'Signature':	('text', ''),
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('text', ''),
-			'Geolocation':	('text', '')
+			'Geolocation':	('text', ''),
+			'Duration':		('decimal', '18,6')
 		}
 
 	def get_connection(self):
 		# warnings.filterwarnings('ignore', category=psycopg2.Warning)
-		conn = psycopg2.connect('host={} dbname={} user={} password={} port={}'.format(
+		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
 			self.host, self.user, self.user, self.password, self.port
 		))
 		conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT) # TODO: Remove this
@@ -92,7 +93,7 @@ class PostgresDatabase(Database):
 
 	# pylint: disable=W0221
 	def sql(self, *args, **kwargs):
-		if len(args):
+		if args:
 			# since tuple is immutable
 			args = list(args)
 			args[0] = modify_query(args[0])
@@ -107,7 +108,7 @@ class PostgresDatabase(Database):
 			from information_schema.tables
 			where table_catalog='{0}'
 				and table_type = 'BASE TABLE'
-				and table_schema='public'""".format(frappe.conf.db_name))]
+				and table_schema='{1}'""".format(frappe.conf.db_name, frappe.conf.get("db_schema", "public")))]
 
 	def format_date(self, date):
 		if not date:
@@ -169,12 +170,16 @@ class PostgresDatabase(Database):
 	def is_duplicate_fieldname(e):
 		return e.pgcode == '42701'
 
+	@staticmethod
+	def is_data_too_long(e):
+		return e.pgcode == '22001'
+
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists "__Auth" (
 				"doctype" VARCHAR(140) NOT NULL,
 				"name" VARCHAR(255) NOT NULL,
 				"fieldname" VARCHAR(140) NOT NULL,
-				"password" VARCHAR(255) NOT NULL,
+				"password" TEXT NOT NULL,
 				"encrypted" INT NOT NULL DEFAULT 0,
 				PRIMARY KEY ("doctype", "name", "fieldname")
 			)""")
@@ -272,13 +277,13 @@ class PostgresDatabase(Database):
 		# pylint: disable=W1401
 		return self.sql('''
 			SELECT a.column_name AS name,
-			CASE a.data_type
+			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
-				WHEN 'timestamp without TIME zone' THEN 'timestamp'
+				WHEN 'timestamp without time zone' THEN 'timestamp'
 				ELSE a.data_type
 			END AS type,
 			COUNT(b.indexdef) AS Index,
-			COALESCE(a.column_default, NULL) AS default,
+			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
 			BOOL_OR(b.unique) AS unique
 			FROM information_schema.columns a
 			LEFT JOIN

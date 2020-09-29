@@ -14,13 +14,6 @@ def get_notification_config():
 			"Error Snapshot": {"seen": 0, "parent_error_snapshot": None},
 			"Workflow Action": {"status": 'Open'}
 		},
-		"for_other": {
-			"Likes": "frappe.core.notifications.get_unseen_likes",
-			"Email": "frappe.core.notifications.get_unread_emails",
-		},
-		"for_module": {
-			"Social": "frappe.social.doctype.post.post.get_unseen_post_count"
-		}
 	}
 
 def get_things_todo(as_list=False):

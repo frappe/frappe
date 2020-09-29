@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import frappe, json, math
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import get_source_value, cstr
+from frappe.utils import cstr
+from frappe.data_migration.doctype.data_migration_mapping.data_migration_mapping import get_source_value
 
 class DataMigrationRun(Document):
 	def run(self):
@@ -412,7 +413,7 @@ class DataMigrationRun(Document):
 						self.update_log('pull_update', 1)
 					# post process doc after success
 					self.post_process_doc(remote_doc=d, local_doc=local_doc)
-				except Exception:
+				except Exception as e:
 					# failed, append to log
 					self.update_log('pull_failed', {migration_id_value: cstr(e)})
 

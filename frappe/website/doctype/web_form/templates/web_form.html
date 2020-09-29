@@ -25,17 +25,20 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 {% endmacro %}
 
 {% block page_content %}
-<div role="form" class="web-form-wrapper" {{ container_attributes() }}>
+<div>
 	{% if is_list %}
 	{# web form list #}
+	<div class="web-form-wrapper" {{ container_attributes() }}></div>
 	<div id="list-filters" class="row"></div>
-	<div id="datatable" class="pt-3"></div>
+	<div id="datatable" class="pt-4"></div>
 	<div class="list-view-footer text-right"></div>
 	{% else %}
 	{# web form #}
 	<div role="form">
 		<div id="introduction" class="text-muted"></div>
 		<hr>
+		<div class="web-form-wrapper" {{ container_attributes() }}></div>
+		<div class="web-form-footer pull-right"></div>
 	</div>
 
 	{% if show_attachments and not frappe.form_dict.new and attachments %}
@@ -130,6 +133,9 @@ frappe.init_client_script = () => {
 <style>
 {% if style is defined %}
 	{{ style }}
+{% endif %}
+{% if custom_css %}
+	{{ custom_css }}
 {% endif %}
 </style>
 {% endblock %}

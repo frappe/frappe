@@ -9,6 +9,13 @@ frappe.query_reports["Addresses And Contacts"] = {
 			"label": __("Entity Type"),
 			"fieldtype": "Link",
 			"options": "DocType",
+			"get_query": function() {
+				return {
+					"filters": {
+						"name": ["in", "Contact, Address"],
+					}
+				}
+			}
 		},
 		{
 			"fieldname":"reference_name",

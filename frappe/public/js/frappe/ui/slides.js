@@ -26,7 +26,9 @@ frappe.ui.Slide = class Slide {
 			<div class="form-wrapper">
 				<div class="form"></div>
 				<div class="add-more text-center" style="margin-top: 5px;">
-					<a class="form-more-btn hide btn btn-default btn-xs">${__("Add More")}</a>
+					<a class="form-more-btn hide btn btn-default btn-xs">
+						<span>Add More</span>
+					</a>
 				</div>
 			</div>
 		</div>`).appendTo(this.$wrapper);
@@ -34,10 +36,11 @@ frappe.ui.Slide = class Slide {
 		this.$content = this.$body.find(".content");
 		this.$form = this.$body.find(".form");
 		this.$primary_btn = this.slides_footer.find('.primary');
+		this.$form_wrapper = this.$body.find(".form-wrapper");
 
-		if(this.help) this.$content.append($(`<p class="slide-help">${this.help}</p>`));
 		if(this.image_src) this.$content.append(
 			$(`<img src="${this.image_src}" style="margin: 20px;">`));
+		if(this.help) this.$content.append($(`<p class="slide-help">${this.help}</p>`));
 
 		this.reqd_fields = [];
 
@@ -69,20 +72,22 @@ frappe.ui.Slide = class Slide {
 		this.set_reqd_fields();
 	}
 
+	setup_done_state() {}
+
 	// Form methods
 	get_atomic_fields() {
 		var fields = JSON.parse(JSON.stringify(this.fields));
-		if(this.add_more) {
+		if (this.add_more) {
 			this.count = 1;
 			fields = fields.map((field, i) => {
-				if(field.fieldname) {
+				if (field.fieldname) {
 					field.fieldname += '_1';
 				}
-				if(i === 1 && this.mandatory_entry) {
+				if (i === 1 && this.mandatory_entry) {
 					field.reqd = 1;
 				}
-				if(!field.static) {
-					if(field.label) field.label += ' 1';
+				if (!field.static) {
+					if (field.label) field.label;
 				}
 				return field;
 			});
@@ -102,10 +107,10 @@ frappe.ui.Slide = class Slide {
 
 	set_values() {
 		this.values = this.form.get_values();
-		if(this.values===null) {
+		if (this.values===null) {
 			return false;
 		}
-		if(this.validate && !this.validate()) {
+		if (this.validate && !this.validate()) {
 			return false;
 		}
 		return true;
@@ -117,13 +122,16 @@ frappe.ui.Slide = class Slide {
 			.on('click', () => {
 				this.count++;
 				var fields = JSON.parse(JSON.stringify(this.fields));
+
 				this.form.add_fields(fields.map(field => {
-					if(field.fieldname) field.fieldname += '_' + this.count;
-					if(!field.static) {
-						if(field.label) field.label += ' ' + this.count;
+					if (field.fieldname) field.fieldname += '_' + this.count;
+					if (!field.static) {
+						if (field.label) field.label;
 					}
+					field.reqd = 0;
 					return field;
 				}));
+
 				if(this.count === this.max_count) {
 					this.$more.addClass('hide');
 				}
@@ -141,8 +149,13 @@ frappe.ui.Slide = class Slide {
 	bind_fields_to_action_btn() {
 		var me = this;
 		this.reqd_fields.map((field) => {
-			field.$wrapper.on('change input', () => {
+			field.$wrapper.on('change input click', () => {
 				me.reset_action_button_state();
+			});
+			field.$wrapper.on('keydown', 'input', e => {
+				if (e.key == 'Enter') {
+					me.reset_action_button_state();
+				}
 			});
 		});
 	}
@@ -151,7 +164,7 @@ frappe.ui.Slide = class Slide {
 		var empty_fields = this.reqd_fields.filter((field) => {
 			return !field.get_value();
 		});
-		if(empty_fields.length) {
+		if (empty_fields.length) {
 			this.slides_footer.find('.action').addClass('disabled');
 		} else {
 			this.slides_footer.find('.action').removeClass('disabled');
@@ -163,9 +176,16 @@ frappe.ui.Slide = class Slide {
 	}
 
 	bind_primary_action() {
-		this.slides_footer.find(".primary").on('click', () => {
+		this.slides_footer.find(".primary").on('click.primary_action', () => {
 			this.primary_action();
 		});
+	}
+
+	is_last_slide() {
+		if (this.id === this.parent[0].children.length-1) {
+			return true;
+		}
+		return false;
 	}
 
 	before_show() { }
@@ -317,10 +337,10 @@ frappe.ui.Slides = class Slides {
 
 	make_prev_next_buttons() {
 		$(`<div class="row">
-			<div class="col-sm-4">
+			<div class="col-sm-4 text-left prev-div">
 				<a class="prev-btn btn btn-default btn-sm" tabindex="0">${__("Previous")}</a>
 			</div>
-			<div class="col-sm-8 text-right">
+			<div class="col-sm-8 text-right next-div">
 				<a class="next-btn btn btn-default btn-sm" tabindex="0">${__("Next")}</a>
 			</div>
 		</div>`).appendTo(this.$footer);

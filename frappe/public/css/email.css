@@ -7,6 +7,12 @@ body {
 p {
   margin: 1em 0 !important;
 }
+.ql-editor {
+  white-space: normal;
+}
+.ql-editor p {
+  margin: 0 !important;
+}
 hr {
   border-top: 1px solid #d1d8dd;
 }

@@ -5,7 +5,7 @@ frappe.provide('frappe.energy_points');
 
 Object.assign(frappe.energy_points, {
 	get_points(points) {
-		return `<span class='bold' style="color: ${points >= 0 ? '#45A163': '#e42121'}">
+		return `<span class="bold" style="color: ${points >= 0 ? '#45A163': '#e42121'}">
 			${points > 0 ? '+': ''}${points}
 		</span>`;
 	},
@@ -24,7 +24,7 @@ Object.assign(frappe.energy_points, {
 		const route = frappe.utils.get_form_link(log.reference_doctype, log.reference_name);
 		const formatted_log = `<span>
 			${this.get_points(log.points)}&nbsp;
-			<a href="${route}">${this.get_history_log_message(log)}</a>
+			<a href="${route}" class="text-muted">${this.get_history_log_message(log)}</a>
 			${log.reason ? separator + log.reason: ''}
 			${separator + frappe.datetime.comment_when(log.creation)}
 		</span>`;

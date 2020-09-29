@@ -70,7 +70,10 @@ frappe.form.formatters = {
 
 			if ( decimals.length < 3 || decimals.length < precision ) {
 				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
-				precision      = cstr(fraction).length - 1;
+
+				if (decimals.length < cstr(fraction).length) {
+					precision = cstr(fraction).length - 1;
+				}
 			}
 		}
 
@@ -84,7 +87,7 @@ frappe.form.formatters = {
 	},
 	Check: function(value) {
 		if(value) {
-			return '<i class="octicon octicon-check" style="margin-right: 3px;"></i>';
+			return '<i class="fa fa-check" style="margin-right: 3px;"></i>';
 		} else {
 			return '<i class="fa fa-square disabled-check"></i>';
 		}
@@ -142,10 +145,7 @@ frappe.form.formatters = {
 	},
 	DateRange: function(value) {
 		if($.isArray(value)) {
-			return __("{0} to {1}", [
-				frappe.datetime.str_to_user(value[0]),
-				frappe.datetime.str_to_user(value[1])
-			]);
+			return __("{0} to {1}", [frappe.datetime.str_to_user(value[0]), frappe.datetime.str_to_user(value[1])]);
 		} else {
 			return value || "";
 		}
@@ -156,7 +156,8 @@ frappe.form.formatters = {
 			if(frappe.boot.sysdefaults.time_zone) {
 				m = m.tz(frappe.boot.sysdefaults.time_zone);
 			}
-			return m.format(frappe.boot.sysdefaults.date_format.toUpperCase() + ', h:mm a z');
+			return m.format(frappe.boot.sysdefaults.date_format.toUpperCase()
+				+  ' ' + frappe.boot.sysdefaults.time_format);
 		} else {
 			return "";
 		}
@@ -180,6 +181,21 @@ frappe.form.formatters = {
 
 		return frappe.form.formatters.Data(value);
 	},
+	Time: function(value) {
+		if (value) {
+			value = frappe.datetime.str_to_user(value, true);
+		}
+
+		return value || "";
+	},
+	Duration: function(value, docfield) {
+		if (value) {
+			let duration_options = frappe.utils.get_duration_options(docfield);
+			value = frappe.utils.get_formatted_duration(value, duration_options);
+		}
+
+		return value || "";
+	},
 	LikedBy: function(value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function(i, v) {
@@ -197,13 +213,7 @@ frappe.form.formatters = {
 		return html;
 	},
 	Comment: function(value) {
-		var html = "";
-		$.each(JSON.parse(value || "[]"), function(i, v) {
-			if(v) html+= '<span class="label label-warning" \
-				style="margin-right: 7px;"\
-				data-field="_comments" data-label="'+v.name+'">'+v.comment+'</span>';
-		});
-		return html;
+		return value;
 	},
 	Assign: function(value) {
 		var html = "";
@@ -218,7 +228,17 @@ frappe.form.formatters = {
 		return frappe.form.formatters.Text(value);
 	},
 	TextEditor: function(value) {
-		return frappe.form.formatters.Text(value);
+		let formatted_value = frappe.form.formatters.Text(value);
+		// to use ql-editor styles
+		try {
+			if (!$(formatted_value).find('.ql-editor').length) {
+				formatted_value = `<div class="ql-editor read-mode">${formatted_value}</div>`;
+			}
+		} catch(e) {
+			formatted_value = `<div class="ql-editor read-mode">${formatted_value}</div>`;
+		}
+
+		return formatted_value;
 	},
 	Code: function(value) {
 		return "<pre>" + (value==null ? "" : $("<div>").text(value).html()) + "</pre>"

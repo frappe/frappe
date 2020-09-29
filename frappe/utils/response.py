@@ -90,7 +90,8 @@ def as_json():
 def as_pdf():
 	response = Response()
 	response.mimetype = "application/pdf"
-	response.headers["Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	encoded_filename = quote(frappe.response['filename'].replace(' ', '_'))
+	response.headers["Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_') + ";filename*=utf-8''%s" % encoded_filename).encode("utf-8")
 	response.data = frappe.response['filecontent']
 	return response
 
@@ -209,7 +210,7 @@ def send_private_file(path):
 	blacklist = ['.svg', '.html', '.htm', '.xml']
 
 	if extension.lower() in blacklist:
-		response.headers.add(b'Content-Disposition', b'attachment', filename=filename.encode("utf-8"))
+		response.headers.add('Content-Disposition', 'attachment', filename=filename.encode("utf-8"))
 
 	response.mimetype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
@@ -217,6 +218,6 @@ def send_private_file(path):
 
 def handle_session_stopped():
 	frappe.respond_as_web_page(_("Updating"),
-		_("Your system is being updated. Please refresh again after a few moments"),
+		_("Your system is being updated. Please refresh again after a few moments."),
 		http_status_code=503, indicator_color='orange', fullpage = True, primary_action=None)
 	return frappe.website.render.render("message", http_status_code=503)

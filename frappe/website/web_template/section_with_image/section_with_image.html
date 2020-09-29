@@ -1,0 +1,14 @@
+<div class="section-with-image {{ 'align-center' if align == 'Center' else '' }}">
+	<h2 class="section-title">{{ title }}</h2>
+	{%- if subtitle -%}
+	<p class="section-description">{{ subtitle }}</p>
+	{%- endif -%}
+
+	{%- if image -%}
+	{{ frappe.render_template('templates/includes/image_with_blur.html', {
+		"src": image,
+		"alt": image_description or title,
+		"class": "section-image"
+	}) }}
+	{%- endif -%}
+</div>

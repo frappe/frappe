@@ -43,7 +43,7 @@ class RedisWrapper(redis.Redis):
 
 		try:
 			if expires_in_sec:
-				self.setex(key, pickle.dumps(val), expires_in_sec)
+				self.setex(name=key, time=expires_in_sec, value=pickle.dumps(val))
 			else:
 				self.set(key, pickle.dumps(val))
 
@@ -140,7 +140,16 @@ class RedisWrapper(redis.Redis):
 	def llen(self, key):
 		return super(RedisWrapper, self).llen(self.make_key(key))
 
+	def lrange(self, key, start, stop):
+		return super(RedisWrapper, self).lrange(self.make_key(key), start, stop)
+
+	def ltrim(self, key, start, stop):
+		return super(RedisWrapper, self).ltrim(self.make_key(key), start, stop)
+
 	def hset(self, name, key, value, shared=False):
+		if key is None:
+			return
+
 		_name = self.make_key(name, shared=shared)
 
 		# set in local
@@ -163,6 +172,8 @@ class RedisWrapper(redis.Redis):
 		_name = self.make_key(name, shared=shared)
 		if not _name in frappe.local.cache:
 			frappe.local.cache[_name] = {}
+
+		if not key: return None
 
 		if key in frappe.local.cache[_name]:
 			return frappe.local.cache[_name][key]

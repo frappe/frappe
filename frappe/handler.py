@@ -8,12 +8,21 @@ import frappe.utils
 import frappe.sessions
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
+from frappe.api import validate_auth
 from frappe.utils import cint
+from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
 from werkzeug.wrappers import Response
 from six import string_types
 
+ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/msword',
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet')
+
+
 def handle():
 	"""handle request"""
+	validate_auth()
 	cmd = frappe.local.form_dict.cmd
 	data = None
 
@@ -38,6 +47,10 @@ def execute_cmd(cmd, from_async=False):
 		cmd = hook
 		break
 
+	# via server script
+	if run_server_script_api(cmd):
+		return None
+
 	try:
 		method = get_attr(cmd)
 	except Exception as e:
@@ -52,16 +65,21 @@ def execute_cmd(cmd, from_async=False):
 		method = method.queue
 
 	is_whitelisted(method)
+	is_valid_http_method(method)
 
 	return frappe.call(method, **frappe.form_dict)
 
+def is_valid_http_method(method):
+	http_method = frappe.local.request.method
+
+	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 def is_whitelisted(method):
 	# check if whitelisted
 	if frappe.session['user'] == 'Guest':
 		if (method not in frappe.guest_methods):
-			frappe.msgprint(_("Not permitted"))
-			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 		if method not in frappe.xss_safe_methods:
 			# strictly sanitize form_dict
@@ -72,8 +90,7 @@ def is_whitelisted(method):
 
 	else:
 		if not method in frappe.whitelisted:
-			frappe.msgprint(_("Not permitted"))
-			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 @frappe.whitelist(allow_guest=True)
 def version():
@@ -139,8 +156,18 @@ def uploadfile():
 
 	return ret
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def upload_file():
+	user = None
+	if frappe.session.user == 'Guest':
+		if frappe.get_system_settings('allow_guests_to_upload_files'):
+			ignore_permissions = True
+		else:
+			return
+	else:
+		user = frappe.get_doc("User", frappe.session.user)
+		ignore_permissions = False
+
 	files = frappe.request.files
 	is_private = frappe.form_dict.is_private
 	doctype = frappe.form_dict.doctype
@@ -160,6 +187,12 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
+	if frappe.session.user == 'Guest' or (user and not user.has_desk_access()):
+		import mimetypes
+		filetype = mimetypes.guess_type(filename)[0]
+		if filetype not in ALLOWED_MIMETYPES:
+			frappe.throw(_("You can only upload JPG, PNG, PDF, or Microsoft documents."))
+
 	if method:
 		method = frappe.get_attr(method)
 		is_whitelisted(method)
@@ -176,7 +209,7 @@ def upload_file():
 			"is_private": cint(is_private),
 			"content": content
 		})
-		ret.save()
+		ret.save(ignore_permissions=ignore_permissions)
 		return ret
 
 

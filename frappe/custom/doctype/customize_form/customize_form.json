@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "DL.####",
  "creation": "2013-01-29 17:55:08",
  "doctype": "DocType",
@@ -18,6 +19,8 @@
   "track_changes",
   "track_views",
   "allow_auto_repeat",
+  "allow_import",
+  "show_preview_popup",
   "image_view",
   "column_break_5",
   "title_field",
@@ -27,6 +30,10 @@
   "sort_field",
   "column_break_10",
   "sort_order",
+  "section_break_23",
+  "email_append_to",
+  "sender_field",
+  "subject_field",
   "fields_section_break",
   "fields"
  ],
@@ -167,13 +174,50 @@
    "fieldname": "allow_auto_repeat",
    "fieldtype": "Check",
    "label": "Allow Auto Repeat"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_import",
+   "fieldtype": "Check",
+   "label": "Allow Import (via Data Import Tool)"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "subject_field",
+   "fieldtype": "Data",
+   "label": "Subject Field"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "sender_field",
+   "fieldtype": "Data",
+   "label": "Sender Field",
+   "mandatory_depends_on": "email_append_to"
+  },
+  {
+   "default": "0",
+   "fieldname": "email_append_to",
+   "fieldtype": "Check",
+   "label": "Allow document creation via Email"
+  },
+  {
+   "depends_on": "doc_type",
+   "fieldname": "section_break_23",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_preview_popup",
+   "fieldtype": "Check",
+   "label": "Show Preview Popup"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-glass",
  "idx": 1,
  "issingle": 1,
- "modified": "2019-07-01 22:50:50.372465",
+ "links": [],
+ "modified": "2020-04-10 12:16:01.320411",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

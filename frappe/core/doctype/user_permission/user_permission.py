@@ -53,7 +53,7 @@ class UserPermission(Document):
 			}, limit=1)
 		if overlap_exists:
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
-			frappe.throw(_("{0} has already assigned default value for {1}.".format(ref_link, self.allow)))
+			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
 
 @frappe.whitelist()
 def get_user_permissions(user=None):
@@ -66,7 +66,7 @@ def get_user_permissions(user=None):
 	if not user:
 		user = frappe.session.user
 
-	if user == "Administrator":
+	if not user or user == "Administrator":
 		return {}
 
 	cached_user_permissions = frappe.cache().hget("user_permissions", user)
@@ -119,13 +119,22 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 
 	return has_same_user_permission
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, filters):
-	linked_doctypes = get_linked_doctypes(doctype, True).keys()
-	linked_doctypes = list(linked_doctypes)
+	linked_doctypes_map = get_linked_doctypes(doctype, True)
+
+	linked_doctypes = []
+	for linked_doctype, linked_doctype_values in linked_doctypes_map.items():
+		linked_doctypes.append(linked_doctype)
+		child_doctype = linked_doctype_values.get("child_doctype")
+		if child_doctype:
+			linked_doctypes.append(child_doctype)
+
 	linked_doctypes += [doctype]
 
 	if txt:
-		linked_doctypes = [d for d in linked_doctypes if txt in d.lower()]
+		linked_doctypes = [d for d in linked_doctypes if txt.lower() in d.lower()]
 
 	linked_doctypes.sort()
 
@@ -136,7 +145,11 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 	return return_list
 
 def get_permitted_documents(doctype):
-	return [d.get('doc') for d in get_user_permissions().get(doctype, []) \
+	''' Returns permitted documents from the given doctype for the session user '''
+	# sort permissions in a way to make the first permission in the list to be default
+	user_perm_list = sorted(get_user_permissions().get(doctype, []), key=lambda x: x.get('is_default'), reverse=True)
+
+	return [d.get('doc') for d in user_perm_list \
 		if d.get('doc')]
 
 @frappe.whitelist()

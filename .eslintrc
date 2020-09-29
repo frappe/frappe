@@ -5,7 +5,7 @@
 		"es6": true
 	},
 	"parserOptions": {
-		"ecmaVersion": 8,
+		"ecmaVersion": 9,
 		"sourceType": "module"
 	},
 	"extends": "eslint:recommended",
@@ -78,6 +78,8 @@
 		"has_common": true,
 		"has_words": true,
 		"validate_email": true,
+		"validate_name": true,
+		"validate_phone": true,
 		"get_number_format": true,
 		"format_number": true,
 		"format_currency": true,
@@ -95,6 +97,7 @@
 		"CANCEL": true,
 		"copy_dict": true,
 		"get_number_format_info": true,
+		"strip_number_groups": true,
 		"print_table": true,
 		"Layout": true,
 		"web_form_settings": true,

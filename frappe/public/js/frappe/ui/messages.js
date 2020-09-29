@@ -53,6 +53,37 @@ frappe.confirm = function(message, ifyes, ifno) {
 	return d;
 }
 
+frappe.warn = function(title, message_html, proceed_action, primary_label, is_minimizable) {
+	const d = new frappe.ui.Dialog({
+		title: title,
+		indicator: 'red',
+		fields: [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'warning_message',
+				options: `<div class="frappe-warning-message">${message_html}</div>`
+			}
+		],
+		primary_action_label: primary_label,
+		primary_action: () => {
+			if (proceed_action) proceed_action();
+			d.hide();
+		},
+		secondary_action_label: __("Cancel"),
+		minimizable: is_minimizable
+	});
+
+	d.footer = $(`<div class="modal-footer"></div>`).insertAfter($(d.modal_body));
+
+	d.get_close_btn().appendTo(d.footer);
+	d.get_primary_btn().appendTo(d.footer);
+
+	d.footer.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
+
+	d.show();
+	return d;
+};
+
 frappe.prompt = function(fields, callback, title, primary_label) {
 	if (typeof fields === "string") {
 		fields = [{
@@ -79,7 +110,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	return d;
 }
 
-frappe.msgprint = function(msg, title) {
+frappe.msgprint = function(msg, title, is_minimizable) {
 	if(!msg) return;
 
 	if($.isPlainObject(msg)) {
@@ -117,14 +148,9 @@ frappe.msgprint = function(msg, title) {
 					frappe.msg_dialog.custom_onhide();
 				}
 				frappe.msg_dialog.msg_area.empty();
-			}
+			},
+			minimizable: data.is_minimizable || is_minimizable
 		});
-
-		// setup and bind an action to the primary button
-		if (data.primary_action) {
-			frappe.msg_dialog.set_primary_action(__(data.primary_action.label || "Done"),
-				data.primary_action.action);
-		}
 
 		// class "msgprint" is used in tests
 		frappe.msg_dialog.msg_area = $('<div class="msgprint">')
@@ -135,6 +161,53 @@ frappe.msgprint = function(msg, title) {
 		}
 
 		frappe.msg_dialog.indicator = frappe.msg_dialog.header.find('.indicator');
+	}
+
+	// setup and bind an action to the primary button
+	if (data.primary_action) {
+		if (data.primary_action.server_action && typeof data.primary_action.server_action === 'string') {
+			data.primary_action.action = () => {
+				frappe.call({
+					method: data.primary_action.server_action,
+					args: {
+						args: data.primary_action.args
+					},
+					callback() {
+						if (data.primary_action.hide_on_success) {
+							frappe.hide_msgprint();
+						}
+					}
+				});
+			}
+		}
+
+		if (data.primary_action.client_action && typeof data.primary_action.client_action === 'string') {
+			let parts = data.primary_action.client_action.split('.');
+			let obj = window;
+			for (let part of parts) {
+				obj = obj[part];
+			}
+			data.primary_action.action = () => {
+				if (typeof obj === 'function') {
+					obj(data.primary_action.args);
+				}
+			}
+		}
+
+		frappe.msg_dialog.set_primary_action(
+			__(data.primary_action.label || "Done"),
+			data.primary_action.action
+		);
+	} else {
+		if (frappe.msg_dialog.has_primary_action) {
+			frappe.msg_dialog.get_primary_btn().addClass('hide');
+			frappe.msg_dialog.has_primary_action = false;
+		}
+	}
+
+	if (data.secondary_action) {
+		frappe.msg_dialog.set_secondary_action(data.secondary_action.action);
+		frappe.msg_dialog.set_secondary_action_label(__(data.secondary_action.label || "Close"));
 	}
 
 	if(data.message==null) {
@@ -174,6 +247,15 @@ frappe.msgprint = function(msg, title) {
 	} else {
 		// msgprint should be narrower than the usual dialog
 		frappe.msg_dialog.wrapper.classList.add('msgprint-dialog');
+	}
+
+	if (data.scroll) {
+		// limit modal height and allow scrolling instead
+		frappe.msg_dialog.body.classList.add('msgprint-scroll');
+	} else {
+		if (frappe.msg_dialog.body.classList.contains('msgprint-scroll')) {
+			frappe.msg_dialog.body.classList.remove('msgprint-scroll');
+		}
 	}
 
 

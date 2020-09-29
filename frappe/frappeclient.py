@@ -3,6 +3,7 @@ import requests
 import json
 import frappe
 from six import iteritems, string_types
+import base64
 
 '''
 FrappeClient is a library that helps you connect with other frappe systems
@@ -11,15 +12,29 @@ FrappeClient is a library that helps you connect with other frappe systems
 class AuthError(Exception):
 	pass
 
+class SiteExpiredError(Exception):
+	pass
+
+class SiteUnreachableError(Exception):
+	pass
+
 class FrappeException(Exception):
 	pass
 
 class FrappeClient(object):
-	def __init__(self, url, username=None, password=None, verify=True):
-		self.headers = dict(Accept='application/json')
+	def __init__(self, url, username=None, password=None, verify=True, api_key=None, api_secret=None, frappe_authorization_source=None):
+		self.headers = {
+			'Accept': 'application/json',
+			'content-type': 'application/x-www-form-urlencoded',
+		}
 		self.verify = verify
 		self.session = requests.session()
 		self.url = url
+		self.api_key = api_key
+		self.api_secret = api_secret
+		self.frappe_authorization_source = frappe_authorization_source
+
+		self.setup_key_authentication_headers()
 
 		# login if username/password provided
 		if username and password:
@@ -41,9 +56,29 @@ class FrappeClient(object):
 
 		if r.status_code==200 and r.json().get('message') in ("Logged In", "No App"):
 			return r.json()
+		elif r.status_code == 502:
+			raise SiteUnreachableError
 		else:
-			print(r.text)
+			try:
+				error = json.loads(r.text)
+				if error.get('exc_type') == "SiteExpiredError":
+					raise SiteExpiredError
+			except json.decoder.JSONDecodeError:
+				error = r.text
+				print(error)
 			raise AuthError
+
+	def setup_key_authentication_headers(self):
+		if self.api_key and self.api_secret:
+			token = base64.b64encode(('{}:{}'.format(self.api_key, self.api_secret)).encode('utf-8')).decode('utf-8')
+			auth_header = {
+				'Authorization': 'Basic {}'.format(token),
+			}
+			self.headers.update(auth_header)
+
+			if self.frappe_authorization_source:
+				auth_source = {'Frappe-Authorization-Source': self.frappe_authorization_source}
+				self.headers.update(auth_source)
 
 	def logout(self):
 		'''Logout session'''
@@ -72,7 +107,7 @@ class FrappeClient(object):
 		:param doc: A dict or Document object to be inserted remotely'''
 		res = self.session.post(self.url + "/api/resource/" + doc.get("doctype"),
 			data={"data":frappe.as_json(doc)}, verify=self.verify, headers=self.headers)
-		return self.post_process(res)
+		return frappe._dict(self.post_process(res))
 
 	def insert_many(self, docs):
 		'''Insert multiple documents to the remote server
@@ -89,7 +124,7 @@ class FrappeClient(object):
 		:param doc: dict or Document object to be updated remotely. `name` is mandatory for this'''
 		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + doc.get("name")
 		res = self.session.put(url, data={"data":frappe.as_json(doc)}, verify=self.verify, headers=self.headers)
-		return self.post_process(res)
+		return frappe._dict(self.post_process(res))
 
 	def bulk_update(self, docs):
 		'''Bulk update documents remotely

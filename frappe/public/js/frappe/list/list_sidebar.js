@@ -40,8 +40,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			this.sidebar.find('.sidebar-stat').remove();
 		} else {
 			this.sidebar.find('.list-stats').on('click', (e) => {
-				$(e.currentTarget).find('.stat-link').remove();
-				this.get_stats();
+				this.reload_stats();
 			});
 		}
 
@@ -62,7 +61,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			show_list_link = true;
 		}
 
-		if (frappe.treeview_settings[this.doctype]) {
+		if (frappe.treeview_settings[this.doctype] || frappe.get_meta(this.doctype).is_tree) {
 			this.sidebar.find(".tree-link").removeClass("hide");
 		}
 
@@ -161,7 +160,7 @@ frappe.views.ListSidebar = class ListSidebar {
 				reference_doctype: doctype
 			}
 		}).then(result => {
-			if (!result) return;
+			if (!(result && Array.isArray(result) && result.length)) return;
 			const calendar_views = result;
 			const $link_calendar = this.sidebar.find('.list-link[data-view="Calendar"]');
 
@@ -210,11 +209,13 @@ frappe.views.ListSidebar = class ListSidebar {
 		accounts.forEach((account) => {
 			let email_account = (account.email_id == "All Accounts") ? "All Accounts" : account.email_account;
 			let route = ["List", "Communication", "Inbox", email_account].join('/');
+			let display_name = ["All Accounts", "Sent Mail", "Spam", "Trash"].includes(account.email_id) ? __(account.email_id) : account.email_id;
+			
 			if (!divider) {
 				this.get_divider().appendTo($dropdown);
 				divider = true;
 			}
-			$(`<li><a href="#${route}">${account.email_id}</a></li>`).appendTo($dropdown);
+			$(`<li><a href="#${route}">${display_name}</a></li>`).appendTo($dropdown);
 			if (account.email_id === "Sent Mail")
 				divider = false;
 		});
@@ -241,38 +242,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
-	setup_dropdown_search(dropdown, text_class) {
-		let $dropdown_search = dropdown.find('.dropdown-search').show();
-		let $search_input = $dropdown_search.find('.dropdown-search-input');
-		$search_input.focus();
-		$dropdown_search.on('click',(e)=>{
-			e.stopPropagation();
-		});
-		let $elements = dropdown.find('li');
-		$dropdown_search.on('keyup',()=> {
-			let text_filter = $search_input.val().toLowerCase();
-			// Replace trailing and leading spaces
-			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
-			let text;
-			for (var i = 0; i < $elements.length; i++) {
-				let text_element = $elements.eq(i).find(text_class);
-
-				let text = text_element.text().toLowerCase();
-				// Search data-name since label for current user is 'Me'
-				let name = text_element.data('name').toLowerCase();
-				if (text.includes(text_filter) || name.includes(text_filter)) {
-					$elements.eq(i).css('display','');
-				} else {
-					$elements.eq(i).css('display','none');
-				}
-			}
-		});
-		dropdown.parent().on('hide.bs.dropdown',()=> {
-			$dropdown_search.val('');
-		});
-	}
-
-
 	get_cat_tags() {
 		return this.cat_tags;
 	}
@@ -285,34 +254,13 @@ frappe.views.ListSidebar = class ListSidebar {
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters: me.default_filters || []
+				// wait for list filter area to be generated before getting filters, or fallback to default filters
+				filters: (me.list_view.filter_area ? me.list_filter.get_current_filters() : me.default_filters) || []
 			},
 			callback: function(r) {
-				me.defined_category = r.message;
-				if (r.message.defined_cat) {
-					me.defined_category = r.message.defined_cat;
-					me.cats = {};
-					//structure the tag categories
-					for (var i in me.defined_category) {
-						if (me.cats[me.defined_category[i].category] === undefined) {
-							me.cats[me.defined_category[i].category] = [me.defined_category[i].tag];
-						} else {
-							me.cats[me.defined_category[i].category].push(me.defined_category[i].tag);
-						}
-						me.cat_tags[i] = me.defined_category[i].tag;
-					}
-					me.tempstats = r.message.stats;
-
-					$.each(me.cats, function(i, v) {
-						me.render_stat(i, (me.tempstats || {})["_user_tags"], v);
-					});
-					me.render_stat("_user_tags", (me.tempstats || {})["_user_tags"]);
-				} else {
-					//render normal stats
-					me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
-				}
+				me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
 				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
-				me.setup_dropdown_search(stats_dropdown,'.stat-label');
+				frappe.utils.setup_search(stats_dropdown, '.stat-link', '.stat-label');
 			}
 		});
 	}
@@ -406,7 +354,8 @@ frappe.views.ListSidebar = class ListSidebar {
 	}
 
 	reload_stats() {
-		this.sidebar.find(".sidebar-stat").remove();
+		this.sidebar.find(".stat-link").remove();
+		this.sidebar.find(".stat-no-records").remove();
 		this.get_stats();
 	}
 

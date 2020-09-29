@@ -11,6 +11,7 @@ from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.desk.form.document_follow import is_document_followed
 from frappe import _
+from six.moves.urllib.parse import quote
 
 @frappe.whitelist()
 def getdoc(doctype, name, user=None):
@@ -99,8 +100,11 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
+		"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
 		"milestones": get_milestones(doc.doctype, doc.name),
-		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user)
+		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
+		"tags": get_tags(doc.doctype, doc.name),
+		"document_email": get_document_email(doc.doctype, doc.name)
 	}
 
 def get_milestones(doctype, name):
@@ -217,12 +221,14 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	return communications
 
 def get_assignments(dt, dn):
-	cl = frappe.db.sql("""select `name`, owner, description from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status='Open'
-		order by modified desc limit 5""", {
-			"doctype": dt,
-			"name": dn
-		}, as_dict=True)
+	cl = frappe.get_all("ToDo",
+			fields=['name', 'owner', 'description', 'status'],
+			limit= 5,
+			filters={
+				'reference_type': dt,
+				'reference_name': dn,
+				'status': ('!=', 'Cancelled'),
+			})
 
 	return cl
 
@@ -253,3 +259,33 @@ def get_view_logs(doctype, docname):
 		if view_logs:
 			logs = view_logs
 	return logs
+
+def get_tags(doctype, name):
+	tags = [tag.tag for tag in frappe.get_all("Tag Link", filters={
+			"document_type": doctype,
+			"document_name": name
+		}, fields=["tag"])]
+
+	return ",".join(tags)
+
+def get_document_email(doctype, name):
+	email = get_automatic_email_link()
+	if not email:
+		return None
+
+	email = email.split("@")
+	return "{0}+{1}+{2}@{3}".format(email[0], quote(doctype), quote(name), email[1])
+
+def get_automatic_email_link():
+	return frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id")
+
+def get_additional_timeline_content(doctype, docname):
+	contents = []
+	hooks = frappe.get_hooks().get('additional_timeline_content', {})
+	methods_for_all_doctype = hooks.get('*', [])
+	methods_for_current_doctype = hooks.get(doctype, [])
+
+	for method in methods_for_all_doctype + methods_for_current_doctype:
+		contents.extend(frappe.get_attr(method)(doctype, docname) or [])
+
+	return contents

@@ -1,0 +1,43 @@
+{%- macro card(title, content, url) -%}
+{%- set col_classes = resolve_class({
+	'col-12 col-sm-6 col-lg-3': card_size == 'Small',
+	'col-12 col-sm-6 col-lg-4': card_size == 'Medium',
+	'col-12 col-md-6': card_size == 'Large',
+}) -%}
+{%- set card_classes = resolve_class({
+	'card-sm': card_size == 'Small',
+	'card-md': card_size == 'Medium',
+	'card-lg': card_size == 'Large'
+}) -%}
+<div class="mt-6 {{ col_classes }}">
+	<div class="card {{ card_classes }} h-100">
+		<div class="card-body">
+			<h3 class="card-title">{{ title or '' }}</h3>
+			<p class="card-text">{{ content or '' }}</p>
+		</div>
+		<a href="{{ url or '#' }}" class="stretched-link"></a>
+	</div>
+</div>
+{%- endmacro -%}
+
+<div class="section-with-cards">
+	{%- if title -%}
+	<h2 class="section-title">{{ title }}</h2>
+	{%- endif -%}
+	{%- if subtitle -%}
+	<p class="section-description">{{ subtitle }}</p>
+	{%- endif -%}
+	{%- set card_size = card_size or 'Small' -%}
+	<div class="{{ resolve_class({'mt-6': title}) }}">
+		<div class="row mt-n6">
+			{%- for index in ['1', '2', '3', '4', '5', '6', '7', '8', '9'] -%}
+			{%- set title = values['card_' + index + '_title'] -%}
+			{%- set content = values['card_' + index + '_content'] -%}
+			{%- set url = values['card_' + index + '_url'] -%}
+			{%- if title -%}
+			{{ card(title, content, url) }}
+			{%- endif -%}
+			{%- endfor -%}
+		</div>
+	</div>
+</div>

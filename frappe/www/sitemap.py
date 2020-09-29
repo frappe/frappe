@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe.model.document import get_controller
-from frappe.utils import get_request_site_address, get_datetime, nowdate
+from frappe.utils import get_datetime, nowdate, get_url
 from frappe.website.router import get_pages, get_all_page_context_from_doctypes
 from six import iteritems
 from six.moves.urllib.parse import quote, urljoin
@@ -25,13 +25,13 @@ def get_context(context):
 	for route, page in iteritems(get_pages()):
 		if page.sitemap:
 			links.append({
-				"loc": urljoin(host, quote(page.name.encode("utf-8"))),
+				"loc": get_url(quote(page.name.encode("utf-8"))),
 				"lastmod": nowdate()
 			})
 
 	for route, data in iteritems(get_public_pages_from_doctypes()):
 		links.append({
-			"loc": urljoin(host, quote((route or "").encode("utf-8"))),
+			"loc": get_url(quote((route or "").encode("utf-8"))),
 			"lastmod": get_datetime(data.get("modified")).strftime("%Y-%m-%d")
 		})
 

@@ -1,7 +1,7 @@
 frappe.pages['background_jobs'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: 'Background Jobs',
+		title: __('Background Jobs'),
 		single_column: true
 	});
 

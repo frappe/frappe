@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2020-04-15 22:54:46.009703",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "path",
+  "referrer",
+  "browser",
+  "browser_version",
+  "is_unique",
+  "time_zone",
+  "user_agent"
+ ],
+ "fields": [
+  {
+   "fieldname": "path",
+   "fieldtype": "Data",
+   "label": "Path",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "referrer",
+   "fieldtype": "Data",
+   "label": "Referrer",
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "browser",
+   "fieldtype": "Data",
+   "label": "Browser",
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "browser_version",
+   "fieldtype": "Data",
+   "label": "Browser Version",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "is_unique",
+   "fieldtype": "Data",
+   "label": "Is Unique"
+  },
+  {
+   "fieldname": "time_zone",
+   "fieldtype": "Data",
+   "label": "Time Zone"
+  },
+  {
+   "fieldname": "user_agent",
+   "fieldtype": "Data",
+   "label": "User Agent"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2020-05-05 14:11:24.718770",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Page View",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "path",
+ "track_changes": 1
+}

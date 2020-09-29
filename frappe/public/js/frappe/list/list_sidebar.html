@@ -10,6 +10,7 @@
 </ul>
 <ul class="list-unstyled sidebar-menu standard-actions">
 	{% if frappe.model.can_get_report(doctype) %}
+	<li class="list-sidebar-label">Views</li>
 	<li class="divider visible-sm visible-xs"></li>
 	<li class="list-link">
 		<div class="btn-group">
@@ -25,6 +26,8 @@
 	<li class="divider"></li>
 	<li class="list-link" data-view="List">
 		<a href="#List/{%= doctype %}/List">{%= __("List") %}</a></li>
+	<li class="list-link" data-view="Dashboard">
+		<a href="#List/{%= doctype %}/Dashboard">{%= __("Dashboard") %}</a></li>
 	<li class="hide list-link" data-view="Image">
 		<a href="#List/{%= doctype %}/Image">{%= __("Images") %}</a></li>
 	<li class="hide list-link" data-view="Gantt">
@@ -64,17 +67,17 @@
 	<li class="list-stats list-link">
 		<div class="btn-group">
 			<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
-				{{ __("Tags") }}<span class="caret"></span>
+				{{ __("Tags") }} <span class="caret"></span>
 			</a>
 			<ul class="dropdown-menu list-stats-dropdown" role="menu">
 				<div class="dropdown-search">
-					<input type="text" placeholder="Search" class="form-control dropdown-search-input input-xs">
+					<input type="text" placeholder="Search" data-element="search" class="form-control input-xs">
 				</div>
 			</ul>
 		</div>
 	</li>
 	<li class="list-link" style="margin-top: 10px;">
-		<a class="list-tag-preview hidden-xs text-muted">{{ __("Show tags") }}</a>
+		<a class="list-tag-preview hidden-xs text-muted">{{ __("Show Tags") }}</a>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu charts-menu hide">
@@ -89,5 +92,5 @@
 <ul class="list-unstyled sidebar-menu list-filters"></ul>
 <ul class="list-unstyled close-sidebar-button visible-xs visible-sm">
 	<li class="divider"></li>
-	<li class="close-sidebar">Close</li>
+	<li class="close-sidebar">{{ __("Close") }}</li>
 </ul>

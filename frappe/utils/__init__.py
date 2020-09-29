@@ -6,10 +6,12 @@
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
+import functools
 from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
 from email.utils import parseaddr, formataddr
+from email.header import decode_header, make_header
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 from six.moves.urllib.parse import quote
@@ -59,13 +61,14 @@ def get_email_address(user=None):
 	if not user:
 		user = frappe.session.user
 
-	return frappe.db.get_value("User", user, ["email"], as_dict=True).get("email")
+	return frappe.db.get_value("User", user, "email")
 
-def get_formatted_email(user):
+def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
-	mail = get_email_address(user)
-	return formataddr((fullname, mail))
+	if not mail:
+		mail = get_email_address(user)
+	return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
@@ -74,11 +77,34 @@ def extract_email_id(email):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
-def validate_email_add(email_str, throw=False):
+def validate_phone_number(phone_number, throw=False):
+	"""Returns True if valid phone number"""
+	if not phone_number:
+		return False
+
+	phone_number = phone_number.strip()
+	match = re.match(r"([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$", phone_number)
+
+	if not match and throw:
+		frappe.throw(frappe._("{0} is not a valid Phone Number").format(phone_number), frappe.InvalidPhoneNumberError)
+
+	return bool(match)
+
+def validate_name(name, throw=False):
+	"""Returns True if the name is valid
+	valid names may have unicode and ascii characters, dash, quotes, numbers
+	anything else is considered invalid
 	"""
-	validate_email_add will be renamed to the validate_email_address in v12
-	"""
-	return validate_email_address(email_str, throw=False)
+	if not name:
+		return False
+
+	name = name.strip()
+	match = re.match(r"^[\w][\w\'\-]*([ \w][\w\'\-]+)*$", name)
+
+	if not match and throw:
+		frappe.throw(frappe._("{0} is not a valid Name").format(name), frappe.InvalidNameError)
+
+	return bool(match)
 
 def validate_email_address(email_str, throw=False):
 	"""Validates the email string"""
@@ -97,19 +123,20 @@ def validate_email_address(email_str, throw=False):
 			_valid = False
 
 		else:
-			e = extract_email_id(e)
-			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower()) if e else None
+			email_id = extract_email_id(e)
+			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email_id.lower()) if email_id else None
 
 			if not match:
 				_valid = False
 			else:
 				matched = match.group(0)
 				if match:
-					match = matched==e.lower()
+					match = matched==email_id.lower()
 
 		if not _valid:
 			if throw:
-				frappe.throw(frappe._("{0} is not a valid Email Address").format(e),
+				invalid_email = frappe.utils.escape_html(e)
+				frappe.throw(frappe._("{0} is not a valid Email Address").format(invalid_email),
 					frappe.InvalidEmailAddressError)
 			return None
 		else:
@@ -336,6 +363,7 @@ def decode_dict(d, encoding="utf-8"):
 
 	return d
 
+@functools.lru_cache()
 def get_site_name(hostname):
 	return hostname.split(':')[0]
 
@@ -374,10 +402,19 @@ def call_hook_method(hook, *args, **kwargs):
 def update_progress_bar(txt, i, l):
 	if not getattr(frappe.local, 'request', None):
 		lt = len(txt)
+		try:
+			col = 40 if os.get_terminal_size().columns > 80 else 20
+		except OSError:
+			# in case function isn't being called from a terminal
+			col = 40
+
 		if lt < 36:
 			txt = txt + " "*(36-lt)
-		complete = int(float(i+1) / l * 40)
-		sys.stdout.write("\r{0}: [{1}{2}]".format(txt, "="*complete, " "*(40-complete)))
+
+		complete = int(float(i+1) / l * col)
+		completion_bar = ("=" * complete).ljust(col, ' ')
+		percent_complete = str(int(float(i+1) / l * 100))
+		sys.stdout.write("\r{0}: [{1}] {2}%".format(txt, completion_bar, percent_complete))
 		sys.stdout.flush()
 
 def get_html_format(print_path):
@@ -455,7 +492,7 @@ def watch(path, handler=None, debug=True):
 	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
-	html = frappe.utils.md_to_html(text)
+	html = text if is_html(text) else frappe.utils.md_to_html(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
@@ -584,28 +621,6 @@ def parse_json(val):
 		val = frappe._dict(val)
 	return val
 
-def cast_fieldtype(fieldtype, value):
-	if fieldtype in ("Currency", "Float", "Percent"):
-		value = flt(value)
-
-	elif fieldtype in ("Int", "Check"):
-		value = cint(value)
-
-	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
-		"Text Editor", "Select", "Link", "Dynamic Link"):
-		value = cstr(value)
-
-	elif fieldtype == "Date":
-		value = getdate(value)
-
-	elif fieldtype == "Datetime":
-		value = get_datetime(value)
-
-	elif fieldtype == "Time":
-		value = to_timedelta(value)
-
-	return value
-
 def get_db_count(*args):
 	"""
 	Pass a doctype or a series of doctypes to get the count of docs in them
@@ -670,3 +685,24 @@ def get_safe_filters(filters):
 		pass
 
 	return filters
+
+def create_batch(iterable, batch_size):
+	"""
+	Convert an iterable to multiple batches of constant size of batch_size
+	"""
+	total_count = len(iterable)
+	for i in range(0, total_count, batch_size):
+		yield iterable[i:min(i + batch_size, total_count)]
+
+def set_request(**kwargs):
+	from werkzeug.test import EnvironBuilder
+	from werkzeug.wrappers import Request
+	builder = EnvironBuilder(**kwargs)
+	frappe.local.request = Request(builder.get_environ())
+
+def get_html_for_route(route):
+	from frappe.website import render
+	set_request(method='GET', path=route)
+	response = render.render()
+	html = frappe.safe_decode(response.get_data())
+	return html

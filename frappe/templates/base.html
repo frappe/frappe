@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Built on Frappe. https://frappe.io/ -->
+<!-- Built on Frappe. https://frappeframework.com/ -->
 <html lang="en">
 <head>
 	<meta charset="utf-8">
@@ -10,7 +10,7 @@
 		{% include "templates/includes/meta_block.html" %}
 	{% endblock %}
 
-	<title>{% block title %} {{ title | striptags }} {% endblock %}</title>
+	<title>{% block title %}{{ title | striptags }}{% endblock %}</title>
 
 	{% block favicon %}
 	<link
@@ -20,27 +20,33 @@
 	>
 	{% endblock %}
 
+	<link rel="canonical" href="{{ canonical }}">
+
 	{%- block head -%}
 		{% if head_html is defined -%}
 		{{ head_html or "" }}
 		{%- endif %}
 
-		{% if theme.theme_url %}
+		{%- if theme.name != 'Standard' -%}
 		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
-		{% else %}
+		{%- else -%}
 		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
+		{%- endif -%}
 
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
 		{%- endfor -%}
-		{% endif %}
 	{%- endblock -%}
 
 	{%- block head_include %}
 		{{ head_include or "" }}
 	{% endblock -%}
 
-	{%- block style %}{%- endblock -%}
+	{%- block style %}
+		{% if colocated_css -%}
+			<style>{{ colocated_css }}</style>
+		{%- endif %}
+	{%- endblock -%}
 
 	<script>
 		window.frappe = {};
@@ -49,10 +55,10 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
-		window.socketio_port = {{ frappe.socketio_port }};
-    </script>
+		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
+	</script>
 </head>
-<body data-path="{{ path | e }}">
+<body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {% endif -%}>
 	{%- block banner -%}
 		{% include "templates/includes/banner_extension.html" ignore missing %}
 
@@ -62,7 +68,13 @@
 	{%- endblock -%}
 
 	{%- block navbar -%}
-		{% include "templates/includes/navbar/navbar.html" %}
+		{{ web_block(
+			navbar_template or 'Standard Navbar',
+			values=_context_dict,
+			add_container=0,
+			add_top_padding=0,
+			add_bottom_padding=0,
+		) }}
 	{%- endblock -%}
 
 	{% block content %}
@@ -70,7 +82,13 @@
 	{% endblock %}
 
 	{%- block footer -%}
-		{% include "templates/includes/footer/footer.html" %}
+		{{ web_block(
+			footer_template or 'Standard Footer',
+			values=_context_dict,
+			add_container=0,
+			add_top_padding=0,
+			add_bottom_padding=0
+		) }}
 	{%- endblock -%}
 
 	{% block base_scripts %}
@@ -84,7 +102,11 @@
 	<script type="text/javascript" src="{{ link | abs_url }}"></script>
 	{%- endfor -%}
 
-	{%- block script %}{%- endblock %}
+	{%- block script %}
+		{% if colocated_js -%}
+			<script>{{ colocated_js }}</script>
+		{%- endif %}
+	{%- endblock %}
 	<!-- csrf_token -->
 	{%- block body_include %}{{ body_include or "" }}{% endblock -%}
 </body>

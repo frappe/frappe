@@ -119,9 +119,12 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		} else {
 			value = this.value || value;
 		}
-		this.disp_area && $(this.disp_area)
-			.html(frappe.format(value, this.df, {no_icon:true, inline:true},
-				this.doc || (this.frm && this.frm.doc)));
+		if (this.df.fieldtype === 'Data') {
+			value = frappe.utils.escape_html(value);
+		}
+		let doc = this.doc || (this.frm && this.frm.doc);
+		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
+		this.disp_area && $(this.disp_area).html(display_value);
 	},
 
 	bind_change_event: function() {
@@ -175,6 +178,16 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 	set_mandatory: function(value) {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd && is_null(value)) ? true : false);
+	},
+	set_invalid: function () {
+		let invalid = !!this.df.invalid;
+		if (this.grid) {
+			this.$wrapper.parents('.grid-static-col').toggleClass('invalid', invalid);
+			this.$input.toggleClass('invalid', invalid);
+			this.grid_row.columns[this.df.fieldname].is_invalid = invalid;
+		} else {
+			this.$wrapper.toggleClass('has-error', invalid);
+		}
 	},
 	set_bold: function() {
 		if(this.$input) {

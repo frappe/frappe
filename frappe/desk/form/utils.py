@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
-from frappe.utils.html_utils import sanitize_html
 from frappe.desk.form.document_follow import follow_document
+from frappe.utils.file_manager import extract_images_from_html
 
 from frappe import _
 from six import string_types
@@ -56,17 +56,20 @@ def validate_link():
 		frappe.response['valid_value'] = valid_value
 		frappe.response['message'] = 'Ok'
 
+
 @frappe.whitelist()
-def add_comment(reference_doctype, reference_name, content, comment_email):
+def add_comment(reference_doctype, reference_name, content, comment_email, comment_by):
 	"""allow any logged user to post a comment"""
 	doc = frappe.get_doc(dict(
-		doctype = 'Comment',
-		reference_doctype = reference_doctype,
-		reference_name = reference_name,
-		content = sanitize_html(content),
-		comment_email = comment_email,
-		comment_type = 'Comment'
-	)).insert(ignore_permissions = True)
+		doctype='Comment',
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
+		comment_email=comment_email,
+		comment_type='Comment',
+		comment_by=comment_by
+	))
+	doc.content = extract_images_from_html(doc, content)
+	doc.insert(ignore_permissions=True)
 
 	follow_document(doc.reference_doctype, doc.reference_name, frappe.session.user)
 	return doc.as_dict()
@@ -83,7 +86,7 @@ def update_comment(name, content):
 	doc.save(ignore_permissions=True)
 
 @frappe.whitelist()
-def get_next(doctype, value, prev, filters, sort_order, sort_field):
+def get_next(doctype, value, prev, filters=None, sort_order='desc', sort_field='modified'):
 
 	prev = int(prev)
 	if not filters: filters = []
@@ -104,7 +107,7 @@ def get_next(doctype, value, prev, filters, sort_order, sort_field):
 	res = frappe.get_list(doctype,
 		fields = ["name"],
 		filters = filters,
-		order_by = sort_field + " " + sort_order,
+		order_by = "`tab{0}`.{1}".format(doctype, sort_field) + " " + sort_order,
 		limit_start=0, limit_page_length=1, as_list=True)
 
 	if not res:

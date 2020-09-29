@@ -54,13 +54,14 @@ def setup_complete(args):
 
 	# Setup complete: do not throw an exception, let the user continue to desk
 	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-		return
+		return {'status': 'ok'}
 
 	args = parse_args(args)
 
 	stages = get_setup_stages(args)
 
 	try:
+		frappe.flags.in_setup_wizard = True
 		current_task = None
 		for idx, stage in enumerate(stages):
 			frappe.publish_realtime('setup_task', {"progress": [idx, len(stages)],
@@ -75,6 +76,8 @@ def setup_complete(args):
 	else:
 		run_setup_success(args)
 		return {'status': 'ok'}
+	finally:
+		frappe.flags.in_setup_wizard = False
 
 def update_global_settings(args):
 	if args.language and args.language != "English":
@@ -141,6 +144,7 @@ def update_system_settings(args):
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
+		'time_format': frappe.db.get_value("Country", args.get("country"), "time_format"),
 		'number_format': number_format,
 		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
 		'backup_limit': 3 # Default for downloadable backups
@@ -224,9 +228,12 @@ def add_all_roles_to(name):
 	user.save()
 
 def disable_future_access():
-	frappe.db.set_default('desktop:home_page', 'desktop')
+	frappe.db.set_default('desktop:home_page', 'workspace')
 	frappe.db.set_value('System Settings', 'System Settings', 'setup_complete', 1)
 	frappe.db.set_value('System Settings', 'System Settings', 'is_first_startup', 1)
+
+	# Enable onboarding after install
+	frappe.db.set_value('System Settings', 'System Settings', 'enable_onboarding', 1)
 
 	if not frappe.flags.in_test:
 		# remove all roles and add 'Administrator' to prevent future access
@@ -347,6 +354,11 @@ def email_setup_wizard_exception(traceback, args):
 		subject="Setup failed: {}".format(frappe.local.site),
 		message=message,
 		delayed=False)
+
+def log_setup_wizard_exception(traceback, args):
+	with open('../logs/setup-wizard.log', 'w+') as setup_log:
+		setup_log.write(traceback)
+		setup_log.write(json.dumps(args))
 
 def get_language_code(lang):
 	return frappe.db.get_value('Language', {'language_name':lang})

@@ -26,9 +26,9 @@ class TestVersion(unittest.TestCase):
 
 		diff = get_diff(old_doc, new_doc)['changed']
 
-		self.assertEqual(get_fieldnames(diff)[0], 'starts_on')
-		self.assertEqual(get_old_values(diff)[0], '01-01-2014 00:00:00')
-		self.assertEqual(get_new_values(diff)[0], '07-20-2017 00:00:00')
+		self.assertEqual(get_fieldnames(diff)[1], 'starts_on')
+		self.assertEqual(get_old_values(diff)[1], '01-01-2014 00:00:00')
+		self.assertEqual(get_new_values(diff)[1], '07-20-2017 00:00:00')
 
 def get_fieldnames(change_array):
 	return [d[0] for d in change_array]

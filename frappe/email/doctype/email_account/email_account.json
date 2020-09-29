@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "field:email_account_name",
  "creation": "2014-09-11 12:04:34.163728",
@@ -21,11 +22,14 @@
   "use_imap",
   "email_server",
   "use_ssl",
+  "append_emails_to_sent_folder",
+  "incoming_port",
   "attachment_limit",
   "append_to",
   "default_incoming",
   "email_sync_option",
   "initial_sync_count",
+  "create_contact",
   "section_break_12",
   "enable_automatic_linking",
   "section_break_13",
@@ -36,6 +40,7 @@
   "enable_outgoing",
   "smtp_server",
   "use_tls",
+  "use_ssl_for_outgoing",
   "smtp_port",
   "default_outgoing",
   "always_use_account_email_id_as_sender",
@@ -61,7 +66,9 @@
    "fieldname": "email_id",
    "fieldtype": "Data",
    "in_global_search": 1,
+   "in_list_view": 1,
    "label": "Email Address",
+   "options": "Email",
    "reqd": 1
   },
   {
@@ -85,14 +92,12 @@
    "default": "0",
    "fieldname": "awaiting_password",
    "fieldtype": "Check",
-   "in_list_view": 1,
    "label": "Awaiting password"
   },
   {
    "default": "0",
    "fieldname": "ascii_encode_password",
    "fieldtype": "Check",
-   "in_list_view": 1,
    "label": "Use ASCII encoding for password"
   },
   {
@@ -110,6 +115,8 @@
    "depends_on": "eval:!doc.service",
    "fieldname": "domain",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Domain",
    "options": "Email Domain"
   },
@@ -372,8 +379,8 @@
    "read_only": 1
   },
   {
-    "fieldname": "section_break_12",
-    "fieldtype": "Section Break"
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -381,10 +388,38 @@
    "fieldname": "enable_automatic_linking",
    "fieldtype": "Check",
    "label": "Enable Automatic Linking in Documents"
+  },
+  {
+   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "description": "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)",
+   "fieldname": "incoming_port",
+   "fieldtype": "Data",
+   "label": "Port"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "fieldname": "append_emails_to_sent_folder",
+   "fieldtype": "Check",
+   "label": "Append Emails to Sent Folder"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "fieldname": "use_ssl_for_outgoing",
+   "fieldtype": "Check",
+   "label": "Use SSL for Outgoing"
+  },
+  {
+   "default": "1",
+   "fieldname": "create_contact",
+   "fieldtype": "Check",
+   "label": "Create Contacts from Incoming Emails"
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2019-06-15 19:03:55.283524",
+ "links": [],
+ "modified": "2020-05-11 15:18:43.931499",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
@@ -397,6 +432,10 @@
    "role": "System Manager",
    "set_user_permissions": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Inbox User"
   }
  ],
  "sort_field": "modified",

@@ -81,9 +81,9 @@ def get_feed_match_conditions(user=None, doctype='Comment'):
 
 		if user_permissions:
 			can_read_docs = []
-			for doctype, obj in user_permissions.items():
+			for dt, obj in user_permissions.items():
 				for n in obj:
-					can_read_docs.append('{}|{}'.format(doctype, frappe.db.escape(n.get('doc', ''))))
+					can_read_docs.append('{}|{}'.format(frappe.db.escape(dt), frappe.db.escape(n.get('doc', ''))))
 
 			if can_read_docs:
 				conditions.append("concat_ws('|', `tab{doctype}`.reference_doctype, `tab{doctype}`.reference_name) in ({values})".format(

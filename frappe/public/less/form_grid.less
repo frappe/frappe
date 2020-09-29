@@ -80,6 +80,10 @@
 	background-color: @extra-light-yellow;
 }
 
+.editable-form .grid-static-col.invalid {
+	background-color: @label-danger-bg;
+}
+
 .validated-form .grid-static-col.error {
 	background-color: @label-danger-bg;
 }
@@ -92,6 +96,10 @@
 
 .row-index {
 	text-align: right;
+}
+
+html.chrome .grid-row .grid-row-check {
+	margin-top: 12px;
 }
 
 .grid-row > .row {
@@ -148,6 +156,10 @@
 			&:focus {
 				border-color: @indicator-red;
 			}
+		}
+
+		input.form-control.invalid {
+			background-color: @label-danger-bg;
 		}
 
 		input[data-fieldtype="Int"], input[data-fieldtype="Float"], input[data-fieldtype="Currency"] {
@@ -239,14 +251,23 @@
 	}
 }
 
-.form-in-grid {
+.base-grid() {
 	background-color: white;
-	z-index: 1021;
 	position: relative;
+	.transition(opacity .2s ease)
+}
+
+.form-in-grid {
 	overflow: hidden;
 	height: 0;
 	opacity: 0;
-	.transition(opacity .2s ease)
+	z-index: 1021;
+	.base-grid();
+}
+
+.recorder-form-in-grid {
+	z-index: 0;
+	.base-grid();
 }
 
 .grid-row-open .form-in-grid {
@@ -262,10 +283,51 @@
 	border-bottom: 1px solid @border-color;
 }
 
+.grid-form-body {
+	.form-area {
+		max-height: 70vh;
+		overflow-y: auto;
+	}
+}
+
+.grid-header-toolbar {
+	display: flow-root;
+}
+
+.grid-buttons {
+	display: inline-flex;
+}
+
 .grid-footer {
 	background-color: #fff;
 	border: 1px solid @border-color;
 	border-top: 0px;
+}
+
+.grid-pagination {
+	padding: 0;
+}
+
+.page-text {
+	display: inline-block;
+}
+
+.prev-page, .next-page {
+	font-size: 14px;
+}
+
+a.prev-page {
+	padding-left: 15px;
+	text-decoration: none;
+}
+
+a.next-page {
+	padding-right: 15px;
+	text-decoration: none;
+}
+
+.page-number {
+	padding: 0 3px;
 }
 
 .grid-footer-toolbar {

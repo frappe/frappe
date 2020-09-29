@@ -1,0 +1,21 @@
+// JS syntax
+__("Warning: Unable to find {0} in any table related to {1}" , ['Key', 'DocType'], "This is some context")
+
+__("Warning: Unable to find {0} in any table related to {1}" , ['Key', 'DocType'])
+
+__("You don't have any messages yet.")
+
+__('Submit' , null, "Some DocType")
+
+// this is considered as invalid
+__('You don\'t have any messages yet.')
+
+
+// Python syntax
+_("Warning: Unable to find {0} in any table related to {1}", context="This is some context").format('Key', 'DocType')
+
+_('Submit', context="Some DocType")
+
+_("""You don't have any messages yet.""")
+
+_('''You don't have any messages yet.''')

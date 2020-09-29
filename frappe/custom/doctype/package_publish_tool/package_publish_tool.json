@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "creation": "2020-05-13 15:54:38.082657",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "html_info",
+  "sb_00",
+  "package_details",
+  "sb_01",
+  "instances",
+  "last_deployed_on"
+ ],
+ "fields": [
+  {
+   "description": "Click on the row for accessing filters.",
+   "fieldname": "package_details",
+   "fieldtype": "Table",
+   "label": "Document Types",
+   "options": "Package Document Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "instances",
+   "fieldtype": "Table",
+   "label": "Sites",
+   "options": "Package Publish Target",
+   "reqd": 1
+  },
+  {
+   "fieldname": "html_info",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "last_deployed_on",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Last Deployed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "sb_01",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-05-15 17:31:37.060199",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Package Publish Tool",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

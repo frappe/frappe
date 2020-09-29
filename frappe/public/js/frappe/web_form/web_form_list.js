@@ -7,16 +7,15 @@ export default class WebFormList {
 		Object.assign(this, opts);
 		frappe.web_form_list = this;
 		this.wrapper = document.getElementById("datatable");
-		this.refresh();
 		this.make_actions();
 		this.make_filters();
-		$('.link-btn').remove()
+		$('.link-btn').remove();
 	}
 
 	refresh() {
 		if (this.table) {
 			Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
-			let check = document.getElementById('select-all')
+			let check = document.getElementById('select-all');
 			check.checked = false;
 		}
 		this.rows = [];
@@ -27,12 +26,13 @@ export default class WebFormList {
 			() => this.get_list_view_fields(),
 			() => this.get_data(),
 			() => this.make_table(),
+			() => this.create_more()
 		]);
 	}
 
 	make_filters() {
-		this.filters = {}
-		this.filter_input = []
+		this.filters = {};
+		this.filter_input = [];
 		const filter_area = document.getElementById('list-filters');
 
 		frappe.call('frappe.website.doctype.web_form.web_form.get_web_form_filters', {
@@ -40,9 +40,10 @@ export default class WebFormList {
 		}).then(response => {
 			let fields = response.message;
 			fields.forEach(field => {
-				let col = document.createElement('div.col-sm-4')
-				col.classList.add('col', 'col-sm-3')
-				filter_area.appendChild(col)
+				let col = document.createElement('div.col-sm-4');
+				col.classList.add('col', 'col-sm-3');
+				filter_area.appendChild(col);
+				if (field.default) this.add_filter(field.fieldname, field.default, field.fieldtype);
 
 				let input = frappe.ui.form.make_control({
 					df: {
@@ -52,26 +53,28 @@ export default class WebFormList {
 						only_select: true,
 						label: __(field.label),
 						onchange: (event) => {
-							this.add_filter(field.fieldname, input.value, field.fieldtype)
+							$('#more').remove();
+							this.add_filter(field.fieldname, input.value, field.fieldtype);
+							this.refresh();
 						}
 					},
 					parent: col,
+					value: field.default,
 					render_input: 1,
-				})
-				this.filter_input.push(input)
-			})
-		})
+				});
+				this.filter_input.push(input);
+			});
+			this.refresh();
+		});
 	}
 
 	add_filter(field, value, fieldtype) {
-		if (!value && field in this.filters) {
-			delete this.filters[field]
+		if (!value) {
+			delete this.filters[field];
+		} else {
+			if (fieldtype === 'Data') value = ['like', value + '%'];
+			Object.assign(this.filters, Object.fromEntries([[field, value]]));
 		}
-		else {
-			if (fieldtype === 'Data') value = ['like', value + '%']
-			Object.assign(this.filters, Object.fromEntries([[field, value]]))
-		}
-		this.refresh();
 	}
 
 	get_list_view_fields() {
@@ -103,13 +106,13 @@ export default class WebFormList {
 	}
 
 	more() {
-		this.web_list_start += this.page_length
+		this.web_list_start += this.page_length;
 		this.fetch_data().then((res) => {
 			if (res.message.length === 0) {
-				frappe.msgprint(__("No more items to display"))
+				frappe.msgprint(__("No more items to display"));
 			}
-			this.append_rows(res.message)
-		})
+			this.append_rows(res.message);
+		});
 
 	}
 
@@ -122,7 +125,7 @@ export default class WebFormList {
 			};
 		});
 
-		if (! this.table) {
+		if (!this.table) {
 			this.table = document.createElement("table");
 			this.table.classList.add("table");
 			this.make_table_head();
@@ -186,13 +189,12 @@ export default class WebFormList {
 
 	make_actions() {
 		const actions = document.querySelector(".list-view-actions");
-		const footer = document.querySelector(".list-view-footer");
 
-		addButton(actions, "delete-rows", "danger", true, "Delete", () =>
+		this.addButton(actions, "delete-rows", "danger", true, "Delete", () =>
 			this.delete_rows()
 		);
 
-		addButton(
+		this.addButton(
 			actions,
 			"new",
 			"primary",
@@ -200,37 +202,45 @@ export default class WebFormList {
 			"New",
 			() => (window.location.href = window.location.pathname + "?new=1")
 		);
+	}
 
-		if (!(this.rows.length < this.page_length)) {
-			addButton(footer, "more", "secondary", false, "More", () =>  this.more());
+	addButton(wrapper, id, type, hidden, name, action) {
+		if (document.getElementById(id)) return;
+		const button = document.createElement("button");
+		if (type == "secondary") {
+			button.classList.add(
+				"btn",
+				"btn-secondary",
+				"btn-sm",
+				"ml-2",
+				"text-white"
+			);
+		}
+		else if (type == "danger") {
+			button.classList.add(
+				"btn",
+				"btn-danger",
+				"button-delete",
+				"btn-sm",
+				"ml-2"
+			);
+		}
+		else {
+			button.classList.add("btn", "btn-primary", "btn-sm", "ml-2");
 		}
 
-		function addButton(wrapper, id, type, hidden, name, action) {
-			const button = document.createElement("button");
-			button.classList.add("btn", "btn-primary", "btn-sm", "ml-2");
-			if (type == "secondary")
-				button.classList.add(
-					"btn",
-					"btn-secondary",
-					"btn-sm",
-					"ml-2",
-					"text-white"
-				);
-			if (type == "danger")
-				button.classList.add(
-					"btn",
-					"btn-danger",
-					"button-delete",
-					"btn-sm",
-					"ml-2"
-				);
+		button.id = id;
+		button.innerText = name;
+		button.hidden = hidden;
 
-			button.id = id;
-			button.innerText = name;
-			button.hidden = hidden;
+		button.onclick = action;
+		wrapper.appendChild(button);
+	}
 
-			button.onclick = action;
-			wrapper.appendChild(button);
+	create_more() {
+		if (this.rows.length >= this.page_length) {
+			const footer = document.querySelector(".list-view-footer");
+			this.addButton(footer, "more", "secondary", false, "More", () =>  this.more());
 		}
 	}
 

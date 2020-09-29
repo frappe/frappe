@@ -1,31 +1,31 @@
 {% extends "templates/web.html" %}
 
-{% block style %}
-<style>
-	{% include "templates/includes/login/login.css" %}
-</style>
-{% endblock %}
-
 {% block page_content %}
 <!-- {{ for_test }} -->
 <div style='min-height: 360px'>
+	<noscript>
+		<div class="text-center my-5">
+			<h4>{{ _("Javascript is disabled on your browser") }}</h4>
+			<p class="text-muted">{{ _("You need to enable JavaScript for your app to work.") }}<br>{{ _("To enable it follow the instructions in the following link: {0}").format("<a href='https://enable-javascript.com/'>enable-javascript.com</a></p>") }}
+		</div>
+	</noscript>
 <section class='for-login'>
 	<div class="login-content page-card" style="margin-top: 30px;">
 		<form class="form-signin form-login" role="form">
 			<div class="page-card-head">
-				<span class="indicator blue" data-text="{{ _("Login") }}"></span>
+				<span class="indicator blue" data-text="{{ _('Login') }}"></span>
 			</div>
 
 			<input type="text" id="login_email"
 				class="form-control"
-				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _("Email address") }}{% endif %}"
+				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('Email Address') }}{% endif %}"
 				required autofocus>
 
 			<div class="password-field" style="position: relative;">
 				<input type="password" id="login_password"
 						class="form-control" placeholder="{{ _('Password') }}" required>
 
-				<span toggle="#login_password" class="fa fa-fw fa-eye toggle-password text-muted"></span>
+				<span toggle="#login_password" class="toggle-password text-muted">{{ _('Show') }}</span>
 			</div>
 
 			<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
@@ -62,32 +62,41 @@
 		<a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 	</div>
 </section>
-<section class='for-signup'>
+<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
 	<div class="login-content page-card" style="margin-top: 20px;">
-	<form class="form-signin form-signup hide" role="form">
-		<div class="page-card-head">
-			<span class="indicator blue" data-text="{{ _("Sign Up") }}"></span>
+	{%- if not disable_signup -%}
+		<form class="form-signin form-signup hide" role="form">
+			<div class="page-card-head">
+				<span class="indicator blue" data-text="{{ _('Sign Up') }}"></span>
+			</div>
+			<input type="text" id="signup_fullname"
+				class="form-control" placeholder="{{ _('Full Name') }}" required autofocus>
+			<input type="email" id="signup_email"
+				class="form-control" placeholder="{{ _('Email Address') }}" required>
+			<button class="btn btn-sm btn-primary btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
+		</form>
+	{%- else -%}
+		<div class='page-card-head'>
+			<span class='indicator darkgrey'>{{_("Signup Disabled")}}</span>
 		</div>
-		<input type="text" id="signup_fullname"
-			class="form-control" placeholder="{{ _('Full Name') }}" required autofocus>
-		<input type="email" id="signup_email"
-			class="form-control" placeholder="{{ _('Email address') }}" required>
-		<button class="btn btn-sm btn-primary btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
-	</form>
+		<p>{{_("Signups have been disabled for this website.")}}</p>
+		<div><a href='/' class='btn btn-primary btn-sm'>{{ _("Home") }}</a></div>
+	{%- endif -%}
 	</div>
 	<div class='form-footer'>
 		<a href="#login" class="blue">{{ _("Have an account? Login") }}</a>
 	</div>
+
 </section>
 
 <section class='for-forgot'>
 	<div class="login-content page-card" style="margin-top: 20px;">
 	<form class="form-signin form-forgot hide" role="form">
 		<div class="page-card-head">
-			<span class="indicator blue" data-text="{{ _("Forgot Password") }}"></span></div>
+			<span class="indicator blue" data-text="{{ _('Forgot Password') }}"></span></div>
 		<input type="email" id="forgot_email"
-			class="form-control" placeholder="{{ _('Email address') }}" required autofocus>
-		<button class="btn btn-sm btn-primary btn-block btn-forgot" type="submit">{{ _("Send Password") }}</button>
+			class="form-control" placeholder="{{ _('Email Address') }}" required autofocus>
+		<button class="btn btn-sm btn-primary btn-block btn-forgot" type="submit">{{ _("Reset Password") }}</button>
 	</form>
 	</div>
 	<div class='form-footer'>

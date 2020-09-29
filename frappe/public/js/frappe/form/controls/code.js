@@ -9,6 +9,12 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		this.ace_editor_target = $('<div class="ace-editor-target"></div>')
 			.appendTo(this.input_area);
 
+		this.expanded = false;
+		this.$expand_button = $(`<button class="btn btn-xs btn-default">${__('Expand')}</button>`).click(() => {
+			this.expanded = !this.expanded;
+			this.refresh_height();
+			this.toggle_label();
+		}).appendTo(this.$input_wrapper);
 		// styling
 		this.ace_editor_target.addClass('border rounded');
 		this.ace_editor_target.css('height', 300);
@@ -26,20 +32,34 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		}, 300));
 	},
 
+	refresh_height() {
+		this.ace_editor_target.css('height', this.expanded ? 600 : 300);
+		this.editor.resize();
+	},
+
+	toggle_label() {
+		const button_label = this.expanded ? __('Collapse') : __('Expand');
+		this.$expand_button && this.$expand_button.text(button_label);
+	},
+
 	set_language() {
 		const language_map = {
 			'Javascript': 'ace/mode/javascript',
 			'JS': 'ace/mode/javascript',
+			'Python': 'ace/mode/python',
+			'Py': 'ace/mode/python',
 			'HTML': 'ace/mode/html',
 			'CSS': 'ace/mode/css',
 			'Markdown': 'ace/mode/markdown',
 			'SCSS': 'ace/mode/scss',
-			'JSON': 'ace/mode/json'
+			'JSON': 'ace/mode/json',
+			'Golang': 'ace/mode/golang',
+			'Go': 'ace/mode/golang'
 		};
 		const language = this.df.options;
 
 		const valid_languages = Object.keys(language_map);
-		if (!valid_languages.includes(language)) {
+		if (language && !valid_languages.includes(language)) {
 			// eslint-disable-next-line
 			console.warn(`Invalid language option provided for field "${this.df.label}". Valid options are ${valid_languages.join(', ')}.`);
 		}

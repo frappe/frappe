@@ -23,7 +23,6 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	make_dialog() {
 
 		this.dialog = new frappe.ui.Dialog({
-			hide_on_page_refresh: true,
 			title: __("Linked With")
 		});
 

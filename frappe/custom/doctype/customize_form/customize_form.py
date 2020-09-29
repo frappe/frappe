@@ -12,7 +12,7 @@ from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields, core_doctypes_list
-from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, check_email_append_to
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.docfield import supports_translation
 
@@ -30,7 +30,12 @@ doctype_properties = {
 	'max_attachments': 'Int',
 	'track_changes': 'Check',
 	'track_views': 'Check',
-	'allow_auto_repeat': 'Check'
+	'allow_auto_repeat': 'Check',
+	'allow_import': 'Check',
+	'show_preview_popup': 'Check',
+	'email_append_to': 'Check',
+	'subject_field': 'Data',
+	'sender_field': 'Data'
 }
 
 docfield_properties = {
@@ -49,6 +54,7 @@ docfield_properties = {
 	'in_list_view': 'Check',
 	'in_standard_filter': 'Check',
 	'in_global_search': 'Check',
+	'in_preview': 'Check',
 	'bold': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
@@ -58,6 +64,8 @@ docfield_properties = {
 	'report_hide': 'Check',
 	'allow_on_submit': 'Check',
 	'translatable': 'Check',
+	'mandatory_depends_on': 'Data',
+	'read_only_depends_on': 'Data',
 	'depends_on': 'Data',
 	'description': 'Text',
 	'default': 'Text',
@@ -67,7 +75,11 @@ docfield_properties = {
 	'columns': 'Int',
 	'remember_last_selected_value': 'Check',
 	'allow_bulk_edit': 'Check',
-	'auto_repeat': 'Link'
+	'auto_repeat': 'Link',
+	'allow_in_quick_entry': 'Check',
+	'hide_border': 'Check',
+	'hide_days': 'Check',
+	'hide_seconds': 'Check'
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
@@ -109,7 +121,7 @@ class CustomizeForm(Document):
 
 		# load custom translation
 		translation = self.get_name_translation()
-		self.label = translation.target_name if translation else ''
+		self.label = translation.translated_text if translation else ''
 
 		#If allow_auto_repeat is set, add auto_repeat custom field.
 		if self.allow_auto_repeat:
@@ -122,16 +134,17 @@ class CustomizeForm(Document):
 
 	def get_name_translation(self):
 		'''Get translation object if exists of current doctype name in the default language'''
-		return frappe.get_value('Translation',
-			{'source_name': self.doc_type, 'language': frappe.local.lang or 'en'},
-			['name', 'target_name'], as_dict=True)
+		return frappe.get_value('Translation', {
+				'source_text': self.doc_type,
+				'language': frappe.local.lang or 'en'
+			}, ['name', 'translated_text'], as_dict=True)
 
 	def set_name_translation(self):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
 		if current:
-			if self.label and current.target_name != self.label:
-				frappe.db.set_value('Translation', current.name, 'target_name', self.label)
+			if self.label and current.translated_text != self.label:
+				frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
 				frappe.translate.clear_cache()
 			else:
 				# clear translation
@@ -140,8 +153,8 @@ class CustomizeForm(Document):
 		else:
 			if self.label:
 				frappe.get_doc(dict(doctype='Translation',
-					source_name=self.doc_type,
-					target_name=self.label,
+					source_text=self.doc_type,
+					translated_text=self.label,
 					language_code=frappe.local.lang or 'en')).insert()
 
 	def clear_existing_doc(self):
@@ -162,11 +175,11 @@ class CustomizeForm(Document):
 
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
-
 		self.set_property_setters()
 		self.update_custom_fields()
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
+		check_email_append_to(self)
 
 		if self.flags.update_db:
 			frappe.db.updatedb(self.doc_type)
@@ -201,9 +214,11 @@ class CustomizeForm(Document):
 						self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
 
 					elif property == "allow_on_submit" and df.get(property):
-						frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
-							.format(df.idx))
-						continue
+						if not frappe.db.get_value("DocField",
+							{"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"):
+							frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
+								.format(df.idx))
+							continue
 
 					elif property == "reqd" and \
 						((frappe.db.get_value("DocField",
@@ -358,12 +373,53 @@ class CustomizeForm(Document):
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
 		allowed = False
+		self.check_length_for_fieldtypes = []
 		for allowed_changes in allowed_fieldtype_change:
 			if (old_value in allowed_changes and new_value in allowed_changes):
 				allowed = True
+				old_value_length = cint(frappe.db.type_map.get(old_value)[1])
+				new_value_length = cint(frappe.db.type_map.get(new_value)[1])
+
+				# Ignore fieldtype check validation if new field type has unspecified maxlength
+				# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
+				if new_value_length and (old_value_length > new_value_length):
+					self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
+					self.validate_fieldtype_length()
+				else:
+					self.flags.update_db = True
 				break
 		if not allowed:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
+
+	def validate_fieldtype_length(self):
+		for field in self.check_length_for_fieldtypes:
+			df = field.get('df')
+			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
+			fieldname = df.fieldname
+			docs = frappe.db.sql('''
+				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
+				FROM `tab{doctype}`
+				WHERE LENGTH({fieldname}) > {max_length}
+			'''.format(
+				fieldname=fieldname,
+				doctype=self.doc_type,
+				max_length=max_length
+			), as_dict=True)
+			links = []
+			label = df.label
+			for doc in docs:
+				links.append(frappe.utils.get_link_to_form(self.doc_type, doc.name))
+			links_str = ', '.join(links)
+
+			if docs:
+				frappe.throw(_('Value for field {0} is too long in {1}. Length should be lesser than {2} characters')
+					.format(
+						frappe.bold(label),
+						links_str,
+						frappe.bold(max_length)
+					), title=_('Data Too Long'), is_minimizable=len(docs) > 1)
+
+		self.flags.update_db = True
 
 	def reset_to_defaults(self):
 		if not self.doc_type:

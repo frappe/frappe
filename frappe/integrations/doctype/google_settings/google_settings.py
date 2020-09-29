@@ -8,3 +8,6 @@ from frappe.model.document import Document
 
 class GoogleSettings(Document):
 	pass
+
+def get_auth_url():
+	return "https://www.googleapis.com/oauth2/v4/token"

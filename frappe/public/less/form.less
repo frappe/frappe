@@ -56,6 +56,14 @@
 		background-color: @blue-extra-light;
 }
 
+.form-message.red {
+		background-color: @red-extra-light;
+}
+
+.form-message.green {
+		background-color: @green-extra-light;
+}
+
 .document-flow-wrapper {
 	padding: 40px 15px 30px;
 	font-size: @text-medium;
@@ -231,6 +239,19 @@
 .progress-area {
 	padding-top: 15px;
 	padding-bottom: 15px;
+
+	.progress-chart {
+		padding-top: 15px;
+	}
+
+	.progress {
+		margin-bottom: 5px;
+	}
+
+	.progress-message {
+		font-feature-settings: "tnum" 1;
+		margin-top: 0px;
+	}
 }
 
 .form-links {
@@ -294,10 +315,19 @@ h6.uppercase, .h6.uppercase {
 	}
 }
 
-.form-section:not(:last-child),
+.hide-border {
+	border-top: none !important;
+	padding-top: 0px;
+}
+
+.form-section:not(:first-child) {
+	border-top: 1px solid @border-color;
+}
+
 .form-inner-toolbar {
 	border-bottom: 1px solid @border-color;
 }
+
 
 .empty-section {
 	display: none !important;
@@ -318,6 +348,9 @@ h6.uppercase, .h6.uppercase {
 
 	.form-section {
 		padding: 15px 7px;
+	}
+	.hide-border {
+		padding-top: 0;
 	}
 }
 
@@ -543,7 +576,13 @@ h6.uppercase, .h6.uppercase {
 		margin-left: 5px;
 	}
 
-	.media-body:after, .media-body:before {
+	.media-body {
+		.left-arrow;
+	}
+}
+
+.left-arrow {
+	&::after, &::before {
 		right: 100%;
 		top: 15px;
 		border: solid transparent;
@@ -554,13 +593,13 @@ h6.uppercase, .h6.uppercase {
 		pointer-events: none;
 	}
 
-	.media-body:after {
+	&::after {
 		border-color: rgba(136, 183, 213, 0);
 		border-right-color: #fafbfc;
 		border-width: 6px;
 		margin-top: -6px;
 	}
-	.media-body:before {
+	&::before {
 		border-color: rgba(194, 225, 245, 0);
 		border-right-color: @border-color;
 		border-width: 7px;
@@ -606,6 +645,18 @@ h6.uppercase, .h6.uppercase {
 	left: 40px;
 	border-radius: 50%;
 	top: 5px;
+}
+
+.timeline-item.user-content.show-indicator {
+	position: relative;
+	.media-body {
+		margin-left: 50px;
+	}
+	&::before {
+		.timeline-indicator();
+		left: 13px;
+		top: 13px;
+	}
 }
 
 .timeline-item.notification-content::before {
@@ -699,13 +750,13 @@ h6.uppercase, .h6.uppercase {
 }
 
 
-.timeline-new-email {
+.timeline-new-email, .timeline-email-import {
 	margin: 30px 0px;
 	padding-left: 70px;
 	position: relative;
 }
 
-.timeline-new-email::before {
+.timeline-new-email::before, .timeline-email-import::before {
 	.timeline-indicator();
 }
 
@@ -750,6 +801,7 @@ h6.uppercase, .h6.uppercase {
 
 	.help-box {
 		margin-top: 3px;
+		margin-bottom: 6px;
 	}
 
 	pre {
@@ -975,4 +1027,23 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 
 .followed-by-label{
 	margin-top: 30px;
+}
+
+// Data Import
+
+.map-columns .form-section {
+	padding: 0 7px 7px;
+	border-top: none;
+
+	.clearfix {
+		display: none;
+	}
+}
+
+.map-columns .form-section:first-child {
+	padding-top: 7px;
+}
+
+.table-preview {
+	margin-top: 12px;
 }

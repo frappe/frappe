@@ -130,7 +130,7 @@ class FormMeta(Meta):
 	def add_custom_script(self):
 		"""embed all require files"""
 		# custom script
-		custom = frappe.db.get_value("Custom Script", {"dt": self.name}, "script") or ""
+		custom = frappe.db.get_value("Custom Script", {"dt": self.name, "enabled": 1}, "script") or ""
 
 		self.set("__custom_js", custom)
 
@@ -196,8 +196,6 @@ class FormMeta(Meta):
 				self.get("__messages").update(messages, as_value=True)
 
 	def load_dashboard(self):
-		if self.custom:
-			return
 		self.set('__dashboard', self.get_dashboard_data())
 
 	def load_kanban_meta(self):
@@ -233,4 +231,3 @@ def get_js(path):
 	js = frappe.read_file(path)
 	if js:
 		return render_include(js)
-

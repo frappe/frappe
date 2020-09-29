@@ -183,6 +183,10 @@ def validate_loop(doctype, name, lft, rgt):
 		frappe.throw(_("Item cannot be added to its own descendents"), NestedSetRecursionError)
 
 class NestedSet(Document):
+	def __setup__(self):
+		if self.meta.get("nsm_parent_field"):
+			self.nsm_parent_field = self.meta.nsm_parent_field
+
 	def on_update(self):
 		update_nsm(self)
 		self.validate_ledger()

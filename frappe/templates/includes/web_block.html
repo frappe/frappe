@@ -1,0 +1,25 @@
+{%- set classes = resolve_class([
+	{
+		'section-padding-top': web_block.add_top_padding,
+		'section-padding-bottom': web_block.add_bottom_padding,
+		'bg-light': web_block.add_shade,
+	},
+	web_block.css_class
+]) -%}
+
+{%- if web_template_type == 'Section' -%}
+{%- if not web_block.hide_block -%}
+<section class="section {{ classes }}" data-section-idx="{{ web_block.idx | e }}"
+	data-section-template="{{ web_block.web_template | e }}">
+	{%- if web_block.add_container -%}
+	<div class="container">
+	{%- endif -%}
+		{{ web_template_html }}
+	{%- if web_block.add_container -%}
+	</div>
+	{%- endif -%}
+</section>
+{%- endif -%}
+{%- else -%}
+{{ web_template_html }}
+{%- endif -%}

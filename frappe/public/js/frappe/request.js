@@ -98,8 +98,10 @@ frappe.call = function(opts) {
 		freeze: opts.freeze,
 		freeze_message: opts.freeze_message,
 		headers: opts.headers || {},
+		error_handlers: opts.error_handlers || {},
 		// show_spinner: !opts.no_spinner,
 		async: opts.async,
+		silent: opts.silent,
 		url,
 	});
 }
@@ -124,7 +126,7 @@ frappe.request.call = function(opts) {
 				message: __('The resource you are looking for is not available')});
 		},
 		403: function(xhr) {
-			if (frappe.get_cookie('sid')==='Guest') {
+			if (frappe.session.user === 'Guest') {
 				// session expired
 				frappe.app.handle_session_expired();
 			}
@@ -210,7 +212,7 @@ frappe.request.call = function(opts) {
 	};
 
 	if (opts.args && opts.args.doctype) {
-		ajax_args.headers["X-Frappe-Doctype"] = opts.args.doctype;
+		ajax_args.headers["X-Frappe-Doctype"] = encodeURIComponent(opts.args.doctype);
 	}
 
 	frappe.last_request = ajax_args.data;
@@ -319,14 +321,17 @@ frappe.request.cleanup = function(opts, r) {
 	if(r) {
 
 		// session expired? - Guest has no business here!
-		if(r.session_expired || frappe.get_cookie("sid")==="Guest") {
+		if (r.session_expired || frappe.session.user === "Guest") {
 			frappe.app.handle_session_expired();
 			return;
 		}
 
-		// global error handlers
+		// error handlers
+		let global_handlers = frappe.request.error_handlers[r.exc_type] || [];
+		let request_handler = opts.error_handlers ? opts.error_handlers[r.exc_type] : null;
+		let handlers = [].concat(global_handlers, request_handler).filter(Boolean);
+
 		if (r.exc_type) {
-			let handlers = frappe.request.error_handlers[r.exc_type] || [];
 			handlers.forEach(handler => {
 				handler(r);
 			});
@@ -334,9 +339,8 @@ frappe.request.cleanup = function(opts, r) {
 
 		// show messages
 		if(r._server_messages && !opts.silent) {
-			let handlers = frappe.request.error_handlers[r.exc_type] || [];
-			// dont show server messages if their handlers exist
-			if (!handlers.length) {
+			// show server messages if no handlers exist
+			if (handlers.length === 0) {
 				r._server_messages = JSON.parse(r._server_messages);
 				frappe.hide_msgprint();
 				frappe.msgprint(r._server_messages);
@@ -391,11 +395,11 @@ frappe.after_ajax = function(fn) {
 	return new Promise(resolve => {
 		if(frappe.request.ajax_count) {
 			frappe.request.waiting_for_ajax.push(() => {
-				if(fn) fn();
+				if(fn) return resolve(fn());
 				resolve();
 			});
 		} else {
-			if(fn) fn();
+			if(fn) return resolve(fn());
 			resolve();
 		}
 	});

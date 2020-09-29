@@ -21,14 +21,15 @@ frappe.ui.form.on('Energy Point Log', {
 				reqd: 1
 			}],
 			primary_action: (values) => {
-				return frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.revert', {
-					'name': frm.doc.name,
+				return frm.call('revert', {
 					'reason': values.reason
-				}).then(revert_log => {
+				}).then(res => {
+					let revert_log = res.message;
 					revert_dialog.hide();
 					revert_dialog.clear();
 					frappe.model.docinfo[frm.doc.reference_doctype][frm.doc.reference_name].energy_point_logs.unshift(revert_log);
-				}).catch(() => {});
+					frm.refresh();
+				});
 			},
 			primary_action_label: __('Submit')
 		});

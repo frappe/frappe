@@ -16,7 +16,7 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 		$(this.input_area).find('i').hover((ev) => {
 			const el = $(ev.currentTarget);
 			let star_value = el.data('rating');
-			el.parent().children('i.fa').each( function(e){
+			el.parent().children('i.fa').each( function(e) {
 				if (e < star_value) {
 					$(this).addClass('star-hover');
 				} else {

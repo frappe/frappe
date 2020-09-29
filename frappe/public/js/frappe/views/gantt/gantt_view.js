@@ -79,6 +79,10 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		});
 	}
 
+	render_header() {
+
+	}
+
 	render_gantt() {
 		const me = this;
 		const gantt_view_mode = this.view_user_settings.gantt_view_mode || 'Day';
@@ -126,8 +130,8 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				var item = me.get_item(task.id);
 
 				var html =
-					`<h5>${task.name}</h5>
-					<p>${moment(task._start).format('MMM D')} - ${moment(task._end).format('MMM D')}</p>`;
+					`<div class="title">${task.name}</div>
+					<div class="subtitle">${moment(task._start).format('MMM D')} - ${moment(task._end).format('MMM D')}</div>`;
 
 				// custom html in doctype settings
 				var custom = me.settings.gantt_custom_popup_html;
@@ -204,8 +208,8 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 	get required_libs() {
 		return [
-			"assets/frappe/js/lib/frappe-gantt/frappe-gantt.css",
-			"assets/frappe/js/lib/frappe-gantt/frappe-gantt.min.js"
+			"assets/frappe/node_modules/frappe-gantt/dist/frappe-gantt.css",
+			"assets/frappe/node_modules/frappe-gantt/dist/frappe-gantt.min.js"
 		];
 	}
 };

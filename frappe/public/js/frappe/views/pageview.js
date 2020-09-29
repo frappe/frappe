@@ -1,7 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-
-import Desktop from './components/Desktop.vue';
+import Desktop from './desktop/desktop.js';
 
 frappe.provide('frappe.views.pageview');
 frappe.provide("frappe.standard_pages");
@@ -38,24 +37,25 @@ frappe.views.pageview = {
 			});
 		}
 	},
+
 	show: function(name) {
 		if(!name) {
 			name = (frappe.boot ? frappe.boot.home_page : window.page_name);
 
-			if(name === "desktop") {
-				if(!frappe.pages.desktop) {
-					let page = frappe.container.add_page('desktop');
+			if(name === "workspace") {
+				if(!frappe.workspace) {
+					let page = frappe.container.add_page('workspace');
 					let container = $('<div class="container"></div>').appendTo(page);
 					container = $('<div></div>').appendTo(container);
 
-					new Vue({
-						el: container[0],
-						render: h => h(Desktop)
-					});
+					frappe.workspace = new Desktop({
+						wrapper: container
+					})
 				}
 
-				frappe.container.change_to('desktop');
-				frappe.utils.set_title(__('Home'));
+				frappe.container.change_to('workspace');
+				frappe.workspace.route();
+				frappe.utils.set_title(__('Desk'));
 				return;
 			}
 		}
@@ -98,6 +98,9 @@ frappe.views.Page = Class.extend({
 				this.wrapper.innerHTML = this.pagedoc.content;
 			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script || '');
 			frappe.dom.set_style(this.pagedoc.style || '');
+
+			// set breadcrumbs
+			frappe.breadcrumbs.add(this.pagedoc.module || null);
 		}
 
 		this.trigger_page_event('on_page_load');
@@ -162,27 +165,3 @@ frappe.show_message_page = function(opts) {
 
 	frappe.container.change_to(opts.page_name);
 };
-
-frappe.views.ModulesFactory = class ModulesFactory extends frappe.views.Factory {
-	show() {
-		if (frappe.pages.modules) {
-			frappe.container.change_to('modules');
-		} else {
-			this.make('modules');
-		}
-	}
-
-	make(page_name) {
-		const assets = [
-			'/assets/js/modules.min.js'
-		];
-
-		frappe.require(assets, () => {
-			frappe.modules.home = new frappe.modules.Home({
-				parent: this.make_page(true, page_name)
-			});
-		});
-	}
-};
-
-

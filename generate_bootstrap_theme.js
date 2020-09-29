@@ -10,7 +10,7 @@ scss_content = scss_content.replace(/\\n/g, '\n');
 
 sass.render({
 	data: scss_content,
-	outputStyle: 'compact',
+	outputStyle: 'compressed',
 	importer: function(url) {
 		if (url.startsWith('~')) {
 			// strip ~ so that it can resolve from node_modules
@@ -33,6 +33,8 @@ sass.render({
 	fs.writeFile(output_path, result.css, function(err) {
 		if (!err) {
 			console.log(output_path); // eslint-disable-line
+		} else {
+			console.error(err); // eslint-disable-line
 		}
 	});
 });

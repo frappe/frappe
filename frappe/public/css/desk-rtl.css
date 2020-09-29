@@ -108,3 +108,11 @@ ul.tree-children {
 .data-table {
   direction: ltr;
 }
+.section-header {
+  direction: ltr;
+}
+
+.ql-editor {
+  direction: rtl;
+  text-align: right;
+}

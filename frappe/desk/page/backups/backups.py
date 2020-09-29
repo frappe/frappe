@@ -30,7 +30,7 @@ def get_context(context):
 		get_size(os.path.join(path, _file))) for _file in files if _file.endswith('sql.gz')]
 	files.sort(key=lambda x: x[1], reverse=True)
 
-	return {"files": files}
+	return {"files": files[:backup_limit]}
 
 def get_scheduled_backup_limit():
 	backup_limit = frappe.db.get_singles_value('System Settings', 'backup_limit')

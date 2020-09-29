@@ -104,7 +104,7 @@ def get_translation_data():
 def create_translation(key, val):
 	translation = frappe.new_doc('Translation')
 	translation.language = key
-	translation.source_name = val[0]
-	translation.target_name = val[1]
+	translation.source_text = val[0]
+	translation.translated_text = val[1]
 	translation.save()
 	return translation

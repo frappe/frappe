@@ -1,0 +1,29 @@
+{%- set res = frappe.utils.get_thumbnail_base64_for_image(src) if src else false -%}
+{%- if res and res['base64'].startswith('data:') -%}
+<img src="{{ res['base64'] }}" class="image-with-blur {{ resolve_class(class) }}"
+	alt="{{ alt or '' }}" width="{{ res['width'] }}" height="{{ res['height'] }}" data-src="{{ src or '' }}" />
+{%- else -%}
+<img src="{{ src or '' }}" class="{{ resolve_class(class) }}" alt="{{ alt or '' }}" />
+{%- endif -%}
+
+<script>
+	document.addEventListener('DOMContentLoaded', loadStuff);
+
+	function loadStuff() {
+		let images = document.querySelectorAll('img[data-src]');
+
+		for (let image of images) {
+			let img = new Image();
+			let image_source = image.dataset.src;
+
+			img.onload = function () {
+				image.src = image_source;
+				image.classList.add('image-loaded');
+			};
+
+			if (image_source) {
+				img.src = image_source;
+			}
+		}
+	};
+</script>

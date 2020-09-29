@@ -78,7 +78,7 @@ def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
 def save_uploaded(dt, dn, folder, is_private, df=None):
 	fname, content = get_uploaded_content()
 	if content:
-		return save_file(fname, content, dt, dn, folder, is_private=is_private, df=df);
+		return save_file(fname, content, dt, dn, folder, is_private=is_private, df=df)
 	else:
 		raise Exception
 
@@ -405,6 +405,10 @@ def extract_images_from_html(doc, content):
 
 		doctype = doc.parenttype if doc.parent else doc.doctype
 		name = doc.parent or doc.name
+
+		if doc.doctype == "Comment":
+			doctype = doc.reference_doctype
+			name = doc.reference_name
 
 		# TODO fix this
 		file_url = save_file(filename, content, doctype, name, decode=True).get("file_url")

@@ -34,7 +34,7 @@ frappe.dom = {
 	},
 	remove_script_and_style: function(txt) {
 		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
-		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'));
+		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'), 's');
 		if (!regex.test(txt)) {
 			// no evil tags found, skip the DOM method entirely!
 			return txt;
@@ -83,6 +83,10 @@ frappe.dom = {
 			&& rect.bottom - tolerance <= $(window).height()
 			&& rect.right - tolerance <= $(window).width()
 		);
+	},
+
+	is_element_in_modal(element) {
+		return Boolean($(element).parents('.modal').length);
 	},
 
 	set_style: function(txt, id) {
@@ -291,7 +295,7 @@ frappe.get_modal = function(title, content) {
 			<div class="modal-content">
 				<div class="modal-header">
 					<div class="flex justify-between">
-						<div class="fill-width">
+						<div class="fill-width flex">
 							<span class="indicator hidden"></span>
 							<h4 class="modal-title" style="font-weight: bold;">${title}</h4>
 						</div>

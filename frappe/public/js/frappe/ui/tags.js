@@ -34,13 +34,17 @@ frappe.ui.Tags = class {
 	}
 
 	bind() {
+		const me = this;
+		const select_tag = function() {
+			const tagValue = frappe.utils.xss_sanitise(me.$input.val());
+			me.addTag(tagValue);
+			me.$input.val('');
+		}
+
 		this.$input.keypress((e) => {
-			if(e.which == 13 || e.keyCode == 13) {
-				const tagValue = frappe.utils.xss_sanitise(this.$input.val());
-				this.addTag(tagValue);
-				this.$input.val('');
-			}
+			if (e.which == 13 || e.keyCode == 13) select_tag();
 		});
+		this.$input.focusout(select_tag);
 
 		this.$input.on('blur', () => {
 			this.deactivate();
@@ -67,7 +71,6 @@ frappe.ui.Tags = class {
 	}
 
 	addTag(label) {
-		label = toTitle(label);
 		if(label && label!== '' && !this.tagsList.includes(label)) {
 			let $tag = this.getTag(label);
 			this.getListElement($tag).insertBefore(this.$inputWrapper);
@@ -101,17 +104,22 @@ frappe.ui.Tags = class {
 
 	getTag(label) {
 		let $tag = $(`<div class="frappe-tag btn-group" data-tag-label="${label}">
-		<button class="btn btn-default btn-xs toggle-tag"
-			title="${ __("toggle Tag") }"
-			data-tag-label="${label}">${label}
-		</button>
-		<button class="btn btn-default btn-xs remove-tag"
-			title="${ __("Remove Tag") }"
-			data-tag-label="${label}">
-			<i class="fa fa-remove text-muted"></i>
-		</button></div>`);
+			<button class="btn btn-default btn-xs toggle-tag"
+				title="${ __("toggle Tag") }"
+				data-tag-label="${label}">#${label}
+			</button>
+			<button class="btn btn-default btn-xs remove-tag"
+				title="${ __("Remove Tag") }"
+				data-tag-label="${label}">
+				<i class="fa fa-remove text-muted"></i>
+			</button></div>`);
 
+		let $searchTag = $tag.find(".toggle-tag");
 		let $removeTag = $tag.find(".remove-tag");
+
+		$searchTag.on("click", () => {
+			frappe.searchdialog.search.init_search("#".concat($searchTag.attr('data-tag-label')), "tags");
+		});
 
 		$removeTag.on("click", () => {
 			this.removeTag($removeTag.attr('data-tag-label'));

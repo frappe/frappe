@@ -45,7 +45,7 @@ frappe.PermissionEngine = Class.extend({
 	setup_page: function() {
 		var me = this;
 		this.doctype_select
-			= this.wrapper.page.add_select(__("Document Types"),
+			= this.wrapper.page.add_select(__("Document Type"),
 				[{value: "", label: __("Select Document Type")+"..."}].concat(this.options.doctypes))
 				.change(function() {
 					frappe.set_route("permission-manager", $(this).val());
@@ -217,6 +217,7 @@ frappe.PermissionEngine = Class.extend({
 
 			me.rights.forEach(r => {
 				if (!d.is_submittable && ['submit', 'cancel', 'amend'].includes(r)) return;
+				if (d.in_create && ['create', 'write', 'delete'].includes(r)) return;
 				me.add_check(perm_container, d, r);
 			});
 
@@ -333,6 +334,7 @@ frappe.PermissionEngine = Class.extend({
 		});
 
 		this.body.on("click", "input[type='checkbox']", function() {
+			frappe.dom.freeze();
 			var chk = $(this);
 			var args = {
 				role: chk.attr("data-role"),
@@ -347,6 +349,7 @@ frappe.PermissionEngine = Class.extend({
 				method: "update",
 				args: args,
 				callback: function(r) {
+					frappe.dom.unfreeze();
 					if(r.exc) {
 						// exception: reverse
 						chk.prop("checked", !chk.prop("checked"));
@@ -373,8 +376,7 @@ frappe.PermissionEngine = Class.extend({
 							options:me.options.roles, reqd:1,fieldname:"role"},
 						{fieldtype:"Select", label:__("Permission Level"),
 							options:[0,1,2,3,4,5,6,7,8,9], reqd:1, fieldname: "permlevel",
-							description: __("Level 0 is for document level permissions, \
-								higher levels for field level permissions.")}
+							description: __("Level 0 is for document level permissions, higher levels for field level permissions.")}
 					]
 				});
 				if(me.get_doctype()) {

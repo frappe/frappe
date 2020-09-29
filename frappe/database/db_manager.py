@@ -49,7 +49,7 @@ class DbManager:
 			host = self.get_current_host()
 
 		if frappe.conf.get('rds_db', 0) == 1:
-			self.db.sql("GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON `%s`.* TO '%s'@'%s';" % (target, user, host))
+			self.db.sql("GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE, LOCK TABLES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 		else:
 			self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 
@@ -80,12 +80,14 @@ class DbManager:
 		if pipe:
 			print('Creating Database...')
 
-		command = '{pipe} mysql -u {user} -p{password} -h{host} {target} {source}'.format(
+		command = '{pipe} mysql -u {user} -p{password} -h{host} ' + ('-P{port}' if frappe.db.port else '') + ' {target} {source}'
+		command = command.format(
 			pipe=pipe,
 			user=esc(user),
 			password=esc(password),
 			host=esc(frappe.db.host),
 			target=esc(target),
-			source=source
+			source=source,
+			port=frappe.db.port
 		)
 		os.system(command)

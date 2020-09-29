@@ -28,6 +28,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 		return cint(value);
 	},
 	set_input: function(value) {
+		value = cint(value);
 		if(this.input) {
 			this.input.checked = (value ? 1 : 0);
 		}

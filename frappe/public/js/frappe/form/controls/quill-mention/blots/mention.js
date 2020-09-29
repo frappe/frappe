@@ -35,4 +35,4 @@ MentionBlot.blotName = 'mention';
 MentionBlot.tagName = 'span';
 MentionBlot.className = 'mention';
 
-Quill.register(MentionBlot);
+Quill.register(MentionBlot, true);

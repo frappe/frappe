@@ -259,7 +259,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	get_left_html(file) {
 		file = this.prepare_datum(file);
-		const file_size = frappe.form.formatters.FileSize(file.file_size);
+		const file_size = file.file_size ? frappe.form.formatters.FileSize(file.file_size) : '';
 		const route_url = this.get_route_url(file);
 
 		let created_on;
@@ -354,7 +354,7 @@ frappe.views.FileView.grid_view = frappe.get_user_settings('File').grid_view || 
 
 function redirect_to_home_if_invalid_route() {
 	const route = frappe.get_route();
-	if (route[2] !== 'Home') {
+	if (route[2] === 'List') {
 		// if the user somehow redirects to List/File/List
 		// redirect back to Home
 		frappe.set_route('List', 'File', 'Home');

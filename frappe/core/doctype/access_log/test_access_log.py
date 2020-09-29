@@ -158,11 +158,7 @@ class TestAccessLog(unittest.TestCase):
 			request = requests.post(private_file_link, headers=self.header)
 			last_doc = frappe.get_last_doc('Access Log')
 
-			if request.status_code == 403:
-				# if file is not accessible, access log wont be generated
-				pass
-
-			else:
+			if request.ok:
 				# check for the access log of downloaded file
 				self.assertEqual(new_private_file.doctype, last_doc.export_from)
 				self.assertEqual(new_private_file.name, last_doc.reference_document)

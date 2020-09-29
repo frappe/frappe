@@ -161,8 +161,7 @@ $.extend(frappe.meta, {
 
 			if(!out) {
 				// eslint-disable-next-line
-				console.log(__('Warning: Unable to find {0} in any table related to {1}', [
-					key, __(doctype)]));
+				console.log(__('Warning: Unable to find {0} in any table related to {1}', [key, __(doctype)]));
 			}
 		}
 		return out;
@@ -253,7 +252,7 @@ $.extend(frappe.meta, {
 
 	get_field_precision: function(df, doc) {
 		var precision = null;
-		if (df && cint(df.precision)) {
+		if (df && df.precision) {
 			precision = cint(df.precision);
 		} else if(df && df.fieldtype === "Currency") {
 			precision = cint(frappe.defaults.get_default("currency_precision"));
@@ -266,5 +265,5 @@ $.extend(frappe.meta, {
 			precision = cint(frappe.defaults.get_default("float_precision")) || 3;
 		}
 		return precision;
-	},
+	}
 });

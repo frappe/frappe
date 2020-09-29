@@ -42,6 +42,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.body = this.$body.get(0);
 		this.$message = $('<div class="hide modal-message"></div>').appendTo(this.modal_body);
 		this.header = this.$wrapper.find(".modal-header");
+		this.buttons = this.header.find('.buttons');
+		this.set_indicator();
 
 		// make fields (if any)
 		super.make();
@@ -94,8 +96,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			})
 			.on('scroll', function() {
 				var $input = $('input:focus');
-				if($input.length && ['Date', 'Datetime',
-					'Time'].includes($input.attr('data-fieldtype'))) {
+				if ($input.length && ['Date', 'Datetime', 'Time'].includes($input.attr('data-fieldtype'))) {
 					$input.blur();
 				}
 			});
@@ -147,6 +148,12 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.get_close_btn().on('click', click);
 	}
 
+	set_secondary_action_label(label) {
+		this.get_close_btn()
+			.removeClass("hide")
+			.html(label);
+	}
+
 	disable_primary_action() {
 		this.get_primary_btn().addClass('disabled');
 	}
@@ -158,6 +165,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 	set_title(t) {
 		this.$wrapper.find(".modal-title").html(t);
+	}
+	set_indicator() {
+		if (this.indicator) {
+			this.header.find('.indicator').removeClass().addClass('indicator ' + this.indicator);
+		}
 	}
 	show() {
 		// show it
@@ -197,5 +209,3 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.header.find('.modal-title').toggleClass('cursor-pointer');
 	}
 };
-
-

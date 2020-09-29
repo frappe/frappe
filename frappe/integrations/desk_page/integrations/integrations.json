@@ -1,0 +1,49 @@
+{
+ "cards": [
+  {
+   "hidden": 0,
+   "label": "Backup",
+   "links": "[\n    {\n        \"description\": \"Dropbox backup settings\",\n        \"label\": \"Dropbox Settings\",\n        \"name\": \"Dropbox Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"S3 Backup Settings\",\n        \"label\": \"S3 Backup Settings\",\n        \"name\": \"S3 Backup Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Google Drive Backup.\",\n        \"label\": \"Google Drive\",\n        \"name\": \"Google Drive\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Google Services",
+   "links": "[\n    {\n        \"description\": \"Google API Settings.\",\n        \"label\": \"Google Settings\",\n        \"name\": \"Google Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Google Contacts Integration.\",\n        \"label\": \"Google Contacts\",\n        \"name\": \"Google Contacts\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Google Calendar Integration.\",\n        \"label\": \"Google Calendar\",\n        \"name\": \"Google Calendar\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Google Drive Integration.\",\n        \"label\": \"Google Drive\",\n        \"name\": \"Google Drive\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Authentication",
+   "links": "[\n    {\n        \"description\": \"Enter keys to enable login via Facebook, Google, GitHub.\",\n        \"label\": \"Social Login Key\",\n        \"name\": \"Social Login Key\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Ldap settings\",\n        \"label\": \"LDAP Settings\",\n        \"name\": \"LDAP Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Register OAuth Client App\",\n        \"label\": \"OAuth Client\",\n        \"name\": \"OAuth Client\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Settings for OAuth Provider\",\n        \"label\": \"OAuth Provider Settings\",\n        \"name\": \"OAuth Provider Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Payments",
+   "links": "[\n    {\n        \"description\": \"Braintree payment gateway settings\",\n        \"label\": \"Braintree Settings\",\n        \"name\": \"Braintree Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"PayPal payment gateway settings\",\n        \"label\": \"PayPal Settings\",\n        \"name\": \"PayPal Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Razorpay Payment gateway settings\",\n        \"label\": \"Razorpay Settings\",\n        \"name\": \"Razorpay Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Stripe payment gateway settings\",\n        \"label\": \"Stripe Settings\",\n        \"name\": \"Stripe Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Paytm payment gateway settings\",\n        \"label\": \"Paytm Settings\",\n        \"name\": \"Paytm Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "hidden": 0,
+   "label": "Settings",
+   "links": "[\n    {\n        \"description\": \"Webhooks calling API requests into web apps\",\n        \"label\": \"Webhook\",\n        \"name\": \"Webhook\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Slack Webhooks for internal integration\",\n        \"label\": \"Slack Webhook URL\",\n        \"name\": \"Slack Webhook URL\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Twilio Settings for WhatsApp integration\",\n        \"label\": \"Twilio Settings\",\n        \"name\": \"Twilio Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"SMS Settings for sending sms\",\n        \"label\": \"SMS Settings\",\n        \"name\": \"SMS Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+  }
+ ],
+ "category": "Administration",
+ "charts": [],
+ "creation": "2020-03-02 15:16:18.714190",
+ "developer_mode_only": 0,
+ "disable_user_customization": 1,
+ "docstatus": 0,
+ "doctype": "Desk Page",
+ "extends_another_page": 0,
+ "hide_custom": 0,
+ "idx": 0,
+ "is_standard": 1,
+ "label": "Integrations",
+ "modified": "2020-08-20 23:04:04.528572",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Integrations",
+ "owner": "Administrator",
+ "pin_to_bottom": 0,
+ "pin_to_top": 0,
+ "shortcuts": []
+}

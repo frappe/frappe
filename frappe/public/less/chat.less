@@ -1,9 +1,8 @@
 // Author - Achilles Rasquinha <achilles@frappe.io>
-
 // http://codeguide.co - @mdo (Author of Bootstrap)
 
+
 @import "flex.less";
-@import (reference) "common.less";
 
 // Typography
 @font-weight-bold:								700;
@@ -105,8 +104,6 @@
 
                 .panel-heading
                 {
-                    // height: 50px;
-
                     .panel-title
                     {
                         .media-heading
@@ -114,6 +111,10 @@
                             font-size: 12px;
                                margin: 0px;
                               padding: 0px;
+                        }
+
+                        .media-left {
+                            padding-right: 10px;
                         }
 
                         .media-subtitle
@@ -151,7 +152,6 @@
                     {
                         .media-heading, .media-subtitle
                         {
-                            .ellipsis;
                             max-width: @chat-room-list-content-max-width;
                         }
                     }
@@ -439,4 +439,16 @@
     font-size: 10px;
     padding: 5px;
     // background-color: white;
+}
+
+// v12 fixes for visitor chat
+.panel-default > .panel-heading {
+    background-color: #f7fafc;
+    border-color: #ced5db;
+    display: flex;
+}
+
+textarea.form-control {
+    resize: none;
+    height: 3.2em;
 }

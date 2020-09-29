@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 
 from six.moves import input
 
-import frappe, os, re
+import frappe, os, re, git
 from frappe.utils import touch_file, cstr
 
 def make_boilerplate(dest, app_name):
@@ -98,7 +98,13 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
 		f.write(frappe.as_unicode(docs_template.format(**hooks)))
 
-	print("'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name)))
+	# initialize git repository
+	app_directory = os.path.join(dest, hooks.app_name)
+	app_repo = git.Repo.init(app_directory)
+	app_repo.git.add(A=True)
+	app_repo.index.commit("feat: Initialize App")
+
+	print("'{app}' created at {path}".format(app=app_name, path=app_directory))
 
 
 manifest_template = """include MANIFEST.in
@@ -151,6 +157,13 @@ app_license = "{app_license}"
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
 # web_include_js = "/assets/{app_name}/js/{app_name}.js"
 
+# include custom scss in every website theme (without file extension ".scss")
+# website_theme_scss = "{app_name}/public/scss/website"
+
+# include js, css files in header of web form
+# webform_include_js = {{"doctype": "public/js/doctype.js"}}
+# webform_include_css = {{"doctype": "public/css/doctype.css"}}
+
 # include js in page
 # page_js = {{"page" : "public/js/file.js"}}
 
@@ -170,9 +183,6 @@ app_license = "{app_license}"
 # role_home_page = {{
 #	"Role": "home_page"
 # }}
-
-# Website user home page (by function)
-# get_website_user_home_page = "{app_name}.utils.get_home_page"
 
 # Generators
 # ----------
@@ -202,6 +212,14 @@ app_license = "{app_license}"
 #
 # has_permission = {{
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
+# }}
+
+# DocType Class
+# ---------------
+# Override standard doctype classes
+
+# override_doctype_class = {{
+# 	"ToDo": "custom_app.overrides.CustomToDo"
 # }}
 
 # Document Events
@@ -242,12 +260,23 @@ app_license = "{app_license}"
 
 # before_tests = "{app_name}.install.before_tests"
 
-# Overriding Whitelisted Methods
+# Overriding Methods
 # ------------------------------
 #
 # override_whitelisted_methods = {{
 # 	"frappe.desk.doctype.event.event.get_events": "{app_name}.event.get_events"
 # }}
+#
+# each overriding function accepts a `data` argument;
+# generated from the base implementation of the doctype dashboard,
+# along with any modifications made in other Frappe apps
+# override_doctype_dashboards = {{
+# 	"Task": "{app_name}.task.get_dashboard_data"
+# }}
+
+# exempt linked doctypes from being automatically cancelled
+#
+# auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
 """
 

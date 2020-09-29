@@ -6,6 +6,8 @@ frappe.ui.form.ControlMarkdownEditor = frappe.ui.form.ControlCode.extend({
 		this.ace_editor_target.wrap(`<div class="${this.editor_class}-container">`);
 		this.markdown_container = this.$input_wrapper.find(`.${this.editor_class}-container`);
 
+		this.editor.getSession().setUseWrapMode(true);
+
 		this.showing_preview = false;
 		this.preview_toggle_btn = $(`<button class="btn btn-default btn-xs ${this.editor_class}-toggle">${__('Preview')}</button>`)
 			.click(e => {
@@ -42,5 +44,9 @@ frappe.ui.form.ControlMarkdownEditor = frappe.ui.form.ControlCode.extend({
 			.then(() => {
 				this.update_preview();
 			});
+	},
+
+	set_disp_area(value) {
+		this.disp_area && $(this.disp_area).text(value);
 	}
 });

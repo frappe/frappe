@@ -30,7 +30,7 @@ def get_mariadb_versions():
 	return versions
 
 
-def setup_database(force, source_sql, verbose):
+def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
 	frappe.local.session = frappe._dict({'user':'Administrator'})
 
 	db_name = frappe.local.conf.db_name
@@ -38,17 +38,23 @@ def setup_database(force, source_sql, verbose):
 	dbman = DbManager(root_conn)
 	if force or (db_name not in dbman.get_database_list()):
 		dbman.delete_user(db_name)
+		if no_mariadb_socket:
+			dbman.delete_user(db_name, host="%")
 		dbman.drop_database(db_name)
 	else:
 		raise Exception("Database %s already exists" % (db_name,))
 
 	dbman.create_user(db_name, frappe.conf.db_password)
+	if no_mariadb_socket:
+		dbman.create_user(db_name, frappe.conf.db_password, host="%")
 	if verbose: print("Created user %s" % db_name)
 
 	dbman.create_database(db_name)
 	if verbose: print("Created database %s" % db_name)
 
 	dbman.grant_all_privileges(db_name, db_name)
+	if no_mariadb_socket:
+		dbman.grant_all_privileges(db_name, db_name, host="%")
 	dbman.flush_privileges()
 	if verbose: print("Granted privileges to user %s and database %s" % (db_name, db_name))
 
@@ -75,6 +81,7 @@ def setup_help_database(help_db_name):
 def drop_user_and_database(db_name, root_login, root_password):
 	frappe.local.db = get_root_connection(root_login, root_password)
 	dbman = DbManager(frappe.local.db)
+	dbman.delete_user(db_name, host="%")
 	dbman.delete_user(db_name)
 	dbman.drop_database(db_name)
 
@@ -85,6 +92,8 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 		sys.exit(1)
 
 	import_db_from_sql(source_sql, verbose)
+
+	frappe.connect(db_name=db_name)
 	if not 'tabDefaultValue' in frappe.db.get_tables():
 		print('''Database not installed, this can due to lack of permission, or that the database name exists.
 			Check your mysql root password, or use --force to reinstall''')

@@ -6,6 +6,7 @@ import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
+
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
 test_dependencies = ['User', 'Blog Post']
@@ -166,6 +167,9 @@ class TestReportview(unittest.TestCase):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 			fields=["name", "1' UNION SELECT * FROM __Auth --"],limit_start=0, limit_page_length=1)
 
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["@@version"], limit_start=0, limit_page_length=1)
+
 		data = DatabaseQuery("DocType").execute(fields=["count(`name`) as count"],
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('count' in data[0])
@@ -185,37 +189,29 @@ class TestReportview(unittest.TestCase):
 			self.assertTrue('date_diff' in data[0])
 
 	def test_nested_permission(self):
-		clear_user_permissions_for_doctype("File")
-		delete_test_file_hierarchy() # delete already existing folders
-		from frappe.core.doctype.file.file import create_new_folder
 		frappe.set_user('Administrator')
-
-		create_new_folder('level1-A', 'Home')
-		create_new_folder('level2-A', 'Home/level1-A')
-		create_new_folder('level2-B', 'Home/level1-A')
-		create_new_folder('level3-A', 'Home/level1-A/level2-A')
-
-		create_new_folder('level1-B', 'Home')
-		create_new_folder('level2-A', 'Home/level1-B')
+		create_nested_doctype()
+		create_nested_doctype_records()
+		clear_user_permissions_for_doctype('Nested DocType')
 
 		# user permission for only one root folder
-		add_user_permission('File', 'Home/level1-A', 'test2@example.com')
+		add_user_permission('Nested DocType', 'Level 1 A', 'test2@example.com')
 
 		from frappe.core.page.permission_manager.permission_manager import update
-		update('File', 'All', 0, 'if_owner', 0) # to avoid if_owner filter
+		# to avoid if_owner filter
+		update('Nested DocType', 'All', 0, 'if_owner', 0)
 
 		frappe.set_user('test2@example.com')
-		data = DatabaseQuery("File").execute()
+		data = DatabaseQuery('Nested DocType').execute()
 
 		# children of root folder (for which we added user permission) should be accessible
-		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({'name': 'Level 2 A'} in data)
+		self.assertTrue({'name': 'Level 2 A'} in data)
 
 		# other folders should not be accessible
-		self.assertFalse({"name": "Home/level1-B"} in data)
-		self.assertFalse({"name": "Home/level1-B/level2-B"} in data)
-		update('File', 'All', 0, 'if_owner', 1)
+		self.assertFalse({'name': 'Level 1 B'} in data)
+		self.assertFalse({'name': 'Level 2 B'} in data)
+		update('Nested DocType', 'All', 0, 'if_owner', 1)
 		frappe.set_user('Administrator')
 
 	def test_filter_sanitizer(self):
@@ -259,83 +255,74 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue('DefaultValue' in [d['name'] for d in out])
 
 	def test_of_not_of_descendant_ancestors(self):
-		clear_user_permissions_for_doctype("File")
-		delete_test_file_hierarchy() # delete already existing folders
-		from frappe.core.doctype.file.file import create_new_folder
-
-		create_new_folder('level1-A', 'Home')
-		create_new_folder('level2-A', 'Home/level1-A')
-		create_new_folder('level2-B', 'Home/level1-A')
-		create_new_folder('level3-A', 'Home/level1-A/level2-A')
-
-		create_new_folder('level1-B', 'Home')
-		create_new_folder('level2-A', 'Home/level1-B')
+		frappe.set_user('Administrator')
+		clear_user_permissions_for_doctype('Nested DocType')
 
 		# in descendants filter
-		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A/level2-A')})
-		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		data = frappe.get_all('Nested DocType', {'name': ('descendants of', 'Level 2 A')})
+		self.assertTrue({"name": "Level 3 A"} in data)
 
-		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A')})
-		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
-		self.assertFalse({"name": "Home/level1-B"} in data)
-		self.assertFalse({"name": "Home/level1-A"} in data)
-		self.assertFalse({"name": "Home"} in data)
+		data = frappe.get_all('Nested DocType', {'name': ('descendants of', 'Level 1 A')})
+		self.assertTrue({"name": "Level 3 A"} in data)
+		self.assertTrue({"name": "Level 2 A"} in data)
+		self.assertFalse({"name": "Level 2 B"} in data)
+		self.assertFalse({"name": "Level 1 B"} in data)
+		self.assertFalse({"name": "Level 1 A"} in data)
+		self.assertFalse({"name": "Root"} in data)
 
 		# in ancestors of filter
-		data = frappe.get_all('File', {'name': ('ancestors of', 'Home/level1-A/level2-A')})
-		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
-		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
-		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
-		self.assertFalse({"name": "Home/level1-B"} in data)
-		self.assertTrue({"name": "Home/level1-A"} in data)
-		self.assertTrue({"name": "Home"} in data)
+		data = frappe.get_all('Nested DocType', {'name': ('ancestors of', 'Level 2 A')})
+		self.assertFalse({"name": "Level 3 A"} in data)
+		self.assertFalse({"name": "Level 2 A"} in data)
+		self.assertFalse({"name": "Level 2 B"} in data)
+		self.assertFalse({"name": "Level 1 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} in data)
+		self.assertTrue({"name": "Root"} in data)
 
-		data = frappe.get_all('File', {'name': ('ancestors of', 'Home/level1-A')})
-		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
-		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
-		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
-		self.assertFalse({"name": "Home/level1-B"} in data)
-		self.assertFalse({"name": "Home/level1-A"} in data)
-		self.assertTrue({"name": "Home"} in data)
+		data = frappe.get_all('Nested DocType', {'name': ('ancestors of', 'Level 1 A')})
+		self.assertFalse({"name": "Level 3 A"} in data)
+		self.assertFalse({"name": "Level 2 A"} in data)
+		self.assertFalse({"name": "Level 2 B"} in data)
+		self.assertFalse({"name": "Level 1 B"} in data)
+		self.assertFalse({"name": "Level 1 A"} in data)
+		self.assertTrue({"name": "Root"} in data)
 
 		# not descendants filter
-		data = frappe.get_all('File', {'name': ('not descendants of', 'Home/level1-A/level2-A')})
-		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
-		self.assertTrue({"name": "Home/level1-A"} in data)
-		self.assertTrue({"name": "Home"} in data)
+		data = frappe.get_all('Nested DocType', {'name': ('not descendants of', 'Level 2 A')})
+		self.assertFalse({"name": "Level 3 A"} in data)
+		self.assertTrue({"name": "Level 2 A"} in data)
+		self.assertTrue({"name": "Level 2 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} in data)
+		self.assertTrue({"name": "Root"} in data)
 
-		data = frappe.get_all('File', {'name': ('not descendants of', 'Home/level1-A')})
-		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
-		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
-		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
-		self.assertTrue({"name": "Home/level1-B"} in data)
-		self.assertTrue({"name": "Home/level1-A"} in data)
-		self.assertTrue({"name": "Home"} in data)
+		data = frappe.get_all('Nested DocType', {'name': ('not descendants of', 'Level 1 A')})
+		self.assertFalse({"name": "Level 3 A"} in data)
+		self.assertFalse({"name": "Level 2 A"} in data)
+		self.assertTrue({"name": "Level 2 B"} in data)
+		self.assertTrue({"name": "Level 1 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} in data)
+		self.assertTrue({"name": "Root"} in data)
 
 		# not ancestors of filter
-		data = frappe.get_all('File', {'name': ('not ancestors of', 'Home/level1-A/level2-A')})
-		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
-		self.assertTrue({"name": "Home/level1-B"} in data)
-		self.assertTrue({"name": "Home/level1-A"} not in data)
-		self.assertTrue({"name": "Home"} not in data)
+		data = frappe.get_all('Nested DocType', {'name': ('not ancestors of', 'Level 2 A')})
+		self.assertTrue({"name": "Level 3 A"} in data)
+		self.assertTrue({"name": "Level 2 A"} in data)
+		self.assertTrue({"name": "Level 2 B"} in data)
+		self.assertTrue({"name": "Level 1 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} not in data)
+		self.assertTrue({"name": "Root"} not in data)
 
-		data = frappe.get_all('File', {'name': ('not ancestors of', 'Home/level1-A')})
-		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
-		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
-		self.assertTrue({"name": "Home/level1-B"} in data)
-		self.assertTrue({"name": "Home/level1-A"} in data)
-		self.assertFalse({"name": "Home"} in data)
+		data = frappe.get_all('Nested DocType', {'name': ('not ancestors of', 'Level 1 A')})
+		self.assertTrue({"name": "Level 3 A"} in data)
+		self.assertTrue({"name": "Level 2 A"} in data)
+		self.assertTrue({"name": "Level 2 B"} in data)
+		self.assertTrue({"name": "Level 1 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} in data)
+		self.assertFalse({"name": "Root"} in data)
 
-		data = frappe.get_all('File', {'name': ('ancestors of', 'Home')})
+		data = frappe.get_all('Nested DocType', {'name': ('ancestors of', 'Root')})
 		self.assertTrue(len(data) == 0)
-		self.assertTrue(len(frappe.get_all('File', {'name': ('not ancestors of', 'Home')})) == len(frappe.get_all('File')))
+		self.assertTrue(len(frappe.get_all('Nested DocType', {'name': ('not ancestors of', 'Root')})) == len(frappe.get_all('Nested DocType')))
 
 
 	def test_is_set_is_not_set(self):
@@ -349,6 +336,16 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({'name': 'Prepared Report'} in res)
 		self.assertFalse({'name': 'Property Setter'} in res)
 
+	def test_set_field_tables(self):
+		# Tests _in_standard_sql_methods method in test_set_field_tables
+		# The following query will break if the above method is broken
+		data = frappe.db.get_list("Web Form",
+			filters=[['Web Form Field', 'reqd', '=', 1]],
+			group_by='amount_field',
+			fields=['count(*) as count', '`amount_field` as name'],
+			order_by='count desc',
+			limit=50,
+		)
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
@@ -364,14 +361,45 @@ def create_event(subject="_Test Event", starts_on=None):
 
 	return event
 
-def delete_test_file_hierarchy():
-	files_to_delete = [
-		'Home/level1-A/level2-A/level3-A',
-		'Home/level1-A/level2-A',
-		'Home/level1-A/level2-B',
-		'Home/level1-A',
-		'Home/level1-B/level2-A',
-		'Home/level1-B'
+def create_nested_doctype():
+	if frappe.db.exists('DocType', 'Nested DocType'):
+		return
+
+	frappe.get_doc({
+		'doctype': 'DocType',
+		'name': 'Nested DocType',
+		'module': 'Custom',
+		'is_tree': 1,
+		'custom': 1,
+		'autoname': 'Prompt',
+		'fields': [
+			{'label': 'Description', 'fieldname': 'description'}
+		],
+		'permissions': [
+			{'role': 'Blogger'}
+		]
+	}).insert()
+
+def create_nested_doctype_records():
+	'''
+	Create a structure like:
+	- Root
+		- Level 1 A
+			- Level 2 A
+				- Level 3 A
+		- Level 1 B
+			- Level 2 B
+	'''
+	records = [
+		{'name': 'Root', 'is_group': 1},
+		{'name': 'Level 1 A', 'parent_nested_doctype': 'Root', 'is_group': 1},
+		{'name': 'Level 2 A', 'parent_nested_doctype': 'Level 1 A', 'is_group': 1},
+		{'name': 'Level 3 A', 'parent_nested_doctype': 'Level 2 A'},
+		{'name': 'Level 1 B', 'parent_nested_doctype': 'Root', 'is_group': 1},
+		{'name': 'Level 2 B', 'parent_nested_doctype': 'Level 1 B'},
 	]
-	for file_name in files_to_delete:
-		frappe.delete_doc('File', file_name)
+
+	for r in records:
+		d = frappe.new_doc('Nested DocType')
+		d.update(r)
+		d.insert(ignore_permissions=True, ignore_if_duplicate=True)

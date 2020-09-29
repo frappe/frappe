@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
  "creation": "2014-03-11 14:55:00",
@@ -38,7 +39,6 @@
   "mute_sounds",
   "change_password",
   "new_password",
-  "send_password_update_notification",
   "logout_all_sessions",
   "reset_password_key",
   "last_password_reset_date",
@@ -179,7 +179,7 @@
   {
    "fieldname": "time_zone",
    "fieldtype": "Select",
-   "label": "Timezone"
+   "label": "Time Zone"
   },
   {
    "description": "Get your globally recognized avatar from Gravatar.com",
@@ -238,12 +238,14 @@
   {
    "fieldname": "phone",
    "fieldtype": "Data",
-   "label": "Phone"
+   "label": "Phone",
+   "options": "Phone"
   },
   {
    "fieldname": "mobile_no",
    "fieldtype": "Data",
    "label": "Mobile No",
+   "options": "Phone",
    "unique": 1
   },
   {
@@ -301,16 +303,9 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.__islocal",
-   "fieldname": "send_password_update_notification",
-   "fieldtype": "Check",
-   "label": "Send Password Update Notification"
-  },
-  {
-   "default": "0",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
-   "label": "Logout from all devices while changing Password"
+   "label": "Logout From All Devices After Changing Password"
   },
   {
    "fieldname": "reset_password_key",
@@ -346,7 +341,7 @@
    "default": "0",
    "fieldname": "document_follow_notify",
    "fieldtype": "Check",
-   "label": "Send Notifications for documents followed by me"
+   "label": "Send Notifications For Documents Followed By Me"
   },
   {
    "default": "Daily",
@@ -361,13 +356,13 @@
    "depends_on": "enabled",
    "fieldname": "email_settings",
    "fieldtype": "Section Break",
-   "label": "Email Settings"
+   "label": "Email"
   },
   {
    "default": "1",
    "fieldname": "thread_notify",
    "fieldtype": "Check",
-   "label": "Send Notifications for Email threads"
+   "label": "Send Notifications For Email Threads"
   },
   {
    "default": "0",
@@ -386,12 +381,6 @@
    "fieldtype": "Small Text",
    "label": "Email Signature",
    "no_copy": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "email_inbox",
-   "fieldtype": "Section Break",
-   "label": "Email Inbox"
   },
   {
    "fieldname": "user_emails",
@@ -424,6 +413,7 @@
   {
    "fieldname": "home_settings",
    "fieldtype": "Code",
+   "hidden": 1,
    "label": "Home Settings"
   },
   {
@@ -503,7 +493,7 @@
    "description": "If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings",
    "fieldname": "bypass_restrict_ip_check_if_2fa_enabled",
    "fieldtype": "Check",
-   "label": "Bypass restricted IP Address check If Two Factor Auth Enabled"
+   "label": "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
   },
   {
    "fieldname": "column_break1",
@@ -592,8 +582,70 @@
  "icon": "fa fa-user",
  "idx": 413,
  "image_field": "user_image",
+ "links": [
+  {
+   "group": "Profile",
+   "link_doctype": "Contact",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Profile",
+   "link_doctype": "Chat Profile",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Profile",
+   "link_doctype": "Blogger",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Access Log",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Activity Log",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Energy Point Log",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Route History",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Settings",
+   "link_doctype": "User Permission",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Settings",
+   "link_doctype": "Assignment Rule",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Settings",
+   "link_doctype": "Document Follow",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Activity",
+   "link_doctype": "Communication",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Activity",
+   "link_doctype": "ToDo",
+   "link_fieldname": "owner"
+  }
+ ],
  "max_attachments": 5,
- "modified": "2019-08-09 10:34:56.912283",
+ "modified": "2020-08-26 19:48:49.677800",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -609,13 +661,13 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "set_user_permissions": 1,
    "share": 1,
    "write": 1
   },
   {
    "permlevel": 1,
    "read": 1,
-   "report": 1,
    "role": "System Manager",
    "write": 1
   }

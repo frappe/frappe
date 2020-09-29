@@ -46,6 +46,9 @@ def make_new_doc(doctype):
 	doc["doctype"] = doctype
 	doc["__islocal"] = 1
 
+	if not frappe.model.meta.is_single(doctype):
+		doc["__unsaved"] = 1
+
 	return doc
 
 def set_user_and_static_default_values(doc):
@@ -61,7 +64,9 @@ def set_user_and_static_default_values(doc):
 
 			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc)
 			if user_default_value is not None:
-				doc.set(df.fieldname, user_default_value)
+				# if fieldtype is link check if doc exists
+				if not df.fieldtype == "Link" or frappe.db.exists(df.options, user_default_value):
+					doc.set(df.fieldname, user_default_value)
 
 			else:
 				if df.fieldname != doc.meta.title_field:
@@ -72,11 +77,9 @@ def set_user_and_static_default_values(doc):
 def get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc):
 	# don't set defaults for "User" link field using User Permissions!
 	if df.fieldtype == "Link" and df.options != "User":
-		# 1 - look in user permissions only for document_type==Setup
-		# We don't want to include permissions of transactions to be used for defaults.
-		if (frappe.get_meta(df.options).document_type=="Setup"
-			and not df.ignore_user_permissions and default_doc):
-				return default_doc
+		# If user permission has Is Default enabled or single-user permission has found against respective doctype.
+		if (not df.ignore_user_permissions and default_doc):
+			return default_doc
 
 		# 2 - Look in user defaults
 		user_default = defaults.get(df.fieldname)

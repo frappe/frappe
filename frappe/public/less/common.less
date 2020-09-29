@@ -28,6 +28,14 @@ p {
 	margin: 10px 0;
 }
 
+details > summary {
+	cursor: pointer;
+}
+
+details > summary:focus {
+	outline: none;
+}
+
 .text-color {
 	color: @text-color !important;
 }
@@ -153,6 +161,11 @@ a.badge-hover& {
 	}
 }
 
+.msgprint-scroll {
+	max-height: 36em;
+	overflow: scroll;
+}
+
 .msgprint {
 	// margin: 15px 0px;
 	// text-align: center;
@@ -160,6 +173,10 @@ a.badge-hover& {
 
 	pre {
 		text-align: left;
+	}
+
+	a:not(.btn) {
+		text-decoration: underline;
 	}
 }
 

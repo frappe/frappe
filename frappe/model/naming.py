@@ -7,6 +7,7 @@ from frappe import _
 from frappe.utils import now_datetime, cint, cstr
 import re
 from six import string_types
+from frappe.model import log_types
 
 
 def set_new_name(doc):
@@ -35,7 +36,13 @@ def set_new_name(doc):
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
 
-	else:
+	elif getattr(doc.meta, "istable", False):
+		doc.name = make_autoname("hash", doc.doctype)
+
+	if not doc.name:
+		set_naming_from_document_naming_rule(doc)
+
+	if not doc.name:
 		doc.run_method("autoname")
 
 	if not doc.name and autoname:
@@ -43,13 +50,16 @@ def set_new_name(doc):
 
 	# if the autoname option is 'field:' and no name was derived, we need to
 	# notify
-	if autoname.startswith('field:') and not doc.name:
+	if not doc.name and autoname.startswith("field:"):
 		fieldname = autoname[6:]
 		frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
 
 	# at this point, we fall back to name generation with the hash option
-	if not doc.name or autoname == 'hash':
-		doc.name = make_autoname('hash', doc.doctype)
+	if not doc.name and autoname == "hash":
+		doc.name = make_autoname("hash", doc.doctype)
+
+	if not doc.name:
+		doc.name = make_autoname("hash", doc.doctype)
 
 	doc.name = validate_name(
 		doc.doctype,
@@ -65,16 +75,33 @@ def set_name_from_naming_options(autoname, doc):
 
 	_autoname = autoname.lower()
 
-	if _autoname.startswith('field:'):
+	if _autoname.startswith("field:"):
 		doc.name = _field_autoname(autoname, doc)
-	elif _autoname.startswith('naming_series:'):
+	elif _autoname.startswith("naming_series:"):
 		set_name_by_naming_series(doc)
-	elif _autoname.startswith('prompt'):
+	elif _autoname.startswith("prompt"):
 		_prompt_autoname(autoname, doc)
-	elif _autoname.startswith('format:'):
+	elif _autoname.startswith("format:"):
 		doc.name = _format_autoname(autoname, doc)
-	elif '#' in autoname:
+	elif "#" in autoname:
 		doc.name = make_autoname(autoname, doc=doc)
+
+def set_naming_from_document_naming_rule(doc):
+	'''
+	Evaluate rules based on "Document Naming Series" doctype
+	'''
+	if doc.doctype in log_types:
+		return
+
+	try:
+		for d in frappe.get_all('Document Naming Rule',
+			dict(document_type=doc.doctype, disabled=0), order_by='priority desc'):
+			frappe.get_cached_doc('Document Naming Rule', d.name).apply(doc)
+			if doc.name:
+				break
+	except frappe.db.TableMissingError: # noqa: E722
+		# not yet bootstrapped
+		pass
 
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""
@@ -84,9 +111,9 @@ def set_name_by_naming_series(doc):
 	if not doc.naming_series:
 		frappe.throw(frappe._("Naming Series mandatory"))
 
-	doc.name = make_autoname(doc.naming_series+'.#####', '', doc)
+	doc.name = make_autoname(doc.naming_series+".#####", "", doc)
 
-def make_autoname(key='', doctype='', doc=''):
+def make_autoname(key="", doctype="", doc=""):
 	"""
 	Creates an autoname from the given key:
 
@@ -110,7 +137,11 @@ def make_autoname(key='', doctype='', doc=''):
 	if "#" not in key:
 		key = key + ".#####"
 	elif "." not in key:
-		frappe.throw(_("Invalid naming series (. missing)") + (_(" for {0}").format(doctype) if doctype else ""))
+		error_message = _("Invalid naming series (. missing)")
+		if doctype:
+			error_message = _("Invalid naming series (. missing) for {0}").format(doctype)
+
+		frappe.throw(error_message)
 
 	parts = key.split('.')
 	n = parse_naming_series(parts, doctype, doc)
@@ -138,6 +169,8 @@ def parse_naming_series(parts, doctype='', doc=''):
 			part = today.strftime("%d")
 		elif e == 'YYYY':
 			part = today.strftime('%Y')
+		elif e == 'timestamp':
+			part = str(today)
 		elif e == 'FY':
 			part = frappe.defaults.get_user_default("fiscal_year")
 		elif e.startswith('{') and doc:
@@ -199,12 +232,12 @@ def get_default_naming_series(doctype):
 
 def validate_name(doctype, name, case=None, merge=False):
 	if not name:
-		return 'No Name Specified for %s' % doctype
-	if name.startswith('New '+doctype):
-		frappe.throw(_('There were some errors setting the name, please contact the administrator'), frappe.NameError)
-	if case == 'Title Case':
+		frappe.throw(_("No Name Specified for {0}").format(doctype))
+	if name.startswith("New "+doctype):
+		frappe.throw(_("There were some errors setting the name, please contact the administrator"), frappe.NameError)
+	if case == "Title Case":
 		name = name.title()
-	if case == 'UPPER CASE':
+	if case == "UPPER CASE":
 		name = name.upper()
 	name = name.strip()
 
@@ -219,13 +252,13 @@ def validate_name(doctype, name, case=None, merge=False):
 	return name
 
 
-def append_number_if_name_exists(doctype, value, fieldname='name', separator='-', filters=None):
+def append_number_if_name_exists(doctype, value, fieldname="name", separator="-", filters=None):
 	if not filters:
 		filters = dict()
 	filters.update({fieldname: value})
 	exists = frappe.db.exists(doctype, filters)
 
-	regex = '^{value}{separator}\d+$'.format(value=re.escape(value), separator=separator)
+	regex = "^{value}{separator}\d+$".format(value=re.escape(value), separator=separator)
 
 	if exists:
 		last = frappe.db.sql("""SELECT `{fieldname}` FROM `tab{doctype}`
@@ -251,10 +284,10 @@ def _set_amended_name(doc):
 	am_id = 1
 	am_prefix = doc.amended_from
 	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
-		am_id = cint(doc.amended_from.split('-')[-1]) + 1
-		am_prefix = '-'.join(doc.amended_from.split('-')[:-1])  # except the last hyphen
+		am_id = cint(doc.amended_from.split("-")[-1]) + 1
+		am_prefix = "-".join(doc.amended_from.split("-")[:-1])  # except the last hyphen
 
-	doc.name = am_prefix + '-' + str(am_id)
+	doc.name = am_prefix + "-" + str(am_id)
 	return doc.name
 
 
@@ -264,7 +297,7 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	`autoname` field starts with 'field:'
 	"""
 	fieldname = autoname if skip_slicing else autoname[6:]
-	name = (cstr(doc.get(fieldname)) or '').strip()
+	name = (cstr(doc.get(fieldname)) or "").strip()
 	return name
 
 
@@ -285,7 +318,7 @@ def _format_autoname(autoname, doc):
 	Example pattern: 'format:LOG-{MM}-{fieldname1}-{fieldname2}-{#####}'
 	"""
 
-	first_colon_index = autoname.find(':')
+	first_colon_index = autoname.find(":")
 	autoname_value = autoname[first_colon_index + 1:]
 
 	def get_param_value_for_match(match):
@@ -295,6 +328,6 @@ def _format_autoname(autoname, doc):
 		return parse_naming_series([trimmed_param], doc=doc)
 
 	# Replace braced params with their parsed value
-	name = re.sub(r'(\{[\w | #]+\})', get_param_value_for_match, autoname_value)
+	name = re.sub(r"(\{[\w | #]+\})", get_param_value_for_match, autoname_value)
 
 	return name

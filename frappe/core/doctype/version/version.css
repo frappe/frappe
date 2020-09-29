@@ -1,3 +1,7 @@
+.version-info {
+	overflow: auto;
+}
+
 .version-info pre {
 	border: 0px;
 	margin: 0px;

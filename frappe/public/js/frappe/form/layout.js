@@ -155,7 +155,8 @@ frappe.ui.form.Layout = Class.extend({
 			doctype: this.doctype,
 			parent: this.column.wrapper.get(0),
 			frm: this.frm,
-			render_input: render
+			render_input: render,
+			doc: this.doc
 		});
 
 		fieldobj.layout = this;
@@ -451,27 +452,27 @@ frappe.ui.form.Layout = Class.extend({
 		// build dependants' dictionary
 		var has_dep = false;
 
-		for(var fkey in this.fields_list) {
+		for (var fkey in this.fields_list) {
 			var f = this.fields_list[fkey];
 			f.dependencies_clear = true;
-			if(f.df.depends_on) {
+			if (f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on) {
 				has_dep = true;
 			}
 		}
 
-		if(!has_dep)return;
+		if (!has_dep) return;
 
 		// show / hide based on values
-		for(var i=me.fields_list.length-1;i>=0;i--) {
+		for (var i=me.fields_list.length-1;i>=0;i--) {
 			var f = me.fields_list[i];
 			f.guardian_has_value = true;
-			if(f.df.depends_on) {
+			if (f.df.depends_on) {
 				// evaluate guardian
 
 				f.guardian_has_value = this.evaluate_depends_on_value(f.df.depends_on);
 
 				// show / hide
-				if(f.guardian_has_value) {
+				if (f.guardian_has_value) {
 					if(f.df.hidden_due_to_dependency) {
 						f.df.hidden_due_to_dependency = false;
 						f.refresh();
@@ -483,9 +484,34 @@ frappe.ui.form.Layout = Class.extend({
 					}
 				}
 			}
+
+			if (f.df.mandatory_depends_on) {
+				this.set_dependant_property(f.df.mandatory_depends_on, f.df.fieldname, 'reqd');
+			}
+
+			if (f.df.read_only_depends_on) {
+				this.set_dependant_property(f.df.read_only_depends_on, f.df.fieldname, 'read_only');
+			}
 		}
 
 		this.refresh_section_count();
+	},
+	set_dependant_property: function(condition, fieldname, property) {
+		let set_property = this.evaluate_depends_on_value(condition);
+		let form_obj;
+
+		if (this.frm) {
+			form_obj = this.frm;
+		} else if (this.is_dialog) {
+			form_obj = this;
+		}
+		if (form_obj) {
+			if (set_property) {
+				form_obj.set_df_property(fieldname, property, 1);
+			} else {
+				form_obj.set_df_property(fieldname, property, 0);
+			}
+		}
 	},
 	evaluate_depends_on_value: function(expression) {
 		var out = null;
@@ -499,7 +525,7 @@ frappe.ui.form.Layout = Class.extend({
 			return;
 		}
 
-		var parent = this.frm ? this.frm.doc : null;
+		var parent = this.frm ? this.frm.doc : this.doc || null;
 
 		if(typeof(expression) === 'boolean') {
 			out = expression;
@@ -573,12 +599,15 @@ frappe.ui.form.Section = Class.extend({
 			if(this.df.cssClass) {
 				this.wrapper.addClass(this.df.cssClass);
 			}
+			if (this.df.hide_border) {
+				this.wrapper.toggleClass("hide-border", true);
+			}
 		}
-
 
 		// for bc
 		this.body = $('<div class="section-body">').appendTo(this.wrapper);
 	},
+
 	make_head: function() {
 		var me = this;
 		if(!this.df.collapsible) {
@@ -637,9 +666,11 @@ frappe.ui.form.Section = Class.extend({
 			}
 		});
 	},
+
 	is_collapsed() {
 		return this.body.hasClass('hide');
 	},
+
 	has_missing_mandatory: function() {
 		var missing_mandatory = false;
 		for (var j=0, l=this.fields_list.length; j < l; j++) {
