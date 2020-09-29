@@ -65,7 +65,13 @@
   "chat_enable_to",
   "chat_room_name",
   "chat_welcome_message",
-  "chat_operators"
+  "chat_operators",
+  "cookies_section",
+  "show_cookie_consent",
+  "cookie_policy_uri",
+  "column_break_60",
+  "cookie_consent_type",
+  "cookie_consent_position"
  ],
  "fields": [
   {
@@ -401,6 +407,39 @@
    "fieldname": "edit_footer_template_values",
    "fieldtype": "Button",
    "label": "Edit Values"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "cookies_section",
+   "fieldtype": "Section Break",
+   "label": "Cookies"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_cookie_consent",
+   "fieldtype": "Check",
+   "label": "Show Cookie Consent"
+  },
+  {
+   "fieldname": "cookie_consent_type",
+   "fieldtype": "Select",
+   "label": "Cookie Consent Type",
+   "options": "categories\ninfo\nopt-in\nopt-out"
+  },
+  {
+   "fieldname": "cookie_consent_position",
+   "fieldtype": "Select",
+   "label": "Cookie Consent Position",
+   "options": "top\nbottom\nbottom-left\nbottom-right"
+  },
+  {
+   "fieldname": "column_break_60",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cookie_policy_uri",
+   "fieldtype": "Data",
+   "label": "Cookie Policy URI"
   }
  ],
  "icon": "fa fa-cog",
@@ -409,7 +448,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-08-21 14:02:55.168829",
+ "modified": "2020-09-29 13:48:31.623016",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
