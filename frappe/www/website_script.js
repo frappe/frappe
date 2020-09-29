@@ -1,6 +1,22 @@
 // website_script.js
 {% if javascript -%}{{ javascript }}{%- endif %}
 
+{% if google_analytics_id -%}
+// Google Analytics
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+// End Google Analytics
+{%- endif %}
+
+function start_google_anayltics(fieldObject) {
+	{% if google_analytics_id -%}
+	ga('create', '{{ google_analytics_id }}', fieldObject);
+	ga('send', 'pageview');
+	{%- endif %}
+}
+
 {% if show_cookie_consent -%}
 frappe.require([
 	'/assets/frappe/node_modules/cookieconsent/build/cookieconsent.min.js',
@@ -31,21 +47,23 @@ frappe.require([
 			button: {
 				background: style.getPropertyValue('--primary')
 			}
-		}
+		},
+		onInitialise: function (status) {
+			var type = this.options.type;
+			var didConsent = this.hasConsented();
+			if (type == 'opt-in' && didConsent) {
+				// enable cookies
+				start_google_anayltics('auto');
+			}
+			if (type == 'opt-out' && !didConsent) {
+				// disable cookies
+				start_google_anayltics({'storage': 'none'});
+			}
+		},
 	});
 })
-{%- endif %}
-
-{% if google_analytics_id -%}
-// Google Analytics
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-ga('create', '{{ google_analytics_id }}', 'auto');
-ga('send', 'pageview');
-// End Google Analytics
+{% else %}
+start_google_anayltics('auto');
 {%- endif %}
 
 {% if enable_view_tracking %}
