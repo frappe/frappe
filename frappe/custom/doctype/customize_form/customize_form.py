@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 import json
 import frappe
 import frappe.translate
-from frappe import _, scrub
+from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields, core_doctypes_list

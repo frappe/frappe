@@ -138,7 +138,9 @@ frappe.ui.form.on("Customize Form", {
 		// sort order select
 		if (frm.doc.doc_type) {
 			var fields = $.map(frm.doc.fields,
-				function(df) { return frappe.model.is_value_type(df.fieldtype) ? df.fieldname : null; });
+				function(df) {
+					return frappe.model.is_value_type(df.fieldtype) ? df.fieldname : null;
+				});
 			fields = ["", "name", "modified"].concat(fields);
 			frm.set_df_property("sort_field", "options", fields);
 		}
