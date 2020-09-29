@@ -9,7 +9,7 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		let picker_wrapper = $('<div>');
 		this.picker = new Picker({
 			parent: picker_wrapper[0],
-			color: this.get_color() || '#F4F5F5',
+			color: this.get_color(),
 			swatches: [
 				'#449CF0',
 				'#ECAD4B',
@@ -47,7 +47,7 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 			$(window).off('hashchange.color-popover');
 		});
 
-		this.$input.on('click', (e) => {
+		this.$wrapper.find('.control-input').on('click', (e) => {
 			this.$wrapper.popover('show');
 			if (!this.get_color()) {
 				this.$input.val('');
@@ -74,7 +74,11 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	},
 	refresh() {
 		this._super();
-		this.picker.refresh();
+		let color = this.get_color();
+		if (this.picker.color !== color) {
+			this.picker.color = color;
+			this.picker.refresh();
+		}
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
@@ -84,10 +88,6 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 			"background-color": value || 'transparent',
 		});
 		this.selected_color.toggleClass('no-value', !value);
-		if (this.picker.color !== value) {
-			this.picker.color = value;
-			this.picker.refresh();
-		}
 	},
 	get_color() {
 		return this.validate(this.get_value());

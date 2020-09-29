@@ -5,7 +5,7 @@ class Picker {
 		this.parent = opts.parent;
 		this.width = opts.width;
 		this.height = opts.height;
-		this.color = opts.color;
+		this.color = opts.color || '#ffffff';
 		this.swatches = opts.swatches;
 		this.setup_picker();
 	}
