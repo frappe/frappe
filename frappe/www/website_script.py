@@ -9,13 +9,18 @@ from frappe.website.doctype.website_theme.website_theme import get_active_theme
 base_template_path = "templates/www/website_script.js"
 
 def get_context(context):
-	context.javascript = frappe.db.get_single_value('Website Script',
-		'javascript') or ""
+	context.javascript = frappe.db.get_single_value('Website Script', 'javascript') or ''
 
 	theme = get_active_theme()
 	js = strip(theme and theme.js or "")
 	if js:
 		context.javascript += "\n" + js
+
+	website_settings = frappe.get_single('Website Settings')
+	context['show_cookie_consent'] = website_settings.show_cookie_consent
+	context['cookie_policy_uri'] = website_settings.cookie_policy_uri
+	context['cookie_consent_type'] = website_settings.cookie_consent_type
+	context['cookie_consent_position'] = website_settings.cookie_consent_position
 
 	if not frappe.conf.developer_mode:
 		context["google_analytics_id"] = (frappe.db.get_single_value("Website Settings", "google_analytics_id")

@@ -1,6 +1,41 @@
 // website_script.js
 {% if javascript -%}{{ javascript }}{%- endif %}
 
+{% if show_cookie_consent -%}
+frappe.require([
+	'/assets/frappe/node_modules/cookieconsent/build/cookieconsent.min.js',
+	'/assets/frappe/node_modules/cookieconsent/build/cookieconsent.min.css'
+], function() {
+	var style = getComputedStyle(document.body);
+	window.cookieconsent.initialise({
+		theme: "classic",
+		position: '{{ cookie_consent_position }}',
+		type: '{{ cookie_consent_type }}',
+		layout: 'basic-header',
+		content: {
+			header: __('This website uses cookies'),
+			message: __('We use cookies to ensure you get the best experience on our website.'),
+			dismiss: __('Got it!'),
+			allow: __('Allow cookies'),
+			deny: __('Decline'),
+			link: __('Learn more'),
+			href: '{{ cookie_policy_uri }}',
+			close: '&#x274c',
+			target: '_blank',
+			policy: __('Cookie Policy')
+		},
+		palette: {
+			popup: {
+				background: style.getPropertyValue('--light'),
+			},
+			button: {
+				background: style.getPropertyValue('--primary')
+			}
+		}
+	});
+})
+{%- endif %}
+
 {% if google_analytics_id -%}
 // Google Analytics
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
