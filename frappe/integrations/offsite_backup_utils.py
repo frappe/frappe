@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import glob
 import os
-from frappe.utils import split_emails, get_backups_path
+from frappe.utils import split_emails, now_datetime
 
 
 def send_email(success, service_name, doctype, email_field, error_status=None):
@@ -104,6 +104,6 @@ def take_files_backup():
 		db_port=frappe.conf.db_port,
 	)
 
-	self.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
+	odb.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
 	odb.set_backup_file_name()
 	odb.zip_files()
