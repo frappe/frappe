@@ -91,7 +91,7 @@ def validate_file_size():
 	if file_size > 1:
 		frappe.flags.create_new_backup = False
 
-def take_files_backup():
+def backup_files():
 	"""Only zips and places public and private files in backup folder"""
 	from frappe.utils.backups import BackupGenerator
 
