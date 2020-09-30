@@ -35,6 +35,7 @@ class WebTemplate(Document):
 			if self.standard:
 				export_to_files(record_list=[["Web Template", self.name]], create_init=True)
 				self.create_template_file()
+				self.template = ""
 
 			# standard to custom
 			was_standard = (self.get_doc_before_save() or {}).get("standard")
