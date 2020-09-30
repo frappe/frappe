@@ -71,7 +71,7 @@
 							{% for provider in provider_logins %}
 							<a href="{{ provider.auth_url }}"
 								class="btn btn-secondary btn-sm btn-social btn-{{ provider.name }}">
-								{{ provider.icon }} {{ provider.provider_name }}</a>
+								<span class="provider-icon">{{ provider.icon }}</span>{{ provider.provider_name }}</a>
 							{% endfor %}
 						</div>
 						{%- endif -%}

@@ -38,6 +38,9 @@
 				}
 				.btn-social {
 					box-shadow: none;
+					.provider-icon {
+						margin-right: var(--padding-xs);
+					}
 				}
 			}
 		}
