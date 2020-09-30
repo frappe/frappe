@@ -36,13 +36,13 @@ def get_context(context):
 	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
 	context["logo"] = frappe.get_hooks("app_logo_url")[-1]
 	# context["app_title"] = frappe.get_hooks("app_title")[-1]
-	providers = [i.name for i in frappe.get_all("Social Login Key", filters={"enable_social_login":1})]
+	providers = [i.name for i in frappe.get_all("Social Login Key", filters={"enable_social_login":1}, order_by="name")]
 	for provider in providers:
 		client_id, base_url = frappe.get_value("Social Login Key", provider, ["client_id", "base_url"])
 		client_secret = get_decrypted_password("Social Login Key", provider, "client_secret")
 		provider_name = frappe.get_value("Social Login Key", provider, "provider_name")
 
-		if provider_name in ["Google", "Facebook", "Frappe", "GitHub", "Office 365"]:
+		if provider_name in ["Google", "Facebook", "Frappe", "GitHub", "Office 365", "Salesforce", "fairlogin"]:
 			icon_url = frappe.get_value("Social Login Key", provider, "icon")
 			icon = "<img src='{0}' alt={1}>".format(icon_url, provider_name)
 		else:

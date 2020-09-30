@@ -42,6 +42,13 @@
 					.btn-social {
 						font-size: var(--text-sm);
 						box-shadow: none;
+
+						&.btn-salesforce {
+							i {
+								color: var(--blue-400);
+							}
+						}
+
 						.provider-icon {
 							margin-right: var(--padding-xs);
 						}
