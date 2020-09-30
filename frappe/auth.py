@@ -11,7 +11,7 @@ import frappe.utils
 from frappe.utils import cint, flt, get_datetime, datetime, date_diff, today
 import frappe.utils.user
 from frappe import conf
-from frappe.sessions import Session, clear_sessions, delete_session
+from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
 from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
 from frappe.utils.password import check_password, delete_login_failed_cache
@@ -21,6 +21,7 @@ from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 from frappe.website.utils import get_home_page
 
 from six.moves.urllib.parse import quote
+import boto3
 
 
 class HTTPRequest:
@@ -144,6 +145,7 @@ class LoginManager:
 		self.get_user_info()
 		self.make_session()
 		self.setup_boot_cache()
+		self.get_aws_cognito_token()
 		self.set_user_info()
 
 	def get_user_info(self, resume=False):
@@ -156,6 +158,33 @@ class LoginManager:
 		frappe.cache_manager.build_table_count_cache()
 		frappe.cache_manager.build_domain_restriced_doctype_cache()
 		frappe.cache_manager.build_domain_restriced_page_cache()
+
+	def get_aws_cognito_token(self):
+		self.s3_attatchment = frappe.get_single(
+			doctype='AWS S3 Attachment',
+		)
+
+		if self.s3_attatchment.enable:
+			aws_secret_access_key = frappe.utils.password.get_decrypted_password(
+				'AWS S3 Attachment',
+				'AWS S3 Attachment',
+				fieldname='access_secret',
+			)
+
+			cognito = boto3.client(
+				'cognito-identity',
+				aws_access_key_id=self.s3_attatchment.access_id,
+				aws_secret_access_key=aws_secret_access_key,
+				region_name=self.s3_attatchment.region,
+			)
+
+			self.cognito_token = cognito.get_open_id_token_for_developer_identity(
+				IdentityPoolId=self.s3_attatchment.identity_pool_id,
+				Logins={
+					'frappe.login': self.user,
+				},
+				TokenDuration=get_expiry_in_seconds(),
+			)
 
 	def set_user_info(self, resume=False):
 		# set sid again
@@ -188,6 +217,14 @@ class LoginManager:
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
 		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
+
+		if hasattr(self, 'cognito_token'):
+			frappe.local.cookie_manager.set_cookie(
+				"aws_cognito_identity_id", self.cognito_token.get('IdentityId'),
+			)
+			frappe.local.cookie_manager.set_cookie(
+				"aws_cognito_token", self.cognito_token.get('Token'),
+			)
 
 	def make_session(self, resume=False):
 		# start session

@@ -332,6 +332,89 @@ export default {
 		upload_file(file, i) {
 			this.currently_uploading = i;
 
+			if (frappe.get_cookie('aws_cognito_identity_id')) {
+				// this part should be done using async await,
+				// but I couldn't figure out how to use it properly
+				// ***
+				// tried:
+				// async upload_file(file, i) {
+				// 	console.log('test async #1')
+				// 	await frappe.db.get_doc('AWS S3 Attachment', 'AWS S3 Attachment');
+				// }
+				// or:
+				// upload_file: async (file, i) => {
+				// 	console.log('test async #2')
+				// 	await frappe.db.get_doc('AWS S3 Attachment', 'AWS S3 Attachment');
+				// }
+				// ***
+				// frappe won't load new scipt if i use async,
+				// I think there are some sort of error I guess
+				return frappe.db.get_doc('AWS S3 Attachment', 'AWS S3 Attachment')
+					.then((s3Settings) => {
+						AWS.config.update({
+							region: s3Settings.region,
+							credentials: new AWS.CognitoIdentityCredentials({
+								IdentityId: frappe.get_cookie('aws_cognito_identity_id'),
+								Logins: {
+									'cognito-identity.amazonaws.com': frappe.get_cookie('aws_cognito_token'),
+								},
+							})
+						});
+
+						const upload = new AWS.S3.ManagedUpload({
+							params: {
+								Bucket: s3Settings.bucket_name,
+								Key: file.name,
+								Body: file.file_obj,
+								ContentType: file.file_obj.type,
+								ACL: 'public-read',
+							}
+						});
+
+						return upload.promise()
+							.then((data) => {
+								const fileDoc = {
+									is_private: file.private,
+
+									file_name: data.key,
+									file_url: data.Location,
+								};
+
+								if (this.doctype && this.docname) {
+									fileDoc['attached_to_doctype'] = this.doctype;
+									fileDoc['attached_to_name'] = this.docname;
+								}
+
+								if (this.fieldname) {
+									fileDoc['attached_to_field'] = this.fieldname;
+								}
+
+								return frappe.call({
+									method: 'frappe.integrations.doctype.aws_s3_attachment.create_file_record',
+									args: {
+										file_doc: fileDoc,
+									},
+								}).then((r) => {
+									this.on_success(r);
+									return r;
+								});
+							})
+							.catch((err) => {
+								frappe.msgprint({
+									title: __(`Error: ${err.code}`),
+									indicator: 'red',
+									message: `
+										<b>AWS S3 File Attatchment Error</b>
+										<br>
+										${err.message}
+									`,
+								});
+								console.log(err);
+								return err;
+							});
+					});
+			}
+
 			return new Promise((resolve, reject) => {
 				let xhr = new XMLHttpRequest();
 				xhr.upload.addEventListener('loadstart', (e) => {

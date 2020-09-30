@@ -8,6 +8,8 @@
   "enable",
   "sb_bucket",
   "region",
+  "cb2",
+  "bucket_name",
   "sb_iam",
   "access_id",
   "cb1",
@@ -62,11 +64,20 @@
    "fieldname": "sb_cognito",
    "fieldtype": "Section Break",
    "label": "Cognito Info"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bucket_name",
+   "fieldtype": "Data",
+   "label": "Bucket Name"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-09-26 22:08:18.603027",
+ "modified": "2020-09-27 21:07:06.803397",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "AWS S3 Attachment",
