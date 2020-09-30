@@ -40,11 +40,18 @@ def get_context(context):
 	for provider in providers:
 		client_id, base_url = frappe.get_value("Social Login Key", provider, ["client_id", "base_url"])
 		client_secret = get_decrypted_password("Social Login Key", provider, "client_secret")
-		icon = get_icon_html(frappe.get_value("Social Login Key", provider, "icon"), small=True)
+		provider_name = frappe.get_value("Social Login Key", provider, "provider_name")
+
+		if provider_name in ["Google", "Facebook", "Frappe", "GitHub", "Office 365"]:
+			icon_url = frappe.get_value("Social Login Key", provider, "icon")
+			icon = "<img src='{0}' alt={1}>".format(icon_url, provider_name)
+		else:
+			icon = get_icon_html(frappe.get_value("Social Login Key", provider, "icon"), small=True)
+
 		if (get_oauth_keys(provider) and client_secret and client_id and base_url):
 			context.provider_logins.append({
 				"name": provider,
-				"provider_name": frappe.get_value("Social Login Key", provider, "provider_name"),
+				"provider_name": provider_name,
 				"auth_url": get_oauth2_authorize_url(provider, redirect_to),
 				"icon": icon
 			})

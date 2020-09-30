@@ -63,27 +63,28 @@
 						{{ _("Login with LDAP") }}</button>
 					{% endif %}
 
+					<div class="social-logins text-center">
+						{%- if social_login -%}
+						<p class="text-muted">{{ _("or") }}</p>
+
+						<div class="social-login-buttons">
+							{% for provider in provider_logins %}
+							<a href="{{ provider.auth_url }}"
+								class="btn btn-secondary btn-sm btn-social btn-{{ provider.name }}">
+								<span class="provider-icon">{{ provider.icon }}</span>{{ provider.provider_name }}</a>
+							{% endfor %}
+						</div>
+						{%- endif -%}
+					</div>
+
 					{%- if not disable_signup -%}
-					<p class="text-center sign-up-message">
-						<a href="#signup">{{ _("Don't have an account? Sign up") }}</a>
-					</p>
+					<div class="text-center sign-up-message">
+						{{ _("Don't have an account?") }}
+						<a href="#signup">{{ _("Sign up") }}</a>
+					</div>
 					{%- endif -%}
 				</div>
 			</form>
-		</div>
-		<div class='form-footer'>
-			<div class='social-logins'>
-				{%- if social_login -%}
-				<h6>{{ _("Or login with") }}</h6>
-
-				<p class="text-center">
-					{% for provider in provider_logins %}
-					<a href="{{ provider.auth_url }}" class="btn btn-default btn-sm btn-social btn-{{ provider.name }}">
-						{{ provider.icon }} {{ provider.provider_name }}</a>
-					{% endfor %}
-				</p>
-				{%- endif -%}
-			</div>
 		</div>
 	</section>
 	<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
