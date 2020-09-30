@@ -197,7 +197,8 @@ def upload_system_backup_to_google_drive():
 			file_urls.append(backup.backup_path_files)
 			file_urls.append(backup.backup_path_private_files)
 	else:
-		backup_files()
+		if account.file_backup:
+			backup_files()
 		file_urls = get_latest_backup_file(with_files=account.file_backup)
 
 	for fileurl in file_urls:
