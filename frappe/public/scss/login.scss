@@ -21,17 +21,20 @@
 			.sign-up-message {
 				margin-top: var(--margin-md);
 				color: var(--text-light);
-				font-size: var(--text-sm);
+				font-size: var(--text-md);
 
 				a {
-					font-size: var(--text-sm);
+					font-size: var(--text-md);
 					color: var(--primary);
 				}
 			}
 
 			.social-logins {
 				margin: var(--margin-md) 0;
+				font-size: var(--text-md);
+
 				.social-login-buttons {
+					margin-top: var(--margin-md);
 					display: grid;
 					grid-template-columns: 1fr 1fr 1fr;
 					grid-gap: var(--padding-sm);
