@@ -135,7 +135,8 @@ def validate_email_address(email_str, throw=False):
 
 		if not _valid:
 			if throw:
-				frappe.throw(frappe._("{0} is not a valid Email Address").format(e),
+				invalid_email = frappe.utils.escape_html(e)
+				frappe.throw(frappe._("{0} is not a valid Email Address").format(invalid_email),
 					frappe.InvalidEmailAddressError)
 			return None
 		else:
@@ -619,28 +620,6 @@ def parse_json(val):
 	if isinstance(val, dict):
 		val = frappe._dict(val)
 	return val
-
-def cast_fieldtype(fieldtype, value):
-	if fieldtype in ("Currency", "Float", "Percent"):
-		value = flt(value)
-
-	elif fieldtype in ("Int", "Check"):
-		value = cint(value)
-
-	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
-		"Text Editor", "Select", "Link", "Dynamic Link"):
-		value = cstr(value)
-
-	elif fieldtype == "Date":
-		value = getdate(value)
-
-	elif fieldtype == "Datetime":
-		value = get_datetime(value)
-
-	elif fieldtype == "Time":
-		value = to_timedelta(value)
-
-	return value
 
 def get_db_count(*args):
 	"""

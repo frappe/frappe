@@ -19,17 +19,13 @@
    "fieldname": "account_sid",
    "fieldtype": "Data",
    "label": "Account SID",
-   "mandatory_depends_on": "eval: doc.enabled",
-   "show_days": 1,
-   "show_seconds": 1
+   "mandatory_depends_on": "eval: doc.enabled"
   },
   {
    "fieldname": "auth_token",
    "fieldtype": "Password",
    "label": "Auth Token",
-   "mandatory_depends_on": "eval: doc.enabled",
-   "show_days": 1,
-   "show_seconds": 1
+   "mandatory_depends_on": "eval: doc.enabled"
   },
   {
    "fieldname": "column_break_2",
@@ -41,9 +37,7 @@
    "fieldname": "twilio_number",
    "fieldtype": "Table",
    "label": "Twilio Number",
-   "options": "Twilio Number Group",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Twilio Number Group"
   },
   {
    "default": "0",

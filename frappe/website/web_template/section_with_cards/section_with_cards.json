@@ -240,9 +240,10 @@
   }
  ],
  "idx": 0,
- "modified": "2020-05-15 13:52:02.984001",
+ "modified": "2020-09-11 15:58:00.731982",
  "modified_by": "Administrator",
  "name": "Section with Cards",
  "owner": "Administrator",
- "standard": 1
+ "standard": 1,
+ "type": "Section"
 }

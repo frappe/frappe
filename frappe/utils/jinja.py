@@ -22,7 +22,8 @@ def get_jenv():
 		jenv.globals.update({
 			'resolve_class': resolve_class,
 			'inspect': inspect,
-			'web_blocks': web_blocks
+			'web_blocks': web_blocks,
+			'web_block': web_block
 		})
 
 		frappe.local.jenv = jenv
@@ -191,24 +192,34 @@ def inspect(var, render=True):
 		html = ""
 	return get_jenv().from_string(html).render(context)
 
+
+def web_block(template, values, **kwargs):
+	options = {"template": template, "values": values}
+	options.update(kwargs)
+	return web_blocks([options])
+
+
 def web_blocks(blocks):
-	from frappe import get_doc
+	from frappe import throw, _dict
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
 
 	web_blocks = []
 	for block in blocks:
-		doc = {
+		if not block.get('template'):
+			throw('Web Template is not specified')
+
+		doc = _dict({
 			'doctype': 'Web Page Block',
 			'web_template': block['template'],
-			'web_template_values': block['values'],
+			'web_template_values': block.get('values', {}),
 			'add_top_padding': 1,
 			'add_bottom_padding': 1,
 			'add_container': 1,
 			'hide_block': 0,
 			'css_class': ''
-		}
+		})
 		doc.update(block)
-		web_blocks.append(get_doc(doc))
+		web_blocks.append(doc)
 
 	out = get_web_blocks_html(web_blocks)
 

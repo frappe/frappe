@@ -247,7 +247,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 		and t1.blogger = t2.name
 		%(condition)s
 		order by featured desc, published_on desc, name asc
-		limit %(start)s, %(page_len)s""" % {
+		limit %(page_len)s OFFSET %(start)s""" % {
 			"start": limit_start, "page_len": limit_page_length,
 				"condition": (" and " + " and ".join(conditions)) if conditions else ""
 		}

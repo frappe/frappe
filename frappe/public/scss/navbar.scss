@@ -1,0 +1,59 @@
+.navbar-light {
+	border-bottom: 1px solid $border-color;
+}
+
+.navbar-brand {
+	img {
+		display: inline-block;
+		max-width: 150px;
+		max-height: 25px;
+	}
+}
+
+.navbar-cta {
+	@include media-breakpoint-up(lg) {
+		margin-left: 1rem;
+	}
+}
+
+
+.navbar.bg-dark {
+	.dropdown-menu {
+		font-size: 0.75rem;
+		background-color: $dark;
+		border-radius: 0;
+	}
+
+	.nav-link {
+		white-space: nowrap;
+		color: $light;
+
+		&:hover {
+			color: $primary;
+		}
+	}
+
+	.nav-item {
+		padding: 0rem 1rem;
+	}
+
+	.dropdown-item {
+		color: $light;
+
+		&:hover {
+			background-color: $dark;
+			color: $primary;
+		}
+	}
+}
+
+.navbar-light .navbar-nav .nav-link {
+	color: $gray-700;
+	font-size: $font-size-sm;
+	font-weight: 500;
+
+	&:hover,
+	&:focus, &.active {
+		color: $primary;
+	}
+}

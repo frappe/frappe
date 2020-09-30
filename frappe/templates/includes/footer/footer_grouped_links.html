@@ -1,28 +1,32 @@
-{% for page in footer_items if page.child_items %}
-<div class="col footer-group">
-	<div data-label="{{ page.label }}">
-		<span>
-			<div class="footer-group-label footer-parent-item">
-				{%- if page.icon -%}
-				<img src="{{ page.icon }}" alt="{{ page.label }}">
-				{%- else -%}
-				{{ page.label }}
-				{%- endif -%}
-			</div>
-		</span>
-		<ul class="list-unstyled">
-			{%- for child in page.child_items -%}
-			<li class="mt-2 footer-child-item" data-label='{{ child.label }}'>
-				<a href="{{ child.url | abs_url }}" {% if child.target %} target="_blank" {% endif %}>
-					{%- if child.icon -%}
-					<img src="{{ child.icon }}" alt="{{ child.label }}">
+<div class="footer-grouped-links">
+	<div class="row">
+		{% for group in footer_items if group.child_items %}
+		{# 2 columns to every 5 links, so 5 links get 2 columns, 5-10 links get 4 columns, and so on #}
+		{%- set cols = frappe.utils.ceil((group.child_items | len) / 5) * 2 -%}
+		<div class="col-sm-{{ cols }} footer-group">
+			<div data-label="{{ group.label }}">
+				<h5 class="footer-group-label">
+					{%- if group.icon -%}
+					<img src="{{ group.icon }}" alt="{{ group.label }}">
 					{%- else -%}
-					{{ child.label }}
+					{{ group.label }}
 					{%- endif -%}
-				</a>
-			</li>
-			{%- endfor -%}
-		</ul>
+				</h5>
+				<ul class="footer-group-links list-unstyled">
+					{%- for child in group.child_items -%}
+					<li class="footer-child-item" data-label="{{ child.label }}">
+						<a href="{{ child.url | abs_url }}" {% if child.target %} target="_blank" {% endif %}>
+							{%- if child.icon -%}
+							<img src="{{ child.icon }}" alt="{{ child.label }}">
+							{%- else -%}
+							{{ child.label }}
+							{%- endif -%}
+						</a>
+					</li>
+					{%- endfor -%}
+				</ul>
+			</div>
+		</div>
+		{% endfor %}
 	</div>
 </div>
-{% endfor %}

@@ -10,7 +10,7 @@ from frappe.utils.password import get_decrypted_password
 
 from six import string_types
 import re
-from json import dumps
+from json import dumps, loads
 
 from twilio.rest import Client
 from twilio.jwt.access_token import AccessToken
@@ -42,14 +42,15 @@ class TwilioSettings(Document):
 			frappe.throw(_("Twilio API credential creation error."))
 
 def send_whatsapp_message(sender, receiver_list, message):
-	import json
+	twilio_settings = frappe.get_doc("Twilio Settings")
+	if not twilio_settings.enabled:
+		frappe.throw(_("Please enable twilio settings before sending WhatsApp messages"))
+
 	if isinstance(receiver_list, string_types):
-		receiver_list = json.loads(receiver_list)
+		receiver_list = loads(receiver_list)
 		if not isinstance(receiver_list, list):
 			receiver_list = [receiver_list]
 
-
-	twilio_settings = frappe.get_doc("Twilio Settings")
 	auth_token = get_decrypted_password("Twilio Settings", "Twilio Settings", 'auth_token')
 	client = Client(twilio_settings.account_sid, auth_token)
 	args = {
