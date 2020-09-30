@@ -69,9 +69,12 @@
 
 						<div class="social-login-buttons">
 							{% for provider in provider_logins %}
-							<a href="{{ provider.auth_url }}"
-								class="btn btn-secondary btn-sm btn-social btn-{{ provider.name }}">
-								<span class="provider-icon">{{ provider.icon }}</span>{{ provider.provider_name }}</a>
+							<div class="login-button-wrapper">
+								<a href="{{ provider.auth_url }}"
+									class="btn btn-block btn-secondary btn-sm btn-social btn-{{ provider.name }}">
+									<span
+										class="provider-icon">{{ provider.icon }}</span>{{ provider.provider_name }}</a>
+							</div>
 							{% endfor %}
 						</div>
 						{%- endif -%}

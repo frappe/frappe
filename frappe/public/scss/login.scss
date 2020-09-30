@@ -34,10 +34,21 @@
 				font-size: var(--text-md);
 
 				.social-login-buttons {
+					display: flex;
+					flex-wrap: wrap;
+					justify-content: center;
+					margin-left: -4px;
+					margin-right: -4px;
 					margin-top: var(--margin-md);
-					display: grid;
-					grid-template-columns: 1fr 1fr 1fr;
-					grid-gap: var(--padding-sm);
+
+					.login-button-wrapper {
+						@include media-breakpoint-up(md) {
+							min-width: 33.33%;
+						}
+						min-width: 50%;
+						padding: 0 4px;
+						margin-top: var(--margin-sm);
+					}
 
 					.btn-social {
 						font-size: var(--text-sm);
