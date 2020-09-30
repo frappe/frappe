@@ -59,7 +59,7 @@
     "cypress-file-upload": "^3.1.0",
     "graphlib": "^2.1.8",
     "less": "^3.11.1",
-    "node-sass": "^4.13.1",
+    "node-sass": "^4.14.1",
     "rollup": "^1.2.2",
     "rollup-plugin-buble": "^0.19.2",
     "rollup-plugin-commonjs": "^8.3.0",
