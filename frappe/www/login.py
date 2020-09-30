@@ -42,7 +42,7 @@ def get_context(context):
 		client_secret = get_decrypted_password("Social Login Key", provider, "client_secret")
 		provider_name = frappe.get_value("Social Login Key", provider, "provider_name")
 
-		if provider_name in ["Google", "Facebook", "Frappe", "GitHub", "Office 365", "Salesforce", "fairlogin"]:
+		if provider_name != "Custom":
 			icon_url = frappe.get_value("Social Login Key", provider, "icon")
 			icon = "<img src='{0}' alt={1}>".format(icon_url, provider_name)
 		else:
