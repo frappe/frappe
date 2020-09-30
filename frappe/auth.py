@@ -181,7 +181,7 @@ class LoginManager:
 			self.cognito_token = cognito.get_open_id_token_for_developer_identity(
 				IdentityPoolId=self.s3_attatchment.identity_pool_id,
 				Logins={
-					'frappe.login': self.user,
+					self.s3_attatchment.dev_provider_name: self.user,
 				},
 				TokenDuration=get_expiry_in_seconds(),
 			)

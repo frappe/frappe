@@ -15,7 +15,9 @@
   "cb1",
   "access_secret",
   "sb_cognito",
-  "identity_pool_id"
+  "identity_pool_id",
+  "cb3",
+  "dev_provider_name"
  ],
  "fields": [
   {
@@ -73,11 +75,20 @@
    "fieldname": "bucket_name",
    "fieldtype": "Data",
    "label": "Bucket Name"
+  },
+  {
+   "fieldname": "dev_provider_name",
+   "fieldtype": "Data",
+   "label": "Developer Provider Name"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-09-27 21:07:06.803397",
+ "modified": "2020-09-30 14:05:54.349375",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "AWS S3 Attachment",
