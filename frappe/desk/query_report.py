@@ -320,7 +320,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 			attached_file = frappe.get_doc("File", attached_file_name)
 			compressed_content = attached_file.get_content()
 			uncompressed_content = gzip_decompress(compressed_content)
-			data = json.loads(uncompressed_content)
+			data = json.loads(uncompressed_content.decode("utf-8"))
 			if data:
 				columns = json.loads(doc.columns) if doc.columns else data[0]
 
