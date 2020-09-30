@@ -59,6 +59,10 @@ $page-bottom-margin: 60px;
 	.page-head-content {
 		height: $page-head-height;
 	}
+	&.drop-shadow {
+		box-shadow: var(--shadow-sm);
+		background-color: var(--fg-color) !important;
+	}
 }
 
 .page-form {

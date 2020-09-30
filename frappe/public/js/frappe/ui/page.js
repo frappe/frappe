@@ -42,6 +42,17 @@ frappe.ui.Page = Class.extend({
 	make: function() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
+		this.setup_scroll_handler();
+	},
+
+	setup_scroll_handler() {
+		window.addEventListener('scroll', () => {
+			if (document.documentElement.scrollTop) {
+				$('.page-head').toggleClass('drop-shadow', true);
+			} else {
+				$('.page-head').removeClass('drop-shadow');
+			}
+		});
 	},
 
 	get_empty_state: function(title, message, primary_action) {
