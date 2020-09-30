@@ -20,9 +20,24 @@
 
 			.sign-up-message {
 				margin-top: var(--margin-md);
-				> * {
-					color: var(--text-light);
+				color: var(--text-light);
+				font-size: var(--text-sm);
+
+				a {
 					font-size: var(--text-sm);
+					color: var(--primary);
+				}
+			}
+
+			.social-logins {
+				margin: var(--margin-md) 0;
+				.social-login-buttons {
+					display: grid;
+					grid-template-columns: 1fr 1fr 1fr;
+					grid-gap: var(--padding-sm);
+				}
+				.btn-social {
+					box-shadow: none;
 				}
 			}
 		}
