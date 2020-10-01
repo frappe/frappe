@@ -1,0 +1,21 @@
+name: 'Documentation Required'
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, edited ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Setup Environment'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+
+      - name: Validate Docs
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          wget https://github.com/frappe/frappe/blob/develop/.github/helper/documentation.py
+          python documentation.py $PR_NUMBER
