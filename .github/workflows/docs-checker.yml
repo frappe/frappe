@@ -11,11 +11,12 @@ jobs:
       - name: 'Setup Environment'
         uses: actions/setup-python@v2
         with:
-          python-version: '3.6'
+          python-version: 3.6
+
+      - name: 'Clone repo'
+        uses: actions/checkout@v2
 
       - name: Validate Docs
         env:
           PR_NUMBER: ${{ github.event.number }}
-        run: |
-          wget https://github.com/frappe/frappe/blob/develop/.github/helper/documentation.py
-          python documentation.py $PR_NUMBER
+        run: python $GITHUB_WORKSPACE/.github/helper/documentation.py $PR_NUMBER
