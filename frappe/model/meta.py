@@ -351,6 +351,10 @@ class Meta(Document):
 			else:
 				newlist.append(df)
 
+		# custom fields not found
+		if newlist == self.fields:
+			return
+
 		newlist_fieldnames = [df.fieldname for df in newlist]
 
 		changed = True
