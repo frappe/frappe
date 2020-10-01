@@ -96,7 +96,7 @@
 		"public/less/controls.less",
 		"public/less/chat.less",
 		"public/less/social.less",
-		"public/scss/main.scss",
+		"public/scss/desk.scss",
 		"node_modules/frappe-charts/dist/frappe-charts.min.css",
 		"node_modules/driver.js/dist/driver.min.css",
 		"public/less/driver.less"
@@ -107,8 +107,6 @@
 		"public/css/report-rtl.css"
 	],
 	"css/printview.css": [
-		"public/css/bootstrap.css",
-		"public/css/font-awesome.css",
 		"public/scss/print.scss"
 	],
 	"concat:js/libs.min.js": [
