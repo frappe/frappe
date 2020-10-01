@@ -1,7 +1,7 @@
 import Widget from "./base_widget.js";
 import { generate_route } from "./utils";
 
-const indicator_colors = ["Grey", "Green", "Red", "Orange", "Pink", "Yellow", "Blue", "Cyan", "Teal"]
+const INDICATOR_COLORS = ["Grey", "Green", "Red", "Orange", "Pink", "Yellow", "Blue", "Cyan", "Teal"];
 export default class ShortcutWidget extends Widget {
 	constructor(opts) {
 		opts.shadow = true;
@@ -78,11 +78,7 @@ export default class ShortcutWidget extends Widget {
 
 		this.action_area.empty();
 		const label = get_label();
-		let color = indicator_colors.includes(this.color)
-			? this.color.toLowerCase()
-			: 'grey';
-		
-		const buttons = $(`<div class="indicator-pill ${color}">${label}</div>`);
-		buttons.appendTo(this.action_area);
+		let color = INDICATOR_COLORS.includes(this.color) && count ? this.color.toLowerCase() : 'gray';
+		$(`<div class="indicator-pill ${color}">${label}</div>`).appendTo(this.action_area);
 	}
 }

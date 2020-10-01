@@ -50,6 +50,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.setup_new_doc_event();
 	}
 
+	toggle_side_bar() {
+		super.toggle_side_bar();
+		// refresh datatable when sidebar is toggled to accomodate extra space
+		this.render(true);
+	}
+
 	setup_result_area() {
 		super.setup_result_area();
 		this.setup_charts_area();

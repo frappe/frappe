@@ -12,7 +12,6 @@ import click
 
 # imports - module imports
 import frappe
-from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.exceptions import SiteNotSpecifiedError
@@ -272,11 +271,10 @@ def disable_user(context, email):
 
 
 @click.command('migrate')
-@click.option('--rebuild-website', help="Rebuild webpages after migration")
 @click.option('--skip-failing', is_flag=True, help="Skip patches that fail to run")
 @click.option('--skip-search-index', is_flag=True, help="Skip search indexing for web documents")
 @pass_context
-def migrate(context, rebuild_website=False, skip_failing=False, skip_search_index=False):
+def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
 	from frappe.migrate import migrate
 
@@ -287,7 +285,6 @@ def migrate(context, rebuild_website=False, skip_failing=False, skip_search_inde
 		try:
 			migrate(
 				context.verbose,
-				rebuild_website=rebuild_website,
 				skip_failing=skip_failing,
 				skip_search_index=skip_search_index
 			)

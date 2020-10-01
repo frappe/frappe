@@ -52,7 +52,7 @@ frappe.Application = Class.extend({
 		this.set_favicon();
 		this.setup_analytics();
 		this.set_fullwidth_if_enabled();
-
+		this.add_browser_class();
 		this.setup_energy_point_listeners();
 
 		frappe.ui.keys.setup();
@@ -521,6 +521,16 @@ frappe.Application = Class.extend({
 				"$created": frappe.boot.user.creation,
 				"$email": frappe.session.user
 			});
+		}
+	},
+
+	add_browser_class() {
+		let browsers = ['Chrome', 'Firefox', 'Safari'];
+		for (let browser of browsers) {
+			if (navigator.userAgent.includes(browser)) {
+				$('html').addClass(browser.toLowerCase());
+				return;
+			}
 		}
 	},
 
