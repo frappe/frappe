@@ -60,8 +60,8 @@ class AssignmentRule(Document):
 			# set for reference in round robin
 			self.db_set('last_user', user)
 			return True
-		else:
-			return False
+
+		return False
 
 	def clear_assignment(self, doc):
 		'''Clear assignments'''
