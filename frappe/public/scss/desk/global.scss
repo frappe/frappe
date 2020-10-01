@@ -346,8 +346,9 @@ input[type="checkbox"] {
 	}
 }
 
-// Firefox doesn't support pseudo elements on checkbox
-@supports (-moz-appearance: none) or (-ms-ime-align:auto) {
+// Firefox doesn't support
+// pseudo elements on checkbox
+html.firefox, html.safari {
 	:root {
 		--custom-checkbox-size: 0px;
 	}
