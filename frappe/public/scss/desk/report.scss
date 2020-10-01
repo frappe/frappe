@@ -102,12 +102,12 @@
 
 .comparison-message {
 	margin-left: var(--margin-sm);
-	font-size: $font-size-md;
+	font-size: var(--text-md);
 }
 
 .list-count {
 	margin-right: var(--margin-sm);
-	font-size: $font-size-md;
+	font-size: var(--text-md);
 }
 
 .group-by-popover {

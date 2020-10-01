@@ -68,7 +68,7 @@
 
 		.section-head {
 			padding: 0;
-			font-size: $font-size-md;
+			font-size: var(--text-md);
 
 			&:not(.collapsed) {
 				padding-bottom: var(--padding-sm);

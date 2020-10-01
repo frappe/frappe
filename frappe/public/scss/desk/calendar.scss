@@ -117,7 +117,7 @@ th.fc-day-header {
 
 .fc button {
 	height: 28px !important;
-	font-size: $font-size-md !important;
+	font-size: var(--text-md) !important;
 	outline: none !important;
 	text-transform: capitalize;
 	// .fc-icon {
