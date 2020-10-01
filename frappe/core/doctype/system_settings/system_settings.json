@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "localization",
+  "app_name",
   "country",
   "language",
   "column_break_3",
@@ -460,12 +461,25 @@
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
    "label": "Prepared Report"
+  },
+  {
+   "default": "Frappe",
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "label": "App Name"
+  },
+  {
+   "default": "3",
+   "description": "Hourly rate limit for generating password reset links",
+   "fieldname": "password_reset_limit",
+   "fieldtype": "Int",
+   "label": "Password Reset Link Generation Limit"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-08-12 14:35:45.214327",
+ "modified": "2020-09-30 14:38:58.886100",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

@@ -40,7 +40,9 @@ class SocialLoginKey(Document):
 			"Frappe": "frappe.svg",
 			"Facebook": "facebook.svg",
 			"Office 365": "office_365.svg",
-			"GitHub": "github.svg"
+			"GitHub": "github.svg",
+			"Salesforce": "salesforce.svg",
+			"fairlogin": "fair.svg"
 		}
 
 		if self.provider_name in icon_map:
