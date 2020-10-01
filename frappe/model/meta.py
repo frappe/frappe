@@ -343,6 +343,7 @@ class Meta(Document):
 		for df in self.fields:
 			if df.get('is_custom_field'):
 				if not df.insert_after:
+					# custom field without insert_after, should go first
 					newlist.insert(0, df)
 				else:
 					# reverse sorted, looped in reverse later
@@ -352,10 +353,10 @@ class Meta(Document):
 
 		newlist_fieldnames = [df.fieldname for df in newlist]
 
-		while True:
-			current_index = len(custom_fields) - 1
+		changed = True
+		while changed:
 			changed = False
-			while current_index >= 0:
+			for current_index in range(len(custom_fields) - 1, -1, -1):
 				df = custom_fields[current_index]
 				if df.insert_after in newlist_fieldnames:
 					# add to new list
@@ -367,13 +368,9 @@ class Meta(Document):
 					del custom_fields[current_index]
 					changed = True
 
-				current_index -= 1
-
-			if not changed:
-				# avoid recursion, add remaining custom fields to end of new list
-				if custom_fields:
-					newlist += custom_fields
-				break
+		# these fields probably have an invalid insert_after reference
+		if custom_fields:
+			newlist += custom_fields
 
 		# renum idx
 		for i, f in enumerate(newlist):
