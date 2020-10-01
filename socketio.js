@@ -407,6 +407,6 @@ function send_users(args, action) {
 	io.to(open_doc_room).emit(emit_event, {
 		doctype: args.doctype,
 		docname: args.docname,
-		users: users
+		users: Array.from(new Set(users))
 	});
 }
