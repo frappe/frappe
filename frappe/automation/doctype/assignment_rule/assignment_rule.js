@@ -33,8 +33,7 @@ frappe.ui.form.on('Assignment Rule', {
 
 		let get_button_html = (label) => `<button
 			class="btn btn-xs btn-default pull-right"
-			style="margin-bottom: 10px; margin-right: 5px">${__(label)}
-		</button>`;
+			style="margin-bottom: 10px; margin-right: 5px">${__(label)}</button>`;
 
 		const $wrapper = frm.get_field('assignment_days').$wrapper;
 		$(`<div class="fetch-days-buttons">
@@ -72,6 +71,8 @@ frappe.ui.form.on('Assignment Rule', {
 				});
 				frm.set_df_property('field', 'options', user_link_fields);
 			});
+		} else {
+			frm.set_df_property('field', 'options', user_link_fields);
 		}
 	},
 	set_due_date_field_options: (frm) => {
