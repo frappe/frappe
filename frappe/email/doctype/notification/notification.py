@@ -148,33 +148,6 @@ def get_context(context):
 			except Exception:
 				frappe.log_error(title='Document update failed', message=frappe.get_traceback())
 
-<<<<<<< HEAD
-=======
-	def create_system_notification(self, doc, context):
-		subject = self.subject
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
-
-		attachments = self.get_attachment(doc)
-
-		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
-
-		users = recipients + cc + bcc
-
-		if not users:
-			return
-
-		notification_doc = {
-			'type': 'Alert',
-			'document_type': doc.doctype,
-			'document_name': doc.name,
-			'subject': subject,
-			'email_content': frappe.render_template(self.message, context),
-			'attached_file': attachments and json.dumps(attachments[0])
-		}
-		enqueue_create_notification(users, notification_doc)
-
->>>>>>> ac38866d6d... fix(notification): Set integer value if fieldtype is one of numeric_fieldtypes
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
 		subject = self.subject
