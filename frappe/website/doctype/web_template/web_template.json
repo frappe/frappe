@@ -52,8 +52,13 @@
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2020-09-18 13:54:12.667877",
+ "links": [
+  {
+   "link_doctype": "Web Page",
+   "link_fieldname": "web_template"
+  }
+ ],
+ "modified": "2020-09-25 00:48:57.902292",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",

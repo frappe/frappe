@@ -22,7 +22,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.search.website_search import build_index_for_all_routes
 
 
-def migrate(verbose=True, rebuild_website=False, skip_failing=False, skip_search_index=False):
+def migrate(verbose=True, skip_failing=False, skip_search_index=False):
 	'''Migrate all apps to the current version, will:
 	- run before migrate hooks
 	- run patches

@@ -267,11 +267,10 @@ def disable_user(context, email):
 
 
 @click.command('migrate')
-@click.option('--rebuild-website', help="Rebuild webpages after migration")
 @click.option('--skip-failing', is_flag=True, help="Skip patches that fail to run")
 @click.option('--skip-search-index', is_flag=True, help="Skip search indexing for web documents")
 @pass_context
-def migrate(context, rebuild_website=False, skip_failing=False, skip_search_index=False):
+def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
 	import compileall
 	import re
@@ -284,7 +283,6 @@ def migrate(context, rebuild_website=False, skip_failing=False, skip_search_inde
 		try:
 			migrate(
 				context.verbose,
-				rebuild_website=rebuild_website,
 				skip_failing=skip_failing,
 				skip_search_index=skip_search_index
 			)
