@@ -532,7 +532,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, path=None):
 
 	:param allow_guest: Allow non logged-in user to access this method.
 	:param methods: Allowed http method to access the method.
-	:param alias: Alias the path to method with an alternative string
+	:param path: Full path that can be used to trigger this method
 
 	Use as:
 
