@@ -1,0 +1,42 @@
+.table {
+	margin-bottom: 0px;
+	margin-top: 0px;
+	font-size: var(--text-base);
+}
+
+thead {
+	background-color: var(--control-bg);
+	border-radius: var(--border-radius-sm);
+}
+
+thead > tr {
+	border-radius: var(--border-radius-sm);
+}
+
+thead > tr > th:first-child {
+	border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+}
+thead > tr > th:last-child {
+	border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+}
+
+.worker-name {
+	display: flex;
+	align-items: center;
+}
+
+.job-name {
+	font-size: var(--text-md);
+	background-color: var(--control-bg);
+	padding: var(--padding-xs) var(--padding-sm);
+	border-radius: var(--border-radius-md);
+	font-family: "Courier New", Courier, monospace;
+}
+
+.footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: var(--margin-md);
+	font-size: var(--text-base);
+}
