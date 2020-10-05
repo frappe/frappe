@@ -89,10 +89,16 @@
 		animation: 500ms breathe forwards;
 	}
 
-	.dt-filter.dt-input {
-		border-radius: var(--border-radius);
-		height: 100%;
-		background-color: var(--control-bg);
+	.dt-row-filter {
+		.dt-cell__content {
+			padding: var(--padding-xs);
+		}
+
+		.dt-filter.dt-input {
+			border-radius: var(--border-radius);
+			height: 100%;
+			background-color: var(--control-bg);
+		}
 	}
 
 	.dt-scrollable {
