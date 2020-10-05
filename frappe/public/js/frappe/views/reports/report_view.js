@@ -651,6 +651,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_fields() {
+		// default fields
+		['name', 'docstatus'].map(this._add_field);
+
 		if (this.report_name && this.report_doc.json.fields) {
 			let fields = this.report_doc.json.fields.slice();
 			fields.forEach(f => this._add_field(f[0], f[1]));
@@ -672,7 +675,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		// default fields
 		[
-			'name', 'docstatus',
 			this.meta.title_field,
 			this.meta.image_field
 		].map(add_field);
