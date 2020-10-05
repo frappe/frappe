@@ -380,7 +380,8 @@ body {
 			display: flex;
 			text-decoration: none;
 			color: var(--text-color);
-			padding: var(--padding-xs) 0;
+			padding: var(--padding-xs);
+			margin-left: -5px;
 			border-radius: var(--border-radius-md);
 			cursor: pointer;
 
