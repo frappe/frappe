@@ -58,24 +58,25 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 	elif report.report_type == 'Script Report':
 		res = report.execute_script_report(filters)
 
-	columns, result, message, chart, data_to_be_printed, skip_total_row = \
-		ljust_list(res, 6)
+	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
+	columns = [get_column_as_dict(col) for col in columns]
 
-	if report.custom_columns:
-		# Original query columns, needed to reorder data as per custom columns
-		query_columns = columns
-		# Reordered columns
-		columns = json.loads(report.custom_columns)
-
-		result = reorder_data_for_custom_columns(columns, query_columns, result)
-
-		result = add_data_to_custom_columns(columns, result)
+	# convert to list of dicts
+	result = normalize_result(result, columns)
 
 	if custom_columns:
-		result = add_data_to_custom_columns(custom_columns, result)
-
 		for custom_column in custom_columns:
 			columns.insert(custom_column['insert_after_index'] + 1, custom_column)
+
+	custom_columns = custom_columns or []
+
+	if isinstance(report.custom_columns, string_types):
+		custom_columns += json.loads(report.custom_columns) or []
+	else:
+		custom_columns += report.custom_columns or []
+
+	if custom_columns:
+		result = add_custom_column_data(custom_columns, result)
 
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
@@ -93,6 +94,21 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		"status": None,
 		"execution_time": frappe.cache().hget('report_execution_time', report.name) or 0
 	}
+
+def normalize_result(result, columns):
+	# Converts to list of dicts from list of lists/tuples
+	data = []
+	column_names = [column["fieldname"] for column in columns]
+	if result and isinstance(result[0], (list, tuple)):
+		for row in result:
+			row_obj = {}
+			for idx, column_name in enumerate(column_names):
+				row_obj[column_name] = row[idx]
+			data.append(row_obj)
+	else:
+		data = result
+
+	return data
 
 @frappe.whitelist()
 def background_enqueue_run(report_name, filters=None, user=None):
@@ -185,68 +201,18 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False, cust
 
 	return result
 
-def add_data_to_custom_columns(columns, result):
-	if not result:
-		return []
 
-	custom_fields_data = get_data_for_custom_report(columns)
+def add_custom_column_data(custom_columns, result):
+	custom_column_data = get_data_for_custom_report(custom_columns)
 
-	data = []
-	for row in result:
-		row_obj = {}
-		if isinstance(row, tuple):
-			row = list(row)
+	for column in custom_columns:
+		key = (column.get('doctype'), column.get('fieldname'))
+		if key in custom_column_data:
+			for row in result:
+				row_reference = row[column.get('link_field')]
+				row[column.get('fieldname')] = custom_column_data.get(key).get(row_reference)
 
-		if isinstance(row, list):
-			for idx, column in enumerate(columns):
-				if column.get('link_field'):
-					row_obj[column['fieldname']] = None
-					row.insert(idx, None)
-				else:
-					row_obj[column['fieldname']] = row[idx]
-			data.append(row_obj)
-		else:
-			data.append(row)
-
-	for row in data:
-		for column in columns:
-			if column.get('link_field'):
-				fieldname = column['fieldname']
-				key = (column['doctype'], fieldname)
-				link_field = column['link_field']
-				row[fieldname] = custom_fields_data.get(key, {}).get(row.get(link_field))
-
-	return data
-
-def reorder_data_for_custom_columns(custom_columns, columns, result):
-	if not result:
-		return []
-
-	columns = [get_column_as_dict(col) for col in columns]
-	if isinstance(result[0], list) or isinstance(result[0], tuple):
-		# If the result is a list of lists
-		custom_column_names = [col["label"] for col in custom_columns]
-		original_column_names = [col["label"] for col in columns]
-		return get_columns_from_list(custom_column_names, original_column_names, result)
-	else:
-		# columns do not need to be reordered if result is a list of dicts
-		return result
-
-def get_columns_from_list(columns, target_columns, result):
-	reordered_result = []
-
-	for res in result:
-		r = []
-		for col_name in columns:
-			try:
-				idx = target_columns.index(col_name)
-				r.append(res[idx])
-			except ValueError:
-				pass
-
-		reordered_result.append(r)
-
-	return reordered_result
+	return result
 
 def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
@@ -637,6 +603,8 @@ def get_column_as_dict(col):
 				col_dict["fieldtype"], col_dict["options"] = col[1].split("/")
 			else:
 				col_dict["fieldtype"] = col[1]
+			if len(col) == 3:
+				col_dict["width"] = col[2]
 
 		col_dict["label"] = col[0]
 		col_dict["fieldname"] = frappe.scrub(col[0])
