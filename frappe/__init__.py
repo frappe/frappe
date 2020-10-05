@@ -520,12 +520,12 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		inline_images=inline_images, header=header, print_letterhead=print_letterhead)
 
 whitelisted = []
-whitelisted_alias = {}
+whitelisted_paths = {}
 guest_methods = []
 xss_safe_methods = []
 allowed_http_methods_for_whitelisted_func = {}
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None, alias=None):
+def whitelist(allow_guest=False, xss_safe=False, methods=None, path=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
@@ -545,14 +545,11 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, alias=None):
 		methods = ['GET', 'POST', 'PUT', 'DELETE']
 
 	def innerfn(fn):
-		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func, whitelisted_alias
+		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func, whitelisted_paths
 		whitelisted.append(fn)
 
-		if alias:
-			if whitelisted_alias.get(alias):
-				throw('Whitelisted method alias already exists for ' + alias)
-			else:
-				whitelisted_alias[alias] = fn
+		if path:
+			whitelisted_paths[path] = fn
 
 		allowed_http_methods_for_whitelisted_func[fn] = methods
 

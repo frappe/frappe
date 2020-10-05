@@ -40,6 +40,26 @@ def handle():
 
 	return build_response("json")
 
+
+def handle_whitelisted_path():
+	"""Handle whitelisted path methods"""
+	validate_auth()
+	path = frappe.request.path
+
+	method = frappe.whitelisted_paths.get(path)
+	data = execute_whitelisted_method(method)
+
+	if data is not None:
+		if isinstance(data, Response):
+			# method returns a response object, pass it on
+			return data
+
+		# add the response to `message` label
+		frappe.response['message'] = data
+
+	return build_response("json")
+
+
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
 	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
@@ -51,8 +71,11 @@ def execute_cmd(cmd, from_async=False):
 	if run_server_script_api(cmd):
 		return None
 
-	if cmd in frappe.whitelisted_alias.keys():
-		method = frappe.whitelisted_alias.get(cmd)
+	return execute_whitelisted_method(cmd, from_async=from_async)
+
+def execute_whitelisted_method(cmd, from_async=False):
+	if callable(cmd):
+		method = cmd
 	else:
 		try:
 			method = get_attr(cmd)
@@ -227,6 +250,4 @@ def get_attr(cmd):
 
 @frappe.whitelist(allow_guest = True)
 def ping():
-	import time
-	time.sleep(5)
 	return "pong"

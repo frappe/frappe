@@ -60,6 +60,9 @@ def application(request):
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
 
+		elif frappe.request.path in frappe.whitelisted_paths:
+			response = frappe.handler.handle_whitelisted_path()
+
 		elif frappe.request.path.startswith("/api/"):
 			response = frappe.api.handle()
 
