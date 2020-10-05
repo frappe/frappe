@@ -30,10 +30,14 @@ thead > tr > th:last-child {
 
 .job-name {
 	font-size: var(--text-md);
-	background-color: var(--control-bg);
-	padding: var(--padding-xs) var(--padding-sm);
-	border-radius: var(--border-radius-md);
 	font-family: "Courier New", Courier, monospace;
+	/* background-color: var(--control-bg); */
+	/* padding: var(--padding-xs) var(--padding-sm); */
+	/* border-radius: var(--border-radius-md); */
+}
+
+.background-job-row:hover {
+	background-color: var(--bg-color);
 }
 
 .no-background-jobs {
