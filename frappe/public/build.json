@@ -1,7 +1,5 @@
 {
-	"css/frappe-web-b4.css": [
-		"public/scss/website.scss"
-	],
+	"css/frappe-web-b4.css": "public/scss/website.scss",
 	"css/frappe-chat-web.css": [
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
@@ -11,15 +9,9 @@
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"
 	],
-	"js/chat.js": [
-		"public/js/frappe/chat.js"
-	],
-	"js/frappe-recorder.min.js": [
-		"public/js/frappe/recorder/recorder.js"
-	],
-	"js/checkout.min.js": [
-		"public/js/integrations/razorpay.js"
-	],
+	"js/chat.js": "public/js/frappe/chat.js",
+	"js/frappe-recorder.min.js": "public/js/frappe/recorder/recorder.js",
+	"js/checkout.min.js": "public/js/integrations/razorpay.js",
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
@@ -47,9 +39,7 @@
 		"public/js/frappe/utils/rating_icons.html",
 		"public/js/frappe/socketio_client.js"
 	],
-	"js/bootstrap-4-web.min.js": [
-		"website/js/bootstrap-4.js"
-	],
+	"js/bootstrap-4-web.min.js": "website/js/bootstrap-4.js",
 	"js/control.min.js": [
 		"node_modules/air-datepicker/dist/js/datepicker.min.js",
 		"node_modules/air-datepicker/dist/js/i18n/datepicker.cs.js",
@@ -106,9 +96,7 @@
 		"public/css/desk-rtl.css",
 		"public/css/report-rtl.css"
 	],
-	"css/printview.css": [
-		"public/scss/print.scss"
-	],
+	"css/printview.css": "public/scss/print.scss",
 	"concat:js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
@@ -241,9 +229,7 @@
 		"public/js/frappe/form/form.js",
 		"public/js/frappe/meta_tag.js"
 	],
-	"css/list.min.css": [
-		"public/less/gantt.less"
-	],
+	"css/list.min.css": "public/less/gantt.less",
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
 
@@ -312,16 +298,9 @@
 		"public/less/controls.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
-	"css/email.css": [
-		"public/less/email.less"
-	],
-	"js/social.min.js": [
-		"public/js/frappe/social/social_home.js"
-	],
-	"js/barcode_scanner.min.js": [
-		"public/js/frappe/barcode_scanner/quagga.js"
-	],
-	"js/data_import_tools.min.js": [
-		"public/js/frappe/data_import/index.js"
-	]
+	"css/email.css": "public/less/email.less",
+	"js/social.min.js": "public/js/frappe/social/social_home.js",
+	"js/barcode_scanner.min.js": "public/js/frappe/barcode_scanner/quagga.js",
+	"js/data_import_tools.min.js": "public/js/frappe/data_import/index.js",
+	"css/login.css": "public/scss/login.scss"
 }
