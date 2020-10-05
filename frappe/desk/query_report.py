@@ -60,23 +60,25 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
 	columns = [get_column_as_dict(col) for col in columns]
+	report_column_names = [col["fieldname"] for col in columns]
 
 	# convert to list of dicts
 	result = normalize_result(result, columns)
 
+	if report.custom_columns:
+		# saved columns (with custom columns / with different column order)
+		columns = json.loads(report.custom_columns)
+
+	# unsaved custom_columns
 	if custom_columns:
 		for custom_column in custom_columns:
 			columns.insert(custom_column['insert_after_index'] + 1, custom_column)
 
-	custom_columns = custom_columns or []
+	# all columns which are not in original report
+	report_custom_columns = [column for column in columns if column["fieldname"] not in report_column_names]
 
-	if isinstance(report.custom_columns, string_types):
-		custom_columns += json.loads(report.custom_columns) or []
-	else:
-		custom_columns += report.custom_columns or []
-
-	if custom_columns:
-		result = add_custom_column_data(custom_columns, result)
+	if report_custom_columns:
+		result = add_custom_column_data(report_custom_columns, result)
 
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
