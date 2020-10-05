@@ -1,3 +1,5 @@
+@import "./desk/variables";
+
 .for-login,
 .for-forgot,
 .for-signup {
@@ -85,42 +87,25 @@
 				}
 			}
 
+			.field-icon {
+				left: 9px;
+				top: 7px;
+				position: absolute;
+				z-index: 2;
+			}
+
+			.email-field,
 			.password-field {
 				position: relative;
 
 				input {
 					padding-left: 35px;
-				}
-
-				.password-icon {
-					left: 9px;
-					top: 7px;
-					position: absolute;
-					z-index: 2;
-					cursor: pointer;
-					font-size: 12px;
+					font-size: var(--text-md);
 				}
 
 				.toggle-password {
 					right: 9px;
-					top: 8px;
-					position: absolute;
-					z-index: 2;
-					cursor: pointer;
-					font-size: 12px;
-				}
-			}
-
-			.email-field {
-				position: relative;
-
-				input {
-					padding-left: 35px;
-				}
-
-				.email-icon {
-					left: 9px;
-					top: 7px;
+					top: 9px;
 					position: absolute;
 					z-index: 2;
 					cursor: pointer;
@@ -141,7 +126,8 @@
 				margin-bottom: var(--margin-lg, 20px);
 			}
 
-			h3 {
+			h4 {
+				font-size: var(--text-xl);
 				color: var(--text-color);
 			}
 		}
