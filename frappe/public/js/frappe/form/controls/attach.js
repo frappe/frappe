@@ -1,6 +1,6 @@
 frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	make_input: function() {
-		var me = this;
+		let me = this;
 		this.$input = $('<button class="btn btn-default btn-sm btn-attach">')
 			.html(__("Attach"))
 			.prependTo(me.input_area)
@@ -28,7 +28,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		this.toggle_reload_button();
 	},
 	clear_attachment: function() {
-		var me = this;
+		let me = this;
 		if(this.frm) {
 			me.parse_validate_and_set_in_model(null);
 			me.refresh();
@@ -79,10 +79,12 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		this.value = value;
 		if(this.value) {
 			this.$input.toggle(false);
-			if(this.value.indexOf(",")!==-1) {
-				var parts = this.value.split(",");
-				var filename = parts[0];
-				dataurl = parts[1];
+			// value can also be using this format: FILENAME,DATA_URL
+			// Important: We have to be careful because normal filenames may also contain ","
+			let two_part_matches = this.value.match(/^([^:]+),(.+):(.+)$/);
+			if (two_part_matches !== null) {
+				let filename = two_part_matches[1];
+				dataurl = two_part_matches[2] + ':' + two_part_matches[3];
 			}
 			this.$value.toggle(true).find(".attached-file-link")
 				.html(filename || this.value)
