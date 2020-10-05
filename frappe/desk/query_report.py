@@ -244,7 +244,7 @@ def add_custom_column_data(custom_columns, result):
 		key = (column.get('doctype'), column.get('fieldname'))
 		if key in custom_column_data:
 			for row in result:
-				row_reference = row[column.get('link_field')]
+				row_reference = row[frappe.scrub(column.get('link_field'))]
 				row[column.get('fieldname')] = custom_column_data.get(key).get(row_reference)
 
 	return result
