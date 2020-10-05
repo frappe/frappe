@@ -601,7 +601,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 
 	if get_all:
 		print(str(len(messages)) + " messages")
-		with open(untranslated_file, "w") as f:
+		with open(untranslated_file, "wb") as f:
 			for m in messages:
 				# replace \n with ||| so that internal linebreaks don't get split
 				f.write((escape_newlines(m[1]) + os.linesep).encode("utf-8"))
@@ -614,7 +614,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 
 		if untranslated:
 			print(str(len(untranslated)) + " missing translations of " + str(len(messages)))
-			with open(untranslated_file, "w") as f:
+			with open(untranslated_file, "wb") as f:
 				for m in untranslated:
 					# replace \n with ||| so that internal linebreaks don't get split
 					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
