@@ -33,7 +33,10 @@
 		</tbody>
 	</table>
 	{% else %}
-	<p class="text-muted">{{ __("No pending or current jobs for this site") }}</p>
+	<div class="no-background-jobs">
+		<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Empty State">
+		<p class="text-muted">{{ __("No pending or current jobs for this site") }}</p>
+	</div>
 	{% endif %}
 	<div class="footer">
 		<p class="text-muted">{{ __("Last refreshed") }} {{ frappe.datetime.now_datetime(true).toLocaleString() }}</p>
