@@ -234,6 +234,7 @@ def add_metatags(context):
 	title = tags.get("name") or tags.get("title")
 	if title:
 		tags["og:title"] = tags["twitter:title"] = title
+		tags["twitter:card"] = "summary"
 
 	if "description" not in tags and context.description:
 		tags["description"] = context.description
