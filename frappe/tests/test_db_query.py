@@ -347,6 +347,14 @@ class TestReportview(unittest.TestCase):
 			limit=50,
 		)
 
+	def test_pluck_name(self):
+		names = DatabaseQuery("DocType").execute(filters={"name": "DocType"}, pluck="name")
+		self.assertEqual(names, ["DocType"])
+
+	def test_pluck_any_field(self):
+		owners = DatabaseQuery("DocType").execute(filters={"name": "DocType"}, pluck="owner")
+		self.assertEqual(owners, ["Administrator"])
+
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
 
