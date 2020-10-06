@@ -110,6 +110,7 @@
    "label": "Seen"
   }
  ],
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2020-10-06 17:25:40.477044",
