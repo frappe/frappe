@@ -706,3 +706,18 @@ def get_html_for_route(route):
 	response = render.render()
 	html = frappe.safe_decode(response.get_data())
 	return html
+
+def get_file_size(path, format=False):
+	num = os.path.getsize(path)
+
+	if not format:
+		return num
+
+	suffix = 'B'
+
+	for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+		if abs(num) < 1024:
+			return "{0:3.1f}{1}{2}".format(num, unit, suffix)
+		num /= 1024
+
+	return "{0:.1f}{1}{2}".format(num, 'Yi', suffix)

@@ -63,7 +63,7 @@ sqlparse==0.2.4
 stripe==2.40.0
 terminaltables==3.1.0
 unittest-xml-reporting==2.5.2
-urllib3==1.25.8
+urllib3==1.25.9
 watchdog==0.8.0
 Werkzeug==0.16.1
 Whoosh==2.7.4
