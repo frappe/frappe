@@ -497,7 +497,7 @@ def scheduled_backup(
 	odb = new_backup(
 		older_than=older_than,
 		ignore_files=ignore_files,
-		backup_path=None,
+		backup_path=backup_path,
 		backup_path_db=backup_path_db,
 		backup_path_files=backup_path_files,
 		backup_path_private_files=backup_path_private_files,

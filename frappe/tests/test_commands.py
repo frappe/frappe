@@ -1,10 +1,13 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 
 # imports - standard imports
+import json
 import os
 import shlex
 import subprocess
+import sys
 import unittest
+import gzip
 from glob import glob
 
 # imports - module imports
@@ -12,11 +15,65 @@ import frappe
 from frappe.utils.backups import fetch_latest_backups
 
 
+# TODO: check frappe.cli.coloured_output to set coloured output!
+
+def supports_color():
+	"""
+	Returns True if the running system's terminal supports color, and False
+	otherwise.
+	"""
+	plat = sys.platform
+	supported_platform = plat != 'Pocket PC' and (plat != 'win32' or 'ANSICON' in os.environ)
+	# isatty is not always implemented, #6223.
+	is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+	return supported_platform and is_a_tty
+
+
+class color(dict):
+	nc = '\033[0m'
+	blue = '\033[94m'
+	green = '\033[92m'
+	yellow = '\033[93m'
+	red = '\033[91m'
+	silver = '\033[90m'
+
+	def __getattr__(self, key):
+		if supports_color():
+			ret = self.get(key)
+		else:
+			ret = ""
+		return ret
+
+
 def clean(value):
-	if isinstance(value, (bytes, str)):
-		value = value.decode().strip()
+	"""Strips and converts bytes to str
+
+	Args:
+		value ([type]): [description]
+
+	Returns:
+		[type]: [description]
+	"""
+	if isinstance(value, bytes):
+		value = value.decode()
+	if isinstance(value, str):
+		value = value.strip()
 	return value
 
+
+def exists_in_backup(doctypes, file):
+	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
+
+	Args:
+		doctypes (list): List of DocTypes to be checked
+		file (str): Path of the database file
+
+	Returns:
+		bool: True if all tables exist
+	"""
+	with gzip.open(file, 'rb') as f:
+		content = f.read().decode("utf8")
+	return all(["CREATE TABLE `tab{}`".format(doctype).lower() in content.lower() for doctype in doctypes])
 
 class BaseTestCommands(unittest.TestCase):
 	def execute(self, command, kwargs=None):
@@ -25,7 +82,8 @@ class BaseTestCommands(unittest.TestCase):
 			kwargs.update(site)
 		else:
 			kwargs = site
-		command = command.replace("\n", " ").format(**kwargs)
+		command = " ".join(command.split()).format(**kwargs)
+		print("{0}$ {1}{2}".format(color.silver, command, color.nc))
 		command = shlex.split(command)
 		self._proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		self.stdout = clean(self._proc.stdout)
@@ -54,6 +112,21 @@ class TestCommands(BaseTestCommands):
 		self.assertEquals(self.stdout[1:-1], frappe.bold(text='DocType'))
 
 	def test_backup(self):
+		backup = {
+			"includes": {
+				"includes": [
+					"ToDo",
+					"Note",
+				]
+			},
+			"excludes": {
+				"excludes": [
+					"Activity Log",
+					"Access Log",
+					"Error Log"
+				]
+			}
+		}
 		home = os.path.expanduser("~")
 		site_backup_path = frappe.utils.get_site_path("private", "backups")
 
@@ -119,3 +192,36 @@ class TestCommands(BaseTestCommands):
 		# test 6: take a backup with --verbose
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEquals(self.returncode, 0)
+
+		# test 7: take a backup with frappe.conf.backup.includes
+		self.execute("bench --site {site} set-config backup '{includes}' --as-dict", {"includes": json.dumps(backup["includes"])})
+		self.execute("bench --site {site} backup --verbose")
+		self.assertEquals(self.returncode, 0)
+		database = fetch_latest_backups()["database"]
+		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
+
+		# test 8: take a backup with frappe.conf.backup.excludes
+		self.execute("bench --site {site} set-config backup '{excludes}' --as-dict", {"excludes": json.dumps(backup["excludes"])})
+		self.execute("bench --site {site} backup --verbose")
+		self.assertEquals(self.returncode, 0)
+		database = fetch_latest_backups()["database"]
+		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
+		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
+
+		# test 9: take a backup with --include (with frappe.conf.excludes still set)
+		self.execute("bench --site {site} backup --include '{include}'", {"include": ",".join(backup["includes"]["includes"])})
+		self.assertEquals(self.returncode, 0)
+		database = fetch_latest_backups()["database"]
+		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
+
+		# test 10: take a backup with --exclude
+		self.execute("bench --site {site} backup --exclude '{exclude}'", {"exclude": ",".join(backup["excludes"]["excludes"])})
+		self.assertEquals(self.returncode, 0)
+		database = fetch_latest_backups()["database"]
+		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
+
+		# test 11: take a backup with --ignore-backup-conf
+		self.execute("bench --site {site} backup --ignore-backup-conf")
+		self.assertEquals(self.returncode, 0)
+		database = fetch_latest_backups()["database"]
+		self.assertTrue(exists_in_backup(backup["excludes"]["excludes"], database))
