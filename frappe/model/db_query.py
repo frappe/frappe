@@ -175,7 +175,7 @@ class DatabaseQuery(object):
 			if (field.strip().startswith(("`", "*")) or "(" in field):
 				fields.append(field)
 			elif "as" in field.lower().split(" "):
-				col, _, new = field.split()
+				col, _, new = field.split()[-3:]
 				fields.append("`{0}` as {1}".format(col, new))
 			else:
 				fields.append("`{0}`".format(field))
