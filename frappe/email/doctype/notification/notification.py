@@ -155,7 +155,12 @@ def get_context(context):
 				allow_update = False
 			try:
 				if allow_update and not doc.flags.in_notification_update:
-					doc.set(self.set_property_after_alert, self.property_value)
+					fieldname = self.set_property_after_alert
+					value = self.property_value
+					if doc.meta.get_field(fieldname).fieldtype in frappe.model.numeric_fieldtypes:
+						value = frappe.utils.cint(value)
+
+					doc.set(fieldname, value)
 					doc.flags.updater_reference = {
 						'doctype': self.doctype,
 						'docname': self.name,
@@ -177,7 +182,7 @@ def get_context(context):
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 
 		users = recipients + cc + bcc
-		
+
 		if not users:
 			return
 

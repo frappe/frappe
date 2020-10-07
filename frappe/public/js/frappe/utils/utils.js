@@ -824,8 +824,14 @@ Object.assign(frappe.utils, {
 		};
 	},
 
-	get_formatted_duration(value, duration_options) {
+	get_formatted_duration(value, duration_options=null) {
 		let duration = '';
+		if (!duration_options) {
+			duration_options = {
+				hide_days: 0,
+				hide_seconds: 0
+			};
+		}
 		if (value) {
 			let total_duration = frappe.utils.seconds_to_duration(value, duration_options);
 

@@ -1,22 +1,24 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-"""This module handles the On Demand Backup utility"""
-
-from __future__ import print_function, unicode_literals
-
-import os
+# imports - standard imports
 import json
+import os
 from calendar import timegm
 from datetime import datetime
 from glob import glob
 
+# imports - third party imports
+import click
+
+# imports - module imports
 import frappe
 from frappe import _, conf
-from frappe.utils import cstr, get_url, now_datetime
+from frappe.utils import get_url, now, now_datetime, get_file_size
 
 # backup variable for backwards compatibility
 verbose = False
+compress = False
 _verbose = verbose
 base_tables = ["__Auth", "__global_search", "__UserSettings"]
 
@@ -28,16 +30,16 @@ class BackupGenerator:
 		To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
 		If specifying db_file_name, also append ".sql.gz"
 	"""
-	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
-		backup_path_private_files=None, db_host="localhost", db_port=None, verbose=False,
-		db_type='mariadb', backup_path_conf=None, ignore_conf=False, include_doctypes="", exclude_doctypes=""):
+	def __init__(self, db_name, user, password, backup_path=None, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, db_host="localhost", db_port=None, db_type='mariadb', backup_path_conf=None, ignore_conf=False, compress_files=False, include_doctypes="", exclude_doctypes="", verbose=False):
 		global _verbose
+		self.compress_files = compress_files or compress
 		self.db_host = db_host
 		self.db_port = db_port
 		self.db_name = db_name
 		self.db_type = db_type
 		self.user = user
 		self.password = password
+		self.backup_path = backup_path
 		self.backup_path_conf = backup_path_conf
 		self.backup_path_db = backup_path_db
 		self.backup_path_files = backup_path_files
@@ -62,16 +64,20 @@ class BackupGenerator:
 		_verbose = verbose
 
 	def setup_backup_directory(self):
-		specified = self.backup_path_db or self.backup_path_files or self.backup_path_private_files
+		specified = self.backup_path or self.backup_path_db or self.backup_path_files or self.backup_path_private_files or self.backup_path_conf
 
 		if not specified:
 			backups_folder = get_backup_path()
 			if not os.path.exists(backups_folder):
-				os.makedirs(backups_folder)
+				os.makedirs(backups_folder, exist_ok=True)
 		else:
-			for file_path in [self.backup_path_files, self.backup_path_db, self.backup_path_private_files]:
-				dir = os.path.dirname(file_path)
-				os.makedirs(dir, exist_ok=True)
+			if self.backup_path:
+				os.makedirs(self.backup_path, exist_ok=True)
+
+			for file_path in set([self.backup_path_files, self.backup_path_db, self.backup_path_private_files, self.backup_path_conf]):
+				if file_path:
+					dir = os.path.dirname(file_path)
+					os.makedirs(dir, exist_ok=True)
 
 	def setup_backup_tables(self):
 		"""Sets self.backup_includes, self.backup_excludes based on passed args
@@ -106,7 +112,6 @@ class BackupGenerator:
 	@property
 	def site_config_backup_path(self):
 		# For backwards compatibility
-		import click
 		click.secho("BackupGenerator.site_config_backup_path has been deprecated in favour of BackupGenerator.backup_path_conf", fg="yellow")
 		return getattr(self, "backup_path_conf", None)
 
@@ -124,14 +129,14 @@ class BackupGenerator:
 
 		self.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
 
-		if not (self.backup_path_files and self.backup_path_db and self.backup_path_private_files):
+		if not (self.backup_path_conf and self.backup_path_db and self.backup_path_files and self.backup_path_private_files):
 			self.set_backup_file_name()
 
 		if not (last_db and last_file and last_private_file and site_config_backup_path):
 			self.take_dump()
 			self.copy_site_config()
 			if not ignore_files:
-				self.zip_files()
+				self.backup_files()
 
 		else:
 			self.backup_path_files = last_file
@@ -143,9 +148,11 @@ class BackupGenerator:
 		#Generate a random name using today's date and a 8 digit random number
 		for_conf = self.todays_date + "-" + self.site_slug + "-site_config_backup.json"
 		for_db = self.todays_date + "-" + self.site_slug + "-database.sql.gz"
-		for_public_files = self.todays_date + "-" + self.site_slug + "-files.tar"
-		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files.tar"
-		backup_path = get_backup_path()
+		ext = "tgz" if self.compress_files else "tar"
+
+		for_public_files = self.todays_date + "-" + self.site_slug + "-files." + ext
+		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files." + ext
+		backup_path = self.backup_path or get_backup_path()
 
 		if not self.backup_path_conf:
 			self.backup_path_conf = os.path.join(backup_path, for_conf)
@@ -200,15 +207,58 @@ class BackupGenerator:
 		)
 
 	def zip_files(self):
+		# For backwards compatibility - pre v13
+		click.secho("BackupGenerator.zip_files has been deprecated in favour of BackupGenerator.backup_files", fg="yellow")
+		return self.backup_files()
+
+	def get_summary(self):
+		summary = {
+			"config": {
+				"path": self.backup_path_conf,
+				"size": get_file_size(self.backup_path_conf, format=True)
+			},
+			"database": {
+				"path": self.backup_path_db,
+				"size": get_file_size(self.backup_path_db, format=True)
+			}
+		}
+
+		if os.path.exists(self.backup_path_files) and os.path.exists(self.backup_path_private_files):
+			summary.update({
+				"public": {
+					"path": self.backup_path_files,
+					"size": get_file_size(self.backup_path_files, format=True)
+				},
+				"private": {
+					"path": self.backup_path_private_files,
+					"size": get_file_size(self.backup_path_private_files, format=True)
+				}
+			})
+
+		return summary
+
+	def print_summary(self):
+		backup_summary = self.get_summary()
+		print("Backup Summary for {0} at {1}".format(frappe.local.site, now()))
+
+		for _type, info in backup_summary.items():
+			print("{0:8}: {1:85} {2}".format(_type.title(), info["path"], info["size"]))
+
+	def backup_files(self):
+		import subprocess
+
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder=="public" else self.backup_path_private_files
 
-			cmd_string = """tar -cf %s %s""" % (backup_path, files_path)
-			err, out = frappe.utils.execute_in_shell(cmd_string)
+			if self.compress_files:
+				cmd_string = "tar cf - {1} | gzip > {0}"
+			else:
+				cmd_string = "tar -cf {0} {1}"
+			output = subprocess.check_output(cmd_string.format(backup_path, files_path), shell=True)
 
-			if self.verbose:
-				print('Backed up files', os.path.abspath(backup_path))
+			if self.verbose and output:
+				print(output.decode("utf8"))
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
@@ -333,26 +383,30 @@ def fetch_latest_backups():
 	}
 
 
-def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False, ignore_conf=False, include_doctypes="", exclude_doctypes=""):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path=None, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, ignore_conf=False, include_doctypes="", exclude_doctypes="", compress=False, force=False, verbose=False):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force, verbose=verbose, ignore_conf=ignore_conf, include_doctypes=include_doctypes, exclude_doctypes=exclude_doctypes)
+	odb = new_backup(older_than=older_than, ignore_files=ignore_files, backup_path=None, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, ignore_conf=ignore_conf, include_doctypes=include_doctypes, exclude_doctypes=exclude_doctypes, compress=compress, force=force, verbose=verbose)
 	return odb
 
-def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False, ignore_conf=False, include_doctypes="", exclude_doctypes=""):
+def new_backup(older_than=6, ignore_files=False, backup_path=None, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, ignore_conf=False, include_doctypes="", exclude_doctypes="", compress=False, force=False, verbose=False):
 	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 24)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
-						  backup_path_db=backup_path_db, backup_path_files=backup_path_files,
-						  backup_path_private_files=backup_path_private_files,
 						  db_host = frappe.db.host,
 						  db_port = frappe.db.port,
 						  db_type = frappe.conf.db_type,
+						  backup_path=backup_path,
+						  backup_path_db=backup_path_db,
+						  backup_path_files=backup_path_files,
+						  backup_path_private_files=backup_path_private_files,
+						  backup_path_conf=backup_path_conf,
 						  ignore_conf=ignore_conf,
 						  include_doctypes=include_doctypes,
 						  exclude_doctypes=exclude_doctypes,
-						  verbose=verbose)
+						  verbose=verbose,
+						  compress_files=compress)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
 
@@ -397,9 +451,9 @@ def get_backup_path():
 	backup_path = frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
 	return backup_path
 
-def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=False):
+def backup(with_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, backup_path_conf=None, quiet=False):
 	"Backup"
-	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=True)
+	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=True)
 	return {
 		"backup_path_db": odb.backup_path_db,
 		"backup_path_files": odb.backup_path_files,

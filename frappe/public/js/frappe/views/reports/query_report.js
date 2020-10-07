@@ -466,7 +466,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			df.onchange = () => {
 				this.refresh_filters_dependency();
 
-				let current_filters = this.get_filter_value();
+				let current_filters = this.get_filter_values();
 				if (this.previous_filters
 					&& (JSON.stringify(this.previous_filters) === JSON.stringify(current_filters))) {
 					// filter values have not changed
@@ -1327,6 +1327,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return row
 				.slice(standard_column_count)
 				.map((cell, i) => {
+					if (cell.column.fieldtype === "Duration") {
+						cell.content = frappe.utils.get_formatted_duration(cell.content);
+					}
 					if (include_indentation && i===0) {
 						cell.content = '   '.repeat(row.meta.indent) + (cell.content || '');
 					}

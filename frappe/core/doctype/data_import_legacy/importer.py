@@ -15,7 +15,7 @@ from frappe import _
 from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
-from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_absolute_url
+from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_absolute_url, duration_to_seconds
 from six import string_types
 
 
@@ -164,7 +164,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 										d[fieldname] = get_datetime(_date + " " + _time)
 									else:
 										d[fieldname] = None
-
+								elif fieldtype == "Duration":
+									d[fieldname] = duration_to_seconds(cstr(d[fieldname]))
 								elif fieldtype in ("Image", "Attach Image", "Attach"):
 									# added file to attachments list
 									attachments.append(d[fieldname])

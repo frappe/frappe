@@ -9,6 +9,7 @@
  "field_order": [
   "type",
   "standard",
+  "module",
   "template",
   "fields"
  ],
@@ -41,11 +42,23 @@
    "in_standard_filter": 1,
    "label": "Type",
    "options": "Section\nNavbar\nFooter"
+  },
+  {
+   "depends_on": "standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def"
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2020-09-11 16:09:07.367280",
+ "links": [
+  {
+   "link_doctype": "Web Page",
+   "link_fieldname": "web_template"
+  }
+ ],
+ "modified": "2020-09-25 00:48:57.902292",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",

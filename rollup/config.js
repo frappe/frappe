@@ -198,7 +198,11 @@ function get_options_for(app) {
 		.map(output_file => {
 			if (output_file.startsWith('concat:')) return null;
 
-			const input_files = build_json[output_file]
+			let files = build_json[output_file];
+			if (typeof files === 'string') {
+				files = [files];
+			}
+			const input_files = files
 				.map(input_file => {
 					let prefix = get_app_path(app);
 					if (input_file.startsWith('node_modules/')) {

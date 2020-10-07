@@ -13,7 +13,7 @@ from oauthlib.oauth2.rfc6749.endpoints.token import TokenEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.resource import ResourceEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.revocation import RevocationEndpoint
 from oauthlib.common import Request
-from six.moves.urllib.parse import parse_qs, urlparse, unquote
+from six.moves.urllib.parse import unquote
 
 def get_url_delimiter(separator_character=" "):
 	return separator_character
@@ -94,19 +94,13 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
 		# Is the client allowed to access the requested scopes?
-		client_scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(get_url_delimiter())
-
-		are_scopes_valid = True
-
-		for scp in scopes:
-			are_scopes_valid = are_scopes_valid and True if scp in client_scopes else False
-
-		return are_scopes_valid
+		allowed_scopes = get_client_scopes(client_id)
+		return all(scope in allowed_scopes for scope in scopes)
 
 	def get_default_scopes(self, client_id, request, *args, **kwargs):
 		# Scopes a client will authorize for if none are supplied in the
 		# authorization request.
-		scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(get_url_delimiter())
+		scopes = get_client_scopes(client_id)
 		request.scopes = scopes #Apparently this is possible.
 		return scopes
 
@@ -440,3 +434,8 @@ def delete_oauth2_data():
 		frappe.delete_doc("OAuth Bearer Token", token["name"])
 	if commit_code or commit_token:
 		frappe.db.commit()
+
+
+def get_client_scopes(client_id):
+	scopes_string = frappe.db.get_value("OAuth Client", client_id, "scopes")
+	return scopes_string.split()

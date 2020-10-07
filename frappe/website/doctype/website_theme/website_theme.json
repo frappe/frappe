@@ -26,6 +26,7 @@
   "stylesheet_section",
   "custom_overrides",
   "custom_scss",
+  "ignored_apps",
   "theme_scss",
   "theme_url",
   "custom_js_section",
@@ -168,10 +169,17 @@
    "fieldtype": "Code",
    "label": "Custom Overrides",
    "options": "SCSS"
+  },
+  {
+   "fieldname": "ignored_apps",
+   "fieldtype": "Table",
+   "label": "Ignored Apps",
+   "options": "Website Theme Ignore App"
   }
  ],
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-16 23:12:02.863833",
+ "modified": "2020-09-24 11:42:33.867840",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
