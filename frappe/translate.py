@@ -143,7 +143,6 @@ def get_dict_from_hooks(fortype, name):
 
 	return translated_dict
 
-<<<<<<< HEAD
 def add_lang_dict(code):
 	"""Extracts messages and returns Javascript code snippet to be appened at the end
 	of the given script
@@ -154,10 +153,7 @@ def add_lang_dict(code):
 	code += "\n\n$.extend(frappe._messages, %s)" % json.dumps(make_dict_from_messages(messages))
 	return code
 
-def make_dict_from_messages(messages, full_dict=None):
-=======
 def make_dict_from_messages(messages, full_dict=None, load_user_translation=True):
->>>>>>> 9b267027b5... feat: don't load user translation in make_dict_from_messages (#11120)
 	"""Returns translated messages as a dict in Language specified in `frappe.local.lang`
 
 	:param messages: List of untranslated messages
