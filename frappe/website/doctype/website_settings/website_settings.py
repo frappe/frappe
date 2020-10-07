@@ -136,9 +136,6 @@ def get_website_settings(context=None):
 
 	context.encoded_title = quote(encode(context.title or ""), str(""))
 
-	for update_website_context in hooks.update_website_context or []:
-		frappe.get_attr(update_website_context)(context)
-
 	context.web_include_js = hooks.web_include_js or []
 
 	context.web_include_css = hooks.web_include_css or []

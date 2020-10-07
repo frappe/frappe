@@ -312,4 +312,4 @@ frappe.patches.v13_0.enable_custom_script
 frappe.patches.v13_0.update_newsletter_content_type
 execute:frappe.db.set_value('Website Settings', 'Website Settings', {'navbar_template': 'Standard Navbar', 'footer_template': 'Standard Footer'})
 frappe.patches.v13_0.delete_event_producer_and_consumer_keys
-frappe.patches.v13_0.web_template_set_module
+frappe.patches.v13_0.web_template_set_module #2020-10-05
