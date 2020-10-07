@@ -619,10 +619,6 @@ def backup(
 
 
 if __name__ == "__main__":
-	"""
-	is_file_old db_name user password db_host db_type db_port
-	get_backup  db_name user password db_host db_type db_port
-	"""
 	import sys
 
 	cmd = sys.argv[1]
