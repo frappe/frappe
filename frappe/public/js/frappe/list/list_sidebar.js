@@ -91,11 +91,10 @@ frappe.views.ListSidebar = class ListSidebar {
 			show_list_link = true;
 		}
 		
-		if ((JSON.stringify(frappe.listview_settings) !== '{}' &&
-            frappe.listview_settings[this.list_view.doctype].get_coords_method) ||
-            (this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
-            this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
-			(this.list_view.meta.fields.find(i => i.fieldname === 'location') && this.list_view.meta.fields.find(i => i.fieldtype === 'Geolocation'))) {
+		if (this.list_view.settings.get_coords_method ||
+			(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
+			this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
+			(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation')))
 			this.sidebar.find('.list-link[data-view="Map"]').removeClass('hide');
 			show_list_link = true;
 		}
