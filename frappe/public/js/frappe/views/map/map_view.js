@@ -61,17 +61,12 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	get_coords() {
-		let get_coords_method;
-		if (JSON.stringify(frappe.listview_settings) === '{}') {
-			get_coords_method = 'frappe.geo.utils.get_coords';
-		} else {
-			get_coords_method = frappe.listview_settings[this.doctype].get_coords_method;
-		}
-		if (cur_list.meta.fields.find(i => i.fieldname === 'location') &&
-			cur_list.meta.fields.find(i => i.fieldtype === 'Geolocation')) {
+		let get_coords_method = this.settings && this.settings.get_coords_method || 'frappe.geo.utils.get_coords';
+
+		if (cur_list.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype === 'Geolocation')) {
 			this.type = 'location_field';
 		}
-		if  (cur_list.meta.fields.find(i => i.fieldname === "latitude") &&
+		else if  (cur_list.meta.fields.find(i => i.fieldname === "latitude") &&
 			cur_list.meta.fields.find(i => i.fieldname === "longitude")) {
 			this.type = 'coordinates';
 		}

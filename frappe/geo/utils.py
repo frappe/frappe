@@ -67,7 +67,7 @@ def return_location(doctype, filters_sql):
         try:
             coords = frappe.db.sql('''SELECT name, location FROM `tab{}`  WHERE {}'''.format(doctype, filters_sql), as_dict=True)
         except InternalError:
-            frappe.msgprint(frappe._('This Doctype did not contains location fields'), raise_exception=True)
+            frappe.msgprint(frappe._('This Doctype does not contain location fields'), raise_exception=True)
             return
     else:
         coords = frappe.get_all(doctype, fields=['name', 'location'])
@@ -80,7 +80,7 @@ def return_coordinates(doctype, filters_sql):
         try:
             coords = frappe.db.sql('''SELECT name, latitude, longitude FROM `tab{}`  WHERE {}'''.format(doctype, filters_sql), as_dict=True)
         except InternalError:
-            frappe.msgprint(frappe._('This Doctype did not contains latitude and longitude fields'), raise_exception=True)
+            frappe.msgprint(frappe._('This Doctype does not contain latitude and longitude fields'), raise_exception=True)
             return
     else:
         coords = frappe.get_all(doctype, fields=['name', 'latitude', 'longitude'])
