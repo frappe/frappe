@@ -422,6 +422,8 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 			)
 		except Exception:
 			click.secho("Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), fg="red")
+			if verbose:
+				print(frappe.get_traceback())
 			exit_code = 1
 			continue
 
