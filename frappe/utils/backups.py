@@ -129,9 +129,12 @@ class BackupGenerator:
 			"include": get_tables(self.include_doctypes.strip().split(",")),
 			"exclude": get_tables(self.exclude_doctypes.strip().split(",")),
 		}
+		specified_tables = get_tables(frappe.conf.get("backup", {}).get("includes", []))
+		include_tables = (specified_tables + base_tables) if specified_tables else []
+
 		conf_tables = {
-			"include": get_tables(frappe.conf.backup.get("includes", [])) + base_tables,
-			"exclude": get_tables(frappe.conf.backup.get("excludes", [])),
+			"include": include_tables,
+			"exclude": get_tables(frappe.conf.get("backup", {}).get("excludes", [])),
 		}
 
 		self.backup_includes = passed_tables["include"]
@@ -387,7 +390,7 @@ class BackupGenerator:
 		)
 
 		if self.verbose:
-			print(command)
+			print(command + "\n")
 
 		err, out = frappe.utils.execute_in_shell(command)
 
