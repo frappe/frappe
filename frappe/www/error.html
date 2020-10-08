@@ -34,10 +34,10 @@
 	{{ _("Error Code: {0}").format('500') }}
 </p>
 <div class="text-center mt-3">
-	<button class="btn btn-xs btn-link text-muted small view-error" >{{ _("Show Traceback") }}</a>
+	<button class="btn btn-xs btn-link text-muted small view-error" >{{ _("Show Traceback") if not dev_server else _("Hide Traceback") }}</a>
 </div>
 
-<div class="error-content hidden">
+<div class="error-content {{ 'hidden' if not dev_server else '' }}">
 	<pre><code>{{ error }}</code></pre>
 </div>
 {% endblock %}
