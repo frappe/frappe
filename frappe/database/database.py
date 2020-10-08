@@ -502,8 +502,15 @@ class Database(object):
 			r = self.sql("""select field, value
 				from `tabSingles` where field in (%s) and doctype=%s"""
 					% (', '.join(['%s'] * len(fields)), '%s'),
-					tuple(fields) + (doctype,), as_dict=False, debug=debug)
-
+					tuple(fields) + (doctype,), as_dict=False, debug=debug, as_list=True)
+			
+			for field in r:
+				fieldtype = self.sql("""
+					select fieldtype from `tabDocfield` 
+					where parent=%s and fieldname=%s """, (doctype, field[0]))[0][0]
+				if fieldtype in frappe.model.numeric_fieldtypes:
+					field[1] = cint(field[1])
+			
 			if as_dict:
 				if r:
 					r = frappe._dict(r)
