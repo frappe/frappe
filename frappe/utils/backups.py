@@ -353,7 +353,7 @@ class BackupGenerator:
 		if self.db_type == "postgres":
 			if self.backup_includes:
 				args["include"] = " ".join(
-					["--table='{0}'".format(table) for table in self.backup_includes]
+					["--table='public.\"{0}\"'".format(table) for table in self.backup_includes]
 				)
 			elif self.backup_excludes:
 				args["exclude"] = " ".join(

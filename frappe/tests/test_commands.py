@@ -71,9 +71,14 @@ def exists_in_backup(doctypes, file):
 	Returns:
 		bool: True if all tables exist
 	"""
-	with gzip.open(file, 'rb') as f:
+	predicate = (
+		'CREATE TABLE public."tab{}"'
+		if frappe.conf.db_type == "postgres"
+		else "CREATE TABLE `tab{}`"
+	)
+	with gzip.open(file, "rb") as f:
 		content = f.read().decode("utf8")
-	return all(["CREATE TABLE `tab{}`".format(doctype).lower() in content.lower() for doctype in doctypes])
+	return all([predicate.format(doctype).lower() in content.lower() for doctype in doctypes])
 
 class BaseTestCommands(unittest.TestCase):
 	def execute(self, command, kwargs=None):
