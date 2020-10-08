@@ -302,8 +302,12 @@ class BackupGenerator:
 		backup_summary = self.get_summary()
 		print("Backup Summary for {0} at {1}".format(frappe.local.site, now()))
 
+		title = max([len(x) for x in backup_summary])
+		path = max([len(x["path"]) for x in backup_summary.values()])
+
 		for _type, info in backup_summary.items():
-			print("{0:8}: {1:85} {2}".format(_type.title(), info["path"], info["size"]))
+			template = "{{0:{0}}}: {{1:{1}}} {{2}}".format(title, path)
+			print(template.format(_type.title(), info["path"], info["size"]))
 
 	def backup_files(self):
 		import subprocess
