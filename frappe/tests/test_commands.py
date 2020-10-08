@@ -82,14 +82,25 @@ class BaseTestCommands(unittest.TestCase):
 			kwargs.update(site)
 		else:
 			kwargs = site
-		command = " ".join(command.split()).format(**kwargs)
-		print("{0}$ {1}{2}".format(color.silver, command, color.nc))
-		command = shlex.split(command)
+		self.command = " ".join(command.split()).format(**kwargs)
+		print("{0}$ {1}{2}".format(color.silver, self.command, color.nc))
+		command = shlex.split(self.command)
 		self._proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		self.stdout = clean(self._proc.stdout)
 		self.stderr = clean(self._proc.stderr)
 		self.returncode = clean(self._proc.returncode)
 
+	def _formatMessage(self, msg, standardMsg):
+		output = super(BaseTestCommands, self)._formatMessage(msg, standardMsg)
+		cmd_execution_summary = "\n".join([
+			"-" * 70,
+			"Last Command Execution Summary:",
+			"Command: {}".format(self.command) if self.command else "",
+			"Standard Output: {}".format(self.stdout) if self.stdout else "",
+			"Standard Error: {}".format(self.stderr) if self.stderr else "",
+			"Return Code: {}".format(self.returncode) if self.returncode else "",
+		]).strip()
+		return "{}\n\n{}".format(output, cmd_execution_summary)
 
 class TestCommands(BaseTestCommands):
 	def test_execute(self):
