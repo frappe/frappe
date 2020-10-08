@@ -43,7 +43,7 @@ def get_context(context):
 		"include_css": hooks["app_include_css"],
 		"sounds": hooks["sounds"],
 		"boot": boot if context.get("for_mobile") else boot_json,
-		"theme": desk_theme or "Light",
+		"desk_theme": desk_theme or "Light",
 		"csrf_token": csrf_token,
 		"google_analytics_id": frappe.conf.get("google_analytics_id"),
 		"mixpanel_id": frappe.conf.get("mixpanel_id")
