@@ -189,7 +189,7 @@ def apply(doc, method=None, doctype=None, name=None):
 
 	# multiple auto assigns
 	for d in assignment_rules:
-		assignment_rule_docs.append(frappe.get_doc('Assignment Rule', d.get('name')))
+		assignment_rule_docs.append(frappe.get_cached_doc('Assignment Rule', d.get('name')))
 
 	if not assignment_rule_docs:
 		return
