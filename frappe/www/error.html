@@ -2,15 +2,59 @@
 
 {% block title %}Error{% endblock %}
 
-{% block header %}
-<h2 class="text-danger">
-	<i class="fa fa-exclamation-sign"></i> Uncaught Server Exception
-</h2>
-{% endblock %}
+{%- block head_include %}
+<link rel="stylesheet" href="/assets/frappe/css/hljs-night-owl.css">
+{% endblock -%}
+
 
 {% block page_content %}
+<style>
+	.error-content {
+		border-radius: 8px;
+		background-color: #f5f7fa;
+		margin: 3rem auto;
+	}
 
-<div class="error-content">
+	code::-webkit-scrollbar {
+    	display: none;
+	}
+	{% include "templates/styles/card_style.css"%}
+</style>
+<script></script>
+<div class="page-card">
+	<div class="page-card-head">
+		<span class="indicator red">{{_("Uncaught Server Exception")}}</span>
+	</div>
+	<p>{{_("There was an error building this page")}}</p>
+	<div>
+		<a href="/" class="btn btn-primary btn-sm">{{ _("Home") }}</a>
+	</div>
+</div>
+<p class="text-muted text-center small" style="margin-top: -20px;">
+	{{ _("Error Code: {0}").format('500') }}
+</p>
+<div class="text-center mt-3">
+	<button class="btn btn-xs btn-link text-muted small view-error" >{{ _("Show Traceback") }}</a>
+</div>
+
+<div class="error-content hidden">
 	<pre><code>{{ error }}</code></pre>
 </div>
+{% endblock %}
+
+{% block script %}
+<script>
+	let toggle_button = $(".view-error");
+	let error_log = $(".error-content");
+
+	toggle_button.on('click', () => {
+		if (error_log.hasClass("hidden")) {
+			toggle_button.html(`{{ _("Hide Traceback") }}`);
+			error_log.removeClass("hidden");
+		} else {
+			toggle_button.html(`{{ _("Show Traceback") }}`);
+			error_log.addClass("hidden");
+		}
+	})
+</script>
 {% endblock %}
