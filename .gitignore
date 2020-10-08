@@ -189,3 +189,4 @@ typings/
 # cypress
 cypress/screenshots
 cypress/videos
+/.idea/
