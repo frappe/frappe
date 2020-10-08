@@ -32,7 +32,7 @@ ndg-httpsclient==0.5.1
 num2words==0.5.10
 oauthlib==3.1.0
 openpyxl==2.6.4
-passlib==1.7.2
+passlib==1.7.3
 pdfkit==0.6.1
 Pillow==7.1.0
 premailer==3.6.1
