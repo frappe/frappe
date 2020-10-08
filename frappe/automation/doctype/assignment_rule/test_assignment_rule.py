@@ -189,7 +189,7 @@ class TestAutoAssign(unittest.TestCase):
 		df = dict(fieldname='expiry_date', label='Expiry Date', fieldtype='Date')
 		create_custom_field('Note', df)
 
-		assignment_rule = frappe.get_doc(dict(
+		frappe.get_doc(dict(
 			name = 'Assignment with Due Date',
 			doctype = 'Assignment Rule',
 			document_type = 'Note',
