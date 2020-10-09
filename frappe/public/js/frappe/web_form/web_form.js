@@ -8,7 +8,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		Object.assign(this, opts);
 		frappe.web_form = this;
 
-		this.files = [];
 		this.events = Object.assign({}, EventEmitterMixin);
 	}
 
@@ -16,6 +15,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		Object.assign(this, web_form_doc);
 		this.fields = web_form_doc.web_form_fields;
 		this.doc = doc;
+		this.files = [];
 	}
 
 	make() {
@@ -176,6 +176,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (this.accept_payment && !this.doc.paid) {
 			window.location.href = data;
 		}
+
+		this.files.length = 0;
 
 		const success_dialog = new frappe.ui.Dialog({
 			title: __("Saved Successfully"),
