@@ -226,11 +226,26 @@ def install_app(context, apps):
 @pass_context
 def list_apps(context):
 	"List apps in site"
-	site = get_site(context)
-	frappe.init(site=site)
-	frappe.connect()
-	print("\n".join(frappe.get_installed_apps()))
-	frappe.destroy()
+	import click
+	titled = False
+
+	if len(context.sites) > 1:
+		titled = True
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+		apps = sorted(frappe.get_installed_apps())
+
+		if titled:
+			summary = "{}{}".format(click.style(site + ": ", fg="green"), ", ".join(apps))
+		else:
+			summary = "\n".join(apps)
+
+		if apps and summary.strip():
+			print(summary)
+
+		frappe.destroy()
 
 @click.command('add-system-manager')
 @click.argument('email')
