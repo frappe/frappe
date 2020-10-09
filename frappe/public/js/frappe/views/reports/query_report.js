@@ -1484,7 +1484,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								insert_after_index: insert_after_index,
 								link_field: this.doctype_field_map[values.doctype],
 								doctype: values.doctype,
-								options: df.fieldtype === "Link" ? df.options : undefined,
+								options: df.options,
 								width: 100
 							});
 
