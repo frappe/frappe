@@ -223,8 +223,9 @@ def install_app(context, apps):
 
 
 @click.command('list-apps')
+@click.option('--only-apps', is_flag=True)
 @pass_context
-def list_apps(context):
+def list_apps(context, only_apps):
 	"List apps in site"
 	import click
 	titled = False
@@ -236,6 +237,9 @@ def list_apps(context):
 		frappe.init(site=site)
 		frappe.connect()
 		apps = sorted(frappe.get_installed_apps())
+
+		if only_apps:
+			apps.remove("frappe")
 
 		if titled:
 			summary = "{}{}".format(click.style(site + ": ", fg="green"), ", ".join(apps))
