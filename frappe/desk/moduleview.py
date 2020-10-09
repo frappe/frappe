@@ -162,15 +162,18 @@ def get_doctype_info(module):
 	active_domains = frappe.get_active_domains()
 
 	doctype_info = frappe.get_all("DocType", filters={
-		"module": module,
-		"istable": 0
-	}, or_filters={
-		"ifnull(restrict_to_domain, '')": "",
-		"restrict_to_domain": ("in", active_domains)
-	}, fields=["'doctype' as type", "name", "description", "document_type",
-		"custom", "issingle"], order_by="custom asc, document_type desc, name asc")
+			"module": module,
+			"istable": 0
+		},
+		or_filters={
+			"ifnull(restrict_to_domain, '')": "",
+			"restrict_to_domain": ("in", active_domains)
+		},
+		fields=["name", "description", "document_type", "custom", "issingle"],
+		order_by="custom asc, document_type desc, name asc")
 
 	for d in doctype_info:
+		d.type = "doctype"
 		d.document_type = d.document_type or ""
 		d.description = _(d.description or "")
 
