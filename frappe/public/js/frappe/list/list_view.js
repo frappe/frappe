@@ -233,6 +233,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	}
 
+<<<<<<< HEAD
+=======
+	refresh_columns(meta, list_view_settings) {
+		this.meta = meta;
+		this.list_view_settings = list_view_settings;
+
+		this.setup_columns();
+		this.refresh(true);
+	}
+
+	refresh(refresh_header=false) {
+		return super.refresh().then(() => {
+			this.render_header(refresh_header);
+		});
+	}
+
+>>>>>>> 6e22a48e22... feat: reset scroll position on list paging
 	setup_freeze_area() {
 		this.$freeze =
 			$(`<div class="freeze flex justify-center align-center text-muted">${__('Loading')}...</div>`)
@@ -779,6 +796,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_realtime_updates();
 		this.setup_action_handler();
 		this.setup_keyboard_navigation();
+		this.setup_scroll_on_page_change();
+	}
+
+	setup_scroll_on_page_change() {
+		if (!this.view_name == 'List') return;
+
+		// Set scroll position to the last row and highlight the row
+		$(document.body).on('pageChange', (e, scroll_position, end) => {
+			const should_scroll = this.data.length > end;
+			if (should_scroll) {
+				const $last_row = this.$result.find('.list-row-container').eq(end-1);
+				frappe.utils.scroll_to(scroll_position, true, 50);
+				$last_row.addClass('yellow-highlight');
+			}
+		});
 	}
 
 	setup_keyboard_navigation() {

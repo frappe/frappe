@@ -122,6 +122,7 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
+<<<<<<< HEAD
 	scroll_to: function(element, animate, additional_offset) {
 		var y = 0;
 		if(element && typeof element==='number') {
@@ -129,9 +130,19 @@ Object.assign(frappe.utils, {
 		} else if(element) {
 			var header_offset = $(".navbar").height() + $(".page-head").height();
 			var y = $(element).offset().top - header_offset - cint(additional_offset);
+=======
+	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled) {
+		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
+
+		let y = 0;
+		if (element) {
+			y = typeof element == "number"
+				? element - cint(additional_offset)
+				: this.get_scroll_position(element, additional_offset);
+>>>>>>> 6e22a48e22... feat: reset scroll position on list paging
 		}
 
-		if(y < 0) {
+		if (y < 0) {
 			y = 0;
 		}
 
@@ -140,12 +151,22 @@ Object.assign(frappe.utils, {
 			return;
 		}
 
+<<<<<<< HEAD
 		if (animate!==false) {
 			$("html, body").animate({ scrollTop: y });
+=======
+		if (animate) {
+			element_to_be_scrolled.animate({ scrollTop: y });
+>>>>>>> 6e22a48e22... feat: reset scroll position on list paging
 		} else {
 			$(window).scrollTop(y);
 		}
 
+	},
+	get_scroll_position: function(element, additional_offset) {
+		let header_offset = $(".navbar").height() + $(".page-head").height();
+		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
+		return scroll_top;
 	},
 	filter_dict: function(dict, filters) {
 		var ret = [];

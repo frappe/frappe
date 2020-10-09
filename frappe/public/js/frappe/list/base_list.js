@@ -307,7 +307,6 @@ frappe.views.BaseList = class BaseList {
 
 		this.$paging_area.on('click', '.btn-paging, .btn-more', e => {
 			const $this = $(e.currentTarget);
-
 			if ($this.is('.btn-paging')) {
 				// set active button
 				this.$paging_area.find('.btn-paging').removeClass('btn-info');
@@ -315,11 +314,22 @@ frappe.views.BaseList = class BaseList {
 
 				this.start = 0;
 				this.page_length = $this.data().value;
-				this.refresh();
 			} else if ($this.is('.btn-more')) {
 				this.start = this.start + this.page_length;
-				this.refresh();
 			}
+
+			// Trigger page change event so that scroll position can be set
+			const end = this.data.length;
+			const scroll_position = frappe.utils.get_scroll_position($(e.currentTarget));
+			let trigger_scroll = () => {
+				$(document.body).trigger('pageChange', [scroll_position, end]);
+			};
+
+			frappe.run_serially([
+				() => this.refresh(),
+				() => trigger_scroll(),
+			]);
+
 		});
 	}
 
