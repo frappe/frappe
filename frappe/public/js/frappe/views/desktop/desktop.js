@@ -70,9 +70,9 @@ export default class Desktop {
 	}
 
 	make_sidebar() {
-		const get_sidebar_item = function(item) {
+		const get_sidebar_item = function (item) {
 			return $(`<a href="${"desk#workspace/" + item.name}"
-					class="sidebar-item 
+					class="sidebar-item
 						${item.selected ? " selected" : ""}
 						${item.hidden ? "hidden" : ""}
 					">
@@ -87,7 +87,7 @@ export default class Desktop {
 			}
 			let $item = get_sidebar_item(item);
 			let $mobile_item = $item.clone();
-			
+
 			$item.appendTo(this.sidebar);
 			this.sidebar_items[item.name] = $item;
 
@@ -128,7 +128,7 @@ export default class Desktop {
 		if (this.sidebar_items && this.sidebar_items[this.current_page]) {
 			this.sidebar_items[this.current_page].removeClass("selected");
 			this.mobile_sidebar_items[this.current_page].removeClass("selected");
-			
+
 			this.sidebar_items[page].addClass("selected");
 			this.mobile_sidebar_items[page].addClass("selected");
 		}
@@ -326,7 +326,7 @@ class DesktopPage {
 
 	make_charts() {
 		return frappe.dashboard_utils.get_dashboard_settings().then(settings => {
-			let chart_config = settings.chart_config ? JSON.parse(settings.chart_config): {};
+			let chart_config = settings.chart_config ? JSON.parse(settings.chart_config) : {};
 			if (this.data.charts.items) {
 				this.data.charts.items.map(chart => {
 					chart.chart_settings = chart_config[chart.chart_name] || {};
