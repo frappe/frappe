@@ -10,11 +10,13 @@ def execute():
 		if not frappe.db.table_exists(doctype):
 			continue
 
-		docnames_with_whitespaces = frappe.db.sql(
-			"SELECT `name` FROM `tab{}`  WHERE CHAR_LENGTH(`name`) !="
-			" CHAR_LENGTH(TRIM(`name`))".format(doctype),
-			as_dict=True,
-		)
+		query = (
+			"SELECT `name` "
+			"FROM `tab{}` "
+			"WHERE CHAR_LENGTH(`name`) != CHAR_LENGTH(TRIM(`name`))"
+		).format(doctype)
+
+		docnames_with_whitespaces = frappe.db.sql(query, as_dict=True)
 
 		if not docnames_with_whitespaces:
 			continue
