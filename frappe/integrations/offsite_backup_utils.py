@@ -19,7 +19,7 @@ def send_email(success, service_name, doctype, email_field, error_status=None):
 		return
 
 	if success:
-		if not frappe.db.get_value(doctype, None, "send_email_for_successful_backup"):
+		if not frappe.db.get_single_value(doctype, "send_email_for_successful_backup"):
 			return
 
 		subject = "Backup Upload Successful"
@@ -28,7 +28,6 @@ def send_email(success, service_name, doctype, email_field, error_status=None):
 <p>Hi there, this is just to inform you that your backup was successfully uploaded to your {0} bucket. So relax!</p>""".format(
 			service_name
 		)
-
 	else:
 		subject = "[Warning] Backup Upload Failed"
 		message = """

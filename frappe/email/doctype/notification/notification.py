@@ -155,7 +155,12 @@ def get_context(context):
 				allow_update = False
 			try:
 				if allow_update and not doc.flags.in_notification_update:
-					doc.set(self.set_property_after_alert, self.property_value)
+					fieldname = self.set_property_after_alert
+					value = self.property_value
+					if doc.meta.get_field(fieldname).fieldtype in frappe.model.numeric_fieldtypes:
+						value = frappe.utils.cint(value)
+
+					doc.set(fieldname, value)
 					doc.flags.updater_reference = {
 						'doctype': self.doctype,
 						'docname': self.name,
@@ -173,8 +178,13 @@ def get_context(context):
 			subject = frappe.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
+
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
+
 		users = recipients + cc + bcc
+
+		if not users:
+			return
 
 		notification_doc = {
 			'type': 'Alert',
@@ -280,8 +290,6 @@ def get_context(context):
 		if self.send_to_all_assignees:
 			recipients = recipients + get_assignees(doc)
 
-		if not recipients and not cc and not bcc:
-			return None, None, None
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
 	def get_receiver_list(self, doc, context):

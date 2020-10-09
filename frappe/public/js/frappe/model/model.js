@@ -31,7 +31,7 @@ $.extend(frappe.model, {
 		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},
 	],
 
-	numeric_fieldtypes: ["Int", "Float", "Currency", "Percent"],
+	numeric_fieldtypes: ["Int", "Float", "Currency", "Percent", "Duration"],
 
 	std_fields_table: [
 		{fieldname:'parent', fieldtype:'Data', label:__('Parent')},
