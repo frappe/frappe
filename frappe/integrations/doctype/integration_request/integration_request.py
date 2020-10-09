@@ -23,7 +23,16 @@ class IntegrationRequest(Document):
 		self.save(ignore_permissions=True)
 		frappe.db.commit()
 
+	def handle_sucess(self, response):
+		"""update the output field with the response along with the relevant status"""
+		self.process_response("output", response)
+
+	def handle_failure(self, response):
+		"""update the error field with the response along with the relevant status"""
+		self.process_response("error", response)
+
 	def process_response(self, ref_field, response):
+		"""Update the response in integration request with status based on reference"""
 		if isinstance(response, string_types):
 			response = json.loads(response)
 
