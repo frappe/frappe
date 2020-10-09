@@ -103,7 +103,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 @click.option('--install-app', multiple=True, help='Install app after installation')
 @click.option('--with-public-files', help='Restores the public files of the site, given path to its tar file')
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
-@click.option('--force', is_flag=True, default=False, help='Use a bit of force to get the job done')
+@click.option('--force', is_flag=True, default=False, help='Ignore the site downgrade warning, if applicable')
 @pass_context
 def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
