@@ -19,7 +19,10 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 				return false;
 			});
 	},
-	eval_expression: function(value) {
+	validate: function (value) {
+		return this.parse(value);
+	},
+	eval_expression: function (value) {
 		if (typeof value === 'string') {
 			if (value.match(/^[0-9+\-/* ]+$/)) {
 				// If it is a string containing operators
