@@ -122,18 +122,17 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate, additional_offset, element_to_be_scrolled) {
+	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled) {
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
 
-		var y = 0;
-		if (element && typeof element==="number") {
-			y = element;
-		} else if(element) {
-			var header_offset = $(".navbar").height() + $(".page-head").height();
-			var y = $(element).offset().top - header_offset - cint(additional_offset);
+		let y = 0;
+		if (element) {
+			y = typeof element == "number"
+				? element - cint(additional_offset)
+				: this.get_scroll_position(element, additional_offset);
 		}
 
-		if(y < 0) {
+		if (y < 0) {
 			y = 0;
 		}
 
@@ -142,12 +141,17 @@ Object.assign(frappe.utils, {
 			return;
 		}
 
-		if (animate !== false) {
+		if (animate) {
 			element_to_be_scrolled.animate({ scrollTop: y });
 		} else {
 			element_to_be_scrolled.scrollTop(y);
 		}
 
+	},
+	get_scroll_position: function(element, additional_offset) {
+		let header_offset = $(".navbar").height() + $(".page-head").height();
+		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
+		return scroll_top;
 	},
 	filter_dict: function(dict, filters) {
 		var ret = [];
