@@ -409,7 +409,7 @@ def accept(web_form, data, docname=None, files=None, for_payment=False):
 			elif not value and doc.get(fieldname):
 				files_to_delete.append(doc.get(fieldname))
 
-			if not doc.name and value:
+			elif value:
 				files_to_keep.append(value)
 
 		doc.set(fieldname, value)
