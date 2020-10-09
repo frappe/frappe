@@ -27,6 +27,6 @@ def execute():
 					doctype, docname, new_docname
 				)
 			)
-			frappe.db.set_value(doctype, docname, "name", new_docname)
+			frappe.rename_doc(doctype, docname, new_docname)
 
 	frappe.db.auto_commit_on_many_writes = commit_scheme
