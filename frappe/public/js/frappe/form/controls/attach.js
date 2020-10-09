@@ -69,7 +69,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			options.fieldname = this.df.fieldname;
 		}
 
-		if (frappe.web_form && frappe.web_form.doc) {
+		if (frappe.web_form && frappe.web_form.doc && frappe.web_form.doc.name) {
 			options.doctype = frappe.web_form.doc.doctype;
 			options.docname = frappe.web_form.doc.name;
 		}
