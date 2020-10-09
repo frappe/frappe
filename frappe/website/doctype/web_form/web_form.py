@@ -371,7 +371,7 @@ def get_context(context):
 def accept(web_form, data, docname=None, files=None, for_payment=False):
 	'''Save the web form'''
 	data = frappe._dict(json.loads(data))
-	files = json.loads(files)
+	files = json.loads(files) if files else []
 	for_payment = frappe.parse_json(for_payment)
 
 	base64_files = []
