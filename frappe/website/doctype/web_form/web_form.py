@@ -368,12 +368,14 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
-def accept(web_form, data, docname=None, for_payment=False):
+def accept(web_form, data, docname=None, files=None, for_payment=False):
 	'''Save the web form'''
 	data = frappe._dict(json.loads(data))
+	files = json.loads(files)
 	for_payment = frappe.parse_json(for_payment)
 
-	files = []
+	base64_files = []
+	files_to_keep = []
 	files_to_delete = []
 
 	web_form = frappe.get_doc("Web Form", web_form)
@@ -407,6 +409,9 @@ def accept(web_form, data, docname=None, for_payment=False):
 			elif not value and doc.get(fieldname):
 				files_to_delete.append(doc.get(fieldname))
 
+			if not doc.name and value:
+				files_to_keep.append(value)
+
 		doc.set(fieldname, value)
 
 	if for_payment:
@@ -425,39 +430,51 @@ def accept(web_form, data, docname=None, for_payment=False):
 		if web_form.login_required and frappe.session.user=="Guest":
 			frappe.throw(_("You must login to submit this form"))
 
-		ignore_mandatory = True if files else False
+		ignore_mandatory = True if base64_files else False
 
 		doc.insert(ignore_permissions = True, ignore_mandatory = ignore_mandatory)
 
-	# add files
-	if files:
-		for f in files:
-			fieldname, filedata = f
+	# add base64 files
+	for f in base64_files:
+		fieldname, filedata = f
 
-			# remove earlier attached file (if exists)
-			if doc.get(fieldname):
-				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
+		# remove earlier attached file (if exists)
+		if doc.get(fieldname):
+			remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
 
-			# save new file
-			filename, dataurl = filedata.split(',', 1)
-			_file = frappe.get_doc({
-				"doctype": "File",
-				"file_name": filename,
-				"attached_to_doctype": doc.doctype,
-				"attached_to_name": doc.name,
-				"content": dataurl,
-				"decode": True})
-			_file.save()
+		# save new file
+		filename, dataurl = filedata.split(',', 1)
+		_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": filename,
+			"attached_to_doctype": doc.doctype,
+			"attached_to_name": doc.name,
+			"content": dataurl,
+			"decode": True})
+		_file.save()
 
-			# update values
-			doc.set(fieldname, _file.file_url)
-
+		# update values
+		doc.set(fieldname, _file.file_url)
 		doc.save(ignore_permissions = True)
 
-	if files_to_delete:
-		for f in files_to_delete:
-			if f:
-				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
+	for f in files:
+		f = frappe._dict(f)
+		if f.file_url not in files_to_keep:
+			frappe.delete_doc('File', f.name, ignore_permissions=True)
+			continue
+
+		_file = frappe.get_doc('File', f.name)
+		if _file.attached_to_doctype and _file.attached_to_name:
+			# already attached to a document, do nothing
+			continue
+
+		_file.attached_to_doctype = doc.doctype
+		_file.attached_to_name = doc.name
+		_file.save(ignore_permissions=True)
+
+
+	for f in files_to_delete:
+		remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
 
 
 	frappe.flags.web_form_doc = doc

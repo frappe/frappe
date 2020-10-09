@@ -7,8 +7,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		super();
 		Object.assign(this, opts);
 		frappe.web_form = this;
-		frappe.web_form.events = {};
-		Object.assign(frappe.web_form.events, EventEmitterMixin);
+
+		this.files = [];
+		this.events = Object.assign({}, EventEmitterMixin);
 	}
 
 	prepare(web_form_doc, doc) {
@@ -130,6 +131,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				data: this.doc,
 				web_form: this.name,
 				docname: this.doc.name,
+				files: this.files,
 				for_payment
 			},
 			callback: response => {
