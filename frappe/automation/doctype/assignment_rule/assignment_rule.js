@@ -35,14 +35,5 @@ frappe.ui.form.on('Assignment Rule', {
 				frm.set_df_property('due_date_based_on', 'hidden', !datetime_fields.length);
 			});
 		}
-	},
-	due_date_based_on(frm) {
-		let due_date_based_on = frm.doc.due_date_based_on;
-		let doctype = frm.doc.document_type;
-		let fetch_from = null;
-		if (doctype && due_date_based_on) {
-			fetch_from = `${doctype}.${due_date_based_on}`;
-		}
-		frm.set_df_property('due_date_based_on', 'fetch_from', fetch_from);
 	}
 });
