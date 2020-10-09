@@ -72,7 +72,7 @@ def exists_in_backup(doctypes, file):
 		bool: True if all tables exist
 	"""
 	predicate = (
-		'CREATE TABLE public."tab{}"'
+		'COPY public."tab{}"'
 		if frappe.conf.db_type == "postgres"
 		else "CREATE TABLE `tab{}`"
 	)

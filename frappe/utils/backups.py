@@ -357,7 +357,7 @@ class BackupGenerator:
 				)
 			elif self.backup_excludes:
 				args["exclude"] = " ".join(
-					["--exclude-table='{0}'".format(table) for table in self.backup_excludes]
+					["--exclude-table-data='public.\"{0}\"'".format(table) for table in self.backup_excludes]
 				)
 
 			cmd_string = (
