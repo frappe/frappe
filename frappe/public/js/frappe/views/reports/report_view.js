@@ -670,7 +670,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	set_default_fields() {
 		// get fields from meta
-		this.fields = [];
+		this.fields = this.fields || [];
 		const add_field = f => this._add_field(f);
 
 		// default fields
