@@ -27,7 +27,7 @@ class TestReport(unittest.TestCase):
 		columns, data = report.get_data(filters={'user': 'Administrator', 'doctype': 'DocType'})
 		self.assertEqual(columns[0].get('label'), 'Name')
 		self.assertEqual(columns[1].get('label'), 'Module')
-		self.assertTrue('User' in [d[0] for d in data])
+		self.assertTrue('User' in [d.get('name') for d in data])
 
 	def test_report_permissions(self):
 		frappe.set_user('test@example.com')
