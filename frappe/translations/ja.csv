@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,まず�
 Shared with the following Users with Read access:{0},読み取りアクセス権を持つ次のユーザーと共有：{0},
 Already in the following Users ToDo list:{0},すでに次のユーザーのToDoリストにあります：{0},
 Your assignment on {0} {1} has been removed by {2},{0} {1}の割り当ては{2}によって削除されました,
+Uncaught Server Exception,キャッチされないサーバーの例外,
+There was an error building this page,このページの作成中にエラーが発生しました,
+Hide Traceback,トレースバックを非表示,

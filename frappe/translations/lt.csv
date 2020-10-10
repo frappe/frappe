@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Pirmiaus
 Shared with the following Users with Read access:{0},"Bendrinama su šiais naudotojais, turinčiais skaitymo prieigą: {0}",
 Already in the following Users ToDo list:{0},Jau esate šiame „User ToDo“ sąraše: {0},
 Your assignment on {0} {1} has been removed by {2},Jūsų užduotį {0} {1} pašalino {2},
+Uncaught Server Exception,Nepagauta serverio išimtis,
+There was an error building this page,Kuriant šį puslapį įvyko klaida,
+Hide Traceback,Slėpti „Traceback“,

@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,براہ
 Shared with the following Users with Read access:{0},پڑھنے تک رسائی والے مندرجہ ذیل صارفین کے ساتھ اشتراک کردہ: {0},
 Already in the following Users ToDo list:{0},پہلے ہی درج ذیل صارفین میں ToDo فہرست: {0},
 Your assignment on {0} {1} has been removed by {2},Your 0} {1 on پر آپ کی اسائنمنٹ کو {2 by نے ختم کردیا ہے,
+Uncaught Server Exception,بغیر پائے ہوئے سرور استثنیٰ,
+There was an error building this page,اس صفحے کو بنانے میں ایک خامی تھی,
+Hide Traceback,ٹریس بیک چھپائیں,

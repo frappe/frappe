@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,אנא �
 Shared with the following Users with Read access:{0},שותף עם המשתמשים הבאים עם גישה לקריאה: {0},
 Already in the following Users ToDo list:{0},כבר ברשימת המשימות הבאה של המשתמשים: {0},
 Your assignment on {0} {1} has been removed by {2},המטלה שלך ב- {0} {1} הוסרה על ידי {2},
+Uncaught Server Exception,חריג שרת שלא נתפס,
+There was an error building this page,אירעה שגיאה בבניית דף זה,
+Hide Traceback,הסתר את העקיבה,

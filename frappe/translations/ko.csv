@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,먼저�
 Shared with the following Users with Read access:{0},읽기 액세스 권한이있는 다음 사용자와 공유 : {0},
 Already in the following Users ToDo list:{0},이미 다음 사용자 할 일 목록에 있습니다. {0},
 Your assignment on {0} {1} has been removed by {2},{0} {1}에 대한 할당이 {2}에 의해 제거되었습니다.,
+Uncaught Server Exception,포착되지 않은 서버 예외,
+There was an error building this page,이 페이지를 만드는 중에 오류가 발생했습니다.,
+Hide Traceback,역 추적 숨기기,

@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,"Iltimos
 Shared with the following Users with Read access:{0},O&#39;qish huquqiga ega bo&#39;lgan quyidagi foydalanuvchilar bilan bo&#39;lishilgan: {0},
 Already in the following Users ToDo list:{0},Quyidagi foydalanuvchilar toDo ro&#39;yxatida allaqachon mavjud: {0},
 Your assignment on {0} {1} has been removed by {2},{0} {1} dagi topshiriqingiz {2} tomonidan olib tashlandi,
+Uncaught Server Exception,Serverning istisno holati,
+There was an error building this page,Ushbu sahifani yaratishda xatolik yuz berdi,
+Hide Traceback,Traceback-ni yashirish,

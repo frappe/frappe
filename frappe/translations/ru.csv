@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,"Пож�
 Shared with the following Users with Read access:{0},Доступно следующим пользователям с доступом на чтение: {0},
 Already in the following Users ToDo list:{0},Уже в следующем списке задач пользователей: {0},
 Your assignment on {0} {1} has been removed by {2},Ваше задание на {0} {1} было удалено {2},
+Uncaught Server Exception,Неперехваченное исключение сервера,
+There was an error building this page,При создании этой страницы произошла ошибка,
+Hide Traceback,Скрыть трассировку,

@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Definiu 
 Shared with the following Users with Read access:{0},Compartit amb els usuaris següents amb accés de lectura: {0},
 Already in the following Users ToDo list:{0},Ja apareix a la llista de tasques pendents d&#39;usuari següents: {0},
 Your assignment on {0} {1} has been removed by {2},{2} ha eliminat la vostra tasca a {0} {1},
+Uncaught Server Exception,Excepció del servidor sense capturar,
+There was an error building this page,S&#39;ha produït un error en crear aquesta pàgina,
+Hide Traceback,Amaga el rastreig,

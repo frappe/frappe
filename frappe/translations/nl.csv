@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Stel eer
 Shared with the following Users with Read access:{0},Gedeeld met de volgende gebruikers met leestoegang: {0},
 Already in the following Users ToDo list:{0},Staat al in de volgende takenlijst van gebruikers: {0},
 Your assignment on {0} {1} has been removed by {2},Je opdracht op {0} {1} is verwijderd door {2},
+Uncaught Server Exception,Niet-afgevangen serveruitzondering,
+There was an error building this page,Er is een fout opgetreden bij het maken van deze pagina,
+Hide Traceback,Verberg Traceback,
