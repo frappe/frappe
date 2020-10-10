@@ -4151,3 +4151,6 @@ Please set the following documents in this Dashboard as standard first.,請首�
 Shared with the following Users with Read access:{0},與具有讀取權限的以下用戶共享：{0},
 Already in the following Users ToDo list:{0},在以下“用戶待辦事項”列表中：{0},
 Your assignment on {0} {1} has been removed by {2},您在{0} {1}上的分配已被{2}刪除,
+Uncaught Server Exception,未捕獲的服務器異常,
+There was an error building this page,建立此頁面時發生錯誤,
+Hide Traceback,隱藏回溯,

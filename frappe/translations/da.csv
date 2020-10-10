@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Indstil 
 Shared with the following Users with Read access:{0},Delt med følgende brugere med læseadgang: {0},
 Already in the following Users ToDo list:{0},Allerede på følgende brugere ToDo-liste: {0},
 Your assignment on {0} {1} has been removed by {2},Din opgave på {0} {1} er blevet fjernet af {2},
+Uncaught Server Exception,Ufanget serverundtagelse,
+There was an error building this page,Der opstod en fejl under opbygningen af denne side,
+Hide Traceback,Skjul sporingen,

@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Nyamunek
 Shared with the following Users with Read access:{0},Basangiye nabakoresha bakurikira hamwe Gusoma: {0},
 Already in the following Users ToDo list:{0},Usanzwe mubakurikira Abakoresha ToDo urutonde: {0},
 Your assignment on {0} {1} has been removed by {2},Umukoro wawe kuri {0} {1} wakuweho na {2},
+Uncaught Server Exception,Seriveri idasanzwe,
+There was an error building this page,Habayeho kwibeshya kubaka iyi page,
+Hide Traceback,Hisha inzira,

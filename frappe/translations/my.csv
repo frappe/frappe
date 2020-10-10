@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,ကျ�
 Shared with the following Users with Read access:{0},အောက်ပါအသုံးပြုသူများအားဖတ်ရှုသုံးစွဲနိုင်ခြင်းနှင့်မျှဝေသည်။ {0},
 Already in the following Users ToDo list:{0},အောက်ပါ Users ToDo စာရင်းတွင်ရှိပြီးသား - {0},
 Your assignment on {0} {1} has been removed by {2},{0} {1} မှသင်၏တာ ၀ န်ကို {2} မှဖယ်ရှားလိုက်ပြီ,
+Uncaught Server Exception,ဆာဗာချွင်းချက်မအောင်မြင်ပါ,
+There was an error building this page,ဒီစာမျက်နှာကိုတည်ဆောက်နေတဲ့အမှားတစ်ခုရှိတယ်,
+Hide Traceback,Traceback ဖျောက်ထားပါ,

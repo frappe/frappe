@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Спер
 Shared with the following Users with Read access:{0},Спільний доступ із такими користувачами з доступом для читання: {0},
 Already in the following Users ToDo list:{0},Вже в наведеному нижче списку завдань користувачів: {0},
 Your assignment on {0} {1} has been removed by {2},Ваше призначення на {0} {1} було видалено користувачем {2},
+Uncaught Server Exception,Невихований виняток сервера,
+There was an error building this page,Під час створення цієї сторінки сталася помилка,
+Hide Traceback,Приховати Traceback,

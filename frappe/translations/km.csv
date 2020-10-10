@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,សូ�
 Shared with the following Users with Read access:{0},ចែករំលែកជាមួយអ្នកប្រើខាងក្រោមដែលមានសិទ្ធិចូលអាន៖ {0},
 Already in the following Users ToDo list:{0},មាននៅក្នុងបញ្ជីការងារត្រូវធ្វើដូចខាងក្រោម៖ {0},
 Your assignment on {0} {1} has been removed by {2},កិច្ចការរបស់អ្នកលើ {0} {1} ត្រូវបានលុបចោលដោយ {2},
+Uncaught Server Exception,ការលើកលែងម៉ាស៊ីនមេដែលមិនបានទទួល,
+There was an error building this page,មានកំហុសក្នុងការបង្កើតទំព័រនេះ,
+Hide Traceback,លាក់ Traceback,

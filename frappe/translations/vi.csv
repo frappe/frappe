@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,"Trướ
 Shared with the following Users with Read access:{0},Được chia sẻ với những Người dùng sau có quyền truy cập Đọc: {0},
 Already in the following Users ToDo list:{0},Đã có trong danh sách Việc cần làm của Người dùng sau: {0},
 Your assignment on {0} {1} has been removed by {2},Bài tập của bạn trên {0} {1} đã bị xóa bởi {2},
+Uncaught Server Exception,Ngoại lệ máy chủ chưa được thông báo,
+There was an error building this page,Đã xảy ra lỗi khi xây dựng trang này,
+Hide Traceback,Ẩn Traceback,

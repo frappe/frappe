@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Aseta en
 Shared with the following Users with Read access:{0},"Jaettu seuraaville käyttäjille, joilla on lukuoikeus: {0}",
 Already in the following Users ToDo list:{0},Jo seuraavassa Käyttäjien tehtäväluettelossa: {0},
 Your assignment on {0} {1} has been removed by {2},{2} on poistanut tehtävän {0} {1},
+Uncaught Server Exception,Sieppaamaton palvelinpoikkeus,
+There was an error building this page,Tämän sivun rakentamisessa tapahtui virhe,
+Hide Traceback,Piilota jäljitys,
