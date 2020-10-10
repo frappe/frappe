@@ -189,7 +189,7 @@ class TestAutoAssign(unittest.TestCase):
 		df = dict(fieldname='expiry_date', label='Expiry Date', fieldtype='Date')
 		create_custom_field('Note', df)
 
-		frappe.get_doc(dict(
+		assignment_rule = frappe.get_doc(dict(
 			name = 'Assignment with Due Date',
 			doctype = 'Assignment Rule',
 			document_type = 'Note',
@@ -218,7 +218,7 @@ class TestAutoAssign(unittest.TestCase):
 		note.save()
 		todo.reload()
 		self.assertEqual(frappe.utils.get_date_str(todo.date), note.expiry_date)
-
+		assignment_rule.delete()
 
 def clear_assignments():
 	frappe.db.sql("delete from tabToDo where reference_type = 'Note'")
