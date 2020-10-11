@@ -225,12 +225,6 @@ class SMTPServer:
 
 			return self._sess
 
-		except _socket.error as e:
-			# Invalid mail server -- due to refusing connection
-			frappe.msgprint(_('Invalid Outgoing Mail Server or Port'))
-			traceback = sys.exc_info()[2]
-			raise_(frappe.ValidationError, e, traceback)
-
 		except smtplib.SMTPAuthenticationError as e:
 			frappe.msgprint(_("Invalid login or password"))
 			traceback = sys.exc_info()[2]
@@ -239,3 +233,9 @@ class SMTPServer:
 		except smtplib.SMTPException:
 			frappe.msgprint(_('Unable to send emails at this time'))
 			raise
+
+		except _socket.error as e:
+			# Invalid mail server -- due to refusing connection
+			frappe.msgprint(_('Invalid Outgoing Mail Server or Port'))
+			traceback = sys.exc_info()[2]
+			raise_(frappe.ValidationError, e, traceback)

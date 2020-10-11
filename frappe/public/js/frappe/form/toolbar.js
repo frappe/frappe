@@ -152,11 +152,12 @@ frappe.ui.form.Toolbar = Class.extend({
 		return this.page.add_dropdown(label);
 	},
 	set_indicator: function() {
-		if(this.frm.save_disabled)
-			return;
-
 		var indicator = frappe.get_indicator(this.frm.doc);
-		if(indicator) {
+
+		if (indicator) {
+			if (this.frm.save_disabled && [__('Saved'), __('Not Saved')].includes(indicator[0])) {
+				return;
+			}
 			this.page.set_indicator(indicator[0], indicator[1]);
 		} else {
 			this.page.clear_indicator();

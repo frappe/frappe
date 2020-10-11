@@ -82,6 +82,27 @@ class Event(Document):
 		communication.add_link(participant.reference_doctype, participant.reference_docname)
 		communication.save(ignore_permissions=True)
 
+	def add_participant(self, doctype, docname):
+		"""Add a single participant to event participants
+
+		Args:
+			doctype (string): Reference Doctype
+			docname (string): Reference Docname
+		"""
+		self.append("event_participants", {
+			"reference_doctype": doctype,
+			"reference_docname": docname,
+		})
+
+	def add_participants(self, participants):
+		"""Add participant entry
+
+		Args:
+			participants ([Array]): Array of a dict with doctype and docname
+		"""
+		for participant in  participants:
+			self.add_participant(participant["doctype"], participant["docname"])
+
 @frappe.whitelist()
 def delete_communication(event, reference_doctype, reference_docname):
 	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
