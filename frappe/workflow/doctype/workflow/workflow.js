@@ -63,7 +63,12 @@ frappe.ui.form.on("Workflow", {
 			frm.save();
 		};
 
-		frappe.warn(__(`Worflow States Don't Exist`), message_html, proceed_action, __(`Save Anyway`));
+		frappe.warn(
+			__("Worflow States Don't Exist"),
+			message_html,
+			proceed_action,
+			__("Save Anyway")
+		);
 	},
 	set_table_html: function(frm) {
 
