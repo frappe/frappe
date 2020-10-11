@@ -35,7 +35,7 @@ def get_safe_globals():
 	else:
 		date_format = 'yyyy-mm-dd'
 
-	add_module_properties(frappe.utils.data, datautils, lambda obj: hasattr(obj, "__call__"))
+	add_data_utils(datautils)
 
 	if "_" in getattr(frappe.local, 'form_dict', {}):
 		del frappe.local.form_dict["_"]
@@ -47,7 +47,7 @@ def get_safe_globals():
 		json = json,
 		dict = dict,
 		frappe =  frappe._dict(
-			flags = frappe.flags,
+			flags = frappe._dict(),
 
 			format = frappe.format_value,
 			format_value = frappe.format_value,
@@ -66,6 +66,9 @@ def get_safe_globals():
 			get_url = frappe.utils.get_url,
 			render_template = frappe.render_template,
 			msgprint = frappe.msgprint,
+			sendmail = frappe.sendmail,
+			get_print = frappe.get_print,
+			attach_print = frappe.attach_print,
 
 			user = user,
 			get_fullname = frappe.utils.get_fullname,
@@ -136,6 +139,11 @@ def _write(obj):
 	# allow writing to any object
 	return obj
 
+def add_data_utils(data):
+	for key, obj in frappe.utils.data.__dict__.items():
+		if key in VALID_UTILS:
+			data[key] = obj
+
 def add_module_properties(module, data, filter_method):
 	for key, obj in module.__dict__.items():
 		if key.startswith("_"):
@@ -145,3 +153,106 @@ def add_module_properties(module, data, filter_method):
 		if filter_method(obj):
 			# only allow functions
 			data[key] = obj
+
+VALID_UTILS = (
+"DATE_FORMAT",
+"TIME_FORMAT",
+"DATETIME_FORMAT",
+"is_invalid_date_string",
+"getdate",
+"get_datetime",
+"to_timedelta",
+"add_to_date",
+"add_days",
+"add_months",
+"add_years",
+"date_diff",
+"month_diff",
+"time_diff",
+"time_diff_in_seconds",
+"time_diff_in_hours",
+"now_datetime",
+"get_timestamp",
+"get_eta",
+"get_time_zone",
+"convert_utc_to_user_timezone",
+"now",
+"nowdate",
+"today",
+"nowtime",
+"get_first_day",
+"get_quarter_start",
+"get_first_day_of_week",
+"get_year_start",
+"get_last_day_of_week",
+"get_last_day",
+"get_time",
+"get_datetime_str",
+"get_date_str",
+"get_time_str",
+"get_user_date_format",
+"get_user_time_format",
+"formatdate",
+"format_time",
+"format_datetime",
+"format_duration",
+"get_weekdays",
+"get_weekday",
+"get_timespan_date_range",
+"global_date_format",
+"has_common",
+"flt",
+"cint",
+"floor",
+"ceil",
+"cstr",
+"rounded",
+"remainder",
+"safe_div",
+"round_based_on_smallest_currency_fraction",
+"encode",
+"parse_val",
+"fmt_money",
+"get_number_format_info",
+"money_in_words",
+"in_words",
+"is_html",
+"is_image",
+"get_thumbnail_base64_for_image",
+"image_to_base64",
+"strip_html",
+"escape_html",
+"pretty_date",
+"comma_or",
+"comma_and",
+"comma_sep",
+"new_line_sep",
+"filter_strip_join",
+"get_url",
+"get_host_name_from_request",
+"url_contains_port",
+"get_host_name",
+"get_link_to_form",
+"get_link_to_report",
+"get_absolute_url",
+"get_url_to_form",
+"get_url_to_list",
+"get_url_to_report",
+"get_url_to_report_with_filters",
+"evaluate_filters",
+"compare",
+"get_filter",
+"make_filter_tuple",
+"make_filter_dict",
+"sanitize_column",
+"scrub_urls",
+"expand_relative_urls",
+"quoted",
+"quote_urls",
+"unique",
+"strip",
+"to_markdown",
+"md_to_html",
+"is_subset",
+"generate_hash"
+)
