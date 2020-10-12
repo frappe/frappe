@@ -240,6 +240,12 @@ def apply(doc, method=None, doctype=None, name=None):
 
 def update_due_date(doc, state=None):
 	# called from hook
+	if (frappe.flags.in_patch
+		or frappe.flags.in_install
+		or frappe.flags.in_migrate
+		or frappe.flags.in_import
+		or frappe.flags.in_setup_wizard):
+		return
 	assignment_rules = frappe.cache_manager.get_doctype_map('Assignment Rule', 'due_date_rules_for_' + doc.doctype, dict(
 		document_type = doc.doctype,
 		disabled = 0,
