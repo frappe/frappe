@@ -19,6 +19,25 @@ $text-muted: $gray-600 !default;
 $border-color: $gray-300 !default;
 $headings-color: $gray-900 !default;
 
+$font-sizes: (
+	"xs": 0.75rem,
+	"sm": 0.875rem,
+	"base": 1rem,
+	"lg": 1.125rem,
+	"xl": 1.25rem,
+	"2xl": 1.5rem,
+	"3xl": 1.875rem,
+	"4xl": 2.25rem,
+	"5xl": 3rem,
+	"6xl": 4rem
+);
+
+@each $size, $value in $font-sizes {
+	.font-size-#{$size} {
+		font-size: $value;
+	}
+}
+
 $font-size-xs: 0.75rem !default;
 $font-size-sm: 0.875rem !default;
 $font-size-base: 1rem !default;
@@ -60,12 +79,12 @@ $input-border-radius: 0.375rem;
 $custom-control-indicator-bg: white;
 
 $grid-breakpoints: (
-  xs: 0,
-  sm: 576px,
-  md: 768px,
-  lg: 992px,
-  xl: 1200px,
-  2xl: 1440px
+	xs: 0,
+	sm: 576px,
+	md: 768px,
+	lg: 992px,
+	xl: 1200px,
+	2xl: 1440px
 ) !default;
 
 $spacers: (
@@ -93,11 +112,11 @@ $spacers: (
 	48: 12rem,
 	52: 13rem,
 	56: 14rem,
-	64: 16rem,
+	64: 16rem
 );
 
-@import '~bootstrap/scss/functions';
-@import '~bootstrap/scss/variables';
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
 
 $code-color: $purple;

@@ -58,7 +58,10 @@ class DatabaseQuery(object):
 		if fields:
 			self.fields = fields
 		else:
-			self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
+			if pluck:
+				self.fields =  ["`tab{0}`.`{1}`".format(self.doctype, pluck)]
+			else:
+				self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
 
 		if start: limit_start = start
 		if page_length: limit_page_length = page_length
@@ -169,10 +172,10 @@ class DatabaseQuery(object):
 		fields = []
 
 		for field in self.fields:
-			if (field.strip().startswith(("`", "*")) or "(" in field):
+			if field.strip().startswith(("`", "*", '"', "'")) or "(" in field:
 				fields.append(field)
 			elif "as" in field.lower().split(" "):
-				col, _, new = field.split()
+				col, _, new = field.split()[-3:]
 				fields.append("`{0}` as {1}".format(col, new))
 			else:
 				fields.append("`{0}`".format(field))
