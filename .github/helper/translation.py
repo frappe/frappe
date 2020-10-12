@@ -5,6 +5,12 @@ errors_encounter = 0
 pattern = re.compile(r"_\(([\"']{,3})(?P<message>((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(?P<py_context>((?!\5).)*)\5)*(\s*,\s*(.)*?\s*(,\s*([\"'])(?P<js_context>((?!\11).)*)\11)*)*\)")
 start_pattern = re.compile(r"_{1,2}\([\"'`]{1,3}.*[a-zA-Z]")
 
+# _('this is valid')
+# _('{0} {1}')
+# _("{0} {1}")
+# _("{0} valid")
+# _("valid {0}")
+
 # skip first argument
 files = sys.argv[1:]
 files_to_scan = [_file for _file in files if _file.endswith(('.py', '.js'))]
