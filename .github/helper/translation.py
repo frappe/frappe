@@ -21,8 +21,6 @@ starts_with_f_pattern = re.compile(r"_\(f")
 files = sys.argv[1:]
 files_to_scan = [_file for _file in files if _file.endswith(('.py', '.js'))]
 
-files_to_scan = ['/Users/farisansari/Projects/benches/frappe-bench/apps/frappe/.github/helper/translation.py']
-
 for _file in files_to_scan:
 	with open(_file, 'r') as f:
 		print(f'Checking: {_file}')
