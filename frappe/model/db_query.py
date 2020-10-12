@@ -171,11 +171,19 @@ class DatabaseQuery(object):
 
 		fields = []
 
+		# Wrapping fields with grave quotes to allow support for sql keywords
+		# TODO: Add support for wrapping fields with sql functions and distinct keyword
 		for field in self.fields:
-			if field.strip().startswith(("`", "*", '"', "'")) or "(" in field:
+			stripped_field = field.strip().lower()
+			skip_wrapping = any([
+				stripped_field.startswith(("`", "*", '"', "'")),
+				"(" in stripped_field,
+				"distinct" in stripped_field,
+			])
+			if skip_wrapping:
 				fields.append(field)
 			elif "as" in field.lower().split(" "):
-				col, _, new = field.split()[-3:]
+				col, _, new = field.split()
 				fields.append("`{0}` as {1}".format(col, new))
 			else:
 				fields.append("`{0}`".format(field))
