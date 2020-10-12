@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2019-02-28 17:12:18.815830",
@@ -8,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "document_type",
+  "due_date_based_on",
   "priority",
   "disabled",
   "column_break_4",
@@ -129,9 +131,17 @@
    "label": "Assignment Days",
    "options": "Assignment Rule Day",
    "reqd": 1
+  },
+  {
+   "depends_on": "document_type",
+   "fieldname": "due_date_based_on",
+   "fieldtype": "Select",
+   "label": "Due Date Based On"
   }
  ],
- "modified": "2019-09-25 14:52:12.214514",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2020-10-08 06:48:54.019735",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",

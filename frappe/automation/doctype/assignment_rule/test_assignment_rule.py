@@ -20,6 +20,7 @@ class TestAutoAssign(unittest.TestCase):
 			dict(day = 'Friday'),
 			dict(day = 'Saturday'),
 		]
+		self.days = days
 		self.assignment_rule = get_assignment_rule([days, days])
 		clear_assignments()
 
@@ -179,6 +180,45 @@ class TestAutoAssign(unittest.TestCase):
 			reference_name = note.name,
 			status = 'Open'
 		), 'owner'), ['test3@example.com'])
+
+	def test_assignment_rule_condition(self):
+		frappe.db.sql("DELETE FROM `tabAssignment Rule`")
+
+		# Add expiry_date custom field
+		from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+		df = dict(fieldname='expiry_date', label='Expiry Date', fieldtype='Date')
+		create_custom_field('Note', df)
+
+		assignment_rule = frappe.get_doc(dict(
+			name = 'Assignment with Due Date',
+			doctype = 'Assignment Rule',
+			document_type = 'Note',
+			assign_condition = 'public == 0',
+			due_date_based_on = 'expiry_date',
+			assignment_days = self.days,
+			users = [
+				dict(user = 'test@example.com'),
+			]
+		)).insert()
+
+		expiry_date = frappe.utils.add_days(frappe.utils.nowdate(), 2)
+		note = make_note({'expiry_date': expiry_date})
+
+		todo = frappe.get_all('ToDo', filters=dict(
+			reference_type = 'Note',
+			reference_name = note.name,
+			status = 'Open'
+		))[0]
+
+		todo = frappe.get_doc('ToDo', todo.name)
+		self.assertEqual(frappe.utils.get_date_str(todo.date), expiry_date)
+
+		# due date should be updated if the reference doc's date is updated.
+		note.expiry_date = frappe.utils.add_days(expiry_date, 2)
+		note.save()
+		todo.reload()
+		self.assertEqual(frappe.utils.get_date_str(todo.date), note.expiry_date)
+		assignment_rule.delete()
 
 def clear_assignments():
 	frappe.db.sql("delete from tabToDo where reference_type = 'Note'")
