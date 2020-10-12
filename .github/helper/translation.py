@@ -8,15 +8,6 @@ start_pattern = re.compile(r"_{1,2}\([f\"'`]{1,3}")
 f_string_pattern = re.compile(r"_\(f[\"']")
 starts_with_f_pattern = re.compile(r"_\(f")
 
-# _('this is valid')
-# _('{0} {1}')
-# _("{0} {1}")
-# _(f"invalid")
-# _(fieldname)
-# _("{0} valid")
-# _('asdf asdf')
-# _("valid {0}")
-
 # skip first argument
 files = sys.argv[1:]
 files_to_scan = [_file for _file in files if _file.endswith(('.py', '.js'))]
@@ -26,8 +17,11 @@ for _file in files_to_scan:
 		print(f'Checking: {_file}')
 		file_lines = f.readlines()
 		for line_number, line in enumerate(file_lines, 1):
+			if 'frappe-lint: disable-translate' in line:
+				continue
+
 			start_matches = start_pattern.search(line)
-			if start_matches and not '# frappe-lint: disable-translate' in line:
+			if start_matches:
 				starts_with_f = starts_with_f_pattern.search(line)
 
 				if starts_with_f:
