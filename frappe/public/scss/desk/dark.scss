@@ -45,6 +45,21 @@
 	--toast-bg: var(--modal-bg);
 	--popover-bg: var(--bg-color);
 
+	// Background Text Color Pairs
+	--bg-blue: var(--blue-500);
+	--bg-green: var(--dark-green-500);
+	--bg-yellow: var(--yellow-500);
+	--bg-orange: var(--orange-500);
+	--bg-red: var(--red-500);
+	--bg-gray: var(--gray-600);
+
+	--text-on-blue: var(--blue-50);
+	--text-on-green: var(--dark-green-50);
+	--text-on-yellow: var(--yellow-50);
+	--text-on-orange: var(--orange-100);
+	--text-on-red: var(--red-50);
+	--text-on-gray: var(--gray-100);
+
 	--sidebar-select-color: var(--gray-800);
 
 	--shadow-inset: var(--fg-color);

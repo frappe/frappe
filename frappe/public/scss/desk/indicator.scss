@@ -1,54 +1,16 @@
-:root {
-	--indicator-green: var(--dark-green-500);
-	--indicator-green-bg: var(--dark-green-50);
-
-	--indicator-blue: var(--blue-500);
-	--indicator-blue-bg: var(--blue-50);
-
-	--indicator-orange: var(--orange-500);
-	--indicator-orange-bg: var(--orange-50);
-
-	--indicator-yellow: var(--yellow-500);
-	--indicator-yellow-bg: var(--yellow-50);
-
-	--indicator-gray: var(--gray-600);
-	--indicator-gray-bg: var(--gray-200);
-
-	--indicator-red: var(--red-500);
-	--indicator-red-bg: var(--red-50);
-}
-
-[data-theme="dark"] {
-	--indicator-green: var(--dark-green-50);
-	--indicator-green-bg: var(--dark-green-500);
-
-	--indicator-blue: var(--blue-50);
-	--indicator-blue-bg: var(--blue-500);
-
-	--indicator-orange: var(--orange-100);
-	--indicator-orange-bg: var(--orange-500);
-
-	--indicator-yellow: var(--yellow-50);
-	--indicator-yellow-bg: var(--yellow-500);
-
-	--indicator-gray: var(--gray-100);
-	--indicator-gray-bg: var(--gray-600);
-
-	--indicator-red: var(--red-50);
-	--indicator-red-bg: var(--red-500);
-}
-
 @mixin indicator-pill-color($color) {
-	background: var(--indicator-#{$color}-bg);
-	color: var(--indicator-#{$color});
-	&::before, &::after {
-		background: var(--indicator-#{$color});
+	background: var(--bg-#{$color});
+	color: var(--text-on-#{$color});
+	&::before,
+	&::after {
+		background: var(--text-on-#{$color});
 	}
 }
 
 @mixin indicator-color($color) {
-	&::before, &::after {
-		background: var(--indicator-#{$color});
+	&::before,
+	&::after {
+		background: var(--bg-#{$color});
 	}
 }
 
