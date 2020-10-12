@@ -15,7 +15,7 @@ frappe.ui.form.Layout = Class.extend({
 			this.parent = this.body;
 		}
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
-		this.message = $('<div class="form-message text-muted small hidden"></div>').appendTo(this.wrapper);
+		this.message = $('<div class="form-message hidden"></div>').appendTo(this.wrapper);
 		if(!this.fields) {
 			this.fields = this.get_doctype_fields();
 		}

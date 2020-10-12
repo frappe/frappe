@@ -27,27 +27,6 @@
 	border-top: 1px solid @border-color;
 }
 
-.form-message {
-	padding: 15px 30px;
-	border-bottom: 1px solid @border-color;
-}
-
-.form-message.yellow {
-	background-color: @light-yellow;
-}
-
-.form-message.blue {
-		background-color: @blue-extra-light;
-}
-
-.form-message.red {
-		background-color: @red-extra-light;
-}
-
-.form-message.green {
-		background-color: @green-extra-light;
-}
-
 .document-flow-wrapper {
 	padding: 40px 15px 30px;
 	font-size: @text-medium;
@@ -63,7 +42,6 @@
 			width: 140px;
 			display: inline-block;
 		}
-
 
 		.document-flow-link-wrapper:not(:last-child) {
 			border-top: 1px solid @indicator-gray;
@@ -102,7 +80,7 @@
 	}
 }
 
-@media(max-width: @screen-xs) {
+@media (max-width: @screen-xs) {
 	.document-flow-wrapper {
 		display: none;
 	}
@@ -163,13 +141,9 @@
 	}
 }
 
-
-
-
 .form-section {
 	margin: 0px;
 	// padding: 15px;
-
 
 	.form-section-description {
 		margin-bottom: 10px;
@@ -243,7 +217,6 @@
 	}
 }
 
-
 .timeline-item-content .mention {
 	background-color: transparent;
 	padding: 0;
@@ -272,7 +245,7 @@
 	bottom: 0px;
 }
 
-@media(max-width: @screen-sm) {
+@media (max-width: @screen-sm) {
 	.timeline::before {
 		bottom: -64px;
 	}
@@ -380,7 +353,8 @@
 				font-size: 1em;
 			}
 
-			&:hover, &:focus {
+			&:hover,
+			&:focus {
 				color: #000;
 			}
 		}
@@ -396,7 +370,8 @@
 }
 
 .left-arrow {
-	&::after, &::before {
+	&::after,
+	&::before {
 		right: 100%;
 		top: 15px;
 		border: solid transparent;
@@ -478,7 +453,8 @@
 }
 
 .timeline-item {
-	.reply-link, .reply-link-all {
+	.reply-link,
+	.reply-link-all {
 		margin-left: 15px;
 		font-size: 12px;
 	}
@@ -520,7 +496,7 @@
 	}
 }
 
-@media(max-width: @screen-xs) {
+@media (max-width: @screen-xs) {
 	.timeline-head {
 		border-left: none;
 		border-right: none;
@@ -528,7 +504,7 @@
 	}
 }
 
-.timeline-futur span{
+.timeline-futur span {
 	color: @orange !important;
 }
 
@@ -563,14 +539,15 @@
 	max-height: 150px;
 }
 
-
-.timeline-new-email, .timeline-email-import {
+.timeline-new-email,
+.timeline-email-import {
 	margin: 30px 0px;
 	padding-left: 70px;
 	position: relative;
 }
 
-.timeline-new-email::before, .timeline-email-import::before {
+.timeline-new-email::before,
+.timeline-email-import::before {
 	.timeline-indicator();
 }
 
@@ -579,7 +556,8 @@
 	font-weight: bold;
 }
 
-.control-label, .grid-heading-row {
+.control-label,
+.grid-heading-row {
 	color: @text-muted;
 	font-size: 12px;
 }
@@ -619,12 +597,12 @@
 
 .flex-justify-center {
 	display: flex;
-    justify-content: center;
+	justify-content: center;
 }
 
 .flex-justify-end {
 	display: flex;
-    justify-content: flex-end;
+	justify-content: flex-end;
 }
 
 .hide-control {
@@ -661,7 +639,8 @@ select.form-control {
 	margin-top: -10px;
 }
 
-.control-code, .control-code.bold {
+.control-code,
+.control-code.bold {
 	height: 400px;
 	font-family: Monaco, "Courier New", monospace;
 	color: @text-color;
@@ -717,8 +696,9 @@ select.form-control {
 		.section-body {
 			margin-top: -15px;
 		}
-		.section-body .form-column:first-child{
-			.radio, .checkbox{
+		.section-body .form-column:first-child {
+			.radio,
+			.checkbox {
 				margin-top: 0;
 			}
 		}
@@ -808,7 +788,8 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 	height: 80px !important;
 }
 
-.frappe-control[data-fieldtype="Attach"], .frappe-control[data-fieldtype="Attach Image"] {
+.frappe-control[data-fieldtype="Attach"],
+.frappe-control[data-fieldtype="Attach Image"] {
 	.attached-file {
 		position: relative;
 		padding: 6px 10px;
