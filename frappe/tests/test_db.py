@@ -133,8 +133,10 @@ class TestDB(unittest.TestCase):
 		self.assertEqual(list(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])[0], random_field)
 		self.assertEqual(list(frappe.get_all("ToDo", fields=["{0} as total".format(random_field)], limit=1)[0])[0], "total")
 
-		# Testing read for distinct keyword - Check if result contains total field
-		self.assertEqual(list(frappe.get_all("ToDo", fields=["distinct {0} as total".format(random_field)], limit=1)[0])[0], "total")
+		# Testing read for distinct and sql functions
+		self.assertEqual(list(frappe.get_all("ToDo", fields=["distinct `{0}` as total".format(random_field)], limit=1)[0])[0], "total")
+		self.assertEqual(list(frappe.get_all("ToDo", fields=["distinct `{0}`".format(random_field)], limit=1)[0])[0], random_field)
+		self.assertEqual(list(frappe.get_all("ToDo", fields=["count(`{0}`)".format(random_field)], limit=1)[0])[0], "count(`{0}`)".format(random_field))
 
 		# Testing update
 		frappe.db.set_value(test_doctype, random_doc, random_field, random_value)
