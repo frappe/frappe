@@ -97,8 +97,8 @@
    "label": "Push to Google Contacts"
   }
  ],
- "modified": "2019-09-13 15:53:19.569924",
- "modified_by": "himanshu@erpnext.com",
+ "modified": "2020-09-18 17:26:09.703215",
+ "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",
  "owner": "Administrator",

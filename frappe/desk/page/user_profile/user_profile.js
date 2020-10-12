@@ -360,11 +360,12 @@ class UserProfile {
 
 		this.get_user_rank().then(() => {
 			this.get_user_points().then(() => {
-				let html = $(__(`<p class="user-energy-points text-muted">${__('Energy Points: ')}<span class="rank">{0}</span></p>
-					<p class="user-energy-points text-muted">${__('Review Points: ')}<span class="rank">{1}</span></p>
-					<p class="user-energy-points text-muted">${__('Rank: ')}<span class="rank">{2}</span></p>
-					<p class="user-energy-points text-muted">${__('Monthly Rank: ')}<span class="rank">{3}</span></p>
-				`, [this.energy_points, this.review_points, this.rank, this.month_rank]));
+				let html = $(`
+					<p class="user-energy-points text-muted">${__('Energy Points:')} <span class="rank">${this.energy_points}</span></p>
+					<p class="user-energy-points text-muted">${__('Review Points:')} <span class="rank">${this.review_points}</span></p>
+					<p class="user-energy-points text-muted">${__('Rank:')} <span class="rank">${this.rank}</span></p>
+					<p class="user-energy-points text-muted">${__('Monthly Rank:')} <span class="rank">${this.month_rank}</span></p>
+				`);
 
 				$profile_details.append(html);
 			});

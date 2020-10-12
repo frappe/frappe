@@ -10,7 +10,7 @@ from six import iteritems, binary_type, text_type, string_types, PY2
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
-
+import click
 from faker import Faker
 
 # public
@@ -226,12 +226,20 @@ def get_site_config(sites_path=None, site_path=None):
 	if sites_path:
 		common_site_config = os.path.join(sites_path, "common_site_config.json")
 		if os.path.exists(common_site_config):
-			config.update(get_file_json(common_site_config))
+			try:
+				config.update(get_file_json(common_site_config))
+			except Exception as error:
+				click.secho("common_site_config.json is invalid", fg="red")
+				print(error)
 
 	if site_path:
 		site_config = os.path.join(site_path, "site_config.json")
 		if os.path.exists(site_config):
-			config.update(get_file_json(site_config))
+			try:
+				config.update(get_file_json(site_config))
+			except Exception as error:
+				click.secho("{0}/site_config.json is invalid".format(local.site), fg="red")
+				print(error)
 		elif local.site and not local.flags.new_site:
 			raise IncorrectSitePath("{0} does not exist".format(local.site))
 
@@ -514,12 +522,15 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 whitelisted = []
 guest_methods = []
 xss_safe_methods = []
-def whitelist(allow_guest=False, xss_safe=False):
+allowed_http_methods_for_whitelisted_func = {}
+
+def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
+	:param methods: Allowed http method to access the method.
 
 	Use as:
 
@@ -527,9 +538,15 @@ def whitelist(allow_guest=False, xss_safe=False):
 		def myfunc(param1, param2):
 			pass
 	"""
+
+	if not methods:
+		methods = ['GET', 'POST', 'PUT', 'DELETE']
+
 	def innerfn(fn):
-		global whitelisted, guest_methods, xss_safe_methods
+		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 		whitelisted.append(fn)
+
+		allowed_http_methods_for_whitelisted_func[fn] = methods
 
 		if allow_guest:
 			guest_methods.append(fn)
