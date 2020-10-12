@@ -103,7 +103,6 @@ class NextCloudSettings(Document):
 	def prepare_backup(self, db_backup=None, site_config=None, public_file_backup=None, private_file_backup=None):
 		if frappe.flags.create_new_backup:
 			backup = new_backup(ignore_files= True if cint(self.backup_files) else False)
-			print(self.backup_path)
 			db_backup = os.path.join(self.backup_path, os.path.basename(backup.backup_path_db))
 			site_config = os.path.join(self.backup_path, os.path.basename(backup.backup_path_conf))
 			if cint(self.backup_files):
@@ -151,7 +150,6 @@ class NextCloudSettings(Document):
 		return base_url
 
 	def check_for_upload_folder(self, session, url):
-		print(self.upload_path)
 		response = session.request("PROPFIND", url, headers={"Depth": "0"}, allow_redirects=False)
 		if response.status_code == 404:
 			if self.upload_path:
@@ -183,7 +181,6 @@ def upload_backup(session, baseurl, filebackup):
 			response = session.request("PUT", url, allow_redirects=False, data=filebackup)
 		except Exception as e:
 			return "Failed"
-	print(response.status_code)
 	if response.status_code not in (201, 204):
 		return "Failed"
 	else:
