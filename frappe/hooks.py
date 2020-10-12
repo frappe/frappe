@@ -38,7 +38,6 @@ app_include_js = [
 ]
 app_include_css = [
 	"assets/css/desk.min.css",
-	"assets/css/list.min.css",
 	"assets/css/report.min.css",
 ]
 

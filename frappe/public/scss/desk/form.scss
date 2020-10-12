@@ -251,8 +251,36 @@
 	}
 }
 
+@mixin form-message-background($color) {
+	background: var(--bg-#{$color});
+	color: var(--text-on-#{$color});
+}
+
 .form-message {
+	border-radius: var(--border-radius);
 	padding: var(--padding-md) var(--padding-xl);
+	font-size: var(--text-md, 13px);
+	margin-bottom: var(--margin-md);
+
+	&.blue {
+		@include form-message-background("blue");
+	}
+
+	&.green {
+		@include form-message-background("green");
+	}
+
+	&.yellow {
+		@include form-message-background("yellow");
+	}
+
+	&.orange {
+		@include form-message-background("orange");
+	}
+
+	&.red {
+		@include form-message-background("red");
+	}
 }
 
 .help-box {

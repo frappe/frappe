@@ -13,16 +13,16 @@
 	// --gray-800: #2f363d;
 	// --gray-900: #24292e;
 
-	--gray-50: #{$gray-50};
-	--gray-100: #F7FAFC;
-	--gray-200: #EDF2F7;
-	--gray-300: #E2E8F0;
-	--gray-400: #CBD5E0;
-	--gray-500: #A0AEC0;
-	--gray-600: #718096;
-	--gray-700: #4A5568;
-	--gray-800: #2D3748;
-	--gray-900: #1A202C;
+	// --gray-50: #{$gray-50};
+	// --gray-100: #F7FAFC;
+	// --gray-200: #EDF2F7;
+	// --gray-300: #E2E8F0;
+	// --gray-400: #CBD5E0;
+	// --gray-500: #A0AEC0;
+	// --gray-600: #718096;
+	// --gray-700: #4A5568;
+	// --gray-800: #2D3748;
+	// --gray-900: #1A202C;
 
 	// Type Colors
 	--text-muted: var(--gray-300);
@@ -44,6 +44,21 @@
 	--modal-bg: var(--gray-700);
 	--toast-bg: var(--modal-bg);
 	--popover-bg: var(--bg-color);
+
+	// Background Text Color Pairs
+	--bg-blue: var(--blue-500);
+	--bg-green: var(--dark-green-500);
+	--bg-yellow: var(--yellow-500);
+	--bg-orange: var(--orange-500);
+	--bg-red: var(--red-500);
+	--bg-gray: var(--gray-600);
+
+	--text-on-blue: var(--blue-50);
+	--text-on-green: var(--dark-green-50);
+	--text-on-yellow: var(--yellow-50);
+	--text-on-orange: var(--orange-100);
+	--text-on-red: var(--red-50);
+	--text-on-gray: var(--gray-100);
 
 	--sidebar-select-color: var(--gray-800);
 

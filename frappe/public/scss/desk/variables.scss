@@ -179,6 +179,22 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--toast-bg: var(--modal-bg);
 	--popover-bg: white;
 
+	// Background Text Color Pairs
+	--bg-blue: var(--blue-50);
+	--bg-green: var(--dark-green-50);
+	--bg-yellow: var(--yellow-50);
+	--bg-orange: var(--orange-50);
+	--bg-red: var(--red-50);
+	--bg-gray: var(--gray-200);
+
+	--text-on-blue: var(--blue-600);
+	--text-on-green: var(--dark-green-500);
+	--text-on-yellow: var(--yellow-500);
+	--text-on-orange: var(--orange-500);
+	--text-on-red: var(--red-500);
+	--text-on-gray: var(--gray-600);
+
+	// Other Colors
 	--sidebar-select-color: var(--gray-200);
 
 	--shadow-inset: inset 0px -1px 0px var(--gray-300);
