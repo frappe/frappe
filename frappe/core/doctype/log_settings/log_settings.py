@@ -6,23 +6,28 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.core.doctype.activity_log.activity_log import clear_activity_logs
 
 class LogSettings(Document):
 	def clear_logs(self):
 		self.clear_error_logs()
 		self.clear_activity_logs()
+		self.clear_email_queue()
 
 	def clear_error_logs(self):
 		frappe.db.sql(""" DELETE FROM `tabError Log`
 			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
-		""".format(self.error_log))
+		""".format(self.clear_error_log_after))
 
 	def clear_activity_logs(self):
-		clear_activity_logs(days=self.activity_log)
+		from frappe.core.doctype.activity_log.activity_log import clear_activity_logs
+		clear_activity_logs(days=self.clear_activity_log_after)
+
+	def clear_email_queue(self):
+		from frappe.email.queue import clear_outbox
+		clear_outbox(days=self.clear_email_queue_after)
 
 def run_log_clean_up():
-	doc = frappe.get_doc("DocType", "Log Settings")
+	doc = frappe.get_doc("Log Settings")
 	doc.clear_logs()
 
 def show_error_log_reminder():

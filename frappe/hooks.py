@@ -207,7 +207,7 @@ scheduler_events = {
 		"frappe.utils.password.delete_password_reset_cache"
 	],
 	"daily": [
-		"frappe.email.queue.clear_outbox",
+		"frappe.email.queue.set_expiry_for_email_queue",
 		"frappe.desk.notifications.clear_notifications",
 		"frappe.core.doctype.error_log.error_log.set_old_logs_as_seen",
 		"frappe.desk.doctype.event.event.send_event_digest",

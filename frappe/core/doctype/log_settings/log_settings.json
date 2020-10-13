@@ -8,10 +8,10 @@
   "error_log_notification_section",
   "users_to_notify",
   "log_cleanup_section",
-  "error_logs",
-  "activity_logs",
+  "clear_error_log_after",
+  "clear_activity_log_after",
   "column_break_4",
-  "email_queue"
+  "clear_email_queue_after"
  ],
  "fields": [
   {
@@ -20,29 +20,8 @@
    "label": "Log Cleanup"
   },
   {
-   "default": "90",
-   "description": "In Days",
-   "fieldname": "error_logs",
-   "fieldtype": "Int",
-   "label": "Error logs"
-  },
-  {
-   "default": "90",
-   "description": "In Days",
-   "fieldname": "activity_logs",
-   "fieldtype": "Int",
-   "label": "Activity Logs"
-  },
-  {
    "fieldname": "column_break_4",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "90",
-   "description": "In Days",
-   "fieldname": "email_queue",
-   "fieldtype": "Int",
-   "label": "Email Queue"
   },
   {
    "fieldname": "error_log_notification_section",
@@ -54,12 +33,33 @@
    "fieldtype": "Table MultiSelect",
    "label": "Users To Notify",
    "options": "Log Setting User"
+  },
+  {
+   "default": "90",
+   "description": "In Days",
+   "fieldname": "clear_error_log_after",
+   "fieldtype": "Int",
+   "label": "Clear Error log After"
+  },
+  {
+   "default": "90",
+   "description": "In Days",
+   "fieldname": "clear_activity_log_after",
+   "fieldtype": "Int",
+   "label": "Clear Activity Log After"
+  },
+  {
+   "default": "90",
+   "description": "In Days",
+   "fieldname": "clear_email_queue_after",
+   "fieldtype": "Int",
+   "label": "Clear Email Queue After"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-10-13 10:56:41.793424",
+ "modified": "2020-10-13 12:18:48.649038",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Log Settings",
