@@ -26,7 +26,22 @@ def run_log_clean_up():
 	doc.clear_logs()
 
 def show_error_log_reminder():
-	print('here')
+	users_to_notify = get_users_to_notify()
+
 	if frappe.db.count("Error Log", filters={'seen': 0}) > 0:
-		print("count")
-		frappe.msgprint(_("You have unseen {0}").format('<a href="/desk#List/Error%20Log/List"> Error Log </a>'), alert=1, indicator='red')
+		for user in users_to_notify:
+			frappe.publish_realtime('msgprint', {
+				"message": _("You have unseen {0}").format('<a href="/desk#List/Error%20Log/List"> Error Log </a>'),
+				"alert":1,
+				"indicator" :"red"
+			}, user=user)
+
+def get_users_to_notify():
+	from frappe.email import get_system_managers
+	log_settings = frappe.get_doc('Log Settings')
+
+	if log_settings.users_to_notify:
+		return [u.user for u in log_settings.users_to_notify]
+	else:
+		return get_system_managers()
+
