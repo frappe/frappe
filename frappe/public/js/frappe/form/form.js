@@ -1659,19 +1659,20 @@ frappe.ui.form.Form = class FrappeForm {
 		driver.start();
 	}
 
-	set_fields_as_options(fieldname, doctype, condition, default_options) {
-		if (!doctype) return;
-		let options = default_options || [];
+	// Filters fields from the reference doctype and sets them as options for a Select field
+	set_fields_as_options(fieldname, reference_doctype, filter_function, default_options=[]) {
+		if (!reference_doctype) return;
+		let options = default_options;
 
 		return new Promise(resolve => {
-			frappe.model.with_doctype(doctype, () => {
-				frappe.get_meta(doctype).fields.map(df => {
-					condition(df) && options.push({ label: df.label, value: df.fieldname });
+			frappe.model.with_doctype(reference_doctype, () => {
+				frappe.get_meta(reference_doctype).fields.map(df => {
+					filter_function(df) && options.push({ label: df.label, value: df.fieldname });
 				});
 				options && this.set_df_property(fieldname, 'options', options);
 				resolve(options);
 			});
-		})
+		});
 	}
 };
 
