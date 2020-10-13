@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe, json, os
 import unittest
+from frappe.desk.query_report import run, save_report, get_report_doc
 
 test_records = frappe.get_test_records('Report')
 test_dependencies = ['User']
@@ -28,6 +29,52 @@ class TestReport(unittest.TestCase):
 		self.assertEqual(columns[0].get('label'), 'Name')
 		self.assertEqual(columns[1].get('label'), 'Module')
 		self.assertTrue('User' in [d.get('name') for d in data])
+
+	def test_custom_report(self):
+		custom_report_name = save_report(
+			'Permitted Documents For User',
+			'Permitted Documents For User Custom',
+			json.dumps([{
+				'fieldname': 'email',
+				'fieldtype': 'Data',
+				'label': 'Email',
+				'insert_after_index': 0,
+				'link_field': 'name',
+				'doctype': 'User',
+				'options': 'Email',
+				'width': 100,
+				'id':'email',
+				'name': 'Email'
+			}]))
+		custom_report = frappe.get_doc('Report', custom_report_name)
+		columns, result = custom_report.run_query_report(
+			filters={
+				'user': 'Administrator',
+				'doctype': 'User'
+			}, user=frappe.session.user)
+
+		self.assertListEqual(['email'], [column.get('fieldname') for column in columns])
+		self.assertDictEqual({'name': 'Administrator', 'user_type': 'System User', 'email': 'admin@example.com'}, result[0])
+
+	def test_report_with_custom_column(self):
+		response = run('Permitted Documents For User',
+			filters={'user': 'Administrator', 'doctype': 'User'},
+			custom_columns=[{
+				'fieldname': 'email',
+				'fieldtype': 'Data',
+				'label': 'Email',
+				'insert_after_index': 0,
+				'link_field': 'name',
+				'doctype': 'User',
+				'options': 'Email',
+				'width': 100,
+				'id':'email',
+				'name': 'Email'
+			}])
+		result = response.get('result')
+		columns = response.get('columns')
+		self.assertListEqual(['name', 'email', 'user_type'], [column.get('fieldname') for column in columns])
+		self.assertDictEqual({'name': 'Administrator', 'user_type': 'System User', 'email': 'admin@example.com'}, result[0])
 
 	def test_report_permissions(self):
 		frappe.set_user('test@example.com')
