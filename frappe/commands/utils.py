@@ -564,7 +564,7 @@ def run_ui_tests(context, app, headless=False):
 	if not (os.path.exists(cypress_path) or os.path.exists(plugin_path)):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen("yarn add cypress@3 cypress-file-upload@^3.1")
+		frappe.commands.popen("yarn add cypress@3 cypress-file-upload@^3.1 --no-lockfile")
 
 	# run for headless mode
 	run_or_open = 'run --browser chrome --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
