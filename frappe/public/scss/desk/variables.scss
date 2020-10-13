@@ -294,6 +294,14 @@ $popover-border-color: var(--dark-border-color);
 $popover-arrow-outer-color: var(--dark-border-color);
 $popover-header-bg: white;
 
+// custom toggle switch
+$custom-switch-width: 1.625rem;
+$custom-switch-indicator-border-radius: 1rem;
+$custom-control-indicator-border-color: var(--fg-color);
+$custom-control-label-color: var(--text-color);
+$custom-switch-indicator-size: 8px;
+$custom-control-indicator-border-width: 2px;
+
 $navbar-nav-link-padding-x: 1rem !default;
 $navbar-padding-y: 1rem !default;
 $card-border-radius: 0.75rem !default;
