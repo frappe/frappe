@@ -149,6 +149,9 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	refresh() {
+		this.page.clear_secondary_action();
+		this.page.clear_primary_action();
+
 		if (!this.doctype_select) {
 			this.set_empty_message(__("Loading"))
 			return
@@ -182,7 +185,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			this.show_permission_table(this.perm_list);
 		}
 		this.show_add_rule();
-		this.make_reset_button();
+		this.get_doctype() && this.make_reset_button();
 	}
 
 	show_permission_table(perm_list) {
@@ -440,7 +443,7 @@ frappe.PermissionEngine = class PermissionEngine {
 		this.page.set_secondary_action(
 			__("Restore Original Permissions"),
 			() => {
-				this.get_standard_permissions(function (data) {
+				this.get_standard_permissions((data) => {
 					this.reset_std_permissions(data);
 				});
 			});
