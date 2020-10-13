@@ -50,6 +50,10 @@ body {
 	font-size: var(--text-base);
 	margin-bottom: var(--margin-2xl);
 
+	&.widget-charts {
+		margin-top: var(--margin-sm);
+	}
+
 	.widget-group-head {
 		@include flex(flex, space-between, center, null);
 
