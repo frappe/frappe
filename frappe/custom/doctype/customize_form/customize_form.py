@@ -46,8 +46,8 @@ class CustomizeForm(Document):
 		'''
 		Check if the doctype is allowed to be customized.
 		'''
-		#if self.doc_type in core_doctypes_list:
-		#	frappe.throw(_("Core DocTypes cannot be customized."))
+		if self.doc_type in core_doctypes_list:
+			frappe.throw(_("Core DocTypes cannot be customized."))
 
 		if meta.issingle:
 			frappe.throw(_("Single DocTypes cannot be customized."))
@@ -71,7 +71,7 @@ class CustomizeForm(Document):
 
 		for fieldname in ('links', 'actions'):
 			for d in meta.get(fieldname):
-				self.append(fieldname, d)
+				d1 = self.append(fieldname, d)
 
 	def create_auto_repeat_custom_field_if_requried(self, meta):
 		if self.allow_auto_repeat:
@@ -242,35 +242,52 @@ class CustomizeForm(Document):
 				('DocType Action', 'actions', doctype_action_properties)
 			):
 			has_custom = False
-			for d in self.get(fieldname):
-				if not (d.custom and frappe.db.exists(doctype, d.name)):
+			items = []
+			for i, d in enumerate(self.get(fieldname) or []):
+				d.idx = i
+				if frappe.db.exists(doctype, d.name) and not d.custom:
 					# check property and apply property setter
 					original = frappe.get_doc(doctype, d.name)
 					for prop, prop_type in field_map.items():
 						if d.get(prop) != original.get(prop):
 							self.make_property_setter(prop, d.get(prop), prop_type,
 								apply_on=doctype, row_name=d.name)
+					items.append(d.name)
 				else:
-					# add or update custom object
-					if frappe.db.exists(doctype, d.name):
-						doc = frappe.get_doc(doctype, d.name)
-					else:
-						doc = frappe.new_doc(doctype)
-						doc.parent = self.doc_type
-						doc.parenttype = '_Custom' # dummy parenttype since its mandatory
-						doc.custom = 1
-
-					for prop, prop_type in field_map.items():
-						doc.set(prop, d.get(prop))
-
-					doc.save(ignore_permissions=True)
+					# custom - just insert/update
+					d.parent = self.doc_type
+					d.custom = 1
+					d.save(ignore_permissions=True)
 					has_custom = True
+					items.append(d.name)
 
-				if has_custom:
-					# save the order of the actions and links
-					self.make_property_setter('{}_order'.format(fieldname),
-						json.dumps([d.name for d in self.get(fieldname)]), 'Small Text')
+			self.update_order_property_setter(has_custom, fieldname)
+			self.clear_removed_items(doctype, items)
 
+	def update_order_property_setter(self, has_custom, fieldname):
+		'''
+		We need to maintain the order of the link/actions if the user has shuffled them.
+		So we create a new property (ex `links_order`) to keep a list of items.
+		'''
+		property_name = '{}_order'.format(fieldname)
+		if has_custom:
+			# save the order of the actions and links
+			self.make_property_setter(property_name,
+				json.dumps([d.name for d in self.get(fieldname)]), 'Small Text')
+		else:
+			frappe.db.delete('Property Setter', dict(property=property_name,
+				doc_type=self.doc_type))
+
+
+	def clear_removed_items(self, doctype, items):
+		'''
+		Clear rows that do not appear in `items`. These have been removed by the user.
+		'''
+		if items:
+			frappe.db.delete(doctype, dict(parent=self.doc_type, custom=1,
+				name=('not in', items)))
+		else:
+			frappe.db.delete(doctype, dict(parent=self.doc_type, custom=1))
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):

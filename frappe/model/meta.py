@@ -343,8 +343,8 @@ class Meta(Document):
 
 	def add_custom_links_and_actions(self):
 		for doctype, fieldname in (('DocType Link', 'links'), ('DocType Action', 'actions')):
-			for d in frappe.get_all(doctype, dict(parent=self.name, custom=1)):
-				self.get(fieldname).append(d)
+			for d in frappe.get_all(doctype, fields='*', filters=dict(parent=self.name, custom=1)):
+				self.append(fieldname, d)
 
 			# set the fields in order if specified
 			# order is saved as `links_order`
@@ -353,14 +353,15 @@ class Meta(Document):
 				name_map = {d.name:d for d in self.get(fieldname)}
 				new_list = []
 				for name in order:
-					new_list.append(name_map[name])
-					name_map[name].__added = True
+					if name in name_map:
+						new_list.append(name_map[name])
 
 				# add the missing items that have not be added
 				# maybe these items were added to the standard product
 				# after the customization was done
 				for d in self.get(fieldname):
-					if not d.__added: new_list.append(d)
+					if not d in new_list:
+						new_list.append(d)
 
 				self.set(fieldname, new_list)
 

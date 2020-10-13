@@ -341,7 +341,7 @@ class Database(object):
 			value = filters.get(key)
 			values[key] = value
 			if isinstance(value, (list, tuple)):
-				# value is a tuble like ("!=", 0)
+				# value is a tuple like ("!=", 0)
 				_operator = value[0]
 				values[key] = value[1]
 				if isinstance(value[1], (tuple, list)):
@@ -959,13 +959,13 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype, conditions):
+	def delete(self, doctype, conditions, debug=False):
 		if conditions:
 			conditions, values = self.build_conditions(conditions)
 			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
 				doctype=doctype,
 				conditions=conditions
-			), values)
+			), values, debug=debug)
 		else:
 			frappe.throw(_('No conditions provided'))
 

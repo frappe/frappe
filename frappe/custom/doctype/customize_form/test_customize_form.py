@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, unittest, json
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 
 test_dependencies = ["Custom Field", "Property Setter"]
 class TestCustomizeForm(unittest.TestCase):
@@ -191,3 +192,73 @@ class TestCustomizeForm(unittest.TestCase):
 		# core doctype is invalid, hence no attributes are set
 		self.assertEquals(d.get("fields"), [])
 		self.assertEquals(e.get("fields"), [])
+
+	def test_custom_link(self):
+		try:
+			# create a dummy doctype linked to Event
+			testdt_name = 'Test Link for Event'
+			testdt = new_doctype(testdt_name, fields=[
+				dict(fieldtype='Link', fieldname='event', options='Event')
+			]).insert()
+
+			testdt_name1 = 'Test Link for Event 1'
+			testdt1 = new_doctype(testdt_name1, fields=[
+				dict(fieldtype='Link', fieldname='event', options='Event')
+			]).insert()
+
+			# add a custom link
+			d = self.get_customize_form("Event")
+
+			d.append('links', dict(link_doctype=testdt_name, link_fieldname='event', group='Tests'))
+			d.append('links', dict(link_doctype=testdt_name1, link_fieldname='event', group='Tests'))
+			d.run_method("save_customization")
+
+			frappe.clear_cache()
+			event = frappe.get_meta('Event')
+
+			# check links exist
+			self.assertTrue([d.name for d in event.links if d.link_doctype == testdt_name])
+			self.assertTrue([d.name for d in event.links if d.link_doctype == testdt_name1])
+
+			# check order
+			order = json.loads(event.links_order)
+			self.assertListEqual(order, [d.name for d in event.links])
+
+			# remove the link
+			d = self.get_customize_form("Event")
+			d.links = []
+			d.run_method("save_customization")
+
+			frappe.clear_cache()
+			event = frappe.get_meta('Event')
+			self.assertFalse([d.name for d in (event.links or []) if d.link_doctype == testdt_name])
+		finally:
+			testdt.delete()
+			testdt1.delete()
+
+	def test_custom_action(self):
+		test_route = '#List/DocType'
+
+		# create a dummy action (route)
+		d = self.get_customize_form("Event")
+		d.append('actions', dict(label='Test Action', action_type='Route', action=test_route))
+		d.run_method("save_customization")
+
+		frappe.clear_cache()
+		event = frappe.get_meta('Event')
+
+		# check if added to meta
+		action = [d for d in event.actions if d.label=='Test Action']
+		self.assertEqual(len(action), 1)
+		self.assertEqual(action[0].action, test_route)
+
+		# clear the action
+		d = self.get_customize_form("Event")
+		d.actions = []
+		d.run_method("save_customization")
+
+		frappe.clear_cache()
+		event = frappe.get_meta('Event')
+
+		action = [d for d in event.actions if d.label=='Test Action']
+		self.assertEqual(len(action), 0)

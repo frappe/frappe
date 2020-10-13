@@ -159,7 +159,10 @@ def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
-	# print(frappe.get_traceback())
+
+	if frappe.conf.get('developer_mode'):
+		# don't fail silently
+		print(frappe.get_traceback())
 
 	if frappe.get_request_header('Accept') and (frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept')):
 		# handle ajax responses first
