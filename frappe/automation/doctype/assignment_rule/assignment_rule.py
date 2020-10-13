@@ -258,7 +258,9 @@ def update_due_date(doc, state=None):
 			doc.has_value_changed(due_date_field) and rule.get('name'):
 			assignment_todos = frappe.get_all('ToDo', {
 				'assignment_rule': rule.get('name'),
-				'status': 'Open'
+				'status': 'Open',
+				'reference_type': doc.doctype,
+				'reference_name': doc.name
 			})
 			for todo in assignment_todos:
 				todo_doc = frappe.get_doc('ToDo', todo.name)
