@@ -186,12 +186,7 @@ class TestCustomizeForm(unittest.TestCase):
 		d.run_method("save_customization")
 
 	def test_core_doctype_customization(self):
-		d = self.get_customize_form('User')
-		e = self.get_customize_form('Custom Field')
-
-		# core doctype is invalid, hence no attributes are set
-		self.assertEquals(d.get("fields"), [])
-		self.assertEquals(e.get("fields"), [])
+		self.assertRaises(frappe.ValidationError, self.get_customize_form, 'User')
 
 	def test_custom_link(self):
 		try:
