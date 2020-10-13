@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2020, Frappe Technologies and contributors
+# For license information, please see license.txt
+
+from __future__ import unicode_literals
+import frappe
+from frappe import _
+from frappe.model.document import Document
+from frappe.core.doctype.activity_log.activity_log import clear_activity_logs
+
+class LogSettings(Document):
+	def clear_logs(self):
+		self.clear_error_logs()
+		self.clear_activity_logs()
+
+	def clear_error_logs(self):
+		frappe.db.sql(""" DELETE FROM `tabError Log`
+			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
+		""".format(self.error_log))
+
+	def clear_activity_logs(self):
+		clear_activity_logs(days=self.activity_log)
+
+def run_log_clean_up():
+	doc = frappe.get_doc("DocType", "Log Settings")
+	doc.clear_logs()
+
+def show_error_log_reminder():
+	print('here')
+	if frappe.db.count("Error Log", filters={'seen': 0}) > 0:
+		print("count")
+		frappe.msgprint(_("You have unseen {0}").format('<a href="/desk#List/Error%20Log/List"> Error Log </a>'), alert=1, indicator='red')
