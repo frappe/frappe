@@ -30,23 +30,22 @@ def run_log_clean_up():
 	doc = frappe.get_doc("Log Settings")
 	doc.clear_logs()
 
-def show_error_log_reminder():
-	users_to_notify = get_users_to_notify()
+@frappe.whitelist()
+def has_unseen_error_log(user):
 
-	if frappe.db.count("Error Log", filters={'seen': 0}) > 0:
-		for user in users_to_notify:
-			frappe.publish_realtime('msgprint', {
-				"message": _("You have unseen {0}").format('<a href="/desk#List/Error%20Log/List"> Error Log </a>'),
-				"alert":1,
-				"indicator" :"red"
-			}, user=user)
+	def _get_response(show_alert=True):
+		return {
+			'show_alert': True,
+			'message': _("You have unseen {0}").format('<a href="/desk#List/Error%20Log/List"> Error Logs </a>')
+		}
 
-def get_users_to_notify():
-	from frappe.email import get_system_managers
-	log_settings = frappe.get_doc('Log Settings')
+	if frappe.db.sql_list("select name from `tabError Log` where seen = 0 limit 1"):
+		log_settings = frappe.get_cached_doc('Log Settings')
 
-	if log_settings.users_to_notify:
-		return [u.user for u in log_settings.users_to_notify]
-	else:
-		return get_system_managers()
-
+		if log_settings.users_to_notify:
+			if user in [u.user for u in log_settings.users_to_notify]:
+				return _get_response()
+			else:
+				return _get_response(show_alert=False)
+		else:
+			return _get_response()
