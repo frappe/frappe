@@ -360,7 +360,7 @@ class Meta(Document):
 				# maybe these items were added to the standard product
 				# after the customization was done
 				for d in self.get(fieldname):
-					if not d in new_list:
+					if d not in new_list:
 						new_list.append(d)
 
 				self.set(fieldname, new_list)

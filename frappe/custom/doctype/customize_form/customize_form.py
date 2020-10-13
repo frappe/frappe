@@ -71,7 +71,7 @@ class CustomizeForm(Document):
 
 		for fieldname in ('links', 'actions'):
 			for d in meta.get(fieldname):
-				d1 = self.append(fieldname, d)
+				self.append(fieldname, d)
 
 	def create_auto_repeat_custom_field_if_requried(self, meta):
 		if self.allow_auto_repeat:
