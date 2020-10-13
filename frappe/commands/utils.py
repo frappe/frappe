@@ -570,12 +570,9 @@ def run_ui_tests(context, app, headless=False):
 	run_or_open = 'run --browser chrome --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
-	try:
-		click.secho("Running Cypress...", fg="yellow")
-		frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
-	finally:
-		click.secho("Cleaning Up...", fg="yellow")
-		frappe.commands.popen("yarn remove cypress cypress-file-upload")
+
+	click.secho("Running Cypress...", fg="yellow")
+	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
 
 
 @click.command('serve')
