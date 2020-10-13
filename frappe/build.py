@@ -112,17 +112,20 @@ def download_frappe_assets(verbose=True):
 
 			if assets_archive:
 				import tarfile
+				directories_created = set()
 
 				click.secho("\nExtracting assets...\n", fg="yellow")
 				with tarfile.open(assets_archive) as tar:
 					for file in tar:
 						if not file.isdir():
 							dest = "." + file.name.replace("./frappe-bench/sites", "")
+							asset_directory = os.path.dirname(dest)
 							show = dest.replace("./assets/", "")
 
-							dirname = os.path.dirname(dest)
-							if not os.path.exists(dirname):
-								os.makedirs(dirname, exist_ok=True)
+							if asset_directory not in directories_created:
+								if not os.path.exists(asset_directory):
+									os.makedirs(asset_directory, exist_ok=True)
+								directories_created.add(asset_directory)
 
 							tar.makefile(file, dest)
 							print("{0} Restored {1}".format(green('✔'), show))
