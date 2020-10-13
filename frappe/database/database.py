@@ -319,8 +319,7 @@ class Database(object):
 			nres.append(nr)
 		return nres
 
-	@staticmethod
-	def build_conditions(filters):
+	def build_conditions(self, filters):
 		"""Convert filters sent as dict, lists to SQL conditions. filter's key
 		is passed by map function, build conditions like:
 
@@ -346,13 +345,7 @@ class Database(object):
 				values[key] = value[1]
 				if isinstance(value[1], (tuple, list)):
 					# value is a list in tuple ("in", ("A", "B"))
-					inner_list = []
-					for i, v in enumerate(value[1]):
-						inner_key = "{0}_{1}".format(key, i)
-						values[inner_key] = v
-						inner_list.append("%({0})s".format(inner_key))
-
-					_rhs = " ({0})".format(", ".join(inner_list))
+					_rhs = " ({0})".format(", ".join([self.escape(v) for v in value[1]]))
 					del values[key]
 
 			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in", "not like"]:

@@ -32,11 +32,11 @@ class PropertySetter(Document):
 	def delete_property_setter(self):
 		"""delete other property setters on this, if this is new"""
 		if self.get('__islocal'):
-			frappe.db.sql("""delete from `tabProperty Setter` where
-				doctype_or_field = %(doctype_or_field)s
-				and doc_type = %(doc_type)s
-				and coalesce(field_name,'') = coalesce(%(field_name)s, '')
-				and property = %(property)s""", self.get_valid_dict())
+			filters = dict(doc_type = self.doc_type, property=self.property)
+			if self.field_name:
+				dict['field_name'] = self.field_name
+
+			frappe.db.delete('Property Setter', filters)
 
 	def get_property_list(self, dt):
 		return frappe.db.get_all('DocField',

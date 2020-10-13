@@ -168,7 +168,6 @@ class CustomizeForm(Document):
 	def set_property_setters_for_doctype(self, meta):
 		for prop, prop_type in doctype_properties.items():
 			if self.get(prop) != meta.get(prop):
-				print(prop, self.get(prop), prop_type)
 				self.make_property_setter(prop, self.get(prop), prop_type)
 
 	def set_property_setters_for_docfield(self, meta, df, meta_df):
@@ -357,8 +356,6 @@ class CustomizeForm(Document):
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None,
 		apply_on=None, row_name = None):
-		self.delete_existing_property_setter(prop, fieldname)
-
 		property_value = self.get_existing_property_value(prop, fieldname)
 
 		if property_value==value:
@@ -368,7 +365,6 @@ class CustomizeForm(Document):
 			apply_on = "DocField" if fieldname else "DocType"
 
 		# create a new property setter
-		# ignore validation becuase it will be done at end
 		frappe.make_property_setter({
 			"doctype": self.doc_type,
 			"doctype_or_field": apply_on,
@@ -377,15 +373,7 @@ class CustomizeForm(Document):
 			"property": prop,
 			"value": value,
 			"property_type": property_type
-		}, ignore_validate=True)
-
-	def delete_existing_property_setter(self, prop, fieldname=None):
-		# first delete existing property setter
-		existing_property_setter = frappe.db.get_value("Property Setter", {"doc_type": self.doc_type,
-			"property": prop, "field_name['']": fieldname or ''})
-
-		if existing_property_setter:
-			frappe.db.sql("delete from `tabProperty Setter` where name=%s", existing_property_setter)
+		})
 
 	def get_existing_property_value(self, property_name, fieldname=None):
 		# check if there is any need to make property setter!
@@ -393,13 +381,10 @@ class CustomizeForm(Document):
 			property_value = frappe.db.get_value("DocField", {"parent": self.doc_type,
 				"fieldname": fieldname}, property_name)
 		else:
-			try:
+			if frappe.db.has_column(self.doc_type, property_name):
 				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
-			except Exception as e:
-				if frappe.db.is_column_missing(e):
-					property_value = None
-				else:
-					raise
+			else:
+				property_value = None
 
 		return property_value
 

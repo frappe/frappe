@@ -206,6 +206,7 @@ class TestCustomizeForm(unittest.TestCase):
 
 			d.append('links', dict(link_doctype=testdt_name, link_fieldname='event', group='Tests'))
 			d.append('links', dict(link_doctype=testdt_name1, link_fieldname='event', group='Tests'))
+
 			d.run_method("save_customization")
 
 			frappe.clear_cache()
