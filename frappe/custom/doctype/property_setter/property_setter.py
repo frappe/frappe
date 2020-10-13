@@ -34,7 +34,7 @@ class PropertySetter(Document):
 		if self.get('__islocal'):
 			filters = dict(doc_type = self.doc_type, property=self.property)
 			if self.field_name:
-				dict['field_name'] = self.field_name
+				filters['field_name'] = self.field_name
 
 			frappe.db.delete('Property Setter', filters)
 
