@@ -71,7 +71,7 @@ def as_txt():
 def as_raw():
 	response = Response()
 	response.mimetype = frappe.response.get("content_type") or mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
-	response.headers["Content-Disposition"] = (f"{frappe.response.get('display_content_as') or 'attachment'}; filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.headers["Content-Disposition"] = (f"{frappe.response.get('display_content_as','attachment')}; filename={frappe.response['filename'].replace(' ', '_')}").encode("utf-8")
 	response.data = frappe.response['filecontent']
 	return response
 
