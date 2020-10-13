@@ -1389,7 +1389,10 @@
   "code": "la",
   "currency": "LAK",
   "currency_name": "Kip",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "timezones":[
+      "Asia/Vientiane"
+  ]
  },
  "Latvia": {
   "code": "lv",
