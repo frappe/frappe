@@ -1658,6 +1658,21 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.route.on('change', () => driver.reset());
 		driver.start();
 	}
+
+	set_fields_as_options(fieldname, doctype, condition, default_options) {
+		if (!doctype) return;
+		let options = default_options || [];
+
+		return new Promise(resolve => {
+			frappe.model.with_doctype(doctype, () => {
+				frappe.get_meta(doctype).fields.map(df => {
+					condition(df) && options.push({ label: df.label, value: df.fieldname });
+				});
+				options && this.set_df_property(fieldname, 'options', options);
+				resolve(options);
+			});
+		})
+	}
 };
 
 frappe.validated = 0;

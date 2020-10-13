@@ -864,9 +864,9 @@ export default class Grid {
 		});
 	}
 
-	add_custom_button(label, click, in_custom_section) {
+	add_custom_button(label, click, position='bottom') {
 		// add / unhide a custom button
-		const $wrapper = in_custom_section ? this.grid_custom_buttons : this.grid_buttons;
+		const $wrapper = position === 'top' ? this.grid_custom_buttons : this.grid_buttons;
 		let $btn = this.custom_buttons[label];
 		if (!$btn) {
 			$btn = $(`<button class="btn btn-default btn-xs btn-custom">${__(label)}</button>`)

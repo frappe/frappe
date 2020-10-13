@@ -2,21 +2,18 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Assignment Rule', {
-	onload: (frm) => {
-		frm.trigger('set_due_date_field_options');
+	onload: function(frm) {
+		frm.trigger('set_options');
 	},
-	setup: function(frm) {
-		frm.trigger('setup_assignment_days_buttons');
-	},
+
 	refresh: function(frm) {
+		frm.trigger('setup_assignment_days_buttons');
 		// refresh description
 		frm.events.rule(frm);
-		frm.trigger('set_field_options');
 	},
 
 	document_type: function(frm) {
-		frm.trigger('set_field_options');
-		frm.trigger('set_due_date_field_options');
+		frm.trigger('set_options');
 	},
 
 	setup_assignment_days_buttons: function(frm) {
@@ -44,7 +41,7 @@ frappe.ui.form.on('Assignment Rule', {
 			frm.fields_dict['assignment_days'].grid.add_custom_button(
 				label,
 				set_days,
-				true
+				'top'
 			)
 		);
 	},
@@ -58,37 +55,18 @@ frappe.ui.form.on('Assignment Rule', {
 		frm.get_field('rule').set_description(description_map[frm.doc.rule]);
 	},
 
-	set_field_options(frm) {
-		let doctype = frm.doc.document_type;
-		let user_link_fields = [{ label: 'Owner', value: 'owner' }];
-		if (doctype) {
-			frappe.model.with_doctype(doctype, () => {
-				frappe.get_meta(doctype).fields.map((df) => {
-					if (df.fieldtype == 'Link' && df.options == 'User') {
-						user_link_fields.push({ label: df.label, value: df.fieldname });
-					}
-				});
-				frm.set_df_property('field', 'options', user_link_fields);
-			});
-		} else {
-			frm.set_df_property('field', 'options', user_link_fields);
-		}
+	set_options(frm) {
+		const doctype = frm.doc.document_type;
+		frm.set_fields_as_options(
+			'field',
+			doctype,
+			(df) => df.fieldtype == 'Link' && df.options == 'User',
+			[{ label: 'Owner', value: 'owner' }]
+		);
+		frm.set_fields_as_options(
+			'due_date_based_on',
+			doctype,
+			(df) => ['Date', 'Datetime'].includes(df.fieldtype)
+		).then(options => frm.set_df_property('due_date_based_on', 'hidden', !options.length));
 	},
-	set_due_date_field_options: (frm) => {
-		let doctype = frm.doc.document_type;
-		let datetime_fields = [];
-		if (doctype) {
-			frappe.model.with_doctype(doctype, () => {
-				frappe.get_meta(doctype).fields.map((df) => {
-					if (['Date', 'Datetime'].includes(df.fieldtype)) {
-						datetime_fields.push({ label: df.label, value: df.fieldname });
-					}
-				});
-				if (datetime_fields) {
-					frm.set_df_property('due_date_based_on', 'options', datetime_fields);
-				}
-				frm.set_df_property('due_date_based_on', 'hidden', !datetime_fields.length);
-			});
-		}
-	}
 });
