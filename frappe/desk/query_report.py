@@ -176,7 +176,6 @@ def get_script(report_name):
 @frappe.whitelist()
 @frappe.read_only()
 def run(report_name, filters=None, user=None, ignore_prepared_report=False, custom_columns=None):
-
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
@@ -211,7 +210,8 @@ def add_custom_column_data(custom_columns, result):
 		key = (column.get('doctype'), column.get('fieldname'))
 		if key in custom_column_data:
 			for row in result:
-				row_reference = row[frappe.scrub(column.get('link_field'))]
+				row_reference = row.get(scrub(column.get('link_field')))
+				if not row_reference: continue
 				row[column.get('fieldname')] = custom_column_data.get(key).get(row_reference)
 
 	return result
