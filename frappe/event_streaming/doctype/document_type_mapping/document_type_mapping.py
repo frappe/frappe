@@ -102,7 +102,7 @@ class DocumentTypeMapping(Document):
 		filters = json.loads(mapping.remote_value_filters)
 		for key, value in iteritems(filters):
 			if value.startswith('eval:'):
-				val = frappe.safe_eval(value[5:], dict(frappe=frappe))
+				val = frappe.safe_eval(value[5:], None, dict(doc=doc))
 				filters[key] = val
 			if doc.get(value):
 				filters[key] = doc.get(value)

@@ -278,25 +278,26 @@ class File(Document):
 		base_url = os.path.dirname(self.file_url)
 
 		files = []
-		with zipfile.ZipFile(zip_path) as zf:
-			zf.extractall(os.path.dirname(zip_path))
-			for info in zf.infolist():
-				if not info.filename.startswith('__MACOSX'):
-					file_url = file_url = base_url + '/' + info.filename
-					file_name = frappe.db.get_value('File', dict(file_url=file_url))
-					if file_name:
-						file_doc = frappe.get_doc('File', file_name)
-					else:
-						file_doc = frappe.new_doc("File")
-					file_doc.file_name = info.filename
-					file_doc.file_size = info.file_size
-					file_doc.folder = self.folder
-					file_doc.is_private = self.is_private
-					file_doc.file_url = file_url
-					file_doc.attached_to_doctype = self.attached_to_doctype
-					file_doc.attached_to_name = self.attached_to_name
-					file_doc.save()
-					files.append(file_doc)
+		with zipfile.ZipFile(zip_path) as z:
+			for file in z.filelist:
+				if file.is_dir() or file.filename.startswith('__MACOSX/'):
+					# skip directories and macos hidden directory
+					continue
+
+				filename = os.path.basename(file.filename)
+				if filename.startswith('.'):
+					# skip hidden files
+					continue
+
+				file_doc = frappe.new_doc('File')
+				file_doc.content = z.read(file.filename)
+				file_doc.file_name = filename
+				file_doc.folder = self.folder
+				file_doc.is_private = self.is_private
+				file_doc.attached_to_doctype = self.attached_to_doctype
+				file_doc.attached_to_name = self.attached_to_name
+				file_doc.save()
+				files.append(file_doc)
 
 		frappe.delete_doc('File', self.name)
 		return files
@@ -358,6 +359,9 @@ class File(Document):
 	def write_file(self):
 		"""write file to disk with a random name (to compare)"""
 		file_path = get_files_path(is_private=self.is_private)
+
+		if os.path.sep in self.file_name:
+			frappe.throw(_('File name cannot have {0}').format(os.path.sep))
 
 		# create directory (if not exists)
 		frappe.create_folder(file_path)
@@ -922,3 +926,40 @@ def update_existing_file_docs(doc):
 		content_hash=doc.content_hash,
 		file_name=doc.name
 	))
+
+def attach_files_to_document(doc, event):
+	""" Runs on on_update hook of all documents.
+	Goes through every Attach and Attach Image field and attaches
+	the file url to the document if it is not already attached.
+	"""
+
+	attach_fields = doc.meta.get(
+		"fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}
+	)
+
+	for df in attach_fields:
+		# this method runs in on_update hook of all documents
+		# we dont want the update to fail if file cannot be attached for some reason
+		try:
+			value = doc.get(df.fieldname)
+			if not (value or '').startswith(("/files", "/private/files")):
+				return
+
+			if frappe.db.exists("File", {
+				"file_url": value,
+				"attached_to_name": doc.name,
+				"attached_to_doctype": doc.doctype,
+				"attached_to_field": df.fieldname,
+			}):
+				return
+
+			frappe.get_doc(
+				doctype="File",
+				file_url=value,
+				attached_to_name=doc.name,
+				attached_to_doctype=doc.doctype,
+				attached_to_field=df.fieldname,
+				folder="Home/Attachments",
+			).insert()
+		except Exception:
+			frappe.log_error(title=_("Error Attaching File"))

@@ -2,6 +2,7 @@ A4,A4,
 API Endpoint,نقطة وصولAPI,
 API Key,مفتاح API,
 Access Token,رمز وصول,
+Account,حساب,
 Accounts Manager,مدير حسابات,
 Accounts User,حسابات المستخدمين,
 Action,حدث,
@@ -146,8 +147,12 @@ More Information,المزيد من المعلومات,
 More...,المزيد...,
 Move,حرك,
 My Account,حسابي,
+New Address,عنوان جديد,
+New Contact,جهة اتصال جديدة,
 Next,التالي,
 No Data,لا توجد بيانات,
+No address added yet.,لم تتم إضافة أي عنوان حتى الآن.,
+No contacts added yet.,لم تتم إضافة أي جهات اتصال حتى الآن.,
 No items found.,لم يتم العثور على العناصر.,
 None,لا شيء,
 Not Permitted,لا يسمح,
@@ -170,6 +175,7 @@ Pincode,رمز Pin,
 Plan Name,اسم الخطة,
 Please enable pop-ups,يرجى تمكين النوافذ المنبثقة,
 Please select Company,الرجاء اختيار شركة \n<br>\nPlease select Company,
+Please select {0},الرجاء اختيار {0},
 Please set Email Address,يرجى وضع عنوان البريد الإلكتروني,
 Portal,بوابة,
 Portal Settings,إعدادات البوابة,
@@ -186,6 +192,7 @@ Purchase Manager,مدير المشتريات,
 Purchase Master Manager,المدير الرئيسي للمشتريات,
 Purchase User,عضو الشراء,
 Query Options,خيارات الاستعلام,
+Range,نطاق,
 Rating,تقييم,
 Received,تلقيت,
 Recipients,المستلمين,
@@ -225,6 +232,7 @@ Send Now,أرسل الآن,
 Sent,أرسلت,
 Series {0} already used in {1},الترقيم المتسلسل {0} مستخدم بالفعل في {1},
 Service,خدمة,
+Set as Default,تعيين كافتراضي,
 Settings,إعدادات,
 Shipping,الشحن,
 Short Name,الاسم المختصر,
@@ -291,13 +299,8 @@ old_parent,old_parent,
 1 comment,تعليق واحد,
 1 hour ago,منذ 1 ساعة,
 1 minute ago,منذ 1 دقيقة,
-1 month,شهر واحد,
 1 month ago,قبل شهر,
-1 week,أسبوع 1,
-1 year,1 سنة,
 1 year ago,منذ سنة,
-3 months,3 اشهر,
-6 months,6 اشهر,
 ; not allowed in condition,; غير مسموح به في حالة,
 "<h4>Default Template</h4>\n<p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>\n<pre><code>{{ address_line1 }}&lt;br&gt;\n{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}\n{{ city }}&lt;br&gt;\n{% if state %}{{ state }}&lt;br&gt;{% endif -%}\n{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}\n{{ country }}&lt;br&gt;\n{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}\n{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}\n{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}\n</code></pre>","<h4> افتراضي قالب <!-- H4--> \n <p> ويستخدم <a href=""http://jinja.pocoo.org/docs/templates/""> جينجا قالبي templating </a> وجميع مجالات عنوان ( بما في ذلك الحقول المخصصة إن وجدت) سوف تكون متاحة <!-- P--> \n &lt;قبل&gt; &lt;كود&gt; {{address_line1}} العلامة &amp; lt؛ BR &amp; GT؛ \n {٪ إذا address_line2٪} {{address_line2}} العلامة &amp; lt؛ BR &amp; GT؛ { ENDIF٪ -٪} \n {{مدينة}} العلامة &amp; lt؛ BR &amp; GT؛ \n {٪ إذا الدولة٪} {{دولة}} العلامة &amp; lt؛ BR &amp; GT؛ {٪ ENDIF -٪} \n {٪ إذا كان الرقم السري٪} PIN: {{الرقم السري}} العلامة &amp; lt؛ BR &amp; GT؛ {٪ ENDIF -٪} \n {{البلاد}} العلامة &amp; lt؛ BR &amp; GT؛ \n {٪ إذا كان الهاتف٪} الهاتف: {{هاتف}} العلامة &amp; lt؛ BR &amp; GT؛ { ٪ ENDIF -٪} \n {٪ إذا الفاكس٪} فاكس: {{الفاكس}} العلامة &amp; lt؛ BR &amp; GT؛ {٪ ENDIF -٪} \n {٪ إذا٪ email_id} البريد الإلكتروني: {{email_id}} العلامة &amp; lt؛ BR &amp; GT ؛ {٪ ENDIF -٪} \n <!-- الرمز--> <!-- PRE--></p></h4>",
 A Lead with this Email Address should exist,يجب أن يوجد الرصاص مع هذا عنوان البريد الإلكتروني,
@@ -312,7 +315,6 @@ API Password,API كلمة المرور,
 API Secret,كلمة مرور API,
 API Username,اسم مستخدم API,
 ASC,تصاعدي,
-About,حول,
 About Us Settings,إعدادات صفحة من نحن,
 About Us Team Member,أعضاء فريق صفحة من نحن,
 Accept Payment,يوافق على الدفع,
@@ -349,15 +351,12 @@ Add a comment,إضافة تعليق,
 Add a new section,إضافة قسم جديد,
 Add a tag ...,أضف علامة دلائلية ...,
 Add all roles,إضافة كافة الأدوار,
-Add code as &lt;script&gt;,إضافة التعليمات البرمجية كما &lt;script&gt;,
 Add custom forms.,إضافة نماذج مخصصة.,
 Add custom javascript to forms.,إضافة جافا سكريبت الى (forms),
 Add fields to forms.,إضافة حقول إلى النماذج.,
 Add meta tags to your web pages,أضف علامات التعريف إلى صفحات الويب الخاصة بك,
 Add script for Child Table,إضافة البرنامج النصي لجدول الطفل,
-Add to To Do,إضافة إلى المهام,
 Add to table,إضافة إلى الجدول,
-Add your own Tag Categories,إضافة تصنيف العلامة الدلائلية الخاصة بك,
 Add your own translations,أضف الترجمة  الخاصة بك,
 "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",وأضاف HTML في القسم &lt;head&gt; من صفحة الويب، تستخدم في المقام الأول للتحقق من الموقع وSEO,
 Added {0},تمت الإضافة {0},
@@ -379,7 +378,6 @@ Align Labels to the Right,محاذاة التسميات إلى اليمين,
 Align Value,محاذاة القيمة,
 All Images attached to Website Slideshow should be public,يجب أن تكون جميع الصور الملحقة لموقع معرض الصور على العام,
 All customizations will be removed. Please confirm.,سيتم إزالة كافة التخصيصات. يرجى التأكيد.,
-All fields are necessary to submit the comment.,جميع الحقول ضرورية لتقديم التعليق.,
 "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","جميع حالات سير العمل الممكنة وأدوار سير العمل. خيارات Docstatus: 0 هو ""محفوظ"" (1)، هو ""مقدم"" و 2 هو ""ألغي""",
 All-uppercase is almost as easy to guess as all-lowercase.,جميع الأحرف الكبيرة تكون سهلة التخمين تقريبا كالأحرف الصغيرة,
 Allocated To,المخصصة ل,
@@ -417,7 +415,6 @@ Allowed,سمح,
 Allowed In Mentions,سمح في المذكرات,
 "Allowing DocType, DocType. Be careful!",السماح DOCTYPE ، DOCTYPE . كن حذرا!,
 Already Registered,مسجل بالفعل,
-Already in user's To Do list,موجود بالفعل في قائمة المهام الواجبة للمستخدم,
 Also adding the dependent currency field {0},إضافة حقل العملة التابعة {0},
 "Always add ""Draft"" Heading for printing draft documents","دائما إضافة ""كلمة مسودة"" عند طباعة المسودات",
 Always use Account's Email Address as Sender,استخدم دائماً حساب البريد الألكتروني كمرسل,
@@ -569,7 +566,6 @@ Brand Image,صورة العلامة التجارية,
 Breadcrumbs,مسار التصفح,
 Browser not supported,المتصفح غير مدعوم,
 Brute Force Security,القوة الغاشمة للأمن,
-Bucket,دلو,
 Build Report,بناء تقرير,
 Bulk Delete,حذف بالجملة,
 Bulk Edit {0},تعديل بالجمله {0},
@@ -699,7 +695,6 @@ Columns based on,أعمدة بناء على,
 Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed,الجمع بين نوع المنحة ( <code>{0}</code> ) ونوع الاستجابة ( <code>{1}</code> ) غير مسموح به,
 Comment By,تعليق من جانب,
 Comment Email,تعليق البريد الإلكتروني,
-Comment Should be atleast 10 characters,يجب أن يكون التعليق على الأقل 10 أحرف,
 Comment Type,تعليق نوع,
 Comment can only be edited by the owner,لا يمكن تعديل التعليق إلا بواسطة المالك,
 Commented on {0}: {1},علق على {0}: {1},
@@ -791,7 +786,6 @@ Custom Reports,تقارير مخصصة,
 Custom Role,تخصيص صلاحية,
 Custom Script,نص مخصص,
 Custom Sidebar Menu,قائمة الشريط الجانبي المخصص,
-Custom Tags,كلمات دلائلية حخصصة,
 Custom Translations,ترجمة مخصصة,
 Customization,التخصيص,
 Customizations Reset,التخصيصات إعادة تعيين,
@@ -868,7 +862,6 @@ Deleted Name,الاسم المحذوف,
 Deleting {0},حذف {0},
 Depends On,يعتمد على,
 Descendants Of,أحفاد من,
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",وصف لصفحة القائمة، في نص عادي، فقط بضعة أسطر. (حد أقصى 140 حرف),
 Desk,سطح المكتب,
 Desk Access,الوصول للمكتب,
 Desktop Icon,أيقونة سطح المكتب,
@@ -921,6 +914,7 @@ Document States,الولايات ثيقة,
 Document Type is not importable,نوع المستند غير قابل للاستيراد,
 Document Type is not submittable,نوع المستند غير قابل للتقديم,
 Document Type to Track,نوع المستند لتعقب,
+Document Types,أنواع المستندات,
 Document can't saved.,لا يمكن حفظ المستند.,
 Document {0} has been set to state {1} by {2},تم تعيين المستند {0} على الحالة {1} بواسطة {2},
 Documents,وثائق,
@@ -949,7 +943,6 @@ Dropbox Setup,إعداد دروببوإكس,
 Dropbox access is approved!,تمت الموافقة الوصول دروببوإكس!,
 Dropbox backup settings,إعدادات النسخ الاحتياطي دروببوإكس,
 Duplicate Filter Name,تكرار اسم الفلتر,
-Duplicate name {0} {1},تكرار اسم {0} {1},
 Dynamic Link,الارتباط الحيوي,
 Dynamic Report Filters,مرشحات تقرير ديناميكي,
 ESC,زر ESC فى الكيبورد,
@@ -969,8 +962,6 @@ Eg. smsgateway.com/api/send_sms.cgi,على سبيل المثال، smsgateway.co
 Email Account Name,البريد الإلكتروني اسم الحساب,
 Email Account added multiple times,تمت إضافة حساب البريد الإلكتروني عدة مرات,
 Email Addresses,عناوين البريد الإلكتروني,
-Email By Document Field,البريد الإلكتروني بواسطة حقل الوثيقة,
-Email By Role,البريد الالكتروني عن طريق دور,
 Email Domain,المجال البريد الإلكتروني,
 "Email Domain not configured for this account, Create one?","عنوان مجال البريد الألكتروني غير معرف لهذا الحساب, إنشيء واحد ؟",
 Email Flag Queue,البريد الإلكتروني العلم قائمة الانتظار,
@@ -1053,7 +1044,6 @@ Events in Today's Calendar,الأحداث في التقويم اليوم,
 Everyone,كل شخص,
 Example,مثال,
 Example Email Address,مثال عنوان البريد الإلكتروني,
-Example:,على سبيل المثال:,
 Example: {{ subject }},مثال: {{topic}},
 Excel,تفوق,
 Exception,استثناء,
@@ -1090,7 +1080,6 @@ Field Type,نوع الحقل,
 "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",الحقل الذي يمثل حالة سير العمل للصفقة (إذا حقل غير موجود، سيتم إنشاء حقل مخصص جديد مخفي),
 Field to Track,حقل لتعقب,
 Field type cannot be changed for {0},لا يمكن تغيير نوع الحقل ل {0},
-Field {0} is not selectable.,الحقل {0} ليس اختيار.,
 Field {0} not found.,الحقل {0} غير موجود.,
 Fieldname is limited to 64 characters ({0}),اسم الحقل محدد ب 64 حرف<br>Fieldname is limited to 64 characters ({0}),
 Fieldname not set for Custom Field,أسم الحقل لم يتم تعيينه لحقل مخصص,
@@ -1124,7 +1113,6 @@ Filter Name,اسم الفلتر,
 Filter Values,قيم التصفية,
 Filter must be a tuple or list (in a list),يجب أن يكون الفلتر عبارة عن قائمة أو قائمة (في قائمة),
 "Filter must have 4 values (doctype, fieldname, operator, value): {0}",يجب أن يحتوي الفلتر على 4 قيم (دوكتيب، فيلدنام، أوبيراتور، فالو): {0},
-Filter {0} missing,مرشح {0} مفقود,
 Filter...,تصفية ...,
 "Filtered by ""{0}""",تمت تصفيتها من قبل &quot;{0}&quot;,
 Filters Display,عرض المرشحات,
@@ -1164,7 +1152,6 @@ For Value,للقيمة,
 "For currency {0}, the minimum transaction amount should be {1}",للعملة {0} ، يجب أن يكون الحد الأدنى لمبلغ المعاملة {1},
 For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,على سبيل المثال إذا قمت بإلغاء وتعديل INV004 أنها سوف تصبح وثيقة INV004-1 جديدة. هذا يساعدك على تتبع كل تعديل.,
 "For example: If you want to include the document ID, use {0}",على سبيل المثال: إذا كنت تريد تضمين الوثيقة ID، استخدم {0},
-"For help see <a href=""https://frappe.io/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">Client Script API and Examples</a>","للحصول على مساعدة ، راجع <a href=""https://frappe.io/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">Client Script API and Examples</a>",
 For top bar,للشريط الأعلى,
 "For updating, you can update only selective columns.",لتحديث، يمكنك تحديث الأعمدة انتقائية فقط.,
 For {0} at level {1} in {2} in row {3},ل {0} في {1} مستوى في {2} في {3} الصف,
@@ -1350,7 +1337,6 @@ Insert After,إدراج بعد,
 Insert After cannot be set as {0},الإدراج بعد لا يمكن تعيينه ك {0},
 "Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",إدراج بعد الحقل '{0}' المذكورة في الحقل المخصص '{1}'، مع التصنيف '{2}'، غير موجود,
 Insert Below,إدراج بالأسفل,
-Insert Code,إدراج كود,
 Insert Column Before {0},إدراج عمود قبل {0},
 Insert Style,إدراج نمط,
 Insert new records,إدراج سجلات جديدة,
@@ -1467,6 +1453,7 @@ Last Updated On,آخر تحديث يوم,
 Last User,آخر مستخدم,
 Last Week,الاسبوع الماضي,
 Last Year,العام الماضي,
+Last synced {0},آخر مزامنة {0},
 Leave a Comment,أترك تعليق,
 Leave blank to repeat always,اتركه فارغ لتكرار دائما,
 Leave this conversation,ترك هذه المحادثة,
@@ -1537,7 +1524,6 @@ Looks like something is wrong with this site's payment gateway configuration. No
 Madam,سيدتي,
 Main Section,القسم العام,
 "Make ""name"" searchable in Global Search","اجعل ""الاسم"" قابلا للبحث في البحث العالمي",
-Make Default,تعيين كإفتراضي,
 Make use of longer keyboard patterns,الاستفادة من نماذج لوحة المفاتيح أطول,
 Manage Third Party Apps,إدارة تطبيقات الجهات الخارجية,
 Mandatory Information missing:,معلومات إلزامية مفقود:,
@@ -1551,7 +1537,6 @@ Mappings,تعيينات,
 Mark as Read,ضع إشارة مقروء,
 Mark as Spam,علامة كدعاية,
 Mark as Unread,حدده كغير مقروء,
-Mark as {0},حددها ك {0},
 Markdown,مصغر,
 Markdown Editor,محرر تخفيض السعر,
 Marked As Spam,محددة كدعايات,
@@ -1612,7 +1597,6 @@ Multiplier Field,حقل المضاعف,
 Must have report permission to access this report.,يجب أن يكون لديك إذن تقارير للوصول إلى هذا التقرير.,
 Must specify a Query to run,يجب تحديد استعلام لتشغيل,
 Mute Sounds,كتم الصوتيات,
-My Settings,إعداداتي,
 MyISAM,MYISAM,
 Name Case,اسم القضية,
 Name cannot contain special characters like {0},الإسم لا يمكن أن يحتوي على أحرف خاصة مثل {0},
@@ -1635,7 +1619,6 @@ New Email Account,حساب بريد إلكتروني جديد,
 New Event,حدث جديد,
 New Folder,ملف جديد,
 New Kanban Board,مجلس كانبان جديدة,
-New Mention,ذكر جديد,
 New Message from Website Contact Page,رسالة جديدة من موقع الاتصال الصفحة,
 New Name,اسم جديد,
 New Newsletter,النشرة الإخبارية جديدة,
@@ -1769,7 +1752,6 @@ Only 200 inserts allowed in one request,فقط 200 إدراج سمحت في طل
 Only Administrator can delete Email Queue,يمكن فقط للمسؤول حذف قائمة انتظار البريد الإلكتروني,
 Only Administrator can edit,مدير النظام فقط يمكنه التحرير,
 Only Administrator can save a standard report. Please rename and save.,مسؤول فقط يمكن حفظ تقرير القياسية. الرجاء إعادة تسمية وحفظ.,
-Only Administrator is allowed to create Dashboard Chart Sources,يُسمح فقط للمسؤول بإنشاء مصادر مخطط لوحة المعلومات,
 Only Administrator is allowed to use Recorder,يسمح فقط للمسؤول باستخدام Recorder,
 Only Allow Edit For,السماح بالتحرير فقط لـ,
 Only Send Records Updated in Last X Hours,فقط إرسال السجلات التي تم تحديثها في آخر X ساعات,
@@ -1895,7 +1877,6 @@ Please enter Base URL,الرجاء إدخال عنوان ورل الأساسي,
 Please enter Client ID before social login is enabled,الرجاء إدخال معرف العميل قبل تمكين تسجيل الدخول الاجتماعي,
 Please enter Client Secret before social login is enabled,الرجاء إدخال العميل السري قبل تمكين تسجيل الدخول الاجتماعي,
 Please enter Redirect URL,الرجاء إدخال عنوان ورل لإعادة التوجيه,
-Please enter a valid email address.,رجاء قم بإدخال بريد الكتروني صحيح.,
 Please enter the password,الرجاء إدخال كلمة المرور,
 Please enter valid mobile nos,الرجاء إدخال أرقام جوال صالحة,
 Please enter values for App Access Key and App Secret Key,الرجاء إدخال قيم التطبيقات مفتاح الوصول والتطبيقات سر مفتاح,
@@ -2080,7 +2061,6 @@ Repeat this Event,كرر هذا الحدث,
 "Repeats like ""abcabcabc"" are only slightly harder to guess than ""abc""",يكرر مثل &quot;abcabcabc&quot; ليست سوى أصعب قليلا لتخمين من &quot;اي بي سي&quot;,
 Reply,رد,
 Reply All,الرد على الجميع,
-Report Builder reports are managed directly by the report builder. Nothing to do.,تدار تقارير منشئ التقرير مباشرة بواسطة منشئ التقرير. لا شيء للقيام به.,
 Report End Time,تقرير وقت الانتهاء,
 Report Filters,مرشحات تقرير,
 Report Hide,إخفاء التقرير,
@@ -2174,7 +2154,6 @@ SMTP Settings for outgoing emails,إعدادات SMTP لرسائل البريد 
 SSL/TLS Mode,وضع SSL / TLS,
 Salesforce,قوة المبيعات,
 Same Field is entered more than once,تم إدخال نفس الحقل أكثر من مرة,
-Same file has already been attached to the record,نفس الملف تم إرفاقه إلى هذا السجل,
 Save API Secret: ,حفظ سر API:,
 Save As,حفظ باسم,
 Save Filter,حفظ الفلتر,
@@ -2183,8 +2162,6 @@ Save filters,حفظ المرشحات,
 Saving,حفظ,
 Saving...,إنقاذ...,
 Scan the QR Code and enter the resulting code displayed.,مسح رمز الاستجابة السريعة وأدخل رمز الناتجة عرضها.,
-Scheduled to send to {0},من المقرر أن يرسل إلى {0},
-Scheduled to send to {0} recipients,من المقرر أن يرسل إلى {0} المتلقين,
 Scopes,نطاقات,
 Script,سيناريو,
 Script Report,تقرير النصي,
@@ -2192,7 +2169,6 @@ Script or Query reports,تقارير النصي أو سؤال,
 Script to attach to all web pages.,النصي لنعلق على كل صفحات الويب.,
 Search Fields,البحث الحقول,
 Search Help,مساعدة البحث,
-Search Term,مصطلح البحث,
 Search field {0} is not valid,حقل البحث {0} غير صالح,
 Search for '{0}',البحث عن &#39;{0}&#39;,
 Search for anything,البحث عن أي شيء,
@@ -2202,13 +2178,11 @@ Search or type a command,بحث أو كتابة أمر,
 Search...,بحث...,
 Searching,جاري البحث,
 Searching ...,جاري البحث ...,
-Secret Access Key,مفتاح الوصول السري,
 Section Break,فاصل قسم,
 Section Heading,قسم العنوان,
 Security,أمن,
 Security Settings,إعدادات الأمان,
 See all past reports.,عرض جميع التقارير السابقة,
-See https://docs.aws.amazon.com/de_de/general/latest/gr/rande.html#s3_region for details.,راجع https://docs.aws.amazon.com/de_de/general/latest/gr/rande.html#s3_region للحصول على التفاصيل.,
 See on Website,ترى على الموقع,
 See the document at {0},انظر المستند على {0},
 Seems API Key or API Secret is wrong !!!,يبدو مفتاح API أو API سر من الخطأ !!!,
@@ -2251,7 +2225,6 @@ Select {0},حدد {0},
 Self approval is not allowed,الموافقة الذاتية غير مسموح بها,
 Send After,إرسال بعد,
 Send Alert On,إرسال تنبيه في,
-Send Attachements,إرسال المرفقات,
 Send Email Alert,إرسال تنبيه عبر البريد الإلكتروني,
 Send Email Print Attachments as PDF (Recommended),إرسال البريد الإلكتروني المرفقات طباعة بصيغة PDF (مستحسن),
 Send Email for Successful Backup,إرسال بريد إلكتروني للنجاح النسخ الاحتياطي,
@@ -2266,7 +2239,6 @@ Send alert if date matches this field's value,إرسال تنبيه إذا تا�
 Send alert if this field's value changes,إرسال تنبيه إذا تغيرت قيمة هذا الحقل,
 Send an email reminder in the morning,إرسال رسالة تذكير في الصباح,
 Send days before or after the reference date,إرسال أيام قبل أو بعد التاريخ المرجعي,
-Send document web view link in email,إرسال ثيقة الارتباط عرض على شبكة الإنترنت في البريد الإلكتروني,
 Send enquiries to this email address,إرسال الاستفسارات إلى عنوان البريد الإلكتروني هذا,
 Send me a copy,أرسل لي نسخة,
 Send only if there is any data,إرسال فقط إذا كان هناك أي بيانات,
@@ -2323,7 +2295,6 @@ Share {0} with,مشاركة {0} مع,
 Shared,مشتركة,
 Shared With,مشترك مع,
 Shared with everyone,مشترك مع الجميع,
-Shared with user {0} with read access,تمت المشاركة مع المستخدم {0} مع إمكانية الوصول للقراءة,
 Shared with {0},مشترك مع {0},
 Shop,تسوق,
 Short keyboard patterns are easy to guess,نماذج لوحة المفاتيح قصيرة من السهل تخمين,
@@ -2391,7 +2362,6 @@ Sorry! I could not find what you were looking for.,"عذراَ ! ,  لا يمك�
 Sorry! Sharing with Website User is prohibited.,معذرة! المشاركة مع مستخدم الموقع محظور.,
 Sorry! User should have complete access to their own record.,معذرة! يجب أن يكون المستخدم الوصول الكامل إلى سجل الخاصة بهم.,
 Sorry! You are not permitted to view this page.,"عذراَ !, غير مسموح لك مشاهدة هذه الصفحة.",
-Sorry! You cannot delete auto-generated comments,"عذراَ ! ,لا يمكنك حذف التعليقات الذي تم إنشاؤه تلقائيا",
 "Sorry, you're not authorized.",عذرا، أنت غير مخول.,
 Sort Field,نوع الحقل,
 Sort Order,ترتيب,
@@ -2487,7 +2457,6 @@ Text Color,لون الخط,
 Text Content,محتوى النص,
 Text Editor,محرر النصوص,
 Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,النص ليتم عرضها لرابط صفحة الانترنت إذا هذا النموذج لديه صفحة على شبكة الإنترنت. الطريق للرابط سيتم تكوينه تلقائيا على أساس `` page_name` وparent_website_route`,
-Thank you for your comment. It will be published after approval,شكرا لك على تعليقك. سيتم نشرها بعد الموافقة,
 Thank you for your email,شكرا لك على بريدك الالكتروني,
 Thank you for your interest in subscribing to our updates,شكرا لك على اهتمامك في الاشتراك في تحديثاتنا,
 Thank you for your message,شكرا لرسالتك,
@@ -2580,20 +2549,17 @@ To User,إلى المستخدم,
 "To add dynamic subject, use jinja tags like\n\n<div><pre><code>New {{ doc.doctype }} #{{ doc.name }}</code></pre></div>","لإضافة موضوع ديناميكي، استخدم علامات جينيا مثل <div style=""""><pre style=""""> <code>New {{ doc.doctype }} #{{ doc.name }}</code> </pre> </div>",
 "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>","لإضافة موضوع ديناميكي، استخدام علامات جينجا مثل <div style=""""><pre style=""""> <code>{{ doc.name }} Delivered</code> </pre> </div>",
 To and CC,لوCC,
-"To format columns, give column labels in the query.",لتنسيق الأعمدة، وإعطاء تسميات الأعمدة في الاستعلام.,
 "To get the updated report, click on {0}.",للحصول على التقرير المحدّث ، انقر على {0}.,
 ToDo,قائمة المهام,
 Today,اليوم,
 Toggle Chart,تبديل الرسم البياني,
 Toggle Charts,تبديل الرسوم البيانية,
-Toggle Full Width,تبديل العرض الكامل,
 Toggle Grid View,تبديل عرض الشبكة,
 Toggle Sidebar,تبديل الشريط الجانبي,
 Token,رمز,
 Token is missing,رمز مفقود,
 "Too many users signed up recently, so the registration is disabled. Please try back in an hour",وقعت الكثير من المستخدمين في الآونة الأخيرة، وذلك هو تعطيل التسجيل. يرجى المحاولة مرة أخرى في ساعة,
 Too many writes in one request. Please send smaller requests,الكثير من يكتب في طلب واحد . يرجى إرسال طلبات أصغر,
-Top Bar,الشريط الأعلى,
 Top Bar Item,أفضل شريط الإغلاق,
 Top Bar Items,قطع الشريط العلوي,
 Top Performer,أفضل أداء,
@@ -2623,7 +2589,6 @@ Translation,ترجمة,
 Translations,ترجمة,
 Trash,قمامة، يدمر، يهدم,
 Tree,شجرة,
-Tree view not available for {0},العرض المشجر غير متوفر ل{0},
 Trigger Method,الطريقة الزناد,
 Trigger Name,اسم الزناد,
 "Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)",الزناد على الطرق الصحيحة مثل &quot;before_insert&quot;، &quot;after_update&quot;، وما إلى ذلك (تعتمد على نوع المستند المحدد),
@@ -2811,9 +2776,6 @@ Workflow State not set,لم يتم تعيين حالة سير العمل,
 Workflow Transition,الانتقال سير العمل,
 Workflow state represents the current state of a document.,تمثل حالة سير العمل الحالة الراهنة للوثيقة.,
 Write,الكتابة,
-Write a Python file in the same folder where this is saved and return column and result.,كتابة ملف بيثون في نفس المجلد حيث تم حفظ هذا العمود والعودة والنتيجة.,
-Write a SELECT query. Note result is not paged (all data is sent in one go).,كتابة استعلام SELECT. لم يتم ترحيلها علما نتيجة (يتم إرسال جميع البيانات دفعة واحدة).,
-Writers Introduction,مقدمة الكاتب,
 Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script,اسم الحقل غير صحيح <b>{0}</b> في add_fetch تكوين البرنامج النصي المخصص,
 X Axis Field,X محور الحقل,
 XLSX,XLSX,
@@ -2881,7 +2843,6 @@ Your payment was successfully accepted,تم قبول الدفع الخاص بك 
 "Your session has expired, please login again to continue.",انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى للمتابعة.,
 Zero,صفر,
 Zero means send records updated at anytime,صفر يعني إرسال التحديثات في أي وقت,
-[Label]:[Field Type]/[Options]:[Width],[تسمية]: [نوع الحقل] / [خيارات]: [العرض],
 _doctype,_doctype,
 _report,_تقرير,
 adjust,ضبط,
@@ -3081,7 +3042,6 @@ zoom-out,تصغير,
 {0} appreciated {1},{0} موضع تقدير {1},
 {0} appreciation point for {1} {2},{0} نقطة التقدير لـ {1} {2},
 {0} appreciation points for {1} {2},{0} نقاط التقدير لـ {1} {2},
-{0} are currently viewing this document,{0} يستعرض هذه الوثيقة حالياً,
 {0} assigned {1}: {2},{0} تعيين {1}: {2},
 {0} cannot be set for Single types,{0} لا يمكن تحديده لأنواع أحادية,
 {0} comments,{0} تعليقات,
@@ -3102,7 +3062,6 @@ zoom-out,تصغير,
 {0} in row {1} cannot have both URL and child items,{0} في الصف {1} لا يمكن أن يكون لها عنوان URL وبنود فرعية في نفس الوقت,
 {0} is a mandatory field,{0} حقل إلزامي,
 {0} is an invalid email address in 'Recipients',{0} هو عنوان بريد إلكتروني غير صالح في &quot;المستلمين&quot;,
-{0} is currently viewing this document,{0} يستعرض حالياً هذا المستند,
 {0} is not a raw printing format.,{0} ليس تنسيق طباعة خامًا.,
 {0} is not a valid Email Address,{0} بريد الكتروني غير صالح<br>{0} is not a valid Email Address,
 {0} is not a valid Workflow State. Please update your Workflow and try again.,{0} ليست حالة سير عمل صالحة. يرجى تحديث سير العمل والمحاولة مرة أخرى.,
@@ -3200,12 +3159,9 @@ About {0} minutes remaining,حوالي {0} دقائق متبقية,
 About {0} seconds remaining,حوالي {0} ثانية متبقية,
 Access Log,سجل الوصول,
 Access not allowed from this IP Address,الوصول غير مسموح به من عنوان IP هذا,
-Action Settings,إعدادات العمل,
 Action Type,نوع العمل,
 Activity Log by ,سجل النشاط بواسطة,
 Add Fields,إضافة الحقول,
-Add More Button,إضافة المزيد من زر,
-Add a help video link just in case user has no idea about what to fill in the slide.,أضف رابط فيديو للمساعدة فقط في حال لم يكن لدى المستخدم أي فكرة عما يملأ الشريحة.,
 Address needs to be linked to a Company. Please add a row for Company in the Links table below.,يجب ربط العنوان بالشركة. الرجاء إضافة صف للشركة في جدول الروابط أدناه.,
 Administration,الادارة,
 After Cancel,بعد الغاء,
@@ -3215,7 +3171,6 @@ After Save (Submitted Document),بعد الحفظ (المستند المقدم),
 After Submit,بعد تقديم,
 Aggregate Function Based On,مجموع وظيفة بناء على,
 Aggregate Function field is required to create a dashboard chart,حقل تجميع الوظائف مطلوب لإنشاء مخطط لوحة القيادة,
-Align,محاذاة,
 All Records,جميع السجلات,
 Allot Points To Assigned Users,تخصيص نقاط للمستخدمين المعينين,
 Allow Auto Repeat,السماح للتكرار التلقائي,
@@ -3225,8 +3180,6 @@ Allow Google Drive Access,تسمح جوجل محرك الوصول,
 Allow Guest,اسمح للضيف,
 Allow Guests to Upload Files,السماح للضيوف بتحميل الملفات,
 Also adding the status dependency field {0},إضافة حقل تبعية الحالة أيضًا {0},
-An Onboarding Slide <b>{0}</b> with the same slide order already exists,توجد Onboarding Slide <b>{0}</b> بنفس ترتيب الشريحة بالفعل,
-An Onboarding Slide of Slide Type Continue already exists.,توجد شريحة Onboarding من نوع الشريحة متابعة بالفعل.,
 An error occurred while setting Session Defaults,حدث خطأ أثناء إعداد الإعدادات الافتراضية للجلسة,
 Annual,سنوي,
 Append Emails to Sent Folder,إلحاق رسائل البريد الإلكتروني إلى مجلد المرسلة,
@@ -3301,12 +3254,10 @@ Cron,كرون,
 Cron Format,تنسيق كرون,
 Daily Events should finish on the Same Day.,يجب أن تنتهي الأحداث اليومية في نفس اليوم.,
 Daily Long,يوميا طويلة,
-Data Import Beta,بيتا استيراد البيانات,
 Default Role on Creation,دور افتراضي في الخلق,
 Default Theme,الموضوع الافتراضي,
 Default {0},الافتراضي {0},
 Delete All,حذف الكل,
-"Determines the order of the slide in the wizard. If the slide is not to be displayed, priority should be set to 0.",يحدد ترتيب الشريحة في المعالج. في حالة عدم عرض الشريحة ، يجب تعيين الأولوية على 0.,
 Do you want to cancel all linked documents?,هل تريد إلغاء جميع الوثائق المرتبطة؟,
 DocType Action,عمل DocType,
 DocType Event,حدث DocType,
@@ -3327,12 +3278,10 @@ Drop,قطرة,
 Drop Here,إسقاط هنا,
 Drop files here,قم بوضع الملفات هنا,
 Dynamic Template,قالب ديناميكي,
-ERPNext,ERPNext,
 ERPNext Role,دور ERPNext,
 Email / Notifications,اشعارات البريد الالكتروني,
 Email Account setup please enter your password for: {0},إعداد حساب البريد الإلكتروني ، الرجاء إدخال كلمة المرور الخاصة بك: {0},
 Email Address whose Google Contacts are to be synced.,عنوان البريد الإلكتروني الذي سيتم مزامنة جهات اتصال Google الخاصة به.,
-Email Content,محتوى البريد الإلكتروني,
 "Email ID must be unique, Email Account already exists for {0}",يجب أن يكون معرف البريد الإلكتروني فريدًا ، حساب البريد الإلكتروني موجود بالفعل لـ {0},
 Email IDs,البريد الإلكتروني معرفات,
 Enable Allow Auto Repeat for the doctype {0} in Customize Form,تمكين السماح للتكرار التلقائي للنمط {0} في تخصيص النموذج,
@@ -3410,7 +3359,6 @@ Google Contacts has been configured.,تم تكوين جهات اتصال Google.
 Google Drive,محرك جوجل,
 Google Drive - Could not create folder in Google Drive - Error Code {0},Google Drive - تعذر إنشاء مجلد في Google Drive - رمز الخطأ {0},
 Google Drive - Could not find folder in Google Drive - Error Code {0},Google Drive - تعذر العثور على مجلد في Google Drive - رمز الخطأ {0},
-Google Drive - Could not locate locate - {0},Google Drive - تعذر تحديد موقع loc - {0},
 Google Drive Backup Successful.,Google Drive Backup Successful.,
 Google Drive Backup.,جوجل محرك النسخ الاحتياطي.,
 Google Drive Integration.,جوجل محرك التكامل.,
@@ -3426,9 +3374,7 @@ HH:mm:ss,HH: MM: SS,
 HOOK-.####,صنارة صيد-.####,
 HTML Page,صفحة HTML,
 Has Mapping,لديه رسم الخرائط,
-Help Links,روابط المساعدة,
 Hourly Long,كل ساعة طويلة,
-If Slide Type is Create or Settings there should be a 'create_onboarding_docs' method in the {ref_doctype}.py file bound to be executed after the slide is completed.,إذا كان &quot;نوع الشريحة&quot; هو &quot;إنشاء&quot; أو &quot;إعدادات&quot; ، فيجب أن يكون هناك طريقة &quot;create_onboarding_docs&quot; في ملف .py {ref_doctype} الذي سيتم تنفيذه بعد اكتمال الشريحة.,
 "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)",إذا كان المنفذ غير قياسي (مثل POP3: 995/110 ، IMAP: 993/143),
 If the document has different field names on the Producer and Consumer's end check this and set up the Mapping,إذا كان المستند يحتوي على أسماء حقول مختلفة في نهاية المنتج والمستهلك ، فتحقق من هذا وقم بإعداد التعيين,
 If this is checked the documents will have the same name as they have on the Event Producer's site,إذا تم تحديد ذلك ، فستكون للوثائق نفس الاسم الذي تحمله على موقع منتج الأحداث,
@@ -3443,12 +3389,9 @@ Import Warnings,استيراد تحذيرات,
 Import template should contain a Header and atleast one row.,يجب أن يحتوي قالب الاستيراد على رأس صف واحد على الأقل.,
 Importing {0} of {1},استيراد {0} من {1},
 "Importing {0} of {1}, {2}",استيراد {0} من {1} ، {2},
-In Test,في الاختبار,
 Include indentation,تشمل المسافة البادئة,
 Incoming Change,التغيير الوارد,
-Information,معلومات,
 Invalid Filter Value,قيمة تصفية غير صالحة,
-Invalid Template,قالب غير صالح,
 Invalid URL,URL غير صالح,
 Invalid field name: {0},اسم الحقل غير صالح: {0},
 Invalid file URL. Please contact System Administrator.,عنوان URL للملف غير صالح. يرجى الاتصال بمسؤول النظام.,
@@ -3481,7 +3424,6 @@ Last Update,اخر تحديث,
 Last refreshed,آخر تحديث,
 Link Document Type,رابط نوع الوثيقة,
 Link Fieldname,اسم الحقل الرابط,
-Links Section,قسم الروابط,
 Loading import file...,جارٍ تحميل ملف الاستيراد ...,
 Local Document Type,نوع المستند المحلي,
 Log Data,تسجيل البيانات,
@@ -3495,7 +3437,6 @@ Map Columns,خريطة الأعمدة,
 Map columns from {0} to fields in {1},خريطة الأعمدة من {0} إلى الحقول في {1},
 Mapping column {0} to field {1},تعيين العمود {0} إلى الحقل {1},
 Mark all as Read,اشر عليها بانها قرات,
-Max Count,ماكس العد,
 Maximum Points,النقاط القصوى,
 Maximum points allowed after multiplying points with the multiplier value\n(Note: For no limit leave this field empty or set 0),الحد الأقصى للنقاط المسموح بها بعد ضرب نقاط بقيمة المضاعف (ملاحظة: بلا حدود ، اترك هذا الحقل فارغًا أو حدد 0),
 Me,أنا,
@@ -3503,14 +3444,10 @@ Mention,أشير,
 Modules,وحدات برمجية,
 Monthly Long,الشهرية الطويلة,
 Monthly Rank: ,الرتبة الشهرية:,
-My Profile,ملفي,
 Naming Series,سلسلة التسمية,
 Navigate Home,انتقل المنزل,
 Navigate list down,انتقل القائمة لأسفل,
 Navigate list up,انتقل القائمة لأعلى,
-Need Help?,تحتاج مساعدة؟,
-New Assignment,مهمة جديدة,
-New Document Shared,مستند جديد مشترك,
 New Notification,إخطار جديد,
 New {0}: {1},جديد {0}: {1},
 Newsletter should have atleast one recipient,يجب أن تحتوي الرسالة الإخبارية على متلقي واحد على الأقل,
@@ -3540,12 +3477,8 @@ Notification Settings,إعدادات الإشعار,
 Notification Subscribed Document,وثيقة الاشتراك المكتوبة,
 Notifications Disabled,تم تعطيل الإشعارات,
 Number of Groups,عدد المجموعات,
-Number of columns does not match with data,عدد الأعمدة لا يتطابق مع البيانات,
 OAuth Client ID,معرف عميل OAuth,
 OTP setup using OTP App was not completed. Please contact Administrator.,لم يكتمل إعداد OTP باستخدام تطبيق OTP. يرجى الاتصال المسؤول.,
-Onboarding Slide,على متن الشريحة,
-Onboarding Slide Field,Onboarding Slide Field,
-Onboarding Slide Help Link,Onboarding Slide Help Link,
 Only one {0} can be set as primary.,يمكن تعيين {0} واحد فقط على أنه أساسي.,
 Open Awesomebar,افتح شريط ممتاز,
 Open Chat,دردشة مفتوحة,
@@ -3558,7 +3491,6 @@ Page Shortcuts,اختصارات الصفحة,
 Parent Field (Tree),حقل الأصل (شجرة),
 Parent Field must be a valid fieldname,يجب أن يكون حقل الأصل اسمًا صالحًا للحقل,
 Pin Globally,دبوس على الصعيد العالمي,
-Placeholder,نائب,
 Places,أماكن,
 Please check the filter values set for Dashboard Chart: {},يرجى التحقق من قيم المرشح المحددة لمخطط لوحة المعلومات: {},
 Please enable pop-ups in your browser,يرجى تمكين النوافذ المنبثقة في متصفحك,
@@ -3619,7 +3551,6 @@ Select Google Contacts to which contact should be synced.,حدد جهات اتص
 Select Group By...,اختر مجموعة حسب ...,
 Select Mandatory,حدد إلزامية,
 Select atleast 2 actions,حدد على الأقل 2 الإجراءات,
-Select fields to export,حدد الحقول للتصدير,
 Select list item,حدد عنصر القائمة,
 Select multiple list items,حدد عناصر قائمة متعددة,
 Send an email to {0} to link it here,أرسل بريدًا إلكترونيًا إلى {0} لربطه هنا,
@@ -3641,29 +3572,18 @@ Showing only first {0} rows out of {1},إظهار أول صف {0} فقط من {1
 "Simple Python Expression, Example: Status in (""Invalid"")",تعبير Python البسيط ، مثال: الحالة في (&quot;غير صالح&quot;),
 Skipping Untitled Column,تخطي العمود بلا عنوان,
 Skipping column {0},عمود التخطي {0},
-Slide Description,وصف الشريحة,
-Slide Fields,حقول الشريحة,
-Slide Image Source,الشريحة مصدر الصورة,
-Slide Order,ترتيب الشرائح,
-Slide Title,عنوان الشريحة,
-Slide Type,نوع الشريحة,
 Social Home,الصفحة الرئيسية الاجتماعية,
 Some columns might get cut off when printing to PDF. Try to keep number of columns under 10.,قد تنقطع بعض الأعمدة عند الطباعة إلى PDF. حاول الحفاظ على عدد الأعمدة أقل من 10.,
 Something went wrong during the token generation. Click on {0} to generate a new one.,حدث خطأ ما أثناء الجيل المميز. انقر على {0} لإنشاء واحدة جديدة.,
-Specify in what all domains should the slides show up. If nothing is specified the slide is shown in all domains by default.,حدد ما ستظهره جميع المجالات. إذا لم يتم تحديد أي شيء ، فسيتم عرض الشريحة في جميع المجالات افتراضيًا.,
 Submit After Import,إرسال بعد الاستيراد,
 Submitting...,تقديم...,
 Subscribed Documents,المستندات المشتركة,
 Success! You are good to go 👍,نجاح! أنت جيد للذهاب 👍,
 Successful Transactions,المعاملات الناجحة,
 Successfully Submitted!,قدمت بنجاح!,
-Successfully imported {0} record out of {1}.,تم استيراد {0} بنجاح من السجل {1}.,
 Successfully imported {0} record.,تم استيراد سجل {0} بنجاح.,
-Successfully imported {0} records out of {1}.,تم استيراد {0} سجلات بنجاح من {1}.,
 Successfully imported {0} records.,تم استيراد سجلات {0} بنجاح.,
-Successfully updated {0} record out of {1}.,تم تحديث السجل بنجاح {0} من {1}.,
 Successfully updated {0} record.,تم تحديث السجل بنجاح {0}.,
-Successfully updated {0} records out of {1}.,تم تحديث {0} سجلات بنجاح من {1}.,
 Successfully updated {0} records.,تم تحديث سجلات {0} بنجاح.,
 Sync Calendar,مزامنة التقويم,
 Sync Contacts,مزامنة جهات الاتصال,
@@ -3678,7 +3598,6 @@ Template Error,خطأ في القالب,
 Template Options,خيارات القالب,
 Template Warnings,تحذيرات القالب,
 The Auto Repeat for this document has been disabled.,تم تعطيل التكرار التلقائي لهذا المستند.,
-"The amount of times you want to repeat the set of fields (eg: if you want 3 customers in the slide, set this field to 3. Only the first set of fields is shown as mandatory in the slide)",عدد المرات التي تريد فيها تكرار مجموعة الحقول (على سبيل المثال: إذا كنت تريد 3 عملاء في الشريحة ، قم بتعيين هذا الحقل على 3. المجموعة الأولى فقط من الحقول تظهر إلزامية في الشريحة),
 The following records needs to be created before we can import your file.,يجب إنشاء السجلات التالية قبل أن نتمكن من استيراد ملفك.,
 The mapping configuration between two doctypes.,تكوين التعيين بين اثنين من الأساليب.,
 The site which is consuming your events.,الموقع الذي يستهلك الأحداث الخاصة بك.,
@@ -3703,7 +3622,6 @@ Toggle Public/Private,تبديل العامة / الخاصة,
 Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,يتتبع المعالم في دورة حياة المستند إذا مر بمراحل متعددة.,
 Tree structures are implemented using Nested Set,يتم تطبيق بنيات الشجرة باستخدام مجموعة متداخلة,
 Trigger Primary Action,الزناد العمل الأساسي,
-Try the new Data Import,جرب استيراد البيانات الجديد,
 URL for documentation or help,عنوان URL للتوثيق أو المساعدة,
 URL must start with 'http://' or 'https://',يجب أن يبدأ عنوان URL بـ &quot;http: //&quot; أو &quot;https: //&quot;,
 Unchanged,دون تغيير,
@@ -3736,11 +3654,9 @@ Verification Code,شيفرة التأكيد,
 Verification code email not sent. Please contact Administrator.,لم يتم إرسال رمز التحقق. يرجى الاتصال المسؤول.,
 Verified,التحقق,
 Verifier,المدقق,
-Video,فيديو,
 View Full Log,عرض السجل الكامل,
 "View Log of all print, download and export events",عرض سجل لجميع أحداث الطباعة وتنزيل وتصدير,
 Visit Web Page,زيارة صفحة الويب,
-Warnings,تحذيرات,
 Webhook Secret,Webhook Secret,
 Webhook Security,Webhook الأمن,
 Webhook Trigger,Webhook Trigger,
@@ -3748,7 +3664,6 @@ Weekly Long,أسبوعي طويل,
 "When enabled this will allow guests to upload files to your application, You can enable this if you wish to collect files from user without having them to log in, for example in job applications web form.",عند التمكين ، سيتيح ذلك للضيوف تحميل الملفات إلى التطبيق الخاص بك ، يمكنك تمكين هذا إذا كنت ترغب في جمع الملفات من المستخدم دون الحاجة إلى تسجيل الدخول ، على سبيل المثال في نموذج ويب تطبيقات الوظائف.,
 Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.,سيتم تشغيل المهام المجدولة مرة واحدة فقط يوميًا للمواقع غير النشطة. الافتراضي 4 أيام إذا تم تعيينه على 0.,
 Workflow Status,حالة سير العمل,
-You are all set up!,لقد تم إعدادك جميعًا!,
 You are not allowed to export {} doctype,غير مسموح لك بتصدير النمط {},
 You can try changing the filters of your report.,يمكنك محاولة تغيير عوامل تصفية تقريرك.,
 You do not have permissions to cancel all linked documents.,ليس لديك أذونات لإلغاء كافة المستندات المرتبطة.,
@@ -3756,7 +3671,6 @@ You need to create these first: ,تحتاج إلى إنشاء هذه أولاً:
 You need to enable JavaScript for your app to work.,تحتاج إلى تمكين JavaScript لتشغيل تطبيقك.,
 You need to install pycups to use this feature!,تحتاج إلى تثبيت pycups لاستخدام هذه الميزة!,
 Your Target,الهدف الخاص بك,
-Your assignment on {0} {1} has been removed,تمت إزالة واجبك على {0} {1},
 "browse,",تصفح،,
 cancelled this document {0},ألغيت هذه الوثيقة {0},
 changed value of {0} {1},القيمة المتغيرة {0} {1},
@@ -3765,12 +3679,10 @@ choose an,اختيار,
 empty,فارغة,
 of,من,
 or attach a,أو إرفاق,
-"output in the form of `data = [columns, result]`",الإخراج في شكل `بيانات = [أعمدة ، نتيجة]`,
 submitted this document {0},قدم هذه الوثيقة {0},
 "tag name..., e.g. #tag",اسم العلامة ... ، على سبيل المثال #tag,
 uploaded file,ملف تم الرفع,
 via Data Import,عبر استيراد البيانات,
-{0} (1 row mandatory),{0} (صف واحد إلزامي),
 {0} Google Calendar Events synced.,{0} تمت مزامنة أحداث تقويم Google.,
 {0} Google Contacts synced.,{0} مزامنة جهات اتصال Google.,
 {0} are mandatory fields,{0} هي حقول إلزامية,
@@ -3817,7 +3729,6 @@ Currency,العملة,
 Customize,تخصيص,
 Daily,يوميا,
 Date,تاريخ,
-Date Range,نطاق الموعد,
 Dear,العزيز,
 Default,الافتراضي,
 Delete,حذف,
@@ -3878,6 +3789,7 @@ Please specify,رجاء حدد,
 Printing,طبع,
 Priority,أفضلية,
 Project,مشروع,
+Publish,نشر,
 Quarterly,فصلي,
 Queued,قائمة الانتظار,
 Quick Entry,إدخال سريع,
@@ -3924,7 +3836,6 @@ You can also copy-paste this link in your browser,يمكنك أيضا نسخ - �
 and,و,
 {0} Name,{0} الاسم,
 {0} is required,{0} مطلوب,
-Do It Later,افعله لاحقا,
 ALL,جميع,
 Attach File,إرفاق ملف,
 Barcode,الرمز الشريطي,
@@ -3994,7 +3905,6 @@ Edit in full page,التحرير في صفحة كاملة,
 Email Id,البريد الإلكتروني,
 Email address,البريد الالكتروني,
 Ends on,ينتهي في,
-Energy Point Update,تحديث نقطة الطاقة,
 Half-yearly,نصف سنوي,
 Hidden,مخفي,
 Javascript,جافا سكريبت,
@@ -4028,7 +3938,6 @@ blue,أزرق,
 bold,جريء,
 book,كتاب,
 calendar,التقويم,
-center,مركز,
 certificate,شهادة,
 check,تحقق,
 clear,واضح,
@@ -4048,9 +3957,7 @@ forward,إلى الأمام,
 green,أخضر,
 home,الصفحة الرئيسية,
 icon,رمز,
-in,في,
 inbox,صندوق الوارد,
-left,اليسار,
 like,مثل,
 link,رابط,
 list,قائمة,
@@ -4061,7 +3968,6 @@ module,إضافة,
 move,نقل,
 music,موسيقى,
 new,جديد,
-not like,لا يشبه,
 now,الآن,
 off,بعيدا,
 one of,واحدة من,
@@ -4074,7 +3980,6 @@ red,أحمر,
 refresh,تحديث,
 remove,إزالة المرشح,
 response,استجابة,
-right,حق,
 search,بحث,
 share,مشاركة,
 stop,توقف,
@@ -4094,7 +3999,6 @@ Add Chart to Dashboard,إضافة مخطط إلى لوحة القيادة,
 Add to Dashboard,إضافة إلى لوحة القيادة,
 Google Translation,ترجمة جوجل,
 Important,مهم,
-New Chart Created,تم إنشاء مخطط جديد,
 No Filters Set,لا توجد فلاتر,
 No Records Created,لا سجلات تم إنشاؤها,
 Please Set Chart,يرجى وضع الرسم البياني,
@@ -4114,7 +4018,6 @@ Desk Shortcut,مكتب اختصار,
 Developer Mode Only,وضع المطور فقط,
 Disable User Customization,تعطيل تخصيص المستخدم,
 For example: {} Open,على سبيل المثال: {} فتح,
-Is Custom,هو مخصص,
 Link Cards,بطاقات الارتباط,
 Link To,رابط ل,
 Onboarding,على متن الطائرة,
@@ -4136,8 +4039,619 @@ No email account associated with the User. Please add an account under User > Em
 No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,لم يتم العثور على قالب عنوان افتراضي. يرجى إنشاء واحدة جديدة من الإعداد&gt; الطباعة والعلامة التجارية&gt; قالب العنوان.,
 Please setup default Email Account from Setup > Email > Email Account,يرجى إعداد حساب البريد الإلكتروني الافتراضي من الإعداد&gt; البريد الإلكتروني&gt; حساب البريد الإلكتروني,
 Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,حساب البريد الإلكتروني لا الإعداد. يرجى إنشاء حساب بريد إلكتروني جديد من الإعداد&gt; البريد الإلكتروني&gt; حساب البريد الإلكتروني,
+Attach file,أرفق ملف,
+Contribution Status,حالة المساهمة,
+Contribution Document Name,اسم وثيقة المساهمة,
+Extends,扩展,
+Extends Another Page,يمتد صفحة أخرى,
+Please select target language for translation,الرجاء تحديد اللغة الهدف للترجمة,
+Select Language,اختار اللغة,
+Confirm Translations,تأكيد الترجمات,
+Contributed Translations,الترجمات المساهمة,
+Show Tags,أضهر العلامات,
+Do not have permission to access {0} bucket.,ليس لديك إذن للوصول إلى حاوية {0}.,
+Allow document creation via Email,السماح بإنشاء المستندات عبر البريد الإلكتروني,
+Sender Field,حقل المرسل,
+Logout All Sessions on Password Reset,تسجيل الخروج من جميع الجلسات عند إعادة تعيين كلمة المرور,
+Logout From All Devices After Changing Password,تسجيل الخروج من جميع الأجهزة بعد تغيير كلمة المرور,
+Send Notifications For Documents Followed By Me,إرسال إخطارات للمستندات التي اتبعتها,
+Send Notifications For Email Threads,إرسال إخطارات لمواضيع البريد الإلكتروني,
+Bypass Restricted IP Address Check If Two Factor Auth Enabled,تحقق من تجاوز عنوان IP المقيد إذا تم تمكين مصادقة عاملين,
+Reset LDAP Password,إعادة تعيين كلمة مرور LDAP,
+Confirm New Password,تأكيد كلمة المرور الجديدة,
+Logout All Sessions,تسجيل الخروج من جميع الجلسات,
+Passwords do not match!,كلمة المرور غير مطابقة!,
+Dashboard Manager,مدير لوحة القيادة,
+Dashboard Settings,اعدادات اللوحة الرئيسية,
+Chart Configuration,تكوين الرسم البياني,
+No Permitted Charts on this Dashboard,لا توجد مخططات مسموح بها في لوحة المعلومات هذه,
+No Permitted Charts,لا توجد مخططات مسموح بها,
+Reset Chart,إعادة تعيين المخطط,
+via {0},عبر {0},
+{0} is not a valid Phone Number,{0} ليس رقم هاتف صالحًا,
+Failed Transactions,المعاملات الفاشلة,
+Value for field {0} is too long in {1}. Length should be lesser than {2} characters,قيمة الحقل {0} طويلة جدًا في {1}. يجب أن يكون الطول أقل من {2} حرف,
+Data Too Long,البيانات طويلة جدًا,
+via Notification,عبر الإخطار,
+Log in to access this page.,تسجيل الدخول للوصول إلى هذه الصفحة.,
+Report Document Error,تقرير خطأ في المستند,
+{0} is an invalid Data field.,{0} هو حقل بيانات غير صالح.,
+Only Options allowed for Data field are:,الخيارات المسموح بها لحقل البيانات فقط هي:,
+Select a valid Subject field for creating documents from Email,حدد حقل موضوع صالحًا لإنشاء المستندات من البريد الإلكتروني,
+"Subject Field type should be Data, Text, Long Text, Small Text, Text Editor",يجب أن يكون نوع حقل الموضوع بيانات ، نص ، نص طويل ، نص صغير ، محرر نص,
+Select a valid Sender Field for creating documents from Email,حدد حقل مرسل صالحًا لإنشاء المستندات من البريد الإلكتروني,
+Sender Field should have Email in options,يجب أن يحتوي حقل المرسل على البريد الإلكتروني في الخيارات,
+Password changed successfully.,تم تغيير الرقم السري بنجاح.,
+Failed to change password.,فشل تغيير كلمة المرور.,
+No Entry for the User {0} found within LDAP!,لم يتم العثور على إدخال للمستخدم {0} في LDAP!,
+No LDAP User found for email: {0},لم يتم العثور على مستخدم LDAP للبريد الإلكتروني: {0},
+Prepared Report User,إعداد تقرير المستخدم,
+Scheduler Event,حدث المجدول,
+Select Event Type,حدد نوع الحدث,
+Schedule Script,جدولة البرنامج النصي,
+Duration,المدة الزمنية,
+Donut,الدونات,
+Custom Options,خيارات مخصصة,
+"Ex: ""colors"": [""#d1d8dd"", ""#ff5858""]",مثال: &quot;الألوان&quot;: [&quot;# d1d8dd&quot;، &quot;# ff5858&quot;],
+Confirmation Email Template,نموذج البريد الإلكتروني للتأكيد,
+Welcome Email Template,ترحيب قالب البريد الإلكتروني,
+Schedule Send,جدولة الإرسال,
+Do you really want to send this email newsletter?,هل تريد حقًا إرسال هذه النشرة الإخبارية عبر البريد الإلكتروني؟,
 Advanced Settings,إعدادات متقدمة,
+Disable Comments,تعطيل التعليقات,
+Comments on this blog post will be disabled if checked.,سيتم تعطيل التعليقات على منشور المدونة هذا إذا تم تحديدها.,
+CSS Class,فئة CSS,
+Full Width,العرض الكامل,
+Page Builder,منشئ الصفحة,
+Page Building Blocks,كتل إنشاء الصفحة,
+Header and Breadcrumbs,رأس وفتات الخبز,
+Add Custom Tags,إضافة علامات مخصصة,
+Web Page Block,كتلة صفحة الويب,
+Web Template,قالب الويب,
+Edit Values,تحرير القيم,
+Web Template Values,قيم قالب الويب,
+Add Container,أضف الحاوية,
+Web Page View,عرض صفحة الويب,
 Path,مسار,
-Components,مكونات,
+Referrer,المرجع,
+Browser,المستعرض,
+Browser Version,إصدار المستعرض,
+Web Template Field,حقل قالب الويب,
+Section,الجزء,
+Hide,إخفاء,
+Enable In App Website Tracking,تمكين تتبع موقع التطبيق,
+Enable Google Indexing,تمكين فهرسة Google,
+"To use Google Indexing, enable <a href=""#Form/Google Settings"">Google Settings</a>.","لاستخدام فهرسة Google ، قم بتمكين <a href=""#Form/Google Settings"">إعدادات Google</a> .",
+Authorize API Indexing  Access,تخويل الوصول إلى فهرسة API,
+Indexing Refresh Token,رمز تحديث الفهرسة,
+Indexing Authorization Code,رمز ترخيص الفهرسة,
+Theme Configuration,تكوين الموضوع,
+Font Properties,خصائص الخط,
+Button Rounded Corners,زوايا دائرية بأزرار,
+Button Shadows,زر الظلال,
+Button Gradients,تدرجات الزر,
+Light Color,لون فاتح,
+Stylesheet,ورقة الأنماط,
+Custom SCSS,SCSS مخصص,
+Navbar,نافبار,
+Source Message,رسالة المصدر,
+Translated Message,رسالة مترجمة,
 Verified By,التحقق من,
+Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand.,قد يسمح استخدام وحدة التحكم هذه للمهاجمين بانتحال هويتك وسرقة معلوماتك. لا تدخل أو تلصق رمزًا لا تفهمه.,
+{0} m,{0} م,
+{0} h,{0} ح,
+{0} d,{0} د,
+{0} w,{0} ث,
+{0} M,{0} م,
+{0} y,{0} ص,
+yesterday,في الامس,
+{0} years ago,قبل {0} سنة,
+New Chart,مخطط جديد,
+New Shortcut,اختصار جديد,
+Edit Chart,تحرير المخطط,
+Edit Shortcut,تحرير الاختصار,
+Couldn't Load Desk,تعذر تحميل المكتب,
+"Something went wrong while loading Desk. <b>Please relaod the page</b>. If the problem persists, contact the Administrator",حدث خطأ ما أثناء تحميل Desk. <b>الرجاء إعادة الصفحة</b> . إذا استمرت المشكلة ، فاتصل بالمسؤول,
+Customize Workspace,تخصيص مساحة العمل,
+Customizations Saved Successfully,تم حفظ التخصيصات بنجاح,
+Something went wrong while saving customizations,حدث خطأ ما أثناء حفظ التخصيصات,
+{} Dashboard,{} لوحة القيادة,
+No changes in document,لا توجد تغييرات في المستند,
+by Role,حسب الدور,
+Document is only editable by users with role,المستند قابل للتحرير فقط من قبل المستخدمين ذوي الدور,
+{0}: Other permission rules may also apply,{0}: قد تنطبق قواعد أذونات أخرى أيضًا,
+{0} Page Views,{0} مشاهدات الصفحة,
+Expand,وسعت,
+Collapse,انهيار,
+"Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.",رمز الحامل غير صالح ، يرجى تقديم رمز وصول صالح مع البادئة &quot;Bearer&quot;.,
+"Failed to decode token, please provide a valid base64-encoded token.",فشل فك الرمز المميز ، يرجى تقديم رمز مميز صالح بترميز base64.,
+"Invalid token, please provide a valid token with prefix 'Basic' or 'Token'.",رمز غير صالح ، يرجى تقديم رمز صالح مع البادئة &quot;أساسي&quot; أو &quot;رمز مميز&quot;.,
+{0} is not a valid Name,{0} ليس اسمًا صالحًا,
+Your system is being updated. Please refresh again after a few moments.,يتم تحديث نظامك. يرجى التحديث مرة أخرى بعد لحظات قليلة.,
+{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.,{0} {1}: لا يمكن حذف السجل المقدم. يجب عليك {2} إلغاء {3} أولاً.,
+Invalid naming series (. missing) for {0},سلسلة تسمية غير صالحة (. مفقود) لـ {0},
+Error has occurred in {0},حدث خطأ في {0},
+Status Updated,تم تحديث الحالة,
+You can also copy-paste this {0} to your browser,يمكنك أيضًا نسخ {0} هذا ولصقه في متصفحك,
+Enabled scheduled execution for script {0},تمكين التنفيذ المجدول للنص {0},
+Scheduled execution for script {0} has updated,تم تحديث التنفيذ المجدول للنص {0},
+The Link specified has either been used before or Invalid,تم استخدام الارتباط المحدد من قبل أو غير صالح,
+Options for {0} must be set before setting the default value.,يجب تعيين خيارات {0} قبل تعيين القيمة الافتراضية.,
+Default value for {0} must be in the list of options.,يجب أن تكون القيمة الافتراضية لـ {0} في قائمة الخيارات.,
+Google Indexing has been configured.,تم تكوين فهرسة Google.,
+Allow API Indexing Access,السماح بالوصول إلى فهرسة API,
+Allow Google Indexing Access,السماح بالوصول إلى فهرسة Google,
+Custom Documents,المستندات المخصصة,
+Could not save customization,تعذر حفظ التخصيص,
+Transgender,المتحولين جنسيا,
+Genderqueer,الجنس,
+Non-Conforming,عدم المطابقة,
+Prefer not to say,افضل عدم القول,
+Is Billing Contact,هو جهة اتصال الفوترة,
+Address And Contacts,العنوان وجهات الاتصال,
 Lead Conversion Time,وقت تحويل الزبون المحتمل,
+Phone Number,رقم الهاتف,
+Linked Documents,المستندات المرتبطة,
+Account SID,حساب SID,
+Steps,خطوات,
+email,البريد الإلكتروني,
+Subtitle,عنوان فرعي,
+Global Defaults,افتراضيات العالمية,
+Prefix,بادئة,
+Is Public,عام,
+This chart will be available to all Users if this is set,سيكون هذا المخطط متاحًا لجميع المستخدمين إذا تم تعيين هذا,
+Number Card,بطاقة رقم,
+Function,وظيفة,
+Minimum,الحد الأدنى,
+Maximum,أقصى,
+This card will be available to all Users if this is set,ستكون هذه البطاقة متاحة لجميع المستخدمين إذا تم تعيين ذلك,
+Stats,احصائيات,
+Show Percentage Stats,إظهار إحصائيات النسبة المئوية,
+Stats Time Interval,الفاصل الزمني للإحصائيات,
+Show percentage difference according to this time interval,إظهار فرق النسبة المئوية وفقًا لهذا الفاصل الزمني,
+Filters Section,قسم المرشحات,
+Number Card Link,رابط بطاقة الرقم,
+Card,بطاقة,
+API Access,الوصول إلى API,
+Access Key Secret,الوصول إلى Key Secret,
+S3 Bucket Details,تفاصيل دلو S3,
+Bucket Name,اسم الجرافة,
+Backup Details,تفاصيل النسخ الاحتياطي,
+Backup Files,ملفات النسخ الاحتياطي,
+Backup public and private files along with the database.,النسخ الاحتياطي للملفات العامة والخاصة مع قاعدة البيانات.,
+Set to 0 for no limit on the number of backups taken,اضبط على 0 لعدم وجود حد لعدد النسخ الاحتياطية المأخوذة,
+Meta Description,ميتا الوصف,
+Meta Image,صورة ميتا,
+Google Snippet Preview,معاينة Google Snippet,
+This is an example Google SERP Preview.,هذا مثال على معاينة Google SERP.,
+Add Gray Background,أضف خلفية رمادية,
+Hide Block,إخفاء الحظر,
+This Week,هذا الاسبوع,
+This Month,هذا الشهر,
+This Quarter,هذا الربع,
+This Year,هذه السنة,
+All Time,كل الوقت,
+Select From Date,حدد من التاريخ,
+since yesterday,منذ البارحة,
+since last week,منذ الأسبوع الماضي,
+since last month,منذ اخر شهر,
+since last year,منذ السنة الماضية,
+Show,تبين,
+New Number Card,بطاقة رقم جديدة,
+Your Shortcuts,اختصاراتك,
+You haven't added any Dashboard Charts or Number Cards yet.,لم تقم بإضافة أي مخططات لوحة معلومات أو بطاقات أرقام حتى الآن.,
+Click On Customize to add your first widget,انقر فوق تخصيص لإضافة عنصر واجهة المستخدم الأول الخاص بك,
+Are you sure you want to reset all customizations?,هل أنت متأكد أنك تريد إعادة تعيين كافة التخصيصات؟,
+"Couldn't save, please check the data you have entered",تعذر الحفظ ، يرجى التحقق من البيانات التي أدخلتها,
+Validation Error,خطئ في التحقق,
+"You can only upload JPG, PNG, PDF, or Microsoft documents.",يمكنك فقط تحميل مستندات JPG أو PNG أو PDF أو Microsoft.,
+Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data.,إعادة الطول إلى {0} لـ &quot;{1}&quot; في &quot;{2}&quot;. تعيين الطول كـ {3} سيؤدي إلى اقتطاع البيانات.,
+'{0}' not allowed for type {1} in row {2},&quot;{0}&quot; غير مسموح به للنوع {1} في الصف {2},
+Option {0} for field {1} is not a child table,الخيار {0} للحقل {1} ليس جدولًا فرعيًا,
+Invalid Option,خيار غير صالح,
+Request Body consists of an invalid JSON structure,يتكون نص الطلب من بنية JSON غير صالحة,
+Invalid JSON,JSON غير صالح,
+Party GSTIN,GSTIN للحزب,
+GST State,دولة ضريبة السلع والخدمات,
+Andaman and Nicobar Islands,جزر أندامان ونيكوبار,
+Andhra Pradesh,ولاية اندرا براديش,
+Arunachal Pradesh,اروناتشال براديش,
+Assam,آسام,
+Bihar,بيهار,
+Chandigarh,شانديغار,
+Chhattisgarh,تشهاتيسجاره,
+Dadra and Nagar Haveli,دادرا وناغار هافيلي,
+Daman and Diu,دامان وديو,
+Delhi,دلهي,
+Goa,غوا,
+Gujarat,ولاية غوجارات,
+Haryana,هاريانا,
+Himachal Pradesh,هيماشال براديش,
+Jammu and Kashmir,جامو وكشمير,
+Jharkhand,جهارخاند,
+Karnataka,كارناتاكا,
+Kerala,ولاية كيرالا,
+Lakshadweep Islands,جزر لاكشادويب,
+Madhya Pradesh,ماديا براديش,
+Maharashtra,ماهاراشترا,
+Manipur,مانيبور,
+Meghalaya,ميغالايا,
+Mizoram,ميزورام,
+Nagaland,ناجالاند,
+Odisha,أوديشا,
+Other Territory,إقليم آخر,
+Pondicherry,بونديشيري,
+Punjab,البنجاب,
+Rajasthan,راجستان,
+Sikkim,سيكيم,
+Tamil Nadu,تاميل نادو,
+Telangana,تيلانجانا,
+Tripura,تريبورا,
+Uttar Pradesh,ولاية أوتار براديش,
+Uttarakhand,أوتارانتشال,
+West Bengal,ولاية البنغال الغربية,
+GST State Number,رقم حالة ضريبة السلع والخدمات,
+Import from Google Sheets,استيراد من جداول بيانات Google,
+Must be a publicly accessible Google Sheets URL,يجب أن يكون عنوان URL الخاص بجداول بيانات Google متاحًا للجميع,
+Refresh Google Sheet,قم بتحديث ورقة Google,
+Import File Errors and Warnings,استيراد ملف الأخطاء والتحذيرات,
+"Successfully imported {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.",تم بنجاح استيراد {0} من السجلات من {1}. انقر فوق تصدير الصفوف ذات الأخطاء ، وأصلح الأخطاء واستورد مرة أخرى.,
+"Successfully imported {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.",تم بنجاح استيراد سجل {0} من {1}. انقر فوق تصدير الصفوف ذات الأخطاء ، وأصلح الأخطاء واستورد مرة أخرى.,
+"Successfully updated {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.",تم بنجاح تحديث {0} سجلات من {1}. انقر فوق تصدير الصفوف ذات الأخطاء ، وأصلح الأخطاء واستورد مرة أخرى.,
+"Successfully updated {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.",تم بنجاح تحديث سجل {0} من {1}. انقر فوق تصدير الصفوف ذات الأخطاء ، وأصلح الأخطاء واستورد مرة أخرى.,
+Data Import Legacy,تراث استيراد البيانات,
+Documents restored successfully,تمت استعادة المستندات بنجاح,
+Documents that were already restored,المستندات التي تمت استعادتها بالفعل,
+Documents that failed to restore,المستندات التي فشلت في استعادتها,
+Document Restoration Summary,ملخص استعادة المستند,
+Hide Days,إخفاء الأيام,
+Hide Seconds,إخفاء الثواني,
+Hide Border,إخفاء الحدود,
+Index Web Pages for Search,فهرس صفحات الويب للبحث,
+Action / Route,العمل / الطريق,
+Document Naming Rule,قاعدة تسمية الوثيقة,
+Rules with higher priority will be applied first.,سيتم تطبيق القواعد ذات الأولوية الأعلى أولاً.,
+Rule Conditions,شروط القاعدة,
+Digits,أرقام,
+Example: 00001,مثال: 00001,
+Counter,عداد,
+Document Naming Rule Condition,شرط قاعدة تسمية المستند,
+Installed Application,التطبيق المثبت,
+Application Name,اسم التطبيق,
+Application Version,إصدار التطبيق,
+Git Branch,فرع جيت,
+Installed Applications,التطبيقات المثبتة,
+Navbar Item,عنصر Navbar,
+Item Label,تسمية العنصر,
+Item Type,نوع العنصر,
+Separator,فاصل,
+Navbar Settings,إعدادات Navbar,
+Application Logo,شعار التطبيق,
+Logo Width,عرض الشعار,
+Dropdowns,هبوط قطرة,
+Settings Dropdown,قائمة الإعدادات المنسدلة,
+Help Dropdown,قائمة المساعدة المنسدلة,
+Query / Script,استعلام / برنامج نصي,
+"Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>","يمكن الوصول إلى <code>filters</code> عبر <code>filters</code> .<br><br> إرسال الإخراج <code>result = [result]</code> ، أو <code>data = [columns], [result]</code> النمط القديم <code>data = [columns], [result]</code>",
+Client Code,رمز العميل,
+Report Column,عمود التقرير,
+Report Filter,عامل تصفية التقرير,
+Wildcard Filter,مرشح البدل,
+"Will add ""%"" before and after the query",ستضيف &quot;٪&quot; قبل وبعد الاستعلام,
+"Route: Example ""/desk""",المسار: مثال &quot;/ مكتب&quot;,
+Enable Onboarding,تمكين Onboarding,
+Password Reset Link Generation Limit,حد إنشاء ارتباط إعادة تعيين كلمة المرور,
+Hourly rate limit for generating password reset links,حد المعدل بالساعة لإنشاء روابط إعادة تعيين كلمة المرور,
+Send document Web View link in email,إرسال ارتباط عرض الويب للمستند بالبريد الإلكتروني,
+Enable Auto-deletion of Prepared Reports,تمكين الحذف التلقائي للتقارير المعدة,
+Prepared Report Expiry Period (Days),فترة انتهاء صلاحية التقرير المُعد (أيام),
+System will automatically delete Prepared Reports after these many days since creation,سيقوم النظام تلقائيًا بحذف التقارير المعدة بعد هذه الأيام العديدة منذ الإنشاء,
+Custom Link,رابط مخصص,
+Package Document Type,نوع وثيقة الحزمة,
+Include Attachments,قم بتضمين المرفقات,
+Overwrite,الكتابة فوق,
+Package Publish Target,هدف نشر الحزمة,
+Site URL,URL الموقع,
+Package Publish Tool,أداة نشر الحزمة,
+Click on the row for accessing filters.,انقر فوق الصف للوصول إلى المرشحات.,
+Sites,المواقع,
+Last Deployed On,آخر نشر في,
+Last published {0},آخر نشر {0},
+Publishing documents...,نشر المستندات ...,
+Documents have been published.,تم نشر الوثائق.,
+Select Document Type.,حدد نوع المستند.,
+Console Log,سجل وحدة التحكم,
+"Set Default Options for all charts on this Dashboard (Ex: ""colors"": [""#d1d8dd"", ""#ff5858""])",تعيين الخيارات الافتراضية لجميع الرسوم البيانية في لوحة المعلومات هذه (على سبيل المثال: &quot;الألوان&quot;: [&quot;# d1d8dd&quot;، &quot;# ff5858&quot;]),
+Use Report Chart,استخدم مخطط التقرير,
+Heatmap,خريطة الحرارة,
+Dynamic Filters,مرشحات ديناميكية,
+Dynamic Filters JSON,المرشحات الديناميكية JSON,
+Set Dynamic Filters,تعيين عوامل التصفية الديناميكية,
+Click to Set Dynamic Filters,انقر لتعيين عوامل تصفية ديناميكية,
+Hide Custom DocTypes and Reports,إخفاء أنواع المستندات والتقارير المخصصة,
+Checking this will hide custom doctypes and reports cards in Links section,سيؤدي تحديد هذا إلى إخفاء نماذج المستندات المخصصة وبطاقات التقارير في قسم الروابط,
+DocType View,طريقة عرض DocType,
+Which view of the associated DocType should this shortcut take you to?,ما هي طريقة عرض DocType المرتبطة التي يجب أن يأخذك إليها هذا الاختصار؟,
+List View Settings,إعدادات عرض القائمة,
+Maximum Number of Fields,أقصى عدد من الحقول,
+Module Onboarding,وحدة Onboarding,
+System managers are allowed by default,يسمح لمديري النظام بشكل افتراضي,
+Documentation URL,URL التوثيق,
+Is Complete,كاملة,
+Alert,إنذار,
+Document Link,رابط المستند,
+Attached File,ملف مرفق,
+Attachment Link,رابط المرفقات,
+Open Reference Document,افتح مستند مرجعي,
+Custom Configuration,التكوين المخصص,
+Filters Configuration,تكوين المرشحات,
+Dynamic Filters Section,قسم المرشحات الديناميكية,
+Please create Card first,الرجاء إنشاء البطاقة أولاً,
+Onboarding Permission,إذن على متن الطائرة,
+Onboarding Step,خطوة Onboarding,
+Is Mandatory,إلزامي,
+Is Skipped,تم تخطي,
+Create Entry,إنشاء الدخول,
+Update Settings,إعدادات التحديث,
+Show Form Tour,إظهار جولة في النموذج,
+View Report,عرض التقرير,
+Go to Page,انتقل إلى صفحة,
+Watch Video,شاهد الفيديو,
+Show Full Form?,إظهار الشكل الكامل؟,
+Show full form instead of a quick entry modal,إظهار شكل كامل بدلاً من إدخال سريع مشروط,
+Report Reference Doctype,تقرير مرجع Doctype,
+Report Description,وصف تقرير,
+This will be shown to the user in a dialog after routing to the report,سيظهر هذا للمستخدم في مربع حوار بعد التوجيه إلى التقرير,
+Example: #Tree/Account,مثال: # شجرة / حساب,
+Callback Title,عنوان رد الاتصال,
+Callback Message,رسالة رد,
+This will be shown in a modal after routing,سيظهر هذا في شكل مشروط بعد التوجيه,
+Validate Field,تحقق من صحة الحقل,
+Value to Validate,قيمة للتحقق من صحتها,
+Use % for any non empty value.,استخدم٪ لأي قيمة غير فارغة.,
+Video URL,رابط الفيديو,
+Onboarding Step Map,خريطة خطوة Onboarding,
+Step,خطوة,
+System Console,وحدة تحكم النظام,
+Console,وحدة التحكم,
+To print output use <code>log(text)</code>,لطباعة الإخراج ، استخدم <code>log(text)</code>,
+Commit,ارتكب,
+Execute Console script,تنفيذ البرنامج النصي لوحدة التحكم,
+Execute,نفذ - اعدم,
+Create Contacts from Incoming Emails,إنشاء جهات اتصال من رسائل البريد الإلكتروني الواردة,
+Inbox User,مسؤل علبة الوارد,
+Disabled Auto Reply,الرد التلقائي معطل,
+Schedule Sending,جدولة الإرسال,
+Message (Markdown),الرسالة (Markdown),
+Message (HTML),الرسالة (HTML),
+Send Attachments,إرسال المرفقات,
+Testing,اختبارات,
+System Notification,إعلام النظام,
+WhatsApp,ال WhatsApp,
+Twilio Number,رقم تويليو,
+"To use WhatsApp for Business, initialize <a href=""#Form/Twilio Settings"">Twilio Settings</a>.","لاستخدام WhatsApp for Business ، قم بتهيئة <a href=""#Form/Twilio Settings"">Twilio Settings</a> .",
+"To use Slack Channel, add a <a href=""#List/Slack%20Webhook%20URL/List"">Slack Webhook URL</a>.","لاستخدام قناة Slack ، أضف <a href=""#List/Slack%20Webhook%20URL/List"">عنوان URL لـ Slack Webhook</a> .",
+Send System Notification,إرسال إشعار النظام,
+"If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",في حالة التمكين ، سيظهر الإشعار في القائمة المنسدلة للإشعارات أعلى الزاوية اليمنى من شريط التنقل.,
+Send To All Assignees,أرسل إلى جميع المعينين,
+Receiver By Document Field,المتلقي حسب حقل المستند,
+Receiver By Role,المتلقي حسب الدور,
+Child Table,طاولة فرعية,
+Remote Value Filters,مرشحات القيمة البعيدة,
+API Key of the user(Event Subscriber) on the producer site,مفتاح API الخاص بالمستخدم (المشترك في الحدث) على موقع المنتج,
+API Secret of the user(Event Subscriber) on the producer site,سر واجهة برمجة التطبيقات للمستخدم (المشترك في الحدث) على موقع المنتج,
+Paytm Settings,إعدادات Paytm,
+Merchant Key,مفتاح التاجر,
+Staging,انطلاق,
+Industry Type ID,معرف نوع الصناعة,
+See https://docs.aws.amazon.com/general/latest/gr/s3.html for details.,راجع https://docs.aws.amazon.com/general/latest/gr/s3.html للحصول على التفاصيل.,
+af-south-1,af-south-1,
+ap-east-1,ap-east-1,
+eu-south-1,الاتحاد الأوروبي الجنوبي -1,
+me-south-1,لي الجنوب 1,
+Twilio Number Group,مجموعة Twilio Number Group,
+Twilio Settings,إعدادات Twilio,
+Auth Token,رمز المصادقة,
+Read Time,وقت القراءة,
+in minutes,في دقائق,
+Featured,متميز,
+Hide CTA,إخفاء CTA,
+"Description for listing page, in plain text, only a couple of lines. (max 200 characters)",وصف لصفحة القائمة ، بنص عادي ، سطرين فقط. (بحد أقصى 200 حرف),
+Meta Title,عنوان الفوقية,
+Enable Social Sharing,تمكين المشاركة الاجتماعية,
+Show CTA in Blog,إظهار CTA في المدونة,
+CTA,CTA,
+CTA Label,تسمية CTA,
+CTA URL,CTA URL,
+Default Portal Home,الصفحة الرئيسية للمدخل الافتراضي,
+"Example: ""/desk""",مثال: &quot;/ desk&quot;,
+Social Link Settings,إعدادات الارتباط الاجتماعي,
+Social Link Type,نوع الارتباط الاجتماعي,
+facebook,موقع التواصل الاجتماعي الفيسبوك,
+linkedin,ينكدين,
+twitter,تويتر,
+"If Icon is set, it will be shown instead of Label",إذا تم تعيين الرمز ، فسيتم عرضه بدلاً من التصنيف,
+Apply Document Permissions,تطبيق أذونات المستند,
+"For help see <a href=""https://frappeframework.com/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">Client Script API and Examples</a>","للحصول على المساعدة ، راجع <a href=""https://frappeframework.com/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">أمثلة و API Script</a>",
+Dynamic Route,الطريق الديناميكي,
+Map route parameters into form variables. Example <code>/project/&lt;name&gt;</code>,تعيين معلمات الطريق في متغيرات النموذج. مثال <code>/project/&lt;name&gt;</code>,
+Context Script,سيناريو السياق,
+"<p>Set context before rendering a template. Example:</p><p>\n</p><div><pre><code>\ncontext.project = frappe.get_doc(""Project"", frappe.form_dict.name)\n</code></pre></div>","<p style="""">قم بتعيين السياق قبل تقديم قالب. مثال:</p><p style=""""></p><div style=""""><pre style=""""> <code>context.project = frappe.get_doc(&quot;Project&quot;, frappe.form_dict.name)</code></pre></div>",
+Title of the page,عنوان الصفحة,
+This title will be used as the title of the webpage as well as in meta tags,سيتم استخدام هذا العنوان كعنوان لصفحة الويب وكذلك في العلامات الوصفية,
+Makes the page public,يجعل الصفحة عامة,
+Checking this will publish the page on your website and it'll be visible to everyone.,سيؤدي التحقق من ذلك إلى نشر الصفحة على موقع الويب الخاص بك وستكون مرئية للجميع.,
+URL of the page,عنوان URL للصفحة,
+"This will be automatically generated when you publish the page, you can also enter a route yourself if you wish",سيتم إنشاء هذا تلقائيًا عند نشر الصفحة ، ويمكنك أيضًا إدخال مسار بنفسك إذا كنت ترغب في ذلك,
+Content type for building the page,نوع المحتوى لبناء الصفحة,
+"You can select one from the following,",يمكنك اختيار واحد مما يلي ،,
+Standard rich text editor with controls,محرر نص منسق قياسي مع عناصر تحكم,
+Github flavoured markdown syntax,أسلوب تخفيض سعر جيثب بنكهة,
+HTML with jinja support,HTML مع دعم jinja,
+Frappe page builder using components,Frappe Page Builder باستخدام المكونات,
+Checking this will show a text area where you can write custom javascript that will run on this page.,سيؤدي التحقق من هذا إلى إظهار منطقة نصية حيث يمكنك كتابة جافا سكريبت مخصص سيتم تشغيله على هذه الصفحة.,
+Meta title for SEO,عنوان Meta لـ SEO,
+"By default the title is used as meta title, adding a value here will override it.",بشكل افتراضي ، يتم استخدام العنوان كعنوان تعريف ، وستؤدي إضافة قيمة هنا إلى تجاوزه.,
+"The meta description is an HTML attribute that provides a brief summary of a web page. Search engines such as Google often display the meta description in search results, which can influence click-through rates.",وصف التعريف هو سمة HTML توفر ملخصًا موجزًا لصفحة الويب. غالبًا ما تعرض محركات البحث مثل Google الوصف التعريفي في نتائج البحث ، مما قد يؤثر على معدلات النقر.,
+"The meta image is unique image representing the content of the page. Images for this Card should be at least 280px in width, and at least 150px in height.",الصورة الوصفية هي صورة فريدة تمثل محتوى الصفحة. يجب ألا يقل عرض صور هذه البطاقة عن 280 بكسل ، وأن لا يقل ارتفاعها عن 150 بكسل.,
+Add Space on Top,أضف مساحة في الأعلى,
+Add Space on Bottom,أضف مساحة في الأسفل,
+Is Unique,فريد من نوعة,
+User Agent,وكيل المستخدم,
+Table Break,فاصل الجدول,
+Hide Login,إخفاء تسجيل الدخول,
+Navbar Template,قالب نافبار,
+Navbar Template Values,قيم قالب نافبار,
+Call To Action,دعوة للعمل,
+Call To Action URL,عنوان URL للدعوة إلى العمل,
+Footer Logo,تذييل الشعار,
+Footer Template,قالب التذييل,
+Footer Template Values,قيم قالب التذييل,
+Enable Tracking Page Views,تمكين تتبع مشاهدات الصفحة,
+"Checking this will enable tracking page views for blogs, web pages, etc.",سيؤدي التحقق من ذلك إلى تمكين تتبع مشاهدات الصفحة للمدونات وصفحات الويب وما إلى ذلك.,
+Disable Signup for your site,تعطيل الاشتراك في موقعك,
+Check this if you don't want users to sign up for an account on your site. Users won't get desk access unless you explicitly provide it.,تحقق من هذا إذا كنت لا تريد أن يقوم المستخدمون بالتسجيل للحصول على حساب على موقعك. لن يتمكن المستخدمون من الوصول إلى المكتب ما لم تقدمه صراحةً.,
+URL to go to on clicking the slideshow image,عنوان URL للانتقال إليه عند النقر فوق صورة عرض الشرائح,
+Custom Overrides,تجاوزات مخصصة,
+Ignored Apps,التطبيقات التي تم تجاهلها,
+Include Theme from Apps,تضمين سمة من التطبيقات,
+Website Theme Ignore App,موضوع تجاهل التطبيق,
+Are you sure you want to save this document?,هل أنت متأكد أنك تريد حفظ هذا المستند؟,
+Refresh All,تحديث كافة,
+"Level 0 is for document level permissions, higher levels for field level permissions.",المستوى 0 مخصص لأذونات مستوى المستند ، ومستويات أعلى للأذونات على مستوى الحقل.,
+Website Analytics,تحليلات الموقع,
+d,د,Days (Field: Duration)
+h,ح,Hours (Field: Duration)
+m,م,Minutes (Field: Duration)
+s,س,Seconds (Field: Duration)
+Less,أقل,
+Not a valid DocType view:,طريقة عرض DocType غير صالحة:,
+Unknown View,عرض غير معروف,
+Go Back,عد,
+Let's take you back to onboarding,دعنا نعيدك إلى الإعداد,
+Great Job,عمل عظيم,
+Looks Great,تبدو رائعة,
+Looks like you didn't change the value,يبدو أنك لم تغير القيمة,
+Oops,وجه الفتاة,
+Skip Step,تخطي الخطوة,
+"You're doing great, let's take you back to the onboarding page.",أنت تقوم بعمل رائع ، دعنا نعيدك إلى صفحة الإعداد.,
+Good Work 🎉,عمل جيد 🎉,
+Submit this document to complete this step.,أرسل هذا المستند لإكمال هذه الخطوة.,
+Great,عظيم,
+You may continue with onboarding,يمكنك الاستمرار في الإعداد,
+You seem good to go!,يبدو أنك على ما يرام!,
+Onboarding Complete,اكتمل الإعداد,
+{0} Settings,{0} الإعدادات,
+{0} Fields,{0} الحقول,
+Reset Fields,تصفير البيانات في الحقول,
+Select Fields,حدد الحقول,
+Warning: Unable to find {0} in any table related to {1},تحذير: تعذر العثور على {0} في أي جدول متعلق بـ {1},
+Tree view is not available for {0},عرض الشجرة غير متاح لـ {0},
+Create Card,إنشاء بطاقة,
+Card Label,ملصق البطاقة,
+Reports already in Queue,التقارير موجودة بالفعل في قائمة الانتظار,
+Proceed Anyway,المتابعة على أية حال,
+Delete and Generate New,حذف وإنشاء جديد,
+There is ,هناك,
+1 Report,1 تقرير,
+There are ,يوجد,
+{0} ({1}) (1 row mandatory),{0} ({1}) (صف واحد إلزامي),
+Select Fields To Insert,حدد الحقول المطلوب إدراجها,
+Select Fields To Update,حدد الحقول المراد تحديثها,
+"This document is already amended, you cannot ammend it again",تم تعديل هذا المستند بالفعل ، ولا يمكنك تعديله مرة أخرى,
+Add to ToDo,أضف إلى ToDo,
+{0} is currently {1},{0} حاليًا {1},
+{0} are currently {1},{0} حاليًا {1},
+Currently Replying,الرد حاليا,
+created {0},تم إنشاء {0},
+Make a call,إجراء مكالمة,
+Change,يتغيرون,Coins
+Too Many Requests,طلبات كثيرة جدا,
+"Invalid Authorization headers, add a token with a prefix from one of the following: {0}.",رؤوس المصادقة غير صالحة ، أضف رمزًا مميزًا ببادئة من أحد الخيارات التالية: {0}.,
+"Invalid Authorization Type {0}, must be one of {1}.",نوع التفويض غير صالح {0} ، يجب أن يكون واحدًا من {1}.,
+{} is not a valid date string.,{} ليست سلسلة تاريخ صالحة.,
+Invalid Date,تاريخ غير صالح,
+Please select a valid date filter,الرجاء تحديد مرشح تاريخ صالح,
+Value {0} must be in the valid duration format: d h m s,يجب أن تكون القيمة {0} بتنسيق المدة الصالح: dhms,
+Google Sheets URL is invalid or not publicly accessible.,عنوان URL الخاص بجداول بيانات Google غير صالح أو لا يمكن الوصول إليه بشكل عام.,
+"Google Sheets URL must end with ""gid={number}"". Copy and paste the URL from the browser address bar and try again.",يجب أن ينتهي عنوان URL الخاص بجداول بيانات Google بـ &quot;gid = {number}&quot;. انسخ والصق عنوان URL من شريط عنوان المتصفح وحاول مرة أخرى.,
+Incorrect URL,URL غير صحيح,
+"""{0}"" is not a valid Google Sheets URL",&quot;{0}&quot; ليس عنوان URL صالحًا لجداول بيانات Google,
+Duplicate Name,اسم مكرر,
+"Please check the value of ""Fetch From"" set for field {0}",يرجى التحقق من قيمة مجموعة &quot;الجلب من&quot; للحقل {0},
+Wrong Fetch From value,إحضار خاطئ من القيمة,
+Deploying,النشر,
+Couldn't connect to site {0}. Please check Error Logs.,تعذر الاتصال بالموقع {0}. يرجى التحقق من سجلات الأخطاء.,
+Error while installing package to site {0}. Please check Error Logs.,خطأ أثناء تثبيت الحزمة على الموقع {0}. يرجى التحقق من سجلات الأخطاء.,
+Exporting,تصدير,
+A field with the name '{}' already exists in doctype {}.,يوجد حقل بالاسم &quot;{}&quot; بالفعل في DOCTYPE {}.,
+Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account.,يتم إنشاء الحقل المخصص {0} بواسطة المسؤول ولا يمكن حذفه إلا من خلال حساب المسؤول.,
+Failed to send {0} Auto Email Report,فشل إرسال تقرير البريد الإلكتروني التلقائي {0},
+Test email sent to {0},تم إرسال بريد إلكتروني تجريبي إلى {0},
+Email queued to {0} recipients,تم وضع البريد الإلكتروني في قائمة الانتظار لـ {0} من المستلمين,
+Newsletter should have at least one recipient,يجب أن تحتوي الرسالة الإخبارية على مستلم واحد على الأقل,
+Please enable Twilio settings to send WhatsApp messages,يرجى تمكين إعدادات Twilio لإرسال رسائل WhatsApp,
+"Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings",غير مسموح بإرفاق مستند {0} ، يرجى تمكين السماح بالطباعة لـ {0} في إعدادات الطباعة,
+Signup Disabled,تم تعطيل التسجيل,
+Signups have been disabled for this website.,تم تعطيل الاشتراكات لهذا الموقع.,
+Open Document,افتح المستند,
+The comment cannot be empty,لا يمكن أن يكون التعليق فارغًا,
+Hourly comment limit reached for: {0},تم بلوغ حد التعليق بالساعة لـ: {0},
+Please add a valid comment.,الرجاء إضافة تعليق صالح.,
+Document {0} Already Restored,تمت استعادة المستند {0} بالفعل,
+Restoring Deleted Document,استعادة المستند المحذوف,
+{function} of {fieldlabel},{function} من {fieldlabel},
+Invalid template file for import,ملف نموذج غير صالح للاستيراد,
+Invalid or corrupted content for import,محتوى غير صالح أو تالف للاستيراد,
+Value {0} must in {1} format,يجب أن تكون القيمة {0} بتنسيق {1},
+{0} is a mandatory field asdadsf,{0} هو حقل إلزامي asdadsf,
+Could not map column {0} to field {1},تعذر تعيين العمود {0} للحقل {1},
+Skipping Duplicate Column {0},تخطي عمود مكرر {0},
+The column {0} has {1} different date formats. Automatically setting {2} as the default format as it is the most common. Please change other values in this column to this format.,العمود {0} له {1} تنسيقات تاريخ مختلفة. تعيين {2} تلقائيًا كتنسيق افتراضي لأنه الأكثر شيوعًا. يرجى تغيير القيم الأخرى في هذا العمود إلى هذا التنسيق.,
+You have reached the hourly limit for generating password reset links. Please try again later.,لقد وصلت إلى الحد الأقصى المحدد بالساعة لإنشاء روابط إعادة تعيين كلمة المرور. الرجاء معاودة المحاولة في وقت لاحق.,
+Please hide the standard navbar items instead of deleting them,الرجاء إخفاء عناصر شريط التنقل القياسية بدلاً من حذفها,
+DocType's name should not start or end with whitespace,يجب ألا يبدأ اسم DocType أو ينتهي بمسافة,
+File name cannot have {0},لا يمكن أن يحتوي اسم الملف على {0},
+{0} is not a valid file url,{0} ليس عنوان url صالحًا للملف,
+Error Attaching File,خطأ في إرفاق الملف,
+Please generate keys for the Event Subscriber User {0} first.,الرجاء إنشاء مفاتيح للمستخدم المشترك في الحدث {0} أولاً.,
+Please set API Key and Secret on the producer and consumer sites first.,يُرجى تعيين مفتاح وسر واجهة برمجة التطبيقات على مواقع المنتج والمستهلك أولاً.,
+User {0} not found on the producer site,المستخدم {0} غير موجود في موقع المنتج,
+Event Subscriber has to be a System Manager.,يجب أن يكون المشترك في الحدث مدير نظام.,
+Row #{0}: Invalid Local Fieldname,الصف # {0}: اسم حقل محلي غير صالح,
+Row #{0}: Please set Mapping or Default Value for the field {1} since its a dependency field,الصف # {0}: الرجاء تعيين &quot;تعيين&quot; أو &quot;القيمة الافتراضية&quot; للحقل {1} نظرًا لأنه حقل تبعية,
+Row #{0}: Please set remote value filters for the field {1} to fetch the unique remote dependency document,الصف رقم {0}: الرجاء تعيين عوامل تصفية القيمة البعيدة للحقل {1} لجلب مستند التبعية الفريد عن بُعد,
+Paytm payment gateway settings,إعدادات بوابة الدفع Paytm,
+"Company, Fiscal Year and Currency defaults",التخلف عن السداد للشركة والسنة المالية والعملات,
+Package,صفقة,
+Import and Export Packages.,حزم الاستيراد والتصدير.,
+Razorpay Signature Verification Failed,فشل التحقق من توقيع Razorpay,
+Google Drive - Could not locate - {0},Google Drive - تعذر تحديد الموقع - {0},
+"Sync token was invalid and has been resetted, Retry syncing.",كان رمز المزامنة المميز غير صالح وتم إعادة ضبطه ، أعد محاولة المزامنة.,
+Please select another payment method. Paytm does not support transactions in currency '{0}',الرجاء تحديد طريقة دفع أخرى. لا يدعم Paytm المعاملات بالعملة &quot;{0}&quot;,
+Invalid Account SID or Auth Token.,SID الحساب أو رمز المصادقة غير صالح.,
+Please enable twilio settings before sending WhatsApp messages,يرجى تمكين إعدادات twilio قبل إرسال رسائل WhatsApp,
+Delivery Failed,فشل التسليم,
+Twilio WhatsApp Message Error,خطأ رسالة Twilio WhatsApp,
+A featured post must have a cover image,يجب أن تحتوي الوظيفة المميزة على صورة غلاف,
+Load More,تحميل المزيد,
+Published on,نشرت في,
+Enable developer mode to create a standard Web Template,قم بتمكين وضع المطور لإنشاء قالب ويب قياسي,
+Please select which module this Web Template belongs to.,الرجاء تحديد الوحدة النمطية التي ينتمي إليها قالب الويب هذا.,
+Was this article helpful?,هل كان المقال مساعدا؟!,
+Thank you for your feedback!,شكرا لك على ملاحظاتك!,
+New Mention on {0},إشارة جديدة في {0},
+Assignment Update on {0},تحديث الواجب بتاريخ {0},
+New Document Shared {0},مستند جديد مشترك {0},
+Energy Point Update on {0},تحديث Energy Point على {0},
+You cannot create a dashboard chart from single DocTypes,لا يمكنك إنشاء مخطط لوحة معلومات من أنواع DocTypes الفردية,
+Invalid json added in the custom options: {0},تمت إضافة json غير صالح في الخيارات المخصصة: {0},
+Invalid JSON in card links for {0},JSON غير صالح في روابط البطاقة لـ {0},
+Standard Not Set,المعيار غير محدد,
+Please set the following documents in this Dashboard as standard first.,يرجى تعيين المستندات التالية في لوحة المعلومات هذه كمعيار أولاً.,
+Shared with the following Users with Read access:{0},مشترك مع المستخدمين التاليين الذين لهم حق الوصول للقراءة: {0},
+Already in the following Users ToDo list:{0},بالفعل في قائمة &quot;المهام للمستخدمين&quot; التالية: {0},
+Your assignment on {0} {1} has been removed by {2},تمت إزالة واجبك في {0} {1} بواسطة {2},
+Uncaught Server Exception,استثناء خادم لم يتم اكتشافه,
+There was an error building this page,كان هناك خطأ في بناء هذه الصفحة,
+Hide Traceback,إخفاء Traceback,

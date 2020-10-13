@@ -9,7 +9,7 @@ import timeit
 import json
 from datetime import datetime, date
 from frappe import _
-from frappe.utils import cint, flt, update_progress_bar, cstr
+from frappe.utils import cint, flt, update_progress_bar, cstr, duration_to_seconds
 from frappe.utils.csvutils import read_csv_content, get_csv_content_from_google_sheets
 from frappe.utils.xlsxutils import (
 	read_xlsx_file_from_attached_file,
@@ -465,6 +465,8 @@ class ImportFile:
 
 				if doctype != self.doctype and table_df:
 					child_doc = row.parse_doc(doctype, parent_doc, table_df)
+					if child_doc is None:
+						continue
 					parent_doc[table_df.fieldname] = parent_doc.get(table_df.fieldname, [])
 					parent_doc[table_df.fieldname].append(child_doc)
 
@@ -570,6 +572,11 @@ class Row:
 	def parse_doc(self, doctype, parent_doc=None, table_df=None):
 		col_indexes = self.header.get_column_indexes(doctype, table_df)
 		values = self.get_values(col_indexes)
+
+		if all(v in INVALID_VALUES for v in values):
+			# if all values are invalid, no need to parse it
+			return None
+
 		columns = self.header.get_columns(col_indexes)
 		doc = self._parse_doc(doctype, columns, values, parent_doc, table_df)
 		return doc
@@ -657,6 +664,20 @@ class Row:
 					}
 				)
 				return
+		elif df.fieldtype == "Duration":
+			import re
+			is_valid_duration = re.match("^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", value)
+			if not is_valid_duration:
+				self.warnings.append(
+					{
+						"row": self.row_number,
+						"col": col.column_number,
+						"field": df_as_json(df),
+						"message": _("Value {0} must be in the valid duration format: d h m s").format(
+							frappe.bold(value)
+						)
+					}
+				)
 
 		return value
 
@@ -685,6 +706,8 @@ class Row:
 			value = flt(value)
 		elif df.fieldtype in ["Date", "Datetime"]:
 			value = self.get_date(value, col)
+		elif df.fieldtype == "Duration":
+			value = duration_to_seconds(value)
 
 		return value
 

@@ -4,6 +4,9 @@ import frappe
 def execute():
 	navbar_settings = frappe.get_single("Navbar Settings")
 
+	if frappe.db.exists('Navbar Item', {'item_label': 'Toggle Full Width'}):
+		return
+
 	for navbar_item in navbar_settings.settings_dropdown[5:]:
 		navbar_item.idx = navbar_item.idx + 1
 

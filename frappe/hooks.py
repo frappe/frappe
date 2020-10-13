@@ -43,6 +43,11 @@ app_include_css = [
 	"assets/css/report.min.css",
 ]
 
+doctype_js = {
+	"Web Page": "public/js/frappe/utils/web_template.js",
+	"Website Settings": "public/js/frappe/utils/web_template.js"
+}
+
 web_include_js = [
 	"website_script.js"
 ]
@@ -136,7 +141,9 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
-			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+			"frappe.core.doctype.file.file.attach_files_to_document",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -195,7 +202,8 @@ scheduler_events = {
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
-		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email"
+		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
+		"frappe.utils.password.delete_password_reset_cache"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -275,6 +283,7 @@ setup_wizard_exception = [
 ]
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
+after_migrate = ['frappe.website.doctype.website_theme.website_theme.after_migrate']
 
 otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [
