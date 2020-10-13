@@ -28,11 +28,6 @@ cache:
 
 matrix:
   include:
-  - name: "Python 3.7 MariaDB"
-    python: 3.7
-    env: DB=mariadb TYPE=server
-    script: bench --verbose --site test_site run-tests --coverage
-
   - name: "Python 3.7 PostgreSQL"
     python: 3.7
     env: DB=postgres TYPE=server
