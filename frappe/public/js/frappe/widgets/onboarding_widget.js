@@ -2,19 +2,25 @@ import Widget from "./base_widget.js";
 import { generate_route } from "./utils";
 
 export default class OnboardingWidget extends Widget {
-	constructor(opts) {
-		super(opts);
-	}
-
 	make_body() {
-		this.steps.forEach((step) => {
-			this.add_step(step);
+		this.steps_wrapper = $(`<div class="onboarding-steps-wrapper"></div>`).appendTo(this.body);
+		this.step_preview = $(`<div class="onboarding-step-preview">
+			<div class="onboarding-step-body"></div>
+			<div class="onboarding-step-footer"></div>
+		</div>`).appendTo(this.body);
+
+		this.step_body = this.step_preview.find(".onboarding-step-body");
+		this.step_footer = this.step_preview.find(".onboarding-step-footer");
+
+		this.steps.forEach((step, index) => {
+			this.add_step(step, index);
 		});
+		this.show_step(this.steps[0]);
 	}
 
-	add_step(step) {
+	add_step(step, index) {
 		// Make Step
-		let status = "";
+		let status = "incomplete";
 		let icon_class = "fa-circle-o";
 
 		if (step.is_skipped) {
@@ -26,10 +32,13 @@ export default class OnboardingWidget extends Widget {
 			status = "complete";
 			icon_class = "fa-check-circle-o";
 		}
+		// <i class="fa ${icon_class}" aria-hidden="true" title="${status}"></i>
 
 		let $step = $(`<div class="onboarding-step ${status}">
-				<i class="fa ${icon_class}" aria-hidden="true" title="${status}"></i>
-				<span id="title">${step.title}</span>
+				<div class="step-title">
+					<div class="step-index">${index + 1}</div>
+					<div id="title">${step.title}</div>
+				</div>
 			</div>`);
 
 		step.$step = $step;
@@ -37,7 +46,7 @@ export default class OnboardingWidget extends Widget {
 		// Add skip button
 		if (!step.is_mandatory && !step.is_complete) {
 			let skip_html = $(
-				`<span class="ml-5 small text-muted step-skip">Skip</span>`
+				`<div class="step-skip">Skip</div>`
 			);
 
 			skip_html.appendTo($step);
@@ -46,6 +55,17 @@ export default class OnboardingWidget extends Widget {
 				event.stopPropagation();
 			});
 		}
+
+		$step.find("#title").on("click", () => {
+			this.show_step(step)
+		});
+
+		$step.appendTo(this.steps_wrapper);
+		return $step;
+	}
+
+	show_step(step) {
+		this.active_step && this.active_step.$step.removeClass("active");
 
 		// Setup actions
 		let actions = {
@@ -67,28 +87,43 @@ export default class OnboardingWidget extends Widget {
 			"Go to Page": () => this.go_to_page(step),
 		};
 
-		$step.find("#title").on("click", actions[step.action]);
+		step.$step.addClass("active");
+		// actions[step.action](step);
+		this.active_step = step;
 
-		$step.appendTo(this.body);
-		return $step;
+		if (step.description) {
+			this.step_body.html(frappe.markdown(step.description) || `<h1>Hello</h1>`)
+		}
+
+		if (step.intro_video_url) {
+			let next_button = $(`<button class="btn btn-primary btn-sm">${__('Next')}</button>`);
+			next_button.appendTo(this.step_footer);
+			next_button.on('click', () => {
+				this.step_body.empty();
+				const video = $(`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${step.intro_video_url}"></div>`);
+				video.appendTo(this.step_body)
+				const ply = new frappe.Plyr(video[0]);
+			})
+		}
 	}
 
 	go_to_page(step) {
-		frappe.set_route(step.path).then(() => {
-			if (step.callback_message) {
-				let msg_dialog = frappe.msgprint({
-					message: __(step.callback_message),
-					title: __(step.callback_title),
-					primary_action: {
-						action: () => {
-							msg_dialog.hide();
-						},
-						label: () => __("Continue"),
-					},
-					wide: true,
-				});
-			}
-		});
+		frappe.msgprint("GOING TO STEP")
+		// frappe.set_route(step.path).then(() => {
+		// 	if (step.callback_message) {
+		// 		let msg_dialog = frappe.msgprint({
+		// 			message: __(step.callback_message),
+		// 			title: __(step.callback_title),
+		// 			primary_action: {
+		// 				action: () => {
+		// 					msg_dialog.hide();
+		// 				},
+		// 				label: () => __("Continue"),
+		// 			},
+		// 			wide: true,
+		// 		});
+		// 	}
+		// });
 	}
 
 	open_report(step) {
