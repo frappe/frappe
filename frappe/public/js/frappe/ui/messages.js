@@ -136,7 +136,7 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 	if (data.as_table) {
 		const rows = data.message.map(row => {
 			const cols = row.map(col => `<td>${col}</td>`).join('');
-			return `<tr>${cols}</tr>`
+			return `<tr>${cols}</tr>`;
 		}).join('');
 		data.message = `<table class="table table-bordered" style="margin: 0;">${rows}</table>`;
 	}
