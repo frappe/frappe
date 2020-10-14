@@ -25,6 +25,7 @@ class TestCustomizeForm(unittest.TestCase):
 
 	def setUp(self):
 		self.insert_custom_field()
+		frappe.db.delete('Property Setter', dict(doc_type='Event'))
 		frappe.db.commit()
 		frappe.clear_cache(doctype="Event")
 

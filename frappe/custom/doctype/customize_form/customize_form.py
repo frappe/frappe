@@ -15,6 +15,7 @@ from frappe.model.document import Document
 from frappe.model import no_value_fields, core_doctypes_list
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, check_email_append_to
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.docfield import supports_translation
 
 class CustomizeForm(Document):
@@ -356,6 +357,8 @@ class CustomizeForm(Document):
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None,
 		apply_on=None, row_name = None):
+		delete_property_setter(self.doc_type, prop, fieldname)
+
 		property_value = self.get_existing_property_value(prop, fieldname)
 
 		if property_value==value:
@@ -381,7 +384,7 @@ class CustomizeForm(Document):
 			property_value = frappe.db.get_value("DocField", {"parent": self.doc_type,
 				"fieldname": fieldname}, property_name)
 		else:
-			if frappe.db.has_column(self.doc_type, property_name):
+			if frappe.db.has_column("DocType", property_name):
 				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
 			else:
 				property_value = None

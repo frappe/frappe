@@ -19,7 +19,8 @@ class PropertySetter(Document):
 
 	def validate(self):
 		self.validate_fieldtype_change()
-		self.delete_property_setter()
+		if self.is_new():
+			delete_property_setter(self.doc_type, self.property, self.field_name)
 
 		# clear cache
 		frappe.clear_cache(doctype = self.doc_type)
@@ -28,15 +29,6 @@ class PropertySetter(Document):
 		if self.field_name in not_allowed_fieldtype_change and \
 			self.property == 'fieldtype':
 			frappe.throw(_("Field type cannot be changed for {0}").format(self.field_name))
-
-	def delete_property_setter(self):
-		"""delete other property setters on this, if this is new"""
-		if self.get('__islocal'):
-			filters = dict(doc_type = self.doc_type, property=self.property)
-			if self.field_name:
-				filters['field_name'] = self.field_name
-
-			frappe.db.delete('Property Setter', filters)
 
 	def get_property_list(self, dt):
 		return frappe.db.get_all('DocField',
@@ -91,3 +83,12 @@ def make_property_setter(doctype, fieldname, property, value, property_type, for
 	property_setter.flags.validate_fields_for_doctype = validate_fields_for_doctype
 	property_setter.insert()
 	return property_setter
+
+def delete_property_setter(doc_type, property, field_name=None):
+	"""delete other property setters on this, if this is new"""
+	filters = dict(doc_type = doc_type, property=property)
+	if field_name:
+		filters['field_name'] = field_name
+
+	frappe.db.delete('Property Setter', filters)
+
