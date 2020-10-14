@@ -46,7 +46,7 @@ class Address(Document):
 
 	def link_address(self):
 		"""Link address based on owner"""
-		if not self.links and not self.is_your_company_address:
+		if not self.links:
 			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
 			if contact_name:
 				contact = frappe.get_cached_doc('Contact', contact_name)
@@ -55,12 +55,6 @@ class Address(Document):
 				return True
 
 		return False
-
-	def validate_reference(self):
-		if self.is_your_company_address:
-			if not [row for row in self.links if row.link_doctype == "Company"]:
-				frappe.throw(_("Address needs to be linked to a Company. Please add a row for Company in the Links table below."),
-					title =_("Company not Linked"))
 
 	def validate_preferred_address(self):
 		preferred_fields = ['is_primary_address', 'is_shipping_address']
