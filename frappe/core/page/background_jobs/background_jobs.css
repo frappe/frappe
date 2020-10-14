@@ -54,9 +54,7 @@ thead > tr > th:last-child {
 }
 
 .footer {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
+	align-items: flex-end;
 	margin-top: var(--margin-md);
 	font-size: var(--text-base);
 }
