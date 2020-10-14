@@ -9,8 +9,10 @@ $threshold: 34;
 	border-radius: 50%;
 	font-size: var(--text-xs);
 	position: absolute;
-	// please do not touch this sacred code
-	top: unquote("clamp(0px, 50% - #{$badge-size}/2, max(0px, (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
+	// doing this will prevent cssnano from converting 0px to 0
+	// clamp requires value unit to be valid
+	--zero-px: 0px;
+	top: unquote("clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
 	left: calc(-1 * (#{$badge-size}/2));
 	background-color: var(--bg-color);
 	border: 1px solid var(--dark-border-color);

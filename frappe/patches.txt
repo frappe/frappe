@@ -15,6 +15,7 @@ execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2018-05-29
 execute:frappe.reload_doc('core', 'doctype', 'comment')
 frappe.patches.v8_0.drop_is_custom_from_docperm
+execute:frappe.reload_doc('core', 'doctype', 'document_naming_rule', force=True)
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2020-08-28
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 execute:frappe.reload_doc('email', 'doctype', 'document_follow')
