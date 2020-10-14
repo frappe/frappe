@@ -38,7 +38,6 @@
 			z-index: 4;
 		}
 	}
-
 	.search-results {
 		min-height: 200px;
 		place-content: center;
@@ -115,6 +114,15 @@
 				color: var(--primary);
 				font-size: var(--text-sm);
 			}
+		}
+	}
+}
+
+.modal-minimize {
+	.search-header {
+		.search-input {
+			border-bottom: none;
+			padding-bottom: var(--padding-xs);
 		}
 	}
 }
