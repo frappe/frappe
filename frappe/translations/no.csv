@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Angi fø
 Shared with the following Users with Read access:{0},Delt med følgende brukere med lesetilgang: {0},
 Already in the following Users ToDo list:{0},Allerede i følgende ToDo-liste over brukere: {0},
 Your assignment on {0} {1} has been removed by {2},Oppgaven din på {0} {1} er fjernet av {2},
+Uncaught Server Exception,Unfanget server unntak,
+There was an error building this page,Det oppsto en feil med å bygge denne siden,
+Hide Traceback,Skjul sporbarhet,

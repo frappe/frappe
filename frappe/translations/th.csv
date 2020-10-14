@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,โป�
 Shared with the following Users with Read access:{0},แชร์กับผู้ใช้ต่อไปนี้ที่มีสิทธิ์ในการอ่าน: {0},
 Already in the following Users ToDo list:{0},อยู่ในรายการสิ่งที่ต้องทำของผู้ใช้ต่อไปนี้: {0},
 Your assignment on {0} {1} has been removed by {2},งานของคุณใน {0} {1} ถูกลบโดย {2},
+Uncaught Server Exception,Uncaught ข้อยกเว้นเซิร์ฟเวอร์,
+There was an error building this page,เกิดข้อผิดพลาดในการสร้างเพจนี้,
+Hide Traceback,ซ่อน Traceback,

@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Nejprve 
 Shared with the following Users with Read access:{0},Sdíleno s následujícími uživateli s přístupem pro čtení: {0},
 Already in the following Users ToDo list:{0},Již v následujícím seznamu úkolů uživatelů: {0},
 Your assignment on {0} {1} has been removed by {2},Váš úkol dne {0} {1} byl odstraněn uživatelem {2},
+Uncaught Server Exception,Nezachycená výjimka serveru,
+There was an error building this page,Při vytváření této stránky došlo k chybě,
+Hide Traceback,Skrýt Traceback,

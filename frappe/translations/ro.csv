@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Vă rug�
 Shared with the following Users with Read access:{0},Distribuit cu următorii utilizatori cu acces la citire: {0},
 Already in the following Users ToDo list:{0},Deja în următoarea listă ToDo pentru utilizatori: {0},
 Your assignment on {0} {1} has been removed by {2},Sarcina dvs. de pe {0} {1} a fost eliminată de {2},
+Uncaught Server Exception,Excepție server necuprins,
+There was an error building this page,A apărut o eroare la crearea acestei pagini,
+Hide Traceback,Ascunde Traceback,

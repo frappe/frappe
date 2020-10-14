@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,"Мол�
 Shared with the following Users with Read access:{0},Споделено със следните потребители с достъп за четене: {0},
 Already in the following Users ToDo list:{0},Вече в следния списък със задачи на потребителите: {0},
 Your assignment on {0} {1} has been removed by {2},Вашето задание на {0} {1} е премахнато от {2},
+Uncaught Server Exception,Uncaught Server Exception,
+There was an error building this page,При създаването на тази страница възникна грешка,
+Hide Traceback,Скриване на Traceback,

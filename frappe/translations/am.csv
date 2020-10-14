@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,እባ�
 Shared with the following Users with Read access:{0},ከሚከተሉት ተጠቃሚዎች ጋር በንባብ መዳረሻ ተጋርቷል {0},
 Already in the following Users ToDo list:{0},ቀድሞውኑ በሚከተሉት ተጠቃሚዎች ToDo ዝርዝር ውስጥ ፦ {0},
 Your assignment on {0} {1} has been removed by {2},በ {0} {1} ላይ የሰጡት ተልእኮ በ {2} ተወግዷል,
+Uncaught Server Exception,የማይታሰብ የአገልጋይ ልዩነት,
+There was an error building this page,ይህንን ገጽ መገንባት ላይ አንድ ስህተት ነበር,
+Hide Traceback,ዱካ ዱካ ይደብቁ,

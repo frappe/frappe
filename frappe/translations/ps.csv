@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,مهرب
 Shared with the following Users with Read access:{0},د لوستلو لاسرسي سره لاندې کاروونکو سره شریکه شوې: {0},
 Already in the following Users ToDo list:{0},دمخه د لاندې کارونکو تودو لیست کې: {0},
 Your assignment on {0} {1} has been removed by {2},ستاسو دنده په {0} {1} {2} لخوا لرې شوې,
+Uncaught Server Exception,د نه ښوول شوي سرور استثنا,
+There was an error building this page,د دې پا buildingې جوړولو کې ستونزه وه,
+Hide Traceback,ټرېبیک پټول,
