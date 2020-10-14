@@ -186,6 +186,7 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--bg-orange: var(--orange-50);
 	--bg-red: var(--red-50);
 	--bg-gray: var(--gray-200);
+	--bg-light-gray: var(--gray-100);
 
 	--text-on-blue: var(--blue-600);
 	--text-on-green: var(--dark-green-500);
@@ -193,6 +194,7 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--text-on-orange: var(--orange-500);
 	--text-on-red: var(--red-500);
 	--text-on-gray: var(--gray-600);
+	--text-on-light-gray: var(--gray-800);
 
 	// Other Colors
 	--sidebar-select-color: var(--gray-200);
@@ -208,6 +210,7 @@ $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 6
 	--border-radius: 6px;
 	--border-radius-md: 8px;
 	--border-radius-lg: 12px;
+	--border-radius-full: 999px;
 
 	--checkbox-right-margin: var(--margin-xs);
 	--base-checkbox-size: 14px;
