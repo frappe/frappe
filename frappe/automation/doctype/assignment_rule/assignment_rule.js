@@ -2,12 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Assignment Rule', {
-	onload: function(frm) {
-		frm.trigger('set_options');
-	},
-
 	refresh: function(frm) {
 		frm.trigger('setup_assignment_days_buttons');
+		frm.trigger('set_options');
 		// refresh description
 		frm.events.rule(frm);
 	},
@@ -63,10 +60,12 @@ frappe.ui.form.on('Assignment Rule', {
 			(df) => df.fieldtype == 'Link' && df.options == 'User',
 			[{ label: 'Owner', value: 'owner' }]
 		);
-		frm.set_fields_as_options(
-			'due_date_based_on',
-			doctype,
-			(df) => ['Date', 'Datetime'].includes(df.fieldtype)
-		).then(options => frm.set_df_property('due_date_based_on', 'hidden', !options.length));
+		if (doctype) {
+			frm.set_fields_as_options(
+				'due_date_based_on',
+				doctype,
+				(df) => ['Date', 'Datetime'].includes(df.fieldtype)
+			).then(options => frm.set_df_property('due_date_based_on', 'hidden', !options.length));
+		}
 	},
 });
