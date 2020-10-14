@@ -20,13 +20,15 @@ frappe.avatar = function (user, css_class, title, image_url = null, remove_avata
 		title = user_info.fullname;
 	}
 
+	return frappe.get_avatar(css_class, title, image_url || user_info.image);
+};
+
+frappe.get_avatar = function(css_class, title, image_url = null) {
 	if (!css_class) {
 		css_class = "avatar-small";
 	}
 
-	if (user_info.image || image_url) {
-		image_url = image_url || user_info.image;
-
+	if (image_url) {
 		const image = (window.cordova && image_url.indexOf('http') === -1) ? frappe.base_url + image_url : image_url;
 
 		return `<span class="avatar ${css_class}" title="${title}">
@@ -34,18 +36,19 @@ frappe.avatar = function (user, css_class, title, image_url = null, remove_avata
 					title="${title}"></span>
 			</span>`;
 	} else {
-		var abbr = user_info.abbr;
+		var abbr =  frappe.get_abbr(title);
+		var color = frappe.get_palette(title);
 		if (css_class === 'avatar-small' || css_class == 'avatar-xs') {
 			abbr = abbr.substr(0, 1);
 		}
 		return `<span class="avatar ${css_class}" title="${title}">
 			<div class="avatar-frame standard-image"
-				style="background-color: var(${user_info.color[0]}); color: var(${user_info.color[1]})">
+				style="background-color: var(${color[0]}); color: var(${color[1]})">
 					${abbr}
 			</div>
 		</span>`;
 	}
-};
+}
 
 frappe.avatar_group = function (users, limit = 4, options = {}) {
 	let icon_html = '';

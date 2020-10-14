@@ -454,3 +454,47 @@ kbd {
 .margin-right {
 	margin-right: var(--margin-sm);
 }
+
+.standard-sidebar {
+	font-size: var(--text-base);
+
+	.standard-sidebar-section .standard-sidebar-label {
+		margin-bottom: var(--margin-md);
+		margin-top: var(--margin-sm);
+	}
+
+	.standard-sidebar-item {
+		@include flex(flex, null, center, null);
+		display: flex;
+		align-items: center;
+		font-size: var(--text-base);
+		padding: 8px 12px;
+		margin-bottom: 2px;
+		border-radius: var(--border-radius-md);
+		cursor: pointer;
+
+		&:focus {
+			background-color: var(--sidebar-select-color);
+			outline: 0;
+			text-decoration: none;
+		}
+
+		&:hover {
+			background-color: var(--sidebar-select-color);
+			text-decoration: none;
+		}
+
+		&.selected {
+			background-color: var(--sidebar-select-color);
+		}
+
+		a {
+			color: var(--text-color);
+			text-decoration: none;
+		}
+
+		svg {
+			margin-right: var(--margin-sm);
+		}
+	}
+}
