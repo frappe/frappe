@@ -23,7 +23,8 @@
 		.search-input {
 			padding-left: 25px;
 			padding-bottom: var(--padding-md);
-			background: var(--fg-color);
+			border-radius: 0;
+			background: var(--modal-bg);
 			border-bottom: 1px solid var(--border-color);
 
 			&:focus {
