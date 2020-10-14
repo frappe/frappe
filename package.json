@@ -39,6 +39,7 @@
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.28",
     "node-sass": "^4.14.1",
+    "plyr": "^3.6.2",
     "quagga": "^0.12.1",
     "quill": "2.0.0-dev.4",
     "quill-image-resize": "^3.0.9",
