@@ -87,16 +87,17 @@ def get_chunk_site(file_size):
 
 	file_size_in_gb = cint(file_size/1024/1024)
 
+	MB = 1024 * 1024
 	if file_size_in_gb > 5000:
-		return 200*1024*1024 #200 mb
-	elif file_size_in_gb < 5000 and file_size_in_gb >= 3000:
-		return 150*1024*1024 #150 mb
-	elif file_size_in_gb < 3000 and file_size_in_gb >= 1000:
-		return 100*1024*1024 #100 mb
-	elif file_size_in_gb < 1000 and file_size_in_gb >= 500:
-		return 50*1024*1024 #50 mb
+		return 200 * MB
+	elif file_size_in_gb >= 3000:
+		return 150 * MB
+	elif file_size_in_gb >= 1000:
+		return 100 * MB
+	elif file_size_in_gb >= 500:
+		return 50 * MB
 	else:
-		return 15*1024*1024 #15 mb
+		return 15 * MB
 
 def validate_file_size():
 	frappe.flags.create_new_backup = True
