@@ -347,26 +347,10 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 		return
 
 	if as_table and type(msg) in (list, tuple):
-
-		table_rows = ''
-		for row in msg:
-			table_row_data = ''
-			for data in row:
-				table_row_data += '<td>{}</td>'.format(data)
-			table_rows += '<tr>{}</tr>'.format(table_row_data)
-
-		out.message = '''<table class="table table-bordered"
-			style="margin: 0;">{}</table>'''.format(table_rows)
+		out.as_table = 1
 	
-	if as_list and type(msg) in (list, tuple):
-		if len(msg) > 1:
-			list_rows = ''
-			for row in msg:
-				list_rows += '<li>{}</li>'.format(row)
-
-			out.message = '''<ul style="padding-left: 20px">{}</ul>'''.format(list_rows)
-		elif len(msg) == 1:
-			out.message = msg[0]
+	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
+		out.as_list = 1
 
 	if flags.print_messages and out.message:
 		print(f"Message: {repr(out.message).encode('utf-8')}")
