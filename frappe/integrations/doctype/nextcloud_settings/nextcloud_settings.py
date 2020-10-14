@@ -2,7 +2,6 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
@@ -18,22 +17,18 @@ from urllib.parse import urlparse
 
 class NextCloudSettings(Document):
 
-	backup_path = get_backups_path()
-	upload_path=False
+	upload_path = None
+	session = None
+	failed_uploads, error_log = [], []
 
-	def validate(self):
-		if not self.enabled:
-			return
-
-	def take_backup_nextcloud(self, retry_count=0, upload_db_backup=True):
+	def take_backup(self, retry_count=0, upload_db_backup=True):
 		try:
-			did_not_upload, error_log = [], []
-			if cint(self.enabled):
+			if self.enabled:
 				validate_file_size()
-				self.backup_to_nextcloud(did_not_upload, error_log, upload_db_backup)
-				if did_not_upload:
+				self.backup_to_nextcloud(upload_db_backup)
+				if self.error_log:
 					raise Exception
-				if cint(self.send_email_for_successful_backup):
+				if self.send_email_for_successful_backup:
 					send_email(True, "NextCloud", "NextCloud Settings", "send_notifications_to")
 		except JobTimeoutException:
 			if retry_count < 2:
@@ -41,95 +36,82 @@ class NextCloudSettings(Document):
 					"retry_count": retry_count + 1,
 					"upload_db_backup": False #considering till worker timeout db backup is uploaded
 				}
-				enqueue(self.take_backup_nextcloud, queue='long', timeout=1500, **args)
+				enqueue(self.take_backup, queue='long', timeout=1500, **args)
 		except Exception:
-			if isinstance(error_log, str):
-				error_message = error_log + "\n" + frappe.get_traceback()
+			if isinstance(self.error_log, str):
+				error_message = self.error_log + "\n" + frappe.get_traceback()
 			else:
-				file_and_error = [" - ".join(f) for f in zip(did_not_upload, list(set(error_log)))]
+				file_and_error = [" - ".join(f) for f in zip(self.failed_uploads if self.failed_uploads else '', list(set(self.error_log)))]
 				error_message = ("\n".join(file_and_error) + "\n" + frappe.get_traceback())
 			send_email(False, "NextCloud", "NextCloud Settings", "send_notifications_to", error_message)
 
-	def backup_to_nextcloud(self, did_not_upload, error_log, upload_db_backup=True,):
+	def backup_to_nextcloud(self, upload_db_backup=True,):
 		if not frappe.db:
 			frappe.connect()
 		if upload_db_backup:
 			base_url = self.make_baseurl()
 			if not base_url:
-				did_not_upload.append('Failed')
-				error_log.append('NextCloud URL incorrect')
+				self.error_log.append(_('NextCloud URL incorrect'))
 				return
-			if self.path_to_upload_folder:
-				url = '{0}{1}'.format(base_url, self.path_to_upload_folder)
-				self.upload_path = True
-			else:
-				url = '{0}{1}'.format(base_url, 'Frappe Backups')
-			session = self.make_session()
+			self.make_upload_path(base_url)
+			self.make_session()
 
 			# check if folder exist
-			self.check_for_upload_folder(session, url)
-			self.process_uploading(session, url, did_not_upload, error_log)
+			self.check_for_upload_folder()
+			self.process_uploading()
 
-	def process_uploading(self, session, url, did_not_upload, error_log):
 
+	def make_upload_path(self, base_url):
+		'''This function checks if path is provided and depending on it makes an upload path'''
+		if self.path_to_upload_folder:
+			self.upload_path = '{0}{1}'.format(base_url, self.path_to_upload_folder)
+		else:
+			self.upload_path = '{0}{1}'.format(base_url, 'Frappe Backups')
+
+	def process_uploading(self):
 		db_backup, site_config, public_file_backup, private_file_backup = self.prepare_backup()
 
-		db_response = upload_backup(session, url, db_backup)
+		db_response = self.upload_backup(db_backup)
 		if db_response == 'Failed':
-			did_not_upload.append(db_backup)
-			error_log.append('Failed while uploading DB')
+			self.failed_uploads.append(db_backup)
+			self.error_log.append(_('Failed while uploading DB'))
 
-		site_config_response = upload_backup(session, url, site_config)
-		if site_config_response == 'Failed': 
-			did_not_upload.append(site_config)
-			error_log.append('Failed while uploading Site Config')
+		site_config_response = self.upload_backup(site_config)
+		if site_config_response == 'Failed':
+			self.failed_uploads.append(site_config)
+			self.error_log.append(_('Failed while uploading Site Config'))
 
 		# file backup
-		if cint(self.backup_files) and db_response != 'Failed' and site_config_response != 'Failed':
-			self.file_upload(session, url, public_file_backup, private_file_backup, did_not_upload, error_log)
+		if self.backup_files and db_response != 'Failed' and site_config_response != 'Failed':
+			self.file_upload(public_file_backup, private_file_backup)
 
-	def file_upload(self, session, url, public_file_backup, private_file_backup, did_not_upload, error_log):
+	def file_upload(self, public_file_backup, private_file_backup):
 		if public_file_backup:
-			response_public_file = upload_backup(session, url, public_file_backup)
-			if response_public_file == 'Failed': 
-				did_not_upload.append(public_file_backup)
-				error_log.append('Failed while uploading Public files')
+			response_public_file = self.upload_backup(public_file_backup)
+			if response_public_file == 'Failed':
+				self.failed_uploads.append(public_file_backup)
+				self.error_log.append(_('Failed while uploading Public files'))
 		if private_file_backup:
-			response_private_file = upload_backup(session, url, private_file_backup)
-			if response_private_file == 'Failed': 
-				did_not_upload.append(private_file_backup)
-				error_log.append('Failed while uploading Private files')
+			response_private_file = self.upload_backup(private_file_backup)
+			if response_private_file == 'Failed':
+				self.failed_uploads.append(private_file_backup)
+				self.error_log.append(_('Failed while uploading Private files'))
 
-	def prepare_backup(self, db_backup=None, site_config=None, public_file_backup=None, private_file_backup=None):
-		if frappe.flags.create_new_backup:
-			backup = new_backup(ignore_files= True if cint(self.backup_files) else False)
-			db_backup = os.path.join(self.backup_path, os.path.basename(backup.backup_path_db))
-			site_config = os.path.join(self.backup_path, os.path.basename(backup.backup_path_conf))
-			if cint(self.backup_files):
-				public_file_backup = os.path.join(self.backup_path, os.path.basename(backup.backup_path_files))
-				private_file_backup = os.path.join(self.backup_path, os.path.basename(backup.backup_path_private_files))
-
-		else:
-			if cint(self.backup_files):
-				db_backup, site_config, public_file_backup, private_file_backup = get_latest_backup_file(with_files=True)
-
-				if not public_file_backup or not private_file_backup:
-					generate_files_backup()
-					db_backup, site_config, public_file_backup, private_file_backup = get_latest_backup_file(with_files=True)
-			else:
-				db_backup, site_config,  = get_latest_backup_file()
-
-		return db_backup, site_config, public_file_backup, private_file_backup
+	def prepare_backup(self):
+		odb = new_backup(ignore_files=False if self.backup_files else True, force=frappe.flags.create_new_backup)
+		database, public, private, config = odb.get_recent_backup(older_than=24 * 30)
+		return database, config, public, private
 
 	def make_session(self):
 		session = requests.session()
 		session.verify = True
 		session.stream = True
-		session.auth = (self.email, self.get_password(fieldname='password',raise_exception=False))
+		session.auth = (self.email, 
+		self.get_password(fieldname='password',raise_exception=False))
 		session.headers.update({
 			"OCS-APIRequest": "true",
 		})
-		return session
+		self.session = session
 
 	def make_baseurl(self):
 		vurl = urlparse(self.nextcloud_url)
@@ -149,59 +131,62 @@ class NextCloudSettings(Document):
 			base_url = '{0}/'.format(base_url)
 		return base_url
 
-	def check_for_upload_folder(self, session, url):
-		response = session.request("PROPFIND", url, headers={"Depth": "0"}, allow_redirects=False)
+	def check_for_upload_folder(self):
+		'''If a path is provide in NextCloud Setting, this function checks if that path exist.
+		If no path is provided, this function will create a folder called "Frappe Backups" for the user.'''
+		response = self.session.request("PROPFIND", self.upload_path, headers={"Depth": "0"}, allow_redirects=False)
 		if response.status_code == 404:
-			if self.upload_path:
+			if self.path_to_upload_folder:
 				frappe.throw(_('Given "Path to upload folder" does not exist'))
 			else:
-				response = session.request("MKCOL", url, allow_redirects=False)
-				if response.status_code != 201:
+				response = self.session.request("MKCOL", self.upload_path, allow_redirects=False)
+				print(response.ok)
+				if not response.ok:
 					frappe.throw(_('There was an error. Please try again'))
 
-def upload_backup(session, baseurl, filebackup):
-	if not os.path.exists(filebackup):
-		return
-	local_fileobj = filebackup
-	fileobj = local_fileobj.split('/')
-	dir_length = len(fileobj) - 1
-	remote_fileobj=fileobj[dir_length].encode("ascii", "ignore").decode("ascii")
-	if baseurl.endswith('/'):
-		url = '{0}{1}'.format(baseurl, remote_fileobj)
-	else:
-		url = '{0}/{1}'.format(baseurl, remote_fileobj)
-	if isinstance(filebackup, str):
-		try:
-			with open(filebackup, 'rb') as f:
-				response = session.request("PUT", url, allow_redirects=False, data=f)
-		except Exception as e:
+	def upload_backup(self, filebackup):
+		if not os.path.exists(filebackup):
+			return
+		local_fileobj = filebackup
+		fileobj = local_fileobj.split('/')
+		dir_length = len(fileobj) - 1
+		remote_fileobj=fileobj[dir_length].encode("ascii", "ignore").decode("ascii")
+		if self.upload_path.endswith('/'):
+			url = '{0}{1}'.format(self.upload_path, remote_fileobj)
+		else:
+			url = '{0}/{1}'.format(self.upload_path, remote_fileobj)
+		if isinstance(filebackup, str):
+			try:
+				with open(filebackup, 'rb') as f:
+					response = self.session.request("PUT", url, allow_redirects=False, data=f)
+			except Exception as e:
+				return "Failed"
+		else:
+			try:
+				response = self.session.request("PUT", url, allow_redirects=False, data=filebackup)
+			except Exception as e:
+				return "Failed"
+		if response.status_code not in (201, 204):
 			return "Failed"
-	else:
-		try:
-			response = session.request("PUT", url, allow_redirects=False, data=filebackup)
-		except Exception as e:
-			return "Failed"
-	if response.status_code not in (201, 204):
-		return "Failed"
-	else:
-		return "Success"
+		else:
+			return "Success"
 
 @frappe.whitelist()
 def take_backup():
 	"""Enqueue longjob for taking backup to nextcloud"""
 	enqueue("frappe.integrations.doctype.nextcloud_settings.nextcloud_settings.start_backup", queue='long', timeout=1500)
-	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
+	frappe.msgprint(_("Queued for backup. It may take from a few minutes upto 30 minutes."))
 
-def take_backups_daily():
+def daily_backup():
 	take_backups_if("Daily")
 
-def take_backups_weekly():
+def weekly_backup():
 	take_backups_if("Weekly")
 
 def take_backups_if(freq):
-	if frappe.db.get_value("NextCloud Settings", None, "backup_frequency") == freq:
+	if frappe.db.get_single_value("NextCloud Settings", "backup_frequency") == freq:
 		start_backup()
 
 def start_backup():
 	backup = frappe.get_doc("NextCloud Settings")
-	backup.take_backup_nextcloud()
+	backup.take_backup()
