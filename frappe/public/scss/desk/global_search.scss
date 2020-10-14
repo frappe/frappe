@@ -8,22 +8,23 @@
 		display: none;
 	}
 
-	.modal-actions {
-		right: 50px;
-		z-index: 4;
-	}
-
 	.layout-side-section {
 		padding: 0;
 	}
 
 	.search-header {
 		width: 100%;
-		border-bottom: 1px solid var(--border-color);
+
+		.modal-actions {
+			z-index: 4;
+			top: 7px;
+		}
 
 		.search-input {
 			padding-left: 25px;
+			padding-bottom: var(--padding-md);
 			background: var(--fg-color);
+			border-bottom: 1px solid var(--border-color);
 
 			&:focus {
 				outline: none;
@@ -33,7 +34,7 @@
 
 		.search-icon {
 			position: absolute;
-			top: 20px;
+			top: 15px;
 			z-index: 4;
 		}
 	}
