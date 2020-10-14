@@ -39,7 +39,6 @@ class Address(Document):
 
 	def validate(self):
 		self.link_address()
-		self.validate_reference()
 		self.validate_preferred_address()
 		set_link_title(self)
 		deduplicate_dynamic_links(self)
@@ -197,25 +196,6 @@ def get_address_templates(address):
 		frappe.throw(_("No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."))
 	else:
 		return result
-
-@frappe.whitelist()
-def get_shipping_address(company, address = None):
-	filters = [
-		["Dynamic Link", "link_doctype", "=", "Company"],
-		["Dynamic Link", "link_name", "=", company],
-		["Address", "is_your_company_address", "=", 1]
-	]
-	fields = ["*"]
-	if address and frappe.db.get_value('Dynamic Link',
-		{'parent': address, 'link_name': company}):
-		filters.append(["Address", "name", "=", address])
-
-	address = frappe.get_all("Address", filters=filters, fields=fields) or {}
-
-	if address:
-		address_as_dict = address[0]
-		name, address_template = get_address_templates(address_as_dict)
-		return address_as_dict.get("name"), frappe.render_template(address_template, address_as_dict)
 
 def get_company_address(company):
 	ret = frappe._dict()
