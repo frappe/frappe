@@ -4,6 +4,7 @@
 .for-forgot,
 .for-signup {
 	display: none;
+
 	.page-card {
 		max-width: 460px;
 		padding: var(--padding-2xl);
@@ -49,12 +50,15 @@
 						}
 						min-width: 50%;
 						padding: 0 4px;
-						margin-top: var(--margin-sm);
+						margin-bottom: var(--margin-sm);
 					}
 
 					.btn-social {
 						font-size: var(--text-sm);
+						color: var(--text-gray-700);
 						box-shadow: none;
+						display: flex;
+						place-content: center;
 
 						&.btn-salesforce {
 							i {
@@ -62,7 +66,7 @@
 							}
 						}
 
-						.provider-icon {
+						img {
 							margin-right: var(--padding-xs);
 						}
 					}
@@ -75,8 +79,21 @@
 			input[type="email"],
 			input[type="password"] {
 				border: none;
+				font-size: var(--text-base);
 				background-color: var(--control-bg);
 				margin-bottom: 10px;
+			}
+
+			&.invalid {
+				input[type="text"],
+				input[type="email"],
+				input[type="password"] {
+					border: 1px solid var(--red-500);
+				}
+			}
+
+			.form-label {
+				font-size: var(--text-base);
 			}
 
 			.forgot-password-message {
@@ -89,7 +106,7 @@
 
 			.field-icon {
 				left: 9px;
-				top: 7px;
+				top: 8px;
 				position: absolute;
 				z-index: 2;
 			}
@@ -100,7 +117,6 @@
 
 				input {
 					padding-left: 35px;
-					font-size: var(--text-md);
 				}
 
 				.toggle-password {

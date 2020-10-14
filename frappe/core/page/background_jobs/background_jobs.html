@@ -38,13 +38,14 @@
 		<p class="text-muted">{{ __("No pending or current jobs for this site") }}</p>
 	</div>
 	{% endif %}
-	<div class="footer">
-		<p class="text-muted">{{ __("Last refreshed") }} {{ frappe.datetime.now_datetime(true).toLocaleString() }}</p>
-		<p>
+	<div class="footer row">
+		<div class="col-md-6 text-muted text-center text-md-left">{{ __("Last refreshed") }}
+			{{ frappe.datetime.now_datetime(true).toLocaleString() }}</div>
+		<div class="col-md-6 text-center text-md-right">
 			<span class="indicator-pill blue" class="mr-2">{{ __("Started") }}</span>
 			<span class="indicator-pill orange" class="mr-2">{{ __("Queued") }}</span>
 			<span class="indicator-pill red" class="mr-2">{{ __("Failed") }}</span>
 			<span class="indicator-pill green">{{ __("Finished") }}</span>
-		</p>
+		</div>
 	</div>
 </div>
