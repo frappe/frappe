@@ -19,27 +19,12 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	add_step(step, index) {
-		// Make Step
-		let status = "incomplete";
-		let icon_class = "fa-circle-o";
-
-		if (step.is_skipped) {
-			status = "skipped";
-			icon_class = "fa-check-circle-o";
-		}
-
-		if (step.is_complete) {
-			status = "complete";
-			icon_class = "fa-check-circle-o";
-		}
-		// <i class="fa ${icon_class}" aria-hidden="true" title="${status}"></i>
-
-		let $step = $(`<div class="onboarding-step ${status}">
+		let $step = $(`<a class="onboarding-step ${status}">
 				<div class="step-title">
 					<div class="step-index">${index + 1}</div>
-					<div id="title">${step.title}</div>
+					<div>${step.title}</div>
 				</div>
-			</div>`);
+			</a>`);
 
 		step.$step = $step;
 
@@ -55,22 +40,17 @@ export default class OnboardingWidget extends Widget {
 				event.stopPropagation();
 			});
 		}
-
-		$step.find("#title").on("click", () => {
-			this.show_step(step)
-		});
-
+		$step.on("click", () => this.show_step(step));
 		$step.appendTo(this.steps_wrapper);
+
 		return $step;
 	}
 
-	show_step(step) {
-		this.active_step && this.active_step.$step.removeClass("active");
-
+	get_handler(step) {
 		// Setup actions
 		let actions = {
-			"Watch Video": () => this.show_video(step),
-			"Create Entry": () => {
+			"Watch Video": this.show_video,
+			"Create Entry": (step) => {
 				if (step.is_complete) {
 					frappe.set_route(`#List/${step.reference_document}`);
 				} else {
@@ -81,49 +61,78 @@ export default class OnboardingWidget extends Widget {
 					}
 				}
 			},
-			"Show Form Tour": () => this.show_form_tour(step),
-			"Update Settings": () => this.update_settings(step),
-			"View Report": () => this.open_report(step),
-			"Go to Page": () => this.go_to_page(step),
+			"Show Form Tour": this.show_form_tour,
+			"Update Settings": this.update_settings,
+			"View Report": this.open_report,
+			"Go to Page": this.go_to_page,
 		};
 
+		return actions[step.action]
+	}
+
+	show_step(step) {
+		this.active_step && this.active_step.$step.removeClass("active");
+
 		step.$step.addClass("active");
-		// actions[step.action](step);
 		this.active_step = step;
 
-		if (step.description) {
-			this.step_body.html(frappe.markdown(step.description) || `<h1>Hello</h1>`)
+		const toggle_content = () => {
+			this.step_body.empty();
+			this.step_footer.empty();
+
+			this.step_body.html(frappe.markdown(step.description) || `<h1>${step.title}</h1>`)
+
+			if (step.intro_video_url) {
+				$(`<button class="btn btn-primary btn-sm">${__('Watch Tutorial')}</button>`)
+					.appendTo(this.step_footer)
+					.on('click', toggle_video);
+			} else {
+				$(`<button class="btn btn-primary btn-sm">${__(step.action)}</button>`)
+					.appendTo(this.step_footer)
+					.on('click', () => this.get_handler(step.action)(step));
+			}
 		}
 
-		if (step.intro_video_url) {
-			let next_button = $(`<button class="btn btn-primary btn-sm">${__('Next')}</button>`);
-			next_button.appendTo(this.step_footer);
-			next_button.on('click', () => {
-				this.step_body.empty();
-				const video = $(`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${step.intro_video_url}"></div>`);
-				video.appendTo(this.step_body)
-				const ply = new frappe.Plyr(video[0]);
-			})
+		const toggle_video = () => {
+			this.step_body.empty();
+			this.step_footer.empty();
+
+			const video = $(`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${step.intro_video_url}"></div>`);
+			video.appendTo(this.step_body)
+			new frappe.Plyr(video[0], {
+				hideControls: true,
+				resetOnEnd: true,
+			});
+
+			$(`<button class="btn btn-primary btn-sm">${__(step.action)}</button>`)
+			.appendTo(this.step_footer)
+			.on('click', () => this.get_handler(step.action)(step));
+
+			$(`<button class="btn btn-secondary ml-2 btn-sm">${__('Back')}</button>`)
+				.appendTo(this.step_footer)
+				.on('click', toggle_content);
 		}
+
+		toggle_content();
+		// toggle_video();
 	}
 
 	go_to_page(step) {
-		frappe.msgprint("GOING TO STEP")
-		// frappe.set_route(step.path).then(() => {
-		// 	if (step.callback_message) {
-		// 		let msg_dialog = frappe.msgprint({
-		// 			message: __(step.callback_message),
-		// 			title: __(step.callback_title),
-		// 			primary_action: {
-		// 				action: () => {
-		// 					msg_dialog.hide();
-		// 				},
-		// 				label: () => __("Continue"),
-		// 			},
-		// 			wide: true,
-		// 		});
-		// 	}
-		// });
+		frappe.set_route(step.path).then(() => {
+			if (step.callback_message) {
+				let msg_dialog = frappe.msgprint({
+					message: __(step.callback_message),
+					title: __(step.callback_title),
+					primary_action: {
+						action: () => {
+							msg_dialog.hide();
+						},
+						label: () => __("Continue"),
+					},
+					wide: true,
+				});
+			}
+		});
 	}
 
 	open_report(step) {
