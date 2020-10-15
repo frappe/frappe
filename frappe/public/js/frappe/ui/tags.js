@@ -40,9 +40,8 @@ frappe.ui.Tags = class {
 
 			if (tagValue.includes(",")) {
 				const tagValues = tagValue.split(",");
-				tagValues.forEach(tagValue => { me.addTag(tagValue) });
-			}
-			else {
+				tagValues.forEach(tagValue => me.addTag(tagValue));
+			} else {
 				me.addTag(tagValue);
 			}
 
