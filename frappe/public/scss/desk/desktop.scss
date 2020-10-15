@@ -275,6 +275,19 @@ body {
 				padding-left: var(--padding-lg);
 				width: 100%;
 
+				h1,
+				h2 {
+					font-size: var(--text-xl);
+					font-weight: 600;
+					margin-bottom: var(--margin-sm);
+				}
+
+				h3 {
+					font-size: var(--text-lg);
+					font-weight: 600;
+					margin-bottom: var(--margin-sm);
+				}
+
 				.onboarding-step-footer {
 					margin-top: var(--margin-md);
 				}
