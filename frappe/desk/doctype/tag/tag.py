@@ -147,7 +147,6 @@ def update_tags(doc, tags):
 			delete_tag_for_document(doc.doctype, doc.name, tag)
 
 def get_deleted_tags(new_tags, existing_tags):
-
 	return list(set(existing_tags) - set(new_tags))
 
 def delete_tag_for_document(dt, dn, tag):

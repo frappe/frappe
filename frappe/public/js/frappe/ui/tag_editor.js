@@ -39,7 +39,7 @@ frappe.ui.TagEditor = Class.extend({
 						args: me.get_args(tag),
 						callback: function(r) {
 							var user_tags = me.user_tags ? me.user_tags.split(",") : [];
-							user_tags.push(tag)
+							user_tags.push(tag);
 							me.user_tags = user_tags.join(",");
 							me.on_change && me.on_change(me.user_tags);
 							frappe.tags.utils.fetch_tags();

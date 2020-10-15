@@ -152,10 +152,7 @@ frappe.ui.form.Sidebar = class {
 
 		this.frm.tags = new frappe.ui.TagEditor({
 			parent: this.sidebar.find(".tag-area"),
-			frm: this.frm,
-			on_change: function(user_tags) {
-				this.frm.tags && this.frm.tags.refresh(user_tags);
-			}
+			frm: this.frm
 		});
 	}
 

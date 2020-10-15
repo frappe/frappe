@@ -248,7 +248,7 @@ frappe.utils.xss_sanitise = function (string, options) {
 		for (let char in HTML_ESCAPE_MAP) {
 			const escape = HTML_ESCAPE_MAP[char];
 			const regex = new RegExp(char, "g");
-			sanitised = sanitised.replace(regex, escape);
+			sanitised = sanitised.replace(regex, escape + ";");
 		}
 	}
 

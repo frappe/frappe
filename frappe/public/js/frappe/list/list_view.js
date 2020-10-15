@@ -507,7 +507,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			</div>`).appendTo($list_rows.get(i));
 
 			// add tags
-			let tag_editor = new frappe.ui.TagEditor({
+			new frappe.ui.TagEditor({
 				parent: tag_html.find('.list-tag'),
 				frm: {
 					doctype: this.doctype,
@@ -518,11 +518,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				on_change: (user_tags) => {
 					d._user_tags = user_tags;
 				}
-			});
-
-			tag_editor.wrapper.on('click', '.tagit-label', (e) => {
-				const $this = $(e.currentTarget);
-				this.filter_area.add(this.doctype, '_user_tags', '=', $this.text());
 			});
 		});
 	}
@@ -781,11 +776,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		const docname = doc.name.match(/[%'"]/)
-			? encodeURIComponent(doc.name)
-			: doc.name;
-
-		return '#Form/' + this.doctype + '/' + docname;
+		return '#Form/' + this.doctype + '/' + encodeURIComponent(doc.name);
 	}
 
 	get_seen_class(doc) {
