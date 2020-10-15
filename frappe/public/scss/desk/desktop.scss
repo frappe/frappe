@@ -312,6 +312,20 @@ body {
 
 						margin-right: var(--margin-sm);
 						border-radius: var(--border-radius-full);
+
+						&.complete {
+							background-color: var(--primary);
+							.icon use {
+								stroke: var(--white);
+							}
+						}
+
+						&.skipped {
+							background-color: var(--blue-100);
+							svg {
+								stroke: var(--blue-600);
+							}
+						}
 					}
 				}
 

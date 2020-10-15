@@ -19,9 +19,17 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	add_step(step, index) {
+		let label = `<div class="step-index">${ __(index + 1) }</div>`;
+
+		if (step.is_complete) {
+			label = `<div class="step-index complete">${frappe.utils.icon('tick', 'xs')}</div>`;
+		} else if (step.is_skipped) {
+			label = `<div class="step-index skipped">${frappe.utils.icon('tick', 'xs')}</div>`;
+		}
+
 		let $step = $(`<a class="onboarding-step ${status}">
 				<div class="step-title">
-					<div class="step-index">${index + 1}</div>
+					${label}
 					<div>${step.title}</div>
 				</div>
 			</a>`);

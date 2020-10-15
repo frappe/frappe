@@ -633,4 +633,7 @@
 		<path d="M20 6.27295H4C3.44772 6.27295 3 6.72066 3 7.27295V20.0002C3 20.5525 3.44772 21.0002 4 21.0002H20C20.5523 21.0002 21 20.5525 21 20.0002V7.27295C21 6.72066 20.5523 6.27295 20 6.27295Z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
 		<path d="M16.091 12H13.6365V9.54541H10.3637V12H7.90918V15.2727H10.3637V17.7272H13.6365V15.2727H16.091V12Z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square" stroke-linejoin="round"/>
 	</symbol>
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-tick">>
+		<path d="M2 9.66667L5.33333 13L14 3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
 </svg>
