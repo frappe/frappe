@@ -54,8 +54,12 @@ export default class OnboardingWidget extends Widget {
 		return $step;
 	}
 
-	get_handler(step) {
-		// Setup actions
+	show_step(step) {
+		this.active_step && this.active_step.$step.removeClass("active");
+
+		step.$step.addClass("active");
+		this.active_step = step;
+
 		let actions = {
 			"Watch Video": this.show_video,
 			"Create Entry": (step) => {
@@ -75,15 +79,6 @@ export default class OnboardingWidget extends Widget {
 			"Go to Page": this.go_to_page,
 		};
 
-		return actions[step.action]
-	}
-
-	show_step(step) {
-		this.active_step && this.active_step.$step.removeClass("active");
-
-		step.$step.addClass("active");
-		this.active_step = step;
-
 		const toggle_content = () => {
 			this.step_body.empty();
 			this.step_footer.empty();
@@ -97,7 +92,7 @@ export default class OnboardingWidget extends Widget {
 			} else {
 				$(`<button class="btn btn-primary btn-sm">${__(step.action)}</button>`)
 					.appendTo(this.step_footer)
-					.on('click', () => this.get_handler(step.action)(step));
+					.on('click', () => actions[step.action](step));
 			}
 		}
 
@@ -113,8 +108,8 @@ export default class OnboardingWidget extends Widget {
 			});
 
 			$(`<button class="btn btn-primary btn-sm">${__(step.action)}</button>`)
-			.appendTo(this.step_footer)
-			.on('click', () => this.get_handler(step.action)(step));
+				.appendTo(this.step_footer)
+				.on('click', () => actions[step.action](step));
 
 			$(`<button class="btn btn-secondary ml-2 btn-sm">${__('Back')}</button>`)
 				.appendTo(this.step_footer)
