@@ -186,14 +186,6 @@ body {
 			padding: var(--padding-xs);
 		}
 
-		.chart-container {
-			.frappe-chart {
-				line.line-horizontal {
-					stroke: var(--border-color) !important;
-				}
-			}
-		}
-
 		.btn-xs {
 			box-shadow: none;
 		}

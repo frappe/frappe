@@ -465,8 +465,6 @@ kbd {
 
 	.standard-sidebar-item {
 		@include flex(flex, null, center, null);
-		display: flex;
-		align-items: center;
 		font-size: var(--text-base);
 		padding: 8px 12px;
 		margin-bottom: 2px;
@@ -495,6 +493,14 @@ kbd {
 
 		svg {
 			margin-right: var(--margin-sm);
+		}
+	}
+}
+
+.chart-container {
+	.frappe-chart {
+		line.line-horizontal, line.line-vertical {
+			stroke: var(--border-color) !important;
 		}
 	}
 }
