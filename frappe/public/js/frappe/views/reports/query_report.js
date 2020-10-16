@@ -322,12 +322,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let message;
 			if (dashboard_name) {
 				let dashboard_route_html = `<a href = "#dashboard/${dashboard_name}">${dashboard_name}</a>`;
-				message = __(`New {0} {1} added to Dashboard ` + dashboard_route_html, [doctype, name]);
+				message = __("New {0} {1} added to Dashboard {2}", [doctype, name, dashboard_route_html]);
 			} else {
-				message = __(`New {0} {1} created`, [doctype, name]);
+				message = __("New {0} {1} created", [doctype, name]);
 			}
 
-			frappe.msgprint(message, __(`New {0} Created`, [doctype]));
+			frappe.msgprint(message, __("New {0} Created", [doctype]));
 		});
 	}
 
@@ -433,7 +433,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				try {
 					out = eval(expression.substr(5));
 				} catch (e) {
-					frappe.throw(__(`Invalid "depends_on" expression set in filter ${filter_label}`));
+					frappe.throw(__('Invalid "depends_on" expression set in filter {0}', [filter_label]));
 				}
 			} else {
 				var value = doc[expression];
@@ -466,7 +466,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			df.onchange = () => {
 				this.refresh_filters_dependency();
 
-				let current_filters = this.get_filter_value();
+				let current_filters = this.get_filter_values();
 				if (this.previous_filters
 					&& (JSON.stringify(this.previous_filters) === JSON.stringify(current_filters))) {
 					// filter values have not changed
@@ -738,14 +738,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_queued_prepared_reports_warning_message(reports) {
 		const route = `#List/Prepared Report/List?status=Queued&report_name=${this.report_name}`;
+		const report_link_html = reports.length == 1
+			? `<a class="underline" href="${route}">${__('1 Report')}</a>`
+			: `<a class="underline" href="${route}">${__("{0} Reports", [reports.length])}</a>`;
+
 		const no_of_reports_html = reports.length == 1
-			? `${__('There is ')}<a class="underline" href="${route}">${__('1 Report')}</a>`
-			: `${__('There are ')}<a class="underline" href="${route}">${__(`{} Reports`, [reports.length])}</a>`;
+			? `${__('There is {0} with the same filters already in the queue:', [report_link_html])}`
+			: `${__('There are {0} with the same filters already in the queue:', [report_link_html])}`;
 
 		let warning_message = `
 			<p>
-				${__(`Are you sure you want to generate a new report?
-					{} with the same filters already in the queue:`, [no_of_reports_html])}
+				${__("Are you sure you want to generate a new report?")}
+				${no_of_reports_html}
 			</p>`;
 
 		let get_item_html = item => `<a class="underline" href="#Form/Prepared Report/${item.name}">${item.name}</a>`;
@@ -1013,7 +1017,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						field.value == values.x_field
 					)[0].label;
 
-				options.title = __(`${this.report_name}: ${x_field_label} vs ${y_field_label}`);
+				options.title = __("{0}: {1} vs {2}", [this.report_name, x_field_label, y_field_label]);
 
 				this.render_chart(options);
 				this.add_chart_buttons_to_toolbar(true);
@@ -1484,7 +1488,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								insert_after_index: insert_after_index,
 								link_field: this.doctype_field_map[values.doctype],
 								doctype: values.doctype,
-								options: df.fieldtype === "Link" ? df.options : undefined,
+								options: df.options,
 								width: 100
 							});
 

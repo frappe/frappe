@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,"Прв�
 Shared with the following Users with Read access:{0},Споделено со следниве корисници со пристап за читање: {0},
 Already in the following Users ToDo list:{0},Веќе во следната листа на корисници на TODO: {0},
 Your assignment on {0} {1} has been removed by {2},Вашата задача на {0} {1} е отстранета од {2},
+Uncaught Server Exception,Исклучок на ненафатениот сервер,
+There was an error building this page,Настана грешка при изградбата на оваа страница,
+Hide Traceback,Скријте трага назад,

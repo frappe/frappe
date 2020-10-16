@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,请首�
 Shared with the following Users with Read access:{0},与具有读取权限的以下用户共享：{0},
 Already in the following Users ToDo list:{0},在以下“用户待办事项”列表中：{0},
 Your assignment on {0} {1} has been removed by {2},您在{0} {1}上的分配已被{2}删除,
+Uncaught Server Exception,未捕获的服务器异常,
+There was an error building this page,建立此页面时发生错误,
+Hide Traceback,隐藏回溯,

@@ -169,7 +169,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					frm.field_options = frappe.report_utils.get_field_options_from_report(data.columns, data);
 					frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
 					if (!frm.field_options.numeric_fields.length) {
-						frappe.msgprint(__(`Report has no numeric fields, please change the Report Name`));
+						frappe.msgprint(__("Report has no numeric fields, please change the Report Name"));
 					} else {
 						let y_field_df = frappe.meta.get_docfield('Dashboard Chart Field', 'y_field', frm.doc.name);
 						y_field_df.options = frm.field_options.numeric_fields;

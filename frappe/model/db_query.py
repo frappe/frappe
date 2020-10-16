@@ -58,7 +58,10 @@ class DatabaseQuery(object):
 		if fields:
 			self.fields = fields
 		else:
-			self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
+			if pluck:
+				self.fields =  ["`tab{0}`.`{1}`".format(self.doctype, pluck)]
+			else:
+				self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
 
 		if start: limit_start = start
 		if page_length: limit_page_length = page_length
@@ -168,8 +171,16 @@ class DatabaseQuery(object):
 
 		fields = []
 
+		# Wrapping fields with grave quotes to allow support for sql keywords
+		# TODO: Add support for wrapping fields with sql functions and distinct keyword
 		for field in self.fields:
-			if (field.strip().startswith(("`", "*")) or "(" in field):
+			stripped_field = field.strip().lower()
+			skip_wrapping = any([
+				stripped_field.startswith(("`", "*", '"', "'")),
+				"(" in stripped_field,
+				"distinct" in stripped_field,
+			])
+			if skip_wrapping:
 				fields.append(field)
 			elif "as" in field.lower().split(" "):
 				col, _, new = field.split()

@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,"Kérjü
 Shared with the following Users with Read access:{0},Megosztva a következő olvasási hozzáféréssel rendelkező felhasználókkal: {0},
 Already in the following Users ToDo list:{0},Már szerepel a Felhasználók következő teendők listájában: {0},
 Your assignment on {0} {1} has been removed by {2},A (z) {0} {1} feladatot {2} eltávolította,
+Uncaught Server Exception,Fogatlan kiszolgáló-kivétel,
+There was an error building this page,Hiba történt az oldal felépítése során,
+Hide Traceback,A Traceback elrejtése,

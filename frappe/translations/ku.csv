@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Ji kerem
 Shared with the following Users with Read access:{0},Bi Bikarhênerên jêrîn ên bi Destûra Xwendinê re parvekirî: {0},
 Already in the following Users ToDo list:{0},Jixwe di navnîşa ToDo-ya Bikarhênerên jêrîn de ye: {0},
 Your assignment on {0} {1} has been removed by {2},Peywira we ya li ser {0} {1} ji hêla {2} ve hate rakirin,
+Uncaught Server Exception,Pêşkêşkera Serverê ya nehatî girtin,
+There was an error building this page,Di çêkirina vê rûpelê de çewtiyek çêbû,
+Hide Traceback,Traceback Veşêre,

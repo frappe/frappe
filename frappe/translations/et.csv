@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Kõigepe
 Shared with the following Users with Read access:{0},Jagatud järgmiste lugemisõigusega kasutajatega: {0},
 Already in the following Users ToDo list:{0},Juba järgmises kasutajate ülesannete loendis: {0},
 Your assignment on {0} {1} has been removed by {2},{2} eemaldas teie ülesande saidil {0} {1},
+Uncaught Server Exception,Püüdmatu serveri erand,
+There was an error building this page,Selle lehe ehitamisel ilmnes viga,
+Hide Traceback,Peida jälgimine,

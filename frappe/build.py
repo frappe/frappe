@@ -40,6 +40,7 @@ def build_missing_files():
 	# check which files dont exist yet from the build.json and tell build.js to build only those!
 	missing_assets = []
 	current_asset_files = []
+	frappe_build = os.path.join("..", "apps", "frappe", "frappe", "public", "build.json")
 
 	for type in ["css", "js"]:
 		current_asset_files.extend(
@@ -49,7 +50,7 @@ def build_missing_files():
 			]
 		)
 
-	with open(os.path.join(sites_path, "assets", "frappe", "build.json")) as f:
+	with open(frappe_build) as f:
 		all_asset_files = json.load(f).keys()
 
 	for asset in all_asset_files:
@@ -111,13 +112,21 @@ def download_frappe_assets(verbose=True):
 
 			if assets_archive:
 				import tarfile
+				directories_created = set()
 
 				click.secho("\nExtracting assets...\n", fg="yellow")
 				with tarfile.open(assets_archive) as tar:
 					for file in tar:
 						if not file.isdir():
 							dest = "." + file.name.replace("./frappe-bench/sites", "")
+							asset_directory = os.path.dirname(dest)
 							show = dest.replace("./assets/", "")
+
+							if asset_directory not in directories_created:
+								if not os.path.exists(asset_directory):
+									os.makedirs(asset_directory, exist_ok=True)
+								directories_created.add(asset_directory)
+
 							tar.makefile(file, dest)
 							print("{0} Restored {1}".format(green('✔'), show))
 

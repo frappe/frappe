@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Veuillez
 Shared with the following Users with Read access:{0},Partagé avec les utilisateurs suivants avec accès en lecture: {0},
 Already in the following Users ToDo list:{0},Déjà dans la liste des tâches des utilisateurs suivante: {0},
 Your assignment on {0} {1} has been removed by {2},Votre devoir sur {0} {1} a été supprimé par {2},
+Uncaught Server Exception,Exception de serveur non interceptée,
+There was an error building this page,Une erreur s&#39;est produite lors de la construction de cette page,
+Hide Traceback,Masquer le traçage,

@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Ju lutem
 Shared with the following Users with Read access:{0},Ndarë me përdoruesit e mëposhtëm me qasje leximi: {0},
 Already in the following Users ToDo list:{0},Tashmë në listën e mëposhtme të përdoruesve për të bërë: {0},
 Your assignment on {0} {1} has been removed by {2},Detyra juaj në {0} {1} është hequr nga {2},
+Uncaught Server Exception,Përjashtim i serverit të pa kapur,
+There was an error building this page,Pati një gabim në ndërtimin e kësaj faqeje,
+Hide Traceback,Fshih gjurmimin,

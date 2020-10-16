@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Lütfen 
 Shared with the following Users with Read access:{0},Aşağıdaki Okuma erişimine sahip Kullanıcılarla paylaşıldı: {0},
 Already in the following Users ToDo list:{0},Zaten şu Yapılacaklar listesinde: {0},
 Your assignment on {0} {1} has been removed by {2},{0} {1} ile ilgili ödeviniz {2} tarafından kaldırıldı,
+Uncaught Server Exception,Yakalanmamış Sunucu İstisnası,
+There was an error building this page,Bu sayfa oluşturulurken bir hata meydana geldi,
+Hide Traceback,Traceback&#39;i Gizle,

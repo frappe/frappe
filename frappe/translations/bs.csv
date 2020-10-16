@@ -4652,3 +4652,6 @@ Please set the following documents in this Dashboard as standard first.,Molimo p
 Shared with the following Users with Read access:{0},Dijeljeno sa sljedećim korisnicima s pristupom za čitanje: {0},
 Already in the following Users ToDo list:{0},Već na sljedećoj listi obaveza korisnika: {0},
 Your assignment on {0} {1} has been removed by {2},Vaš zadatak na {0} {1} uklonio je korisnik {2},
+Uncaught Server Exception,Neuhvaćeni izuzetak servera,
+There was an error building this page,Došlo je do greške prilikom izrade ove stranice,
+Hide Traceback,Sakrij Traceback,
