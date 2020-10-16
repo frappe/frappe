@@ -403,7 +403,7 @@ class Document(BaseDocument):
 	def has_value_changed(self, fieldname):
 		'''Returns true if value is changed before and after saving'''
 		previous = self.get_doc_before_save()
-		if prevoius is not None and previous.get(fieldname)!=self.get(fieldname):
+		if previous is not None and previous.get(fieldname)!=self.get(fieldname):
 			return True
 		return False
 
