@@ -316,8 +316,12 @@ def export_query():
 		columns = get_columns_dict(data.columns)
 
 		from frappe.utils.xlsxutils import make_xlsx
-		xlsx_data = build_xlsx_data(columns, data, visible_idx, include_indentation)
-		xlsx_file = make_xlsx(xlsx_data, "Query Report")
+
+		data["result"] = handle_duration_fieldtype_values(
+			data.get("result"), data.get("columns")
+		)
+		xlsx_data, column_widths = build_xlsx_data(columns, data, visible_idx, include_indentation)
+		xlsx_file = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
 		frappe.response['filename'] = report_name + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
@@ -326,11 +330,16 @@ def export_query():
 
 def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	result = [[]]
+	column_widths = []
 
 	for column in data.columns:
 		if column.get("hidden"):
 			continue
 		result[0].append(column["label"])
+		column_width = column.get('width', 0)
+		# to convert into scale accepted by openpyxl
+		column_width /= 10
+		column_widths.append(column_width)
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
@@ -352,7 +361,7 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 
 			result.append(row_data)
 
-	return result
+	return result, column_widths
 
 def add_total_row(result, columns, meta = None):
 	total_row = [""]*len(columns)
