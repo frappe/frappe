@@ -140,9 +140,13 @@ export default class Desktop {
 	}
 
 	get_page_to_show() {
-		const default_page = this.sidebar_configuration
-			? this.sidebar_configuration["Modules"][0].name
-			: frappe.boot.allowed_workspaces[0].name;
+		let default_page;
+
+		if (this.sidebar_configuration && this.sidebar_configuration["Modules"]) {
+			default_page = this.sidebar_configuration["Modules"][0].name;
+		} else {
+			default_page = frappe.boot.allowed_workspaces[0].name;
+		}
 
 		let page =
 			frappe.get_route()[1] ||
