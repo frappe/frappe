@@ -8,7 +8,15 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, get_url_to_form
+from frappe.utils import (
+	flt,
+	cint,
+	cstr,
+	get_html_format,
+	get_url_to_form,
+	gzip_decompress,
+	format_duration,
+)
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
@@ -275,31 +283,27 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 @frappe.whitelist()
 def export_query():
 	"""export from query reports"""
-
 	data = frappe._dict(frappe.local.form_dict)
-
-	del data["cmd"]
-	if "csrf_token" in data:
-		del data["csrf_token"]
+	data.pop("cmd", None)
+	data.pop("csrf_token", None)
 
 	if isinstance(data.get("filters"), string_types):
 		filters = json.loads(data["filters"])
-	if isinstance(data.get("report_name"), string_types):
+
+	if data.get("report_name"):
 		report_name = data["report_name"]
 		frappe.permissions.can_export(
 			frappe.get_cached_value('Report', report_name, 'ref_doctype'),
 			raise_exception=True
 		)
-	if isinstance(data.get("file_format_type"), string_types):
-		file_format_type = data["file_format_type"]
 
-	custom_columns = frappe.parse_json(data["custom_columns"])
+	file_format_type = data.get("file_format_type")
+	custom_columns = frappe.parse_json(data.get("custom_columns", "[]"))
+	include_indentation = data.get("include_indentation")
+	visible_idx = data.get("visible_idx")
 
-	include_indentation = data["include_indentation"]
-	if isinstance(data.get("visible_idx"), string_types):
-		visible_idx = json.loads(data.get("visible_idx"))
-	else:
-		visible_idx = None
+	if isinstance(visible_idx, string_types):
+		visible_idx = json.loads(visible_idx)
 
 	if file_format_type == "Excel":
 		data = run(report_name, filters, custom_columns=custom_columns)
@@ -323,27 +327,27 @@ def export_query():
 def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	result = [[]]
 
-	# add column headings
-	for idx in range(len(data.columns)):
-		if not columns[idx].get("hidden"):
-			result[0].append(columns[idx]["label"])
+	for column in data.columns:
+		if column.get("hidden"):
+			continue
+		result[0].append(column["label"])
 
 	# build table from result
-	for i, row in enumerate(data.result):
+	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
-		if i in visible_idx:
+		if row_idx in visible_idx:
 			row_data = []
-
-			if isinstance(row, dict) and row:
-				for idx in range(len(data.columns)):
-					if not columns[idx].get("hidden"):
-						label = columns[idx]["label"]
-						fieldname = columns[idx]["fieldname"]
-						cell_value = row.get(fieldname, row.get(label, ""))
-						if cint(include_indentation) and 'indent' in row and idx == 0:
-							cell_value = ('    ' * cint(row['indent'])) + cell_value
-						row_data.append(cell_value)
-			else:
+			if isinstance(row, dict):
+				for col_idx, column in enumerate(data.columns):
+					if column.get("hidden"):
+						continue
+					label = column.get("label")
+					fieldname = column.get("fieldname")
+					cell_value = row.get(fieldname, row.get(label, ""))
+					if cint(include_indentation) and "indent" in row and col_idx == 0:
+						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+					row_data.append(cell_value)
+			elif row:
 				row_data = row
 
 			result.append(row_data)
