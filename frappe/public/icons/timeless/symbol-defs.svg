@@ -633,4 +633,16 @@
 		<path d="M20 6.27295H4C3.44772 6.27295 3 6.72066 3 7.27295V20.0002C3 20.5525 3.44772 21.0002 4 21.0002H20C20.5523 21.0002 21 20.5525 21 20.0002V7.27295C21 6.72066 20.5523 6.27295 20 6.27295Z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
 		<path d="M16.091 12H13.6365V9.54541H10.3637V12H7.90918V15.2727H10.3637V17.7272H13.6365V15.2727H16.091V12Z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square" stroke-linejoin="round"/>
 	</symbol>
+	<symbol fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-customer">
+		<g stroke="#4C5A67" stroke-miterlimit="10">
+			<path d="M17.718 18.95c-.11-1.953-1.225-2.574-2.855-3.117-1.245-.415-1.588-1.722-1.682-2.416m-2.364-.001c-.092.69-.428 2-1.68 2.417-1.63.543-2.747 1.162-2.857 3.116"></path>
+			<path d="M12 13.636a3.273 3.273 0 01-3.273-3.272v-.819a3.273 3.273 0 016.546 0v.819A3.273 3.273 0 0112 13.636z" stroke-linecap="square"></path>
+			<path d="M12 21a9 9 0 100-18 9 9 0 000 18z" stroke-linecap="square"></path>
+		</g>
+	</symbol>
+	<symbol id="icon-full-page" fill="none" viewBox="0 0 32 32">
+		<path stroke-linejoin="miter" stroke-linecap="square" stroke-miterlimit="10" stroke-width="2" d="M25 6h-18c-1.657 0-3 1.343-3 3v14c0 1.657 1.343 3 3 3h18c1.657 0 3-1.343 3-3v-14c0-1.657-1.343-3-3-3z"></path>
+		<path stroke-linejoin="round" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M8.364 17.3v4.364h4.364"></path>
+		<path stroke-linejoin="round" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M19.272 10.364h4.364v4.364"></path>
+	</symbol>
 </svg>

@@ -20,7 +20,7 @@ class Leaderboard {
 
 		this.parent = parent;
 		this.page = this.parent.page;
-		this.page.sidebar.html(`<ul class="desk-sidebar leaderboard-sidebar overlay-sidebar"></ul>`);
+		this.page.sidebar.html(`<ul class="standard-sidebar leaderboard-sidebar overlay-sidebar"></ul>`);
 		this.$sidebar_list = this.page.sidebar.find('ul');
 
 		this.get_leaderboard_config();
@@ -34,6 +34,7 @@ class Leaderboard {
 
 		frappe.xcall("frappe.desk.page.leaderboard.leaderboard.get_leaderboard_config").then(config => {
 			this.leaderboard_config = config;
+			console.log(this.leaderboard_config);
 			for (let doctype in this.leaderboard_config) {
 				this.doctypes.push(doctype);
 				this.filters[doctype] = this.leaderboard_config[doctype].fields.map(field => {
@@ -81,7 +82,8 @@ class Leaderboard {
 		this.$graph_area = this.$container.find(".leaderboard-graph");
 
 		this.doctypes.map(doctype => {
-			this.get_sidebar_item(doctype).appendTo(this.$sidebar_list);
+			const icon = this.leaderboard_config[doctype].icon
+			this.get_sidebar_item(doctype, icon).appendTo(this.$sidebar_list);
 		});
 
 		this.setup_leaderboard_fields();
@@ -165,7 +167,7 @@ class Leaderboard {
 
 		this.$sidebar_list.on("click", "li", (e)=> {
 			let $li = $(e.currentTarget);
-			let doctype = $li.find("span").attr("doctype-value");
+			let doctype = $li.find(".doctype-text").attr("doctype-value");
 
 			this.options.selected_company = frappe.defaults.get_default("company");
 			this.options.selected_doctype = doctype;
@@ -183,8 +185,8 @@ class Leaderboard {
 				$(this.parent).find("[data-original-title=Company]").show();
 			}
 
-			this.$sidebar_list.find("li").removeClass("active");
-			$li.addClass("active");
+			this.$sidebar_list.find("li").removeClass("active selected");
+			$li.addClass("active selected");
 
 			frappe.set_route("leaderboard", this.options.selected_doctype);
 			this.make_request();
@@ -247,7 +249,7 @@ class Leaderboard {
 					],
 					labels: graph_items.map(d => d.name)
 				},
-				colors: ["light-green"],
+				colors: ["#2D95F0"],
 				format_tooltip_x: d => d[this.options.selected_filter_item],
 				type: "bar",
 				height: 140
@@ -265,7 +267,7 @@ class Leaderboard {
 			frappe.utils.setup_search($(me.parent), ".list-item-container", ".list-id");
 		} else {
 			me.$graph_area.hide();
-			me.message = __("No items found.");
+			me.message = __("No Items Found");
 			me.$container.find(".leaderboard-list").html(me.render_list_view());
 		}
 	}
@@ -332,14 +334,16 @@ class Leaderboard {
 	}
 
 	render_message() {
-
-		let html =
-			`<div class="no-result text-center" style="${this.message ? "" : "display: none;"}">
-				<div class="msg-box no-border">
-					<p>No Item found</p>
-				</div>
-			</div>`;
-
+		const display_class = this.message ? '' : 'hide';
+		let html = `<div class="leaderboard-empty-state ${display_class}">
+			<div class="no-result text-center">
+				<img src="/assets/frappe/images/ui-states/search-empty-state.svg"
+					alt="Empty State"
+					class="null-state"
+				>
+				<div class="empty-state-text">${this.message}</div>
+			</div>
+		</div>`;
 		return html;
 	}
 
@@ -356,7 +360,7 @@ class Leaderboard {
 			: `<a class="grey list-id ellipsis" href="${link}"> ${item.name} </a>`;
 		const html =
 			`<div class="list-item">
-				<div class="list-item_content ellipsis list-item__content--flex-2 rank">
+				<div class="list-item_content ellipsis list-item__content--flex-2 rank text-center">
 					<span class="text-muted ellipsis">${index}</span>
 				</div>
 				<div class="list-item_content ellipsis list-item__content--flex-2 name">
@@ -370,10 +374,13 @@ class Leaderboard {
 		return html;
 	}
 
-	get_sidebar_item(item) {
-		return $(`<li class="desk-sidebar-item">
-			<a class="module-link">
-			<span doctype-value="${item}">${ __(item) }</span></a>
+	get_sidebar_item(item, icon) {
+		let icon_html = icon ? frappe.utils.icon(icon, 'md') : '';
+		return $(`<li class="standard-sidebar-item">
+			<span>${icon_html}</span>
+			<a class="sidebar-link">
+				<span class="doctype-text" doctype-value="${item}">${ __(item) }</span>
+			</a>
 		</li>`);
 	}
 
