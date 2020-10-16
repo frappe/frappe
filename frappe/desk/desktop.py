@@ -156,6 +156,9 @@ class Workspace:
 			self.extended_shortcuts = self.extended_shortcuts + page.shortcuts
 
 	def is_item_allowed(self, name, item_type):
+		if frappe.session.user == "Administrator":
+			return True
+
 		item_type = item_type.lower()
 
 		if item_type == "doctype":

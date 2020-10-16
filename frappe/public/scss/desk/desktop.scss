@@ -98,6 +98,10 @@ body {
 	box-shadow: var(--card-shadow);
 	background-color: var(--card-bg);
 
+	.btn {
+		box-shadow: none;
+	}
+
 	&.widget-shadow {
 		&:hover {
 			box-shadow: var(--shadow-base);
@@ -233,6 +237,7 @@ body {
 	&.onboarding-widget-box {
 		margin-top: var(--margin-xs);
 		margin-bottom: var(--margin-2xl);
+		padding: var(--padding-lg);
 
 		.widget-head {
 			display: flex;
@@ -240,8 +245,7 @@ body {
 			.widget-subtitle {
 				margin-top: 5px;
 				color: var(--text-muted);
-				font-size: 14px;
-				font-weight: 400;
+				font-size: var(--text-sm);
 			}
 
 			.widget-control {
@@ -253,32 +257,82 @@ body {
 
 		.widget-body {
 			margin-top: 20px;
+			display: flex;
+
+			.onboarding-steps-wrapper {
+				min-width: 350px;
+			}
+
+			.onboarding-step-preview {
+				padding-left: var(--padding-lg);
+				width: 100%;
+
+				h1,
+				h2 {
+					font-size: var(--text-xl);
+					font-weight: 600;
+					margin-bottom: var(--margin-sm);
+				}
+
+				h3 {
+					font-size: var(--text-lg);
+					font-weight: 600;
+					margin-bottom: var(--margin-sm);
+				}
+
+				.onboarding-step-footer {
+					margin-top: var(--margin-md);
+				}
+			}
 
 			.onboarding-step {
-				margin-bottom: 8px;
-				letter-spacing: 0.015em;
+				@include flex(flex, space-between, center, null);
+				border-radius: var(--border-radius);
+				padding: 8px;
+				font-size: var(--text-md);
+				max-width: 350px;
 
-				i {
-					color: var(--text-muted);
-					padding-left: 5px;
-					padding-right: 2px;
+				.step-title {
+					@include flex(flex, null, center, null);
+
+					.step-index {
+						@include flex(flex, center, center, null);
+						height: 20px;
+						width: 20px;
+						color: var(--text-on-light-gray);
+						background-color: var(--bg-light-gray);
+
+						margin-right: var(--margin-sm);
+						border-radius: var(--border-radius-full);
+
+						&.complete {
+							background-color: var(--primary);
+							.icon use {
+								stroke: var(--white);
+							}
+						}
+
+						&.skipped {
+							background-color: var(--blue-100);
+							svg {
+								stroke: var(--blue-600);
+							}
+						}
+					}
 				}
 
 				.step-skip {
+					font-size: var(--text-md);
 					visibility: hidden;
 					cursor: pointer;
-					font-size: 12px;
-					padding-left: 5px;
 				}
 
-				span {
-					color: var(--text-muted);
-					cursor: pointer;
-				}
-
+				&.active,
 				&:hover {
-					span {
-						color: $text-color;
+					background-color: var(--bg-light-gray);
+
+					.step-index {
+						background-color: var(--fg-color);
 					}
 
 					.step-skip {

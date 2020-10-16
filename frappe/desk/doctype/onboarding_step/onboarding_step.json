@@ -11,6 +11,9 @@
   "is_mandatory",
   "is_complete",
   "is_skipped",
+  "description_section",
+  "description",
+  "intro_video_url",
   "section_break_5",
   "action",
   "column_break_7",
@@ -181,10 +184,26 @@
    "fieldname": "show_full_form",
    "fieldtype": "Check",
    "label": "Show Full Form?"
+  },
+  {
+   "description": "Description to inform the user about any action that is going to be performed",
+   "fieldname": "description_section",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Markdown Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "intro_video_url",
+   "fieldtype": "Data",
+   "label": "Intro Video URL"
   }
  ],
  "links": [],
- "modified": "2020-08-06 12:55:20.377679",
+ "modified": "2020-10-14 15:55:27.578883",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Step",
