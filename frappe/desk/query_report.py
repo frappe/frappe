@@ -239,8 +239,10 @@ def add_custom_column_data(custom_columns, result):
 		key = (column.get('doctype'), column.get('fieldname'))
 		if key in custom_column_data:
 			for row in result:
-				row_reference = row.get(scrub(column.get('link_field')))
-				if not row_reference: continue
+				row_reference = row.get(column.get('link_field'))
+				# possible if the row is empty
+				if not row_reference:
+					continue
 				row[column.get('fieldname')] = custom_column_data.get(key).get(row_reference)
 
 	return result
