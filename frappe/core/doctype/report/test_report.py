@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, json, os
 import unittest
-from frappe.desk.query_report import run, save_report, get_report_doc
+from frappe.desk.query_report import run, save_report
 
 test_records = frappe.get_test_records('Report')
 test_dependencies = ['User']
