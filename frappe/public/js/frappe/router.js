@@ -169,7 +169,7 @@ frappe.set_route = function() {
 		}).join('/');
 
 		// Perform a redirect when redirect is set in route_options
-		if (frappe.route_options.redirect) {
+		if (frappe.route_options && frappe.route_options.redirect) {
 			const url = new URL(window.location);
 			url.hash = route;
 			window.location.replace(url);
