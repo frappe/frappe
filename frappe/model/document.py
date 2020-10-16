@@ -403,7 +403,9 @@ class Document(BaseDocument):
 	def has_value_changed(self, fieldname):
 		'''Returns true if value is changed before and after saving'''
 		previous = self.get_doc_before_save()
-		return previous.get(fieldname)!=self.get(fieldname) if previous else True
+		if previous is not None and previous.get(fieldname)!=self.get(fieldname):
+			return True
+		return False
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
