@@ -292,31 +292,73 @@ body {
 				font-size: var(--text-md);
 				max-width: 350px;
 
+				&.pending {
+					.step-index.step-pending {
+						display: flex;
+					}
+
+					&.active {
+						.step-index.step-pending {
+							background-color: var(--white);
+						}
+					}
+				}
+
+				&.complete {
+					.step-index.step-complete {
+						display: flex;
+					}
+				}
+
+				&.skipped {
+					.step-index.step-skipped {
+						display: flex;
+					}
+				}
+
+				&.active,
+				&:hover {
+					background-color: var(--bg-light-gray);
+
+					.step-skip {
+						visibility: visible;
+					}
+				}
+
+
 				.step-title {
 					@include flex(flex, null, center, null);
+				}
 
-					.step-index {
-						@include flex(flex, center, center, null);
-						height: 20px;
-						width: 20px;
-						color: var(--text-on-light-gray);
-						background-color: var(--bg-light-gray);
+				.step-index {
+					@include flex(flex, center, center, null);
+					height: 20px;
+					width: 20px;
+					color: var(--text-on-light-gray);
+					background-color: var(--bg-light-gray);
 
-						margin-right: var(--margin-sm);
-						border-radius: var(--border-radius-full);
+					margin-right: var(--margin-sm);
+					border-radius: var(--border-radius-full);
+				}
 
-						&.complete {
-							background-color: var(--primary);
-							.icon use {
-								stroke: var(--white);
-							}
+				.step-index {
+					&.step-pending {
+						display: none;
+					}
+
+					&.step-complete {
+						display: none;
+						background-color: var(--primary);
+						.icon use {
+							stroke: var(--white);
 						}
+					}
 
-						&.skipped {
-							background-color: var(--blue-100);
-							svg {
-								stroke: var(--blue-600);
-							}
+					&.step-skipped {
+						display: none;
+						background-color: var(--blue-100);
+						svg {
+							stroke: var(--blue-600);
 						}
 					}
 				}
@@ -325,19 +367,6 @@ body {
 					font-size: var(--text-md);
 					visibility: hidden;
 					cursor: pointer;
-				}
-
-				&.active,
-				&:hover {
-					background-color: var(--bg-light-gray);
-
-					.step-index {
-						background-color: var(--fg-color);
-					}
-
-					.step-skip {
-						visibility: visible;
-					}
 				}
 
 				&.skipped {
