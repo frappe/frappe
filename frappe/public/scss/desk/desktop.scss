@@ -564,13 +564,18 @@ body {
 }
 
 .onboarding-success {
-	margin: 50px auto;
+	margin: var(--margin-lg) auto;
 	max-width: 75%;
 
 	.success-state {
 		height: 15rem !important;
 		max-height: 150px;
 		width: auto;
+		margin-bottom: var(--margin-xl);
+	}
+
+	.btn {
+		margin-top: var(--margin-md);
 	}
 }
 

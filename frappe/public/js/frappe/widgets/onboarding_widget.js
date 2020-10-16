@@ -421,7 +421,7 @@ export default class OnboardingWidget extends Widget {
 		let documentation = "";
 		if (this.docs_url) {
 			documentation = __(
-				'Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a href="{0}">here</a>.',
+				'Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target="_blank" href="{0}">here</a>.',
 				[this.docs_url]
 			);
 		}
@@ -430,30 +430,14 @@ export default class OnboardingWidget extends Widget {
 					<img src="${success_state_image}" alt="Success State" class="zoom-in success-state">
 					<h3>${success_message}</h3>
 					<div class="text-muted">${documentation}</div>
+					<button class="btn btn-primary btn-sm">${__('Continue')}</button>
 			</div>
 		`);
 
-		if (!this.success_dialog) {
-			this.success_dialog = new frappe.ui.Dialog({
-				primary_action: () => {
-					this.success_dialog.hide();
-					// Wait for modal to close before removing widget
-					setTimeout(() => {
-						this.delete();
-					}, 300);
-				},
-				primary_action_label: __("Continue"),
-			});
+		success.find('.btn').on('click', () => this.delete());
 
-			this.success_dialog.set_title(__("Onboarding Complete"));
-			this.success_dialog.header
-				.find(".indicator")
-				.removeClass("hidden")
-				.addClass("green");
-
-			success.appendTo(this.success_dialog.$body);
-			this.success_dialog.show();
-		}
+		this.step_preview.empty();
+		success.appendTo(this.step_preview);
 	}
 
 	set_body() {
