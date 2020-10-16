@@ -34,7 +34,6 @@ class Leaderboard {
 
 		frappe.xcall("frappe.desk.page.leaderboard.leaderboard.get_leaderboard_config").then(config => {
 			this.leaderboard_config = config;
-			console.log(this.leaderboard_config);
 			for (let doctype in this.leaderboard_config) {
 				this.doctypes.push(doctype);
 				this.filters[doctype] = this.leaderboard_config[doctype].fields.map(field => {
