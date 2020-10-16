@@ -1631,6 +1631,9 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		const driver = new frappe.Driver({
+			className: 'frappe-driver',
+			allowClose: false,
+			padding: 10,
 			overlayClickNext: true,
 			keyboardControl: true,
 			nextBtnText: 'Next',
