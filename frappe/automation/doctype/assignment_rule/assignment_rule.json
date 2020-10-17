@@ -136,12 +136,13 @@
    "depends_on": "document_type",
    "fieldname": "due_date_based_on",
    "fieldtype": "Select",
-   "label": "Due Date Based On"
+   "label": "Due Date Based On",
+   "description": "Value from this field will be set as the due date in the ToDo"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-08 06:48:54.019735",
+ "modified": "2020-10-13 06:48:54.019735",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",
