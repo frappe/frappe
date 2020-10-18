@@ -27,7 +27,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 	make_map() {
 		this.bind_leaflet_map();
 		this.bind_leaflet_draw_control();
-		this.bind_leaflet_locate_control();
+	//	 this.bind_leaflet_locate_control();
 		this.bind_leaflet_refresh_button();
 	},
 
@@ -52,7 +52,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 			this.add_non_group_layers(data_layers, this.editableLayers);
 			try {
 				this.map.flyToBounds(this.editableLayers.getBounds(), {
-					padding: [50,50]
+					padding: [50,50],maxZoom: 9 
 				});
 			}
 			catch(err) {
@@ -61,7 +61,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 			this.editableLayers.addTo(this.map);
 			this.map._onResize();
 		} else if ((value===undefined) || (value == JSON.stringify(new L.FeatureGroup().toGeoJSON()))) {
-			this.locate_control.start();
+			//this.locate_control.start();
 		}
 	},
 
@@ -90,7 +90,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		});
 
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
-		this.map = L.map(this.map_id).setView([19.0800, 72.8961], 13);
+		this.map = L.map(this.map_id).setView([34.7034052, 38.7676543], 7);
 
 		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -99,8 +99,8 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 
 	bind_leaflet_locate_control() {
 		// To request location update and set location, sets current geolocation on load
-		this.locate_control = L.control.locate({position:'topright'});
-		this.locate_control.addTo(this.map);
+	 	 this.locate_control = L.control.locate({position:'topright'});
+		  this.locate_control.addTo(this.map);
 	},
 
 	bind_leaflet_draw_control() {
@@ -109,12 +109,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		var options = {
 			position: 'topleft',
 			draw: {
-				polyline: {
-					shapeOptions: {
-						color: frappe.ui.color.get('blue'),
-						weight: 10
-					}
-				},
+				polyline: false,
 				polygon: {
 					allowIntersection: false, // Restricts shapes to simple polygons
 					drawError: {
@@ -125,12 +120,9 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 						color: frappe.ui.color.get('blue')
 					}
 				},
-				circle: true,
-				rectangle: {
-					shapeOptions: {
-						clickable: false
-					}
-				}
+				circle: false,
+			   rectangle: false,
+			   circlemarker: false
 			},
 			edit: {
 				featureGroup: this.editableLayers, //REQUIRED!!
@@ -161,7 +153,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 	},
 
 	bind_leaflet_refresh_button() {
-		L.easyButton({
+	/*	L.easyButton({
 			id: 'refresh-map-'+this.df.fieldname,
 			position: 'topright',
 			type: 'replace',
@@ -174,7 +166,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 				title: 'Refresh map',
 				icon: 'fa fa-refresh'
 			}]
-		}).addTo(this.map);
+		}).addTo(this.map);*/
 	},
 
 	add_non_group_layers(source_layer, target_group) {
