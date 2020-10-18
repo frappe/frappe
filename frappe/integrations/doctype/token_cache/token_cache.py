@@ -41,7 +41,7 @@ class TokenCache(Document):
 					self.append('scopes', {'scope': scope})
 
 		self.state = None
-		self.save()
+		self.save(ignore_permissions=True)
 		frappe.db.commit()
 		return self
 
