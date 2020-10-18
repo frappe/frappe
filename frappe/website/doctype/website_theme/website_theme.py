@@ -11,7 +11,6 @@ from os.path import join as join_path, exists as path_exists, abspath, splitext
 class WebsiteTheme(Document):
 	def validate(self):
 		self.validate_if_customizable()
-		self.render_theme()
 		self.generate_bootstrap_theme()
 
 	def on_update(self):
@@ -37,9 +36,6 @@ class WebsiteTheme(Document):
 		if self.is_standard_and_not_valid_user():
 			frappe.throw(_("Please Duplicate this Website Theme to customize."))
 
-	def render_theme(self):
-		self.theme_scss = frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', self.as_dict())
-
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
 		from frappe.modules.export_file import export_to_files
@@ -54,6 +50,8 @@ class WebsiteTheme(Document):
 
 	def generate_bootstrap_theme(self):
 		from subprocess import Popen, PIPE
+
+		self.theme_scss = frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', self.as_dict())
 
 		# create theme file in site public files folder
 		folder_path = abspath(frappe.utils.get_files_path('website_theme', is_private=False))
@@ -101,6 +99,8 @@ class WebsiteTheme(Document):
 			self.generate_bootstrap_theme()
 
 	def set_as_default(self):
+		self.generate_bootstrap_theme()
+		self.save()
 		website_settings = frappe.get_doc('Website Settings')
 		website_settings.website_theme = self.name
 		website_settings.ignore_validate = True
@@ -172,12 +172,15 @@ def get_scss_paths():
 
 def after_migrate():
 	"""
-	Regenerate CSS files after migration.
+	Regenerate Active Theme CSS file after migration.
 
 	Necessary to reflect possible changes in the imported SCSS files. Called at
 	the end of every `bench migrate`.
 	"""
-	website_theme_list = frappe.get_list('Website Theme')
-	for website_theme in website_theme_list:
-		website_theme_doc = frappe.get_doc('Website Theme', website_theme.name)
-		website_theme_doc.validate()
+	website_theme = frappe.db.get_single_value('Website Settings', 'website_theme')
+	if website_theme == 'Standard':
+		return
+
+	doc = frappe.get_doc('Website Theme', website_theme)
+	doc.generate_bootstrap_theme()
+	doc.save()

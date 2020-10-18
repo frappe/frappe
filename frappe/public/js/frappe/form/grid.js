@@ -763,6 +763,13 @@ export default class Grid {
 			// download
 			this.setup_download();
 
+			const value_formatter_map = {
+				"Date": val => val ? frappe.datetime.user_to_str(val) : val,
+				"Int": val => cint(val),
+				"Check": val => cint(val),
+				"Float": val => flt(val),
+			};
+
 			// upload
 			frappe.flags.no_socketio = true;
 			$(this.wrapper).find(".grid-upload").removeClass('hidden').on("click", () => {
@@ -770,10 +777,6 @@ export default class Grid {
 					as_dataurl: true,
 					allow_multiple: false,
 					on_success(file) {
-						if (file.file_obj.type !== "text/csv") {
-							let msg = __(`Your file could not be processed. It should be a standard CSV file.`);
-							frappe.throw(msg);
-						}
 						var data = frappe.utils.csv_to_array(frappe.utils.get_decoded_string(file.dataurl));
 						// row #2 contains fieldnames;
 						var fieldnames = data[2];
@@ -794,16 +797,9 @@ export default class Grid {
 										var fieldname = fieldnames[ci];
 										var df = frappe.meta.get_docfield(me.df.options, fieldname);
 
-										// convert date formatting
-										if (df.fieldtype==="Date" && value) {
-											value = frappe.datetime.user_to_str(value);
-										}
-
-										if (df.fieldtype==="Int" || df.fieldtype==="Check") {
-											value = cint(value);
-										}
-
-										d[fieldnames[ci]] = value;
+										d[fieldnames[ci]] = value_formatter_map[df.fieldtype]
+											? value_formatter_map[df.fieldtype](value)
+											: value;
 									});
 								}
 							}

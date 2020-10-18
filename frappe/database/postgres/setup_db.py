@@ -20,8 +20,11 @@ def setup_database(force, source_sql=None, verbose=False):
 		source_sql = os.path.join(os.path.dirname(__file__), 'framework_postgres.sql')
 
 	subprocess.check_output([
-		'psql', frappe.conf.db_name, '-h', frappe.conf.db_host or 'localhost', '-U',
-		frappe.conf.db_name, '-f', source_sql
+		'psql', frappe.conf.db_name,
+		'-h', frappe.conf.db_host or 'localhost',
+		'-p', str(frappe.conf.db_port or '5432'),
+		'-U', frappe.conf.db_name,
+		'-f', source_sql
 	], env=subprocess_env)
 
 	frappe.connect()
