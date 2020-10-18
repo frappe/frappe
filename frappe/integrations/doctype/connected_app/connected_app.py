@@ -9,8 +9,8 @@ from frappe.model.document import Document
 from requests_oauthlib import OAuth2Session
 from urllib.parse import urljoin
 
-if frappe.conf.developer_mode:
-	# Disable mandatory TLS in developer mode
+if frappe.conf.developer_mode or frappe.flags.in_test:
+	# Disable mandatory TLS in developer mode and tests
 	import os
 	os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
