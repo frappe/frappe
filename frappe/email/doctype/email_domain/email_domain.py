@@ -73,6 +73,7 @@ class EmailDomain(Document):
 				email_account.set("attachment_limit",self.attachment_limit)
 				email_account.set("smtp_server",self.smtp_server)
 				email_account.set("smtp_port",self.smtp_port)
+				email_account.set("incoming_port", self.incoming_port)
 				email_account.save()
 			except Exception as e:
 				frappe.msgprint(email_account.name)
