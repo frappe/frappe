@@ -74,7 +74,6 @@ class ConnectedApp(Document):
 
 		try:
 			token = self.get_stored_user_token(user)
-			token = token.check_validity()
 		except frappe.exceptions.DoesNotExistError:
 			redirect = self.initiate_web_application_flow(user, success_uri)
 			frappe.local.response['type'] = 'redirect'
@@ -122,7 +121,7 @@ def callback(code=None, state=None):
 		frappe.throw(_('Invalid App'))
 
 	oauth = app.get_oauth2_session()
-	token = oauth.fetch_token(app.token_endpoint,
+	token = oauth.fetch_token(app.token_uri,
 		code=code,
 		client_secret=app.get_password('client_secret'),
 		include_client_id=True
