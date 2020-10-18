@@ -51,6 +51,7 @@
   {
    "fieldname": "client_id",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Client Id"
   },
   {
@@ -122,7 +123,7 @@
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2020-09-27 20:04:02.303982",
+ "modified": "2020-10-18 16:10:13.051678",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",
@@ -139,6 +140,10 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
   }
  ],
  "sort_field": "modified",
