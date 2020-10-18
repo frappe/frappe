@@ -7,7 +7,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import BackendApplicationClient
 from urllib.parse import urljoin
 
 if frappe.conf.developer_mode:
