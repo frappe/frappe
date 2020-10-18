@@ -78,23 +78,22 @@
   }
  ],
  "links": [],
- "modified": "2020-07-21 00:32:56.225300",
+ "modified": "2020-10-18 15:22:48.991735",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Token Cache",
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
    "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
    "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
+   "role": "System Manager"
+  },
+  {
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "All"
   }
  ],
  "sort_field": "modified",
