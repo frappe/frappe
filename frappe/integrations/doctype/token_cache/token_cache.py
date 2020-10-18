@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 import frappe
 from frappe import _
-from frappe.utils import cstr
+from frappe.utils import cstr, cint
 from frappe.model.document import Document
 
 class TokenCache(Document):
@@ -20,6 +20,12 @@ class TokenCache(Document):
 		raise frappe.exceptions.DoesNotExistError
 
 	def update_data(self, data):
+		"""
+		Store data returned by authorization flow.
+
+		Params:
+		data - Dict with access_token, refresh_token, expires_in and scope.
+		"""
 		token_type = cstr(data.get('token_type', '')).lower()
 		if token_type not in ['bearer', 'mac']:
 			frappe.throw(_('Received an invalid token type.'))
@@ -29,7 +35,7 @@ class TokenCache(Document):
 		self.token_type = token_type
 		self.access_token = cstr(data.get('access_token', ''))
 		self.refresh_token = cstr(data.get('refresh_token', ''))
-		self.expires_in = cstr(data.get('expires_in', ''))
+		self.expires_in = cint(data.get('expires_in', 0))
 
 		new_scopes = data.get('scope')
 		if new_scopes:
