@@ -46,7 +46,7 @@ class TokenCache(Document):
 		return self
 
 	def get_expires_in(self):
-		expiry_time = self.modified + timedelta(self.expires_in)
+		expiry_time = frappe.utils.get_datetime(self.modified) + timedelta(self.expires_in)
 		return (datetime.now() - expiry_time).total_seconds()
 
 	def is_expired(self):
