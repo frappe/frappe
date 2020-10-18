@@ -68,7 +68,3 @@ class TestConnectedApp(unittest.TestCase):
 		resp = oauth2_session.get(urljoin(self.base_url, '/api/method/frappe.auth.get_logged_user'))
 		self.assertEqual(resp.json().get('message'), self.user_name)
 
-	def test_backend_application_flow(self):
-		token_cache = self.app.initiate_backend_application_flow()
-		token = token_cache.get_password('access_token')
-		self.assertNotEqual(token, None)

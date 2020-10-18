@@ -68,23 +68,6 @@ class ConnectedApp(Document):
 
 		return authorization_url
 
-	def initiate_backend_application_flow(self):
-		"""Retrieve token without user interaction. Token is not user specific."""
-		client = BackendApplicationClient(client_id=self.client_id, scope=self.get_scopes())
-		oauth = OAuth2Session(client=client)
-		token = oauth.fetch_token(
-			token_url=self.token_uri,
-			client_secret=self.get_password('client_secret'),
-			include_client_id=True
-		)
-
-		try:
-			stored_token = self.get_stored_client_token()
-		except frappe.exceptions.DoesNotExistError:
-			stored_token = frappe.new_doc('Token Cache')
-
-		return stored_token.update_data(token)
-
 	def get_user_token(self, user=None, success_uri=None):
 		"""Return an existing user token or initiate a Web Application Flow."""
 		user = user or frappe.session.user
@@ -99,18 +82,6 @@ class ConnectedApp(Document):
 			return redirect
 
 		return token
-
-	def get_client_token(self):
-		"""Return an existing client token or initiate a Backend Application Flow."""
-		try:
-			token = self.get_stored_client_token()
-		except frappe.exceptions.DoesNotExistError:
-			token = self.initiate_backend_application_flow()
-
-		return token.check_validity()
-
-	def get_stored_client_token(self):
-		return frappe.get_doc('Token Cache', self.name + '-user')
 
 	def get_stored_user_token(self, user):
 		return frappe.get_doc('Token Cache', self.name + '-' + user)
