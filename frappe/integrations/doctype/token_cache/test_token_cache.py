@@ -10,11 +10,10 @@ test_dependencies = ['User', 'Connected App', 'Token Cache']
 
 class TestTokenCache(unittest.TestCase):
 
-	def setup(self):
-		token_cache_list = frappe.get_list('Token Cache')
-		connected_app_list = frappe.get_list('Connected App')
-		self.token_cache = frappe.get_doc('Token Cache', token_cache_list[0].name)
-		self.token_cache.update({'connected_app': connected_app_list[0].name})
+	def setUp(self):
+		self.token_cache = frappe.get_last_doc('Token Cache')
+		self.token_cache.update({'connected_app': frappe.get_last_doc('Connected App').name})
+		self.token_cache.save()
 
 	def test_get_auth_header(self):
 		self.token_cache.get_auth_header()
