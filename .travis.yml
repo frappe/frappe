@@ -1,7 +1,7 @@
 os: linux
-dist: bionic
+dist: focal
 arch: arm64-graviton2
-virt: lxd
+virt: vm
 group: edge
 
 language: python
@@ -10,8 +10,6 @@ addons:
   hosts:
     - test_site
     - test_site_producer
-  mariadb: 10.3
-  postgresql: 9.5
   chrome: stable
 
 services:
@@ -35,16 +33,19 @@ matrix:
   include:
   - name: "Python 3.7 MariaDB"
     python: 3.7
+    mariadb: 10.3
     env: DB=mariadb TYPE=server
     script: bench --verbose --site test_site run-tests --coverage
 
   - name: "Python 3.7 PostgreSQL"
     python: 3.7
+    postgresql: 9.5
     env: DB=postgres TYPE=server
     script: bench --verbose --site test_site run-tests --coverage
 
   - name: "Cypress"
     python: 3.7
+    mariadb: 10.3
     env: DB=mariadb TYPE=ui
     before_script:
     - bench --site test_site execute frappe.utils.install.complete_setup_wizard
