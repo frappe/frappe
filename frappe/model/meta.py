@@ -479,9 +479,6 @@ class Meta(Document):
 		if hasattr(self, 'links') and self.links:
 			dashboard_links.extend(self.links)
 
-		if frappe.get_all("Custom Link", {"document_type": self.name}):
-			dashboard_links.extend(frappe.get_doc("Custom Link", self.name).links)
-
 		if not data.transactions:
 			# init groups
 			data.transactions = []

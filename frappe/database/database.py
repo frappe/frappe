@@ -780,6 +780,9 @@ class Database(object):
 		"""Returns True if table for given doctype exists."""
 		return ("tab" + doctype) in self.get_tables()
 
+	def has_table(self, doctype):
+		return self.table_exists(doctype)
+
 	def get_tables(self):
 		tables = frappe.cache().get_value('db_tables')
 		if not tables:
