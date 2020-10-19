@@ -327,7 +327,13 @@ class DatabaseQuery(object):
 
 	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
-		columns = get_table_columns(self.doctype)
+		try:
+			columns = get_table_columns(self.doctype)
+		except frappe.db.TableMissingError:
+			if self.ignore_ddl:
+				return
+			else:
+				raise
 
 		# remove from fields
 		to_remove = []
