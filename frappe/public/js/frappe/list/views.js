@@ -204,12 +204,11 @@ frappe.views.Views = class Views {
 	setup_kanban_boards() {
 		const last_opened_kanban = frappe.model.user_settings[this.doctype]['Kanban']
 			&& frappe.model.user_settings[this.doctype]['Kanban'].last_kanban_board;
-
-	if (last_opened_kanban) {
-		frappe.set_route(`List/${this.doctype}/Kanban/${last_opened_kanban}`);
-	} else {
+		if (last_opened_kanban) {
+			frappe.set_route(`List/${this.doctype}/Kanban/${last_opened_kanban}`);
+		} else {
 			frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
-	}
+		}
 	}
 
 	get_calendars() {
