@@ -91,6 +91,7 @@ class File(Document):
 			self.set_is_private()
 			self.set_file_name()
 			self.validate_duplicate_entry()
+			self.validate_attachment_limit()
 		self.validate_folder()
 
 		if not self.file_url and not self.flags.ignore_file_validate:
@@ -135,6 +136,26 @@ class File(Document):
 
 		if self.file_url and (self.is_private != self.file_url.startswith('/private')):
 			frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
+
+	def validate_attachment_limit(self):
+		attachment_limit = 0
+		if self.attached_to_doctype and self.attached_to_name:
+			attachment_limit = frappe.get_meta(self.attached_to_doctype).max_attachments
+
+		if attachment_limit:
+			current_attachment_count = len(frappe.get_all('File', filters={
+				'attached_to_doctype': self.attached_to_doctype,
+				'attached_to_name': self.attached_to_name,
+			}, limit=(attachment_limit + 1)))
+
+			if current_attachment_count >= attachment_limit:
+				frappe.throw(_("Attachment Limit reached for {0} {1}.").format(
+						self.attached_to_doctype,
+						self.attached_to_name
+					),
+					exc=frappe.exceptions.AttachmentLimitReached,
+					title=_('Maximum Attachment Limit Reached')
+				)
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
