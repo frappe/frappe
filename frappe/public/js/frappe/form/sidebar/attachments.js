@@ -140,7 +140,6 @@ frappe.ui.form.Attachments = Class.extend({
 		});
 	},
 	new_attachment: function(fieldname) {
-		var me = this;
 		if (this.dialog) {
 			// remove upload dialog
 			this.dialog.$wrapper.remove();
@@ -149,6 +148,7 @@ frappe.ui.form.Attachments = Class.extend({
 		new frappe.ui.FileUploader({
 			doctype: this.frm.doctype,
 			docname: this.frm.docname,
+			frm: this.frm,
 			folder: 'Home/Attachments',
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
