@@ -61,7 +61,7 @@ export default class OnboardingWidget extends Widget {
 		this.active_step = step;
 
 		let actions = {
-			"Watch Video": this.show_video,
+			"Watch Video": (step) => this.show_video(step),
 			"Create Entry": (step) => {
 				if (step.is_complete) {
 					frappe.set_route(`#List/${step.reference_document}`);
@@ -73,10 +73,10 @@ export default class OnboardingWidget extends Widget {
 					}
 				}
 			},
-			"Show Form Tour": this.show_form_tour,
-			"Update Settings": this.update_settings,
-			"View Report": this.open_report,
-			"Go to Page": this.go_to_page,
+			"Show Form Tour": (step) => this.show_form_tour(step),
+			"Update Settings": (step) => this.update_settings(step),
+			"View Report": (step) => this.open_report(step),
+			"Go to Page": (step) => this.go_to_page(step),
 		};
 
 		const toggle_content = () => {
@@ -102,14 +102,17 @@ export default class OnboardingWidget extends Widget {
 
 			const video = $(`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${step.intro_video_url}"></div>`);
 			video.appendTo(this.step_body)
-			new frappe.Plyr(video[0], {
+			let plyr = new frappe.Plyr(video[0], {
 				hideControls: true,
 				resetOnEnd: true,
 			});
 
 			$(`<button class="btn btn-primary btn-sm">${__(step.action)}</button>`)
 				.appendTo(this.step_footer)
-				.on('click', () => actions[step.action](step));
+				.on('click', () => {
+					plyr.pause()
+					actions[step.action](step)
+				});
 
 			$(`<button class="btn btn-secondary ml-2 btn-sm">${__('Back')}</button>`)
 				.appendTo(this.step_footer)
@@ -121,20 +124,22 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	go_to_page(step) {
+		this.mark_complete(step);
 		frappe.set_route(step.path).then(() => {
-			if (step.callback_message) {
-				let msg_dialog = frappe.msgprint({
-					message: __(step.callback_message),
-					title: __(step.callback_title),
-					primary_action: {
-						action: () => {
-							msg_dialog.hide();
-						},
-						label: () => __("Continue"),
+			let message = step.callback_message || __("You can continue with the onboarding after exploring this page")
+			let title = step.callback_title || __("Awesome Work")
+
+			let msg_dialog = frappe.msgprint({
+				message: message,
+				title: title,
+				primary_action: {
+					action: () => {
+						msg_dialog.hide();
 					},
-					wide: true,
-				});
-			}
+					label: () => __("Continue"),
+				},
+				wide: true,
+			});
 		});
 	}
 
@@ -383,8 +388,8 @@ export default class OnboardingWidget extends Widget {
 
 	update_step_status(step, status, value, callback) {
 		let icon_class = {
-			is_complete: "fa-check-circle-o",
-			is_skipped: "fa-check-circle-o",
+			is_complete: "complete",
+			is_skipped: "skipped",
 		};
 		//  Clear any hooks
 		frappe.route_hooks = {};
@@ -398,10 +403,11 @@ export default class OnboardingWidget extends Widget {
 			.then(() => {
 				callback();
 
-				let icon = step.$step.find("i.fa");
-				icon.removeClass();
-				icon.addClass("fa");
-				icon.addClass(icon_class[status]);
+				step.$step
+					.removeClass("pending")
+					.removeClass("complete")
+					.removeClass("skipped")
+					.addClass(icon_class[status]);
 
 				let pending = this.steps.filter((step) => {
 					return !(step.is_complete || step.is_skipped);
