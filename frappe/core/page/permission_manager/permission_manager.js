@@ -322,7 +322,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	add_delete_button(row, d) {
-		$(`<button class='btn btn-danger btn-remove-perm btn-sm'>${frappe.utils.icon('delete')}</button>`)
+		$(`<button class='btn btn-danger btn-remove-perm btn-xs'>${frappe.utils.icon('delete')}</button>`)
 			.appendTo($(`<td class="pt-4">`).appendTo(row))
 			.attr("data-doctype", d.parent)
 			.attr("data-role", d.role)
