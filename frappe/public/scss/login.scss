@@ -75,10 +75,17 @@
 		}
 
 		.page-card-body {
+			::placeholder, /* Chrome, Firefox, Opera, Safari 10.1+ */
+			::-ms-input-placeholder { /* Microsoft Edge */
+				color: var(--text-light);
+				opacity: 1; /* Firefox */
+			}
+
 			input[type="text"],
 			input[type="email"],
 			input[type="password"] {
 				border: none;
+				color: var(--text-color);
 				font-size: var(--text-base);
 				background-color: var(--control-bg);
 				margin-bottom: 10px;
