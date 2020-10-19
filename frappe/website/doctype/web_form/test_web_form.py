@@ -17,6 +17,7 @@ class TestWebForm(unittest.TestCase):
 
 	def tearDown(self):
 		frappe.conf.disable_website_cache = False
+		frappe.flags.in_web_form = False
 		frappe.local.path = None
 
 	def test_accept(self):
