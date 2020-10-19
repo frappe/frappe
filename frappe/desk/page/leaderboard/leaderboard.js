@@ -239,21 +239,16 @@ class Leaderboard {
 			let graph_items = results.slice(0, 10);
 
 			this.$graph_area.show().empty();
-			let args = {
+
+			const custom_options = {
 				data: {
-					datasets: [
-						{
-							values: graph_items.map(d => d.value)
-						}
-					],
+					datasets: [{ values: graph_items.map(d => d.value) }],
 					labels: graph_items.map(d => d.name)
 				},
-				colors: ["#2D95F0"],
 				format_tooltip_x: d => d[this.options.selected_filter_item],
-				type: "bar",
 				height: 140
 			};
-			new frappe.Chart(".leaderboard-graph", args);
+			frappe.utils.make_chart('.leaderboard-graph', custom_options);
 
 			notify(this, r);
 		});
