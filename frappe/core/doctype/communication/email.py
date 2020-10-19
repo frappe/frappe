@@ -55,7 +55,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	comm = frappe.get_doc({
 		"doctype":"Communication",
 		"subject": subject,
-		"content": content,
+		"content": frappe.utils.sanitize_html(content),
 		"sender": sender,
 		"sender_full_name":sender_full_name,
 		"recipients": recipients,

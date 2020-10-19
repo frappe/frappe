@@ -140,9 +140,13 @@ export default class Desktop {
 	}
 
 	get_page_to_show() {
-		const default_page = this.sidebar_configuration
-			? this.sidebar_configuration["Modules"][0].name
-			: frappe.boot.allowed_workspaces[0].name;
+		let default_page;
+
+		if (this.sidebar_configuration && this.sidebar_configuration["Modules"]) {
+			default_page = this.sidebar_configuration["Modules"][0].name;
+		} else {
+			default_page = frappe.boot.allowed_workspaces[0].name;
+		}
 
 		let page =
 			frappe.get_route()[1] ||
@@ -306,7 +310,7 @@ class DesktopPage {
 
 	make_onboarding() {
 		this.onboarding_widget = frappe.widget.make_widget({
-			label: this.data.onboarding.label || __(`Let's Get Started`),
+			label: this.data.onboarding.label || __("Let's Get Started"),
 			subtitle: this.data.onboarding.subtitle,
 			steps: this.data.onboarding.items,
 			success: this.data.onboarding.success,
@@ -371,7 +375,7 @@ class DesktopPage {
 
 	make_cards() {
 		let cards = new frappe.widget.WidgetGroup({
-			title: this.data.cards.label || __(`Reports & Masters`),
+			title: this.data.cards.label || __("Reports & Masters"),
 			container: this.page,
 			type: "links",
 			columns: 3,
