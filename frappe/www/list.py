@@ -183,7 +183,7 @@ def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_pe
 		filters = []
 
 	if not fields:
-		fields = "*"
+		fields = "distinct *"
 
 	or_filters = []
 
@@ -201,5 +201,5 @@ def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_pe
 	return frappe.get_list(doctype, fields = fields,
 		filters=filters, or_filters=or_filters, limit_start=limit_start,
 		limit_page_length = limit_page_length, ignore_permissions=ignore_permissions,
-		order_by=order_by, distinct=True)
+		order_by=order_by)
 

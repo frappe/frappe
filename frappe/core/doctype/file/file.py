@@ -933,9 +933,6 @@ def attach_files_to_document(doc, event):
 	the file url to the document if it is not already attached.
 	"""
 
-	if frappe.flags.in_web_form:
-		return
-
 	attach_fields = doc.meta.get(
 		"fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}
 	)

@@ -69,11 +69,6 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			options.fieldname = this.df.fieldname;
 		}
 
-		if (frappe.web_form && frappe.web_form.doc && frappe.web_form.doc.name) {
-			options.doctype = frappe.web_form.doc.doctype;
-			options.docname = frappe.web_form.doc.name;
-		}
-
 		if (this.df.options) {
 			Object.assign(options, this.df.options);
 		}
@@ -108,11 +103,6 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			this.frm.attachments.update_attachment(attachment);
 			this.frm.doc.docstatus == 1 ? this.frm.save('Update') : this.frm.save();
 		}
-
-		if (frappe.web_form) {
-			frappe.web_form.files.push(attachment);
-		}
-
 		this.set_value(attachment.file_url);
 	},
 
