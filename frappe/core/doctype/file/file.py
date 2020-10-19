@@ -153,12 +153,12 @@ class File(Document):
 			}, limit=(attachment_limit + 1)))
 
 			if current_attachment_count >= attachment_limit:
-				frappe.throw(_("Attachment Limit reached for {0} {1}.").format(
+				frappe.throw(_("Maximum Attachment Limit reached for {0} {1}.").format(
 						self.attached_to_doctype,
 						self.attached_to_name
 					),
 					exc=frappe.exceptions.AttachmentLimitReached,
-					title=_('Maximum Attachment Limit Reached')
+					title=_('Attachment Limit Reached')
 				)
 
 	def set_folder_name(self):
