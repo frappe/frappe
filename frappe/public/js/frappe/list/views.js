@@ -132,6 +132,7 @@ frappe.views.Views = class Views {
 
 
 	setup_dropdown_in_sidebar(view, items, default_action) {
+		if (!this.sidebar) return;
 		const views_wrapper = this.sidebar.sidebar.find('.views-section');
 		views_wrapper.find('.sidebar-label').html(`${__(view)}`);
 		const $dropdown = views_wrapper.find('.views-dropdown');
