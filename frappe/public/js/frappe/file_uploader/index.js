@@ -14,7 +14,13 @@ export default class FileUploader {
 		allow_multiple,
 		as_dataurl,
 		disable_file_browser,
+		frm
 	} = {}) {
+		if (frm && frm.attachments.max_reached()) {
+			frappe.throw(__("Maximum Attachment Limit for this record reached."));
+			return;
+		}
+
 		if (!wrapper) {
 			this.make_dialog();
 		} else {
