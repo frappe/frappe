@@ -343,7 +343,8 @@ class Meta(Document):
 
 	def add_custom_links_and_actions(self):
 		for doctype, fieldname in (('DocType Link', 'links'), ('DocType Action', 'actions')):
-			for d in frappe.get_all(doctype, fields='*', filters=dict(parent=self.name, custom=1)):
+			# ignore_ddl because the `custom` column was added later via a patch
+			for d in frappe.get_all(doctype, fields='*', filters=dict(parent=self.name, custom=1), ignore_ddl=True):
 				self.append(fieldname, d)
 
 			# set the fields in order if specified
