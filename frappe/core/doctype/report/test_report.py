@@ -32,6 +32,7 @@ class TestReport(unittest.TestCase):
 		self.assertTrue('User' in [d.get('name') for d in data])
 
 	def test_custom_report(self):
+		reset_customization('User')
 		custom_report_name = save_report(
 			'Permitted Documents For User',
 			'Permitted Documents For User Custom',
@@ -55,7 +56,8 @@ class TestReport(unittest.TestCase):
 			}, user=frappe.session.user)
 
 		self.assertListEqual(['email'], [column.get('fieldname') for column in columns])
-		self.assertDictEqual({'name': 'Administrator', 'user_type': 'System User', 'email': 'admin@example.com'}, result[0])
+		admin_dict = frappe.core.utils.find(result, lambda d: d['name'] == 'Administrator')
+		self.assertDictEqual({'name': 'Administrator', 'user_type': 'System User', 'email': 'admin@example.com'}, admin_dict)
 
 	def test_report_with_custom_column(self):
 		reset_customization('User')
