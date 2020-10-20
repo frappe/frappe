@@ -110,9 +110,14 @@ export default class OnboardingWidget extends Widget {
 			$(`<button class="btn btn-primary btn-sm">${__(step.action)}</button>`)
 				.appendTo(this.step_footer)
 				.on('click', () => {
-					plyr.pause()
-					actions[step.action](step)
+					plyr.pause();
+					actions[step.action](step);
 				});
+
+			// Fire only once, on hashchange
+			$(window).one('hashchange', () => {
+				plyr.pause();
+			})
 
 			$(`<button class="btn btn-secondary ml-2 btn-sm">${__('Back')}</button>`)
 				.appendTo(this.step_footer)
