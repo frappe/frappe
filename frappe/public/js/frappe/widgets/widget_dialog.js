@@ -35,7 +35,8 @@ class WidgetDialog {
 		// __("New Chart") __("New Shortcut") __("Edit Chart") __("Edit Shortcut")
 
 		let action = this.editing ? "Edit" : "Add";
-		return __(`${action} ${frappe.model.unscrub(this.type)}`);
+		let label = action = action + " " + frappe.model.unscrub(this.type);
+		return __(label);
 	}
 
 	get_fields() {
