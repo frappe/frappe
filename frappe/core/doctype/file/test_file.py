@@ -164,23 +164,25 @@ class TestSameContent(unittest.TestCase):
 		doctype, docname = make_test_doc()
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 		limit_property = make_property_setter('ToDo', None, 'max_attachments', 1, 'int', for_doctype=True)
-		_file1 = frappe.get_doc({
+		file1 = frappe.get_doc({
 			"doctype": "File",
 			"file_name": 'test-attachment',
 			"attached_to_doctype": doctype,
 			"attached_to_name": docname,
-			"content": 'test'})
+			"content": 'test'
+		})
 
-		_file1.insert()
+		file1.insert()
 
-		_file2 = frappe.get_doc({
+		file2 = frappe.get_doc({
 			"doctype": "File",
 			"file_name": 'test-attachment',
 			"attached_to_doctype": doctype,
 			"attached_to_name": docname,
-			"content": 'test2'})
+			"content": 'test2'
+		})
 
-		self.assertRaises(frappe.exceptions.AttachmentLimitReached, _file2.insert)
+		self.assertRaises(frappe.exceptions.AttachmentLimitReached, file2.insert)
 		limit_property.delete()
 		frappe.clear_cache(doctype='ToDo')
 
