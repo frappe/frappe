@@ -8,9 +8,12 @@ from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
 	split_emails, to_markdown, markdown, random_string, parse_addr)
 import email.utils
-from six import iteritems, text_type, string_types
+from six import iteritems, text_type, string_types, PY3
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+
+if PY3:
+	from email import policy
 
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
@@ -68,8 +71,12 @@ class EMail:
 		self.subject = subject
 		self.expose_recipients = expose_recipients
 
-		self.msg_root = MIMEMultipart('mixed')
-		self.msg_alternative = MIMEMultipart('alternative')
+		if PY3:
+			self.msg_root = MIMEMultipart('mixed', policy=policy.SMTPUTF8)
+			self.msg_alternative = MIMEMultipart('alternative', policy=policy.SMTPUTF8)
+		else:
+			self.msg_root = MIMEMultipart('mixed')
+			self.msg_alternative = MIMEMultipart('alternative')
 		self.msg_root.attach(self.msg_alternative)
 		self.cc = cc or []
 		self.bcc = bcc or []
@@ -100,7 +107,10 @@ class EMail:
 			Attach message in the text portion of multipart/alternative
 		"""
 		from email.mime.text import MIMEText
-		part = MIMEText(message, 'plain', 'utf-8')
+		if PY3:
+			part = MIMEText(message, 'plain', 'utf-8', policy=policy.SMTPUTF8)
+		else:
+			part = MIMEText(message, 'plain', 'utf-8')
 		self.msg_alternative.attach(part)
 
 	def set_part_html(self, message, inline_images):
@@ -113,9 +123,12 @@ class EMail:
 			message, _inline_images = replace_filename_with_cid(message)
 
 			# prepare parts
-			msg_related = MIMEMultipart('related')
-
-			html_part = MIMEText(message, 'html', 'utf-8')
+			if PY3:
+				msg_related = MIMEMultipart('related', policy=policy.SMTPUTF8)
+				html_part = MIMEText(message, 'html', 'utf-8', policy=policy.SMTPUTF8)
+			else:
+				msg_related = MIMEMultipart('related')
+				html_part = MIMEText(message, 'html', 'utf-8')
 			msg_related.attach(html_part)
 
 			for image in _inline_images:
@@ -124,7 +137,10 @@ class EMail:
 
 			self.msg_alternative.attach(msg_related)
 		else:
-			self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8'))
+			if PY3:
+				self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8', policy=policy.SMTPUTF8))
+			else:
+				self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8'))
 
 	def set_html_as_text(self, html):
 		"""Set plain text from HTML"""
@@ -135,7 +151,10 @@ class EMail:
 		from email.mime.text import MIMEText
 
 		maintype, subtype = mime_type.split('/')
-		part = MIMEText(message, _subtype = subtype)
+		if PY3:
+			part = MIMEText(message, _subtype = subtype, policy=policy.SMTPUTF8)
+		else:
+			part = MIMEText(message, _subtype = subtype)
 
 		if as_attachment:
 			part.add_header('Content-Disposition', 'attachment', filename=filename)
@@ -206,7 +225,7 @@ class EMail:
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
-		self.msg_root["In-Reply-To"] = in_reply_to
+		self.set_header('In-Reply-To', in_reply_to)
 
 	def make(self):
 		"""build into msg_root"""
@@ -222,7 +241,8 @@ class EMail:
 
 		# reset headers as values may be changed.
 		for key, val in iteritems(headers):
-			self.set_header(key, val)
+			if val:
+				self.set_header(key, val)
 
 		# call hook to enable apps to modify msg_root before sending
 		for hook in frappe.get_hooks("make_email_body_message"):
@@ -232,12 +252,17 @@ class EMail:
 		if key in self.msg_root:
 			del self.msg_root[key]
 
-		self.msg_root[key] = value
+		try:
+			self.msg_root[key] = value
+		except ValueError:
+			self.msg_root[key] = sanitize_email_header(value)
 
 	def as_string(self):
 		"""validate, build message and convert to string"""
 		self.validate()
 		self.make()
+		if PY3:
+			return self.msg_root.as_string(policy=policy.SMTPUTF8)
 		return self.msg_root.as_string()
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
@@ -456,3 +481,6 @@ def get_header(header=None):
 	})
 
 	return email_header
+
+def sanitize_email_header(str):
+	return str.replace('\r', '').replace('\n', '')

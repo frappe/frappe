@@ -55,6 +55,9 @@
   "column_break_18",
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
+  "prepared_report_section",
+  "enable_prepared_report_auto_deletion",
+  "prepared_report_expiry_period",
   "chat",
   "enable_chat",
   "use_socketio_to_upload_file"
@@ -397,11 +400,31 @@
    "fieldname": "allow_guests_to_upload_files",
    "fieldtype": "Check",
    "label": "Allow Guests to Upload Files"
+  },
+  {
+   "default": "7",
+   "depends_on": "enable_prepared_report_auto_deletion",
+   "description": "System will automatically delete Prepared Reports after these many days since creation",
+   "fieldname": "prepared_report_expiry_period",
+   "fieldtype": "Int",
+   "label": "Prepared Report Expiry Period (Days)"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_prepared_report_auto_deletion",
+   "fieldtype": "Check",
+   "label": "Enable Auto-deletion of Prepared Reports"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "prepared_report_section",
+   "fieldtype": "Section Break",
+   "label": "Prepared Report"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
- "modified": "2020-03-17 21:30:54.419752",
+ "modified": "2020-07-26 15:57:34.197718",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

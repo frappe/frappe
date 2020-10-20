@@ -160,3 +160,16 @@ h5.modal-title {
 .pull-right {
 	float: right;
 }
+
+.ellipsis {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	vertical-align: middle;
+}
+
+.logged-in > .nav-link {
+	max-width: 200px;
+	@extend .ellipsis;
+}

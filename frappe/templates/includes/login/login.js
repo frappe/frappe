@@ -34,7 +34,7 @@ login.bind_events = function() {
 		args.cmd = "frappe.core.doctype.user.user.sign_up";
 		args.email = ($("#signup_email").val() || "").trim();
 		args.redirect_to = frappe.utils.get_url_arg("redirect-to") || '';
-		args.full_name = ($("#signup_fullname").val() || "").trim();
+		args.full_name = frappe.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
 		if(!args.email || !validate_email(args.email) || !args.full_name) {
 			login.set_indicator('{{ _("Valid email and name required") }}', 'red');
 			return false;
@@ -96,7 +96,7 @@ login.reset_sections = function(hide) {
 		$("section.for-forgot").toggle(false);
 		$("section.for-signup").toggle(false);
 	}
-	$('section .indicator').each(function() {
+	$('section:not(.signup-disabled) .indicator').each(function() {
 		$(this).removeClass().addClass('indicator').addClass('blue')
 			.text($(this).attr('data-text'));
 	});
