@@ -136,15 +136,22 @@
   },
   {
    "depends_on": "document_type",
+   "description": "Value from this field will be set as the due date in the ToDo",
    "fieldname": "due_date_based_on",
    "fieldtype": "Select",
-   "label": "Due Date Based On",
-   "description": "Value from this field will be set as the due date in the ToDo"
+   "label": "Due Date Based On"
+  },
+  {
+   "depends_on": "eval: doc.rule == 'Based on Field'",
+   "fieldname": "field",
+   "fieldtype": "Select",
+   "label": "Field",
+   "mandatory_depends_on": "eval: doc.rule == 'Based on Field'"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-13 06:48:54.019735",
+ "modified": "2020-10-20 14:47:20.662954",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",

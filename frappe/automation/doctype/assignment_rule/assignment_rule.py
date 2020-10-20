@@ -82,7 +82,7 @@ class AssignmentRule(Document):
 		elif self.rule == 'Load Balancing':
 			return self.get_user_load_balancing()
 		elif self.rule == 'Based on Field':
-			return doc[self.field]
+			return doc.get(self.field)
 
 	def get_user_round_robin(self):
 		'''
