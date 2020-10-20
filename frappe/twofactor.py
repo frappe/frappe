@@ -225,7 +225,7 @@ def get_email_subject_for_2fa(kwargs_dict):
 
 def get_email_body_for_2fa(kwargs_dict):
 	'''Get email body for 2fa.'''
-	body_template = 'Enter this code to complete your login:<br><br> <b>{{otp}}</b>'
+	body_template = 'Enter this code to complete your login:<br><br> <span style="font-size:18px;font-weight:bold;">{{otp}}</span>'
 	body = frappe.render_template(body_template, kwargs_dict)
 	return body
 
