@@ -149,9 +149,9 @@ class File(Document):
 			}, limit=attachment_limit + 1))
 
 			if current_attachment_count >= attachment_limit:
-				frappe.throw(_("Maximum Attachment Limit reached for {0} {1}.").format(
-						self.attached_to_doctype,
-						self.attached_to_name
+				frappe.throw(
+					_("Maximum Attachment Limit reached for {0} {1}.").format(
+						self.attached_to_doctype, self.attached_to_name
 					),
 					exc=frappe.exceptions.AttachmentLimitReached,
 					title=_('Attachment Limit Reached')
