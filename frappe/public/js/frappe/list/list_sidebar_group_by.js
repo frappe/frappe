@@ -88,11 +88,6 @@ frappe.views.ListGroupBy = class ListGroupBy {
 						<span>${frappe.utils.icon('select', 'xs')}</span>
 					</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
-						<li>
-							<div class="empty-state group-by-loading">
-								${__('Loading...')}
-							</div>
-						</li>
 					</ul>
 			</li>`;
 		};
@@ -102,31 +97,55 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	setup_dropdown() {
 		this.$wrapper.find('.group-by-field').on('show.bs.dropdown', (e) => {
-			let dropdown = $(e.currentTarget).find('.group-by-dropdown');
-			let fieldname = $(e.currentTarget)
-				.find('a')
+			let $dropdown = $(e.currentTarget).find('.group-by-dropdown');
+			this.set_loading_state($dropdown)
+			let fieldname = $(e.currentTarget).find('a')
 				.attr('data-fieldname');
 			let fieldtype = $(e.currentTarget)
 				.find('a')
 				.attr('data-fieldtype');
 			this.get_group_by_count(fieldname).then((field_count_list) => {
 				if (field_count_list.length) {
-					this.render_dropdown_items(field_count_list, fieldtype, dropdown);
-					frappe.utils.setup_search(
-						dropdown,
-						'.group-by-item',
-						'.group-by-value',
-						'data-name'
+					let applied_filter = this.list_view.get_filter_value(
+						fieldname == 'assigned_to' ? '_assign' : fieldname
 					);
+					this.render_dropdown_items(
+						field_count_list,
+						fieldtype,
+						$dropdown,
+						applied_filter
+					);
+					this.setup_search($dropdown);
 				} else {
-					dropdown.html(
-						`<div class="empty-state group-by-empty">
-							${__('No filters found')}
-						</div>`
-					);
+					this.set_empty_state($dropdown);
 				}
 			});
 		});
+	}
+
+	set_loading_state($dropdown) {
+		$dropdown.html(`<li>
+			<div class="empty-state group-by-loading">
+				${__('Loading...')}
+			</div>
+		</li>`);
+	}
+
+	set_empty_state($dropdown) {
+		$dropdown.html(
+			`<div class="empty-state group-by-empty">
+				${__('No filters found')}
+			</div>`
+		);
+	}
+
+	setup_search($dropdown) {
+		frappe.utils.setup_search(
+			$dropdown,
+			'.group-by-item',
+			'.group-by-value',
+			'data-name'
+		);
 	}
 
 	get_group_by_dropdown_fields() {
@@ -180,23 +199,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			});
 	}
 
-	render_dropdown_items(fields, fieldtype, dropdown) {
-		let get_dropdown_html = (field) => {
-			let label = field.name == null ? __('Not Specified') : field.name;
-			if (label === frappe.session.user) {
-				label = __('Me');
-			} else if (fieldtype && fieldtype == 'Check') {
-				label = label == '0' ? __('No') : __('Yes');
-			}
-			let value = field.name == null ? '' : encodeURIComponent(field.name);
-
-			return `<li class="group-by-item" data-value="${value}">
-				<a class="dropdown-item" href="#" onclick="return false;">
-					<span class="group-by-value ellipsis" data-name="${field.name}">${label}</span>
-					<span class="group-by-count">${field.count}</span>
-				</a>
-			</li>`;
-		};
+	render_dropdown_items(fields, fieldtype, $dropdown, applied_filter) {
 		let standard_html = `
 			<div class="dropdown-search">
 				<input type="text" placeholder="${__(
@@ -204,14 +207,46 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				)}" data-element="search" class="dropdown-search-input form-control input-xs">
 			</div>
 		`;
+		let applied_filter_html='';
+		let dropdown_items_html = '';
 
-		let dropdown_html = standard_html + fields.map(get_dropdown_html).join('');
-		dropdown.html(dropdown_html);
+		fields.map(field => {
+			if (field.name === applied_filter) {
+				applied_filter_html = this.get_dropdown_html(field, fieldtype, true);
+			} else {
+				dropdown_items_html += this.get_dropdown_html(field, fieldtype);
+			}
+		});
+
+		let dropdown_html = standard_html + applied_filter_html + dropdown_items_html;
+		if (applied_filter_html) $dropdown.addClass('has-selected');
+		$dropdown.html(dropdown_html);
 	}
+
+	get_dropdown_html(field, fieldtype, applied=false) {
+		let label = field.name == null ? __('Not Set') : field.name;
+		if (label === frappe.session.user) {
+			label = __('Me');
+		} else if (fieldtype && fieldtype == 'Check') {
+			label = label == '0' ? __('No') : __('Yes');
+		}
+		let value = field.name == null ? '' : encodeURIComponent(field.name);
+
+		let applied_html = applied ? `<span class="applied"> ${frappe.utils.icon('tick', 'xs')} </span>` : '';
+		return `<li class="group-by-item ${applied ? 'selected': ''}" data-value="${value}">
+			<a class="dropdown-item" href="#" onclick="return false;">
+				${applied_html}
+				<span class="group-by-value ellipsis" data-name="${field.name}">${label}</span>
+				<span class="group-by-count">${field.count}</span>
+			</a>
+		</li>`;
+	};
 
 	setup_filter_by() {
 		this.$wrapper.on('click', '.group-by-item', (e) => {
 			let $target = $(e.currentTarget);
+			let is_selected = $target.hasClass('selected');
+
 			let fieldname = $target
 				.parents('.group-by-field')
 				.find('a')
@@ -223,23 +258,27 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			fieldname = fieldname === 'assigned_to' ? '_assign' : fieldname;
 
 			return this.list_view.filter_area.remove(fieldname).then(() => {
-				let operator = '=';
-				if (value === '') {
-					operator = 'is';
-					value = 'not set';
-				}
-				if (fieldname === '_assign') {
-					operator = 'like';
-					value = `%${value}%`;
-				}
-
-				return this.list_view.filter_area.add(
-					this.doctype,
-					fieldname,
-					operator,
-					value
-				);
+				if (is_selected) return;
+				return this.apply_filter(fieldname, value);
 			});
 		});
+	}
+
+	apply_filter(fieldname, value) {
+		let operator = '=';
+		if (value === '') {
+			operator = 'is';
+			value = 'not set';
+		}
+		if (fieldname === '_assign') {
+			operator = 'like';
+			value = `%${value}%`;
+		}
+		return this.list_view.filter_area.add(
+			this.doctype,
+			fieldname,
+			operator,
+			value
+		);
 	}
 };
