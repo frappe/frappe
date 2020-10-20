@@ -219,7 +219,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		});
 
 		let dropdown_html = standard_html + applied_filter_html + dropdown_items_html;
-		if (applied_filter_html) $dropdown.addClass('has-selected');
+		$dropdown.toggleClass('has-selected', Boolean(applied_filter_html));
 		$dropdown.html(dropdown_html);
 	}
 
