@@ -389,17 +389,21 @@ frappe.views.BaseList = class BaseList {
 		// for child classes
 	}
 
+	get_filter_value(fieldname) {
+		const filter = this.get_filters_for_args().filter(f => f[1] == fieldname)[0];
+		if (!filter) return;
+		return {
+			'like': filter[3].replace(/^%?|%$/g, ''),
+			'not set': null
+		}[filter[2]] || filter[3];
+	}
+
 	get_filters_for_args() {
 		// filters might have a fifth param called hidden,
 		// we don't want to pass that server side
 		return this.filter_area
 			? this.filter_area.get().map((filter) => filter.slice(0, 4))
 			: [];
-	}
-
-	get_filter_value(fieldname) {
-		return this.get_filters_for_args().filter(f => f[1] == fieldname)[0] &&
-			this.get_filters_for_args().filter(f => f[1] == fieldname)[0][3];
 	}
 
 	get_args() {
@@ -636,11 +640,12 @@ class FilterArea {
 		const fields_dict = this.list_view.page.fields_dict;
 
 		if (fieldname in fields_dict) {
-			return fields_dict[fieldname].set_value("");
+			fields_dict[fieldname].set_value("");
 		}
 
 		let filter = this.filter_list.get_filter(fieldname);
 		if (filter) filter.remove();
+		this.filter_list.apply();
 		return Promise.resolve();
 	}
 
