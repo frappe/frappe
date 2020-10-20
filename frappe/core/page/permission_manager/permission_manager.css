@@ -43,6 +43,7 @@ tbody > tr:first-child {
 
 button.btn-remove-perm {
 	box-shadow: none;
+	padding: var(--padding-xs) var(--padding-xs);
 }
 
 button.btn-remove-perm > svg > use {

@@ -88,9 +88,7 @@
 		"public/less/social.less",
 		"public/scss/desk.scss",
 		"node_modules/frappe-charts/dist/frappe-charts.min.css",
-		"node_modules/driver.js/dist/driver.min.css",
-		"node_modules/plyr/dist/plyr.css",
-		"public/less/driver.less"
+		"node_modules/plyr/dist/plyr.css"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",

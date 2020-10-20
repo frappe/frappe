@@ -15,21 +15,21 @@ export default class OnboardingWidget extends Widget {
 		this.steps.forEach((step, index) => {
 			this.add_step(step, index);
 		});
+
 		this.show_step(this.steps[0]);
 	}
 
 	add_step(step, index) {
-		let label = `<div class="step-index">${ __(index + 1) }</div>`;
+		let status = 'pending';
 
-		if (step.is_complete) {
-			label = `<div class="step-index complete">${frappe.utils.icon('tick', 'xs')}</div>`;
-		} else if (step.is_skipped) {
-			label = `<div class="step-index skipped">${frappe.utils.icon('tick', 'xs')}</div>`;
-		}
+		if (step.is_skipped) status = "skipped";
+		if (step.is_complete) status = "complete";
 
 		let $step = $(`<a class="onboarding-step ${status}">
 				<div class="step-title">
-					${label}
+					<div class="step-index step-pending">${ __(index + 1) }</div>
+					<div class="step-index step-skipped">${frappe.utils.icon('tick', 'xs')}</div>
+					<div class="step-index step-complete">${frappe.utils.icon('tick', 'xs')}</div>
 					<div>${step.title}</div>
 				</div>
 			</a>`);
@@ -37,7 +37,7 @@ export default class OnboardingWidget extends Widget {
 		step.$step = $step;
 
 		// Add skip button
-		if (!step.is_mandatory && !step.is_complete) {
+		if (!step.is_mandatory && !step.is_complete && !step.is_skipped) {
 			let skip_html = $(
 				`<div class="step-skip">Skip</div>`
 			);
@@ -61,7 +61,7 @@ export default class OnboardingWidget extends Widget {
 		this.active_step = step;
 
 		let actions = {
-			"Watch Video": this.show_video,
+			"Watch Video": (step) => this.show_video(step),
 			"Create Entry": (step) => {
 				if (step.is_complete) {
 					frappe.set_route(`#List/${step.reference_document}`);
@@ -73,10 +73,10 @@ export default class OnboardingWidget extends Widget {
 					}
 				}
 			},
-			"Show Form Tour": this.show_form_tour,
-			"Update Settings": this.update_settings,
-			"View Report": this.open_report,
-			"Go to Page": this.go_to_page,
+			"Show Form Tour": (step) => this.show_form_tour(step),
+			"Update Settings": (step) => this.update_settings(step),
+			"View Report": (step) => this.open_report(step),
+			"Go to Page": (step) => this.go_to_page(step),
 		};
 
 		const toggle_content = () => {
@@ -102,14 +102,17 @@ export default class OnboardingWidget extends Widget {
 
 			const video = $(`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${step.intro_video_url}"></div>`);
 			video.appendTo(this.step_body)
-			new frappe.Plyr(video[0], {
+			let plyr = new frappe.Plyr(video[0], {
 				hideControls: true,
 				resetOnEnd: true,
 			});
 
 			$(`<button class="btn btn-primary btn-sm">${__(step.action)}</button>`)
 				.appendTo(this.step_footer)
-				.on('click', () => actions[step.action](step));
+				.on('click', () => {
+					plyr.pause()
+					actions[step.action](step)
+				});
 
 			$(`<button class="btn btn-secondary ml-2 btn-sm">${__('Back')}</button>`)
 				.appendTo(this.step_footer)
@@ -121,20 +124,22 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	go_to_page(step) {
+		this.mark_complete(step);
 		frappe.set_route(step.path).then(() => {
-			if (step.callback_message) {
-				let msg_dialog = frappe.msgprint({
-					message: __(step.callback_message),
-					title: __(step.callback_title),
-					primary_action: {
-						action: () => {
-							msg_dialog.hide();
-						},
-						label: () => __("Continue"),
+			let message = step.callback_message || __("You can continue with the onboarding after exploring this page")
+			let title = step.callback_title || __("Awesome Work")
+
+			let msg_dialog = frappe.msgprint({
+				message: message,
+				title: title,
+				primary_action: {
+					action: () => {
+						msg_dialog.hide();
 					},
-					wide: true,
-				});
-			}
+					label: () => __("Continue"),
+				},
+				wide: true,
+			});
 		});
 	}
 
@@ -374,6 +379,7 @@ export default class OnboardingWidget extends Widget {
 		let callback = () => {
 			step.is_skipped = true;
 			$step.removeClass("complete");
+			$step.removeClass("pending");
 			$step.addClass("skipped");
 		};
 
@@ -382,8 +388,8 @@ export default class OnboardingWidget extends Widget {
 
 	update_step_status(step, status, value, callback) {
 		let icon_class = {
-			is_complete: "fa-check-circle-o",
-			is_skipped: "fa-check-circle-o",
+			is_complete: "complete",
+			is_skipped: "skipped",
 		};
 		//  Clear any hooks
 		frappe.route_hooks = {};
@@ -397,10 +403,11 @@ export default class OnboardingWidget extends Widget {
 			.then(() => {
 				callback();
 
-				let icon = step.$step.find("i.fa");
-				icon.removeClass();
-				icon.addClass("fa");
-				icon.addClass(icon_class[status]);
+				step.$step
+					.removeClass("pending")
+					.removeClass("complete")
+					.removeClass("skipped")
+					.addClass(icon_class[status]);
 
 				let pending = this.steps.filter((step) => {
 					return !(step.is_complete || step.is_skipped);
@@ -420,7 +427,7 @@ export default class OnboardingWidget extends Widget {
 		let documentation = "";
 		if (this.docs_url) {
 			documentation = __(
-				'Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a href="{0}">here</a>.',
+				'Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target="_blank" href="{0}">here</a>.',
 				[this.docs_url]
 			);
 		}
@@ -429,30 +436,14 @@ export default class OnboardingWidget extends Widget {
 					<img src="${success_state_image}" alt="Success State" class="zoom-in success-state">
 					<h3>${success_message}</h3>
 					<div class="text-muted">${documentation}</div>
+					<button class="btn btn-primary btn-sm">${__('Continue')}</button>
 			</div>
 		`);
 
-		if (!this.success_dialog) {
-			this.success_dialog = new frappe.ui.Dialog({
-				primary_action: () => {
-					this.success_dialog.hide();
-					// Wait for modal to close before removing widget
-					setTimeout(() => {
-						this.delete();
-					}, 300);
-				},
-				primary_action_label: __("Continue"),
-			});
+		success.find('.btn').on('click', () => this.delete());
 
-			this.success_dialog.set_title(__("Onboarding Complete"));
-			this.success_dialog.header
-				.find(".indicator")
-				.removeClass("hidden")
-				.addClass("green");
-
-			success.appendTo(this.success_dialog.$body);
-			this.success_dialog.show();
-		}
+		this.step_preview.empty();
+		success.appendTo(this.step_preview);
 	}
 
 	set_body() {
