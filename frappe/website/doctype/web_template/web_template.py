@@ -26,9 +26,6 @@ class WebTemplate(Document):
 			if not field.fieldname:
 				field.fieldname = frappe.scrub(field.label)
 
-		if self.standard and not self.module:
-			frappe.throw(_("Please select which module this Web Template belongs to."))
-
 	def on_update(self):
 		if frappe.conf.developer_mode:
 			# custom to standard
