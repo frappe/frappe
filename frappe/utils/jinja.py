@@ -212,9 +212,9 @@ def web_blocks(blocks):
 			'doctype': 'Web Page Block',
 			'web_template': block['template'],
 			'web_template_values': block.get('values', {}),
-			'add_top_padding': 1,
-			'add_bottom_padding': 1,
-			'add_container': 1,
+			'add_top_padding': 0,
+			'add_bottom_padding': 0,
+			'add_container': 0,
 			'hide_block': 0,
 			'css_class': ''
 		})
