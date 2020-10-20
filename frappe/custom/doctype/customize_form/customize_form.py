@@ -425,7 +425,7 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
-		reset_customization(self.doctype)
+		reset_customization(self.doc_type)
 		self.fetch_to_customize()
 
 def reset_customization(doctype):
