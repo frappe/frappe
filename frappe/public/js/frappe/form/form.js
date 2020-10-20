@@ -1517,11 +1517,12 @@ frappe.ui.form.Form = class FrappeForm {
 
 					const escaped_name = encodeURIComponent(value);
 
-					return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+					return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(escaped_name)s" data-doctype="%(doctype)s" data-name="%(name)s">%(label)s</a>', {
 						color: get_color(doc || {}),
 						doctype: df.options,
-						name: escaped_name,
-						label: label
+						escaped_name: escaped_name,
+						label: label,
+						name: value
 					});
 				} else {
 					return '';
