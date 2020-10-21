@@ -348,9 +348,9 @@ agent-base@~4.2.1:
   dependencies:
     es6-promisify "^5.0.0"
 
-"air-datepicker@git+https://github.com/frappe/air-datepicker.git":
+"air-datepicker@github:frappe/air-datepicker":
   version "2.2.3"
-  resolved "git+https://github.com/frappe/air-datepicker.git#ed37b94d95c68d8544357e330be0c89d044a3eea"
+  resolved "https://codeload.github.com/frappe/air-datepicker/tar.gz/ed37b94d95c68d8544357e330be0c89d044a3eea"
   dependencies:
     jquery ">=2.0.0 <4.0.0"
 
