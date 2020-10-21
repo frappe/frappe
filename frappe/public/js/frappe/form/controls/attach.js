@@ -68,6 +68,11 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			options.docname = this.frm.docname;
 		}
 
+		if (this.doc) {
+			options.doctype = this.doc.doctype;
+			options.docname = this.doc.name;
+		}
+
 		if (this.df.options) {
 			Object.assign(options, this.df.options);
 		}
