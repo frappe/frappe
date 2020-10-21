@@ -42,7 +42,7 @@ class UserProfile {
 	}
 
 	make_user_profile() {
-		frappe.set_route('user-profile', this.user_id);
+		frappe.set_route('user-profile', this.user_id, { redirect: true });
 		this.user = frappe.user_info(this.user_id);
 		this.page.set_title(this.user.fullname);
 		this.setup_user_search();
