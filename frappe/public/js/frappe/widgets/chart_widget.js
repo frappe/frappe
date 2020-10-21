@@ -540,10 +540,7 @@ export default class ChartWidget extends Widget {
 			const chart_args = this.get_chart_args();
 
 			if (!this.dashboard_chart) {
-				this.dashboard_chart = new frappe.Chart(
-					this.chart_wrapper[0],
-					chart_args
-				);
+				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
 			} else {
 				this.dashboard_chart.update(this.data);
 			}
@@ -570,11 +567,7 @@ export default class ChartWidget extends Widget {
 			type: chart_type_map[this.chart_doc.type],
 			colors: colors,
 			height: this.height,
-			axisOptions: {
-				xIsSeries: this.chart_doc.timeseries,
-				shortenYAxisNumbers: 1,
-				xAxisMode: 'tick'
-			}
+			axisOptions: {xIsSeries: this.chart_doc.timeseries}
 		};
 
 		if (this.chart_doc.type == "Heatmap") {

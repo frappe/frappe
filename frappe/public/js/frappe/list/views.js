@@ -132,6 +132,7 @@ frappe.views.Views = class Views {
 
 
 	setup_dropdown_in_sidebar(view, items, default_action) {
+		if (!this.sidebar) return;
 		const views_wrapper = this.sidebar.sidebar.find('.views-section');
 		views_wrapper.find('.sidebar-label').html(`${__(view)}`);
 		const $dropdown = views_wrapper.find('.views-dropdown');
@@ -203,12 +204,11 @@ frappe.views.Views = class Views {
 	setup_kanban_boards() {
 		const last_opened_kanban = frappe.model.user_settings[this.doctype]['Kanban']
 			&& frappe.model.user_settings[this.doctype]['Kanban'].last_kanban_board;
-
-	if (last_opened_kanban) {
-		frappe.set_route(`List/${this.doctype}/Kanban/${last_opened_kanban}`);
-	} else {
+		if (last_opened_kanban) {
+			frappe.set_route(`List/${this.doctype}/Kanban/${last_opened_kanban}`);
+		} else {
 			frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
-	}
+		}
 	}
 
 	get_calendars() {

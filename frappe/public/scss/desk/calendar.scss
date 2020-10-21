@@ -198,6 +198,14 @@ th.fc-day-header {
 	width: 60px !important;
 }
 
+.fc-now-indicator {
+	border-color: var(--primary) !important;
+}
+
+.fc-now-indicator-arrow {
+	display: none !important;
+}
+
 // REDESIGN-TODO: Fix color palette
 // @mixin fc-bg-color($color){
 // 	$light: #{"${color}-light"};

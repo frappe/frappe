@@ -322,15 +322,29 @@ body[data-route^="Module"] .main-menu {
 		.dropdown-item {
 			display: flex;
 			justify-content: space-between;
+			position: relative;
 			&:hover {
 				text-decoration: none;
 			}
+			.applied {
+				position: absolute;
+				left: 10px;
+				.icon use {
+					stroke-width: 2;
+				}
+			}
 		}
-
 		.empty-state {
 			padding: 10px 15px;
 			text-align: center;
 			color: $text-muted;
+		}
+	}
+
+	.dropdown-menu.has-selected {
+		.dropdown-item {
+			padding-left: var(--padding-xl);
+			padding-right: var(--padding-md);
 		}
 	}
 

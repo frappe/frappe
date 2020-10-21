@@ -1031,5 +1031,28 @@ Object.assign(frappe.utils, {
 		return `<svg class="icon icon-${size}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
-	}
+	},
+
+	make_chart(wrapper, custom_options={}) {
+		let chart_args = {
+			type: 'bar',
+			colors: ['light-blue'],
+			axisOptions: {
+				xIsSeries: 1,
+				shortenYAxisNumbers: 1,
+				xAxisMode: 'tick'
+			}
+		};
+
+		for (let key in custom_options) {
+			if (typeof chart_args[key] === 'object' && typeof custom_options[key] === 'object') {
+				chart_args[key] = Object.assign(chart_args[key], custom_options[key])
+			} else {
+				chart_args[key] = custom_options[key];
+			}
+		}
+
+		return new frappe.Chart(wrapper, chart_args);
+	},
+
 });

@@ -75,8 +75,7 @@ frappe.ui.FilterGroup = class {
 		});
 
 		this.filter_button.on('hidden.bs.popover', (e) => {
-			this.update_filters();
-			this.on_change();
+			this.apply();
 		});
 
 		// REDESIGN-TODO: (Temporary) Review and find best solution for this
@@ -93,6 +92,11 @@ frappe.ui.FilterGroup = class {
 			filter.field = null;
 			filter.make();
 		});
+	}
+
+	apply() {
+		this.update_filters();
+		this.on_change();
 	}
 
 	update_filter_button() {
@@ -127,8 +131,7 @@ frappe.ui.FilterGroup = class {
 
 		this.wrapper.find('.apply-filters').on('click', () => {
 			this.toggle_empty_filters(false);
-			this.update_filters();
-			this.on_change();
+			this.apply();
 		});
 	}
 
