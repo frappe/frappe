@@ -69,6 +69,7 @@ def get_print_format_doc(print_format_name, meta):
 			return None
 
 def handle_contextual_settings(doc, print_settings, settings):
+	template_method_map = {}
 	for key in settings:
 		child_doc = None
 		setting = settings[key]
@@ -79,7 +80,10 @@ def handle_contextual_settings(doc, print_settings, settings):
 			fieldname = setting.get('child_field')
 			child_doc = doc.get(fieldname) and doc.get(fieldname)[0]
 
-		frappe.get_attr(setting['set_template'])(child_doc or doc, value)
+		template_method_map[setting.get('set_template')] = child_doc or doc
+
+	for method in template_method_map:
+		frappe.get_attr(method)(template_method_map[method], print_settings)
 
 	return print_settings
 
