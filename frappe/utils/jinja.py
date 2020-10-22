@@ -193,7 +193,7 @@ def inspect(var, render=True):
 	return get_jenv().from_string(html).render(context)
 
 
-def web_block(template, values, **kwargs):
+def web_block(template, values=None, **kwargs):
 	options = {"template": template, "values": values}
 	options.update(kwargs)
 	return web_blocks([options])
@@ -212,9 +212,9 @@ def web_blocks(blocks):
 			'doctype': 'Web Page Block',
 			'web_template': block['template'],
 			'web_template_values': block.get('values', {}),
-			'add_top_padding': 0,
-			'add_bottom_padding': 0,
-			'add_container': 0,
+			'add_top_padding': 1,
+			'add_bottom_padding': 1,
+			'add_container': 1,
 			'hide_block': 0,
 			'css_class': ''
 		})

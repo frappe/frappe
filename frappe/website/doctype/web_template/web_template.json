@@ -36,6 +36,7 @@
    "label": "Standard"
   },
   {
+   "default": "Section",
    "fieldname": "type",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -58,7 +59,7 @@
    "link_fieldname": "web_template"
   }
  ],
- "modified": "2020-10-19 14:44:16.694730",
+ "modified": "2020-10-22 17:36:45.042517",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",

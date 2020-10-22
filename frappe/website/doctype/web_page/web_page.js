@@ -20,7 +20,13 @@ frappe.ui.form.on('Web Page', {
 		frm.events.layout(frm);
 	},
 	onload: function(frm) {
-		frm.trigger('set_filters_on_web_page_blocks');
+		frm.set_query('web_template', 'page_blocks', function() {
+			return {
+				filters: {
+					"type": 'Section'
+				}
+			};
+		});
 	},
 	refresh: function(frm) {
 		if (frm.doc.template_path) {
@@ -41,20 +47,6 @@ frappe.ui.form.on('Web Page', {
 			end_date.setSeconds(end_date.getSeconds() + 5);
 
 			frm.set_value('end_date', end_date);
-		}
-	},
-	content_type: function(frm) {
-		frm.trigger('set_filters_on_web_page_blocks');
-	},
-	set_filters_on_web_page_blocks: function(frm) {
-		if (frm.doc.content_type === 'Page Builder') {
-			frm.set_query('web_template', 'page_blocks', function() {
-				return {
-					"filters": {
-						"type": ['!=', 'Component']
-					}
-				};
-			});
 		}
 	},
 	set_meta_tags(frm) {
