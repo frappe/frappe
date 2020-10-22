@@ -27,7 +27,7 @@ export default class OnboardingWidget extends Widget {
 
 		let $step = $(`<a class="onboarding-step ${status}">
 				<div class="step-title">
-					<div class="step-index step-pending">${ __(index + 1) }</div>
+					<div class="step-index step-pending">${__(index + 1)}</div>
 					<div class="step-index step-skipped">${frappe.utils.icon('tick', 'xs')}</div>
 					<div class="step-index step-complete">${frappe.utils.icon('tick', 'xs')}</div>
 					<div>${step.title}</div>
@@ -83,7 +83,11 @@ export default class OnboardingWidget extends Widget {
 			this.step_body.empty();
 			this.step_footer.empty();
 
-			this.step_body.html(frappe.markdown(step.description) || `<h1>${step.title}</h1>`)
+			this.step_body.html(
+				step.description ?
+					frappe.markdown(step.description)
+					: `<h1>${step.title}</h1>`
+			)
 
 			if (step.intro_video_url) {
 				$(`<button class="btn btn-primary btn-sm">${__('Watch Tutorial')}</button>`)
@@ -110,9 +114,14 @@ export default class OnboardingWidget extends Widget {
 			$(`<button class="btn btn-primary btn-sm">${__(step.action)}</button>`)
 				.appendTo(this.step_footer)
 				.on('click', () => {
-					plyr.pause()
-					actions[step.action](step)
+					plyr.pause();
+					actions[step.action](step);
 				});
+
+			// Fire only once, on hashchange
+			$(window).one('hashchange', () => {
+				plyr.pause();
+			})
 
 			$(`<button class="btn btn-secondary ml-2 btn-sm">${__('Back')}</button>`)
 				.appendTo(this.step_footer)

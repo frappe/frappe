@@ -22,6 +22,9 @@
  "use_ssl": 0,
  "auto_email_id": "hello@example.com",
 
+ "google_analytics_id": "google_analytics_id",
+ "google_analytics_anonymize_ip": 1,
+
  "google_login": {
 	 "client_id": "google_client_id",
 	 "client_secret": "google_client_secret"

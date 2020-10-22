@@ -4,7 +4,7 @@
 
 
 frappe.ui.form.Review = class Review {
-	constructor({parent, frm}) {
+	constructor({ parent, frm }) {
 		this.parent = parent;
 		this.frm = frm;
 		this.points = frappe.boot.points;
@@ -49,7 +49,7 @@ frappe.ui.form.Review = class Review {
 		const docinfo = this.frm.get_docinfo();
 
 		involved_users = involved_users.concat(
-			docinfo.communications.map(d => d.sender && d.delivery_status==='sent'),
+			docinfo.communications.map(d => d.sender && d.delivery_status === 'sent'),
 			docinfo.comments.map(d => d.owner),
 			docinfo.versions.map(d => d.owner),
 			docinfo.assignments.map(d => d.owner)
@@ -89,7 +89,7 @@ frappe.ui.form.Review = class Review {
 				fieldtype: 'Int',
 				label: __('Points'),
 				reqd: 1,
-				description: __(`Currently you have ${this.points.review_points} review points`)
+				description: __("Currently you have {0} review points", [this.points.review_points])
 			}, {
 				fieldtype: 'Small Text',
 				fieldname: 'reason',
@@ -132,7 +132,7 @@ frappe.ui.form.Review = class Review {
 		this.reviews.empty();
 		review_logs.forEach(log => {
 			let review_pill = $(`
-				<li class="review ${log.points < 0 ? 'criticism': 'appreciation'}">
+				<li class="review ${log.points < 0 ? 'criticism' : 'appreciation'}">
 					<div>
 						${Math.abs(log.points)}
 					</div>
@@ -166,7 +166,7 @@ frappe.ui.form.Review = class Review {
 			delay: 500,
 			placement: 'top',
 			template: `
-				<div class="popover" role="tooltip">
+				<div class="review-popover popover" role="tooltip">
 					<div class="arrow"></div>
 					<h3 class="popover-header"></h3>
 					<div class="popover-body">

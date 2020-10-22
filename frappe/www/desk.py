@@ -46,6 +46,7 @@ def get_context(context):
 		"desk_theme": desk_theme or "Light",
 		"csrf_token": csrf_token,
 		"google_analytics_id": frappe.conf.get("google_analytics_id"),
+		"google_analytics_anonymize_ip": frappe.conf.get("google_analytics_anonymize_ip"),
 		"mixpanel_id": frappe.conf.get("mixpanel_id")
 	})
 

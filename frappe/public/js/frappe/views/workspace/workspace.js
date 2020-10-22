@@ -295,6 +295,7 @@ class DesktopPage {
 	}
 
 	save_customization() {
+		frappe.dom.freeze();
 		const config = {};
 
 		if (this.sections.charts) config.charts = this.sections.charts.get_widget_config();
@@ -305,6 +306,7 @@ class DesktopPage {
 			page: this.page_name,
 			config: config
 		}).then(res => {
+			frappe.dom.unfreeze();
 			if (res.message) {
 				frappe.show_alert({ message: __("Customizations Saved Successfully"), indicator: "green" });
 				this.reload();
@@ -312,7 +314,7 @@ class DesktopPage {
 				frappe.throw({ message: __("Something went wrong while saving customizations"), indicator: "red" });
 				this.reload();
 			}
-		});
+		})
 	}
 
 	reset_customization() {
@@ -326,7 +328,7 @@ class DesktopPage {
 
 	make_onboarding() {
 		this.onboarding_widget = frappe.widget.make_widget({
-			label: this.data.onboarding.label || __(`Let's Get Started`),
+			label: this.data.onboarding.label || __("Let's Get Started"),
 			subtitle: this.data.onboarding.subtitle,
 			steps: this.data.onboarding.items,
 			success: this.data.onboarding.success,
@@ -392,7 +394,7 @@ class DesktopPage {
 
 	make_cards() {
 		let cards = new frappe.widget.WidgetGroup({
-			title: this.data.cards.label || __(`Reports & Masters`),
+			title: this.data.cards.label || __("Reports & Masters"),
 			container: this.page,
 			type: "links",
 			columns: 3,

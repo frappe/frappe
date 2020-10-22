@@ -292,7 +292,7 @@ def is_website_user():
 	return frappe.db.get_value('User', frappe.session.user, 'user_type') == "Website User"
 
 def is_system_user(username):
-	return frappe.db.get_value("User", {"name": username, "enabled": 1, "user_type": "System User"})
+	return frappe.db.get_value("User", {"email": username, "enabled": 1, "user_type": "System User"})
 
 def get_users():
 	from frappe.core.doctype.user.user import get_system_users
