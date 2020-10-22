@@ -26,6 +26,7 @@ class Comment(Document):
 	def validate(self):
 		if not self.comment_email:
 			self.comment_email = frappe.session.user
+		self.content = frappe.utils.sanitize_html(self.content)
 
 	def on_update(self):
 		update_comment_in_doc(self)
