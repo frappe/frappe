@@ -50,9 +50,15 @@ class Report(Document):
 
 	def on_trash(self):
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 		if (self.is_standard == 'Yes' and
 			not cint(getattr(frappe.local.conf, 'developer_mode',0)) and not frappe.flags.in_patch):
+=======
+		if (self.is_standard == 'Yes' 
+		    and not cint(getattr(frappe.local.conf, 'developer_mode', 0)) 
+		    and not frappe.flags.in_patch):
+>>>>>>> 04378660f8... style: Fix formatting
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 >>>>>>> bd0bc62f12... fix: patch not able to delete standard report
 		delete_custom_role('report', self.name)
