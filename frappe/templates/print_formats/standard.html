@@ -1,5 +1,5 @@
 {%- from "templates/print_formats/standard_macros.html" import add_header,
-	 render_field -%}
+	render_field -%}
 
 {% for page in layout %}
 <div class="page-break">
@@ -21,19 +21,19 @@
 	{% endif %}
 
 	{% for section in page %}
-    <div class="row section-break" data-label="{{ section.label or '' | e }}">
+	<div class="row section-break" data-label="{{ section.label or '' | e }}">
 		{%- if doc.print_line_breaks and loop.index != 1 -%}<hr>{%- endif -%}
 		{%- if doc.print_section_headings and section.label and section.has_data -%}
 		<h4 class='col-sm-12'>{{ _(section.label) }}</h4>
 		{%- endif -%}
-        {% for column in section.columns %}
-			<div class="col-xs-{{ (12 / section.columns|len)|int }} column-break">
-            {% for df in column.fields %}
-                {{ render_field(df, doc) }}
-            {% endfor %}
+		{% for column in section.columns %}
+			<div class="col-{{ (12 / section.columns|len)|int }} column-break">
+			{% for df in column.fields %}
+				{{ render_field(df, doc) }}
+			{% endfor %}
 			</div>
-        {% endfor %}
-    </div>
-    {% endfor %}
+		{% endfor %}
+	</div>
+	{% endfor %}
 </div>
 {% endfor %}

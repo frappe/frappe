@@ -30,6 +30,12 @@ def get_context(context):
 	else:
 		doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 
+	if frappe.form_dict.settings:
+		settings = frappe.parse_json(frappe.form_dict.settings)
+
+	if frappe.form_dict.letterhead:
+		letterhead = frappe.form_dict.letterhead
+
 	meta = frappe.get_meta(doc.doctype)
 
 	print_format = get_print_format_doc(None, meta = meta)
@@ -39,7 +45,8 @@ def get_context(context):
 	return {
 		"body": get_rendered_template(doc, print_format = print_format,
 			meta=meta, trigger_print = frappe.form_dict.trigger_print,
-			no_letterhead=frappe.form_dict.no_letterhead),
+			no_letterhead=frappe.form_dict.no_letterhead, letterhead=letterhead,
+			settings=settings),
 		"css": get_print_style(frappe.form_dict.style, print_format),
 		"comment": frappe.session.user,
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name,
@@ -61,10 +68,28 @@ def get_print_format_doc(print_format_name, meta):
 			# if old name, return standard!
 			return None
 
+def handle_contextual_settings(doc, print_settings, settings):
+	for key in settings:
+		child_doc = None
+		setting = settings[key]
+		value = setting['value']
+		print_settings[key] = value
+
+		if setting.get('child_field'):
+			fieldname = setting.get('child_field')
+			child_doc = doc.get(fieldname) and doc.get(fieldname)[0]
+
+		frappe.get_attr(setting['set_template'])(child_doc or doc, value)
+
+	return print_settings
+
 def get_rendered_template(doc, name=None, print_format=None, meta=None,
-	no_letterhead=None, trigger_print=False):
+	no_letterhead=None, letterhead=None, trigger_print=False,
+	settings=None):
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
+	if settings:
+		print_settings = handle_contextual_settings(doc, print_settings, settings)
 
 	if isinstance(no_letterhead, string_types):
 		no_letterhead = cint(no_letterhead)
@@ -135,7 +160,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 	if template == "standard":
 		template = jenv.get_template(standard_format)
 
-	letter_head = frappe._dict(get_letter_head(doc, no_letterhead) or {})
+	letter_head = frappe._dict(get_letter_head(doc, no_letterhead, letterhead) or {})
 
 	if letter_head.content:
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
@@ -153,7 +178,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		"trigger_print": cint(trigger_print),
 		"letter_head": letter_head.content,
 		"footer": letter_head.footer,
-		"print_settings": frappe.get_doc("Print Settings")
+		"print_settings": print_settings
 	}
 
 	html = template.render(args, filters={"len": len})
@@ -173,7 +198,8 @@ def convert_markdown(doc, meta):
 
 @frappe.whitelist()
 def get_html_and_style(doc, name=None, print_format=None, meta=None,
-	no_letterhead=None, trigger_print=False, style=None):
+	no_letterhead=None, letterhead=None, trigger_print=False, style=None,
+	settings=None, templates=None):
 	"""Returns `html` and `style` of print format, used in PDF etc"""
 
 	if isinstance(doc, string_types) and isinstance(name, string_types):
@@ -186,7 +212,8 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 
 	try:
 		html = get_rendered_template(doc, name=name, print_format=print_format, meta=meta,
-			no_letterhead=no_letterhead, trigger_print=trigger_print)
+			no_letterhead=no_letterhead, letterhead=letterhead, trigger_print=trigger_print,
+			settings=frappe.parse_json(settings))
 	except frappe.TemplateNotFoundError:
 		frappe.clear_last_message()
 		html = None
@@ -226,9 +253,11 @@ def validate_print_permission(doc):
 			and not frappe.has_website_permission(doc)):
 			raise frappe.PermissionError(_("No {0} permission").format(ptype))
 
-def get_letter_head(doc, no_letterhead):
+def get_letter_head(doc, no_letterhead, letterhead=None):
 	if no_letterhead:
 		return {}
+	if letterhead:
+		return frappe.db.get_value("Letter Head", letterhead, ["content", "footer"], as_dict=True)
 	if doc.get("letter_head"):
 		return frappe.db.get_value("Letter Head", doc.letter_head, ["content", "footer"], as_dict=True)
 	else:
@@ -411,7 +440,7 @@ def get_print_style(style=None, print_format=None, for_legacy=False):
 	return css
 
 def get_font(print_settings, print_format=None, for_legacy=False):
-	default = '"Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif'
+	default = 'Inter, "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif'
 	if for_legacy:
 		return default
 

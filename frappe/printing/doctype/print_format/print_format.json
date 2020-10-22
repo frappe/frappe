@@ -153,7 +153,7 @@
    "fieldname": "font",
    "fieldtype": "Select",
    "label": "Font",
-   "options": "Default\nArial\nHelvetica\nVerdana\nMonospace"
+   "options": "Default\nHelvetica Neue\nArial\nHelvetica\nVerdana\nMonospace"
   },
   {
    "depends_on": "eval:!doc.raw_printing",
@@ -202,7 +202,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-29 11:44:59.082797",
+ "modified": "2020-10-22 14:58:03.261063",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

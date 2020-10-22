@@ -1,2 +1,137 @@
-@import '~bootstrap/scss/bootstrap';
+@import "~bootstrap/scss/bootstrap";
 @import './desk/quill';
+
+.col-xs-1 { @extend .col-md-1; }
+.col-xs-2 { @extend .col-md-2; }
+.col-xs-3 { @extend .col-3; }
+.col-xs-4 { @extend .col-4; }
+.col-xs-5 { @extend .col-md-5; }
+.col-xs-6 { @extend .col-6; }
+.col-xs-7 { @extend .col-7; }
+.col-xs-8 { @extend .col-8; }
+.col-xs-9 { @extend .col-9; }
+.col-xs-10 { @extend .col-10; }
+.col-xs-11 { @extend .col-11; }
+.col-xs-12 { @extend .col-12; }
+
+// @media print {
+// 	*,
+// 	*:before,
+// 	*:after {
+// 	  color: #000;
+// 	  background: transparent;
+// 	  text-shadow: none !important;
+// 	  -webkit-box-shadow: none !important;
+// 			  box-shadow: none !important;
+// 	}
+// 	a,
+// 	a:visited {
+// 	  text-decoration: underline;
+// 	}
+// 	abbr[title]:after {
+// 	  content: " (" attr(title) ")";
+// 	}
+// 	a[href^="#"]:after,
+// 	a[href^="javascript:"]:after {
+// 	  content: "";
+// 	}
+// 	pre,
+// 	blockquote {
+// 	  border: 1px solid #999;
+
+// 	  page-break-inside: avoid;
+// 	}
+// 	thead {
+// 	  display: table-header-group;
+// 	}
+// 	tr,
+// 	img {
+// 	  page-break-inside: avoid;
+// 	}
+// 	img {
+// 	  max-width: 100% !important;
+// 	}
+// 	p,
+// 	h2,
+// 	h3 {
+// 	  orphans: 3;
+// 	  widows: 3;
+// 	}
+// 	h2,
+// 	h3 {
+// 	  page-break-after: avoid;
+// 	}
+// 	select {
+// 	  background: #fff !important;
+// 	}
+// 	.navbar {
+// 	  display: none;
+// 	}
+// 	.btn > .caret,
+// 	.dropup > .btn > .caret {
+// 	  border-top-color: #000 !important;
+// 	}
+// 	.label {
+// 	  border: 1px solid #000;
+// 	}
+// 	.table {
+// 	  border-collapse: collapse !important;
+// 	}
+// 	.table td,
+// 	.table th {
+// 	  background-color: #fff;
+// 	}
+// 	.table-bordered th,
+// 	.table-bordered td {
+// 	  border: 1px solid #ddd;
+// 	}
+//   }
+
+
+//   .visible-print {
+//     display: none !important;
+//   }
+//   @media print {
+//     .visible-print {
+//       display: block !important;
+//     }
+//     table.visible-print {
+//       display: table;
+//     }
+//     tr.visible-print {
+//       display: table-row !important;
+//     }
+//     th.visible-print,
+//     td.visible-print {
+//       display: table-cell !important;
+//     }
+//   }
+//   .visible-print-block {
+//     display: none !important;
+//   }
+//   @media print {
+//     .visible-print-block {
+//       display: block !important;
+//     }
+//   }
+//   .visible-print-inline {
+//     display: none !important;
+//   }
+//   @media print {
+//     .visible-print-inline {
+//       display: inline !important;
+//     }
+//   }
+//   .visible-print-inline-block {
+//     display: none !important;
+//   }
+//   @media print {
+//     .visible-print-inline-block {
+//       display: inline-block !important;
+//     }
+//   }
+//   @media print {
+//     .hidden-print {
+//       display: none !important;
+//     }
+//   }

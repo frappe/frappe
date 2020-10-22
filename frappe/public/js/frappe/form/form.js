@@ -91,7 +91,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.add_nav_keyboard_shortcuts();
 
 		// print layout
-		this.setup_print_layout();
+		// this.setup_print_layout();
 
 		// 2 column layout
 		this.setup_std_layout();
@@ -137,16 +137,16 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 	}
 
-	setup_print_layout() {
-		this.print_preview = new frappe.ui.form.PrintPreview({
-			frm: this
-		});
+	// setup_print_layout() {
+	// 	this.print_preview = new frappe.ui.form.PrintPreview({
+	// 		frm: this
+	// 	});
 
-		// show edit button for print view
-		this.page.wrapper.on('view-change', () => {
-			this.toolbar.set_primary_action();
-		});
-	}
+	// 	// show edit button for print view
+	// 	this.page.wrapper.on('view-change', () => {
+	// 		this.toolbar.set_primary_action();
+	// 	});
+	// }
 
 	setup_std_layout() {
 		this.form_wrapper 	= $('<div></div>').appendTo(this.layout_main);
@@ -295,9 +295,9 @@ frappe.ui.form.Form = class FrappeForm {
 			this.trigger_onload(switched);
 
 			// if print format is shown, refresh the format
-			if(this.print_preview.wrapper.is(":visible")) {
-				this.print_preview.preview();
-			}
+			// if(this.print_preview.wrapper.is(":visible")) {
+			// 	this.print_preview.preview();
+			// }
 
 			if(switched) {
 				if(this.show_print_first && this.doc.docstatus===1) {
@@ -371,11 +371,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 	switch_doc(docname) {
 		// record switch
-		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
-			if (this.print_preview) {
-				this.print_preview.hide();
-			}
-		}
+		// if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
+			// if (this.print_preview) {
+			// 	this.print_preview.hide();
+			// }
+		// }
 		// reset visible columns, since column headings can change in different docs
 		this.grids.forEach(grid_obj => {
 			grid_obj.grid.visible_columns = null
@@ -1014,7 +1014,10 @@ frappe.ui.form.Form = class FrappeForm {
 	// ACTIONS
 
 	print_doc() {
-		this.print_preview.toggle();
+		frappe.route_options = {
+			frm: this,
+		}
+		frappe.set_route('print', this.doctype, this.doc.name);
 	}
 
 	navigate_records(prev) {

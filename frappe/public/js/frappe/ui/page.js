@@ -615,10 +615,13 @@ frappe.ui.Page = Class.extend({
 		//
 	},
 
-	add_button: function(label, click, button_class, button_size) {
-		if (!button_class) button_class = "btn-default";
-		if (!button_size) button_size = "btn-sm";
-		let button = $(`<button class="btn ${button_class} ${button_size} ellipsis">${label}</button>`);
+	add_button: function(label, click, opts) {
+		if (!opts) opts = {};
+		let button = $(`<button
+			class="btn ${opts.btn_class || 'btn-default'} ${opts.btn_size || 'btn-sm'} ellipsis">
+				${opts.icon ? frappe.utils.icon(opts.icon): ''}
+				${label}
+		</button>`);
 		button.appendTo(this.custom_actions);
 		button.on('click', click);
 		this.custom_actions.removeClass('hide');
