@@ -48,6 +48,7 @@
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
+   "mandatory_depends_on": "standard",
    "options": "Module Def"
   }
  ],
@@ -58,7 +59,7 @@
    "link_fieldname": "web_template"
   }
  ],
- "modified": "2020-09-25 00:48:57.902292",
+ "modified": "2020-10-20 15:08:57.027962",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
