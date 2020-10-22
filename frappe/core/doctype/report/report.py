@@ -56,9 +56,14 @@ class Report(Document):
 			not cint(getattr(frappe.local.conf, 'developer_mode',0)) and not frappe.flags.in_patch):
 =======
 		if (self.is_standard == 'Yes' 
+<<<<<<< HEAD
 		    and not cint(getattr(frappe.local.conf, 'developer_mode', 0)) 
 		    and not frappe.flags.in_patch):
 >>>>>>> 04378660f8... style: Fix formatting
+=======
+			and not cint(getattr(frappe.local.conf, 'developer_mode', 0)) 
+			and not frappe.flags.in_patch):
+>>>>>>> 82a5120561... style: Use tabs instead of spaces
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 >>>>>>> bd0bc62f12... fix: patch not able to delete standard report
 		delete_custom_role('report', self.name)
