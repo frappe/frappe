@@ -49,6 +49,10 @@ class Report(Document):
 		self.export_doc()
 
 	def on_trash(self):
+		if (self.is_standard == 'Yes' 
+			and not cint(getattr(frappe.local.conf, 'developer_mode', 0)) 
+			and not frappe.flags.in_patch):
+			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role('report', self.name)
 
 	def get_columns(self):

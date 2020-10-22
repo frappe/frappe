@@ -49,6 +49,7 @@
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
+   "mandatory_depends_on": "standard",
    "options": "Module Def"
   }
  ],
