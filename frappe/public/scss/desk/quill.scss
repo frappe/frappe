@@ -132,10 +132,12 @@
 	border: 1px solid var(--border-color);
 }
 
-.ql-snow .ql-editor blockquote {
+.ql-editor blockquote {
+	border-left: 4px solid var(--gray-300);
+	padding-left: var(--padding-sm);
 	font-size: var(--text-sm);
-	margin-top: 0px;
-	margin-bottom: 0px;
+	margin-top: 0px !important;
+	margin-bottom: 0px !important;
 }
 
 .ql-editor.read-mode {
