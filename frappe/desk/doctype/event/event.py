@@ -215,17 +215,13 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 			)
 		{reminder_condition}
 		{filter_condition}
-		AND (
-				`tabEvent`.event_type='Public'
-				OR `tabEvent`.owner=%(user)s
-				OR EXISTS(
-					SELECT `tabDocShare`.name
-					FROM `tabDocShare`
-					WHERE `tabDocShare`.share_doctype='Event'
-						AND `tabDocShare`.share_name=`tabEvent`.name
-						AND `tabDocShare`.user=%(user)s
-				)
-			)
+		OR EXISTS(
+			SELECT `tabDocShare`.name
+			FROM `tabDocShare`
+			WHERE `tabDocShare`.share_doctype='Event'
+				AND `tabDocShare`.share_name=`tabEvent`.name
+				AND `tabDocShare`.user=%(user)s
+		)
 		AND `tabEvent`.status='Open'
 		ORDER BY `tabEvent`.starts_on""".format(
 			tables=", ".join(tables),
