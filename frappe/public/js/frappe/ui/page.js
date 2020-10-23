@@ -607,6 +607,11 @@ frappe.ui.Page = Class.extend({
 			df.placeholder = df.label;
 		}
 
+		var key = df.fieldname || df.label;
+		if (df.fieldtype != 'HTML' && this.fields_dict[key]) {
+			frappe.throw(`Attempt to add duplicate field ${key} to page.`);
+		}
+
 		var f = frappe.ui.form.make_control({
 			df: df,
 			parent: this.page_form,
@@ -639,11 +644,12 @@ frappe.ui.Page = Class.extend({
 
 		if(df["default"])
 			f.set_input(df["default"])
-		this.fields_dict[df.fieldname || df.label] = f;
+		this.fields_dict[key] = f;
 		return f;
 	},
 	clear_fields: function() {
 		this.page_form.empty();
+		this.fields_dict = {};
 	},
 	show_form: function() {
 		this.page_form.removeClass("hide");

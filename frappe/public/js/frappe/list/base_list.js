@@ -595,30 +595,26 @@ class FilterArea {
 	}
 
 	make_standard_filters() {
-		let fields = [
-			{
-				fieldtype: 'Data',
-				label: 'Name',
-				condition: 'like',
-				fieldname: 'name',
-				onchange: () => this.refresh_list_view()
-			}
-		];
-
-		if(this.list_view.custom_filter_configs) {
-			this.list_view.custom_filter_configs.forEach(config => {
-				config.onchange = () => this.refresh_list_view();
-			});
-
-			fields = fields.concat(this.list_view.custom_filter_configs);
+		if (this.list_view.custom_filter_configs && this.list_view.custom_filter_configs[0].fieldname === "_ignore_all") {
+			return;
 		}
 
-		const doctype_fields = this.list_view.meta.fields;
+		let fieldsd = { name: {
+			fieldtype: 'Data',
+			label: 'Name',
+			condition: 'like',
+			fieldname: 'name',
+			onchange: () => this.refresh_list_view()
+		}};
+
 		const title_field = this.list_view.meta.title_field;
 
-		fields = fields.concat(doctype_fields.filter(
-			df => (df.fieldname === title_field) || (df.in_standard_filter && frappe.model.is_value_type(df.fieldtype))
-		).map(df => {
+		for (const df of this.list_view.meta.fields) {
+			const standard_value_field = df.in_standard_filter
+				&& frappe.model.is_value_type(df.fieldtype);
+			if (df.fieldname !== title_field && !standard_value_field) {
+				continue;
+			}
 			let options = df.options;
 			let condition = '=';
 			let fieldtype = df.fieldtype;
@@ -637,7 +633,7 @@ class FilterArea {
 			if (['__default', '__global'].includes(default_value)) {
 				default_value = null;
 			}
-			return {
+			fieldsd[df.fieldname] = {
 				fieldtype: fieldtype,
 				label: __(df.label),
 				options: options,
@@ -648,9 +644,23 @@ class FilterArea {
 				ignore_link_validation: fieldtype === 'Dynamic Link',
 				is_filter: 1,
 			};
-		}));
+		}
 
-		fields.map(df => this.list_view.page.add_field(df));
+		if (this.list_view.custom_filter_configs) {
+			this.list_view.custom_filter_configs.forEach(config => {
+				config.onchange = () => this.refresh_list_view();
+				// Allow custom filter configs to override standard ones:
+				fieldsd[config.fieldname] = config;
+			});
+		}
+
+		for (const key in fieldsd) {
+			const df = fieldsd[key];
+			if (df.ignore) {
+				continue;
+			}
+			this.list_view.page.add_field(df);
+		}
 	}
 
 	get_standard_filters() {
