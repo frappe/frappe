@@ -167,9 +167,9 @@ frappe.PrintFormatBuilder = Class.extend({
 	setup_sidebar: function() {
 		// prepend custom HTML field
 		var fields = [this.get_custom_html_field()].concat(this.meta.fields);
-		$(frappe.render_template("print_format_builder_sidebar",
-			{fields: fields}))
-			.appendTo(this.page.sidebar);
+		this.page.sidebar.html(
+			$(frappe.render_template("print_format_builder_sidebar", {fields: fields}))
+		);
 		this.setup_field_filter();
 	},
 	get_custom_html_field: function() {
