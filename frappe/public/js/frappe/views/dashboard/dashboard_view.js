@@ -61,7 +61,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				this.save_dashboard_customization();
 				this.page.standard_actions.show();
 			},
-			'btn-primary'
+			{btn_class: 'btn-primary'}
 		);
 
 		this.discard_customizations_button = this.page.add_button(
