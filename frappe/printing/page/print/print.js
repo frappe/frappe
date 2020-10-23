@@ -56,7 +56,10 @@ frappe.ui.form.PrintView = class {
 	}
 
 	setup_toolbar() {
-		this.page.set_primary_action(__('Print'), () => this.printit(), 'printer');
+		this.page.set_primary_action(
+			__('Print'),
+			() => this.printit(), 'printer'
+		);
 
 		// this.page.add_button(
 		// 	__('Form'),
@@ -75,7 +78,9 @@ frappe.ui.form.PrintView = class {
 			{ icon: 'small-file' }
 		);
 
-		this.page.add_button(frappe.utils.icon('refresh'), () => this.refresh_print_format()
+		this.page.add_button(
+			frappe.utils.icon('refresh'),
+			() => this.refresh_print_format()
 		);
 	}
 
@@ -88,17 +93,22 @@ frappe.ui.form.PrintView = class {
 			{
 				fieldtype: 'Select',
 				fieldname: 'print_format',
-				options: [__('Standard')],
+				label: 'Print Format',
+				options: [this.get_default_option_for_select(__('Select Print Format'))],
 				change: () => this.refresh_print_format(),
 			},
-			__('Standard')
+			__('Select Print Format')
 		).$input;
 
 		this.language_sel = this.add_sidebar_item(
 			{
 				fieldtype: 'Select',
 				fieldname: 'language',
-				options: [__('Select Language'), ...this.get_language_options()],
+				placeholder: 'Language',
+				options: [
+					this.get_default_option_for_select(__('Select Language')),
+					...this.get_language_options()
+				],
 				change: () => {
 					this.set_user_lang();
 					this.preview();
@@ -107,27 +117,20 @@ frappe.ui.form.PrintView = class {
 			__('Select Language')
 		).$input;
 
-		this.print_letterhead = this.add_sidebar_item(
-			{
-				fieldtype: 'Check',
-				label: 'Letterhead',
-				fieldname: 'show_letterhead',
-				change: () => {
-					this.toggle_letterhead_selector();
-					this.preview();
-				},
-			},
-			Boolean(this.print_settings.with_letterhead)
-		).$input;
-
 		this.letterhead_selector = this.add_sidebar_item(
 			{
 				fieldtype: 'Select',
 				fieldname: 'letterhead',
-				options: [__('Select Letterhead')],
+				label: __('Select Letterhead'),
+				options: [
+					this.get_default_option_for_select(__('Select Letterhead')),
+					__('No Letterhead')
+				],
 				change: () => this.preview(),
 			},
-			__('Select Letterhead')
+			this.print_settings.with_letterhead
+				? __('No Letterhead')
+				: __('Select Letterhead')
 		).$input;
 
 		this.sidebar_dynamic_section = $(
@@ -139,6 +142,7 @@ frappe.ui.form.PrintView = class {
 		if (df.fieldtype == 'Select') {
 			df.input_class = 'btn btn-default btn-sm';
 		}
+
 		let field = frappe.ui.form.make_control({
 			df: df,
 			parent: is_dynamic ? this.sidebar_dynamic_section : this.sidebar,
@@ -150,8 +154,12 @@ frappe.ui.form.PrintView = class {
 		return field;
 	}
 
-	toggle_letterhead_selector() {
-		this.letterhead_selector.parent().toggle(Boolean(this.with_letterhead()));
+	get_default_option_for_select(value) {
+		return {
+			label: value,
+			value: value,
+			disabled: true
+		}
 	}
 
 	setup_menu() {
@@ -349,7 +357,10 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_letterhead_options() {
-		let letterhead_options = [];
+		let letterhead_options = [
+			this.get_default_option_for_select(__('Select Letterhead')),
+			__('No Letterhead')
+		];
 		let default_letterhead;
 		let doc_letterhead = this.frm.doc.letter_head;
 
@@ -625,7 +636,10 @@ frappe.ui.form.PrintView = class {
 
 	refresh_print_options() {
 		this.print_formats = frappe.meta.get_print_formats(this.frm.doctype);
-		return this.print_sel.empty().add_options(this.print_formats);
+		return this.print_sel.empty().add_options([
+			this.get_default_option_for_select(__('Select Print Format')),
+			...this.print_formats
+		]);
 	}
 
 	selected_format() {
@@ -652,7 +666,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	with_letterhead() {
-		return this.print_letterhead.is(':checked') ? 1 : 0;
+		return cint(this.get_letterhead() !== __('No Letterhead'));
 	}
 
 	set_style(style) {
