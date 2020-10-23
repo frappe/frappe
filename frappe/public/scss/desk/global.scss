@@ -166,13 +166,14 @@ img {
 
 	.icon {
 		use {
-			stroke: white;
+			stroke: $white;
 		}
 	}
 }
 
 .btn.btn-danger {
 	background-color: var(--red-400);
+	color: $white;
 }
 
 h1, h2, h3, h4 {
