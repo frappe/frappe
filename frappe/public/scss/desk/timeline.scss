@@ -48,7 +48,7 @@ $threshold: 34;
 		padding: var(--padding-sm);
 		position: relative;
 		.action-btn {
-			margin-left: var(--margin-md)
+			margin-left: var(--margin-md);
 		}
 		.action-btn:first-of-type {
 			margin-left: $timeline-item-left-margin;
@@ -108,6 +108,7 @@ $threshold: 34;
 			.action-btn {
 				padding-top: 0;
 				padding-bottom: 0;
+				margin-left: var(--margin-xs);
 			}
 		}
 		.comment-edit-box {
