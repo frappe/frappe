@@ -76,7 +76,7 @@
 
 .print-format-builder-section-head {
 	cursor: move;
-	padding: var(--padding-sm) var(--padding-md);
+	padding: var(--padding-sm) var(--padding-lg);
 }
 
 .column-selector-row {
@@ -141,5 +141,5 @@
 
 .print-format-help-message {
 	font-size: var(--text-md);
-	margin-bottom: var(--margin-sm);
+	margin-bottom: var(--margin-md);
 }
