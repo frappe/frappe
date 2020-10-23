@@ -120,7 +120,7 @@
 					</mask>
 					<path d="M4.9 10.5H3.7V12.5H4.9V10.5ZM2.5 10.3V7.2H0.5V10.3H2.5ZM3.7 6H12.3V4H3.7V6ZM13.5 7.2V10.3H15.5V7.2H13.5ZM13.3 10.5H11.8V12.5H13.3V10.5ZM2.7 12.5H3.7V10.5H2.7V12.5ZM11.8 10.5H4.9V12.5H11.8V10.5ZM0.5 10.3C0.5 11.515 1.48497 12.5 2.7 12.5V10.5C2.58954 10.5 2.5 10.4105 2.5 10.3H0.5ZM13.5 10.3C13.5 10.4105 13.4105 10.5 13.3 10.5V12.5C14.515 12.5 15.5 11.515 15.5 10.3H13.5ZM12.3 6C12.9627 6 13.5 6.53726 13.5 7.2H15.5C15.5 5.43269 14.0673 4 12.3 4V6ZM2.5 7.2C2.5 6.53726 3.03726 6 3.7 6V4C1.93269 4 0.5 5.43269 0.5 7.2H2.5Z" fill="var(--icon-stroke)" mask="url(#path-4-inside-2)"  stroke-width="0"/>
 				</g>
-				<path id="Vector_3" d="M4.5 9.5L11.5 9.5V12C11.5 12.5523 11.0523 13 10.5 13H5.5C4.94772 13 4.5 12.5523 4.5 12V9.5Z" fill="var(--fg-color)" stroke-linecap="round" stroke-linejoin="round"/>
+				<path id="Vector_3" d="M4.5 9.5L11.5 9.5V12C11.5 12.5523 11.0523 13 10.5 13H5.5C4.94772 13 4.5 12.5523 4.5 12V9.5Z" fill="var(--icon-fill-bg)" stroke-linecap="round" stroke-linejoin="round"/>
 			</g>
 			<circle id="Ellipse 30" cx="12" cy="7.5" r="0.5" fill="var(--icon-stroke)"  stroke-width="0"/>
 		</g>

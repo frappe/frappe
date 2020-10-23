@@ -163,12 +163,8 @@ img {
 .btn.btn-primary {
 	background-color: var(--primary-color);
 	white-space: nowrap;
-
-	.icon {
-		use {
-			stroke: $white;
-		}
-	}
+	--icon-stroke: white;
+	--icon-fill-bg: var(--primary-color);
 }
 
 .btn.btn-danger {
