@@ -124,7 +124,7 @@ def prepare_options(html, options):
 
 def get_cookie_options():
 	options = {}
-	if frappe.session and frappe.session.sid:
+	if frappe.session and frappe.session.sid and hasattr(frappe.local, "request"):
 		# Use wkhtmltopdf's cookie-jar feature to set cookies and restrict them to host domain
 		cookiejar = "/tmp/{}.jar".format(frappe.generate_hash())
 
