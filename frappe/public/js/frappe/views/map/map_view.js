@@ -65,8 +65,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 		if (cur_list.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype === 'Geolocation')) {
 			this.type = 'location_field';
-		}
-		else if  (cur_list.meta.fields.find(i => i.fieldname === "latitude") &&
+		} else if  (cur_list.meta.fields.find(i => i.fieldname === "latitude") &&
 			cur_list.meta.fields.find(i => i.fieldname === "longitude")) {
 			this.type = 'coordinates';
 		}
