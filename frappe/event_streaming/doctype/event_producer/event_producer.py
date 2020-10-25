@@ -12,7 +12,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
 from frappe.utils.background_jobs import get_jobs
-from frappe.utils.data import get_url
+from frappe.utils.data import get_url, get_link_to_form
+from frappe.utils.password import get_decrypted_password
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.integrations.oauth2 import validate_url
 
@@ -20,19 +21,35 @@ from frappe.integrations.oauth2 import validate_url
 class EventProducer(Document):
 	def before_insert(self):
 		self.check_url()
+		self.validate_event_subscriber()
 		self.incoming_change = True
 		self.create_event_consumer()
 		self.create_custom_fields()
 
 	def validate(self):
+		self.validate_event_subscriber()
 		if frappe.flags.in_test:
 			for entry in self.producer_doctypes:
 				entry.status = 'Approved'
 
+	def validate_event_subscriber(self):
+		if not frappe.db.get_value('User', self.user, 'api_key'):
+			frappe.throw(_('Please generate keys for the Event Subscriber User {0} first.').format(
+				frappe.bold(get_link_to_form('User', self.user))
+			))
+
 	def on_update(self):
 		if not self.incoming_change:
-			self.update_event_consumer()
-			self.create_custom_fields()
+			if frappe.db.exists('Event Producer', self.name):
+				if not self.api_key or not self.api_secret:
+					frappe.throw(_('Please set API Key and Secret on the producer and consumer sites first.'))
+				else:
+					doc_before_save = self.get_doc_before_save()
+					if doc_before_save.api_key != self.api_key or doc_before_save.api_secret != self.api_secret:
+						return
+
+					self.update_event_consumer()
+					self.create_custom_fields()
 		else:
 			# when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
 			self.db_set('incoming_change', 0)
@@ -50,15 +67,18 @@ class EventProducer(Document):
 	def create_event_consumer(self):
 		"""register event consumer on the producer site"""
 		if self.is_producer_online():
-			producer_site = FrappeClient(self.producer_url, verify=False)
+			producer_site = FrappeClient(
+				url=self.producer_url,
+				api_key=self.api_key,
+				api_secret=self.get_password('api_secret')
+			)
+
 			response = producer_site.post_api(
 				'frappe.event_streaming.doctype.event_consumer.event_consumer.register_consumer',
 				params={'data': json.dumps(self.get_request_data())}
 			)
 			if response:
 				response = json.loads(response)
-				self.api_key = response['api_key']
-				self.api_secret = response['api_secret']
 				self.last_update = response['last_update']
 			else:
 				frappe.throw(_('Failed to create an Event Consumer or an Event Consumer for the current site is already registered.'))
@@ -72,11 +92,14 @@ class EventProducer(Document):
 			else:
 				consumer_doctypes.append(entry.ref_doctype)
 
+		user_key = frappe.db.get_value('User', self.user, 'api_key')
+		user_secret = get_decrypted_password('User', self.user, 'api_secret')
 		return {
 			'event_consumer': get_url(),
 			'consumer_doctypes': json.dumps(consumer_doctypes),
 			'user': self.user,
-			'in_test': frappe.flags.in_test
+			'api_key': user_key,
+			'api_secret': user_secret
 		}
 
 	def create_custom_fields(self):
@@ -107,10 +130,9 @@ class EventProducer(Document):
 
 					event_consumer.consumer_doctypes.append({
 						'ref_doctype': ref_doctype,
-						'status': get_approval_status(config, ref_doctype)
+						'status': get_approval_status(config, ref_doctype),
+						'unsubscribed': entry.unsubscribe
 					})
-				if frappe.flags.in_test:
-					event_consumer.in_test = True
 				event_consumer.user = self.user
 				event_consumer.incoming_change = True
 				producer_site.update(event_consumer)
@@ -133,8 +155,7 @@ def get_producer_site(producer_url):
 	producer_site = FrappeClient(
 		url=producer_url,
 		api_key=producer_doc.api_key,
-		api_secret=producer_doc.get_password('api_secret'),
-		frappe_authorization_source='Event Consumer'
+		api_secret=producer_doc.get_password('api_secret')
 	)
 	return producer_site
 
@@ -213,11 +234,12 @@ def sync(update, producer_site, event_producer, in_retry=False):
 
 	except Exception:
 		if in_retry:
+			if frappe.flags.in_test:
+				print(frappe.get_traceback())
 			return 'Failed'
 		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
-	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.creation)
-	event_producer.reload()
+	event_producer.db_set('last_update', update.creation)
 	frappe.db.commit()
 
 

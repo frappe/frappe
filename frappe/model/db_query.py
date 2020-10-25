@@ -37,7 +37,8 @@ class DatabaseQuery(object):
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
-		update=None, add_total_row=None, user_settings=None, reference_doctype=None, return_query=False, strict=True):
+		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
+		return_query=False, strict=True, pluck=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -57,7 +58,10 @@ class DatabaseQuery(object):
 		if fields:
 			self.fields = fields
 		else:
-			self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
+			if pluck:
+				self.fields =  ["`tab{0}`.`{1}`".format(self.doctype, pluck)]
+			else:
+				self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
 
 		if start: limit_start = start
 		if page_length: limit_page_length = page_length
@@ -103,6 +107,9 @@ class DatabaseQuery(object):
 		if save_user_settings:
 			self.save_user_settings_fields = save_user_settings_fields
 			self.update_user_settings()
+
+		if pluck:
+			return [d[pluck] for d in result]
 
 		return result
 
@@ -162,7 +169,26 @@ class DatabaseQuery(object):
 
 		self.set_field_tables()
 
-		args.fields = ', '.join(self.fields)
+		fields = []
+
+		# Wrapping fields with grave quotes to allow support for sql keywords
+		# TODO: Add support for wrapping fields with sql functions and distinct keyword
+		for field in self.fields:
+			stripped_field = field.strip().lower()
+			skip_wrapping = any([
+				stripped_field.startswith(("`", "*", '"', "'")),
+				"(" in stripped_field,
+				"distinct" in stripped_field,
+			])
+			if skip_wrapping:
+				fields.append(field)
+			elif "as" in field.lower().split(" "):
+				col, _, new = field.split()
+				fields.append("`{0}` as {1}".format(col, new))
+			else:
+				fields.append("`{0}`".format(field))
+
+		args.fields = ", ".join(fields)
 
 		self.set_order_by(args)
 
@@ -391,7 +417,10 @@ class DatabaseQuery(object):
 				ref_doctype = frappe.get_meta(f.doctype).get_field(f.fieldname).options
 
 			result=[]
-			lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
+
+			lft, rgt = '', ''
+			if f.value:
+				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
 
 			# Get descendants elements of a DocType with a tree structure
 			if f.operator.lower() in ('descendants of', 'not descendants of') :
@@ -769,6 +798,7 @@ def get_list(doctype, *args, **kwargs):
 	kwargs.pop('ignore_permissions', None)
 	kwargs.pop('data', None)
 	kwargs.pop('strict', None)
+	kwargs.pop('user', None)
 
 	# If doctype is child table
 	if frappe.is_table(doctype):

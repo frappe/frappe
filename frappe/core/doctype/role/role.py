@@ -33,16 +33,22 @@ class Role(Document):
 				if user_type != user.user_type:
 					user.save()
 
-# Get email addresses of all users that have been assigned this role
-def get_emails_from_role(role):
-	emails = []
 
-	for user in get_users(role):
-		user_email, enabled = frappe.db.get_value("User", user, ["email", "enabled"])
-		if enabled and user_email not in ["admin@example.com", "guest@example.com"]:
-			emails.append(user_email)
+def get_info_based_on_role(role, field='email'):
+	''' Get information of all users that have been assigned this role '''
+	users = frappe.get_list("Has Role", filters={"role": role, "parenttype": "User"},
+		fields=["parent"])
 
-	return emails
+	return get_user_info(users, field)
+
+def get_user_info(users, field='email'):
+	''' Fetch details about users for the specified field '''
+	info_list = []
+	for user in users:
+		user_info, enabled = frappe.db.get_value("User", user.parent, [field, "enabled"])
+		if enabled and user_info not in ["admin@example.com", "guest@example.com"]:
+			info_list.append(user_info)
+	return info_list
 
 def get_users(role):
 	return [d.parent for d in frappe.get_all("Has Role", filters={"role": role, "parenttype": "User"},

@@ -26,18 +26,16 @@ max_positive_value = {
 
 DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
 
-_classes = {}
-
 def get_controller(doctype):
 	"""Returns the **class** object of the given DocType.
 	For `custom` type, returns `frappe.model.document.Document`.
 
 	:param doctype: DocType name as string."""
-	from frappe.model.document import Document
-	from frappe.utils.nestedset import NestedSet
-	global _classes
 
-	if not doctype in _classes:
+	def _get_controller():
+		from frappe.model.document import Document
+		from frappe.utils.nestedset import NestedSet
+
 		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
 			or ["Core", False]
 
@@ -48,8 +46,17 @@ def get_controller(doctype):
 				is_tree = False
 			_class = NestedSet if is_tree else Document
 		else:
-			module = load_doctype_module(doctype, module_name)
-			classname = doctype.replace(" ", "").replace("-", "")
+			class_overrides = frappe.get_hooks('override_doctype_class')
+			if class_overrides and class_overrides.get(doctype):
+				import_path = frappe.get_hooks('override_doctype_class').get(doctype)[-1]
+				module_path, classname = import_path.rsplit('.', 1)
+				module = frappe.get_module(module_path)
+				if not hasattr(module, classname):
+					raise ImportError('{0}: {1} does not exist in module {2}'.format(doctype, classname, module_path))
+			else:
+				module = load_doctype_module(doctype, module_name)
+				classname = doctype.replace(" ", "").replace("-", "")
+
 			if hasattr(module, classname):
 				_class = getattr(module, classname)
 				if issubclass(_class, BaseDocument):
@@ -58,9 +65,13 @@ def get_controller(doctype):
 					raise ImportError(doctype)
 			else:
 				raise ImportError(doctype)
-		_classes[doctype] = _class
+		return _class
 
-	return _classes[doctype]
+	if frappe.local.dev_server:
+		return _get_controller()
+
+	key = '{}:doctype_classes'.format(frappe.local.site)
+	return frappe.cache().hget(key, doctype, generator=_get_controller, shared=True)
 
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
@@ -299,7 +310,12 @@ class BaseDocument(object):
 		return frappe.as_json(self.as_dict())
 
 	def get_table_field_doctype(self, fieldname):
-		return self.meta.get_field(fieldname).options
+		try:
+			return self.meta.get_field(fieldname).options
+		except AttributeError:
+			if self.doctype == 'DocType':
+				return dict(links='DocType Link', actions='DocType Action').get(fieldname)
+			raise
 
 	def get_parentfield_of_doctype(self, doctype):
 		fieldname = [df.fieldname for df in self.meta.get_table_fields() if df.options==doctype]
@@ -330,6 +346,9 @@ class BaseDocument(object):
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname=="hash":
 					# hash collision? try again
+					frappe.flags.retry_count = (frappe.flags.retry_count or 0) + 1
+					if frappe.flags.retry_count > 5 and not frappe.flags.in_test:
+						raise
 					self.name = None
 					self.db_insert()
 					return

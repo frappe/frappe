@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import re, copy, os, shutil
 import json
+from frappe.cache_manager import clear_user_cache
 
 # imports - third party imports
 import six
@@ -98,6 +99,14 @@ class DocType(Document):
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
+
+		if frappe.conf.get('developer_mode'):
+			self.owner = 'Administrator'
+			self.modified_by = 'Administrator'
+
+	def after_insert(self):
+		# clear user cache so that on the next reload this doctype is included in boot
+		clear_user_cache(frappe.session.user)
 
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''
@@ -234,6 +243,8 @@ class DocType(Document):
 
 		if not autoname and self.get("fields", {"fieldname":"naming_series"}):
 			self.autoname = "naming_series:"
+		elif self.autoname == "naming_series:" and not self.get("fields", {"fieldname":"naming_series"}):
+			frappe.throw(_("Invalid fieldname '{0}' in autoname").format(self.autoname))
 
 		# validate field name if autoname field:fieldname is used
 		# Create unique index on autoname field automatically.
@@ -634,13 +645,15 @@ class DocType(Document):
 		if not name:
 			name = self.name
 
+		flags = {"flags": re.ASCII} if six.PY3 else {}
+
+		# a DocType name should not start or end with an empty space
+		if re.match("^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
+			frappe.throw(_("DocType's name should not start or end with whitespace"), frappe.NameError)
+
 		# a DocType's name should not start with a number or underscore
 		# and should only contain letters, numbers and underscore
-		if six.PY2:
-			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name)
-		else:
-			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name, flags = re.ASCII)
-		if not is_a_valid_name:
+		if not re.match("^(?![\W])[^\d_\s][\w ]+$", name, **flags):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
 
@@ -762,7 +775,7 @@ def validate_fields(meta):
 
 			if not d.get("__islocal") and frappe.db.has_column(d.parent, d.fieldname):
 				has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
-					from `tab{doctype}` where ifnull({fieldname}, '') != ''
+					from `tab{doctype}` where ifnull(`{fieldname}`, '') != ''
 					group by `{fieldname}` having count(*) > 1 limit 1""".format(
 					doctype=d.parent, fieldname=d.fieldname))
 
@@ -989,7 +1002,8 @@ def clear_permissions_cache(doctype):
 			`tabHas Role`,
 			`tabDocPerm`
 		WHERE `tabDocPerm`.`parent` = %s
-		AND `tabDocPerm`.`role` = `tabHas Role`.`role`
+			AND `tabDocPerm`.`role` = `tabHas Role`.`role`
+			AND `tabHas Role`.`parenttype` = 'User'
 		""", doctype):
 		frappe.clear_cache(user=user)
 

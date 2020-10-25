@@ -31,10 +31,9 @@ def get_context(path, args=None):
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
 		context.update(frappe.local.response.context)
 
-	# to be able to inspect the context in development
+	# to be able to inspect the context dict
 	# Use the macro "inspect" from macros.html
-	if frappe.conf.developer_mode:
-		context._context_dict = context
+	context._context_dict = context
 
 	context.developer_mode = frappe.conf.developer_mode
 
@@ -125,12 +124,23 @@ def build_context(context):
 	if context.title_prefix and context.title and not context.title.startswith(context.title_prefix):
 		context.title = '{0} - {1}'.format(context.title_prefix, context.title)
 
+	# apply context from hooks
+	update_website_context = frappe.get_hooks('update_website_context')
+	for method in update_website_context:
+		values = frappe.get_attr(method)(context)
+		if values:
+			context.update(values)
+
 	return context
 
 def load_sidebar(context, sidebar_json_path):
 	with open(sidebar_json_path, 'r') as sidebarfile:
-		context.sidebar_items = json.loads(sidebarfile.read())
-		context.show_sidebar = 1
+		try:
+			sidebar_json = sidebarfile.read()
+			context.sidebar_items = json.loads(sidebar_json)
+			context.show_sidebar = 1
+		except json.decoder.JSONDecodeError:
+			frappe.throw('Invalid Sidebar JSON at ' + sidebar_json_path)
 
 def get_sidebar_json_path(path, look_for=False):
 	'''
@@ -222,33 +232,45 @@ def add_sidebar_data(context):
 def add_metatags(context):
 	tags = frappe._dict(context.get("metatags") or {})
 
-	if tags:
-		if "og:type" not in tags:
-			tags["og:type"] = "article"
+	if "og:type" not in tags:
+		tags["og:type"] = "article"
 
-		name = tags.get('name') or tags.get('title')
-		if name:
-			tags["og:title"] = tags["twitter:title"] = name
+	if "title" not in tags and context.title:
+		tags["title"] = context.title
 
-		description = tags.get("description") or context.description
-		if description:
-			tags['description'] = tags["og:description"] = tags["twitter:description"] = description
+	title = tags.get("name") or tags.get("title")
+	if title:
+		tags["og:title"] = tags["twitter:title"] = title
+		tags["twitter:card"] = "summary"
 
-		image = tags.get('image', context.image or None)
-		if image:
-			tags["og:image"] = tags["twitter:image"] = tags["image"] = frappe.utils.get_url(image)
-			tags['twitter:card'] = "summary_large_image"
+	if "description" not in tags and context.description:
+		tags["description"] = context.description
 
-		if context.author or tags.get('author'):
-			tags['author'] = context.author or tags.get('author')
+	description = tags.get("description")
+	if description:
+		tags["og:description"] = tags["twitter:description"] = description
 
-		tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
+	if "image" not in tags and context.image:
+		tags["image"] = context.image
 
-		if context.published_on:
-			tags['datePublished'] = context.published_on
+	image = tags.get("image")
+	if image:
+		tags["og:image"] = tags["twitter:image"] = tags["image"] = frappe.utils.get_url(image)
+		tags['twitter:card'] = "summary_large_image"
 
+	if "author" not in tags and context.author:
+		tags["author"] = context.author
 
-		tags['language'] = frappe.local.lang or 'en'
+	tags["og:url"] = tags["url"] = frappe.utils.get_url(context.path)
+
+	if "published_on" not in tags and context.published_on:
+		tags["published_on"] = context.published_on
+
+	if "published_on" in tags:
+		tags["datePublished"] = tags["published_on"]
+		del tags["published_on"]
+
+	tags["language"] = frappe.local.lang or "en"
 
 	# Get meta tags from Website Route meta
 	# they can override the defaults set above

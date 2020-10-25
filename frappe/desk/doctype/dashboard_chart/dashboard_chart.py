@@ -60,11 +60,11 @@ def has_permission(doc, ptype, user):
 
 
 	if doc.chart_type == 'Report':
-		allowed_reports = tuple([key.encode('UTF8') for key in get_allowed_reports()])
+		allowed_reports = [key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()]
 		if doc.report_name in allowed_reports:
 			return True
 	else:
-		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+		allowed_doctypes = [frappe.permissions.get_doctypes_with_read()]
 		if doc.document_type in allowed_doctypes:
 			return True
 

@@ -78,7 +78,6 @@ frappe.ui.form.Review = class Review {
 	}
 	show_review_dialog() {
 		const user_options = this.get_involved_users();
-		const doc_owner = this.frm.doc.owner;
 		const review_dialog = new frappe.ui.Dialog({
 			'title': __('Add Review'),
 			'fields': [{
@@ -106,7 +105,7 @@ frappe.ui.form.Review = class Review {
 				fieldtype: 'Int',
 				label: __('Points'),
 				reqd: 1,
-				description: __(`Currently you have ${this.points.review_points} review points`)
+				description: __("Currently you have {0} review points", [this.points.review_points])
 			}, {
 				fieldtype: 'Small Text',
 				fieldname: 'reason',
@@ -181,7 +180,7 @@ frappe.ui.form.Review = class Review {
 			trigger: 'hover',
 			delay: 500,
 			placement: 'top',
-			template:`
+			template: `
 				<div class="review-popover popover">
 					<div class="arrow"></div>
 					<div class="popover-content"></div>

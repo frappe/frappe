@@ -8,12 +8,9 @@ import frappe.utils
 from frappe import throw, _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.utils.verified_command import get_signed_params, verify_request
-from frappe.utils.background_jobs import enqueue
 from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
-from frappe.utils import parse_addr, now_datetime
-from frappe.utils import validate_email_address
-
+from frappe.utils import parse_addr, now_datetime, markdown, validate_email_address
 
 class Newsletter(WebsiteGenerator):
 	def onload(self):
@@ -29,8 +26,8 @@ class Newsletter(WebsiteGenerator):
 
 	def test_send(self, doctype="Lead"):
 		self.recipients = frappe.utils.split_emails(self.test_email_id)
-		self.queue_all()
-		frappe.msgprint(_("Scheduled to send to {0}").format(self.test_email_id))
+		self.queue_all(test_email=True)
+		frappe.msgprint(_("Test email sent to {0}").format(self.test_email_id))
 
 	def send_emails(self):
 		"""send emails to leads and customers"""
@@ -40,21 +37,13 @@ class Newsletter(WebsiteGenerator):
 		self.recipients = self.get_recipients()
 
 		if self.recipients:
-			if getattr(frappe.local, "is_ajax", False):
-				self.validate_send()
-				# using default queue with a longer timeout as this isn't a scheduled task
-				enqueue(send_newsletter, queue='default', timeout=6000, event='send_newsletter',
-					newsletter=self.name)
-
-			else:
-				self.queue_all()
-
-			frappe.msgprint(_("Scheduled to send to {0} recipients").format(len(self.recipients)))
+			self.queue_all()
+			frappe.msgprint(_("Email queued to {0} recipients").format(len(self.recipients)))
 
 		else:
 			frappe.msgprint(_("Newsletter should have atleast one recipient"))
 
-	def queue_all(self):
+	def queue_all(self, test_email=False):
 		if not self.get("recipients"):
 			# in case it is called via worker
 			self.recipients = self.get_recipients()
@@ -80,7 +69,7 @@ class Newsletter(WebsiteGenerator):
 					frappe.throw(_("Unable to find attachment {0}").format(file.name))
 
 		send(recipients=self.recipients, sender=sender,
-			subject=self.subject, message=self.message,
+			subject=self.subject, message=self.get_message(),
 			reference_doctype=self.doctype, reference_name=self.name,
 			add_unsubscribe_link=self.send_unsubscribe_link, attachments=attachments,
 			unsubscribe_method="/unsubscribe",
@@ -90,9 +79,18 @@ class Newsletter(WebsiteGenerator):
 		if not frappe.flags.in_test:
 			frappe.db.auto_commit_on_many_writes = False
 
-		self.db_set("email_sent", 1)
-		self.db_set("schedule_send", now_datetime())
-		self.db_set("scheduled_to_send", len(self.recipients))
+		if not test_email:
+			self.db_set("email_sent", 1)
+			self.db_set("schedule_send", now_datetime())
+			self.db_set("scheduled_to_send", len(self.recipients))
+
+	def get_message(self):
+
+		return {
+			'Rich Text': self.message,
+			'Markdown': markdown(self.message_md),
+			'HTML': self.message_html
+		}[self.content_type or 'Rich Text']
 
 	def get_recipients(self):
 		"""Get recipients from Email Group"""
@@ -106,6 +104,9 @@ class Newsletter(WebsiteGenerator):
 	def validate_send(self):
 		if self.get("__islocal"):
 			throw(_("Please save the Newsletter before sending"))
+
+		if not self.recipients:
+			frappe.throw(_("Newsletter should have at least one recipient"))
 
 	def get_context(self, context):
 		newsletters = get_newsletter_list("Newsletter", None, None, 0)
@@ -268,7 +269,8 @@ def send_scheduled_email():
 	"""Send scheduled newsletter to the recipients."""
 	scheduled_newsletter = frappe.get_all('Newsletter', filters = {
 		'schedule_send': ('<=', now_datetime()),
-		'email_sent': 0
+		'email_sent': 0,
+		'schedule_sending': 1
 	}, fields = ['name'], ignore_ifnull=True)
 	for newsletter in scheduled_newsletter:
 		send_newsletter(newsletter.name)

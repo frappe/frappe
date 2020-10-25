@@ -356,7 +356,7 @@
    "depends_on": "enabled",
    "fieldname": "email_settings",
    "fieldtype": "Section Break",
-   "label": "Email Settings"
+   "label": "Email"
   },
   {
    "default": "1",
@@ -381,12 +381,6 @@
    "fieldtype": "Small Text",
    "label": "Email Signature",
    "no_copy": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "email_inbox",
-   "fieldtype": "Section Break",
-   "label": "Email Inbox"
   },
   {
    "fieldname": "user_emails",
@@ -588,9 +582,70 @@
  "icon": "fa fa-user",
  "idx": 413,
  "image_field": "user_image",
- "links": [],
+ "links": [
+  {
+   "group": "Profile",
+   "link_doctype": "Contact",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Profile",
+   "link_doctype": "Chat Profile",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Profile",
+   "link_doctype": "Blogger",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Access Log",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Activity Log",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Energy Point Log",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Route History",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Settings",
+   "link_doctype": "User Permission",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Settings",
+   "link_doctype": "Assignment Rule",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Settings",
+   "link_doctype": "Document Follow",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Activity",
+   "link_doctype": "Communication",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Activity",
+   "link_doctype": "ToDo",
+   "link_fieldname": "owner"
+  }
+ ],
  "max_attachments": 5,
- "modified": "2020-04-08 12:27:36.716490",
+ "modified": "2020-08-26 19:48:49.677800",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -606,13 +661,13 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "set_user_permissions": 1,
    "share": 1,
    "write": 1
   },
   {
    "permlevel": 1,
    "read": 1,
-   "report": 1,
    "role": "System Manager",
    "write": 1
   }

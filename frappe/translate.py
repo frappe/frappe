@@ -128,8 +128,7 @@ def get_dict(fortype, name=None):
 
 	translation_map = translation_assets[asset_key]
 
-	if fortype == "boot":
-		translation_map.update(get_user_translations(frappe.local.lang))
+	translation_map.update(get_user_translations(frappe.local.lang))
 
 	return translation_map
 
@@ -620,7 +619,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 
 	if get_all:
 		print(str(len(messages)) + " messages")
-		with open(untranslated_file, "w") as f:
+		with open(untranslated_file, "wb") as f:
 			for m in messages:
 				# replace \n with ||| so that internal linebreaks don't get split
 				f.write((escape_newlines(m[1]) + os.linesep).encode("utf-8"))
@@ -633,10 +632,10 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 
 		if untranslated:
 			print(str(len(untranslated)) + " missing translations of " + str(len(messages)))
-			with open(untranslated_file, "w") as f:
+			with open(untranslated_file, "wb") as f:
 				for m in untranslated:
 					# replace \n with ||| so that internal linebreaks don't get split
-					f.write(cstr(frappe.safe_encode(escape_newlines(m) + os.linesep)))
+					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
 		else:
 			print("all translated!")
 

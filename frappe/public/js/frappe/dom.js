@@ -34,7 +34,7 @@ frappe.dom = {
 	},
 	remove_script_and_style: function(txt) {
 		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
-		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'));
+		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'), 's');
 		if (!regex.test(txt)) {
 			// no evil tags found, skip the DOM method entirely!
 			return txt;

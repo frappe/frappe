@@ -5,7 +5,7 @@
 // __('Modules') __('Domains') __('Places') __('Administration') # for translation, don't remove
 
 frappe.start_app = function() {
-	if(!frappe.Application)
+	if (!frappe.Application)
 		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
@@ -14,7 +14,7 @@ frappe.start_app = function() {
 };
 
 $(document).ready(function() {
-	if(!frappe.utils.supportsES6) {
+	if (!frappe.utils.supportsES6) {
 		frappe.msgprint({
 			indicator: 'red',
 			title: __('Browser not supported'),
@@ -52,7 +52,7 @@ frappe.Application = Class.extend({
 		this.set_favicon();
 		this.setup_analytics();
 		this.set_fullwidth_if_enabled();
-
+		this.add_browser_class();
 		this.setup_energy_point_listeners();
 
 		frappe.ui.keys.setup();
@@ -139,6 +139,26 @@ frappe.Application = Class.extend({
 					}
 				});
 			}, 300000); // check every 5 minutes
+
+			if(frappe.user.has_role("System Manager")){
+				setInterval(function() {
+					frappe.call({
+						method: 'frappe.core.doctype.log_settings.log_settings.has_unseen_error_log',
+						args: {
+							user: frappe.session.user
+						},
+						callback: function(r) {
+							console.log(r);
+							if(r.message.show_alert){
+								frappe.show_alert({
+									indicator: 'red',
+									message: r.message.message
+								});
+							}
+						}
+					});
+				}, 600000); // check every 10 minutes
+			}
 		}
 
 		this.fetch_tags();
@@ -427,9 +447,9 @@ frappe.Application = Class.extend({
 	},
 
 	set_app_logo_url: function() {
-		return frappe.call('frappe.client.get_hooks', { hook: 'app_logo_url' })
+		return frappe.call('frappe.core.doctype.navbar_settings.navbar_settings.get_app_logo')
 			.then(r => {
-				frappe.app.logo_url = (r.message || []).slice(-1)[0];
+				frappe.app.logo_url = r.message;
 				if (window.cordova) {
 					let host = frappe.request.url;
 					host = host.slice(0, host.length - 1);
@@ -508,6 +528,16 @@ frappe.Application = Class.extend({
 				"$created": frappe.boot.user.creation,
 				"$email": frappe.session.user
 			});
+		}
+	},
+
+	add_browser_class() {
+		let browsers = ['Chrome', 'Firefox', 'Safari'];
+		for (let browser of browsers) {
+			if (navigator.userAgent.includes(browser)) {
+				$('html').addClass(browser.toLowerCase());
+				return;
+			}
 		}
 	},
 

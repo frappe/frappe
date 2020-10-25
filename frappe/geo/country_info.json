@@ -558,6 +558,8 @@
   "code": "cn",
   "currency": "CNY",
   "currency_name": "Yuan Renminbi",
+  "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "date_format": "yyyy-mm-dd",
   "number_format": "#,###.##",
   "timezones": [
@@ -620,7 +622,12 @@
  },
  "Congo, The Democratic Republic of the": {
   "code": "cd",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "currency": "CDF",
+  "currency_name": "Congolese franc",
+  "currency_symbol": "FC",
+  "currency_fraction": "Centime",
+  "currency_fraction_units": 100
  },
  "Cook Islands": {
   "code": "ck",
@@ -1384,7 +1391,10 @@
   "code": "la",
   "currency": "LAK",
   "currency_name": "Kip",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "timezones":[
+      "Asia/Vientiane"
+  ]
  },
  "Latvia": {
   "code": "lv",

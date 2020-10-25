@@ -12,7 +12,7 @@ import yaml
 import frappe
 from frappe.model.document import get_controller
 from frappe.website.utils import can_cache, delete_page_cache, extract_comment_tag, extract_title
-
+from werkzeug.routing import Map, Rule, NotFound
 
 def resolve_route(path):
 	"""Returns the page route object based on searching in pages and generators.
@@ -80,6 +80,9 @@ def get_page_info_from_template(path):
 
 def get_page_context_from_doctype(path):
 	page_info = get_page_info_from_doctypes(path)
+	if not page_info:
+		page_info = get_page_info_from_web_page_with_dynamic_routes(path)
+
 	if page_info:
 		return frappe.get_doc(page_info.get("doctype"),
 			page_info.get("name")).get_page_info()
@@ -88,7 +91,9 @@ def clear_sitemap():
 	delete_page_cache("*")
 
 def get_all_page_context_from_doctypes():
-	'''Get all doctype generated routes (for sitemap.xml)'''
+	'''
+	Get all doctype generated routes (for sitemap.xml)
+	'''
 	routes = frappe.cache().get_value("website_generator_routes")
 	if not routes:
 		routes = get_page_info_from_doctypes()
@@ -97,10 +102,12 @@ def get_all_page_context_from_doctypes():
 	return routes
 
 def get_page_info_from_doctypes(path=None):
+	'''
+	Find a document with matching `route` from all doctypes with `has_web_view`=1
+	'''
 	routes = {}
 	for doctype in get_doctypes_with_web_view():
-		condition = ""
-		values = []
+		filters = {}
 		controller = get_controller(doctype)
 		meta = frappe.get_meta(doctype)
 
@@ -109,15 +116,15 @@ def get_page_info_from_doctypes(path=None):
 			(controller.website.condition_field if not meta.custom else None))
 
 		if condition_field:
-			condition ="where {0}=1".format(condition_field)
+			filters[condition_field] = 1
 
 		if path:
-			condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
-			values.append(path)
+			filters['route'] = path
 
 		try:
-			for r in frappe.db.sql("""select route, name, modified from `tab{0}`
-					{1}""".format(doctype, condition), values=values, as_dict=True):
+			for r in frappe.get_all(doctype, fields = ['name', 'route', 'modified'],
+				filters = filters, limit = 1):
+
 				routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
 
 				# just want one path, return it!
@@ -127,6 +134,46 @@ def get_page_info_from_doctypes(path=None):
 			if not frappe.db.is_missing_column(e): raise e
 
 	return routes
+
+def get_page_info_from_web_page_with_dynamic_routes(path):
+	'''
+	Query Web Page with dynamic_route = 1 and evaluate if any of the routes match
+	'''
+	rules, page_info = [], {}
+
+	# build rules from all web page with `dynamic_route = 1`
+	for d in frappe.get_all('Web Page', fields = ['name', 'route', 'modified'],
+		filters = dict(published = 1, dynamic_route=1)):
+		rules.append(Rule('/' + d.route, endpoint = d.name))
+		d.doctype = 'Web Page'
+		page_info[d.name] = d
+
+	end_point = evaluate_dynamic_routes(rules, path)
+	if end_point:
+		return page_info[end_point]
+
+def evaluate_dynamic_routes(rules, path):
+	'''
+	Use Werkzeug routing to evaluate dynamic routes like /project/<name>
+	https://werkzeug.palletsprojects.com/en/1.0.x/routing/
+	'''
+	route_map = Map(rules)
+	endpoint = None
+
+	if frappe.local.request:
+		urls = route_map.bind_to_environ(frappe.local.request.environ)
+		try:
+			endpoint, args = urls.match("/" + path)
+			path = endpoint
+			if args:
+				# don't cache when there's a query string!
+				frappe.local.no_cache = 1
+				frappe.local.form_dict.update(args)
+
+		except NotFound:
+			pass
+
+	return endpoint
 
 def get_pages(app=None):
 	'''Get all pages. Called for docs / sitemap'''

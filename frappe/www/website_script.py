@@ -18,5 +18,11 @@ def get_context(context):
 		context.javascript += "\n" + js
 
 	if not frappe.conf.developer_mode:
-		context["google_analytics_id"] = (frappe.db.get_single_value("Website Settings", "google_analytics_id")
-			or frappe.conf.get("google_analytics_id"))
+		context['google_analytics_id'] = get_setting('google_analytics_id')
+		context['google_analytics_anonymize_ip'] = get_setting('google_analytics_anonymize_ip')
+
+def get_setting(field_name):
+	"""Return value of field_name frok Website Settings or Site Config."""
+	website_settings = frappe.db.get_single_value('Website Settings', field_name)
+	conf = frappe.conf.get(field_name)
+	return website_settings or conf
