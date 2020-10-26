@@ -12,9 +12,10 @@
  "fields": [
   {
    "fieldname": "event_producer",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Event Producer",
-   "options": "Event Producer",
+   "reqd": 1,
    "unique": 1
   },
   {
@@ -26,7 +27,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-26 12:59:33.112423",
+ "modified": "2020-10-26 13:22:27.056599",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Producer Last Update",

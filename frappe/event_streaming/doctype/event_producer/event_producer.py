@@ -88,7 +88,7 @@ class EventProducer(Document):
 		if not last_update_doc_name:
 			frappe.get_doc(dict(
 				doctype = 'Event Producer Last Update',
-				event_producer = self.name,
+				event_producer = self.producer_url,
 				last_update = last_update
 			)).insert(ignore_permissions=True)
 		else:
