@@ -46,7 +46,18 @@ def handle_whitelisted_path():
 	validate_auth()
 	path = frappe.request.path
 
-	method = frappe.whitelisted_paths.get(path)
+	whitelisted_paths = frappe.get_hooks('whitelisted_paths', {})
+
+	handler = whitelisted_paths.get(path)
+	if len(handler) == 2:
+		# [doctype, method] format
+		doctype, method = handler
+		doctype_module = frappe.modules.utils.load_doctype_module(doctype)
+		method = getattr(doctype_module, method)
+	else:
+		# dotted path format
+		method = handler[-1]
+
 	data = execute_whitelisted_method(method)
 
 	if data is not None:
