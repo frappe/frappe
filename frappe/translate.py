@@ -571,7 +571,7 @@ def write_csv_file(path, app_messages, lang_dict):
 	"""
 	app_messages.sort(key = lambda x: x[1])
 	from csv import writer
-	with open(path, 'w') as msgfile:
+	with open(path, 'w', newline='') as msgfile:
 		w = writer(msgfile, lineterminator='\n')
 		for p, m in app_messages:
 			t = lang_dict.get(m, '')
