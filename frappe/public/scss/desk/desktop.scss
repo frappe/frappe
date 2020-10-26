@@ -5,6 +5,19 @@ body {
 
 .desk-sidebar {
 	@extend .standard-sidebar;
+
+	.standard-sidebar-label {
+		font-size: var(--text-xs);
+		text-transform: uppercase;
+	}
+
+	.standard-sidebar-section {
+		margin-top: var(--margin-xl);
+
+		&:first-of-type {
+			margin-top: var(--margin-sm);
+		}
+	}
 }
 
 .widget-group {
@@ -324,7 +337,6 @@ body {
 						visibility: visible;
 					}
 				}
-
 
 				.step-title {
 					@include flex(flex, null, center, null);
