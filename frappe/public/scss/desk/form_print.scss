@@ -37,4 +37,21 @@
 	.clearfix {
 		display: none;
 	}
+
+	.frappe-control[data-fieldtype="Select"] .control-input {
+		select {
+			height: auto;
+			padding: var(--padding-xs) var(--padding-sm);
+		}
+
+		.icon {
+			width: 14px;
+			top: 6px;
+			right: 5px;
+		}
+	}
+
+	.label-area {
+		white-space: nowrap;
+	}
 }
