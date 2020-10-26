@@ -60,7 +60,7 @@
    "link_fieldname": "web_template"
   }
  ],
- "modified": "2020-10-22 17:36:45.042517",
+ "modified": "2020-10-26 17:22:55.459453",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
@@ -79,7 +79,6 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
