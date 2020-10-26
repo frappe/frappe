@@ -6,7 +6,7 @@ import unittest, frappe, os
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.utils.data import get_url
-
+from unittest.mock import patch
 import requests
 import base64
 
@@ -177,3 +177,25 @@ class TestAPI(unittest.TestCase):
 		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 401)
+
+	def test_whitelisted_paths(self):
+		from frappe import get_hooks
+
+
+		def patched_hook(hook=None, default=None, app_name=None):
+			if hook == 'whitelisted_paths':
+				return {'/test-whitelisted-path': ['frappe.tests.test_api.test_whitelisted_path']}
+			return get_hooks(hook, default, app_name)
+
+
+		with patch.object(frappe, 'get_hooks', new=patched_hook):
+			res = requests.get(get_url() + '/test-whitelisted-path', headers={
+				'Accept': 'application/json'
+			})
+			print(res.status_code)
+			self.assertEqual(res.status_code, 200)
+
+
+@frappe.whitelist(allow_guest=True)
+def test_whitelisted_path():
+	return 'success'
