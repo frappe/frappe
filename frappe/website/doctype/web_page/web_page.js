@@ -19,6 +19,15 @@ frappe.ui.form.on('Web Page', {
 	insert_code: function(frm) {
 		frm.events.layout(frm);
 	},
+	onload: function(frm) {
+		frm.set_query('web_template', 'page_blocks', function() {
+			return {
+				filters: {
+					"type": 'Section'
+				}
+			};
+		});
+	},
 	refresh: function(frm) {
 		if (frm.doc.template_path) {
 			frm.set_read_only();
@@ -40,7 +49,6 @@ frappe.ui.form.on('Web Page', {
 			frm.set_value('end_date', end_date);
 		}
 	},
-
 	set_meta_tags(frm) {
 		frappe.utils.set_meta_tag(frm.doc.route);
 	}

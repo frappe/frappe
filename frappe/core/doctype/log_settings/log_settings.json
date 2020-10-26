@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "creation": "2020-10-08 12:12:21.694424",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "error_log_notification_section",
+  "users_to_notify",
+  "log_cleanup_section",
+  "clear_error_log_after",
+  "clear_activity_log_after",
+  "column_break_4",
+  "clear_email_queue_after"
+ ],
+ "fields": [
+  {
+   "fieldname": "log_cleanup_section",
+   "fieldtype": "Section Break",
+   "label": "Log Cleanup"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "error_log_notification_section",
+   "fieldtype": "Section Break",
+   "label": "Error Log Notification"
+  },
+  {
+   "fieldname": "users_to_notify",
+   "fieldtype": "Table MultiSelect",
+   "label": "Users To Notify",
+   "options": "Log Setting User"
+  },
+  {
+   "default": "90",
+   "description": "In Days",
+   "fieldname": "clear_error_log_after",
+   "fieldtype": "Int",
+   "label": "Clear Error log After"
+  },
+  {
+   "default": "90",
+   "description": "In Days",
+   "fieldname": "clear_activity_log_after",
+   "fieldtype": "Int",
+   "label": "Clear Activity Log After"
+  },
+  {
+   "default": "90",
+   "description": "In Days",
+   "fieldname": "clear_email_queue_after",
+   "fieldtype": "Int",
+   "label": "Clear Email Queue After"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-10-13 12:18:48.649038",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Log Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

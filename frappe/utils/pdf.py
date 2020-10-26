@@ -112,7 +112,8 @@ def prepare_options(html, options):
 	options.update(html_options or {})
 
 	# cookies
-	options.update(get_cookie_options())
+	if not frappe.flags.in_test:
+		options.update(get_cookie_options())
 
 	# page size
 	if not options.get("page-size"):
@@ -123,7 +124,7 @@ def prepare_options(html, options):
 
 def get_cookie_options():
 	options = {}
-	if frappe.session and frappe.session.sid:
+	if frappe.session and frappe.session.sid and hasattr(frappe.local, "request"):
 		# Use wkhtmltopdf's cookie-jar feature to set cookies and restrict them to host domain
 		cookiejar = "/tmp/{}.jar".format(frappe.generate_hash())
 

@@ -38,7 +38,7 @@ class DatabaseQuery(object):
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		return_query=False, strict=True, pluck=None):
+		return_query=False, strict=True, pluck=None, ignore_ddl=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -86,6 +86,7 @@ class DatabaseQuery(object):
 		self.user_settings_fields = copy.deepcopy(self.fields)
 		self.return_query = return_query
 		self.strict = strict
+		self.ignore_ddl = ignore_ddl
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -134,7 +135,8 @@ class DatabaseQuery(object):
 		if self.return_query:
 			return query
 		else:
-			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
+			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug,
+				update=self.update, ignore_ddl=self.ignore_ddl)
 
 	def prepare_args(self):
 		self.parse_args()
@@ -171,11 +173,19 @@ class DatabaseQuery(object):
 
 		fields = []
 
+		# Wrapping fields with grave quotes to allow support for sql keywords
+		# TODO: Add support for wrapping fields with sql functions and distinct keyword
 		for field in self.fields:
-			if (field.strip().startswith(("`", "*")) or "(" in field):
+			stripped_field = field.strip().lower()
+			skip_wrapping = any([
+				stripped_field.startswith(("`", "*", '"', "'")),
+				"(" in stripped_field,
+				"distinct" in stripped_field,
+			])
+			if skip_wrapping:
 				fields.append(field)
 			elif "as" in field.lower().split(" "):
-				col, _, new = field.split()[-3:]
+				col, _, new = field.split()
 				fields.append("`{0}` as {1}".format(col, new))
 			else:
 				fields.append("`{0}`".format(field))
@@ -317,7 +327,13 @@ class DatabaseQuery(object):
 
 	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
-		columns = get_table_columns(self.doctype)
+		try:
+			columns = get_table_columns(self.doctype)
+		except frappe.db.TableMissingError:
+			if self.ignore_ddl:
+				return
+			else:
+				raise
 
 		# remove from fields
 		to_remove = []

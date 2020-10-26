@@ -128,8 +128,7 @@ def get_dict(fortype, name=None):
 
 	translation_map = translation_assets[asset_key]
 
-	if fortype == "boot":
-		translation_map.update(get_user_translations(frappe.local.lang))
+	translation_map.update(get_user_translations(frappe.local.lang))
 
 	return translation_map
 

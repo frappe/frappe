@@ -319,8 +319,7 @@ class Database(object):
 			nres.append(nr)
 		return nres
 
-	@staticmethod
-	def build_conditions(filters):
+	def build_conditions(self, filters):
 		"""Convert filters sent as dict, lists to SQL conditions. filter's key
 		is passed by map function, build conditions like:
 
@@ -341,18 +340,12 @@ class Database(object):
 			value = filters.get(key)
 			values[key] = value
 			if isinstance(value, (list, tuple)):
-				# value is a tuble like ("!=", 0)
+				# value is a tuple like ("!=", 0)
 				_operator = value[0]
 				values[key] = value[1]
 				if isinstance(value[1], (tuple, list)):
 					# value is a list in tuple ("in", ("A", "B"))
-					inner_list = []
-					for i, v in enumerate(value[1]):
-						inner_key = "{0}_{1}".format(key, i)
-						values[inner_key] = v
-						inner_list.append("%({0})s".format(inner_key))
-
-					_rhs = " ({0})".format(", ".join(inner_list))
+					_rhs = " ({0})".format(", ".join([self.escape(v) for v in value[1]]))
 					del values[key]
 
 			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in", "not like"]:
@@ -787,6 +780,9 @@ class Database(object):
 		"""Returns True if table for given doctype exists."""
 		return ("tab" + doctype) in self.get_tables()
 
+	def has_table(self, doctype):
+		return self.table_exists(doctype)
+
 	def get_tables(self):
 		tables = frappe.cache().get_value('db_tables')
 		if not tables:
@@ -959,13 +955,13 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype, conditions):
+	def delete(self, doctype, conditions, debug=False):
 		if conditions:
 			conditions, values = self.build_conditions(conditions)
 			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
 				doctype=doctype,
 				conditions=conditions
-			), values)
+			), values, debug=debug)
 		else:
 			frappe.throw(_('No conditions provided'))
 
