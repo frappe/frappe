@@ -871,9 +871,9 @@ class Document(BaseDocument):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self._cancel()
 
-	def delete(self):
+	def delete(self, ignore_permissions=False):
 		"""Delete document."""
-		frappe.delete_doc(self.doctype, self.name, flags=self.flags)
+		frappe.delete_doc(self.doctype, self.name, ignore_permissions = ignore_permissions, flags=self.flags)
 
 	def run_before_save_methods(self):
 		"""Run standard methods before  `INSERT` or `UPDATE`. Standard Methods are:

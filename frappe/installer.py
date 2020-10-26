@@ -351,8 +351,11 @@ def is_downgrade(sql_file_path, verbose=False):
 			if head in line:
 				# 'line' (str) format: ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master')
 				line = line.strip().lstrip(head).rstrip(";").strip()
+				app_rows = frappe.safe_eval(line)
+				# check if iterable consists of tuples before trying to transform
+				apps_list = app_rows if all(isinstance(app_row, (tuple, list, set)) for app_row in app_rows) else (app_rows, )
 				# 'all_apps' (list) format: [('frappe', '12.x.x-develop ()', 'develop'), ('your_custom_app', '0.0.1', 'master')]
-				all_apps = [ x[-3:] for x in frappe.safe_eval(line) ]
+				all_apps = [ x[-3:] for x in apps_list ]
 
 				for app in all_apps:
 					app_name = app[0]

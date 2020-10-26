@@ -19,7 +19,7 @@ from apiclient.http import MediaFileUpload
 from frappe.utils import get_backups_path, get_bench_path
 from frappe.utils.backups import new_backup
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
-from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size, backup_files
 
 
 SCOPES = "https://www.googleapis.com/auth/drive"
@@ -189,15 +189,19 @@ def upload_system_backup_to_google_drive():
 	if frappe.flags.create_new_backup:
 		set_progress(1, "Backing up Data.")
 		backup = new_backup()
+		file_urls = []
+		file_urls.append(backup.backup_path_db)
+		file_urls.append(backup.site_config_backup_path)
 
-		fileurl_backup = os.path.basename(backup.backup_path_db)
-		fileurl_site_config = os.path.basename(backup.site_config_backup_path)
-		fileurl_public_files = os.path.basename(backup.backup_path_files)
-		fileurl_private_files = os.path.basename(backup.backup_path_private_files)
+		if account.file_backup:
+			file_urls.append(backup.backup_path_files)
+			file_urls.append(backup.backup_path_private_files)
 	else:
-		fileurl_backup, fileurl_site_config, fileurl_public_files, fileurl_private_files = get_latest_backup_file(with_files=True)
+		if account.file_backup:
+			backup_files()
+		file_urls = get_latest_backup_file(with_files=account.file_backup)
 
-	for fileurl in [fileurl_backup, fileurl_site_config, fileurl_public_files, fileurl_private_files]:
+	for fileurl in file_urls:
 		if not fileurl:
 			continue
 
@@ -209,7 +213,7 @@ def upload_system_backup_to_google_drive():
 		try:
 			media = MediaFileUpload(get_absolute_path(filename=fileurl), mimetype="application/gzip", resumable=True)
 		except IOError as e:
-			frappe.throw(_("Google Drive - Could not locate locate - {0}").format(e))
+			frappe.throw(_("Google Drive - Could not locate - {0}").format(e))
 
 		try:
 			set_progress(2, "Uploading backup to Google Drive.")
@@ -233,7 +237,7 @@ def weekly_backup():
 		upload_system_backup_to_google_drive()
 
 def get_absolute_path(filename):
-	file_path = os.path.join(get_backups_path()[2:], filename)
+	file_path = os.path.join(get_backups_path()[2:], os.path.basename(filename))
 	return "{0}/sites/{1}".format(get_bench_path(), file_path)
 
 def set_progress(progress, message):
