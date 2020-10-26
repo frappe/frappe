@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import re, copy, os, shutil
 import json
+from frappe.cache_manager import clear_user_cache
 
 # imports - third party imports
 import six
@@ -102,6 +103,10 @@ class DocType(Document):
 		if frappe.conf.get('developer_mode'):
 			self.owner = 'Administrator'
 			self.modified_by = 'Administrator'
+
+	def after_insert(self):
+		# clear user cache so that on the next reload this doctype is included in boot
+		clear_user_cache(frappe.session.user)
 
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''

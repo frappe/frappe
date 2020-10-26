@@ -21,8 +21,10 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	refresh: function(frm) {
 		frm.chart_filters = null;
+		frm.is_disabled = !frappe.boot.developer_mode && frm.doc.is_standard;
 
-		if (!frappe.boot.developer_mode && frm.doc.is_standard) {
+		if (!frm.is_disabled) {
+			!frm.doc.custom_options && frm.set_df_property('chart_options_section', 'hidden', 1);
 			frm.disable_form();
 		}
 
@@ -169,7 +171,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					frm.field_options = frappe.report_utils.get_field_options_from_report(data.columns, data);
 					frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
 					if (!frm.field_options.numeric_fields.length) {
-						frappe.msgprint(__(`Report has no numeric fields, please change the Report Name`));
+						frappe.msgprint(__("Report has no numeric fields, please change the Report Name"));
 					} else {
 						let y_field_df = frappe.meta.get_docfield('Dashboard Chart Field', 'y_field', frm.doc.name);
 						y_field_df.options = frm.field_options.numeric_fields;
@@ -333,6 +335,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		}
 
 		table.on('click', () => {
+			frm.is_disabled && frappe.throw(__('Cannot edit filters for standard charts'));
 
 			let dialog = new frappe.ui.Dialog({
 				title: __('Set Filters'),
