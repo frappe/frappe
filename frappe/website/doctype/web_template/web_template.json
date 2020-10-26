@@ -59,7 +59,11 @@
    "link_fieldname": "web_template"
   }
  ],
+<<<<<<< HEAD
  "modified": "2020-10-20 15:08:57.027962",
+=======
+ "modified": "2020-10-26 17:22:55.459453",
+>>>>>>> 54732e5775... fix(UX): Add default to Web Template Field
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
@@ -78,7 +82,6 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
