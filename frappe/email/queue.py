@@ -584,14 +584,15 @@ def prepare_message(email, recipient, recipients_list):
 
 	return safe_encode(message.as_string())
 
-def clear_outbox():
-	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
-	Called daily via scheduler.
+def clear_outbox(days=None):
+	"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
 	Note: Used separate query to avoid deadlock
 	"""
+	if not days:
+		days=31
 
 	email_queues = frappe.db.sql_list("""SELECT `name` FROM `tabEmail Queue`
-		WHERE `priority`=0 AND `modified` < (NOW() - INTERVAL '31' DAY)""")
+		WHERE `priority`=0 AND `modified` < (NOW() - INTERVAL '{0}' DAY)""".format(days))
 
 	if email_queues:
 		frappe.db.sql("""DELETE FROM `tabEmail Queue` WHERE `name` IN ({0})""".format(
@@ -601,6 +602,11 @@ def clear_outbox():
 		frappe.db.sql("""DELETE FROM `tabEmail Queue Recipient` WHERE `parent` IN ({0})""".format(
 			','.join(['%s']*len(email_queues)
 		)), tuple(email_queues))
+
+def set_expiry_for_email_queue():
+	''' Mark emails as expire that has not sent for 7 days.
+		Called daily via scheduler.
+	 '''
 
 	frappe.db.sql("""
 		UPDATE `tabEmail Queue`

@@ -112,7 +112,7 @@ Import Data,بيانات الاستيراد,
 Import Log,سجل الاستيراد,
 Inactive,غير نشط,
 Insert,إدراج,
-Interests,الإهتمامات,
+Interests,الإهتمامات او الفوائد,
 Introduction,مقدمة,
 Is Active,نشط,
 Is Completed,قد اكتمل,
@@ -336,7 +336,6 @@ Add Column,إضافة عمود,
 Add Contact,إضافة جهة اتصال,
 Add Contacts,اضف جهات اتصال,
 Add Filter,إضافة تصفية (فلترة),
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,(UA-89XXX57-1)اضافة تحليلات جوجل رقم تعريفى \nمن فضلك ابحث عن المساعدة فى تحليلات جوجل لمزيد من المعلومات,
 Add Group,إضافة مجموعة,
 Add New Permission Rule,إضافة قاعدة صلاحيات جديدة,
 Add Review,إضافة مراجعة,
@@ -2444,7 +2443,6 @@ Table updated,الجدول محدث,
 Table {0} cannot be empty,جدول {0} لا يمكن أن يكون فارغا,
 Take Backup Now,ابداء النسخ الاحتياطي الآن,
 Take Photo,تصوير,
-Take Video,اتخاذ الفيديو,
 Team Members,أعضاء الفريق,
 Team Members Heading,عنوان أعضاء الفريق,
 Temporarily Disabled,موقوف مؤقتا,
@@ -3162,7 +3160,6 @@ Access not allowed from this IP Address,الوصول غير مسموح به من
 Action Type,نوع العمل,
 Activity Log by ,سجل النشاط بواسطة,
 Add Fields,إضافة الحقول,
-Address needs to be linked to a Company. Please add a row for Company in the Links table below.,يجب ربط العنوان بالشركة. الرجاء إضافة صف للشركة في جدول الروابط أدناه.,
 Administration,الادارة,
 After Cancel,بعد الغاء,
 After Delete,بعد الحذف,
@@ -3233,7 +3230,6 @@ Click on {0} to generate Refresh Token.,انقر فوق {0} لإنشاء تحد�
 Close Condition,أغلق الشرط,
 Column {0},العمود {0},
 Columns / Fields,الأعمدة / الحقول,
-Company not Linked,الشركة غير مرتبطة,
 "Configure notifications for mentions, assignments, energy points and more.",قم بتكوين الإشعارات الخاصة بالإشارات والتعيينات ونقاط الطاقة والمزيد.,
 Contact Email,عنوان البريد الإلكتروني,
 Contact Numbers,ارقام التواصل,
@@ -3290,7 +3286,6 @@ Enable Email Notifications,تمكين إشعارات البريد الإلكتر
 Enable Google API in Google Settings.,تمكين Google API في إعدادات Google.,
 Enable Security,تمكين الأمن,
 Energy Point,نقطة الطاقة,
-Energy Points: ,نقاط الطاقة:,
 Enter Client Id and Client Secret in Google Settings.,أدخل معرف العميل وسر العميل في إعدادات Google.,
 Enter Code displayed in OTP App.,أدخل الرمز المعروض في تطبيق OTP.,
 Event Configurations,تكوينات الحدث,
@@ -3443,7 +3438,6 @@ Me,أنا,
 Mention,أشير,
 Modules,وحدات برمجية,
 Monthly Long,الشهرية الطويلة,
-Monthly Rank: ,الرتبة الشهرية:,
 Naming Series,سلسلة التسمية,
 Navigate Home,انتقل المنزل,
 Navigate list down,انتقل القائمة لأسفل,
@@ -3510,7 +3504,6 @@ Push to Google Calendar,اضغط على تقويم Google,
 Push to Google Contacts,اضغط على جهات اتصال Google,
 Queue / Worker,طابور / عامل,
 RAW Information Log,سجل معلومات RAW,
-Rank: ,مرتبة:,
 Raw Printing Settings...,إعدادات الطباعة الخام ...,
 Read Only Depends On,قراءة يعتمد فقط على,
 Recent Activity,النشاط الأخير,
@@ -3526,7 +3519,6 @@ Request Structure,طلب هيكل,
 Restricted,محدد,
 Restrictions,قيود,
 Resync,المزامنة,
-Review Points: ,نقاط المراجعة:,
 Row Number,رقم الصف,
 Row {0},الصف {0},
 Run Jobs only Daily if Inactive For (Days),شغِّل الوظائف فقط يوميًا إذا كان غير نشط (أيام),
@@ -4190,6 +4182,7 @@ Prefer not to say,افضل عدم القول,
 Is Billing Contact,هو جهة اتصال الفوترة,
 Address And Contacts,العنوان وجهات الاتصال,
 Lead Conversion Time,وقت تحويل الزبون المحتمل,
+Due Date Based On,تاريخ الاستحقاق بناء على,
 Phone Number,رقم الهاتف,
 Linked Documents,المستندات المرتبطة,
 Account SID,حساب SID,
@@ -4552,9 +4545,7 @@ Card Label,ملصق البطاقة,
 Reports already in Queue,التقارير موجودة بالفعل في قائمة الانتظار,
 Proceed Anyway,المتابعة على أية حال,
 Delete and Generate New,حذف وإنشاء جديد,
-There is ,هناك,
 1 Report,1 تقرير,
-There are ,يوجد,
 {0} ({1}) (1 row mandatory),{0} ({1}) (صف واحد إلزامي),
 Select Fields To Insert,حدد الحقول المطلوب إدراجها,
 Select Fields To Update,حدد الحقول المراد تحديثها,
@@ -4637,7 +4628,6 @@ A featured post must have a cover image,يجب أن تحتوي الوظيفة ا
 Load More,تحميل المزيد,
 Published on,نشرت في,
 Enable developer mode to create a standard Web Template,قم بتمكين وضع المطور لإنشاء قالب ويب قياسي,
-Please select which module this Web Template belongs to.,الرجاء تحديد الوحدة النمطية التي ينتمي إليها قالب الويب هذا.,
 Was this article helpful?,هل كان المقال مساعدا؟!,
 Thank you for your feedback!,شكرا لك على ملاحظاتك!,
 New Mention on {0},إشارة جديدة في {0},
@@ -4652,6 +4642,57 @@ Please set the following documents in this Dashboard as standard first.,يرجى
 Shared with the following Users with Read access:{0},مشترك مع المستخدمين التاليين الذين لهم حق الوصول للقراءة: {0},
 Already in the following Users ToDo list:{0},بالفعل في قائمة &quot;المهام للمستخدمين&quot; التالية: {0},
 Your assignment on {0} {1} has been removed by {2},تمت إزالة واجبك في {0} {1} بواسطة {2},
+Invalid Credentials,بيانات الاعتماد غير صالحة,
+Print UOM after Quantity,اطبع UOM بعد الكمية,
 Uncaught Server Exception,استثناء خادم لم يتم اكتشافه,
 There was an error building this page,كان هناك خطأ في بناء هذه الصفحة,
 Hide Traceback,إخفاء Traceback,
+Value from this field will be set as the due date in the ToDo,سيتم تعيين القيمة من هذا الحقل كتاريخ الاستحقاق في ToDo,
+New module created {0},تم إنشاء وحدة جديدة {0},
+"Report has no numeric fields, please change the Report Name",لا يحتوي التقرير على حقول رقمية ، يُرجى تغيير اسم التقرير,
+There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states.,هناك مستندات بها حالات سير عمل غير موجودة في سير العمل هذا. يوصى بإضافة هذه الحالات إلى سير العمل وتغيير حالاتها قبل إزالة هذه الحالات.,
+Worflow States Don't Exist,حالات Worflow لا وجود لها,
+Save Anyway,حفظ على أي حال,
+Energy Points:,نقاط الطاقة:,
+Review Points:,نقاط المراجعة:,
+Rank:,مرتبة:,
+Monthly Rank:,الترتيب الشهري:,
+Invalid expression set in filter {0} ({1}),تم تعيين تعبير غير صالح في عامل التصفية {0} ({1}),
+Invalid expression set in filter {0},تم تعيين تعبير غير صالح في عامل التصفية {0},
+{0} {1} added to Dashboard {2},تمت إضافة {0} {1} إلى لوحة التحكم {2},
+Set Filters for {0},تعيين عوامل التصفية لـ {0},
+Not permitted to view {0},غير مسموح بمشاهدة {0},
+Camera,الة تصوير,
+Invalid filter: {0},مرشح غير صالح: {0},
+Let's Get Started,هيا بنا نبدأ,
+Reports & Masters,التقارير والماجستير,
+New {0} {1} added to Dashboard {2},تمت إضافة {0} {1} جديد إلى لوحة التحكم {2},
+New {0} {1} created,تم إنشاء {0} {1} جديد,
+New {0} Created,جديد {0} تم إنشاؤه,
+"Invalid ""depends_on"" expression set in filter {0}",تم تعيين تعبير &quot;يعتمد على&quot; غير صالح في عامل التصفية {0},
+{0} Reports,{0} التقارير,
+There is {0} with the same filters already in the queue:,يوجد {0} بالفلاتر نفسها في قائمة الانتظار بالفعل:,
+There are {0} with the same filters already in the queue:,يوجد {0} بالفلاتر نفسها في قائمة الانتظار بالفعل:,
+Are you sure you want to generate a new report?,هل أنت متأكد أنك تريد إنشاء تقرير جديد؟,
+{0}: {1} vs {2},{0}: {1} ضد {2},
+Add a {0} Chart,أضف مخطط {0},
+Currently you have {0} review points,حاليًا لديك {0} من نقاط المراجعة,
+{0} is not a valid DocType for Dynamic Link,{0} ليس نوع DocType صالحًا للارتباط الديناميكي,
+via Assignment Rule,عبر قاعدة التنازل,
+Based on Field,على أساس الميدان,
+Assign to the user set in this field,تعيين المستخدم في هذا المجال,
+Log Setting User,مستخدم إعداد السجل,
+Log Settings,إعدادات السجل,
+Error Log Notification,إعلام سجل الخطأ,
+Users To Notify,يخطر المستخدمون,
+Log Cleanup,تنظيف السجل,
+Clear Error log After,مسح سجل الخطأ بعد,
+Clear Activity Log After,امسح سجل النشاط بعد,
+Clear Email Queue After,امسح قائمة انتظار البريد الإلكتروني بعد,
+Please save to edit the template.,يرجى الحفظ لتعديل القالب.,
+Google Analytics Anonymize IP,تحليلات جوجل لإخفاء هوية IP,
+Incorrect email or password. Please check your login credentials.,بريد أو كلمة مرورغير صحيحة. يرجى التحقق من بيانات اعتماد تسجيل الدخول الخاصة بك.,
+Incorrect Configuration,التكوين غير الصحيح,
+You are not allowed to delete Standard Report,لا يُسمح لك بحذف التقرير القياسي,
+You have unseen {0},لديك غير مرئي {0},
+Log cleanup and notification configuration,تنظيف السجل وتكوين الإخطار,

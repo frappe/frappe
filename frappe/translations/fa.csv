@@ -336,7 +336,6 @@ Add Column,اضافه کردن ستون,
 Add Contact,اضافه کردن تماس,
 Add Contacts,افزودن شماره,
 Add Filter,اضافه کردن فیلتر,
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,اضافه کردن گوگل آنالیز ID: به عنوان مثال. UA-89XXX57-1. لطفا کمک جستجو در گوگل آنالیز برای اطلاعات بیشتر.,
 Add Group,افزودن گروه,
 Add New Permission Rule,اضافه کردن جدید قانون اجازه,
 Add Review,بررسی را اضافه کنید,
@@ -2444,7 +2443,6 @@ Table updated,جدول به روز شده,
 Table {0} cannot be empty,جدول {0} نمی تواند خالی باشد,
 Take Backup Now,پشتیبان را در حال حاضر,
 Take Photo,عکس گرفتن,
-Take Video,نگاهی به فیلم,
 Team Members,اعضای تیم,
 Team Members Heading,تیم سرنویس کاربران,
 Temporarily Disabled,موقتا غیر فعال می باشد,
@@ -3162,7 +3160,6 @@ Access not allowed from this IP Address,دسترسی از این آدرس IP م�
 Action Type,نوع عمل,
 Activity Log by ,فعالیت توسط,
 Add Fields,زمینه ها را اضافه کنید,
-Address needs to be linked to a Company. Please add a row for Company in the Links table below.,آدرس باید به یک شرکت مرتبط شود. لطفاً در جدول پیوندهای زیر یک ردیف برای شرکت اضافه کنید.,
 Administration,مدیریت,
 After Cancel,بعد از لغو,
 After Delete,بعد از حذف,
@@ -3233,7 +3230,6 @@ Click on {0} to generate Refresh Token.,برای تولید Refresh Token روی
 Close Condition,شرایط نزدیک,
 Column {0},ستون {0,
 Columns / Fields,ستون ها / زمینه ها,
-Company not Linked,شرکت پیوند ندارد,
 "Configure notifications for mentions, assignments, energy points and more.",پیکربندی اعلان ها برای موارد ذکر شده ، تکالیف ، نقاط انرژی و موارد دیگر.,
 Contact Email,تماس با ایمیل,
 Contact Numbers,شماره تماس,
@@ -3290,7 +3286,6 @@ Enable Email Notifications,اعلان های ایمیل را فعال کنید,
 Enable Google API in Google Settings.,Google API را در تنظیمات Google فعال کنید.,
 Enable Security,امنیت را فعال کنید,
 Energy Point,نقطه انرژی,
-Energy Points: ,نقاط انرژی:,
 Enter Client Id and Client Secret in Google Settings.,شناسه Client و Client Secret را در تنظیمات Google وارد کنید.,
 Enter Code displayed in OTP App.,کد نمایش داده شده در برنامه OTP را وارد کنید.,
 Event Configurations,تنظیمات رویداد,
@@ -3443,7 +3438,6 @@ Me,من,
 Mention,اشاره,
 Modules,ماژول,
 Monthly Long,ماهانه طولانی,
-Monthly Rank: ,رتبه ماهانه:,
 Naming Series,نامگذاری سری,
 Navigate Home,حرکت به صفحه اصلی,
 Navigate list down,لیست را به پایین بروید,
@@ -3510,7 +3504,6 @@ Push to Google Calendar,به تقویم Google فشار دهید,
 Push to Google Contacts,به مخاطبین Google فشار دهید,
 Queue / Worker,صف / کارگر,
 RAW Information Log,گزارش اطلاعات RAW,
-Rank: ,مرتبه:,
 Raw Printing Settings...,تنظیمات چاپ خام ...,
 Read Only Depends On,فقط بخوانید بستگی دارد,
 Recent Activity,فعالیت اخیر,
@@ -3526,7 +3519,6 @@ Request Structure,درخواست ساختار,
 Restricted,محصور,
 Restrictions,محدودیت های,
 Resync,راه اندازی مجدد,
-Review Points: ,نقد و بررسی امتیازات:,
 Row Number,شماره ردیف,
 Row {0},ردیف {0,
 Run Jobs only Daily if Inactive For (Days),اگر غیرفعال برای (روزها) کارها را فقط روزانه انجام دهید,
@@ -4190,6 +4182,7 @@ Prefer not to say,ترجیح میدهم نگویم,
 Is Billing Contact,آیا تماس صورتحساب است,
 Address And Contacts,آدرس و مخاطبین,
 Lead Conversion Time,زمان تبدیل سرب,
+Due Date Based On,تاریخ بر اساس تاریخ,
 Phone Number,شماره تلفن,
 Linked Documents,اسناد مرتبط,
 Account SID,حساب SID,
@@ -4552,9 +4545,7 @@ Card Label,برچسب کارت,
 Reports already in Queue,گزارشات از قبل در صف است,
 Proceed Anyway,در هر صورت انجام شود,
 Delete and Generate New,حذف و ایجاد جدید,
-There is ,وجود دارد,
 1 Report,1 گزارش,
-There are ,وجود دارد,
 {0} ({1}) (1 row mandatory),{0} ({1}) (1 ردیف اجباری),
 Select Fields To Insert,فیلدها را برای درج انتخاب کنید,
 Select Fields To Update,قسمتها را برای به روزرسانی انتخاب کنید,
@@ -4637,7 +4628,6 @@ A featured post must have a cover image,یک پست ویژه باید دارای
 Load More,بارگذاری بیشتر,
 Published on,منتشر شده در,
 Enable developer mode to create a standard Web Template,برای ایجاد یک الگوی استاندارد وب ، حالت برنامه نویس را فعال کنید,
-Please select which module this Web Template belongs to.,لطفاً انتخاب کنید که این الگوی وب متعلق به کدام ماژول باشد.,
 Was this article helpful?,این مقاله به شما کمک کرد؟,
 Thank you for your feedback!,ممنون از نظر شما,
 New Mention on {0},ذکر جدید در {0},
@@ -4652,6 +4642,57 @@ Please set the following documents in this Dashboard as standard first.,لطفا
 Shared with the following Users with Read access:{0},با کاربران زیر با دسترسی خواندن به اشتراک گذاشته شده است: {0},
 Already in the following Users ToDo list:{0},قبلاً در لیست ToDo کاربران زیر بوده است: {0},
 Your assignment on {0} {1} has been removed by {2},تکلیف شما در {0} {1} توسط {2} حذف شده است,
+Invalid Credentials,گواهی نامه نامعتبر,
+Print UOM after Quantity,UOM را بعد از Quantity چاپ کنید,
 Uncaught Server Exception,استثنای سرور گیر نیافته,
 There was an error building this page,هنگام ساخت این صفحه خطایی روی داد,
 Hide Traceback,ردیابی را مخفی کنید,
+Value from this field will be set as the due date in the ToDo,مقدار از این قسمت به عنوان تاریخ سررسید در ToDo تنظیم خواهد شد,
+New module created {0},ماژول جدید ایجاد شد {0},
+"Report has no numeric fields, please change the Report Name",گزارش فاقد قسمت عددی است ، لطفاً نام گزارش را تغییر دهید,
+There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states.,اسنادی وجود دارند که حالت گردش کار دارند و در این گردش کار وجود ندارد. توصیه می شود قبل از حذف این حالت ها ، این حالت ها را به Workflow اضافه کرده و حالت های آنها را تغییر دهید.,
+Worflow States Don't Exist,ایالت Worflow وجود ندارد,
+Save Anyway,به هر حال پس انداز کنید,
+Energy Points:,امتیازات انرژی:,
+Review Points:,بررسی نقاط:,
+Rank:,رتبه:,
+Monthly Rank:,رتبه ماهانه:,
+Invalid expression set in filter {0} ({1}),عبارت نامعتبر در فیلتر {0} تنظیم شده است ({1}),
+Invalid expression set in filter {0},عبارت نامعتبر در فیلتر {0} تنظیم شد,
+{0} {1} added to Dashboard {2},{0} {1} به داشبورد اضافه شد {2},
+Set Filters for {0},فیلترها را برای {0} تنظیم کنید,
+Not permitted to view {0},مشاهده {0} مجاز نیست,
+Camera,دوربین,
+Invalid filter: {0},فیلتر نامعتبر: {0},
+Let's Get Started,بیایید شروع کنیم,
+Reports & Masters,گزارش ها و استادان,
+New {0} {1} added to Dashboard {2},{0} {1} جدید به داشبورد اضافه شد {2},
+New {0} {1} created,{0} {1} جدید ایجاد شد,
+New {0} Created,{0} جدید ایجاد شده است,
+"Invalid ""depends_on"" expression set in filter {0}",عبارت &quot;կախված_شده&quot; نامعتبر است که در فیلتر {0} تنظیم شده است,
+{0} Reports,{0} گزارش ها,
+There is {0} with the same filters already in the queue:,{0} با همان فیلترها از قبل در صف است:,
+There are {0} with the same filters already in the queue:,{0} با همان فیلترها از قبل در صف هستند:,
+Are you sure you want to generate a new report?,آیا مطمئن هستید که می خواهید گزارش جدیدی تهیه کنید؟,
+{0}: {1} vs {2},{0}: {1} در مقابل {2},
+Add a {0} Chart,یک نمودار {0} اضافه کنید,
+Currently you have {0} review points,در حال حاضر شما {0} امتیاز بررسی دارید,
+{0} is not a valid DocType for Dynamic Link,{0} یک DocType معتبر برای پیوند پویا نیست,
+via Assignment Rule,از طریق قانون واگذاری,
+Based on Field,بر اساس فیلد,
+Assign to the user set in this field,در این قسمت به مجموعه کاربری اختصاص دهید,
+Log Setting User,ورود به سیستم کاربر,
+Log Settings,تنظیمات ورود به سیستم,
+Error Log Notification,اعلان ورود خطا,
+Users To Notify,کاربران برای اطلاع رسانی,
+Log Cleanup,پاکسازی ورود به سیستم,
+Clear Error log After,ورود به سیستم خطا را پاک کنید,
+Clear Activity Log After,پس از پاک کردن فعالیت فعالیت,
+Clear Email Queue After,پاک کردن صف ایمیل پس از,
+Please save to edit the template.,لطفاً برای ویرایش الگو ذخیره کنید.,
+Google Analytics Anonymize IP,Google Analytics IP را ناشناس می کند,
+Incorrect email or password. Please check your login credentials.,کلمه عبور یا ایمیل اشتباه است. لطفاً اطلاعات ورود به سیستم خود را بررسی کنید.,
+Incorrect Configuration,پیکربندی نادرست است,
+You are not allowed to delete Standard Report,شما مجاز به حذف استاندارد گزارش نیستید,
+You have unseen {0},شما {0} را ندیده اید,
+Log cleanup and notification configuration,پیکربندی پاکسازی و اعلان ورود به سیستم,

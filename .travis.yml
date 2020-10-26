@@ -31,7 +31,7 @@ matrix:
   - name: "Python 3.7 PostgreSQL"
     python: 3.7
     env: DB=postgres TYPE=server
-    script: bench --verbose --site test_site run-tests --coverage
+    script: bench --site test_site run-tests --coverage
 
   - name: "Cypress"
     python: 3.7
