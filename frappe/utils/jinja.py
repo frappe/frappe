@@ -193,7 +193,7 @@ def inspect(var, render=True):
 	return get_jenv().from_string(html).render(context)
 
 
-def web_block(template, values, **kwargs):
+def web_block(template, values=None, **kwargs):
 	options = {"template": template, "values": values}
 	options.update(kwargs)
 	return web_blocks([options])
