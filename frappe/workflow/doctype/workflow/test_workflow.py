@@ -15,8 +15,7 @@ class TestWorkflow(unittest.TestCase):
 		make_test_records("User")
 
 	def setUp(self):
-		if not getattr(self, 'workflow', None):
-			self.workflow = create_todo_workflow()
+		self.workflow = create_todo_workflow()
 		frappe.set_user('Administrator')
 
 	def tearDown(self):
