@@ -49,15 +49,9 @@ class Report(Document):
 		self.export_doc()
 
 	def on_trash(self):
-<<<<<<< 69d2c10736f7e5255333f9202cd3067722ba40e9
-		if (self.is_standard == 'Yes' 
-			and not cint(getattr(frappe.local.conf, 'developer_mode', 0)) 
-			and not frappe.flags.in_patch):
-=======
 		if (self.is_standard == 'Yes'
-			and not frappe.flags.in_patch
-			and not cint(getattr(frappe.local.conf, 'developer_mode',0))):
->>>>>>> fix(formatter):add link formatter for User and fix patch
+			and not cint(getattr(frappe.local.conf, 'developer_mode', 0))
+			and not frappe.flags.in_patch):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role('report', self.name)
 
