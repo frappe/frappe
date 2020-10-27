@@ -9,19 +9,24 @@ import xlrd
 import re
 from openpyxl.styles import Font
 from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
 from six import BytesIO, string_types
 
 ILLEGAL_CHARACTERS_RE = re.compile(r'[\000-\010]|[\013-\014]|[\016-\037]')
 # return xlsx file object
-def make_xlsx(data, sheet_name, wb=None):
-
+def make_xlsx(data, sheet_name, wb=None, column_widths=None):
+	column_widths = column_widths or []
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)
 
 	ws = wb.create_sheet(sheet_name, 0)
 
+	for i, column_width in enumerate(column_widths):
+		if column_width:
+			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
+
 	row1 = ws.row_dimensions[1]
-	row1.font = Font(name='Calibri',bold=True)
+	row1.font = Font(name='Calibri', bold=True)
 
 	for row in data:
 		clean_row = []

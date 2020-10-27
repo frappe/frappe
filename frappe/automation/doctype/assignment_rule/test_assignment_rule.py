@@ -88,6 +88,30 @@ class TestAutoAssign(unittest.TestCase):
 		for user in ('test@example.com', 'test1@example.com', 'test2@example.com'):
 			self.assertEqual(len(frappe.get_all('ToDo', dict(owner = user, reference_type = 'Note'))), 10)
 
+	def test_based_on_field(self):
+		self.assignment_rule.rule = 'Based on Field'
+		self.assignment_rule.field = 'owner'
+		self.assignment_rule.save()
+
+		frappe.set_user('test1@example.com')
+		note = make_note(dict(public=1))
+		# check if auto assigned to doc owner, test1@example.com
+		self.assertEqual(frappe.db.get_value('ToDo', dict(
+			reference_type = 'Note',
+			reference_name = note.name,
+			status = 'Open'
+		), 'owner'), 'test1@example.com')
+
+		frappe.set_user('test2@example.com')
+		note = make_note(dict(public=1))
+		# check if auto assigned to doc owner, test2@example.com
+		self.assertEqual(frappe.db.get_value('ToDo', dict(
+			reference_type = 'Note',
+			reference_name = note.name,
+			status = 'Open'
+		), 'owner'), 'test2@example.com')
+
+		frappe.set_user('Administrator')
 
 	def test_assign_condition(self):
 		# check condition

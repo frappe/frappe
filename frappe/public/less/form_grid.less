@@ -1,6 +1,10 @@
 @import "variables.less";
 @import "mixins.less";
 
+.grid-field {
+	position: relative;
+}
+
 .form-grid {
 	border: 1px solid @border-color;
 	border-radius: 3px;
@@ -292,6 +296,16 @@ html.chrome .grid-row .grid-row-check {
 
 .grid-header-toolbar {
 	display: flow-root;
+}
+
+.grid-custom-buttons {
+	position: absolute;
+	right: 0;
+	top: -5px;
+}
+
+.btn-custom:not(:last-child) {
+	margin-right: 5px;
 }
 
 .grid-buttons {
