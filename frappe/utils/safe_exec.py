@@ -73,9 +73,9 @@ def get_safe_globals():
 			render_template=frappe.render_template,
 			msgprint=frappe.msgprint,
 			throw=frappe.throw,
-			sendmail = frappe.sendmail,
-			get_print = frappe.get_print,
-			attach_print = frappe.attach_print,
+			sendmail=frappe.sendmail,
+			get_print=frappe.get_print,
+			attach_print=frappe.attach_print,
 
 			user=user,
 			get_fullname=frappe.utils.get_fullname,
@@ -86,8 +86,8 @@ def get_safe_globals():
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			),
-			make_get_request = frappe.integrations.utils.make_get_request,
-			make_post_request = frappe.integrations.utils.make_post_request,
+			make_get_request=frappe.integrations.utils.make_get_request,
+			make_post_request=frappe.integrations.utils.make_post_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=frappe.get_hooks,
 			sanitize_html=frappe.utils.sanitize_html
