@@ -318,19 +318,7 @@ frappe.views.BaseList = class BaseList {
 			} else if ($this.is('.btn-more')) {
 				this.start = this.start + this.page_length;
 			}
-
-			// Trigger page change event so that scroll position can be set
-			const end = this.data.length;
-			const scroll_position = frappe.utils.get_scroll_position($(e.currentTarget));
-			let trigger_scroll = () => {
-				$(document.body).trigger('pageChange', [scroll_position, end]);
-			};
-
-			frappe.run_serially([
-				() => this.refresh(),
-				() => trigger_scroll(),
-			]);
-
+			this.refresh();
 		});
 	}
 
@@ -390,9 +378,11 @@ frappe.views.BaseList = class BaseList {
 			// render
 			this.prepare_data(r);
 			this.toggle_result_area();
+			this.toggle_paging && this.$paging_area.toggle(false);
 			this.before_render();
 			this.render();
 			this.after_render();
+			this.toggle_paging && this.$paging_area.toggle(true);
 			this.freeze(false);
 			if (this.settings.refresh) {
 				this.settings.refresh(this);
