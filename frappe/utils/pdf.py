@@ -112,8 +112,7 @@ def prepare_options(html, options):
 	options.update(html_options or {})
 
 	# cookies
-	if not frappe.flags.in_test:
-		options.update(get_cookie_options())
+	options.update(get_cookie_options())
 
 	# page size
 	if not options.get("page-size"):
