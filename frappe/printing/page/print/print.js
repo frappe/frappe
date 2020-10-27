@@ -203,11 +203,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_breadcrumbs() {
-		frappe.breadcrumbs.add({
-			label: __('Form'),
-			route: `#Form/${this.frm.doctype}/${this.frm.docname}`,
-			type: 'Custom',
-		});
+		frappe.breadcrumbs.add(this.frm.meta.module, this.frm.doctype);
 	}
 
 	setup_additional_settings() {

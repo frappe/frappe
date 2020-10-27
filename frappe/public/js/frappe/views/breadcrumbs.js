@@ -76,14 +76,14 @@ frappe.breadcrumbs = {
 		// get preferred module for breadcrumbs, based on sent via module
 		var from_module = frappe.breadcrumbs.get_doctype_module(breadcrumbs.doctype);
 
-		if(from_module) {
+		if (from_module) {
 			breadcrumbs.module = from_module;
 		} else if(frappe.breadcrumbs.preferred[breadcrumbs.doctype]!==undefined) {
 			// get preferred module for breadcrumbs
 			breadcrumbs.module = frappe.breadcrumbs.preferred[breadcrumbs.doctype];
 		}
 
-		if(breadcrumbs.module) {
+		if (breadcrumbs.module) {
 			if (frappe.breadcrumbs.module_map[breadcrumbs.module]) {
 				breadcrumbs.module = frappe.breadcrumbs.module_map[breadcrumbs.module];
 			}
@@ -94,7 +94,7 @@ frappe.breadcrumbs = {
 				breadcrumbs.module = frappe.boot.module_page_map[breadcrumbs.module];
 			}
 
-			if(frappe.get_module(current_module)) {
+			if (frappe.get_module(current_module)) {
 				// if module access exists
 				var module_info = frappe.get_module(current_module),
 					icon = module_info && module_info.icon,
@@ -107,22 +107,34 @@ frappe.breadcrumbs = {
 				}
 			}
 		}
-		if(breadcrumbs.doctype && frappe.get_route()[0]==="Form") {
-			if(breadcrumbs.doctype==="User"
-				|| frappe.get_doc('DocType', breadcrumbs.doctype).issingle) {
+
+		let set_list_breadcrumb = (doctype) => {
+			if (doctype==="User"
+				|| frappe.get_doc('DocType', doctype).issingle) {
 				// no user listview for non-system managers and single doctypes
 			} else {
-				var route;
-				if(frappe.boot.treeviews.indexOf(breadcrumbs.doctype) !== -1) {
-					var view = frappe.model.user_settings[breadcrumbs.doctype].last_view || 'Tree';
+				let route;
+				if (frappe.boot.treeviews.indexOf(breadcrumbs.doctype) !== -1) {
+					let view = frappe.model.user_settings[breadcrumbs.doctype].last_view || 'Tree';
 					route = view + '/' + breadcrumbs.doctype;
 				} else {
 					route = 'List/' + breadcrumbs.doctype;
 				}
-				$(repl('<li><a href="#%(route)s">%(label)s</a></li>',
-					{route: route, label: __(breadcrumbs.doctype)}))
-					.appendTo($breadcrumbs);
+				$(`<li><a href="#${route}">${doctype}</a></li>`)
+					.appendTo($breadcrumbs)
 			}
+		}
+
+		if (breadcrumbs.doctype && frappe.get_route()[0] === "Form") {
+			set_list_breadcrumb(breadcrumbs.doctype);
+		}
+
+		if (breadcrumbs.doctype && frappe.get_route()[0] === "print") {
+			set_list_breadcrumb(breadcrumbs.doctype);
+			let docname = frappe.get_route()[2];
+			let form_route = `Form/${breadcrumbs.doctype}/${docname}`;
+			$(`<li><a href="#${form_route}">${docname}</a></li>`)
+				.appendTo($breadcrumbs);
 		}
 
 		$("body").removeClass("no-breadcrumbs");
