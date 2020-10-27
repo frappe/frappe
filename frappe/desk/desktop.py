@@ -157,7 +157,8 @@ class Workspace:
 
 	def is_item_allowed(self, name, item_type):
 		item_type = item_type.lower()
-
+		if item_type == "portal page":
+			return True
 		if item_type == "doctype":
 			return (name in self.can_read and name in self.restricted_doctypes)
 		if item_type == "page":
@@ -181,7 +182,6 @@ class Workspace:
 			'label': _(self.doc.charts_label),
 			'items': self.get_charts()
 		}
-
 		self.shortcuts = {
 			'label': _(self.doc.shortcuts_label),
 			'items': self.get_shortcuts()
@@ -297,7 +297,6 @@ class Workspace:
 		shortcuts = self.doc.shortcuts
 		if len(self.extended_shortcuts):
 			shortcuts = shortcuts + self.extended_shortcuts
-
 		for item in shortcuts:
 			new_item = item.as_dict().copy()
 			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):

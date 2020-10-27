@@ -23,8 +23,12 @@ export default class ShortcutWidget extends Widget {
 
 	setup_events() {
 		this.widget.click(() => {
+			console.log("clicked", this)
 			if (this.in_customize_mode) return;
-
+			if(this.type==="Portal Page") {
+				location.assign(`${location.origin}/${this.link_to}`);
+				return;
+			}
 			let route = generate_route({
 				route: this.route,
 				name: this.link_to,
