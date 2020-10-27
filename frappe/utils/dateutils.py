@@ -6,6 +6,12 @@ import frappe
 import frappe.defaults
 import datetime
 from frappe.utils import get_datetime
+<<<<<<< HEAD
+=======
+from frappe.utils import add_to_date, getdate
+from frappe.utils.data import get_first_day, get_first_day_of_week, get_quarter_start, get_year_start,\
+	get_last_day, get_last_day_of_week, get_quarter_ending, get_year_ending
+>>>>>>> 7f43169c4a... refactor: reorganise date functions indashboard_chart.py
 from six import string_types
 
 # global values -- used for caching
@@ -73,3 +79,89 @@ def datetime_in_user_format(date_time):
 		date_time = get_datetime(date_time)
 	from frappe.utils import formatdate
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")
+<<<<<<< HEAD
+=======
+
+def get_dates_from_timegrain(from_date, to_date, timegrain="Daily"):
+	from_date = getdate(from_date)
+	to_date = getdate(to_date)
+
+	days = months = years = 0
+	if "Daily" == timegrain:
+		days = 1
+	elif "Weekly" == timegrain:
+		days = 7
+	elif "Monthly" == timegrain:
+		months = 1
+	elif "Quarterly" == timegrain:
+		months = 3
+
+	if "Weekly" == timegrain:
+		dates = [get_last_day_of_week(from_date)]
+	else:
+		dates = [get_period_ending(from_date, timegrain)]
+
+	while getdate(dates[-1]) < getdate(to_date):
+		if "Weekly" == timegrain:
+			date = get_last_day_of_week(add_to_date(dates[-1], years=years, months=months, days=days))
+		else:
+			date = get_period_ending(add_to_date(dates[-1], years=years, months=months, days=days), timegrain)
+		dates.append(date)
+	return dates
+
+def get_from_date_from_timespan(to_date, timespan):
+	days = months = years = 0
+	if timespan == "Last Week":
+		days = -7
+	if timespan == "Last Month":
+		months = -1
+	elif timespan == "Last Quarter":
+		months = -3
+	elif timespan == "Last Year":
+		years = -1
+	elif timespan == "All Time":
+		years = -50
+	return add_to_date(to_date, years=years, months=months, days=days,
+		as_datetime=True)
+
+def get_period(date, interval='Monthly'):
+	date = getdate(date)
+	months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+	return {
+		'Daily': date.strftime('%d-%m-%y'),
+		'Weekly': date.strftime('%d-%m-%y'),
+		'Monthly': str(months[date.month - 1]) + ' ' + str(date.year),
+		'Quarterly': 'Quarter ' + str(((date.month-1)//3)+1) + ' ' + str(date.year),
+		'Yearly': str(date.year)
+	}[interval]
+
+def get_period_beginning(date, timegrain):
+	as_str = True
+	if timegrain == 'Daily':
+		pass
+	elif timegrain == 'Weekly':
+		date = get_first_day_of_week(date, as_str=as_str)
+	elif timegrain == 'Monthly':
+		date = get_first_day(date, as_str=as_str)
+	elif timegrain == 'Quarterly':
+		date = get_quarter_start(date, as_str=as_str)
+	elif timegrain == 'Yearly':
+		date = get_year_start(date, as_str=as_str)
+
+	return date
+
+def get_period_ending(date, timegrain):
+	date = getdate(date)
+	if timegrain == 'Daily':
+		pass
+	elif timegrain == 'Weekly':
+		date = get_last_day_of_week(date)
+	elif timegrain == 'Monthly':
+		date = get_last_day(date)
+	elif timegrain == 'Quarterly':
+		date = get_quarter_ending(date)
+	elif timegrain == 'Yearly':
+		date = get_year_ending(date)
+
+	return getdate(date)
+>>>>>>> 7f43169c4a... refactor: reorganise date functions indashboard_chart.py

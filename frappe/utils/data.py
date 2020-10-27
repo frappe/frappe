@@ -200,6 +200,27 @@ def get_last_day(dt):
 	"""
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
 
+def get_quarter_ending(date):
+	date = getdate(date)
+
+	# find the earliest quarter ending date that is after
+	# the given date
+	for month in (3, 6, 9, 12):
+		quarter_end_month = getdate('{}-{}-01'.format(date.year, month))
+		quarter_end_date = getdate(get_last_day(quarter_end_month))
+		if date <= quarter_end_date:
+			date = quarter_end_date
+			break
+
+	return date
+
+def get_year_ending(date):
+	''' returns year ending of the given date '''
+
+	# first day of next year (note year starts from 1)
+	date = add_to_date('{}-01-01'.format(date.year), months = 12)
+	# last day of this month
+	return add_to_date(date, days=-1)
 
 def get_time(time_str):
 	if isinstance(time_str, datetime.datetime):
@@ -301,6 +322,7 @@ def get_timespan_date_range(timespan):
 
 	return date_range_map.get(timespan)
 
+<<<<<<< HEAD
 def get_period(date, interval='Monthly'):
 	date = getdate(date)
 	months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -313,6 +335,8 @@ def get_period(date, interval='Monthly'):
 	}[interval]
 
 >>>>>>> 969aa86e68... fix: calculate chart data from beginning of period
+=======
+>>>>>>> 7f43169c4a... refactor: reorganise date functions indashboard_chart.py
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)

@@ -11,8 +11,11 @@ from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_fro
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
 =======
 import json
-from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import *
+from frappe.utils.dashboard import cache_source
+from frappe.utils import nowdate, add_to_date, getdate, formatdate,\
+	get_datetime, cint, now_datetime
+from frappe.utils.dateutils import\
+	get_period, get_period_beginning, get_period_ending, get_from_date_from_timespan
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 >>>>>>> 969aa86e68... fix: calculate chart data from beginning of period
@@ -192,6 +195,7 @@ def get_next_expected_date(date, timegrain):
 	next_date = get_period_ending(add_to_date(date, days=1), timegrain)
 	return getdate(next_date)
 
+<<<<<<< HEAD
 def get_period_beginning(date, timegrain):
 	as_str = True
 	if timegrain == 'Daily':
@@ -250,6 +254,17 @@ def get_quarter_ending(date):
 
 	return date
 
+=======
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
+	or_filters = {'owner': frappe.session.user, 'is_public': 1}
+	return frappe.db.get_list('Dashboard Chart',
+		fields=['name'],
+		filters=filters,
+		or_filters=or_filters,
+		as_list = 1)
+>>>>>>> 7f43169c4a... refactor: reorganise date functions indashboard_chart.py
 
 class DashboardChart(Document):
 	def on_update(self):
