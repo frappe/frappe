@@ -441,6 +441,17 @@ def get_timespan_date_range(timespan):
 
 	return date_range_map.get(timespan)
 
+def get_period(date, interval='Monthly'):
+	date = getdate(date)
+	months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+	return {
+		'Daily': date.strftime('%d-%m-%y'),
+		'Weekly': date.strftime('%d-%m-%y'),
+		'Monthly': str(months[date.month - 1]) + ' ' + str(date.year),
+		'Quarterly': 'Quarter ' + str(((date.month-1)//3)+1) + ' ' + str(date.year),
+		'Yearly': str(date.year)
+	}[interval]
+
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)
