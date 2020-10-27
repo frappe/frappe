@@ -6,8 +6,16 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import datetime
+<<<<<<< HEAD
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
+=======
+import json
+from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
+from frappe.utils import *
+from frappe.model.naming import append_number_if_name_exists
+from frappe.boot import get_allowed_reports
+>>>>>>> 969aa86e68... fix: calculate chart data from beginning of period
 from frappe.model.document import Document
 
 @frappe.whitelist()
@@ -41,7 +49,9 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
+		from_date = get_period_beginning(from_date, timegrain)
 	if not to_date:
+<<<<<<< HEAD
 		to_date = datetime.datetime.now()
 
 	# get conditions from filters
@@ -69,10 +79,36 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	), values)
 
 	# add missing data points for periods where there was no result
+=======
+		to_date = now_datetime()
+
+	doctype = chart.document_type
+	datefield = chart.based_on
+	aggregate_function = get_aggregate_function(chart.chart_type)
+	value_field = chart.value_based_on or '1'
+	to_date = to_date
+
+	filters.append([doctype, datefield, '>=', from_date, False])
+	filters.append([doctype, datefield, '<=', to_date, False])
+
+	data = frappe.db.get_list(
+		doctype,
+		fields = [
+			'{} as _unit'.format(datefield),
+			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
+		],
+		filters = filters,
+		group_by = '_unit',
+		order_by = '_unit asc',
+		as_list = True,
+		ignore_ifnull = True
+	)
+
+>>>>>>> 969aa86e68... fix: calculate chart data from beginning of period
 	result = get_result(data, timegrain, from_date, to_date)
 
 	chart_config = {
-		"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
+		"labels": [get_period(r[0], timegrain) for r in result],
 		"datasets": [{
 			"name": chart.name,
 			"values": [r[1] for r in result]
@@ -132,7 +168,7 @@ def get_result(data, timegrain, from_date, to_date):
 	start_date = getdate(from_date)
 	end_date = getdate(to_date)
 
-	result = [[start_date, 0.0]]
+	result = []
 
 	while start_date < end_date:
 		next_date = get_next_expected_date(start_date, timegrain)
@@ -155,6 +191,21 @@ def get_next_expected_date(date, timegrain):
 	# given date is always assumed to be the period ending date
 	next_date = get_period_ending(add_to_date(date, days=1), timegrain)
 	return getdate(next_date)
+
+def get_period_beginning(date, timegrain):
+	as_str = True
+	if timegrain == 'Daily':
+		pass
+	elif timegrain == 'Weekly':
+		date = get_first_day_of_week(date, as_str=as_str)
+	elif timegrain == 'Monthly':
+		date = get_first_day(date, as_str=as_str)
+	elif timegrain == 'Quarterly':
+		date = get_quarter_start(date, as_str=as_str)
+	elif timegrain == 'Yearly':
+		date = get_year_start(date, as_str=as_str)
+
+	return date
 
 def get_period_ending(date, timegrain):
 	date = getdate(date)

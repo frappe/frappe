@@ -278,6 +278,41 @@ def get_weekday(datetime=None):
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
 
+<<<<<<< HEAD
+=======
+def get_timespan_date_range(timespan):
+	date_range_map = {
+		"last week": [add_to_date(nowdate(), days=-7), nowdate()],
+		"last month": [add_to_date(nowdate(), months=-1), nowdate()],
+		"last quarter": [add_to_date(nowdate(), months=-3), nowdate()],
+		"last 6 months": [add_to_date(nowdate(), months=-6), nowdate()],
+		"last year": [add_to_date(nowdate(), years=-1), nowdate()],
+		"today": [nowdate(), nowdate()],
+		"this week": [get_first_day_of_week(nowdate(), as_str=True), nowdate()],
+		"this month": [get_first_day(nowdate(), as_str=True), nowdate()],
+		"this quarter": [get_quarter_start(nowdate(), as_str=True), nowdate()],
+		"this year": [get_year_start(nowdate(), as_str=True), nowdate()],
+		"next week": [nowdate(), add_to_date(nowdate(), days=7)],
+		"next month": [nowdate(), add_to_date(nowdate(), months=1)],
+		"next quarter": [nowdate(), add_to_date(nowdate(), months=3)],
+		"next 6 months": [nowdate(), add_to_date(nowdate(), months=6)],
+		"next year": [nowdate(), add_to_date(nowdate(), years=1)],
+	}
+
+	return date_range_map.get(timespan)
+
+def get_period(date, interval='Monthly'):
+	date = getdate(date)
+	months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+	return {
+		'Daily': date.strftime('%d-%m-%y'),
+		'Weekly': date.strftime('%d-%m-%y'),
+		'Monthly': str(months[date.month - 1]) + ' ' + str(date.year),
+		'Quarterly': 'Quarter ' + str(((date.month-1)//3)+1) + ' ' + str(date.year),
+		'Yearly': str(date.year)
+	}[interval]
+
+>>>>>>> 969aa86e68... fix: calculate chart data from beginning of period
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)
