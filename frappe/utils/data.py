@@ -3,11 +3,10 @@
 
 from __future__ import unicode_literals
 
-# IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 from dateutil.parser._parser import ParserError
-import subprocess
 import operator
+import json
 import re, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
@@ -94,7 +93,10 @@ def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, se
 		as_string = True
 		if " " in date:
 			as_datetime = True
-		date = parser.parse(date)
+		try:
+			date = parser.parse(date)
+		except ParserError:
+			frappe.throw(frappe._("Please select a valid date filter"), title=frappe._("Invalid Date"))
 
 	date = date + relativedelta(years=years, months=months, weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds)
 
@@ -342,6 +344,11 @@ def format_datetime(datetime_string, format_string=None):
 	return formatted_datetime
 
 def format_duration(seconds, hide_days=False):
+	"""Converts the given duration value in float(seconds) to duration format
+
+	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
+	"""
+
 	total_duration = {
 		'days': math.floor(seconds / (3600 * 24)),
 		'hours': math.floor(seconds % (3600 * 24) / 3600),
@@ -368,6 +375,41 @@ def format_duration(seconds, hide_days=False):
 			duration += str(total_duration.get('seconds')) + 's'
 
 	return duration
+
+def duration_to_seconds(duration):
+	"""Converts the given duration formatted value to duration value in seconds
+
+	example: converts '3h 34m 45s' to 12885 (value in seconds)
+	"""
+	validate_duration_format(duration)
+	value = 0
+	if 'd' in duration:
+		val = duration.split('d')
+		days = val[0]
+		value += cint(days) * 24 * 60 * 60
+		duration = val[1]
+	if 'h' in duration:
+		val = duration.split('h')
+		hours = val[0]
+		value += cint(hours) * 60 * 60
+		duration = val[1]
+	if 'm' in duration:
+		val = duration.split('m')
+		mins = val[0]
+		value += cint(mins) * 60
+		duration = val[1]
+	if 's' in duration:
+		val = duration.split('s')
+		secs = val[0]
+		value += cint(secs)
+
+	return value
+
+def validate_duration_format(duration):
+	import re
+	is_valid_duration = re.match("^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", duration)
+	if not is_valid_duration:
+		frappe.throw(frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration)))
 
 def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -409,6 +451,28 @@ def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
 	return set(l1) & set(l2)
 
+def cast_fieldtype(fieldtype, value):
+	if fieldtype in ("Currency", "Float", "Percent"):
+		value = flt(value)
+
+	elif fieldtype in ("Int", "Check"):
+		value = cint(value)
+
+	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
+		"Text Editor", "Select", "Link", "Dynamic Link"):
+		value = cstr(value)
+
+	elif fieldtype == "Date":
+		value = getdate(value)
+
+	elif fieldtype == "Datetime":
+		value = get_datetime(value)
+
+	elif fieldtype == "Time":
+		value = to_timedelta(value)
+
+	return value
+
 def flt(s, precision=None):
 	"""Convert to float (ignore commas)"""
 	if isinstance(s, string_types):
@@ -422,19 +486,6 @@ def flt(s, precision=None):
 		num = 0.0
 
 	return num
-
-def get_wkhtmltopdf_version():
-	wkhtmltopdf_version = frappe.cache().hget("wkhtmltopdf_version", None)
-
-	if not wkhtmltopdf_version:
-		try:
-			res = subprocess.check_output(["wkhtmltopdf", "--version"])
-			wkhtmltopdf_version = res.decode('utf-8').split(" ")[1]
-			frappe.cache().hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
-		except Exception:
-			pass
-
-	return (wkhtmltopdf_version or '0')
 
 def cint(s):
 	"""Convert to integer"""
@@ -742,6 +793,7 @@ def is_image(filepath):
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 def get_thumbnail_base64_for_image(src):
+	from os.path import exists as file_exists
 	from PIL import Image
 	from frappe.core.doctype.file.file import get_local_image
 	from frappe import safe_decode, cache
@@ -749,10 +801,17 @@ def get_thumbnail_base64_for_image(src):
 	if not src:
 		frappe.throw('Invalid source for image: {0}'.format(src))
 
-	if not src.startswith('/files'):
+	if not src.startswith('/files') or '..' in src:
+		return
+
+	if src.endswith('.svg'):
 		return
 
 	def _get_base64():
+		file_path = frappe.get_site_path("public", src.lstrip("/"))
+		if not file_exists(file_path):
+			return
+
 		try:
 			image, unused_filename, extn = get_local_image(src)
 		except IOError:
@@ -776,7 +835,7 @@ def image_to_base64(image, extn):
 	from io import BytesIO
 
 	buffered = BytesIO()
-	if extn.lower() == 'jpg':
+	if extn.lower() in ('jpg', 'jpe'):
 		extn = 'JPEG'
 	image.save(buffered, extn)
 	img_str = base64.b64encode(buffered.getvalue())
@@ -1020,20 +1079,22 @@ def evaluate_filters(doc, filters):
 	if isinstance(filters, dict):
 		for key, value in iteritems(filters):
 			f = get_filter(None, {key:value})
-			if not compare(doc.get(f.fieldname), f.operator, f.value):
+			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 				return False
 
 	elif isinstance(filters, (list, tuple)):
 		for d in filters:
 			f = get_filter(None, d)
-			if not compare(doc.get(f.fieldname), f.operator, f.value):
+			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 				return False
 
 	return True
 
 
-def compare(val1, condition, val2):
+def compare(val1, condition, val2, fieldtype=None):
 	ret = False
+	if fieldtype:
+		val2 = cast_fieldtype(fieldtype, val2)
 	if condition in operator_map:
 		ret = operator_map[condition](val1, val2)
 
@@ -1047,6 +1108,7 @@ def get_filter(doctype, f, filters_config=None):
 			"fieldname":
 			"operator":
 			"value":
+			"fieldtype":
 		}
 	"""
 	from frappe.model import default_fields, optional_fields
@@ -1097,6 +1159,13 @@ def get_filter(doctype, f, filters_config=None):
 				if frappe.get_meta(df.options).has_field(f.fieldname):
 					f.doctype = df.options
 					break
+
+	try:
+		df = frappe.get_meta(f.doctype).get_field(f.fieldname)
+	except frappe.exceptions.DoesNotExistError:
+		df = None
+
+	f.fieldtype = df.fieldtype if df else None
 
 	return f
 
@@ -1222,21 +1291,12 @@ def md_to_html(markdown_text):
 
 	return html
 
-def get_source_value(source, key):
-	'''Get value from source (object or dict) based on key'''
-	if isinstance(source, dict):
-		return source.get(key)
-	else:
-		return getattr(source, key)
-
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''
 	return len(list(set(list_a) & set(list_b))) == len(list_a)
 
 def generate_hash(*args, **kwargs):
 	return frappe.generate_hash(*args, **kwargs)
-
-
 
 def guess_date_format(date_string):
 	DATE_FORMATS = [
@@ -1310,3 +1370,9 @@ def guess_date_format(date_string):
 
 		if date_format and time_format:
 			return (date_format + ' ' + time_format).strip()
+
+def validate_json_string(string):
+	try:
+		json.loads(string)
+	except (TypeError, ValueError):
+		raise frappe.ValidationError

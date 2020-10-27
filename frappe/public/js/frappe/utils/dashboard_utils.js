@@ -182,7 +182,7 @@ frappe.dashboard_utils = {
 				try {
 					f[3] = eval(f[3]);
 				} catch (e) {
-					frappe.throw(__(`Invalid expression set in filter ${f[1]} (${f[0]})`));
+					frappe.throw(__("Invalid expression set in filter {0} ({1})", [f[1], f[0]]));
 				}
 			});
 			filters = [...filters, ...dynamic_filters];
@@ -192,7 +192,7 @@ frappe.dashboard_utils = {
 					const val = eval(dynamic_filters[key]);
 					dynamic_filters[key] = val;
 				} catch (e) {
-					frappe.throw(__(`Invalid expression set in filter ${key}`));
+					frappe.throw(__("Invalid expression set in filter {0}", [key]));
 				}
 			}
 			Object.assign(filters, dynamic_filters);
@@ -238,7 +238,7 @@ frappe.dashboard_utils = {
 					let dashboard_route_html =
 						`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
 					let message =
-						__(`${doctype} ${values.name} added to Dashboard ` + dashboard_route_html);
+						__("{0} {1} added to Dashboard {2}", [doctype, values.name, dashboard_route_html]);
 
 					frappe.msgprint(message);
 				});

@@ -17,7 +17,7 @@
     <a href="https://travis-ci.com/frappe/frappe">
         <img src="https://travis-ci.com/frappe/frappe.svg?branch=develop">
     </a>
-    <a href='https://frappe.io/docs'>
+    <a href='https://frappeframework.com/docs'>
         <img src='https://img.shields.io/badge/docs-📖-7575FF.svg?style=flat-square'/>
     </a>
 	<a href='https://www.codetriage.com/frappe/frappe'>
@@ -43,7 +43,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 ## Contributing
 
-1. [Pull Request Requirements](https://github.com/frappe/erpnext/wiki/Pull-Request-Guidelines)
+1. [Contribution Guidelines](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
 1. [Translations](https://translate.erpnext.com)
 
 ### Website

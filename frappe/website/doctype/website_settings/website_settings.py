@@ -119,7 +119,8 @@ def get_website_settings(context=None):
 	for k in ["banner_html", "banner_image", "brand_html", "copyright", "twitter_share_via",
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
-		"navbar_search", "enable_view_tracking", "footer_logo", "call_to_action", "call_to_action_url"]:
+		"navbar_template", "footer_template", "navbar_search", "enable_view_tracking",
+		"footer_logo", "call_to_action", "call_to_action_url"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -134,9 +135,6 @@ def get_website_settings(context=None):
 		context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
 
 	context.encoded_title = quote(encode(context.title or ""), str(""))
-
-	for update_website_context in hooks.update_website_context or []:
-		frappe.get_attr(update_website_context)(context)
 
 	context.web_include_js = hooks.web_include_js or []
 

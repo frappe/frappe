@@ -25,9 +25,6 @@ class ActivityLog(Document):
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
 
-	def on_trash(self): # pylint: disable=no-self-use
-		frappe.throw(_("Sorry! You cannot delete auto-generated comments"))
-
 def on_doctype_update():
 	"""Add indexes in `tabActivity Log`"""
 	frappe.db.add_index("Activity Log", ["reference_doctype", "reference_name"])
@@ -43,7 +40,11 @@ def add_authentication_log(subject, user, operation="Login", status="Success"):
 		"operation": operation,
 	}).insert(ignore_permissions=True, ignore_links=True)
 
-def clear_authentication_logs():
-	"""clear 100 day old authentication logs"""
+def clear_activity_logs(days=None):
+	"""clear 90 day old authentication logs or configured in log settings"""
+
+	if not days:
+		days = 90
+
 	frappe.db.sql("""delete from `tabActivity Log` where \
-	creation< (NOW() - INTERVAL '100' DAY)""")
+		creation< (NOW() - INTERVAL '{0}' DAY)""".format(days))

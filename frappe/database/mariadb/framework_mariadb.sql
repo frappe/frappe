@@ -128,7 +128,7 @@ CREATE TABLE `tabDocType Action` (
   `label` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `group` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `action_type` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `action` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `action` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `modified` (`modified`)
@@ -277,7 +277,7 @@ CREATE TABLE `__Auth` (
 	`doctype` VARCHAR(140) NOT NULL,
 	`name` VARCHAR(255) NOT NULL,
 	`fieldname` VARCHAR(140) NOT NULL,
-	`password` VARCHAR(255) NOT NULL,
+	`password` TEXT NOT NULL,
 	`encrypted` INT(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`doctype`, `name`, `fieldname`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

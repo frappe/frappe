@@ -35,7 +35,8 @@ class WidgetDialog {
 		// __("New Chart") __("New Shortcut") __("Edit Chart") __("Edit Shortcut")
 
 		let action = this.editing ? "Edit" : "Add";
-		return __(`${action} ${frappe.model.unscrub(this.type)}`);
+		let label = action = action + " " + frappe.model.unscrub(this.type);
+		return __(label);
 	}
 
 	get_fields() {
@@ -174,22 +175,40 @@ class ShortcutDialog extends WidgetDialog {
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						let doctype = this.dialog.get_value("link_to");
+						if (doctype && frappe.boot.single_types.includes(doctype)) {
+							this.hide_filters();
+						} else if (doctype) {
+							this.setup_filter(doctype);
+							this.show_filters();
+						}
 
-						doctype &&
-							frappe.db
-								.get_value("DocType", doctype, "issingle")
-								.then((res) => {
-									if (res.message && res.message.issingle) {
-										this.hide_filters();
-									} else {
-										this.setup_filter(doctype);
-										this.show_filters();
-									}
-								});
+						const views = ["List", "Report Builder", "Dashboard", "New"];
+						if (frappe.boot.treeviews.includes(doctype)) views.push("Tree");
+						if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
+
+						this.dialog.set_df_property("doc_view", "options", views.join("\n"));
+
 					} else {
 						this.hide_filters();
 					}
-				},
+				}
+			},
+			{
+				fieldtype: "Select",
+				fieldname: "doc_view",
+				label: "DocType View",
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar",
+				description: "Which view of the associated DocType should this shortcut take you to?",
+				default: "List",
+				depends_on: (state) => {
+					if (this.dialog) {
+						let doctype = this.dialog.get_value("link_to");
+						let is_single = frappe.boot.single_types.includes(doctype);
+						return state.type == "DocType" && !is_single;
+					}
+
+					return false;
+				}
 			},
 			{
 				fieldtype: "Section Break",

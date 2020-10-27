@@ -10,7 +10,7 @@ from six import iteritems, binary_type, text_type, string_types, PY2
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
-
+import click
 from faker import Faker
 
 # public
@@ -153,6 +153,7 @@ def init(site, sites_path=None, new_site=False):
 	local.site = site
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
+	local.all_apps = None
 
 	local.request_ip = None
 	local.response = _dict({"docs":[]})
@@ -181,6 +182,7 @@ def init(site, sites_path=None, new_site=False):
 	local.meta_cache = {}
 	local.form_dict = _dict()
 	local.session = _dict()
+	local.dev_server = os.environ.get('DEV_SERVER', False)
 
 	setup_module_map()
 
@@ -224,15 +226,22 @@ def get_site_config(sites_path=None, site_path=None):
 	if sites_path:
 		common_site_config = os.path.join(sites_path, "common_site_config.json")
 		if os.path.exists(common_site_config):
-			config.update(get_file_json(common_site_config))
+			try:
+				config.update(get_file_json(common_site_config))
+			except Exception as error:
+				click.secho("common_site_config.json is invalid", fg="red")
+				print(error)
 
 	if site_path:
 		site_config = os.path.join(site_path, "site_config.json")
 		if os.path.exists(site_config):
-			config.update(get_file_json(site_config))
+			try:
+				config.update(get_file_json(site_config))
+			except Exception as error:
+				click.secho("{0}/site_config.json is invalid".format(local.site), fg="red")
+				print(error)
 		elif local.site and not local.flags.new_site:
-			print("Site {0} does not exist".format(local.site))
-			sys.exit(1)
+			raise IncorrectSitePath("{0} does not exist".format(local.site))
 
 	return _dict(config)
 
@@ -267,7 +276,7 @@ def destroy():
 # memcache
 redis_server = None
 def cache():
-	"""Returns memcache connection."""
+	"""Returns redis connection."""
 	global redis_server
 	if not redis_server:
 		from frappe.utils.redis_wrapper import RedisWrapper
@@ -290,6 +299,9 @@ def errprint(msg):
 
 	error_log.append({"exc": msg})
 
+def print_sql(enable=True):
+	return cache().set_value('flag_print_sql', enable)
+
 def log(msg):
 	"""Add to `debug_log`.
 
@@ -300,7 +312,7 @@ def log(msg):
 
 	debug_log.append(as_unicode(msg))
 
-def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None, is_minimizable=None):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, indicator=None, alert=False, primary_action=None, is_minimizable=None, wide=None):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
@@ -309,7 +321,10 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	:param title: [optional] Message title.
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
+	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
 	:param primary_action: [optional] Bind a primary server/client side action.
+	:param is_minimizable: [optional] Allow users to minimize the modal
+	:param wide: [optional] Show wide modal
 	"""
 	from frappe.utils import encode
 
@@ -332,16 +347,10 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 		return
 
 	if as_table and type(msg) in (list, tuple):
-
-		table_rows = ''
-		for row in msg:
-			table_row_data = ''
-			for data in row:
-				table_row_data += '<td>{}</td>'.format(data)
-			table_rows += '<tr>{}</tr>'.format(table_row_data)
-
-		out.message = '''<table class="table table-bordered"
-			style="margin: 0;">{}</table>'''.format(table_rows)
+		out.as_table = 1
+	
+	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
+		out.as_list = 1
 
 	if flags.print_messages and out.message:
 		print(f"Message: {repr(out.message).encode('utf-8')}")
@@ -367,6 +376,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	if primary_action:
 		out.primary_action = primary_action
 
+	if wide:
+		out.wide = wide
+
 	message_log.append(json.dumps(out))
 
 	if raise_exception and hasattr(raise_exception, '__name__'):
@@ -388,12 +400,12 @@ def clear_last_message():
 	if len(local.message_log) > 0:
 		local.message_log = local.message_log[:-1]
 
-def throw(msg, exc=ValidationError, title=None, is_minimizable=None):
+def throw(msg, exc=ValidationError, title=None, is_minimizable=None, wide=None, as_list=False):
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable)
+	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable, wide=wide, as_list=as_list)
 
 def emit_js(js, user=False, **kwargs):
 	if user == False:
@@ -436,12 +448,8 @@ def get_roles(username=None):
 	"""Returns roles of current user."""
 	if not local.session:
 		return ["Guest"]
-
-	if username:
-		import frappe.permissions
-		return frappe.permissions.get_roles(username)
-	else:
-		return get_user().get_roles()
+	import frappe.permissions
+	return frappe.permissions.get_roles(username or local.session.user)
 
 def get_request_header(key, default=None):
 	"""Return HTTP request header.
@@ -509,12 +517,15 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 whitelisted = []
 guest_methods = []
 xss_safe_methods = []
-def whitelist(allow_guest=False, xss_safe=False):
+allowed_http_methods_for_whitelisted_func = {}
+
+def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
+	:param methods: Allowed http method to access the method.
 
 	Use as:
 
@@ -522,9 +533,15 @@ def whitelist(allow_guest=False, xss_safe=False):
 		def myfunc(param1, param2):
 			pass
 	"""
+
+	if not methods:
+		methods = ['GET', 'POST', 'PUT', 'DELETE']
+
 	def innerfn(fn):
-		global whitelisted, guest_methods, xss_safe_methods
+		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 		whitelisted.append(fn)
+
+		allowed_http_methods_for_whitelisted_func[fn] = methods
 
 		if allow_guest:
 			guest_methods.append(fn)
@@ -762,7 +779,7 @@ def get_doc(*args, **kwargs):
 
 		# insert a new document
 		todo = frappe.get_doc({"doctype":"ToDo", "description": "test"})
-		tood.insert()
+		todo.insert()
 
 		# open an existing document
 		todo = frappe.get_doc("ToDo", "TD0001")
@@ -921,10 +938,13 @@ def get_installed_apps(sort=False, frappe_last=False):
 	if not db:
 		connect()
 
+	if not local.all_apps:
+		local.all_apps  = get_all_apps(True)
+
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
-		installed = [app for app in get_all_apps(True) if app in installed]
+		installed = [app for app in local.all_apps if app in installed]
 
 	if frappe_last:
 		if 'frappe' in installed:
@@ -1102,8 +1122,8 @@ def get_newargs(fn, kwargs):
 		if (a in fnargs) or varkw:
 			newargs[a] = kwargs.get(a)
 
-	if "flags" in newargs:
-		del newargs["flags"]
+	newargs.pop("ignore_permissions", None)
+	newargs.pop("flags", None)
 
 	return newargs
 

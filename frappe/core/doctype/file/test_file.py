@@ -328,3 +328,49 @@ class TestFile(unittest.TestCase):
 		self.assertTrue(os.path.exists(file2.get_full_path()))
 
 
+class TestAttachment(unittest.TestCase):
+	test_doctype = 'Test For Attachment'
+
+	def setUp(self):
+		if frappe.db.exists('DocType', self.test_doctype):
+			return
+
+		frappe.get_doc(
+			doctype='DocType',
+			name=self.test_doctype,
+			module='Custom',
+			custom=1,
+			fields=[
+				{'label': 'Title', 'fieldname': 'title', 'fieldtype': 'Data'},
+				{'label': 'Attachment', 'fieldname': 'attachment', 'fieldtype': 'Attach'},
+			]
+		).insert()
+
+	def tearDown(self):
+		frappe.delete_doc('DocType', self.test_doctype)
+
+	def test_file_attachment_on_update(self):
+		doc = frappe.get_doc(
+			doctype=self.test_doctype,
+			title='test for attachment on update'
+		).insert()
+
+		file = frappe.get_doc({
+			'doctype': 'File',
+			'file_name': 'test_attach.txt',
+			'content': 'Test Content'
+		})
+		file.save()
+
+		doc.attachment = file.file_url
+		doc.save()
+
+		exists = frappe.db.exists('File', {
+			'file_name': 'test_attach.txt',
+			'file_url': file.file_url,
+			'attached_to_doctype': self.test_doctype,
+			'attached_to_name': doc.name,
+			'attached_to_field': 'attachment'
+		})
+
+		self.assertTrue(exists)
