@@ -2,9 +2,11 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
+import os
 
-import frappe, os
+import frappe
 from frappe.core.doctype.data_import.data_import import import_doc, export_json
+
 
 def sync_fixtures(app=None):
 	"""Import, overwrite fixtures from `[app]/fixtures`"""
@@ -29,6 +31,7 @@ def sync_fixtures(app=None):
 
 	frappe.db.commit()
 
+
 def import_custom_scripts(app):
 	"""Import custom scripts from `[app]/fixtures/custom_scripts`"""
 	if os.path.exists(frappe.get_app_path(app, "fixtures", "custom_scripts")):
@@ -49,6 +52,7 @@ def import_custom_scripts(app):
 							"script": script
 						}).insert()
 
+
 def export_fixtures(app=None):
 	"""Export fixtures as JSON to `[app]/fixtures`"""
 	if app:
@@ -59,13 +63,23 @@ def export_fixtures(app=None):
 		for fixture in frappe.get_hooks("fixtures", app_name=app):
 			filters = None
 			or_filters = None
+
 			if isinstance(fixture, dict):
 				filters = fixture.get("filters")
 				or_filters = fixture.get("or_filters")
 				fixture = fixture.get("doctype") or fixture.get("dt")
-			print("Exporting {0} app {1} filters {2}".format(fixture, app, (filters if filters else or_filters)))
+
+			print("Exporting {0} app {1} filters {2}".format(
+				fixture, app, (filters if filters else or_filters)
+			))
+
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
 
-			export_json(fixture, frappe.get_app_path(app, "fixtures", frappe.scrub(fixture) + ".json"),
-				filters=filters, or_filters=or_filters, order_by="idx asc, creation asc")
+			export_json(
+				fixture,
+				frappe.get_app_path(app, "fixtures", frappe.scrub(fixture) + ".json"),
+				filters=filters,
+				or_filters=or_filters,
+				order_by="idx asc, creation asc"
+			)
