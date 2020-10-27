@@ -133,21 +133,26 @@ Object.assign(frappe.utils, {
 =======
 	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled) {
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
-
-		let y = 0;
+		let scroll_top = 0;
 		if (element) {
-			y = typeof element == "number"
+			// If a number is passed, just subtract the offset,
+			// otherwise calculate scroll position from element
+			scroll_top = typeof element == "number"
 				? element - cint(additional_offset)
 				: this.get_scroll_position(element, additional_offset);
 >>>>>>> 6e22a48e22... feat: reset scroll position on list paging
 		}
 
-		if (y < 0) {
-			y = 0;
+		if (scroll_top < 0) {
+			scroll_top = 0;
 		}
 
 		// already there
+<<<<<<< HEAD
 		if(y==$('html, body').scrollTop()) {
+=======
+		if (scroll_top == element_to_be_scrolled.scrollTop()) {
+>>>>>>> 9bde67c550... fix: make scroll_to function more clear
 			return;
 		}
 
@@ -156,10 +161,16 @@ Object.assign(frappe.utils, {
 			$("html, body").animate({ scrollTop: y });
 =======
 		if (animate) {
+<<<<<<< HEAD
 			element_to_be_scrolled.animate({ scrollTop: y });
 >>>>>>> 6e22a48e22... feat: reset scroll position on list paging
 		} else {
 			$(window).scrollTop(y);
+=======
+			element_to_be_scrolled.animate({ scrollTop: scroll_top });
+		} else {
+			element_to_be_scrolled.scrollTop(scroll_top);
+>>>>>>> 9bde67c550... fix: make scroll_to function more clear
 		}
 
 	},
