@@ -96,8 +96,8 @@ frappe.ui.form.PrintView = class {
 				label: 'Print Format',
 				options: [this.get_default_option_for_select(__('Select Print Format'))],
 				change: () => this.refresh_print_format(),
+				default: __('Select Print Format')
 			},
-			__('Select Print Format')
 		).$input;
 
 		this.language_sel = this.add_sidebar_item(
@@ -109,12 +109,12 @@ frappe.ui.form.PrintView = class {
 					this.get_default_option_for_select(__('Select Language')),
 					...this.get_language_options()
 				],
+				default: __('Select Language'),
 				change: () => {
 					this.set_user_lang();
 					this.preview();
 				},
 			},
-			__('Select Language')
 		).$input;
 
 		this.letterhead_selector = this.add_sidebar_item(
@@ -127,10 +127,10 @@ frappe.ui.form.PrintView = class {
 					__('No Letterhead')
 				],
 				change: () => this.preview(),
+				default: this.print_settings.with_letterhead
+					? __('No Letterhead')
+					: __('Select Letterhead')
 			},
-			this.print_settings.with_letterhead
-				? __('No Letterhead')
-				: __('Select Letterhead')
 		).$input;
 
 		this.sidebar_dynamic_section = $(
@@ -138,7 +138,7 @@ frappe.ui.form.PrintView = class {
 		).appendTo(this.sidebar);
 	}
 
-	add_sidebar_item(df, default_value, is_dynamic) {
+	add_sidebar_item(df, is_dynamic) {
 		if (df.fieldtype == 'Select') {
 			df.input_class = 'btn btn-default btn-sm';
 		}
@@ -149,7 +149,10 @@ frappe.ui.form.PrintView = class {
 			render_input: 1,
 		});
 
-		default_value && field.set_input(default_value);
+		if (df.default != null) {
+			field.set_input(df.default);
+		}
+
 
 		return field;
 	}
@@ -210,41 +213,49 @@ frappe.ui.form.PrintView = class {
 		this.additional_settings = {};
 		this.sidebar_dynamic_section.empty();
 		if (frappe.boot.additional_print_settings) {
-			const settings_config = frappe.boot.additional_print_settings;
-
 			frappe
 				.xcall('frappe.printing.page.print.print.get_settings_to_show', {
-					doc: this.frm.doc,
-					settings_config: settings_config,
+					doctype: this.frm.doc.doctype,
+					docname: this.frm.doc.name
 				})
 				.then((settings) => this.add_settings_to_sidebar(settings));
 		}
 	}
 
 	add_settings_to_sidebar(settings) {
-		for (let key of Object.keys(settings)) {
-			const setting = settings[key];
-			this.additional_settings[key] = {
-				set_template: setting.set_template,
-				value: setting.value,
-				child_field: setting.child_field,
-			};
-
-			let field = this.add_sidebar_item(
-				{
-					fieldname: key,
-					label: setting.label,
-					fieldtype: setting.fieldtype,
-					change: () => {
-						const val = field.get_value();
-						this.additional_settings[field.df.fieldname].value = val;
-						this.preview();
-					},
+		for (let df of settings) {
+			let field = this.add_sidebar_item({
+				...df,
+				change: () => {
+					const val = field.get_value();
+					this.additional_settings[field.df.fieldname] = val;
+					this.preview();
 				},
-				setting.value,
-				true
-			);
+			}, true)
 		}
+		// for (let key of Object.keys(settings)) {
+		// 	const setting = settings[key];
+		// 	this.additional_settings[key] = {
+		// 		set_template: setting.set_template,
+		// 		value: setting.value,
+		// 		child_field: setting.child_field,
+		// 	};
+
+		// 	let field = this.add_sidebar_item(
+		// 		{
+		// 			fieldname: key,
+		// 			label: setting.label,
+		// 			fieldtype: setting.fieldtype,
+		// 			change: () => {
+		// 				const val = field.get_value();
+		// 				this.additional_settings[field.df.fieldname].value = val;
+		// 				this.preview();
+		// 			},
+		// 		},
+		// 		setting.value,
+		// 		true
+		// 	);
+		// }
 	}
 
 	edit_print_format() {

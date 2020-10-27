@@ -91,9 +91,11 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, letterhead=None, trigger_print=False,
 	settings=None):
 
-	print_settings = frappe.db.get_singles_dict("Print Settings")
-	if settings:
-		print_settings = handle_contextual_settings(doc, print_settings, settings)
+	print_settings = frappe.get_single("Print Settings").as_dict()
+	# print_settings.update(settings.value or {})
+
+	# if settings:
+	# 	print_settings = handle_contextual_settings(doc, print_settings, settings)
 
 	if isinstance(no_letterhead, string_types):
 		no_letterhead = cint(no_letterhead)
@@ -102,6 +104,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		no_letterhead = not cint(print_settings.with_letterhead)
 
 	doc.flags.in_print = True
+	doc.flags.print_settings = print_settings
 
 	if not frappe.flags.ignore_print_permissions:
 		validate_print_permission(doc)
