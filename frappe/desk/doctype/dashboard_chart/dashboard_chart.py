@@ -7,8 +7,11 @@ import frappe
 from frappe import _
 import datetime
 import json
-from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import *
+from frappe.utils.dashboard import cache_source
+from frappe.utils import nowdate, add_to_date, getdate, formatdate,\
+	get_datetime, cint, now_datetime
+from frappe.utils.dateutils import\
+	get_period, get_period_beginning, get_period_ending, get_from_date_from_timespan
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 from frappe.model.document import Document
@@ -302,74 +305,6 @@ def get_next_expected_date(date, timegrain):
 	# given date is always assumed to be the period ending date
 	next_date = get_period_ending(add_to_date(date, days=1), timegrain)
 	return getdate(next_date)
-
-def get_period_beginning(date, timegrain):
-	as_str = True
-	if timegrain == 'Daily':
-		pass
-	elif timegrain == 'Weekly':
-		date = get_first_day_of_week(date, as_str=as_str)
-	elif timegrain == 'Monthly':
-		date = get_first_day(date, as_str=as_str)
-	elif timegrain == 'Quarterly':
-		date = get_quarter_start(date, as_str=as_str)
-	elif timegrain == 'Yearly':
-		date = get_year_start(date, as_str=as_str)
-
-	return date
-
-def get_period_ending(date, timegrain):
-	date = getdate(date)
-	if timegrain == 'Daily':
-		pass
-	elif timegrain == 'Weekly':
-		date = get_week_ending(date)
-	elif timegrain == 'Monthly':
-		date = get_month_ending(date)
-	elif timegrain == 'Quarterly':
-		date = get_quarter_ending(date)
-	elif timegrain == 'Yearly':
-		date = get_year_ending(date)
-
-	return getdate(date)
-
-def get_week_ending(date):
-	# week starts on monday
-	from datetime import timedelta
-	start = date - timedelta(days = date.weekday())
-	end = start + timedelta(days=6)
-
-	return end
-
-def get_month_ending(date):
-	month_of_the_year = int(date.strftime('%m'))
-	# first day of next month (note month starts from 1)
-
-	date = add_to_date('{}-01-01'.format(date.year), months = month_of_the_year)
-	# last day of this month
-	return add_to_date(date, days=-1)
-
-def get_quarter_ending(date):
-	date = getdate(date)
-
-	# find the earliest quarter ending date that is after
-	# the given date
-	for month in (3, 6, 9, 12):
-		quarter_end_month = getdate('{}-{}-01'.format(date.year, month))
-		quarter_end_date = getdate(get_last_day(quarter_end_month))
-		if date <= quarter_end_date:
-			date = quarter_end_date
-			break
-
-	return date
-
-def get_year_ending(date):
-	''' returns year ending of the given date '''
-
-	# first day of next year (note year starts from 1)
-	date = add_to_date('{}-01-01'.format(date.year), months = 12)
-	# last day of this month
-	return add_to_date(date, days=-1)
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
