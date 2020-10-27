@@ -5,10 +5,14 @@ from __future__ import unicode_literals
 import frappe
 import frappe.defaults
 import datetime
+<<<<<<< HEAD
 from frappe.utils import get_datetime
 <<<<<<< HEAD
 =======
 from frappe.utils import add_to_date, getdate
+=======
+from frappe.utils import get_datetime, add_to_date, getdate
+>>>>>>> 7302c85f55... fix: dashboard chart tests
 from frappe.utils.data import get_first_day, get_first_day_of_week, get_quarter_start, get_year_start,\
 	get_last_day, get_last_day_of_week, get_quarter_ending, get_year_ending
 >>>>>>> 7f43169c4a... refactor: reorganise date functions indashboard_chart.py
@@ -135,24 +139,19 @@ def get_period(date, interval='Monthly'):
 		'Yearly': str(date.year)
 	}[interval]
 
-def get_period_beginning(date, timegrain):
-	as_str = True
-	if timegrain == 'Daily':
-		pass
-	elif timegrain == 'Weekly':
-		date = get_first_day_of_week(date, as_str=as_str)
-	elif timegrain == 'Monthly':
-		date = get_first_day(date, as_str=as_str)
-	elif timegrain == 'Quarterly':
-		date = get_quarter_start(date, as_str=as_str)
-	elif timegrain == 'Yearly':
-		date = get_year_start(date, as_str=as_str)
-
-	return date
+def get_period_beginning(date, timegrain, as_str=True):
+	return getdate({
+		'Daily': date,
+		'Weekly': get_first_day_of_week(date),
+		'Monthly':  get_first_day(date),
+		'Quarterly': get_quarter_start(date),
+		'Yearly': get_year_start(date)
+	}[timegrain])
 
 def get_period_ending(date, timegrain):
 	date = getdate(date)
 	if timegrain == 'Daily':
+<<<<<<< HEAD
 		pass
 	elif timegrain == 'Weekly':
 		date = get_last_day_of_week(date)
@@ -165,3 +164,14 @@ def get_period_ending(date, timegrain):
 
 	return getdate(date)
 >>>>>>> 7f43169c4a... refactor: reorganise date functions indashboard_chart.py
+=======
+		return date
+	else:
+		return getdate({
+			'Daily': date,
+			'Weekly': get_last_day_of_week(date),
+			'Monthly':  get_last_day(date),
+			'Quarterly': get_quarter_ending(date),
+			'Yearly': get_year_ending(date)
+		}[timegrain])
+>>>>>>> 7302c85f55... fix: dashboard chart tests
