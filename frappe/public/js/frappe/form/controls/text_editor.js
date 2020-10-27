@@ -171,13 +171,13 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	get_toolbar_options() {
 		return [
 			[{ 'header': [1, 2, 3, false] }],
-			// Adding Font dropdown to give the user the abelity to change text font.
+			// Adding Font dropdown to give the user the ability to change text font.
 			[{ 'font': fontNames }],
 			['bold', 'italic', 'underline'],
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
 			['link', 'image'],
-			// Adding Direction tool to give the user the abelity to change text direction.
+			// Adding Direction tool to give the user the ability to change text direction.
 			[{ 'direction': "rtl" }],
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
 			[{ 'align': [] }],
