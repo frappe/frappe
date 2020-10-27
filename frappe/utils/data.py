@@ -1129,7 +1129,7 @@ def get_link_to_report(name, label=None, report_type=None, doctype=None, filters
 				for value in v:
 					conditions.append(f'{k}=["{value[0]}","{value[1]}"])')
 			else:
-				conditions.append(str(k)+"="+str(v))
+				conditions.append(f'{k}={v}')
 
 		filters = "&".join(conditions)
 
