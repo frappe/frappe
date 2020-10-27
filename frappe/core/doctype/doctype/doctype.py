@@ -380,10 +380,6 @@ class DocType(Document):
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
-		# Do not rename and move files and folders for custom doctype
-		if not self.custom and not frappe.flags.in_test and not frappe.flags.in_patch:
-			self.rename_files_and_folders(old, new)
-
 	def after_rename(self, old, new, merge=False):
 		"""Change table name using `RENAME TABLE` if table exists. Or update
 		`doctype` property for Single type."""
@@ -395,6 +391,10 @@ class DocType(Document):
 		else:
 			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
 			frappe.db.commit()
+
+		# Do not rename and move files and folders for custom doctype
+		if not self.custom and not frappe.flags.in_test and not frappe.flags.in_patch:
+			self.rename_files_and_folders(old, new)
 
 	def rename_files_and_folders(self, old, new):
 		# move files
