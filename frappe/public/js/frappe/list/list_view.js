@@ -87,6 +87,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
+		if (this.view_name == 'List') this.toggle_paging = true;
+
 		this.patch_refresh_and_load_lib();
 		return this.get_list_view_settings();
 	}
@@ -244,7 +246,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	refresh(refresh_header=false) {
-		return super.refresh().then(() => {
+		super.refresh().then(() => {
 			this.render_header(refresh_header);
 		});
 	}
@@ -796,21 +798,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_realtime_updates();
 		this.setup_action_handler();
 		this.setup_keyboard_navigation();
-		this.setup_scroll_on_page_change();
-	}
-
-	setup_scroll_on_page_change() {
-		if (!this.view_name == 'List') return;
-
-		// Set scroll position to the last row and highlight the row
-		$(document.body).on('pageChange', (e, scroll_position, end) => {
-			const should_scroll = this.data.length > end;
-			if (should_scroll) {
-				const $last_row = this.$result.find('.list-row-container').eq(end-1);
-				frappe.utils.scroll_to(scroll_position, true, 50);
-				$last_row.addClass('yellow-highlight');
-			}
-		});
 	}
 
 	setup_keyboard_navigation() {
