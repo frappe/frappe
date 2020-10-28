@@ -10,11 +10,11 @@ frappe.ui.form.on('Connected App', {
 				try {
 					const response = await fetch(frm.doc.openid_configuration);
 					const oidc = await response.json();
-					frm.set_value('authorization_endpoint', oidc.authorization_endpoint);
-					frm.set_value('token_endpoint', oidc.token_endpoint);
-					frm.set_value('userinfo_endpoint', oidc.userinfo_endpoint);
-					frm.set_value('introspection_endpoint', oidc.introspection_endpoint);
-					frm.set_value('revocation_endpoint', oidc.revocation_endpoint);
+					frm.set_value('authorization_uri', oidc.authorization_endpoint);
+					frm.set_value('token_uri', oidc.token_endpoint);
+					frm.set_value('userinfo_uri', oidc.userinfo_endpoint);
+					frm.set_value('introspection_uri', oidc.introspection_endpoint);
+					frm.set_value('revocation_uri', oidc.revocation_endpoint);
 				} catch (error) {
 					frappe.msgprint(__('Please check OpenID Configuration URL'));
 				}
