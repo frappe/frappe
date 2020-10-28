@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import unittest, frappe
-from frappe.utils import getdate, formatdate
+from frappe.utils import getdate, formatdate, get_last_day
 from frappe.utils.dateutils import get_period_ending, get_period
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
 
@@ -53,10 +53,9 @@ class TestDashboardChart(unittest.TestCase):
 		cur_date = datetime.now() - relativedelta(years=1)
 
 		result = get(chart_name='Test Dashboard Chart', refresh=1)
-		self.assertEqual(result.get('labels')[0], get_period(cur_date))
 
-		for idx in range(1, 13):
-			month = formatdate(month.strftime('%Y-%m-%d'))
+		for idx in range(13):
+			month = get_last_day(cur_date)
 			self.assertEqual(result.get('labels')[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
@@ -83,10 +82,9 @@ class TestDashboardChart(unittest.TestCase):
 		cur_date = datetime.now() - relativedelta(years=1)
 
 		result = get(chart_name ='Test Empty Dashboard Chart', refresh=1)
-		self.assertEqual(result.get('labels')[0], get_period(cur_date))
 
-		for idx in range(1, 13):
-			month = formatdate(month.strftime('%Y-%m-%d'))
+		for idx in range(13):
+			month = get_last_day(cur_date)
 			self.assertEqual(result.get('labels')[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
@@ -116,10 +114,9 @@ class TestDashboardChart(unittest.TestCase):
 		cur_date = datetime.now() - relativedelta(years=1)
 
 		result = get(chart_name ='Test Empty Dashboard Chart 2', refresh = 1)
-		self.assertEqual(result.get('labels')[0], get_period(cur_date))
 
-		for idx in range(1, 13):
-			month = formatdate(month.strftime('%Y-%m-%d'))
+		for idx in range(13):
+			month = get_last_day(cur_date)
 			self.assertEqual(result.get('labels')[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
@@ -171,7 +168,7 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		result = get(chart_name ='Test Daily Dashboard Chart', refresh = 1)
+		result = get(chart_name = 'Test Daily Dashboard Chart', refresh = 1)
 
 		self.assertEqual(result.get('datasets')[0].get('values'), [200.0, 400.0, 300.0, 0.0, 100.0, 0.0])
 		self.assertEqual(
