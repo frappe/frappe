@@ -37,7 +37,7 @@ export default class OnboardingWidget extends Widget {
 		// Add skip button
 		if (!step.is_mandatory && !step.is_complete) {
 			let skip_html = $(
-				`<span class="ml-5 small text-muted step-skip">Skip</span>`
+				`<span class="ml-5 small text-muted step-skip">${__('Skip')}</span>`
 			);
 
 			skip_html.appendTo($step);
@@ -443,7 +443,7 @@ export default class OnboardingWidget extends Widget {
 	set_actions() {
 		this.action_area.empty();
 		const dismiss = $(
-			`<div class="small" style="cursor:pointer;">Dismiss</div>`
+			`<div class="small" style="cursor:pointer;">${__('Dismiss')}</div>`
 		);
 		dismiss.on("click", () => {
 			let dismissed = JSON.parse(
