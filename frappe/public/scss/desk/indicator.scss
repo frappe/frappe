@@ -10,7 +10,7 @@
 @mixin indicator-color($color) {
 	&::before,
 	&::after {
-		background: var(--bg-#{$color});
+		background: var(--text-on-#{$color});
 	}
 }
 
