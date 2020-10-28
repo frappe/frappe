@@ -372,11 +372,9 @@ frappe.views.BaseList = class BaseList {
 			// render
 			this.prepare_data(r);
 			this.toggle_result_area();
-			this.toggle_paging && this.$paging_area.toggle(false);
 			this.before_render();
 			this.render();
 			this.after_render();
-			this.toggle_paging && this.$paging_area.toggle(true);
 			this.freeze(false);
 			if (this.settings.refresh) {
 				this.settings.refresh(this);

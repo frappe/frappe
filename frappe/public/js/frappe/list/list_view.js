@@ -410,10 +410,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			sort_by: this.sort_selector.sort_by,
 			sort_order: this.sort_selector.sort_order
 		});
+		this.toggle_paging && this.$paging_area.toggle(false);
 	}
 
 	after_render() {
 		this.list_sidebar.reload_stats();
+		this.toggle_paging && this.$paging_area.toggle(true);
 	}
 
 	render() {
