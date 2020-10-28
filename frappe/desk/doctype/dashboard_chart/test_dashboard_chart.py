@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import unittest, frappe
 from frappe.utils import getdate, formatdate
-from frappe.utils.dateutils import get_period_ending, get_period_beginning, get_period
+from frappe.utils.dateutils import get_period_ending, get_period
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
 
 from datetime import datetime

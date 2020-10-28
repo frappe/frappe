@@ -8,7 +8,7 @@ from frappe import _
 import datetime
 import json
 from frappe.utils.dashboard import cache_source
-from frappe.utils import nowdate, add_to_date, getdate, formatdate,\
+from frappe.utils import nowdate, add_to_date, getdate,\
 	get_datetime, cint, now_datetime
 from frappe.utils.dateutils import\
 	get_period, get_period_beginning, get_period_ending, get_from_date_from_timespan
