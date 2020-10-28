@@ -63,7 +63,6 @@ class EmailDomain(Document):
 
 				sess.quit()
 			except Exception as e:
-				print(e)
 				frappe.throw(_("Outgoing email account not correct"))
 				return None
 		return
