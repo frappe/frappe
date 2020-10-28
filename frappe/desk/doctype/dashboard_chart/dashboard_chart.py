@@ -89,6 +89,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	datefield = chart.based_on
 	aggregate_function = get_aggregate_function(chart.chart_type)
 	value_field = chart.value_based_on or '1'
+	from_date = from_date.strftime('%Y-%m-%d')
 	to_date = to_date
 
 	filters.append([doctype, datefield, '>=', from_date, False])
@@ -170,8 +171,7 @@ def get_aggregate_function(chart_type):
 def get_result(data, timegrain, from_date, to_date):
 	start_date = getdate(from_date)
 	end_date = getdate(to_date)
-
-	result = []
+	result = [[start_date, 0.0]] if timegrain == 'Daily' else []
 
 	while start_date < end_date:
 		next_date = get_next_expected_date(start_date, timegrain)
