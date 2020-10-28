@@ -62,7 +62,7 @@ class ConnectedApp(Document):
 
 		token.success_uri = success_uri
 		token.state = state
-		token.save()
+		token.save(ignore_permissions=True)
 		frappe.db.commit()
 
 		return authorization_url
