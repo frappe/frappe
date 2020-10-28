@@ -179,28 +179,3 @@ class Picker {
 }
 
 export default Picker;
-
-// window.picker = new Picker({
-// 	parent: document.body,
-// 	width: 210,
-// 	height: 140,
-// 	color: '#5f5387',
-// 	swatches: [
-// 		'#449CF0',
-// 		'#ECAD4B',
-// 		'#29CD42',
-// 		'#761ACB',
-// 		'#CB2929',
-// 		'#ED6396',
-// 		'#29CD42',
-// 		'#4463F0',
-// 		'#EC864B',
-// 		'#4F9DD9',
-// 		'#39E4A5',
-// 		'#B4CD29',
-// 	]
-// });
-
-// picker.on_change = (color) => {
-// 	document.body.style.backgroundColor = color;
-// };
