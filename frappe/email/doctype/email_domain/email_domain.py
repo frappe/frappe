@@ -50,6 +50,7 @@ class EmailDomain(Document):
 					pass
 			try:
 				if self.use_ssl_for_outgoing:
+					print(self.smtp_port)
 					if not self.smtp_port:
 						self.smtp_port = 465
 
@@ -61,7 +62,8 @@ class EmailDomain(Document):
 					sess = smtplib.SMTP(cstr(self.smtp_server or ""), cint(self.smtp_port) or None)
 
 				sess.quit()
-			except Exception:
+			except Exception as e:
+				print(e)
 				frappe.throw(_("Outgoing email account not correct"))
 				return None
 		return
