@@ -16,7 +16,7 @@ from frappe.utils import get_site_path, touch_file
 @click.argument('site')
 @click.option('--db-name', help='Database name')
 @click.option('--db-password', help='Database password')
-@click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres']), help='Optional "postgres" or "mariadb". Default is "mariadb"')
+@click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres', 'mysql']), help='Optional "postgres", "mysql" or "mariadb". Default is "mariadb"')
 @click.option('--db-host', help='Database Host')
 @click.option('--db-port', type=int, help='Database Port')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')

@@ -951,7 +951,10 @@ class Database(object):
 		return self.is_missing_column(e) or self.is_missing_table(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
-		current_dialect = frappe.db.db_type or 'mariadb'
+		if frappe.db.db_type:
+			current_dialect = 'mariadb' if frappe.db.db_type == 'mysql' else frappe.db.db_type
+		else:
+			current_dialect = 'mariadb'
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 

@@ -140,7 +140,7 @@ class WebsiteAnalytics(object):
 	def get_chart_data(self):
 		current_dialect = frappe.db.db_type or 'mariadb'
 
-		if current_dialect == 'mariadb':
+		if current_dialect == 'mariadb' or current_dialect == 'mysql':
 			query, values = self._get_query_for_mariadb()
 		else:
 			query, values = self._get_query_for_postgres()

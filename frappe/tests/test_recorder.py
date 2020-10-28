@@ -87,7 +87,10 @@ class TestRecorder(unittest.TestCase):
 			{'mariadb': 'COMMIT', 'postgres': 'COMMIT'},
 		]
 
-		sql_dialect = frappe.db.db_type or 'mariadb'
+		if frappe.db.db_type:
+			sql_dialect = 'mariadb' if frappe.db.db_type == 'mysql' else frappe.db.db_type
+		else:
+			sql_dialect = 'mariadb'
 		for query in queries:
 			frappe.db.sql(query[sql_dialect])
 
