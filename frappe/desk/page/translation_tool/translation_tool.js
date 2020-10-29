@@ -2,7 +2,8 @@ frappe.pages['translation-tool'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Translation Tool',
-		single_column: true
+		single_column: true,
+		card_layout: true,
 	});
 
 	frappe.translation_tool = new TranslationTool(page);
@@ -250,7 +251,7 @@ class TranslationTool {
 
 	set_status(translation) {
 		this.form.get_field('header').$wrapper.find('.translation-status').html(`
-			<span class="indicator ${this.get_indicator_color(translation)} text-muted">
+			<span class="indicator-pill ${this.get_indicator_color(translation)}">
 				${this.get_indicator_status_text(translation)}
 			</span>
 		`);
@@ -426,10 +427,13 @@ class TranslationTool {
 		let edited_translations_count = Object.keys(this.edited_translations)
 			.length;
 		if (edited_translations_count) {
-			this.page.set_indicator(
-				__('{0} translations pending', [edited_translations_count]),
-				'orange'
-			);
+			let message = '';
+			if (edited_translations_count == 1) {
+				message = __('{0} translation pending', [edited_translations_count]);
+			} else {
+				message = __('{0} translations pending', [edited_translations_count]);
+			}
+			this.page.set_indicator(message, 'orange');
 		} else {
 			this.page.set_indicator('');
 		}
