@@ -32,9 +32,7 @@ frappe.setup = {
 
 frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	let requires = (frappe.boot.setup_wizard_requires || []);
-
-
-	frappe.require(requires, function() {
+	frappe.require(requires, function () {
 		frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
 			freeze: true,
@@ -47,6 +45,7 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 					slides: frappe.setup.slides,
 					slide_class: frappe.setup.SetupWizardSlide,
 					unidirectional: 1,
+					done_state: 1,
 					before_load: ($footer) => {
 						$footer.find('.next-btn').removeClass('btn-default')
 							.addClass('btn-primary');
@@ -290,10 +289,10 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.$abort_btn.hide();
 	}
 
-	get_message(title, message="") {
-		const loading_html = `<div class="progress-chart" style ="width: 150px;">
-			<div class="progress" style="margin-top: 70px; margin-bottom: 0px">
-				<div class="progress-bar" style="width: 2%; background-color: #5e64ff;"></div>
+	get_message(title, message = "") {
+		const loading_html = `<div class="progress-chart">
+			<div class="progress">
+				<div class="progress-bar"></div>
 			</div>
 		</div>`;
 
@@ -301,7 +300,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			<div class="content text-center">
 				<p class="title lead">${title}</p>
 				<div class="state-icon-container">${loading_html}</div>
-				<p class="setup-message text-muted" style="margin: 30px 0px;">${message}</p>
+				<p class="setup-message text-muted">${message}</p>
 			</div>
 		</div>`);
 	}

@@ -21,14 +21,14 @@ frappe.ui.Slide = class Slide {
 
 		this.$body = $(`<div class="slide-body">
 			<div class="content text-center">
-				<p class="title lead">${this.title}</p>
+				<h1 class="title slide-title">${this.title}</h1>
 			</div>
 			<div class="form-wrapper">
 				<div class="form"></div>
 				<div class="add-more text-center" style="margin-top: 5px;">
-					<a class="form-more-btn hide btn btn-default btn-xs">
+					<button class="form-more-btn hide btn btn-default btn-xs">
 						<span>Add More</span>
-					</a>
+					</button>
 				</div>
 			</div>
 		</div>`).appendTo(this.$wrapper);
@@ -252,10 +252,10 @@ frappe.ui.Slides = class Slides {
 	}
 
 	make() {
-		this.container = $('<div>').addClass("slides-wrapper").attr({"tabindex": -1})
-			.appendTo(this.parent);
 		this.$slide_progress = $(`<div>`).addClass(`slides-progress text-center text-extra-muted`)
-			.appendTo(this.container);
+			.appendTo(this.parent);
+		this.container = $('<div>').addClass("slides-wrapper").attr({ "tabindex": -1 })
+			.appendTo(this.parent);
 		this.$body = $(`<div>`).addClass(`slide-container`)
 			.appendTo(this.container);
 		this.$footer = $(`<div>`).addClass(`slide-footer`)
@@ -307,16 +307,21 @@ frappe.ui.Slides = class Slides {
 		this.$slide_progress.empty();
 
 		this.slides.map((slide, id) => {
-			let $dot = $(`<i class="fa fa-fw fa-circle"> </i> `)
-				.attr({'data-step-id': id});
+			let $dot = $(`<div class="slide-step">
+				<div class="slide-step-indicator"></div>
+				<div class="slide-step-complete">${frappe.utils.icon('tick', 'xs')}</div>
+			</div>`)
+				.attr({ 'data-step-id': id });
 
 			if(this.done_state && (this.slide_dict[id] &&
 				this.slide_dict[id].done || slide.done)) {
-				$dot.addClass('text-success');
+				$dot.addClass('step-success');
 			}
 			if((this.unidirectional && id <= this.current_id) ||
 				id === this.current_id) {
 				$dot.addClass('active');
+			} else {
+				$dot.removeClass('active');
 			}
 			// Add pointer event for non-unidirectional
 			this.$slide_progress.append($dot);
@@ -338,10 +343,10 @@ frappe.ui.Slides = class Slides {
 	make_prev_next_buttons() {
 		$(`<div class="row">
 			<div class="col-sm-4 text-left prev-div">
-				<a class="prev-btn btn btn-default btn-sm" tabindex="0">${__("Previous")}</a>
+				<button class="prev-btn btn btn-secondary btn-sm" tabindex="0">${__("Previous")}</button>
 			</div>
 			<div class="col-sm-8 text-right next-div">
-				<a class="next-btn btn btn-default btn-sm" tabindex="0">${__("Next")}</a>
+				<button class="next-btn btn btn-default btn-sm" tabindex="0">${__("Next")}</button>
 			</div>
 		</div>`).appendTo(this.$footer);
 
@@ -350,6 +355,10 @@ frappe.ui.Slides = class Slides {
 
 		this.$next_btn = this.$footer.find('.next-btn').attr('tabIndex', 0)
 			.on('click', () => {
+				if (this.done_state) {
+					if (this.slide) this.slide.done = true;
+					if (this.current_slide) this.current_slide.done = true;
+				}
 				if (!this.unidirectional || (this.unidirectional && this.current_slide.set_values())) {
 					this.show_slide(this.current_id + 1);
 				}
