@@ -289,3 +289,20 @@ class TestDocument(unittest.TestCase):
 
 		for docname in available_documents:
 			frappe.delete_doc(doctype, docname)
+
+	def test_non_negative_check(self):
+		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
+
+		d = frappe.get_doc({
+			'doctype': 'Currency',
+			'currency_name': 'Frappe Coin',
+			'smallest_currency_fraction_value': -1
+		})
+
+		self.assertRaises(frappe.NonNegativeError, d.insert)
+
+		d.set('smallest_currency_fraction_value', 1)
+		d.insert()
+		self.assertEqual(frappe.db.get_value("Currency", d.name), d.name)
+
+		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)

@@ -13,6 +13,7 @@
   "fieldname",
   "hide_seconds",
   "hide_days",
+  "non_negative",
   "reqd",
   "unique",
   "in_list_view",
@@ -413,13 +414,20 @@
    "fieldname": "hide_border",
    "fieldtype": "Check",
    "label": "Hide Border"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\"], doc.fieldtype)",
+   "fieldname": "non_negative",
+   "fieldtype": "Check",
+   "label": "Non Negative"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-08-28 11:28:59.084060",
+ "modified": "2020-10-29 06:11:57.661039",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

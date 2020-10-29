@@ -76,6 +76,7 @@ class UnknownDomainError(Exception): pass
 class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass
 class MandatoryError(ValidationError): pass
+class NonNegativeError(ValidationError): pass
 class InvalidSignatureError(ValidationError): pass
 class RateLimitExceededError(ValidationError): pass
 class CannotChangeConstantError(ValidationError): pass
