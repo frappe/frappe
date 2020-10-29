@@ -1048,9 +1048,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					name: __('Totals Row'),
 					content: totals[col.id],
 					format: value => {
-<<<<<<< HEAD
-						return frappe.format(value, col.docfield, { always_show_decimals: true });
-=======
 						let formatted_value = frappe.format(value, col.docfield, {
 							always_show_decimals: true
 						}, data[0]);
@@ -1058,7 +1055,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							return this.format_total_cell(formatted_value, col);
 						}
 						return formatted_value;
->>>>>>> 32ad754493... fix: Show total text with value if first column is numeric (#11813)
 					}
 				};
 			});
