@@ -178,8 +178,8 @@ def get_jobs(site=None, queue=None, key='method'):
 
 	for queue in get_queue_list(queue):
 		q = get_queue(queue)
-
-		for job in q.jobs:
+		jobs = q.jobs + get_running_jobs_in_queue(q)
+		for job in jobs:
 			if job.kwargs.get('site'):
 				if site is None:
 					add_to_dict(job)
@@ -206,6 +206,20 @@ def get_queue_list(queue_list=None):
 
 	else:
 		return default_queue_list
+
+def get_workers(queue):
+	'''Returns a list of Worker objects tied to a queue object'''
+	return Worker.all(queue=queue)
+
+def get_running_jobs_in_queue(queue):
+	'''Returns a list of Jobs objects that are tied to a queue object and are currently running'''
+	jobs = []
+	workers = get_workers(queue)
+	for worker in workers:
+		current_job = worker.get_current_job()
+		if current_job:
+			jobs.append(current_job)
+	return jobs
 
 def get_queue(queue, is_async=True):
 	'''Returns a Queue object tied to a redis connection'''

@@ -95,6 +95,11 @@ class DatabaseQuery(object):
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
 
+		self.columns = self.get_table_columns()
+
+		# no table & ignore_ddl, return
+		if not self.columns: return []
+
 		if query:
 			result = self.run_custom_query(query)
 		else:
@@ -325,21 +330,22 @@ class DatabaseQuery(object):
 				if '.' not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = '{0}.{1}'.format(self.tables[0], field)
 
-	def set_optional_columns(self):
-		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
+	def get_table_columns(self):
 		try:
-			columns = get_table_columns(self.doctype)
+			return get_table_columns(self.doctype)
 		except frappe.db.TableMissingError:
 			if self.ignore_ddl:
-				return
+				return None
 			else:
 				raise
 
+	def set_optional_columns(self):
+		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
 			for f in optional_fields:
-				if f in fld and not f in columns:
+				if f in fld and not f in self.columns:
 					to_remove.append(fld)
 
 		for fld in to_remove:
@@ -352,7 +358,7 @@ class DatabaseQuery(object):
 				each = [each]
 
 			for element in each:
-				if element in optional_fields and element not in columns:
+				if element in optional_fields and element not in self.columns:
 					to_remove.append(each)
 
 		for each in to_remove:
