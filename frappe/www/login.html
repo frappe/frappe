@@ -24,7 +24,7 @@
 
 				<div class="page-card-body">
 					<div class="form-group">
-						<label class="form-label" for="login_email">{{ login_label or _("Email")}}</label>
+						<label class="form-label sr-only" for="login_email">{{ login_label or _("Email")}}</label>
 						<div class="email-field">
 							<input type="text" id="login_email" class="form-control"
 								placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
@@ -43,7 +43,7 @@
 					</div>
 
 					<div class="form-group">
-						<label class="form-label" for="login_password">{{ _("Password") }}</label>
+						<label class="form-label sr-only" for="login_password">{{ _("Password") }}</label>
 						<div class="password-field">
 							<input type="password" id="login_password" class="form-control" placeholder="•••••"
 								autocomplete="current-password" required>
@@ -62,7 +62,7 @@
 						<a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 				</div>
 
-				<div class="page-card-actions mt-8">
+				<div class="page-card-actions">
 					<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
 						{{ _("Login") }}</button>
 
@@ -107,12 +107,12 @@
 				</div>
 				<div class="page-card-body">
 					<div class="form-group">
-						<label class="form-label" for="signup_fullname">Full Name</label>
+						<label class="form-label sr-only" for="signup_fullname">Full Name</label>
 						<input type="text" id="signup_fullname" class="form-control" placeholder="{{ _('Jane Doe') }}"
 							required autofocus>
 					</div>
 					<div class="form-group">
-						<label class="form-label" for="signup_email">Email</label>
+						<label class="form-label sr-only" for="signup_email">Email</label>
 						<input type="email" id="signup_email" class="form-control"
 							placeholder="{{ _('jane@example.com') }}" required>
 					</div>
