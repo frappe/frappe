@@ -71,12 +71,6 @@
   max-width: 50%;
   overflow: hidden;
 }
-.page-icon-group {
-  vertical-align: middle;
-}
-.page-icon-group a {
-  margin-right: 7px;
-}
 .page-content {
   margin-top: 70px;
 }

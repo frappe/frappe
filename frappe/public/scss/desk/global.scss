@@ -89,6 +89,12 @@ img {
 	color: var(--gray-500) !important;
 }
 
+.center-content {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
 .no-underline {
 	text-decoration: none !important;
 }
@@ -100,6 +106,7 @@ img {
 	font-size: var(--text-md);
 	&.icon-btn {
 		padding: 0px;
+		@extend .center-content;
 		&.btn-default, &.btn-secondary {
 			min-width: 28px;
 		}
@@ -431,10 +438,6 @@ kbd {
 	}
 }
 
-.center-content {
-	display: grid;
-	place-items: center;
-}
 
 .margin {
 	margin: var(--margin-sm);

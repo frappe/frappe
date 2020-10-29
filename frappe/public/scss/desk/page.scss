@@ -92,7 +92,8 @@ $page-bottom-margin: 60px;
 	}
 }
 
-.menu-btn-group, .custom-btn-group {
+.menu-btn-group, .custom-btn-group, .page-icon-group {
+	display: flex;
 	.dropdown-menu {
 		width: max-content;
 	}
