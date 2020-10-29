@@ -40,10 +40,8 @@
 					<tr>
 						<th style="width: 40px" class="table-sr">{{ _("Sr") }}</th>
 						{% for tdf in visible_columns %}
-						{% if (data and not data[0].flags.compact_item_print) or tdf.fieldname in doc.get(df.fieldname)[0].flags.compact_item_fields %}
-							<th style="width: {{ get_width(tdf) }};" class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
-								{{ _(tdf.label) }}</th>
-						{% endif %}
+						<th style="width: {{ get_width(tdf) }};" class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
+							{{ _(tdf.label) }}</th>
 						{% endfor %}
 					</tr>
 				</thead>
@@ -52,10 +50,13 @@
 					<tr>
 						<td class="table-sr">{{ d.idx }}</td>
 						{% for tdf in visible_columns %}
-						{% if not doc.get(df.fieldname)[0].flags.compact_item_print or tdf.fieldname in doc.get(df.fieldname)[0].flags.compact_item_fields %}
 							<td class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
-							<div class="value">{{ print_value(tdf, d, doc, visible_columns) }}</div></td>
-						{% endif %}
+							{% if doc.child_print_templates %}
+								{%- set child_templates = doc.child_print_templates.get(df.fieldname) -%}
+								<div class="value">{{ print_value(tdf, d, doc, visible_columns, child_templates) }}</div></td>
+							{% else %}
+								<div class="value">{{ print_value(tdf, d, doc, visible_columns) }}</div></td>
+							{% endif %}
 						{% endfor %}
 					</tr>
 					{% endfor %}
@@ -117,10 +118,9 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{{ "" }}
 {%- endmacro -%}
 
-{%- macro print_value(df, doc, parent_doc=None, visible_columns=None) -%}
-	{% if doc.print_templates and
-			doc.print_templates.get(df.fieldname) %}
-		{% include doc.print_templates[df.fieldname] %}
+{%- macro print_value(df, doc, parent_doc=None, visible_columns=None, child_templates=None) -%}
+	{% if child_templates and child_templates[df.fieldname] %}
+		{% include child_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" %}
 		<i class="{{ 'fa fa-check' if doc[df.fieldname] }}"></i>
 	{% elif df.fieldtype=="Image" %}

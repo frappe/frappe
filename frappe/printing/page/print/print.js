@@ -61,11 +61,6 @@ frappe.ui.form.PrintView = class {
 			() => this.printit(), 'printer'
 		);
 
-		// this.page.add_button(
-		// 	__('Form'),
-		// 	() => frappe.set_route('Form', this.frm.doctype, this.frm.docname),
-		// );
-
 		this.page.add_button(
 			__('Full Page'),
 			() => this.render_page('/printview?'),
@@ -85,9 +80,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	setup_sidebar() {
-		this.sidebar = $(`<div class="print-preview-sidebar">`).appendTo(
-			this.page.sidebar
-		);
+		this.sidebar = this.page.sidebar.addClass('print-preview-sidebar');
 
 		this.print_sel = this.add_sidebar_item(
 			{
@@ -153,7 +146,6 @@ frappe.ui.form.PrintView = class {
 			field.set_input(df.default);
 		}
 
-
 		return field;
 	}
 
@@ -212,14 +204,12 @@ frappe.ui.form.PrintView = class {
 	setup_additional_settings() {
 		this.additional_settings = {};
 		this.sidebar_dynamic_section.empty();
-		if (frappe.boot.additional_print_settings) {
-			frappe
-				.xcall('frappe.printing.page.print.print.get_settings_to_show', {
-					doctype: this.frm.doc.doctype,
-					docname: this.frm.doc.name
-				})
-				.then((settings) => this.add_settings_to_sidebar(settings));
-		}
+		frappe
+			.xcall('frappe.printing.page.print.print.get_print_settings_to_show', {
+				doctype: this.frm.doc.doctype,
+				docname: this.frm.doc.name
+			})
+			.then((settings) => this.add_settings_to_sidebar(settings));
 	}
 
 	add_settings_to_sidebar(settings) {
@@ -231,31 +221,8 @@ frappe.ui.form.PrintView = class {
 					this.additional_settings[field.df.fieldname] = val;
 					this.preview();
 				},
-			}, true)
+			}, true);
 		}
-		// for (let key of Object.keys(settings)) {
-		// 	const setting = settings[key];
-		// 	this.additional_settings[key] = {
-		// 		set_template: setting.set_template,
-		// 		value: setting.value,
-		// 		child_field: setting.child_field,
-		// 	};
-
-		// 	let field = this.add_sidebar_item(
-		// 		{
-		// 			fieldname: key,
-		// 			label: setting.label,
-		// 			fieldtype: setting.fieldtype,
-		// 			change: () => {
-		// 				const val = field.get_value();
-		// 				this.additional_settings[field.df.fieldname].value = val;
-		// 				this.preview();
-		// 			},
-		// 		},
-		// 		setting.value,
-		// 		true
-		// 	);
-		// }
 	}
 
 	edit_print_format() {

@@ -33,7 +33,9 @@
 	}
 }
 
-.print-preview-sidebar {
+.layout-side-section.print-preview-sidebar {
+	padding-right: var(--padding-md);
+
 	.clearfix {
 		display: none;
 	}
@@ -45,8 +47,8 @@
 		}
 
 		.icon {
-			width: 14px;
-			top: 6px;
+			width: 13px;
+			top: 7px;
 			right: 5px;
 		}
 	}
