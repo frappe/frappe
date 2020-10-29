@@ -48,6 +48,7 @@ docfield_properties = {
 	'permlevel': 'Int',
 	'width': 'Data',
 	'print_width': 'Data',
+	'non_negative': 'Check',
 	'reqd': 'Check',
 	'unique': 'Check',
 	'ignore_user_permissions': 'Check',
