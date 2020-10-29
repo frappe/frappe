@@ -31,7 +31,7 @@
 			}
 		}
 
-		&.active:not(.step-success) {
+		&.active {
 			// background-color: var(--primary);
 			border: 1px solid var(--primary);
 
@@ -41,15 +41,15 @@
 			}
 		}
 
-		&.step-success.active {
-			background-color: var(--primary);
-			border: 1px solid var(--primary);
+		// &.step-success.active {
+		// 	background-color: var(--primary);
+		// 	border: 1px solid var(--primary);
 
-			.slide-step-indicator {
-				display: block;
-				background-color: var(--white);
-			}
-		}
+		// 	.slide-step-indicator {
+		// 		display: block;
+		// 		background-color: var(--white);
+		// 	}
+		// }
 
 		&.step-success:not(.active) {
 			background-color: var(--primary);
