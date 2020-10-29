@@ -704,12 +704,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.settings.get_form_link) {
 			return this.settings.get_form_link(doc);
 		}
-
-<<<<<<< HEAD
-		const docname = doc.name.match(/[\t%'"]/)
-=======
 		const docname = doc.name.match(/[%'"\s]/)
->>>>>>> 845b3ab5bc... fix: URI encode in case white spaces exist in docname
 			? encodeURIComponent(doc.name)
 			: doc.name;
 
