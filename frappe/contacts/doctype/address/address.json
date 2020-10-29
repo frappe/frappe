@@ -75,7 +75,7 @@
   {
    "fieldname": "state",
    "fieldtype": "Data",
-   "label": "State"
+   "label": "State/Province"
   },
   {
    "fieldname": "country",
@@ -148,7 +148,7 @@
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2020-10-14 17:38:08.971776",
+ "modified": "2020-10-21 16:14:37.284830",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",

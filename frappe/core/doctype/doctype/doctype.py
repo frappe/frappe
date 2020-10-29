@@ -752,8 +752,8 @@ def validate_fields(meta):
 	def check_illegal_default(d):
 		if d.fieldtype == "Check" and not d.default:
 			d.default = '0'
-		if d.fieldtype == "Check" and d.default not in ('0', '1'):
-			frappe.throw(_("Default for 'Check' type of field must be either '0' or '1'"))
+		if d.fieldtype == "Check" and cint(d.default) not in (0, 1):
+			frappe.throw(_("Default for 'Check' type of field {0} must be either '0' or '1'").format(frappe.bold(d.fieldname)))
 		if d.fieldtype == "Select" and d.default:
 			if not d.options:
 				frappe.throw(_("Options for {0} must be set before setting the default value.").format(frappe.bold(d.fieldname)))
