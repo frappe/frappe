@@ -91,9 +91,8 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, letterhead=None, trigger_print=False,
 	settings=None):
 
-	print_settings = frappe.db.get_singles_dict("Print Settings")
-	if settings:
-		print_settings = handle_contextual_settings(doc, print_settings, settings)
+	print_settings = frappe.get_single("Print Settings").as_dict()
+	print_settings.update(settings or {})
 
 	if isinstance(no_letterhead, string_types):
 		no_letterhead = cint(no_letterhead)
@@ -102,6 +101,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		no_letterhead = not cint(print_settings.with_letterhead)
 
 	doc.flags.in_print = True
+	doc.flags.print_settings = print_settings
 
 	if not frappe.flags.ignore_print_permissions:
 		validate_print_permission(doc)
@@ -113,7 +113,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		if doc.docstatus==2 and not cint(print_settings.allow_print_for_cancelled):
 			frappe.throw(_("Not allowed to print cancelled documents"), frappe.PermissionError)
 
-	doc.run_method("before_print")
+	doc.run_method("before_print", print_settings)
 
 	if not hasattr(doc, "print_heading"): doc.print_heading = None
 	if not hasattr(doc, "sub_heading"): doc.sub_heading = None
@@ -320,6 +320,7 @@ def make_layout(doc, meta, format_data=None):
 				original = meta.get_field(df.fieldname)
 				if original:
 					newdf = original.as_dict()
+					newdf.hide_in_print_layout = original.get('hide_in_print_layout')
 					newdf.update(df)
 					df = newdf
 
@@ -388,10 +389,6 @@ def is_visible(df, doc):
 	"""Returns True if docfield is visible in print layout and does not have print_hide set."""
 	if df.fieldtype in ("Section Break", "Column Break", "Button"):
 		return False
-
-	if hasattr(doc, "hide_in_print_layout"):
-		if df.fieldname in doc.hide_in_print_layout:
-			return False
 
 	if (df.permlevel or 0) > 0 and not doc.has_permlevel_access_to(df.fieldname, df):
 		return False
@@ -466,7 +463,12 @@ def get_visible_columns(data, table_meta, df):
 	"""Returns list of visible columns based on print_hide and if all columns have value."""
 	columns = []
 	doc = data[0] or frappe.new_doc(df.options)
+
+	hide_in_print_layout = df.get('hide_in_print_layout') or []
+
 	def add_column(col_df):
+		if col_df.fieldname in hide_in_print_layout:
+			return False
 		return is_visible(col_df, doc) \
 			and column_has_value(data, col_df.get("fieldname"), col_df)
 
