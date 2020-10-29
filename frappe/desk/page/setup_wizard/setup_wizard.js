@@ -50,8 +50,8 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 						$footer.find('.next-btn').removeClass('btn-default')
 							.addClass('btn-primary');
 						$footer.find('.text-right').prepend(
-							$(`<a class="complete-btn btn btn-sm primary">
-						${__("Complete Setup")}</a>`));
+							$(`<button class="complete-btn btn btn-sm primary">
+						${__("Complete Setup")}</button>`));
 
 					}
 				}
