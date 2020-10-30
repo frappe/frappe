@@ -332,9 +332,9 @@ frappe.views.ListSidebar = class ListSidebar {
 		if (df.fieldname == "docstatus") {
 			df.fieldtype = "Select",
 			df.options = [
-				{ value: 0, label: "Draft" },
-				{ value: 1, label: "Submitted" },
-				{ value: 2, label: "Cancelled" },
+				{ value: 0, label: __("Draft") },
+				{ value: 1, label: __("Submitted") },
+				{ value: 2, label: __("Cancelled") }
 			];
 		} else if (df.fieldtype == 'Check') {
 			df.fieldtype = 'Select';
