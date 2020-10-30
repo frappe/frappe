@@ -321,11 +321,19 @@ body {
 					.step-index.step-complete {
 						display: flex;
 					}
+
+					.step-skip {
+						display: none;
+					}
 				}
 
 				&.skipped {
 					.step-index.step-skipped {
 						display: flex;
+					}
+
+					.step-skip {
+						display: none;
 					}
 				}
 
