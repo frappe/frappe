@@ -1,5 +1,5 @@
 .tree {
-	padding: var(--padding-md);
+	padding: var(--padding-sm);
 }
 
 .tree li {
@@ -11,7 +11,7 @@
 	cursor: pointer;
 	display: inline-flex;
 	align-items: flex-end;
-	padding: var(--padding-sm) var(--padding-xs);
+	padding: var(--padding-xs);
 	font-size: $font-size-lg;
 	font-weight: 600;
 	color: var(--text-color);
@@ -24,6 +24,7 @@
 
 .tree-children {
 	padding-left: var(--padding-xl);
+	margin-bottom: 0;
 
 	.tree-link {
 		font-size: var(--text-md);
@@ -120,7 +121,7 @@
 .balance-area {
 	color: var(--text-color) !important;
 	font-size: var(--text-md);
-	padding: var(--padding-sm);
+	padding: var(--padding-xs);
 }
 
 .tree-link.active ~ .balance-area {
