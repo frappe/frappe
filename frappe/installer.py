@@ -3,7 +3,7 @@
 
 import json
 import os
-
+from frappe.defaults import _clear_cache
 import frappe
 
 
@@ -111,8 +111,8 @@ def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
 	if app_name in installed_apps:
 		installed_apps.remove(app_name)
-		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
-		frappe.get_single("Installed Applications").update_versions()
+		frappe.db.set_value("DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps))
+		_clear_cache("__global")
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
