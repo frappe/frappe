@@ -125,7 +125,12 @@ class CustomizeForm(Document):
 
 		#If allow_auto_repeat is set, add auto_repeat custom field.
 		if self.allow_auto_repeat:
+<<<<<<< HEAD
 			if not frappe.db.exists('Custom Field', {'fieldname': 'auto_repeat', 'dt': self.doc_type}):
+=======
+			if not frappe.db.exists('Custom Field', {'fieldname': 'auto_repeat', 'dt': self.doc_type}) and \
+				not frappe.db.exists('DocField', {'fieldname': 'auto_repeat', 'parent': self.name}):
+>>>>>>> 044da8a575... fix: create auto_repeat field if docfield/custom field does not exist
 				insert_after = self.fields[len(self.fields) - 1].fieldname
 				df = dict(fieldname='auto_repeat', label='Auto Repeat', fieldtype='Link', options='Auto Repeat', insert_after=insert_after, read_only=1, no_copy=1, print_hide=1)
 				create_custom_field(self.doc_type, df)
