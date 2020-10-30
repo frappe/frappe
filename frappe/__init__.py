@@ -1154,6 +1154,7 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 			'doctype_or_field': args.doctype_or_field,
 			'doc_type': doctype,
 			'field_name': args.fieldname,
+			'row_name': args.row_name,
 			'property': args.property,
 			'value': args.value,
 			'property_type': args.property_type or "Data",
