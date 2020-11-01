@@ -10,6 +10,7 @@ from glob import glob
 # imports - module imports
 import frappe
 from frappe.utils.backups import fetch_latest_backups
+import frappe.recorder
 
 
 def clean(value):
@@ -119,3 +120,15 @@ class TestCommands(BaseTestCommands):
 		# test 6: take a backup with --verbose
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEquals(self.returncode, 0)
+
+
+	def test_recorder(self):
+		frappe.recorder.stop()
+
+		self.execute("bench --site {site} start-recording")
+		frappe.local.cache = {}
+		self.assertEqual(frappe.recorder.status(), True)
+
+		self.execute("bench --site {site} stop-recording")
+		frappe.local.cache = {}
+		self.assertEqual(frappe.recorder.status(), False)

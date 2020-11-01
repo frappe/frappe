@@ -1058,15 +1058,30 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					name: __('Totals Row'),
 					content: totals[col.id],
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true }, data[0]);
+						let formatted_value = frappe.format(value, col.docfield, {
+							always_show_decimals: true
+						}, data[0]);
+						if (i === 0) {
+							return this.format_total_cell(formatted_value, col);
+						}
+						return formatted_value;
 					}
-				}
-			})
+				};
+			});
 
-			totals_row[0].content = __('Totals').bold();
 			out.push(totals_row);
 		}
 		return out;
+	}
+
+	format_total_cell(formatted_value, df) {
+		let cell_value = __('Totals').bold();
+		if (frappe.model.is_numeric_field(df.docfield)) {
+			cell_value = `<span class="flex justify-between">
+				${cell_value} ${$(formatted_value).text()}
+			</span>`;
+		}
+		return cell_value;
 	}
 
 	build_row(d) {
@@ -1249,8 +1264,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: __('Show Totals'),
 				action: () => {
 					this.add_totals_row = !this.add_totals_row;
-					this.save_view_user_settings(
-						{ add_totals_row: this.add_totals_row });
+					this.save_view_user_settings({
+						add_totals_row: this.add_totals_row
+					});
 					this.datatable.refresh(this.get_data(this.data));
 				}
 			},
