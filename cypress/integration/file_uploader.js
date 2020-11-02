@@ -20,10 +20,14 @@ context('FileUploader', () => {
 		open_upload_dialog();
 
 		cy.fixture('example.json').then(fileContent => {
-			cy.get_open_dialog().find('.file-upload-area').upload(
-				{ fileContent, fileName: 'example.json', mimeType: 'application/json' },
-				{ subjectType: 'drag-n-drop' },
-			);
+			cy.get_open_dialog().find('.file-upload-area').upload({
+				fileContent,
+				fileName: 'example.json',
+				mimeType: 'application/json'
+			}, {
+				subjectType: 'drag-n-drop',
+				force: true
+			});
 			cy.get_open_dialog().find('.file-info').should('contain', 'example.json');
 			cy.server();
 			cy.route('POST', '/api/method/upload_file').as('upload_file');

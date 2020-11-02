@@ -33,7 +33,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (!this.has_permissions()) {
 			frappe.set_route('');
-			frappe.msgprint(__(`Not permitted to view ${this.doctype}`));
+			frappe.msgprint(__("Not permitted to view {0}", [this.doctype]));
 			return;
 		}
 
@@ -781,7 +781,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		const docname = doc.name.match(/[%'"]/)
+		const docname = doc.name.match(/[%'"\s]/)
 			? encodeURIComponent(doc.name)
 			: doc.name;
 

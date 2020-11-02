@@ -26,15 +26,13 @@ class WebTemplate(Document):
 			if not field.fieldname:
 				field.fieldname = frappe.scrub(field.label)
 
-		if self.standard and not self.module:
-			frappe.throw(_("Please select which module this Web Template belongs to."))
-
 	def on_update(self):
 		if frappe.conf.developer_mode:
 			# custom to standard
 			if self.standard:
 				export_to_files(record_list=[["Web Template", self.name]], create_init=True)
 				self.create_template_file()
+				self.template = ""
 
 			# standard to custom
 			was_standard = (self.get_doc_before_save() or {}).get("standard")
@@ -81,7 +79,9 @@ class WebTemplate(Document):
 
 		return template
 
-	def render(self, values="{}"):
+	def render(self, values=None):
+		if not values:
+			values = {}
 		values = frappe.parse_json(values)
 		values.update({"values": values})
 		template = self.get_template(self.standard)

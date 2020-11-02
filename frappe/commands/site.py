@@ -1,10 +1,5 @@
 # imports - standard imports
-import atexit
-import compileall
-import hashlib
 import os
-import re
-import shutil
 import sys
 
 # imports - third party imports
@@ -13,9 +8,7 @@ import click
 # imports - module imports
 import frappe
 from frappe.commands import get_site, pass_context
-from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.installer import update_site_config
 from frappe.utils import get_site_path, touch_file
 
 
@@ -64,8 +57,10 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		sys.exit(1)
 
 	if not db_name:
+		import hashlib
 		db_name = '_' + hashlib.sha1(site.encode()).hexdigest()[:16]
 
+	from frappe.commands.scheduler import _is_scheduler_enabled
 	from frappe.installer import install_db, make_site_dirs
 	from frappe.installer import install_app as _install_app
 	import frappe.utils.scheduler
@@ -73,6 +68,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	frappe.init(site=site)
 
 	try:
+
 		# enable scheduler post install?
 		enable_scheduler = _is_scheduler_enabled()
 	except Exception:
@@ -107,11 +103,11 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 @click.option('--install-app', multiple=True, help='Install app after installation')
 @click.option('--with-public-files', help='Restores the public files of the site, given path to its tar file')
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
-@click.option('--force', is_flag=True, default=False, help='Use a bit of force to get the job done')
+@click.option('--force', is_flag=True, default=False, help='Ignore the site downgrade warning, if applicable')
 @pass_context
 def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
-	from frappe.installer import extract_sql_gzip, extract_tar_files, is_downgrade
+	from frappe.installer import extract_sql_gzip, extract_files, is_downgrade
 	force = context.force or force
 
 	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
@@ -147,12 +143,12 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
 		with_public_files = os.path.join(base_path, with_public_files)
-		public = extract_tar_files(site, with_public_files, 'public')
+		public = extract_files(site, with_public_files, 'public')
 		os.remove(public)
 
 	if with_private_files:
 		with_private_files = os.path.join(base_path, with_private_files)
-		private = extract_tar_files(site, with_private_files, 'private')
+		private = extract_files(site, with_private_files, 'private')
 		os.remove(private)
 
 	# Removing temporarily created file
@@ -276,6 +272,8 @@ def disable_user(context, email):
 @pass_context
 def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
+	import compileall
+	import re
 	from frappe.migrate import migrate
 
 	for site in context.sites:
@@ -385,35 +383,34 @@ def use(site, sites_path='.'):
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
-@click.option('--verbose', default=False, is_flag=True)
+@click.option('--backup-path', default=None, help="Set path for saving all the files in this operation")
+@click.option('--backup-path-db', default=None, help="Set path for saving database file")
+@click.option('--backup-path-files', default=None, help="Set path for saving public file")
+@click.option('--backup-path-private-files', default=None, help="Set path for saving private file")
+@click.option('--backup-path-conf', default=None, help="Set path for saving config file")
+@click.option('--verbose', default=False, is_flag=True, help="Add verbosity")
+@click.option('--compress', default=False, is_flag=True, help="Compress private and public files")
 @pass_context
-def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
-	backup_path_private_files=None, quiet=False, verbose=False):
+def backup(context, with_files=False, backup_path=None, backup_path_db=None, backup_path_files=None,
+	backup_path_private_files=None, backup_path_conf=None, verbose=False, compress=False):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
 	verbose = verbose or context.verbose
 	exit_code = 0
+
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True, verbose=verbose)
-		except Exception as e:
-			if verbose:
-				print("Backup failed for {0}. Database or site_config.json may be corrupted".format(site))
+			odb = scheduled_backup(ignore_files=not with_files, backup_path=backup_path, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, backup_path_conf=backup_path_conf, force=True, verbose=verbose, compress=compress)
+		except Exception:
+			click.secho("Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), fg="red")
 			exit_code = 1
 			continue
-
-		if verbose:
-			from frappe.utils import now
-			summary_title = "Backup Summary at {0}".format(now())
-			print(summary_title + "\n" + "-" * len(summary_title))
-			print("Database backup:", odb.backup_path_db)
-			if with_files:
-				print("Public files:   ", odb.backup_path_files)
-				print("Private files:  ", odb.backup_path_private_files)
-
+		odb.print_summary()
+		click.secho("Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""), fg="green")
 		frappe.destroy()
+
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -618,8 +615,10 @@ def browse(context, site):
 @click.command('start-recording')
 @pass_context
 def start_recording(context):
+	import frappe.recorder
 	for site in context.sites:
 		frappe.init(site=site)
+		frappe.set_user("Administrator")
 		frappe.recorder.start()
 	if not context.sites:
 		raise SiteNotSpecifiedError
@@ -628,8 +627,10 @@ def start_recording(context):
 @click.command('stop-recording')
 @pass_context
 def stop_recording(context):
+	import frappe.recorder
 	for site in context.sites:
 		frappe.init(site=site)
+		frappe.set_user("Administrator")
 		frappe.recorder.stop()
 	if not context.sites:
 		raise SiteNotSpecifiedError

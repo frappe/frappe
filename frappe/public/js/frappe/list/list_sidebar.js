@@ -13,7 +13,6 @@ frappe.views.ListSidebar = class ListSidebar {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
-		this.cat_tags = [];
 	}
 
 	make() {
@@ -242,10 +241,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
-	get_cat_tags() {
-		return this.cat_tags;
-	}
-
 	get_stats() {
 		var me = this;
 		frappe.call({
@@ -324,33 +319,6 @@ frappe.views.ListSidebar = class ListSidebar {
 					});
 			})
 			.appendTo(this.sidebar.find(".list-stats-dropdown"));
-	}
-
-	set_fieldtype(df) {
-
-		// scrub
-		if (df.fieldname == "docstatus") {
-			df.fieldtype = "Select",
-			df.options = [
-				{ value: 0, label: "Draft" },
-				{ value: 1, label: "Submitted" },
-				{ value: 2, label: "Cancelled" },
-			];
-		} else if (df.fieldtype == 'Check') {
-			df.fieldtype = 'Select';
-			df.options = [{ value: 0, label: 'No' },
-				{ value: 1, label: 'Yes' }
-			];
-		} else if (['Text', 'Small Text', 'Text Editor', 'Code', 'Tag', 'Comments',
-			'Dynamic Link', 'Read Only', 'Assign'
-		].indexOf(df.fieldtype) != -1) {
-			df.fieldtype = 'Data';
-		} else if (df.fieldtype == 'Link' && this.$w.find('.condition').val() != "=") {
-			df.fieldtype = 'Data';
-		}
-		if (df.fieldtype === "Data" && (df.options || "").toLowerCase() === "email") {
-			df.options = null;
-		}
 	}
 
 	reload_stats() {
