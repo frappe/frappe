@@ -182,6 +182,7 @@ def import_doc(
 	submit=False,
 	pre_process=None,
 ):
+	import frappe.modules.import_file
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
 	else:
