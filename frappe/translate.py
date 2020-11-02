@@ -164,6 +164,11 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 			key = m[1] + ':' + m[2]
 			if full_dict.get(key):
 				out[key] = full_dict[key]
+		if  m[0].startswith("DocType: "):
+			key = m[0] + ':' + m[1]
+			if full_dict.get(key):
+				out[m[1]] = full_dict[key]
+
 
 	return out
 
@@ -231,8 +236,9 @@ def get_translation_dict_from_file(path, lang, app):
 
 		for item in csv_content:
 			if len(item)==3 and item[2]:
-				key = item[0] + ':' + item[2]
-				translation_map[key] = strip(item[1])
+				key = item[0] + ':' + item[1]
+				print(f"long translation for {item[0]} adding under {key}")
+				translation_map[key] = strip(item[2])
 			elif len(item) in [2, 3]:
 				translation_map[item[0]] = strip(item[1])
 			elif item:
