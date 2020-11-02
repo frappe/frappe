@@ -352,4 +352,26 @@ class TestFile(unittest.TestCase):
 		self.assertEqual(file1.file_url, file2.file_url)
 		self.assertTrue(os.path.exists(file2.get_full_path()))
 
-
+	def test_website_user_file_permission(self):
+		# Website User should be able to attach a file
+		# if they have write access to a document
+		from frappe.core.doctype.file.file import File
+		user = frappe.get_doc(dict(
+			doctype='User',
+			email='test-file-perm@example.com',
+			first_name='Tester'
+		))
+		user.insert(ignore_if_duplicate=True)
+		frappe.set_user('test-file-perm@example.com')
+		txt_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'file3.txt',
+			"attached_to_doctype": 'User',
+			"attached_to_name": user.name,
+			"content": test_content1
+		})
+		txt_file.insert()
+		# creation of file should not fail
+		# because user gets permission via has_web_form_permission
+		self.assertIsInstance(txt_file, File)
+		frappe.set_user('Administrator')

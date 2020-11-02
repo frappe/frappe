@@ -551,11 +551,12 @@ def push_perm_check_log(log):
 	frappe.flags.get('has_permission_check_logs').append(_(log))
 
 def has_web_form_permission(doctype, name, ptype='read'):
-	if frappe.session.user=="Guest":
+	user = frappe.session.user
+	if user == "Guest":
 		return False
 
 	# owner matches
-	elif frappe.db.get_value(doctype, name, "owner")==frappe.session.user:
+	elif user == frappe.get_cached_value(doctype, name, "owner"):
 		return True
 
 	elif frappe.has_website_permission(name, ptype=ptype, doctype=doctype):
