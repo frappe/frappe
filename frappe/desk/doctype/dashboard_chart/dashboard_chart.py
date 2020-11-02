@@ -15,7 +15,7 @@ from frappe.utils.dashboard import cache_source
 from frappe.utils import nowdate, add_to_date, getdate,\
 	get_datetime, cint, now_datetime
 from frappe.utils.dateutils import\
-	get_period, get_period_beginning, get_period_ending, get_from_date_from_timespan
+	get_period, get_period_beginning, get_period_ending, get_from_date_from_timespan, get_dates_from_timegrain
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 >>>>>>> 969aa86e68... fix: calculate chart data from beginning of period
@@ -169,15 +169,8 @@ def get_aggregate_function(chart_type):
 	}[chart_type]
 
 def get_result(data, timegrain, from_date, to_date):
-	start_date = getdate(from_date)
-	end_date = getdate(to_date)
-	result = [[start_date, 0.0]] if timegrain == 'Daily' else []
-
-	while start_date < end_date:
-		next_date = get_next_expected_date(start_date, timegrain)
-		result.append([next_date, 0.0])
-		start_date = next_date
-
+	dates = get_dates_from_timegrain(from_date, to_date, timegrain)
+	result = [[date, 0] for date in dates]
 	data_index = 0
 	if data:
 		for i, d in enumerate(result):
@@ -187,6 +180,7 @@ def get_result(data, timegrain, from_date, to_date):
 
 	return result
 
+<<<<<<< HEAD
 
 def get_next_expected_date(date, timegrain):
 	next_date = None
@@ -255,6 +249,8 @@ def get_quarter_ending(date):
 	return date
 
 =======
+=======
+>>>>>>> 8fde766b8f... fix: use get_dates_from_timegrain function
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
