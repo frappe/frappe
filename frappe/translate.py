@@ -590,7 +590,12 @@ def write_csv_file(path, app_messages, lang_dict):
 	from csv import writer
 	with open(path, 'w', newline='') as msgfile:
 		w = writer(msgfile, lineterminator='\n')
-		for p, m in app_messages:
+		for a in app_messages:
+			print("translating ", a)
+			if len(a) == 2:
+			  p, m = a
+			else:
+			  p, m, k, s = a
 			t = lang_dict.get(m, '')
 			# strip whitespaces
 			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
