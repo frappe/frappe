@@ -82,8 +82,8 @@ frappe.render_template = function(name, data) {
 	if(data===undefined) {
 		data = {};
 	}
-	if(template === undefined){
-		frappe.throw("Template " + name + " not found")
+	if (template === undefined) {
+		frappe.throw("Template " + name + " not found");
 	}
 	return frappe.render(template, data, name);
 }
