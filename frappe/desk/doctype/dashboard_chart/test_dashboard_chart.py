@@ -56,6 +56,7 @@ class TestDashboardChart(unittest.TestCase):
 
 		for idx in range(13):
 			month = get_last_day(cur_date)
+			month = formatdate(month.strftime('%Y-%m-%d'))
 			self.assertEqual(result.get('labels')[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
@@ -85,6 +86,7 @@ class TestDashboardChart(unittest.TestCase):
 
 		for idx in range(13):
 			month = get_last_day(cur_date)
+			month = formatdate(month.strftime('%Y-%m-%d'))
 			self.assertEqual(result.get('labels')[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
@@ -117,6 +119,7 @@ class TestDashboardChart(unittest.TestCase):
 
 		for idx in range(13):
 			month = get_last_day(cur_date)
+			month = formatdate(month.strftime('%Y-%m-%d'))
 			self.assertEqual(result.get('labels')[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
