@@ -176,8 +176,7 @@ class TestDashboardChart(unittest.TestCase):
 		self.assertEqual(result.get('datasets')[0].get('values'), [200.0, 400.0, 300.0, 0.0, 100.0, 0.0])
 		self.assertEqual(
 			result.get('labels'),
-			[formatdate('2019-01-06'), formatdate('2019-01-07'), formatdate('2019-01-08'),\
-			formatdate('2019-01-09'), formatdate('2019-01-10'), formatdate('2019-01-11')]
+			['06-01-19', '07-01-19', '08-01-19', '09-01-19', '10-01-19', '11-01-19']
 		)
 
 		frappe.db.rollback()
@@ -206,7 +205,10 @@ class TestDashboardChart(unittest.TestCase):
 		result = get(chart_name ='Test Weekly Dashboard Chart', refresh = 1)
 
 		self.assertEqual(result.get('datasets')[0].get('values'), [50.0, 300.0, 800.0, 0.0])
-		self.assertEqual(result.get('labels'), [formatdate('2018-12-30'), formatdate('2019-01-06'), formatdate('2019-01-13'), formatdate('2019-01-20')])
+		self.assertEqual(
+			result.get('labels'),
+			['30-12-18', '06-01-19', '13-01-19', '20-01-19']
+		)
 
 		frappe.db.rollback()
 
