@@ -268,7 +268,7 @@ export default class NumberCardWidget extends Widget {
 			result: this.number
 		}).then(res => {
 			if (res !== undefined) {
-				this.percentage_stat = +res.toFixed(2);
+				this.percentage_stat = shorten_number(res);
 			}
 		});
 	}
