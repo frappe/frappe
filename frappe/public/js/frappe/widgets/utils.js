@@ -154,7 +154,7 @@ function shorten_number(number, country) {
 			return (number/map.divisor).toFixed(2) + ' ' + map.symbol;
 		}
 	}
-	return number.toFixed();
+	return number.toFixed(2);
 }
 
 function get_number_system(country) {
