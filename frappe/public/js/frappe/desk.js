@@ -199,6 +199,7 @@ frappe.Application = Class.extend({
 					'reqd': 1
 				},
 				{
+					"fieldname": "submit",
 					"fieldtype": "Button",
 					"label": __("Submit")
 				}
