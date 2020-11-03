@@ -6,6 +6,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.scheduler import enqueue_events, is_dormant, schedule_jobs_based_on_activity
 from frappe.utils import add_days, get_datetime
+from frappe.utils.doctor import purge_pending_jobs
 
 import frappe
 import time
@@ -21,6 +22,7 @@ def test_method():
 
 class TestScheduler(TestCase):
 	def setUp(self):
+		purge_pending_jobs()
 		if not frappe.get_all('Scheduled Job Type', limit=1):
 			sync_jobs()
 
