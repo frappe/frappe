@@ -251,8 +251,14 @@ def update_link_field_values(link_fields, old, new, doctype):
 		else:
 			parent = field['parent']
 
-			# because the table hasn't been renamed yet!
-			if field['parent'] == new and doctype == "DocType":
+			# Handles the case where one of the link fields belongs to
+			# the DocType being renamed.
+			# Here this field could have the current DocType as its value too.
+
+			# In this case while updating link field value, the field's parent
+			# or the current DocType table name hasn't been renamed yet,
+			# so consider it's old name.
+			if parent == new and doctype == "DocType":
 				parent = old
 
 			frappe.db.sql("""
