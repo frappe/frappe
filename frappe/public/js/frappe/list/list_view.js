@@ -503,7 +503,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	render_header() {
 		if (this.$result.find(".list-row-head").length === 0) {
 			// append header once
-			this.columns && this.$result.prepend(this.get_header_html());
+			this.$result.prepend(this.get_header_html());
 		}
 	}
 
@@ -613,7 +613,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_header_html_skeleton(left = "", right = "") {
 		return `
-			<header class="level list-row list-row-head text-muted">
+			<header class="level list-row-head text-muted">
 				<div class="level-left list-header-subject">
 					${left}
 				</div>
@@ -1149,6 +1149,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.$result
 					.find(".list-row-checkbox")
 					.prop("checked", $target.prop("checked"));
+			} else if ($target.attr('data-parent')) {
+				this.$result
+					.find(`.${$target.attr('data-parent')}`)
+					.find('.list-row-checkbox')
+					.prop("checked", $target.prop("checked"));
 			}
 
 			this.on_row_checked();
@@ -1218,7 +1223,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_tag_event() {
 		this.tags_shown = false;
-		this.list_sidebar.parent.on("click", ".list-tag-preview", () => {
+		this.list_sidebar && this.list_sidebar.parent.on("click", ".list-tag-preview", () => {
 			this.tags_shown = !this.tags_shown;
 			this.toggle_tags();
 		});

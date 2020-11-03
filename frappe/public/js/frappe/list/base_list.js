@@ -247,8 +247,8 @@ frappe.views.BaseList = class BaseList {
 		});
 	}
 
-	toggle_side_bar() {
-		let show_sidebar = JSON.parse(localStorage.show_sidebar || "true");
+	toggle_side_bar(show) {
+		let show_sidebar = show || JSON.parse(localStorage.show_sidebar || "true");
 		show_sidebar = !show_sidebar;
 		localStorage.show_sidebar = show_sidebar;
 		this.show_or_hide_sidebar();

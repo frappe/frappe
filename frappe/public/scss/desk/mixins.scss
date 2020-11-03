@@ -1,4 +1,9 @@
-@mixin flex($dis, $x, $y, $dir) {
+@mixin flex(
+	$dis: flex,
+	$x: center,
+	$y: center,
+	$dir: row
+) {
 	display: $dis;
 	justify-content: $x;
 	align-items: $y;

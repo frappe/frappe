@@ -68,6 +68,7 @@
 	&:hover:not(.list-row-head) {
 		background-color: var(--highlight-color);
 	}
+
 	&:last-child {
 		border-bottom: 0px;
 	}
@@ -128,6 +129,7 @@
 }
 
 .list-row-head {
+	@extend .list-row;
 	cursor: default;
 
 	.list-subject {
@@ -423,30 +425,6 @@ input.list-check-all, input.list-row-checkbox {
 // 	}
 // }
 
-// gantt
-// .list-paging-area .gantt-view-mode {
-// 	margin-left: 15px;
-// 	margin-right: 15px;
-// }
-
-// .gantt {
-// 	.details-container {
-// 		.heading {
-// 			margin-bottom: 10px;
-// 			font-size: 12px;
-// 		}
-
-// 		.avatar-small {
-// 			width: 16px;
-// 			height: 16px;
-// 		}
-
-// 		.standard-image {
-// 			display: block;
-// 		}
-// 	}
-// }
-
 // .inbox-attachment, .inbox-link {
 // 	margin-right: 7px;
 // }
@@ -461,25 +439,4 @@ input.list-check-all, input.list-row-checkbox {
 
 // list view
 
-
-
-// .file-grid {
-// 	display: flex;
-// 	flex-wrap: wrap;
-// 	align-content: flex-start;
-
-// 	a {
-// 		height: 100%;
-// 	}
-// }
-
-// .file-wrapper {
-// 	width: 120px;
-// 	flex-direction: column;
-// 	align-items: center;
-// }
-
-// .file-title {
-// 	margin-top: 5px;
-// }
 

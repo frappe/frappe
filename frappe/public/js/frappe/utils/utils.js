@@ -1028,7 +1028,14 @@ Object.assign(frappe.utils, {
 	},
 
 	icon(icon_name, size="sm", icon_class="") {
-		return `<svg class="icon icon-${size}">
+		let size_class = "";
+		let icon_style = "";
+		if (typeof size == "object") {
+			icon_style = `width: ${size.width}; height: ${size.height}`;
+		} else {
+			size_class = `icon-${size}`;
+		}
+		return `<svg class="icon ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
 	},
