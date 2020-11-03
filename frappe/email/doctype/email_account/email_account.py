@@ -175,8 +175,7 @@ class EmailAccount(Document):
 
 		return email_server
 
-	@classmethod
-	def check_email_server_connection(cls, email_server, in_receive):
+	def check_email_server_connection(self, email_server, in_receive):
 		# tries to connect to email server and handles failure
 		try:
 			email_server.connect()
@@ -210,13 +209,13 @@ class EmailAccount(Document):
 			if in_receive and any(map(lambda t: t in message, all_error_codes)):
 				# if called via self.receive and it leads to authentication error,
 				# disable incoming and send email to System Manager
-				error_message = _('Authentication failed while receiving emails from Email Account {0}.').format(self.name)
-				error_message += "<br>" + _('Message from server: {0}').format(cstr(e))
+				error_message = _("Authentication failed while receiving emails from Email Account: {0}.").format(self.name)
+				error_message += "<br>" + _("Message from server: {0}").format(cstr(e))
 				self.handle_incoming_connect_error(description=error_message)
 				return None
 
 			elif not in_receive and any(map(lambda t: t in message, auth_error_codes)):
-				cls.throw_invalid_credentials_exception()
+				self.throw_invalid_credentials_exception()
 			else:
 				frappe.throw(e)
 
