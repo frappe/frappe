@@ -251,6 +251,7 @@ class TestDocument(unittest.TestCase):
 
 	def test_rename_doc(self):
 		from random import choice, sample
+		from frappe.model.base_document import get_controller
 
 		available_documents = []
 		doctype = "ToDo"
@@ -289,3 +290,39 @@ class TestDocument(unittest.TestCase):
 
 		for docname in available_documents:
 			frappe.delete_doc(doctype, docname)
+
+		# test 3: rename doctypes with controller code
+		doctype = frappe._dict({
+			"old": "Test Rename Document Old",
+			"new": "Test Rename Document New",
+		})
+		doc = frappe.get_doc({
+			"doctype": "DocType",
+			"module": "Custom",
+			"name": doctype.old,
+			"custom": 0,
+			"fields": [
+				{
+					"label": "Some Field",
+					"fieldname": "some_fieldname",
+					"fieldtype": "Data"
+				}
+			],
+			"permissions": [
+				{"role": "System Manager", "read": 1}
+			],
+		})
+		doc.save()
+		# check if module exists exists;
+		# if custom, get_controller will return Document class
+		# if not custom, a different class will be returned
+		self.assertNotEqual(get_controller(doctype.old), frappe.model.document.Document)
+
+		# rename doc via wrapper API accessible via /desk
+		frappe.rename_doc("DocType", doctype.old, doctype.new)
+
+		# check if database and controllers are updated
+		self.assertTrue(frappe.db.exists("DocType", doctype.new))
+		self.assertFalse(frappe.db.exists("DocType", doctype.old))
+		with self.assertRaises(ImportError):
+			get_controller(doctype.old)
