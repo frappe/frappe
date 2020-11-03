@@ -25,7 +25,11 @@ from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
 from frappe.email.utils import get_port
 
-class SentEmailInInbox(Exception): pass
+class SentEmailInInbox(Exception):
+	pass
+
+class InvalidEmailCredentials(frappe.ValidationError):
+	pass
 
 class EmailAccount(Document):
 	def autoname(self):
@@ -237,7 +241,7 @@ class EmailAccount(Document):
 	def throw_invalid_credentials_exception(cls):
 		frappe.throw(
 			_("Incorrect email or password. Please check your login credentials."),
-			exc=frappe.ValidationError,
+			exc=InvalidEmailCredentials,
 			title=_("Invalid Credentials")
 		)
 
