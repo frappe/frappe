@@ -614,7 +614,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 	:param untranslated_file: Output file path.
 	:param get_all: Return all strings, translated or not."""
 	clear_cache()
-	apps = frappe.get_all_apps(True)
+	apps = ["pcg_web"] # frappe.get_all_apps(True)
 
 	messages = []
 	untranslated = []
@@ -638,7 +638,11 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 		full_dict = get_full_dict(lang)
 
 		for m in messages:
-			if not full_dict.get(m[1]):
+			if m[0] is None or m[1] is None:
+				print(f"Can not ranslate {m}")
+				continuex
+			lang_key = m[0] + ":" + m[1]
+			if not full_dict.get(lang_key):
 				untranslated.append(m[1])
 
 		if untranslated:
