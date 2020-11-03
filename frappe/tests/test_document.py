@@ -312,7 +312,7 @@ class TestDocument(unittest.TestCase):
 				{"role": "System Manager", "read": 1}
 			],
 		})
-		doc.save()
+		doc.insert()
 		# check if module exists exists;
 		# if custom, get_controller will return Document class
 		# if not custom, a different class will be returned
