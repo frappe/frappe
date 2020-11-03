@@ -264,8 +264,8 @@ $.extend(frappe.model, {
 		return child;
 	},
 
-	copy_doc: function (doc, from_amend, parent_doc, parentfield) {
-		var no_copy_list = ["name", "amended_from", "amendment_date", "cancel_reason"];
+	copy_doc: function(doc, from_amend, parent_doc, parentfield) {
+		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason', "shop_id"];
 		var newdoc = frappe.model.get_new_doc(doc.doctype, parent_doc, parentfield);
 
 		for (var key in doc) {
