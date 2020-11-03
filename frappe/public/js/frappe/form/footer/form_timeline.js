@@ -331,13 +331,13 @@ class FormTimeline extends BaseTimeline {
 		let content_wrapper = comment_wrapper.find('.content');
 
 		let delete_button = $(`
-			<button class="btn btn-link action-btn icon-btn">
+			<button class="btn btn-link action-btn">
 				${frappe.utils.icon('close', 'sm')}
 			</button>
 		`).click(() => this.delete_comment(doc.name));
 
 		let dismiss_button = $(`
-			<button class="btn btn-link action-btn icon-btn">
+			<button class="btn btn-link action-btn">
 				${__('Dismiss')}
 			</button>
 		`).click(() => edit_button.toggle_edit_mode());
