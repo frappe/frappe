@@ -547,6 +547,7 @@ export default class ChartWidget extends Widget {
 			type: chart_type_map[this.chart_doc.type],
 			colors: colors,
 			height: this.height,
+			maxSlices: ['Pie', 'Donut'].includes(this.chart_doc.type) ? 6 : 9,
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
 				shortenYAxisNumbers: 1

@@ -70,7 +70,7 @@ class WidgetDialog {
 		}
 
 		let $loading = this.dialog.get_field("filter_area_loading").$wrapper;
-		$(`<span class="text-muted">Loading Filters...</span>`).appendTo($loading);
+		$(`<span class="text-muted">${__('Loading Filters...')}</span>`).appendTo($loading);
 
 		this.filters = [];
 
@@ -198,7 +198,7 @@ class ShortcutDialog extends WidgetDialog {
 				fieldname: "doc_view",
 				label: "DocType View",
 				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar",
-				description: "Which view of the associated DocType should this shortcut take you to?",
+				description: __("Which view of the associated DocType should this shortcut take you to?"),
 				default: "List",
 				depends_on: (state) => {
 					if (this.dialog) {
@@ -213,7 +213,7 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Section Break",
 				fieldname: "filters_section_break",
-				label: "Count Filter",
+				label: __("Count Filter"),
 				hidden: 1,
 			},
 			{
@@ -228,13 +228,13 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Section Break",
 				fieldname: "count_section_break",
-				label: "Count Customizations",
+				label: __("Count Customizations"),
 				hidden: 1,
 			},
 			{
 				fieldtype: "Color",
 				fieldname: "color",
-				label: "Color",
+				label: __("Color"),
 			},
 			{
 				fieldtype: "Column Break",
@@ -243,8 +243,8 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "format",
-				label: "Format",
-				description: "For Example: {} Open",
+				label: __("Format"),
+				description: __("For Example: {} Open"),
 			},
 		];
 	}
@@ -288,14 +288,14 @@ class NumberCardDialog extends WidgetDialog {
 		fields = [
 			{
 				fieldtype: 'Select',
-				label: 'Choose Existing Card or create New Card',
+				label: __('Choose Existing Card or create New Card'),
 				fieldname: 'new_or_existing',
 				options: ['New Card', 'Existing Card']
 			},
 			{
 				fieldtype: 'Link',
 				fieldname: 'card',
-				label: 'Number Cards',
+				label: __('Number Cards'),
 				options: 'Number Card',
 				get_query: () => {
 					return {
@@ -313,13 +313,13 @@ class NumberCardDialog extends WidgetDialog {
 				depends_on: 'eval: doc.new_or_existing == "New Card"'
 			},
 			{
-				label: 'Label',
+				label: __('Label'),
 				fieldname: 'label',
 				fieldtype: 'Data',
 				mandatory_depends_on: 'eval: doc.new_or_existing == "New Card"'
 			},
 			{
-				label: 'Doctype',
+				label: __('Doctype'),
 				fieldname: 'document_type',
 				fieldtype: 'Link',
 				options: 'DocType',
@@ -331,7 +331,7 @@ class NumberCardDialog extends WidgetDialog {
 				hidden: 1
 			},
 			{
-				label: 'Color',
+				label: __('Color'),
 				fieldname: 'color',
 				fieldtype: 'Color'
 			},
@@ -340,14 +340,14 @@ class NumberCardDialog extends WidgetDialog {
 				fieldname: "cb_1",
 			},
 			{
-				label: 'Function',
+				label: __('Function'),
 				fieldname: 'function',
 				fieldtype: 'Select',
 				options: ['Count', 'Sum', 'Average', 'Minimum', 'Maximum'],
 				mandatory_depends_on: 'eval: doc.new_or_existing == "New Card"'
 			},
 			{
-				label: 'Function Based On',
+				label: __('Function Based On'),
 				fieldname: 'aggregate_function_based_on',
 				fieldtype: 'Select',
 				depends_on: "eval: doc.function !== 'Count'",
@@ -356,7 +356,7 @@ class NumberCardDialog extends WidgetDialog {
 			{
 				fieldtype: "Section Break",
 				fieldname: "sb_1",
-				label: 'Add Filters',
+				label: __('Add Filters'),
 				depends_on: 'eval: doc.new_or_existing == "New Card"'
 			},
 			{

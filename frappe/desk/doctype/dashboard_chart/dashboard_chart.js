@@ -23,7 +23,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.chart_filters = null;
 		frm.is_disabled = !frappe.boot.developer_mode && frm.doc.is_standard;
 
-		if (!frm.is_disabled) {
+		if (frm.is_disabled) {
 			!frm.doc.custom_options && frm.set_df_property('chart_options_section', 'hidden', 1);
 			frm.disable_form();
 		}
