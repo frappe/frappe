@@ -796,9 +796,9 @@ def get_doc(*args, **kwargs):
 
 	return doc
 
-def get_last_doc(doctype):
+def get_last_doc(doctype, **kwargs):
 	"""Get last created document of this type."""
-	d = get_all(doctype, ["name"], order_by="creation desc", limit_page_length=1)
+	d = get_all(doctype, ["name"], order_by="creation desc", limit_page_length=1, **kwargs)
 	if d:
 		return get_doc(doctype, d[0].name)
 	else:
