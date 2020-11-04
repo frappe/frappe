@@ -143,12 +143,11 @@ frappe.widget.utils = {
 			? `indicator ${summary.indicator.toLowerCase()}`
 			: "";
 
-		return $(`<div class="summary-item">
-		<span class="summary-label small text-muted ${indicator}">${
-			summary.label
-		}</span>
-		<h1 class="summary-value">${value}</h1>
-	</div>`);
+		return $(
+			`<div class="summary-item"><span class="summary-label small text-muted ${indicator}">${
+				summary.label
+			}</span><h1 class="summary-value">${value}</h1></div>`
+		);
 	},
 };
 
