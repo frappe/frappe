@@ -44,4 +44,3 @@ jobs:
           asset_path: build/assets.tar.gz
           asset_name: assets.tar.gz
           asset_content_type: application/octet-stream
-

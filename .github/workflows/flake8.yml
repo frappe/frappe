@@ -1,0 +1,33 @@
+name: 'flake8: Style and Sanity checker'
+on:
+  pull_request:
+    branches:
+      - develop
+      - version-12-hotfix
+      - version-13-beta
+
+jobs:
+  flake8:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Setup Python'
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+        run: pip install flake8 --quiet
+
+      - name: 'Clone repo'
+        uses: actions/checkout@v2
+
+      - name: 'Run Flake8'
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          cd $GITHUB_WORKSPACE
+          files=$(git diff --name-only --diff-filter=d $GITHUB_BASE_REF)
+
+          for file in $files
+          do
+            flake8 $file --count --select=E9,F63,F72,F82 --show-source --statistics
+          done
