@@ -21,8 +21,4 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           files=$(git diff --name-only --diff-filter=d $GITHUB_BASE_REF)
-
-          for file in $files
-          do
-            flake8 $file --count --select=E9,F63,F72,F82 --show-source --statistics
-          done
+          flake8 $(echo $files | grep '.py$' | tr '\r\n' ' ') --count --select=E9,F63,F72,F82 --show-source --statistics
