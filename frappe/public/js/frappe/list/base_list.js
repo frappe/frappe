@@ -308,7 +308,6 @@ frappe.views.BaseList = class BaseList {
 
 		this.$paging_area.on('click', '.btn-paging, .btn-more', e => {
 			const $this = $(e.currentTarget);
-
 			if ($this.is('.btn-paging')) {
 				// set active button
 				this.$paging_area.find('.btn-paging').removeClass('btn-info');
@@ -316,11 +315,10 @@ frappe.views.BaseList = class BaseList {
 
 				this.start = 0;
 				this.page_length = $this.data().value;
-				this.refresh();
 			} else if ($this.is('.btn-more')) {
 				this.start = this.start + this.page_length;
-				this.refresh();
 			}
+			this.refresh();
 		});
 	}
 
