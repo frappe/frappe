@@ -5,12 +5,8 @@ from __future__ import unicode_literals
 
 import unittest
 import frappe
-<<<<<<< HEAD
-from frappe.utils import getdate
-=======
 from frappe.core.doctype.data_import.importer import Importer
 from frappe.utils import getdate, format_duration
->>>>>>> 7e61089dd0... test: Test if existing child field updates
 
 doctype_name = 'DocType for Import'
 
