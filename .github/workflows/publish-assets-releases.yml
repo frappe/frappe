@@ -1,4 +1,4 @@
-name: Build and Publish Assets built for Releases
+name: 'Frappe Assets'
 
 on:
   release:
@@ -8,7 +8,8 @@ env:
   GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
-  build:
+  build-release-and-publish:
+    name: 'Build and Publish Assets built for Releases'
     runs-on: ubuntu-latest
 
     steps:
@@ -44,4 +45,3 @@ jobs:
           asset_path: build/assets.tar.gz
           asset_name: assets.tar.gz
           asset_content_type: application/octet-stream
-
