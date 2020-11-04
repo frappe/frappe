@@ -558,6 +558,8 @@
   "code": "cn",
   "currency": "CNY",
   "currency_name": "Yuan Renminbi",
+  "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "date_format": "yyyy-mm-dd",
   "number_format": "#,###.##",
   "timezones": [
@@ -1389,7 +1391,10 @@
   "code": "la",
   "currency": "LAK",
   "currency_name": "Kip",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "timezones":[
+      "Asia/Vientiane"
+  ]
  },
  "Latvia": {
   "code": "lv",

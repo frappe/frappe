@@ -104,7 +104,10 @@ class TestDB(unittest.TestCase):
 			"INT", "FORTRAN", "STABLE"]
 		}
 		created_docs = []
-		fields = all_keywords[frappe.conf.db_type]
+
+		# edit by rushabh: added [:1]
+		# don't run every keyword! - if one works, they all do
+		fields = all_keywords[frappe.conf.db_type][:1]
 		test_doctype = "ToDo"
 
 		def add_custom_field(field):
@@ -131,10 +134,29 @@ class TestDB(unittest.TestCase):
 
 		# Testing read
 		self.assertEqual(list(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])[0], random_field)
-		self.assertEqual(list(frappe.get_all("ToDo", fields=["{0} as total".format(random_field)], limit=1)[0])[0], "total")
+		self.assertEqual(list(frappe.get_all("ToDo", fields=["`{0}` as total".format(random_field)], limit=1)[0])[0], "total")
 
-		# Testing read for distinct keyword - Check if result contains total field
-		self.assertEqual(list(frappe.get_all("ToDo", fields=["distinct {0} as total".format(random_field)], limit=1)[0])[0], "total")
+		# Testing read for distinct and sql functions
+		self.assertEqual(list(
+			frappe.get_all("ToDo",
+				fields=["`{0}` as total".format(random_field)],
+				distinct=True,
+				limit=1,
+			)[0]
+		)[0], "total")
+		self.assertEqual(list(
+			frappe.get_all("ToDo",
+			fields=["`{0}`".format(random_field)],
+			distinct=True,
+			limit=1,
+			)[0]
+		)[0], random_field)
+		self.assertEqual(list(
+			frappe.get_all("ToDo",
+				fields=["count(`{0}`)".format(random_field)],
+				limit=1
+			)[0]
+		)[0], "count" if frappe.conf.db_type == "postgres" else "count(`{0}`)".format(random_field))
 
 		# Testing update
 		frappe.db.set_value(test_doctype, random_doc, random_field, random_value)

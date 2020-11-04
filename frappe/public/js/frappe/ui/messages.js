@@ -128,6 +128,19 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 		data.indicator = 'blue';
 	}
 
+	if (data.as_list) {
+		const list_rows = data.message.map(m => `<li>${m}</li>`).join('');
+		data.message = `<ul style="padding-left: 20px">${list_rows}</ul>`;
+	}
+
+	if (data.as_table) {
+		const rows = data.message.map(row => {
+			const cols = row.map(col => `<td>${col}</td>`).join('');
+			return `<tr>${cols}</tr>`;
+		}).join('');
+		data.message = `<table class="table table-bordered" style="margin: 0;">${rows}</table>`;
+	}
+
 	if(data.message instanceof Array) {
 		data.message.forEach(function(m) {
 			frappe.msgprint(m);

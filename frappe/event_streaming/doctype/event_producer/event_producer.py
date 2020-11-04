@@ -79,9 +79,23 @@ class EventProducer(Document):
 			)
 			if response:
 				response = json.loads(response)
-				self.last_update = response['last_update']
+				self.set_last_update(response['last_update'])
 			else:
 				frappe.throw(_('Failed to create an Event Consumer or an Event Consumer for the current site is already registered.'))
+
+	def set_last_update(self, last_update):
+		last_update_doc_name = frappe.db.get_value('Event Producer Last Update', dict(event_producer=self.name))
+		if not last_update_doc_name:
+			frappe.get_doc(dict(
+				doctype = 'Event Producer Last Update',
+				event_producer = self.producer_url,
+				last_update = last_update
+			)).insert(ignore_permissions=True)
+		else:
+			frappe.db.set_value('Event Producer Last Update', last_update_doc_name, 'last_update', last_update)
+
+	def get_last_update(self):
+		return frappe.db.get_value('Event Producer Last Update', dict(event_producer=self.name), 'last_update')
 
 	def get_request_data(self):
 		consumer_doctypes = []
@@ -184,7 +198,7 @@ def pull_from_node(event_producer):
 	"""pull all updates after the last update timestamp from event producer site"""
 	event_producer = frappe.get_doc('Event Producer', event_producer)
 	producer_site = get_producer_site(event_producer.producer_url)
-	last_update = event_producer.last_update
+	last_update = event_producer.get_last_update()
 
 	(doctypes, mapping_config, naming_config) = get_config(event_producer.producer_doctypes)
 
@@ -239,7 +253,7 @@ def sync(update, producer_site, event_producer, in_retry=False):
 			return 'Failed'
 		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
-	event_producer.db_set('last_update', update.creation)
+	event_producer.set_last_update(update.creation)
 	frappe.db.commit()
 
 

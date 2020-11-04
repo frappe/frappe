@@ -8,7 +8,7 @@ chardet==3.0.4
 Click==7.0
 coverage==4.5.4
 croniter==0.3.31
-cryptography==2.8
+cryptography==3.2
 dropbox==9.1.0
 email-reply-parser==0.5.9
 Faker==2.0.4
@@ -74,3 +74,5 @@ paytmchecksum==1.7.0
 wrapt==1.10.11
 twilio==6.44.2
 razorpay==1.2.0
+
+rsa>=4.1 # not directly required, pinned by Snyk to avoid a vulnerability
