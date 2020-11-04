@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 from frappe.core.doctype.data_import.importer import Importer
-from frappe.utils import getdate, format_duration
+from frappe.utils import getdate
 
 doctype_name = 'DocType for Import'
 
