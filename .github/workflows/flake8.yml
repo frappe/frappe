@@ -1,10 +1,5 @@
-name: 'flake8: Style and Sanity checker'
-on:
-  pull_request:
-    branches:
-      - develop
-      - version-12-hotfix
-      - version-13-beta
+name: 'Style and Sanity checker'
+on: [push, pull_request]
 
 jobs:
   flake8:
