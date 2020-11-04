@@ -1,5 +1,6 @@
 import Widget from "./base_widget.js";
-import { generate_route } from "./utils";
+
+frappe.provide("frappe.utils");
 
 export default class LinksWidget extends Widget {
 	constructor(opts) {
@@ -55,7 +56,7 @@ export default class LinksWidget extends Widget {
 				return `<span class="link-content help-video-link ellipsis" data-youtubeid="${item.youtube_id}">
 						${item.label ? item.label : item.name}</span>`;
 
-			return `<a data-route="${generate_route(item)}" class="link-content ellipsis">
+			return `<a data-route="${frappe.utils.generate_route(item)}" class="link-content ellipsis">
 					${item.label ? item.label : item.name}</a>`;
 		};
 

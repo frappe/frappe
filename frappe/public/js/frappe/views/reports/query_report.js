@@ -1,8 +1,8 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from 'frappe-datatable';
-import { build_summary_item } from "../../widgets/utils";
 
+frappe.provide('frappe.widget.utils');
 frappe.provide('frappe.views');
 frappe.provide('frappe.query_reports');
 
@@ -631,7 +631,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_summary(data) {
 		data.forEach((summary) => {
-			build_summary_item(summary).appendTo(this.$summary);
+			frappe.widget.utils.build_summary_item(summary).appendTo(this.$summary);
 		})
 
 		this.$summary.show();

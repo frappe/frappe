@@ -1,3 +1,5 @@
+frappe.provide('frappe.widget.utils');
+
 function generate_route(item) {
 	const type = item.type.toLowerCase()
 	if (type === "doctype") {
@@ -126,22 +128,28 @@ function generate_grid(data) {
 	return grid_template_area
 }
 
-const build_summary_item = (summary) => {
-	let df = { fieldtype: summary.datatype };
-	let doc = null;
+frappe.widget.utils = {
+	build_summary_item: function(summary) {
+		let df = { fieldtype: summary.datatype };
+		let doc = null;
 
-	if (summary.datatype == "Currency") {
-		df.options = "currency";
-		doc = { currency: summary.currency };
-	}
+		if (summary.datatype == "Currency") {
+			df.options = "currency";
+			doc = { currency: summary.currency };
+		}
 
-	let value = frappe.format(summary.value, df, null, doc);
-	let indicator = summary.indicator ? `indicator ${summary.indicator.toLowerCase()}` : '';
+		let value = frappe.format(summary.value, df, null, doc);
+		let indicator = summary.indicator
+			? `indicator ${summary.indicator.toLowerCase()}`
+			: "";
 
-	return $(`<div class="summary-item">
-		<span class="summary-label small text-muted ${indicator}">${summary.label}</span>
-		<h1 class="summary-value">${ value}</h1>
+		return $(`<div class="summary-item">
+		<span class="summary-label small text-muted ${indicator}">${
+			summary.label
+		}</span>
+		<h1 class="summary-value">${value}</h1>
 	</div>`);
+	},
 };
 
 function shorten_number(number, country) {
@@ -190,4 +198,4 @@ function get_number_system(country) {
 	return number_system_map[country];
 }
 
-export { generate_route, generate_grid, build_summary_item, shorten_number };
+export { generate_route, generate_grid, shorten_number, get_number_system };

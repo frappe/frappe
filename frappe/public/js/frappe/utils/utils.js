@@ -2,7 +2,9 @@
 // MIT License. See license.txt
 
 import deep_equal from "fast-deep-equal";
-frappe.provide('frappe.utils');
+import { generate_route, shorten_number, get_number_system } from "../widgets/utils";
+
+frappe.provide("frappe.utils");
 
 Object.assign(frappe.utils, {
 	get_random: function(len) {
@@ -892,7 +894,14 @@ Object.assign(frappe.utils, {
 			hide_seconds: docfield.hide_seconds
 		};
 		return duration_options;
-	}
+	},
+
+	generate_route: generate_route,
+
+	shorten_number: shorten_number,
+
+	get_number_system: get_number_system,
+
 });
 
 // Array de duplicate
