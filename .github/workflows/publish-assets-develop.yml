@@ -5,7 +5,7 @@ on:
     branches: [ develop ]
 
 jobs:
-  build:
+  build-dev-and-publish:
     runs-on: ubuntu-latest
 
     steps:
