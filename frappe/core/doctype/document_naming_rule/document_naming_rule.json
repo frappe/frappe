@@ -34,7 +34,8 @@
    "fieldname": "prefix",
    "fieldtype": "Data",
    "label": "Prefix",
-   "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\""
+   "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\"",
+   "reqd": 1
   },
   {
    "fieldname": "counter",
@@ -48,7 +49,8 @@
    "fieldname": "prefix_digits",
    "fieldtype": "Int",
    "label": "Digits",
-   "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\""
+   "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\"",
+   "reqd": 1
   },
   {
    "fieldname": "naming_section",
@@ -69,7 +71,7 @@
    "options": "Document Naming Rule Condition"
   },
   {
-   "description": "Rules with higher priority will be applied first.",
+   "description": "Rules with higher priority number will be applied first.",
    "fieldname": "priority",
    "fieldtype": "Int",
    "label": "Priority"
@@ -77,7 +79,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-21 10:23:34.401539",
+ "modified": "2020-11-04 14:38:14.836056",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Rule",
