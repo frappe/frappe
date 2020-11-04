@@ -275,6 +275,10 @@ frappe.ui.form.Form = class FrappeForm {
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) this.set_read_only(true);
 
+			if (this.save_disabled && !this.read_only) {
+				this.enable_save()
+			}
+
 			// check if doctype is already open
 			if (!this.opendocs[this.docname]) {
 				this.check_doctype_conflict(this.docname);
