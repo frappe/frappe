@@ -276,7 +276,7 @@ frappe.ui.form.Form = class FrappeForm {
 			if (this.read_only) this.set_read_only(true);
 
 			if (this.save_disabled && !this.read_only) {
-				this.enable_save()
+				this.enable_save();
 			}
 
 			// check if doctype is already open
