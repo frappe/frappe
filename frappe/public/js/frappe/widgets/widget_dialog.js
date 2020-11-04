@@ -153,7 +153,6 @@ class ShortcutDialog extends WidgetDialog {
 							return {
 								query: "frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
 								filters: {
-									istable: false,
 									user: frappe.session.user
 								}
 							};
