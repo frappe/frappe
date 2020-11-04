@@ -4,7 +4,7 @@ on:
     types: [ opened, synchronize, reopened, edited ]
 
 jobs:
-  build:
+  docs-required:
     runs-on: ubuntu-latest
 
     steps:

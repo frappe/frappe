@@ -8,7 +8,7 @@ env:
   GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
-  build:
+  build-release-and-publish:
     runs-on: ubuntu-latest
 
     steps:
