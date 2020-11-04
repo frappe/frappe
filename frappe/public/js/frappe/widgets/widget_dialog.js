@@ -150,7 +150,12 @@ class ShortcutDialog extends WidgetDialog {
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						this.dialog.fields_dict.link_to.get_query = () => {
-							return { filters: { istable: false } };
+							return {
+								query: "frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
+								filters: {
+									user: frappe.session.user
+								}
+							};
 						};
 					} else {
 						this.dialog.fields_dict.link_to.get_query = null;
