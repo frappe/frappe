@@ -22,7 +22,7 @@ class TestScheduledJobType(unittest.TestCase):
 		self.assertEqual(all_job.frequency, 'All')
 
 		daily_job = frappe.get_doc('Scheduled Job Type',
-			dict(method='frappe.email.queue.clear_outbox'))
+			dict(method='frappe.email.queue.set_expiry_for_email_queue'))
 		self.assertEqual(daily_job.frequency, 'Daily')
 
 		# check if cron jobs are synced
@@ -38,7 +38,7 @@ class TestScheduledJobType(unittest.TestCase):
 		self.assertEqual(updated_scheduled_job.frequency, "Hourly")
 
 	def test_daily_job(self):
-		job = frappe.get_doc('Scheduled Job Type', dict(method = 'frappe.email.queue.clear_outbox'))
+		job = frappe.get_doc('Scheduled Job Type', dict(method = 'frappe.email.queue.set_expiry_for_email_queue'))
 		job.db_set('last_execution', '2019-01-01 00:00:00')
 		self.assertTrue(job.is_event_due(get_datetime('2019-01-02 00:00:06')))
 		self.assertFalse(job.is_event_due(get_datetime('2019-01-01 00:00:06')))

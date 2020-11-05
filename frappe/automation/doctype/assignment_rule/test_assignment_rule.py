@@ -88,6 +88,30 @@ class TestAutoAssign(unittest.TestCase):
 		for user in ('test@example.com', 'test1@example.com', 'test2@example.com'):
 			self.assertEqual(len(frappe.get_all('ToDo', dict(owner = user, reference_type = 'Note'))), 10)
 
+	def test_based_on_field(self):
+		self.assignment_rule.rule = 'Based on Field'
+		self.assignment_rule.field = 'owner'
+		self.assignment_rule.save()
+
+		frappe.set_user('test1@example.com')
+		note = make_note(dict(public=1))
+		# check if auto assigned to doc owner, test1@example.com
+		self.assertEqual(frappe.db.get_value('ToDo', dict(
+			reference_type = 'Note',
+			reference_name = note.name,
+			status = 'Open'
+		), 'owner'), 'test1@example.com')
+
+		frappe.set_user('test2@example.com')
+		note = make_note(dict(public=1))
+		# check if auto assigned to doc owner, test2@example.com
+		self.assertEqual(frappe.db.get_value('ToDo', dict(
+			reference_type = 'Note',
+			reference_name = note.name,
+			status = 'Open'
+		), 'owner'), 'test2@example.com')
+
+		frappe.set_user('Administrator')
 
 	def test_assign_condition(self):
 		# check condition
@@ -202,22 +226,32 @@ class TestAutoAssign(unittest.TestCase):
 		)).insert()
 
 		expiry_date = frappe.utils.add_days(frappe.utils.nowdate(), 2)
-		note = make_note({'expiry_date': expiry_date})
+		note1 = make_note({'expiry_date': expiry_date})
+		note2 = make_note({'expiry_date': expiry_date})
 
-		todo = frappe.get_all('ToDo', filters=dict(
+		note1_todo = frappe.get_all('ToDo', filters=dict(
 			reference_type = 'Note',
-			reference_name = note.name,
+			reference_name = note1.name,
 			status = 'Open'
 		))[0]
 
-		todo = frappe.get_doc('ToDo', todo.name)
-		self.assertEqual(frappe.utils.get_date_str(todo.date), expiry_date)
+		note1_todo_doc = frappe.get_doc('ToDo', note1_todo.name)
+		self.assertEqual(frappe.utils.get_date_str(note1_todo_doc.date), expiry_date)
 
 		# due date should be updated if the reference doc's date is updated.
-		note.expiry_date = frappe.utils.add_days(expiry_date, 2)
-		note.save()
-		todo.reload()
-		self.assertEqual(frappe.utils.get_date_str(todo.date), note.expiry_date)
+		note1.expiry_date = frappe.utils.add_days(expiry_date, 2)
+		note1.save()
+		note1_todo_doc.reload()
+		self.assertEqual(frappe.utils.get_date_str(note1_todo_doc.date), note1.expiry_date)
+
+		# saving one note's expiry should not update other note todo's due date
+		note2_todo = frappe.get_all('ToDo', filters=dict(
+			reference_type = 'Note',
+			reference_name = note2.name,
+			status = 'Open'
+		), fields=['name', 'date'])[0]
+		self.assertNotEqual(frappe.utils.get_date_str(note2_todo.date), note1.expiry_date)
+		self.assertEqual(frappe.utils.get_date_str(note2_todo.date), expiry_date)
 		assignment_rule.delete()
 
 def clear_assignments():

@@ -24,6 +24,7 @@
   "assignment_days",
   "assign_to_users_section",
   "rule",
+  "field",
   "users",
   "last_user"
  ],
@@ -93,15 +94,16 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Rule",
-   "options": "Round Robin\nLoad Balancing",
+   "options": "Round Robin\nLoad Balancing\nBased on Field",
    "reqd": 1
   },
   {
+   "depends_on": "eval: doc.rule !== 'Based on Field'",
    "fieldname": "users",
    "fieldtype": "Table MultiSelect",
    "label": "Users",
-   "options": "Assignment Rule User",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.rule !== 'Based on Field'",
+   "options": "Assignment Rule User"
   },
   {
    "fieldname": "last_user",
@@ -134,14 +136,22 @@
   },
   {
    "depends_on": "document_type",
+   "description": "Value from this field will be set as the due date in the ToDo",
    "fieldname": "due_date_based_on",
    "fieldtype": "Select",
    "label": "Due Date Based On"
+  },
+  {
+   "depends_on": "eval: doc.rule == 'Based on Field'",
+   "fieldname": "field",
+   "fieldtype": "Select",
+   "label": "Field",
+   "mandatory_depends_on": "eval: doc.rule == 'Based on Field'"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-08 06:48:54.019735",
+ "modified": "2020-10-20 14:47:20.662954",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",

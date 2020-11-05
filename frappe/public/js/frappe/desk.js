@@ -139,6 +139,26 @@ frappe.Application = Class.extend({
 					}
 				});
 			}, 300000); // check every 5 minutes
+
+			if(frappe.user.has_role("System Manager")){
+				setInterval(function() {
+					frappe.call({
+						method: 'frappe.core.doctype.log_settings.log_settings.has_unseen_error_log',
+						args: {
+							user: frappe.session.user
+						},
+						callback: function(r) {
+							console.log(r);
+							if(r.message.show_alert){
+								frappe.show_alert({
+									indicator: 'red',
+									message: r.message.message
+								});
+							}
+						}
+					});
+				}, 600000); // check every 10 minutes
+			}
 		}
 
 		this.fetch_tags();
@@ -179,6 +199,7 @@ frappe.Application = Class.extend({
 					'reqd': 1
 				},
 				{
+					"fieldname": "submit",
 					"fieldtype": "Button",
 					"label": __("Submit")
 				}

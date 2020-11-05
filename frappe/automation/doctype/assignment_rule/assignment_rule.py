@@ -38,27 +38,30 @@ class AssignmentRule(Document):
 
 	def apply_assign(self, doc):
 		if self.safe_eval('assign_condition', doc):
-			self.do_assignment(doc)
-			return True
+			return self.do_assignment(doc)
 
 	def do_assignment(self, doc):
 		# clear existing assignment, to reassign
 		assign_to.clear(doc.get('doctype'), doc.get('name'))
 
-		user = self.get_user()
+		user = self.get_user(doc)
 
-		assign_to.add(dict(
-			assign_to = [user],
-			doctype = doc.get('doctype'),
-			name = doc.get('name'),
-			description = frappe.render_template(self.description, doc),
-			assignment_rule = self.name,
-			notify = True,
-			date = doc.get(self.due_date_based_on) if self.due_date_based_on else None
-		))
+		if user:
+			assign_to.add(dict(
+				assign_to = [user],
+				doctype = doc.get('doctype'),
+				name = doc.get('name'),
+				description = frappe.render_template(self.description, doc),
+				assignment_rule = self.name,
+				notify = True,
+				date = doc.get(self.due_date_based_on) if self.due_date_based_on else None
+			))
 
-		# set for reference in round robin
-		self.db_set('last_user', user)
+			# set for reference in round robin
+			self.db_set('last_user', user)
+			return True
+
+		return False
 
 	def clear_assignment(self, doc):
 		'''Clear assignments'''
@@ -70,7 +73,7 @@ class AssignmentRule(Document):
 		if self.safe_eval('close_condition', doc):
 			return assign_to.close_all_assignments(doc.get('doctype'), doc.get('name'))
 
-	def get_user(self):
+	def get_user(self, doc):
 		'''
 		Get the next user for assignment
 		'''
@@ -78,6 +81,8 @@ class AssignmentRule(Document):
 			return self.get_user_round_robin()
 		elif self.rule == 'Load Balancing':
 			return self.get_user_load_balancing()
+		elif self.rule == 'Based on Field':
+			return doc.get(self.field)
 
 	def get_user_round_robin(self):
 		'''
@@ -258,7 +263,9 @@ def update_due_date(doc, state=None):
 			doc.has_value_changed(due_date_field) and rule.get('name'):
 			assignment_todos = frappe.get_all('ToDo', {
 				'assignment_rule': rule.get('name'),
-				'status': 'Open'
+				'status': 'Open',
+				'reference_type': doc.doctype,
+				'reference_name': doc.name
 			})
 			for todo in assignment_todos:
 				todo_doc = frappe.get_doc('ToDo', todo.name)

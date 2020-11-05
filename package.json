@@ -4,7 +4,6 @@
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
     "watch": "node rollup/watch.js",
-    "cypress:open": "cypress open",
     "snyk-protect": "snyk protect",
     "prepare": "yarn run snyk-protect"
   },
@@ -20,7 +19,7 @@
   "homepage": "https://frappeframework.com",
   "dependencies": {
     "ace-builds": "^1.4.8",
-    "air-datepicker": "http://github.com/frappe/air-datepicker",
+    "air-datepicker": "github:frappe/air-datepicker",
     "autoprefixer": "^9.8.6",
     "awesomplete": "^1.1.5",
     "bootstrap": "^4.4.1",
@@ -30,7 +29,7 @@
     "express": "^4.17.1",
     "fast-deep-equal": "^2.0.1",
     "frappe-charts": "^1.5.1",
-    "frappe-datatable": "^1.15.1",
+    "frappe-datatable": "^1.15.3",
     "frappe-gantt": "^0.5.0",
     "fuse.js": "^3.4.6",
     "highlight.js": "^9.18.1",
@@ -55,8 +54,6 @@
   "devDependencies": {
     "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
-    "cypress": "3",
-    "cypress-file-upload": "^3.1.0",
     "graphlib": "^2.1.8",
     "less": "^3.11.1",
     "rollup": "^1.2.2",
