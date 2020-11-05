@@ -43,7 +43,7 @@ class WebTemplate(Document):
 			rmtree(self.get_template_folder())
 
 	def export_to_files(self):
-		"""Export We Template to a new folder.
+		"""Export Web Template to a new folder.
 
 		Doc is exported as JSON. The content of the `template` field gets
 		written into a separate HTML file. The template should not be contained
