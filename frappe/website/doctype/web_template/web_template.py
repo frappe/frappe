@@ -37,6 +37,11 @@ class WebTemplate(Document):
 			if was_standard and not self.standard:
 				self.import_from_files()
 
+	def on_trash(self):
+		if frappe.conf.developer_mode and self.standard:
+			# delete template html and json files
+			rmtree(self.get_template_folder())
+
 	def export_to_files(self):
 		"""Export We Template to a new folder.
 
