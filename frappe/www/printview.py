@@ -68,25 +68,6 @@ def get_print_format_doc(print_format_name, meta):
 			# if old name, return standard!
 			return None
 
-def handle_contextual_settings(doc, print_settings, settings):
-	template_method_map = {}
-	for key in settings:
-		child_doc = None
-		setting = settings[key]
-		value = setting['value']
-		print_settings[key] = value
-
-		if setting.get('child_field'):
-			fieldname = setting.get('child_field')
-			child_doc = doc.get(fieldname) and doc.get(fieldname)[0]
-
-		template_method_map[setting.get('set_template')] = child_doc or doc
-
-	for method in template_method_map:
-		frappe.get_attr(method)(template_method_map[method], print_settings)
-
-	return print_settings
-
 def get_rendered_template(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, letterhead=None, trigger_print=False,
 	settings=None):
