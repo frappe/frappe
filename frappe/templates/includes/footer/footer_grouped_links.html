@@ -15,7 +15,8 @@
 				<ul class="footer-group-links list-unstyled">
 					{%- for child in group.child_items -%}
 					<li class="footer-child-item" data-label="{{ child.label }}">
-						<a href="{{ child.url | abs_url }}" {% if child.target %} target="_blank" {% endif %} rel="noreferrer">
+						<a href="{{ child.url | abs_url }}"
+							{% if child.open_in_new_tab %} target="_blank" {% endif %}  rel="noreferrer">
 							{%- if child.icon -%}
 							<img src="{{ child.icon }}" alt="{{ child.label }}">
 							{%- else -%}
