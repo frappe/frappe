@@ -261,7 +261,7 @@ frappe.ui.form.Form = class FrappeForm {
 		cur_frm = this;
 
 		if(this.docname) { // document to show
-
+			this.save_disabled = false;
 			// set the doc
 			this.doc = frappe.get_doc(this.doctype, this.docname);
 

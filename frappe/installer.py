@@ -175,7 +175,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 		for doctype in set(drop_doctypes):
 			print("* dropping Table for '{0}'...".format(doctype))
-			frappe.db.sql("drop table `tab{0}`".format(doctype))
+			frappe.db.sql_ddl("drop table `tab{0}`".format(doctype))
 
 		frappe.db.commit()
 		click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")

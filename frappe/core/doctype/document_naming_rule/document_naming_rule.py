@@ -13,7 +13,7 @@ class DocumentNamingRule(Document):
 		Apply naming rules for the given document. Will set `name` if the rule is matched.
 		'''
 		if self.conditions:
-			if not evaluate_filters(doc, [(d.field, d.condition, d.value) for d in self.conditions]):
+			if not evaluate_filters(doc, [(self.document_type, d.field, d.condition, d.value) for d in self.conditions]):
 				return
 
 		counter = frappe.db.get_value(self.doctype, self.name, 'counter', for_update=True) or 0
