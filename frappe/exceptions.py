@@ -109,3 +109,4 @@ class DocumentAlreadyRestored(Exception): pass
 class InvalidAuthorizationHeader(CSRFTokenError): pass
 class InvalidAuthorizationPrefix(CSRFTokenError): pass
 class InvalidAuthorizationToken(CSRFTokenError): pass
+class InvalidDatabaseFile(ValidationError): pass
