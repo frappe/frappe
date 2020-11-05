@@ -26,7 +26,7 @@ class WebTemplate(Document):
 			if not field.fieldname:
 				field.fieldname = frappe.scrub(field.label)
 
-	def on_update(self):
+	def before_save(self):
 		if frappe.conf.developer_mode:
 			# custom to standard
 			if self.standard:
