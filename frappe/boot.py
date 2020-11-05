@@ -88,6 +88,7 @@ def get_bootinfo():
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
 	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
+	bootinfo.desk_settings = get_desk_settings()
 
 	return bootinfo
 
@@ -308,3 +309,17 @@ def get_additional_filters_from_hooks():
 
 	return filter_config
 
+def get_desk_settings():
+	role_list = frappe.get_all('Role', fields=['*'], filters=dict(
+		name=['in', frappe.get_roles()]
+	))
+	desk_settings = {}
+
+	desk_properties = ("search_bar", "notification", "chat", "list_sidebar",
+		"bulk_actions", "view_switcher", "form_sidebar", "timeline", "dashboard")
+
+	for role in role_list:
+		for key in desk_properties:
+			desk_settings[key] = desk_settings[key] or role[key]
+
+	return desk_settings
