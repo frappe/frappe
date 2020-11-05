@@ -5,7 +5,7 @@ pull_request_rules:
       - status-success=Semantic Pull Request
       - status-success=Travis CI - Pull Request
       - status-success=security/snyk (frappe)
-      - label!=don't-merge
+      - label!=dont-merge
       - label!=squash
       - "#approved-reviews-by>=1"
     actions:
@@ -17,7 +17,7 @@ pull_request_rules:
       - status-success=Semantic Pull Request
       - status-success=Travis CI - Pull Request
       - status-success=security/snyk (frappe)
-      - label!=don't-merge
+      - label!=dont-merge
       - label=squash
       - "#approved-reviews-by>=1"
     actions:
