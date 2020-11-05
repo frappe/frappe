@@ -117,7 +117,7 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
 
-		message_dict = make_dict_from_messages(messages)
+		message_dict = make_dict_from_messages(messages, load_user_translation=False)
 		message_dict.update(get_dict_from_hooks(fortype, name))
 		# remove untranslated
 		message_dict = {k:v for k, v in iteritems(message_dict) if k!=v}
@@ -125,8 +125,8 @@ def get_dict(fortype, name=None):
 		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
 	translation_map = translation_assets[asset_key]
-	if fortype == "boot":
-		translation_map.update(get_user_translations(frappe.local.lang))
+
+	translation_map.update(get_user_translations(frappe.local.lang))
 
 	return translation_map
 
@@ -152,14 +152,17 @@ def add_lang_dict(code):
 	code += "\n\n$.extend(frappe._messages, %s)" % json.dumps(make_dict_from_messages(messages))
 	return code
 
-def make_dict_from_messages(messages, full_dict=None):
+def make_dict_from_messages(messages, full_dict=None, load_user_translation=True):
 	"""Returns translated messages as a dict in Language specified in `frappe.local.lang`
 
 	:param messages: List of untranslated messages
 	"""
 	out = {}
 	if full_dict==None:
-		full_dict = get_full_dict(frappe.local.lang)
+		if load_user_translation:
+			full_dict = get_full_dict(frappe.local.lang)
+		else:
+			full_dict = load_lang(frappe.local.lang)
 
 	for m in messages:
 		if m[1] in full_dict:
@@ -192,11 +195,9 @@ def get_full_dict(lang):
 	try:
 		# get user specific transaltion data
 		user_translations = get_user_translations(lang)
-	except Exception:
-		user_translations = None
-
-	if user_translations:
 		frappe.local.lang_full_dict.update(user_translations)
+	except Exception:
+		pass
 
 	return frappe.local.lang_full_dict
 
@@ -570,13 +571,13 @@ def write_csv_file(path, app_messages, lang_dict):
 	"""
 	app_messages.sort(key = lambda x: x[1])
 	from csv import writer
-	with open(path, 'wb') as msgfile:
+	with open(path, 'w', newline='') as msgfile:
 		w = writer(msgfile, lineterminator='\n')
 		for p, m in app_messages:
 			t = lang_dict.get(m, '')
 			# strip whitespaces
 			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
-			w.writerow([p.encode('utf-8') if p else '', m.encode('utf-8'), t.encode('utf-8')])
+			w.writerow([p if p else '', m, t])
 
 def get_untranslated(lang, untranslated_file, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file
@@ -601,7 +602,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 
 	if get_all:
 		print(str(len(messages)) + " messages")
-		with open(untranslated_file, "w") as f:
+		with open(untranslated_file, "wb") as f:
 			for m in messages:
 				# replace \n with ||| so that internal linebreaks don't get split
 				f.write((escape_newlines(m[1]) + os.linesep).encode("utf-8"))
@@ -614,7 +615,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 
 		if untranslated:
 			print(str(len(untranslated)) + " missing translations of " + str(len(messages)))
-			with open(untranslated_file, "w") as f:
+			with open(untranslated_file, "wb") as f:
 				for m in untranslated:
 					# replace \n with ||| so that internal linebreaks don't get split
 					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))

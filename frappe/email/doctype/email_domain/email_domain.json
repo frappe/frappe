@@ -18,6 +18,7 @@
   "outgoing_mail_settings",
   "smtp_server",
   "use_tls",
+  "use_ssl_for_outgoing",
   "smtp_port"
  ],
  "fields": [
@@ -30,7 +31,7 @@
    "fieldtype": "Data",
    "label": "domain name",
    "read_only": 1,
-   "unique": 0
+   "unique": 1
   },
   {
    "fieldname": "email_id",
@@ -106,10 +107,16 @@
    "fieldname": "incoming_port",
    "fieldtype": "Data",
    "label": "Port"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_ssl_for_outgoing",
+   "fieldtype": "Check",
+   "label": "Use SSL for Outgoing"
   }
  ],
  "icon": "icon-inbox",
- "modified": "2019-10-09 17:56:48.834704",
+ "modified": "2020-10-28 16:01:27.036523",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",
