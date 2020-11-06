@@ -56,7 +56,8 @@ class DocType(Document):
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
 		- Add `amended_from` and `amended_by` if Amendable
-		- Add custom field `auto_repeat` if Repeatable"""
+		- Add custom field `auto_repeat` if Repeatable
+		- Check if links point to valid fieldnames"""
 
 		self.check_developer_mode()
 
@@ -88,6 +89,7 @@ class DocType(Document):
 		self.make_repeatable()
 		self.validate_nestedset()
 		self.validate_website()
+		self.validate_links_table_fieldnames()
 
 		if not self.is_new():
 			self.before_update = frappe.get_doc('DocType', self.name)
@@ -655,6 +657,19 @@ class DocType(Document):
 		# and should only contain letters, numbers and underscore
 		if not re.match("^(?![\W])[^\d_\s][\w ]+$", name, **flags):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
+
+	def validate_links_table_fieldnames(self):
+		"""Validate fieldnames in Links table"""
+		if frappe.flags.in_patch: return
+		if frappe.flags.in_fixtures: return
+		if not len(self.links): return
+
+		for index, link in enumerate(self.links):
+			meta = frappe.get_meta(link.link_doctype)
+			if not meta.get_field(link.link_fieldname):
+				message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
+				frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
+
 
 
 def validate_fields_for_doctype(doctype):
