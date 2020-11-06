@@ -1,12 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-# called from wnf.py
-# lib/wnf.py --install [rootpassword] [dbname] [source]
-
 from __future__ import unicode_literals, print_function
 
 from six.moves import input
+from frappe.defaults import _clear_cache
 
 import os, json, subprocess, shutil
 import click
@@ -114,6 +112,7 @@ def remove_from_installed_apps(app_name):
 	if app_name in installed_apps:
 		installed_apps.remove(app_name)
 		frappe.db.set_value("DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps))
+		_clear_cache("__global")
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
