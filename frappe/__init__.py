@@ -348,7 +348,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 
 	if as_table and type(msg) in (list, tuple):
 		out.as_table = 1
-	
+
 	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
 		out.as_list = 1
 
