@@ -207,7 +207,7 @@ frappe.ui.form.on('Number Card', {
 				frm.field_options = frappe.report_utils.get_field_options_from_report(data.columns, data);
 				frm.set_df_property('report_field', 'options', frm.field_options.numeric_fields);
 				if (!frm.field_options.numeric_fields.length) {
-					frappe.msgprint(__(`Report has no numeric fields, please change the Report Name`));
+					frappe.msgprint(__("Report has no numeric fields, please change the Report Name"));
 				}
 			} else {
 				frappe.msgprint(__('Report has no data, please modify the filters or change the Report Name'));

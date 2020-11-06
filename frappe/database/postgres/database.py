@@ -51,7 +51,7 @@ class PostgresDatabase(Database):
 			'Data':			('varchar', self.VARCHAR_LEN),
 			'Link':			('varchar', self.VARCHAR_LEN),
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
-			'Password':		('varchar', self.VARCHAR_LEN),
+			'Password':		('text', ''),
 			'Select':		('varchar', self.VARCHAR_LEN),
 			'Rating':		('smallint', None),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
@@ -179,7 +179,7 @@ class PostgresDatabase(Database):
 				"doctype" VARCHAR(140) NOT NULL,
 				"name" VARCHAR(255) NOT NULL,
 				"fieldname" VARCHAR(140) NOT NULL,
-				"password" VARCHAR(255) NOT NULL,
+				"password" TEXT NOT NULL,
 				"encrypted" INT NOT NULL DEFAULT 0,
 				PRIMARY KEY ("doctype", "name", "fieldname")
 			)""")

@@ -1,5 +1,11 @@
 {
- "actions": [],
+ "actions": [
+  {
+   "action": "frappe.sessions.clear",
+   "action_type": "Server Action",
+   "label": "Clear Cache"
+  }
+ ],
  "creation": "2013-04-30 12:58:46",
  "doctype": "DocType",
  "document_type": "Other",
@@ -22,6 +28,9 @@
   "navbar_search",
   "hide_login",
   "top_bar_items",
+  "navbar_template",
+  "navbar_template_values",
+  "edit_navbar_template_values",
   "call_to_action",
   "call_to_action_url",
   "banner",
@@ -31,6 +40,9 @@
   "copyright",
   "address",
   "footer_items",
+  "footer_template",
+  "footer_template_values",
+  "edit_footer_template_values",
   "hide_footer_signup",
   "integrations",
   "enable_view_tracking",
@@ -40,6 +52,7 @@
   "indexing_authorization_code",
   "column_break_17",
   "google_analytics_id",
+  "google_analytics_anonymize_ip",
   "misc_section",
   "subdomain",
   "disable_signup",
@@ -131,7 +144,7 @@
    "collapsible": 1,
    "fieldname": "top_bar",
    "fieldtype": "Section Break",
-   "label": "Top Bar"
+   "label": "Navbar"
   },
   {
    "default": "0",
@@ -194,7 +207,6 @@
    "label": "Integrations"
   },
   {
-   "description": "Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.",
    "fieldname": "google_analytics_id",
    "fieldtype": "Data",
    "label": "Google Analytics ID"
@@ -351,14 +363,59 @@
    "fieldname": "hide_login",
    "fieldtype": "Check",
    "label": "Hide Login"
+  },
+  {
+   "fieldname": "navbar_template",
+   "fieldtype": "Link",
+   "label": "Navbar Template",
+   "options": "Web Template"
+  },
+  {
+   "fieldname": "navbar_template_values",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Navbar Template Values",
+   "options": "JSON"
+  },
+  {
+   "depends_on": "eval:doc.navbar_template && doc.navbar_template !== 'Standard Navbar'",
+   "fieldname": "edit_navbar_template_values",
+   "fieldtype": "Button",
+   "label": "Edit Values"
+  },
+  {
+   "fieldname": "footer_template",
+   "fieldtype": "Link",
+   "label": "Footer Template",
+   "options": "Web Template"
+  },
+  {
+   "fieldname": "footer_template_values",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Footer Template Values",
+   "options": "JSON"
+  },
+  {
+   "depends_on": "eval:doc.footer_template && doc.footer_template !== 'Standard Footer'",
+   "fieldname": "edit_footer_template_values",
+   "fieldtype": "Button",
+   "label": "Edit Values"
+  },
+  {
+   "default": "1",
+   "fieldname": "google_analytics_anonymize_ip",
+   "fieldtype": "Check",
+   "label": "Google Analytics Anonymize IP"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-05-15 14:12:32.907352",
+ "modified": "2020-09-28 18:47:18.506700",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

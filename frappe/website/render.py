@@ -13,14 +13,14 @@ import six
 from bs4 import BeautifulSoup
 from six import iteritems
 from werkzeug.wrappers import Response
-from werkzeug.routing import Map, Rule, NotFound
+from werkzeug.routing import Rule
 from werkzeug.wsgi import wrap_file
 
 from frappe.website.context import get_context
 from frappe.website.redirect import resolve_redirect
 from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
 	get_toc, get_next_link)
-from frappe.website.router import clear_sitemap
+from frappe.website.router import clear_sitemap, evaluate_dynamic_routes
 from frappe.translate import guess_language
 
 class PageNotFoundError(Exception): pass
@@ -149,8 +149,8 @@ def add_preload_headers(response):
 			preload.append(("style", elem.get("href")))
 
 		links = []
-		for type, link in preload:
-			links.append("</{}>; rel=preload; as={}".format(link.lstrip("/"), type))
+		for _type, link in preload:
+			links.append("<{}>; rel=preload; as={}".format(link, _type))
 
 		if links:
 			response.headers["Link"] = ",".join(links)
@@ -255,23 +255,11 @@ def resolve_path(path):
 	return path
 
 def resolve_from_map(path):
-	m = Map([Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
-		for r in get_website_rules()])
+	'''transform dynamic route to a static one from hooks and route defined in doctype'''
+	rules = [Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
+		for r in get_website_rules()]
 
-	if frappe.local.request:
-		urls = m.bind_to_environ(frappe.local.request.environ)
-	try:
-		endpoint, args = urls.match("/" + path)
-		path = endpoint
-		if args:
-			# don't cache when there's a query string!
-			frappe.local.no_cache = 1
-			frappe.local.form_dict.update(args)
-
-	except NotFound:
-		pass
-
-	return path
+	return evaluate_dynamic_routes(rules, path) or path
 
 def get_website_rules():
 	'''Get website route rules from hooks and DocType route'''
@@ -309,7 +297,7 @@ def clear_cache(path=None):
 
 	:param path: (optional) for the given path'''
 	for key in ('website_generator_routes', 'website_pages',
-		'website_full_index'):
+		'website_full_index', 'sitemap_routes'):
 		frappe.cache().delete_value(key)
 
 	frappe.cache().delete_value("website_404")

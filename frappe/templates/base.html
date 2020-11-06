@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Built on Frappe. https://frappe.io/ -->
+<!-- Built on Frappe. https://frappeframework.com/ -->
 <html lang="en">
 <head>
 	<meta charset="utf-8">
@@ -68,7 +68,13 @@
 	{%- endblock -%}
 
 	{%- block navbar -%}
-		{% include "templates/includes/navbar/navbar.html" %}
+		{{ web_block(
+			navbar_template or 'Standard Navbar',
+			values=_context_dict,
+			add_container=0,
+			add_top_padding=0,
+			add_bottom_padding=0,
+		) }}
 	{%- endblock -%}
 
 	{% block content %}
@@ -76,7 +82,13 @@
 	{% endblock %}
 
 	{%- block footer -%}
-		{% include "templates/includes/footer/footer.html" %}
+		{{ web_block(
+			footer_template or 'Standard Footer',
+			values=_context_dict,
+			add_container=0,
+			add_top_padding=0,
+			add_bottom_padding=0
+		) }}
 	{%- endblock -%}
 
 	{% block base_scripts %}

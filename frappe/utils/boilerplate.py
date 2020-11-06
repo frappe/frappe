@@ -157,6 +157,9 @@ app_license = "{app_license}"
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
 # web_include_js = "/assets/{app_name}/js/{app_name}.js"
 
+# include custom scss in every website theme (without file extension ".scss")
+# website_theme_scss = "{app_name}/public/scss/website"
+
 # include js, css files in header of web form
 # webform_include_js = {{"doctype": "public/js/doctype.js"}}
 # webform_include_css = {{"doctype": "public/css/doctype.css"}}
@@ -180,9 +183,6 @@ app_license = "{app_license}"
 # role_home_page = {{
 #	"Role": "home_page"
 # }}
-
-# Website user home page (by function)
-# get_website_user_home_page = "{app_name}.utils.get_home_page"
 
 # Generators
 # ----------
@@ -212,6 +212,14 @@ app_license = "{app_license}"
 #
 # has_permission = {{
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
+# }}
+
+# DocType Class
+# ---------------
+# Override standard doctype classes
+
+# override_doctype_class = {{
+# 	"ToDo": "custom_app.overrides.CustomToDo"
 # }}
 
 # Document Events

@@ -53,7 +53,7 @@ frappe.confirm = function(message, ifyes, ifno) {
 	return d;
 }
 
-frappe.warn = function(title, message_html, proceed_action, primary_label) {
+frappe.warn = function(title, message_html, proceed_action, primary_label, is_minimizable) {
 	const d = new frappe.ui.Dialog({
 		title: title,
 		indicator: 'red',
@@ -70,11 +70,15 @@ frappe.warn = function(title, message_html, proceed_action, primary_label) {
 			d.hide();
 		},
 		secondary_action_label: __("Cancel"),
+		minimizable: is_minimizable
 	});
 
-	d.buttons.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
-	const modal_footer = $(`<div class="modal-footer"></div>`).insertAfter($(d.modal_body));
-	modal_footer.html(d.buttons);
+	d.footer = $(`<div class="modal-footer"></div>`).insertAfter($(d.modal_body));
+
+	d.get_close_btn().appendTo(d.footer);
+	d.get_primary_btn().appendTo(d.footer);
+
+	d.footer.find('.btn-primary').removeClass('btn-primary').addClass('btn-danger');
 
 	d.show();
 	return d;
@@ -122,6 +126,19 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 
 	if(!data.indicator) {
 		data.indicator = 'blue';
+	}
+
+	if (data.as_list) {
+		const list_rows = data.message.map(m => `<li>${m}</li>`).join('');
+		data.message = `<ul style="padding-left: 20px">${list_rows}</ul>`;
+	}
+
+	if (data.as_table) {
+		const rows = data.message.map(row => {
+			const cols = row.map(col => `<td>${col}</td>`).join('');
+			return `<tr>${cols}</tr>`;
+		}).join('');
+		data.message = `<table class="table table-bordered" style="margin: 0;">${rows}</table>`;
 	}
 
 	if(data.message instanceof Array) {

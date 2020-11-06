@@ -187,9 +187,7 @@ def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
 		otp_setup_completed = False
 
 	verification_obj = {
-		'totp_uri': totp_uri,
 		'method': 'OTP App',
-		'qrcode': get_qr_svg_code(totp_uri),
 		'setup': otp_setup_completed
 	}
 	return verification_obj

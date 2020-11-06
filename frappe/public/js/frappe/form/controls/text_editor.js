@@ -1,5 +1,7 @@
 import Quill from 'quill';
+import ImageResize from 'quill-image-resize';
 
+Quill.register('modules/imageResize', ImageResize);
 const CodeBlockContainer = Quill.import('formats/code-block-container');
 CodeBlockContainer.tagName = 'PRE';
 Quill.register(CodeBlockContainer, true);
@@ -145,7 +147,8 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return {
 			modules: {
 				toolbar: this.get_toolbar_options(),
-				table: true
+				table: true,
+				imageResize: {}
 			},
 			theme: 'snow'
 		};

@@ -7,6 +7,7 @@ from frappe import _
 from frappe.utils import now_datetime, cint, cstr
 import re
 from six import string_types
+from frappe.model import log_types
 
 
 def set_new_name(doc):
@@ -35,7 +36,13 @@ def set_new_name(doc):
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
 
-	else:
+	elif getattr(doc.meta, "istable", False):
+		doc.name = make_autoname("hash", doc.doctype)
+
+	if not doc.name:
+		set_naming_from_document_naming_rule(doc)
+
+	if not doc.name:
 		doc.run_method("autoname")
 
 	if not doc.name and autoname:
@@ -43,12 +50,15 @@ def set_new_name(doc):
 
 	# if the autoname option is 'field:' and no name was derived, we need to
 	# notify
-	if autoname.startswith("field:") and not doc.name:
+	if not doc.name and autoname.startswith("field:"):
 		fieldname = autoname[6:]
 		frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
 
 	# at this point, we fall back to name generation with the hash option
-	if not doc.name or autoname == "hash":
+	if not doc.name and autoname == "hash":
+		doc.name = make_autoname("hash", doc.doctype)
+
+	if not doc.name:
 		doc.name = make_autoname("hash", doc.doctype)
 
 	doc.name = validate_name(
@@ -75,6 +85,23 @@ def set_name_from_naming_options(autoname, doc):
 		doc.name = _format_autoname(autoname, doc)
 	elif "#" in autoname:
 		doc.name = make_autoname(autoname, doc=doc)
+
+def set_naming_from_document_naming_rule(doc):
+	'''
+	Evaluate rules based on "Document Naming Series" doctype
+	'''
+	if doc.doctype in log_types:
+		return
+
+	try:
+		for d in frappe.get_all('Document Naming Rule',
+			dict(document_type=doc.doctype, disabled=0), order_by='priority desc'):
+			frappe.get_cached_doc('Document Naming Rule', d.name).apply(doc)
+			if doc.name:
+				break
+	except frappe.db.TableMissingError: # noqa: E722
+		# not yet bootstrapped
+		pass
 
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""
@@ -142,6 +169,8 @@ def parse_naming_series(parts, doctype='', doc=''):
 			part = today.strftime("%d")
 		elif e == 'YYYY':
 			part = today.strftime('%Y')
+		elif e == 'timestamp':
+			part = str(today)
 		elif e == 'FY':
 			part = frappe.defaults.get_user_default("fiscal_year")
 		elif e.startswith('{') and doc:

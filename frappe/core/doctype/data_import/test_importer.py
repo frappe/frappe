@@ -5,12 +5,14 @@ from __future__ import unicode_literals
 
 import unittest
 import frappe
-from frappe.utils import getdate
+from frappe.core.doctype.data_import.importer import Importer
+from frappe.utils import getdate, format_duration
 
 doctype_name = 'DocType for Import'
 
 class TestImporter(unittest.TestCase):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
 		create_doctype_if_not_exists(doctype_name)
 
 	def test_data_import_from_file(self):
@@ -24,6 +26,7 @@ class TestImporter(unittest.TestCase):
 
 		self.assertEqual(doc1.description, 'test description')
 		self.assertEqual(doc1.number, 1)
+		self.assertEqual(format_duration(doc1.duration), '3h')
 
 		self.assertEqual(doc1.table_field_1[0].child_title, 'child title')
 		self.assertEqual(doc1.table_field_1[0].child_description, 'child description')
@@ -40,7 +43,10 @@ class TestImporter(unittest.TestCase):
 		self.assertEqual(doc1.table_field_1_again[1].child_date, getdate('2021-09-22'))
 
 		self.assertEqual(doc2.description, 'test description 2')
+		self.assertEqual(format_duration(doc2.duration), '4d 3h')
+
 		self.assertEqual(doc3.another_number, 5)
+		self.assertEqual(format_duration(doc3.duration), '5d 5h 45m')
 
 	def test_data_import_preview(self):
 		import_file = get_import_file('sample_import_file')
@@ -48,7 +54,7 @@ class TestImporter(unittest.TestCase):
 		preview = data_import.get_preview_from_template()
 
 		self.assertEqual(len(preview.data), 4)
-		self.assertEqual(len(preview.columns), 15)
+		self.assertEqual(len(preview.columns), 16)
 
 	def test_data_import_without_mandatory_values(self):
 		import_file = get_import_file('sample_import_file_without_mandatory')
@@ -67,19 +73,28 @@ class TestImporter(unittest.TestCase):
 		self.assertEqual(warnings[2]['message'], "<b>Title</b> is a mandatory field")
 
 	def test_data_import_update(self):
-		if not frappe.db.exists(doctype_name, 'Test 26'):
-			frappe.get_doc(
-				doctype=doctype_name,
-				title='Test 26'
-			).insert()
+		existing_doc = frappe.get_doc(
+			doctype=doctype_name,
+			title=frappe.generate_hash(doctype_name, 8),
+			table_field_1=[{'child_title': 'child title to update'}]
+		)
+		existing_doc.save()
+		frappe.db.commit()
 
 		import_file = get_import_file('sample_import_file_for_update')
 		data_import = self.get_importer(doctype_name, import_file, update=True)
-		data_import.start_import()
+		i = Importer(data_import.reference_doctype, data_import=data_import)
 
-		updated_doc = frappe.get_doc(doctype_name, 'Test 26')
+		# update child table id in template date
+		i.import_file.raw_data[1][4] = existing_doc.table_field_1[0].name
+		i.import_file.raw_data[1][0] = existing_doc.name
+		i.import_file.parse_data_from_template()
+		i.import_data()
+
+		updated_doc = frappe.get_doc(doctype_name, existing_doc.name)
 		self.assertEqual(updated_doc.description, 'test description')
 		self.assertEqual(updated_doc.table_field_1[0].child_title, 'child title')
+		self.assertEqual(updated_doc.table_field_1[0].name, existing_doc.table_field_1[0].name)
 		self.assertEqual(updated_doc.table_field_1[0].child_description, 'child description')
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, 'child title again')
 
@@ -146,6 +161,7 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 			{'label': 'Title', 'fieldname': 'title', 'reqd': 1, 'fieldtype': 'Data'},
 			{'label': 'Description', 'fieldname': 'description', 'fieldtype': 'Small Text'},
 			{'label': 'Date', 'fieldname': 'date', 'fieldtype': 'Date'},
+			{'label': 'Duration', 'fieldname': 'duration', 'fieldtype': 'Duration'},
 			{'label': 'Number', 'fieldname': 'number', 'fieldtype': 'Int'},
 			{'label': 'Number', 'fieldname': 'another_number', 'fieldtype': 'Int'},
 			{'label': 'Table Field 1', 'fieldname': 'table_field_1', 'fieldtype': 'Table', 'options': table_1_name},

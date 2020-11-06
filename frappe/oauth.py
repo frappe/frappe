@@ -4,6 +4,7 @@ import pytz
 
 from frappe import _
 from frappe.auth import LoginManager
+from http import cookies
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
 from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant
 from oauthlib.oauth2 import RequestValidator
@@ -12,7 +13,7 @@ from oauthlib.oauth2.rfc6749.endpoints.token import TokenEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.resource import ResourceEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.revocation import RevocationEndpoint
 from oauthlib.common import Request
-from six.moves.urllib.parse import parse_qs, urlparse, unquote
+from six.moves.urllib.parse import unquote
 
 def get_url_delimiter(separator_character=" "):
 	return separator_character
@@ -93,19 +94,13 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
 		# Is the client allowed to access the requested scopes?
-		client_scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(get_url_delimiter())
-
-		are_scopes_valid = True
-
-		for scp in scopes:
-			are_scopes_valid = are_scopes_valid and True if scp in client_scopes else False
-
-		return are_scopes_valid
+		allowed_scopes = get_client_scopes(client_id)
+		return all(scope in allowed_scopes for scope in scopes)
 
 	def get_default_scopes(self, client_id, request, *args, **kwargs):
 		# Scopes a client will authorize for if none are supplied in the
 		# authorization request.
-		scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(get_url_delimiter())
+		scopes = get_client_scopes(client_id)
 		request.scopes = scopes #Apparently this is possible.
 		return scopes
 
@@ -130,15 +125,12 @@ class OAuthWebRequestValidator(RequestValidator):
 		oac.scopes = get_url_delimiter().join(request.scopes)
 		oac.redirect_uri_bound_to_authorization_code = request.redirect_uri
 		oac.client = client_id
-		oac.user = unquote(cookie_dict['user_id'])
+		oac.user = unquote(cookie_dict['user_id'].value)
 		oac.authorization_code = code['code']
 		oac.save(ignore_permissions=True)
 		frappe.db.commit()
 
 	def authenticate_client(self, request, *args, **kwargs):
-
-		cookie_dict = get_cookie_dict_from_headers(request)
-
 		#Get ClientID in URL
 		if request.client_id:
 			oc = frappe.get_doc("OAuth Client", request.client_id)
@@ -155,7 +147,9 @@ class OAuthWebRequestValidator(RequestValidator):
 		except Exception as e:
 			print("Failed body authentication: Application %s does not exist".format(cid=request.client_id))
 
-		return frappe.session.user == unquote(cookie_dict.get('user_id', "Guest"))
+		cookie_dict = get_cookie_dict_from_headers(request)
+		user_id = unquote(cookie_dict['user_id']) if 'user_id' in cookie_dict else "Guest"
+		return frappe.session.user == user_id
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
 		cli_id = frappe.db.get_value('OAuth Client', client_id, 'name')
@@ -400,13 +394,10 @@ class OAuthWebRequestValidator(RequestValidator):
 		return True
 
 def get_cookie_dict_from_headers(r):
+	cookie = cookies.BaseCookie()
 	if r.headers.get('Cookie'):
-		cookie = r.headers.get('Cookie')
-		cookie = cookie.split("; ")
-		cookie_dict = {k:v for k,v in (x.split('=') for x in cookie)}
-		return cookie_dict
-	else:
-		return {}
+		cookie.load(r.headers.get('Cookie'))
+	return cookie
 
 def calculate_at_hash(access_token, hash_alg):
 	"""Helper method for calculating an access token
@@ -443,3 +434,8 @@ def delete_oauth2_data():
 		frappe.delete_doc("OAuth Bearer Token", token["name"])
 	if commit_code or commit_token:
 		frappe.db.commit()
+
+
+def get_client_scopes(client_id):
+	scopes_string = frappe.db.get_value("OAuth Client", client_id, "scopes")
+	return scopes_string.split()

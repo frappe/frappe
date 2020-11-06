@@ -11,19 +11,22 @@ from jinja2.exceptions import TemplateSyntaxError
 
 import frappe
 from frappe import _
-from frappe.utils import get_datetime, now, strip_html
+from frappe.utils import get_datetime, now, strip_html, quoted
 from frappe.utils.jinja import render_template
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.router import resolve_route
 from frappe.website.utils import (extract_title, find_first_image, get_comment_list,
 	get_html_content_based_on_type)
 from frappe.website.website_generator import WebsiteGenerator
+from frappe.utils.safe_exec import safe_exec
 
 
 class WebPage(WebsiteGenerator):
 	def validate(self):
 		self.validate_dates()
 		self.set_route()
+		if not self.dynamic_route:
+			self.route = quoted(self.route)
 
 	def get_feed(self):
 		return self.title
@@ -37,6 +40,12 @@ class WebPage(WebsiteGenerator):
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, 'main_section', self.content_type)
 		context.source_content_type = self.content_type
+
+		if self.context_script:
+			_locals = dict(context = frappe._dict())
+			safe_exec(self.context_script, None, _locals)
+			context.update(_locals['context'])
+
 		self.render_dynamic(context)
 
 		# if static page, get static content
@@ -45,6 +54,7 @@ class WebPage(WebsiteGenerator):
 
 		if self.enable_comments:
 			context.comment_list = get_comment_list(self.doctype, self.name)
+
 
 		context.update({
 			"style": self.css or "",
@@ -116,6 +126,7 @@ class WebPage(WebsiteGenerator):
 		out = get_web_blocks_html(self.page_blocks)
 		context.page_builder_html = out.html
 		context.page_builder_scripts = out.scripts
+		context.page_builder_styles = out.styles
 
 	def add_hero(self, context):
 		"""Add a hero element if specified in content or hooks.
@@ -137,7 +148,8 @@ class WebPage(WebsiteGenerator):
 		context.metatags = {
 			"name": self.meta_title or self.title,
 			"description": self.meta_description,
-			"image": self.meta_image or find_first_image(context.main_section or "")
+			"image": self.meta_image or find_first_image(context.main_section or ""),
+			"og:type": "website"
 		}
 
 	def validate_dates(self):
@@ -202,26 +214,39 @@ def check_broken_links():
 def get_web_blocks_html(blocks):
 	'''Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication'''
 
-	out = frappe._dict(html='', scripts=[])
+	out = frappe._dict(html='', scripts=[], styles=[])
 	extracted_scripts = []
+	extracted_styles = []
 	for block in blocks:
-		rendered_html = frappe.render_template('templates/includes/web_block.html',
-			context={'web_block': block})
-		html, scripts = extract_script_tags(rendered_html)
+		web_template = frappe.get_cached_doc('Web Template', block.web_template)
+		rendered_html = frappe.render_template('templates/includes/web_block.html', context={
+			'web_block': block,
+			'web_template_html': web_template.render(block.web_template_values),
+			'web_template_type': web_template.type
+		})
+		html, scripts, styles = extract_script_and_style_tags(rendered_html)
 		out.html += html
 		if block.web_template not in extracted_scripts:
 			out.scripts += scripts
 			extracted_scripts.append(block.web_template)
+		if block.web_template not in extracted_styles:
+			out.styles += styles
+			extracted_styles.append(block.web_template)
 
-	# de-duplicate scripts
-	out.scripts = list(set(out.scripts))
 	return out
 
-def extract_script_tags(html):
+def extract_script_and_style_tags(html):
 	from bs4 import BeautifulSoup
 	soup = BeautifulSoup(html, "html.parser")
 	scripts = []
+	styles = []
+
 	for script in soup.find_all('script'):
 		scripts.append(script.text)
 		script.extract()
-	return str(soup), scripts
+
+	for style in soup.find_all('style'):
+		styles.append(style.text)
+		style.extract()
+
+	return str(soup), scripts, styles

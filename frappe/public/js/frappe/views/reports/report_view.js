@@ -50,6 +50,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.setup_new_doc_event();
 	}
 
+	toggle_side_bar() {
+		super.toggle_side_bar();
+		// refresh datatable when sidebar is toggled to accomodate extra space
+		this.render(true);
+	}
+
 	setup_result_area() {
 		super.setup_result_area();
 		this.setup_charts_area();
@@ -645,6 +651,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_fields() {
+		// default fields
+		['name', 'docstatus'].map((f) => this._add_field(f));
+
 		if (this.report_name && this.report_doc.json.fields) {
 			let fields = this.report_doc.json.fields.slice();
 			fields.forEach(f => this._add_field(f[0], f[1]));
@@ -661,12 +670,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	set_default_fields() {
 		// get fields from meta
-		this.fields = [];
+		this.fields = this.fields || [];
 		const add_field = f => this._add_field(f);
 
 		// default fields
 		[
-			'name', 'docstatus',
 			this.meta.title_field,
 			this.meta.image_field
 		].map(add_field);
@@ -836,8 +844,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			const child_table_fields = frappe.meta.get_docfields(cdt).filter(standard_fields_filter);
 
 			out[cdt] = child_table_fields;
-		});
 
+			// add index column for child tables
+			out[cdt].push({
+				label: __('Index'),
+				fieldname: 'idx',
+				fieldtype: 'Int',
+				parent: cdt
+			});
+		});
 		return out;
 	}
 
@@ -857,7 +872,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				.map(df => ({
 					label: __(df.label),
 					value: df.fieldname,
-					checked: this.fields.find(f => f[0] === df.fieldname)
+					checked: this.fields.find(f => f[0] === df.fieldname && f[1] === this.doctype)
 				}))
 		});
 
@@ -934,6 +949,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// group by column
 		if (fieldname === '_aggregate_column') {
 			docfield = this.group_by_control.get_group_by_docfield();
+		}
+
+		// child table index column
+		if (fieldname === 'idx' && doctype !== this.doctype) {
+			docfield = {
+				label: "Index",
+				fieldtype: "Int",
+				parent: doctype,
+			};
 		}
 
 		if (!docfield) {
@@ -1034,15 +1058,30 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					name: __('Totals Row'),
 					content: totals[col.id],
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true }, data[0]);
+						let formatted_value = frappe.format(value, col.docfield, {
+							always_show_decimals: true
+						}, data[0]);
+						if (i === 0) {
+							return this.format_total_cell(formatted_value, col);
+						}
+						return formatted_value;
 					}
-				}
-			})
+				};
+			});
 
-			totals_row[0].content = __('Totals').bold();
 			out.push(totals_row);
 		}
 		return out;
+	}
+
+	format_total_cell(formatted_value, df) {
+		let cell_value = __('Totals').bold();
+		if (frappe.model.is_numeric_field(df.docfield)) {
+			cell_value = `<span class="flex justify-between">
+				${cell_value} ${$(formatted_value).text()}
+			</span>`;
+		}
+		return cell_value;
 	}
 
 	build_row(d) {
@@ -1225,8 +1264,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: __('Show Totals'),
 				action: () => {
 					this.add_totals_row = !this.add_totals_row;
-					this.save_view_user_settings(
-						{ add_totals_row: this.add_totals_row });
+					this.save_view_user_settings({
+						add_totals_row: this.add_totals_row
+					});
 					this.datatable.refresh(this.get_data(this.data));
 				}
 			},

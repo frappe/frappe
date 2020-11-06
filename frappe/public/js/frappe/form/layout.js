@@ -525,7 +525,7 @@ frappe.ui.form.Layout = Class.extend({
 			return;
 		}
 
-		var parent = this.frm ? this.frm.doc : null;
+		var parent = this.frm ? this.frm.doc : this.doc || null;
 
 		if(typeof(expression) === 'boolean') {
 			out = expression;

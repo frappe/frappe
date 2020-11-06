@@ -1,7 +1,10 @@
 <h2 class="section-title">{{ title }}</h2>
-<p class="section-description">{{ subtitle }}</p>
 
-<div class="mt-5">
+{%- if subtitle -%}
+<p class="section-description">{{ subtitle }}</p>
+{%- endif -%}
+
+<div class="mt-12">
 	{% set ns = namespace(tabs=[]) %}
 
 	{%- for index in ['1', '2', '3', '4', '5', '6'] -%}
@@ -33,7 +36,7 @@
 		</li>
 		{%- endfor -%}
 	</ul>
-	<div class="mt-4 tab-content">
+	<div class="mt-6 tab-content">
 		{%- for tab in ns.tabs -%}
 		{%- set first_tab = true if loop.index0 == 0 else false -%}
 		<div class="tab-pane fade {{ 'show active' if first_tab else '' }}" id="{{ tab.panelid }}" role="tabpanel"

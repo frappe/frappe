@@ -261,7 +261,7 @@ frappe.ui.form.Form = class FrappeForm {
 		cur_frm = this;
 
 		if(this.docname) { // document to show
-
+			this.save_disabled = false;
 			// set the doc
 			this.doc = frappe.get_doc(this.doctype, this.docname);
 
@@ -321,19 +321,49 @@ frappe.ui.form.Form = class FrappeForm {
 			for (let action of this.meta.actions) {
 				frappe.ui.form.on(this.doctype, 'refresh', () => {
 					if (!this.is_new()) {
-						this.add_custom_button(action.label, () => {
-							if (action.action_type==='Server Action') {
-								frappe.xcall(action.action, {doc: this.doc}).then(() => {
-									frappe.msgprint({
-										message: __('{} Complete', [action.label]),
-										alert: true
-									});
-								});
-							}
-						}, action.group);
+						if (!action.hidden) {
+							this.add_custom_button(action.label, () => {
+								this.execute_action(action);
+							}, action.group);
+						}
 					}
 				});
 			}
+		}
+	}
+
+	execute_action(action) {
+		if (typeof action === 'string') {
+			// called by label - maybe via custom script
+			// frm.execute_action('Action')
+			for (let _action of this.meta.actions) {
+				if (_action.label === action) {
+					action = _action;
+					break;
+				}
+			}
+
+			if (typeof action === 'string') {
+				frappe.throw(`Action ${action} not found`);
+			}
+		}
+		if (action.action_type==='Server Action') {
+			frappe.xcall(action.action, {doc: this.doc}).then((doc) => {
+				if (doc.doctype) {
+					// document is returned by the method,
+					// apply the changes locally and refresh
+					frappe.model.sync(doc);
+					this.refresh();
+				}
+
+				// feedback
+				frappe.msgprint({
+					message: __('{} Complete', [action.label]),
+					alert: true
+				});
+			});
+		} else if (action.action_type==='Route') {
+			frappe.set_route(action.action);
 		}
 	}
 
@@ -568,9 +598,6 @@ frappe.ui.form.Form = class FrappeForm {
 		if(!save_action) save_action = "Save";
 		this.validate_form_action(save_action, resolve);
 
-		if((!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
-			frappe.utils.scroll_to(0);
-		}
 		var after_save = function(r) {
 			if(!r.exc) {
 				if (["Save", "Update", "Amend"].indexOf(save_action)!==-1) {
@@ -667,22 +694,29 @@ frappe.ui.form.Form = class FrappeForm {
 	savecancel(btn, callback, on_error) {
 		const me = this;
 		this.validate_form_action('Cancel');
-
+		me.ignore_doctypes_on_cancel_all = me.ignore_doctypes_on_cancel_all || [];
 		frappe.call({
 			method: "frappe.desk.form.linked_with.get_submitted_linked_docs",
 			args: {
 				doctype: me.doc.doctype,
 				name: me.doc.name
 			},
-			freeze: true,
-			callback: (r) => {
-				if (!r.exc && r.message.count > 0) {
-					me._cancel_all(r, btn, callback, on_error);
-				} else {
-					me._cancel(btn, callback, on_error, false);
+			freeze: true
+		}).then(r => {
+			if (!r.exc) {
+				let doctypes_to_cancel = (r.message.docs || []).map(value => {
+					return value.doctype;
+				}).filter(value => {
+					return !me.ignore_doctypes_on_cancel_all.includes(value);
+				});
+
+				if (doctypes_to_cancel.length) {
+					return me._cancel_all(r, btn, callback, on_error);
 				}
 			}
-		});
+			return me._cancel(btn, callback, on_error, false);
+		}
+		);
 	}
 
 	_cancel_all(r, btn, callback, on_error) {
@@ -693,12 +727,16 @@ frappe.ui.form.Form = class FrappeForm {
 		let links = r.message.docs;
 		const doctypes = Array.from(new Set(links.map(link => link.doctype)));
 
+		me.ignore_doctypes_on_cancel_all = me.ignore_doctypes_on_cancel_all || [];
+
 		for (let doctype of doctypes) {
-			let docnames = links
-				.filter((link) => link.doctype == doctype)
-				.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
-				.join(", ");
-			links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`;
+			if (!me.ignore_doctypes_on_cancel_all.includes(doctype)) {
+				let docnames = links
+					.filter((link) => link.doctype == doctype)
+					.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
+					.join(", ");
+				links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`;
+			}
 		}
 		links_text = `<ul>${links_text}</ul>`;
 
@@ -728,7 +766,8 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.call({
 					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
 					args: {
-						docs: links
+						docs: links,
+						ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || []
 					},
 					freeze: true,
 					callback: (resp) => {
@@ -742,7 +781,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		d.show();
-	};
+	}
 
 	_cancel(btn, callback, on_error, skip_confirm) {
 		const me = this;
@@ -1226,17 +1265,17 @@ frappe.ui.form.Form = class FrappeForm {
 
 	set_df_property(fieldname, property, value, docname, table_field) {
 		var df;
-		if (!docname && !table_field){
+		if (!docname || !table_field) {
 			df = this.get_docfield(fieldname);
 		} else {
-			var grid = this.fields_dict[table_field].grid,
-				fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
+			var grid = this.fields_dict[fieldname].grid,
+				fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': table_field});
 			if (fname && fname.length)
-				df = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
+				df = frappe.meta.get_docfield(fname[0].parent, table_field, docname);
 		}
-		if(df && df[property] != value) {
+		if (df && df[property] != value) {
 			df[property] = value;
-			refresh_field(fieldname, table_field);
+			this.refresh_field(fieldname);
 		}
 	}
 
@@ -1396,19 +1435,16 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	set_read_only() {
-		var perm = [];
-		var docperms = frappe.perm.get_perm(this.doc.doctype);
-		for (var i=0, l=docperms.length; i<l; i++) {
-			var p = docperms[i];
-			perm[p.permlevel || 0] = {
+		const docperms = frappe.perm.get_perm(this.doc.doctype);
+		this.perm = docperms.map(p => {
+			return {
 				read: p.read,
 				cancel: p.cancel,
 				share: p.share,
 				print: p.print,
 				email: p.email
 			};
-		}
-		this.perm = perm;
+		});
 	}
 
 	trigger(event, doctype, docname) {
@@ -1481,11 +1517,12 @@ frappe.ui.form.Form = class FrappeForm {
 
 					const escaped_name = encodeURIComponent(value);
 
-					return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+					return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(escaped_name)s" data-doctype="%(doctype)s" data-name="%(name)s">%(label)s</a>', {
 						color: get_color(doc || {}),
 						doctype: df.options,
-						name: escaped_name,
-						label: label
+						escaped_name: escaped_name,
+						label: label,
+						name: value
 					});
 				} else {
 					return '';
@@ -1621,6 +1658,21 @@ frappe.ui.form.Form = class FrappeForm {
 		driver.defineSteps(steps);
 		frappe.route.on('change', () => driver.reset());
 		driver.start();
+	}
+
+	// Filters fields from the reference doctype and sets them as options for a Select field
+	set_fields_as_options(fieldname, reference_doctype, filter_function, default_options=[], table_fieldname) {
+		if (!reference_doctype) return;
+		let options = default_options;
+		return new Promise(resolve => {
+			frappe.model.with_doctype(reference_doctype, () => {
+				frappe.get_meta(reference_doctype).fields.map(df => {
+					filter_function(df) && options.push({ label: df.label, value: df.fieldname });
+				});
+				options && this.set_df_property(fieldname, 'options', options, this.doc.name, table_fieldname);
+				resolve(options);
+			});
+		});
 	}
 };
 
