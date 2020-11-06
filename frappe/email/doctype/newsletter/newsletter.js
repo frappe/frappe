@@ -29,6 +29,43 @@ frappe.ui.form.on('Newsletter', {
 		}
 	},
 
+	onload_post_render(frm) {
+		frm.trigger('setup_schedule_send');
+	},
+
+	setup_schedule_send(frm) {
+		$('.datepicker--buttons').hide();
+		let today = new Date();
+
+		// setting datepicker options to set min date & min time
+		today.setHours(today.getHours() + 1 );
+		frm.get_field('schedule_send').$input.datepicker({
+			maxMinutes: 0,
+			minDate: today,
+			timeFormat: 'hh:00:00',
+			onSelect: function (fd, d, picker) {
+				if (!d) return;
+				var date = d.toDateString();
+				if (date === today.toDateString()) {
+					picker.update({
+						minHours: (today.getHours() + 1)
+					});
+				} else {
+					picker.update({
+						minHours: 0
+					});
+				}
+				frm.get_field('schedule_send').$input.trigger('change');
+			}
+		});
+
+		const $tp = frm.get_field('schedule_send').datepicker.timepicker;
+		$tp.$minutes.parent().css('display', 'none');
+		$tp.$minutesText.css('display', 'none');
+		$tp.$minutesText.prev().css('display', 'none');
+		$tp.$seconds.parent().css('display', 'none');
+	},
+
 	setup_dashboard(frm) {
 		if(!frm.doc.__islocal && cint(frm.doc.email_sent)
 			&& frm.doc.__onload && frm.doc.__onload.status_count) {
