@@ -39,7 +39,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 						this.save_kanban_board_filters();
 					}
 				});
-
+				this.toggle_paging = true;
 				return this.get_board();
 			});
 	}
@@ -78,6 +78,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name
 		});
+		this.toggle_paging && this.$paging_area.toggle(false);
 	}
 
 	render_list() {

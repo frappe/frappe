@@ -28,6 +28,7 @@
    "reqd": 0
   },
   {
+   "default": "Left",
    "fieldname": "align",
    "fieldtype": "Select",
    "label": "Align",
@@ -36,8 +37,9 @@
   }
  ],
  "idx": 0,
- "modified": "2020-09-11 15:57:55.186983",
+ "modified": "2020-10-26 17:40:11.558331",
  "modified_by": "Administrator",
+ "module": "Website",
  "name": "Section with Image",
  "owner": "Administrator",
  "standard": 1,

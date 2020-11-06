@@ -336,7 +336,6 @@ Add Column,إضافة عمود,
 Add Contact,إضافة جهة اتصال,
 Add Contacts,اضف جهات اتصال,
 Add Filter,إضافة تصفية (فلترة),
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,(UA-89XXX57-1)اضافة تحليلات جوجل رقم تعريفى \nمن فضلك ابحث عن المساعدة فى تحليلات جوجل لمزيد من المعلومات,
 Add Group,إضافة مجموعة,
 Add New Permission Rule,إضافة قاعدة صلاحيات جديدة,
 Add Review,إضافة مراجعة,
@@ -843,7 +842,6 @@ Default Sending and Inbox,صندوق الوارد و الصادر الافترا
 Default Sort Field,حقل التصنيف الافتراضي,
 Default Sort Order,ترتيب الافتراضي,
 Default Value,القيمة الافتراضية,
-Default for 'Check' type of field must be either '0' or '1',"يجب أن يكون الخيار الافتراضي لنوع ""التحقق"" إما ""0"" أو ""1""",
 "Default: ""Contact Us""",الافتراضي: &quot;اتصل بنا&quot;,
 DefaultValue,القيمة الافتراضية,
 Define workflows for forms.,تحديد سير العمل للنماذج,
@@ -901,7 +899,6 @@ DocType can only be renamed by Administrator,DOCTYPE لا يمكن تسميته�
 DocType is a Table / Form in the application.,DOCTYPE هو الجدول / نموذج في التطبيق.,
 DocType must be Submittable for the selected Doc Event,يجب تقديم دوكتيب للحدث دوك المحدد,
 DocType on which this Workflow is applicable.,DOCTYPE على سير العمل هذا الذي ينطبق.,
-DocType or Field,DOCTYPE أو حقل,
 "DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores",يجب أن يبدأ اسم دوكتيب بحرف ويمكن أن يتكون فقط من الحروف والأرقام والمسافات والشرطات السفلية,
 Doctype required,Doctype المطلوبة,
 Document,وثيقة,
@@ -2027,7 +2024,6 @@ Reference DocName,مرجع DocName,
 Reference DocType and Reference Name are required,مطلوب مرجع دوكتيب واسم مرجع,
 Reference Report,تقرير مرجعي,
 Reference: {0} {1},إشارة: {0} {1},
-Refresh Form,نموذج التحديث,
 Refreshing...,يحديث ...,
 Register OAuth Client App,تسجيل أوث العميل التطبيقات,
 Registered but disabled,سجل لكن المعوقين,
@@ -2718,7 +2714,6 @@ View Log,عرض السجل,
 View Permitted Documents,عرض المستندات المسموح بها,
 View Properties (via Customize Form),عرض خصائص (عن طريق نموذج تخصيص),
 View Settings,عرض إعدادات,
-View Subscribers,عرض المشتركين,
 View Website,مشاهدة الموقع,
 View document,عرض المستند,
 View report in your browser,عرض التقرير في المتصفح,
@@ -3819,7 +3814,6 @@ Type,النوع,
 Update,تحديث,
 User {0} is disabled,المستخدم {0} تم تعطيل,
 Users and Permissions,المستخدمين والصلاحيات,
-View,رأي,
 Warehouse,المستودعات,
 Welcome to {0},أهلا وسهلا بك إلى {0},
 Year,عام,
@@ -4189,6 +4183,7 @@ Linked Documents,المستندات المرتبطة,
 Account SID,حساب SID,
 Steps,خطوات,
 email,البريد الإلكتروني,
+Component,مكون,
 Subtitle,عنوان فرعي,
 Global Defaults,افتراضيات العالمية,
 Prefix,بادئة,
@@ -4225,7 +4220,7 @@ This Month,هذا الشهر,
 This Quarter,هذا الربع,
 This Year,هذه السنة,
 All Time,كل الوقت,
-Select From Date,حدد من التاريخ,
+Select From Date,حدد من تاريخ,
 since yesterday,منذ البارحة,
 since last week,منذ الأسبوع الماضي,
 since last month,منذ اخر شهر,
@@ -4340,7 +4335,6 @@ Send document Web View link in email,إرسال ارتباط عرض الويب �
 Enable Auto-deletion of Prepared Reports,تمكين الحذف التلقائي للتقارير المعدة,
 Prepared Report Expiry Period (Days),فترة انتهاء صلاحية التقرير المُعد (أيام),
 System will automatically delete Prepared Reports after these many days since creation,سيقوم النظام تلقائيًا بحذف التقارير المعدة بعد هذه الأيام العديدة منذ الإنشاء,
-Custom Link,رابط مخصص,
 Package Document Type,نوع وثيقة الحزمة,
 Include Attachments,قم بتضمين المرفقات,
 Overwrite,الكتابة فوق,
@@ -4629,7 +4623,6 @@ A featured post must have a cover image,يجب أن تحتوي الوظيفة ا
 Load More,تحميل المزيد,
 Published on,نشرت في,
 Enable developer mode to create a standard Web Template,قم بتمكين وضع المطور لإنشاء قالب ويب قياسي,
-Please select which module this Web Template belongs to.,الرجاء تحديد الوحدة النمطية التي ينتمي إليها قالب الويب هذا.,
 Was this article helpful?,هل كان المقال مساعدا؟!,
 Thank you for your feedback!,شكرا لك على ملاحظاتك!,
 New Mention on {0},إشارة جديدة في {0},
@@ -4644,6 +4637,7 @@ Please set the following documents in this Dashboard as standard first.,يرجى
 Shared with the following Users with Read access:{0},مشترك مع المستخدمين التاليين الذين لهم حق الوصول للقراءة: {0},
 Already in the following Users ToDo list:{0},بالفعل في قائمة &quot;المهام للمستخدمين&quot; التالية: {0},
 Your assignment on {0} {1} has been removed by {2},تمت إزالة واجبك في {0} {1} بواسطة {2},
+Invalid Credentials,بيانات الاعتماد غير صالحة,
 Print UOM after Quantity,اطبع UOM بعد الكمية,
 Uncaught Server Exception,استثناء خادم لم يتم اكتشافه,
 There was an error building this page,كان هناك خطأ في بناء هذه الصفحة,
@@ -4680,3 +4674,32 @@ Add a {0} Chart,أضف مخطط {0},
 Currently you have {0} review points,حاليًا لديك {0} من نقاط المراجعة,
 {0} is not a valid DocType for Dynamic Link,{0} ليس نوع DocType صالحًا للارتباط الديناميكي,
 via Assignment Rule,عبر قاعدة التنازل,
+Based on Field,على أساس الميدان,
+Assign to the user set in this field,تعيين المستخدم في هذا المجال,
+Log Setting User,مستخدم إعداد السجل,
+Log Settings,إعدادات السجل,
+Error Log Notification,إعلام سجل الخطأ,
+Users To Notify,يخطر المستخدمون,
+Log Cleanup,تنظيف السجل,
+Clear Error log After,مسح سجل الخطأ بعد,
+Clear Activity Log After,امسح سجل النشاط بعد,
+Clear Email Queue After,امسح قائمة انتظار البريد الإلكتروني بعد,
+Please save to edit the template.,يرجى الحفظ لتعديل القالب.,
+Google Analytics Anonymize IP,تحليلات جوجل لإخفاء هوية IP,
+Incorrect email or password. Please check your login credentials.,بريد أو كلمة مرورغير صحيحة. يرجى التحقق من بيانات اعتماد تسجيل الدخول الخاصة بك.,
+Incorrect Configuration,التكوين غير الصحيح,
+You are not allowed to delete Standard Report,لا يُسمح لك بحذف التقرير القياسي,
+You have unseen {0},لديك غير مرئي {0},
+Log cleanup and notification configuration,تنظيف السجل وتكوين الإخطار,
+State/Province,الولاية / المقاطعة,
+Document Actions,وثيقة الإجراءات,
+Document Links,روابط الوثيقة,
+List Settings,إعدادات القائمة,
+Cannot delete standard link. You can hide it if you want,لا يمكن حذف الارتباط القياسي. يمكنك إخفاء ذلك إذا كنت تريد,
+Cannot delete standard action. You can hide it if you want,لا يمكن حذف الإجراء القياسي. يمكنك إخفاء ذلك إذا كنت تريد,
+Applied On,تم التطبيق,
+Row Name,اسم الصف,
+For DocType Link / DocType Action,لإجراء DocType Link / DocType,
+Cannot edit filters for standard charts,لا يمكن تحرير عوامل التصفية للمخططات القياسية,
+Event Producer Last Update,آخر تحديث لمنتج الحدث,
+Default for 'Check' type of field {0} must be either '0' or '1',يجب أن يكون الإعداد الافتراضي لنوع حقل &quot;التحقق&quot; {0} إما &quot;0&quot; أو &quot;1&quot;,

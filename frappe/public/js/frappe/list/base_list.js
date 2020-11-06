@@ -334,16 +334,12 @@ frappe.views.BaseList = class BaseList {
 			`<div class="list-paging-area level">
 				<div class="level-left">
 					<div class="btn-group">
-						${paging_values
-							.map(
-								(value) => `
+						${paging_values.map((value) => `
 							<button type="button" class="btn btn-default btn-sm btn-paging"
 								data-value="${value}">
 								${value}
 							</button>
-						`
-							)
-							.join("")}
+						`).join("")}
 					</div>
 				</div>
 				<div class="level-right">
@@ -373,8 +369,8 @@ frappe.views.BaseList = class BaseList {
 				this.refresh();
 			} else if ($this.is(".btn-more")) {
 				this.start = this.start + this.page_length;
-				this.refresh();
 			}
+			this.refresh();
 		});
 	}
 

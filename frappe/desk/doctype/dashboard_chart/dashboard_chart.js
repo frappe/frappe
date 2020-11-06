@@ -21,8 +21,10 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	refresh: function(frm) {
 		frm.chart_filters = null;
+		frm.is_disabled = !frappe.boot.developer_mode && frm.doc.is_standard;
 
-		if (!frappe.boot.developer_mode && frm.doc.is_standard) {
+		if (frm.is_disabled) {
+			!frm.doc.custom_options && frm.set_df_property('chart_options_section', 'hidden', 1);
 			frm.disable_form();
 		}
 
@@ -333,6 +335,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		}
 
 		table.on('click', () => {
+			frm.is_disabled && frappe.throw(__('Cannot edit filters for standard charts'));
 
 			let dialog = new frappe.ui.Dialog({
 				title: __('Set Filters'),

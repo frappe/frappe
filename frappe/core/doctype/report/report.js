@@ -2,7 +2,9 @@ frappe.ui.form.on('Report', {
 	refresh: function(frm) {
 		if (frm.doc.is_standard === "Yes" && !frappe.boot.developer_mode) {
 			// make the document read-only
-			frm.set_read_only();
+			frm.disable_form();
+		} else {
+			frm.enable_save();
 		}
 
 		let doc = frm.doc;
@@ -32,8 +34,6 @@ frappe.ui.form.on('Report', {
 				});
 			}, doc.disabled ? "fa fa-check" : "fa fa-off");
 		}
-
-		frm.events.report_type(frm);
 	},
 
 	ref_doctype: function(frm) {
