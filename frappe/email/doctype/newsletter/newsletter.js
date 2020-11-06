@@ -24,7 +24,7 @@ frappe.ui.form.on('Newsletter', {
 	},
 
 	validate(frm) {
-		if(frm.doc.schedule_send < frappe.datetime.now_datetime()) {
+		if (frm.doc.schedule_send < frappe.datetime.now_datetime()) {
 			frappe.throw(__('Schedule Time cannot be smaller than the current time.'));
 		}
 	},
