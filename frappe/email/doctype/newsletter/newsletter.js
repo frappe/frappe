@@ -23,41 +23,10 @@ frappe.ui.form.on('Newsletter', {
 		}
 	},
 
-	onload_post_render(frm) {
-		frm.trigger('setup_schedule_send');
-	},
-
-	setup_schedule_send(frm) {
-		let today = new Date();
-
-		// setting datepicker options to set min date & min time
-		today.setHours(today.getHours() + 1 );
-		frm.get_field('schedule_send').$input.datepicker({
-			maxMinutes: 0,
-			minDate: today,
-			timeFormat: 'hh:00:00',
-			onSelect: function (fd, d, picker) {
-				if (!d) return;
-				var date = d.toDateString();
-				if (date === today.toDateString()) {
-					picker.update({
-						minHours: (today.getHours() + 1)
-					});
-				} else {
-					picker.update({
-						minHours: 0
-					});
-				}
-				frm.get_field('schedule_send').$input.trigger('change');
-			}
-		});
-
-
-		const $tp = frm.get_field('schedule_send').datepicker.timepicker;
-		$tp.$minutes.parent().css('display', 'none');
-		$tp.$minutesText.css('display', 'none');
-		$tp.$minutesText.prev().css('display', 'none');
-		$tp.$seconds.parent().css('display', 'none');
+	validate(frm) {
+		if(frm.doc.schedule_send < frappe.datetime.now_datetime()) {
+			frappe.throw(__('Schedule Time cannot be smaller than the current time.'));
+		}
 	},
 
 	setup_dashboard(frm) {
