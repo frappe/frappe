@@ -72,5 +72,4 @@ frappe.widget.utils = {
 	},
 };
 
-
 export { generate_grid };

@@ -493,6 +493,7 @@ class Document(BaseDocument):
 		self._validate_mandatory()
 		self._validate_data_fields()
 		self._validate_selects()
+		self._validate_non_negative()
 		self._validate_length()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
@@ -503,6 +504,7 @@ class Document(BaseDocument):
 		for d in children:
 			d._validate_data_fields()
 			d._validate_selects()
+			d._validate_non_negative()
 			d._validate_length()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
@@ -513,6 +515,21 @@ class Document(BaseDocument):
 				self.set(fieldname, None)
 		else:
 			self.validate_set_only_once()
+
+	def _validate_non_negative(self):
+		def get_msg(df):
+			if self.parentfield:
+				return "{} {} #{}: {} {}".format(frappe.bold(_(self.doctype)),
+					_("Row"), self.idx, _("Value cannot be negative for"), frappe.bold(_(df.label)))
+			else:
+				return _("Value cannot be negative for {0}: {1}").format(_(df.parent), frappe.bold(_(df.label)))
+
+		for df in self.meta.get('fields', {'non_negative': ('=', 1),
+			'fieldtype': ('in', ['Int', 'Float', 'Currency'])}):
+
+			if flt(self.get(df.fieldname)) < 0:
+				msg = get_msg(df)
+				frappe.throw(msg, frappe.NonNegativeError, title=_("Negative Value"))
 
 	def validate_workflow(self):
 		"""Validate if the workflow transition is valid"""

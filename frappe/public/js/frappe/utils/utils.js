@@ -124,32 +124,37 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate, additional_offset, element_to_be_scrolled) {
+	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled) {
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
-
-		var y = 0;
-		if (element && typeof element==="number") {
-			y = element;
-		} else if(element) {
-			var header_offset = $(".navbar").height() + $(".page-head").height();
-			var y = $(element).offset().top - header_offset - cint(additional_offset);
+		let scroll_top = 0;
+		if (element) {
+			// If a number is passed, just subtract the offset,
+			// otherwise calculate scroll position from element
+			scroll_top = typeof element == "number"
+				? element - cint(additional_offset)
+				: this.get_scroll_position(element, additional_offset);
 		}
 
-		if(y < 0) {
-			y = 0;
+		if (scroll_top < 0) {
+			scroll_top = 0;
 		}
 
 		// already there
-		if (y == element_to_be_scrolled.scrollTop()) {
+		if (scroll_top == element_to_be_scrolled.scrollTop()) {
 			return;
 		}
 
-		if (animate !== false) {
-			element_to_be_scrolled.animate({ scrollTop: y });
+		if (animate) {
+			element_to_be_scrolled.animate({ scrollTop: scroll_top });
 		} else {
-			element_to_be_scrolled.scrollTop(y);
+			element_to_be_scrolled.scrollTop(scroll_top);
 		}
 
+	},
+	get_scroll_position: function(element, additional_offset) {
+		let header_offset = $(".navbar").height() + $(".page-head").height();
+		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
+		return scroll_top;
 	},
 	filter_dict: function(dict, filters) {
 		var ret = [];

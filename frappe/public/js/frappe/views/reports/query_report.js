@@ -1043,7 +1043,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					// applied to Float, Currency fields, needed only for currency formatting.
 					// make first data column have value 'Total'
 					let index = 1;
-					if (this.datatable && this.datatable.options.checkboxColumn) index = 2;
+
+					if (this.report_settings.get_datatable_options) {
+						let datatable = this.report_settings.get_datatable_options({});
+						if (datatable && datatable.checkboxColumn) index = 2;
+					}
 
 					if (column.colIndex === index && !value) {
 						value = "Total";

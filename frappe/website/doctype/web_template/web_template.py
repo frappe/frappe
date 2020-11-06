@@ -11,7 +11,7 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.modules.export_file import (
-	export_to_files,
+	write_document_file,
 	get_module_path,
 	scrub_dt_dn,
 )
@@ -26,28 +26,45 @@ class WebTemplate(Document):
 			if not field.fieldname:
 				field.fieldname = frappe.scrub(field.label)
 
-	def on_update(self):
+	def before_save(self):
 		if frappe.conf.developer_mode:
 			# custom to standard
 			if self.standard:
-				export_to_files(record_list=[["Web Template", self.name]], create_init=True)
-				self.create_template_file()
-				self.template = ""
+				self.export_to_files()
 
 			# standard to custom
 			was_standard = (self.get_doc_before_save() or {}).get("standard")
 			if was_standard and not self.standard:
-				self.template = self.get_template(standard=True)
-				rmtree(self.get_template_folder())
+				self.import_from_files()
 
-	def create_template_file(self):
+	def on_trash(self):
+		if frappe.conf.developer_mode and self.standard:
+			# delete template html and json files
+			rmtree(self.get_template_folder())
+
+	def export_to_files(self):
+		"""Export Web Template to a new folder.
+
+		Doc is exported as JSON. The content of the `template` field gets
+		written into a separate HTML file. The template should not be contained
+		in the JSON.
+		"""
+		html, self.template = self.template, ""
+		write_document_file(self, create_init=True)
+		self.create_template_file(html)
+
+	def import_from_files(self):
+		self.template = self.get_template(standard=True)
+		rmtree(self.get_template_folder())
+
+	def create_template_file(self, html=None):
 		"""Touch a HTML file for the Web Template and add existing content, if any."""
 		if self.standard:
 			path = self.get_template_path()
 			if not os.path.exists(path):
 				with open(path, "w") as template_file:
-					if self.template:
-						template_file.write(self.template)
+					if html:
+						template_file.write(html)
 
 	def get_template_folder(self):
 		"""Return the absolute path to the template's folder."""

@@ -842,7 +842,6 @@ Default Sending and Inbox,به طور پیش فرض ارسال و صندوق,
 Default Sort Field,زمینه مرتب سازی پیش فرض,
 Default Sort Order,ترتیب مرتب سازی پیش فرض,
 Default Value,مقدار پیش فرض,
-Default for 'Check' type of field must be either '0' or '1',به طور پیش فرض برای چک &#39;نوع درست یا باید به صورت&#39; 0 &#39;یا&#39; 1 &#39;است,
 "Default: ""Contact Us""",به طور پیش فرض: &quot;تماس با ما&quot;,
 DefaultValue,مقدار پیش فرض,
 Define workflows for forms.,تعریف گردش کار برای فرم.,
@@ -900,7 +899,6 @@ DocType can only be renamed by Administrator,DOCTYPE تنها می تواند ت
 DocType is a Table / Form in the application.,DOCTYPE جدول / فرم در برنامه است.,
 DocType must be Submittable for the selected Doc Event,DocType باید برای Event Document انتخاب شده Submittable باشد,
 DocType on which this Workflow is applicable.,DocType که این گردش کار برای آن مناسب است,
-DocType or Field,DOCTYPE یا درست,
 "DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores",نام DOCTYPE باید با یک حرف شروع و آن را تنها می توانید از حروف، اعداد، فاصله و زیرین شامل,
 Doctype required,Doctype مورد نیاز است,
 Document,سند,
@@ -2026,7 +2024,6 @@ Reference DocName,نام مستعار مرجع,
 Reference DocType and Reference Name are required,مرجع DOCTYPE و نام مرجع مورد نیاز,
 Reference Report,گزارش مرجع,
 Reference: {0} {1},مرجع: {0} {1},
-Refresh Form,فرم تازه کردن,
 Refreshing...,تازه کردن ...,
 Register OAuth Client App,ثبت نام OAuth حفظ Client نرم افزار,
 Registered but disabled,ثبت نام اما غیر فعال,
@@ -2717,7 +2714,6 @@ View Log,مشاهده ورود به سیستم,
 View Permitted Documents,مشاهده اسناد مجاز,
 View Properties (via Customize Form),نمایش خواص (از طریق فرم سفارشی),
 View Settings,نمایش تنظیمات,
-View Subscribers,مشخصات مشترکین,
 View Website,مشاهده وب سایت,
 View document,مشاهده سند,
 View report in your browser,مشاهده گزارش در مرورگر خود,
@@ -3818,7 +3814,6 @@ Type,نوع,
 Update,به روز رسانی,
 User {0} is disabled,کاربر {0} غیر فعال است,
 Users and Permissions,کاربران و ویرایش,
-View,چشم انداز,
 Warehouse,مخزن,
 Welcome to {0},به انجمن خوش آمدید {0},
 Year,سال,
@@ -4188,6 +4183,7 @@ Linked Documents,اسناد مرتبط,
 Account SID,حساب SID,
 Steps,مراحل,
 email,پست الکترونیک,
+Component,مولفه,
 Subtitle,عنوان فرعی,
 Global Defaults,به طور پیش فرض جهانی,
 Prefix,پیشوند,
@@ -4339,7 +4335,6 @@ Send document Web View link in email,ارسال سند لینک مشاهده و�
 Enable Auto-deletion of Prepared Reports,حذف خودکار گزارش های آماده را فعال کنید,
 Prepared Report Expiry Period (Days),دوره انقضا گزارش آماده شده (روزها),
 System will automatically delete Prepared Reports after these many days since creation,سیستم پس از گذشت این چند روز از زمان ایجاد ، گزارش های آماده را به طور خودکار حذف می کند,
-Custom Link,پیوند سفارشی,
 Package Document Type,نوع سند بسته بندی,
 Include Attachments,پیوستها را وارد کنید,
 Overwrite,زیاد نوشتن,
@@ -4696,3 +4691,15 @@ Incorrect Configuration,پیکربندی نادرست است,
 You are not allowed to delete Standard Report,شما مجاز به حذف استاندارد گزارش نیستید,
 You have unseen {0},شما {0} را ندیده اید,
 Log cleanup and notification configuration,پیکربندی پاکسازی و اعلان ورود به سیستم,
+State/Province,استان / استان,
+Document Actions,اقدامات سند,
+Document Links,پیوندهای سند,
+List Settings,تنظیمات لیست,
+Cannot delete standard link. You can hide it if you want,پیوند استاندارد حذف نمی شود. اگر بخواهید می توانید آن را پنهان کنید,
+Cannot delete standard action. You can hide it if you want,اقدام استاندارد حذف نمی شود. اگر بخواهید می توانید آن را پنهان کنید,
+Applied On,اعمال شده,
+Row Name,نام ردیف,
+For DocType Link / DocType Action,برای پیوند DocType / اقدام DocType,
+Cannot edit filters for standard charts,فیلترها برای نمودارهای استاندارد قابل ویرایش نیستند,
+Event Producer Last Update,آخرین بروزرسانی سازنده رویداد,
+Default for 'Check' type of field {0} must be either '0' or '1',پیش فرض برای نوع &quot;بررسی&quot; قسمت {0} باید &quot;0&quot; یا &quot;1&quot; باشد,
