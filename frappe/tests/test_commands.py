@@ -119,3 +119,17 @@ class TestCommands(BaseTestCommands):
 		# test 6: take a backup with --verbose
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEquals(self.returncode, 0)
+
+	def test_remove_from_installed_apps(self):
+		from frappe.installer import add_to_installed_apps
+		app = "test_remove_app"
+		add_to_installed_apps(app)
+
+		# check: confirm that add_to_installed_apps added the app in the default
+		self.execute("bench --site {site} list-apps")
+		self.assertIn(app, self.stdout)
+
+		# test 1: remove app from installed_apps global default
+		self.execute("bench --site {site} remove-from-installed-apps {app}", {"app": app})
+		self.execute("bench --site {site} list-apps")
+		self.assertNotIn(app, self.stdout)
