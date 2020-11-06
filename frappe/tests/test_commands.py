@@ -119,19 +119,6 @@ class TestCommands(BaseTestCommands):
 		# test 6: take a backup with --verbose
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEquals(self.returncode, 0)
-<<<<<<< HEAD
-=======
-
-	def test_recorder(self):
-		frappe.recorder.stop()
-
-		self.execute("bench --site {site} start-recording")
-		frappe.local.cache = {}
-		self.assertEqual(frappe.recorder.status(), True)
-
-		self.execute("bench --site {site} stop-recording")
-		frappe.local.cache = {}
-		self.assertEqual(frappe.recorder.status(), False)
 
 	def test_remove_from_installed_apps(self):
 		from frappe.installer import add_to_installed_apps
@@ -146,4 +133,3 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} remove-from-installed-apps {app}", {"app": app})
 		self.execute("bench --site {site} list-apps")
 		self.assertNotIn(app, self.stdout)
->>>>>>> cb44492feb... test: Added tests for bench remove-from-installed-apps
