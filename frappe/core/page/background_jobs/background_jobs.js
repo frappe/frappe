@@ -50,8 +50,8 @@ frappe.pages.background_jobs.refresh_jobs = function() {
 const remove_failed_jobs = function() {
 	frappe.call({
 		method: 'frappe.core.page.background_jobs.background_jobs.remove_failed_jobs',
-		callback: function (r) {
+		callback: function () {
 			frappe.pages.background_jobs.refresh_jobs();
 		}
 	});
-}
+};
