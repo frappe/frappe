@@ -2,7 +2,6 @@
 // MIT License. See license.txt
 
 import deep_equal from "fast-deep-equal";
-import { generate_route, shorten_number, get_number_system } from "../widgets/utils";
 
 frappe.provide("frappe.utils");
 
@@ -902,7 +901,7 @@ Object.assign(frappe.utils, {
 	},
 
 	generate_route: function(item) {
-		const type = item.type.toLowerCase()
+		const type = item.type.toLowerCase();
 		if (type === "doctype") {
 			item.doctype = item.name;
 		}
