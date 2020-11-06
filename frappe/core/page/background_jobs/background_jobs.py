@@ -22,13 +22,13 @@ COLORS = {
 
 
 @frappe.whitelist()
-def get_info(show_failed: bool = False) -> List[Dict]:
+def get_info(show_failed=False) -> List[Dict]:
 	conn = get_redis_conn()
 	queues = Queue.all(conn)
 	workers = Worker.all(conn)
 	jobs = []
 
-	def add_job(job: Job, name: str) -> None:
+	def add_job(job: 'Job', name: str) -> None:
 		if job.kwargs.get('site') == frappe.local.site:
 			job_info = {
 				'job_name': job.kwargs.get('kwargs', {}).get('playbook_method')
@@ -69,7 +69,7 @@ def get_info(show_failed: bool = False) -> List[Dict]:
 
 
 @frappe.whitelist()
-def remove_failed_jobs() -> None:
+def remove_failed_jobs():
 	conn = get_redis_conn()
 	queues = Queue.all(conn)
 	for queue in queues:
@@ -80,7 +80,7 @@ def remove_failed_jobs() -> None:
 
 
 @frappe.whitelist()
-def get_scheduler_status() -> None:
+def get_scheduler_status():
 	if is_scheduler_inactive():
 		return [_("Inactive"), "red"]
 	return [_("Active"), "green"]
