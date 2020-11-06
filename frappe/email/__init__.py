@@ -23,15 +23,39 @@ def get_contact_list(txt, page_length=20):
 		out = frappe.db.sql("""select email_id as value,
 			concat(first_name, ifnull(concat(' ',last_name), '' )) as description
 			from tabContact
-			where name like %(txt)s or email_id like %(txt)s
+			where email_id is not null and
+			name like %(txt)s or email_id like %(txt)s
 			%(condition)s
 			limit %(page_length)s""", {
 				'txt': '%' + txt + '%',
 				'condition': match_conditions,
 				'page_length': page_length
 			}, as_dict=True)
-		out = filter(None, out)
 
+		match_conditions = build_match_conditions('Address')
+		match_conditions = "and {0}".format(match_conditions) if match_conditions else ""
+
+		out += frappe.db.sql("""select email_id as value,
+			concat(address_title, ' ', address_line1, 
+					coalesce(concat(', ',address_line2,', ',city),
+							concat(' - ',address_type) ) )
+			as description
+			from tabAddress
+			where (email_id not in (
+				select `tabAddress`.email_id 
+				from `tabContact`,`tabAddress` 
+				where `tabContact`.email_id = `tabAddress`.email_id)) and
+			(name like %(txt)s or email_id like %(txt)s
+			%(condition)s
+			) and
+			email_id is not null
+			limit %(page_length)s""", {
+				'txt': '%' + txt + '%',
+				'condition': match_conditions,
+				'page_length': 10
+			}, as_dict=True)
+		out = filter(None, out)
+		
 	except:
 		raise
 
