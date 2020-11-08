@@ -64,6 +64,16 @@ def get_workflow_safe_globals():
 				get_datetime=frappe.utils.get_datetime,
 				now=frappe.utils.now,
 			),
+<<<<<<< HEAD
+=======
+			session=frappe.session,
+			utils=frappe._dict(
+				now_datetime=frappe.utils.now_datetime,
+				add_to_date=frappe.utils.add_to_date,
+				get_datetime=frappe.utils.get_datetime,
+				now=frappe.utils.now
+				)
+>>>>>>> 7a773d2461 (feat: Workflow transition condition allows datetime functions)
 		)
 	)
 
