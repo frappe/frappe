@@ -35,7 +35,11 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 				if (this.is_quick_entry() || this.force) {
 					this.render_dialog();
 					resolve(this);
-				} else {
+				} else { // No quick entry, use full Form
+					// but still give callback a shot at the doc
+					if (this.init_callback) {
+						this.init_callback(this.doc);
+					}
 					frappe.quick_entry = null;
 					frappe.set_route('Form', this.doctype, this.doc.name)
 						.then(() => resolve(this));
