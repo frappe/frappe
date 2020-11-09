@@ -499,7 +499,6 @@ Authenticating...,در حال تأیید صحت ...,
 Authentication,احراز هویت,
 Authentication Apps you can use are: ,پرونده های تأیید اعتبار که می توانید استفاده کنید عبارتند از:,
 Authentication Credentials,احراز هویت,
-Authentication failed while receiving emails from Email Account {0}. Message from server: {1},احراز هویت در حالی که دریافت ایمیل از ایمیل حساب {0} شکست خورده است. پیام از سرور: {1},
 Authorization Code,کد مجوز,
 Authorize URL,مجاز URL,
 Authorized,مجاز,
@@ -601,7 +600,6 @@ Cannot change docstatus from 1 to 0,آیا می docstatus 1-0 تغییر نمی,
 Cannot change header content,محتوای هدر را نمیتوان تغییر داد,
 Cannot change state of Cancelled Document. Transition row {0},آیا می توانم حالت سند لغو تغییر دهید. ردیف گذار {0},
 Cannot change user details in demo. Please signup for a new account at https://erpnext.com,می توانید جزئیات کاربران در نسخه ی نمایشی را تغییر دهید. لطفا برای یک حساب جدید ثبت نام در https://erpnext.com,
-Cannot connect: {0},نمی تواند اتصال: {0},
 Cannot create a {0} against a child document: {1},نمی توانید ایجاد یک {0} در برابر یک سند کودک: {1},
 Cannot delete Home and Attachments folders,می توانید خانه و فایل های پیوست پوشه را حذف کنید,
 Cannot delete file as it belongs to {0} {1} for which you do not have permissions,نمیتوان فایل را به عنوان {0} {1} تعریف کرد که مجوزی ندارد,
@@ -842,7 +840,6 @@ Default Sending and Inbox,به طور پیش فرض ارسال و صندوق,
 Default Sort Field,زمینه مرتب سازی پیش فرض,
 Default Sort Order,ترتیب مرتب سازی پیش فرض,
 Default Value,مقدار پیش فرض,
-Default for 'Check' type of field must be either '0' or '1',به طور پیش فرض برای چک &#39;نوع درست یا باید به صورت&#39; 0 &#39;یا&#39; 1 &#39;است,
 "Default: ""Contact Us""",به طور پیش فرض: &quot;تماس با ما&quot;,
 DefaultValue,مقدار پیش فرض,
 Define workflows for forms.,تعریف گردش کار برای فرم.,
@@ -900,7 +897,6 @@ DocType can only be renamed by Administrator,DOCTYPE تنها می تواند ت
 DocType is a Table / Form in the application.,DOCTYPE جدول / فرم در برنامه است.,
 DocType must be Submittable for the selected Doc Event,DocType باید برای Event Document انتخاب شده Submittable باشد,
 DocType on which this Workflow is applicable.,DocType که این گردش کار برای آن مناسب است,
-DocType or Field,DOCTYPE یا درست,
 "DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores",نام DOCTYPE باید با یک حرف شروع و آن را تنها می توانید از حروف، اعداد، فاصله و زیرین شامل,
 Doctype required,Doctype مورد نیاز است,
 Document,سند,
@@ -1141,7 +1137,6 @@ Font Size,اندازه فونت,
 Fonts,فونت ها,
 Footer,پاورقی,
 Footer HTML,پاورقی HTML,
-Footer Item,مورد بالا و پایین صفحه,
 Footer Items,آیتم ها بالا و پایین صفحه,
 Footer will display correctly only in PDF,پاورقی درست به صورت PDF نمایش داده می شود,
 For Document Type,برای نوع سند,
@@ -1151,7 +1146,6 @@ For Value,برای ارزش,
 "For currency {0}, the minimum transaction amount should be {1}",برای ارز {0} حداقل مبلغ معامله باید {1} باشد,
 For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,برای مثال اگر شما لغو و اصلاح INV004 آن را تبدیل به یک INV004-1 سند جدید. این کمک می کند تا شما را به پیگیری هر اصلاح.,
 "For example: If you want to include the document ID, use {0}",به عنوان مثال: اگر می خواهید شامل ID سند، استفاده از {0},
-For top bar,برای نوار بالا,
 "For updating, you can update only selective columns.",برای به روز رسانی، شما می توانید ستون های انتخابی تنها به روز رسانی.,
 For {0} at level {1} in {2} in row {3},برای {0} در سطح {1} در {2} در ردیف {3},
 Force,زور,
@@ -1203,7 +1197,6 @@ Google Calendar ID,شناسه تقویم گوگل,
 Google Font,قلم گوگل,
 Google Services,خدمات Google,
 Grant Type,نوع گرانت,
-Group Label,برچسب گروه,
 Group Name,اسم گروه,
 Group name cannot be empty.,نام گروه نمیتواند خالی باشد,
 Groups of DocTypes,گروه DocTypes,
@@ -1913,7 +1906,6 @@ Please verify your Email Address,لطفا آدرس ایمیل خود را تای
 Point Allocation Periodicity,دوره تخصیص نقطه,
 Points,نکته ها,
 Points Given,امتیازهای داده شده,
-Policy,سیاست,
 Port,بندر,
 Portal Menu,منو پورتال,
 Portal Menu Item,آیتم های منو را پورتال,
@@ -2026,7 +2018,6 @@ Reference DocName,نام مستعار مرجع,
 Reference DocType and Reference Name are required,مرجع DOCTYPE و نام مرجع مورد نیاز,
 Reference Report,گزارش مرجع,
 Reference: {0} {1},مرجع: {0} {1},
-Refresh Form,فرم تازه کردن,
 Refreshing...,تازه کردن ...,
 Register OAuth Client App,ثبت نام OAuth حفظ Client نرم افزار,
 Registered but disabled,ثبت نام اما غیر فعال,
@@ -2217,7 +2208,6 @@ Select an image of approx width 150px with a transparent background for best res
 Select atleast 1 record for printing,حداقل 1 رکورد برای چاپ انتخاب کنید,
 Select or drag across time slots to create a new event.,انتخاب و یا کشیدن در سراسر شکاف زمان برای ایجاد یک رویداد جدید.,
 Select records for assignment,انتخاب پرونده برای انتساب,
-"Select target = ""_blank"" to open in a new page.",انتخاب هدف = &quot;_blank&quot; برای باز کردن در صفحه جدید.,
 Select the label after which you want to insert new field.,برچسب و پس از آن شما می خواهید برای وارد کردن زمینه های جدید را انتخاب کنید.,
 "Select your Country, Time Zone and Currency",انتخاب کشور خود، منطقه زمانی و ارز,
 Select {0},انتخاب {0},
@@ -2717,7 +2707,6 @@ View Log,مشاهده ورود به سیستم,
 View Permitted Documents,مشاهده اسناد مجاز,
 View Properties (via Customize Form),نمایش خواص (از طریق فرم سفارشی),
 View Settings,نمایش تنظیمات,
-View Subscribers,مشخصات مشترکین,
 View Website,مشاهده وب سایت,
 View document,مشاهده سند,
 View report in your browser,مشاهده گزارش در مرورگر خود,
@@ -2993,7 +2982,6 @@ star-empty,ستاره خالی,
 step-backward,گام به گام به عقب,
 step-forward,گام رو به جلو,
 submitted this document,ارسال این سند,
-"target = ""_blank""",هدف = &quot;_blank&quot;,
 text in document type,متن در نوع سند,
 text-height,متن ارتفاع,
 text-width,متن عرض,
@@ -3569,7 +3557,6 @@ Some columns might get cut off when printing to PDF. Try to keep number of colum
 Something went wrong during the token generation. Click on {0} to generate a new one.,در طول تولید نشانه ها مشکلی پیش آمد. برای تولید یک محصول جدید روی {0 کلیک کنید.,
 Submit After Import,ارسال پس از واردات,
 Submitting...,در حال ارسال ...,
-Subscribed Documents,اسناد مشترک,
 Success! You are good to go 👍,موفقیت! شما خوب هستید که بروید,
 Successful Transactions,معاملات موفق,
 Successfully Submitted!,با موفقیت ارسال شد,
@@ -3781,7 +3768,6 @@ Please specify,لطفا مشخص کنید,
 Printing,چاپ,
 Priority,اولویت,
 Project,پروژه,
-Publish,انتشار,
 Quarterly,فصلنامه,
 Queued,صف,
 Quick Entry,ورود سریع,
@@ -3818,7 +3804,6 @@ Type,نوع,
 Update,به روز رسانی,
 User {0} is disabled,کاربر {0} غیر فعال است,
 Users and Permissions,کاربران و ویرایش,
-View,چشم انداز,
 Warehouse,مخزن,
 Welcome to {0},به انجمن خوش آمدید {0},
 Year,سال,
@@ -4188,6 +4173,7 @@ Linked Documents,اسناد مرتبط,
 Account SID,حساب SID,
 Steps,مراحل,
 email,پست الکترونیک,
+Component,مولفه,
 Subtitle,عنوان فرعی,
 Global Defaults,به طور پیش فرض جهانی,
 Prefix,پیشوند,
@@ -4303,7 +4289,6 @@ Hide Border,مرز را پنهان کنید,
 Index Web Pages for Search,صفحه های وب را برای جستجو فهرست کنید,
 Action / Route,اقدام / مسیر,
 Document Naming Rule,قانون نامگذاری سند,
-Rules with higher priority will be applied first.,ابتدا قوانینی با اولویت بالاتر اعمال می شود.,
 Rule Conditions,شرایط قانون,
 Digits,رقم,
 Example: 00001,مثال: 00001,
@@ -4339,7 +4324,6 @@ Send document Web View link in email,ارسال سند لینک مشاهده و�
 Enable Auto-deletion of Prepared Reports,حذف خودکار گزارش های آماده را فعال کنید,
 Prepared Report Expiry Period (Days),دوره انقضا گزارش آماده شده (روزها),
 System will automatically delete Prepared Reports after these many days since creation,سیستم پس از گذشت این چند روز از زمان ایجاد ، گزارش های آماده را به طور خودکار حذف می کند,
-Custom Link,پیوند سفارشی,
 Package Document Type,نوع سند بسته بندی,
 Include Attachments,پیوستها را وارد کنید,
 Overwrite,زیاد نوشتن,
@@ -4349,10 +4333,6 @@ Package Publish Tool,ابزار انتشار بسته,
 Click on the row for accessing filters.,برای دسترسی به فیلترها روی ردیف کلیک کنید.,
 Sites,سایت های,
 Last Deployed On,آخرین اعزام در,
-Last published {0},آخرین انتشار: {0},
-Publishing documents...,انتشار اسناد ...,
-Documents have been published.,اسنادی منتشر شده است.,
-Select Document Type.,نوع سند را انتخاب کنید.,
 Console Log,ورود به سیستم کنسول,
 "Set Default Options for all charts on this Dashboard (Ex: ""colors"": [""#d1d8dd"", ""#ff5858""])",گزینه های پیش فرض را برای همه نمودارهای این داشبورد تنظیم کنید (به عنوان مثال: &quot;colors&quot;: [&quot;# d1d8dd&quot;، &quot;# ff5858&quot;]),
 Use Report Chart,از نمودار گزارش استفاده کنید,
@@ -4571,10 +4551,6 @@ Incorrect URL,آدرس اینترنتی نادرست است,
 Duplicate Name,نام تکراری,
 "Please check the value of ""Fetch From"" set for field {0}",لطفاً مقدار مجموعه &quot;Fetch From&quot; را برای قسمت {0} بررسی کنید,
 Wrong Fetch From value,واکشی اشتباه از مقدار,
-Deploying,در حال استقرار,
-Couldn't connect to site {0}. Please check Error Logs.,اتصال به سایت {0} امکان پذیر نیست. لطفا گزارش خطاها را بررسی کنید.,
-Error while installing package to site {0}. Please check Error Logs.,هنگام نصب بسته به سایت خطایی رخ داد {0}. لطفا گزارش خطاها را بررسی کنید.,
-Exporting,صادر کردن,
 A field with the name '{}' already exists in doctype {}.,فیلدی با نام &quot;{}&quot; از قبل در doctype وجود دارد {}.,
 Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account.,قسمت سفارشی {0} توسط سرپرست ایجاد شده است و فقط از طریق حساب مدیر قابل حذف است.,
 Failed to send {0} Auto Email Report,{0} گزارش خودکار ایمیل ارسال نشد,
@@ -4614,8 +4590,6 @@ Row #{0}: Please set Mapping or Default Value for the field {1} since its a depe
 Row #{0}: Please set remote value filters for the field {1} to fetch the unique remote dependency document,ردیف شماره {0}: لطفاً برای گرفتن سند منحصر به فرد وابستگی از راه دور ، فیلترهای مقدار از راه دور را برای قسمت {1} تنظیم کنید,
 Paytm payment gateway settings,تنظیمات درگاه پرداخت Paytm,
 "Company, Fiscal Year and Currency defaults",پیش فرض های شرکت ، سال مالی و ارز,
-Package,بسته بندی,
-Import and Export Packages.,بسته های واردات و صادرات.,
 Razorpay Signature Verification Failed,تأیید تأیید Razorpay انجام نشد,
 Google Drive - Could not locate - {0},Google Drive - مکان یافت نشد - {0},
 "Sync token was invalid and has been resetted, Retry syncing.",رمز همگام سازی نامعتبر است و مجدداً بازنشانی شده است ، دوباره همگام سازی را امتحان کنید.,
@@ -4696,3 +4670,33 @@ Incorrect Configuration,پیکربندی نادرست است,
 You are not allowed to delete Standard Report,شما مجاز به حذف استاندارد گزارش نیستید,
 You have unseen {0},شما {0} را ندیده اید,
 Log cleanup and notification configuration,پیکربندی پاکسازی و اعلان ورود به سیستم,
+State/Province,استان / استان,
+Document Actions,اقدامات سند,
+Document Links,پیوندهای سند,
+List Settings,تنظیمات لیست,
+Cannot delete standard link. You can hide it if you want,پیوند استاندارد حذف نمی شود. اگر بخواهید می توانید آن را پنهان کنید,
+Cannot delete standard action. You can hide it if you want,اقدام استاندارد حذف نمی شود. اگر بخواهید می توانید آن را پنهان کنید,
+Applied On,اعمال شده,
+Row Name,نام ردیف,
+For DocType Link / DocType Action,برای پیوند DocType / اقدام DocType,
+Cannot edit filters for standard charts,فیلترها برای نمودارهای استاندارد قابل ویرایش نیستند,
+Event Producer Last Update,آخرین بروزرسانی سازنده رویداد,
+Default for 'Check' type of field {0} must be either '0' or '1',پیش فرض برای نوع &quot;بررسی&quot; قسمت {0} باید &quot;0&quot; یا &quot;1&quot; باشد,
+Non Negative,غیر منفی,
+Rules with higher priority number will be applied first.,ابتدا قوانینی با اولویت بالاتر اعمال می شود.,
+Open URL in a New Tab,URL را در یک برگه جدید باز کنید,
+Align Right,تراز راست,
+Loading Filters...,در حال بارگیری فیلترها ...,
+Count Customizations,تعداد سفارشی ها را بشمارید,
+For Example: {} Open,برای مثال: {} باز کنید,
+Choose Existing Card or create New Card,کارت موجود را انتخاب کنید یا کارت جدید ایجاد کنید,
+Number Cards,کارت های شماره,
+Function Based On,عملکرد مبتنی بر,
+Add Filters,فیلترها را اضافه کنید,
+Skip,پرش,
+Dismiss,رد,
+Value cannot be negative for,مقدار نمی تواند برای منفی باشد,
+Value cannot be negative for {0}: {1},مقدار برای {0} نمی تواند منفی باشد: {1},
+Negative Value,ارزش منفی,
+Authentication failed while receiving emails from Email Account: {0}.,تأیید اعتبار هنگام دریافت ایمیل از حساب ایمیل انجام نشد: {0}.,
+Message from server: {0},پیام از طرف سرور: {0},
