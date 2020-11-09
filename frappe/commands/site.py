@@ -325,8 +325,8 @@ def use(site, sites_path='.'):
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
-@click.option('--include', default="", type=str, help="Specify the DocTypes to backup seperated by commas")
-@click.option('--exclude', default="", type=str, help="Specify the DocTypes to not backup seperated by commas")
+@click.option('--include', '--only', '-i', default="", type=str, help="Specify the DocTypes to backup seperated by commas")
+@click.option('--exclude', '-e', default="", type=str, help="Specify the DocTypes to not backup seperated by commas")
 @click.option('--backup-path', default=None, help="Set path for saving all the files in this operation")
 @click.option('--backup-path-db', default=None, help="Set path for saving database file")
 @click.option('--backup-path-files', default=None, help="Set path for saving public file")
