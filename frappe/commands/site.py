@@ -103,11 +103,11 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 @click.option('--install-app', multiple=True, help='Install app after installation')
 @click.option('--with-public-files', help='Restores the public files of the site, given path to its tar file')
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
-@click.option('--force', is_flag=True, default=False, help='Ignore the site downgrade warning, if applicable')
+@click.option('--force', is_flag=True, default=False, help='Ignore the validations and downgrade warnings. This action is not recommended')
 @pass_context
 def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
-	from frappe.installer import extract_sql_gzip, extract_files, is_downgrade
+	from frappe.installer import extract_sql_gzip, extract_files, is_downgrade, validate_database_sql
 	force = context.force or force
 
 	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
@@ -127,6 +127,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	else:
 		decompressed_file_name = sql_file_path
 
+	validate_database_sql(decompressed_file_name, _raise=force)
 	site = get_site(context)
 	frappe.init(site=site)
 
@@ -305,15 +306,16 @@ def migrate_to(context, frappe_provider):
 
 @click.command('run-patch')
 @click.argument('module')
+@click.option('--force', is_flag=True)
 @pass_context
-def run_patch(context, module):
+def run_patch(context, module, force):
 	"Run a particular patch"
 	import frappe.modules.patch_handler
 	for site in context.sites:
 		frappe.init(site=site)
 		try:
 			frappe.connect()
-			frappe.modules.patch_handler.run_single(module, force=context.force)
+			frappe.modules.patch_handler.run_single(module, force=force or context.force)
 		finally:
 			frappe.destroy()
 	if not context.sites:
