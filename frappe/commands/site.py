@@ -223,30 +223,31 @@ def install_app(context, apps):
 
 
 @click.command('list-apps')
-@click.option('--only-apps', is_flag=True)
 @pass_context
-def list_apps(context, only_apps):
+def list_apps(context):
 	"List apps in site"
-	import click
-	titled = False
-
-	if len(context.sites) > 1:
-		titled = True
 
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
-		apps = sorted(frappe.get_installed_apps())
+		site_title = click.style(f"{site}", fg="green") if len(context.sites) > 1 else ""
+		apps = frappe.get_single("Installed Applications").installed_applications
 
-		if only_apps:
-			apps.remove("frappe")
+		if apps:
+			name_len, ver_len, branch_len = [
+				max([len(x.get(y)) for x in apps]) for y in ["app_name", "app_version", "git_branch"]
+			]
+			template = "{{0:{0}}} {{1:{1}}} {{2}}".format(name_len, ver_len, branch_len)
 
-		if titled:
-			summary = "{}{}".format(click.style(site + ": ", fg="green"), ", ".join(apps))
+			installed_applications = [template.format(app.app_name, app.app_version, app.git_branch) for app in apps]
+			applications_summary = "\n".join(installed_applications)
+			summary = f"\n{site_title}\n{applications_summary}".strip()
+
 		else:
-			summary = "\n".join(apps)
+			applications_summary = "\n".join(frappe.get_installed_apps())
+			summary = f"\n{site_title}\n{applications_summary}".strip()
 
-		if apps and summary.strip():
+		if applications_summary and summary:
 			print(summary)
 
 		frappe.destroy()
