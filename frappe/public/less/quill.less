@@ -11,7 +11,6 @@
 .ql-editor {
     font-family: @font-stack;
     line-height: 1.6;
-    padding: 12px 20px;
 
 	h1, h2, h3, h4, h5 {
 		margin-top: 0.5em;
@@ -132,19 +131,20 @@
 
 .ql-editor ol {
 	padding-left: 2.5em;
+  padding-right: 2.5em;
 }
 
 .ql-editor li[data-list=ordered] {
 	list-style-type: decimal;
 	padding-left: 0;
+  padding-right: 0;
 
 	&::before {
 		content: none;
 	}
 }
 
-// Fix rtl alignment
-//------------------------------------
+// RTL alignment
 .control-input {
   direction: ltr;
 }
@@ -153,11 +153,6 @@
   direction: ltr;
 }
 
-.ql-editor ol li.ql-direction-rtl{
-  padding-right: 0;
-}
-
 .page-body {
   overflow-x: visible;
 }
-//------------------------------------

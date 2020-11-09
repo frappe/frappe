@@ -1,16 +1,16 @@
 import Quill from 'quill';
 
-// specify the fonts you would
-var fonts = ['Arial', 'Courier', 'Times New Roman', 'Verdana'];
+// specify the fonts you want
+let fonts = ['Arial', 'Courier', 'Times New Roman', 'Verdana'];
 // generate code friendly names
 function getFontName(font) {
 	return font.toLowerCase().replace(/\s/g, "-");
 }
-var fontNames = fonts.map(font => getFontName(font));
+let fontNames = fonts.map(font => getFontName(font));
 // add fonts to style
-var fontStyles = "";
+let fontStyles = "";
 fonts.forEach(function(font) {
-	var fontName = getFontName(font);
+	let fontName = getFontName(font);
 	fontStyles += ".ql-snow .ql-picker.ql-font .ql-picker-label[data-value=" + fontName + "]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value=" + fontName + "]::before {" +
         "content: '" + font + "';" +
         "font-family: '" + font + "', sans-serif;" +
@@ -19,7 +19,7 @@ fonts.forEach(function(font) {
         " font-family: '" + font + "', sans-serif;" +
         "}";
 });
-var node = document.createElement('style');
+let node = document.createElement('style');
 node.innerHTML = fontStyles;
 document.body.appendChild(node);
 
@@ -70,12 +70,12 @@ const BackgroundStyle = Quill.import('attributors/style/background');
 const ColorStyle = Quill.import('attributors/style/color');
 const FontStyle = Quill.import('attributors/style/font');
 const AlignStyle = Quill.import('attributors/style/align');
-// const DirectionStyle = Quill.import('attributors/style/direction');
+
 Quill.register(BackgroundStyle, true);
 Quill.register(ColorStyle, true);
 Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
-// Quill.register(DirectionStyle, true);
+
 
 //Adding fonts in text editor
 var Font = Quill.import('attributors/class/font');
