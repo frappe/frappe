@@ -9,7 +9,7 @@ import frappe
 import os
 from frappe import _
 from frappe.model.document import Document
-from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size, get_chunk_site
 from frappe.integrations.utils import make_post_request
 from frappe.utils import (cint, get_request_site_address,
 	get_files_path, get_backups_path, get_url, encode)
@@ -165,8 +165,9 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 		return
 
 	create_folder_if_not_exists(folder, dropbox_client)
-	chunk_size = 15 * 1024 * 1024
 	file_size = os.path.getsize(encode(filename))
+	chunk_size = get_chunk_site(file_size)
+
 	mode = (dropbox.files.WriteMode.overwrite)
 
 	f = open(encode(filename), 'rb')

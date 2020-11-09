@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+from __future__ import print_function, unicode_literals
+
 import json
 import os
 
@@ -36,7 +38,6 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 
 def install_app(name, verbose=False, set_as_patched=True):
-	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.model.sync import sync_for
 	from frappe.modules.utils import sync_customizations
 	from frappe.utils.fixtures import sync_fixtures
@@ -108,11 +109,13 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 
 
 def remove_from_installed_apps(app_name):
+	from frappe.defaults import _clear_cache
+
 	installed_apps = frappe.get_installed_apps()
 	if app_name in installed_apps:
 		installed_apps.remove(app_name)
-		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
-		frappe.get_single("Installed Applications").update_versions()
+		frappe.db.set_value("DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps))
+		_clear_cache("__global")
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
@@ -271,6 +274,8 @@ def get_site_config_path():
 
 
 def get_conf_params(db_name=None, db_password=None):
+	from six.moves import input
+
 	if not db_name:
 		db_name = input("Database Name: ")
 		if not db_name:
