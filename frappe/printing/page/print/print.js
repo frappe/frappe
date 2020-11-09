@@ -36,11 +36,13 @@ frappe.ui.form.PrintView = class {
 	make() {
 		this.print_wrapper = this.page.main.empty().html(
 			`<div class="print-preview-wrapper"><div class="print-preview">
-				<div class="print-format"></div>
+				<iframe class="print-format-container" width="100%" frameBorder="0" scrolling="no"">
+				</iframe>
 				<div class="page-break-message text-muted text-center text-medium margin-top"></div>
 			</div>
 		</div>`
 		);
+
 		this.print_settings = frappe.model.get_doc(
 			':Print Settings',
 			'Print Settings'
@@ -378,15 +380,14 @@ frappe.ui.form.PrintView = class {
 	}
 
 	preview() {
-		const $print_format = this.print_wrapper.find('.print-format').empty();
+		const $print_format = this.print_wrapper.find('iframe');
+		this.$print_format_body = $print_format.contents();
 		this.get_print_html((out) => {
 			if (!out.html) {
 				out.html = this.get_no_preview_html();
 			}
 
-			$print_format.html(out.html);
-			this.show_footer();
-			this.set_style(out.style);
+			this.setup_print_format_dom(out, $print_format);
 
 			const print_height = $print_format.get(0).offsetHeight;
 			const $message = this.wrapper.find('.page-break-message');
@@ -399,6 +400,34 @@ frappe.ui.form.PrintView = class {
 			} else {
 				$message.text('');
 			}
+		});
+	}
+
+	setup_print_format_dom(out, $print_format) {
+		this.$print_format_body.find('head').html(
+			`<style type="text/css">${out.style}</style>
+			<link href="${frappe.urllib.get_base_url()}/assets/css/printview.css" rel="stylesheet">`
+		);
+
+		this.$print_format_body.find('body').html(
+			`<div class="print-format">${out.html}</div>`
+		);
+
+		this.show_footer();
+
+		$print_format.css({
+			'min-height': this.$print_format_body.find('.print-format').height()
+		});
+
+		this.wrapper.find('.print-format').css({
+			display: 'flex',
+			flexDirection: 'column',
+		});
+
+		this.$print_format_body.find('.page-break').css({
+			display: 'flex',
+			'flex-direction': 'column',
+			flex: '1',
 		});
 	}
 
@@ -415,21 +444,12 @@ frappe.ui.form.PrintView = class {
 	show_footer() {
 		// footer is hidden by default as reqd by pdf generation
 		// simple hack to show it in print preview
-		this.wrapper.find('.print-format').css({
-			display: 'flex',
-			flexDirection: 'column',
-		});
-		this.wrapper.find('.page-break').css({
-			display: 'flex',
-			'flex-direction': 'column',
-			flex: '1',
-		});
-		this.wrapper.find('#footer-html').attr(
+
+		this.$print_format_body.find('#footer-html').attr(
 			'style',
 			`
 			display: block !important;
 			order: 1;
-			margin-top: auto;
 		`
 		);
 	}

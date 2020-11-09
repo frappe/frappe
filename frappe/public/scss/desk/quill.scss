@@ -38,6 +38,13 @@
 	max-height: 600px;
 }
 
+.print-format {
+	.ql-snow .ql-editor {
+		height: auto;
+		min-height: 0;
+	}
+}
+
 .ql-snow .ql-picker {
 	font-size: var(--text-sm);
 }

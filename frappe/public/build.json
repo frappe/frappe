@@ -95,7 +95,10 @@
 		"public/css/desk-rtl.css",
 		"public/css/report-rtl.css"
 	],
-	"css/printview.css": "public/scss/print.scss",
+	"css/printview.css": [
+		"public/css/bootstrap.css",
+		"public/scss/print.scss"
+	],
 	"concat:js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",

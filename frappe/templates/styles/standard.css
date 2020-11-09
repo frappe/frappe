@@ -74,6 +74,7 @@
 }
 
 .table {
+	font-size: inherit;
 	margin: 20px 0px;
 }
 
