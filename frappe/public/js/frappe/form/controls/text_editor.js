@@ -12,12 +12,12 @@ let fontStyles = "";
 fonts.forEach(function(font) {
 	let fontName = getFontName(font);
 	fontStyles += ".ql-snow .ql-picker.ql-font .ql-picker-label[data-value=" + fontName + "]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value=" + fontName + "]::before {" +
-        "content: '" + font + "';" +
-        "font-family: '" + font + "', sans-serif;" +
-        "}" +
-        ".ql-font-" + fontName + "{" +
-        " font-family: '" + font + "', sans-serif;" +
-        "}";
+				"content: '" + font + "';" +
+				"font-family: '" + font + "', sans-serif;" +
+				"}" +
+				".ql-font-" + fontName + "{" +
+				" font-family: '" + font + "', sans-serif;" +
+				"}";
 });
 let node = document.createElement('style');
 node.innerHTML = fontStyles;
