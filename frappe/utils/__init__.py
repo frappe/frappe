@@ -721,3 +721,11 @@ def get_file_size(path, format=False):
 		num /= 1024
 
 	return "{0:.1f}{1}{2}".format(num, 'Yi', suffix)
+
+def get_build_version():
+	try:
+		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))
+	except OSError:
+		# .build can sometimes not exist
+		# this is not a major problem so send fallback
+		return frappe.utils.random_string(8)
