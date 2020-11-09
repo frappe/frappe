@@ -21,7 +21,6 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.bind_change_event();
-		this.bind_focusout();
 		this.setup_autoname_check();
 		if (this.df.options == 'Phone') {
 			this.setup_phone();
