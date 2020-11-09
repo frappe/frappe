@@ -5,29 +5,14 @@ import json
 import os
 
 import frappe
-<<<<<<< HEAD
 import frappe.database
-import importlib
-from frappe import _
-from frappe.model.sync import sync_for
-from frappe.utils.fixtures import sync_fixtures
-from frappe.website import render
-from frappe.modules.utils import sync_customizations
-from frappe.database import setup_database
+
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
 			   db_type=None, db_host=None, db_port=None,
 			   db_password=None, no_mariadb_socket=False):
-=======
-
-
-def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
-			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
-			   db_password=None, db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
-	import frappe.database
 	from frappe.database import setup_database
->>>>>>> 3ced26c3e5... fix: Optimize imports
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
@@ -52,9 +37,9 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 def install_app(name, verbose=False, set_as_patched=True):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-	from frappe.utils.fixtures import sync_fixtures
 	from frappe.model.sync import sync_for
 	from frappe.modules.utils import sync_customizations
+	from frappe.utils.fixtures import sync_fixtures
 
 	frappe.flags.in_install = name
 	frappe.flags.ignore_in_install = False
@@ -229,24 +214,14 @@ def init_singles():
 			doc.flags.ignore_validate=True
 			doc.save()
 
-<<<<<<< HEAD
 def make_conf(db_name=None, db_password=None, site_config=None, db_type=None):
-=======
-
-def make_conf(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
->>>>>>> fcac98e32a... style: Add consistent spacing for readability
 	site = frappe.local.site
 	make_site_config(db_name, db_password, site_config, db_type=db_type)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)
 
-<<<<<<< HEAD
 def make_site_config(db_name=None, db_password=None, site_config=None, db_type=None):
-=======
-
-def make_site_config(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
->>>>>>> fcac98e32a... style: Add consistent spacing for readability
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
 
@@ -363,8 +338,8 @@ def extract_sql_gzip(sql_gz_path):
 
 
 def extract_tar_files(site_name, file_path, folder_name):
-	import subprocess
 	import shutil
+	import subprocess
 
 	# Need to do frappe.init to maintain the site locals
 	frappe.init(site=site_name)

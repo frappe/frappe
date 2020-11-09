@@ -17,14 +17,8 @@ from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
 from frappe.utils import global_search
 
-<<<<<<< HEAD
 def migrate(verbose=True, rebuild_website=False, skip_failing=False):
 	'''Migrate all apps to the latest version, will:
-=======
-
-def migrate(verbose=True, rebuild_website=False, skip_failing=False, skip_search_index=False):
-	'''Migrate all apps to the current version, will:
->>>>>>> 2d96a2c4cc... fix: Docstring latest=>current
 	- run before migrate hooks
 	- run patches
 	- sync doctypes (schema)

@@ -285,10 +285,6 @@ def import_doc(context, path, force=False):
 @click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
 @click.option('--ignore-encoding-errors', default=False, is_flag=True, help='Ignore encoding errors while coverting to unicode')
 @click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
-<<<<<<< HEAD
-
-=======
->>>>>>> ff384d9d72... chore: Minor fixes
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
 	"Import CSV using data import"
