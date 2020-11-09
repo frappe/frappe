@@ -1,10 +1,11 @@
-name: 'Documentation Required'
+name: 'Documentation Check'
 on:
   pull_request:
     types: [ opened, synchronize, reopened, edited ]
 
 jobs:
-  build:
+  docs-required:
+    name: 'Documentation Required'
     runs-on: ubuntu-latest
 
     steps:

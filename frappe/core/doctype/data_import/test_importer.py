@@ -5,12 +5,14 @@ from __future__ import unicode_literals
 
 import unittest
 import frappe
+from frappe.core.doctype.data_import.importer import Importer
 from frappe.utils import getdate, format_duration
 
 doctype_name = 'DocType for Import'
 
 class TestImporter(unittest.TestCase):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
 		create_doctype_if_not_exists(doctype_name)
 
 	def test_data_import_from_file(self):
@@ -71,19 +73,28 @@ class TestImporter(unittest.TestCase):
 		self.assertEqual(warnings[2]['message'], "<b>Title</b> is a mandatory field")
 
 	def test_data_import_update(self):
-		if not frappe.db.exists(doctype_name, 'Test 26'):
-			frappe.get_doc(
-				doctype=doctype_name,
-				title='Test 26'
-			).insert()
+		existing_doc = frappe.get_doc(
+			doctype=doctype_name,
+			title=frappe.generate_hash(doctype_name, 8),
+			table_field_1=[{'child_title': 'child title to update'}]
+		)
+		existing_doc.save()
+		frappe.db.commit()
 
 		import_file = get_import_file('sample_import_file_for_update')
 		data_import = self.get_importer(doctype_name, import_file, update=True)
-		data_import.start_import()
+		i = Importer(data_import.reference_doctype, data_import=data_import)
 
-		updated_doc = frappe.get_doc(doctype_name, 'Test 26')
+		# update child table id in template date
+		i.import_file.raw_data[1][4] = existing_doc.table_field_1[0].name
+		i.import_file.raw_data[1][0] = existing_doc.name
+		i.import_file.parse_data_from_template()
+		i.import_data()
+
+		updated_doc = frappe.get_doc(doctype_name, existing_doc.name)
 		self.assertEqual(updated_doc.description, 'test description')
 		self.assertEqual(updated_doc.table_field_1[0].child_title, 'child title')
+		self.assertEqual(updated_doc.table_field_1[0].name, existing_doc.table_field_1[0].name)
 		self.assertEqual(updated_doc.table_field_1[0].child_description, 'child description')
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, 'child title again')
 
