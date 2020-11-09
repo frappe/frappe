@@ -57,6 +57,7 @@ class TestFormLoad(unittest.TestCase):
 		# have write access on `published` field (or on permlevel 1 fields)
 		blog_doc.published = 1
 		blog_doc.save()
+
 		# since published field has higher permlevel
 		self.assertEqual(blog_doc.published, 0)
 
@@ -94,7 +95,7 @@ class TestFormLoad(unittest.TestCase):
 		user.remove_roles(*user_roles)
 		user.add_roles('Accounts User')
 
-		make_property_setter('Contact Phone', 'phone', 'permlevel', 1, 'Data')
+		make_property_setter('Contact Phone', 'phone', 'permlevel', 1, 'Int')
 		reset('Contact Phone')
 		add('Contact', 'Sales User', 1)
 		update('Contact', 'Sales User', 1, 'write', 1)
@@ -123,6 +124,8 @@ class TestFormLoad(unittest.TestCase):
 		# reset user roles
 		user.remove_roles('Accounts User', 'Sales User')
 		user.add_roles(*user_roles)
+
+		contact.delete()
 
 
 def get_blog(blog_name):

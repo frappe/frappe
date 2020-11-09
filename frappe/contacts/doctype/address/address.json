@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
  "creation": "2013-01-10 16:34:32",
@@ -24,7 +25,6 @@
   "is_shipping_address",
   "disabled",
   "linked_with",
-  "is_your_company_address",
   "links"
  ],
  "fields": [
@@ -75,7 +75,7 @@
   {
    "fieldname": "state",
    "fieldtype": "Data",
-   "label": "State"
+   "label": "State/Province"
   },
   {
    "fieldname": "country",
@@ -139,12 +139,6 @@
    "options": "fa fa-pushpin"
   },
   {
-   "default": "0",
-   "fieldname": "is_your_company_address",
-   "fieldtype": "Check",
-   "label": "Is Your Company Address"
-  },
-  {
    "fieldname": "links",
    "fieldtype": "Table",
    "label": "Links",
@@ -153,7 +147,8 @@
  ],
  "icon": "fa fa-map-marker",
  "idx": 5,
- "modified": "2019-09-08 11:41:04.145589",
+ "links": [],
+ "modified": "2020-10-21 16:14:37.284830",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",

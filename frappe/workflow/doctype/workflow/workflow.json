@@ -66,7 +66,7 @@
    "label": "States"
   },
   {
-   "description": "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is\"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\"",
+   "description": "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\"",
    "fieldname": "states",
    "fieldtype": "Table",
    "label": "Document States",

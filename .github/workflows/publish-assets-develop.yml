@@ -1,11 +1,12 @@
-name: Build and Publish Assets for Development
+name: 'Frappe Assets'
 
 on:
   push:
     branches: [ develop ]
 
 jobs:
-  build:
+  build-dev-and-publish:
+    name: 'Build and Publish Assets for Development'
     runs-on: ubuntu-latest
 
     steps:

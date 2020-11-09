@@ -261,7 +261,7 @@ frappe.ui.form.Form = class FrappeForm {
 		cur_frm = this;
 
 		if(this.docname) { // document to show
-
+			this.save_disabled = false;
 			// set the doc
 			this.doc = frappe.get_doc(this.doctype, this.docname);
 
@@ -1265,17 +1265,17 @@ frappe.ui.form.Form = class FrappeForm {
 
 	set_df_property(fieldname, property, value, docname, table_field) {
 		var df;
-		if (!docname && !table_field) {
+		if (!docname || !table_field) {
 			df = this.get_docfield(fieldname);
 		} else {
-			var grid = this.fields_dict[table_field].grid,
-				fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
+			var grid = this.fields_dict[fieldname].grid,
+				fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': table_field});
 			if (fname && fname.length)
-				df = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
+				df = frappe.meta.get_docfield(fname[0].parent, table_field, docname);
 		}
 		if (df && df[property] != value) {
 			df[property] = value;
-			refresh_field(fieldname, table_field);
+			this.refresh_field(fieldname);
 		}
 	}
 
@@ -1517,11 +1517,12 @@ frappe.ui.form.Form = class FrappeForm {
 
 					const escaped_name = encodeURIComponent(value);
 
-					return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+					return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(escaped_name)s" data-doctype="%(doctype)s" data-name="%(name)s">%(label)s</a>', {
 						color: get_color(doc || {}),
 						doctype: df.options,
-						name: escaped_name,
-						label: label
+						escaped_name: escaped_name,
+						label: label,
+						name: value
 					});
 				} else {
 					return '';
@@ -1657,6 +1658,21 @@ frappe.ui.form.Form = class FrappeForm {
 		driver.defineSteps(steps);
 		frappe.route.on('change', () => driver.reset());
 		driver.start();
+	}
+
+	// Filters fields from the reference doctype and sets them as options for a Select field
+	set_fields_as_options(fieldname, reference_doctype, filter_function, default_options=[], table_fieldname) {
+		if (!reference_doctype) return;
+		let options = default_options;
+		return new Promise(resolve => {
+			frappe.model.with_doctype(reference_doctype, () => {
+				frappe.get_meta(reference_doctype).fields.map(df => {
+					filter_function(df) && options.push({ label: df.label, value: df.fieldname });
+				});
+				options && this.set_df_property(fieldname, 'options', options, this.doc.name, table_fieldname);
+				resolve(options);
+			});
+		});
 	}
 };
 

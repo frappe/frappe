@@ -43,7 +43,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 ## Contributing
 
-1. [Pull Request Requirements](https://github.com/frappe/erpnext/wiki/Pull-Request-Guidelines)
+1. [Contribution Guidelines](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
 1. [Translations](https://translate.erpnext.com)
 
 ### Website
