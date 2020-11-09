@@ -28,8 +28,9 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 	}
 
 	show_alert() {
-		frappe.db.count(this.form.doctype)
-			.then(count => {
+		frappe.db.get_list(this.form.doctype, {limit: 2})
+			.then(result => {
+				const count = result.length;
 				const setting = this.setting;
 				let message = count === 1 ?
 					setting.first_success_message :

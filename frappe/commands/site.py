@@ -265,14 +265,12 @@ def disable_user(context, email):
 		user.save(ignore_permissions=True)
 		frappe.db.commit()
 
-
 @click.command('migrate')
 @click.option('--skip-failing', is_flag=True, help="Skip patches that fail to run")
 @click.option('--skip-search-index', is_flag=True, help="Skip search indexing for web documents")
 @pass_context
 def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
-	import compileall
 	import re
 	from frappe.migrate import migrate
 
@@ -290,9 +288,6 @@ def migrate(context, skip_failing=False, skip_search_index=False):
 			frappe.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
-
-	print("Compiling Python files...")
-	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
 @click.command('migrate-to')
 @click.argument('frappe_provider')
@@ -636,8 +631,10 @@ def browse(context, site):
 @click.command('start-recording')
 @pass_context
 def start_recording(context):
+	import frappe.recorder
 	for site in context.sites:
 		frappe.init(site=site)
+		frappe.set_user("Administrator")
 		frappe.recorder.start()
 	if not context.sites:
 		raise SiteNotSpecifiedError
@@ -646,8 +643,10 @@ def start_recording(context):
 @click.command('stop-recording')
 @pass_context
 def stop_recording(context):
+	import frappe.recorder
 	for site in context.sites:
 		frappe.init(site=site)
+		frappe.set_user("Administrator")
 		frappe.recorder.stop()
 	if not context.sites:
 		raise SiteNotSpecifiedError

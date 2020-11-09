@@ -16,6 +16,7 @@
    "reqd": 0
   },
   {
+   "default": "3",
    "fieldname": "columns",
    "fieldtype": "Select",
    "label": "Columns",
@@ -54,8 +55,9 @@
   }
  ],
  "idx": 2,
- "modified": "2020-09-11 15:52:40.533302",
+ "modified": "2020-10-26 17:43:08.219285",
  "modified_by": "Administrator",
+ "module": "Website",
  "name": "Section with Features",
  "owner": "Administrator",
  "standard": 1,

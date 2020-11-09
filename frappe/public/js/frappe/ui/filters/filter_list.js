@@ -63,12 +63,15 @@ frappe.ui.FilterGroup = class {
 	}
 
 	validate_args(doctype, fieldname) {
-
-		if(doctype && fieldname
+		if (doctype && fieldname
 			&& !frappe.meta.has_field(doctype, fieldname)
 			&& !frappe.model.std_fields_list.includes(fieldname)) {
 
-			frappe.throw(__(`Invalid filter: "${[fieldname.bold()]}"`));
+			frappe.msgprint({
+				message: __('Invalid filter: {0}', [fieldname.bold()]),
+				indicator: 'red',
+			});
+
 			return false;
 		}
 		return true;

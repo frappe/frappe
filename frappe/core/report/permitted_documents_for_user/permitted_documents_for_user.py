@@ -47,7 +47,7 @@ def query_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	user = filters.get("user")
 	user_perms = frappe.utils.user.UserPermissions(user)
 	user_perms.build_permissions()
-	can_read = user_perms.can_read
+	can_read = user_perms.can_read # Does not include child tables
 
 	single_doctypes = [d[0] for d in frappe.db.get_values("DocType", {"issingle": 1})]
 
