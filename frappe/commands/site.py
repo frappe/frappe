@@ -222,7 +222,7 @@ def install_app(context, apps):
 	sys.exit(exit_code)
 
 
-@click.command('list-apps')
+@click.command("list-apps")
 @pass_context
 def list_apps(context):
 	"List apps in site"
@@ -230,16 +230,22 @@ def list_apps(context):
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
-		site_title = click.style(f"{site}", fg="green") if len(context.sites) > 1 else ""
+		site_title = (
+			click.style(f"{site}", fg="green") if len(context.sites) > 1 else ""
+		)
 		apps = frappe.get_single("Installed Applications").installed_applications
 
 		if apps:
-			name_len, ver_len, branch_len = [
-				max([len(x.get(y)) for x in apps]) for y in ["app_name", "app_version", "git_branch"]
+			name_len, ver_len = [
+				max([len(x.get(y)) for x in apps])
+				for y in ["app_name", "app_version"]
 			]
-			template = "{{0:{0}}} {{1:{1}}} {{2}}".format(name_len, ver_len, branch_len)
+			template = "{{0:{0}}} {{1:{1}}} {{2}}".format(name_len, ver_len)
 
-			installed_applications = [template.format(app.app_name, app.app_version, app.git_branch) for app in apps]
+			installed_applications = [
+				template.format(app.app_name, app.app_version, app.git_branch)
+				for app in apps
+			]
 			applications_summary = "\n".join(installed_applications)
 			summary = f"\n{site_title}\n{applications_summary}".strip()
 
@@ -251,6 +257,7 @@ def list_apps(context):
 			print(summary)
 
 		frappe.destroy()
+
 
 @click.command('add-system-manager')
 @click.argument('email')
