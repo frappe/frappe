@@ -53,6 +53,7 @@ export default class Grid {
 		let template = `
 			<label class="control-label">${__(this.df.label || '')}</label>
 			<p class="text-muted small grid-description"></p>
+			<div class="grid-custom-buttons grid-field"></div>
 			<div class="form-grid">
 				<div class="grid-heading-row"></div>
 				<div class="grid-body">
@@ -117,6 +118,7 @@ export default class Grid {
 
 		this.custom_buttons = {};
 		this.grid_buttons = this.wrapper.find('.grid-buttons');
+		this.grid_custom_buttons = this.wrapper.find('.grid-custom-buttons');
 		this.remove_rows_button = this.grid_buttons.find('.grid-remove-rows');
 		this.remove_all_rows_button = this.grid_buttons.find('.grid-remove-all-rows');
 
@@ -873,18 +875,19 @@ export default class Grid {
 		});
 	}
 
-	add_custom_button(label, click) {
+	add_custom_button(label, click, position='bottom') {
 		// add / unhide a custom button
-		var btn = this.custom_buttons[label];
-		if (!btn) {
-			btn = $('<button class="btn btn-secondary btn-xs btn-custom">' + label + '</button>')
-				.css('margin-right', '4px')
-				.prependTo(this.grid_buttons)
+		const $wrapper = position === 'top' ? this.grid_custom_buttons : this.grid_buttons;
+		let $btn = this.custom_buttons[label];
+		if (!$btn) {
+			$btn = $(`<button class="btn btn-default btn-xs btn-custom">${__(label)}</button>`)
+				.prependTo($wrapper)
 				.on('click', click);
-			this.custom_buttons[label] = btn;
+			this.custom_buttons[label] = $btn;
 		} else {
-			btn.removeClass('hidden');
+			$btn.removeClass('hidden');
 		}
+		return $btn;
 	}
 
 	clear_custom_buttons() {

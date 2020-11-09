@@ -40,6 +40,7 @@
    "reqd": 0
   },
   {
+   "default": "Left",
    "fieldname": "align",
    "fieldtype": "Select",
    "label": "Align",
@@ -48,8 +49,9 @@
   }
  ],
  "idx": 0,
- "modified": "2020-09-15 11:42:46.886991",
+ "modified": "2020-10-26 17:39:56.959008",
  "modified_by": "Administrator",
+ "module": "Website",
  "name": "Hero",
  "owner": "Administrator",
  "standard": 1,

@@ -29,7 +29,7 @@
 
 	.image-view-container {
 		display: grid;
-		grid-template-columns: repeat(5, 1fr);
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 		max-width: 100%;
 
 		.image-view-row {
@@ -163,7 +163,7 @@
 
 			display: flex;
 			font-weight: 500;
-			justify-content: start;
+			justify-content: flex-start;
 			align-items: center;
 			margin-top: var(--margin-sm);
 		}

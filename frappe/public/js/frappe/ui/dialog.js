@@ -57,9 +57,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				this.primary_action || this.action.primary.onsubmit);
 		}
 
-		if (this.secondary_action) {
-			this.set_secondary_action(this.secondary_action);
-		}
+
+		let secondary_action = this.secondary_action;
+		if (!secondary_action)  secondary_action = () => this.hide();
+		this.set_secondary_action(secondary_action);
+
 
 		if (this.secondary_action_label || (this.action.secondary && this.action.secondary.label)) {
 			this.set_secondary_action_label(this.secondary_action_label || this.action.secondary.label)

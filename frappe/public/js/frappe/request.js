@@ -444,7 +444,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 		var communication_composer = new frappe.views.CommunicationComposer({
 			subject: 'Error Report [' + frappe.datetime.nowdate() + ']',
 			recipients: error_report_email,
-			message: frappe.utils.xss_sanitise(error_report_message),
+			message: error_report_message,
 			doc: {
 				doctype: "User",
 				name: frappe.session.user

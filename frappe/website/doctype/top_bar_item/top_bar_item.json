@@ -8,7 +8,7 @@
  "field_order": [
   "label",
   "url",
-  "target",
+  "open_in_new_tab",
   "right",
   "column_break_5",
   "parent_label",
@@ -41,18 +41,10 @@
    "width": "200px"
   },
   {
-   "description": "Select target = \"_blank\" to open in a new page.",
-   "fieldname": "target",
-   "fieldtype": "Select",
-   "label": "Target",
-   "options": "\ntarget = \"_blank\""
-  },
-  {
    "default": "1",
-   "description": "For top bar",
    "fieldname": "right",
    "fieldtype": "Check",
-   "label": "Right"
+   "label": "Align Right"
   },
   {
    "fieldname": "column_break_5",
@@ -63,12 +55,20 @@
    "fieldname": "icon",
    "fieldtype": "Attach Image",
    "label": "Icon"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.url",
+   "fieldname": "open_in_new_tab",
+   "fieldtype": "Check",
+   "label": "Open URL in a New Tab"
   }
  ],
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-05-11 06:12:13.191644",
+ "modified": "2020-10-26 20:59:42.142208",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Top Bar Item",

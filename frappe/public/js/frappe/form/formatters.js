@@ -106,7 +106,7 @@ frappe.form.formatters = {
 		if(frappe.form.link_formatters[doctype]) {
 			// don't apply formatters in case of composite (parent field of same type)
 			if (doc && doctype !== doc.doctype) {
-				value = frappe.form.link_formatters[doctype](value, doc);
+				value = frappe.form.link_formatters[doctype](value, doc, docfield);
 			}
 		}
 
@@ -305,7 +305,7 @@ frappe.format = function(value, df, options, doc) {
 		formatted = frappe.dom.remove_script_and_style(formatted);
 
 	return formatted;
-}
+};
 
 frappe.get_format_helper = function(doc) {
 	var helper = {
@@ -317,4 +317,9 @@ frappe.get_format_helper = function(doc) {
 	};
 	$.extend(helper, doc);
 	return helper;
-}
+};
+
+frappe.form.link_formatters['User'] = function(value, doc, docfield) {
+	let full_name = doc && (doc.full_name || (docfield && doc[`${docfield.fieldname}_full_name`]));
+	return full_name || value;
+};

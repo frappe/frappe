@@ -98,6 +98,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
+		if (this.view_name == 'List') this.toggle_paging = true;
+
 		this.patch_refresh_and_load_lib();
 		return this.get_list_view_settings();
 	}
@@ -503,7 +505,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	render_header() {
 		if (this.$result.find(".list-row-head").length === 0) {
 			// append header once
-			this.columns && this.$result.prepend(this.get_header_html());
+			this.$result.prepend(this.get_header_html());
 		}
 	}
 
@@ -526,6 +528,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			sort_by: this.sort_selector.sort_by,
 			sort_order: this.sort_selector.sort_order,
 		});
+		this.toggle_paging && this.$paging_area.toggle(false);
 	}
 
 	after_render() {
@@ -536,6 +539,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		`);
 		this.setup_new_doc_event();
 		this.list_sidebar && this.list_sidebar.reload_stats();
+		this.toggle_paging && this.$paging_area.toggle(true);
 	}
 
 	render() {
@@ -575,9 +579,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const subject_field = this.columns[0].df;
 		let subject_html = `
-			<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__(
-				"Select All"
-			)}">
+			<input class="level-item list-check-all hidden-xs" type="checkbox"
+				title="${__("Select All")}">
 			<span class="level-item list-liked-by-me">
 				<span title="${__("Likes")}">${frappe.utils.icon('heart', 'sm', 'like-icon')}</span>
 			</span>
@@ -594,12 +597,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 				return `
 				<div class="${classes}">
-					${
-						col.type === "Subject"
-							? subject_html
-							: `
-					<span>${__((col.df && col.df.label) || col.type)}</span>`
-					}
+					${col.type === "Subject" ? subject_html : `
+						<span>${__((col.df && col.df.label) || col.type)}</span>`}
 				</div>
 			`;
 			})
@@ -613,15 +612,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_header_html_skeleton(left = "", right = "") {
 		return `
-			<header class="level list-row list-row-head text-muted">
+			<header class="level list-row-head text-muted">
 				<div class="level-left list-header-subject">
 					${left}
 				</div>
 				<div class="level-left checkbox-actions">
 					<div class="level list-subject">
-						<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__(
-							"Select All"
-						)}">
+						<input class="level-item list-check-all hidden-xs" type="checkbox"
+							title="${__("Select All")}">
 						<span class="level-item list-header-meta"></span>
 					</div>
 				</div>
@@ -728,10 +726,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			if (df.fieldtype === "Image") {
-				html = df.options
-					? `<img src="${
-							doc[df.options]
-					  }" style="max-height: 30px; max-width: 100%;">`
+				html = df.options ? `<img src="${doc[df.options]}"
+					style="max-height: 30px; max-width: 100%;">`
 					: `<div class="missing-image small">
 						<span class="octicon octicon-circle-slash"></span>
 					</div>`;
@@ -796,7 +792,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (tag) {
 				return `<div class="tag-pill ellipsis" title="${tag}">${tag}</div>`;
 			}
-		}
+		};
 		return user_tags.split(',').slice(1, 3).map(get_tag_html).join('');
 	}
 
@@ -871,7 +867,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		const docname = doc.name.match(/[%'"]/)
+		const docname = doc.name.match(/[%'"\s]/)
 			? encodeURIComponent(doc.name)
 			: doc.name;
 
@@ -903,7 +899,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_subject_html(doc) {
-		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
 		let value = doc[subject_field.fieldname] || doc.name;
 		let subject = strip_html(value.toString());
@@ -912,19 +907,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const seen = this.get_seen_class(doc);
 
 		let subject_html = `
-			<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${escape(
-				doc.name
-			)}">
+			<input class="level-item list-row-checkbox hidden-xs" type="checkbox"
+				data-name="${escape(doc.name)}">
 			<span class="level-item" style="margin-bottom: 1px;">
 				${this.get_like_html(doc)}
 			</span>
 			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
-				<a class="ellipsis" href="${this.get_form_link(
-					doc
-				)}" title="${escaped_subject}" data-doctype="${
-			this.doctype
-		}" data-name="${doc.name}">
-				${subject}
+				<a class="ellipsis"
+					href="${this.get_form_link(doc)}"
+					title="${escaped_subject}"
+					data-doctype="${this.doctype}"
+					data-name="${doc.name}">
+					${subject}
 				</a>
 			</span>
 		`;
@@ -1149,6 +1143,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.$result
 					.find(".list-row-checkbox")
 					.prop("checked", $target.prop("checked"));
+			} else if ($target.attr('data-parent')) {
+				this.$result
+					.find(`.${$target.attr('data-parent')}`)
+					.find('.list-row-checkbox')
+					.prop("checked", $target.prop("checked"));
 			}
 
 			this.on_row_checked();
@@ -1218,7 +1217,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_tag_event() {
 		this.tags_shown = false;
-		this.list_sidebar.parent.on("click", ".list-tag-preview", () => {
+		this.list_sidebar && this.list_sidebar.parent.on("click", ".list-tag-preview", () => {
 			this.tags_shown = !this.tags_shown;
 			this.toggle_tags();
 		});

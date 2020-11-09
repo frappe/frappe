@@ -648,4 +648,13 @@
 	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-tick">
 		<path d="M2 9.66667L5.33333 13L14 3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
+	<symbol fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 40" id="icon-folder-normal-large">
+		<path d="M.245 16.22A2 2 0 012.233 14h41.534a2 2 0 011.987 2.22L43.52 36.44A4 4 0 0139.543 40H6.457a4 4 0 01-3.976-3.56L.245 16.22zM43.125 11V7a2 2 0 00-2-2H20.312a.5.5 0 01-.328-.123L14.657.245A1 1 0 0014.001 0H4.875a2 2 0 00-2 2v9a1 1 0 001 1h38.25a1 1 0 001-1z" fill="#A6B1B9"></path>
+	</symbol>
+	<symbol fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 37 46" id="icon-file-large">
+		<g fill="#A6B1B9">
+			<path d="M22 10V1.04a.5.5 0 01.812-.39l13.075 10.46a.5.5 0 01-.312.89H24a2 2 0 01-2-2z"></path>
+			<path fill-rule="evenodd" clip-rule="evenodd" d="M19 0a1 1 0 011 1v10a3 3 0 003 3h12a2 2 0 012 2v26a4 4 0 01-4 4H4a4 4 0 01-4-4V3a3 3 0 013-3h16zM8 37a1 1 0 100 2h21a1 1 0 100-2H8zm-1-7a1 1 0 011-1h21a1 1 0 110 2H8a1 1 0 01-1-1zm1-9a1 1 0 100 2h6a1 1 0 100-2H8z"></path>
+		</g>
+	</symbol>
 </svg>
