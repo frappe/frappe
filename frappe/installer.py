@@ -118,9 +118,9 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 def install_app(name, verbose=False, set_as_patched=True):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-	from frappe.utils.fixtures import sync_fixtures
 	from frappe.model.sync import sync_for
 	from frappe.modules.utils import sync_customizations
+	from frappe.utils.fixtures import sync_fixtures
 
 	frappe.flags.in_install = name
 	frappe.flags.ignore_in_install = False
@@ -458,9 +458,10 @@ def extract_sql_gzip(sql_gz_path):
 
 	return decompressed_file
 
+
 def extract_files(site_name, file_path, folder_name):
-	import subprocess
 	import shutil
+	import subprocess
 
 	# Need to do frappe.init to maintain the site locals
 	frappe.init(site=site_name)
@@ -488,6 +489,12 @@ def extract_files(site_name, file_path, folder_name):
 
 def is_downgrade(sql_file_path, verbose=False):
 	"""checks if input db backup will get downgraded on current bench"""
+
+	# This function is only tested with mariadb
+	# TODO: Add postgres support
+	if frappe.conf.db_type not in (None, "mariadb"):
+		return False
+
 	from semantic_version import Version
 	head = "INSERT INTO `tabInstalled Application` VALUES"
 
