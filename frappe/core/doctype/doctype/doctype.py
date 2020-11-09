@@ -288,9 +288,12 @@ class DocType(Document):
 
 		self.update_fields_to_fetch()
 
-		from frappe import conf
-		allow_doctype_export = frappe.flags.allow_doctype_export or (not frappe.flags.in_test and conf.get('developer_mode'))
-		if not self.custom and not frappe.flags.in_import and allow_doctype_export:
+		allow_doctype_export = (
+			not self.custom
+			and not frappe.flags.in_import
+			and (frappe.flags.allow_doctype_export or frappe.conf.developer_mode)
+		)
+		if allow_doctype_export:
 			self.export_doc()
 			self.make_controller_template()
 
