@@ -519,3 +519,26 @@ def is_downgrade(sql_file_path, verbose=False):
 							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
 
 						return downgrade
+
+
+def partial_restore(sql_file_path, verbose=False):
+	sql_file = extract_sql_from_archive(sql_file_path)
+
+	if frappe.conf.db_type in (None, "mariadb"):
+		from frappe.database.mariadb.setup_db import import_db_from_sql
+	elif frappe.conf.db_type == "postgres":
+		from frappe.database.postgres.setup_db import import_db_from_sql
+		import warnings
+		from click import style
+		warn = style(
+			"Delete the tables you want to restore manually before attempting"
+			" partial restore operation for PostreSQL databases",
+			fg="yellow"
+		)
+		warnings.warn(warn)
+
+	import_db_from_sql(source_sql=sql_file, verbose=verbose)
+
+	# Removing temporarily created file
+	if sql_file != sql_file_path:
+		os.remove(sql_file)

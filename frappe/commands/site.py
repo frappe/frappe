@@ -91,6 +91,20 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	success_message = "Site {0} has been restored{1}".format(site, " with files" if (with_public_files or with_private_files) else "")
 	click.secho(success_message, fg="green")
 
+@click.command('partial-restore')
+@click.argument('sql-file-path')
+@click.option("--verbose", "-v", is_flag=True)
+@pass_context
+def partial_restore(context, sql_file_path, verbose):
+	from frappe.installer import partial_restore
+	verbose = context.verbose or verbose
+
+	site = get_site(context)
+	frappe.init(site=site)
+	frappe.connect(site=site)
+	partial_restore(sql_file_path, verbose)
+	frappe.destroy()
+
 @click.command('reinstall')
 @click.option('--admin-password', help='Administrator Password for reinstalled site')
 @click.option('--mariadb-root-username', help='Root username for MariaDB')
@@ -650,5 +664,6 @@ commands = [
 	stop_recording,
 	add_to_hosts,
 	start_ngrok,
-	build_search_index
+	build_search_index,
+	partial_restore
 ]
