@@ -227,6 +227,13 @@ def install_app(context, apps):
 def list_apps(context):
 	"List apps in site"
 
+	def fix_whitespaces(text):
+		if site == context.sites[-1]:
+			text = text.rstrip()
+		if len(context.sites) == 1:
+			text = text.lstrip()
+		return text
+
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
@@ -247,11 +254,13 @@ def list_apps(context):
 				for app in apps
 			]
 			applications_summary = "\n".join(installed_applications)
-			summary = f"\n{site_title}\n{applications_summary}".strip()
+			summary = f"{site_title}\n{applications_summary}\n"
 
 		else:
 			applications_summary = "\n".join(frappe.get_installed_apps())
-			summary = f"\n{site_title}\n{applications_summary}".strip()
+			summary = f"{site_title}\n{applications_summary}\n"
+
+		summary = fix_whitespaces(summary)
 
 		if applications_summary and summary:
 			print(summary)
