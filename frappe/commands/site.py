@@ -9,7 +9,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import get_site_path, touch_file
+from frappe.installer import _new_site
 
 
 @click.command('new-site')
@@ -42,57 +42,6 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
-def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None,
-			  admin_password=None, verbose=False, install_apps=None, source_sql=None, force=False,
-			  no_mariadb_socket=False, reinstall=False,  db_password=None, db_type=None, db_host=None,
-			  db_port=None, new_site=False):
-	"""Install a new Frappe site"""
-
-	if not force and os.path.exists(site):
-		print('Site {0} already exists'.format(site))
-		sys.exit(1)
-
-	if no_mariadb_socket and not db_type == "mariadb":
-		print('--no-mariadb-socket requires db_type to be set to mariadb.')
-		sys.exit(1)
-
-	if not db_name:
-		import hashlib
-		db_name = '_' + hashlib.sha1(site.encode()).hexdigest()[:16]
-
-	from frappe.commands.scheduler import _is_scheduler_enabled
-	from frappe.installer import install_db, make_site_dirs
-	from frappe.installer import install_app as _install_app
-	import frappe.utils.scheduler
-
-	frappe.init(site=site)
-
-	try:
-
-		# enable scheduler post install?
-		enable_scheduler = _is_scheduler_enabled()
-	except Exception:
-		enable_scheduler = False
-
-	make_site_dirs()
-
-	installing = touch_file(get_site_path('locks', 'installing.lock'))
-
-	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
-		admin_password=admin_password, verbose=verbose, source_sql=source_sql, force=force, reinstall=reinstall,
-		db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port, no_mariadb_socket=no_mariadb_socket)
-	apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
-	for app in apps_to_install:
-		_install_app(app, verbose=verbose, set_as_patched=not source_sql)
-
-	os.remove(installing)
-
-	frappe.utils.scheduler.toggle_scheduler(enable_scheduler)
-	frappe.db.commit()
-
-	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
-	print("*** Scheduler is", scheduler_status, "***")
-
 
 @click.command('restore')
 @click.argument('sql-file-path')
@@ -107,25 +56,9 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 @pass_context
 def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
-	from frappe.installer import extract_sql_gzip, extract_files, is_downgrade
+	from frappe.installer import extract_sql_from_archive, extract_files, is_downgrade
 	force = context.force or force
-
-	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
-	if not os.path.exists(sql_file_path):
-		base_path = '..'
-		sql_file_path = os.path.join(base_path, sql_file_path)
-		if not os.path.exists(sql_file_path):
-			print('Invalid path {0}'.format(sql_file_path[3:]))
-			sys.exit(1)
-	elif sql_file_path.startswith(os.sep):
-		base_path = os.sep
-	else:
-		base_path = '.'
-
-	if sql_file_path.endswith('sql.gz'):
-		decompressed_file_name = extract_sql_gzip(os.path.abspath(sql_file_path))
-	else:
-		decompressed_file_name = sql_file_path
+	decompressed_file_name = extract_sql_from_archive(sql_file_path)
 
 	site = get_site(context)
 	frappe.init(site=site)

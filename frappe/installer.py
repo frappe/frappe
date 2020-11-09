@@ -3,8 +3,90 @@
 
 import json
 import os
-from frappe.defaults import _clear_cache
+import sys
+
 import frappe
+from frappe.defaults import _clear_cache
+
+
+def _new_site(
+	db_name,
+	site,
+	mariadb_root_username=None,
+	mariadb_root_password=None,
+	admin_password=None,
+	verbose=False,
+	install_apps=None,
+	source_sql=None,
+	force=False,
+	no_mariadb_socket=False,
+	reinstall=False,
+	db_password=None,
+	db_type=None,
+	db_host=None,
+	db_port=None,
+	new_site=False,
+):
+	"""Install a new Frappe site"""
+
+	if not force and os.path.exists(site):
+		print("Site {0} already exists".format(site))
+		sys.exit(1)
+
+	if no_mariadb_socket and not db_type == "mariadb":
+		print("--no-mariadb-socket requires db_type to be set to mariadb.")
+		sys.exit(1)
+
+	if not db_name:
+		import hashlib
+		db_name = "_" + hashlib.sha1(site.encode()).hexdigest()[:16]
+
+	frappe.init(site=site)
+
+	from frappe.commands.scheduler import _is_scheduler_enabled
+	from frappe.utils import get_site_path, scheduler, touch_file
+
+	try:
+		# enable scheduler post install?
+		enable_scheduler = _is_scheduler_enabled()
+	except Exception:
+		enable_scheduler = False
+
+	make_site_dirs()
+
+	installing = touch_file(get_site_path("locks", "installing.lock"))
+
+	install_db(
+		root_login=mariadb_root_username,
+		root_password=mariadb_root_password,
+		db_name=db_name,
+		admin_password=admin_password,
+		verbose=verbose,
+		source_sql=source_sql,
+		force=force,
+		reinstall=reinstall,
+		db_password=db_password,
+		db_type=db_type,
+		db_host=db_host,
+		db_port=db_port,
+		no_mariadb_socket=no_mariadb_socket,
+	)
+	apps_to_install = (
+		["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
+	)
+
+	for app in apps_to_install:
+		install_app(app, verbose=verbose, set_as_patched=not source_sql)
+
+	os.remove(installing)
+
+	scheduler.toggle_scheduler(enable_scheduler)
+	frappe.db.commit()
+
+	scheduler_status = (
+		"disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
+	)
+	print("*** Scheduler is", scheduler_status, "***")
 
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
@@ -329,6 +411,37 @@ def remove_missing_apps():
 			except ImportError:
 				installed_apps.remove(app)
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
+
+
+def extract_sql_from_archive(sql_file_path):
+	"""Return the path of an SQL file if the passed argument is the path of a gzipped
+	SQL file or an SQL file path. The path may be absolute or relative from the bench
+	root directory or the sites sub-directory.
+
+	Args:
+		sql_file_path (str): Path of the SQL file
+
+	Returns:
+		str: Path of the decompressed SQL file
+	"""
+	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
+	if not os.path.exists(sql_file_path):
+		base_path = '..'
+		sql_file_path = os.path.join(base_path, sql_file_path)
+		if not os.path.exists(sql_file_path):
+			print('Invalid path {0}'.format(sql_file_path[3:]))
+			sys.exit(1)
+	elif sql_file_path.startswith(os.sep):
+		base_path = os.sep
+	else:
+		base_path = '.'
+
+	if sql_file_path.endswith('sql.gz'):
+		decompressed_file_name = extract_sql_gzip(os.path.abspath(sql_file_path))
+	else:
+		decompressed_file_name = sql_file_path
+
+	return decompressed_file_name
 
 
 def extract_sql_gzip(sql_gz_path):
