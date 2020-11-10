@@ -138,7 +138,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		if not confirm:
 			return
 
-	if not no_backup:
+	if not (dry_run or no_backup):
 		from frappe.utils.backups import scheduled_backup
 		print("Backing up...")
 		scheduled_backup(ignore_files=True)
@@ -150,7 +150,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	for module_name in modules:
 		print("Deleting Module '{0}'".format(module_name))
 
-		for doctype in frappe.get_list("DocType", filters={"module": module_name}, fields=["name", "issingle"]):
+		for doctype in frappe.get_all("DocType", filters={"module": module_name}, fields=["name", "issingle"]):
 			print("* removing DocType '{0}'...".format(doctype.name))
 
 			if not dry_run:
@@ -164,7 +164,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		doctypes_with_linked_modules = ordered_doctypes + [doctype.parent for doctype in linked_doctypes if doctype.parent not in ordered_doctypes]
 
 		for doctype in doctypes_with_linked_modules:
-			for record in frappe.get_list(doctype, filters={"module": module_name}):
+			for record in frappe.get_all(doctype, filters={"module": module_name}):
 				print("* removing {0} '{1}'...".format(doctype, record.name))
 				if not dry_run:
 					frappe.delete_doc(doctype, record.name)
@@ -176,12 +176,15 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	if not dry_run:
 		remove_from_installed_apps(app_name)
 
-		for doctype in set(drop_doctypes):
-			print("* dropping Table for '{0}'...".format(doctype))
-			frappe.db.sql("drop table `tab{0}`".format(doctype))
+	for doctype in set(drop_doctypes):
+		print("* dropping Table for '{0}'...".format(doctype))
+		if not dry_run:
+			frappe.db.sql_ddl("drop table `tab{0}`".format(doctype))
 
+	if not dry_run:
 		frappe.db.commit()
-		click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
+
+	click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
 
 	frappe.flags.in_uninstall = False
 
