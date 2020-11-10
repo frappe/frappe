@@ -10,6 +10,23 @@ def setup_database(force, source_sql=None, verbose=False):
 	root_conn.sql("CREATE user {0} password '{1}'".format(frappe.conf.db_name,
 		frappe.conf.db_password))
 	root_conn.sql("GRANT ALL PRIVILEGES ON DATABASE `{0}` TO {0}".format(frappe.conf.db_name))
+	root_conn.close()
+
+	bootstrap_database(frappe.conf.db_name, verbose, source_sql=source_sql)
+	frappe.connect()
+
+def bootstrap_database(db_name, verbose, source_sql=None):
+	frappe.connect(db_name=db_name)
+	import_db_from_sql(source_sql, verbose)
+	frappe.connect(db_name=db_name)
+	if not 'tabDefaultValue' in frappe.db.get_tables():
+		print('''Database not installed, this can due to lack of permission, or that the database name exists.
+			Check your mysql root password, or use --force to reinstall''')
+		sys.exit(1)
+
+def import_db_from_sql(source_sql=None, verbose=False):
+	if verbose:
+		print("Starting Database Import...")
 
 	# we can't pass psql password in arguments in postgresql as mysql. So
 	# set password connection parameter in environment variable
@@ -19,15 +36,21 @@ def setup_database(force, source_sql=None, verbose=False):
 	if not source_sql:
 		source_sql = os.path.join(os.path.dirname(__file__), 'framework_postgres.sql')
 
-	subprocess.check_output([
+	command = [
 		'psql', frappe.conf.db_name,
 		'-h', frappe.conf.db_host or 'localhost',
 		'-p', str(frappe.conf.db_port or '5432'),
 		'-U', frappe.conf.db_name,
 		'-f', source_sql
-	], env=subprocess_env)
+	]
 
-	frappe.connect()
+	if verbose:
+		print(" ".join(command))
+
+	subprocess.check_output(command, env=subprocess_env)
+
+	if verbose:
+		print(f"Imported from Database File: {source_sql}")
 
 def setup_help_database(help_db_name):
 	root_conn = get_root_connection()
