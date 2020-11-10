@@ -121,6 +121,7 @@ def remove_from_installed_apps(app_name):
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
 	"""Remove app and all linked to the app's module with the app from a site."""
 	import click
+
 	site = frappe.local.site
 
 	# dont allow uninstall app if not installed unless forced
@@ -158,7 +159,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 			print(f"* removing DocType '{doctype.name}'...")
 
 			if not dry_run:
-				frappe.delete_doc("DocType", doctype.name)
+				frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True)
 
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
@@ -179,14 +180,11 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 			for record in frappe.get_all(doctype, filters={"module": module_name}, pluck="name"):
 				print(f"* removing {doctype} '{record}'...")
 				if not dry_run:
-					frappe.delete_doc(doctype, record)
+					frappe.delete_doc(doctype, record, ignore_on_trash=True)
 
 		print(f"* removing Module Def '{module_name}'...")
 		if not dry_run:
-			frappe.delete_doc("Module Def", module_name)
-
-	if not dry_run:
-		remove_from_installed_apps(app_name)
+			frappe.delete_doc("Module Def", module_name, ignore_on_trash=True)
 
 	for doctype in set(drop_doctypes):
 		print(f"* dropping Table for '{doctype}'...")
@@ -194,6 +192,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 			frappe.db.sql_ddl(f"drop table `tab{doctype}`")
 
 	if not dry_run:
+		remove_from_installed_apps(app_name)
 		frappe.db.commit()
 
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
