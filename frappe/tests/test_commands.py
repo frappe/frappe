@@ -12,6 +12,7 @@ from glob import glob
 
 # imports - module imports
 import frappe
+from frappe.utils import add_to_date, now
 from frappe.utils.backups import fetch_latest_backups
 import frappe.recorder
 
@@ -242,6 +243,30 @@ class TestCommands(BaseTestCommands):
 		self.assertEquals(self.returncode, 0)
 		database = fetch_latest_backups()["database"]
 		self.assertTrue(exists_in_backup(backup["excludes"]["excludes"], database))
+
+	def test_partial_restore(self):
+		_now = now()
+		for num in range(10):
+			frappe.get_doc({
+				"doctype": "ToDo",
+				"date": add_to_date(_now, days=num),
+				"description": frappe.mock("paragraph")
+			}).insert()
+		todo_count = frappe.db.count("ToDo")
+
+		# check if todos exist, create a partial backup and see if the state is the same after restore
+		self.assertIsNot(todo_count, 0)
+		self.execute("bench --site {site} backup --only 'ToDo'")
+		db_path = fetch_latest_backups(partial=True)["database"]
+		self.assertTrue("partial" in db_path)
+
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabToDo`")
+		frappe.db.commit()
+
+		self.execute("bench --site {site} partial-restore {path}", {"path": db_path})
+		self.assertEquals(self.returncode, 0)
+		frappe.db.commit()
+		self.assertEquals(frappe.db.count("ToDo"), todo_count)
 
 	def test_recorder(self):
 		frappe.recorder.stop()
