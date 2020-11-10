@@ -147,7 +147,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	for module_name in modules:
 		print("Deleting Module '{0}'".format(module_name))
 
-		for doctype in frappe.get_list("DocType", filters={"module": module_name}, fields=["name", "issingle"]):
+		for doctype in frappe.get_all("DocType", filters={"module": module_name}, fields=["name", "issingle"]):
 			print("* removing DocType '{0}'...".format(doctype.name))
 
 			if not dry_run:
@@ -161,7 +161,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		doctypes_with_linked_modules = ordered_doctypes + [doctype.parent for doctype in linked_doctypes if doctype.parent not in ordered_doctypes]
 
 		for doctype in doctypes_with_linked_modules:
-			for record in frappe.get_list(doctype, filters={"module": module_name}):
+			for record in frappe.get_all(doctype, filters={"module": module_name}):
 				print("* removing {0} '{1}'...".format(doctype, record.name))
 				if not dry_run:
 					frappe.delete_doc(doctype, record.name)
