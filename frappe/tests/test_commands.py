@@ -252,6 +252,7 @@ class TestCommands(BaseTestCommands):
 				"date": add_to_date(_now, days=num),
 				"description": frappe.mock("paragraph")
 			}).insert()
+		frappe.db.commit()
 		todo_count = frappe.db.count("ToDo")
 
 		# check if todos exist, create a partial backup and see if the state is the same after restore
@@ -265,7 +266,6 @@ class TestCommands(BaseTestCommands):
 
 		self.execute("bench --site {site} partial-restore {path}", {"path": db_path})
 		self.assertEquals(self.returncode, 0)
-		frappe.db.commit()
 		self.assertEquals(frappe.db.count("ToDo"), todo_count)
 
 	def test_recorder(self):
