@@ -412,7 +412,7 @@ frappe.ui.form.PrintView = class {
 		);
 
 		this.$print_format_body.find('body').html(
-			`<div class="print-format">${out.html}</div>`
+			`<div class="print-format print-format-preview">${out.html}</div>`
 		);
 
 		this.show_footer();
