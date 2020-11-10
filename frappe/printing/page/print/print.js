@@ -36,10 +36,11 @@ frappe.ui.form.PrintView = class {
 	make() {
 		this.print_wrapper = this.page.main.empty().html(
 			`<div class="print-preview-wrapper"><div class="print-preview">
-				<iframe class="print-format-container" width="100%" frameBorder="0" scrolling="no"">
+				${frappe.render_template('print_skeleton_loading')}
+				<iframe class="print-format-container" width="100%" height="0" frameBorder="0" scrolling="no"">
 				</iframe>
-				<div class="page-break-message text-muted text-center text-medium margin-top"></div>
 			</div>
+			<div class="page-break-message text-muted text-center text-medium margin-top"></div>
 		</div>`
 		);
 
@@ -404,6 +405,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	setup_print_format_dom(out, $print_format) {
+		this.print_wrapper.find('.print-format-skeleton').remove();
 		this.$print_format_body.find('head').html(
 			`<style type="text/css">${out.style}</style>
 			<link href="${frappe.urllib.get_base_url()}/assets/css/printview.css" rel="stylesheet">`
@@ -419,7 +421,7 @@ frappe.ui.form.PrintView = class {
 			'min-height': this.$print_format_body.find('.print-format').height()
 		});
 
-		this.wrapper.find('.print-format').css({
+		this.$print_format_body.find('.print-format').css({
 			display: 'flex',
 			flexDirection: 'column',
 		});
