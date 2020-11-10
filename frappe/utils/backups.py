@@ -573,29 +573,29 @@ def delete_temp_backups(older_than=24):
 				os.remove(this_file_path)
 
 
-def is_file_old(db_file_name, older_than=24):
+def is_file_old(file_path, older_than=24):
 	"""
 	Checks if file exists and is older than specified hours
 	Returns ->
 	True: file does not exist or file is old
 	False: file is new
 	"""
-	if os.path.isfile(db_file_name):
+	if os.path.isfile(file_path):
 		from datetime import timedelta
 
 		# Get timestamp of the file
-		file_datetime = datetime.fromtimestamp(os.stat(db_file_name).st_ctime)
+		file_datetime = datetime.fromtimestamp(os.stat(file_path).st_ctime)
 		if datetime.today() - file_datetime >= timedelta(hours=older_than):
 			if _verbose:
-				print("File is old")
+				print(f"File {file_path} is older than {older_than} hours")
 			return True
 		else:
 			if _verbose:
-				print("File is recent")
+				print(f"File {file_path} is recent")
 			return False
 	else:
 		if _verbose:
-			print("File does not exist")
+			print(f"File {file_path} does not exist")
 		return True
 
 
