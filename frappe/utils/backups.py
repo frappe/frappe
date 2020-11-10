@@ -65,6 +65,7 @@ class BackupGenerator:
 		self.ignore_conf = ignore_conf
 		self.include_doctypes = include_doctypes
 		self.exclude_doctypes = exclude_doctypes
+		self.partial = False
 
 		if not self.db_type:
 			self.db_type = "mariadb"
@@ -144,6 +145,8 @@ class BackupGenerator:
 			self.backup_includes = self.backup_includes or conf_tables["include"]
 			self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
 
+		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
+
 	@property
 	def site_config_backup_path(self):
 		# For backwards compatibility
@@ -199,7 +202,10 @@ class BackupGenerator:
 			self.backup_path_conf = site_config_backup_path
 
 	def set_backup_file_name(self):
-		# Generate a random name using today's date and a 8 digit random number
+		if self.partial:
+			# slugs postfixed with partial won't get returned by get_recent_backup
+			self.site_slug = self.site_slug + "-partial"
+
 		for_conf = self.todays_date + "-" + self.site_slug + "-site_config_backup.json"
 		for_db = self.todays_date + "-" + self.site_slug + "-database.sql.gz"
 		ext = "tgz" if self.compress_files else "tar"
