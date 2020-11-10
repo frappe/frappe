@@ -272,7 +272,7 @@ def load_print(bootinfo, doclist):
 
 def load_print_css(bootinfo, print_settings):
 	import frappe.www.printview
-	bootinfo.print_css = frappe.www.printview.get_print_style(print_settings.print_style or "Modern", for_legacy=True)
+	bootinfo.print_css = frappe.www.printview.get_print_style(print_settings.print_style or "Redesign", for_legacy=True)
 
 def get_unseen_notes():
 	return frappe.db.sql('''select `name`, title, content, notify_on_every_login from `tabNote` where notify_on_login=1
