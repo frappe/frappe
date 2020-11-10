@@ -135,7 +135,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		if not confirm:
 			return
 
-	if not no_backup:
+	if not (dry_run or no_backup):
 		from frappe.utils.backups import scheduled_backup
 		print("Backing up...")
 		scheduled_backup(ignore_files=True)
@@ -173,13 +173,15 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	if not dry_run:
 		remove_from_installed_apps(app_name)
 
-		for doctype in set(drop_doctypes):
-			print("* dropping Table for '{0}'...".format(doctype))
+	for doctype in set(drop_doctypes):
+		print("* dropping Table for '{0}'...".format(doctype))
+		if not dry_run:
 			frappe.db.sql_ddl("drop table `tab{0}`".format(doctype))
 
+	if not dry_run:
 		frappe.db.commit()
-		click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
 
+	click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
 	frappe.flags.in_uninstall = False
 
 
