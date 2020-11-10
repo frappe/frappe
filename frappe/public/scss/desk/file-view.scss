@@ -64,6 +64,7 @@
 
 				.file-footer {
 					padding: var(--padding-sm);
+					background-color: var(--fg-color);
 				}
 
 				.file-body {
@@ -79,7 +80,7 @@
 
 				.file-creation {
 					font-size: var(--text-xs);
-					color: var(--gray-600);
+					color: var(--text-on-gray);
 				}
 
 				.file-image {
