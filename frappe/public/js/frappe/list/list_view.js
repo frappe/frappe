@@ -736,7 +736,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					_value
 				)} ellipsis"
 					data-filter="${fieldname},=,${value}">
-					${__(_value)}
+					<span class="ellipsis"> ${__(_value)} </span>
 				</span>`;
 			} else if (df.fieldtype === "Link") {
 				html = `<a class="filterable ellipsis"
@@ -929,9 +929,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_indicator_html(doc) {
 		const indicator = frappe.get_indicator(doc, this.doctype);
 		if (indicator) {
-			return `<span class="indicator-pill ${indicator[1]} filterable"
+			return `<span class="indicator-pill ${indicator[1]} filterable ellipsis"
 				data-filter='${indicator[2]}'>
-				${__(indicator[0])}
+				<span class="ellipsis"> ${__(indicator[0])}</span>
 			<span>`;
 		}
 		return "";
