@@ -1007,7 +1007,7 @@ frappe.ui.form.Form = class FrappeForm {
 			return;
 		}
 
-		frappe.re_route[window.location.hash] = '#Form/' + encodeURIComponent(this.doctype) + '/' + encodeURIComponent(name);
+		frappe.re_route[frappe.get_sub_path()] = 'Form/' + encodeURIComponent(this.doctype) + '/' + encodeURIComponent(name);
 		frappe.set_route('Form', this.doctype, name);
 	}
 

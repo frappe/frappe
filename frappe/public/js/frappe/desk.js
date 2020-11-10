@@ -75,7 +75,7 @@ frappe.Application = Class.extend({
 
 		if (frappe.boot) {
 			if (localStorage.getItem("session_last_route")) {
-				window.location.hash = localStorage.getItem("session_last_route");
+				frappe.set_route(localStorage.getItem("session_last_route"));
 				localStorage.removeItem("session_last_route");
 			}
 
