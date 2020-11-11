@@ -210,7 +210,7 @@ Cypress.Commands.add('awesomebar', text => {
 
 Cypress.Commands.add('new_form', doctype => {
 	let route = `Form/${doctype}/New ${doctype} 1`;
-	cy.visit(`/app#${route}`);
+	cy.visit(`/app/${route}`);
 	cy.get('body').should('have.attr', 'data-route', route);
 	cy.get('body').should('have.attr', 'data-ajax-state', 'complete');
 });

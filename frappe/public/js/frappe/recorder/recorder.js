@@ -22,7 +22,7 @@ const routes = [
 
 const router = new VueRouter({
 	mode: 'history',
-	base: "/app#recorder/",
+	base: "/app/recorder/",
 	routes: routes,
 });
 

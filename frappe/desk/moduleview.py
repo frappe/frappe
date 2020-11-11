@@ -258,7 +258,7 @@ def config_exists(app, module):
 		return False
 
 def add_setup_section(config, app, module, label, icon):
-	"""Add common sections to `/app#Module/Setup`"""
+	"""Add common sections to `/app/Module/Setup`"""
 	try:
 		setup_section = get_setup_section(app, module, label, icon)
 		if setup_section:
