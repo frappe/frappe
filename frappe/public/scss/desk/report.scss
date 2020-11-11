@@ -81,6 +81,14 @@
 	overflow: auto;
 }
 
+.report-view {
+	.dt-row:last-child:not(.dt-row-filter) {
+		.dt-cell {
+			border-bottom: 1px solid var(--border-color);
+		}
+	}
+}
+
 .chart-wrapper {
 	border-bottom: 1px solid $border-color;
 }

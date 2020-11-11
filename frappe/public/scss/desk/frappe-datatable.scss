@@ -78,6 +78,10 @@
 		input {
 			font-size: inherit;
 			height: 27px;
+
+			&:focus {
+				box-shadow: none;
+			}
 		}
 	}
 
@@ -127,14 +131,6 @@
 
 table td.dt-cell {
 	position: relative;
-}
-
-.report-view {
-	.dt-row:last-child:not(.dt-row-filter) {
-		.dt-cell {
-			border-bottom: 1px solid var(--border-color);
-		}
-	}
 }
 
 .report-action-checkbox {
