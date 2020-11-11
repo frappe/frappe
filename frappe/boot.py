@@ -315,8 +315,7 @@ def get_desk_settings():
 	))
 	desk_settings = {}
 
-	desk_properties = ("search_bar", "notification", "chat", "list_sidebar",
-		"bulk_actions", "view_switcher", "form_sidebar", "timeline", "dashboard")
+	from frappe.core.doctype.role.role import desk_properties
 
 	for role in role_list:
 		for key in desk_properties:

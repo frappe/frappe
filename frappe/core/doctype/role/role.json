@@ -79,13 +79,13 @@
    "label": "Navigation Settings"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "search_bar",
    "fieldtype": "Check",
    "label": "Search Bar"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "notification",
    "fieldtype": "Check",
    "label": "Notification"
@@ -102,13 +102,13 @@
    "label": "List Settings"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "list_sidebar",
    "fieldtype": "Check",
    "label": "Sidebar"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "bulk_actions",
    "fieldtype": "Check",
    "label": "Bulk Actions"
@@ -119,25 +119,25 @@
    "label": "Form Settings"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "form_sidebar",
    "fieldtype": "Check",
    "label": "Sidebar"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "timeline",
    "fieldtype": "Check",
    "label": "Timeline"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "dashboard",
    "fieldtype": "Check",
    "label": "Dashboard"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "view_switcher",
    "fieldtype": "Check",
    "label": "View Switcher"
@@ -147,7 +147,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-11-05 01:25:10.536546",
+ "modified": "2020-11-11 17:29:13.149522",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
