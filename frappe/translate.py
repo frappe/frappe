@@ -164,7 +164,7 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 			key = m[1] + ':' + m[2]
 			if full_dict.get(key):
 				out[key] = full_dict[key]
-		if  m[0].startswith("DocType: "):
+		if m[0] is not None and type(m[0]) == str and  m[0].startswith("DocType: "):
 			key = m[0] + ':' + m[1]
 			if full_dict.get(key):
 				out[m[1]] = full_dict[key]
