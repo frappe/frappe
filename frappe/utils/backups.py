@@ -202,16 +202,14 @@ class BackupGenerator:
 			self.backup_path_conf = site_config_backup_path
 
 	def set_backup_file_name(self):
-		if self.partial:
-			# slugs postfixed with partial won't get returned by get_recent_backup
-			self.site_slug = self.site_slug + "-partial"
-
-		for_conf = self.todays_date + "-" + self.site_slug + "-site_config_backup.json"
-		for_db = self.todays_date + "-" + self.site_slug + "-database.sql.gz"
+		# backups with the partial tag won't get returned by get_recent_backup
+		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
 
-		for_public_files = self.todays_date + "-" + self.site_slug + "-files." + ext
-		for_private_files = self.todays_date + "-" + self.site_slug + "-private-files." + ext
+		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup.json"
+		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database.sql.gz"
+		for_public_files = f"{self.todays_date}-{self.site_slug}-files.{ext}"
+		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files.{ext}"
 		backup_path = self.backup_path or get_backup_path()
 
 		if not self.backup_path_conf:
