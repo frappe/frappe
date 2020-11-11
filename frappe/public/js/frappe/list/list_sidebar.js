@@ -1,5 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+import ListFilter from './list_filter';
 frappe.provide('frappe.views');
 
 // opts:
@@ -21,6 +22,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 
+		this.setup_list_filter();
 		this.setup_list_group_by();
 
 		// do not remove
@@ -43,6 +45,14 @@ frappe.views.ListSidebar = class ListSidebar {
 			sidebar: this,
 			list_view: this.list_view,
 			page: this.page
+		});
+	}
+
+	setup_list_filter() {
+		this.list_filter = new ListFilter({
+			wrapper: this.page.sidebar.find('.list-filters'),
+			doctype: this.doctype,
+			list_view: this.list_view
 		});
 	}
 

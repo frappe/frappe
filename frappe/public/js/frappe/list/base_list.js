@@ -632,6 +632,12 @@ class FilterArea {
 		return out;
 	}
 
+	remove_filters(filters) {
+		filters.map(f => {
+			this.remove(f[1]);
+		});
+	}
+
 	remove(fieldname) {
 		const fields_dict = this.list_view.page.fields_dict;
 

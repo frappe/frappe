@@ -361,6 +361,26 @@ body[data-route^="Module"] .main-menu {
 		color: var(--primary);
 		margin-top: 10px;
 	}
+
+	.list-filters {
+		.clearfix {
+			display: none;
+		}
+
+		input {
+			background: var(--gray-200);
+		}
+
+		.filter-pill {
+			display: flex;
+			justify-content: space-between;
+
+			.filter-name {
+				width: 90%;
+				text-align: left;
+			}
+		}
+	}
 }
 
 .filters-search {
