@@ -48,6 +48,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		super.setup_new_doc_event();
+		this.page.main.addClass('report-view');
 	}
 
 	toggle_side_bar() {
