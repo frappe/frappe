@@ -396,8 +396,17 @@ class DocType(Document):
 			frappe.db.commit()
 
 		# Do not rename and move files and folders for custom doctype
-		if not self.custom and not frappe.flags.in_patch:
-			self.rename_files_and_folders(old, new)
+		if not self.custom:
+			if not frappe.flags.in_patch:
+				self.rename_files_and_folders(old, new)
+
+			for site in frappe.utils.get_sites():
+				frappe.cache().delete(f"{site}:doctype_classes", old)
+
+	def after_delete(self):
+		if not self.custom:
+			for site in frappe.utils.get_sites():
+				frappe.cache().delete(f"{site}:doctype_classes", self.name)
 
 	def rename_files_and_folders(self, old, new):
 		# move files
