@@ -6,6 +6,9 @@ import frappe
 
 from frappe.model.document import Document
 
+desk_properties = ("search_bar", "notification", "chat", "list_sidebar",
+	"bulk_actions", "view_switcher", "form_sidebar", "timeline", "dashboard")
+
 class Role(Document):
 	def before_rename(self, old, new, merge=False):
 		if old in ("Guest", "Administrator", "System Manager", "All"):
@@ -16,11 +19,25 @@ class Role(Document):
 
 	def validate(self):
 		if self.disabled:
-			if self.name in ("Guest", "Administrator", "System Manager", "All"):
-				frappe.throw(frappe._("Standard roles cannot be disabled"))
-			else:
-				frappe.db.sql("delete from `tabHas Role` where role = %s", self.name)
-				frappe.clear_cache()
+			self.disable_role()
+		else:
+			self.set_desk_properties()
+
+	def disable_role(self):
+		if self.name in ("Guest", "Administrator", "System Manager", "All"):
+			frappe.throw(frappe._("Standard roles cannot be disabled"))
+		else:
+			self.remove_roles()
+
+	def set_desk_properties(self):
+		# set if desk_access is not allowed, unset all desk properties
+		if not self.desk_access:
+			for key in desk_properties:
+				self.set(key, 0)
+
+	def remove_roles(self):
+		frappe.db.sql("delete from `tabHas Role` where role = %s", self.name)
+		frappe.clear_cache()
 
 	def on_update(self):
 		'''update system user desk access if this has changed in this update'''

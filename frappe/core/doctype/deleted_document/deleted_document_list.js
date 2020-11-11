@@ -11,7 +11,7 @@ frappe.listview_settings["Deleted Document"] = {
 						if (r.message) {
 							function body(docnames) {
 								const html = docnames.map(docname => {
-									return `<li><a href='/desk#Form/Deleted Document/${docname}'>${docname}</a></li>`;
+									return `<li><a href='/app/Form/Deleted Document/${docname}'>${docname}</a></li>`;
 								});
 								return "<br><ul>" + html.join("");
 							}

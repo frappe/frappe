@@ -4,14 +4,14 @@ context('Recorder', () => {
 	});
 
 	it('Navigate to Recorder', () => {
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/workspace/Website');
 		cy.awesomebar('recorder');
 		cy.get('h1').should('contain', 'Recorder');
 		cy.location('hash').should('eq', '#recorder');
 	});
 
 	it('Recorder Empty State', () => {
-		cy.visit('/desk#recorder');
+		cy.visit('/app/recorder');
 		cy.get('.title-text').should('contain', 'Recorder');
 
 		cy.get('.indicator').should('contain', 'Inactive').should('have.class', 'red');
@@ -24,21 +24,21 @@ context('Recorder', () => {
 	});
 
 	it('Recorder Start', () => {
-		cy.visit('/desk#recorder');
+		cy.visit('/app/recorder');
 		cy.get('.primary-action').should('contain', 'Start').click();
 		cy.get('.indicator').should('contain', 'Active').should('have.class', 'green');
 
 		cy.get('.msg-box').should('contain', 'No Requests');
 
 		cy.server();
-		cy.visit('/desk#List/DocType/List');
+		cy.visit('/app/List/DocType/List');
 		cy.route('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
 		cy.wait('@list_refresh');
 
 		cy.get('.title-text').should('contain', 'DocType');
 		cy.get('.list-count').should('contain', '20 of ');
 
-		cy.visit('/desk#recorder');
+		cy.visit('/app/recorder');
 		cy.get('.title-text').should('contain', 'Recorder');
 		cy.get('.result-list').should('contain', '/api/method/frappe.desk.reportview.get');
 
@@ -48,11 +48,11 @@ context('Recorder', () => {
 	});
 
 	it('Recorder View Request', () => {
-		cy.visit('/desk#recorder');
+		cy.visit('/app/recorder');
 		cy.get('.primary-action').should('contain', 'Start').click();
 
 		cy.server();
-		cy.visit('/desk#List/DocType/List');
+		cy.visit('/app/List/DocType/List');
 		cy.route('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
 		cy.wait('@list_refresh');
 
@@ -62,7 +62,7 @@ context('Recorder', () => {
 		// temporarily commenting out theses tests as they seem to be
 		// randomly failing maybe due a backround event
 
-		// cy.visit('/desk#recorder');
+		// cy.visit('/app/recorder');
 
 		// cy.get('.list-row-container span').contains('/api/method/frappe').click();
 

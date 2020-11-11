@@ -182,20 +182,17 @@ class User(Document):
 
 
 	def share_with_self(self):
-		if self.user_type=="System User":
-			frappe.share.add(self.doctype, self.name, self.name, write=1, share=1,
-				flags={"ignore_share_permission": True})
-		else:
-			frappe.share.remove(self.doctype, self.name, self.name,
-				flags={"ignore_share_permission": True, "ignore_permissions": True})
+		frappe.share.add(self.doctype, self.name, self.name, write=1, share=1,
+			flags={"ignore_share_permission": True})
 
 	def validate_share(self, docshare):
-		if docshare.user == self.name:
-			if self.user_type=="System User":
-				if docshare.share != 1:
-					frappe.throw(_("Sorry! User should have complete access to their own record."))
-			else:
-				frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
+		pass
+		# if docshare.user == self.name:
+		# 	if self.user_type=="System User":
+		# 		if docshare.share != 1:
+		# 			frappe.throw(_("Sorry! User should have complete access to their own record."))
+		# 	else:
+		# 		frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
 
 	def send_password_notification(self, new_password):
 		try:
@@ -580,7 +577,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
-		return "/desk"
+		return "/app"
 	else:
 		return redirect_url if redirect_url else "/"
 

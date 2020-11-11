@@ -1,7 +1,7 @@
 context('Control Duration', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/workspace/Website');
 	});
 
 	function get_dialog_with_duration(hide_days=0, hide_seconds=0) {

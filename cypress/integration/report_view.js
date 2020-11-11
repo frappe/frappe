@@ -4,7 +4,7 @@ const doctype_name = custom_submittable_doctype.name;
 context('Report View', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/workspace/Website');
 		cy.insert_doc('DocType', custom_submittable_doctype, true);
 		cy.clear_cache();
 		cy.insert_doc(doctype_name, {
@@ -18,7 +18,7 @@ context('Report View', () => {
 	it('Field with enabled allow_on_submit should be editable.', () => {
 		cy.server();
 		cy.route('POST', 'api/method/frappe.client.set_value').as('value-update');
-		cy.visit(`/desk#List/${doctype_name}/Report`);
+		cy.visit(`/app/List/${doctype_name}/Report`);
 		// check status column added from docstatus
 		cy.get('.dt-row-0 > .dt-cell--col-3').should('contain', 'Submitted');
 		let cell = cy.get('.dt-row-0 > .dt-cell--col-4');

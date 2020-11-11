@@ -2,7 +2,7 @@ context('Awesome Bar', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/workspace/Website');
 	});
 
 	beforeEach(() => {
@@ -16,7 +16,7 @@ context('Awesome Bar', () => {
 
 		cy.get('h1').should('contain', 'To Do');
 
-		cy.location('hash').should('eq', '#List/ToDo/List');
+		cy.location('hash').should('eq', '/app/List/ToDo/List');
 	});
 
 	it('find text in doctype list', () => {

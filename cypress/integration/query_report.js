@@ -1,11 +1,11 @@
 context('Query Report', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/workspace/Website');
 	});
 
 	it('add custom column in report', () => {
-		cy.visit('/desk#query-report/Permitted Documents For User');
+		cy.visit('/app/query-report/Permitted Documents For User');
 
 		cy.get('div[class="page-form flex"]', {timeout: 60000}).should('have.length', 1).then(()=>{
 			cy.get('#page-query-report input[data-fieldname="user"]').as('input');

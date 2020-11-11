@@ -815,7 +815,7 @@ Object.assign(frappe.utils, {
 		display_text = display_text || name;
 		doctype = encodeURIComponent(doctype);
 		name = encodeURIComponent(name);
-		const route = ['#Form', doctype, name].join('/');
+		const route = ['/app/Form', doctype, name].join('/');
 		if (html) {
 			return `<a href="${route}">${display_text}</a>`;
 		}

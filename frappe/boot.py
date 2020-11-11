@@ -88,6 +88,7 @@ def get_bootinfo():
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
 	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
+	bootinfo.desk_settings = get_desk_settings()
 
 	return bootinfo
 
@@ -225,7 +226,7 @@ def load_translations(bootinfo):
 def get_user_info():
 	user_info = frappe.db.get_all('User', fields=['`name`', 'full_name as fullname', 'user_image as image',
 		'gender', 'email', 'username', 'bio', 'location', 'interest', 'banner_image', 'allowed_in_mentions'],
-		filters=dict(enabled=1, user_type=['!=', 'Website User']))
+		filters=dict(enabled=1))
 
 	user_info_map = {d.name: d for d in user_info}
 
@@ -308,3 +309,16 @@ def get_additional_filters_from_hooks():
 
 	return filter_config
 
+def get_desk_settings():
+	role_list = frappe.get_all('Role', fields=['*'], filters=dict(
+		name=['in', frappe.get_roles()]
+	))
+	desk_settings = {}
+
+	from frappe.core.doctype.role.role import desk_properties
+
+	for role in role_list:
+		for key in desk_properties:
+			desk_settings[key] = desk_settings.get(key) or role.get(key)
+
+	return desk_settings

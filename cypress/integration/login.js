@@ -35,7 +35,7 @@ context('Login', () => {
 		cy.get('#login_password').type(Cypress.config('adminPassword'));
 
 		cy.get('.btn-login').click();
-		cy.location('pathname').should('eq', '/desk');
+		cy.location('pathname').should('eq', '/app');
 		cy.window().its('frappe.session.user').should('eq', 'Administrator');
 	});
 

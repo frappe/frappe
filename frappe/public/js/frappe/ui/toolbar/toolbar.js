@@ -12,10 +12,7 @@ frappe.ui.toolbar.Toolbar = class {
 		}));
 		$('.dropdown-toggle').dropdown();
 
-		let awesome_bar = new frappe.search.AwesomeBar();
-		awesome_bar.setup("#navbar-search");
-		// awesome_bar.setup("#modal-search");
-
+		this.setup_awesomebar();
 		this.setup_notifications();
 		this.make();
 	}
@@ -157,8 +154,17 @@ frappe.ui.toolbar.Toolbar = class {
 		}
 	}
 
+	setup_awesomebar() {
+		if (frappe.boot.desk_settings.search_bar) {
+			let awesome_bar = new frappe.search.AwesomeBar();
+			awesome_bar.setup("#navbar-search");
+		}
+	}
+
 	setup_notifications () {
-		this.notifications = new frappe.ui.Notifications();
+		if (frappe.boot.desk_settings.notifications) {
+			this.notifications = new frappe.ui.Notifications();
+		}
 	}
 
 }

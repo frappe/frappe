@@ -10,7 +10,7 @@ Vue.use(VueRouter);
 const routes = [
 	{
 		name: "recorder-detail",
-		path: '/desk',
+		path: '/app',
 		component: RecorderDetail,
 	},
 	{
@@ -22,7 +22,7 @@ const routes = [
 
 const router = new VueRouter({
 	mode: 'history',
-	base: "/desk#recorder/",
+	base: "/app/recorder/",
 	routes: routes,
 });
 

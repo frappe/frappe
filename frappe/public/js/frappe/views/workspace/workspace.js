@@ -93,7 +93,7 @@ frappe.views.Workspace = class Workspace {
 
 		const get_sidebar_item = function (item) {
 			return $(`<a
-						href="${"desk#workspace/" + item.name}"
+						href="/desk/workspace/${item.name}"
 						class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}"
 				>
 				<div> ${frappe.utils.icon(item.icon || "folder-normal", "md")} </div>

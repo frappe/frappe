@@ -38,15 +38,15 @@ frappe.views.pageview = {
 	},
 
 	show: function(name) {
-		if(!name) {
+		if (!name) {
 			name = (frappe.boot ? frappe.boot.home_page : window.page_name);
 		}
 		frappe.model.with_doctype("Page", function() {
 			frappe.views.pageview.with_page(name, function(r) {
-				if(r && r.exc) {
-					if(!r['403'])
+				if (r && r.exc) {
+					if (!r['403'])
 						frappe.show_not_found(name);
-				} else if(!frappe.pages[name]) {
+				} else if (!frappe.pages[name]) {
 					new frappe.views.Page(name);
 				}
 				frappe.container.change_to(name);
@@ -59,7 +59,7 @@ frappe.views.Page = class Page {
 	constructor(name) {
 		this.name = name;
 		var me = this;
-		
+
 		// web home page
 		if(name==window.page_name) {
 			this.wrapper = document.getElementById('page-' + name);
@@ -87,7 +87,7 @@ frappe.views.Page = class Page {
 		}
 
 		this.trigger_page_event('on_page_load');
-		
+
 		// set events
 		$(this.wrapper).on('show', function() {
 			window.cur_frm = null;

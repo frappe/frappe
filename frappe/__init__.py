@@ -1611,7 +1611,7 @@ def log_error(message=None, title=_("Error")):
 		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
-	html = '<a href="#Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
+	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
 	return html.format(
 		doctype=doctype,
 		name=name,

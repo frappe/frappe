@@ -4,13 +4,13 @@ context('Relative Timeframe', () => {
 	});
 	before(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/workspace/Website');
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.ui_test_helpers.create_todo_records");
 		});
 	});
 	it('sets relative timespan filter for last week and filters list', () => {
-		cy.visit('/desk#List/ToDo/List');
+		cy.visit('/app/List/ToDo/List');
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
 		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
 		cy.get('.fieldname-select-area').should('exist');
@@ -29,7 +29,7 @@ context('Relative Timeframe', () => {
 		cy.wait('@save_user_settings');
 	});
 	it('sets relative timespan filter for next week and filters list', () => {
-		cy.visit('/desk#List/ToDo/List');
+		cy.visit('/app/List/ToDo/List');
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
 		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
 		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });

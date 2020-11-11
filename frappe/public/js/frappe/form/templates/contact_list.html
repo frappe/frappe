@@ -9,7 +9,7 @@
 			{% if(contact_list[i].designation){ %}
 			 <span class="text-muted">&ndash; {%= contact_list[i].designation %}</span>
 			{% } %}
-			<a href="#Form/Contact/{%= encodeURIComponent(contact_list[i].name) %}"
+			<a href="/app/Form/Contact/{%= encodeURIComponent(contact_list[i].name) %}"
 				class="btn btn-xs btn-default ml-auto">
 				{%= __("Edit") %}
 			</a>

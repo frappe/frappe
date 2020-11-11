@@ -107,13 +107,7 @@ frappe.search.AwesomeBar = Class.extend({
 			if(item.onclick) {
 				item.onclick(item.match);
 			} else {
-				var previous_hash = window.location.hash;
 				frappe.set_route(item.route);
-
-				// hashchange didn't fire!
-				if (window.location.hash == previous_hash) {
-					frappe.route();
-				}
 			}
 			$input.val("");
 		});
