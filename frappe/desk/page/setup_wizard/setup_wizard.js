@@ -212,7 +212,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		}
 		setTimeout(function () {
 			// Reload
-			window.location.href = '/desk';
+			window.location.href = '/app';
 		}, 2000);
 	}
 

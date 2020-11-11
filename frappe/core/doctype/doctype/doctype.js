@@ -24,12 +24,12 @@ frappe.ui.form.on('DocType', {
 		if (!frm.is_new() && !frm.doc.istable) {
 			if (frm.doc.issingle) {
 				frm.add_custom_button(__('Go to {0}', [frm.doc.name]), () => {
-					window.open(`/desk#Form/${frm.doc.name}`);
+					window.open(`/app/Form/${frm.doc.name}`);
 					// frappe.set_route('Form', frm.doc.name);
 				});
 			} else {
 				frm.add_custom_button(__('Go to {0} List', [frm.doc.name]), () => {
-					window.open(`/desk#List/${frm.doc.name}/List`);
+					window.open(`/app/List/${frm.doc.name}/List`);
 				});
 			}
 		}

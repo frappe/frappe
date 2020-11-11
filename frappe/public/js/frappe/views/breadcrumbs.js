@@ -101,7 +101,7 @@ frappe.breadcrumbs = {
 					label = module_info ? module_info.label : breadcrumbs.module;
 
 				if(module_info && !module_info.blocked && frappe.visible_modules.includes(module_info.module_name)) {
-					$(repl('<li><a href="#workspace/%(module)s">%(label)s</a></li>',
+					$(repl('<li><a href="/app/workspace/%(module)s">%(label)s</a></li>',
 						{ module: breadcrumbs.module, label: __(breadcrumbs.module) }))
 						.appendTo($breadcrumbs);
 				}
@@ -120,7 +120,7 @@ frappe.breadcrumbs = {
 				} else {
 					route = 'List/' + breadcrumbs.doctype;
 				}
-				$(`<li><a href="#${route}">${doctype}</a></li>`)
+				$(`<li><a href="/app/${route}">${doctype}</a></li>`)
 					.appendTo($breadcrumbs)
 			}
 		}

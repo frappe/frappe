@@ -79,7 +79,7 @@ def authorize_access(g_contact, reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/desk#Form/Google%20Contacts/{}".format(google_contact.name)
+			frappe.local.response["location"] = "/app/Form/Google%20Contacts/{}".format(google_contact.name)
 
 			frappe.msgprint(_("Google Contacts has been configured."))
 		except Exception as e:

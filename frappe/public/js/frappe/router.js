@@ -16,6 +16,7 @@ frappe.route_hooks = {};
 frappe._cur_route = null;
 
 $(window).on('hashchange', function() {
+	// v1 style routing, route is in hash
 	if (window.location.hash) {
 		let sub_path = frappe.get_sub_path(window.location.hash);
 		window.location.hash = '';
@@ -36,14 +37,23 @@ $('body').on('click', 'a', function(e) {
 		return false;
 	};
 
+	// click handled, but not by href
+	if (e.currentTarget.getAttribute('onclick')) return;
+
+	const href = e.currentTarget.getAttribute('href');
+
+	if (href==='#' || href==='') {
+		return override(e, '/app');
+	}
+
 	// target has "#" ,this is a v1 style route, so remake it.
 	if (e.currentTarget.hash) {
 		return override(e, e.currentTarget.hash);
 	}
 
-	// target has "/desk, this is a v2 style route.
+	// target has "/app, this is a v2 style route.
 	if (e.currentTarget.pathname &&
-		(e.currentTarget.pathname.startsWith('/desk') || e.currentTarget.pathname.startsWith('desk'))) {
+		(e.currentTarget.pathname.startsWith('/app') || e.currentTarget.pathname.startsWith('app'))) {
 		return override(e, e.currentTarget.pathname);
 	}
 });
@@ -174,8 +184,8 @@ frappe.get_sub_path_string = function(route) {
 		route = window.location.pathname;
 	}
 
-	if (route.substr(0, 1)=='/') route = route.substr(1); // for /desk/sub
-	if (route.startsWith('desk')) route = route.substr(4); // for desk/sub
+	if (route.substr(0, 1)=='/') route = route.substr(1); // for /app/sub
+	if (route.startsWith('app')) route = route.substr(4); // for desk/sub
 	if (route.substr(0, 1)=='/') route = route.substr(1);
 	if (route.substr(0, 1)=='#') route = route.substr(1);
 	if (route.substr(0, 1)=='!') route = route.substr(1);
@@ -236,7 +246,7 @@ frappe.set_route = function() {
 };
 
 frappe.push_state = function (route) {
-	let url = `/desk/${route}`;
+	let url = `/app/${route}`;
 	if (window.location.pathname !== url) {
 		// cleanup any remenants of v1 routing
 		window.location.hash = '';

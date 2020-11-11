@@ -12,7 +12,7 @@ from frappe.cache_manager import build_domain_restriced_doctype_cache, build_dom
 @frappe.whitelist()
 def get(module):
 	"""Returns data (sections, list of reports, counts) to render module view in desk:
-	`/desk/#Module/[name]`."""
+	`/app/#Module/[name]`."""
 	data = get_data(module)
 
 	out = {
@@ -90,7 +90,7 @@ def get_data(module, build=True):
 	return data
 
 def build_config_from_file(module):
-	"""Build module info from `app/config/desktop.py` files."""
+	"""Build module info from `app/config/apptop.py` files."""
 	data = []
 	module = frappe.scrub(module)
 
@@ -150,7 +150,7 @@ def add_section(data, label, icon, items):
 
 
 def add_custom_doctypes(data, doctype_info):
-	"""Adds Custom DocTypes to modules setup via `config/desktop.py`."""
+	"""Adds Custom DocTypes to modules setup via `config/apptop.py`."""
 	add_section(data, _("Documents"), "fa fa-star",
 		[d for d in doctype_info if (d.custom and d.document_type in ("Document", "Transaction"))])
 
@@ -258,7 +258,7 @@ def config_exists(app, module):
 		return False
 
 def add_setup_section(config, app, module, label, icon):
-	"""Add common sections to `/desk#Module/Setup`"""
+	"""Add common sections to `/app#Module/Setup`"""
 	try:
 		setup_section = get_setup_section(app, module, label, icon)
 		if setup_section:

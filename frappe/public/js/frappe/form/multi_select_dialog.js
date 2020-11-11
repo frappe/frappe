@@ -236,7 +236,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				${
 	head ? `<span class="ellipsis text-muted" title="${__(frappe.model.unscrub(column))}">${__(frappe.model.unscrub(column))}</span>`
 		: (column !== "name" ? `<span class="ellipsis result-row" title="${__(result[column] || '')}">${__(result[column] || '')}</span>`
-			: `<a href="${"#Form/" + me.doctype + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
+			: `<a href="${"/app/Form/" + me.doctype + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
 							${__(result[column] || '')}</a>`)}
 			</div>`;
 		});

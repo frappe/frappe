@@ -577,7 +577,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
-		return "/desk"
+		return "/app"
 	else:
 		return redirect_url if redirect_url else "/"
 

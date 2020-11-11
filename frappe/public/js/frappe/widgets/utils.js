@@ -55,7 +55,6 @@ function generate_route(item) {
 			route = "dashboard/" + item.name;
 		}
 
-		route = "#" + route;
 	} else {
 		route = item.route;
 	}

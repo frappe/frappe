@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, print_function
 
 no_cache = 1
-base_template_path = "templates/www/desk.html"
+base_template_path = "templates/www/app.html"
 
 import os, re
 import frappe
@@ -37,7 +37,6 @@ def get_context(context):
 	boot_json = re.sub("\<script\>[^<]*\</script\>", "", boot_json)
 
 	context.update({
-		"desk_route": frappe.flags.desk_route or "",
 		"no_cache": 1,
 		"build_version": get_build_version(),
 		"include_js": hooks["app_include_js"],
