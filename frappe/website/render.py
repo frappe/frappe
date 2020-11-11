@@ -252,6 +252,10 @@ def resolve_path(path):
 	if path != "index":
 		path = resolve_from_map(path)
 
+	if path.startswith("desk"):
+		path = "desk"
+		frappe.flags.desk_route = path[5:]
+
 	return path
 
 def resolve_from_map(path):

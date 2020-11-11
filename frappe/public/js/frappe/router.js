@@ -16,13 +16,30 @@ frappe.route_hooks = {};
 frappe._cur_route = null;
 
 $(window).on('hashchange', function() {
-	// save the title
-
 	if (window.location.hash) {
-		console.log(window.location.hash);
 		let sub_path = frappe.get_sub_path(window.location.hash);
 		window.location.hash = '';
 		frappe.push_state(sub_path);
+	}
+});
+
+// routing v2, capture all clicks so that the target is managed with push-state
+$('body').on('click', 'a', function(e) {
+	let override = (e, route) => {
+		e.preventDefault();
+		frappe.push_state(frappe.get_sub_path(route));
+		return false;
+	};
+
+	// target has "#" ,this is a v1 style route, so remake it.
+	if (e.target.hash) {
+		return override(e, e.target.hash);
+	}
+
+	// target has "/desk, this is a v2 style route.
+	if (e.target.pathname &&
+		(e.target.pathname.startWith('/desk') || e.target.pathname.startWith('desk'))) {
+		return override(e, e.target.pathname);
 	}
 });
 
@@ -31,7 +48,7 @@ frappe.route = function() {
 	// Application is not yet initiated
 	if (!frappe.app) return;
 
-	let sub_path = frappe.get_route_str();
+	let sub_path = frappe.get_sub_path();
 
 	if (frappe.re_route[sub_path] !== undefined) {
 		// after saving a doc, for example,
@@ -40,7 +57,7 @@ frappe.route = function() {
 		// it doesn't allow us to go back to the one prior to "New DocType 1"
 		// Hence if this check is true, instead of changing location hash,
 		// we just do a back to go to the doc previous to the "New DocType 1"
-		var re_route_val = frappe.get_route_str(frappe.re_route[sub_path]);
+		var re_route_val = frappe.get_sub_path(frappe.re_route[sub_path]);
 		if (decodeURIComponent(re_route_val) === decodeURIComponent(sub_path)) {
 			window.history.back();
 			return;
@@ -105,7 +122,7 @@ frappe.route = function() {
 
 frappe.get_route = function(route) {
 	// for app
-	route = frappe.get_raw_route_str(route).split('/');
+	route = frappe.get_sub_path_string(route).split('/');
 	route = $.map(route, frappe._decode_str);
 	var parts = null;
 	var doc_name = route[route.length - 1];
@@ -150,16 +167,19 @@ frappe._decode_str = function(r) {
 	}
 }
 
-frappe.get_raw_route_str = function(route) {
+frappe.get_sub_path_string = function(route) {
+	// return clean sub_path from hash or url
+	// supports both v1 and v2 routing
+
 	if (!route) {
 		route = window.location.hash;
 	}
-
-	if (!route && window.location.pathname.startsWith('/desk')) {
-		// route is without hash
-		route = window.location.pathname.substr(5);
+	if (!route) {
+		route = window.location.pathname;
 	}
 
+	if (route.substr(0, 1)=='/') route = route.substr(1);
+	if (route.startsWith('desk')) route = route.substr(4);
 	if (route.substr(0, 1)=='/') route = route.substr(1);
 	if (route.substr(0, 1)=='#') route = route.substr(1);
 	if (route.substr(0, 1)=='!') route = route.substr(1);
@@ -168,8 +188,8 @@ frappe.get_raw_route_str = function(route) {
 };
 
 frappe.get_sub_path = frappe.get_route_str = function(route) {
-	var rawRoute = frappe.get_raw_route_str(route);
-	route = $.map(rawRoute.split('/'), frappe._decode_str).join('/');
+	var sub_path = frappe.get_sub_path_string(route);
+	route = $.map(sub_path.split('/'), frappe._decode_str).join('/');
 
 	return route;
 };
@@ -220,14 +240,23 @@ frappe.set_route = function() {
 };
 
 frappe.push_state = function (route) {
-	history.pushState(null, null, `/desk/${route}`);
-	frappe.route();
-}
+	let url = `/desk/${route}`;
+	if (window.location.pathname !== url) {
+		// cleanup any remenants of v1 routing
+		window.location.hash = '';
+
+		// push state so the browser looks fine
+		history.pushState(null, null, url);
+
+		// now process the route
+		frappe.route();
+	}
+};
 
 frappe.set_re_route = function() {
-	var tmp = window.location.hash;
+	var tmp = frappe.get_sub_path();
 	frappe.set_route.apply(null, arguments);
-	frappe.re_route[tmp] = window.location.hash;
+	frappe.re_route[tmp] = frappe.get_sub_path();
 };
 
 frappe.has_route_options = function() {
