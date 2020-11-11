@@ -23,6 +23,11 @@ $(window).on('hashchange', function() {
 	}
 });
 
+window.addEventListener('popstate', (event) => {
+	// forward-back button, just re-render based on current route
+	frappe.route();
+});
+
 // routing v2, capture all clicks so that the target is managed with push-state
 $('body').on('click', 'a', function(e) {
 	let override = (e, route) => {
@@ -32,14 +37,14 @@ $('body').on('click', 'a', function(e) {
 	};
 
 	// target has "#" ,this is a v1 style route, so remake it.
-	if (e.target.hash) {
-		return override(e, e.target.hash);
+	if (e.currentTarget.hash) {
+		return override(e, e.currentTarget.hash);
 	}
 
 	// target has "/desk, this is a v2 style route.
-	if (e.target.pathname &&
-		(e.target.pathname.startWith('/desk') || e.target.pathname.startWith('desk'))) {
-		return override(e, e.target.pathname);
+	if (e.currentTarget.pathname &&
+		(e.currentTarget.pathname.startsWith('/desk') || e.currentTarget.pathname.startsWith('desk'))) {
+		return override(e, e.currentTarget.pathname);
 	}
 });
 
@@ -70,9 +75,6 @@ frappe.route = function() {
 	frappe._cur_route = sub_path;
 
 	let route = frappe.get_route();
-	if (route === false) {
-		return;
-	}
 
 	frappe.route_history.push(route);
 
@@ -103,7 +105,7 @@ frappe.route = function() {
 			}
 		}
 	} else {
-		// Show desk
+		// Show home
 		frappe.views.pageview.show('');
 	}
 
@@ -136,12 +138,6 @@ frappe.get_route = function(route) {
 	if (parts.length > 1) {
 		var query_params = frappe.utils.get_query_params(parts[1]);
 		frappe.route_options = $.extend(frappe.route_options || {}, query_params);
-	}
-
-	// backward compatibility
-	if (route && route[0]==='Module') {
-		frappe.set_route('modules', route[1]);
-		return false;
 	}
 
 	return route;
@@ -178,8 +174,8 @@ frappe.get_sub_path_string = function(route) {
 		route = window.location.pathname;
 	}
 
-	if (route.substr(0, 1)=='/') route = route.substr(1);
-	if (route.startsWith('desk')) route = route.substr(4);
+	if (route.substr(0, 1)=='/') route = route.substr(1); // for /desk/sub
+	if (route.startsWith('desk')) route = route.substr(4); // for desk/sub
 	if (route.substr(0, 1)=='/') route = route.substr(1);
 	if (route.substr(0, 1)=='#') route = route.substr(1);
 	if (route.substr(0, 1)=='!') route = route.substr(1);
