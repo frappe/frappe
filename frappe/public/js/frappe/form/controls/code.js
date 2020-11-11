@@ -66,6 +66,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 
 		const ace_language_mode = language_map[language] || '';
 		this.editor.session.setMode(ace_language_mode);
+		this.editor.setKeyboardHandler('ace/keyboard/vscode');
 	},
 
 	parse(value) {
