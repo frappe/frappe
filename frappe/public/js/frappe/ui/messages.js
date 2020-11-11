@@ -32,7 +32,8 @@ frappe.confirm = function(message, confirm_action, reject_action) {
 			confirm_action && confirm_action();
 			d.hide();
 		},
-		secondary_action_label: __("No")
+		secondary_action_label: __("No"),
+		secondary_action: d.hide(),
 	});
 
 	d.$body.append(`<p class="frappe-confirm-message">${message}</p>`);
@@ -63,6 +64,7 @@ frappe.warn = function(title, message_html, proceed_action, primary_label, is_mi
 			d.hide();
 		},
 		secondary_action_label: __("Cancel"),
+		secondary_action: () => d.hide(),
 		minimizable: is_minimizable
 	});
 
