@@ -164,16 +164,10 @@ class LoginManager:
 		self.full_name = " ".join(filter(None, [self.info.first_name,
 			self.info.last_name]))
 
-		if self.info.user_type=="Website User":
-			frappe.local.cookie_manager.set_cookie("system_user", "no")
-			if not resume:
-				frappe.local.response["message"] = "No App"
-				frappe.local.response["home_page"] = '/' + get_home_page()
-		else:
-			frappe.local.cookie_manager.set_cookie("system_user", "yes")
-			if not resume:
-				frappe.local.response['message'] = 'Logged In'
-				frappe.local.response["home_page"] = "/desk"
+		frappe.local.cookie_manager.set_cookie("system_user", "yes")
+		if not resume:
+			frappe.local.response['message'] = 'Logged In'
+			frappe.local.response["home_page"] = "/desk"
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name

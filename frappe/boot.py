@@ -226,7 +226,7 @@ def load_translations(bootinfo):
 def get_user_info():
 	user_info = frappe.db.get_all('User', fields=['`name`', 'full_name as fullname', 'user_image as image',
 		'gender', 'email', 'username', 'bio', 'location', 'interest', 'banner_image', 'allowed_in_mentions'],
-		filters=dict(enabled=1, user_type=['!=', 'Website User']))
+		filters=dict(enabled=1))
 
 	user_info_map = {d.name: d for d in user_info}
 
@@ -320,6 +320,6 @@ def get_desk_settings():
 
 	for role in role_list:
 		for key in desk_properties:
-			desk_settings[key] = desk_settings[key] or role[key]
+			desk_settings[key] = desk_settings.get(key) or role.get(key)
 
 	return desk_settings
