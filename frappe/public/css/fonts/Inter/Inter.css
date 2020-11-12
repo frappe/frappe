@@ -1,89 +1,134 @@
-/* inter-100 */
 @font-face {
-	font-family: "Inter";
-	font-style: normal;
+	font-family: 'Inter';
+	font-style:  normal;
 	font-weight: 100;
-	src: local(""), url("/assets/css/fonts/inter/inter-100.woff2") format("woff2"),
-		/* Chrome 26+, Opera 23+, Firefox 39+ */
-		url("/assets/css/fonts/inter/inter-100.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+	src: url("/assets/frappe/css/fonts/inter/Inter-Thin.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-Thin.woff") format("woff");
+}
+@font-face {
+	font-family: 'Inter';
+	font-style:  italic;
+	font-weight: 100;
+	src: url("/assets/frappe/css/fonts/inter/Inter-ThinItalic.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-ThinItalic.woff") format("woff");
 }
 
-/* inter-200 */
 @font-face {
-	font-family: "Inter";
-	font-style: normal;
+	font-family: 'Inter';
+	font-style:  normal;
 	font-weight: 200;
-	src: local(""), url("/assets/css/fonts/inter/inter-200.woff2") format("woff2"),
-		/* Chrome 26+, Opera 23+, Firefox 39+ */
-		url("/assets/css/fonts/inter/inter-200.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+	src: url("/assets/frappe/css/fonts/inter/Inter-ExtraLight.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-ExtraLight.woff") format("woff");
+}
+@font-face {
+	font-family: 'Inter';
+	font-style:  italic;
+	font-weight: 200;
+	src: url("/assets/frappe/css/fonts/inter/Inter-ExtraLightItalic.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-ExtraLightItalic.woff") format("woff");
 }
 
-/* inter-300 */
 @font-face {
-	font-family: "Inter";
-	font-style: normal;
+	font-family: 'Inter';
+	font-style:  normal;
 	font-weight: 300;
-	src: local(""), url("/assets/css/fonts/inter/inter-300.woff2") format("woff2"),
-		/* Chrome 26+, Opera 23+, Firefox 39+ */
-		url("/assets/css/fonts/inter/inter-300.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+	src: url("/assets/frappe/css/fonts/inter/Inter-Light.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-Light.woff") format("woff");
+}
+@font-face {
+	font-family: 'Inter';
+	font-style:  italic;
+	font-weight: 300;
+	src: url("/assets/frappe/css/fonts/inter/Inter-LightItalic.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-LightItalic.woff") format("woff");
 }
 
-/* inter-regular */
 @font-face {
-	font-family: "Inter";
-	font-style: normal;
+	font-family: 'Inter';
+	font-style:  normal;
 	font-weight: 400;
-	src: local(""), url("/assets/css/fonts/inter/inter-regular.woff2") format("woff2"),
-		/* Chrome 26+, Opera 23+, Firefox 39+ */
-		url("/assets/css/fonts/inter/inter-regular.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+	src: url("/assets/frappe/css/fonts/inter/Inter-Regular.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-Regular.woff") format("woff");
+}
+@font-face {
+	font-family: 'Inter';
+	font-style:  italic;
+	font-weight: 400;
+	src: url("/assets/frappe/css/fonts/inter/Inter-Italic.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-Italic.woff") format("woff");
 }
 
-/* inter-500 */
 @font-face {
-	font-family: "Inter";
-	font-style: normal;
+	font-family: 'Inter';
+	font-style:  normal;
 	font-weight: 500;
-	src: local(""), url("/assets/css/fonts/inter/inter-500.woff2") format("woff2"),
-		/* Chrome 26+, Opera 23+, Firefox 39+ */
-		url("/assets/css/fonts/inter/inter-500.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+	src: url("/assets/frappe/css/fonts/inter/Inter-Medium.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-Medium.woff") format("woff");
+}
+@font-face {
+	font-family: 'Inter';
+	font-style:  italic;
+	font-weight: 500;
+	src: url("/assets/frappe/css/fonts/inter/Inter-MediumItalic.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-MediumItalic.woff") format("woff");
 }
 
-/* inter-600 */
 @font-face {
-	font-family: "Inter";
-	font-style: normal;
+	font-family: 'Inter';
+	font-style:  normal;
 	font-weight: 600;
-	src: local(""), url("/assets/css/fonts/inter/inter-600.woff2") format("woff2"),
-		/* Chrome 26+, Opera 23+, Firefox 39+ */
-		url("/assets/css/fonts/inter/inter-600.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+	src: url("/assets/frappe/css/fonts/inter/Inter-SemiBold.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-SemiBold.woff") format("woff");
+}
+@font-face {
+	font-family: 'Inter';
+	font-style:  italic;
+	font-weight: 600;
+	src: url("/assets/frappe/css/fonts/inter/Inter-SemiBoldItalic.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-SemiBoldItalic.woff") format("woff");
 }
 
-/* inter-700 */
 @font-face {
-	font-family: "Inter";
-	font-style: normal;
+	font-family: 'Inter';
+	font-style:  normal;
 	font-weight: 700;
-	src: local(""), url("/assets/css/fonts/inter/inter-700.woff2") format("woff2"),
-		/* Chrome 26+, Opera 23+, Firefox 39+ */
-		url("/assets/css/fonts/inter/inter-700.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+	src: url("/assets/frappe/css/fonts/inter/Inter-Bold.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-Bold.woff") format("woff");
+}
+@font-face {
+	font-family: 'Inter';
+	font-style:  italic;
+	font-weight: 700;
+	src: url("/assets/frappe/css/fonts/inter/Inter-BoldItalic.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-BoldItalic.woff") format("woff");
 }
 
-/* inter-800 */
 @font-face {
-	font-family: "Inter";
-	font-style: normal;
+	font-family: 'Inter';
+	font-style:  normal;
 	font-weight: 800;
-	src: local(""), url("/assets/css/fonts/inter/inter-800.woff2") format("woff2"),
-		/* Chrome 26+, Opera 23+, Firefox 39+ */
-		url("/assets/css/fonts/inter/inter-800.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+	src: url("/assets/frappe/css/fonts/inter/Inter-ExtraBold.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-ExtraBold.woff") format("woff");
+}
+@font-face {
+	font-family: 'Inter';
+	font-style:  italic;
+	font-weight: 800;
+	src: url("/assets/frappe/css/fonts/inter/Inter-ExtraBoldItalic.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-ExtraBoldItalic.woff") format("woff");
 }
 
-/* inter-900 */
 @font-face {
-	font-family: "Inter";
-	font-style: normal;
+	font-family: 'Inter';
+	font-style:  normal;
 	font-weight: 900;
-	src: local(""), url("/assets/css/fonts/inter/inter-900.woff2") format("woff2"),
-		/* Chrome 26+, Opera 23+, Firefox 39+ */
-		url("/assets/css/fonts/inter/inter-900.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+	src: url("/assets/frappe/css/fonts/inter/Inter-Black.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-Black.woff") format("woff");
+}
+@font-face {
+	font-family: 'Inter';
+	font-style:  italic;
+	font-weight: 900;
+	src: url("/assets/frappe/css/fonts/inter/Inter-BlackItalic.woff2") format("woff2"),
+			url("/assets/frappe/css/fonts/inter/Inter-BlackItalic.woff") format("woff");
 }
