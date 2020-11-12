@@ -9,7 +9,8 @@
   "fieldname",
   "fieldtype",
   "reqd",
-  "options"
+  "options",
+  "default"
  ],
  "fields": [
   {
@@ -44,11 +45,16 @@
    "fieldname": "options",
    "fieldtype": "Small Text",
    "label": "Options"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Small Text",
+   "label": "Default"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-09-09 15:04:08.414432",
+ "modified": "2020-10-26 17:38:40.798713",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template Field",

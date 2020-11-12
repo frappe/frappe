@@ -10,6 +10,7 @@ from glob import glob
 # imports - module imports
 import frappe
 from frappe.utils.backups import fetch_latest_backups
+import frappe.recorder
 
 
 def clean(value):
@@ -119,3 +120,47 @@ class TestCommands(BaseTestCommands):
 		# test 6: take a backup with --verbose
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEquals(self.returncode, 0)
+
+	def test_recorder(self):
+		frappe.recorder.stop()
+
+		self.execute("bench --site {site} start-recording")
+		frappe.local.cache = {}
+		self.assertEqual(frappe.recorder.status(), True)
+
+		self.execute("bench --site {site} stop-recording")
+		frappe.local.cache = {}
+		self.assertEqual(frappe.recorder.status(), False)
+
+	def test_remove_from_installed_apps(self):
+		from frappe.installer import add_to_installed_apps
+		app = "test_remove_app"
+		add_to_installed_apps(app)
+
+		# check: confirm that add_to_installed_apps added the app in the default
+		self.execute("bench --site {site} list-apps")
+		self.assertIn(app, self.stdout)
+
+		# test 1: remove app from installed_apps global default
+		self.execute("bench --site {site} remove-from-installed-apps {app}", {"app": app})
+		self.assertEquals(self.returncode, 0)
+		self.execute("bench --site {site} list-apps")
+		self.assertNotIn(app, self.stdout)
+
+	def test_list_apps(self):
+		# test 1: sanity check for command
+		self.execute("bench --site all list-apps")
+		self.assertEquals(self.returncode, 0)
+
+		# test 2: bare functionality for single site
+		self.execute("bench --site {site} list-apps")
+		self.assertEquals(self.returncode, 0)
+		list_apps = set([
+			_x.split()[0] for _x in self.stdout.split("\n")
+		])
+		doctype = frappe.get_single("Installed Applications").installed_applications
+		if doctype:
+			installed_apps = set([x.app_name for x in doctype])
+		else:
+			installed_apps = set(frappe.get_installed_apps())
+		self.assertSetEqual(list_apps, installed_apps)

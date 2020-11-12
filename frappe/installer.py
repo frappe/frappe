@@ -3,7 +3,7 @@
 
 import json
 import os
-
+from frappe.defaults import _clear_cache
 import frappe
 
 
@@ -111,8 +111,8 @@ def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
 	if app_name in installed_apps:
 		installed_apps.remove(app_name)
-		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
-		frappe.get_single("Installed Applications").update_versions()
+		frappe.db.set_value("DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps))
+		_clear_cache("__global")
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
@@ -175,7 +175,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 		for doctype in set(drop_doctypes):
 			print("* dropping Table for '{0}'...".format(doctype))
-			frappe.db.sql("drop table `tab{0}`".format(doctype))
+			frappe.db.sql_ddl("drop table `tab{0}`".format(doctype))
 
 		frappe.db.commit()
 		click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
@@ -406,3 +406,32 @@ def is_downgrade(sql_file_path, verbose=False):
 							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
 
 						return downgrade
+
+
+def validate_database_sql(path, _raise=True):
+	"""Check if file has contents and if DefaultValue table exists
+
+	Args:
+		path (str): Path of the decompressed SQL file
+		_raise (bool, optional): Raise exception if invalid file. Defaults to True.
+	"""
+	to_raise = False
+	error_message = ""
+
+	if not os.path.getsize(path):
+		error_message = f"{path} is an empty file!"
+		to_raise = True
+
+	if not _raise:
+		with open(path, "r") as f:
+			for line in f:
+				if 'tabDefaultValue' in line:
+					error_message = "Table `tabDefaultValue` not found in file."
+					to_raise = True
+
+	if error_message:
+		import click
+		click.secho(error_message, fg="red")
+
+	if _raise and to_raise:
+		raise frappe.InvalidDatabaseFile

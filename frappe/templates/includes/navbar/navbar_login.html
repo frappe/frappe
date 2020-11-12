@@ -11,7 +11,7 @@
 		<ul class="dropdown-menu dropdown-menu-right" role="menu">
 			{%- for child in post_login -%}
 			{%- if child.url -%}
-			<a class="dropdown-item" href="{{ child.url | abs_url }}" {{ child.target or '' }} rel="nofollow">
+			<a class="dropdown-item" href="{{ child.url | abs_url }}"  {% if child.open_in_new_tab %} target="_blank" {% endif %} rel="nofollow">
 				{{ child.label }}
 			</a>
 			{%- endif -%}

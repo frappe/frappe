@@ -11,6 +11,7 @@
    "reqd": 0
   },
   {
+   "default": "Left",
    "fieldname": "align",
    "fieldtype": "Select",
    "label": "Align",
@@ -19,8 +20,9 @@
   }
  ],
  "idx": 0,
- "modified": "2020-09-15 11:43:13.041049",
+ "modified": "2020-10-26 17:39:47.302460",
  "modified_by": "Administrator",
+ "module": "Website",
  "name": "Markdown",
  "owner": "Administrator",
  "standard": 1,

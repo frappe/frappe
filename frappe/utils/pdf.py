@@ -112,8 +112,7 @@ def prepare_options(html, options):
 	options.update(html_options or {})
 
 	# cookies
-	if not frappe.flags.in_test:
-		options.update(get_cookie_options())
+	options.update(get_cookie_options())
 
 	# page size
 	if not options.get("page-size"):
@@ -124,13 +123,13 @@ def prepare_options(html, options):
 
 def get_cookie_options():
 	options = {}
-	if frappe.session and frappe.session.sid:
+	if frappe.session and frappe.session.sid and hasattr(frappe.local, "request"):
 		# Use wkhtmltopdf's cookie-jar feature to set cookies and restrict them to host domain
 		cookiejar = "/tmp/{}.jar".format(frappe.generate_hash())
 
 		# Remove port from request.host
 		# https://werkzeug.palletsprojects.com/en/0.16.x/wrappers/#werkzeug.wrappers.BaseRequest.host
-		domain = frappe.local.request.host.split(":", 1)[0]
+		domain = frappe.utils.get_host_name().split(":", 1)[0]
 		with open(cookiejar, "w") as f:
 			f.write("sid={}; Domain={};\n".format(frappe.session.sid, domain))
 

@@ -460,11 +460,21 @@ def console(context):
 	frappe.init(site=site)
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
+
 	import IPython
 	all_apps = frappe.get_installed_apps()
+	failed_to_import = []
+
 	for app in all_apps:
-		locals()[app] = __import__(app)
+		try:
+			locals()[app] = __import__(app)
+		except ModuleNotFoundError:
+			failed_to_import.append(app)
+
 	print("Apps in this namespace:\n{}".format(", ".join(all_apps)))
+	if failed_to_import:
+		print("\nFailed to import:\n{}".format(", ".join(failed_to_import)))
+
 	IPython.embed(display_banner="", header="", colors="neutral")
 
 
