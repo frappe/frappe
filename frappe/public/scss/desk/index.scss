@@ -1,5 +1,5 @@
 @import "variables";
-@import "css-variables";
+@import "css_variables";
 @import "mixins";
 
 @import "~bootstrap/scss/bootstrap";
@@ -26,17 +26,17 @@
 @import "filters";
 @import "list";
 @import "report";
-@import "file-view";
-@import "frappe-datatable";
-@import "frappe-gantt";
-@import "image-view";
+@import "file_view";
+@import "frappe_datatable";
+@import "frappe_gantt";
+@import "image_view";
 @import "kanban";
 @import "calendar";
-@import "dashboard-view";
+@import "dashboard_view";
 @import "tree";
 @import "controls";
 @import "driver";
 @import "role_editor";
-@import "user-profile";
+@import "user_profile";
 @import "quill";
 @import "plyr";
