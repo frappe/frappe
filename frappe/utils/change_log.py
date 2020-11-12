@@ -1,15 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-from six.moves import range
-import json, os
-from semantic_version import Version
+import json
+import os
+import subprocess  # nosec
+
 import frappe
 import requests
-import subprocess # nosec
-from frappe.utils import cstr
 from frappe import _, safe_decode
+from frappe.utils import cstr, is_git_url
+from semantic_version import Version
+from six.moves import range
 
 
 def get_change_log(user=None):
@@ -202,6 +203,9 @@ def check_release_on_github(app):
 
 	# Get latest version from github
 	if 'https' not in remote_url:
+		return
+
+	if is_git_url(remote_url):
 		return
 
 	org_name = remote_url.split('/')[3]
