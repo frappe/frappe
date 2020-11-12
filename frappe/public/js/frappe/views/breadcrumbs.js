@@ -125,14 +125,14 @@ frappe.breadcrumbs = {
 			}
 		}
 
-		if (breadcrumbs.doctype && frappe.get_route()[0] === "Form") {
+		if (breadcrumbs.doctype && frappe.get_route()[0].toLowerCase() === "form") {
 			set_list_breadcrumb(breadcrumbs.doctype);
 		}
 
 		if (breadcrumbs.doctype && frappe.get_route()[0] === "print") {
 			set_list_breadcrumb(breadcrumbs.doctype);
 			let docname = frappe.get_route()[2];
-			let form_route = `Form/${breadcrumbs.doctype}/${docname}`;
+			let form_route = `form/${frappe.router.slug(breadcrumbs.doctype)}/${docname}`;
 			$(`<li><a href="#${form_route}">${docname}</a></li>`)
 				.appendTo($breadcrumbs);
 		}

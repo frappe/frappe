@@ -11,7 +11,7 @@ function generate_route(item) {
 			let doctype_slug = frappe.router.slug(item.doctype);
 
 			if (frappe.model.is_single(item.doctype)) {
-				route = "Form/" + doctype_slug;
+				route = "form/" + doctype_slug;
 			} else {
 				if (!item.doc_view) {
 					if (frappe.model.is_tree(item.doctype)) {
@@ -26,22 +26,22 @@ function generate_route(item) {
 						if (item.filters) {
 							frappe.route_options = item.filters;
 						}
-						route = "List/" + doctype_slug;
+						route = "list/" + doctype_slug;
 						break;
 					case "Tree":
-						route = "Tree/" + doctype_slug;
+						route = "tree/" + doctype_slug;
 						break;
 					case "Report Builder":
-						route = "List/" + doctype_slug + "/Report";
+						route = "list/" + doctype_slug + "/Report";
 						break;
 					case "Dashboard":
-						route = "List/" + doctype_slug + "/Dashboard";
+						route = "list/" + doctype_slug + "/Dashboard";
 						break;
 					case "New":
-						route = "Form/" + doctype_slug + "/New " + item.doctype;
+						route = "form/" + doctype_slug + "/New " + item.doctype;
 						break;
 					case "Calendar":
-						route = "List/" + doctype_slug + "/Calendar/Default";
+						route = "list/" + doctype_slug + "/Calendar/Default";
 						break;
 					default:
 						frappe.throw({ message: __("Not a valid DocType view:") + item.doc_view, title: __("Unknown View") });

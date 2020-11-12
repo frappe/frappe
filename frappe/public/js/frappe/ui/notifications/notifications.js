@@ -121,7 +121,7 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	route_to_settings() {
-		frappe.set_route(`/app/Form/Notification Settings/${frappe.session.user}`);
+		frappe.set_route('Form', 'Notification Settings', frappe.session.user);
 	}
 
 	mark_all_as_read(e) {

@@ -769,7 +769,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				${no_of_reports_html}
 			</p>`;
 
-		let get_item_html = item => `<a class="underline" href="/app/Form/Prepared Report/${item.name}">${item.name}</a>`;
+		let get_item_html = item => `<a class="underline" href="/app/form/prepared-report/${item.name}">${item.name}</a>`;
 
 		warning_message += reports.map(get_item_html).join(', ');
 

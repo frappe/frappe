@@ -14,7 +14,6 @@ frappe.pages['user-profile'].on_page_load = function(wrapper) {
 };
 
 class UserProfile {
-
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
@@ -36,13 +35,11 @@ class UserProfile {
 				}
 			});
 		} else {
-			this.user_id = frappe.session.user;
-			this.make_user_profile();
+			frappe.set_route('user-profile', frappe.session.user);
 		}
 	}
 
 	make_user_profile() {
-		frappe.set_route('user-profile', this.user_id, { redirect: true });
 		this.user = frappe.user_info(this.user_id);
 		this.page.set_title(this.user.fullname);
 		this.setup_user_search();
