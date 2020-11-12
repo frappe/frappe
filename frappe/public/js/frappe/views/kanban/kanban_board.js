@@ -424,15 +424,15 @@ frappe.provide("frappe.views");
 			var order = column.order;
 			if(order) {
 				order = JSON.parse(order);
-				order.forEach(function(name) {
-					if (!filtered_cards_names.includes(name)) return;
-					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
-				});
 				// new cards
 				filtered_cards.forEach(function(card) {
 					if(order.indexOf(card.name) === -1) {
 						frappe.views.KanbanBoardCard(card, self.$kanban_cards);
 					}
+				});
+				order.forEach(function(name) {
+					if (!filtered_cards_names.includes(name)) return;
+					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
 				});
 			} else {
 				filtered_cards.map(function(card) {

@@ -132,6 +132,10 @@
 	margin-bottom: var(--margin-sm);
 }
 
+.filter-searchbox input {
+	background-color: var(--control-bg-on-gray);
+}
+
 .print-format-builder-main {
 	display: inline-block;
 	vertical-align: top;

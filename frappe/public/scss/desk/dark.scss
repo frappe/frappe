@@ -1,28 +1,14 @@
 [data-theme="dark"] {
-	// Grays from Primer
-	// https://primer.style/css/support/color-system
-	//
-	// --gray-50: #fafbfc;
-	// --gray-100: #f6f8fa;
-	// --gray-200: #e1e4e8;
-	// --gray-300: #d1d5da;
-	// --gray-400: #959da5;
-	// --gray-500: #6a737d;
-	// --gray-600: #586069;
-	// --gray-700: #444d56;
-	// --gray-800: #2f363d;
-	// --gray-900: #24292e;
-
-	// --gray-50: #{$gray-50};
-	// --gray-100: #F7FAFC;
-	// --gray-200: #EDF2F7;
-	// --gray-300: #E2E8F0;
-	// --gray-400: #CBD5E0;
-	// --gray-500: #A0AEC0;
-	// --gray-600: #718096;
-	// --gray-700: #4A5568;
-	// --gray-800: #2D3748;
-	// --gray-900: #1A202C;
+	--gray-50: #{$gray-50};
+	--gray-100: #f7fafc;
+	--gray-200: #edf2f7;
+	--gray-300: #c9d0d6;
+	--gray-400: #7a838c;
+	--gray-500: #575e66;
+	--gray-600: #434a52;
+	--gray-700: #242a30;
+	--gray-800: #1c2126;
+	--gray-900: #161a1f;
 
 	// Type Colors
 	--text-muted: var(--gray-300);
@@ -37,9 +23,11 @@
 	// Layout Colors
 	--bg-color: var(--gray-900);
 	--fg-color: var(--gray-800);
+	--navbar-bg: var(--gray-800);
 	--fg-hover-color: var(--gray-700);
 	--card-bg: var(--gray-800);
 	--control-bg: var(--gray-700);
+	--control-bg-on-gray: var(--gray-800);
 	--awesomebar-focus-bg: var(--control-bg);
 	--modal-bg: var(--gray-700);
 	--toast-bg: var(--modal-bg);
@@ -76,7 +64,8 @@
 		}
 	}
 
-	.modal, .form-in-grid {
+	.modal,
+	.form-in-grid {
 		--control-bg: var(--gray-800);
 		--border-color: var(--gray-600);
 	}
@@ -87,7 +76,10 @@
 	}
 
 	.ql-editor.read-mode {
-		span, p, u, strong {
+		span,
+		p,
+		u,
+		strong {
 			background-color: inherit !important;
 			color: inherit !important;
 		}
