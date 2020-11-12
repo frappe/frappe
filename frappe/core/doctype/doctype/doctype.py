@@ -291,7 +291,11 @@ class DocType(Document):
 		allow_doctype_export = (
 			not self.custom
 			and not frappe.flags.in_import
-			and (frappe.flags.allow_doctype_export or frappe.conf.developer_mode)
+			and (
+				frappe.conf.developer_mode
+				or frappe.flags.allow_doctype_export
+				or frappe.flags.in_test
+			)
 		)
 		if allow_doctype_export:
 			self.export_doc()
