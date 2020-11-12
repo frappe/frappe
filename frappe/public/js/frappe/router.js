@@ -189,7 +189,7 @@ frappe.router = {
 
 			if (route.length===1 && route[0].includes('/')) {
 				// called as frappe.set_route('a/b/c')
-				route = route[0].split('/');
+				route = $.map(route[0].split('/'), frappe.router.decode_component);
 			}
 
 			if (route && route[0] == '') {
@@ -217,9 +217,9 @@ frappe.router = {
 		// slug doctype
 
 		// if app is part of the route, then first 2 elements are "" and "app"
-		if (frappe.router.factory_views.includes(route[0].toLowerCase())) {
+		if (route[0] && frappe.router.factory_views.includes(route[0].toLowerCase())) {
 			route[0] = route[0].toLowerCase();
-			route[1] = frappe.router.slug(frappe.router.decode_component(route[1]));
+			route[1] = frappe.router.slug(route[1]);
 		}
 		return route;
 	},
