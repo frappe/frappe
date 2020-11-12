@@ -215,27 +215,27 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} set-config backup '{includes}' --as-dict", {"includes": json.dumps(backup["includes"])})
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEquals(self.returncode, 0)
-		database = fetch_latest_backups()["database"]
+		database = fetch_latest_backups(partial=True)["database"]
 		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
 		# test 8: take a backup with frappe.conf.backup.excludes
 		self.execute("bench --site {site} set-config backup '{excludes}' --as-dict", {"excludes": json.dumps(backup["excludes"])})
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEquals(self.returncode, 0)
-		database = fetch_latest_backups()["database"]
+		database = fetch_latest_backups(partial=True)["database"]
 		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
 		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
 		# test 9: take a backup with --include (with frappe.conf.excludes still set)
 		self.execute("bench --site {site} backup --include '{include}'", {"include": ",".join(backup["includes"]["includes"])})
 		self.assertEquals(self.returncode, 0)
-		database = fetch_latest_backups()["database"]
+		database = fetch_latest_backups(partial=True)["database"]
 		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
 		# test 10: take a backup with --exclude
 		self.execute("bench --site {site} backup --exclude '{exclude}'", {"exclude": ",".join(backup["excludes"]["excludes"])})
 		self.assertEquals(self.returncode, 0)
-		database = fetch_latest_backups()["database"]
+		database = fetch_latest_backups(partial=True)["database"]
 		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
 
 		# test 11: take a backup with --ignore-backup-conf

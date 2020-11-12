@@ -202,7 +202,6 @@ class BackupGenerator:
 			self.backup_path_conf = site_config_backup_path
 
 	def set_backup_file_name(self):
-		# backups with the partial tag won't get returned by get_recent_backup
 		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
 
@@ -221,11 +220,11 @@ class BackupGenerator:
 		if not self.backup_path_private_files:
 			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
 
-	def get_recent_backup(self, older_than):
+	def get_recent_backup(self, older_than, partial=False):
 		backup_path = get_backup_path()
 
 		file_type_slugs = {
-			"database": "*-{}-database.sql.gz",
+			"database": "*-{{}}-{}database.sql.gz".format('*' if partial else ''),
 			"public": "*-{}-files.tar",
 			"private": "*-{}-private-files.tar",
 			"config": "*-{}-site_config_backup.json",
@@ -463,7 +462,7 @@ def get_backup():
 
 
 @frappe.whitelist()
-def fetch_latest_backups():
+def fetch_latest_backups(partial=False):
 	"""Fetches paths of the latest backup taken in the last 30 days
 	Only for: System Managers
 
@@ -479,7 +478,7 @@ def fetch_latest_backups():
 		db_type=frappe.conf.db_type,
 		db_port=frappe.conf.db_port,
 	)
-	database, public, private, config = odb.get_recent_backup(older_than=24 * 30)
+	database, public, private, config = odb.get_recent_backup(older_than=24 * 30, partial=partial)
 
 	return {"database": database, "public": public, "private": private, "config": config}
 
