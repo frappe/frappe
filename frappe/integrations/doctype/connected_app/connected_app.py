@@ -29,10 +29,12 @@ class ConnectedApp(Document):
 		callback_path = '/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/' + self.name
 		self.redirect_uri = urljoin(base_url, callback_path)
 
-	def get_oauth2_session(self, user=None):
+	def get_oauth2_session(self, user=None, init=False):
 		token = None
 		token_updater = None
-		if user:
+
+		if not init:
+			user = user or frappe.session.user
 			token_cache = self.get_user_token(user)
 			token = token_cache.get_json()
 			token_updater = token_cache.update_data
@@ -50,7 +52,7 @@ class ConnectedApp(Document):
 		"""Return an authorization URL for the user. Save state in Token Cache."""
 		success_uri = success_uri or '/desk'
 		user = user or frappe.session.user
-		oauth = self.get_oauth2_session()
+		oauth = self.get_oauth2_session(init=True)
 		authorization_url, state = oauth.authorization_url(self.authorization_uri)
 
 		try:
@@ -119,7 +121,7 @@ def callback(code=None, state=None):
 	except frappe.exceptions.DoesNotExistError:
 		frappe.throw(_('Invalid App'))
 
-	oauth = app.get_oauth2_session()
+	oauth = app.get_oauth2_session(init=True)
 	token = oauth.fetch_token(app.token_uri,
 		code=code,
 		client_secret=app.get_password('client_secret'),
