@@ -23,7 +23,7 @@ $(window).on('hashchange', function() {
 	}
 });
 
-window.addEventListener('popstate', (event) => {
+window.addEventListener('popstate', () => {
 	// forward-back button, just re-render based on current route
 	frappe.route();
 });
@@ -32,7 +32,7 @@ window.addEventListener('popstate', (event) => {
 $('body').on('click', 'a', function(e) {
 	let override = (e, route) => {
 		e.preventDefault();
-		frappe.router.push_state(frappe.router.get_sub_path(route));
+		frappe.set_route(route);
 		return false;
 	};
 
@@ -178,17 +178,32 @@ frappe.router = {
 		// set the route (push state) with given arguments
 		// example 1: frappe.set_route('a', 'b', 'c');
 		// example 2: frappe.set_route(['a', 'b', 'c']);
+		// example 3: frappe.set_route('a/b/c');
 
 		return new Promise(resolve => {
 			var route = arguments;
 			if (route.length===1 && $.isArray(route[0])) {
-				// arguments as frappe.set_route(['a', 'b', 'c']);
+				// called as frappe.set_route(['a', 'b', 'c']);
 				route = route[0];
 			}
 
+			if (route.length===1 && route[0].includes('/')) {
+				// called as frappe.set_route('a/b/c')
+				route = route[0].split('/');
+			}
+
+			if (route && route[0] == '') {
+				route.shift();
+			}
+
+			if (route && ['desk', 'app'].includes(route[0])) {
+				// we only need subpath, remove "app" (or "desk")
+				route.shift();
+			}
+
 			frappe.router.slug_parts(route);
-			const url = frappe.router.make_url_from_list(route);
-			frappe.router.push_state(url);
+			const sub_path = frappe.router.make_url_from_list(route);
+			frappe.router.push_state(sub_path);
 
 			setTimeout(() => {
 				frappe.after_ajax && frappe.after_ajax(() => {
@@ -198,12 +213,13 @@ frappe.router = {
 		});
 	},
 
-	slug_parts(route, with_app) {
+	slug_parts(route) {
 		// slug doctype
-		with_app = with_app ? 1 : 0;
-		if (frappe.router.factory_views.includes(route[0 + with_app].toLowerCase())) {
-			route[0 + with_app] = route[0 + with_app].toLowerCase();
-			route[1 + with_app] = frappe.router.slug(route[1 + with_app]);
+
+		// if app is part of the route, then first 2 elements are "" and "app"
+		if (frappe.router.factory_views.includes(route[0].toLowerCase())) {
+			route[0] = route[0].toLowerCase();
+			route[1] = frappe.router.slug(frappe.router.decode_component(route[1]));
 		}
 		return route;
 	},
@@ -224,14 +240,9 @@ frappe.router = {
 		}).join('/');
 	},
 
-	push_state(url) {
+	push_state(sub_path) {
 		// change the URL and call the router
-		if (!url.startsWith('/app/')) {
-			url = `/app/${url}`;
-		}
-
-		// slug factory elements
-		url = frappe.router.slug_parts(url.split('/'), 1).join('/');
+		const url = `/app/${sub_path}`;
 
 		if (window.location.pathname !== url) {
 			// cleanup any remenants of v1 routing
