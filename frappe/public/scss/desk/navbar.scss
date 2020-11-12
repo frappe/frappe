@@ -1,6 +1,6 @@
 .navbar {
 	height: $navbar-height;
-	background: var(--fg-color);
+	background: var(--navbar-bg);
 	box-shadow: var(--shadow-sm);
 	padding: 0;
 	.navbar-brand {
@@ -61,7 +61,8 @@
 		font-size: var(--text-md);
 	}
 	input:focus {
-		box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
+		box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1),
+			0px 2px 6px rgba(17, 43, 66, 0.08);
 		background-color: var(--awesomebar-focus-bg);
 		height: 42px;
 	}
@@ -73,7 +74,7 @@
 
 .navbar.bg-dark {
 	.dropdown-menu {
-		font-size: .75rem;
+		font-size: 0.75rem;
 		background-color: $dark;
 		border-radius: 0;
 	}
