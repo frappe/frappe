@@ -53,7 +53,7 @@ class TestRenameDoc(unittest.TestCase):
 		for dt in self.doctype.values():
 			if frappe.db.exists("DocType", dt):
 				frappe.delete_doc("DocType", dt)
-				frappe.db.sql_ddl(f"DROP TABLE `tab{dt}`")
+				frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{dt}`")
 
 	def test_rename_doc(self):
 		"""Rename an existing document via frappe.rename_doc"""
