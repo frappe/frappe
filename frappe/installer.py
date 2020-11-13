@@ -528,6 +528,14 @@ def is_downgrade(sql_file_path, verbose=False):
 						return downgrade
 
 
+def is_partial(sql_file_path):
+	with open(sql_file_path) as f:
+		header = " ".join([f.readline() for _ in range(5)])
+		if "Partial Backup" in header:
+			return True
+	return False
+
+
 def partial_restore(sql_file_path, verbose=False):
 	sql_file = extract_sql_from_archive(sql_file_path)
 

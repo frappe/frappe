@@ -6,6 +6,7 @@ import os
 from calendar import timegm
 from datetime import datetime
 from glob import glob
+import gzip
 
 # imports - third party imports
 import click

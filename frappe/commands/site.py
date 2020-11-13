@@ -56,17 +56,41 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 @pass_context
 def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
-	from frappe.installer import extract_sql_from_archive, extract_files, is_downgrade, validate_database_sql
+	from frappe.installer import (
+		extract_sql_from_archive,
+		extract_files,
+		is_downgrade,
+		is_partial,
+		validate_database_sql
+	)
+
 	force = context.force or force
 	decompressed_file_name = extract_sql_from_archive(sql_file_path)
 
+	# check if partial backup
+	if is_partial(decompressed_file_name):
+		click.secho(
+			"Partial Backup file detected. You cannot use a partial file to restore a Frappe Site.",
+			fg="red"
+		)
+		click.secho(
+			"Use `bench partial-restore` to restore a partial backup to an existing site.",
+			fg="yellow"
+		)
+		sys.exit(1)
+
+	# check if valid SQL file
 	validate_database_sql(decompressed_file_name, _raise=force)
+
 	site = get_site(context)
 	frappe.init(site=site)
 
 	# dont allow downgrading to older versions of frappe without force
 	if not force and is_downgrade(decompressed_file_name, verbose=True):
-		warn_message = "This is not recommended and may lead to unexpected behaviour. Do you want to continue anyway?"
+		warn_message = (
+			"This is not recommended and may lead to unexpected behaviour. "
+			"Do you want to continue anyway?"
+		)
 		click.confirm(warn_message, abort=True)
 
 	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
@@ -89,8 +113,12 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	if decompressed_file_name != sql_file_path:
 		os.remove(decompressed_file_name)
 
-	success_message = "Site {0} has been restored{1}".format(site, " with files" if (with_public_files or with_private_files) else "")
+	success_message = "Site {0} has been restored{1}".format(
+		site,
+		" with files" if (with_public_files or with_private_files) else ""
+	)
 	click.secho(success_message, fg="green")
+
 
 @click.command('partial-restore')
 @click.argument('sql-file-path')
@@ -105,6 +133,7 @@ def partial_restore(context, sql_file_path, verbose):
 	frappe.connect(site=site)
 	partial_restore(sql_file_path, verbose)
 	frappe.destroy()
+
 
 @click.command('reinstall')
 @click.option('--admin-password', help='Administrator Password for reinstalled site')
