@@ -206,35 +206,3 @@ th.fc-day-header {
 	display: none !important;
 }
 
-// REDESIGN-TODO: Fix color palette
-// @mixin fc-bg-color($color){
-// 	$light: #{"${color}-light"};
-// 	$extra-light: #{"${color}-extra-light"};
-// 	$dark: #{"${color}-dark"};
-
-// 	background-color: $extra-light !important;
-// 	color: $dark !important;
-
-// 	&.fc-start {
-// 		border-left: 3px solid $light !important;
-// 	}
-// }
-
-// .fc-bg-orange {
-// 	@include fc-bg-color(orange);
-// }
-// .fc-bg-red {
-// 	@include fc-bg-color(red);
-// }
-// .fc-bg-skyblue {
-// 	@include fc-bg-color(skyblue);
-// }
-// .fc-bg-green {
-// 	@include fc-bg-color(green);
-// }
-// .fc-bg-blue {
-// 	@include fc-bg-color(blue);
-// }
-// .fc-bg-yellow {
-// 	@include fc-bg-color(yellow);
-// }
