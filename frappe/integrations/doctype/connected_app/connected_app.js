@@ -32,5 +32,7 @@ frappe.ui.form.on('Connected App', {
 				});
 			});
 		}
+
+		frm.toggle_display('sb_client_credentials_section', !frm.is_new());
 	}
 });
