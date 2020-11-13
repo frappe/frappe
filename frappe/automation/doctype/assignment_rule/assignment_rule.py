@@ -82,7 +82,7 @@ class AssignmentRule(Document):
 		elif self.rule == 'Load Balancing':
 			return self.get_user_load_balancing()
 		elif self.rule == 'Based on Field':
-			return doc.get(self.field)
+			return self.get_user_based_on_field(doc)
 
 	def get_user_round_robin(self):
 		'''
@@ -118,6 +118,11 @@ class AssignmentRule(Document):
 
 		# pick the first user
 		return sorted_counts[0].get('user')
+
+	def get_user_based_on_field(self, doc):
+		val = doc.get(self.field)
+		if frappe.db.exists('User', val):
+			return val
 
 	def safe_eval(self, fieldname, doc):
 		try:

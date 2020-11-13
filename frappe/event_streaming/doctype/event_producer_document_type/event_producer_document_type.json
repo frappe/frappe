@@ -10,7 +10,8 @@
   "use_same_name",
   "unsubscribe",
   "has_mapping",
-  "mapping"
+  "mapping",
+  "condition"
  ],
  "fields": [
   {
@@ -63,11 +64,16 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Unsubscribe"
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-08-14 11:38:01.278996",
+ "modified": "2020-11-07 09:26:58.463868",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Producer Document Type",

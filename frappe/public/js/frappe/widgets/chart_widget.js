@@ -1,5 +1,6 @@
 import Widget from "./base_widget.js";
-import { build_summary_item } from "./utils";
+
+frappe.provide('frappe.widget.utils');
 frappe.provide("frappe.dashboards");
 frappe.provide("frappe.dashboards.chart_sources");
 
@@ -80,7 +81,7 @@ export default class ChartWidget extends Widget {
 		}
 
 		this.summary.forEach(summary => {
-			build_summary_item(summary).appendTo(this.$summary);
+			frappe.widget.utils.build_summary_item(summary).appendTo(this.$summary);
 		});
 		this.summary.length && this.$summary.show();
 	}

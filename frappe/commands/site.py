@@ -80,7 +80,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 		sys.exit(1)
 
 	# check if valid SQL file
-	validate_database_sql(decompressed_file_name, _raise=force)
+	validate_database_sql(decompressed_file_name, _raise=not force)
 
 	site = get_site(context)
 	frappe.init(site=site)
@@ -199,15 +199,51 @@ def install_app(context, apps):
 	sys.exit(exit_code)
 
 
-@click.command('list-apps')
+@click.command("list-apps")
 @pass_context
 def list_apps(context):
 	"List apps in site"
-	site = get_site(context)
-	frappe.init(site=site)
-	frappe.connect()
-	print("\n".join(frappe.get_installed_apps()))
-	frappe.destroy()
+
+	def fix_whitespaces(text):
+		if site == context.sites[-1]:
+			text = text.rstrip()
+		if len(context.sites) == 1:
+			text = text.lstrip()
+		return text
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+		site_title = (
+			click.style(f"{site}", fg="green") if len(context.sites) > 1 else ""
+		)
+		apps = frappe.get_single("Installed Applications").installed_applications
+
+		if apps:
+			name_len, ver_len = [
+				max([len(x.get(y)) for x in apps])
+				for y in ["app_name", "app_version"]
+			]
+			template = "{{0:{0}}} {{1:{1}}} {{2}}".format(name_len, ver_len)
+
+			installed_applications = [
+				template.format(app.app_name, app.app_version, app.git_branch)
+				for app in apps
+			]
+			applications_summary = "\n".join(installed_applications)
+			summary = f"{site_title}\n{applications_summary}\n"
+
+		else:
+			applications_summary = "\n".join(frappe.get_installed_apps())
+			summary = f"{site_title}\n{applications_summary}\n"
+
+		summary = fix_whitespaces(summary)
+
+		if applications_summary and summary:
+			print(summary)
+
+		frappe.destroy()
+
 
 @click.command('add-system-manager')
 @click.argument('email')
