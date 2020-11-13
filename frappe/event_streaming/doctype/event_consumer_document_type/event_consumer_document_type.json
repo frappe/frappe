@@ -7,7 +7,8 @@
  "field_order": [
   "ref_doctype",
   "status",
-  "unsubscribed"
+  "unsubscribed",
+  "condition"
  ],
  "fields": [
   {
@@ -37,11 +38,17 @@
    "in_list_view": 1,
    "label": "Unsubscribed",
    "read_only": 1
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition",
+   "read_only": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-08-14 12:38:40.918620",
+ "modified": "2020-11-07 09:26:49.894294",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Consumer Document Type",
