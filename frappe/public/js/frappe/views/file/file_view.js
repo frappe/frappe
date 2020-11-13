@@ -253,9 +253,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				: frappe.utils.icon(icon_class, { width: '40px', height: '45px' });
 		const name = escape(d.name);
 		return `
-			<a href="${this.get_route_url(
-				d
-			)}"  draggable="${draggable}" class="file-wrapper ellipsis" data-name="${name}">
+			<div draggable="${draggable}" class="file-wrapper ellipsis" data-name="${name}">
 				<div class="file-header">
 					<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${name}">
 				</div>
@@ -263,10 +261,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 					${file_body_html}
 				</div>
 				<div class="file-footer">
-					<div class="file-title ellipsis">${d._title}</div>
+					<a href="${this.get_route_url(d)}" class="file-title ellipsis">${d._title}</a>
 					<div class="file-creation">${this.get_creation_date(d)}</div>
 				</div>
-			</a>
+			</div>
 		`;
 	}
 

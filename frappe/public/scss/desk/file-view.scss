@@ -46,8 +46,8 @@
 
 				.file-header {
 					position: absolute;
-					left: 10px;
-					top: 10px;
+					left: var(--padding-sm);
+					top: var(--padding-sm);
 
 					.list-row-checkbox {
 						&:before {
