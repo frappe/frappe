@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Connected App', {
 	refresh: frm => {
-		frm.add_custom_button(__("Get OpenID Configuration"), async () => {
+		frm.add_custom_button(__('Get OpenID Configuration'), async () => {
 			if (!frm.doc.openid_configuration) {
 				frappe.msgprint(__('Please enter OpenID Configuration URL'));
 			} else {
@@ -21,14 +21,16 @@ frappe.ui.form.on('Connected App', {
 			}
 		});
 
-		frm.add_custom_button(__("Init"), async () => {
-			frappe.call({
-				method: "initiate_web_application_flow",
-				doc: frm.doc,
-				callback: function(r) {
-					window.open(r.message, '_blank');
-				}
+		if (!frm.is_new()) {
+			frm.add_custom_button(__('Connect to {}', [frm.doc.provider_name]), async () => {
+				frappe.call({
+					method: 'initiate_web_application_flow',
+					doc: frm.doc,
+					callback: function(r) {
+						window.open(r.message, '_blank');
+					}
+				});
 			});
-		});
+		}
 	}
 });
