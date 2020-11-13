@@ -10,6 +10,7 @@
  "field_order": [
   "user",
   "connected_app",
+  "provider_name",
   "access_token",
   "refresh_token",
   "expires_in",
@@ -75,10 +76,17 @@
    "fieldtype": "Data",
    "label": "Token Type",
    "read_only": 1
+  },
+  {
+   "fetch_from": "connected_app.provider_name",
+   "fieldname": "provider_name",
+   "fieldtype": "Data",
+   "label": "Provider Name",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2020-10-18 15:22:48.991735",
+ "modified": "2020-11-13 13:35:53.714352",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Token Cache",
