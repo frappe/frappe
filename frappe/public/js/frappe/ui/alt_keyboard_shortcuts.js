@@ -128,6 +128,7 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 			return !this.is_taken(letter) && is_valid_char;
 		});
 		if (!shortcut_letter) {
+			$text_el.attr('data-label', text_content);
 			return;
 		}
 		for (let key in this.shortcuts_dict) {
