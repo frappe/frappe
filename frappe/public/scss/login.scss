@@ -1,17 +1,31 @@
 @import "./desk/variables";
 
+// [data-path="login"] {
+// 	background-color: var(--bg-color);
+
+// 	.web-footer,
+// 	.navbar {
+// 		background-color: var(--fg-color);
+// 	}
+// }
+
 .for-login,
 .for-forgot,
 .for-signup {
 	display: none;
 
+	@include media-breakpoint-up(sm) {
+		.page-card {
+			padding: 30px;
+			background-color: #fff;
+			box-shadow: var(--shadow-base);
+		}
+	}
+
 	.page-card {
-		max-width: 460px;
-		padding: 50px;
+		max-width: 420px;
 		margin: 70px auto;
 		border-radius: var(--border-radius-md);
-		background-color: #fff;
-		box-shadow: var(--shadow-base);
 
 		form {
 			max-width: 330px;

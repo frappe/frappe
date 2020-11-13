@@ -86,6 +86,7 @@
 		"public/less/controls.less",
 		"public/less/chat.less",
 		"public/less/social.less",
+		"public/css/fonts/inter/inter.css",
 		"public/scss/desk.scss",
 		"node_modules/frappe-charts/dist/frappe-charts.min.css",
 		"node_modules/plyr/dist/plyr.css"
