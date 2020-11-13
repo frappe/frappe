@@ -212,7 +212,7 @@ frappe.search.SearchDialog = Class.extend({
 		var $search_results = $(frappe.render_template("search")).addClass('hide');
 		var $sidebar = $search_results.find(".search-sidebar").empty();
 		var sidebar_item_html = '<li class="module-sidebar-item list-link" data-category="{0}">' +
-			'<a><span class="ellipsis">{0}</span><i class="octicon octicon-chevron-right"' +
+			'<a><span class="ellipsis">{1}</span><i class="octicon octicon-chevron-right"' +
 			'></a></li>';
 
 		this.modal_state = 0;
@@ -220,13 +220,13 @@ frappe.search.SearchDialog = Class.extend({
 		this.nav_lists = {};
 
 		result_sets.forEach(function(set) {
-			$sidebar.append($(__(sidebar_item_html, [set.title])));
+			$sidebar.append($(__(sidebar_item_html, [set.title,__(set.title)])));
 			me.add_section_to_summary(set.title, set.results);
 			me.full_lists[set.title] = me.render_full_list(set.title, set.results, set.fetch_type);
 		});
 
 		if(result_sets.length > 1) {
-			$sidebar.prepend($(__(sidebar_item_html, ["All Results"])));
+			$sidebar.prepend($(__(sidebar_item_html, ['All Results', __('All Results')])));
 		}
 
 		this.update($search_results.clone());
@@ -237,8 +237,8 @@ frappe.search.SearchDialog = Class.extend({
 		var me = this, max_length = 20;
 		var $results_list = $(' <div class="module-body"><div class="row module-section full-list '+
 			type+'-section">'+'<div class="col-sm-12 module-section-column">' +
-			'<div class="back-link"><a class="all-results-link small"> All Results</a></div>' +
-			'<div class="h4 section-head">'+type+'</div>' +
+			'<div class="back-link"><a class="all-results-link small">' + __("All Results") + '</a></div>' +
+			'<div class="h4 section-head">'+__(type)+'</div>' +
 			'<div class="section-body"></div></div></div></div>');
 
 		var $results_col = $results_list.find('.module-section-column');
@@ -273,7 +273,7 @@ frappe.search.SearchDialog = Class.extend({
 			this.full_lists['All Results'].append($('<div class="row module-section"></div>'));
 		}
 		var $results_col = $(`<div class="col-sm-${col_width} module-section-column" data-type="${type}">
-			<div class="h4 section-head">${type}</div>
+			<div class="h4 section-head">${ __(type) }</div>
 			<div class="section-body"></div>
 			</div>`);
 		results.slice(0, section_length).forEach(function(result) {
