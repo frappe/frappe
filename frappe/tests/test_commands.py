@@ -201,9 +201,7 @@ class TestCommands(BaseTestCommands):
 
 		# test 5: take a backup with --compress
 		self.execute("bench --site {site} backup --with-files --compress")
-
 		self.assertEquals(self.returncode, 0)
-
 		compressed_files = glob(site_backup_path + "/*.tgz")
 		self.assertGreater(len(compressed_files), 0)
 
@@ -243,6 +241,18 @@ class TestCommands(BaseTestCommands):
 		self.assertEquals(self.returncode, 0)
 		database = fetch_latest_backups()["database"]
 		self.assertTrue(exists_in_backup(backup["excludes"]["excludes"], database))
+
+	def test_restore(self):
+		# test 1: bench restore from full backup
+		self.execute("bench --site {site} backup --ignore-backup-conf")
+		database = fetch_latest_backups()["database"]
+		self.execute("bench --site {site} restore {database}", {"database": database})
+
+		# test 2: restore from partial backup
+		self.execute("bench --site {site} backup --exclude 'ToDo")
+		database = fetch_latest_backups(partial=True)["database"]
+		self.execute("bench --site {site} restore {database}", {"database": database})
+		self.assertEquals(self.returncode, 1)
 
 	def test_partial_restore(self):
 		_now = now()
