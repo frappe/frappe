@@ -220,7 +220,7 @@ frappe.search.SearchDialog = Class.extend({
 		this.nav_lists = {};
 
 		result_sets.forEach(function(set) {
-			$sidebar.append($(__(sidebar_item_html, [set.title,__(set.title)])));
+			$sidebar.append($(__(sidebar_item_html, [set.title, __(set.title)])));
 			me.add_section_to_summary(set.title, set.results);
 			me.full_lists[set.title] = me.render_full_list(set.title, set.results, set.fetch_type);
 		});
