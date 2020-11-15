@@ -247,6 +247,8 @@ class SMTPServer:
 
 		except _socket.error as e:
 			# Invalid mail server -- due to refusing connection
+                        #unknown mail server due to connection error
+                        #this gives a better error code
 			frappe.throw(
 				_("Invalid Outgoing Mail Server or Port"),
 				exc=frappe.ValidationError,
