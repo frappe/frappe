@@ -213,9 +213,9 @@ frappe.views.Calendar = Class.extend({
 	},
 	setup_options: function(defaults) {
 		var me = this;
-		var locale = frappe.boot.user.language === 'zh'? "zh-cn": frappe.boot.user.language
-                this.cal_options = {
-                        locale: locale || "en",
+		var locale = frappe.boot.user.language === 'zh'? "zh-cn": frappe.boot.user.language;
+		this.cal_options = {
+			locale: locale || "en",
 			header: {
 				left: 'title',
 				center: '',
