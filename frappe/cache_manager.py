@@ -18,7 +18,7 @@ global_cache_keys = ("app_hooks", "installed_apps",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
 		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
 		'domain_restricted_doctypes', 'domain_restricted_pages', 'information_schema:counts',
-		'sitemap_routes', 'db_tables') + doctype_map_keys
+		'sitemap_routes', 'db_tables', 'doctype_name_map') + doctype_map_keys
 
 user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "home_page", "linked_with",
@@ -67,18 +67,16 @@ def clear_defaults_cache(user=None):
 	elif frappe.flags.in_install!="frappe":
 		frappe.cache().delete_key("defaults")
 
-def clear_document_cache():
-	frappe.local.document_cache = {}
-	frappe.cache().delete_key("document_cache")
-
 def clear_doctype_cache(doctype=None):
 	cache = frappe.cache()
 
 	if getattr(frappe.local, 'meta_cache') and (doctype in frappe.local.meta_cache):
 		del frappe.local.meta_cache[doctype]
 
-	for key in ('is_table', 'doctype_modules'):
+	for key in ('is_table', 'doctype_modules', 'doctype_name_map', 'document_cache'):
 		cache.delete_value(key)
+
+	frappe.local.document_cache = {}
 
 	def clear_single(dt):
 		for name in doctype_cache_keys:
@@ -100,9 +98,6 @@ def clear_doctype_cache(doctype=None):
 		# clear all
 		for name in doctype_cache_keys:
 			cache.delete_value(name)
-
-	# Clear all document's cache. To clear documents of a specific DocType document_cache should be restructured
-	clear_document_cache()
 
 def get_doctype_map(doctype, name, filters=None, order_by=None):
 	cache = frappe.cache()

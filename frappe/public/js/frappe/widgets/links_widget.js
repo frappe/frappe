@@ -90,11 +90,8 @@ export default class LinksWidget extends Widget {
 					if (this.in_customize_mode) return;
 
 					if (link_label.hasClass("help-video-link")) {
-						let yt_id = event.target.dataset.youtubeid;
+						let yt_id = event.currentTarget.dataset.youtubeid;
 						frappe.help.show_video(yt_id);
-					} else {
-						let route = event.target.dataset.route;
-						frappe.set_route(route);
 					}
 				});
 			}

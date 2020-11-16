@@ -13,8 +13,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const user_settings = frappe.get_user_settings(doctype);
 			const last_view = user_settings.last_view;
 			frappe.set_route(
-				"List",
-				doctype,
+				"list",
+				frappe.router.slug(doctype),
 				frappe.views.is_valid(last_view) ? last_view : "List"
 			);
 			return true;
@@ -871,7 +871,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			? encodeURIComponent(doc.name)
 			: doc.name;
 
-		return "/app/Form/" + this.doctype + "/" + docname;
+		return "/app/form/" + frappe.router.slug(this.doctype) + "/" + docname;
 	}
 
 	get_seen_class(doc) {

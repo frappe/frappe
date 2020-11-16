@@ -173,9 +173,6 @@ frappe.Application = Class.extend({
 		if (frappe.boot && localStorage.getItem("session_last_route")) {
 			frappe.set_route(localStorage.getItem("session_last_route"));
 			localStorage.removeItem("session_last_route");
-		} else if (frappe._cur_route) {
-			// go to the appropriate sub-path
-			frappe.set_route(frappe._cur_route);
 		} else {
 			// route to home page
 			frappe.route();

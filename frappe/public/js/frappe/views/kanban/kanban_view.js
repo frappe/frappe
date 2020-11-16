@@ -328,7 +328,7 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype, show_existing) {
 						<p class="text-medium">
 						${__('No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type "Select".')}
 						</p>
-						<a class="btn btn-xs btn-default" href="/app/Form/Customize Form?doc_type=${doctype}">
+						<a class="btn btn-xs btn-default" href="/app/form/customize-form?doc_type=${doctype}">
 							${__('Customize Form')}
 						</a>
 					</div>
