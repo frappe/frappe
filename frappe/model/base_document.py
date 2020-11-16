@@ -490,9 +490,7 @@ class BaseDocument(object):
 					if not doctype:
 						frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
 
-				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
-
-				# get a map of values ot fetch along with this link query
+				# get a map of values to fetch along with this link query
 				# that are mapped as link_fieldname.source_fieldname in Options of
 				# Readonly or Data or Text type fields
 
@@ -503,38 +501,44 @@ class BaseDocument(object):
 						or (_df.get('fetch_if_empty') and not self.get(_df.fieldname))
 				]
 
-				if not fields_to_fetch:
-					# cache a single value type
-					values = frappe._dict(name=frappe.db.get_value(doctype, docname,
-						'name', cache=True))
+				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
+
+				# Get the 'link_name' with either the same as the doctype (for a
+				# Single DocType), or docname if linked document exists, or None
+				# if the link is broken
+				if frappe.get_meta(doctype).issingle:
+					link_name = doctype
 				else:
-					values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1]
+					link_name = frappe.db.get_value(doctype, docname, cache=True)
+
+				# Identify invalid or cancelled links
+				if not link_name:
+					invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
+
+				elif (df.fieldname != "amended_from"
+					and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
+					and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
+
+					cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
+
+				if fields_to_fetch and link_name:
+					values_to_fetch = [_df.fetch_from.split('.')[-1]
 						for _df in fields_to_fetch]
 
-					# don't cache if fetching other values too
+					# don't cache fetch_from values
 					values = frappe.db.get_value(doctype, docname,
 						values_to_fetch, as_dict=True)
-
-				if frappe.get_meta(doctype).issingle:
-					values.name = doctype
+				else:
+					values = None
 
 				if values:
-					setattr(self, df.fieldname, values.name)
+					setattr(self, df.fieldname, link_name)
 
 					for _df in fields_to_fetch:
 						if self.is_new() or self.docstatus != 1 or _df.allow_on_submit:
 							self.set_fetch_from_value(doctype, _df, values)
 
-					notify_link_count(doctype, docname)
-
-					if not values.name:
-						invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
-
-					elif (df.fieldname != "amended_from"
-						and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
-						and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
-
-						cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
+				notify_link_count(doctype, docname)
 
 		return invalid_links, cancelled_links
 
