@@ -406,3 +406,32 @@ def is_downgrade(sql_file_path, verbose=False):
 							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
 
 						return downgrade
+
+
+def validate_database_sql(path, _raise=True):
+	"""Check if file has contents and if DefaultValue table exists
+
+	Args:
+		path (str): Path of the decompressed SQL file
+		_raise (bool, optional): Raise exception if invalid file. Defaults to True.
+	"""
+	to_raise = False
+	error_message = ""
+
+	if not os.path.getsize(path):
+		error_message = f"{path} is an empty file!"
+		to_raise = True
+
+	if not _raise:
+		with open(path, "r") as f:
+			for line in f:
+				if 'tabDefaultValue' in line:
+					error_message = "Table `tabDefaultValue` not found in file."
+					to_raise = True
+
+	if error_message:
+		import click
+		click.secho(error_message, fg="red")
+
+	if _raise and to_raise:
+		raise frappe.InvalidDatabaseFile

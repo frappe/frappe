@@ -143,5 +143,24 @@ class TestCommands(BaseTestCommands):
 
 		# test 1: remove app from installed_apps global default
 		self.execute("bench --site {site} remove-from-installed-apps {app}", {"app": app})
+		self.assertEquals(self.returncode, 0)
 		self.execute("bench --site {site} list-apps")
 		self.assertNotIn(app, self.stdout)
+
+	def test_list_apps(self):
+		# test 1: sanity check for command
+		self.execute("bench --site all list-apps")
+		self.assertEquals(self.returncode, 0)
+
+		# test 2: bare functionality for single site
+		self.execute("bench --site {site} list-apps")
+		self.assertEquals(self.returncode, 0)
+		list_apps = set([
+			_x.split()[0] for _x in self.stdout.split("\n")
+		])
+		doctype = frappe.get_single("Installed Applications").installed_applications
+		if doctype:
+			installed_apps = set([x.app_name for x in doctype])
+		else:
+			installed_apps = set(frappe.get_installed_apps())
+		self.assertSetEqual(list_apps, installed_apps)
