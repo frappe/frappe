@@ -15,7 +15,7 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			} else {
 				// List / Gantt / Kanban / etc
 				// File is a special view
-				const view_name = doctype !== 'File' ? route[2] : 'File';
+				const view_name = doctype !== 'File' ? frappe.utils.to_title_case(route[2] || 'List') : 'File';
 				let view_class = frappe.views[view_name + 'View'];
 				if (!view_class) view_class = frappe.views.ListView;
 
@@ -41,7 +41,7 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 	}
 
 	show() {
-		if(this.re_route_to_view()) {
+		if (this.re_route_to_view()) {
 			return;
 		}
 		this.set_module_breadcrumb();

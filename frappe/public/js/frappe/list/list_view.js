@@ -15,7 +15,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			frappe.set_route(
 				"list",
 				frappe.router.slug(doctype),
-				frappe.views.is_valid(last_view) ? last_view : "List"
+				frappe.views.is_valid(last_view) ? last_view : "list"
 			);
 			return true;
 		}
