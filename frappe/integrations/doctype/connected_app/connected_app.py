@@ -3,11 +3,12 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+from urllib.parse import urljoin
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from requests_oauthlib import OAuth2Session
-from urllib.parse import urljoin
 
 if frappe.conf.developer_mode or frappe.flags.in_test:
 	# Disable mandatory TLS in developer mode and tests
@@ -54,17 +55,16 @@ class ConnectedApp(Document):
 		oauth = self.get_oauth2_session(init=True)
 		query_params = self.get_query_params()
 		authorization_url, state = oauth.authorization_url(self.authorization_uri, **query_params)
+		token_cache = self.get_token_cache(user)
 
-		try:
-			token = self.get_stored_user_token(user)
-		except frappe.exceptions.DoesNotExistError:
-			token = frappe.new_doc('Token Cache')
-			token.user = user
-			token.connected_app = self.name
+		if not token_cache:
+			token_cache = frappe.new_doc('Token Cache')
+			token_cache.user = user
+			token_cache.connected_app = self.name
 
-		token.success_uri = success_uri
-		token.state = state
-		token.save(ignore_permissions=True)
+		token_cache.success_uri = success_uri
+		token_cache.state = state
+		token_cache.save(ignore_permissions=True)
 		frappe.db.commit()
 
 		return authorization_url
@@ -72,19 +72,24 @@ class ConnectedApp(Document):
 	def get_user_token(self, user=None, success_uri=None):
 		"""Return an existing user token or initiate a Web Application Flow."""
 		user = user or frappe.session.user
+		token_cache = self.get_token_cache(user)
 
-		try:
-			token = self.get_stored_user_token(user)
-		except frappe.exceptions.DoesNotExistError:
-			redirect = self.initiate_web_application_flow(user, success_uri)
-			frappe.local.response['type'] = 'redirect'
-			frappe.local.response['location'] = redirect
-			return redirect
+		if token_cache:
+			return token_cache
 
-		return token
+		redirect = self.initiate_web_application_flow(user, success_uri)
+		frappe.local.response['type'] = 'redirect'
+		frappe.local.response['location'] = redirect
+		return redirect
 
-	def get_stored_user_token(self, user):
-		return frappe.get_doc('Token Cache', self.name + '-' + user)
+	def get_token_cache(self, user):
+		token_cache = None
+		token_cache_name = self.name + '-' + user
+
+		if frappe.db.exists('Token Cache', token_cache_name):
+			token_cache = frappe.get_doc('Token Cache', token_cache_name)
+
+		return token_cache
 
 	def get_scopes(self):
 		return [row.scope for row in self.scopes]
