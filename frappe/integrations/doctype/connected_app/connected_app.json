@@ -23,7 +23,9 @@
   "revocation_uri",
   "cb_02",
   "userinfo_uri",
-  "introspection_uri"
+  "introspection_uri",
+  "section_break_18",
+  "query_parameters"
  ],
  "fields": [
   {
@@ -115,6 +117,17 @@
    "fieldname": "introspection_uri",
    "fieldtype": "Data",
    "label": "Introspection URI"
+  },
+  {
+   "fieldname": "section_break_18",
+   "fieldtype": "Section Break",
+   "label": "Extra Parameters"
+  },
+  {
+   "fieldname": "query_parameters",
+   "fieldtype": "Table",
+   "label": "Query Parameters",
+   "options": "Query Parameters"
   }
  ],
  "links": [
@@ -123,7 +136,7 @@
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2020-10-18 16:10:13.051678",
+ "modified": "2020-11-16 16:29:50.277405",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",

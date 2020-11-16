@@ -53,7 +53,8 @@ class ConnectedApp(Document):
 		success_uri = success_uri or '/desk'
 		user = user or frappe.session.user
 		oauth = self.get_oauth2_session(init=True)
-		authorization_url, state = oauth.authorization_url(self.authorization_uri)
+		query_params = self.get_query_params()
+		authorization_url, state = oauth.authorization_url(self.authorization_uri, **query_params)
 
 		try:
 			token = self.get_stored_user_token(user)
@@ -89,6 +90,9 @@ class ConnectedApp(Document):
 	def get_scopes(self):
 		return [row.scope for row in self.scopes]
 
+	def get_query_params(self):
+		return {param.key: param.value for param in self.query_parameters}
+
 
 @frappe.whitelist(allow_guest=True)
 def callback(code=None, state=None):
@@ -122,10 +126,12 @@ def callback(code=None, state=None):
 		frappe.throw(_('Invalid App'))
 
 	oauth = app.get_oauth2_session(init=True)
+	query_params = app.get_query_params()
 	token = oauth.fetch_token(app.token_uri,
 		code=code,
 		client_secret=app.get_password('client_secret'),
-		include_client_id=True
+		include_client_id=True,
+		**query_params
 	)
 	token_cache.update_data(token)
 
