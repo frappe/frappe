@@ -164,6 +164,11 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 			key = m[1] + ':' + m[2]
 			if full_dict.get(key):
 				out[key] = full_dict[key]
+		if m[0] is not None and type(m[0]) == str and  m[0].startswith("DocType: "):
+			key = m[0] + ':' + m[1]
+			if full_dict.get(key):
+				out[m[1]] = full_dict[key]
+
 
 	return out
 
@@ -231,9 +236,10 @@ def get_translation_dict_from_file(path, lang, app):
 
 		for item in csv_content:
 			if len(item)==3 and item[2]:
-				key = item[0] + ':' + item[2]
-				translation_map[key] = strip(item[1])
+				key = item[0] + ':' + item[1]
+				translation_map[key] = strip(item[2])
 			elif len(item) in [2, 3]:
+				# TODO if it starts with filepath or DocType, and has only length 2, it is untranslated
 				translation_map[item[0]] = strip(item[1])
 			elif item:
 				raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
@@ -272,6 +278,8 @@ def clear_cache():
 	cache.delete_key("lang_full_dict", shared=True)
 	cache.delete_key("translation_assets", shared=True)
 	cache.delete_key("lang_user_translations")
+	cache.delete_key("scanned_for_translation_files")
+	frappe.flags.scanned_files = []
 
 def get_messages_for_app(app, deduplicate=True):
 	"""Returns all messages (list) for a specified `app`"""
@@ -591,17 +599,22 @@ def write_csv_file(path, app_messages, lang_dict):
 	with open(path, 'w', newline='') as msgfile:
 		w = writer(msgfile, lineterminator='\n')
 		for a in app_messages:
-			print("translating ", a)
 			if len(a) == 2:
 			  p, m = a
 			else:
 			  p, m, k, s = a
-			t = lang_dict.get(m, '')
+			key = p + ":" + m if p else m
+			t = lang_dict.get(key, '') # already translated shoud be found under key
+			if t is "":
+				# newly translated should be found just by the message
+				# because update_translations just `update`s the translation dict with messages
+				# without prefixing the type
+				t = lang_dict.get(m, '')
 			# strip whitespaces
 			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
 			w.writerow([p if p else '', m, t])
 
-def get_untranslated(lang, untranslated_file, get_all=False):
+def get_untranslated(lang, untranslated_file, app, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file
 
 	:param lang: Language code.
@@ -609,6 +622,10 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 	:param get_all: Return all strings, translated or not."""
 	clear_cache()
 	apps = frappe.get_all_apps(True)
+	if app is not None:
+		print(f"getting untranslated for app: {app} only")
+		apps = [app]
+
 
 	messages = []
 	untranslated = []
@@ -632,7 +649,11 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 		full_dict = get_full_dict(lang)
 
 		for m in messages:
-			if not full_dict.get(m[1]):
+			if m[0] is None or m[1] is None:
+				print(f"Can not ranslate {m}")
+				continue
+			lang_key = m[0] + ":" + m[1]
+			if not full_dict.get(lang_key):
 				untranslated.append(m[1])
 
 		if untranslated:
