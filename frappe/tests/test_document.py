@@ -137,6 +137,14 @@ class TestDocument(unittest.TestCase):
 
 		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
 
+		# Test a Link field with a fetch_from
+		d = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": "Link Validation",
+			"assigned_by": "invalid_link_validation@example.com"
+		})
+		self.assertRaises(frappe.LinkValidationError, d.insert)
+
 	def test_validate(self):
 		d = self.test_insert()
 		d.starts_on = "2014-01-01"
