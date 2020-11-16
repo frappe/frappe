@@ -50,7 +50,6 @@ class ConnectedApp(Document):
 
 	def initiate_web_application_flow(self, user=None, success_uri=None):
 		"""Return an authorization URL for the user. Save state in Token Cache."""
-		success_uri = success_uri or '/desk'
 		user = user or frappe.session.user
 		oauth = self.get_oauth2_session(init=True)
 		query_params = self.get_query_params()
@@ -136,4 +135,4 @@ def callback(code=None, state=None):
 	token_cache.update_data(token)
 
 	frappe.local.response['type'] = 'redirect'
-	frappe.local.response['location'] = token_cache.get('success_uri') or '/desk'
+	frappe.local.response['location'] = token_cache.get('success_uri') or app.get_url()
