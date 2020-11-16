@@ -65,7 +65,7 @@ class TestConnectedApp(unittest.TestCase):
 		callback_response = session.get(auth_response.url)
 		self.assertEqual(callback_response.status_code, 200)
 
-		token_cache = self.connected_app.get_stored_user_token(self.user_name)
+		token_cache = self.connected_app.get_token_cache(self.user_name)
 		token = token_cache.get_password('access_token')
 		self.assertNotEqual(token, None)
 
