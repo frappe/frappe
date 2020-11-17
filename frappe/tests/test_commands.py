@@ -1,24 +1,24 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 
 # imports - standard imports
+import gzip
 import json
 import os
 import shlex
 import subprocess
 import sys
 import unittest
-import gzip
-from glob import glob
+import glob
 
 # imports - module imports
 import frappe
+import frappe.recorder
+from frappe.installer import add_to_installed_apps
 from frappe.utils import add_to_date, now
 from frappe.utils.backups import fetch_latest_backups
-import frappe.recorder
 
 
 # TODO: check frappe.cli.coloured_output to set coloured output!
-
 def supports_color():
 	"""
 	Returns True if the running system's terminal supports color, and False
@@ -32,12 +32,12 @@ def supports_color():
 
 
 class color(dict):
-	nc = '\033[0m'
-	blue = '\033[94m'
-	green = '\033[92m'
-	yellow = '\033[93m'
-	red = '\033[91m'
-	silver = '\033[90m'
+	nc = "\033[0m"
+	blue = "\033[94m"
+	green = "\033[92m"
+	yellow = "\033[93m"
+	red = "\033[91m"
+	silver = "\033[90m"
 
 	def __getattr__(self, key):
 		if supports_color():
@@ -82,6 +82,7 @@ def exists_in_backup(doctypes, file):
 		content = f.read().decode("utf8")
 	return all([predicate.format(doctype).lower() in content.lower() for doctype in doctypes])
 
+
 class BaseTestCommands(unittest.TestCase):
 	def execute(self, command, kwargs=None):
 		site = {"site": frappe.local.site}
@@ -109,6 +110,7 @@ class BaseTestCommands(unittest.TestCase):
 		]).strip()
 		return "{}\n\n{}".format(output, cmd_execution_summary)
 
+
 class TestCommands(BaseTestCommands):
 	def test_execute(self):
 		# test 1: execute a command expecting a numeric output
@@ -127,7 +129,7 @@ class TestCommands(BaseTestCommands):
 		# The returned value has quotes which have been trimmed for the test
 		self.execute("""bench --site {site} execute frappe.bold --kwargs '{{"text": "DocType"}}'""")
 		self.assertEquals(self.returncode, 0)
-		self.assertEquals(self.stdout[1:-1], frappe.bold(text='DocType'))
+		self.assertEquals(self.stdout[1:-1], frappe.bold(text="DocType"))
 
 	def test_backup(self):
 		backup = {
@@ -184,16 +186,19 @@ class TestCommands(BaseTestCommands):
 				"db_path": "database.sql.gz",
 				"files_path": "public.tar",
 				"private_path": "private.tar",
-				"conf_path": "config.json"
+				"conf_path": "config.json",
 			}.items()
 		}
 
-		self.execute("""bench
+		self.execute(
+			"""bench
 			--site {site} backup --with-files
 			--backup-path-db {db_path}
 			--backup-path-files {files_path}
 			--backup-path-private-files {private_path}
-			--backup-path-conf {conf_path}""", kwargs)
+			--backup-path-conf {conf_path}""",
+			kwargs,
+		)
 
 		self.assertEquals(self.returncode, 0)
 		for path in kwargs.values():
@@ -202,7 +207,7 @@ class TestCommands(BaseTestCommands):
 		# test 5: take a backup with --compress
 		self.execute("bench --site {site} backup --with-files --compress")
 		self.assertEquals(self.returncode, 0)
-		compressed_files = glob(site_backup_path + "/*.tgz")
+		compressed_files = glob.glob(site_backup_path + "/*.tgz")
 		self.assertGreater(len(compressed_files), 0)
 
 		# test 6: take a backup with --verbose
@@ -210,14 +215,20 @@ class TestCommands(BaseTestCommands):
 		self.assertEquals(self.returncode, 0)
 
 		# test 7: take a backup with frappe.conf.backup.includes
-		self.execute("bench --site {site} set-config backup '{includes}' --as-dict", {"includes": json.dumps(backup["includes"])})
+		self.execute(
+			"bench --site {site} set-config backup '{includes}' --as-dict",
+			{"includes": json.dumps(backup["includes"])},
+		)
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEquals(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
 		# test 8: take a backup with frappe.conf.backup.excludes
-		self.execute("bench --site {site} set-config backup '{excludes}' --as-dict", {"excludes": json.dumps(backup["excludes"])})
+		self.execute(
+			"bench --site {site} set-config backup '{excludes}' --as-dict",
+			{"excludes": json.dumps(backup["excludes"])},
+		)
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEquals(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
@@ -225,13 +236,19 @@ class TestCommands(BaseTestCommands):
 		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
 		# test 9: take a backup with --include (with frappe.conf.excludes still set)
-		self.execute("bench --site {site} backup --include '{include}'", {"include": ",".join(backup["includes"]["includes"])})
+		self.execute(
+			"bench --site {site} backup --include '{include}'",
+			{"include": ",".join(backup["includes"]["includes"])},
+		)
 		self.assertEquals(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
 		# test 10: take a backup with --exclude
-		self.execute("bench --site {site} backup --exclude '{exclude}'", {"exclude": ",".join(backup["excludes"]["excludes"])})
+		self.execute(
+			"bench --site {site} backup --exclude '{exclude}'",
+			{"exclude": ",".join(backup["excludes"]["excludes"])},
+		)
 		self.assertEquals(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
@@ -248,20 +265,24 @@ class TestCommands(BaseTestCommands):
 			"admin_password": frappe.conf.admin_password,
 			"root_login": frappe.conf.root_login,
 			"root_password": frappe.conf.root_password,
-			"db_type": frappe.conf.db_type
+			"db_type": frappe.conf.db_type,
 		}
-		site_data = {
-			"another_site": f"{frappe.local.site}-restore.test",
-			**global_config
-		}
+		site_data = {"another_site": f"{frappe.local.site}-restore.test", **global_config}
 		for key, value in global_config.items():
 			if value:
 				self.execute(f"bench set-config {key} {value} -g")
-		self.execute("bench new-site {another_site} --admin-password {admin_password} --db-type {db_type} --force", site_data)
+		self.execute(
+			"bench new-site {another_site} --admin-password {admin_password} --db-type"
+			" {db_type}",
+			site_data,
+		)
 
 		# test 1: bench restore from full backup
 		self.execute("bench --site {another_site} backup --ignore-backup-conf", site_data)
-		self.execute("bench --site {another_site} execute frappe.utils.backups.fetch_latest_backups", site_data)
+		self.execute(
+			"bench --site {another_site} execute frappe.utils.backups.fetch_latest_backups",
+			site_data,
+		)
 		site_data.update({"database": json.loads(self.stdout)["database"]})
 		self.execute("bench --site {another_site} restore {database}", site_data)
 
@@ -269,12 +290,11 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {another_site} backup --exclude 'ToDo'", site_data)
 		site_data.update({"kw": "\"{'partial':True}\""})
 		self.execute(
-			"bench --site {another_site} execute frappe.utils.backups.fetch_latest_backups --kwargs {kw}",
-			site_data
+			"bench --site {another_site} execute"
+			" frappe.utils.backups.fetch_latest_backups --kwargs {kw}",
+			site_data,
 		)
-		site_data.update({
-			"database": json.loads(self.stdout)["database"]
-		})
+		site_data.update({"database": json.loads(self.stdout)["database"]})
 		self.execute("bench --site {another_site} restore {database}", site_data)
 		self.assertEquals(self.returncode, 1)
 
@@ -314,7 +334,6 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(frappe.recorder.status(), False)
 
 	def test_remove_from_installed_apps(self):
-		from frappe.installer import add_to_installed_apps
 		app = "test_remove_app"
 		add_to_installed_apps(app)
 
