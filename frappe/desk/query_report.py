@@ -14,8 +14,7 @@ from frappe.utils import (
 	cstr,
 	get_html_format,
 	get_url_to_form,
-	gzip_decompress,
-	format_duration,
+	gzip_decompress
 )
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
@@ -23,7 +22,6 @@ import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
-from frappe.utils import gzip_decompress
 from frappe.core.utils import ljust_list
 
 def get_report_doc(report_name):
@@ -99,7 +97,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		"columns": columns,
 		"message": message,
 		"chart": chart,
-		"data_to_be_printed": data_to_be_printed,
+		"report_summary": report_summary,
 		"skip_total_row": skip_total_row or 0,
 		"status": None,
 		"execution_time": frappe.cache().hget('report_execution_time', report.name) or 0
@@ -316,10 +314,6 @@ def export_query():
 		columns = get_columns_dict(data.columns)
 
 		from frappe.utils.xlsxutils import make_xlsx
-
-		data["result"] = handle_duration_fieldtype_values(
-			data.get("result"), data.get("columns")
-		)
 		xlsx_data, column_widths = build_xlsx_data(columns, data, visible_idx, include_indentation)
 		xlsx_file = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
