@@ -249,7 +249,7 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} restore {database}", {"database": database})
 
 		# test 2: restore from partial backup
-		self.execute("bench --site {site} backup --exclude 'ToDo")
+		self.execute("bench --site {site} backup --exclude 'ToDo'")
 		database = fetch_latest_backups(partial=True)["database"]
 		self.execute("bench --site {site} restore {database}", {"database": database})
 		self.assertEquals(self.returncode, 1)
