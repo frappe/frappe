@@ -547,14 +547,7 @@ frappe.ui.form.Timeline = class Timeline {
 			log.color = 'dark';
 			log.sender = log.owner;
 			log.comment_type = 'Milestone';
-			log.content = __(
-				'{0} changed {1} to {2}',
-				[
-					frappe.user.full_name(log.owner).bold(),
-					frappe.meta.get_label(this.frm.doctype, log.track_field),
-					log.value.bold()
-				]
-			);
+			log.content = __('{0} changed {1} to {2}', [ frappe.user.full_name(log.owner).bold(), frappe.meta.get_label(this.frm.doctype, log.track_field), log.value.bold()]);
 			return log;
 		});
 		return milestones;
@@ -617,14 +610,7 @@ frappe.ui.form.Timeline = class Timeline {
 							const field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
 							if (field_display_status === 'Read' || field_display_status === 'Write') {
-								parts.push(__(
-									'{0} from {1} to {2}',
-									[
-										__(df.label),
-										me.format_content_for_timeline(p[1]),
-										me.format_content_for_timeline(p[2])
-									]
-								));
+								parts.push(__('{0} from {1} to {2}', [ __(df.label), me.format_content_for_timeline(p[1]), me.format_content_for_timeline(p[2])]));
 							}
 						}
 					}
@@ -655,18 +641,7 @@ frappe.ui.form.Timeline = class Timeline {
 								null, me.frm.perm);
 
 							if (field_display_status === 'Read' || field_display_status === 'Write') {
-								parts.push(__(
-									'{0} from {1} to {2} in row #{3}',
-									[
-										frappe.meta.get_label(
-											me.frm.fields_dict[row[0]].grid.doctype,
-											p[0]
-										),
-										me.format_content_for_timeline(p[1]),
-										me.format_content_for_timeline(p[2]),
-										row[1]
-									]
-								));
+								parts.push(__('{0} from {1} to {2} in row #{3}', [ frappe.meta.get_label( me.frm.fields_dict[row[0]].grid.doctype, p[0]), me.format_content_for_timeline(p[1]), me.format_content_for_timeline(p[2]), row[1] ]));
 							}
 						}
 						return parts.length < 3;
@@ -703,10 +678,7 @@ frappe.ui.form.Timeline = class Timeline {
 						return p;
 					});
 					if (parts.length) {
-						out.push(me.get_version_comment(version, __(
-							"{0} rows for {1}",
-							[__(key), parts.join(', ')]
-						)));
+						out.push(me.get_version_comment(version, __("{0} rows for {1}", [__(key), parts.join(', ')])));
 					}
 				}
 			});
