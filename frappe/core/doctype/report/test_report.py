@@ -49,7 +49,7 @@ class TestReport(unittest.TestCase):
 				'name': 'Email'
 			}]))
 		custom_report = frappe.get_doc('Report', custom_report_name)
-		columns, result = custom_report.run_query_report(
+		columns, result = custom_report.get_data(
 			filters={
 				'user': 'Administrator',
 				'doctype': 'User'
