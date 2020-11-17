@@ -3,7 +3,10 @@ frappe.provide('frappe.ui');
 export default class ListFilter {
 	constructor({ wrapper, doctype }) {
 		Object.assign(this, arguments[0]);
-		this.can_add_global = frappe.user.has_role(['System Manager', 'Administrator']);
+		this.can_add_global = frappe.user.has_role([
+			'System Manager',
+			'Administrator',
+		]);
 		this.filters = [];
 		this.make();
 		this.bind();
@@ -15,7 +18,7 @@ export default class ListFilter {
 		this.wrapper.html(`
 			<li class="input-area"></li>
 			<li class="sidebar-action">
-				<a class="saved-filters-preview">${__("Show Saved")}</a>
+				<a class="saved-filters-preview">${__('Show Saved')}</a>
 			</li>
 			<div class="saved-filters"></div>
 		`);
@@ -29,7 +32,7 @@ export default class ListFilter {
 			df: {
 				fieldtype: 'Data',
 				placeholder: __('Filter Name'),
-				input_class: 'input-xs'
+				input_class: 'input-xs',
 			},
 			parent: this.$input_area,
 			render_input: 1,
@@ -38,12 +41,11 @@ export default class ListFilter {
 		this.is_global_input = frappe.ui.form.make_control({
 			df: {
 				fieldtype: 'Check',
-				label: __('Is Global')
+				label: __('Is Global'),
 			},
 			parent: this.$input_area,
-			render_input: 1
+			render_input: 1,
 		});
-
 	}
 
 	bind() {
@@ -54,87 +56,86 @@ export default class ListFilter {
 	}
 
 	refresh() {
-		this.get_list_filters()
-			.then(() => {
-				const html = this.filters.map(filter => this.filter_template(filter));
-				this.wrapper.find('.filter-pill').remove();
-				this.$saved_filters.append(html);
-			});
+		this.get_list_filters().then(() => {
+			const html = this.filters.map((filter) => this.filter_template(filter));
+			this.wrapper.find('.filter-pill').remove();
+			this.$saved_filters.append(html);
+		});
 		this.is_global_input.toggle(false);
 		this.filter_input.set_description('');
 	}
 
 	filter_template(filter) {
-		return `<div class="list-link filter-pill list-sidebar-button btn" data-name="${filter.name}">
+		return `<div class="list-link filter-pill list-sidebar-button btn btn-default" data-name="${
+			filter.name
+		}">
 			<a class="ellipsis filter-name">${filter.filter_name}</a>
 			<a class="remove">${frappe.utils.icon('close')}</a>
 		</div>`;
 	}
 
 	bind_toggle_saved_filters() {
-		this.wrapper.find('.saved-filters-preview').click((e)=> {
+		this.wrapper.find('.saved-filters-preview').click((e) => {
 			this.toggle_saved_filters(this.saved_filters_hidden);
 		});
 	}
 
 	toggle_saved_filters(show) {
 		this.$saved_filters.toggle(show);
-		const label = show ? __("Hide Saved") : __("Show Saved");
+		const label = show ? __('Hide Saved') : __('Show Saved');
 		this.wrapper.find('.saved-filters-preview').text(label);
 		this.saved_filters_hidden = !this.saved_filters_hidden;
 	}
 
 	bind_click_filter() {
-		this.wrapper.on('click', '.filter-pill .filter-name', e => {
-			let $filter = $(e.currentTarget).parent('.filter-pill')
-			this.$saved_filters.find('.btn-primary-light').removeClass('btn-primary-light');
-			$filter.addClass('btn-primary-light');
+		this.wrapper.on('click', '.filter-pill .filter-name', (e) => {
+			let $filter = $(e.currentTarget).parent('.filter-pill');
+			this.set_applied_filter($filter);
 			const name = $filter.attr('data-name');
-			this.list_view.filter_area.clear()
-				.then(() => {
-					this.list_view.filter_area.add(this.get_filters_values(name));
-				});
+			this.list_view.filter_area.clear().then(() => {
+				this.list_view.filter_area.add(this.get_filters_values(name));
+			});
 		});
 	}
 
 	bind_remove_filter() {
-		this.wrapper.on('click', '.filter-pill .remove', e => {
+		this.wrapper.on('click', '.filter-pill .remove', (e) => {
 			const $li = $(e.currentTarget).closest('.filter-pill');
 			const name = $li.attr('data-name');
 			const applied_filters = this.get_filters_values(name);
 			$li.remove();
-			this.remove_filter(name)
-				.then(() => this.refresh());
+			this.remove_filter(name).then(() => this.refresh());
 			this.list_view.filter_area.remove_filters(applied_filters);
 		});
 	}
 
 	bind_save_filter() {
-		this.filter_input.$input.keydown(frappe.utils.debounce(e => {
-			const value = this.filter_input.get_value();
-			const has_value = Boolean(value);
+		this.filter_input.$input.keydown(
+			frappe.utils.debounce((e) => {
+				const value = this.filter_input.get_value();
+				const has_value = Boolean(value);
 
-			if (e.which === frappe.ui.keyCode['ENTER']) {
-				if (!has_value || this.filter_name_exists(value)) return;
+				if (e.which === frappe.ui.keyCode['ENTER']) {
+					if (!has_value || this.filter_name_exists(value)) return;
 
-				this.filter_input.set_value('');
-				this.save_filter(value)
-					.then(() => this.refresh());
-				this.toggle_saved_filters(true);
-			} else {
-				let help_text = __('Press Enter to save');
+					this.filter_input.set_value('');
+					this.save_filter(value).then(() => this.refresh());
+					this.toggle_saved_filters(true);
+				} else {
+					let help_text = __('Press Enter to save');
 
-				if (this.filter_name_exists(value)) {
-					help_text = __('Duplicate Filter Name');
+					if (this.filter_name_exists(value)) {
+						help_text = __('Duplicate Filter Name');
+					}
+
+					this.filter_input.set_description(has_value ? help_text : '');
+
+					if (this.can_add_global) {
+						this.is_global_input.toggle(has_value);
+					}
 				}
-
-				this.filter_input.set_description(has_value ? help_text : '');
-
-				if (this.can_add_global) {
-					this.is_global_input.toggle(has_value);
-				}
-			}
-		}, 300));
+			}, 300)
+		);
 	}
 
 	save_filter(filter_name) {
@@ -143,7 +144,7 @@ export default class ListFilter {
 			reference_doctype: this.list_view.doctype,
 			filter_name,
 			for_user: this.is_global_input.get_value() ? '' : frappe.session.user,
-			filters: JSON.stringify(this.get_current_filters())
+			filters: JSON.stringify(this.get_current_filters()),
 		});
 	}
 
@@ -153,7 +154,7 @@ export default class ListFilter {
 	}
 
 	get_filters_values(name) {
-		const filter = this.filters.find(filter => filter.name === name);
+		const filter = this.filters.find((filter) => filter.name === name);
 		return JSON.parse(filter.filters || '[]');
 	}
 
@@ -162,16 +163,28 @@ export default class ListFilter {
 	}
 
 	filter_name_exists(filter_name) {
-		return (this.filters || []).find(f => f.filter_name === filter_name);
+		return (this.filters || []).find((f) => f.filter_name === filter_name);
 	}
 
 	get_list_filters() {
-		return frappe.db.get_list('List Filter', {
-			fields: ['name', 'filter_name', 'for_user', 'filters'],
-			filters: { reference_doctype: this.list_view.doctype },
-			or_filters: [['for_user', '=', frappe.session.user], ['for_user', '=', '']]
-		}).then((filters) => {
-			this.filters = filters || [];
-		});
+		return frappe.db
+			.get_list('List Filter', {
+				fields: ['name', 'filter_name', 'for_user', 'filters'],
+				filters: { reference_doctype: this.list_view.doctype },
+				or_filters: [
+					['for_user', '=', frappe.session.user],
+					['for_user', '=', ''],
+				],
+			})
+			.then((filters) => {
+				this.filters = filters || [];
+			});
+	}
+
+	set_applied_filter($filter) {
+		this.$saved_filters
+			.find('.btn-primary-light')
+			.toggleClass('btn-primary-light btn-default');
+		$filter.toggleClass('btn-default btn-primary-light');
 	}
 }
