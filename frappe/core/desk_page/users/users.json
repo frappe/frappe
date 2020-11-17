@@ -44,7 +44,7 @@
    "link_to": "User",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -53,7 +53,7 @@
    "link_to": "Role",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -62,7 +62,7 @@
    "link_to": "Role Profile",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -78,7 +78,7 @@
    "link_to": "Activity Log",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -87,7 +87,7 @@
    "link_to": "Access Log",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -103,7 +103,7 @@
    "link_to": "permission-manager",
    "link_type": "Page",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -112,7 +112,7 @@
    "link_to": "User Permission",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -121,7 +121,7 @@
    "link_to": "Role Permission for Page and Report",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -130,7 +130,7 @@
    "link_to": "Permitted Documents For User",
    "link_type": "Report",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -139,10 +139,10 @@
    "link_to": "Document Share Report",
    "link_type": "Report",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   }
  ],
- "modified": "2020-11-17 13:00:25.420030",
+ "modified": "2020-11-17 13:18:43.010826",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Users",

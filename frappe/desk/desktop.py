@@ -177,7 +177,7 @@ class Workspace:
 	def build_workspace(self):
 		self.cards = {
 			'label': _(self.doc.cards_label),
-			'items': self.get_cards()
+			'items': self.get_links()
 		}
 
 		self.charts = {
@@ -200,8 +200,8 @@ class Workspace:
 			}
 
 	@handle_not_exist
-	def get_cards(self):
-		cards = self.doc.cards
+	def get_links(self):
+		cards = self.doc.links
 		if not self.doc.hide_custom:
 			cards = cards + get_custom_reports_and_doctypes(self.doc.module)
 

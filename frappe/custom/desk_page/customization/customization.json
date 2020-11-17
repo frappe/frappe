@@ -44,7 +44,7 @@
    "link_to": "Dashboard",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -53,7 +53,7 @@
    "link_to": "Dashboard Chart",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -62,7 +62,7 @@
    "link_to": "Dashboard Chart Source",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -78,7 +78,7 @@
    "link_to": "Customize Form",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -87,7 +87,7 @@
    "link_to": "Custom Field",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -96,7 +96,7 @@
    "link_to": "Custom Script",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -105,7 +105,7 @@
    "link_to": "DocType",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -121,10 +121,10 @@
    "link_to": "Translation",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   }
  ],
- "modified": "2020-11-17 13:00:25.744678",
+ "modified": "2020-11-17 13:18:42.641660",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customization",

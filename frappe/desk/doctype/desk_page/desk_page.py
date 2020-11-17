@@ -43,6 +43,30 @@ class DeskPage(Document):
 
 		return { page[1]: page[0] for page in pages if page[1] }
 
+	def get_link_groups(self):
+		cards = []
+		current_card = {
+			"label": "Link",
+			"type": "Card Break",
+			"icon": None,
+			"hidden": False
+		}
+
+		for link in self.links:
+			if link.type == "Card Break":
+				if current_card.links:
+					cards.append(current_card)
+					current_card = link
+			else:
+				if not current_card.links:
+					current_card.links = []
+				current_card.card.links.append(link)
+
+		cards.append(current_card)
+
+		return cards
+
+
 def disable_saving_as_standard():
 	return frappe.flags.in_install or \
 			frappe.flags.in_patch or \
@@ -90,7 +114,7 @@ def rebuild_links(page):
 		for link in links:
 			doc.append('links', {
 				"label": link.get('label') or link.get('name'),
-				"type": "Card Break",
+				"type": "Link",
 				"link_type": link_type_map[link.get('type').lower()],
 				"link_to": link.get('name'),
 				"onboard": link.get('onboard'),
