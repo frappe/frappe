@@ -243,15 +243,39 @@ class TestCommands(BaseTestCommands):
 		self.assertTrue(exists_in_backup(backup["excludes"]["excludes"], database))
 
 	def test_restore(self):
+		# step 0: create a site to run the test on
+		global_config = {
+			"admin_password": frappe.conf.admin_password,
+			"root_login": frappe.conf.root_login,
+			"root_password": frappe.conf.root_password,
+			"db_type": frappe.conf.db_type
+		}
+		site_data = {
+			"another_site": f"{frappe.local.site}-restore.test",
+			**global_config
+		}
+		for key, value in global_config.items():
+			if value:
+				self.execute(f"bench set-config {key} {value} -g")
+		self.execute("bench new-site {another_site} --admin-password {admin_password} --db-type {db_type} --force", site_data)
+
 		# test 1: bench restore from full backup
-		self.execute("bench --site {site} backup --ignore-backup-conf")
-		database = fetch_latest_backups()["database"]
-		self.execute("bench --site {site} restore {database}", {"database": database})
+		self.execute("bench --site {another_site} backup --ignore-backup-conf", site_data)
+		self.execute("bench --site {another_site} execute frappe.utils.backups.fetch_latest_backups", site_data)
+		site_data.update({"database": json.loads(self.stdout)["database"]})
+		self.execute("bench --site {another_site} restore {database}", site_data)
 
 		# test 2: restore from partial backup
-		self.execute("bench --site {site} backup --exclude 'ToDo'")
-		database = fetch_latest_backups(partial=True)["database"]
-		self.execute("bench --site {site} restore {database}", {"database": database})
+		self.execute("bench --site {another_site} backup --exclude 'ToDo'", site_data)
+		site_data.update({"kw": "\"{'partial':True}\""})
+		self.execute(
+			"bench --site {another_site} execute frappe.utils.backups.fetch_latest_backups --kwargs {kw}",
+			site_data
+		)
+		site_data.update({
+			"database": json.loads(self.stdout)["database"]
+		})
+		self.execute("bench --site {another_site} restore {database}", site_data)
 		self.assertEquals(self.returncode, 1)
 
 	def test_partial_restore(self):
