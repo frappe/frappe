@@ -74,7 +74,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.$wrapper
 			.on("hide.bs.modal", function() {
 				me.display = false;
-				me.secondary_action && me.secondary_action();
 
 				if(frappe.ui.open_dialogs[frappe.ui.open_dialogs.length-1]===me) {
 					frappe.ui.open_dialogs.pop();
