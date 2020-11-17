@@ -184,17 +184,6 @@ class EmailAccount(Document):
 		try:
 			email_server.connect()
 		except (error_proto, imaplib.IMAP4.error) as e:
-<<<<<<< HEAD
-			e = cstr(e)
-			message = e.lower().replace(" ","")
-			if in_receive and any(map(lambda t: t in message, ['authenticationfailed', 'loginviayourwebbrowser', #abbreviated to work with both failure and failed
-				'loginfailed', 'err[auth]', 'errtemporaryerror'])): #temporary error to deal with godaddy
-				# if called via self.receive and it leads to authentication error, disable incoming
-				# and send email to system manager
-				self.handle_incoming_connect_error(
-					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}'.format(self.name, e))
-				)
-=======
 			message = cstr(e).lower().replace(" ","")
 			auth_error_codes = [
 				'authenticationfailed',
@@ -208,7 +197,6 @@ class EmailAccount(Document):
 			]
 
 			all_error_codes = auth_error_codes + other_error_codes
->>>>>>> aef8ecc7ef... fix: Show custom message for invalid login credentials
 
 			if in_receive and any(map(lambda t: t in message, all_error_codes)):
 				# if called via self.receive and it leads to authentication error,
