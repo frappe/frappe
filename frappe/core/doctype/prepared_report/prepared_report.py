@@ -89,7 +89,7 @@ def delete_expired_prepared_reports():
 				'creation': ['<', frappe.utils.add_days(frappe.utils.now(), -expiry_period)]
 			})
 
-		batches = frappe.utils.create_batch(prepared_reports_to_delete, 50)
+		batches = frappe.utils.create_batch(prepared_reports_to_delete, 100)
 		for batch in batches:
 			args = {
 				'reports': batch,
