@@ -30,6 +30,7 @@ import frappe
 from frappe import _, conf
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
+from frappe.permissions import has_web_form_permission
 
 
 class MaxFileSizeReachedError(frappe.ValidationError):
@@ -751,7 +752,7 @@ def has_permission(doc, ptype=None, user=None):
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
 			if ptype in ['write', 'create', 'delete']:
-				has_access = ref_doc.has_permission('write')
+				has_access = ref_doc.has_permission('write') or has_web_form_permission(attached_to_doctype, attached_to_name, ptype='write')
 
 				if ptype == 'delete' and not has_access:
 					frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
