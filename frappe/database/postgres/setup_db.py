@@ -35,7 +35,6 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 		sys.exit(1)
 
 def import_db_from_sql(source_sql=None, verbose=False):
-	from shlex import split
 	from shutil import which
 	from subprocess import run, PIPE
 
@@ -59,7 +58,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 	if pv:
 		command = f"{pv} {source_sql} | " + _command
 	else:
-		command = _command + f"-f {source_sql}"
+		command = _command + f" -f {source_sql}"
 
 	print("Restoring Database file...")
 	if verbose:
