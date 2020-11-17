@@ -14,7 +14,6 @@ export default class ListFilter {
 		// init dom
 		this.wrapper.html(`
 			<li class="input-area"></li>
-			<div class="applied-filter"></div>
 			<li class="sidebar-action">
 				<a class="saved-filters-preview">${__("Show Saved")}</a>
 			</li>
@@ -23,7 +22,6 @@ export default class ListFilter {
 
 		this.$input_area = this.wrapper.find('.input-area');
 		this.$list_filters = this.wrapper.find('.list-filters');
-		this.$applied_filter = this.wrapper.find('.applied-filter');
 		this.$saved_filters = this.wrapper.find('.saved-filters').hide();
 		this.saved_filters_hidden = true;
 
@@ -67,7 +65,7 @@ export default class ListFilter {
 	}
 
 	filter_template(filter) {
-		return `<div class="list-link filter-pill data-pill btn" data-name="${filter.name}">
+		return `<div class="list-link filter-pill list-sidebar-button btn" data-name="${filter.name}">
 			<a class="ellipsis filter-name">${filter.filter_name}</a>
 			<a class="remove">${frappe.utils.icon('close')}</a>
 		</div>`;
@@ -89,8 +87,8 @@ export default class ListFilter {
 	bind_click_filter() {
 		this.wrapper.on('click', '.filter-pill .filter-name', e => {
 			let $filter = $(e.currentTarget).parent('.filter-pill')
-			this.$applied_filter.find('.filter-pill').appendTo(this.$saved_filters);
-			$filter.appendTo(this.$applied_filter);
+			this.$saved_filters.find('.btn-primary-light').removeClass('btn-primary-light');
+			$filter.addClass('btn-primary-light');
 			const name = $filter.attr('data-name');
 			this.list_view.filter_area.clear()
 				.then(() => {
@@ -104,13 +102,9 @@ export default class ListFilter {
 			const $li = $(e.currentTarget).closest('.filter-pill');
 			const name = $li.attr('data-name');
 			const applied_filters = this.get_filters_values(name);
-			if ($li.parent('.applied-filter').length) {
-				$li.appendTo(this.$saved_filters);
-			} else {
-				$li.remove();
-				this.remove_filter(name)
-					.then(() => this.refresh());
-			}
+			$li.remove();
+			this.remove_filter(name)
+				.then(() => this.refresh());
 			this.list_view.filter_area.remove_filters(applied_filters);
 		});
 	}

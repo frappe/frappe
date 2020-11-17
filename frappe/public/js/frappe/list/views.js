@@ -14,7 +14,7 @@ frappe.views.Views = class Views {
 			action,
 			true,
 			null,
-			this.icon_map[view]|| 'list'
+			this.icon_map[view] || 'list'
 		);
 		$el.parent().attr('data-view', view)
 	}
