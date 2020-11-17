@@ -674,11 +674,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			const part3 = __('See all past reports.');
 
 			this.show_status(`
-				<span class="indicator orange">
-					${part1}
-					${part2}
-					<a href="/app/List/Prepared%20Report?report_name=${this.report_name}">${part3}</a>
-				</span>
+				<div class="indicator orange">
+					<span>
+						${part1}
+						${part2}
+						<a href="/app/List/Prepared%20Report?report_name=${this.report_name}"> ${part3}</a>
+					</span>
+				</div>
 			`);
 		};
 
