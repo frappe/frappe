@@ -156,16 +156,22 @@ frappe.ui.form.ScriptManager = Class.extend({
 		return handlers;
 	},
 	setup: function() {
-		var doctype = this.frm.meta;
-		var me = this;
+		const doctype = this.frm.meta;
+		const me = this;
+		let client_script;
 
-		// js
-		var cs = doctype.__js;
-		if(cs) {
-			var tmp = eval(cs);
+		// process the custom script for this form
+		if (this.frm.doctype_layout) {
+			client_script = this.frm.doctype_layout.client_script;
+		} else {
+			client_script = doctype.__js;
 		}
 
-		if(doctype.__custom_js) {
+		if (client_script) {
+			eval(client_script);
+		}
+
+		if(!this.frm.doctype_layout && doctype.__custom_js) {
 			try {
 				eval(doctype.__custom_js);
 			} catch(e) {

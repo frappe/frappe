@@ -33,7 +33,7 @@ frappe.confirm = function(message, confirm_action, reject_action) {
 			d.hide();
 		},
 		secondary_action_label: __("No"),
-		secondary_action: d.hide(),
+		secondary_action: () => d.hide(),
 	});
 
 	d.$body.append(`<p class="frappe-confirm-message">${message}</p>`);

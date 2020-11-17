@@ -80,7 +80,7 @@ $.extend(frappe.model, {
 		if(!cnt[doctype])
 			cnt[doctype] = 0;
 		cnt[doctype]++;
-		return __('New') + ' '+ __(doctype) + ' ' + cnt[doctype];
+		return frappe.router.slug(`new-${doctype}-${cnt[doctype]}`);
 	},
 
 	set_default_values: function(doc, parent_doc) {

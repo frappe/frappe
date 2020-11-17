@@ -14,8 +14,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const last_view = user_settings.last_view;
 			frappe.set_route(
 				"list",
-				frappe.router.slug(doctype),
-				frappe.views.is_valid(last_view) ? last_view : "list"
+				frappe.router.doctype_layout || doctype,
+				frappe.views.is_valid(last_view) ? last_view.toLowerCase() : "list"
 			);
 			return true;
 		}
@@ -232,7 +232,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_primary_action() {
 		if (this.can_create) {
 			this.page.set_primary_action(
-				`${__("Add")} ${__(this.doctype)}`,
+				`${__("Add")} ${frappe.router.doctype_layout || __(this.doctype)}`,
 				() => {
 					if (this.settings.primary_action) {
 						this.settings.primary_action();
@@ -871,7 +871,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			? encodeURIComponent(doc.name)
 			: doc.name;
 
-		return "/app/form/" + frappe.router.slug(this.doctype) + "/" + docname;
+		return "/app/form/" + frappe.router.slug(frappe.router.doctype_layout || this.doctype) + "/" + docname;
 	}
 
 	get_seen_class(doc) {
@@ -1402,7 +1402,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			items.push({
 				label: __("Import"),
 				action: () =>
-					frappe.set_route("List", "Data Import", {
+					frappe.set_route("list", "data-import", {
 						reference_doctype: doctype,
 					}),
 				standard: true,
@@ -1413,7 +1413,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			items.push({
 				label: __("User Permissions"),
 				action: () =>
-					frappe.set_route("List", "User Permission", {
+					frappe.set_route("list", "user-permission", {
 						allow: doctype,
 					}),
 				standard: true,
@@ -1435,9 +1435,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				action: () => {
 					if (!this.meta) return;
 					if (this.meta.custom) {
-						frappe.set_route("Form", "DocType", doctype);
+						frappe.set_route("form", "doctype", doctype);
 					} else if (!this.meta.custom) {
-						frappe.set_route("Form", "Customize Form", {
+						frappe.set_route("form", "customize-form", {
 							doc_type: doctype,
 						});
 					}
@@ -1469,7 +1469,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			// edit doctype
 			items.push({
 				label: __("Edit DocType"),
-				action: () => frappe.set_route("Form", "DocType", doctype),
+				action: () => frappe.set_route("form", "doctype", doctype),
 				standard: true,
 			});
 		}

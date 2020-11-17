@@ -86,8 +86,8 @@ frappe.form.formatters = {
 		}
 	},
 	Check: function(value) {
-		if(value) {
-			return `<input type="checkbox" class="disabled-selected">`
+		if (value) {
+			return `<input type="checkbox" class="disabled-selected">`;
 		} else {
 			return `<input type="checkbox" class="disabled-deselected">`;
 		}

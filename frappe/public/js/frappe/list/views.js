@@ -22,7 +22,7 @@ frappe.views.Views = class Views {
 	set_current_view() {
 		this.current_view = 'List';
 		const route = frappe.get_route();
-		const view_name = frappe.utils.to_title_case(route[2] || '')
+		const view_name = frappe.utils.to_title_case(route[2] || '');
 		if (route.length > 2 && frappe.views.view_modes.includes(view_name)) {
 			this.current_view = view_name;
 
@@ -34,15 +34,21 @@ frappe.views.Views = class Views {
 		}
 	}
 
+	set_route(view, calendar_name) {
+		const route = ['list', frappe.router.doctype_layout || this.doctype, view];
+		if (calendar_name) route.push(calendar_name);
+		frappe.set_route(route);
+	}
+
 	setup_views() {
 		const views = {
 			'List': {
 				condition: true,
-				action: () => frappe.set_route('list', this.doctype, 'list')
+				action: () => this.set_route('list')
 			},
 			'Report': {
 				condition: true,
-				action: () => frappe.set_route('list', this.doctype, 'report'),
+				action: () => this.set_route('report'),
 				current_view_handler: () => {
 					const reports = this.get_reports();
 					this.setup_dropdown_in_sidebar(
@@ -50,18 +56,18 @@ frappe.views.Views = class Views {
 						reports,
 						{
 							label: __('Report Builder'),
-							action: () => frappe.set_route('list', this.doctype, 'report')
+							action: () => this.set_route('report')
 						}
 					);
 				}
 			},
 			'Dashboard': {
 				condition: true,
-				action: () => frappe.set_route('list', this.doctype, 'dashboard')
+				action: () => this.set_route('dashboard')
 			},
 			'Calendar': {
 				condition: frappe.views.calendar[this.doctype],
-				action: () => frappe.set_route('list', this.doctype, 'calendar', 'default'),
+				action: () => this.set_route('calendar', 'default'),
 				current_view_handler: () => {
 					this.get_calendars().then(calendars => {
 						this.setup_dropdown_in_sidebar(
@@ -73,11 +79,11 @@ frappe.views.Views = class Views {
 			},
 			'Gantt': {
 				condition: frappe.views.calendar[this.doctype],
-				action: () => frappe.set_route('list', this.doctype, 'gantt')
+				action: () => this.set_route('gantt')
 			},
 			'Inbox': {
 				condition: this.doctype === "Communication" && frappe.boot.email_accounts.length,
-				action: () => frappe.set_route('list', this.doctype, 'inbox'),
+				action: () => this.set_route('inbox'),
 				current_view_handler: () => {
 					const accounts = this.get_email_accounts();
 					let default_action;
@@ -96,11 +102,11 @@ frappe.views.Views = class Views {
 			},
 			'Image': {
 				condition: this.list_view.meta.image_field,
-				action: () => frappe.set_route('list', this.doctype, 'image')
+				action: () => this.set_route('image')
 			},
 			'Tree': {
 				condition: frappe.treeview_settings[this.doctype] || frappe.get_meta(this.doctype).is_tree,
-				action: () => frappe.set_route('list', this.doctype, 'tree')
+				action: () => this.set_route('tree')
 			},
 			'Kanban': {
 				condition: true,
@@ -147,7 +153,7 @@ frappe.views.Views = class Views {
 				</div>`;
 		} else {
 			items.map(item => {
-				if (item.name == frappe.get_route().slice(-1)[0]) {
+				if (item.name == frappe.utils.to_title_case(frappe.get_route().slice(-1)[0] || '')) {
 					placeholder = item.name;
 				}
 				html += `<li><a class="dropdown-item" href="#${item.route}">${item.name}</a></li>`;
@@ -206,7 +212,7 @@ frappe.views.Views = class Views {
 		const last_opened_kanban = frappe.model.user_settings[this.doctype]['Kanban']
 			&& frappe.model.user_settings[this.doctype]['Kanban'].last_kanban_board;
 		if (last_opened_kanban) {
-			frappe.set_route('List', this.doctype, 'kanban', last_opened_kanban);
+			frappe.set_route('list', this.doctype, 'kanban', last_opened_kanban);
 		} else {
 			frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
 		}
