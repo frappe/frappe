@@ -31,7 +31,8 @@
   "shortcuts",
   "section_break_18",
   "cards_label",
-  "cards"
+  "cards",
+  "links"
  ],
  "fields": [
   {
@@ -203,10 +204,16 @@
    "fieldname": "icon",
    "fieldtype": "Data",
    "label": "Icon"
+  },
+  {
+   "fieldname": "links",
+   "fieldtype": "Table",
+   "label": "Links",
+   "options": "Desk Link"
   }
  ],
  "links": [],
- "modified": "2020-07-08 12:48:43.845930",
+ "modified": "2020-11-17 12:14:48.950323",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
