@@ -4,10 +4,13 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
+from frappe import _, _dict
 from frappe.utils.data import validate_json_string
 from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
+
+from json import loads, dumps
+from six import string_types
 
 class DeskPage(Document):
 	def validate(self):
@@ -46,3 +49,56 @@ def disable_saving_as_standard():
 			frappe.flags.in_test or \
 			frappe.flags.in_fixtures or \
 			frappe.flags.in_migrate
+
+def rebuild_all(pages=None):
+	if not pages:
+		pages = frappe.get_all("Desk Page", pluck="name")
+	
+	failed = []
+	for page in pages:
+		try:
+			rebuild_links(page)
+		except Exception as e:
+			failed.append(page)
+			print(e)
+	print(failed)
+
+def rebuild_links(page):
+	link_type_map = {
+		"doctype": "DocType",
+		"page": "Page",
+		"report": "Report",
+		None: "DocType"
+	}
+	doc = frappe.get_doc("Desk Page", page)
+	print(f"Rebuilding Links for {page} Page")
+	doc.links = []
+	for section in doc.cards:
+		print(f"-- Processing {section.label} section")
+		if isinstance(section.links, string_types):
+			links = loads(section.links)
+		else:
+			links = section.links
+
+		doc.append('links', {
+			"label": section.label,
+			"type": "Card Break",
+			"icon": section.icon,
+			"hidden": section.hidden or False
+		})
+
+		for link in links:
+			doc.append('links', {
+				"label": link.get('label') or link.get('name'),
+				"type": "Card Break",
+				"link_type": link_type_map[link.get('type').lower()],
+				"link_to": link.get('name'),
+				"onboard": link.get('onboard'),
+				"is_query_report": get_report_type(link.get('name')) if link.get('type').lower() == "report" else 0
+			})
+
+	doc.save(ignore_permissions=True)
+
+def get_report_type(report):
+	report_type = frappe.get_value("Report", report, "report_type")
+	return report_type in ["Query Report", "Script Report", "Custom Report"]
