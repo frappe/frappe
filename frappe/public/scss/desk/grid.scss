@@ -1,5 +1,5 @@
 .form-grid {
-	border: 1px solid var(--border-color);
+	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius);
 	color: var(--text-color);
 }
@@ -118,7 +118,7 @@
 	.col {
 		padding-left: var(--padding-sm);
 		padding-right: var(--padding-sm);
-		border-right: 1px solid var(--border-color);
+		border-right: 1px solid var(--table-border-color);
 		// overflow: hidden;
 	}
 }
