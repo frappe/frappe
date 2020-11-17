@@ -49,18 +49,22 @@ class DeskPage(Document):
 			"label": "Link",
 			"type": "Card Break",
 			"icon": None,
-			"hidden": False
+			"hidden": False,
 		}
-
+		links = []
 		for link in self.links:
+			link = link.as_dict()
+			
 			if link.type == "Card Break":
-				if current_card.links:
+				if current_card.get(links):
 					cards.append(current_card)
-					current_card = link
+					current_card['links'] = links
+				
+				current_card = link
+				links = []
+			
 			else:
-				if not current_card.links:
-					current_card.links = []
-				current_card.card.links.append(link)
+				links.append(link)
 
 		cards.append(current_card)
 
