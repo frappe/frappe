@@ -726,7 +726,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const field = [fieldname, doctype];
 		this.fields.splice(col_index, 0, field);
 
-		this.add_currency_column(fieldname, doctype, col_index);
+		this.add_currency_dependant_column(fieldname, doctype, col_index);
 
 		this.build_fields();
 		this.setup_columns();
@@ -736,19 +736,22 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.refresh();
 	}
 
-	add_currency_column(fieldname, doctype, col_index) {
+	add_currency_dependant_column(fieldname, doctype, col_index) {
 		// Adds dependent currency field if required
 		const df = frappe.meta.get_docfield(doctype, fieldname);
-		if (df && df.fieldtype === 'Currency' && df.options &&
-			!df.options.includes(':') && frappe.meta.has_field(doctype, df.options)
-		) {
-			const field = [df.options, doctype];
-			if (col_index === undefined) {
-				this.fields.push(field);
-			} else {
-				this.fields.splice(col_index, 0, field);
+		if (df && df.fieldtype === 'Currency' && df.options) {
+			let dependant_fieldname = df.options.includes(':')
+				? df.options.split(":")[1]
+				: df.options;
+			if (frappe.meta.has_field(doctype, dependant_fieldname)) {
+				const field = [dependant_fieldname, doctype];
+				if (col_index === undefined) {
+					this.fields.push(field);
+				} else {
+					this.fields.splice(col_index, 0, field);
+				}
+				frappe.show_alert(__('Also adding the dependent currency field {0}', [field[0].bold()]));
 			}
-			frappe.show_alert(__('Also adding the dependent currency field {0}', [field[0].bold()]));
 		}
 	}
 
@@ -1065,7 +1068,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	format_total_cell(formatted_value, df) {
-		let cell_value = __('Totals').bold();
+		let cell_value = __('Total').bold();
 		if (frappe.model.is_numeric_field(df.docfield)) {
 			cell_value = `<span class="flex justify-between">
 				${cell_value} ${$(formatted_value).text()}
@@ -1251,7 +1254,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	report_menu_items() {
 		let items = [
 			{
-				label: __('Show Totals'),
+				label: __('Show Total Row'),
 				action: () => {
 					this.add_totals_row = !this.add_totals_row;
 					this.save_view_user_settings({
@@ -1317,7 +1320,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							// always keep name (ID) column
 							this.fields = [["name", this.doctype], ...fields];
 
-							this.fields.map(f => this.add_currency_column(f[0], f[1]));
+							this.fields.map(f => this.add_currency_dependant_column(f[0], f[1]));
 
 							this.build_fields();
 							this.setup_columns();
