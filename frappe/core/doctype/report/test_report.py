@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe, json, os
 import unittest
+from frappe.desk.query_report import run, save_report
+from frappe.custom.doctype.customize_form.customize_form import reset_customization
 
 test_records = frappe.get_test_records('Report')
 test_dependencies = ['User']
@@ -27,7 +29,57 @@ class TestReport(unittest.TestCase):
 		columns, data = report.get_data(filters={'user': 'Administrator', 'doctype': 'DocType'})
 		self.assertEqual(columns[0].get('label'), 'Name')
 		self.assertEqual(columns[1].get('label'), 'Module')
-		self.assertTrue('User' in [d[0] for d in data])
+		self.assertTrue('User' in [d.get('name') for d in data])
+
+	def test_custom_report(self):
+		reset_customization('User')
+		custom_report_name = save_report(
+			'Permitted Documents For User',
+			'Permitted Documents For User Custom',
+			json.dumps([{
+				'fieldname': 'email',
+				'fieldtype': 'Data',
+				'label': 'Email',
+				'insert_after_index': 0,
+				'link_field': 'name',
+				'doctype': 'User',
+				'options': 'Email',
+				'width': 100,
+				'id':'email',
+				'name': 'Email'
+			}]))
+		custom_report = frappe.get_doc('Report', custom_report_name)
+		columns, result = custom_report.get_data(
+			filters={
+				'user': 'Administrator',
+				'doctype': 'User'
+			}, user=frappe.session.user)
+
+		self.assertListEqual(['email'], [column.get('fieldname') for column in columns])
+		admin_dict = frappe.core.utils.find(result, lambda d: d['name'] == 'Administrator')
+		self.assertDictEqual({'name': 'Administrator', 'user_type': 'System User', 'email': 'admin@example.com'}, admin_dict)
+
+	def test_report_with_custom_column(self):
+		reset_customization('User')
+		response = run('Permitted Documents For User',
+			filters={'user': 'Administrator', 'doctype': 'User'},
+			custom_columns=[{
+				'fieldname': 'email',
+				'fieldtype': 'Data',
+				'label': 'Email',
+				'insert_after_index': 0,
+				'link_field': 'name',
+				'doctype': 'User',
+				'options': 'Email',
+				'width': 100,
+				'id':'email',
+				'name': 'Email'
+			}])
+		result = response.get('result')
+		columns = response.get('columns')
+		self.assertListEqual(['name', 'email', 'user_type'], [column.get('fieldname') for column in columns])
+		admin_dict = frappe.core.utils.find(result, lambda d: d['name'] == 'Administrator')
+		self.assertDictEqual({'name': 'Administrator', 'user_type': 'System User', 'email': 'admin@example.com'}, admin_dict)
 
 	def test_report_permissions(self):
 		frappe.set_user('test@example.com')
