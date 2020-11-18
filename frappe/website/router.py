@@ -275,8 +275,7 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	# extract properties from controller attributes
 	load_properties_from_controller(page_info)
 
-	# if not page_info.title:
-	# 	print('no-title-for', page_info.route)
+	page_info.build_version = frappe.utils.get_build_version()
 
 	return page_info
 

@@ -277,5 +277,6 @@ VALID_UTILS = (
 "to_markdown",
 "md_to_html",
 "is_subset",
-"generate_hash"
+"generate_hash",
+"formatdate"
 )

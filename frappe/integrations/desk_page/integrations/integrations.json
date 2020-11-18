@@ -23,7 +23,7 @@
   {
    "hidden": 0,
    "label": "Settings",
-   "links": "[\n    {\n        \"description\": \"Webhooks calling API requests into web apps\",\n        \"label\": \"Webhook\",\n        \"name\": \"Webhook\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Slack Webhooks for internal integration\",\n        \"label\": \"Slack Webhook URL\",\n        \"name\": \"Slack Webhook URL\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Twilio Settings for WhatsApp integration\",\n        \"label\": \"Twilio Settings\",\n        \"name\": \"Twilio Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"SMS Settings for sending sms\",\n        \"label\": \"SMS Settings\",\n        \"name\": \"SMS Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+   "links": "[\n    {\n        \"description\": \"Webhooks calling API requests into web apps\",\n        \"label\": \"Webhook\",\n        \"name\": \"Webhook\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Slack Webhooks for internal integration\",\n        \"label\": \"Slack Webhook URL\",\n        \"name\": \"Slack Webhook URL\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"SMS Settings for sending sms\",\n        \"label\": \"SMS Settings\",\n        \"name\": \"SMS Settings\",\n        \"type\": \"doctype\"\n    }\n]"
   }
  ],
  "category": "Administration",
@@ -38,7 +38,7 @@
  "idx": 0,
  "is_standard": 1,
  "label": "Integrations",
- "modified": "2020-08-20 23:04:04.528572",
+ "modified": "2020-10-28 10:25:54.792363",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
