@@ -245,7 +245,9 @@
 		"public/js/frappe/ui/chart.js",
 		"public/js/frappe/ui/datatable.js",
 		"public/js/frappe/ui/driver.js",
-		"public/js/frappe/barcode_scanner/index.js"
+		"public/js/frappe/barcode_scanner/index.js",
+
+		"public/js/frappe/widgets/utils.js"
 	],
 	"css/form.min.css": [
 		"public/less/form_grid.less"
