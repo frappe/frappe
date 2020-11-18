@@ -3,7 +3,7 @@
 
 import json
 import os
-
+from frappe.defaults import _clear_cache
 import frappe
 
 
@@ -111,8 +111,8 @@ def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
 	if app_name in installed_apps:
 		installed_apps.remove(app_name)
-		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
-		frappe.get_single("Installed Applications").update_versions()
+		frappe.db.set_value("DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps))
+		_clear_cache("__global")
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
@@ -122,64 +122,80 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	"""Remove app and all linked to the app's module with the app from a site."""
 	import click
 
+	site = frappe.local.site
+
 	# dont allow uninstall app if not installed unless forced
 	if not force:
 		if app_name not in frappe.get_installed_apps():
-			click.secho("App {0} not installed on Site {1}".format(app_name, frappe.local.site), fg="yellow")
+			click.secho(f"App {app_name} not installed on Site {site}", fg="yellow")
 			return
 
-	print("Uninstalling App {0} from Site {1}...".format(app_name, frappe.local.site))
+	print(f"Uninstalling App {app_name} from Site {site}...")
 
 	if not dry_run and not yes:
-		confirm = click.confirm("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue?")
+		confirm = click.confirm(
+			"All doctypes (including custom), modules related to this app will be"
+			" deleted. Are you sure you want to continue?"
+		)
 		if not confirm:
 			return
 
-	if not no_backup:
+	if not (dry_run or no_backup):
 		from frappe.utils.backups import scheduled_backup
+
 		print("Backing up...")
 		scheduled_backup(ignore_files=True)
 
 	frappe.flags.in_uninstall = True
 	drop_doctypes = []
 
-	modules = (x.name for x in frappe.get_all("Module Def", filters={"app_name": app_name}))
+	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
 	for module_name in modules:
-		print("Deleting Module '{0}'".format(module_name))
+		print(f"Deleting Module '{module_name}'")
 
-		for doctype in frappe.get_list("DocType", filters={"module": module_name}, fields=["name", "issingle"]):
-			print("* removing DocType '{0}'...".format(doctype.name))
+		for doctype in frappe.get_all(
+			"DocType", filters={"module": module_name}, fields=["name", "issingle"]
+		):
+			print(f"* removing DocType '{doctype.name}'...")
 
 			if not dry_run:
-				frappe.delete_doc("DocType", doctype.name)
+				frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True)
 
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
 
-		linked_doctypes = frappe.get_all("DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=['parent'])
+		linked_doctypes = frappe.get_all(
+			"DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=["parent"]
+		)
 		ordered_doctypes = ["Desk Page", "Report", "Page", "Web Form"]
-		doctypes_with_linked_modules = ordered_doctypes + [doctype.parent for doctype in linked_doctypes if doctype.parent not in ordered_doctypes]
-
+		all_doctypes_with_linked_modules = ordered_doctypes + [
+			doctype.parent
+			for doctype in linked_doctypes
+			if doctype.parent not in ordered_doctypes
+		]
+		doctypes_with_linked_modules = [
+			x for x in all_doctypes_with_linked_modules if frappe.db.exists("DocType", x)
+		]
 		for doctype in doctypes_with_linked_modules:
-			for record in frappe.get_list(doctype, filters={"module": module_name}):
-				print("* removing {0} '{1}'...".format(doctype, record.name))
+			for record in frappe.get_all(doctype, filters={"module": module_name}, pluck="name"):
+				print(f"* removing {doctype} '{record}'...")
 				if not dry_run:
-					frappe.delete_doc(doctype, record.name)
+					frappe.delete_doc(doctype, record, ignore_on_trash=True)
 
-		print("* removing Module Def '{0}'...".format(module_name))
+		print(f"* removing Module Def '{module_name}'...")
 		if not dry_run:
-			frappe.delete_doc("Module Def", module_name)
+			frappe.delete_doc("Module Def", module_name, ignore_on_trash=True)
+
+	for doctype in set(drop_doctypes):
+		print(f"* dropping Table for '{doctype}'...")
+		if not dry_run:
+			frappe.db.sql_ddl(f"drop table `tab{doctype}`")
 
 	if not dry_run:
 		remove_from_installed_apps(app_name)
-
-		for doctype in set(drop_doctypes):
-			print("* dropping Table for '{0}'...".format(doctype))
-			frappe.db.sql_ddl("drop table `tab{0}`".format(doctype))
-
 		frappe.db.commit()
-		click.secho("Uninstalled App {0} from Site {1}".format(app_name, frappe.local.site), fg="green")
 
+	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
 	frappe.flags.in_uninstall = False
 
 
@@ -406,3 +422,32 @@ def is_downgrade(sql_file_path, verbose=False):
 							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
 
 						return downgrade
+
+
+def validate_database_sql(path, _raise=True):
+	"""Check if file has contents and if DefaultValue table exists
+
+	Args:
+		path (str): Path of the decompressed SQL file
+		_raise (bool, optional): Raise exception if invalid file. Defaults to True.
+	"""
+	to_raise = False
+	error_message = ""
+
+	if not os.path.getsize(path):
+		error_message = f"{path} is an empty file!"
+		to_raise = True
+
+	if not _raise:
+		with open(path, "r") as f:
+			for line in f:
+				if 'tabDefaultValue' in line:
+					error_message = "Table `tabDefaultValue` not found in file."
+					to_raise = True
+
+	if error_message:
+		import click
+		click.secho(error_message, fg="red")
+
+	if _raise and to_raise:
+		raise frappe.InvalidDatabaseFile
