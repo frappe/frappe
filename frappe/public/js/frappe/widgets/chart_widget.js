@@ -354,7 +354,7 @@ export default class ChartWidget extends Widget {
 			this.chart_doc.chart_type !== "Custom";
 
 		this.filter_button = $(
-			`<div class="filter-chart btn btn-secondary btn-xs pull-right">
+			`<div class="filter-chart btn btn-xs pull-right">
 				${frappe.utils.icon('filter', 'sm')}
 			</div>`
 		);
