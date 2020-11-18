@@ -6,12 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import glob
 import os
-<<<<<<< HEAD
-from frappe.utils import split_emails, get_backups_path
-=======
-from frappe.utils import split_emails, now_datetime, cint
->>>>>>> 5020bbe4f6... fix: Define chunk size based on backup file size to avoid timeout issues (#11526)
-
+from frappe.utils import split_emails, get_backups_path, cint
 
 def send_email(success, service_name, doctype, email_field, error_status=None):
 	recipients = get_recipients(doctype, email_field)
@@ -117,11 +112,5 @@ def generate_files_backup():
 		frappe.conf.db_password, db_host = frappe.db.host,
 		db_type=frappe.conf.db_type, db_port=frappe.conf.db_port)
 
-<<<<<<< HEAD
 	backup.set_backup_file_name()
 	backup.zip_files()
-=======
-	odb.todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
-	odb.set_backup_file_name()
-	odb.zip_files() 
->>>>>>> 5020bbe4f6... fix: Define chunk size based on backup file size to avoid timeout issues (#11526)
