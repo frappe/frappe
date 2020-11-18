@@ -1068,7 +1068,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	format_total_cell(formatted_value, df) {
-		let cell_value = __('Totals').bold();
+		let cell_value = __('Total').bold();
 		if (frappe.model.is_numeric_field(df.docfield)) {
 			cell_value = `<span class="flex justify-between">
 				${cell_value} ${$(formatted_value).text()}
@@ -1254,7 +1254,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	report_menu_items() {
 		let items = [
 			{
-				label: __('Show Totals'),
+				label: __('Show Total Row'),
 				action: () => {
 					this.add_totals_row = !this.add_totals_row;
 					this.save_view_user_settings({
