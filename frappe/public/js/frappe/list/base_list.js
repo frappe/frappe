@@ -34,7 +34,7 @@ frappe.views.BaseList = class BaseList {
 
 	setup_defaults() {
 		this.page_name = frappe.get_route_str();
-		this.page_title = this.page_title || __(this.doctype);
+		this.page_title = this.page_title || frappe.router.doctype_layout || __(this.doctype);
 		this.meta = frappe.get_meta(this.doctype);
 		this.settings = frappe.listview_settings[this.doctype] || {};
 		this.user_settings = frappe.get_user_settings(this.doctype);

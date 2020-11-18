@@ -80,7 +80,7 @@ $.extend(frappe.model, {
 		if(!cnt[doctype])
 			cnt[doctype] = 0;
 		cnt[doctype]++;
-		return __('New') + ' '+ __(doctype) + ' ' + cnt[doctype];
+		return frappe.router.slug(`new-${doctype}-${cnt[doctype]}`);
 	},
 
 	set_default_values: function(doc, parent_doc) {
@@ -170,20 +170,20 @@ $.extend(frappe.model, {
 
 		// 3 - look in default of docfield
 		if (df['default']) {
-
-			if (df["default"] == "__user" || df["default"].toLowerCase() == "user") {
+			const default_val = String(df['default']);
+			if (default_val == "__user" || default_val.toLowerCase() == "user") {
 				return frappe.session.user;
 
-			} else if (df["default"] == "user_fullname") {
+			} else if (default_val == "user_fullname") {
 				return frappe.session.user_fullname;
 
-			} else if (df["default"] == "Today") {
+			} else if (default_val == "Today") {
 				return frappe.datetime.get_today();
 
-			} else if ((df["default"] || "").toLowerCase() === "now") {
+			} else if ((default_val || "").toLowerCase() === "now") {
 				return frappe.datetime.now_datetime();
 
-			} else if (df["default"][0]===":") {
+			} else if (default_val[0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
 				var is_allowed_boot_doc = !has_user_permissions || allowed_records.includes(boot_doc);
 

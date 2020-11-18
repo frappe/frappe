@@ -19,9 +19,13 @@ frappe.ui.form.Controller = Class.extend({
 });
 
 frappe.ui.form.Form = class FrappeForm {
-	constructor(doctype, parent, in_form) {
+	constructor(doctype, parent, in_form, doctype_layout_name) {
 		this.docname = '';
 		this.doctype = doctype;
+		this.doctype_layout_name = doctype_layout_name;
+		if (doctype_layout_name) {
+			this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
+		}
 		this.hidden = false;
 		this.refresh_if_stale_for = 120;
 
@@ -30,7 +34,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.custom_buttons = {};
 		this.sections = [];
 		this.grids = [];
-		this.cscript = new frappe.ui.form.Controller({frm:this});
+		this.cscript = new frappe.ui.form.Controller({ frm: this });
 		this.events = {};
 		this.pformat = {};
 		this.fetch_dict = {};
@@ -159,6 +163,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.layout = new frappe.ui.form.Layout({
 			parent: this.body,
 			doctype: this.doctype,
+			doctype_layout: this.doctype_layout,
 			frm: this,
 			with_dashboard: true,
 			card_layout: true,
@@ -1693,8 +1698,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 	// Filters fields from the reference doctype and sets them as options for a Select field
 	set_fields_as_options(fieldname, reference_doctype, filter_function, default_options=[], table_fieldname) {
-		if (!reference_doctype) return;
-		let options = default_options;
+		if (!reference_doctype) return Promise.resolve();
+		let options = default_options || [];
+		if (!filter_function) filter_function = (f) => f;
 		return new Promise(resolve => {
 			frappe.model.with_doctype(reference_doctype, () => {
 				frappe.get_meta(reference_doctype).fields.map(df => {

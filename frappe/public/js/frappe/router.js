@@ -40,8 +40,9 @@ $('body').on('click', 'a', function(e) {
 	if (e.currentTarget.getAttribute('onclick')) return;
 
 	const href = e.currentTarget.getAttribute('href');
+	if (href==='#') return;
 
-	if (href==='#' || href==='') {
+	if (href==='') {
 		return override(e, '/app');
 	}
 
@@ -61,6 +62,7 @@ frappe.router = {
 	current_route: null,
 	doctype_names: {},
 	factory_views: ['form', 'list', 'report', 'tree', 'print'],
+	layout_mapped: {},
 
 	route() {
 		// resolve the route from the URL or hash
@@ -91,16 +93,21 @@ frappe.router = {
 		return new Promise((resolve) => {
 			const route = frappe.router.current_route = frappe.router.parse();
 			const factory = route[0].toLowerCase();
+			const set_name = () => {
+				const d = frappe.router.doctype_names[route[1]];
+				route[1] = d.doctype;
+				frappe.router.doctype_layout = d.doctype_layout;
+				resolve();
+			};
 
 			if (frappe.router.factory_views.includes(factory)) {
 				// translate the doctype to its original name
 				if (frappe.router.doctype_names[route[1]]) {
-					route[1] = frappe.router.doctype_names[route[1]];
-					resolve();
+					set_name();
 				} else {
 					frappe.xcall('frappe.desk.utils.get_doctype_name', {name: route[1]}).then((data) => {
-						route[1] = frappe.router.doctype_names[route[1]] = data;
-						resolve();
+						frappe.router.doctype_names[route[1]] = data.name_map;
+						set_name();
 					});
 				}
 			} else {
