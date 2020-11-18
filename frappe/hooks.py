@@ -140,7 +140,6 @@ doc_events = {
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
-			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
 			"frappe.core.doctype.file.file.attach_files_to_document",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
@@ -156,7 +155,8 @@ doc_events = {
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 		],
 		"on_change": [
-			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
+			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
+			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
 		]
 	},
 	"Event": {

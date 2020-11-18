@@ -8,6 +8,9 @@ frappe.ui.form.on('Web Template', {
 		}
 
 		frm.toggle_display('standard', frappe.boot.developer_mode);
+		// necessary to show template field again, after it was hidden when
+		// unchecking 'standard'.
+		frm.toggle_display('template', !frm.doc.standard);
 	},
 	standard: function(frm) {
 		if (!frm.doc.standard && !frm.is_new()) {

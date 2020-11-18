@@ -348,7 +348,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 
 	if as_table and type(msg) in (list, tuple):
 		out.as_table = 1
-	
+
 	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
 		out.as_list = 1
 
@@ -796,11 +796,17 @@ def get_doc(*args, **kwargs):
 
 	return doc
 
-def get_last_doc(doctype):
+def get_last_doc(doctype, filters=None, order_by="creation desc"):
 	"""Get last created document of this type."""
-	d = get_all(doctype, ["name"], order_by="creation desc", limit_page_length=1)
+	d = get_all(
+		doctype,
+		filters=filters,
+		limit_page_length=1,
+		order_by=order_by,
+		pluck="name"
+	)
 	if d:
-		return get_doc(doctype, d[0].name)
+		return get_doc(doctype, d[0])
 	else:
 		raise DoesNotExistError
 
@@ -1154,6 +1160,7 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 			'doctype_or_field': args.doctype_or_field,
 			'doc_type': doctype,
 			'field_name': args.fieldname,
+			'row_name': args.row_name,
 			'property': args.property,
 			'value': args.value,
 			'property_type': args.property_type or "Data",

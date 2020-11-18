@@ -1,36 +1,36 @@
 {
  "actions": [],
- "autoname": "field:document_type",
- "creation": "2020-04-08 15:16:44.342509",
+ "autoname": "field:event_producer",
+ "creation": "2020-10-26 12:53:11.940177",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "document_type",
-  "links"
+  "event_producer",
+  "last_update"
  ],
  "fields": [
   {
-   "fieldname": "document_type",
-   "fieldtype": "Link",
+   "fieldname": "event_producer",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Document Type",
-   "options": "DocType",
+   "label": "Event Producer",
    "reqd": 1,
    "unique": 1
   },
   {
-   "fieldname": "links",
-   "fieldtype": "Table",
-   "label": "Links",
-   "options": "DocType Link"
+   "fieldname": "last_update",
+   "fieldtype": "Data",
+   "label": "Last Update"
   }
  ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-04-08 16:42:59.402671",
+ "modified": "2020-10-26 13:22:27.056599",
  "modified_by": "Administrator",
- "module": "Custom",
- "name": "Custom Link",
+ "module": "Event Streaming",
+ "name": "Event Producer Last Update",
  "owner": "Administrator",
  "permissions": [
   {
@@ -46,6 +46,7 @@
    "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

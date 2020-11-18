@@ -275,8 +275,7 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	# extract properties from controller attributes
 	load_properties_from_controller(page_info)
 
-	# if not page_info.title:
-	# 	print('no-title-for', page_info.route)
+	page_info.build_version = frappe.utils.get_build_version()
 
 	return page_info
 
@@ -394,7 +393,6 @@ def load_properties_from_source(page_info):
 		and "</body>" not in page_info.source):
 		page_info.source = '''{{% extends "{0}" %}}
 			{{% block page_content %}}{1}{{% endblock %}}'''.format(page_info.base_template, page_info.source)
-		page_info.no_cache = 1
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1

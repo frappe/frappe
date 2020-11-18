@@ -36,12 +36,13 @@
    "label": "Standard"
   },
   {
+   "default": "Section",
    "fieldname": "type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "Section\nNavbar\nFooter"
+   "options": "Component\nSection\nNavbar\nFooter"
   },
   {
    "depends_on": "standard",
@@ -59,7 +60,7 @@
    "link_fieldname": "web_template"
   }
  ],
- "modified": "2020-10-20 15:08:57.027962",
+ "modified": "2020-10-26 17:22:55.459453",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
@@ -78,7 +79,6 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

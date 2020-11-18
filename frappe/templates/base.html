@@ -30,11 +30,11 @@
 		{%- if theme.name != 'Standard' -%}
 		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
 		{%- else -%}
-		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
+		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css?ver={{ build_version }}">
 		{%- endif -%}
 
 		{%- for link in web_include_css %}
-		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
+		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}?ver={{ build_version }}">
 		{%- endfor -%}
 	{%- endblock -%}
 
@@ -94,12 +94,12 @@
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
-	<script type="text/javascript" src="/assets/js/frappe-web.min.js"></script>
+	<script type="text/javascript" src="/assets/js/frappe-web.min.js?ver={{ build_version }}"></script>
 	<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
 	{% endblock %}
 
 	{%- for link in web_include_js %}
-	<script type="text/javascript" src="{{ link | abs_url }}"></script>
+	<script type="text/javascript" src="{{ link | abs_url }}?ver={{ build_version }}"></script>
 	{%- endfor -%}
 
 	{%- block script %}
