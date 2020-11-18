@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import glob
 import os
-from frappe.utils import split_emails, get_backups_path, cint
+from frappe.utils import split_emails, cint
 
 def send_email(success, service_name, doctype, email_field, error_status=None):
 	recipients = get_recipients(doctype, email_field)
