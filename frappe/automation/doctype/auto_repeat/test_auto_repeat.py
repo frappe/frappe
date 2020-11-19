@@ -73,7 +73,7 @@ class TestAutoRepeat(unittest.TestCase):
 		current_weekday = getdate().weekday()
 		days = [
 			{'day': weekdays[current_weekday]},
-			{'day': weekdays[current_weekday + 2]}
+			{'day': weekdays[(current_weekday + 2) % 7]}
 		]
 		doc = make_auto_repeat(reference_doctype='ToDo',
 			frequency='Weekly', reference_document=todo.name, start_date=add_days(today(), -7), days=days)
