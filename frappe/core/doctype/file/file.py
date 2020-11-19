@@ -633,7 +633,12 @@ def get_extension(filename, extn, content):
 	return extn
 
 def get_local_image(file_url):
-	file_path = frappe.get_site_path("public", file_url.lstrip("/"))
+	if file_url.startswith("/private"):
+		file_url_path = (file_url.lstrip("/"), )
+	else:
+		file_url_path = ("public", file_url.lstrip("/"))
+
+	file_path = frappe.get_site_path(*file_url_path)
 
 	try:
 		image = Image.open(file_path)
