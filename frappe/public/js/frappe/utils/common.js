@@ -1,6 +1,6 @@
 // common file between desk and website
 
-frappe.avatar = function (user, css_class, title, image_url = null, remove_avatar = false) {
+frappe.avatar = function (user, css_class, title, image_url = null, remove_avatar=false, remove_color=false) {
 	let user_info;
 	if (user) {
 		// desk
@@ -20,10 +20,10 @@ frappe.avatar = function (user, css_class, title, image_url = null, remove_avata
 		title = user_info.fullname;
 	}
 
-	return frappe.get_avatar(css_class, title, image_url || user_info.image);
+	return frappe.get_avatar(css_class, title, image_url || user_info.image, remove_color=remove_color);
 };
 
-frappe.get_avatar = function(css_class, title, image_url = null) {
+frappe.get_avatar = function(css_class, title, image_url = null, remove_color) {
 	if (!css_class) {
 		css_class = "avatar-small";
 	}
@@ -36,14 +36,19 @@ frappe.get_avatar = function(css_class, title, image_url = null) {
 					title="${title}"></span>
 			</span>`;
 	} else {
-		var abbr =  frappe.get_abbr(title);
-		var color = frappe.get_palette(title);
+		let abbr =  frappe.get_abbr(title);
+		let style = '';
+		if (!remove_color) {
+			let color = frappe.get_palette(title);
+			style = `background-color: var(${color[0]}); color: var(${color[1]})`
+		}
+
 		if (css_class === 'avatar-small' || css_class == 'avatar-xs') {
 			abbr = abbr.substr(0, 1);
 		}
 		return `<span class="avatar ${css_class}" title="${title}">
 			<div class="avatar-frame standard-image"
-				style="background-color: var(${color[0]}); color: var(${color[1]})">
+				style="${style}">
 					${abbr}
 			</div>
 		</span>`;
