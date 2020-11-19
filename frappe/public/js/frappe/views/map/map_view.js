@@ -20,13 +20,6 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		this.get_coords();
 	}
 
-	prepare_data(data) {
-		super.prepare_data(data);
-		this.items = this.data.map(d => {
-			return d;
-		});
-	}
-
 	render() {
 		this.get_coords()
 			.then(() => {
