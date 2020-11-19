@@ -14,6 +14,7 @@ from frappe.utils import cstr, getdate, split_emails, add_days, today, get_last_
 from frappe.model.document import Document
 from frappe.core.doctype.communication.email import make
 from frappe.utils.background_jobs import get_jobs
+from frappe.automation.doctype.assignment_rule.assignment_rule import get_repeated
 
 month_map = {'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12}
 week_map = {'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6}
@@ -25,6 +26,7 @@ class AutoRepeat(Document):
 		self.validate_reference_doctype()
 		self.validate_dates()
 		self.validate_email_id()
+		self.validate_auto_repeat_days()
 		self.set_dates()
 		self.update_auto_repeat_id()
 		self.unlink_if_applicable()
@@ -83,6 +85,12 @@ class AutoRepeat(Document):
 						frappe.throw(_("{0} is an invalid email address in 'Recipients'").format(email))
 			else:
 				frappe.throw(_("'Recipients' not specified"))
+
+	def validate_auto_repeat_days(self):
+		auto_repeat_days = get_auto_repeat_days(self)
+		if not len(set(auto_repeat_days)) == len(auto_repeat_days):
+			repeated_days = get_repeated(auto_repeat_days)
+			frappe.throw(_('Auto Repeat Day {0} has been repeated.').format(frappe.bold(repeated_days)))
 
 	def update_auto_repeat_id(self):
 		#check if document is already on auto repeat
@@ -301,7 +309,7 @@ def get_next_schedule_date(schedule_date, auto_repeat_doc=None, for_full_schedul
 		next_date = get_next_date(auto_repeat_doc.start_date, month_count)
 	else:
 		if auto_repeat_doc.frequency == "Weekly":
-			days = get_offset_for_weekly_frequency(auto_repeat_doc)
+			days = get_offset_for_weekly_frequency(schedule_date, auto_repeat_doc)
 		else:
 			days = 1
 		next_date = add_days(schedule_date, days)
@@ -324,22 +332,35 @@ def get_next_date(dt, mcount, day=None):
 	return dt
 
 
-def get_offset_for_weekly_frequency(auto_repeat_doc):
+def get_offset_for_weekly_frequency(schedule_date, auto_repeat_doc):
 	if not auto_repeat_doc.repeat_on_days:
 		return 7
 
-	repeat_on_days = [entry.day for entry in auto_repeat_doc.repeat_on_days]
-	current_day = getdate().weekday()
-	weekday = get_next_weekday(current_day, repeat_on_days)
-	return timedelta((7 + week_map.get(weekday) - current_day) % 7).days
+	repeat_on_days = get_auto_repeat_days(auto_repeat_doc)
+	current_schedule_day = getdate(schedule_date).weekday()
+
+	if len(repeat_on_days) > 1 or list(week_map.keys())[current_schedule_day] not in repeat_on_days:
+		weekday = get_next_weekday(current_schedule_day, repeat_on_days)
+		next_weekday_number = week_map.get(weekday)
+		return timedelta((7 + next_weekday_number - current_schedule_day) % 7).days
+	else:
+		return 7
 
 
-def get_next_weekday(current_day, weekdays):
+def get_next_weekday(current_schedule_day, weekdays):
 	days = list(week_map.keys())
-	days = days[current_day:] + days[:current_day]
+	if current_schedule_day > 0:
+		days = days[(current_schedule_day + 1):] + days[:current_schedule_day]
+	else:
+		days = days[(current_schedule_day + 1):]
+
 	for entry in days:
 		if entry in weekdays:
 			return entry
+
+
+def get_auto_repeat_days(doc):
+	return [d.day for d in doc.get('repeat_on_days', [])]
 
 
 #called through hooks
