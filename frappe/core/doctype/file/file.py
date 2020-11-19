@@ -30,6 +30,7 @@ import frappe
 from frappe import _, conf
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
+from frappe.permissions import has_web_form_permission
 
 
 class MaxFileSizeReachedError(frappe.ValidationError):
@@ -91,6 +92,7 @@ class File(Document):
 			self.set_is_private()
 			self.set_file_name()
 			self.validate_duplicate_entry()
+			self.validate_attachment_limit()
 		self.validate_folder()
 
 		if not self.file_url and not self.flags.ignore_file_validate:
@@ -137,6 +139,26 @@ class File(Document):
 
 		if self.file_url and (self.is_private != self.file_url.startswith('/private')):
 			frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
+
+	def validate_attachment_limit(self):
+		attachment_limit = 0
+		if self.attached_to_doctype and self.attached_to_name:
+			attachment_limit = cint(frappe.get_meta(self.attached_to_doctype).max_attachments)
+
+		if attachment_limit:
+			current_attachment_count = len(frappe.get_all('File', filters={
+				'attached_to_doctype': self.attached_to_doctype,
+				'attached_to_name': self.attached_to_name,
+			}, limit=attachment_limit + 1))
+
+			if current_attachment_count >= attachment_limit:
+				frappe.throw(
+					_("Maximum Attachment Limit of {0} has been reached for {1} {2}.").format(
+						frappe.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
+					),
+					exc=frappe.exceptions.AttachmentLimitReached,
+					title=_('Attachment Limit Reached')
+				)
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -730,7 +752,7 @@ def has_permission(doc, ptype=None, user=None):
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
 			if ptype in ['write', 'create', 'delete']:
-				has_access = ref_doc.has_permission('write')
+				has_access = ref_doc.has_permission('write') or has_web_form_permission(attached_to_doctype, attached_to_name, ptype='write')
 
 				if ptype == 'delete' and not has_access:
 					frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
