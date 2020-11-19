@@ -302,8 +302,8 @@ def get_next_schedule_date(schedule_date, auto_repeat_doc=None, for_full_schedul
 	if month_count and auto_repeat_doc.repeat_on_last_day:
 		day_count = 31
 		next_date = get_next_date(auto_repeat_doc.start_date, month_count, day_count)
-	elif month_count and repeat_on_day:
-		day_count = repeat_on_day
+	elif month_count and auto_repeat_doc.repeat_on_day:
+		day_count = auto_repeat_doc.repeat_on_day
 		next_date = get_next_date(auto_repeat_doc.start_date, month_count, day_count)
 	elif month_count:
 		next_date = get_next_date(auto_repeat_doc.start_date, month_count)
@@ -345,11 +345,12 @@ def get_offset_for_weekly_frequency(schedule_date, auto_repeat_doc):
 
 	repeat_on_days = get_auto_repeat_days(auto_repeat_doc)
 	current_schedule_day = getdate(schedule_date).weekday()
+	weekdays = list(week_map.keys())
 
 	# if repeats on more than 1 day or
 	# start date's weekday is not in repeat days, then get next weekday
 	# else offset is 7
-	if len(repeat_on_days) > 1 or list(week_map.keys())[current_schedule_day] not in repeat_on_days:
+	if len(repeat_on_days) > 1 or weekdays[current_schedule_day] not in repeat_on_days:
 		weekday = get_next_weekday(current_schedule_day, repeat_on_days)
 		next_weekday_number = week_map.get(weekday)
 		# offset for upcoming weekday
