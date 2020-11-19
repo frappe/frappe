@@ -94,7 +94,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		if (this.list_view.settings.get_coords_method ||
 			(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
 			this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
-			(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation')))
+			(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation'))) {
 			this.sidebar.find('.list-link[data-view="Map"]').removeClass('hide');
 			show_list_link = true;
 		}
