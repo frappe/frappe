@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import hashlib
 import json
 import jwt
-from werkzeug.urls import url_fix
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
 from six.moves.urllib.parse import quote, urlencode, urlparse
 
