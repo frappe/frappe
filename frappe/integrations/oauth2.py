@@ -2,9 +2,10 @@ from __future__ import unicode_literals
 
 import hashlib
 import json
+from urllib.parse import quote, urlencode, urlparse
+
 import jwt
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
-from six.moves.urllib.parse import quote, urlencode, urlparse
 
 import frappe
 from frappe import _
@@ -56,13 +57,13 @@ def approve(*args, **kwargs):
 
 @frappe.whitelist(allow_guest=True)
 def authorize(**kwargs):
-	success_url = "/api/method/frappe.integrations.oauth2.approve?" + urlencode(sanitize_kwargs(kwargs))
+	success_url = "/api/method/frappe.integrations.oauth2.approve?" + encode_params(sanitize_kwargs(kwargs))
 	failure_url = frappe.form_dict["redirect_uri"] + "?error=access_denied"
 
 	if frappe.session.user == 'Guest':
 		#Force login, redirect to preauth again.
 		frappe.local.response["type"] = "redirect"
-		frappe.local.response["location"] = "/login?" + urlencode({'redirect-to': frappe.request.url})
+		frappe.local.response["location"] = "/login?" + encode_params({'redirect-to': frappe.request.url})
 	else:
 		try:
 			r = frappe.request
@@ -185,3 +186,13 @@ def validate_url(url_string):
 		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
 	except:
 		return False
+
+def encode_params(params):
+	"""
+	Encode a dict of params into a query string.
+
+	Use `quote_via=urllib.parse.quote` so that whitespaces will be encoded as
+	`%20` instead of as `+`. This is needed because oauthlib cannot handle `+`
+	as a whitespace.
+	"""
+	return urlencode(params, quote_via=quote)
