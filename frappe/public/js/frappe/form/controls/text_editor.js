@@ -16,7 +16,7 @@ fonts.forEach(function(font) {
 		.ql-picker-label[data-value=${font_name}]::before,
 		.ql-snow .ql-picker.ql-font
 		.ql-picker-item[data-value=${font_name}]::before {
-				content: ${font};
+				content: '${font}';
 				font-family: ${font}, sans-serif;
 		}
 		.ql-font-${font_name} {
