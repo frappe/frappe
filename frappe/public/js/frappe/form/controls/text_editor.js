@@ -3,24 +3,29 @@ import Quill from 'quill';
 // specify the fonts you want
 let fonts = ['Arial', 'Courier', 'Times New Roman', 'Verdana'];
 // generate code friendly names
-function getFontName(font) {
+function get_font_name(font) {
 	return font.toLowerCase().replace(/\s/g, "-");
 }
-let fontNames = fonts.map(font => getFontName(font));
+let font_names = fonts.map(font => get_font_name(font));
 // add fonts to style
-let fontStyles = "";
+let font_styles = "";
 fonts.forEach(function(font) {
-	let fontName = getFontName(font);
-	fontStyles += ".ql-snow .ql-picker.ql-font .ql-picker-label[data-value=" + fontName + "]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value=" + fontName + "]::before {" +
-				"content: '" + font + "';" +
-				"font-family: '" + font + "', sans-serif;" +
-				"}" +
-				".ql-font-" + fontName + "{" +
-				" font-family: '" + font + "', sans-serif;" +
-				"}";
+	let font_name = get_font_name(font);
+	font_styles += `
+		.ql-snow .ql-picker.ql-font
+		.ql-picker-label[data-value=${font_name}]::before,
+		.ql-snow .ql-picker.ql-font
+		.ql-picker-item[data-value=${font_name}]::before {
+				content: ${font};
+				font-family: ${font}, sans-serif;
+		}
+		.ql-font-${font_name} {
+			font-family: ${font}, sans-serif;
+		}
+	`;
 });
 let node = document.createElement('style');
-node.innerHTML = fontStyles;
+node.innerHTML = font_styles;
 document.body.appendChild(node);
 
 // replace <p> tag with <div>
@@ -79,7 +84,7 @@ Quill.register(AlignStyle, true);
 
 //Adding fonts in text editor
 var Font = Quill.import('attributors/class/font');
-Font.whitelist = fontNames;
+Font.whitelist = font_names;
 Quill.register(Font, true);
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
@@ -172,7 +177,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return [
 			[{ 'header': [1, 2, 3, false] }],
 			// Adding Font dropdown to give the user the ability to change text font.
-			[{ 'font': fontNames }],
+			[{ 'font': font_names }],
 			['bold', 'italic', 'underline'],
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
