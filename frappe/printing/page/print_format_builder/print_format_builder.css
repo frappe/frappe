@@ -62,6 +62,10 @@
 	margin-bottom: 0;
 }
 
+.print-format-builder-field .field-label {
+	vertical-align: middle;
+}
+
 .print-format-builder-column .print-format-builder-field {
 	cursor: move;
 }
