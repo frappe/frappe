@@ -451,6 +451,33 @@ class TestDocType(unittest.TestCase):
 		test_doc_1.delete()
 		frappe.db.commit()
 
+	def test_links_table_fieldname_validation(self):
+		doc = new_doctype("Test Links Table Validation")
+
+		# check valid data
+		doc.append("links", {
+			'link_doctype': "User",
+			'link_fieldname': "first_name"
+		})
+		doc.validate_links_table_fieldnames() # no error
+		doc.links = [] # reset links table
+
+		# check invalid doctype
+		doc.append("links", {
+			'link_doctype': "User2",
+			'link_fieldname': "first_name"
+		})
+		self.assertRaises(frappe.DoesNotExistError, doc.validate_links_table_fieldnames)
+		doc.links = [] # reset links table
+
+		# check invalid fieldname
+		doc.append("links", {
+			'link_doctype': "User",
+			'link_fieldname': "a_field_that_does_not_exists"
+		})
+		self.assertRaises(InvalidFieldNameError, doc.validate_links_table_fieldnames)
+
+
 def new_doctype(name, unique=0, depends_on='', fields=None):
 	doc = frappe.get_doc({
 		"doctype": "DocType",

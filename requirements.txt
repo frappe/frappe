@@ -72,7 +72,5 @@ zxcvbn-python==4.4.24
 pycryptodome==3.9.8
 paytmchecksum==1.7.0
 wrapt==1.10.11
-twilio==6.44.2
 razorpay==1.2.0
-
 rsa>=4.1 # not directly required, pinned by Snyk to avoid a vulnerability

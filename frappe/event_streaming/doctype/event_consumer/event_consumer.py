@@ -31,10 +31,12 @@ class EventConsumer(Document):
 			self.update_consumer_status()
 		else:
 			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
-
+		
 		frappe.cache().delete_value('event_consumer_document_type_map')
 
 	def on_trash(self):
+		for i in frappe.get_all('Event Update Log Consumer', {'consumer': self.name}):
+			frappe.delete_doc('Event Update Log Consumer', i.name)
 		frappe.cache().delete_value('event_consumer_document_type_map')
 
 	def update_consumer_status(self):
@@ -88,8 +90,9 @@ def register_consumer(data):
 
 	for entry in consumer_doctypes:
 		consumer.append('consumer_doctypes', {
-			'ref_doctype': entry,
-			'status': 'Pending'
+			'ref_doctype': entry.get('doctype'),
+			'status': 'Pending',
+			'condition': entry.get('condition')
 		})
 
 	consumer.insert()
@@ -153,3 +156,53 @@ def notify(consumer):
 		jobs = get_jobs()
 		if not jobs or enqueued_method not in jobs[frappe.local.site] and not consumer.flags.notifed:
 			frappe.enqueue(enqueued_method, queue='long', enqueue_after_commit=True, **{'consumer': consumer})
+
+
+def has_consumer_access(consumer, update_log):
+	"""Checks if consumer has completely satisfied all the conditions on the doc"""
+
+	if isinstance(consumer, str):
+		consumer = frappe.get_doc('Event Consumer', consumer)
+
+	if not frappe.db.exists(update_log.ref_doctype, update_log.docname):
+		# Delete Log
+		# Check if the last Update Log of this document was read by this consumer
+		last_update_log = frappe.get_all(
+			'Event Update Log',
+			filters={
+				'ref_doctype': update_log.ref_doctype,
+				'docname': update_log.docname,
+				'creation': ['<', update_log.creation]
+			},
+			order_by='creation desc',
+			limit_page_length=1
+		)
+		if not len(last_update_log):
+			return False
+
+		last_update_log = frappe.get_doc('Event Update Log', last_update_log[0].name)
+		return len([x for x in last_update_log.consumers if x.consumer == consumer.name])
+
+	doc = frappe.get_doc(update_log.ref_doctype, update_log.docname)
+	try:
+		for dt_entry in consumer.consumer_doctypes:
+			if dt_entry.ref_doctype != update_log.ref_doctype:
+				continue
+
+			if not dt_entry.condition:
+				return True
+
+			condition: str = dt_entry.condition
+			if condition.startswith('cmd:'):
+				cmd = condition.split('cmd:')[1].strip()
+				args = {
+					'consumer': consumer,
+					'doc': doc,
+					'update_log': update_log
+				}
+				return frappe.call(cmd, **args)
+			else:
+				return frappe.safe_eval(condition, frappe._dict(doc=doc))
+	except Exception as e:
+		frappe.log_error(title='has_consumer_access error', message=e)
+	return False
