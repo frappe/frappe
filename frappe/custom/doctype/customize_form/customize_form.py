@@ -75,6 +75,9 @@ class CustomizeForm(Document):
 				self.append(fieldname, d)
 
 	def create_auto_repeat_custom_field_if_required(self, meta):
+		'''
+		Create auto repeat custom field if it's not already present
+		'''
 		if self.allow_auto_repeat:
 			all_fields = [df.fieldname for df in meta.fields]
 
