@@ -39,7 +39,7 @@ class CustomizeForm(Document):
 		translation = self.get_name_translation()
 		self.label = translation.translated_text if translation else ''
 
-		self.create_auto_repeat_custom_field_if_requried(meta)
+		self.create_auto_repeat_custom_field_if_required(meta)
 
 		# NOTE doc (self) is sent to clientside by run_method
 
@@ -74,7 +74,7 @@ class CustomizeForm(Document):
 			for d in meta.get(fieldname):
 				self.append(fieldname, d)
 
-	def create_auto_repeat_custom_field_if_requried(self, meta):
+	def create_auto_repeat_custom_field_if_required(self, meta):
 		if self.allow_auto_repeat:
 			all_fields = [df.fieldname for df in meta.fields]
 
