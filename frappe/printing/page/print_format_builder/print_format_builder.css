@@ -76,12 +76,14 @@
 
 .print-format-builder-section-head {
 	cursor: move;
-	padding: var(--padding-sm) var(--padding-lg);
+	padding: var(--padding-md) calc(var(--padding-md) + 8px)
+		var(--padding-sm) calc(var(--padding-md) + 8px);
 }
 
 .column-selector-row {
 	margin-bottom: var(--margin-xs);
 	padding: var(--padding-xs) 0;
+	cursor: grab;
 }
 
 .column-selector-row:hover {
@@ -92,12 +94,17 @@
 	margin-right: var(--margin-sm);
 }
 
+.print-format-builder-field .drag-handle {
+	margin-right: var(--margin-sm);
+}
+
 .print-format-builder-sidebar .sidebar-field {
 	width: 100%;
 	padding: 4px 8px;
 	color: var(--text-on-light-gray);
 	/* color: var(--text-light); */
 	text-align: left;
+	cursor: grab;
 }
 
 .print-format-builder-sidebar .sidebar-custom-field {
