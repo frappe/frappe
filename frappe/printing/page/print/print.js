@@ -417,10 +417,6 @@ frappe.ui.form.PrintView = class {
 
 		this.show_footer();
 
-		$print_format.css({
-			'min-height': this.$print_format_body.find('.print-format').height()
-		});
-
 		this.$print_format_body.find('.print-format').css({
 			display: 'flex',
 			flexDirection: 'column',
@@ -431,6 +427,10 @@ frappe.ui.form.PrintView = class {
 			'flex-direction': 'column',
 			flex: '1',
 		});
+
+		setTimeout(() => {
+			$print_format.height(this.$print_format_body.find('.print-format').outerHeight())
+		}, 500);
 	}
 
 	hide() {
