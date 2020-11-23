@@ -33,7 +33,6 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		let add_assignment_button = this.parent.find('.add-assignment-btn');
-
 		assignments.forEach(assignment => {
 			let user_info = frappe.user_info(assignment.owner);
 			user_info.assign_to_name = assignment.name;

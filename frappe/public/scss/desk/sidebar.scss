@@ -395,45 +395,35 @@ body[data-route^="Module"] .main-menu {
 .attachment-row,
 .form-tag-row {
 	margin-bottom: var(--margin-sm);
-	margin-right: var(--margin-xs);
-	display: inline-block;
 	max-width: 100%;
 }
 
+.reviews, .form-tag-row {
+	margin-right: var(--margin-xs);
+	display: inline-flex;
+}
+
 .data-pill {
-	.remove-btn {
+	.icon {
 		margin-left: var(--margin-xs);
+		margin-right: 0;
 	}
 	background-color: var(--fg-color);
 	border-radius: var(--border-radius);
 	padding: var(--padding-xs) var(--padding-sm);
 	color: var(--text-color);
 	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
-.add-assignment-btn,
 .add-attachment-btn,
 .shares,
 .share-doc-btn,
-.reviews,
 .followed-by,
-.add-review-btn {
-	margin-bottom: var(--margin-sm);
-	display: inline-flex;
-	vertical-align: top;
-
-	.btn {
-		height: 30px;
-		width: 30px;
-		@extend .center-content;
-		padding: 0;
-		border: 1px dashed var(--dark-border-color);
-		box-shadow: none;
-		background-color: var(--fg-color);
-		.icon use {
-			stroke: var(--text-muted);
-		}
-	}
+.add-review-btn,
+.add-assignment-btn {
+	display: block;
 }
 
 .form-reviews {
