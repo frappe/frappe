@@ -100,6 +100,26 @@ class CustomizeForm(Document):
 
 		meta = frappe.get_meta(self.doc_type)
 
+<<<<<<< HEAD
+=======
+		self.validate_doctype(meta)
+
+		# load the meta properties on the customize (self) object
+		self.load_properties(meta)
+
+		# load custom translation
+		translation = self.get_name_translation()
+		self.label = translation.translated_text if translation else ''
+
+		self.create_auto_repeat_custom_field_if_required(meta)
+
+		# NOTE doc (self) is sent to clientside by run_method
+
+	def validate_doctype(self, meta):
+		'''
+		Check if the doctype is allowed to be customized.
+		'''
+>>>>>>> 019fca9ef7... fix: typo in function name
 		if self.doc_type in core_doctypes_list:
 			return frappe.msgprint(_("Core DocTypes cannot be customized."))
 
@@ -123,7 +143,11 @@ class CustomizeForm(Document):
 		translation = self.get_name_translation()
 		self.label = translation.translated_text if translation else ''
 
+<<<<<<< HEAD
 		#If allow_auto_repeat is set, add auto_repeat custom field.
+=======
+	def create_auto_repeat_custom_field_if_required(self, meta):
+>>>>>>> 019fca9ef7... fix: typo in function name
 		if self.allow_auto_repeat:
 <<<<<<< HEAD
 			if not frappe.db.exists('Custom Field', {'fieldname': 'auto_repeat', 'dt': self.doc_type}) and \
