@@ -16,15 +16,19 @@ frappe.ui.form.Attachments = Class.extend({
 		this.add_attachment_wrapper = this.parent.find(".add_attachment").parent();
 		this.attachments_label = this.parent.find(".attachments-label");
 	},
-	max_reached: function() {
-		// no of attachments
-		var n = Object.keys(this.get_attachments()).length;
-
-		// button if the number of attachments is less than max
-		if(n < this.frm.meta.max_attachments || !this.frm.meta.max_attachments) {
-			return false;
+	max_reached: function(raise_exception=false) {
+		const attachment_count = Object.keys(this.get_attachments()).length;
+		const attachment_limit = this.frm.meta.max_attachments;
+		if (attachment_limit && attachment_count >= attachment_limit) {
+			if (raise_exception) {
+				frappe.throw({
+					title: __("Attachment Limit Reached"),
+					message: __("Maximum attachment limit of {0} has been reached.", [cstr(attachment_limit).bold()]),
+				});
+			}
+			return true;
 		}
-		return true;
+		return false;
 	},
 	refresh: function() {
 		var me = this;
@@ -140,7 +144,6 @@ frappe.ui.form.Attachments = Class.extend({
 		});
 	},
 	new_attachment: function(fieldname) {
-		var me = this;
 		if (this.dialog) {
 			// remove upload dialog
 			this.dialog.$wrapper.remove();
@@ -149,6 +152,7 @@ frappe.ui.form.Attachments = Class.extend({
 		new frappe.ui.FileUploader({
 			doctype: this.frm.doctype,
 			docname: this.frm.docname,
+			frm: this.frm,
 			folder: 'Home/Attachments',
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);

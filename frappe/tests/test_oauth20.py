@@ -6,6 +6,7 @@ import unittest, frappe, requests, time
 from frappe.test_runner import make_test_records
 from six.moves.urllib.parse import urlparse, parse_qs, urljoin
 from urllib.parse import urlencode, quote
+from frappe.integrations.oauth2 import encode_params
 
 class TestOAuth20(unittest.TestCase):
 
@@ -232,13 +233,3 @@ def login(session):
 def get_full_url(endpoint):
 	"""Turn '/endpoint' into 'http://127.0.0.1:8000/endpoint'."""
 	return urljoin(frappe.utils.get_url(), endpoint)
-
-def encode_params(params):
-	"""
-	Encode a dict of params into a query string.
-
-	Use `quote_via=urllib.parse.quote` so that whitespaces will be encoded as
-	`%20` instead of as `+`. This is needed because oauthlib cannot handle `+`
-	as a whitespace.
-	"""
-	return urlencode(params, quote_via=quote)
