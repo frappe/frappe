@@ -306,6 +306,7 @@ $.extend(frappe.model, {
 				selected_children: opts.frm ? opts.frm.get_selected() : null
 			},
 			freeze: true,
+			freeze_message: opts.freeze_message || '',
 			callback: function(r) {
 				if(!r.exc) {
 					frappe.model.sync(r.message);
