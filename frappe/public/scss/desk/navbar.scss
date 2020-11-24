@@ -7,7 +7,6 @@
 		margin-right: 0;
 	}
 	.navbar-nav {
-		margin-left: var(--margin-md);
 		.nav-link {
 			padding: 0;
 		}
@@ -39,7 +38,7 @@
 .search-bar {
 	flex: 1;
 	max-width: 300px;
-	margin-left: var(--margin-md);
+	margin: 0 var(--margin-md);
 
 	svg {
 		stroke: var(--text-light);
