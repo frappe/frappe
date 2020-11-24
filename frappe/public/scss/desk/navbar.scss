@@ -39,6 +39,7 @@
 .search-bar {
 	flex: 1;
 	max-width: 300px;
+	margin-left: var(--margin-md);
 
 	svg {
 		stroke: var(--text-light);
