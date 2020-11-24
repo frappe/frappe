@@ -80,7 +80,7 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Connected App",
-					"description": _("Connected App"),
+					"description": _("Connect to any OAuth Provider"),
 				},
 			]
 		},
