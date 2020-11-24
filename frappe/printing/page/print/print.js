@@ -452,6 +452,7 @@ frappe.ui.form.PrintView = class {
 			`
 			display: block !important;
 			order: 1;
+			margin-top: auto;
 		`
 		);
 	}

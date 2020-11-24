@@ -178,6 +178,7 @@ def prepare_header_footer(soup):
 			html = frappe.render_template("templates/print_formats/pdf_header_footer.html", {
 				"head": head,
 				"content": content,
+				"styles": styles,
 				"html_id": html_id,
 				"css": css
 			})
