@@ -114,14 +114,12 @@
 }
 
 .like-disabled-input {
-	margin-bottom: 7px;
+	@extend .form-control;
 	border-radius: $border-radius;
-	min-height: 30px;
 	font-weight: 400;
 	cursor: default;
 	color: var(--gray-500);
 	background-color: var(--control-bg);
-	padding: var(--padding-xs) var(--padding-sm);
 }
 
 .comment-box {
