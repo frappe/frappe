@@ -31,6 +31,7 @@
    "fieldname": "script",
    "fieldtype": "Code",
    "label": "Script",
+   "options": "Python",
    "reqd": 1
   },
   {
@@ -87,7 +88,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-24 16:44:41.060350",
+ "modified": "2020-11-11 12:39:41.391052",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
