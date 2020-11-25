@@ -185,27 +185,36 @@ def parse_latest_non_beta_release(response):
 	return None
 
 
-def check_release_on_github(app):
-	from subprocess import CalledProcessError
+def check_release_on_github(app: str):
+	"""
+	Check the latest release for a given Frappe application hosted on Github.
+
+	Args:
+		app (str): The name of the Frappe application.
+
+	Returns:
+		tuple(Version, str): The Version object of the latest release and the
+			organization name, if the application exists, otherwise None.
+	"""
 
 	try:
 		# Check if repo remote is on github
-		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True).decode()
-	except CalledProcessError:
-		# Passing this since some apps may not have git initializaed in them
+		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
+	except subprocess.CalledProcessError:
+		# Passing this since some apps may not have git initialized in them
 		return
 
 	if isinstance(remote_url, bytes):
 		remote_url = remote_url.decode()
 
-	if "github.com" not in remote_url:
+	if "github" not in remote_url:
+		return
+
+	if is_git_url(remote_url):
 		return
 
 	# Get latest version from github
 	if 'https' not in remote_url:
-		return
-
-	if is_git_url(remote_url):
 		return
 
 	org_name = remote_url.split('/')[3]
