@@ -11,7 +11,7 @@
           <a class="module-box-link" :href="type === 'module' ? '#modules/' + module_name : link">
             <h4 class="h4">
               <div>
-                <i :class="icon_class" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
+                <i :class="icon_class" :style="{'color': color, 'font-size': '18px', 'margin-right': '6px'}"></i>
                 {{ label }}
               </div>
             </h4>
@@ -44,7 +44,8 @@ export default {
     "links",
     "description",
     "hidden",
-    "icon"
+    "icon",
+    "color",
   ],
   components: {
     Dropdown
