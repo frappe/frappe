@@ -42,6 +42,7 @@ frappe.ui.Page = Class.extend({
 	make: function() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
+		this.setup_sidebar_toggle();
 		this.setup_scroll_handler();
 	},
 
@@ -78,7 +79,7 @@ frappe.ui.Page = Class.extend({
 
 	add_main_section: function() {
 		$(frappe.render_template("page", {})).appendTo(this.wrapper);
-		if(this.single_column) {
+		if (this.single_column) {
 			// nesting under col-sm-12 for consistency
 			this.add_view("main", '<div class="row layout-main">\
 					<div class="col-md-12 layout-main-section-wrapper">\
@@ -87,13 +88,15 @@ frappe.ui.Page = Class.extend({
 					</div>\
 				</div>');
 		} else {
-			this.add_view("main", '<div class="row layout-main">\
-				<div class="col-lg-2 layout-side-section"></div>\
-				<div class="col-lg-10 layout-main-section-wrapper">\
-					<div class="layout-main-section"></div>\
-					<div class="layout-footer hide"></div>\
-				</div>\
-			</div>');
+			this.add_view("main", `
+				<div class="row layout-main">
+					<div class="col-lg-2 layout-side-section"></div>
+					<div class="col layout-main-section-wrapper">
+						<div class="layout-main-section"></div>
+						<div class="layout-footer hide"></div>
+					</div>
+				</div>
+			`);
 		}
 
 		this.setup_page();
@@ -149,6 +152,11 @@ frappe.ui.Page = Class.extend({
 		frappe.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(action_btn, action_btn.find('.actions-btn-group-label'));
+	},
+
+	setup_sidebar_toggle() {
+		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
+		sidebar_toggle.click(console.log);
 	},
 
 	set_indicator: function(label, color) {
