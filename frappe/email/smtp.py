@@ -212,8 +212,7 @@ class SMTPServer:
 				if not self.port:
 					self.port = 465
 
-				self._sess = smtplib.SMTP_SSL((self.server or "").encode('utf-8'),
-						cint(self.port) or None)
+				self._sess = smtplib.SMTP_SSL((self.server or ""), cint(self.port))
 			else:
 				if self.use_tls and not self.port:
 					self.port = 587
