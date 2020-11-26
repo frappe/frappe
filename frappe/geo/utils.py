@@ -40,6 +40,8 @@ def merge_location_features_in_one(coords):
 	geojson_dict = []
 	for element in coords:
 		geojson_loc = frappe.parse_json(element['location'])
+		if not geojson_loc:
+			continue
 		for coord in geojson_loc['features']:
 			coord['properties']['name'] = element['name']
 			geojson_dict.append(coord.copy())
