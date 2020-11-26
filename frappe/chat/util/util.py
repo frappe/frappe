@@ -7,7 +7,7 @@ import requests
 import six
 
 # imports - standard imports
-from   collections import Sequence, MutableSequence, Mapping, MutableMapping
+from   collections.abc import Sequence, MutableSequence, Mapping, MutableMapping
 if six.PY2:
 	from urlparse import urlparse 	  # PY2
 else:
