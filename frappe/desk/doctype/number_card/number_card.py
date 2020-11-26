@@ -56,7 +56,7 @@ def has_permission(doc, ptype, user):
 	return False
 
 @frappe.whitelist()
-def get_result(doc, filters, to_date=None):
+def get_result(doc, filters, to_date=None, cond=None):
 	doc = frappe.parse_json(doc)
 	fields = []
 	sql_function_map = {
@@ -80,7 +80,10 @@ def get_result(doc, filters, to_date=None):
 			filters = []
 
 	if to_date:
-		filters.append([doc.document_type, 'creation', '<', to_date])
+		if cond:
+			filters.append([doc.document_type, cond, '<', to_date])
+		else:
+			filters.append([doc.document_type, 'creation', '<', to_date])
 
 	res = frappe.db.get_list(doc.document_type, fields=fields, filters=filters)
 	number = res[0]['result'] if res else 0
@@ -98,7 +101,10 @@ def get_percentage_difference(doc, filters, result):
 		return
 
 	previous_result = calculate_previous_result(doc, filters)
-	difference = (result - previous_result)/100.0
+	if previous_result == 0:
+		difference = result
+	else:
+		difference = ((result/previous_result)-1)*100.0
 
 	return difference
 
@@ -109,12 +115,27 @@ def calculate_previous_result(doc, filters):
 	current_date = frappe.utils.now()
 	if doc.stats_time_interval == 'Daily':
 		previous_date = add_to_date(current_date, days=-1)
+		previous_date_from = add_to_date(current_date, days=-2)
 	elif doc.stats_time_interval == 'Weekly':
 		previous_date = add_to_date(current_date, weeks=-1)
+		previous_date_from = add_to_date(current_date, weeks=-2)
 	elif doc.stats_time_interval == 'Monthly':
 		previous_date = add_to_date(current_date, months=-1)
+		previous_date_from = add_to_date(current_date, months=-2)
 	else:
 		previous_date = add_to_date(current_date, years=-1)
+		previous_date_from = add_to_date(current_date, years=-2)
+
+	filters = frappe.parse_json(filters)
+	old_filter = filters
+	filters = []
+	cond = ""
+	for filter in old_filter:
+		if "Timespan" in filter:
+			cond = str(filter[1])
+			filters.append([doc.document_type, cond, '>', previous_date_from])
+		else:
+			filters.append(filter)
 
 	number = get_result(doc, filters, previous_date)
 	return number
