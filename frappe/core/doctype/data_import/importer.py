@@ -1042,7 +1042,8 @@ class Column:
 		self.skip_import = skip_import
 		if not skip_import:
 			self.value_occurs = {self.column_values[i]:i
-					     for i in range(len(self.column_values)-1,0,-1)}
+				for i in range(len(self.column_values)-1,0,-1)
+				if self.column_values[i]}
 
 	def guess_date_format_for_column(self):
 		"""Guesses date format for a column by parsing all the values in the column,
