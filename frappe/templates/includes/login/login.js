@@ -60,10 +60,10 @@ login.bind_events = function() {
 		var input = $($(this).attr("toggle"));
 		if (input.attr("type") == "password") {
 			input.attr("type", "text");
-			$(this).text('{{ _("Hide") }}')
+			$(this).html('<i class="fa fa-eye-slash"></i>')
 		} else {
 			input.attr("type", "password");
-			$(this).text('{{ _("Show") }}')
+			$(this).html('<i class="fa fa-eye"></i>')
 		}
 	});
 
