@@ -43,7 +43,6 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	force = cint(force)
 	merge = cint(merge)
-
 	meta = frappe.get_meta(doctype)
 
 	# call before_rename
@@ -465,62 +464,3 @@ def bulk_rename(doctype, rows=None, via_console = False):
 
 	if not via_console:
 		return rename_log
-
-def update_linked_doctypes(doctype, docname, linked_to, value, ignore_doctypes=None):
-	"""
-		linked_doctype_info_list = list formed by get_fetch_fields() function
-		docname = Master DocType's name in which modification are made
-		value = Value for the field thats set in other DocType's by fetching from Master DocType
-	"""
-	linked_doctype_info_list = get_fetch_fields(doctype, linked_to, ignore_doctypes)
-
-	for d in linked_doctype_info_list:
-		frappe.db.sql("""
-			update
-				`tab{doctype}`
-			set
-				{linked_to_fieldname} = "{value}"
-			where
-				{master_fieldname} = {docname}
-				and {linked_to_fieldname} != "{value}"
-		""".format(
-			doctype = d['doctype'],
-			linked_to_fieldname = d['linked_to_fieldname'],
-			value = value,
-			master_fieldname = d['master_fieldname'],
-			docname = frappe.db.escape(docname)
-		))
-
-def get_fetch_fields(doctype, linked_to, ignore_doctypes=None):
-	"""
-		doctype = Master DocType in which the changes are being made
-		linked_to = DocType name of the field thats being updated in Master
-
-		This function fetches list of all DocType where both doctype and linked_to is found
-		as link fields.
-		Forms a list of dict in the form -
-			[{doctype: , master_fieldname: , linked_to_fieldname: ]
-		where
-			doctype = DocType where changes need to be made
-			master_fieldname = Fieldname where options = doctype
-			linked_to_fieldname = Fieldname where options = linked_to
-	"""
-
-	master_list = get_link_fields(doctype)
-	linked_to_list = get_link_fields(linked_to)
-	out = []
-
-	from itertools import product
-	product_list = product(master_list, linked_to_list)
-
-	for d in product_list:
-		linked_doctype_info = frappe._dict()
-		if d[0]['parent'] == d[1]['parent'] \
-				and (not ignore_doctypes or d[0]['parent'] not in ignore_doctypes) \
-				and not d[1]['issingle']:
-			linked_doctype_info['doctype'] = d[0]['parent']
-			linked_doctype_info['master_fieldname'] = d[0]['fieldname']
-			linked_doctype_info['linked_to_fieldname'] = d[1]['fieldname']
-			out.append(linked_doctype_info)
-
-	return out
