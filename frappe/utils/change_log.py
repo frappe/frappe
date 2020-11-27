@@ -5,12 +5,13 @@ import json
 import os
 import subprocess  # nosec
 
-import frappe
 import requests
-from frappe import _, safe_decode
-from frappe.utils import cstr, is_git_url
 from semantic_version import Version
 from six.moves import range
+
+import frappe
+from frappe import _, safe_decode
+from frappe.utils import cstr
 
 
 def get_change_log(user=None):
@@ -193,9 +194,12 @@ def check_release_on_github(app: str):
 		app (str): The name of the Frappe application.
 
 	Returns:
-		tuple(Version, str): The Version object of the latest release and the
+		tuple(Version, str): The semantic version object of the latest release and the
 			organization name, if the application exists, otherwise None.
 	"""
+
+	from giturlparse import parse
+	from giturlparse.parser import ParserError
 
 	try:
 		# Check if repo remote is on github
@@ -207,22 +211,26 @@ def check_release_on_github(app: str):
 	if isinstance(remote_url, bytes):
 		remote_url = remote_url.decode()
 
-	if "github" not in remote_url:
+	try:
+		parsed_url = parse(remote_url)
+	except ParserError:
+		# Invalid URL
 		return
 
-	if is_git_url(remote_url):
+	# Get latest version from Github
+	if parsed_url.protocol == "http":
+		return
+	if parsed_url.resource != "github.com":
 		return
 
-	# Get latest version from github
-	if 'https' not in remote_url:
-		return
+	owner = parsed_url.owner
+	repo = parsed_url.name
 
-	org_name = remote_url.split('/')[3]
-	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
+	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(owner, repo))
 	if r.ok:
 		latest_non_beta_release = parse_latest_non_beta_release(r.json())
 		if latest_non_beta_release:
-			return Version(latest_non_beta_release), org_name
+			return Version(latest_non_beta_release), owner
 
 
 def add_message_to_redis(update_json):

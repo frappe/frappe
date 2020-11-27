@@ -1397,9 +1397,3 @@ def validate_json_string(string):
 		json.loads(string)
 	except (TypeError, ValueError):
 		raise frappe.ValidationError
-
-
-def is_git_url(url):
-	# modified to allow without the tailing .git from https://github.com/jonschlinkert/is-git-url.git
-	pattern = r"(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)?(\/?|\#[-\d\w._]+?)$"
-	return bool(re.match(pattern, url))
