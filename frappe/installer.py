@@ -262,11 +262,11 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 			for record in frappe.get_all(doctype, filters={"module": module_name}, pluck="name"):
 				print(f"* removing {doctype} '{record}'...")
 				if not dry_run:
-					frappe.delete_doc(doctype, record, ignore_on_trash=True)
+					frappe.delete_doc(doctype, record, ignore_on_trash=True, force=True)
 
 		print(f"* removing Module Def '{module_name}'...")
 		if not dry_run:
-			frappe.delete_doc("Module Def", module_name, ignore_on_trash=True)
+			frappe.delete_doc("Module Def", module_name, ignore_on_trash=True, force=True)
 
 	for doctype in set(drop_doctypes):
 		print(f"* dropping Table for '{doctype}'...")
