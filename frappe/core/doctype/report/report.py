@@ -61,8 +61,9 @@ class Report(Document):
 	def set_doctype_roles(self):
 		if not self.get('roles') and self.is_standard == 'No':
 			meta = frappe.get_meta(self.ref_doctype)
-			roles = [{'role': d.role} for d in meta.permissions if d.permlevel==0]
-			self.set('roles', roles)
+			if not meta.istable:
+				roles = [{'role': d.role} for d in meta.permissions if d.permlevel==0]
+				self.set('roles', roles)
 
 	def is_permitted(self):
 		"""Returns true if Has Role is not set or the user is allowed."""

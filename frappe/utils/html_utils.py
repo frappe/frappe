@@ -34,7 +34,7 @@ def clean_email_html(html):
 			'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
 			'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
 			'font-size', 'font-weight', 'font-family', 'text-decoration',
-			'line-height', 'text-align', 'vertical-align'
+			'line-height', 'text-align', 'vertical-align', 'display'
 		],
 		protocols=['cid', 'http', 'https', 'mailto', 'data'],
 		strip=True, strip_comments=True)
@@ -106,9 +106,8 @@ def get_icon_html(icon, small=False):
 		return "<i class='{icon}'></i>".format(icon=icon)
 
 def unescape_html(value):
-	from six.moves.html_parser import HTMLParser
-	h = HTMLParser()
-	return h.unescape(value)
+	from html import unescape
+	return unescape(value)
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [
