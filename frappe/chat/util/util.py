@@ -1,26 +1,20 @@
 from __future__ import unicode_literals
 
+# imports - standard imports
+import json
+from collections.abc import MutableMapping, MutableSequence, Sequence
+
 # imports - third-party imports
 import requests
-
-# imports - compatibility imports
-import six
-
-# imports - standard imports
-from   collections import Sequence, MutableSequence, Mapping, MutableMapping
-if six.PY2:
-	from urlparse import urlparse 	  # PY2
-else:
-	from urllib.parse import urlparse # PY3
-import json
+from urllib.parse import urlparse
 
 # imports - module imports
-from   frappe.model.document import Document
-from   frappe.exceptions import DuplicateEntryError
-from   frappe import _dict
 import frappe
+from frappe.exceptions import DuplicateEntryError
+from frappe.model.document import Document
 
 session = frappe.session
+
 
 def get_user_doc(user = None):
 	if isinstance(user, Document):
@@ -38,12 +32,12 @@ def squashify(what):
 	return what
 
 def safe_json_loads(*args):
-	results = [ ]
+	results = []
 
 	for arg in args:
 		try:
 			arg = json.loads(arg)
-		except Exception as e:
+		except Exception:
 			pass
 
 		results.append(arg)
@@ -81,7 +75,7 @@ def dictify(arg):
 		for i, a in enumerate(arg):
 			arg[i] = dictify(a)
 	elif isinstance(arg, MutableMapping):
-		arg = _dict(arg)
+		arg = frappe._dict(arg)
 
 	return arg
 
