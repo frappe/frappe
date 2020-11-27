@@ -1,15 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, print_function
-from click.termui import secho
+from __future__ import print_function, unicode_literals
+
 import frappe
 from frappe import _, bold
-from frappe.utils import cint
-from frappe.model.naming import validate_name
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.utils.password import rename_password
+from frappe.model.naming import validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
+from frappe.utils import cint
+from frappe.utils.password import rename_password
 
 
 @frappe.whitelist()
