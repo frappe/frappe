@@ -103,34 +103,42 @@ class TestRenameDoc(unittest.TestCase):
 		"""Rename DocType via frappe.rename_doc"""
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		fields =[{
-			"label": "Linked To",
-			"fieldname": "linked_to_doctype",
-			"fieldtype": "Link",
-			"options": "DocType",
-			"unique": 0
-		}]
 		if not frappe.db.exists("DocType", "Rename This"):
-			new_doctype("Rename This", unique=0, fields=fields).insert()
+			new_doctype(
+				"Rename This",
+				fields=[
+					{
+						"label": "Linked To",
+						"fieldname": "linked_to_doctype",
+						"fieldtype": "Link",
+						"options": "DocType",
+						"unique": 0,
+					}
+				],
+			).insert()
 
-		to_rename_record = frappe.get_doc({
-			"doctype": "Rename This",
-			"linked_to_doctype": "Rename This"
-		})
-		to_rename_record.insert()
+		to_rename_record = frappe.get_doc(
+			{"doctype": "Rename This", "linked_to_doctype": "Rename This"}
+		).insert()
 
 		# Rename doctype
-		self.assertEqual("Renamed Doc", frappe.rename_doc("DocType", "Rename This", "Renamed Doc", force=True))
+		self.assertEqual(
+			"Renamed Doc", frappe.rename_doc("DocType", "Rename This", "Renamed Doc", force=True)
+		)
 
 		# Test if Doctype value has changed in Link field
-		renamed_doctype_record = frappe.get_doc("Renamed Doc", to_rename_record.name)
-		self.assertEqual(renamed_doctype_record.linked_to_doctype, "Renamed Doc")
+		linked_to_doctype = frappe.db.get_value(
+			"Renamed Doc", to_rename_record.name, "linked_to_doctype"
+		)
+		self.assertEqual(linked_to_doctype, "Renamed Doc")
 
 		# Test if there are conflicts between a record and a DocType
 		# having the same name
 		old_name = to_rename_record.name
 		new_name = "ToDo"
-		self.assertEqual(new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True))
+		self.assertEqual(
+			new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True)
+		)
 
 		frappe.delete_doc_if_exists("Renamed Doc", "ToDo")
 		frappe.delete_doc_if_exists("DocType", "Renamed Doc")
