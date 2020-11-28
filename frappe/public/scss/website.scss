@@ -198,7 +198,6 @@ h5.modal-title {
 	float: right;
 }
 
-<<<<<<< HEAD
 .btn-primary-light {
 	@include button-variant(
 		$background: $primary-light,
@@ -245,22 +244,18 @@ h5.modal-title {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+
 .about-section {
 	padding-top: 1rem;
 }
+
 .about-footer {
 	padding-top: 1rem;
-=======
-.ellipsis {
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	max-width: 100%;
-	vertical-align: middle;
 }
 
 .logged-in > .nav-link {
 	max-width: 200px;
 	@extend .ellipsis;
->>>>>>> fbd8fe1203... fix: Trim long names in website navbar by adding ellipsis (#11730)
+	max-width: 100%;
+	vertical-align: middle;
 }
