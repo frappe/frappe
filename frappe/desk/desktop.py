@@ -31,7 +31,7 @@ def handle_not_exist(fn):
 class Workspace:
 	def __init__(self, page_name, minimal=False):
 		self.page_name = page_name
-		self.extended_cards = []
+		self.extended_links = []
 		self.extended_charts = []
 		self.extended_shortcuts = []
 
@@ -57,7 +57,7 @@ class Workspace:
 		self.restricted_pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 
 	def is_page_allowed(self):
-		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module) + self.extended_cards
+		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module) + self.extended_links
 		shortcuts = self.doc.shortcuts + self.extended_shortcuts
 
 		for section in cards:
@@ -151,7 +151,7 @@ class Workspace:
 		pages = [frappe.get_cached_doc("Desk Page", page['name']) for page in pages]
 
 		for page in pages:
-			self.extended_cards = self.extended_cards + page.cards
+			self.extended_links = self.extended_links + page.get_link_groups()
 			self.extended_charts = self.extended_charts + page.charts
 			self.extended_shortcuts = self.extended_shortcuts + page.shortcuts
 
@@ -243,8 +243,9 @@ class Workspace:
 		if not self.doc.hide_custom:
 			cards = cards + get_custom_reports_and_doctypes(self.doc.module)
 
-		if len(self.extended_cards):
-			cards = merge_cards_based_on_label(cards + self.extended_cards)
+		if len(self.extended_links):
+			cards = merge_cards_based_on_label(cards + self.extended_links)
+		
 		default_country = frappe.db.get_default("country")
 
 		new_data = []
