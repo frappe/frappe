@@ -22,6 +22,7 @@
   "align_labels_right",
   "show_section_headings",
   "line_breaks",
+  "absolute_value",
   "column_break_11",
   "font",
   "css_section",
@@ -196,13 +197,19 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Print Format Builder"
+  },
+  {
+   "default": "0",
+   "fieldname": "absolute_value",
+   "fieldtype": "Check",
+   "label": "Show absolute values"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-27 18:27:58.307070",
+ "modified": "2020-11-30 15:26:35.605213",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
