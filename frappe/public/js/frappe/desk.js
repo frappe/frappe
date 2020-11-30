@@ -260,7 +260,7 @@ frappe.Application = Class.extend({
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = {};
-			frappe.boot.allowed_modules.forEach(function(m) {
+			(frappe.boot.allowed_modules || []).forEach(function(m) {
 				frappe.modules[m.module_name]=m;
 			});
 			frappe.model.sync(frappe.boot.docs);
