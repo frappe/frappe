@@ -74,3 +74,4 @@ paytmchecksum==1.7.0
 wrapt==1.10.11
 razorpay==1.2.0
 rsa>=4.1 # not directly required, pinned by Snyk to avoid a vulnerability
+pillow==8.0.1
