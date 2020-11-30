@@ -88,8 +88,9 @@ def rebuild_all(pages=None):
 			rebuild_links(page)
 		except Exception as e:
 			failed.append(page)
-			print(e)
-	print(failed)
+	
+	if failed:
+		print(f"Rebuilding Failed for Pages: {', '.join(failed)}")
 
 def rebuild_links(page):
 	link_type_map = {

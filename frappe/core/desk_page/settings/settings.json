@@ -18,7 +18,7 @@
   {
    "hidden": 0,
    "label": "Core",
-   "links": "[\n    {\n        \"description\": \"Language, Date and Time settings\",\n        \"hide_count\": true,\n        \"label\": \"System Settings\",\n        \"name\": \"System Settings\",\n        \"type\": \"doctype\"\n    },\n   {\n        \"description\": \"Company, Fiscal Year and Currency defaults\",\n        \"hide_count\": true,\n        \"label\": \"Global Defaults\",\n        \"name\": \"Global Defaults\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error on automated events (scheduler).\",\n        \"label\": \"Error Log\",\n        \"name\": \"Error Log\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error during requests.\",\n        \"label\": \"Error Snapshot\",\n        \"name\": \"Error Snapshot\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Enable / Disable Domains\",\n        \"hide_count\": true,\n        \"label\": \"Domain Settings\",\n        \"name\": \"Domain Settings\",\n        \"type\": \"doctype\"\n    }\n]"
+   "links": "[\n    {\n        \"description\": \"Language, Date and Time settings\",\n        \"hide_count\": true,\n        \"label\": \"System Settings\",\n        \"name\": \"System Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error on automated events (scheduler).\",\n        \"label\": \"Error Log\",\n        \"name\": \"Error Log\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Log of error during requests.\",\n        \"label\": \"Error Snapshot\",\n        \"name\": \"Error Snapshot\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Enable / Disable Domains\",\n        \"hide_count\": true,\n        \"label\": \"Domain Settings\",\n        \"name\": \"Domain Settings\",\n        \"type\": \"doctype\"\n    }\n]"
   },
   {
    "hidden": 0,
@@ -238,15 +238,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Global Defaults",
-   "link_to": "Global Defaults",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Error Log",
    "link_to": "Error Log",
    "link_type": "DocType",
@@ -349,7 +340,7 @@
    "type": "Link"
   }
  ],
- "modified": "2020-11-17 13:18:39.746969",
+ "modified": "2020-11-30 18:14:41.163959",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Settings",
