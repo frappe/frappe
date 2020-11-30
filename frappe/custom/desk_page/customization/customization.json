@@ -38,6 +38,7 @@
    "type": "Card Break"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Dashboard",
@@ -47,6 +48,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Dashboard Chart",
@@ -56,6 +58,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Dashboard Chart Source",
@@ -72,6 +75,7 @@
    "type": "Card Break"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Customize Form",
@@ -81,6 +85,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Custom Field",
@@ -90,6 +95,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Custom Script",
@@ -99,6 +105,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "DocType",
@@ -115,6 +122,7 @@
    "type": "Card Break"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Custom Translations",
@@ -124,7 +132,7 @@
    "type": "Link"
   }
  ],
- "modified": "2020-11-30 18:14:41.821287",
+ "modified": "2020-11-30 19:15:54.100535",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customization",

@@ -38,6 +38,7 @@
    "type": "Card Break"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "User",
@@ -47,6 +48,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Role",
@@ -56,6 +58,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Role Profile",
@@ -72,6 +75,7 @@
    "type": "Card Break"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Activity Log",
@@ -81,6 +85,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Access Log",
@@ -97,6 +102,7 @@
    "type": "Card Break"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Role Permissions Manager",
@@ -106,6 +112,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "User Permissions",
@@ -115,6 +122,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Role Permission for Page and Report",
@@ -124,6 +132,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "User",
    "hidden": 0,
    "is_query_report": 1,
    "label": "Permitted Documents For User",
@@ -133,6 +142,7 @@
    "type": "Link"
   },
   {
+   "dependencies": "DocShare",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Document Share Report",
@@ -142,7 +152,7 @@
    "type": "Link"
   }
  ],
- "modified": "2020-11-30 18:14:41.527912",
+ "modified": "2020-11-30 19:15:53.802069",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Users",

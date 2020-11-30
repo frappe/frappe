@@ -105,6 +105,7 @@ class DeskPage(Document):
 					"link_type": link_type_map[link.get('type').lower()],
 					"link_to": link.get('name'),
 					"onboard": link.get('onboard'),
+					"dependencies": ', '.join(link.get('dependencies', [])),
 					"is_query_report": get_report_type(link.get('name')) if link.get('type').lower() == "report" else 0
 				})
 
@@ -128,6 +129,7 @@ def rebuild_all(pages=None):
 			page_doc = frappe.get_doc("Desk Page", page)
 			page_doc.unroll_links()
 		except Exception as e:
+			print(e)
 			failed.append(page)
 	
 	if failed:
