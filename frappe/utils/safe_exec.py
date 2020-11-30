@@ -21,7 +21,9 @@ class NamespaceDict(frappe._dict):
 	def __getattr__(self, key):
 		ret = self.get(key)
 		if (not ret and key.startswith("__")) or (key not in self):
-			raise AttributeError(f"module has no attribute '{key}'")
+			def default_function(*args, **kwargs):
+				raise AttributeError(f"module has no attribute '{key}'")
+			return default_function
 		return ret
 
 
