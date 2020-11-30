@@ -199,9 +199,41 @@ class Workspace:
 				'items': self.get_onboarding_steps()
 			}
 
+	def _doctype_contains_a_record(self, name):
+		exists = self.table_counts.get(name, None)
+		if not exists:
+			if not frappe.db.get_value('DocType', name, 'issingle'):
+				exists = frappe.db.count(name)
+			else:
+				exists = True
+			self.table_counts[name] = exists
+		return exists
+
+	def _prepare_item(self, item):
+		if item.dependencies:
+			incomplete_dependencies = [d for d in item.dependencies if not self._doctype_contains_a_record(d)]
+			if len(incomplete_dependencies):
+				item.incomplete_dependencies = incomplete_dependencies
+			else:
+				item.incomplete_dependencies = ""
+
+		if item.onboard:
+			# Mark Spotlights for initial
+			if item.get("type") == "doctype":
+				name = item.get("name")
+				count = self._doctype_contains_a_record(name)
+
+				item["count"] = count
+
+		# Translate label
+		item["label"] = _(item.label) if item.label else _(item.name)
+
+		return item
+
 	@handle_not_exist
 	def get_links(self):
-		cards = self.doc.links
+		cards = self.doc.get_link_groups()
+		
 		if not self.doc.hide_custom:
 			cards = cards + get_custom_reports_and_doctypes(self.doc.module)
 
@@ -209,44 +241,11 @@ class Workspace:
 			cards = merge_cards_based_on_label(cards + self.extended_cards)
 		default_country = frappe.db.get_default("country")
 
-		def _doctype_contains_a_record(name):
-			exists = self.table_counts.get(name, None)
-			if not exists:
-				if not frappe.db.get_value('DocType', name, 'issingle'):
-					exists = frappe.db.count(name)
-				else:
-					exists = True
-				self.table_counts[name] = exists
-			return exists
-
-		def _prepare_item(item):
-			if item.dependencies:
-				incomplete_dependencies = [d for d in item.dependencies if not _doctype_contains_a_record(d)]
-				if len(incomplete_dependencies):
-					item.incomplete_dependencies = incomplete_dependencies
-				else:
-					item.incomplete_dependencies = ""
-
-			if item.onboard:
-				# Mark Spotlights for initial
-				if item.get("type") == "doctype":
-					name = item.get("name")
-					count = _doctype_contains_a_record(name)
-
-					item["count"] = count
-
-			# Translate label
-			item["label"] = _(item.label) if item.label else _(item.name)
-
-			return item
-
 		new_data = []
-		for section in cards:
+		for card in cards:
 			new_items = []
-			if isinstance(section.links, string_types):
-				links = loads(section.links)
-			else:
-				links = section.links
+
+			links = card.get('links', [])
 
 			for item in links:
 				item = _dict(item)
@@ -257,17 +256,17 @@ class Workspace:
 
 				# Check if user is allowed to view
 				if self.is_item_allowed(item.name, item.type):
-					prepared_item = _prepare_item(item)
+					prepared_item = self._prepare_item(item)
 					new_items.append(prepared_item)
 
 			if new_items:
-				if isinstance(section, _dict):
-					new_section = section.copy()
+				if isinstance(card, _dict):
+					new_card = card.copy()
 				else:
-					new_section = section.as_dict().copy()
-				new_section["links"] = new_items
-				new_section["label"] = _(new_section["label"])
-				new_data.append(new_section)
+					new_card = card.as_dict().copy()
+				new_card["links"] = new_items
+				new_card["label"] = _(new_card["label"])
+				new_data.append(new_card)
 
 		return new_data
 

@@ -51,14 +51,17 @@ class DeskPage(Document):
 			"icon": None,
 			"hidden": False,
 		}
+
 		links = []
+		
 		for link in self.links:
 			link = link.as_dict()
 			
 			if link.type == "Card Break":
-				if current_card.get(links):
-					cards.append(current_card)
+
+				if links:
 					current_card['links'] = links
+					cards.append(current_card)
 				
 				current_card = link
 				links = []
@@ -66,6 +69,7 @@ class DeskPage(Document):
 			else:
 				links.append(link)
 
+		current_card['links'] = links
 		cards.append(current_card)
 
 		return cards
