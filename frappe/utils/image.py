@@ -19,12 +19,13 @@ def resize_images(path, maxdim=700):
 					print("resized {0}".format(os.path.join(basepath, fname)))
 
 def strip_exif_data(content, content_type):
-	""" Strips exif from image files which support it.
+	""" Strips EXIF from image files which support it.
 
 	Works by creating a new Image object which ignores exif by
 	default and then extracts the binary data back into content.
 
-	Returns: stripped image content
+	Returns: 
+		Bytes: Stripped image content
 	"""
 
 	from PIL import Image
