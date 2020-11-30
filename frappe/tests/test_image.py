@@ -12,7 +12,7 @@ class TestImage(unittest.TestCase):
 		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
 		original_image_content = io.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg", mode='rb').read()
 
-		new_image_content = strip_exif_data(original_image_content)
+		new_image_content = strip_exif_data(original_image_content, "image/jpeg")
 		new_image = Image.open(io.BytesIO(new_image_content))
 
 		self.assertEqual(new_image._getexif(), None)
