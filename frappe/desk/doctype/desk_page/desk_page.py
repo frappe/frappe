@@ -74,6 +74,42 @@ class DeskPage(Document):
 
 		return cards
 
+	def unroll_links(self):
+		link_type_map = {
+			"doctype": "DocType",
+			"page": "Page",
+			"report": "Report",
+			None: "DocType"
+		}
+
+		# Empty links table
+		self.links = []
+
+		for card in self.cards:
+			if isinstance(card.links, string_types):
+				links = loads(card.links)
+			else:
+				links = card.links
+
+			self.append('links', {
+				"label": card.label,
+				"type": "Card Break",
+				"icon": card.icon,
+				"hidden": card.hidden or False
+			})
+
+			for link in links:
+				self.append('links', {
+					"label": link.get('label') or link.get('name'),
+					"type": "Link",
+					"link_type": link_type_map[link.get('type').lower()],
+					"link_to": link.get('name'),
+					"onboard": link.get('onboard'),
+					"is_query_report": get_report_type(link.get('name')) if link.get('type').lower() == "report" else 0
+				})
+
+		self.save(ignore_permissions=True)
+
 
 def disable_saving_as_standard():
 	return frappe.flags.in_install or \
@@ -89,48 +125,14 @@ def rebuild_all(pages=None):
 	failed = []
 	for page in pages:
 		try:
-			rebuild_links(page)
+			page_doc = frappe.get_doc("Desk Page", page)
+			page_doc.unroll_links()
 		except Exception as e:
 			failed.append(page)
 	
 	if failed:
 		print(f"Rebuilding Failed for Pages: {', '.join(failed)}")
 
-def rebuild_links(page):
-	link_type_map = {
-		"doctype": "DocType",
-		"page": "Page",
-		"report": "Report",
-		None: "DocType"
-	}
-	doc = frappe.get_doc("Desk Page", page)
-	print(f"Rebuilding Links for {page} Page")
-	doc.links = []
-	for section in doc.cards:
-		print(f"-- Processing {section.label} section")
-		if isinstance(section.links, string_types):
-			links = loads(section.links)
-		else:
-			links = section.links
-
-		doc.append('links', {
-			"label": section.label,
-			"type": "Card Break",
-			"icon": section.icon,
-			"hidden": section.hidden or False
-		})
-
-		for link in links:
-			doc.append('links', {
-				"label": link.get('label') or link.get('name'),
-				"type": "Link",
-				"link_type": link_type_map[link.get('type').lower()],
-				"link_to": link.get('name'),
-				"onboard": link.get('onboard'),
-				"is_query_report": get_report_type(link.get('name')) if link.get('type').lower() == "report" else 0
-			})
-
-	doc.save(ignore_permissions=True)
 
 def get_report_type(report):
 	report_type = frappe.get_value("Report", report, "report_type")
