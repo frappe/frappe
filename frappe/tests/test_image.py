@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest
+import unittest
 from PIL import Image
 from frappe.utils.image import strip_exif_data
 import io
