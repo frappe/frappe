@@ -18,7 +18,7 @@ def resize_images(path, maxdim=700):
 
 					print("resized {0}".format(os.path.join(basepath, fname)))
 
-def strip_exif_data(content, content_type):
+def strip_exif_data(content):
 	""" Strips exif from image files which support it.
 
 	Works by creating a new Image object which ignores exif by
@@ -35,7 +35,7 @@ def strip_exif_data(content, content_type):
 	
 	new_image = Image.new(original_image.mode, original_image.size)
 	new_image.putdata(list(original_image.getdata()))
-	new_image.save(output, format=content_type.split('/')[-1].upper())
+	new_image.save(output, format='JPEG') # Since this is a temporary image, the extension does not matter
 	
 	content = output.getvalue()
 
