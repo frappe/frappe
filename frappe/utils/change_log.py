@@ -217,15 +217,13 @@ def check_release_on_github(app: str):
 		# Invalid URL
 		return
 
-	# Get latest version from Github
-	if parsed_url.protocol == "http":
-		return
 	if parsed_url.resource != "github.com":
 		return
 
 	owner = parsed_url.owner
 	repo = parsed_url.name
 
+	# Get latest version from Github
 	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(owner, repo))
 	if r.ok:
 		latest_non_beta_release = parse_latest_non_beta_release(r.json())
