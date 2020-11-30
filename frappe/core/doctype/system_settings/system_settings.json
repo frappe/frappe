@@ -37,6 +37,7 @@
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "allow_error_traceback",
+  "remove_exif_tags",
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
@@ -460,12 +461,18 @@
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
    "label": "Prepared Report"
+  },
+  {
+   "default": "1",
+   "fieldname": "remove_exif_tags",
+   "fieldtype": "Check",
+   "label": "Remove EXIF tags from uploaded images"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-08-12 14:35:45.214327",
+ "modified": "2020-11-30 17:04:06.785282",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

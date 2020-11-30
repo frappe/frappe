@@ -470,8 +470,9 @@ class File(Document):
 		
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
 		
-		if self.content_type == "image":
-			self.content = strip_exif_data(self.content)			
+		if self.content_type and "image" in self.content_type and \
+			frappe.get_system_settings("remove_exif_tags"):
+			self.content = strip_exif_data(self.content, self.content_type)			
 
 		self.file_size = self.check_max_file_size()
 		self.content_hash = get_content_hash(self.content)
