@@ -200,18 +200,24 @@ class Workspace:
 			}
 
 	def _doctype_contains_a_record(self, name):
-		exists = self.table_counts.get(name, None)
-		if not exists:
+		exists = self.table_counts.get(name, False)
+
+		if not exists and frappe.db.exists(name):
 			if not frappe.db.get_value('DocType', name, 'issingle'):
-				exists = frappe.db.count(name)
+				exists = bool(frappe.db.get_all(name, limit=1))
 			else:
 				exists = True
 			self.table_counts[name] = exists
+		
 		return exists
 
 	def _prepare_item(self, item):
 		if item.dependencies:
-			incomplete_dependencies = [d for d in item.dependencies if not self._doctype_contains_a_record(d)]
+			
+			dependencies = [dep.strip() for dep in item.dependencies.split(",")]
+
+			incomplete_dependencies = [d for d in dependencies if not self._doctype_contains_a_record(d)]
+			
 			if len(incomplete_dependencies):
 				item.incomplete_dependencies = incomplete_dependencies
 			else:
@@ -244,7 +250,8 @@ class Workspace:
 		new_data = []
 		for card in cards:
 			new_items = []
-
+			card = _dict(card)
+			
 			links = card.get('links', [])
 
 			for item in links:
