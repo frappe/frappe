@@ -1,5 +1,6 @@
 // REDESIGN-TODO: Review
 .awesomplete {
+	--awesomebar-shadow: 0px 2px 6px rgba(17, 43, 66, 0.08), 0px 1px 4px rgba(17, 43, 66, 0.1);
 	[hidden] {
 		display: none;
 	}
@@ -10,6 +11,12 @@
 
 	&> input {
 		display: block;
+		&:focus {
+			// border-bottom: 1px solid var(--border-color);
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
+			box-shadow: var(--awesomebar-shadow);
+		}
 	}
 
 	&> ul:empty {
@@ -25,19 +32,19 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 		border-radius: var(--border-radius-sm);
-		box-shadow: var(--shadow-md);
-		border: 1px solid var(--border-color);
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
 		left: 0;
 		margin: 0;
 		padding: var(--padding-xs);
 		z-index: 1;
-		top: calc(100% + var(--margin-xs));
+		box-shadow: var(--awesomebar-shadow);
 
 		&> li {
 			cursor: pointer;
-			font-size: 12px;
+			font-size: var(--text-md);
 			padding: var(--padding-sm);
-			color: var(--text-light);
+			color: var(--text-color);
 			border-radius: var(--border-radius-sm);
 		}
 
@@ -52,11 +59,6 @@
 
 		a:hover {
 			text-decoration: none;
-		}
-
-		p {
-			margin: 3px 0;
-			line-height: 1.4;
 		}
 	}
 }

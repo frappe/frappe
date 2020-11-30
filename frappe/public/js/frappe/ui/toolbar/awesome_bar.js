@@ -36,7 +36,7 @@ frappe.search.AwesomeBar = Class.extend({
 				}
 				return $('<li></li>')
 					.data('item.autocomplete', d)
-					.html('<a style="font-weight:normal"><p>' + html + '</p></a>')
+					.html(`<a style="font-weight:normal">${html}</a>`)
 					.get(0);
 			},
 			sort: function(a, b) {
