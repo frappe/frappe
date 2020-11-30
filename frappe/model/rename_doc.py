@@ -247,6 +247,7 @@ def update_link_field_values(link_fields, old, new, doctype):
 				pass
 		else:
 			parent = field['parent']
+			docfield = field["fieldname"]
 
 			# Handles the case where one of the link fields belongs to
 			# the DocType being renamed.
@@ -258,11 +259,8 @@ def update_link_field_values(link_fields, old, new, doctype):
 			if parent == new and doctype == "DocType":
 				parent = old
 
-			frappe.db.sql("""
-				update `tab{table_name}` set `{fieldname}`=%s
-				where `{fieldname}`=%s""".format(
-					table_name=parent,
-					fieldname=field['fieldname']), (new, old))
+			frappe.db.set_value(parent, {docfield: old}, docfield, new)
+
 		# update cached link_fields as per new
 		if doctype=='DocType' and field['parent'] == old:
 			field['parent'] = new
