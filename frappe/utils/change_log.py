@@ -223,8 +223,8 @@ def check_release_on_github(app: str):
 	owner = parsed_url.owner
 	repo = parsed_url.name
 
-	# Get latest version from Github
-	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(owner, repo))
+	# Get latest version from GitHub
+	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
 	if r.ok:
 		latest_non_beta_release = parse_latest_non_beta_release(r.json())
 		if latest_non_beta_release:
