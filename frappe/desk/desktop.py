@@ -57,11 +57,11 @@ class Workspace:
 		self.restricted_pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 
 	def is_page_allowed(self):
-		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module) + self.extended_links
+		cards = self.doc.get_link_groups() + get_custom_reports_and_doctypes(self.doc.module) + self.extended_links
 		shortcuts = self.doc.shortcuts + self.extended_shortcuts
 
 		for section in cards:
-			links = loads(section.links) if isinstance(section.links, string_types) else section.links
+			links = loads(section.get('links')) if isinstance(section.get('links'), string_types) else section.get('links')
 			for item in links:
 				if self.is_item_allowed(item.get('name'), item.get('type')):
 					return True
