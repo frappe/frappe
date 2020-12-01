@@ -37,6 +37,7 @@
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "allow_error_traceback",
+  "strip_exif_metadata_from_uploaded_images",
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
@@ -460,12 +461,18 @@
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
    "label": "Prepared Report"
+  },
+  {
+   "default": "1",
+   "fieldname": "strip_exif_metadata_from_uploaded_images",
+   "fieldtype": "Check",
+   "label": "Strip EXIF tags from uploaded images"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-08-12 14:35:45.214327",
+ "modified": "2020-11-30 18:52:22.161391",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
