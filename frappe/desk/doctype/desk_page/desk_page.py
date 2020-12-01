@@ -10,7 +10,6 @@ from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
 
 from json import loads, dumps
-from six import string_types
 
 class DeskPage(Document):
 	def validate(self):
@@ -72,42 +71,34 @@ class DeskPage(Document):
 
 		return cards
 
-	def unroll_links(self):
-		link_type_map = {
-			"doctype": "DocType",
-			"page": "Page",
-			"report": "Report",
-			None: "DocType"
-		}
-
+	def build_links_table_from_cards(self, config):
 		# Empty links table
 		self.links = []
+		order = config.get('order')
+		widgets = config.get('widgets')
 
-		for card in self.cards:
-			if isinstance(card.links, string_types):
-				links = loads(card.links)
-			else:
-				links = card.links
+		for idx, name in enumerate(order):
+			card = widgets[name].copy()
+			links = loads(card.get('links'))
 
 			self.append('links', {
-				"label": card.label,
+				"label": card.get('label'),
 				"type": "Card Break",
-				"icon": card.icon,
-				"hidden": card.hidden or False
+				"icon": card.get('icon'),
+				"hidden": card.get('hidden') or False
 			})
 
 			for link in links:
 				self.append('links', {
-					"label": link.get('label') or link.get('name'),
+					"label": link.get('label'),
 					"type": "Link",
-					"link_type": link_type_map[link.get('type').lower()],
-					"link_to": link.get('name'),
+					"link_type": link.get('link_type'),
+					"link_to": link.get('link_to'),
 					"onboard": link.get('onboard'),
-					"dependencies": ', '.join(link.get('dependencies', [])),
-					"is_query_report": get_report_type(link.get('name')) if link.get('type').lower() == "report" else 0
+					"only_for": link.get('only_for'),
+					"dependencies": link.get('dependencies'),
+					"is_query_report": link.get('is_query_report')
 				})
-
-		self.save(ignore_permissions=True)
 
 
 def disable_saving_as_standard():
@@ -117,22 +108,19 @@ def disable_saving_as_standard():
 			frappe.flags.in_fixtures or \
 			frappe.flags.in_migrate
 
-def rebuild_all(pages=None):
-	if not pages:
-		pages = frappe.get_all("Desk Page", pluck="name")
-	
-	failed = []
-	for page in pages:
-		try:
-			page_doc = frappe.get_doc("Desk Page", page)
-			page_doc.unroll_links()
-		except Exception as e:
-			print(e)
-			failed.append(page)
-	
-	if failed:
-		print(f"Rebuilding Failed for Pages: {', '.join(failed)}")
+def get_link_type(key):
+	key = key.lower()
 
+	link_type_map = {
+		"doctype": "DocType",
+		"page": "Page",
+		"report": "Report"
+	}
+
+	if key in link_type_map:
+		return link_type_map[key]
+
+	return "DocType"
 
 def get_report_type(report):
 	report_type = frappe.get_value("Report", report, "report_type")

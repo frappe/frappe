@@ -517,7 +517,7 @@ def save_customization(page, config):
 	if config.shortcuts:
 		page_doc.shortcuts = prepare_widget(config.shortcuts, "Desk Shortcut", "shortcuts")
 	if config.cards:
-		page_doc.cards = prepare_widget(config.cards, "Desk Card", "cards")
+		page_doc.build_links_table_from_cards(config.cards)
 
 	# Set label
 	page_doc.label = page + '-' + frappe.session.user
