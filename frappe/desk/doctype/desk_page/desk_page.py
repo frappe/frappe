@@ -13,16 +13,8 @@ from json import loads, dumps
 
 class DeskPage(Document):
 	def validate(self):
-		self.validate_cards_json()
 		if (self.is_standard and not frappe.conf.developer_mode and not disable_saving_as_standard()):
 			frappe.throw(_("You need to be in developer mode to edit this document"))
-
-	def validate_cards_json(self):
-		for card in self.cards:
-			try:
-				validate_json_string(card.links)
-			except frappe.ValidationError:
-				frappe.throw(_("Invalid JSON in card links for {0}").format(frappe.bold(card.label)))
 
 	def on_update(self):
 		if disable_saving_as_standard():

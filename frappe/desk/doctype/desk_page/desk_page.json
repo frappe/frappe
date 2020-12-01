@@ -31,7 +31,6 @@
   "shortcuts",
   "section_break_18",
   "cards_label",
-  "cards",
   "links"
  ],
  "fields": [
@@ -79,12 +78,6 @@
   {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "cards",
-   "fieldtype": "Table",
-   "label": "Cards",
-   "options": "Desk Card"
   },
   {
    "fieldname": "category",
@@ -213,7 +206,7 @@
   }
  ],
  "links": [],
- "modified": "2020-11-17 12:14:48.950323",
+ "modified": "2020-12-01 13:36:26.827062",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
