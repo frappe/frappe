@@ -52,7 +52,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 			("desk", "onboarding_step"),
 			("desk", "onboarding_step_map"),
 			("desk", "module_onboarding"),
-			("desk", "desk_card"),
+			("desk", "desk_link"),
 			("desk", "desk_chart"),
 			("desk", "desk_shortcut"),
 			("desk", "desk_page")):
