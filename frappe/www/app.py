@@ -38,7 +38,7 @@ def get_context(context):
 
 	context.update({
 		"no_cache": 1,
-		"build_version": get_build_version(),
+		"build_version": frappe.utils.get_build_version(),
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
 		"sounds": hooks["sounds"],
@@ -85,11 +85,3 @@ def get_desk_assets(build_version):
 		"boot": data["boot"],
 		"assets": assets
 	}
-
-def get_build_version():
-	try:
-		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))
-	except OSError:
-		# .build can sometimes not exist
-		# this is not a major problem so send fallback
-		return frappe.utils.random_string(8)

@@ -290,6 +290,41 @@ class TestDocument(unittest.TestCase):
 		for docname in available_documents:
 			frappe.delete_doc(doctype, docname)
 
+	def test_rename_doctype(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		fields =[{
+			"label": "Linked To",
+			"fieldname": "linked_to_doctype",
+			"fieldtype": "Link",
+			"options": "DocType",
+			"unique": 0
+		}]
+		if not frappe.db.exists("DocType", "Rename This"):
+			new_doctype("Rename This", unique=0, fields=fields).insert()
+
+		to_rename_record = frappe.get_doc({
+			"doctype": "Rename This",
+			"linked_to_doctype": "Rename This"
+		})
+		to_rename_record.insert()
+
+		# Rename doctype
+		self.assertEqual("Renamed Doc", frappe.rename_doc("DocType", "Rename This", "Renamed Doc", force=True))
+
+		# Test if Doctype value has changed in Link field
+		renamed_doctype_record = frappe.get_doc("Renamed Doc", to_rename_record.name)
+		self.assertEqual(renamed_doctype_record.linked_to_doctype, "Renamed Doc")
+
+		# Test if there are conflicts between a record and a DocType
+		# having the same name
+		old_name = to_rename_record.name
+		new_name = "ToDo"
+		self.assertEqual(new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True))
+
+		frappe.delete_doc_if_exists("Renamed Doc", "ToDo")
+		frappe.delete_doc_if_exists("DocType", "Renamed Doc")
+
 	def test_non_negative_check(self):
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
 

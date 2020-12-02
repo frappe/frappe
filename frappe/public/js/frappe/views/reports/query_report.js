@@ -1,8 +1,8 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from 'frappe-datatable';
-import { build_summary_item } from "../../widgets/utils";
 
+frappe.provide('frappe.widget.utils');
 frappe.provide('frappe.views');
 frappe.provide('frappe.query_reports');
 
@@ -648,7 +648,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_summary(data) {
 		data.forEach((summary) => {
-			build_summary_item(summary).appendTo(this.$summary);
+			frappe.widget.utils.build_summary_item(summary).appendTo(this.$summary);
 		})
 
 		this.$summary.show();
@@ -832,6 +832,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			data.splice(-1, 1);
 		}
 
+		this.$report.show();
 		if (this.datatable && this.datatable.options
 			&& (this.datatable.options.showTotalRow ===this.raw_data.add_total_row)) {
 			this.datatable.options.treeView = this.tree_report;
@@ -863,7 +864,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.report_settings.after_datatable_render) {
 			this.report_settings.after_datatable_render(this.datatable);
 		}
-		this.$report.show();
 	}
 
 	get_chart_options(data) {

@@ -97,14 +97,7 @@ frappe.notification = {
 	},
 	setup_example_message: function(frm) {
 		let template = '';
-		if (frm.doc.channel === 'WhatsApp') {
-			template = `<h5 style='display: inline-block'>Warning:</h5> Only Use Pre-Approved WhatsApp for Business Template
-<h5>Message Example</h5>
-
-<pre>
-Your appointment is coming up on {{ doc.date }} at {{ doc.time }}
-</pre>`;
-		} else if (frm.doc.channel === 'Email') {
+		if (frm.doc.channel === 'Email') {
 			template = `<h5>Message Example</h5>
 
 <pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;
@@ -124,7 +117,7 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 &lt;/ul&gt;
 </pre>
 			`;
-		} else {
+		} else if (in_list(['Slack', 'System Notification', 'SMS'], frm.doc.channel)) {
 			template = `<h5>Message Example</h5>
 
 <pre>*Order Overdue*
@@ -142,7 +135,9 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 • Amount: {{ doc.grand_total }}
 </pre>`;
 		}
-		frm.set_df_property('message_examples', 'options', template);
+		if (template) {
+			frm.set_df_property('message_examples', 'options', template);
+		}
 
 	}
 };

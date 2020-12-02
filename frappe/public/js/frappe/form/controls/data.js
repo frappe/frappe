@@ -22,26 +22,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.has_input = true;
 		this.bind_change_event();
 		this.setup_autoname_check();
-		if (this.df.options == 'Phone') {
-			this.setup_phone();
-		}
 		// somehow this event does not bubble up to document
 		// after v7, if you can debug, remove this
-	},
-	setup_phone() {
-		if (frappe.phone_call.handler) {
-			this.$wrapper.find('.control-input')
-				.append(`
-					<span class="phone-btn">
-						<a class="btn-open no-decoration" title="${__('Make a call')}">
-							<i class="fa fa-phone"></i></a>
-					</span>
-				`)
-				.find('.phone-btn')
-				.click(() => {
-					frappe.phone_call.handler(this.get_value(), this.frm);
-				});
-		}
 	},
 	setup_autoname_check: function() {
 		if (!this.df.parent) return;

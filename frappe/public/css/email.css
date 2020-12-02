@@ -2,7 +2,7 @@
 /* palette colors*/
 body {
   line-height: 1.5;
-  color: #36414c;
+  color: #12283A;
 }
 p {
   margin: 1em 0 !important;
@@ -14,7 +14,7 @@ p {
   margin: 0 !important;
 }
 hr {
-  border-top: 1px solid #d1d8dd;
+  border-top: 1px solid #ECEEF0;
 }
 .body-table {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
@@ -32,11 +32,11 @@ hr {
   font-size: 14px;
 }
 .email-footer {
-  border-top: 1px solid #d1d8dd;
+  border-top: 1px solid #ECEEF0;
   font-size: 12px;
 }
 .email-header {
-  border: 1px solid #d1d8dd;
+  border: 1px solid #ECEEF0;
   border-radius: 4px 4px 0 0;
 }
 .email-header .brand-image {
@@ -48,7 +48,7 @@ hr {
   font-weight: bold;
 }
 .body-table.has-header .email-body {
-  border: 1px solid #d1d8dd;
+  border: 1px solid #ECEEF0;
   border-radius: 0 0 4px 4px;
   border-top: none;
 }
@@ -79,7 +79,7 @@ hr {
 }
 .btn.btn-primary {
   color: #fff;
-  background-color: #5e64ff;
+  background-color: #2996F1;
   border-color: #444bff;
 }
 .table {
@@ -91,7 +91,7 @@ hr {
   padding: 8px;
   line-height: 1.42857143;
   vertical-align: top;
-  border-top: 1px solid #d1d8dd;
+  border-top: 1px solid #ECEEF0;
   text-align: left;
 }
 .table th {
@@ -99,17 +99,17 @@ hr {
 }
 .table > thead > tr > th {
   vertical-align: middle;
-  border-bottom: 2px solid #d1d8dd;
+  border-bottom: 2px solid #ECEEF0;
 }
 .table > thead:first-child > tr:first-child > th {
   border-top: none;
 }
 .table.table-bordered {
-  border: 1px solid #d1d8dd;
+  border: 1px solid #ECEEF0;
 }
 .table.table-bordered td,
 .table.table-bordered th {
-  border: 1px solid #d1d8dd;
+  border: 1px solid #ECEEF0;
 }
 .more-info {
   font-size: 80% !important;
@@ -127,7 +127,7 @@ hr {
   color: #8d99a6 !important;
 }
 .text-extra-muted {
-  color: #d1d8dd !important;
+  color: #ECEEF0 !important;
 }
 .text-regular {
   font-size: 14px;
@@ -166,7 +166,7 @@ hr {
 }
 .screenshot {
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #d1d8dd;
+  border: 1px solid #ECEEF0;
   margin: 8px 0;
   max-width: 100%;
 }

@@ -10,7 +10,6 @@
   "enabled",
   "column_break_2",
   "channel",
-  "twilio_number",
   "slack_webhook_url",
   "filters",
   "subject",
@@ -61,7 +60,7 @@
    "fieldname": "channel",
    "fieldtype": "Select",
    "label": "Channel",
-   "options": "Email\nSlack\nSystem Notification\nWhatsApp\nSMS",
+   "options": "Email\nSlack\nSystem Notification\nSMS",
    "reqd": 1,
    "set_only_once": 1
   },
@@ -80,14 +79,14 @@
    "label": "Filters"
   },
   {
-   "depends_on": "eval: !in_list(['SMS', 'WhatsApp'], doc.channel)",
+   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)",
    "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>",
    "fieldname": "subject",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Subject",
-   "mandatory_depends_on": "eval:!in_list(['SMS', 'WhatsApp'], doc.channel)"
+   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)"
   },
   {
    "fieldname": "document_type",
@@ -208,7 +207,7 @@
    "label": "Value To Be Set"
   },
   {
-   "depends_on": "eval:in_list(['Email', 'SMS', 'WhatsApp'], doc.channel)",
+   "depends_on": "eval:doc.channel !=\"Slack\"",
    "fieldname": "column_break_5",
    "fieldtype": "Section Break",
    "label": "Recipients"
@@ -264,15 +263,6 @@
    "options": "Print Format"
   },
   {
-   "depends_on": "eval: doc.channel==='WhatsApp'",
-   "description": "To use WhatsApp for Business, initialize <a href=\"#Form/Twilio Settings\">Twilio Settings</a>.",
-   "fieldname": "twilio_number",
-   "fieldtype": "Link",
-   "label": "Twilio Number",
-   "mandatory_depends_on": "eval: doc.channel==='WhatsApp'",
-   "options": "Twilio Number Group"
-  },
-  {
    "default": "0",
    "depends_on": "eval: doc.channel !== 'System Notification'",
    "description": "If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",
@@ -291,7 +281,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-03 10:33:23.084590",
+ "modified": "2020-11-24 14:25:43.245677",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
