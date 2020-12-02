@@ -101,10 +101,11 @@ img {
 
 .btn {
 	border: none;
-	border-radius: $border-radius;
+	border-radius: var(--border-radius);
 	box-shadow: var(--btn-shadow);
 	font-size: var(--text-md);
 	&.icon-btn {
+		height: var(--btn-height);
 		padding: 0px;
 		@extend .center-content;
 		&.btn-default, &.btn-secondary {

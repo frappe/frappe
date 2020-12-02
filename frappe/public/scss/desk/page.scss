@@ -29,7 +29,7 @@
 .page-actions {
 	align-items: center;
 	.btn {
-		height: 28px;
+		height: var(--btn-height);
 		margin-left: var(--margin-sm, 8px);
 		border-radius: var(--border-radius);
 	}
