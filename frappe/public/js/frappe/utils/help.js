@@ -21,17 +21,25 @@ frappe.help.show_video = function (youtube_id, title) {
 		youtube_id = youtube_id.match(expression)[1];
 	}
 
-	var size = [530, 300];
-
-	var dialog = frappe.msgprint({
-		message: `<iframe width="${size[0]}" height="${size[1]}"
-			src="https://www.youtube.com/embed/${youtube_id}"
-			frameborder="0" allowfullscreen></iframe>` + (frappe.help_feedback_link || ""),
+	// (frappe.help_feedback_link || "")
+	let dialog = new frappe.ui.Dialog({
 		title: title || __("Help"),
-		wide: true
 	});
 
+	let video = $(`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${youtube_id}"></div>`);
+	video.appendTo(dialog.body);
+
+	dialog.show();
 	dialog.$wrapper.addClass("video-modal");
+
+	let plyr = new frappe.Plyr(video[0], {
+		hideControls: true,
+		resetOnEnd: true,
+	});
+
+	dialog.onhide = () => {
+		plyr.destroy();
+	};
 }
 
 $("body").on("click", "a.help-link", function () {
