@@ -9,7 +9,7 @@ frappe.ui.form.on("System Settings", {
 				$.each(data.message.defaults, function(key, val) {
 					frm.set_value(key, val);
 					frappe.sys_defaults[key] = val;
-				})
+				});
 			}
 		});
 	},
