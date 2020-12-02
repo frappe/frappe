@@ -9,7 +9,7 @@ frappe.ui.form.Review = class Review {
 		this.frm = frm;
 		this.points = frappe.boot.points;
 		this.reviews = this.parent.find('.reviews');
-		this.add_review_button();
+		this.setup_add_review_button();
 		this.update_reviewers();
 	}
 	update_points() {
@@ -20,8 +20,8 @@ frappe.ui.form.Review = class Review {
 			this.points = data;
 		});
 	}
-	add_review_button() {
-		const review_button = this.parent.find('.add-review-btn');
+	setup_add_review_button() {
+		const review_button = this.reviews.find('.add-review-btn');
 
 		if (!this.points.review_points) {
 			review_button.click(false);
@@ -129,16 +129,16 @@ frappe.ui.form.Review = class Review {
 		const review_logs = this.frm.get_docinfo().energy_point_logs
 			.filter(log => ['Appreciation', 'Criticism'].includes(log.type));
 
-		this.reviews.empty();
+		this.reviews.find('.review').remove();
 		review_logs.forEach(log => {
 			let review_pill = $(`
-				<li class="review ${log.points < 0 ? 'criticism' : 'appreciation'}">
+				<div class="review ${log.points < 0 ? 'criticism' : 'appreciation'}">
 					<div>
 						${Math.abs(log.points)}
 					</div>
-				</li>
+				</div>
 			`);
-			this.reviews.append(review_pill);
+			this.reviews.prepend(review_pill);
 			this.setup_detail_popover(review_pill, log);
 		});
 	}

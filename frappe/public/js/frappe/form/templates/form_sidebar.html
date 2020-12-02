@@ -89,9 +89,8 @@
 		<svg class="icon icon-sm"><use href="#icon-review"></use></svg>
 		{%= __("Reviews") %}
 	</li>
-	<li class="reviews"></li>
-	<li class="add-review-btn">
-		<button class="text-muted btn btn-default icon-btn">
+	<li class="reviews">
+		<button class="add-review-btn text-muted btn btn-default icon-btn">
 			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
 		</button>
 	</li>
@@ -101,15 +100,10 @@
 		<svg class="icon icon-sm"><use href="#icon-share"></use></svg>
 		{%= __("Shared With") %}
 	</li>
-	<li class="shares"></li>
-	<li class="share-doc-btn">
-		<button class="data-pill btn">
-			<span class="pill-label ellipsis">
-				{%= __("Share") %}
-			</span>
-			<svg class="icon icon-sm">
-				<use href="#icon-add"></use>
-			</svg>
+	<li class="flex flex-wrap">
+		<span class="shares"></span>
+		<button class="share-doc-btn text-muted btn btn-default icon-btn">
+			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
 		</button>
 	</li>
 </ul>
