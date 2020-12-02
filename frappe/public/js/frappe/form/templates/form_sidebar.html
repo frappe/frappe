@@ -84,28 +84,55 @@
 		</button>
 	</li>
 </ul>
+<ul class="list-unstyled sidebar-menu form-tags">
+	<li class="sidebar-label tags-label">
+		<svg class="icon icon-sm"><use href="#icon-tag"></use></svg>
+		{%= __("Tags") %}
+	</li>
+	<li class="add-tags-btn mb-2">
+		<div class="data-pill btn">
+			<span class="pill-label ellipsis">
+				{%= __("Add a tag") %}
+			</span>
+			<svg class="icon icon-sm">
+				<use href="#icon-add"></use>
+			</svg>
+		</div>
+	</li>
+</ul>
 <ul class="list-unstyled sidebar-menu form-reviews">
 	<li class="sidebar-label reviews-label">
 		<svg class="icon icon-sm"><use href="#icon-review"></use></svg>
 		{%= __("Reviews") %}
 	</li>
-	<li class="reviews">
-		<button class="add-review-btn text-muted btn btn-default icon-btn">
-			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
-		</button>
+	<li class="add-review-btn">
+		<div class="data-pill btn">
+			<span class="pill-label ellipsis">
+				{%= __("Add a Review") %}
+			</span>
+			<svg class="icon icon-sm">
+				<use href="#icon-add"></use>
+			</svg>
+		</div>
 	</li>
+	<li class="reviews" style="display: none;"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-shared">
 	<li class="sidebar-label">
 		<svg class="icon icon-sm"><use href="#icon-share"></use></svg>
 		{%= __("Shared With") %}
 	</li>
-	<li class="flex flex-wrap">
-		<span class="shares"></span>
-		<button class="share-doc-btn text-muted btn btn-default icon-btn">
-			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
-		</button>
+	<li class="share-doc-btn">
+		<div class="data-pill btn">
+			<span class="pill-label ellipsis">
+				{%= __("Share") %}
+			</span>
+			<svg class="icon icon-sm">
+				<use href="#icon-add"></use>
+			</svg>
+		</div>
 	</li>
+	<li class="shares" style="display: none;"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu followed-by-section">
 	<li class="sidebar-label followed-by-label hidden">
@@ -124,25 +151,33 @@
 		</a>
 	</li>
 </ul>
-<ul class="list-unstyled sidebar-menu form-tags">
-	<li class="sidebar-label tags-label">
-		<svg class="icon icon-sm"><use href="#icon-tag"></use></svg>
-		{%= __("Tags") %}
-	</li>
-</ul>
 <ul class="list-unstyled sidebar-menu">
 	<a><li class="auto-repeat-status"><li></a>
 </ul>
-<ul class="list-unstyled sidebar-menu">
-	<li class="liked-by-parent">
-		<span class="liked-by like-action">
-			<svg class="icon icon-sm">
-				<use href="#icon-heart" class="like-icon"></use>
-			</svg>
-			<span class="likes-count"></span>
-		</span>
+
+<ul class="list-unstyled sidebar-menu form-sidebar-stats">
+	<li class="flex">
+		<div class="form-stats">
+			<span class="liked-by like-action">
+				<svg class="icon icon-sm">
+					<use href="#icon-heart" class="like-icon"></use>
+				</svg>
+				<span class="like-count">65</span>
+			</span>
+			<span class="mx-1">·</span>
+			<span class="comments">
+				<svg class="icon icon-sm">
+					<use href="#icon-comment" class="like-icon"></use>
+				</svg>
+				<span class="comments-count">32</span>
+			</span>
+		</div>
+		<div class="form-follow text-sm">
+			Follow
+		</div>
 	</li>
 </ul>
+<hr>
 <ul class="list-unstyled sidebar-menu text-muted">
 	<li class="pageview-count"></li>
 	<li class="modified-by"></li>

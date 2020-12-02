@@ -3,7 +3,7 @@
 
 frappe.ui.Tags = class {
 	constructor({
-		parent, placeholder, tagsList,
+		parent, tagsList, add_button,
 		onTagAdd,
 		onTagRemove,
 		onTagClick,
@@ -11,21 +11,20 @@ frappe.ui.Tags = class {
 	}) {
 		this.tagsList = tagsList || [];
 		this.onTagAdd = onTagAdd;
+		this.add_button = add_button
 		this.onTagRemove = onTagRemove;
 		this.onTagClick = onTagClick;
 		this.onChange = onChange;
 
-		this.setup(parent, placeholder);
+		this.setup(parent);
 	}
 
-	setup(parent, placeholder) {
+	setup(parent) {
 		this.$ul = parent;
 		this.$input = $(`<input class="tags-input"></input>`);
 
 		this.$inputWrapper = this.get_list_element(this.$input);
-		this.$placeholder = this.get_list_element($(`<span class="tags-placeholder text-muted">${placeholder}</span>`));
 		this.$inputWrapper.appendTo(this.$ul);
-		this.$placeholder.appendTo(this.$ul);
 
 		this.deactivate();
 		this.bind();
@@ -49,7 +48,7 @@ frappe.ui.Tags = class {
 			this.deactivate();
 		});
 
-		this.$placeholder.on('click', () => {
+		this.add_button.on('click', () => {
 			this.activate();
 			this.$input.focus(); // focus only when clicked
 		});
@@ -60,13 +59,11 @@ frappe.ui.Tags = class {
 	}
 
 	activate() {
-		this.$placeholder.hide();
 		this.$inputWrapper.show();
 	}
 
 	deactivate() {
 		this.$inputWrapper.hide();
-		this.$placeholder.show();
 	}
 
 	addTag(label) {
