@@ -13,6 +13,9 @@ frappe.ui.form.on("System Settings", "refresh", function(frm) {
 	});
 });
 
+
+
+
 frappe.ui.form.on("System Settings", "enable_password_policy", function(frm) {
 	if(frm.doc.enable_password_policy == 0){
 		frm.set_value("minimum_password_score", "");
