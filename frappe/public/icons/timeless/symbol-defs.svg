@@ -657,4 +657,7 @@
 			<path fill-rule="evenodd" clip-rule="evenodd" d="M19 0a1 1 0 011 1v10a3 3 0 003 3h12a2 2 0 012 2v26a4 4 0 01-4 4H4a4 4 0 01-4-4V3a3 3 0 013-3h16zM8 37a1 1 0 100 2h21a1 1 0 100-2H8zm-1-7a1 1 0 011-1h21a1 1 0 110 2H8a1 1 0 01-1-1zm1-9a1 1 0 100 2h6a1 1 0 100-2H8z"></path>
 		</g>
 	</symbol>
+	<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-comment">
+		<path d="M14.2222 7.17042C14.2222 4.19205 11.4363 1.77783 7.99999 1.77783C4.56367 1.77783 1.77777 4.19205 1.77777 7.17042C1.77777 10.1488 4.56367 12.563 7.99999 12.563C8.43555 12.563 8.86032 12.5232 9.27099 12.4494L12.563 14.2223V10.8283C13.59 9.86672 14.2222 8.58411 14.2222 7.17042Z" stroke="#74808B" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+	</svg>
 </svg>

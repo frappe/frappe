@@ -118,6 +118,17 @@ body[data-route^="Module"] .main-menu {
 		margin-left: -4px;
 	}
 
+	.form-sidebar-stats {
+		li:first-child {
+			@include flex(flex, space-between, center, null);
+
+			.form-follow {
+				text-transform: uppercase;
+				font-size: var(--text-xs, 11px);
+			}
+		}
+	}
+
 	.sidebar-image-section {
 		cursor: pointer;
 
@@ -420,7 +431,7 @@ button.data-pill {
 	color: var(--text-color);
 	justify-content: space-between;
 	align-items: center;
-	max-width: 100%;
+	width: 100%;
 }
 
 .add-attachment-btn,
