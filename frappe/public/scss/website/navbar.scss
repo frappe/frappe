@@ -62,3 +62,10 @@
 	padding-top: 0px;
 	padding-bottom: 0px;
 }
+
+.logged-in > .nav-link {
+	max-width: 200px;
+	@extend .ellipsis;
+	max-width: 100%;
+	vertical-align: middle;
+}

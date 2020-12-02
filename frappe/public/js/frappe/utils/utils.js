@@ -2,7 +2,8 @@
 // MIT License. See license.txt
 
 import deep_equal from "fast-deep-equal";
-frappe.provide('frappe.utils');
+
+frappe.provide("frappe.utils");
 
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
@@ -1032,6 +1033,52 @@ Object.assign(frappe.utils, {
 		return duration_options;
 	},
 
+	shorten_number: function (number, country) {
+		country = (country == 'India') ? country : '';
+		const number_system = this.get_number_system(country);
+		let x = Math.abs(Math.round(number));
+		for (const map of number_system) {
+			const condition = map.condition ? map.condition(x) : x >= map.divisor;
+			if (condition) {
+				return (number/map.divisor).toFixed(2) + ' ' + map.symbol;
+			}
+		}
+		return number.toFixed();
+	},
+
+	get_number_system: function (country) {
+		let number_system_map = {
+			'India':
+				[{
+					divisor: 1.0e+7,
+					symbol: 'Cr'
+				},
+				{
+					divisor: 1.0e+5,
+					symbol: 'Lakh'
+				}],
+			'':
+				[{
+					divisor: 1.0e+12,
+					symbol: 'T'
+				},
+				{
+					divisor: 1.0e+9,
+					symbol: 'B'
+				},
+				{
+					divisor: 1.0e+6,
+					symbol: 'M'
+				},
+				{
+					divisor: 1.0e+3,
+					symbol: 'K',
+					condition: (num) => num.toFixed().length > 5
+				}]
+		};
+		return number_system_map[country];
+	},
+
 	icon(icon_name, size="sm", icon_class="") {
 		let size_class = "";
 		let icon_style = "";
@@ -1067,4 +1114,84 @@ Object.assign(frappe.utils, {
 		return new frappe.Chart(wrapper, chart_args);
 	},
 
+	generate_route(item) {
+		const type = item.type.toLowerCase()
+		if (type === "doctype") {
+			item.doctype = item.name;
+		}
+		let route = "";
+		if (!item.route) {
+			if (item.link) {
+				route = strip(item.link, "#");
+			} else if (type === "doctype") {
+				let doctype_slug = frappe.router.slug(item.doctype);
+	
+				if (frappe.model.is_single(item.doctype)) {
+					route = "form/" + doctype_slug;
+				} else {
+					if (!item.doc_view) {
+						if (frappe.model.is_tree(item.doctype)) {
+							item.doc_view = "Tree";
+						} else {
+							item.doc_view = "List";
+						}
+					}
+	
+					switch (item.doc_view) {
+						case "List":
+							if (item.filters) {
+								frappe.route_options = item.filters;
+							}
+							route = "list/" + doctype_slug;
+							break;
+						case "Tree":
+							route = "tree/" + doctype_slug;
+							break;
+						case "Report Builder":
+							route = "list/" + doctype_slug + "/Report";
+							break;
+						case "Dashboard":
+							route = "list/" + doctype_slug + "/Dashboard";
+							break;
+						case "New":
+							route = "form/" + doctype_slug + "/New " + item.doctype;
+							break;
+						case "Calendar":
+							route = "list/" + doctype_slug + "/Calendar/Default";
+							break;
+						default:
+							frappe.throw({ message: __("Not a valid DocType view:") + item.doc_view, title: __("Unknown View") });
+							route = "";
+					}
+				}
+			} else if (type === "report" && item.is_query_report) {
+				route = "query-report/" + item.name;
+			} else if (type === "report") {
+				route = "List/" + frappe.router.slug(item.doctype) + "/Report/" + item.name;
+			} else if (type === "page") {
+				route = item.name;
+			} else if (type === "dashboard") {
+				route = "dashboard/" + item.name;
+			}
+	
+		} else {
+			route = item.route;
+		}
+	
+		if (item.route_options) {
+			route +=
+				"?" +
+				$.map(item.route_options, function (value, key) {
+					return (
+						encodeURIComponent(key) + "=" + encodeURIComponent(value)
+					);
+				}).join("&");
+		}
+	
+		// if(type==="page" || type==="help" || type==="report" ||
+		// (item.doctype && frappe.model.can_read(item.doctype))) {
+		//     item.shown = true;
+		// }
+		return `/app/${route}`;
+	}
 });

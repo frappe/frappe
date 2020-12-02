@@ -59,6 +59,8 @@ frappe.ui.form.on("Web Form", {
 							default: field.default,
 							read_only: field.read_only,
 							depends_on: field.depends_on,
+							mandatory_depends_on: field.mandatory_depends_on,
+							read_only_depends_on: field.read_only_depends_on,
 							hidden: field.hidden,
 							description: field.description
 						});

@@ -1,5 +1,6 @@
 import Widget from "./base_widget.js";
-import { generate_route } from "./utils";
+
+frappe.provide("frappe.utils");
 
 export default class OnboardingWidget extends Widget {
 	make_body() {
@@ -153,7 +154,7 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	open_report(step) {
-		let route = generate_route({
+		let route = frappe.utils.generate_route({
 			name: step.reference_report,
 			type: "report",
 			is_query_report: ["Query Report", "Script Report"].includes(

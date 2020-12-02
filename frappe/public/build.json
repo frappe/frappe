@@ -203,6 +203,7 @@
 		"public/js/frappe/views/translation_manager.js",
 		"public/js/frappe/views/workspace/workspace.js",
 
+		"public/js/frappe/widgets/utils.js",
 		"public/js/frappe/widgets/widget_group.js",
 
 		"public/js/frappe/ui/sort_selector.html",
