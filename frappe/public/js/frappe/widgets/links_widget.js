@@ -40,9 +40,8 @@ export default class LinksWidget extends Widget {
 
 		const get_link_for_item = item => {
 			if (is_link_disabled(item)) {
-				return `<span class="link-content ellipsis disabled-link">${
-					item.label ? item.label : item.name
-				}</span>
+				return `<span class="link-content ellipsis disabled-link">${item.label ? item.label : item.name
+					}</span>
 						<div class="module-link-popover popover fade top in" role="tooltip" style="display: none;">
 							<div class="arrow"></div>
 							<h3 class="popover-title" style="display: none;"></h3>
@@ -57,14 +56,12 @@ export default class LinksWidget extends Widget {
 				return `<span class="link-content help-video-link ellipsis" data-youtubeid="${item.youtube_id}">
 						${item.label ? item.label : item.name}</span>`;
 
-			return `<a data-route="${frappe.utils.generate_route(item)}" class="link-content ellipsis">
-					${item.label ? item.label : item.name}</a>`;
+			return `<span class="link-content ellipsis">${item.label ? item.label : item.name}</span>`;
 		};
 
 		this.link_list = this.links.map(item => {
-			return $(`<a href="${frappe.utils.generate_route(item)}" class="link-item ellipsis ${
-				item.onboard ? "onboard-spotlight" : ""
-			} ${disabled_dependent(item)}" type="${item.type}">
+			return $(`<a href="${frappe.utils.generate_route(item)}" class="link-item ellipsis ${item.onboard ? "onboard-spotlight" : ""
+				} ${disabled_dependent(item)}" type="${item.type}">
 					<span class="indicator-pill no-margin ${get_indicator_color(item)}"></span>
 					${get_link_for_item(item)}
 			</a>`);
