@@ -129,6 +129,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	set_primary_action(label, click) {
+		this.footer.removeClass('hide');
 		this.has_primary_action = true;
 		var me = this;
 		return this.get_primary_btn()
@@ -146,6 +147,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	set_secondary_action(click) {
+		this.footer.removeClass('hide');
 		this.get_secondary_btn().removeClass('hide').on('click', click);
 	}
 
@@ -226,6 +228,18 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.get_minimize_btn().html(frappe.utils.icon(icon));
 		this.on_minimize_toggle && this.on_minimize_toggle(this.is_minimized);
 		this.header.find('.modal-title').toggleClass('cursor-pointer');
+	}
+
+	add_custom_action(label, action, css_class=null) {
+		this.footer.removeClass('hide');
+		let action_button = $(`
+			<button class="btn btn-secondary btn-sm ${css_class || ''}">
+				${label}
+			</button>
+		`);
+		this.custom_actions.append(action_button);
+
+		action && action_button.click(action);
 	}
 };
 
