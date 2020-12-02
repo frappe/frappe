@@ -9,6 +9,9 @@
 			width: 100%;
 			height: 100px;
 		}
+		&:not(:last-of-type) {
+			border-bottom: 1px solid var(--border-color);
+		}
 	}
 
 	.chart-container {
@@ -31,7 +34,7 @@
 	}
 
 	.title-area {
-		@include flex(flex, space-between, center, null);
+		@include flex(flex, space-between, start, null);
 
 		.card-title {
 			font-size: var(--text-xl);
@@ -40,7 +43,7 @@
 
 		.chart-filter {
 			z-index: 1;
-			margin-right: var(--padding-sm);
+			margin-left: var(--margin-sm);
 		}
 	}
 
