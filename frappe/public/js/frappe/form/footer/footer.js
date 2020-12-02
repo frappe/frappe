@@ -41,6 +41,7 @@ frappe.ui.form.Footer = Class.extend({
 						this.frm.comment_box.set_value('');
 						frappe.utils.play_sound("click");
 						this.frm.timeline.refresh();
+						this.frm.sidebar.refresh_comments_count && this.frm.sidebar.refresh_comments_count();
 					});
 				}
 			}

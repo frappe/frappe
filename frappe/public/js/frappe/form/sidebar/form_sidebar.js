@@ -20,7 +20,7 @@ frappe.ui.form.Sidebar = class {
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 
-		this.comments = this.sidebar.find(".sidebar-comments");
+		this.comments = this.sidebar.find(".form-sidebar-stats .comments");
 		this.user_actions = this.sidebar.find(".user-actions");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
 		this.image_wrapper = this.image_section.find('.sidebar-image-wrapper');
@@ -47,7 +47,7 @@ frappe.ui.form.Sidebar = class {
 
 		// scroll to comments
 		this.comments.on("click", function() {
-			frappe.utils.scroll_to(me.frm.footer.wrapper.find(".form-comments"), true);
+			frappe.utils.scroll_to(me.frm.footer.wrapper.find(".comment-box"), true);
 		});
 
 		this.like_icon.on("click", function() {
@@ -107,6 +107,7 @@ frappe.ui.form.Sidebar = class {
 				);
 
 			this.refresh_like();
+			this.refresh_comments_count();
 			frappe.ui.form.set_user_image(this.frm);
 		}
 	}
@@ -186,7 +187,7 @@ frappe.ui.form.Sidebar = class {
 	make_like() {
 		this.like_wrapper = this.sidebar.find(".liked-by");
 		this.like_icon = this.sidebar.find(".liked-by .like-icon");
-		this.like_count = this.sidebar.find(".liked-by .likes-count");
+		this.like_count = this.sidebar.find(".liked-by .like-count");
 		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".like-icon");
 	}
 
@@ -210,7 +211,12 @@ frappe.ui.form.Sidebar = class {
 			.attr("data-doctype", this.frm.doctype)
 			.attr("data-name", this.frm.doc.name);
 
-		this.like_count.text(JSON.parse(this.frm.doc._liked_by || "[]").length);
+		this.like_count[0].innerText = JSON.parse(this.frm.doc._liked_by || "[]").length;
+	}
+
+	refresh_comments_count() {
+		let count = (this.frm.get_docinfo().comments || []).length;
+		this.comments.find(".comments-count").html(count);
 	}
 
 	refresh_image() {

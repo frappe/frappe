@@ -41,13 +41,6 @@
 	<li class="rating-icons"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu hidden">
-	<li class="divider visible-sm visible-xs"></li>
-	<li style="position: relative;">
-		<a class="sidebar-comments badge-hover">
-			<span>{%= __("Comments") %}</span>
-			<span class="badge n-comments">0</span>
-		</a>
-	</li>
 	{% if (frappe.help.has_help(doctype)) { %}
 	<li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
 	{% } %}
@@ -140,15 +133,15 @@
 				<svg class="icon icon-sm">
 					<use href="#icon-heart" class="like-icon"></use>
 				</svg>
-				<span class="like-count">65</span>
+				<span class="like-count"></span>
 			</span>
 			<span class="mx-1">·</span>
-			<span class="comments">
+			<a class="comments">
 				<svg class="icon icon-sm">
-					<use href="#icon-comment" class="like-icon"></use>
+					<use href="#icon-comment" stroke="var(--gray-500)"></use>
 				</svg>
-				<span class="comments-count">32</span>
-			</span>
+				<span class="comments-count"></span>
+			</a>
 		</div>
 		<div class="form-follow text-sm">
 			Follow
