@@ -1,6 +1,6 @@
 frappe.provide('frappe.energy_points');
 
-frappe.pages['user-profile'].on_page_load = function(wrapper) {
+frappe.pages['user-profile'].on_page_load = function (wrapper) {
 
 	frappe.ui.make_app_page({
 		parent: wrapper,
@@ -8,7 +8,7 @@ frappe.pages['user-profile'].on_page_load = function(wrapper) {
 	});
 
 	let user_profile = new UserProfile(wrapper);
-	$(wrapper).bind('show', ()=> {
+	$(wrapper).bind('show', () => {
 		user_profile.show();
 	});
 };
@@ -27,7 +27,7 @@ class UserProfile {
 
 		//validate if user
 		if (route.length > 1) {
-			frappe.db.exists('User', this.user_id).then( exists => {
+			frappe.db.exists('User', this.user_id).then(exists => {
 				if (exists) {
 					this.make_user_profile();
 				} else {
@@ -104,7 +104,7 @@ class UserProfile {
 			user: this.user_id,
 			date: date_from || frappe.datetime.year_start(),
 		}).then((r) => {
-			this.heatmap.update( {dataPoints: r} );
+			this.heatmap.update({ dataPoints: r });
 		});
 	}
 
@@ -127,7 +127,7 @@ class UserProfile {
 			based_on: 'creation'
 		};
 
-		this.line_chart = new frappe.Chart( '.performance-line-chart', {
+		this.line_chart = new frappe.Chart('.performance-line-chart', {
 			type: 'line',
 			height: 200,
 			data: {
@@ -160,7 +160,7 @@ class UserProfile {
 			field: field
 		}).then(chart => {
 			if (chart.labels.length) {
-				this.percentage_chart = new frappe.Chart( '.performance-percentage-chart', {
+				this.percentage_chart = new frappe.Chart('.performance-percentage-chart', {
 					type: 'percentage',
 					data: {
 						labels: chart.labels,

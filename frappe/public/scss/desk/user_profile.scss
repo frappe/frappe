@@ -2,6 +2,15 @@
 	padding: var(--padding-md);
 	margin-bottom: var(--margin-xl);
 
+	.chart-wrapper {
+		.null-state {
+			@include flex(flex, center, center, null);
+			margin: 20px 0;
+			width: 100%;
+			height: 100px;
+		}
+	}
+
 	.chart-container {
 		margin: 0 -10px;
 	}
