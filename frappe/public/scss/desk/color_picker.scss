@@ -86,9 +86,10 @@
 		border-radius: 10px;
 	}
 }
-
-.picker-arrow {
-	left: 15px !important;
+.color-picker-popover {
+	.picker-arrow {
+		left: 15px !important;
+	}
 }
 
 .frappe-control[data-fieldtype='Color']  {

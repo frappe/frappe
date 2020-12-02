@@ -29,9 +29,10 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		this.$wrapper.popover({
 			trigger: 'manual',
 			offset: `${-this.$wrapper.width() / 4}, 5`,
+			boundary: 'viewport',
 			placement: 'bottom',
 			template: `
-				<div class="popover">
+				<div class="popover color-picker-popover">
 					<div class="picker-arrow arrow"></div>
 					<div class="popover-body popover-content"></div>
 				</div>
