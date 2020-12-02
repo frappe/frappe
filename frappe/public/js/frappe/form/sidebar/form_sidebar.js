@@ -139,8 +139,11 @@ frappe.ui.form.Sidebar = class {
 			return;
 		}
 
+		let tags_parent = this.sidebar.find(".form-tags")
+
 		this.frm.tags = new frappe.ui.TagEditor({
-			parent: this.sidebar.find(".form-tags"),
+			parent: tags_parent,
+			add_button: tags_parent.find(".add-tags-btn"),
 			frm: this.frm,
 			on_change: function(user_tags) {
 				this.frm.tags && this.frm.tags.refresh(user_tags);
