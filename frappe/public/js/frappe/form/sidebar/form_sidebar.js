@@ -28,7 +28,6 @@ frappe.ui.form.Sidebar = class {
 		this.make_attachments();
 		this.make_review();
 		this.make_shared();
-		this.make_viewers();
 
 		this.make_tags();
 		this.make_like();
@@ -77,7 +76,6 @@ frappe.ui.form.Sidebar = class {
 			if (frappe.boot.user.document_follow_notify) {
 				this.frm.follow.refresh();
 			}
-			this.frm.viewers.refresh();
 			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
 
 			if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
@@ -169,13 +167,6 @@ frappe.ui.form.Sidebar = class {
 		this.frm.shared = new frappe.ui.form.Share({
 			frm: this.frm,
 			parent: this.sidebar.find(".form-shared")
-		});
-	}
-
-	make_viewers() {
-		this.frm.viewers = new frappe.ui.form.SidebarUsers({
-			frm: this.frm,
-			$wrapper: this.sidebar,
 		});
 	}
 
