@@ -14,22 +14,21 @@ frappe.ui.form.on("System Settings", {
 		});
 	},
 	enable_password_policy: function(frm) {
-		if(frm.doc.enable_password_policy == 0){
+		if (frm.doc.enable_password_policy == 0) {
 			frm.set_value("minimum_password_score", "");
-		} 
-		else{
+		} else {
 			frm.set_value("minimum_password_score", "2");
 		}
 	},
 	enable_two_factor_auth: function(frm) {
-		if(frm.doc.enable_two_factor_auth == 0){
+		if (frm.doc.enable_two_factor_auth == 0) {
 			frm.set_value("bypass_2fa_for_retricted_ip_users", 0);
 			frm.set_value("bypass_restrict_ip_check_if_2fa_enabled", 0);
 		}
 	},
 	enable_prepared_report_auto_deletion: function(frm) {
-		if(frm.doc.enable_prepared_report_auto_deletion) {
-			if(!frm.doc.prepared_report_expiry_period) {
+		if (frm.doc.enable_prepared_report_auto_deletion) {
+			if (!frm.doc.prepared_report_expiry_period) {
 				frm.set_value('prepared_report_expiry_period', 7);
 			}
 		}
