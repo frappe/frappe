@@ -5,27 +5,24 @@ frappe.provide("frappe.help");
 
 frappe.help.youtube_id = {};
 
-frappe.help.has_help = function(doctype) {
+frappe.help.has_help = function (doctype) {
 	return frappe.help.youtube_id[doctype];
 }
 
-frappe.help.show = function(doctype) {
-	if(frappe.help.youtube_id[doctype]) {
+frappe.help.show = function (doctype) {
+	if (frappe.help.youtube_id[doctype]) {
 		frappe.help.show_video(frappe.help.youtube_id[doctype]);
 	}
 }
 
-frappe.help.show_video = function(youtube_id, title) {
+frappe.help.show_video = function (youtube_id, title) {
 	if (frappe.utils.is_url(youtube_id)) {
 		const expression = '(?:youtube.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu.be/)([^"&?\\s]{11})';
 		youtube_id = youtube_id.match(expression)[1];
 	}
 
-	if($("body").width() > 768) {
-		var size = [670, 377];
-	} else {
-		var size = [560, 315];
-	}
+	var size = [530, 300];
+
 	var dialog = frappe.msgprint({
 		message: `<iframe width="${size[0]}" height="${size[1]}"
 			src="https://www.youtube.com/embed/${youtube_id}"
@@ -37,7 +34,7 @@ frappe.help.show_video = function(youtube_id, title) {
 	dialog.$wrapper.addClass("video-modal");
 }
 
-$("body").on("click", "a.help-link", function() {
+$("body").on("click", "a.help-link", function () {
 	var doctype = $(this).attr("data-doctype");
 	doctype && frappe.help.show(doctype);
 });
