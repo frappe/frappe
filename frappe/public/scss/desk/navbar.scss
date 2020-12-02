@@ -57,11 +57,10 @@
 		input {
 			width: 100% !important;
 			padding-left: 36px;
-			height: 32px;
+			height: 36px;
 			font-size: var(--text-md);
 		}
 		input:focus {
-			height: 42px;
 			border-bottom-left-radius: 0;
 			border-bottom-right-radius: 0;
 			box-shadow: var(--awesomebar-shadow);

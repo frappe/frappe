@@ -18,7 +18,7 @@
 
 	&> ul {
 		position: absolute;
-		min-width: 100%;
+		width: 100%;
 		list-style: none;
 		background-color: var(--fg-color);
 		max-height: unquote("min(60vh, 300px)");
@@ -38,7 +38,8 @@
 			font-size: var(--text-md);
 			padding: var(--padding-sm);
 			color: var(--text-color);
-			border-radius: var(--border-radius-sm);
+			border-radius: var(--border-radius);
+			@extend .ellipsis;
 			&:not(:last-child) {
 				margin-bottom: var(--margin-xs);
 			}
