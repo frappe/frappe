@@ -67,7 +67,7 @@
 	width: 270px;
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-sm);
-	background-color: var(--bg-color);
+	background-color: var(--fg-color);
 	box-shadow: var(--shadow-md);
 	z-index: 1;
 }
@@ -161,11 +161,6 @@
 	padding: 0;
 	max-height: 300px;
 	overflow: scroll;
-}
-
-.ql-mention-list-item.selected {
-	background-color: var(--fg-color);
-	text-decoration: none;
 }
 
 .mention>span {
