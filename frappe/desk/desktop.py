@@ -606,11 +606,12 @@ def merge_cards_based_on_label(cards):
 	"""Merge cards with common label."""
 	cards_dict = {}
 	for card in cards:
-		if card.label in cards_dict:
-			links = loads(cards_dict[card.label].links) + loads(card.links)
-			cards_dict[card.label].update(dict(links=dumps(links)))
-			cards_dict[card.label] = cards_dict.pop(card.label)
+		label = card.get('label')
+		if label in cards_dict:
+			links = loads(cards_dict[label].links) + loads(card.links)
+			cards_dict[label].update(dict(links=dumps(links)))
+			cards_dict[label] = cards_dict.pop(label)
 		else:
-			cards_dict[card.label] = card
+			cards_dict[label] = card
 
 	return list(cards_dict.values())
