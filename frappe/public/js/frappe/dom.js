@@ -333,9 +333,8 @@ frappe.get_modal = function(title, content) {
 					</div>
 				</div>
 				<div class="modal-body ui-front">${content}</div>
-				<div class="modal-footer">
-					<div class="custom-actions">
-					</div>
+				<div class="modal-footer hide">
+					<div class="custom-actions"></div>
 					<div class="standard-actions">
 						<button type="button" class="btn btn-secondary btn-sm hide btn-modal-secondary">
 						</button>
