@@ -5,7 +5,7 @@ class Picker {
 		this.parent = opts.parent;
 		this.width = opts.width;
 		this.height = opts.height;
-		this.color = opts.color || '#ffffff';
+		this.set_color(opts.color);
 		this.swatches = opts.swatches;
 		this.setup_picker();
 	}
@@ -56,7 +56,7 @@ class Picker {
 			let swatch = swatch_template.content.firstElementChild.cloneNode(true);
 			this.swatches_wrapper.appendChild(swatch);
 			swatch.addEventListener('click', () => {
-				this.color = color;
+				this.set_color(color);
 				this.set_selector_position();
 				this.update_color_map();
 			});
@@ -65,7 +65,7 @@ class Picker {
 	}
 
 	set_selector_position(silent) {
-		this.hue = utils.get_hue(this.color);
+		this.hue = utils.get_hue(this.get_color());
 		this.color_selector_position = this.get_pointer_coords();
 		this.hue_selector_position = {
 			x: this.hue * this.hue_map.offsetWidth / 360,
@@ -90,11 +90,12 @@ class Picker {
 		let y = this.color_selector_position.y;
 		let w = this.color_map.offsetWidth;
 		let h = this.color_map.offsetHeight;
-		this.color = utils.hsv_to_hex(
+		let color = utils.hsv_to_hex(
 			this.hue,
 			Math.round(x / w * 100),
 			Math.round((1 - (y / h)) * 100),
 		);
+		this.set_color(color);
 	}
 
 	update_color_selector(silent) {
@@ -103,8 +104,8 @@ class Picker {
 		// set color selector position and background
 		this.color_selector_circle.style.top = (y - this.color_selector_circle.offsetHeight / 2) + 'px';
 		this.color_selector_circle.style.left = (x - this.color_selector_circle.offsetWidth / 2) + 'px';
-		this.color_map.style.color = this.color;
-		!silent && this.on_change && this.on_change(this.color);
+		this.color_map.style.color = this.get_color();
+		!silent && this.on_change && this.on_change(this.get_color());
 	}
 
 	setup_hue_event() {
@@ -138,7 +139,7 @@ class Picker {
 
 	get_pointer_coords() {
 		let h, s, v;
-		[h, s, v] = utils.get_hsv(this.color);
+		[h, s, v] = utils.get_hsv(this.get_color());
 		let width = this.color_map.offsetWidth;
 		let height = this.color_map.offsetHeight;
 		let x = utils.clamp(0, s * width / 100, width);
@@ -175,6 +176,14 @@ class Picker {
 				element.drag_enabled = false;
 			}
 		});
+	}
+
+	set_color(color) {
+		this.color = color || '#ffffff';
+	}
+
+	get_color() {
+		return this.color || '#ffffff';
 	}
 }
 
