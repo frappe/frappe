@@ -1,5 +1,4 @@
-<div class="padding">
-
+<div>
     <div class="row">
         <div class="col-xs-6"><h6>{%= __("User") %}</h6></div>
         <div class="col-xs-2"><h6>{%= __("Can Read") %}</h6></div>
@@ -8,7 +7,7 @@
     </div>
 
 	<div class="row shared-user" data-everyone=1>
-        <div class="col-xs-6 share-all" style="height: 30px;"><b>{{ __("Everyone") }}</b></div>
+        <div class="col-xs-6 share-all"><b>{{ __("Everyone") }}</b></div>
         <div class="col-xs-2"><input type="checkbox" name="read"
             {% if(cint(everyone.read)) { %}checked{% } %} class="edit-share"></div>
         <div class="col-xs-2"><input type="checkbox" name="write"
@@ -48,8 +47,8 @@
         <div class="col-xs-2"><input type="checkbox" class="add-share-write" name="write" {% if (!frm.perm[0].write){ %} disabled="disabled"{% } %}></div>
         <div class="col-xs-2"><input type="checkbox" class="add-share-share" name="share"></div>
     </div>
-    <p>
-        <button class="btn btn-primary btn-add-share">{{ __("Add") }}</button>
-    </p>
+    <div>
+        <button class="btn btn-primary btn-sm btn-add-share">{{ __("Add") }}</button>
+    </div>
 	{% endif %}
 </div>
