@@ -471,7 +471,15 @@ kbd {
 		padding: 8px 12px;
 		margin-bottom: 2px;
 		border-radius: var(--border-radius-md);
+		overflow: hidden;
 		cursor: pointer;
+
+		.sidebar-item-label {
+			// https://css-tricks.com/flexbox-truncated-text/
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
 
 		&:focus {
 			background-color: var(--sidebar-select-color);

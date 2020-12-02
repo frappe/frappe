@@ -92,13 +92,15 @@ frappe.views.Workspace = class Workspace {
 			.appendTo(sidebar_section);
 
 		const get_sidebar_item = function (item) {
-			return $(`<a
-						href="/app/workspace/${item.name}"
-						class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}"
+			return $(`
+				<a
+					href="/app/workspace/${item.name}"
+					class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}"
 				>
-				<div> ${frappe.utils.icon(item.icon || "folder-normal", "md")} </div>
-				<div> ${item.label || item.name} </div>
-			</a>`);
+					<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
+					<span class="sidebar-item-label">${item.label || item.name}<span>
+				</a>
+			`);
 		};
 
 		const make_sidebar_category_item = item => {
