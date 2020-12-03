@@ -416,7 +416,7 @@ def get_owner_email(doc):
 	owner = get_parent_doc(doc).owner
 	try:
 		return get_formatted_email(owner)
-	except:
+	except Exception as e:
 		return owner
 
 def get_assignees(doc):
