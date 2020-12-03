@@ -100,12 +100,10 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
-		with_public_files = os.path.join(base_path, with_public_files)
 		public = extract_files(site, with_public_files, 'public')
 		os.remove(public)
 
 	if with_private_files:
-		with_private_files = os.path.join(base_path, with_private_files)
 		private = extract_files(site, with_private_files, 'private')
 		os.remove(private)
 
