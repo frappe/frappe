@@ -11,7 +11,7 @@ from frappe.model.document import Document
 
 from json import loads, dumps
 
-class DeskPage(Document):
+class Workspace(Document):
 	def validate(self):
 		if (self.is_standard and not frappe.conf.developer_mode and not disable_saving_as_standard()):
 			frappe.throw(_("You need to be in developer mode to edit this document"))
@@ -21,7 +21,7 @@ class DeskPage(Document):
 			return
 
 		if frappe.conf.developer_mode and self.is_standard:
-			export_to_files(record_list=[['Desk Page', self.name]], record_module=self.module)
+			export_to_files(record_list=[['Workspace', self.name]], record_module=self.module)
 
 	@staticmethod
 	def get_module_page_map():
@@ -30,7 +30,7 @@ class DeskPage(Document):
 			'for_user': '',
 		}
 
-		pages = frappe.get_all("Desk Page", fields=["name", "module"], filters=filters, as_list=1)
+		pages = frappe.get_all("Workspace", fields=["name", "module"], filters=filters, as_list=1)
 
 		return { page[1]: page[0] for page in pages if page[1] }
 
@@ -44,15 +44,15 @@ class DeskPage(Document):
 		}
 
 		card_links = []
-		
+
 		for link in self.links:
 			link = link.as_dict()
 			if link.type == "Card Break":
-				
+
 				if card_links:
 					current_card['links'] = card_links
 					cards.append(current_card)
-				
+
 				current_card = link
 				card_links = []
 			else:

@@ -1,7 +1,7 @@
 // Copyright (c) 2020, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Desk Page', {
+frappe.ui.form.on('Workspace', {
 	refresh: function(frm) {
 		frm.enable_save();
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);

@@ -108,12 +108,12 @@ class Workspace:
 			'extends': self.page_name,
 			'for_user': frappe.session.user
 		}
-		pages = frappe.get_all("Desk Page", filters=filters, limit=1)
+		pages = frappe.get_all("Workspace", filters=filters, limit=1)
 		if pages:
-			return frappe.get_cached_doc("Desk Page", pages[0])
+			return frappe.get_cached_doc("Workspace", pages[0])
 
 		self.get_pages_to_extend()
-		return frappe.get_cached_doc("Desk Page", self.page_name)
+		return frappe.get_cached_doc("Workspace", self.page_name)
 
 	def get_onboarding_doc(self):
 		# Check if onboarding is enabled
@@ -141,14 +141,14 @@ class Workspace:
 		return doc
 
 	def get_pages_to_extend(self):
-		pages = frappe.get_all("Desk Page", filters={
+		pages = frappe.get_all("Workspace", filters={
 			"extends": self.page_name,
 			'restrict_to_domain': ['in', frappe.get_active_domains()],
 			'for_user': '',
 			'module': ['in', self.allowed_modules]
 		})
 
-		pages = [frappe.get_cached_doc("Desk Page", page['name']) for page in pages]
+		pages = [frappe.get_cached_doc("Workspace", page['name']) for page in pages]
 
 		for page in pages:
 			self.extended_links = self.extended_links + page.get_link_groups()
@@ -208,16 +208,16 @@ class Workspace:
 			else:
 				exists = True
 			self.table_counts[name] = exists
-		
+
 		return exists
 
 	def _prepare_item(self, item):
 		if item.dependencies:
-			
+
 			dependencies = [dep.strip() for dep in item.dependencies.split(",")]
 
 			incomplete_dependencies = [d for d in dependencies if not self._doctype_contains_a_record(d)]
-			
+
 			if len(incomplete_dependencies):
 				item.incomplete_dependencies = incomplete_dependencies
 			else:
@@ -239,20 +239,20 @@ class Workspace:
 	@handle_not_exist
 	def get_links(self):
 		cards = self.doc.get_link_groups()
-		
+
 		if not self.doc.hide_custom:
 			cards = cards + get_custom_reports_and_doctypes(self.doc.module)
 
 		if len(self.extended_links):
 			cards = merge_cards_based_on_label(cards + self.extended_links)
-		
+
 		default_country = frappe.db.get_default("country")
 
 		new_data = []
 		for card in cards:
 			new_items = []
 			card = _dict(card)
-			
+
 			links = card.get('links', [])
 
 			for item in links:
@@ -385,7 +385,7 @@ def get_desk_sidebar_items(flatten=False, cache=True):
 
 		# pages sorted based on pinned to top and then by name
 		order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
-		all_pages = frappe.get_all("Desk Page", fields=["name", "category", "icon",  "module"],
+		all_pages = frappe.get_all("Workspace", fields=["name", "category", "icon",  "module"],
 			filters=filters, order_by=order_by, ignore_permissions=True)
 		pages = []
 
@@ -465,7 +465,7 @@ def get_custom_report_list(module):
 	return out
 
 def get_custom_workspace_for_user(page):
-	"""Get custom page from desk_page if exists or create one
+	"""Get custom page from workspace if exists or create one
 
 	Args:
 		page (stirng): Page name
@@ -477,10 +477,10 @@ def get_custom_workspace_for_user(page):
 		'extends': page,
 		'for_user': frappe.session.user
 	}
-	pages = frappe.get_list("Desk Page", filters=filters)
+	pages = frappe.get_list("Workspace", filters=filters)
 	if pages:
-		return frappe.get_doc("Desk Page", pages[0])
-	doc = frappe.new_doc("Desk Page")
+		return frappe.get_doc("Workspace", pages[0])
+	doc = frappe.new_doc("Workspace")
 	doc.extends = page
 	doc.for_user = frappe.session.user
 	return doc
@@ -497,7 +497,7 @@ def save_customization(page, config):
 	Returns:
 		Boolean: Customization saving status
 	"""
-	original_page = frappe.get_doc("Desk Page", page)
+	original_page = frappe.get_doc("Workspace", page)
 	page_doc = get_custom_workspace_for_user(page)
 
 	# Update field values
@@ -598,7 +598,7 @@ def reset_customization(page):
 	Args:
 		page (string): Name of the page to be reset
 	"""
-	original_page = frappe.get_doc("Desk Page", page)
+	original_page = frappe.get_doc("Workspace", page)
 	page_doc = get_custom_workspace_for_user(page)
 	page_doc.delete()
 

@@ -1,22 +1,22 @@
 {
  "category": "Administration",
  "charts": [],
- "creation": "2020-03-02 15:12:16.754449",
+ "creation": "2020-03-02 15:15:03.839594",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
  "docstatus": 0,
- "doctype": "Desk Page",
+ "doctype": "Workspace",
  "extends_another_page": 0,
  "hide_custom": 0,
- "icon": "users",
+ "icon": "customization",
  "idx": 0,
  "is_standard": 1,
- "label": "Users",
+ "label": "Customization",
  "links": [
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Users",
+   "label": "Dashboards",
    "onboard": 0,
    "type": "Card Break"
   },
@@ -24,8 +24,8 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "User",
-   "link_to": "User",
+   "label": "Dashboard",
+   "link_to": "Dashboard",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -34,8 +34,8 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Role",
-   "link_to": "Role",
+   "label": "Dashboard Chart",
+   "link_to": "Dashboard Chart",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -44,8 +44,8 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Role Profile",
-   "link_to": "Role Profile",
+   "label": "Dashboard Chart Source",
+   "link_to": "Dashboard Chart Source",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -53,7 +53,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Logs",
+   "label": "Form Customization",
    "onboard": 0,
    "type": "Card Break"
   },
@@ -61,8 +61,8 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Activity Log",
-   "link_to": "Activity Log",
+   "label": "Customize Form",
+   "link_to": "Customize Form",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -71,8 +71,28 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Access Log",
-   "link_to": "Access Log",
+   "label": "Custom Field",
+   "link_to": "Custom Field",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Custom Script",
+   "link_to": "Custom Script",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "DocType",
+   "link_to": "DocType",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -80,7 +100,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Permissions",
+   "label": "Other",
    "onboard": 0,
    "type": "Card Break"
   },
@@ -88,80 +108,35 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Role Permissions Manager",
-   "link_to": "permission-manager",
-   "link_type": "Page",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "User Permissions",
-   "link_to": "User Permission",
+   "label": "Custom Translations",
+   "link_to": "Translation",
    "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Role Permission for Page and Report",
-   "link_to": "Role Permission for Page and Report",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "User",
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Permitted Documents For User",
-   "link_to": "Permitted Documents For User",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "DocShare",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Document Share Report",
-   "link_to": "Document Share Report",
-   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2020-12-01 13:38:40.085519",
+ "modified": "2020-12-01 13:38:39.843773",
  "modified_by": "Administrator",
- "module": "Core",
- "name": "Users",
+ "module": "Custom",
+ "name": "Customization",
  "owner": "Administrator",
  "pin_to_bottom": 0,
  "pin_to_top": 0,
  "shortcuts": [
   {
-   "label": "User",
-   "link_to": "User",
+   "label": "Customize Form",
+   "link_to": "Customize Form",
    "type": "DocType"
   },
   {
-   "label": "Role",
-   "link_to": "Role",
+   "label": "Custom Role",
+   "link_to": "Custom Role",
    "type": "DocType"
   },
   {
-   "label": "Permission Manager",
-   "link_to": "permission-manager",
-   "type": "Page"
-  },
-  {
-   "label": "User Profile",
-   "link_to": "user-profile",
-   "type": "Page"
+   "label": "Custom Script",
+   "link_to": "Custom Script",
+   "type": "DocType"
   }
  ]
 }

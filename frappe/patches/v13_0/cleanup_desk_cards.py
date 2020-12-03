@@ -1,15 +1,15 @@
 import frappe
 from six import string_types
 from json import loads
-from frappe.desk.doctype.desk_page.desk_page import get_link_type, get_report_type
+from frappe.desk.doctype.workspace.workspace import get_link_type, get_report_type
 
 def execute():
 	if not frappe.db.exists("Doctype", "Desk Card"):
 		return
-		
-	frappe.reload_doc('desk', 'doctype', 'desk_page')
 
-	pages = frappe.get_all("Desk Page", filters={"is_standard": 0}, pluck="name")
+	frappe.reload_doc('desk', 'doctype', 'workspace')
+
+	pages = frappe.get_all("Workspace", filters={"is_standard": 0}, pluck="name")
 
 	for page in pages:
 		rebuild_links(page)
@@ -19,7 +19,7 @@ def execute():
 def rebuild_links(page):
 	# Empty links table
 
-	doc = frappe.get_doc("Desk Page", page)
+	doc = frappe.get_doc("Workspace", page)
 	doc.links = []
 	for card in get_all_cards(page):
 		if isinstance(card.links, string_types):
