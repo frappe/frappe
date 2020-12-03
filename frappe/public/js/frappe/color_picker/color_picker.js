@@ -153,8 +153,8 @@ class Picker {
 				event.preventDefault();
 				event = event.touches ? event.touches[0] : event;
 				let element_bounds = element.getBoundingClientRect();
-				let x = event.pageX - element_bounds.left;
-				let y = event.pageY - element_bounds.top;
+				let x = event.clientX - element_bounds.left;
+				let y = event.clientY - element_bounds.top;
 				x = utils.clamp(0, x, element_bounds.width);
 				y = utils.clamp(0, y, element_bounds.height);
 				callback(x, y);
