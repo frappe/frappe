@@ -1,5 +1,5 @@
 :root {
-	--kanban-column-hover-bg: var(--gray-100);
+	--kanban-column-bg: var(--gray-200);
 	--kanban-card-bg: var(--card-bg);
 	--kanban-card-hover-bg: var(--card-bg);
 	--kanban-new-card-bg: var(--gray-200);
@@ -7,7 +7,7 @@
 }
 
 [data-theme="dark"] {
-	--kanban-column-hover-bg: var(--gray-700);
+	--kanban-column-bg: var(--gray-700);
 	--kanban-card-bg: var(--gray-800);
 	--kanban-new-card-bg: var(--gray-800);
 	--kanban-new-card-hover-bg: var(--gray-800);
@@ -30,17 +30,16 @@
 		flex: 0 0 260px;
 		max-width: 260px;
 		border-radius: var(--border-radius);
-		margin: var(--margin-md) var(--margin-xs) var(--margin-md) 0;
+		margin: var(--margin-md) var(--margin-md) var(--margin-md) 0;
 		padding: var(--padding-sm);
-		min-height: calc(100vh - 340px);
+		min-height: calc(100vh - 250px);
+		background-color: var(--kanban-column-bg);
 
 		&.add-new-column {
 			order: 1;
 		}
 
 		&:hover {
-			background-color: var(--kanban-column-hover-bg);
-
 			.add-card {
 				background-color: var(--kanban-new-card-hover-bg);
 				box-shadow: var(--shadow-xs);
@@ -140,7 +139,7 @@
 
 		.kanban-cards {
 			min-height: 100px;
-			max-height: calc(100vh - 360px);
+			max-height: calc(100vh - 250px);
 			margin: -5px;
 			padding: 5px;
 			overflow-y: scroll;
@@ -233,8 +232,19 @@
 		}
 	}
 
-	.add-new-column a:hover {
-		color: var(--text-color) !important;
+	.add-new-column {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 65px;
+		color: var(--text-muted);
+		border: 1px dashed var(--gray-400);
+		max-height: 80px;
+		background-color: transparent;
+	}
+
+	.add-new-column:hover {
+		background-color: var(--kanban-column-bg);
 	}
 
 	.kanban-card-meta {

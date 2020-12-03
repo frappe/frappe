@@ -32,6 +32,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				this.board_name = frappe.get_route()[3];
 				this.page_title = __(this.board_name);
 				this.card_meta = this.get_card_meta();
+				this.page_length = 0;
 
 				this.menu_items.push({
 					label: __('Save filters'),
@@ -39,9 +40,16 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 						this.save_kanban_board_filters();
 					}
 				});
-				this.toggle_paging = true;
 				return this.get_board();
 			});
+	}
+
+	setup_paging_area() {
+		// pass
+	}
+
+	toggle_result_area() {
+		this.$result.toggle(this.data.length > 0);
 	}
 
 	get_board() {
@@ -78,7 +86,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name
 		});
-		this.toggle_paging && this.$paging_area.toggle(false);
 	}
 
 	render_list() {
