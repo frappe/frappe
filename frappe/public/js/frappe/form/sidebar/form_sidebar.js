@@ -73,9 +73,7 @@ frappe.ui.form.Sidebar = class {
 			this.frm.assign_to.refresh();
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
-			if (frappe.boot.user.document_follow_notify) {
-				this.frm.follow.refresh();
-			}
+
 			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
 
 			if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
@@ -107,6 +105,7 @@ frappe.ui.form.Sidebar = class {
 				);
 
 			this.refresh_like();
+			this.refresh_follow();
 			this.refresh_comments_count();
 			frappe.ui.form.set_user_image(this.frm);
 		}
@@ -192,10 +191,26 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	make_follow() {
-		this.frm.follow = new frappe.ui.form.DocumentFollow({
-			frm: this.frm,
-			parent: this.sidebar.find(".followed-by-section")
+		this.follow_button = this.sidebar.find(".form-sidebar-stats .form-follow");
+
+		this.follow_button.on('click', () => {
+			let is_followed = this.frm.get_docinfo().is_document_followed;
+			frappe.call('frappe.desk.form.document_follow.update_follow', {
+				'doctype': this.frm.doctype,
+				'doc_name': this.frm.doc.name,
+				'following': !is_followed
+			}).then(() => {
+				frappe.model.set_docinfo(this.frm.doctype, this.frm.doc.name, "is_document_followed", !is_followed)
+				this.refresh_follow(!is_followed);
+			});
 		});
+	}
+
+	refresh_follow(follow) {
+		if (follow == null) {
+			follow = this.frm.get_docinfo().is_document_followed;
+		}
+		this.follow_button.text(follow ? "Unfollow" : "Follow");
 	}
 
 	refresh_like() {

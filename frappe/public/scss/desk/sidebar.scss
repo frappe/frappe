@@ -126,6 +126,12 @@ body[data-route^="Module"] .main-menu {
 				text-transform: uppercase;
 				font-size: var(--text-xs, 11px);
 			}
+
+			.comments {
+				use.svg {
+					stroke: var(--gray-500);
+				}
+			}
 		}
 	}
 
