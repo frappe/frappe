@@ -127,10 +127,8 @@ body[data-route^="Module"] .main-menu {
 				font-size: var(--text-xs, 11px);
 			}
 
-			.comments {
-				use.svg {
-					stroke: var(--gray-500);
-				}
+			use.comment-icon {
+				stroke: var(--gray-500);
 			}
 		}
 	}
