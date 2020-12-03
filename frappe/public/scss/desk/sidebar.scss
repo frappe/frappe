@@ -477,6 +477,26 @@ button.data-pill {
 	}
 }
 
+.liked-by-popover {
+	.popover-body {
+		min-height: 30px;
+		padding: 0px;
+
+		ul.list-unstyled {
+			margin-bottom: 0px;
+
+			li {
+				padding: var(--padding-xs) var(--padding-sm);
+				margin: 2px;
+
+				&:hover {
+					background-color: var(--fg-hover-color);
+				}
+			}
+		}
+	}
+}
+
 .tags-input {
 	margin-bottom: var(--margin-sm);
 	font-size: var(--text-md);

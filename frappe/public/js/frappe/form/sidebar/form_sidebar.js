@@ -187,7 +187,7 @@ frappe.ui.form.Sidebar = class {
 		this.like_wrapper = this.sidebar.find(".liked-by");
 		this.like_icon = this.sidebar.find(".liked-by .like-icon");
 		this.like_count = this.sidebar.find(".liked-by .like-count");
-		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".like-icon");
+		frappe.ui.setup_like_popover(this.sidebar.find(".form-stats-likes"), ".like-icon");
 	}
 
 	make_follow() {

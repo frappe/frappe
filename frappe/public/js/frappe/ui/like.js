@@ -94,7 +94,7 @@ frappe.ui.setup_like_popover = ($parent, selector, check_not_liked=true) => {
 		const target_element = $(this);
 		target_element.popover({
 			animation: true,
-			placement: 'right',
+			placement: 'bottom',
 			trigger: 'manual',
 			template:`<div class="liked-by-popover popover">
 				<div class="arrow"></div>
@@ -126,7 +126,7 @@ frappe.ui.setup_like_popover = ($parent, selector, check_not_liked=true) => {
 				let liked_by_list = $(`<ul class="list-unstyled"></ul>`);
 
 				// to show social profile of the user
-				let link_base = '#social/profile/';
+				let link_base = '#user-profile/';
 
 				liked_by.forEach(user => {
 					// append user list item
