@@ -14,7 +14,7 @@ $threshold: 34;
 	--zero-px: 0px;
 	top: unquote("clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
 	left: calc(-1 * (#{$badge-size}/2));
-	background-color: var(--bg-color);
+	background-color: var(--fg-color);
 	border: 1px solid var(--dark-border-color);
 	@extend .center-content;
 	--icon-stroke: var(--gray-600);
@@ -23,10 +23,10 @@ $threshold: 34;
 .new-timeline {
 	position: relative;
 	padding-left: calc(var(--padding-xl) + #{$timeline-item-icon-size}/2);
-	padding-top: var(--padding-xl);
+	padding-top: var(--padding-lg);
 	&:before {
 		content: ' ';
-		top: 0;
+		top: 50px;
 		position: absolute;
 		border-left: 1px solid var(--dark-border-color);
 		bottom: calc(-1 * (#{$page-bottom-margin} + #{$timeline-item-bottom-margin}));
@@ -41,6 +41,20 @@ $threshold: 34;
 			width: 4px;
 		}
 	}
+	.activity-toggle {
+		h4 {
+			margin-bottom: 0;
+			font-weight: 700;
+		}
+		nav {
+			margin-left: var(--margin-md);
+			.nav-link {
+				padding: var(--padding-xs) var(--padding-sm);
+				margin-right: var(--margin-xs);
+				border-radius: 50px;
+			}
+		}
+	}
 	.timeline-actions {
 		display: inline-flex;
 		width: 100%;
@@ -53,15 +67,6 @@ $threshold: 34;
 		.action-btn:first-of-type {
 			margin-left: $timeline-item-left-margin;
 		}
-		.communication-switch {
-			margin-left: auto;
-			display: flex;
-			font-size: var(--text-sm);
-			align-items: center;
-			label {
-				cursor: pointer;
-			}
-		}
 	}
 	.document-email-link-container {
 		position: relative;
@@ -72,7 +77,7 @@ $threshold: 34;
 			margin-left: $timeline-item-left-margin;
 		}
 	}
-	.timeline-items .timeline-item {
+	.timeline-item {
 		font-size: var(--text-md);
 		position: relative;
 		margin-bottom: $timeline-item-bottom-margin;

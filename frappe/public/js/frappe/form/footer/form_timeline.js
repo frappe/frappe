@@ -10,12 +10,12 @@ class FormTimeline extends BaseTimeline {
 		this.setup_document_email_link();
 		this.setup_timeline_actions();
 		this.render_timeline_items();
+		this.setup_activity_toggle();
 	}
 
 	setup_timeline_actions() {
 		this.add_action_button(__('New Email'), () => this.compose_mail());
 		this.setup_new_event_button();
-		this.setup_only_communications_switch();
 	}
 
 	setup_new_event_button() {
@@ -33,29 +33,32 @@ class FormTimeline extends BaseTimeline {
 		}
 	}
 
-	setup_only_communications_switch() {
+	setup_activity_toggle() {
 		let doc_info = this.doc_info || this.frm.get_docinfo();
 		let has_communications = () => {
 			let communications = doc_info.communications;
 			let comments = doc_info.comments;
 			return (communications || []).length || (comments || []).length;
 		};
-
+		let me = this;
 		if (has_communications()) {
-			this.timeline_actions_wrapper
-				.append(`
-					<div class="custom-control custom-switch communication-switch">
-						<input type="checkbox" class="custom-control-input" id="only-communication-switch">
-						<label class="custom-control-label" for="only-communication-switch">
-							${__('Show Only Communications')}
-						</label>
+			this.timeline_wrapper.prepend(`
+				<div class="timeline-item activity-toggle">
+					<div class="timeline-dot"></div>
+					<div class="timeline-content flex align-center">
+						<h4>${__('Activity')}</h4>
+						<nav class="nav nav-pills flex-column flex-sm-row">
+							<a class="flex-sm-fill text-sm-center nav-link" data-only-communication="true">${__('Communication')}</a>
+							<a class="flex-sm-fill text-sm-center nav-link active">${__('All')}</a>
+						</nav>
 					</div>
-				`)
-				.find('.custom-control-input')
-				.change(e => {
-					this.only_communication = e.target.checked;
-					this.render_timeline_items();
-				});
+				</div>
+			`).find('a').on('click', function(e) {
+				e.preventDefault();
+				me.only_communication = $(this).data().onlyCommunication;
+				me.render_timeline_items();
+				$(this).tab('show');
+			});
 		}
 	}
 
