@@ -177,7 +177,7 @@
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "Extends",
-   "options": "Desk Page",
+   "options": "Workspace",
    "search_index": 1
   },
   {
@@ -209,7 +209,7 @@
  "modified": "2020-07-08 12:48:43.845930",
  "modified_by": "Administrator",
  "module": "Desk",
- "name": "Desk Page",
+ "name": "Workspace",
  "owner": "Administrator",
  "permissions": [
   {

@@ -9,7 +9,9 @@ from frappe.utils.data import validate_json_string
 from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
 
-class DeskPage(Document):
+from json import loads, dumps
+
+class Workspace(Document):
 	def validate(self):
 		self.validate_cards_json()
 		if (self.is_standard and not frappe.conf.developer_mode and not disable_saving_as_standard()):
@@ -27,7 +29,7 @@ class DeskPage(Document):
 			return
 
 		if frappe.conf.developer_mode and self.is_standard:
-			export_to_files(record_list=[['Desk Page', self.name]], record_module=self.module)
+			export_to_files(record_list=[['Workspace', self.name]], record_module=self.module)
 
 	@staticmethod
 	def get_module_page_map():
@@ -36,7 +38,7 @@ class DeskPage(Document):
 			'for_user': '',
 		}
 
-		pages = frappe.get_all("Desk Page", fields=["name", "module"], filters=filters, as_list=1)
+		pages = frappe.get_all("Workspace", fields=["name", "module"], filters=filters, as_list=1)
 
 		return { page[1]: page[0] for page in pages if page[1] }
 
