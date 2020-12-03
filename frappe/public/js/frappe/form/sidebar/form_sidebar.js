@@ -226,7 +226,7 @@ frappe.ui.form.Sidebar = class {
 			.attr("data-doctype", this.frm.doctype)
 			.attr("data-name", this.frm.doc.name);
 
-		this.like_count[0].innerText = JSON.parse(this.frm.doc._liked_by || "[]").length;
+		this.like_count && this.like_count.text(JSON.parse(this.frm.doc._liked_by || "[]").length);
 	}
 
 	refresh_comments_count() {

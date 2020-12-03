@@ -450,7 +450,7 @@ button.data-pill {
 
 .form-reviews {
 	.review {
-		font-weight: 500;
+		font-weight: 600;
 		width: 28px;
 		height: 28px;
 		border-radius: 50%;
@@ -462,18 +462,26 @@ button.data-pill {
 }
 
 .review-popover {
-	max-width: 150px;
+	padding: 0px;
+	min-width: 200px;
+	max-width: 250px;
 
+	.popover-body,
 	.popover-content {
 		padding: 0;
 	}
-	.subject {
+	.body {
 		border-bottom: 1px solid $border-color;
 	}
+
 	.subject,
 	.body {
-		padding: 12px;
+		padding: var(--padding-sm);
 		overflow-wrap: break-word;
+		p {
+			margin-top: var(--margin-xs);
+			margin-bottom: 0px;
+		}
 	}
 }
 

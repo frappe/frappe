@@ -160,6 +160,7 @@ frappe.ui.form.Review = class Review {
 				subject = __('{0} criticism points for {1}', message_parts);
 			}
 		}
+
 		el.popover({
 			animation: true,
 			trigger: 'hover',
@@ -176,14 +177,18 @@ frappe.ui.form.Review = class Review {
 			content: () => {
 				return `
 					<div class="text-medium">
+						<div class="body">
+							<div>${data.reason}</div>
+						</div>
+
 						<div class="subject">
 							${frappe.utils.icon('review')}
 							${subject}
-						</div>
-						<p>${__('By {0}', [frappe.user.full_name(data.owner)])} - ${timestamp}</p>
-						<hr>
-						<div class="body">
-							<div>${data.reason}</div>
+
+							<p class="mt-1">
+								<!-- ${frappe.avatar("shivam@example.com", "avatar-xs")} -->
+								<span>${frappe.user.full_name(data.owner)}</span> - ${timestamp}
+							</p>
 						</div>
 					</div>
 				`;
@@ -191,6 +196,8 @@ frappe.ui.form.Review = class Review {
 			html: true,
 			container: 'body'
 		});
+
+
 		return el;
 	}
 };
