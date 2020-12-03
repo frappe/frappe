@@ -414,7 +414,10 @@ def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 
 def get_owner_email(doc):
 	owner = get_parent_doc(doc).owner
-	return get_formatted_email(owner) or owner
+	try:
+		return get_formatted_email(owner)
+	except:
+		return owner
 
 def get_assignees(doc):
 	return [( get_formatted_email(d.owner) or d.owner ) for d in
