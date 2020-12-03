@@ -26,10 +26,10 @@ $threshold: 34;
 	padding-top: var(--padding-lg);
 	&:before {
 		content: ' ';
-		top: 50px;
+		top: 45px;
 		position: absolute;
 		border-left: 1px solid var(--dark-border-color);
-		bottom: calc(-1 * (#{$page-bottom-margin} + #{$timeline-item-bottom-margin}));
+		bottom: calc(-1 * #{$timeline-item-bottom-margin});
 	}
 	.timeline-dot {
 		@include timeline-badge(16px);
