@@ -51,15 +51,25 @@ class Picker {
 
 	setup_swatches() {
 		let swatch_template = document.createElement('template');
-		swatch_template.innerHTML = '<div class="swatch"></div>';
+		swatch_template.innerHTML = '<div class="swatch" tabindex=0></div>';
 		this.swatches.forEach(color => {
 			let swatch = swatch_template.content.firstElementChild.cloneNode(true);
 			this.swatches_wrapper.appendChild(swatch);
-			swatch.addEventListener('click', () => {
+			const set_values = () => {
 				this.set_color(color);
 				this.set_selector_position();
 				this.update_color_map();
+			};
+			swatch.addEventListener('click', () => {
+				set_values();
 			});
+			swatch.onkeydown = (e) => {
+				const key_code = e.keyCode;
+				if ([13, 32].includes(key_code)) {
+					e.preventDefault();
+					set_values();
+				}
+			};
 			swatch.style.backgroundColor = color;
 		});
 	}
