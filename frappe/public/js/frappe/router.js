@@ -20,6 +20,7 @@ $(window).on('hashchange', function() {
 		let sub_path = frappe.router.get_sub_path(window.location.hash);
 		window.location.hash = '';
 		frappe.router.push_state(sub_path);
+		return false;
 	}
 });
 

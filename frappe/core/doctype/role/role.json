@@ -16,7 +16,7 @@
   "two_factor_auth",
   "navigation_settings_section",
   "search_bar",
-  "notification",
+  "notifications",
   "chat",
   "list_settings_section",
   "list_sidebar",
@@ -86,12 +86,6 @@
   },
   {
    "default": "1",
-   "fieldname": "notification",
-   "fieldtype": "Check",
-   "label": "Notification"
-  },
-  {
-   "default": "1",
    "fieldname": "chat",
    "fieldtype": "Check",
    "label": "Chat"
@@ -141,13 +135,19 @@
    "fieldname": "view_switcher",
    "fieldtype": "Check",
    "label": "View Switcher"
+  },
+  {
+   "default": "1",
+   "fieldname": "notifications",
+   "fieldtype": "Check",
+   "label": "Notifications"
   }
  ],
  "icon": "fa fa-bookmark",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-11-11 17:29:13.149522",
+ "modified": "2020-12-03 14:08:38.181035",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",

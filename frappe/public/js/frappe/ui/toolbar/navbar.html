@@ -6,7 +6,7 @@
 		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 		<div class="collapse navbar-collapse justify-content-end">
 			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
-				<div class="input-group search-bar text-muted">
+				<div class="input-group search-bar text-muted hidden">
 					<input
 						id="navbar-search"
 						type="text"
@@ -59,8 +59,8 @@
 						</span>
 					</a>
 				</li>
-				<li class="vertical-bar d-none d-sm-block"></li>
-				<li class="nav-item dropdown dropdown-help dropdown-mobile d-none d-lg-block">
+				<li class="vertical-bar hidden d-none d-sm-block"></li>
+				<li class="nav-item dropdown dropdown-help dropdown-mobile hidden d-none d-lg-block">
 					<a class="nav-link" data-toggle="dropdown" href="#" onclick="return false;">
 						{{ __("Help") }}
 						<span>

@@ -198,6 +198,9 @@ frappe.ui.form.Toolbar = Class.extend({
 	make_menu: function() {
 		this.page.clear_icons();
 		this.page.clear_menu();
+
+		if (frappe.session.user === 'Guest') return;
+
 		var me = this;
 		var p = this.frm.perm[0];
 		var docstatus = cint(this.frm.doc.docstatus);

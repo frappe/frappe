@@ -6,7 +6,7 @@ import frappe
 
 from frappe.model.document import Document
 
-desk_properties = ("search_bar", "notification", "chat", "list_sidebar",
+desk_properties = ("search_bar", "notifications", "chat", "list_sidebar",
 	"bulk_actions", "view_switcher", "form_sidebar", "timeline", "dashboard")
 
 class Role(Document):
