@@ -49,6 +49,8 @@ $body-color: var(--text-light);
 $component-active-color: var(--fg-color);
 $component-active-bg: $gray-600;
 $modal-content-bg: var(--modal-bg);
+$modal-backdrop-bg: var(--gray-900);
+$modal-content-box-shadow-sm-up: 0px 5px 10px rgba(0, 0, 0, 0.100661);
 $link-color: var(--text-color);
 
 // input
