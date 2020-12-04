@@ -820,8 +820,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		let assigned_users = JSON.parse(doc._assign || "[]");
 		if (assigned_users.length) {
-			// REDESIGN-TODO: Make it filterable?
-			assigned_to = frappe.avatar_group(assigned_users, 3, {'css_class': 'filterable'})[0].outerHTML;
+			assigned_to = frappe.avatar_group(assigned_users, 3, {'filterable': true})[0].outerHTML;
 		}
 
 		const comment_count = `<span class="${
@@ -1069,7 +1068,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			e.stopPropagation();
 			const $this = $(e.currentTarget);
 			const filters = $this.attr("data-filter").split("|");
-
 			const filters_to_apply = filters.map((f) => {
 				f = f.split(",");
 				if (f[2] === "Today") {
@@ -1077,6 +1075,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				} else if (f[2] == "User") {
 					f[2] = frappe.session.user;
 				}
+				this.filter_area.remove(f[0]);
 				return [this.doctype, f[0], f[1], f.slice(2).join(",")];
 			});
 			this.filter_area.add(filters_to_apply);
