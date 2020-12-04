@@ -64,6 +64,10 @@ h5.modal-title {
 		.modal-dialog {
 			width: 575px;
 			max-width: 575px;
+			&.modal-lg {
+				width: 800px;
+				max-width: unquote("min(80vw, 800px)")
+			}
 		}
 	}
 }
@@ -72,12 +76,11 @@ h5.modal-title {
 	position: initial;
 
 	.modal-dialog {
-		z-index: 101;
 		position: fixed;
 		right: 15px;
 		bottom: 0;
 		margin: 0;
-		max-width: 400px;
+		max-width: 400px !important;
 		.modal-header {
 			padding-top: var(--padding-sm);
 			padding-bottom: var(--padding-xs);
