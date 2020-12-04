@@ -94,6 +94,7 @@ login.route = function () {
 login.reset_sections = function (hide) {
 	if (hide || hide === undefined) {
 		$("section.for-login").toggle(false);
+		$("section.for-email-login").toggle(false);
 		$("section.for-forgot").toggle(false);
 		$("section.for-signup").toggle(false);
 	}
@@ -106,6 +107,11 @@ login.reset_sections = function (hide) {
 login.login = function () {
 	login.reset_sections();
 	$(".for-login").toggle(true);
+}
+
+login.email = function () {
+	login.reset_sections();
+	$(".for-email-login").toggle(true);
 	$("#login_email").focus();
 }
 

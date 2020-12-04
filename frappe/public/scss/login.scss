@@ -11,20 +11,22 @@
 
 .for-login,
 .for-forgot,
-.for-signup {
+.for-signup,
+.for-email-login {
 	display: none;
+	margin: 70px 0;
 
 	@include media-breakpoint-up(sm) {
 		.page-card {
-			padding: 30px;
+			padding: 45px;
 			background-color: #fff;
 			box-shadow: var(--shadow-base);
 		}
 	}
 
 	.page-card {
-		max-width: 420px;
-		margin: 70px auto;
+		max-width: 470px;
+		margin: 0 auto;
 		border-radius: var(--border-radius-md);
 
 		form {
@@ -38,58 +40,6 @@
 
 		.page-card-actions {
 			margin-top: var(--margin-lg);
-
-			.sign-up-message {
-				margin-top: var(--margin-md);
-				color: var(--text-light);
-				font-size: var(--text-md);
-
-				a {
-					font-size: var(--text-md);
-					color: var(--primary);
-				}
-			}
-
-			.social-logins {
-				margin: var(--margin-md) 0;
-				font-size: var(--text-md);
-
-				.social-login-buttons {
-					display: flex;
-					flex-wrap: wrap;
-					justify-content: center;
-					margin-left: -4px;
-					margin-right: -4px;
-					margin-top: var(--margin-md);
-
-					.login-button-wrapper {
-						@include media-breakpoint-up(md) {
-							min-width: 33.33%;
-						}
-						min-width: 50%;
-						padding: 0 4px;
-						margin-bottom: var(--margin-sm);
-					}
-
-					.btn-social {
-						font-size: var(--text-sm);
-						color: var(--text-gray-700);
-						box-shadow: none;
-						display: flex;
-						place-content: center;
-
-						&.btn-salesforce {
-							i {
-								color: var(--blue-400);
-							}
-						}
-
-						img {
-							margin-right: var(--padding-xs);
-						}
-					}
-				}
-			}
 		}
 
 		.page-card-body {
@@ -156,6 +106,54 @@
 					font-size: 12px;
 				}
 			}
+
+			.btn-login-option {
+				font-size: var(--text-md);
+				font-weight: 500;
+				color: var(--text-gray-700);
+				background: var(--gray-100);
+				box-shadow: none;
+				border: none;
+				display: flex;
+				place-content: center;
+
+				&.btn-salesforce {
+					i {
+						color: var(--blue-400);
+					}
+				}
+
+				img {
+					margin-right: var(--padding-xs);
+				}
+
+				&:hover {
+					border: none;
+					background: var(--gray-300);
+				}
+			}
+
+			.social-logins {
+				margin: var(--margin-md) 0;
+				font-size: var(--text-md);
+
+				.social-login-buttons {
+					margin-top: var(--margin-md);
+
+					.login-button-wrapper {
+						@include media-breakpoint-up(md) {
+							min-width: 33.33%;
+						}
+						min-width: 50%;
+						padding: 0 4px;
+						margin-bottom: var(--margin-sm);
+					}
+				}
+			}
+
+			.login-divider {
+				margin: var(--margin-md) 0;
+			}
 		}
 
 		.page-card-head {
@@ -163,7 +161,7 @@
 			text-align: center;
 			font-size: var(--text-xl);
 			font-weight: 600;
-			margin-bottom: var(--margin-xl);
+			margin-bottom: var(--margin-lg);
 
 			img {
 				max-height: 42px;
@@ -174,6 +172,18 @@
 				font-size: var(--text-xl);
 				color: var(--text-color);
 			}
+		}
+	}
+
+
+	.sign-up-message {
+		margin-top: var(--margin-md);
+		color: var(--text-light);
+		font-size: var(--text-md);
+
+		a {
+			font-size: var(--text-md);
+			color: var(--primary);
 		}
 	}
 

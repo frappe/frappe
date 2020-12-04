@@ -21,7 +21,43 @@
 					<img class="app-logo" src="{{ logo }}">
 					<h4>{{ _('Login to {0}').format(app_name or _("Frappe")) }}</h4>
 				</div>
+				<div class="page-card-body">
+					<div class="social-logins text-center">
+						{%- if social_login -%}
+						<div class="social-login-buttons">
+							{% for provider in provider_logins %}
+							<div class="login-button-wrapper">
+								<a href="{{ provider.auth_url }}"
+									class="btn btn-block btn-default btn-sm btn-login-option btn-{{ provider.name }}">
+									{{ provider.icon }} {{ _("Login With") }} {{ provider.provider_name }}</a>
+							</div>
+							{% endfor %}
+							<p class="text-muted login-divider">{{ _("or") }}</p>
+						</div>
+						{%- endif -%}
+					</div>
+					<a href="#email"
+						class="btn btn-block btn-default btn-sm btn-login-option">
+					 {{ _("Login With Email") }}</a>
+				</div>
+			</form>
+		</div>
+		{%- if not disable_signup -%}
+		<div class="text-center sign-up-message">
+			{{ _("Don't have an account?") }}
+			<a href="#signup">{{ _("Sign up") }}</a>
+		</div>
+		{%- endif -%}
+	</section>
 
+
+	<section class='for-email-login'>
+		<div class="login-content page-card">
+			<form class="form-signin form-login" role="form">
+				<div class="page-card-head">
+					<img class="app-logo" src="{{ logo }}">
+					<h4>{{ _('Login to {0}').format(app_name or _("Frappe")) }}</h4>
+				</div>
 				<div class="page-card-body">
 					<div class="form-group">
 						<label class="form-label sr-only" for="login_email">{{ login_label or _("Email")}}</label>
@@ -71,31 +107,15 @@
 						{{ _("Login with LDAP") }}</button>
 					{% endif %}
 
-					<div class="social-logins text-center">
-						{%- if social_login -%}
-						<p class="text-muted">{{ _("or") }}</p>
-
-						<div class="social-login-buttons">
-							{% for provider in provider_logins %}
-							<div class="login-button-wrapper">
-								<a href="{{ provider.auth_url }}"
-									class="btn btn-block btn-default btn-sm btn-social btn-{{ provider.name }}">
-									{{ provider.icon }}{{ provider.provider_name }}</a>
-							</div>
-							{% endfor %}
-						</div>
-						{%- endif -%}
-					</div>
-
-					{%- if not disable_signup -%}
-					<div class="text-center sign-up-message">
-						{{ _("Don't have an account?") }}
-						<a href="#signup">{{ _("Sign up") }}</a>
-					</div>
-					{%- endif -%}
 				</div>
 			</form>
 		</div>
+		{%- if not disable_signup -%}
+		<div class="text-center sign-up-message">
+			{{ _("Don't have an account?") }}
+			<a href="#signup">{{ _("Sign up") }}</a>
+		</div>
+		{%- endif -%}
 	</section>
 	<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
 		<div class="login-content page-card">
