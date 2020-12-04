@@ -1,6 +1,6 @@
 // common file between desk and website
 
-frappe.avatar = function (user, css_class, title, image_url = null, remove_avatar=false, remove_color=false) {
+frappe.avatar = function (user, css_class, title, image_url = null, remove_color=false, filterable=false) {
 	let user_info;
 	if (user) {
 		// desk
@@ -20,18 +20,27 @@ frappe.avatar = function (user, css_class, title, image_url = null, remove_avata
 		title = user_info.fullname;
 	}
 
-	return frappe.get_avatar(css_class, title, image_url || user_info.image, remove_color=remove_color);
+	return frappe.get_avatar(
+		user, css_class, title, image_url || user_info.image, remove_color=remove_color, filterable=filterable
+	);
 };
 
-frappe.get_avatar = function(css_class, title, image_url = null, remove_color) {
+frappe.get_avatar = function(user, css_class, title, image_url = null, remove_color, filterable) {
+	let data_attr = '';
+
 	if (!css_class) {
 		css_class = "avatar-small";
+	}
+
+	if (filterable) {
+		css_class += " filterable";
+		data_attr = `data-filter="_assign,like,%${user}%"`;
 	}
 
 	if (image_url) {
 		const image = (window.cordova && image_url.indexOf('http') === -1) ? frappe.base_url + image_url : image_url;
 
-		return `<span class="avatar ${css_class}" title="${title}">
+		return `<span class="avatar ${css_class}" title="${title}" ${data_attr}>
 				<span class="avatar-frame" style='background-image: url("${image}")'
 					title="${title}"></span>
 			</span>`;
@@ -46,7 +55,7 @@ frappe.get_avatar = function(css_class, title, image_url = null, remove_color) {
 		if (css_class === 'avatar-small' || css_class == 'avatar-xs') {
 			abbr = abbr.substr(0, 1);
 		}
-		return `<span class="avatar ${css_class}" title="${title}">
+		return `<span class="avatar ${css_class}" title="${title}" ${data_attr}>
 			<div class="avatar-frame standard-image"
 				style="${style}">
 					${abbr}
@@ -60,9 +69,11 @@ frappe.avatar_group = function (users, limit = 4, options = {}) {
 	const display_users = users.slice(0, limit);
 	const extra_users = users.slice(limit);
 
-	let html = display_users.map(user => frappe.avatar(user, 'avatar-small ' + options.css_class)).join('');
+	let html = display_users.map(user =>
+		frappe.avatar(user, 'avatar-small ' + options.css_class, null, null, false, options.filterable)
+	).join('');
 	if (extra_users.length === 1) {
-		html += frappe.avatar(extra_users[0], 'avatar-small ' + options.css_class);
+		html += frappe.avatar(extra_users[0], 'avatar-small ' + options.css_class, null, null, false, options.filterable);
 	} else if (extra_users.length > 1) {
 		html = `
 			<span class="avatar avatar-small ${options.css_class}">
