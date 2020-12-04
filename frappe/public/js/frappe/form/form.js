@@ -107,7 +107,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.script_manager.setup();
 		this.watch_model_updates();
 
-		if(!this.meta.hide_toolbar) {
+		if(!this.meta.hide_toolbar && frappe.boot.desk_settings.timeline) {
 			this.footer = new frappe.ui.form.Footer({
 				frm: this,
 				parent: $('<div>').appendTo(this.page.main.parent())
@@ -445,11 +445,13 @@ frappe.ui.form.Form = class FrappeForm {
 			this.layout.doc = this.doc;
 			this.layout.attach_doc_and_docfields();
 
-			this.sidebar = new frappe.ui.form.Sidebar({
-				frm: this,
-				page: this.page
-			});
-			this.sidebar.make();
+			if (frappe.boot.desk_settings.form_sidebar) {
+				this.sidebar = new frappe.ui.form.Sidebar({
+					frm: this,
+					page: this.page
+				});
+				this.sidebar.make();
+			}
 
 			// clear layout message
 			this.layout.show_message();

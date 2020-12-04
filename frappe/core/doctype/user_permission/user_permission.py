@@ -55,7 +55,7 @@ class UserPermission(Document):
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
 			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_user_permissions(user=None):
 	'''Get all users permissions for the user as a dict of doctype'''
 	# if this is called from client-side,
@@ -66,7 +66,7 @@ def get_user_permissions(user=None):
 	if not user:
 		user = frappe.session.user
 
-	if not user or user == "Administrator":
+	if not user or user in ("Administrator", "Guest"):
 		return {}
 
 	cached_user_permissions = frappe.cache().hget("user_permissions", user)

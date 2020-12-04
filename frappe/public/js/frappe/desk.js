@@ -165,8 +165,6 @@ frappe.Application = Class.extend({
 				}, 600000); // check every 10 minutes
 			}
 		}
-
-		this.fetch_tags();
 	},
 
 	set_route() {
@@ -299,6 +297,7 @@ frappe.Application = Class.extend({
 
 	set_globals: function() {
 		frappe.session.user = frappe.boot.user.name;
+		frappe.session.logged_in_user = frappe.boot.user.name;
 		frappe.session.user_email = frappe.boot.user.email;
 		frappe.session.user_fullname = frappe.user_info().fullname;
 
@@ -610,10 +609,6 @@ frappe.Application = Class.extend({
 			frappe.show_alert(message);
 		});
 	},
-
-	fetch_tags() {
-		frappe.tags.utils.fetch_tags();
-	}
 });
 
 frappe.get_module = function(m, default_module) {

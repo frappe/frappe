@@ -48,7 +48,7 @@ frappe.ui.form.Footer = Class.extend({
 		});
 	},
 	get_names_for_mentions() {
-		let names_for_mentions = Object.keys(frappe.boot.user_info)
+		let names_for_mentions = Object.keys(frappe.boot.user_info || [])
 			.filter(user => {
 				return !["Administrator", "Guest"].includes(user)
 					&& frappe.boot.user_info[user].allowed_in_mentions;
