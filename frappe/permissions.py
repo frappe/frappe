@@ -7,7 +7,7 @@ import frappe, copy, json
 from frappe import _, msgprint
 from frappe.utils import cint
 import frappe.share
-rights = ("read", "write", "create", "delete", "submit", "cancel", "amend",
+rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 
 # TODO:
