@@ -249,6 +249,74 @@ body {
 				font-size: 20px;
 			}
 		}
+
+		&.heatmap-chart {
+			min-height: 0px;
+			height: 280px;
+
+			.widget-footer {
+				display: none;
+			}
+
+			.widget-control {
+				z-index: 1;
+			}
+
+			.frappe-chart .chart-legend {
+				display: none;
+			}
+
+			.chart-loading-state {
+				height: 190px !important;
+			}
+
+			.widget-body {
+				display: flex;
+				max-height: 100%;
+				margin: auto;
+				margin-top: calc(-1 * var(--margin-md));
+
+				.chart-container {
+					height: 100%;
+					.frappe-chart {
+						height: 100%;
+					}
+				}
+
+				.heatmap-legend {
+					display: flex;
+					margin: 45px 20px 0 20px;
+
+					.legend-colors {
+						padding-left: var(--padding-md);
+						list-style: none;
+					}
+
+					li {
+						width: var(--margin-sm);
+						height: var(--margin-sm);
+						margin: var(--margin-xs);
+					}
+
+					.legend-label {
+						color: #555b51;
+						font-size: var(--text-xs);
+						margin-left: var(--margin-md);
+						line-height: 1.3;
+					}
+
+					@media (max-width: 991px) {
+						display: none;
+					}
+				}
+			}
+		}
+
+		@media (max-width: 768px) {
+			&.dashboard-widget-box.heatmap-chart {
+				display: none;
+			}
+		}
 	}
 
 	&.onboarding-widget-box {
