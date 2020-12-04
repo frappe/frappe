@@ -10,7 +10,7 @@ import functools
 from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
-from email.utils import parseaddr, formataddr, cstr
+from email.utils import parseaddr, formataddr
 from email.header import decode_header, make_header
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
