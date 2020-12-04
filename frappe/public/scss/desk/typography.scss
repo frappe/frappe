@@ -3,7 +3,7 @@ $text-muted: var(--text-muted);
 $text-light: var(--text-light);
 $text-color: var(--text-color);
 $headings-color: var(--heading-color) !default;
-$font-family-base: Inter;
+$font-family-base: var(--font-stack);
 
 $font-size-xs: 0.6875rem !default;
 $font-size-sm: 0.75rem !default;

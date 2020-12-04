@@ -86,13 +86,6 @@ class FormTimeline extends BaseTimeline {
 		}
 	}
 
-	add_action_button(label, action) {
-		let action_btn = $(`<button class="btn btn-xs btn-default action-btn">${label}</button>`);
-		action_btn.click(action);
-		this.timeline_actions_wrapper.append(action_btn);
-		return action_btn;
-	}
-
 	prepare_timeline_contents() {
 		this.timeline_items.push(...this.get_communication_timeline_contents());
 		this.timeline_items.push(...this.get_comment_timeline_contents());

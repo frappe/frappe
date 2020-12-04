@@ -17,6 +17,7 @@ class BaseTimeline {
 		`);
 
 		this.timeline_wrapper.append(this.timeline_actions_wrapper);
+		this.timeline_actions_wrapper.hide();
 		this.timeline_wrapper.append(this.timeline_items_wrapper);
 
 		this.parent.replaceWith(this.timeline_wrapper);
@@ -28,6 +29,7 @@ class BaseTimeline {
 	}
 
 	add_action_button(label, action) {
+		this.timeline_actions_wrapper.show();
 		let action_btn = $(`<button class="btn btn-xs btn-default action-btn">${label}</button>`);
 		action_btn.click(action);
 		this.timeline_actions_wrapper.append(action_btn);
