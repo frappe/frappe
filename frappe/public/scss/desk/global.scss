@@ -403,7 +403,7 @@ html.firefox, html.safari {
 
 kbd {
 	background-color: var(--control-bg);
-	font-family: Inter;
+	font-family: var(--font-stack);
 	color: var(--text-light);
 	line-height: 1.2em;
 	height: 20px;
