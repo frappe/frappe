@@ -34,7 +34,7 @@
 	}
 
 	.title-area {
-		@include flex(flex, space-between, start, null);
+		@include flex(flex, space-between, flex-start, null);
 
 		.card-title {
 			font-size: var(--text-xl);
