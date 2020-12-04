@@ -61,13 +61,8 @@ frappe.Application = Class.extend({
 			shortcut: 'shift+ctrl+g',
 			description: __('Switch Theme'),
 			action: () => {
-				let new_theme = document.body.dataset.theme == "dark" ? "Light" : "Dark";
-				frappe.call('frappe.core.doctype.user.user.switch_theme', {
-					theme: new_theme
-				}).then(() => {
-					document.body.dataset.theme = new_theme.toLowerCase();
-					frappe.show_alert("Theme Changed", 3);
-				})
+				frappe.theme_switcher = new frappe.ui.ThemeSwitcher();
+				frappe.theme_switcher.show();
 			}
 		})
 
