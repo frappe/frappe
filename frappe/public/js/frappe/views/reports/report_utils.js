@@ -15,7 +15,9 @@ frappe.report_utils = {
 
 		if (raw_data.add_total_row) {
 			labels = labels.slice(0, -1);
-			datasets[0].values = datasets[0].values.slice(0, -1);
+			datasets.forEach(dataset => {
+				dataset.values = dataset.values.slice(0, -1);
+			});
 		}
 
 		return {
