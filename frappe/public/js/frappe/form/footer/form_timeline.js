@@ -47,7 +47,7 @@ class FormTimeline extends BaseTimeline {
 					<div class="timeline-dot"></div>
 					<div class="timeline-content flex align-center">
 						<h4>${__('Activity')}</h4>
-						<nav class="nav nav-pills flex-column flex-sm-row">
+						<nav class="nav nav-pills flex-row">
 							<a class="flex-sm-fill text-sm-center nav-link" data-only-communication="true">${__('Communication')}</a>
 							<a class="flex-sm-fill text-sm-center nav-link active">${__('All')}</a>
 						</nav>
@@ -72,7 +72,7 @@ class FormTimeline extends BaseTimeline {
 			this.document_email_link_wrapper = $(`
 				<div class="document-email-link-container">
 					<div class="timeline-dot"></div>
-					<span>${message}</span>
+					<span class="ellipsis">${message}</span>
 				</div>
 			`);
 			this.timeline_wrapper.prepend(this.document_email_link_wrapper);
