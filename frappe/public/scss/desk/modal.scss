@@ -38,6 +38,20 @@ h5.modal-title {
 
 	.modal-body {
 		padding: var(--padding-md) var(--padding-lg);
+		.form-layout:first-child > .form-page {
+			.visible-section:first-child {
+				padding-top: 0;
+				.section-body {
+					margin-top: 0;
+				}
+			}
+		}
+
+		.form-layout:last-child > .form-page {
+			.visible-section:last-child {
+				padding-bottom: 0;
+			}
+		}
 	}
 
 	.modal-footer {
