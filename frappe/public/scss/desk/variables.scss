@@ -2,6 +2,10 @@ html, body {
 	font-size: 16px;
 }
 
+* {
+	transition: background-color 0.5s, background 0.5s;
+}
+
 // colors
 $gray-900: #192734;
 $gray-800: #313B44;

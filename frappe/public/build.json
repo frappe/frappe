@@ -153,6 +153,7 @@
 		"public/js/frappe/ui/capture.js",
 		"public/js/frappe/ui/app_icon.js",
 		"public/js/frappe/ui/dropzone.js",
+		"public/js/frappe/ui/theme_switcher.js",
 
 		"public/js/frappe/model/model.js",
 		"public/js/frappe/db.js",
