@@ -161,7 +161,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	refresh() {
 		this.reset();
-		if (this.frm.doc.__islocal) {
+		if (this.frm.doc.__islocal || !frappe.boot.desk_settings.form_dashboard) {
 			return;
 		}
 

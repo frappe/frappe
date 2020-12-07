@@ -114,11 +114,12 @@ frappe.breadcrumbs = {
 				// no user listview for non-system managers and single doctypes
 			} else {
 				let route;
+				const doctype_route = frappe.router.slug(frappe.router.doctype_layout || breadcrumbs.doctype);
 				if (frappe.boot.treeviews.indexOf(breadcrumbs.doctype) !== -1) {
 					let view = frappe.model.user_settings[breadcrumbs.doctype].last_view || 'Tree';
-					route = view + '/' + breadcrumbs.doctype;
+					route = `${doctype_route}/view/${view}`;
 				} else {
-					route = 'list/' + (frappe.router.doctype_layout || breadcrumbs.doctype);
+					route = doctype_route;
 				}
 				$(`<li><a href="/app/${route}">${doctype}</a></li>`)
 					.appendTo($breadcrumbs)
@@ -132,7 +133,7 @@ frappe.breadcrumbs = {
 		if (breadcrumbs.doctype && frappe.get_route()[0] === "print") {
 			set_list_breadcrumb(breadcrumbs.doctype);
 			let docname = frappe.get_route()[2];
-			let form_route = `/app/form/${frappe.router.slug(breadcrumbs.doctype)}/${docname}`;
+			let form_route = `/app/${frappe.router.slug(breadcrumbs.doctype)}/${docname}`;
 			$(`<li><a href="${form_route}">${docname}</a></li>`)
 				.appendTo($breadcrumbs);
 		}

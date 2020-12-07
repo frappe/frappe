@@ -1,4 +1,3 @@
-frappe.provide('frappe.route');
 frappe.route_history_queue = [];
 const routes_to_skip = ['Form', 'social', 'setup-wizard', 'recorder'];
 
@@ -16,7 +15,7 @@ const save_routes = frappe.utils.debounce(() => {
 
 }, 10000);
 
-frappe.route.on('change', () => {
+frappe.router.on('change', () => {
 	const route = frappe.get_route();
 	if (is_route_useful(route)) {
 		frappe.route_history_queue.push({

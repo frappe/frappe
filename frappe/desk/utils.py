@@ -12,10 +12,10 @@ def get_doctype_name(name):
 	def get_name_map():
 		name_map = {}
 		for d in frappe.get_all('DocType'):
-			name_map[d.name.lower().replace(' ', '-')] = frappe._dict(doctype = d.name)
+			name_map[get_doctype_route(d.name)] = frappe._dict(doctype = d.name)
 
 		for d in frappe.get_all('DocType Layout', fields = ['name', 'document_type']):
-			name_map[d.name.lower().replace(' ', '-')] = frappe._dict(doctype = d.document_type, doctype_layout = d.name)
+			name_map[get_doctype_route(d.name)] = frappe._dict(doctype = d.document_type, doctype_layout = d.name)
 
 		return name_map
 
@@ -26,3 +26,6 @@ def get_doctype_name(name):
 		frappe.response.docs.append(frappe.get_doc('DocType Layout', data.name_map.get('doctype_layout')).as_dict())
 
 	return data
+
+def get_doctype_route(name):
+	return name.lower().replace(' ', '-')

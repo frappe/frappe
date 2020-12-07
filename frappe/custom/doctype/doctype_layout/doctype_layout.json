@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "document_type",
+  "route",
   "fields",
   "client_script"
  ],
@@ -31,11 +32,17 @@
    "fieldname": "client_script",
    "fieldtype": "Code",
    "label": "Client Script"
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "label": "Route",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-11-17 15:49:49.669291",
+ "modified": "2020-12-04 12:29:12.838656",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "DocType Layout",
