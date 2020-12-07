@@ -158,6 +158,7 @@ frappe.ui.Page = Class.extend({
 	setup_sidebar_toggle() {
 		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
 		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
+		sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip();
 		if (sidebar_wrapper.length) {
 			sidebar_toggle.click(() => sidebar_wrapper.toggle());
 		} else {

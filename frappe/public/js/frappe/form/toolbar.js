@@ -211,10 +211,10 @@ frappe.ui.form.Toolbar = Class.extend({
 		if (!this.frm.is_new() && !issingle) {
 			this.page.add_action_icon("left", function() {
 				me.frm.navigate_records(1);
-			}, 'prev-doc');
+			}, 'prev-doc', __("Previous Document"));
 			this.page.add_action_icon("right", function() {
 				me.frm.navigate_records(0);
-			}, 'next-doc');
+			}, 'next-doc', __("Next Document"));
 		}
 
 		// Print
@@ -227,7 +227,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				}, true);
 				this.print_icon = this.page.add_action_icon("printer", function() {
 					me.frm.print_doc();
-				});
+				},'', __("Print"));
 			}
 		}
 

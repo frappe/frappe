@@ -44,13 +44,17 @@ frappe.ui.Notifications = class Notifications {
 				e.stopImmediatePropagation();
 				this.dropdown.dropdown('hide');
 				frappe.set_route('Form', 'Notification Settings', frappe.session.user);
-			}).appendTo(this.header_actions);
+			}).appendTo(this.header_actions)
+			.attr('title', __("Notification Settings"))
+			.tooltip();
 
 		$(`<span class="mark-all-read pull-right" data-action="mark_all_as_read">
 			${frappe.utils.icon('mark-as-read')}
 		</span>`)
 			.on('click', (e) => this.mark_all_as_read(e))
-			.appendTo(this.header_actions);
+			.appendTo(this.header_actions)
+			.attr('title', __("Mark all as read"))
+			.tooltip();
 
 		this.categories = [
 			{
@@ -193,6 +197,7 @@ class BaseNotificaitonsView {
 class NotificationsView extends BaseNotificaitonsView {
 	make() {
 		this.notifications_icon = this.parent.find('.notifications-icon');
+		this.notifications_icon.attr("title", __('Notifications')).tooltip();
 
 		this.setup_notification_listeners();
 		this.get_notifications_list(this.max_length).then(list => {
@@ -277,23 +282,23 @@ class NotificationsView extends BaseNotificaitonsView {
 					${user_avatar}
 					${message_html}
 				</div>
-				<div class="mark-as-read">
+				<div class="mark-as-read" title="${__("Mark as Read")}">
 				</div>
 			</a>`);
 
-		item_html.find('.mark-as-read').on('click', (e) => {
-			e.preventDefault();
-			e.stopImmediatePropagation();
-			if (!field.read) {
+		if (!field.read) {
+			let mark_btn = item_html.find(".mark-as-read")
+			mark_btn.tooltip();
+			mark_btn.on('click', (e) => {
+				e.preventDefault();
+				e.stopImmediatePropagation();
 				this.mark_as_read(field.name, item_html);
-			}
-		});
-
-		item_html.on('click', (e) => {
-			if (!field.read) {
+			});
+			
+			item_html.on('click', (e) => {
 				this.mark_as_read(field.name, item_html);
-			}
-		});
+			});
+		}
 
 		return item_html;
 	}
