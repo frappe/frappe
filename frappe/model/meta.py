@@ -199,7 +199,8 @@ class Meta(Document):
 				'owner': _('Created By'),
 				'modified_by': _('Modified By'),
 				'creation': _('Created On'),
-				'modified': _('Last Modified On')
+				'modified': _('Last Modified On'),
+				'_assign': _('Assigned To')
 			}.get(fieldname) or _('No Label')
 		return label
 
