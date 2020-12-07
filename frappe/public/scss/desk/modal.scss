@@ -84,6 +84,37 @@ h5.modal-title {
 			}
 		}
 	}
+
+	.form-section {
+		padding: var(--padding-sm) 0;
+
+		&:not(:first-child) {
+			border-top: 1px solid var(--border-color);
+		}
+
+		&.hide-border {
+			border-top: none !important;
+			padding-top: 0px !important;
+		}
+
+		.form-column {
+			&:first-child {
+				padding-left: 0;
+			}
+			&:last-child {
+				padding-right: 0;
+			}
+		}
+
+		.section-head {
+			padding: 0;
+			font-size: var(--text-md);
+
+			&:not(.collapsed) {
+				padding-bottom: var(--padding-sm);
+			}
+		}
+	}
 }
 
 .modal-minimize {
@@ -145,7 +176,11 @@ h5.modal-title {
 		}
 		.frappe-control:last-child {
 			margin-left: 10px;
-			margin-bottom: -20px;
+			margin-bottom: -24px;
+			button {
+				// same as form-control input
+				height: calc(1.5em + .75rem + 2px);
+			}
 		}
 	}
 }

@@ -49,34 +49,6 @@
 	border: 0 !important;
 }
 
-.modal {
-	.form-section {
-		padding: var(--padding-sm) 0;
-
-		&:not(:first-child) {
-			border-top: 1px solid var(--border-color);
-		}
-
-		.form-column {
-			&:first-child {
-				padding-left: 0;
-			}
-			&:last-child {
-				padding-right: 0;
-			}
-		}
-
-		.section-head {
-			padding: 0;
-			font-size: var(--text-md);
-
-			&:not(.collapsed) {
-				padding-bottom: var(--padding-sm);
-			}
-		}
-	}
-}
-
 .form-section.card-section,
 .form-dashboard-section {
 	margin-bottom: var(--margin-lg);
