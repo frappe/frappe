@@ -230,15 +230,20 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
-		this.$input.on("awesomplete-open", function() {
-			me.$wrapper.css({"z-index": 100});
-			me.$wrapper.find('ul').css({"z-index": 100});
-			me.autocomplete_open = true;
+		this.$input.on("awesomplete-open", () => {
+			let modal = this.$input.parents('.modal-dialog')[0];
+			if (modal) {
+				$(modal).removeClass("modal-dialog-scrollable");
+			}
+			this.autocomplete_open = true;
 		});
 
-		this.$input.on("awesomplete-close", function() {
-			me.$wrapper.css({"z-index": 1});
-			me.autocomplete_open = false;
+		this.$input.on("awesomplete-close", () => {
+			let modal = this.$input.parents('.modal-dialog')[0];
+			if (modal) {
+				$(modal).addClass("modal-dialog-scrollable");
+			}
+			this.autocomplete_open = false;
 		});
 
 		this.$input.on("awesomplete-select", function(e) {

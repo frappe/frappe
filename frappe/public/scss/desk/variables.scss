@@ -2,6 +2,10 @@ html, body {
 	font-size: 16px;
 }
 
+* {
+	transition: background-color 0.5s, background 0.5s;
+}
+
 // colors
 $gray-900: #192734;
 $gray-800: #313B44;
@@ -49,6 +53,8 @@ $body-color: var(--text-light);
 $component-active-color: var(--fg-color);
 $component-active-bg: $gray-600;
 $modal-content-bg: var(--modal-bg);
+$modal-backdrop-bg: var(--gray-900);
+$modal-content-box-shadow-sm-up: 0px 5px 10px rgba(0, 0, 0, 0.100661);
 $link-color: var(--text-color);
 
 // input

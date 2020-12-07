@@ -59,7 +59,7 @@ class BaseTimeline {
 	get_timeline_item(item) {
 		// item can have content*, creation*,
 		// timeline_badge, icon, icon_size,
-		// hide_timestamp, card
+		// hide_timestamp, is_card
 		const timeline_item = $(`<div class="timeline-item">`);
 
 		if (item.icon) {
@@ -74,9 +74,9 @@ class BaseTimeline {
 			timeline_item.append(`<div class="timeline-dot">`);
 		}
 
-		timeline_item.append(`<div class="timeline-content ${item.card ? 'frappe-card' : ''}">`);
+		timeline_item.append(`<div class="timeline-content ${item.is_card ? 'frappe-card' : ''}">`);
 		timeline_item.find('.timeline-content').append(item.content);
-		if (!item.hide_timestamp && !item.card) {
+		if (!item.hide_timestamp && !item.is_card) {
 			timeline_item.find('.timeline-content').append(`<span> - ${comment_when(item.creation)}</span>`);
 		}
 		return timeline_item;

@@ -38,7 +38,20 @@ h5.modal-title {
 
 	.modal-body {
 		padding: var(--padding-md) var(--padding-lg);
-		max-height: unquote("min(80vh, 650px)");
+		.form-layout:first-child > .form-page {
+			.visible-section:first-child {
+				padding-top: 0;
+				.section-body {
+					margin-top: 0;
+				}
+			}
+		}
+
+		.form-layout:last-child > .form-page {
+			.visible-section:last-child {
+				padding-bottom: 0;
+			}
+		}
 	}
 
 	.modal-footer {
@@ -65,6 +78,10 @@ h5.modal-title {
 		.modal-dialog {
 			width: 575px;
 			max-width: 575px;
+			&.modal-lg {
+				width: 800px;
+				max-width: unquote("min(80vw, 800px)")
+			}
 		}
 	}
 }
@@ -73,12 +90,11 @@ h5.modal-title {
 	position: initial;
 
 	.modal-dialog {
-		z-index: 101;
 		position: fixed;
 		right: 15px;
 		bottom: 0;
 		margin: 0;
-		max-width: 400px;
+		max-width: 400px !important;
 		.modal-header {
 			padding-top: var(--padding-sm);
 			padding-bottom: var(--padding-xs);
@@ -115,5 +131,21 @@ h5.modal-title {
 
 	a:not(.btn) {
 		text-decoration: underline;
+	}
+}
+
+// used in CommunicationComposer
+.modal .to_section {
+	form {
+		display: flex;
+		align-items: center;
+		.frappe-control:first-child {
+			flex: 1;
+			margin-bottom: 0px;
+		}
+		.frappe-control:last-child {
+			margin-left: 10px;
+			margin-bottom: -20px;
+		}
 	}
 }

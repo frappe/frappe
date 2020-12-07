@@ -132,10 +132,11 @@ frappe.ui.form.Review = class Review {
 		this.reviews.find('.review').remove();
 		review_logs.forEach(log => {
 			let review_pill = $(`
-				<div class="review ${log.points < 0 ? 'criticism' : 'appreciation'}">
-					<div>
-						${Math.abs(log.points)}
-					</div>
+				<div class="review ${log.points < 0 ? 'criticism' : 'appreciation'} cursor-pointer">
+					${frappe.avatar(log.owner)}
+					<span class="review-points">
+						${log.points > 0 ? '+': ''}${log.points}
+					</span>
 				</div>
 			`);
 			this.reviews.prepend(review_pill);

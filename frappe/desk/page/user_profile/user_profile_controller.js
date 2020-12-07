@@ -388,9 +388,11 @@ class UserProfile {
 			});
 			this.activities_timeline.prepare_timeline_contents = () => {
 				this.activities_timeline.timeline_items = list.map((data) => {
+					let icon = data.type == 'Appreciation' ? 'clap': data.type == 'Criticism' ? 'criticize': null;
 					return {
+						icon: icon,
 						creation: data.creation,
-						card: true,
+						is_card: true,
 						content: frappe.energy_points.format_history_log(data),
 					};
 				});
