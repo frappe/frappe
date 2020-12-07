@@ -156,7 +156,12 @@ frappe.ui.Page = Class.extend({
 
 	setup_sidebar_toggle() {
 		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
-		sidebar_toggle.click(console.log);
+		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
+		if (sidebar_wrapper.length) {
+			sidebar_toggle.click(() => sidebar_wrapper.toggle());
+		} else {
+			sidebar_toggle.hide();
+		}
 	},
 
 	set_indicator: function(label, color) {
