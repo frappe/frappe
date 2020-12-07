@@ -43,12 +43,16 @@ frappe.ui.FilterGroup = class {
 	set_popover_events() {
 		$(document.body).on('click', (e) => {
 			if (this.wrapper && this.wrapper.is(':visible')) {
+				const in_datepicker = $(e.target).is('.datepicker--cell')
+					|| $(e.target).is('.datepicker--nav-title')
+					|| $(e.target).parents('.datepicker--nav-action').length !== 0;
+
 				if (
 					$(e.target).parents('.filter-popover').length === 0
 					&& $(e.target).parents('.filter-box').length === 0
 					&& this.filter_button.find($(e.target)).length === 0
 					&& !$(e.target).is(this.filter_button)
-					&& !$(e.target).is('.datepicker--cell')
+					&& !in_datepicker
 				) {
 					this.wrapper && this.filter_button.popover('hide');
 				}
