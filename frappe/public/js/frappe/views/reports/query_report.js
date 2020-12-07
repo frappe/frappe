@@ -648,7 +648,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_summary(data) {
 		data.forEach((summary) => {
-			frappe.widget.utils.build_summary_item(summary).appendTo(this.$summary);
+			frappe.utils.build_summary_item(summary).appendTo(this.$summary);
 		})
 
 		this.$summary.show();

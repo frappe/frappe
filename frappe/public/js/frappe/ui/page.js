@@ -144,6 +144,7 @@ frappe.ui.Page = Class.extend({
 
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find('button');
+		menu_btn.attr("title", __("Menu")).tooltip();
 		frappe.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(menu_btn, menu_btn.find('.menu-btn-group-label'));
@@ -157,6 +158,7 @@ frappe.ui.Page = Class.extend({
 	setup_sidebar_toggle() {
 		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
 		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
+		sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip();
 		if (sidebar_wrapper.length) {
 			sidebar_toggle.click(() => sidebar_wrapper.toggle());
 		} else {
@@ -168,12 +170,18 @@ frappe.ui.Page = Class.extend({
 		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
 	},
 
-	add_action_icon: function(icon, click, css_class='') {
-		return $(`
+	add_action_icon: function(icon, click, css_class='', tooltip_label) {
+		const button = $(`
 			<button class="text-muted btn btn-default ${css_class} icon-btn">
 				${frappe.utils.icon(icon)}
 			</button>
-		`).appendTo(this.icon_group.removeClass("hide")).click(click);
+		`)
+
+		button.appendTo(this.icon_group.removeClass("hide"));
+		button.click(click);
+		button.attr("title", __(tooltip_label || frappe.unscrub(icon))).tooltip();
+
+		return button
 	},
 
 	clear_indicator: function() {
