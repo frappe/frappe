@@ -233,7 +233,6 @@ class NotificationsView extends BaseNotificaitonsView {
 	}
 
 	mark_as_read(docname, $el) {
-		console.log("SCAM")
 		frappe.call(
 			'frappe.desk.doctype.notification_log.notification_log.mark_as_read',
 			{ docname: docname }
@@ -252,8 +251,7 @@ class NotificationsView extends BaseNotificaitonsView {
 	get_dropdown_item_html(field) {
 		let doc_link = this.get_item_link(field);
 
-		// let read_class = field.read ? '' : 'unread';
-		let read_class = 'unread';
+		let read_class = field.read ? '' : 'unread';
 		let message = field.subject;
 
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
