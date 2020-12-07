@@ -249,3 +249,21 @@
 		position: relative;
 	}
 }
+
+@include media-breakpoint-down(sm) {
+	.group-by-popover {
+		min-width: 100%;
+		margin-left: -5px;
+
+		.group-by-box {
+			.remove-group-by {
+				color: var(--primary);
+				font-size: var(--text-sm);
+			}
+		}
+	}
+
+	.group-by-box .row > div[class*="col-sm-"] {
+		margin-bottom: 5px;
+	}
+}
