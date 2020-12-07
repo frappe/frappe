@@ -176,7 +176,10 @@ h5.modal-title {
 		}
 		.frappe-control:last-child {
 			margin-left: 10px;
-			margin-bottom: -20px;
+			margin-bottom: -24px;
+			button {
+				line-height: 1.9;
+			}
 		}
 	}
 }
