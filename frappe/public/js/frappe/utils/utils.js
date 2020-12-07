@@ -816,7 +816,7 @@ Object.assign(frappe.utils, {
 		display_text = display_text || name;
 		doctype = encodeURIComponent(doctype);
 		name = encodeURIComponent(name);
-		const route = ['/app/Form', doctype, name].join('/');
+		const route = `/app/${frappe.router.slug(doctype)}/${name}`;
 		if (html) {
 			return `<a href="${route}">${display_text}</a>`;
 		}
@@ -1127,7 +1127,7 @@ Object.assign(frappe.utils, {
 				let doctype_slug = frappe.router.slug(item.doctype);
 	
 				if (frappe.model.is_single(item.doctype)) {
-					route = "form/" + doctype_slug;
+					route = doctype_slug;
 				} else {
 					if (!item.doc_view) {
 						if (frappe.model.is_tree(item.doctype)) {
@@ -1142,22 +1142,22 @@ Object.assign(frappe.utils, {
 							if (item.filters) {
 								frappe.route_options = item.filters;
 							}
-							route = "list/" + doctype_slug;
+							route = doctype_slug;
 							break;
 						case "Tree":
-							route = "tree/" + doctype_slug;
+							route = `${doctype_slug}/view/tree`;
 							break;
 						case "Report Builder":
-							route = "list/" + doctype_slug + "/Report";
+							route = `${doctype_slug}/view/report`;
 							break;
 						case "Dashboard":
-							route = "list/" + doctype_slug + "/Dashboard";
+							route = `${doctype_slug}/view/dashboard`;
 							break;
 						case "New":
-							route = "form/" + doctype_slug + "/New " + item.doctype;
+							route = `${doctype_slug}/new`;
 							break;
 						case "Calendar":
-							route = "list/" + doctype_slug + "/Calendar/Default";
+							route = `${doctype_slug}/view/calendar/Default`;
 							break;
 						default:
 							frappe.throw({ message: __("Not a valid DocType view:") + item.doc_view, title: __("Unknown View") });
@@ -1167,7 +1167,7 @@ Object.assign(frappe.utils, {
 			} else if (type === "report" && item.is_query_report) {
 				route = "query-report/" + item.name;
 			} else if (type === "report") {
-				route = "List/" + frappe.router.slug(item.doctype) + "/Report/" + item.name;
+				route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
 			} else if (type === "page") {
 				route = item.name;
 			} else if (type === "dashboard") {

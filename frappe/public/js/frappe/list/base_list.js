@@ -182,15 +182,17 @@ frappe.views.BaseList = class BaseList {
 			'Dashboard': 'dashboard'
 		}
 
-		this.views_menu = this.page.add_custom_button_group(__(`{0} View`, [this.view_name]), icon_map[this.view_name] || 'list');
-		this.views_list = new frappe.views.Views({
-			doctype: this.doctype,
-			parent: this.views_menu,
-			page: this.page,
-			list_view: this,
-			sidebar: this.list_sidebar,
-			icon_map: icon_map
-		});
+		if (frappe.boot.desk_settings.view_switcher) {
+			this.views_menu = this.page.add_custom_button_group(__(`{0} View`, [this.view_name]), icon_map[this.view_name] || 'list');
+			this.views_list = new frappe.views.Views({
+				doctype: this.doctype,
+				parent: this.views_menu,
+				page: this.page,
+				list_view: this,
+				sidebar: this.list_sidebar,
+				icon_map: icon_map
+			});
+		}
 	}
 
 	set_default_secondary_action() {

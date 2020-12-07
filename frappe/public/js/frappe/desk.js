@@ -173,7 +173,7 @@ frappe.Application = Class.extend({
 			localStorage.removeItem("session_last_route");
 		} else {
 			// route to home page
-			frappe.route();
+			frappe.router.route();
 		}
 	},
 

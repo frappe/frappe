@@ -199,32 +199,39 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.page.clear_icons();
 		this.page.clear_menu();
 
-		if (frappe.session.user === 'Guest') return;
-
-		var me = this;
-		var p = this.frm.perm[0];
-		var docstatus = cint(this.frm.doc.docstatus);
-		var is_submittable = frappe.model.is_submittable(this.frm.doc.doctype)
-		var issingle = this.frm.meta.issingle;
-		var print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
-		var allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		var allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
-		// Navigate
-		if (!this.frm.is_new() && !issingle) {
-			this.page.add_action_icon("left", function() {
-				me.frm.navigate_records(1);
-			}, 'prev-doc');
-			this.page.add_action_icon("right", function() {
-				me.frm.navigate_records(0);
-			}, 'next-doc');
+		if (frappe.boot.desk_settings.form_sidebar) {
+			this.make_navigation();
+			this.make_menu_items();
 		}
+	},
 
+	make_navigation() {			
+		// Navigate
+		if (!this.frm.is_new() && !this.frm.meta.issingle) {
+			this.page.add_action_icon("left", () => {
+				this.frm.navigate_records(1);
+			}, 'prev-doc');
+			this.page.add_action_icon("right", ()=> {
+				this.frm.navigate_records(0);
+			}, 'next-doc');
+		}	
+	},
+
+	make_menu_items() {
 		// Print
+		const me = this;
+		const p = this.frm.perm[0];
+		const docstatus = cint(this.frm.doc.docstatus);
+		const is_submittable = frappe.model.is_submittable(this.frm.doc.doctype)
+
+		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
+		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
+		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
+
 		if (!is_submittable || docstatus == 1  ||
 			(allow_print_for_cancelled && docstatus == 2)||
 			(allow_print_for_draft && docstatus == 0)) {
-			if (frappe.model.can_print(null, me.frm) && !issingle) {
+			if (frappe.model.can_print(null, me.frm) && !this.frm.meta.issingle) {
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();
 				}, true);
@@ -286,30 +293,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			});
 		}
 
-		if (frappe.user_roles.includes("System Manager")) {
-			let is_doctype_form = me.frm.doctype === 'DocType';
-			let doctype = is_doctype_form ? me.frm.docname : me.frm.doctype;
-			let is_doctype_custom = is_doctype_form ? me.frm.doc.custom : false;
-
-			if (doctype != 'DocType' && !is_doctype_custom && me.frm.meta.issingle === 0) {
-				this.page.add_menu_item(__("Customize"), function() {
-					if (me.frm.meta && me.frm.meta.custom) {
-						frappe.set_route('Form', 'DocType', doctype);
-					} else {
-						frappe.set_route('Form', 'Customize Form', {
-							doc_type: doctype
-						});
-					}
-				}, true);
-			}
-
-			if (frappe.boot.developer_mode===1 && !is_doctype_form) {
-				// edit doctype
-				this.page.add_menu_item(__("Edit DocType"), function() {
-					frappe.set_route('Form', 'DocType', me.frm.doctype);
-				}, true);
-			}
-		}
+		this.make_customize_buttons();
 
 		// Auto Repeat
 		if(this.can_repeat()) {
@@ -328,6 +312,35 @@ frappe.ui.form.Toolbar = Class.extend({
 			});
 		}
 	},
+
+	make_customize_buttons() {
+		if (frappe.user_roles.includes("System Manager")) {
+			let is_doctype_form = this.frm.doctype === 'DocType';
+			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
+			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
+
+			if (doctype != 'DocType' && !is_doctype_custom && this.frm.meta.issingle === 0) {
+				this.page.add_menu_item(__("Customize"), () => {
+					if (this.frm.meta && this.frm.meta.custom) {
+						frappe.set_route('Form', 'DocType', doctype);
+					} else {
+						frappe.set_route('Form', 'Customize Form', {
+							doc_type: doctype
+						});
+					}
+				}, true);
+			}
+
+			if (frappe.boot.developer_mode===1 && !is_doctype_form) {
+				// edit doctype
+				this.page.add_menu_item(__("Edit DocType"), () => {
+					frappe.set_route('Form', 'DocType', this.frm.doctype);
+				}, true);
+			}
+		}
+
+	},
+
 	can_repeat: function() {
 		return this.frm.meta.allow_auto_repeat
 			&& !this.frm.is_new()

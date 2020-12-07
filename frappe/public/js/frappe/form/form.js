@@ -1,4 +1,5 @@
 frappe.provide('frappe.ui.form');
+frappe.provide('frappe.model.docinfo');
 
 import './quick_entry';
 import './toolbar';
@@ -1667,7 +1668,7 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 
 		driver.defineSteps(steps);
-		frappe.route.on('change', () => driver.reset());
+		frappe.router.on('change', () => driver.reset());
 		driver.start();
 	}
 

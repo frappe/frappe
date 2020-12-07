@@ -150,7 +150,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	refresh: function() {
 		this.reset();
-		if(this.frm.doc.__islocal) {
+		if(this.frm.doc.__islocal || !frappe.boot.desk_settings.form_dashboard) {
 			return;
 		}
 

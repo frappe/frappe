@@ -402,7 +402,7 @@ frappe.search.SearchDialog = class {
 				frappe.set_route(result.route);
 				// hashchange didn't fire!
 				if (window.location.hash == previous_hash) {
-					frappe.route();
+					frappe.router.route();
 				}
 			}
 		});

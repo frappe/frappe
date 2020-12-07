@@ -48,6 +48,7 @@ def get_bootinfo():
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
+	add_routes(bootinfo)
 
 	bootinfo.module_app = frappe.local.module_app
 	bootinfo.single_types = [d.name for d in frappe.get_all('DocType', {'issingle': 1})]
@@ -308,6 +309,16 @@ def get_additional_filters_from_hooks():
 		filter_config.update(frappe.get_attr(hook)())
 
 	return filter_config
+
+def add_routes(bootinfo):
+	# add routes for readable doctypes
+	doctype_routes = frappe.get_all('DocType', ['name', 'route'],  dict(istable = 0))
+	bootinfo.routes = {d.route:dict(doctype=d.name) for d in doctype_routes if d.route}
+
+	# add routes for layouts
+	doctype_layout_routes = frappe.get_all('DocType Layout', ['name', 'route', 'document_type'],  
+		dict(document_type = ('in', bootinfo.user.can_read)))
+	bootinfo.routes.update({d.route:dict(doctype=d.document_type, doctype_layout=d.name) for d in doctype_layout_routes if d.route})
 
 def get_desk_settings():
 	role_list = frappe.get_all('Role', fields=['*'], filters=dict(
