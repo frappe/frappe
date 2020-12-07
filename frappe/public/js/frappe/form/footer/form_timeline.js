@@ -130,7 +130,7 @@ class FormTimeline extends BaseTimeline {
 				icon: 'mail',
 				icon_size: 'sm',
 				creation: communication.creation,
-				card: true,
+				is_card: true,
 				content: this.get_communication_timeline_content(communication),
 			});
 		});
@@ -151,7 +151,7 @@ class FormTimeline extends BaseTimeline {
 			comment_timeline_contents.push({
 				icon: 'small-message',
 				creation: comment.creation,
-				card: true,
+				is_card: true,
 				content: this.get_comment_timeline_content(comment),
 			});
 		});
@@ -248,7 +248,7 @@ class FormTimeline extends BaseTimeline {
 			custom_timeline_contents.push({
 				icon: custom_item.icon,
 				icon_size: 'sm',
-				card: custom_item.show_card,
+				is_card: custom_item.show_card,
 				creation: custom_item.creation,
 				content: custom_item.content || frappe.render_template(custom_item.template, custom_item.template_data),
 			});

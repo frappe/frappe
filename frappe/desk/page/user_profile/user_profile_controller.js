@@ -392,7 +392,7 @@ class UserProfile {
 					return {
 						icon: icon,
 						creation: data.creation,
-						card: true,
+						is_card: true,
 						content: frappe.energy_points.format_history_log(data),
 					};
 				});
