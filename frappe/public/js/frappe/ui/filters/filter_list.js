@@ -205,6 +205,7 @@ frappe.ui.FilterGroup = class {
 			condition: condition,
 			value: value,
 			hidden: hidden,
+			index: this.filters.length + 1,
 			on_change: (update) => {
 				if (update) this.update_filters();
 				this.on_change();

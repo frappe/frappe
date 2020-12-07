@@ -15,9 +15,7 @@
 		padding: var(--padding-xs) var(--padding-md) var(--padding-xs) 0;
 
 		.form-group {
-			@include media-breakpoint-up(xs) {
-				margin-bottom: 0;
-			}
+			margin-bottom: 0;
 		}
 
 		.remove-filter {
@@ -67,3 +65,30 @@
 		}
 	}
 }
+
+@include media-breakpoint-down(sm) {
+	.filter-popover {
+		min-width: 100%;
+		margin-left: -5px;
+	}
+
+	.filter-area {
+		.filter-box {
+			.form-group {
+				margin-bottom: 5px;
+			}
+
+			.remove-filter {
+				font-size: var(--text-sm);
+				color: var(--primary);
+			}
+
+			.filter-index {
+				font-size: var(--text-xs);
+				text-transform: uppercase;
+			}
+		}
+	}
+
+}
+

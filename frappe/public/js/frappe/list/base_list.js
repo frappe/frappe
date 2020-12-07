@@ -779,7 +779,7 @@ class FilterArea {
 				<span class="filter-icon">
 					${frappe.utils.icon('filter')}
 				</span>
-				<span class="button-label">
+				<span class="button-label hidden-xs">
 					${__("Filter")}
 				<span>
 			</button>
