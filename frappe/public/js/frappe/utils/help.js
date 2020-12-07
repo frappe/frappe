@@ -24,6 +24,7 @@ frappe.help.show_video = function (youtube_id, title) {
 	// (frappe.help_feedback_link || "")
 	let dialog = new frappe.ui.Dialog({
 		title: title || __("Help"),
+		size: 'large'
 	});
 
 	let video = $(`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${youtube_id}"></div>`);
