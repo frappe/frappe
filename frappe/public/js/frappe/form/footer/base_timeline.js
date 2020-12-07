@@ -40,20 +40,34 @@ class BaseTimeline {
 		this.timeline_items_wrapper.empty();
 		this.timeline_items = [];
 		this.doc_info = this.frm && this.frm.get_docinfo() || {};
-		this.prepare_timeline_contents();
-
-		this.timeline_items.sort((item1, item2) => new Date(item1.creation) - new Date(item2.creation));
-		this.timeline_items.forEach(this.add_timeline_item.bind(this));
+		let response = this.prepare_timeline_contents();
+		if (response instanceof Promise) {
+			response.then(() => {
+				this.timeline_items.sort((item1, item2) => new Date(item1.creation) - new Date(item2.creation));
+				this.timeline_items.forEach(this.add_timeline_item.bind(this));
+			});
+		} else {
+			this.timeline_items.sort((item1, item2) => new Date(item1.creation) - new Date(item2.creation));
+			this.timeline_items.forEach(this.add_timeline_item.bind(this));
+		}
 	}
 
 	prepare_timeline_contents() {
 		//
 	}
 
-	add_timeline_item(item) {
+	add_timeline_item(item, append_at_the_end=false) {
 		let timeline_item = this.get_timeline_item(item);
-		this.timeline_items_wrapper.prepend(timeline_item);
+		if (append_at_the_end) {
+			this.timeline_items_wrapper.append(timeline_item);
+		} else {
+			this.timeline_items_wrapper.prepend(timeline_item);
+		}
 		return timeline_item;
+	}
+
+	add_timeline_items(items, append_at_the_end=false) {
+		items.forEach((item) => this.add_timeline_item(item, append_at_the_end));
 	}
 
 	get_timeline_item(item) {
