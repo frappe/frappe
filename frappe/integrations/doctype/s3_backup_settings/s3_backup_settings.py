@@ -24,6 +24,7 @@ class S3BackupSettings(Document):
 
 		if not self.endpoint_url:
 			self.endpoint_url = 'https://s3.amazonaws.com'
+
 		conn = boto3.client(
 			's3',
 			aws_access_key_id=self.access_key_id,
@@ -31,25 +32,21 @@ class S3BackupSettings(Document):
 			endpoint_url=self.endpoint_url
 		)
 
-		bucket_lower = str(self.bucket)
-
-		try:
-			conn.list_buckets()
-
-		except ClientError:
-			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
-
 		try:
 			# Head_bucket returns a 200 OK if the bucket exists and have access to it.
-			conn.head_bucket(Bucket=bucket_lower)
+			# Requires ListBucket permission
+			conn.head_bucket(Bucket=self.bucket)
 		except ClientError as e:
 			error_code = e.response['Error']['Code']
+			bucket_name = frappe.bold(self.bucket)
 			if error_code == '403':
-				frappe.throw(_("Do not have permission to access {0} bucket.").format(bucket_lower))
-			else:   # '400'-Bad request or '404'-Not Found return
-				# try to create bucket
-				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
-					'LocationConstraint': self.region})
+				msg = _("Do not have permission to access bucket {0}.").format(bucket_name)
+			elif error_code == '404':
+				msg = _("Bucket {0} not found.").format(bucket_name)
+			else:
+				msg = e.args[0]
+
+			frappe.throw(msg)
 
 
 @frappe.whitelist()
@@ -136,20 +133,29 @@ def backup_to_s3():
 	upload_file_to_s3(db_filename, folder, conn, bucket)
 	upload_file_to_s3(site_config, folder, conn, bucket)
 	if backup_files:
+<<<<<<< HEAD
 		upload_file_to_s3(private_files, folder, conn, bucket)
 		upload_file_to_s3(files_filename, folder, conn, bucket)
 	delete_old_backups(doc.backup_limit, bucket)
+=======
+		if private_files:
+			upload_file_to_s3(private_files, folder, conn, bucket)
+
+		if files_filename:
+			upload_file_to_s3(files_filename, folder, conn, bucket)
+>>>>>>> fc97e080c6... feat: remove useless functionality
 
 
 def upload_file_to_s3(filename, folder, conn, bucket):
 	destpath = os.path.join(folder, os.path.basename(filename))
 	try:
 		print("Uploading file:", filename)
-		conn.upload_file(filename, bucket, destpath)
+		conn.upload_file(filename, bucket, destpath) # Requires PutObject permission
 
 	except Exception as e:
 		frappe.log_error()
 		print("Error uploading: %s" % (e))
+<<<<<<< HEAD
 
 
 def delete_old_backups(limit, bucket):
@@ -176,3 +182,5 @@ def delete_old_backups(limit, bucket):
 		for obj in bucket.objects.filter(Prefix=oldest_backup):
 			# delete all keys that are inside the oldest_backup
 			s3.Object(bucket.name, obj.key).delete()
+=======
+>>>>>>> fc97e080c6... feat: remove useless functionality
