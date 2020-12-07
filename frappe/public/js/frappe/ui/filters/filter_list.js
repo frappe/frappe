@@ -44,7 +44,7 @@ frappe.ui.FilterGroup = class {
 		$(document.body).on('click', (e) => {
 			if (this.wrapper && this.wrapper.is(':visible')) {
 				const in_datepicker = $(e.target).is('.datepicker--cell')
-					|| $(e.target).is('.datepicker--nav-title')
+					|| $(e.target).closest('.datepicker--nav-title').length !== 0
 					|| $(e.target).parents('.datepicker--nav-action').length !== 0;
 
 				if (
