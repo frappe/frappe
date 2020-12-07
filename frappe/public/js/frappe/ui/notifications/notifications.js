@@ -25,10 +25,10 @@ frappe.ui.Notifications = class Notifications {
 
 		this.setup_headers();
 		let me = this;
-		frappe.search.utils.make_function_searchable(
-			me.route_to_settings,
-			__('Notification Settings'),
-		);
+		// frappe.search.utils.make_function_searchable(
+		// 	frappe.set_route('Form', 'Notification Settings', frappe.session.user),
+		// 	__('Notification Settings'),
+		// );
 
 		// this.setup_notifications();
 		this.setup_dropdown_events();
@@ -40,8 +40,11 @@ frappe.ui.Notifications = class Notifications {
 		$(`<span class="notification-settings pull-right" data-action="go_to_settings">
 			${frappe.utils.icon('setting-gear')}
 		</span>`)
-			.on('click', (e) => this.go_to_settings(e))
-			.appendTo(this.header_actions);
+			.on('click', (e) => {
+				e.stopImmediatePropagation();
+				this.dropdown.dropdown('hide');
+				frappe.set_route('Form', 'Notification Settings', frappe.session.user);
+			}).appendTo(this.header_actions);
 
 		$(`<span class="mark-all-read pull-right" data-action="mark_all_as_read">
 			${frappe.utils.icon('mark-as-read')}
@@ -115,44 +118,12 @@ frappe.ui.Notifications = class Notifications {
 		this.tabs[item.id] = tabView;
 	}
 
-	go_to_settings(e) {
-		e.stopImmediatePropagation();
-		this.dropdown.dropdown('hide');
-		this.route_to_settings();
-	}
-
-	route_to_settings() {
-		frappe.set_route('Form', 'Notification Settings', frappe.session.user);
-	}
-
 	mark_all_as_read(e) {
 		e.stopImmediatePropagation();
 		this.dropdown_list.find('.unread').removeClass('unread');
 		frappe.call(
 			'frappe.desk.doctype.notification_log.notification_log.mark_all_as_read',
 		);
-	}
-
-	set_field_as_read(docname, $el) {
-		frappe.call(
-			'frappe.desk.doctype.notification_log.notification_log.mark_as_read',
-			{ docname: docname }
-		).then(() => {
-			$el.removeClass('unread');
-		});
-	}
-
-	explicitly_mark_as_read(e, $target) {
-		e.preventDefault();
-		e.stopImmediatePropagation();
-		let docname = $target.parents('.unread').attr('data-name');
-		this.set_field_as_read(docname, $target.parents('.unread'));
-	}
-
-	mark_as_read(e, $target) {
-		let docname = $target.attr('data-name');
-		let df = this.dropdown_items.filter(f => docname.includes(f.name))[0];
-		this.set_field_as_read(df.name, $target);
 	}
 
 	setup_dropdown_events() {
@@ -262,6 +233,7 @@ class NotificationsView extends BaseNotificaitonsView {
 	}
 
 	mark_as_read(docname, $el) {
+		console.log("SCAM")
 		frappe.call(
 			'frappe.desk.doctype.notification_log.notification_log.mark_as_read',
 			{ docname: docname }
@@ -280,7 +252,8 @@ class NotificationsView extends BaseNotificaitonsView {
 	get_dropdown_item_html(field) {
 		let doc_link = this.get_item_link(field);
 
-		let read_class = field.read ? '' : 'unread';
+		// let read_class = field.read ? '' : 'unread';
+		let read_class = 'unread';
 		let message = field.subject;
 
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
