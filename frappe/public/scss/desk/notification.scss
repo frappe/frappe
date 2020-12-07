@@ -47,7 +47,7 @@
 }
 
 .notifications-list {
-	min-width: 480px;
+	width: 480px;
 	padding: 0px 10px;
 	min-height: 560px;
 	border: none;
@@ -302,16 +302,14 @@
 	margin-bottom: 15px;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 576px) {
 
 	.dropdown-notifications {
 		.notifications-list {
 			max-height: 100vh;
-			min-width: 100vw;
-		}
-
-		.category-list[data-category="Open Documents"] li a {
-			margin: 0 15px;
+			min-width: 330px;
+			width: calc(90vw - 60px);
+			right: -30px;
 		}
 
 		.recent-item .user-avatar {
