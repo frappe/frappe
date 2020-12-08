@@ -74,17 +74,6 @@ h5.modal-title {
 		}
 	}
 
-	@include media-breakpoint-up(md) {
-		.modal-dialog {
-			width: 575px;
-			max-width: 575px;
-			&.modal-lg {
-				width: 800px;
-				max-width: unquote("min(80vw, 800px)")
-			}
-		}
-	}
-
 	.form-section {
 		padding: var(--padding-sm) 0;
 
@@ -182,5 +171,27 @@ h5.modal-title {
 				height: calc(1.5em + .75rem + 2px);
 			}
 		}
+	}
+}
+
+.dialog-assignment-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 5px 15px;
+	border-radius: var(--border-radius-md);
+	margin-bottom: 5px;
+	@extend .row;
+	.remove-btn {
+		display: none;
+	}
+	&:hover {
+		background: var(--gray-100);
+		.remove-btn {
+			display: block;
+		}
+	}
+	.avatar {
+		margin-right: var(--margin-md);
 	}
 }

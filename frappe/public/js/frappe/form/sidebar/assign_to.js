@@ -6,7 +6,7 @@
 frappe.ui.form.AssignTo = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.btn = this.parent.find(".add-assignment-btn > button").on("click", () => this.add());
+		this.btn = this.parent.find(".add-assignment-btn").on("click", () => this.add());
 		this.btn_wrapper = this.btn.parent();
 
 		this.refresh();
@@ -32,22 +32,21 @@ frappe.ui.form.AssignTo = Class.extend({
 			this.dialog.hide();
 		}
 
-		let add_assignment_button = this.parent.find('.add-assignment-btn');
-		assignments.forEach(assignment => {
-			let user_info = frappe.user_info(assignment.owner);
-			user_info.assign_to_name = assignment.name;
-			user_info.owner = assignment.owner;
-			user_info.avatar = frappe.avatar(assignment.owner);
-			user_info.description = assignment.description || "";
+		let assignments_wrapper = this.parent.find('.assignments');
 
-			this.get_assignment_block(user_info).insertBefore(add_assignment_button);
-			if (assignment.owner === frappe.session.user) {
-				this.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), () => {
-					this.remove(frappe.session.user);
-				}, "fa fa-check", "btn-success");
-			}
+		assignments_wrapper.empty();
+		let assigned_users = assignments.map(d => d.owner);
+		let avatar_group = frappe.avatar_group(assigned_users, 5, {'align': 'left', 'overlap': true});
+
+		assignments_wrapper.append(avatar_group);
+
+		avatar_group.click(() => {
+			new frappe.ui.form.AssignmentDialog({
+				assignments: assigned_users,
+				frm: this.frm,
+				remove_action: this.remove.bind(this)
+			});
 		});
-
 	},
 	get_assignment_block(info) {
 		let remove_action = false;
@@ -85,23 +84,17 @@ frappe.ui.form.AssignTo = Class.extend({
 		me.assign_to.dialog.show();
 	},
 	remove: function(owner) {
-		var me = this;
-
-		if(this.frm.is_new()) {
+		if (this.frm.is_new()) {
 			frappe.throw(__("Please save the document before removing assignment"));
 			return;
 		}
 
-		frappe.call({
-			method:'frappe.desk.form.assign_to.remove',
-			args: {
-				doctype: me.frm.doctype,
-				name: me.frm.docname,
-				assign_to: owner
-			},
-			callback:function(r,rt) {
-				me.render(r.message);
-			}
+		return frappe.xcall('frappe.desk.form.assign_to.remove', {
+			doctype: this.frm.doctype,
+			name: this.frm.docname,
+			assign_to: owner
+		}).then((assignments) => {
+			this.render(assignments);
 		});
 	}
 });
@@ -236,27 +229,17 @@ frappe.ui.form.AssignToDialog = Class.extend({
 
 frappe.ui.form.AssignmentDialog = class {
 	constructor(opts) {
-		// this.frm = opts.frm;
+		this.frm = opts.frm;
 		this.assignments = opts.assignments;
+		this.remove_action = opts.remove_action;
 		this.make();
 	}
 
 	make() {
 		this.dialog = new frappe.ui.Dialog({
-			title: __('Assign Users'),
+			title: __('Assigned To'),
+			size: 'small',
 			fields: [{
-				'fieldtype': 'Link',
-				'fieldname': 'selected_user',
-				'options': 'User',
-				'label': 'User',
-				'change': () => {
-					let user = this.dialog.get_value('selected_user');
-					if (user && user !== '') {
-						this.update_assignment(user);
-						this.dialog.set_value('selected_user', null);
-					}
-				}
-			}, {
 				'fieldtype': 'HTML',
 				'fieldname': 'assignment_list'
 			}]
@@ -279,14 +262,20 @@ frappe.ui.form.AssignmentDialog = class {
 					${frappe.avatar(assignment)}
 					${frappe.user.full_name(assignment)}
 				</span>
-				<span class="remove-btn">
-					${frappe.utils.icon('close')}
-				</span>
 			</div>
 		`);
-		row.find('.remove-btn').click(() => {
-			row.remove();
-		});
+
+		if (assignment === frappe.session.user || this.frm.perm[0].write) {
+			row.append(`
+				<span class="remove-btn cursor-pointer">
+					${frappe.utils.icon('close')}
+				</span>
+			`);
+			row.find('.remove-btn').click(() => {
+				this.remove_action && this.remove_action(assignment);
+				row.remove();
+			});
+		}
 		return row;
 	}
 };

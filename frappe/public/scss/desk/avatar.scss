@@ -158,6 +158,7 @@
 	display: inline-flex;
 	align-items: center;
 	flex-direction: row-reverse;
+	cursor: pointer;
 
 	&.right {
 		justify-content: flex-start;

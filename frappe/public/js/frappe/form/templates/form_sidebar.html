@@ -50,14 +50,10 @@
 		<svg class="icon icon-sm"><use href="#icon-assign"></use></svg>
 		{%= __("Assigned To") %}
 	</li>
-	<li class="add-assignment-btn">
-		<button class="data-pill btn">
-			<span class="pill-label ellipsis">
-				{%= __("Assign to someone") %}
-			</span>
-			<svg class="icon icon-sm">
-				<use href="#icon-add"></use>
-			</svg>
+	<li class="flex flex-wrap">
+		<span class="assignments"></span>
+		<button class="text-muted btn btn-default icon-btn add-assignment-btn">
+			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
 		</button>
 	</li>
 </ul>
