@@ -18,12 +18,8 @@ $threshold: 34;
 }
 
 .new-timeline {
-	--timeline-item-icon-size: 34px;
-	--timeline-item-left-margin: var(--margin-xl);
-	--timeline-item-bottom-margin: var(--margin-sm);
-
 	position: relative;
-	padding-left: calc(var(--padding-xl) + var(--timeline-item-icon-size)/2);
+	padding-left: var(--timeline-left-padding);
 	padding-top: var(--padding-lg);
 
 	@include media-breakpoint-down(xs) {
@@ -32,7 +28,7 @@ $threshold: 34;
 
 	&:before {
 		content: ' ';
-		top: 45px;
+		top: 25px;
 		position: absolute;
 		border-left: 1px solid var(--dark-border-color);
 		bottom: calc(-1 * var(--timeline-item-bottom-margin));
@@ -92,7 +88,7 @@ $threshold: 34;
 			font-weight: var(--text-bold);
 		}
 		.timeline-content {
-			max-width: 700px;
+			max-width: var(--timeline-content-max-width);
 			padding: var(--padding-sm);
 			margin-left: var(--timeline-item-left-margin);
 			&.frappe-card {
