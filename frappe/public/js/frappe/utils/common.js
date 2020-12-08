@@ -1,6 +1,6 @@
 // common file between desk and website
 
-frappe.avatar = function (user, css_class, title, image_url = null, remove_color=false, filterable=false) {
+frappe.avatar = function (user, css_class, title, image_url=null, remove_color=false, filterable=false) {
 	let user_info;
 	if (user) {
 		// desk
@@ -21,11 +21,11 @@ frappe.avatar = function (user, css_class, title, image_url = null, remove_color
 	}
 
 	return frappe.get_avatar(
-		user, css_class, title, image_url || user_info.image, remove_color=remove_color, filterable=filterable
+		user, css_class, title, image_url || user_info.image, remove_color, filterable
 	);
 };
 
-frappe.get_avatar = function(user, css_class, title, image_url = null, remove_color, filterable) {
+frappe.get_avatar = function(user, css_class, title, image_url=null, remove_color, filterable) {
 	let data_attr = '';
 
 	if (!css_class) {
@@ -64,40 +64,43 @@ frappe.get_avatar = function(user, css_class, title, image_url = null, remove_co
 	}
 }
 
-frappe.avatar_group = function (users, limit = 4, options = {}) {
-	let icon_html = '';
+frappe.avatar_group = function (users, limit=4, options = {}) {
+	let avatar_action_html = '';
 	const display_users = users.slice(0, limit);
 	const extra_users = users.slice(limit);
+	const css_class = options.css_class || '';
 
 	let html = display_users.map(user =>
-		frappe.avatar(user, 'avatar-small ' + options.css_class, null, null, false, options.filterable)
+		frappe.avatar(user, 'avatar-small ' + css_class, null, null, false, options.filterable)
 	).join('');
 	if (extra_users.length === 1) {
-		html += frappe.avatar(extra_users[0], 'avatar-small ' + options.css_class, null, null, false, options.filterable);
+		html += frappe.avatar(extra_users[0], 'avatar-small ' + css_class, null, null, false, options.filterable);
 	} else if (extra_users.length > 1) {
 		html = `
-			<span class="avatar avatar-small ${options.css_class}">
+			${html}
+			<span class="avatar avatar-small ${css_class}">
 				<div class="avatar-frame standard-image avatar-extra-count"
 					title="${extra_users.map(u => frappe.user_info(u).fullname).join(', ')}">
 					+${extra_users.length}
 				</div>
 			</span>
-			${html}
 		`;
 	}
 
 	if (options.action_icon) {
-		icon_html = `<span class="avatar avatar-small avatar avatar-small">
-			<div class="avatar-frame avatar-action">
+		avatar_action_html = `
+			<span class="avatar avatar-small">
+				<div class="avatar-frame avatar-action">
 					${frappe.utils.icon(options.action_icon, 'sm')}
-			</div>
-		</span>`;
+				</div>
+			</span>
+		`;
 	}
 
 	const $avatar_group =
 		$(`<div class="avatar-group ${options.align || 'right'} ${options.overlap != false ? 'overlap' : ''}">
-			${icon_html}
 			${html}
+			${avatar_action_html}
 		</div>`);
 
 	$avatar_group.find('.avatar-action').on('click', options.action);

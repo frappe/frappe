@@ -1,7 +1,7 @@
 :root {
 	--avatar-frame-color: var(--gray-500);
 	--avatar-frame-bg: var(--gray-100);
-	--avatar-frame-border: var(--gray-100);
+	--avatar-frame-border: var(--gray-50);
 
 	--orange-avatar-bg: var(--orange-100);
 	--orange-avatar-color: var(--orange-600);
@@ -157,7 +157,6 @@
 .avatar-group {
 	display: inline-flex;
 	align-items: center;
-	flex-direction: row-reverse;
 	cursor: pointer;
 
 	&.right {
@@ -168,12 +167,13 @@
 	}
 
 	.avatar-action {
-		width: 100%;
-		height: 100%;
+		@extend .avatar-small;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		background-color: var(--control-bg);
+		border-radius: 50%;
+		cursor: pointer !important;
 
 		.icon {
 			use {
@@ -187,10 +187,6 @@
 		.avatar-frame {
 			border: 1px solid var(--avatar-frame-border);
 		}
-
-		&:not(.avatar-extra-count):hover {
-			z-index: 99;
-		}
 	}
 
 	.avatar-extra-count {
@@ -200,13 +196,13 @@
 		background-color: var(--blue-500);
 	}
 
-	.avatar {
+	.avatar:last-child {
 		margin-right: var(--margin-xs);
 	}
 
 	&.overlap {
 		.avatar + .avatar {
-			margin-right: calc(-1 * var(--margin-sm));
+			margin-left: calc(-1 * var(--margin-sm));
 		}
 	}
 }
