@@ -161,10 +161,13 @@
 
 	&.right {
 		justify-content: flex-start;
+		margin-left: var(--margin-xs);
 	}
 	&.left {
 		justify-content: flex-end;
+		margin-right: var(--margin-xs);
 	}
+
 
 	.avatar-action {
 		@extend .avatar-small;
@@ -172,7 +175,6 @@
 		justify-content: center;
 		align-items: center;
 		background-color: var(--control-bg);
-		border-radius: 50%;
 		cursor: pointer !important;
 
 		.icon {
@@ -194,10 +196,6 @@
 		font-weight: 500;
 		color: $white;
 		background-color: var(--blue-500);
-	}
-
-	.avatar:last-child {
-		margin-right: var(--margin-xs);
 	}
 
 	&.overlap {
