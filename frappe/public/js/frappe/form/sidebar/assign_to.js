@@ -246,6 +246,7 @@ frappe.ui.form.AssignmentDialog = class {
 		});
 
 		this.assignment_list = $(this.dialog.get_field('assignment_list').wrapper);
+		this.assignment_list.removeClass('frappe-control');
 
 		this.assignments.forEach(assignment => {
 			this.update_assignment(assignment);
