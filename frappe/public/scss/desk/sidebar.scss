@@ -417,11 +417,6 @@ body[data-route^="Module"] .main-menu {
 	display: inline-flex;
 }
 
-.reviews {
-	display: flex;
-	flex-wrap: wrap;
-}
-
 button.data-pill {
 	.icon {
 		margin-left: var(--margin-xs);
@@ -440,12 +435,15 @@ button.data-pill {
 
 .add-attachment-btn,
 .shares,
-.share-doc-btn,
-.followed-by,
-.add-review-btn,
-.add-assignment-btn {
+.followed-by {
 	max-width: 100%;
 	display: block;
+}
+
+.add-review-btn,
+.share-doc-btn,
+.add-assignment-btn {
+	border-radius: 50%;
 }
 
 .form-reviews {
