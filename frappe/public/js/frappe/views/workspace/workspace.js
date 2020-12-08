@@ -203,16 +203,9 @@ frappe.views.Workspace = class Workspace {
 
 	show_or_hide_sidebar() {
 		let show_workspace_sidebar = JSON.parse(localStorage.show_workspace_sidebar || "true");
-		$('#page-workspace .layout-main-section-wrapper').toggleClass("col-md-12", !show_workspace_sidebar);
-		$('#page-workspace .layout-main-section-wrapper').toggleClass("col-lg-12", !show_workspace_sidebar);
 		$('#page-workspace .layout-side-section').toggleClass('hidden', !show_workspace_sidebar);
-
-		$('#page-workspace .layout-main-section-wrapper').toggleClass("col-md-10", show_workspace_sidebar);
-		$('#page-workspace .layout-main-section-wrapper').toggleClass("col-lg-10", show_workspace_sidebar);
-
-		// $(document.body).toggleClass("no-sidebar", !show_desk_sidebar);
 	}
-}
+};
 
 class DesktopPage {
 	constructor({ container, page_name }) {
