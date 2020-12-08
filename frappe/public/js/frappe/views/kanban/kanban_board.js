@@ -597,6 +597,7 @@ frappe.provide("frappe.views");
 
 		function show_assign_to_dialog(e) {
 			e.preventDefault();
+			e.stopPropagation();
 			self.assign_to = new frappe.ui.form.AssignToDialog({
 				obj: self,
 				method: 'frappe.desk.form.assign_to.add',
