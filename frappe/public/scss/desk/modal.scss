@@ -131,6 +131,12 @@ h5.modal-title {
 	.modal-body, .modal-footer {
 		display: none;
 	}
+
+	@include media-breakpoint-down(sm) {
+		.modal-actions {
+			display: none;
+		}
+	}
 }
 
 /* msgprint dialog */
