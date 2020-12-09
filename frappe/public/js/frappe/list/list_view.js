@@ -905,7 +905,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let escaped_subject = frappe.utils.escape_html(subject);
 
 		const seen = this.get_seen_class(doc);
-		console.log(this.get_form_link(doc));
 
 		let subject_html = `
 			<input class="level-item list-row-checkbox hidden-xs" type="checkbox"

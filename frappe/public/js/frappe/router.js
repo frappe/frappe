@@ -60,8 +60,9 @@ $('body').on('click', 'a', function(e) {
 
 frappe.router = {
 	current_route: null,
+	routes: {},
 	factory_views: ['form', 'list', 'report', 'tree', 'print', 'dashboard'],
-	list_views: ['list', 'kanban', 'report', 'calendar', 'tree', 'gantt', 'dashboard'],
+	list_views: ['list', 'kanban', 'report', 'calendar', 'tree', 'gantt', 'dashboard', 'image', 'inbox'],
 	layout_mapped: {},
 
 	is_app_route() {
@@ -71,6 +72,18 @@ frappe.router = {
 		path = path.split('/');
 		if (path[0]) {
 			return path[0]==='app';
+		}
+	},
+
+	setup() {
+		// setup the route names by forming slugs of the given doctypes
+		for(let doctype of frappe.boot.user.can_read) {
+			this.routes[this.slug(doctype)] = {doctype: doctype};
+		}
+		if (frappe.boot.doctype_layouts) {
+			for (let doctype_layout of frappe.boot.doctype_layouts) {
+				this.routes[this.slug(doctype_layout.name)] = {doctype: doctype_layout.document_type, doctype_layout: doctype_layout.name };
+			}	
 		}
 	},
 
@@ -105,12 +118,12 @@ frappe.router = {
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		let standard_route = route;
-		let doctype_route = frappe.boot.routes[route[0]];
+		let doctype_route = this.routes[route[0]];
 
 		if (doctype_route) {
 			// doctype route
 			if (route[1]) {
-				if (route[2] && route[1]==='views') {
+				if (route[2] && route[1]==='view') {
 					if (route[2].toLowerCase()==='tree') {
 						standard_route = ['Tree', doctype_route.doctype];
 					} else {
@@ -182,11 +195,11 @@ frappe.router = {
 	re_route(sub_path) {
 		if (frappe.re_route[sub_path] !== undefined) {
 			// after saving a doc, for example,
-			// "New DocType 1" and the renamed "TestDocType", both exist in history
+			// "new-doctype-1" and the renamed "TestDocType", both exist in history
 			// now if we try to go back,
-			// it doesn't allow us to go back to the one prior to "New DocType 1"
+			// it doesn't allow us to go back to the one prior to "new-doctype-1"
 			// Hence if this check is true, instead of changing location hash,
-			// we just do a back to go to the doc previous to the "New DocType 1"
+			// we just do a back to go to the doc previous to the "new-doctype-1"
 			var re_route_val = this.get_sub_path(frappe.re_route[sub_path]);
 			if (decodeURIComponent(re_route_val) === decodeURIComponent(sub_path)) {
 				window.history.back();
@@ -377,7 +390,7 @@ frappe.router = {
 // global functions for backward compatibility
 frappe.get_route = () => frappe.router.current_route;
 frappe.get_route_str = () => frappe.router.current_route.join('/');
-frappe.set_route = function() { frappe.router.set_route.apply(frappe.router, arguments) };
+frappe.set_route = function() { return frappe.router.set_route.apply(frappe.router, arguments) };
 
 frappe.get_prev_route = function() {
 	if (frappe.route_history && frappe.route_history.length > 1) {
