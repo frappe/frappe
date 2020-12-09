@@ -42,8 +42,8 @@ frappe.ui.Page = Class.extend({
 	make: function() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_sidebar_toggle();
 		this.setup_scroll_handler();
+		this.setup_sidebar_toggle();
 	},
 
 	setup_scroll_handler() {
@@ -158,12 +158,22 @@ frappe.ui.Page = Class.extend({
 	setup_sidebar_toggle() {
 		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
 		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
-		sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip();
-		if (sidebar_wrapper.length) {
-			sidebar_toggle.click(() => sidebar_wrapper.toggle());
+		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
+			sidebar_toggle.remove();
 		} else {
-			sidebar_toggle.hide();
+			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip();
+			sidebar_toggle.click(() => {
+				sidebar_wrapper.toggle();
+				this.update_sidebar_icon();
+			});
 		}
+	},
+
+	update_sidebar_icon() {
+		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
+		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
+		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
+		sidebar_toggle.html(frappe.utils.icon(is_sidebar_visible ? 'sidebar-collapse' : 'sidebar-expand', 'md'));
 	},
 
 	set_indicator: function(label, color) {
