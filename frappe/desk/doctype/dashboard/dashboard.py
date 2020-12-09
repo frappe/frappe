@@ -59,7 +59,7 @@ def get_permission_query_conditions(user):
 	module_condition =  '`tabDashboard`.`module` in ({allowed_modules}) or `tabDashboard`.`module` is NULL'.format(
 		allowed_modules=','.join(allowed_modules))
 
-	return '{module_condition}'.format(module_condition=module_condition)
+	return module_condition
 
 @frappe.whitelist()
 def get_permitted_charts(dashboard_name):
