@@ -831,8 +831,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			</span>`;
 
 		html += `
-			<div class="level-item list-row-activity">
-
+			<div class="level-item list-row-activity hidden-xs">
 				${settings_button || assigned_to}
 				${modified}
 				${comment_count}
