@@ -25,7 +25,7 @@
 
 .collapse-indicator {
 	padding: 0px 5px;
-    color: #d1d8dd;
+	color: #d1d8dd;
 }
 
 .open-doc-count {
@@ -302,14 +302,13 @@
 	margin-bottom: 15px;
 }
 
-@media (max-width: 576px) {
-
+@include media-breakpoint-down(sm) {
 	.dropdown-notifications {
 		.notifications-list {
 			max-height: 100vh;
-			min-width: 330px;
+			min-width: 100vw;
 			width: calc(90vw - 60px);
-			right: -30px;
+			right: -68px;
 		}
 
 		.recent-item .user-avatar {
