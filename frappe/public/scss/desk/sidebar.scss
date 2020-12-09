@@ -189,8 +189,14 @@ body[data-route^="Module"] .main-menu {
 
 .layout-side-section .form-sidebar {
 	.modified-by,
+	.created-by,
 	.pageview-count {
-		margin-bottom: 15px;
+		font-size: var(--text-sm);
+	}
+
+	.modified-by,
+	.pageview-count {
+		margin-bottom: var(--margin-md);
 	}
 }
 
@@ -405,7 +411,6 @@ body[data-route^="Module"] .main-menu {
 	margin-top: 15px;
 }
 
-.assignment-row,
 .attachment-row,
 .form-tag-row {
 	margin-bottom: var(--margin-sm);
