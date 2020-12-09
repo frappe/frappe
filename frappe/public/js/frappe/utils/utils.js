@@ -979,17 +979,42 @@ Object.assign(frappe.utils, {
 		return route;
 	},
 
-	shorten_number: function (number, country) {
-		country = (country == 'India') ? country : '';
+	shorten_number: function (number, country, min_length=4, max_no_of_decimals=2) {
+		/* returns the number as an abbreviated string
+		 * PARAMS
+		 *  number - number to be shortened
+		 *  country - country that determines the numnber system to be used
+		 *  min_length - length below which the number will not be shortened
+		 *	max_no_of_decimals - max number of decimals of the shortened number
+		*/
+
+		// return number if total digits is lesser than min_length
+		const len = String(number).match(/\d/g).length;
+		if (len < min_length) return number.toString();
+
 		const number_system = this.get_number_system(country);
 		let x = Math.abs(Math.round(number));
 		for (const map of number_system) {
-			const condition = map.condition ? map.condition(x) : x >= map.divisor;
-			if (condition) {
-				return (number/map.divisor).toFixed(2) + ' ' + map.symbol;
+			if (x >= map.divisor) {
+				let result = number/map.divisor;
+				const no_of_decimals = this.get_number_of_decimals(result);
+				/*
+					If no_of_decimals is greater than max_no_of_decimals,
+					round the number to max_no_of_decimals
+				*/
+				result = no_of_decimals > max_no_of_decimals
+					? result.toFixed(max_no_of_decimals)
+					: result;
+				return result + ' ' + map.symbol;
 			}
 		}
-		return number.toFixed();
+
+		return number.toFixed(max_no_of_decimals);
+	},
+
+	get_number_of_decimals: function (number) {
+		if (Math.floor(number) === number) return 0;
+		return number.toString().split(".")[1].length || 0;
 	},
 
 	get_number_system: function (country) {
@@ -1019,9 +1044,11 @@ Object.assign(frappe.utils, {
 				{
 					divisor: 1.0e+3,
 					symbol: 'K',
-					condition: (num) => num.toFixed().length > 5
 				}]
 		};
+
+		if (!Object.keys(number_system_map).includes(country)) country = '';
+
 		return number_system_map[country];
 	},
 });
