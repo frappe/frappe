@@ -243,66 +243,38 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		}
 	}
 
-	get_item_html(d, draggable) {
-		const icon_class = d.icon_class + '-large';
-		let file_body_html =
-			d._type == 'image'
+	render_grid_view() {
+		let html = this.data.map(d => {
+			const icon_class = d.icon_class + '-large';
+			let file_body_html = d._type == 'image'
 				? `<div class="file-image"><img src="${d.file_url}" alt="${
 						d.file_name
-				  }"></div>`
+				}"></div>`
 				: frappe.utils.icon(icon_class, { width: '40px', height: '45px' });
-		const name = escape(d.name);
-		return `
-			<div draggable="${draggable}" class="file-wrapper ellipsis" data-name="${name}">
-				<div class="file-header">
-					<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${name}">
-				</div>
-				<div class="file-body">
-					${file_body_html}
-				</div>
-				<div class="file-footer">
-					<a href="${this.get_route_url(d)}" class="file-title ellipsis">${d._title}</a>
-					<div class="file-creation">${this.get_creation_date(d)}</div>
-				</div>
-			</div>
-		`;
-	}
-
-	render_grid_view() {
-		let folders_html = '';
-		let files_html = '';
-
-		this.data.map((d) => {
-			d = this.prepare_datum(d);
-			if (d._type == 'folder') folders_html += this.get_item_html(d, false);
-			else files_html += this.get_item_html(d, true);
-		});
-
-		let get_html = (type, body_html) => {
-			if (body_html) {
-				const title = frappe.model.unscrub(type);
-				return `<div class="level list-subject file-grid-head">
-					<input
-						class="level-item hidden-xs"
-						type="checkbox" data-parent="${type}"
-						title="${__(title)}"
-					>
-					<span class="level-item"> ${__(title)} </span>
-				</div>
-				<div class="${type} file-grid">
-					${body_html}
-				</div>`;
-			}
-			return '';
-		};
-
-		let html = `<div>
-			${get_html('folders', folders_html)}
-			${get_html('files', files_html)}
-		</div>`;
+			const name = escape(d.name);
+			const draggable = d.type == 'Folder' ? false : true;
+			return `
+				<a href="${this.get_route_url(d)}" draggable="${draggable}" class="file-wrapper ellipsis" data-name="${name}">
+					<div class="file-header">
+						<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${name}">
+					</div>
+					<div class="file-body">
+						${file_body_html}
+					</div>
+					<div class="file-footer">
+						<div class="file-title ellipsis">${d._title}</div>
+						<div class="file-creation">${this.get_creation_date(d)}</div>
+					</div>
+				</a>
+			`;
+		}).join('');
 
 		this.$result.addClass('file-grid-view');
-		this.$result.empty().html(html);
+		this.$result.empty().html(
+			`<div class="file-grid">
+				${html}
+			</div>`
+		);
 	}
 
 	get_breadcrumbs_html() {
