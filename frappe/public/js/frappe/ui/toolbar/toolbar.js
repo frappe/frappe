@@ -18,7 +18,7 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 
 	make () {
-		this.setup_sidebar();
+		// this.setup_sidebar();
 		this.setup_help();
 
 		this.bind_events();
@@ -44,41 +44,6 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 	}
 
-	setup_sidebar () {
-		var header = $('header');
-		header.find(".toggle-sidebar").on("click", function() {
-			var layout_side_section = $('.layout-side-section');
-			var overlay_sidebar = layout_side_section.find('.overlay-sidebar');
-
-			overlay_sidebar.addClass('opened');
-			overlay_sidebar.find('.reports-dropdown')
-				.removeClass('dropdown-menu')
-				.addClass('list-unstyled');
-			overlay_sidebar.find('.dropdown-toggle')
-				.addClass('text-muted').find('.caret')
-				.addClass('hidden-xs hidden-sm');
-
-			$('<div class="close-sidebar">').hide().appendTo(layout_side_section).fadeIn();
-
-			var scroll_container = $('html');
-			scroll_container.css("overflow-y", "hidden");
-
-			layout_side_section.find(".close-sidebar").on('click', close_sidebar);
-			layout_side_section.on("click", "a:not(.dropdown-toggle)", close_sidebar);
-
-			function close_sidebar(e) {
-				scroll_container.css("overflow-y", "");
-
-				layout_side_section.find("div.close-sidebar").fadeOut(function() {
-					overlay_sidebar.removeClass('opened')
-						.find('.dropdown-toggle')
-						.removeClass('text-muted');
-					overlay_sidebar.find('.reports-dropdown')
-						.addClass('dropdown-menu');
-				});
-			}
-		});
-	}
 
 	setup_help () {
 		frappe.provide('frappe.help');
