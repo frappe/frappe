@@ -32,7 +32,7 @@ def clean_email_html(html):
 			'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
 			'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
 			'font-size', 'font-weight', 'font-family', 'text-decoration',
-			'line-height', 'text-align', 'vertical-align'
+			'line-height', 'text-align', 'vertical-align', 'display'
 		],
 		protocols=['cid', 'http', 'https', 'mailto', 'data'],
 		strip=True, strip_comments=True)
@@ -55,6 +55,9 @@ def sanitize_html(html, linkify=False):
 		return html
 
 	elif is_json(html):
+		return html
+
+	if not bool(BeautifulSoup(html, 'html.parser').find()):
 		return html
 
 	tags = (acceptable_elements + svg_elements + mathml_elements

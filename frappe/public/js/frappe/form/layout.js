@@ -113,7 +113,7 @@ frappe.ui.form.Layout = Class.extend({
 			label: __('Dashboard'),
 			cssClass: 'form-dashboard',
 			collapsible: 1,
-			//hidden: 1
+			// hidden: 1
 		});
 	},
 

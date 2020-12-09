@@ -25,7 +25,11 @@ from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
 from frappe.email.utils import get_port
 
-class SentEmailInInbox(Exception): pass
+class SentEmailInInbox(Exception):
+	pass
+
+class InvalidEmailCredentials(frappe.ValidationError):
+	pass
 
 class EmailAccount(Document):
 	def autoname(self):
@@ -117,7 +121,7 @@ class EmailAccount(Document):
 			fields = [
 				"name as domain", "use_imap", "email_server",
 				"use_ssl", "smtp_server", "use_tls",
-				"smtp_port", "incoming_port"
+				"smtp_port", "incoming_port", "use_ssl_for_outgoing"
 			]
 			return frappe.db.get_value("Email Domain", domain[1], fields, as_dict=True)
 		except Exception:
@@ -133,7 +137,8 @@ class EmailAccount(Document):
 					or self.email_id,
 				server = self.smtp_server,
 				port = cint(self.smtp_port),
-				use_tls = cint(self.use_tls)
+				use_tls = cint(self.use_tls),
+				use_ssl = cint(self.use_ssl_for_outgoing)
 			)
 			if self.password and not self.no_smtp_authentication:
 				server.password = self.get_password()
@@ -146,7 +151,7 @@ class EmailAccount(Document):
 			return None
 
 		args = frappe._dict({
-			"email_account":self.name,
+			"email_account": self.name,
 			"host": self.email_server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
@@ -164,21 +169,45 @@ class EmailAccount(Document):
 			frappe.throw(_("{0} is required").format("Email Server"))
 
 		email_server = EmailServer(frappe._dict(args))
+		self.check_email_server_connection(email_server, in_receive)
+
+		if not in_receive and self.use_imap:
+			email_server.imap.logout()
+
+		# reset failed attempts count
+		self.set_failed_attempts_count(0)
+
+		return email_server
+
+	def check_email_server_connection(self, email_server, in_receive):
+		# tries to connect to email server and handles failure
 		try:
 			email_server.connect()
 		except (error_proto, imaplib.IMAP4.error) as e:
-			e = cstr(e)
-			message = e.lower().replace(" ","")
-			if in_receive and any(map(lambda t: t in message, ['authenticationfailed', 'loginviayourwebbrowser', #abbreviated to work with both failure and failed
-				'loginfailed', 'err[auth]', 'errtemporaryerror'])): #temporary error to deal with godaddy
-				# if called via self.receive and it leads to authentication error, disable incoming
-				# and send email to system manager
-				self.handle_incoming_connect_error(
-					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}'.format(self.name, e))
-				)
+			message = cstr(e).lower().replace(" ","")
+			auth_error_codes = [
+				'authenticationfailed',
+				'loginfailed',
+			]
 
+			other_error_codes = [
+				'err[auth]',
+				'errtemporaryerror',
+				'loginviayourwebbrowser'
+			]
+
+			all_error_codes = auth_error_codes + other_error_codes
+
+			if in_receive and any(map(lambda t: t in message, all_error_codes)):
+				# if called via self.receive and it leads to authentication error,
+				# disable incoming and send email to System Manager
+				error_message = _("Authentication failed while receiving emails from Email Account: {0}.").format(self.name)
+				error_message += "<br>" + _("Message from server: {0}").format(cstr(e))
+				self.handle_incoming_connect_error(description=error_message)
 				return None
 
+			elif not in_receive and any(map(lambda t: t in message, auth_error_codes)):
+				self.throw_invalid_credentials_exception()
 			else:
 				frappe.throw(e)
 
@@ -193,16 +222,16 @@ class EmailAccount(Document):
 				else:
 					frappe.cache().set_value("workers:no-internet", True)
 				return None
-
 			else:
 				raise
-		if not in_receive:
-			if self.use_imap:
-				email_server.imap.logout()
-		# reset failed attempts count
-		self.set_failed_attempts_count(0)
 
-		return email_server
+	@classmethod
+	def throw_invalid_credentials_exception(cls):
+		frappe.throw(
+			_("Incorrect email or password. Please check your login credentials."),
+			exc=InvalidEmailCredentials,
+			title=_("Invalid Credentials")
+		)
 
 	def handle_incoming_connect_error(self, description):
 		if test_internet():
