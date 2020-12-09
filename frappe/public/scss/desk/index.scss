@@ -4,6 +4,7 @@
 
 @import "~bootstrap/scss/bootstrap";
 @import "global";
+@import "../common/flex";
 @import "form";
 @import "print_preview";
 @import "list";
@@ -41,4 +42,3 @@
 @import "theme_switcher";
 @import "quill";
 @import "plyr";
-@import "../common/flex"
