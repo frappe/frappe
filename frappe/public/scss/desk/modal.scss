@@ -114,7 +114,7 @@ h5.modal-title {
 		right: 15px;
 		bottom: 0;
 		margin: 0;
-		max-width: 400px !important;
+		min-width: 400px;
 		.modal-header {
 			padding-top: var(--padding-sm);
 			padding-bottom: var(--padding-xs);
@@ -125,6 +125,12 @@ h5.modal-title {
 			border-radius: var(--border-radius-md);
 			border-bottom-right-radius: 0;
 			border-bottom-left-radius: 0;
+		}
+
+		@include media-breakpoint-down(sm) {
+			right: 0;
+			width: 100%;
+			min-width: 100%;
 		}
 	}
 
