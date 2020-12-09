@@ -21,25 +21,21 @@ frappe.ui.form.AssignTo = Class.extend({
 	},
 	render: function(assignments) {
 		this.frm.get_docinfo().assignments = assignments;
-		this.parent.find(".assignment-row").remove();
-
-		if (this.primary_action) {
-			this.primary_action.remove();
-			this.primary_action = null;
-		}
-
-		if (this.dialog) {
-			this.dialog.hide();
-		}
 
 		let assignments_wrapper = this.parent.find('.assignments');
 
 		assignments_wrapper.empty();
 		let assigned_users = assignments.map(d => d.owner);
+
+		if (!assigned_users.length) {
+			assignments_wrapper.hide();
+			return;
+		}
+
 		let avatar_group = frappe.avatar_group(assigned_users, 5, {'align': 'left', 'overlap': true});
 
+		assignments_wrapper.show();
 		assignments_wrapper.append(avatar_group);
-
 		avatar_group.click(() => {
 			new frappe.ui.form.AssignmentDialog({
 				assignments: assigned_users,
@@ -48,28 +44,15 @@ frappe.ui.form.AssignTo = Class.extend({
 			});
 		});
 	},
-	get_assignment_block(info) {
-		let remove_action = false;
-		if (info.owner === frappe.session.user || this.frm.perm[0].write) {
-			remove_action = this.remove.bind(this);
-		}
-		return $(`<li class="assignment-row">`)
-			.append(frappe.get_data_pill(
-				frappe.user.full_name(info.owner),
-				info.owner,
-				remove_action,
-				frappe.avatar(info.owner, "avatar-xs")
-			));
-	},
 	add: function() {
 		var me = this;
 
-		if(this.frm.is_new()) {
+		if (this.frm.is_new()) {
 			frappe.throw(__("Please save the document before assignment"));
 			return;
 		}
 
-		if(!me.assign_to) {
+		if (!me.assign_to) {
 			me.assign_to = new frappe.ui.form.AssignToDialog({
 				method: "frappe.desk.form.assign_to.add",
 				doctype: me.frm.doctype,
