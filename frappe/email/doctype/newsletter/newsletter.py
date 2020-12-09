@@ -85,11 +85,11 @@ class Newsletter(WebsiteGenerator):
 			self.db_set("scheduled_to_send", len(self.recipients))
 
 	def get_message(self):
-
+		if self.content_type == "HTML":
+			return frappe.render_template(self.message_html, {"doc": self.as_dict()})
 		return {
 			'Rich Text': self.message,
-			'Markdown': markdown(self.message_md),
-			'HTML': self.message_html
+			'Markdown': markdown(self.message_md)
 		}[self.content_type or 'Rich Text']
 
 	def get_recipients(self):
