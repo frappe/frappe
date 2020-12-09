@@ -3,11 +3,16 @@
 	bottom: 0px;
 	right: 20px;
 	z-index: 1050;
+
+	@include media-breakpoint-down(sm) {
+		right: 0;
+	}
 }
 
 #alert-container .desk-alert {
 	box-shadow: var(--modal-shadow);
 	width: 400px;
+	max-width: 100vw;
 	min-height: 50px;
 	max-height: 200px;
 	background-color: var(--toast-bg);
