@@ -155,7 +155,7 @@
 			@include flex(flex, space-between, null, column);
 
 			@include card(
-				$padding: 10px 15px,
+				$padding: var(--padding-sm) var(--padding-md),
 				$background-color: var(--kanban-card-bg)
 			);
 			margin-top: var(--margin-sm);

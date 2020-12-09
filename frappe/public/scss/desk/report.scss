@@ -209,17 +209,18 @@
 		.summary-value {
 			// FORM
 			background: var(--card-bg);
-			border-radius: var(--border-radius, 6px);
-			box-shadow: var(--shadow-sm);
+			border-radius: var(--border-radius-sm, 4px);
+			border: 1px solid var(--dark-border-color);
 
 			&.green { color: var(--green-500); }
 			&.red { color: var(--red-500); }
 			&.blue { color: var(--blue-500); }
 
 			// SIZE & SPACING
-			min-width: 30px;
+			min-width: 24px;
+			min-height: 24px;
 			margin: 0px 30px;
-			padding: 2px 8px;
+			line-height: 1;
 
 			// LAYOUT
 			display: flex;

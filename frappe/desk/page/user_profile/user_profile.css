@@ -2,6 +2,10 @@
 	padding-top: 0;
 }
 
+.recent-activity .new-timeline:before {
+	top: 25px;
+}
+
 .recent-activity-title {
 	font-weight: 700;
 	font-size: var(--text-xl);

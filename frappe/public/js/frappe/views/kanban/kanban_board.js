@@ -583,8 +583,9 @@ frappe.provide("frappe.views");
 		}
 
 		function add_task_link() {
-			let taskLink = frappe.utils.get_form_link(card.doctype, card.name);
-			self.$card.find('.kanban-card-redirect').attr('href', taskLink);
+			let task_link = frappe.utils.get_form_link(card.doctype, card.name);
+			self.$card.find('.kanban-card-redirect')
+				.attr('href', task_link);
 		}
 
 		function get_assignees_group() {

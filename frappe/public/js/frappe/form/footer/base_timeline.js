@@ -43,11 +43,11 @@ class BaseTimeline {
 		let response = this.prepare_timeline_contents();
 		if (response instanceof Promise) {
 			response.then(() => {
-				this.timeline_items.sort((item1, item2) => new Date(item1.creation) - new Date(item2.creation));
+				this.timeline_items.sort((item1, item2) =>  new Date(item2.creation) - new Date(item1.creation));
 				this.timeline_items.forEach(this.add_timeline_item.bind(this));
 			});
 		} else {
-			this.timeline_items.sort((item1, item2) => new Date(item1.creation) - new Date(item2.creation));
+			this.timeline_items.sort((item1, item2) =>  new Date(item2.creation) - new Date(item1.creation));
 			this.timeline_items.forEach(this.add_timeline_item.bind(this));
 		}
 	}

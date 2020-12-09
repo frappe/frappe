@@ -178,13 +178,16 @@ h5.modal-title {
 	justify-content: space-between;
 	padding: 5px 15px;
 	border-radius: var(--border-radius-md);
-	margin-bottom: 5px;
+	color: var(--text-color);
+	&:not(:last-child) {
+		margin-bottom: 5px;
+	}
 	@extend .row;
 	.remove-btn {
 		display: none;
 	}
 	&:hover {
-		background: var(--gray-100);
+		background: var(--fg-hover-color);
 		.remove-btn {
 			display: block;
 		}
