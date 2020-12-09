@@ -40,7 +40,10 @@ class DatabaseQuery(object):
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
 		return_query=False, strict=True, pluck=None, ignore_ddl=False):
-		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
+		if not ignore_permissions and \
+			not frappe.has_permission(self.doctype, "select", user=user) and \
+			not frappe.has_permission(self.doctype, "read", user=user):
+
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
 
@@ -576,7 +579,7 @@ class DatabaseQuery(object):
 		self.shared = frappe.share.get_shared(self.doctype, self.user)
 
 		if (not meta.istable and
-			not role_permissions.get("read") and
+			not (role_permissions.get("select") or role_permissions.get("read")) and
 			not self.flags.ignore_permissions and
 			not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)):
 			only_if_shared = True

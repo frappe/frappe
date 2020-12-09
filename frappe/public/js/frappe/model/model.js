@@ -252,6 +252,10 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_create.indexOf(doctype)!==-1;
 	},
 
+	can_select: function(doctype){
+		return frappe.boot.user.can_select.indexOf(doctype)!==-1;
+	},
+
 	can_read: function(doctype) {
 		return frappe.boot.user.can_read.indexOf(doctype)!==-1;
 	},
