@@ -4,6 +4,8 @@
 
 from __future__ import unicode_literals
 
+import ast
+
 import frappe
 from frappe.model.document import Document
 from frappe.utils.safe_exec import safe_exec
@@ -11,9 +13,9 @@ from frappe import _
 
 
 class ServerScript(Document):
-	@staticmethod
-	def validate():
+	def validate(self):
 		frappe.only_for('Script Manager', True)
+		ast.parse(self.script)
 
 	@staticmethod
 	def on_update():
