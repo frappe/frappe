@@ -18,6 +18,7 @@ from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, get_timespan_date_range
 from frappe.model.meta import get_table_columns
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -683,15 +684,23 @@ class DatabaseQuery(object):
 			self.match_filters.append(match_filters)
 
 	def get_permission_query_conditions(self):
+		conditions = []
 		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
 		if condition_methods:
-			conditions = []
 			for method in condition_methods:
 				c = frappe.call(frappe.get_attr(method), self.user)
 				if c:
 					conditions.append(c)
 
-			return " and ".join(conditions) if conditions else None
+		permision_script_name = get_server_script_map().get("permission_query").get(self.doctype)
+		if permision_script_name:
+			script = frappe.get_doc("Server Script", permision_script_name)
+			condition = script.get_permission_query_conditions(self.user)
+			if condition:
+				conditions.append(condition)
+
+		return " and ".join(conditions) if conditions else ""
+
 
 	def run_custom_query(self, query):
 		if '%(key)s' in query:
