@@ -245,6 +245,7 @@
    "label": "Timeline Field"
   },
   {
+   "depends_on": "eval:!doc.issingle",
    "fieldname": "max_attachments",
    "fieldtype": "Int",
    "label": "Max Attachments",
@@ -609,7 +610,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2020-09-24 13:13:58.227153",
+ "modified": "2020-12-10 18:55:59.917647",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
