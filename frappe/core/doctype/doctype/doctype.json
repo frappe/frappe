@@ -132,7 +132,7 @@
    "label": "Editable Grid"
   },
   {
-   "default": "1",
+   "default": "0",
    "depends_on": "eval:!doc.istable && !doc.issingle",
    "description": "Open a dialog with mandatory fields to create a new record quickly",
    "fieldname": "quick_entry",
@@ -427,7 +427,7 @@
    "label": "Allow Guest to View"
   },
   {
-   "depends_on": "has_web_view",
+   "depends_on": "eval:!doc.istable",
    "fieldname": "route",
    "fieldtype": "Data",
    "label": "Route"
@@ -609,7 +609,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2020-09-24 13:13:58.227153",
+ "modified": "2020-12-10 15:10:09.227205",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
@@ -637,6 +637,7 @@
    "write": 1
   }
  ],
+ "route": "doctype",
  "search_fields": "module",
  "show_name_in_global_search": 1,
  "sort_field": "modified",

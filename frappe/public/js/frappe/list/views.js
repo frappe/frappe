@@ -35,7 +35,7 @@ frappe.views.Views = class Views {
 	}
 
 	set_route(view, calendar_name) {
-		const route = ['list', frappe.router.doctype_layout || this.doctype, view];
+		const route = [this.get_doctype_route(), 'view', view];
 		if (calendar_name) route.push(calendar_name);
 		frappe.set_route(route);
 	}
@@ -156,7 +156,7 @@ frappe.views.Views = class Views {
 				if (item.name == frappe.utils.to_title_case(frappe.get_route().slice(-1)[0] || '')) {
 					placeholder = item.name;
 				}
-				html += `<li><a class="dropdown-item" href="#${item.route}">${item.name}</a></li>`;
+				html += `<li><a class="dropdown-item" href="/app/${item.route}">${item.name}</a></li>`;
 			});
 		}
 
@@ -181,7 +181,7 @@ frappe.views.Views = class Views {
 			reports.map((r) => {
 				if (!r.ref_doctype || r.ref_doctype == this.doctype) {
 					const report_type = r.report_type === 'Report Builder' ?
-						`list/${r.ref_doctype}/report` : 'query-report';
+						`/app/list/${r.ref_doctype}/report` : 'query-report';
 
 					const route = r.route || report_type + '/' + (r.title || r.name);
 
@@ -233,11 +233,11 @@ frappe.views.Views = class Views {
 				// has standard calendar view
 				calendars.push({
 					name: 'Default',
-					route: `list/${this.doctype}/calendar/default`
+					route: `/app/${this.get_doctype_route()}/view/calendar/default`
 				});
 			}
 			result.map(calendar => {
-				calendars.push({name: calendar.name, route: `list/${doctype}/calendar/${calendar.name}`});
+				calendars.push({name: calendar.name, route: `/app/${this.get_doctype_route()}/view/calendar/${calendar.name}`});
 			});
 
 			return calendars;
@@ -249,7 +249,7 @@ frappe.views.Views = class Views {
 		let accounts = frappe.boot.email_accounts;
 		accounts.forEach(account => {
 			let email_account = (account.email_id == "All Accounts") ? "All Accounts" : account.email_account;
-			let route = ["List", "Communication", "Inbox", email_account].join('/');
+			let route = `/app/communication/inbox/${email_account}`;
 			let display_name = ["All Accounts", "Sent Mail", "Spam", "Trash"].includes(account.email_id)
 				? __(account.email_id)
 				: account.email_account;
@@ -261,5 +261,9 @@ frappe.views.Views = class Views {
 		});
 
 		return accounts_to_add;
+	}
+
+	get_doctype_route() {
+		return frappe.router.slug(frappe.router.doctype_layout || this.doctype);
 	}
 }

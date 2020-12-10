@@ -9,7 +9,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = route[1];
 
 		if (route.length === 2) {
-			// List/{doctype} => List/{doctype}/{last_view} or List
 			const user_settings = frappe.get_user_settings(doctype);
 			const last_view = user_settings.last_view;
 			frappe.set_route(
@@ -871,7 +870,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			? encodeURIComponent(doc.name)
 			: doc.name;
 
-		return "/app/form/" + frappe.router.slug(frappe.router.doctype_layout || this.doctype) + "/" + docname;
+		return `/app/${frappe.router.slug(frappe.router.doctype_layout || this.doctype)}/${docname}`;
 	}
 
 	get_seen_class(doc) {
@@ -905,6 +904,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let escaped_subject = frappe.utils.escape_html(subject);
 
 		const seen = this.get_seen_class(doc);
+		console.log(this.get_form_link(doc));
 
 		let subject_html = `
 			<input class="level-item list-row-checkbox hidden-xs" type="checkbox"
