@@ -1,14 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
+
 import frappe
 from frappe import _, bold
-from frappe.utils import cint
-from frappe.model.naming import validate_name
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.utils.password import rename_password
+from frappe.model.naming import validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
+from frappe.utils import cint
+from frappe.utils.password import rename_password
 
 
 @frappe.whitelist()
@@ -484,3 +485,32 @@ def bulk_rename(doctype, rows=None, via_console = False):
 
 	if not via_console:
 		return rename_log
+
+def update_linked_doctypes(doctype, docname, linked_to, value, ignore_doctypes=None):
+	from frappe.model.utils.rename_doc import update_linked_doctypes
+	show_deprecation_warning("update_linked_doctypes")
+
+	return update_linked_doctypes(
+		doctype=doctype,
+		docname=docname,
+		linked_to=linked_to,
+		value=value,
+		ignore_doctypes=ignore_doctypes,
+	)
+
+
+def get_fetch_fields(doctype, linked_to, ignore_doctypes=None):
+	from frappe.model.utils.rename_doc import get_fetch_fields
+	show_deprecation_warning("get_fetch_fields")
+
+	return get_fetch_fields(
+		doctype=doctype, linked_to=linked_to, ignore_doctypes=ignore_doctypes
+	)
+
+def show_deprecation_warning(funct):
+	from click import secho
+	message = (
+		f"Function frappe.model.rename_doc.{funct} has been deprecated and "
+		"moved to the frappe.model.utils.rename_doc"
+	)
+	secho(message, fg="yellow")

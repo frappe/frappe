@@ -369,6 +369,8 @@ def format_duration(seconds, hide_days=False):
 
 	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
 	"""
+	
+	seconds = cint(seconds)
 
 	total_duration = {
 		'days': math.floor(seconds / (3600 * 24)),
@@ -1321,12 +1323,14 @@ def generate_hash(*args, **kwargs):
 
 def guess_date_format(date_string):
 	DATE_FORMATS = [
+		r"%d/%b/%y",
 		r"%d-%m-%Y",
 		r"%m-%d-%Y",
 		r"%Y-%m-%d",
 		r"%d-%m-%y",
 		r"%m-%d-%y",
 		r"%y-%m-%d",
+		r"%y-%b-%d",
 		r"%d/%m/%Y",
 		r"%m/%d/%Y",
 		r"%Y/%m/%d",
