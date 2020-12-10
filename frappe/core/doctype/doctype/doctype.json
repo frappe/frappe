@@ -16,7 +16,6 @@
   "is_tree",
   "editable_grid",
   "quick_entry",
-  "route",
   "cb01",
   "track_changes",
   "track_seen",
@@ -72,6 +71,7 @@
   "has_web_view",
   "allow_guest_to_view",
   "index_web_pages_for_search",
+  "route",
   "is_published_field",
   "advanced",
   "engine"
@@ -609,7 +609,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2020-12-07 11:48:57.395126",
+ "modified": "2020-12-10 15:10:09.227205",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

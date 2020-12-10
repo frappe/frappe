@@ -42,7 +42,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-12-04 12:29:12.838656",
+ "modified": "2020-12-10 15:01:04.352184",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "DocType Layout",
@@ -59,8 +59,13 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Guest"
   }
  ],
+ "route": "doctype-layout",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

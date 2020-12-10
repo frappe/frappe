@@ -13,4 +13,3 @@ class DocTypeLayout(Document):
 	def validate(self):
 		if not self.route:
 			self.route = get_doctype_route(self.name)
-		frappe.cache().delete_value('doctype_name_map')

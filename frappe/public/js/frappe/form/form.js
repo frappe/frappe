@@ -24,13 +24,10 @@ frappe.ui.form.Form = class FrappeForm {
 		this.docname = '';
 		this.doctype = doctype;
 		this.doctype_layout_name = doctype_layout_name;
-		if (doctype_layout_name) {
-			this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
-		}
+		this.in_form = in_form ? true : false;
+
 		this.hidden = false;
 		this.refresh_if_stale_for = 120;
-
-		var me = this;
 		this.opendocs = {};
 		this.custom_buttons = {};
 		this.sections = [];
@@ -40,17 +37,8 @@ frappe.ui.form.Form = class FrappeForm {
 		this.pformat = {};
 		this.fetch_dict = {};
 		this.parent = parent;
-
+		this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
 		this.setup_meta(doctype);
-
-		// show in form instead of in dialog, when called using url (router.js)
-		this.in_form = in_form ? true : false;
-
-		// notify on rename
-		$(document).on('rename', function(event, dt, old_name, new_name) {
-			if(dt==me.doctype)
-				me.rename_notify(dt, old_name, new_name);
-		});
 	}
 
 	setup_meta() {
@@ -118,6 +106,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.setup_file_drop();
 		this.setup_doctype_actions();
 		this.setup_docinfo_change_listener();
+		this.setup_notify_on_rename();
 
 		this.setup_done = true;
 	}
@@ -221,6 +210,13 @@ frappe.ui.form.Form = class FrappeForm {
 					me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				}
 			});
+		});
+	}
+
+	setup_notify_on_rename() {
+		$(document).on('rename', (ev, dt, old_name, new_name) => {
+			if(dt==this.doctype)
+				this.rename_notify(dt, old_name, new_name);
 		});
 	}
 
