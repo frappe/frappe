@@ -150,6 +150,9 @@ class AutoRepeat(Document):
 		self.update_doc(new_doc, reference_doc)
 		new_doc.insert(ignore_permissions = True)
 
+		if self.submit_on_creation:
+			new_doc.submit(gnore_permissions = True)
+
 		return new_doc
 
 	def update_doc(self, new_doc, reference_doc):
@@ -160,7 +163,7 @@ class AutoRepeat(Document):
 		if new_doc.meta.get_field('auto_repeat'):
 			new_doc.set('auto_repeat', self.name)
 
-		for fieldname in ['naming_series', 'ignore_pricing_rule', 'posting_time', 'select_print_heading', 'remarks', 'owner']:
+		for fieldname in ['naming_series', 'ignore_pricing_rule', 'posting_time', 'select_print_heading', 'user_remark', 'remarks', 'owner']:
 			if new_doc.meta.get_field(fieldname):
 				new_doc.set(fieldname, reference_doc.get(fieldname))
 
