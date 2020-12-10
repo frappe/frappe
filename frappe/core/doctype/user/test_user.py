@@ -6,11 +6,13 @@ import frappe, unittest
 
 from frappe.model.delete_doc import delete_doc
 from frappe.utils.data import today, add_to_date
+from frappe.utils.password import delete_password_reset_cache
 from frappe import _dict
 from frappe.utils import get_url
 from frappe.core.doctype.user.user import get_total_users
 from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_strength
 from frappe.core.doctype.user.user import extract_mentions
+from frappe.core.doctype.user.user import sign_up
 
 test_records = frappe.get_test_records('User')
 
@@ -224,7 +226,6 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(extract_mentions(comment)[1], "test.again@example1.com")
 
 	def test_rate_limiting_for_reset_password(self):
-		from frappe.utils.password import delete_password_reset_cache
 		delete_password_reset_cache()
 
 		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 1)
@@ -234,6 +235,42 @@ class TestUser(unittest.TestCase):
 		self.assertRegex(link, "\/update-password\?key=[A-Za-z0-9]*")
 
 		self.assertRaises(frappe.ValidationError, user.reset_password, False)
+
+	def test_rate_limiting_for_sign_up(self):
+		delete_password_reset_cache()
+
+		username = 'Test User {0}'
+		email = 'test-rate-limiting{0}@example.com'
+		limit = 301  # the hardcoded rate limit is 300
+
+		frappe.db.commit()
+		try:
+			frappe.flags.in_import = True  # disable throttling
+			frappe.db.begin()
+			for x in range(limit):
+				frappe.get_doc(dict(
+					doctype='User',
+					email=email.format(x),
+					first_name=username.format(x),
+				)).insert()
+
+			# Ensure the next check should fail
+			self.assertGreater(limit, frappe.local.conf.get("throttle_user_limit", 60))
+
+			# Check that throttle_user_limit has been reached
+			with self.assertRaises(frappe.exceptions.ValidationError):
+				frappe.flags.in_import = False  # enable throttling
+				sign_up('test_registration@example.com', 'Test registration user', None)
+
+			frappe.flags.in_import = True # disable throttling
+
+			# Check that signup rate limit has been reached
+			sign_up('test_registration@example.com', 'Test registration user', None)
+			self.assertEqual(frappe.local.response['http_status_code'], 429)
+
+		finally:
+			frappe.db.rollback()
+			frappe.flags.in_import = False
 
 
 def delete_contact(user):
