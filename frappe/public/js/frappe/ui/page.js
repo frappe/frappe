@@ -163,8 +163,32 @@ frappe.ui.Page = Class.extend({
 		} else {
 			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip();
 			sidebar_toggle.click(() => {
-				sidebar_wrapper.toggle();
+				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
+					this.setup_overlay_sidebar();
+				} else {
+					sidebar_wrapper.toggle();
+				}
 				this.update_sidebar_icon();
+			});
+		}
+	},
+
+	setup_overlay_sidebar() {
+		let overlay_sidebar = this.sidebar.find('.overlay-sidebar')
+			.addClass('opened');
+		$('<div class="close-sidebar">').hide().appendTo(this.sidebar).fadeIn();
+		let scroll_container = $('html')
+			.css("overflow-y", "hidden");
+
+		this.sidebar.find(".close-sidebar").on('click', (e) => close_sidebar(e));
+		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => close_sidebar(e));
+
+		let close_sidebar = (e) => {
+			scroll_container.css("overflow-y", "");
+			this.sidebar.find("div.close-sidebar").fadeOut(() => {
+				overlay_sidebar.removeClass('opened')
+					.find('.dropdown-toggle')
+					.removeClass('text-muted');
 			});
 		}
 	},

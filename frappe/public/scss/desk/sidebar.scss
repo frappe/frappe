@@ -205,16 +205,17 @@ body[data-route^="Module"] .main-menu {
 		@media (max-width: 991px) {
 			margin-top: 0 !important;
 			position: fixed;
-			background: white;
+			background: var(--fg-color);
 			top: 0;
 			left: 0;
 			transform: translateX(-110%);
 			z-index: 9999;
-			box-shadow: 5px 0 25px 0px rgba(0, 0, 0, 0.3);
+			box-shadow: var(--shadow-base);
 			height: 100%;
 			width: 40%;
 			display: block !important;
 			transition: transform 200ms ease-in-out;
+			padding: var(--padding-md);
 
 			&.opened {
 				transform: translateX(0);
@@ -227,40 +228,10 @@ body[data-route^="Module"] .main-menu {
 				opacity: 0.7;
 			}
 
-			li:not(.divider):not(.tagit-new):not(.module-sidebar-item) {
-				padding: 10px 15px;
-			}
-
-			.modified-by,
-			.created-by {
-				margin: 0;
-			}
-
-			.badge {
-				top: 9px;
-				right: 15px;
-			}
-
-			.reports-dropdown {
-				margin-top: 10px;
-				margin-bottom: -10px;
-
-				li:not(.divider) {
-					padding: 12.5px 0 !important;
-				}
-
-				li.divider {
-					height: 0;
-				}
-			}
-
-			.sidebar-menu {
-				padding: 2px 0px 5px 0px;
-			}
 		}
 
 		@media (max-width: 767px) {
-			width: 70%;
+			width: 60%;
 		}
 	}
 
@@ -273,12 +244,6 @@ body[data-route^="Module"] .main-menu {
 		z-index: 1041;
 		height: 100%;
 		width: 100%;
-	}
-
-	.sidebar-menu {
-		@media (max-width: 991px) {
-			margin: 0;
-		}
 	}
 
 	.module-sidebar-nav {
