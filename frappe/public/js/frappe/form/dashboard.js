@@ -41,14 +41,15 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			body_html: this.stats_area_row
 		});
 
+		this.transactions_area = $(`<div class="transactions"></div`);
 		this.links_area = new Section(this.parent, {
 			title: __("Documents Links"),
 			css_class: 'form-links',
 			hidden: 1,
 			collapsible: 1,
+			body_html: this.transactions_area
 		});
 
-		this.transactions_area = $(`<div class="transactions"></div`).appendTo(this.links_area.body);
 
 	}
 
@@ -634,8 +635,8 @@ class Section {
 
 		this.body = $('<div class="section-body">').appendTo(this.wrapper);
 
-		if (this.body_html) {
-			this.body.append(this.body_html);
+		if (this.df.body_html) {
+			this.body.append(this.df.body_html);
 		}
 	}
 
