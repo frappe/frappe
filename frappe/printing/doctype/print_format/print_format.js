@@ -57,15 +57,14 @@ frappe.ui.form.on("Print Format", {
 		frm.trigger('hide_absolute_value_field');
 	},
 	hide_absolute_value_field: function (frm) {
-		const doctype = frm.doc.doc_type;
+		// TODO: make it work with frm.doc.doc_type
+		// Problem: frm isn't updated in some random cases
+		const doctype = locals[frm.doc.doctype][frm.doc.name];
 		if (doctype) {
 			frappe.model.with_doctype(doctype, () => {
 				const meta = frappe.get_meta(doctype);
 				const has_int_float_currency_field = meta.fields.filter(df => in_list(['Int', 'Float', 'Currency'], df.fieldtype));
-				if (!has_int_float_currency_field.length) {
-					frm.set_df_property('absolute_value', 'hidden', 1);
-					frm.doc.absolute_value = 0;
-				}
+				frm.toggle_display('absolute_value', has_int_float_currency_field.length);
 			});
 		}
 	}
