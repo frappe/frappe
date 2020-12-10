@@ -144,7 +144,13 @@ class File(Document):
 	def validate_attachment_limit(self):
 		attachment_limit = 0
 		if self.attached_to_doctype and self.attached_to_name:
-			attachment_limit = cint(frappe.get_meta(self.attached_to_doctype).max_attachments)
+			meta = frappe.get_meta(self.attached_to_doctype)
+			
+			# Do not validate limit for single doctypes
+			if meta.issingle:
+				return
+			
+			attachment_limit = cint(meta.max_attachments)
 
 		if attachment_limit:
 			current_attachment_count = len(frappe.get_all('File', filters={
