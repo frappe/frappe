@@ -113,8 +113,8 @@ frappe.router = {
 
 	convert_to_standard_route(route) {
 		// /app/user = ["List", "User"]
-		// /app/user/views/report = ["List", "User", "Report"]
-		// /app/user/views/tree = ["Tree", "User"]
+		// /app/user/view/report = ["List", "User", "Report"]
+		// /app/user/view/tree = ["Tree", "User"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		let standard_route = route;
@@ -127,7 +127,7 @@ frappe.router = {
 					if (route[2].toLowerCase()==='tree') {
 						standard_route = ['Tree', doctype_route.doctype];
 					} else {
-						standard_route = ['List', doctype_route.doctype, route[2]];
+						standard_route = ['List', doctype_route.doctype, frappe.utils.to_title_case(route[2])];
 					}
 				} else {
 					standard_route = ['Form', doctype_route.doctype, route[1]];
@@ -274,7 +274,11 @@ frappe.router = {
 		const view = route[0].toLowerCase();
 		if (view === 'list') {
 			if (route[2] && route[2] !== 'list') {
-				return [this.slug(route[1]), 'view', view]
+				const new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
+
+				// calendar / inbox
+				if (route[3]) new_route.push(route[3]);
+				return new_route;
 			} else {
 				return [this.slug(route[1])]
 			}
