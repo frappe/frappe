@@ -57,7 +57,8 @@ frappe.ui.form.on('Assignment Rule', {
 		frm.set_fields_as_options(
 			'field',
 			doctype,
-			(df) => df.fieldtype == 'Link' && df.options == 'User',
+			(df) => ['Dynamic Link', 'Data'].includes(df.fieldtype)
+				|| (df.fieldtype == 'Link' && df.options == 'User'),
 			[{ label: 'Owner', value: 'owner' }]
 		);
 		if (doctype) {

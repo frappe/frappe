@@ -18,6 +18,7 @@ from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, get_timespan_date_range
 from frappe.model.meta import get_table_columns
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -38,7 +39,7 @@ class DatabaseQuery(object):
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		return_query=False, strict=True, pluck=None):
+		return_query=False, strict=True, pluck=None, ignore_ddl=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -86,6 +87,7 @@ class DatabaseQuery(object):
 		self.user_settings_fields = copy.deepcopy(self.fields)
 		self.return_query = return_query
 		self.strict = strict
+		self.ignore_ddl = ignore_ddl
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -93,6 +95,11 @@ class DatabaseQuery(object):
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
+
+		self.columns = self.get_table_columns()
+
+		# no table & ignore_ddl, return
+		if not self.columns: return []
 
 		if query:
 			result = self.run_custom_query(query)
@@ -134,7 +141,8 @@ class DatabaseQuery(object):
 		if self.return_query:
 			return query
 		else:
-			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
+			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug,
+				update=self.update, ignore_ddl=self.ignore_ddl)
 
 	def prepare_args(self):
 		self.parse_args()
@@ -323,15 +331,22 @@ class DatabaseQuery(object):
 				if '.' not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = '{0}.{1}'.format(self.tables[0], field)
 
+	def get_table_columns(self):
+		try:
+			return get_table_columns(self.doctype)
+		except frappe.db.TableMissingError:
+			if self.ignore_ddl:
+				return None
+			else:
+				raise
+
 	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
-		columns = get_table_columns(self.doctype)
-
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
 			for f in optional_fields:
-				if f in fld and not f in columns:
+				if f in fld and not f in self.columns:
 					to_remove.append(fld)
 
 		for fld in to_remove:
@@ -344,7 +359,7 @@ class DatabaseQuery(object):
 				each = [each]
 
 			for element in each:
-				if element in optional_fields and element not in columns:
+				if element in optional_fields and element not in self.columns:
 					to_remove.append(each)
 
 		for each in to_remove:
@@ -669,15 +684,23 @@ class DatabaseQuery(object):
 			self.match_filters.append(match_filters)
 
 	def get_permission_query_conditions(self):
+		conditions = []
 		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
 		if condition_methods:
-			conditions = []
 			for method in condition_methods:
 				c = frappe.call(frappe.get_attr(method), self.user)
 				if c:
 					conditions.append(c)
 
-			return " and ".join(conditions) if conditions else None
+		permision_script_name = get_server_script_map().get("permission_query").get(self.doctype)
+		if permision_script_name:
+			script = frappe.get_doc("Server Script", permision_script_name)
+			condition = script.get_permission_query_conditions(self.user)
+			if condition:
+				conditions.append(condition)
+
+		return " and ".join(conditions) if conditions else ""
+
 
 	def run_custom_query(self, query):
 		if '%(key)s' in query:

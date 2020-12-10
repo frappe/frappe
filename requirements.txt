@@ -8,13 +8,14 @@ chardet==3.0.4
 Click==7.0
 coverage==4.5.4
 croniter==0.3.31
-cryptography==2.8
+cryptography==3.2
 dropbox==9.1.0
 email-reply-parser==0.5.9
 Faker==2.0.4
 future==0.18.2
 gitdb2==2.0.6;python_version<'3.4'
 GitPython==2.1.15
+git-url-parse==1.2.2
 google-api-python-client==1.9.3
 google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.4.1
@@ -34,7 +35,7 @@ oauthlib==3.1.0
 openpyxl==2.6.4
 passlib==1.7.3
 pdfkit==0.6.1
-Pillow==7.1.0
+Pillow>=8.0.0
 premailer==3.6.1
 psycopg2-binary==2.8.4
 pyasn1==0.4.8
@@ -72,6 +73,5 @@ zxcvbn-python==4.4.24
 pycryptodome==3.9.8
 paytmchecksum==1.7.0
 wrapt==1.10.11
-twilio==6.44.2
 razorpay==1.2.0
 rsa>=4.1 # not directly required, pinned by Snyk to avoid a vulnerability

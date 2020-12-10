@@ -50,6 +50,9 @@ def get_server_script_map():
 	# 	},
 	# 	'_api': {
 	# 		'[path]': '[server script]'
+	# 	},
+	# 	'permission_query': {
+	# 		'DocType': '[server script]'
 	# 	}
 	# }
 	if frappe.flags.in_patch and not frappe.db.table_exists('Server Script'):
@@ -57,13 +60,17 @@ def get_server_script_map():
 
 	script_map = frappe.cache().get_value('server_script_map')
 	if script_map is None:
-		script_map = {}
+		script_map = {
+			'permission_query': {}
+		}
 		enabled_server_scripts = frappe.get_all('Server Script',
 			fields=('name', 'reference_doctype', 'doctype_event','api_method', 'script_type'),
 			filters={'disabled': 0})
 		for script in enabled_server_scripts:
 			if script.script_type == 'DocType Event':
 				script_map.setdefault(script.reference_doctype, {}).setdefault(script.doctype_event, []).append(script.name)
+			elif script.script_type == 'Permission Query':
+				script_map['permission_query'][script.reference_doctype] = script.name
 			else:
 				script_map.setdefault('_api', {})[script.api_method] = script.name
 

@@ -20,9 +20,9 @@ class ScheduledJobType(Document):
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
 
-	def enqueue(self):
+	def enqueue(self, force=False):
 		# enqueue event if last execution is done
-		if self.is_event_due():
+		if self.is_event_due() or force:
 			if frappe.flags.enqueued_jobs:
 				frappe.flags.enqueued_jobs.append(self.method)
 
@@ -114,7 +114,7 @@ class ScheduledJobType(Document):
 def execute_event(doc):
 	frappe.only_for('System Manager')
 	doc = json.loads(doc)
-	frappe.get_doc('Scheduled Job Type', doc.get('name')).enqueue()
+	frappe.get_doc('Scheduled Job Type', doc.get('name')).enqueue(force=True)
 
 
 def run_scheduled_job(job_type):

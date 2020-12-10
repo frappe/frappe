@@ -15,15 +15,11 @@ class TestWorkflow(unittest.TestCase):
 		make_test_records("User")
 
 	def setUp(self):
-		frappe.db.sql('DELETE FROM `tabToDo`')
-		frappe.db.sql("DELETE FROM `tabHas Role` WHERE `role`='Test Approver'")
-		if not getattr(self, 'workflow', None):
-			self.workflow = create_todo_workflow()
+		self.workflow = create_todo_workflow()
 		frappe.set_user('Administrator')
 
 	def tearDown(self):
-		frappe.print_sql(False)
-		self.workflow.db_set('is_active', 0)
+		frappe.delete_doc('Workflow', 'Test ToDo')
 
 	def test_default_condition(self):
 		'''test default condition is set'''
@@ -36,7 +32,6 @@ class TestWorkflow(unittest.TestCase):
 
 	def test_approve(self, doc=None):
 		'''test simple workflow'''
-		frappe.print_sql(True)
 		todo = doc or self.test_default_condition()
 
 		apply_workflow(todo, 'Approve')
@@ -89,7 +84,7 @@ class TestWorkflow(unittest.TestCase):
 		frappe.set_user('test2@example.com')
 
 		doc = self.test_default_condition()
-		workflow_actions = frappe.get_all('Workflow Action', fields=['status', 'reference_name'])
+		workflow_actions = frappe.get_all('Workflow Action', fields=['*'])
 		self.assertEqual(len(workflow_actions), 1)
 
 		# test if status of workflow actions are updated on approval
@@ -130,43 +125,42 @@ class TestWorkflow(unittest.TestCase):
 
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):
-		workflow = frappe.get_doc('Workflow', 'Test ToDo').save(ignore_permissions=True)
-		workflow.db_set('is_active', 1)
-		return workflow
-	else:
+		frappe.delete_doc('Workflow', 'Test ToDo')
+
+	if not frappe.db.exists('Role', 'Test Approver'):
 		frappe.get_doc(dict(doctype='Role',
 			role_name='Test Approver')).insert(ignore_if_duplicate=True)
-		workflow = frappe.new_doc('Workflow')
-		workflow.workflow_name = 'Test ToDo'
-		workflow.document_type = 'ToDo'
-		workflow.workflow_state_field = 'workflow_state'
-		workflow.is_active = 1
-		workflow.send_email_alert = 0
-		workflow.append('states', dict(
-			state = 'Pending', allow_edit = 'All'
-		))
-		workflow.append('states', dict(
-			state = 'Approved', allow_edit = 'Test Approver',
-			update_field = 'status', update_value = 'Closed'
-		))
-		workflow.append('states', dict(
-			state = 'Rejected', allow_edit = 'Test Approver'
-		))
-		workflow.append('transitions', dict(
-			state = 'Pending', action='Approve', next_state = 'Approved',
-			allowed='Test Approver', allow_self_approval= 1
-		))
-		workflow.append('transitions', dict(
-			state = 'Pending', action='Reject', next_state = 'Rejected',
-			allowed='Test Approver', allow_self_approval= 1
-		))
-		workflow.append('transitions', dict(
-			state = 'Rejected', action='Review', next_state = 'Pending',
-			allowed='All', allow_self_approval= 1
-		))
-		workflow.insert(ignore_permissions=True)
+	workflow = frappe.new_doc('Workflow')
+	workflow.workflow_name = 'Test ToDo'
+	workflow.document_type = 'ToDo'
+	workflow.workflow_state_field = 'workflow_state'
+	workflow.is_active = 1
+	workflow.send_email_alert = 0
+	workflow.append('states', dict(
+		state = 'Pending', allow_edit = 'All'
+	))
+	workflow.append('states', dict(
+		state = 'Approved', allow_edit = 'Test Approver',
+		update_field = 'status', update_value = 'Closed'
+	))
+	workflow.append('states', dict(
+		state = 'Rejected', allow_edit = 'Test Approver'
+	))
+	workflow.append('transitions', dict(
+		state = 'Pending', action='Approve', next_state = 'Approved',
+		allowed='Test Approver', allow_self_approval= 1
+	))
+	workflow.append('transitions', dict(
+		state = 'Pending', action='Reject', next_state = 'Rejected',
+		allowed='Test Approver', allow_self_approval= 1
+	))
+	workflow.append('transitions', dict(
+		state = 'Rejected', action='Review', next_state = 'Pending',
+		allowed='All', allow_self_approval= 1
+	))
+	workflow.insert(ignore_permissions=True)
 
-		return workflow
+	return workflow
 
 def create_new_todo():
 	return frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()

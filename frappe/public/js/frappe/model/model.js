@@ -103,6 +103,31 @@ $.extend(frappe.model, {
 		return docfield[0];
 	},
 
+	get_from_localstorage: function(doctype) {
+		if (localStorage["_doctype:" + doctype]) {
+			return JSON.parse(localStorage["_doctype:" + doctype]);
+		}
+	},
+
+	set_in_localstorage: function(doctype, docs) {
+		try {
+			localStorage["_doctype:" + doctype] = JSON.stringify(docs);
+		} catch(e) {
+			// if quota is exceeded, clear local storage and set item
+			console.warn("localStorage quota exceeded, clearing doctype cache")
+			frappe.model.clear_local_storage();
+			localStorage["_doctype:" + doctype] = JSON.stringify(docs);
+		}
+	},
+
+	clear_local_storage: function() {
+		for(var key in localStorage) {
+			if (key.startsWith("_doctype:")) {
+				localStorage.removeItem(key);
+			}
+		}
+	},
+
 	with_doctype: function(doctype, callback, async) {
 		if(locals.DocType[doctype]) {
 			callback && callback();
@@ -110,13 +135,15 @@ $.extend(frappe.model, {
 			let cached_timestamp = null;
 			let cached_doc = null;
 
-			if(localStorage["_doctype:" + doctype]) {
-				let cached_docs = JSON.parse(localStorage["_doctype:" + doctype]);
+			let cached_docs = frappe.model.get_from_localstorage(doctype)
+			
+			if (cached_docs) {
 				cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
 				if(cached_doc) {
 					cached_timestamp = cached_doc.modified;
 				}
 			}
+
 			return frappe.call({
 				method:'frappe.desk.form.load.getdoctype',
 				type: "GET",
@@ -134,7 +161,7 @@ $.extend(frappe.model, {
 					if(r.message=="use_cache") {
 						frappe.model.sync(cached_doc);
 					} else {
-						localStorage["_doctype:" + doctype] = JSON.stringify(r.docs);
+						frappe.model.set_in_localstorage(doctype, r.docs)
 					}
 					frappe.model.init_doctype(doctype);
 

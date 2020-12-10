@@ -1,5 +1,6 @@
 import Widget from "./base_widget.js";
-import { generate_route, shorten_number } from "./utils";
+
+frappe.provide("frappe.utils");
 
 export default class NumberCardWidget extends Widget {
 	constructor(opts) {
@@ -74,7 +75,7 @@ export default class NumberCardWidget extends Widget {
 	set_route() {
 		const is_document_type = this.card_doc.type !== 'Report';
 		const name = is_document_type ? this.card_doc.document_type : this.card_doc.report_name;
-		const route = generate_route({
+		const route = frappe.utils.generate_route({
 			name: name,
 			type: is_document_type ? 'doctype' : 'report',
 			is_query_report: !is_document_type,
@@ -203,7 +204,7 @@ export default class NumberCardWidget extends Widget {
 
 	get_formatted_number(df) {
 		const default_country = frappe.sys_defaults.country;
-		const shortened_number = shorten_number(this.number, default_country);
+		const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
 		let number_parts = shortened_number.split(' ');
 
 		const symbol = number_parts[1] || '';
@@ -268,7 +269,7 @@ export default class NumberCardWidget extends Widget {
 			result: this.number
 		}).then(res => {
 			if (res !== undefined) {
-				this.percentage_stat = shorten_number(res);
+				this.percentage_stat = frappe.utils.shorten_number(res);
 			}
 		});
 	}
