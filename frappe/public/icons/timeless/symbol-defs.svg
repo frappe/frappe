@@ -35,13 +35,9 @@
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M11.717 7c2.29 0 4.211 1.859 4.494 4.266 1.272.152 2.289 1.31 2.289 2.742 0 1.523-1.13 2.742-2.543 2.742H8.043c-1.413 0-2.543-1.219-2.543-2.742 0-1.188.707-2.224 1.724-2.59C7.422 8.92 9.372 7 11.717 7zm.148 2.37a.499.499 0 0 0-.363.156l-1.556 1.555a.5.5 0 1 0 .708.707l.71-.711v3.097a.5.5 0 0 0 1 0v-3.098l.713.712a.5.5 0 1 0 .707-.707l-1.565-1.565a.498.498 0 0 0-.354-.146z"
 		fill="#fff"></path>
 	</symbol>
-	<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-upload">
-		<path d="M10.2427 2.3999V11.7332" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-		<path d="M7.29004 5.35228L10.2424 2.3999L13.1948 5.35228" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-		<mask id="path-3-inside-1" fill="white">
-		<path d="M13.9334 8.30469H16.8858V15.8999C16.8858 17.0045 15.9904 17.8999 14.8858 17.8999H5.6001C4.49553 17.8999 3.6001 17.0045 3.6001 15.8999V8.30469H6.55248"/>
-		</mask>
-		<path d="M16.8858 8.30469H17.8858C17.8858 7.7524 17.4381 7.30469 16.8858 7.30469V8.30469ZM3.6001 8.30469V7.30469C3.04781 7.30469 2.6001 7.7524 2.6001 8.30469H3.6001ZM13.9334 9.30469H16.8858V7.30469H13.9334V9.30469ZM15.8858 8.30469V15.8999H17.8858V8.30469H15.8858ZM14.8858 16.8999H5.6001V18.8999H14.8858V16.8999ZM4.6001 15.8999V8.30469H2.6001V15.8999H4.6001ZM3.6001 9.30469H6.55248V7.30469H3.6001V9.30469ZM5.6001 16.8999C5.04781 16.8999 4.6001 16.4522 4.6001 15.8999H2.6001C2.6001 17.5568 3.94325 18.8999 5.6001 18.8999V16.8999ZM15.8858 15.8999C15.8858 16.4522 15.4381 16.8999 14.8858 16.8999V18.8999C16.5427 18.8999 17.8858 17.5568 17.8858 15.8999H15.8858Z" fill="white" mask="url(#path-3-inside-1)"/>
+	<symbol viewBox="0 0 20 20" id="icon-upload" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+		<path d="M10.596 2.046a.5.5 0 0 0-.707 0L6.937 5a.5.5 0 0 0 .707.707l2.099-2.099v8.126a.5.5 0 1 0 1 0V3.607l2.098 2.099a.5.5 0 0 0 .708-.707l-2.953-2.953z"/>
+		<path d="M6.552 8.305v1H4.6V15.9a1 1 0 0 0 1 1h9.286a1 1 0 0 0 1-1V9.305h-1.953v-1h2.953V15.9a2 2 0 0 1-2 2H5.6a2 2 0 0 1-2-2V8.305h2.952z"/>
 	</symbol>
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-tag">
 		<path d="M12.6401 10.2571L10.107 12.7901C9.52125 13.3759 8.5718 13.3756 7.98601 12.7898L2.49654 7.30037C2.40278 7.2066 2.3501 7.07942 2.3501 6.94682L2.3501 3C2.3501 2.72386 2.57396 2.5 2.8501 2.5L6.79691 2.5C6.92952 2.5 7.0567 2.55268 7.15047 2.64645L12.6399 8.13591C13.2257 8.7217 13.2259 9.67131 12.6401 10.2571Z" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
@@ -659,5 +655,13 @@
 		<path d="M11.8341 14.9294L12.909 9.01814L16.4675 9.01814C17.1919 9.01814 17.8639 8.52288 17.9802 7.80797C18.1279 6.89671 17.429 6.10908 16.5453 6.10908L10.7272 6.10908L10.7272 4.65454C10.7272 3.85092 10.0763 3.20001 9.27266 3.20001L7.16723 3.20001C6.17669 3.20001 5.21525 3.53746 4.44143 4.15637L2 6.10908L2 15.5635L9.35557 16.6952C10.5243 16.8748 11.6232 16.0915 11.8341 14.9294Z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
 		<path d="M8.54541 9.74542L4.90908 9.74542" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
 		<path d="M8.54541 12.6545L4.90908 12.6545" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
+	</symbol>
+	<symbol viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-sidebar-collapse">
+		<path d="M12 6L6 12L12 18" stroke="var(--icon-stroke)"  stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M18 6L12 12L18 18" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+	<symbol viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-sidebar-expand">
+		<path d="M12 18L18 12L12 6" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M6 18L12 12L6 6" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 </svg>
