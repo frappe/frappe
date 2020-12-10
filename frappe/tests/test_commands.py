@@ -14,7 +14,7 @@ import glob
 import frappe
 import frappe.recorder
 from frappe.installer import add_to_installed_apps
-from frappe.utils import add_to_date, now
+from frappe.utils import add_to_date, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
 
 
@@ -364,3 +364,21 @@ class TestCommands(BaseTestCommands):
 		else:
 			installed_apps = set(frappe.get_installed_apps())
 		self.assertSetEqual(list_apps, installed_apps)
+
+	def test_get_bench_relative_path(self):
+		bench_path = frappe.utils.get_bench_path()
+		test1_path = os.path.join(bench_path, 'test1.txt')
+		test2_path = os.path.join(bench_path, 'sites/test2.txt')
+
+		with open(test1_path, 'w+') as test1:
+			test1.write('asdf')
+		with open(test2_path, 'w+') as test2:
+			test2.write('asdf')
+
+		self.assertTrue('test1.txt' in get_bench_relative_path('test1.txt'))
+		self.assertTrue('sites/test2.txt' in get_bench_relative_path('test2.txt'))
+		with self.assertRaises(SystemExit):
+			get_bench_relative_path('test3.txt')
+
+		os.remove(test1_path)
+		os.remove(test2_path)
