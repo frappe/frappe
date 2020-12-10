@@ -771,7 +771,7 @@ def sign_up(email, full_name, redirect_to):
 			return 0, _("Already Registered")
 	else:
 		if frappe.db.sql("""select count(*) from tabUser where
-			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
+			HOUR(TIMEDIFF(%s, TIMESTAMP(creation)))<1""", now_datetime())[0][0] > 300:
 
 			frappe.respond_as_web_page(_('Temporarily Disabled'),
 				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
