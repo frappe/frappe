@@ -57,7 +57,7 @@ frappe.ui.form.on("Print Format", {
 		frm.trigger('hide_absolute_value_field');
 	},
 	hide_absolute_value_field: function (frm) {
-		const doctype = frm.doc.doctype;
+		const doctype = frm.doc.doc_type;
 		if (doctype) {
 			frappe.model.with_doctype(doctype, () => {
 				const meta = frappe.get_meta(doctype);
