@@ -21,6 +21,7 @@ class AutoRepeat(Document):
 	def validate(self):
 		self.update_status()
 		self.validate_reference_doctype()
+		self.validate_submit_on_creation()
 		self.validate_dates()
 		self.validate_email_id()
 		self.set_dates()
@@ -59,6 +60,11 @@ class AutoRepeat(Document):
 			return
 		if not frappe.get_meta(self.reference_doctype).allow_auto_repeat:
 			frappe.throw(_("Enable Allow Auto Repeat for the doctype {0} in Customize Form").format(self.reference_doctype))
+
+	def validate_submit_on_creation(self):
+		if self.submit_on_creation and not frappe.get_meta(self.reference_doctype).is_submittable:
+			frappe.throw(_('Cannot enable {0} for a non-submittable doctype').format(
+				frappe.bold('Submit on Creation')))
 
 	def validate_dates(self):
 		if frappe.flags.in_patch:
