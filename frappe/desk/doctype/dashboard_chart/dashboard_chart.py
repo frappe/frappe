@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 import datetime
 from frappe.core.page.dashboard.dashboard import cache_source
-from frappe.utils import nowdate, getdate, get_datetime, cint, now_datetime
+from frappe.utils import getdate
 from frappe.utils.dateutils import\
 	get_period, get_period_beginning, get_from_date_from_timespan, get_dates_from_timegrain
 from frappe.model.document import Document
