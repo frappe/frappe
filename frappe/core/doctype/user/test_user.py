@@ -243,10 +243,17 @@ class TestUser(unittest.TestCase):
 		email = 'test-rate-limiting{0}@example.com'
 		limit = 301  # the hardcoded rate limit is 300
 
-		frappe.db.commit()
+		frappe.db.sql('commit')
+		print("1 count(*)", frappe.db.sql('select count(*) from `tabUser`'))
+
+		# Ensure the throttle_user_limit will be reached
+		self.assertGreater(limit, frappe.local.conf.get("throttle_user_limit", 60))
+
 		try:
+			frappe.print_sql(False)
+			self.assertFalse(frappe.flags.in_import)  # expect in_import to be disabled
 			frappe.flags.in_import = True  # disable throttling
-			frappe.db.begin()
+			frappe.db.sql('begin')
 			for x in range(limit):
 				frappe.get_doc(dict(
 					doctype='User',
@@ -254,9 +261,7 @@ class TestUser(unittest.TestCase):
 					first_name=username.format(x),
 				)).insert()
 
-			# Ensure the next check should fail
-			self.assertGreater(limit, frappe.local.conf.get("throttle_user_limit", 60))
-
+			frappe.print_sql()
 			# Check that throttle_user_limit has been reached
 			with self.assertRaises(frappe.exceptions.ValidationError):
 				frappe.flags.in_import = False  # enable throttling
@@ -269,8 +274,14 @@ class TestUser(unittest.TestCase):
 			self.assertEqual(frappe.local.response['http_status_code'], 429)
 
 		finally:
-			frappe.db.rollback()
+			frappe.db.sql('rollback')
 			frappe.flags.in_import = False
+			frappe.print_sql(False)
+
+		# Check that rollback works
+		print("2 count(*)", frappe.db.sql('select count(*) from `tabUser`'))
+		sign_up('test_registration@example.com', 'Test registration user', None)
+		print("3 count(*)", frappe.db.sql('select count(*) from `tabUser`'))
 
 
 def delete_contact(user):
