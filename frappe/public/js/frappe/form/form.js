@@ -175,6 +175,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.dashboard = new frappe.ui.form.Dashboard({
 			frm: this,
+			parent: $('<div class="form-dashboard">').insertAfter(this.layout.wrapper.find('.form-message'))
 		});
 
 		// workflow state
