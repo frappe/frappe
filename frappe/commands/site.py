@@ -12,7 +12,6 @@ import click
 
 # imports - module imports
 import frappe
-from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.exceptions import SiteNotSpecifiedError

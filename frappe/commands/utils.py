@@ -285,7 +285,6 @@ def import_doc(context, path, force=False):
 @click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
 @click.option('--ignore-encoding-errors', default=False, is_flag=True, help='Ignore encoding errors while coverting to unicode')
 @click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
-
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
 	"Import CSV using data import"
@@ -425,7 +424,7 @@ def jupyter(context):
 		os.mkdir(jupyter_notebooks_path)
 	bin_path = os.path.abspath('../env/bin')
 	print('''
-Stating Jupyter notebook
+Starting Jupyter notebook
 Run the following in your first cell to connect notebook to frappe
 ```
 import frappe
