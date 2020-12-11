@@ -111,6 +111,25 @@ class TestAutoRepeat(unittest.TestCase):
 		doc = make_auto_repeat(frequency='Daily', reference_document=todo.name, start_date=add_days(today(), -2))
 		self.assertEqual(getdate(doc.next_schedule_date), current_date)
 
+	def test_submit_on_creation(self):
+		doctype = 'Test Submittable DocType'
+		create_submittable_doctype(doctype)
+
+		current_date = getdate()
+		submittable_doc = frappe.get_doc(dict(doctype=doctype, test='test submit on creation')).insert()
+		submittable_doc.submit()
+		doc = make_auto_repeat(frequency='Daily', reference_doctype=doctype, reference_document=submittable_doc.name,
+			start_date=add_days(current_date, -1), submit_on_creation=1)
+
+		data = get_auto_repeat_entries(current_date)
+		create_repeated_entries(data)
+		docnames = frappe.db.get_all(doc.reference_doctype,
+			filters={'auto_repeat': doc.name},
+			fields=['docstatus'],
+			limit=1
+		)
+		self.assertEquals(docnames[0].docstatus, 1)
+
 
 def make_auto_repeat(**args):
 	args = frappe._dict(args)
@@ -118,6 +137,7 @@ def make_auto_repeat(**args):
 		'doctype': 'Auto Repeat',
 		'reference_doctype': args.reference_doctype or 'ToDo',
 		'reference_document': args.reference_document or frappe.db.get_value('ToDo', 'name'),
+		'submit_on_creation': args.submit_on_creation or 0,
 		'frequency': args.frequency or 'Daily',
 		'start_date': args.start_date or add_days(today(), -1),
 		'end_date': args.end_date or "",
@@ -128,3 +148,34 @@ def make_auto_repeat(**args):
 	}).insert(ignore_permissions=True)
 
 	return doc
+
+
+def create_submittable_doctype(doctype):
+	if frappe.db.exists('DocType', doctype):
+		return
+	else:
+		doc = frappe.get_doc({
+			'doctype': 'DocType',
+			'__newname': doctype,
+			'module': 'Custom',
+			'custom': 1,
+			'is_submittable': 1,
+			'fields': [{
+				'fieldname': 'test',
+				'label': 'Test',
+				'fieldtype': 'Data'
+			}],
+			'permissions': [{
+				'role': 'System Manager',
+				'read': 1,
+				'write': 1,
+				'create': 1,
+				'delete': 1,
+				'submit': 1,
+				'cancel': 1,
+				'amend': 1
+			}]
+		}).insert()
+
+		doc.allow_auto_repeat = 1
+		doc.save()

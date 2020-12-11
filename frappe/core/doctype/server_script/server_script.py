@@ -43,6 +43,12 @@ class ServerScript(Document):
 			# wrong report type!
 			raise frappe.DoesNotExistError
 
+	def get_permission_query_conditions(self, user):
+		locals = {"user": user, "conditions": ""}
+		safe_exec(self.script, None, locals)
+		if locals["conditions"]:
+			return locals["conditions"]
+
 @frappe.whitelist()
 def setup_scheduler_events(script_name, frequency):
 	method = frappe.scrub('{0}-{1}'.format(script_name, frequency))
