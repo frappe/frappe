@@ -7,10 +7,8 @@ import unittest
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.automation.doctype.auto_repeat.auto_repeat import get_auto_repeat_entries, create_repeated_entries
+from frappe.automation.doctype.auto_repeat.auto_repeat import get_auto_repeat_entries, create_repeated_entries, week_map
 from frappe.utils import today, add_days, getdate, add_months
-
-week_map = {'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6}
 
 def add_custom_fields():
 	df = dict(
