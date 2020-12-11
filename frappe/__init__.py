@@ -322,7 +322,14 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 		return
 
 	if as_table and type(msg) in (list, tuple):
+<<<<<<< HEAD
 		out.msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
+=======
+		out.as_table = 1
+
+	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
+		out.as_list = 1
+>>>>>>> 5f708fa160... feat: cache bench apps
 
 	if flags.print_messages and out.msg:
 		print("Message: " + repr(out.msg).encode("utf-8"))
@@ -903,6 +910,16 @@ def get_installed_apps(sort=False, frappe_last=False):
 	if not db:
 		connect()
 
+<<<<<<< HEAD
+=======
+	if not local.all_apps:
+		local.all_apps = cache().get_value('all_apps', get_all_apps)
+
+		#cache bench apps
+		if not cache().get_value('all_apps'):
+			cache().set_value('all_apps', local.all_apps)
+
+>>>>>>> 5f708fa160... feat: cache bench apps
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
