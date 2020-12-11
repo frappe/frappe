@@ -50,7 +50,7 @@ frappe.form.formatters = {
 		return frappe.form.formatters._right(value==null ? "" : cint(value), options)
 	},
 	Percent: function(value, docfield, options) {
-		return frappe.form.formatters._right(flt(value, frappe.defaults.get_default("float_precision")) + "%", options);
+		return frappe.form.formatters._right(flt(value, frappe.defaults.get_default("float_precision") || 3) + "%", options);
 	},
 	Rating: function(value) {
 		return `<span class="rating">
