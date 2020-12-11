@@ -74,12 +74,6 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 		role_permissions = get_role_permissions(meta, user=user)
 		perm = role_permissions.get(ptype)
 
-		if not perm and ptype == 'read':
-			# if not have perm for `read`
-			# then also check for `select` perms
-			# as `select `is the lowest possible perm
-			perm = role_permissions.get('select')
-
 		if not perm:
 			push_perm_check_log(_('User {0} does not have doctype access via role permission for document {1}').format(frappe.bold(user), frappe.bold(doctype)))
 
