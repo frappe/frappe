@@ -77,8 +77,20 @@ def add(parent, role, permlevel):
 
 @frappe.whitelist()
 def update(doctype, role, permlevel, ptype, value=None):
+	"""Update role permission params
+	
+	Args:
+	    doctype (str): Name of the DocType to update params for
+	    role (str): Role to be updated for, eg "Website Manager".
+	    permlevel (int): perm level the provided rule applies to
+	    ptype (str): permission type, example "read", "delete", etc.
+	    value (None, optional): value for ptype, None indicates False
+	
+	Returns:
+	    str: Refresh flag is permission is updated successfully
+	"""
 	frappe.only_for("System Manager")
-	out = update_permission_property(doctype, role, permlevel, ptype, value)
+	out = update_permission_property(doctype, role, permlevel, ptype, value, alert=False)
 	return 'refresh' if out else None
 
 @frappe.whitelist()
