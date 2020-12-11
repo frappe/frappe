@@ -44,6 +44,20 @@ frappe.ui.form.on('Auto Repeat', {
 
 		// auto repeat schedule
 		frappe.auto_repeat.render_schedule(frm);
+
+		frm.trigger('toggle_submit_on_creation');
+	},
+
+	reference_doctype: function(frm) {
+		frm.trigger('toggle_submit_on_creation');
+	},
+
+	toggle_submit_on_creation: function(frm) {
+		// submit on creation checkbox
+		frappe.model.with_doctype(frm.doc.reference_doctype, () => {
+			let meta = frappe.get_meta(frm.doc.reference_doctype);
+			frm.toggle_display('submit_on_creation', meta.is_submittable);
+		});
 	},
 
 	template: function(frm) {

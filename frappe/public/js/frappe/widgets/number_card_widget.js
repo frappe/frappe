@@ -204,7 +204,7 @@ export default class NumberCardWidget extends Widget {
 
 	get_formatted_number(df) {
 		const default_country = frappe.sys_defaults.country;
-		const shortened_number = frappe.utils.shorten_number(this.number, default_country);
+		const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
 		let number_parts = shortened_number.split(' ');
 
 		const symbol = number_parts[1] || '';
@@ -269,7 +269,7 @@ export default class NumberCardWidget extends Widget {
 			result: this.number
 		}).then(res => {
 			if (res !== undefined) {
-				this.percentage_stat = shorten_number(res);
+				this.percentage_stat = frappe.utils.shorten_number(res);
 			}
 		});
 	}
