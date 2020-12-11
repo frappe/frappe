@@ -162,7 +162,7 @@ class Workspace:
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
-			return (name in self.can_read and name in self.restricted_doctypes)
+			return (name in self.can_read or [] and name in self.restricted_doctypes or [])
 		if item_type == "page":
 			return (name in self.allowed_pages and name in self.restricted_pages)
 		if item_type == "report":
