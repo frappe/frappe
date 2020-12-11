@@ -167,6 +167,7 @@ export default class ListFilter {
 	}
 
 	get_list_filters() {
+		if (frappe.session.user === 'Guest') return Promise.resolve();
 		return frappe.db
 			.get_list('List Filter', {
 				fields: ['name', 'filter_name', 'for_user', 'filters'],

@@ -382,6 +382,13 @@ body[data-route^="Module"] .main-menu {
 	max-width: 100%;
 }
 
+.attachment-row, .form-tag-row {
+	.data-pill {
+		background-color: var(--bg-gray);
+		box-shadow: none;
+	}
+}
+
 .form-tag-row {
 	margin-right: var(--margin-xs);
 	display: inline-flex;
@@ -492,7 +499,7 @@ button.data-pill {
 
 .tags-input {
 	margin-bottom: var(--margin-sm);
-	font-size: var(--text-md);
+	font-size: var(--text-xs);
 	background: inherit;
 	border: none;
 	outline: none;

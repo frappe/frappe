@@ -3,11 +3,13 @@
 	font-size: var(--text-md);
 }
 
-.form-section {
+.form-section, .form-dashboard-section {
 	margin: 0px;
 
 	.form-section-description {
 		margin-bottom: 10px;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
 	}
 
 	.section-head {
@@ -59,14 +61,11 @@
 	.section-body:first-child {
 		margin-top: 0;
 	}
-	.section-head {
-		padding-left: 0;
-		padding-right: 0;
-	}
-	.form-dashboard-section {
-		padding-left: calc(var(--padding-lg) + var(--padding-xs));
-		padding-right: calc(var(--padding-lg) + var(--padding-xs));
-		padding-bottom: var(--padding-lg);
+	.form-dashboard-section .section-body {
+		display: block;
+		padding-left: var(--padding-md);
+		padding-right: var(--padding-md);
+		padding-bottom: var(--padding-md);
 	}
 }
 
@@ -270,5 +269,23 @@
 		position: absolute;
 		height: 28px;
 		right: 0;
+	}
+}
+
+.progress-area {
+	padding-top: var(--padding-md);
+	padding-bottom: var(--padding-md);
+
+	.progress-chart {
+		padding-top: var(--padding-lg);
+	}
+
+	.progress {
+		margin-bottom: var(--margin-xs);
+	}
+
+	.progress-message {
+		font-feature-settings: "tnum" 1;
+		margin-top: 0px;
 	}
 }

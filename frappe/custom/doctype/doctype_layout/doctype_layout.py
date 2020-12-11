@@ -7,6 +7,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 
+from frappe.desk.utils import get_doctype_route
+
 class DocTypeLayout(Document):
 	def validate(self):
-		frappe.cache().delete_value('doctype_name_map')
+		if not self.route:
+			self.route = get_doctype_route(self.name)

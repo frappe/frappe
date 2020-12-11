@@ -7,6 +7,7 @@ frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
 		var me = this;
 
+		$('.search-bar').removeClass('hidden');
 		var $input = $(element);
 		var input = $input.get(0);
 
@@ -122,6 +123,7 @@ frappe.search.AwesomeBar = Class.extend({
 			$input.blur();
 		});
 		frappe.search.utils.setup_recent();
+		frappe.tags.utils.fetch_tags();
 	},
 
 	add_help: function() {

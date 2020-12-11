@@ -127,14 +127,6 @@ frappe.ui.form.Layout = Class.extend({
 		if (this.no_opening_section()) {
 			this.fields.unshift({fieldtype: 'Section Break'});
 		}
-
-		this.fields.unshift({
-			fieldtype: 'Section Break',
-			fieldname: '_form_dashboard',
-			cssClass: 'form-dashboard',
-			collapsible: 1,
-			// hidden: 1
-		});
 	},
 
 	replace_field: function(fieldname, df, render) {
@@ -310,10 +302,6 @@ frappe.ui.form.Layout = Class.extend({
 
 				if (collapse && section.has_missing_mandatory()) {
 					collapse = false;
-				}
-
-				if (df.fieldname === '_form_dashboard') {
-					collapse = localStorage.getItem('collapseFormDashboard')==='yes' ? true : false;
 				}
 
 				section.collapse(collapse);
@@ -587,17 +575,13 @@ frappe.ui.form.Section = Class.extend({
 			wrapper: this.wrapper
 		};
 
-		if (this.df.collapsible && this.df.fieldname !== '_form_dashboard') {
-			this.collapse(true);
-		}
-
 		this.refresh();
 	},
 	make: function() {
 		if (!this.layout.page) {
 			this.layout.page = $('<div class="form-page"></div>').appendTo(this.layout.wrapper);
 		}
-		let make_card = this.layout.card_layout && this.df.fieldname !== '_form_dashboard';
+		let make_card = this.layout.card_layout;
 		this.wrapper = $(`<div class="row form-section ${ make_card ? "card-section" : "" }">`)
 			.appendTo(this.layout.page);
 		this.layout.sections.push(this);
@@ -664,18 +648,12 @@ frappe.ui.form.Section = Class.extend({
 			hide = !this.body.hasClass("hide");
 		}
 
-		if (this.df.fieldname==='_form_dashboard') {
-			localStorage.setItem('collapseFormDashboard', hide ? 'yes' : 'no');
-		}
-
 		this.body.toggleClass("hide", hide);
 		this.head.toggleClass("collapsed", hide);
 
 		let indicator_icon = hide ? 'down' : 'up-line';
 
 		this.indicator & this.indicator.html(frappe.utils.icon(indicator_icon, 'sm', 'mb-1'));
-		// this.indicator && this.indicator.toggleClass("octicon-chevron-down", hide);
-		// this.indicator && this.indicator.toggleClass("octicon-chevron-up", !hide);
 
 		// refresh signature fields
 		this.fields_list.forEach((f) => {

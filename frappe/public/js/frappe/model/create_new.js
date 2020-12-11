@@ -126,6 +126,7 @@ $.extend(frappe.model, {
 		var user_permissions = frappe.defaults.get_user_permissions();
 		let allowed_records = [];
 		let default_doc = null;
+		let value = null;
 		if(user_permissions) {
 			({allowed_records, default_doc} = frappe.perm.filter_allowed_docs_for_doctype(user_permissions[df.options], doc.doctype));
 		}
@@ -139,71 +140,79 @@ $.extend(frappe.model, {
 		if (df.fieldtype==="Link" && df.options!=="User") {
 			// If user permission has Is Default enabled or single-user permission has found against respective doctype.
 			if (has_user_permissions && default_doc) {
-				return default_doc;
-			}
-
-			if(!df.ignore_user_permissions) {
+				value = default_doc;
+			} else {
 				// 2 - look in user defaults
-				var user_defaults = frappe.defaults.get_user_defaults(df.options);
-				if (user_defaults && user_defaults.length===1) {
-					// Use User Permission value when only when it has a single value
-					user_default = user_defaults[0];
+
+				if(!df.ignore_user_permissions) {
+					var user_defaults = frappe.defaults.get_user_defaults(df.options);
+					if (user_defaults && user_defaults.length===1) {
+						// Use User Permission value when only when it has a single value
+						user_default = user_defaults[0];
+					}
+				}
+	
+				else if (!user_default) {
+					user_default = frappe.defaults.get_user_default(df.fieldname);
+				}
+	
+				else if(!user_default && df.remember_last_selected_value && frappe.boot.user.last_selected_values) {
+					user_default = frappe.boot.user.last_selected_values[df.options];
+				}
+	
+				var is_allowed_user_default = user_default &&
+					(!has_user_permissions || allowed_records.includes(user_default));
+	
+				// is this user default also allowed as per user permissions?
+				if (is_allowed_user_default) {
+					value = user_default;
 				}
 			}
 
-			if (!user_default) {
-				user_default = frappe.defaults.get_user_default(df.fieldname);
-			}
-
-			if(!user_default && df.remember_last_selected_value && frappe.boot.user.last_selected_values) {
-				user_default = frappe.boot.user.last_selected_values[df.options];
-			}
-
-			var is_allowed_user_default = user_default &&
-				(!has_user_permissions || allowed_records.includes(user_default));
-
-			// is this user default also allowed as per user permissions?
-			if (is_allowed_user_default) {
-				return user_default;
-			}
 		}
 
 		// 3 - look in default of docfield
-		if (df['default']) {
+		if (!value || df['default']) {
 			const default_val = String(df['default']);
 			if (default_val == "__user" || default_val.toLowerCase() == "user") {
-				return frappe.session.user;
+				value = frappe.session.user;
 
 			} else if (default_val == "user_fullname") {
-				return frappe.session.user_fullname;
+				value = frappe.session.user_fullname;
 
 			} else if (default_val == "Today") {
-				return frappe.datetime.get_today();
+				value = frappe.datetime.get_today();
 
 			} else if ((default_val || "").toLowerCase() === "now") {
-				return frappe.datetime.now_datetime();
+				value = frappe.datetime.now_datetime();
 
 			} else if (default_val[0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
 				var is_allowed_boot_doc = !has_user_permissions || allowed_records.includes(boot_doc);
 
 				if (is_allowed_boot_doc) {
-					return boot_doc;
+					value = boot_doc;
 				}
 			} else if (df.fieldname===meta.title_field) {
 				// ignore defaults for title field
-				return "";
+				value = "";
+			} else {
+				// is this default value is also allowed as per user permissions?
+				var is_allowed_default = !has_user_permissions || allowed_records.includes(df.default);
+				if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
+					value = df["default"];
+				}
 			}
 
-			// is this default value is also allowed as per user permissions?
-			var is_allowed_default = !has_user_permissions || allowed_records.includes(df.default);
-			if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
-				return df["default"];
-			}
 
 		} else if (df.fieldtype=="Time") {
-			return frappe.datetime.now_time();
+			value = frappe.datetime.now_time();
 		}
+
+		// set it here so we know it was set as a default
+		df.__default_value = value;
+
+		return value;
 	},
 
 	get_default_from_boot_docs: function(df, doc, parent_doc) {

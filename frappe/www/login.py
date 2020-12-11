@@ -25,8 +25,10 @@ def get_context(context):
 				redirect_to = get_home_page()
 			else:
 				redirect_to = "/app"
-		frappe.local.flags.redirect_location = redirect_to
-		raise frappe.Redirect
+		
+		if redirect_to != 'login':
+			frappe.local.flags.redirect_location = redirect_to
+			raise frappe.Redirect
 
 	# get settings from site config
 	context.no_header = True

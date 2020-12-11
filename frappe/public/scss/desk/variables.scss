@@ -2,10 +2,6 @@ html, body {
 	font-size: 16px;
 }
 
-* {
-	transition: background-color 0.5s, background 0.5s;
-}
-
 // colors
 $gray-900: #192734;
 $gray-800: #313B44;
@@ -33,6 +29,8 @@ $code-color: var(--purple-600);
 $border-radius: var(--border-radius);
 $border-radius-sm: var(--border-radius-sm);
 $border-radius-lg: var(--border-radius-lg);
+
+$nav-divider-margin-y: 4px;
 
 $container-max-widths: (
   sm: 540px,
@@ -69,6 +67,7 @@ $input-focus-border-color: var(--gray-500);
 $input-border-radius: var(--border-radius);
 
 // dropdown
+$dropdown-color: var(--text-color);
 $dropdown-bg: var(--fg-color);
 $dropdown-border-color: var(--dark-border-color);
 $dropdown-link-color: var(--text-color);
@@ -77,6 +76,7 @@ $dropdown-link-hover-bg: var(--fg-hover-color);
 $dropdown-link-disabled-color: var(--gray-600);
 $dropdown-header-color: var(--gray-600);
 $dropdown-divider-bg: var(--border-color);
+$dropdown-min-width: 200px;
 
 // button
 $btn-padding-y-lg: 1rem !default;
