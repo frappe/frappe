@@ -64,7 +64,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			else:
 				doc = frappe.get_doc(doctype, name)
-
+				doc.check_developer_mode()
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
 
