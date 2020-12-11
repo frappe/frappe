@@ -87,6 +87,7 @@
 
 .like-disabled-input {
 	@extend .form-control;
+	height: auto;
 	border-radius: $border-radius;
 	font-weight: 400;
 	cursor: default;
