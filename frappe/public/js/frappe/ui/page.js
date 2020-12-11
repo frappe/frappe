@@ -195,9 +195,10 @@ frappe.ui.Page = Class.extend({
 
 	update_sidebar_icon() {
 		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
+		let sidebar_toggle_icon = sidebar_toggle.find('.sidebar-toggle-icon')
 		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
 		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
-		sidebar_toggle.html(frappe.utils.icon(is_sidebar_visible ? 'sidebar-collapse' : 'sidebar-expand', 'md'));
+		sidebar_toggle_icon.html(frappe.utils.icon(is_sidebar_visible ? 'sidebar-collapse' : 'sidebar-expand', 'md'));
 	},
 
 	set_indicator: function(label, color) {
