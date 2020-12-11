@@ -946,7 +946,11 @@ def get_installed_apps(sort=False, frappe_last=False):
 		connect()
 
 	if not local.all_apps:
-		local.all_apps  = get_all_apps(True)
+		local.all_apps = cache().get_value('all_apps', get_all_apps)
+
+		#cache bench apps
+		if not cache().get_value('all_apps'):
+			cache().set_value('all_apps', local.all_apps)
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
