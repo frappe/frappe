@@ -348,7 +348,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 
 	if as_table and type(msg) in (list, tuple):
 		out.as_table = 1
-	
+
 	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
 		out.as_list = 1
 
@@ -939,7 +939,11 @@ def get_installed_apps(sort=False, frappe_last=False):
 		connect()
 
 	if not local.all_apps:
-		local.all_apps  = get_all_apps(True)
+		local.all_apps = cache().get_value('all_apps', get_all_apps)
+
+		#cache bench apps
+		if not cache().get_value('all_apps'):
+			cache().set_value('all_apps', local.all_apps)
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
