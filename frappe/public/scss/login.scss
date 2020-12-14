@@ -18,19 +18,20 @@
 
 	@include media-breakpoint-up(sm) {
 		.page-card {
-			padding: 45px;
+			padding-top: 45px;
+			padding-bottom: 45px;
 			background-color: #fff;
 			box-shadow: var(--shadow-base);
 		}
 	}
 
 	.page-card {
-		max-width: 470px;
+		max-width: 400px;
 		margin: 0 auto;
 		border-radius: var(--border-radius-md);
 
 		form {
-			max-width: 330px;
+			max-width: 320px;
 			margin: 0 auto;
 
 			.form-group {
@@ -57,7 +58,7 @@
 				color: var(--text-color);
 				font-size: var(--text-base);
 				background-color: var(--control-bg);
-				margin-bottom: 10px;
+				margin-bottom: 1rem;
 			}
 
 			&.invalid {
@@ -155,29 +156,28 @@
 				margin: var(--margin-md) 0;
 			}
 		}
+	}
 
-		.page-card-head {
-			margin: 0 auto;
-			text-align: center;
+	.page-card-head {
+		margin: 0 auto;
+		text-align: center;
+		font-size: var(--text-xl);
+		font-weight: 600;
+		margin-bottom: 2.5rem;
+
+		img {
+			max-height: 42px;
+			margin-bottom: var(--margin-lg, 30px);
+		}
+
+		h4 {
 			font-size: var(--text-xl);
-			font-weight: 600;
-			margin-bottom: var(--margin-lg);
-
-			img {
-				max-height: 42px;
-				margin-bottom: var(--margin-lg, 20px);
-			}
-
-			h4 {
-				font-size: var(--text-xl);
-				color: var(--text-color);
-			}
+			color: var(--text-color);
 		}
 	}
 
-
 	.sign-up-message {
-		margin-top: var(--margin-md);
+		margin-top: 2rem;
 		color: var(--text-light);
 		font-size: var(--text-md);
 

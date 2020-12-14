@@ -692,7 +692,7 @@ class DatabaseQuery(object):
 				if c:
 					conditions.append(c)
 
-		permision_script_name = get_server_script_map().get("permission_query").get(self.doctype)
+		permision_script_name = get_server_script_map().get("permission_query", {}).get(self.doctype)
 		if permision_script_name:
 			script = frappe.get_doc("Server Script", permision_script_name)
 			condition = script.get_permission_query_conditions(self.user)

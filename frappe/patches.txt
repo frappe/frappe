@@ -300,7 +300,7 @@ frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
 frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
 frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
-frappe.patches.v13_0.add_standard_navbar_items
+frappe.patches.v13_0.add_standard_navbar_items # 2020-12-15
 frappe.patches.v13_0.generate_theme_files_in_public_folder
 frappe.patches.v13_0.increase_password_length
 frappe.patches.v12_0.fix_email_id_formatting

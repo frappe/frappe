@@ -117,6 +117,7 @@ frappe.router = {
 		// /app/user/view/tree = ["Tree", "User"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
+		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 		let standard_route = route;
 		let doctype_route = this.routes[route[0]];
 
@@ -128,6 +129,10 @@ frappe.router = {
 						standard_route = ['Tree', doctype_route.doctype];
 					} else {
 						standard_route = ['List', doctype_route.doctype, frappe.utils.to_title_case(route[2])];
+						if (route[3]) {
+							// calendar / kanban / dashboard name
+							standard_route.push(route[3]);
+						}
 					}
 				} else {
 					standard_route = ['Form', doctype_route.doctype, route[1]];
