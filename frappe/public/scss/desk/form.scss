@@ -85,8 +85,7 @@
 }
 
 .like-disabled-input {
-	@extend .form-control;
-	height: auto;
+	min-height: $input-height;
 	border-radius: $border-radius;
 	font-weight: 400;
 	cursor: default;
