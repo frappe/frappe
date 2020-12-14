@@ -404,6 +404,9 @@ input.list-row-checkbox {
 .map-view-container {
   display: flex;
   flex-wrap: wrap;
+  width: 100%;
+  height: calc(100vh - 284px);
+  z-index: 0;
 }
 .list-paging-area .gantt-view-mode {
   margin-left: 15px;

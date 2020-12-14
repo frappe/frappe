@@ -32,13 +32,14 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		this.map_id = frappe.dom.get_unique_id();
 
 		this.$result.html(`
-			<div id="` + this.map_id + `" class="map-view-container"  style="width: 100%;height: calc(100vh - 284px); z-index: 0;">
+			<div id="` + this.map_id + `" class="map-view-container">
 				
 			</div>
 		`);
 
 
-		this.map = L.map(this.map_id).setView([12.3112899, -85.7384542], 8); //coords of India if markers does not exists
+		//coords of India if markers does not exists
+		this.map = L.map(this.map_id).setView([12.3112899, -85.7384542], 8);
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
@@ -46,13 +47,13 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		}).addTo(this.map);
 
 		L.control.scale().addTo(this.map);
-if (this.coords.features && this.coords.features.length) {
-		this.coords.features.forEach(
-			coords => L.geoJSON(coords).bindPopup(coords.properties.name).addTo(this.map)
-		);
-		let lastCoords = this.coords.features[0].geometry.coordinates.reverse();
-		this.map.panTo(lastCoords, 8);
-}
+		if (this.coords.features && this.coords.features.length) {
+				this.coords.features.forEach(
+					coords => L.geoJSON(coords).bindPopup(coords.properties.name).addTo(this.map)
+				);
+				let lastCoords = this.coords.features[0].geometry.coordinates.reverse();
+				this.map.panTo(lastCoords, 8);
+		}
 	}
 
 	get_coords() {
