@@ -12,15 +12,19 @@ from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
+from frappe.model.base_document import get_controller
 
 
 @frappe.whitelist()
 @frappe.read_only()
 def get():
 	args = get_form_params()
-
-	data = compress(execute(**args), args = args)
-
+	# If virtual doctype get data from controller het_list method
+	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="virtual_doctype"):
+		controller = get_controller(args.doctype)
+		data = compress(controller(args.doctype).get_list(args))
+	else:
+		data = compress(execute(**args), args = args)
 	return data
 
 def execute(doctype, *args, **kwargs):

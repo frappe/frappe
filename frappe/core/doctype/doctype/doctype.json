@@ -22,6 +22,7 @@
   "track_views",
   "custom",
   "beta",
+  "virtual_doctype",
   "fields_section_break",
   "fields",
   "sb1",
@@ -528,6 +529,12 @@
    "fieldname": "index_web_pages_for_search",
    "fieldtype": "Check",
    "label": "Index Web Pages for Search"
+  },
+  {
+   "default": "0",
+   "fieldname": "virtual_doctype",
+   "fieldtype": "Check",
+   "label": "Virtual DocType"
   }
  ],
  "icon": "fa fa-bolt",
@@ -609,7 +616,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2020-09-24 13:13:58.227153",
+ "modified": "2020-12-14 12:48:33.752219",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
