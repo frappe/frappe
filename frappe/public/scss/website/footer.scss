@@ -76,7 +76,13 @@
 }
 
 .footer-info {
+	margin-top: 1rem;
 	border-top: 1px solid $border-color;
 	color: $text-muted;
 	font-size: $font-size-sm;
+}
+
+.form-control {
+	border: none;
+	font-size: var(--text-md);
 }
