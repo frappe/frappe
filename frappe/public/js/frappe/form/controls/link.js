@@ -297,12 +297,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		// returns [{value: 'Manufacturer 1', 'description': 'mobile part 1, mobile part 2'}]
 	},
 
-	toggle_href(doctype){
-		if(frappe.model.can_select(doctype) && !frappe.model.can_read(doctype)) {
+	toggle_href(doctype) {
+		if (frappe.model.can_select(doctype) && !frappe.model.can_read(doctype)) {
 			// remove href from link field as user has only select perm
 			this.$input_area.find(".link-btn").addClass('hide');
-		}
-		else{
+		} else {
 			this.$input_area.find(".link-btn").removeClass('hide');
 		}
 	},
