@@ -208,8 +208,8 @@ frappe.PrintFormatBuilder = Class.extend({
 		if(!this.print_heading_template) {
 			// default print heading template
 			this.print_heading_template = '<div class="print-heading">\
-				<h2>'+__(this.print_format.doc_type)
-					+'<br><small class="sub-heading">{{ doc.name }}</small>\
+				<h2><div>'+__(this.print_format.doc_type)
+					+'</div><br><small class="sub-heading">{{ doc.name }}</small>\
 				</h2></div>';
 		}
 

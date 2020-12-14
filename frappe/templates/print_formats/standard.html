@@ -25,10 +25,11 @@
 		{%- if doc.print_section_headings and section.label and section.has_data -%}
 		<h4 class='col-sm-12'>{{ _(section.label) }}</h4>
 		{%- endif -%}
+		{%- set no_of_cols = section.columns|len -%}
 		{% for column in section.columns %}
-			<div class="col-xs-{{ (12 / section.columns|len)|int }} column-break">
+			<div class="col-xs-{{ (12 / no_of_cols)|int }} column-break">
 			{% for df in column.fields %}
-				{{ render_field(df, doc) }}
+				{{ render_field(df, doc, no_of_cols) }}
 			{% endfor %}
 			</div>
 		{% endfor %}
