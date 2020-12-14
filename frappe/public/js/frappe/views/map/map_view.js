@@ -31,11 +31,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	render_map_view() {
 		this.map_id = frappe.dom.get_unique_id();
 
-		this.$result.html(`
-			<div id="` + this.map_id + `" class="map-view-container">
-				
-			</div>
-		`);
+		this.$result.html(`<div id="${this.map_id}" class="map-view-container"></div>`);
 
 
 		//coords of India if markers does not exists
