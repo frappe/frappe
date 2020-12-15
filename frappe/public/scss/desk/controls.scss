@@ -33,10 +33,48 @@
 	background-color: var(--control-bg);
 }
 
+/* multiselect list */
 .multiselect-list {
 	.status-text {
 		position: absolute;
 		top: 4px;
+	}
+
+	.dropdown-menu {
+		width: 100%;
+	}
+
+	li {
+		padding: var(--padding-sm);
+	}
+
+	.selectable-item {
+		cursor: pointer;
+		@include flex(flex, space-between, center, null);
+		.icon {
+			display: none;
+		}
+	}
+
+	.selectable-item.selected {
+		background-color: var(--yellow-highlight-color);
+
+		.icon {
+			display: block;
+		}
+	}
+
+	.selectable-item:hover, .selectable-item.highlighted {
+		background-color: var(--fg-hover-color);
+	}
+
+	.selectable-items {
+		max-height: 200px;
+		overflow: auto;
+
+		.multiselect-check {
+			margin-left: var(--margin-sm);
+		}
 	}
 }
 

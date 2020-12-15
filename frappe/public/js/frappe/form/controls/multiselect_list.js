@@ -210,7 +210,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 					<strong>${option.label}</strong>
 					<div class="small">${option.description}</div>
 				</div>
-				<div><span class="octicon octicon-check text-muted"></span></div>
+				<div class="multiselect-check">${frappe.utils.icon('tick', 'xs')}</div>
 			</li>`;
 		}).join('');
 		if (!html) {
