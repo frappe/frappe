@@ -3,6 +3,13 @@
 	.page-head {
 		position: unset;
 	}
+
+	.page-form {
+		.form-group {
+			padding: 0px var(--padding-sm);
+			margin: var(--margin-sm) 0px;
+		}
+	}
 }
 
 // grid report
