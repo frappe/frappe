@@ -262,8 +262,9 @@ frappe.ui.FilterGroup = class {
 
 	update_filters() {
 		// remove hidden filters and undefined filters
-		this.filters.map(f => !f.get_selected_value() && f.remove());
-		this.filters = this.filters.filter(f => f.get_selected_value() && f.field);
+		const filter_exists = (f) => ![undefined, null].includes(f.get_selected_value());
+		this.filters.map(f => !filter_exists(f) && f.remove());
+		this.filters = this.filters.filter(f => filter_exists(f) && f.field);
 		this.update_filter_button();
 		this.filters.length === 0 &&
 			this.toggle_empty_filters(true);
