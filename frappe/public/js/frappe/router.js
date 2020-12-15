@@ -279,7 +279,8 @@ frappe.router = {
 		// ["Form", "Sales Order", "SO-0001"] => /sales-order/SO-0001
 		// ["Tree", "Account"] = /account/view/tree
 
-		const view = route[0].toLowerCase();
+		// route[0] is not available for home "/app"
+		const view = route[0] && route[0].toLowerCase();
 		if (view === 'list') {
 			if (route[2] && route[2] !== 'list') {
 				const new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
