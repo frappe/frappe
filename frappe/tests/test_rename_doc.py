@@ -57,6 +57,10 @@ class TestRenameDoc(unittest.TestCase):
 
 		frappe.delete_doc_if_exists("Renamed Doc", "ToDo")
 
+	def setUp(self):
+		frappe.flags.link_fields = {}
+		super().setUp()
+
 	def test_rename_doc(self):
 		"""Rename an existing document via frappe.rename_doc"""
 		old_name = choice(self.available_documents)
@@ -89,7 +93,6 @@ class TestRenameDoc(unittest.TestCase):
 		# check if module exists exists;
 		# if custom, get_controller will return Document class
 		# if not custom, a different class will be returned
-		frappe.flags.link_fields = {}
 		self.assertNotEqual(get_controller(self.doctype.old), frappe.model.document.Document)
 
 		old_doctype_path = get_doc_path("Custom", "DocType", self.doctype.old)
@@ -106,7 +109,6 @@ class TestRenameDoc(unittest.TestCase):
 		"""Rename DocType via frappe.rename_doc"""
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		frappe.flags.link_fields = {}
 		if not frappe.db.exists("DocType", "Rename This"):
 			new_doctype(
 				"Rename This",
@@ -144,7 +146,7 @@ class TestRenameDoc(unittest.TestCase):
 			new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True)
 		)
 
-		# delete_doc  doesnt drop tables
+		# delete_doc doesnt drop tables
 		# this is done to bypass inconsistencies in the db
 		frappe.delete_doc_if_exists("DocType", "Renamed Doc")
 		frappe.db.sql_ddl("drop table if exists `tabRenamed Doc`")
