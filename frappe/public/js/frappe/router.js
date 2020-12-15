@@ -31,30 +31,32 @@ window.addEventListener('popstate', () => {
 
 // routing v2, capture all clicks so that the target is managed with push-state
 $('body').on('click', 'a', function(e) {
-	let override = (e, route) => {
+	let override = (route) => {
 		e.preventDefault();
 		frappe.set_route(route);
 		return false;
 	};
 
 	// click handled, but not by href
-	if (e.currentTarget.getAttribute('onclick')) return;
+	if (e.currentTarget.getAttribute('onclick')) {
+		return;
+	}
 
 	const href = e.currentTarget.getAttribute('href');
 	if (href==='#') return;
 
 	if (href==='') {
-		return override(e, '/app');
+		return override('/app');
 	}
 
 	// target has "#" ,this is a v1 style route, so remake it.
 	if (e.currentTarget.hash) {
-		return override(e, e.currentTarget.hash);
+		return override(e.currentTarget.hash);
 	}
 
 	// target has "/app, this is a v2 style route.
-	if (e.currentTarget.pathname && frappe.router.is_app_route()) {
-		return override(e, e.currentTarget.pathname);
+	if (e.currentTarget.pathname && frappe.router.is_app_route(e.currentTarget.pathname)) {
+		return override(e.currentTarget.pathname);
 	}
 });
 
@@ -65,9 +67,8 @@ frappe.router = {
 	list_views: ['list', 'kanban', 'report', 'calendar', 'tree', 'gantt', 'dashboard', 'image', 'inbox'],
 	layout_mapped: {},
 
-	is_app_route() {
+	is_app_route(path) {
 		// desk paths must begin with /app or doctype route
-		let path = window.location.pathname;
 		if (path.substr(0, 1) === '/') path = path.substr(1);
 		path = path.split('/');
 		if (path[0]) {

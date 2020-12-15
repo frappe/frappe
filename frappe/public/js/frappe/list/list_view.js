@@ -1108,7 +1108,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const $row = $(e.currentTarget);
 			const link = $row.find(".list-subject a").get(0);
 			if (link) {
-				window.location.href = link.href;
+				frappe.set_route(link.pathname);
 				return false;
 			}
 		});
