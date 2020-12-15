@@ -113,7 +113,7 @@ frappe.ui.form.Layout = Class.extend({
 			label: __('Dashboard'),
 			cssClass: 'form-dashboard',
 			collapsible: 1,
-			//hidden: 1
+			// hidden: 1
 		});
 	},
 
@@ -498,6 +498,7 @@ frappe.ui.form.Layout = Class.extend({
 	},
 	set_dependant_property: function(condition, fieldname, property) {
 		let set_property = this.evaluate_depends_on_value(condition);
+		let value = set_property ? 1 : 0;
 		let form_obj;
 
 		if (this.frm) {
@@ -506,10 +507,10 @@ frappe.ui.form.Layout = Class.extend({
 			form_obj = this;
 		}
 		if (form_obj) {
-			if (set_property) {
-				form_obj.set_df_property(fieldname, property, 1);
+			if (this.doc && this.doc.parent) {
+				form_obj.set_df_property(this.doc.parentfield, property, value, this.doc.parent, fieldname);
 			} else {
-				form_obj.set_df_property(fieldname, property, 0);
+				form_obj.set_df_property(fieldname, property, value);
 			}
 		}
 	},

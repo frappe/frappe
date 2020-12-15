@@ -232,14 +232,10 @@ frappe.ui.form.Form = class FrappeForm {
 					throw "attach error";
 				}
 
-				if(me.attachments.max_reached()) {
-					frappe.msgprint(__("Maximum Attachment Limit for this record reached."));
-					throw "attach error";
-				}
-
 				new frappe.ui.FileUploader({
 					doctype: me.doctype,
 					docname: me.docname,
+					frm: me,
 					files: dataTransfer.files,
 					folder: 'Home/Attachments',
 					on_success(file_doc) {
@@ -261,7 +257,7 @@ frappe.ui.form.Form = class FrappeForm {
 		cur_frm = this;
 
 		if(this.docname) { // document to show
-
+			this.save_disabled = false;
 			// set the doc
 			this.doc = frappe.get_doc(this.doctype, this.docname);
 

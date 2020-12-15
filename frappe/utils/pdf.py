@@ -112,8 +112,7 @@ def prepare_options(html, options):
 	options.update(html_options or {})
 
 	# cookies
-	if not frappe.flags.in_test:
-		options.update(get_cookie_options())
+	options.update(get_cookie_options())
 
 	# page size
 	if not options.get("page-size"):
@@ -130,7 +129,7 @@ def get_cookie_options():
 
 		# Remove port from request.host
 		# https://werkzeug.palletsprojects.com/en/0.16.x/wrappers/#werkzeug.wrappers.BaseRequest.host
-		domain = frappe.local.request.host.split(":", 1)[0]
+		domain = frappe.utils.get_host_name().split(":", 1)[0]
 		with open(cookiejar, "w") as f:
 			f.write("sid={}; Domain={};\n".format(frappe.session.sid, domain))
 

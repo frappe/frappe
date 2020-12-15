@@ -18,6 +18,7 @@ from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, get_timespan_date_range
 from frappe.model.meta import get_table_columns
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -94,6 +95,11 @@ class DatabaseQuery(object):
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
+
+		self.columns = self.get_table_columns()
+
+		# no table & ignore_ddl, return
+		if not self.columns: return []
 
 		if query:
 			result = self.run_custom_query(query)
@@ -325,21 +331,22 @@ class DatabaseQuery(object):
 				if '.' not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = '{0}.{1}'.format(self.tables[0], field)
 
-	def set_optional_columns(self):
-		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
+	def get_table_columns(self):
 		try:
-			columns = get_table_columns(self.doctype)
+			return get_table_columns(self.doctype)
 		except frappe.db.TableMissingError:
 			if self.ignore_ddl:
-				return
+				return None
 			else:
 				raise
 
+	def set_optional_columns(self):
+		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
 			for f in optional_fields:
-				if f in fld and not f in columns:
+				if f in fld and not f in self.columns:
 					to_remove.append(fld)
 
 		for fld in to_remove:
@@ -352,7 +359,7 @@ class DatabaseQuery(object):
 				each = [each]
 
 			for element in each:
-				if element in optional_fields and element not in columns:
+				if element in optional_fields and element not in self.columns:
 					to_remove.append(each)
 
 		for each in to_remove:
@@ -677,15 +684,23 @@ class DatabaseQuery(object):
 			self.match_filters.append(match_filters)
 
 	def get_permission_query_conditions(self):
+		conditions = []
 		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
 		if condition_methods:
-			conditions = []
 			for method in condition_methods:
 				c = frappe.call(frappe.get_attr(method), self.user)
 				if c:
 					conditions.append(c)
 
-			return " and ".join(conditions) if conditions else None
+		permision_script_name = get_server_script_map().get("permission_query").get(self.doctype)
+		if permision_script_name:
+			script = frappe.get_doc("Server Script", permision_script_name)
+			condition = script.get_permission_query_conditions(self.user)
+			if condition:
+				conditions.append(condition)
+
+		return " and ".join(conditions) if conditions else ""
+
 
 	def run_custom_query(self, query):
 		if '%(key)s' in query:

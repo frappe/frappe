@@ -210,10 +210,9 @@ class SMTPServer:
 		try:
 			if self.use_ssl:
 				if not self.port:
-					self.smtp_port = 465
+					self.port = 465
 
-				self._sess = smtplib.SMTP_SSL((self.server or "").encode('utf-8'),
-						cint(self.port) or None)
+				self._sess = smtplib.SMTP_SSL((self.server or ""), cint(self.port))
 			else:
 				if self.use_tls and not self.port:
 					self.port = 587
@@ -242,11 +241,8 @@ class SMTPServer:
 			return self._sess
 
 		except smtplib.SMTPAuthenticationError as e:
-			frappe.throw(
-				_("Incorrect email or password. Please check your login credentials."),
-				exc=frappe.ValidationError,
-				title=_("Invalid Credentials")
-			)
+			from frappe.email.doctype.email_account.email_account import EmailAccount
+			EmailAccount.throw_invalid_credentials_exception()
 
 		except _socket.error as e:
 			# Invalid mail server -- due to refusing connection

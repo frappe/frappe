@@ -148,7 +148,6 @@ frappe.Application = Class.extend({
 							user: frappe.session.user
 						},
 						callback: function(r) {
-							console.log(r);
 							if(r.message.show_alert){
 								frappe.show_alert({
 									indicator: 'red',
@@ -199,6 +198,7 @@ frappe.Application = Class.extend({
 					'reqd': 1
 				},
 				{
+					"fieldname": "submit",
 					"fieldtype": "Button",
 					"label": __("Submit")
 				}

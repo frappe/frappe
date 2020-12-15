@@ -21,6 +21,7 @@ class AutoRepeat(Document):
 	def validate(self):
 		self.update_status()
 		self.validate_reference_doctype()
+		self.validate_submit_on_creation()
 		self.validate_dates()
 		self.validate_email_id()
 		self.set_dates()
@@ -59,6 +60,11 @@ class AutoRepeat(Document):
 			return
 		if not frappe.get_meta(self.reference_doctype).allow_auto_repeat:
 			frappe.throw(_("Enable Allow Auto Repeat for the doctype {0} in Customize Form").format(self.reference_doctype))
+
+	def validate_submit_on_creation(self):
+		if self.submit_on_creation and not frappe.get_meta(self.reference_doctype).is_submittable:
+			frappe.throw(_('Cannot enable {0} for a non-submittable doctype').format(
+				frappe.bold('Submit on Creation')))
 
 	def validate_dates(self):
 		if frappe.flags.in_patch:
@@ -150,6 +156,9 @@ class AutoRepeat(Document):
 		self.update_doc(new_doc, reference_doc)
 		new_doc.insert(ignore_permissions = True)
 
+		if self.submit_on_creation:
+			new_doc.submit()
+
 		return new_doc
 
 	def update_doc(self, new_doc, reference_doc):
@@ -160,7 +169,7 @@ class AutoRepeat(Document):
 		if new_doc.meta.get_field('auto_repeat'):
 			new_doc.set('auto_repeat', self.name)
 
-		for fieldname in ['naming_series', 'ignore_pricing_rule', 'posting_time', 'select_print_heading', 'remarks', 'owner']:
+		for fieldname in ['naming_series', 'ignore_pricing_rule', 'posting_time', 'select_print_heading', 'user_remark', 'remarks', 'owner']:
 			if new_doc.meta.get_field(fieldname):
 				new_doc.set(fieldname, reference_doc.get(fieldname))
 

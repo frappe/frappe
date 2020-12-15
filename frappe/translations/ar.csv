@@ -499,7 +499,6 @@ Authenticating...,مصادقة ...,
 Authentication,المصادقة,
 Authentication Apps you can use are: ,تطبيقات المصادقة التي يمكنك استخدامها هي:,
 Authentication Credentials,مصادقة بيانات الاعتماد,
-Authentication failed while receiving emails from Email Account {0}. Message from server: {1},فشل المصادقة في حين تلقي رسائل البريد الإلكتروني من البريد الإلكتروني حساب {0}. رسالة من الخادم: {1},
 Authorization Code,رمز الترخيص,
 Authorize URL,مصادقة عنوان ورل,
 Authorized,مخول,
@@ -601,7 +600,6 @@ Cannot change docstatus from 1 to 0,لا يمكن تغيير docstatus من 1 إ
 Cannot change header content,لا يمكن تغيير محتوى الرأس,
 Cannot change state of Cancelled Document. Transition row {0},لا يمكن تغيير حالة الوثيقة ملغاة .,
 Cannot change user details in demo. Please signup for a new account at https://erpnext.com,لا يمكن تغيير تفاصيل المستخدم في العرض التوضيحي. يرجى الاشتراك للحصول على حساب جديد في https://erpnext.com,
-Cannot connect: {0},لا يمكن الاتصال: {0},
 Cannot create a {0} against a child document: {1},لا يمكن إنشاء {0} ضد مستند طفل: {1},
 Cannot delete Home and Attachments folders,لا يمكن حذف المجلدات الرئيسية والمرفقات,
 Cannot delete file as it belongs to {0} {1} for which you do not have permissions,لا يمكن حذف الملف لأنه ينتمي إلى {0} {1} الذي ليس لديك أذونات,
@@ -842,7 +840,6 @@ Default Sending and Inbox,صندوق الوارد و الصادر الافترا
 Default Sort Field,حقل التصنيف الافتراضي,
 Default Sort Order,ترتيب الافتراضي,
 Default Value,القيمة الافتراضية,
-Default for 'Check' type of field must be either '0' or '1',"يجب أن يكون الخيار الافتراضي لنوع ""التحقق"" إما ""0"" أو ""1""",
 "Default: ""Contact Us""",الافتراضي: &quot;اتصل بنا&quot;,
 DefaultValue,القيمة الافتراضية,
 Define workflows for forms.,تحديد سير العمل للنماذج,
@@ -900,7 +897,6 @@ DocType can only be renamed by Administrator,DOCTYPE لا يمكن تسميته�
 DocType is a Table / Form in the application.,DOCTYPE هو الجدول / نموذج في التطبيق.,
 DocType must be Submittable for the selected Doc Event,يجب تقديم دوكتيب للحدث دوك المحدد,
 DocType on which this Workflow is applicable.,DOCTYPE على سير العمل هذا الذي ينطبق.,
-DocType or Field,DOCTYPE أو حقل,
 "DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores",يجب أن يبدأ اسم دوكتيب بحرف ويمكن أن يتكون فقط من الحروف والأرقام والمسافات والشرطات السفلية,
 Doctype required,Doctype المطلوبة,
 Document,وثيقة,
@@ -1141,7 +1137,6 @@ Font Size,حجم الخط,
 Fonts,الخطوط,
 Footer,تذييل الصفحة,
 Footer HTML,تذييل HTML,
-Footer Item,تذييل البند,
 Footer Items,تذييل العناصر,
 Footer will display correctly only in PDF,سيعرض تذييل الصفحة بشكل صحيح في PDF فقط,
 For Document Type,لنوع المستند,
@@ -1151,7 +1146,6 @@ For Value,للقيمة,
 "For currency {0}, the minimum transaction amount should be {1}",للعملة {0} ، يجب أن يكون الحد الأدنى لمبلغ المعاملة {1},
 For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,على سبيل المثال إذا قمت بإلغاء وتعديل INV004 أنها سوف تصبح وثيقة INV004-1 جديدة. هذا يساعدك على تتبع كل تعديل.,
 "For example: If you want to include the document ID, use {0}",على سبيل المثال: إذا كنت تريد تضمين الوثيقة ID، استخدم {0},
-For top bar,للشريط الأعلى,
 "For updating, you can update only selective columns.",لتحديث، يمكنك تحديث الأعمدة انتقائية فقط.,
 For {0} at level {1} in {2} in row {3},ل {0} في {1} مستوى في {2} في {3} الصف,
 Force,فرض,
@@ -1203,7 +1197,6 @@ Google Calendar ID,معرف تقويم Google,
 Google Font,خط جوجل,
 Google Services,خدمات جوجل,
 Grant Type,منحة نوع,
-Group Label,تسمية مجموعة,
 Group Name,أسم المجموعة,
 Group name cannot be empty.,لا يمكن أن يكون اسم المجموعة فارغا.,
 Groups of DocTypes,مجموعات من DocTypes,
@@ -1913,7 +1906,6 @@ Please verify your Email Address,يرجى التحقق من عنوان البر�
 Point Allocation Periodicity,نقطة التخصيص الدورية,
 Points,نقاط,
 Points Given,النقاط المقدمة,
-Policy,سياسة,
 Port,المنفذ,
 Portal Menu,البوابة القائمة,
 Portal Menu Item,بوابة عنصر القائمة,
@@ -2026,7 +2018,6 @@ Reference DocName,مرجع DocName,
 Reference DocType and Reference Name are required,مطلوب مرجع دوكتيب واسم مرجع,
 Reference Report,تقرير مرجعي,
 Reference: {0} {1},إشارة: {0} {1},
-Refresh Form,نموذج التحديث,
 Refreshing...,يحديث ...,
 Register OAuth Client App,تسجيل أوث العميل التطبيقات,
 Registered but disabled,سجل لكن المعوقين,
@@ -2217,7 +2208,6 @@ Select an image of approx width 150px with a transparent background for best res
 Select atleast 1 record for printing,اختر أتلست سجل 1 للطباعة,
 Select or drag across time slots to create a new event.,اختر أو اسحب عبر فتحات الوقت لإنشاء حدث جديد.,
 Select records for assignment,اختر سجلات التعيين,
-"Select target = ""_blank"" to open in a new page.","حدد الهدف = "" _blank "" لفتح في صفحة جديدة .",
 Select the label after which you want to insert new field.,حدد التسمية بعد الذي تريد إدراج حقل جديد.,
 "Select your Country, Time Zone and Currency",اختر بلدك، المنطقة الزمنية والعملات,
 Select {0},حدد {0},
@@ -2717,7 +2707,6 @@ View Log,عرض السجل,
 View Permitted Documents,عرض المستندات المسموح بها,
 View Properties (via Customize Form),عرض خصائص (عن طريق نموذج تخصيص),
 View Settings,عرض إعدادات,
-View Subscribers,عرض المشتركين,
 View Website,مشاهدة الموقع,
 View document,عرض المستند,
 View report in your browser,عرض التقرير في المتصفح,
@@ -2993,7 +2982,6 @@ star-empty,النجوم فارغة,
 step-backward,خطوة إلى الوراء,
 step-forward,خطوة إلى الأمام,
 submitted this document,هذه الوثيقة مقدمة / مسجلة,
-"target = ""_blank""",الهدف = &quot;_blank&quot;,
 text in document type,النص في نوع الوثيقة,
 text-height,ارتفاع النص,
 text-width,عرض النص,
@@ -3569,7 +3557,6 @@ Some columns might get cut off when printing to PDF. Try to keep number of colum
 Something went wrong during the token generation. Click on {0} to generate a new one.,حدث خطأ ما أثناء الجيل المميز. انقر على {0} لإنشاء واحدة جديدة.,
 Submit After Import,إرسال بعد الاستيراد,
 Submitting...,تقديم...,
-Subscribed Documents,المستندات المشتركة,
 Success! You are good to go 👍,نجاح! أنت جيد للذهاب 👍,
 Successful Transactions,المعاملات الناجحة,
 Successfully Submitted!,قدمت بنجاح!,
@@ -3781,7 +3768,6 @@ Please specify,رجاء حدد,
 Printing,طبع,
 Priority,أفضلية,
 Project,مشروع,
-Publish,نشر,
 Quarterly,فصلي,
 Queued,قائمة الانتظار,
 Quick Entry,إدخال سريع,
@@ -3818,7 +3804,6 @@ Type,النوع,
 Update,تحديث,
 User {0} is disabled,المستخدم {0} تم تعطيل,
 Users and Permissions,المستخدمين والصلاحيات,
-View,رأي,
 Warehouse,المستودعات,
 Welcome to {0},أهلا وسهلا بك إلى {0},
 Year,عام,
@@ -4188,6 +4173,7 @@ Linked Documents,المستندات المرتبطة,
 Account SID,حساب SID,
 Steps,خطوات,
 email,البريد الإلكتروني,
+Component,مكون,
 Subtitle,عنوان فرعي,
 Global Defaults,افتراضيات العالمية,
 Prefix,بادئة,
@@ -4224,7 +4210,7 @@ This Month,هذا الشهر,
 This Quarter,هذا الربع,
 This Year,هذه السنة,
 All Time,كل الوقت,
-Select From Date,حدد من التاريخ,
+Select From Date,حدد من تاريخ,
 since yesterday,منذ البارحة,
 since last week,منذ الأسبوع الماضي,
 since last month,منذ اخر شهر,
@@ -4303,7 +4289,6 @@ Hide Border,إخفاء الحدود,
 Index Web Pages for Search,فهرس صفحات الويب للبحث,
 Action / Route,العمل / الطريق,
 Document Naming Rule,قاعدة تسمية الوثيقة,
-Rules with higher priority will be applied first.,سيتم تطبيق القواعد ذات الأولوية الأعلى أولاً.,
 Rule Conditions,شروط القاعدة,
 Digits,أرقام,
 Example: 00001,مثال: 00001,
@@ -4339,7 +4324,6 @@ Send document Web View link in email,إرسال ارتباط عرض الويب �
 Enable Auto-deletion of Prepared Reports,تمكين الحذف التلقائي للتقارير المعدة,
 Prepared Report Expiry Period (Days),فترة انتهاء صلاحية التقرير المُعد (أيام),
 System will automatically delete Prepared Reports after these many days since creation,سيقوم النظام تلقائيًا بحذف التقارير المعدة بعد هذه الأيام العديدة منذ الإنشاء,
-Custom Link,رابط مخصص,
 Package Document Type,نوع وثيقة الحزمة,
 Include Attachments,قم بتضمين المرفقات,
 Overwrite,الكتابة فوق,
@@ -4349,10 +4333,6 @@ Package Publish Tool,أداة نشر الحزمة,
 Click on the row for accessing filters.,انقر فوق الصف للوصول إلى المرشحات.,
 Sites,المواقع,
 Last Deployed On,آخر نشر في,
-Last published {0},آخر نشر {0},
-Publishing documents...,نشر المستندات ...,
-Documents have been published.,تم نشر الوثائق.,
-Select Document Type.,حدد نوع المستند.,
 Console Log,سجل وحدة التحكم,
 "Set Default Options for all charts on this Dashboard (Ex: ""colors"": [""#d1d8dd"", ""#ff5858""])",تعيين الخيارات الافتراضية لجميع الرسوم البيانية في لوحة المعلومات هذه (على سبيل المثال: &quot;الألوان&quot;: [&quot;# d1d8dd&quot;، &quot;# ff5858&quot;]),
 Use Report Chart,استخدم مخطط التقرير,
@@ -4571,10 +4551,6 @@ Incorrect URL,URL غير صحيح,
 Duplicate Name,اسم مكرر,
 "Please check the value of ""Fetch From"" set for field {0}",يرجى التحقق من قيمة مجموعة &quot;الجلب من&quot; للحقل {0},
 Wrong Fetch From value,إحضار خاطئ من القيمة,
-Deploying,النشر,
-Couldn't connect to site {0}. Please check Error Logs.,تعذر الاتصال بالموقع {0}. يرجى التحقق من سجلات الأخطاء.,
-Error while installing package to site {0}. Please check Error Logs.,خطأ أثناء تثبيت الحزمة على الموقع {0}. يرجى التحقق من سجلات الأخطاء.,
-Exporting,تصدير,
 A field with the name '{}' already exists in doctype {}.,يوجد حقل بالاسم &quot;{}&quot; بالفعل في DOCTYPE {}.,
 Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account.,يتم إنشاء الحقل المخصص {0} بواسطة المسؤول ولا يمكن حذفه إلا من خلال حساب المسؤول.,
 Failed to send {0} Auto Email Report,فشل إرسال تقرير البريد الإلكتروني التلقائي {0},
@@ -4614,8 +4590,6 @@ Row #{0}: Please set Mapping or Default Value for the field {1} since its a depe
 Row #{0}: Please set remote value filters for the field {1} to fetch the unique remote dependency document,الصف رقم {0}: الرجاء تعيين عوامل تصفية القيمة البعيدة للحقل {1} لجلب مستند التبعية الفريد عن بُعد,
 Paytm payment gateway settings,إعدادات بوابة الدفع Paytm,
 "Company, Fiscal Year and Currency defaults",التخلف عن السداد للشركة والسنة المالية والعملات,
-Package,صفقة,
-Import and Export Packages.,حزم الاستيراد والتصدير.,
 Razorpay Signature Verification Failed,فشل التحقق من توقيع Razorpay,
 Google Drive - Could not locate - {0},Google Drive - تعذر تحديد الموقع - {0},
 "Sync token was invalid and has been resetted, Retry syncing.",كان رمز المزامنة المميز غير صالح وتم إعادة ضبطه ، أعد محاولة المزامنة.,
@@ -4696,3 +4670,33 @@ Incorrect Configuration,التكوين غير الصحيح,
 You are not allowed to delete Standard Report,لا يُسمح لك بحذف التقرير القياسي,
 You have unseen {0},لديك غير مرئي {0},
 Log cleanup and notification configuration,تنظيف السجل وتكوين الإخطار,
+State/Province,الولاية / المقاطعة,
+Document Actions,وثيقة الإجراءات,
+Document Links,روابط الوثيقة,
+List Settings,إعدادات القائمة,
+Cannot delete standard link. You can hide it if you want,لا يمكن حذف الارتباط القياسي. يمكنك إخفاء ذلك إذا كنت تريد,
+Cannot delete standard action. You can hide it if you want,لا يمكن حذف الإجراء القياسي. يمكنك إخفاء ذلك إذا كنت تريد,
+Applied On,تم التطبيق,
+Row Name,اسم الصف,
+For DocType Link / DocType Action,لإجراء DocType Link / DocType,
+Cannot edit filters for standard charts,لا يمكن تحرير عوامل التصفية للمخططات القياسية,
+Event Producer Last Update,آخر تحديث لمنتج الحدث,
+Default for 'Check' type of field {0} must be either '0' or '1',يجب أن يكون الإعداد الافتراضي لنوع حقل &quot;التحقق&quot; {0} إما &quot;0&quot; أو &quot;1&quot;,
+Non Negative,غير سلبي,
+Rules with higher priority number will be applied first.,سيتم تطبيق القواعد ذات رقم الأولوية الأعلى أولاً.,
+Open URL in a New Tab,افتح URL في علامة تبويب جديدة,
+Align Right,محاذاة اليمين,
+Loading Filters...,تحميل عوامل التصفية ...,
+Count Customizations,عد التخصيصات,
+For Example: {} Open,على سبيل المثال: {} Open,
+Choose Existing Card or create New Card,اختر بطاقة موجودة أو أنشئ بطاقة جديدة,
+Number Cards,عدد البطاقات,
+Function Based On,وظيفة على أساس,
+Add Filters,إضافة عوامل تصفية,
+Skip,تخطى,
+Dismiss,رفض,
+Value cannot be negative for,لا يمكن أن تكون القيمة سالبة لـ,
+Value cannot be negative for {0}: {1},لا يمكن أن تكون القيمة سالبة لـ {0}: {1},
+Negative Value,قيمة سالبة,
+Authentication failed while receiving emails from Email Account: {0}.,فشلت المصادقة أثناء تلقي رسائل البريد الإلكتروني من حساب البريد الإلكتروني: {0}.,
+Message from server: {0},رسالة من الخادم: {0},

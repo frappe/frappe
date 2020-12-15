@@ -1,8 +1,8 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from 'frappe-datatable';
-import { build_summary_item } from "../../widgets/utils";
 
+frappe.provide('frappe.widget.utils');
 frappe.provide('frappe.views');
 frappe.provide('frappe.query_reports');
 
@@ -631,7 +631,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_summary(data) {
 		data.forEach((summary) => {
-			build_summary_item(summary).appendTo(this.$summary);
+			frappe.widget.utils.build_summary_item(summary).appendTo(this.$summary);
 		})
 
 		this.$summary.show();
@@ -813,6 +813,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			data.splice(-1, 1);
 		}
 
+		this.$report.show();
 		if (this.datatable && this.datatable.options
 			&& (this.datatable.options.showTotalRow ===this.raw_data.add_total_row)) {
 			this.datatable.options.treeView = this.tree_report;
@@ -844,7 +845,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.report_settings.after_datatable_render) {
 			this.report_settings.after_datatable_render(this.datatable);
 		}
-		this.$report.show();
 	}
 
 	get_chart_options(data) {
@@ -1043,7 +1043,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					// applied to Float, Currency fields, needed only for currency formatting.
 					// make first data column have value 'Total'
 					let index = 1;
-					if (this.datatable && this.datatable.options.checkboxColumn) index = 2;
+
+					if (this.report_settings.get_datatable_options) {
+						let datatable = this.report_settings.get_datatable_options({});
+						if (datatable && datatable.checkboxColumn) index = 2;
+					}
 
 					if (column.colIndex === index && !value) {
 						value = "Total";
@@ -1108,7 +1112,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_filter_values(raise) {
-		const mandatory = this.filters.filter(f => f.df.reqd);
+
+		// check for mandatory property for filters added via UI
+		const mandatory = this.filters.filter(f => (f.df.reqd || f.df.mandatory));
 		const missing_mandatory = mandatory.filter(f => !f.get_value());
 		if (raise && missing_mandatory.length > 0) {
 			let message = __('Please set filters');

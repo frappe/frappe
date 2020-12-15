@@ -13,7 +13,19 @@ from frappe.www.printview import get_visible_columns
 import frappe.exceptions
 import frappe.integrations.utils
 
-class ServerScriptNotEnabled(frappe.PermissionError): pass
+class ServerScriptNotEnabled(frappe.PermissionError):
+	pass
+
+class NamespaceDict(frappe._dict):
+	"""Raise AttributeError if function not found in namespace"""
+	def __getattr__(self, key):
+		ret = self.get(key)
+		if (not ret and key.startswith("__")) or (key not in self):
+			def default_function(*args, **kwargs):
+				raise AttributeError(f"module has no attribute '{key}'")
+			return default_function
+		return ret
+
 
 def safe_exec(script, _globals=None, _locals=None):
 	# script reports must be enabled via site_config.json
@@ -46,13 +58,13 @@ def get_safe_globals():
 
 	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
 
-	out = frappe._dict(
+	out = NamespaceDict(
 		# make available limited methods of frappe
 		json=json,
 		dict=dict,
 		log=frappe.log,
 		_dict=frappe._dict,
-		frappe=frappe._dict(
+		frappe=NamespaceDict(
 			flags=frappe._dict(),
 			format=frappe.format_value,
 			format_value=frappe.format_value,
@@ -112,7 +124,7 @@ def get_safe_globals():
 		out.get_visible_columns = get_visible_columns
 		out.frappe.date_format = date_format
 		out.frappe.time_format = time_format
-		out.frappe.db = frappe._dict(
+		out.frappe.db = NamespaceDict(
 			get_list = frappe.get_list,
 			get_all = frappe.get_all,
 			get_value = frappe.db.get_value,
@@ -277,5 +289,6 @@ VALID_UTILS = (
 "to_markdown",
 "md_to_html",
 "is_subset",
-"generate_hash"
+"generate_hash",
+"formatdate"
 )

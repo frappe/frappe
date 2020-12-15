@@ -1,5 +1,6 @@
 import Widget from "./base_widget.js";
-import { build_summary_item } from "./utils";
+
+frappe.provide('frappe.widget.utils');
 frappe.provide("frappe.dashboards");
 frappe.provide("frappe.dashboards.chart_sources");
 
@@ -80,7 +81,7 @@ export default class ChartWidget extends Widget {
 		}
 
 		this.summary.forEach(summary => {
-			build_summary_item(summary).appendTo(this.$summary);
+			frappe.widget.utils.build_summary_item(summary).appendTo(this.$summary);
 		});
 		this.summary.length && this.$summary.show();
 	}
@@ -547,6 +548,7 @@ export default class ChartWidget extends Widget {
 			type: chart_type_map[this.chart_doc.type],
 			colors: colors,
 			height: this.height,
+			maxSlices: ['Pie', 'Donut'].includes(this.chart_doc.type) ? 6 : 9,
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
 				shortenYAxisNumbers: 1
