@@ -29,11 +29,11 @@ jobs:
       - name: Set up bench for current push
         run: |
           pip install -U frappe-bench
-          bench init frappe-bench --no-backups --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
+          bench init frappe-bench --no-backups --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe --skip-redis-config-generation
 
           mkdir ./frappe-bench/sites/test_site ./frappe-bench/sites/test_site_producer
-          cp $GITHUB_WORKSPACE/frappe/.travis/consumer_db/$DB.json ./frappe-bench/sites/test_site/site_config.json
-          cp $GITHUB_WORKSPACE/frappe/.travis/producer_db/$DB.json ./frappe-bench/sites/test_site_producer/site_config.json
+          cp $GITHUB_WORKSPACE/frappe/.travis/consumer_db/mariadb.json ./frappe-bench/sites/test_site/site_config.json
+          cp $GITHUB_WORKSPACE/frappe/.travis/producer_db/mariadb.json ./frappe-bench/sites/test_site_producer/site_config.json
 
           DATABASE_SETUP_COMMANDS="
             CREATE DATABASE test_frappe_consumer;
@@ -46,7 +46,12 @@ jobs:
           mysql -u root -e $DATABASE_SETUP_COMMANDS
 
           cd ./frappe-bench
-          sed -i 's/watch:/# watch:/g;s/schedule:/# schedule:/g;s/^socketio$:/# socketio:/g;s/redis_socketio:/# redis_socketio:/g' Procfile
+          sed -i 's/watch:/# watch:/g;s/schedule:/# schedule:/g;s/socketio:/# socketio:/g;/redis/d' ./Procfile
+
+          bench set-redis-cache-host redis-cache:6379
+          bench set-redis-queue-host redis-queue:6379
+          bench set-redis-socketio-host redis-socketio:6379
+
           bench start &
           bench --site test_site reinstall --yes
           bench --site test_site_producer reinstall --yes
