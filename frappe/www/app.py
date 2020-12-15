@@ -36,7 +36,7 @@ def get_context(context):
 	# remove script tags from boot
 	boot_json = re.sub("\<script[^<]*\</script\>", "", boot_json)
 
-	# TODO: Fix better fix
+	# TODO: Find better fix
 	boot_json = re.sub("</script\>", "", boot_json)
 
 	context.update({
