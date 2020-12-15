@@ -220,7 +220,7 @@
 	--page-bottom-margin: 60px;
 
 	// input
-	--input-height: $input-height;
+	--input-height: #{$input-height};
 
 	// timeline
 	--timeline-item-icon-size: 34px;
