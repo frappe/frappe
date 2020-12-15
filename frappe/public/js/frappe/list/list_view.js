@@ -1098,17 +1098,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (
 				$target.hasClass("filterable") ||
 				$target.hasClass("icon-heart") ||
-				$target.is(":checkbox") ||
-				$target.is("a")
+				$target.is(":checkbox")
 			) {
 				e.stopPropagation();
 				return;
 			}
-			// open form
+
+			// link, let the event be handled via set_route
+			if ($target.is("a")) { return; }
+
+			// clicked on the row, open form
 			const $row = $(e.currentTarget);
 			const link = $row.find(".list-subject a").get(0);
 			if (link) {
-				window.location.href = link.href;
+				frappe.set_route(link.pathname);
 				return false;
 			}
 		});
