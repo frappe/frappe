@@ -16,7 +16,7 @@ frappe.ui.get_liked_by = function(doc) {
 }
 
 frappe.ui.toggle_like = function($btn, doctype, name, callback) {
- 	var add = $btn.hasClass("not-liked") ? "Yes" : "No";
+	var add = $btn.hasClass("not-liked") ? "Yes" : "No";
 	// disable click
 	$btn.css('pointer-events', 'none');
 
@@ -126,7 +126,7 @@ frappe.ui.setup_like_popover = ($parent, selector, check_not_liked=true) => {
 				let liked_by_list = $(`<ul class="list-unstyled"></ul>`);
 
 				// to show social profile of the user
-				let link_base = '/app/user-profile';
+				let link_base = '/app/user-profile/';
 
 				liked_by.forEach(user => {
 					// append user list item
