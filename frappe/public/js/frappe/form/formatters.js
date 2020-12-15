@@ -50,7 +50,14 @@ frappe.form.formatters = {
 		return frappe.form.formatters._right(value==null ? "" : cint(value), options)
 	},
 	Percent: function(value, docfield, options) {
-		var precision = docfield.precision || cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) || 2;
+		const precision = (
+			docfield.precision
+			|| cint(
+				frappe.boot.sysdefaults
+				&& frappe.boot.sysdefaults.float_precision
+			)
+			|| 2
+		);
 		return frappe.form.formatters._right(flt(value, precision) + "%", options);
 	},
 	Rating: function(value) {
