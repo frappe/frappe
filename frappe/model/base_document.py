@@ -521,6 +521,9 @@ class BaseDocument(object):
 				if frappe.get_meta(doctype).issingle:
 					values.name = doctype
 
+				if frappe.get_meta(doctype).virtual_doctype:
+					values = frappe.get_doc(doctype, docname)
+
 				if values:
 					setattr(self, df.fieldname, values.name)
 
