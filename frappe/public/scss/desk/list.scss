@@ -362,25 +362,24 @@ input.list-check-all, input.list-row-checkbox {
 		}
 	}
 
+}
 
-	// .tag-filters-area {
-	// }
-	// .sort-selector {
-	// 	display: flex;
-	// 	.dropdown:hover {
-	// 		text-decoration: underline;
-	// 	}
-	// 	.dropdown-menu {
-	// 		max-height: 300px;
-	// 		overflow-y: scroll;
-	// 		right: 0;
-	// 		left: auto;
-	// 	}
-	// 	button {
-	// 		margin-left: 10px;
-	// 	}
-	// }
+.restricted-button {
+	margin-top: var(--margin-xs);
+	height: var(--margin-xl);
 
+	.icon use {
+		stroke: var(--text-on-yellow);
+	}
+
+	&.btn {
+		box-shadow: none;
+		border: 1px solid;
+		@include button-variant(
+			$background: $light-yellow,
+			$border: darken($light-yellow, 5%),
+		);
+	}
 }
 
 .frappe-rtl {
