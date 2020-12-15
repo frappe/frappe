@@ -113,6 +113,8 @@ class TestWebsite(unittest.TestCase):
 		self.assertEquals(response.headers.get("Location"), "/redirect-without-raise")
 
 		delattr(frappe.hooks, "extend_website_page_controller_context")
+		frappe.response.type = ''
+		frappe.response.location = None
 
 # for test_redirect_without_raise
 def get_context(context):
