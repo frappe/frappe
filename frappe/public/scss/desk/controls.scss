@@ -33,6 +33,13 @@
 	background-color: var(--control-bg);
 }
 
+.multiselect-list {
+	.status-text {
+		position: absolute;
+		top: 4px;
+	}
+}
+
 .frappe-control {
 	font-size: var(--text-md);
 	.control-label.reqd:after {
