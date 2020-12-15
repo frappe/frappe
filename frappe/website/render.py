@@ -83,10 +83,10 @@ def render(path=None, http_status_code=None):
 		data = add_csrf_token(data)
 
 	except frappe.Redirect:
-		return build_response(path, "", 301, {
-			"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
-			"Cache-Control": "no-store, no-cache, must-revalidate"
-		})
+		return redirect(path)
+
+	if frappe.response.type == "redirect":
+		return redirect(path)
 
 	return build_response(path, data, http_status_code or 200)
 
@@ -137,6 +137,11 @@ def build_response(path, data, http_status_code, headers=None):
 
 	return response
 
+def redirect(path):
+	return build_response(path, "", 301, {
+		"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
+		"Cache-Control": "no-store, no-cache, must-revalidate"
+	})
 
 def add_preload_headers(response):
 	try:
