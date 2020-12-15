@@ -163,10 +163,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	show_restricted_list_indicator_if_applicable() {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
 		if (match_rules_list.length) {
-			this.restricted_list = $(`<button class="restricted-button">${__('Restricted')}</button>`)
-				.prepend('<span class="octicon octicon-lock"></span>')
-				.click(() => this.show_restrictions(match_rules_list))
-				.appendTo(this.page.page_form);
+			this.restricted_list = $(
+				`<button class="btn btn-default btn-xs restricted-button flex align-center">
+					${frappe.utils.icon('lock', 'xs')}
+				</button>`
+			)
+			.click(() => this.show_restrictions(match_rules_list))
+			.appendTo(this.page.page_form);
 		}
 	}
 
