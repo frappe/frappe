@@ -9,47 +9,44 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: 'frappe'
+      - uses: getong/mariadb-action@v1.1
+        with:
+          character set server: 'utf8mb4' # Optional, default value is 'utf8mb4'. The '--character-set-server' option for mysqld
+          collation server: 'utf8mb4_unicode_ci' # Optional, default value is 'utf8mb4_general_ci'. The '--collation-server' option for mysqld
+          mariadb version: '10.3.27' # Optional, default value is "latest". The version of the MariaDB
+          mysql root password: 'travis'
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.6'
-      - uses: actions/setup-node@v1
+          python-version: '3.7'
+      - uses: actions/setup-node@v2-beta
         with:
           python-version: '12.x'
+          node-version: '12'
       - name: Start Redis
         uses: supercharge/redis-github-action@1.1.0
         with:
           redis-version: 5
       - name: Set up bench for current push
         run: |
-          npm install -g yarn
-          pip3 install -U frappe-bench
+          pip install -U frappe-bench
           bench init frappe-bench --no-backups --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
 
-          mkdir ~/frappe-bench/sites/test_site
-          cp $GITHUB_WORKSPACE/frappe/.travis/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
-          mkdir ~/frappe-bench/sites/test_site_producer
-          cp $GITHUB_WORKSPACE/frappe/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json
+          mkdir ./frappe-bench/sites/test_site ./frappe-bench/sites/test_site_producer
+          cp $GITHUB_WORKSPACE/frappe/.travis/consumer_db/$DB.json ./frappe-bench/sites/test_site/site_config.json
+          cp $GITHUB_WORKSPACE/frappe/.travis/producer_db/$DB.json ./frappe-bench/sites/test_site_producer/site_config.json
 
-          mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'"
-          mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
-
-          mysql -u root -e "CREATE DATABASE test_frappe_consumer"
-          mysql -u root -e "CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer'"
-          mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost'"
-
-          mysql -u root -e "CREATE DATABASE test_frappe_producer"
-          mysql -u root -e "CREATE USER 'test_frappe_producer'@'localhost' IDENTIFIED BY 'test_frappe_producer'"
-          mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_producer\`.* TO 'test_frappe_producer'@'localhost'"
-
-          mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'"
-          mysql -u root -e "FLUSH PRIVILEGES"
+          DATABASE_SETUP_COMMANDS="
+            CREATE DATABASE test_frappe_consumer;
+            CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer';
+            GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost';
+            CREATE DATABASE test_frappe_producer;CREATE USER 'test_frappe_producer'@'localhost' IDENTIFIED BY 'test_frappe_producer';
+            GRANT ALL PRIVILEGES ON \`test_frappe_producer\`.* TO 'test_frappe_producer'@'localhost';
+            FLUSH PRIVILEGES;
+          "
+          mysql -u root -e $DATABASE_SETUP_COMMANDS
 
           cd ./frappe-bench
-          sed -i 's/watch:/# watch:/g' Procfile
-          sed -i 's/schedule:/# schedule:/g' Procfile
-          sed -i 's/socketio:/# socketio:/g' Procfile
-          sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
-
+          sed -i 's/watch:/# watch:/g;s/schedule:/# schedule:/g;s/^socketio$:/# socketio:/g;s/redis_socketio:/# redis_socketio:/g' Procfile
           bench start &
           bench --site test_site reinstall --yes
           bench --site test_site_producer reinstall --yes
