@@ -126,16 +126,18 @@ frappe.breadcrumbs = {
 			}
 		}
 
-		if (breadcrumbs.doctype && frappe.get_route()[0].toLowerCase() === "form") {
-			set_list_breadcrumb(breadcrumbs.doctype);
-		}
-
-		if (breadcrumbs.doctype && frappe.get_route()[0] === "print") {
-			set_list_breadcrumb(breadcrumbs.doctype);
+		let set_form_breadcrumb = (doctype) => {
 			let docname = frappe.get_route()[2];
-			let form_route = `/app/${frappe.router.slug(breadcrumbs.doctype)}/${docname}`;
+			let form_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
 			$(`<li><a href="${form_route}">${docname}</a></li>`)
 				.appendTo($breadcrumbs);
+		}
+
+		const route = frappe.get_route()[0].toLowerCase();
+		if (breadcrumbs.doctype && ["print", "form"].includes(route)) {
+			set_list_breadcrumb(breadcrumbs.doctype);
+			set_form_breadcrumb(breadcrumbs.doctype);
+			route == "form" && $breadcrumbs.find('li').last().addClass('disabled');
 		}
 
 		$("body").removeClass("no-breadcrumbs");
