@@ -102,9 +102,13 @@ class EventProducer(Document):
 		for entry in self.producer_doctypes:
 			if entry.has_mapping:
 				# if mapping, subscribe to remote doctype on consumer's site
-				consumer_doctypes.append(frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype'))
+				dt = frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype')
 			else:
-				consumer_doctypes.append(entry.ref_doctype)
+				dt = entry.ref_doctype
+			consumer_doctypes.append({
+				"doctype": dt,
+				"condition": entry.condition
+			})
 
 		user_key = frappe.db.get_value('User', self.user, 'api_key')
 		user_secret = get_decrypted_password('User', self.user, 'api_secret')
@@ -145,7 +149,8 @@ class EventProducer(Document):
 					event_consumer.consumer_doctypes.append({
 						'ref_doctype': ref_doctype,
 						'status': get_approval_status(config, ref_doctype),
-						'unsubscribed': entry.unsubscribe
+						'unsubscribed': entry.unsubscribe,
+						'condition': entry.condition
 					})
 				event_consumer.user = self.user
 				event_consumer.incoming_change = True
@@ -347,13 +352,13 @@ def set_delete(update):
 
 def get_updates(producer_site, last_update, doctypes):
 	"""Get all updates generated after the last update timestamp"""
-	docs = producer_site.get_list(
-		doctype='Event Update Log',
-		filters={'ref_doctype': ('in', doctypes), 'creation': ('>', last_update)},
-		fields=['update_type', 'ref_doctype', 'docname', 'data', 'name', 'creation']
-	)
-	docs.reverse()
-	return [frappe._dict(d) for d in docs]
+	docs = producer_site.post_request({
+			'cmd': 'frappe.event_streaming.doctype.event_update_log.event_update_log.get_update_logs_for_consumer',
+			'event_consumer': get_url(),
+			'doctypes': frappe.as_json(doctypes),
+			'last_update': last_update
+	})
+	return [frappe._dict(d) for d in (docs or [])]
 
 
 def get_local_doc(update):

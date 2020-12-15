@@ -1,5 +1,6 @@
 import Widget from "./base_widget.js";
-import { generate_route } from "./utils";
+
+frappe.provide("frappe.utils");
 
 export default class ShortcutWidget extends Widget {
 	constructor(opts) {
@@ -25,7 +26,7 @@ export default class ShortcutWidget extends Widget {
 		this.widget.click(() => {
 			if (this.in_customize_mode) return;
 
-			let route = generate_route({
+			let route = frappe.utils.generate_route({
 				route: this.route,
 				name: this.link_to,
 				type: this.type,

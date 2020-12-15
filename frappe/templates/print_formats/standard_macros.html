@@ -139,7 +139,8 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% elif df.fieldtype=="Currency" %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
 	{% else %}
-		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
+		{%- set parent = parent_doc or doc -%}
+		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) }}
 	{% endif %}
 {%- endmacro %}
 
