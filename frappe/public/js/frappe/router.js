@@ -24,9 +24,11 @@ $(window).on('hashchange', function() {
 	}
 });
 
-window.addEventListener('popstate', () => {
+window.addEventListener('popstate', (e) => {
 	// forward-back button, just re-render based on current route
 	frappe.router.route();
+	e.preventDefault();
+	return false;
 });
 
 // routing v2, capture all clicks so that the target is managed with push-state
