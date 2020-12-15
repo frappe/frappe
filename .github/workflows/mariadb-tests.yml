@@ -1,8 +1,8 @@
-name: test
+name: Frappe + MariaDB Tests
 on: [push, pull_request]
 
 jobs:
-  build:
+  mariadb-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,14 +34,7 @@ jobs:
           cp $GITHUB_WORKSPACE/frappe/.travis/consumer_db/mariadb.json ./frappe-bench/sites/test_site/site_config.json
           cp $GITHUB_WORKSPACE/frappe/.travis/producer_db/mariadb.json ./frappe-bench/sites/test_site_producer/site_config.json
 
-          DATABASE_SETUP_COMMANDS="
-            CREATE DATABASE test_frappe_consumer;
-            CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer';
-            GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost';
-            CREATE DATABASE test_frappe_producer;CREATE USER 'test_frappe_producer'@'localhost' IDENTIFIED BY 'test_frappe_producer';
-            GRANT ALL PRIVILEGES ON \`test_frappe_producer\`.* TO 'test_frappe_producer'@'localhost';
-            FLUSH PRIVILEGES;
-          "
+          DATABASE_SETUP_COMMANDS="CREATE DATABASE test_frappe_consumer;CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer';GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost';CREATE DATABASE test_frappe_producer;CREATE USER 'test_frappe_producer'@'localhost' IDENTIFIED BY 'test_frappe_producer';GRANT ALL PRIVILEGES ON \`test_frappe_producer\`.* TO 'test_frappe_producer'@'localhost';FLUSH PRIVILEGES;"
           mysql -u root -e $DATABASE_SETUP_COMMANDS
 
           cd ./frappe-bench
