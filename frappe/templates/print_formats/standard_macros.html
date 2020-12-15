@@ -1,4 +1,4 @@
-{% macro render_field(df, doc, no_of_cols) -%}
+{% macro render_field(df, doc, no_of_cols=2) -%}
 	{%- if df.fieldtype=="Table" -%}
 		{{ render_table(df, doc) }}
 	{%- elif df.fieldtype=="HTML" and df.options -%}
