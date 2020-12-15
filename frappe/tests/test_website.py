@@ -100,3 +100,21 @@ class TestWebsite(unittest.TestCase):
 
 		delattr(frappe.hooks, 'website_redirects')
 		frappe.cache().delete_key('app_hooks')
+
+	def test_redirect_without_raise(self):
+		import frappe.hooks
+		frappe.hooks.extend_website_page_controller_context = {
+			"frappe.www.about": "frappe.tests.test_website"
+		}
+
+		set_request(method="GET", path="/about")
+		response = render.render()
+		self.assertEquals(response.status_code, 301)
+		self.assertEquals(response.headers.get("Location"), "/redirect-without-raise")
+
+		delattr(frappe.hooks, "extend_website_page_controller_context")
+
+# for test_redirect_without_raise
+def get_context(context):
+	frappe.response.type = "redirect"
+	frappe.response.location = "/redirect-without-raise"
