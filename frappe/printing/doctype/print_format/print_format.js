@@ -66,7 +66,7 @@ frappe.ui.form.on("Print Format", {
 	hide_absolute_value_field: function (frm) {
 		// TODO: make it work with frm.doc.doc_type
 		// Problem: frm isn't updated in some random cases
-		const doctype = locals[frm.doc.doctype][frm.doc.name];
+		const doctype = locals[frm.doc.doctype][frm.doc.name].doc_type;
 		if (doctype) {
 			frappe.model.with_doctype(doctype, () => {
 				const meta = frappe.get_meta(doctype);

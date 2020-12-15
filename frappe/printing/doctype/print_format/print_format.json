@@ -201,17 +201,17 @@
   {
    "default": "0",
    "depends_on": "doc_type",
-   "description": "If checked, negative numberic values of Currency, Quantity or Count would be shown as positive",
+   "description": "If checked, negative numeric values of Currency, Quantity or Count would be shown as positive",
    "fieldname": "absolute_value",
    "fieldtype": "Check",
-   "label": "Show absolute values"
+   "label": "Show Absolute Values"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-12-10 18:58:55.598269",
+ "modified": "2020-12-14 11:38:49.132061",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
