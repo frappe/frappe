@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import './linked_with';
+import './form_viewers';
 
 frappe.ui.form.Toolbar = class Toolbar {
 	constructor(opts) {
@@ -11,6 +12,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	refresh() {
 		this.make_menu();
+		this.make_viewers();
 		this.set_title();
 		this.page.clear_user_actions();
 		this.show_title_as_dirty();
@@ -207,6 +209,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 
+	make_viewers() {
+		if (this.frm.viewers) return;
+		this.frm.viewers = new frappe.ui.form.FormViewers({
+			frm: this.frm,
+			parent: $('<div class="form-viewers d-flex"></div>').prependTo(this.frm.page.page_actions)
+		});
+	}
 
 	make_navigation() {
 		// Navigate

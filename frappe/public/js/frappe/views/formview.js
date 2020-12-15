@@ -34,7 +34,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	make_form(doctype) {
-		this.page.frm = new frappe.ui.form.Form(doctype, this.page, true, frappe.router.doctype_layout);		
+		this.page.frm = new frappe.ui.form.Form(doctype, this.page, true, frappe.router.doctype_layout);
 	}
 
 	setup_events() {
@@ -45,12 +45,12 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 
 			frappe.realtime.on("doc_viewers", function(data) {
 				// set users that currently viewing the form
-				frappe.ui.form.set_users(data, 'viewers');
+				frappe.ui.form.FormViewers.set_users(data, 'viewers');
 			});
 
 			frappe.realtime.on("doc_typers", function(data) {
 				// set users that currently typing on the form
-				frappe.ui.form.set_users(data, 'typers');
+				frappe.ui.form.FormViewers.set_users(data, 'typers');
 			});
 		}
 		this.initialized = true;
