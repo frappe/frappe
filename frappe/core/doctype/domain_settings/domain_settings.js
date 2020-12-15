@@ -18,6 +18,9 @@ frappe.ui.form.on('Domain Settings', {
 								checked: active_domains.includes(domain)
 							};
 						});
+					},
+					on_change: () => {
+						frm.dirty();
 					}
 				},
 				render_input: true
