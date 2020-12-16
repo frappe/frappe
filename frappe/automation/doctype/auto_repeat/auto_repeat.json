@@ -23,6 +23,8 @@
   "repeat_on_last_day",
   "column_break_12",
   "next_schedule_date",
+  "section_break_12",
+  "repeat_on_days",
   "notification",
   "notify_by_email",
   "recipients",
@@ -188,6 +190,18 @@
    "fieldname": "repeat_on_last_day",
    "fieldtype": "Check",
    "label": "Repeat on Last Day of the Month"
+  },
+  {
+   "depends_on": "eval:doc.frequency==='Weekly';",
+   "fieldname": "repeat_on_days",
+   "fieldtype": "Table",
+   "label": "Repeat on Days",
+   "options": "Auto Repeat Day"
+  },
+  {
+   "depends_on": "eval:doc.frequency==='Weekly';",
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
