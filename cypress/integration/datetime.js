@@ -4,7 +4,7 @@ const doctype_name = datetime_doctype.name;
 context('Control Date, Time and DateTime', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 		return cy.insert_doc('DocType', datetime_doctype, true);
 	});
 

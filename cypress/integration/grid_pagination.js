@@ -1,11 +1,11 @@
 context('Grid Pagination', () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 	});
 	before(() => {
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 		return cy.window().its('frappe').then(frappe => {
 			return frappe.call("frappe.tests.ui_test_helpers.create_contact_phone_nos_records");
 		});
@@ -27,14 +27,14 @@ context('Grid Pagination', () => {
 		cy.get('@table').find('.current-page-number').should('contain', '1');
 		cy.get('@table').find('.grid-body .grid-row').first().should('have.attr', 'data-idx', '1');
 	});
-	it('adds and deletes rows and changes page', ()=> {
+	it('adds and deletes rows and changes page', () => {
 		cy.visit('/app/Form/Contact/Test Contact');
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as('table');
 		cy.get('@table').find('button.grid-add-row').click();
 		cy.get('@table').find('.grid-body .row-index').should('contain', 1001);
 		cy.get('@table').find('.current-page-number').should('contain', '21');
 		cy.get('@table').find('.total-page-number').should('contain', '21');
-		cy.get('@table').find('.grid-body .grid-row .grid-row-check').click({force: true});
+		cy.get('@table').find('.grid-body .grid-row .grid-row-check').click({ force: true });
 		cy.get('@table').find('button.grid-remove-rows').click();
 		cy.get('@table').find('.grid-body .row-index').last().should('contain', 1000);
 		cy.get('@table').find('.current-page-number').should('contain', '20');

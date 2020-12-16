@@ -2,7 +2,7 @@ context('Awesome Bar', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 	});
 
 	beforeEach(() => {

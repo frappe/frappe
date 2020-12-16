@@ -4,7 +4,7 @@ const doctype_name = custom_submittable_doctype.name;
 context('Report View', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 		cy.insert_doc('DocType', custom_submittable_doctype, true);
 		cy.clear_cache();
 		cy.insert_doc(doctype_name, {
@@ -24,7 +24,7 @@ context('Report View', () => {
 		let cell = cy.get('.dt-row-0 > .dt-cell--col-4');
 		// select the cell
 		cell.dblclick();
-		cell.find('input[data-fieldname="enabled"]').check({force: true});
+		cell.find('input[data-fieldname="enabled"]').check({ force: true });
 		cy.get('.dt-row-0 > .dt-cell--col-5').click();
 		cy.wait('@value-update');
 		cy.get('@doc').then(doc => {

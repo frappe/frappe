@@ -1,7 +1,7 @@
 context('List View Settings', () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 	});
 	it('Default settings', () => {
 		cy.visit('/app/List/DocType/List');
@@ -17,8 +17,8 @@ context('List View Settings', () => {
 		cy.get('.dropdown-menu li').filter(':visible').contains('Settings').click();
 		cy.get('.modal-dialog').should('contain', 'Settings');
 
-		cy.get('input[data-fieldname="disable_count"]').check({force: true});
-		cy.get('input[data-fieldname="disable_sidebar_stats"]').check({force: true});
+		cy.get('input[data-fieldname="disable_count"]').check({ force: true });
+		cy.get('input[data-fieldname="disable_sidebar_stats"]').check({ force: true });
 		cy.get('button').filter(':visible').contains('Save').click();
 
 		cy.reload();
@@ -26,11 +26,11 @@ context('List View Settings', () => {
 		cy.get('.list-count').should('be.empty');
 		cy.get('.list-sidebar .sidebar-stat').should('not.exist');
 
-		cy.get('button').contains('Menu').click({force: true});
+		cy.get('button').contains('Menu').click({ force: true });
 		cy.get('.dropdown-menu li').filter(':visible').contains('Settings').click();
 		cy.get('.modal-dialog').should('contain', 'Settings');
-		cy.get('input[data-fieldname="disable_count"]').uncheck({force: true});
-		cy.get('input[data-fieldname="disable_sidebar_stats"]').uncheck({force: true});
+		cy.get('input[data-fieldname="disable_count"]').uncheck({ force: true });
+		cy.get('input[data-fieldname="disable_sidebar_stats"]').uncheck({ force: true });
 		cy.get('button').filter(':visible').contains('Save').click();
 	});
 });

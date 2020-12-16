@@ -1,11 +1,11 @@
 context('Control Link', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 	});
 
 	beforeEach(() => {
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 		cy.create_records({
 			doctype: 'ToDo',
 			description: 'this is a test todo for link'

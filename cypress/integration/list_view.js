@@ -1,7 +1,7 @@
 context('List View', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 		return cy.window().its('frappe').then(frappe => {
 			return frappe.xcall("frappe.tests.ui_test_helpers.setup_workflow");
 		});
@@ -17,11 +17,11 @@ context('List View', () => {
 			cy.server();
 			cy.route({
 				method: 'POST',
-				url:'api/method/frappe.model.workflow.bulk_workflow_approval'
+				url: 'api/method/frappe.model.workflow.bulk_workflow_approval'
 			}).as('bulk-approval');
 			cy.route({
 				method: 'POST',
-				url:'api/method/frappe.desk.reportview.get'
+				url: 'api/method/frappe.desk.reportview.get'
 			}).as('real-time-update');
 			cy.wrap(elements).contains('Approve').click();
 			cy.wait(['@bulk-approval', '@real-time-update']);

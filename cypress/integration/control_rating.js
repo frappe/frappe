@@ -1,7 +1,7 @@
 context('Control Rating', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 	});
 
 	function get_dialog_with_rating() {

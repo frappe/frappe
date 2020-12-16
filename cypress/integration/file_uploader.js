@@ -1,7 +1,7 @@
 context('FileUploader', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/workspace/Website');
+		cy.visit('/app/space/Website');
 	});
 
 	function open_upload_dialog() {
