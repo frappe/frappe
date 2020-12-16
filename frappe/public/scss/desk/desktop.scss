@@ -199,10 +199,6 @@ body {
 		min-height: 240px;
 		padding: var(--padding-md) var(--padding-lg);
 
-		.widget-head {
-			padding: var(--padding-xs);
-		}
-
 		.filter-chart {
 			background-color: var(--control-bg);
 		}
@@ -229,10 +225,13 @@ body {
 
 		.widget-head {
 			padding: var(--padding-sm);
+			position: relative;
 		}
 
 		.widget-control {
-			margin-top: -15px;
+			position: absolute;
+			right: var(--margin-sm);
+			top: var(--padding-sm);
 		}
 
 		.chart-loading-state {
