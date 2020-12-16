@@ -110,13 +110,17 @@
 	@include indicator-pill-color('yellow');
 }
 
-.indicator.gray {
+.indicator.gray,
+.indicator.grey {
 	@include indicator-color('gray');
 }
 
 .indicator-pill.gray,
 .indicator-pill-right.gray,
-.indicator-pill-round.gray {
+.indicator-pill-round.gray,
+.indicator-pill.grey,
+.indicator-pill-right.grey,
+.indicator-pill-round.grey  {
 	@include indicator-pill-color('light-gray');
 }
 
