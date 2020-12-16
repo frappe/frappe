@@ -122,7 +122,7 @@ p {
 }
 
 .small {
-	font-size: var(--text-xs);
+	font-size: var(--text-sm);
 }
 
 .fill-width {
@@ -323,7 +323,7 @@ html.firefox, html.safari {
 }
 
 .head-title {
-	font-size: var(--text-xl);
+	font-size: var(--text-lg);
 	font-weight: 700;
 	color: var(--heading-color);
 }
