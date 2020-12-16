@@ -43,7 +43,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		this.transactions_area = $(`<div class="transactions"></div`);
 		this.links_area = new Section(this.parent, {
-			title: __("Documents Links"),
+			title: __("Connections"),
 			css_class: 'form-links',
 			hidden: 1,
 			collapsible: 1,

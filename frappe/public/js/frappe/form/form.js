@@ -560,6 +560,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		this.dashboard.refresh();
+		frappe.breadcrumbs.update();
 
 		this.show_submit_message();
 		this.clear_custom_buttons();
