@@ -1,7 +1,7 @@
-frappe.pages['workspace'].on_page_load = function (wrapper) {
+frappe.pages['space'].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		name: 'workspace',
+		name: 'space',
 		title: __("Workspace"),
 	});
 

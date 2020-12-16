@@ -294,7 +294,7 @@ frappe.search.utils = {
 					label: __("Open {0}", [me.bolden_match_part(__(item.name), keywords)]),
 					value: __("Open {0}", [__(item.name)]),
 					index: level,
-					route: ["workspace", item.name]
+					route: ["space", item.name]
 				};
 
 				out.push(ret);

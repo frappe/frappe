@@ -86,7 +86,7 @@ frappe.router = {
 		if (frappe.boot.doctype_layouts) {
 			for (let doctype_layout of frappe.boot.doctype_layouts) {
 				this.routes[this.slug(doctype_layout.name)] = {doctype: doctype_layout.document_type, doctype_layout: doctype_layout.name };
-			}	
+			}
 		}
 	},
 
@@ -100,7 +100,7 @@ frappe.router = {
 		let sub_path = this.get_sub_path();
 		if (this.re_route(sub_path)) return;
 
-		this.current_route = this.parse();		
+		this.current_route = this.parse();
 		this.set_history(sub_path);
 		this.render();
 		this.set_title();
@@ -174,7 +174,7 @@ frappe.router = {
 		// create the page generator (factory) object and call `show`
 		// if there is no generator, render the `Page` object
 
-		// first the router needs to know if its a "page", "doctype", "workspace"
+		// first the router needs to know if its a "page", "doctype", "space"
 
 		const route = this.current_route;
 		const factory = frappe.utils.to_title_case(route[0]);
@@ -233,7 +233,7 @@ frappe.router = {
 		// set the route (push state) with given arguments
 		// example 1: frappe.set_route('a', 'b', 'c');
 		// example 2: frappe.set_route(['a', 'b', 'c']);
-		// example 3: frappe.set_route('a/b/c');		
+		// example 3: frappe.set_route('a/b/c');
 		let route = arguments;
 
 		return new Promise(resolve => {

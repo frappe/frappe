@@ -22,7 +22,7 @@ frappe.views.Workspace = class Workspace {
 	show() {
 		let page = this.get_page_to_show();
 		this.page.set_title(`${__(page)}`);
-		frappe.set_route('workspace', page);
+		frappe.set_route('space', page);
 		this.show_page(page);
 	}
 
@@ -94,7 +94,7 @@ frappe.views.Workspace = class Workspace {
 		const get_sidebar_item = function (item) {
 			return $(`
 				<a
-					href="/app/workspace/${item.name}"
+					href="/app/space/${item.name}"
 					class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}"
 				>
 					<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
@@ -245,7 +245,7 @@ class DesktopPage {
 			this.data = res.message;
 			if (!this.data) {
 				delete localStorage.current_workspace;
-				frappe.set_route("workspace");
+				frappe.set_route("space");
 				return;
 			}
 

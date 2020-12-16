@@ -253,7 +253,7 @@ def add_home_page(bootinfo, docs):
 	except (frappe.DoesNotExistError, frappe.PermissionError):
 		if frappe.message_log:
 			frappe.message_log.pop()
-		page = frappe.desk.desk_page.get('workspace')
+		page = frappe.desk.desk_page.get('space')
 
 	bootinfo['home_page'] = page.name
 	docs.append(page)

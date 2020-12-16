@@ -5,12 +5,12 @@
  "doctype": "Page",
  "icon": "icon-th",
  "idx": 0,
- "modified": "2020-02-27 15:07:57.124916",
+ "modified": "2020-12-16 14:22:05.591912",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "workspace",
+ "name": "space",
  "owner": "Administrator",
- "page_name": "workspace",
+ "page_name": "space",
  "roles": [
   {
    "role": "All"

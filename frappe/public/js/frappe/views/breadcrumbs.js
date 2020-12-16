@@ -87,7 +87,7 @@ frappe.breadcrumbs = {
 
 		if (breadcrumbs.workspace) {
 			if(!breadcrumbs.module_info.blocked && frappe.visible_modules.includes(breadcrumbs.module_info.module_name)) {
-				$(repl('<li><a href="/app/workspace/%(module)s">%(label)s</a></li>',
+				$(repl('<li><a href="/app/space/%(module)s">%(label)s</a></li>',
 					{ module: breadcrumbs.workspace, label: __(breadcrumbs.workspace) }))
 					.appendTo(this.$breadcrumbs);
 			}
@@ -115,7 +115,7 @@ frappe.breadcrumbs = {
 			}
 
 			breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
-		
+
 			// set workspace
 			if (breadcrumbs.module_info && frappe.boot.module_page_map[breadcrumbs.module]) {
 				breadcrumbs.workspace = frappe.boot.module_page_map[breadcrumbs.module];
@@ -172,7 +172,7 @@ frappe.breadcrumbs = {
 	},
 
 	toggle(show) {
-		if (show) { 
+		if (show) {
 			$("body").addClass("no-breadcrumbs");
 		} else {
 			$("body").removeClass("no-breadcrumbs");
