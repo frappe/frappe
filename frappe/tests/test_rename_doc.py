@@ -14,6 +14,10 @@ class TestRenameDoc(unittest.TestCase):
 	@classmethod
 	def setUpClass(self):
 		"""Setting Up data for the tests defined under TestRenameDoc"""
+		# set developer_mode to rename doc controllers
+		self._original_developer_flag = frappe.conf.developer_mode
+		frappe.conf.developer_mode = 1
+
 		# data generation: for base and merge tests
 		self.available_documents = []
 		self.test_doctype = "ToDo"
@@ -56,6 +60,9 @@ class TestRenameDoc(unittest.TestCase):
 				frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{dt}`")
 
 		frappe.delete_doc_if_exists("Renamed Doc", "ToDo")
+
+		# reset original value of developer_mode conf
+		frappe.conf.developer_mode = self._original_developer_flag
 
 	def setUp(self):
 		frappe.flags.link_fields = {}
