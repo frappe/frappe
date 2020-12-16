@@ -474,10 +474,10 @@ frappe.views.CommunicationComposer = Class.extend({
 			</label>
 			<div class='attach-list'></div>
 			<p class='add-more-attachments'>
-				<a class='text-muted'>
-					${frappe.utils.icon('small-add')}&nbsp;
+				<button class='btn btn-xs btn-default'>
+					${frappe.utils.icon('small-add', 'xs')}&nbsp;
 					${__("Add Attachment")}
-				</a>
+				</button>
 			</p>
 		`).appendTo(attach.empty());
 
@@ -515,13 +515,13 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	get_attachment_row(attachment, checked) {
 		return $(`<p class="checkbox flex">
-			<label>
+			<label class="ellipsis" title="${attachment.file_name}">
 				<input
 					type="checkbox"
 					data-file-name="${attachment.name}"
 					${checked ? 'checked': ''}>
 				</input>
-				<span>${attachment.file_name}</span>
+				<span class="ellipsis">${attachment.file_name}</span>
 			</label>
 			&nbsp;
 			<a href="${attachment.file_url}" target="_blank" class="btn-linkF">
