@@ -241,9 +241,9 @@ class AutoRepeat(Document):
 		if not for_full_schedule:
 			while getdate(next_date) < getdate(today()):
 				if month_count:
-					month_count += month_map.get(self.frequency)
+					month_count += month_map.get(self.frequency, 0)
 					next_date = get_next_date(self.start_date, month_count, day_count)
-				elif days:
+				else:
 					days = self.get_days(next_date)
 					next_date = add_days(next_date, days)
 
@@ -272,7 +272,7 @@ class AutoRepeat(Document):
 		# else offset is 7
 		if len(repeat_on_days) > 1 or weekdays[current_schedule_day] not in repeat_on_days:
 			weekday = get_next_weekday(current_schedule_day, repeat_on_days)
-			next_weekday_number = week_map.get(weekday)
+			next_weekday_number = week_map.get(weekday, 0)
 			# offset for upcoming weekday
 			return timedelta((7 + next_weekday_number - current_schedule_day) % 7).days
 		return 7
