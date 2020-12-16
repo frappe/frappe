@@ -119,6 +119,10 @@
 			white-space: nowrap;
 			min-width: 30px;
 		}
+
+		.list-assignments, .list-actions {
+			margin-right: var(--margin-md);
+		}
 	}
 
 	.tag-pill {

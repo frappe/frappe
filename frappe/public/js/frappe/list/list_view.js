@@ -804,25 +804,28 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let settings_button = null;
 		if (this.settings.button && this.settings.button.show(doc)) {
 			settings_button = `
-			<span>
+				<span class="list-actions">
 					<button class="btn btn-action btn-default btn-xs"
 						data-name="${doc.name}" data-idx="${doc._idx}"
 						title="${this.settings.button.get_description(doc)}">
 						${this.settings.button.get_label(doc)}
 					</button>
-					</span>
+				</span>
 			`;
 		}
 
 		const modified = comment_when(doc.modified, true);
 
-		let assigned_to = `<span class="avatar avatar-small">
+		let assigned_to = `<div class="list-assignments">
+			<span class="avatar avatar-small">
 			<span class="avatar-empty"></span>
-		</span>`;
+		</div>`;
 
 		let assigned_users = JSON.parse(doc._assign || "[]");
 		if (assigned_users.length) {
-			assigned_to = frappe.avatar_group(assigned_users, 3, {'filterable': true})[0].outerHTML;
+			assigned_to = `<div class="list-assignments">
+					${frappe.avatar_group(assigned_users, 3, { filterable: true })[0].outerHTML}
+				</div>`;
 		}
 
 		const comment_count = `<span class="${
