@@ -296,7 +296,6 @@ class DocType(Document):
 			and (
 				frappe.conf.developer_mode
 				or frappe.flags.allow_doctype_export
-				or frappe.flags.in_test
 			)
 		)
 		if allow_doctype_export:

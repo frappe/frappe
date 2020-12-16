@@ -76,7 +76,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
-			if not doc.custom and not (
+			if frappe.conf.developer_mode and not doc.custom and not (
 				for_reload
 				or frappe.flags.in_migrate
 				or frappe.flags.in_install
