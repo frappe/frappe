@@ -334,7 +334,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		).then(() => {
 			let message;
 			if (dashboard_name) {
-				let dashboard_route_html = `<a href = "#dashboard/${dashboard_name}">${dashboard_name}</a>`;
+				let dashboard_route_html = `<a href="#dashboard-view/${dashboard_name}">${dashboard_name}</a>`;
 				message = __("New {0} {1} added to Dashboard {2}", [doctype, name, dashboard_route_html]);
 			} else {
 				message = __("New {0} {1} created", [doctype, name]);
