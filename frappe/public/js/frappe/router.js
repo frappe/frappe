@@ -279,24 +279,27 @@ frappe.router = {
 		// ["Form", "Sales Order", "SO-0001"] => /sales-order/SO-0001
 		// ["Tree", "Account"] = /account/view/tree
 
-		// route[0] is not available for home "/app"
-		const view = route[0] && route[0].toLowerCase();
+		const view = route[0] ? route[0].toLowerCase() : '';
+		let new_route = route;
 		if (view === 'list') {
 			if (route[2] && route[2] !== 'list') {
-				const new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
+				new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
 
 				// calendar / inbox
 				if (route[3]) new_route.push(route[3]);
-				return new_route;
 			} else {
-				return [this.slug(route[1])]
+				new_route = [this.slug(route[1])];
 			}
 		} else if (view === 'form') {
-			return [this.slug(route[1]), route[2]]
+			new_route = [this.slug(route[1])];
+			if (route[2]) {
+				// if not single
+				new_route.push(route[2]);
+			}
 		} else if (view === 'tree') {
-			return [this.slug(route[1]), 'view', 'tree'];
+			new_route = [this.slug(route[1]), 'view', 'tree'];
 		}
-		return route;
+		return new_route;
 	},
 
 	slug_parts(route) {
