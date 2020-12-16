@@ -128,17 +128,13 @@ frappe.router = {
 			// doctype route
 			if (route[1]) {
 				if (route[2] && route[1]==='view') {
-					if (route[2].toLowerCase()==='tree') {
-						standard_route = ['Tree', doctype_route.doctype];
-					} else {
-						standard_route = ['List', doctype_route.doctype, frappe.utils.to_title_case(route[2])];
-						if (route[3]) {
-							// calendar / kanban / dashboard name
-							standard_route.push(route[3]);
-						}
-					}
+					standard_route = this.get_standard_route_for_list(route);
 				} else {
-					standard_route = ['Form', doctype_route.doctype, route[1]];
+					let docname = route[1];
+					if (route.length > 2) {
+						docname = route.slice(1).join('/');
+					}
+					standard_route = ['Form', doctype_route.doctype, docname];
 				}
 			} else if (frappe.model.is_single(doctype_route.doctype)) {
 				standard_route = ['Form', doctype_route.doctype, doctype_route.doctype];
@@ -152,6 +148,20 @@ frappe.router = {
 			}
 		}
 
+		return standard_route;
+	},
+
+	get_standard_route_for_list(route) {
+		let standard_route;
+		if (route[2].toLowerCase()==='tree') {
+			standard_route = ['Tree', doctype_route.doctype];
+		} else {
+			standard_route = ['List', doctype_route.doctype, frappe.utils.to_title_case(route[2])];
+			if (route[3]) {
+				// calendar / kanban / dashboard name
+				standard_route.push(route[3]);
+			}
+		}
 		return standard_route;
 	},
 
