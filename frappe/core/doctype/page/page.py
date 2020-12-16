@@ -33,6 +33,11 @@ class Page(Document):
 				self.name += '-' + str(cnt)
 
 	def validate(self):
+		if frappe.db.get_value('DocType', self.name):
+			frappe.throw(
+				_("{} is the name of a DocType. DocType names cannot be the same as a Page name, please choose another name.").format(self.page_name)
+			)
+
 		if self.is_new() and not getattr(conf,'developer_mode', 0):
 			frappe.throw(_("Not in Developer Mode"))
 
