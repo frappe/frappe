@@ -293,7 +293,7 @@ class NotificationsView extends BaseNotificaitonsView {
 				e.stopImmediatePropagation();
 				this.mark_as_read(field.name, item_html);
 			});
-			
+
 			item_html.on('click', (e) => {
 				this.mark_as_read(field.name, item_html);
 			});
