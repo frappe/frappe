@@ -440,20 +440,11 @@ def extract_sql_from_archive(sql_file_path):
 	Returns:
 		str: Path of the decompressed SQL file
 	"""
+	from frappe.utils import get_bench_relative_path
+	sql_file_path = get_bench_relative_path(sql_file_path)
 	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
-	if not os.path.exists(sql_file_path):
-		base_path = '..'
-		sql_file_path = os.path.join(base_path, sql_file_path)
-		if not os.path.exists(sql_file_path):
-			print('Invalid path {0}'.format(sql_file_path[3:]))
-			sys.exit(1)
-	elif sql_file_path.startswith(os.sep):
-		base_path = os.sep
-	else:
-		base_path = '.'
-
 	if sql_file_path.endswith('sql.gz'):
-		decompressed_file_name = extract_sql_gzip(os.path.abspath(sql_file_path))
+		decompressed_file_name = extract_sql_gzip(sql_file_path)
 	else:
 		decompressed_file_name = sql_file_path
 
@@ -475,9 +466,12 @@ def extract_sql_gzip(sql_gz_path):
 	return decompressed_file
 
 
-def extract_files(site_name, file_path, folder_name):
+def extract_files(site_name, file_path):
 	import shutil
 	import subprocess
+	from frappe.utils import get_bench_relative_path
+
+	file_path = get_bench_relative_path(file_path)
 
 	# Need to do frappe.init to maintain the site locals
 	frappe.init(site=site_name)
