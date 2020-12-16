@@ -18,7 +18,7 @@ global_cache_keys = ("app_hooks", "installed_apps",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
 		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
 		'domain_restricted_doctypes', 'domain_restricted_pages', 'information_schema:counts',
-		'sitemap_routes', 'db_tables', 'doctype_name_map') + doctype_map_keys
+		'sitemap_routes', 'db_tables') + doctype_map_keys
 
 user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "home_page", "linked_with",
@@ -73,7 +73,7 @@ def clear_doctype_cache(doctype=None):
 	if getattr(frappe.local, 'meta_cache') and (doctype in frappe.local.meta_cache):
 		del frappe.local.meta_cache[doctype]
 
-	for key in ('is_table', 'doctype_modules', 'doctype_name_map', 'document_cache'):
+	for key in ('is_table', 'doctype_modules', 'document_cache'):
 		cache.delete_value(key)
 
 	frappe.local.document_cache = {}

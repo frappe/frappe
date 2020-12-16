@@ -4,6 +4,8 @@
 
 @import "~bootstrap/scss/bootstrap";
 @import "global";
+@import "../common/buttons";
+@import "../common/flex";
 @import "form";
 @import "print_preview";
 @import "list";
@@ -38,5 +40,6 @@
 @import "driver";
 @import "role_editor";
 @import "user_profile";
+@import "theme_switcher";
 @import "quill";
 @import "plyr";

@@ -15,7 +15,9 @@ class UserProfile {
 
 		//validate if user
 		if (route.length > 1) {
+			frappe.dom.freeze(__('Loading user profile') + '...');
 			frappe.db.exists('User', this.user_id).then(exists => {
+				frappe.dom.unfreeze();
 				if (exists) {
 					this.make_user_profile();
 				} else {
@@ -42,8 +44,7 @@ class UserProfile {
 		this.render_line_chart();
 		this.render_percentage_chart('type', 'Type Distribution');
 		this.create_percentage_chart_filters();
-		this.setup_show_more_activity();
-		this.render_user_activity();
+		this.setup_user_activity_timeline();
 	}
 
 	setup_user_search() {
@@ -374,46 +375,71 @@ class UserProfile {
 		frappe.set_route('Form', 'User', this.user_id);
 	}
 
-	render_user_activity() {
-		this.$recent_activity_list = this.wrapper.find('.recent-activity-list');
-
-		frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_list', {
-			start: this.activity_start,
-			limit: this.activity_end,
+	setup_user_activity_timeline() {
+		this.user_activity_timeline = new UserProfileTimeline({
+			parent: this.wrapper.find('.recent-activity-list'),
+			footer: this.wrapper.find('.recent-activity-footer'),
 			user: this.user_id
-		}).then(list => {
-			if (!list.length) return;
-			this.activities_timeline = new BaseTimeline({
-				parent: this.$recent_activity_list
-			});
-			this.activities_timeline.prepare_timeline_contents = () => {
-				this.activities_timeline.timeline_items = list.map((data) => {
-					return {
-						creation: data.creation,
-						card: true,
-						content: frappe.energy_points.format_history_log(data),
-					};
-				});
-			};
-			this.activities_timeline.refresh();
 		});
 
+		this.user_activity_timeline.refresh();
+	}
+}
 
+class UserProfileTimeline extends BaseTimeline {
+	make() {
+		super.make();
+		this.activity_start = 0;
+		this.activity_limit = 20;
+		this.setup_show_more_activity();
+	}
+	prepare_timeline_contents() {
+		return this.get_user_activity_data().then((activities) => {
+			if (!activities.length) {
+				this.show_more_button.hide();
+				this.timeline_wrapper.html(`<div>${__('No activities to show')}</div>`);
+				return;
+			}
+			this.show_more_button.toggle(activities.length === this.activity_limit);
+			this.timeline_items = activities.map((activity) => this.get_activity_timeline_item(activity));
+		});
+	}
+
+	get_user_activity_data() {
+		return frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_list', {
+			start: this.activity_start,
+			limit: this.activity_limit,
+			user: this.user
+		});
+	}
+
+	get_activity_timeline_item(data) {
+		let icon = data.type == 'Appreciation' ? 'clap': data.type == 'Criticism' ? 'criticize': null;
+		return {
+			icon: icon,
+			creation: data.creation,
+			is_card: true,
+			content: frappe.energy_points.format_history_log(data),
+		};
 	}
 
 	setup_show_more_activity() {
-		//Show 10 items at a time
-		this.activity_start = 0;
-		this.activity_end = 11;
-		this.wrapper.find('.show-more-activity').on('click', () => this.show_more_activity());
+		this.show_more_button = $(`<a class="show-more-activity-btn">${__('Show More Activity')}</a>`);
+		this.show_more_button.hide();
+		this.footer.append(this.show_more_button);
+		this.show_more_button.on('click', () => this.show_more_activity());
 	}
 
 	show_more_activity() {
-		this.activity_start = this.activity_end;
-		this.activity_end += 11;
-		this.render_user_activity();
+		this.activity_start += this.activity_limit;
+		this.get_user_activity_data().then(activities => {
+			if (!activities.length || activities.length < this.activity_limit) {
+				this.show_more_button.hide();
+			}
+			let timeline_items = activities.map((activity) => this.get_activity_timeline_item(activity));
+			timeline_items.map((item) => this.add_timeline_item(item, true));
+		});
 	}
-
 }
 
 frappe.provide('frappe.ui');

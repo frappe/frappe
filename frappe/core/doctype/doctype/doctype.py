@@ -26,6 +26,7 @@ from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
 from frappe.modules.import_file import get_file_path
 from frappe.model.meta import Meta
+from frappe.desk.utils import get_doctype_route
 
 
 class InvalidFieldNameError(frappe.ValidationError): pass
@@ -63,15 +64,7 @@ class DocType(Document):
 
 		self.validate_name()
 
-		if self.issingle:
-			self.allow_import = 0
-			self.is_submittable = 0
-			self.istable = 0
-
-		elif self.istable:
-			self.allow_import = 0
-			self.permissions = []
-
+		self.set_defaults_for_single_and_table()
 		self.scrub_field_names()
 		self.set_default_in_list_view()
 		self.set_default_translatable()
@@ -79,10 +72,7 @@ class DocType(Document):
 		self.validate_document_type()
 		validate_fields(self)
 
-		if self.istable:
-			# no permission records for child table
-			self.permissions = []
-		else:
+		if not self.istable:
 			validate_permissions(self)
 
 		self.make_amendable()
@@ -93,8 +83,6 @@ class DocType(Document):
 
 		if not self.is_new():
 			self.before_update = frappe.get_doc('DocType', self.name)
-
-		if not self.is_new():
 			self.setup_fields_to_fetch()
 
 		check_email_append_to(self)
@@ -102,13 +90,19 @@ class DocType(Document):
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
 
-		if frappe.conf.get('developer_mode'):
-			self.owner = 'Administrator'
-			self.modified_by = 'Administrator'
-
 	def after_insert(self):
 		# clear user cache so that on the next reload this doctype is included in boot
 		clear_user_cache(frappe.session.user)
+
+	def set_defaults_for_single_and_table(self):
+		if self.issingle:
+			self.allow_import = 0
+			self.is_submittable = 0
+			self.istable = 0
+
+		elif self.istable:
+			self.allow_import = 0
+			self.permissions = []
 
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''
@@ -133,6 +127,10 @@ class DocType(Document):
 
 		if not frappe.conf.get("developer_mode") and not self.custom:
 			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."), CannotCreateStandardDoctypeError)
+
+		if frappe.conf.get('developer_mode'):
+			self.owner = 'Administrator'
+			self.modified_by = 'Administrator'
 
 	def setup_fields_to_fetch(self):
 		'''Setup query to update values for newly set fetch values'''
@@ -192,6 +190,12 @@ class DocType(Document):
 
 	def validate_website(self):
 		"""Ensure that website generator has field 'route'"""
+		if not self.istable and not self.route:
+			self.route = get_doctype_route(self.name)
+
+		if self.route:
+			self.route = self.route.strip('/')
+
 		if self.has_web_view:
 			# route field must be present
 			if not 'route' in [d.fieldname for d in self.fields]:

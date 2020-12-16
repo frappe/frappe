@@ -2,6 +2,21 @@ html {
 	height: 100%;
 }
 
+// transition
+* {
+	transition: background-color 0.5s, background 0.5s;
+}
+
+a,
+.badge {
+	transition: 0.2s,
+}
+
+.btn {
+	transition: background-color 0.2s, background 0.2s;
+}
+
+
 body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -89,95 +104,8 @@ img {
 	color: var(--gray-500) !important;
 }
 
-.center-content {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
 .no-underline {
 	text-decoration: none !important;
-}
-
-.btn {
-	border: none;
-	border-radius: var(--border-radius);
-	box-shadow: var(--btn-shadow);
-	font-size: var(--text-md);
-	&.icon-btn {
-		height: var(--btn-height);
-		padding: 0px;
-		@extend .center-content;
-		&.btn-default, &.btn-secondary {
-			min-width: 28px;
-		}
-	}
-}
-
-.btn-secondary-dark {
-	@include button-variant(
-		$background: $gray-500,
-		$border: $gray-500,
-		$hover-background: lighten($gray-500, 1%),
-		$hover-border: $gray-500,
-		$active-background: lighten($gray-500, 1%),
-		$active-border: darken($gray-500, 12.5%)
-	);
-
-	color: $white;
-	&:hover, &:active, &:focus {
-		color: $white;
-	}
-}
-
-.btn-primary-light {
-	@include button-variant(
-		$background: $primary-light,
-		$border: $primary-light,
-		$hover-background: lighten($primary-light, 1%),
-		$hover-border: $primary-light,
-		$active-background: lighten($primary-light, 1%),
-		$active-border: darken($primary-light, 12.5%)
-	);
-
-	color: var(--blue-500);
-	&:hover, &:active {
-		color: var(--blue-500);
-	}
-
-	&:focus {
-		box-shadow: 0 0 0 0.2rem var(--blue-50)
-	}
-}
-
-.btn.btn-secondary {
-	background-color: var(--control-bg);
-	color: var(--text-color);
-	&:hover, &:active {
-		background-color: var(--gray-300);
-		color: var(--text-color);
-	}
-}
-
-.btn.btn-default {
-	background-color: var(--fg-color);
-	color: var(--text-color);
-	&:hover, &:active {
-		background: var(--fg-hover-color);
-		color: var(--text-color);
-	}
-}
-
-.btn.btn-primary {
-	background-color: var(--primary-color);
-	white-space: nowrap;
-	--icon-stroke: white;
-	--icon-fill-bg: var(--primary-color);
-}
-
-.btn.btn-danger {
-	background-color: var(--red-400);
-	color: $white;
 }
 
 h1, h2, h3, h4 {
@@ -194,7 +122,7 @@ p {
 }
 
 .small {
-	font-size: var(--text-xs);
+	font-size: var(--text-sm);
 }
 
 .fill-width {
@@ -264,25 +192,24 @@ select.input-xs {
 
 /* dropdowns */
 
-.dropdown-backdrop {
-	display: none;
-}
-
 .dropdown-item {
 	border-radius: 4px;
 }
 
 .dropdown-menu {
-	min-width: 200px;
 	padding: 4px;
 	font-size: var(--text-md);
 	max-height: 500px;
 	overflow: auto;
-	color: $text-color;
-	border-radius: 6px;
 
 	.dropdown-divider {
 		margin: 4px 0;
+	}
+	a:not([href]):hover:active {
+		color: $component-active-color ;
+	}
+	a {
+		cursor: pointer;
 	}
 }
 
@@ -396,7 +323,7 @@ html.firefox, html.safari {
 }
 
 .head-title {
-	font-size: var(--text-xl);
+	font-size: var(--text-lg);
 	font-weight: 700;
 	color: var(--heading-color);
 }
@@ -428,15 +355,15 @@ kbd {
 	cursor: default;
 }
 
-.dropdown-menu {
-	margin-top: var(--margin-xs);
-	box-shadow: var(--shadow-sm);
-}
+// .dropdown-menu {
+// 	margin-top: var(--margin-xs);
+// 	box-shadow: var(--shadow-sm);
+// }
 
 .btn-link {
 	box-shadow: none !important;
 	outline: none;
-	.icon {
+	.icon, &:hover {
 		text-decoration: none !important;
 	}
 }
@@ -504,14 +431,6 @@ kbd {
 
 		svg {
 			margin-right: var(--margin-sm);
-		}
-	}
-}
-
-.chart-container {
-	.frappe-chart {
-		line.line-horizontal, line.line-vertical {
-			stroke: var(--border-color) !important;
 		}
 	}
 }

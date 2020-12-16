@@ -42,8 +42,8 @@ frappe.ui.Page = Class.extend({
 	make: function() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_sidebar_toggle();
 		this.setup_scroll_handler();
+		this.setup_sidebar_toggle();
 	},
 
 	setup_scroll_handler() {
@@ -144,6 +144,7 @@ frappe.ui.Page = Class.extend({
 
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find('button');
+		menu_btn.attr("title", __("Menu")).tooltip({ delay: { "show": 600, "hide": 100 } });
 		frappe.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(menu_btn, menu_btn.find('.menu-btn-group-label'));
@@ -156,19 +157,66 @@ frappe.ui.Page = Class.extend({
 
 	setup_sidebar_toggle() {
 		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
-		sidebar_toggle.click(console.log);
+		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
+		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
+			sidebar_toggle.remove();
+		} else {
+			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip({ delay: { "show": 600, "hide": 100 } });
+			sidebar_toggle.click(() => {
+				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
+					this.setup_overlay_sidebar();
+				} else {
+					sidebar_wrapper.toggle();
+				}
+				this.update_sidebar_icon();
+			});
+		}
+	},
+
+	setup_overlay_sidebar() {
+		let overlay_sidebar = this.sidebar.find('.overlay-sidebar')
+			.addClass('opened');
+		$('<div class="close-sidebar">').hide().appendTo(this.sidebar).fadeIn();
+		let scroll_container = $('html')
+			.css("overflow-y", "hidden");
+
+		this.sidebar.find(".close-sidebar").on('click', (e) => close_sidebar(e));
+		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => close_sidebar(e));
+
+		let close_sidebar = (e) => {
+			scroll_container.css("overflow-y", "");
+			this.sidebar.find("div.close-sidebar").fadeOut(() => {
+				overlay_sidebar.removeClass('opened')
+					.find('.dropdown-toggle')
+					.removeClass('text-muted');
+			});
+		}
+	},
+
+	update_sidebar_icon() {
+		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
+		let sidebar_toggle_icon = sidebar_toggle.find('.sidebar-toggle-icon')
+		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
+		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
+		sidebar_toggle_icon.html(frappe.utils.icon(is_sidebar_visible ? 'sidebar-collapse' : 'sidebar-expand', 'md'));
 	},
 
 	set_indicator: function(label, color) {
 		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
 	},
 
-	add_action_icon: function(icon, click, css_class='') {
-		return $(`
+	add_action_icon: function(icon, click, css_class='', tooltip_label) {
+		const button = $(`
 			<button class="text-muted btn btn-default ${css_class} icon-btn">
 				${frappe.utils.icon(icon)}
 			</button>
-		`).appendTo(this.icon_group.removeClass("hide")).click(click);
+		`)
+
+		button.appendTo(this.icon_group.removeClass("hide"));
+		button.click(click);
+		button.attr("title", __(tooltip_label || frappe.unscrub(icon))).tooltip({ delay: { "show": 600, "hide": 100 } });
+
+		return button
 	},
 
 	clear_indicator: function() {
@@ -714,7 +762,7 @@ frappe.ui.Page = Class.extend({
 		f.refresh();
 		$(f.wrapper)
 			.addClass('col-md-2')
-			.attr("title", __(df.label)).tooltip();
+			.attr("title", __(df.label)).tooltip({ delay: { "show": 600, "hide": 100 } });
 
 		// html fields in toolbar are only for display
 		if (df.fieldtype=='HTML') {

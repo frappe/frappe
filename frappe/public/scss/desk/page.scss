@@ -1,18 +1,42 @@
 .page-title {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	.sidebar-toggle-btn {
+		display: flex;
 		margin-right: var(--margin-sm);
 		cursor: pointer;
-		--icon-stroke: var(--gray-500)
+		--icon-stroke: var(--gray-500);
+		.sidebar-toggle-icon {
+			display: none;
+		}
+
+		.sidebar-toggle-icon, .sidebar-toggle-placeholder {
+			@include transition(all 0.5s ease-in-out);
+		}
+
+		&:hover {
+			.sidebar-toggle-icon {
+				display: block;
+			}
+			.sidebar-toggle-placeholder {
+				display: none;
+			}
+		}
+		margin-top: 2px;
 	}
 	.title-area {
 		display: inline-flex;
-		align-items: center;
+		align-items: flex-start;
 		.title-text {
 			cursor: pointer;
 			margin-bottom: 0px;
 			margin-right: var(--margin-sm)
+		}
+		.indicator-pill {
+			margin-top: 2px;
+		}
+		.sub-heading {
+			font-size: var(--text-sm);
 		}
 	}
 }
@@ -43,9 +67,9 @@
 		display: inline-flex;
 	}
 }
-$page-bottom-margin: 60px;
+
 .layout-main-section-wrapper {
-	margin-bottom: $page-bottom-margin;
+	margin-bottom: var(--page-bottom-margin);
 }
 
 .layout-main-section.frappe-card {
@@ -60,7 +84,7 @@ $page-bottom-margin: 60px;
 	background: var(--bg-color);
 	margin-bottom: 5px;
 	.page-head-content {
-		height: $page-head-height;
+		height: var(--page-head-height);
 	}
 	&.drop-shadow {
 		box-shadow: var(--shadow-sm);

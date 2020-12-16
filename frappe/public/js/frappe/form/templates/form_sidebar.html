@@ -1,10 +1,3 @@
-<ul class="list-unstyled sidebar-menu visible-sm visible-xs">
-	<li>
-		<a class="navbar-home" href="#">
-			<img class="app-logo" src="{{ frappe.app.logo_url }}">
-		</a>
-	</li>
-</ul>
 <ul class="list-unstyled sidebar-menu user-actions hidden"></ul>
 <ul class="list-unstyled sidebar-menu sidebar-image-section hidden-xs hidden-sm hide">
 	<li class="sidebar-image-wrapper">
@@ -25,7 +18,7 @@
 </ul>
 {% if frm.meta.beta %}
 <div class="sidebar-menu">
-	<p><label class="indicator-pill yellow" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Under Development") }}</label></p>
+	<p><label class="indicator-pill yellow" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label></p>
 	<p><a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
 			target="_blank">
 		{{ __("Click here to post bugs and suggestions") }}</a></p>
@@ -50,14 +43,10 @@
 		<svg class="icon icon-sm"><use href="#icon-assign"></use></svg>
 		{%= __("Assigned To") %}
 	</li>
-	<li class="add-assignment-btn">
-		<button class="data-pill btn">
-			<span class="pill-label ellipsis">
-				{%= __("Assign to someone") %}
-			</span>
-			<svg class="icon icon-sm">
-				<use href="#icon-add"></use>
-			</svg>
+	<li class="flex flex-wrap">
+		<span class="assignments"></span>
+		<button class="text-muted btn btn-default icon-btn add-assignment-btn">
+			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
 		</button>
 	</li>
 </ul>
@@ -169,7 +158,3 @@
 {% if(frappe.get_form_sidebar_extension) { %}
 	{{ frappe.get_form_sidebar_extension() }}
 {% } %}
-<ul class="list-unstyled visible-xs visible-sm">
-
-	<li class="close-sidebar">Close</li>
-</ul>

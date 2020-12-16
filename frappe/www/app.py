@@ -12,8 +12,8 @@ from frappe import _
 import frappe.sessions
 
 def get_context(context):
-	if frappe.session.user == "Guest":
-		frappe.throw(_("Log in to access this page."), frappe.PermissionError)
+	# if frappe.session.user == "Guest":
+	# 	frappe.throw(_("Log in to access this page."), frappe.PermissionError)
 	# elif frappe.db.get_value("User", frappe.session.user, "user_type") == "Website User":
 	# 	frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
@@ -34,7 +34,10 @@ def get_context(context):
 	boot_json = frappe.as_json(boot)
 
 	# remove script tags from boot
-	boot_json = re.sub("\<script\>[^<]*\</script\>", "", boot_json)
+	boot_json = re.sub("\<script[^<]*\</script\>", "", boot_json)
+
+	# TODO: Find better fix
+	boot_json = re.sub("</script\>", "", boot_json)
 
 	context.update({
 		"no_cache": 1,

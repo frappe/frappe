@@ -61,13 +61,8 @@ frappe.Application = Class.extend({
 			shortcut: 'shift+ctrl+g',
 			description: __('Switch Theme'),
 			action: () => {
-				let new_theme = document.body.dataset.theme == "dark" ? "Light" : "Dark";
-				frappe.call('frappe.core.doctype.user.user.switch_theme', {
-					theme: new_theme
-				}).then(() => {
-					document.body.dataset.theme = new_theme.toLowerCase();
-					frappe.show_alert("Theme Changed", 3);
-				})
+				frappe.theme_switcher = new frappe.ui.ThemeSwitcher();
+				frappe.theme_switcher.show();
 			}
 		})
 
@@ -153,7 +148,6 @@ frappe.Application = Class.extend({
 							user: frappe.session.user
 						},
 						callback: function(r) {
-							console.log(r);
 							if (r.message.show_alert) {
 								frappe.show_alert({
 									indicator: 'red',
@@ -165,8 +159,6 @@ frappe.Application = Class.extend({
 				}, 600000); // check every 10 minutes
 			}
 		}
-
-		this.fetch_tags();
 	},
 
 	set_route() {
@@ -175,7 +167,7 @@ frappe.Application = Class.extend({
 			localStorage.removeItem("session_last_route");
 		} else {
 			// route to home page
-			frappe.route();
+			frappe.router.route();
 		}
 	},
 
@@ -268,6 +260,7 @@ frappe.Application = Class.extend({
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
+			frappe.router.setup();
 			moment.locale("en");
 			moment.user_utc_offset = moment().utcOffset();
 			if(frappe.boot.timezone_info) {
@@ -277,6 +270,7 @@ frappe.Application = Class.extend({
 				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
 			frappe.user.name = frappe.boot.user.name;
+			frappe.router.setup();
 		} else {
 			this.set_as_guest();
 		}
@@ -299,6 +293,7 @@ frappe.Application = Class.extend({
 
 	set_globals: function() {
 		frappe.session.user = frappe.boot.user.name;
+		frappe.session.logged_in_user = frappe.boot.user.name;
 		frappe.session.user_email = frappe.boot.user.email;
 		frappe.session.user_fullname = frappe.user_info().fullname;
 
@@ -547,13 +542,7 @@ frappe.Application = Class.extend({
 	},
 
 	add_browser_class() {
-		let browsers = ['Chrome', 'Firefox', 'Safari'];
-		for (let browser of browsers) {
-			if (navigator.userAgent.includes(browser)) {
-				$('html').addClass(browser.toLowerCase());
-				return;
-			}
-		}
+		$('html').addClass(frappe.utils.get_browser().name.toLowerCase());
 	},
 
 	set_fullwidth_if_enabled() {
@@ -610,10 +599,6 @@ frappe.Application = Class.extend({
 			frappe.show_alert(message);
 		});
 	},
-
-	fetch_tags() {
-		frappe.tags.utils.fetch_tags();
-	}
 });
 
 frappe.get_module = function(m, default_module) {

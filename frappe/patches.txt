@@ -22,6 +22,7 @@ execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 execute:frappe.reload_doc('core', 'doctype', 'communication_link') #2019-10-02
 execute:frappe.reload_doc('core', 'doctype', 'has_role')
 execute:frappe.reload_doc('core', 'doctype', 'communication') #2019-10-02
+execute:frappe.reload_doc('core', 'doctype', 'server_script')
 frappe.patches.v11_0.replicate_old_user_permissions
 frappe.patches.v11_0.reload_and_rename_view_log #2019-01-03
 frappe.patches.v7_1.rename_scheduler_log_to_error_log
@@ -297,7 +298,7 @@ frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
 frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
 frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
-frappe.patches.v13_0.add_standard_navbar_items
+frappe.patches.v13_0.add_standard_navbar_items # 2020-12-15
 frappe.patches.v13_0.generate_theme_files_in_public_folder
 frappe.patches.v13_0.increase_password_length
 frappe.patches.v12_0.fix_email_id_formatting
@@ -317,5 +318,7 @@ frappe.patches.v13_0.remove_custom_link
 execute:frappe.delete_doc("DocType", "Footer Item")
 frappe.patches.v13_0.replace_field_target_with_open_in_new_tab
 frappe.core.doctype.role.patches.v13_set_default_desk_properties
+frappe.patches.v13_0.add_switch_theme_to_navbar_settings
+frappe.patches.v13_0.update_icons_in_customized_desk_pages
 frappe.patches.v13_0.rename_desk_page_to_workspace
 frappe.patches.v13_0.cleanup_desk_cards

@@ -8,6 +8,7 @@ frappe.provide('frappe.request.error_handlers');
 frappe.request.url = '/';
 frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
+frappe.request.logs = {}
 
 frappe.xcall = function(method, params) {
 	return new Promise((resolve, reject) => {
@@ -89,6 +90,11 @@ frappe.call = function(opts) {
 		delete args.cmd;
 	}
 
+	// debouce if required
+	if (opts.debounce && frappe.request.is_fresh(args, opts.debounce)) {
+		return Promise.resolve();
+	}
+
 	return frappe.request.call({
 		type: opts.type || "POST",
 		args: args,
@@ -127,7 +133,7 @@ frappe.request.call = function(opts) {
 				message: __('The resource you are looking for is not available')});
 		},
 		403: function(xhr) {
-			if (frappe.session.user === 'Guest') {
+			if (frappe.session.logged_in_user !== 'Guest') {
 				// session expired
 				frappe.app.handle_session_expired();
 			}
@@ -239,7 +245,7 @@ frappe.request.call = function(opts) {
 					status_code_handler(data, xhr);
 				}
 			} catch(e) {
-				console.log("Unable to handle success response"); // eslint-disable-line
+				console.log("Unable to handle success response", data); // eslint-disable-line
 				console.trace(e); // eslint-disable-line
 			}
 
@@ -276,6 +282,26 @@ frappe.request.call = function(opts) {
 				console.trace(e); // eslint-disable-line
 			}
 		});
+}
+
+frappe.request.is_fresh = function(args, threshold) {
+	// return true if a request with similar args has been sent recently
+	if (!frappe.request.logs[args.cmd]) {
+		frappe.request.logs[args.cmd] = [];
+	}
+
+	for (let past_request of frappe.request.logs[args.cmd]) {
+		// check if request has same args and was made recently
+		if ((new Date() - past_request.timestamp) < threshold 
+			&& frappe.utils.deep_equal(args, past_request.args)) {
+				console.log('throttled');
+				return true;
+			}
+	}
+
+	// log the request
+	frappe.request.logs[args.cmd].push({args: args, timestamp: new Date()});
+	return false;
 }
 
 // call execute serverside request
@@ -322,7 +348,8 @@ frappe.request.cleanup = function(opts, r) {
 	if(r) {
 
 		// session expired? - Guest has no business here!
-		if (r.session_expired || frappe.session.user === "Guest") {
+		if (r.session_expired || 
+			(frappe.session.user === 'Guest' && frappe.session.logged_in_user !== "Guest")) {
 			frappe.app.handle_session_expired();
 			return;
 		}

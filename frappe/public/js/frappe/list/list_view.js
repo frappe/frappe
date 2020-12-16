@@ -9,7 +9,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = route[1];
 
 		if (route.length === 2) {
-			// List/{doctype} => List/{doctype}/{last_view} or List
 			const user_settings = frappe.get_user_settings(doctype);
 			const last_view = user_settings.last_view;
 			frappe.set_route(
@@ -164,10 +163,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	show_restricted_list_indicator_if_applicable() {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
 		if (match_rules_list.length) {
-			this.restricted_list = $(`<button class="restricted-button">${__('Restricted')}</button>`)
-				.prepend('<span class="octicon octicon-lock"></span>')
-				.click(() => this.show_restrictions(match_rules_list))
-				.appendTo(this.page.page_form);
+			this.restricted_list = $(
+				`<button class="btn btn-default btn-xs restricted-button flex align-center">
+					${frappe.utils.icon('lock', 'xs')}
+				</button>`
+			)
+			.click(() => this.show_restrictions(match_rules_list))
+			.appendTo(this.page.page_form);
 		}
 	}
 
@@ -802,25 +804,28 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let settings_button = null;
 		if (this.settings.button && this.settings.button.show(doc)) {
 			settings_button = `
-			<span>
+				<span class="list-actions">
 					<button class="btn btn-action btn-default btn-xs"
 						data-name="${doc.name}" data-idx="${doc._idx}"
 						title="${this.settings.button.get_description(doc)}">
 						${this.settings.button.get_label(doc)}
 					</button>
-					</span>
+				</span>
 			`;
 		}
 
 		const modified = comment_when(doc.modified, true);
 
-		let assigned_to = `<span class="avatar avatar-small">
+		let assigned_to = `<div class="list-assignments">
+			<span class="avatar avatar-small">
 			<span class="avatar-empty"></span>
-		</span>`;
+		</div>`;
 
 		let assigned_users = JSON.parse(doc._assign || "[]");
 		if (assigned_users.length) {
-			assigned_to = frappe.avatar_group(assigned_users, 3, {'filterable': true})[0].outerHTML;
+			assigned_to = `<div class="list-assignments">
+					${frappe.avatar_group(assigned_users, 3, { filterable: true })[0].outerHTML}
+				</div>`;
 		}
 
 		const comment_count = `<span class="${
@@ -831,9 +836,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			</span>`;
 
 		html += `
-			<div class="level-item list-row-activity">
-
-				${settings_button || assigned_to}
+			<div class="level-item list-row-activity hidden-xs">
+				<div class="hidden-md hidden-xs">
+					${settings_button || assigned_to}
+				</div>
 				${modified}
 				${comment_count}
 			</div>
@@ -870,7 +876,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			? encodeURIComponent(doc.name)
 			: doc.name;
 
-		return "/app/form/" + frappe.router.slug(frappe.router.doctype_layout || this.doctype) + "/" + docname;
+		return `/app/${frappe.router.slug(frappe.router.doctype_layout || this.doctype)}/${docname}`;
 	}
 
 	get_seen_class(doc) {
@@ -1083,7 +1089,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_list_click() {
-		this.$result.on("click", ".list-row, .image-view-header", (e) => {
+		this.$result.on("click", ".list-row, .image-view-header, .file-header", (e) => {
 			const $target = $(e.target);
 			// tick checkbox if Ctrl/Meta key is pressed
 			if (e.ctrlKey || (e.metaKey && !$target.is("a"))) {
@@ -1098,16 +1104,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (
 				$target.hasClass("filterable") ||
 				$target.hasClass("icon-heart") ||
-				$target.is(":checkbox") ||
-				$target.is("a")
+				$target.is(":checkbox")
 			) {
+				e.stopPropagation();
 				return;
 			}
-			// open form
+
+			// link, let the event be handled via set_route
+			if ($target.is("a")) { return; }
+
+			// clicked on the row, open form
 			const $row = $(e.currentTarget);
 			const link = $row.find(".list-subject a").get(0);
 			if (link) {
-				window.location.href = link.href;
+				frappe.set_route(link.pathname);
 				return false;
 			}
 		});

@@ -20,6 +20,7 @@ $black: #000;
 $white: #fff;
 $light: $gray-50 !default;
 $primary-light: lighten($primary, 42%) !default;
+$light-yellow: #FEF4E2;
 
 $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 66, 0.1);
 
@@ -29,6 +30,8 @@ $code-color: var(--purple-600);
 $border-radius: var(--border-radius);
 $border-radius-sm: var(--border-radius-sm);
 $border-radius-lg: var(--border-radius-lg);
+
+$nav-divider-margin-y: 4px;
 
 $container-max-widths: (
   sm: 540px,
@@ -43,12 +46,15 @@ $theme-colors: (
 );
 
 $navbar-height: 60px;
-$page-head-height: 68px;
 
 $body-color: var(--text-light);
 $component-active-color: var(--fg-color);
 $component-active-bg: $gray-600;
 $modal-content-bg: var(--modal-bg);
+$modal-backdrop-bg: var(--gray-900);
+$modal-content-box-shadow-sm-up: 0px 5px 10px rgba(0, 0, 0, 0.100661);
+$modal-md: 575px;
+$modal-sm: 450px;
 $link-color: var(--text-color);
 
 // input
@@ -61,6 +67,7 @@ $input-focus-border-color: var(--gray-500);
 $input-border-radius: var(--border-radius);
 
 // dropdown
+$dropdown-color: var(--text-color);
 $dropdown-bg: var(--fg-color);
 $dropdown-border-color: var(--dark-border-color);
 $dropdown-link-color: var(--text-color);
@@ -69,6 +76,7 @@ $dropdown-link-hover-bg: var(--fg-hover-color);
 $dropdown-link-disabled-color: var(--gray-600);
 $dropdown-header-color: var(--gray-600);
 $dropdown-divider-bg: var(--border-color);
+$dropdown-min-width: 200px;
 
 // button
 $btn-padding-y-lg: 1rem !default;

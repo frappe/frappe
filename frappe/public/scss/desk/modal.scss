@@ -38,7 +38,20 @@ h5.modal-title {
 
 	.modal-body {
 		padding: var(--padding-md) var(--padding-lg);
-		max-height: unquote("min(80vh, 650px)");
+		.form-layout:first-child > .form-page {
+			.visible-section:first-child {
+				padding-top: 0;
+				.section-body {
+					margin-top: 0;
+				}
+			}
+		}
+
+		.form-layout:last-child > .form-page {
+			.visible-section:last-child {
+				padding-bottom: 0;
+			}
+		}
 	}
 
 	.modal-footer {
@@ -61,10 +74,34 @@ h5.modal-title {
 		}
 	}
 
-	@include media-breakpoint-up(md) {
-		.modal-dialog {
-			width: 575px;
-			max-width: 575px;
+	.form-section {
+		padding: var(--padding-sm) 0;
+
+		&:not(:first-child) {
+			border-top: 1px solid var(--border-color);
+		}
+
+		&.hide-border {
+			border-top: none !important;
+			padding-top: 0px !important;
+		}
+
+		.form-column {
+			&:first-child {
+				padding-left: 0;
+			}
+			&:last-child {
+				padding-right: 0;
+			}
+		}
+
+		.section-head {
+			padding: 0;
+			font-size: var(--text-md);
+
+			&:not(.collapsed) {
+				padding-bottom: var(--padding-sm);
+			}
 		}
 	}
 }
@@ -73,12 +110,11 @@ h5.modal-title {
 	position: initial;
 
 	.modal-dialog {
-		z-index: 101;
 		position: fixed;
 		right: 15px;
 		bottom: 0;
 		margin: 0;
-		max-width: 400px;
+		min-width: 400px;
 		.modal-header {
 			padding-top: var(--padding-sm);
 			padding-bottom: var(--padding-xs);
@@ -90,6 +126,12 @@ h5.modal-title {
 			border-bottom-right-radius: 0;
 			border-bottom-left-radius: 0;
 		}
+
+		@include media-breakpoint-down(sm) {
+			right: 0;
+			width: 100%;
+			min-width: 100%;
+		}
 	}
 
 	.modal-body, .modal-footer {
@@ -99,8 +141,6 @@ h5.modal-title {
 
 /* msgprint dialog */
 .msgprint-dialog {
-	max-width: 400px;
-
 	.modal-content {
 		min-height: 110px;
 	}
@@ -115,5 +155,50 @@ h5.modal-title {
 
 	a:not(.btn) {
 		text-decoration: underline;
+	}
+}
+
+// used in CommunicationComposer
+.modal .to_section {
+	form {
+		display: flex;
+		align-items: center;
+		.frappe-control:first-child {
+			flex: 1;
+			margin-bottom: 0px;
+		}
+		.frappe-control:last-child {
+			margin-left: 10px;
+			margin-bottom: -24px;
+			button {
+				// same as form-control input
+				height: calc(1.5em + .75rem + 2px);
+			}
+		}
+	}
+}
+
+.dialog-assignment-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 5px 15px;
+	border-radius: var(--border-radius-md);
+	color: var(--text-color);
+	&:not(:last-child) {
+		margin-bottom: 5px;
+	}
+	@extend .row;
+	.remove-btn {
+		display: none;
+	}
+	&:hover {
+		background: var(--fg-hover-color);
+		.remove-btn {
+			display: block;
+		}
+	}
+	.avatar {
+		margin-right: var(--margin-md);
 	}
 }

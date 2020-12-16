@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
+from frappe.config import get_modules_from_all_apps_for_user
 import frappe
 from frappe import _
 import json
@@ -41,6 +42,24 @@ class Dashboard(Document):
 				json.loads(self.chart_options)
 			except ValueError as error:
 				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))
+
+
+def get_permission_query_conditions(user):
+	if not user:
+		user = frappe.session.user
+
+	if user == 'Administrator':
+		return
+
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles:
+		return None
+
+	allowed_modules = [frappe.db.escape(module.get('module_name')) for module in get_modules_from_all_apps_for_user()]
+	module_condition =  '`tabDashboard`.`module` in ({allowed_modules}) or `tabDashboard`.`module` is NULL'.format(
+		allowed_modules=','.join(allowed_modules))
+
+	return module_condition
 
 @frappe.whitelist()
 def get_permitted_charts(dashboard_name):

@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "document_type",
+  "route",
   "fields",
   "client_script"
  ],
@@ -31,11 +32,17 @@
    "fieldname": "client_script",
    "fieldtype": "Code",
    "label": "Client Script"
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "label": "Route",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-11-17 15:49:49.669291",
+ "modified": "2020-12-10 15:01:04.352184",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "DocType Layout",
@@ -52,8 +59,13 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Guest"
   }
  ],
+ "route": "doctype-layout",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

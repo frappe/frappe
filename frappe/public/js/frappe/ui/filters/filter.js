@@ -365,7 +365,7 @@ frappe.ui.Filter = class {
 			</button>
 			<button class="btn btn-default btn-xs remove-filter"
 				title="${__('Remove Filter')}">
-				<i class="fa fa-remove text-muted"></i>
+				${frappe.utils.icon('close')}
 			</button>
 		</div>`);
 	}

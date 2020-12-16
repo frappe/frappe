@@ -1,4 +1,9 @@
 <div class="group-by-box">
+	<div class="visible-xs flex justify-flex-end">
+		<span class="remove-group-by">
+			{{ __("Remove") }}
+		</span>
+	</div>
 	<div class="list_groupby row">
 		<div class="col-sm-8 form-group">
 			<select class="group-by form-control input-xs">
@@ -37,7 +42,7 @@
 				<option value="" disabled selected>{{ __("Select Field...") }}</option>
 			</select>
 		</div>
-		<div class="groupby-actions pull-left col-sm-1">
+		<div class="groupby-actions pull-left col-sm-1 hidden-xs">
 			<span class="remove-group-by">
 				<svg class="icon icon-sm">
 					<use xlink:href="#icon-close"></use>

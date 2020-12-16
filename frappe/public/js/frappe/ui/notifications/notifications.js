@@ -12,8 +12,7 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	make() {
-		this.dropdown = $('.navbar').find('.dropdown-notifications');
-		this.dropdown.removeClass("hidden");
+		this.dropdown = $('.navbar').find('.dropdown-notifications').removeClass('hidden');
 		this.dropdown_list = this.dropdown.find('.notifications-list');
 		this.header_items = this.dropdown_list.find('.header-items');
 		this.header_actions = this.dropdown_list.find('.header-actions');
@@ -25,10 +24,10 @@ frappe.ui.Notifications = class Notifications {
 
 		this.setup_headers();
 		let me = this;
-		frappe.search.utils.make_function_searchable(
-			me.route_to_settings,
-			__('Notification Settings'),
-		);
+		// frappe.search.utils.make_function_searchable(
+		// 	frappe.set_route('Form', 'Notification Settings', frappe.session.user),
+		// 	__('Notification Settings'),
+		// );
 
 		// this.setup_notifications();
 		this.setup_dropdown_events();
@@ -40,14 +39,21 @@ frappe.ui.Notifications = class Notifications {
 		$(`<span class="notification-settings pull-right" data-action="go_to_settings">
 			${frappe.utils.icon('setting-gear')}
 		</span>`)
-			.on('click', (e) => this.go_to_settings(e))
-			.appendTo(this.header_actions);
+			.on('click', (e) => {
+				e.stopImmediatePropagation();
+				this.dropdown.dropdown('hide');
+				frappe.set_route('Form', 'Notification Settings', frappe.session.user);
+			}).appendTo(this.header_actions)
+			.attr('title', __("Notification Settings"))
+			.tooltip({ delay: { "show": 600, "hide": 100 } });
 
 		$(`<span class="mark-all-read pull-right" data-action="mark_all_as_read">
 			${frappe.utils.icon('mark-as-read')}
 		</span>`)
 			.on('click', (e) => this.mark_all_as_read(e))
-			.appendTo(this.header_actions);
+			.appendTo(this.header_actions)
+			.attr('title', __("Mark all as read"))
+			.tooltip({ delay: { "show": 600, "hide": 100 } });
 
 		this.categories = [
 			{
@@ -115,44 +121,12 @@ frappe.ui.Notifications = class Notifications {
 		this.tabs[item.id] = tabView;
 	}
 
-	go_to_settings(e) {
-		e.stopImmediatePropagation();
-		this.dropdown.dropdown('hide');
-		this.route_to_settings();
-	}
-
-	route_to_settings() {
-		frappe.set_route('Form', 'Notification Settings', frappe.session.user);
-	}
-
 	mark_all_as_read(e) {
 		e.stopImmediatePropagation();
 		this.dropdown_list.find('.unread').removeClass('unread');
 		frappe.call(
 			'frappe.desk.doctype.notification_log.notification_log.mark_all_as_read',
 		);
-	}
-
-	set_field_as_read(docname, $el) {
-		frappe.call(
-			'frappe.desk.doctype.notification_log.notification_log.mark_as_read',
-			{ docname: docname }
-		).then(() => {
-			$el.removeClass('unread');
-		});
-	}
-
-	explicitly_mark_as_read(e, $target) {
-		e.preventDefault();
-		e.stopImmediatePropagation();
-		let docname = $target.parents('.unread').attr('data-name');
-		this.set_field_as_read(docname, $target.parents('.unread'));
-	}
-
-	mark_as_read(e, $target) {
-		let docname = $target.attr('data-name');
-		let df = this.dropdown_items.filter(f => docname.includes(f.name))[0];
-		this.set_field_as_read(df.name, $target);
 	}
 
 	setup_dropdown_events() {
@@ -222,6 +196,7 @@ class BaseNotificaitonsView {
 class NotificationsView extends BaseNotificaitonsView {
 	make() {
 		this.notifications_icon = this.parent.find('.notifications-icon');
+		this.notifications_icon.attr("title", __('Notifications')).tooltip({ delay: { "show": 600, "hide": 100 } });
 
 		this.setup_notification_listeners();
 		this.get_notifications_list(this.max_length).then(list => {
@@ -306,23 +281,23 @@ class NotificationsView extends BaseNotificaitonsView {
 					${user_avatar}
 					${message_html}
 				</div>
-				<div class="mark-as-read">
+				<div class="mark-as-read" title="${__("Mark as Read")}">
 				</div>
 			</a>`);
 
-		item_html.find('.mark-as-read').on('click', (e) => {
-			e.preventDefault();
-			e.stopImmediatePropagation();
-			if (!field.read) {
+		if (!field.read) {
+			let mark_btn = item_html.find(".mark-as-read")
+			mark_btn.tooltip({ delay: { "show": 600, "hide": 100 } });
+			mark_btn.on('click', (e) => {
+				e.preventDefault();
+				e.stopImmediatePropagation();
 				this.mark_as_read(field.name, item_html);
-			}
-		});
+			});
 
-		item_html.on('click', (e) => {
-			if (!field.read) {
+			item_html.on('click', (e) => {
 				this.mark_as_read(field.name, item_html);
-			}
-		});
+			});
+		}
 
 		return item_html;
 	}

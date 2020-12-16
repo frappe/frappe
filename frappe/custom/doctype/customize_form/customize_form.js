@@ -81,6 +81,11 @@ frappe.ui.form.on("Customize Form", {
 			} else {
 				f._sortable = false;
 			}
+			if (f.fieldtype == "Table") {
+				frm.add_custom_button(f.options, function() {
+					frm.set_value('doc_type', f.options);
+				}, __('Customize Child Table'));
+			}
 		});
 		frm.fields_dict.fields.grid.refresh();
 	},

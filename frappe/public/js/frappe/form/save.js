@@ -173,11 +173,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		return !has_errors;
 	};
 
-	var scroll_to = function (fieldname) {
-		var f = cur_frm.fields_dict[fieldname];
-		if (f) {
-			$(document).scrollTop($(f.wrapper).offset().top - 60);
-		}
+	const scroll_to = (fieldname) => {
+		frm.scroll_to_field(fieldname);
 		frm.scroll_set = true;
 	};
 

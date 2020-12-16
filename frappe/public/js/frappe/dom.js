@@ -293,10 +293,13 @@ frappe.unscrub = function(txt) {
 	return frappe.model.unscrub(txt);
 };
 
-frappe.get_data_pill = (label, target_id=null, remove_action=null) => {
+frappe.get_data_pill = (label, target_id=null, remove_action=null, image=null) => {
 	let data_pill_wrapper = $(`
 		<button class="data-pill btn">
-			<span class="pill-label ellipsis">${label}</span>
+			<div class="flex align-center ellipsis">
+				${image ? image : ''}
+				<span class="pill-label ${image ? "ml-2" : ""}">${label}</span>
+			</div>
 		</button>
 	`);
 

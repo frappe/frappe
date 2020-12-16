@@ -583,8 +583,9 @@ frappe.provide("frappe.views");
 		}
 
 		function add_task_link() {
-			let taskLink = frappe.utils.get_form_link(card.doctype, card.name);
-			self.$card.find('.kanban-card-redirect').attr('href', taskLink);
+			let task_link = frappe.utils.get_form_link(card.doctype, card.name);
+			self.$card.find('.kanban-card-redirect')
+				.attr('href', task_link);
 		}
 
 		function get_assignees_group() {
@@ -597,6 +598,7 @@ frappe.provide("frappe.views");
 
 		function show_assign_to_dialog(e) {
 			e.preventDefault();
+			e.stopPropagation();
 			self.assign_to = new frappe.ui.form.AssignToDialog({
 				obj: self,
 				method: 'frappe.desk.form.assign_to.add',

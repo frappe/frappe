@@ -7,6 +7,7 @@ frappe.provide("frappe.views.calendars");
 frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	static load_last_view() {
 		const route = frappe.get_route();
+		console.log(route);
 		if (route.length === 3) {
 			const doctype = route[1];
 			const user_settings = frappe.get_user_settings(doctype)['Calendar'] || {};

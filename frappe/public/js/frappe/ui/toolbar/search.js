@@ -7,7 +7,7 @@ frappe.search.SearchDialog = class {
 	}
 
 	make() {
-		this.search_dialog = new frappe.ui.Dialog({ minimizable: true });
+		this.search_dialog = new frappe.ui.Dialog({ minimizable: true, size: 'large' });
 		this.set_header();
 		this.$wrapper = $(this.search_dialog.$wrapper).addClass('search-dialog');
 		this.$body = $(this.search_dialog.body);
@@ -402,7 +402,7 @@ frappe.search.SearchDialog = class {
 				frappe.set_route(result.route);
 				// hashchange didn't fire!
 				if (window.location.hash == previous_hash) {
-					frappe.route();
+					frappe.router.route();
 				}
 			}
 		});

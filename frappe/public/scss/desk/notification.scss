@@ -25,7 +25,7 @@
 
 .collapse-indicator {
 	padding: 0px 5px;
-    color: #d1d8dd;
+	color: #d1d8dd;
 }
 
 .open-doc-count {
@@ -47,7 +47,7 @@
 }
 
 .notifications-list {
-	min-width: 480px;
+	width: 480px;
 	padding: 0px 10px;
 	min-height: 560px;
 	border: none;
@@ -302,16 +302,13 @@
 	margin-bottom: 15px;
 }
 
-@media (max-width: 767px) {
-
+@include media-breakpoint-down(sm) {
 	.dropdown-notifications {
 		.notifications-list {
 			max-height: 100vh;
 			min-width: 100vw;
-		}
-
-		.category-list[data-category="Open Documents"] li a {
-			margin: 0 15px;
+			width: calc(90vw - 60px);
+			right: -68px;
 		}
 
 		.recent-item .user-avatar {

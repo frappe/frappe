@@ -9,22 +9,73 @@
 	height: auto;
 	padding: 10px;
 	padding-bottom: 5px;
+	.link-field {
+		width: 100%;
+	}
 }
 
 .table-multiselect.form-control input {
+	width: 100%;
 	display: inline-block;
 	outline: none;
 	border: none;
 	padding: 0;
+	margin-bottom: var(--margin-sm);
 	font-size: var(--text-xs);
 }
 
 .table-multiselect .awesomplete {
+	width: 100%;
 	display: inline;
 }
 
 .awesomplete .input-with-feedback {
 	background-color: var(--control-bg);
+}
+
+/* multiselect list */
+.multiselect-list {
+	.status-text {
+		position: absolute;
+		top: 4px;
+	}
+
+	.dropdown-menu {
+		width: 100%;
+	}
+
+	li {
+		padding: var(--padding-sm);
+	}
+
+	.selectable-item {
+		cursor: pointer;
+		@include flex(flex, space-between, center, null);
+		.icon {
+			display: none;
+		}
+	}
+
+	.selectable-item.selected {
+		background-color: var(--yellow-highlight-color);
+
+		.icon {
+			display: block;
+		}
+	}
+
+	.selectable-item:hover, .selectable-item.highlighted {
+		background-color: var(--fg-hover-color);
+	}
+
+	.selectable-items {
+		max-height: 200px;
+		overflow: auto;
+
+		.multiselect-check {
+			margin-left: var(--margin-sm);
+		}
+	}
 }
 
 .frappe-control {
@@ -49,7 +100,7 @@
 	}
 }
 
-.frappe-control:not([data-fieldtype='MultiSelectPills']) {
+.frappe-control:not([data-fieldtype='MultiSelectPills']):not([data-fieldtype='Table MultiSelect']) {
 	&.has-error {
 		input {
 			border: 1px solid var(--red-400);
@@ -61,7 +112,8 @@
 	}
 }
 
-.frappe-control[data-fieldtype='MultiSelectPills'] {
+.frappe-control[data-fieldtype='MultiSelectPills'],
+.frappe-control[data-fieldtype='Table MultiSelect'] {
 	&.has-error {
 		.control-input {
 			border: 1px solid var(--red-400);
@@ -89,5 +141,11 @@
 		use {
 			stroke: var(--text-muted);
 		}
+	}
+}
+
+.ace_editor {
+	.ace_gutter {
+		z-index: auto;
 	}
 }

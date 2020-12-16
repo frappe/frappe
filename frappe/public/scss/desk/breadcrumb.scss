@@ -16,4 +16,11 @@
 			margin-right: 10px;
 		}
 	}
+
+	li.disabled {
+		a {
+			color: var(--text-muted);
+			pointer-events: none;
+		}
+	}
 }

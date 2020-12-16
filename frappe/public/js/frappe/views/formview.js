@@ -12,14 +12,29 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			frappe.model.with_doctype(doctype, () => {
 				this.page = frappe.container.add_page("form/" + doctype_layout);
 				frappe.views.formview[doctype_layout] = this.page;
-				this.page.frm = new frappe.ui.form.Form(doctype, this.page, true, frappe.router.doctype_layout);
-				this.show_doc(route);
+				this.make_and_show(doctype, route);
 			});
 		} else {
 			this.show_doc(route);
 		}
 
 		this.setup_events();
+	}
+
+	make_and_show(doctype, route) {
+		if (frappe.router.doctype_layout) {
+			frappe.model.with_doc('DocType Layout', frappe.router.doctype_layout, () => {
+				this.make_form(doctype);
+				this.show_doc(route);
+			})
+		} else {
+			this.make_form(doctype);
+			this.show_doc(route);
+		}
+	}
+
+	make_form(doctype) {
+		this.page.frm = new frappe.ui.form.Form(doctype, this.page, true, frappe.router.doctype_layout);
 	}
 
 	setup_events() {
@@ -30,12 +45,12 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 
 			frappe.realtime.on("doc_viewers", function(data) {
 				// set users that currently viewing the form
-				frappe.ui.form.set_users(data, 'viewers');
+				frappe.ui.form.FormViewers.set_users(data, 'viewers');
 			});
 
 			frappe.realtime.on("doc_typers", function(data) {
 				// set users that currently typing on the form
-				frappe.ui.form.set_users(data, 'typers');
+				frappe.ui.form.FormViewers.set_users(data, 'typers');
 			});
 		}
 		this.initialized = true;
@@ -54,7 +69,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 		}
 
 		const doc = frappe.get_doc(doctype, name);
-		if (doc && (doc.__islocal || frappe.model.is_recent(doc))) {
+		if (doc && frappe.model.get_docinfo(doctype, name) && (doc.__islocal || frappe.model.is_fresh(doc))) {
 			// is document available and recent?
 			this.render(doctype_layout, name);
 		} else {
@@ -67,7 +82,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			if (r && r['403']) return; // not permitted
 
 			if (!(locals[doctype] && locals[doctype][name])) {
-				if (name && name==='new') {
+				if (name && name.substr(0,3)==='new') {
 					this.render_new_doc(doctype, name, doctype_layout);
 				} else {
 					frappe.show_not_found(route);

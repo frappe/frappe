@@ -3,6 +3,10 @@
 	bottom: 0px;
 	right: 20px;
 	z-index: 1050;
+
+	@include media-breakpoint-down(sm) {
+		right: 0;
+	}
 }
 
 #alert-container .desk-alert {
@@ -87,6 +91,10 @@
 		-webkit-animation-name: backOutRight;
 		animation-name: backOutRight;
 		animation-duration: 1.6s;
+	}
+
+	@include media-breakpoint-down(sm) {
+		width: 100vw;
 	}
 }
 

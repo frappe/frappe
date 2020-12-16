@@ -20,7 +20,7 @@ frappe.ui.Tags = class {
 
 	setup(parent, placeholder) {
 		this.$ul = parent;
-		this.$input = $(`<input class="tags-input"></input>`);
+		this.$input = $(`<input class="tags-input form-control"></input>`);
 
 		this.$inputWrapper = this.get_list_element(this.$input);
 		this.$placeholder = this.get_list_element($(`<span class="tags-placeholder text-muted">${placeholder}</span>`));

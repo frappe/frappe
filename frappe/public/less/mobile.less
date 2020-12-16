@@ -47,12 +47,7 @@ body {
 
 
 		.page-head .sub-heading {
-			font-weight: normal;
-			font-size: 10px;
-			display: block;
-			position: absolute;
-			right: 140px;
-			min-width: 200px;
+			font-size: var(--text-xs);
 		}
 	}
 
@@ -369,11 +364,6 @@ body {
 		}
 	}
 
-	body[data-route^="Form"] {
-		.page-head .sub-heading {
-			right: 90px;
-		}
-	}
 	.timeline {
 		&::before {
 			content: none;

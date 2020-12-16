@@ -8,6 +8,10 @@
 	padding: 80px 0;
 	background-color: var(--gray-200);
 	border-radius: var(--border-radius);
+
+	@include media-breakpoint-down(md) {
+		padding: 0;
+	}
 }
 
 .print-toolbar {

@@ -23,7 +23,7 @@ Object.assign(frappe.energy_points, {
 		const separator = `<span>&nbsp;-&nbsp;</span>`;
 		const route = frappe.utils.get_form_link(log.reference_doctype, log.reference_name);
 		const formatted_log = `<div class="flex">
-			<span class="indicator-pill ${log.points >= 0 ? 'green' : 'red'} mr-2">
+			<span class="${log.points >= 0 ? 'green' : 'red'} mr-2">
 				${this.get_points(log.points)}
 			</span>
 			<a href="${route}" class="text-muted">${this.get_history_log_message(log)}</a>

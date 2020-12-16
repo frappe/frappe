@@ -2670,20 +2670,6 @@ frappe.chat.render = (render = true, force = false) =>
 		// With the assumption, that there's only one navbar.
 		const $placeholder = $('.navbar .frappe-chat-dropdown')
 
-		// Render if frappe-chat-toggle doesn't exist.
-		if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
-			const $template = $(`
-				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
-					<div>
-						<i class="octicon octicon-comment-discussion"/>
-					</div>
-				</a>
-			`)
-
-			$placeholder.addClass('dropdown hidden')
-			$placeholder.html($template)
-		}
-
 		if ( render ) {
 			$placeholder.removeClass('hidden')
 		} else {

@@ -40,26 +40,40 @@ class BaseTimeline {
 		this.timeline_items_wrapper.empty();
 		this.timeline_items = [];
 		this.doc_info = this.frm && this.frm.get_docinfo() || {};
-		this.prepare_timeline_contents();
-
-		this.timeline_items.sort((item1, item2) => new Date(item1.creation) - new Date(item2.creation));
-		this.timeline_items.forEach(this.add_timeline_item.bind(this));
+		let response = this.prepare_timeline_contents();
+		if (response instanceof Promise) {
+			response.then(() => {
+				this.timeline_items.sort((item1, item2) =>  new Date(item2.creation) - new Date(item1.creation));
+				this.timeline_items.forEach(this.add_timeline_item.bind(this));
+			});
+		} else {
+			this.timeline_items.sort((item1, item2) =>  new Date(item2.creation) - new Date(item1.creation));
+			this.timeline_items.forEach(this.add_timeline_item.bind(this));
+		}
 	}
 
 	prepare_timeline_contents() {
 		//
 	}
 
-	add_timeline_item(item) {
+	add_timeline_item(item, append_at_the_end=false) {
 		let timeline_item = this.get_timeline_item(item);
-		this.timeline_items_wrapper.prepend(timeline_item);
+		if (append_at_the_end) {
+			this.timeline_items_wrapper.append(timeline_item);
+		} else {
+			this.timeline_items_wrapper.prepend(timeline_item);
+		}
 		return timeline_item;
+	}
+
+	add_timeline_items(items, append_at_the_end=false) {
+		items.forEach((item) => this.add_timeline_item(item, append_at_the_end));
 	}
 
 	get_timeline_item(item) {
 		// item can have content*, creation*,
 		// timeline_badge, icon, icon_size,
-		// hide_timestamp, card
+		// hide_timestamp, is_card
 		const timeline_item = $(`<div class="timeline-item">`);
 
 		if (item.icon) {
@@ -74,9 +88,9 @@ class BaseTimeline {
 			timeline_item.append(`<div class="timeline-dot">`);
 		}
 
-		timeline_item.append(`<div class="timeline-content ${item.card ? 'frappe-card' : ''}">`);
+		timeline_item.append(`<div class="timeline-content ${item.is_card ? 'frappe-card' : ''}">`);
 		timeline_item.find('.timeline-content').append(item.content);
-		if (!item.hide_timestamp && !item.card) {
+		if (!item.hide_timestamp && !item.is_card) {
 			timeline_item.find('.timeline-content').append(`<span> - ${comment_when(item.creation)}</span>`);
 		}
 		return timeline_item;

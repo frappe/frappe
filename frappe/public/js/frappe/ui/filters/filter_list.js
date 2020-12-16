@@ -43,12 +43,16 @@ frappe.ui.FilterGroup = class {
 	set_popover_events() {
 		$(document.body).on('click', (e) => {
 			if (this.wrapper && this.wrapper.is(':visible')) {
+				const in_datepicker = $(e.target).is('.datepicker--cell')
+					|| $(e.target).closest('.datepicker--nav-title').length !== 0
+					|| $(e.target).parents('.datepicker--nav-action').length !== 0;
+
 				if (
 					$(e.target).parents('.filter-popover').length === 0
 					&& $(e.target).parents('.filter-box').length === 0
 					&& this.filter_button.find($(e.target)).length === 0
 					&& !$(e.target).is(this.filter_button)
-					&& !$(e.target).is('.datepicker--cell')
+					&& !in_datepicker
 				) {
 					this.wrapper && this.filter_button.popover('hide');
 				}
@@ -201,6 +205,7 @@ frappe.ui.FilterGroup = class {
 			condition: condition,
 			value: value,
 			hidden: hidden,
+			index: this.filters.length + 1,
 			on_change: (update) => {
 				if (update) this.update_filters();
 				this.on_change();
@@ -257,8 +262,9 @@ frappe.ui.FilterGroup = class {
 
 	update_filters() {
 		// remove hidden filters and undefined filters
-		this.filters.map(f => !f.get_selected_value() && f.remove());
-		this.filters = this.filters.filter(f => f.get_selected_value() && f.field);
+		const filter_exists = (f) => ![undefined, null].includes(f.get_selected_value());
+		this.filters.map(f => !filter_exists(f) && f.remove());
+		this.filters = this.filters.filter(f => filter_exists(f) && f.field);
 		this.update_filter_button();
 		this.filters.length === 0 &&
 			this.toggle_empty_filters(true);
