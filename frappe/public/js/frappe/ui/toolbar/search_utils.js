@@ -314,7 +314,7 @@ frappe.search.utils = {
 					label: __("{0} Dashboard", [me.bolden_match_part(__(item.name), keywords)]),
 					value: __("{0} Dashboard", [__(item.name)]),
 					index: level,
-					route: ["dashboard", item.name]
+					route: ["dashboard-view", item.name]
 				};
 
 				out.push(ret);
