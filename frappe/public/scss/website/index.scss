@@ -198,22 +198,6 @@ h5.modal-title {
 	float: right;
 }
 
-.btn-primary-light {
-	@include button-variant(
-		$background: $primary-light,
-		$border: $primary-light,
-		$hover-background: lighten($primary-light, 1%),
-		$hover-border: $primary-light,
-		$active-background: lighten($primary-light, 1%),
-		$active-border: darken($primary-light, 12.5%)
-	);
-
-	color: darken($primary, 5%);
-	&:hover {
-		color: darken($primary, 5%);
-	}
-}
-
 .image-with-blur {
 	transition: filter 300ms ease-in-out;
 	filter: blur(1.5rem);
