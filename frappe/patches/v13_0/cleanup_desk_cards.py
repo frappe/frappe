@@ -53,8 +53,11 @@ def rebuild_links(page):
 				"dependencies": ', '.join(link.get('dependencies', [])),
 				"is_query_report": get_report_type(link.get('name')) if link.get('type').lower() == "report" else 0
 			})
-
-		doc.save(ignore_permissions=True)
+		
+		try:
+			doc.save(ignore_permissions=True)
+		except frappe.LinkValidationError:
+			print(doc.as_dict())
 
 def get_doc_from_db(page):
 	result = frappe.db.sql("SELECT * FROM `tabDesk Page` WHERE name=%s", [page],  as_dict=True)
