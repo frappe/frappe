@@ -6,12 +6,12 @@
 			{% for parent in parents %}
 				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
 					<a itemprop="item" href="{{ url_prefix }}{{ parent.route | abs_url }}" itemprop="url">
-						<span itemprop="name">{{ parent.title or parent.label or parent.name or "" }}</span>
+						<span itemprop="parent">{{ parent.title or parent.label or parent.name or "" }}</span>
 						<meta itemprop="position" content="{{ loop.index }}" />
 					</a>
 				</li>
 			{% endfor %}
-			<li class="breadcrumb-item active" aria-current="page">
+			<li class="breadcrumb-item active" aria-current="page" itemprop="name">
 				{{ title or "" }}
 			</li>
 		</ol>
