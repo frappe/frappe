@@ -148,6 +148,7 @@ def init(site, sites_path=None, new_site=False):
 		"new_site": new_site
 	})
 	local.rollback_observers = []
+	local.before_commit = []
 	local.test_objects = {}
 
 	local.site = site
