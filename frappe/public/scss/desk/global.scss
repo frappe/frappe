@@ -9,7 +9,7 @@ html {
 
 a,
 .badge {
-	transition: 0.2s,
+	transition: 0.2s;
 }
 
 .btn {
@@ -206,9 +206,10 @@ select.input-xs {
 		margin: 4px 0;
 	}
 	a:not([href]):hover:active {
-		color: $component-active-color ;
+		color: $component-active-color;
 	}
 	a {
+		transition: none;
 		cursor: pointer;
 	}
 }
