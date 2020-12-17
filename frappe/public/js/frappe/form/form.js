@@ -6,7 +6,7 @@ import './toolbar';
 import './dashboard';
 import './workflow';
 import './save';
-import './print';
+import './print_utils';
 import './success_action';
 import './script_manager';
 import './script_helpers';
