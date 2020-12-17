@@ -814,9 +814,8 @@ Object.assign(frappe.utils, {
 	},
 	get_form_link: function(doctype, name, html = false, display_text = null) {
 		display_text = display_text || name;
-		doctype = encodeURIComponent(doctype);
 		name = encodeURIComponent(name);
-		const route = `/app/${frappe.router.slug(doctype)}/${name}`;
+		const route = `/app/${encodeURIComponent(frappe.router.slug(doctype))}/${name}`;
 		if (html) {
 			return `<a href="${route}">${display_text}</a>`;
 		}
