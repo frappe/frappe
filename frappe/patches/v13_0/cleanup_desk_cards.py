@@ -4,23 +4,29 @@ from json import loads
 from frappe.desk.doctype.workspace.workspace import get_link_type, get_report_type
 
 def execute():
-	if not frappe.db.exists("Doctype", "Desk Card"):
-		return
-
 	frappe.reload_doc('desk', 'doctype', 'workspace')
-
-	pages = frappe.get_all("Workspace", filters={"is_standard": 0}, pluck="name")
+	
+	pages = frappe.db.sql("Select `name` from `tabDesk Page`")
+	# pages = frappe.get_all("Workspace", filters={"is_standard": 0}, pluck="name")
 
 	for page in pages:
-		rebuild_links(page)
+		rebuild_links(page[0])
 
 	frappe.delete_doc("DocType", "Desk Card")
 
 def rebuild_links(page):
 	# Empty links table
 
-	doc = frappe.get_doc("Workspace", page)
+	try:
+		doc = frappe.get_doc("Workspace", page)
+	except frappe.DoesNotExistError:
+		db_doc = get_doc_from_db(page)
+		
+		doc = frappe.new_doc(db_doc)
+		doc.insert(ignore_permissions=True)
+	
 	doc.links = []
+
 	for card in get_all_cards(page):
 		if isinstance(card.links, string_types):
 			links = loads(card.links)
@@ -46,6 +52,11 @@ def rebuild_links(page):
 			})
 
 		doc.save(ignore_permissions=True)
+
+def get_doc_from_db(page):
+	result = frappe.db.sql("SELECT * FROM `tabDesk Page` WHERE name=%s", [page],  as_dict=True)
+	if result:
+		return result[0].update({"doctype": "Workspace"})
 
 def get_all_cards(page):
 	return frappe.db.get_all("Desk Card", filters={"parent": page}, fields=['*'], order_by="idx")
