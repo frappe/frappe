@@ -628,9 +628,9 @@ def clear_cache(user=None, doctype=None):
 
 	local.role_permissions = {}
 
-def get_permission_type(doctype, user=None, ignore_permissions=False):
+def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 	if ignore_permissions:
-		return 'read'
+		return False
 
 	if not user:
 		user = local.session.user
@@ -638,11 +638,10 @@ def get_permission_type(doctype, user=None, ignore_permissions=False):
 	import frappe.permissions
 	permissions = frappe.permissions.get_role_permissions(doctype, user=user)
 
-	if permissions.get('read'):
-		return 'read'
-
-	if permissions.get('select'):
-		return 'select'
+	if permissions.get('select') and not permissions.get('read'):
+		return True
+	else:
+		return False
 
 def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False):
 	"""Raises `frappe.PermissionError` if not permitted.
