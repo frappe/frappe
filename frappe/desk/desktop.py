@@ -263,7 +263,7 @@ class Workspace:
 					continue
 
 				# Check if user is allowed to view
-				if self.is_item_allowed(item.name, item.type):
+				if self.is_item_allowed(item.link_to, item.link_type):
 					prepared_item = self._prepare_item(item)
 					new_items.append(prepared_item)
 
@@ -438,8 +438,9 @@ def get_custom_doctype_list(module):
 	out = []
 	for d in doctypes:
 		out.append({
-			"type": "doctype",
-			"name": d.name,
+			"type": "Link",
+			"link_type": "doctype",
+			"link_to": d.name,
 			"label": _(d.name)
 		})
 
@@ -455,11 +456,12 @@ def get_custom_report_list(module):
 	out = []
 	for r in reports:
 		out.append({
-			"type": "report",
+			"type": "Link",
+			"link_type": "report",
 			"doctype": r.ref_doctype,
 			"is_query_report": 1 if r.report_type in ("Query Report", "Script Report", "Custom Report") else 0,
 			"label": _(r.name),
-			"name": r.name
+			"link_to": r.name,
 		})
 
 	return out
@@ -502,6 +504,7 @@ def save_customization(page, config):
 
 	# Update field values
 	page_doc.update({
+		"icon": original_page.icon,
 		"charts_label": original_page.charts_label,
 		"cards_label": original_page.cards_label,
 		"shortcuts_label": original_page.shortcuts_label,

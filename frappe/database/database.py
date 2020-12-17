@@ -746,12 +746,18 @@ class Database(object):
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+		for method in frappe.local.before_commit:
+			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
+
 		self.sql("commit")
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
 		enqueue_jobs_after_commit()
 		flush_local_link_count()
+
+	def add_before_commit(self, method, args=None, kwargs=None):
+		frappe.local.before_commit.append([method, args, kwargs])
 
 	@staticmethod
 	def flush_realtime_log():
