@@ -138,6 +138,9 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	get_communication_timeline_content(doc) {
+		if (doc.attachments && typeof doc.attachments === "string") {
+			doc.attachments = JSON.parse(doc.attachments);
+		}
 		doc.owner = doc.sender;
 		doc.user_full_name = doc.sender_full_name;
 		let communication_content =  $(frappe.render_template('timeline_message_box', { doc }));
