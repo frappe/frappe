@@ -126,7 +126,9 @@ frappe.Application = Class.extend({
 				}
 			}
 		}
-		this.link_preview = new frappe.ui.LinkPreview();
+
+		// REDESIGN-TODO: Fix preview popovers
+		//this.link_preview = new frappe.ui.LinkPreview();
 
 		if (!frappe.boot.developer_mode) {
 			setInterval(function() {
