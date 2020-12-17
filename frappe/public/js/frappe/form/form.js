@@ -83,9 +83,6 @@ frappe.ui.form.Form = class FrappeForm {
 		// navigate records keyboard shortcuts
 		this.add_nav_keyboard_shortcuts();
 
-		// print layout
-		// this.setup_print_layout();
-
 		// 2 column layout
 		this.setup_std_layout();
 
@@ -130,17 +127,6 @@ frappe.ui.form.Form = class FrappeForm {
 			condition: () => !this.is_new()
 		});
 	}
-
-	// setup_print_layout() {
-	// 	this.print_preview = new frappe.ui.form.PrintPreview({
-	// 		frm: this
-	// 	});
-
-	// 	// show edit button for print view
-	// 	this.page.wrapper.on('view-change', () => {
-	// 		this.toolbar.set_primary_action();
-	// 	});
-	// }
 
 	setup_std_layout() {
 		this.form_wrapper 	= $('<div></div>').appendTo(this.layout_main);

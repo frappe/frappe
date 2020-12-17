@@ -431,10 +431,11 @@ frappe.views.CommunicationComposer = Class.extend({
 		$(fields.select_print_format.wrapper).toggle(false);
 
 		if (cur_frm) {
-			// $(fields.select_print_format.input)
-			// 	.empty()
-			// 	.add_options(cur_frm.print_preview.print_formats)
-			// 	.val(cur_frm.print_preview.print_formats[0]);
+			const print_formats = frappe.meta.get_print_formats(cur_frm.meta.name);
+			$(fields.select_print_format.input)
+				.empty()
+				.add_options(print_formats)
+				.val(print_formats[0]);
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
