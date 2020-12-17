@@ -124,7 +124,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				label: __("Send me a copy"),
 				fieldtype: "Check",
 				fieldname: "send_me_a_copy",
-				default: frappe.boot.user.send_me_a_copy
+				default: 1
 			},
 			{
 				label: __("Send Read Receipt"),
