@@ -22,7 +22,7 @@ def rebuild_links(page):
 	except frappe.DoesNotExistError:
 		db_doc = get_doc_from_db(page)
 		
-		doc = frappe.new_doc(db_doc)
+		doc = frappe.get_doc(db_doc)
 		doc.insert(ignore_permissions=True)
 	
 	doc.links = []
@@ -41,6 +41,9 @@ def rebuild_links(page):
 		})
 
 		for link in links:
+			if not frappe.db.exists(get_link_type(link.get('type')), link.get('name')):
+				continue
+			
 			doc.append('links', {
 				"label": link.get('label') or link.get('name'),
 				"type": "Link",
