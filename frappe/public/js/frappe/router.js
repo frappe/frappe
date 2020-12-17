@@ -128,7 +128,7 @@ frappe.router = {
 			// doctype route
 			if (route[1]) {
 				if (route[2] && route[1]==='view') {
-					standard_route = this.get_standard_route_for_list(route);
+					standard_route = this.get_standard_route_for_list(route, doctype_route);
 				} else {
 					let docname = route[1];
 					if (route.length > 2) {
@@ -151,7 +151,7 @@ frappe.router = {
 		return standard_route;
 	},
 
-	get_standard_route_for_list(route) {
+	get_standard_route_for_list(route, doctype_route) {
 		let standard_route;
 		if (route[2].toLowerCase()==='tree') {
 			standard_route = ['Tree', doctype_route.doctype];
