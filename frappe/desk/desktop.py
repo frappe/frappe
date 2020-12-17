@@ -263,7 +263,7 @@ class Workspace:
 					continue
 
 				# Check if user is allowed to view
-				if self.is_item_allowed(item.name, item.type):
+				if self.is_item_allowed(item.link_to, item.link_type):
 					prepared_item = self._prepare_item(item)
 					new_items.append(prepared_item)
 
@@ -502,6 +502,7 @@ def save_customization(page, config):
 
 	# Update field values
 	page_doc.update({
+		"icon": original_page.icon,
 		"charts_label": original_page.charts_label,
 		"cards_label": original_page.cards_label,
 		"shortcuts_label": original_page.shortcuts_label,
