@@ -26,6 +26,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				backdrop: 'static',
 				keyboard: false
 			});
+			frappe.ui.keys.off('escape');
+			frappe.ui.keys.off('esc');
 			this.get_close_btn().hide();
 		}
 
