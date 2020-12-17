@@ -2,6 +2,11 @@ h5.modal-title {
 	margin: 0px !important;
 }
 
+body.modal-open {
+	overflow: auto;
+	height: auto;
+}
+
 .modal {
 	.modal-content {
 		border-color: var(--border-color);
