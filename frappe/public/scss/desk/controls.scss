@@ -163,3 +163,14 @@
 		background-color: var(--dark-border-color);
 	}
 }
+
+.frappe-control[data-fieldtype="Attach"],
+.frappe-control[data-fieldtype="Attach Image"] {
+	.attached-file {
+		position: relative;
+		padding: 6px 10px;
+		background: var(--control-bg);
+		border-radius: var(--border-radius);
+		font-size: var(--text-md);
+	}
+}
