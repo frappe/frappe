@@ -161,7 +161,10 @@ frappe.ui.Page = Class.extend({
 		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
 			sidebar_toggle.remove();
 		} else {
-			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip({ delay: { "show": 600, "hide": 100 } });
+			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip(
+				{ delay: { "show": 600, "hide": 100 },
+				trigger : "hover",
+			});
 			sidebar_toggle.click(() => {
 				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
 					this.setup_overlay_sidebar();
@@ -215,7 +218,8 @@ frappe.ui.Page = Class.extend({
 
 		button.appendTo(this.icon_group.removeClass("hide"));
 		button.click(click);
-		button.attr("title", __(tooltip_label || frappe.unscrub(icon))).tooltip({ delay: { "show": 600, "hide": 100 } });
+		button.attr("title", __(tooltip_label || frappe.unscrub(icon)))
+			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger : "hover" });
 
 		return button
 	},
@@ -764,7 +768,10 @@ frappe.ui.Page = Class.extend({
 		f.refresh();
 		$(f.wrapper)
 			.addClass('col-md-2')
-			.attr("title", __(df.label)).tooltip({ delay: { "show": 600, "hide": 100 } });
+			.attr("title", __(df.label)).tooltip({
+				delay: { "show": 600, "hide": 100},
+				trigger : "hover"
+			});
 
 		// html fields in toolbar are only for display
 		if (df.fieldtype=='HTML') {
