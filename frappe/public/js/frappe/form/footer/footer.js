@@ -24,7 +24,7 @@ frappe.ui.form.Footer = Class.extend({
 			parent: this.wrapper.find(".comment-box"),
 			render_input: true,
 			only_input: true,
-			mentions: this.get_names_for_mentions(),
+			mentions: frappe.utils.get_names_for_mentions(),
 			df: {
 				fieldtype: 'Comment',
 				fieldname: 'comment'
@@ -46,21 +46,6 @@ frappe.ui.form.Footer = Class.extend({
 				}
 			}
 		});
-	},
-	get_names_for_mentions() {
-		let names_for_mentions = Object.keys(frappe.boot.user_info || [])
-			.filter(user => {
-				return !["Administrator", "Guest"].includes(user)
-					&& frappe.boot.user_info[user].allowed_in_mentions
-					&& frappe.boot.user_info[user].user_type === 'System User';
-			})
-			.map(user => {
-				return {
-					id: frappe.boot.user_info[user].name,
-					value: frappe.boot.user_info[user].fullname,
-				};
-			});
-		return names_for_mentions;
 	},
 	make_timeline() {
 		this.frm.timeline = new FormTimeline({
