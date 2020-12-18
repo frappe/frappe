@@ -149,30 +149,32 @@ class UserProfile {
 	}
 
 	render_percentage_chart(field, title) {
-		frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_percentage_chart_data', {
-			user: this.user_id,
-			field: field
-		}).then(chart => {
-			if (chart.labels.length) {
-				this.percentage_chart = new frappe.Chart('.performance-percentage-chart', {
-					type: 'percentage',
-					data: {
-						labels: chart.labels,
-						datasets: chart.datasets
-					},
-					truncateLegends: 1,
-					barOptions: {
-						height: 11,
-						depth: 1
-					},
-					height: 200,
-					maxSlices: 8,
-					colors: ['purple', 'blue', 'cyan', 'teal', 'pink', 'red', 'orange', 'yellow'],
-				});
-			} else {
-				this.wrapper.find('.percentage-chart-container').hide();
-			}
-		});
+		// REDESIGN-TODO: chart seems to be broken. Enable this once fixed.
+		this.wrapper.find('.percentage-chart-container').hide();
+		// frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_percentage_chart_data', {
+		// 	user: this.user_id,
+		// 	field: field
+		// }).then(chart => {
+		// 	if (chart.labels.length) {
+		// 		this.percentage_chart = new frappe.Chart('.performance-percentage-chart', {
+		// 			type: 'percentage',
+		// 			data: {
+		// 				labels: chart.labels,
+		// 				datasets: chart.datasets
+		// 			},
+		// 			truncateLegends: 1,
+		// 			barOptions: {
+		// 				height: 11,
+		// 				depth: 1
+		// 			},
+		// 			height: 200,
+		// 			maxSlices: 8,
+		// 			colors: ['purple', 'blue', 'cyan', 'teal', 'pink', 'red', 'orange', 'yellow'],
+		// 		});
+		// 	} else {
+		// 		this.wrapper.find('.percentage-chart-container').hide();
+		// 	}
+		// });
 	}
 
 	create_line_chart_filters() {
