@@ -140,7 +140,6 @@ frappe.activity.Feed = Class.extend({
 });
 
 frappe.activity.render_heatmap = function (page) {
-	var me = this;
 	$('<div class="heatmap-container" style="text-align:center">\
 		<div class="heatmap" style="display:inline-block;"></div></div>\
 		<hr style="margin-bottom: 0px;">').prependTo(page.main);
@@ -149,20 +148,20 @@ frappe.activity.render_heatmap = function (page) {
 		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function (r) {
 			if (r.message) {
-				var heatmap = new frappe.Chart(".heatmap", {
+				new frappe.Chart(".heatmap", {
 					type: 'heatmap',
 					start: new Date(moment().subtract(1, 'year').toDate()),
 					countLabel: "actions",
 					discreteDomains: 1,
-					radius: 2, // default 0
+					radius: 3, // default 0
 					data: {
 						'dataPoints': r.message
 					}
 				});
 			}
 		}
-	})
-}
+	});
+};
 
 frappe.views.Activity = class Activity extends frappe.views.BaseList {
 	constructor(opts) {

@@ -87,6 +87,7 @@ class UserProfile {
 			countLabel: 'Energy Points',
 			data: {},
 			discreteDomains: 1,
+			radius: 3,
 			height: 150
 		});
 		this.update_heatmap_data();
