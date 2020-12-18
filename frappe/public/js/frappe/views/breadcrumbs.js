@@ -63,7 +63,8 @@ frappe.breadcrumbs = {
 			this.set_workspace_breadcrumb(breadcrumbs);
 
 			// form / print
-			const view = frappe.get_route()[0].toLowerCase();
+			let view = frappe.get_route()[0];
+			view = view ? view.toLowerCase() : null;
 			if (breadcrumbs.doctype && ["print", "form"].includes(view)) {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_form_breadcrumb(breadcrumbs, view);
@@ -86,7 +87,7 @@ frappe.breadcrumbs = {
 		}
 
 		if (breadcrumbs.workspace) {
-			if(!breadcrumbs.module_info.blocked && frappe.visible_modules.includes(breadcrumbs.module_info.module_name)) {
+			if(!breadcrumbs.module_info.blocked && frappe.visible_modules.includes(breadcrumbs.module_info.module)) {
 				$(repl('<li><a href="/app/space/%(module)s">%(label)s</a></li>',
 					{ module: breadcrumbs.workspace, label: __(breadcrumbs.workspace) }))
 					.appendTo(this.$breadcrumbs);
@@ -163,8 +164,8 @@ frappe.breadcrumbs = {
 
 	setup_modules() {
 		if(!frappe.visible_modules) {
-			frappe.visible_modules = $.map(frappe.boot.allowed_modules, (m) => {
-				return m.module_name;
+			frappe.visible_modules = $.map(frappe.boot.allowed_workspaces, (m) => {
+				return m.module;
 			});
 		}
 	},

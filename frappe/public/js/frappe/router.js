@@ -110,6 +110,7 @@ frappe.router = {
 
 	parse(route) {
 		route = this.get_sub_path_string(route).split('/');
+		if (!route) return [];
 		route = $.map(route, this.decode_component);
 		this.set_route_options_from_url(route);
 		return this.convert_to_standard_route(route);
@@ -267,7 +268,7 @@ frappe.router = {
 			route = route[0];
 		}
 
-		if (route.length===1 && route[0].includes('/')) {
+		if (route.length===1 && route[0] && route[0].includes('/')) {
 			// called as frappe.set_route('a/b/c')
 			route = $.map(route[0].split('/'), this.decode_component);
 		}

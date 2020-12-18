@@ -457,17 +457,11 @@ frappe.ui.form.Form = class FrappeForm {
 						return this.script_manager.trigger("onload_post_render");
 					}
 				},
+				() => this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
 				() => this.dashboard.after_refresh()
 			]);
-			// focus on first input
 
-			if(this.is_new()) {
-				var first = this.form_wrapper.find('.form-layout input:first');
-				if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
-					first.focus();
-				}
-			}
 		} else {
 			this.refresh_header(switched);
 		}
@@ -479,6 +473,13 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		this.scroll_to_element();
+	}
+
+	focus_on_first_input() {
+		let first = this.form_wrapper.find('.form-layout :input:visible:first');
+		if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
+			first.focus();
+		}
 	}
 
 	run_after_load_hook() {
@@ -1039,11 +1040,6 @@ frappe.ui.form.Form = class FrappeForm {
 				this.focus_on_first_input();
 			}
 		});
-	}
-
-	focus_on_first_input() {
-		let $first_input_el = $(frappe.container.page).find('.frappe-control:visible').eq(0);
-		$first_input_el.find('input, select, textarea').focus();
 	}
 
 	rename_doc() {

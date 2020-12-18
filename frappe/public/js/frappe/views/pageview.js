@@ -21,7 +21,7 @@ frappe.views.pageview = {
 			// cached in local storage
 			frappe.model.sync(JSON.parse(localStorage["_page:" + name]));
 			callback();
-		} else {
+		} else if (name) {
 			// get fresh
 			return frappe.call({
 				method: 'frappe.desk.desk_page.getpage',

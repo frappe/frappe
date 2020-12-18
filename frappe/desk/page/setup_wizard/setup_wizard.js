@@ -144,7 +144,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		if (id + 1 === this.slides.length) {
 			this.$next_btn.removeClass("btn-primary").hide();
 			this.$complete_btn.addClass("btn-primary").show()
-				.on('click', this.action_on_complete.bind(this));
+				.on('click', () => this.action_on_complete());
 
 		} else {
 			this.$next_btn.addClass("btn-primary").show();
@@ -201,7 +201,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 					this.abort_setup(r.message.fail);
 				}
 			},
-			error: this.abort_setup.bind(this, "Error in setup", true)
+			error: this.abort_setup("Error in setup", true)
 		});
 	}
 
