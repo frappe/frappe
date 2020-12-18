@@ -39,13 +39,14 @@ $('body').on('click', 'a', function(e) {
 		return false;
 	};
 
+	const href = e.currentTarget.getAttribute('href');
+
 	// click handled, but not by href
-	if (e.currentTarget.getAttribute('onclick')) {
+	if (e.currentTarget.getAttribute('onclick') // has a handler
+		|| (e.ctrlKey || e.metaKey) // open in a new tab
+		|| href==='#') { // hash is home
 		return;
 	}
-
-	const href = e.currentTarget.getAttribute('href');
-	if (href==='#') return;
 
 	if (href==='') {
 		return override('/app');
