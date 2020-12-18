@@ -9,6 +9,7 @@
 
 .ql-editor {
 	font-family: var(--font-stack);
+	color: var(--text-color);
 	line-height: 1.6;
 	h1,
 	h2,
@@ -33,9 +34,20 @@
 	border-bottom-right-radius: var(--border-radius);
 }
 
-.ql-snow .ql-editor {
-	min-height: 400px;
-	max-height: 600px;
+.ql-snow {
+	.ql-editor {
+		min-height: 400px;
+		max-height: 600px;
+	}
+	.ql-stroke {
+		stroke: var(--icon-stroke);
+	}
+	.ql-picker-options {
+		border-color: var(--border-color) !important;
+		background-color: var(--bg-color);
+		border-radius: var(--border-radius);
+	}
+
 }
 
 .print-format {
@@ -47,6 +59,7 @@
 
 .ql-snow .ql-picker {
 	font-size: var(--text-sm);
+	color: var(--text-light);
 }
 
 .ql-snow .ql-picker-label {
