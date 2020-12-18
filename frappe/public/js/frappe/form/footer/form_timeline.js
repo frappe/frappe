@@ -86,6 +86,40 @@ class FormTimeline extends BaseTimeline {
 		}
 	}
 
+	render_timeline_items() {
+		super.render_timeline_items();
+		this.set_document_info();
+	}
+
+	set_document_info() {
+		// TODO: handle creation via automation
+		let creation_message = __("{0} created this {1}", [
+			this.get_user_link(this.frm.doc.owner),
+			comment_when(this.frm.doc.creation)
+		]);
+
+		let modified_message = __("{0} edited this {1}", [
+			this.get_user_link(this.frm.doc.modified_by),
+			comment_when(this.frm.doc.modified),
+		]);
+
+		if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
+			let route = this.frm.doc.route;
+			frappe.utils.get_page_view_count(route).then((res) => {
+				let page_view_count_message = __('{0} Page views', [res.message]);
+				this.add_timeline_item({
+					content: `${creation_message} • ${modified_message} • 	${page_view_count_message}`,
+					hide_timestamp: true
+				}, true);
+			});
+		} else {
+			this.add_timeline_item({
+				content: `${creation_message} • ${modified_message}`,
+				hide_timestamp: true
+			}, true);
+		}
+	}
+
 	prepare_timeline_contents() {
 		this.timeline_items.push(...this.get_communication_timeline_contents());
 		this.timeline_items.push(...this.get_comment_timeline_contents());
@@ -394,7 +428,7 @@ class FormTimeline extends BaseTimeline {
 				fieldname: 'comment',
 				label: 'Comment'
 			},
-			// mentions: this.get_names_for_mentions(),
+			mentions: frappe.utils.get_names_for_mentions(),
 			render_input: true,
 			only_input: true,
 			no_wrapper: true
