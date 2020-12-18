@@ -19,6 +19,9 @@
 		margin-top: 0.5em;
 		margin-bottom: 0.25em;
 	}
+	a[href] {
+		text-decoration: underline;
+	}
 }
 
 .ql-toolbar.ql-snow {
