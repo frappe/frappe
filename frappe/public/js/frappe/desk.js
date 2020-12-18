@@ -254,8 +254,8 @@ frappe.Application = Class.extend({
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = {};
-			(frappe.boot.allowed_modules || []).forEach(function(m) {
-				frappe.modules[m.module_name]=m;
+			(frappe.boot.allowed_workspaces || []).forEach(function(m) {
+				frappe.modules[m.module]=m;
 			});
 			frappe.model.sync(frappe.boot.docs);
 			$.extend(frappe._messages, frappe.boot.__messages);
@@ -613,34 +613,12 @@ frappe.get_module = function(m, default_module) {
 		return module;
 	}
 
-	if(module.type==="module" && !module.link) {
-		module.link = "modules/" + module.module_name;
-	}
-
-	if(module.type==="list" && !module.link) {
-		module.link = "List/" + module._doctype;
-	}
-
-	if (!module.link) module.link = "";
-
-	if (!module._id) {
-		// links can have complex values that range beyond simple plain text names, and so do not make for robust IDs.
-		// an example from python: "link": r"javascript:eval('window.open(\'timetracking\', \'_self\')')"
-		// this snippet allows a module to open a custom html page in the same window.
-		module._id = module.module_name.toLowerCase();
-	}
-
-
 	if(!module.label) {
 		module.label = m;
 	}
 
 	if(!module._label) {
 		module._label = __(module.label);
-	}
-
-	if(!module._doctype) {
-		module._doctype = '';
 	}
 
 	module._setup = true;
