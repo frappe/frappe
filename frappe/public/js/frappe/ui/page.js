@@ -168,6 +168,7 @@ frappe.ui.Page = Class.extend({
 				} else {
 					sidebar_wrapper.toggle();
 				}
+				$(document.body).trigger('toggleSidebar');
 				this.update_sidebar_icon();
 			});
 		}
@@ -685,7 +686,7 @@ frappe.ui.Page = Class.extend({
 		return button;
 	},
 
-	add_custom_button_group: function(label, icon) {
+	add_custom_button_group: function(label, icon, parent) {
 		let dropdown_label = `<span class="hidden-xs">
 			<span class="custom-btn-group-label">${__(label)}</span>
 			<span class="caret"></span>
@@ -711,6 +712,7 @@ frappe.ui.Page = Class.extend({
 			</div>
 		`);
 
+		if (!parent) parent = this.custom_actions;
 		this.custom_actions.removeClass('hide').append(custom_btn_group);
 
 		return custom_btn_group.find('.dropdown-menu');
