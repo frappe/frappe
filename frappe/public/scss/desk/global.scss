@@ -36,6 +36,10 @@ a {
 	color: $text-color;
 }
 
+pre {
+	color: var(--text-light)
+}
+
 .hide {
 	display: none !important;
 }
