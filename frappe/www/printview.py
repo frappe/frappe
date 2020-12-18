@@ -30,11 +30,9 @@ def get_context(context):
 	else:
 		doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 
-	if frappe.form_dict.settings:
-		settings = frappe.parse_json(frappe.form_dict.settings)
+	settings = frappe.parse_json(frappe.form_dict.settings)
 
-	if frappe.form_dict.letterhead:
-		letterhead = frappe.form_dict.letterhead
+	letterhead = frappe.form_dict.letterhead or None
 
 	meta = frappe.get_meta(doc.doctype)
 

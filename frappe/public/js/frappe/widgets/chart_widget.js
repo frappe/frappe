@@ -741,7 +741,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	setup_events() {
-		$(document.body).on('toggleDeskSidebar', () => {
+		$(document.body).on('toggleSidebar', () => {
 			this.dashboard_chart && this.dashboard_chart.draw(true);
 		});
 

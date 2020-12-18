@@ -161,13 +161,17 @@ frappe.ui.Page = Class.extend({
 		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
 			sidebar_toggle.remove();
 		} else {
-			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip({ delay: { "show": 600, "hide": 100 } });
+			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip(
+				{ delay: { "show": 600, "hide": 100 },
+				trigger : "hover",
+			});
 			sidebar_toggle.click(() => {
 				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
 					this.setup_overlay_sidebar();
 				} else {
 					sidebar_wrapper.toggle();
 				}
+				$(document.body).trigger('toggleSidebar');
 				this.update_sidebar_icon();
 			});
 		}
@@ -214,7 +218,8 @@ frappe.ui.Page = Class.extend({
 
 		button.appendTo(this.icon_group.removeClass("hide"));
 		button.click(click);
-		button.attr("title", __(tooltip_label || frappe.unscrub(icon))).tooltip({ delay: { "show": 600, "hide": 100 } });
+		button.attr("title", __(tooltip_label || frappe.unscrub(icon)))
+			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger : "hover" });
 
 		return button
 	},
@@ -685,7 +690,7 @@ frappe.ui.Page = Class.extend({
 		return button;
 	},
 
-	add_custom_button_group: function(label, icon) {
+	add_custom_button_group: function(label, icon, parent) {
 		let dropdown_label = `<span class="hidden-xs">
 			<span class="custom-btn-group-label">${__(label)}</span>
 			<span class="caret"></span>
@@ -711,6 +716,7 @@ frappe.ui.Page = Class.extend({
 			</div>
 		`);
 
+		if (!parent) parent = this.custom_actions;
 		this.custom_actions.removeClass('hide').append(custom_btn_group);
 
 		return custom_btn_group.find('.dropdown-menu');
@@ -762,7 +768,10 @@ frappe.ui.Page = Class.extend({
 		f.refresh();
 		$(f.wrapper)
 			.addClass('col-md-2')
-			.attr("title", __(df.label)).tooltip({ delay: { "show": 600, "hide": 100 } });
+			.attr("title", __(df.label)).tooltip({
+				delay: { "show": 600, "hide": 100},
+				trigger : "hover"
+			});
 
 		// html fields in toolbar are only for display
 		if (df.fieldtype=='HTML') {
