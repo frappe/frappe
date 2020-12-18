@@ -329,11 +329,14 @@ class FormTimeline extends BaseTimeline {
 		let edit_box = this.make_editable(edit_wrapper);
 		let content_wrapper = comment_wrapper.find('.content');
 
-		let delete_button = $(`
-			<button class="btn btn-link action-btn">
-				${frappe.utils.icon('close', 'sm')}
-			</button>
-		`).click(() => this.delete_comment(doc.name));
+		let delete_button = $();
+		if (frappe.model.can_delete("Comment")) {
+			delete_button = $(`
+				<button class="btn btn-link action-btn">
+					${frappe.utils.icon('close', 'sm')}
+				</button>
+			`).click(() => this.delete_comment(doc.name));
+		}
 
 		let dismiss_button = $(`
 			<button class="btn btn-link action-btn">
@@ -361,9 +364,13 @@ class FormTimeline extends BaseTimeline {
 
 		content_wrapper.after(edit_wrapper);
 
-		let edit_button = $(`<button class="btn btn-link action-btn">${__("Edit")}</a>`).click(() => {
-			edit_button.edit_mode ? edit_box.submit() : edit_button.toggle_edit_mode();
-		});
+		let edit_button = $();
+		let current_user = frappe.session.user;
+		if (['Administrator', doc.owner].includes(current_user)) {
+			edit_button = $(`<button class="btn btn-link action-btn">${__("Edit")}</a>`).click(() => {
+				edit_button.edit_mode ? edit_box.submit() : edit_button.toggle_edit_mode();
+			});
+		}
 
 		edit_button.toggle_edit_mode = () => {
 			edit_button.edit_mode = !edit_button.edit_mode;
