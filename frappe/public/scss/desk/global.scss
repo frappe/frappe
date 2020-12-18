@@ -1,5 +1,6 @@
 html {
 	height: 100%;
+	background-color: var(--bg-color);
 }
 
 // transition
@@ -20,7 +21,7 @@ a,
 body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	color: $body-color;
+	color: var(--text-light);
 
 	&.full-width {
 	@include media-breakpoint-up(md) {
@@ -34,6 +35,10 @@ body {
 
 a {
 	color: $text-color;
+}
+
+pre {
+	color: var(--text-light)
 }
 
 .hide {

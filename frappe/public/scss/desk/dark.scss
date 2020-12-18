@@ -80,13 +80,16 @@
 		--border-color: var(--gray-100);
 	}
 
-	.ql-editor.read-mode {
-		span,
-		p,
-		u,
-		strong {
-			background-color: inherit !important;
-			color: inherit !important;
+	.ql-editor {
+		color: var(--text-on-gray);
+		&.read-mode {
+			span,
+			p,
+			u,
+			strong {
+				background-color: inherit !important;
+				color: inherit !important;
+			}
 		}
 	}
 	// --appreciation-color: var(--dark-green-100);
@@ -95,7 +98,7 @@
 	// --criticism-bg: var(--red-600);
 
 	// Frappe Charts Colors
-	--charts-label-color: var(--gray-300);	
+	--charts-label-color: var(--gray-300);
 	--charts-axis-line-color: var(--gray-500);
 
 	--charts-stroke-width: 5px;

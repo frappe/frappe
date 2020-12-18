@@ -145,7 +145,20 @@
 }
 
 .ace_editor {
+	background-color: var(--control-bg);
+	color: var(--text-color);
 	.ace_gutter {
 		z-index: auto;
+		background: var(--control-bg);
+		color: var(--text-light);
+		.ace_gutter-active-line {
+			background-color: var(--control-bg-on-gray);
+		}
+	}
+	.ace_marker-layer .ace_active-line {
+		background-color: var(--control-bg-on-gray);
+	}
+	.ace_print-margin {
+		background-color: var(--dark-border-color);
 	}
 }

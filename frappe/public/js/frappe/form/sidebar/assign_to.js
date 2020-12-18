@@ -150,6 +150,13 @@ frappe.ui.form.AssignToDialog = Class.extend({
 
 		return [
 			{
+				label: __("Assign to me"),
+				fieldtype: 'Check',
+				fieldname: 'assign_to_me',
+				default: 0,
+				onchange: () => me.assign_to_me()
+			},
+			{
 				fieldtype: 'MultiSelectPills',
 				fieldname: 'assign_to',
 				label: __("Assign To"),
@@ -157,13 +164,6 @@ frappe.ui.form.AssignToDialog = Class.extend({
 				get_data: function(txt) {
 					return frappe.db.get_link_options("User", txt, {user_type: "System User", enabled: 1});
 				}
-			},
-			{
-				label: __("Assign to me"),
-				fieldtype: 'Check',
-				fieldname: 'assign_to_me',
-				default: 0,
-				onchange: () => me.assign_to_me()
 			},
 			{
 				label: __("Comment"),
