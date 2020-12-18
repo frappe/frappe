@@ -13,10 +13,9 @@ class DocumentNamingRule(Document):
 		self.validate_fields_in_conditions()
 
 	def validate_fields_in_conditions(self):
+		docfields = [x.fieldname for x in frappe.get_meta(self.document_type).fields]
 		for condition in self.conditions:
-			docfields = frappe.get_meta(self.document_type).fields
-			matching_field = list(filter(lambda x: x.fieldname == condition.field, docfields))
-			if not len(matching_field):
+			if condition.field not in docfields:
 				frappe.throw(_("{0} is not a field of doctype {1}").format(frappe.bold(condition.field), frappe.bold(self.document_type)))
 
 	def apply(self, doc):
