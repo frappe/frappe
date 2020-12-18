@@ -152,49 +152,6 @@ a.badge-hover& {
 	vertical-align: middle;
 }
 
-.full-center-container {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-}
-
-.full-center {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 100%;
-	transform: translate(-50%, -50%);
-	-webkit-transform: translate(-50%, -50%);
-}
-
-#freeze {
-	z-index: 1020;
-	bottom: 0;
-	opacity: 0;
-	background-color: @light-bg;
-
-	.freeze-message-container {
-		.full-center-container;
-	}
-
-	.freeze-message {
-		.full-center;
-		text-align: center;
-		color: @text-color !important;
-	}
-}
-
-#freeze.dark {
-	// same as modal backdrop;
-	background-color: #334143;
-}
-
-#freeze.in {
-	opacity: 0.5;
-}
-
 a.no-decoration& {
 	text-decoration: none;
 	color: inherit;

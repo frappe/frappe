@@ -443,3 +443,33 @@ kbd {
 		}
 	}
 }
+
+// freeze backdrop text
+#freeze {
+	z-index: 1020;
+	bottom: 0;
+	opacity: 0;
+	background-color: var(--bg-color);
+
+	.freeze-message-container {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		display: grid;
+		place-content: center;
+	}
+
+	.freeze-message {
+		color: var(--text-color) !important;
+	}
+}
+
+#freeze.dark {
+	background-color: var(--gray-900);
+}
+
+#freeze.in {
+	opacity: 0.5;
+}
