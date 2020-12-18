@@ -111,4 +111,11 @@
 	--charts-tooltip-bg: var(--gray-900);
 
 	--charts-legend-label: var(--charts-label-color);
+
+	// find better fix
+	.heatmap-chart {
+		g > rect[fill="#ebedf0"] {
+			fill: var(--gray-700);
+		}
+	}
 }
