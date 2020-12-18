@@ -148,7 +148,17 @@ frappe.breadcrumbs = {
 		let form_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
 		$(`<li><a href="${form_route}">${docname}</a></li>`)
 			.appendTo(this.$breadcrumbs);
-		view === "form" && this.$breadcrumbs.find('li').last().addClass('disabled');
+
+		if (view === "form") {
+			let last_crumb = this.$breadcrumbs.find('li').last();
+			last_crumb.addClass('disabled');
+			last_crumb.css("cursor", "copy");
+			last_crumb.click((event) => {
+				event.stopImmediatePropagation();
+				frappe.utils.copy_to_clipboard(last_crumb.text());
+			});
+		}
+
 	},
 
 	setup_modules() {
