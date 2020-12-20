@@ -255,6 +255,10 @@ def resolve_path(path):
 	if path.startswith("app"):
 		path = "app"
 
+	# to keep backward compatibility
+	if path.startswith("desk"):
+		path = "app"
+
 	return path
 
 def resolve_from_map(path):
