@@ -508,16 +508,10 @@ frappe.ui.form.Layout = Class.extend({
 		}
 		if (form_obj) {
 			if (this.doc && this.doc.parent) {
-				const df = form_obj.get_docfield(this.doc.parentfield, fieldname);
-				if (df && df[property] != value) {
-					form_obj.set_df_property(this.doc.parentfield, property, value, this.doc.parent, fieldname);
-					this.fields_dict[fname] && this.fields_dict[fieldname].refresh();
-				}
+				form_obj.set_df_property(this.doc.parentfield, property, value, this.doc.parent, fieldname);
+				this.fields_dict[fname] && this.fields_dict[fieldname].refresh();
 			} else {
-				const df = form_obj.get_docfield(fieldname);
-				if (df && df[property] != value) {
-					form_obj.set_df_property(fieldname, property, value);
-				}
+				form_obj.set_df_property(fieldname, property, value);
 			}
 		}
 	},
