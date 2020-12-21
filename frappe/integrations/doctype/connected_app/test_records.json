@@ -2,10 +2,8 @@
     {
         "doctype": "Connected App",
         "provider_name": "frappe",
-        "base_url": "http://localhost:8000",
         "client_id": "test_client_id",
         "client_secret": "test_client_secret",
-        "redirect_uri": "http://localhost:8000/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/frappe",
         "scopes": [
             {
                 "scope": "all"
