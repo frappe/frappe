@@ -172,6 +172,8 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	get_communication_timeline_content(doc) {
+		doc._url = frappe.utils.get_form_link("Communication", doc.name);
+		this.set_communication_doc_status(doc);
 		if (doc.attachments && typeof doc.attachments === "string") {
 			doc.attachments = JSON.parse(doc.attachments);
 		}
@@ -180,6 +182,21 @@ class FormTimeline extends BaseTimeline {
 		let communication_content =  $(frappe.render_template('timeline_message_box', { doc }));
 		this.setup_reply(communication_content, doc);
 		return communication_content;
+	}
+
+	set_communication_doc_status(doc) {
+		let indicator_color = "red";
+		if (in_list(["Sent", "Clicked"], doc.delivery_status)) {
+			indicator_color = "green";
+		} else if (doc.delivery_status === "Sending") {
+			indicator_color = "orange";
+		} else if (in_list(["Opened", "Read"], doc.delivery_status)) {
+			indicator_color = "blue";
+		} else if (doc.delivery_status == "Error") {
+			indicator_color = "red";
+		}
+		doc._doc_status = doc.delivery_status;
+		doc._doc_status_indicator = indicator_color;
 	}
 
 	get_comment_timeline_contents() {

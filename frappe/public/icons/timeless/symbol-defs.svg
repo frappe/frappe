@@ -536,11 +536,11 @@
 		<path d="M10.0001 12.4001C11.3256 12.4001 12.4001 11.3256 12.4001 10.0001C12.4001 8.67461 11.3256 7.6001 10.0001 7.6001C8.67461 7.6001 7.6001 8.67461 7.6001 10.0001C7.6001 11.3256 8.67461 12.4001 10.0001 12.4001Z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
 	</symbol>
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-reply">
-		<path d="M8.55263 15.3307L1.78113 9.49965L8.55263 4.04483V7.47368V7.97829L9.05722 7.97366C13.1526 7.93609 16.6082 10.8388 17.3522 14.7145C15.3383 12.5107 12.327 11.4474 9.05263 11.4474H8.55263V11.9474V15.3307Z" stroke="#A6B1B9" stroke-miterlimit="10" stroke-linecap="round"/>
+		<path d="M8.55263 15.3307L1.78113 9.49965L8.55263 4.04483V7.47368V7.97829L9.05722 7.97366C13.1526 7.93609 16.6082 10.8388 17.3522 14.7145C15.3383 12.5107 12.327 11.4474 9.05263 11.4474H8.55263V11.9474V15.3307Z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-width="0.9"/>
 	</symbol>
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-reply-all">
-		<path d="M10.5589 14.8213L4.693 9.77014L10.5589 5.04483V7.97057V8.47518L11.0635 8.47055C14.6022 8.43809 17.598 10.8976 18.3297 14.213C16.5316 12.3421 13.9036 11.4411 11.0589 11.4411H10.5589V11.9411V14.8213Z" stroke="#A6B1B9" stroke-miterlimit="10"/>
-		<path d="M8.14703 15.9117L1 9.75733L8.14703 4" stroke="#A6B1B9" stroke-miterlimit="10"/>
+		<path d="M10.5589 14.8213L4.693 9.77014L10.5589 5.04483V7.97057V8.47518L11.0635 8.47055C14.6022 8.43809 17.598 10.8976 18.3297 14.213C16.5316 12.3421 13.9036 11.4411 11.0589 11.4411H10.5589V11.9411V14.8213Z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-width="0.8"/>
+		<path d="M8.14703 15.9117L1 9.75733L8.14703 4" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-width="0.8"/>
 	</symbol>
 	<symbol fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-keyboard" viewBox="0 0 42 32">
 		<path fill="none" stroke="var(--icon-stroke)" style="stroke: var(--color1, #192734)" stroke-linejoin="miter" stroke-linecap="butt" stroke-miterlimit="4" stroke-width="2.4615" d="M7.385 2.462h27.077c2.719 0 4.923 2.204 4.923 4.923v17.231c0 2.719-2.204 4.923-4.923 4.923h-27.077c-2.719 0-4.923-2.204-4.923-4.923v-17.231c0-2.719 2.204-4.923 4.923-4.923z"></path>

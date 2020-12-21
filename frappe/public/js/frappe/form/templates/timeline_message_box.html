@@ -11,7 +11,25 @@
 				</div>
 			</span>
 		</span>
-		<span class="actions"></span>
+		<span class="actions">
+			{% if (doc._doc_status && doc._doc_status_indicator) { %}
+			<span class="indicator {%= doc._doc_status_indicator %}
+				delivery-status-indicator"
+				title="{%= __(doc._doc_status) %}">
+				<span class="hidden-xs small">
+					{%= __(doc._doc_status) %}
+				</span>
+			</span>
+			{% } %}
+
+			{% if (doc._url) { %}
+			<a class="action-btn" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
+				<svg class="icon icon-sm">
+					<use href="#icon-link-url" class="like-icon"></use>
+				</svg>
+			</a>
+			{% } %}
+		</span>
 	</span>
 	<div class="content">
 		{{ doc.content }}

@@ -116,6 +116,12 @@ $threshold: 34;
 				padding: 0;
 				padding-bottom: 0;
 				margin-left: var(--margin-sm);
+				--icon-stroke: var(--text-muted);
+			}
+
+			.action-btn:hover {
+				text-decoration: none;
+				--icon-stroke: var(--text-color);
 			}
 		}
 		.comment-edit-box {
