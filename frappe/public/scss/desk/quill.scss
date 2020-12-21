@@ -33,8 +33,9 @@
 }
 
 .ql-container.ql-snow {
-	border-bottom-left-radius: var(--border-radius);;
+	border-bottom-left-radius: var(--border-radius);
 	border-bottom-right-radius: var(--border-radius);
+	overflow: hidden;
 }
 
 .ql-snow {
