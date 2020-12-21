@@ -1276,6 +1276,7 @@ frappe.ui.form.Form = class FrappeForm {
 		if (df && df[property] != value) {
 			df[property] = value;
 			if (!docname || !table_field) {
+				// do not refresh childtable fields since `this.fields_dict` doesn't have child table fields
 				this.refresh_field(fieldname);
 			}
 		}
