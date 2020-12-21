@@ -133,29 +133,26 @@ frappe.request.call = function(opts) {
 				message: __('The resource you are looking for is not available')});
 		},
 		403: function(xhr) {
-			if (frappe.session.logged_in_user !== 'Guest') {
+			if (frappe.session.user === "Guest" && frappe.session.logged_in_user !== "Guest") {
 				// session expired
 				frappe.app.handle_session_expired();
-			}
-			else if(xhr.responseJSON && xhr.responseJSON._error_message) {
+			} else if (xhr.responseJSON && xhr.responseJSON._error_message) {
 				frappe.msgprint({
-					title:__("Not permitted"), indicator:'red',
+					title: __("Not permitted"), indicator:'red',
 					message: xhr.responseJSON._error_message
 				});
 
 				xhr.responseJSON._server_messages = null;
-			}
-			else if (xhr.responseJSON && xhr.responseJSON._server_messages) {
+			} else if (xhr.responseJSON && xhr.responseJSON._server_messages) {
 				var _server_messages = JSON.parse(xhr.responseJSON._server_messages);
 
 				// avoid double messages
-				if (_server_messages.indexOf(__("Not permitted"))!==-1) {
+				if (_server_messages.indexOf(__("Not permitted")) !== -1) {
 					return;
 				}
-			}
-			else {
+			} else {
 				frappe.msgprint({
-					title:__("Not permitted"), indicator:'red',
+					title: __("Not permitted"), indicator:'red',
 					message: __('You do not have enough permissions to access this resource. Please contact your manager to get access.')});
 			}
 
@@ -292,7 +289,7 @@ frappe.request.is_fresh = function(args, threshold) {
 
 	for (let past_request of frappe.request.logs[args.cmd]) {
 		// check if request has same args and was made recently
-		if ((new Date() - past_request.timestamp) < threshold 
+		if ((new Date() - past_request.timestamp) < threshold
 			&& frappe.utils.deep_equal(args, past_request.args)) {
 				console.log('throttled');
 				return true;
@@ -348,7 +345,7 @@ frappe.request.cleanup = function(opts, r) {
 	if(r) {
 
 		// session expired? - Guest has no business here!
-		if (r.session_expired || 
+		if (r.session_expired ||
 			(frappe.session.user === 'Guest' && frappe.session.logged_in_user !== "Guest")) {
 			frappe.app.handle_session_expired();
 			return;
