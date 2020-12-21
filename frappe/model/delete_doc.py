@@ -336,18 +336,24 @@ def clear_timeline_references(link_doctype, link_name):
 		WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
 
 def insert_feed(doc):
-	from frappe.utils import get_fullname
-
-	if frappe.flags.in_install or frappe.flags.in_import or getattr(doc, "no_feed_on_delete", False):
+	if (
+		frappe.flags.in_install
+		or frappe.flags.in_uninstall
+		or frappe.flags.in_import
+		or getattr(doc, "no_feed_on_delete", False)
+	):
 		return
+
+	from frappe.utils import get_fullname
 
 	frappe.get_doc({
 		"doctype": "Comment",
 		"comment_type": "Deleted",
 		"reference_doctype": doc.doctype,
 		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
-		"full_name": get_fullname(doc.owner)
+		"full_name": get_fullname(doc.owner),
 	}).insert(ignore_permissions=True)
+
 
 def delete_controllers(doctype, module):
 	"""
