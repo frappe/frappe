@@ -49,7 +49,7 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$wrapper.find('.control-input').on('click', (e) => {
-			this.$wrapper.popover('show');
+			this.$wrapper.popover('toggle');
 			if (!this.get_color()) {
 				this.$input.val('');
 			}
