@@ -13,8 +13,7 @@
 		</span>
 		<span class="actions">
 			{% if (doc._doc_status && doc._doc_status_indicator) { %}
-			<span class="indicator {%= doc._doc_status_indicator %}
-				delivery-status-indicator"
+			<span class="indicator-pill {%= doc._doc_status_indicator %}"
 				title="{%= __(doc._doc_status) %}">
 				<span class="hidden-xs small">
 					{%= __(doc._doc_status) %}
