@@ -67,7 +67,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			{fieldtype: "Section Break"},
 			{
 				label:__("Message"),
-				fieldtype:"Text Editor", reqd: 1,
+				fieldtype:"Text Editor",
 				fieldname:"content",
 				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300)
 			},
