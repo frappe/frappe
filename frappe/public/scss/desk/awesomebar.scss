@@ -52,7 +52,7 @@
 		}
 
 		&> li:hover, &> li[aria-selected=true] {
-			background-color: var(--control-bg);
+			background-color: var(--awesomplete-hover-bg);
 			color: var(--text-color);
 		}
 
