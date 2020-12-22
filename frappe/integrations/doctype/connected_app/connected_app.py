@@ -21,14 +21,7 @@ class ConnectedApp(Document):
 	"""
 
 	def validate(self):
-		if not frappe.flags.in_test:
-			try:
-				base_url = frappe.request.host_url
-			except RuntimeError:
-				base_url = frappe.utils.get_url()
-		else:
-			base_url = 'http://localhost:8000'
-
+		base_url = frappe.utils.get_url()
 		callback_path = '/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/' + self.name
 		self.redirect_uri = urljoin(base_url, callback_path)
 

@@ -30,8 +30,9 @@ def create_or_update_social_login_key():
 	except frappe.DoesNotExistError:
 		social_login_key = frappe.new_doc("Social Login Key")
 	social_login_key.get_social_login_provider("Frappe", initialize=True)
-	social_login_key.base_url = frappe.get_site_config().host_name or "http://localhost:8000"
+	social_login_key.base_url = frappe.utils.get_url()
 	social_login_key.enable_social_login = 0
 	social_login_key.save()
 	frappe.db.commit()
+
 	return social_login_key
