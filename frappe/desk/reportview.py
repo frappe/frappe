@@ -20,7 +20,7 @@ from frappe.model.base_document import get_controller
 def get():
 	args = get_form_params()
 	# If virtual doctype get data from controller het_list method
-	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="virtual_doctype"):
+	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="is_virtual"):
 		controller = get_controller(args.doctype)
 		data = compress(controller(args.doctype).get_list(args))
 	else:
