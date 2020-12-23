@@ -1,6 +1,8 @@
 /**
  * frappe.views.MapView
  */
+import { map_defaults } from "../../widgets/utils";
+
 frappe.provide("frappe.views");
 
 frappe.views.MapView = class MapView extends frappe.views.ListView {
@@ -33,14 +35,10 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 		this.$result.html(`<div id="${this.map_id}" class="map-view-container"></div>`);
 
+		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
+		this.map = L.map(this.map_id).setView(map_defaults.center, map_defaults.zoom);
 
-		//coords of India if markers does not exists
-		this.map = L.map(this.map_id).setView([12.3112899, -85.7384542], 8);
-
-		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-			maxZoom: 18
-		}).addTo(this.map);
+		L.tileLayer(map_defaults.tiles, map_defaults.options).addTo(this.map);
 
 		L.control.scale().addTo(this.map);
 		if (this.coords.features && this.coords.features.length) {

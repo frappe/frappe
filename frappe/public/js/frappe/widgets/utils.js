@@ -163,4 +163,13 @@ function get_number_system(country) {
 	return number_system_map[country];
 }
 
-export { generate_route, generate_grid, build_summary_item, shorten_number };
+const map_defaults = {
+	center: [19.0800, 72.8961],
+	zoom: 13,
+	tiles: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+	options: {
+		attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+	}
+};
+
+export { generate_route, generate_grid, build_summary_item, shorten_number, map_defaults };
