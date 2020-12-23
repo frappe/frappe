@@ -79,6 +79,7 @@ frappe.ui.form.on('Data Import', {
 		frm.trigger('import_file');
 		frm.trigger('show_import_log');
 		frm.trigger('show_import_warnings');
+		frm.trigger('set_import_mapping');
 		frm.trigger('toggle_submit_after_import');
 		frm.trigger('show_import_status');
 		frm.trigger('show_report_error_button');
@@ -104,6 +105,9 @@ frappe.ui.form.on('Data Import', {
 	update_primary_action(frm) {
 		if (frm.is_dirty()) {
 			frm.enable_save();
+			if (frm.doc.data_import_mapping) {
+				frm.save();
+			}
 			return;
 		}
 		frm.disable_save();
@@ -385,6 +389,7 @@ frappe.ui.form.on('Data Import', {
 				<div class="col-sm-10 warnings">${html}</div>
 			</div>
 		`);
+		frm.trigger('set_import_mapping');
 	},
 
 	show_failed_logs(frm) {
@@ -516,6 +521,25 @@ frappe.ui.form.on('Data Import', {
 				// prettier-ignore
 				__('The following records needs to be created before we can import your file.') + html
 			);
+		}
+	},
+	data_import_mapping: function(frm) {
+		frm.trigger('set_import_mapping');
+	},
+	set_import_mapping: function(frm) {
+		if (frm.doc.data_import_mapping) {
+			frappe.model.with_doc('Data Import Mapping', frm.doc.data_import_mapping, () => {
+				let column_to_field_map = {};
+				let data_import_mapping = frappe.model.get_doc('Data Import Mapping', frm.doc.data_import_mapping);
+
+				$.each(data_import_mapping.mapping_detail || [], function(i, row) {
+					column_to_field_map[row.column] = row.field;
+				});
+				let template_options = {};
+				template_options.column_to_field_map = column_to_field_map;
+				frm.set_value('template_options', JSON.stringify(template_options));
+				frm.trigger('update_primary_action');
+			});
 		}
 	}
 });
