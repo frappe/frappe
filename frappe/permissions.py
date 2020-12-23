@@ -458,7 +458,7 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 		update `tabCustom DocPerm`
 		set `{0}`=%s where name=%s""".format(ptype), (value, name))
 	if validate:
-		validate_permissions_for_doctype(doctype, alert=alert)
+		validate_permissions_for_doctype(doctype)
 
 	return out
 
