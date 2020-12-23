@@ -21,15 +21,12 @@ frappe.widget.utils = {
 			}</span><h1 class="summary-value">${value}</h1></div>`
 		);
 	},
+	map_defaults: {
+		center: [19.0800, 72.8961],
+		zoom: 13,
+		tiles: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+		options: {
+			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+		}
+	},
 };
-
-const map_defaults = {
-	center: [19.0800, 72.8961],
-	zoom: 13,
-	tiles: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-	options: {
-		attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-	}
-};
-
-export { map_defaults };

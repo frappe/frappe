@@ -1,8 +1,7 @@
 /**
  * frappe.views.MapView
  */
-import { map_defaults } from "../../widgets/utils";
-
+frappe.provide('frappe.widget.utils');
 frappe.provide("frappe.views");
 
 frappe.views.MapView = class MapView extends frappe.views.ListView {
@@ -36,9 +35,11 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		this.$result.html(`<div id="${this.map_id}" class="map-view-container"></div>`);
 
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
-		this.map = L.map(this.map_id).setView(map_defaults.center, map_defaults.zoom);
+		this.map = L.map(this.map_id).setView(frappe.widget.utils.map_defaults.center,
+			frappe.widget.utils.map_defaults.zoom);
 
-		L.tileLayer(map_defaults.tiles, map_defaults.options).addTo(this.map);
+		L.tileLayer(frappe.widget.utils.map_defaults.tiles,
+			frappe.widget.utils.map_defaults.options).addTo(this.map);
 
 		L.control.scale().addTo(this.map);
 		if (this.coords.features && this.coords.features.length) {

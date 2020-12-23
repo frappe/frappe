@@ -1,4 +1,4 @@
-import { map_defaults } from "../../widgets/utils";
+frappe.provide('frappe.widget.utils');
 
 frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 	horizontal: false,
@@ -92,9 +92,11 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		});
 
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
-		this.map = L.map(this.map_id).setView(map_defaults.center, map_defaults.zoom);
+		this.map = L.map(this.map_id).setView(frappe.widget.utils.map_defaults.center,
+			frappe.widget.utils.map_defaults.zoom);
 
-		L.tileLayer(map_defaults.tiles, map_defaults.options).addTo(this.map);
+		L.tileLayer(frappe.widget.utils.map_defaults.tiles,
+			frappe.widget.utils.map_defaults.options).addTo(this.map);
 	},
 
 	bind_leaflet_locate_control() {
