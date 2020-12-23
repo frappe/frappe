@@ -36,7 +36,7 @@ class DatabaseQuery(object):
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
-		join='left join', distinct=False, start=None, page_length=None, limit=None,
+		join='left join', joins = [] , distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
 		return_query=False, strict=True, pluck=None, ignore_ddl=False):
@@ -88,6 +88,7 @@ class DatabaseQuery(object):
 		self.return_query = return_query
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
+		self.joins = joins
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -160,6 +161,13 @@ class DatabaseQuery(object):
 
 		# query dict
 		args.tables = self.tables[0]
+
+		for join in self.joins:
+			args.tables += " {join_type} `tab{right_table}` on (`tab{left_table}`.`{left_field}` = `tab{right_table}`.`{right_field}`)".format(
+				join_type=join['join_type'], left_table= join['left_table'], left_field=join['left_field'],
+				right_table= join['right_table'], right_field=join['right_field']
+			)
+		print(args.tables)
 
 		# left join parent, child tables
 		for child in self.tables[1:]:
