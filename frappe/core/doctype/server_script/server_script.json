@@ -7,14 +7,16 @@
  "engine": "InnoDB",
  "field_order": [
   "script_type",
-  "disabled",
-  "column_break_3",
   "reference_doctype",
   "doctype_event",
   "api_method",
   "allow_guest",
+  "column_break_3",
+  "disabled",
   "section_break_8",
-  "script"
+  "script",
+  "help_section",
+  "help_html"
  ],
  "fields": [
   {
@@ -22,17 +24,18 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Script Type",
-   "options": "DocType Event\nScheduler Event\nAPI",
+   "options": "DocType Event\nScheduler Event\nPermission Query\nAPI",
    "reqd": 1
   },
   {
    "fieldname": "script",
    "fieldtype": "Code",
    "label": "Script",
+   "options": "Python",
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.script_type==='DocType Event'",
+   "depends_on": "eval:['DocType Event', 'Permission Query'].includes(doc.script_type)",
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -72,10 +75,20 @@
   {
    "fieldname": "section_break_8",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "help_section",
+   "fieldtype": "Section Break",
+   "label": "Help"
+  },
+  {
+   "fieldname": "help_html",
+   "fieldtype": "HTML"
   }
  ],
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-04-06 11:24:38.161555",
+ "modified": "2020-12-03 22:42:02.708148",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

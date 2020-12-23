@@ -14,7 +14,7 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 			};
 
 			if (!frappe.treeview_settings[route[1]] && !frappe.meta.get_docfield(route[1], "is_group")) {
-				frappe.msgprint(__("Tree view not available for {0}", [route[1]] ));
+				frappe.msgprint(__("Tree view is not available for {0}", [route[1]] ));
 				return false;
 			}
 			$.extend(options, frappe.treeview_settings[route[1]] || {});
@@ -39,6 +39,7 @@ frappe.views.TreeView = Class.extend({
 		this.get_permissions();
 		this.make_page();
 		this.make_filters();
+		this.root_value = null;
 
 		if (me.opts.get_tree_root) {
 			this.get_root();
@@ -129,7 +130,13 @@ frappe.views.TreeView = Class.extend({
 			args: me.args,
 			callback: function(r) {
 				if (r.message) {
-					me.root_label = r.message[0]["value"];
+					if (r.message.length > 1) {
+						me.root_label = me.doctype;
+						me.root_value = "";
+					} else {
+						me.root_label = r.message[0]["value"];
+						me.root_value = me.root_label;
+					}
 					me.make_tree();
 				}
 			}
@@ -138,9 +145,15 @@ frappe.views.TreeView = Class.extend({
 	make_tree: function() {
 		$(this.parent).find(".tree").remove();
 
+		var use_label = this.args[this.opts.root_label] || this.root_label || this.opts.root_label;
+		var use_value = this.root_value;
+		if (use_value == null) {
+			use_value = use_label;
+		}
 		this.tree = new frappe.ui.Tree({
 			parent: this.body,
-			label: this.args[this.opts.root_label] || this.root_label || this.opts.root_label,
+			label: use_label,
+			root_value: use_value,
 			expandable: true,
 
 			args: this.args,

@@ -7,12 +7,14 @@ import frappe
 import json, os
 from frappe import _
 from frappe.model.document import Document
-from frappe.core.doctype.role.role import get_emails_from_role
+from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.utils import validate_email_address, nowdate, parse_val, is_html, add_to_date
 from frappe.utils.jinja import validate_template
+from frappe.utils.safe_exec import get_safe_globals
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
+from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 
 class Notification(Document):
@@ -26,7 +28,9 @@ class Notification(Document):
 			self.name = self.subject
 
 	def validate(self):
-		validate_template(self.subject)
+		if self.channel in ("Email", "Slack", "System Notification"):
+			validate_template(self.subject)
+
 		validate_template(self.message)
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
@@ -126,8 +130,12 @@ def get_context(context):
 			if self.channel == 'Slack':
 				self.send_a_slack_msg(doc, context)
 
+			if self.channel == 'SMS':
+				self.send_sms(doc, context)
+
 			if self.channel == 'System Notification' or self.send_system_notification:
 				self.create_system_notification(doc, context)
+
 		except:
 			frappe.log_error(title='Failed to send notification', message=frappe.get_traceback())
 
@@ -137,7 +145,12 @@ def get_context(context):
 				allow_update = False
 			try:
 				if allow_update and not doc.flags.in_notification_update:
-					doc.set(self.set_property_after_alert, self.property_value)
+					fieldname = self.set_property_after_alert
+					value = self.property_value
+					if doc.meta.get_field(fieldname).fieldtype in frappe.model.numeric_fieldtypes:
+						value = frappe.utils.cint(value)
+
+					doc.set(fieldname, value)
 					doc.flags.updater_reference = {
 						'doctype': self.doctype,
 						'docname': self.name,
@@ -155,14 +168,20 @@ def get_context(context):
 			subject = frappe.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
+
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
+
 		users = recipients + cc + bcc
+
+		if not users:
+			return
 
 		notification_doc = {
 			'type': 'Alert',
 			'document_type': doc.doctype,
 			'document_name': doc.name,
 			'subject': subject,
+			'from_user': doc.modified_by or doc.owner,
 			'email_content': frappe.render_template(self.message, context),
 			'attached_file': attachments and json.dumps(attachments[0])
 		}
@@ -178,6 +197,7 @@ def get_context(context):
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 		if not (recipients or cc or bcc):
 			return
+
 		sender = None
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
@@ -195,11 +215,17 @@ def get_context(context):
 				and attachments[0].get('print_letterhead')) or False))
 
 	def send_a_slack_msg(self, doc, context):
-			send_slack_message(
-				webhook_url=self.slack_webhook_url,
-				message=frappe.render_template(self.message, context),
-				reference_doctype = doc.doctype,
-				reference_name = doc.name)
+		send_slack_message(
+			webhook_url=self.slack_webhook_url,
+			message=frappe.render_template(self.message, context),
+			reference_doctype=doc.doctype,
+			reference_name=doc.name)
+
+	def send_sms(self, doc, context):
+		send_sms(
+			receiver_list=self.get_receiver_list(doc, context),
+			msg=frappe.render_template(self.message, context)
+		)
 
 	def get_list_of_recipients(self, doc, context):
 		recipients = []
@@ -209,14 +235,21 @@ def get_context(context):
 			if recipient.condition:
 				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
-			if recipient.email_by_document_field:
-				email_ids_value = doc.get(recipient.email_by_document_field)
-				if validate_email_address(email_ids_value):
-					email_ids = email_ids_value.replace(",", "\n")
-					recipients = recipients + email_ids.split("\n")
+			if recipient.receiver_by_document_field:
+				fields = recipient.receiver_by_document_field.split(',')
+				# fields from child table
+				if len(fields) > 1:
+					for d in doc.get(fields[1]):
+						email_id = d.get(fields[0])
+						if validate_email_address(email_id):
+							recipients.append(email_id)
+				# field from parent doc
+				else:
+					email_ids_value = doc.get(fields[0])
+					if validate_email_address(email_ids_value):
+						email_ids = email_ids_value.replace(",", "\n")
+						recipients = recipients + email_ids.split("\n")
 
-				# else:
-				# 	print "invalid email"
 			if recipient.cc and "{" in recipient.cc:
 				recipient.cc = frappe.render_template(recipient.cc, context)
 
@@ -232,15 +265,37 @@ def get_context(context):
 				bcc = bcc + recipient.bcc.split("\n")
 
 			#For sending emails to specified role
-			if recipient.email_by_role:
-				emails = get_emails_from_role(recipient.email_by_role)
+			if recipient.receiver_by_role:
+				emails = get_info_based_on_role(recipient.receiver_by_role, 'email')
 
 				for email in emails:
 					recipients = recipients + email.split("\n")
 
-		if not recipients and not cc and not bcc:
-			return None, None, None
+		if self.send_to_all_assignees:
+			recipients = recipients + get_assignees(doc)
+
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
+
+	def get_receiver_list(self, doc, context):
+		''' return receiver list based on the doc field and role specified '''
+		receiver_list = []
+		for recipient in self.recipients:
+			if recipient.condition:
+				if not frappe.safe_eval(recipient.condition, None, context):
+					continue
+
+			# For sending messages to the owner's mobile phone number
+			if recipient.receiver_by_document_field == 'owner':
+				receiver_list += get_user_info([dict(user_name=doc.get('owner'))], 'mobile_no')
+			# For sending messages to the number specified in the receiver field
+			elif recipient.receiver_by_document_field:
+				receiver_list.append(doc.get(recipient.receiver_by_document_field))
+
+			#For sending messages to specified role
+			if recipient.receiver_by_role:
+				receiver_list += get_info_based_on_role(recipient.receiver_by_role, 'mobile_no')
+
+		return receiver_list
 
 	def get_attachment(self, doc):
 		""" check print settings are attach the pdf """
@@ -359,4 +414,13 @@ def evaluate_alert(doc, alert, event):
 			frappe.utils.get_link_to_form('Error Log', error_log.name)))
 
 def get_context(doc):
-	return {"doc": doc, "nowdate": nowdate, "frappe": frappe._dict(utils=frappe.utils)}
+	return {"doc": doc, "nowdate": nowdate, "frappe": frappe._dict(utils=get_safe_globals().get("frappe").get("utils"))}
+
+def get_assignees(doc):
+	assignees = []
+	assignees = frappe.get_all('ToDo', filters={'status': 'Open', 'reference_name': doc.name,
+		'reference_type': doc.doctype}, fields=['owner'])
+
+	recipients = [d.owner for d in assignees]
+
+	return recipients

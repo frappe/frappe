@@ -39,14 +39,13 @@ class Address(Document):
 
 	def validate(self):
 		self.link_address()
-		self.validate_reference()
 		self.validate_preferred_address()
 		set_link_title(self)
 		deduplicate_dynamic_links(self)
 
 	def link_address(self):
 		"""Link address based on owner"""
-		if not self.links and not self.is_your_company_address:
+		if not self.links:
 			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
 			if contact_name:
 				contact = frappe.get_cached_doc('Contact', contact_name)
@@ -55,12 +54,6 @@ class Address(Document):
 				return True
 
 		return False
-
-	def validate_reference(self):
-		if self.is_your_company_address:
-			if not [row for row in self.links if row.link_doctype == "Company"]:
-				frappe.throw(_("Address needs to be linked to a Company. Please add a row for Company in the Links table below."),
-					title =_("Company not Linked"))
 
 	def validate_preferred_address(self):
 		preferred_fields = ['is_primary_address', 'is_shipping_address']
@@ -204,25 +197,6 @@ def get_address_templates(address):
 	else:
 		return result
 
-@frappe.whitelist()
-def get_shipping_address(company, address = None):
-	filters = [
-		["Dynamic Link", "link_doctype", "=", "Company"],
-		["Dynamic Link", "link_name", "=", company],
-		["Address", "is_your_company_address", "=", 1]
-	]
-	fields = ["*"]
-	if address and frappe.db.get_value('Dynamic Link',
-		{'parent': address, 'link_name': company}):
-		filters.append(["Address", "name", "=", address])
-
-	address = frappe.get_all("Address", filters=filters, fields=fields) or {}
-
-	if address:
-		address_as_dict = address[0]
-		name, address_template = get_address_templates(address_as_dict)
-		return address_as_dict.get("name"), frappe.render_template(address_template, address_as_dict)
-
 def get_company_address(company):
 	ret = frappe._dict()
 	ret.company_address = get_default_address('Company', company)
@@ -231,6 +205,7 @@ def get_company_address(company):
 	return ret
 
 @frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def address_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 

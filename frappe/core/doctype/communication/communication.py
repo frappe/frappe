@@ -260,10 +260,8 @@ class Communication(Document):
 	# Timeline Links
 	def set_timeline_links(self):
 		contacts = []
-		if (self.email_account and frappe.db.get_value("Email Account", self.email_account, "create_contact")) or \
-			frappe.flags.in_test:
-
-			contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
+		create_contact_enabled = self.email_account and frappe.db.get_value("Email Account", self.email_account, "create_contact")
+		contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc], auto_create_contact=create_contact_enabled)
 
 		for contact_name in contacts:
 			self.add_link('Contact', contact_name)
@@ -342,7 +340,7 @@ def get_permission_query_conditions_for_communication(user):
 		return """`tabCommunication`.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
 
-def get_contacts(email_strings):
+def get_contacts(email_strings, auto_create_contact=False):
 	email_addrs = []
 
 	for email_string in email_strings:
@@ -357,7 +355,7 @@ def get_contacts(email_strings):
 		email = get_email_without_link(email)
 		contact_name = get_contact_name(email)
 
-		if not contact_name and email:
+		if not contact_name and email and auto_create_contact:
 			email_parts = email.split("@")
 			first_name = frappe.unscrub(email_parts[0])
 
@@ -455,18 +453,18 @@ def update_parent_document_on_communication(doc):
 			# update the modified date for document
 			parent.update_modified()
 
-	update_mins_to_first_communication(parent, doc)
+	update_first_response_time(parent, doc)
 	set_avg_response_time(parent, doc)
 	parent.run_method("notify_communication", doc)
 	parent.notify_update()
 
-def update_mins_to_first_communication(parent, communication):
-	if parent.meta.has_field("mins_to_first_response") and not parent.get("mins_to_first_response"):
+def update_first_response_time(parent, communication):
+	if parent.meta.has_field("first_response_time") and not parent.get("first_response_time"):
 		if is_system_user(communication.sender):
 			first_responded_on = communication.creation
 			if parent.meta.has_field("first_responded_on") and communication.sent_or_received == "Sent":
 				parent.db_set("first_responded_on", first_responded_on)
-			parent.db_set("mins_to_first_response", round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
+			parent.db_set("first_response_time", round(time_diff_in_seconds(first_responded_on, parent.creation), 2))
 
 def set_avg_response_time(parent, communication):
 	if parent.meta.has_field("avg_response_time") and communication.sent_or_received == "Sent":

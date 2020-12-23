@@ -847,9 +847,13 @@ input[type="checkbox"] {
 
 // Firefox doesn't support
 // pseudo elements on checkbox
-@supports (-moz-appearance: none) or (-ms-ime-align:auto) {
+html.firefox, html.safari {
 	input[type="checkbox"] {
-		height: @checkbox-height !important
+		height: @checkbox-height !important;
+
+		&:before {
+			visibility: hidden;
+		}
 	}
 }
 

@@ -18,6 +18,7 @@ from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, get_timespan_date_range
 from frappe.model.meta import get_table_columns
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -37,7 +38,8 @@ class DatabaseQuery(object):
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
-		update=None, add_total_row=None, user_settings=None, reference_doctype=None, return_query=False, strict=True):
+		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
+		return_query=False, strict=True, pluck=None, ignore_ddl=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -57,7 +59,10 @@ class DatabaseQuery(object):
 		if fields:
 			self.fields = fields
 		else:
-			self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
+			if pluck:
+				self.fields =  ["`tab{0}`.`{1}`".format(self.doctype, pluck)]
+			else:
+				self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
 
 		if start: limit_start = start
 		if page_length: limit_page_length = page_length
@@ -82,6 +87,7 @@ class DatabaseQuery(object):
 		self.user_settings_fields = copy.deepcopy(self.fields)
 		self.return_query = return_query
 		self.strict = strict
+		self.ignore_ddl = ignore_ddl
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -89,6 +95,11 @@ class DatabaseQuery(object):
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
+
+		self.columns = self.get_table_columns()
+
+		# no table & ignore_ddl, return
+		if not self.columns: return []
 
 		if query:
 			result = self.run_custom_query(query)
@@ -103,6 +114,9 @@ class DatabaseQuery(object):
 		if save_user_settings:
 			self.save_user_settings_fields = save_user_settings_fields
 			self.update_user_settings()
+
+		if pluck:
+			return [d[pluck] for d in result]
 
 		return result
 
@@ -127,7 +141,8 @@ class DatabaseQuery(object):
 		if self.return_query:
 			return query
 		else:
-			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
+			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug,
+				update=self.update, ignore_ddl=self.ignore_ddl)
 
 	def prepare_args(self):
 		self.parse_args()
@@ -162,7 +177,26 @@ class DatabaseQuery(object):
 
 		self.set_field_tables()
 
-		args.fields = ', '.join(self.fields)
+		fields = []
+
+		# Wrapping fields with grave quotes to allow support for sql keywords
+		# TODO: Add support for wrapping fields with sql functions and distinct keyword
+		for field in self.fields:
+			stripped_field = field.strip().lower()
+			skip_wrapping = any([
+				stripped_field.startswith(("`", "*", '"', "'")),
+				"(" in stripped_field,
+				"distinct" in stripped_field,
+			])
+			if skip_wrapping:
+				fields.append(field)
+			elif "as" in field.lower().split(" "):
+				col, _, new = field.split()
+				fields.append("`{0}` as {1}".format(col, new))
+			else:
+				fields.append("`{0}`".format(field))
+
+		args.fields = ", ".join(fields)
 
 		self.set_order_by(args)
 
@@ -297,15 +331,22 @@ class DatabaseQuery(object):
 				if '.' not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = '{0}.{1}'.format(self.tables[0], field)
 
+	def get_table_columns(self):
+		try:
+			return get_table_columns(self.doctype)
+		except frappe.db.TableMissingError:
+			if self.ignore_ddl:
+				return None
+			else:
+				raise
+
 	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
-		columns = get_table_columns(self.doctype)
-
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
 			for f in optional_fields:
-				if f in fld and not f in columns:
+				if f in fld and not f in self.columns:
 					to_remove.append(fld)
 
 		for fld in to_remove:
@@ -318,7 +359,7 @@ class DatabaseQuery(object):
 				each = [each]
 
 			for element in each:
-				if element in optional_fields and element not in columns:
+				if element in optional_fields and element not in self.columns:
 					to_remove.append(each)
 
 		for each in to_remove:
@@ -391,7 +432,10 @@ class DatabaseQuery(object):
 				ref_doctype = frappe.get_meta(f.doctype).get_field(f.fieldname).options
 
 			result=[]
-			lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
+
+			lft, rgt = '', ''
+			if f.value:
+				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
 
 			# Get descendants elements of a DocType with a tree structure
 			if f.operator.lower() in ('descendants of', 'not descendants of') :
@@ -640,15 +684,23 @@ class DatabaseQuery(object):
 			self.match_filters.append(match_filters)
 
 	def get_permission_query_conditions(self):
+		conditions = []
 		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
 		if condition_methods:
-			conditions = []
 			for method in condition_methods:
 				c = frappe.call(frappe.get_attr(method), self.user)
 				if c:
 					conditions.append(c)
 
-			return " and ".join(conditions) if conditions else None
+		permision_script_name = get_server_script_map().get("permission_query").get(self.doctype)
+		if permision_script_name:
+			script = frappe.get_doc("Server Script", permision_script_name)
+			condition = script.get_permission_query_conditions(self.user)
+			if condition:
+				conditions.append(condition)
+
+		return " and ".join(conditions) if conditions else ""
+
 
 	def run_custom_query(self, query):
 		if '%(key)s' in query:
@@ -769,6 +821,7 @@ def get_list(doctype, *args, **kwargs):
 	kwargs.pop('ignore_permissions', None)
 	kwargs.pop('data', None)
 	kwargs.pop('strict', None)
+	kwargs.pop('user', None)
 
 	# If doctype is child table
 	if frappe.is_table(doctype):

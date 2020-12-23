@@ -198,16 +198,19 @@ class EMail:
 
 	def set_message_id(self, message_id, is_notification=False):
 		if message_id:
-			self.msg_root["Message-Id"] = '<' + message_id + '>'
+			message_id = '<' + message_id + '>'
 		else:
-			self.msg_root["Message-Id"] = get_message_id()
-			self.msg_root["isnotification"] = '<notification>'
+			message_id = get_message_id()
+			self.set_header('isnotification', '<notification>')
+
 		if is_notification:
-			self.msg_root["isnotification"] = '<notification>'
+			self.set_header('isnotification', '<notification>')
+
+		self.set_header('Message-Id', message_id)
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
-		self.msg_root["In-Reply-To"] = in_reply_to
+		self.set_header('In-Reply-To', in_reply_to)
 
 	def make(self):
 		"""build into msg_root"""
@@ -234,7 +237,10 @@ class EMail:
 		if key in self.msg_root:
 			del self.msg_root[key]
 
-		self.msg_root[key] = value
+		try:
+			self.msg_root[key] = value
+		except ValueError:
+			self.msg_root[key] = sanitize_email_header(value)
 
 	def as_string(self):
 		"""validate, build message and convert to string"""
@@ -458,3 +464,6 @@ def get_header(header=None):
 	})
 
 	return email_header
+
+def sanitize_email_header(str):
+	return str.replace('\r', '').replace('\n', '')

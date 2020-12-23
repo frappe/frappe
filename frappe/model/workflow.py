@@ -29,6 +29,8 @@ def get_transitions(doc, workflow = None, raise_exception=False):
 	if doc.is_new():
 		return []
 
+	doc.load_from_db()
+
 	frappe.has_permission(doc, 'read', throw=True)
 	roles = frappe.get_roles()
 
@@ -51,14 +53,17 @@ def get_transitions(doc, workflow = None, raise_exception=False):
 	return transitions
 
 def get_workflow_safe_globals():
-	# access to frappe.db.get_value and frappe.db.get_list
+	# access to frappe.db.get_value, frappe.db.get_list, and date time utils.
 	return dict(
 		frappe=frappe._dict(
-			db=frappe._dict(
-				get_value=frappe.db.get_value,
-				get_list=frappe.db.get_list
+			db=frappe._dict(get_value=frappe.db.get_value, get_list=frappe.db.get_list),
+			session=frappe.session,
+			utils=frappe._dict(
+				now_datetime=frappe.utils.now_datetime,
+				add_to_date=frappe.utils.add_to_date,
+				get_datetime=frappe.utils.get_datetime,
+				now=frappe.utils.now,
 			),
-			session=frappe.session
 		)
 	)
 
@@ -272,9 +277,11 @@ def get_common_transition_actions(docs, doctype):
 				doc['doctype'] = doctype
 			actions = [t.get('action') for t in get_transitions(doc, raise_exception=True) \
 				if has_approval_access(frappe.session.user, doc, t)]
-			if not actions: return []
+			if not actions:
+				return []
 			common_actions = actions if i == 1 else set(common_actions).intersection(actions)
-			if not common_actions: return []
+			if not common_actions:
+				return []
 	except WorkflowStateError:
 		pass
 

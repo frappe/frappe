@@ -33,11 +33,11 @@
   "set_property_after_alert",
   "property_value",
   "column_break_5",
+  "send_to_all_assignees",
   "recipients",
   "message_sb",
   "message",
   "message_examples",
-  "slack_message_examples",
   "view_properties",
   "column_break_25",
   "attach_print",
@@ -60,11 +60,13 @@
    "fieldname": "channel",
    "fieldtype": "Select",
    "label": "Channel",
-   "options": "Email\nSlack\nSystem Notification",
-   "reqd": 1
+   "options": "Email\nSlack\nSystem Notification\nSMS",
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "depends_on": "eval:doc.channel=='Slack'",
+   "description": "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>.",
    "fieldname": "slack_webhook_url",
    "fieldtype": "Link",
    "label": "Slack Channel",
@@ -77,13 +79,14 @@
    "label": "Filters"
   },
   {
+   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)",
    "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>",
    "fieldname": "subject",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Subject",
-   "reqd": 1
+   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)"
   },
   {
    "fieldname": "document_type",
@@ -153,6 +156,7 @@
    "label": "Value Changed"
   },
   {
+   "depends_on": "eval: doc.channel == 'Email'",
    "fieldname": "sender",
    "fieldtype": "Link",
    "label": "Sender",
@@ -203,7 +207,7 @@
    "label": "Value To Be Set"
   },
   {
-   "depends_on": "eval:doc.channel!=='Slack'",
+   "depends_on": "eval:doc.channel !=\"Slack\"",
    "fieldname": "column_break_5",
    "fieldtype": "Section Break",
    "label": "Recipients"
@@ -212,7 +216,7 @@
    "fieldname": "recipients",
    "fieldtype": "Table",
    "label": "Recipients",
-   "mandatory_depends_on": "eval:doc.channel!=='Slack'",
+   "mandatory_depends_on": "eval:doc.channel!=='Slack' && !doc.send_to_all_assignees",
    "options": "Notification Recipient"
   },
   {
@@ -228,18 +232,10 @@
    "label": "Message"
   },
   {
-   "depends_on": "eval:doc.channel=='Email'",
    "fieldname": "message_examples",
    "fieldtype": "HTML",
    "label": "Message Examples",
    "options": "<h5>Message Example</h5>\n\n<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;\n\n&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;\n\n&lt;!-- show last comment --&gt;\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n&lt;h4&gt;Details&lt;/h4&gt;\n\n&lt;ul&gt;\n&lt;li&gt;Customer: {{ doc.customer }}\n&lt;li&gt;Amount: {{ doc.grand_total }}\n&lt;/ul&gt;\n</pre>"
-  },
-  {
-   "depends_on": "eval:doc.channel=='Slack'",
-   "fieldname": "slack_message_examples",
-   "fieldtype": "HTML",
-   "label": "Message Examples",
-   "options": "<h5>Message Example</h5>\n\n<pre>*Order Overdue*\n\nTransaction {{ doc.name }} has exceeded Due Date. Please take necessary action.\n\n<!-- show last comment -->\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n*Details*\n\n\u2022 Customer: {{ doc.customer }}\n\u2022 Amount: {{ doc.grand_total }}\n</pre>"
   },
   {
    "fieldname": "view_properties",
@@ -273,11 +269,19 @@
    "fieldname": "send_system_notification",
    "fieldtype": "Check",
    "label": "Send System Notification"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.channel == 'Email'",
+   "fieldname": "send_to_all_assignees",
+   "fieldtype": "Check",
+   "label": "Send To All Assignees"
   }
  ],
  "icon": "fa fa-envelope",
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-06-23 14:01:25.462544",
+ "modified": "2020-11-24 14:25:43.245677",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

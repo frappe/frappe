@@ -4,6 +4,8 @@
 
 from __future__ import unicode_literals
 
+import ast
+
 import frappe
 from frappe.model.document import Document
 from frappe.utils.safe_exec import safe_exec
@@ -11,9 +13,9 @@ from frappe import _
 
 
 class ServerScript(Document):
-	@staticmethod
-	def validate():
+	def validate(self):
 		frappe.only_for('Script Manager', True)
+		ast.parse(self.script)
 
 	@staticmethod
 	def on_update():
@@ -24,7 +26,8 @@ class ServerScript(Document):
 			# validate if guest is allowed
 			if frappe.session.user == 'Guest' and not self.allow_guest:
 				raise frappe.PermissionError
-			safe_exec(self.script)
+			_globals, _locals = safe_exec(self.script)
+			return _globals.frappe.flags # output can be stored in flags
 		else:
 			# wrong report type!
 			raise frappe.DoesNotExistError
@@ -39,6 +42,12 @@ class ServerScript(Document):
 		else:
 			# wrong report type!
 			raise frappe.DoesNotExistError
+
+	def get_permission_query_conditions(self, user):
+		locals = {"user": user, "conditions": ""}
+		safe_exec(self.script, None, locals)
+		if locals["conditions"]:
+			return locals["conditions"]
 
 @frappe.whitelist()
 def setup_scheduler_events(script_name, frequency):

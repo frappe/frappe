@@ -1,5 +1,6 @@
 import Widget from "./base_widget.js";
-import { generate_route } from "./utils";
+
+frappe.provide("frappe.utils");
 
 export default class OnboardingWidget extends Widget {
 	constructor(opts) {
@@ -37,7 +38,7 @@ export default class OnboardingWidget extends Widget {
 		// Add skip button
 		if (!step.is_mandatory && !step.is_complete) {
 			let skip_html = $(
-				`<span class="ml-5 small text-muted step-skip">Skip</span>`
+				`<span class="ml-5 small text-muted step-skip">${__('Skip')}</span>`
 			);
 
 			skip_html.appendTo($step);
@@ -92,7 +93,7 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	open_report(step) {
-		let route = generate_route({
+		let route = frappe.utils.generate_route({
 			name: step.reference_report,
 			type: "report",
 			is_query_report: ["Query Report", "Script Report"].includes(
@@ -443,7 +444,7 @@ export default class OnboardingWidget extends Widget {
 	set_actions() {
 		this.action_area.empty();
 		const dismiss = $(
-			`<div class="small" style="cursor:pointer;">Dismiss</div>`
+			`<div class="small" style="cursor:pointer;">${__('Dismiss')}</div>`
 		);
 		dismiss.on("click", () => {
 			let dismissed = JSON.parse(

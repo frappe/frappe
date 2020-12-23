@@ -18,7 +18,6 @@ from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.exceptions import FileNotFoundError
-from frappe.model.document import make_event_update_log, check_doctype_has_consumers
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File",
 	"Version", "Document Follow", "Comment" , "View Log", "Tag Link", "Notification Log", "Email Queue")
@@ -77,7 +76,12 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
-			if not (for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_uninstall or frappe.flags.in_test):
+			if frappe.conf.developer_mode and not doc.custom and not (
+				for_reload
+				or frappe.flags.in_migrate
+				or frappe.flags.in_install
+				or frappe.flags.in_uninstall
+			):
 				try:
 					delete_controllers(name, doc.module)
 				except (FileNotFoundError, OSError, KeyError):
@@ -120,10 +124,6 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		delete_for_document(doc)
 		# delete tag link entry
 		delete_tags_for_document(doc)
-
-		# update log if doctype has event consumers
-		if not frappe.flags.in_install and not frappe.flags.in_migrate and check_doctype_has_consumers(doc.doctype):
-			make_event_update_log(doc, update_type='Delete')
 
 		if doc and not for_reload:
 			add_to_deleted_document(doc)
@@ -340,18 +340,24 @@ def clear_timeline_references(link_doctype, link_name):
 		WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
 
 def insert_feed(doc):
-	from frappe.utils import get_fullname
-
-	if frappe.flags.in_install or frappe.flags.in_import or getattr(doc, "no_feed_on_delete", False):
+	if (
+		frappe.flags.in_install
+		or frappe.flags.in_uninstall
+		or frappe.flags.in_import
+		or getattr(doc, "no_feed_on_delete", False)
+	):
 		return
+
+	from frappe.utils import get_fullname
 
 	frappe.get_doc({
 		"doctype": "Comment",
 		"comment_type": "Deleted",
 		"reference_doctype": doc.doctype,
 		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
-		"full_name": get_fullname(doc.owner)
+		"full_name": get_fullname(doc.owner),
 	}).insert(ignore_permissions=True)
+
 
 def delete_controllers(doctype, module):
 	"""

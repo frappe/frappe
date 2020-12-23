@@ -6,6 +6,8 @@ from __future__ import unicode_literals
 import frappe
 import json
 import requests
+import os
+from frappe import _
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
 from frappe.utils.data import get_url
@@ -14,16 +16,28 @@ from frappe.utils.background_jobs import get_jobs
 
 class EventConsumer(Document):
 	def validate(self):
-		if self.in_test:
+		# approve subscribed doctypes for tests
+		# frappe.flags.in_test won't work here as tests are running on the consumer site
+		if os.environ.get('CI'):
 			for entry in self.consumer_doctypes:
 				entry.status = 'Approved'
-			self.in_test = False
 
 	def on_update(self):
 		if not self.incoming_change:
+			doc_before_save = self.get_doc_before_save()
+			if doc_before_save.api_key != self.api_key or doc_before_save.api_secret != self.api_secret:
+				return
+
 			self.update_consumer_status()
 		else:
 			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
+		
+		frappe.cache().delete_value('event_consumer_document_type_map')
+
+	def on_trash(self):
+		for i in frappe.get_all('Event Update Log Consumer', {'consumer': self.name}):
+			frappe.delete_doc('Event Update Log Consumer', i.name)
+		frappe.cache().delete_value('event_consumer_document_type_map')
 
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)
@@ -51,39 +65,43 @@ class EventConsumer(Document):
 			return 'offline'
 		return 'online'
 
-
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def register_consumer(data):
 	"""create an event consumer document for registering a consumer"""
 	data = json.loads(data)
 	# to ensure that consumer is created only once
 	if frappe.db.exists('Event Consumer', data['event_consumer']):
 		return None
+
+	user = data['user']
+	if not frappe.db.exists('User', user):
+		frappe.throw(_('User {0} not found on the producer site').format(user))
+
+	if "System Manager" not in frappe.get_roles(user):
+		frappe.throw(_("Event Subscriber has to be a System Manager."))
+
 	consumer = frappe.new_doc('Event Consumer')
 	consumer.callback_url = data['event_consumer']
 	consumer.user = data['user']
+	consumer.api_key = data['api_key']
+	consumer.api_secret = data['api_secret']
 	consumer.incoming_change = True
 	consumer_doctypes = json.loads(data['consumer_doctypes'])
 
 	for entry in consumer_doctypes:
 		consumer.append('consumer_doctypes', {
-			'ref_doctype': entry,
-			'status': 'Pending'
+			'ref_doctype': entry.get('doctype'),
+			'status': 'Pending',
+			'condition': entry.get('condition')
 		})
 
-	api_key = frappe.generate_hash(length=10)
-	api_secret = frappe.generate_hash(length=10)
-	consumer.api_key = api_key
-	consumer.api_secret = api_secret
-	consumer.in_test = data['in_test']
-	consumer.insert(ignore_permissions=True)
-	frappe.db.commit()
+	consumer.insert()
 
 	# consumer's 'last_update' field should point to the latest update
 	# in producer's update log when subscribing
 	# so that, updates after subscribing are consumed and not the old ones.
 	last_update = str(get_last_update())
-	return json.dumps({'api_key': api_key, 'api_secret': api_secret, 'last_update': last_update})
+	return json.dumps({'last_update': last_update})
 
 
 def get_consumer_site(consumer_url):
@@ -92,8 +110,7 @@ def get_consumer_site(consumer_url):
 	consumer_site = FrappeClient(
 		url=consumer_url,
 		api_key=consumer_doc.api_key,
-		api_secret=consumer_doc.get_password('api_secret'),
-		frappe_authorization_source='Event Producer'
+		api_secret=consumer_doc.get_password('api_secret')
 	)
 	return consumer_site
 
@@ -139,3 +156,53 @@ def notify(consumer):
 		jobs = get_jobs()
 		if not jobs or enqueued_method not in jobs[frappe.local.site] and not consumer.flags.notifed:
 			frappe.enqueue(enqueued_method, queue='long', enqueue_after_commit=True, **{'consumer': consumer})
+
+
+def has_consumer_access(consumer, update_log):
+	"""Checks if consumer has completely satisfied all the conditions on the doc"""
+
+	if isinstance(consumer, str):
+		consumer = frappe.get_doc('Event Consumer', consumer)
+
+	if not frappe.db.exists(update_log.ref_doctype, update_log.docname):
+		# Delete Log
+		# Check if the last Update Log of this document was read by this consumer
+		last_update_log = frappe.get_all(
+			'Event Update Log',
+			filters={
+				'ref_doctype': update_log.ref_doctype,
+				'docname': update_log.docname,
+				'creation': ['<', update_log.creation]
+			},
+			order_by='creation desc',
+			limit_page_length=1
+		)
+		if not len(last_update_log):
+			return False
+
+		last_update_log = frappe.get_doc('Event Update Log', last_update_log[0].name)
+		return len([x for x in last_update_log.consumers if x.consumer == consumer.name])
+
+	doc = frappe.get_doc(update_log.ref_doctype, update_log.docname)
+	try:
+		for dt_entry in consumer.consumer_doctypes:
+			if dt_entry.ref_doctype != update_log.ref_doctype:
+				continue
+
+			if not dt_entry.condition:
+				return True
+
+			condition: str = dt_entry.condition
+			if condition.startswith('cmd:'):
+				cmd = condition.split('cmd:')[1].strip()
+				args = {
+					'consumer': consumer,
+					'doc': doc,
+					'update_log': update_log
+				}
+				return frappe.call(cmd, **args)
+			else:
+				return frappe.safe_eval(condition, frappe._dict(doc=doc))
+	except Exception as e:
+		frappe.log_error(title='has_consumer_access error', message=e)
+	return False

@@ -66,9 +66,14 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
+
 	if not mail:
-		mail = get_email_address(user)
-	return cstr(make_header(decode_header(formataddr((fullname, mail)))))
+		mail = get_email_address(user) or validate_email_address(user)
+
+	if not mail:
+		return ''
+	else:
+		return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
@@ -135,7 +140,8 @@ def validate_email_address(email_str, throw=False):
 
 		if not _valid:
 			if throw:
-				frappe.throw(frappe._("{0} is not a valid Email Address").format(e),
+				invalid_email = frappe.utils.escape_html(e)
+				frappe.throw(frappe._("{0} is not a valid Email Address").format(invalid_email),
 					frappe.InvalidEmailAddressError)
 			return None
 		else:
@@ -620,28 +626,6 @@ def parse_json(val):
 		val = frappe._dict(val)
 	return val
 
-def cast_fieldtype(fieldtype, value):
-	if fieldtype in ("Currency", "Float", "Percent"):
-		value = flt(value)
-
-	elif fieldtype in ("Int", "Check"):
-		value = cint(value)
-
-	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
-		"Text Editor", "Select", "Link", "Dynamic Link"):
-		value = cstr(value)
-
-	elif fieldtype == "Date":
-		value = getdate(value)
-
-	elif fieldtype == "Datetime":
-		value = get_datetime(value)
-
-	elif fieldtype == "Time":
-		value = to_timedelta(value)
-
-	return value
-
 def get_db_count(*args):
 	"""
 	Pass a doctype or a series of doctypes to get the count of docs in them
@@ -727,3 +711,50 @@ def get_html_for_route(route):
 	response = render.render()
 	html = frappe.safe_decode(response.get_data())
 	return html
+
+def get_file_size(path, format=False):
+	num = os.path.getsize(path)
+
+	if not format:
+		return num
+
+	suffix = 'B'
+
+	for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+		if abs(num) < 1024:
+			return "{0:3.1f}{1}{2}".format(num, unit, suffix)
+		num /= 1024
+
+	return "{0:.1f}{1}{2}".format(num, 'Yi', suffix)
+
+def get_build_version():
+	try:
+		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))
+	except OSError:
+		# .build can sometimes not exist
+		# this is not a major problem so send fallback
+		return frappe.utils.random_string(8)
+
+def get_bench_relative_path(file_path):
+	"""Fixes paths relative to the bench root directory if exists and returns the absolute path
+
+	Args:
+		file_path (str, Path): Path of a file that exists on the file system
+
+	Returns:
+		str: Absolute path of the file_path
+	"""
+	if not os.path.exists(file_path):
+		base_path = '..'
+	elif file_path.startswith(os.sep):
+		base_path = os.sep
+	else:
+		base_path = '.'
+
+	file_path = os.path.join(base_path, file_path)
+
+	if not os.path.exists(file_path):
+		print('Invalid path {0}'.format(file_path[3:]))
+		sys.exit(1)
+
+	return os.path.abspath(file_path)

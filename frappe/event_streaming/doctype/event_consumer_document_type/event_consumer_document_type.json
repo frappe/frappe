@@ -1,14 +1,18 @@
 {
+ "actions": [],
  "creation": "2019-10-03 21:10:54.754651",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "ref_doctype",
-  "status"
+  "status",
+  "unsubscribed",
+  "condition"
  ],
  "fields": [
   {
+   "columns": 4,
    "fieldname": "ref_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -18,16 +22,33 @@
    "reqd": 1
   },
   {
+   "columns": 4,
    "default": "Pending",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Approval Status",
    "options": "Pending\nApproved\nRejected"
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "unsubscribed",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Unsubscribed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2019-10-29 15:26:32.436528",
+ "links": [],
+ "modified": "2020-11-07 09:26:49.894294",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Consumer Document Type",

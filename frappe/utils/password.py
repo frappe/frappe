@@ -10,6 +10,8 @@ from cryptography.fernet import Fernet, InvalidToken
 from passlib.hash import pbkdf2_sha256, mysql41
 from passlib.registry import register_crypt_handler
 from passlib.context import CryptContext
+from pymysql.constants.ER import DATA_TOO_LONG
+from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
 
 class LegacyPassword(pbkdf2_sha256):
 	name = "frappe_legacy"
@@ -48,12 +50,20 @@ def get_decrypted_password(doctype, name, fieldname='password', raise_exception=
 	elif raise_exception:
 		frappe.throw(_('Password not found'), frappe.AuthenticationError)
 
+
 def set_encrypted_password(doctype, name, pwd, fieldname='password'):
-	frappe.db.sql("""insert into `__Auth` (doctype, name, fieldname, `password`, encrypted)
-		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 1)
-		{on_duplicate_update} `password`=%(pwd)s, encrypted=1""".format(
-			on_duplicate_update=frappe.db.get_on_duplicate_update(['doctype', 'name', 'fieldname'])
-		), { 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
+	try:
+		frappe.db.sql("""insert into `__Auth` (doctype, name, fieldname, `password`, encrypted)
+			values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 1)
+			{on_duplicate_update} `password`=%(pwd)s, encrypted=1""".format(
+				on_duplicate_update=frappe.db.get_on_duplicate_update(['doctype', 'name', 'fieldname'])
+			), { 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
+	except frappe.db.DataError as e:
+		if ((frappe.db.db_type == 'mariadb' and e.args[0] == DATA_TOO_LONG) or
+			(frappe.db.db_type == 'postgres' and e.pgcode == STRING_DATA_RIGHT_TRUNCATION)):
+			frappe.throw("Most probably your password is too long.", exc=e)
+		raise e
+
 
 def check_password(user, pwd, doctype='User', fieldname='password'):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
@@ -74,10 +84,19 @@ def check_password(user, pwd, doctype='User', fieldname='password'):
 
 	return user
 
+
 def delete_login_failed_cache(user):
 	frappe.cache().hdel('last_login_tried', user)
 	frappe.cache().hdel('login_failed_count', user)
 	frappe.cache().hdel('locked_account_time', user)
+
+
+def delete_password_reset_cache(user=None):
+	if user:
+		frappe.cache().hdel('password_reset_link_count', user)
+	else:
+		frappe.cache().delete_key('password_reset_link_count')
+
 
 def update_password(user, pwd, doctype='User', fieldname='password', logout_all_sessions=False):
 	'''
@@ -107,6 +126,7 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 		from frappe.sessions import clear_sessions
 		clear_sessions(user=user, keep_current=True, force=True)
 
+
 def delete_all_passwords_for(doctype, name):
 	try:
 		frappe.db.sql("""delete from `__Auth` where `doctype`=%(doctype)s and `name`=%(name)s""",
@@ -115,29 +135,30 @@ def delete_all_passwords_for(doctype, name):
 		if not frappe.db.is_missing_column(e):
 			raise
 
+
 def rename_password(doctype, old_name, new_name):
 	# NOTE: fieldname is not considered, since the document is renamed
 	frappe.db.sql("""update `__Auth` set name=%(new_name)s
 		where doctype=%(doctype)s and name=%(old_name)s""",
 		{ 'doctype': doctype, 'new_name': new_name, 'old_name': old_name })
 
+
 def rename_password_field(doctype, old_fieldname, new_fieldname):
 	frappe.db.sql('''update `__Auth` set fieldname=%(new_fieldname)s
 		where doctype=%(doctype)s and fieldname=%(old_fieldname)s''',
 		{ 'doctype': doctype, 'old_fieldname': old_fieldname, 'new_fieldname': new_fieldname })
 
+
 def create_auth_table():
 	# same as Framework.sql
 	frappe.db.create_auth_table()
 
-def encrypt(pwd):
-	if len(pwd) > 127:
-		# encrypting > 127 chars will lead to truncation
-		frappe.throw(_('Password cannot be more than 127 characters long'))
 
+def encrypt(pwd):
 	cipher_suite = Fernet(encode(get_encryption_key()))
 	cipher_text = cstr(cipher_suite.encrypt(encode(pwd)))
 	return cipher_text
+
 
 def decrypt(pwd):
 	try:
@@ -147,6 +168,7 @@ def decrypt(pwd):
 	except InvalidToken:
 		# encryption_key in site_config is changed and not valid
 		frappe.throw(_('Encryption key is invalid, Please check site_config.json'))
+
 
 def get_encryption_key():
 	from frappe.installer import update_site_config

@@ -11,7 +11,7 @@ from frappe.model.db_query import DatabaseQuery
 from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.utils import cstr
+from frappe.utils import cstr, format_duration
 
 
 @frappe.whitelist()
@@ -36,6 +36,7 @@ def get_form_params():
 	data.pop('data', None)
 	data.pop('ignore_permissions', None)
 	data.pop('view', None)
+	data.pop('user', None)
 
 	if "csrf_token" in data:
 		del data["csrf_token"]
@@ -166,6 +167,8 @@ def export_query():
 	for i, row in enumerate(ret):
 		data.append([i+1] + list(row))
 
+	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
+
 	if file_format_type == "CSV":
 
 		# convert to csv
@@ -234,6 +237,29 @@ def get_labels(fields, doctype):
 		labels.append(label)
 
 	return labels
+
+def handle_duration_fieldtype_values(doctype, data, fields):
+	for field in fields:
+		key = field.split(" as ")[0]
+
+		if key.startswith(('count(', 'sum(', 'avg(')): continue
+
+		if "." in key:
+			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
+		else:
+			parenttype = doctype
+			fieldname = field.strip("`")
+
+		df = frappe.get_meta(parenttype).get_field(fieldname)
+
+		if df and df.fieldtype == 'Duration':
+			index = fields.index(field) + 1
+			for i in range(1, len(data)):
+				val_in_seconds = data[i][index]
+				if val_in_seconds:
+					duration_val = format_duration(val_in_seconds, df.hide_days)
+					data[i][index] = duration_val
+	return data
 
 @frappe.whitelist()
 def delete_items():

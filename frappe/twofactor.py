@@ -187,9 +187,7 @@ def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
 		otp_setup_completed = False
 
 	verification_obj = {
-		'totp_uri': totp_uri,
 		'method': 'OTP App',
-		'qrcode': get_qr_svg_code(totp_uri),
 		'setup': otp_setup_completed
 	}
 	return verification_obj
@@ -227,7 +225,11 @@ def get_email_subject_for_2fa(kwargs_dict):
 
 def get_email_body_for_2fa(kwargs_dict):
 	'''Get email body for 2fa.'''
-	body_template = 'Enter this code to complete your login:<br><br> <b>{{otp}}</b>'
+	body_template = """
+		Enter this code to complete your login:
+		<br><br>
+		<b style="font-size: 18px;">{{ otp }}</b>
+	"""
 	body = frappe.render_template(body_template, kwargs_dict)
 	return body
 

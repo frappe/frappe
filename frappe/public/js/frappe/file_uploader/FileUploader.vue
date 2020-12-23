@@ -144,6 +144,9 @@ export default {
 		docname: {
 			default: null
 		},
+		fieldname: {
+			default: null
+		},
 		folder: {
 			default: 'Home'
 		},
@@ -404,6 +407,10 @@ export default {
 				if (this.doctype && this.docname) {
 					form_data.append('doctype', this.doctype);
 					form_data.append('docname', this.docname);
+				}
+
+				if (this.fieldname) {
+					form_data.append('fieldname', this.fieldname);
 				}
 
 				if (this.method) {

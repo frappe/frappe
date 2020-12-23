@@ -1,5 +1,6 @@
 import Widget from "./base_widget.js";
-import { generate_route, shorten_number } from "./utils";
+
+frappe.provide("frappe.utils");
 
 export default class NumberCardWidget extends Widget {
 	constructor(opts) {
@@ -74,7 +75,7 @@ export default class NumberCardWidget extends Widget {
 	set_route() {
 		const is_document_type = this.card_doc.type !== 'Report';
 		const name = is_document_type ? this.card_doc.document_type : this.card_doc.report_name;
-		const route = generate_route({
+		const route = frappe.utils.generate_route({
 			name: name,
 			type: is_document_type ? 'doctype' : 'report',
 			is_query_report: !is_document_type,
@@ -171,7 +172,7 @@ export default class NumberCardWidget extends Widget {
 	get_number_for_custom_card(res) {
 		if (typeof res === 'object') {
 			this.number = res.value;
-			this.get_formatted_number(res);
+			this.set_formatted_number(res);
 		} else {
 			this.formatted_number = res;
 		}
@@ -183,7 +184,7 @@ export default class NumberCardWidget extends Widget {
 			return frappe.model.with_doctype(this.card_doc.document_type, () => {
 				const based_on_df =
 					frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
-				this.get_formatted_number(based_on_df);
+				this.set_formatted_number(based_on_df);
 			});
 		} else {
 			this.formatted_number = res;
@@ -198,12 +199,12 @@ export default class NumberCardWidget extends Widget {
 		}, []);
 		const col = res.columns.find(col => col.fieldname == field);
 		this.number = frappe.report_utils.get_result_of_fn(this.card_doc.report_function, vals);
-		this.get_formatted_number(col);
+		this.set_formatted_number(col);
 	}
 
-	get_formatted_number(df) {
+	set_formatted_number(df) {
 		const default_country = frappe.sys_defaults.country;
-		const shortened_number = shorten_number(this.number, default_country);
+		const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
 		let number_parts = shortened_number.split(' ');
 
 		const symbol = number_parts[1] || '';
@@ -249,10 +250,16 @@ export default class NumberCardWidget extends Widget {
 			};
 			const stats_qualifier = stats_qualifier_map[this.card_doc.stats_time_interval];
 
+			let get_stat = () => {
+				const parts = this.percentage_stat.split(' ');
+				const symbol = parts[1] || '';
+				return Math.abs(parts[0]) + ' ' + symbol;
+			};
+
 			$(this.body).find('.widget-content').append(`<div class="card-stats ${color_class}">
 				<span class="percentage-stat">
 					${caret_html}
-					${Math.abs(this.percentage_stat)} %
+					${get_stat()} %
 				</span>
 				<span class="stat-period text-muted">
 					${stats_qualifier}
@@ -268,7 +275,7 @@ export default class NumberCardWidget extends Widget {
 			result: this.number
 		}).then(res => {
 			if (res !== undefined) {
-				this.percentage_stat = +res.toFixed(2);
+				this.percentage_stat = frappe.utils.shorten_number(res);
 			}
 		});
 	}

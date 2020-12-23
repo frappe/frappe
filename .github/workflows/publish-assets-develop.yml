@@ -1,0 +1,44 @@
+name: 'Frappe Assets'
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  build-dev-and-publish:
+    name: 'Build and Publish Assets for Development'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: 'frappe'
+      - uses: actions/setup-node@v1
+        with:
+          python-version: '12.x'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+      - name: Set up bench for current push
+        run: |
+          npm install -g yarn
+          pip3 install -U frappe-bench
+          bench init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
+          cd frappe-bench && bench build
+
+      - name: Package assets
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/build
+          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
+
+      - name: Publish assets to S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read
+        env:
+          AWS_S3_BUCKET: 'assets.frappeframework.com'
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ASSETS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_ASSETS_SECRET_ACCESS_KEY }}
+          AWS_S3_ENDPOINT: 'http://s3.fr-par.scw.cloud'
+          AWS_REGION: 'fr-par'
+          SOURCE_DIR: '$GITHUB_WORKSPACE/build'

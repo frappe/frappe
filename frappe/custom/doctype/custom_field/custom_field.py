@@ -32,6 +32,7 @@ class CustomField(Document):
 		self.fieldname = self.fieldname.lower()
 
 	def before_insert(self):
+		self.set_fieldname()
 		meta = frappe.get_meta(self.dt, cached=False)
 		fieldnames = [df.fieldname for df in meta.get("fields")]
 

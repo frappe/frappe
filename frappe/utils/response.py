@@ -71,7 +71,7 @@ def as_txt():
 def as_raw():
 	response = Response()
 	response.mimetype = frappe.response.get("content_type") or mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
-	response.headers["Content-Disposition"] = ("attachment; filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.headers["Content-Disposition"] = (f'{frappe.response.get("display_content_as","attachment")}; filename="{frappe.response["filename"].replace(" ", "_")}"').encode("utf-8")
 	response.data = frappe.response['filecontent']
 	return response
 
@@ -123,7 +123,7 @@ def make_logs(response = None):
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	# serialize date
-	import collections
+	import collections.abc
 
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return text_type(obj)
@@ -138,7 +138,7 @@ def json_handler(obj):
 		doc = obj.as_dict(no_nulls=True)
 		return doc
 
-	elif isinstance(obj, collections.Iterable):
+	elif isinstance(obj, collections.abc.Iterable):
 		return list(obj)
 
 	elif type(obj)==type or isinstance(obj, Exception):

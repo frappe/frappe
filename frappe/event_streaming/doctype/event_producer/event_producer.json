@@ -13,7 +13,6 @@
   "api_secret",
   "column_break_6",
   "user",
-  "last_update",
   "incoming_change"
  ],
  "fields": [
@@ -26,29 +25,26 @@
    "unique": 1
   },
   {
-   "fieldname": "last_update",
-   "fieldtype": "Data",
-   "label": "Last Update",
-   "read_only": 1
-  },
-  {
+   "description": "API Key of the user(Event Subscriber) on the producer site",
    "fieldname": "api_key",
    "fieldtype": "Data",
    "label": "API Key",
-   "read_only": 1
+   "reqd": 1
   },
   {
+   "description": "API Secret of the user(Event Subscriber) on the producer site",
    "fieldname": "api_secret",
    "fieldtype": "Password",
    "label": "API Secret",
-   "read_only": 1
+   "reqd": 1
   },
   {
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "Event Subscriber",
    "options": "User",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "column_break_6",
@@ -74,7 +70,7 @@
   }
  ],
  "links": [],
- "modified": "2019-12-26 13:04:11.438349",
+ "modified": "2020-10-26 13:00:15.361316",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Producer",

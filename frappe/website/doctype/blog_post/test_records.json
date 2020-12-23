@@ -1,6 +1,6 @@
 [
 	{
-		"blog_category": "_Test Blog Category",
+		"blog_category": "-test-blog-category",
 		"blog_intro": "Test Blog Intro",
 		"blogger": "_Test Blogger",
 		"content": "Test Blog Content",
@@ -9,7 +9,7 @@
 		"published": 1
 	},
 	{
-		"blog_category": "_Test Blog Category 1",
+		"blog_category": "-test-blog-category-1",
 		"blog_intro": "Test Blog Intro",
 		"blogger": "_Test Blogger",
 		"content": "Test Blog Content",
@@ -18,7 +18,7 @@
 		"published": 1
 	},
 	{
-		"blog_category": "_Test Blog Category 1",
+		"blog_category": "-test-blog-category-1",
 		"blog_intro": "Test Blog Intro",
 		"blogger": "_Test Blogger 1",
 		"content": "Test Blog Content",
@@ -27,7 +27,7 @@
 		"published": 0
 	},
 	{
-		"blog_category": "_Test Blog Category 1",
+		"blog_category": "-test-blog-category-1",
 		"blog_intro": "Test Blog Intro",
 		"blogger": "_Test Blogger 2",
 		"content": "Test Blog Content",

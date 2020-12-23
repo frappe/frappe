@@ -1,5 +1,6 @@
 import Widget from "./base_widget.js";
-import { generate_route } from "./utils";
+
+frappe.provide("frappe.utils");
 
 export default class ShortcutWidget extends Widget {
 	constructor(opts) {
@@ -13,6 +14,7 @@ export default class ShortcutWidget extends Widget {
 			label: this.label,
 			format: this.format,
 			link_to: this.link_to,
+			doc_view: this.doc_view,
 			color: this.color,
 			restrict_to_domain: this.restrict_to_domain,
 			stats_filter: this.stats_filter,
@@ -24,12 +26,13 @@ export default class ShortcutWidget extends Widget {
 		this.widget.click(() => {
 			if (this.in_customize_mode) return;
 
-			let route = generate_route({
+			let route = frappe.utils.generate_route({
 				route: this.route,
 				name: this.link_to,
 				type: this.type,
 				is_query_report: this.is_query_report,
 				doctype: this.ref_doctype,
+				doc_view: this.doc_view
 			});
 
 			let filters = this.get_doctype_filter();
@@ -87,11 +90,10 @@ export default class ShortcutWidget extends Widget {
 		const label = get_label();
 		const buttons = $(`<div class="small pill">${label}</div>`);
 		if (this.color) {
-			buttons.css("background-color", this.color);
-			buttons.css(
-				"color",
-				frappe.ui.color.get_contrast_color(this.color)
-			);
+			let bg_color = count ? this.color: '#EEEEEE';
+			let text_color = count ? frappe.ui.color.get_contrast_color(bg_color): '#8D99A6';
+			buttons.css("background-color", bg_color);
+			buttons.css("color", text_color);
 		}
 
 		buttons.appendTo(this.action_area);

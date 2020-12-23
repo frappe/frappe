@@ -99,15 +99,16 @@ def application(request):
 		frappe.monitor.stop(response)
 		frappe.recorder.dump()
 
-		frappe.logger("frappe.web", allow_site=frappe.local.site).info({
-			"site": get_site_name(request.host),
-			"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
-			"base_url": getattr(request, "base_url", "NOTFOUND"),
-			"full_path": getattr(request, "full_path", "NOTFOUND"),
-			"method": getattr(request, "method", "NOTFOUND"),
-			"scheme": getattr(request, "scheme", "NOTFOUND"),
-			"http_status_code": getattr(response, "status_code", "NOTFOUND")
-		})
+		if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
+			frappe.logger("frappe.web", allow_site=frappe.local.site).info({
+				"site": get_site_name(request.host),
+				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
+				"base_url": getattr(request, "base_url", "NOTFOUND"),
+				"full_path": getattr(request, "full_path", "NOTFOUND"),
+				"method": getattr(request, "method", "NOTFOUND"),
+				"scheme": getattr(request, "scheme", "NOTFOUND"),
+				"http_status_code": getattr(response, "status_code", "NOTFOUND")
+			})
 
 		if response and hasattr(frappe.local, 'rate_limiter'):
 			response.headers.extend(frappe.local.rate_limiter.headers())
@@ -159,6 +160,10 @@ def handle_exception(e):
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
 
+	if frappe.conf.get('developer_mode'):
+		# don't fail silently
+		print(frappe.get_traceback())
+
 	if frappe.get_request_header('Accept') and (frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept')):
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
@@ -192,7 +197,8 @@ def handle_exception(e):
 
 	else:
 		traceback = "<pre>" + sanitize_html(frappe.get_traceback()) + "</pre>"
-		if frappe.local.flags.disable_traceback:
+		# disable traceback in production if flag is set
+		if frappe.local.flags.disable_traceback and not frappe.local.dev_server:
 			traceback = ""
 
 		frappe.respond_as_web_page("Server Error",

@@ -35,13 +35,13 @@
 {% if parent %}
 <li class="nav-item">
 	<a class="nav-link" href="{{ (item.url or '')|abs_url }}"
-		{{ item.target or ''}}>
+		{% if item.open_in_new_tab %} target="_blank" {% endif %}>
 		{{ item.label }}
 	</a>
 </li>
 {% else %}
 <a class="dropdown-item" href="{{ (item.url or '') | abs_url }}"
-	{{ item.target or '' }}>
+	{% if item.open_in_new_tab %} target="_blank" {% endif %}>
 	{{ item.label }}
 </a>
 {% endif %}
@@ -90,7 +90,7 @@
 
 </ul>
 {%- if call_to_action -%}
-<a class="btn btn-primary" href="{{ call_to_action_url | abs_url }}">
+<a class="btn btn-primary navbar-cta" href="{{ call_to_action_url | abs_url }}">
 	{{ call_to_action }}
 </a>
 {%- endif -%}

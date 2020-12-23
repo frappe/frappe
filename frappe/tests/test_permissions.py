@@ -59,7 +59,7 @@ class TestPermissions(unittest.TestCase):
 		self.assertTrue(post.has_permission("read"))
 
 	def test_user_permissions_in_doc(self):
-		add_user_permission("Blog Category", "_Test Blog Category 1",
+		add_user_permission("Blog Category", "-test-blog-category-1",
 			"test2@example.com")
 
 		frappe.set_user("test2@example.com")
@@ -73,7 +73,7 @@ class TestPermissions(unittest.TestCase):
 		self.assertTrue(get_doc_permissions(post1).get("read"))
 
 	def test_user_permissions_in_report(self):
-		add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com")
+		add_user_permission("Blog Category", "-test-blog-category-1", "test2@example.com")
 
 		frappe.set_user("test2@example.com")
 		names = [d.name for d in frappe.get_list("Blog Post", fields=["name", "blog_category"])]
@@ -86,23 +86,23 @@ class TestPermissions(unittest.TestCase):
 		self.assertFalse(doc.get("blog_category"))
 
 		# Fetch default based on single user permission
-		add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com")
+		add_user_permission("Blog Category", "-test-blog-category-1", "test2@example.com")
 
 		frappe.set_user("test2@example.com")
 		doc = frappe.new_doc("Blog Post")
-		self.assertEqual(doc.get("blog_category"), "_Test Blog Category 1")
+		self.assertEqual(doc.get("blog_category"), "-test-blog-category-1")
 
 		# Don't fetch default if user permissions is more than 1
-		add_user_permission("Blog Category", "_Test Blog Category", "test2@example.com", ignore_permissions=True)
+		add_user_permission("Blog Category", "-test-blog-category", "test2@example.com", ignore_permissions=True)
 		frappe.clear_cache()
 		doc = frappe.new_doc("Blog Post")
 		self.assertFalse(doc.get("blog_category"))
 
 		# Fetch user permission set as default from multiple user permission
-		add_user_permission("Blog Category", "_Test Blog Category 2", "test2@example.com", ignore_permissions=True, is_default=1)
+		add_user_permission("Blog Category", "-test-blog-category-2", "test2@example.com", ignore_permissions=True, is_default=1)
 		frappe.clear_cache()
 		doc = frappe.new_doc("Blog Post")
-		self.assertEqual(doc.get("blog_category"), "_Test Blog Category 2")
+		self.assertEqual(doc.get("blog_category"), "-test-blog-category-2")
 
 	def test_user_link_match_doc(self):
 		blogger = frappe.get_doc("Blogger", "_Test Blogger 1")
@@ -215,7 +215,7 @@ class TestPermissions(unittest.TestCase):
 		frappe.clear_cache(doctype='DocType')
 
 	def test_user_permission_doctypes(self):
-		add_user_permission("Blog Category", "_Test Blog Category 1",
+		add_user_permission("Blog Category", "-test-blog-category-1",
 			"test2@example.com")
 		add_user_permission("Blogger", "_Test Blogger 1",
 			"test2@example.com")
@@ -235,7 +235,7 @@ class TestPermissions(unittest.TestCase):
 	def if_owner_setup(self):
 		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
 
-		add_user_permission("Blog Category", "_Test Blog Category 1",
+		add_user_permission("Blog Category", "-test-blog-category-1",
 			"test2@example.com")
 		add_user_permission("Blogger", "_Test Blogger 1",
 			"test2@example.com")
@@ -254,7 +254,7 @@ class TestPermissions(unittest.TestCase):
 
 		doc = frappe.get_doc({
 			"doctype": "Blog Post",
-			"blog_category": "_Test Blog Category",
+			"blog_category": "-test-blog-category",
 			"blogger": "_Test Blogger 1",
 			"title": "_Test Blog Post Title",
 			"content": "_Test Blog Post Content"
@@ -263,14 +263,14 @@ class TestPermissions(unittest.TestCase):
 		self.assertRaises(frappe.PermissionError, doc.insert)
 
 		frappe.set_user('test1@example.com')
-		add_user_permission("Blog Category", "_Test Blog Category",
+		add_user_permission("Blog Category", "-test-blog-category",
 			"test2@example.com")
 
 		frappe.set_user("test2@example.com")
 		doc.insert()
 
 		frappe.set_user("Administrator")
-		remove_user_permission("Blog Category", "_Test Blog Category",
+		remove_user_permission("Blog Category", "-test-blog-category",
 			"test2@example.com")
 
 		frappe.set_user("test2@example.com")
@@ -286,13 +286,13 @@ class TestPermissions(unittest.TestCase):
 	def test_ignore_user_permissions_if_missing(self):
 		"""If there are no user permissions, then allow as per role"""
 
-		add_user_permission("Blog Category", "_Test Blog Category",
+		add_user_permission("Blog Category", "-test-blog-category",
 			"test2@example.com")
 		frappe.set_user("test2@example.com")
 
 		doc = frappe.get_doc({
 			"doctype": "Blog Post",
-			"blog_category": "_Test Blog Category 2",
+			"blog_category": "-test-blog-category-2",
 			"blogger": "_Test Blogger 1",
 			"title": "_Test Blog Post Title",
 			"content": "_Test Blog Post Content"
@@ -301,7 +301,7 @@ class TestPermissions(unittest.TestCase):
 		self.assertFalse(doc.has_permission("write"))
 
 		frappe.set_user("Administrator")
-		remove_user_permission("Blog Category", "_Test Blog Category",
+		remove_user_permission("Blog Category", "-test-blog-category",
 			"test2@example.com")
 
 		frappe.set_user("test2@example.com")
@@ -420,7 +420,7 @@ class TestPermissions(unittest.TestCase):
 
 		doc = frappe.get_doc({
 			"doctype": "Blog Post",
-			"blog_category": "_Test Blog Category",
+			"blog_category": "-test-blog-category",
 			"blogger": "_Test Blogger 1",
 			"title": "_Test Blog Post Title",
 			"content": "_Test Blog Post Content"
@@ -454,7 +454,7 @@ class TestPermissions(unittest.TestCase):
 
 		add_user_permission('Blog Post', '-test-blog-post-1', 'test2@example.com')
 		add_user_permission('Blog Post', '-test-blog-post-2', 'test2@example.com')
-		add_user_permission("Blog Category", '_Test Blog Category 1', 'test2@example.com')
+		add_user_permission("Blog Category", '-test-blog-category-1', 'test2@example.com')
 
 		deleted_user_permission_count = clear_user_permissions('test2@example.com', 'Blog Post')
 
