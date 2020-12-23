@@ -30,9 +30,12 @@ class DBTable:
 		self.get_columns_from_docfields()
 
 	def sync(self):
-		if self.is_new() and not self.meta.get('virtual_doctype'):
+		if self.meta.get('virtual_doctype'):
+			# no schema to sync for virtual doctypes
+			return
+		if self.is_new():
 			self.create()
-		elif not self.meta.get('virtual_doctype'):
+		else:
 			frappe.cache().hdel('table_columns', self.table_name)
 			self.alter()
 
