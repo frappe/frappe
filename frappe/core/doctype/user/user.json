@@ -53,7 +53,6 @@
   "thread_notify",
   "send_me_a_copy",
   "allowed_in_mentions",
-  "email_inbox",
   "user_emails",
   "sb_allow_modules",
   "modules_html",
@@ -643,11 +642,6 @@
   },
   {
    "group": "Settings",
-   "link_doctype": "Assignment Rule",
-   "link_fieldname": "user"
-  },
-  {
-   "group": "Settings",
    "link_doctype": "Document Follow",
    "link_fieldname": "user"
   },
@@ -663,7 +657,11 @@
   }
  ],
  "max_attachments": 5,
+<<<<<<< HEAD
  "modified": "2020-12-24 19:48:49.677800",
+=======
+ "modified": "2020-12-23 12:43:51.470188",
+>>>>>>> bfdf108343 (fix(minor): fix link in User doctype)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -691,6 +689,7 @@
   }
  ],
  "quick_entry": 1,
+ "route": "user",
  "search_fields": "full_name",
  "show_name_in_global_search": 1,
  "sort_field": "modified",
