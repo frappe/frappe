@@ -1,4 +1,4 @@
-{
+"label": "EMail"{
  "actions": [],
  "creation": "2014-04-17 16:53:52.640856",
  "doctype": "DocType",
@@ -357,7 +357,7 @@
    "collapsible": 1,
    "fieldname": "email",
    "fieldtype": "Section Break",
-   "label": "EMail"
+   "label": "Email"
   },
   {
    "description": "Your organization name and address for the email footer.",
