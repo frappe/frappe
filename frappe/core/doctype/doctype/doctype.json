@@ -22,7 +22,7 @@
   "track_views",
   "custom",
   "beta",
-  "virtual_doctype",
+  "is_virtual",
   "fields_section_break",
   "fields",
   "sb1",
@@ -532,9 +532,9 @@
   },
   {
    "default": "0",
-   "fieldname": "virtual_doctype",
+   "fieldname": "is_virtual",
    "fieldtype": "Check",
-   "label": "Virtual DocType"
+   "label": "Is Virtual"
   }
  ],
  "icon": "fa fa-bolt",
@@ -616,7 +616,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2020-12-14 12:48:33.752219",
+ "modified": "2020-12-23 23:48:33.752219",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
