@@ -26,8 +26,6 @@ from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
 from frappe.modules.import_file import get_file_path
 from frappe.model.meta import Meta
-from frappe.desk.utils import get_doctype_route
-
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 class UniqueFieldnameError(frappe.ValidationError): pass
@@ -190,9 +188,6 @@ class DocType(Document):
 
 	def validate_website(self):
 		"""Ensure that website generator has field 'route'"""
-		if not self.istable and not self.route:
-			self.route = get_doctype_route(self.name)
-
 		if self.route:
 			self.route = self.route.strip('/')
 
