@@ -133,7 +133,7 @@ frappe.form.formatters = {
 					#Form/${encodeURIComponent(doctype)}/${encodeURIComponent(original_value)}
 					data-doctype="${doctype}"
 					data-name="${original_value}">
-					${__(options && options.label || value)}</a>`
+					${__(options && options.label || value)}</a>`;
 			} else {
 				return value;
 			}

@@ -135,7 +135,7 @@ $.extend(frappe.model, {
 			let cached_timestamp = null;
 			let cached_doc = null;
 
-			let cached_docs = frappe.model.get_from_localstorage(doctype)
+			let cached_docs = frappe.model.get_from_localstorage(doctype);
 
 			if (cached_docs) {
 				cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
