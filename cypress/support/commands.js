@@ -209,7 +209,7 @@ Cypress.Commands.add('awesomebar', text => {
 });
 
 Cypress.Commands.add('new_form', doctype => {
-	let route = `form/${doctype}/new`;
+	let route = `${doctype.toLowerCase().replace(' ', '-')}/new`;
 	cy.visit(`/app/${route}`);
 	cy.get('body').should('have.attr', 'data-route', route);
 	cy.get('body').should('have.attr', 'data-ajax-state', 'complete');
