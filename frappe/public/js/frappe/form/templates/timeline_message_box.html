@@ -2,7 +2,6 @@
 	<span class="flex justify-between">
 		<span class="text-color flex">
 			{% if (doc.comment_type && doc.comment_type == "Comment") { %}
-				{% console.log(doc) %}
 				<span>
 					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }} {{ __("commented") }}
 					<span class="text-muted margin-left">
