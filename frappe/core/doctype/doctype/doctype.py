@@ -987,11 +987,15 @@ def validate_fields(meta):
 	check_image_field(meta)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 =======
 def validate_permissions_for_doctype(doctype, for_remove=False, alert=True):
 >>>>>>> 568426668f... feat: add alert flag for permission validation
+=======
+def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
+>>>>>>> 424c0c50f8... fix: set alert flag to false by default
 	"""Validates if permissions are set correctly."""
 	doctype = frappe.get_doc("DocType", doctype)
 	validate_permissions(doctype, for_remove, alert=alert)
@@ -1018,11 +1022,15 @@ def clear_permissions_cache(doctype):
 		frappe.clear_cache(user=user)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 def validate_permissions(doctype, for_remove=False):
 =======
 def validate_permissions(doctype, for_remove=False, alert=True):
 >>>>>>> 568426668f... feat: add alert flag for permission validation
+=======
+def validate_permissions(doctype, for_remove=False, alert=False):
+>>>>>>> 424c0c50f8... fix: set alert flag to false by default
 	permissions = doctype.get("permissions")
 	# Some DocTypes may not have permissions by default, don't show alert for them
 	if not permissions and alert:

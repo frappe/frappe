@@ -90,7 +90,7 @@ def update(doctype, role, permlevel, ptype, value=None):
 	    str: Refresh flag is permission is updated successfully
 	"""
 	frappe.only_for("System Manager")
-	out = update_permission_property(doctype, role, permlevel, ptype, value, alert=False)
+	out = update_permission_property(doctype, role, permlevel, ptype, value)
 	return 'refresh' if out else None
 
 @frappe.whitelist()
@@ -104,7 +104,7 @@ def remove(doctype, role, permlevel):
 	if not frappe.get_all('Custom DocPerm', dict(parent=doctype)):
 		frappe.throw(_('There must be atleast one permission rule.'), title=_('Cannot Remove'))
 
-	validate_permissions_for_doctype(doctype, for_remove=True)
+	validate_permissions_for_doctype(doctype, for_remove=True, alert=True)
 
 @frappe.whitelist()
 def reset(doctype):

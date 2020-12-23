@@ -446,7 +446,7 @@ def can_export(doctype, raise_exception=False):
 			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
 		return has_access
 
-def update_permission_property(doctype, role, permlevel, ptype, value=None, validate=True, alert=True):
+def update_permission_property(doctype, role, permlevel, ptype, value=None, validate=True):
 	'''Update a property in Custom Perm'''
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
 	out = setup_custom_perms(doctype)
