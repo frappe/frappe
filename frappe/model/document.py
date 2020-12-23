@@ -687,7 +687,7 @@ class Document(BaseDocument):
 		`self.check_docstatus_transition`."""
 		conflict = False
 		self._action = "save"
-		if not self.get('__islocal') and not self.meta.virtual_doctype:
+		if not self.get('__islocal') and not self.meta.get('virtual_doctype'):
 			if self.meta.issingle:
 				modified = frappe.db.sql("""select value from tabSingles
 					where doctype=%s and field='modified' for update""", self.doctype)
