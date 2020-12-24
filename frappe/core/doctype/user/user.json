@@ -657,11 +657,7 @@
   }
  ],
  "max_attachments": 5,
-<<<<<<< HEAD
  "modified": "2020-12-24 19:48:49.677800",
-=======
- "modified": "2020-12-23 12:43:51.470188",
->>>>>>> bfdf108343 (fix(minor): fix link in User doctype)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
