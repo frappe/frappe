@@ -95,6 +95,7 @@ frappe.ui.Filter = class {
 	set_events() {
 		this.filter_edit_area.find('span.remove-filter').on('click', () => {
 			this.remove();
+			this.on_change();
 		});
 
 		this.filter_edit_area.find('.condition').change(() => {
@@ -279,6 +280,13 @@ frappe.ui.Filter = class {
 		if (old_text && f.fieldtype === old_fieldtype) {
 			this.field.set_value(old_text);
 		}
+
+		this.bind_filter_field_events()
+	}
+
+	bind_filter_field_events() {
+		// Apply filter on input focus out
+		this.field.$input.on('focusout', () => this.on_change());
 
 		// run on enter
 		$(this.field.wrapper)
