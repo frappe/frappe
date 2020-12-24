@@ -481,11 +481,6 @@ class TestDocType(unittest.TestCase):
 		"""Test virtual DOcTYpe."""
 		virtual_doc = new_doctype('Test Virtual Doctype')
 		virtual_doc.is_virtual = 1
-		virtual_doc.permissions =  [{
-			"role": "System Manager",
-			"read": 1,
-			"write": 1,
-		}]
 		virtual_doc.insert()
 		virtual_doc.save()
 		doc = frappe.get_doc("DocType", "Test Virtual Doctype")
