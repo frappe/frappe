@@ -1,4 +1,4 @@
-frappe.provide('frappe.widget.utils');
+frappe.provide('frappe.utils.utils');
 
 frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 	horizontal: false,
