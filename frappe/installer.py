@@ -19,7 +19,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
 
-	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type)
+	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
 	frappe.flags.in_install_db = True
 
 	frappe.flags.root_login = root_login
@@ -218,14 +218,14 @@ def init_singles():
 			doc.flags.ignore_validate=True
 			doc.save()
 
-def make_conf(db_name=None, db_password=None, site_config=None, db_type=None):
+def make_conf(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
 	site = frappe.local.site
-	make_site_config(db_name, db_password, site_config, db_type=db_type)
+	make_site_config(db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)
 
-def make_site_config(db_name=None, db_password=None, site_config=None, db_type=None):
+def make_site_config(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
 
@@ -235,6 +235,12 @@ def make_site_config(db_name=None, db_password=None, site_config=None, db_type=N
 
 			if db_type:
 				site_config['db_type'] = db_type
+
+			if db_host:
+				site_config['db_host'] = db_host
+
+			if db_port:
+				site_config['db_port'] = db_port
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
