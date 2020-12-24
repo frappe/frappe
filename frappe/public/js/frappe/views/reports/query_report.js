@@ -771,7 +771,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				${no_of_reports_html}
 			</p>`;
 
-		let get_item_html = item => `<a class="underline" href="/app/form/prepared-report/${item.name}">${item.name}</a>`;
+		let get_item_html = item => `<a class="underline" href="/app/prepared-report/${item.name}">${item.name}</a>`;
 
 		warning_message += reports.map(get_item_html).join(', ');
 
@@ -806,8 +806,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
-				let alert_message = `Report initiated. You can track its status
-					<a class="bold" href='/app/Form/Prepared Report/${data.name}'>here</a>`;
+				let alert_message = `<a href='/app/prepared-report/${data.name}'>` + 
+					__('Report initiated, click to view status') + `</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'}, 10);
 				this.toggle_nothing_to_show(true);
 			});

@@ -77,7 +77,7 @@ context('Control Link', () => {
 			cy.get('.frappe-control[data-fieldname=link] .link-btn')
 				.should('be.visible')
 				.click();
-			cy.location('hash').should('eq', `/app/Form/ToDo/${todos[0]}`);
+			cy.location('hash').should('eq', `/app/todo/${todos[0]}`);
 		});
 	});
 });
