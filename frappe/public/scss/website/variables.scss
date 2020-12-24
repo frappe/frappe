@@ -19,6 +19,13 @@ $text-muted: $gray-600 !default;
 $border-color: $gray-300 !default;
 $headings-color: $gray-900 !default;
 
+$container-max-widths: (
+	sm: 540px,
+	md: 840px,
+	lg: 1090px,
+	xl: 1290px
+);
+
 $font-sizes: (
 	"xs": 0.75rem,
 	"sm": 0.875rem,

@@ -1,6 +1,7 @@
 @import "variables";
 @import "css_variables";
-@import "mixins";
+@import "../common/mixins.scss";
+@import "../common/global.scss";
 
 @import "~bootstrap/scss/bootstrap";
 @import "global";
