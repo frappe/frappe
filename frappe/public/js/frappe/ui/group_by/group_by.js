@@ -76,7 +76,7 @@ frappe.ui.GroupBy = class {
 			this.update_group_by_button();
 		});
 
-		$(window).on('hashchange', () => {
+		frappe.router.on('change', () => {
 			this.group_by_button.popover('hide');
 		});
 	}
