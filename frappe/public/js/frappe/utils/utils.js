@@ -1145,17 +1145,17 @@ Object.assign(frappe.utils, {
 							route = `${doctype_slug}/new`;
 							break;
 						case "Calendar":
-							route = `${doctype_slug}/view/calendar/Default`;
+							route = `${doctype_slug}/view/calendar/default`;
 							break;
 						default:
-							frappe.throw({ message: __("Not a valid DocType view:") + item.doc_view, title: __("Unknown View") });
+							frappe.throw({ message: __("Not a valid view:") + item.doc_view, title: __("Unknown View") });
 							route = "";
 					}
 				}
 			} else if (type === "report" && item.is_query_report) {
 				route = "query-report/" + item.name;
 			} else if (type === "report") {
-				route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+				route = frappe.router.slug(item.name) + "/view/report";
 			} else if (type === "page") {
 				route = item.name;
 			} else if (type === "dashboard") {

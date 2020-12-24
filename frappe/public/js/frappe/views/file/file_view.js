@@ -292,7 +292,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 							acc += '/' + curr;
 						}
 						return acc;
-					}, '/app/List/File');
+					}, '/app/file');
 
 					return `<a href="${route}">${folder}</a>`;
 				})
