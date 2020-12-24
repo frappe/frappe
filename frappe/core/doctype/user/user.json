@@ -87,7 +87,6 @@
    "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "hidden": 1,
    "label": "Enabled",
    "oldfieldname": "enabled",
    "oldfieldtype": "Check",
@@ -664,7 +663,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2020-10-07 19:48:49.677800",
+ "modified": "2020-12-24 19:48:49.677800",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
