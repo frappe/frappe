@@ -477,6 +477,21 @@ class TestDocType(unittest.TestCase):
 		})
 		self.assertRaises(InvalidFieldNameError, doc.validate_links_table_fieldnames)
 
+	def test_create_virtual_doctype(self):
+		"""Test virtual DOcTYpe."""
+		virtual_doc = new_doctype('Test Virtual Doctype')
+		virtual_doc.is_virtual = 1
+		virtual_doc.permissions =  [{
+			"role": "System Manager",
+			"read": 1,
+			"write": 1,
+		}]
+		virtual_doc.insert()
+		virtual_doc.save()
+		doc = frappe.get_doc("DocType", "Test Virtual Doctype")
+
+		self.assertEqual(doc.is_virtual, 1)
+
 
 def new_doctype(name, unique=0, depends_on='', fields=None):
 	doc = frappe.get_doc({
