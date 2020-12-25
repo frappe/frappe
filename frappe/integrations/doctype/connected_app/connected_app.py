@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 from urllib.parse import urljoin
+from urllib.parse import urlencode
 
 import frappe
 from frappe import _
@@ -105,7 +106,9 @@ def callback(code=None, state=None):
 		frappe.throw(_('Invalid Method'))
 
 	if frappe.session.user == 'Guest':
-		frappe.throw(_('Log in to access this page.'), frappe.PermissionError)
+		frappe.local.response['type'] = 'redirect'
+		frappe.local.response['location'] = '/login?' + urlencode({'redirect-to': frappe.request.url})
+		return
 
 	path = frappe.request.path[1:].split('/')
 	if len(path) != 4 or not path[3]:
