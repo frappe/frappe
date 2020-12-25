@@ -103,7 +103,7 @@ def callback(code=None, state=None):
 	token.
 	"""
 	if frappe.request.method != 'GET':
-		frappe.throw(_('Invalid Method'))
+		frappe.throw(_('Invalid request method: {}').format(frappe.request.method))
 
 	if frappe.session.user == 'Guest':
 		frappe.local.response['type'] = 'redirect'
@@ -112,30 +112,23 @@ def callback(code=None, state=None):
 
 	path = frappe.request.path[1:].split('/')
 	if len(path) != 4 or not path[3]:
-		frappe.throw(_('Invalid Parameter(s)'))
+		frappe.throw(_('Invalid Parameters.'))
 
-	connected_app = path[3]
-	token_cache = frappe.get_doc('Token Cache', connected_app + '-' + frappe.session.user)
-	if not token_cache:
-		frappe.throw(_('State Not Found'))
+	connected_app = frappe.get_doc('Connected App', path[3])
+	token_cache = frappe.get_doc('Token Cache', connected_app.name + '-' + frappe.session.user)
 
 	if state != token_cache.state:
-		frappe.throw(_('Invalid State'))
+		frappe.throw(_('Invalid state.'))
 
-	try:
-		app = frappe.get_doc('Connected App', connected_app)
-	except frappe.exceptions.DoesNotExistError:
-		frappe.throw(_('Invalid App'))
-
-	oauth = app.get_oauth2_session(init=True)
-	query_params = app.get_query_params()
-	token = oauth.fetch_token(app.token_uri,
+	oauth_session = connected_app.get_oauth2_session(init=True)
+	query_params = connected_app.get_query_params()
+	token = oauth_session.fetch_token(connected_app.token_uri,
 		code=code,
-		client_secret=app.get_password('client_secret'),
+		client_secret=connected_app.get_password('client_secret'),
 		include_client_id=True,
 		**query_params
 	)
 	token_cache.update_data(token)
 
 	frappe.local.response['type'] = 'redirect'
-	frappe.local.response['location'] = token_cache.get('success_uri') or app.get_url()
+	frappe.local.response['location'] = token_cache.get('success_uri') or connected_app.get_url()
