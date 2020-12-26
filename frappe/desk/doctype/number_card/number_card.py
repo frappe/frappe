@@ -129,11 +129,11 @@ def calculate_previous_result(doc, filters):
 	filters = frappe.parse_json(filters)
 	old_filter = filters
 	filters = []
-	cond = ""
 	for filter in old_filter:
 		if "Timespan" in filter:
 			cond = str(filter[1])
 			filters.append([doc.document_type, cond, '>', previous_date_from])
+			filters.append([doc.document_type, cond, '<', previous_date])
 		else:
 			filters.append(filter)
 
