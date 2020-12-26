@@ -14,7 +14,6 @@ from frappe.utils.safe_exec import get_safe_globals
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
-from frappe.integrations.doctype.twilio_settings.twilio_settings import send_whatsapp_message
 from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 
@@ -29,7 +28,7 @@ class Notification(Document):
 			self.name = self.subject
 
 	def validate(self):
-		if self.channel not in ('WhatsApp', 'SMS'):
+		if self.channel in ("Email", "Slack", "System Notification"):
 			validate_template(self.subject)
 
 		validate_template(self.message)
@@ -43,7 +42,6 @@ class Notification(Document):
 		self.validate_forbidden_types()
 		self.validate_condition()
 		self.validate_standard()
-		self.validate_twilio_settings()
 		frappe.cache().hdel('notifications', self.document_type)
 
 	def on_update(self):
@@ -69,11 +67,6 @@ def get_context(context):
 	def validate_standard(self):
 		if self.is_standard and not frappe.conf.developer_mode:
 			frappe.throw(_('Cannot edit Standard Notification. To edit, please disable this and duplicate it'))
-
-	def validate_twilio_settings(self):
-		if self.enabled and self.channel == "WhatsApp" \
-			and not frappe.db.get_single_value("Twilio Settings", "enabled"):
-			frappe.throw(_("Please enable Twilio settings to send WhatsApp messages"))
 
 	def validate_condition(self):
 		temp_doc = frappe.new_doc(self.document_type)
@@ -137,9 +130,6 @@ def get_context(context):
 			if self.channel == 'Slack':
 				self.send_a_slack_msg(doc, context)
 
-			if self.channel == 'WhatsApp':
-				self.send_whatsapp_msg(doc, context)
-
 			if self.channel == 'SMS':
 				self.send_sms(doc, context)
 
@@ -191,6 +181,7 @@ def get_context(context):
 			'document_type': doc.doctype,
 			'document_name': doc.name,
 			'subject': subject,
+			'from_user': doc.modified_by or doc.owner,
 			'email_content': frappe.render_template(self.message, context),
 			'attached_file': attachments and json.dumps(attachments[0])
 		}
@@ -229,13 +220,6 @@ def get_context(context):
 			message=frappe.render_template(self.message, context),
 			reference_doctype=doc.doctype,
 			reference_name=doc.name)
-
-	def send_whatsapp_msg(self, doc, context):
-		send_whatsapp_message(
-			sender=self.twilio_number,
-			receiver_list=self.get_receiver_list(doc, context),
-			message=frappe.render_template(self.message, context),
-		)
 
 	def send_sms(self, doc, context):
 		send_sms(
@@ -302,7 +286,7 @@ def get_context(context):
 
 			# For sending messages to the owner's mobile phone number
 			if recipient.receiver_by_document_field == 'owner':
-				receiver_list.append(get_user_info(doc.get('owner'), 'mobile_no'))
+				receiver_list += get_user_info([dict(user_name=doc.get('owner'))], 'mobile_no')
 			# For sending messages to the number specified in the receiver field
 			elif recipient.receiver_by_document_field:
 				receiver_list.append(doc.get(recipient.receiver_by_document_field))

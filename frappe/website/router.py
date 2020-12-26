@@ -393,7 +393,6 @@ def load_properties_from_source(page_info):
 		and "</body>" not in page_info.source):
 		page_info.source = '''{{% extends "{0}" %}}
 			{{% block page_content %}}{1}{{% endblock %}}'''.format(page_info.base_template, page_info.source)
-		page_info.no_cache = 1
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1

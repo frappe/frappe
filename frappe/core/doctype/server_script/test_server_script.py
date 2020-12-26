@@ -46,6 +46,22 @@ frappe.response['message'] = 'hello'
 		script = '''
 frappe.flags = 'hello'
 '''
+	),
+	dict(
+		name='test_permission_query',
+		script_type = 'Permission Query',
+		reference_doctype = 'ToDo',
+		script = '''
+conditions = '1 = 1'
+'''),
+  dict(
+		name='test_invalid_namespace_method',
+		script_type = 'DocType Event',
+		doctype_event = 'Before Insert',
+		reference_doctype = 'Note',
+		script = '''
+frappe.method_that_doesnt_exist("do some magic")
+'''
 	)
 ]
 class TestServerScript(unittest.TestCase):
@@ -85,3 +101,12 @@ class TestServerScript(unittest.TestCase):
 
 	def test_api_return(self):
 		self.assertEqual(frappe.get_doc('Server Script', 'test_return_value').execute_method(), 'hello')
+
+	def test_permission_query(self):
+		self.assertTrue('where (1 = 1)' in frappe.db.get_list('ToDo', return_query=1))
+		self.assertTrue(isinstance(frappe.db.get_list('ToDo'), list))
+
+	def test_attribute_error(self):
+		"""Raise AttributeError if method not found in Namespace"""
+		note = frappe.get_doc({"doctype": "Note", "title": "Test Note: Server Script"})
+		self.assertRaises(AttributeError, note.insert)

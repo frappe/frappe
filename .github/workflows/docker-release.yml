@@ -1,9 +1,10 @@
-name: Trigger Docker build on release
+name: 'Trigger Docker build on release'
 on:
   release:
     types: [released]
 jobs:
   curl:
+    name: 'Trigger Docker build on release'
     runs-on: ubuntu-latest
     container:
       image: alpine:latest

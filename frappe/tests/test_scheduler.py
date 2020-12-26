@@ -44,12 +44,7 @@ class TestScheduler(TestCase):
 		job.db_set('last_execution', '2010-01-01 00:00:00')
 		frappe.db.commit()
 
-		# 1 job in queue
-		self.assertTrue(job.enqueue())
-		job.db_set('last_execution', '2010-01-01 00:00:00')
-		frappe.db.commit()
-
-		# 2nd job not loaded
+		# 1st job is in the queue (or running), don't enqueue it again
 		self.assertFalse(job.enqueue())
 		frappe.db.sql('DELETE FROM `tabScheduled Job Log` WHERE `scheduled_job_type`=%s', job.name)
 

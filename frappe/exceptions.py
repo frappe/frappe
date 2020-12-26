@@ -76,6 +76,7 @@ class UnknownDomainError(Exception): pass
 class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass
 class MandatoryError(ValidationError): pass
+class NonNegativeError(ValidationError): pass
 class InvalidSignatureError(ValidationError): pass
 class RateLimitExceededError(ValidationError): pass
 class CannotChangeConstantError(ValidationError): pass
@@ -105,7 +106,10 @@ class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
 class FileAlreadyAttachedException(Exception): pass
 class DocumentAlreadyRestored(Exception): pass
+class AttachmentLimitReached(Exception): pass
 # OAuth exceptions
 class InvalidAuthorizationHeader(CSRFTokenError): pass
 class InvalidAuthorizationPrefix(CSRFTokenError): pass
 class InvalidAuthorizationToken(CSRFTokenError): pass
+class InvalidDatabaseFile(ValidationError): pass
+class ExecutableNotFound(FileNotFoundError): pass

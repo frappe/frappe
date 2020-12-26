@@ -1,5 +1,5 @@
 {% macro footer_link(item) %}
-<a href="{{ item.url | abs_url }}" {{ item.target }} class="footer-link"  rel="noreferrer">
+<a href="{{ item.url | abs_url }}" {% if item.open_in_new_tab %} target="_blank" {% endif %} class="footer-link" rel="noreferrer">
 	{%- if item.icon -%}
 	<img src="{{ item.icon }}" alt="{{ item.label }}">
 	{%- else -%}

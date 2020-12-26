@@ -536,6 +536,8 @@ class Email:
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
 				pass
+			except frappe.FileAlreadyAttachedException:
+				pass
 			except frappe.DuplicateEntryError:
 				# same file attached twice??
 				pass

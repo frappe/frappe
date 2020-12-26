@@ -100,6 +100,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		doc.print_section_headings = print_format.show_section_headings
 		doc.print_line_breaks = print_format.line_breaks
 		doc.align_labels_right = print_format.align_labels_right
+		doc.absolute_value = print_format.absolute_value
 
 		def get_template_from_string():
 			return jenv.from_string(get_print_format(doc.doctype,

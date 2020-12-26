@@ -16,6 +16,7 @@
    "reqd": 0
   },
   {
+   "default": "Left",
    "fieldname": "align",
    "fieldtype": "Select",
    "label": "Align",
@@ -42,8 +43,9 @@
   }
  ],
  "idx": 0,
- "modified": "2020-09-11 15:52:40.552274",
+ "modified": "2020-10-26 17:40:20.365936",
  "modified_by": "Administrator",
+ "module": "Website",
  "name": "Section with Collapsible Content",
  "owner": "Administrator",
  "standard": 1,

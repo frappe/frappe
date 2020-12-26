@@ -19,7 +19,7 @@ from __future__ import unicode_literals, print_function
 from datetime import datetime
 from six.moves import range
 import frappe, json, os
-from frappe.utils import cstr, cint
+from frappe.utils import cstr, cint, cast_fieldtype
 from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes, table_fields
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
@@ -103,6 +103,7 @@ class Meta(Document):
 		self.sort_fields()
 		self.get_valid_columns()
 		self.set_custom_permissions()
+		self.add_custom_links_and_actions()
 
 	def as_dict(self, no_nulls = False):
 		def serialize(doc):
@@ -208,7 +209,8 @@ class Meta(Document):
 				'owner': _('Created By'),
 				'modified_by': _('Modified By'),
 				'creation': _('Created On'),
-				'modified': _('Last Modified On')
+				'modified': _('Last Modified On'),
+				'_assign': _('Assigned To')
 			}.get(fieldname) or _('No Label')
 		return label
 
@@ -305,6 +307,11 @@ class Meta(Document):
 		self.extend("fields", custom_fields)
 
 	def apply_property_setters(self):
+		"""
+		Property Setters are set via Customize Form. They override standard properties
+		of the doctype or its child properties like fields, links etc. This method
+		applies the customized properties over the standard meta object
+		"""
 		if not frappe.db.table_exists('Property Setter'):
 			return
 
@@ -313,26 +320,52 @@ class Meta(Document):
 
 		if not property_setters: return
 
-		integer_docfield_properties = [d.fieldname for d in frappe.get_meta('DocField').fields
-			if d.fieldtype in ('Int', 'Check')]
-
 		for ps in property_setters:
 			if ps.doctype_or_field=='DocType':
-				if ps.property_type in ('Int', 'Check'):
-					ps.value = cint(ps.value)
+				self.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
 
-				self.set(ps.property, ps.value)
-			else:
-				docfield = self.get("fields", {"fieldname":ps.field_name}, limit=1)
-				if docfield:
-					docfield = docfield[0]
-				else:
-					continue
+			elif ps.doctype_or_field=='DocField':
+				for d in self.fields:
+					if d.fieldname == ps.field_name:
+						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+						break
 
-				if ps.property in integer_docfield_properties:
-					ps.value = cint(ps.value)
+			elif ps.doctype_or_field=='DocType Link':
+				for d in self.links:
+					if d.name == ps.row_name:
+						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+						break
 
-				docfield.set(ps.property, ps.value)
+			elif ps.doctype_or_field=='DocType Action':
+				for d in self.actions:
+					if d.name == ps.row_name:
+						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+						break
+
+	def add_custom_links_and_actions(self):
+		for doctype, fieldname in (('DocType Link', 'links'), ('DocType Action', 'actions')):
+			# ignore_ddl because the `custom` column was added later via a patch
+			for d in frappe.get_all(doctype, fields='*', filters=dict(parent=self.name, custom=1), ignore_ddl=True):
+				self.append(fieldname, d)
+
+			# set the fields in order if specified
+			# order is saved as `links_order`
+			order = json.loads(self.get('{}_order'.format(fieldname)) or '[]')
+			if order:
+				name_map = {d.name:d for d in self.get(fieldname)}
+				new_list = []
+				for name in order:
+					if name in name_map:
+						new_list.append(name_map[name])
+
+				# add the missing items that have not be added
+				# maybe these items were added to the standard product
+				# after the customization was done
+				for d in self.get(fieldname):
+					if d not in new_list:
+						new_list.append(d)
+
+				self.set(fieldname, new_list)
 
 	def sort_fields(self):
 		"""sort on basis of insert_after"""
@@ -448,9 +481,6 @@ class Meta(Document):
 		if hasattr(self, 'links') and self.links:
 			dashboard_links.extend(self.links)
 
-		if frappe.get_all("Custom Link", {"document_type": self.name}):
-			dashboard_links.extend(frappe.get_doc("Custom Link", self.name).links)
-
 		if not data.transactions:
 			# init groups
 			data.transactions = []
@@ -458,6 +488,9 @@ class Meta(Document):
 
 		for link in dashboard_links:
 			link.added = False
+			if link.hidden:
+				continue
+
 			for group in data.transactions:
 				group = frappe._dict(group)
 				# group found

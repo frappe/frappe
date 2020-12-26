@@ -21,7 +21,7 @@ def follow_document(doctype, doc_name, user, force=False):
 		avoided for some doctype
 		follow only if track changes are set to 1
 	'''
-	if (doctype in ("Communication", "ToDo", "Email Unsubscribe", "File", "Comment")
+	if (doctype in ("Communication", "ToDo", "Email Unsubscribe", "File", "Comment", "Email Account", "Email Domain")
 		or doctype in log_types):
 		return
 

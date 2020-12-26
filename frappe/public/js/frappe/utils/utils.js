@@ -2,7 +2,8 @@
 // MIT License. See license.txt
 
 import deep_equal from "fast-deep-equal";
-frappe.provide('frappe.utils');
+
+frappe.provide("frappe.utils");
 
 Object.assign(frappe.utils, {
 	get_random: function(len) {
@@ -122,32 +123,37 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate, additional_offset, element_to_be_scrolled) {
+	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled) {
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
-
-		var y = 0;
-		if (element && typeof element==="number") {
-			y = element;
-		} else if(element) {
-			var header_offset = $(".navbar").height() + $(".page-head").height();
-			var y = $(element).offset().top - header_offset - cint(additional_offset);
+		let scroll_top = 0;
+		if (element) {
+			// If a number is passed, just subtract the offset,
+			// otherwise calculate scroll position from element
+			scroll_top = typeof element == "number"
+				? element - cint(additional_offset)
+				: this.get_scroll_position(element, additional_offset);
 		}
 
-		if(y < 0) {
-			y = 0;
+		if (scroll_top < 0) {
+			scroll_top = 0;
 		}
 
 		// already there
-		if (y == element_to_be_scrolled.scrollTop()) {
+		if (scroll_top == element_to_be_scrolled.scrollTop()) {
 			return;
 		}
 
-		if (animate !== false) {
-			element_to_be_scrolled.animate({ scrollTop: y });
+		if (animate) {
+			element_to_be_scrolled.animate({ scrollTop: scroll_top });
 		} else {
-			element_to_be_scrolled.scrollTop(y);
+			element_to_be_scrolled.scrollTop(scroll_top);
 		}
 
+	},
+	get_scroll_position: function(element, additional_offset) {
+		let header_offset = $(".navbar").height() + $(".page-head").height();
+		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
+		return scroll_top;
 	},
 	filter_dict: function(dict, filters) {
 		var ret = [];
@@ -892,7 +898,159 @@ Object.assign(frappe.utils, {
 			hide_seconds: docfield.hide_seconds
 		};
 		return duration_options;
-	}
+	},
+
+	generate_route: function(item) {
+		const type = item.type.toLowerCase();
+		if (type === "doctype") {
+			item.doctype = item.name;
+		}
+		let route = "";
+		if (!item.route) {
+			if (item.link) {
+				route = strip(item.link, "#");
+			} else if (type === "doctype") {
+				if (frappe.model.is_single(item.doctype)) {
+					route = "Form/" + item.doctype;
+				} else {
+					if (!item.doc_view) {
+						if (frappe.model.is_tree(item.doctype)) {
+							item.doc_view = "Tree";
+						} else {
+							item.doc_view = "List";
+						}
+					}
+					switch (item.doc_view) {
+						case "List":
+							if (item.filters) {
+								frappe.route_options = item.filters;
+							}
+							route = "List/" + item.doctype;
+							break;
+						case "Tree":
+							route = "Tree/" + item.doctype;
+							break;
+						case "Report Builder":
+							route = "List/" + item.doctype + "/Report";
+							break;
+						case "Dashboard":
+							route = "List/" + item.doctype + "/Dashboard";
+							break;
+						case "New":
+							route = "Form/" + item.doctype + "/New " + item.doctype;
+							break;
+						case "Calendar":
+							route = "List/" + item.doctype + "/Calendar/Default";
+							break;
+						default:
+							frappe.throw({ message: __("Not a valid DocType view:") + item.doc_view, title: __("Unknown View") });
+							route = "";
+					}
+				}
+			} else if (type === "report" && item.is_query_report) {
+				route = "query-report/" + item.name;
+			} else if (type === "report") {
+				route = "List/" + item.doctype + "/Report/" + item.name;
+			} else if (type === "page") {
+				route = item.name;
+			} else if (type === "dashboard") {
+				route = "dashboard/" + item.name;
+			}
+
+			route = "#" + route;
+		} else {
+			route = item.route;
+		}
+
+		if (item.route_options) {
+			route +=
+				"?" +
+				$.map(item.route_options, function (value, key) {
+					return (
+						encodeURIComponent(key) + "=" + encodeURIComponent(value)
+					);
+				}).join("&");
+		}
+
+		// if(type==="page" || type==="help" || type==="report" ||
+		// (item.doctype && frappe.model.can_read(item.doctype))) {
+		//     item.shown = true;
+		// }
+		return route;
+	},
+
+	shorten_number: function (number, country, min_length=4, max_no_of_decimals=2) {
+		/* returns the number as an abbreviated string
+		 * PARAMS
+		 *  number - number to be shortened
+		 *  country - country that determines the numnber system to be used
+		 *  min_length - length below which the number will not be shortened
+		 *	max_no_of_decimals - max number of decimals of the shortened number
+		*/
+
+		// return number if total digits is lesser than min_length
+		const len = String(number).match(/\d/g).length;
+		if (len < min_length) return number.toString();
+
+		const number_system = this.get_number_system(country);
+		let x = Math.abs(Math.round(number));
+		for (const map of number_system) {
+			if (x >= map.divisor) {
+				let result = number/map.divisor;
+				const no_of_decimals = this.get_number_of_decimals(result);
+				/*
+					If no_of_decimals is greater than max_no_of_decimals,
+					round the number to max_no_of_decimals
+				*/
+				result = no_of_decimals > max_no_of_decimals
+					? result.toFixed(max_no_of_decimals)
+					: result;
+				return result + ' ' + map.symbol;
+			}
+		}
+
+		return number.toFixed(max_no_of_decimals);
+	},
+
+	get_number_of_decimals: function (number) {
+		if (Math.floor(number) === number) return 0;
+		return number.toString().split(".")[1].length || 0;
+	},
+
+	get_number_system: function (country) {
+		let number_system_map = {
+			'India':
+				[{
+					divisor: 1.0e+7,
+					symbol: 'Cr'
+				},
+				{
+					divisor: 1.0e+5,
+					symbol: 'Lakh'
+				}],
+			'':
+				[{
+					divisor: 1.0e+12,
+					symbol: 'T'
+				},
+				{
+					divisor: 1.0e+9,
+					symbol: 'B'
+				},
+				{
+					divisor: 1.0e+6,
+					symbol: 'M'
+				},
+				{
+					divisor: 1.0e+3,
+					symbol: 'K',
+				}]
+		};
+
+		if (!Object.keys(number_system_map).includes(country)) country = '';
+
+		return number_system_map[country];
+	},
 });
 
 // Array de duplicate
