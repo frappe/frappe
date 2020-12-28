@@ -294,12 +294,15 @@ frappe.router = {
 		const view = route[0] ? route[0].toLowerCase() : '';
 		let new_route = route;
 		if (view === 'list') {
-			if (route[2] && route[2] !== 'list') {
+			if (route[2] && route[2] !== 'list' && !$.isPlainObject(route[2])) {
 				new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
 
 				// calendar / inbox
 				if (route[3]) new_route.push(route[3]);
 			} else {
+				if ($.isPlainObject(route[2])) {
+					frappe.route_options = route[2];
+				}
 				new_route = [this.slug(route[1])];
 			}
 		} else if (view === 'form') {
@@ -393,7 +396,6 @@ frappe.router = {
 
 			let query_params = frappe.utils.get_query_params(parts[1]);
 			frappe.route_options = $.extend(frappe.route_options || {}, query_params);
-
 		}
 	},
 

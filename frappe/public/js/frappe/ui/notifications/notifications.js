@@ -427,7 +427,7 @@ class EventsView extends BaseNotificaitonsView {
 					location = `, ${event.location}`;
 				}
 
-				return `<a class="recent-item event" href="/app/Form/Event/${event.name}">
+				return `<a class="recent-item event" href="/app/event/${event.name}">
 					<div class="event-border" style="border-color: ${event.color}"></div>
 					<div class="event-item">
 						<div class="event-subject">${event.subject}</div>

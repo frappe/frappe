@@ -10,7 +10,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 
 		if (!frappe.views.formview[doctype_layout]) {
 			frappe.model.with_doctype(doctype, () => {
-				this.page = frappe.container.add_page("form/" + doctype_layout);
+				this.page = frappe.container.add_page(doctype_layout);
 				frappe.views.formview[doctype_layout] = this.page;
 				this.make_and_show(doctype, route);
 			});
@@ -103,7 +103,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	render(doctype_layout, name) {
-		frappe.container.change_to("form/" + doctype_layout);
+		frappe.container.change_to(doctype_layout);
 		frappe.views.formview[doctype_layout].frm.refresh(name);
 	}
 }

@@ -21,6 +21,13 @@ $headings-color: $gray-900 !default;
 $breadcrumb-bg: transparent !default;
 $navbar-bg: white !default;
 
+$container-max-widths: (
+	sm: 540px,
+	md: 840px,
+	lg: 1090px,
+	xl: 1290px
+);
+
 $font-sizes: (
 	"xs": 0.75rem,
 	"sm": 0.875rem,
