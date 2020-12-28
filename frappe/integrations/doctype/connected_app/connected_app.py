@@ -2,7 +2,7 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+import os
 from urllib.parse import urljoin
 from urllib.parse import urlencode
 
@@ -11,9 +11,8 @@ from frappe import _
 from frappe.model.document import Document
 from requests_oauthlib import OAuth2Session
 
-if frappe.conf.developer_mode or frappe.flags.in_test:
+if any((os.getenv('CI'), frappe.conf.developer_mode, frappe.conf.allow_tests)):
 	# Disable mandatory TLS in developer mode and tests
-	import os
 	os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 class ConnectedApp(Document):
