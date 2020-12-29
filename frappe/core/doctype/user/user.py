@@ -13,7 +13,7 @@ from frappe.utils.user import get_system_managers
 from bs4 import BeautifulSoup
 import frappe.permissions
 import frappe.share
-
+import frappe.defaults
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
 
@@ -98,15 +98,20 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
+		now=frappe.flags.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
 		frappe.enqueue(
 			'frappe.core.doctype.user.user.create_contact',
 			user=self,
 			ignore_mandatory=True,
-			now=frappe.flags.in_test or frappe.flags.in_install
+			now=now
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
-			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
+			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name, now=now)
+		
+		# Set user selected timezone
+		if self.time_zone:
+			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""

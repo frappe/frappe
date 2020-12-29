@@ -148,6 +148,7 @@ def init(site, sites_path=None, new_site=False):
 		"new_site": new_site
 	})
 	local.rollback_observers = []
+	local.before_commit = []
 	local.test_objects = {}
 
 	local.site = site
@@ -326,7 +327,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
 	"""
-	from frappe.utils import encode
+	from frappe.utils import strip_html_tags
 
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
@@ -348,12 +349,12 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 
 	if as_table and type(msg) in (list, tuple):
 		out.as_table = 1
-	
+
 	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
 		out.as_list = 1
 
 	if flags.print_messages and out.message:
-		print(f"Message: {repr(out.message).encode('utf-8')}")
+		print(f"Message: {strip_html_tags(out.message)}")
 
 	if title:
 		out.title = title
@@ -796,11 +797,17 @@ def get_doc(*args, **kwargs):
 
 	return doc
 
-def get_last_doc(doctype):
+def get_last_doc(doctype, filters=None, order_by="creation desc"):
 	"""Get last created document of this type."""
-	d = get_all(doctype, ["name"], order_by="creation desc", limit_page_length=1)
+	d = get_all(
+		doctype,
+		filters=filters,
+		limit_page_length=1,
+		order_by=order_by,
+		pluck="name"
+	)
 	if d:
-		return get_doc(doctype, d[0].name)
+		return get_doc(doctype, d[0])
 	else:
 		raise DoesNotExistError
 
@@ -939,7 +946,11 @@ def get_installed_apps(sort=False, frappe_last=False):
 		connect()
 
 	if not local.all_apps:
-		local.all_apps  = get_all_apps(True)
+		local.all_apps = cache().get_value('all_apps', get_all_apps)
+
+		#cache bench apps
+		if not cache().get_value('all_apps'):
+			cache().set_value('all_apps', local.all_apps)
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
