@@ -33,7 +33,7 @@ context('Depends On', () => {
 		cy.fill_field('test_field', 'Some Value');
 		cy.get('button.primary-action').contains('Save').click();
 		cy.get('.msgprint-dialog .modal-title').contains('Missing Fields').should('be.visible');
-		cy.get('body').click();
+		cy.hide_dialog();
 		cy.fill_field('test_field', 'Random value');
 		cy.get('button.primary-action').contains('Save').click();
 		cy.get('.msgprint-dialog .modal-title').contains('Missing Fields').should('not.be.visible');

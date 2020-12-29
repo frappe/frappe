@@ -13,8 +13,8 @@ context('Table MultiSelect', () => {
 		cy.get('input[data-fieldname="users"]').focus().as('input');
 		cy.get('input[data-fieldname="users"] + ul').should('be.visible');
 		cy.get('@input').type('test{enter}', { delay: 100 });
-		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value')
-			.first().as('selected-value');
+		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value .btn-link-to-form')
+			.as('selected-value');
 		cy.get('@selected-value').should('contain', 'test@erpnext.com');
 
 		cy.server();

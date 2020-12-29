@@ -30,7 +30,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		$(document).trigger('list_sidebar_setup');
 
 		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
-			this.sidebar.find('.sidebar-stat').remove();
+			this.sidebar.find('.list-tags').remove();
 		} else {
 			this.sidebar.find('.list-stats').on('click', (e) => {
 				this.reload_stats();

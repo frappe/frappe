@@ -19,16 +19,14 @@ context('Form', () => {
 		cy.get('.primary-action').click();
 		cy.wait('@form_save').its('status').should('eq', 200);
 		cy.visit('/app/todo');
-		cy.get('h1').should('be.visible').and('contain', 'To Do');
+		cy.get('.title-text').should('be.visible').and('contain', 'To Do');
 		cy.get('.list-row').should('contain', 'this is a test todo');
 	});
 	it('navigates between documents with child table list filters applied', () => {
 		cy.visit('/app/contact');
-		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
-		cy.get('.fieldname-select-area').should('exist');
-		cy.get('.fieldname-select-area input').type('Number{enter}', { force: true });
+		cy.add_filter();
 		cy.get('.filter-field .input-with-feedback.form-control').type('123', { force: true });
-		cy.get('.filter-box .btn:contains("Apply")').click({ force: true });
+		cy.get('.filter-popover .apply-filters').click({ force: true });
 		cy.visit('/app/contact/Test Form Contact 3');
 		cy.get('.prev-doc').should('be.visible').click();
 		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');
@@ -36,7 +34,7 @@ context('Form', () => {
 		cy.get('.next-doc').click();
 		cy.wait(200);
 		cy.contains('Test Form Contact 2').should('not.exist');
-		cy.get('.page-title .title-text').should('contain', 'Test Form Contact 1');
+		cy.get('.title-text').should('contain', 'Test Form Contact 1');
 		// clear filters
 		cy.window().its('frappe').then((frappe) => {
 			let list_view = frappe.get_list_view('Contact');

@@ -14,6 +14,7 @@ context('FileUploader', () => {
 		open_upload_dialog();
 		cy.get_open_dialog().should('contain', 'Drag and drop files');
 		cy.hide_dialog();
+		cy.get('body').click();
 	});
 
 	it('should accept dropped files', () => {
@@ -28,10 +29,10 @@ context('FileUploader', () => {
 				subjectType: 'drag-n-drop',
 				force: true
 			});
-			cy.get_open_dialog().find('.file-info').should('contain', 'example.json');
+			cy.get_open_dialog().find('.file-name').should('contain', 'example.json');
 			cy.server();
 			cy.route('POST', '/api/method/upload_file').as('upload_file');
-			cy.get_open_dialog().find('.btn-primary').click();
+			cy.get_open_dialog().find('.btn-modal-primary').click();
 			cy.wait('@upload_file').its('status').should('be', 200);
 			cy.get('.modal:visible').should('not.exist');
 		});
@@ -40,7 +41,7 @@ context('FileUploader', () => {
 	it('should accept uploaded files', () => {
 		open_upload_dialog();
 
-		cy.get_open_dialog().find('a:contains("uploaded file")').click();
+		cy.get_open_dialog().find('.btn-file-upload div:contains("Library")').click();
 		cy.get_open_dialog().find('.tree-label:contains("example.json")').first().click();
 		cy.server();
 		cy.route('POST', '/api/method/upload_file').as('upload_file');
@@ -53,7 +54,7 @@ context('FileUploader', () => {
 	it('should accept web links', () => {
 		open_upload_dialog();
 
-		cy.get_open_dialog().find('a:contains("web link")').click();
+		cy.get_open_dialog().find('.btn-file-upload div:contains("Link")').click();
 		cy.get_open_dialog().find('.file-web-link input').type('https://github.com', { delay: 100, force: true });
 		cy.server();
 		cy.route('POST', '/api/method/upload_file').as('upload_file');
