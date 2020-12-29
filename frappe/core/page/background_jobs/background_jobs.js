@@ -40,6 +40,13 @@ frappe.pages.background_jobs.refresh_jobs = function() {
 			page.body.find('.list-jobs').remove();
 			$(frappe.render_template('background_jobs', { jobs: r.message || [] })).appendTo(page.content);
 
+			let $remove_failed_btn = page.body.find('.remove-failed');
+			if (r.message && r.message.length > 0) {
+				$remove_failed_btn.show();
+			} else {
+				$remove_failed_btn.hide();
+			}
+
 			if (frappe.get_route()[0] === 'background_jobs') {
 				frappe.background_jobs_timeout = setTimeout(frappe.pages.background_jobs.refresh_jobs, 2000);
 			}
