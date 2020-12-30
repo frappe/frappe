@@ -66,9 +66,14 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
+
 	if not mail:
-		mail = get_email_address(user)
-	return cstr(make_header(decode_header(formataddr((fullname, mail)))))
+		mail = get_email_address(user) or validate_email_address(user)
+
+	if not mail:
+		return ''
+	else:
+		return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
@@ -729,3 +734,27 @@ def get_build_version():
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback
 		return frappe.utils.random_string(8)
+
+def get_bench_relative_path(file_path):
+	"""Fixes paths relative to the bench root directory if exists and returns the absolute path
+
+	Args:
+		file_path (str, Path): Path of a file that exists on the file system
+
+	Returns:
+		str: Absolute path of the file_path
+	"""
+	if not os.path.exists(file_path):
+		base_path = '..'
+	elif file_path.startswith(os.sep):
+		base_path = os.sep
+	else:
+		base_path = '.'
+
+	file_path = os.path.join(base_path, file_path)
+
+	if not os.path.exists(file_path):
+		print('Invalid path {0}'.format(file_path[3:]))
+		sys.exit(1)
+
+	return os.path.abspath(file_path)

@@ -98,15 +98,16 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
+		now=frappe.flags.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
 		frappe.enqueue(
 			'frappe.core.doctype.user.user.create_contact',
 			user=self,
 			ignore_mandatory=True,
-			now=frappe.flags.in_test or frappe.flags.in_install
+			now=now
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
-			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
+			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name, now=now)
 		
 		# Set user selected timezone
 		if self.time_zone:

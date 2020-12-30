@@ -357,7 +357,7 @@
    "collapsible": 1,
    "fieldname": "email",
    "fieldtype": "Section Break",
-   "label": "EMail"
+   "label": "Email"
   },
   {
    "description": "Your organization name and address for the email footer.",
