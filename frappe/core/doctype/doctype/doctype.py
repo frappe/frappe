@@ -1056,7 +1056,7 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 		return _("For {0} at level {1} in {2} in row {3}").format(d.role, d.permlevel, d.parent, d.idx)
 
 	def check_atleast_one_set(d):
-		if not d.read and not d.write and not d.submit and not d.cancel and not d.create:
+		if not d.select and not d.read and not d.write and not d.submit and not d.cancel and not d.create:
 			frappe.throw(_("{0}: No basic permissions set").format(get_txt(d)))
 
 	def check_double(d):
