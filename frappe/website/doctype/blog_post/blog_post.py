@@ -95,6 +95,10 @@ class BlogPost(WebsiteGenerator):
 		context.metatags = {
 			"name": self.meta_title,
 			"description": context.description,
+			"twitter:card": "summary",
+			"twitter:title": self.meta_title,
+			"twitter:description": context.description,
+			"twitter:image": self.meta_image
 		}
 
 		#if meta image is not present, then first image inside the blog will be set as the meta image
