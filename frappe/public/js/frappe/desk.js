@@ -282,6 +282,10 @@ frappe.Application = Class.extend({
 			frappe.modules[page.module]=page;
 			frappe.workspaces[frappe.router.slug(page.name)] = page;
 		}
+		if (!frappe.workspaces['home']) {
+			// default workspace is settings for Frappe
+			frappe.workspaces['home'] = frappe.workspaces['settings'];
+		}
 	},
 
 	load_user_permissions: function() {
