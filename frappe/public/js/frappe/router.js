@@ -333,7 +333,7 @@ frappe.router = {
 	},
 
 	make_url(params) {
-		return '/app/' + $.map(params, function(a) {
+		let path_string = $.map(params, function(a) {
 			if ($.isPlainObject(a)) {
 				frappe.route_options = a;
 				return null;
@@ -346,6 +346,8 @@ frappe.router = {
 				return a;
 			}
 		}).join('/');
+
+		return '/app/' + (path_string || 'home');
 	},
 
 	push_state(url) {
