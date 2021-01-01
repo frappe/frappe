@@ -11,7 +11,7 @@ frappe.standard_pages['Workspaces'] = function() {
 	$(wrapper).bind('show', function () {
 		frappe.workspace.show();
 	});
-}
+};
 
 frappe.views.Workspace = class Workspace {
 	constructor(wrapper) {
@@ -80,7 +80,7 @@ frappe.views.Workspace = class Workspace {
 	make_sidebar() {
 		this.sidebar_categories.forEach(category => {
 			if (this.workspaces[category]) {
-				this.build_sidebar_section(category, this.workspaces[category])
+				this.build_sidebar_section(category, this.workspaces[category]);
 			}
 		});
 	}
