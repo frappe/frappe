@@ -117,40 +117,50 @@ frappe.router = {
 	},
 
 	convert_to_standard_route(route) {
+		// /app/settings = ["Workspaces", "Settings"]
 		// /app/user = ["List", "User"]
 		// /app/user/view/report = ["List", "User", "Report"]
 		// /app/user/view/tree = ["Tree", "User"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
-		let standard_route = route;
-		let doctype_route = this.routes[route[0]];
 
-		if (doctype_route) {
-			// doctype route
-			if (route[1]) {
-				if (route[2] && route[1]==='view') {
-					standard_route = this.get_standard_route_for_list(route, doctype_route);
-				} else {
-					let docname = route[1];
-					if (route.length > 2) {
-						docname = route.slice(1).join('/');
-					}
-					standard_route = ['Form', doctype_route.doctype, docname];
-				}
-			} else if (frappe.model.is_single(doctype_route.doctype)) {
-				standard_route = ['Form', doctype_route.doctype, doctype_route.doctype];
-			} else {
-				standard_route = ['List', doctype_route.doctype, 'List'];
-			}
-
-			if (doctype_route.doctype_layout) {
-				// set the layout
-				this.doctype_layout = doctype_route.doctype_layout;
-			}
+		if (frappe.workspaces[route[0]]) {
+			// workspace
+			route = ['Workspaces', frappe.workspaces[route[0]].name];
+		} else if (this.routes[route[0]]) {
+			// route
+			route = this.set_doctype_route(route);
 		}
 
-		return standard_route;
+		return route;
+	},
+
+	set_doctype_route(route) {
+		let doctype_route = this.routes[route[0]];
+		// doctype route
+		if (route[1]) {
+			if (route[2] && route[1]==='view') {
+				route = this.get_standard_route_for_list(route, doctype_route);
+			} else {
+				let docname = route[1];
+				if (route.length > 2) {
+					docname = route.slice(1).join('/');
+				}
+				route = ['Form', doctype_route.doctype, docname];
+			}
+		} else if (frappe.model.is_single(doctype_route.doctype)) {
+			route = ['Form', doctype_route.doctype, doctype_route.doctype];
+		} else {
+			route = ['List', doctype_route.doctype, 'List'];
+		}
+
+		if (doctype_route.doctype_layout) {
+			// set the layout
+			this.doctype_layout = doctype_route.doctype_layout;
+		}
+
+		return route;
 	},
 
 	get_standard_route_for_list(route, doctype_route) {
@@ -186,14 +196,8 @@ frappe.router = {
 		// create the page generator (factory) object and call `show`
 		// if there is no generator, render the `Page` object
 
-		// first the router needs to know if its a "page", "doctype", "space"
-
 		const route = this.current_route;
 		const factory = frappe.utils.to_title_case(route[0]);
-		if (factory === 'Workspace') {
-			frappe.views.pageview.show('');
-			return;
-		}
 
 		if (route[1] && frappe.views[factory + "Factory"]) {
 			route[0] = factory;

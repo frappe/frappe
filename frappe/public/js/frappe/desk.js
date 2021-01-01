@@ -253,10 +253,7 @@ frappe.Application = Class.extend({
 	},
 	load_bootinfo: function() {
 		if(frappe.boot) {
-			frappe.modules = {};
-			(frappe.boot.allowed_workspaces || []).forEach(function(m) {
-				frappe.modules[m.module]=m;
-			});
+			this.setup_workspaces();
 			frappe.model.sync(frappe.boot.docs);
 			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();
@@ -275,6 +272,15 @@ frappe.Application = Class.extend({
 			frappe.router.setup();
 		} else {
 			this.set_as_guest();
+		}
+	},
+
+	setup_workspaces() {
+		frappe.modules = {};
+		frappe.workspaces = {};
+		for (let page of frappe.boot.allowed_workspaces || []) {
+			frappe.modules[page.module]=page;
+			frappe.workspaces[frappe.router.slug(page.name)] = page;
 		}
 	},
 

@@ -88,8 +88,7 @@ frappe.breadcrumbs = {
 
 		if (breadcrumbs.workspace) {
 			if(!breadcrumbs.module_info.blocked && frappe.visible_modules.includes(breadcrumbs.module_info.module)) {
-				$(repl('<li><a href="/app/space/%(module)s">%(label)s</a></li>',
-					{ module: breadcrumbs.workspace, label: __(breadcrumbs.workspace) }))
+				$(`<li><a href="/app/${frappe.router.slug(breadcrumbs.workspace)}">${__(breadcrumbs.workspace)}</a></li>`)
 					.appendTo(this.$breadcrumbs);
 			}
 		}

@@ -109,7 +109,7 @@ def load_conf_settings(bootinfo):
 
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_desk_sidebar_items
-	bootinfo.allowed_workspaces = get_desk_sidebar_items(flatten=True, cache=False)
+	bootinfo.allowed_workspaces = get_desk_sidebar_items()
 	bootinfo.module_page_map = get_controller("Workspace").get_module_page_map()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 

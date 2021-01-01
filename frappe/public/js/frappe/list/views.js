@@ -35,7 +35,7 @@ frappe.views.Views = class Views {
 	}
 
 	set_route(view, calendar_name) {
-		const route = [this.get_doctype_route(), 'view', view];
+		const route = [this.slug(), 'view', view];
 		if (calendar_name) route.push(calendar_name);
 		frappe.set_route(route);
 	}
@@ -233,11 +233,11 @@ frappe.views.Views = class Views {
 				// has standard calendar view
 				calendars.push({
 					name: 'Default',
-					route: `/app/${this.get_doctype_route()}/view/calendar/default`
+					route: `/app/${this.slug()}/view/calendar/default`
 				});
 			}
 			result.map(calendar => {
-				calendars.push({name: calendar.name, route: `/app/${this.get_doctype_route()}/view/calendar/${calendar.name}`});
+				calendars.push({name: calendar.name, route: `/app/${this.slug()}/view/calendar/${calendar.name}`});
 			});
 
 			return calendars;
@@ -263,7 +263,7 @@ frappe.views.Views = class Views {
 		return accounts_to_add;
 	}
 
-	get_doctype_route() {
+	slug() {
 		return frappe.router.slug(frappe.router.doctype_layout || this.doctype);
 	}
 }

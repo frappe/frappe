@@ -323,3 +323,4 @@ frappe.patches.v13_0.update_icons_in_customized_desk_pages
 execute:frappe.db.set_default('desktop:home_page', 'space')
 execute:frappe.delete_doc_if_exists('Page', 'workspace')
 execute:frappe.delete_doc_if_exists('Page', 'dashboard', force=1)
+frappe.core.doctype.page.patches.drop_unused_pages
