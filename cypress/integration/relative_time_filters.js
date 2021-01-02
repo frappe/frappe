@@ -4,7 +4,7 @@ context('Relative Timeframe', () => {
 	});
 	before(() => {
 		cy.login();
-		cy.visit('/app/space/Website');
+		cy.visit('/app/website');
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.ui_test_helpers.create_todo_records");
 		});

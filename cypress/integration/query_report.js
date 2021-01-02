@@ -1,7 +1,7 @@
 context('Query Report', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/space/Website');
+		cy.visit('/app/website');
 	});
 
 	it('add custom column in report', () => {

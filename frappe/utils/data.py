@@ -17,7 +17,7 @@ from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
 from markdown2 import markdown, MarkdownError
 from six import iteritems, text_type, string_types, integer_types
-from frappe.desk.utils import get_doctype_route
+from frappe.desk.utils import slug
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -1059,17 +1059,17 @@ def get_link_to_report(name, label=None, report_type=None, doctype=None, filters
 		return """<a href='{0}'>{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
 
 def get_absolute_url(doctype, name):
-	return "/app/{0}/{1}".format(quoted(get_doctype_route(doctype)), quoted(name))
+	return "/app/{0}/{1}".format(quoted(slug(doctype)), quoted(name))
 
 def get_url_to_form(doctype, name):
-	return get_url(uri = "/app/{0}/{1}".format(quoted(get_doctype_route(doctype)), quoted(name)))
+	return get_url(uri = "/app/{0}/{1}".format(quoted(slug(doctype)), quoted(name)))
 
 def get_url_to_list(doctype):
-	return get_url(uri = "/app/{0}".format(quoted(get_doctype_route(doctype))))
+	return get_url(uri = "/app/{0}".format(quoted(slug(doctype))))
 
 def get_url_to_report(name, report_type = None, doctype = None):
 	if report_type == "Report Builder":
-		return get_url(uri = "/app/{0}/view/report/{1}".format(quoted(get_doctype_route(doctype)), quoted(name)))
+		return get_url(uri = "/app/{0}/view/report/{1}".format(quoted(slug(doctype)), quoted(name)))
 	else:
 		return get_url(uri = "/app/query-report/{0}".format(quoted(name)))
 

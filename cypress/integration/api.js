@@ -2,7 +2,7 @@ context('API Resources', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
-		cy.visit('/app/space/Website');
+		cy.visit('/app/website');
 	});
 
 	it('Creates two Comments', () => {

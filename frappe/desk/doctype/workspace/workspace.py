@@ -8,6 +8,7 @@ from frappe import _, _dict
 from frappe.utils.data import validate_json_string
 from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
+from frappe.desk.utils import validate_route_conflict
 
 from json import loads, dumps
 
@@ -15,6 +16,7 @@ class Workspace(Document):
 	def validate(self):
 		if (self.is_standard and not frappe.conf.developer_mode and not disable_saving_as_standard()):
 			frappe.throw(_("You need to be in developer mode to edit this document"))
+		validate_route_conflict(self.doctype, self.name)
 
 	def on_update(self):
 		if disable_saving_as_standard():

@@ -26,6 +26,7 @@ from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
 from frappe.modules.import_file import get_file_path
 from frappe.model.meta import Meta
+from frappe.desk.utils import validate_route_conflict
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 class UniqueFieldnameError(frappe.ValidationError): pass
@@ -647,6 +648,8 @@ class DocType(Document):
 		# and should only contain letters, numbers and underscore
 		if not re.match("^(?![\W])[^\d_\s][\w ]+$", name, **flags):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
+
+		validate_route_conflict(self.doctype, self.name)	
 
 def validate_links_table_fieldnames(meta):
 	"""Validate fieldnames in Links table"""
