@@ -69,7 +69,7 @@ frappe.views.Workspace = class Workspace {
 		} else if (frappe.boot.allowed_workspaces) {
 			default_page = frappe.boot.allowed_workspaces[0].name;
 		} else {
-			default_page = "Settings";
+			default_page = "Build";
 		}
 
 		let page = frappe.get_route()[1] || default_page;

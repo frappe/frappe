@@ -2,6 +2,10 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Workspace', {
+	setup: function(frm) {
+		frappe.meta.get_field('Desk Link', 'only_for').no_default = true;
+	},
+
 	refresh: function(frm) {
 		frm.enable_save();
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);

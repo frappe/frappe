@@ -42,6 +42,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "charts",
    "fieldname": "section_break_2",
    "fieldtype": "Section Break",
    "label": "Dashboards"
@@ -139,12 +140,14 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "shortcuts",
    "fieldname": "section_break_15",
    "fieldtype": "Section Break",
    "label": "Shortcuts"
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "links",
    "fieldname": "section_break_18",
    "fieldtype": "Section Break",
    "label": "Link Cards"
@@ -206,7 +209,7 @@
   }
  ],
  "links": [],
- "modified": "2020-12-01 13:36:26.827062",
+ "modified": "2021-01-02 10:58:37.430775",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

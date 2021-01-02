@@ -1485,7 +1485,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (frappe.user.has_role("System Manager")) {
 			items.push({
-				label: __("Settings"),
+				label: __("List Settings"),
 				action: () => this.show_list_settings(),
 				standard: true,
 			});
