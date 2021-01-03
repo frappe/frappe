@@ -37,6 +37,25 @@ frappe.ui.form.on('User', {
 		}
 	},
 
+	module_profile: function(frm) {
+		if (frm.doc.module_profile) {
+			frappe.call({
+				"method": "frappe.core.doctype.user.user.get_module_profile",
+				args: {
+					module_profile: frm.doc.module_profile
+				},
+				callback: function(data) {
+					frm.set_value("block_modules", []);
+					$.each(data.message || [], function(i, v) {
+						let d = frm.add_child("block_modules");
+						d.module = v.module;
+					});
+					frm.module_editor && frm.module_editor.refresh();
+				}
+			});
+		}
+	},
+
 	onload: function(frm) {
 		frm.can_edit_roles = has_access_to_edit_user();
 

@@ -16,6 +16,7 @@ import frappe.share
 import frappe.defaults
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
+from frappe.config import get_modules_from_all_apps_for_user
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -75,6 +76,7 @@ class User(Document):
 		self.validate_user_email_inbox()
 		ask_pass_update()
 		self.validate_roles()
+		self.validate_allowed_modules()
 		self.validate_user_image()
 
 		if self.language == "Loading...":
@@ -85,9 +87,18 @@ class User(Document):
 
 	def validate_roles(self):
 		if self.role_profile_name:
-				role_profile = frappe.get_doc('Role Profile', self.role_profile_name)
-				self.set('roles', [])
-				self.append_roles(*[role.role for role in role_profile.roles])
+			role_profile = frappe.get_doc('Role Profile', self.role_profile_name)
+			self.set('roles', [])
+			self.append_roles(*[role.role for role in role_profile.roles])
+
+	def validate_allowed_modules(self):
+		if self.module_profile:
+			module_profile = frappe.get_doc('Module Profile', self.module_profile)
+			self.set('block_modules', [])
+			for d in module_profile.get('block_modules'):
+				self.append('block_modules', {
+					'module': d.module
+				})
 
 	def validate_user_image(self):
 		if self.user_image and len(self.user_image) > 2000:
@@ -108,7 +119,7 @@ class User(Document):
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name, now=now)
-		
+
 		# Set user selected timezone
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
@@ -1041,6 +1052,11 @@ def throttle_user_creation():
 def get_role_profile(role_profile):
 	roles = frappe.get_doc('Role Profile', {'role_profile': role_profile})
 	return roles.roles
+
+@frappe.whitelist()
+def get_module_profile(module_profile):
+	module_profile = frappe.get_doc('Module Profile', {'module_profile_name': module_profile})
+	return module_profile.get('block_modules')
 
 def update_roles(role_profile):
 	users = frappe.get_all('User', filters={'role_profile_name': role_profile})
