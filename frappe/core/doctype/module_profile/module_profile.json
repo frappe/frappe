@@ -27,13 +27,15 @@
   {
    "fieldname": "block_modules",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Block Modules",
-   "options": "Block Module"
+   "options": "Block Module",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-01-01 22:53:49.180118",
+ "modified": "2021-01-03 15:36:52.622696",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Profile",
