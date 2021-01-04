@@ -95,6 +95,7 @@
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius);
 		font-size: var(--text-sm);
+		word-wrap: break-word;
 		p:last-child {
 			margin-bottom: 0;
 		}
