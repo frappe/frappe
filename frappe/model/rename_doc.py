@@ -26,10 +26,11 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 			frappe.msgprint(_('Saved'), alert=True, indicator='green')
 		except Exception as e:
 			if frappe.db.is_duplicate_entry(e):
-				frappe.msgprint(_("{0} {1} already exists").format(
-					doctype, frappe.bold(docname)), title=_("Duplicate Name"), indicator="red"
+				frappe.throw(
+					_("{0} {1} already exists").format(doctype, frappe.bold(docname)),
+					title=_("Duplicate Name"),
+					exc=frappe.DuplicateEntryError
 				)
-				raise frappe.DuplicateEntryError(doctype, docname, e)
 
 	return docname
 
