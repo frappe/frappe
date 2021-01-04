@@ -417,9 +417,118 @@ class CustomizeForm(Document):
 		self.fetch_to_customize()
 
 def reset_customization(doctype):
+<<<<<<< HEAD
 	frappe.db.sql("""
 		DELETE FROM `tabProperty Setter` WHERE doc_type=%s
 			and `field_name`!='naming_series'
 			and `property`!='options'
 		""", doctype)
 	frappe.clear_cache(doctype=doctype)
+=======
+	setters = frappe.get_all("Property Setter", filters={
+		'doc_type': doctype,
+		'field_name': ['!=', 'naming_series'],
+		'property': ['!=', 'options']
+	}, pluck='name')
+
+	for setter in setters:
+		frappe.delete_doc("Property Setter", setter)
+
+	frappe.clear_cache(doctype=doctype)
+
+doctype_properties = {
+	'search_fields': 'Data',
+	'title_field': 'Data',
+	'image_field': 'Data',
+	'sort_field': 'Data',
+	'sort_order': 'Data',
+	'default_print_format': 'Data',
+	'allow_copy': 'Check',
+	'istable': 'Check',
+	'quick_entry': 'Check',
+	'editable_grid': 'Check',
+	'max_attachments': 'Int',
+	'track_changes': 'Check',
+	'track_views': 'Check',
+	'allow_auto_repeat': 'Check',
+	'allow_import': 'Check',
+	'show_preview_popup': 'Check',
+	'email_append_to': 'Check',
+	'subject_field': 'Data',
+	'sender_field': 'Data'
+}
+
+docfield_properties = {
+	'idx': 'Int',
+	'label': 'Data',
+	'fieldtype': 'Select',
+	'options': 'Text',
+	'fetch_from': 'Small Text',
+	'fetch_if_empty': 'Check',
+	'permlevel': 'Int',
+	'width': 'Data',
+	'print_width': 'Data',
+	'non_negative': 'Check',
+	'reqd': 'Check',
+	'unique': 'Check',
+	'ignore_user_permissions': 'Check',
+	'in_list_view': 'Check',
+	'in_standard_filter': 'Check',
+	'in_global_search': 'Check',
+	'in_preview': 'Check',
+	'bold': 'Check',
+	'hidden': 'Check',
+	'collapsible': 'Check',
+	'collapsible_depends_on': 'Data',
+	'print_hide': 'Check',
+	'print_hide_if_no_value': 'Check',
+	'report_hide': 'Check',
+	'allow_on_submit': 'Check',
+	'translatable': 'Check',
+	'mandatory_depends_on': 'Data',
+	'read_only_depends_on': 'Data',
+	'depends_on': 'Data',
+	'description': 'Text',
+	'default': 'Text',
+	'precision': 'Select',
+	'read_only': 'Check',
+	'length': 'Int',
+	'columns': 'Int',
+	'remember_last_selected_value': 'Check',
+	'allow_bulk_edit': 'Check',
+	'auto_repeat': 'Link',
+	'allow_in_quick_entry': 'Check',
+	'hide_border': 'Check',
+	'hide_days': 'Check',
+	'hide_seconds': 'Check'
+}
+
+doctype_link_properties = {
+	'link_doctype': 'Link',
+	'link_fieldname': 'Data',
+	'group': 'Data',
+	'hidden': 'Check'
+}
+
+doctype_action_properties = {
+	'label': 'Link',
+	'action_type': 'Select',
+	'action': 'Small Text',
+	'group': 'Data',
+	'hidden': 'Check'
+}
+
+
+ALLOWED_FIELDTYPE_CHANGE = (
+	('Currency', 'Float', 'Percent'),
+	('Small Text', 'Data'),
+	('Text', 'Data'),
+	('Text', 'Text Editor', 'Code', 'Signature', 'HTML Editor'),
+	('Data', 'Select'),
+	('Text', 'Small Text'),
+	('Text', 'Data', 'Barcode'),
+	('Code', 'Geolocation'),
+	('Table', 'Table MultiSelect'))
+
+ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Select', 'Data')
+>>>>>>> b73a1a8710... fix: reset customizations don't get committed
