@@ -12,16 +12,16 @@
  * // returns "data:image/pngbase64,..."
  */
 frappe._.get_data_uri = element => {
-	const $element = $(element);
-	const width = $element.width();
-	const height = $element.height();
+
+	const width = element.videoWidth;
+	const height = element.videoHeight;
 
 	const $canvas = $('<canvas/>');
 	$canvas[0].width = width;
 	$canvas[0].height = height;
 
 	const context = $canvas[0].getContext('2d');
-	context.drawImage($element[0], 0, 0, width, height);
+	context.drawImage(element, 0, 0, width, height);
 
 	const data_uri = $canvas[0].toDataURL('image/png');
 
@@ -58,10 +58,12 @@ frappe.ui.Capture = class {
 			this.dialog = new frappe.ui.Dialog({
 				title: this.options.title,
 				animate: this.options.animate,
-				action: {
-					secondary: {
-						label: '<b>&times</b>'
-					}
+				secondary_action_label: '<b>&times;</b>',
+				secondary_action: () => {
+					if (stream)
+						stream.getTracks().forEach((track) => {
+							track.stop();
+						});
 				}
 			});
 
@@ -96,7 +98,7 @@ frappe.ui.Capture = class {
 			});
 
 			$e.find('.fc-bs').click(() => {
-				const data_url = frappe._.get_data_uri(video);
+				const data_url = $e.find('.fc-p')[0].src;
 				this.hide();
 
 				if (this.callback) this.callback(data_url);
@@ -138,9 +140,9 @@ frappe.ui.Capture.ERR_MESSAGE = __('Unable to load camera.');
 frappe.ui.Capture.TEMPLATE = `
 <div class="frappe-capture">
 	<div class="panel panel-default">
-		<img class="fc-p img-responsive"/>
-		<div class="fc-s  embed-responsive embed-responsive-16by9">
-			<video class="embed-responsive-item">${frappe.ui.Capture.ERR_MESSAGE}</video>
+		<div class="embed-responsive embed-responsive-16by9">
+			<img class="fc-p embed-responsive-item" style="object-fit: contain; display: none;"/>
+			<video class="fc-s embed-responsive-item">${frappe.ui.Capture.ERR_MESSAGE}</video>
 		</div>
 	</div>
 	<div>
@@ -169,7 +171,7 @@ frappe.ui.Capture.TEMPLATE = `
 				</div>
 				<div class="col-md-6">
 					<div class="pull-right">
-						<button class="btn btn-default fc-bcp">
+						<button class="btn btn-primary fc-bcp">
 							<small>${__('Take Photo')}</small>
 						</button>
 					</div>

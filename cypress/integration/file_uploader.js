@@ -40,7 +40,7 @@ context('FileUploader', () => {
 	it('should accept uploaded files', () => {
 		open_upload_dialog();
 
-		cy.get_open_dialog().find('a:contains("uploaded file")').click();
+		cy.get_open_dialog().find('button:contains("Choose an existing file")').click();
 		cy.get_open_dialog().find('.tree-label:contains("example.json")').first().click();
 		cy.server();
 		cy.route('POST', '/api/method/upload_file').as('upload_file');
@@ -53,7 +53,7 @@ context('FileUploader', () => {
 	it('should accept web links', () => {
 		open_upload_dialog();
 
-		cy.get_open_dialog().find('a:contains("web link")').click();
+		cy.get_open_dialog().find('button:contains("Attach a web link")').click();
 		cy.get_open_dialog().find('.file-web-link input').type('https://github.com', { delay: 100, force: true });
 		cy.server();
 		cy.route('POST', '/api/method/upload_file').as('upload_file');

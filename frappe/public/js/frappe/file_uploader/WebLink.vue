@@ -33,4 +33,11 @@ export default {
 .file-web-link .input-group {
 	margin-top: 10px;
 }
+
+@media (max-width: 767px) {
+	.file-web-link input.form-control {
+		margin-bottom: 0;
+	}
+}
+
 </style>

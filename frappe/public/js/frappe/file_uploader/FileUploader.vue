@@ -5,15 +5,17 @@
 		@drop.prevent="dropfiles"
 	>
 		<div
-			class="file-upload-area padding border rounded text-center cursor-pointer flex align-center justify-center"
+			class="file-upload-area padding text-center cursor-pointer flex justify-center"
 			@click="browse_files"
 			v-show="files.length === 0 && !show_file_browser && !show_web_link"
 		>
-			<div v-if="!is_dragging">
-				<div>
-					{{ __('Drag and drop files, ') }}
-					<label style="margin: 0">
-						<a href="#" class="text-primary" @click.prevent>{{ __('browse,') }}</a>
+			<div v-if="!is_dragging" class="upload-box flex-column justify-between rounded border border-xs-0">
+				<div class="drag-drop flex align-center justify-center">
+					{{ __('Drag and drop files') }}
+				</div>
+				<div class="options-box flex-column justify-between align-center">
+					<button type="button" class="upload-opt btn btn-default btn-sm" @click="browse_files_btn = true">
+						<i class="fa fa-folder-open"></i>{{ __('Upload a new file') }}
 						<input
 							type="file"
 							class="hidden"
@@ -22,27 +24,24 @@
 							:multiple="allow_multiple"
 							:accept="restrictions.allowed_file_types.join(', ')"
 						>
-					</label>
-					<span v-if="!disable_file_browser">
-						{{ __('choose an') }}
-						<a href="#" class="text-primary bold"
-							@click.stop.prevent="show_file_browser = true"
-						>
-							{{ __('uploaded file') }}
-						</a>
-					</span>
-					{{ __('or attach a') }}
-					<a class="text-primary bold" href
-						@click.stop.prevent="show_web_link = true"
-					>
-						{{ __('web link') }}
-					</a>
-				</div>
-				<div class="text-muted text-medium">
-					{{ upload_notes }}
+					</button>
+					<button type="button" class="upload-opt btn btn-default btn-sm" @click.stop.prevent="show_file_browser = true" v-if="!disable_file_browser">
+						<i class="fa fa-th-list"></i>{{ __('Choose an existing file') }}
+					</button>
+					<button type="button" class="upload-opt btn btn-default btn-sm" @click.stop.prevent="show_web_link = true">
+						<i class="fa fa-link"></i>{{ __('Attach a web link') }}
+					</button>
+					<button v-if="allow_take_photo" type="button" class="upload-opt btn btn-default btn-sm" @click.stop.prevent="capture_image" >
+						<i class="fa fa-camera"></i>{{ __('Take a photo') }}
+					</button>
+
+					<div class="text-muted text-medium">
+						{{ upload_notes }}
+					</div>
 				</div>
 			</div>
-			<div v-else>
+			<div v-else class="drop-here flex-column justify-center align-center text-large rounded">
+
 				{{ __('Drop files here') }}
 			</div>
 		</div>
@@ -177,9 +176,14 @@ export default {
 			files: [],
 			is_dragging: false,
 			currently_uploading: -1,
+			browse_files_btn: false,
 			show_file_browser: false,
 			show_web_link: false,
+			allow_take_photo: false,
 		}
+	},
+	created() {
+		this.allow_take_photo = window.navigator.mediaDevices;
 	},
 	watch: {
 		files(newvalue, oldvalue) {
@@ -207,7 +211,9 @@ export default {
 			this.add_files(e.dataTransfer.files);
 		},
 		browse_files() {
+			if (frappe.is_mobile() && !this.browse_files_btn) return;
 			this.$refs.file_input.click();
+			this.browse_files_btn = false;
 		},
 		on_file_input(e) {
 			this.add_files(this.$refs.file_input.files);
@@ -419,12 +425,85 @@ export default {
 
 				xhr.send(form_data);
 			});
+		},
+		urltoFile(url, filename, mimeType){
+			return (fetch(url)
+					.then(function(res){return res.arrayBuffer();})
+					.then(function(buf){return new File([buf], filename, {type:mimeType});})
+			);
+		},
+		capture_image() {
+			const capture = new frappe.ui.Capture({
+				animate: false,
+				error: true
+			});
+
+			capture.show();
+			capture.submit(data_url => {
+				let filename = ("capture_"+frappe.datetime.now_date()+"_"+frappe.datetime.now_time()+".png").replaceAll(":", "-");
+				this.urltoFile(data_url, filename, 'image/png').then((file) => {
+					return this.add_files([file])
+				});
+			});
 		}
 	}
 }
 </script>
 <style>
 .file-upload-area {
-	min-height: 100px;
+	height: 350px;
+}
+
+.upload-opt {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	width: 169px;
+	margin-bottom: 8px;
+	padding: 5px 12px;
+	border-radius: 6px;
+}
+
+.upload-opt .fa {
+	padding-right: 8px;
+}
+
+.drag-drop {
+	height: 100%;
+}
+.options-box {
+	padding-bottom: 20px;
+}
+
+.upload-box, .drop-here {
+	width: 100%;
+}
+
+.drop-here {
+	border: 2px dashed #d1d8dd;
+	color: #9aa4ac;
+}
+
+@media (max-width: 767px) {
+	.drag-drop {
+		display: none;
+	}
+
+	.file-uploader {
+		margin-top: 15px;
+	}
+
+	.file-upload-area {
+		height: auto;
+	}
+
+	.upload-box {
+		border: 0;
+	}
+
+	.options-box {
+		padding-top: 8px;
+		padding-bottom: 0px;
+	}
 }
 </style>
