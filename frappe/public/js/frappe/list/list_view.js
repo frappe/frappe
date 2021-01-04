@@ -692,7 +692,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (df.fieldtype === "Code") {
 				return value;
 			} else if (df.fieldtype === "Percent") {
-				return `<div class="progress level" style="margin: 0px;">
+				return `<div class="progress" style="margin: 0px;">
 						<div class="progress-bar progress-bar-success" role="progressbar"
 							aria-valuenow="${value}"
 							aria-valuemin="0" aria-valuemax="100" style="width: ${Math.round(value)}%;">

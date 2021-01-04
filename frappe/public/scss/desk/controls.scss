@@ -175,3 +175,37 @@
 		font-size: var(--text-md);
 	}
 }
+
+/* progress bar */
+.progress, .progress-bar {
+	box-shadow: none;
+}
+
+a.progress-small {
+	.progress-chart {
+		width: 40px;
+		margin-top: 4px;
+		float: right;
+	}
+
+	.progress {
+		margin-bottom: 0;
+	}
+
+	.progress-bar {
+		transition: unset;
+		background-color: var(--green-500);
+	}
+}
+
+.progress-bar-success {
+	background-color: var(--green-500);
+}
+
+.progress-bar-danger {
+	background-color: var(--red-500);
+}
+
+.progress-bar-warning {
+	background-color: var(--orange-500);
+}
