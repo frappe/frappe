@@ -1141,8 +1141,12 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		else:
 			raise
 
+<<<<<<< HEAD
 
 def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
+=======
+def check_if_fieldname_conflicts_with_properties_and_methods(doctype, fieldname):
+>>>>>>> 255a959a3e... chore: Rename function to validate conflicting methods and properties
 	doc = frappe.get_doc({"doctype": doctype})
 	available_objects = [x for x in dir(doc) if isinstance(x, str)]
 	property_list = [
