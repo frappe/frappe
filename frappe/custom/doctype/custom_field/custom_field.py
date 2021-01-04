@@ -64,8 +64,8 @@ class CustomField(Document):
 			self.translatable = 0
 
 		if not self.flags.ignore_validate:
-			from frappe.core.doctype.doctype.doctype import check_if_fieldname_conflicts_with_methods
-			check_if_fieldname_conflicts_with_methods(self.dt, self.fieldname)
+			from frappe.core.doctype.doctype.doctype import check_if_fieldname_conflicts_with_properties_and_methods
+			check_if_fieldname_conflicts_with_properties_and_methods(self.dt, self.fieldname)
 
 	def on_update(self):
 		if not frappe.flags.in_setup_wizard:
