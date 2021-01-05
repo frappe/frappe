@@ -134,6 +134,9 @@ class DocType(Document):
 		if not frappe.conf.get("developer_mode") and not self.custom:
 			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."), CannotCreateStandardDoctypeError)
 
+		if self.is_virtual and self.custom:
+			frappe.throw(_("Not allowed to create custom Virtual DocType."), CannotCreateStandardDoctypeError)
+
 	def setup_fields_to_fetch(self):
 		'''Setup query to update values for newly set fetch values'''
 		try:
