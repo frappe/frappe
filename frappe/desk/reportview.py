@@ -67,14 +67,18 @@ def get_form_params():
 			parenttype = data.doctype
 			fieldname = field.strip("`")
 
-		df = frappe.get_meta(parenttype).get_field(fieldname)
+		meta = frappe.get_meta(parenttype)
+		df = meta.get_field(fieldname)
 
-		fieldname = df.fieldname if df else None
 		report_hide = df.report_hide if df else None
 
 		# remove the field from the query if the report hide flag is set and current view is Report
 		if report_hide and is_report:
 			fields.remove(field)
+
+		if df and fieldname in [df.fieldname for df in meta.get_high_permlevel_fields()]:
+			if df.get('permlevel') not in meta.get_permlevel_access():
+				fields.remove(field)
 
 
 	# queries must always be server side

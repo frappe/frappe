@@ -450,6 +450,26 @@ class Meta(Document):
 
 		return self.high_permlevel_fields
 
+	def get_permlevel_access(self, permission_type='read'):
+		has_access_to = []
+		roles = frappe.get_roles()
+		for perm in self.get_permissions():
+			print(perm.role, roles, perm.permlevel, perm.get(permission_type), permission_type)
+			if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
+				if perm.permlevel not in has_access_to:
+					has_access_to.append(perm.permlevel)
+
+		return has_access_to
+
+	def get_permissions(self):
+		if self.istable:
+			# use parent permissions
+			permissions = frappe.get_meta(self.parenttype).permissions
+		else:
+			permissions = self.permissions
+
+		return permissions
+
 	def get_dashboard_data(self):
 		'''Returns dashboard setup related to this doctype.
 
