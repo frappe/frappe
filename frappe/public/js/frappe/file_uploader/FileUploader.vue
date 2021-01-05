@@ -55,6 +55,13 @@
 						</svg>
 						<div class="mt-1">{{ __('Link') }}</div>
 					</button>
+					<button v-if="allow_take_photo" class="btn btn-file-upload" @click="capture_image">
+						<svg width="30" height="30" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+							<circle cx="15" cy="15" fill="#ce315b" id="svg_1" r="15" transform="matrix(1 0 0 1 0 0)"/>
+							<path d="m22,10l-8,0c0,-0.55 -0.45,-1.5 -1,-1.5l-4,0c-0.55,0 -1,0.95 -1,1.5c-0.55,0 -1,0.45 -1,1l0,9c0,0.55 0.45,1 1,1l14,0c0.55,0 1,-0.45 1,-1l0,-9c0,-0.55 -0.45,-1 -1,-1zm-9,2l-3.5,0l0,0.5l3.5,0l0,-0.5zm7,3.5c0,1.38 -1.13,2.5 -2.5,2.5s-2.5,-1.13 -2.5,-2.5s1.13,-2.5 2.5,-2.5s2.5,1.13 2.5,2.5z" fill="none" id="svg_2" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+						</svg>
+						<div class="mt-1">{{ __('Camera') }}</div>
+					</button>
 				</div>
 				<div class="text-muted text-medium">
 					{{ upload_notes }}
@@ -173,7 +180,11 @@ export default {
 			currently_uploading: -1,
 			show_file_browser: false,
 			show_web_link: false,
+			allow_take_photo: false,
 		}
+	},
+	created() {
+		this.allow_take_photo = window.navigator.mediaDevices;
 	},
 	watch: {
 		files(newvalue, oldvalue) {
@@ -415,6 +426,26 @@ export default {
 				}
 
 				xhr.send(form_data);
+			});
+		},
+		urltoFile(url, filename, mimeType){
+			return (fetch(url)
+					.then(function(res){return res.arrayBuffer();})
+					.then(function(buf){return new File([buf], filename, {type:mimeType});})
+			);
+		},
+		capture_image() {
+			const capture = new frappe.ui.Capture({
+				animate: false,
+				error: true
+			});
+
+			capture.show();
+			capture.submit(data_url => {
+				let filename = `capture_${frappe.datetime.now_date()}_${frappe.datetime.now_time().replaceAll(":", "-")}.png`;
+				this.urltoFile(data_url, filename, 'image/png').then((file) => {
+					return this.add_files([file])
+				});
 			});
 		}
 	}
