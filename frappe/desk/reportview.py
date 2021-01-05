@@ -54,6 +54,11 @@ def get_form_params():
 
 	fields = data["fields"]
 
+	if isinstance(fields, string_types) and fields == '*':
+		parenttype = data.doctype
+		data["fields"] = frappe.db.get_table_columns(parenttype)
+		fields = data["fields"]
+
 	for field in fields:
 		key = field.split(" as ")[0]
 
@@ -61,11 +66,11 @@ def get_form_params():
 		if key.startswith('sum('): continue
 		if key.startswith('avg('): continue
 
-		if "." in key:
-			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
-		else:
-			parenttype = data.doctype
-			fieldname = field.strip("`")
+		parenttype, fieldname = get_parent_dt_and_field(key, data)
+
+		if fieldname == "*":
+			# * inside list is not allowed
+			fields.remove(field)
 
 		meta = frappe.get_meta(parenttype)
 		df = meta.get_field(fieldname)
@@ -86,6 +91,16 @@ def get_form_params():
 	data.strict = None
 
 	return data
+
+def get_parent_dt_and_field(field, data):
+	if "." in field:
+		parenttype, fieldname = field.split(".")[0][4:-1], field.split(".")[1].strip("`")
+	else:
+		parenttype = data.doctype
+		fieldname = field.strip("`")
+
+	return parenttype, fieldname
+
 
 def compress(data, args = {}):
 	"""separate keys and values"""
