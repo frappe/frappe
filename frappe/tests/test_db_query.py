@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
-from frappe.desk.reportview import get_filters_cond, get
+from frappe.desk.reportview import get_filters_cond
 
 from frappe.core.page.permission_manager.permission_manager import update, reset, add
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
@@ -365,7 +365,7 @@ class TestReportview(unittest.TestCase):
 		user.remove_roles(*user_roles)
 		user.add_roles("Blogger")
 
-		blog_post_property_setter = make_property_setter("Blog Post", "published", "permlevel", 1, "Int")
+		make_property_setter("Blog Post", "published", "permlevel", 1, "Int")
 		reset("Blog Post")
 		add("Blog Post", "Website Manager", 1)
 		update("Blog Post", "Website Manager", 1, "write", 1)
