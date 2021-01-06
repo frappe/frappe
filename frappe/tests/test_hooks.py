@@ -17,21 +17,21 @@ class TestHooks(unittest.TestCase):
 			hooks.get("doc_events").get("*").get("on_update"))
 
 	def test_override_doctype_class(self):
-		# mock get_hooks
-		original = frappe.get_hooks
-		def get_hooks(hook=None, default=None, app_name=None):
-			if hook == 'override_doctype_class':
-				return {
-					'ToDo': ['frappe.tests.test_hooks.CustomToDo']
-				}
-			return original(hook, default, app_name)
-		frappe.get_hooks = get_hooks
+		from frappe import hooks
+		from frappe.model import base_document
+		
+		# Set hook
+		hooks.override_doctype_class = {
+			'ToDo': ['frappe.tests.test_hooks.CustomToDo']
+		}
+		
+		# Clear cache
+		frappe.cache().delete_value('app_hooks')
+		base_document._classes = {}
 
 		todo = frappe.get_doc(doctype='ToDo', description='asdf')
 		self.assertTrue(isinstance(todo, CustomToDo))
 
-		# restore
-		frappe.get_hooks = original
 
 class CustomToDo(ToDo):
 	pass
