@@ -657,7 +657,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if (!last_email) {
 			last_email = this.frm && this.frm.timeline.get_last_email(true);
-		} else{
+		} else {
 
 			let last_email_content = last_email.original_comment || last_email.content;
 
