@@ -464,7 +464,6 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	send_action: function() {
-		debugger;
 		var me = this;
 		var btn = me.dialog.get_primary_btn();
 
@@ -719,4 +718,3 @@ frappe.views.CommunicationComposer = Class.extend({
 		return text.replace(/\n{3,}/g, '\n\n');
 	}
 });
-
