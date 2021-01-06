@@ -54,7 +54,8 @@ def get_form_params():
 
 	fields = data["fields"]
 
-	if isinstance(fields, string_types) and fields == '*':
+	if ((isinstance(fields, string_types) and fields == "*")
+		or (isinstance(fields, (list, tuple)) and len(fields) == 1 and fields[0] == "*")):
 		parenttype = data.doctype
 		data["fields"] = frappe.db.get_table_columns(parenttype)
 		fields = data["fields"]
@@ -69,7 +70,7 @@ def get_form_params():
 		parenttype, fieldname = get_parent_dt_and_field(key, data)
 
 		if fieldname == "*":
-			# * inside list is not allowed
+			# * inside list is not allowed with other fields
 			fields.remove(field)
 
 		meta = frappe.get_meta(parenttype)
@@ -84,7 +85,6 @@ def get_form_params():
 		if df and fieldname in [df.fieldname for df in meta.get_high_permlevel_fields()]:
 			if df.get('permlevel') not in meta.get_permlevel_access():
 				fields.remove(field)
-
 
 	# queries must always be server side
 	data.query = None
