@@ -655,18 +655,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		let reply = (this.message || "") + (signature ? ("<br>" + signature) : "");
 		let content = '';
 
-		if (this.is_a_reply === 'undefined') {
-			this.is_a_reply = true;
-		}
-
-		if (this.is_a_reply) {
-			let last_email = this.last_email;
-
-			if (!last_email) {
-				last_email = this.frm && this.frm.timeline.get_last_email(true);
-			}
-
-			if (!last_email) return;
+		if (!last_email) {
+			last_email = this.frm && this.frm.timeline.get_last_email(true);
+		} else{
 
 			let last_email_content = last_email.original_comment || last_email.content;
 
@@ -691,8 +682,6 @@ frappe.views.CommunicationComposer = Class.extend({
 				${last_email_content}
 				</blockquote>
 			`;
-		} else {
-			content = "<div><br></div>" + reply;
 		}
 		fields.content.set_value(content);
 	},
