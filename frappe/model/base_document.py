@@ -26,11 +26,14 @@ max_positive_value = {
 
 DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
 
+_classes = {}
+
 def get_controller(doctype):
 	"""Returns the **class** object of the given DocType.
 	For `custom` type, returns `frappe.model.document.Document`.
 
 	:param doctype: DocType name as string."""
+	global _classes
 
 	def _get_controller():
 		from frappe.model.document import Document
@@ -48,7 +51,7 @@ def get_controller(doctype):
 		else:
 			class_overrides = frappe.get_hooks('override_doctype_class')
 			if class_overrides and class_overrides.get(doctype):
-				import_path = frappe.get_hooks('override_doctype_class').get(doctype)[-1]
+				import_path = class_overrides[doctype][-1]
 				module_path, classname = import_path.rsplit('.', 1)
 				module = frappe.get_module(module_path)
 				if not hasattr(module, classname):
@@ -69,10 +72,13 @@ def get_controller(doctype):
 
 	if frappe.local.dev_server:
 		return _get_controller()
-
-	key = '{}:doctype_classes'.format(frappe.local.site)
-	return frappe.cache().hget(key, doctype, generator=_get_controller, shared=True)
-
+	
+	site_classes = _classes.setdefault(frappe.local.site, {})
+	if doctype not in site_classes:
+		site_classes[doctype] = _get_controller()
+	
+	return site_classes[doctype]
+	
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
 
