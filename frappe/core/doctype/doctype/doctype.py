@@ -290,9 +290,15 @@ class DocType(Document):
 
 		self.update_fields_to_fetch()
 
-		from frappe import conf
-		allow_doctype_export = frappe.flags.allow_doctype_export or (not frappe.flags.in_test and conf.get('developer_mode'))
-		if not self.custom and not frappe.flags.in_import and allow_doctype_export:
+		allow_doctype_export = (
+			not self.custom
+			and not frappe.flags.in_import
+			and (
+				frappe.conf.developer_mode
+				or frappe.flags.allow_doctype_export
+			)
+		)
+		if allow_doctype_export:
 			self.export_doc()
 			self.make_controller_template()
 
@@ -382,13 +388,10 @@ class DocType(Document):
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
-		# Do not rename and move files and folders for custom doctype
-		if not self.custom and not frappe.flags.in_test and not frappe.flags.in_patch:
-			self.rename_files_and_folders(old, new)
-
 	def after_rename(self, old, new, merge=False):
 		"""Change table name using `RENAME TABLE` if table exists. Or update
 		`doctype` property for Single type."""
+
 		if self.issingle:
 			frappe.db.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
 			frappe.db.sql("""update tabSingles set value=%s
@@ -398,6 +401,20 @@ class DocType(Document):
 				"mariadb": f"RENAME TABLE `tab{old}` TO `tab{new}`",
 				"postgres": f"ALTER TABLE `tab{old}` RENAME TO `tab{new}`"
 			})
+			frappe.db.commit()
+
+		# Do not rename and move files and folders for custom doctype
+		if not self.custom:
+			if not frappe.flags.in_patch:
+				self.rename_files_and_folders(old, new)
+
+			for site in frappe.utils.get_sites():
+				frappe.cache().delete(f"{site}:doctype_classes", old)
+
+	def after_delete(self):
+		if not self.custom:
+			for site in frappe.utils.get_sites():
+				frappe.cache().delete(f"{site}:doctype_classes", self.name)
 
 	def rename_files_and_folders(self, old, new):
 		# move files
@@ -1000,10 +1017,10 @@ def validate_fields(meta):
 	check_sort_field(meta)
 	check_image_field(meta)
 
-def validate_permissions_for_doctype(doctype, for_remove=False):
+def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
 	"""Validates if permissions are set correctly."""
 	doctype = frappe.get_doc("DocType", doctype)
-	validate_permissions(doctype, for_remove)
+	validate_permissions(doctype, for_remove, alert=alert)
 
 	# save permissions
 	for perm in doctype.get("permissions"):
@@ -1026,9 +1043,10 @@ def clear_permissions_cache(doctype):
 		""", doctype):
 		frappe.clear_cache(user=user)
 
-def validate_permissions(doctype, for_remove=False):
+def validate_permissions(doctype, for_remove=False, alert=False):
 	permissions = doctype.get("permissions")
-	if not permissions:
+	# Some DocTypes may not have permissions by default, don't show alert for them
+	if not permissions and alert:
 		frappe.msgprint(_('No Permissions Specified'), alert=True, indicator='orange')
 	issingle = issubmittable = isimportable = False
 	if doctype:

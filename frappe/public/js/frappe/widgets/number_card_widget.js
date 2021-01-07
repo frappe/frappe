@@ -172,7 +172,7 @@ export default class NumberCardWidget extends Widget {
 	get_number_for_custom_card(res) {
 		if (typeof res === 'object') {
 			this.number = res.value;
-			this.get_formatted_number(res);
+			this.set_formatted_number(res);
 		} else {
 			this.formatted_number = res;
 		}
@@ -184,7 +184,7 @@ export default class NumberCardWidget extends Widget {
 			return frappe.model.with_doctype(this.card_doc.document_type, () => {
 				const based_on_df =
 					frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
-				this.get_formatted_number(based_on_df);
+				this.set_formatted_number(based_on_df);
 			});
 		} else {
 			this.formatted_number = res;
@@ -199,10 +199,10 @@ export default class NumberCardWidget extends Widget {
 		}, []);
 		const col = res.columns.find(col => col.fieldname == field);
 		this.number = frappe.report_utils.get_result_of_fn(this.card_doc.report_function, vals);
-		this.get_formatted_number(col);
+		this.set_formatted_number(col);
 	}
 
-	get_formatted_number(df) {
+	set_formatted_number(df) {
 		const default_country = frappe.sys_defaults.country;
 		const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
 		let number_parts = shortened_number.split(' ');
@@ -250,10 +250,16 @@ export default class NumberCardWidget extends Widget {
 			};
 			const stats_qualifier = stats_qualifier_map[this.card_doc.stats_time_interval];
 
+			let get_stat = () => {
+				const parts = this.percentage_stat.split(' ');
+				const symbol = parts[1] || '';
+				return Math.abs(parts[0]) + ' ' + symbol;
+			};
+
 			$(this.body).find('.widget-content').append(`<div class="card-stats ${color_class}">
 				<span class="percentage-stat">
 					${caret_html}
-					${Math.abs(this.percentage_stat)} %
+					${get_stat()} %
 				</span>
 				<span class="stat-period text-muted">
 					${stats_qualifier}

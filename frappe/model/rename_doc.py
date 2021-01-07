@@ -49,9 +49,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	old_doc = frappe.get_doc(doctype, old)
 	out = old_doc.run_method("before_rename", old, new, merge) or {}
 	new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
-
-	if doctype != "DocType":
-		new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
+	new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
 
 	if not merge:
 		rename_parent_and_child(doctype, old, new, meta)
@@ -250,6 +248,7 @@ def update_link_field_values(link_fields, old, new, doctype):
 				pass
 		else:
 			parent = field['parent']
+			docfield = field["fieldname"]
 
 			# Handles the case where one of the link fields belongs to
 			# the DocType being renamed.
@@ -261,11 +260,8 @@ def update_link_field_values(link_fields, old, new, doctype):
 			if parent == new and doctype == "DocType":
 				parent = old
 
-			frappe.db.sql("""
-				update `tab{table_name}` set `{fieldname}`=%s
-				where `{fieldname}`=%s""".format(
-					table_name=parent,
-					fieldname=field['fieldname']), (new, old))
+			frappe.db.set_value(parent, {docfield: old}, docfield, new)
+
 		# update cached link_fields as per new
 		if doctype=='DocType' and field['parent'] == old:
 			field['parent'] = new

@@ -136,6 +136,8 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="HTML" %}
 		{{ frappe.render_template(df.options, {"doc":doc}) }}
+	{% elif df.fieldtype=="Currency" %}
+		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
 	{% else %}
 		{%- set parent = parent_doc or doc -%}
 		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) }}
