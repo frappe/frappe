@@ -87,11 +87,12 @@ $.extend(frappe.model, {
 		var doctype = doc.doctype;
 		var docfields = frappe.meta.get_docfields(doctype);
 		var updated = [];
-		for(var fid=0;fid<docfields.length;fid++) {
+		for (var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
 			if(!in_list(frappe.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
+				if (f.no_default) continue;
 				var v = frappe.model.get_default_value(f, doc, parent_doc);
-				if(v) {
+				if (v) {
 					if(in_list(["Int", "Check"], f.fieldtype))
 						v = cint(v);
 					else if(in_list(["Currency", "Float"], f.fieldtype))

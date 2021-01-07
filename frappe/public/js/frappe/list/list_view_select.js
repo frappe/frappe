@@ -1,6 +1,7 @@
 frappe.provide('frappe.views');
 
-frappe.views.Views = class Views {
+frappe.views.ListViewSelect = class ListViewSelect
+ {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.set_current_view();
