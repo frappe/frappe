@@ -26,14 +26,11 @@ max_positive_value = {
 
 DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
 
-_classes = {}
-
 def get_controller(doctype):
 	"""Returns the **class** object of the given DocType.
 	For `custom` type, returns `frappe.model.document.Document`.
 
 	:param doctype: DocType name as string."""
-	global _classes
 
 	def _get_controller():
 		from frappe.model.document import Document
@@ -73,11 +70,11 @@ def get_controller(doctype):
 	if frappe.local.dev_server:
 		return _get_controller()
 	
-	site_classes = _classes.setdefault(frappe.local.site, {})
-	if doctype not in site_classes:
-		site_classes[doctype] = _get_controller()
+	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
+	if doctype not in site_controllers:
+		site_controllers[doctype] = _get_controller()
 	
-	return site_classes[doctype]
+	return site_controllers[doctype]
 	
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")

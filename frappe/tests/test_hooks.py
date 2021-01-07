@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 from frappe.desk.doctype.todo.todo import ToDo
+from frappe.cache_manager import clear_controller_cache
 
 class TestHooks(unittest.TestCase):
 	def test_hooks(self):
@@ -18,7 +19,6 @@ class TestHooks(unittest.TestCase):
 
 	def test_override_doctype_class(self):
 		from frappe import hooks
-		from frappe.model import base_document
 		
 		# Set hook
 		hooks.override_doctype_class = {
@@ -27,7 +27,7 @@ class TestHooks(unittest.TestCase):
 		
 		# Clear cache
 		frappe.cache().delete_value('app_hooks')
-		base_document._classes = {}
+		clear_controller_cache('ToDo')
 
 		todo = frappe.get_doc(doctype='ToDo', description='asdf')
 		self.assertTrue(isinstance(todo, CustomToDo))

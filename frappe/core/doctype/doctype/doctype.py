@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import re, copy, os, shutil
 import json
-from frappe.cache_manager import clear_user_cache
+from frappe.cache_manager import clear_user_cache, clear_controller_cache
 
 # imports - third party imports
 import six
@@ -408,13 +408,11 @@ class DocType(Document):
 			if not frappe.flags.in_patch:
 				self.rename_files_and_folders(old, new)
 
-			for site in frappe.utils.get_sites():
-				frappe.cache().delete(f"{site}:doctype_classes", old)
+			clear_controller_cache(old)
 
 	def after_delete(self):
 		if not self.custom:
-			for site in frappe.utils.get_sites():
-				frappe.cache().delete(f"{site}:doctype_classes", self.name)
+			clear_controller_cache(self.name)
 
 	def rename_files_and_folders(self, old, new):
 		# move files
