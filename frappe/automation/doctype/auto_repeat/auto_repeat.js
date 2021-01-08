@@ -100,10 +100,7 @@ frappe.ui.form.on('Auto Repeat', {
 
 frappe.auto_repeat.render_schedule = function(frm) {
 	if (!frm.is_dirty() && frm.doc.status !== 'Disabled') {
-		frappe.call({
-			method: "get_auto_repeat_schedule",
-			doc: frm.doc
-		}).done((r) => {
+		frm.call("get_auto_repeat_schedule").then(r => {
 			frm.dashboard.wrapper.empty();
 			frm.dashboard.add_section(
 				frappe.render_template("auto_repeat_schedule", {
