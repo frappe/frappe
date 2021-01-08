@@ -43,7 +43,8 @@ class TestNewsletter(unittest.TestCase):
 	def test_unsubscribe(self):
 		# test unsubscribe
 		name = self.send_newsletter()
-		from frappe.email.queue import flush
+		from frappe.email.queue import flush, get_queue
+		print('Email Queue:', get_queue())
 		flush(from_test=True)
 		to_unsubscribe = unquote(frappe.local.flags.signed_query_string.split("email=")[1].split("&")[0])
 		group = frappe.get_all("Newsletter Email Group", filters={"parent" : name}, fields=["email_group"])

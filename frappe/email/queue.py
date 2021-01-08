@@ -330,7 +330,7 @@ def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
 	# additional check
 
-	auto_commit = not from_test
+	auto_commit = True
 	if frappe.are_emails_muted():
 		msgprint(_("Emails are muted"))
 		from_test = True
