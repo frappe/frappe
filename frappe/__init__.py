@@ -327,7 +327,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
 	"""
-	from frappe.utils import encode
+	from frappe.utils import strip_html_tags
 
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
@@ -354,7 +354,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 		out.as_list = 1
 
 	if flags.print_messages and out.message:
-		print(f"Message: {repr(out.message).encode('utf-8')}")
+		print(f"Message: {strip_html_tags(out.message)}")
 
 	if title:
 		out.title = title
