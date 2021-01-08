@@ -47,7 +47,7 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 		});
 	},
 	get_value() {
-		return cint(this.value);
+		return cint(this.value, null);
 	},
 	set_formatted_input(value) {
 		let el = $(this.input_area).find('i');

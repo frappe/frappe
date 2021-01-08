@@ -105,7 +105,7 @@ def download_frappe_assets(verbose=True):
 	if frappe_head:
 		try:
 			url = get_assets_link(frappe_head)
-			click.secho("Retreiving assets...", fg="yellow")
+			click.secho("Retrieving assets...", fg="yellow")
 			prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
 			assets_archive = download_file(url, prefix)
 			print("\n{0} Downloaded Frappe assets from {1}".format(green('✔'), url))

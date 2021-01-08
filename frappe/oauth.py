@@ -148,7 +148,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			print("Failed body authentication: Application %s does not exist".format(cid=request.client_id))
 
 		cookie_dict = get_cookie_dict_from_headers(request)
-		user_id = unquote(cookie_dict['user_id']) if 'user_id' in cookie_dict else "Guest"
+		user_id = unquote(cookie_dict.get('user_id').value) if 'user_id' in cookie_dict else "Guest"
 		return frappe.session.user == user_id
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
