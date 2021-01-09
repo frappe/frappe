@@ -97,25 +97,7 @@ def application(request):
 		frappe.rate_limiter.update()
 		frappe.monitor.stop(response)
 		frappe.recorder.dump()
-
-<<<<<<< HEAD
-		if response and hasattr(frappe.local, 'rate_limiter'):
-			response.headers.extend(frappe.local.rate_limiter.headers())
-
-=======
-		if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
-			frappe.logger("frappe.web", allow_site=frappe.local.site).info({
-				"site": get_site_name(request.host),
-				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
-				"base_url": getattr(request, "base_url", "NOTFOUND"),
-				"full_path": getattr(request, "full_path", "NOTFOUND"),
-				"method": getattr(request, "method", "NOTFOUND"),
-				"scheme": getattr(request, "scheme", "NOTFOUND"),
-				"http_status_code": getattr(response, "status_code", "NOTFOUND")
-			})
-
 		process_response(response)
->>>>>>> f35e8045d9... feat: set CORS headers based on allow_cors site config
 		frappe.destroy()
 
 	return response
