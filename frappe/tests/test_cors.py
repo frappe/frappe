@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, unittest
 from werkzeug.wrappers import Response
 from frappe.app import process_response
+from frappe.tests import set_request
 
 HEADERS = ('Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials',
     'Access-Control-Allow-Methods', 'Access-Control-Allow-Headers')
@@ -17,8 +18,7 @@ class TestCORS(unittest.TestCase):
         if origin:
             headers = {'Origin': origin}
 
-        frappe.utils.set_request(headers=headers)
-
+        set_request(headers=headers)
         self.response = Response()
         process_response(self.response)
 
