@@ -38,10 +38,11 @@ frappe.ui.form.Footer = Class.extend({
 						content: comment,
 						comment_email: frappe.session.user,
 						comment_by: frappe.session.user_fullname
-					}).then(() => {
+					}).then((comment) => {
+						let comment_item = this.frm.timeline.get_comment_timeline_item(comment);
 						this.frm.comment_box.set_value('');
 						frappe.utils.play_sound("click");
-						this.frm.timeline.refresh();
+						this.frm.timeline.add_timeline_item(comment_item);
 						this.frm.sidebar.refresh_comments_count && this.frm.sidebar.refresh_comments_count();
 					}).finally(() => {
 						this.frm.comment_box.enable();
