@@ -16,6 +16,9 @@ export default class GridRowForm {
 			body: this.form_area,
 			no_submit_on_enter: true,
 			frm: this.row.frm,
+			grid: this.row.grid,
+			grid_row: this.row,
+			grid_row_form: this,
 		});
 		this.layout.make();
 
