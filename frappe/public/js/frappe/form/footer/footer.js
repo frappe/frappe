@@ -31,6 +31,7 @@ frappe.ui.form.Footer = Class.extend({
 			},
 			on_submit: (comment) => {
 				if (strip_html(comment).trim() != "") {
+					this.frm.comment_box.disable();
 					frappe.xcall("frappe.desk.form.utils.add_comment", {
 						reference_doctype: this.frm.doctype,
 						reference_name: this.frm.docname,
@@ -42,6 +43,8 @@ frappe.ui.form.Footer = Class.extend({
 						frappe.utils.play_sound("click");
 						this.frm.timeline.refresh();
 						this.frm.sidebar.refresh_comments_count && this.frm.sidebar.refresh_comments_count();
+					}).finally(() => {
+						this.frm.comment_box.enable();
 					});
 				}
 			}
