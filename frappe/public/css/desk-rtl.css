@@ -111,3 +111,43 @@ ul.tree-children {
 .section-header {
   direction: ltr;
 }
+/* head and sidebar alignments for RTL in mobile display mode */
+.dropdown-menu {
+  transform: translateX(63%) !important;
+}
+.navbar-right .dropdown-menu {
+  transform: none !important;
+}
+body[data-route^=Form] .page-title .indicator {
+  margin-top: 20px;
+}
+@media (max-width: 991px) {
+  .layout-side-section .overlay-sidebar {
+    transform: translateX(110%);
+  }
+  body[data-route^=Form] .page-title h1.editable-title {
+    padding-right: 0px;
+  }
+  body[data-route^=Form] .page-title .indicator {
+    float: none;
+    margin-top: 0px;
+    margin-right: 10px;
+  }
+}
+@media (max-width: 767px) {
+  .page-head .page-title h1 {
+    padding-right: 0;
+  }
+  .page-head {
+    display: block;
+  }
+  .page-title {
+    right: 0px;
+  }
+  .dropdown-menu {
+    transform: translateX(83%) !important;
+  }
+  .navbar-right .dropdown-menu {
+    transform: translateX(78%) !important;
+  }
+}
