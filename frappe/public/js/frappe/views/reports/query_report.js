@@ -465,8 +465,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
 
-		let filter_area = $(`<div class="flex flex-wrap"></div>`);
-		this.page.page_form.append(filter_area);
+		let filter_area = this.page.page_form;s
 
 		this.filters = filters.map(df => {
 			if (df.fieldtype === 'Break') return;
@@ -806,7 +805,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
-				let alert_message = `<a href='/app/prepared-report/${data.name}'>` + 
+				let alert_message = `<a href='/app/prepared-report/${data.name}'>` +
 					__('Report initiated, click to view status') + `</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'}, 10);
 				this.toggle_nothing_to_show(true);
