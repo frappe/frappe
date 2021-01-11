@@ -190,6 +190,13 @@ $.extend(frappe.model, {
 				if (is_allowed_boot_doc) {
 					return boot_doc;
 				}
+			} else if (df["default"].substr(0,5)=="eval:") {
+				try {
+					return eval(df["default"].substr(5));
+				} catch (e) {
+					// ignore defaults for bad expression
+					return "";
+				}
 			} else if (df.fieldname===meta.title_field) {
 				// ignore defaults for title field
 				return "";
