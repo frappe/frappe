@@ -50,9 +50,9 @@ input[type="checkbox"] {
 
 	&.disabled-deselected:before {
 		background: $gray-50;
-		border: 0.5px solid var(--gray-400);
+		border: 0.5px solid var(--gray-300);
 		box-sizing: border-box;
-		box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+		box-shadow: inset 0px 1px 7px rgba(0, 0, 0, 0.1);
 		border-radius: 4px;
 	}
 
