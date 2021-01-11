@@ -418,13 +418,13 @@ class CustomizeForm(Document):
 
 def reset_customization(doctype):
 	def reset_customization(doctype):
-	setters = frappe.get_all("Property Setter", filters={
-		'doc_type': doctype,
-		'field_name': ['!=', 'naming_series'],
-		'property': ['!=', 'options']
-	})
+		setters = frappe.get_all("Property Setter", filters={
+			'doc_type': doctype,
+			'field_name': ['!=', 'naming_series'],
+			'property': ['!=', 'options']
+		})
 
-	for setter in setters:
-		frappe.delete_doc("Property Setter", setter['name'])
+		for setter in setters:
+			frappe.delete_doc("Property Setter", setter['name'])
 
-	frappe.clear_cache(doctype=doctype)
+		frappe.clear_cache(doctype=doctype)
