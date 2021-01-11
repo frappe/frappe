@@ -1667,7 +1667,7 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 			// no need to update timeline of owner of comment
 			// gets handled via comment submit code
-			if (!(doc.doctype === 'Comment' && doc.owner === frappe.session.user)) {
+			if (!(action === 'add' && doc.doctype === 'Comment' && doc.owner === frappe.session.user)) {
 				this.timeline && this.timeline.refresh();
 			}
 		});
