@@ -16,16 +16,16 @@ window.refresh_field = function(n, docname, table_field) {
 	if(typeof n==typeof [])
 		refresh_many(n, docname, table_field);
 
-	if (n && typeof n==='string' && table_field){
+	if (n && typeof n==='string' && table_field) {
 		var grid = cur_frm.fields_dict[table_field].grid,
 			field = frappe.utils.filter_dict(grid.docfields, {fieldname: n}),
 			grid_row = grid.grid_rows_by_docname[docname];
 
-		if (field && field.length){
+		if (field && field.length) {
 			field = field[0];
 			var meta = frappe.meta.get_docfield(field.parent, field.fieldname, docname);
 			$.extend(field, meta);
-			if (grid_row){
+			if (grid_row) {
 				grid_row.refresh_field(n);
 			} else {
 				grid.refresh();
