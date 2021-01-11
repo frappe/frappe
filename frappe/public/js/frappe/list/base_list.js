@@ -820,6 +820,7 @@ frappe.views.view_modes = [
 	"Calendar",
 	"Image",
 	"Inbox",
+	"Tree",
 ];
 frappe.views.is_valid = (view_mode) =>
 	frappe.views.view_modes.includes(view_mode);

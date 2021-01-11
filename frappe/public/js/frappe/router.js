@@ -225,7 +225,7 @@ frappe.router = {
 			// Hence if this check is true, instead of changing location hash,
 			// we just do a back to go to the doc previous to the "new-doctype-1"
 			var re_route_val = this.get_sub_path(frappe.re_route[sub_path]);
-			if (decodeURIComponent(re_route_val) === decodeURIComponent(sub_path)) {
+			if (decodeURIComponent(re_route_val) !== decodeURIComponent(sub_path)) {
 				window.history.back();
 				return true;
 			} else {
