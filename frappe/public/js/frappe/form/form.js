@@ -1665,7 +1665,11 @@ frappe.ui.form.Form = class FrappeForm {
 					frappe.model.docinfo[this.doctype][this.docname][key].splice(docindex, 1);
 				}
 			}
-			this.timeline && this.timeline.refresh();
+			// no need to update timeline of owner of comment
+			// gets handled via comment submit code
+			if (!(action === 'add' && doc.doctype === 'Comment' && doc.owner === frappe.session.user)) {
+				this.timeline && this.timeline.refresh();
+			}
 		});
 	}
 

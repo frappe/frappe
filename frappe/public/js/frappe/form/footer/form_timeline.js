@@ -202,14 +202,18 @@ class FormTimeline extends BaseTimeline {
 	get_comment_timeline_contents() {
 		let comment_timeline_contents = [];
 		(this.doc_info.comments || []).forEach(comment => {
-			comment_timeline_contents.push({
-				icon: 'small-message',
-				creation: comment.creation,
-				is_card: true,
-				content: this.get_comment_timeline_content(comment),
-			});
+			comment_timeline_contents.push(this.get_comment_timeline_item(comment));
 		});
 		return comment_timeline_contents;
+	}
+
+	get_comment_timeline_item(comment) {
+		return {
+			icon: 'small-message',
+			creation: comment.creation,
+			is_card: true,
+			content: this.get_comment_timeline_content(comment),
+		};
 	}
 
 	get_comment_timeline_content(doc) {
