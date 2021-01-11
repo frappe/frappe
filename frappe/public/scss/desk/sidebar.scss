@@ -114,10 +114,6 @@ body[data-route^="Module"] .main-menu {
 		right: 5px;
 	}
 
-	.liked-by {
-		margin-left: -4px;
-	}
-
 	.form-sidebar-stats {
 		li:first-child {
 			@include flex(flex, space-between, center, null);

@@ -44,7 +44,7 @@
   },
   {
    "fieldname": "options",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Options"
   },
   {
@@ -58,7 +58,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-08-17 16:15:46.937267",
+ "modified": "2020-12-05 19:20:00.503097",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report Filter",
