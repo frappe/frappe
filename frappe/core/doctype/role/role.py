@@ -31,6 +31,9 @@ class Role(Document):
 
 	def set_desk_properties(self):
 		# set if desk_access is not allowed, unset all desk properties
+		if self.name == 'Guest':
+			self.desk_access = 0
+			
 		if not self.desk_access:
 			for key in desk_properties:
 				self.set(key, 0)
