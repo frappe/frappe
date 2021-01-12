@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Workspace', {
 	setup: function(frm) {
-		frappe.meta.get_field('Desk Link', 'only_for').no_default = true;
+		frappe.meta.get_field('Workspace Link', 'only_for').no_default = true;
 	},
 
 	refresh: function(frm) {

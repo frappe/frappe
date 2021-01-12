@@ -472,7 +472,7 @@ def get_custom_workspace_for_user(page):
 
 @frappe.whitelist()
 def save_customization(page, config):
-	"""Save customizations as a separate doctype in Desk page per user
+	"""Save customizations as a separate doctype in Workspace per user
 
 	Args:
 		page (string): Name of the page to be edited
@@ -498,9 +498,9 @@ def save_customization(page, config):
 
 	config = _dict(loads(config))
 	if config.charts:
-		page_doc.charts = prepare_widget(config.charts, "Desk Chart", "charts")
+		page_doc.charts = prepare_widget(config.charts, "Workspace Chart", "charts")
 	if config.shortcuts:
-		page_doc.shortcuts = prepare_widget(config.shortcuts, "Desk Shortcut", "shortcuts")
+		page_doc.shortcuts = prepare_widget(config.shortcuts, "Workspace Shortcut", "shortcuts")
 	if config.cards:
 		page_doc.build_links_table_from_cards(config.cards)
 

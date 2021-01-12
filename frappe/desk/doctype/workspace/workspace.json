@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "autoname": "field:label",
  "beta": 1,
  "creation": "2020-01-23 13:45:59.470592",
@@ -52,14 +51,14 @@
    "fieldname": "charts",
    "fieldtype": "Table",
    "label": "Charts",
-   "options": "Desk Chart"
+   "options": "Workspace Chart"
   },
   {
    "depends_on": "eval:!doc.extends_another_page || !doc.is_standard || frappe.boot.developer_mode",
    "fieldname": "shortcuts",
    "fieldtype": "Table",
    "label": "Shortcuts",
-   "options": "Desk Shortcut"
+   "options": "Workspace Shortcut"
   },
   {
    "fieldname": "restrict_to_domain",
@@ -206,11 +205,11 @@
    "fieldname": "links",
    "fieldtype": "Table",
    "label": "Links",
-   "options": "Desk Link"
+   "options": "Workspace Link"
   }
  ],
  "links": [],
- "modified": "2021-01-12 11:26:57.362224",
+ "modified": "2021-01-12 12:34:32.372386",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

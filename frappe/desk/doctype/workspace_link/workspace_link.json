@@ -77,6 +77,11 @@
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "dependencies",
+   "fieldtype": "Data",
+   "label": "Dependencies"
+  },
+  {
    "fieldname": "only_for",
    "fieldtype": "Link",
    "label": "Only for ",
@@ -94,20 +99,15 @@
    "fieldname": "is_query_report",
    "fieldtype": "Check",
    "label": "Is Query Report"
-  },
-  {
-   "fieldname": "dependencies",
-   "fieldtype": "Data",
-   "label": "Dependencies"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-11-30 19:12:50.067888",
+ "modified": "2021-01-12 13:13:12.379443",
  "modified_by": "Administrator",
  "module": "Desk",
- "name": "Desk Link",
+ "name": "Workspace Link",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
