@@ -52,9 +52,9 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 			("desk", "onboarding_step"),
 			("desk", "onboarding_step_map"),
 			("desk", "module_onboarding"),
-			("desk", "desk_link"),
-			("desk", "desk_chart"),
-			("desk", "desk_shortcut"),
+			("desk", "workspace_link"),
+			("desk", "workspace_chart"),
+			("desk", "workspace_shortcut"),
 			("desk", "workspace")):
 			files.append(os.path.join(frappe.get_app_path("frappe"), d[0],
 				"doctype", d[1], d[1] + ".json"))
@@ -68,7 +68,6 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 		for i, doc_path in enumerate(files):
 			import_file_by_path(doc_path, force=force, ignore_version=True,
 				reset_permissions=reset_permissions, for_sync=True)
-			#print module_name + ' | ' + doctype + ' | ' + name
 
 			frappe.db.commit()
 
