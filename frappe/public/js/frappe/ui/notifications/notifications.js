@@ -24,14 +24,7 @@ frappe.ui.Notifications = class Notifications {
 
 		this.setup_headers();
 		let me = this;
-		// frappe.search.utils.make_function_searchable(
-		// 	frappe.set_route('Form', 'Notification Settings', frappe.session.user),
-		// 	__('Notification Settings'),
-		// );
-
-		// this.setup_notifications();
 		this.setup_dropdown_events();
-		// this.bind_events();
 	}
 
 	setup_headers() {
