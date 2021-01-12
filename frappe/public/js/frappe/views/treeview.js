@@ -103,7 +103,7 @@ frappe.views.TreeView = Class.extend({
 
 			if(!filter.disable_onchange) {
 				filter.change = function() {
-					filter.on_change && filter.on_change();
+					filter.onchange && filter.onchange();
 					var val = this.get_value();
 					me.args[filter.fieldname] = val;
 					if (val) {
