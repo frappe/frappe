@@ -42,8 +42,6 @@ def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_stat
 
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
-		if len(frappe.get_message_log()) == 0:
-			frappe.msgprint(frappe._("Did not cancel"))
 		raise
 
 def send_updated_docs(doc):
