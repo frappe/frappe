@@ -27,6 +27,7 @@ __version__ = '13.0.0-dev'
 __title__ = "Frappe Framework"
 
 local = Local()
+controllers = {}
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
