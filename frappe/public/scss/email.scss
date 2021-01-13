@@ -207,16 +207,28 @@ hr {
 	color: $text-muted !important;
 }
 
-.text-regular {
-	font-size: 14px;
+.text-small {
+	font-size: 12px;
 }
 
 .text-medium {
 	font-size: 13px;
 }
 
-.text-small {
-	font-size: 12px;
+.text-regular {
+	font-size: 14px;
+}
+
+.text-lg {
+	font-size: 16px;
+}
+
+.text-xl {
+	font-size: 18px;
+}
+
+.text-2xl {
+	font-size: 20px;
 }
 
 .text-bold {
