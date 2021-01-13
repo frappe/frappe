@@ -108,7 +108,7 @@ class User(Document):
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name, now=now)
-		
+
 		# Set user selected timezone
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
@@ -1003,9 +1003,14 @@ def send_token_via_email(tmp_id,token=None):
 	hotp = pyotp.HOTP(otpsecret)
 
 	frappe.sendmail(
-		recipients=user_email, sender=None, subject='Verification Code',
-		message='<p>Your verification code is {0}</p>'.format(hotp.at(int(count))),
-		delayed=False, retry=3)
+		recipients=user_email,
+		sender=None,
+		subject="Verification Code",
+		template="verification_code",
+		args=dict(code=hotp.at(int(count))),
+		delayed=False,
+		retry=3
+	)
 
 	return True
 
