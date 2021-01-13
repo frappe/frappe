@@ -157,7 +157,7 @@ frappe.views.ListViewSelect = class ListViewSelect
 				if (item.name == frappe.utils.to_title_case(frappe.get_route().slice(-1)[0] || '')) {
 					placeholder = item.name;
 				}
-				html += `<li><a class="dropdown-item" href="/app/${item.route}">${item.name}</a></li>`;
+				html += `<li><a class="dropdown-item" href="${item.route}">${item.name}</a></li>`;
 			});
 		}
 
