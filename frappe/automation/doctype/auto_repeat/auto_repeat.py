@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from datetime import timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.jinja import validate_template
 from dateutil.relativedelta import relativedelta
@@ -13,9 +14,10 @@ from frappe.utils import cstr, getdate, split_emails, add_days, today, get_last_
 from frappe.model.document import Document
 from frappe.core.doctype.communication.email import make
 from frappe.utils.background_jobs import get_jobs
+from frappe.automation.doctype.assignment_rule.assignment_rule import get_repeated
 
 month_map = {'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12}
-
+week_map = {'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6}
 
 class AutoRepeat(Document):
 	def validate(self):
@@ -24,6 +26,7 @@ class AutoRepeat(Document):
 		self.validate_submit_on_creation()
 		self.validate_dates()
 		self.validate_email_id()
+		self.validate_auto_repeat_days()
 		self.set_dates()
 		self.update_auto_repeat_id()
 		self.unlink_if_applicable()
@@ -49,7 +52,7 @@ class AutoRepeat(Document):
 		if self.disabled:
 			self.next_schedule_date = None
 		else:
-			self.next_schedule_date = get_next_schedule_date(self.start_date, self.frequency, self.start_date, self.repeat_on_day, self.repeat_on_last_day, self.end_date)
+			self.next_schedule_date = self.get_next_schedule_date(schedule_date=self.start_date)
 
 	def unlink_if_applicable(self):
 		if self.status == 'Completed' or self.disabled:
@@ -88,6 +91,12 @@ class AutoRepeat(Document):
 			else:
 				frappe.throw(_("'Recipients' not specified"))
 
+	def validate_auto_repeat_days(self):
+		auto_repeat_days = self.get_auto_repeat_days()
+		if not len(set(auto_repeat_days)) == len(auto_repeat_days):
+			repeated_days = get_repeated(auto_repeat_days)
+			frappe.throw(_('Auto Repeat Day {0} has been repeated.').format(frappe.bold(repeated_days)))
+
 	def update_auto_repeat_id(self):
 		#check if document is already on auto repeat
 		auto_repeat = frappe.db.get_value(self.reference_doctype, self.reference_document, "auto_repeat")
@@ -113,7 +122,7 @@ class AutoRepeat(Document):
 		end_date = getdate(self.end_date)
 
 		if not self.end_date:
-			next_date = get_next_schedule_date(start_date, self.frequency, self.start_date, self.repeat_on_day, self.repeat_on_last_day)
+			next_date = self.get_next_schedule_date(schedule_date=start_date)
 			row = {
 				"reference_document": self.reference_document,
 				"frequency": self.frequency,
@@ -122,8 +131,7 @@ class AutoRepeat(Document):
 			schedule_details.append(row)
 
 		if self.end_date:
-			next_date = get_next_schedule_date(
-				start_date, self.frequency, self.start_date, self.repeat_on_day, self.repeat_on_last_day, for_full_schedule=True)
+			next_date = self.get_next_schedule_date(schedule_date=start_date, for_full_schedule=True)
 
 			while (getdate(next_date) < getdate(end_date)):
 				row = {
@@ -132,8 +140,7 @@ class AutoRepeat(Document):
 					"next_scheduled_date" : next_date
 				}
 				schedule_details.append(row)
-				next_date = get_next_schedule_date(
-					next_date, self.frequency, self.start_date, self.repeat_on_day, self.repeat_on_last_day, end_date, for_full_schedule=True)
+				next_date = self.get_next_schedule_date(schedule_date=next_date, for_full_schedule=True)
 
 		return schedule_details
 
@@ -210,6 +217,75 @@ class AutoRepeat(Document):
 
 			new_doc.set('from_date', from_date)
 			new_doc.set('to_date', to_date)
+
+	def get_next_schedule_date(self, schedule_date, for_full_schedule=False):
+		"""
+			Returns the next schedule date for auto repeat after a recurring document has been created.
+			Adds required offset to the schedule_date param and returns the next schedule date.
+
+			:param schedule_date: The date when the last recurring document was created.
+			:param for_full_schedule: If True, returns the immediate next schedule date, else the full schedule.
+		"""
+		if month_map.get(self.frequency):
+			month_count = month_map.get(self.frequency) + month_diff(schedule_date, self.start_date) - 1
+		else:
+			month_count = 0
+
+		day_count = 0
+		if month_count and self.repeat_on_last_day:
+			day_count = 31
+			next_date = get_next_date(self.start_date, month_count, day_count)
+		elif month_count and self.repeat_on_day:
+			day_count = self.repeat_on_day
+			next_date = get_next_date(self.start_date, month_count, day_count)
+		elif month_count:
+			next_date = get_next_date(self.start_date, month_count)
+		else:
+			days = self.get_days(schedule_date)
+			next_date = add_days(schedule_date, days)
+
+		# next schedule date should be after or on current date
+		if not for_full_schedule:
+			while getdate(next_date) < getdate(today()):
+				if month_count:
+					month_count += month_map.get(self.frequency, 0)
+					next_date = get_next_date(self.start_date, month_count, day_count)
+				else:
+					days = self.get_days(next_date)
+					next_date = add_days(next_date, days)
+
+		return next_date
+
+	def get_days(self, schedule_date):
+		if self.frequency == "Weekly":
+			days = self.get_offset_for_weekly_frequency(schedule_date)
+		else:
+			# daily frequency
+			days = 1
+
+		return days
+
+	def get_offset_for_weekly_frequency(self, schedule_date):
+		# if weekdays are not set, offset is 7 from current schedule date
+		if not self.repeat_on_days:
+			return 7
+
+		repeat_on_days = self.get_auto_repeat_days()
+		current_schedule_day = getdate(schedule_date).weekday()
+		weekdays = list(week_map.keys())
+
+		# if repeats on more than 1 day or
+		# start date's weekday is not in repeat days, then get next weekday
+		# else offset is 7
+		if len(repeat_on_days) > 1 or weekdays[current_schedule_day] not in repeat_on_days:
+			weekday = get_next_weekday(current_schedule_day, repeat_on_days)
+			next_weekday_number = week_map.get(weekday, 0)
+			# offset for upcoming weekday
+			return timedelta((7 + next_weekday_number - current_schedule_day) % 7).days
+		return 7
+
+	def get_auto_repeat_days(self):
+		return [d.day for d in self.get('repeat_on_days', [])]
 
 	def send_notification(self, new_doc):
 		"""Notify concerned people about recurring document generation"""
@@ -291,41 +367,23 @@ class AutoRepeat(Document):
 		)
 
 
-def get_next_schedule_date(schedule_date, frequency, start_date, repeat_on_day=None, repeat_on_last_day=False, end_date=None, for_full_schedule=False):
-	if month_map.get(frequency):
-		month_count = month_map.get(frequency) + month_diff(schedule_date, start_date) - 1
-	else:
-		month_count = 0
-
-	day_count = 0
-	if month_count and repeat_on_last_day:
-		day_count = 31
-		next_date = get_next_date(start_date, month_count, day_count)
-	elif month_count and repeat_on_day:
-		day_count = repeat_on_day
-		next_date = get_next_date(start_date, month_count, day_count)
-	elif month_count:
-		next_date = get_next_date(start_date, month_count)
-	else:
-		days = 7 if frequency == 'Weekly' else 1
-		next_date = add_days(schedule_date, days)
-
-	# next schedule date should be after or on current date
-	if not for_full_schedule:
-		while getdate(next_date) < getdate(today()):
-			if month_count:
-				month_count += month_map.get(frequency)
-				next_date = get_next_date(start_date, month_count, day_count)
-			elif days:
-				next_date = add_days(next_date, days)
-
-	return next_date
-
-
 def get_next_date(dt, mcount, day=None):
 	dt = getdate(dt)
 	dt += relativedelta(months=mcount, day=day)
 	return dt
+
+
+def get_next_weekday(current_schedule_day, weekdays):
+	days = list(week_map.keys())
+	if current_schedule_day > 0:
+		days = days[(current_schedule_day + 1):] + days[:current_schedule_day]
+	else:
+		days = days[(current_schedule_day + 1):]
+
+	for entry in days:
+		if entry in weekdays:
+			return entry
+
 
 #called through hooks
 def make_auto_repeat_entry():
@@ -337,6 +395,7 @@ def make_auto_repeat_entry():
 		data = get_auto_repeat_entries(date)
 		frappe.enqueue(enqueued_method, data=data)
 
+
 def create_repeated_entries(data):
 	for d in data:
 		doc = frappe.get_doc('Auto Repeat', d.name)
@@ -346,9 +405,10 @@ def create_repeated_entries(data):
 
 		if schedule_date == current_date and not doc.disabled:
 			doc.create_documents()
-			schedule_date = get_next_schedule_date(schedule_date, doc.frequency, doc.start_date, doc.repeat_on_day, doc.repeat_on_last_day, doc.end_date)
+			schedule_date = doc.get_next_schedule_date(schedule_date=schedule_date)
 			if schedule_date and not doc.disabled:
 				frappe.db.set_value('Auto Repeat', doc.name, 'next_schedule_date', schedule_date)
+
 
 def get_auto_repeat_entries(date=None):
 	if not date:
@@ -358,6 +418,7 @@ def get_auto_repeat_entries(date=None):
 		['status', '=', 'Active']
 	])
 
+
 #called through hooks
 def set_auto_repeat_as_completed():
 	auto_repeat = frappe.get_all("Auto Repeat", filters = {'status': ['!=', 'Disabled']})
@@ -366,6 +427,7 @@ def set_auto_repeat_as_completed():
 		if doc.is_completed():
 			doc.status = 'Completed'
 			doc.save()
+
 
 @frappe.whitelist()
 def make_auto_repeat(doctype, docname, frequency = 'Daily', start_date = None, end_date = None):

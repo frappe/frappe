@@ -27,6 +27,7 @@ __version__ = '13.0.0-dev'
 __title__ = "Frappe Framework"
 
 local = Local()
+controllers = {}
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
@@ -148,6 +149,7 @@ def init(site, sites_path=None, new_site=False):
 		"new_site": new_site
 	})
 	local.rollback_observers = []
+	local.before_commit = []
 	local.test_objects = {}
 
 	local.site = site
@@ -326,7 +328,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
 	"""
-	from frappe.utils import encode
+	from frappe.utils import strip_html_tags
 
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
@@ -353,7 +355,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 		out.as_list = 1
 
 	if flags.print_messages and out.message:
-		print(f"Message: {repr(out.message).encode('utf-8')}")
+		print(f"Message: {strip_html_tags(out.message)}")
 
 	if title:
 		out.title = title
@@ -626,6 +628,21 @@ def clear_cache(user=None, doctype=None):
 			get_attr(fn)()
 
 	local.role_permissions = {}
+
+def only_has_select_perm(doctype, user=None, ignore_permissions=False):
+	if ignore_permissions:
+		return False
+
+	if not user:
+		user = local.session.user
+
+	import frappe.permissions
+	permissions = frappe.permissions.get_role_permissions(doctype, user=user)
+
+	if permissions.get('select') and not permissions.get('read'):
+		return True
+	else:
+		return False
 
 def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False):
 	"""Raises `frappe.PermissionError` if not permitted.
