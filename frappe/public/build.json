@@ -300,7 +300,7 @@
 		"public/less/controls.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
-	"frappe/css/email.css": "public/less/email.less",
+	"frappe/css/email.css": "public/scss/email.scss",
 	"js/barcode_scanner.min.js": "public/js/frappe/barcode_scanner/quagga.js",
 	"js/user_profile_controller.min.js": "desk/page/user_profile/user_profile_controller.js",
 	"css/login.css": "public/scss/login.scss"
