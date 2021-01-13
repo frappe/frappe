@@ -190,7 +190,7 @@ def get_full_dict(lang):
 	frappe.local.lang_full_dict = load_lang(lang)
 
 	try:
-		# get user specific transaltion data
+		# get user specific translation data
 		user_translations = get_user_translations(lang)
 		frappe.local.lang_full_dict.update(user_translations)
 	except Exception:
