@@ -210,7 +210,7 @@ class EmailAccount(Document):
 			elif not in_receive and any(map(lambda t: t in message, auth_error_codes)):
 				self.throw_invalid_credentials_exception()
 			else:
-				frappe.throw(e)
+				frappe.throw(cstr(e))
 
 		except socket.error:
 			if in_receive:
