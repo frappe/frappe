@@ -15,11 +15,11 @@
 					width="{% if header %}600{% else %}100%{% endif %}">
 					<tr>
 						<td width="40" align="left" valign="middle">
-							<a href="https://www.phonepe.com" style="text-decoration:none;color:#ffffff;outline:0;outline:none;border:0;border:none">
+							<a href="{{ site_url or 'https://frappeframework.com' }}">
 								<img
-									src="/assets/erpnext/images/erpnext-logo.svg"
-									title="ERPNext" alt="ERPNext" style="margin:auto;text-align:center;border:0;outline:none;text-decoration:none;min-height:40px"
-									align="middle" border="0" width="40"/>
+									src="{{ brand_logo or '/assets/frappe/images/frappe-framework-logo.png' }}"
+									class="brand-logo"
+								/>
 							</a>
 						</td>
 					</tr>
