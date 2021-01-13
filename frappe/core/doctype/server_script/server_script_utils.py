@@ -6,6 +6,7 @@ import frappe
 EVENT_MAP = {
 	'before_insert': 'Before Insert',
 	'after_insert': 'After Insert',
+	'before_validate': 'Before Validate',
 	'validate': 'Before Save',
 	'on_update': 'After Save',
 	'before_submit': 'Before Submit',
