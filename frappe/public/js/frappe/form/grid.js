@@ -264,6 +264,8 @@ export default class Grid {
 		if (this.frm) {
 			this.display_status = frappe.perm.get_field_display_status(this.df, this.frm.doc,
 				this.perm);
+		} else if (this.df.is_web_form && this.control) {
+			this.display_status = this.control.get_status();
 		} else {
 			// not in form
 			this.display_status = 'Write';
