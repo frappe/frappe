@@ -13,6 +13,17 @@
 
 frappe.ui.form.on('DocType', {
 	refresh: function(frm) {
+		frm.set_query('role', 'permissions', function(doc) {
+			if (doc.custom && frappe.session.user != 'Administrator') {
+				return {
+					query: "frappe.core.doctype.role.role.role_query",
+					filters: {
+						name: ['not in', ['All']]
+					}
+				};
+			}
+		});
+
 		if(frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
 			if(frm.is_new()) {
 				frm.set_value("custom", 1);

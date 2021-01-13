@@ -53,7 +53,6 @@ class Role(Document):
 				if user_type != user.user_type:
 					user.save()
 
-
 def get_info_based_on_role(role, field='email'):
 	''' Get information of all users that have been assigned this role '''
 	users = frappe.get_list("Has Role", filters={"role": role, "parenttype": "User"},
@@ -73,3 +72,15 @@ def get_user_info(users, field='email'):
 def get_users(role):
 	return [d.parent for d in frappe.get_all("Has Role", filters={"role": role, "parenttype": "User"},
 		fields=["parent"])]
+
+
+# searches for active employees
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def role_query(doctype, txt, searchfield, start, page_len, filters):
+	filters.update({
+		'is_custom': 0, 'name': ('like', '%{0}%'.format(txt))
+	})
+
+	return frappe.get_all('Role', limit_start=start, limit_page_length=page_len,
+		filters=filters, as_list=1)
