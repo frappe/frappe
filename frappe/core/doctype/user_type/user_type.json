@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2021-01-13 01:48:02.378548",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "is_standard",
+  "section_break_2",
+  "user_doctypes"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard"
+  },
+  {
+   "depends_on": "eval: !doc.is_standard",
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "User Document Types"
+  },
+  {
+   "fieldname": "user_doctypes",
+   "fieldtype": "Table",
+   "label": "Document Types",
+   "mandatory_depends_on": "eval: !doc.is_standard",
+   "options": "User Document Type"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-01-13 02:55:27.736442",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Type",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -452,18 +452,18 @@
    "label": "Simultaneous Sessions"
   },
   {
+   "bold": 1,
    "default": "System User",
    "description": "If the user has any role checked, then the user becomes a \"System User\". \"System User\" has access to the desktop",
    "fieldname": "user_type",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "User Type",
    "oldfieldname": "user_type",
    "oldfieldtype": "Select",
-   "options": "System User\nWebsite User",
-   "permlevel": 1,
-   "read_only": 1
+   "options": "User Type",
+   "permlevel": 1
   },
   {
    "description": "Allow user to login only after this hour (0-24)",
@@ -657,7 +657,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2020-12-24 19:48:49.677800",
+ "modified": "2021-01-13 21:55:25.750314",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

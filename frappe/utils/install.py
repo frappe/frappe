@@ -5,6 +5,7 @@ from __future__ import unicode_literals, print_function
 
 import frappe
 import getpass
+from frappe.installer import update_site_config
 from frappe.utils.password import update_password
 
 def before_install():
@@ -18,6 +19,7 @@ def after_install():
 	# reset installed apps for re-install
 	frappe.db.set_global("installed_apps", '["frappe"]')
 
+	create_user_type()
 	install_basic_docs()
 
 	from frappe.core.doctype.file.file import make_home_folder
@@ -47,7 +49,18 @@ def after_install():
 
 	add_standard_navbar_items()
 
+	update_site_config('user_type_doctype_limit', 25)
+
 	frappe.db.commit()
+
+def create_user_type():
+	for user_type in ['System User', 'Website User']:
+		if not frappe.db.exists('User Type', user_type):
+			frappe.get_doc({
+				'doctype': 'User Type',
+				'name': user_type,
+				'is_standard': 1
+			}).insert(ignore_permissions=True)
 
 def install_basic_docs():
 	# core users / roles

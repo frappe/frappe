@@ -4,7 +4,8 @@
 from __future__ import unicode_literals, print_function
 import frappe
 from frappe.model.document import Document
-from frappe.utils import cint, flt, has_gravatar, escape_html, format_datetime, now_datetime, get_formatted_email, today
+from frappe.utils import (cint, flt, has_gravatar, escape_html, format_datetime,
+	now_datetime, get_formatted_email, today, get_link_to_form)
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password
 from frappe.desk.notifications import clear_notifications
@@ -16,6 +17,7 @@ import frappe.share
 import frappe.defaults
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
+from frappe.core.doctype.user_type.user_type import get_user_document_types
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -108,7 +110,7 @@ class User(Document):
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name, now=now)
-		
+
 		# Set user selected timezone
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
@@ -169,11 +171,32 @@ class User(Document):
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
 
 	def set_system_user(self):
-		'''Set as System User if any of the given roles has desk_access'''
-		if self.has_desk_access() or self.name == 'Administrator':
-			self.user_type = 'System User'
+		'''For the standard users like admin and guest, the user type is fixed.'''
+		user_type_mapper = {
+			'Administrator': 'System User',
+			'Guest': 'Website User'
+		}
+
+		if self.user_type and not frappe.get_cached_value('User Type', self.user_type, 'is_standard'):
+			if user_type_mapper.get(self.name):
+				self.user_type = user_type_mapper.get(self.name)
+			elif self.roles:
+				self.validate_user_type()
 		else:
-			self.user_type = 'Website User'
+			'''Set as System User if any of the given roles has desk_access'''
+			self.user_type = 'System User' if self.has_desk_access() else 'Website User'
+
+	def validate_user_type(self):
+		''' Validate non standard user type '''
+
+		doctypes = get_user_document_types(self.user_type)
+		for row in self.roles:
+			for dt in get_perm_info(row.role):
+				if dt.parent not in doctypes:
+					msg = _('Please contact Administrator / Tech support')
+					frappe.throw(_('The user type {0} has no permission to access the doctype {1}.')
+						.format(get_link_to_form('User Type', frappe.bold(self.user_type)),
+							frappe.bold(dt.parent)), title=msg)
 
 	def has_desk_access(self):
 		'''Return true if any of the set roles has desk access'''
