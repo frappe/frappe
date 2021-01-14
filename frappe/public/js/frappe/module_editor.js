@@ -24,7 +24,7 @@ frappe.ModuleEditor = Class.extend({
 		var me = this;
 		this.wrapper.on("change", ".block-module-check", function() {
 			var module = $(this).attr('data-module');
-			if($(this).prop("checked")) {
+			if ($(this).prop("checked")) {
 				// remove from block_modules
 				me.frm.doc.block_modules = $.map(me.frm.doc.block_modules || [], function(d) {
 					if (d.module != module) {

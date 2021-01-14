@@ -16,7 +16,6 @@ import frappe.share
 import frappe.defaults
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
-from frappe.config import get_modules_from_all_apps_for_user
 
 STANDARD_USERS = ("Guest", "Administrator")
 
