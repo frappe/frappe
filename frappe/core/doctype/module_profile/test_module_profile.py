@@ -8,7 +8,7 @@ import unittest
 class TestModuleProfile(unittest.TestCase):
 	def test_make_new_module_profile(self):
 		if not frappe.db.get_value('Module Profile', '_Test Module Profile'):
-			module_profile = frappe.get_doc({
+			frappe.get_doc({
 				'doctype': 'Module Profile',
 				'module_profile_name': '_Test Module Profile',
 				'block_modules': [
