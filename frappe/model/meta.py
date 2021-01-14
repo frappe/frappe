@@ -484,6 +484,8 @@ class Meta(Document):
 		if not data.transactions:
 			# init groups
 			data.transactions = []
+
+		if not data.non_standard_fieldnames:
 			data.non_standard_fieldnames = {}
 
 		for link in dashboard_links:
