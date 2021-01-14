@@ -20,11 +20,11 @@ body.no-breadcrumbs .navbar .navbar-home:before {
   transform:rotate(180deg);         /* Standard syntax */
 }
 .layout-side-section .overlay-sidebar {
-  left: auto !important;
-  right: 0 !important;
+
 }
 .layout-side-section .overlay-sidebar.opened {
   transform:translateX(0) !important;
+  left:auto;
 }
 .navbar-right {
   float: left !important;
