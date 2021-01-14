@@ -201,7 +201,7 @@ export default class Grid {
 
 		this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 		if (selected_children.length == this.grid_pagination.page_length) {
-			frappe.utils.scroll_to(this.wrapper);
+			this.scroll_to_top();
 		}
 	}
 
@@ -213,9 +213,12 @@ export default class Grid {
 
 			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 			this.refresh();
-			frappe.utils.scroll_to(this.wrapper);
+			this.scroll_to_top();
 		});
+	}
 
+	scroll_to_top() {
+		frappe.utils.scroll_to(this.wrapper);
 	}
 
 	select_row(name) {
