@@ -93,17 +93,17 @@ frappe.views.TreeView = Class.extend({
 		var me = this;
 		this.opts.onload && this.opts.onload(me);
 	},
-	make_filters: function(){
+	make_filters: function() {
 		var me = this;
 		frappe.treeview_settings.filters = []
 		$.each(this.opts.filters || [], function(i, filter) {
-			if(frappe.route_options && frappe.route_options[filter.fieldname]) {
-				filter.default = frappe.route_options[filter.fieldname]
+			if (frappe.route_options && frappe.route_options[filter.fieldname]) {
+				filter.default = frappe.route_options[filter.fieldname];
 			}
 
-			if(!filter.disable_onchange) {
+			if (!filter.disable_onchange) {
 				filter.change = function() {
-					filter.on_change && filter.on_change();
+					filter.onchange && filter.onchange();
 					var val = this.get_value();
 					me.args[filter.fieldname] = val;
 					if (val) {
@@ -113,7 +113,7 @@ frappe.views.TreeView = Class.extend({
 					}
 					me.set_title();
 					me.make_tree();
-				}
+				};
 			}
 
 			me.page.add_field(filter);
@@ -121,7 +121,7 @@ frappe.views.TreeView = Class.extend({
 			if (filter.default) {
 				$("[data-fieldname='"+filter.fieldname+"']").trigger("change");
 			}
-		})
+		});
 	},
 	get_root: function() {
 		var me = this;

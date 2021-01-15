@@ -24,7 +24,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Script Type",
-   "options": "DocType Event\nScheduler Event\nAPI",
+   "options": "DocType Event\nScheduler Event\nPermission Query\nAPI",
    "reqd": 1
   },
   {
@@ -35,7 +35,7 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.script_type==='DocType Event'",
+   "depends_on": "eval:['DocType Event', 'Permission Query'].includes(doc.script_type)",
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -47,7 +47,7 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
-   "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
+   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -88,7 +88,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-11-11 12:39:41.391052",
+ "modified": "2021-01-03 18:50:14.767595",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

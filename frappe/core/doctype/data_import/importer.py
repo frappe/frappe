@@ -751,7 +751,7 @@ class Row:
 				self.warnings.append(
 					{
 						"row": self.row_number,
-						"message": _("{0} is a mandatory field asdadsf").format(id_field.label),
+						"message": _("{0} is a mandatory field").format(id_field.label),
 					}
 				)
 			return

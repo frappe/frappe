@@ -77,6 +77,11 @@ def get_data():
 					"name": "OAuth Provider Settings",
 					"description": _("Settings for OAuth Provider"),
 				},
+				{
+					"type": "doctype",
+					"name": "Connected App",
+					"description": _("Connect to any OAuth Provider"),
+				},
 			]
 		},
 		{

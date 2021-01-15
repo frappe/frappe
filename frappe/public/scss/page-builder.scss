@@ -29,11 +29,11 @@
 }
 
 .hero.align-center {
-	h1, .hero-subtitle, .hero-buttons {
+	h1, .hero-title, .hero-subtitle, .hero-buttons {
 		text-align: center;
 	}
 
-	.hero-subtitle {
+	.hero-title, .hero-subtitle {
 		margin-left: auto;
 		margin-right: auto;
 	}

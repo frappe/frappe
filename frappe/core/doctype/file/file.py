@@ -30,7 +30,7 @@ import frappe
 from frappe import _, conf
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
-
+from frappe.utils.image import strip_exif_data
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
@@ -456,6 +456,7 @@ class File(Document):
 	def save_file(self, content=None, decode=False, ignore_existing_file_check=False):
 		file_exists = False
 		self.content = content
+		
 		if decode:
 			if isinstance(content, text_type):
 				self.content = content.encode("utf-8")
@@ -466,10 +467,19 @@ class File(Document):
 
 		if not self.is_private:
 			self.is_private = 0
-		self.file_size = self.check_max_file_size()
-		self.content_hash = get_content_hash(self.content)
+		
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
+		
+		self.file_size = self.check_max_file_size()
+		
+		if (
+			self.content_type and "image" in self.content_type
+			and frappe.get_system_settings("strip_exif_metadata_from_uploaded_images")
+		):
+			self.content = strip_exif_data(self.content, self.content_type)			
 
+		self.content_hash = get_content_hash(self.content)
+		
 		duplicate_file = None
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)

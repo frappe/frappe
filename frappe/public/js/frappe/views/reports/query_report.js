@@ -1112,7 +1112,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_filter_values(raise) {
-		const mandatory = this.filters.filter(f => f.df.reqd);
+
+		// check for mandatory property for filters added via UI
+		const mandatory = this.filters.filter(f => (f.df.reqd || f.df.mandatory));
 		const missing_mandatory = mandatory.filter(f => !f.get_value());
 		if (raise && missing_mandatory.length > 0) {
 			let message = __('Please set filters');

@@ -18,6 +18,7 @@ from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, get_timespan_date_range
 from frappe.model.meta import get_table_columns
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -39,7 +40,10 @@ class DatabaseQuery(object):
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
 		return_query=False, strict=True, pluck=None, ignore_ddl=False):
-		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
+		if not ignore_permissions and \
+			not frappe.has_permission(self.doctype, "select", user=user) and \
+			not frappe.has_permission(self.doctype, "read", user=user):
+
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
 
@@ -314,7 +318,10 @@ class DatabaseQuery(object):
 	def append_table(self, table_name):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
-		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
+		ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
+
+		if (not self.flags.ignore_permissions) and\
+			 (not frappe.has_permission(doctype, ptype=ptype)):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
 
@@ -575,7 +582,7 @@ class DatabaseQuery(object):
 		self.shared = frappe.share.get_shared(self.doctype, self.user)
 
 		if (not meta.istable and
-			not role_permissions.get("read") and
+			not (role_permissions.get("select") or role_permissions.get("read")) and
 			not self.flags.ignore_permissions and
 			not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)):
 			only_if_shared = True
@@ -683,15 +690,23 @@ class DatabaseQuery(object):
 			self.match_filters.append(match_filters)
 
 	def get_permission_query_conditions(self):
+		conditions = []
 		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
 		if condition_methods:
-			conditions = []
 			for method in condition_methods:
 				c = frappe.call(frappe.get_attr(method), self.user)
 				if c:
 					conditions.append(c)
 
-			return " and ".join(conditions) if conditions else None
+		permision_script_name = get_server_script_map().get("permission_query").get(self.doctype)
+		if permision_script_name:
+			script = frappe.get_doc("Server Script", permision_script_name)
+			condition = script.get_permission_query_conditions(self.user)
+			if condition:
+				conditions.append(condition)
+
+		return " and ".join(conditions) if conditions else ""
+
 
 	def run_custom_query(self, query):
 		if '%(key)s' in query:
