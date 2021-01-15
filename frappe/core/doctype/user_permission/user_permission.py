@@ -195,6 +195,7 @@ def add_user_permissions(data):
 		data = json.loads(data)
 	data = frappe._dict(data)
 
+	# get all doctypes on whom this permission os applied
 	perm_applied_docs = check_applicable_doc_perm(data.user, data.doctype, data.docname)
 	exists = frappe.db.exists("User Permission", {
 		"user": data.user,
