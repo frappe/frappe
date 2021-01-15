@@ -88,8 +88,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		super(args);
 		$.extend(this, args);
 
-		this.welcomed = true;
 		this.page_name = "setup-wizard";
+		this.welcomed = true;
 		frappe.set_route("setup-wizard/0");
 	}
 
