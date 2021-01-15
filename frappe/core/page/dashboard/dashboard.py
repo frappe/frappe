@@ -48,16 +48,3 @@ def generate_and_cache_results(chart, chart_name, function, cache_key):
 	frappe.cache().set_value(cache_key, json.dumps(results, default=str))
 	frappe.db.set_value("Dashboard Chart", chart_name, "last_synced_on", frappe.utils.now(), update_modified = False)
 	return results
-
-def get_from_date_from_timespan(to_date, timespan):
-	days = months = years = 0
-	if "Last Week" == timespan:
-		days = -7
-	if "Last Month" == timespan:
-		months = -1
-	elif "Last Quarter" == timespan:
-		months = -3
-	elif "Last Year" == timespan:
-		years = -1
-	return add_to_date(to_date, years=years, months=months, days=days,
-		as_datetime=True)
