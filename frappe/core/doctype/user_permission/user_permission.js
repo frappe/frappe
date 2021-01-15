@@ -31,7 +31,7 @@ frappe.ui.form.on('User Permission', {
 
 	allow: frm => {
 		if (frm.doc.allow) {
-			if(frm.doc.for_value) {
+			if (frm.doc.for_value) {
 				frm.set_value('for_value', null);
 			}
 			frm.trigger('show_exclude_descendants');
