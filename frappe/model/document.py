@@ -340,6 +340,7 @@ class Document(BaseDocument):
 		if hasattr(self, "__unsaved"):
 			delattr(self, "__unsaved")
 
+		self.apply_fieldlevel_read_permissions()
 		return self
 
 	def copy_attachments_from_amended_from(self):
@@ -591,9 +592,18 @@ class Document(BaseDocument):
 
 	def apply_fieldlevel_read_permissions(self):
 		"""Remove values the user is not allowed to read (called when loading in desk)"""
+
+		if frappe.session.user == "Administrator":
+			return
+
 		has_higher_permlevel = False
-		for p in self.get_permissions():
-			if p.permlevel > 0:
+
+		all_fields = self.meta.fields
+		for table_field in self.meta.get_table_fields():
+			all_fields += frappe.get_meta(table_field.options).fields or []
+
+		for df in all_fields:
+			if df.permlevel > 0:
 				has_higher_permlevel = True
 				break
 
