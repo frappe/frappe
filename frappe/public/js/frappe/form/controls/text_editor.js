@@ -76,10 +76,12 @@ const BackgroundStyle = Quill.import('attributors/style/background');
 const ColorStyle = Quill.import('attributors/style/color');
 const FontStyle = Quill.import('attributors/style/font');
 const AlignStyle = Quill.import('attributors/style/align');
+const DirectionStyle = Quill.import('attributors/style/direction');
 Quill.register(BackgroundStyle, true);
 Quill.register(ColorStyle, true);
 Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
+Quill.register(DirectionStyle, true);
 
 //Adding fonts in text editor
 const Font = Quill.import('attributors/class/font');
