@@ -44,6 +44,8 @@ def get_events(doctype, start, end, field_map, filters=None, fields=None):
 		fields = [field_map.start, field_map.end, field_map.title, 'name']
 
 	if field_map.color:
+		if isinstance(fields, str):
+			fields = json.loads ( fields )
 		fields.append(field_map.color)
 
 	start_date = "ifnull(%s, '0001-01-01 00:00:00')" % field_map.start
