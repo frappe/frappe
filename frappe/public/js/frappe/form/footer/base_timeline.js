@@ -9,6 +9,7 @@ class BaseTimeline {
 
 	make() {
 		this.timeline_wrapper = $(`<div class="new-timeline">`);
+		this.wrapper = this.timeline_wrapper;
 		this.timeline_items_wrapper = $(`<div class="timeline-items">`);
 		this.timeline_actions_wrapper = $(`
 			<div class="timeline-actions">
@@ -75,7 +76,10 @@ class BaseTimeline {
 		// timeline_badge, icon, icon_size,
 		// hide_timestamp, is_card
 		const timeline_item = $(`<div class="timeline-item">`);
-
+		timeline_item.attr({
+			"data-doctype": item.doctype,
+			"data-name": item.name,
+		});
 		if (item.icon) {
 			timeline_item.append(`
 				<div class="timeline-badge">
