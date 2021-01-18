@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils.data import get_url
 from requests_oauthlib import OAuth2Session
 
 if any((os.getenv('CI'), frappe.conf.developer_mode, frappe.conf.allow_tests)):
@@ -21,7 +22,7 @@ class ConnectedApp(Document):
 	"""
 
 	def validate(self):
-		base_url = frappe.utils.get_url()
+		base_url = frappe.get_site_config().host_name or get_url()
 		callback_path = '/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/' + self.name
 		self.redirect_uri = urljoin(base_url, callback_path)
 

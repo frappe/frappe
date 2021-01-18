@@ -7,6 +7,7 @@ from frappe.test_runner import make_test_records
 from six.moves.urllib.parse import urlparse, parse_qs, urljoin
 from urllib.parse import urlencode, quote
 from frappe.integrations.oauth2 import encode_params
+from frappe.utils.data import get_url
 
 class TestOAuth20(unittest.TestCase):
 
@@ -25,7 +26,7 @@ class TestOAuth20(unittest.TestCase):
 			frappe_login_key = frappe.new_doc("Social Login Key")
 
 		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
-		frappe_login_key.base_url = frappe.utils.get_url()
+		frappe_login_key.base_url = frappe.get_site_config().host_name or get_url()
 		frappe_login_key.enable_social_login = 0
 		frappe_login_key.save()
 		frappe.db.commit()
@@ -232,4 +233,4 @@ def login(session):
 
 def get_full_url(endpoint):
 	"""Turn '/endpoint' into 'http://127.0.0.1:8000/endpoint'."""
-	return urljoin(frappe.utils.get_url(), endpoint)
+	return urljoin(frappe.get_site_config().host_name or get_url(), endpoint)
