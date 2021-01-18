@@ -13,7 +13,7 @@ common_default_keys = ["__default", "__global"]
 doctype_map_keys = ('energy_point_rule_map', 'assignment_rule_map',
 	'milestone_tracker_map', 'event_consumer_document_type_map')
 
-global_cache_keys = ("app_hooks", "installed_apps",
+global_cache_keys = ("app_hooks", "installed_apps", 'all_apps',
 		"app_modules", "module_app", "system_settings",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
 		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
