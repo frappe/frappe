@@ -107,8 +107,8 @@ frappe.ui.form.on('Auto Email Report', {
 				const row = $("<tr></tr>").appendTo(table.find("tbody"));
 				$("<td>" + f.label + "</td>").appendTo(row);
 				$("<td>" + frappe.format(filters[f.fieldname], f) +"</td>")
-				.css(css)
-				.appendTo(row);
+					.css(css)
+					.appendTo(row);
 			});
 
 			table.on('click', function() {
