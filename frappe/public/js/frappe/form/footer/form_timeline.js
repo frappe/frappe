@@ -13,6 +13,11 @@ class FormTimeline extends BaseTimeline {
 		this.setup_activity_toggle();
 	}
 
+	refresh() {
+		super.refresh();
+		this.frm.trigger('timeline_refresh');
+	}
+
 	setup_timeline_actions() {
 		this.add_action_button(__('New Email'), () => this.compose_mail());
 		this.setup_new_event_button();
