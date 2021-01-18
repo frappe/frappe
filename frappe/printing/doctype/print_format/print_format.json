@@ -213,13 +213,7 @@
  ],
  "icon": "fa fa-print",
  "idx": 1,
-<<<<<<< HEAD
- "modified": "2020-12-10 18:58:55.598269",
-=======
- "index_web_pages_for_search": 1,
- "links": [],
  "modified": "2020-12-14 11:38:49.132061",
->>>>>>> 881c426296... fix: typo
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
