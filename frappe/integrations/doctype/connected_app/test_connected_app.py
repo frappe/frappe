@@ -8,7 +8,6 @@ import requests
 from urllib.parse import urljoin
 
 import frappe
-from frappe.test_runner import make_test_records
 from frappe.integrations.doctype.social_login_key.test_social_login_key import create_or_update_social_login_key
 
 
