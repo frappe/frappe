@@ -101,7 +101,7 @@ class TestConnectedApp(unittest.TestCase):
 	def test_web_application_flow(self):
 		"""Simulate a logged in user who opens the authorization URL."""
 		session = requests.Session()
-		login_response = session.post(urljoin(self.base_url, '/api/method/login'), data={
+		login_response = session.get(urljoin(self.base_url, '/api/method/login'), params={
 			'usr': self.user_name,
 			'pwd': self.user_password
 		})
