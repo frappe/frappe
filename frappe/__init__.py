@@ -27,6 +27,7 @@ __version__ = '13.0.0-dev'
 __title__ = "Frappe Framework"
 
 local = Local()
+controllers = {}
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
@@ -627,6 +628,21 @@ def clear_cache(user=None, doctype=None):
 			get_attr(fn)()
 
 	local.role_permissions = {}
+
+def only_has_select_perm(doctype, user=None, ignore_permissions=False):
+	if ignore_permissions:
+		return False
+
+	if not user:
+		user = local.session.user
+
+	import frappe.permissions
+	permissions = frappe.permissions.get_role_permissions(doctype, user=user)
+
+	if permissions.get('select') and not permissions.get('read'):
+		return True
+	else:
+		return False
 
 def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False):
 	"""Raises `frappe.PermissionError` if not permitted.

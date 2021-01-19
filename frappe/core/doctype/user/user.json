@@ -654,6 +654,11 @@
    "group": "Activity",
    "link_doctype": "ToDo",
    "link_fieldname": "owner"
+  },
+  {
+   "group": "Integrations",
+   "link_doctype": "Token Cache",
+   "link_fieldname": "user"
   }
  ],
  "max_attachments": 5,

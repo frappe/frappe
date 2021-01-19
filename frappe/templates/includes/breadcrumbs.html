@@ -3,6 +3,7 @@
 	<nav aria-label="breadcrumb">
 		<ol class="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
 			{%- set parents = parents[-3:] %}
+			{% set count = (parents | length) + 1 %}
 			{% for parent in parents %}
 				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
 					<a itemprop="item" href="{{ url_prefix }}{{ parent.route | abs_url }}" itemprop="url">
@@ -11,8 +12,11 @@
 					</a>
 				</li>
 			{% endfor %}
-			<li class="breadcrumb-item active" aria-current="page">
-				{{ title or "" }}
+			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item active" aria-current="page">
+				<span itemprop="item">
+					<span itemprop="name">{{ title }}</span>
+					<meta itemprop="position" content="{{ count }}"/>
+				</span>
 			</li>
 		</ol>
 	</nav>

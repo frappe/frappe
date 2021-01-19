@@ -939,15 +939,17 @@ class Document(BaseDocument):
 		self.load_doc_before_save()
 		self.reset_seen()
 
+		# before_validate method should be executed before ignoring validations
+		if self._action in ("save", "submit"):
+			self.run_method("before_validate")
+
 		if self.flags.ignore_validate:
 			return
 
 		if self._action=="save":
-			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_save")
 		elif self._action=="submit":
-			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_submit")
 		elif self._action=="cancel":

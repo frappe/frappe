@@ -112,7 +112,6 @@ frappe.views.CommunicationComposer = Class.extend({
 			{
 				label: __("Message"),
 				fieldtype: "Text Editor",
-				reqd: 1,
 				fieldname: "content",
 				onchange: frappe.utils.debounce(
 					this.save_as_draft.bind(this),
@@ -124,7 +123,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				label: __("Send me a copy"),
 				fieldtype: "Check",
 				fieldname: "send_me_a_copy",
-				default: 1
+				default: 1 // frappe.boot.user.send_me_a_copy
 			},
 			{
 				label: __("Send Read Receipt"),

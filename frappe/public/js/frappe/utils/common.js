@@ -176,7 +176,7 @@ window.replace_all = function (s, t1, t2) {
 	return s.split(t1).join(t2);
 }
 
-window.strip_html = function (txt) {
+window.strip_html = function(txt) {
 	return cstr(txt).replace(/<[^>]*>/g, "");
 }
 

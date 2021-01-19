@@ -1220,6 +1220,7 @@ Object.assign(frappe.utils, {
 		if (Math.floor(number) === number) return 0;
 		return number.toString().split(".")[1].length || 0;
 	},
+
 	build_summary_item(summary) {
 		if (summary.type == "separator") {
 			return $(`<div class="summary-separator">
@@ -1242,6 +1243,7 @@ Object.assign(frappe.utils, {
 			<div class="summary-value ${color}">${value}</div>
 		</div>`);
 	},
+
 	get_names_for_mentions() {
 		let names_for_mentions = Object.keys(frappe.boot.user_info || [])
 			.filter(user => {

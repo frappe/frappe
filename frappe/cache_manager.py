@@ -68,6 +68,7 @@ def clear_defaults_cache(user=None):
 		frappe.cache().delete_key("defaults")
 
 def clear_doctype_cache(doctype=None):
+	clear_controller_cache(doctype)
 	cache = frappe.cache()
 
 	if getattr(frappe.local, 'meta_cache') and (doctype in frappe.local.meta_cache):
@@ -98,6 +99,18 @@ def clear_doctype_cache(doctype=None):
 		# clear all
 		for name in doctype_cache_keys:
 			cache.delete_value(name)
+
+	# Clear all document's cache. To clear documents of a specific DocType document_cache should be restructured
+	clear_document_cache()
+
+def clear_controller_cache(doctype=None):
+	if not doctype:
+		del frappe.controllers
+		frappe.controllers = {}
+		return
+
+	for site_controllers in frappe.controllers.values():
+		site_controllers.pop(doctype, None)
 
 def get_doctype_map(doctype, name, filters=None, order_by=None):
 	cache = frappe.cache()

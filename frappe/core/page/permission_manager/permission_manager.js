@@ -292,7 +292,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	get rights() {
-		return ["read", "write", "create", "delete", "submit", "cancel", "amend",
+		return ["select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 			"print", "email", "report", "import", "export", "set_user_permissions", "share"]
 	}
 

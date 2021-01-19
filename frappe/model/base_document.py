@@ -48,7 +48,7 @@ def get_controller(doctype):
 		else:
 			class_overrides = frappe.get_hooks('override_doctype_class')
 			if class_overrides and class_overrides.get(doctype):
-				import_path = frappe.get_hooks('override_doctype_class').get(doctype)[-1]
+				import_path = class_overrides[doctype][-1]
 				module_path, classname = import_path.rsplit('.', 1)
 				module = frappe.get_module(module_path)
 				if not hasattr(module, classname):
@@ -69,10 +69,13 @@ def get_controller(doctype):
 
 	if frappe.local.dev_server:
 		return _get_controller()
-
-	key = '{}:doctype_classes'.format(frappe.local.site)
-	return frappe.cache().hget(key, doctype, generator=_get_controller, shared=True)
-
+	
+	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
+	if doctype not in site_controllers:
+		site_controllers[doctype] = _get_controller()
+	
+	return site_controllers[doctype]
+	
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
 

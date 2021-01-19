@@ -445,25 +445,29 @@ def get_weekday(datetime=None):
 	return weekdays[datetime.weekday()]
 
 def get_timespan_date_range(timespan):
+	today = nowdate()
 	date_range_map = {
-		"last week": [add_to_date(nowdate(), days=-7), nowdate()],
-		"last month": [add_to_date(nowdate(), months=-1), nowdate()],
-		"last quarter": [add_to_date(nowdate(), months=-3), nowdate()],
-		"last 6 months": [add_to_date(nowdate(), months=-6), nowdate()],
-		"last year": [add_to_date(nowdate(), years=-1), nowdate()],
-		"today": [nowdate(), nowdate()],
-		"this week": [get_first_day_of_week(nowdate(), as_str=True), nowdate()],
-		"this month": [get_first_day(nowdate(), as_str=True), nowdate()],
-		"this quarter": [get_quarter_start(nowdate(), as_str=True), nowdate()],
-		"this year": [get_year_start(nowdate(), as_str=True), nowdate()],
-		"next week": [nowdate(), add_to_date(nowdate(), days=7)],
-		"next month": [nowdate(), add_to_date(nowdate(), months=1)],
-		"next quarter": [nowdate(), add_to_date(nowdate(), months=3)],
-		"next 6 months": [nowdate(), add_to_date(nowdate(), months=6)],
-		"next year": [nowdate(), add_to_date(nowdate(), years=1)],
+		"last week": lambda: (add_to_date(today, days=-7), today),
+		"last month": lambda: (add_to_date(today, months=-1), today),
+		"last quarter": lambda: (add_to_date(today, months=-3), today),
+		"last 6 months": lambda: (add_to_date(today, months=-6), today),
+		"last year": lambda: (add_to_date(today, years=-1), today),
+		"yesterday": lambda: (add_to_date(today, days=-1),) * 2,
+		"today": lambda: (today, today),
+		"tomorrow": lambda: (add_to_date(today, days=1),) * 2,
+		"this week": lambda: (get_first_day_of_week(today, as_str=True), today),
+		"this month": lambda: (get_first_day(today, as_str=True), today),
+		"this quarter": lambda: (get_quarter_start(today, as_str=True), today),
+		"this year": lambda: (get_year_start(today, as_str=True), today),
+		"next week": lambda: (today, add_to_date(today, days=7)),
+		"next month": lambda: (today, add_to_date(today, months=1)),
+		"next quarter": lambda: (today, add_to_date(today, months=3)),
+		"next 6 months": lambda: (today, add_to_date(today, months=6)),
+		"next year": lambda: (today, add_to_date(today, years=1)),
 	}
 
-	return date_range_map.get(timespan)
+	if timespan in date_range_map:
+		return date_range_map[timespan]()
 
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
