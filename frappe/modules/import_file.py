@@ -100,6 +100,7 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		ignore_version=None, reset_permissions=False):
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
+	single_doctype = ['Print Settings'] #We are ignoring single doctype.
 
 	controller = get_controller(docdict['doctype'])
 	if controller and hasattr(controller, 'prepare_for_import') and callable(getattr(controller, 'prepare_for_import')):
@@ -114,6 +115,11 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		pre_process(doc)
 
 	ignore = []
+	#Hard SQL query responds faster.
+	if doc.doctype not in single_doctype:
+		if frappe.db.sql("""select name from `tab{0}` where \
+		modified='{1}' and name='{2}' """.format(doc.doctype,doc.modified,doc.name)):
+			return False
 
 	if frappe.db.exists(doc.doctype, doc.name):
 

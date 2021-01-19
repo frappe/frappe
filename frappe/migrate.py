@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import json
 import os
 import sys
-import frappe
+import frappe, time
 import frappe.translate
 import frappe.modules.patch_handler
 import frappe.model.sync
@@ -34,7 +34,7 @@ def migrate(verbose=True, skip_failing=False, skip_search_index=False):
 	- sync web pages (from /www)
 	- run after migrate hooks
 	'''
-
+	migrate_start = time.time()
 	service_status = check_connection(redis_services=["redis_cache"])
 	if False in service_status.values():
 		for service in service_status:
@@ -104,3 +104,5 @@ Otherwise, check the server logs and ensure that all the required services are r
 		with open(touched_tables_file, 'w') as f:
 			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
 		frappe.flags.touched_tables.clear()
+		migrate_end = time.time()
+		print ("Total Time in Migrate:",str(migrate_end-migrate_start)+" sec")
