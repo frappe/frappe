@@ -356,7 +356,7 @@ class FormTimeline extends BaseTimeline {
 		const args = {
 			doc: this.frm.doc,
 			frm: this.frm,
-			recipients: this.get_recipient(),
+			recipients: communication_doc ? communication_doc.sender : this.get_recipient(),
 			is_a_reply: Boolean(communication_doc),
 			title: communication_doc ? __('Reply') : null,
 			last_email: communication_doc
