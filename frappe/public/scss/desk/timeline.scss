@@ -108,8 +108,11 @@ $threshold: 34;
 				max-height: 500px;
 			}
 
-			.actions > * {
-				color: var(--text-muted);
+			.actions {
+				display: flex;
+				> * {
+					color: var(--text-muted);
+				}
 			}
 
 			.action-btn {
