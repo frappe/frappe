@@ -100,9 +100,6 @@ def clear_doctype_cache(doctype=None):
 		for name in doctype_cache_keys:
 			cache.delete_value(name)
 
-	# Clear all document's cache. To clear documents of a specific DocType document_cache should be restructured
-	clear_document_cache()
-
 def clear_controller_cache(doctype=None):
 	if not doctype:
 		del frappe.controllers
