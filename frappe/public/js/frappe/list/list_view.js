@@ -504,7 +504,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
-	render_header() {
+	render_header(refresh_header=false) {
+		if (refresh_header) {
+			this.$result.find('.list-row-head').remove();
+		}
 		if (this.$result.find(".list-row-head").length === 0) {
 			// append header once
 			this.$result.prepend(this.get_header_html());
