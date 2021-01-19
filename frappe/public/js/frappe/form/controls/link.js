@@ -455,11 +455,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
 				}
 
-				// check if value exist in the filtered dropdown values 
-				if(this.$input.cache[doctype][""] && !this.$input.cache[doctype][""].some(d => d.value === value)){
-					value = ""
-				}
-
 				return frappe.call({
 					method:'frappe.desk.form.utils.validate_link',
 					type: "GET",
