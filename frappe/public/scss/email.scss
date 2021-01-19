@@ -1,6 +1,15 @@
-/* csslint ignore:start */
-@import "./desk/variables.scss";
-@import "./desk/avatar.scss";
+$white: #fff;
+$gray-900: #1F272E;
+$gray-800: #333C44;
+$gray-700: #505A62;
+$gray-600: #687178;
+$gray-500: #98A1A9;
+$gray-400: #C0C6CC;
+$gray-300: #DCE0E3;
+$gray-200: #EBEEF0;
+$gray-100: #F4F5F6;
+$gray-50: #F9FAFA;
+$primary: #2490EF;
 
 $text-color: $gray-900;
 $border-color: $gray-100;
@@ -78,6 +87,12 @@ hr {
 		text-decoration: none;
 		max-height: 40px;
 		width: auto;
+	}
+}
+
+@media only screen and (max-width: 600px) {
+	.email-container {
+		width: 90%;
 	}
 }
 
@@ -259,14 +274,45 @@ hr {
 .report-title {
 	margin-bottom: 20px;
 }
+
 /* csslint ignore:end */
+.avatar {
+	display: inline-block;
+	vertical-align: middle;
+}
 
 .avatar-frame {
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	background-repeat: no-repeat;
+	background-position: center center;
+	border-radius: 50%;
 	background-color: $orange-bg;
 	font-size: 12px;
 }
 
+.avatar img {
+	max-width: 100%;
+	max-height: 100%;
+	border-radius: 50%;
+}
+
+.avatar .standard-image {
+	border-radius: 50%;
+	border: none;
+}
+
 .standard-image {
+	width: 100%;
+	height: 100%;
 	background-color: $orange-bg;
 	color: $orange-color;
+	font-weight: normal;
+	width: 28px;
+	height: 28px;
+	text-align: center;
+	vertical-align: middle;
+	line-height: 28px;
+	font-size: 12px;
 }
