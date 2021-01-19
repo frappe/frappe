@@ -36,6 +36,7 @@
 	border-bottom-left-radius: var(--border-radius);
 	border-bottom-right-radius: var(--border-radius);
 	overflow: hidden;
+	position: initial !important;
 }
 
 .ql-snow {
@@ -51,6 +52,14 @@
 		border-color: var(--border-color) !important;
 		background-color: var(--bg-color);
 		border-radius: var(--border-radius);
+	}
+
+	.ql-tooltip {
+		background-color: var(--fg-color);
+		border-radius: var(--border-radius-sm);
+		border: none;
+		color: var(--text-color);
+		box-shadow: var(--shadow-base);
 	}
 
 }
