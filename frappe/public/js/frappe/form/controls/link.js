@@ -456,8 +456,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 
 				// check if value exist in the filtered dropdown values 
-				if (this.$input.cache[doctype] && !this.$input.cache[doctype][""].some(d => d.value === value)) {
-					value = "";
+				if(this.$input.cache[doctype][""] && !this.$input.cache[doctype][""].some(d => d.value === value)){
+					value = ""
 				}
 
 				return frappe.call({
