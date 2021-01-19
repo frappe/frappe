@@ -11,6 +11,8 @@ $gray-100: #F4F5F6;
 $gray-50: #F9FAFA;
 $primary: #2490EF;
 
+$blue-500: #2D95F0;
+
 $text-color: $gray-900;
 $border-color: $gray-100;
 $dark-border-color: $gray-200;
@@ -29,8 +31,12 @@ body {
 	color: $text-color;
 }
 
+a {
+	color: $blue-500;
+}
+
 p {
-	margin: 1em 0 !important;
+	margin: 5px 0 !important;
 }
 
 .ql-editor {
@@ -210,7 +216,6 @@ hr {
 .more-info {
 	font-size: 80% !important;
 	color: $text-muted !important;
-	border-top: 1px solid $border-color;
 	padding-top: 10px;
 }
 
@@ -315,4 +320,23 @@ hr {
 	vertical-align: middle;
 	line-height: 28px;
 	font-size: 12px;
+}
+
+blockquote {
+	padding: 1px 15px;
+	position: relative;
+	margin-left: 0px;
+	p {
+		margin: 5px 0;
+	}
+}
+
+blockquote:before {
+	content: "";
+	width: 2px;
+	height: 100%;
+	position: absolute;
+	background: $gray-300;
+	border-radius: 1px;
+	left: 0;
 }
