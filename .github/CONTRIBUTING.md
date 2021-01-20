@@ -15,7 +15,7 @@ If your issue is not clear or does not meet the guidelines, then it will be clos
 ### General Issue Guidelines
 
 1. **Search existing Issues:** Before raising a Issue, search if it has been raised before. Maybe add a 👍 or give additional help by creating a mockup if it is not already created.
-2. **Report each issue separately:** Don't club multiple, unreleated issues in one note.
+2. **Report each issue separately:** Don't club multiple, unrelated issues in one note.
 3. **Brief:** Please don't include long explanations. Use screenshots and bullet points instead of descriptive paragraphs.
 
 ### Bug Report Guidelines
