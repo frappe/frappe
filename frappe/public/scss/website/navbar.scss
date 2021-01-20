@@ -2,6 +2,33 @@
 	border-bottom: 1px solid $border-color;
 }
 
+.navbar-primary {
+	background-color: var(--blue-500);
+
+	.nav-item {
+		.nav-link {
+			color: white;
+			font-weight: 400;
+		}
+	}
+
+	.navbar-search {
+		background-color: var(--blue-400);
+		width: 300px;
+		margin-right: 10px;
+		color: white;
+
+		&::placeholder {
+			color: white;
+		}
+	}
+
+
+	svg use {
+		--icon-stroke: white;
+	}
+}
+
 .navbar-brand {
 	img {
 		display: inline-block;

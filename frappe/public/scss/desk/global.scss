@@ -25,7 +25,7 @@ body {
 
 	&.full-width {
 	@include media-breakpoint-up(md) {
-			.container {
+		.container {
 				width: 90%;
 				max-width: 100%;
 			}

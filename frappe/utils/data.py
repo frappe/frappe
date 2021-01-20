@@ -178,6 +178,14 @@ def nowdate():
 def today():
 	return nowdate()
 
+def get_abbr(string, max_len=2):
+	abbr=''
+	for part in string.split(' '):
+		if len(abbr) < max_len:
+			abbr += part[0]
+
+	return abbr or '?'
+
 def nowtime():
 	"""return current time in hh:mm"""
 	return now_datetime().strftime(TIME_FORMAT)
@@ -370,7 +378,7 @@ def format_duration(seconds, hide_days=False):
 
 	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
 	"""
-	
+
 	seconds = cint(seconds)
 
 	total_duration = {
