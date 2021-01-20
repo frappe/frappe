@@ -83,7 +83,7 @@ def get_form_params():
 			fields.remove(field)
 
 		if df and fieldname in [df.fieldname for df in meta.get_high_permlevel_fields()]:
-			if df.get('permlevel') not in meta.get_permlevel_access():
+			if df.get('permlevel') not in meta.get_permlevel_access() and field in fields:
 				fields.remove(field)
 
 	# queries must always be server side
