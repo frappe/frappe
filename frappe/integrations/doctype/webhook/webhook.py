@@ -85,7 +85,7 @@ def enqueue_webhook(doc, webhook):
 
 	for i in range(3):
 		try:
-			r = requests.post(webhook.request_url, data=json.dumps(data), headers=headers, timeout=5)
+			r = requests.post(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
 			break

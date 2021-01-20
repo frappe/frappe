@@ -307,6 +307,7 @@
 		"public/js/frappe/views/calendar/calendar.js",
 		"public/js/frappe/views/dashboard/dashboard_view.js",
 		"public/js/frappe/views/image/image_view.js",
+		"public/js/frappe/views/map/map_view.js",
 		"public/js/frappe/views/kanban/kanban_view.js",
 		"public/js/frappe/views/inbox/inbox_view.js",
 		"public/js/frappe/views/file/file_view.js",

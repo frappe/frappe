@@ -708,6 +708,32 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.build_fields();
 	}
 
+	reorder_fields() {
+		// generate table fields in the required format ["name", "DocType"]
+		// these are fields in the column before adding new fields
+		let table_fields = this.columns.map(df => [df.field, df.docfield.parent]);
+		
+		// filter fields that are already in table
+		// iterate over table_fields to preserve the existing order of fields
+		// The filter will ensure the unchecked fields are removed
+		let fields_already_in_table = table_fields.filter(df => {
+			return this.fields.find((field) => {
+				return df[0] == field[0] && df[1] == field[1]
+			})
+		})
+
+		// find new fields that didn't already exists
+		// This will be appended to the end of the table
+		let fields_to_add = this.fields.filter(df => {
+			return !table_fields.find((field) => {
+				return df[0] == field[0] && df[1] == field[1]
+			})
+		})
+		
+		// rebuild fields
+		this.fields = [...fields_already_in_table, ...fields_to_add];
+	}
+
 	get_fields() {
 		let fields = this.fields.map(f => {
 			let column_name = frappe.model.get_full_column_name(f[0], f[1]);
@@ -1329,6 +1355,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 							this.fields.map(f => this.add_currency_column(f[0], f[1]));
 
+							this.reorder_fields();
 							this.build_fields();
 							this.setup_columns();
 

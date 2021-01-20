@@ -108,7 +108,7 @@ window.replace_all = function(s, t1, t2) {
 }
 
 window.strip_html = function(txt) {
-	return txt.replace(/<[^>]*>/g, "");
+	return cstr(txt).replace(/<[^>]*>/g, "");
 }
 
 window.strip = function(s, chars) {
@@ -234,11 +234,11 @@ frappe.utils.xss_sanitise = function (string, options) {
 		strategies: ['html', 'js'] // use all strategies.
 	}
 	const HTML_ESCAPE_MAP = {
-		'<': '&lt',
-		'>': '&gt',
-		'"': '&quot',
-		"'": '&#x27',
-		'/': '&#x2F'
+		'<': '&lt;',
+		'>': '&gt;',
+		'"': '&quot;',
+		"'": '&#x27;',
+		'/': '&#x2F;'
 	};
 	const REGEX_SCRIPT     = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi; // used in jQuery 1.7.2 src/ajax.js Line 14
 	options          	   = Object.assign({ }, DEFAULT_OPTIONS, options); // don't deep copy, immutable beauty.

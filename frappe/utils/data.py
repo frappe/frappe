@@ -221,6 +221,27 @@ def get_last_day(dt):
 	"""
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
 
+def get_quarter_ending(date):
+	date = getdate(date)
+
+	# find the earliest quarter ending date that is after
+	# the given date
+	for month in (3, 6, 9, 12):
+		quarter_end_month = getdate('{}-{}-01'.format(date.year, month))
+		quarter_end_date = getdate(get_last_day(quarter_end_month))
+		if date <= quarter_end_date:
+			date = quarter_end_date
+			break
+
+	return date
+
+def get_year_ending(date):
+	''' returns year ending of the given date '''
+
+	# first day of next year (note year starts from 1)
+	date = add_to_date('{}-01-01'.format(date.year), months = 12)
+	# last day of this month
+	return add_to_date(date, days=-1)
 
 def get_time(time_str):
 	if isinstance(time_str, datetime.datetime):
@@ -348,6 +369,8 @@ def format_duration(seconds, hide_days=False):
 
 	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
 	"""
+	
+	seconds = cint(seconds)
 
 	total_duration = {
 		'days': math.floor(seconds / (3600 * 24)),
@@ -421,25 +444,29 @@ def get_weekday(datetime=None):
 	return weekdays[datetime.weekday()]
 
 def get_timespan_date_range(timespan):
+	today = nowdate()
 	date_range_map = {
-		"last week": [add_to_date(nowdate(), days=-7), nowdate()],
-		"last month": [add_to_date(nowdate(), months=-1), nowdate()],
-		"last quarter": [add_to_date(nowdate(), months=-3), nowdate()],
-		"last 6 months": [add_to_date(nowdate(), months=-6), nowdate()],
-		"last year": [add_to_date(nowdate(), years=-1), nowdate()],
-		"today": [nowdate(), nowdate()],
-		"this week": [get_first_day_of_week(nowdate(), as_str=True), nowdate()],
-		"this month": [get_first_day(nowdate(), as_str=True), nowdate()],
-		"this quarter": [get_quarter_start(nowdate(), as_str=True), nowdate()],
-		"this year": [get_year_start(nowdate(), as_str=True), nowdate()],
-		"next week": [nowdate(), add_to_date(nowdate(), days=7)],
-		"next month": [nowdate(), add_to_date(nowdate(), months=1)],
-		"next quarter": [nowdate(), add_to_date(nowdate(), months=3)],
-		"next 6 months": [nowdate(), add_to_date(nowdate(), months=6)],
-		"next year": [nowdate(), add_to_date(nowdate(), years=1)],
+		"last week": lambda: (add_to_date(today, days=-7), today),
+		"last month": lambda: (add_to_date(today, months=-1), today),
+		"last quarter": lambda: (add_to_date(today, months=-3), today),
+		"last 6 months": lambda: (add_to_date(today, months=-6), today),
+		"last year": lambda: (add_to_date(today, years=-1), today),
+		"yesterday": lambda: (add_to_date(today, days=-1),) * 2,
+		"today": lambda: (today, today),
+		"tomorrow": lambda: (add_to_date(today, days=1),) * 2,
+		"this week": lambda: (get_first_day_of_week(today, as_str=True), today),
+		"this month": lambda: (get_first_day(today, as_str=True), today),
+		"this quarter": lambda: (get_quarter_start(today, as_str=True), today),
+		"this year": lambda: (get_year_start(today, as_str=True), today),
+		"next week": lambda: (today, add_to_date(today, days=7)),
+		"next month": lambda: (today, add_to_date(today, months=1)),
+		"next quarter": lambda: (today, add_to_date(today, months=3)),
+		"next 6 months": lambda: (today, add_to_date(today, months=6)),
+		"next year": lambda: (today, add_to_date(today, years=1)),
 	}
 
-	return date_range_map.get(timespan)
+	if timespan in date_range_map:
+		return date_range_map[timespan]()
 
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
@@ -1300,12 +1327,14 @@ def generate_hash(*args, **kwargs):
 
 def guess_date_format(date_string):
 	DATE_FORMATS = [
+		r"%d/%b/%y",
 		r"%d-%m-%Y",
 		r"%m-%d-%Y",
 		r"%Y-%m-%d",
 		r"%d-%m-%y",
 		r"%m-%d-%y",
 		r"%y-%m-%d",
+		r"%y-%b-%d",
 		r"%d/%m/%Y",
 		r"%m/%d/%Y",
 		r"%Y/%m/%d",

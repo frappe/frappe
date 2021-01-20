@@ -22,6 +22,7 @@ class UserPermissions:
 
 		self.all_read = []
 		self.can_create = []
+		self.can_select = []
 		self.can_read = []
 		self.can_write = []
 		self.can_cancel = []
@@ -103,6 +104,9 @@ class UserPermissions:
 
 			if not p.get("read") and (dt in user_shared):
 				p["read"] = 1
+
+			if p.get('select'):
+				self.can_select.append(dt)
 
 			if not dtp.get('istable'):
 				if p.get('create') and not dtp.get('issingle'):
@@ -193,9 +197,8 @@ class UserPermissions:
 		d.name = self.name
 		d.roles = self.get_roles()
 		d.defaults = self.get_defaults()
-
-		for key in ("can_create", "can_write", "can_read", "can_cancel", "can_delete",
-			"can_get_report", "allow_modules", "all_read", "can_search",
+		for key in ("can_select", "can_create", "can_write", "can_read", "can_cancel",
+			"can_delete", "can_get_report", "allow_modules", "all_read", "can_search",
 			"in_create", "can_export", "can_import", "can_print", "can_email",
 			"can_set_user_permissions"):
 			d[key] = list(set(getattr(self, key)))

@@ -232,14 +232,10 @@ frappe.ui.form.Form = class FrappeForm {
 					throw "attach error";
 				}
 
-				if(me.attachments.max_reached()) {
-					frappe.msgprint(__("Maximum Attachment Limit for this record reached."));
-					throw "attach error";
-				}
-
 				new frappe.ui.FileUploader({
 					doctype: me.doctype,
 					docname: me.docname,
+					frm: me,
 					files: dataTransfer.files,
 					folder: 'Home/Attachments',
 					on_success(file_doc) {
@@ -1275,7 +1271,10 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		if (df && df[property] != value) {
 			df[property] = value;
-			this.refresh_field(fieldname);
+			if (!docname || !table_field) {
+				// do not refresh childtable fields since `this.fields_dict` doesn't have child table fields
+				this.refresh_field(fieldname);
+			}
 		}
 	}
 
