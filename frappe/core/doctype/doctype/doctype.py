@@ -1176,9 +1176,15 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 
 def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
 	doc = frappe.get_doc({"doctype": doctype})
-	method_list = [method for method in dir(doc) if isinstance(method, str) and callable(getattr(doc, method))]
+	available_objects = [x for x in dir(doc) if isinstance(x, str)]
+	property_list = [
+		x for x in available_objects if isinstance(getattr(type(doc), x, None), property)
+	]
+	method_list = [
+		x for x in available_objects if x not in property_list and callable(getattr(doc, x))
+	]
 
-	if fieldname in method_list:
+	if fieldname in method_list + property_list:
 		frappe.throw(_("Fieldname {0} conflicting with meta object").format(fieldname))
 
 def clear_linked_doctype_cache():
