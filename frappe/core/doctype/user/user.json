@@ -642,10 +642,15 @@
    "group": "Activity",
    "link_doctype": "ToDo",
    "link_fieldname": "owner"
+  },
+  {
+   "group": "Integrations",
+   "link_doctype": "Token Cache",
+   "link_fieldname": "user"
   }
  ],
  "max_attachments": 5,
- "modified": "2020-08-26 19:48:49.677800",
+ "modified": "2020-10-18 15:18:53.126800",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

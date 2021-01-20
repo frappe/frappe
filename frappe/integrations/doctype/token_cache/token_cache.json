@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "autoname": "format:{connected_app}-{user}",
+ "beta": 1,
+ "creation": "2019-01-24 16:56:55.631096",
+ "doctype": "DocType",
+ "document_type": "System",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "connected_app",
+  "provider_name",
+  "access_token",
+  "refresh_token",
+  "expires_in",
+  "state",
+  "scopes",
+  "success_uri",
+  "token_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "connected_app",
+   "fieldtype": "Link",
+   "label": "Connected App",
+   "options": "Connected App",
+   "read_only": 1
+  },
+  {
+   "fieldname": "access_token",
+   "fieldtype": "Password",
+   "label": "Access Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Password",
+   "label": "Refresh Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "expires_in",
+   "fieldtype": "Int",
+   "label": "Expires In",
+   "read_only": 1
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scopes",
+   "fieldtype": "Table",
+   "label": "Scopes",
+   "options": "OAuth Scope",
+   "read_only": 1
+  },
+  {
+   "fieldname": "success_uri",
+   "fieldtype": "Data",
+   "label": "Success URI",
+   "read_only": 1
+  },
+  {
+   "fieldname": "token_type",
+   "fieldtype": "Data",
+   "label": "Token Type",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "connected_app.provider_name",
+   "fieldname": "provider_name",
+   "fieldtype": "Data",
+   "label": "Provider Name",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2020-11-13 13:35:53.714352",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Token Cache",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
