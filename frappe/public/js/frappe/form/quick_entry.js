@@ -36,9 +36,14 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 					this.render_dialog();
 					resolve(this);
 				} else {
+					// no quick entry, open full form
 					frappe.quick_entry = null;
 					frappe.set_route('Form', this.doctype, this.doc.name)
 						.then(() => resolve(this));
+					// call init_callback for consistency
+					if (this.init_callback) {
+						this.init_callback(this.doc);
+					}
 				}
 			});
 		});

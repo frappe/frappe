@@ -83,7 +83,8 @@ frappe.ui.FilterGroup = class {
 		});
 
 		// REDESIGN-TODO: (Temporary) Review and find best solution for this
-		$(window).on('hashchange', () => {
+		frappe.router.on('change', () => {
+			// console.log('page c')
 			if (this.wrapper && this.wrapper.is(':visible')) {
 				this.filter_button.popover('hide');
 			}
@@ -131,11 +132,11 @@ frappe.ui.FilterGroup = class {
 		this.wrapper.find('.clear-filters').on('click', () => {
 			this.toggle_empty_filters(true);
 			this.clear_filters();
+			this.on_change();
 		});
 
 		this.wrapper.find('.apply-filters').on('click', () => {
-			this.toggle_empty_filters(false);
-			this.apply();
+			this.filter_button.popover('hide');
 		});
 	}
 

@@ -996,7 +996,7 @@ frappe.ui.form.Form = class FrappeForm {
 			return;
 		}
 
-		frappe.re_route[frappe.router.get_sub_path()] = 'Form/' + encodeURIComponent(this.doctype) + '/' + encodeURIComponent(name);
+		frappe.re_route[frappe.router.get_sub_path()] = `${encodeURIComponent(frappe.router.slug(this.doctype))}/${encodeURIComponent(name)}`;
 		frappe.set_route('Form', this.doctype, name);
 	}
 
@@ -1264,7 +1264,10 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		if (df && df[property] != value) {
 			df[property] = value;
-			this.refresh_field(fieldname);
+			if (!docname || !table_field) {
+				// do not refresh childtable fields since `this.fields_dict` doesn't have child table fields
+				this.refresh_field(fieldname);
+			}
 		}
 	}
 
@@ -1506,13 +1509,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 					const escaped_name = encodeURIComponent(value);
 
-					return repl('<a class="indicator %(color)s" href="/app/Form/%(doctype)s/%(escaped_name)s" data-doctype="%(doctype)s" data-name="%(name)s">%(label)s</a>', {
-						color: get_color(doc || {}),
-						doctype: df.options,
-						escaped_name: escaped_name,
-						label: label,
-						name: value
-					});
+					return `<a class="indicator ${get_color(doc || {})}" href="/app/${frappe.router.slug(df.options)}/${escaped_name}" data-doctype="${doctype}" data-name="${value}">${label}</a>'`
 				} else {
 					return '';
 				}
@@ -1671,7 +1668,11 @@ frappe.ui.form.Form = class FrappeForm {
 					frappe.model.docinfo[this.doctype][this.docname][key].splice(docindex, 1);
 				}
 			}
-			this.timeline && this.timeline.refresh();
+			// no need to update timeline of owner of comment
+			// gets handled via comment submit code
+			if (!(['add', 'update'].includes(key) && doc.doctype === 'Comment' && doc.owner === frappe.session.user)) {
+				this.timeline && this.timeline.refresh();
+			}
 		});
 	}
 

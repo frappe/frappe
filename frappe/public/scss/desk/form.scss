@@ -24,7 +24,7 @@
 			color: $text-muted;
 			margin-left: 10px;
 			position: relative;
-			bottom: -1px;
+			padding: 0px;
 		}
 
 		.collapse-indicator.octicon-chevron-up {
@@ -90,7 +90,7 @@
 	font-weight: 400;
 	padding: 8px 12px;
 	cursor: default;
-	color: var(--gray-500);
+	color: var(--disabled-text-color);
 	background-color: var(--control-bg);
 }
 

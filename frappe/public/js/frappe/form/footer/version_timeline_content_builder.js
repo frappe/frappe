@@ -124,26 +124,26 @@ function get_version_timeline_content(version_doc, frm) {
 				return p;
 			});
 			if (parts.length) {
-				out.push(get_version_comment(version_doc, __("{0} rows for {1}",
-					[__(key), parts.join(', ')])));
+				let message = '';
+
+				if (key === 'added') {
+					message = __("added rows for {0}", [parts.join(', ')]);
+				} else if (key === 'removed') {
+					message = __("removed rows for {0}", [parts.join(', ')]);
+				}
+
+				let version_comment = get_version_comment(version_doc, message);
+				let user_link = get_user_link(version_doc);
+				out.push(`${user_link} ${version_comment}`);
 			}
 		}
 	});
-
-	// if (data.creation && data.created_by) {
-	// 	// created via automation
-	// 	if (updater_reference_link) {
-	// 		out.push(get_version_comment(version_doc, __('{0} created {1}', [get_user_link(version_doc), updater_reference_link])));
-	// 	} else {
-	// 		out.push(get_version_comment(version_doc, __('{0} created', [get_user_link(version_doc)])));
-	// 	}
-	// }
 
 	return out;
 }
 
 
-function get_version_comment(version_doc, text, version_type=null) {
+function get_version_comment(version_doc, text) {
 	return frappe.utils.get_form_link('Version', version_doc.name, true, text);
 }
 

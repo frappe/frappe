@@ -53,7 +53,6 @@
   "thread_notify",
   "send_me_a_copy",
   "allowed_in_mentions",
-  "email_inbox",
   "user_emails",
   "sb_allow_modules",
   "modules_html",
@@ -87,7 +86,6 @@
    "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "hidden": 1,
    "label": "Enabled",
    "oldfieldname": "enabled",
    "oldfieldtype": "Check",
@@ -644,11 +642,6 @@
   },
   {
    "group": "Settings",
-   "link_doctype": "Assignment Rule",
-   "link_fieldname": "user"
-  },
-  {
-   "group": "Settings",
    "link_doctype": "Document Follow",
    "link_fieldname": "user"
   },
@@ -661,10 +654,15 @@
    "group": "Activity",
    "link_doctype": "ToDo",
    "link_fieldname": "owner"
+  },
+  {
+   "group": "Integrations",
+   "link_doctype": "Token Cache",
+   "link_fieldname": "user"
   }
  ],
  "max_attachments": 5,
- "modified": "2020-10-07 19:48:49.677800",
+ "modified": "2020-12-24 19:48:49.677800",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -692,6 +690,7 @@
   }
  ],
  "quick_entry": 1,
+ "route": "user",
  "search_fields": "full_name",
  "show_name_in_global_search": 1,
  "sort_field": "modified",

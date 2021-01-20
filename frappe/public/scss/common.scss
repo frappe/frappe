@@ -54,6 +54,7 @@ input[type="checkbox"] {
 		box-sizing: border-box;
 		box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
 		border-radius: 4px;
+		pointer-events:none
 	}
 
 	&.disabled-selected:before {
@@ -63,6 +64,7 @@ input[type="checkbox"] {
 		box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
 		border-radius: 4px;
 		line-height: 10px;
+		pointer-events:none
 	}
 }
 

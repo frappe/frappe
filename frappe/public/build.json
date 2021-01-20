@@ -250,7 +250,7 @@
 		"public/js/frappe/list/list_view.js",
 		"public/js/frappe/list/list_factory.js",
 
-		"public/js/frappe/list/views.js",
+		"public/js/frappe/list/list_view_select.js",
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
 		"public/js/frappe/list/list_sidebar_stat.html",
@@ -261,6 +261,7 @@
 		"public/js/frappe/views/calendar/calendar.js",
 		"public/js/frappe/views/dashboard/dashboard_view.js",
 		"public/js/frappe/views/image/image_view.js",
+		"public/js/frappe/views/map/map_view.js",
 		"public/js/frappe/views/kanban/kanban_view.js",
 		"public/js/frappe/views/inbox/inbox_view.js",
 		"public/js/frappe/views/file/file_view.js",
@@ -300,7 +301,7 @@
 		"public/less/controls.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
-	"css/email.css": "public/less/email.less",
+	"frappe/css/email.css": "public/scss/email.scss",
 	"js/barcode_scanner.min.js": "public/js/frappe/barcode_scanner/quagga.js",
 	"js/user_profile_controller.min.js": "desk/page/user_profile/user_profile_controller.js",
 	"css/login.css": "public/scss/login.scss"

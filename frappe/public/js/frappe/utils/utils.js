@@ -281,7 +281,7 @@ Object.assign(frappe.utils, {
 
 	},
 	get_scroll_position: function(element, additional_offset) {
-		let header_offset = $(".navbar").height() + $(".page-head").height();
+		let header_offset = $(".navbar").height() + $(".page-head:visible").height();
 		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
 		return scroll_top;
 	},
@@ -1145,17 +1145,17 @@ Object.assign(frappe.utils, {
 							route = `${doctype_slug}/new`;
 							break;
 						case "Calendar":
-							route = `${doctype_slug}/view/calendar/Default`;
+							route = `${doctype_slug}/view/calendar/default`;
 							break;
 						default:
-							frappe.throw({ message: __("Not a valid DocType view:") + item.doc_view, title: __("Unknown View") });
+							frappe.throw({ message: __("Not a valid view:") + item.doc_view, title: __("Unknown View") });
 							route = "";
 					}
 				}
 			} else if (type === "report" && item.is_query_report) {
 				route = "query-report/" + item.name;
 			} else if (type === "report") {
-				route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+				route = frappe.router.slug(item.name) + "/view/report";
 			} else if (type === "page") {
 				route = item.name;
 			} else if (type === "dashboard") {
@@ -1220,6 +1220,7 @@ Object.assign(frappe.utils, {
 		if (Math.floor(number) === number) return 0;
 		return number.toString().split(".")[1].length || 0;
 	},
+
 	build_summary_item(summary) {
 		if (summary.type == "separator") {
 			return $(`<div class="summary-separator">
@@ -1242,6 +1243,7 @@ Object.assign(frappe.utils, {
 			<div class="summary-value ${color}">${value}</div>
 		</div>`);
 	},
+
 	get_names_for_mentions() {
 		let names_for_mentions = Object.keys(frappe.boot.user_info || [])
 			.filter(user => {

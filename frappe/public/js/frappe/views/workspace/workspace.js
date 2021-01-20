@@ -1,3 +1,18 @@
+frappe.standard_pages['Workspaces'] = function() {
+	var wrapper = frappe.container.add_page('Workspaces');
+
+	frappe.ui.make_app_page({
+		parent: wrapper,
+		name: 'Workspaces',
+		title: __("Workspace"),
+	});
+
+	frappe.workspace = new frappe.views.Workspace(wrapper);
+	$(wrapper).bind('show', function () {
+		frappe.workspace.show();
+	});
+};
+
 frappe.views.Workspace = class Workspace {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
@@ -14,15 +29,24 @@ frappe.views.Workspace = class Workspace {
 			"Administration"
 		];
 
-		this.fetch_desktop_settings().then(() => {
-			this.make_sidebar();
-		})
+		this.setup_workspaces();
+		this.make_sidebar();
+	}
+
+	setup_workspaces() {
+		// workspaces grouped by categories
+		this.workspaces = {};
+		for (let page of frappe.boot.allowed_workspaces) {
+			if (!this.workspaces[page.category]) {
+				this.workspaces[page.category] = [];
+			}
+			this.workspaces[page.category].push(page);
+		}
 	}
 
 	show() {
 		let page = this.get_page_to_show();
 		this.page.set_title(`${__(page)}`);
-		frappe.set_route('space', page);
 		this.show_page(page);
 	}
 
@@ -40,44 +64,22 @@ frappe.views.Workspace = class Workspace {
 
 		if (localStorage.current_workspace) {
 			default_page = localStorage.current_workspace;
-		} else if (this.desktop_settings) {
-			default_page = this.desktop_settings["Modules"][0].name;
+		} else if (this.workspaces) {
+			default_page = this.workspaces["Modules"][0].name;
 		} else if (frappe.boot.allowed_workspaces) {
 			default_page = frappe.boot.allowed_workspaces[0].name;
 		} else {
-			default_page = "Website";
+			default_page = "Build";
 		}
 
 		let page = frappe.get_route()[1] || default_page;
-
 		return page;
-	}
-
-	fetch_desktop_settings() {
-		return frappe
-			.call("frappe.desk.desktop.get_desk_sidebar_items")
-			.then(response => {
-				if (response.message) {
-					this.desktop_settings = response.message;
-				} else {
-					frappe.throw({
-						title: __("Couldn't Load Desk"),
-						message:
-							__("Something went wrong while loading Desk. <b>Please relaod the page</b>. If the problem persists, contact the Administrator"),
-						indicator: "red",
-						primary_action: {
-							label: __("Reload"),
-							action: () => location.reload()
-						}
-					});
-				}
-			});
 	}
 
 	make_sidebar() {
 		this.sidebar_categories.forEach(category => {
-			if (this.desktop_settings[category]) {
-				this.build_sidebar_section(category, this.desktop_settings[category])
+			if (this.workspaces[category]) {
+				this.build_sidebar_section(category, this.workspaces[category]);
 			}
 		});
 	}
@@ -94,7 +96,7 @@ frappe.views.Workspace = class Workspace {
 		const get_sidebar_item = function (item) {
 			return $(`
 				<a
-					href="/app/space/${item.name}"
+					href="/app/${frappe.router.slug(item.name)}"
 					class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}"
 				>
 					<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>

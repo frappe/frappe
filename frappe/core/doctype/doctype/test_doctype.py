@@ -5,11 +5,17 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-from frappe.core.doctype.doctype.doctype import UniqueFieldnameError, IllegalMandatoryError, DoctypeLinkError, WrongOptionsDoctypeLinkError,\
- HiddenAndMandatoryWithoutDefaultError, CannotIndexedError, InvalidFieldNameError, CannotCreateStandardDoctypeError
+from frappe.core.doctype.doctype.doctype import (UniqueFieldnameError, 
+	IllegalMandatoryError, 
+	DoctypeLinkError, 
+	WrongOptionsDoctypeLinkError, 
+	HiddenAndMandatoryWithoutDefaultError, 
+	CannotIndexedError, 
+	InvalidFieldNameError, 
+	CannotCreateStandardDoctypeError,
+	validate_links_table_fieldnames)
 
 # test_records = frappe.get_test_records('DocType')
-
 
 class TestDocType(unittest.TestCase):
 	def test_validate_name(self):
@@ -459,7 +465,7 @@ class TestDocType(unittest.TestCase):
 			'link_doctype': "User",
 			'link_fieldname': "first_name"
 		})
-		doc.validate_links_table_fieldnames() # no error
+		validate_links_table_fieldnames(doc) # no error
 		doc.links = [] # reset links table
 
 		# check invalid doctype
@@ -467,7 +473,7 @@ class TestDocType(unittest.TestCase):
 			'link_doctype': "User2",
 			'link_fieldname': "first_name"
 		})
-		self.assertRaises(frappe.DoesNotExistError, doc.validate_links_table_fieldnames)
+		self.assertRaises(frappe.DoesNotExistError, validate_links_table_fieldnames, doc)
 		doc.links = [] # reset links table
 
 		# check invalid fieldname
@@ -475,7 +481,7 @@ class TestDocType(unittest.TestCase):
 			'link_doctype': "User",
 			'link_fieldname': "a_field_that_does_not_exists"
 		})
-		self.assertRaises(InvalidFieldNameError, doc.validate_links_table_fieldnames)
+		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 
 
 def new_doctype(name, unique=0, depends_on='', fields=None):

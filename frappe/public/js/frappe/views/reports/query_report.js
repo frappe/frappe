@@ -465,8 +465,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
 
-		let filter_area = $(`<div class="flex flex-wrap"></div>`);
-		this.page.page_form.append(filter_area);
+		let filter_area = this.page.page_form;s
 
 		this.filters = filters.map(df => {
 			if (df.fieldtype === 'Break') return;
@@ -771,7 +770,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				${no_of_reports_html}
 			</p>`;
 
-		let get_item_html = item => `<a class="underline" href="/app/form/prepared-report/${item.name}">${item.name}</a>`;
+		let get_item_html = item => `<a class="underline" href="/app/prepared-report/${item.name}">${item.name}</a>`;
 
 		warning_message += reports.map(get_item_html).join(', ');
 
@@ -806,8 +805,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
-				let alert_message = `Report initiated. You can track its status
-					<a class="bold" href='/app/Form/Prepared Report/${data.name}'>here</a>`;
+				let alert_message = `<a href='/app/prepared-report/${data.name}'>` +
+					__('Report initiated, click to view status') + `</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'}, 10);
 				this.toggle_nothing_to_show(true);
 			});
@@ -1132,7 +1131,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_filter_values(raise) {
-		const mandatory = this.filters.filter(f => f.df.reqd);
+
+		// check for mandatory property for filters added via UI
+		const mandatory = this.filters.filter(f => (f.df.reqd || f.df.mandatory));
 		const missing_mandatory = mandatory.filter(f => !f.get_value());
 		if (raise && missing_mandatory.length > 0) {
 			let message = __('Please set filters');

@@ -13,6 +13,11 @@ class FormTimeline extends BaseTimeline {
 		this.setup_activity_toggle();
 	}
 
+	refresh() {
+		super.refresh();
+		this.frm.trigger('timeline_refresh');
+	}
+
 	setup_timeline_actions() {
 		this.add_action_button(__('New Email'), () => this.compose_mail());
 		this.setup_new_event_button();
@@ -166,6 +171,8 @@ class FormTimeline extends BaseTimeline {
 				creation: communication.creation,
 				is_card: true,
 				content: this.get_communication_timeline_content(communication),
+				doctype: "Communication",
+				name: communication.name
 			});
 		});
 		return communication_timeline_contents;
@@ -202,14 +209,20 @@ class FormTimeline extends BaseTimeline {
 	get_comment_timeline_contents() {
 		let comment_timeline_contents = [];
 		(this.doc_info.comments || []).forEach(comment => {
-			comment_timeline_contents.push({
-				icon: 'small-message',
-				creation: comment.creation,
-				is_card: true,
-				content: this.get_comment_timeline_content(comment),
-			});
+			comment_timeline_contents.push(this.get_comment_timeline_item(comment));
 		});
 		return comment_timeline_contents;
+	}
+
+	get_comment_timeline_item(comment) {
+		return {
+			icon: 'small-message',
+			creation: comment.creation,
+			is_card: true,
+			doctype: "Comment",
+			name: comment.name,
+			content: this.get_comment_timeline_content(comment),
+		};
 	}
 
 	get_comment_timeline_content(doc) {
@@ -343,7 +356,7 @@ class FormTimeline extends BaseTimeline {
 		const args = {
 			doc: this.frm.doc,
 			frm: this.frm,
-			recipients: this.get_recipient(),
+			recipients: communication_doc ? communication_doc.sender : this.get_recipient(),
 			is_a_reply: Boolean(communication_doc),
 			title: communication_doc ? __('Reply') : null,
 			last_email: communication_doc

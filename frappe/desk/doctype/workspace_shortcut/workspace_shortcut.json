@@ -45,6 +45,36 @@
    "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar"
   },
   {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:frappe.boot.developer_mode",
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "depends_on": "eval:frappe.boot.developer_mode",
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "label": "Restrict to Domain",
+   "options": "Domain"
+  },
+  {
+   "depends_on": "eval:doc.type == \"DocType\"  && frappe.boot.developer_mode",
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "Count Filter"
+  },
+  {
    "fieldname": "stats_filter",
    "fieldtype": "Code",
    "label": "Count Filter",
@@ -55,55 +85,24 @@
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Color"
+  },
+  {
    "description": "For example: {} Open",
    "fieldname": "format",
    "fieldtype": "Data",
    "label": "Format"
-  },
-  {
-   "depends_on": "eval:doc.type == \"DocType\"  && frappe.boot.developer_mode",
-   "fieldname": "section_break_5",
-   "fieldtype": "Section Break",
-   "label": "Count Filter"
-  },
-  {
-   "fieldname": "color",
-   "fieldtype": "Select",
-   "label": "Color",
-   "options": "Grey\nGreen\nRed\nOrange\nPink\nYellow\nBlue\nCyan\nTeal"
-  },
-  {
-   "depends_on": "eval:frappe.boot.developer_mode",
-   "fieldname": "icon",
-   "fieldtype": "Data",
-   "label": "Icon"
-  },
-  {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:frappe.boot.developer_mode",
-   "fieldname": "restrict_to_domain",
-   "fieldtype": "Link",
-   "label": "Restrict to Domain",
-   "options": "Domain"
-  },
-  {
-   "fieldname": "label",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Label",
-   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-08-12 14:11:55.080390",
+ "modified": "2021-01-12 13:13:17.571324",
  "modified_by": "Administrator",
  "module": "Desk",
- "name": "Desk Shortcut",
+ "name": "Workspace Shortcut",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,

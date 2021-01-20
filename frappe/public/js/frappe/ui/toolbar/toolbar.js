@@ -130,7 +130,7 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 
 	setup_notifications () {
-		if (frappe.boot.desk_settings.notifications) {
+		if (frappe.boot.desk_settings.notifications && frappe.session.user !== 'Guest') {
 			this.notifications = new frappe.ui.Notifications();
 		}
 	}

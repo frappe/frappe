@@ -292,7 +292,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	get rights() {
-		return ["read", "write", "create", "delete", "submit", "cancel", "amend",
+		return ["select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 			"print", "email", "report", "import", "export", "set_user_permissions", "share"]
 	}
 
@@ -311,7 +311,7 @@ frappe.PermissionEngine = class PermissionEngine {
 					},
 					callback: function (r) {
 						r.message = $.map(r.message, function (p) {
-							return $.format('<a href="/app/Form/User/{0}">{1}</a>', [p, p]);
+							return $.format('<a href="/app/user/{0}">{1}</a>', [p, p]);
 						});
 						frappe.msgprint(__("Users with role {0}:", [__(role)])
 							+ "<br>" + r.message.join("<br>"));

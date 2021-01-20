@@ -176,8 +176,8 @@ window.replace_all = function (s, t1, t2) {
 	return s.split(t1).join(t2);
 }
 
-window.strip_html = function (txt) {
-	return txt.replace(/<[^>]*>/g, "");
+window.strip_html = function(txt) {
+	return cstr(txt).replace(/<[^>]*>/g, "");
 }
 
 window.strip = function (s, chars) {

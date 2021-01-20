@@ -95,6 +95,7 @@ frappe.ui.Filter = class {
 	set_events() {
 		this.filter_edit_area.find('span.remove-filter').on('click', () => {
 			this.remove();
+			this.on_change();
 		});
 
 		this.filter_edit_area.find('.condition').change(() => {
@@ -279,6 +280,13 @@ frappe.ui.Filter = class {
 		if (old_text && f.fieldtype === old_fieldtype) {
 			this.field.set_value(old_text);
 		}
+
+		this.bind_filter_field_events()
+	}
+
+	bind_filter_field_events() {
+		// Apply filter on input focus out
+		this.field.$input.on('focusout', () => this.on_change());
 
 		// run on enter
 		$(this.field.wrapper)
@@ -519,7 +527,7 @@ frappe.ui.filter_utils = {
 			['Date', 'Datetime', 'DateRange', 'Select'].includes(df.fieldtype)
 		) {
 			df.fieldtype = 'Select';
-			df.options = this.get_timespan_options(['Last', 'Today', 'This', 'Next']);
+			df.options = this.get_timespan_options(['Last', 'Yesterday', 'Today', 'Tomorrow', 'This', 'Next']);
 		}
 		if (condition === 'is') {
 			df.fieldtype = 'Select';
@@ -534,7 +542,6 @@ frappe.ui.filter_utils = {
 	get_timespan_options(periods) {
 		const period_map = {
 			Last: ['Week', 'Month', 'Quarter', '6 months', 'Year'],
-			Today: null,
 			This: ['Week', 'Month', 'Quarter', 'Year'],
 			Next: ['Week', 'Month', 'Quarter', '6 months', 'Year'],
 		};

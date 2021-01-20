@@ -13,7 +13,7 @@ common_default_keys = ["__default", "__global"]
 doctype_map_keys = ('energy_point_rule_map', 'assignment_rule_map',
 	'milestone_tracker_map', 'event_consumer_document_type_map')
 
-global_cache_keys = ("app_hooks", "installed_apps",
+global_cache_keys = ("app_hooks", "installed_apps", 'all_apps',
 		"app_modules", "module_app", "system_settings",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
 		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
@@ -68,6 +68,7 @@ def clear_defaults_cache(user=None):
 		frappe.cache().delete_key("defaults")
 
 def clear_doctype_cache(doctype=None):
+	clear_controller_cache(doctype)
 	cache = frappe.cache()
 
 	if getattr(frappe.local, 'meta_cache') and (doctype in frappe.local.meta_cache):
@@ -98,6 +99,15 @@ def clear_doctype_cache(doctype=None):
 		# clear all
 		for name in doctype_cache_keys:
 			cache.delete_value(name)
+
+def clear_controller_cache(doctype=None):
+	if not doctype:
+		del frappe.controllers
+		frappe.controllers = {}
+		return
+
+	for site_controllers in frappe.controllers.values():
+		site_controllers.pop(doctype, None)
 
 def get_doctype_map(doctype, name, filters=None, order_by=None):
 	cache = frappe.cache()

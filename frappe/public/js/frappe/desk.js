@@ -164,6 +164,7 @@ frappe.Application = Class.extend({
 	},
 
 	set_route() {
+		frappe.flags.setting_original_route = true;
 		if (frappe.boot && localStorage.getItem("session_last_route")) {
 			frappe.set_route(localStorage.getItem("session_last_route"));
 			localStorage.removeItem("session_last_route");
@@ -171,6 +172,7 @@ frappe.Application = Class.extend({
 			// route to home page
 			frappe.router.route();
 		}
+		frappe.after_ajax(() => frappe.flags.setting_original_route = false);
 	},
 
 	setup_frappe_vue() {
@@ -253,10 +255,7 @@ frappe.Application = Class.extend({
 	},
 	load_bootinfo: function() {
 		if(frappe.boot) {
-			frappe.modules = {};
-			(frappe.boot.allowed_workspaces || []).forEach(function(m) {
-				frappe.modules[m.module]=m;
-			});
+			this.setup_workspaces();
 			frappe.model.sync(frappe.boot.docs);
 			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();
@@ -275,6 +274,19 @@ frappe.Application = Class.extend({
 			frappe.router.setup();
 		} else {
 			this.set_as_guest();
+		}
+	},
+
+	setup_workspaces() {
+		frappe.modules = {};
+		frappe.workspaces = {};
+		for (let page of frappe.boot.allowed_workspaces || []) {
+			frappe.modules[page.module]=page;
+			frappe.workspaces[frappe.router.slug(page.name)] = page;
+		}
+		if (!frappe.workspaces['home']) {
+			// default workspace is settings for Frappe
+			frappe.workspaces['home'] = frappe.workspaces['build'];
 		}
 	},
 

@@ -85,9 +85,9 @@ class User(Document):
 
 	def validate_roles(self):
 		if self.role_profile_name:
-				role_profile = frappe.get_doc('Role Profile', self.role_profile_name)
-				self.set('roles', [])
-				self.append_roles(*[role.role for role in role_profile.roles])
+			role_profile = frappe.get_doc('Role Profile', self.role_profile_name)
+			self.set('roles', [])
+			self.append_roles(*[role.role for role in role_profile.roles])
 
 	def validate_user_image(self):
 		if self.user_image and len(self.user_image) > 2000:
@@ -98,16 +98,17 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
+		now=frappe.flags.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
 		frappe.enqueue(
 			'frappe.core.doctype.user.user.create_contact',
 			user=self,
 			ignore_mandatory=True,
-			now=frappe.flags.in_test or frappe.flags.in_install
+			now=now
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
-			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
-		
+			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name, now=now)
+
 		# Set user selected timezone
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
@@ -288,16 +289,16 @@ class User(Document):
 		from frappe.utils.user import get_user_fullname
 		from frappe.utils import get_url
 
-		full_name = get_user_fullname(frappe.session['user'])
-		if full_name == "Guest":
-			full_name = "Administrator"
+		created_by = get_user_fullname(frappe.session['user'])
+		if created_by == "Guest":
+			created_by = "Administrator"
 
 		args = {
 			'first_name': self.first_name or self.last_name or "user",
 			'user': self.name,
 			'title': subject,
 			'login_url': get_url(),
-			'user_fullname': full_name
+			'created_by': created_by
 		}
 
 		args.update(add_args)
@@ -1002,9 +1003,14 @@ def send_token_via_email(tmp_id,token=None):
 	hotp = pyotp.HOTP(otpsecret)
 
 	frappe.sendmail(
-		recipients=user_email, sender=None, subject='Verification Code',
-		message='<p>Your verification code is {0}</p>'.format(hotp.at(int(count))),
-		delayed=False, retry=3)
+		recipients=user_email,
+		sender=None,
+		subject="Verification Code",
+		template="verification_code",
+		args=dict(code=hotp.at(int(count))),
+		delayed=False,
+		retry=3
+	)
 
 	return True
 

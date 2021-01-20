@@ -51,6 +51,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.translate_values = true;
 		this.setup_buttons();
 		this.setup_awesomeplete();
+		this.bind_change_event();
 	},
 	get_options: function() {
 		return this.df.options;
@@ -182,7 +183,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						let filter_string = me.get_filter_description(args.filters);
 						if (filter_string) {
 							r.results.push({
-								html: `<span class="text-muted">${filter_string}</span>`,
+								html: `<span class="text-muted" style="line-height: 1.5">${filter_string}</span>`,
 								value: '',
 								action: () => {}
 							});
@@ -217,6 +218,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					}
 					me.$input.cache[doctype][term] = r.results;
 					me.awesomplete.list = me.$input.cache[doctype][term];
+					me.toggle_href(doctype);
 				}
 			});
 		}, 500));
@@ -301,6 +303,15 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			return [...newArr, currElem];
 		}, []);
 		// returns [{value: 'Manufacturer 1', 'description': 'mobile part 1, mobile part 2'}]
+	},
+
+	toggle_href(doctype) {
+		if (frappe.model.can_select(doctype) && !frappe.model.can_read(doctype)) {
+			// remove href from link field as user has only select perm
+			this.$input_area.find(".link-btn").addClass('hide');
+		} else {
+			this.$input_area.find(".link-btn").removeClass('hide');
+		}
 	},
 
 	get_filter_description(filters) {

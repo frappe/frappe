@@ -13,6 +13,7 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email import policy
 
+from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
@@ -254,6 +255,8 @@ def get_formatted_html(subject, message, footer=None, print_html=None,
 		email_account = get_outgoing_email_account(False, sender=sender)
 
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
+		"brand_logo": get_app_logo(),
+		"site_url": get_url(),
 		"header": get_header(header),
 		"content": message,
 		"signature": get_signature(email_account),

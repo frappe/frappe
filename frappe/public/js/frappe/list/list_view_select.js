@@ -1,6 +1,7 @@
 frappe.provide('frappe.views');
 
-frappe.views.Views = class Views {
+frappe.views.ListViewSelect = class ListViewSelect
+ {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.set_current_view();
@@ -35,7 +36,7 @@ frappe.views.Views = class Views {
 	}
 
 	set_route(view, calendar_name) {
-		const route = [this.get_doctype_route(), 'view', view];
+		const route = [this.slug(), 'view', view];
 		if (calendar_name) route.push(calendar_name);
 		frappe.set_route(route);
 	}
@@ -156,7 +157,7 @@ frappe.views.Views = class Views {
 				if (item.name == frappe.utils.to_title_case(frappe.get_route().slice(-1)[0] || '')) {
 					placeholder = item.name;
 				}
-				html += `<li><a class="dropdown-item" href="/app/${item.route}">${item.name}</a></li>`;
+				html += `<li><a class="dropdown-item" href="${item.route}">${item.name}</a></li>`;
 			});
 		}
 
@@ -233,11 +234,11 @@ frappe.views.Views = class Views {
 				// has standard calendar view
 				calendars.push({
 					name: 'Default',
-					route: `/app/${this.get_doctype_route()}/view/calendar/default`
+					route: `/app/${this.slug()}/view/calendar/default`
 				});
 			}
 			result.map(calendar => {
-				calendars.push({name: calendar.name, route: `/app/${this.get_doctype_route()}/view/calendar/${calendar.name}`});
+				calendars.push({name: calendar.name, route: `/app/${this.slug()}/view/calendar/${calendar.name}`});
 			});
 
 			return calendars;
@@ -263,7 +264,7 @@ frappe.views.Views = class Views {
 		return accounts_to_add;
 	}
 
-	get_doctype_route() {
+	slug() {
 		return frappe.router.slug(frappe.router.doctype_layout || this.doctype);
 	}
 }

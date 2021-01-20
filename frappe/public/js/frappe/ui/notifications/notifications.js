@@ -24,14 +24,7 @@ frappe.ui.Notifications = class Notifications {
 
 		this.setup_headers();
 		let me = this;
-		// frappe.search.utils.make_function_searchable(
-		// 	frappe.set_route('Form', 'Notification Settings', frappe.session.user),
-		// 	__('Notification Settings'),
-		// );
-
-		// this.setup_notifications();
 		this.setup_dropdown_events();
-		// this.bind_events();
 	}
 
 	setup_headers() {
@@ -427,7 +420,7 @@ class EventsView extends BaseNotificaitonsView {
 					location = `, ${event.location}`;
 				}
 
-				return `<a class="recent-item event" href="/app/Form/Event/${event.name}">
+				return `<a class="recent-item event" href="/app/event/${event.name}">
 					<div class="event-border" style="border-color: ${event.color}"></div>
 					<div class="event-item">
 						<div class="event-subject">${event.subject}</div>

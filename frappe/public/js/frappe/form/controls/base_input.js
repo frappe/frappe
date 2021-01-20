@@ -20,7 +20,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					<div class="control-input-wrapper">\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
-						<p class="help-box small text-muted hidden-xs"></p>\
+						<p class="help-box small text-muted"></p>\
 					</div>\
 				</div>\
 			</div>').appendTo(this.parent);

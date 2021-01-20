@@ -34,6 +34,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				? ['assigned_to', 'owner', ...group_by_fields]
 				: ['assigned_to', 'owner'];
 			this.render_group_by_items();
+			this.setup_dropdown();
 			d.hide();
 		});
 
