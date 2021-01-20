@@ -1,3 +1,5 @@
+frappe.provide('frappe.utils.utils');
+
 frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 	horizontal: false,
 
@@ -90,11 +92,11 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		});
 
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
-		this.map = L.map(this.map_id).setView([19.0800, 72.8961], 13);
+		this.map = L.map(this.map_id).setView(frappe.utils.map_defaults.center,
+			frappe.utils.map_defaults.zoom);
 
-		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-		}).addTo(this.map);
+		L.tileLayer(frappe.utils.map_defaults.tiles,
+			frappe.utils.map_defaults.options).addTo(this.map);
 	},
 
 	bind_leaflet_locate_control() {

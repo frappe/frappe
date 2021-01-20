@@ -68,7 +68,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def", 'DocType Action', 'DocType Link')
+	special_doctypes = ("DocField", "DocPerm", "DocType", "Module Def", 'DocType Action', 'DocType Link')
 
 	def __init__(self, doctype):
 		self._fields = {}
@@ -484,6 +484,8 @@ class Meta(Document):
 		if not data.transactions:
 			# init groups
 			data.transactions = []
+
+		if not data.non_standard_fieldnames:
 			data.non_standard_fieldnames = {}
 
 		for link in dashboard_links:

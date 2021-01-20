@@ -5,8 +5,11 @@
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Text Editor", "Code", "Long Text") -%}
 		{{ render_text_field(df, doc) }}
-	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach")
-		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  -%}
+	{%- elif df.fieldtype in ("Image", "Attach Image")
+		and (
+			(guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  
+			or doc[df.fieldname].startswith("http")
+		) -%}
 		{{ render_image(df, doc) }}
 	{%- elif df.fieldtype=="Geolocation" -%}
 		{{ render_geolocation(df, doc) }}
@@ -123,15 +126,14 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
         {% include doc.print_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" %}
 		<i class="{{ 'fa fa-check' if doc[df.fieldname] }}"></i>
-	{% elif df.fieldtype=="Image" %}
+	{% elif df.fieldtype in ("Image", "Attach Image") %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="Signature" %}
 		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
-	{% elif df.fieldtype in ("Attach", "Attach Image") and doc[df.fieldname]
-		and frappe.utils.is_image(doc[df.fieldname]) %}
+	{% elif df.fieldtype == "Attach" and doc[df.fieldname] and frappe.utils.is_image(doc[df.fieldname]) %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="HTML" %}

@@ -317,3 +317,4 @@ frappe.patches.v13_0.web_template_set_module #2020-10-05
 frappe.patches.v13_0.remove_custom_link
 execute:frappe.delete_doc("DocType", "Footer Item")
 frappe.patches.v13_0.replace_field_target_with_open_in_new_tab
+frappe.patches.v13_0.delete_package_publish_tool

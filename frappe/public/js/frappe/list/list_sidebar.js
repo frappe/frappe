@@ -89,6 +89,14 @@ frappe.views.ListSidebar = class ListSidebar {
 			this.sidebar.find('.list-link[data-view="Image"]').removeClass('hide');
 			show_list_link = true;
 		}
+		
+		if (this.list_view.settings.get_coords_method ||
+			(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
+			this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
+			(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation'))) {
+			this.sidebar.find('.list-link[data-view="Map"]').removeClass('hide');
+			show_list_link = true;
+		}
 
 		if (show_list_link) {
 			this.sidebar.find('.list-link[data-view="List"]').removeClass('hide');
@@ -209,7 +217,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			let email_account = (account.email_id == "All Accounts") ? "All Accounts" : account.email_account;
 			let route = ["List", "Communication", "Inbox", email_account].join('/');
 			let display_name = ["All Accounts", "Sent Mail", "Spam", "Trash"].includes(account.email_id) ? __(account.email_id) : account.email_id;
-			
+
 			if (!divider) {
 				this.get_divider().appendTo($dropdown);
 				divider = true;
