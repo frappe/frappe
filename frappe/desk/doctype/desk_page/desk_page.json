@@ -202,13 +202,14 @@
   {
    "default": "0",
    "depends_on": "extends_another_page",
+   "description": "Sets the current page as default for all users",
    "fieldname": "is_default",
    "fieldtype": "Check",
    "label": "Is Default"
   }
  ],
  "links": [],
- "modified": "2021-01-14 17:55:53.923442",
+ "modified": "2021-01-21 12:09:36.156614",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
