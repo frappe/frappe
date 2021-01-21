@@ -255,7 +255,7 @@ def get_formatted_html(subject, message, footer=None, print_html=None,
 		email_account = get_outgoing_email_account(False, sender=sender)
 
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
-		"brand_logo": get_brand_logo(email_account) if with_container else None,
+		"brand_logo": get_brand_logo(email_account) if with_container or header else None,
 		"with_container": with_container,
 		"site_url": get_url(),
 		"header": get_header(header),
