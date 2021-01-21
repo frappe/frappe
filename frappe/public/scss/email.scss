@@ -150,7 +150,7 @@ hr {
 }
 
 .email-footer-container {
-	margin-top: 60px;
+	margin-top: 40px;
 
 	& > div:not(:last-child) {
 		margin-bottom: 5px;
@@ -315,11 +315,11 @@ hr {
 	background-color: $orange-bg;
 	color: $orange-color;
 	font-weight: normal;
-	width: 28px;
-	height: 28px;
+	width: 40px;
+	height: 40px;
 	text-align: center;
 	vertical-align: middle;
-	line-height: 28px;
+	line-height: 40px;
 	font-size: 12px;
 }
 
