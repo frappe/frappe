@@ -222,6 +222,7 @@ VALID_UTILS = (
 "get_last_day_of_week",
 "get_last_day",
 "get_time",
+"get_datetime_in_timezone",
 "get_datetime_str",
 "get_date_str",
 "get_time_str",
