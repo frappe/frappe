@@ -369,10 +369,10 @@ def get_footer(email_account, footer=None):
 	if email_account and email_account.footer:
 		args.update({'email_account_footer': email_account.footer})
 
-	company_address = frappe.db.get_default("email_footer_address")
+	sender_address = frappe.db.get_default("email_footer_address")
 
-	if company_address:
-		args.update({'company_address': company_address})
+	if sender_address:
+		args.update({'sender_address': sender_address})
 
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
 		args.update({'default_mail_footer': frappe.get_hooks('default_mail_footer')})
