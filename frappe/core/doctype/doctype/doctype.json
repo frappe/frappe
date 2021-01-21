@@ -55,6 +55,8 @@
   "show_preview_popup",
   "show_name_in_global_search",
   "email_settings_sb",
+  "default_email_template",
+  "column_break_51",
   "email_append_to",
   "sender_field",
   "subject_field",
@@ -528,6 +530,15 @@
    "fieldname": "index_web_pages_for_search",
    "fieldtype": "Check",
    "label": "Index Web Pages for Search"
+  },
+  {
+   "fieldname": "default_email_template",
+   "fieldtype": "Data",
+   "label": "Default Email Template"
+  },
+  {
+   "fieldname": "column_break_51",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-bolt",
@@ -609,7 +620,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2020-09-24 13:13:58.227153",
+ "modified": "2021-01-21 18:09:47.135696",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
