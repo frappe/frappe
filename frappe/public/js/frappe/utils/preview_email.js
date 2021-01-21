@@ -1,4 +1,4 @@
-frappe.preview_email = function(template, args, header, only_html=false) {
+frappe.preview_email = function(template, args, header, with_container=false, only_html=false) {
 	return frappe
 		.call({
 			method: 'frappe.email.email_body.get_email_html',
@@ -6,7 +6,8 @@ frappe.preview_email = function(template, args, header, only_html=false) {
 				subject: 'Test',
 				template,
 				args,
-				header
+				header,
+				with_container
 			}
 		})
 		.then(r => {

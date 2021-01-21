@@ -250,12 +250,13 @@ class EMail:
 		return self.msg_root.as_string(policy=policy.SMTPUTF8)
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
-		email_account=None, header=None, unsubscribe_link=None, sender=None):
+		email_account=None, header=None, unsubscribe_link=None, sender=None, with_container=False):
 	if not email_account:
 		email_account = get_outgoing_email_account(False, sender=sender)
 
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
-		"brand_logo": get_app_logo(),
+		"brand_logo": get_brand_logo(),
+		"with_container": with_container,
 		"site_url": get_url(),
 		"header": get_header(header),
 		"content": message,
@@ -275,14 +276,14 @@ def get_formatted_html(subject, message, footer=None, print_html=None,
 	return html
 
 @frappe.whitelist()
-def get_email_html(template, args, subject, header=None):
+def get_email_html(template, args, subject, header=None, with_container=False):
 	import json
-
+	with_container = cint(with_container)
 	args = json.loads(args)
 	if header and header.startswith('['):
 		header = json.loads(header)
 	email = frappe.utils.jinja.get_email_from_template(template, args)
-	return get_formatted_html(subject, email[0], header=header)
+	return get_formatted_html(subject, email[0], header=header, with_container=with_container)
 
 def inline_style_in_html(html):
 	''' Convert email.css and html to inline-styled html
@@ -470,3 +471,6 @@ def get_header(header=None):
 
 def sanitize_email_header(str):
 	return str.replace('\r', '').replace('\n', '')
+
+def get_brand_logo():
+	return get_app_logo()

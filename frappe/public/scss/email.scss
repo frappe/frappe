@@ -52,7 +52,6 @@ hr {
 
 .body-table {
 	font-family: $font-stack;
-	background-color: $gray-100;
 	border-collapse: collapse;
 	table-layout: fixed;
 	margin: 0 auto;
@@ -60,7 +59,6 @@ hr {
 	height: 100% !important;
 	width: 100% !important;
 	font-weight: normal;
-	color: $text-color;
 	font-family: $font-stack;
 	font-size: 14px;
 	line-height: 1.4;
@@ -70,35 +68,7 @@ hr {
 	}
 
 	.body-content {
-		padding: 60px 40px;
-	}
-}
-
-.email-container {
-	max-width: 600px;
-	border-spacing: 0;
-	padding: 30px;
-	border-radius: $border-radius-lg;
-	overflow: hidden;
-	background-color: white;
-	.email-body > tr {
-		border-collapse: collapse;
-		border-bottom: none;
-	}
-	.brand-logo {
-		margin: auto;
-		text-align: center;
-		border: 0;
-		outline: none;
-		text-decoration: none;
-		max-height: 40px;
-		width: auto;
-	}
-}
-
-@media only screen and (max-width: 600px) {
-	.email-container {
-		width: 90%;
+		padding: 20px 0;
 	}
 }
 
@@ -123,7 +93,6 @@ hr {
 }
 
 .email-header {
-
 	.brand-image {
 		width: 24px;
 		height: 24px;
@@ -137,14 +106,46 @@ hr {
 	font-weight: 600;
 }
 
-.body-table.has-header {
-	.email-body {
-		border-radius: 0 0 4px 4px;
-		border-top: none;
+.body-table.with-container {
+	background-color: $gray-100;
+	color: $text-color;
+	.body-content {
+		padding: 60px 40px;
+	}
+	.email-container {
+		max-width: 600px;
+		border-spacing: 0;
+		padding: 30px;
+		border-radius: $border-radius-lg;
+		overflow: hidden;
+		background-color: white;
+		.email-body {
+			border-radius: 0 0 4px 4px;
+			border-top: none;
+			tr {
+				border-collapse: collapse;
+				border-bottom: none;
+			}
+		}
+		.brand-logo {
+			margin: auto;
+			text-align: center;
+			border: 0;
+			outline: none;
+			text-decoration: none;
+			max-height: 40px;
+			width: auto;
+		}
 	}
 
 	.email-footer {
 		border-top: none;
+	}
+}
+
+@media only screen and (max-width: 600px) {
+	.body-table.with-container .email-container {
+		width: 90%;
 	}
 }
 
