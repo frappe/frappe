@@ -1,0 +1,13 @@
+[
+    {
+        "doctype": "Connected App",
+        "provider_name": "frappe",
+        "client_id": "test_client_id",
+        "client_secret": "test_client_secret",
+        "scopes": [
+            {
+                "scope": "all"
+            }
+        ]
+    }
+]
