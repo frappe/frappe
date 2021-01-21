@@ -291,5 +291,6 @@ VALID_UTILS = (
 "md_to_html",
 "is_subset",
 "generate_hash",
-"formatdate"
+"formatdate",
+"get_user_info_for_avatar"
 )

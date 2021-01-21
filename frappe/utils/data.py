@@ -370,7 +370,7 @@ def format_duration(seconds, hide_days=False):
 
 	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
 	"""
-	
+
 	seconds = cint(seconds)
 
 	total_duration = {
@@ -1406,3 +1406,18 @@ def validate_json_string(string):
 		json.loads(string)
 	except (TypeError, ValueError):
 		raise frappe.ValidationError
+
+
+def get_user_info_for_avatar(user_id):
+	user_info = {
+		"email": user_id,
+		"image": "",
+		"name": user_id
+	}
+	try:
+		user_info["email"] = frappe.get_cached_value("User", user_id, "email")
+		user_info["name"] = frappe.get_cached_value("User", user_id, "fullname")
+		user_info["image"] = frappe.get_cached_value("User", user_id, "user_image")
+	except Exception:
+		frappe.local.message_log = []
+	return user_info
