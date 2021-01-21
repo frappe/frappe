@@ -293,4 +293,5 @@ VALID_UTILS = (
 "generate_hash",
 "formatdate",
 "get_user_info_for_avatar"
+"get_abbr"
 )

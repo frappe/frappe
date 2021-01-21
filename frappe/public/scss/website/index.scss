@@ -4,8 +4,10 @@
 @import '~bootstrap/scss/bootstrap';
 @import "../common/mixins.scss";
 @import "../common/global.scss";
+@import "../common/icons.scss";
 @import 'base';
 @import "../common/buttons";
+@import "../common/modal";
 @import 'multilevel_dropdown';
 @import 'website_image';
 @import 'website_avatar';
@@ -187,12 +189,13 @@ h5.modal-title {
 }
 
 .form-section {
-	margin-right: -45px;
+	// margin-right: -45px;
+	margin: 0px;
 }
 
 .form-section .section-body {
 	width: 100%;
-	padding: 15px;
+	margin: 0;
 	@extend .row;
 }
 

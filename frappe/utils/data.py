@@ -178,6 +178,14 @@ def nowdate():
 def today():
 	return nowdate()
 
+def get_abbr(string, max_len=2):
+	abbr=''
+	for part in string.split(' '):
+		if len(abbr) < max_len:
+			abbr += part[0]
+
+	return abbr or '?'
+
 def nowtime():
 	"""return current time in hh:mm"""
 	return now_datetime().strftime(TIME_FORMAT)
@@ -1406,7 +1414,6 @@ def validate_json_string(string):
 		json.loads(string)
 	except (TypeError, ValueError):
 		raise frappe.ValidationError
-
 
 def get_user_info_for_avatar(user_id):
 	user_info = {

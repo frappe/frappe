@@ -2,6 +2,7 @@
 @import "css_variables";
 @import "../common/mixins.scss";
 @import "../common/global.scss";
+@import "../common/icons.scss";
 
 @import "~bootstrap/scss/bootstrap";
 @import "global";
@@ -11,7 +12,7 @@
 @import "print_preview";
 @import "list";
 @import "navbar";
-@import "modal";
+@import "../common/modal";
 @import "slides";
 @import "toast";
 @import "breadcrumb";
@@ -20,7 +21,6 @@
 @import "page";
 @import "timeline";
 @import "avatar";
-@import "icons";
 @import "notification";
 @import "global_search";
 @import "desktop";

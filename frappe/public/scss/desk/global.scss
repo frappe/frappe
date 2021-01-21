@@ -25,7 +25,7 @@ body {
 
 	&.full-width {
 	@include media-breakpoint-up(md) {
-			.container {
+		.container {
 				width: 90%;
 				max-width: 100%;
 			}
@@ -222,8 +222,19 @@ select.input-xs {
 	}
 }
 
-.dropdown-menu .divider {
-	margin: 0px;
+.dropdown-menu {
+	.divider, .dropdown-divider {
+		margin: 0px;
+	}
+
+	:last-child {
+		&.dropdown-divider {
+			display: none;
+		}
+		.divider, .dropdown-divider {
+			display: none;
+		}
+	}
 }
 
 
