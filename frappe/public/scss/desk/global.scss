@@ -222,8 +222,19 @@ select.input-xs {
 	}
 }
 
-.dropdown-menu .divider {
-	margin: 0px;
+.dropdown-menu {
+	.divider, .dropdown-divider {
+		margin: 0px;
+	}
+
+	:last-child {
+		&.dropdown-divider {
+			display: none;
+		}
+		.divider, .dropdown-divider {
+			display: none;
+		}
+	}
 }
 
 
