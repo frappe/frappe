@@ -166,7 +166,7 @@ frappe.provide("frappe.views");
 						var col_name = $(this).data().columnValue;
 						order[col_name] = [];
 						$(this).find('.kanban-card-wrapper').each(function() {
-							var card_name = $(this).data().name;
+							var card_name = unescape($(this).data().name);
 							order[col_name].push(card_name);
 						});
 					});
