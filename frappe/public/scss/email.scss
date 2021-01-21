@@ -333,17 +333,8 @@ blockquote {
 	padding: 1px 15px;
 	position: relative;
 	margin-left: 0px;
+	border-left: 2px solid $gray-300;
 	p {
 		margin: 5px 0;
 	}
-}
-
-blockquote:before {
-	content: "";
-	width: 2px;
-	height: 100%;
-	position: absolute;
-	background: $gray-300;
-	border-radius: 1px;
-	left: 0;
 }
