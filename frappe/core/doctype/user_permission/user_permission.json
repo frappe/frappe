@@ -15,7 +15,7 @@
   "apply_to_all_doctypes",
   "applicable_for",
   "column_break_9",
-  "exclude_descendants"
+  "hide_descendants"
  ],
  "fields": [
   {
@@ -83,14 +83,14 @@
   {
    "default": "0",
    "description": "Hide descendant records of <b>For Value</b>.",
-   "fieldname": "exclude_descendants",
+   "fieldname": "hide_descendants",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Exclude Descendants"
+   "label": "Hide Descendants"
   }
  ],
  "links": [],
- "modified": "2021-01-13 19:31:05.618273",
+ "modified": "2021-01-21 18:14:10.839381",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Permission",

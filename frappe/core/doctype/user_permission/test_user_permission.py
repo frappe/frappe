@@ -145,10 +145,10 @@ class TestUserPermission(unittest.TestCase):
 		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
 		self.assertTrue(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
 
-		frappe.db.set_value("User Permission", {"allow": "Person", "for_value": parent_record.name}, "exclude_descendants", 1)
+		frappe.db.set_value("User Permission", {"allow": "Person", "for_value": parent_record.name}, "hide_descendants", 1)
 		frappe.cache().delete_value("user_permissions")
 
-		# check if adding perm on a group record with exclude_descendants enabled,
+		# check if adding perm on a group record with hide_descendants enabled,
 		# hides child records
 		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
 		self.assertFalse(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
@@ -164,7 +164,7 @@ def create_user(email, role="System Manager"):
 		user.add_roles(role)
 		return user
 
-def get_params(user, doctype, docname, is_default=0, exclude_descendants=0, applicable=None):
+def get_params(user, doctype, docname, is_default=0, hide_descendants=0, applicable=None):
 	''' Return param to insert '''
 	param = {
 		"user": user.name,
@@ -173,7 +173,7 @@ def get_params(user, doctype, docname, is_default=0, exclude_descendants=0, appl
 		"is_default": is_default,
 		"apply_to_all_doctypes": 1,
 		"applicable_doctypes": [],
-		"exclude_descendants": exclude_descendants
+		"hide_descendants": hide_descendants
 	}
 	if applicable:
 		param.update({"apply_to_all_doctypes": 0})

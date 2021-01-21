@@ -399,7 +399,7 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 		add_user_permission(doctype, name, user)
 
 def add_user_permission(doctype, name, user, ignore_permissions=False, applicable_for=None,
-	is_default=0, exclude_descendants=0):
+	is_default=0, hide_descendants=0):
 	'''Add user permission'''
 	from frappe.core.doctype.user_permission.user_permission import user_permission_exists
 
@@ -414,7 +414,7 @@ def add_user_permission(doctype, name, user, ignore_permissions=False, applicabl
 			for_value=name,
 			is_default=is_default,
 			applicable_for=applicable_for,
-			exclude_descendants=exclude_descendants,
+			hide_descendants=hide_descendants,
 		)).insert(ignore_permissions=ignore_permissions)
 
 def remove_user_permission(doctype, name, user):
