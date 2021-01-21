@@ -113,16 +113,9 @@ frappe.views.ListViewSelect = class ListViewSelect
 				condition: true,
 				action: () => this.setup_kanban_boards(),
 				current_view_handler: () => {
-					frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) => {
-						this.setup_dropdown_in_sidebar(
-							'Kanban',
-							kanbans,
-							{
-								label: __('New Kanban Board'),
-								action: () => frappe.views.KanbanView.show_kanban_dialog(this.doctype)
-							}
-						);
-					});
+					frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) =>
+						this.setup_kanban_switcher(kanbans)
+					);
 				}
 			},
 		}
@@ -154,7 +147,7 @@ frappe.views.ListViewSelect = class ListViewSelect
 				</div>`;
 		} else {
 			items.map(item => {
-				if (item.name == frappe.utils.to_title_case(frappe.get_route().slice(-1)[0] || '')) {
+				if (item.name == this.get_page_name()) {
 					placeholder = item.name;
 				}
 				html += `<li><a class="dropdown-item" href="${item.route}">${item.name}</a></li>`;
@@ -171,6 +164,33 @@ frappe.views.ListViewSelect = class ListViewSelect
 		$dropdown.html(html);
 
 		views_wrapper.removeClass('hide');
+	}
+
+	setup_kanban_switcher(kanbans) {
+		const kanban_switcher =
+			this.page.add_custom_button_group(
+				__('Select Kanban'), null, this.list_view.$filter_section
+			);
+
+		kanbans.map(k => {
+			this.page.add_custom_menu_item(
+				kanban_switcher,
+				k.name,
+				() => this.set_route('kanban', k.name),
+				false
+			);
+		});
+
+		this.page.add_custom_menu_item(
+			kanban_switcher,
+			__('Create New Kanban Board'),
+			() => frappe.views.KanbanView.show_kanban_dialog(this.doctype),
+			true
+		);
+	}
+
+	get_page_name() {
+		return frappe.utils.to_title_case(frappe.get_route().slice(-1)[0] || '')
 	}
 
 	get_reports() {
