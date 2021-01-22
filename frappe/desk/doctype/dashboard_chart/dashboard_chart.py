@@ -184,6 +184,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		fields = [
 			'{} as _unit'.format(datefield),
 			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
+			'COUNT({value_field})'.format(value_field=value_field)
 		],
 		filters = filters,
 		group_by = '_unit',
@@ -192,7 +193,10 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		ignore_ifnull = True
 	)
 
-	result = get_result(data, timegrain, from_date, to_date)
+	if chart.chart_type == 'Average':
+		result = get_avg_result(data, timegrain, from_date, to_date)
+	else:
+		result = get_result(data, timegrain, from_date, to_date)
 
 	chart_config = {
 		"labels": [get_period(r[0], timegrain) for r in result],
@@ -297,6 +301,23 @@ def get_result(data, timegrain, from_date, to_date):
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
 				d[1] += data[data_index][1]
 				data_index += 1
+
+	return result
+
+def get_avg_result(data, timegrain, from_date, to_date):
+	dates = get_dates_from_timegrain(from_date, to_date, timegrain)
+	result = [[date, 0] for date in dates]
+	data_index, dividend, divisor = 0, 0, 0
+	if data:
+		for i, d in enumerate(result):
+			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
+				dividend += data[data_index][1] * data[data_index][2]
+				divisor += data[data_index][2]
+				data_index += 1
+			if dividend == 0:
+				d[1] = dividend
+			else:
+				d[1] = dividend / divisor
 
 	return result
 
