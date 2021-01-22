@@ -18,4 +18,3 @@ def execute():
 				list_view_settings.insert()
 		frappe.delete_doc("DocType", "List View Setting", force=True)
 		frappe.db.commit()
-		frappe.db.sql("DROP TABLE IF EXISTS `tabList View Setting`")
