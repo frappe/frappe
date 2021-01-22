@@ -239,26 +239,3 @@ h5.modal-title {
 .about-footer {
 	padding-top: 1rem;
 }
-
-.frappe-control[data-fieldtype="Select"] .control-input {
-	position: relative;
-
-	select {
-		appearance: none;
-		/* for Firefox */
-		-moz-appearance: none;
-		/* for Chrome */
-		-webkit-appearance: none;
-	}
-
-	.icon {
-		position: absolute;
-		top: 0;
-		right: 8px;
-		height: 100%;
-		pointer-events: none;
-		use {
-			stroke: var(--text-muted);
-		}
-	}
-}
