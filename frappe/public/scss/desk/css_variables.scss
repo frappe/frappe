@@ -39,6 +39,10 @@ $input-height: 28px !default;
 	--criticism-color: var(--red-600);
 	--criticism-bg: var(--red-100);
 
+	// Error colors
+	--error-bg: var(--red-50);
+	--error-border: var(--red-400);
+
 	// page
 	--page-head-height: 75px;
 	--page-bottom-margin: 60px;

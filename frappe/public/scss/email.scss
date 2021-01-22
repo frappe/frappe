@@ -143,14 +143,20 @@ hr {
 	}
 }
 
-@media only screen and (max-width: 600px) {
-	.body-table.with-container .email-container {
-		width: 90%;
+@media only screen and (max-width: 700px) {
+	.body-table.with-container {
+		.body-content {
+			padding: 30px 20px;
+		}
+		.email-container {
+			padding: 20px;
+			width: auto;
+		}
 	}
 }
 
 .email-footer-container {
-	margin-top: 60px;
+	margin-top: 40px;
 
 	& > div:not(:last-child) {
 		margin-bottom: 5px;
@@ -315,11 +321,11 @@ hr {
 	background-color: $orange-bg;
 	color: $orange-color;
 	font-weight: normal;
-	width: 28px;
-	height: 28px;
+	width: 40px;
+	height: 40px;
 	text-align: center;
 	vertical-align: middle;
-	line-height: 28px;
+	line-height: 40px;
 	font-size: 12px;
 }
 
@@ -327,17 +333,8 @@ blockquote {
 	padding: 1px 15px;
 	position: relative;
 	margin-left: 0px;
+	border-left: 2px solid $gray-300;
 	p {
 		margin: 5px 0;
 	}
-}
-
-blockquote:before {
-	content: "";
-	width: 2px;
-	height: 100%;
-	position: absolute;
-	background: $gray-300;
-	border-radius: 1px;
-	left: 0;
 }

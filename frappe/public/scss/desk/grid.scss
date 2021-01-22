@@ -5,7 +5,7 @@
 }
 
 .form-grid.error {
-	border-color: var(--red-500);
+	border-color: var(--error-border);
 }
 
 .grid-heading-row {
@@ -107,11 +107,11 @@
 }
 
 .editable-form .grid-static-col.invalid {
-	background-color: var(--red-500);
+	background-color: var(--error-bg);
 }
 
 .validated-form .grid-static-col.error {
-	background-color: var(--red-500);
+	background-color: var(--error-bg);
 }
 
 .row-index {
@@ -181,12 +181,12 @@
 		.has-error .form-control {
 			z-index: 1;
 			&:focus {
-				border-color: var(--red-500);
+				border-color: var(--error-border);
 			}
 		}
 
 		input.form-control.invalid {
-			background-color: var(--red-500);
+			background-color: var(--error-bg);
 		}
 
 		input[data-fieldtype="Int"],

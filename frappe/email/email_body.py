@@ -357,7 +357,7 @@ def get_message_id():
 
 def get_signature(email_account):
 	if email_account and email_account.add_signature and email_account.signature:
-		return "<br><br>" + email_account.signature
+		return "<br>" + email_account.signature
 	else:
 		return ""
 

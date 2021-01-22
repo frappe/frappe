@@ -105,10 +105,10 @@
 .frappe-control:not([data-fieldtype='MultiSelectPills']):not([data-fieldtype='Table MultiSelect']) {
 	&.has-error {
 		input {
-			border: 1px solid var(--red-400);
+			border: 1px solid var(--error-border);
 
 			&:focus {
-				box-shadow: 0 0 0 $input-btn-focus-width var(--bg-red);
+				box-shadow: 0 0 0 $input-btn-focus-width var(--error-bg);
 			}
 		}
 	}
@@ -118,7 +118,7 @@
 .frappe-control[data-fieldtype='Table MultiSelect'] {
 	&.has-error {
 		.control-input {
-			border: 1px solid var(--red-400);
+			border: 1px solid var(--error-border);
 			border-radius: var(--border-radius);
 		}
 	}
