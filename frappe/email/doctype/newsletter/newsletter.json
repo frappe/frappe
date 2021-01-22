@@ -19,9 +19,13 @@
   "message",
   "message_md",
   "message_html",
+  "section_break_13",
   "send_unsubscribe_link",
   "send_attachments",
+  "full_width",
+  "column_break_9",
   "published",
+  "send_webview_link",
   "route",
   "test_the_newsletter",
   "test_email_id",
@@ -160,6 +164,27 @@
    "fieldtype": "Check",
    "label": "Schedule Sending",
    "read_only_depends_on": "eval: doc.email_sent"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "published",
+   "fieldname": "send_webview_link",
+   "fieldtype": "Check",
+   "label": "Send Web View Link"
+  },
+  {
+   "default": "0",
+   "fieldname": "full_width",
+   "fieldtype": "Check",
+   "label": "Full Width"
+  },
+  {
+   "fieldname": "section_break_13",
+   "fieldtype": "Section Break"
   }
  ],
  "has_web_view": 1,
@@ -169,7 +194,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 3,
- "modified": "2020-08-24 19:59:37.262500",
+ "modified": "2021-01-20 20:21:53.535828",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

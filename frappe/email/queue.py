@@ -24,7 +24,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		attachments=None, reply_to=None, cc=None, bcc=None, message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
 		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
-		header=None, print_letterhead=False):
+		header=None, print_letterhead=False, is_newsletter=False, full_width=False, add_web_link=False):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -48,6 +48,9 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 	:param header: Append header in email (boolean)
+	:param is_newsletter: Indicates if email is for newsletter
+	:param full_width: Will make newsletter email appear with full width on screen
+	:param add_web_link: Will add web view link to newsletter email
 	"""
 	if not unsubscribe_method:
 		unsubscribe_method = "/api/method/frappe.email.queue.unsubscribe"
@@ -127,10 +130,15 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	if should_append_unsubscribe:
 		unsubscribe_link = get_unsubscribe_message(unsubscribe_message, expose_recipients)
 		email_text_context += unsubscribe_link.text
+	
+	web_link = None
+	if add_web_link and reference_doctype and reference_doctype == "Newsletter":
+		web_link = get_url(uri = "/newsletters/{0}".format(reference_name))
 
 	email_content = get_formatted_html(subject, message,
 		email_account=email_account, header=header,
-		unsubscribe_link=unsubscribe_link)
+		unsubscribe_link=unsubscribe_link, web_link=web_link,
+		is_newsletter=is_newsletter, full_width=full_width)
 
 	# add to queue
 	add(recipients, sender, subject,

@@ -249,7 +249,8 @@ class EMail:
 		return self.msg_root.as_string(policy=policy.SMTPUTF8)
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
-		email_account=None, header=None, unsubscribe_link=None, sender=None):
+		email_account=None, header=None, unsubscribe_link=None, sender=None,
+		web_link=None, is_newsletter=False, full_width=False):
 	if not email_account:
 		email_account = get_outgoing_email_account(False, sender=sender)
 
@@ -257,10 +258,12 @@ def get_formatted_html(subject, message, footer=None, print_html=None,
 		"header": get_header(header),
 		"content": message,
 		"signature": get_signature(email_account),
-		"footer": get_footer(email_account, footer),
+		"footer": get_footer(email_account, footer, web_link),
 		"title": subject,
 		"print_html": print_html,
-		"subject": subject
+		"subject": subject,
+		"is_newsletter": is_newsletter,
+		"full_width": full_width
 	})
 
 	html = scrub_urls(rendered_email)
@@ -357,7 +360,7 @@ def get_signature(email_account):
 	else:
 		return ""
 
-def get_footer(email_account, footer=None):
+def get_footer(email_account, footer=None, web_link=None):
 	"""append a footer (signature)"""
 	footer = footer or ""
 
@@ -370,6 +373,9 @@ def get_footer(email_account, footer=None):
 
 	if company_address:
 		args.update({'company_address': company_address})
+	
+	if web_link:
+		args.update({'web_link': web_link})
 
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
 		args.update({'default_mail_footer': frappe.get_hooks('default_mail_footer')})

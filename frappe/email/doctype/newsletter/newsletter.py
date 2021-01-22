@@ -74,7 +74,8 @@ class Newsletter(WebsiteGenerator):
 			add_unsubscribe_link=self.send_unsubscribe_link, attachments=attachments,
 			unsubscribe_method="/unsubscribe",
 			unsubscribe_params={"name": self.name},
-			send_priority=0, queue_separately=True)
+			send_priority=0, queue_separately=True, add_web_link=self.send_webview_link,
+			is_newsletter=True, full_width=self.full_width)
 
 		if not frappe.flags.in_test:
 			frappe.db.auto_commit_on_many_writes = False
