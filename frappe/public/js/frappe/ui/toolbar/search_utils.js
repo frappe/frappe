@@ -521,7 +521,7 @@ frappe.search.utils = {
 			results: setup
 		},
 		{
-			title: __("Find '") + in_keyword + __("' in ... "),
+			title: __("Find '{0}' in ...", [in_keyword]),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_search_in_list(keywords))
 		}];
