@@ -84,7 +84,7 @@ frappe.listview_settings['User Permission'] = {
 					},
 					{
 						fieldname: 'hide_descendants',
-						label: __('Exclude Descendants'),
+						label: __('Hide Descendants'),
 						fieldtype: 'Check',
 						hidden: 1
 					},
