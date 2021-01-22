@@ -338,7 +338,7 @@ def get_messages_from_doctype(name):
 			options = d.options.split('\n')
 			if not "icon" in options[0]:
 				messages.extend(options)
-		if d.fieldtype=='HTML' and d.options:						
+		if d.fieldtype=='HTML' and d.options:
 			messages.append(d.options)
 				
 	# translations of roles
