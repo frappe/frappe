@@ -115,11 +115,11 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		pre_process(doc)
 
 	ignore = []
-	#Hard SQL query responds faster.
 	if doc.doctype not in single_doctype:
-		if frappe.db.sql("""select name from `tab{0}` where \
-		modified='{1}' and name='{2}' """.format(doc.doctype,doc.modified,doc.name)):
-			return False
+		db_modified = frappe.db.get_values(doc.doctype, doc.name, ['modified','name'], as_dict=1)
+		if db_modified and doc.modified:
+			if doc.name == db_modified[0].get('name') and doc.modified <= get_datetime_str(db_modified[0].get('modified')):
+				return False
 
 	if frappe.db.exists(doc.doctype, doc.name):
 
