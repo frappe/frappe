@@ -150,7 +150,7 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	try:
 		# use sql, so that we do not mess with the timestamp
 		frappe.db.sql("""update `tab{0}` set `_comments`=%s where name=%s""".format(reference_doctype), # nosec
-			(json.dumps(_comments[-50:]), reference_name))
+			(json.dumps(_comments[-100:]), reference_name))
 
 	except Exception as e:
 		if frappe.db.is_column_missing(e) and getattr(frappe.local, 'request', None):

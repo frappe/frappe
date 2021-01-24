@@ -568,13 +568,15 @@ export default class GridRow {
 		this.wrapper.removeClass("grid-row-open");
 	}
 	open_prev() {
-		if(this.grid.grid_rows[this.doc.idx-2]) {
-			this.grid.grid_rows[this.doc.idx-2].toggle_view(true);
+		const row_index = this.wrapper.index();
+		if (this.grid.grid_rows[row_index - 1]) {
+			this.grid.grid_rows[row_index - 1].toggle_view(true);
 		}
 	}
 	open_next() {
-		if(this.grid.grid_rows[this.doc.idx]) {
-			this.grid.grid_rows[this.doc.idx].toggle_view(true);
+		const row_index = this.wrapper.index();
+		if (this.grid.grid_rows[row_index + 1]) {
+			this.grid.grid_rows[row_index + 1].toggle_view(true);
 		} else {
 			this.grid.add_new_row(null, null, true);
 		}
