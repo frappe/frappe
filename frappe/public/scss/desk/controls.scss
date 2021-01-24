@@ -124,28 +124,6 @@
 	}
 }
 
-.frappe-control[data-fieldtype="Select"] .control-input {
-	position: relative;
-
-	select {
-		/* for Firefox */
-		-moz-appearance: none;
-		/* for Chrome */
-		-webkit-appearance: none;
-	}
-
-	.icon {
-		position: absolute;
-		top: 8px;
-		height: 15px;
-		right: 12px;
-		pointer-events: none;
-		use {
-			stroke: var(--text-muted);
-		}
-	}
-}
-
 .ace_editor {
 	background-color: var(--control-bg);
 	color: var(--text-color);
