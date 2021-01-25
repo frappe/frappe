@@ -49,22 +49,31 @@ class TestNewsletter(unittest.TestCase):
 
 	def test_unsubscribe(self):
 		name = self.send_newsletter()
-		to_unsubscribe = choice(emails)
 		group = frappe.get_all("Newsletter Email Group", filters={"parent": name}, fields=["email_group"])
 
+		items = [frappe.get_doc('Email Queue', e.name) for e in frappe.get_all("Email Queue")]
+		self.assertEqual(len(items), len(emails))
+		self.assertSetEqual({i.reference_name for i in items}, {name})
+		self.assertSetEqual({i.status for i in items}, {'Not Sent'})
+
 		flush(from_test=True)
+		items = [frappe.get_doc('Email Queue', e.name) for e in frappe.get_all("Email Queue")]
+		self.assertEqual(len(items), len(emails))
+		self.assertSetEqual({i.status for i in items}, {'Sent'})
+
+		to_unsubscribe = choice(items).recipients[0].recipient
+		self.assertIn(to_unsubscribe, emails)
 		confirmed_unsubscribe(to_unsubscribe, group[0].email_group)
 
 		name = self.send_newsletter()
 		email_queue_list = [
 			frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")
 		]
-		self.assertEqual(len(email_queue_list), 3)
-		recipients = [e.recipients[0].recipient for e in email_queue_list]
+		self.assertEqual(len(email_queue_list), len(emails)-1)  # one user has been unsubscribed
 
-		for email in emails:
-			if email != to_unsubscribe:
-				self.assertTrue(email in recipients)
+		recipients = {e.recipients[0].recipient for e in email_queue_list}
+		self.assertSetEqual(recipients, set(emails) - set((to_unsubscribe,)))
+
 
 	@staticmethod
 	def send_newsletter(published=0, schedule_send=None):
