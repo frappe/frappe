@@ -96,6 +96,17 @@ class DocType(Document):
 
 	def validate_field_name_conflicts(self):
 		"""Check if field names dont conflict with controller properties and methods"""
+		core_doctypes = [
+			"Custom DocPerm",
+			"DocPerm",
+			"Custom Field",
+			"Customize Form Field",
+			"DocField",
+		]
+
+		if self.name in core_doctypes:
+			return
+
 		from frappe.model.base_document import get_controller
 
 		controller = get_controller(self.name)
