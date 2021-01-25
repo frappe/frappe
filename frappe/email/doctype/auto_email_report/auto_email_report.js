@@ -98,7 +98,7 @@ frappe.ui.form.on('Auto Email Report', {
 			report_filters = report_filters_list;
 
 			const mandatory_css = {
-				"background-color": "#fffdf4",
+				"background-color": "var(--error-bg)",
 				"font-weight": "bold"
 			};
 
