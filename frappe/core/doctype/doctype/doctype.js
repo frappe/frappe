@@ -1,16 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// -------------
-// Menu Display
-// -------------
-
-// $(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
-// 	if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
-// 		$(grid_row.row).css({"font-weight": "bold"});
-// 	}
-// })
-
 frappe.ui.form.on('DocType', {
 	refresh: function(frm) {
 		if(frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
@@ -53,12 +43,16 @@ frappe.ui.form.on('DocType', {
 		frm.events.autoname(frm);
 	},
 
+	before_save: function(frm) {
+		frappe.flags.reload_bootinfo = frm.is_new();
+	},
+
 	after_save: function(frm) {
 		if (frappe.flags.reload_bootinfo) {
 			frappe.call({
 				method: "frappe.boot.get_bootinfo",
 				freeze: true,
-				freeze_message: __("Reloading Boot Info...")
+				freeze_message: __("Reloading...")
 			}).then(r => {
 				if (r.message) {
 					frappe.boot = r.message;
@@ -68,12 +62,8 @@ frappe.ui.form.on('DocType', {
 		}
 	},
 
-	before_save: function(frm) {
-		frappe.flags.reload_bootinfo = frm.is_new();
-	},
-
 	autoname: function(frm) {
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	}
 
-})
+});
