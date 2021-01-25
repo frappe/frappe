@@ -23,6 +23,8 @@ from frappe.model.base_document import get_controller
 from frappe.social.doctype.post.post import frequently_visited_links
 from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings
 
+
+@frappe.whitelist()
 def get_bootinfo():
 	"""build and return boot info"""
 	frappe.set_user_lang(frappe.session.user)

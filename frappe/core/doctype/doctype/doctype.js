@@ -53,7 +53,27 @@ frappe.ui.form.on('DocType', {
 		frm.events.autoname(frm);
 	},
 
+	after_save: function(frm) {
+		if (frappe.flags.reload_bootinfo) {
+			frappe.show_alert({message: __("Reloading Boot Info..."), indicator: "green"});
+			frappe.call({
+				method: "frappe.boot.get_bootinfo",
+				freeze: true
+			}).then(r => {
+				if (r.message) {
+					frappe.boot = r.message;
+					frappe.flags.reload_bootinfo = false;
+				}
+			});
+		}
+	},
+
+	before_save: function(frm) {
+		frappe.flags.reload_bootinfo = frm.is_new();
+	},
+
 	autoname: function(frm) {
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	}
+
 })
