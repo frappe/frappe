@@ -29,9 +29,13 @@ class BaseTimeline {
 		this.render_timeline_items();
 	}
 
-	add_action_button(label, action) {
+	add_action_button(label, action, icon=null, btn_class=null) {
+		let icon_element = icon ? frappe.utils.icon(icon, 'xs') : null;
 		this.timeline_actions_wrapper.show();
-		let action_btn = $(`<button class="btn btn-xs btn-default action-btn">${label}</button>`);
+		let action_btn = $(`<button class="btn btn-xs ${btn_class || 'btn-default'} action-btn">
+			${icon_element}
+			${label}
+		</button>`);
 		action_btn.click(action);
 		this.timeline_actions_wrapper.append(action_btn);
 		return action_btn;

@@ -21,17 +21,20 @@
 
 .btn-secondary-dark {
 	@include button-variant(
-		$background: $gray-500,
-		$border: $gray-500,
-		$hover-background: lighten($gray-500, 1%),
-		$hover-border: $gray-500,
-		$active-background: lighten($gray-500, 1%),
-		$active-border: darken($gray-500, 12.5%)
+		$background: $gray-600,
+		$border: $gray-600,
+		$hover-background: lighten($gray-600, 1%),
+		$hover-border: $gray-600,
+		$active-background: lighten($gray-600, 1%),
+		$active-border: darken($gray-600, 12.5%)
 	);
 
 	color: $white;
 	&:hover, &:active, &:focus {
 		color: $white;
+	}
+	.icon {
+		--icon-stroke: currentColor;
 	}
 }
 
