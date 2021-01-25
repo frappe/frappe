@@ -55,10 +55,10 @@ frappe.ui.form.on('DocType', {
 
 	after_save: function(frm) {
 		if (frappe.flags.reload_bootinfo) {
-			frappe.show_alert({message: __("Reloading Boot Info..."), indicator: "green"});
 			frappe.call({
 				method: "frappe.boot.get_bootinfo",
-				freeze: true
+				freeze: true,
+				freeze_message: __("Reloading Boot Info...")
 			}).then(r => {
 				if (r.message) {
 					frappe.boot = r.message;
