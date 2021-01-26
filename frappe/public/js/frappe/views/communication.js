@@ -14,6 +14,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		this.dialog = new frappe.ui.Dialog({
 			title: (this.title || this.subject || __("New Email")),
+			wide: 1,
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
@@ -33,7 +34,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				frappe.call({
 					method: "frappe.email.get_contact_list",
 					args: {
-						txt: txt,
+						txt: txt
 					},
 					callback: (r) => {
 						options = r.message;
@@ -83,7 +84,14 @@ frappe.views.CommunicationComposer = Class.extend({
 				label: __("Email Template"),
 				fieldtype: "Link",
 				options: "Email Template",
-				fieldname: "email_template"
+				fieldname: "email_template",
+				get_query: () => {
+					return {
+						filters: {
+							link_doctype: ['in', [this.frm.doctype, ""]]
+						}
+					}
+				}
 			},
 			{ fieldtype: "Section Break" },
 			{
@@ -143,8 +151,13 @@ frappe.views.CommunicationComposer = Class.extend({
 		})
 		if(frappe.boot.email_accounts && email_accounts.length > 1) {
 			fields = [
-				{label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender",
-					options: email_accounts.map(function(e) { return e.email_id; }) }
+				{
+					label: __("From"),
+					fieldtype: "Select",
+					reqd: 1,
+					fieldname: "sender",
+					options: email_accounts.map(function(e) { return e.email_id; })
+				}
 			].concat(fields);
 		}
 
@@ -228,42 +241,43 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		this.dialog.fields_dict["email_template"].df.onchange = () => {
 			var email_template = me.dialog.fields_dict.email_template.get_value();
+			if (email_template) {
+				var prepend_reply = function(reply) {
+					if(me.reply_added===email_template) {
+						return;
+					}
+					var content_field = me.dialog.fields_dict.content;
+					var subject_field = me.dialog.fields_dict.subject;
+					var content = content_field.get_value() || "";
+					var subject = subject_field.get_value() || "";
 
-			var prepend_reply = function(reply) {
-				if(me.reply_added===email_template) {
-					return;
+					var parts = content.split('<!-- salutation-ends -->');
+
+					if(parts.length===2) {
+						content = [reply.message, "<br>", parts[1]];
+					} else {
+						content = [reply.message, "<br>", content];
+					}
+
+					content_field.set_value(content.join(''));
+
+					subject_field.set_value(reply.subject);
+
+					me.reply_added = email_template;
 				}
-				var content_field = me.dialog.fields_dict.content;
-				var subject_field = me.dialog.fields_dict.subject;
-				var content = content_field.get_value() || "";
-				var subject = subject_field.get_value() || "";
 
-				var parts = content.split('<!-- salutation-ends -->');
-
-				if(parts.length===2) {
-					content = [reply.message, "<br>", parts[1]];
-				} else {
-					content = [reply.message, "<br>", content];
-				}
-
-				content_field.set_value(content.join(''));
-
-				subject_field.set_value(reply.subject);
-
-				me.reply_added = email_template;
+				frappe.call({
+					method: 'frappe.email.doctype.email_template.email_template.get_email_template',
+					args: {
+						template_name: email_template,
+						doc: me.frm.doc,
+						_lang: me.dialog.get_value("language_sel")
+					},
+					callback: function(r) {
+						prepend_reply(r.message);
+					},
+				});
 			}
-
-			frappe.call({
-				method: 'frappe.email.doctype.email_template.email_template.get_email_template',
-				args: {
-					template_name: email_template,
-					doc: me.frm.doc,
-					_lang: me.dialog.get_value("language_sel")
-				},
-				callback: function(r) {
-					prepend_reply(r.message);
-				},
-			});
 		}
 	},
 

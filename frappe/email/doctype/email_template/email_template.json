@@ -8,12 +8,16 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "link_doctype",
+  "column_break_2",
+  "enabled",
+  "section_break_4",
   "subject",
   "use_html",
   "response_html",
   "response",
   "owner",
-  "section_break_4",
+  "section_break_10",
   "email_reply_help"
  ],
  "fields": [
@@ -62,11 +66,34 @@
    "fieldtype": "Code",
    "label": "Response ",
    "options": "HTML"
+  },
+  {
+   "description": "Select if this email template is exclusive to a particular DocType. Leave blank if it is available for all.",
+   "fieldname": "link_doctype",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Link DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
   }
  ],
  "icon": "fa fa-comment",
  "links": [],
- "modified": "2020-11-30 14:12:50.321633",
+ "modified": "2021-01-20 23:00:48.643575",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Template",

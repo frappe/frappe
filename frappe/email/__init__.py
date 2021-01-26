@@ -14,30 +14,43 @@ def get_contact_list(txt, page_length=20):
 
 	cached_contacts = get_cached_contacts(txt)
 	if cached_contacts:
-		return cached_contacts[:page_length]
+		return clean_duplicates(cached_contacts[:page_length])
 
 	try:
-		match_conditions = build_match_conditions('Contact')
-		match_conditions = "and {0}".format(match_conditions) if match_conditions else ""
+		match_conditions_contact = build_match_conditions('Contact')
+		match_conditions_address = build_match_conditions('Address')
 
-		out = frappe.db.sql("""select email_id as value,
-			concat(first_name, ifnull(concat(' ',last_name), '' )) as description
-			from tabContact
-			where name like %(txt)s or email_id like %(txt)s
-			%(condition)s
-			limit %(page_length)s""", {
+		out = frappe.db.sql("""
+			SELECT
+				email_id AS value,
+				CONCAT(first_name, IFNULL(CONCAT(' ',last_name), '' )) AS description
+			FROM tabContact
+			WHERE
+				name LIKE %(txt)s
+				OR email_id LIKE %(txt)s
+				%(cond_contact)s
+			UNION SELECT
+				email_id AS value,
+				name AS description
+			FROM tabAddress
+			WHERE
+				name LIKE %(txt)s
+				OR email_id LIKE %(txt)s
+				%(cond_address)s		
+			LIMIT %(page_length)s""", {
 				'txt': '%' + txt + '%',
-				'condition': match_conditions,
+				'cond_contact': "AND {0}".format(match_conditions_contact) if match_conditions_contact else "",
+				'cond_address': "AND {0}".format(match_conditions_address) if match_conditions_address else "",
 				'page_length': page_length
-			}, as_dict=True)
-		out = filter(None, out)
+		}, as_dict=True)
+		#out = filter(None, out)
 
 	except:
 		raise
 
 	update_contact_cache(out)
 
-	return out
+	return clean_duplicates(out)
 
 def get_system_managers():
 	return frappe.db.sql_list("""select parent FROM `tabHas Role`
@@ -93,7 +106,10 @@ def get_cached_contacts(txt):
 	if not txt:
 		return contacts
 
-	match = [d for d in contacts if (d.value and ((d.value and txt in d.value) or (d.description and txt in d.description)))]
+	match = [d for d in contacts if (d.value and (
+		(d.value and txt.lower() in d.value.lower()) or \
+		(d.description and txt.lower() in d.description.lower())
+		))]
 	return match
 
 def update_contact_cache(contacts):
@@ -103,3 +119,10 @@ def update_contact_cache(contacts):
 	cached_contacts.extend(uncached_contacts)
 
 	frappe.cache().hset("contacts", frappe.session.user, cached_contacts)
+
+def clean_duplicates(contacts):
+	result = {}
+	for contact in contacts:
+		result[contact.value] = contact
+	
+	return result.values()
