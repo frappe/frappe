@@ -84,14 +84,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				label: __("Email Template"),
 				fieldtype: "Link",
 				options: "Email Template",
-				fieldname: "email_template",
-				get_query: () => {
-					return {
-						filters: {
-							link_doctype: ['in', [this.frm.doctype, ""]]
-						}
-					}
-				}
+				fieldname: "email_template"
 			},
 			{ fieldtype: "Section Break" },
 			{
@@ -238,6 +231,24 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	setup_email_template: function() {
 		var me = this;
+		if (this.frm && this.frm.doctype) {
+			this.dialog.fields_dict["email_template"].get_query = () => {
+				return {
+					filters: {
+						link_doctype: ['in', [this.frm.doctype, ""]]
+					}
+				}
+			};
+		} else {
+			this.dialog.fields_dict["email_template"].get_query = () => {
+				return {
+					filters: {
+						link_doctype: ['is', 'not set']
+					}
+				}
+			};
+		}
+		 
 
 		this.dialog.fields_dict["email_template"].df.onchange = () => {
 			var email_template = me.dialog.fields_dict.email_template.get_value();
