@@ -31,6 +31,8 @@
   "show_preview_popup",
   "image_view",
   "email_settings_section",
+  "default_email_template",
+  "column_break_26",
   "email_append_to",
   "sender_field",
   "subject_field",
@@ -261,6 +263,15 @@
    "fieldtype": "Table",
    "label": "Actions",
    "options": "DocType Action"
+  },
+  {
+   "fieldname": "default_email_template",
+   "fieldtype": "Data",
+   "label": "Default Email Template"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -269,7 +280,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-09-24 14:16:49.594012",
+ "modified": "2021-01-27 18:26:59.705786",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
