@@ -147,6 +147,7 @@
      "label": "Email Settings"
     },
     {
+     "description": "For multiple addresses, enter the address on different line. e.g. test@test.com \u23ce test1@test.com",
      "fieldname": "email_to",
      "fieldtype": "Small Text",
      "label": "Email To",
