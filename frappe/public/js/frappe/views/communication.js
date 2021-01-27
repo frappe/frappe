@@ -159,7 +159,10 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_last_edited_communication();
 		this.setup_email_template();
 
-		this.dialog.set_value("email_template", this.frm.meta.default_email_template || '');
+		if ('frm' in this) {
+			this.dialog.set_value("email_template", this.frm.meta.default_email_template || '');
+		}
+
 		this.dialog.set_value("recipients", this.recipients || '');
 		this.dialog.set_value("cc", this.cc || '');
 		this.dialog.set_value("bcc", this.bcc || '');
