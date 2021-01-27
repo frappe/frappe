@@ -44,7 +44,7 @@ context('Form', () => {
 	it('validates behaviour of Data options validations in child table', () => {
 		// test email validations for set_invalid controller
 		let website_input = 'website.in';
-		let expectBackgroundColor = 'rgb(255, 220, 220)';
+		let expectBackgroundColor = 'rgb(255, 245, 245)';
 
 		cy.visit('/app/contact/new');
 		cy.get('.frappe-control[data-fieldname="email_ids"]').as('table');
