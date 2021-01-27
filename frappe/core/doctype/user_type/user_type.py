@@ -22,6 +22,7 @@ class UserType(Document):
 		self.validate_role()
 		self.add_role_permissions_for_user_doctypes()
 		self.add_role_permissions_for_select_doctypes()
+		self.add_role_permissions_for_file()
 		self.update_users()
 		get_non_standard_user_type_details()
 		self.remove_permission_for_deleted_doctypes()
@@ -85,7 +86,7 @@ class UserType(Document):
 			user.set('block_modules', block_modules)
 
 	def add_role_permissions_for_user_doctypes(self):
-		perms = ['read', 'write', 'create']
+		perms = ['read', 'write', 'create', 'submit', 'cancel', 'amend']
 		for row in self.user_doctypes:
 			docperm = add_role_permissions(row.document_type, self.role)
 
@@ -101,8 +102,16 @@ class UserType(Document):
 			frappe.db.set_value('Custom DocPerm', docperm,
 				{'select': 1, 'read': 0, 'create': 0, 'write': 0})
 
+	def add_role_permissions_for_file(self):
+		docperm = add_role_permissions('File', self.role)
+		frappe.db.set_value('Custom DocPerm', docperm,
+			{'read': 1, 'create': 1, 'write': 1})
+
 	def remove_permission_for_deleted_doctypes(self):
 		doctypes = [d.document_type for d in self.user_doctypes]
+
+		# Do not remove the doc permission for the file doctype
+		doctypes.append('File')
 
 		for dt in self.select_doctypes:
 			doctypes.append(dt.document_type)
@@ -193,7 +202,7 @@ def apply_permissions_for_non_standard_user_type(doc, method=None):
 		if frappe.get_cached_value('User', doc.get(data[1]), 'user_type') != user_type:
 			return
 
-		if (doc.get(data[1]) and (doc.get(data[1]) != doc._doc_before_save.get(data[1])
+		if (doc.get(data[1]) and (not doc._doc_before_save or doc.get(data[1]) != doc._doc_before_save.get(data[1])
 			or not frappe.db.get_value('User Permission',
 				{'user': doc.get(data[1]), 'allow': data[0], 'for_value': doc.name}, 'name'))):
 

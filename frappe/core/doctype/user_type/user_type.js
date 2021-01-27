@@ -22,8 +22,7 @@ frappe.ui.form.on('User Type', {
 		frm.set_query('document_type', 'select_doctypes', function() {
 			return {
 				filters: {
-					istable: 0,
-					is_submittable: 0
+					istable: 0
 				}
 			};
 		});

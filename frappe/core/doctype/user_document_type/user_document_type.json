@@ -11,7 +11,11 @@
   "permissions_section",
   "read",
   "write",
-  "create"
+  "create",
+  "column_break_8",
+  "submit",
+  "cancel",
+  "amend"
  ],
  "fields": [
   {
@@ -59,12 +63,34 @@
    "fieldtype": "Check",
    "label": "Is Custom",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "submit",
+   "fieldtype": "Check",
+   "label": "Submit"
+  },
+  {
+   "default": "0",
+   "fieldname": "cancel",
+   "fieldtype": "Check",
+   "label": "Cancel"
+  },
+  {
+   "default": "0",
+   "fieldname": "amend",
+   "fieldtype": "Check",
+   "label": "Amend"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-01-19 01:25:34.773430",
+ "modified": "2021-01-28 15:37:47.759595",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Document Type",
