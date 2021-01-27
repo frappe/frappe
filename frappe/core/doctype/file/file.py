@@ -146,20 +146,19 @@ class File(Document):
 		if self.attached_to_doctype and self.attached_to_name:
 			attachment_limit = cint(frappe.get_meta(self.attached_to_doctype).max_attachments)
 
-		if attachment_limit:
-			current_attachment_count = len(frappe.get_all('File', filters={
-				'attached_to_doctype': self.attached_to_doctype,
-				'attached_to_name': self.attached_to_name,
-			}, limit=attachment_limit + 1))
+		current_attachment_count = len(frappe.get_all('File', filters={
+			'attached_to_doctype': self.attached_to_doctype,
+			'attached_to_name': self.attached_to_name,
+		}, limit=attachment_limit + 1))
 
-			if current_attachment_count >= attachment_limit:
-				frappe.throw(
-					_("Maximum Attachment Limit of {0} has been reached for {1} {2}.").format(
-						frappe.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
-					),
-					exc=frappe.exceptions.AttachmentLimitReached,
-					title=_('Attachment Limit Reached')
-				)
+		if current_attachment_count >= attachment_limit:
+			frappe.throw(
+				_("Maximum Attachment Limit of {0} has been reached for {1} {2}.").format(
+					frappe.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
+				),
+				exc=frappe.exceptions.AttachmentLimitReached,
+				title=_('Attachment Limit Reached')
+			)
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -456,7 +455,7 @@ class File(Document):
 	def save_file(self, content=None, decode=False, ignore_existing_file_check=False):
 		file_exists = False
 		self.content = content
-		
+
 		if decode:
 			if isinstance(content, text_type):
 				self.content = content.encode("utf-8")
@@ -467,19 +466,19 @@ class File(Document):
 
 		if not self.is_private:
 			self.is_private = 0
-		
+
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
-		
+
 		self.file_size = self.check_max_file_size()
-		
+
 		if (
 			self.content_type and "image" in self.content_type
 			and frappe.get_system_settings("strip_exif_metadata_from_uploaded_images")
 		):
-			self.content = strip_exif_data(self.content, self.content_type)			
+			self.content = strip_exif_data(self.content, self.content_type)
 
 		self.content_hash = get_content_hash(self.content)
-		
+
 		duplicate_file = None
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
