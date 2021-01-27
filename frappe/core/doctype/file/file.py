@@ -145,20 +145,19 @@ class File(Document):
 		if self.attached_to_doctype and self.attached_to_name:
 			attachment_limit = cint(frappe.get_meta(self.attached_to_doctype).max_attachments)
 
-		if attachment_limit:
-			current_attachment_count = len(frappe.get_all('File', filters={
-				'attached_to_doctype': self.attached_to_doctype,
-				'attached_to_name': self.attached_to_name,
-			}, limit=attachment_limit + 1))
+		current_attachment_count = len(frappe.get_all('File', filters={
+			'attached_to_doctype': self.attached_to_doctype,
+			'attached_to_name': self.attached_to_name,
+		}, limit=attachment_limit + 1))
 
-			if current_attachment_count >= attachment_limit:
-				frappe.throw(
-					_("Maximum Attachment Limit of {0} has been reached for {1} {2}.").format(
-						frappe.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
-					),
-					exc=frappe.exceptions.AttachmentLimitReached,
-					title=_('Attachment Limit Reached')
-				)
+		if current_attachment_count >= attachment_limit:
+			frappe.throw(
+				_("Maximum Attachment Limit of {0} has been reached for {1} {2}.").format(
+					frappe.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
+				),
+				exc=frappe.exceptions.AttachmentLimitReached,
+				title=_('Attachment Limit Reached')
+			)
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
