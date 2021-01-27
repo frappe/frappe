@@ -33,6 +33,8 @@
   "show_preview_popup",
   "image_view",
   "email_settings_section",
+  "default_email_template",
+  "column_break_26",
   "email_append_to",
   "sender_field",
   "subject_field",
@@ -275,6 +277,15 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
+  },
+  {
+   "fieldname": "default_email_template",
+   "fieldtype": "Data",
+   "label": "Default Email Template"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
