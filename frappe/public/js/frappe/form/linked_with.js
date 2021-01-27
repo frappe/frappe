@@ -111,6 +111,18 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 		);
 	}
 
+// 	let lol = {
+// 	"message": {
+// 		"PCG Order": {
+// 			"fieldname": ["ddate_link"]
+// 		},
+// 		"Comment": {
+// 			"fieldname": ["reference_name"],
+// 			"doctype_fieldname": "reference_doctype"
+// 		},
+// 		"dt": { "get_parent": true }
+// 	}
+// }
 	get_linked_doctypes() {
 		return new Promise((resolve) => {
 			if (this.frm.__linked_doctypes) {

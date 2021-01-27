@@ -247,10 +247,11 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 	links = frappe.get_all("DocField", fields=["parent as dt"], filters=filters)
 	links+= frappe.get_all("Custom Field", fields=["dt"], filters=filters)
 
-	for dt, in links:
-		if dt in ret: continue
-		ret[dt] = {"get_parent": True}
-
+	# Fixing our bug: https://gitlab.com/oekobox-online/pcg_web/-/issues/139
+	for link in links:
+		linked_dt = link["dt"]
+		if linked_dt in ret: continue
+		ret[linked_dt] = {"get_parent": True}
 	for dt in list(ret):
 		try:
 			doctype_module = load_doctype_module(dt)
@@ -261,7 +262,6 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 
 		if getattr(doctype_module, "exclude_from_linked_with", False):
 			del ret[dt]
-
 	return ret
 
 def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
