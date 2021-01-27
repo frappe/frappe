@@ -137,7 +137,8 @@ def update_move_node(doc, parent_field):
 	frappe.db.sql("""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s, modified=%s
 		where lft < 0""".format(doc.doctype), (new_diff, new_diff, n))
 
-def rebuild_tree(doctype, parent_field):
+@frappe.whitelist()
+def rebuild_tree(doctype, parent_field, commit=0):
 	"""
 		call rebuild_node for all root nodes
 	"""
@@ -150,6 +151,9 @@ def rebuild_tree(doctype, parent_field):
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
 	frappe.db.auto_commit_on_many_writes = 0
+
+	if commit:
+		frappe.db.commit()
 
 def rebuild_node(doctype, parent, left, parent_field):
 	"""
