@@ -190,8 +190,25 @@ def get_first_day(dt, d_years=0, d_months=0):
 
 	return datetime.date(year, month + 1, 1)
 
-def get_first_day_of_week(dt):
-	return dt - datetime.timedelta(days=dt.weekday())
+def get_quarter_start(dt, as_str=False):
+	date = getdate(dt)
+	quarter = (date.month - 1) // 3 + 1
+	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
+	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
+
+def get_first_day_of_week(dt, as_str=False):
+	dt = getdate(dt)
+	date = dt - datetime.timedelta(days=dt.weekday())
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_year_start(dt, as_str=False):
+	dt = getdate(dt)
+	date = datetime.date(dt.year, 1, 1)
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_last_day_of_week(dt):
+	dt = get_first_day_of_week(dt)
+	return dt + datetime.timedelta(days=6)
 
 def get_last_day(dt):
 	"""
@@ -200,6 +217,27 @@ def get_last_day(dt):
 	"""
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
 
+def get_quarter_ending(date):
+	date = getdate(date)
+
+	# find the earliest quarter ending date that is after
+	# the given date
+	for month in (3, 6, 9, 12):
+		quarter_end_month = getdate('{}-{}-01'.format(date.year, month))
+		quarter_end_date = getdate(get_last_day(quarter_end_month))
+		if date <= quarter_end_date:
+			date = quarter_end_date
+			break
+
+	return date
+
+def get_year_ending(date):
+	''' returns year ending of the given date '''
+
+	# first day of next year (note year starts from 1)
+	date = add_to_date('{}-01-01'.format(date.year), months = 12)
+	# last day of this month
+	return add_to_date(date, days=-1)
 
 def get_time(time_str):
 	if isinstance(time_str, datetime.datetime):
