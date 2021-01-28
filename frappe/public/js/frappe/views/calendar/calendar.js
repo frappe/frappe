@@ -227,6 +227,7 @@ frappe.views.Calendar = Class.extend({
 			defaultView: defaults.defaultView,
 			weekends: defaults.weekends,
 			nowIndicator: true,
+			now: frappe.datetime.convert_to_system_tz(),
 			events: function(start, end, timezone, callback) {
 				return frappe.call({
 					method: me.get_events_method || "frappe.desk.calendar.get_events",
