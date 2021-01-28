@@ -644,6 +644,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			// not a cancelled doc
 			&& data.docstatus !== 2
 			&& !df.read_only
+			&& !df.is_virtual
 			&& !df.hidden
 			// not a standard field i.e., owner, modified_by, etc.
 			&& !frappe.model.std_fields_list.includes(df.fieldname))
@@ -1025,7 +1026,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			title += ` (${__(doctype)})`;
 		}
 
-		const editable = frappe.model.is_non_std_field(fieldname) && !docfield.read_only;
+		const editable = frappe.model.is_non_std_field(fieldname) && !docfield.read_only && !docfield.is_virtual;
 
 		const align = (() => {
 			const is_numeric = frappe.model.is_numeric_field(docfield);
