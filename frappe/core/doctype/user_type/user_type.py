@@ -206,7 +206,8 @@ def apply_permissions_for_non_standard_user_type(doc, method=None):
 		user_types = get_non_standard_user_type_details()
 
 	for user_type, data in iteritems(user_types):
-		if doc.doctype != data[0]: continue
+		if (not doc.get(data[1]) or doc.doctype != data[0]): continue
+
 		if frappe.get_cached_value('User', doc.get(data[1]), 'user_type') != user_type:
 			return
 
