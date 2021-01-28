@@ -54,6 +54,12 @@ def get_form_params():
 
 	fields = data["fields"]
 
+	if ((isinstance(fields, string_types) and fields == "*")
+		or (isinstance(fields, (list, tuple)) and len(fields) == 1 and fields[0] == "*")):
+		parenttype = data.doctype
+		data["fields"] = frappe.db.get_table_columns(parenttype)
+		fields = data["fields"]
+
 	for field in fields:
 		key = field.split(" as ")[0]
 
@@ -61,27 +67,40 @@ def get_form_params():
 		if key.startswith('sum('): continue
 		if key.startswith('avg('): continue
 
-		if "." in key:
-			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
-		else:
-			parenttype = data.doctype
-			fieldname = field.strip("`")
+		parenttype, fieldname = get_parent_dt_and_field(key, data)
 
-		df = frappe.get_meta(parenttype).get_field(fieldname)
+		if fieldname == "*":
+			# * inside list is not allowed with other fields
+			fields.remove(field)
 
-		fieldname = df.fieldname if df else None
+		meta = frappe.get_meta(parenttype)
+		df = meta.get_field(fieldname)
+
 		report_hide = df.report_hide if df else None
 
 		# remove the field from the query if the report hide flag is set and current view is Report
 		if report_hide and is_report:
 			fields.remove(field)
 
+		if df and fieldname in [df.fieldname for df in meta.get_high_permlevel_fields()]:
+			if df.get('permlevel') not in meta.get_permlevel_access(parenttype=data.doctype) and field in fields:
+				fields.remove(field)
 
 	# queries must always be server side
 	data.query = None
 	data.strict = None
 
 	return data
+
+def get_parent_dt_and_field(field, data):
+	if "." in field:
+		parenttype, fieldname = field.split(".")[0][4:-1], field.split(".")[1].strip("`")
+	else:
+		parenttype = data.doctype
+		fieldname = field.strip("`")
+
+	return parenttype, fieldname
+
 
 def compress(data, args = {}):
 	"""separate keys and values"""

@@ -55,6 +55,7 @@
   "allowed_in_mentions",
   "user_emails",
   "sb_allow_modules",
+  "module_profile",
   "modules_html",
   "block_modules",
   "home_settings",
@@ -594,6 +595,12 @@
    "fieldtype": "Select",
    "label": "Desk Theme",
    "options": "Light\nDark"
+  },
+  {
+   "fieldname": "module_profile",
+   "fieldtype": "Link",
+   "label": "Module Profile",
+   "options": "Module Profile"
   }
  ],
  "icon": "fa fa-user",
