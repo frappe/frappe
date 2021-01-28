@@ -45,7 +45,15 @@ class UserType(Document):
 			})
 
 	def validate_document_type_limit(self):
-		limit = frappe.conf.get('user_type_doctype_limit').get(frappe.scrub(self.name)) or 10
+		limit = frappe.conf.get('user_type_doctype_limit', {}).get(frappe.scrub(self.name))
+
+		if not limit and frappe.session.user != 'Administrator':
+			frappe.throw(_('User does not have permission to create the new {0}')
+				.format(frappe.bold(_('User Type'))), title=_('Permission Error'))
+
+		if not limit:
+			frappe.throw(_('The limit has not set for the user type {0} in the site config file.')
+				.format(frappe.bold(self.name)), title=_('Set Limit'))
 
 		if self.user_doctypes and len(self.user_doctypes) > limit:
 			frappe.throw(_('The total number of user document types limit has been crossed.'),
