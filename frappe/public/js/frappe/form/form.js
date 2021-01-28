@@ -102,7 +102,6 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		this.setup_file_drop();
 		this.setup_doctype_actions();
-		this.setup_docinfo_change_listener();
 		this.setup_notify_on_rename();
 
 		this.setup_done = true;
@@ -365,10 +364,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.grids.forEach(grid_obj => {
 			grid_obj.grid.visible_columns = null
 			// reset page number to 1
-			grid_obj.grid.grid_pagination.go_to_page(1);
+			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
 		frappe.ui.form.close_grid_form();
 		this.docname = docname;
+		this.setup_docinfo_change_listener();
 	}
 
 	check_reload() {
@@ -1650,10 +1650,15 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	setup_docinfo_change_listener() {
-		frappe.realtime.on(`update_docinfo_for_${this.doctype}_${this.docname}`, ({doc, key, action='update'}) => {
-			let doc_list = (frappe.model.docinfo[this.doctype][this.docname][key] || []);
+		let doctype = this.doctype;
+		let docname = this.docname;
+		let listener_name = `update_docinfo_for_${doctype}_${docname}`;
+		// to avoid duplicates
+		frappe.realtime.off(listener_name);
+		frappe.realtime.on(listener_name, ({doc, key, action='update'}) => {
+			let doc_list = (frappe.model.docinfo[doctype][docname][key] || []);
 			if (action === 'add') {
-				frappe.model.docinfo[this.doctype][this.docname][key].push(doc);
+				frappe.model.docinfo[doctype][docname][key].push(doc);
 			}
 
 			let docindex = doc_list.findIndex(old_doc => {
@@ -1662,15 +1667,15 @@ frappe.ui.form.Form = class FrappeForm {
 
 			if (docindex > -1) {
 				if (action === 'update') {
-					frappe.model.docinfo[this.doctype][this.docname][key].splice(docindex, 1, doc);
+					frappe.model.docinfo[doctype][docname][key].splice(docindex, 1, doc);
 				}
 				if (action === 'delete') {
-					frappe.model.docinfo[this.doctype][this.docname][key].splice(docindex, 1);
+					frappe.model.docinfo[doctype][docname][key].splice(docindex, 1);
 				}
 			}
 			// no need to update timeline of owner of comment
 			// gets handled via comment submit code
-			if (!(['add', 'update'].includes(key) && doc.doctype === 'Comment' && doc.owner === frappe.session.user)) {
+			if (!(['add', 'update'].includes(action) && doc.doctype === 'Comment' && doc.owner === frappe.session.user)) {
 				this.timeline && this.timeline.refresh();
 			}
 		});

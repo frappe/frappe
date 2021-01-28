@@ -11,6 +11,7 @@ context('List View', () => {
 		cy.go_to_list('ToDo');
 		cy.get('.list-row-container:contains("Pending") .list-row-checkbox').click({ multiple: true, force: true });
 		cy.get('.actions-btn-group button').contains('Actions').should('be.visible').click();
+		cy.wait(300);
 		cy.get('.dropdown-menu li:visible').should('have.length', 8).each((el, index) => {
 			cy.wrap(el).contains(actions[index]);
 		}).then((elements) => {

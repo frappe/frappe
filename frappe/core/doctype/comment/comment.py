@@ -27,7 +27,8 @@ class Comment(Document):
 
 	def on_update(self):
 		update_comment_in_doc(self)
-		self.notify_change('update')
+		if self.is_new():
+			self.notify_change('update')
 
 	def on_trash(self):
 		self.remove_comment_from_cache()

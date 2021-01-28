@@ -292,7 +292,11 @@ def inline_style_in_html(html):
 
 	apps = frappe.get_installed_apps()
 
-	css_files = []
+	# add frappe email css file
+	css_files = ['assets/css/email.css']
+	if 'frappe' in apps:
+		apps.remove('frappe')
+
 	for app in apps:
 		path = 'assets/{0}/css/email.css'.format(app)
 		if os.path.exists(os.path.abspath(path)):

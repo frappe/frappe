@@ -515,7 +515,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
-		inline_images=inline_images, header=header, print_letterhead=print_letterhead, with_container=False)
+		inline_images=inline_images, header=header, print_letterhead=print_letterhead, with_container=with_container)
 
 whitelisted = []
 guest_methods = []

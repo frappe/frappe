@@ -7,7 +7,6 @@ class FormTimeline extends BaseTimeline {
 
 	make() {
 		super.make();
-		this.setup_document_email_link();
 		this.setup_timeline_actions();
 		this.render_timeline_items();
 		this.setup_activity_toggle();
@@ -16,10 +15,11 @@ class FormTimeline extends BaseTimeline {
 	refresh() {
 		super.refresh();
 		this.frm.trigger('timeline_refresh');
+		this.setup_document_email_link();
 	}
 
 	setup_timeline_actions() {
-		this.add_action_button(__('New Email'), () => this.compose_mail());
+		this.add_action_button(__('New Email'), () => this.compose_mail(), 'mail', 'btn-secondary-dark');
 		this.setup_new_event_button();
 	}
 
@@ -34,7 +34,7 @@ class FormTimeline extends BaseTimeline {
 				};
 				return new frappe.views.InteractionComposer(args);
 			};
-			this.add_action_button(__('New Event'), create_event);
+			this.add_action_button(__('New Event'), create_event, 'calendar');
 		}
 	}
 
@@ -70,9 +70,11 @@ class FormTimeline extends BaseTimeline {
 	setup_document_email_link() {
 		let doc_info = this.doc_info || this.frm.get_docinfo();
 
+		this.document_email_link_wrapper && this.document_email_link_wrapper.remove();
+
 		if (doc_info.document_email) {
 			const link = `<a class="document-email-link">${doc_info.document_email}</a>`;
-			const message = __("Send an email to {0} to link it here", [link.bold()]);
+			const message = __("Add to this activity by mailing to {0}", [link.bold()]);
 
 			this.document_email_link_wrapper = $(`
 				<div class="document-email-link-container">
@@ -80,7 +82,7 @@ class FormTimeline extends BaseTimeline {
 					<span class="ellipsis">${message}</span>
 				</div>
 			`);
-			this.timeline_wrapper.prepend(this.document_email_link_wrapper);
+			this.timeline_wrapper.append(this.document_email_link_wrapper);
 
 			this.document_email_link_wrapper
 				.find('.document-email-link')
