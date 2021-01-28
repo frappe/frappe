@@ -154,13 +154,21 @@ def get_time_zone():
 
 	return frappe.cache().get_value("time_zone", _get_time_zone)
 
-def convert_utc_to_user_timezone(utc_timestamp):
+def convert_utc_to_timezone(utc_timestamp, time_zone):
 	from pytz import timezone, UnknownTimeZoneError
 	utcnow = timezone('UTC').localize(utc_timestamp)
 	try:
-		return utcnow.astimezone(timezone(get_time_zone()))
+		return utcnow.astimezone(timezone(time_zone))
 	except UnknownTimeZoneError:
 		return utcnow
+
+def get_datetime_in_timezone(time_zone):
+	utc_timestamp = datetime.datetime.utcnow()
+	return convert_utc_to_timezone(utc_timestamp, time_zone)
+
+def convert_utc_to_user_timezone(utc_timestamp):
+	time_zone = get_time_zone()
+	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
@@ -369,7 +377,7 @@ def format_duration(seconds, hide_days=False):
 
 	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
 	"""
-	
+
 	seconds = cint(seconds)
 
 	total_duration = {
