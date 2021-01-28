@@ -32,7 +32,7 @@ context('Login', () => {
 
 	it('logs in using correct credentials', () => {
 		cy.get('#login_email').type('Administrator');
-		cy.get('#login_password').type('root');
+		cy.get('#login_password').type(Cypress.config('adminPassword'));
 
 		cy.get('.btn-login:visible').click();
 		cy.location('pathname').should('eq', '/app');
@@ -58,7 +58,7 @@ context('Login', () => {
 		);
 
 		cy.get('#login_email').type('Administrator');
-		cy.get('#login_password').type('root');
+		cy.get('#login_password').type(Cypress.config('adminPassword'));
 
 		cy.get('.btn-login:visible').click();
 
