@@ -7,9 +7,14 @@ import frappe, unittest
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
 
+from frappe.core.page.permission_manager.permission_manager import update, reset, add
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.handler import execute_cmd
 
-test_dependencies = ['User', 'Blog Post']
+from frappe.utils.testutils import add_custom_field, clear_custom_fields
+
+test_dependencies = ['User', 'Blog Post', 'Blog Category', 'Blogger']
 
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
@@ -354,6 +359,79 @@ class TestReportview(unittest.TestCase):
 	def test_pluck_any_field(self):
 		owners = DatabaseQuery("DocType").execute(filters={"name": "DocType"}, pluck="owner")
 		self.assertEqual(owners, ["Administrator"])
+
+	def test_reportview_get(self):
+		user = frappe.get_doc("User", "test@example.com")
+		add_child_table_to_blog_post()
+
+		user_roles = frappe.get_roles()
+		user.remove_roles(*user_roles)
+		user.add_roles("Blogger")
+
+		make_property_setter("Blog Post", "published", "permlevel", 1, "Int")
+		reset("Blog Post")
+		add("Blog Post", "Website Manager", 1)
+		update("Blog Post", "Website Manager", 1, "write", 1)
+
+		frappe.set_user(user.name)
+
+		frappe.local.request = frappe._dict()
+		frappe.local.request.method = "POST"
+
+		frappe.local.form_dict = frappe._dict({
+			"doctype": "Blog Post",
+			"fields": ["published", "title", "`tabTest Child`.`test_field`"],
+		})
+
+		# even if * is passed, fields which are not accessible should be filtered out
+		response = execute_cmd("frappe.desk.reportview.get")
+		self.assertListEqual(response["keys"], ["title"])
+		frappe.local.form_dict = frappe._dict({
+			"doctype": "Blog Post",
+			"fields": ["*"],
+		})
+
+		response = execute_cmd("frappe.desk.reportview.get")
+		self.assertNotIn("published", response["keys"])
+
+		frappe.set_user("Administrator")
+		user.add_roles("Website Manager")
+		frappe.set_user(user.name)
+
+		frappe.set_user("Administrator")
+
+		# Admin should be able to see access all fields
+		frappe.local.form_dict = frappe._dict({
+			"doctype": "Blog Post",
+			"fields": ["published", "title", "`tabTest Child`.`test_field`"],
+		})
+
+		response = execute_cmd("frappe.desk.reportview.get")
+		self.assertListEqual(response["keys"], ['published', 'title', 'test_field'])
+
+		# reset user roles
+		user.remove_roles("Blogger", "Website Manager")
+		user.add_roles(*user_roles)
+
+
+def add_child_table_to_blog_post():
+	child_table = frappe.get_doc({
+		'doctype': 'DocType',
+		'istable': 1,
+		'custom': 1,
+		'name': 'Test Child',
+		'module': 'Custom',
+		'autoname': 'Prompt',
+		'fields': [{
+			'fieldname': 'test_field',
+			'fieldtype': 'Data',
+			'permlevel': 1
+		}],
+	})
+
+	child_table.insert(ignore_permissions=True, ignore_if_duplicate=True)
+	clear_custom_fields('Blog Post')
+	add_custom_field('Blog Post', 'child_table', 'Table', child_table.name)
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """

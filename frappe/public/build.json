@@ -161,6 +161,7 @@
 		"public/js/frappe/router_history.js",
 		"public/js/frappe/defaults.js",
 		"public/js/frappe/roles_editor.js",
+		"public/js/frappe/module_editor.js",
 		"public/js/frappe/microtemplate.js",
 
 		"public/js/frappe/ui/page.html",
