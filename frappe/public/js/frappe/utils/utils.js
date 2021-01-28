@@ -1067,6 +1067,15 @@ Object.assign(frappe.utils, {
 		return number_system_map[country];
 	},
 
+	map_defaults: {
+		center: [19.0800, 72.8961],
+		zoom: 13,
+		tiles: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+		options: {
+			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+		}
+	},
+
 	icon(icon_name, size="sm", icon_class="") {
 		let size_class = "";
 		let icon_style = "";
