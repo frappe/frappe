@@ -12,6 +12,8 @@ from frappe.permissions import add_user_permission, clear_user_permissions_for_d
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.handler import execute_cmd
 
+from frappe.utils.testutils import add_custom_field, clear_custom_fields
+
 test_dependencies = ['User', 'Blog Post', 'Blog Category', 'Blogger']
 
 class TestReportview(unittest.TestCase):
@@ -360,6 +362,7 @@ class TestReportview(unittest.TestCase):
 
 	def test_reportview_get(self):
 		user = frappe.get_doc("User", "test@example.com")
+		add_child_table_to_blog_post()
 
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
@@ -377,9 +380,8 @@ class TestReportview(unittest.TestCase):
 
 		frappe.local.form_dict = frappe._dict({
 			"doctype": "Blog Post",
-			"fields": ["published", "title"],
+			"fields": ["published", "title", "`tabTest Child`.`test_field`"],
 		})
-
 
 		# even if * is passed, fields which are not accessible should be filtered out
 		response = execute_cmd("frappe.desk.reportview.get")
@@ -398,9 +400,38 @@ class TestReportview(unittest.TestCase):
 
 		frappe.set_user("Administrator")
 
+		# Admin should be able to see access all fields
+		frappe.local.form_dict = frappe._dict({
+			"doctype": "Blog Post",
+			"fields": ["published", "title", "`tabTest Child`.`test_field`"],
+		})
+
+		response = execute_cmd("frappe.desk.reportview.get")
+		self.assertListEqual(response["keys"], ['published', 'title', 'test_field'])
+
 		# reset user roles
 		user.remove_roles("Blogger", "Website Manager")
 		user.add_roles(*user_roles)
+
+
+def add_child_table_to_blog_post():
+	child_table = frappe.get_doc({
+		'doctype': 'DocType',
+		'istable': 1,
+		'custom': 1,
+		'name': 'Test Child',
+		'module': 'Custom',
+		'autoname': 'Prompt',
+		'fields': [{
+			'fieldname': 'test_field',
+			'fieldtype': 'Data',
+			'permlevel': 1
+		}],
+	})
+
+	child_table.insert(ignore_permissions=True, ignore_if_duplicate=True)
+	clear_custom_fields('Blog Post')
+	add_custom_field('Blog Post', 'child_table', 'Table', child_table.name)
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
