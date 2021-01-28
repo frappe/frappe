@@ -92,7 +92,7 @@ context('Depends On', () => {
 		cy.fill_table_field('child_test_depends_on_field', '1', 'child_test_field', 'Some Value');
 		cy.fill_table_field('child_test_depends_on_field', '1', 'child_dependant_field', 'Some Other Value');
 
-		cy.get('@row1-form_in_grid').find('.octicon-triangle-up').click();
+		cy.get('@row1-form_in_grid').find('.grid-collapse-row').click();
 
 		// set the table to read-only
 		cy.fill_field('test_field', 'Some Other Value');
