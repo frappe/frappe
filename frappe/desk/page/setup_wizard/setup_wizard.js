@@ -528,8 +528,9 @@ frappe.setup.utils = {
 			.add_options([""].concat(Object.keys(data.country_info).sort()));
 
 		slide.get_input("currency").empty()
-			.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
-				function (opts, country) { return opts.currency; }))).sort());
+			.add_options(frappe.utils.unique([""].concat(
+				$.map(data.country_info, opts => opts.currency)
+			)).sort());
 
 		slide.get_input("timezone").empty()
 			.add_options([""].concat(data.all_timezones));

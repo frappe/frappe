@@ -296,9 +296,10 @@ frappe.request.is_fresh = function(args, threshold) {
 		// check if request has same args and was made recently
 		if ((new Date() - past_request.timestamp) < threshold
 			&& frappe.utils.deep_equal(args, past_request.args)) {
-				console.log('throttled');
-				return true;
-			}
+			// eslint-disable-next-line no-console
+			console.log('throttled');
+			return true;
+		}
 	}
 
 	// log the request

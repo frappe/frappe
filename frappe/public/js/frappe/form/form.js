@@ -354,12 +354,6 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	switch_doc(docname) {
-		// record switch
-		// if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
-			// if (this.print_preview) {
-			// 	this.print_preview.hide();
-			// }
-		// }
 		// reset visible columns, since column headings can change in different docs
 		this.grids.forEach(grid_obj => {
 			grid_obj.grid.visible_columns = null
