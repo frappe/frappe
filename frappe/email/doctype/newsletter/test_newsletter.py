@@ -13,6 +13,7 @@ from frappe.email.doctype.newsletter.newsletter import (
 from frappe.email.doctype.newsletter.newsletter import get_newsletter_list
 from frappe.email.queue import flush
 from frappe.utils import add_days, getdate
+from six.moves.urllib.parse import unquote
 
 test_dependencies = ["Email Group"]
 emails = [
