@@ -76,6 +76,7 @@ class UserProfile {
 					fieldname: 'user',
 					options: 'User',
 					label: __('User'),
+					reqd: 1
 				}
 			],
 			primary_action_label: __('Go'),
