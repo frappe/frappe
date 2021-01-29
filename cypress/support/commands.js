@@ -244,10 +244,7 @@ Cypress.Commands.add('awesomebar', text => {
 });
 
 Cypress.Commands.add('new_form', doctype => {
-	let dt_in_route = doctype.toLowerCase().replace(/ /g, '-')
-	// // let route = `${dt_in_route}/new-${dt_in_route}-1`;
-	// let route = `${dt_in_route}/new`;
-	// let route = `${doctype.toLowerCase().replace(' ', '-')}/new`;
+	let dt_in_route = doctype.toLowerCase().replace(/ /g, '-');
 	cy.visit(`/app/${dt_in_route}/new`);
 	cy.get('body').should('have.attr', 'data-route', `Form/${doctype}/new-${dt_in_route}-1`);
 	cy.get('body').should('have.attr', 'data-ajax-state', 'complete');
@@ -279,8 +276,7 @@ Cypress.Commands.add('get_open_dialog', () => {
 
 Cypress.Commands.add('hide_dialog', () => {
 	cy.wait(200);
-	cy.get_open_dialog()
-		.find('.btn-modal-close').click()
+	cy.get_open_dialog().find('.btn-modal-close').click();
 	cy.get('.modal:visible').should('not.exist');
 });
 

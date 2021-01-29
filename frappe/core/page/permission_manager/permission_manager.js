@@ -98,7 +98,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	reset_std_permissions(data) {
-		let doctype = this.get_doctype()
+		let doctype = this.get_doctype();
 		let d = frappe.confirm(__("Reset Permissions for {0}?", [doctype]), () => {
 			return frappe.call({
 				module: "frappe.core",
@@ -117,7 +117,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			let rights = this.rights
 				.filter((r) => d[r])
 				.map((r) => {
-					return __(toTitle(frappe.unscrub(r)))
+					return __(toTitle(frappe.unscrub(r)));
 				});
 
 			d.rights = rights.join(", ");
