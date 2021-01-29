@@ -22,7 +22,7 @@ frappe.ui.get_print_settings = function(
 			fieldname: "letter_head",
 			label: __("Letter Head"),
 			depends_on: "with_letter_head",
-			options: frappe.boot.letter_heads,
+			options: Object.keys(frappe.boot.letter_heads),
 			default: letter_head || default_letter_head
 		},
 		{
