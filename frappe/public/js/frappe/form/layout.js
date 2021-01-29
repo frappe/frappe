@@ -551,7 +551,7 @@ frappe.ui.form.Layout = Class.extend({
 				frappe.throw(__('Invalid "depends_on" expression'));
 			}
 
-		} else if (expression.substr(0,3)=='fn:' && this.frm) {
+		} else if (expression.substr(0, 3)=='fn:' && this.frm) {
 			out = this.frm.script_manager.trigger(expression.substr(3), this.doctype, this.docname);
 		} else {
 			var value = doc[expression];
