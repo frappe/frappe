@@ -999,7 +999,7 @@ frappe.ui.form.Form = class FrappeForm {
 	print_doc() {
 		frappe.route_options = {
 			frm: this,
-		}
+		};
 		frappe.set_route('print', this.doctype, this.doc.name);
 	}
 
@@ -1503,7 +1503,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 					const escaped_name = encodeURIComponent(value);
 
-					return `<a class="indicator ${get_color(doc || {})}" href="/app/${frappe.router.slug(df.options)}/${escaped_name}" data-doctype="${doctype}" data-name="${value}">${label}</a>'`
+					return `<a class="indicator ${get_color(doc || {})}" href="/app/${frappe.router.slug(df.options)}/${escaped_name}" data-doctype="${doctype}" data-name="${value}">${label}</a>'`;
 				} else {
 					return '';
 				}

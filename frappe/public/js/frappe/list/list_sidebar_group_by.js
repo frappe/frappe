@@ -101,7 +101,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	setup_dropdown() {
 		this.$wrapper.find('.group-by-field').on('show.bs.dropdown', (e) => {
 			let $dropdown = $(e.currentTarget).find('.group-by-dropdown');
-			this.set_loading_state($dropdown)
+			this.set_loading_state($dropdown);
 			let fieldname = $(e.currentTarget).find('a')
 				.attr('data-fieldname');
 			let fieldtype = $(e.currentTarget)

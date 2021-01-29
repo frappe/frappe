@@ -356,12 +356,12 @@ class UserProfile {
 
 		const _get_stat_dom = (value, label, icon) => {
 			return `<div class="user-stats-item mt-4">
-						${frappe.utils.icon(icon, "lg", "no-stroke")}
-						<div>
-							<div class="stat-value">${value}</div>
-							<div class="stat-label">${label}</div>
-						</div>
-					</div>`
+				${frappe.utils.icon(icon, "lg", "no-stroke")}
+				<div>
+					<div class="stat-value">${value}</div>
+					<div class="stat-label">${label}</div>
+				</div>
+			</div>`;
 		}
 
 		this.get_user_rank().then(() => {

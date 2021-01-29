@@ -434,7 +434,7 @@ frappe.PermissionEngine = class PermissionEngine {
 				d.show();
 			},
 			"small-add"
-		)
+		);
 	}
 
 	make_reset_button() {

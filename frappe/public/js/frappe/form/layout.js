@@ -33,7 +33,7 @@ frappe.ui.form.Layout = Class.extend({
 			this.get_new_name_field()
 		];
 		if (this.doctype_layout) {
-			fields = fields.concat(this.get_fields_from_layout())
+			fields = fields.concat(this.get_fields_from_layout());
 		} else {
 			fields = fields.concat(frappe.meta.sort_docfields(frappe.meta.docfield_map[this.doctype]));
 		}

@@ -234,9 +234,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 		const me = this;
 		const p = this.frm.perm[0];
 		const docstatus = cint(this.frm.doc.docstatus);
-		const is_submittable = frappe.model.is_submittable(this.frm.doc.doctype)
+		const is_submittable = frappe.model.is_submittable(this.frm.doc.doctype);
 
-		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
+		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
 		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
 		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
 
@@ -372,7 +372,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		return this.get_docstatus()===1
 			&& !this.frm.doc.__islocal
 			&& this.frm.perm[0].submit
-			&& this.frm.doc.__unsaved
+			&& this.frm.doc.__unsaved;
 	}
 	can_cancel() {
 		return this.get_docstatus()===1

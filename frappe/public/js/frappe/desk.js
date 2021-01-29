@@ -64,7 +64,7 @@ frappe.Application = Class.extend({
 				frappe.theme_switcher = new frappe.ui.ThemeSwitcher();
 				frappe.theme_switcher.show();
 			}
-		})
+		});
 
 		this.set_rtl();
 

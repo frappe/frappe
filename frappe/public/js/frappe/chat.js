@@ -2402,11 +2402,11 @@ class extends Component {
 		return (
 			h("div",{class:`chat-bubble ${props.groupable ? "chat-groupable" : ""} chat-bubble-${me ? "r" : "l"}`,
 				onclick: this.onclick},
-				props.room_type === "Group" && !me?
+				props.room_type === "Group" && !me ?
 					h("div",{class:"chat-bubble-author"},
-						h("a", { onclick: () => { frappe.set_route('Form', 'User', props.user) } },
-							frappe.user.full_name(props.user)
-						)
+					h("a", { onclick: () => { frappe.set_route('Form', 'User', props.user) } },
+						frappe.user.full_name(props.user)
+					)
 					) : null,
 				h("div",{class:"chat-bubble-content"},
 						h("small","",

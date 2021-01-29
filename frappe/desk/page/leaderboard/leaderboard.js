@@ -81,7 +81,7 @@ class Leaderboard {
 		this.$graph_area = this.$container.find(".leaderboard-graph");
 
 		this.doctypes.map(doctype => {
-			const icon = this.leaderboard_config[doctype].icon
+			const icon = this.leaderboard_config[doctype].icon;
 			this.get_sidebar_item(doctype, icon).appendTo(this.$sidebar_list);
 		});
 

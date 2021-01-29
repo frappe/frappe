@@ -157,7 +157,7 @@ frappe.ui.form.PrintView = class {
 			label: value,
 			value: value,
 			disabled: true
-		}
+		};
 	}
 
 	setup_menu() {
@@ -429,7 +429,7 @@ frappe.ui.form.PrintView = class {
 		});
 
 		setTimeout(() => {
-			$print_format.height(this.$print_format_body.find('.print-format').outerHeight())
+			$print_format.height(this.$print_format_body.find('.print-format').outerHeight());
 		}, 500);
 	}
 
