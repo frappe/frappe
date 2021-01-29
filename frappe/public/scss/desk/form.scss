@@ -94,6 +94,10 @@
 	background-color: var(--control-bg);
 }
 
+.form-control:disabled, .form-control[readonly] {
+	cursor: not-allowed;
+}
+
 .comment-box {
 	@include card();
 	padding: 25px var(--padding-xl);
