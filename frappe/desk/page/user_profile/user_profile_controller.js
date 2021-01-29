@@ -149,6 +149,7 @@ class UserProfile {
 		});
 	}
 
+	// eslint-disable-next-line no-unused-vars
 	render_percentage_chart(field, title) {
 		// REDESIGN-TODO: chart seems to be broken. Enable this once fixed.
 		this.wrapper.find('.percentage-chart-container').hide();
