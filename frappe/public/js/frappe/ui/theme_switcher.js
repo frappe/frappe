@@ -109,4 +109,4 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	hide() {
 		this.dialog.hide();
 	}
-}
+};

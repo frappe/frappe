@@ -182,11 +182,11 @@ window.strip_html = function(txt) {
 
 window.strip = function (s, chars) {
 	if (s) {
-		var s = lstrip(s, chars);
+		s = lstrip(s, chars);
 		s = rstrip(s, chars);
 		return s;
 	}
-}
+};
 
 window.lstrip = function lstrip(s, chars) {
 	if (!chars) chars = ['\n', '\t', ' '];

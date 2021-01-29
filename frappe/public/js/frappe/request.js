@@ -305,7 +305,7 @@ frappe.request.is_fresh = function(args, threshold) {
 	// log the request
 	frappe.request.logs[args.cmd].push({args: args, timestamp: new Date()});
 	return false;
-}
+};
 
 // call execute serverside request
 frappe.request.prepare = function(opts) {

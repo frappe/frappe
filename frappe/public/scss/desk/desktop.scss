@@ -396,6 +396,14 @@ body {
 					.step-skip {
 						display: none;
 					}
+
+					i {
+						color: var(--green-600);
+					}
+
+					span {
+						color: $text-color;
+					}
 				}
 
 				&.active,
@@ -473,16 +481,6 @@ body {
 						.step-skip {
 							visibility: hidden;
 						}
-					}
-				}
-
-				&.complete {
-					i {
-						color: var(--green-600);
-					}
-
-					span {
-						color: $text-color;
 					}
 				}
 			}

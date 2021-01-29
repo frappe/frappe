@@ -119,7 +119,7 @@ class Picker {
 	}
 
 	setup_hue_event() {
-		let on_drag = (x, y) => {
+		let on_drag = (x, _y) => {
 			this.hue_selector_position.x = x;
 			this.hue = Math.round(x * 360 / this.hue_map.offsetWidth);
 			this.update_color_map();
@@ -148,6 +148,7 @@ class Picker {
 	}
 
 	get_pointer_coords() {
+		// eslint-disable-next-line no-unused-vars
 		let h, s, v;
 		[h, s, v] = utils.get_hsv(this.get_color());
 		let width = this.color_map.offsetWidth;
