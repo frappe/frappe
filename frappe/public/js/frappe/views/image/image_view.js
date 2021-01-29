@@ -91,9 +91,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		const escaped_title = frappe.utils.escape_html(title);
 		const _class = !item._image_url ? "no-image" : "";
 		const _html = item._image_url
-			? `<img data-name="${encoded_name}" src="${
-					item._image_url
-			  }" alt="${title}">`
+			? `<img data-name="${encoded_name}" src="${item._image_url}" alt="${title}">`
 			: `<span class="placeholder-text">
 				${frappe.get_abbr(title)}
 			</span>`;
@@ -110,9 +108,8 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 			<div class="image-view-item ellipsis">
 				<div class="image-view-header">
 					<div>
-						<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${escape(
-							item.name
-						)}">
+						<input class="level-item list-row-checkbox hidden-xs"
+							type="checkbox" data-name="${escape(item.name)}">
 						${this.get_like_html(item)}
 					</div>
 				</span>
@@ -133,11 +130,8 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 				<div class="image-view-footer">
 					<div class="image-title">
 						<span class="ellipsis" title="${escaped_title}">
-							<a class="ellipsis" href="${this.get_form_link(
-								item
-							)}" title="${escaped_title}" data-doctype="${
-			this.doctype
-		}" data-name="${item.name}">
+							<a class="ellipsis" href="${this.get_form_link(item)}"
+								title="${escaped_title}" data-doctype="${this.doctype}" data-name="${item.name}">
 								${title}
 							</a>
 						</span>
