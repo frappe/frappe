@@ -426,7 +426,9 @@ frappe.router = {
 // global functions for backward compatibility
 frappe.get_route = () => frappe.router.current_route;
 frappe.get_route_str = () => frappe.router.current_route.join('/');
-frappe.set_route = () => frappe.router.set_route.apply(frappe.router, arguments);
+frappe.set_route = function() {
+	return frappe.router.set_route.apply(frappe.router, arguments)
+};
 
 frappe.get_prev_route = function() {
 	if (frappe.route_history && frappe.route_history.length > 1) {
