@@ -37,42 +37,6 @@ body[data-route^="Module"] .main-menu {
 	@extend .hide-form-sidebar;
 }
 
-.layout-side-section {
-	font-size: var(--text-md);
-	padding-right: 30px;
-
-	> .divider {
-		display: none !important;
-	}
-
-	.sidebar-menu > li > a {
-		display: inline-block;
-	}
-
-	.sidebar-label {
-		margin-bottom: var(--margin-sm);
-		font-weight: 500;
-		display: flex;
-		align-items: center;
-		color: var(--text-muted);
-		letter-spacing: 0.04rem;
-		font-size: var(--text-sm);
-		.icon {
-			margin: 0;
-			margin-right: var(--margin-xs);
-			--icon-stroke: var(--text-muted);
-		}
-	}
-}
-
-.layout-side-section .sidebar-menu > li > a {
-	&:hover,
-	&:focus,
-	&:active {
-		@extend .underline-hover;
-	}
-}
-
 .sidebar-menu {
 	h6,
 	.h6 {
@@ -183,20 +147,55 @@ body[data-route^="Module"] .main-menu {
 	}
 }
 
-.layout-side-section .form-sidebar {
-	.modified-by,
-	.created-by,
-	.pageview-count {
-		font-size: var(--text-sm);
-	}
-
-	.modified-by,
-	.pageview-count {
-		margin-bottom: var(--margin-md);
-	}
-}
-
 .layout-side-section {
+	font-size: var(--text-md);
+	padding-right: 30px;
+
+	> .divider {
+		display: none !important;
+	}
+
+	.sidebar-menu > li > a {
+		display: inline-block;
+		&:hover,
+		&:focus,
+		&:active {
+			@extend .underline-hover;
+		}
+	}
+
+	.sidebar-label {
+		margin-bottom: var(--margin-sm);
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+		color: var(--text-muted);
+		letter-spacing: 0.04rem;
+		font-size: var(--text-sm);
+		.icon {
+			margin: 0;
+			margin-right: var(--margin-xs);
+			--icon-stroke: var(--text-muted);
+		}
+	}
+
+	.form-sidebar {
+		.modified-by,
+		.created-by,
+		.pageview-count {
+			font-size: var(--text-sm);
+		}
+
+		.modified-by,
+		.pageview-count {
+			margin-bottom: var(--margin-md);
+		}
+	}
+
+	.module-sidebar-nav {
+		margin-top: 15px;
+	}
+
 	.overlay-sidebar {
 		@media (max-width: 991px) {
 			margin-top: 0 !important;
@@ -253,6 +252,7 @@ body[data-route^="Module"] .main-menu {
 		}
 	}
 }
+
 .overlay-sidebar {
 	ul.dropdown-menu {
 		li {
@@ -367,18 +367,10 @@ body[data-route^="Module"] .main-menu {
 .filters-search {
 	margin-bottom: 10px;
 }
-// module sidebar
-.layout-side-section .module-sidebar-nav {
-	margin-top: 15px;
-}
-
-.attachment-row,
-.form-tag-row {
-	margin-bottom: var(--margin-sm);
-	max-width: 100%;
-}
 
 .attachment-row, .form-tag-row {
+	margin-bottom: var(--margin-sm);
+	max-width: 100%;
 	.data-pill {
 		background-color: var(--control-bg-on-gray);
 		box-shadow: none;

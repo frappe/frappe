@@ -101,10 +101,6 @@
 	z-index: 1;
 }
 
-.ql-mention-list {
-	border-radius: var(--border-radius-sm);
-}
-
 .ql-mention-list-item {
 	font-size: var(--text-xs);
 	padding: 10px 12px;
@@ -185,6 +181,7 @@
 
 
 .ql-mention-list {
+	border-radius: var(--border-radius-sm);
 	list-style: none;
 	margin: 0;
 	padding: 0;
