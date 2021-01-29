@@ -362,7 +362,7 @@ class UserProfile {
 					<div class="stat-label">${label}</div>
 				</div>
 			</div>`;
-		}
+		};
 
 		this.get_user_rank().then(() => {
 			this.get_user_points().then(() => {

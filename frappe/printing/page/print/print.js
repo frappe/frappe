@@ -291,6 +291,7 @@ frappe.ui.form.PrintView = class {
 	// }
 
 	setup_customize_dialog() {
+		let print_format = this.get_print_format();
 		$(document).on('new-print-format', (e) => {
 			this.refresh_print_options();
 			if (e.print_format) {
@@ -474,7 +475,7 @@ frappe.ui.form.PrintView = class {
 							no_letterhead: me.with_letterhead(),
 							letterhead: this.get_letterhead(),
 						},
-						callback: function(data) {},
+						callback: function() {},
 					});
 				} else if (me.get_mapped_printer().length === 1) {
 					// printer is already mapped in localstorage (applies for both raw and pdf )

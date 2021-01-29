@@ -348,7 +348,7 @@ class TranslationTool {
 			)
 			.then(() => {
 				frappe.dom.unfreeze();
-				frappe.show_alert({ message:__('Successfully Submitted!'), indicator: 'success'});
+				frappe.show_alert({ message: __('Successfully Submitted!'), indicator: 'success'});
 				this.edited_translations = {};
 				this.update_header();
 				this.fetch_messages_then_render();

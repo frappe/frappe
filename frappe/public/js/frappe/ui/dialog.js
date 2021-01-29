@@ -62,7 +62,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		}
 
 		if (this.secondary_action_label || (this.action.secondary && this.action.secondary.label)) {
-			this.set_secondary_action_label(this.secondary_action_label || this.action.secondary.label)
+			this.set_secondary_action_label(this.secondary_action_label || this.action.secondary.label);
 		}
 
 		if (this.minimizable) {
@@ -252,4 +252,4 @@ frappe.ui.hide_open_dialog = () => {
 			cur_dialog.toggle_minimize();
 		}
 	}
-}
+};

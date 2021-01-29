@@ -566,4 +566,4 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 		dialog.show();
 	}
-}
+};

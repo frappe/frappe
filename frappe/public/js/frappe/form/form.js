@@ -93,7 +93,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.script_manager.setup();
 		this.watch_model_updates();
 
-		if(!this.meta.hide_toolbar && frappe.boot.desk_settings.timeline) {
+		if (!this.meta.hide_toolbar && frappe.boot.desk_settings.timeline) {
 			this.footer = new frappe.ui.form.Footer({
 				frm: this,
 				parent: $('<div>').appendTo(this.page.main.parent())
@@ -200,7 +200,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	setup_notify_on_rename() {
 		$(document).on('rename', (ev, dt, old_name, new_name) => {
-			if(dt==this.doctype)
+			if (dt==this.doctype)
 				this.rename_notify(dt, old_name, new_name);
 		});
 	}
@@ -471,7 +471,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	focus_on_first_input() {
 		let first = this.form_wrapper.find('.form-layout :input:visible:first');
-		if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
+		if (!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
 			first.focus();
 		}
 	}

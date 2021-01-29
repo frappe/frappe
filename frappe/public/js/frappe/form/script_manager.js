@@ -171,7 +171,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 			eval(client_script);
 		}
 
-		if(!this.frm.doctype_layout && doctype.__custom_js) {
+		if (!this.frm.doctype_layout && doctype.__custom_js) {
 			try {
 				eval(doctype.__custom_js);
 			} catch(e) {

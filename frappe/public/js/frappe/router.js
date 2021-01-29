@@ -81,7 +81,7 @@ frappe.router = {
 
 	setup() {
 		// setup the route names by forming slugs of the given doctypes
-		for(let doctype of frappe.boot.user.can_read) {
+		for (let doctype of frappe.boot.user.can_read) {
 			this.routes[this.slug(doctype)] = {doctype: doctype};
 		}
 		if (frappe.boot.doctype_layouts) {
@@ -427,7 +427,7 @@ frappe.router = {
 frappe.get_route = () => frappe.router.current_route;
 frappe.get_route_str = () => frappe.router.current_route.join('/');
 frappe.set_route = function() {
-	return frappe.router.set_route.apply(frappe.router, arguments)
+	return frappe.router.set_route.apply(frappe.router, arguments);
 };
 
 frappe.get_prev_route = function() {
@@ -436,7 +436,7 @@ frappe.get_prev_route = function() {
 	} else {
 		return [];
 	}
-}
+};
 
 frappe.set_re_route = function() {
 	var tmp = frappe.router.get_sub_path();

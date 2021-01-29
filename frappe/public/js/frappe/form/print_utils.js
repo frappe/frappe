@@ -61,7 +61,7 @@ frappe.ui.get_print_settings = function(
 	return frappe.prompt(
 		columns,
 		function(data) {
-			var data = $.extend(print_settings, data);
+			data = $.extend(print_settings, data);
 			if (!data.with_letter_head) {
 				data.letter_head = null;
 			}

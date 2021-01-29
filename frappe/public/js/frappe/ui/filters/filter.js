@@ -69,7 +69,7 @@ frappe.ui.Filter = class {
 			frappe.render_template('edit_filter', {
 				conditions: this.conditions,
 			})
-		)
+		);
 		this.parent && this.filter_edit_area.appendTo(this.parent.find('.filter-edit-area'));
 		this.make_select();
 		this.set_events();
@@ -281,7 +281,7 @@ frappe.ui.Filter = class {
 			this.field.set_value(old_text);
 		}
 
-		this.bind_filter_field_events()
+		this.bind_filter_field_events();
 	}
 
 	bind_filter_field_events() {

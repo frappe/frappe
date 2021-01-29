@@ -75,7 +75,7 @@ export default class ListFilter {
 	}
 
 	bind_toggle_saved_filters() {
-		this.wrapper.find('.saved-filters-preview').click((e) => {
+		this.wrapper.find('.saved-filters-preview').click(() => {
 			this.toggle_saved_filters(this.saved_filters_hidden);
 		});
 	}

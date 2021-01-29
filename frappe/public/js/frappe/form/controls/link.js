@@ -469,7 +469,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 	fetch_and_validate_link(resolve, df, doctype, docname, value, fetch) {
 		frappe.call({
-			method:'frappe.desk.form.utils.validate_link',
+			method: 'frappe.desk.form.utils.validate_link',
 			type: "GET",
 			args: {
 				'value': value,
@@ -478,8 +478,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			},
 			no_spinner: true,
 			callback: (r) => {
-				if(r.message=='Ok') {
-					if(r.fetch_values && docname) {
+				if (r.message=='Ok') {
+					if (r.fetch_values && docname) {
 						this.set_fetch_values(df, docname, r.fetch_values);
 					}
 					resolve(r.valid_value);

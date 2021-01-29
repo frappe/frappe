@@ -65,14 +65,14 @@ frappe.ui.GroupBy = class {
 			this.group_by_button.popover('toggle');
 		});
 
-		this.group_by_button.on('shown.bs.popover', (e) => {
+		this.group_by_button.on('shown.bs.popover', () => {
 			if (!this.wrapper) {
 				this.wrapper = $('.group-by-popover');
 				this.setup_group_by_area();
 			}
 		});
 
-		this.group_by_button.on('hidden.bs.popover', (e) => {
+		this.group_by_button.on('hidden.bs.popover', () => {
 			this.update_group_by_button();
 		});
 

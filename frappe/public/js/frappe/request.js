@@ -8,7 +8,7 @@ frappe.provide('frappe.request.error_handlers');
 frappe.request.url = '/';
 frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
-frappe.request.logs = {}
+frappe.request.logs = {};
 
 frappe.xcall = function(method, params) {
 	return new Promise((resolve, reject) => {
@@ -133,7 +133,7 @@ frappe.request.call = function(opts) {
 				// original route is wrong, redirect to login
 				frappe.app.redirect_to_login();
 			} else {
-				frappe.msgprint({title:__("Not found"), indicator:'red',
+				frappe.msgprint({title: __("Not found"), indicator: 'red',
 					message: __('The resource you are looking for is not available')});
 			}
 		},
@@ -143,7 +143,7 @@ frappe.request.call = function(opts) {
 				frappe.app.handle_session_expired();
 			} else if (xhr.responseJSON && xhr.responseJSON._error_message) {
 				frappe.msgprint({
-					title: __("Not permitted"), indicator:'red',
+					title: __("Not permitted"), indicator: 'red',
 					message: xhr.responseJSON._error_message
 				});
 
@@ -157,7 +157,7 @@ frappe.request.call = function(opts) {
 				}
 			} else {
 				frappe.msgprint({
-					title: __("Not permitted"), indicator:'red',
+					title: __("Not permitted"), indicator: 'red',
 					message: __('You do not have enough permissions to access this resource. Please contact your manager to get access.')});
 			}
 

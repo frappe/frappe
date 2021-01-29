@@ -192,7 +192,7 @@ frappe.quick_edit      = (doctype, docname, fn) => {
 				})
 
 				const dialog   = new frappe.ui.Dialog({
-					 title: __('Edit') + `${doctype} (${docname})`,
+					title: __('Edit') + `${doctype} (${docname})`,
 					fields: required,
 					action: {
 						primary: {

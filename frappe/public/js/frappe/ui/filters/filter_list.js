@@ -63,7 +63,7 @@ frappe.ui.FilterGroup = class {
 			this.filter_button.popover('toggle');
 		});
 
-		this.filter_button.on('shown.bs.popover', (e) => {
+		this.filter_button.on('shown.bs.popover', () => {
 			let hide_empty_filters = this.filters && this.filters.length > 0;
 
 			if (!this.wrapper) {
@@ -78,13 +78,12 @@ frappe.ui.FilterGroup = class {
 			hide_empty_filters && this.toggle_empty_filters(false);
 		});
 
-		this.filter_button.on('hidden.bs.popover', (e) => {
+		this.filter_button.on('hidden.bs.popover', () => {
 			this.apply();
 		});
 
 		// REDESIGN-TODO: (Temporary) Review and find best solution for this
 		frappe.router.on('change', () => {
-			// console.log('page c')
 			if (this.wrapper && this.wrapper.is(':visible')) {
 				this.filter_button.popover('hide');
 			}
@@ -183,7 +182,7 @@ frappe.ui.FilterGroup = class {
 		return true;
 	}
 
-	push_new_filter(args, is_new_filter = false) {
+	push_new_filter(args) {
 		// args: [doctype, fieldname, condition, value]
 		if (this.filter_exists(args)) return;
 
