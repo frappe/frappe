@@ -187,19 +187,19 @@ frappe.ui.Page = Class.extend({
 		this.sidebar.find(".close-sidebar").on('click', (e) => close_sidebar(e));
 		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => close_sidebar(e));
 
-		let close_sidebar = (e) => {
+		let close_sidebar = () => {
 			scroll_container.css("overflow-y", "");
 			this.sidebar.find("div.close-sidebar").fadeOut(() => {
 				overlay_sidebar.removeClass('opened')
 					.find('.dropdown-toggle')
 					.removeClass('text-muted');
 			});
-		}
+		};
 	},
 
 	update_sidebar_icon() {
 		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
-		let sidebar_toggle_icon = sidebar_toggle.find('.sidebar-toggle-icon')
+		let sidebar_toggle_icon = sidebar_toggle.find('.sidebar-toggle-icon');
 		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
 		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
 		sidebar_toggle_icon.html(frappe.utils.icon(is_sidebar_visible ? 'sidebar-collapse' : 'sidebar-expand', 'md'));
@@ -214,14 +214,14 @@ frappe.ui.Page = Class.extend({
 			<button class="text-muted btn btn-default ${css_class} icon-btn">
 				${frappe.utils.icon(icon)}
 			</button>
-		`)
+		`);
 
 		button.appendTo(this.icon_group.removeClass("hide"));
 		button.click(click);
 		button.attr("title", __(tooltip_label || frappe.unscrub(icon)))
-			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger : "hover" });
+			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
 
-		return button
+		return button;
 	},
 
 	clear_indicator: function() {
@@ -789,7 +789,7 @@ frappe.ui.Page = Class.extend({
 		}
 
 		if(df.fieldtype=="Button") {
-			$(f.wrapper).find(".page-control-label").html("&nbsp;")
+			$(f.wrapper).find(".page-control-label").html("&nbsp;");
 			f.$input.addClass("btn-xs").css({"width": "100%", "margin-top": "-1px"});
 		}
 

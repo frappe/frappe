@@ -85,8 +85,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	build_sidebar_section(title, items) {
-		let sidebar_section = $(`<div class="standard-sidebar-section">
-		</div>`)
+		let sidebar_section = $(`<div class="standard-sidebar-section"></div>`);
 
 		// DO NOT REMOVE: Comment to load translation
 		// __("Modules") __("Domains") __("Places") __("Administration")
@@ -119,7 +118,7 @@ frappe.views.Workspace = class Workspace {
 
 		items.forEach(item => make_sidebar_category_item(item));
 
-		sidebar_section.appendTo(this.sidebar)
+		sidebar_section.appendTo(this.sidebar);
 	}
 
 	show_page(page) {
@@ -151,7 +150,7 @@ frappe.views.Workspace = class Workspace {
 
 	customize() {
 		if (this.current_page && this.current_page.allow_customization) {
-			this.page.clear_menu()
+			this.page.clear_menu();
 			this.current_page.customize();
 
 			this.page.set_primary_action(
@@ -164,7 +163,7 @@ frappe.views.Workspace = class Workspace {
 				},
 				null,
 				__("Saving")
-			)
+			);
 
 			this.page.set_secondary_action(
 				__("Discard"),
@@ -175,7 +174,7 @@ frappe.views.Workspace = class Workspace {
 					this.page.clear_secondary_action();
 					this.setup_dropdown();
 				}
-			)
+			);
 		}
 	}
 
@@ -317,10 +316,10 @@ class DesktopPage {
 	reset_customization() {
 		frappe.call('frappe.desk.desktop.reset_customization', {
 			page: this.page_name
-		}).then(res => {
+		}).then(() => {
 			frappe.show_alert({ message: __("Removed page customizations"), indicator: "green" });
 			this.reload();
-		})
+		});
 	}
 
 	make_onboarding() {

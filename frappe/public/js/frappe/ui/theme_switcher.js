@@ -9,7 +9,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	setup_dialog() {
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Switch Theme")
-		})
+		});
 		this.body = $(`<div class="theme-grid"></div>`).appendTo(this.dialog.$body);
 	}
 
@@ -17,7 +17,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		this.current_theme = document.body.dataset.theme;
 		this.fetch_themes().then(() => {
 			this.render();
-		})
+		});
 	}
 
 	fetch_themes() {
@@ -31,7 +31,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 					name: "dark",
 					label: __("Timeless Night"),
 				}
-			]
+			];
 
 			resolve(this.themes);
 		});
@@ -42,7 +42,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 			let html = this.get_preview_html(theme);
 			html.appendTo(this.body);
 			theme.$html = html;
-		})
+		});
 	}
 
 
@@ -80,13 +80,13 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		preview.on('click', () => {
 			this.themes.forEach((th) => {
 				th.$html.removeClass("selected");
-			})
+			});
 
-			preview.addClass("selected")
-			this.toggle_theme(theme.name)
+			preview.addClass("selected");
+			this.toggle_theme(theme.name);
 		})
 
-		return preview
+		return preview;
 	}
 
 	toggle_theme(theme, preview=false) {
@@ -96,7 +96,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 
 			frappe.call('frappe.core.doctype.user.user.switch_theme', {
 				theme: toTitle(theme)
-			})
+			});
 		} else {
 			document.body.dataset.theme = theme.toLowerCase();
 		}

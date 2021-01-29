@@ -38,7 +38,7 @@ frappe.ui.Notifications = class Notifications {
 				frappe.set_route('Form', 'Notification Settings', frappe.session.user);
 			}).appendTo(this.header_actions)
 			.attr('title', __("Notification Settings"))
-			.tooltip({ delay: { "show": 600, "hide": 100}, trigger : "hover"  });
+			.tooltip({ delay: { "show": 600, "hide": 100}, trigger: "hover"  });
 
 		$(`<span class="mark-all-read pull-right" data-action="mark_all_as_read">
 			${frappe.utils.icon('mark-as-read')}
@@ -46,7 +46,7 @@ frappe.ui.Notifications = class Notifications {
 			.on('click', (e) => this.mark_all_as_read(e))
 			.appendTo(this.header_actions)
 			.attr('title', __("Mark all as read"))
-			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger : "hover" });
+			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
 
 		this.categories = [
 			{
@@ -64,7 +64,7 @@ frappe.ui.Notifications = class Notifications {
 		];
 
 		let get_headers_html = (item) => {
-			let active = item.id == "notifications" ? 'active' : ''
+			let active = item.id == "notifications" ? 'active' : '';
 
 			let html = `<li class="notifications-category ${active}"
 					id="${item.id}"
@@ -80,15 +80,15 @@ frappe.ui.Notifications = class Notifications {
 			item.$tab.on('click', (e) => {
 				e.stopImmediatePropagation();
 				this.switch_tab(item);
-			})
+			});
 			navitem.append(item.$tab);
 
-			return item
-		})
+			return item;
+		});
 		navitem.appendTo(this.header_items);
 		this.categories.forEach(category => {
 			this.make_tab_view(category);
-		})
+		});
 		this.switch_tab(this.categories[0]);
 	}
 
@@ -178,11 +178,11 @@ class BaseNotificaitonsView {
 	}
 
 	show() {
-		this.container.show()
+		this.container.show();
 	}
 
 	hide() {
-		this.container.hide()
+		this.container.hide();
 	}
 }
 
@@ -190,7 +190,7 @@ class NotificationsView extends BaseNotificaitonsView {
 	make() {
 		this.notifications_icon = this.parent.find('.notifications-icon');
 		this.notifications_icon.attr("title", __('Notifications')).tooltip(
-			{ delay: { "show": 600, "hide": 100},  trigger : "hover" }
+			{ delay: { "show": 600, "hide": 100},  trigger: "hover" }
 		);
 
 		this.setup_notification_listeners();
@@ -281,15 +281,15 @@ class NotificationsView extends BaseNotificaitonsView {
 			</a>`);
 
 		if (!field.read) {
-			let mark_btn = item_html.find(".mark-as-read")
-			mark_btn.tooltip({ delay: { "show": 600, "hide": 100 }, trigger : "hover" });
+			let mark_btn = item_html.find(".mark-as-read");
+			mark_btn.tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
 			mark_btn.on('click', (e) => {
 				e.preventDefault();
 				e.stopImmediatePropagation();
 				this.mark_as_read(field.name, item_html);
 			});
 
-			item_html.on('click', (e) => {
+			item_html.on('click', () => {
 				this.mark_as_read(field.name, item_html);
 			});
 		}
@@ -361,12 +361,12 @@ class NotificationsView extends BaseNotificaitonsView {
 
 	setup_notification_listeners() {
 		frappe.realtime.on('notification', () => {
-			this.toggle_notification_icon(false)
+			this.toggle_notification_icon(false);
 			this.update_dropdown();
 		});
 
 		frappe.realtime.on('indicator_hide', () => {
-			this.toggle_notification_icon(true)
+			this.toggle_notification_icon(true);
 		});
 
 		this.parent.on('show.bs.dropdown', () => {
@@ -400,7 +400,7 @@ class EventsView extends BaseNotificaitonsView {
 				let time = __("All Day");
 				if (!event.all_day) {
 					let start_time = frappe.datetime.get_time(event.starts_on);
-					let days_diff = frappe.datetime.get_day_diff(event.ends_on, event.starts_on)
+					let days_diff = frappe.datetime.get_day_diff(event.ends_on, event.starts_on);
 					let end_time = frappe.datetime.get_time(event.ends_on);
 					if (days_diff > 1) {
 						end_time = __("Rest of the day");

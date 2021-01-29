@@ -31,7 +31,7 @@ frappe.ui.IconBar = Class.extend({
 				return false;
 			});
 
-		$li.find("i").attr("title", label).tooltip({ delay: { "show": 600, "hide": 100 }, trigger : "hover" });
+		$li.find("i").attr("title", label).tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
 
 
 		this.$wrapper.find(".iconbar-" + group).removeClass("hide")

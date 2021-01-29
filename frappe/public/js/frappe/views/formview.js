@@ -26,7 +26,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			frappe.model.with_doc('DocType Layout', frappe.router.doctype_layout, () => {
 				this.make_form(doctype);
 				this.show_doc(route);
-			})
+			});
 		} else {
 			this.make_form(doctype);
 			this.show_doc(route);

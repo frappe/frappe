@@ -152,20 +152,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	add_chart_buttons_to_toolbar(show) {
 		if (show) {
-			this.create_chart_button && this.create_chart_button.remove()
+			this.create_chart_button && this.create_chart_button.remove();
 			this.create_chart_button = this.page.add_button(__("Set Chart"), () => {
 				this.open_create_chart_dialog();
 			});
 
 			if (this.chart_fields || this.chart_options) {
-				this.add_to_dashboard_button && this.add_to_dashboard_button.remove()
+				this.add_to_dashboard_button && this.add_to_dashboard_button.remove();
 				this.add_to_dashboard_button = this.page.add_button(__("Add Chart to Dashboard"), () => {
 					this.add_chart_to_dashboard();
 				});
 			}
 		} else {
-			this.create_chart_button && this.create_chart_button.remove()
-			this.add_to_dashboard_button && this.add_to_dashboard_button.remove()
+			this.create_chart_button && this.create_chart_button.remove();
+			this.add_to_dashboard_button && this.add_to_dashboard_button.remove();
 		}
 	}
 
@@ -465,7 +465,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
 
-		let filter_area = this.page.page_form;s
+		let filter_area = this.page.page_form;
 
 		this.filters = filters.map(df => {
 			if (df.fieldtype === 'Break') return;
@@ -660,7 +660,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if(doc){
+		if (doc) {
 			this.page.add_inner_button(__("Download Report"), function (){
 				window.open(
 					frappe.urllib.get_full_url(
@@ -791,7 +791,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.toggle_primary_button_disabled(true);
 		let mandatory = this.filters.filter(f => f.df.reqd);
 		let missing_mandatory = mandatory.filter(f => !f.get_value());
-		if (!missing_mandatory.length){
+		if (!missing_mandatory.length) {
 			let filters = this.get_filter_values(true);
 			return new Promise(resolve => frappe.call({
 				method: 'frappe.desk.query_report.background_enqueue_run',

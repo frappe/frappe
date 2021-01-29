@@ -244,7 +244,6 @@ export default class ChartWidget extends Widget {
 					reqd: 1,
 					change: () => {
 						let selected_date_range = this.date_range_field.get_value();
-						console.log('selected', selected_date_range);
 						this.selected_from_date = selected_date_range[0];
 						this.selected_to_date = selected_date_range[1];
 
@@ -585,7 +584,7 @@ export default class ChartWidget extends Widget {
 			let custom_options = JSON.parse(options);
 			for (let key in custom_options) {
 				if (typeof chart_args[key] === 'object' && typeof custom_options[key] === 'object') {
-					chart_args[key] = Object.assign(chart_args[key], custom_options[key])
+					chart_args[key] = Object.assign(chart_args[key], custom_options[key]);
 				} else {
 					chart_args[key] = custom_options[key];
 				}

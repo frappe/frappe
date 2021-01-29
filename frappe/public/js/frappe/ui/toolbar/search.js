@@ -403,7 +403,7 @@ frappe.search.SearchDialog = class {
 		if (result.route_options) {
 			frappe.route_options = result.route_options;
 		}
-		$result.on("click", e => {
+		$result.on("click", () => {
 			// this.toggle_minimize();
 			if (result.onclick) {
 				result.onclick(result.match);

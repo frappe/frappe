@@ -605,7 +605,7 @@ frappe.provide("frappe.views");
 				doctype: card.doctype,
 				docname: card.name,
 				callback: function() {
-					const users = self.assign_to_dialog.get_values().assign_to;;
+					const users = self.assign_to_dialog.get_values().assign_to;
 					card.assigned_list = [...new Set(card.assigned_list.concat(users))];
 					fluxify.doAction('update_card', card);
 				}

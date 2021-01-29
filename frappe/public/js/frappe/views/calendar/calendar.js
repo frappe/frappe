@@ -7,7 +7,6 @@ frappe.provide("frappe.views.calendars");
 frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	static load_last_view() {
 		const route = frappe.get_route();
-		console.log(route);
 		if (route.length === 3) {
 			const doctype = route[1];
 			const user_settings = frappe.get_user_settings(doctype)['Calendar'] || {};
@@ -198,7 +197,7 @@ frappe.views.Calendar = Class.extend({
 		this.$wrapper.find('.fc-today-button')
 			.prepend(frappe.utils.icon('today'));
 
-		this.$wrapper.find('.fc-day-number').wrap('<div class="fc-day"></div>')
+		this.$wrapper.find('.fc-day-number').wrap('<div class="fc-day"></div>');
 
 		var btn_group = this.$wrapper.find(".fc-button-group");
 		btn_group.find(".fc-state-active").addClass("active");
@@ -206,7 +205,7 @@ frappe.views.Calendar = Class.extend({
 		btn_group.find(".btn").on("click", function() {
 			btn_group.find(".btn").removeClass("active");
 			$(this).addClass("active");
-		})
+		});
 	},
 	field_map: {
 		"id": "name",

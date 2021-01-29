@@ -88,7 +88,7 @@ export default class OnboardingWidget extends Widget {
 				step.description ?
 					frappe.markdown(step.description)
 					: `<h1>${step.title}</h1>`
-			)
+			);
 
 			if (step.intro_video_url) {
 				$(`<button class="btn btn-primary btn-sm">${__('Watch Tutorial')}</button>`)
@@ -99,14 +99,14 @@ export default class OnboardingWidget extends Widget {
 					.appendTo(this.step_footer)
 					.on('click', () => actions[step.action](step));
 			}
-		}
+		};
 
 		const toggle_video = () => {
 			this.step_body.empty();
 			this.step_footer.empty();
 
 			const video = $(`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${step.intro_video_url}"></div>`);
-			video.appendTo(this.step_body)
+			video.appendTo(this.step_body);
 			let plyr = new frappe.Plyr(video[0], {
 				hideControls: true,
 				resetOnEnd: true,
@@ -122,12 +122,12 @@ export default class OnboardingWidget extends Widget {
 			// Fire only once, on hashchange
 			$(window).one('hashchange', () => {
 				plyr.pause();
-			})
+			});
 
 			$(`<button class="btn btn-secondary ml-2 btn-sm">${__('Back')}</button>`)
 				.appendTo(this.step_footer)
 				.on('click', toggle_content);
-		}
+		};
 
 		toggle_content();
 		// toggle_video();
@@ -136,8 +136,8 @@ export default class OnboardingWidget extends Widget {
 	go_to_page(step) {
 		this.mark_complete(step);
 		frappe.set_route(step.path).then(() => {
-			let message = step.callback_message || __("You can continue with the onboarding after exploring this page")
-			let title = step.callback_title || __("Awesome Work")
+			let message = step.callback_message || __("You can continue with the onboarding after exploring this page");
+			let title = step.callback_title || __("Awesome Work");s
 
 			let msg_dialog = frappe.msgprint({
 				message: message,

@@ -13,8 +13,6 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email import policy
 
-from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
-
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
 	content=None, reply_to=None, cc=[], bcc=[], email_account=None, expose_recipients=None,
