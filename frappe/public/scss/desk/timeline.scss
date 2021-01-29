@@ -23,7 +23,7 @@ $threshold: 34;
 	padding-top: var(--padding-lg);
 
 	@include media-breakpoint-down(xs) {
-		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size)/2);
+		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
 	}
 
 	&:before {

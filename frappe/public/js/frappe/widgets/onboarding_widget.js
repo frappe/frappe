@@ -137,7 +137,7 @@ export default class OnboardingWidget extends Widget {
 		this.mark_complete(step);
 		frappe.set_route(step.path).then(() => {
 			let message = step.callback_message || __("You can continue with the onboarding after exploring this page");
-			let title = step.callback_title || __("Awesome Work");s
+			let title = step.callback_title || __("Awesome Work");
 
 			let msg_dialog = frappe.msgprint({
 				message: message,

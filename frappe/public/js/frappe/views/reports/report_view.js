@@ -726,7 +726,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// This will be appended to the end of the table
 		let fields_to_add = this.fields.filter(df => {
 			return !table_fields.find((field) => {
-				return df[0] == field[0] && df[1] == field[1]
+				return df[0] == field[0] && df[1] == field[1];
 			});
 		});
 

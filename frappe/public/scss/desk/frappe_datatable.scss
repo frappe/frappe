@@ -63,14 +63,6 @@
 		overflow: hidden;
 	}
 
-
-	.dt-scrollable {
-		max-height: calc(100vh - 250px);
-		min-height: 100px;
-		scrollbar-width: thin;
-
-	}
-
 	.dt-cell__edit {
 		padding: 0;
 		border: var(--dt-focus-border-width) solid #9bccf8;
@@ -106,6 +98,9 @@
 	}
 
 	.dt-scrollable {
+		max-height: calc(100vh - 250px);
+		min-height: 100px;
+		scrollbar-width: thin;
 		border-top: 0 !important;
 	}
 

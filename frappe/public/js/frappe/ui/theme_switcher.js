@@ -84,7 +84,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 
 			preview.addClass("selected");
 			this.toggle_theme(theme.name);
-		})
+		});
 
 		return preview;
 	}

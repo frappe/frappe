@@ -61,8 +61,8 @@ frappe.get_avatar = function(user, css_class, title, image_url=null, remove_colo
 					${abbr}
 			</div>
 		</span>`;
-	};
-}
+	}
+};
 
 frappe.avatar_group = function (users, limit=4, options = {}) {
 	let avatar_action_html = '';

@@ -360,7 +360,7 @@ frappe.views.TreeView = Class.extend({
 			});
 		});
 	},
-	set_primary_action: function(){
+	set_primary_action: function() {
 		var me = this;
 		if (!this.opts.disable_add_node && this.can_create) {
 			me.page.set_primary_action(__("New"), function() {
