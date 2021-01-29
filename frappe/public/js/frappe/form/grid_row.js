@@ -233,7 +233,9 @@ export default class GridRow {
 					</div>
 				`)
 				.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
-				.on('click', function() { me.toggle_view(); return false; });
+				.on('click', function() {
+					me.toggle_view(); return false;
+				});
 
 				if(this.is_too_small()) {
 					// narrow

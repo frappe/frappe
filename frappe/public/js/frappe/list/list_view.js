@@ -1114,7 +1114,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			// link, let the event be handled via set_route
-			if ($target.is("a")) { return; }
+			if ($target.is("a")) return;
 
 			// clicked on the row, open form
 			const $row = $(e.currentTarget);
