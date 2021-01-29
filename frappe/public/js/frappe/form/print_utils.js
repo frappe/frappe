@@ -8,9 +8,7 @@ frappe.ui.get_print_settings = function(
 
 	var default_letter_head =
 		locals[":Company"] && frappe.defaults.get_default("company")
-			? locals[":Company"][frappe.defaults.get_default("company")][
-					"default_letter_head"
-			  ]
+			? locals[":Company"][frappe.defaults.get_default("company")]["default_letter_head"]
 			: "";
 
 	var columns = [
