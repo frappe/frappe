@@ -379,8 +379,8 @@ frappe.search.SearchDialog = class {
 		let title_html = !result.description
 			? link_html
 			: `<b>${link_html}</b><div class="description"> ${
-					result.description
-			  } </div>`;
+				result.description
+			} </div>`;
 
 		let result_text = `<div class="result-text">
 			${title_html}

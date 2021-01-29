@@ -267,18 +267,17 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				let file_body_html =
 					d._type == "image"
 						? `<div class="file-image"><img src="${
-								d.file_url
-						  }" alt="${d.file_name}"></div>`
+							d.file_url
+						}" alt="${d.file_name}"></div>`
 						: frappe.utils.icon(icon_class, {
-								width: "40px",
-								height: "45px"
-						  });
+							width: "40px",
+							height: "45px"
+						});
 				const name = escape(d.name);
 				const draggable = d.type == "Folder" ? false : true;
 				return `
-				<a href="${this.get_route_url(
-					d
-				)}" draggable="${draggable}" class="file-wrapper ellipsis" data-name="${name}">
+				<a href="${this.get_route_url(d)}"
+					draggable="${draggable}" class="file-wrapper ellipsis" data-name="${name}">
 					<div class="file-header">
 						<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${name}">
 					</div>
@@ -328,8 +327,8 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 		let header_selector_html = !frappe.views.FileView.grid_view
 			? `<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__(
-					"Select All"
-			  )}">`
+				"Select All"
+			)}">`
 			: "";
 
 		let header_columns_html = !frappe.views.FileView.grid_view
@@ -381,9 +380,8 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 		return `
 			<div class="list-row-col ellipsis list-subject level">
-				<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${
-					file.name
-				}">
+				<input class="level-item list-row-checkbox hidden-xs"
+					type="checkbox" data-name="${file.name}">
 				<span class="level-item  ellipsis" title="${file.file_name}">
 					<a class="ellipsis" href="${route_url}" title="${file.file_name}">
 						${file.subject_html}
