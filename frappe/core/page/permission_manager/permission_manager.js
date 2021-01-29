@@ -153,16 +153,14 @@ frappe.PermissionEngine = class PermissionEngine {
 		this.page.clear_primary_action();
 
 		if (!this.doctype_select) {
-			this.set_empty_message(__("Loading"))
-			return
+			return this.set_empty_message(__("Loading"));
 		}
 
 		let doctype = this.get_doctype();
 		let role = this.get_role();
 
 		if (!doctype && !role) {
-			this.set_empty_message(__("Select Document Type or Role to start."))
-			return;
+			return this.set_empty_message(__("Select Document Type or Role to start."));
 		}
 
 		// get permissions
@@ -202,7 +200,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			[__("Level"), 40],
 			[__("Permissions"), 350],
 			["", 40]
-		]
+		];
 
 		table_columns.forEach((col) => {
 			$("<th>")
@@ -293,7 +291,7 @@ frappe.PermissionEngine = class PermissionEngine {
 
 	get rights() {
 		return ["select", "read", "write", "create", "delete", "submit", "cancel", "amend",
-			"print", "email", "report", "import", "export", "set_user_permissions", "share"]
+			"print", "email", "report", "import", "export", "set_user_permissions", "share"];
 	}
 
 	set_show_users(cell, role) {
@@ -459,4 +457,4 @@ frappe.PermissionEngine = class PermissionEngine {
 		return frappe.get_children("DocType", doctype, "fields",
 			{ fieldtype: "Link", options: ["not in", ["User", '[Select]']] });
 	}
-}
+};
