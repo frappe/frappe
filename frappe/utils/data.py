@@ -824,7 +824,7 @@ def is_image(filepath):
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
-	filepath = filepath.split('?')[0]
+	filepath = (filepath or "").split('?')[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 def get_thumbnail_base64_for_image(src):
