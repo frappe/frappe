@@ -20,10 +20,12 @@ class BackgroundJobs {
 		this.show_failed = false;
 
 		this.show_failed_button = this.page.add_inner_button(__("Show Failed Jobs"), () => {
-			this.show_failed = !this.show_failed
-			this.show_failed_button && this.show_failed_button.text(
-				this.show_failed ? __("Hide Failed Jobs") : __("Show Failed Jobs")
-			)
+			this.show_failed = !this.show_failed;
+			if (this.show_failed_button) {
+				this.show_failed_button.text(
+					this.show_failed ? __("Hide Failed Jobs") : __("Show Failed Jobs")
+				);
+			}
 		});
 
 		$(frappe.render_template('background_jobs_outer')).appendTo(this.page.body);

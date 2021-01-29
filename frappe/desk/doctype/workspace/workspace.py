@@ -4,13 +4,12 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _, _dict
-from frappe.utils.data import validate_json_string
+from frappe import _
 from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
 from frappe.desk.utils import validate_route_conflict
 
-from json import loads, dumps
+from json import loads
 
 class Workspace(Document):
 	def validate(self):

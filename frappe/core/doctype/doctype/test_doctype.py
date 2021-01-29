@@ -5,14 +5,13 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-from frappe.core.doctype.doctype.doctype import (UniqueFieldnameError, 
-	IllegalMandatoryError, 
-	DoctypeLinkError, 
-	WrongOptionsDoctypeLinkError, 
-	HiddenAndMandatoryWithoutDefaultError, 
-	CannotIndexedError, 
-	InvalidFieldNameError, 
-	CannotCreateStandardDoctypeError,
+from frappe.core.doctype.doctype.doctype import (UniqueFieldnameError,
+	IllegalMandatoryError,
+	DoctypeLinkError,
+	WrongOptionsDoctypeLinkError,
+	HiddenAndMandatoryWithoutDefaultError,
+	CannotIndexedError,
+	InvalidFieldNameError,
 	validate_links_table_fieldnames)
 
 # test_records = frappe.get_test_records('DocType')

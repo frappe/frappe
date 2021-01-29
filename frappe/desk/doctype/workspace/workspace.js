@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Workspace', {
-	setup: function(frm) {
+	setup: function() {
 		frappe.meta.get_field('Workspace Link', 'only_for').no_default = true;
 	},
 

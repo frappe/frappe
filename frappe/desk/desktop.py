@@ -583,7 +583,6 @@ def reset_customization(page):
 	Args:
 		page (string): Name of the page to be reset
 	"""
-	original_page = frappe.get_doc("Workspace", page)
 	page_doc = get_custom_workspace_for_user(page)
 	page_doc.delete()
 
