@@ -192,10 +192,6 @@ body[data-route^="Module"] .main-menu {
 		}
 	}
 
-	.module-sidebar-nav {
-		margin-top: 15px;
-	}
-
 	.overlay-sidebar {
 		@media (max-width: 991px) {
 			margin-top: 0 !important;
@@ -242,6 +238,7 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.module-sidebar-nav {
+		margin-top: 15px;
 		@media (max-width: 991px) {
 			padding-left: 0;
 			padding-right: 0;

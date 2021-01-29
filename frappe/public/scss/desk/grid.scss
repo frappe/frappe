@@ -14,18 +14,6 @@
 	font-size: var(--text-md);
 }
 
-.grid-row {
-	padding: 0px var(--padding-md);
-	border-bottom: 1px solid var(--table-border-color);
-	@include transition(0.2s);
-	// REDESIGN TODO: Fix border bottom for last item
-	&:last-child {
-		border-bottom-left-radius: var(--border-radius);
-		border-bottom-right-radius: var(--border-radius);
-		border: none;
-	}
-}
-
 .rows .grid-row .data-row,
 .rows .grid-row .grid-footer-toolbar,
 .grid-form-heading {
@@ -241,6 +229,16 @@
 }
 
 .grid-row {
+	padding: 0px var(--padding-md);
+	border-bottom: 1px solid var(--table-border-color);
+	@include transition(0.2s);
+	// REDESIGN TODO: Fix border bottom for last item
+	&:last-child {
+		border-bottom-left-radius: var(--border-radius);
+		border-bottom-right-radius: var(--border-radius);
+		border: none;
+	}
+
 	td {
 		vertical-align: top;
 	}
