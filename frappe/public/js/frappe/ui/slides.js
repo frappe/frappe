@@ -264,7 +264,7 @@ frappe.ui.Slides = class Slides {
 
 		this.render_progress_dots();
 		this.make_prev_next_buttons();
-		if (this.before_load) { this.before_load(this.$footer); }
+		if (this.before_load) this.before_load(this.$footer);
 
 		// can be on demand
 		this.setup();
@@ -349,7 +349,7 @@ frappe.ui.Slides = class Slides {
 		</div>`).appendTo(this.$footer);
 
 		this.$prev_btn = this.$footer.find('.prev-btn').attr('tabIndex', 0)
-			.on('click', () => { this.show_slide(this.current_id - 1); });
+			.on('click', () => this.show_slide(this.current_id - 1));
 
 		this.$next_btn = this.$footer.find('.next-btn').attr('tabIndex', 0)
 			.on('click', () => {
