@@ -169,7 +169,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</button>`
 			)
 			.click(() => this.show_restrictions(match_rules_list))
-			.appendTo(this.page.page_form);
+				.appendTo(this.page.page_form);
 		}
 	}
 
