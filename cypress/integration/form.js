@@ -30,7 +30,7 @@ context('Form', () => {
 		cy.visit('/app/contact/Test Form Contact 3');
 		cy.get('.prev-doc').should('be.visible').click();
 		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');
-		cy.get('.btn-modal-close:visible').click();
+		cy.hide_dialog();
 		cy.get('.next-doc').click();
 		cy.wait(200);
 		cy.contains('Test Form Contact 2').should('not.exist');
