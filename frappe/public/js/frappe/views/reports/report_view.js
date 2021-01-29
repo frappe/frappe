@@ -712,7 +712,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// generate table fields in the required format ["name", "DocType"]
 		// these are fields in the column before adding new fields
 		let table_fields = this.columns.map(df => [df.field, df.docfield.parent]);
-		
+
 		// filter fields that are already in table
 		// iterate over table_fields to preserve the existing order of fields
 		// The filter will ensure the unchecked fields are removed
@@ -729,7 +729,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				return df[0] == field[0] && df[1] == field[1]
 			})
 		})
-		
+
 		// rebuild fields
 		this.fields = [...fields_already_in_table, ...fields_to_add];
 	}
@@ -1367,9 +1367,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					});
 
-					d.$body.prepend(`<div class="columns-search">
-						<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
-					</div>`);
+					d.$body.prepend(`
+						<div class="columns-search">
+							<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
+						</div>
+					`);
 
 					frappe.utils.setup_search(d.$body, '.unit-checkbox', '.label-area');
 					d.show();

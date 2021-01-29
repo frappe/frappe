@@ -167,9 +167,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				`<button class="btn btn-default btn-xs restricted-button flex align-center">
 					${frappe.utils.icon('lock', 'xs')}
 				</button>`
-			)
-			.click(() => this.show_restrictions(match_rules_list))
-				.appendTo(this.page.page_form);
+			).click(() => this.show_restrictions(match_rules_list)).appendTo(this.page.page_form);
 		}
 	}
 
