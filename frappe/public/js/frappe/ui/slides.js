@@ -17,7 +17,7 @@ frappe.ui.Slide = class Slide {
 
 	// Make has to be called manually, to account for on-demand use cases
 	make() {
-		if (this.before_load) { this.before_load(this); }
+		if (this.before_load) this.before_load(this);
 
 		this.$body = $(`<div class="slide-body">
 			<div class="content text-center">
@@ -68,7 +68,7 @@ frappe.ui.Slide = class Slide {
 
 		this.set_reqd_fields();
 
-		if (this.onload) { this.onload(this); }
+		if (this.onload) this.onload(this);
 		this.set_reqd_fields();
 	}
 
@@ -333,7 +333,7 @@ frappe.ui.Slides = class Slides {
 				if (slide.done) this.completed++;
 			}
 		});
-		if (this.on_update) { this.on_update(this.completed, this.slides.length); }
+		if (this.on_update) this.on_update(this.completed, this.slides.length);
 
 		if (!this.unidirectional) this.bind_progress_dots();
 	}

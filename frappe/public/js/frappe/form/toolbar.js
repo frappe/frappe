@@ -249,7 +249,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}, true);
 				this.print_icon = this.page.add_action_icon("printer", function() {
 					me.frm.print_doc();
-				},'', __("Print"));
+				}, '', __("Print"));
 			}
 		}
 

@@ -82,7 +82,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			if (r && r['403']) return; // not permitted
 
 			if (!(locals[doctype] && locals[doctype][name])) {
-				if (name && name.substr(0,3)==='new') {
+				if (name && name.substr(0, 3) === 'new') {
 					this.render_new_doc(doctype, name, doctype_layout);
 				} else {
 					frappe.show_not_found(route);

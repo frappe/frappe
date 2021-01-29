@@ -15,7 +15,7 @@ context('List View Settings', () => {
 		cy.get('.list-count').should('contain', "20 of");
 		cy.get('.menu-btn-group button').click();
 		cy.get('.dropdown-menu li').filter(':visible').contains('List Settings').click();
-		cy.get('.modal-dialog').should('contain', 'List Settings');
+		cy.get('.modal-dialog').should('contain', 'DocType Settings');
 
 		cy.get('input[data-fieldname="disable_count"]').check({ force: true });
 		cy.get('input[data-fieldname="disable_sidebar_stats"]').check({ force: true });
