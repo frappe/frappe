@@ -4,6 +4,6 @@
 	"rules": {
 		"at-rule-no-unknown": null,
 		"scss/at-rule-no-unknown": true,
-		"no-descending-specificty": null
+		" no-descending-specificity": null
 	}
 }
