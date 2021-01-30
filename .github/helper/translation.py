@@ -28,7 +28,7 @@ for _file in files_to_scan:
 					has_f_string = f_string_pattern.search(line)
 					if has_f_string:
 						errors_encounter += 1
-						print(f'\nF-strings are not supported for translations at line number {line_number + 1}\n{line.strip()[:100]}')
+						print(f'\nF-strings are not supported for translations at line number {line_number}\n{line.strip()[:100]}')
 						continue
 					else:
 						continue
@@ -44,11 +44,11 @@ for _file in files_to_scan:
 
 				if not match:
 					error_found = True
-					print(f'\nTranslation syntax error at line number {line_number + 1}\n{line.strip()[:100]}')
+					print(f'\nTranslation syntax error at line number {line_number}\n{line.strip()[:100]}')
 
 				if not error_found and not words_pattern.search(line):
 					error_found = True
-					print(f'\nTranslation is useless because it has no words at line number {line_number + 1}\n{line.strip()[:100]}')
+					print(f'\nTranslation is useless because it has no words at line number {line_number}\n{line.strip()[:100]}')
 
 				if error_found:
 					errors_encounter += 1
