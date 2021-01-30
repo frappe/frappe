@@ -420,7 +420,7 @@ frappe.ui.GroupBy = class {
 	update_group_by_button() {
 		const group_by_applied = Boolean(this.group_by_field);
 		const button_label = group_by_applied
-			? __(`Group By {0}`, [this.get_group_by_field_label()])
+			? __("Group By {0}", [this.get_group_by_field_label()])
 			: __('Add Group');
 
 		this.group_by_button
