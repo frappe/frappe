@@ -12,9 +12,9 @@ frappe.ui.GroupBy = class {
 	setup_group_by_area() {
 		this.make_group_by_button();
 		let sql_aggregate_function = [
-			{name:'count', label: __('Count')},
-			{name:'sum', label: __('Sum')},
-			{name:'avg', label:__('Average')}
+			{name: 'count', label: __('Count')},
+			{name: 'sum', label: __('Sum')},
+			{name: 'avg', label: __('Average')}
 		];
 		this.groupby_edit_area = $(frappe.render_template("group_by", {
 			doctype: this.doctype,
