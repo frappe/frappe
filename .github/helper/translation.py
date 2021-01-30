@@ -36,7 +36,7 @@ for _file in files_to_scan:
 				match = pattern.search(line)
 				error_found = False
 
-				if not match and line.endswith(',\n'):
+				if not match and line.endswith((',\n', '[')):
 					# concat remaining text to validate multiline pattern
 					line = "".join(file_lines[line_number - 1:])
 					line = line[start_matches.start() + 1:]
