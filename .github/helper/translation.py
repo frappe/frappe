@@ -2,7 +2,7 @@ import re
 import sys
 
 errors_encounter = 0
-pattern = re.compile(r"_\(([\"']{,3})(?P<message>((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(?P<py_context>((?!\5).)*)\5)*(\s*,\s*(.)*?\s*(,\s*([\"'])(?P<js_context>((?!\11).)*)\11)*)*\)")
+pattern = re.compile(r"_\(([\"']{,3})(?P<message>((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(?P<py_context>((?!\5).)*)\5)*(\s*,(\s*?.*?\n*?)*(,\s*([\"'])(?P<js_context>((?!\11).)*)\11)*)*\)")
 words_pattern = re.compile(r"_{1,2}\([\"'`]{1,3}.*?[a-zA-Z]")
 start_pattern = re.compile(r"_{1,2}\([f\"'`]{1,3}")
 f_string_pattern = re.compile(r"_\(f[\"']")
@@ -36,7 +36,7 @@ for _file in files_to_scan:
 				match = pattern.search(line)
 				error_found = False
 
-				if not match and line.endswith((',\n', '[')):
+				if not match and line.endswith((',\n', '[\n')):
 					# concat remaining text to validate multiline pattern
 					line = "".join(file_lines[line_number - 1:])
 					line = line[start_matches.start() + 1:]
