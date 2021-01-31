@@ -33,13 +33,12 @@ context('Form', () => {
 		cy.hide_dialog();
 		cy.get('.next-doc').click();
 		cy.wait(200);
+		cy.hide_dialog();
 		cy.contains('Test Form Contact 2').should('not.exist');
-		cy.get('.title-text').should('contain', 'Test Form Contact 1');
+		cy.get('.title-text').should('contain', 'Test Form Contact 3');
 		// clear filters
-		cy.window().its('frappe').then((frappe) => {
-			let list_view = frappe.get_list_view('Contact');
-			list_view.filter_area.filter_list.clear_filters();
-		});
+		cy.visit('/app/contact');
+		cy.clear_filters();
 	});
 	it('validates behaviour of Data options validations in child table', () => {
 		// test email validations for set_invalid controller

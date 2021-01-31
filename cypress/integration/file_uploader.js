@@ -21,7 +21,7 @@ context('FileUploader', () => {
 		open_upload_dialog();
 
 		cy.fixture('example.json').then(fileContent => {
-			cy.get_open_dialog().find('.file-upload-area').upload({
+			cy.get_open_dialog().find('.file-upload-area').attachFile({
 				fileContent,
 				fileName: 'example.json',
 				mimeType: 'application/json'
@@ -34,7 +34,7 @@ context('FileUploader', () => {
 			cy.server();
 			cy.route('POST', '/api/method/upload_file').as('upload_file');
 			cy.get_open_dialog().find('.btn-modal-primary').click();
-			cy.wait('@upload_file').its('status').should('be', 200);
+			cy.wait('@upload_file').its('status').should('eq', 200);
 			cy.get('.modal:visible').should('not.exist');
 		});
 	});
