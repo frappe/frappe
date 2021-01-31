@@ -104,7 +104,7 @@ frappe.router = {
 		this.current_route = this.parse();
 		this.set_history(sub_path);
 		this.render();
-		this.set_title();
+		this.set_title(sub_path);
 		this.trigger('change');
 	},
 
@@ -179,7 +179,6 @@ frappe.router = {
 
 	set_history(sub_path) {
 		frappe.route_history.push(this.current_route);
-		frappe.route_titles[sub_path] = frappe._original_title || document.title;
 		frappe.ui.hide_open_dialog();
 	},
 
@@ -238,10 +237,6 @@ frappe.router = {
 	set_title(sub_path) {
 		if (frappe.route_titles[sub_path]) {
 			frappe.utils.set_title(frappe.route_titles[sub_path]);
-		} else {
-			setTimeout(function() {
-				frappe.route_titles[frappe.get_route_str()] = frappe._original_title || document.title;
-			}, 1000);
 		}
 	},
 

@@ -708,6 +708,10 @@ Object.assign(frappe.utils, {
 			title = frappe._title_prefix + " " + title.replace(/<[^>]*>/g, "");
 		}
 		document.title = title;
+		
+		// save for re-routing
+		const sub_path = frappe.router.get_sub_path();
+		frappe.route_titles[sub_path] = title;
 	},
 
 	set_title_prefix: function(prefix) {
