@@ -417,17 +417,27 @@ frappe.ui.Page = Class.extend({
 
 		if (shortcut) {
 			let shortcut_obj = this.prepare_shortcut_obj(shortcut, click, label);
-			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
-				${$icon}
-				<span class="menu-item-label">${label}</span>
-				<kbd class="pull-right">
-					<span>${shortcut_obj.shortcut_label}</span>
-				</kbd>
-			</a><li>`);
+			$li = $(`
+				<li>
+					<a class="grey-link dropdown-item" href="#" onClick="return false;">
+						${$icon}
+						<span class="menu-item-label">${label}</span>
+						<kbd class="pull-right">
+							<span>${shortcut_obj.shortcut_label}</span>
+						</kbd>
+					</a>
+				</li>
+			`);
 			frappe.ui.keys.add_shortcut(shortcut_obj);
 		} else {
-			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
-				${$icon}<span class="menu-item-label">${label}</span></a><li>`);
+			$li = $(`
+				<li>
+					<a class="grey-link dropdown-item" href="#" onClick="return false;">
+						${$icon}
+						<span class="menu-item-label">${label}</span>
+					</a>
+				</li>
+			`);
 		}
 		var $link = $li.find("a").on("click", click);
 
