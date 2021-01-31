@@ -49,7 +49,7 @@ context('Control Link', () => {
 	it('should unset invalid value', () => {
 		get_dialog_with_link().as('dialog');
 
-				cy.intercept('GET', '/api/method/frappe.desk.form.utils.validate_link*').as('validate_link');
+		cy.intercept('GET', '/api/method/frappe.desk.form.utils.validate_link*').as('validate_link');
 
 		cy.get('.frappe-control[data-fieldname=link] input')
 			.type('invalid value', { delay: 100 })
