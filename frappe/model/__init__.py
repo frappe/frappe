@@ -88,6 +88,10 @@ default_fields = (
 	'docstatus'
 )
 
+ignore_fields = (
+	'tenant_id',
+)
+
 optional_fields = (
 	"_user_tags",
 	"_comments",

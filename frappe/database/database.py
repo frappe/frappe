@@ -17,6 +17,7 @@ from frappe import _
 from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
+from frappe.model import ignore_fields
 from frappe.utils import cint
 
 # imports - compatibility imports
@@ -883,6 +884,7 @@ class Database(object):
 				where table_name = %s ''', table)]
 
 			if columns:
+				columns = [column for column in columns if column not in ignore_fields]
 				frappe.cache().hset('table_columns', table, columns)
 
 		return columns

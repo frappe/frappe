@@ -162,6 +162,9 @@ def init(site, sites_path=None, new_site=False):
 	local.site_path = os.path.join(sites_path, site)
 	local.all_apps = None
 
+	#TODO: FIXME
+	local.tenant_id = 1
+
 	local.request_ip = None
 	local.response = _dict({"docs":[]})
 	local.task_id = None
