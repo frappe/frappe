@@ -340,3 +340,18 @@ CREATE TABLE "tabDefaultValue" (
 
 create index on "tabDefaultValue" ("parent");
 create index on "tabDefaultValue" ("parent", "defkey");
+
+--
+-- Table structure for table "tabTenant"
+--
+
+DROP TABLE IF EXISTS "tabTenant";
+CREATE TABLE "tabTenant1" (
+  "id" SERIAL PRIMARY KEY,
+  "name" varchar(255) UNIQUE,
+  "status" VARCHAR(64) DEFAULT 'active' CHECK (status IN ('active', 'disabled', 'suspended')),
+  "creation" timestamp(6) WITHOUT TIME ZONE DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+  "modified" timestamp(6) WITHOUT TIME ZONE DEFAULT (current_timestamp AT TIME ZONE 'utc')
+);
+
+create index on "tabTenant" ("name");
