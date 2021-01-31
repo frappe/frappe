@@ -15,7 +15,7 @@ from num2words import num2words
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
-from markdown2 import markdown, MarkdownError
+from markdown2 import markdown as _markdown, MarkdownError
 from six import iteritems, text_type, string_types, integer_types
 from frappe.desk.utils import slug
 
@@ -1329,11 +1329,14 @@ def md_to_html(markdown_text):
 
 	html = None
 	try:
-		html = markdown(markdown_text or '', extras=extras)
+		html = _markdown(markdown_text or '', extras=extras)
 	except MarkdownError:
 		pass
 
 	return html
+
+def markdown(markdown_text):
+	return md_to_html(markdown_text)
 
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''
