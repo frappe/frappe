@@ -11,13 +11,12 @@ context('Form', () => {
 		cy.fill_field('description', 'this is a test todo', 'Text Editor').blur();
 		cy.wait(300);
 		cy.get('.page-title').should('contain', 'Not Saved');
-		cy.server();
-		cy.route({
+		cy.intercept({
 			method: 'POST',
 			url: 'api/method/frappe.desk.form.save.savedocs'
 		}).as('form_save');
 		cy.get('.primary-action').click();
-		cy.wait('@form_save').its('status').should('eq', 200);
+		cy.wait('@form_save').its('response.statusCode').should('eq', 200);
 		cy.visit('/app/todo');
 		cy.get('.title-text').should('be.visible').and('contain', 'To Do');
 		cy.get('.list-row').should('contain', 'this is a test todo');

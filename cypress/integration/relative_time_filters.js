@@ -18,14 +18,13 @@ context('Relative Timeframe', () => {
 		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
 		cy.get('select.condition.form-control').select("Timespan");
 		cy.get('.filter-field select.input-with-feedback.form-control').select("last week");
-		cy.server();
-		cy.route('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
+		cy.intercept('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
 		// cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.get('.filter-popover .apply-filters').click({ force: true });
 		cy.wait('@list_refresh');
 		cy.get('.list-row-container').its('length').should('eq', 1);
 		cy.get('.list-row-container').should('contain', 'this is second todo');
-		cy.route('POST', '/api/method/frappe.model.utils.user_settings.save')
+		cy.intercept('POST', '/api/method/frappe.model.utils.user_settings.save')
 			.as('save_user_settings');
 		cy.clear_filters();
 		cy.wait('@save_user_settings');
@@ -38,14 +37,13 @@ context('Relative Timeframe', () => {
 		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
 		cy.get('select.condition.form-control').select("Timespan");
 		cy.get('.filter-field select.input-with-feedback.form-control').select("next week");
-		cy.server();
-		cy.route('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
+		cy.intercept('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
 		// cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.get('.filter-popover .apply-filters').click({ force: true });
 		cy.wait('@list_refresh');
 		// cy.get('.list-row-container').its('length').should('eq', 1);
 		// cy.get('.list-row').should('contain', 'this is first todo');
-		cy.route('POST', '/api/method/frappe.model.utils.user_settings.save')
+		cy.intercept('POST', '/api/method/frappe.model.utils.user_settings.save')
 			.as('save_user_settings');
 		// cy.get('.remove-filter').click();
 		cy.clear_filters();

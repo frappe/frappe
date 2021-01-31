@@ -320,4 +320,7 @@ Cypress.Commands.add('clear_filters', () => {
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
 	cy.get('.filter-popover').find('.clear-filters').click();
+	cy.window().its('cur_list').then(cur_list => {
+		cur_list && cur_list.filter_area && cur_list.filter_area.clear();
+	});
 });

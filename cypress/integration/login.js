@@ -2,7 +2,7 @@ context('Login', () => {
 	beforeEach(() => {
 		cy.request('/api/method/logout');
 		cy.visit('/login');
-		cy.location().should('be', '/login');
+		cy.location('pathname').should('eq', '/login');
 	});
 
 	it('greets with login screen', () => {

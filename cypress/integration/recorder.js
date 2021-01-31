@@ -30,9 +30,8 @@ context('Recorder', () => {
 
 		cy.get('.msg-box').should('contain', 'No Requests');
 
-		cy.server();
 		cy.visit('/app/List/DocType/List');
-		cy.route('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
+		cy.intercept('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
 		cy.wait('@list_refresh');
 
 		cy.get('.title-text').should('contain', 'DocType');
@@ -53,9 +52,8 @@ context('Recorder', () => {
 		cy.get('#page-recorder .btn-secondary').should('contain', 'Clear').click();
 		cy.get('.primary-action').should('contain', 'Start').click();
 
-		cy.server();
 		cy.visit('/app/List/DocType/List');
-		cy.route('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
+		cy.intercept('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
 		cy.wait('@list_refresh');
 
 		cy.get('.title-text').should('contain', 'DocType');
