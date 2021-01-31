@@ -4,17 +4,17 @@ context('Recorder', () => {
 	});
 
 	it('Navigate to Recorder', () => {
-		cy.visit('/app/space/Website');
+		cy.visit('/app');
 		cy.awesomebar('recorder');
-		cy.get('h1').should('contain', 'Recorder');
-		cy.location('hash').should('eq', '#recorder');
+		cy.get('h3').should('contain', 'Recorder');
+		cy.url().should('include', '/recorder/detail');
 	});
 
 	it('Recorder Empty State', () => {
 		cy.visit('/app/recorder');
 		cy.get('.title-text').should('contain', 'Recorder');
 
-		cy.get('.indicator').should('contain', 'Inactive').should('have.class', 'red');
+		cy.get('.indicator-pill').should('contain', 'Inactive').should('have.class', 'red');
 
 		cy.get('.primary-action').should('contain', 'Start');
 		cy.get('.btn-secondary').should('contain', 'Clear');
@@ -26,7 +26,7 @@ context('Recorder', () => {
 	it('Recorder Start', () => {
 		cy.visit('/app/recorder');
 		cy.get('.primary-action').should('contain', 'Start').click();
-		cy.get('.indicator').should('contain', 'Active').should('have.class', 'green');
+		cy.get('.indicator-pill').should('contain', 'Active').should('have.class', 'green');
 
 		cy.get('.msg-box').should('contain', 'No Requests');
 
@@ -49,6 +49,8 @@ context('Recorder', () => {
 
 	it('Recorder View Request', () => {
 		cy.visit('/app/recorder');
+		cy.get('#page-recorder .primary-action').should('contain', 'Stop').click();
+		cy.get('#page-recorder .btn-secondary').should('contain', 'Clear').click();
 		cy.get('.primary-action').should('contain', 'Start').click();
 
 		cy.server();
@@ -60,7 +62,7 @@ context('Recorder', () => {
 		cy.get('.list-count').should('contain', '20 of ');
 
 		// temporarily commenting out theses tests as they seem to be
-		// randomly failing maybe due a backround event
+		// randomly failing maybe due a background event
 
 		// cy.visit('/app/recorder');
 
