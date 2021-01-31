@@ -169,7 +169,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
-	sync_jobs()
+	# TODO: Move into tenant code base.
+	# sync_jobs()
 	sync_fixtures(name)
 	sync_customizations(name)
 

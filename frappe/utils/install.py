@@ -18,6 +18,7 @@ def after_install():
 	# reset installed apps for re-install
 	frappe.db.set_global("installed_apps", '["frappe"]')
 
+def setup_tenant():
 	install_basic_docs()
 
 	from frappe.core.doctype.file.file import make_home_folder
