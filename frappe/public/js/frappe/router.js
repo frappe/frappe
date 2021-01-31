@@ -177,7 +177,7 @@ frappe.router = {
 		return standard_route;
 	},
 
-	set_history(sub_path) {
+	set_history() {
 		frappe.route_history.push(this.current_route);
 		frappe.ui.hide_open_dialog();
 	},
