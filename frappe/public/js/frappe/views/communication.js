@@ -149,7 +149,9 @@ frappe.views.CommunicationComposer = Class.extend({
 					fieldtype: "Select",
 					reqd: 1,
 					fieldname: "sender",
-					options: email_accounts.map(function(e) { return e.email_id; })
+					options: email_accounts.map(function(e) {
+						return e.email_id;
+					})
 				}
 			].concat(fields);
 		}
@@ -237,7 +239,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					filters: {
 						link_doctype: ['in', [this.frm.doctype, ""]]
 					}
-				}
+				};
 			};
 		} else {
 			this.dialog.fields_dict["email_template"].get_query = () => {
@@ -245,26 +247,25 @@ frappe.views.CommunicationComposer = Class.extend({
 					filters: {
 						link_doctype: ['is', 'not set']
 					}
-				}
+				};
 			};
 		}
-		 
 
 		this.dialog.fields_dict["email_template"].df.onchange = () => {
 			var email_template = me.dialog.fields_dict.email_template.get_value();
 			if (email_template) {
 				var prepend_reply = function(reply) {
-					if(me.reply_added===email_template) {
+					if (me.reply_added===email_template) {
 						return;
 					}
 					var content_field = me.dialog.fields_dict.content;
 					var subject_field = me.dialog.fields_dict.subject;
 					var content = content_field.get_value() || "";
-					var subject = subject_field.get_value() || "";
+					//var subject = subject_field.get_value() || "";
 
 					var parts = content.split('<!-- salutation-ends -->');
 
-					if(parts.length===2) {
+					if (parts.length===2) {
 						content = [reply.message, "<br>", parts[1]];
 					} else {
 						content = [reply.message, "<br>", content];
@@ -275,7 +276,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					subject_field.set_value(reply.subject);
 
 					me.reply_added = email_template;
-				}
+				};
 
 				frappe.call({
 					method: 'frappe.email.doctype.email_template.email_template.get_email_template',
