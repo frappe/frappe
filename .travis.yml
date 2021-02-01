@@ -119,7 +119,7 @@ install:
 
   - bench start &
   - bench --site test_site reinstall --yes
-  - bench --site test_site_producer reinstall --yes
+  - if [ $TYPE == "server" ]; bench --site test_site_producer reinstall --yes; fi
   - bench build --app frappe
 
 after_script:
