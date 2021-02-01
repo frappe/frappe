@@ -30,7 +30,7 @@ export default class OnboardingWidget extends Widget {
 
 		let $step = $(`<div class="onboarding-step ${status}">
 				<i class="fa ${icon_class}" aria-hidden="true" title="${status}"></i>
-				<span id="title">${step.title}</span>
+				<span id="title">${__(step.title)}</span>
 			</div>`);
 
 		step.$step = $step;
@@ -435,7 +435,7 @@ export default class OnboardingWidget extends Widget {
 		super.set_title(title);
 		if (this.subtitle) {
 			let subtitle = $(
-				`<div class="widget-subtitle">${this.subtitle}</div>`
+				`<div class="widget-subtitle">${__(this.subtitle)}</div>`
 			);
 			subtitle.appendTo(this.title_field);
 		}

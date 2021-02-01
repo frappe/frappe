@@ -16,6 +16,7 @@
   "onboarding",
   "column_break_3",
   "extends_another_page",
+  "is_default",
   "is_standard",
   "developer_mode_only",
   "disable_user_customization",
@@ -197,10 +198,18 @@
    "fieldname": "hide_custom",
    "fieldtype": "Check",
    "label": "Hide Custom DocTypes and Reports"
+  },
+  {
+   "default": "0",
+   "depends_on": "extends_another_page",
+   "description": "Sets the current page as default for all users",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "label": "Is Default"
   }
  ],
  "links": [],
- "modified": "2020-05-18 19:17:27.206646",
+ "modified": "2021-01-21 12:09:36.156614",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",

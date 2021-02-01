@@ -37,6 +37,25 @@ frappe.ui.form.on('User', {
 		}
 	},
 
+	module_profile: function(frm) {
+		if (frm.doc.module_profile) {
+			frappe.call({
+				"method": "frappe.core.doctype.user.user.get_module_profile",
+				args: {
+					module_profile: frm.doc.module_profile
+				},
+				callback: function(data) {
+					frm.set_value("block_modules", []);
+					$.each(data.message || [], function(i, v) {
+						let d = frm.add_child("block_modules");
+						d.module = v.module;
+					});
+					frm.module_editor && frm.module_editor.refresh();
+				}
+			});
+		}
+	},
+
 	onload: function(frm) {
 		frm.can_edit_roles = has_access_to_edit_user();
 
@@ -255,43 +274,3 @@ function get_roles_for_editing_user() {
 		.filter(perm => perm.permlevel >= 1 && perm.write)
 		.map(perm => perm.role) || ['System Manager'];
 }
-
-frappe.ModuleEditor = Class.extend({
-	init: function(frm, wrapper) {
-		this.wrapper = $('<div class="row module-block-list"></div>').appendTo(wrapper);
-		this.frm = frm;
-		this.make();
-	},
-	make: function() {
-		var me = this;
-		this.frm.doc.__onload.all_modules.forEach(function(m) {
-			$(repl('<div class="col-sm-6"><div class="checkbox">\
-				<label><input type="checkbox" class="block-module-check" data-module="%(module)s">\
-				%(module)s</label></div></div>', {module: m})).appendTo(me.wrapper);
-		});
-		this.bind();
-	},
-	refresh: function() {
-		var me = this;
-		this.wrapper.find(".block-module-check").prop("checked", true);
-		$.each(this.frm.doc.block_modules, function(i, d) {
-			me.wrapper.find(".block-module-check[data-module='"+ d.module +"']").prop("checked", false);
-		});
-	},
-	bind: function() {
-		var me = this;
-		this.wrapper.on("change", ".block-module-check", function() {
-			var module = $(this).attr('data-module');
-			if($(this).prop("checked")) {
-				// remove from block_modules
-				me.frm.doc.block_modules = $.map(me.frm.doc.block_modules || [], function(d) {
-					if (d.module != module) {
-						return d;
-					}
-				});
-			} else {
-				me.frm.add_child("block_modules", {"module": module});
-			}
-		});
-	}
-});
