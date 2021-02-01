@@ -597,7 +597,7 @@ class DatabaseQuery(object):
 				self.match_conditions.append("`tab{0}`.`owner` = {1}".format(self.doctype,
 					frappe.db.escape(self.user, percent=False)))
 			# add user permission only if role has read perm
-			elif role_permissions.get("read"):
+			elif role_permissions.get("read") or role_permissions.get("select"):
 				# get user permissions
 				user_permissions = frappe.permissions.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions)
