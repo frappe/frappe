@@ -1,7 +1,7 @@
 context('FileUploader', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/website');
+		cy.visit('/app');
 	});
 
 	function open_upload_dialog() {
@@ -14,28 +14,20 @@ context('FileUploader', () => {
 		open_upload_dialog();
 		cy.get_open_dialog().should('contain', 'Drag and drop files');
 		cy.hide_dialog();
-		cy.get('body').click();
 	});
 
 	it('should accept dropped files', () => {
 		open_upload_dialog();
 
-		cy.fixture('example.json').then(fileContent => {
-			cy.get_open_dialog().find('.file-upload-area').attachFile({
-				fileContent,
-				fileName: 'example.json',
-				mimeType: 'application/json'
-			}, {
-				subjectType: 'drag-n-drop',
-				force: true
-			});
-
-			cy.get_open_dialog().find('.file-name').should('contain', 'example.json');
-			cy.intercept('POST', '/api/method/upload_file').as('upload_file');
-			cy.get_open_dialog().find('.btn-modal-primary').click();
-			cy.wait('@upload_file').its('response.statusCode').should('eq', 200);
-			cy.get('.modal:visible').should('not.exist');
+		cy.get_open_dialog().find('.file-upload-area').attachFile('example.json', {
+			subjectType: 'drag-n-drop',
 		});
+
+		cy.get_open_dialog().find('.file-name').should('contain', 'example.json');
+		cy.intercept('POST', '/api/method/upload_file').as('upload_file');
+		cy.get_open_dialog().find('.btn-modal-primary').click();
+		cy.wait('@upload_file').its('response.statusCode').should('eq', 200);
+		cy.get('.modal:visible').should('not.exist');
 	});
 
 	it('should accept uploaded files', () => {
@@ -47,7 +39,7 @@ context('FileUploader', () => {
 		cy.intercept('POST', '/api/method/upload_file').as('upload_file');
 		cy.get_open_dialog().find('.btn-primary').click();
 		cy.wait('@upload_file').its('response.body.message')
-			.should('have.property', 'file_url', '/private/files/example.json');
+			.should('have.property', 'file_name', 'example.json');
 		cy.get('.modal:visible').should('not.exist');
 	});
 

@@ -11,15 +11,14 @@ context('Relative Timeframe', () => {
 	});
 	it('sets relative timespan filter for last week and filters list', () => {
 		cy.visit('/app/List/ToDo/List');
+		cy.clear_filters();
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
 		cy.add_filter();
-		// cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
 		cy.get('.fieldname-select-area').should('exist');
 		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
 		cy.get('select.condition.form-control').select("Timespan");
 		cy.get('.filter-field select.input-with-feedback.form-control').select("last week");
 		cy.intercept('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
-		// cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.get('.filter-popover .apply-filters').click({ force: true });
 		cy.wait('@list_refresh');
 		cy.get('.list-row-container').its('length').should('eq', 1);
@@ -31,21 +30,17 @@ context('Relative Timeframe', () => {
 	});
 	it('sets relative timespan filter for next week and filters list', () => {
 		cy.visit('/app/List/ToDo/List');
+		cy.clear_filters();
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
-		// cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
 		cy.add_filter();
 		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
 		cy.get('select.condition.form-control').select("Timespan");
 		cy.get('.filter-field select.input-with-feedback.form-control').select("next week");
 		cy.intercept('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
-		// cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.get('.filter-popover .apply-filters').click({ force: true });
 		cy.wait('@list_refresh');
-		// cy.get('.list-row-container').its('length').should('eq', 1);
-		// cy.get('.list-row').should('contain', 'this is first todo');
 		cy.intercept('POST', '/api/method/frappe.model.utils.user_settings.save')
 			.as('save_user_settings');
-		// cy.get('.remove-filter').click();
 		cy.clear_filters();
 		cy.wait('@save_user_settings');
 	});
