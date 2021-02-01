@@ -15,6 +15,11 @@ class DeskPage(Document):
 		if (self.is_standard and not frappe.conf.developer_mode and not disable_saving_as_standard()):
 			frappe.throw(_("You need to be in developer mode to edit this document"))
 
+		if self.is_default and self.name and frappe.db.exists("Desk Page", {
+			"name": ["!=", self.name], 'is_default': 1, 'extends': self.extends
+		}):
+			frappe.throw(_("You can only have one default page that extends a particular standard page."))
+
 	def validate_cards_json(self):
 		for card in self.cards:
 			try:
