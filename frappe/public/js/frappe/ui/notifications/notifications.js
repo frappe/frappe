@@ -148,8 +148,8 @@ frappe.ui.Notifications = class Notifications {
 
 	add_open_document_html(name, value, doc_dt, target = false) {
 		let label = this.open_docs_config[name]
-			? this.open_docs_config[name].label
-			: name;
+			? __(this.open_docs_config[name].label)
+			: __(name);
 		let title = target ? `title="${__('Your Target')}"` : '';
 		let $list_item = !target
 			? $(`<li><a class="badge-hover" data-action="route_to_document_type" data-doctype="${name}" ${title}>

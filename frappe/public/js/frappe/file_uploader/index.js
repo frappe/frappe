@@ -63,7 +63,7 @@ export default class FileUploader {
 
 	make_dialog() {
 		this.dialog = new frappe.ui.Dialog({
-			title: 'Upload',
+			title: __('Upload'),
 			fields: [
 				{
 					fieldtype: 'HTML',

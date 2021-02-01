@@ -12,9 +12,9 @@ frappe.ui.GroupBy = class {
 	setup_group_by_area() {
 		this.make_group_by_button();
 		let sql_aggregate_function = [
-			{name:'count', label: 'Count'},
-			{name:'sum', label: 'Sum'},
-			{name:'avg', label:'Average'}
+			{name: 'count', label: __('Count')},
+			{name: 'sum', label: __('Sum')},
+			{name: 'avg', label: __('Average')}
 		];
 		this.groupby_edit_area = $(frappe.render_template("group_by", {
 			doctype: this.doctype,
@@ -64,9 +64,9 @@ frappe.ui.GroupBy = class {
 						if (frappe.model.is_numeric_field(field.fieldtype)) {
 							let option_text = doctype == this.doctype
 								? field.label
-								: `${field.label} (${doctype})`;
+								: `${__(field.label)} (${__(doctype)})`;
 							this.aggregate_on_html+= `<option data-doctype="${doctype}"
-								value="${field.fieldname}">${option_text}</option>`;
+								value="${field.fieldname}">${__(option_text)}</option>`;
 						}
 					});
 				}

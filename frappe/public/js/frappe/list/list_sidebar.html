@@ -10,7 +10,7 @@
 </ul>
 <ul class="list-unstyled sidebar-menu standard-actions">
 	{% if frappe.model.can_get_report(doctype) %}
-	<li class="list-sidebar-label">Views</li>
+	<li class="list-sidebar-label">{{__('Views')}}</li>
 	<li class="divider visible-sm visible-xs"></li>
 	<li class="list-link">
 		<div class="btn-group">
@@ -73,7 +73,7 @@
 			</a>
 			<ul class="dropdown-menu list-stats-dropdown" role="menu">
 				<div class="dropdown-search">
-					<input type="text" placeholder="Search" data-element="search" class="form-control input-xs">
+					<input type="text" placeholder=${ __("Search") } data-element="search" class="form-control input-xs">
 				</div>
 			</ul>
 		</div>
