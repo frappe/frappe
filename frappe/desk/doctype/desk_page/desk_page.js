@@ -5,7 +5,6 @@ frappe.ui.form.on('Desk Page', {
 	refresh: function(frm) {
 		frm.enable_save();
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
-		frm.get_field("extends_another_page").toggle(frappe.boot.developer_mode);
 		frm.get_field("developer_mode_only").toggle(frappe.boot.developer_mode);
 
 		if (frm.doc.for_user) {
