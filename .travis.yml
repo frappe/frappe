@@ -104,11 +104,11 @@ install:
 
   - cd ./frappe-bench
 
-  - sed -i 's/watch:/# watch:/g' Procfile
-  - sed -i 's/schedule:/# schedule:/g' Procfile
+  - sed -i 's/^watch:/# watch:/g' Procfile
+  - sed -i 's/^schedule:/# schedule:/g' Procfile
 
-  - if [ $TYPE == "server" ]; then sed -i 's/socketio:/# socketio:/g' Procfile; fi
-  - if [ $TYPE == "server" ]; then sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile; fi
+  - if [ $TYPE == "server" ]; then sed -i 's/^socketio:/# socketio:/g' Procfile; fi
+  - if [ $TYPE == "server" ]; then sed -i 's/^redis_socketio:/# redis_socketio:/g' Procfile; fi
 
   - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
 
