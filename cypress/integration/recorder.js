@@ -42,14 +42,13 @@ context('Recorder', () => {
 		cy.get('.result-list').should('contain', '/api/method/frappe.desk.reportview.get');
 
 		cy.get('#page-recorder .primary-action').should('contain', 'Stop').click();
+		cy.wait(500);
 		cy.get('#page-recorder .btn-secondary').should('contain', 'Clear').click();
 		cy.get('.msg-box').should('contain', 'Inactive');
 	});
 
 	it('Recorder View Request', () => {
 		cy.visit('/app/recorder');
-		cy.get('#page-recorder .primary-action').should('contain', 'Stop').click();
-		cy.get('#page-recorder .btn-secondary').should('contain', 'Clear').click();
 		cy.get('.primary-action').should('contain', 'Start').click();
 
 		cy.visit('/app/List/DocType/List');
@@ -59,18 +58,15 @@ context('Recorder', () => {
 		cy.get('.title-text').should('contain', 'DocType');
 		cy.get('.list-count').should('contain', '20 of ');
 
-		// temporarily commenting out theses tests as they seem to be
-		// randomly failing maybe due a background event
+		cy.visit('/app/recorder');
 
-		// cy.visit('/app/recorder');
+		cy.get('.list-row-container span').contains('/api/method/frappe').click();
 
-		// cy.get('.list-row-container span').contains('/api/method/frappe').click();
+		cy.url().should('include', '/recorder/request');
+		cy.get('form').should('contain', '/api/method/frappe');
 
-		// cy.location('hash').should('contain', '#recorder/request/');
-		// cy.get('form').should('contain', '/api/method/frappe');
-
-		// cy.get('#page-recorder .primary-action').should('contain', 'Stop').click();
-		// cy.get('#page-recorder .btn-secondary').should('contain', 'Clear').click();
-		// cy.location('hash').should('eq', '#recorder');
+		cy.get('#page-recorder .primary-action').should('contain', 'Stop').click();
+		cy.wait(200);
+		cy.get('#page-recorder .btn-secondary').should('contain', 'Clear').click();
 	});
 });

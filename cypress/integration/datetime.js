@@ -42,7 +42,7 @@ context('Control Date, Time and DateTime', () => {
 					.should('be.visible');
 				cy.get(
 					'.datepickers-container .datepicker.active .datepicker--cell-day.-current-'
-				).click();
+				).click({ force: true });
 
 				cy.window()
 					.its('cur_frm')
