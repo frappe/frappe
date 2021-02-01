@@ -16,9 +16,9 @@ frappe.ui.GroupBy = class {
 
 	init_group_by_popover() {
 		const sql_aggregate_functions = [
-			{ name: 'count', label: 'Count' },
-			{ name: 'sum', label: 'Sum' },
-			{ name: 'avg', label: 'Average' },
+			{name: 'count', label: __('Count')},
+			{name: 'sum', label: __('Sum')},
+			{name: 'avg', label: __('Average')}
 		];
 
 		const group_by_template = $(
@@ -154,9 +154,9 @@ frappe.ui.GroupBy = class {
 							let option_text =
 								doctype == this.doctype
 									? field.label
-									: `${field.label} (${doctype})`;
+									: `${field.label} (${__(doctype)})`;
 							this.aggregate_on_html += `<option data-doctype="${doctype}"
-								value="${field.fieldname}">${option_text}</option>`;
+								value="${field.fieldname}">${__(option_text)}</option>`;
 						}
 					});
 				}

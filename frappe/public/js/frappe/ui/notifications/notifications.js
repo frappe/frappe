@@ -166,7 +166,7 @@ frappe.ui.notifications = {
 	}
 };
 
-class BaseNotificaitonsView {
+class BaseNotificationsView {
 	constructor(wrapper, parent, settings) {
 		// wrapper, max_length
 		this.wrapper = wrapper;
@@ -186,7 +186,7 @@ class BaseNotificaitonsView {
 	}
 }
 
-class NotificationsView extends BaseNotificaitonsView {
+class NotificationsView extends BaseNotificationsView {
 	make() {
 		this.notifications_icon = this.parent.find('.notifications-icon');
 		this.notifications_icon.attr("title", __('Notifications')).tooltip(
@@ -382,7 +382,7 @@ class NotificationsView extends BaseNotificaitonsView {
 	}
 }
 
-class EventsView extends BaseNotificaitonsView {
+class EventsView extends BaseNotificationsView {
 	make() {
 		let today = frappe.datetime.get_today();
 		frappe.xcall('frappe.desk.doctype.event.event.get_events', {

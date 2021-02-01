@@ -31,7 +31,7 @@ export default class OnboardingWidget extends Widget {
 					<div class="step-index step-pending">${__(index + 1)}</div>
 					<div class="step-index step-skipped">${frappe.utils.icon('tick', 'xs')}</div>
 					<div class="step-index step-complete">${frappe.utils.icon('tick', 'xs')}</div>
-					<div>${step.title}</div>
+					<div>${__(step.title)}</div>
 				</div>
 			</a>`);
 

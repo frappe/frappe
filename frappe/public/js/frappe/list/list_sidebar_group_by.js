@@ -24,7 +24,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			fields: this.get_group_by_dropdown_fields(),
 		});
 
-		d.set_primary_action('Save', ({ group_by_fields }) => {
+		d.set_primary_action(__("Save"), ({ group_by_fields }) => {
 			frappe.model.user_settings.save(
 				this.doctype,
 				'group_by_fields',

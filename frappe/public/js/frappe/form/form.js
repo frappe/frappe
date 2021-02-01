@@ -930,7 +930,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	add_web_link(path, label) {
-		label = label || "See on Website";
+		label = __(label) || __("See on Website");
 		this.web_link = this.sidebar.add_user_action(__(label),
 			function() {}).attr("href", path || this.doc.route).attr("target", "_blank");
 	}

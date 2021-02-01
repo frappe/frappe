@@ -269,7 +269,7 @@ frappe.search.SearchDialog = class {
 		let $sidebar = $search_results.find(".search-sidebar").empty();
 		let sidebar_item_html =
 			'<li class="search-sidebar-item standard-sidebar-item list-link" data-category="{0}">' +
-			'<a><span class="ellipsis">{0}</span></a></li>';
+			'<a><span class="ellipsis">{1}</span></a></li>';
 
 		this.modal_state = 0;
 		this.full_lists = {
@@ -278,7 +278,7 @@ frappe.search.SearchDialog = class {
 		this.nav_lists = {};
 
 		result_sets.forEach(set => {
-			$sidebar.append($(__(sidebar_item_html, [set.title])));
+			$sidebar.append($(__(sidebar_item_html, [set.title, __(set.title)])));
 			this.add_section_to_summary(set.title, set.results);
 			this.full_lists[set.title] = this.render_full_list(
 				set.title,
@@ -288,7 +288,7 @@ frappe.search.SearchDialog = class {
 		});
 
 		if (result_sets.length > 1) {
-			$sidebar.prepend($(__(sidebar_item_html, ["All Results"])));
+			$sidebar.prepend($(__(sidebar_item_html, ['All Results', __('All Results')])));
 		}
 
 		this.update($search_results.clone());
