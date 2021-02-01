@@ -302,7 +302,7 @@
    "no_copy": 1
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
    "label": "Logout From All Devices After Changing Password"
@@ -631,11 +631,6 @@
   },
   {
    "group": "Settings",
-   "link_doctype": "Assignment Rule",
-   "link_fieldname": "user"
-  },
-  {
-   "group": "Settings",
    "link_doctype": "Document Follow",
    "link_fieldname": "user"
   },
@@ -656,7 +651,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2020-10-18 15:18:53.126800",
+ "modified": "2021-02-01 16:11:06.037543",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
