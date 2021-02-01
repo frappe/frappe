@@ -17,6 +17,13 @@ class Workspace(Document):
 			frappe.throw(_("You need to be in developer mode to edit this document"))
 		validate_route_conflict(self.doctype, self.name)
 
+		duplicate_exists = frappe.db.exists("Workspace", {
+			"name": ["!=", self.name], 'is_default': 1, 'extends': self.extends
+		})
+
+		if self.is_default and self.name and duplicate_exists:
+			frappe.throw(_("You can only have one default page that extends a particular standard page."))
+
 	def on_update(self):
 		if disable_saving_as_standard():
 			return

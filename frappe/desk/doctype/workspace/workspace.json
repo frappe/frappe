@@ -17,6 +17,7 @@
   "onboarding",
   "column_break_3",
   "extends_another_page",
+  "is_default",
   "is_standard",
   "developer_mode_only",
   "disable_user_customization",
@@ -206,10 +207,18 @@
    "fieldtype": "Table",
    "label": "Links",
    "options": "Workspace Link"
-  }
+  },
+  {
+    "default": "0",
+    "depends_on": "extends_another_page",
+    "description": "Sets the current page as default for all users",
+    "fieldname": "is_default",
+    "fieldtype": "Check",
+    "label": "Is Default"
+   }
  ],
  "links": [],
- "modified": "2021-01-12 12:34:32.372386",
+ "modified": "2021-01-21 12:09:36.156614",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
