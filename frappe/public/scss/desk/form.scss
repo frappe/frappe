@@ -263,8 +263,13 @@
 	line-height: 1.6;
 }
 
-.form-group:last-child.frappe-control[data-fieldtype="Table"] {
-	margin-bottom: 0;
+.form-group {
+	.frappe-control:last-child {
+		margin-bottom: 0;
+	}
+	&:last-child.frappe-control[data-fieldtype="Table"] {
+		margin-bottom: 0;
+	}
 }
 
 .form-footer {
