@@ -10,7 +10,7 @@ app_icon = "octicon octicon-circuit-board"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
-app_logo_url = '/assets/frappe/images/frappe-framework-logo.png'
+app_logo_url = '/assets/frappe/images/frappe-framework-logo.svg'
 
 develop_version = '13.x.x-develop'
 
@@ -29,18 +29,17 @@ page_js = {
 
 # website
 app_include_js = [
-	"assets/js/libs.min.js",
-	"assets/js/desk.min.js",
-	"assets/js/list.min.js",
-	"assets/js/form.min.js",
-	"assets/js/control.min.js",
-	"assets/js/report.min.js",
+	"/assets/js/libs.min.js",
+	"/assets/js/desk.min.js",
+	"/assets/js/list.min.js",
+	"/assets/js/form.min.js",
+	"/assets/js/control.min.js",
+	"/assets/js/report.min.js",
 ]
 app_include_css = [
-	"assets/css/desk.min.css",
-	"assets/css/list.min.css",
-	"assets/css/form.min.css",
-	"assets/css/report.min.css",
+	"/assets/css/desk.min.css",
+	"/assets/css/list.min.css",
+	"/assets/css/report.min.css",
 ]
 
 doctype_js = {

@@ -166,7 +166,7 @@ frappe.provide("frappe.views");
 						var col_name = $(this).data().columnValue;
 						order[col_name] = [];
 						$(this).find('.kanban-card-wrapper').each(function() {
-							var card_name = $(this).data().name;
+							var card_name = unescape($(this).data().name);
 							order[col_name].push(card_name);
 						});
 					});
@@ -350,12 +350,12 @@ frappe.provide("frappe.views");
 			if (!archived_columns.length) return;
 
 			var options = archived_columns.reduce(function(a, b) {
-				return a + "<li><a class='option'>" +
+				return a + `<li><a class='option'>" +
 					"<span class='ellipsis' style='max-width: 100px; display: inline-block'>" +
 					__(b.title) + "</span>" +
 					"<button style='float:right;' data-column='" + b.title +
 					"' class='btn btn-default btn-xs restore-column text-muted'>"
-					+ __('Restore') + "</button></a></li>";
+					+ __('Restore') + "</button></a></li>`;
 			}, "");
 			var $dropdown = $("<div class='dropdown pull-right'>" +
 				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
@@ -424,15 +424,15 @@ frappe.provide("frappe.views");
 			var order = column.order;
 			if(order) {
 				order = JSON.parse(order);
-				order.forEach(function(name) {
-					if (!filtered_cards_names.includes(name)) return;
-					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
-				});
 				// new cards
 				filtered_cards.forEach(function(card) {
 					if(order.indexOf(card.name) === -1) {
 						frappe.views.KanbanBoardCard(card, self.$kanban_cards);
 					}
+				});
+				order.forEach(function(name) {
+					if (!filtered_cards_names.includes(name)) return;
+					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
 				});
 			} else {
 				filtered_cards.map(function(card) {
@@ -520,7 +520,7 @@ frappe.provide("frappe.views");
 				html += indicators.reduce(function(prev, curr) {
 					return prev + '<div \
 						data-action="indicator" data-indicator="'+curr+'"\
-						class="btn btn-default btn-xs indicator ' + curr + '"></div>';
+						class="btn btn-default btn-xs indicator-pill ' + curr + '"></div>';
 				}, "");
 				html += '</li>';
 				self.$kanban_column.find(".column-options .dropdown-menu")
@@ -555,78 +555,59 @@ frappe.provide("frappe.views");
 		function render_card_meta() {
 			var html = "";
 			if (card.comment_count > 0)
-				html += '<span class="list-comment-count small text-muted ">' +
-					'<i class="octicon octicon-comment"></i> ' + card.comment_count +
-					'</span>';
-			html += get_assignees_html();
+				html +=
+				`<span class="list-comment-count small text-muted ">
+					${frappe.utils.icon('small-message')}
+					${card.comment_count}
+				</span>`;
+
+			const $assignees_group = get_assignees_group();
+
+			html += `<span class="kanban-assignments"></span>`;
 
 			if (card.color && frappe.ui.color.validate_hex(card.color)) {
 				const $div = $('<div>');
 				$('<div></div>').css({
-					width: '20px',
-					height: '5px',
+					width: '30px',
+					height: '4px',
 					borderRadius: '2px',
-					marginBottom: '4px',
+					marginBottom: '8px',
 					backgroundColor: card.color
 				}).appendTo($div);
 
-				self.$card.find('.kanban-card.content').prepend($div);
+				self.$card.find('.kanban-card .kanban-title-area').prepend($div);
 			}
 
-			self.$card.find(".kanban-card-meta").empty().append(html);
+			self.$card.find(".kanban-card-meta").empty().append(html)
+				.find('.kanban-assignments').append($assignees_group);
 		}
 
 		function add_task_link() {
-			let taskLink = frappe.utils.get_form_link(card.doctype, card.name);
-			self.$card.find('.kanban-card-redirect').attr('href', taskLink);			
+			let task_link = frappe.utils.get_form_link(card.doctype, card.name);
+			self.$card.find('.kanban-card-redirect')
+				.attr('href', task_link);
 		}
 
-		function refresh_dialog() {
-			set_dialog_fields();
-			make_assignees();
-		}
-
-		function set_dialog_fields() {
-			self.edit_dialog.fields.forEach(function(df) {
-				var value = card.doc[df.fieldname];
-				if (value) {
-					self.edit_dialog.set_value(df.fieldname, value);
-				}
+		function get_assignees_group() {
+			return frappe.avatar_group(card.assigned_list, 3, {
+				css_class: 'avatar avatar-small',
+				action_icon: 'add',
+				action: show_assign_to_dialog
 			});
 		}
 
-		function make_assignees() {
-			var d = self.edit_dialog;
-			var html = get_assignees_html() + '<a class="add-assignment avatar avatar-small avatar-empty">\
-				<i class="octicon octicon-plus text-muted" style="margin: 3px 0 0 5px;"></i></a>';
-
-			d.$wrapper.find("[data-fieldname='assignees'] .control-input-wrapper").empty().append(html);
-			d.$wrapper.find(".add-assignment").on("click", function() {
-				if (self.assign_to_dialog) {
-					self.assign_to_dialog.show();
-					return;
-				}
-				show_assign_to_dialog();
-			});
-		}
-
-		function get_assignees_html() {
-			return card.assigned_list.reduce(function(a, b) {
-				return a + frappe.avatar(b);
-			}, "");
-		}
-
-		function show_assign_to_dialog() {
+		function show_assign_to_dialog(e) {
+			e.preventDefault();
+			e.stopPropagation();
 			self.assign_to = new frappe.ui.form.AssignToDialog({
 				obj: self,
 				method: 'frappe.desk.form.assign_to.add',
 				doctype: card.doctype,
 				docname: card.name,
 				callback: function() {
-					var user = self.assign_to_dialog.get_values().assign_to;
-					card.assigned_list.push(user);
+					const users = self.assign_to_dialog.get_values().assign_to;
+					card.assigned_list = [...new Set(card.assigned_list.concat(users))];
 					fluxify.doAction('update_card', card);
-					refresh_dialog();
 				}
 			});
 			self.assign_to_dialog = self.assign_to.dialog;
@@ -663,7 +644,7 @@ frappe.provide("frappe.views");
 				title: col.column_name,
 				status: col.status,
 				order: col.order,
-				indicator: col.indicator || 'darkgrey'
+				indicator: col.indicator || 'gray'
 			};
 		});
 	}
@@ -798,7 +779,7 @@ frappe.provide("frappe.views");
 			});
 			if(!indicators) {
 				//
-				indicators = ['green', 'blue', 'orange', 'grey'];
+				indicators = ['green', 'blue', 'orange', 'gray'];
 			}
 			callback(indicators);
 		});

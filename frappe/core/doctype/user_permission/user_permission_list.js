@@ -163,7 +163,7 @@ frappe.listview_settings['User Permission'] = {
 								}
 								frappe.show_alert({
 									message,
-									indicator: 'green'
+									indicator: 'info'
 								});
 								list_view.refresh();
 							});

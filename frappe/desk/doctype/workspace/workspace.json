@@ -1,0 +1,251 @@
+{
+ "actions": [],
+ "autoname": "field:label",
+ "beta": 1,
+ "creation": "2020-01-23 13:45:59.470592",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "for_user",
+  "extends",
+  "module",
+  "category",
+  "icon",
+  "restrict_to_domain",
+  "onboarding",
+  "column_break_3",
+  "extends_another_page",
+  "is_default",
+  "is_standard",
+  "developer_mode_only",
+  "disable_user_customization",
+  "pin_to_top",
+  "pin_to_bottom",
+  "hide_custom",
+  "section_break_2",
+  "charts_label",
+  "charts",
+  "section_break_15",
+  "shortcuts_label",
+  "shortcuts",
+  "section_break_18",
+  "cards_label",
+  "links"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Name",
+   "unique": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "charts",
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "Dashboards"
+  },
+  {
+   "fieldname": "charts",
+   "fieldtype": "Table",
+   "label": "Charts",
+   "options": "Workspace Chart"
+  },
+  {
+   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard || frappe.boot.developer_mode",
+   "fieldname": "shortcuts",
+   "fieldtype": "Table",
+   "label": "Shortcuts",
+   "options": "Workspace Shortcut"
+  },
+  {
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "label": "Restrict to Domain",
+   "options": "Domain",
+   "read_only_depends_on": "eval:doc.extends_another_page == 0",
+   "search_index": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "Modules\nDomains\nPlaces\nAdministration",
+   "read_only_depends_on": "eval:doc.extends_another_page == 1",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.extends_another_page == 0",
+   "fieldname": "developer_mode_only",
+   "fieldtype": "Check",
+   "label": "Developer Mode Only",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.pin_to_bottom!=1 && doc.extends_another_page == 0",
+   "fieldname": "pin_to_top",
+   "fieldtype": "Check",
+   "label": "Pin To Top",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.extends_another_page == 0",
+   "fieldname": "disable_user_customization",
+   "fieldtype": "Check",
+   "label": "Disable User Customization",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.pin_to_top!=1 && doc.extends_another_page == 0",
+   "fieldname": "pin_to_bottom",
+   "fieldtype": "Check",
+   "label": "Pin To Bottom",
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard",
+   "fieldname": "charts_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard",
+   "fieldname": "shortcuts_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "depends_on": "eval:!doc.extends_another_page || !doc.is_standard",
+   "fieldname": "cards_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "shortcuts",
+   "fieldname": "section_break_15",
+   "fieldtype": "Section Break",
+   "label": "Shortcuts"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "links",
+   "fieldname": "section_break_18",
+   "fieldtype": "Section Break",
+   "label": "Link Cards"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Is Standard",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "extends_another_page",
+   "fieldtype": "Check",
+   "label": "Extends Another Page",
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval:doc.extends_another_page == 1 || doc.for_user",
+   "fieldname": "extends",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Extends",
+   "options": "Workspace",
+   "search_index": 1
+  },
+  {
+   "fieldname": "for_user",
+   "fieldtype": "Data",
+   "label": "For User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "onboarding",
+   "fieldtype": "Link",
+   "label": "Onboarding",
+   "options": "Module Onboarding"
+  },
+  {
+   "default": "0",
+   "description": "Checking this will hide custom doctypes and reports cards in Links section",
+   "fieldname": "hide_custom",
+   "fieldtype": "Check",
+   "label": "Hide Custom DocTypes and Reports"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "links",
+   "fieldtype": "Table",
+   "label": "Links",
+   "options": "Workspace Link"
+  },
+  {
+    "default": "0",
+    "depends_on": "extends_another_page",
+    "description": "Sets the current page as default for all users",
+    "fieldname": "is_default",
+    "fieldtype": "Check",
+    "label": "Is Default"
+   }
+ ],
+ "links": [],
+ "modified": "2021-01-21 12:09:36.156614",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Workspace",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

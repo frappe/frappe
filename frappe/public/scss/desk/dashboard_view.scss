@@ -1,0 +1,64 @@
+.dashboard-page {
+	.dashboard-view {
+		min-height: calc(100vh - 284px);
+		padding: var(--padding-lg) 0;
+
+		.grid-col-2 {
+			column-gap: 20px;
+			row-gap: 20px;
+		}
+
+		.new-widget {
+			text-align: center;
+		}
+
+		.new-chart-widget {
+			min-height: 200px;
+		}
+
+		.new-number-card-widget {
+			min-height: 110px;
+		}
+	}
+
+	.empty-dashboard {
+		margin-top: 45px;
+	}
+
+	// .page-form {
+	// 	height: 50px;
+
+		// .dashboard-header {
+		// 	padding: 10px;
+		// 	display: flex;
+		// 	justify-content: space-between;
+		// 	width: 100%;
+
+		// 	.header-title {
+		// 		line-height: 1.5em;
+		// 	}
+
+		// 	.restricted-button {
+		// 		cursor: default;
+		// 		position: relative;
+		// 		right: 5px;
+		// 		top: -3px;
+		// 	}
+		// }
+
+		// .customize-dashboard {
+		// 	font-size: 13px;
+		// 	cursor: pointer;
+		// }
+
+		// .customize-options {
+		// 	display: none;
+		// 	cursor: pointer;
+
+		// 	.customize-option:hover {
+		// 		text-decoration: underline;
+		// 	}
+		// }
+	// }
+}
+

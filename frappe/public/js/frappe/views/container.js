@@ -10,7 +10,7 @@ frappe.views.Container = Class.extend({
 	_intro: "Container contains pages inside `#container` and manages \
 			page creation, switching",
 	init: function() {
-		this.container = $('#body_div').get(0);
+		this.container = $('#body').get(0);
 		this.page = null; // current page
 		this.pagewidth = $(this.container).width();
 		this.pagemargin = 50;
@@ -82,7 +82,7 @@ frappe.views.Container = Class.extend({
 
 		$(document).trigger("page-change");
 
-		this.page._route = window.location.hash;
+		this.page._route = frappe.router.get_sub_path();
 		$(this.page).trigger('show');
 		!this.page.disable_scroll_to_top && frappe.utils.scroll_to(0);
 		frappe.breadcrumbs.update();

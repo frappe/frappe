@@ -42,6 +42,18 @@ frappe.ui.Page = Class.extend({
 	make: function() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
+		this.setup_scroll_handler();
+		this.setup_sidebar_toggle();
+	},
+
+	setup_scroll_handler() {
+		window.addEventListener('scroll', () => {
+			if (document.documentElement.scrollTop) {
+				$('.page-head').toggleClass('drop-shadow', true);
+			} else {
+				$('.page-head').removeClass('drop-shadow');
+			}
+		});
 	},
 
 	get_empty_state: function(title, message, primary_action) {
@@ -67,7 +79,7 @@ frappe.ui.Page = Class.extend({
 
 	add_main_section: function() {
 		$(frappe.render_template("page", {})).appendTo(this.wrapper);
-		if(this.single_column) {
+		if (this.single_column) {
 			// nesting under col-sm-12 for consistency
 			this.add_view("main", '<div class="row layout-main">\
 					<div class="col-md-12 layout-main-section-wrapper">\
@@ -76,25 +88,24 @@ frappe.ui.Page = Class.extend({
 					</div>\
 				</div>');
 		} else {
-			this.add_view("main", '<div class="row layout-main">\
-				<div class="col-md-2 layout-side-section"></div>\
-				<div class="col-md-10 layout-main-section-wrapper">\
-					<div class="layout-main-section"></div>\
-					<div class="layout-footer hide"></div>\
-				</div>\
-			</div>');
+			this.add_view("main", `
+				<div class="row layout-main">
+					<div class="col-lg-2 layout-side-section"></div>
+					<div class="col layout-main-section-wrapper">
+						<div class="layout-main-section"></div>
+						<div class="layout-footer hide"></div>
+					</div>
+				</div>
+			`);
 		}
 
 		this.setup_page();
 	},
 
 	setup_page: function() {
-		this.$title_area = this.wrapper.find("h1");
+		this.$title_area = this.wrapper.find(".title-area");
 
 		this.$sub_title_area = this.wrapper.find("h6");
-
-		if(this.set_document_title!==undefined)
-			this.set_document_title = this.set_document_title;
 
 		if(this.title)
 			this.set_title(this.title);
@@ -105,7 +116,7 @@ frappe.ui.Page = Class.extend({
 		this.body = this.main = this.wrapper.find(".layout-main-section");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
-		this.indicator = this.wrapper.find(".indicator");
+		this.indicator = this.wrapper.find(".indicator-pill");
 
 		this.page_actions = this.wrapper.find(".page-actions");
 
@@ -118,16 +129,22 @@ frappe.ui.Page = Class.extend({
 		this.actions = this.page_actions.find(".actions-btn-group .dropdown-menu");
 		this.actions_btn_group = this.page_actions.find(".actions-btn-group");
 
+		this.standard_actions = this.page_actions.find(".standard-actions");
+		this.custom_actions = this.page_actions.find(".custom-actions");
+
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
-		this.inner_toolbar = $('<div class="form-inner-toolbar hide"></div>').prependTo(this.main);
+		this.inner_toolbar = this.custom_actions;
 		this.icon_group = this.page_actions.find(".page-icon-group");
 
 		if(this.make_page) {
 			this.make_page();
 		}
 
+		this.card_layout && this.main.addClass('frappe-card');
+
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find('button');
+		menu_btn.attr("title", __("Menu")).tooltip({ delay: { "show": 600, "hide": 100 } });
 		frappe.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(menu_btn, menu_btn.find('.menu-btn-group-label'));
@@ -138,22 +155,87 @@ frappe.ui.Page = Class.extend({
 			.add(action_btn, action_btn.find('.actions-btn-group-label'));
 	},
 
+	setup_sidebar_toggle() {
+		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
+		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
+		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
+			sidebar_toggle.remove();
+		} else {
+			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip({
+				delay: { "show": 600, "hide": 100 },
+				trigger: "hover",
+			});
+			sidebar_toggle.click(() => {
+				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
+					this.setup_overlay_sidebar();
+				} else {
+					sidebar_wrapper.toggle();
+				}
+				$(document.body).trigger('toggleSidebar');
+				this.update_sidebar_icon();
+			});
+		}
+	},
+
+	setup_overlay_sidebar() {
+		let overlay_sidebar = this.sidebar.find('.overlay-sidebar')
+			.addClass('opened');
+		$('<div class="close-sidebar">').hide().appendTo(this.sidebar).fadeIn();
+		let scroll_container = $('html')
+			.css("overflow-y", "hidden");
+
+		this.sidebar.find(".close-sidebar").on('click', (e) => close_sidebar(e));
+		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => close_sidebar(e));
+
+		let close_sidebar = () => {
+			scroll_container.css("overflow-y", "");
+			this.sidebar.find("div.close-sidebar").fadeOut(() => {
+				overlay_sidebar.removeClass('opened')
+					.find('.dropdown-toggle')
+					.removeClass('text-muted');
+			});
+		};
+	},
+
+	update_sidebar_icon() {
+		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
+		let sidebar_toggle_icon = sidebar_toggle.find('.sidebar-toggle-icon');
+		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
+		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
+		sidebar_toggle_icon.html(frappe.utils.icon(is_sidebar_visible ? 'sidebar-collapse' : 'sidebar-expand', 'md'));
+	},
+
 	set_indicator: function(label, color) {
 		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
 	},
 
-	add_action_icon: function(icon, click) {
-		return $('<a class="text-muted no-decoration"><i class="'+icon+'"></i></a>')
-			.appendTo(this.icon_group.removeClass("hide"))
-			.click(click);
+	add_action_icon: function(icon, click, css_class='', tooltip_label) {
+		const button = $(`
+			<button class="text-muted btn btn-default ${css_class} icon-btn">
+				${frappe.utils.icon(icon)}
+			</button>
+		`);
+
+		button.appendTo(this.icon_group.removeClass("hide"));
+		button.click(click);
+		button.attr("title", __(tooltip_label || frappe.unscrub(icon)))
+			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
+
+		return button;
 	},
 
 	clear_indicator: function() {
-		return this.indicator.removeClass().addClass("indicator whitespace-nowrap hide");
+		return this.indicator.removeClass().addClass("indicator-pill whitespace-nowrap hide");
 	},
 
 	get_icon_label: function(icon, label) {
-		return '<i class="visible-xs ' + icon + '"></i><span class="hidden-xs">' + label + '</span>'
+		let icon_name = icon;
+		let size = 'xs';
+		if (typeof icon === 'object') {
+			icon_name = icon.icon;
+			size = icon.size || 'xs';
+		}
+		return `${icon ? frappe.utils.icon(icon_name, size) : ''} <span class="hidden-xs"> ${__(label)} </span>`;
 	},
 
 	set_action: function(btn, opts) {
@@ -223,6 +305,10 @@ frappe.ui.Page = Class.extend({
 		this.clear_secondary_action();
 	},
 
+	clear_custom_actions() {
+		this.custom_actions.addClass("hide").empty();
+	},
+
 	clear_icons: function() {
 		this.icon_group.addClass("hide").empty();
 	},
@@ -236,6 +322,17 @@ frappe.ui.Page = Class.extend({
 			standard,
 			parent: this.menu,
 			shortcut
+		});
+	},
+
+	add_custom_menu_item: function(parent, label, click, standard, shortcut, icon=null) {
+		return this.add_dropdown_item({
+			label,
+			click,
+			standard,
+			parent: parent,
+			shortcut,
+			icon
 		});
 	},
 
@@ -306,22 +403,41 @@ frappe.ui.Page = Class.extend({
 	* @param {string} shortcut - Keyboard shortcut associated with the element
 	* @param {Boolean} show_parent - Whether to show the dropdown button if dropdown item is added
 	*/
-	add_dropdown_item: function({label, click, standard, parent, shortcut, show_parent=true}) {
+	add_dropdown_item: function({label, click, standard, parent, shortcut, show_parent=true, icon=null}) {
 		if (show_parent) {
 			parent.parent().removeClass("hide");
 		}
 
 		let $li;
+		let $icon = ``;
+
+		if (icon) {
+			$icon = `<span class="menu-item-icon">${frappe.utils.icon(icon)}</span>`;
+		}
+
 		if (shortcut) {
 			let shortcut_obj = this.prepare_shortcut_obj(shortcut, click, label);
-			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
-				<span class="menu-item-label">${label}</span>
-				<span class="text-muted pull-right">${shortcut_obj.shortcut_label}</span>
-			</a><li>`);
+			$li = $(`
+				<li>
+					<a class="grey-link dropdown-item" href="#" onClick="return false;">
+						${$icon}
+						<span class="menu-item-label">${label}</span>
+						<kbd class="pull-right">
+							<span>${shortcut_obj.shortcut_label}</span>
+						</kbd>
+					</a>
+				</li>
+			`);
 			frappe.ui.keys.add_shortcut(shortcut_obj);
 		} else {
-			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
-				<span class="menu-item-label">${label}</span></a><li>`);
+			$li = $(`
+				<li>
+					<a class="grey-link dropdown-item" href="#" onClick="return false;">
+						${$icon}
+						<span class="menu-item-label">${label}</span>
+					</a>
+				</li>
+			`);
 		}
 		var $link = $li.find("a").on("click", click);
 
@@ -330,9 +446,9 @@ frappe.ui.Page = Class.extend({
 		if (standard) {
 			$li.appendTo(parent);
 		} else {
-			this.divider = parent.find(".divider");
+			this.divider = parent.find(".dropdown-divider");
 			if(!this.divider.length) {
-				this.divider = $('<li class="divider user-action"></li>').prependTo(parent);
+				this.divider = $('<li class="dropdown-divider user-action"></li>').prependTo(parent);
 			}
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
@@ -400,22 +516,27 @@ frappe.ui.Page = Class.extend({
 	},
 
 	add_divider: function() {
-		return $('<li class="divider"></li>').appendTo(this.menu);
+		return $('<li class="dropdown-divider"></li>').appendTo(this.menu);
 	},
 
 	get_or_add_inner_group_button: function(label) {
-		var $group = this.inner_toolbar.find('.btn-group[data-label="'+encodeURIComponent(label)+'"]');
-		if(!$group.length) {
-			$group = $('<div class="btn-group" data-label="'+encodeURIComponent(label)+'" style="margin-left: 10px;">\
-				<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
-				'+label+' <span class="caret"></span></button>\
-				<ul role="menu" class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar);
+		var $group = this.inner_toolbar.find(`.inner-group-button[data-label="${encodeURIComponent(label)}"]`);
+		if (!$group.length) {
+			$group = $(
+				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
+					<button type="button" class="btn btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						${label}
+						${frappe.utils.icon('select', 'xs')}
+					</button>
+					<div role="menu" class="dropdown-menu"></div>
+				</div>`
+			).appendTo(this.inner_toolbar);
 		}
 		return $group;
 	},
 
 	get_inner_group_button: function(label) {
-		return this.inner_toolbar.find('.btn-group[data-label="'+encodeURIComponent(label)+'"]');
+		return this.inner_toolbar.find(`.inner-group-button[data-label="${encodeURIComponent(label)}"`);
 	},
 
 	set_inner_btn_group_as_primary: function(label) {
@@ -456,21 +577,22 @@ frappe.ui.Page = Class.extend({
 			var $group = this.get_or_add_inner_group_button(group);
 			$(this.inner_toolbar).removeClass("hide");
 
-			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), 'li', label)) {
-				return $('<li><a href="#" onclick="return false;" data-label="'+encodeURIComponent(label)+'">'+label+'</a></li>')
+			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), 'a', label)) {
+				return $(`<a class="dropdown-item" href="#" onclick="return false;" data-label="${encodeURIComponent(label)}">${label}</a>`)
 					.on('click', _action)
 					.appendTo($group.find(".dropdown-menu"));
 			}
 
 		} else {
-			var button = this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]');
-			if( button.length == 0 ) {
-				return $('<button data-label="'+encodeURIComponent(label)+`" class="btn btn-${type} btn-xs" style="margin-left: 10px;">`+__(label)+'</btn>')
-					.on("click", _action)
-					.appendTo(this.inner_toolbar.removeClass("hide"));
-			} else {
-				return button;
+			let button = this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`);
+			if (button.length == 0) {
+				button = $(`<button data-label="${encodeURIComponent(label)}" class="btn btn-${type} ellipsis">
+					${__(label)}
+				</button>`);
+				button.on("click", _action);
+				button.appendTo(this.inner_toolbar.removeClass("hide"));
 			}
+			return button;
 		}
 	},
 
@@ -483,13 +605,12 @@ frappe.ui.Page = Class.extend({
 
 		if (group) {
 			var $group = this.get_inner_group_button(__(group));
-			if($group.length) {
-				$group.find('.dropdown-menu li a[data-label="'+encodeURIComponent(label)+'"]').remove();
+			if ($group.length) {
+				$group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`).remove();
 			}
-			if ($group.find('.dropdown-menu li a').length === 0) $group.remove();
+			if ($group.find('.dropdown-item').length === 0) $group.remove();
 		} else {
-
-			this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]').remove();
+			this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`).remove();
 		}
 	},
 
@@ -535,19 +656,19 @@ frappe.ui.Page = Class.extend({
 		return this.$title_area;
 	},
 
-	set_title: function(txt, icon = '', stripHtml = true, tabTitle = '') {
-		if(!txt) txt = "";
-
-		if(stripHtml) {
-			txt = strip_html(txt);
+	set_title: function(title, icon=null, strip=true, tab_title="") {
+		if (!title) title = "";
+		if (strip) {
+			title = strip_html(title);
 		}
-		this.title = txt;
-
-		frappe.utils.set_title(tabTitle || txt);
-		if(icon) {
-			txt = '<span class="'+ icon +' text-muted" style="font-size: inherit;"></span> ' + txt;
+		this.title = title;
+		frappe.utils.set_title(tab_title || title);
+		if (icon) {
+			title = `${frappe.utils.icon(icon)} ${title}`;
 		}
-		this.$title_area.find(".title-text").html(txt);
+		let title_wrapper = this.$title_area.find(".title-text");
+		title_wrapper.html(title);
+		title_wrapper.attr('title', this.title);
 	},
 
 	set_title_sub: function(txt) {
@@ -565,8 +686,50 @@ frappe.ui.Page = Class.extend({
 		//
 	},
 
-	add_button: function(label, click, icon, is_title) {
-		//
+	add_button: function(label, click, opts) {
+		if (!opts) opts = {};
+		let button = $(`<button
+			class="btn ${opts.btn_class || 'btn-default'} ${opts.btn_size || 'btn-sm'} ellipsis">
+				${opts.icon ? frappe.utils.icon(opts.icon): ''}
+				${label}
+		</button>`);
+		button.appendTo(this.custom_actions);
+		button.on('click', click);
+		this.custom_actions.removeClass('hide');
+
+		return button;
+	},
+
+	add_custom_button_group: function(label, icon, parent) {
+		let dropdown_label = `<span class="hidden-xs">
+			<span class="custom-btn-group-label">${__(label)}</span>
+			${frappe.utils.icon('select', 'xs')}
+		</span>`;
+
+		if (icon) {
+			dropdown_label = `<span class="hidden-xs">
+				${frappe.utils.icon(icon)}
+				<span class="custom-btn-group-label">${__(label)}</span>
+				${frappe.utils.icon('select', 'xs')}
+			</span>
+			<span class="visible-xs">
+				${frappe.utils.icon(icon)}
+			</span>`;
+		}
+
+		let custom_btn_group = $(`
+			<div class="custom-btn-group">
+				<button type="button" class="btn btn-default btn-sm ellipsis" data-toggle="dropdown" aria-expanded="false">
+					${dropdown_label}
+				</button>
+				<ul class="dropdown-menu" role="menu"></ul>
+			</div>
+		`);
+
+		if (!parent) parent = this.custom_actions;
+		parent.removeClass('hide').append(custom_btn_group);
+
+		return custom_btn_group.find('.dropdown-menu');
 	},
 
 	add_dropdown_button: function(parent, label, click, icon) {
@@ -600,7 +763,7 @@ frappe.ui.Page = Class.extend({
 		// add further fields in the next line
 		this.page_form.append('<div class="clearfix invisible-xs"></div>');
 	},
-	add_field: function(df) {
+	add_field: function(df, parent) {
 		this.show_form();
 
 		if (!df.placeholder) {
@@ -609,13 +772,16 @@ frappe.ui.Page = Class.extend({
 
 		var f = frappe.ui.form.make_control({
 			df: df,
-			parent: this.page_form,
-			only_input: df.fieldtype=="Check" ? false : true,
+			parent: parent || this.page_form,
+			only_input: df.fieldtype == "Check" ? false : true,
 		})
 		f.refresh();
 		$(f.wrapper)
 			.addClass('col-md-2')
-			.attr("title", __(df.label)).tooltip();
+			.attr("title", __(df.label)).tooltip({
+				delay: { "show": 600, "hide": 100},
+				trigger: "hover"
+			});
 
 		// html fields in toolbar are only for display
 		if (df.fieldtype=='HTML') {
@@ -625,7 +791,7 @@ frappe.ui.Page = Class.extend({
 		// hidden fields dont have $input
 		if (!f.$input) f.make_input();
 
-		f.$input.addClass("input-sm").attr("placeholder", __(df.label));
+		f.$input.addClass("input-xs").attr("placeholder", __(df.label));
 
 		if(df.fieldtype==="Check") {
 			$(f.wrapper).find(":first-child")
@@ -633,8 +799,8 @@ frappe.ui.Page = Class.extend({
 		}
 
 		if(df.fieldtype=="Button") {
-			$(f.wrapper).find(".page-control-label").html("&nbsp;")
-			f.$input.addClass("btn-sm").css({"width": "100%", "margin-top": "-1px"});
+			$(f.wrapper).find(".page-control-label").html("&nbsp;");
+			f.$input.addClass("btn-xs").css({"width": "100%", "margin-top": "-1px"});
 		}
 
 		if(df["default"])
