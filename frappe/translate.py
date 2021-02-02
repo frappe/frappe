@@ -118,7 +118,7 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
-			messages += frappe.db.sql("select '', format from `tabDesk Shortcut` where format is not null")
+			messages += frappe.db.sql("select '', format from `tabWorkspace Shortcut` where format is not null")
 			messages += frappe.db.sql("select '', title from `tabOnboarding Step`")
 
 		message_dict = make_dict_from_messages(messages, load_user_translation=False)
@@ -340,7 +340,7 @@ def get_messages_from_doctype(name):
 				messages.extend(options)
 		if d.fieldtype=='HTML' and d.options:
 			messages.append(d.options)
-				
+
 	# translations of roles
 	for d in meta.get("permissions"):
 		if d.role:

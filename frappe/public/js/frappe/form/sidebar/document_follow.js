@@ -6,6 +6,10 @@ frappe.provide('frappe.ui.form');
 frappe.ui.form.DocumentFollow = class DocumentFollow {
 	constructor(opts) {
 		$.extend(this, opts);
+		if (!frappe.boot.user.document_follow_notify) {
+			this.hide_follow_section();
+			return;
+		}
 		this.follow_document_link = this.parent.find('.follow-document-link');
 		this.unfollow_document_link = this.parent.find('.unfollow-document-link');
 		this.follow_span = this.parent.find('.anchor-document-follow > span');

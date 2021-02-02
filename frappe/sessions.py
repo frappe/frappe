@@ -21,7 +21,7 @@ from six.moves.urllib.parse import unquote
 from six import text_type
 from frappe.cache_manager import clear_user_cache
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def clear(user=None):
 	frappe.local.session_obj.update(force=True)
 	frappe.local.db.commit()
@@ -115,7 +115,6 @@ def clear_expired_sessions():
 		delete_session(sid, reason="Session Expired")
 
 def get():
-
 	"""get session boot info"""
 	from frappe.boot import get_bootinfo, get_unseen_notes
 

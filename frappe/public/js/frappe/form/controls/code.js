@@ -23,6 +23,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		const ace = window.ace;
 		this.editor = ace.edit(this.ace_editor_target.get(0));
 		this.editor.setTheme('ace/theme/tomorrow');
+		this.editor.setOption("showPrintMargin", false);
 		this.set_language();
 
 		// events
