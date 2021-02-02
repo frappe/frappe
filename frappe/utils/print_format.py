@@ -125,4 +125,4 @@ def print_by_server(doctype, name, print_format=None, doc=None, no_letterhead=0)
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
 	finally:
-		cleanup(file,{})
+		cleanup({})

@@ -473,7 +473,7 @@ frappe.ui.form.PrintView = class {
 							name: me.frm.doc.name,
 							print_format: me.selected_format(),
 							no_letterhead: me.with_letterhead(),
-							letterhead: this.get_letterhead(),
+							letterhead: me.get_letterhead(),
 						},
 						callback: function() {},
 					});
