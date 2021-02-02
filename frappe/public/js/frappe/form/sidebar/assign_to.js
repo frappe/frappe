@@ -40,7 +40,8 @@ frappe.ui.form.AssignTo = Class.extend({
 			new frappe.ui.form.AssignmentDialog({
 				assignments: assigned_users,
 				frm: this.frm,
-				remove_action: this.remove.bind(this)
+				remove_action: this.remove.bind(this),
+				add_action: this.add.bind(this),
 			});
 		});
 	},
@@ -215,6 +216,7 @@ frappe.ui.form.AssignmentDialog = class {
 		this.frm = opts.frm;
 		this.assignments = opts.assignments;
 		this.remove_action = opts.remove_action;
+		this.add_action = opts.add_action;
 		this.make();
 	}
 
@@ -225,15 +227,23 @@ frappe.ui.form.AssignmentDialog = class {
 			fields: [{
 				'fieldtype': 'HTML',
 				'fieldname': 'assignment_list'
+			},{
+				'fieldtype': 'HTML',
+				'fieldname': 'add_assignment'
 			}]
 		});
 
 		this.assignment_list = $(this.dialog.get_field('assignment_list').wrapper);
 		this.assignment_list.removeClass('frappe-control');
 
+		this.add_assignment = $(this.dialog.get_field('add_assignment').wrapper);
+		this.add_assignment.removeClass('frappe-control');
+
 		this.assignments.forEach(assignment => {
 			this.update_assignment(assignment);
 		});
+
+		this.add_assignment.append(this.get_assignment_btn());
 		this.dialog.show();
 	}
 	update_assignment(assignment) {
@@ -261,5 +271,24 @@ frappe.ui.form.AssignmentDialog = class {
 			});
 		}
 		return row;
+	}
+	get_assignment_btn() {
+		let btn = $(`
+			<button class="btn btn-default btn-xs mt-2">
+				<svg class="icon icon-sm">
+					<use href="#icon-add"></use>
+				</svg>
+				<span>
+					${__("Add Assignment")}
+				</span>
+			</button>`
+		);
+
+		btn.click(() => {
+			this.dialog.hide();
+			this.add_action && this.add_action();
+		});
+
+		return btn;
 	}
 };
