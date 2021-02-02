@@ -111,11 +111,12 @@ def get_percentage_difference(doc, filters, result):
 
 	previous_result = calculate_previous_result(doc, filters)
 	if previous_result == 0:
-		difference = result
+		return NaN
 	else:
-		difference = ((result/previous_result)-1)*100.0
-
-	return difference
+		if result == previous_result:
+			return 0
+		else:
+			return ((result/previous_result)-1)*100.0
 
 
 def calculate_previous_result(doc, filters):
@@ -124,28 +125,13 @@ def calculate_previous_result(doc, filters):
 	current_date = frappe.utils.now()
 	if doc.stats_time_interval == 'Daily':
 		previous_date = add_to_date(current_date, days=-1)
-		previous_date_from = add_to_date(current_date, days=-2)
 	elif doc.stats_time_interval == 'Weekly':
 		previous_date = add_to_date(current_date, weeks=-1)
-		previous_date_from = add_to_date(current_date, weeks=-2)
 	elif doc.stats_time_interval == 'Monthly':
 		previous_date = add_to_date(current_date, months=-1)
-		previous_date_from = add_to_date(current_date, months=-2)
 	else:
 		previous_date = add_to_date(current_date, years=-1)
-		previous_date_from = add_to_date(current_date, years=-2)
-
-	filters = frappe.parse_json(filters)
-	old_filter = filters
-	filters = []
-	for filter in old_filter:
-		if "Timespan" in filter:
-			cond = str(filter[1])
-			filters.append([doc.document_type, cond, '>', previous_date_from])
-			filters.append([doc.document_type, cond, '<', previous_date])
-		else:
-			filters.append(filter)
-
+		
 	number = get_result(doc, filters, previous_date)
 	return number
 
