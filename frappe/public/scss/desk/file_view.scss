@@ -1,0 +1,143 @@
+.file-view {
+
+	.no-result {
+		.breadcrumbs {
+			font-size: var(--text-md);
+			margin-left: var(--margin-md);
+			margin-top: var(--margin-md);
+		}
+	}
+
+	.list-paging-area {
+		padding: var(--padding-md) var(--padding-sm);
+	}
+
+	.file-grid-view {
+
+		.file-grid.folders {
+			margin-bottom: var(--margin-2xl);
+		}
+
+		.list-row-head {
+			padding: var(--padding-sm);
+		}
+
+		.file-grid-head {
+			color: var(--text-muted);
+			padding: var(--padding-md) 17px;
+			font-size: var(--text-md);
+		}
+
+		.file-grid {
+			padding: var(--padding-sm);
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+			grid-gap: var(--margin-md);
+			max-width: 100%;
+
+			.file-wrapper {
+				position: relative;
+				height: 160px;
+				@include flex(flex, space-between, null, column);
+				width: 100%;
+				border: 1px solid var(--border-color);
+				border-radius: var(--border-radius);
+				text-decoration: none;
+
+				.file-header {
+					position: absolute;
+					left: var(--padding-sm);
+					top: var(--padding-sm);
+
+					.list-row-checkbox {
+						&:before {
+							display: none;
+						}
+
+						&:checked:before {
+							display: block;
+							z-index: 1;
+						}
+					}
+
+				}
+
+				.file-footer {
+					padding: var(--padding-sm);
+					background-color: var(--fg-color);
+				}
+
+				.file-body {
+					height: 105px;
+					@include flex(flex, null, center, row);
+					background: var(--bg-color);
+				}
+
+				.file-title {
+					font-size: var(--text-md);
+					font-weight: 500;
+				}
+
+				.file-creation {
+					font-size: var(--text-xs);
+					color: var(--text-on-gray);
+				}
+
+				.file-image {
+					max-height: 100%;
+					display: flex;
+					width: 100%;
+					min-width: 100%;
+
+					img {
+						border-radius: var(--border-radius) var(--border-radius) 0 0;
+						object-position: top;
+						object-fit: cover;
+						margin: 0 auto;
+						color: transparent;
+						position: relative;
+					}
+
+					img:after {
+						content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='lightgrey' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-image'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>");
+					}
+
+					img[alt]:after {
+						height: 70px;
+						@include flex();
+						position: absolute;
+						z-index: 1;
+						top: -15px;
+						left: 0px;
+						width: 100%;
+						background-color: var(--bg-color);
+						border-radius: var(--border-radius);
+					}
+				}
+			}
+
+			.file-wrapper:hover {
+
+				.list-row-checkbox {
+					&:before {
+						display: block;
+						z-index: 1;
+					}
+				}
+
+				img {
+					filter: opacity(15%);
+				}
+			}
+
+			.file-wrapper.selected {
+				border: 2px solid var(--yellow-100);
+			}
+
+			.file-wrapper.cut {
+				border: 2px dashed var(--dark-border-color)
+			}
+		}
+	}
+
+}

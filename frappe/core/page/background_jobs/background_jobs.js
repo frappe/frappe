@@ -1,64 +1,73 @@
-frappe.pages['background_jobs'].on_page_load = function(wrapper) {
-	let page = frappe.ui.make_app_page({
-		parent: wrapper,
-		title: __('Background Jobs'),
-		single_column: true
+frappe.pages["background_jobs"].on_page_load = (wrapper) => {
+	const background_job = new BackgroundJobs(wrapper);
+
+	$(wrapper).bind('show', () => {
+		background_job.show();
 	});
 
-	$(frappe.render_template('background_jobs_outer')).appendTo(page.body);
-	page.content = $(page.body).find('.table-area');
-
-	frappe.pages.background_jobs.page = page;
-
-	let $remove_failed_btn = page.body.find('.remove-failed');
-	$remove_failed_btn.click(remove_failed_jobs);
-}
-
-frappe.pages['background_jobs'].on_page_show = function(wrapper) {
-	frappe.pages.background_jobs.refresh_jobs();
-	frappe.call({
-		method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
-		callback: function(r) {
-			frappe.pages.background_jobs.page.set_indicator(...r.message);
-		}
-	});
-}
-
-frappe.pages.background_jobs.refresh_jobs = function() {
-	let page = frappe.pages.background_jobs.page;
-
-	// don't call if already waiting for a response
-	if (page.called) return;
-	page.called = true;
-	frappe.call({
-		method: 'frappe.core.page.background_jobs.background_jobs.get_info',
-		args: {
-			show_failed: page.body.find('.show-failed').prop('checked') ? 1 : 0
-		},
-		callback: function(r) {
-			page.called = false;
-			page.body.find('.list-jobs').remove();
-			$(frappe.render_template('background_jobs', { jobs: r.message || [] })).appendTo(page.content);
-
-			let $remove_failed_btn = page.body.find('.remove-failed');
-			if (r.message && r.message.length > 0) {
-				$remove_failed_btn.show();
-			} else {
-				$remove_failed_btn.hide();
-			}
-
-			if (frappe.get_route()[0] === 'background_jobs') {
-				frappe.background_jobs_timeout = setTimeout(frappe.pages.background_jobs.refresh_jobs, 2000);
-			}
-		}
-	});
-}
-
-const remove_failed_jobs = function() {
-	frappe.call({
-		method: 'frappe.core.page.background_jobs.background_jobs.remove_failed_jobs',
-		callback: function () {
-			frappe.pages.background_jobs.refresh_jobs();
-		}
-	});
+	window.background_jobs = background_job;
 };
+
+class BackgroundJobs {
+	constructor(wrapper) {
+		this.page = frappe.ui.make_app_page({
+			parent: wrapper,
+			title: __('Background Jobs'),
+			single_column: true
+		});
+
+		this.called = false;
+		this.show_failed = false;
+
+		this.show_failed_button = this.page.add_inner_button(__("Show Failed Jobs"), () => {
+			this.show_failed = !this.show_failed;
+			if (this.show_failed_button) {
+				this.show_failed_button.text(
+					this.show_failed ? __("Hide Failed Jobs") : __("Show Failed Jobs")
+				);
+			}
+		});
+
+		$(frappe.render_template('background_jobs_outer')).appendTo(this.page.body);
+		this.content = $(this.page.body).find('.table-area');
+	}
+
+	show() {
+		this.refresh_jobs();
+		frappe.call({
+			method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
+			callback: res => {
+				this.page.set_indicator(...res.message);
+			}
+		});
+	}
+
+	refresh_jobs() {
+		if (this.called) return;
+		this.called = true;
+
+		frappe.call({
+			method: 'frappe.core.page.background_jobs.background_jobs.get_info',
+			args: {
+				show_failed: this.show_failed
+			},
+			callback: (res) => {
+				this.called = false;
+				this.page.body.find('.list-jobs').remove();
+				$(frappe.render_template('background_jobs', { jobs: res.message || [] })).appendTo(this.content);
+
+				// add a "Remove Failed Jobs button"
+				let $remove_failed_btn = this.body.find('.remove-failed');
+				if (res.message && res.message.length > 0) {
+					$remove_failed_btn.show();
+				} else {
+					$remove_failed_btn.hide();
+				}
+
+				if (frappe.get_route()[0] === 'background_jobs') {
+					setTimeout(() => this.refresh_jobs(), 2000);
+				}
+			}
+		});
+	}
+}

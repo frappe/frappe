@@ -135,8 +135,8 @@ $.extend(frappe.model, {
 			let cached_timestamp = null;
 			let cached_doc = null;
 
-			let cached_docs = frappe.model.get_from_localstorage(doctype)
-			
+			let cached_docs = frappe.model.get_from_localstorage(doctype);
+
 			if (cached_docs) {
 				cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
 				if(cached_doc) {
@@ -252,6 +252,10 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_create.indexOf(doctype)!==-1;
 	},
 
+	can_select: function(doctype) {
+		return frappe.boot.user.can_select.indexOf(doctype)!==-1;
+	},
+
 	can_read: function(doctype) {
 		return frappe.boot.user.can_read.indexOf(doctype)!==-1;
 	},
@@ -298,6 +302,11 @@ $.extend(frappe.model, {
 	is_tree: function(doctype) {
 		if (!doctype) return false;
 		return frappe.boot.treeviews.indexOf(doctype) != -1;
+	},
+
+	is_fresh(doc) {
+		// returns true if document has been recently loaded (5 seconds ago)
+		return doc && doc.__last_sync_on && ((new Date() - doc.__last_sync_on)) < 5000;
 	},
 
 	can_import: function(doctype, frm) {

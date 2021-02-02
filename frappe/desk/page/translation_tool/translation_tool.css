@@ -5,6 +5,7 @@
 	cursor: pointer;
 	overflow: hidden;
 }
+
 .translation-item:hover {
 	background-color: #fafbfc;
 }
@@ -19,8 +20,9 @@
 }
 
 .translation-tool {
-	border: 0px 1px 1px 1px solid #d1d8dd;
+	display: flex;
 	width: 100%;
+	padding: 0;
 	height: 72vh;
 }
 

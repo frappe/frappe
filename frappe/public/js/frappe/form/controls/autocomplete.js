@@ -88,6 +88,22 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 			}
 		});
 
+		this.$input.on("awesomplete-open", () => {
+			let modal = this.$input.parents('.modal-dialog')[0];
+			if (modal) {
+				$(modal).removeClass("modal-dialog-scrollable");
+			}
+			this.autocomplete_open = true;
+		});
+
+		this.$input.on("awesomplete-close", () => {
+			let modal = this.$input.parents('.modal-dialog')[0];
+			if (modal) {
+				$(modal).addClass("modal-dialog-scrollable");
+			}
+			this.autocomplete_open = false;
+		});
+
 		this.$input.on('awesomplete-selectcomplete', () => {
 			this.$input.trigger('change');
 		});

@@ -13,15 +13,14 @@ context('Table MultiSelect', () => {
 		cy.get('input[data-fieldname="users"]').focus().as('input');
 		cy.get('input[data-fieldname="users"] + ul').should('be.visible');
 		cy.get('@input').type('test{enter}', { delay: 100 });
-		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value')
-			.first().as('selected-value');
+		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value .btn-link-to-form')
+			.as('selected-value');
 		cy.get('@selected-value').should('contain', 'test@erpnext.com');
 
-		cy.server();
-		cy.route('POST', '/api/method/frappe.desk.form.save.savedocs').as('save_form');
+		cy.intercept('POST', '/api/method/frappe.desk.form.save.savedocs').as('save_form');
 		// trigger save
 		cy.get('.primary-action').click();
-		cy.wait('@save_form').its('status').should('eq', 200);
+		cy.wait('@save_form').its('response.statusCode').should('eq', 200);
 		cy.get('@selected-value').should('contain', 'test@erpnext.com');
 	});
 
@@ -46,6 +45,6 @@ context('Table MultiSelect', () => {
 		cy.get(`.list-subject:contains("table multiselect")`).last().find('a').click();
 		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value').as('existing_value');
 		cy.get('@existing_value').find('.btn-link-to-form').click();
-		cy.location('hash').should('contain', 'Form/User/test@erpnext.com');
+		cy.location('pathname').should('contain', '/user/test@erpnext.com');
 	});
 });

@@ -10,7 +10,15 @@ from frappe import _
 from itertools import groupby
 
 @frappe.whitelist()
-def follow_document(doctype, doc_name, user, force=False):
+def update_follow(doctype, doc_name, following):
+	if following:
+		return follow_document(doctype, doc_name, frappe.session.user)
+	else:
+		return unfollow_document(doctype, doc_name, frappe.session.user)
+
+
+@frappe.whitelist()
+def follow_document(doctype, doc_name, user):
 	'''
 		param:
 		Doctype name
@@ -76,7 +84,6 @@ def send_email_alert(receiver, docinfo, timeline):
 		)
 
 def send_document_follow_mails(frequency):
-
 	'''
 		param:
 		frequency for sanding mails
