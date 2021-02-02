@@ -17,3 +17,4 @@ def execute():
 		rename_doc('DocType', 'Desk Link', 'Workspace Link', ignore_if_exists=True)
 
 	frappe.reload_doc('desk', 'doctype', 'workspace')
+	frappe.reload_doc('desk', 'doctype', 'workspace_link')
