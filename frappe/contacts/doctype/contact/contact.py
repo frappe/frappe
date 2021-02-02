@@ -97,10 +97,15 @@ class Contact(Document):
 		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
 			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold("Email ID")))
 
+		found_primar_email = 0
 		for d in self.email_ids:
 			if d.is_primary == 1:
+				found_primar_email = 1 
 				self.email_id = d.email_id.strip()
 				break
+
+		if not found_primar_email:
+			self.email_id = ""
 
 	def set_primary(self, fieldname):
 		# Used to set primary mobile and phone no.
@@ -115,10 +120,15 @@ class Contact(Document):
 		if len(is_primary) > 1:
 			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
 
+		found_primary = 0 
 		for d in self.phone_nos:
 			if d.get(field_name) == 1:
+				found_primary = 1 
 				setattr(self, fieldname, d.phone)
 				break
+
+		if not found_primary:
+			setattr(self, fieldname, "")
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
