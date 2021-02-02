@@ -664,7 +664,7 @@ class DocType(Document):
 		if not re.match("^(?![\W])[^\d_\s][\w ]+$", name, **flags):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
-		validate_route_conflict(self.doctype, self.name)	
+		validate_route_conflict(self.doctype, self.name)
 
 def validate_links_table_fieldnames(meta):
 	"""Validate fieldnames in Links table"""
