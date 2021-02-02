@@ -138,7 +138,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 '''
 		transformed_html = '''
 <h3>Hi John</h3>
-<p style="margin:1em 0 !important">This is a test email</p>
+<p style="margin:5px 0 !important">This is a test email</p>
 '''
 		self.assertTrue(transformed_html in inline_style_in_html(html))
 
@@ -154,10 +154,8 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			content=email_html,
 			header=['Email Title', 'green']
 		).as_string().replace("\r\n", "\n")
-
-		self.assertTrue('''<span class=3D"indicator indicator-green" style=3D"background-color:#98=
-d85b; border-radius:8px; display:inline-block; height:8px; margin-right:5px=
-; width:8px" bgcolor=3D"#98d85b" height=3D"8" width=3D"8"></span>''' in email_string)
+		# REDESIGN-TODO: Add style for indicators in email
+		self.assertTrue('''<span class=3D"indicator indicator-green"></span>''' in email_string)
 		self.assertTrue('<span>Email Title</span>' in email_string)
 
 	def test_get_email_header(self):

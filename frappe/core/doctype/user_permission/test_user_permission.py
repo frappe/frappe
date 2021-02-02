@@ -3,6 +3,7 @@
 # See license.txt
 from __future__ import unicode_literals
 from frappe.core.doctype.user_permission.user_permission import add_user_permissions
+from frappe.permissions import has_user_permission
 
 import frappe
 import unittest
@@ -10,7 +11,12 @@ import unittest
 class TestUserPermission(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""DELETE FROM `tabUser Permission`
-			WHERE `user` in ('test_bulk_creation_update@example.com', 'test_user_perm1@example.com')""")
+			WHERE `user` in (
+				'test_bulk_creation_update@example.com',
+				'test_user_perm1@example.com',
+				'nested_doc_user@example.com')""")
+		frappe.delete_doc_if_exists("DocType", "Person")
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabPerson`")
 
 	def test_default_user_permission_validation(self):
 		user = create_user('test_default_permission@example.com')
@@ -108,6 +114,45 @@ class TestUserPermission(unittest.TestCase):
 		self.assertIsNone(removed_applicable_second)
 		self.assertEquals(is_created, 1)
 
+	def test_user_perm_for_nested_doctype(self):
+		"""Test if descendants' visibility is controlled for a nested DocType."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		user = create_user("nested_doc_user@example.com", "Blogger")
+		if not frappe.db.exists("DocType", "Person"):
+			doc = new_doctype("Person",
+				fields=[
+					{
+						"label": "Person Name",
+						"fieldname": "person_name",
+						"fieldtype": "Data"
+					}
+				], unique=0)
+			doc.is_tree = 1
+			doc.insert()
+
+		parent_record = frappe.get_doc(
+			{"doctype": "Person", "person_name": "Parent", "is_group": 1}
+		).insert()
+
+		child_record = frappe.get_doc(
+			{"doctype": "Person", "person_name": "Child", "is_group": 0, "parent_person": parent_record.name}
+		).insert()
+
+		add_user_permissions(get_params(user, "Person", parent_record.name))
+
+		# check if adding perm on a group record, makes child record visible
+		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
+		self.assertTrue(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
+
+		frappe.db.set_value("User Permission", {"allow": "Person", "for_value": parent_record.name}, "hide_descendants", 1)
+		frappe.cache().delete_value("user_permissions")
+
+		# check if adding perm on a group record with hide_descendants enabled,
+		# hides child records
+		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
+		self.assertFalse(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
+
 def create_user(email, role="System Manager"):
 	''' create user with role system manager '''
 	if frappe.db.exists('User', email):
@@ -119,7 +164,7 @@ def create_user(email, role="System Manager"):
 		user.add_roles(role)
 		return user
 
-def get_params(user, doctype, docname, is_default=0, applicable=None):
+def get_params(user, doctype, docname, is_default=0, hide_descendants=0, applicable=None):
 	''' Return param to insert '''
 	param = {
 		"user": user.name,
@@ -127,7 +172,8 @@ def get_params(user, doctype, docname, is_default=0, applicable=None):
 		"docname":docname,
 		"is_default": is_default,
 		"apply_to_all_doctypes": 1,
-		"applicable_doctypes": []
+		"applicable_doctypes": [],
+		"hide_descendants": hide_descendants
 	}
 	if applicable:
 		param.update({"apply_to_all_doctypes": 0})

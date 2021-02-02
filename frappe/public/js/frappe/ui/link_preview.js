@@ -190,7 +190,7 @@ frappe.ui.LinkPreview = class {
 				let label = key;
 				content_html += `
 					<div class="preview-field">
-						<div class='small preview-label text-muted bold'>${label}</div>
+						<div class='small preview-label text-muted bold'>${__(label)}</div>
 						<div class="small preview-value">${value}</div>
 					</div>
 				`;
@@ -202,8 +202,8 @@ frappe.ui.LinkPreview = class {
 			<div class="preview-popover-header">${image_html}
 				<div class="preview-header">
 					<div class="preview-main">
-						<a class="preview-name bold" href=${this.href}>${preview_data.preview_title}</a>
-						<span class="text-muted small">${this.doctype} ${id_html}</span>
+						<a class="preview-name bold" href=${this.href}>${__(preview_data.preview_title)}</a>
+						<span class="text-muted small">${__(this.doctype)} ${id_html}</span>
 					</div>
 				</div>
 			</div>
