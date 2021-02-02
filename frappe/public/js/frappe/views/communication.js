@@ -55,38 +55,85 @@ frappe.views.CommunicationComposer = Class.extend({
 	get_fields: function() {
 		let contactList = [];
 		var fields= [
-			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients",options:contactList},
-			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Email Template")},
-			{label:__("CC"), fieldtype:"MultiSelect", fieldname:"cc",options:contactList},
-			{label:__("BCC"), fieldtype:"MultiSelect", fieldname:"bcc",options:contactList},
-			{label:__("Email Template"), fieldtype:"Link", options:"Email Template",
-				fieldname:"email_template"},
-			{fieldtype: "Section Break"},
-			{label:__("Subject"), fieldtype:"Data", reqd: 1,
-				fieldname:"subject", length:524288},
-			{fieldtype: "Section Break"},
 			{
-				label:__("Message"),
-				fieldtype:"Text Editor", reqd: 1,
-				fieldname:"content",
+				label: __("To"),
+				fieldtype: "MultiSelect",
+				reqd: 0,
+				fieldname: "recipients",
+				options: contactList
+			},
+			{
+				fieldtype: "Section Break",
+				collapsible: 1,
+				label: __("CC, BCC & Email Template")
+			},
+			{
+				label: __("CC"),
+				fieldtype: "MultiSelect",
+				fieldname: "cc",
+				options: contactList
+			},
+			{
+				label: __("BCC"),
+				fieldtype: "MultiSelect",
+				fieldname: "bcc",
+				options: contactList
+			},
+			{
+				label: __("Email Template"),
+				fieldtype: "Link",
+				options: "Email Template",
+				fieldname: "email_template"
+			},
+			{ fieldtype: "Section Break" },
+			{
+				label: __("Subject"),
+				fieldtype: "Data",
+				reqd: 1,
+				fieldname: "subject",
+				length: 524288
+			},
+			{ fieldtype: "Section Break" },
+			{
+				label: __("Message"),
+				fieldtype: "Text Editor",
+				fieldname: "content",
 				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300)
 			},
-
-			{fieldtype: "Section Break"},
-			{fieldtype: "Column Break"},
-			{label:__("Send me a copy"), fieldtype:"Check",
-				fieldname:"send_me_a_copy", 'default': frappe.boot.user.send_me_a_copy},
-			{label:__("Send Read Receipt"), fieldtype:"Check",
-				fieldname:"send_read_receipt"},
-			{label:__("Attach Document Print"), fieldtype:"Check",
-				fieldname:"attach_document_print"},
-			{label:__("Select Print Format"), fieldtype:"Select",
-				fieldname:"select_print_format"},
-			{label:__("Select Languages"), fieldtype:"Select",
-				fieldname:"language_sel"},
-			{fieldtype: "Column Break"},
-			{label:__("Select Attachments"), fieldtype:"HTML",
-				fieldname:"select_attachments"}
+			{ fieldtype: "Section Break" },
+			{ fieldtype: "Column Break" },
+			{
+				label: __("Send me a copy"),
+				fieldtype: "Check",
+				fieldname: "send_me_a_copy",
+				'default': frappe.boot.user.send_me_a_copy
+			},
+			{
+				label: __("Send Read Receipt"),
+				fieldtype: "Check",
+				fieldname: "send_read_receipt"
+			},
+			{
+				label: __("Attach Document Print"),
+				fieldtype: "Check",
+				fieldname: "attach_document_print"
+			},
+			{
+				label: __("Select Print Format"),
+				fieldtype: "Select",
+				fieldname: "select_print_format"
+			},
+			{
+				label: __("Select Languages"),
+				fieldtype: "Select",
+				fieldname: "language_sel"
+			},
+			{ fieldtype: "Column Break" },
+			{
+				label: __("Select Attachments"),
+				fieldtype: "HTML",
+				fieldname: "select_attachments"
+			}
 		];
 
 		// add from if user has access to multiple email accounts
@@ -625,9 +672,18 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 	},
 
-	setup_earlier_reply: function() {
+	get_default_outgoing_email_account_signature: function() {
+		return frappe.db.get_value('Email Account', { 'default_outgoing': 1, 'add_signature': 1 }, 'signature');
+	},
+
+	setup_earlier_reply: async function() {
 		let fields = this.dialog.fields_dict;
 		let signature = frappe.boot.user.email_signature || "";
+
+		if (!signature) {
+			const res = await this.get_default_outgoing_email_account_signature();
+			signature = res.message.signature;
+		}
 
 		if(!frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
@@ -709,4 +765,3 @@ frappe.views.CommunicationComposer = Class.extend({
 		return text.replace(/\n{3,}/g, '\n\n');
 	}
 });
-

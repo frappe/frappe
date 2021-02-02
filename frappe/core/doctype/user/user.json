@@ -51,9 +51,9 @@
   "send_me_a_copy",
   "allowed_in_mentions",
   "email_signature",
-  "email_inbox",
   "user_emails",
   "sb_allow_modules",
+  "module_profile",
   "modules_html",
   "block_modules",
   "home_settings",
@@ -577,6 +577,12 @@
    "fieldtype": "Password",
    "label": "API Secret",
    "read_only": 1
+  },
+  {
+   "fieldname": "module_profile",
+   "fieldtype": "Link",
+   "label": "Module Profile",
+   "options": "Module Profile"
   }
  ],
  "icon": "fa fa-user",
@@ -642,10 +648,15 @@
    "group": "Activity",
    "link_doctype": "ToDo",
    "link_fieldname": "owner"
+  },
+  {
+   "group": "Integrations",
+   "link_doctype": "Token Cache",
+   "link_fieldname": "user"
   }
  ],
  "max_attachments": 5,
- "modified": "2020-08-26 19:48:49.677800",
+ "modified": "2020-10-18 15:18:53.126800",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

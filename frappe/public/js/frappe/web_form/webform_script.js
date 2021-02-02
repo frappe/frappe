@@ -85,6 +85,7 @@ frappe.ready(function() {
 
 		function setup_fields(form_data) {
 			form_data.web_form.web_form_fields.map(df => {
+				df.is_web_form = true;
 				if (df.fieldtype === "Table") {
 					df.get_data = () => {
 						let data = [];
@@ -99,13 +100,12 @@ frappe.ready(function() {
 						if (field.fieldtype === "Link") {
 							field.only_select = true;
 						}
+						field.is_web_form = true;
 					});
 
 					if (df.fieldtype === "Attach") {
 						df.is_private = true;
 					}
-
-					df.is_web_form = true;
 
 					delete df.parent;
 					delete df.parentfield;

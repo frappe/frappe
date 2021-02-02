@@ -10,7 +10,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			.appendTo(this.input_area);
 
 		this.expanded = false;
-		this.$expand_button = $(`<button class="btn btn-xs btn-default">${__('Expand')}</button>`).click(() => {
+		this.$expand_button = $(`<button class="btn btn-xs btn-default">${this.get_button_label()}</button>`).click(() => {
 			this.expanded = !this.expanded;
 			this.refresh_height();
 			this.toggle_label();
@@ -38,8 +38,11 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	},
 
 	toggle_label() {
-		const button_label = this.expanded ? __('Collapse') : __('Expand');
-		this.$expand_button && this.$expand_button.text(button_label);
+		this.$expand_button && this.$expand_button.text(this.get_button_label());
+	},
+
+	get_button_label() {
+		return this.expanded ? __('Collapse', null, 'Shrink code field.') : __('Expand', null, 'Enlarge code field.');
 	},
 
 	set_language() {
