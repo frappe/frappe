@@ -104,11 +104,15 @@ class PersonalDataDeletionRequest(Document):
 				))
 		self.db_set('status', 'Deleted')
 
+
 def remove_unverified_record():
-	frappe.db.sql("""
+	frappe.db.sql(
+		"""
 		DELETE FROM `tabPersonal Data Deletion Request`
 		WHERE `status` = 'Pending Verification'
-		AND `creation` < (NOW() - INTERVAL '7' DAY)""")
+		AND `creation` < (NOW() - INTERVAL '7' DAY)"""
+	)
+
 
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email, name, host_name):
@@ -117,15 +121,23 @@ def confirm_deletion(email, name, host_name):
 
 	doc = frappe.get_doc("Personal Data Deletion Request", name)
 	host_name = frappe.local.site
-	if doc.status == 'Pending Verification':
-		doc.status = 'Pending Approval'
+
+	if doc.status == "Pending Verification":
+		doc.status = "Pending Approval"
 		doc.save(ignore_permissions=True)
 		doc.notify_system_managers()
 		frappe.db.commit()
-		frappe.respond_as_web_page(_("Confirmed"),
-			_("The process for deletion of {0} data associated with {1} has been initiated.").format(host_name, email),
-			indicator_color='green')
+		frappe.respond_as_web_page(
+			_("Confirmed"),
+			_(
+				"The process for deletion of {0} data associated with {1} has been initiated."
+			).format(host_name, email),
+			indicator_color="green",
+		)
+
 	else:
-		frappe.respond_as_web_page(_("Link Expired"),
+		frappe.respond_as_web_page(
+			_("Link Expired"),
 			_("This link has already been activated for verification."),
-			indicator_color='red')
+			indicator_color="red",
+		)
