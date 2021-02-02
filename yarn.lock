@@ -2472,10 +2472,10 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-frappe-charts@^2.0.0-rc4:
-  version "2.0.0-rc4"
-  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc4.tgz#f3cb2b91cd40e84a2a26a0fdb2aebf8d78d5dce0"
-  integrity sha512-ZQSIXpAik0++xSk/OHU+2MV1UsZk4CBFsTf15T02kWjVgVgryYnUxFg8wYQpfll3er4rrC9g0fUuYfO42dNsEA==
+frappe-charts@^2.0.0-rc5:
+  version "2.0.0-rc5"
+  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc5.tgz#16f5c744c3cdb134a41bb4581ea3c816e6b8601f"
+  integrity sha512-4wEsSeGVlEBxr3qA2FF/CTrn+XRjf73txdID+vEBhr22Osc+wcJNhY5sJWFtq4wrihz3WHFnNOTGu+uUNdb0lw==
 
 frappe-datatable@^1.15.3:
   version "1.15.3"
