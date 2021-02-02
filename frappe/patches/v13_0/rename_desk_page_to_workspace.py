@@ -13,8 +13,9 @@ def execute():
 
 	rename_doc('DocType', 'Desk Chart', 'Workspace Chart', ignore_if_exists=True)
 	rename_doc('DocType', 'Desk Shortcut', 'Workspace Shortcut', ignore_if_exists=True)
-	if frappe.db.exists('DocType', 'Desk Link'):
-		rename_doc('DocType', 'Desk Link', 'Workspace Link', ignore_if_exists=True)
+	rename_doc('DocType', 'Desk Link', 'Workspace Link', ignore_if_exists=True)
 
 	frappe.reload_doc('desk', 'doctype', 'workspace')
 	frappe.reload_doc('desk', 'doctype', 'workspace_link')
+	frappe.reload_doc('desk', 'doctype', 'workspace_chart')
+	frappe.reload_doc('desk', 'doctype', 'workspace_shortcut')
