@@ -13,7 +13,7 @@ frappe.listview_settings['Workflow Action'] = {
 			? encodeURIComponent(docname)
 			: docname;
 
-		const link = '#Form/' + doctype + '/' + docname;
+		const link = '/app/' + frappe.router.slug(doctype) + '/' + docname;
 		return link;
 	}
 };

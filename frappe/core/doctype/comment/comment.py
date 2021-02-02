@@ -18,10 +18,7 @@ from frappe.exceptions import ImplicitCommitError
 class Comment(Document):
 	def after_insert(self):
 		self.notify_mentions()
-
-		frappe.publish_realtime('new_communication', self.as_dict(),
-			doctype=self.reference_doctype, docname=self.reference_name,
-			after_commit=True)
+		self.notify_change('add')
 
 	def validate(self):
 		if not self.comment_email:
@@ -30,12 +27,30 @@ class Comment(Document):
 
 	def on_update(self):
 		update_comment_in_doc(self)
+		if self.is_new():
+			self.notify_change('update')
 
 	def on_trash(self):
 		self.remove_comment_from_cache()
-		frappe.publish_realtime('delete_communication', self.as_dict(),
-			doctype= self.reference_doctype, docname = self.reference_name,
-			after_commit=True)
+		self.notify_change('delete')
+
+	def notify_change(self, action):
+		key_map = {
+			'Like': 'like_logs',
+			'Assigned': 'assignment_logs',
+			'Assignment Completed': 'assignment_logs',
+			'Comment': 'comments',
+			'Attachment': 'attachment_logs',
+			'Attachment Removed': 'attachment_logs',
+		}
+		key = key_map.get(self.comment_type)
+		if not key: return
+
+		frappe.publish_realtime('update_docinfo_for_{}_{}'.format(self.reference_doctype, self.reference_name), {
+			'doc': self.as_dict(),
+			'key': key,
+			'action': action
+		}, after_commit=True)
 
 	def remove_comment_from_cache(self):
 		_comments = get_comments_from_parent(self)
