@@ -87,7 +87,7 @@ frappe.ui.form.ControlMultiSelectPills = frappe.ui.form.ControlAutocomplete.exte
 		return `<div class="btn-group tb-selected-value" data-value="${encoded_value}">
 			<button class="btn btn-default btn-xs btn-link-to-form">${__(value)}</button>
 			<button class="btn btn-default btn-xs btn-remove">
-				<i class="fa fa-remove text-muted"></i>
+				${frappe.utils.icon('close')}
 			</button>
 		</div>`;
 	},

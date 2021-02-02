@@ -20,6 +20,7 @@ class TestUser(unittest.TestCase):
 		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
 		frappe.db.set_value("System Settings", "System Settings", "minimum_password_score", "")
 		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 3)
+		frappe.set_user('Administrator')
 
 	def test_user_type(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
@@ -106,13 +107,17 @@ class TestUser(unittest.TestCase):
 		frappe.set_user("testperm@example.com")
 
 		me = frappe.get_doc("User", "testperm@example.com")
-		self.assertRaises(frappe.PermissionError, me.add_roles, "System Manager")
+		me.add_roles("System Manager")
+
+		# system manager is not added (it is reset)
+		self.assertFalse('System Manager' in [d.role for d in me.roles])
 
 		frappe.set_user("Administrator")
 
 		me = frappe.get_doc("User", "testperm@example.com")
 		me.add_roles("System Manager")
 
+		# system manager now added by Administrator
 		self.assertTrue("System Manager" in [d.role for d in me.get("roles")])
 
 	# def test_deny_multiple_sessions(self):

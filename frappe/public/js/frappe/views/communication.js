@@ -3,6 +3,7 @@
 
 frappe.last_edited_communication = {};
 frappe.standard_replies = {};
+frappe.separator_element = '<div>---</div>';
 
 frappe.views.CommunicationComposer = Class.extend({
 	init: function(opts) {
@@ -17,12 +18,15 @@ frappe.views.CommunicationComposer = Class.extend({
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
+			size: 'large',
 			primary_action: function() {
 				me.delete_saved_draft();
 				me.send_action();
 			},
 			minimizable: true
 		});
+
+		this.dialog.sections[0].wrapper.addClass('to_section');
 
 		['recipients', 'cc', 'bcc'].forEach(field => {
 			this.dialog.fields_dict[field].get_data = function() {
@@ -50,11 +54,15 @@ frappe.views.CommunicationComposer = Class.extend({
 		if (this.frm) {
 			$(document).trigger('form-typing', [this.frm]);
 		}
+
+		if (this.cc || this.bcc) {
+			this.toggle_more_options(true);
+		}
 	},
 
 	get_fields: function() {
 		let contactList = [];
-		var fields= [
+		let fields = [
 			{
 				label: __("To"),
 				fieldtype: "MultiSelect",
@@ -63,9 +71,17 @@ frappe.views.CommunicationComposer = Class.extend({
 				options: contactList
 			},
 			{
+				fieldtype: "Button",
+				label: frappe.utils.icon('down'),
+				fieldname: 'option_toggle_button',
+				click: () => {
+					this.toggle_more_options();
+				}
+			},
+			{
 				fieldtype: "Section Break",
-				collapsible: 1,
-				label: __("CC, BCC & Email Template")
+				hidden: 1,
+				fieldname: "more_options"
 			},
 			{
 				label: __("CC"),
@@ -93,20 +109,21 @@ frappe.views.CommunicationComposer = Class.extend({
 				fieldname: "subject",
 				length: 524288
 			},
-			{ fieldtype: "Section Break" },
 			{
 				label: __("Message"),
 				fieldtype: "Text Editor",
 				fieldname: "content",
-				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300)
+				onchange: frappe.utils.debounce(
+					this.save_as_draft.bind(this),
+					300
+				)
 			},
 			{ fieldtype: "Section Break" },
-			{ fieldtype: "Column Break" },
 			{
 				label: __("Send me a copy"),
 				fieldtype: "Check",
 				fieldname: "send_me_a_copy",
-				'default': frappe.boot.user.send_me_a_copy
+				default: 1 // frappe.boot.user.send_me_a_copy
 			},
 			{
 				label: __("Send Read Receipt"),
@@ -137,19 +154,39 @@ frappe.views.CommunicationComposer = Class.extend({
 		];
 
 		// add from if user has access to multiple email accounts
-		var email_accounts = frappe.boot.email_accounts.filter(function(account, idx){
-			return !in_list(["All Accounts", "Sent", "Spam", "Trash"], account.email_account) &&
-				account.enable_outgoing
-		})
-		if(frappe.boot.email_accounts && email_accounts.length > 1) {
+		const email_accounts = frappe.boot.email_accounts.filter(account => {
+			return (
+				!in_list(
+					["All Accounts", "Sent", "Spam", "Trash"],
+					account.email_account
+				) && account.enable_outgoing
+			);
+		});
+
+		if (frappe.boot.email_accounts && email_accounts.length > 1) {
 			fields = [
-				{label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender",
-					options: email_accounts.map(function(e) { return e.email_id; }) }
+				{
+					label: __("From"),
+					fieldtype: "Select",
+					reqd: 1,
+					fieldname: "sender",
+					options: email_accounts.map(function(e) {
+						return e.email_id;
+					})
+				}
 			].concat(fields);
 		}
 
 		return fields;
 	},
+
+	toggle_more_options(show_options) {
+		show_options = show_options || this.dialog.fields_dict.more_options.df.hidden;
+		this.dialog.set_df_property('more_options', 'hidden', !show_options);
+		let label = frappe.utils.icon(show_options ? 'up-line': 'down');
+		this.dialog.get_field('option_toggle_button').set_label(label);
+	},
+
 	prepare: function() {
 		this.setup_subject_and_recipients();
 		this.setup_print_language();
@@ -393,10 +430,11 @@ frappe.views.CommunicationComposer = Class.extend({
 		$(fields.select_print_format.wrapper).toggle(false);
 
 		if (cur_frm) {
+			const print_formats = frappe.meta.get_print_formats(cur_frm.meta.name);
 			$(fields.select_print_format.input)
 				.empty()
-				.add_options(cur_frm.print_preview.print_formats)
-				.val(cur_frm.print_preview.print_formats[0]);
+				.add_options(print_formats)
+				.val(print_formats[0]);
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
@@ -431,20 +469,20 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		$(`
-			<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>
+			<label class="control-label">
 				${__("Select Attachments")}
-			</h6>
+			</label>
 			<div class='attach-list'></div>
 			<p class='add-more-attachments'>
-				<a class='text-muted small'>
-					<i class='octicon octicon-plus' style='font-size: 12px'></i>
+				<button class='btn btn-xs btn-default'>
+					${frappe.utils.icon('small-add', 'xs')}&nbsp;
 					${__("Add Attachment")}
-				</a>
+				</button>
 			</p>
 		`).appendTo(attach.empty());
 
 		attach
-			.find(".add-more-attachments a")
+			.find(".add-more-attachments button")
 			.on('click', () => new frappe.ui.FileUploader(args));
 		this.render_attachment_rows();
 	},
@@ -476,19 +514,19 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	get_attachment_row(attachment, checked) {
-		return $(`<p class="checkbox">
-			<label>
-				<span>
-					<input
-						type="checkbox"
-						data-file-name="${attachment.name}"
-						${checked ? 'checked': ''}>
-					</input>
-				</span>
-				<span class="small">${attachment.file_name}</span>
-				<a href="${attachment.file_url}" target="_blank" class="text-muted small">
-				<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>
+		return $(`<p class="checkbox flex">
+			<label class="ellipsis" title="${attachment.file_name}">
+				<input
+					type="checkbox"
+					data-file-name="${attachment.name}"
+					${checked ? 'checked': ''}>
+				</input>
+				<span class="ellipsis">${attachment.file_name}</span>
 			</label>
+			&nbsp;
+			<a href="${attachment.file_url}" target="_blank" class="btn-linkF">
+				${frappe.utils.icon('link-url')}
+			</a>
 		</p>`);
 	},
 
@@ -633,8 +671,6 @@ frappe.views.CommunicationComposer = Class.extend({
 						delete frappe.last_edited_communication[me.doc][me.key];
 					}
 					if (cur_frm) {
-						// clear input
-						cur_frm.timeline.input && cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
 					}
 
@@ -741,7 +777,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			content = `
 				<div><br></div>
 				${reply}
-				${frappe.separator_element}
+				${frappe.separator_element || ''}
 				<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
 				<blockquote>
 				${last_email_content}
