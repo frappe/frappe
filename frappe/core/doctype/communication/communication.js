@@ -99,8 +99,7 @@ frappe.ui.form.on("Communication", {
 		}
 	},
 
-	show_relink_dialog: function(frm){
-		var lib = "frappe.email";
+	show_relink_dialog: function(frm) {
 		var d = new frappe.ui.Dialog ({
 			title: __("Relink Communication"),
 			fields: [{
@@ -138,8 +137,10 @@ frappe.ui.form.on("Communication", {
 							}
 						});
 					},
-					function () {
-						frappe.show_alert('Document not Relinked')
+					function() {
+						frappe.show_alert({
+							message: __('Document not Relinked'), 'indicator': 'info'
+						});
 					}
 				);
 			}

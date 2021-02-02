@@ -4,7 +4,7 @@ frappe.listview_settings['Workflow'] = {
 		if(doc.is_active) {
 			return [__("Active"), "green", "is_active,=,Yes"];
 		} else if(!doc.is_active) {
-			return [__("Not active"), "darkgrey", "is_active,=,No"];
+			return [__("Not active"), "gray", "is_active,=,No"];
 		}
 	}
 };

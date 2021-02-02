@@ -1,22 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <title>{{ title }}</title>
-    <link href="{{ base_url }}/assets/frappe/css/bootstrap.css" rel="stylesheet">
-	<link type="text/css" rel="stylesheet"
-        href="{{ base_url }}/assets/frappe/css/font-awesome.css">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<title>{{ title }}</title>
+	<link href="{{ base_url }}/assets/css/printview.css" rel="stylesheet">
 	<style>
 		{{ print_css }}
 	</style>
-  </head>
-  <body>
-	  <div class="print-format-gutter">
-		  {% if print_settings.repeat_header_footer %}
+</head>
+<body>
+	<div class="print-format-gutter">
+		{% if print_settings.repeat_header_footer %}
 			<div id="footer-html" class="visible-pdf">
 				{% if print_settings.letter_head && print_settings.letter_head.footer %}
 					<div class="letter-head-footer">
@@ -27,20 +25,20 @@
 					{{ __("Page {0} of {1}", [`<span class="page"></span>`, `<span class="topage"></span>`]) }}
 				</p>
 			</div>
-		  {% endif %}
+		{% endif %}
 
-		  <div class="print-format {% if landscape %} landscape {% endif %}"
+		<div class="print-format {% if landscape %} landscape {% endif %}"
 				{% if columns.length > 20 %}
 					style="font-size: 4.0pt"
 				{% endif %}
 			>
-			  {% if print_settings.letter_head %}
-			  <div {% if print_settings.repeat_header_footer %} id="header-html" class="hidden-pdf" {% endif %}>
-				  <div class="letter-head">{{ print_settings.letter_head.header }}</div>
-			  </div>
-			  {% endif %}
-	        {{ content }}
-		  </div>
-	  </div>
-  </body>
+			{% if print_settings.letter_head %}
+			<div {% if print_settings.repeat_header_footer %} id="header-html" class="hidden-pdf" {% endif %}>
+				<div class="letter-head">{{ print_settings.letter_head.header }}</div>
+			</div>
+			{% endif %}
+			{{ content }}
+		</div>
+	</div>
+</body>
 </html>
