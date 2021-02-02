@@ -36,26 +36,12 @@ details > summary:focus {
 	outline: none;
 }
 
-.text-color {
-	color: @text-color !important;
-}
-
 .text-muted {
 	color: #8D99A6 !important;
 }
 
 .text-extra-muted {
-	color: @border-color !important;
-}
-
-// transition
-a,
-.badge {
-	.transition(.2s);
-}
-
-.btn {
-	.transition(background-color .2s);
+	color: var(--border-color) !important;
 }
 
 a.disabled,
@@ -113,70 +99,11 @@ kbd {
 	display: inline-block;
 }
 
-/* dropdowns */
-
-.dropdown-backdrop {
-	display: none;
-}
-
-.dropdown-menu > li > a {
-	padding: 14px;
-	white-space: normal;
-}
-
-.dropdown-menu {
-	min-width: 200px;
-	padding: 0px;
-	font-size: @text-medium;
-	max-height: 500px;
-	overflow: auto;
-	// only rounded bottoms
-	border-radius: 0px 0px 4px 4px;
-}
-
-.dropdown-menu .dropdown-header {
-	padding: 3px 14px;
-	font-size: 11px;
-	font-weight: 200;
-	padding-top: 12px;
-}
-
-.dropdown-menu .divider {
-	margin: 0px;
-}
-
 a.badge-hover& {
 	&:hover .badge,
 	&:focus .badge,
 	&:active .badge {
 		background-color: #d8dfe5;
-	}
-}
-
-.msgprint-dialog {
-	max-width: 400px;
-
-	.modal-content {
-		min-height: 110px;
-	}
-}
-
-.msgprint-scroll {
-	max-height: 36em;
-	overflow: scroll;
-}
-
-.msgprint {
-	// margin: 15px 0px;
-	// text-align: center;
-	word-wrap: break-word;
-
-	pre {
-		text-align: left;
-	}
-
-	a:not(.btn) {
-		text-decoration: underline;
 	}
 }
 
@@ -190,7 +117,7 @@ a.badge-hover& {
 
 .border-(@position) {
 	.border-@{position} {
-		border-@{position}: 1px solid @border-color;
+		border-@{position}: 1px solid var(--border-color);
 	}
 }
 
@@ -200,11 +127,11 @@ a.badge-hover& {
 .border-(right);
 
 .border {
-	border: 1px solid @border-color;
+	border: 1px solid var(--border-color);
 }
 
 .rounded {
-	border-radius: 4px;
+	border-radius: var(--border-radius);
 }
 
 .close-inline {
@@ -223,49 +150,6 @@ a.badge-hover& {
 
 .middle {
 	vertical-align: middle;
-}
-
-.full-center-container {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-}
-
-.full-center {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 100%;
-	transform: translate(-50%, -50%);
-	-webkit-transform: translate(-50%, -50%);
-}
-
-#freeze {
-	z-index: 1020;
-	bottom: 0;
-	opacity: 0;
-	background-color: @light-bg;
-
-	.freeze-message-container {
-		.full-center-container;
-	}
-
-	.freeze-message {
-		.full-center;
-		text-align: center;
-		color: @text-color !important;
-	}
-}
-
-#freeze.dark {
-	// same as modal backdrop;
-	background-color: #334143;
-}
-
-#freeze.in {
-	opacity: 0.5;
 }
 
 a.no-decoration& {

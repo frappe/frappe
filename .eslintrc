@@ -87,6 +87,7 @@
 		"open_url_post": true,
 		"toTitle": true,
 		"lstrip": true,
+		"rstrip": true,
 		"strip": true,
 		"strip_html": true,
 		"replace_all": true,
