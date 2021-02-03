@@ -24,7 +24,7 @@ email-reply-parser==0.5.9
 click==7.1.1
 num2words==0.5.5
 watchdog==0.8.0
-bleach==3.1.4
+bleach==3.3.0
 bleach-whitelist==0.0.10
 Pillow==6.2.2
 beautifulsoup4==4.8.2
