@@ -187,7 +187,7 @@ class UserPermissions:
 
 	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, creation,
-			email_signature, user_type, language,
+			email_signature, user_type, desk_theme, language,
 			mute_sounds, send_me_a_copy, document_follow_notify
 			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 

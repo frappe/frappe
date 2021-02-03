@@ -4,7 +4,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		this._super();
 		this.$wrapper.find('.control-input')
 			.addClass('flex align-center')
-			.append('<i class="octicon octicon-chevron-down text-muted"></i>');
+			.append(frappe.utils.icon('select'));
 		this.set_options();
 	},
 	set_formatted_input: function(value) {

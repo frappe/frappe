@@ -17,7 +17,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		this.map_area.prependTo($input_wrapper);
 		this.$wrapper.find('.control-input').addClass("hidden");
 
-		if ($input_wrapper.is(':visible')) {
+		if (this.frm) {
 			this.make_map();
 		} else {
 			$(document).on('frappe.ui.Dialog:shown', () => {

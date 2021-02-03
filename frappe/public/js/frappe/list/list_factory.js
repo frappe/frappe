@@ -15,7 +15,7 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			} else {
 				// List / Gantt / Kanban / etc
 				// File is a special view
-				const view_name = doctype !== 'File' ? route[2] : 'File';
+				const view_name = doctype !== 'File' ? frappe.utils.to_title_case(route[2] || 'List') : 'File';
 				let view_class = frappe.views[view_name + 'View'];
 				if (!view_class) view_class = frappe.views.ListView;
 
@@ -41,7 +41,7 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 	}
 
 	show() {
-		if(this.re_route_to_view()) {
+		if (this.re_route_to_view()) {
 			return;
 		}
 		this.set_module_breadcrumb();
@@ -57,14 +57,14 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		if (route[0] === 'List' && route.length === 2 && frappe.views.list_view[doctype]) {
 			if(last_route && last_route[0]==='List' && last_route[1]===doctype) {
 				// last route same as this route, so going back.
-				// this happens because #List/Item will redirect to #List/Item/List
+				// this happens because /app/List/Item will redirect to /app/List/Item/List
 				// while coming from back button, the last 2 routes will be same, so
 				// we know user is coming in the reverse direction (via back button)
 
 				// example:
-				// Step 1: #List/Item redirects to #List/Item/List
-				// Step 2: User hits "back" comes back to #List/Item
-				// Step 3: Now we cannot send the user back to #List/Item/List so go back one more step
+				// Step 1: /app/List/Item redirects to /app/List/Item/List
+				// Step 2: User hits "back" comes back to /app/List/Item
+				// Step 3: Now we cannot send the user back to /app/List/Item/List so go back one more step
 				window.history.go(-1);
 				return true;
 			} else {
