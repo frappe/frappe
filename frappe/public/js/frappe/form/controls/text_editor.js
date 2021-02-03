@@ -1,5 +1,34 @@
 import Quill from 'quill';
 
+// specify the fonts you want
+const fonts = ['Arial', 'Courier', 'Times New Roman', 'Verdana'];
+// generate code friendly names
+function get_font_name(font) {
+	return font.toLowerCase().replace(/\s/g, "-");
+}
+let font_names = fonts.map(font => get_font_name(font));
+// add fonts to style
+let font_styles = "";
+fonts.forEach(function(font) {
+	let font_name = get_font_name(font);
+	font_styles += `
+		.ql-snow .ql-picker.ql-font
+		.ql-picker-label[data-value=${font_name}]::before,
+		.ql-snow .ql-picker.ql-font
+		.ql-picker-item[data-value=${font_name}]::before {
+				content: '${font}';
+				font-family: ${font}, sans-serif;
+		}
+		.ql-font-${font_name} {
+			font-family: ${font}, sans-serif;
+		}
+	`;
+});
+const node = document.createElement('style');
+node.innerHTML = font_styles;
+document.body.appendChild(node);
+
+
 // replace <p> tag with <div>
 const Block = Quill.import('blots/block');
 Block.tagName = 'DIV';
@@ -53,6 +82,11 @@ Quill.register(ColorStyle, true);
 Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
 Quill.register(DirectionStyle, true);
+
+//Adding fonts in text editor
+const Font = Quill.import('attributors/class/font');
+Font.whitelist = font_names;
+Quill.register(Font, true);
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_wrapper() {
@@ -143,10 +177,14 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	get_toolbar_options() {
 		return [
 			[{ 'header': [1, 2, 3, false] }],
+			// Adding Font dropdown to give the user the ability to change text font.
+			[{ 'font': font_names }],
 			['bold', 'italic', 'underline'],
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
 			['link', 'image'],
+			// Adding Direction tool to give the user the ability to change text direction.
+			[{ 'direction': "rtl" }],
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
 			[{ 'align': [] }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
