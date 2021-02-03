@@ -1,12 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+import json
 from typing import TYPE_CHECKING, Dict, List
+
 from rq import Queue, Worker
 
 import frappe
 from frappe import _
-from frappe.utils import cint, convert_utc_to_user_timezone, format_datetime
+from frappe.utils import convert_utc_to_user_timezone, format_datetime
 from frappe.utils.background_jobs import get_redis_conn
 from frappe.utils.scheduler import is_scheduler_inactive
 
@@ -58,7 +60,7 @@ def get_info(show_failed=False) -> List[Dict]:
 				add_job(job, queue.name)
 
 	# show failed jobs, if requested
-	if cint(show_failed):
+	if json.loads(show_failed):
 		for queue in queues:
 			fail_registry = queue.failed_job_registry
 			for job_id in fail_registry.get_job_ids():
