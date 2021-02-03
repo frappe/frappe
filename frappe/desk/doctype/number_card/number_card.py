@@ -111,7 +111,7 @@ def get_percentage_difference(doc, filters, result):
 
 	previous_result = calculate_previous_result(doc, filters)
 	if previous_result == 0:
-		return NaN
+		return None
 	else:
 		if result == previous_result:
 			return 0
