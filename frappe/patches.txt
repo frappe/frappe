@@ -316,6 +316,7 @@ frappe.patches.v13_0.delete_event_producer_and_consumer_keys
 frappe.patches.v13_0.web_template_set_module #2020-10-05
 frappe.patches.v13_0.remove_custom_link
 execute:frappe.delete_doc("DocType", "Footer Item")
+execute:frappe.reload_doctype('user')
 execute:frappe.reload_doctype('docperm')
 frappe.patches.v13_0.replace_field_target_with_open_in_new_tab
 frappe.core.doctype.role.patches.v13_set_default_desk_properties
@@ -326,5 +327,5 @@ execute:frappe.delete_doc_if_exists('Page', 'workspace')
 execute:frappe.delete_doc_if_exists('Page', 'dashboard', force=1)
 frappe.core.doctype.page.patches.drop_unused_pages
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
-frappe.patches.v13_0.rename_desk_page_to_workspace
+frappe.patches.v13_0.rename_desk_page_to_workspace # 02.02.2021
 frappe.patches.v13_0.delete_package_publish_tool
