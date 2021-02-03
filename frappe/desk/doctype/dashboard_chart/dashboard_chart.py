@@ -6,8 +6,10 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import datetime
-from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
+from frappe.core.page.dashboard.dashboard import cache_source
+from frappe.utils import getdate
+from frappe.utils.dateutils import\
+	get_period, get_period_beginning, get_from_date_from_timespan, get_dates_from_timegrain
 from frappe.model.document import Document
 
 @frappe.whitelist()
@@ -41,6 +43,7 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
+		from_date = get_period_beginning(from_date, timegrain)
 	if not to_date:
 		to_date = datetime.datetime.now()
 
@@ -72,7 +75,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	result = get_result(data, timegrain, from_date, to_date)
 
 	chart_config = {
-		"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
+		"labels": [get_period(r[0], timegrain) for r in result],
 		"datasets": [{
 			"name": chart.name,
 			"values": [r[1] for r in result]
@@ -129,15 +132,8 @@ def get_aggregate_function(chart_type):
 	}[chart_type]
 
 def get_result(data, timegrain, from_date, to_date):
-	start_date = getdate(from_date)
-	end_date = getdate(to_date)
-
-	result = [[start_date, 0.0]]
-
-	while start_date < end_date:
-		next_date = get_next_expected_date(start_date, timegrain)
-		result.append([next_date, 0.0])
-		start_date = next_date
+	dates = get_dates_from_timegrain(from_date, to_date, timegrain)
+	result = [[date, 0] for date in dates]
 
 	data_index = 0
 	if data:
@@ -147,58 +143,6 @@ def get_result(data, timegrain, from_date, to_date):
 				data_index += 1
 
 	return result
-
-
-def get_next_expected_date(date, timegrain):
-	next_date = None
-
-	# given date is always assumed to be the period ending date
-	next_date = get_period_ending(add_to_date(date, days=1), timegrain)
-	return getdate(next_date)
-
-def get_period_ending(date, timegrain):
-	date = getdate(date)
-	if timegrain=='Daily':
-		pass
-	elif timegrain=='Weekly':
-		date = get_week_ending(date)
-	elif timegrain=='Monthly':
-		date = get_month_ending(date)
-	elif timegrain=='Quarterly':
-		date = get_quarter_ending(date)
-
-	return getdate(date)
-
-def get_week_ending(date):
-	# week starts on monday
-	from datetime import timedelta
-	start = date - timedelta(days = date.weekday())
-	end = start + timedelta(days=6)
-
-	return end
-
-def get_month_ending(date):
-	month_of_the_year = int(date.strftime('%m'))
-	# first day of next month (note month starts from 1)
-
-	date = add_to_date('{}-01-01'.format(date.year), months = month_of_the_year)
-	# last day of this month
-	return add_to_date(date, days = -1)
-
-def get_quarter_ending(date):
-	date = getdate(date)
-
-	# find the earliest quarter ending date that is after
-	# the given date
-	for month in (3, 6, 9, 12):
-		quarter_end_month = getdate('{}-{}-01'.format(date.year, month))
-		quarter_end_date = getdate(get_last_day(quarter_end_month))
-		if date <= quarter_end_date:
-			date = quarter_end_date
-			break
-
-	return date
-
 
 class DashboardChart(Document):
 	def on_update(self):
