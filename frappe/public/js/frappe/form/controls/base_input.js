@@ -104,6 +104,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			me.set_label();
 			me.set_mandatory(me.value);
 			me.set_bold();
+			me.set_required();
 		}
 	},
 
@@ -165,7 +166,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		this.$wrapper.find(".help-box").html("");
 	},
 	set_mandatory: function(value) {
-		this.$wrapper.toggleClass("has-error", (this.df.reqd && is_null(value)) ? true : false);
+		this.$wrapper.toggleClass("has-error", Boolean(this.df.reqd && is_null(value)));
 	},
 	set_invalid: function () {
 		let invalid = !!this.df.invalid;
@@ -176,6 +177,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		} else {
 			this.$wrapper.toggleClass('has-error', invalid);
 		}
+	},
+	set_required() {
+		this.label_area && $(this.label_area).toggleClass('reqd', Boolean(this.df.reqd));
 	},
 	set_bold: function() {
 		if(this.$input) {

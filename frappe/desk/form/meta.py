@@ -202,13 +202,17 @@ class FormMeta(Meta):
 		self.load_kanban_column_fields()
 
 	def load_kanban_column_fields(self):
-		values = frappe.get_list(
-			'Kanban Board', fields=['field_name'],
-			filters={'reference_doctype': self.name})
+		try:
+			values = frappe.get_list(
+				'Kanban Board', fields=['field_name'],
+				filters={'reference_doctype': self.name})
 
-		fields = [x['field_name'] for x in values]
-		fields = list(set(fields))
-		self.set("__kanban_column_fields", fields, as_value=True)
+			fields = [x['field_name'] for x in values]
+			fields = list(set(fields))
+			self.set("__kanban_column_fields", fields, as_value=True)
+		except frappe.PermissionError:
+			# no access to kanban board
+			pass
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []

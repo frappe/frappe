@@ -571,10 +571,11 @@ def run_ui_tests(context, app, headless=False):
 	plugin_path = "{0}/cypress-file-upload".format(node_bin)
 
 	# check if cypress in path...if not, install it.
-	if not (os.path.exists(cypress_path) or os.path.exists(plugin_path)):
+	if not (os.path.exists(cypress_path) or os.path.exists(plugin_path)) \
+		or not subprocess.getoutput("npm view cypress version").startswith("6."):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen("yarn add cypress@3 cypress-file-upload@^3.1 --no-lockfile")
+		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
 
 	# run for headless mode
 	run_or_open = 'run --browser chrome --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'

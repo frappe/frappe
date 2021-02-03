@@ -1190,8 +1190,8 @@ class Document(BaseDocument):
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
 
 	def get_url(self):
-		"""Returns Desk URL for this document. `/desk#Form/{doctype}/{name}`"""
-		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
+		"""Returns Desk URL for this document. `/app/Form/{doctype}/{name}`"""
+		return "/app/Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
 
 	def add_comment(self, comment_type='Comment', text=None, comment_email=None, link_doctype=None, link_name=None, comment_by=None):
 		"""Add a comment to this document.

@@ -4,16 +4,35 @@
 frappe.provide("frappe.customize_form");
 
 frappe.ui.form.on("Customize Form", {
+	setup: function(frm) {
+		// save the last setting if refreshing
+		window.addEventListener("beforeunload", () => {
+			if (frm.doc.doc_type && frm.doc.doc_type != "undefined") {
+				localStorage["customize_doctype"] = frm.doc.doc_type;
+			}
+		});
+	},
+
 	onload: function(frm) {
 		frm.disable_save();
 		frm.set_query("doc_type", function() {
 			return {
 				translate_values: false,
 				filters: [
-					['DocType', 'issingle', '=', 0],
-					['DocType', 'custom', '=', 0],
-					['DocType', 'name', 'not in', frappe.model.core_doctypes_list],
-					['DocType', 'restrict_to_domain', 'in', frappe.boot.active_domains]
+					["DocType", "issingle", "=", 0],
+					["DocType", "custom", "=", 0],
+					[
+						"DocType",
+						"name",
+						"not in",
+						frappe.model.core_doctypes_list
+					],
+					[
+						"DocType",
+						"restrict_to_domain",
+						"in",
+						frappe.boot.active_domains
+					]
 				]
 			};
 		});
@@ -21,15 +40,15 @@ frappe.ui.form.on("Customize Form", {
 		frm.set_query("default_print_format", function() {
 			return {
 				filters: {
-					'print_format_type': ['!=', 'JS'],
-					'doc_type': ['=', frm.doc.doc_type]
+					print_format_type: ["!=", "JS"],
+					doc_type: ["=", frm.doc.doc_type]
 				}
-			}
+			};
 		});
 
 		$(frm.wrapper).on("grid-row-render", function(e, grid_row) {
-			if (grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
-				$(grid_row.row).css({"font-weight": "bold"});
+			if (grid_row.doc && grid_row.doc.fieldtype == "Section Break") {
+				$(grid_row.row).css({ "font-weight": "bold" });
 			}
 		});
 
@@ -40,12 +59,6 @@ frappe.ui.form.on("Customize Form", {
 		$(frm.wrapper).on("grid-move-row", function(e, frm) {
 			frm.trigger("setup_sortable");
 		});
-
-		if (localStorage['customize_doctype']) {
-			// set default value from customize form
-			frm.set_value('doc_type', localStorage['customize_doctype']);
-		}
-
 	},
 
 	doc_type: function(frm) {
@@ -59,7 +72,6 @@ frappe.ui.form.on("Customize Form", {
 						if (r._server_messages && r._server_messages.length) {
 							frm.set_value("doc_type", "");
 						} else {
-							localStorage['customize_doctype'] = frm.doc.doc_type;
 							frm.refresh();
 							frm.trigger("setup_sortable");
 						}
@@ -72,9 +84,11 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	setup_sortable: function(frm) {
-		frm.page.body.find('.highlight').removeClass('highlight');
+		frm.page.body.find(".highlight").removeClass("highlight");
 		frm.doc.fields.forEach(function(f, i) {
-			var data_row = frm.page.body.find('[data-fieldname="fields"] [data-idx="'+ f.idx +'"] .data-row');
+			var data_row = frm.page.body.find(
+				'[data-fieldname="fields"] [data-idx="' + f.idx + '"] .data-row'
+			);
 
 			if (f.is_custom_field) {
 				data_row.addClass("highlight");
@@ -82,9 +96,13 @@ frappe.ui.form.on("Customize Form", {
 				f._sortable = false;
 			}
 			if (f.fieldtype == "Table") {
-				frm.add_custom_button(f.options, function() {
-					frm.set_value('doc_type', f.options);
-				}, __('Customize Child Table'));
+				frm.add_custom_button(
+					f.options,
+					function() {
+						frm.set_value("doc_type", f.options);
+					},
+					__("Customize Child Table")
+				);
 			}
 		});
 		frm.fields_dict.fields.grid.refresh();
@@ -97,36 +115,91 @@ frappe.ui.form.on("Customize Form", {
 		if (frm.doc.doc_type) {
 			frappe.customize_form.set_primary_action(frm);
 
-			frm.add_custom_button(__('Go to {0} List', [frm.doc.doc_type]), function() {
-				frappe.set_route('List', frm.doc.doc_type);
-			}, __('Actions'));
+			frm.add_custom_button(
+				__("Go to {0} List", [frm.doc.doc_type]),
+				function() {
+					frappe.set_route("List", frm.doc.doc_type);
+				},
+				__("Actions")
+			);
 
-			frm.add_custom_button(__('Reload'), function() {
-				frm.script_manager.trigger("doc_type");
-			}, __('Actions'));
+			frm.add_custom_button(
+				__("Reload"),
+				function() {
+					frm.script_manager.trigger("doc_type");
+				},
+				__("Actions")
+			);
 
-			frm.add_custom_button(__('Reset to defaults'), function() {
-				frappe.customize_form.confirm(__('Remove all customizations?'), frm);
-			}, __('Actions'));
+			frm.add_custom_button(
+				__("Reset to defaults"),
+				function() {
+					frappe.customize_form.confirm(
+						__("Remove all customizations?"),
+						frm
+					);
+				},
+				__("Actions")
+			);
 
-			frm.add_custom_button(__('Set Permissions'), function() {
-				frappe.set_route('permission-manager', frm.doc.doc_type);
-			}, __('Actions'));
+			frm.add_custom_button(
+				__("Set Permissions"),
+				function() {
+					frappe.set_route("permission-manager", frm.doc.doc_type);
+				},
+				__("Actions")
+			);
+		}
 
-			if (frappe.boot.developer_mode) {
-				frm.add_custom_button(__('Export Customizations'), function() {
+		frm.events.setup_export(frm);
+		frm.events.setup_sort_order(frm);
+		frm.events.set_default_doc_type(frm);
+	},
+
+	set_default_doc_type(frm) {
+		let doc_type;
+		if (frappe.route_options && frappe.route_options.doc_type) {
+			doc_type = frappe.route_options.doc_type;
+			frappe.route_options = null;
+			localStorage.removeItem("customize_doctype");
+		}
+		if (!doc_type) {
+			doc_type = localStorage.getItem("customize_doctype");
+		}
+		if (doc_type) {
+			setTimeout(() => frm.set_value("doc_type", doc_type), 1000);
+		}
+	},
+
+	setup_export(frm) {
+		if (frappe.boot.developer_mode) {
+			frm.add_custom_button(
+				__("Export Customizations"),
+				function() {
 					frappe.prompt(
 						[
-							{fieldtype:'Link', fieldname:'module', options:'Module Def',
-								label: __('Module to Export')},
-							{fieldtype:'Check', fieldname:'sync_on_migrate',
-								label: __('Sync on Migrate'), 'default': 1},
-							{fieldtype:'Check', fieldname:'with_permissions',
-								label: __('Export Custom Permissions'), 'default': 1},
+							{
+								fieldtype: "Link",
+								fieldname: "module",
+								options: "Module Def",
+								label: __("Module to Export")
+							},
+							{
+								fieldtype: "Check",
+								fieldname: "sync_on_migrate",
+								label: __("Sync on Migrate"),
+								default: 1
+							},
+							{
+								fieldtype: "Check",
+								fieldname: "with_permissions",
+								label: __("Export Custom Permissions"),
+								default: 1
+							}
 						],
 						function(data) {
 							frappe.call({
-								method: 'frappe.modules.utils.export_customizations',
+								method: "frappe.modules.utils.export_customizations",
 								args: {
 									doctype: frm.doc.doc_type,
 									module: data.module,
@@ -135,26 +208,24 @@ frappe.ui.form.on("Customize Form", {
 								}
 							});
 						},
-						__("Select Module"));
-				}, __('Actions'));
-			}
+						__("Select Module")
+					);
+				},
+				__("Actions")
+			);
 		}
+	},
 
+	setup_sort_order(frm) {
 		// sort order select
 		if (frm.doc.doc_type) {
-			var fields = $.map(frm.doc.fields,
-				function(df) {
-					return frappe.model.is_value_type(df.fieldtype) ? df.fieldname : null;
-				});
+			var fields = $.map(frm.doc.fields, function(df) {
+				return frappe.model.is_value_type(df.fieldtype)
+					? df.fieldname
+					: null;
+			});
 			fields = ["", "name", "modified"].concat(fields);
 			frm.set_df_property("sort_field", "options", fields);
-		}
-
-		if (frappe.route_options && frappe.route_options.doc_type) {
-			setTimeout(function() {
-				frm.set_value("doc_type", frappe.route_options.doc_type);
-				frappe.route_options = null;
-			}, 1000);
 		}
 	}
 });

@@ -211,12 +211,11 @@ $.extend(frappe, {
 		if (frappe.is_user_logged_in()) {
 			$(".btn-login-area").toggle(false);
 			$(".logged-in").toggle(true);
-			$(".full-name").html(frappe.get_cookie("full_name"));
 			$(".user-image").attr("src", frappe.get_cookie("user_image"));
 
-			$('.user-image-wrapper').html(frappe.avatar(null, 'avatar-small'));
-			$('.user-image-sidebar').html(frappe.avatar(null, 'avatar-small'));
-			$('.user-image-myaccount').html(frappe.avatar(null, 'avatar-large'));
+			$('.user-image-wrapper').html(frappe.avatar(null, 'avatar-medium', null, null, null, true));
+			$('.user-image-sidebar').html(frappe.avatar(null, 'avatar-medium', null, null, null, true));
+			$('.user-image-myaccount').html(frappe.avatar(null, 'avatar-large', null, null, null, true));
 		}
 	},
 	freeze_count: 0,
