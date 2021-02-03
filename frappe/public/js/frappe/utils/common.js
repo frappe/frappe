@@ -191,9 +191,9 @@ window.strip = function (s, chars) {
 window.lstrip = function lstrip(s, chars) {
 	if (!chars) chars = ['\n', '\t', ' '];
 	// strip left
-	var first_char = s.substr(0, 1);
+	let first_char = s.substr(0, 1);
 	while (in_list(chars, first_char)) {
-		var s = s.substr(1);
+		s = s.substr(1);
 		first_char = s.substr(0, 1);
 	}
 	return s;
@@ -201,9 +201,9 @@ window.lstrip = function lstrip(s, chars) {
 
 window.rstrip = function (s, chars) {
 	if (!chars) chars = ['\n', '\t', ' '];
-	var last_char = s.substr(s.length - 1);
+	let last_char = s.substr(s.length - 1);
 	while (in_list(chars, last_char)) {
-		let s = s.substr(0, s.length - 1);
+		s = s.substr(0, s.length - 1);
 		last_char = s.substr(s.length - 1);
 	}
 	return s;
