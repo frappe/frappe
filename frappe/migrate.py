@@ -53,6 +53,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 		os.remove(touched_tables_file)
 
 	try:
+		frappe.reload_doctype("DocType", force=True)
 		frappe.flags.touched_tables = set()
 		frappe.flags.in_migrate = True
 
