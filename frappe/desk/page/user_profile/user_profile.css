@@ -1,121 +1,30 @@
-.user-image-container {
-	margin-top: 7px;
-	padding-bottom: 100%;
+.recent-activity .new-timeline {
+	padding-top: 0;
 }
 
-.user-image-container .standard-image {
-	font-size: 72px;
+.recent-activity .new-timeline:before {
+	top: 25px;
 }
 
-.profile-details {
-	margin: -5px 5px;
+.recent-activity-title {
+	font-weight: 700;
+	font-size: var(--text-xl);
+	color: var(--text-color);
 }
 
-.profile-links {
-	margin: 30px 5px;
+.recent-activity .recent-activity-footer {
+	margin-left: calc(var(--timeline-left-padding) + var(--timeline-item-left-margin));
+	max-width: var(--timeline-content-max-width);
 }
 
-.user-initial {
-	font-size: 72px;
-}
-
-.chart-column-container{
-	border-bottom: 1px solid #d1d8dd;
-	margin: 5px 0;
-}
-
-.chart-container text.title {
-	text-transform: uppercase;
-	font-size: 11px;
-}
-
-.heatmap-container {
-	height: 170px
-}
-
-.performance-heatmap {
-	width: 80%;
-	display: inline-block;
-}
-
-.performance-heatmap .chart-container {
-	margin-left: 30px;
-}
-
-.performance-heatmap .frappe-chart {
-	margin-top: 5px;
-}
-
-.performance-heatmap .frappe-chart .chart-legend {
-	display: none;
-}
-
-.performance-percentage-chart .frappe-chart {
-	position: absolute;
-	top: 5px;
-}
-
-.performance-line-chart .frappe-chart {
-	margin-top: -20px;
-}
-
-.percentage-chart-container {
-	height: 130px;
-}
-
-.line-chart-container .chart-filter {
-	z-index: 1;
+.recent-activity .show-more-activity-btn {
+	display: block;
+	margin: auto;
+	width: max-content;
+	margin-top: 35px;
+	font-size: var(--text-md);
 }
 
 .recent-activity {
-	margin: 20px;
-	font-size: 12px;
-}
-
-.show-more-activity {
-	text-align: center;
-	margin-top: 20px;
-}
-
-.recent-activity-item {
-	margin: 15px 5px;
-}
-
-.interest-icon {
-	margin-right: 5px;
-}
-
-.chart-filter {
-	position: relative;
-	top: 5px;
-	margin-right: 10px;
-}
-
-.filter-label {
-	margin-right: 4px;
-}
-
-.performance-title {
-	position: relative;
-	left: 30px;
-	top: 20px;
-}
-
-@media (max-width: 991px) {
-	.user-profile-sidebar {
-		display: flex;
-	}
-
-	.percentage-chart-container {
-		border-top: 1px solid #d1d8dd;
-	}
-
-	.user-profile-sidebar .profile-links {
-		margin: 0;
-	}
-
-	.user-profile-sidebar .profile-details {
-		width: 50%;
-		margin: 0;
-	}
+	padding-bottom: 60px;
 }

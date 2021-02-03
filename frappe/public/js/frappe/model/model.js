@@ -304,6 +304,11 @@ $.extend(frappe.model, {
 		return frappe.boot.treeviews.indexOf(doctype) != -1;
 	},
 
+	is_fresh(doc) {
+		// returns true if document has been recently loaded (5 seconds ago)
+		return doc && doc.__last_sync_on && ((new Date() - doc.__last_sync_on)) < 5000;
+	},
+
 	can_import: function(doctype, frm) {
 		// system manager can always import
 		if(frappe.user_roles.includes("System Manager")) return true;

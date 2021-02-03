@@ -94,10 +94,10 @@ frappe.form.formatters = {
 		}
 	},
 	Check: function(value) {
-		if(value) {
-			return '<i class="fa fa-check" style="margin-right: 3px;"></i>';
+		if (value) {
+			return `<input type="checkbox" class="disabled-selected">`;
 		} else {
-			return '<i class="fa fa-square disabled-check"></i>';
+			return `<input type="checkbox" class="disabled-deselected">`;
 		}
 	},
 	Link: function(value, docfield, options, doc) {
@@ -129,15 +129,14 @@ frappe.form.formatters = {
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if(docfield && doctype) {
 			if (!frappe.model.can_select(doctype) && frappe.model.can_read(doctype)) {
-				return `<a class="grey"
-					href="#Form/${encodeURIComponent(doctype)}/${encodeURIComponent(original_value)}"
+				return `<a
+					href="/app/${encodeURIComponent(frappe.router.slug(doctype))}/${encodeURIComponent(original_value)}"
 					data-doctype="${doctype}"
 					data-name="${original_value}">
 					${__(options && options.label || value)}</a>`;
 			} else {
 				return value;
 			}
-
 		} else {
 			return value;
 		}

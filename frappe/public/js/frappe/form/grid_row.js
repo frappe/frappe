@@ -188,7 +188,8 @@ export default class GridRow {
 
 		// index (1, 2, 3 etc)
 		if(!this.row_index) {
-			var txt = (this.doc ? this.doc.idx : "&nbsp;");
+			// REDESIGN-TODO: Make translation contextual, this No is Number
+			var txt = (this.doc ? this.doc.idx : __("No."));
 			this.row_index = $(
 				`<div class="row-index sortable-handle col col-xs-1">
 					${this.row_check_html}
@@ -225,10 +226,16 @@ export default class GridRow {
 		if(this.doc && !this.grid.df.in_place_edit) {
 			// remove row
 			if(!this.open_form_button) {
-				this.open_form_button = $('<a class="close btn-open-row">\
-					<span class="octicon octicon-triangle-down"></span></a>')
+				this.open_form_button = $(`
+					<div class="btn-open-row">
+						<a>${frappe.utils.icon('edit', 'xs')}</a>
+						<div class="hidden-xs edit-grid-row">Edit</div>
+					</div>
+				`)
 					.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
-					.on('click', function() { me.toggle_view(); return false; });
+					.on('click', function() {
+						me.toggle_view(); return false;
+					});
 
 				if(this.is_too_small()) {
 					// narrow

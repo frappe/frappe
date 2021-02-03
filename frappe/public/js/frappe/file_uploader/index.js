@@ -64,17 +64,13 @@ export default class FileUploader {
 	make_dialog() {
 		this.dialog = new frappe.ui.Dialog({
 			title: __('Upload'),
-			fields: [
-				{
-					fieldtype: 'HTML',
-					fieldname: 'upload_area'
-				}
-			],
 			primary_action_label: __('Upload'),
-			primary_action: () => this.upload_files()
+			primary_action: () => this.upload_files(),
+			secondary_action_label: __('Toggle Private'),
+			secondary_action: () => this.uploader.toggle_all_private()
 		});
 
-		this.wrapper = this.dialog.fields_dict.upload_area.$wrapper[0];
+		this.wrapper = this.dialog.body;
 		this.dialog.show();
 		this.dialog.$wrapper.on('hidden.bs.modal', function() {
 			$(this).data('bs.modal', null);

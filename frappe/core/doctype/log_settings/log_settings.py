@@ -36,7 +36,7 @@ def has_unseen_error_log(user):
 	def _get_response(show_alert=True):
 		return {
 			'show_alert': True,
-			'message': _("You have unseen {0}").format('<a href="/desk#List/Error%20Log/List"> Error Logs </a>')
+			'message': _("You have unseen {0}").format('<a href="/app/List/Error%20Log/List"> Error Logs </a>')
 		}
 
 	if frappe.db.sql_list("select name from `tabError Log` where seen = 0 limit 1"):
