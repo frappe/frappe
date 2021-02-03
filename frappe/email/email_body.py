@@ -297,8 +297,9 @@ def inline_style_in_html(html):
 
 	for app in apps:
 		path = 'assets/{0}/css/email.css'.format(app)
-		if os.path.exists(os.path.abspath(path)):
-			css_files.append(path)
+		css_files.append(path)
+
+	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
 
 	p = Premailer(html=html, external_styles=css_files, strip_important=False)
 
