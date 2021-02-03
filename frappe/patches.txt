@@ -202,7 +202,7 @@ frappe.patches.v9_1.resave_domain_settings
 frappe.patches.v9_1.revert_domain_settings
 frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
-frappe.patches.v10_0.reload_countries_and_currencies # 20-10-2020
+frappe.patches.v10_0.reload_countries_and_currencies # 2021-02-03
 frappe.patches.v10_0.refactor_social_login_keys
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
