@@ -8,6 +8,16 @@ from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.utils import get_datetime_str
 from frappe.model.base_document import get_controller
 
+import hashlib
+
+def md5(fname):
+	hash_md5 = hashlib.md5()
+	with open(fname, "rb") as f:
+		for chunk in iter(lambda: f.read(4096), b""):
+			hash_md5.update(chunk)
+	return hash_md5.hexdigest()
+
+
 ignore_values = {
 	"Report": ["disabled", "prepared_report", "add_total_row"],
 	"Print Format": ["disabled"],
@@ -46,11 +56,15 @@ def get_file_path(module, dt, dn):
 
 def import_file_by_path(path, force=False, data_import=False, pre_process=None, ignore_version=None,
 		reset_permissions=False, for_sync=False):
+	if not frappe.flags.dt:
+		frappe.flags.dt = []
 	try:
 		docs = read_doc_from_file(path)
 	except IOError:
 		print (path + " missing")
 		return
+
+	curr_hash = md5(path)
 
 	if docs:
 		if not isinstance(docs, list):
@@ -58,9 +72,18 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 
 		for doc in docs:
 			if not force:
-				# check if timestamps match
-				db_modified = frappe.db.get_value(doc['doctype'], doc['name'], 'modified')
-				if db_modified and doc.get('modified')==get_datetime_str(db_modified):
+				try:
+					db_hash = frappe.db.get_value(doc['doctype'], doc['name'], 'migration_hash')
+				except:
+					frappe.flags.dt += [doc['doctype']]
+					db_hash = None
+
+				if not db_hash:
+					db_modified = frappe.db.get_value(doc['doctype'], doc['name'], 'modified')
+					if db_modified and doc.get('modified') == get_datetime_str(db_modified):
+						return False
+
+				if curr_hash == db_hash:
 					return False
 
 			original_modified = doc.get("modified")
@@ -69,6 +92,9 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 			import_doc(doc, force=force, data_import=data_import, pre_process=pre_process,
 				ignore_version=ignore_version, reset_permissions=reset_permissions)
 			frappe.flags.in_import = False
+
+			if doc['doctype'] == "DocType":
+				frappe.db.set_value(doc['doctype'], doc['name'], 'migration_hash', curr_hash)
 
 			if original_modified:
 				# since there is a new timestamp on the file, update timestamp in
