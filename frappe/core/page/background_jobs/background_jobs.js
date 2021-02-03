@@ -32,10 +32,10 @@ class BackgroundJobs {
 		this.remove_failed_button = this.page.add_inner_button(__("Remove Failed Jobs"), () => {
 			frappe.call({
 				method: 'frappe.core.page.background_jobs.background_jobs.remove_failed_jobs',
-				callback: res => {
+				callback: () => {
 					this.refresh_jobs();
 				}
-			})
+			});
 		});
 
 		$(frappe.render_template('background_jobs_outer')).appendTo(this.page.body);
