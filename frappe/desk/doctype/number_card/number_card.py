@@ -65,7 +65,7 @@ def has_permission(doc, ptype, user):
 	return False
 
 @frappe.whitelist()
-def get_result(doc, filters, to_date=None, cond=None):
+def get_result(doc, filters, to_date=None):
 	doc = frappe.parse_json(doc)
 	fields = []
 	sql_function_map = {
@@ -86,13 +86,10 @@ def get_result(doc, filters, to_date=None, cond=None):
 	filters = frappe.parse_json(filters)
 
 	if not filters:
-			filters = []
+		filters = []
 
 	if to_date:
-		if cond:
-			filters.append([doc.document_type, cond, '<', to_date])
-		else:
-			filters.append([doc.document_type, 'creation', '<', to_date])
+		filters.append([doc.document_type, 'creation', '<', to_date])
 
 	res = frappe.db.get_list(doc.document_type, fields=fields, filters=filters)
 	number = res[0]['result'] if res else 0
