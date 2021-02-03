@@ -562,6 +562,10 @@ def get_perm_info(role):
 
 @frappe.whitelist(allow_guest=True)
 def update_password(new_password, logout_all_sessions=0, key=None, old_password=None):
+	#validate key to avoid key input like ['like', '%'], '', ['in', ['']]
+	if key and not isinstance(key, str):
+		frappe.throw(_('Invalid key type'))
+
 	result = test_password_strength(new_password, key, old_password)
 	feedback = result.get("feedback", None)
 
