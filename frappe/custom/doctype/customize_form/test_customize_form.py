@@ -234,7 +234,7 @@ class TestCustomizeForm(unittest.TestCase):
 			testdt1.delete()
 
 	def test_custom_action(self):
-		test_route = '#List/DocType'
+		test_route = '/app/List/DocType'
 
 		# create a dummy action (route)
 		d = self.get_customize_form("Event")
