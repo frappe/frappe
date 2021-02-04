@@ -153,11 +153,11 @@ frappe.ui.form.LinkSelector = Class.extend({
 						},
 						() => frappe.timeout(0.1),
 						() => {
-							var args = {};
+							let args = {};
 							args[me.fieldname] = value;
 							args[me.qty_fieldname] = data.qty;
 
-							frappe.model.set_value(d.doctype, d.name, args);
+							return frappe.model.set_value(d.doctype, d.name, args);
 						},
 						() => frappe.show_alert(__("Added {0} ({1})", [value, data.qty]))
 					]);
