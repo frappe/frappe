@@ -7,5 +7,8 @@
 <script>
 export default {
 	name: "RecorderRoot",
+	created() {
+		this.$router.push({name: 'recorder-detail'});
+	},
 };
 </script>

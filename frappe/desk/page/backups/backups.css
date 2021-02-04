@@ -1,0 +1,13 @@
+.download-backups {
+	font-size: var(--text-base);
+}
+
+.download-backup-card {
+	display: block;
+	text-decoration: none;
+}
+
+.download-backup-card:hover {
+	box-shadow: var(--shadow-md);
+	text-decoration: none;
+}

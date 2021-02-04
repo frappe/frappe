@@ -96,6 +96,10 @@ def get_home_page():
 
 		return home_page
 
+	if frappe.local.dev_server:
+		# dont return cached homepage in development
+		return _get_home_page()
+
 	return frappe.cache().hget("home_page", frappe.session.user, _get_home_page)
 
 def get_home_page_via_hooks():

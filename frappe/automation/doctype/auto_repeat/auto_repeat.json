@@ -23,7 +23,7 @@
   "repeat_on_last_day",
   "column_break_12",
   "next_schedule_date",
-  "section_break_12",
+  "section_break_16",
   "repeat_on_days",
   "notification",
   "notify_by_email",
@@ -199,19 +199,19 @@
    "options": "Auto Repeat Day"
   },
   {
-   "depends_on": "eval:doc.frequency==='Weekly';",
-   "fieldname": "section_break_12",
-   "fieldtype": "Section Break"
-  },
-  {
    "default": "0",
    "fieldname": "submit_on_creation",
    "fieldtype": "Check",
    "label": "Submit on Creation"
+  },
+  {
+   "depends_on": "eval:doc.frequency==='Weekly';",
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break"
   }
  ],
  "links": [],
- "modified": "2020-12-10 10:43:13.449172",
+ "modified": "2021-01-12 09:24:49.719611",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Auto Repeat",

@@ -1,34 +1,6 @@
 @import "variables.less";
 @import "mixins.less";
-@import "awesomplete.less";
 @import "datepicker.less";
-@import "quill.less";
-
-.unit-checkbox {
-	color: #36414c;
-	margin-top: 5px;
-	margin-bottom: 5px;
-
-	label {
-		position: relative;
-	}
-
-	input[type=checkbox] {
-		margin-left: 0;
-	}
-
-	& + .checkbox {
-		margin-top: 5px;
-		margin-bottom: 5px;
-	}
-}
-
-.frappe-control .bulk-select-options {
-	margin: 10px 0;
-	.select-all {
-		margin-right: 5px;
-	}
-}
 
 .frappe-control .control-value {
 	overflow-wrap: break-word;
@@ -49,10 +21,9 @@
 
 .phone-btn {
 	position: absolute;
-	top: 2px;
+	top: 4px;
 	right: 8px;
 	padding: 3px;
-	z-index: 3;
 }
 
 .markdown-preview, .html-preview {
@@ -64,28 +35,6 @@
 
 .markdown-toggle, .html-toggle {
 	margin-bottom: 5px;
-}
-
-/* table multiselect */
-.table-multiselect {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	height: auto;
-	padding: 10px;
-	padding-bottom: 5px;
-}
-
-.table-multiselect.form-control input {
-	display: inline-block;
-	outline: none;
-	border: none;
-	padding: 0;
-	font-size: @text-medium;
-}
-
-.table-multiselect .awesomplete {
-	display: inline;
 }
 
 .tb-selected-value {
@@ -106,43 +55,6 @@
 	}
 }
 
-.multiselect-list {
-	.dropdown-menu {
-		width: 100%;
-	}
-
-	li {
-		padding: 9px 11.8px;
-	}
-
-	.selectable-item {
-		cursor: pointer;
-		display: flex;
-		justify-content: space-between;
-
-		.octicon-check {
-			display: none;
-		}
-	}
-
-	.selectable-item.selected {
-		background-color: @light-yellow;
-
-		.octicon-check {
-			display: inline-block;
-		}
-	}
-
-	.selectable-item:hover, .selectable-item.highlighted {
-		background-color: @btn-bg;
-	}
-
-	.selectable-items {
-		max-height: 200px;
-		overflow: auto;
-	}
-}
-
 .barcode-scanner {
 	position: relative;
 
@@ -155,25 +67,6 @@
 		position: absolute;
 		left: 0;
 		top: 0;
-	}
-}
-
-.frappe-control[data-fieldtype="Select"] .control-input {
-	position: relative;
-
-	select {
-		/* for Firefox */
-		-moz-appearance: none;
-		/* for Chrome */
-		-webkit-appearance: none;
-	}
-
-	.octicon-chevron-down {
-		position: absolute;
-		top: 8px;
-		height: 15px;
-		right: 12px;
-		pointer-events: none;
 	}
 }
 

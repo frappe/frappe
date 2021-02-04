@@ -20,6 +20,7 @@ def get_oauth_server():
 	return frappe.local.oauth_server
 
 def sanitize_kwargs(param_kwargs):
+	"""Remove 'data' and 'cmd' keys, if present."""
 	arguments = param_kwargs
 	arguments.pop('data', None)
 	arguments.pop('cmd', None)

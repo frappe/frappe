@@ -157,12 +157,11 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	get_toolbar_options() {
 		return [
 			[{ 'header': [1, 2, 3, false] }],
-			['bold', 'italic', 'underline'],
+			['bold', 'italic', 'underline', 'clean'],
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
 			['link', 'image'],
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
-			[{ 'align': [] }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
 			[{'table': [
 				'insert-table',
@@ -174,7 +173,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'delete-column',
 				'delete-table',
 			]}],
-			['clean']
 		];
 	},
 

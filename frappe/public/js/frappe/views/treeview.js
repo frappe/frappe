@@ -69,8 +69,9 @@ frappe.views.TreeView = Class.extend({
 
 		this.page.main.css({
 			"min-height": "300px",
-			"padding-bottom": "25px"
 		});
+
+		this.page.main.addClass('frappe-card');
 
 		if(this.opts.show_expand_all) {
 			this.page.add_inner_button(__('Expand All'), function() {
@@ -93,17 +94,17 @@ frappe.views.TreeView = Class.extend({
 		var me = this;
 		this.opts.onload && this.opts.onload(me);
 	},
-	make_filters: function(){
+	make_filters: function() {
 		var me = this;
 		frappe.treeview_settings.filters = []
 		$.each(this.opts.filters || [], function(i, filter) {
-			if(frappe.route_options && frappe.route_options[filter.fieldname]) {
-				filter.default = frappe.route_options[filter.fieldname]
+			if (frappe.route_options && frappe.route_options[filter.fieldname]) {
+				filter.default = frappe.route_options[filter.fieldname];
 			}
 
-			if(!filter.disable_onchange) {
+			if (!filter.disable_onchange) {
 				filter.change = function() {
-					filter.on_change && filter.on_change();
+					filter.onchange && filter.onchange();
 					var val = this.get_value();
 					me.args[filter.fieldname] = val;
 					if (val) {
@@ -113,7 +114,7 @@ frappe.views.TreeView = Class.extend({
 					}
 					me.set_title();
 					me.make_tree();
-				}
+				};
 			}
 
 			me.page.add_field(filter);
@@ -121,7 +122,7 @@ frappe.views.TreeView = Class.extend({
 			if (filter.default) {
 				$("[data-fieldname='"+filter.fieldname+"']").trigger("change");
 			}
-		})
+		});
 	},
 	get_root: function() {
 		var me = this;
@@ -359,12 +360,12 @@ frappe.views.TreeView = Class.extend({
 			});
 		});
 	},
-	set_primary_action: function(){
+	set_primary_action: function() {
 		var me = this;
 		if (!this.opts.disable_add_node && this.can_create) {
 			me.page.set_primary_action(__("New"), function() {
 				me.new_node();
-			}, "octicon octicon-plus")
+			}, "add");
 		}
 	},
 	set_menu_item: function(){
