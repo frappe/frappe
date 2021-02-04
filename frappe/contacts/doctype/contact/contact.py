@@ -127,7 +127,7 @@ class Contact(Document):
 				setattr(self, fieldname, d.phone)
 				break
 
-		if not found_primary:
+		if not primary_number_exists:
 			setattr(self, fieldname, "")
 
 def get_default_contact(doctype, name):
