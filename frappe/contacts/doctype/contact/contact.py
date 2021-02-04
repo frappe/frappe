@@ -120,7 +120,7 @@ class Contact(Document):
 		if len(is_primary) > 1:
 			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
 
-		found_primary = 0 
+		primary_number_exists = False 
 		for d in self.phone_nos:
 			if d.get(field_name) == 1:
 				primary_number_exists = True
