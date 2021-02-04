@@ -104,7 +104,7 @@ class Contact(Document):
 				self.email_id = d.email_id.strip()
 				break
 
-		if not found_primar_email:
+		if not primary_email_exists:
 			self.email_id = ""
 
 	def set_primary(self, fieldname):
