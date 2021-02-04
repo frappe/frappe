@@ -198,7 +198,7 @@ frappe.ui.form.on('Notification', {
 		frappe.notification.setup_example_message(frm);
 		if (frm.doc.channel === 'SMS' && frm.doc.__islocal) {
 			frm.set_df_property('channel',
-				'description', `To use SMS Channel, initialize <a href="#Form/SMS Settings">SMS Settings</a>.`);
+				'description', `To use SMS Channel, initialize <a href="/app/sms-settings">SMS Settings</a>.`);
 		} else {
 			frm.set_df_property('channel', 'description', ` `);
 		}

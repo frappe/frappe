@@ -48,6 +48,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		super.setup_new_doc_event();
+		this.page.main.addClass('report-view');
 	}
 
 	toggle_side_bar() {
@@ -79,7 +80,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.setup_paging_area();
 		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
 		this.$paging_area.find('.level-left').append(
-			`<p class="text-muted text-medium margin-left">${message}</p>`
+			`<span class="comparison-message text-muted">${message}</span>`
 		)
 	}
 
@@ -205,9 +206,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	render_count() {
 		let $list_count = this.$paging_area.find('.list-count');
 		if (!$list_count.length) {
-			this.$paging_area.find('.btn-more').addClass('margin-left');
 			$list_count = $('<span>')
-				.addClass('text-muted text-medium list-count')
+				.addClass('text-muted list-count')
 				.prependTo(this.$paging_area.find('.level-right'));
 		}
 		this.get_count_str()
@@ -343,7 +343,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						],
 						primary_action: ({ column, insert_before }) => {
 							if (!columns_in_picker.map(col => col.value).includes(column)) {
-								frappe.show_alert(__('Invalid column'));
+								frappe.show_alert({message: __('Invalid column'), indicator: 'orange'});
 								d.hide();
 								return;
 							}
@@ -712,7 +712,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// generate table fields in the required format ["name", "DocType"]
 		// these are fields in the column before adding new fields
 		let table_fields = this.columns.map(df => [df.field, df.docfield.parent]);
-		
+
 		// filter fields that are already in table
 		// iterate over table_fields to preserve the existing order of fields
 		// The filter will ensure the unchecked fields are removed
@@ -726,10 +726,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// This will be appended to the end of the table
 		let fields_to_add = this.fields.filter(df => {
 			return !table_fields.find((field) => {
-				return df[0] == field[0] && df[1] == field[1]
-			})
-		})
-		
+				return df[0] == field[0] && df[1] == field[1];
+			});
+		});
+
 		// rebuild fields
 		this.fields = [...fields_already_in_table, ...fields_to_add];
 	}
@@ -1367,9 +1367,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					});
 
-					d.$body.prepend(`<div class="columns-search">
-						<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
-					</div>`);
+					d.$body.prepend(`
+						<div class="columns-search">
+							<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
+						</div>
+					`);
 
 					frappe.utils.setup_search(d.$body, '.unit-checkbox', '.label-area');
 					d.show();

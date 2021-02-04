@@ -26,7 +26,7 @@ from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
 from frappe.modules.import_file import get_file_path
 from frappe.model.meta import Meta
-
+from frappe.desk.utils import validate_route_conflict
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 class UniqueFieldnameError(frappe.ValidationError): pass
@@ -63,6 +63,37 @@ class DocType(Document):
 
 		self.validate_name()
 
+		self.set_defaults_for_single_and_table()
+		self.scrub_field_names()
+		self.set_default_in_list_view()
+		self.set_default_translatable()
+		self.validate_series()
+		self.validate_document_type()
+		validate_fields(self)
+
+		if not self.istable:
+			validate_permissions(self)
+
+		self.make_amendable()
+		self.make_repeatable()
+		self.validate_nestedset()
+		self.validate_website()
+		validate_links_table_fieldnames(self)
+
+		if not self.is_new():
+			self.before_update = frappe.get_doc('DocType', self.name)
+			self.setup_fields_to_fetch()
+
+		check_email_append_to(self)
+
+		if self.default_print_format and not self.custom:
+			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
+
+	def after_insert(self):
+		# clear user cache so that on the next reload this doctype is included in boot
+		clear_user_cache(frappe.session.user)
+
+	def set_defaults_for_single_and_table(self):
 		if self.issingle:
 			self.allow_import = 0
 			self.is_submittable = 0
@@ -71,44 +102,6 @@ class DocType(Document):
 		elif self.istable:
 			self.allow_import = 0
 			self.permissions = []
-
-		self.scrub_field_names()
-		self.set_default_in_list_view()
-		self.set_default_translatable()
-		self.validate_series()
-		self.validate_document_type()
-		validate_fields(self)
-
-		if self.istable:
-			# no permission records for child table
-			self.permissions = []
-		else:
-			validate_permissions(self)
-
-		self.make_amendable()
-		self.make_repeatable()
-		self.validate_nestedset()
-		self.validate_website()
-		self.validate_links_table_fieldnames()
-
-		if not self.is_new():
-			self.before_update = frappe.get_doc('DocType', self.name)
-
-		if not self.is_new():
-			self.setup_fields_to_fetch()
-
-		check_email_append_to(self)
-
-		if self.default_print_format and not self.custom:
-			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
-
-		if frappe.conf.get('developer_mode'):
-			self.owner = 'Administrator'
-			self.modified_by = 'Administrator'
-
-	def after_insert(self):
-		# clear user cache so that on the next reload this doctype is included in boot
-		clear_user_cache(frappe.session.user)
 
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''
@@ -133,6 +126,10 @@ class DocType(Document):
 
 		if not frappe.conf.get("developer_mode") and not self.custom:
 			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."), CannotCreateStandardDoctypeError)
+
+		if frappe.conf.get('developer_mode'):
+			self.owner = 'Administrator'
+			self.modified_by = 'Administrator'
 
 	def setup_fields_to_fetch(self):
 		'''Setup query to update values for newly set fetch values'''
@@ -192,6 +189,9 @@ class DocType(Document):
 
 	def validate_website(self):
 		"""Ensure that website generator has field 'route'"""
+		if self.route:
+			self.route = self.route.strip('/')
+
 		if self.has_web_view:
 			# route field must be present
 			if not 'route' in [d.fieldname for d in self.fields]:
@@ -278,7 +278,6 @@ class DocType(Document):
 
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
-		self.delete_duplicate_custom_fields()
 		try:
 			frappe.db.updatedb(self.name, Meta(self))
 		except Exception as e:
@@ -322,18 +321,6 @@ class DocType(Document):
 			del frappe.local.meta_cache[self.name]
 
 		clear_linked_doctype_cache()
-
-	def delete_duplicate_custom_fields(self):
-		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
-			return
-
-		fields = [d.fieldname for d in self.fields if d.fieldtype in data_fieldtypes]
-		if fields:
-			frappe.db.sql('''delete from
-				`tabCustom Field`
-				where
-				dt = {0} and fieldname in ({1})
-				'''.format('%s', ', '.join(['%s'] * len(fields))), tuple([self.name] + fields), as_dict=True)
 
 	def sync_global_search(self):
 		'''If global search settings are changed, rebuild search properties for this table'''
@@ -677,24 +664,24 @@ class DocType(Document):
 		if not re.match("^(?![\W])[^\d_\s][\w ]+$", name, **flags):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
-	def validate_links_table_fieldnames(self):
-		"""Validate fieldnames in Links table"""
-		if frappe.flags.in_patch: return
-		if frappe.flags.in_fixtures: return
-		if not self.links: return
+		validate_route_conflict(self.doctype, self.name)
 
-		for index, link in enumerate(self.links):
-			meta = frappe.get_meta(link.link_doctype)
-			if not meta.get_field(link.link_fieldname):
-				message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
-				frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
+def validate_links_table_fieldnames(meta):
+	"""Validate fieldnames in Links table"""
+	if frappe.flags.in_patch: return
+	if frappe.flags.in_fixtures: return
+	if not meta.links: return
 
-
+	for index, link in enumerate(meta.links):
+		link_meta = frappe.get_meta(link.link_doctype)
+		if not link_meta.get_field(link.link_fieldname):
+			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
+			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
 def validate_fields_for_doctype(doctype):
-	doc = frappe.get_doc("DocType", doctype)
-	doc.delete_duplicate_custom_fields()
-	validate_fields(frappe.get_meta(doctype, cached=False))
+	meta = frappe.get_meta(doctype, cached=False)
+	validate_links_table_fieldnames(meta)
+	validate_fields(meta)
 
 # this is separate because it is also called via custom field
 def validate_fields(meta):
