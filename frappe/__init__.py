@@ -903,8 +903,6 @@ def get_installed_apps(sort=False, frappe_last=False):
 	if not db:
 		connect()
 
-<<<<<<< HEAD
-=======
 	if not local.all_apps:
 		local.all_apps = cache().get_value('all_apps', get_all_apps)
 
@@ -912,7 +910,6 @@ def get_installed_apps(sort=False, frappe_last=False):
 		if not cache().get_value('all_apps'):
 			cache().set_value('all_apps', local.all_apps)
 
->>>>>>> 5f708fa160... feat: cache bench apps
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
