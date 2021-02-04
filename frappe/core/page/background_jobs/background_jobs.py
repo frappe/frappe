@@ -15,7 +15,7 @@ from frappe.utils.scheduler import is_scheduler_inactive
 if TYPE_CHECKING:
 	from rq.job import Job
 
-COLORS = {
+JOB_COLORS = {
 	'queued': 'orange',
 	'failed': 'red',
 	'started': 'blue',
@@ -25,6 +25,9 @@ COLORS = {
 
 @frappe.whitelist()
 def get_info(show_failed=False) -> List[Dict]:
+	if isinstance(show_failed, str):
+		show_failed = json.loads(show_failed)
+
 	conn = get_redis_conn()
 	queues = Queue.all(conn)
 	workers = Worker.all(conn)
@@ -39,7 +42,7 @@ def get_info(show_failed=False) -> List[Dict]:
 				'status': job.get_status(),
 				'queue': name,
 				'creation': format_datetime(convert_utc_to_user_timezone(job.created_at)),
-				'color': COLORS[job.get_status()]
+				'color': JOB_COLORS[job.get_status()]
 			}
 
 			if job.exc_info:
@@ -53,15 +56,14 @@ def get_info(show_failed=False) -> List[Dict]:
 		if job:
 			add_job(job, worker.name)
 
-	# show active queued jobs
 	for queue in queues:
+		# show active queued jobs
 		if queue.name != 'failed':
 			for job in queue.jobs:
 				add_job(job, queue.name)
 
-	# show failed jobs, if requested
-	if json.loads(show_failed):
-		for queue in queues:
+		# show failed jobs, if requested
+		if show_failed:
 			fail_registry = queue.failed_job_registry
 			for job_id in fail_registry.get_job_ids():
 				job = queue.fetch_job(job_id)
