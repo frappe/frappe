@@ -322,14 +322,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 		return
 
 	if as_table and type(msg) in (list, tuple):
-<<<<<<< HEAD
 		out.msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
-=======
-		out.as_table = 1
-
-	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
-		out.as_list = 1
->>>>>>> 5f708fa160... feat: cache bench apps
 
 	if flags.print_messages and out.msg:
 		print("Message: " + repr(out.msg).encode("utf-8"))
