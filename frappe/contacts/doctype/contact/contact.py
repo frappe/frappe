@@ -123,7 +123,7 @@ class Contact(Document):
 		found_primary = 0 
 		for d in self.phone_nos:
 			if d.get(field_name) == 1:
-				found_primary = 1 
+				primary_number_exists = True
 				setattr(self, fieldname, d.phone)
 				break
 
