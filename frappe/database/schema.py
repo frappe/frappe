@@ -61,6 +61,11 @@ class DBTable:
 				ret.append('index `' + key + '`(`' + key + '`)')
 		return ret
 
+	def get_constraint_definitions(self):
+		"""Generate column level constraints of a table.
+		"""
+		pass
+
 	def get_columns_from_docfields(self):
 		"""
 			get columns from docfields and custom fields
@@ -188,9 +193,6 @@ class DbColumn:
 		elif self.default and (self.default not in frappe.db.DEFAULT_SHORTCUTS) \
 			and not cstr(self.default).startswith(":") and column_def not in ('text', 'longtext'):
 			column_def += " default {}".format(frappe.db.escape(self.default))
-
-		if self.unique and (column_def not in ('text', 'longtext')):
-			column_def += ' unique'
 
 		return column_def
 

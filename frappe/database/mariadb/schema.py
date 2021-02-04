@@ -6,15 +6,12 @@ from frappe.database.schema import DBTable
 
 class MariaDBTable(DBTable):
 	def create(self):
-		add_text = ''
-
-		# columns
+		# Get doctype columns and constraints
 		column_defs = self.get_column_definitions()
-		if column_defs: add_text += ',\n'.join(column_defs) + ',\n'
+		default_constraints = ["index parent(parent)", "index modified(modified)"]
+		constraints =  default_constraints + self.get_constraint_definitions()
 
-		# index
-		index_defs = self.get_index_definitions()
-		if index_defs: add_text += ',\n'.join(index_defs) + ',\n'
+		generated_schema = ',\n'.join(column_defs + constraints)
 
 		# create table
 		frappe.db.sql("""create table `%s` (
@@ -28,13 +25,12 @@ class MariaDBTable(DBTable):
 			parentfield varchar({varchar_len}),
 			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
-			%sindex parent(parent),
-			index modified(modified))
+			%s)
 			ENGINE={engine}
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
 			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=frappe.db.VARCHAR_LEN,
-				engine=self.meta.get("engine") or 'InnoDB') % (self.table_name, add_text))
+				engine=self.meta.get("engine") or 'InnoDB') % (self.table_name, generated_schema))
 
 	def alter(self):
 		for col in self.columns.values():
@@ -86,3 +82,15 @@ class MariaDBTable(DBTable):
 				frappe.throw(str(e.args[1]))
 			else:
 				raise e
+
+	def get_constraint_definitions(self):
+		"""Generate column level constraints of a table.
+		"""
+		index = self.get_index_definitions()
+
+		constraints = []
+		for key, col in self.columns.items():
+			if col.unique:
+				constraints.append(f'UNIQUE (`{key}`)')
+
+		return constraints + index

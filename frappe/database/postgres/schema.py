@@ -4,7 +4,7 @@ from frappe.utils import cint, flt
 from frappe.database.schema import DBTable, get_definition
 
 # List of site specific tables (Does not maintain tenant information)
-SITE_SPECIFIC_TABLES = ['tabProperty Setter']
+SITE_SPECIFIC_TABLES = ['tabProperty Setter', 'tabRole', 'tabPrint Style']
 
 class PostgresTable(DBTable):
 	def create(self):
@@ -16,17 +16,17 @@ class PostgresTable(DBTable):
 	def create_site_specific_table(self):
 		"""Create a table that is common to all the tenants in the site.
 		"""
-		add_text = ''
-
-		# columns
+		# Get doctype columns and constraints
 		column_defs = self.get_column_definitions()
-		if column_defs: add_text += ',\n'.join(column_defs)
+		constraints = self.get_constraint_definitions()
+
+		generated_schema = ',\n'.join(column_defs + constraints)
 
 		# index
 		# index_defs = self.get_index_definitions()
 		# TODO: set docstatus length
 		# create table
-		frappe.db.sql("""create table `%s` (
+		sql = """create table `%s` (
 			name varchar({varchar_len}) not null primary key,
 			creation timestamp(6),
 			modified timestamp(6),
@@ -37,24 +37,27 @@ class PostgresTable(DBTable):
 			parentfield varchar({varchar_len}),
 			parenttype varchar({varchar_len}),
 			idx bigint not null default '0',
-			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
+			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, generated_schema)
 
+		frappe.db.sql(sql.strip(',\n'))
 		frappe.db.commit()
 
 	def create_tenant_specific_table(self):
 		"""Create a table that maintains tenant wise data.
 		"""
-		add_text = ''
-
-		# columns
+		# Get doctype columns and constraints
 		column_defs = self.get_column_definitions()
-		if column_defs: add_text += ',\n'.join(column_defs)
+		default_constraints = ["PRIMARY KEY (`tenant_id`, `name`)"]
+		constraints =  default_constraints + self.get_constraint_definitions()
+
+		generated_schema = ',\n'.join(column_defs + constraints)
 
 		# index
 		# index_defs = self.get_index_definitions()
 		# TODO: set docstatus length
+
 		# create table
-		frappe.db.sql("""create table `%s` (
+		sql = """create table `%s` (
 			name varchar({varchar_len}) not null,
 			tenant_id integer not null DEFAULT current_setting('app.current_tenant')::integer,
 			creation timestamp(6),
@@ -66,9 +69,9 @@ class PostgresTable(DBTable):
 			parentfield varchar({varchar_len}),
 			parenttype varchar({varchar_len}),
 			idx bigint not null default '0',
-			PRIMARY KEY (tenant_id, name),
-			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
+			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, generated_schema)
 
+		frappe.db.sql(sql.strip(',\n'))
 		frappe.db.sql(
 			"ALTER TABLE `%s` ENABLE ROW LEVEL SECURITY;" % (self.table_name))
 		frappe.db.sql(
@@ -79,6 +82,18 @@ class PostgresTable(DBTable):
 			""" % (self.table_name, self.table_name))
 
 		frappe.db.commit()
+
+	def get_constraint_definitions(self):
+		"""Generate column level constraints of a table.
+		"""
+		constaints = []
+		for key, col in self.columns.items():
+			if col.unique:
+				if self.table_name in SITE_SPECIFIC_TABLES:
+					constaints.append(f'UNIQUE (`{key}`)')
+				else:
+					constaints.append(f'UNIQUE (`tenant_id`, `{key}`)')
+		return constaints
 
 	def alter(self):
 		for col in self.columns.values():
