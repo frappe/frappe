@@ -1,23 +1,31 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-# util __init__.py
+from __future__ import print_function, unicode_literals
 
-from __future__ import unicode_literals, print_function
-from werkzeug.test import Client
-import os, re, sys, json, hashlib, requests, traceback
 import functools
-from .html_utils import sanitize_html
-import frappe
-from frappe.utils.identicon import Identicon
-from email.utils import parseaddr, formataddr
+import hashlib
+import io
+import json
+import os
+import re
+import sys
+import traceback
 from email.header import decode_header, make_header
+from email.utils import formataddr, parseaddr
+from gzip import GzipFile
+from typing import Generator, Iterable
+
+import requests
+from six import string_types, text_type
+from six.moves.urllib.parse import quote
+from werkzeug.test import Client
+
+import frappe
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from six.moves.urllib.parse import quote
-from six import text_type, string_types
-import io
-from gzip import GzipFile
+from frappe.utils.identicon import Identicon
+from frappe.utils.html_utils import sanitize_html
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
 	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
@@ -304,8 +312,8 @@ def unesc(s, esc_chars):
 
 def execute_in_shell(cmd, verbose=0):
 	# using Popen instead of os.system - as recommended by python docs
-	from subprocess import Popen
 	import tempfile
+	from subprocess import Popen
 
 	with tempfile.TemporaryFile() as stdout:
 		with tempfile.TemporaryFile() as stderr:
@@ -471,8 +479,9 @@ def get_request_session(max_retries=3):
 
 def watch(path, handler=None, debug=True):
 	import time
-	from watchdog.observers import Observer
+
 	from watchdog.events import FileSystemEventHandler
+	from watchdog.observers import Observer
 
 	class Handler(FileSystemEventHandler):
 		def on_any_event(self, event):
@@ -571,9 +580,9 @@ def get_installed_apps_info():
 	return out
 
 def get_site_info():
-	from frappe.utils.user import get_system_managers
 	from frappe.core.doctype.user.user import STANDARD_USERS
 	from frappe.email.queue import get_emails_sent_this_month
+	from frappe.utils.user import get_system_managers
 
 	# only get system users
 	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
