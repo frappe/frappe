@@ -196,10 +196,6 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_last_edited_communication();
 		this.setup_email_template();
 
-		if ('frm' in this) {
-			this.dialog.set_value("email_template", this.frm.meta.default_email_template || '');
-		}
-
 		this.dialog.set_value("recipients", this.recipients || '');
 		this.dialog.set_value("cc", this.cc || '');
 		this.dialog.set_value("bcc", this.bcc || '');
@@ -210,6 +206,11 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.dialog.fields_dict.subject.set_value(this.subject || '');
 
 		this.setup_earlier_reply();
+
+		if ('frm' in this && !this.is_a_reply) {
+			// set default email template for the first email in a document
+			this.dialog.set_value("email_template", this.frm.meta.default_email_template || '');
+		}
 	},
 
 	setup_subject_and_recipients: function() {
