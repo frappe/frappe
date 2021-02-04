@@ -100,7 +100,7 @@ class Contact(Document):
 		primary_email_exists = False
 		for d in self.email_ids:
 			if d.is_primary == 1:
-				found_primar_email = 1 
+				primary_email_exists = True
 				self.email_id = d.email_id.strip()
 				break
 
