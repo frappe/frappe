@@ -555,7 +555,7 @@
   },
   {
    "group": "Customization",
-   "link_doctype": "Custom Script",
+   "link_doctype": "Client Script",
    "link_fieldname": "dt"
   },
   {
