@@ -700,13 +700,19 @@ def get_safe_filters(filters):
 
 	return filters
 
-def create_batch(iterable, batch_size):
-	"""
-	Convert an iterable to multiple batches of constant size of batch_size
+def create_batch(iterable: Iterable, size: int) -> Generator[Iterable, None, None]:
+	"""Convert an iterable to multiple batches of constant size of batch_size
+
+	Args:
+		iterable (Iterable): Iterable object which is subscriptable
+		size (int): Maximum size of batches to be generated
+
+	Yields:
+		Generator[List]: Batched iterable of maximum length `size`
 	"""
 	total_count = len(iterable)
-	for i in range(0, total_count, batch_size):
-		yield iterable[i:min(i + batch_size, total_count)]
+	for i in range(0, total_count, size):
+		yield iterable[i : min(i + size, total_count)]
 
 def set_request(**kwargs):
 	from werkzeug.test import EnvironBuilder
