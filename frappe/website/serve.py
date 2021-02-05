@@ -22,6 +22,8 @@ def render(path=None, http_status_code=None):
 		path = resolve_path(path)
 		data = None
 
+		# there is no way to determine the type of the page based on the route
+		# so evaluate each type of page sequentially
 		response = StaticPage(path).get()
 		if not response:
 			response = TemplatePage(path).get()
@@ -93,7 +95,8 @@ class TemplatePage(WebPage):
 
 	def find_page_in_app(self, app):
 		'''
-		Searches for file matching the path in the /www and /templates/pages folders
+		Searches for file matching the path in the /www
+		and /templates/pages folders
 		'''
 		app_path = frappe.get_app_path(app)
 		folders = get_start_folders()
@@ -128,9 +131,7 @@ class TemplatePage(WebPage):
 
 		self.set_pymodule()
 		self.setup_template()
-
-		if self.pymodule_name:
-			self.update_context()
+		self.update_context()
 
 		if self.source:
 			html = frappe.render_template(self.source, self.context)
@@ -178,18 +179,19 @@ class TemplatePage(WebPage):
 		self.context.update(get_website_settings(self.context))
 		self.context.update(frappe.local.conf.get("website_context") or {})
 
-		self.pymodule = frappe.get_module(self.pymodule_name)
-
-		if self.pymodule:
+		if self.pymodule_name:
+			self.pymodule = frappe.get_module(self.pymodule_name)
 			self.set_pymodule_properties()
 
 			data = self.run_pymodule_method('get_context')
+
 			# some methods may return a "context" object
 			if data: self.context.update(data)
 
 			# TODO: self.context.children = self.run_pymodule_method('get_children')
 
 		self.context.developer_mode = frappe.conf.developer_mode
+		self.status_code = self.context.http_status_code or 200
 
 	def set_pymodule_properties(self):
 		for prop in ("base_template_path", "template", "no_cache", "sitemap",
@@ -203,7 +205,7 @@ class TemplatePage(WebPage):
 	def run_pymodule_method(self, method):
 		if hasattr(self.pymodule, method):
 			try:
-				return getattr(self.pymodule, method)(self)
+				return getattr(self.pymodule, method)(self.context)
 			except (frappe.PermissionError, frappe.DoesNotExistError, frappe.Redirect):
 				raise
 			except:
