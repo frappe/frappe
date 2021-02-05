@@ -32,7 +32,7 @@ def clean_email_html(html):
 			'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
 			'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
 			'font-size', 'font-weight', 'font-family', 'text-decoration',
-			'line-height', 'text-align', 'vertical-align'
+			'line-height', 'text-align', 'vertical-align', 'display'
 		],
 		protocols=['cid', 'http', 'https', 'mailto', 'data'],
 		strip=True, strip_comments=True)

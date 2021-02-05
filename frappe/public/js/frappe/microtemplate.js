@@ -86,9 +86,17 @@ frappe.render_template = function(name, data) {
 }
 frappe.render_grid = function(opts) {
 	// build context
-	if(opts.grid) {
+	if (opts.grid) {
 		opts.columns = opts.grid.getColumns();
 		opts.data = opts.grid.getData().getItems();
+	}
+
+	if (
+		opts.print_settings &&
+		opts.print_settings.orientation &&
+		opts.print_settings.orientation.toLowerCase() === "landscape"
+	) {
+		opts.landscape = true;
 	}
 
 	// show landscape view if columns more than 10
