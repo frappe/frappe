@@ -291,9 +291,10 @@ def get_aggregate_function(chart_type):
 def get_result(data, timegrain, from_date, to_date, chart_type):
 	dates = get_dates_from_timegrain(from_date, to_date, timegrain)
 	result = [[date, 0] for date in dates]
-	data_index, count = 0, 0
+	data_index = 0
 	if data:
 		for i, d in enumerate(result):
+			count = 0
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
 				d[1] += data[data_index][1]
 				count += data[data_index][2]
