@@ -659,7 +659,8 @@ class DocType(Document):
 		flags = {"flags": re.ASCII} if six.PY3 else {}
 
 		# a DocType name should not start or end with an empty space
-		if re.match("^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
+		lead_trail_whitespace_re = re.compile("^[ \t\n\r]+|[ \t\n\r]+$", **flags)
+		if lead_trail_whitespace_re.findall(name):
 			frappe.throw(_("DocType's name should not start or end with whitespace"), frappe.NameError)
 
 		# a DocType's name should not start with a number or underscore
