@@ -126,6 +126,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
 		this.disp_area && $(this.disp_area).html(display_value);
 	},
+<<<<<<< HEAD
 
 	bind_change_event: function() {
 		var me = this;
@@ -145,6 +146,8 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			});
 		}
 	},
+=======
+>>>>>>> 4d9b8f86f6... fix: Anomalous behaviour of save button (bp #12326) (#12336)
 	set_label: function(label) {
 		if(label) this.df.label = label;
 
