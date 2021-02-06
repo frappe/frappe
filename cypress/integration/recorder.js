@@ -43,6 +43,7 @@ context('Recorder', () => {
 		cy.get('.result-list').should('contain', '/api/method/frappe.desk.reportview.get');
 
 		cy.get('#page-recorder .primary-action').should('contain', 'Stop').click();
+		cy.wait(500);
 		cy.get('#page-recorder .btn-secondary').should('contain', 'Clear').click();
 		cy.get('.msg-box').should('contain', 'Inactive');
 	});
@@ -67,6 +68,7 @@ context('Recorder', () => {
 		cy.get('form').should('contain', 'frappe.desk.reportview.get');
 
 		cy.get('#page-recorder .primary-action').should('contain', 'Stop').click();
+		cy.wait(200);
 		cy.get('#page-recorder .btn-secondary').should('contain', 'Clear').click();
 		cy.location('hash').should('eq', '#recorder');
 	});
