@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 4d9b8f86f6... fix: Anomalous behaviour of save button (bp #12326) (#12336)
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	trigger_change_on_input_event: false,
 	make_input: function() {

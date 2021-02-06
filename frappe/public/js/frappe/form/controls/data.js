@@ -22,11 +22,6 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.bind_change_event();
 		this.bind_focusout();
 		this.setup_autoname_check();
-<<<<<<< HEAD
-
-		// somehow this event does not bubble up to document
-		// after v7, if you can debug, remove this
-=======
 	},
 	bind_change_event: function() {
 		const change_handler = e => {
@@ -41,7 +36,6 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			// debounce to avoid repeated validations on value change
 			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
 		}
->>>>>>> 4d9b8f86f6... fix: Anomalous behaviour of save button (bp #12326) (#12336)
 	},
 	setup_autoname_check: function() {
 		if (!this.df.parent) return;
