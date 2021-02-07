@@ -363,8 +363,13 @@ $.extend(frappe.model, {
 		} else if (!opts.source_name && opts.frm) {
 			opts.source_name = opts.frm.doc.name;
 
+<<<<<<< HEAD
 			// Allow opening a mapped doc without a source document name
 		} else if (!opts.frm) {
+=======
+		// Allow opening a mapped doc without a source document name
+		} else if (!opts.frm && !opts.source_name) {
+>>>>>>> c76c4605c3... fix: Don't overwrite source_name if source_name is defined (#12280)
 			opts.source_name = null;
 		}
 
