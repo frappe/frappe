@@ -204,8 +204,7 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 
 	return {
 		"html": html,
-		"style": get_print_style(style=style, print_format=print_format),
-		"has_rtl": True if frappe.local.lang in ["ar", "he", "fa"] else False
+		"style": get_print_style(style=style, print_format=print_format)
 	}
 
 @frappe.whitelist()
