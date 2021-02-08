@@ -239,7 +239,8 @@ DROP TABLE IF EXISTS "tabSeries";
 CREATE TABLE "tabSeries" (
   "name" varchar(100) DEFAULT NULL,
   "current" bigint NOT NULL DEFAULT 0,
-  PRIMARY KEY ("name")
+  "tenant_id" integer not null DEFAULT current_setting('app.current_tenant')::integer,
+  PRIMARY KEY ("tenant_id", "name")
 ) ;
 
 --
@@ -254,7 +255,8 @@ CREATE TABLE "tabSessions" (
   "ipaddress" varchar(16) DEFAULT NULL,
   "lastupdate" timestamp(6) DEFAULT NULL,
   "device" varchar(255) DEFAULT 'desktop',
-  "status" varchar(20) DEFAULT NULL
+  "status" varchar(20) DEFAULT NULL,
+  "tenant_id" integer not null DEFAULT current_setting('app.current_tenant')::integer
 );
 
 create index on "tabSessions" ("sid");
@@ -267,7 +269,8 @@ DROP TABLE IF EXISTS "tabSingles";
 CREATE TABLE "tabSingles" (
   "doctype" varchar(255) DEFAULT NULL,
   "field" varchar(255) DEFAULT NULL,
-  "value" text
+  "value" text,
+  "tenant_id" integer not null DEFAULT current_setting('app.current_tenant')::integer
 );
 
 create index on "tabSingles" ("doctype", "field");
@@ -283,7 +286,8 @@ CREATE TABLE "__Auth" (
 	"fieldname" VARCHAR(140) NOT NULL,
 	"password" TEXT NOT NULL,
 	"encrypted" int NOT NULL DEFAULT 0,
-	PRIMARY KEY ("doctype", "name", "fieldname")
+  "tenant_id" integer not null DEFAULT current_setting('app.current_tenant')::integer,
+	PRIMARY KEY ("tenant_id", "doctype", "name", "fieldname")
 );
 
 create index on "__Auth" ("doctype", "name", "fieldname");
@@ -310,7 +314,8 @@ CREATE TABLE "tabFile" (
   "attached_to_name" varchar(255) DEFAULT NULL,
   "file_size" bigint NOT NULL DEFAULT 0,
   "attached_to_doctype" varchar(255) DEFAULT NULL,
-  PRIMARY KEY ("name")
+  "tenant_id" integer not null DEFAULT current_setting('app.current_tenant')::integer,
+  PRIMARY KEY ("tenant_id", "name")
 );
 
 create index on "tabFile" ("parent");
@@ -335,7 +340,8 @@ CREATE TABLE "tabDefaultValue" (
   "idx" bigint NOT NULL DEFAULT 0,
   "defvalue" text,
   "defkey" varchar(255) DEFAULT NULL,
-  PRIMARY KEY ("name")
+  "tenant_id" integer not null DEFAULT current_setting('app.current_tenant')::integer,
+  PRIMARY KEY ("tenant_id", "name")
 );
 
 create index on "tabDefaultValue" ("parent");
@@ -346,11 +352,11 @@ create index on "tabDefaultValue" ("parent", "defkey");
 --
 
 DROP TABLE IF EXISTS "tabTenant";
-CREATE TABLE "tabTenant1" (
+CREATE TABLE "tabTenant" (
   "id" SERIAL PRIMARY KEY,
   "name" varchar(255) UNIQUE,
   "status" VARCHAR(64) DEFAULT 'active' CHECK (status IN ('active', 'disabled', 'suspended')),
-  "creation" timestamp(6) WITHOUT TIME ZONE DEFAULT (current_timestamp AT TIME ZONE 'utc'),
+  "created" timestamp(6) WITHOUT TIME ZONE DEFAULT (current_timestamp AT TIME ZONE 'utc'),
   "modified" timestamp(6) WITHOUT TIME ZONE DEFAULT (current_timestamp AT TIME ZONE 'utc')
 );
 

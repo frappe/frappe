@@ -4,7 +4,7 @@ from frappe.utils import cint, flt
 from frappe.database.schema import DBTable, get_definition
 
 # List of site specific tables (Does not maintain tenant information)
-SITE_SPECIFIC_TABLES = ['tabProperty Setter', 'tabRole', 'tabPrint Style']
+SITE_SPECIFIC_TABLES = ['tabProperty Setter', 'tabCustom Field', 'tabDefaultValue', 'tabModule Def']
 
 class PostgresTable(DBTable):
 	def create(self):

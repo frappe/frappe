@@ -343,6 +343,6 @@ CREATE TABLE `tabTenant` (
   `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `name` varchar(255) UNIQUE,
   `status` ENUM('active', 'disabled', 'suspended') DEFAULT 'active',
-  `creation` datetime(6) DEFAULT NULL,
+  `created` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
