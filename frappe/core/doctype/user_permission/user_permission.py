@@ -49,7 +49,8 @@ class UserPermission(Document):
 				'name': ['!=', self.name]
 			}, or_filters={
 				'applicable_for': cstr(self.applicable_for),
-				'apply_to_all_doctypes': 1
+				'apply_to_all_doctypes': 1,
+				'hide_descendants': cstr(self.hide_descendants)
 			}, limit=1)
 		if overlap_exists:
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
@@ -91,13 +92,13 @@ def get_user_permissions(user=None):
 
 	try:
 		for perm in frappe.get_all('User Permission',
-			fields=['allow', 'for_value', 'applicable_for', 'is_default'],
+			fields=['allow', 'for_value', 'applicable_for', 'is_default', 'hide_descendants'],
 			filters=dict(user=user)):
 
 			meta = frappe.get_meta(perm.allow)
 			add_doc_to_perm(perm, perm.for_value, perm.is_default)
 
-			if meta.is_nested_set():
+			if meta.is_nested_set() and not perm.hide_descendants:
 				decendants = frappe.db.get_descendants(perm.allow, perm.for_value)
 				for doc in decendants:
 					add_doc_to_perm(perm, doc, False)
@@ -172,8 +173,8 @@ def check_applicable_doc_perm(user, doctype, docname):
 				"allow": doctype,
 				"for_value":docname,
 			})
-		for d in data:
-			applicable.append(d.applicable_for)
+		for permission in data:
+			applicable.append(permission.applicable_for)
 	return applicable
 
 
@@ -194,7 +195,8 @@ def add_user_permissions(data):
 		data = json.loads(data)
 	data = frappe._dict(data)
 
-	d = check_applicable_doc_perm(data.user, data.doctype, data.docname)
+	# get all doctypes on whom this permission is applied
+	perm_applied_docs = check_applicable_doc_perm(data.user, data.doctype, data.docname)
 	exists = frappe.db.exists("User Permission", {
 		"user": data.user,
 		"allow": data.doctype,
@@ -202,26 +204,27 @@ def add_user_permissions(data):
 		"apply_to_all_doctypes": 1
 	})
 	if data.apply_to_all_doctypes == 1 and not exists:
-		remove_applicable(d, data.user, data.doctype, data.docname)
-		insert_user_perm(data.user, data.doctype, data.docname, data.is_default, apply_to_all = 1)
+		remove_applicable(perm_applied_docs, data.user, data.doctype, data.docname)
+		insert_user_perm(data.user, data.doctype, data.docname, data.is_default, data.hide_descendants, apply_to_all=1)
 		return 1
 	elif len(data.applicable_doctypes) > 0 and data.apply_to_all_doctypes != 1:
 		remove_apply_to_all(data.user, data.doctype, data.docname)
-		update_applicable(d, data.applicable_doctypes, data.user, data.doctype, data.docname)
+		update_applicable(perm_applied_docs, data.applicable_doctypes, data.user, data.doctype, data.docname)
 		for applicable in data.applicable_doctypes :
-			if applicable not in d:
-				insert_user_perm(data.user, data.doctype, data.docname, data.is_default, applicable = applicable)
+			if applicable not in perm_applied_docs:
+				insert_user_perm(data.user, data.doctype, data.docname, data.is_default, data.hide_descendants, applicable=applicable)
 			elif exists:
-				insert_user_perm(data.user, data.doctype, data.docname, data.is_default, applicable = applicable)
+				insert_user_perm(data.user, data.doctype, data.docname, data.is_default, data.hide_descendants, applicable=applicable)
 		return 1
 	return 0
 
-def insert_user_perm(user, doctype, docname, is_default=0, apply_to_all=None, applicable=None):
+def insert_user_perm(user, doctype, docname, is_default=0, hide_descendants=0, apply_to_all=None, applicable=None):
 	user_perm = frappe.new_doc("User Permission")
 	user_perm.user = user
 	user_perm.allow = doctype
 	user_perm.for_value = docname
 	user_perm.is_default = is_default
+	user_perm.hide_descendants = hide_descendants
 	if applicable:
 		user_perm.applicable_for  = applicable
 		user_perm.apply_to_all_doctypes = 0
@@ -229,8 +232,8 @@ def insert_user_perm(user, doctype, docname, is_default=0, apply_to_all=None, ap
 		user_perm.apply_to_all_doctypes = 1
 	user_perm.insert()
 
-def remove_applicable(d, user, doctype, docname):
-	for applicable_for in d:
+def remove_applicable(perm_applied_docs, user, doctype, docname):
+	for applicable_for in perm_applied_docs:
 		frappe.db.sql("""DELETE FROM `tabUser Permission`
 			WHERE `user`=%s
 			AND `applicable_for`=%s

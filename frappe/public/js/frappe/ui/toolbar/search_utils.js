@@ -294,7 +294,7 @@ frappe.search.utils = {
 					label: __("Open {0}", [me.bolden_match_part(__(item.name), keywords)]),
 					value: __("Open {0}", [__(item.name)]),
 					index: level,
-					route: ["space", item.name]
+					route: [frappe.router.slug(item.name)]
 				};
 
 				out.push(ret);
@@ -481,47 +481,47 @@ frappe.search.utils = {
 		});
 		var in_keyword = keywords.split(" in ")[0];
 		return [{
-			title: "Recents",
+			title: __("Recents"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_recent_pages(keywords))
 		},
 		{
-			title: "Create a new ...",
+			title: __("Create a new ..."),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_creatables(keywords))
 		},
 		{
-			title: "Lists",
+			title: __("Lists"),
 			fetch_type: "Nav",
 			results: lists
 		},
 		{
-			title: "Reports",
+			title: __("Reports"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_reports(keywords))
 		},
 		{
-			title: "Administration",
+			title: __("Administration"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_pages(keywords))
 		},
 		{
-			title: "Workspace",
+			title: __("Workspace"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_workspaces(keywords))
 		},
 		{
-			title: "Dashboard",
+			title: __("Dashboard"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_dashboards(keywords))
 		},
 		{
-			title: "Setup",
+			title: __("Setup"),
 			fetch_type: "Nav",
 			results: setup
 		},
 		{
-			title: "Find '" + in_keyword + "' in ... ",
+			title: __("Find '{0}' in ...", [in_keyword]),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_search_in_list(keywords))
 		}];

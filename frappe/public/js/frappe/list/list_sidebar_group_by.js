@@ -24,7 +24,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			fields: this.get_group_by_dropdown_fields(),
 		});
 
-		d.set_primary_action('Save', ({ group_by_fields }) => {
+		d.set_primary_action(__("Save"), ({ group_by_fields }) => {
 			frappe.model.user_settings.save(
 				this.doctype,
 				'group_by_fields',
@@ -38,11 +38,13 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			d.hide();
 		});
 
-		d.$body.prepend(`<div class="filters-search">
-			<input type="text" placeholder="${__(
-				'Search'
-			)}" data-element="search" class="form-control input-xs">
-		</div>`);
+		d.$body.prepend(`
+			<div class="filters-search">
+				<input type="text"
+					placeholder="${__('Search')}"
+					data-element="search" class="form-control input-xs">
+			</div>
+		`);
 
 		this.page.sidebar.find('.add-list-group-by a').on('click', () => {
 			frappe.utils.setup_search(d.$body, '.unit-checkbox', '.label-area');
@@ -99,7 +101,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	setup_dropdown() {
 		this.$wrapper.find('.group-by-field').on('show.bs.dropdown', (e) => {
 			let $dropdown = $(e.currentTarget).find('.group-by-dropdown');
-			this.set_loading_state($dropdown)
+			this.set_loading_state($dropdown);
 			let fieldname = $(e.currentTarget).find('a')
 				.attr('data-fieldname');
 			let fieldtype = $(e.currentTarget)
@@ -203,9 +205,11 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	render_dropdown_items(fields, fieldtype, $dropdown, applied_filter) {
 		let standard_html = `
 			<div class="dropdown-search">
-				<input type="text" placeholder="${__(
-					'Search'
-				)}" data-element="search" class="dropdown-search-input form-control input-xs">
+				<input type="text"
+					placeholder="${__('Search')}"
+					data-element="search"
+					class="dropdown-search-input form-control input-xs"
+				>
 			</div>
 		`;
 		let applied_filter_html='';
@@ -241,7 +245,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				<span class="group-by-count">${field.count}</span>
 			</a>
 		</li>`;
-	};
+	}
 
 	setup_filter_by() {
 		this.$wrapper.on('click', '.group-by-item', (e) => {

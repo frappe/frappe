@@ -1,7 +1,7 @@
 context('Form', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/space/Website');
+		cy.visit('/app/website');
 		return cy.window().its('frappe').then(frappe => {
 			return frappe.call("frappe.tests.ui_test_helpers.create_contact_records");
 		});
@@ -11,13 +11,12 @@ context('Form', () => {
 		cy.fill_field('description', 'this is a test todo', 'Text Editor').blur();
 		cy.wait(300);
 		cy.get('.page-title').should('contain', 'Not Saved');
-		cy.server();
-		cy.route({
+		cy.intercept({
 			method: 'POST',
 			url: 'api/method/frappe.desk.form.save.savedocs'
 		}).as('form_save');
 		cy.get('.primary-action').click();
-		cy.wait('@form_save').its('status').should('eq', 200);
+		cy.wait('@form_save').its('response.statusCode').should('eq', 200);
 		cy.visit('/app/todo');
 		cy.get('.title-text').should('be.visible').and('contain', 'To Do');
 		cy.get('.list-row').should('contain', 'this is a test todo');
@@ -30,21 +29,20 @@ context('Form', () => {
 		cy.visit('/app/contact/Test Form Contact 3');
 		cy.get('.prev-doc').should('be.visible').click();
 		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');
-		cy.get('.btn-modal-close:visible').click();
+		cy.hide_dialog();
 		cy.get('.next-doc').click();
 		cy.wait(200);
+		cy.hide_dialog();
 		cy.contains('Test Form Contact 2').should('not.exist');
-		cy.get('.title-text').should('contain', 'Test Form Contact 1');
+		cy.get('.title-text').should('contain', 'Test Form Contact 3');
 		// clear filters
-		cy.window().its('frappe').then((frappe) => {
-			let list_view = frappe.get_list_view('Contact');
-			list_view.filter_area.filter_list.clear_filters();
-		});
+		cy.visit('/app/contact');
+		cy.clear_filters();
 	});
 	it('validates behaviour of Data options validations in child table', () => {
 		// test email validations for set_invalid controller
 		let website_input = 'website.in';
-		let expectBackgroundColor = 'rgb(255, 220, 220)';
+		let expectBackgroundColor = 'rgb(255, 245, 245)';
 
 		cy.visit('/app/contact/new');
 		cy.get('.frappe-control[data-fieldname="email_ids"]').as('table');

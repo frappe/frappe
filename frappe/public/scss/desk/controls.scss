@@ -95,6 +95,7 @@
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius);
 		font-size: var(--text-sm);
+		word-wrap: break-word;
 		p:last-child {
 			margin-bottom: 0;
 		}
@@ -104,10 +105,10 @@
 .frappe-control:not([data-fieldtype='MultiSelectPills']):not([data-fieldtype='Table MultiSelect']) {
 	&.has-error {
 		input {
-			border: 1px solid var(--red-400);
+			border: 1px solid var(--error-border);
 
 			&:focus {
-				box-shadow: 0 0 0 $input-btn-focus-width var(--bg-red);
+				box-shadow: 0 0 0 $input-btn-focus-width var(--error-bg);
 			}
 		}
 	}
@@ -117,30 +118,8 @@
 .frappe-control[data-fieldtype='Table MultiSelect'] {
 	&.has-error {
 		.control-input {
-			border: 1px solid var(--red-400);
+			border: 1px solid var(--error-border);
 			border-radius: var(--border-radius);
-		}
-	}
-}
-
-.frappe-control[data-fieldtype="Select"] .control-input {
-	position: relative;
-
-	select {
-		/* for Firefox */
-		-moz-appearance: none;
-		/* for Chrome */
-		-webkit-appearance: none;
-	}
-
-	.icon {
-		position: absolute;
-		top: 8px;
-		height: 15px;
-		right: 12px;
-		pointer-events: none;
-		use {
-			stroke: var(--text-muted);
 		}
 	}
 }
@@ -173,4 +152,38 @@
 		border-radius: var(--border-radius);
 		font-size: var(--text-md);
 	}
+}
+
+/* progress bar */
+.progress, .progress-bar {
+	box-shadow: none;
+}
+
+a.progress-small {
+	.progress-chart {
+		width: 40px;
+		margin-top: 4px;
+		float: right;
+	}
+
+	.progress {
+		margin-bottom: 0;
+	}
+
+	.progress-bar {
+		transition: unset;
+		background-color: var(--green-500);
+	}
+}
+
+.progress-bar-success {
+	background-color: var(--green-500);
+}
+
+.progress-bar-danger {
+	background-color: var(--red-500);
+}
+
+.progress-bar-warning {
+	background-color: var(--orange-500);
 }

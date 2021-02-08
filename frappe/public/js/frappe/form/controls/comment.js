@@ -122,5 +122,15 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 
 	clear() {
 		this.quill.setText('');
+	},
+
+	disable() {
+		this.quill.disable();
+		this.button.prop('disabled', true);
+	},
+
+	enable() {
+		this.quill.enable();
+		this.button.prop('disabled', false);
 	}
 });

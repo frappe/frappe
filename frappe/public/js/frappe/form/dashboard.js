@@ -335,7 +335,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			}
 		} else if (this.data.fieldname) {
 			frappe.route_options = this.get_document_filter(doctype);
-			if (show_open) {
+			if (show_open && frappe.ui.notifications) {
 				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		}
@@ -602,7 +602,7 @@ class Section {
 		this.df = options || {};
 		this.make();
 
-		if (this.df.title && this.df.collapsible) {
+		if (this.df.title && this.df.collapsible && localStorage.getItem(options.css_class + '-closed')) {
 			this.collapse();
 		}
 		this.refresh();
@@ -657,6 +657,7 @@ class Section {
 			this.collapse_link = this.head.on("click", () => {
 				this.collapse();
 			});
+			this.set_icon();
 			this.indicator.show();
 		}
 	}
@@ -677,9 +678,15 @@ class Section {
 		this.body.toggleClass("hide", hide);
 		this.head && this.head.toggleClass("collapsed", hide);
 
-		let indicator_icon = hide ? 'down' : 'up-line';
+		this.set_icon(hide);
 
-		this.indicator & this.indicator.html(frappe.utils.icon(indicator_icon, 'sm', 'mb-1'));
+		// save state for next reload ('' is falsy)
+		localStorage.setItem(this.df.css_class + '-closed', hide ? '1' : '');	
+	}
+
+	set_icon(hide) {
+		let indicator_icon = hide ? 'down' : 'up-line';
+		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, 'sm', 'mb-1'));
 	}
 
 	is_collapsed() {

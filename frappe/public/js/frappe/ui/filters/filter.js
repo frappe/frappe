@@ -69,7 +69,7 @@ frappe.ui.Filter = class {
 			frappe.render_template('edit_filter', {
 				conditions: this.conditions,
 			})
-		)
+		);
 		this.parent && this.filter_edit_area.appendTo(this.parent.find('.filter-edit-area'));
 		this.make_select();
 		this.set_events();
@@ -281,7 +281,7 @@ frappe.ui.Filter = class {
 			this.field.set_value(old_text);
 		}
 
-		this.bind_filter_field_events()
+		this.bind_filter_field_events();
 	}
 
 	bind_filter_field_events() {
@@ -527,7 +527,7 @@ frappe.ui.filter_utils = {
 			['Date', 'Datetime', 'DateRange', 'Select'].includes(df.fieldtype)
 		) {
 			df.fieldtype = 'Select';
-			df.options = this.get_timespan_options(['Last', 'Today', 'This', 'Next']);
+			df.options = this.get_timespan_options(['Last', 'Yesterday', 'Today', 'Tomorrow', 'This', 'Next']);
 		}
 		if (condition === 'is') {
 			df.fieldtype = 'Select';
@@ -542,7 +542,6 @@ frappe.ui.filter_utils = {
 	get_timespan_options(periods) {
 		const period_map = {
 			Last: ['Week', 'Month', 'Quarter', '6 months', 'Year'],
-			Today: null,
 			This: ['Week', 'Month', 'Quarter', 'Year'],
 			Next: ['Week', 'Month', 'Quarter', '6 months', 'Year'],
 		};

@@ -161,9 +161,9 @@ frappe.ui.Page = Class.extend({
 		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
 			sidebar_toggle.remove();
 		} else {
-			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip(
-				{ delay: { "show": 600, "hide": 100 },
-				trigger : "hover",
+			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip({
+				delay: { "show": 600, "hide": 100 },
+				trigger: "hover",
 			});
 			sidebar_toggle.click(() => {
 				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
@@ -187,19 +187,19 @@ frappe.ui.Page = Class.extend({
 		this.sidebar.find(".close-sidebar").on('click', (e) => close_sidebar(e));
 		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => close_sidebar(e));
 
-		let close_sidebar = (e) => {
+		let close_sidebar = () => {
 			scroll_container.css("overflow-y", "");
 			this.sidebar.find("div.close-sidebar").fadeOut(() => {
 				overlay_sidebar.removeClass('opened')
 					.find('.dropdown-toggle')
 					.removeClass('text-muted');
 			});
-		}
+		};
 	},
 
 	update_sidebar_icon() {
 		let sidebar_toggle = $('.page-head').find('.sidebar-toggle-btn');
-		let sidebar_toggle_icon = sidebar_toggle.find('.sidebar-toggle-icon')
+		let sidebar_toggle_icon = sidebar_toggle.find('.sidebar-toggle-icon');
 		let sidebar_wrapper = this.wrapper.find('.layout-side-section');
 		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
 		sidebar_toggle_icon.html(frappe.utils.icon(is_sidebar_visible ? 'sidebar-collapse' : 'sidebar-expand', 'md'));
@@ -214,14 +214,14 @@ frappe.ui.Page = Class.extend({
 			<button class="text-muted btn btn-default ${css_class} icon-btn">
 				${frappe.utils.icon(icon)}
 			</button>
-		`)
+		`);
 
 		button.appendTo(this.icon_group.removeClass("hide"));
 		button.click(click);
 		button.attr("title", __(tooltip_label || frappe.unscrub(icon)))
-			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger : "hover" });
+			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
 
-		return button
+		return button;
 	},
 
 	clear_indicator: function() {
@@ -417,17 +417,27 @@ frappe.ui.Page = Class.extend({
 
 		if (shortcut) {
 			let shortcut_obj = this.prepare_shortcut_obj(shortcut, click, label);
-			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
-				${$icon}
-				<span class="menu-item-label">${label}</span>
-				<kbd class="pull-right">
-					<span>${shortcut_obj.shortcut_label}</span>
-				</kbd>
-			</a><li>`);
+			$li = $(`
+				<li>
+					<a class="grey-link dropdown-item" href="#" onClick="return false;">
+						${$icon}
+						<span class="menu-item-label">${label}</span>
+						<kbd class="pull-right">
+							<span>${shortcut_obj.shortcut_label}</span>
+						</kbd>
+					</a>
+				</li>
+			`);
 			frappe.ui.keys.add_shortcut(shortcut_obj);
 		} else {
-			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
-				${$icon}<span class="menu-item-label">${label}</span></a><li>`);
+			$li = $(`
+				<li>
+					<a class="grey-link dropdown-item" href="#" onClick="return false;">
+						${$icon}
+						<span class="menu-item-label">${label}</span>
+					</a>
+				</li>
+			`);
 		}
 		var $link = $li.find("a").on("click", click);
 
@@ -436,9 +446,9 @@ frappe.ui.Page = Class.extend({
 		if (standard) {
 			$li.appendTo(parent);
 		} else {
-			this.divider = parent.find(".divider");
+			this.divider = parent.find(".dropdown-divider");
 			if(!this.divider.length) {
-				this.divider = $('<li class="divider user-action"></li>').prependTo(parent);
+				this.divider = $('<li class="dropdown-divider user-action"></li>').prependTo(parent);
 			}
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
@@ -506,7 +516,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	add_divider: function() {
-		return $('<li class="divider"></li>').appendTo(this.menu);
+		return $('<li class="dropdown-divider"></li>').appendTo(this.menu);
 	},
 
 	get_or_add_inner_group_button: function(label) {
@@ -693,7 +703,7 @@ frappe.ui.Page = Class.extend({
 	add_custom_button_group: function(label, icon, parent) {
 		let dropdown_label = `<span class="hidden-xs">
 			<span class="custom-btn-group-label">${__(label)}</span>
-			<span class="caret"></span>
+			${frappe.utils.icon('select', 'xs')}
 		</span>`;
 
 		if (icon) {
@@ -708,7 +718,7 @@ frappe.ui.Page = Class.extend({
 		}
 
 		let custom_btn_group = $(`
-			<div class="custom-btn-group hide">
+			<div class="custom-btn-group">
 				<button type="button" class="btn btn-default btn-sm ellipsis" data-toggle="dropdown" aria-expanded="false">
 					${dropdown_label}
 				</button>
@@ -717,7 +727,7 @@ frappe.ui.Page = Class.extend({
 		`);
 
 		if (!parent) parent = this.custom_actions;
-		this.custom_actions.removeClass('hide').append(custom_btn_group);
+		parent.removeClass('hide').append(custom_btn_group);
 
 		return custom_btn_group.find('.dropdown-menu');
 	},
@@ -770,7 +780,7 @@ frappe.ui.Page = Class.extend({
 			.addClass('col-md-2')
 			.attr("title", __(df.label)).tooltip({
 				delay: { "show": 600, "hide": 100},
-				trigger : "hover"
+				trigger: "hover"
 			});
 
 		// html fields in toolbar are only for display
@@ -789,7 +799,7 @@ frappe.ui.Page = Class.extend({
 		}
 
 		if(df.fieldtype=="Button") {
-			$(f.wrapper).find(".page-control-label").html("&nbsp;")
+			$(f.wrapper).find(".page-control-label").html("&nbsp;");
 			f.$input.addClass("btn-xs").css({"width": "100%", "margin-top": "-1px"});
 		}
 

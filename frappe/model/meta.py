@@ -68,7 +68,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def", 'DocType Action', 'DocType Link')
+	special_doctypes = ("DocField", "DocPerm", "DocType", "Module Def", 'DocType Action', 'DocType Link')
 
 	def __init__(self, doctype):
 		self._fields = {}
@@ -450,6 +450,25 @@ class Meta(Document):
 
 		return self.high_permlevel_fields
 
+	def get_permlevel_access(self, permission_type='read', parenttype=None):
+		has_access_to = []
+		roles = frappe.get_roles()
+		for perm in self.get_permissions(parenttype):
+			if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
+				if perm.permlevel not in has_access_to:
+					has_access_to.append(perm.permlevel)
+
+		return has_access_to
+
+	def get_permissions(self, parenttype=None):
+		if self.istable and parenttype:
+			# use parent permissions
+			permissions = frappe.get_meta(parenttype).permissions
+		else:
+			permissions = self.get('permissions', [])
+
+		return permissions
+
 	def get_dashboard_data(self):
 		'''Returns dashboard setup related to this doctype.
 
@@ -484,6 +503,8 @@ class Meta(Document):
 		if not data.transactions:
 			# init groups
 			data.transactions = []
+
+		if not data.non_standard_fieldnames:
 			data.non_standard_fieldnames = {}
 
 		for link in dashboard_links:

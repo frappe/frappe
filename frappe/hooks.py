@@ -18,7 +18,7 @@ app_email = "info@frappe.io"
 
 docs_app = "frappe_io"
 
-translator_url = "https://translatev2.erpnext.com"
+translator_url = "https://translate.erpnext.com"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -58,6 +58,11 @@ website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/newsletters", "to_route": "Newsletter"},
 	{"from_route": "/profile", "to_route": "me"},
+	{"from_route": "/app/<path:app_path>", "to_route": "app"},
+]
+
+website_redirects = [
+	{"source": r"/desk(.*)", "target": r"/app\1"},
 ]
 
 base_template = "templates/base.html"

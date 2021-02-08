@@ -2,10 +2,13 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Workspace', {
+	setup: function() {
+		frappe.meta.get_field('Workspace Link', 'only_for').no_default = true;
+	},
+
 	refresh: function(frm) {
 		frm.enable_save();
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
-		frm.get_field("extends_another_page").toggle(frappe.boot.developer_mode);
 		frm.get_field("developer_mode_only").toggle(frappe.boot.developer_mode);
 
 		if (frm.doc.for_user) {

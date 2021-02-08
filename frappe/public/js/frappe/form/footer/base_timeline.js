@@ -9,6 +9,7 @@ class BaseTimeline {
 
 	make() {
 		this.timeline_wrapper = $(`<div class="new-timeline">`);
+		this.wrapper = this.timeline_wrapper;
 		this.timeline_items_wrapper = $(`<div class="timeline-items">`);
 		this.timeline_actions_wrapper = $(`
 			<div class="timeline-actions">
@@ -28,9 +29,13 @@ class BaseTimeline {
 		this.render_timeline_items();
 	}
 
-	add_action_button(label, action) {
+	add_action_button(label, action, icon=null, btn_class=null) {
+		let icon_element = icon ? frappe.utils.icon(icon, 'xs') : null;
 		this.timeline_actions_wrapper.show();
-		let action_btn = $(`<button class="btn btn-xs btn-default action-btn">${label}</button>`);
+		let action_btn = $(`<button class="btn btn-xs ${btn_class || 'btn-default'} action-btn">
+			${icon_element}
+			${label}
+		</button>`);
 		action_btn.click(action);
 		this.timeline_actions_wrapper.append(action_btn);
 		return action_btn;
@@ -75,7 +80,10 @@ class BaseTimeline {
 		// timeline_badge, icon, icon_size,
 		// hide_timestamp, is_card
 		const timeline_item = $(`<div class="timeline-item">`);
-
+		timeline_item.attr({
+			"data-doctype": item.doctype,
+			"data-name": item.name,
+		});
 		if (item.icon) {
 			timeline_item.append(`
 				<div class="timeline-badge">

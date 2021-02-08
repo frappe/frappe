@@ -25,7 +25,7 @@ body {
 
 	&.full-width {
 	@include media-breakpoint-up(md) {
-			.container {
+		.container {
 				width: 90%;
 				max-width: 100%;
 			}
@@ -59,8 +59,6 @@ pre {
 .col-xs-12 { @extend .col-12; }
 
 .btn-default { @extend .btn-light; }
-
-.btn-xs { @extend .btn-sm; }
 
 .hidden-xs, .hidden-sm {
 	@include media-breakpoint-between(xs, sm) {
@@ -168,6 +166,7 @@ h2 {
 }
 
 .btn-xs {
+	@extend .btn-sm;
 	line-height: 1.2;
 	padding: var(--padding-xs) var(--padding-sm);
 	font-size: var(--text-xs);
@@ -220,13 +219,20 @@ select.input-xs {
 	a:active {
 		--icon-stroke: #{$component-active-color};
 	}
+
+	.divider, .dropdown-divider {
+		margin: 0px;
+	}
+
+	:last-child {
+		&.dropdown-divider {
+			display: none;
+		}
+		.divider, .dropdown-divider {
+			display: none;
+		}
+	}
 }
-
-.dropdown-menu .divider {
-	margin: 0px;
-}
-
-
 
 .custom-control.custom-switch {
 	font-size: var(--text-md);
@@ -284,11 +290,6 @@ kbd {
 	cursor: default;
 }
 
-// .dropdown-menu {
-// 	margin-top: var(--margin-xs);
-// 	box-shadow: var(--shadow-sm);
-// }
-
 .btn-link {
 	box-shadow: none !important;
 	outline: none;
@@ -335,6 +336,7 @@ kbd {
 			// https://css-tricks.com/flexbox-truncated-text/
 			min-width: 0;
 			overflow: hidden;
+			white-space: nowrap;
 			text-overflow: ellipsis;
 		}
 

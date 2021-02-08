@@ -197,7 +197,7 @@ $level-margin-right: 8px;
 
 input.list-check-all, input.list-row-checkbox {
 	margin-top: 0px;
-	margin-left: calc(var(--custom-checkbox-size)/2);
+	margin-left: calc(var(--custom-checkbox-size) / 2);
 	--checkbox-right-margin: #{$level-margin-right};
 }
 
@@ -410,4 +410,11 @@ input.list-check-all, input.list-row-checkbox {
 // 	padding-top: 2px;
 // }
 
-
+// map
+.map-view-container {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+	height: calc(100vh - 284px);
+	z-index: 0;
+}

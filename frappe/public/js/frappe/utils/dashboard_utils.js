@@ -4,7 +4,7 @@ frappe.dashboard_utils = {
 			let icon_html = '', filter_class = '';
 
 			if (filter.icon) {
-				icon_html = frappe.utils.icon(filter.icon)
+				icon_html = frappe.utils.icon(filter.icon);
 			}
 
 			if (filter.class) {

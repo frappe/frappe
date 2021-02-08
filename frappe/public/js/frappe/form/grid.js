@@ -201,7 +201,7 @@ export default class Grid {
 
 		this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 		if (selected_children.length == this.grid_pagination.page_length) {
-			frappe.utils.scroll_to(this.wrapper);
+			this.scroll_to_top();
 		}
 	}
 
@@ -213,9 +213,12 @@ export default class Grid {
 
 			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 			this.refresh();
-			frappe.utils.scroll_to(this.wrapper);
+			this.scroll_to_top();
 		});
+	}
 
+	scroll_to_top() {
+		frappe.utils.scroll_to(this.wrapper);
 	}
 
 	select_row(name) {
@@ -265,6 +268,8 @@ export default class Grid {
 	}
 
 	refresh(force) {
+		if (this.frm.setting_dependency) return;
+
 		this.data = this.get_data();
 
 		!this.wrapper && this.make();
@@ -275,6 +280,8 @@ export default class Grid {
 		if (this.frm) {
 			this.display_status = frappe.perm.get_field_display_status(this.df, this.frm.doc,
 				this.perm);
+		} else if (this.df.is_web_form && this.control) {
+			this.display_status = this.control.get_status();
 		} else {
 			// not in form
 			this.display_status = 'Write';

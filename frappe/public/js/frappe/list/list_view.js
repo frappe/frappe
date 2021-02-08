@@ -167,9 +167,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				`<button class="btn btn-default btn-xs restricted-button flex align-center">
 					${frappe.utils.icon('lock', 'xs')}
 				</button>`
-			)
-			.click(() => this.show_restrictions(match_rules_list))
-			.appendTo(this.page.page_form);
+			).click(() => this.show_restrictions(match_rules_list)).appendTo(this.page.page_form);
 		}
 	}
 
@@ -504,7 +502,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
-	render_header() {
+	render_header(refresh_header=false) {
+		if (refresh_header) {
+			this.$result.find('.list-row-head').remove();
+		}
 		if (this.$result.find(".list-row-head").length === 0) {
 			// append header once
 			this.$result.prepend(this.get_header_html());
@@ -692,7 +693,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (df.fieldtype === "Code") {
 				return value;
 			} else if (df.fieldtype === "Percent") {
-				return `<div class="progress level" style="margin: 0px;">
+				return `<div class="progress" style="margin: 0px;">
 						<div class="progress-bar progress-bar-success" role="progressbar"
 							aria-valuenow="${value}"
 							aria-valuemin="0" aria-valuemax="100" style="width: ${Math.round(value)}%;">
@@ -761,7 +762,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			return `<span class="ellipsis"
-				title="${__(label)}: ${escape(_value)}">
+				title="${__(label)}: ${frappe.utils.escape_html(_value)}">
 				${html}
 			</span>`;
 		};
@@ -1111,7 +1112,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			// link, let the event be handled via set_route
-			if ($target.is("a")) { return; }
+			if ($target.is("a")) return;
 
 			// clicked on the row, open form
 			const $row = $(e.currentTarget);
@@ -1485,7 +1486,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (frappe.user.has_role("System Manager")) {
 			items.push({
-				label: __("Settings"),
+				label: __("List Settings"),
 				action: () => this.show_list_settings(),
 				standard: true,
 			});

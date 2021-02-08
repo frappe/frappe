@@ -55,6 +55,7 @@
   "allowed_in_mentions",
   "user_emails",
   "sb_allow_modules",
+  "module_profile",
   "modules_html",
   "block_modules",
   "home_settings",
@@ -301,7 +302,7 @@
    "no_copy": 1
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
    "label": "Logout From All Devices After Changing Password"
@@ -594,6 +595,12 @@
    "fieldtype": "Select",
    "label": "Desk Theme",
    "options": "Light\nDark"
+  },
+  {
+   "fieldname": "module_profile",
+   "fieldtype": "Link",
+   "label": "Module Profile",
+   "options": "Module Profile"
   }
  ],
  "icon": "fa fa-user",
@@ -654,10 +661,15 @@
    "group": "Activity",
    "link_doctype": "ToDo",
    "link_fieldname": "owner"
+  },
+  {
+   "group": "Integrations",
+   "link_doctype": "Token Cache",
+   "link_fieldname": "user"
   }
  ],
  "max_attachments": 5,
- "modified": "2020-12-24 19:48:49.677800",
+ "modified": "2021-02-01 16:11:06.037543",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

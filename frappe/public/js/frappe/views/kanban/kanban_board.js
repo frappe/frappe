@@ -166,7 +166,7 @@ frappe.provide("frappe.views");
 						var col_name = $(this).data().columnValue;
 						order[col_name] = [];
 						$(this).find('.kanban-card-wrapper').each(function() {
-							var card_name = $(this).data().name;
+							var card_name = unescape($(this).data().name);
 							order[col_name].push(card_name);
 						});
 					});
@@ -605,7 +605,7 @@ frappe.provide("frappe.views");
 				doctype: card.doctype,
 				docname: card.name,
 				callback: function() {
-					const users = self.assign_to_dialog.get_values().assign_to;;
+					const users = self.assign_to_dialog.get_values().assign_to;
 					card.assigned_list = [...new Set(card.assigned_list.concat(users))];
 					fluxify.doAction('update_card', card);
 				}

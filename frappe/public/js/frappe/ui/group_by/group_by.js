@@ -16,9 +16,9 @@ frappe.ui.GroupBy = class {
 
 	init_group_by_popover() {
 		const sql_aggregate_functions = [
-			{ name: 'count', label: 'Count' },
-			{ name: 'sum', label: 'Sum' },
-			{ name: 'avg', label: 'Average' },
+			{name: 'count', label: __('Count')},
+			{name: 'sum', label: __('Sum')},
+			{name: 'avg', label: __('Average')}
 		];
 
 		const group_by_template = $(
@@ -65,14 +65,14 @@ frappe.ui.GroupBy = class {
 			this.group_by_button.popover('toggle');
 		});
 
-		this.group_by_button.on('shown.bs.popover', (e) => {
+		this.group_by_button.on('shown.bs.popover', () => {
 			if (!this.wrapper) {
 				this.wrapper = $('.group-by-popover');
 				this.setup_group_by_area();
 			}
 		});
 
-		this.group_by_button.on('hidden.bs.popover', (e) => {
+		this.group_by_button.on('hidden.bs.popover', () => {
 			this.update_group_by_button();
 		});
 
@@ -154,9 +154,9 @@ frappe.ui.GroupBy = class {
 							let option_text =
 								doctype == this.doctype
 									? field.label
-									: `${field.label} (${doctype})`;
+									: `${field.label} (${__(doctype)})`;
 							this.aggregate_on_html += `<option data-doctype="${doctype}"
-								value="${field.fieldname}">${option_text}</option>`;
+								value="${field.fieldname}">${__(option_text)}</option>`;
 						}
 					});
 				}
@@ -420,7 +420,7 @@ frappe.ui.GroupBy = class {
 	update_group_by_button() {
 		const group_by_applied = Boolean(this.group_by_field);
 		const button_label = group_by_applied
-			? __(`Group By {0}`, [this.get_group_by_field_label()])
+			? __("Group By {0}", [this.get_group_by_field_label()])
 			: __('Add Group');
 
 		this.group_by_button

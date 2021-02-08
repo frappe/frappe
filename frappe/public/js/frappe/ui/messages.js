@@ -374,7 +374,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 	if (message.indicator) {
 		icon = indicator_icon_map[message.indicator.toLowerCase()] || 'solid-' + message.indicator;
 	} else {
-		icon = 'solid-info'
+		icon = 'solid-info';
 	}
 
 	const div = $(`
@@ -397,7 +397,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 	}
 
 	div.find('.close, button').click(function() {
-		div.addClass('out')
+		div.addClass('out');
 		setTimeout(() => div.remove(), 800);
 		return false;
 	});
@@ -408,14 +408,14 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 
 	if (seconds > 2) {
 		// Delay for animation
-		seconds = seconds - 0.8
+		seconds = seconds - 0.8;
 	}
 
 	setTimeout(() => {
-		div.addClass('out')
+		div.addClass('out');
 		setTimeout(() => div.remove(), 800);
 		return false;
-	}, seconds * 1000)
+	}, seconds * 1000);
 
 	return div;
 }

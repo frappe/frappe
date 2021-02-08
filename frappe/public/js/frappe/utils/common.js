@@ -49,7 +49,7 @@ frappe.get_avatar = function(user, css_class, title, image_url=null, remove_colo
 		let style = '';
 		if (!remove_color) {
 			let color = frappe.get_palette(title);
-			style = `background-color: var(${color[0]}); color: var(${color[1]})`
+			style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 		}
 
 		if (css_class === 'avatar-small' || css_class == 'avatar-xs') {
@@ -62,7 +62,7 @@ frappe.get_avatar = function(user, css_class, title, image_url=null, remove_colo
 			</div>
 		</span>`;
 	}
-}
+};
 
 frappe.avatar_group = function (users, limit=4, options = {}) {
 	let avatar_action_html = '';
@@ -127,7 +127,7 @@ frappe.palette = [
 	['--yellow-avatar-bg', '--yellow-avatar-color'],
 	['--purple-avatar-bg', '--purple-avatar-color'],
 	['--gray-avatar-bg', '--gray-avatar-color0']
-]
+];
 
 frappe.get_palette = function (txt) {
 	var idx = cint((parseInt(md5(txt).substr(4, 2), 16) + 1) / 5.33);
@@ -176,24 +176,24 @@ window.replace_all = function (s, t1, t2) {
 	return s.split(t1).join(t2);
 }
 
-window.strip_html = function (txt) {
-	return txt.replace(/<[^>]*>/g, "");
+window.strip_html = function(txt) {
+	return cstr(txt).replace(/<[^>]*>/g, "");
 }
 
 window.strip = function (s, chars) {
 	if (s) {
-		var s = lstrip(s, chars)
+		s = lstrip(s, chars);
 		s = rstrip(s, chars);
 		return s;
 	}
-}
+};
 
 window.lstrip = function lstrip(s, chars) {
 	if (!chars) chars = ['\n', '\t', ' '];
 	// strip left
-	var first_char = s.substr(0, 1);
+	let first_char = s.substr(0, 1);
 	while (in_list(chars, first_char)) {
-		var s = s.substr(1);
+		s = s.substr(1);
 		first_char = s.substr(0, 1);
 	}
 	return s;
@@ -201,9 +201,9 @@ window.lstrip = function lstrip(s, chars) {
 
 window.rstrip = function (s, chars) {
 	if (!chars) chars = ['\n', '\t', ' '];
-	var last_char = s.substr(s.length - 1);
+	let last_char = s.substr(s.length - 1);
 	while (in_list(chars, last_char)) {
-		var s = s.substr(0, s.length - 1);
+		s = s.substr(0, s.length - 1);
 		last_char = s.substr(s.length - 1);
 	}
 	return s;
@@ -367,8 +367,8 @@ frappe.utils.new_auto_repeat_prompt = function (frm) {
 			}
 		});
 	},
-		__('Auto Repeat'),
-		__('Save')
+	__('Auto Repeat'),
+	__('Save')
 	);
 }
 

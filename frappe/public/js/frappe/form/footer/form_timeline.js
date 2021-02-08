@@ -7,14 +7,19 @@ class FormTimeline extends BaseTimeline {
 
 	make() {
 		super.make();
-		this.setup_document_email_link();
 		this.setup_timeline_actions();
 		this.render_timeline_items();
 		this.setup_activity_toggle();
 	}
 
+	refresh() {
+		super.refresh();
+		this.frm.trigger('timeline_refresh');
+		this.setup_document_email_link();
+	}
+
 	setup_timeline_actions() {
-		this.add_action_button(__('New Email'), () => this.compose_mail());
+		this.add_action_button(__('New Email'), () => this.compose_mail(), 'mail', 'btn-secondary-dark');
 		this.setup_new_event_button();
 	}
 
@@ -29,7 +34,7 @@ class FormTimeline extends BaseTimeline {
 				};
 				return new frappe.views.InteractionComposer(args);
 			};
-			this.add_action_button(__('New Event'), create_event);
+			this.add_action_button(__('New Event'), create_event, 'calendar');
 		}
 	}
 
@@ -65,9 +70,11 @@ class FormTimeline extends BaseTimeline {
 	setup_document_email_link() {
 		let doc_info = this.doc_info || this.frm.get_docinfo();
 
+		this.document_email_link_wrapper && this.document_email_link_wrapper.remove();
+
 		if (doc_info.document_email) {
 			const link = `<a class="document-email-link">${doc_info.document_email}</a>`;
-			const message = __("Send an email to {0} to link it here", [link.bold()]);
+			const message = __("Add to this activity by mailing to {0}", [link.bold()]);
 
 			this.document_email_link_wrapper = $(`
 				<div class="document-email-link-container">
@@ -75,7 +82,7 @@ class FormTimeline extends BaseTimeline {
 					<span class="ellipsis">${message}</span>
 				</div>
 			`);
-			this.timeline_wrapper.prepend(this.document_email_link_wrapper);
+			this.timeline_wrapper.append(this.document_email_link_wrapper);
 
 			this.document_email_link_wrapper
 				.find('.document-email-link')
@@ -166,6 +173,8 @@ class FormTimeline extends BaseTimeline {
 				creation: communication.creation,
 				is_card: true,
 				content: this.get_communication_timeline_content(communication),
+				doctype: "Communication",
+				name: communication.name
 			});
 		});
 		return communication_timeline_contents;
@@ -202,14 +211,20 @@ class FormTimeline extends BaseTimeline {
 	get_comment_timeline_contents() {
 		let comment_timeline_contents = [];
 		(this.doc_info.comments || []).forEach(comment => {
-			comment_timeline_contents.push({
-				icon: 'small-message',
-				creation: comment.creation,
-				is_card: true,
-				content: this.get_comment_timeline_content(comment),
-			});
+			comment_timeline_contents.push(this.get_comment_timeline_item(comment));
 		});
 		return comment_timeline_contents;
+	}
+
+	get_comment_timeline_item(comment) {
+		return {
+			icon: 'small-message',
+			creation: comment.creation,
+			is_card: true,
+			doctype: "Comment",
+			name: comment.name,
+			content: this.get_comment_timeline_content(comment),
+		};
 	}
 
 	get_comment_timeline_content(doc) {
@@ -343,7 +358,7 @@ class FormTimeline extends BaseTimeline {
 		const args = {
 			doc: this.frm.doc,
 			frm: this.frm,
-			recipients: this.get_recipient(),
+			recipients: communication_doc ? communication_doc.sender : this.get_recipient(),
 			is_a_reply: Boolean(communication_doc),
 			title: communication_doc ? __('Reply') : null,
 			last_email: communication_doc

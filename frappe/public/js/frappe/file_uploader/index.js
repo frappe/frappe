@@ -63,7 +63,7 @@ export default class FileUploader {
 
 	make_dialog() {
 		this.dialog = new frappe.ui.Dialog({
-			title: 'Upload',
+			title: __('Upload'),
 			primary_action_label: __('Upload'),
 			primary_action: () => this.upload_files(),
 			secondary_action_label: __('Toggle Private'),

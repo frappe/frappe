@@ -1,13 +1,8 @@
 @import "./desk/variables";
 
-// [data-path="login"] {
-// 	background-color: var(--bg-color);
-
-// 	.web-footer,
-// 	.navbar {
-// 		background-color: var(--fg-color);
-// 	}
-// }
+body {
+	background-color: var(--bg-light-gray);
+}
 
 .for-login,
 .for-forgot,

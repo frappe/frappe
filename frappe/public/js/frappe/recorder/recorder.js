@@ -10,7 +10,7 @@ Vue.use(VueRouter);
 const routes = [
 	{
 		name: "recorder-detail",
-		path: '/app',
+		path: '/detail',
 		component: RecorderDetail,
 	},
 	{

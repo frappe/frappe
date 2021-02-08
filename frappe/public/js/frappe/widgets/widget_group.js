@@ -39,7 +39,7 @@ export default class WidgetGroup {
 	make() {
 		this.make_container();
 		if (this.title) {
-			this.set_title()
+			this.set_title();
 		} else {
 			this.title_area.remove();
 		}

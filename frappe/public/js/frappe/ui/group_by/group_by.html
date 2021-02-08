@@ -15,15 +15,15 @@
 							data-doctype="{{parent_doctype}}"
 							value="{{group_by_conditions[parent_doctype][val].fieldname}}"
 						>
-							{{ group_by_conditions[parent_doctype][val].label }}
-							({{ parent_doctype }})
+							{{ __(group_by_conditions[parent_doctype][val].label) }}
+							({{ __(parent_doctype) }})
 						</option>
 						{% } else { %}
 						<option
 							data-doctype="{{parent_doctype}}"
 							value="{{group_by_conditions[parent_doctype][val].fieldname}}"
 						>
-							{{ group_by_conditions[parent_doctype][val].label }}
+							{{ __(group_by_conditions[parent_doctype][val].label) }}
 						</option>
 						{% } %}
 					{% } %}
@@ -33,7 +33,7 @@
 		<div class="col-sm-3 form-group">
 			<select class="aggregate-function form-control input-xs">
 				{% for condition in aggregate_function_conditions %}
-				<option value="{{condition.name}}">{{ condition.label }}</option>
+				<option value="{{condition.name}}">{{ __(condition.label) }}</option>
 				{% endfor %}
 			</select>
 		</div>

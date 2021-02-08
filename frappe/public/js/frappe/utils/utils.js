@@ -281,7 +281,7 @@ Object.assign(frappe.utils, {
 
 	},
 	get_scroll_position: function(element, additional_offset) {
-		let header_offset = $(".navbar").height() + $(".page-head").height();
+		let header_offset = $(".navbar").height() + $(".page-head:visible").height();
 		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
 		return scroll_top;
 	},
@@ -708,6 +708,10 @@ Object.assign(frappe.utils, {
 			title = frappe._title_prefix + " " + title.replace(/<[^>]*>/g, "");
 		}
 		document.title = title;
+		
+		// save for re-routing
+		const sub_path = frappe.router.get_sub_path();
+		frappe.route_titles[sub_path] = title;
 	},
 
 	set_title_prefix: function(prefix) {
@@ -1067,6 +1071,15 @@ Object.assign(frappe.utils, {
 		return number_system_map[country];
 	},
 
+	map_defaults: {
+		center: [19.0800, 72.8961],
+		zoom: 13,
+		tiles: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+		options: {
+			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+		}
+	},
+
 	icon(icon_name, size="sm", icon_class="") {
 		let size_class = "";
 		let icon_style = "";
@@ -1093,7 +1106,7 @@ Object.assign(frappe.utils, {
 
 		for (let key in custom_options) {
 			if (typeof chart_args[key] === 'object' && typeof custom_options[key] === 'object') {
-				chart_args[key] = Object.assign(chart_args[key], custom_options[key])
+				chart_args[key] = Object.assign(chart_args[key], custom_options[key]);
 			} else {
 				chart_args[key] = custom_options[key];
 			}
@@ -1103,7 +1116,7 @@ Object.assign(frappe.utils, {
 	},
 
 	generate_route(item) {
-		const type = item.type.toLowerCase()
+		const type = item.type.toLowerCase();
 		if (type === "doctype") {
 			item.doctype = item.name;
 		}
@@ -1220,6 +1233,7 @@ Object.assign(frappe.utils, {
 		if (Math.floor(number) === number) return 0;
 		return number.toString().split(".")[1].length || 0;
 	},
+
 	build_summary_item(summary) {
 		if (summary.type == "separator") {
 			return $(`<div class="summary-separator">
@@ -1242,6 +1256,7 @@ Object.assign(frappe.utils, {
 			<div class="summary-value ${color}">${value}</div>
 		</div>`);
 	},
+
 	get_names_for_mentions() {
 		let names_for_mentions = Object.keys(frappe.boot.user_info || [])
 			.filter(user => {

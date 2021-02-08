@@ -40,7 +40,10 @@ class DatabaseQuery(object):
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
 		return_query=False, strict=True, pluck=None, ignore_ddl=False):
-		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
+		if not ignore_permissions and \
+			not frappe.has_permission(self.doctype, "select", user=user) and \
+			not frappe.has_permission(self.doctype, "read", user=user):
+
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
 
@@ -315,7 +318,10 @@ class DatabaseQuery(object):
 	def append_table(self, table_name):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
-		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
+		ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
+
+		if (not self.flags.ignore_permissions) and\
+			 (not frappe.has_permission(doctype, ptype=ptype)):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
 
@@ -576,7 +582,7 @@ class DatabaseQuery(object):
 		self.shared = frappe.share.get_shared(self.doctype, self.user)
 
 		if (not meta.istable and
-			not role_permissions.get("read") and
+			not (role_permissions.get("select") or role_permissions.get("read")) and
 			not self.flags.ignore_permissions and
 			not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)):
 			only_if_shared = True
@@ -591,7 +597,7 @@ class DatabaseQuery(object):
 				self.match_conditions.append("`tab{0}`.`owner` = {1}".format(self.doctype,
 					frappe.db.escape(self.user, percent=False)))
 			# add user permission only if role has read perm
-			elif role_permissions.get("read"):
+			elif role_permissions.get("read") or role_permissions.get("select"):
 				# get user permissions
 				user_permissions = frappe.permissions.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions)

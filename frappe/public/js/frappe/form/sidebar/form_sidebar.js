@@ -93,7 +93,7 @@ frappe.ui.form.Sidebar = class {
 					__("{0} edited this {1}", [
 						frappe.user.full_name(this.frm.doc.modified_by).bold(),
 						"<br>" + comment_when(this.frm.doc.modified),
-					])
+					], "For example, 'Jon Doe edited this 5 minutes ago'.")
 				);
 			this.sidebar
 				.find(".created-by")
@@ -101,7 +101,7 @@ frappe.ui.form.Sidebar = class {
 					__("{0} created this {1}", [
 						frappe.user.full_name(this.frm.doc.owner).bold(),
 						"<br>" + comment_when(this.frm.doc.creation),
-					])
+					], "For example, 'Jon Doe created this 5 minutes ago'.")
 				);
 
 			this.refresh_like();
@@ -139,7 +139,7 @@ frappe.ui.form.Sidebar = class {
 			return;
 		}
 
-		let tags_parent = this.sidebar.find(".form-tags")
+		let tags_parent = this.sidebar.find(".form-tags");
 
 		this.frm.tags = new frappe.ui.TagEditor({
 			parent: tags_parent,
@@ -200,7 +200,7 @@ frappe.ui.form.Sidebar = class {
 				'doc_name': this.frm.doc.name,
 				'following': !is_followed
 			}).then(() => {
-				frappe.model.set_docinfo(this.frm.doctype, this.frm.doc.name, "is_document_followed", !is_followed)
+				frappe.model.set_docinfo(this.frm.doctype, this.frm.doc.name, "is_document_followed", !is_followed);
 				this.refresh_follow(!is_followed);
 			});
 		});

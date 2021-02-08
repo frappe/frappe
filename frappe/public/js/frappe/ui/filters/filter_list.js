@@ -63,7 +63,7 @@ frappe.ui.FilterGroup = class {
 			this.filter_button.popover('toggle');
 		});
 
-		this.filter_button.on('shown.bs.popover', (e) => {
+		this.filter_button.on('shown.bs.popover', () => {
 			let hide_empty_filters = this.filters && this.filters.length > 0;
 
 			if (!this.wrapper) {
@@ -78,13 +78,12 @@ frappe.ui.FilterGroup = class {
 			hide_empty_filters && this.toggle_empty_filters(false);
 		});
 
-		this.filter_button.on('hidden.bs.popover', (e) => {
+		this.filter_button.on('hidden.bs.popover', () => {
 			this.apply();
 		});
 
 		// REDESIGN-TODO: (Temporary) Review and find best solution for this
 		frappe.router.on('change', () => {
-			// console.log('page c')
 			if (this.wrapper && this.wrapper.is(':visible')) {
 				this.filter_button.popover('hide');
 			}
@@ -108,8 +107,8 @@ frappe.ui.FilterGroup = class {
 		const filters_applied = this.filters.length > 0;
 		const button_label = filters_applied
 			? this.filters.length > 1
-				? __(`{0} filters`, [this.filters.length])
-				: __(`{0} filter`, [this.filters.length])
+				? __("{0} filters", [this.filters.length])
+				: __("{0} filter", [this.filters.length])
 			: __('Filter');
 
 
@@ -183,7 +182,7 @@ frappe.ui.FilterGroup = class {
 		return true;
 	}
 
-	push_new_filter(args, is_new_filter = false) {
+	push_new_filter(args) {
 		// args: [doctype, fieldname, condition, value]
 		if (this.filter_exists(args)) return;
 
@@ -291,9 +290,9 @@ frappe.ui.FilterGroup = class {
 				</div>
 				<hr class="divider"></hr>
 				<div class="filter-action-buttons">
-					<div class="text-muted add-filter">
+					<button class="text-muted add-filter btn btn-xs">
 						${__('+ Add a Filter')}
-					</div>
+					</button>
 					<div>
 						<button class="btn btn-secondary btn-xs clear-filters">
 							${__('Clear Filters')}

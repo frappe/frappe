@@ -109,7 +109,7 @@ def load_conf_settings(bootinfo):
 
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_desk_sidebar_items
-	bootinfo.allowed_workspaces = get_desk_sidebar_items(flatten=True, cache=False)
+	bootinfo.allowed_workspaces = get_desk_sidebar_items()
 	bootinfo.module_page_map = get_controller("Workspace").get_module_page_map()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 
@@ -250,13 +250,12 @@ def add_home_page(bootinfo, docs):
 
 	try:
 		page = frappe.desk.desk_page.get(home_page)
+		docs.append(page)
+		bootinfo['home_page'] = page.name
 	except (frappe.DoesNotExistError, frappe.PermissionError):
 		if frappe.message_log:
 			frappe.message_log.pop()
-		page = frappe.desk.desk_page.get('space')
-
-	bootinfo['home_page'] = page.name
-	docs.append(page)
+		bootinfo['home_page'] = 'Workspaces'
 
 def add_timezone_info(bootinfo):
 	system = bootinfo.sysdefaults.get("time_zone")

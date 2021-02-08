@@ -17,7 +17,7 @@ frappe.ui.Slide = class Slide {
 
 	// Make has to be called manually, to account for on-demand use cases
 	make() {
-		if (this.before_load) { this.before_load(this); }
+		if (this.before_load) this.before_load(this);
 
 		this.$body = $(`<div class="slide-body">
 			<div class="content text-center">
@@ -68,7 +68,7 @@ frappe.ui.Slide = class Slide {
 
 		this.set_reqd_fields();
 
-		if (this.onload) { this.onload(this); }
+		if (this.onload) this.onload(this);
 		this.set_reqd_fields();
 	}
 
@@ -242,6 +242,7 @@ frappe.ui.Slides = class Slides {
 		this.done_state = done_state;
 		this.before_load = before_load;
 		this.on_update = on_update;
+		this.page_name = "setup-wizard";
 
 		this.slide_dict = {};
 
@@ -263,7 +264,7 @@ frappe.ui.Slides = class Slides {
 
 		this.render_progress_dots();
 		this.make_prev_next_buttons();
-		if (this.before_load) { this.before_load(this.$footer); }
+		if (this.before_load) this.before_load(this.$footer);
 
 		// can be on demand
 		this.setup();
@@ -332,7 +333,7 @@ frappe.ui.Slides = class Slides {
 				if (slide.done) this.completed++;
 			}
 		});
-		if (this.on_update) { this.on_update(this.completed, this.slides.length); }
+		if (this.on_update) this.on_update(this.completed, this.slides.length);
 
 		if (!this.unidirectional) this.bind_progress_dots();
 	}
@@ -348,7 +349,7 @@ frappe.ui.Slides = class Slides {
 		</div>`).appendTo(this.$footer);
 
 		this.$prev_btn = this.$footer.find('.prev-btn').attr('tabIndex', 0)
-			.on('click', () => { this.show_slide(this.current_id - 1); });
+			.on('click', () => this.show_slide(this.current_id - 1));
 
 		this.$next_btn = this.$footer.find('.next-btn').attr('tabIndex', 0)
 			.on('click', () => {
@@ -398,6 +399,7 @@ frappe.ui.Slides = class Slides {
 		this.slide_dict[id] = null;
 	}
 
+	// eslint-disable-next-line no-unused-vars
 	on_update(completed, total) { }
 
 	show_hide_prev_next(id) {

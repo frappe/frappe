@@ -17,11 +17,10 @@ context('Table MultiSelect', () => {
 			.as('selected-value');
 		cy.get('@selected-value').should('contain', 'test@erpnext.com');
 
-		cy.server();
-		cy.route('POST', '/api/method/frappe.desk.form.save.savedocs').as('save_form');
+		cy.intercept('POST', '/api/method/frappe.desk.form.save.savedocs').as('save_form');
 		// trigger save
 		cy.get('.primary-action').click();
-		cy.wait('@save_form').its('status').should('eq', 200);
+		cy.wait('@save_form').its('response.statusCode').should('eq', 200);
 		cy.get('@selected-value').should('contain', 'test@erpnext.com');
 	});
 

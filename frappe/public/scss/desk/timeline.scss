@@ -10,7 +10,7 @@ $threshold: 34;
 	// clamp requires value unit to be valid
 	--zero-px: 0px;
 	top: unquote("clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
-	left: calc(-1 * (#{$badge-size}/2));
+	left: calc(-1 * (#{$badge-size} / 2));
 	background-color: var(--fg-color);
 	border: 1px solid var(--dark-border-color);
 	@extend .center-content;
@@ -23,7 +23,7 @@ $threshold: 34;
 	padding-top: var(--padding-lg);
 
 	@include media-breakpoint-down(xs) {
-		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size)/2);
+		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
 	}
 
 	&:before {
@@ -65,6 +65,12 @@ $threshold: 34;
 		position: relative;
 		.action-btn {
 			margin-left: var(--margin-md);
+			display: flex;
+			align-items: center;
+			line-height: var(--text-xl);
+			.icon {
+				margin-right: var(--margin-xs);
+			}
 		}
 		.action-btn:first-of-type {
 			margin-left: var(--timeline-item-left-margin);
@@ -108,8 +114,11 @@ $threshold: 34;
 				max-height: 500px;
 			}
 
-			.actions > * {
-				color: var(--text-muted);
+			.actions {
+				display: flex;
+				> * {
+					color: var(--text-muted);
+				}
 			}
 
 			.action-btn {

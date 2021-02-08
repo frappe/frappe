@@ -23,6 +23,8 @@ $input-height: 28px !default;
 	--navbar-bg: white;
 	--fg-hover-color: var(--gray-100);
 	--card-bg: var(--fg-color);
+	--disabled-text-color: var(--gray-700);
+	--disabled-control-bg: var(--gray-50);
 	--control-bg: var(--gray-100);
 	--control-bg-on-gray: var(--gray-200);
 	--awesomebar-focus-bg: var(--fg-color);
@@ -38,6 +40,10 @@ $input-height: 28px !default;
 	--criticism-color: var(--red-600);
 	--criticism-bg: var(--red-100);
 
+	// Error colors
+	--error-bg: var(--red-50);
+	--error-border: var(--red-400);
+
 	// page
 	--page-head-height: 75px;
 	--page-bottom-margin: 60px;
@@ -50,5 +56,5 @@ $input-height: 28px !default;
 	--timeline-item-left-margin: var(--margin-xl);
 	--timeline-item-bottom-margin: var(--margin-sm);
 	--timeline-content-max-width: 700px;
-	--timeline-left-padding: calc(var(--padding-xl) + var(--timeline-item-icon-size)/2);
+	--timeline-left-padding: calc(var(--padding-xl) + var(--timeline-item-icon-size) / 2);
 }

@@ -24,7 +24,7 @@
 			color: $text-muted;
 			margin-left: 10px;
 			position: relative;
-			bottom: -1px;
+			padding: 0px;
 		}
 
 		.collapse-indicator.octicon-chevron-up {
@@ -90,8 +90,12 @@
 	font-weight: 400;
 	padding: 8px 12px;
 	cursor: default;
-	color: var(--gray-500);
-	background-color: var(--control-bg);
+	color: var(--disabled-text-color);
+	background-color: var(--disabled-control-bg);
+}
+
+.form-control:disabled, .form-control[readonly] {
+	cursor: not-allowed;
 }
 
 .comment-box {
@@ -259,8 +263,13 @@
 	line-height: 1.6;
 }
 
-.form-group:last-child.frappe-control[data-fieldtype="Table"] {
-	margin-bottom: 0;
+.form-group {
+	&.frappe-control:last-child {
+		margin-bottom: 0;
+	}
+	&:last-child.frappe-control[data-fieldtype="Table"] {
+		margin-bottom: 0;
+	}
 }
 
 .form-footer {

@@ -205,7 +205,7 @@ frappe.views.KanbanView.get_kanbans = function (doctype) {
 		.then((kanban_boards) => {
 			if (kanban_boards) {
 				kanban_boards.forEach(board => {
-					let route = `/app/${frappe.router.slug(board.reference_doctype)}/kanban/${board.name}`;
+					let route = `/app/${frappe.router.slug(board.reference_doctype)}/view/kanban/${board.name}`;
 					kanbans.push({ name: board.name, route: route });
 				});
 			}
@@ -217,7 +217,7 @@ frappe.views.KanbanView.get_kanbans = function (doctype) {
 		return frappe.call('frappe.desk.doctype.kanban_board.kanban_board.get_kanban_boards', { doctype })
 			.then(r => r.message);
 	}
-}
+};
 
 
 frappe.views.KanbanView.show_kanban_dialog = function (doctype, show_existing) {
@@ -263,7 +263,7 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype, show_existing) {
 			} else {
 				frappe.set_route(kanbans.find(kanban => kanban.name == values.selected_kanban).route);
 			}
-		}
+		};
 
 		dialog = new frappe.ui.Dialog({
 			title: __('New Kanban Board'),

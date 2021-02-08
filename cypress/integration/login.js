@@ -2,7 +2,7 @@ context('Login', () => {
 	beforeEach(() => {
 		cy.request('/api/method/logout');
 		cy.visit('/login');
-		cy.location().should('be', '/login');
+		cy.location('pathname').should('eq', '/login');
 	});
 
 	it('greets with login screen', () => {
@@ -35,7 +35,7 @@ context('Login', () => {
 		cy.get('#login_password').type(Cypress.config('adminPassword'));
 
 		cy.get('.btn-login:visible').click();
-		cy.location('pathname').should('eq', '/app/space/Home');
+		cy.location('pathname').should('eq', '/app');
 		cy.window().its('frappe.session.user').should('eq', 'Administrator');
 	});
 

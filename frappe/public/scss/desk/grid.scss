@@ -5,25 +5,13 @@
 }
 
 .form-grid.error {
-	border-color: var(--red-500);
+	border-color: var(--error-border);
 }
 
 .grid-heading-row {
 	border-bottom: 1px solid var(--table-border-color);
 	color: var(--text-muted);
 	font-size: var(--text-md);
-}
-
-.grid-row {
-	padding: 0px var(--padding-md);
-	border-bottom: 1px solid var(--table-border-color);
-	@include transition(0.2s);
-	// REDESIGN TODO: Fix border bottom for last item
-	&:last-child {
-		border-bottom-left-radius: var(--border-radius);
-		border-bottom-right-radius: var(--border-radius);
-		border: none;
-	}
 }
 
 .rows .grid-row .data-row,
@@ -34,12 +22,6 @@
 
 .data-row textarea {
 	height: 40px;
-}
-
-.grid-body {
-	background-color: var(--fg-color);
-	border-bottom-left-radius: var(--border-radius);
-	border-bottom-right-radius: var(--border-radius);
 }
 
 .form-grid .data-row {
@@ -107,11 +89,11 @@
 }
 
 .editable-form .grid-static-col.invalid {
-	background-color: var(--red-500);
+	background-color: var(--error-bg);
 }
 
 .validated-form .grid-static-col.error {
-	background-color: var(--red-500);
+	background-color: var(--error-bg);
 }
 
 .row-index {
@@ -132,6 +114,10 @@
 }
 
 .grid-body {
+	background-color: var(--fg-color);
+	border-bottom-left-radius: var(--border-radius);
+	border-bottom-right-radius: var(--border-radius);
+
 	.col:last-child {
 		border: none;
 	}
@@ -181,12 +167,12 @@
 		.has-error .form-control {
 			z-index: 1;
 			&:focus {
-				border-color: var(--red-500);
+				border-color: var(--error-border);
 			}
 		}
 
 		input.form-control.invalid {
-			background-color: var(--red-500);
+			background-color: var(--error-bg);
 		}
 
 		input[data-fieldtype="Int"],
@@ -243,6 +229,16 @@
 }
 
 .grid-row {
+	padding: 0px var(--padding-md);
+	border-bottom: 1px solid var(--table-border-color);
+	@include transition(0.2s);
+	// REDESIGN TODO: Fix border bottom for last item
+	&:last-child {
+		border-bottom-left-radius: var(--border-radius);
+		border-bottom-right-radius: var(--border-radius);
+		border: none;
+	}
+
 	td {
 		vertical-align: top;
 	}
@@ -370,6 +366,7 @@
 	background-color: var(--fg-color);
 	.btn {
 		box-shadow: none;
+		margin-top: -3px;
 	}
 }
 

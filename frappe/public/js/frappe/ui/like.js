@@ -96,7 +96,7 @@ frappe.ui.setup_like_popover = ($parent, selector, check_not_liked=true) => {
 			animation: true,
 			placement: 'bottom',
 			trigger: 'manual',
-			template:`<div class="liked-by-popover popover">
+			template: `<div class="liked-by-popover popover">
 				<div class="arrow"></div>
 				<div class="popover-body popover-content"></div>
 			</div>`,

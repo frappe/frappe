@@ -396,15 +396,13 @@ body {
 					.step-skip {
 						display: none;
 					}
-				}
 
-				&.skipped {
-					.step-index.step-skipped {
-						display: flex;
+					i {
+						color: var(--green-600);
 					}
 
-					.step-skip {
-						display: none;
+					span {
+						color: $text-color;
 					}
 				}
 
@@ -430,9 +428,7 @@ body {
 
 					margin-right: var(--margin-sm);
 					border-radius: var(--border-radius-full);
-				}
 
-				.step-index {
 					&.step-pending {
 						display: none;
 					}
@@ -461,6 +457,14 @@ body {
 				}
 
 				&.skipped {
+					.step-index.step-skipped {
+						display: flex;
+					}
+
+					.step-skip {
+						display: none;
+					}
+
 					i {
 						color: var(--text-muted);
 					}
@@ -479,16 +483,6 @@ body {
 						}
 					}
 				}
-
-				&.complete {
-					i {
-						color: var(--green-600);
-					}
-
-					span {
-						color: $text-color;
-					}
-				}
 			}
 		}
 	}
@@ -503,6 +497,7 @@ body {
 
 		.indicator-pill {
 			font-weight: 500;
+			@extend .ellipsis;
 		}
 	}
 

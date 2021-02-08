@@ -67,7 +67,7 @@ frappe.pages['setup-wizard'].on_page_load = function (wrapper) {
 	});
 };
 
-frappe.pages['setup-wizard'].on_page_show = function (wrapper) {
+frappe.pages['setup-wizard'].on_page_show = function () {
 	if (frappe.get_route()[1]) {
 		frappe.wizard && frappe.wizard.show_slide(frappe.get_route()[1]);
 	}
@@ -88,8 +88,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		super(args);
 		$.extend(this, args);
 
-		this.welcomed = true;
 		this.page_name = "setup-wizard";
+		this.welcomed = true;
 		frappe.set_route("setup-wizard/0");
 	}
 
@@ -216,7 +216,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		}, 2000);
 	}
 
-	abort_setup(fail_msg, error = false) {
+	abort_setup(fail_msg) {
 		this.$working_state.find('.state-icon-container').html('');
 		fail_msg = fail_msg ? fail_msg : __("Failed to complete setup");
 
@@ -528,8 +528,9 @@ frappe.setup.utils = {
 			.add_options([""].concat(Object.keys(data.country_info).sort()));
 
 		slide.get_input("currency").empty()
-			.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
-				function (opts, country) { return opts.currency; }))).sort());
+			.add_options(frappe.utils.unique([""].concat(
+				$.map(data.country_info, opts => opts.currency)
+			)).sort());
 
 		slide.get_input("timezone").empty()
 			.add_options([""].concat(data.all_timezones));
@@ -563,7 +564,7 @@ frappe.setup.utils = {
 					args: {
 						language: lang
 					},
-					callback: function (r) {
+					callback: function () {
 						frappe.setup._from_load_messages = true;
 						frappe.wizard.refresh_slides();
 					}

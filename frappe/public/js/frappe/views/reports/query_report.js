@@ -152,20 +152,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	add_chart_buttons_to_toolbar(show) {
 		if (show) {
-			this.create_chart_button && this.create_chart_button.remove()
+			this.create_chart_button && this.create_chart_button.remove();
 			this.create_chart_button = this.page.add_button(__("Set Chart"), () => {
 				this.open_create_chart_dialog();
 			});
 
 			if (this.chart_fields || this.chart_options) {
-				this.add_to_dashboard_button && this.add_to_dashboard_button.remove()
+				this.add_to_dashboard_button && this.add_to_dashboard_button.remove();
 				this.add_to_dashboard_button = this.page.add_button(__("Add Chart to Dashboard"), () => {
 					this.add_chart_to_dashboard();
 				});
 			}
 		} else {
-			this.create_chart_button && this.create_chart_button.remove()
-			this.add_to_dashboard_button && this.add_to_dashboard_button.remove()
+			this.create_chart_button && this.create_chart_button.remove();
+			this.add_to_dashboard_button && this.add_to_dashboard_button.remove();
 		}
 	}
 
@@ -465,8 +465,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
 
-		let filter_area = $(`<div class="flex flex-wrap"></div>`);
-		this.page.page_form.append(filter_area);
+		let filter_area = this.page.page_form;
 
 		this.filters = filters.map(df => {
 			if (df.fieldtype === 'Break') return;
@@ -661,7 +660,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if(doc){
+		if (doc) {
 			this.page.add_inner_button(__("Download Report"), function (){
 				window.open(
 					frappe.urllib.get_full_url(
@@ -792,7 +791,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.toggle_primary_button_disabled(true);
 		let mandatory = this.filters.filter(f => f.df.reqd);
 		let missing_mandatory = mandatory.filter(f => !f.get_value());
-		if (!missing_mandatory.length){
+		if (!missing_mandatory.length) {
 			let filters = this.get_filter_values(true);
 			return new Promise(resolve => frappe.call({
 				method: 'frappe.desk.query_report.background_enqueue_run',
@@ -806,7 +805,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
-				let alert_message = `<a href='/app/prepared-report/${data.name}'>` + 
+				let alert_message = `<a href='/app/prepared-report/${data.name}'>` +
 					__('Report initiated, click to view status') + `</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'}, 10);
 				this.toggle_nothing_to_show(true);
@@ -1132,7 +1131,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_filter_values(raise) {
-		const mandatory = this.filters.filter(f => f.df.reqd);
+
+		// check for mandatory property for filters added via UI
+		const mandatory = this.filters.filter(f => (f.df.reqd || f.df.mandatory));
 		const missing_mandatory = mandatory.filter(f => !f.get_value());
 		if (raise && missing_mandatory.length > 0) {
 			let message = __('Please set filters');
