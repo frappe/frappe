@@ -726,7 +726,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if (!signature) {
 			const res = await this.get_default_outgoing_email_account_signature();
-			signature = res.message.signature;
+			signature = res.message.signature || "";
 		}
 
 		if(!frappe.utils.is_html(signature)) {
