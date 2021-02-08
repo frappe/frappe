@@ -708,7 +708,7 @@ Object.assign(frappe.utils, {
 			title = frappe._title_prefix + " " + title.replace(/<[^>]*>/g, "");
 		}
 		document.title = title;
-		
+
 		// save for re-routing
 		const sub_path = frappe.router.get_sub_path();
 		frappe.route_titles[sub_path] = title;
@@ -1172,7 +1172,7 @@ Object.assign(frappe.utils, {
 			} else if (type === "page") {
 				route = item.name;
 			} else if (type === "dashboard") {
-				route = "dashboard/" + item.name;
+				route = `dashboard-view/${item.name}`;
 			}
 
 		} else {
