@@ -362,10 +362,6 @@ frappe.ui.form.PrintView = class {
 		this.lang_code = this.language_sel.val();
 	}
 
-	has_rtl(){
-		return ["ar", "he", "fa"].includes(this.lang_code);
-	}
-
 	get_language_options() {
 		return frappe.get_languages();
 	}
@@ -416,7 +412,7 @@ frappe.ui.form.PrintView = class {
 			<link href="${frappe.urllib.get_base_url()}/assets/css/printview.css" rel="stylesheet">`
 		);
 
-		if (this.has_rtl()){
+		if (frappe.utils.is_rtl(this.lang_code)){
 			this.$print_format_body.find('head').append(
 				`<link type="text/css" rel="stylesheet" href="${frappe.urllib.get_base_url()}/assets/css/frappe-rtl.css"></link>`
 			);

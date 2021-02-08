@@ -922,8 +922,8 @@ Object.assign(frappe.utils, {
 			message: __('Copied to clipboard.')
 		});
 	},
-	is_rtl() {
-		return ["ar", "he", "fa"].includes(frappe.boot.lang);
+	is_rtl(lang=null) {
+		return ["ar", "he", "fa"].includes(lang || frappe.boot.lang);
 	},
 	bind_actions_with_object($el, object) {
 		// remove previously bound event
