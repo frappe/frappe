@@ -60,6 +60,7 @@ frappe.ui.Capture = class {
 			this.dialog = new frappe.ui.Dialog({
 				title: this.options.title,
 				animate: this.options.animate,
+				on_hide: () => this.stop_media_stream()
 			});
 
 			this.dialog.get_close_btn().on('click', () => {
@@ -126,10 +127,16 @@ frappe.ui.Capture = class {
 	}
 
 	hide() {
-		if (this.stream) this.stream.getTracks().forEach((track) => {
-			track.stop();
-		});
 		if (this.dialog) this.dialog.hide();
+		this.stop_media_stream();
+	}
+
+	stop_media_stream() {
+		if (this.stream) {
+			this.stream.getTracks().forEach((track) => {
+				track.stop();
+			});
+		}
 	}
 
 	submit(fn) {
