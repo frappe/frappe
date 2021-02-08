@@ -12,7 +12,7 @@
 				<div class="text-center">
 					{{ __('Drag and drop files here or upload from') }}
 				</div>
-				<div class="mt-2">
+				<div class="mt-2 text-center">
 					<button class="btn btn-file-upload" @click="browse_files">
 						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<circle cx="15" cy="15" r="15" fill="url(#paint0_linear)"/>
