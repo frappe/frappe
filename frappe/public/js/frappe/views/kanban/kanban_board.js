@@ -446,6 +446,7 @@ frappe.provide("frappe.views");
 				group: "cards",
 				animation: 150,
 				dataIdAttr: 'data-name',
+				forceFallback: true,
 				onStart: function() {
 					wrapper.find('.kanban-card.add-card').fadeOut(200, function() {
 						wrapper.find('.kanban-cards').height('100vh');
@@ -546,14 +547,14 @@ frappe.provide("frappe.views");
 			var opts = {
 				name: card.name,
 				title: remove_img_tags(card.title),
-				disable_click: card._disable_click ? 'disable-click' : ''
+				disable_click: card._disable_click ? 'disable-click' : '',
+				creation: card.creation,
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
 		}
 
 		function render_card_meta() {
-			var html = "";
 			if (card.comment_count > 0)
 				html +=
 				`<span class="list-comment-count small text-muted ">
@@ -563,7 +564,10 @@ frappe.provide("frappe.views");
 
 			const $assignees_group = get_assignees_group();
 
-			html += `<span class="kanban-assignments"></span>`;
+			html += `
+				<span class="kanban-assignments"></span>
+				${cur_list.get_like_html(card)}
+			`;
 
 			if (card.color && frappe.ui.color.validate_hex(card.color)) {
 				const $div = $('<div>');
@@ -630,6 +634,8 @@ frappe.provide("frappe.views");
 			doctype: state.doctype,
 			name: card.name,
 			title: card[state.card_meta.title_field.fieldname],
+			creation: moment(card.creation).format('MMM DD, YYYY'),
+			tags: card._user_tags,
 			column: card[state.board.field_name],
 			assigned_list: card.assigned_list || assigned_list,
 			comment_count: card.comment_count || comment_count,
