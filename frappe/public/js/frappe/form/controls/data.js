@@ -129,5 +129,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		} else {
 			return v;
 		}
+	},
+	toggle_container_scroll: function(el_class, scroll_class, add=false) {
+		let el = this.$input.parents(el_class)[0];
+		if (el) $(el).toggleClass(scroll_class, add);
 	}
 });
