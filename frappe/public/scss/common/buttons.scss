@@ -87,3 +87,11 @@
 	background-color: var(--red-400);
 	color: $white;
 }
+
+
+[data-theme="dark"] {
+	.btn-primary-light {
+		background-color: var(--bg-dark-blue);
+		box-shadow: none;
+	}
+}
