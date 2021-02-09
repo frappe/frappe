@@ -680,4 +680,8 @@
 	<symbol fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="icon-restriction">
 		<path d="M8 14A6 6 0 108 2a6 6 0 000 12zM4 4l8 8" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
+	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-right" stroke-width="1.2">
+		<path d="M10 6.00223L1 5.99973" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M7.70015 3.00244L10.7001 6.00244L7.70015 9.00244" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
 </svg>

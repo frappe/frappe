@@ -12,14 +12,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	trigger_change_on_input_event: false,
 	make_input: function() {
 		var me = this;
-		// line-height: 1 is for Mozilla 51, shows extra padding otherwise
-		$('<div class="link-field ui-front" style="position: relative; line-height: 1;">\
-			<input type="text" class="input-with-feedback form-control">\
-			<span class="link-btn">\
-				<a class="btn-open no-decoration" title="' + __("Open Link") + '">\
-					<i class="octicon octicon-arrow-right"></i></a>\
-			</span>\
-		</div>').prependTo(this.input_area);
+		$(`<div class="link-field ui-front" style="position: relative;">
+			<input type="text" class="input-with-feedback form-control">
+			<span class="link-btn">
+				<a class="btn-open no-decoration" title="${__("Open Link")}">
+					${frappe.utils.icon('arrow-right', 'xs')}
+				</a>
+			</span>
+		</div>`).prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
 		this.$link = this.$input_area.find('.link-btn');

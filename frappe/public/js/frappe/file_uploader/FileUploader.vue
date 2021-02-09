@@ -10,9 +10,9 @@
 		>
 			<div v-if="!is_dragging">
 				<div class="text-center">
-					{{ __('Drag and drop files here or') }}
+					{{ __('Drag and drop files here or upload from') }}
 				</div>
-				<div class="mt-2">
+				<div class="mt-2 text-center">
 					<button class="btn btn-file-upload" @click="browse_files">
 						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<circle cx="15" cy="15" r="15" fill="url(#paint0_linear)"/>
@@ -28,7 +28,7 @@
 							</linearGradient>
 							</defs>
 						</svg>
-						<div class="mt-1">{{ __('Select File') }}</div>
+						<div class="mt-1">{{ __('My Device') }}</div>
 					</button>
 					<input
 						type="file"
@@ -54,6 +54,14 @@
 							<path d="M11.4547 13.8184L9.47873 15.7943C8.85205 16.4212 8.5 17.2714 8.5 18.1578C8.5 19.0443 8.85205 19.8945 9.47873 20.5214V20.5214C10.1057 21.1481 10.9558 21.5001 11.8423 21.5001C12.7287 21.5001 13.5789 21.1481 14.2058 20.5214L16.1818 18.5455" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
 						</svg>
 						<div class="mt-1">{{ __('Link') }}</div>
+					</button>
+					<button v-if="allow_take_photo" class="btn btn-file-upload" @click="capture_image">
+						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<circle cx="15" cy="15" r="15" fill="#CE315B"/>
+							<path d="M11.5 10.5H9.5C8.67157 10.5 8 11.1716 8 12V20C8 20.8284 8.67157 21.5 9.5 21.5H20.5C21.3284 21.5 22 20.8284 22 20V12C22 11.1716 21.3284 10.5 20.5 10.5H18.5L17.3 8.9C17.1111 8.64819 16.8148 8.5 16.5 8.5H13.5C13.1852 8.5 12.8889 8.64819 12.7 8.9L11.5 10.5Z" stroke="white" stroke-linejoin="round"/>
+							<circle cx="15" cy="16" r="2.5" stroke="white"/>
+						</svg>
+						<div class="mt-1">{{ __('Camera') }}</div>
 					</button>
 				</div>
 				<div class="text-muted text-medium">
@@ -187,6 +195,9 @@ export default {
 			return this.files.length > 0
 				&& this.files.every(
 					file => file.total !== 0 && file.progress === file.total);
+		},
+		allow_take_photo() {
+			return window.navigator.mediaDevices;
 		}
 	},
 	methods: {
@@ -416,7 +427,25 @@ export default {
 
 				xhr.send(form_data);
 			});
-		}
+		},
+		capture_image() {
+			const capture = new frappe.ui.Capture({
+				animate: false,
+				error: true
+			});
+			capture.show();
+			capture.submit(data_url => {
+				let filename = `capture_${frappe.datetime.now_datetime().replaceAll(/[: -]/g, '_')}.png`;
+				this.url_to_file(data_url, filename, 'image/png').then((file) =>
+					this.add_files([file])
+				);
+			});
+		},
+		url_to_file(url, filename, mime_type) {
+			return fetch(url)
+					.then(res => res.arrayBuffer())
+					.then(buffer => new File([buffer], filename, { type: mime_type }));
+		},
 	}
 }
 </script>

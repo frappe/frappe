@@ -91,7 +91,7 @@
 	padding: 8px 12px;
 	cursor: default;
 	color: var(--disabled-text-color);
-	background-color: var(--control-bg);
+	background-color: var(--disabled-control-bg);
 }
 
 .form-control:disabled, .form-control[readonly] {

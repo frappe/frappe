@@ -48,8 +48,8 @@ input[type="checkbox"] {
 	}
 
 
-	&.disabled-deselected:before {
-		background: $gray-50;
+	&.disabled-deselected:before, &[disabled]:before {
+		background: var(--disabled-control-bg);
 		border: 0.5px solid var(--gray-300);
 		box-sizing: border-box;
 		box-shadow: inset 0px 1px 7px rgba(0, 0, 0, 0.1);
