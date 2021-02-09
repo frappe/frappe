@@ -130,6 +130,7 @@ body.modal-open {
 			border-radius: var(--border-radius-md);
 			border-bottom-right-radius: 0;
 			border-bottom-left-radius: 0;
+			box-shadow: -10px 10p rgba(0, 0, 0, 0.100661);
 		}
 
 		@include media-breakpoint-down(sm) {
