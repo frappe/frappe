@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:AUT-AR-{#####}",
@@ -12,6 +13,7 @@
   "section_break_3",
   "reference_doctype",
   "reference_document",
+  "submit_on_creation",
   "column_break_5",
   "start_date",
   "end_date",
@@ -21,6 +23,8 @@
   "repeat_on_last_day",
   "column_break_12",
   "next_schedule_date",
+  "section_break_16",
+  "repeat_on_days",
   "notification",
   "notify_by_email",
   "recipients",
@@ -186,9 +190,28 @@
    "fieldname": "repeat_on_last_day",
    "fieldtype": "Check",
    "label": "Repeat on Last Day of the Month"
+  },
+  {
+   "depends_on": "eval:doc.frequency==='Weekly';",
+   "fieldname": "repeat_on_days",
+   "fieldtype": "Table",
+   "label": "Repeat on Days",
+   "options": "Auto Repeat Day"
+  },
+  {
+   "default": "0",
+   "fieldname": "submit_on_creation",
+   "fieldtype": "Check",
+   "label": "Submit on Creation"
+  },
+  {
+   "depends_on": "eval:doc.frequency==='Weekly';",
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break"
   }
  ],
- "modified": "2019-07-17 11:30:51.412317",
+ "links": [],
+ "modified": "2021-01-12 09:24:49.719611",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Auto Repeat",

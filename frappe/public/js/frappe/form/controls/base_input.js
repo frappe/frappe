@@ -20,7 +20,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					<div class="control-input-wrapper">\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
-						<p class="help-box small text-muted hidden-xs"></p>\
+						<p class="help-box small text-muted"></p>\
 					</div>\
 				</div>\
 			</div>').appendTo(this.parent);
@@ -104,6 +104,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			me.set_label();
 			me.set_mandatory(me.value);
 			me.set_bold();
+			me.set_required();
 		}
 	},
 
@@ -125,13 +126,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
 		this.disp_area && $(this.disp_area).html(display_value);
-	},
-
-	bind_change_event: function() {
-		var me = this;
-		this.$input && this.$input.on("change", this.change || function(e) {
-			me.parse_validate_and_set_in_model(me.get_input_value(), e);
-		});
 	},
 	set_label: function(label) {
 		if(label) this.df.label = label;
@@ -165,7 +159,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		this.$wrapper.find(".help-box").html("");
 	},
 	set_mandatory: function(value) {
-		this.$wrapper.toggleClass("has-error", (this.df.reqd && is_null(value)) ? true : false);
+		this.$wrapper.toggleClass("has-error", Boolean(this.df.reqd && is_null(value)));
 	},
 	set_invalid: function () {
 		let invalid = !!this.df.invalid;
@@ -176,6 +170,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		} else {
 			this.$wrapper.toggleClass('has-error', invalid);
 		}
+	},
+	set_required() {
+		this.label_area && $(this.label_area).toggleClass('reqd', Boolean(this.df.reqd));
 	},
 	set_bold: function() {
 		if(this.$input) {

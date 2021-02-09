@@ -53,14 +53,17 @@ def get_transitions(doc, workflow = None, raise_exception=False):
 	return transitions
 
 def get_workflow_safe_globals():
-	# access to frappe.db.get_value and frappe.db.get_list
+	# access to frappe.db.get_value, frappe.db.get_list, and date time utils.
 	return dict(
 		frappe=frappe._dict(
-			db=frappe._dict(
-				get_value=frappe.db.get_value,
-				get_list=frappe.db.get_list
+			db=frappe._dict(get_value=frappe.db.get_value, get_list=frappe.db.get_list),
+			session=frappe.session,
+			utils=frappe._dict(
+				now_datetime=frappe.utils.now_datetime,
+				add_to_date=frappe.utils.add_to_date,
+				get_datetime=frappe.utils.get_datetime,
+				now=frappe.utils.now,
 			),
-			session=frappe.session
 		)
 	)
 
@@ -117,9 +120,8 @@ def apply_workflow(doc, action):
 	return doc
 
 @frappe.whitelist()
-def can_cancel_document(doc):
-	doc = frappe.get_doc(frappe.parse_json(doc))
-	workflow = get_workflow(doc.doctype)
+def can_cancel_document(doctype):
+	workflow = get_workflow(doctype)
 	for state_doc in workflow.states:
 		if state_doc.doc_status == '2':
 			for transition in workflow.transitions:

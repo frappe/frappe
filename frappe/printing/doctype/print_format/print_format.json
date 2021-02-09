@@ -22,6 +22,7 @@
   "align_labels_right",
   "show_section_headings",
   "line_breaks",
+  "absolute_value",
   "column_break_11",
   "font",
   "css_section",
@@ -153,7 +154,7 @@
    "fieldname": "font",
    "fieldtype": "Select",
    "label": "Font",
-   "options": "Default\nArial\nHelvetica\nVerdana\nMonospace"
+   "options": "Default\nHelvetica Neue\nArial\nHelvetica\nVerdana\nMonospace"
   },
   {
    "depends_on": "eval:!doc.raw_printing",
@@ -196,13 +197,21 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Print Format Builder"
+  },
+  {
+   "default": "0",
+   "depends_on": "doc_type",
+   "description": "If checked, negative numeric values of Currency, Quantity or Count would be shown as positive",
+   "fieldname": "absolute_value",
+   "fieldtype": "Check",
+   "label": "Show Absolute Values"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-27 18:27:58.307070",
+ "modified": "2020-12-14 11:38:49.132061",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

@@ -150,7 +150,7 @@ def get_website_settings(context=None):
 	add_website_theme(context)
 
 	if not context.get("favicon"):
-		context["favicon"] = "/assets/frappe/images/favicon.png"
+		context["favicon"] = "/assets/frappe/images/frappe-favicon.svg"
 
 	if settings.favicon and settings.favicon != "attach_files:":
 		context["favicon"] = settings.favicon

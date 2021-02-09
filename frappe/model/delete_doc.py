@@ -76,7 +76,12 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
-			if not (for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_uninstall or frappe.flags.in_test):
+			if frappe.conf.developer_mode and not doc.custom and not (
+				for_reload
+				or frappe.flags.in_migrate
+				or frappe.flags.in_install
+				or frappe.flags.in_uninstall
+			):
 				try:
 					delete_controllers(name, doc.module)
 				except (FileNotFoundError, OSError, KeyError):
@@ -287,8 +292,8 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 					raise_link_exists_exception(doc, reference_doctype, reference_docname, at_position)
 
 def raise_link_exists_exception(doc, reference_doctype, reference_docname, row=''):
-	doc_link = '<a href="#Form/{0}/{1}">{1}</a>'.format(doc.doctype, doc.name)
-	reference_link = '<a href="#Form/{0}/{1}">{1}</a>'.format(reference_doctype, reference_docname)
+	doc_link = '<a href="/app/Form/{0}/{1}">{1}</a>'.format(doc.doctype, doc.name)
+	reference_link = '<a href="/app/Form/{0}/{1}">{1}</a>'.format(reference_doctype, reference_docname)
 
 	#hack to display Single doctype only once in message
 	if reference_doctype == reference_docname:

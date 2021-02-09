@@ -33,6 +33,7 @@ frappe.ui.form.on('Custom Script', {
 						}
 					],
 					primary_action: ({ cdt }) => {
+						cdt = d.get_field('cdt').value;
 						frm.events.add_script_for_doctype(frm, cdt);
 						d.hide();
 					}

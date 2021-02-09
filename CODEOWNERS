@@ -4,12 +4,12 @@
 # the repo. Unless a later match takes precedence,
 
 *									@frappe/frappe-review-team
-website/					@scmmishra
-web_form/					@scmmishra
-templates/				@scmmishra
-www/							@scmmishra
+website/					@prssanna
+web_form/					@prssanna
+templates/				@surajshetty3416
+www/							@surajshetty3416
 integrations/			@nextchamp-saqib
-patches/					@sahil28297
+patches/					@surajshetty3416
 dashboard/				@prssanna
 email/						@saurabh6790
 event_streaming/	@ruchamahabal

@@ -65,27 +65,6 @@ frappe.ui.form.SidebarUsers = class {
 			} else {
 				frappe.show_alert(__('{0} are currently {1}', [frappe.utils.comma_and(users), message]));
 			}
-
 		}
-	}
-};
-
-frappe.ui.form.set_users = function(data, type) {
-	const doctype = data.doctype;
-	const docname = data.docname;
-	const docinfo = frappe.model.get_docinfo(doctype, docname);
-
-	const past_users = ((docinfo && docinfo[type]) || {}).past || [];
-	const users = data.users || [];
-	const new_users = users.filter(user => !past_users.includes(user));
-
-	frappe.model.set_docinfo(doctype, docname, type, {
-		past: past_users.concat(new_users),
-		new: new_users,
-		current: users
-	});
-
-	if (cur_frm && cur_frm.doc && cur_frm.doc.doctype===doctype && cur_frm.doc.name==docname) {
-		cur_frm.viewers.refresh(true, type);
 	}
 };
