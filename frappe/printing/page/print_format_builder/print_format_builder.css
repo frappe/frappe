@@ -1,83 +1,160 @@
-.print-format-builder-section, .print-format-builder-add-section {
-	border: 1px solid #d1d8dd;
+.print-format-builder-section {
+	border: 1px solid var(--dark-border-color);
+	border-radius: var(--border-radius);
 	margin: 0px;
-	margin-bottom: 15px;
+	margin-bottom: var(--margin-md);
 }
+
 .print-format-builder-add-section, .print-format-builder-header {
-	border: 1px dashed #d1d8dd;
-	padding: 15px;
+	border: 1px dashed var(--dark-border-color);
+	border-radius: var(--border-radius);
+	padding: var(--padding-sm);
+	width: 100%;
+	display: inline-block;
+	background: var(--bg-color);
 	cursor: pointer;
 }
 
+.print-format-builder-header-edit {
+	margin-bottom: var(--margin-sm);
+}
+
 .print-format-builder-header {
-	margin-bottom: 15px;
+	margin-bottom: var(--margin-md);
+}
+
+.print-format-builder-add-section {
+	color: var(--text-light);
+	align-items: center;
+	padding: var(--padding-lg);
+	display: flex;
+	justify-content: center;
+}
+
+.print-format-builder-add-section .icon {
+	margin-right: var(--margin-sm);
 }
 
 .print-format-builder-column {
-	padding: 15px;
-	margin: 0px -15px 0 -16px;
-	background-color: white;
-	min-height: 64px;
-	border-left: 1px solid #d1d8dd;
-	border-right: 1px solid #d1d8dd;
+	border-radius: var(--border-radius);
 }
 
-.section-column:last-child .print-format-builder-column {
-	margin-right: -16px;
+.print-format-builder-section .section-column {
+	padding: var(--padding-xs) 0 var(--padding-md) var(--padding-md);
+}
+
+.print-format-builder-section .section-column:last-child {
+	padding-right: var(--padding-md);
 }
 
 .print-format-builder-field {
-	padding: 5px;
-	border: 1px solid #d1d8dd;
-	border-radius: 3px;
-	margin-bottom: 10px;
-	min-height: 34px;
+	padding: 8px;
+	width: 100%;
+	display: inline-block;
+	border-radius: var(--border-radius);
+	background: var(--bg-light-gray);
+	margin-bottom: var(--margin-sm);
+	font-size: var(--text-md);
+	color: var(--text-color);
 }
 
 .print-format-builder-field:last-child {
-	margin-bottom: 0px;
+	margin-bottom: 0;
 }
 
-.print-format-builder-field-placeholder {
-	margin-bottom: 10px;
-}
-
-.print-format-builder-field-placeholder:last-child {
-	margin-bottom: 0px;
+.print-format-builder-field .field-label {
+	vertical-align: middle;
 }
 
 .print-format-builder-column .print-format-builder-field {
 	cursor: move;
 }
 
+.print-format-builder-section-head .section-label {
+	font-size: var(--text-lg);
+	color: var(--text-color);
+	font-weight: 500;
+	vertical-align: middle;
+	margin-left: var(--margin-sm);
+}
 
 .print-format-builder-section-head {
 	cursor: move;
-	padding: 10px 15px;
-	border-bottom: 1px solid #d1d8dd;
+	padding: var(--padding-md) calc(var(--padding-md) + 8px)
+		var(--padding-sm) calc(var(--padding-md) + 8px);
+}
+
+.column-selector-row {
+	margin-bottom: var(--margin-xs);
+	padding: var(--padding-xs) 0;
+	cursor: grab;
 }
 
 .column-selector-row:hover {
-	background-color: #fafbfc;
+	background-color: var(--highlight-color);
 }
 
-.column-selector-row .form-control {
-	margin-top: 5px;
+.column-selector-row .drag-handle {
+	margin-right: var(--margin-sm);
+}
+
+.print-format-builder-field .drag-handle {
+	margin-right: var(--margin-sm);
+}
+
+.print-format-builder-sidebar .sidebar-field {
+	width: 100%;
+	padding: 4px 8px;
+	color: var(--text-on-light-gray);
+	/* color: var(--text-light); */
+	text-align: left;
+	cursor: grab;
+}
+
+.print-format-builder-sidebar .sidebar-custom-field {
+	background-color: var(--gray-300);
 }
 
 .print-format-builder-sidebar {
-	display: inline-block;
-	width: 160px;
-	vertical-align: top;
-	position: fixed;
-	top: 110px;
-	bottom: 0px;
+	top: calc(var(--navbar-height) + 70px);
+	position: sticky;
+}
+
+.print-format-builder-sidebar-fields {
+	padding: var(--padding-xs);
 	overflow-y: auto;
+	height: 75vh;
+}
+
+.print-format-builder-field-placeholder {
+	margin-bottom: var(--margin-sm);
+}
+
+.print-format-builder-field-placeholder:last-child {
+	margin-bottom: 0;
+}
+
+.print-format-builder-field-placeholder .drag-handle {
+	margin-right: var(--margin-sm);
+}
+
+.filter-searchbox {
+	padding: 0 var(--padding-xs);
+	margin-bottom: var(--margin-sm);
+}
+
+.filter-searchbox input {
+	background-color: var(--control-bg-on-gray);
 }
 
 .print-format-builder-main {
 	display: inline-block;
 	vertical-align: top;
 	border-top: 0px;
-	margin-left: 160px;
+	padding: var(--padding-lg);
+}
+
+.print-format-help-message {
+	font-size: var(--text-md);
+	margin-bottom: var(--margin-md);
 }

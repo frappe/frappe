@@ -27,7 +27,7 @@ class LetterHead(Document):
 	def set_image(self):
 		if self.source=='Image':
 			if self.image and is_image(self.image):
-				self.content = '<img src="{}" style="width: 100%;">'.format(self.image)
+				self.content = '<img src="{}">'.format(self.image)
 				frappe.msgprint(frappe._('Header HTML set from attachment {0}').format(self.image), alert = True)
 			else:
 				frappe.msgprint(frappe._('Please attach an image file to set HTML'), alert = True, indicator = 'orange')

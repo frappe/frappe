@@ -15,6 +15,7 @@ execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2018-05-29
 execute:frappe.reload_doc('core', 'doctype', 'comment')
 frappe.patches.v8_0.drop_is_custom_from_docperm
+execute:frappe.reload_doc('core', 'doctype', 'document_naming_rule', force=True)
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2020-08-28
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 execute:frappe.reload_doc('email', 'doctype', 'document_follow')
@@ -208,7 +209,7 @@ frappe.patches.v9_1.resave_domain_settings
 frappe.patches.v9_1.revert_domain_settings
 frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
-frappe.patches.v10_0.reload_countries_and_currencies # 14-10-2020
+frappe.patches.v10_0.reload_countries_and_currencies # 2021-02-03
 frappe.patches.v10_0.refactor_social_login_keys
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
@@ -243,7 +244,6 @@ frappe.patches.v12_0.set_primary_key_in_series
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.setup_comments_from_communications
-frappe.patches.v12_0.init_desk_settings #16-05-2019
 frappe.patches.v12_0.replace_null_values_in_tables
 frappe.patches.v12_0.reset_home_settings
 frappe.patches.v12_0.update_print_format_type
@@ -265,7 +265,6 @@ frappe.patches.v12_0.copy_to_parent_for_tags
 frappe.patches.v12_0.create_notification_settings_for_user
 frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
 frappe.patches.v12_0.setup_email_linking
-frappe.patches.v12_0.fix_home_settings_for_all_users
 frappe.patches.v12_0.change_existing_dashboard_chart_filters
 frappe.patches.v12_0.set_correct_assign_value_in_docs #2020-07-13
 execute:frappe.delete_doc("Test Runner")
@@ -299,13 +298,14 @@ frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
 frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
 frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
-frappe.patches.v13_0.add_standard_navbar_items
+frappe.patches.v13_0.add_standard_navbar_items # 2020-12-15
 frappe.patches.v13_0.generate_theme_files_in_public_folder
 frappe.patches.v13_0.increase_password_length
 frappe.patches.v12_0.fix_email_id_formatting
 frappe.patches.v13_0.add_toggle_width_in_navbar_settings
 frappe.patches.v13_0.rename_notification_fields
 frappe.patches.v13_0.remove_duplicate_navbar_items
+frappe.patches.v13_0.set_social_icons
 frappe.patches.v12_0.set_default_password_reset_limit
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True)
 frappe.patches.v13_0.set_route_for_blog_category
@@ -316,5 +316,16 @@ frappe.patches.v13_0.delete_event_producer_and_consumer_keys
 frappe.patches.v13_0.web_template_set_module #2020-10-05
 frappe.patches.v13_0.remove_custom_link
 execute:frappe.delete_doc("DocType", "Footer Item")
+execute:frappe.reload_doctype('user')
+execute:frappe.reload_doctype('docperm')
 frappe.patches.v13_0.replace_field_target_with_open_in_new_tab
+frappe.core.doctype.role.patches.v13_set_default_desk_properties
+frappe.patches.v13_0.add_switch_theme_to_navbar_settings
+frappe.patches.v13_0.update_icons_in_customized_desk_pages
+execute:frappe.db.set_default('desktop:home_page', 'space')
+execute:frappe.delete_doc_if_exists('Page', 'workspace')
+execute:frappe.delete_doc_if_exists('Page', 'dashboard', force=1)
+frappe.core.doctype.page.patches.drop_unused_pages
+execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
+frappe.patches.v13_0.rename_desk_page_to_workspace # 02.02.2021
 frappe.patches.v13_0.delete_package_publish_tool

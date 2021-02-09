@@ -1,0 +1,25 @@
+<nav class="navbar navbar-primary navbar-expand-lg">
+	<div class="container">
+		<a class="navbar-brand" href="{{ url_prefix }}{{ home_page or "/" }}">
+			{%- if brand_html -%}
+				{{ brand_html }}
+			{%- elif banner_image -%}
+				<img src='{{ banner_image }}'>
+			{%- else -%}
+				<span>{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
+			{%- endif -%}
+		</a>
+		<button class="navbar-toggler" type="button"
+			data-toggle="collapse"
+			data-target="#navbarSupportedContent"
+			aria-controls="navbarSupportedContent"
+			aria-expanded="false"
+			aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+
+		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+			{% include "templates/includes/navbar/navbar_items.html" %}
+		</div>
+	</div>
+</nav>
