@@ -19,6 +19,18 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 
 psycopg2.extensions.register_type(DEC2FLOAT)
 
+def init_db_session(func):
+	"""Configure runtime parameters scoped to the current database connection session.
+	"""
+	def wrapper(*args, **kwargs):
+		import frappe
+		conn = func(*args, **kwargs)
+		cursor = conn.cursor()
+		if frappe.local.tenant_id:
+			cursor.execute(f"SELECT set_config('app.current_tenant', '%s', false)", (frappe.local.tenant_id,))
+		return conn
+	return wrapper
+
 class PostgresDatabase(Database):
 	ProgrammingError = psycopg2.ProgrammingError
 	TableMissingError = psycopg2.ProgrammingError
@@ -64,6 +76,7 @@ class PostgresDatabase(Database):
 			'Duration':		('decimal', '18,6')
 		}
 
+	@init_db_session
 	def get_connection(self):
 		# warnings.filterwarnings('ignore', category=psycopg2.Warning)
 		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
