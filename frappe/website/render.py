@@ -252,13 +252,6 @@ def resolve_path(path):
 	if path != "index":
 		path = resolve_from_map(path)
 
-	if path.startswith("app"):
-		path = "app"
-
-	# to keep backward compatibility
-	if path.startswith("desk"):
-		path = "app"
-
 	return path
 
 def resolve_from_map(path):
@@ -277,6 +270,10 @@ def get_website_rules():
 				rules.append(dict(from_route = '/' + d.route.strip('/'), to_route=d.name))
 
 		return rules
+
+	if frappe.local.dev_server:
+		# dont cache in development
+		return _get()
 
 	return frappe.cache().get_value('website_route_rules', _get)
 

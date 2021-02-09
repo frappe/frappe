@@ -8,7 +8,7 @@ chardet==3.0.4
 Click==7.0
 coverage==4.5.4
 croniter==0.3.31
-cryptography==3.2
+cryptography==3.3.2
 dropbox==9.1.0
 email-reply-parser==0.5.9
 Faker==2.0.4
@@ -27,7 +27,7 @@ html5lib==1.0.1
 ipython==7.14.0
 Jinja2==2.11.3
 ldap3==2.7
-markdown2==2.3.9
+markdown2==2.4.0
 maxminddb-geolite2==2018.703
 ndg-httpsclient==0.5.1
 num2words==0.5.10
