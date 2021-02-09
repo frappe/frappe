@@ -236,18 +236,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$input.on("awesomplete-open", () => {
-			let modal = this.$input.parents('.modal-dialog')[0];
-			if (modal) {
-				$(modal).removeClass("modal-dialog-scrollable");
-			}
+			this.toggle_container_scroll('.modal-dialog', 'modal-dialog-scrollable');
+			this.toggle_container_scroll('.grid-form-body .form-area', 'scrollable');
+
 			this.autocomplete_open = true;
 		});
 
 		this.$input.on("awesomplete-close", () => {
-			let modal = this.$input.parents('.modal-dialog')[0];
-			if (modal) {
-				$(modal).addClass("modal-dialog-scrollable");
-			}
+			this.toggle_container_scroll('.modal-dialog', 'modal-dialog-scrollable', true);
+			this.toggle_container_scroll('.grid-form-body .form-area', 'scrollable', true);
+
 			this.autocomplete_open = false;
 		});
 
