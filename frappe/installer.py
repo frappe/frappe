@@ -44,15 +44,15 @@ def _new_site(
 
 	frappe.init(site=site)
 
-	from frappe.commands.scheduler import _is_scheduler_enabled
+	# from frappe.commands.scheduler import _is_scheduler_enabled
 	from frappe.utils import get_site_path, scheduler, touch_file
 
-	try:
-		# enable scheduler post install?
-		enable_scheduler = _is_scheduler_enabled()
-	except Exception:
-		enable_scheduler = False
-
+	# TODO: This should be done per tenant
+	# try:
+	# 	# enable scheduler post install?
+	# 	enable_scheduler = _is_scheduler_enabled()
+	# except Exception:
+	# 	enable_scheduler = False
 	make_site_dirs()
 
 	installing = touch_file(get_site_path("locks", "installing.lock"))
@@ -72,6 +72,9 @@ def _new_site(
 		db_port=db_port,
 		no_mariadb_socket=no_mariadb_socket,
 	)
+
+	frappe.flags.in_site_setup = True
+
 	apps_to_install = (
 		["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 	)
@@ -81,13 +84,14 @@ def _new_site(
 
 	os.remove(installing)
 
-	scheduler.toggle_scheduler(enable_scheduler)
+	# scheduler.toggle_scheduler(enable_scheduler)
 	frappe.db.commit()
 
-	scheduler_status = (
-		"disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
-	)
-	print("*** Scheduler is", scheduler_status, "***")
+	# scheduler_status = (
+	# 	"disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
+	# )
+	# print("*** Scheduler is", scheduler_status, "***")
+	frappe.flags.in_site_setup = False
 
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
@@ -158,30 +162,34 @@ def install_app(name, verbose=False, set_as_patched=True):
 	if name != "frappe":
 		add_module_defs(name)
 
-	sync_for(name, force=True, sync_everything=True, verbose=verbose, reset_permissions=True)
+	sync_for(name, force=True, verbose=verbose, reset_permissions=True)
 
 	add_to_installed_apps(name)
 
-	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
+	# TODO: This should be done per tenant
+	# frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
 
-	if set_as_patched:
-		set_all_patches_as_completed(name)
+	# CHECK: Should be done per tenant??
+	# if set_as_patched:
+	# 	set_all_patches_as_completed(name)
 
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
 	# TODO: Move into tenant code base.
 	# sync_jobs()
-	sync_fixtures(name)
-	sync_customizations(name)
+	# sync_fixtures(name)
+	# sync_customizations(name)
 
-	for after_sync in app_hooks.after_sync or []:
-		frappe.get_attr(after_sync)() #
+	# CHECK: Should be done per tenant??
+	# for after_sync in app_hooks.after_sync or []:
+	# 	frappe.get_attr(after_sync)() #
 
 	frappe.flags.in_install = False
 
 def _add_tenant(site, tenant_name, verbose=False, set_as_patched=True):
-	pass
+	frappe.flags.in_tenant_setup = True
+	frappe.flags.in_tenant_setup = False
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
@@ -189,8 +197,9 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
-		if frappe.flags.in_install:
-			post_install(rebuild_website)
+		# TODO: Do it for tenant by moving code
+		# if frappe.flags.in_install:
+		# 	post_install(rebuild_website)
 
 
 def remove_from_installed_apps(app_name):

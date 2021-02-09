@@ -22,7 +22,7 @@ def sync_all(force=0, verbose=False, reset_permissions=False):
 
 	frappe.clear_cache()
 
-def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_permissions=False):
+def sync_for(app_name, force=0, verbose=False, reset_permissions=False):
 	files = []
 
 	if app_name == "frappe":
@@ -67,7 +67,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 	if l:
 		for i, doc_path in enumerate(files):
 			import_file_by_path(doc_path, force=force, ignore_version=True,
-				reset_permissions=reset_permissions, for_sync=True)
+				reset_permissions=reset_permissions)
 
 			frappe.db.commit()
 

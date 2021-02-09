@@ -279,6 +279,24 @@ class Document(BaseDocument):
 			follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
+	def sync_for_site(self):
+		"""Sync document at time of site creation.
+
+		We need to create schema and update meta details of a schema at time of site creation.
+		"""
+		if self.doctype == 'DocType':
+			self.insert()
+
+	def sync_for_tenant(self):
+		"""Sync document at time of tenant creation.
+
+		Create tenant specific records from the document.
+		"""
+		if self.doctype != 'DocType':
+			self.insert()
+		else:
+			self.update_roles()
+
 	def save(self, *args, **kwargs):
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)

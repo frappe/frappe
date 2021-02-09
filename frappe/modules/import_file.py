@@ -45,7 +45,7 @@ def get_file_path(module, dt, dn):
 	return path
 
 def import_file_by_path(path, force=False, data_import=False, pre_process=None, ignore_version=None,
-		reset_permissions=False, for_sync=False):
+		reset_permissions=False):
 	try:
 		docs = read_doc_from_file(path)
 	except IOError:
@@ -70,7 +70,7 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 				ignore_version=ignore_version, reset_permissions=reset_permissions)
 			frappe.flags.in_import = False
 
-			if original_modified:
+			if original_modified and not frappe.flags.in_site_setup:
 				# since there is a new timestamp on the file, update timestamp in
 				if doc["doctype"] == doc["name"] and doc["name"]!="DocType":
 					frappe.db.sql("""update tabSingles set value=%s where field="modified" and doctype=%s""",
@@ -96,8 +96,8 @@ def read_doc_from_file(path):
 
 	return doc
 
-def import_doc(docdict, force=False, data_import=False, pre_process=None,
-		ignore_version=None, reset_permissions=False):
+def import_doc(docdict, force=False, data_import=False, pre_process=None, ignore_version=None,
+		reset_permissions=False):
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
 
@@ -140,6 +140,11 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		doc.flags.ignore_permissions = True
 		doc.flags.ignore_mandatory = True
 
-	doc.insert()
+	if frappe.flags.in_site_setup:
+		doc.sync_for_site()
+	elif frappe.flags.in_tenant_setup:
+		doc.sync_for_tenant()
+	else:
+		doc.insert()
 
 	frappe.flags.in_import = False

@@ -132,7 +132,6 @@ def init(site, sites_path=None, new_site=False):
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None):
 		return
-
 	if not sites_path:
 		sites_path = '.'
 
@@ -151,6 +150,8 @@ def init(site, sites_path=None, new_site=False):
 		"ignore_links": False,
 		"mute_emails": False,
 		"has_dataurl": False,
+		"in_site_setup": False,
+		"in_tenant_setup": False,
 		"new_site": new_site
 	})
 	local.rollback_observers = []

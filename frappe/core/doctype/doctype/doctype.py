@@ -276,6 +276,11 @@ class DocType(Document):
 			if used_in:
 				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
+	def update_roles(self):
+		"""Get list of roles from a doctype and create those roles.
+		"""
+		make_roles(self)
+
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		try:
@@ -285,7 +290,7 @@ class DocType(Document):
 			raise e
 
 		self.change_modified_of_parent()
-		make_module_and_roles(self)
+		make_module_defs(self)
 
 		self.update_fields_to_fetch()
 
@@ -1122,19 +1127,30 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 		check_level_zero_is_set(d)
 		remove_rights_for_single(d)
 
-def make_module_and_roles(doc, perm_fieldname="permissions"):
-	"""Make `Module Def` and `Role` records if already not made. Called while installing."""
-	try:
-		if hasattr(doc,'restrict_to_domain') and doc.restrict_to_domain and \
-			not frappe.db.exists('Domain', doc.restrict_to_domain):
-			frappe.get_doc(dict(doctype='Domain', domain=doc.restrict_to_domain)).insert()
 
+def make_module_defs(doc, perm_fieldname="permissions"):
+	"""Make `Module Def` records if already not made. Called while installing."""
+	try:
 		if	("tabModule Def" in frappe.db.get_tables()
 			and not frappe.db.exists("Module Def", doc.module)):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
 			m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
 			m.flags.ignore_mandatory = m.flags.ignore_permissions = True
 			m.insert()
+	except frappe.DoesNotExistError as e:
+		pass
+	except frappe.db.ProgrammingError as e:
+		if frappe.db.is_table_missing(e):
+			pass
+		else:
+			raise
+
+def make_roles(doc, perm_fieldname="permissions"):
+	"""Make `Role` records if already not made. Called while installing."""
+	try:
+		if hasattr(doc,'restrict_to_domain') and doc.restrict_to_domain and \
+			not frappe.db.exists('Domain', doc.restrict_to_domain):
+			frappe.get_doc(dict(doctype='Domain', domain=doc.restrict_to_domain)).insert()
 
 		default_roles = ["Administrator", "Guest", "All"]
 		roles = [p.role for p in doc.get("permissions") or []] + default_roles
