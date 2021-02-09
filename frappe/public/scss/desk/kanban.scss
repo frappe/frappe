@@ -15,7 +15,7 @@
 
 .kanban {
 	display: flex;
-	overflow: auto;
+	overflow-y: hidden;
 
 	-ms-overflow-style: none; /* IE and Edge */
 	scrollbar-width: none; /* Firefox */
@@ -32,6 +32,8 @@
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
 		min-height: calc(100vh - 250px);
+		max-height: calc(75vh - 10px);
+		// overflow: hidden;
 
 		&.add-new-column {
 			order: 1;
@@ -138,7 +140,6 @@
 		}
 
 		.kanban-cards {
-			min-height: 100px;
 			max-height: calc(100vh - 250px);
 			margin: -5px;
 			padding: 5px;
@@ -191,10 +192,20 @@
 		}
 	}
 
-	.kanban-card-title {
-		max-width: 90%;
-		font-size: $font-size-base;
-		font-weight: 500;
+	.kanban-title-area {
+		margin-bottom: var(--margin-md);
+
+		.kanban-card-title {
+			max-width: 90%;
+			font-size: var(--text-md);
+			font-weight: 500;
+		}
+
+		.kanban-card-creation {
+			font-size: var(--text-md);
+			color: var(--text-muted);
+			margin-top: var(--margin-xs);
+		}
 	}
 
 	.kanban-card-edit {
@@ -248,12 +259,35 @@
 	}
 
 	.kanban-card-meta {
+
+		.list-comment-count {
+			width: 30px;
+		}
+
+		.like-action:not(.liked) {
+			.icon use {
+				stroke: var(--text-muted);
+			}
+		}
+
 		.kanban-assignments {
 			display: flex;
 			float: right;
 
 			.avatar {
 				cursor: default;
+				width: 22px;
+				height: 22px;
+			}
+
+			.avatar-action {
+				width: 22px;
+				height: 22px;
+
+				.icon {
+					width: 12px;
+					height: 12px;
+				}
 			}
 		}
 	}
