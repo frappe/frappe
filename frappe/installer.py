@@ -7,6 +7,7 @@ import sys
 
 import frappe
 from frappe.defaults import _clear_cache
+from frappe.tenant import Tenant
 
 
 def _new_site(
@@ -179,6 +180,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	frappe.flags.in_install = False
 
+def _add_tenant(site, tenant_name, verbose=False, set_as_patched=True):
+	pass
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()

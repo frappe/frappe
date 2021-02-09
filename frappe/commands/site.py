@@ -9,7 +9,8 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-
+from frappe.installer import _add_tenant
+from frappe.tenant import Tenant
 
 @click.command('new-site')
 @click.argument('site')
@@ -42,6 +43,26 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
+
+@click.command('add-tenant')
+@click.argument('tenant')
+@click.option('--site', help='site name')
+@pass_context
+def add_tenant(context, tenant, site=None):
+	if not site:
+		site = get_site(context)
+
+	frappe.init(site=site)
+	frappe.connect()
+
+	# Do not allow more than one tenant in mariaDB
+	if frappe.conf.db_type == 'mariadb' and Tenant.atleast_one_exists():
+		raise
+
+	if Tenant.find(tenant):
+		raise
+
+	_add_tenant(site, tenant)
 
 
 @click.command('restore')
@@ -734,5 +755,6 @@ commands = [
 	add_to_hosts,
 	start_ngrok,
 	build_search_index,
-	partial_restore
+	partial_restore,
+	add_tenant
 ]

@@ -3,6 +3,7 @@ from frappe import _
 from frappe.utils import cint, flt
 from frappe.database.schema import DBTable, get_definition
 
+# FIXME: Should `tabDefaultValue` be site specific?
 # List of site specific tables (Does not maintain tenant information)
 SITE_SPECIFIC_TABLES = ['tabProperty Setter', 'tabCustom Field', 'tabDefaultValue', 'tabModule Def']
 

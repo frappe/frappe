@@ -162,8 +162,7 @@ def init(site, sites_path=None, new_site=False):
 	local.site_path = os.path.join(sites_path, site)
 	local.all_apps = None
 
-	#TODO: FIXME
-	local.tenant_id = 1
+	local.tenant_id = None
 
 	local.request_ip = None
 	local.response = _dict({"docs":[]})
@@ -1769,3 +1768,12 @@ def mock(type, size=1, locale='en'):
 def validate_and_sanitize_search_inputs(fn):
 	from frappe.desk.search import validate_and_sanitize_search_inputs as func
 	return func(fn)
+
+def init_tenant(tenant_id: int) -> None:
+	"""Initializa a tenant and reset the DB connection.
+
+	:param tenant_id: tenant ID.
+	"""
+
+	local.tenant_id = tenant_id
+	connect()

@@ -340,8 +340,7 @@ CREATE TABLE "tabDefaultValue" (
   "idx" bigint NOT NULL DEFAULT 0,
   "defvalue" text,
   "defkey" varchar(255) DEFAULT NULL,
-  "tenant_id" integer not null DEFAULT current_setting('app.current_tenant')::integer,
-  PRIMARY KEY ("tenant_id", "name")
+  PRIMARY KEY ("name")
 );
 
 create index on "tabDefaultValue" ("parent");
