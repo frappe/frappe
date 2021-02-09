@@ -1,5 +1,5 @@
-
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
+	trigger_change_on_input_event: false,
 	make_input: function() {
 		this._super();
 		this.make_picker();

@@ -23,7 +23,7 @@ class NavbarSettings(Document):
 		if not frappe.flags.in_patch and (len(before_save_items) > len(after_save_items)):
 			frappe.throw(_("Please hide the standard navbar items instead of deleting them"))
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_app_logo():
 	app_logo = frappe.db.get_single_value('Navbar Settings', 'app_logo')
 	if not app_logo:

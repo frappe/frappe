@@ -271,6 +271,10 @@ def get_website_rules():
 
 		return rules
 
+	if frappe.local.dev_server:
+		# dont cache in development
+		return _get()
+
 	return frappe.cache().get_value('website_route_rules', _get)
 
 def set_content_type(response, data, path):
