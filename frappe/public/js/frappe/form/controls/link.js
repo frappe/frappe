@@ -7,6 +7,7 @@
 import Awesomplete from 'awesomplete';
 
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
+	trigger_change_on_input_event: false,
 	make_input: function() {
 		var me = this;
 		// line-height: 1 is for Mozilla 51, shows extra padding otherwise
@@ -49,6 +50,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.translate_values = true;
 		this.setup_buttons();
 		this.setup_awesomeplete();
+		this.bind_change_event();
 	},
 	get_options: function() {
 		return this.df.options;
