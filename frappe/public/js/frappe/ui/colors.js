@@ -39,7 +39,7 @@ frappe.ui.color = {
 		};
 
 		if(Object.keys(shades).includes(shade)) {
-			const color = this.get_color(color_name)
+			const color = this.get_color(color_name);
 			return color[shades[shade]];
 		} else {
 			// eslint-disable-next-line
