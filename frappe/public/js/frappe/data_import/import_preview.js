@@ -188,12 +188,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			.join(',');
 		this.datatable.style.setStyle(row_classes, {
 			pointerEvents: 'none',
-			backgroundColor: frappe.ui.color.get_color_shade('white', 'light'),
-			color: frappe.ui.color.get_color_shade('black', 'extra-light')
+			backgroundColor: frappe.ui.color.get_color_shade('gray', 'extra-light'),
+			color: frappe.ui.color.get_color_shade('gray', 'dark')
 		});
 	}
 
 	add_actions() {
+		console.log("add_actions")
 		let actions = [
 			{
 				label: __('Map Columns'),

@@ -39,7 +39,8 @@ frappe.ui.color = {
 		};
 
 		if(Object.keys(shades).includes(shade)) {
-			return frappe.ui.color_map[color_name][shades[shade]];
+			const color = this.get_color(color_name)
+			return color[shades[shade]];
 		} else {
 			// eslint-disable-next-line
 			console.warn(`'shade' can be one of ${Object.keys(shades)} and not ${shade}`);
