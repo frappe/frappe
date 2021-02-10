@@ -1,16 +1,24 @@
-<p>{{_("Dear")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},</p>
-<p>{{_("A new account has been created for you at {0}").format(site_url)}}.</p>
+<p>
+	{{_("Hello")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},
+</p>
+{% set site_link = "<a href='" + site_url + "'>" + site_url + "</a>" %}
+<p>{{_("A new account has been created for you at {0}").format(site_link)}}.</p>
 <p>{{_("Your login id is")}}: <b>{{ user }}</b>
 <p>{{_("Click on the link below to complete your registration and set a new password")}}.</p>
 
-<p style="margin: 30px 0px;">
-	<a href="{{ link }}" rel="nofollow" style="padding: 8px 20px; background-color: #7575ff; color: #fff; border-radius: 4px; text-decoration: none; line-height: 1; border-bottom: 3px solid rgba(0, 0, 0, 0.2); font-size: 14px; font-weight: 200;">{{ _("Complete Registration") }}</a>
+<p style="margin: 15px 0px;">
+	<a href="{{ link }}" rel="nofollow" class="btn btn-primary">{{ _("Complete Registration") }}</a>
 </p>
 
-{% if user_fullname != "Administrator" %}
+{% if created_by != "Administrator" %}
 <br>
-<p>{{_("Thank you")}},<br>
-{{ user_fullname }}</p>
+<p style="margin-top: 15px">
+	{{_("Thanks")}},<br>
+	{{ created_by }}
+</p>
 {% endif %}
 <br>
-<p style="font-size: 85%;">{{_("You can also copy-paste this link in your browser")}} <a href="{{ link }}">{{ link }}</a></p>
+<p>
+	{{_("You can also copy-paste following link in your browser")}}<br>
+	<a href="{{ link }}">{{ link }}</a>
+</p>

@@ -1,11 +1,15 @@
-<div class="padding">
-	<div class="text-muted text-center">
-		{%= __("Drag elements from the sidebar to add. Drag them back to trash.") %}<br><br>
+<div>
+	<div class="text-center print-format-help-message">
+		{%= __("Drag elements from the sidebar to add. Drag them back to trash.") %}
 	</div>
 	<div class="print-format-builder-header">
-		<div class="text-right">
+		<div class="text-right print-format-builder-header-edit">
 			<a class="edit-heading btn btn-default btn-xs">
-				{%= __("Edit Heading") %}</a>
+				{%= __("Edit Heading") %}
+				<span>
+					<svg class="icon icon-xs"><use xlink:href="#icon-edit"></use></svg>
+				</span>
+			</a>
 		</div>
 		<div class="print-format-builder-print-heading">
 			{{ me.print_heading_template }}
@@ -17,8 +21,10 @@
 				{section: data[i], me:me}) %}
 		{% } %}
 	</div>
-	<div class="print-format-builder-add-section text-muted text-center">
-		<span class="octicon octicon-plus"></span>
-		<a class="grey">{%= __("Add a new section") %}</a>
+	<div class="print-format-builder-add-section">
+		<span class="flex align-center">
+			<svg class="icon icon-xs"><use xlink:href="#icon-add"></use></svg>
+		</span>
+		<span>{%= __("Add a new section") %}</span>
 	</div>
 </div>

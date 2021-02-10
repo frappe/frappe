@@ -56,21 +56,21 @@ frappe.Application = Class.extend({
 		this.setup_energy_point_listeners();
 
 		frappe.ui.keys.setup();
-		this.set_rtl();
 
-		if(frappe.boot) {
-			if(localStorage.getItem("session_last_route")) {
-				window.location.hash = localStorage.getItem("session_last_route");
-				localStorage.removeItem("session_last_route");
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'shift+ctrl+g',
+			description: __('Switch Theme'),
+			action: () => {
+				frappe.theme_switcher = new frappe.ui.ThemeSwitcher();
+				frappe.theme_switcher.show();
 			}
+		});
 
-		}
+		this.set_rtl();
 
 		// page container
 		this.make_page_container();
-
-		// route to home page
-		frappe.route();
+		this.set_route();
 
 		// trigger app startup
 		$(document).trigger('startup');
@@ -126,7 +126,9 @@ frappe.Application = Class.extend({
 				}
 			}
 		}
-		this.link_preview = new frappe.ui.LinkPreview();
+
+		// REDESIGN-TODO: Fix preview popovers
+		//this.link_preview = new frappe.ui.LinkPreview();
 
 		if (!frappe.boot.developer_mode) {
 			setInterval(function() {
@@ -140,7 +142,7 @@ frappe.Application = Class.extend({
 				});
 			}, 300000); // check every 5 minutes
 
-			if(frappe.user.has_role("System Manager")){
+			if (frappe.user.has_role("System Manager")) {
 				setInterval(function() {
 					frappe.call({
 						method: 'frappe.core.doctype.log_settings.log_settings.has_unseen_error_log',
@@ -148,7 +150,7 @@ frappe.Application = Class.extend({
 							user: frappe.session.user
 						},
 						callback: function(r) {
-							if(r.message.show_alert){
+							if (r.message.show_alert) {
 								frappe.show_alert({
 									indicator: 'red',
 									message: r.message.message
@@ -159,8 +161,18 @@ frappe.Application = Class.extend({
 				}, 600000); // check every 10 minutes
 			}
 		}
+	},
 
-		this.fetch_tags();
+	set_route() {
+		frappe.flags.setting_original_route = true;
+		if (frappe.boot && localStorage.getItem("session_last_route")) {
+			frappe.set_route(localStorage.getItem("session_last_route"));
+			localStorage.removeItem("session_last_route");
+		} else {
+			// route to home page
+			frappe.router.route();
+		}
+		frappe.after_ajax(() => frappe.flags.setting_original_route = false);
 	},
 
 	setup_frappe_vue() {
@@ -227,7 +239,7 @@ frappe.Application = Class.extend({
 					s.hide();
 					d.hide();//hide waiting indication
 					if (!passed["message"]) {
-						frappe.show_alert("Login Failed please try again", 5);
+						frappe.show_alert({message: __("Login Failed please try again"), indicator: 'error'}, 5);
 						me.email_password_prompt(email_account, user, i);
 					} else {
 						if (i + 1 < email_account.length) {
@@ -243,15 +255,13 @@ frappe.Application = Class.extend({
 	},
 	load_bootinfo: function() {
 		if(frappe.boot) {
-			frappe.modules = {};
-			frappe.boot.allowed_modules.forEach(function(m) {
-				frappe.modules[m.module_name]=m;
-			});
+			this.setup_workspaces();
 			frappe.model.sync(frappe.boot.docs);
 			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
+			frappe.router.setup();
 			moment.locale("en");
 			moment.user_utc_offset = moment().utcOffset();
 			if(frappe.boot.timezone_info) {
@@ -261,8 +271,22 @@ frappe.Application = Class.extend({
 				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
 			frappe.user.name = frappe.boot.user.name;
+			frappe.router.setup();
 		} else {
 			this.set_as_guest();
+		}
+	},
+
+	setup_workspaces() {
+		frappe.modules = {};
+		frappe.workspaces = {};
+		for (let page of frappe.boot.allowed_workspaces || []) {
+			frappe.modules[page.module]=page;
+			frappe.workspaces[frappe.router.slug(page.name)] = page;
+		}
+		if (!frappe.workspaces['home']) {
+			// default workspace is settings for Frappe
+			frappe.workspaces['home'] = frappe.workspaces['build'];
 		}
 	},
 
@@ -283,6 +307,7 @@ frappe.Application = Class.extend({
 
 	set_globals: function() {
 		frappe.session.user = frappe.boot.user.name;
+		frappe.session.logged_in_user = frappe.boot.user.name;
 		frappe.session.user_email = frappe.boot.user.email;
 		frappe.session.user_fullname = frappe.user_info().fullname;
 
@@ -359,7 +384,7 @@ frappe.Application = Class.extend({
 		frappe.sys_defaults = {};
 	},
 	make_page_container: function() {
-		if($("#body_div").length) {
+		if ($("#body").length) {
 			$(".splash").remove();
 			frappe.temp_container = $("<div id='temp-container' style='display: none;'>")
 				.appendTo("body");
@@ -502,7 +527,6 @@ frappe.Application = Class.extend({
 			message: frappe.render_template("change_log", {"change_log": change_log}),
 			title: __("Updated To A New Version 🎉"),
 			wide: true,
-			scroll: true
 		});
 		change_log_dialog.keep_open = true;
 		change_log_dialog.custom_onhide = function() {
@@ -532,13 +556,7 @@ frappe.Application = Class.extend({
 	},
 
 	add_browser_class() {
-		let browsers = ['Chrome', 'Firefox', 'Safari'];
-		for (let browser of browsers) {
-			if (navigator.userAgent.includes(browser)) {
-				$('html').addClass(browser.toLowerCase());
-				return;
-			}
-		}
+		$('html').addClass(frappe.utils.get_browser().name.toLowerCase());
 	},
 
 	set_fullwidth_if_enabled() {
@@ -595,10 +613,6 @@ frappe.Application = Class.extend({
 			frappe.show_alert(message);
 		});
 	},
-
-	fetch_tags() {
-		frappe.tags.utils.fetch_tags();
-	}
 });
 
 frappe.get_module = function(m, default_module) {
@@ -611,34 +625,12 @@ frappe.get_module = function(m, default_module) {
 		return module;
 	}
 
-	if(module.type==="module" && !module.link) {
-		module.link = "modules/" + module.module_name;
-	}
-
-	if(module.type==="list" && !module.link) {
-		module.link = "List/" + module._doctype;
-	}
-
-	if (!module.link) module.link = "";
-
-	if (!module._id) {
-		// links can have complex values that range beyond simple plain text names, and so do not make for robust IDs.
-		// an example from python: "link": r"javascript:eval('window.open(\'timetracking\', \'_self\')')"
-		// this snippet allows a module to open a custom html page in the same window.
-		module._id = module.module_name.toLowerCase();
-	}
-
-
 	if(!module.label) {
 		module.label = m;
 	}
 
 	if(!module._label) {
 		module._label = __(module.label);
-	}
-
-	if(!module._doctype) {
-		module._doctype = '';
 	}
 
 	module._setup = true;

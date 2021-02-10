@@ -1,0 +1,120 @@
+.search-dialog {
+	.modal-footer {
+		display: none;
+	}
+
+	.layout-side-section {
+		padding: 0;
+	}
+
+	.search-header {
+		width: 100%;
+
+		.modal-actions {
+			z-index: 4;
+			top: 7px;
+		}
+
+		.search-input {
+			padding-left: 25px;
+			padding-bottom: var(--padding-md);
+			border-radius: 0;
+			background: var(--modal-bg);
+			border-bottom: 1px solid var(--border-color);
+
+			&:focus {
+				outline: none;
+				box-shadow: none;
+			}
+		}
+
+		.search-icon {
+			position: absolute;
+			top: 15px;
+			z-index: 4;
+		}
+	}
+	.search-results {
+		min-height: 200px;
+		place-content: center;
+
+		.empty-state {
+			.empty-state-text {
+				font-weight: 600;
+				color: var(--text-color);
+				margin-top: var(--margin-lg);
+				font-size: var(--text-xl);
+			}
+		}
+
+		.search-sidebar {
+			@extend .standard-sidebar;
+			position: sticky;
+			top: 0;
+			max-height: unquote("min(80vh, 650px)");
+			overflow-y: auto;
+			padding-bottom: var(--padding-md);
+		}
+
+		.results-summary {
+			padding-left: var(--padding-sm);
+
+			.result-section:not(:last-child) {
+				padding-bottom: var(--padding-md);
+
+				.result-body {
+					border-bottom: 1px solid var(--border-color);
+				}
+			}
+
+			.result-title {
+				color: var(--text-color);
+				font-size: var(--text-lg);
+				font-weight: 600;
+			}
+
+			.result-body {
+				font-size: var(--text-md);
+				padding: var(--padding-sm) 0;
+
+				.result-text {
+					font-weight: 500;
+				}
+
+				.description {
+					font-weight: normal;
+				}
+			}
+
+			.result {
+				@include flex(flex, null, center, null);
+				padding: 8px 0;
+				color: var(--text-light);
+
+				.result-image {
+					margin-right: var(--margin-sm);
+				}
+
+				mark {
+					display: inline-flex;
+					padding: 0;
+				}
+			}
+
+			.list-more, .section-more, .results-status {
+				padding: var(--padding-sm) 0;
+				color: var(--primary);
+				font-size: var(--text-sm);
+			}
+		}
+	}
+}
+
+.modal-minimize {
+	.search-header {
+		.search-input {
+			border-bottom: none;
+			padding-bottom: var(--padding-xs);
+		}
+	}
+}
