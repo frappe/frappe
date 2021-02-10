@@ -52,8 +52,10 @@ class Page(Document):
 		if self.flags.do_not_update_json:
 			return
 
-		from frappe.core.doctype.doctype.doctype import make_module_and_roles
-		make_module_and_roles(self, "roles")
+		from frappe.core.doctype.doctype.doctype import make_module_defs, make_roles
+		# FIXME: Why is this needed?
+		make_module_defs(self, "roles")
+		make_roles(self, "roles")
 
 		from frappe.modules.utils import export_module_json
 		path = export_module_json(self, self.standard=='Yes', self.module)

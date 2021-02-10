@@ -49,6 +49,8 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 @click.option('--site', help='site name')
 @pass_context
 def add_tenant(context, tenant, site=None):
+	"""Add new tenant to the system.
+	"""
 	if not site:
 		site = get_site(context)
 
@@ -57,13 +59,14 @@ def add_tenant(context, tenant, site=None):
 
 	# Do not allow more than one tenant in mariaDB
 	if frappe.conf.db_type == 'mariadb' and Tenant.atleast_one_exists():
-		raise
+		print(f"Multiple tenants are not supported in case of mariaDB, Please create new site and add tenant!")
+		sys.exit(1)
 
 	if Tenant.find(tenant):
-		raise
+		print(f"Tenant with name {tenant} already exists")
+		sys.exit(1)
 
 	_add_tenant(site, tenant)
-
 
 @click.command('restore')
 @click.argument('sql-file-path')

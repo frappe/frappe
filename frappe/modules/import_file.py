@@ -115,7 +115,7 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None, ignore
 
 	ignore = []
 
-	if frappe.db.exists(doc.doctype, doc.name):
+	if not frappe.flags.in_tenant_setup and frappe.db.exists(doc.doctype, doc.name):
 
 		old_doc = frappe.get_doc(doc.doctype, doc.name)
 
