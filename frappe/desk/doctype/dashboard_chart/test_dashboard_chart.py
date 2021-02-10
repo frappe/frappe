@@ -212,6 +212,37 @@ class TestDashboardChart(unittest.TestCase):
 
 		frappe.db.rollback()
 
+	def test_avg_dashboard_chart(self):
+		insert_test_records()
+
+		if frappe.db.exists('Dashboard Chart', 'Test Average Dashboard Chart'):
+			frappe.delete_doc('Dashboard Chart', 'Test Average Dashboard Chart')
+
+		frappe.get_doc(dict(
+			doctype = 'Dashboard Chart',
+			chart_name = 'Test Average Dashboard Chart',
+			chart_type = 'Average',
+			document_type = 'Communication',
+			based_on = 'communication_date',
+			value_based_on = 'rating',
+			timespan = 'Select Date Range',
+			time_interval = 'Weekly',
+			from_date = datetime(2018, 12, 30),
+			to_date = datetime(2019, 1, 15),
+			filters_json = '[]',
+			timeseries = 1
+		)).insert()
+
+		result = get(chart_name='Test Average Dashboard Chart', refresh = 1)
+
+		self.assertEqual(result.get('datasets')[0].get('values'), [50.0, 150.0, 266.6666666666667, 0.0])
+		self.assertEqual(
+			result.get('labels'),
+			['30-12-18', '06-01-19', '13-01-19', '20-01-19']
+		)
+
+		frappe.db.rollback()
+
 def insert_test_records():
 	create_new_communication(datetime(2018, 12, 30), 50)
 	create_new_communication(datetime(2019, 1, 4), 100)
