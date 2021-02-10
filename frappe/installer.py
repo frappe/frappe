@@ -29,6 +29,7 @@ def _new_site(
 	new_site=False,
 ):
 	"""Install a new Frappe site"""
+	from frappe.database import update_database_post_site_creation
 
 	if not force and os.path.exists(site):
 		print("Site {0} already exists".format(site))
@@ -91,6 +92,9 @@ def _new_site(
 	# 	"disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
 	# )
 	# print("*** Scheduler is", scheduler_status, "***")
+
+	# Update DB (Apply constraints) post site creation.
+	update_database_post_site_creation()
 	frappe.flags.in_site_setup = False
 
 

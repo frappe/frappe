@@ -243,6 +243,10 @@ CREATE TABLE "tabSeries" (
   PRIMARY KEY ("tenant_id", "name")
 ) ;
 
+ALTER TABLE "tabSeries" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "tabSeries_isolation_policy" ON "tabSeries"
+  USING (tenant_id = current_setting('app.current_tenant')::integer);
+
 --
 -- Table structure for table "tabSessions"
 --
@@ -259,7 +263,10 @@ CREATE TABLE "tabSessions" (
   "tenant_id" integer not null DEFAULT current_setting('app.current_tenant')::integer
 );
 
-create index on "tabSessions" ("sid");
+create index on "tabSessions" ("tenant_id", "sid");
+ALTER TABLE "tabSessions" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "tabSessions_isolation_policy" ON "tabSessions"
+  USING (tenant_id = current_setting('app.current_tenant')::integer);
 
 --
 -- Table structure for table "tabSingles"
@@ -273,7 +280,11 @@ CREATE TABLE "tabSingles" (
   "tenant_id" integer not null DEFAULT current_setting('app.current_tenant')::integer
 );
 
-create index on "tabSingles" ("doctype", "field");
+create index on "tabSingles" ("tenant_id", "doctype", "field");
+ALTER TABLE "tabSingles" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "tabSingles_isolation_policy" ON "tabSingles"
+  USING (tenant_id = current_setting('app.current_tenant')::integer);
+
 
 --
 -- Table structure for table "__Auth"
@@ -290,7 +301,10 @@ CREATE TABLE "__Auth" (
 	PRIMARY KEY ("tenant_id", "doctype", "name", "fieldname")
 );
 
-create index on "__Auth" ("doctype", "name", "fieldname");
+create index on "__Auth" ("tenant_id", "doctype", "name", "fieldname");
+ALTER TABLE "__Auth" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "__Auth_isolation_policy" ON "__Auth"
+  USING (tenant_id = current_setting('app.current_tenant')::integer);
 
 --
 -- Table structure for table "tabFile"
@@ -318,9 +332,13 @@ CREATE TABLE "tabFile" (
   PRIMARY KEY ("tenant_id", "name")
 );
 
-create index on "tabFile" ("parent");
-create index on "tabFile" ("attached_to_name");
-create index on "tabFile" ("attached_to_doctype");
+create index on "tabFile" ("tenant_id", "parent");
+create index on "tabFile" ("tenant_id", "attached_to_name");
+create index on "tabFile" ("tenant_id", "attached_to_doctype");
+ALTER TABLE "tabFile" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "tabFile_isolation_policy" ON "tabFile"
+  USING (tenant_id = current_setting('app.current_tenant')::integer);
+
 
 --
 -- Table structure for table "tabDefaultValue"

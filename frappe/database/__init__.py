@@ -41,3 +41,12 @@ def setup_help_database(help_db_name):
 	else:
 		import frappe.database.mariadb.setup_db
 		return frappe.database.mariadb.setup_db.setup_help_database(help_db_name)
+
+
+def update_database_post_site_creation(source_sql=None):
+	"""DB setup (Apply constraints) post site creation.
+	"""
+	import frappe
+	if frappe.conf.db_type == 'postgres':
+		import frappe.database.postgres.setup_db
+		return frappe.database.postgres.setup_db.import_db_from_sql_post_site_setup(source_sql)

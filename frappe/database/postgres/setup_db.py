@@ -96,3 +96,12 @@ def get_root_connection(root_login=None, root_password=None):
 		frappe.local.flags.root_connection = frappe.database.get_db(user=root_login, password=root_password)
 
 	return frappe.local.flags.root_connection
+
+def import_db_from_sql_post_site_setup(source_sql=None):
+	"""Postgres RLS constraints to be applied after creating the site
+
+	At time of site creation we sometimes do schema changes for internal tables.
+	let's force RLS for the DB creator after site is created.
+	"""
+	source_sql = source_sql or os.path.join(os.path.dirname(__file__), 'postgres_constraints.sql')
+	import_db_from_sql(source_sql)
