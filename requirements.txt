@@ -30,7 +30,7 @@ Pillow==6.2.2
 beautifulsoup4==4.8.2
 rq==0.12.0
 schedule==0.6.0
-cryptography==3.2
+cryptography==3.3.2
 pyOpenSSL==19.1.0
 ndg-httpsclient==0.5.1
 pyasn1-modules==0.2.8
