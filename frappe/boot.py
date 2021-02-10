@@ -21,7 +21,7 @@ from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabl
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.model.base_document import get_controller
 from frappe.social.doctype.post.post import frequently_visited_links
-from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings
+from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -90,6 +90,7 @@ def get_bootinfo():
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
 	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
 	bootinfo.desk_settings = get_desk_settings()
+	bootinfo.app_logo_url = get_app_logo()
 
 	return bootinfo
 
