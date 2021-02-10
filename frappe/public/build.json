@@ -211,7 +211,6 @@
 		"public/js/frappe/query_string.js",
 
 		"public/js/frappe/ui/comment.js",
-		"public/js/frappe/utils/rating_icons.html",
 
 		"public/js/frappe/chat.js",
 		"public/js/frappe/utils/energy_point_utils.js",
