@@ -27,8 +27,6 @@
 		"public/js/frappe/microtemplate.js",
 		"public/js/frappe/query_string.js",
 
-		"public/js/frappe/ui/dropzone.js",
-		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
 
 		"public/js/frappe/model/meta.js",
