@@ -187,3 +187,14 @@ a.progress-small {
 .progress-bar-warning {
 	background-color: var(--orange-500);
 }
+
+.rating {
+	// rating
+	--star-fill: var(--gray-300);
+	.star-hover {
+		--star-fill: var(--yellow-100);
+	}
+	.star-click {
+		--star-fill: var(--yellow-300);
+	}
+}
