@@ -194,7 +194,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	add_actions() {
-		console.log("add_actions")
 		let actions = [
 			{
 				label: __('Map Columns'),
