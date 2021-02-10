@@ -15,8 +15,9 @@ from num2words import num2words
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
-from markdown2 import markdown, MarkdownError
+from markdown2 import markdown as _markdown, MarkdownError
 from six import iteritems, text_type, string_types, integer_types
+from frappe.desk.utils import slug
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -184,6 +185,14 @@ def nowdate():
 
 def today():
 	return nowdate()
+
+def get_abbr(string, max_len=2):
+	abbr=''
+	for part in string.split(' '):
+		if len(abbr) < max_len and part:
+			abbr += part[0]
+
+	return abbr or '?'
 
 def nowtime():
 	"""return current time in hh:mm"""
@@ -1070,25 +1079,25 @@ def get_link_to_report(name, label=None, report_type=None, doctype=None, filters
 		return """<a href='{0}'>{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
 
 def get_absolute_url(doctype, name):
-	return "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name))
+	return "/app/{0}/{1}".format(quoted(slug(doctype)), quoted(name))
 
 def get_url_to_form(doctype, name):
-	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
+	return get_url(uri = "/app/{0}/{1}".format(quoted(slug(doctype)), quoted(name)))
 
 def get_url_to_list(doctype):
-	return get_url(uri = "desk#List/{0}".format(quoted(doctype)))
+	return get_url(uri = "/app/{0}".format(quoted(slug(doctype))))
 
 def get_url_to_report(name, report_type = None, doctype = None):
 	if report_type == "Report Builder":
-		return get_url(uri = "desk#Report/{0}/{1}".format(quoted(doctype), quoted(name)))
+		return get_url(uri = "/app/{0}/view/report/{1}".format(quoted(slug(doctype)), quoted(name)))
 	else:
-		return get_url(uri = "desk#query-report/{0}".format(quoted(name)))
+		return get_url(uri = "/app/query-report/{0}".format(quoted(name)))
 
 def get_url_to_report_with_filters(name, filters, report_type = None, doctype = None):
 	if report_type == "Report Builder":
-		return get_url(uri = "desk#Report/{0}?{1}".format(quoted(doctype), filters))
+		return get_url(uri = "/app/{0}/view/report?{1}".format(quoted(doctype), filters))
 	else:
-		return get_url(uri = "desk#query-report/{0}?{1}".format(quoted(name), filters))
+		return get_url(uri = "/app/query-report/{0}?{1}".format(quoted(name), filters))
 
 operator_map = {
 	# startswith
@@ -1320,11 +1329,14 @@ def md_to_html(markdown_text):
 
 	html = None
 	try:
-		html = markdown(markdown_text or '', extras=extras)
+		html = _markdown(markdown_text or '', extras=extras)
 	except MarkdownError:
 		pass
 
 	return html
+
+def markdown(markdown_text):
+	return md_to_html(markdown_text)
 
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''
@@ -1413,3 +1425,17 @@ def validate_json_string(string):
 		json.loads(string)
 	except (TypeError, ValueError):
 		raise frappe.ValidationError
+
+def get_user_info_for_avatar(user_id):
+	user_info = {
+		"email": user_id,
+		"image": "",
+		"name": user_id
+	}
+	try:
+		user_info["email"] = frappe.get_cached_value("User", user_id, "email")
+		user_info["name"] = frappe.get_cached_value("User", user_id, "fullname")
+		user_info["image"] = frappe.get_cached_value("User", user_id, "user_image")
+	except Exception:
+		frappe.local.message_log = []
+	return user_info

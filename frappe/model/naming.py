@@ -67,7 +67,6 @@ def set_new_name(doc):
 		frappe.get_meta(doc.doctype).get_field("name_case")
 	)
 
-
 def set_name_from_naming_options(autoname, doc):
 	"""
 	Get a name based on the autoname field option
