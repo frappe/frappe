@@ -119,7 +119,33 @@ class PersonalDataDeletionRequest(Document):
 			self.__set_anonymization_data(email, anon)
 
 		for doctype in self.full_match_privacy_docs:
+			self.redact_full_match_data(doctype, email)
+
+
+		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
+		self.db_set("status", "Deleted")
+
 				continue
+
+
+	def redact_full_match_data(self, ref, email):
+		"""Replaces the entire field value by the values set in the anonymization_value_map"""
+		filter_by = ref["filter_by"]
+
+		docs = frappe.get_all(
+			ref["doctype"],
+			filters={filter_by: ("like", "%" + email + "%")},
+			fields=["name", filter_by],
+		)
+
+		# skip if there are no Documents
+		if not docs:
+			return
+
+		self.anonymize_fields_dict = self.generate_anonymization_dict(ref)
+
+		for doc in docs:
+			self.redact_doc(doc, ref)
 
 	def generate_anonymization_dict(self, ref):
 		anonymize_fields_dict = {}
@@ -145,6 +171,29 @@ class PersonalDataDeletionRequest(Document):
 
 		return anonymize_fields_dict
 
+	def redact_doc(self, doc, ref):
+		filter_by = ref["filter_by"]
+		meta = frappe.get_meta(ref["doctype"])
+		filter_by_meta = meta.get_field(filter_by)
+
+		if filter_by_meta and filter_by_meta.fieldtype != "Link":
+
+			if self.email in doc[filter_by]:
+				value = re.sub(
+					self.full_name_regex, self.anonymization_value_map["Data"], doc[filter_by]
+				)
+				value = re.sub(self.email_regex, self.anon, value)
+				self.anonymize_fields_dict[filter_by] = value
+
+		frappe.db.set_value(
+			ref["doctype"], doc["name"], self.anonymize_fields_dict, modified_by="Administrator",
+		)
+
+		if ref.get("rename") and doc["name"] != self.anon:
+			print(f'redact_doc: {ref["doctype"]} {doc["name"]} {self.anon}')
+			frappe.rename_doc(
+				ref["doctype"], doc["name"], self.anon, force=True, show_alert=False
+			)
 
 
 def remove_unverified_record():
