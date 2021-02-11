@@ -62,6 +62,7 @@ def get_bootinfo():
 	doclist.extend(get_meta_bundle("Page"))
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
+	bootinfo.notification_settings = get_notification_settings()
 
 	# ipinfo
 	if frappe.session.data.get('ipinfo'):
@@ -325,3 +326,6 @@ def get_desk_settings():
 			desk_settings[key] = desk_settings.get(key) or role.get(key)
 
 	return desk_settings
+
+def get_notification_settings():
+	return frappe.get_cached_doc('Notification Settings', frappe.session.user)
