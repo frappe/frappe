@@ -174,7 +174,6 @@
 		"public/js/frappe/utils/preview_email.js",
 		"public/js/frappe/utils/file_manager.js",
 
-		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
 		"public/js/frappe/ui/tree.js",
 
