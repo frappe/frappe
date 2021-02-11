@@ -125,8 +125,9 @@ frappe.breadcrumbs = {
 
 	set_list_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
+		const doctype_meta = frappe.get_doc('DocType', doctype);
 		if ((doctype==="User" && !frappe.user.has_role('System Manager'))
-			|| frappe.get_doc('DocType', doctype).issingle) {
+			|| (doctype_meta && doctype_meta.issingle)) {
 			// no user listview for non-system managers and single doctypes
 		} else {
 			let route;
