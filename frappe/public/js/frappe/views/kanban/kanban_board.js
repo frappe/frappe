@@ -124,7 +124,12 @@ frappe.provide("frappe.views");
 							const new_cards = state.cards.slice();
 							new_cards[index] = card;
 							updater.set({ cards: new_cards });
-							fluxify.doAction('update_order');
+							const args = {
+								new: 1,
+								name: card.name,
+								colname: updated_doc[state.board.field_name],
+							}
+							fluxify.doAction('update_order_for_single_card', args);
 						});
 				} else {
 					frappe.new_doc(this.doctype, doc);
@@ -153,6 +158,53 @@ frappe.provide("frappe.views");
 					var updated_doc = r.message;
 					var updated_card = prepare_card(card, state, updated_doc);
 					fluxify.doAction('update_card', updated_card);
+				});
+			},
+			update_order_for_single_card: function(updater, card) {
+				// cache original order
+				const _cards = this.cards.slice();
+				const _columns = this.columns.slice();
+				let args = {};
+				let method_name = "";
+
+				if (card.new) {
+					method_name = "add_card";
+					args = {
+						board_name: this.board.name,
+						docname: card.name,
+						colname: card.colname,
+					};
+				} else {
+					method_name = "update_order_for_single_card";
+					args = {
+						board_name: this.board.name,
+						docname: card.name,
+						from_colname: card.from_colname,
+						to_colname: card.to_colname,
+						old_index: card.old_index,
+						new_index: card.new_index,
+					};
+				}
+
+				frappe.call({
+					method: method_prefix + method_name,
+					args: args,
+					callback: (r) => {
+						let board = r.message;
+						let updated_cards = [{'name': card.name, 'column': card.to_colname || card.colname}];
+						let cards = update_cards_column(updated_cards);
+						let columns = prepare_columns(board.columns);
+						updater.set({
+							cards: cards,
+							columns: columns
+						});
+					}
+				}).fail(function() {
+					// revert original order
+					updater.set({
+						cards: _cards,
+						columns: _columns
+					});
 				});
 			},
 			update_order: function(updater) {
@@ -447,16 +499,26 @@ frappe.provide("frappe.views");
 				animation: 150,
 				dataIdAttr: 'data-name',
 				forceFallback: true,
-				onStart: function() {
+				onStart: function(e) {
 					wrapper.find('.kanban-card.add-card').fadeOut(200, function() {
 						wrapper.find('.kanban-cards').height('100vh');
 					});
 				},
-				onEnd: function() {
+				onEnd: function(e) {
 					wrapper.find('.kanban-card.add-card').fadeIn(100);
 					wrapper.find('.kanban-cards').height('auto');
 					// update order
-					fluxify.doAction('update_order');
+					let from_col = $(e.from).parents('.kanban-column').attr('data-column-value');
+					let to_col = $(e.to).parents('.kanban-column').attr('data-column-value');
+					let docname = $(e.item).attr('data-name');
+					const args = {
+						name: docname,
+						from_colname: from_col,
+						to_colname: to_col,
+						old_index: e.oldIndex,
+						new_index: e.newIndex,
+					};
+					fluxify.doAction('update_order_for_single_card', args);
 				},
 				onAdd: function() {
 				},
@@ -555,6 +617,8 @@ frappe.provide("frappe.views");
 		}
 
 		function render_card_meta() {
+			let html = '';
+
 			if (card.comment_count > 0)
 				html +=
 				`<span class="list-comment-count small text-muted ">
