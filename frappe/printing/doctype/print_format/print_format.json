@@ -154,7 +154,7 @@
    "fieldname": "font",
    "fieldtype": "Select",
    "label": "Font",
-   "options": "Default\nArial\nHelvetica\nVerdana\nMonospace"
+   "options": "Default\nHelvetica Neue\nArial\nHelvetica\nVerdana\nMonospace"
   },
   {
    "depends_on": "eval:!doc.raw_printing",

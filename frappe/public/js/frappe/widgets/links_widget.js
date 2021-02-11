@@ -4,6 +4,7 @@ frappe.provide("frappe.utils");
 
 export default class LinksWidget extends Widget {
 	constructor(opts) {
+		opts.icon = opts.icon || 'file';
 		super(opts);
 	}
 
@@ -32,9 +33,9 @@ export default class LinksWidget extends Widget {
 				return "red";
 			}
 			if (item.onboard) {
-				return item.count ? "blue" : "orange";
+				return item.count ? "blue" : "yellow";
 			}
-			return "grey";
+			return "gray";
 		};
 
 		const get_link_for_item = item => {
@@ -42,31 +43,36 @@ export default class LinksWidget extends Widget {
 				return `<span class="link-content ellipsis disabled-link">${
 					item.label ? item.label : item.name
 				}</span>
-						<div class="module-link-popover popover fade top in" role="tooltip" style="display: none;">
-							<div class="arrow"></div>
-							<h3 class="popover-title" style="display: none;"></h3>
-							<div class="popover-content" style="padding: 12px;">
-								<div class="small text-muted">${__("You need to create these first: ")}</div>
-		 						<div class="small">${item.incomplete_dependencies.join(", ")}</div>
-							</div>
-						</div>`;
+					<div class="module-link-popover popover fade top in" role="tooltip" style="display: none;">
+						<div class="arrow"></div>
+						<h3 class="popover-title" style="display: none;"></h3>
+						<div class="popover-content" style="padding: 12px;">
+							<div class="small text-muted">${__("You need to create these first: ")}</div>
+							<div class="small">${item.incomplete_dependencies.join(", ")}</div>
+						</div>
+					</div>`;
 			}
 
 			if (item.youtube_id)
 				return `<span class="link-content help-video-link ellipsis" data-youtubeid="${item.youtube_id}">
 						${item.label ? item.label : item.name}</span>`;
 
-			return `<a data-route="${frappe.utils.generate_route(item)}" class="link-content ellipsis">
-					${item.label ? item.label : item.name}</a>`;
+			return `<span class="link-content ellipsis">${item.label ? item.label : item.name}</span>`;
 		};
 
 		this.link_list = this.links.map(item => {
-			return $(`<div class="link-item flush-top small ${
+			const route = frappe.utils.generate_route({
+				name: item.link_to,
+				type: item.link_type,
+				is_query_report: item.is_query_report
+			});
+
+			return $(`<a href="${route}" class="link-item ellipsis ${
 				item.onboard ? "onboard-spotlight" : ""
 			} ${disabled_dependent(item)}" type="${item.type}">
-					<span class="indicator ${get_indicator_color(item)}"></span>
+					<span class="indicator-pill no-margin ${get_indicator_color(item)}"></span>
 					${get_link_for_item(item)}
-			</div>`);
+			</a>`);
 		});
 
 		this.link_list.forEach(link => link.appendTo(this.body));
@@ -90,11 +96,8 @@ export default class LinksWidget extends Widget {
 					if (this.in_customize_mode) return;
 
 					if (link_label.hasClass("help-video-link")) {
-						let yt_id = event.target.dataset.youtubeid;
+						let yt_id = event.currentTarget.dataset.youtubeid;
 						frappe.help.show_video(yt_id);
-					} else {
-						let route = event.target.dataset.route;
-						frappe.set_route(route);
 					}
 				});
 			}

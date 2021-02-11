@@ -43,7 +43,6 @@ matrix:
     env: DB=mariadb TYPE=ui
     before_script:
     - bench --site test_site execute frappe.utils.install.complete_setup_wizard
-    - bench --site test_site_producer execute frappe.utils.install.complete_setup_wizard
     script: bench --site test_site run-ui-tests frappe --headless
 
 before_install:
@@ -75,8 +74,10 @@ install:
   - mkdir ~/frappe-bench/sites/test_site
   - cp $TRAVIS_BUILD_DIR/.travis/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
 
-  - mkdir ~/frappe-bench/sites/test_site_producer
-  - cp $TRAVIS_BUILD_DIR/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json
+  - if [ $TYPE == "server" ]; then
+      mkdir ~/frappe-bench/sites/test_site_producer;
+      cp $TRAVIS_BUILD_DIR/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json;
+    fi
 
   - if [ $DB == "mariadb" ];then
       mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
@@ -119,7 +120,7 @@ install:
 
   - bench start &
   - bench --site test_site reinstall --yes
-  - bench --site test_site_producer reinstall --yes
+  - if [ $TYPE == "server" ]; then bench --site test_site_producer reinstall --yes; fi
   - bench build --app frappe
 
 after_script:
