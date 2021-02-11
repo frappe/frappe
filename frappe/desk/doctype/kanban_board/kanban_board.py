@@ -139,9 +139,8 @@ def update_order_for_single_card(board_name, docname, from_colname, to_colname, 
 	new_index = frappe.parse_json(new_index)
 
 	# save current order and index of columns to be updated
-	for i, col in enumerate(board.columns):
-		from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
-		to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
+	from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
+	to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
 
 	if from_colname == to_colname:
 		from_col_order = to_col_order

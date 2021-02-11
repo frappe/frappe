@@ -508,13 +508,10 @@ frappe.provide("frappe.views");
 					wrapper.find('.kanban-card.add-card').fadeIn(100);
 					wrapper.find('.kanban-cards').height('auto');
 					// update order
-					let from_col = $(e.from).parents('.kanban-column').attr('data-column-value');
-					let to_col = $(e.to).parents('.kanban-column').attr('data-column-value');
-					let docname = $(e.item).attr('data-name');
 					const args = {
-						name: docname,
-						from_colname: from_col,
-						to_colname: to_col,
+						name: $(e.item).attr('data-name'),
+						from_colname: $(e.from).parents('.kanban-column').attr('data-column-value'),
+						to_colname: $(e.to).parents('.kanban-column').attr('data-column-value'),
 						old_index: e.oldIndex,
 						new_index: e.newIndex,
 					};
