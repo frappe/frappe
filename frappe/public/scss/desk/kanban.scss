@@ -34,10 +34,6 @@
 		min-height: calc(100vh - 250px);
 		max-height: calc(75vh - 10px);
 
-		&.add-new-column {
-			order: 1;
-		}
-
 		.add-card {
 			@include flex(flex, center, center, null);
 			@include transition();
@@ -247,6 +243,7 @@
 	.kanban-column.add-new-column {
 		color: var(--text-muted);
 		background-color: transparent;
+		order: 1;
 
 		&:hover {
 			background-color: none;

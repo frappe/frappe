@@ -128,7 +128,7 @@ frappe.provide("frappe.views");
 								new: 1,
 								name: card.name,
 								colname: updated_doc[state.board.field_name],
-							}
+							};
 							fluxify.doAction('update_order_for_single_card', args);
 						});
 				} else {
@@ -499,7 +499,7 @@ frappe.provide("frappe.views");
 				animation: 150,
 				dataIdAttr: 'data-name',
 				forceFallback: true,
-				onStart: function(e) {
+				onStart: function() {
 					wrapper.find('.kanban-card.add-card').fadeOut(200, function() {
 						wrapper.find('.kanban-cards').height('100vh');
 					});

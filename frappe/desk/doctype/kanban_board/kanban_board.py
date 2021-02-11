@@ -168,8 +168,6 @@ def get_kanban_column_order_and_index(board, colname):
 @frappe.whitelist()
 def add_card(board_name, docname, colname):
 	board = frappe.get_doc('Kanban Board', board_name)
-	doctype = board.reference_doctype
-	fieldname = board.field_name
 
 	col_order, col_idx = get_kanban_column_order_and_index(board, colname)
 	col_order.insert(0, docname)
