@@ -193,7 +193,7 @@
 	}
 
 	.kanban-title-area {
-		margin-bottom: var(--margin-md);
+		margin-bottom: 12px;
 
 		.kanban-card-title {
 			max-width: 90%;
@@ -267,6 +267,19 @@
 		.like-action:not(.liked) {
 			.icon use {
 				stroke: var(--text-muted);
+			}
+		}
+
+		.kanban-tags {
+			font-size: var(--text-sm);
+			margin-bottom: 8px;
+
+			.tag-pill {
+				border-radius: 100px;
+				height: 22px;
+				width: auto;
+				padding: 2px 8px;
+				margin-right: var(--margin-xs);
 			}
 		}
 

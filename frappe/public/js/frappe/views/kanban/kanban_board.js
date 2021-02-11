@@ -616,8 +616,16 @@ frappe.provide("frappe.views");
 				.appendTo(wrapper);
 		}
 
+		function get_tags_html(card) {
+			return card.tags
+				? `<div class="kanban-tags">
+					${cur_list.get_tags_html(card.tags, 3, true)}
+				</div>`
+				: '';
+		}
+
 		function render_card_meta() {
-			let html = '';
+			let html = get_tags_html(card);
 
 			if (card.comment_count > 0)
 				html +=
