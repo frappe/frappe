@@ -91,6 +91,25 @@ img {
 	height: auto;
 }
 
+.missing-image {
+	background-color: var(--bg-light-gray);
+	line-height: 140px;
+	vertical-align: middle;
+	text-align: center;
+	width: 140px;
+	height: 140px;
+	border-radius: var(--border-radius-sm);
+
+	&.small {
+		width: 20px;
+		height: 20px;
+	}
+
+	.icon {
+		stroke: var(--text-muted);
+	}
+}
+
 .hidden {
 	@extend .d-none;
 }
