@@ -252,11 +252,12 @@
 			background-color: none;
 		}
 
-		.compose-column {
+		.kanban-column-title.compose-column {
 			@include flex(flex, center, center, null);
 			min-height: 65px;
 			border-radius: var(--border-radius);
 			border: 1px dashed var(--gray-400);
+			font-size: var(--text-base);
 
 			&:hover {
 				background-color: var(--kanban-column-bg);
