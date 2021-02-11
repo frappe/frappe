@@ -79,8 +79,11 @@ frappe.Application = Class.extend({
 		}
 
 		if (frappe.user_roles.includes('System Manager')) {
-			this.show_change_log();
-			this.show_update_available();
+			// delayed following requests to make boot faster
+			setTimeout(() => {
+				this.show_change_log();
+				this.show_update_available();
+			}, 1000);
 		}
 
 		if (!frappe.boot.developer_mode) {
