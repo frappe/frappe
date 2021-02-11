@@ -414,3 +414,27 @@ kbd {
 #freeze.in {
 	opacity: 0.5;
 }
+
+.msg-box {
+	padding: var(--padding-xl) var(--padding-md);
+	text-align: center;
+	color: var(--text-muted);
+}
+
+.no-border {
+	border: none !important;
+}
+
+
+/*rtl styles*/
+
+.frappe-rtl {
+	input, textarea {
+		direction: rtl !important;
+	}
+
+	.checkbox .disp-area {
+		margin-right: -20px;
+		margin-left: 0px;
+	}
+}
