@@ -51,9 +51,11 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	prepare_container() {
-		let list_sidebar = $(`<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm">
-			<div class="desk-sidebar list-unstyled sidebar-menu"></div>
-		</div>`).appendTo(this.wrapper.find(".layout-side-section"));
+		let list_sidebar = $(`
+			<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm">
+				<div class="desk-sidebar list-unstyled sidebar-menu"></div>
+			</div>
+		`).appendTo(this.wrapper.find(".layout-side-section"));
 		this.sidebar = list_sidebar.find(".desk-sidebar");
 
 		this.body = this.wrapper.find(".layout-main-section");
@@ -240,13 +242,14 @@ class DesktopPage {
 
 	make() {
 		this.page = $(`<div class="desk-page" data-page-name=${this.page_name}></div>`);
+		this.page.append(frappe.render_template('workspace_loading_skeleton'));
 		this.page.appendTo(this.container);
 
 		this.get_data().then(res => {
 			this.data = res.message;
 			if (!this.data) {
 				delete localStorage.current_workspace;
-				frappe.set_route("space");
+				frappe.set_route("workspace");
 				return;
 			}
 
@@ -310,7 +313,7 @@ class DesktopPage {
 				frappe.throw({ message: __("Something went wrong while saving customizations"), indicator: "red" });
 				this.reload();
 			}
-		})
+		});
 	}
 
 	reset_customization() {
@@ -405,25 +408,5 @@ class DesktopPage {
 		});
 
 		this.sections["cards"] = cards;
-
-		// const legend = [
-		// 	{
-		// 		color: "blue",
-		// 		description: __("Important")
-		// 	},
-		// 	{
-		// 		color: "yellow",
-		// 		description: __("No Records Created")
-		// 	}
-		// ].map(item => {
-		// 	return `<div class="legend-item text-muted justify-flex-start">
-		// 		<span class="indicator-pill no-margin ${item.color}"></span>
-		// 		<span class="link-content ellipsis" draggable="false">${item.description}</span>
-		// 	</div>`;
-		// });
-
-		// $(`<div class="legend">
-		// 	${legend.join("\n")}
-		// </div>`).insertAfter(cards.body);
 	}
 }

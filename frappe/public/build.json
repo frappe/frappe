@@ -67,10 +67,6 @@
 		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
-		"public/js/lib/leaflet/leaflet.css",
-		"public/js/lib/leaflet/leaflet.draw.css",
-		"public/js/lib/leaflet/L.Control.Locate.css",
-		"public/js/lib/leaflet/easy-button.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/less/desk.less",
@@ -103,11 +99,7 @@
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
-		"public/js/lib/jSignature.min.js",
-		"public/js/lib/leaflet/leaflet.js",
-		"public/js/lib/leaflet/leaflet.draw.js",
-		"public/js/lib/leaflet/L.Control.Locate.js",
-		"public/js/lib/leaflet/easy-button.js"
+		"public/js/lib/jSignature.min.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/translate.js",
@@ -203,6 +195,7 @@
 		"public/js/frappe/ui/sort_selector.js",
 
 		"public/js/frappe/change_log.html",
+		"public/js/frappe/ui/workspace_loading_skeleton.html",
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
 
