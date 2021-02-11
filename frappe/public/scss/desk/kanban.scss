@@ -33,19 +33,9 @@
 		padding: var(--padding-md);
 		min-height: calc(100vh - 250px);
 		max-height: calc(75vh - 10px);
-		// overflow: hidden;
 
 		&.add-new-column {
 			order: 1;
-		}
-
-		&:hover {
-			.add-card {
-				background-color: var(--kanban-new-card-hover-bg);
-				box-shadow: var(--shadow-xs);
-			}
-
-			background-color: var(--kanban-new-card-bg);
 		}
 
 		.add-card {
@@ -69,6 +59,17 @@
 				font-size: 1em;
 				margin-right: var(--margin-xs);
 				position: relative;
+			}
+		}
+
+		.kanban-column:not(.add-new-column) {
+			&:hover {
+				.add-card {
+					background-color: var(--kanban-new-card-hover-bg);
+					box-shadow: var(--shadow-xs);
+				}
+
+				background-color: var(--kanban-new-card-bg);
 			}
 		}
 
@@ -243,19 +244,24 @@
 		}
 	}
 
-	.add-new-column {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		min-height: 65px;
+	.kanban-column.add-new-column {
 		color: var(--text-muted);
-		border: 1px dashed var(--gray-400);
-		max-height: 80px;
 		background-color: transparent;
-	}
 
-	.add-new-column:hover {
-		background-color: var(--kanban-column-bg);
+		&:hover {
+			background-color: none;
+		}
+
+		.compose-column {
+			@include flex(flex, center, center, null);
+			min-height: 65px;
+			border-radius: var(--border-radius);
+			border: 1px dashed var(--gray-400);
+
+			&:hover {
+				background-color: var(--kanban-column-bg);
+			}
+		}
 	}
 
 	.kanban-card-meta {
