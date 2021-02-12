@@ -450,14 +450,6 @@ img.no-image {
 	}
 }
 
-body.full-width {
-	@include media-breakpoint-up(md) {
-		.container {
-			width: 90%;
-		}
-	}
-}
-
 body.no-sidebar {
 	@include media-breakpoint-up(md) {
 		.layout-side-section {
