@@ -26,6 +26,13 @@ from frappe.translate import guess_language
 class PageNotFoundError(Exception): pass
 
 def render(path=None, http_status_code=None):
+	if frappe.conf.flag_new_website:
+		from frappe.website.serve import get_response
+		return get_response()
+	else:
+		return render(path, http_status_code)
+
+def _render(path=None, http_status_code=None):
 	"""render html page"""
 	if not path:
 		path = frappe.local.request.path

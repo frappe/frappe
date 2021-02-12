@@ -18,8 +18,6 @@ import frappe.handler
 import frappe.auth
 import frappe.api
 import frappe.utils.response
-import frappe.website.serve
-import frappe.website.page
 from frappe.utils import get_site_name, sanitize_html
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
@@ -74,10 +72,7 @@ def application(request):
 			response = frappe.utils.response.download_private_file(request.path)
 
 		elif request.method in ('GET', 'HEAD', 'POST'):
-			if frappe.conf.flag_new_website:
-				response = frappe.website.serve.render()
-			else:
-				response = frappe.website.render.render()
+			response = frappe.website.render.render()
 
 		else:
 			raise NotFound
