@@ -459,6 +459,11 @@ def get_roles(username=None):
 	import frappe.permissions
 	return frappe.permissions.get_roles(username or local.session.user)
 
+def get_doctype_roles(doctype):
+	"""Returns roles of doctype."""
+	meta = get_meta(doctype)
+	return [d.role for d in meta.get("permissions")]
+
 def get_request_header(key, default=None):
 	"""Return HTTP request header.
 
