@@ -513,13 +513,8 @@ frappe.ui.form.Form = class FrappeForm {
 		let me = this;
 		return new Promise((resolve, reject) => {
 			btn && $(btn).prop("disabled", true);
-			$(document.activeElement).blur();
-
 			frappe.ui.form.close_grid_form();
-			// let any pending js process finish
-			setTimeout(function() {
-				me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
-			}, 100);
+			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
 		}).then(() => {
 			me.show_success_action();
 		}).catch((e) => {
