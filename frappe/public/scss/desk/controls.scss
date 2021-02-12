@@ -210,3 +210,14 @@ textarea.form-control {
 .link-field.ui-front {
 	z-index: inherit;
 }
+
+.rating {
+	// rating
+	--star-fill: var(--gray-300);
+	.star-hover {
+		--star-fill: var(--yellow-100);
+	}
+	.star-click {
+		--star-fill: var(--yellow-300);
+	}
+}
