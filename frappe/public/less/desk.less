@@ -694,49 +694,39 @@
 // }
 
 
-.img-background() {
-	content: " ";
-	display: block;
-	position: absolute;
-	left: 0;
-	height: calc(100%);
-	width: 100%;
-	background-color: @light-bg;
-}
+// .img-foreground() {
+// 	content: "\f1c5";
+// 	display: block;
+// 	font-style: normal;
+// 	font-family: FontAwesome;
+// 	font-size: 32px;
+// 	color: @text-extra-muted;
 
-.img-foreground() {
-	content: "\f1c5";
-	display: block;
-	font-style: normal;
-	font-family: FontAwesome;
-	font-size: 32px;
-	color: @text-extra-muted;
+// 	position: absolute;
+// 	top: 50%;
+// 	transform: translateY(-50%);
+// 	left: 0;
+// 	width: 100%;
+// 	text-align: center;
+// }
 
-	position: absolute;
-	top: 50%;
-	transform: translateY(-50%);
-	left: 0;
-	width: 100%;
-	text-align: center;
-}
+// img.no-image:before {
+// 	.img-background();
+// }
 
-img.no-image:before {
-	.img-background();
-}
+// img.no-image:after {
+// 	.img-foreground();
+// }
 
-img.no-image:after {
-	.img-foreground();
-}
+// img.img-loading:before {
+// 	.img-background();
+// }
 
-img.img-loading:before {
-	.img-background();
-}
-
-img.img-loading:after {
-	.img-foreground();
-	font-family: 'Octicons';
-	content: "\f00b";
-}
+// img.img-loading:after {
+// 	.img-foreground();
+// 	font-family: 'Octicons';
+// 	content: "\f00b";
+// }
 
 // utilities
 

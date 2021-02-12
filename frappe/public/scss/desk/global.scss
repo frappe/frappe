@@ -477,3 +477,23 @@ body.no-sidebar {
 .alt-pressed .alt-underline {
 	text-decoration: underline;
 }
+
+
+// REDESIGN TODO: Handling of broken images?
+// img.no-image:before {
+// 	.img-background();
+// }
+
+// img.no-image:after {
+// 	.img-foreground();
+// }
+
+// img.img-loading:before {
+// 	.img-background();
+// }
+
+// img.img-loading:after {
+// 	.img-foreground();
+// 	font-family: 'Octicons';
+// 	content: "\f00b";
+// }
