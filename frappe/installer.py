@@ -66,22 +66,18 @@ def _new_site(
 		no_mariadb_socket=no_mariadb_socket,
 	)
 
-	frappe.flags.in_site_setup = True
-
 	apps_to_install = (
 		["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 	)
 
 	for app in apps_to_install:
-		install_app(app, verbose=verbose, set_as_patched=not source_sql)
+		plugin_site_specifics_from_app(app, verbose=verbose)
 
 	os.remove(installing)
-
 	frappe.db.commit()
 
 	# Update DB (Apply constraints) post site creation.
 	update_database_post_site_creation()
-	frappe.flags.in_site_setup = False
 
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
@@ -110,38 +106,41 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.flags.in_install_db = False
 
+def plugin_site_specifics_from_app(app: str, verbose=False) -> None:
+	"""Make site specific setup needed to use the app.
 
-def install_app(name, verbose=False, set_as_patched=True):
-	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+	This will be called as part of app installation.
+	"""
 	from frappe.model.sync import sync_for
-	from frappe.modules.utils import sync_customizations
-	from frappe.utils.fixtures import sync_fixtures
 
-	frappe.flags.in_install = name
+	# TODO: Can we remove one of these flags?
+	frappe.flags.in_site_setup = True
+	frappe.flags.in_install = app
 	frappe.flags.ignore_in_install = False
 
 	frappe.clear_cache()
-	app_hooks = frappe.get_hooks(app_name=name)
+	app_hooks = frappe.get_hooks(app_name=app)
 	installed_apps = frappe.get_installed_apps()
 
 	# install pre-requisites
 	if app_hooks.required_apps:
 		for app in app_hooks.required_apps:
-			install_app(app, verbose=verbose)
+			plugin_site_specifics_from_app(app, verbose=verbose)
 
-	frappe.flags.in_install = name
+	frappe.flags.in_install = app
 	frappe.clear_cache()
 
-	if name not in frappe.get_all_apps():
+	if app not in frappe.get_all_apps():
 		raise Exception("App not in apps.txt")
 
-	if name in installed_apps:
-		frappe.msgprint(frappe._("App {0} already installed").format(name))
+	if app in installed_apps:
+		frappe.msgprint(frappe._("App {0} already installed").format(app))
 		return
 
-	print("\nInstalling {0}...".format(name))
+	print("\nInstalling {0}...".format(app))
 
-	if name != "frappe":
+	# FIXME: This may creates trouble in case of multi-tenancy
+	if app != "frappe":
 		frappe.only_for("System Manager")
 
 	for before_install in app_hooks.before_install or []:
@@ -149,33 +148,60 @@ def install_app(name, verbose=False, set_as_patched=True):
 		if out==False:
 			return
 
-	if name != "frappe":
-		add_module_defs(name)
+	if app != "frappe":
+		add_module_defs(app)
 
-	sync_for(name, force=True, verbose=verbose, reset_permissions=True)
+	sync_for(app, force=True, verbose=verbose, reset_permissions=True)
 
-	add_to_installed_apps(name)
+	add_to_installed_apps(app)
 
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
-	for after_sync in app_hooks.after_sync or []:
-		frappe.get_attr(after_sync)()
-
+	frappe.flags.in_site_setup = False
 	frappe.flags.in_install = False
 
-def _add_tenant(site, tenant_name, verbose=False, set_as_patched=True):
+def plugin_tenant_specifics_from_app(app: str, tenant: Tenant, verbose: bool=False,
+		set_as_patched: bool=True) -> None:
+	"""Make tenant specific setup needed to use the app
+
+	This will be called as part of app installation.
+	"""
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-	from frappe.commands.scheduler import _is_scheduler_enabled
 	from frappe.modules.utils import sync_customizations
 	from frappe.utils.fixtures import sync_fixtures
 	from frappe.model.sync import sync_for
+
+	frappe.init_tenant(tenant.id)
+
+	# TODO: Can we remove one of these flags?
+	frappe.flags.in_tenant_setup = True
+	frappe.flags.in_install = app
+
+	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
+	if set_as_patched:
+		set_all_patches_as_completed(app)
+	sync_for(app, force=True, verbose=verbose, reset_permissions=True)
+	sync_jobs()
+	sync_fixtures(app)
+	sync_customizations(app)
+
+	app_hooks = frappe.get_hooks(app_name=app)
+	for after_sync in app_hooks.after_sync or []:
+		frappe.get_attr(after_sync)()
+
+	for after_tenant_specifics_install in app_hooks.after_tenant_specifics_install or []:
+		frappe.get_attr(after_tenant_specifics_install)()
+
+	frappe.flags.in_install = False
+	frappe.flags.in_tenant_setup = False
+
+def _add_tenant(site, tenant_name, verbose=False, set_as_patched=True):
+	from frappe.commands.scheduler import _is_scheduler_enabled
 	from frappe.utils import scheduler
 
 	tenant = Tenant.new(tenant_name)
 	frappe.init_tenant(tenant.id)
-
-	frappe.flags.in_tenant_setup = True
 
 	try:
 		# enable scheduler post install?
@@ -190,19 +216,12 @@ def _add_tenant(site, tenant_name, verbose=False, set_as_patched=True):
 
 	installed_apps = frappe.get_installed_apps()
 	for app in installed_apps:
-		frappe.flags.in_install = app  # TODO: Use setup flag??
-
-		frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
-		set_all_patches_as_completed(app)
-		sync_for(app, force=True, verbose=verbose, reset_permissions=True)
-		sync_jobs()
-		sync_fixtures(app)
-		sync_customizations(app)
-
-		frappe.flags.in_install = False
+		plugin_tenant_specifics_from_app(app, tenant, verbose=False, set_as_patched=set_as_patched)
 
 	print(f"Scheduler is {scheduler_status} for Tenant {tenant_name}")
-	frappe.flags.in_tenant_setup = False
+
+def install_app(name, verbose=False, set_as_patched=True):
+	pass
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()

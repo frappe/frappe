@@ -117,7 +117,7 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 		"postgres": """INSERT INTO `__Auth`
 			(`doctype`, `name`, `fieldname`, `password`, `encrypted`)
 			VALUES (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
-			ON CONFLICT("name", "doctype", "fieldname") DO UPDATE
+			ON CONFLICT("tenant_id", "name", "doctype", "fieldname") DO UPDATE
 			SET `password`=%(pwd)s, encrypted=0""",
 	}, {'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
 
