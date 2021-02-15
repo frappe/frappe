@@ -171,4 +171,4 @@ frappe.render_pdf = function(html, opts = {}) {
 		}
 	};
 	xhr.send(formData);
-}
+};
