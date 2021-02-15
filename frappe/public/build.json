@@ -225,7 +225,6 @@
 		"public/js/frappe/form/form.js",
 		"public/js/frappe/meta_tag.js"
 	],
-	"css/list.min.css": "public/less/gantt.less",
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
 
