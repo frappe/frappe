@@ -4,65 +4,6 @@
 	border-top: 1px solid @border-color;
 }
 
-.document-flow-wrapper {
-	padding: 40px 15px 30px;
-	font-size: @text-medium;
-	border-bottom: 1px solid @light-border-color;
-
-	.document-flow {
-		display: inline-block;
-		position: relative;
-		left: 50%;
-		transform: translateX(-50%);
-
-		.document-flow-link-wrapper {
-			width: 140px;
-			display: inline-block;
-		}
-
-		.document-flow-link-wrapper:not(:last-child) {
-			border-top: 1px solid @indicator-gray;
-			// padding-left: 20px;
-			// padding-right: 20px;
-			margin-right: -4px;
-		}
-
-		.document-flow-link-wrapper:first-child {
-			// padding-left: 0px;
-		}
-
-		.document-flow-link-wrapper:last-child {
-			// padding-right: 0px;
-			margin-right: -140px;
-		}
-
-		.document-flow-link {
-			margin-top: -10px;
-			display: inline-block;
-		}
-
-		.document-flow-link:not(.disabled):hover,
-		.document-flow-link:not(.disabled):focus,
-		.document-flow-link:not(.disabled):active {
-			.document-flow-link-label {
-				text-decoration: underline;
-			}
-		}
-
-		.document-flow-link-label {
-			display: inline-block;
-			margin-left: -50%;
-			margin-top: 5px;
-		}
-	}
-}
-
-@media (max-width: @screen-xs) {
-	.document-flow-wrapper {
-		display: none;
-	}
-}
-
 .form-heatmap {
 	padding: 0px 30px 15px 30px;
 
@@ -163,20 +104,6 @@
 	}
 }
 
-.flex-justify-center {
-	display: flex;
-	justify-content: center;
-}
-
-.flex-justify-end {
-	display: flex;
-	justify-content: flex-end;
-}
-
-.hide-control {
-	display: none !important;
-}
-
 .shared-user {
 	margin-bottom: 10px;
 }
@@ -215,30 +142,4 @@ select.form-control {
 	font-size: 12px;
 	line-height: 1.7em;
 	margin-bottom: 10px !important;
-}
-
-.delivery-status-indicator {
-	display: inline-block;
-	margin-top: -3px;
-	margin-left: 1px;
-	font-weight: 500;
-	color: @text-muted;
-}
-
-.attach-btn {
-	margin-top: 10px;
-}
-
-/* goals */
-.goals-page-container {
-	background-color: #fafbfc;
-	padding-top: 1px;
-
-	.goal-container {
-		background-color: #fff;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-		border-radius: 2px;
-		padding: 10px;
-		margin: 10px;
-	}
 }
