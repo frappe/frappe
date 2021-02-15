@@ -18,7 +18,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 
 		this.img_wrapper = $(`<div class="signature-display">
 			<div class="missing-image attach-missing-image">
-				<i class="octicon octicon-circle-slash"></i>
+				${frappe.utils.icon('restriction', 'md')}</i>
 			</div></div>`)
 			.appendTo(this.wrapper);
 		this.img = $("<img class='img-responsive attach-image-display'>")

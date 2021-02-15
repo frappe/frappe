@@ -22,6 +22,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	color: var(--text-light);
+	background-color: var(--bg-color);
 
 	&.full-width {
 	@include media-breakpoint-up(md) {
@@ -172,6 +173,25 @@ footer {
 img {
 	max-width: 100%;
 	height: auto;
+}
+
+.missing-image {
+	background-color: var(--bg-light-gray);
+	line-height: 140px;
+	vertical-align: middle;
+	text-align: center;
+	width: 140px;
+	height: 140px;
+	border-radius: var(--border-radius-sm);
+
+	&.small {
+		width: 20px;
+		height: 20px;
+	}
+
+	.icon {
+		stroke: var(--text-muted);
+	}
 }
 
 .hidden {
@@ -513,7 +533,7 @@ img.no-image {
 		width: 700px;
 	}
 }
-fa
+
 body.no-sidebar {
 	@include media-breakpoint-up(md) {
 		.layout-side-section {
