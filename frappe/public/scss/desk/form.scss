@@ -383,6 +383,8 @@
 				margin-top: 0;
 			}
 		}
+		padding-left: 0px !important;
+		padding-right: 0px !important;
 	}
 
 	.form-column {
@@ -393,11 +395,6 @@
 
 	.form-column:last-child {
 		border-bottom: none;
-	}
-
-	.form-section {
-		padding-left: 0px !important;
-		padding-right: 0px !important;
 	}
 
 	// forms
@@ -421,11 +418,8 @@
 
 			&:last-child {
 				margin-bottom: 0px;
+				border-bottom: 0px;
 			}
-		}
-
-		.frappe-control:last-child {
-			border-bottom: 0px;
 		}
 
 		.frappe-control[data-fieldtype="Table"] {
