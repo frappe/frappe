@@ -298,5 +298,6 @@
 	"css/email.css": "public/scss/email.scss",
 	"js/barcode_scanner.min.js": "public/js/frappe/barcode_scanner/quagga.js",
 	"js/user_profile_controller.min.js": "desk/page/user_profile/user_profile_controller.js",
-	"css/login.css": "public/scss/login.scss"
+	"css/login.css": "public/scss/login.scss",
+	"js/data_import_tools.min.js": "public/js/frappe/data_import/index.js"
 }
