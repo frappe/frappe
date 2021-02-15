@@ -131,14 +131,21 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				// invalid email
 				return '';
 			} else {
-				let email_invalid = false;
+				var invalid_email = false;
 				email_list.forEach(function(email) {
 					if (!validate_email(email)) {
-						email_invalid = true;
+						frappe.msgprint(__("Invalid Email: {0}", [email]));
+						invalid_email = true;
 					}
 				});
-				this.df.invalid = email_invalid;
-				return v;
+
+				if (invalid_email) {
+					// at least 1 invalid email
+					return '';
+				} else {
+					// all good
+					return v;
+				}
 			}
 
 		} else {
