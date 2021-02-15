@@ -8,7 +8,7 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 		this.default_svg = '<svg height=80></svg>';
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
 		this.barcode_area = $(
-			`<div class="barcode-wrapper border">${this.default_svg}</div>`
+			`<div class="barcode-wrapper">${this.default_svg}</div>`
 		);
 		this.barcode_area.appendTo($input_wrapper);
 	},
@@ -55,7 +55,14 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 
 	get_options(value) {
 		// get JsBarcode options
-		let options = JSON.parse('{ "height" : 40 }');
+		let options = {};
+		options.background = "var(--control-bg)";
+		options.lineColor = "var(--text-color)";
+		options.font = "var(--font-stack)";
+		options.fontSize = "16";
+		options.width = "3";
+		options.height = "50";
+
 		if (frappe.utils.is_json(this.df.options)) {
 			options = JSON.parse(this.df.options);
 			if (options.format && options.format === 'EAN') {

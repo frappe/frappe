@@ -199,6 +199,9 @@ textarea.form-control {
 
 .barcode-wrapper {
 	text-align: center;
+	background-color: var(--control-bg);
+	border-radius: var(--border-radius);
+	padding: var(--padding-md);
 }
 
 @media (min-width: 768px) {
