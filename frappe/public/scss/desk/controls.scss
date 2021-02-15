@@ -188,6 +188,29 @@ a.progress-small {
 	background-color: var(--orange-500);
 }
 
+textarea.form-control {
+	height: 120px;
+}
+
+.link-select-row {
+	padding: var(--padding-sm);
+	border-bottom: 1px solid var(--border-color);
+}
+
+.barcode-wrapper {
+	text-align: center;
+}
+
+@media (min-width: 768px) {
+	.video-modal .modal-dialog {
+		width: 700px;
+	}
+}
+
+.link-field.ui-front {
+	z-index: inherit;
+}
+
 .rating {
 	// rating
 	--star-fill: var(--gray-300);
