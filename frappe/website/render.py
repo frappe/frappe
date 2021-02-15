@@ -29,7 +29,7 @@ def render(path=None, http_status_code=None):
 	# temp feature flag
 	if True or frappe.conf.flag_new_website:
 		from frappe.website.serve import get_response
-		return get_response()
+		return get_response(path, http_status_code)
 	else:
 		return _render(path, http_status_code)
 

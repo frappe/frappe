@@ -25,26 +25,34 @@ def get_response(path=None, http_status_code=None):
 
 		# there is no way to determine the type of the page based on the route
 		# so evaluate each type of page sequentially
-		response = StaticPage(path).get()
+		response = StaticPage(path, http_status_code).get()
 		if not response:
-			response = TemplatePage(path).get()
+			response = TemplatePage(path, http_status_code).get()
 		if not response:
-			response = ListPage(path).get()
+			response = ListPage(path, http_status_code).get()
 		if not response:
-			response = DocumentPage(path).get()
+			response = DocumentPage(path, http_status_code).get()
 		if not response:
-			response = TemplatePage('404').get()
+			response = PrintPage(path, http_status_code).get()
+		if not response:
+			response = TemplatePage('404', 404).get()
+	except frappe.Redirect:
+		return build_response(path, "", 301, {
+			"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
+			"Cache-Control": "no-store, no-cache, must-revalidate"
+		})
 	except frappe.PermissionError as e:
-		response = TemplatePage('403').get()
-	except:
-		response = TemplatePage('error').get()
+		frappe.local.message = cstr(e)
+		response = NotPermittedPage(path, http_status_code).get()
+	except Exception as e:
+		response = TemplatePage('error', getattr(e, 'http_status_code', 500) or http_status_code).get()
 
 	return response
 
 class WebPage(object):
-	def __init__(self, path=None):
+	def __init__(self, path=None, http_status_code=200):
 		self.headers = None
-		self.status_code = 200
+		self.http_status_code = http_status_code
 		if not path:
 			path = frappe.local.request.path
 		self.path = path.strip('/ ')
@@ -240,7 +248,7 @@ class TemplatePage(BaseTemplatePage):
 			search_path + '/index.md')
 
 	def render(self):
-		return build_response(self.path, self.get_html(), self.status_code, self.headers)
+		return build_response(self.path, self.get_html(), self.http_status_code, self.headers)
 
 	def get_html(self):
 		# context object should be separate from self for security
@@ -304,7 +312,8 @@ class TemplatePage(BaseTemplatePage):
 			# TODO: self.context.children = self.run_pymodule_method('get_children')
 
 		self.context.developer_mode = frappe.conf.developer_mode
-		self.status_code = self.context.http_status_code or 200
+		if self.context.http_status_code:
+			self.http_status_code = self.context.http_status_code
 
 	def set_pymodule_properties(self):
 		for prop in ("base_template_path", "template", "no_cache", "sitemap",
@@ -385,17 +394,49 @@ class TemplatePage(BaseTemplatePage):
 
 		return html
 
+	def set_standard_path(self, path):
+		self.app = 'frappe'
+		self.app_path = frappe.get_app_path('frappe')
+		self.path = path
+		self.template_path = 'www/{path}.html'.format(path=path)
+
+
 class ListPage(TemplatePage):
 	def validate(self):
 		if frappe.db.get_value('DocType', self.path):
-			self.app = 'frappe'
-			self.app_path = frappe.get_app_path('frappe')
-			self.doctype = self.path
-			self.path = 'list'
-			self.template_path = 'www/list.html'
-			frappe.local.form_dict.doctype = self.doctype
+			frappe.local.form_dict.doctype = self.path
+			self.set_standard_path('list')
 			return True
 		return False
+
+class PrintPage(TemplatePage):
+	'''
+	default path returns a printable object (based on permission)
+	/Quotation/Q-0001
+	'''
+	def validate(self):
+		parts = self.path.split('/', 1)
+		if len(parts)==2:
+			if (frappe.db.get_value('DocType', parts[0])
+				and frappe.db.get_value(parts[0], parts[1])):
+				frappe.form_dict.doctype = parts[0]
+				frappe.form_dict.name = parts[1]
+				self.set_standard_path('printview')
+				return True
+
+		return False
+
+class NotPermittedPage(TemplatePage):
+	def validate(self):
+		frappe.local.message_title = _("Not Permitted")
+		frappe.local.response['context'] = dict(
+			indicator_color = 'red',
+			primary_action = '/login',
+			primary_label = _('Login'),
+			fullpage=True
+		)
+		self.set_standard_path('message')
+		return True
 
 class DocumentPage(BaseTemplatePage):
 	def validate(self):
@@ -476,9 +517,6 @@ class DocumentPage(BaseTemplatePage):
 			condition_field = controller.website.condition_field
 
 		return condition_field
-
-class PrintPage(TemplatePage):
-	pass
 
 class WebFormPage(WebPage):
 	pass
