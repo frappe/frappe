@@ -22,14 +22,10 @@
 		cursor: pointer;
 
 		.collapse-indicator {
-			color: $text-muted;
+			color: var(--text-muted);
 			margin-left: 10px;
 			position: relative;
 			padding: 0px;
-		}
-
-		.collapse-indicator.octicon-chevron-up {
-			bottom: -2px;
 		}
 	}
 
@@ -297,5 +293,115 @@
 	.progress-message {
 		font-feature-settings: "tnum" 1;
 		margin-top: 0px;
+	}
+}
+
+// above mobile
+@media (max-width: map-get($grid-breakpoints, "md")) {
+	.layout-main .form-column.col-sm-12 > form > .input-max-width {
+		max-width: 50%;
+		padding-right: 15px;
+	}
+
+	// don't max-width when in form-grid with half width
+	.col-sm-6 .form-grid .form-column.col-sm-12 > form > .input-max-width {
+		max-width: none;
+		padding-right: 0px;
+	}
+
+	.form-column.col-sm-6 textarea[data-fieldtype="Code"] {
+		height: 120px !important;
+	}
+}
+
+// upto tablets
+@media (max-width: map-get($grid-breakpoints, "md")) {
+	.form-section .form-section-heading {
+		margin-top: 10px;
+	}
+}
+
+
+// mobile
+@media (max-width: map-get($grid-breakpoints, "sm")) {
+	// padding to form section on mobile
+	.form-section {
+		.section-head {
+			padding: 15px 15px 15px 0px;
+		}
+		.section-body {
+			margin-top: -15px;
+		}
+		.section-body .form-column:first-child {
+			.radio,
+			.checkbox {
+				margin-top: 0;
+			}
+		}
+	}
+
+	.form-column {
+		border-bottom: 1px solid var(--border-color);
+		padding-top: 15px;
+		padding-bottom: 15px;
+	}
+
+	.form-column:last-child {
+		border-bottom: none;
+	}
+
+	.form-section {
+		padding-left: 0px !important;
+		padding-right: 0px !important;
+	}
+
+	// forms
+
+	.form-page {
+		.form-section {
+			padding: 0px 15px;
+		}
+
+		.frappe-control {
+			padding: 7px 15px;
+			border-bottom: 1px solid var(--border-color);
+			margin: 0px -15px;
+
+			.link-btn {
+				top: -2px;
+			}
+
+			&:last-child {
+				margin-bottom: 0px;
+			}
+		}
+
+		.frappe-control:last-child {
+			border-bottom: 0px;
+		}
+
+		.frappe-control[data-fieldtype="Table"] {
+			padding: 0px 15px;
+			margin-top: -1px;
+			margin-left: -17px;
+			margin-right: -17px;
+			border-bottom: none;
+
+			label {
+				margin-top: 7px;
+			}
+		}
+
+		.form-control {
+			height: auto;
+			margin-bottom: 7px;
+
+			// make all fields left-aligned!
+			text-align: left !important;
+		}
+
+		.form-control:focus {
+			box-shadow: none;
+		}
 	}
 }

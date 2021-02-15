@@ -123,42 +123,6 @@
 	}
 }
 
-.form-section {
-	margin: 0px;
-	// padding: 15px;
-
-	.form-section-description {
-		margin-bottom: 10px;
-	}
-
-	.form-section-heading {
-		margin: 10px 0px;
-	}
-
-	.section-head {
-		margin: 0px 0px 15px 15px;
-		cursor: pointer;
-
-		.collapse-indicator {
-			color: @text-extra-muted;
-			margin-left: 10px;
-			position: relative;
-			bottom: -1px;
-		}
-
-		.collapse-indicator.octicon-chevron-up {
-			bottom: -2px;
-		}
-	}
-	.section-head.collapsed {
-		margin-bottom: 0px;
-	}
-}
-
-.empty-section {
-	display: none !important;
-}
-
 .help ol {
 	padding-left: 19px;
 }
@@ -288,115 +252,6 @@ select.form-control {
 	margin-top: 10px;
 }
 
-// above mobile
-@media (min-width: 768px) {
-	.layout-main .form-column.col-sm-12 > form > .input-max-width {
-		max-width: 50%;
-		padding-right: 15px;
-	}
-
-	// don't max-width when in form-grid with half width
-	.col-sm-6 .form-grid .form-column.col-sm-12 > form > .input-max-width {
-		max-width: none;
-		padding-right: 0px;
-	}
-
-	.form-column.col-sm-6 textarea[data-fieldtype="Code"] {
-		height: 120px !important;
-	}
-}
-
-// upto tablets
-@media (max-width: @screen-sm) {
-	.form-section .form-section-heading {
-		margin-top: 10px;
-	}
-}
-
-// mobile
-@media (max-width: @screen-xs) {
-	// padding to form section on mobile
-	.form-section {
-		.section-head {
-			padding: 15px 15px 15px 0px;
-		}
-		.section-body {
-			margin-top: -15px;
-		}
-		.section-body .form-column:first-child {
-			.radio,
-			.checkbox {
-				margin-top: 0;
-			}
-		}
-	}
-
-	.form-column {
-		border-bottom: 1px solid @light-border-color;
-		padding-top: 15px;
-		padding-bottom: 15px;
-	}
-
-	.form-column:last-child {
-		border-bottom: 0px;
-	}
-
-	.form-section {
-		padding-left: 0px !important;
-		padding-right: 0px !important;
-	}
-
-	// forms
-
-	.form-page {
-		.form-section {
-			padding: 0px 15px;
-		}
-
-		.frappe-control& {
-			padding: 7px 15px;
-			border-bottom: 1px solid @light-border-color;
-			margin: 0px -15px;
-
-			.link-btn {
-				top: -2px;
-			}
-
-			&:last-child {
-				margin-bottom: 0px;
-			}
-		}
-
-		.frappe-control:last-child {
-			border-bottom: 0px;
-		}
-
-		.frappe-control[data-fieldtype="Table"] {
-			padding: 0px 15px;
-			margin-top: -1px;
-			margin-left: -17px;
-			margin-right: -17px;
-			border-bottom: none;
-
-			label {
-				margin-top: 7px;
-			}
-		}
-
-		.form-control {
-			height: auto;
-			margin-bottom: 7px;
-
-			// make all fields left-aligned!
-			text-align: left !important;
-		}
-
-		.form-control:focus {
-			box-shadow: none;
-		}
-	}
-}
-
 /* goals */
 .goals-page-container {
 	background-color: #fafbfc;
@@ -409,10 +264,6 @@ select.form-control {
 		padding: 10px;
 		margin: 10px;
 	}
-}
-
-body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
-	height: 80px !important;
 }
 
 // Data Import
