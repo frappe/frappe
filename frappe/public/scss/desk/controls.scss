@@ -211,8 +211,8 @@ textarea.form-control {
 	z-index: inherit;
 }
 
+// rating
 .rating {
-	// rating
 	--star-fill: var(--gray-300);
 	.star-hover {
 		--star-fill: var(--yellow-100);
@@ -220,4 +220,39 @@ textarea.form-control {
 	.star-click {
 		--star-fill: var(--yellow-300);
 	}
+}
+
+// signature
+.signature-field {
+	min-height: 110px;
+	background: var(--control-bg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	position: relative;
+	margin-top: -10px;
+}
+
+.signature-display {
+	margin: 7px 0px;
+	background: var(--control-bg);
+}
+
+.signature-btn-row {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+}
+
+.signature-reset {
+	z-index: 10;
+	height: 30px;
+	width: 30px;
+	padding: 4px 0px;
+}
+
+.signature-img {
+	background: var(--control-bg);
+	border-radius: 3px;
+	margin-top: 5px;
+	max-height: 150px;
 }
