@@ -82,6 +82,9 @@ frappe.render_template = function(name, data) {
 	if(data===undefined) {
 		data = {};
 	}
+	if (!template) {
+		frappe.throw(`Template <b>${name}</b> not found.`);
+	}
 	return frappe.render(template, data, name);
 }
 frappe.render_grid = function(opts) {
@@ -168,4 +171,4 @@ frappe.render_pdf = function(html, opts = {}) {
 		}
 	};
 	xhr.send(formData);
-}
+};
