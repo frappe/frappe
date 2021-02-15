@@ -257,14 +257,6 @@
 		.editor-toolbar-align-group {
 			display: none;
 		}
-
-		.text-editor {
-			height: 200px;
-		}
-
-		.markdown-text-editor {
-			height: 251px;
-		}
 	}
 }
 
@@ -340,8 +332,8 @@
 }
 
 .grid-form-body {
-	.form-area {
-		max-height: 70vh;
+	.form-area.scrollable {
+		max-height: calc(100vh - 3.5rem);
 		overflow-y: auto;
 	}
 }

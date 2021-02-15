@@ -79,6 +79,10 @@
 	box-shadow: var(--card-shadow);
 	border-radius: var(--border-radius-md);
 
+	.slide-wrapper:focus {
+		outline: none;
+	}
+
 	.slide-footer {
 		margin: var(--margin-md) 0;
 		padding: 0 var(--padding-lg);
@@ -95,6 +99,13 @@
 
 	.form-wrapper {
 		margin-top: var(--margin-xl);
+
+		.form {
+			.form-section {
+				padding: 0px var(--padding-sm);
+				border: none;
+			}
+		}
 	}
 
 	&.setup-in-progress {
@@ -109,5 +120,18 @@
 		.btn-abort {
 			margin: var(--margin-lg) auto;
 		}
+	}
+
+	.add-more {
+		margin-bottom: var(--margin-xl);
+	}
+
+	.lead {
+		margin-top: var(--margin-lg);
+		font-weight: 500;
+	}
+
+	.success-state {
+		margin-bottom: var(--margin-lg);
 	}
 }

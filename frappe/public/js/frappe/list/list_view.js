@@ -165,7 +165,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (match_rules_list.length) {
 			this.restricted_list = $(
 				`<button class="btn btn-default btn-xs restricted-button flex align-center">
-					${frappe.utils.icon('lock', 'xs')}
+					${frappe.utils.icon('restriction', 'xs')}
 				</button>`
 			).click(() => this.show_restrictions(match_rules_list)).appendTo(this.page.page_form);
 		}
@@ -732,7 +732,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				html = df.options ? `<img src="${doc[df.options]}"
 					style="max-height: 30px; max-width: 100%;">`
 					: `<div class="missing-image small">
-						<span class="octicon octicon-circle-slash"></span>
+						${frappe.utils.icon('restriction')}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
 				html = `<span class="filterable indicator-pill ${frappe.utils.guess_colour(

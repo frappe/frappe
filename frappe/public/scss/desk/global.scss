@@ -22,6 +22,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	color: var(--text-light);
+	background-color: var(--bg-color);
 
 	&.full-width {
 	@include media-breakpoint-up(md) {
@@ -89,6 +90,25 @@ footer {
 img {
 	max-width: 100%;
 	height: auto;
+}
+
+.missing-image {
+	background-color: var(--bg-light-gray);
+	line-height: 140px;
+	vertical-align: middle;
+	text-align: center;
+	width: 140px;
+	height: 140px;
+	border-radius: var(--border-radius-sm);
+
+	&.small {
+		width: 20px;
+		height: 20px;
+	}
+
+	.icon {
+		stroke: var(--text-muted);
+	}
 }
 
 .hidden {
@@ -395,3 +415,78 @@ kbd {
 #freeze.in {
 	opacity: 0.5;
 }
+
+.msg-box {
+	padding: var(--padding-xl) var(--padding-md);
+	text-align: center;
+	color: var(--text-muted);
+}
+
+/*rtl styles*/
+
+.frappe-rtl {
+	input, textarea {
+		direction: rtl !important;
+	}
+
+	.checkbox .disp-area {
+		margin-right: -20px;
+		margin-left: 0px;
+	}
+}
+
+/* broken image styling */
+
+img.no-image {
+	position: relative;
+	height: 100%;
+	width: 100%;
+	background-color: var(--bg-light-gray);
+}
+
+
+@media (min-width: 768px) {
+	.video-modal .modal-dialog {
+		width: 700px;
+	}
+}
+
+body.no-sidebar {
+	@include media-breakpoint-up(md) {
+		.layout-side-section {
+			display: none;
+		}
+
+		.layout-main-section-wrapper {
+			width: 100% !important;
+		}
+	}
+}
+
+.app-logo {
+	width: 24px;
+}
+
+.alt-pressed .alt-underline {
+	text-decoration: underline;
+}
+
+
+// REDESIGN TODO: Handling of broken images?
+// img.no-image:before {
+// 	.img-background();
+// }
+
+// img.no-image:after {
+// 	.img-foreground();
+// }
+
+// img.img-loading:before {
+// 	.img-background();
+// }
+
+// img.img-loading:after {
+// 	.img-foreground();
+// 	font-family: 'Octicons';
+// 	content: "\f00b";
+// }

@@ -48,8 +48,8 @@ input[type="checkbox"] {
 	}
 
 
-	&.disabled-deselected:before {
-		background: $gray-50;
+	&.disabled-deselected:before, &[disabled]:before {
+		background: var(--disabled-control-bg);
 		border: 0.5px solid var(--gray-300);
 		box-sizing: border-box;
 		box-shadow: inset 0px 1px 7px rgba(0, 0, 0, 0.1);
@@ -104,3 +104,28 @@ html.firefox, html.safari {
 		}
 	}
 }
+
+.no-border {
+	border: none !important;
+}
+
+.whitespace-nowrap {
+	white-space: nowrap;
+}
+
+.app-change-log-body {
+	h1 {
+		font-size: var(--text-2xl);
+	}
+}
+
+.new-version-log {
+	.new-version-links {
+		padding: var(--padding-xs) 0px;
+	}
+
+	&:not(:last-child) {
+		margin-bottom: 1em;
+	}
+}
+
