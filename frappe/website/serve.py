@@ -29,7 +29,9 @@ def get_response(path=None, http_status_code=None):
 		if not response:
 			response = TemplatePage(path).get()
 		if not response:
-			response = DocTypePage(path).get()
+			response = ListPage(path).get()
+		if not response:
+			response = DocumentPage(path).get()
 		if not response:
 			response = TemplatePage('404').get()
 	except frappe.PermissionError as e:
@@ -117,6 +119,11 @@ class BaseTemplatePage(WebPage):
 		# Use the macro "inspect" from macros.html
 		self.context._context_dict = self.context
 
+		# context sends us a new template path
+		if self.context.template:
+			self.template_path = self.context.template
+
+
 	def set_base_template_if_missing(self):
 		if not self.context.base_template_path:
 			app_base = frappe.get_hooks("base_template")
@@ -200,7 +207,6 @@ class BaseTemplatePage(WebPage):
 				d = meta_tag.get_meta_dict()
 				self.tags.update(d)
 
-
 class TemplatePage(BaseTemplatePage):
 	def validate(self):
 		for app in frappe.get_installed_apps(frappe_last=True):
@@ -222,8 +228,6 @@ class TemplatePage(BaseTemplatePage):
 				if os.path.exists(file_path) and not os.path.isdir(file_path):
 					self.app = app
 					self.app_path = app_path
-					self.dirname = dirname
-					self.file_path = file_path
 					self.template_path = os.path.relpath(file_path, self.app_path)
 					return True
 
@@ -244,9 +248,9 @@ class TemplatePage(BaseTemplatePage):
 		self.init_context()
 
 		self.set_pymodule()
-		self.setup_template()
 		self.update_context()
 		self.post_process_context()
+		self.setup_template()
 		html = self.render_template()
 
 		html = self.update_toc(html)
@@ -380,9 +384,18 @@ class TemplatePage(BaseTemplatePage):
 			html = html.replace('{next}', get_next_link(self.path))
 
 		return html
-
-
-class DocTypePage(BaseTemplatePage):
+class ListPage(TemplatePage):
+	def validate(self):
+		if frappe.db.get_value('DocType', self.path):
+			self.app = 'frappe'
+			self.app_path = frappe.get_app_path('frappe')
+			self.doctype = self.path
+			self.path = 'list'
+			self.template_path = 'www/list.html'
+			frappe.local.form_dict.doctype = self.doctype
+			return True
+		return False
+class DocumentPage(BaseTemplatePage):
 	def validate(self):
 		'''
 		Find a document with matching `route` from all doctypes with `has_web_view`=1
@@ -462,8 +475,7 @@ class DocTypePage(BaseTemplatePage):
 
 		return condition_field
 
-
-
+class PrintPage(TemplatePage):
+	pass
 class WebFormPage(WebPage):
 	pass
-

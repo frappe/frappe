@@ -13,11 +13,6 @@ from frappe.website.utils import (find_first_image, get_html_content_based_on_ty
 	get_comment_list)
 
 class BlogPost(WebsiteGenerator):
-	website = frappe._dict(
-		route = 'blog',
-		order_by = "published_on desc"
-	)
-
 	def make_route(self):
 		if not self.route:
 			return frappe.db.get_value('Blog Category', self.blog_category,
