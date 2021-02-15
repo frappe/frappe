@@ -108,7 +108,7 @@ window.replace_all = function(s, t1, t2) {
 }
 
 window.strip_html = function(txt) {
-	return txt.replace(/<[^>]*>/g, "");
+	return cstr(txt).replace(/<[^>]*>/g, "");
 }
 
 window.strip = function(s, chars) {
