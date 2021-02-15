@@ -12,7 +12,7 @@ from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
 	get_toc, get_next_link)
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 
-def get_response(path=None, http_status_code=None):
+def get_response(path=None, http_status_code=200):
 	"""render html page"""
 	if not path:
 		path = frappe.local.request.path
@@ -45,14 +45,14 @@ def get_response(path=None, http_status_code=None):
 		frappe.local.message = cstr(e)
 		response = NotPermittedPage(path, http_status_code).get()
 	except Exception as e:
-		response = TemplatePage('error', getattr(e, 'http_status_code', 500) or http_status_code).get()
+		response = TemplatePage('error', getattr(e, 'http_status_code', None) or http_status_code).get()
 
 	return response
 
 class WebPage(object):
-	def __init__(self, path=None, http_status_code=200):
+	def __init__(self, path=None, http_status_code=None):
 		self.headers = None
-		self.http_status_code = http_status_code
+		self.http_status_code = http_status_code or 200
 		if not path:
 			path = frappe.local.request.path
 		self.path = path.strip('/ ')
@@ -488,7 +488,7 @@ class DocumentPage(BaseTemplatePage):
 		html = frappe.get_template(self.context.template_path).render(self.context)
 		html = self.add_csrf_token(html)
 
-		return build_response(self.path, html, self.status_code, self.headers)
+		return build_response(self.path, html, self.http_status_code or 200, self.headers)
 
 	def update_context(self):
 		self.context.doc = self.doc
