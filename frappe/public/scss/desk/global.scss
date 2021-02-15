@@ -22,6 +22,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	color: var(--text-light);
+	background-color: var(--bg-color);
 
 	&.full-width {
 	@include media-breakpoint-up(md) {
