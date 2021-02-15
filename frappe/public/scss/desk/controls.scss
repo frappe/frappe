@@ -1,6 +1,30 @@
 @import "grid";
 @import "color_picker";
 
+// password
+.form-control[data-fieldtype="Password"] {
+	position: inherit;
+}
+
+.password-strength-indicator {
+	// TODO: Review
+	float: right;
+	padding: 15px;
+	margin-top: -41px;
+	margin-right: -7px;
+}
+
+.password-strength-message {
+	margin-top: -10px;
+}
+
+// select
+select.form-control {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+}
+
 /* table multiselect */
 .table-multiselect {
 	display: flex;

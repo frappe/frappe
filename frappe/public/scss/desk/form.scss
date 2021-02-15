@@ -72,6 +72,11 @@
 	font-size: var(--text-sm);
 }
 
+.control-label {
+	margin-bottom: var(--margin-xs);
+	font-weight: normal;
+}
+
 .form-inner-toolbar {
 	padding-top: var(--padding-md);
 	text-align: right;
