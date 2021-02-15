@@ -7,7 +7,7 @@ frappe.ui.form.on('Personal Data Deletion Request', {
 			frm.add_custom_button(__('Delete Data'), function() {
 				return frappe.call({
 					doc: frm.doc,
-					method: 'anonymize_data',
+					method: 'trigger_data_deletion',
 					freeze: true,
 					callback: function() {
 						frm.refresh();

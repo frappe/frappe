@@ -31,6 +31,11 @@ class PersonalDataDeletionRequest(Document):
 
 		return url
 
+	def disable_user(self):
+		user = frappe.get_doc("User", self.email)
+		user.enabled = False
+		user.save()
+
 	def send_verification_mail(self):
 		url = self.generate_url_for_confirmation()
 
@@ -58,10 +63,10 @@ class PersonalDataDeletionRequest(Document):
 			header=[_("Approval Required"), "green"],
 		)
 
-	def anonymize_data(self):
-		""" mask user data with non identifiable data """
-		frappe.only_for('System Manager')
-		if not (self.status == 'Pending Approval'):
+	def validate_data_anonymization(self):
+		frappe.only_for("System Manager")
+
+		if self.status != "Pending Approval":
 			frappe.throw(_("This request has not yet been approved by the user."))
 
 		privacy_docs = frappe.get_hooks("user_privacy_documents")
@@ -72,7 +77,21 @@ class PersonalDataDeletionRequest(Document):
 			'Code': 'http://xxxxx'
 		}
 
-		regex = re.compile(r"(?<!\.)\b{0}\b(?!\.)".format(re.escape(self.email)))
+	def trigger_data_deletion(self):
+		"""Redact user data defined in current site's hooks under `user_data_fields`"""
+		self.validate_data_anonymization()
+		self.disable_user()
+		self.anonymize_data()
+
+	def anonymize_data(self):
+		return frappe.enqueue_doc(
+			self.doctype,
+			self.name,
+			"_anonymize_data",
+			queue="long",
+			timeout=3000,
+			now=frappe.flags.in_test,
+		)
 
 		for ref_doc in privacy_docs:
 			meta = frappe.get_meta(ref_doc['doctype'])
