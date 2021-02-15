@@ -113,7 +113,7 @@ class BaseTemplatePage(WebPage):
 
 		# set using frappe.respond_as_web_page
 		if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
-			context.update(frappe.local.response.context)
+			self.context.update(frappe.local.response.context)
 
 		# to be able to inspect the context dict
 		# Use the macro "inspect" from macros.html
@@ -384,6 +384,7 @@ class TemplatePage(BaseTemplatePage):
 			html = html.replace('{next}', get_next_link(self.path))
 
 		return html
+
 class ListPage(TemplatePage):
 	def validate(self):
 		if frappe.db.get_value('DocType', self.path):
@@ -395,6 +396,7 @@ class ListPage(TemplatePage):
 			frappe.local.form_dict.doctype = self.doctype
 			return True
 		return False
+
 class DocumentPage(BaseTemplatePage):
 	def validate(self):
 		'''
@@ -477,5 +479,6 @@ class DocumentPage(BaseTemplatePage):
 
 class PrintPage(TemplatePage):
 	pass
+
 class WebFormPage(WebPage):
 	pass
