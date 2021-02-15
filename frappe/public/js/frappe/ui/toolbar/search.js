@@ -303,7 +303,7 @@ frappe.search.SearchDialog = class {
 
 		let $results_list = $(`<div class="results-summary">
 			<div class="result-section full-list ${type}-section col-sm-12">
-				<div class="result-title"> ` + __(type) + `</div>
+				<div class="result-title"> ${ __(type) }</div>
 				<div class="result-body">
 				</div>
 			</div>
