@@ -297,7 +297,7 @@
 }
 
 // above mobile
-@media (max-width: map-get($grid-breakpoints, "md")) {
+@media (min-width: map-get($grid-breakpoints, "md")) {
 	.layout-main .form-column.col-sm-12 > form > .input-max-width {
 		max-width: 50%;
 		padding-right: 15px;
