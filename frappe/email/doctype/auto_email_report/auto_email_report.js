@@ -94,9 +94,18 @@ frappe.ui.form.on('Auto Email Report', {
 			})
 			report_filters = report_filters_list;
 
-			report_filters.forEach(function(f) {
-				$('<tr><td>' + f.label + '</td><td>'+ frappe.format(filters[f.fieldname], f) +'</td></tr>')
-					.appendTo(table.find('tbody'));
+			const mandatory_css = {
+				"background-color": "#fffdf4",
+				"font-weight": "bold"
+			};
+
+			report_filters.forEach(f => {
+				const css = f.reqd ? mandatory_css : {};
+				const row = $("<tr></tr>").appendTo(table.find("tbody"));
+				$("<td>" + f.label + "</td>").appendTo(row);
+				$("<td>" + frappe.format(filters[f.fieldname], f) +"</td>")
+					.css(css)
+					.appendTo(row);
 			});
 
 			table.on('click', function() {
