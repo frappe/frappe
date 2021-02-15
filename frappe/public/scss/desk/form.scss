@@ -82,6 +82,10 @@
 }
 
 .like-disabled-input {
+	.for-description {
+		font-weight: normal;
+		font-size: var(--text-sm);
+	}
 	min-height: var(--input-height);
 	border-radius: $border-radius;
 	font-weight: 400;
@@ -222,6 +226,19 @@
 	}
 }
 
+.frappe-rtl .inline-graph {
+	direction: ltr;
+	display: block;
+	transform: scaleX(-1);
+	.inline-graph-count {
+		transform: scaleX(-1);
+		text-align: right;
+	}
+	.inline-graph-half:first-child .inline-graph-count {
+		text-align: left;
+	}
+}
+
 @mixin form-message-background($color) {
 	background: var(--bg-#{$color});
 	color: var(--text-on-#{$color});
@@ -260,6 +277,26 @@
 	line-height: 1.6;
 }
 
+.form-heatmap {
+	.heatmap {
+		display: flex;
+		justify-content: center;
+
+		.chart-container {
+			margin: 0px;
+		}
+
+		.chart-legend {
+			display: none;
+		}
+	}
+
+	@media (max-width: map-get($grid-breakpoints, "sm")) {
+		overflow: hidden;
+		overflow-x: scroll;
+	}
+}
+
 .form-group {
 	&.frappe-control:last-child {
 		margin-bottom: 0;
@@ -270,6 +307,10 @@
 }
 
 .form-footer {
+	h5 {
+		margin: 15px 0px;
+		font-weight: bold;
+	}
 	position: relative;
 	.scroll-to-top {
 		position: absolute;
@@ -320,7 +361,6 @@
 		margin-top: 10px;
 	}
 }
-
 
 // mobile
 @media (max-width: map-get($grid-breakpoints, "sm")) {

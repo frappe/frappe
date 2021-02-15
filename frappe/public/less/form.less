@@ -4,49 +4,8 @@
 	border-top: 1px solid @border-color;
 }
 
-.form-heatmap {
-	padding: 0px 30px 15px 30px;
-
-	.heatmap {
-		display: flex;
-		justify-content: center;
-
-		// excessive whitespace around the chart
-		.chart-container {
-			margin: 0px;
-		}
-
-		// don't show the less..more legend
-		.chart-legend {
-			display: none;
-		}
-	}
-
-	@media (max-width: @screen-sm) {
-		overflow: hidden;
-		overflow-x: scroll;
-	}
-}
-
-.frappe-rtl .inline-graph {
-	direction: ltr;
-	display: block;
-	transform: scaleX(-1);
-	.inline-graph-count {
-		transform: scaleX(-1);
-		text-align: right;
-	}
-	.inline-graph-half:first-child .inline-graph-count {
-		text-align: left;
-	}
-}
-
 .help ol {
 	padding-left: 19px;
-}
-
-.field_description_top {
-	margin-bottom: 3px;
 }
 
 .user-actions {
@@ -56,20 +15,6 @@
 	font-weight: bold;
 }
 
-.badge-important {
-	background-color: #e74c3c;
-}
-
-.form-footer h5 {
-	margin: 15px 0px;
-	font-weight: bold;
-}
-
-.control-label,
-.grid-heading-row {
-	color: @text-muted;
-	font-size: 12px;
-}
 
 .control-label {
 	margin-bottom: 5px;
@@ -80,11 +25,6 @@
 	color: @navbar-bg;
 	margin-right: 5px;
 	margin-bottom: -2px;
-}
-
-.like-disabled-input.for-description {
-	font-weight: normal;
-	font-size: 12px;
 }
 
 .frappe-control& {
@@ -108,11 +48,6 @@
 	margin-bottom: 10px;
 }
 
-.attach-missing-image,
-.attach-image-display {
-	cursor: pointer;
-}
-
 select.form-control {
 	-webkit-appearance: none;
 	-moz-appearance: none;
@@ -132,14 +67,4 @@ select.form-control {
 
 .password-strength-message {
 	margin-top: -10px;
-}
-
-.control-code,
-.control-code.bold {
-	height: 400px;
-	font-family: Monaco, "Courier New", monospace;
-	color: @text-color;
-	font-size: 12px;
-	line-height: 1.7em;
-	margin-bottom: 10px !important;
 }

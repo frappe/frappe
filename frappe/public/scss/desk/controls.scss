@@ -238,6 +238,10 @@ textarea.form-control {
 .signature-display {
 	margin: 7px 0px;
 	background: var(--control-bg);
+	.attach-missing-image,
+	.attach-image-display {
+		cursor: pointer;
+	}
 }
 
 .signature-btn-row {
