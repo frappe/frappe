@@ -61,14 +61,15 @@ frappe.form.formatters = {
 		return frappe.form.formatters._right(flt(value, precision) + "%", options);
 	},
 	Rating: function(value) {
+		const rating_html =	`${[1, 2, 3, 4, 5].map(i =>
+			`<svg class="icon icon-md ${i <= (value || 0) ? "star-click": "" }" data-idx="${i}">
+				<use href="#icon-star"></use>
+			</svg>`
+		).join('')}`;
 		return `<div class="rating">
-			${[1, 2, 3, 4, 5].map(i =>
-				`<svg class="icon icon-md ${i <= (value || 0) ? "star-click": "" }" data-idx="${i}">
-					<use href="#icon-star"></use>
-				</svg>`
-			).join('')}
+			${rating_html}
 		</div>`;
-		},
+	},
 	Currency: function (value, docfield, options, doc) {
 		var currency  = frappe.meta.get_field_currency(docfield, doc);
 		var precision = docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;
