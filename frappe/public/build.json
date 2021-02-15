@@ -292,7 +292,7 @@
 	"css/web_form.css": [
 		"website/css/web_form.css",
 		"public/css/octicons/octicons.css",
-		"public/less/controls.less",
+		"public/scss/controls.scss",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
 	"css/email.css": "public/scss/email.scss",
