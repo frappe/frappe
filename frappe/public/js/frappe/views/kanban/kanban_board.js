@@ -178,7 +178,7 @@ frappe.provide("frappe.views");
 					method_name = "update_order_for_single_card";
 					args = {
 						board_name: this.board.name,
-						docname: card.name,
+						docname: unescape(card.name),
 						from_colname: card.from_colname,
 						to_colname: card.to_colname,
 						old_index: card.old_index,
