@@ -212,7 +212,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 					const report_type =
 						r.report_type === "Report Builder"
 							? `/app/list/${r.ref_doctype}/report`
-							: "query-report";
+							: "/app/query-report";
 
 					const route =
 						r.route || report_type + "/" + (r.title || r.name);
