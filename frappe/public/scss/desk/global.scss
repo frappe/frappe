@@ -36,9 +36,6 @@ body {
 
 a {
 	color: $text-color;
-}
-
-a {
 	cursor: pointer;
 }
 
@@ -204,10 +201,6 @@ img {
 
 .text-underline {
 	text-decoration: underline;
-}
-
-.text-extra-muted {
-	color: var(--gray-500) !important;
 }
 
 .no-underline {
@@ -571,7 +564,7 @@ details > summary:focus {
 }
 
 .text-extra-muted {
-	color: var(--border-color) !important;
+	color: var(--gray-500) !important;
 }
 
 .grayscale {
