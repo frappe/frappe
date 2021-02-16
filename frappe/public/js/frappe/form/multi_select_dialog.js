@@ -2,66 +2,74 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	constructor(opts) {
 		/* Options: doctype, target, setters, get_query, action, add_filters_group, data_fields, primary_action_label */
 		Object.assign(this, opts);
-		var me = this;
-		if (this.doctype != "[Select]") {
-			frappe.model.with_doctype(this.doctype, function () {
-				me.make();
-			});
+		this.for_select = this.doctype == "[Select]";
+		if (!this.for_select) {
+			frappe.model.with_doctype(this.doctype, () => this.init());
 		} else {
-			this.make();
+			this.init();
 		}
 	}
 
-	make() {
-		let me = this;
+	init() {
 		this.page_length = 20;
 		this.start = 0;
-		let fields = this.get_primary_filters();
+		this.fields = this.get_fields();
 
-		// Make results area
-		fields = fields.concat([
-			{ fieldtype: "HTML", fieldname: "results_area" },
+		this.make();
+	}
+
+	get_fields() {
+		const primary_fields = this.get_primary_filters();
+		const result_fields = this.get_result_fields();
+		const data_fields = this.get_data_fields();
+
+		return [...primary_fields, ...result_fields, ...data_fields];
+	}
+
+	get_result_fields() {
+		const show_next_page = () => { this.start += 20; this.get_results(); }
+		return [
 			{
-				fieldtype: "Button", fieldname: "more_btn", label: __("More"),
-				click: () => {
-					this.start += 20;
-					this.get_results();
-				}
+				fieldtype: "HTML", fieldname: "results_area"
+			},
+			{
+				fieldtype: "Button", fieldname: "more_btn",
+				label: __("More"), click: show_next_page
 			}
-		]);
+		];
+	}
 
-		// Custom Data Fields
-		if (this.data_fields) {
-			fields.push({ fieldtype: "Section Break" });
-			fields = fields.concat(this.data_fields);
+	get_data_fields() {
+		if (this.data_fields && this.data_fields.length) {
+			// Custom Data Fields
+			return [
+				{ fieldtype: "Section Break" },
+				...this.data_fields
+			];
+		} else {
+			return [];
 		}
+	}
 
+
+	make() {
 		let doctype_plural = this.doctype.plural();
+		let title = __("Select {0}", [this.for_select ? __("value") : __(doctype_plural)])
 
 		this.dialog = new frappe.ui.Dialog({
-			title: __("Select {0}", [(this.doctype == '[Select]') ? __("value") : __(doctype_plural)]),
-			fields: fields,
+			title: title,
+			fields: this.fields,
 			primary_action_label: this.primary_action_label || __("Get Items"),
-			secondary_action_label: __("Make {0}", [__(me.doctype)]),
-			primary_action: function () {
-				let filters_data = me.get_custom_filters();
-				me.action(me.get_checked_values(), cur_dialog.get_values(), me.args, filters_data);
+			secondary_action_label: __("Make {0}", [__(this.doctype)]),
+			primary_action: () => {
+				let filters_data = this.get_custom_filters();
+				this.action(this.get_checked_values(), cur_dialog.get_values(), this.args, filters_data);
 			},
-			secondary_action: function (e) {
+			secondary_action: (e) => {
 				// If user wants to close the modal
 				if (e) {
-					frappe.route_options = {};
-					if (Array.isArray(me.setters)) {
-						for (let df of me.setters) {
-							frappe.route_options[df.fieldname] = me.dialog.fields_dict[df.fieldname].get_value() || undefined;
-						}
-					} else {
-						Object.keys(me.setters).forEach(function (setter) {
-							frappe.route_options[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
-						});
-					}
-
-					frappe.new_doc(me.doctype, true);
+					this.set_route_options();
+					frappe.new_doc(this.doctype, true);
 				}
 			}
 		});
@@ -70,18 +78,35 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			this.make_filter_area();
 		}
 
+		this.args = {};
+
+		this.setup_results();
+		this.bind_events();
+		this.get_results();
+		this.dialog.show();
+	}
+
+	set_route_options() {
+		// set route options to get pre-filled form fields
+		frappe.route_options = {};
+		if (Array.isArray(this.setters)) {
+			for (let df of this.setters) {
+				frappe.route_options[df.fieldname] = this.dialog.fields_dict[df.fieldname].get_value() || undefined;
+			}
+		} else {
+			Object.keys(this.setters).forEach(setter => {
+				frappe.route_options[setter] = this.dialog.fields_dict[setter].get_value() || undefined;
+			});
+		}
+	}
+
+	setup_results() {
 		this.$parent = $(this.dialog.body);
 		this.$wrapper = this.dialog.fields_dict.results_area.$wrapper.append(`<div class="results"
 			style="border: 1px solid #d1d8dd; border-radius: 3px; height: 300px; overflow: auto;"></div>`);
 
 		this.$results = this.$wrapper.find('.results');
 		this.$results.append(this.make_list_row());
-
-		this.args = {};
-
-		this.bind_events();
-		this.get_results();
-		this.dialog.show();
 	}
 
 	get_primary_filters() {
@@ -94,7 +119,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		columns[0] = [
 			{
 				fieldtype: "Data",
-				label: __("Search"),
+				label: __("Name"),
 				fieldname: "search_term"
 			}
 		];
