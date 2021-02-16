@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "creation": "2017-11-18 15:36:09.676722",
  "doctype": "DocType",
@@ -82,6 +83,7 @@
    "label": "Identity Details"
   },
   {
+   "depends_on": "eval:doc.social_login_provider==\"Custom\"",
    "fieldname": "icon",
    "fieldtype": "Data",
    "label": "Icon"
@@ -157,7 +159,9 @@
    "label": "User ID Property"
   }
  ],
- "modified": "2019-12-03 13:13:46.989099",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2020-09-30 14:37:13.616002",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Social Login Key",

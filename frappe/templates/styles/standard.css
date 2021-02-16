@@ -5,11 +5,12 @@
 	}
 	.print-format {
 		background-color: white;
-		box-shadow: 0px 0px 9px rgba(0,0,0,0.5);
+		border-radius: 8px;
 		max-width: 8.3in;
 		min-height: 11.69in;
 		padding: 0.75in;
-	    margin: auto;
+		margin: auto;
+		color: var(--gray-900);
 	}
 
 	.print-format.landscape {
@@ -18,13 +19,13 @@
 	}
 
 	.page-break {
-		padding: 30px 0px;
+		/* padding: 15px 0px; */
 		border-bottom: 1px dashed #888;
 	}
 
-	.page-break:first-child {
+	/* .page-break:first-child {
 		padding-top: 0px;
-	}
+	} */
 
 	.page-break:last-child {
 		border-bottom: 0px;
@@ -73,6 +74,7 @@
 }
 
 .table {
+	font-size: inherit;
 	margin: 20px 0px;
 }
 
@@ -126,6 +128,7 @@ table.no-border, table.no-border td {
 .print-format label {
 	/* wkhtmltopdf breaks label into multiple lines when it is inline-block */
 	display: block;
+	font-weight: 700;
 }
 
 .print-format img {
@@ -175,6 +178,6 @@ table td div {
 	max-height: 150px;
 }
 
-.print-preview [data-fieldtype="Table"] {
+.print-format-preview [data-fieldtype="Table"] {
 	overflow: auto;
 }

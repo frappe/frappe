@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400px" height="400px" viewBox="0 0 400 400" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<style>
+		polygon {
+			fill: #0E253A;
+		}
+		@media (prefers-color-scheme: dark) {
+			polygon {
+				fill: #0089FF;
+			}
+		}
+    </style>
+    <g id="Artboard" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="favicon" transform="translate(110.000000, 66.000000)" fill="#0089FF" fill-rule="nonzero">
+            <polygon id="Path" points="0 0 0 47.1807692 57.2278846 47.1807692 167.313462 47.1807692 179.203846 47.1807692 179.203846 0"></polygon>
+            <polygon id="Path" points="0 120.297115 0 268.052885 57.2278846 268.052885 57.2278846 167.477885 167.313462 167.477885 167.313462 120.297115 57.2278846 120.297115"></polygon>
+        </g>
+    </g>
+</svg>

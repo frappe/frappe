@@ -1,13 +1,14 @@
 frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
+	trigger_change_on_input_event: false,
 	make_input() {
 		let template  = `
 			<div class="multiselect-list dropdown">
-				<div class="form-control cursor-pointer dropdown-toggle input-sm" data-toggle="dropdown" tabindex=0>
+				<div class="form-control cursor-pointer input-xs" data-toggle="dropdown" tabindex=0>
 					<div class="status-text ellipsis"></div>
 				</div>
 				<ul class="dropdown-menu">
 					<li class="dropdown-input-wrapper">
-						<input type="text" class="form-control input-sm">
+						<input type="text" class="form-control input-xs">
 					</li>
 					<div class="selectable-items">
 					</div>
@@ -210,7 +211,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 					<strong>${option.label}</strong>
 					<div class="small">${option.description}</div>
 				</div>
-				<div><span class="octicon octicon-check text-muted"></span></div>
+				<div class="multiselect-check">${frappe.utils.icon('tick', 'xs')}</div>
 			</li>`;
 		}).join('');
 		if (!html) {
