@@ -75,7 +75,6 @@
 		"public/css/octicons/octicons.css",
 		"public/less/desk.less",
 		"public/less/module.less",
-		"public/less/link_preview.less",
 		"public/less/mobile.less",
 		"public/less/controls.less",
 		"public/less/chat.less",
@@ -223,7 +222,6 @@
 		"public/js/frappe/form/form.js",
 		"public/js/frappe/meta_tag.js"
 	],
-	"css/list.min.css": "public/less/gantt.less",
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
 
@@ -290,7 +288,7 @@
 	"css/web_form.css": [
 		"website/css/web_form.css",
 		"public/css/octicons/octicons.css",
-		"public/less/controls.less",
+		"public/scss/controls.scss",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
 	"css/email.css": "public/scss/email.scss",

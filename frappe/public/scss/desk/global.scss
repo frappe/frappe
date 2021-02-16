@@ -36,6 +36,69 @@ body {
 
 a {
 	color: $text-color;
+	cursor: pointer;
+}
+
+a,
+a:hover,
+a:active,
+a:focus,
+.btn,
+.btn:hover,
+.btn:active,
+.btn:focus {
+	outline: 0;
+}
+
+a.disabled,
+a.disabled:hover {
+	color: var(--text-muted);
+	cursor: default;
+	text-decoration: none;
+}
+
+a.grey,
+.sidebar-section a,
+.control-value a,
+.data-row a {
+	text-decoration: none;
+}
+
+a.grey:hover,
+.sidebar-section a:hover,
+.control-value a:hover,
+.data-row a:hover,
+a.grey:focus,
+.sidebar-section a:focus,
+.control-value a:focus,
+.data-row a:focus {
+	text-decoration: underline;
+}
+
+a.text-muted,
+a.text-extra-muted {
+	text-decoration: none;
+}
+
+a.badge-hover {
+	&:hover .badge,
+	&:focus .badge,
+	&:active .badge {
+		background-color: var(--bg-gray);
+	}
+}
+
+.underline {
+	text-decoration: underline;
+}
+
+.inline-block {
+	display: inline-block;
+}
+
+.bold,
+.strong {
+	font-weight: bold;
 }
 
 pre {
@@ -87,6 +150,23 @@ footer {
 	float: right;
 }
 
+// .border-${position} {
+// 	.border-{$position} {
+// 		border-{$position}: 1px solid var(--border-color);
+// 	}
+// }
+// .border-#{$position} {
+// 	.border-#{$position} {
+// 		border-#{$position}: 1px solid var(--border-color);
+// 	}
+// }
+
+// @include border-(top);
+// @include border-(bottom);
+// @include border-(left);
+// @include border-(right);
+
+
 img {
 	max-width: 100%;
 	height: auto;
@@ -121,10 +201,6 @@ img {
 
 .text-underline {
 	text-decoration: underline;
-}
-
-.text-extra-muted {
-	color: var(--gray-500) !important;
 }
 
 .no-underline {
@@ -471,6 +547,62 @@ body.no-sidebar {
 	text-decoration: underline;
 }
 
+details > summary:focus {
+	outline: none;
+}
+
+.ellipsis {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	vertical-align: middle;
+}
+
+.ellipsis-width {
+	max-width: 200px;
+}
+
+.text-extra-muted {
+	color: var(--gray-500) !important;
+}
+
+.grayscale {
+	-webkit-filter: grayscale(100%);
+	filter: grayscale(100%);
+}
+
+.uppercase {
+	padding-bottom: var(--padding-xs);
+	text-transform: uppercase;
+	font-size: var(--text-sm);
+	letter-spacing: 0.4px;
+	color: var(--text-muted);
+}
+
+.text-regular {
+	font-size: var(--text-base);
+}
+
+.text-medium {
+	font-size: var(--text-md);
+}
+
+.text-small {
+	font-size: var(--text-sm);
+}
+
+.text-large {
+	font-size: var(--text-lg);
+}
+
+.disable-click {
+	pointer-events: none;
+}
+
+.popover-title {
+	display: none;
+}
 
 // REDESIGN TODO: Handling of broken images?
 // img.no-image:before {
