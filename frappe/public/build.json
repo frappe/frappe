@@ -93,14 +93,13 @@
 		"public/scss/print.scss"
 	],
 	"concat:js/libs.min.js": [
-		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
 		"node_modules/vue/dist/vue.min.js",
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
-		"public/js/lib/socket.io.min.js",
+		"node_modules/socket.io-client/dist/socket.io.slim.js",
 		"public/js/lib/jSignature.min.js",
 		"public/js/lib/leaflet/leaflet.js",
 		"public/js/lib/leaflet/leaflet.draw.js",
