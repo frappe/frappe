@@ -39,8 +39,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		avatar_group.click(() => {
 			new frappe.ui.form.AssignmentDialog({
 				assignments: assigned_users,
-				frm: this.frm,
-				remove_action: this.remove.bind(this)
+				frm: this.frm
 			});
 		});
 	},
@@ -84,7 +83,7 @@ frappe.ui.form.AssignTo = Class.extend({
 
 
 frappe.ui.form.AssignToDialog = Class.extend({
-	init: function(opts){
+	init: function(opts) {
 		$.extend(this, opts);
 
 		this.make();
@@ -214,7 +213,6 @@ frappe.ui.form.AssignmentDialog = class {
 	constructor(opts) {
 		this.frm = opts.frm;
 		this.assignments = opts.assignments;
-		this.remove_action = opts.remove_action;
 		this.make();
 	}
 
@@ -223,6 +221,19 @@ frappe.ui.form.AssignmentDialog = class {
 			title: __('Assigned To'),
 			size: 'small',
 			fields: [{
+				'label': 'Assign Users',
+				'fieldname': 'user',
+				'fieldtype': 'Link',
+				'options': 'User',
+				'change': () => {
+					let value = this.dialog.get_value('user');
+					if (this.dialog.get_value('user')) {
+						this.add_assignment(value).then(() => {
+							this.dialog.set_value('user', null);
+						});
+					}
+				}
+			}, {
 				'fieldtype': 'HTML',
 				'fieldname': 'assignment_list'
 			}]
@@ -235,6 +246,26 @@ frappe.ui.form.AssignmentDialog = class {
 			this.update_assignment(assignment);
 		});
 		this.dialog.show();
+	}
+	render(assignments) {
+		this.frm && this.frm.assign_to.render(assignments);
+	}
+	add_assignment(assignment) {
+		return frappe.xcall('frappe.desk.form.assign_to.add', {
+			doctype: this.frm.doctype,
+			name: this.frm.docname,
+			assign_to: [assignment],
+		}).then((assignments) => {
+			this.update_assignment(assignment);
+			this.render(assignments);
+		});
+	}
+	remove_assignment(assignment) {
+		return frappe.xcall('frappe.desk.form.assign_to.remove', {
+			doctype: this.frm.doctype,
+			name: this.frm.docname,
+			assign_to: assignment,
+		});
 	}
 	update_assignment(assignment) {
 		this.assignment_list.append(this.get_assignment_row(assignment));
@@ -256,8 +287,10 @@ frappe.ui.form.AssignmentDialog = class {
 				</span>
 			`);
 			row.find('.remove-btn').click(() => {
-				this.remove_action && this.remove_action(assignment);
-				row.remove();
+				this.remove_assignment(assignment).then((assignments) => {
+					row.remove();
+					this.render(assignments);
+				});
 			});
 		}
 		return row;
