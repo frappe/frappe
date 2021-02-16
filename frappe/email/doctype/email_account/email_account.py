@@ -91,10 +91,17 @@ class EmailAccount(Document):
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 	def before_save(self):
-		if not self.enable_incoming:
+		messages = []
+		as_list = 1
+		if not self.enable_incoming and self.default_incoming:
 			self.default_incoming = False
-		if not self.enable_outgoing:
+			messages.append(_("<b>Default Incoming</b> Unchecked since <b>Enable Incoming</b> was Unchecked"))
+		if not self.enable_outgoing and self.default_outgoing:
 			self.default_outgoing = False
+			messages.append(_("<b>Default Outgoing</b> Unchecked since <b>Enable Outgoing</b> was Unchecked"))
+		if messages:
+			if len(messages) == 1: (as_list, messages) = (0, messages[0])
+			frappe.msgprint(messages, as_list= as_list, indicator='orange', title=_("Defaults Updated"))
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
