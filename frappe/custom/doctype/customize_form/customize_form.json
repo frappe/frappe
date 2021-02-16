@@ -23,6 +23,8 @@
   "allow_import",
   "fields_section_break",
   "fields",
+  "naming_section",
+  "autoname",
   "view_settings_section",
   "title_field",
   "image_field",
@@ -261,6 +263,18 @@
    "fieldtype": "Table",
    "label": "Actions",
    "options": "DocType Action"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "naming_section",
+   "fieldtype": "Section Break",
+   "label": "Naming"
+  },
+  {
+   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>",
+   "fieldname": "autoname",
+   "fieldtype": "Data",
+   "label": "Auto Name"
   }
  ],
  "hide_toolbar": 1,
@@ -269,7 +283,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-09-24 14:16:49.594012",
+ "modified": "2021-02-16 15:22:11.108256",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
