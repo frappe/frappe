@@ -12,41 +12,22 @@ from frappe.core.doctype.doctype.doctype import UniqueFieldnameError, IllegalMan
 
 
 class TestDocType(unittest.TestCase):
-	def new_doctype(self, name, unique=0, depends_on=''):
-		return frappe.get_doc({
-			"doctype": "DocType",
-			"module": "Core",
-			"custom": 1,
-			"fields": [{
-				"label": "Some Field",
-				"fieldname": "some_fieldname",
-				"fieldtype": "Data",
-				"unique": unique,
-				"depends_on": depends_on,
-			}],
-			"permissions": [{
-				"role": "System Manager",
-				"read": 1
-			}],
-			"name": name
-		})
-
 	def test_validate_name(self):
-		self.assertRaises(frappe.NameError, self.new_doctype("_Some DocType").insert)
-		self.assertRaises(frappe.NameError, self.new_doctype("8Some DocType").insert)
-		self.assertRaises(frappe.NameError, self.new_doctype("Some (DocType)").insert)
+		self.assertRaises(frappe.NameError, new_doctype("_Some DocType").insert)
+		self.assertRaises(frappe.NameError, new_doctype("8Some DocType").insert)
+		self.assertRaises(frappe.NameError, new_doctype("Some (DocType)").insert)
 		for name in ("Some DocType", "Some_DocType"):
 			if frappe.db.exists("DocType", name):
 				frappe.delete_doc("DocType", name)
 
-			doc = self.new_doctype(name).insert()
+			doc = new_doctype(name).insert()
 			doc.delete()
 
 	def test_doctype_unique_constraint_dropped(self):
 		if frappe.db.exists("DocType", "With_Unique"):
 			frappe.delete_doc("DocType", "With_Unique")
 
-		dt = self.new_doctype("With_Unique", unique=1)
+		dt = new_doctype("With_Unique", unique=1)
 		dt.insert()
 
 		doc1 = frappe.new_doc("With_Unique")
@@ -67,7 +48,7 @@ class TestDocType(unittest.TestCase):
 		doc2.delete()
 
 	def test_validate_search_fields(self):
-		doc = self.new_doctype("Test Search Fields")
+		doc = new_doctype("Test Search Fields")
 		doc.search_fields = "some_fieldname"
 		doc.insert()
 		self.assertEqual(doc.name, "Test Search Fields")
@@ -85,7 +66,7 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(frappe.ValidationError, doc.save)
 
 	def test_depends_on_fields(self):
-		doc = self.new_doctype("Test Depends On", depends_on="eval:doc.__islocal == 0")
+		doc = new_doctype("Test Depends On", depends_on="eval:doc.__islocal == 0")
 		doc.insert()
 
 		# check if the assignment operation is allowed in depends_on
@@ -230,7 +211,7 @@ class TestDocType(unittest.TestCase):
 			frappe.flags.allow_doctype_export = 0
 
 	def test_unique_field_name_for_two_fields(self):
-		doc = self.new_doctype('Test Unique Field')
+		doc = new_doctype('Test Unique Field')
 		field_1 = doc.append('fields', {})
 		field_1.fieldname  = 'some_fieldname_1'
 		field_1.fieldtype = 'Data'
@@ -242,7 +223,7 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(UniqueFieldnameError, doc.insert)
 
 	def test_fieldname_is_not_name(self):
-		doc = self.new_doctype('Test Name Field')
+		doc = new_doctype('Test Name Field')
 		field_1 = doc.append('fields', {})
 		field_1.label  = 'Name'
 		field_1.fieldtype = 'Data'
@@ -252,7 +233,7 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(InvalidFieldNameError, doc.save)
 
 	def test_illegal_mandatory_validation(self):
-		doc = self.new_doctype('Test Illegal mandatory')
+		doc = new_doctype('Test Illegal mandatory')
 		field_1 = doc.append('fields', {})
 		field_1.fieldname  = 'some_fieldname_1'
 		field_1.fieldtype = 'Section Break'
@@ -261,7 +242,7 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(IllegalMandatoryError, doc.insert)
 
 	def test_link_with_wrong_and_no_options(self):
-		doc = self.new_doctype('Test link')
+		doc = new_doctype('Test link')
 		field_1 = doc.append('fields', {})
 		field_1.fieldname  = 'some_fieldname_1'
 		field_1.fieldtype = 'Link'
@@ -273,7 +254,7 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(WrongOptionsDoctypeLinkError, doc.insert)
 
 	def test_hidden_and_mandatory_without_default(self):
-		doc = self.new_doctype('Test hidden and mandatory')
+		doc = new_doctype('Test hidden and mandatory')
 		field_1 = doc.append('fields', {})
 		field_1.fieldname  = 'some_fieldname_1'
 		field_1.fieldtype = 'Data'
@@ -283,10 +264,36 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(HiddenAndMandatoryWithoutDefaultError, doc.insert)
 
 	def test_field_can_not_be_indexed_validation(self):
-		doc = self.new_doctype('Test index')
+		doc = new_doctype('Test index')
 		field_1 = doc.append('fields', {})
 		field_1.fieldname  = 'some_fieldname_1'
 		field_1.fieldtype = 'Long Text'
 		field_1.search_index = 1
 
 		self.assertRaises(CannotIndexedError, doc.insert)
+
+def new_doctype(name, unique=0, depends_on='', fields=None):
+	"""Returns a new DocType."""
+	doc =  frappe.get_doc({
+		"doctype": "DocType",
+		"module": "Core",
+		"custom": 1,
+		"fields": [{
+			"label": "Some Field",
+			"fieldname": "some_fieldname",
+			"fieldtype": "Data",
+			"unique": unique,
+			"depends_on": depends_on,
+		}],
+		"permissions": [{
+			"role": "System Manager",
+			"read": 1
+		}],
+		"name": name
+	})
+
+	if fields:
+		for f in fields:
+			doc.append('fields', f)
+
+	return doc
