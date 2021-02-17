@@ -704,6 +704,7 @@ frappe.provide("frappe.views");
 			name: card.name,
 			title: card[state.card_meta.title_field.fieldname],
 			creation: moment(card.creation).format('MMM DD, YYYY'),
+			_liked_by: card._liked_by,
 			tags: card._user_tags,
 			column: card[state.board.field_name],
 			assigned_list: card.assigned_list || assigned_list,
