@@ -32,7 +32,7 @@
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
 		min-height: calc(100vh - 250px);
-		max-height: calc(75vh - 10px);
+		max-height: calc(100vh - (var(--navbar-height) + var(--page-bottom-margin) + 80px));
 
 		.add-card {
 			@include flex(flex, center, center, null);
@@ -171,6 +171,10 @@
 			&:focus {
 				text-decoration: none;
 			}
+		}
+
+		&:last-child .kanban-card {
+			margin-bottom: var(--margin-xl);
 		}
 	}
 
