@@ -210,7 +210,7 @@ def get_pages_from_path(start, app, app_path):
 				if not '.' in fname:
 					continue
 				page_name, extn = fname.rsplit(".", 1)
-				if extn in ('js', 'css') and os.path.exists(os.path.join(basepath, fname + '.html')):
+				if extn in ('js', 'css') and os.path.exists(os.path.join(basepath, page_name + '.html')):
 					# js, css is linked to html, skip
 					continue
 
