@@ -723,7 +723,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			signature = res.message.signature;
 		}
 
-		if(!frappe.utils.is_html(signature)) {
+		if (signature && !frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 
