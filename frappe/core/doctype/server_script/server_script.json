@@ -8,6 +8,7 @@
  "field_order": [
   "script_type",
   "reference_doctype",
+  "event_type",
   "doctype_event",
   "api_method",
   "allow_guest",
@@ -84,11 +85,19 @@
   {
    "fieldname": "help_html",
    "fieldtype": "HTML"
+  },
+  {
+   "depends_on": "eval:doc.script_type == \"Scheduler Event\"",
+   "fieldname": "event_type",
+   "fieldtype": "Select",
+   "label": "Event Type",
+   "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
+   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-01-03 18:50:14.767595",
+ "modified": "2021-02-17 15:52:13.070441",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
