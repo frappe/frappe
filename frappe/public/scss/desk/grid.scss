@@ -421,3 +421,12 @@
 	margin-right: 8px;
 	margin-bottom: 4px;
 }
+
+
+@media (max-width: map-get($grid-breakpoints, "sm")) {
+	.form-in-grid .form-section .form-column {
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+}
+

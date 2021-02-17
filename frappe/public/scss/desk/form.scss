@@ -370,80 +370,14 @@
 // mobile
 @media (max-width: map-get($grid-breakpoints, "sm")) {
 	// padding to form section on mobile
-	.form-section {
-		.section-head {
-			padding: 15px 15px 15px 0px;
-		}
-		.section-body {
-			margin-top: -15px;
-		}
-		.section-body .form-column:first-child {
-			.radio,
-			.checkbox {
-				margin-top: 0;
-			}
-		}
-		padding-left: 0px !important;
-		padding-right: 0px !important;
-	}
 
-	.form-column {
+	.form-column:not(:last-child) {
 		border-bottom: 1px solid var(--border-color);
-		padding-top: 15px;
-		padding-bottom: 15px;
+	}
+	.form-column:not(:first-child) {
+		padding-top: var(--padding-md);
 	}
 
-	.form-column:last-child {
-		border-bottom: none;
-	}
 
-	// forms
-	.form-page {
-		&.second-page {
-			border-top: 1px solid var(--border-color);
-		}
 
-		.form-section {
-			padding: 0px 15px;
-		}
-
-		.frappe-control {
-			padding: 7px 15px;
-			border-bottom: 1px solid var(--border-color);
-			margin: 0px -15px;
-
-			.link-btn {
-				top: -2px;
-			}
-
-			&:last-child {
-				margin-bottom: 0px;
-				border-bottom: 0px;
-			}
-		}
-
-		.frappe-control[data-fieldtype="Table"] {
-			padding: 0px 15px;
-			margin-top: -1px;
-			margin-left: -17px;
-			margin-right: -17px;
-			border-bottom: none;
-
-			label {
-				margin-top: 7px;
-			}
-		}
-
-		.form-control {
-			height: auto;
-			margin-bottom: 7px;
-
-			// make all fields left-aligned!
-			text-align: left !important;
-		}
-
-		.form-control:focus {
-			box-shadow: none;
-		}
-	}
 }
