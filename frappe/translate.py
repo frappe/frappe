@@ -600,7 +600,7 @@ def write_csv_file(path, app_messages, lang_dict):
 			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
 			w.writerow([p if p else '', m, t])
 
-def get_untranslated(lang, untranslated_file, get_all=False, for_app = None):
+def get_untranslated(lang, untranslated_file, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file
 
 	:param lang: Language code.
@@ -612,8 +612,7 @@ def get_untranslated(lang, untranslated_file, get_all=False, for_app = None):
 	messages = []
 	untranslated = []
 	for app in apps:
-		if not for_app or for_app == app:
-			messages.extend(get_messages_for_app(app))
+		messages.extend(get_messages_for_app(app))
 
 	messages = deduplicate_messages(messages)
 
