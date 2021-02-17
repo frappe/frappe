@@ -50,13 +50,6 @@ a:focus,
 	outline: 0;
 }
 
-a.disabled,
-a.disabled:hover {
-	color: var(--text-muted);
-	cursor: default;
-	text-decoration: none;
-}
-
 a.grey,
 .sidebar-section a,
 .control-value a,
@@ -73,6 +66,13 @@ a.grey:focus,
 .control-value a:focus,
 .data-row a:focus {
 	text-decoration: underline;
+}
+
+a.disabled,
+a.disabled:hover {
+	color: var(--text-muted);
+	cursor: default;
+	text-decoration: none;
 }
 
 a.text-muted,
