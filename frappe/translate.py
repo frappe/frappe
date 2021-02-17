@@ -113,14 +113,7 @@ def get_dict(fortype, name=None):
 		elif fortype=="jsfile":
 			messages = get_messages_from_file(name)
 		elif fortype=="boot":
-			messages = []
-			apps = frappe.get_all_apps(True)
-			for app in apps:
-				messages.extend(get_server_messages(app))
-			messages = deduplicate_messages(messages)
-
-			messages += get_messages_from_include_files()
-			messages += frappe.db.sql("""select "navbar", item_label from `tabNavbar Item` where item_label is not null""")
+			messages = get_messages_from_include_files()
 			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
@@ -471,7 +464,7 @@ def get_server_messages(app):
 	messages = []
 	file_extensions = ('.py', '.html', '.js', '.vue')
 	for basepath, folders, files in os.walk(frappe.get_pymodule_path(app)):
-		for dontwalk in (".git", "locale"):
+		for dontwalk in (".git", "public", "locale"):
 			if dontwalk in folders: folders.remove(dontwalk)
 
 		for f in files:
