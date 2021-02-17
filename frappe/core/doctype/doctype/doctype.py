@@ -396,8 +396,8 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""", (new, new, old))
 		else:
 			frappe.db.multisql({
-				"mariadb": f"RENAME TABLE `tab{old}` TO `tab{new}`",
-				"postgres": f"ALTER TABLE `tab{old}` RENAME TO `tab{new}`"
+				"mariadb": "RENAME TABLE `tab{old}` TO `tab{new}`".format(old=old, new=new),
+				"postgres": "ALTER TABLE `tab{old}` RENAME TO `tab{new}`".format(old=old, new=new)
 			})
 
 

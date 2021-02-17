@@ -403,13 +403,13 @@ def update_parenttype_values(old, new):
 		where
 			doc_type=%s
 			and property='options'
-			and field_name in ("%s")""" % ('%s', '", "'.join(fields)), (new,))
+			and field_name in ('%s')""" % ('%s', '", "'.join(fields)), (new,))
 
 	child_doctypes = list(d['options'] for d in child_doctypes)
 	child_doctypes += property_setter_child_doctypes
 
 	for doctype in child_doctypes:
-		frappe.db.sql(f"update `tab{doctype}` set parenttype=%s where parenttype=%s", (new, old))
+		frappe.db.sql("update `tab{doctype}` set parenttype=%s where parenttype=%s".format(doctype=doctype), (new, old))
 
 def rename_dynamic_links(doctype, old, new):
 	for df in get_dynamic_link_map().get(doctype, []):
