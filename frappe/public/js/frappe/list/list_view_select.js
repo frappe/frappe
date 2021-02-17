@@ -51,10 +51,15 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				action: () => this.set_route("report"),
 				current_view_handler: () => {
 					const reports = this.get_reports();
-					this.setup_dropdown_in_sidebar("Report", reports, {
-						label: __("Report Builder"),
-						action: () => this.set_route("report")
-					});
+					let default_action = {};
+					// Only add action if current route is not report builder
+					if (frappe.get_route().length > 3) {
+						default_action = {
+							label: __("Report Builder"),
+							action: () => this.set_route("report")
+						};
+					}
+					this.setup_dropdown_in_sidebar("Report", reports, default_action);
 				}
 			},
 			Dashboard: {
