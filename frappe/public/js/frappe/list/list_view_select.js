@@ -152,8 +152,9 @@ frappe.views.ListViewSelect = class ListViewSelect {
 						${__("No {} Found", [view])}
 				</div>`;
 		} else {
+			const page_name = this.get_page_name();
 			items.map(item => {
-				if (item.name == this.get_page_name()) {
+				if (item.name.toLowerCase() == page_name.toLowerCase()) {
 					placeholder = item.name;
 				}
 				html += `<li><a class="dropdown-item" href="${item.route}">${
