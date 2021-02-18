@@ -34,9 +34,20 @@ def get_controller(doctype):
 	from frappe.utils.nestedset import NestedSet
 	global _classes
 
+<<<<<<< HEAD
 	if not doctype in _classes:
 		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
+=======
+	def _get_controller():
+		from frappe.model.document import Document
+		from frappe.utils.nestedset import NestedSet
+
+		module_name, custom = (
+			frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True)
+			or frappe.db.get_value("DocType", doctype, ("module", "custom"))
+>>>>>>> 05712abc60... fix: Check for db value if cache doesn't exist
 			or ["Core", False]
+		)
 
 		if custom:
 			if frappe.db.field_exists("DocType", "is_tree"):
