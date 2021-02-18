@@ -420,14 +420,17 @@ class BaseDocument(object):
 		raise frappe.UniqueValidationError(self.doctype, self.name, e)
 
 	def get_field_name_by_key_name(self, key_name):
-		"""MariaDB stores a mapping between key_name and column_name.
-		This function returns the column_name associated with the key_name passed
+		"""MariaDB stores a mapping between `key_name` and `column_name`.
+		This function returns the `column_name` associated with the `key_name` passed
 
 		Args:
-			key_name ([String])
+			key_name (str): The name of the database index.
+			
+		Raises:
+			IndexError: If the key is not found in the table.
 
 		Returns:
-			[String]: [column_name associated with the String]
+			str: The column name associated with the key.
 		"""
 		return frappe.db.sql(f"""
 			SHOW
@@ -444,10 +447,10 @@ class BaseDocument(object):
 		"""Returns the associated label for fieldname
 
 		Args:
-			fieldname ([String])
+			fieldname (str): The fieldname in the DocType to use to pull the label.
 
 		Returns:
-			[String]: [label associated with the String]
+			str: The label associated with the fieldname, if found, otherwise `None`.
 		"""
 		df = self.meta.get_field(fieldname)
 		if df:
