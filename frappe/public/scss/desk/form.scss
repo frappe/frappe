@@ -296,7 +296,7 @@
 		}
 	}
 
-	@media (max-width: map-get($grid-breakpoints, "sm")) {
+	@media (max-width: map-get($grid-breakpoints, "md")) {
 		overflow: hidden;
 		overflow-x: scroll;
 	}
