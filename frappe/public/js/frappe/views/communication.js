@@ -596,8 +596,8 @@ frappe.views.CommunicationComposer = Class.extend({
 			localforage.setItem(this.frm.doctype + this.frm.docname, message).catch(e => {
 				if (e) {
 					// silently fail
-					console.log(e);
-					console.warn('[Communication] localStorage is full. Cannot save message as draft');
+					console.log(e); // eslint-disable-line
+					console.warn('[Communication] localStorage is full. Cannot save message as draft'); // eslint-disable-line
 				}
 			});
 
@@ -606,11 +606,11 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	delete_saved_draft() {
 		if (this.dialog) {
-			localforage.getItem(this.frm.doctype + this.frm.docname, message).catch(e => {
+			localforage.getItem(this.frm.doctype + this.frm.docname).catch(e => {
 				if (e) {
 					// silently fail
-					console.log(e);
-					console.warn('[Communication] localStorage is full. Cannot save message as draft');
+					console.log(e); // eslint-disable-line
+					console.warn('[Communication] localStorage is full. Cannot save message as draft'); // eslint-disable-line
 				}
 			});
 		}
