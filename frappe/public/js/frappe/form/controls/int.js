@@ -1,5 +1,10 @@
 frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
+<<<<<<< HEAD
 	make: function() {
+=======
+	trigger_change_on_input_event: false,
+	make: function () {
+>>>>>>> 82c8bbbacd... fix: Disable trigger_change_on_input_event to avoid unexpected behavior (#12429)
 		this._super();
 		// $(this.label_area).addClass('pull-right');
 		// $(this.disp_area).addClass('text-right');
