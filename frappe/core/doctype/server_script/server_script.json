@@ -8,7 +8,7 @@
  "field_order": [
   "script_type",
   "reference_doctype",
-  "event_type",
+  "event_frequency",
   "doctype_event",
   "api_method",
   "allow_guest",
@@ -88,16 +88,21 @@
   },
   {
    "depends_on": "eval:doc.script_type == \"Scheduler Event\"",
-   "fieldname": "event_type",
+   "fieldname": "event_frequency",
    "fieldtype": "Select",
-   "label": "Event Type",
+   "label": "Event Frequency",
    "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
    "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long"
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2021-02-17 15:52:13.070441",
+ "links": [
+  {
+   "link_doctype": "Scheduled Job Type",
+   "link_fieldname": "server_script"
+  }
+ ],
+ "modified": "2021-02-18 12:36:19.803425",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
