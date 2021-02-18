@@ -289,6 +289,8 @@ textarea.form-control {
 	display: inline-block;
 	margin-right: var(--margin-xs);
 	margin-bottom: var(--margin-xs);
+	box-shadow: none;
+	border: 1px solid var(--dark-border-color);
 }
 
 .barcode-scanner {
@@ -412,4 +414,19 @@ textarea.form-control {
 	border-radius: 3px;
 	margin-top: 5px;
 	max-height: 150px;
+}
+
+button.data-pill {
+	.icon {
+		margin-left: var(--margin-xs);
+		margin-right: 0;
+	}
+	display: flex;
+	height: var(--btn-height);
+	background-color: var(--fg-color);
+	border-radius: var(--border-radius);
+	padding: calc(var(--padding-xs) - 2px) var(--padding-sm);
+	color: var(--text-color);
+	justify-content: space-between;
+	align-items: center;
 }
