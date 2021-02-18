@@ -34,8 +34,11 @@ def get_controller(doctype):
 		from frappe.model.document import Document
 		from frappe.utils.nestedset import NestedSet
 
-		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
+		module_name, custom = (
+			frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True)
+			or frappe.db.get_value("DocType", doctype, ("module", "custom"))
 			or ["Core", False]
+		)
 
 		if custom:
 			if frappe.db.field_exists("DocType", "is_tree"):
