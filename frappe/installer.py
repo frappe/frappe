@@ -218,6 +218,7 @@ def _add_tenant(site, tenant_name, verbose=False, set_as_patched=True):
 	for app in installed_apps:
 		plugin_tenant_specifics_from_app(app, tenant, verbose=False, set_as_patched=set_as_patched)
 
+	post_install(rebuild_website=True)
 	print(f"Scheduler is {scheduler_status} for Tenant {tenant_name}")
 
 def install_app(name, verbose=False, set_as_patched=True):
