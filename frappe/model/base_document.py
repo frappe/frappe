@@ -425,7 +425,7 @@ class BaseDocument(object):
 
 		Args:
 			key_name (str): The name of the database index.
-			
+
 		Raises:
 			IndexError: If the key is not found in the table.
 
@@ -441,7 +441,7 @@ class BaseDocument(object):
 				key_name=%s
 			AND
 				Non_unique=0
-			""", key_name)[0][4]
+			""", key_name, as_dict=True)[0].get("Column_name")
 
 	def get_label_from_fieldname(self, fieldname):
 		"""Returns the associated label for fieldname
