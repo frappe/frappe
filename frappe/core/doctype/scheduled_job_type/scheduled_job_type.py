@@ -69,7 +69,7 @@ class ScheduledJobType(Document):
 	def execute(self):
 		self.scheduler_log = None
 		try:
-			self.log_status('Start')
+			self.log_status('Started')
 			if self.server_script:
 				script_name = frappe.db.get_value("Server Script", self.server_script)
 				if script_name:
@@ -115,6 +115,7 @@ def execute_event(doc):
 	frappe.only_for('System Manager')
 	doc = json.loads(doc)
 	frappe.get_doc('Scheduled Job Type', doc.get('name')).enqueue(force=True)
+	return doc
 
 
 def run_scheduled_job(job_type):
