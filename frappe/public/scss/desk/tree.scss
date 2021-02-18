@@ -1,0 +1,134 @@
+.tree {
+	padding: var(--padding-sm);
+}
+
+.tree li {
+	list-style: none;
+	margin: 2px 0px;
+}
+
+.tree-link {
+	cursor: pointer;
+	display: inline-flex;
+	align-items: flex-end;
+	padding: var(--padding-xs);
+	font-size: $font-size-lg;
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.tree-label {
+	margin-left: var(--margin-sm);
+	line-height: 1.4em;
+}
+
+.tree-children {
+	padding-left: var(--padding-xl);
+	margin-bottom: 0;
+
+	.tree-link {
+		font-size: var(--text-md);
+		font-weight: normal;
+	}
+}
+
+.tree-link .node-parent {
+	color: var(--text-muted);
+	font-size: $font-size-base;
+	// width: 10px;
+	text-align: center;
+}
+
+.tree-link .node-leaf {
+	color: var(--text-muted);
+}
+
+// .tree-link .node-parent, .tree-link .node-leaf {
+// 	margin-right: 10px;
+// }
+
+.tree-link.active {
+	i {
+		color: var(--indicator-blue);
+	}
+
+	a {
+		color: var(--text-color);
+		font-weight: 600;
+	}
+}
+
+.tree-hover {
+	background-color: var(--highlight-color);
+	min-height: 25px;
+	border: 1px solid var(--border-color);
+}
+
+.tree-node-toolbar {
+	display: inline-flex;
+	padding: 0px var(--padding-xs);
+	margin-left: var(--margin-md);
+	margin-bottom: -4px;
+	margin-top: -8px;
+}
+
+// @media (max-width: @screen-xs) {
+// 	.tree-children {
+// 		padding-left: 10px;
+// 	}
+// }
+
+// decoration
+// .tree, .tree-node {
+.tree.with-skeleton, .tree.with-skeleton .tree-node {
+	position: relative;
+
+	// &.opened::before, &:last-child::after {
+	// 	content: '';
+	// 	position: absolute;
+	// 	top: 16px;
+	// 	left: 8px;
+	// 	height: calc(100% - 26px);
+	// 	width: 1px;
+	// 	background: var(--border-color);
+	// }
+
+	// &:last-child::after {
+	// 	top: 11px;
+	// 	left: -13px;
+	// 	height: calc(100% - 15px);
+	// 	width: 3px;
+	// 	background: #fff;
+	// }
+}
+
+// .tree.with-skeleton .tree-children > .tree-node > .tree-link::before {
+// 	content: '';
+// 	position: absolute;
+// 	width: 12px;
+// 	height: 1px;
+// 	top: 10px;
+// 	left: -11px;
+// 	background: var(--border-color);
+// }
+
+// .tree.with-skeleton.opened::before {
+// 	left: 23px;
+// 	top: 33px;
+// 	height: calc(100% - 67px);
+// }
+
+.balance-area {
+	color: var(--text-color) !important;
+	font-size: var(--text-md);
+	padding: var(--padding-xs);
+}
+
+.tree-link.active ~ .balance-area {
+	font-weight: 600;
+}
+
+.tree-node.hover-active {
+	background-color: var(--fg-hover-color);
+	border-radius: var(--border-radius-sm);
+}

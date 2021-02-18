@@ -2,12 +2,12 @@ context('API Resources', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/website');
 	});
 
 	it('Creates two Comments', () => {
-		cy.insert_doc('Comment', {comment_type: 'Comment', content: "hello"});
-		cy.insert_doc('Comment', {comment_type: 'Comment', content: "world"});
+		cy.insert_doc('Comment', { comment_type: 'Comment', content: "hello" });
+		cy.insert_doc('Comment', { comment_type: 'Comment', content: "world" });
 	});
 
 	it('Lists the Comments', () => {

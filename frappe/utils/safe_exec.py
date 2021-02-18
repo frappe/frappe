@@ -72,6 +72,8 @@ def get_safe_globals():
 			time_format=time_format,
 			format_date=frappe.utils.data.global_date_format,
 			form_dict=getattr(frappe.local, 'form_dict', {}),
+			bold=frappe.bold,
+			copy_doc=frappe.copy_doc,
 
 			get_meta=frappe.get_meta,
 			get_doc=frappe.get_doc,
@@ -289,7 +291,10 @@ VALID_UTILS = (
 "strip",
 "to_markdown",
 "md_to_html",
+"markdown",
 "is_subset",
 "generate_hash",
-"formatdate"
+"formatdate",
+"get_user_info_for_avatar",
+"get_abbr"
 )

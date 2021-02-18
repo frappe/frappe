@@ -20,7 +20,7 @@ frappe.ui.form.Sidebar = class {
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 
-		this.comments = this.sidebar.find(".sidebar-comments");
+		this.comments = this.sidebar.find(".form-sidebar-stats .comments");
 		this.user_actions = this.sidebar.find(".user-actions");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
 		this.image_wrapper = this.image_section.find('.sidebar-image-wrapper');
@@ -28,13 +28,10 @@ frappe.ui.form.Sidebar = class {
 		this.make_attachments();
 		this.make_review();
 		this.make_shared();
-		this.make_viewers();
 
 		this.make_tags();
 		this.make_like();
-		if (frappe.boot.user.document_follow_notify) {
-			this.make_follow();
-		}
+		this.make_follow();
 
 		this.bind_events();
 		this.setup_keyboard_shortcuts();
@@ -50,11 +47,11 @@ frappe.ui.form.Sidebar = class {
 
 		// scroll to comments
 		this.comments.on("click", function() {
-			frappe.utils.scroll_to(me.frm.footer.wrapper.find(".form-comments"), true);
+			frappe.utils.scroll_to(me.frm.footer.wrapper.find(".comment-box"), true);
 		});
 
 		this.like_icon.on("click", function() {
-			frappe.ui.toggle_like(me.like_icon, me.frm.doctype, me.frm.doc.name, function() {
+			frappe.ui.toggle_like(me.like_wrapper, me.frm.doctype, me.frm.doc.name, function() {
 				me.refresh_like();
 			});
 		});
@@ -76,10 +73,7 @@ frappe.ui.form.Sidebar = class {
 			this.frm.assign_to.refresh();
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
-			if (frappe.boot.user.document_follow_notify) {
-				this.frm.follow.refresh();
-			}
-			this.frm.viewers.refresh();
+
 			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
 
 			if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
@@ -111,6 +105,8 @@ frappe.ui.form.Sidebar = class {
 				);
 
 			this.refresh_like();
+			this.refresh_follow();
+			this.refresh_comments_count();
 			frappe.ui.form.set_user_image(this.frm);
 		}
 	}
@@ -137,21 +133,17 @@ frappe.ui.form.Sidebar = class {
 		}
 	}
 
-	refresh_comments() {
-		$.map(this.frm.timeline.get_communications(), function(c) {
-			return (c.communication_type==="Communication" || (c.communication_type=="Comment" && c.comment_type==="Comment")) ? c : null;
-		});
-		this.comments.find(".n-comments").html(this.frm.get_docinfo().total_comments);
-	}
-
 	make_tags() {
 		if (this.frm.meta.issingle) {
 			this.sidebar.find(".form-tags").toggle(false);
 			return;
 		}
 
+		let tags_parent = this.sidebar.find(".form-tags");
+
 		this.frm.tags = new frappe.ui.TagEditor({
-			parent: this.sidebar.find(".tag-area"),
+			parent: tags_parent,
+			add_button: tags_parent.find(".add-tags-btn"),
 			frm: this.frm,
 			on_change: function(user_tags) {
 				this.frm.tags && this.frm.tags.refresh(user_tags);
@@ -181,13 +173,6 @@ frappe.ui.form.Sidebar = class {
 		});
 	}
 
-	make_viewers() {
-		this.frm.viewers = new frappe.ui.form.SidebarUsers({
-			frm: this.frm,
-			$wrapper: this.sidebar,
-		});
-	}
-
 	add_user_action(label, click) {
 		return $('<a>').html(label).appendTo($('<li class="user-action-row">')
 			.appendTo(this.user_actions.removeClass("hidden"))).on("click", click);
@@ -200,16 +185,32 @@ frappe.ui.form.Sidebar = class {
 
 	make_like() {
 		this.like_wrapper = this.sidebar.find(".liked-by");
-		this.like_icon = this.sidebar.find(".liked-by .octicon-heart");
-		this.like_count = this.sidebar.find(".liked-by .likes-count");
-		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".liked-by");
+		this.like_icon = this.sidebar.find(".liked-by .like-icon");
+		this.like_count = this.sidebar.find(".liked-by .like-count");
+		frappe.ui.setup_like_popover(this.sidebar.find(".form-stats-likes"), ".like-icon");
 	}
 
 	make_follow() {
-		this.frm.follow = new frappe.ui.form.DocumentFollow({
-			frm: this.frm,
-			parent: this.sidebar.find(".followed-by-section")
+		this.follow_button = this.sidebar.find(".form-sidebar-stats .form-follow");
+
+		this.follow_button.on('click', () => {
+			let is_followed = this.frm.get_docinfo().is_document_followed;
+			frappe.call('frappe.desk.form.document_follow.update_follow', {
+				'doctype': this.frm.doctype,
+				'doc_name': this.frm.doc.name,
+				'following': !is_followed
+			}).then(() => {
+				frappe.model.set_docinfo(this.frm.doctype, this.frm.doc.name, "is_document_followed", !is_followed);
+				this.refresh_follow(!is_followed);
+			});
 		});
+	}
+
+	refresh_follow(follow) {
+		if (follow == null) {
+			follow = this.frm.get_docinfo().is_document_followed;
+		}
+		this.follow_button.text(follow ? __("Unfollow") : __("Follow"));
 	}
 
 	refresh_like() {
@@ -218,24 +219,33 @@ frappe.ui.form.Sidebar = class {
 		}
 
 		this.like_wrapper.attr("data-liked-by", this.frm.doc._liked_by);
-
-		this.like_icon.toggleClass("text-extra-muted not-liked",
-			!frappe.ui.is_liked(this.frm.doc))
+		const liked = frappe.ui.is_liked(this.frm.doc);
+		this.like_wrapper
+			.toggleClass("not-liked", !liked)
+			.toggleClass("liked", liked)
 			.attr("data-doctype", this.frm.doctype)
 			.attr("data-name", this.frm.doc.name);
 
-		this.like_count.text(JSON.parse(this.frm.doc._liked_by || "[]").length);
+		this.like_count && this.like_count.text(JSON.parse(this.frm.doc._liked_by || "[]").length);
+	}
+
+	refresh_comments_count() {
+		let count = (this.frm.get_docinfo().comments || []).length;
+		this.comments.find(".comments-count").html(count);
 	}
 
 	refresh_image() {
 	}
 
 	make_review() {
+		const review_wrapper = this.sidebar.find(".form-reviews");
 		if (frappe.boot.energy_points_enabled && !this.frm.is_new()) {
 			this.frm.reviews = new frappe.ui.form.Review({
-				parent: this.sidebar.find(".form-reviews"),
+				parent: review_wrapper,
 				frm: this.frm
 			});
+		} else {
+			review_wrapper.remove();
 		}
 	}
 
