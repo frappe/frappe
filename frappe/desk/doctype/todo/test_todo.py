@@ -58,7 +58,7 @@ class TestToDo(unittest.TestCase):
 		frappe.set_user('Administrator')
 		admin_data = DatabaseQuery('ToDo').execute()
 
-		self.assertEqual(test_user_data, admin_data)
+		self.assertNotEqual(test_user_data, admin_data)
 
 		frappe.db.rollback()
 
