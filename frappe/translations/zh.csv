@@ -3278,12 +3278,12 @@ Energy Point,能量点,
 Enter Client Id and Client Secret in Google Settings.,在Google设置中输入客户端ID和客户端密钥。,
 Enter Code displayed in OTP App.,输入OTP App中显示的代码。,
 Event Configurations,事件配置,
-Event Consumer,活动消费者,
-Event Consumer Document Type,事件使用者文档类型,
-Event Consumer Document Types,事件消费者文档类型,
-Event Producer,活动制作人,
-Event Producer Document Type,事件生产者文档类型,
-Event Producer Document Types,事件生产者文档类型,
+Event Consumer,事件消费者,
+Event Consumer Document Type,事件消费者单据类型,
+Event Consumer Document Types,事件消费者单据类型,
+Event Producer,事件生产者,
+Event Producer Document Type,事件生产者单据类型,
+Event Producer Document Types,事件生产者单据类型,
 Event Streaming,事件流,
 Event Subscriber,事件订阅者,
 Event Sync Log,事件同步日志,
@@ -4917,3 +4917,11 @@ Report initiated, click to view status,报表已启动，点击查看状态
 Quick Access,快速访问
 Reports & Masters,报表与主数据
 from {0} to {1},从{0} 至 {1}
+User Forum,用户论坛
+Documentation,文档
+Report an Issue,报告一个问题
+About,关于
+Scripting,脚本
+Elements,元素,
+Models,模型
+Permission Manager,角色权限管理
