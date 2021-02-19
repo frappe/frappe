@@ -38,13 +38,13 @@ def import_custom_scripts(app):
 					"custom_scripts") + os.path.sep + fname) as f:
 					doctype = fname.rsplit(".", 1)[0]
 					script = f.read()
-					if frappe.db.exists("Custom Script", {"dt": doctype}):
-						custom_script = frappe.get_doc("Custom Script", {"dt": doctype})
+					if frappe.db.exists("Client Script", {"dt": doctype}):
+						custom_script = frappe.get_doc("Client Script", {"dt": doctype})
 						custom_script.script = script
 						custom_script.save()
 					else:
 						frappe.get_doc({
-							"doctype":"Custom Script",
+							"doctype":"Client Script",
 							"dt": doctype,
 							"script": script
 						}).insert()
