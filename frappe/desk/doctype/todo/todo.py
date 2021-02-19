@@ -92,14 +92,20 @@ def on_doctype_update():
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
-	if any(check in frappe.get_doctype_roles('Todo') for check in frappe.get_roles(user)):
+	todo_roles = frappe.get_doctype_roles('Todo')
+	if 'All' in todo_roles: todo_roles.remove('All')
+
+	if any(check in todo_roles for check in frappe.get_roles(user)):
 		return None
 	else:
 		return """(`tabToDo`.owner = {user} or `tabToDo`.assigned_by = {user})"""\
 			.format(user=frappe.db.escape(user))
 
 def has_permission(doc, user):
-	if any(check in frappe.get_doctype_roles('Todo') for check in frappe.get_roles(user)):
+	todo_roles = frappe.get_doctype_roles('Todo')
+	if 'All' in todo_roles: todo_roles.remove('All')
+
+	if any(check in todo_roles for check in frappe.get_roles(user)):
 		return True
 	else:
 		return doc.owner==user or doc.assigned_by==user
