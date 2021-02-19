@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest
+import frappe, unittest, uuid
 
 from frappe.model.delete_doc import delete_doc
 from frappe.utils.data import today, add_to_date
@@ -239,6 +239,29 @@ class TestUser(unittest.TestCase):
 		self.assertRegex(link, "\/update-password\?key=[A-Za-z0-9]*")
 
 		self.assertRaises(frappe.ValidationError, user.reset_password, False)
+
+	def test_user_rollback(self):
+		""" """
+		frappe.db.commit()
+		frappe.db.begin()
+		user_id = str(uuid.uuid4())
+		email = f'{user_id}@example.com'
+		try:
+			frappe.flags.in_import = True  # disable throttling
+			frappe.get_doc(dict(
+				doctype='User',
+				email=email,
+				first_name=user_id,
+			)).insert()
+		finally:
+			frappe.flags.in_import = False
+
+		# Check user has been added
+		self.assertIsNotNone(frappe.db.get("User", {"email": email}))
+
+		# Check that rollback works
+		frappe.db.rollback()
+		self.assertIsNone(frappe.db.get("User", {"email": email}))
 
 
 def delete_contact(user):

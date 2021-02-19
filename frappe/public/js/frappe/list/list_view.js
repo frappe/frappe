@@ -164,8 +164,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
 		if (match_rules_list.length) {
 			this.restricted_list = $(
-				`<button class="btn btn-default btn-xs restricted-button flex align-center">
-					${frappe.utils.icon('lock', 'xs')}
+				`<button class="btn btn-xs restricted-button flex align-center">
+					${frappe.utils.icon('restriction', 'xs')}
 				</button>`
 			).click(() => this.show_restrictions(match_rules_list)).appendTo(this.page.page_form);
 		}
@@ -676,7 +676,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (col.type === "Tag") {
 			const tags_display_class = !this.tags_shown ? 'hide' : '';
-			let tags_html = doc._user_tags ? this.get_tags_html(doc._user_tags) : '<div class="tags-empty">-</div>';
+			let tags_html = doc._user_tags ? this.get_tags_html(doc._user_tags, 2) : '<div class="tags-empty">-</div>';
 			return `
 				<div class="list-row-col tag-col ${tags_display_class} hidden-xs ellipsis">
 					${tags_html}
@@ -732,7 +732,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				html = df.options ? `<img src="${doc[df.options]}"
 					style="max-height: 30px; max-width: 100%;">`
 					: `<div class="missing-image small">
-						<span class="octicon octicon-circle-slash"></span>
+						${frappe.utils.icon('restriction')}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
 				html = `<span class="filterable indicator-pill ${frappe.utils.guess_colour(
@@ -790,13 +790,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		`;
 	}
 
-	get_tags_html(user_tags) {
+	get_tags_html(user_tags, limit, colored=false) {
 		let get_tag_html = tag => {
+			let color = '', style = '';
 			if (tag) {
-				return `<div class="tag-pill ellipsis" title="${tag}">${tag}</div>`;
+				if (colored) {
+					color = frappe.get_palette(tag);
+					style = `background-color: var(${color[0]}); color: var(${color[1]})`;
+				}
+
+				return `<div class="tag-pill ellipsis" title="${tag}" style="${style}">${tag}</div>`;
 			}
 		};
-		return user_tags.split(',').slice(1, 3).map(get_tag_html).join('');
+		return user_tags.split(',').slice(1, limit + 1).map(get_tag_html).join('');
 	}
 
 	get_meta_html(doc) {

@@ -1305,8 +1305,6 @@ class {
 		this.set_wrapper(selector ? selector : "body")
 		this.set_options(options)
 
-		// Load Emojis.
-		frappe.chat.emoji()
 	}
 
 	/**
@@ -2783,7 +2781,8 @@ frappe.chat.setup  = () => {
 	}
 }
 
-$(document).on('ready toolbar_setup', () =>
-{
-	frappe.chat.setup()
-})
+// TODO: Re-enable after re-designing chat
+// $(document).on('ready toolbar_setup', () =>
+// {
+// 	frappe.chat.setup()
+// })
