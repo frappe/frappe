@@ -23,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.14.0'
+__version__ = '12.15.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -902,6 +902,13 @@ def get_installed_apps(sort=False, frappe_last=False):
 
 	if not db:
 		connect()
+
+	if not hasattr(local, 'all_apps'):
+		local.all_apps = cache().get_value('all_apps', get_all_apps)
+
+		#cache bench apps
+		if not cache().get_value('all_apps'):
+			cache().set_value('all_apps', local.all_apps)
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 

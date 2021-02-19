@@ -2724,11 +2724,11 @@
  },
  "Zimbabwe": {
   "code": "zw",
-  "currency": "ZWD",
-  "currency_fraction": "Thebe",
+  "currency": "ZWL",
+  "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_name": "Zimbabwe Dollar",
-  "currency_symbol": "P",
+  "currency_symbol": "ZWL$",
   "number_format": "# ###.##",
   "timezones": [
    "Africa/Harare"

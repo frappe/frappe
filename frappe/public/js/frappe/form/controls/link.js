@@ -7,6 +7,7 @@
 import Awesomplete from 'awesomplete';
 
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
+	trigger_change_on_input_event: false,
 	make_input: function() {
 		var me = this;
 		// line-height: 1 is for Mozilla 51, shows extra padding otherwise

@@ -1,14 +1,14 @@
 Babel==2.6.0
 beautifulsoup4==4.8.1
 bleach-whitelist==0.0.10
-bleach==3.1.4
+bleach==3.3.0
 boto3==1.10.18
 braintree==3.57.1
 chardet==3.0.4
 Click==7.0
 coverage==4.5.4
 croniter==0.3.30
-cryptography==3.2
+cryptography==3.3.2
 dropbox==9.1.0
 email-reply-parser==0.5.9
 Faker==2.0.4
