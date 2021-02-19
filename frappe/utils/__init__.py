@@ -5,7 +5,7 @@
 
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
-import os, re, sys, json, hashlib, requests, traceback
+import os, re, sys, json, hashlib, traceback
 import functools
 from .html_utils import sanitize_html
 import frappe
@@ -176,6 +176,8 @@ def random_string(length):
 
 def has_gravatar(email):
 	'''Returns gravatar url if user has set an avatar at gravatar.com'''
+	import requests
+
 	if (frappe.flags.in_import
 		or frappe.flags.in_install
 		or frappe.flags.in_test):
@@ -463,6 +465,7 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 def get_request_session(max_retries=3):
+	import requests
 	from urllib3.util import Retry
 	session = requests.Session()
 	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
