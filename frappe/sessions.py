@@ -19,6 +19,7 @@ import redis
 from six.moves.urllib.parse import unquote
 from six import text_type
 from frappe.cache_manager import clear_user_cache
+from frappe.tenant import Tenant
 
 @frappe.whitelist(allow_guest=True)
 def clear(user=None):
@@ -175,6 +176,7 @@ class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(frappe.form_dict.get('sid') or
 			unquote(frappe.request.cookies.get('sid', 'Guest')))
+		self.tenant = get_tenant_from_request()
 		self.user = user
 		self.device = frappe.form_dict.get("device") or "desktop"
 		self.user_type = user_type
@@ -233,6 +235,8 @@ class Session:
 			user.run_notifications("before_change")
 			user.run_notifications("on_update")
 			frappe.db.commit()
+		else:
+			frappe.init_tenant(Tenant.find_guest().id)
 
 	def insert_session_record(self):
 		frappe.db.sql("""insert into `tabSessions`
@@ -250,6 +254,13 @@ class Session:
 		data = self.get_session_record()
 
 		if data:
+			print("------", data, self.sid)
+			if self.is_guest_user():
+				current_tenant = self.tenant if self.tenant else Tenant.find_guest()
+				frappe.init_tenant(current_tenant.id)
+			else:
+				print("-------In else", data)
+				frappe.init_tenant(data.tenant_id)
 			# set language
 			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
 			self.user = data.user
@@ -324,6 +335,9 @@ class Session:
 	def delete_session(self):
 		delete_session(self.sid, reason="Session Expired")
 
+	def is_guest_user(self):
+		return self.sid == 'Guest'
+
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""
 		self.user = "Guest"
@@ -366,6 +380,13 @@ class Session:
 		frappe.cache().hset("session", self.sid, self.data)
 
 		return updated_in_db
+
+
+def get_tenant_from_request():
+	"""
+	"""
+	tenant_name = frappe.request.args.get('tenant') or frappe.form_dict.get('tenant')
+	return Tenant.find(tenant_name) if tenant_name else None
 
 def get_expiry_period_for_query(device=None):
 	if frappe.db.db_type == 'postgres':

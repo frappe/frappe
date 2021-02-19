@@ -264,9 +264,6 @@ CREATE TABLE "tabSessions" (
 );
 
 create index on "tabSessions" ("tenant_id", "sid");
-ALTER TABLE "tabSessions" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "tabSessions_isolation_policy" ON "tabSessions"
-  USING (tenant_id = current_setting('app.current_tenant')::integer);
 
 --
 -- Table structure for table "tabSingles"

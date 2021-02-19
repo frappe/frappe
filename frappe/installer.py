@@ -79,6 +79,11 @@ def _new_site(
 	# Update DB (Apply constraints) post site creation.
 	update_database_post_site_creation()
 
+	# FIXME: Being single tenant system used Guest user records in login flow.
+	# Adding new guest tenant to make this pass through.
+	if frappe.conf.db_type == "postgres":
+		_add_tenant(site, 'Guest')
+
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
