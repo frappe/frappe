@@ -16,7 +16,6 @@ from frappe.utils.password import get_decrypted_password, set_encrypted_password
 from frappe.utils import (cint, flt, now, cstr, strip_html,
 	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.utils.html_utils import unescape_html
-from bs4 import BeautifulSoup
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -704,6 +703,8 @@ class BaseDocument(object):
 
 			- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
+		from bs4 import BeautifulSoup
+
 		if frappe.flags.in_install:
 			return
 
