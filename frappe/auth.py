@@ -423,3 +423,87 @@ def validate_ip_address(user):
 			return
 
 	frappe.throw(_("Access not allowed from this IP Address"), frappe.AuthenticationError)
+
+
+class LoginAttemptTracker(object):
+	"""Track login attemts of a user.
+
+	Lock the account for s number of seconds if there have been n consecutive unsuccessful attempts to log in.
+	"""
+	def __init__(self, user_name: str, max_consecutive_login_attempts: int=3, lock_interval:int = 5*60):
+		""" Initialize the tracker.
+
+		:param user_name: Name of the loggedin user
+		:param max_consecutive_login_attempts: Maximum allowed consecutive failed login attempts
+		:param lock_interval: Locking interval incase of maximum failed attempts
+		"""
+		self.user_name = user_name
+		self.lock_interval = datetime.timedelta(seconds=lock_interval)
+		self.max_failed_logins = max_consecutive_login_attempts
+
+	@property
+	def login_failed_count(self):
+		return frappe.cache().hget('login_failed_count', self.user_name)
+
+	@login_failed_count.setter
+	def login_failed_count(self, count):
+		frappe.cache().hset('login_failed_count', self.user_name, count)
+
+	@login_failed_count.deleter
+	def login_failed_count(self):
+		frappe.cache().hdel('login_failed_count', self.user_name)
+
+	@property
+	def login_failed_time(self):
+		"""First failed login attempt time within lock interval.
+
+		For every user we track only First failed login attempt time within lock interval of time.
+		"""
+		return frappe.cache().hget('login_failed_time', self.user_name)
+
+	@login_failed_time.setter
+	def login_failed_time(self, timestamp):
+		frappe.cache().hset('login_failed_time', self.user_name, timestamp)
+
+	@login_failed_time.deleter
+	def login_failed_time(self):
+		frappe.cache().hdel('login_failed_time', self.user_name)
+
+	def add_failure_attempt(self):
+		""" Log user failure attempts into the system.
+
+		Increase the failure count if new failure is with in current lock interval time period, if not reset the login failure count.
+		"""
+		login_failed_time = self.login_failed_time
+		login_failed_count = self.login_failed_count # Consecutive login failure count
+		current_time = get_datetime()
+
+		if not (login_failed_time and login_failed_count):
+			login_failed_time, login_failed_count = current_time, 0
+
+		if login_failed_time + self.lock_interval > current_time:
+			login_failed_count += 1
+		else:
+			login_failed_time, login_failed_count = current_time, 1
+
+		self.login_failed_time = login_failed_time
+		self.login_failed_count = login_failed_count
+
+	def add_success_attempt(self):
+		"""Reset login failures.
+		"""
+		del self.login_failed_count
+		del self.login_failed_time
+
+	def is_user_allowed(self) -> bool:
+		"""Is user allowed to login
+
+		User is not allowed to login if login failures are greater than threshold within in lock interval from first login failure.
+		"""
+		login_failed_time = self.login_failed_time
+		login_failed_count = self.login_failed_count or 0
+		current_time = get_datetime()
+
+		if login_failed_time and login_failed_time + self.lock_interval > current_time and login_failed_count > self.max_failed_logins:
+			return False
+		return True
