@@ -178,7 +178,7 @@ frappe.views.TreeView = Class.extend({
 			"method": "frappe.utils.nestedset.rebuild_tree",
 			"args": {
 				'doctype': me.doctype,
-				'parent_field': "parent_"+me.doctype.toLowerCase().replace(/ /g,'_'),
+				'parent_field': "parent_"+me.doctype.toLowerCase().replace(/ /g, '_'),
 				'commit': 1
 			},
 			"callback": function(r) {
@@ -186,7 +186,7 @@ frappe.views.TreeView = Class.extend({
 					me.make_tree();
 				}
 			}
-		})
+		});
 	},
 
 	post_render: function() {
@@ -418,7 +418,7 @@ frappe.views.TreeView = Class.extend({
 						me.rebuild_tree();
 					}
 				}
-			)
+			);
 		}
 
 		if (me.opts.menu_items) {
