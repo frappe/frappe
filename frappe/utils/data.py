@@ -550,13 +550,13 @@ def flt(s, precision=None):
 
 	return num
 
-def cint(s):
+def cint(s, default=0):
 	"""Convert to integer
 
 		:param s: Number in string or other numeric format.
 		:returns: Converted number in python integer type.
 
-		Returns 0 if input can not be converted to integer.
+		Returns default if input can not be converted to integer.
 
 		Examples:
 		>>> cint("100")
@@ -565,9 +565,10 @@ def cint(s):
 		0
 
 	"""
-	try: num = int(float(s))
-	except: num = 0
-	return num
+	try:
+		return int(float(s))
+	except Exception:
+		return default
 
 def floor(s):
 	"""
