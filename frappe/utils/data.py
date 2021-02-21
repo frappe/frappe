@@ -8,8 +8,6 @@ from dateutil.parser._parser import ParserError
 import operator
 import json
 import re, datetime, math, time
-import babel.dates
-from babel.core import UnknownLocaleError
 from dateutil import parser
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
@@ -311,6 +309,8 @@ def format_date(string_date=None, format_string=None):
 	* mm-dd-yyyy
 	* dd/mm/yyyy
 	"""
+	import babel.dates
+	from babel.core import UnknownLocaleError
 
 	if not string_date:
 		return ''
@@ -339,6 +339,8 @@ def format_time(time_string=None, format_string=None):
 	* HH:mm:ss
 	* HH:mm
 	"""
+	import babel.dates
+	from babel.core import UnknownLocaleError
 
 	if not time_string:
 		return ''
@@ -363,6 +365,9 @@ def format_datetime(datetime_string, format_string=None):
 	* dd-mm-yyyy HH:mm:ss
 	* mm-dd-yyyy HH:mm
 	"""
+	import babel.dates
+	from babel.core import UnknownLocaleError
+
 	if not datetime_string:
 		return
 
@@ -484,6 +489,8 @@ def get_timespan_date_range(timespan):
 
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
+	import babel.dates
+
 	date = getdate(date)
 	formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format)
 	return formatted_date
