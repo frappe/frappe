@@ -7,7 +7,6 @@ import frappe
 import operator
 import json
 import re, datetime, math, time
-from dateutil import parser
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
 from six import iteritems, text_type, string_types, integer_types
@@ -27,6 +26,7 @@ def getdate(string_date=None):
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object
 	"""
+	from dateutil import parser
 	from dateutil.parser._parser import ParserError
 
 	if not string_date:
@@ -68,6 +68,8 @@ def get_datetime(datetime_str=None):
 		return parser.parse(datetime_str)
 
 def to_timedelta(time_str):
+	from dateutil import parser
+
 	if isinstance(time_str, string_types):
 		t = parser.parse(time_str)
 		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond)
@@ -77,6 +79,7 @@ def to_timedelta(time_str):
 
 def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, as_string=False, as_datetime=False):
 	"""Adds `days` to the given date"""
+	from dateutil import parser
 	from dateutil.parser._parser import ParserError
 	from dateutil.relativedelta import relativedelta
 
@@ -257,6 +260,8 @@ def get_year_ending(date):
 	return add_to_date(date, days=-1)
 
 def get_time(time_str):
+	from dateutil import parser
+
 	if isinstance(time_str, datetime.datetime):
 		return time_str.time()
 	elif isinstance(time_str, datetime.time):
