@@ -47,7 +47,7 @@ def validate_link():
 			except Exception as e:
 				error_message = str(e).split("Unknown column '")
 				fieldname = None if len(error_message)<=1 else error_message[1].split("'")[0]
-				frappe.msgprint(_("Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script").format(fieldname))
+				frappe.msgprint(_("Wrong fieldname <b>{0}</b> in add_fetch configuration of custom client script").format(fieldname))
 				frappe.errprint(frappe.get_traceback())
 
 			if fetch_value:
