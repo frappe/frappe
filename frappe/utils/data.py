@@ -1329,7 +1329,7 @@ def md_to_html(markdown_text):
 
 	html = None
 	try:
-		html = _markdown(markdown_text or '', extras=extras)
+		html = UnicodeWithAttrs(_markdown(markdown_text or '', extras=extras))
 	except MarkdownError:
 		pass
 
@@ -1439,3 +1439,9 @@ def get_user_info_for_avatar(user_id):
 	except Exception:
 		frappe.local.message_log = []
 	return user_info
+
+
+class UnicodeWithAttrs(text_type):
+	def __init__(self, text):
+		self.toc_html = text.toc_html
+		self.metadata = text.metadata
