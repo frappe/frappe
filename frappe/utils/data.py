@@ -7,7 +7,6 @@ import frappe
 import operator
 import json
 import re, datetime, math, time
-from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
 from six import iteritems, text_type, string_types, integer_types
 from frappe.desk.utils import slug
@@ -1319,6 +1318,7 @@ def strip(val, chars=None):
 
 def to_markdown(html):
 	from html2text import html2text
+	from six.moves import html_parser as HTMLParser
 
 	text = None
 	try:
