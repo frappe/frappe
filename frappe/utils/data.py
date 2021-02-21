@@ -11,7 +11,6 @@ import re, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
-from num2words import num2words
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
 from six import iteritems, text_type, string_types, integer_types
@@ -812,6 +811,8 @@ def in_words(integer, in_million=True):
 	"""
 	Returns string in words for the given integer.
 	"""
+	from num2words import num2words
+
 	locale = 'en_IN' if not in_million else frappe.local.lang
 	integer = int(integer)
 	try:
