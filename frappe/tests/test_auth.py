@@ -3,10 +3,8 @@
 from __future__ import unicode_literals
 
 import time
-import frappe, unittest
+import unittest
 from frappe.auth import LoginAttemptTracker
-from werkzeug.wrappers import Response
-from frappe.app import process_response
 
 class TestLoginAttemptTracker(unittest.TestCase):
 	def test_account_lock(self):
