@@ -412,6 +412,12 @@ frappe.ui.form.PrintView = class {
 			<link href="${frappe.urllib.get_base_url()}/assets/css/printview.css" rel="stylesheet">`
 		);
 
+		if (frappe.utils.is_rtl(this.lang_code)) {
+			this.$print_format_body.find('head').append(
+				`<link type="text/css" rel="stylesheet" href="${frappe.urllib.get_base_url()}/assets/css/frappe-rtl.css"></link>`
+			);
+		}
+
 		this.$print_format_body.find('body').html(
 			`<div class="print-format print-format-preview">${out.html}</div>`
 		);

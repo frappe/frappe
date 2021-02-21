@@ -1,6 +1,7 @@
 .form-control {
 	border: none;
 	font-size: var(--text-md);
+	position: relative;
 }
 
 .form-section, .form-dashboard-section {
@@ -21,14 +22,10 @@
 		cursor: pointer;
 
 		.collapse-indicator {
-			color: $text-muted;
+			color: var(--text-muted);
 			margin-left: 10px;
 			position: relative;
 			padding: 0px;
-		}
-
-		.collapse-indicator.octicon-chevron-up {
-			bottom: -2px;
 		}
 	}
 
@@ -75,6 +72,11 @@
 	font-size: var(--text-sm);
 }
 
+.control-label {
+	margin-bottom: var(--margin-xs);
+	font-weight: normal;
+}
+
 .form-inner-toolbar {
 	padding-top: var(--padding-md);
 	text-align: right;
@@ -85,13 +87,17 @@
 }
 
 .like-disabled-input {
+	.for-description {
+		font-weight: normal;
+		font-size: var(--text-sm);
+	}
 	min-height: var(--input-height);
 	border-radius: $border-radius;
 	font-weight: 400;
 	padding: 8px 12px;
 	cursor: default;
 	color: var(--disabled-text-color);
-	background-color: var(--control-bg);
+	background-color: var(--disabled-control-bg);
 }
 
 .form-control:disabled, .form-control[readonly] {
@@ -225,6 +231,19 @@
 	}
 }
 
+.frappe-rtl .inline-graph {
+	direction: ltr;
+	display: block;
+	transform: scaleX(-1);
+	.inline-graph-count {
+		transform: scaleX(-1);
+		text-align: right;
+	}
+	.inline-graph-half:first-child .inline-graph-count {
+		text-align: left;
+	}
+}
+
 @mixin form-message-background($color) {
 	background: var(--bg-#{$color});
 	color: var(--text-on-#{$color});
@@ -263,6 +282,26 @@
 	line-height: 1.6;
 }
 
+.form-heatmap {
+	.heatmap {
+		display: flex;
+		justify-content: center;
+
+		.chart-container {
+			margin: 0px;
+		}
+
+		.chart-legend {
+			display: none;
+		}
+	}
+
+	@media (max-width: map-get($grid-breakpoints, "md")) {
+		overflow: hidden;
+		overflow-x: scroll;
+	}
+}
+
 .form-group {
 	&.frappe-control:last-child {
 		margin-bottom: 0;
@@ -273,6 +312,10 @@
 }
 
 .form-footer {
+	h5 {
+		margin: 15px 0px;
+		font-weight: bold;
+	}
 	position: relative;
 	.scroll-to-top {
 		position: absolute;
@@ -297,4 +340,44 @@
 		font-feature-settings: "tnum" 1;
 		margin-top: 0px;
 	}
+}
+
+// above mobile
+@media (min-width: map-get($grid-breakpoints, "md")) {
+	.layout-main .form-column.col-sm-12 > form > .input-max-width {
+		max-width: 50%;
+		padding-right: 15px;
+	}
+
+	// don't max-width when in form-grid with half width
+	.col-sm-6 .form-grid .form-column.col-sm-12 > form > .input-max-width {
+		max-width: none;
+		padding-right: 0px;
+	}
+
+	.form-column.col-sm-6 textarea[data-fieldtype="Code"] {
+		height: 120px !important;
+	}
+}
+
+// upto tablets
+@media (max-width: map-get($grid-breakpoints, "md")) {
+	.form-section .form-section-heading {
+		margin-top: 10px;
+	}
+}
+
+// mobile
+@media (max-width: map-get($grid-breakpoints, "sm")) {
+	// padding to form section on mobile
+
+	.form-column:not(:last-child) {
+		border-bottom: 1px solid var(--border-color);
+	}
+	.form-column:not(:first-child) {
+		padding-top: var(--padding-md);
+	}
+
+
+
 }

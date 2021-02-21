@@ -317,7 +317,7 @@ class FormTimeline extends BaseTimeline {
 			custom_timeline_contents.push({
 				icon: custom_item.icon,
 				icon_size: 'sm',
-				is_card: custom_item.show_card,
+				is_card: custom_item.is_card,
 				creation: custom_item.creation,
 				content: custom_item.content || frappe.render_template(custom_item.template, custom_item.template_data),
 			});
