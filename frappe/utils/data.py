@@ -14,7 +14,6 @@ from dateutil import parser
 from num2words import num2words
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
-from html2text import html2text
 from six import iteritems, text_type, string_types, integer_types
 from frappe.desk.utils import slug
 
@@ -1305,6 +1304,8 @@ def strip(val, chars=None):
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
 
 def to_markdown(html):
+	from html2text import html2text
+
 	text = None
 	try:
 		text = html2text(html or '')
