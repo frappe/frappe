@@ -180,7 +180,6 @@ frappe.views.TreeView = Class.extend({
 			"args": {
 				'doctype': me.doctype,
 				'parent_field': "parent_"+me.doctype.toLowerCase().replace(/ /g, '_'),
-				'commit': 1
 			},
 			"callback": function(r) {
 				if (!r.exc) {

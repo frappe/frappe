@@ -138,10 +138,15 @@ def update_move_node(doc, parent_field):
 		where lft < 0""".format(doc.doctype), (new_diff, new_diff, n))
 
 @frappe.whitelist()
-def rebuild_tree(doctype, parent_field, commit=0):
+def rebuild_tree(doctype, parent_field):
 	"""
 		call rebuild_node for all root nodes
 	"""
+
+	# Check for perm
+	if not frappe.has_permission(doctype):
+		frappe.msgprint(_("No Permission"), raise_exception=1)
+
 	# get all roots
 	frappe.db.auto_commit_on_many_writes = 1
 
@@ -151,9 +156,6 @@ def rebuild_tree(doctype, parent_field, commit=0):
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
 	frappe.db.auto_commit_on_many_writes = 0
-
-	if commit:
-		frappe.db.commit()
 
 def rebuild_node(doctype, parent, left, parent_field):
 	"""
