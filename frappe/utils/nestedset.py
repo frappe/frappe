@@ -28,25 +28,25 @@ def update_nsm(doc):
 	"""
 
 	# get fields, data from the DocType
-	opf = 'old_parent'
-	pf = "parent_" + frappe.scrub(doc.doctype)
+	old_parent_field = 'old_parent'
+	parent_field = "parent_" + frappe.scrub(doc.doctype)
 
 	if hasattr(doc,'nsm_parent_field'):
-		pf = doc.nsm_parent_field
+		parent_field = doc.nsm_parent_field
 	if hasattr(doc,'nsm_oldparent_field'):
-		opf = doc.nsm_oldparent_field
+		old_parent_field = doc.nsm_oldparent_field
 
-	p, op = doc.get(pf) or None, doc.get(opf) or None
+	parent, old_parent = doc.get(parent_field) or None, doc.get(old_parent_field) or None
 
 	# has parent changed (?) or parent is None (root)
 	if not doc.lft and not doc.rgt:
-		update_add_node(doc, p or '', pf)
-	elif op != p:
-		update_move_node(doc, pf)
+		update_add_node(doc, parent or '', parent_field)
+	elif old_parent != parent:
+		update_move_node(doc, parent_field)
 
 	# set old parent
-	doc.set(opf, p)
-	frappe.db.set_value(doc.doctype, doc.name, opf, p or '', update_modified=False)
+	doc.set(old_parent_field, parent)
+	frappe.db.set_value(doc.doctype, doc.name, old_parent_field, parent or '', update_modified=False)
 
 	doc.reload()
 
@@ -59,7 +59,7 @@ def update_add_node(doc, parent, parent_field):
 		:return right domain value of node #TODO ??
 	"""
 
-	n = now()
+	current_time = now()
 
 	doctype = doc.doctype
 	name = doc.name
@@ -78,9 +78,9 @@ def update_add_node(doc, parent, parent_field):
 
 	# update all on the right
 	frappe.db.sql("update `tab{0}` set rgt = rgt+2, modified=%s where rgt >= %s"
-		.format(doctype), (n, right))
+		.format(doctype), (current_time, right))
 	frappe.db.sql("update `tab{0}` set lft = lft+2, modified=%s where lft >= %s"
-		.format(doctype), (n, right))
+		.format(doctype), (current_time, right))
 
 	# update index of new node
 	if frappe.db.sql("select * from `tab{0}` where lft=%s or rgt=%s".format(doctype), (right, right+1)):
@@ -88,14 +88,14 @@ def update_add_node(doc, parent, parent_field):
 		raise Exception
 
 	frappe.db.sql("update `tab{0}` set lft=%s, rgt=%s, modified=%s where name=%s".format(doctype),
-		(right,right+1, n, name))
+		(right,right+1, current_time, name))
 	return right
 
 
 def update_move_node(doc, parent_field):
 	"""Called when a document is updated to change it's parent.
 	"""
-	n = now()
+	current_time = now()
 	parent = doc.get(parent_field)
 
 	if parent:
@@ -106,16 +106,16 @@ def update_move_node(doc, parent_field):
 
 	# move to dark side
 	frappe.db.sql("""update `tab{0}` set lft = -lft, rgt = -rgt, modified=%s
-		where lft >= %s and rgt <= %s""".format(doc.doctype), (n, doc.lft, doc.rgt))
+		where lft >= %s and rgt <= %s""".format(doc.doctype), (current_time, doc.lft, doc.rgt))
 
 	# shift left
 	diff = doc.rgt - doc.lft + 1
 	frappe.db.sql("""update `tab{0}` set lft = lft -%s, rgt = rgt - %s, modified=%s
-		where lft > %s""".format(doc.doctype), (diff, diff, n, doc.rgt))
+		where lft > %s""".format(doc.doctype), (diff, diff, current_time, doc.rgt))
 
 	# shift left rgts of ancestors whose only rgts must shift
 	frappe.db.sql("""update `tab{0}` set rgt = rgt - %s, modified=%s
-		where lft < %s and rgt > %s""".format(doc.doctype), (diff, n, doc.lft, doc.rgt))
+		where lft < %s and rgt > %s""".format(doc.doctype), (diff, current_time, doc.lft, doc.rgt))
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab%s`
@@ -124,16 +124,16 @@ def update_move_node(doc, parent_field):
 
 		# set parent lft, rgt
 		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s, modified=%s
-			where name = %s""".format(doc.doctype), (diff, n, parent))
+			where name = %s""".format(doc.doctype), (diff, current_time, parent))
 
 		# shift right at new parent
 		frappe.db.sql("""update `tab{0}` set lft = lft + %s, rgt = rgt + %s, modified=%s
-			where lft > %s""".format(doc.doctype), (diff, diff, n, new_parent.rgt))
+			where lft > %s""".format(doc.doctype), (diff, diff, current_time, new_parent.rgt))
 
 		# shift right rgts of ancestors whose only rgts must shift
 		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s, modified=%s
 			where lft < %s and rgt > %s""".format(doc.doctype),
-			(diff, n, new_parent.lft, new_parent.rgt))
+			(diff, current_time, new_parent.lft, new_parent.rgt))
 
 
 		new_diff = new_parent.rgt - doc.lft
@@ -144,7 +144,7 @@ def update_move_node(doc, parent_field):
 
 	# bring back from dark side
 	frappe.db.sql("""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s, modified=%s
-		where lft < 0""".format(doc.doctype), (new_diff, new_diff, n))
+		where lft < 0""".format(doc.doctype), (new_diff, new_diff, current_time))
 
 def rebuild_tree(doctype, parent_field):
 	"""Reset lft and rgt domain values for all documents of specified DocType.
@@ -171,7 +171,7 @@ def rebuild_node(doctype, parent, left, parent_field):
 	"""
 
 	from frappe.utils import now
-	n = now()
+	current_time = now()
 
 	# the right value of this node is the left value + 1
 	right = left+1
@@ -185,7 +185,7 @@ def rebuild_node(doctype, parent, left, parent_field):
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
 	frappe.db.sql("""UPDATE `tab{0}` SET lft=%s, rgt=%s, modified=%s
-		WHERE name=%s""".format(doctype), (left,right,n,parent))
+		WHERE name=%s""".format(doctype), (left,right,current_time,parent))
 
 	#return the right value of this node + 1
 	return right+1
