@@ -1,15 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-# Tree (Hierarchical) Nested Set Model (nsm)
-#
-# To use the nested set model,
-# use the following pattern
-# 1. name your parent field as "parent_item_group" if not have a property nsm_parent_field as your field name in the document class
-# 2. have a field called "old_parent" in your fields list - this identifies whether the parent has been changed
-# 3. call update_nsm(doc_obj) in the on_upate method
+""" Classes and utility functions related to NestedSet.
 
-# ------------------------------------------
+	Nested sets are used in Frappe Framework for modelling Tree like DocTypes
+	Checking `is tree` checkbox while creating a new DocType that inherits from NestedSet.
+"""
+
 from __future__ import unicode_literals
 
 import frappe
@@ -22,8 +19,14 @@ class NestedSetMultipleRootsError(frappe.ValidationError): pass
 class NestedSetChildExistsError(frappe.ValidationError): pass
 class NestedSetInvalidMergeError(frappe.ValidationError): pass
 
-# called in the on_update method
+
 def update_nsm(doc):
+	"""Update Nested Set Model.
+
+		Called by NestedSet.on_update.
+		When the document is updated, update parent information.
+	"""
+
 	# get fields, data from the DocType
 	opf = 'old_parent'
 	pf = "parent_" + frappe.scrub(doc.doctype)
@@ -48,8 +51,12 @@ def update_nsm(doc):
 	doc.reload()
 
 def update_add_node(doc, parent, parent_field):
-	"""
-		insert a new node
+	"""Insert a new node in Nested Set Model.
+
+		:param doc: document to insert
+		:param parent: name of parent node
+		:param parent_field: Link field specifying parent relation.
+		:return right domain value of node #TODO ??
 	"""
 
 	n = now()
@@ -86,6 +93,8 @@ def update_add_node(doc, parent, parent_field):
 
 
 def update_move_node(doc, parent_field):
+	"""Called when a document is updated to change it's parent.
+	"""
 	n = now()
 	parent = doc.get(parent_field)
 
@@ -138,8 +147,7 @@ def update_move_node(doc, parent_field):
 		where lft < 0""".format(doc.doctype), (new_diff, new_diff, n))
 
 def rebuild_tree(doctype, parent_field):
-	"""
-		call rebuild_node for all root nodes
+	"""Reset lft and rgt domain values for all documents of specified DocType.
 	"""
 	# get all roots
 	frappe.db.auto_commit_on_many_writes = 1
@@ -152,9 +160,16 @@ def rebuild_tree(doctype, parent_field):
 	frappe.db.auto_commit_on_many_writes = 0
 
 def rebuild_node(doctype, parent, left, parent_field):
+	"""Reset lft and rgt domain values for node and all children recursively.
+
+		:param doctype: doctype name
+		:param parent: name of parent document
+		:param left: left domain value
+		:param parent_field: Link field specifying parent relation.
+		:return next left domain value in NSM.
+
 	"""
-		reset lft, rgt and recursive call for all children
-	"""
+
 	from frappe.utils import now
 	n = now()
 
@@ -177,12 +192,35 @@ def rebuild_node(doctype, parent, left, parent_field):
 
 
 def validate_loop(doctype, name, lft, rgt):
-	"""check if item not an ancestor (loop)"""
+	"""Check if document with same name exists as it's ancestor.
+
+		:param doctype: doctype name
+		:param name: name of document
+		:param lft: left domain value
+		:param rgt: right domain value
+
+		throws NestedSetRecursionError if validation fails.
+	"""
+
 	if name in frappe.db.sql_list("""select name from `tab{0}` where lft <= %s and rgt >= %s"""
 		 .format(doctype), (lft, rgt)):
 		frappe.throw(_("Item cannot be added to its own descendents"), NestedSetRecursionError)
 
 class NestedSet(Document):
+	"""Tree (Hierarchical) Nested Set Model (nsm)
+
+		To use the nested set model, use the following pattern.
+		1. name your parent field as "parent_item_group" if not have a property
+			nsm_parent_field as your field name in the document class
+		2. have a field called "old_parent" in your fields list - this
+			identifies whether the parent has been changed
+		3. call update_nsm(doc_obj) in the on_upate method
+
+		Alternatively, you can use "Is tree" checkbox while creating new doctype
+		to model tree-like doctypes.
+
+		More on NestedSet data structure : https://en.wikipedia.org/wiki/Nested_set_model#Example
+	"""
 	def __setup__(self):
 		if self.meta.get("nsm_parent_field"):
 			self.nsm_parent_field = self.meta.nsm_parent_field
@@ -259,7 +297,10 @@ class NestedSet(Document):
 		return get_ancestors_of(self.doctype, self.name)
 
 def get_root_of(doctype):
-	"""Get root element of a DocType with a tree structure"""
+	"""Get root element of a DocType with a tree structure.
+
+	Only first root is returned if there are multiple roots in a DocType.
+	"""
 	result = frappe.db.sql("""select t1.name from `tab{0}` t1 where
 		(select count(*) from `tab{1}` t2 where
 			t2.lft < t1.lft and t2.rgt > t1.rgt) = 0
@@ -267,7 +308,7 @@ def get_root_of(doctype):
 	return result[0][0] if result else None
 
 def get_ancestors_of(doctype, name, order_by="lft desc", limit=None):
-	"""Get ancestor elements of a DocType with a tree structure"""
+	"""Get ancestor elements of a DocType with a tree structure."""
 	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
 
 	result = [d["name"] for d in frappe.db.get_all(doctype, {"lft": ["<", lft], "rgt": [">", rgt]},
@@ -277,7 +318,7 @@ def get_ancestors_of(doctype, name, order_by="lft desc", limit=None):
 
 def get_descendants_of(doctype, name, order_by="lft desc", limit=None,
 	ignore_permissions=False):
-	'''Return descendants of the current record'''
+	"""Get descendants of the specified document recursively."""
 	lft, rgt = frappe.db.get_value(doctype, name, ['lft', 'rgt'])
 
 	result = [d["name"] for d in frappe.db.get_list(doctype, {"lft": [">", lft], "rgt": ["<", rgt]},
