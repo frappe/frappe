@@ -15,7 +15,6 @@ from num2words import num2words
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
-from markdown2 import markdown as _markdown, MarkdownError
 from six import iteritems, text_type, string_types, integer_types
 from frappe.desk.utils import slug
 
@@ -1315,6 +1314,8 @@ def to_markdown(html):
 	return text
 
 def md_to_html(markdown_text):
+	from markdown2 import markdown as _markdown, MarkdownError
+
 	extras = {
 		'fenced-code-blocks': None,
 		'tables': None,
