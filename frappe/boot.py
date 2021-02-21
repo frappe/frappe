@@ -21,7 +21,7 @@ from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabl
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.model.base_document import get_controller
 from frappe.social.doctype.post.post import frequently_visited_links
-from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings
+from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -39,7 +39,7 @@ def get_bootinfo():
 	bootinfo.server_date = frappe.utils.nowdate()
 
 	if frappe.session['user'] != 'Guest':
-		bootinfo.user_info = get_fullnames()
+		bootinfo.user_info = get_user_info()
 		bootinfo.sid = frappe.session['sid']
 
 	bootinfo.modules = {}
@@ -48,6 +48,7 @@ def get_bootinfo():
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
+	add_layouts(bootinfo)
 
 	bootinfo.module_app = frappe.local.module_app
 	bootinfo.single_types = [d.name for d in frappe.get_all('DocType', {'issingle': 1})]
@@ -61,6 +62,7 @@ def get_bootinfo():
 	doclist.extend(get_meta_bundle("Page"))
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
+	bootinfo.notification_settings = get_notification_settings()
 
 	# ipinfo
 	if frappe.session.data.get('ipinfo'):
@@ -88,6 +90,8 @@ def get_bootinfo():
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
 	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
+	bootinfo.desk_settings = get_desk_settings()
+	bootinfo.app_logo_url = get_app_logo()
 
 	return bootinfo
 
@@ -106,11 +110,9 @@ def load_conf_settings(bootinfo):
 		if key in conf: bootinfo[key] = conf.get(key)
 
 def load_desktop_data(bootinfo):
-	from frappe.config import get_modules_from_all_apps_for_user
 	from frappe.desk.desktop import get_desk_sidebar_items
-	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
-	bootinfo.allowed_workspaces = get_desk_sidebar_items(flatten=True, cache=False)
-	bootinfo.module_page_map = get_controller("Desk Page").get_module_page_map()
+	bootinfo.allowed_workspaces = get_desk_sidebar_items()
+	bootinfo.module_page_map = get_controller("Workspace").get_module_page_map()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 
 def get_allowed_pages(cache=False):
@@ -222,19 +224,18 @@ def load_translations(bootinfo):
 
 	bootinfo["__messages"] = messages
 
-def get_fullnames():
-	"""map of user fullnames"""
-	ret = frappe.db.sql("""select `name`, full_name as fullname,
-		user_image as image, gender, email, username, bio, location, interest, banner_image, allowed_in_mentions
-		from tabUser where enabled=1 and user_type!='Website User'""", as_dict=1)
+def get_user_info():
+	user_info = frappe.db.get_all('User', fields=['`name`', 'full_name as fullname', 'user_image as image',
+		'gender', 'email', 'username', 'bio', 'location', 'interest', 'banner_image', 'allowed_in_mentions', 'user_type'],
+		filters=dict(enabled=1))
 
-	d = {}
-	for r in ret:
-		# if not r.image:
-		# 	r.image = get_gravatar(r.name)
-		d[r.name] = r
+	user_info_map = {d.name: d for d in user_info}
 
-	return d
+	admin_data = user_info_map.get('Administrator')
+	if admin_data:
+		user_info_map[admin_data.email] = admin_data
+
+	return user_info_map
 
 def get_user(bootinfo):
 	"""get user info"""
@@ -251,13 +252,12 @@ def add_home_page(bootinfo, docs):
 
 	try:
 		page = frappe.desk.desk_page.get(home_page)
+		docs.append(page)
+		bootinfo['home_page'] = page.name
 	except (frappe.DoesNotExistError, frappe.PermissionError):
 		if frappe.message_log:
 			frappe.message_log.pop()
-		page = frappe.desk.desk_page.get('workspace')
-
-	bootinfo['home_page'] = page.name
-	docs.append(page)
+		bootinfo['home_page'] = 'Workspaces'
 
 def add_timezone_info(bootinfo):
 	system = bootinfo.sysdefaults.get("time_zone")
@@ -273,7 +273,7 @@ def load_print(bootinfo, doclist):
 
 def load_print_css(bootinfo, print_settings):
 	import frappe.www.printview
-	bootinfo.print_css = frappe.www.printview.get_print_style(print_settings.print_style or "Modern", for_legacy=True)
+	bootinfo.print_css = frappe.www.printview.get_print_style(print_settings.print_style or "Redesign", for_legacy=True)
 
 def get_unseen_notes():
 	return frappe.db.sql('''select `name`, title, content, notify_on_every_login from `tabNote` where notify_on_login=1
@@ -308,3 +308,24 @@ def get_additional_filters_from_hooks():
 		filter_config.update(frappe.get_attr(hook)())
 
 	return filter_config
+
+def add_layouts(bootinfo):
+	# add routes for readable doctypes
+	bootinfo.doctype_layouts = frappe.get_all('DocType Layout', ['name', 'route', 'document_type'])
+
+def get_desk_settings():
+	role_list = frappe.get_all('Role', fields=['*'], filters=dict(
+		name=['in', frappe.get_roles()]
+	))
+	desk_settings = {}
+
+	from frappe.core.doctype.role.role import desk_properties
+
+	for role in role_list:
+		for key in desk_properties:
+			desk_settings[key] = desk_settings.get(key) or role.get(key)
+
+	return desk_settings
+
+def get_notification_settings():
+	return frappe.get_cached_doc('Notification Settings', frappe.session.user)

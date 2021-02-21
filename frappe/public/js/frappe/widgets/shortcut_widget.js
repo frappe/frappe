@@ -2,8 +2,10 @@ import Widget from "./base_widget.js";
 
 frappe.provide("frappe.utils");
 
+const INDICATOR_COLORS = ["Grey", "Green", "Red", "Orange", "Pink", "Yellow", "Blue", "Cyan", "Teal"];
 export default class ShortcutWidget extends Widget {
 	constructor(opts) {
+		opts.shadow = true;
 		super(opts);
 	}
 
@@ -67,35 +69,17 @@ export default class ShortcutWidget extends Widget {
 		return null;
 	}
 
-	set_title() {
-		if (this.icon) {
-			this.title_field[0].innerHTML = `<div>
-				<i class="${this.icon}" style=""></i>
-				${this.label || this.name}
-				</div>`;
-		} else {
-			super.set_title();
-		}
-	}
-
 	set_count(count) {
 		const get_label = () => {
 			if (this.format) {
-				return this.format.replace(/{}/g, count);
+				return __(this.format).replace(/{}/g, count);
 			}
 			return count;
 		};
 
 		this.action_area.empty();
 		const label = get_label();
-		const buttons = $(`<div class="small pill">${label}</div>`);
-		if (this.color) {
-			let bg_color = count ? this.color: '#EEEEEE';
-			let text_color = count ? frappe.ui.color.get_contrast_color(bg_color): '#8D99A6';
-			buttons.css("background-color", bg_color);
-			buttons.css("color", text_color);
-		}
-
-		buttons.appendTo(this.action_area);
+		let color = INDICATOR_COLORS.includes(this.color) && count ? this.color.toLowerCase() : 'gray';
+		$(`<div class="indicator-pill ellipsis ${color}">${label}</div>`).appendTo(this.action_area);
 	}
 }

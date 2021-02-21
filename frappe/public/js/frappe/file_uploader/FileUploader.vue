@@ -5,38 +5,64 @@
 		@drop.prevent="dropfiles"
 	>
 		<div
-			class="file-upload-area padding border rounded text-center cursor-pointer flex align-center justify-center"
-			@click="browse_files"
+			class="file-upload-area"
 			v-show="files.length === 0 && !show_file_browser && !show_web_link"
 		>
 			<div v-if="!is_dragging">
-				<div>
-					{{ __('Drag and drop files, ') }}
-					<label style="margin: 0">
-						<a href="#" class="text-primary" @click.prevent>{{ __('browse,') }}</a>
-						<input
-							type="file"
-							class="hidden"
-							ref="file_input"
-							@change="on_file_input"
-							:multiple="allow_multiple"
-							:accept="restrictions.allowed_file_types.join(', ')"
-						>
-					</label>
-					<span v-if="!disable_file_browser">
-						{{ __('choose an') }}
-						<a href="#" class="text-primary bold"
-							@click.stop.prevent="show_file_browser = true"
-						>
-							{{ __('uploaded file') }}
-						</a>
-					</span>
-					{{ __('or attach a') }}
-					<a class="text-primary bold" href
-						@click.stop.prevent="show_web_link = true"
+				<div class="text-center">
+					{{ __('Drag and drop files here or upload from') }}
+				</div>
+				<div class="mt-2 text-center">
+					<button class="btn btn-file-upload" @click="browse_files">
+						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<circle cx="15" cy="15" r="15" fill="url(#paint0_linear)"/>
+							<path d="M13.5 22V19" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+							<path d="M16.5 22V19" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+							<path d="M10.5 22H19.5" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+							<path d="M7.5 16H22.5" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+							<path d="M21 8H9C8.17157 8 7.5 8.67157 7.5 9.5V17.5C7.5 18.3284 8.17157 19 9 19H21C21.8284 19 22.5 18.3284 22.5 17.5V9.5C22.5 8.67157 21.8284 8 21 8Z" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+							<defs>
+							<linearGradient id="paint0_linear" x1="0" y1="0" x2="0" y2="30" gradientUnits="userSpaceOnUse">
+							<stop stop-color="#2C9AF1"/>
+							<stop offset="1" stop-color="#2490EF"/>
+							</linearGradient>
+							</defs>
+						</svg>
+						<div class="mt-1">{{ __('My Device') }}</div>
+					</button>
+					<input
+						type="file"
+						class="hidden"
+						ref="file_input"
+						@change="on_file_input"
+						:multiple="allow_multiple"
+						:accept="restrictions.allowed_file_types.join(', ')"
 					>
-						{{ __('web link') }}
-					</a>
+					<button class="btn btn-file-upload" v-if="!disable_file_browser" @click="show_file_browser = true">
+						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<circle cx="15" cy="15" r="15" fill="#48BB74"/>
+							<path d="M13.0245 11.5H8C7.72386 11.5 7.5 11.7239 7.5 12V20C7.5 21.1046 8.39543 22 9.5 22H20.5C21.6046 22 22.5 21.1046 22.5 20V14.5C22.5 14.2239 22.2761 14 22 14H15.2169C15.0492 14 14.8926 13.9159 14.8 13.776L13.4414 11.724C13.3488 11.5841 13.1922 11.5 13.0245 11.5Z" stroke="white" stroke-miterlimit="10" stroke-linecap="square"/>
+							<path d="M8.87939 9.5V8.5C8.87939 8.22386 9.10325 8 9.37939 8H20.6208C20.8969 8 21.1208 8.22386 21.1208 8.5V12" stroke="white" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+						</svg>
+						<div class="mt-1">{{ __('Library') }}</div>
+					</button>
+					<button class="btn btn-file-upload" @click="show_web_link = true">
+						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<circle cx="15" cy="15" r="15" fill="#ECAC4B"/>
+							<path d="M12.0469 17.9543L17.9558 12.0454" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+							<path d="M13.8184 11.4547L15.7943 9.47873C16.4212 8.85205 17.2714 8.5 18.1578 8.5C19.0443 8.5 19.8945 8.85205 20.5214 9.47873V9.47873C21.1481 10.1057 21.5001 10.9558 21.5001 11.8423C21.5001 12.7287 21.1481 13.5789 20.5214 14.2058L18.5455 16.1818" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+							<path d="M11.4547 13.8184L9.47873 15.7943C8.85205 16.4212 8.5 17.2714 8.5 18.1578C8.5 19.0443 8.85205 19.8945 9.47873 20.5214V20.5214C10.1057 21.1481 10.9558 21.5001 11.8423 21.5001C12.7287 21.5001 13.5789 21.1481 14.2058 20.5214L16.1818 18.5455" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+						</svg>
+						<div class="mt-1">{{ __('Link') }}</div>
+					</button>
+					<button v-if="allow_take_photo" class="btn btn-file-upload" @click="capture_image">
+						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<circle cx="15" cy="15" r="15" fill="#CE315B"/>
+							<path d="M11.5 10.5H9.5C8.67157 10.5 8 11.1716 8 12V20C8 20.8284 8.67157 21.5 9.5 21.5H20.5C21.3284 21.5 22 20.8284 22 20V12C22 11.1716 21.3284 10.5 20.5 10.5H18.5L17.3 8.9C17.1111 8.64819 16.8148 8.5 16.5 8.5H13.5C13.1852 8.5 12.8889 8.64819 12.7 8.9L11.5 10.5Z" stroke="white" stroke-linejoin="round"/>
+							<circle cx="15" cy="16" r="2.5" stroke="white"/>
+						</svg>
+						<div class="mt-1">{{ __('Camera') }}</div>
+					</button>
 				</div>
 				<div class="text-muted text-medium">
 					{{ upload_notes }}
@@ -47,21 +73,13 @@
 			</div>
 		</div>
 		<div class="file-preview-area" v-show="files.length && !show_file_browser && !show_web_link">
-			<div class="margin-bottom" v-if="!upload_complete">
-				<label>
-					<input type="checkbox" class="input-with-feedback" @change="e => toggle_all_private(e.target.checked)">
-					<span class="text-medium" style="font-weight: normal;">
-						{{ __('Make all attachments private') }}
-					</span>
-				</label>
-			</div>
-			<div class="flex flex-wrap">
+			<div class="file-preview-container">
 				<FilePreview
 					v-for="(file, i) in files"
 					:key="file.name"
 					:file="file"
-					@remove="remove_file(i)"
-					@toggle_private="toggle_private(i)"
+					@remove="remove_file(file)"
+					@toggle_private="file.private = !file.private"
 				/>
 			</div>
 			<div class="flex align-center" v-if="show_upload_button && currently_uploading === -1">
@@ -78,30 +96,6 @@
 				</button>
 				<div class="text-muted text-medium">
 					{{ __('Click on the lock icon to toggle public/private') }}
-				</div>
-			</div>
-		</div>
-		<div class="upload-progress" v-if="currently_uploading !== -1 && !upload_complete && !show_file_browser && !show_web_link">
-			<span
-				class="text-medium"
-				v-html="__('Uploading {0} of {1}', [String(currently_uploading + 1).bold(), String(files.length).bold()])"
-			>
-			</span>
-			<div
-				class="progress"
-				:key="i"
-				v-for="(file, i) in files"
-				v-show="currently_uploading===i"
-			>
-				<div
-					class="progress-bar"
-					:class="[file.total - file.progress < 20 ? 'progress-bar-success' : 'progress-bar-warning']"
-					role="progressbar"
-					:aria-valuenow="(file.progress * 100 / file.total)"
-					aria-valuemin="0"
-					aria-valuemax="100"
-					:style="{'width': (file.progress * 100 / file.total) + '%' }"
-				>
 				</div>
 			</div>
 		</div>
@@ -193,6 +187,9 @@ export default {
 			return this.files.length > 0
 				&& this.files.every(
 					file => file.total !== 0 && file.progress === file.total);
+		},
+		allow_take_photo() {
+			return window.navigator.mediaDevices;
 		}
 	},
 	methods: {
@@ -212,13 +209,20 @@ export default {
 		on_file_input(e) {
 			this.add_files(this.$refs.file_input.files);
 		},
-		remove_file(i) {
-			this.files = this.files.filter((file, j) => i !== j);
+		remove_file(file) {
+			this.files = this.files.filter(f => f !== file);
 		},
-		toggle_private(i) {
-			this.files[i].private = !this.files[i].private;
-		},
-		toggle_all_private(flag) {
+		toggle_all_private() {
+			let flag;
+			let private_values = this.files.filter(file => file.private);
+			if (private_values.length < this.files.length) {
+				// there are some private and some public
+				// set all to private
+				flag = true;
+			} else {
+				// all are private, set all to public
+				flag = false;
+			}
 			this.files = this.files.map(file => {
 				file.private = flag;
 				return file;
@@ -419,12 +423,44 @@ export default {
 
 				xhr.send(form_data);
 			});
-		}
+		},
+		capture_image() {
+			const capture = new frappe.ui.Capture({
+				animate: false,
+				error: true
+			});
+			capture.show();
+			capture.submit(data_url => {
+				let filename = `capture_${frappe.datetime.now_datetime().replaceAll(/[: -]/g, '_')}.png`;
+				this.url_to_file(data_url, filename, 'image/png').then((file) =>
+					this.add_files([file])
+				);
+			});
+		},
+		url_to_file(url, filename, mime_type) {
+			return fetch(url)
+					.then(res => res.arrayBuffer())
+					.then(buffer => new File([buffer], filename, { type: mime_type }));
+		},
 	}
 }
 </script>
 <style>
 .file-upload-area {
-	min-height: 100px;
+	min-height: 16rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px dashed var(--dark-border-color);
+	border-radius: var(--border-radius);
+	cursor: pointer;
+	background-color: var(--bg-color);
+}
+
+.btn-file-upload {
+	background-color: transparent;
+	border: none;
+	box-shadow: none;
+	font-size: var(--text-xs);
 }
 </style>

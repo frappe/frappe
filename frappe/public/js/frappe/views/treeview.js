@@ -69,8 +69,9 @@ frappe.views.TreeView = Class.extend({
 
 		this.page.main.css({
 			"min-height": "300px",
-			"padding-bottom": "25px"
 		});
+
+		this.page.main.addClass('frappe-card');
 
 		if(this.opts.show_expand_all) {
 			this.page.add_inner_button(__('Expand All'), function() {
@@ -382,7 +383,7 @@ frappe.views.TreeView = Class.extend({
 		if (!this.opts.disable_add_node && this.can_create) {
 			me.page.set_primary_action(__("New"), function() {
 				me.new_node();
-			}, "octicon octicon-plus")
+			}, "add");
 		}
 	},
 	set_menu_item: function() {

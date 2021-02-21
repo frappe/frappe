@@ -382,3 +382,10 @@ class TestCommands(BaseTestCommands):
 
 		os.remove(test1_path)
 		os.remove(test2_path)
+
+	def test_frappe_site_env(self):
+		os.putenv('FRAPPE_SITE', frappe.local.site)
+		self.execute("bench execute frappe.ping")
+		self.assertEquals(self.returncode, 0)
+		self.assertIn("pong", self.stdout)
+

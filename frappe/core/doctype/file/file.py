@@ -456,7 +456,7 @@ class File(Document):
 	def save_file(self, content=None, decode=False, ignore_existing_file_check=False):
 		file_exists = False
 		self.content = content
-		
+
 		if decode:
 			if isinstance(content, text_type):
 				self.content = content.encode("utf-8")
@@ -467,19 +467,19 @@ class File(Document):
 
 		if not self.is_private:
 			self.is_private = 0
-		
+
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
-		
+
 		self.file_size = self.check_max_file_size()
-		
+
 		if (
 			self.content_type and "image" in self.content_type
 			and frappe.get_system_settings("strip_exif_metadata_from_uploaded_images")
 		):
-			self.content = strip_exif_data(self.content, self.content_type)			
+			self.content = strip_exif_data(self.content, self.content_type)
 
 		self.content_hash = get_content_hash(self.content)
-		
+
 		duplicate_file = None
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
@@ -940,10 +940,33 @@ def validate_filename(filename):
 	return fname
 
 @frappe.whitelist()
-def get_files_in_folder(folder):
-	return frappe.db.get_all('File',
+def get_files_in_folder(folder, start=0, page_length=20):
+	start = cint(start)
+	page_length = cint(page_length)
+
+	files = frappe.db.get_all('File',
 		{ 'folder': folder },
-		['name', 'file_name', 'file_url', 'is_folder', 'modified']
+		['name', 'file_name', 'file_url', 'is_folder', 'modified'],
+		start=start,
+		page_length=page_length + 1
+	)
+	return {
+		'files': files[:page_length],
+		'has_more': len(files) > page_length
+	}
+
+@frappe.whitelist()
+def get_files_by_search_text(text):
+	if not text:
+		return []
+
+	text = '%' + cstr(text).lower() + '%'
+	return frappe.db.get_all('File',
+		fields=['name', 'file_name', 'file_url', 'is_folder', 'modified'],
+		filters={'is_folder': False},
+		or_filters={'file_name': ('like', text), 'file_url': text, 'name': ('like', text)},
+		order_by='modified desc',
+		limit=20
 	)
 
 def update_existing_file_docs(doc):

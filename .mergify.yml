@@ -14,7 +14,6 @@ pull_request_rules:
   - name: Automatic squash on CI success and review
     conditions:
       - status-success=Sider
-      - status-success=Semantic Pull Request
       - status-success=Travis CI - Pull Request
       - status-success=security/snyk (frappe)
       - label!=dont-merge
