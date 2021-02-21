@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 
 import frappe
-from dateutil.parser._parser import ParserError
 import operator
 import json
 import re, datetime, math, time
@@ -28,6 +27,7 @@ def getdate(string_date=None):
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object
 	"""
+	from dateutil.parser._parser import ParserError
 
 	if not string_date:
 		return get_datetime().date()
@@ -77,6 +77,7 @@ def to_timedelta(time_str):
 
 def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, seconds=0, as_string=False, as_datetime=False):
 	"""Adds `days` to the given date"""
+	from dateutil.parser._parser import ParserError
 	from dateutil.relativedelta import relativedelta
 
 	if date==None:
