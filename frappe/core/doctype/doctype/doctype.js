@@ -54,13 +54,13 @@ frappe.ui.form.on('DocType', {
 	},
 
 	before_save: function(frm) {
-		frappe.flags.reload_bootinfo = frm.is_new();
+		frappe.flags.update_bootinfo = frm.is_new();
 	},
 
 	after_save: function(frm) {
-		if (frappe.flags.reload_bootinfo) {
+		if (frappe.flags.update_bootinfo) {
 			frappe.boot.user.can_create.push(frm.doc.name);
-			frappe.flags.reload_bootinfo = false;
+			frappe.flags.update_bootinfo = false;
 		}
 	},
 
