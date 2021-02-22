@@ -118,7 +118,7 @@ core_doctypes_list = (
 	'Customize Form Field',
 	'Property Setter',
 	'Custom Field',
-	'Custom Script'
+	'Client Script'
 )
 
 log_types = (

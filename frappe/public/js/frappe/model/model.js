@@ -15,7 +15,7 @@ $.extend(frappe.model, {
 
 	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
 		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
-		'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script'],
+		'Customize Form Field', 'Property Setter', 'Custom Field', 'Client Script'],
 
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},
