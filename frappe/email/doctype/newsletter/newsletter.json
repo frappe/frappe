@@ -22,7 +22,6 @@
   "section_break_13",
   "send_unsubscribe_link",
   "send_attachments",
-  "full_width",
   "column_break_9",
   "published",
   "send_webview_link",
@@ -177,12 +176,6 @@
    "label": "Send Web View Link"
   },
   {
-   "default": "0",
-   "fieldname": "full_width",
-   "fieldtype": "Check",
-   "label": "Full Width"
-  },
-  {
    "fieldname": "section_break_13",
    "fieldtype": "Section Break"
   }
@@ -194,7 +187,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 3,
- "modified": "2021-01-20 20:21:53.535828",
+ "modified": "2021-02-22 14:33:56.095380",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

@@ -509,7 +509,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	from frappe.email import queue
 	queue.send(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
-		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
+		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name, add_unsubscribe_link=add_unsubscribe_link,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
