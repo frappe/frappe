@@ -22,12 +22,13 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		const primary_fields = this.get_primary_filters();
 		const result_fields = this.get_result_fields();
 		const data_fields = this.get_data_fields();
+		const child_selection_fields = this.get_child_selection_fields();
 
-		return [...primary_fields, ...result_fields, ...data_fields];
+		return [...primary_fields, ...result_fields, ...data_fields, ...child_selection_fields];
 	}
 
 	get_result_fields() {
-		const show_next_page = () => { this.start += 20; this.get_results(); }
+		const show_next_page = () => { this.start += 20; this.get_results(); };
 		return [
 			{
 				fieldtype: "HTML", fieldname: "results_area"
@@ -51,6 +52,13 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		}
 	}
 
+	get_child_selection_fields() {
+		const fields = [];
+		if (this.child_selection_mode && this.selectable_child) {
+			fields.push({ fieldtype: "HTML", fieldname: "child_selection_area" });
+		}
+		return fields
+	}
 
 	make() {
 		let doctype_plural = this.doctype.plural();
@@ -63,15 +71,16 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			secondary_action_label: __("Make {0}", [__(this.doctype)]),
 			primary_action: () => {
 				let filters_data = this.get_custom_filters();
-				this.action(this.get_checked_values(), cur_dialog.get_values(), this.args, filters_data);
+				const data_values = cur_dialog.get_values(); // to pass values of data fields
+				const filtered_children = this.get_checked_child_values();
+				this.action(this.get_checked_values(), {
+					...this.args,
+					...data_values,
+					...filters_data,
+					filtered_children
+				});
 			},
-			secondary_action: (e) => {
-				// If user wants to close the modal
-				if (e) {
-					this.set_route_options();
-					frappe.new_doc(this.doctype, true);
-				}
-			}
+			secondary_action: this.make_new_document.bind(this)
 		});
 
 		if (this.add_filters_group) {
@@ -81,9 +90,18 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.args = {};
 
 		this.setup_results();
+		this.setup_child_selection();
 		this.bind_events();
 		this.get_results();
 		this.dialog.show();
+	}
+
+	make_new_document(e) {
+		// If user wants to close the modal
+		if (e) {
+			this.set_route_options();
+			frappe.new_doc(this.doctype, true);
+		}
 	}
 
 	set_route_options() {
@@ -107,6 +125,111 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 		this.$results = this.$wrapper.find('.results');
 		this.$results.append(this.make_list_row());
+	}
+
+	setup_child_selection() {
+		if (!this.child_selection_mode) return;
+
+		this.$child_wrapper = this.dialog.fields_dict.child_selection_area.$wrapper;
+		const grid_template = `
+			<div class="form-grid">
+				<div class="grid-heading-row"></div>
+				<div class="grid-body">
+					<div class="rows"></div>
+					<div class="grid-empty text-center">
+						<img
+							src="/assets/frappe/images/ui-states/grid-empty-state.svg"
+							alt="Grid Empty State"
+							class="grid-empty-illustration"
+						>
+						${__("No Data")}
+					</div>
+				</div>
+			</div>`;
+
+		this.$child_wrapper.addClass('hidden');
+		this.$child_wrapper.append(grid_template);
+		const header = this.get_grid_row(0, ['name', ...this.child_cols], true);
+		this.$child_wrapper.find('.grid-heading-row').append(header);
+	}
+
+	get_grid_row(idx, cols, for_header) {
+		const $cols = cols.slice(1).map(col => {
+			return `
+				<div class="col grid-static-col">
+					<div class="static-area ellipsis">${frappe.unscrub(col)}</div>
+				</div>`;
+		}).join('');
+
+		return `
+			<div class="grid-row">
+				<div class="data-row row">
+					<div class="row-index sortable-handle col col-xs-1">
+						<input type="checkbox" class="grid-row-check pull-left" data-item-name="${cols[0]}"/>
+						<span class="hidden-xs">${for_header ? 'No. ' : idx + 1}</span>
+					</div>
+					${ $cols }
+				</div>
+			</div>`;
+	};
+
+	reset_child_selection() {
+		this.$child_wrapper.find('.grid-empty').removeClass('hidden');
+		this.$child_wrapper.addClass('hidden');
+
+		this.dialog.set_secondary_action_label(__("Make {0}", [__(this.doctype)]));
+		this.dialog.set_secondary_action(this.make_new_document.bind(this));
+	}
+
+	refresh_child_selection() {
+		let checked_values = this.get_checked_values();
+		if (!checked_values.length) {
+			this.reset_child_selection();
+			return;
+		}
+
+		const fetch_child_items = () => {
+			frappe.call({
+				method: "frappe.client.get_list",
+				args: {
+					doctype: child_doctype,
+					filters: [
+						["parent", "in", checked_values]
+					],
+					fields: ['name', ...this.child_cols],
+					parent: this.doctype
+				}
+			}).then((r) => {
+				this.child_results = r.message;
+				if(!r.exc) {
+					this.$child_wrapper.find('.rows').html('').append(
+						r.message.map((d, idx) => this.get_grid_row(idx, Object.values(d), false)).join('')
+					);
+					this.$child_wrapper.find('.grid-empty').addClass('hidden');
+					this.$child_wrapper.removeClass('hidden');
+				} else {
+					frappe.msgprint(__("Error occured while fetching data. Please try again."));
+				}
+			});
+		}
+
+		let child_fieldname = undefined;
+		const child_doctype = this.selectable_child;
+		frappe.get_meta(this.doctype).fields.some(d => {
+			if(d.options === child_doctype) {
+				child_fieldname = d.fieldname;
+				return true;
+			}
+		});
+
+		if (child_fieldname) {
+			// refresh secondary option
+			this.dialog.set_secondary_action_label(__("Fetch {0}", [child_doctype.plural()]));
+			this.dialog.set_secondary_action(fetch_child_items.bind(this));
+		} else {
+			// child doctype is not linked to parent doctype
+		}
+
 	}
 
 	get_primary_filters() {
@@ -191,7 +314,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				});
 			}, {});
 		} else {
-			return [];
+			return {};
 		}
 	}
 
@@ -202,12 +325,20 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			if (!$(e.target).is(':checkbox') && !$(e.target).is('a')) {
 				$(this).find(':checkbox').trigger('click');
 			}
+			if (me.child_selection_mode) me.refresh_child_selection();
 		});
 
 		this.$results.on('click', '.list-item--head :checkbox', (e) => {
 			this.$results.find('.list-item-container .list-row-check')
 				.prop("checked", ($(e.target).is(':checked')));
 		});
+
+		if (this.child_selection_mode) {
+			this.$child_wrapper.on('click', '.grid-heading-row :checkbox', (e) => {
+				this.$child_wrapper.find('.grid-row-check')
+					.prop("checked", ($(e.target).is(':checked')));
+			});	
+		}
 
 		this.$parent.find('.input-with-feedback').on('change', () => {
 			frappe.flags.auto_scroll = false;
@@ -223,6 +354,22 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				me.get_results();
 			}, 300));
 		});
+	}
+
+	get_checked_child_values() {
+		return this.$child_wrapper.find('.rows > .grid-row').map(function () {
+			const checkedbox = $(this).find('.grid-row-check:checkbox:checked');
+			if (checkedbox.length > 0) {
+				return checkedbox.attr('data-item-name');
+			}
+		}).get();
+	}
+
+	get_checked_child_items() {
+		if(!this.child_results) return;
+
+		let checked_values = this.get_checked_child_values();
+		return this.child_results.filter(res => checked_values.includes(res.name));
 	}
 
 	get_checked_values() {
