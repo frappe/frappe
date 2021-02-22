@@ -128,6 +128,8 @@ def init_request(request):
 	if frappe.local.conf.get('maintenance_mode'):
 		frappe.connect()
 		raise frappe.SessionStopped('Session Stopped')
+	else:
+		frappe.connect(set_admin_as_user=False)
 
 	make_form_dict(request)
 
