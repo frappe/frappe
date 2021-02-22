@@ -2,25 +2,26 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import os
-from six import string_types, integer_types
-import shutil
+
+from pymysql.err import ProgrammingError
+from six import integer_types, string_types
 
 import frappe
 import frappe.defaults
 import frappe.model.meta
-from frappe import _
-from frappe import get_module_path
-from frappe.model.dynamic_links import get_dynamic_link_map
+from frappe import _, get_module_path
 from frappe.core.doctype.file.file import remove_all
-from frappe.utils.password import delete_all_passwords_for
-from frappe.model.naming import revert_series_if_last
-from frappe.utils.global_search import delete_for_document
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.exceptions import FileNotFoundError
+from frappe.model.dynamic_links import get_dynamic_link_map
+from frappe.model.naming import revert_series_if_last
+from frappe.utils.global_search import delete_for_document
+from frappe.utils.password import delete_all_passwords_for
+
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File",
 	"Version", "Document Follow", "Comment" , "View Log", "Tag Link", "Notification Log", "Email Queue")
+
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
@@ -371,6 +372,9 @@ def delete_controllers(doctype, module):
 	"""
 	Delete controller code in the doctype folder
 	"""
+	import os
+	import shutil
+
 	module_path = get_module_path(module)
 	dir_path = os.path.join(module_path, 'doctype', frappe.scrub(doctype))
 
