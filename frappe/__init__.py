@@ -468,7 +468,7 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=[], sender="", subject="No Subject", message="No Message",
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
-		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
+		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, add_unsubscribe_link=1,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
