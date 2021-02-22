@@ -15,8 +15,9 @@ from num2words import num2words
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
-from markdown2 import markdown, MarkdownError
+from markdown2 import markdown as _markdown, MarkdownError
 from six import iteritems, text_type, string_types, integer_types
+from frappe.desk.utils import slug
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -30,7 +31,8 @@ def is_invalid_date_string(date_string):
 # datetime functions
 def getdate(string_date=None):
 	"""
-	Converts string date (yyyy-mm-dd) to datetime.date object
+	Converts string date (yyyy-mm-dd) to datetime.date object.
+	If no input is provided, current date is returned.
 	"""
 
 	if not string_date:
@@ -154,13 +156,21 @@ def get_time_zone():
 
 	return frappe.cache().get_value("time_zone", _get_time_zone)
 
-def convert_utc_to_user_timezone(utc_timestamp):
+def convert_utc_to_timezone(utc_timestamp, time_zone):
 	from pytz import timezone, UnknownTimeZoneError
 	utcnow = timezone('UTC').localize(utc_timestamp)
 	try:
-		return utcnow.astimezone(timezone(get_time_zone()))
+		return utcnow.astimezone(timezone(time_zone))
 	except UnknownTimeZoneError:
 		return utcnow
+
+def get_datetime_in_timezone(time_zone):
+	utc_timestamp = datetime.datetime.utcnow()
+	return convert_utc_to_timezone(utc_timestamp, time_zone)
+
+def convert_utc_to_user_timezone(utc_timestamp):
+	time_zone = get_time_zone()
+	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
@@ -176,6 +186,14 @@ def nowdate():
 
 def today():
 	return nowdate()
+
+def get_abbr(string, max_len=2):
+	abbr=''
+	for part in string.split(' '):
+		if len(abbr) < max_len and part:
+			abbr += part[0]
+
+	return abbr or '?'
 
 def nowtime():
 	"""return current time in hh:mm"""
@@ -369,7 +387,7 @@ def format_duration(seconds, hide_days=False):
 
 	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
 	"""
-	
+
 	seconds = cint(seconds)
 
 	total_duration = {
@@ -501,7 +519,25 @@ def cast_fieldtype(fieldtype, value):
 	return value
 
 def flt(s, precision=None):
-	"""Convert to float (ignore commas)"""
+	"""Convert to float (ignoring commas in string)
+
+		:param s: Number in string or other numeric format.
+		:param precision: optional argument to specify precision for rounding.
+		:returns: Converted number in python float type.
+
+		Returns 0 if input can not be converted to float.
+
+		Examples:
+
+		>>> flt("43.5", precision=0)
+		44
+		>>> flt("42.5", precision=0)
+		42
+		>>> flt("10,500.5666", precision=2)
+		10500.57
+		>>> flt("a")
+		0.0
+	"""
 	if isinstance(s, string_types):
 		s = s.replace(',','')
 
@@ -515,7 +551,20 @@ def flt(s, precision=None):
 	return num
 
 def cint(s):
-	"""Convert to integer"""
+	"""Convert to integer
+
+		:param s: Number in string or other numeric format.
+		:returns: Converted number in python integer type.
+
+		Returns 0 if input can not be converted to integer.
+
+		Examples:
+		>>> cint("100")
+		100
+		>>> cint("a")
+		0
+
+	"""
 	try: num = int(float(s))
 	except: num = 0
 	return num
@@ -1062,25 +1111,25 @@ def get_link_to_report(name, label=None, report_type=None, doctype=None, filters
 		return """<a href='{0}'>{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
 
 def get_absolute_url(doctype, name):
-	return "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name))
+	return "/app/{0}/{1}".format(quoted(slug(doctype)), quoted(name))
 
 def get_url_to_form(doctype, name):
-	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
+	return get_url(uri = "/app/{0}/{1}".format(quoted(slug(doctype)), quoted(name)))
 
 def get_url_to_list(doctype):
-	return get_url(uri = "desk#List/{0}".format(quoted(doctype)))
+	return get_url(uri = "/app/{0}".format(quoted(slug(doctype))))
 
 def get_url_to_report(name, report_type = None, doctype = None):
 	if report_type == "Report Builder":
-		return get_url(uri = "desk#Report/{0}/{1}".format(quoted(doctype), quoted(name)))
+		return get_url(uri = "/app/{0}/view/report/{1}".format(quoted(slug(doctype)), quoted(name)))
 	else:
-		return get_url(uri = "desk#query-report/{0}".format(quoted(name)))
+		return get_url(uri = "/app/query-report/{0}".format(quoted(name)))
 
 def get_url_to_report_with_filters(name, filters, report_type = None, doctype = None):
 	if report_type == "Report Builder":
-		return get_url(uri = "desk#Report/{0}?{1}".format(quoted(doctype), filters))
+		return get_url(uri = "/app/{0}/view/report?{1}".format(quoted(doctype), filters))
 	else:
-		return get_url(uri = "desk#query-report/{0}?{1}".format(quoted(name), filters))
+		return get_url(uri = "/app/query-report/{0}?{1}".format(quoted(name), filters))
 
 operator_map = {
 	# startswith
@@ -1312,11 +1361,14 @@ def md_to_html(markdown_text):
 
 	html = None
 	try:
-		html = markdown(markdown_text or '', extras=extras)
+		html = _markdown(markdown_text or '', extras=extras)
 	except MarkdownError:
 		pass
 
 	return html
+
+def markdown(markdown_text):
+	return md_to_html(markdown_text)
 
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''
@@ -1405,3 +1457,17 @@ def validate_json_string(string):
 		json.loads(string)
 	except (TypeError, ValueError):
 		raise frappe.ValidationError
+
+def get_user_info_for_avatar(user_id):
+	user_info = {
+		"email": user_id,
+		"image": "",
+		"name": user_id
+	}
+	try:
+		user_info["email"] = frappe.get_cached_value("User", user_id, "email")
+		user_info["name"] = frappe.get_cached_value("User", user_id, "fullname")
+		user_info["image"] = frappe.get_cached_value("User", user_id, "user_image")
+	except Exception:
+		frappe.local.message_log = []
+	return user_info

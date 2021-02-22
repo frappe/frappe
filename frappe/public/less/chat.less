@@ -1,9 +1,6 @@
 // Author - Achilles Rasquinha <achilles@frappe.io>
 // http://codeguide.co - @mdo (Author of Bootstrap)
 
-
-@import "flex.less";
-
 // Typography
 @font-weight-bold:								700;
 @font-weight-heavy:								900;
@@ -42,7 +39,7 @@
 
 // Hacks and Fixes
 // suggested by rushabh@frappe.io. Thanks, Rushabh!
-.avatar { padding: 2px; }
+// .avatar { padding: 2px; }
 
 .frappe-fab
 {
@@ -451,4 +448,11 @@
 textarea.form-control {
     resize: none;
     height: 3.2em;
+}
+
+@media (max-width: 767px) {
+    .nav-stacked > li + li {
+      margin-top: 0px;
+      margin-left: 2px;
+    }
 }

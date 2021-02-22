@@ -1,8 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 """
-globals attached to frappe module
-+ some utility functions that should probably be moved
+Frappe - Low Code Open Source Framework in Python and JS
+
+Frappe, pronounced fra-pay, is a full stack, batteries-included, web
+framework written in Python and Javascript with MariaDB as the database.
+It is the framework which powers ERPNext. It is pretty generic and can
+be used to build database driven apps.
+
+Read the documentation: https://frappeframework.com/docs
 """
 from __future__ import unicode_literals, print_function
 
@@ -466,7 +472,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None, template=None, args=None, header=None, print_letterhead=False):
+		inline_images=None, template=None, args=None, header=None, print_letterhead=False, with_container=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -492,6 +498,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param template: Name of html template from templates/emails folder
 	:param args: Arguments for rendering the template
 	:param header: Append header in email
+	:param with_container: Wraps email inside a styled container
 	"""
 	text_content = None
 	if template:
@@ -514,7 +521,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
-		inline_images=inline_images, header=header, print_letterhead=print_letterhead)
+		inline_images=inline_images, header=header, print_letterhead=print_letterhead, with_container=with_container)
 
 whitelisted = []
 guest_methods = []
@@ -963,10 +970,6 @@ def get_installed_apps(sort=False, frappe_last=False):
 
 	if not local.all_apps:
 		local.all_apps = cache().get_value('all_apps', get_all_apps)
-
-		#cache bench apps
-		if not cache().get_value('all_apps'):
-			cache().set_value('all_apps', local.all_apps)
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
@@ -1632,7 +1635,7 @@ def log_error(message=None, title=_("Error")):
 		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
-	html = '<a href="#Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
+	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
 	return html.format(
 		doctype=doctype,
 		name=name,
