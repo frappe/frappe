@@ -69,6 +69,11 @@ def get_page_info_from_template(path):
 
 		for start in folders:
 			search_path = os.path.join(app_path, start, path)
+
+			# do not allow user to access py files from www or templates/pages direcotry
+			if search_path.rsplit('.', 1)[-1] == 'py':
+				raise frappe.DoesNotExistError
+
 			options = (search_path, search_path + '.html', search_path + '.md',
 				search_path + '/index.html', search_path + '/index.md')
 			for o in options:
