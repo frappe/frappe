@@ -46,6 +46,8 @@ def getdate(string_date=None):
 		), title=frappe._('Invalid Date'))
 
 def get_datetime(datetime_str=None):
+	from dateutil import parser
+
 	if datetime_str is None:
 		return now_datetime()
 
