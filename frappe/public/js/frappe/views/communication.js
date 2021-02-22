@@ -591,26 +591,28 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	save_as_draft: function() {
 		if (this.dialog && this.frm) {
-			try {
-				let message = this.dialog.get_value('content');
-				message = message.split(frappe.separator_element)[0];
-				localStorage.setItem(this.frm.doctype + this.frm.docname, message);
-			} catch (e) {
-				// silently fail
-				console.log(e);
-				console.warn('[Communication] localStorage is full. Cannot save message as draft');
-			}
+			let message = this.dialog.get_value('content');
+			message = message.split(frappe.separator_element)[0];
+			localforage.setItem(this.frm.doctype + this.frm.docname, message).catch(e => {
+				if (e) {
+					// silently fail
+					console.log(e); // eslint-disable-line
+					console.warn('[Communication] localStorage is full. Cannot save message as draft'); // eslint-disable-line
+				}
+			});
+
 		}
 	},
 
 	delete_saved_draft() {
 		if (this.dialog) {
-			try {
-				localStorage.removeItem(this.frm.doctype + this.frm.docname);
-			} catch (e) {
-				console.log(e);
-				console.warn('[Communication] Cannot delete localStorage item'); // eslint-disable-line
-			}
+			localforage.getItem(this.frm.doctype + this.frm.docname).catch(e => {
+				if (e) {
+					// silently fail
+					console.log(e); // eslint-disable-line
+					console.warn('[Communication] localStorage is full. Cannot save message as draft'); // eslint-disable-line
+				}
+			});
 		}
 	},
 
@@ -721,7 +723,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			signature = res.message.signature;
 		}
 
-		if(!frappe.utils.is_html(signature)) {
+		if (signature && !frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 
@@ -731,7 +733,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			// saved draft in localStorage
 			const { doctype, docname } = this.frm || {};
 			if (doctype && docname) {
-				this.message = localStorage.getItem(doctype + docname) || '';
+				this.message = await localforage.getItem(doctype + docname) || '';
 			}
 		}
 

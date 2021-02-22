@@ -114,6 +114,7 @@ frappe.ui.Page = Class.extend({
 			this.get_main_icon(this.icon);
 
 		this.body = this.main = this.wrapper.find(".layout-main-section");
+		this.container = this.wrapper.find(".page-body");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
 		this.indicator = this.wrapper.find(".indicator-pill");

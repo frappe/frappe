@@ -140,8 +140,12 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 			style="width: 12px; height: 12px; margin-top: 5px;">
 			<path d="M2 9.66667L5.33333 13L14 3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		</svg>
-	{% elif df.fieldtype in ("Image", "Attach Image") %}
+	{% elif df.fieldtype=="Image" %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
+			class="img-responsive"
+			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
+	{% elif df.fieldtype=="Attach Image" %}
+		<img src="{{ doc[df.fieldname] }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="Signature" %}
