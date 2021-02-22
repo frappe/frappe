@@ -138,6 +138,11 @@ def process_response(response):
 	if not response:
 		return
 
+	# set referrer policy to avoid Cross Domain Referrer Leakage
+	response.headers.extend({
+		'Referrer-Policy': 'same-origin'
+	})
+
 	# set cookies
 	if hasattr(frappe.local, 'cookie_manager'):
 		frappe.local.cookie_manager.flush_cookies(response=response)
