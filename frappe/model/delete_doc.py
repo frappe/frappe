@@ -69,15 +69,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				check_permission_and_not_submitted(doc)
 
 				frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
-
-				try:
-					frappe.db.sql("delete from `tabClient Script` where dt = %s", name)
-				except ProgrammingError:
-					# legacy: renamed Custom Script to CLient Script in v13
-					# the only time this gets executed is in patches that run delete_doc
-					if not frappe.db.exists("Client Script") and frappe.db.exists("Custom Script"):
-						frappe.db.sql("delete from `tabCustom Script` where dt = %s", name)
-
+				frappe.db.sql("delete from `tabClient Script` where dt = %s", name)
 				frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
 				frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
 				frappe.db.sql("delete from `tabCustom DocPerm` where parent=%s", name)
