@@ -293,7 +293,7 @@ def import_doc(context, path, force=False):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			import_doc(path, overwrite=context.force)
+			import_doc(path)
 		finally:
 			frappe.destroy()
 	if not context.sites:
