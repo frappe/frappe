@@ -31,6 +31,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			</div>`
 		);
 		this.toggle_placeholder();
+		this.$input && this.$input.on('select-change', () => this.toggle_placeholder());
 	},
 	set_formatted_input: function(value) {
 		// refresh options first - (new ones??)
@@ -51,7 +52,6 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			// model value must be same as whatever the input is
 			this.set_model_value(input_value);
 		}
-		this.toggle_placeholder();
 	},
 	set_options: function(value) {
 		// reset options, if something new is set
@@ -132,5 +132,12 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	};
 	$.fn.done_working = function() {
 		this.prop('disabled', false);
+	};
+
+	let originalVal = $.fn.val;
+	$.fn.val = function () {
+		let result = originalVal.apply(this, arguments);
+		if (arguments.length > 0) $(this).trigger('select-change');
+		return result;
 	};
 })(jQuery);
