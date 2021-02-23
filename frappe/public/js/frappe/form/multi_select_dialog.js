@@ -204,6 +204,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			noDataMessage: __('No Data'),
 			disableReorderColumn: true
 		});
+		this.$child_wrapper.find('.dt-scrollable').css('height', '300px !immportant');
 	}
 
 	show_fetch_child_items() {
@@ -319,6 +320,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.$results.on('click', '.list-item--head :checkbox', (e) => {
 			this.$results.find('.list-item-container .list-row-check')
 				.prop("checked", ($(e.target).is(':checked')));
+			if (me.child_selection_mode) me.show_fetch_child_items();
 		});
 
 		this.$parent.find('.input-with-feedback').on('change', () => {
