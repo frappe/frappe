@@ -11,6 +11,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	init() {
+		window.test = this;
 		this.page_length = 20;
 		this.start = 0;
 		this.fields = this.get_fields();
@@ -119,7 +120,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	setup_results() {
 		this.$parent = $(this.dialog.body);
-		this.$wrapper = this.dialog.fields_dict.results_area.$wrapper.append(`<div class="results"
+		this.$wrapper = this.dialog.fields_dict.results_area.$wrapper.append(`<div class="results mt-3"
 			style="border: 1px solid #d1d8dd; border-radius: 3px; height: 300px; overflow: auto;"></div>`);
 
 		this.$results = this.$wrapper.find('.results');
@@ -175,8 +176,10 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		if (!this.child_datatable) {
 			this.setup_child_datatable();
 		} else {
-			this.child_datatable.refresh(this.child_results.map(d => Object.values(d)));
-			this.child_datatable.rowmanager.checkMap = [];
+			setTimeout(() => {
+				this.child_datatable.rowmanager.checkMap = [];
+				this.child_datatable.refresh(this.child_results.map(d => Object.values(d)));
+			}, 500);
 		}
 	}
 
