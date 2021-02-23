@@ -401,7 +401,7 @@ $.extend(frappe.model, {
 		}
 	},
 
-	set_value: function(doctype, docname, fieldname, value, fieldtype) {
+	set_value: function(doctype, docname, fieldname, value, fieldtype, avoid_dirty=false) {
 		/* help: Set a value locally (if changed) and execute triggers */
 
 		var doc;
@@ -427,7 +427,7 @@ $.extend(frappe.model, {
 				}
 
 				doc[key] = value;
-				tasks.push(() => frappe.model.trigger(key, value, doc));
+				if (!avoid_dirty) tasks.push(() => frappe.model.trigger(key, value, doc));
 			} else {
 				// execute link triggers (want to reselect to execute triggers)
 				if(in_list(["Link", "Dynamic Link"], fieldtype) && doc) {
