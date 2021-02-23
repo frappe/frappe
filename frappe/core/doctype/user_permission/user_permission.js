@@ -44,8 +44,13 @@ frappe.ui.form.on('User Permission', {
 
 	set_applicable_for_constraint: frm => {
 		frm.toggle_reqd('applicable_for', !frm.doc.apply_to_all_doctypes);
+<<<<<<< HEAD
 		if (frm.doc.apply_to_all_doctypes && frm.doc.applicable_for) {
 			frm.set_value('applicable_for', null);
+=======
+		if (frm.doc.apply_to_all_doctypes) {
+			frm.set_value('applicable_for', null, null, true);
+>>>>>>> 9bfc97a823 (fix: 'Not Saved' even after saving/submitting a doctype)
 		}
 	},
 

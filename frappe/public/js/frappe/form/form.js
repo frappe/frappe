@@ -1416,7 +1416,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return doc;
 	}
 
-	set_value(field, value, if_missing) {
+	set_value(field, value, if_missing, avoid_dirty=false) {
 		var me = this;
 		var _set = function(f, v) {
 			var fieldobj = me.fields_dict[f];
@@ -1436,7 +1436,7 @@ frappe.ui.form.Form = class FrappeForm {
 						me.refresh_field(f);
 						return Promise.resolve();
 					} else {
-						return frappe.model.set_value(me.doctype, me.doc.name, f, v);
+						return frappe.model.set_value(me.doctype, me.doc.name, f, v, me.fieldtype, avoid_dirty);
 					}
 				}
 			} else {
