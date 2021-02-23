@@ -11,7 +11,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	init() {
-		window.test = this;
 		this.page_length = 20;
 		this.start = 0;
 		this.fields = this.get_fields();
@@ -127,10 +126,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.$results.append(this.make_list_row());
 	}
 
-	get_child_datatable_columns() {
-		return ['name', 'parent', ...this.child_columns].map(d => ({ name: frappe.unscrub(d), editable: false }));
-	}
-
 	toggle_secondary_action(label, action) {
 		this.dialog.set_secondary_action_label(label);
 		this.dialog.set_secondary_action(action.bind(this));
@@ -165,32 +160,42 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		
 		this.get_child_result().then(r => {
 			this.child_results = r.message || [];
-			this.show_child_datatable();
+			this.render_child_datatable();
 
 			this.$wrapper.addClass('hidden');
 			this.$child_wrapper.removeClass('hidden');
 		});
 	}
 
-	show_child_datatable() {
+	render_child_datatable() {
 		if (!this.child_datatable) {
 			this.setup_child_datatable();
 		} else {
 			setTimeout(() => {
 				this.child_datatable.rowmanager.checkMap = [];
-				this.child_datatable.refresh(this.child_results.map(d => Object.values(d)));
+				this.child_datatable.refresh(this.get_child_datatable_rows());
 			}, 500);
 		}
 	}
 
+	get_child_datatable_columns() {
+		const parent = this.doctype;
+		return [parent, ...this.child_columns].map(d => ({ name: frappe.unscrub(d), editable: false }));
+	}
+
+	get_child_datatable_rows() {
+		return this.child_results.map(d => Object.values(d).slice(1)); // slice name field
+	}
+
 	setup_child_datatable() {
 		const header_columns = this.get_child_datatable_columns();
+		const rows = this.get_child_datatable_rows();
 		this.$child_wrapper = this.dialog.fields_dict.child_selection_area.$wrapper;
 		this.$child_wrapper.addClass('mt-3');
 
 		this.child_datatable = new frappe.DataTable(this.$child_wrapper.get(0), {
 			columns: header_columns,
-			data: this.child_results.map(d => Object.values(d)),
+			data: rows,
 			layout: 'fluid',
 			inlineFilters: true,
 			serialNoColumn: false,
@@ -337,7 +342,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 		let checked_names = this.child_datatable.rowmanager.checkMap.reduce((checked_names, checked, index) => {
 			if (checked == 1) {
-				const child_row_name = this.child_datatable.datamanager.rows[index][1].content;
+				const child_row_name = this.child_results[index].name;
 				checked_names.push(child_row_name);
 			}
 			return checked_names;
