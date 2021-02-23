@@ -566,7 +566,7 @@
   },
   {
    "group": "Customization",
-   "link_doctype": "Custom Script",
+   "link_doctype": "Client Script",
    "link_fieldname": "dt"
   },
   {
@@ -620,7 +620,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-01-21 18:09:47.135696",
+ "modified": "2021-02-23 15:10:09.227205",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

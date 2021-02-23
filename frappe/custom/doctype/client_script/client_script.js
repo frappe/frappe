@@ -1,7 +1,7 @@
 // Copyright (c) 2016, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Custom Script', {
+frappe.ui.form.on('Client Script', {
 	refresh(frm) {
 		if (frm.doc.dt && frm.doc.script) {
 			frm.add_custom_button(__('Go to {0}', [frm.doc.dt]),

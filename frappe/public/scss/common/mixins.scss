@@ -26,3 +26,29 @@
 	transition: $property $duration $timing-fn;
 	-webkit-transition: $property $duration $timing-fn;
 }
+
+@mixin img-background() {
+	content: " ";
+	display: block;
+	position: absolute;
+	left: 0;
+	height: calc(100%);
+	width: 100%;
+	background-color: var(--bg-light-gray);
+}
+
+// @mixin img-foreground() {
+// 	content: "\f1c5";
+// 	display: block;
+// 	font-style: normal;
+// 	font-family: FontAwesome;
+// 	font-size: 32px;
+// 	color: var(--text-muted);
+
+// 	position: absolute;
+// 	top: 50%;
+// 	transform: translateY(-50%);
+// 	left: 0;
+// 	width: 100%;
+// 	text-align: center;
+// }
