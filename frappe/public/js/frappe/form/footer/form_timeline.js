@@ -361,7 +361,8 @@ class FormTimeline extends BaseTimeline {
 			recipients: communication_doc && communication_doc.sender != frappe.session.user_email? communication_doc.sender : this.get_recipient(),
 			is_a_reply: Boolean(communication_doc),
 			title: communication_doc ? __('Reply') : null,
-			last_email: communication_doc
+			last_email: communication_doc,
+			subject: communication_doc ? __("Re: {0}", [communication_doc.subject])  : __("Re: {0}", [this.frm.doc.subject])
 		};
 
 		if (communication_doc && reply_all) {
@@ -378,7 +379,7 @@ class FormTimeline extends BaseTimeline {
 			const comment_value = frappe.markdown(this.frm.comment_box.get_value());
 			args.txt = strip_html(comment_value) ? comment_value : '';
 		}
-		console.log(args)
+
 		new frappe.views.CommunicationComposer(args);
 	}
 
