@@ -14,6 +14,7 @@ from frappe.model.document import Document
 class UserType(Document):
 	def validate(self):
 		self.set_modules()
+		self.add_select_perm_doctypes()
 
 	def on_update(self):
 		if self.is_standard: return
@@ -98,17 +99,39 @@ class UserType(Document):
 		for row in self.user_doctypes:
 			docperm = add_role_permissions(row.document_type, self.role)
 
-			values = {perm:row.get(perm) for perm in perms}
+			values = {perm:row.get(perm) or 0 for perm in perms}
 			for perm in ['print', 'email', 'share']:
 				values[perm] = 1
 
 			frappe.db.set_value('Custom DocPerm', docperm, values)
 
+	def add_select_perm_doctypes(self):
+		if not frappe.flags.in_patch and not frappe.conf.developer_mode: return
+
+		self.select_doctypes = []
+
+		select_doctypes = []
+		user_doctypes = tuple([row.document_type for row in self.user_doctypes])
+
+		for doctype in user_doctypes:
+			doc = frappe.get_meta(doctype)
+			for field in doc.get_link_fields():
+				if field.options not in user_doctypes:
+					select_doctypes.append(field.options)
+
+		if select_doctypes:
+			select_doctypes = set(select_doctypes)
+			for select_doctype in select_doctypes:
+				self.append('select_doctypes', {
+					'document_type': select_doctype
+				})
+
 	def add_role_permissions_for_select_doctypes(self):
-		for row in self.select_doctypes:
-			docperm = add_role_permissions(row.document_type, self.role)
-			frappe.db.set_value('Custom DocPerm', docperm,
-				{'select': 1, 'read': 0, 'create': 0, 'write': 0})
+		for doctype in ['select_doctypes', 'custom_select_doctypes']:
+			for row in self.get(doctype):
+				docperm = add_role_permissions(row.document_type, self.role)
+				frappe.db.set_value('Custom DocPerm', docperm,
+					{'select': 1, 'read': 0, 'create': 0, 'write': 0})
 
 	def add_role_permissions_for_file(self):
 		docperm = add_role_permissions('File', self.role)
@@ -121,8 +144,9 @@ class UserType(Document):
 		# Do not remove the doc permission for the file doctype
 		doctypes.append('File')
 
-		for dt in self.select_doctypes:
-			doctypes.append(dt.document_type)
+		for doctype in ['select_doctypes', 'custom_select_doctypes']:
+			for dt in self.get(doctype):
+				doctypes.append(dt.document_type)
 
 		for perm in frappe.get_all('Custom DocPerm',
 			filters = {'role': self.role, 'parent': ['not in', doctypes]}):

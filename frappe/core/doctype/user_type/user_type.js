@@ -7,7 +7,7 @@ frappe.ui.form.on('User Type', {
 		frm.set_df_property('is_standard', 'read_only', !frappe.boot.developer_mode);
 
 		const fields = ['role', 'apply_user_permission_on', 'user_id_field',
-			'user_doctypes', 'select_doctypes', 'user_type_modules'];
+			'user_doctypes', 'user_type_modules'];
 
 		frm.toggle_display(fields, !frm.doc.is_standard);
 
@@ -20,6 +20,14 @@ frappe.ui.form.on('User Type', {
 		});
 
 		frm.set_query('document_type', 'select_doctypes', function() {
+			return {
+				filters: {
+					istable: 0
+				}
+			};
+		});
+
+		frm.set_query('document_type', 'custom_select_doctypes', function() {
 			return {
 				filters: {
 					istable: 0
