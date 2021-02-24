@@ -16,6 +16,7 @@ import click
 import frappe
 from frappe import _, conf
 from frappe.utils import get_file_size, get_url, now, now_datetime
+from frappe.commands import popen
 
 # backup variable for backwards compatibility
 verbose = False
@@ -436,7 +437,8 @@ class BackupGenerator:
 		if self.verbose:
 			print(command + "\n")
 
-		err, out = frappe.utils.execute_in_shell(command)
+		bash_command = "bash -o pipefail -c '{command}'".format(command=command)
+		popen(bash_command, raise_err=True)
 
 	def send_email(self):
 		"""
