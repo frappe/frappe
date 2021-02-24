@@ -170,23 +170,48 @@ frappe.ui.LinkPreview = class {
 			this.href = this.href.replace(new RegExp(' ', 'g'), '%20');
 		}
 
-		let image_html = '';
+		let popover_content =`
+			<div class="preview-popover-header">
+				<div class="preview-header">
+					${this.get_image_html(preview_data)}
+					<div class="preview-name">
+						<a href=${this.href}>${__(preview_data.preview_title)}</a>
+					</div>
+					<div class="text-muted preview-title">${this.get_id_html(preview_data)}</div>
+				</div>
+			</div>
+			<hr>
+			<div class="popover-body">
+				${this.get_content_html(preview_data)}
+			</div>
+		`;
+
+		return popover_content;
+	}
+
+	get_id_html(preview_data) {
 		let id_html = '';
-		let content_html = '';
-
-		let image_url = preview_data.preview_image;
-		let avatar_html = frappe.get_avatar(
-			"avatar-large",
-			preview_data.preview_title,
-			image_url
-		);
-		image_html = `<div class="preview-image">
-			${avatar_html}
-		</div>`;
-
 		if (preview_data.preview_title !== preview_data.name) {
 			id_html = `<a class="text-muted" href=${this.href}>${preview_data.name}</a>`;
 		}
+
+		return id_html;
+	}
+
+	get_image_html(preview_data) {
+		let avatar_html = frappe.get_avatar(
+			"avatar-medium",
+			preview_data.preview_title,
+			preview_data.preview_image
+		);
+
+		return `<div class="preview-image">
+			${avatar_html}
+		</div>`;
+	}
+
+	get_content_html(preview_data) {
+		let content_html = '';
 
 		Object.keys(preview_data).forEach(key => {
 			if (!['preview_image', 'preview_title', 'name'].includes(key)) {
@@ -200,23 +225,8 @@ frappe.ui.LinkPreview = class {
 				`;
 			}
 		});
-		content_html = `<div class="preview-table">${content_html}</div>`;
 
-		let popover_content =`
-			<div class="preview-popover-header">
-				<div class="preview-header">
-					${image_html}
-					<div class="preview-name"><a href=${this.href}>${__(preview_data.preview_title)}</a></div>
-					<div class="text-muted preview-title">${id_html}</div>
-				</div>
-			</div>
-			<hr>
-			<div class="popover-body">
-				${content_html}
-			</div>
-		`;
-
-		return popover_content;
+		return `<div class="preview-table">${content_html}</div>`;
 	}
 
 };
