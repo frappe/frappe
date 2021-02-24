@@ -95,7 +95,12 @@ class EmailAccount(Document):
 		as_list = 1
 		if not self.enable_incoming and self.default_incoming:
 			self.default_incoming = False
-			messages.append(_("<b>Default Incoming</b> Unchecked since <b>Enable Incoming</b> was Unchecked"))
+			messages.append(_("{} has been disabled. It can only be enabled if {0} is checked.")
+				.format(
+					frappe.bold(_('Default Incoming')),
+					frappe.bold(_('Enable Incoming'))
+				)
+			)
 		if not self.enable_outgoing and self.default_outgoing:
 			self.default_outgoing = False
 			messages.append(_("<b>Default Outgoing</b> Unchecked since <b>Enable Outgoing</b> was Unchecked"))
