@@ -69,13 +69,13 @@ def get_controller(doctype):
 
 	if frappe.local.dev_server:
 		return _get_controller()
-	
+
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
 	if doctype not in site_controllers:
 		site_controllers[doctype] = _get_controller()
-	
+
 	return site_controllers[doctype]
-	
+
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
 
@@ -94,6 +94,14 @@ class BaseDocument(object):
 		return self._meta
 
 	def update(self, d):
+		""" Update multiple fields of a doctype using a dictionary of key-value pairs.
+
+		Example:
+			doc.update({
+				"user": "admin",
+				"balance": 42000
+			})
+		"""
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
 
@@ -159,6 +167,15 @@ class BaseDocument(object):
 			del self.__dict__[key]
 
 	def append(self, key, value=None):
+		""" Append an item to a child table.
+
+		Example:
+			doc.append("childtable", {
+				"child_table_field": "value",
+				"child_table_int_field": 0,
+				...
+			})
+		"""
 		if value==None:
 			value={}
 		if isinstance(value, (dict, BaseDocument)):
