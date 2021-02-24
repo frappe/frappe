@@ -419,24 +419,59 @@ class BaseDocument(object):
 				doc.db_update()
 
 	def show_unique_validation_message(self, e):
-		# TODO: Find a better way to extract fieldname
 		if frappe.db.db_type != 'postgres':
 			fieldname = str(e).split("'")[-2]
 			label = None
 
-			# unique_first_fieldname_second_fieldname is the constraint name
-			# created using frappe.db.add_unique
-			if "unique_" in fieldname:
-				fieldname = fieldname.split("_", 1)[1]
+			# MariaDB gives key_name in error. Extracting fieldname from key name
+			try:
+				fieldname = self.get_field_name_by_key_name(fieldname)
+			except IndexError:
+				pass
 
-			df = self.meta.get_field(fieldname)
-			if df:
-				label = df.label
+			label = self.get_label_from_fieldname(fieldname)
 
 			frappe.msgprint(_("{0} must be unique").format(label or fieldname))
 
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError(self.doctype, self.name, e)
+
+	def get_field_name_by_key_name(self, key_name):
+		"""MariaDB stores a mapping between `key_name` and `column_name`.
+		This function returns the `column_name` associated with the `key_name` passed
+
+		Args:
+			key_name (str): The name of the database index.
+
+		Raises:
+			IndexError: If the key is not found in the table.
+
+		Returns:
+			str: The column name associated with the key.
+		"""
+		return frappe.db.sql(f"""
+			SHOW
+				INDEX
+			FROM
+				`tab{self.doctype}`
+			WHERE
+				key_name=%s
+			AND
+				Non_unique=0
+			""", key_name, as_dict=True)[0].get("Column_name")
+
+	def get_label_from_fieldname(self, fieldname):
+		"""Returns the associated label for fieldname
+
+		Args:
+			fieldname (str): The fieldname in the DocType to use to pull the label.
+
+		Returns:
+			str: The label associated with the fieldname, if found, otherwise `None`.
+		"""
+		df = self.meta.get_field(fieldname)
+		if df:
+			return df.label
 
 	def update_modified(self):
 		"""Update modified timestamp"""
