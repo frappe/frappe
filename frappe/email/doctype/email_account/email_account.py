@@ -95,7 +95,7 @@ class EmailAccount(Document):
 		as_list = 1
 		if not self.enable_incoming and self.default_incoming:
 			self.default_incoming = False
-			messages.append(_("{} has been disabled. It can only be enabled if {0} is checked.")
+			messages.append(_("{} has been disabled. It can only be enabled if {} is checked.")
 				.format(
 					frappe.bold(_('Default Incoming')),
 					frappe.bold(_('Enable Incoming'))
@@ -103,7 +103,12 @@ class EmailAccount(Document):
 			)
 		if not self.enable_outgoing and self.default_outgoing:
 			self.default_outgoing = False
-			messages.append(_("<b>Default Outgoing</b> Unchecked since <b>Enable Outgoing</b> was Unchecked"))
+			messages.append(_("{} has been disabled. It can only be enabled if {} is checked.")
+				.format(
+						frappe.bold(_('Default Outgoing')),
+						frappe.bold(_('Enable Outgoing'))
+					)
+				)
 		if messages:
 			if len(messages) == 1: (as_list, messages) = (0, messages[0])
 			frappe.msgprint(messages, as_list= as_list, indicator='orange', title=_("Defaults Updated"))
