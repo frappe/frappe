@@ -71,7 +71,7 @@ def _new_site(
 	)
 
 	for app in apps_to_install:
-		plugin_site_specifics_from_app(app, verbose=verbose)
+		install_app(app, verbose=verbose)
 
 	os.remove(installing)
 	frappe.db.commit()
@@ -111,16 +111,13 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.flags.in_install_db = False
 
-def plugin_site_specifics_from_app(app: str, verbose=False) -> None:
-	"""Make site specific setup needed to use the app.
-
-	This will be called as part of app installation.
+def install_app(app: str, verbose=False, set_as_patched=True) -> None:
+	"""Install app into the system.
 	"""
 	from frappe.model.sync import sync_for
 
-	# TODO: Can we remove one of these flags?
-	frappe.flags.in_site_setup = True
 	frappe.flags.in_install = app
+	frappe.flags.in_app_setup = True # Configure app within a site
 	frappe.flags.ignore_in_install = False
 
 	frappe.clear_cache()
@@ -130,7 +127,7 @@ def plugin_site_specifics_from_app(app: str, verbose=False) -> None:
 	# install pre-requisites
 	if app_hooks.required_apps:
 		for app in app_hooks.required_apps:
-			plugin_site_specifics_from_app(app, verbose=verbose)
+			install_app(app, verbose=verbose)
 
 	frappe.flags.in_install = app
 	frappe.clear_cache()
@@ -144,7 +141,7 @@ def plugin_site_specifics_from_app(app: str, verbose=False) -> None:
 
 	print("\nInstalling {0}...".format(app))
 
-	# FIXME: This may creates trouble in case of multi-tenancy
+	# FIXME: This may creates permission issue in case of multi-tenancy
 	if app != "frappe":
 		frappe.only_for("System Manager")
 
@@ -163,14 +160,15 @@ def plugin_site_specifics_from_app(app: str, verbose=False) -> None:
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
-	frappe.flags.in_site_setup = False
+	for tenant in Tenant.find_all():
+		configure_tenant(app, tenant, set_as_patched=set_as_patched)
+
+	frappe.flags.in_app_setup = False
 	frappe.flags.in_install = False
 
-def plugin_tenant_specifics_from_app(app: str, tenant: Tenant, verbose: bool=False,
+def configure_tenant(app: str, tenant: Tenant, verbose: bool=False,
 		set_as_patched: bool=True) -> None:
-	"""Make tenant specific setup needed to use the app
-
-	This will be called as part of app installation.
+	"""Configure tenant to use the app.
 	"""
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.modules.utils import sync_customizations
@@ -179,7 +177,6 @@ def plugin_tenant_specifics_from_app(app: str, tenant: Tenant, verbose: bool=Fal
 
 	frappe.init_tenant(tenant.id)
 
-	# TODO: Can we remove one of these flags?
 	frappe.flags.in_tenant_setup = True
 	frappe.flags.in_install = app
 
@@ -195,8 +192,8 @@ def plugin_tenant_specifics_from_app(app: str, tenant: Tenant, verbose: bool=Fal
 	for after_sync in app_hooks.after_sync or []:
 		frappe.get_attr(after_sync)()
 
-	for after_tenant_specifics_install in app_hooks.after_tenant_specifics_install or []:
-		frappe.get_attr(after_tenant_specifics_install)()
+	for after_tenant_setup in app_hooks.after_tenant_setup or []:
+		frappe.get_attr(after_tenant_setup)()
 
 	frappe.flags.in_install = False
 	frappe.flags.in_tenant_setup = False
@@ -221,13 +218,10 @@ def _add_tenant(site, tenant_name, verbose=False, set_as_patched=True):
 
 	installed_apps = frappe.get_installed_apps()
 	for app in installed_apps:
-		plugin_tenant_specifics_from_app(app, tenant, verbose=False, set_as_patched=set_as_patched)
+		configure_tenant(app, tenant, verbose=False, set_as_patched=set_as_patched)
 
 	post_install(rebuild_website=True)
 	print(f"Scheduler is {scheduler_status} for Tenant {tenant_name}")
-
-def install_app(name, verbose=False, set_as_patched=True):
-	pass
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()

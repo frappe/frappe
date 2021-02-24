@@ -25,6 +25,11 @@ class Tenant:
 		return rows and cls.from_row(rows[0])
 
 	@classmethod
+	def find_all(cls):
+		rows = frappe.db.sql("select * from `tabTenant`", as_dict=True)
+		return (cls.from_row(row) for row in rows)
+
+	@classmethod
 	def atleast_one_exist(cls):
 		rows = frappe.db.sql("select * from `tabTenant` limit 1", as_dict=True)
 		return bool(rows)

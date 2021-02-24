@@ -39,7 +39,7 @@ def set_new_name(doc):
 	elif getattr(doc.meta, "istable", False):
 		doc.name = make_autoname("hash", doc.doctype)
 
-	if not doc.name and not frappe.flags.in_site_setup:
+	if not doc.name and not frappe.flags.in_app_setup:
 		set_naming_from_document_naming_rule(doc)
 
 	if not doc.name:

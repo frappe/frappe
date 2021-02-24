@@ -150,7 +150,7 @@ def init(site, sites_path=None, new_site=False):
 		"ignore_links": False,
 		"mute_emails": False,
 		"has_dataurl": False,
-		"in_site_setup": False,
+		"in_app_setup": False,
 		"in_tenant_setup": False,
 		"new_site": new_site
 	})

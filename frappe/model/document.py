@@ -280,7 +280,7 @@ class Document(BaseDocument):
 		return self
 
 	def sync_for_site(self):
-		"""Sync document at time of site creation.
+		"""Sync document at time of site creation|app installation.
 
 		We need to create schema and update meta details of a schema at time of site creation.
 		"""

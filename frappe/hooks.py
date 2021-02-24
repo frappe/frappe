@@ -23,7 +23,7 @@ translator_url = "https://translate.erpnext.com"
 #TODO: Rename it to before(|after)_site_specifics_install ???
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
-after_tenant_specifics_install = "frappe.utils.install.setup_tenant"
+after_tenant_setup = "frappe.utils.install.setup_tenant"
 
 
 page_js = {
