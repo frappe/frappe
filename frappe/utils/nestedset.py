@@ -143,9 +143,14 @@ def rebuild_tree(doctype, parent_field):
 		call rebuild_node for all root nodes
 	"""
 
-	# Check for perm
-	if not frappe.has_permission(doctype):
-		frappe.msgprint(_("No Permission"), raise_exception=1)
+	# Check for perm if called from client-side
+	if frappe.request:
+		user = frappe.session.user
+		if user != 'Administrator' or ('System Manager' not in frappe.get_roles(user)):
+			frappe.throw(_("No Permission"))
+
+		if not frappe.has_permission(doctype, ptype='write'):
+			frappe.throw(_("No Permission"))
 
 	# get all roots
 	frappe.db.auto_commit_on_many_writes = 1
