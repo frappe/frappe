@@ -31,7 +31,8 @@ def is_invalid_date_string(date_string):
 # datetime functions
 def getdate(string_date=None):
 	"""
-	Converts string date (yyyy-mm-dd) to datetime.date object
+	Converts string date (yyyy-mm-dd) to datetime.date object.
+	If no input is provided, current date is returned.
 	"""
 
 	if not string_date:
@@ -518,7 +519,25 @@ def cast_fieldtype(fieldtype, value):
 	return value
 
 def flt(s, precision=None):
-	"""Convert to float (ignore commas)"""
+	"""Convert to float (ignoring commas in string)
+
+		:param s: Number in string or other numeric format.
+		:param precision: optional argument to specify precision for rounding.
+		:returns: Converted number in python float type.
+
+		Returns 0 if input can not be converted to float.
+
+		Examples:
+
+		>>> flt("43.5", precision=0)
+		44
+		>>> flt("42.5", precision=0)
+		42
+		>>> flt("10,500.5666", precision=2)
+		10500.57
+		>>> flt("a")
+		0.0
+	"""
 	if isinstance(s, string_types):
 		s = s.replace(',','')
 
@@ -531,11 +550,25 @@ def flt(s, precision=None):
 
 	return num
 
-def cint(s):
-	"""Convert to integer"""
-	try: num = int(float(s))
-	except: num = 0
-	return num
+def cint(s, default=0):
+	"""Convert to integer
+
+		:param s: Number in string or other numeric format.
+		:returns: Converted number in python integer type.
+
+		Returns default if input can not be converted to integer.
+
+		Examples:
+		>>> cint("100")
+		100
+		>>> cint("a")
+		0
+
+	"""
+	try:
+		return int(float(s))
+	except Exception:
+		return default
 
 def floor(s):
 	"""
@@ -833,7 +866,7 @@ def is_image(filepath):
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
-	filepath = filepath.split('?')[0]
+	filepath = (filepath or "").split('?')[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 def get_thumbnail_base64_for_image(src):

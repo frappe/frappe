@@ -131,4 +131,15 @@
 			fill: var(--gray-700);
 		}
 	}
+
+	.rating {
+		// rating
+		--star-fill: var(--gray-500);
+		.star-hover {
+			--star-fill: var(--gray-400);
+		}
+	}
+
+	// skeleton
+	--skeleton-bg: var(--gray-800);
 }
