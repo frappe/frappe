@@ -144,7 +144,7 @@ def rebuild_tree(doctype, parent_field):
 	"""
 
 	# Check for perm if called from client-side
-	if frappe.request:
+	if frappe.request and frappe.local.form_dict.cmd == 'rebuild_tree':
 		frappe.only_for('System Manager')
 
 	# get all roots
