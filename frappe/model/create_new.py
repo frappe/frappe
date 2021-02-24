@@ -61,6 +61,9 @@ def set_user_and_static_default_values(doc):
 			doctype_user_permissions = user_permissions.get(df.options, [])
 			# Allowed records for the reference doctype (link field) along with default doc
 			allowed_records, default_doc = filter_allowed_docs_for_doctype(doctype_user_permissions, df.parent, with_default_doc=True)
+			allowed_records += filter_allowed_docs_for_doctype(doctype_user_permissions, df.options, with_default_doc=False)
+
+			allowed_records = list(set(allowed_records))
 
 			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc)
 			if user_default_value is not None:
