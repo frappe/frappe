@@ -1,48 +1,80 @@
 .link-preview-popover {
-	border-radius: 0;
 	max-width: 100%;
+
 	.popover-content {
-		padding: 0;
+		padding: 15px 25px;
+
 		.preview-popover-header {
-			padding: var(--padding-md);
 
 			.preview-header {
-				display: inline-block;
-				vertical-align: top;
+				@include flex(flex, null, center, column);
 			}
 
 			.preview-image {
-				width: 70px;
-				height: 70px;
-				object-fit: cover;
-				margin-right: var(--margin-sm);
+				margin-bottom: var(--margin-sm);
+				// object-fit: cover;
+				// border-radius: var(--border-radius-sm);
+
+				.avatar {
+					width: 52px;
+					height: 52px;
+				}
+			}
+
+			img:after {
+				content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='lightgrey' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-image'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>");
+			}
+
+			img[alt]:after {
+				height: 52px;
+				@include flex();
+				position: absolute;
+				z-index: 1;
+				top: -15px;
+				left: 0px;
+				width: 100%;
+				background-color: var(--bg-color);
 				border-radius: var(--border-radius);
 			}
 
 			.preview-name {
-				display: block;
+				// display: block;
+				font-size: var(--text-base);
+				font-weight: 500;
 			}
 
-			.preview-title {
-				display: block;
+			.preview-title:not(:empty) {
+				margin-top: var(--margin-xs);
+				font-size: var(--text-md);
 			}
 		}
 
-		hr {
-			margin: 0;
-		}
+		.popover-body {
+			padding: 0;
 
-		.preview-table {
-			padding: var(--padding-md);
-			padding-bottom: var(--padding-xs);
-			max-width: 330px;
-			min-width: 200px;
-			overflow-wrap: break-word;
+			.preview-table {
+				padding-bottom: var(--padding-xs);
+				max-width: 330px;
+				min-width: 200px;
+				overflow-wrap: break-word;
 
-			.preview-field {
-				padding-bottom: var(--padding-sm);
-				.preview-label {
-					padding-bottom: 4px;
+				.preview-field {
+
+					.preview-label {
+						padding-bottom: 4px;
+					}
+
+					.preview-value {
+						font-weight: 500;
+					}
+
+					.ql-snow .ql-editor {
+						min-height: 0;
+					}
+
+					&:not(:last-child) {
+						margin-bottom: var(--margin-md);
+					}
 				}
 			}
 		}
