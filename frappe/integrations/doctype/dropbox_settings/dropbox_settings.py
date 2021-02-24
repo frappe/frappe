@@ -134,7 +134,7 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 		if not f.file_url:
 			filename = f.filename.rsplit('/',1)[-1]
 		else:
-			filename = f.file_url.rsplit('/',1)[-1]
+			filename = f.file_url.rsplit('/', 1)[-1]
 
 		filepath = os.path.join(path, filename)
 
