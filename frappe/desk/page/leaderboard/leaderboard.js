@@ -14,11 +14,13 @@ class Leaderboard {
 		frappe.ui.make_app_page({
 			parent: parent,
 			title: __("Leaderboard"),
-			single_column: false
+			single_column: false,
+			card_layout: true,
 		});
+
 		this.parent = parent;
 		this.page = this.parent.page;
-		this.page.sidebar.html(`<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul>`);
+		this.page.sidebar.html(`<ul class="standard-sidebar leaderboard-sidebar overlay-sidebar"></ul>`);
 		this.$sidebar_list = this.page.sidebar.find('ul');
 
 		this.get_leaderboard_config();
@@ -79,7 +81,8 @@ class Leaderboard {
 		this.$graph_area = this.$container.find(".leaderboard-graph");
 
 		this.doctypes.map(doctype => {
-			this.get_sidebar_item(doctype).appendTo(this.$sidebar_list);
+			const icon = this.leaderboard_config[doctype].icon;
+			this.get_sidebar_item(doctype, icon).appendTo(this.$sidebar_list);
 		});
 
 		this.setup_leaderboard_fields();
@@ -138,16 +141,16 @@ class Leaderboard {
 	}
 
 	create_date_range_field() {
-		let timespan_field = $(this.parent).find(`.frappe-control[data-original-title='Timespan']`);
+		let timespan_field = $(this.parent).find(`.frappe-control[data-original-title=${__('Timespan')}]`);
 		this.date_range_field = $(`<div class="from-date-field"></div>`).insertAfter(timespan_field).hide();
 
 		let date_field = frappe.ui.form.make_control({
 			df: {
 				fieldtype: 'DateRange',
 				fieldname: 'selected_date_range',
-				placeholder: "Date Range",
+				placeholder: __("Date Range"),
 				default: [frappe.datetime.month_start(), frappe.datetime.now_date()],
-				input_class: 'input-sm',
+				input_class: 'input-xs',
 				reqd: 1,
 				change: () => {
 					this.selected_date_range = date_field.get_value();
@@ -163,7 +166,7 @@ class Leaderboard {
 
 		this.$sidebar_list.on("click", "li", (e)=> {
 			let $li = $(e.currentTarget);
-			let doctype = $li.find("span").attr("doctype-value");
+			let doctype = $li.find(".doctype-text").attr("doctype-value");
 
 			this.options.selected_company = frappe.defaults.get_default("company");
 			this.options.selected_doctype = doctype;
@@ -181,8 +184,8 @@ class Leaderboard {
 				$(this.parent).find("[data-original-title=Company]").show();
 			}
 
-			this.$sidebar_list.find("li").removeClass("active");
-			$li.addClass("active");
+			this.$sidebar_list.find("li").removeClass("active selected");
+			$li.addClass("active selected");
 
 			frappe.set_route("leaderboard", this.options.selected_doctype);
 			this.make_request();
@@ -193,7 +196,7 @@ class Leaderboard {
 
 		this.$search_box =
 			$(`<div class="leaderboard-search form-group col-md-3">
-				<input type="text" placeholder="Search" data-element="search" class="form-control leaderboard-search-input input-sm">
+				<input type="text" placeholder=${ __("Search") } data-element="search" class="form-control leaderboard-search-input input-xs">
 			</div>`);
 
 		$(this.parent).find(".page-form").append(this.$search_box);
@@ -236,21 +239,16 @@ class Leaderboard {
 			let graph_items = results.slice(0, 10);
 
 			this.$graph_area.show().empty();
-			let args = {
+
+			const custom_options = {
 				data: {
-					datasets: [
-						{
-							values: graph_items.map(d => d.value)
-						}
-					],
+					datasets: [{ values: graph_items.map(d => d.value) }],
 					labels: graph_items.map(d => d.name)
 				},
-				colors: ["light-green"],
 				format_tooltip_x: d => d[this.options.selected_filter_item],
-				type: "bar",
 				height: 140
 			};
-			new frappe.Chart(".leaderboard-graph", args);
+			frappe.utils.make_chart('.leaderboard-graph', custom_options);
 
 			notify(this, r);
 		});
@@ -263,7 +261,7 @@ class Leaderboard {
 			frappe.utils.setup_search($(me.parent), ".list-item-container", ".list-id");
 		} else {
 			me.$graph_area.hide();
-			me.message = __("No items found.");
+			me.message = __("No Items Found");
 			me.$container.find(".leaderboard-list").html(me.render_list_view());
 		}
 	}
@@ -292,7 +290,7 @@ class Leaderboard {
 			.map(i => frappe.model.unscrub(i));
 		const fields = ["rank", "name", this.options.selected_filter_item];
 		const filters = fields.map(filter => {
-			const col = frappe.model.unscrub(filter);
+			const col = __(frappe.model.unscrub(filter));
 			return (
 				`<div class="leaderboard-item list-item_content ellipsis text-muted list-item__content--flex-2
 					header-btn-base ${filter}
@@ -306,7 +304,7 @@ class Leaderboard {
 
 		const html =
 			`<div class="list-headers">
-				<div class="list-item list-item--head" data-list-renderer="List">${filters}</div>
+				<div class="list-item" data-list-renderer="List">${filters}</div>
 			</div>`;
 		return html;
 	}
@@ -330,14 +328,16 @@ class Leaderboard {
 	}
 
 	render_message() {
-
-		let html =
-			`<div class="no-result text-center" style="${this.message ? "" : "display: none;"}">
-				<div class="msg-box no-border">
-					<p>No Item found</p>
-				</div>
-			</div>`;
-
+		const display_class = this.message ? '' : 'hide';
+		let html = `<div class="leaderboard-empty-state ${display_class}">
+			<div class="no-result text-center">
+				<img src="/assets/frappe/images/ui-states/search-empty-state.svg"
+					alt="Empty State"
+					class="null-state"
+				>
+				<div class="empty-state-text">${this.message}</div>
+			</div>
+		</div>`;
 		return html;
 	}
 
@@ -348,13 +348,13 @@ class Leaderboard {
 			return fieldname === this.options.selected_filter_item;
 		}));
 
-		const link = `#Form/${this.options.selected_doctype}/${item.name}`;
+		const link = `/app/${frappe.router.slug(this.options.selected_doctype)}/${item.name}`;
 		const name_html = item.formatted_name ?
 			`<span class="text-muted ellipsis list-id">${item.formatted_name}</span>`
 			: `<a class="grey list-id ellipsis" href="${link}"> ${item.name} </a>`;
 		const html =
 			`<div class="list-item">
-				<div class="list-item_content ellipsis list-item__content--flex-2 rank">
+				<div class="list-item_content ellipsis list-item__content--flex-2 rank text-center">
 					<span class="text-muted ellipsis">${index}</span>
 				</div>
 				<div class="list-item_content ellipsis list-item__content--flex-2 name">
@@ -368,10 +368,13 @@ class Leaderboard {
 		return html;
 	}
 
-	get_sidebar_item(item) {
-		return $(`<li class="strong module-sidebar-item">
-			<a class="module-link">
-			<span doctype-value="${item}">${ __(item) }</span></a>
+	get_sidebar_item(item, icon) {
+		let icon_html = icon ? frappe.utils.icon(icon, 'md') : '';
+		return $(`<li class="standard-sidebar-item">
+			<span>${icon_html}</span>
+			<a class="sidebar-link">
+				<span class="doctype-text" doctype-value="${item}">${ __(item) }</span>
+			</a>
 		</li>`);
 	}
 

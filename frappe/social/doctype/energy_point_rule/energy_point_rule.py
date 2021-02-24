@@ -14,7 +14,6 @@ from frappe.social.doctype.energy_point_log.energy_point_log import \
 
 class EnergyPointRule(Document):
 	def on_update(self):
-		print('clearing...')
 		frappe.cache_manager.clear_doctype_map('Energy Point Rule', self.reference_doctype)
 
 	def on_trash(self):

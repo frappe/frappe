@@ -18,7 +18,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 
 		this.img_wrapper = $(`<div class="signature-display">
 			<div class="missing-image attach-missing-image">
-				<i class="octicon octicon-circle-slash"></i>
+				${frappe.utils.icon('restriction', 'md')}</i>
 			</div></div>`)
 			.appendTo(this.wrapper);
 		this.img = $("<img class='img-responsive attach-image-display'>")
@@ -29,15 +29,21 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		let width = this.body.width();
 		if (width > 0 && !this.$pad) {
 			this.$pad = this.body.jSignature({
-				height: 300,
+				height: 200,
+				color: "var(--text-color)",
 				width: this.body.width(),
-				lineWidth: 3
+				lineWidth: 2,
+				"background-color": "var(--control-bg)"
 			}).on('change',
 				this.on_save_sign.bind(this));
 			this.load_pad();
-			this.$reset_button_wrapper = $(`<div class="signature-btn-row">
-				<a href="#" type="button" class="signature-reset btn btn-default">
-				<i class="glyphicon glyphicon-repeat"></i></a>`)
+			this.$reset_button_wrapper = $(`
+					<div class="signature-btn-row">
+						<a href="#" type="button" class="signature-reset btn icon-btn">
+							${frappe.utils.icon('refresh', 'sm')}
+						</a>
+					</div>
+				`)
 				.appendTo(this.$pad)
 				.on("click", '.signature-reset', () => {
 					this.on_reset_sign();

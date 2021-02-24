@@ -152,10 +152,10 @@ def process_response(response):
 
 def set_cors_headers(response):
 	origin = frappe.request.headers.get('Origin')
-	if not origin:
+	allow_cors = frappe.conf.allow_cors
+	if not (origin and allow_cors):
 		return
 
-	allow_cors = frappe.conf.allow_cors
 	if allow_cors != "*":
 		if not isinstance(allow_cors, list):
 			allow_cors = [allow_cors]
@@ -180,6 +180,9 @@ def make_form_dict(request):
 		args = json.loads(request_data)
 	else:
 		args = request.form or request.args
+
+	if not isinstance(args, dict):
+		frappe.throw("Invalid request arguments")
 
 	try:
 		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \

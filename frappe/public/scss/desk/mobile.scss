@@ -1,0 +1,383 @@
+html {
+	min-height: 100%;
+}
+
+body {
+	height: 100%;
+	// The html and body elements cannot have any padding or margin.
+	margin: 0px;
+	padding: 0px !important;
+}
+
+// html,
+// body {
+// 	overflow-x: hidden;  //Prevent scroll on narrow devices
+// }
+
+@media(max-width: 991px) {
+	.intro-area,
+	.footnote-area {
+		padding: 15px;
+	}
+
+	.grid-row-open {
+		top: 0;
+	}
+
+	.layout-main {
+		position: relative;
+	}
+
+	body[data-route^="Form"] {
+		.page-title h1 {
+			margin-top: 12px;
+			&.editable-title {
+				padding-right: 80px;
+			}
+		}
+
+		.page-title .indicator {
+			float: left;
+			margin-top: var(--margin-sm);
+			margin-right: var(--margin-xs);
+		}
+
+
+		.page-head .sub-heading {
+			font-size: var(--text-xs);
+		}
+	}
+
+	// navbar & breadcrumbs
+	.toggle-navbar-new-comments {
+		padding: 8px 0px !important;
+	}
+
+	.navbar > .container > .navbar-header {
+		float: left;
+		width: 80%;
+	}
+
+	.navbar > .container > .navbar-right {
+		float: right;
+	}
+
+	.module-item {
+		padding: 7px 0px !important;
+
+		h4 {
+			font-weight: normal;
+		}
+	}
+
+	#navbar-breadcrumbs {
+		display: inline-block;
+		max-width: 150px;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+
+		@media(max-width: 480px) {
+			li > a {
+				width: 100px;
+			}
+		}
+	}
+
+	#navbar-breadcrumbs > li,
+	#navbar-breadcrumbs > li > a {
+		display: inline-block;
+		vertical-align: middle;
+	}
+
+	#navbar-breadcrumbs > li > a:before {
+		// .breadcrumb-divider-left();
+	}
+
+	// select all except last 2
+	#navbar-breadcrumbs li:not(:nth-last-child(-n+1)) {
+		display: none;
+	}
+
+	.sidebar .form-group {
+		margin-bottom: 0px;
+	}
+
+	#sidebar-search {
+		height: 27px;
+	}
+
+	.sidebar form {
+		padding: var(--padding-sm);
+	}
+
+	.sidebar .main-menu {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 41px;
+		overflow-y: auto;
+	}
+
+	.sidebar .user-menu {
+		padding: 9px 14px;
+		background-color: var(--navbar-bg);
+
+		position: absolute;
+		left: 0;
+		bottom: 0;
+		right: 0;
+	}
+
+	.sidebar .user-menu img {
+		margin-top: -1px;
+	}
+
+	// body[data-route=""],
+	// body[data-route="desktop"] {
+	// 	.navbar .navbar-home {
+	// 		// display: none !important;
+	// 		&:before {
+	// 			display: none;
+	// 		}
+	// 		img {
+	// 			margin-top: 0;
+	// 		}
+	// 	}
+
+	// 	.toggle-sidebar {
+	// 		display: none !important;
+	// 	}
+	// }
+
+	// body[data-sidebar="0"] {
+	// 	.toggle-sidebar {
+	// 		display: none !important;
+	// 	}
+	// }
+}
+
+@media(max-width: 767px) {
+
+	body[data-route^="Form"]{
+		.page-title {
+			.title-text {
+				font-size: var(--text-lg);
+				max-width: 300px;
+			}
+
+			.indicator {
+				margin: 0;
+			}
+		}
+	}
+
+	.modal {
+		.file-upload {
+			.input-upload {
+				width: 100%;
+				text-align: center;
+
+				.btn-browse {
+					width: 100%;
+				}
+			}
+
+			.web-link-wrapper {
+				display: block;
+				width: 100% !important;
+				text-align: center;
+
+				.file-upload-or {
+					display: block;
+					margin: 15px 24px;
+				}
+
+				.input-link {
+					width: 100% !important;
+				}
+			}
+		}
+	}
+
+	.layout-main-section {
+		border-left-color: transparent !important;
+		border-right-color: transparent !important;
+	}
+
+	// listviews
+	.list-row {
+		padding: 13px 15px !important;
+	}
+
+	.doclist-row {
+		position: relative;
+		padding-right: 10px;
+
+		.list-id {
+			font-weight: normal;
+		}
+
+		.list-row-id {
+			left: 18px;
+			text-align: left;
+			margin-top: 3px;
+		}
+
+		&.has-checkbox .list-row-id {
+			left: 40px;
+		}
+
+		.list-row-indicator {
+			position: absolute;
+			right: 0px;
+			top: -20px;
+		}
+
+		.list-row-modified {
+			margin-right: -10px;
+		}
+
+		.list-row-left {
+			z-index: 1;
+		}
+
+		.list-row-right {
+			float: right;
+
+			.list-row-indicator {
+				top: 4px;
+
+				// bigger indicators for list
+				.indicator::before, .indicator::after {
+					height: 12px;
+					width: 12px;
+					border-radius: 12px;
+				}
+
+			}
+
+		}
+
+		.list-row-right.no-right-column {
+			position: absolute;
+			top: 0;
+			right: 10px;
+			left: -10px;
+			width: 100%;
+
+		}
+	}
+
+	#page-chat {
+		.layout-side-section {
+			position: relative;
+			left: 0px;
+			border-right: 1px solid var(--border-color);
+			padding-left: 0px;
+			float: left;
+
+			// hack! to prevent overlap of borders
+			width: 76px;
+		}
+
+		.layout-main-section-wrapper {
+			position: absolute;
+			left: 75px;
+			right: 0px;
+			border-left: 1px solid var(--border-color);
+			float: left;
+		}
+
+		.module-sidebar-item {
+			margin: 0px;
+
+			.chat-sidebar-link {
+				padding: var(--padding-md);
+			}
+		}
+
+		.timeline-head {
+			padding: 15px 15px 7px;
+		}
+
+		.list-row {
+			padding: 7px 0px;
+		}
+
+		.message-row-right {
+			margin-top: var(--margin-sm);
+			text-align: left;
+		}
+	}
+
+	.timeline {
+		&::before {
+			content: none;
+		}
+		.timeline-new-email {
+			margin: var(--margin-lg) 0;
+			padding-left: var(--padding-md);
+			&::before {
+				content: none;
+			}
+		}
+		.timeline-item {
+			&.user-content {
+				margin: var(--margin-lg) var(--margin-md);
+				.media-body {
+					margin-left: 0;
+					max-width: 100%;
+					overflow: hidden;
+					&:before {
+						content: none;
+					}
+				}
+				.action-btns {
+					padding: 7px 10px 2px 5px;
+					.edit-btn-container {
+						margin-right: 0;
+					}
+				}
+				.comment-header{
+					padding: 7px 10px;
+					.links-active {
+						padding-right: 10px;
+					}
+					.reply-link, .reply-link-all {
+						margin-left: 0;
+					}
+					.asset-details {
+						width: calc(100% - 30px);
+					}
+				}
+				.avatar-medium {
+					margin-right: 10px;
+				}
+				.reply {
+					padding: 10px;
+				}
+				.commented-on-small{
+					display: inline-block;
+				}
+				.commented-on-small{
+					display: inline-block;
+				}
+			}
+			&.notification-content {
+				padding-left: var(--padding-md);
+				margin: var(--margin-lg) 0;
+				&::before {
+					content: none;
+				}
+				.small {
+					padding-left: 0;
+				}
+			}
+		}
+		.asset-details {
+			line-height: 24px; /*Height of avtar image -36px to align text center vertically*/
+		}
+	}
+}

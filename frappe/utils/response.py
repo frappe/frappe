@@ -26,8 +26,8 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 
 def report_error(status_code):
 	'''Build error. Show traceback in developer mode'''
-	if (cint(frappe.db.get_system_setting('allow_error_traceback'))
-		and (status_code!=404 or frappe.conf.logging)
+	allow_traceback = cint(frappe.db.get_system_setting('allow_error_traceback')) if frappe.db else True
+	if (allow_traceback and (status_code!=404 or frappe.conf.logging)
 		and not frappe.local.flags.disable_traceback):
 		frappe.errprint(frappe.utils.get_traceback())
 
