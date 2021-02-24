@@ -22,7 +22,6 @@ frappe.ui.LinkPreview = class {
 			}
 		});
 		this.handle_popover_hide();
-
 	}
 
 	identify_doc() {
@@ -122,7 +121,7 @@ frappe.ui.LinkPreview = class {
 			}
 		});
 
-		$(window).on('hashchange', () => {
+		frappe.router.on('change', () => {
 			this.clear_all_popovers();
 		});
 	}
@@ -142,18 +141,22 @@ frappe.ui.LinkPreview = class {
 		let popover_content = this.get_popover_html(preview_data);
 		this.element.popover({
 			container: 'body',
+			template: `
+				<div class="link-preview-popover popover">
+					<div class="arrow"></div>
+					<div class="popover-body popover-content">
+					</div>
+				</div>
+			`,
 			html: true,
+			sanitizeFn: (content) => content,
 			content: popover_content,
 			trigger: 'manual',
-			placement: 'top auto',
-			animation: false,
+			placement: 'top',
 		});
 
-		const $popover = this.element.data('bs.popover').tip();
-
-		$popover.addClass('link-preview-popover');
+		const $popover = $(this.element.data('bs.popover').tip);
 		$popover.toggleClass('control-field-popover', this.is_link);
-
 		this.popovers_list.push(this.element.data('bs.popover'));
 
 	}
@@ -171,16 +174,17 @@ frappe.ui.LinkPreview = class {
 		let id_html = '';
 		let content_html = '';
 
-		if (preview_data.preview_image) {
-			let image_url = encodeURI(preview_data.preview_image);
-			image_html = `
-				<div class="preview-header">
-					<img src="${image_url}" onerror="this.src='/assets/frappe/images/fallback-thumbnail.jpg'" class="preview-image"></img>
-				</div>
-			`;
-		}
+		let image_url = preview_data.preview_image;
+		let avatar_html = frappe.get_avatar(
+			"avatar-large",
+			preview_data.preview_title,
+			image_url
+		);
+		image_html = `<div class="preview-image">
+			${avatar_html}
+		</div>`;
 
-		if (preview_data.preview_title != preview_data.name) {
+		if (preview_data.preview_title !== preview_data.name) {
 			id_html = `<a class="text-muted" href=${this.href}>${preview_data.name}</a>`;
 		}
 
@@ -190,8 +194,8 @@ frappe.ui.LinkPreview = class {
 				let label = key;
 				content_html += `
 					<div class="preview-field">
-						<div class='small preview-label text-muted bold'>${__(label)}</div>
-						<div class="small preview-value">${value}</div>
+						<div class="preview-label text-muted">${__(label)}</div>
+						<div class="preview-value">${value}</div>
 					</div>
 				`;
 			}
@@ -199,12 +203,11 @@ frappe.ui.LinkPreview = class {
 		content_html = `<div class="preview-table">${content_html}</div>`;
 
 		let popover_content =`
-			<div class="preview-popover-header">${image_html}
+			<div class="preview-popover-header">
 				<div class="preview-header">
-					<div class="preview-main">
-						<a class="preview-name bold" href=${this.href}>${__(preview_data.preview_title)}</a>
-						<span class="text-muted small">${__(this.doctype)} ${id_html}</span>
-					</div>
+					${image_html}
+					<div class="preview-name"><a href=${this.href}>${__(preview_data.preview_title)}</a></div>
+					<div class="text-muted preview-title">${id_html}</div>
 				</div>
 			</div>
 			<hr>
