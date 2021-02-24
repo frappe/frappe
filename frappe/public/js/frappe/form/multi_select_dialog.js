@@ -204,7 +204,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			noDataMessage: __('No Data'),
 			disableReorderColumn: true
 		});
-		this.$child_wrapper.find('.dt-scrollable').css('height', '300px !immportant');
+		this.$child_wrapper.find('.dt-scrollable').css('height', '300px');
 	}
 
 	show_fetch_child_items() {
