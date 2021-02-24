@@ -5,9 +5,8 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	"""Enable all the existing custom script"""
-	frappe.reload_doc("Custom", "doctype", "Custom Script")
+	"""Enable all the existing Client script"""
 
 	frappe.db.sql("""
-		UPDATE `tabCustom Script` SET enabled=1
+		UPDATE `tabClient Script` SET enabled=1
 	""")
