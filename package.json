@@ -3,7 +3,7 @@
   "scripts": {
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
-    "watch": "node rollup/watch.js",
+    "watch": "node --max_old_space_size=1280 rollup/watch.js",
     "snyk-protect": "snyk protect",
     "prepare": "yarn run snyk-protect"
   },
