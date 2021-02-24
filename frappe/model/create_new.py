@@ -60,10 +60,8 @@ def set_user_and_static_default_values(doc):
 			# user permissions for link options
 			doctype_user_permissions = user_permissions.get(df.options, [])
 			# Allowed records for the reference doctype (link field) along with default doc
-			allowed_records, default_doc = filter_allowed_docs_for_doctype(doctype_user_permissions, df.parent, with_default_doc=True)
-			allowed_records += filter_allowed_docs_for_doctype(doctype_user_permissions, df.options, with_default_doc=False)
-
-			allowed_records = list(set(allowed_records))
+			allowed_records, default_doc = filter_allowed_docs_for_doctype(doctype_user_permissions,
+				df.parent, with_default_doc=True)
 
 			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc)
 			if user_default_value is not None:
@@ -86,11 +84,17 @@ def get_user_default_value(df, defaults, doctype_user_permissions, allowed_recor
 
 		# 2 - Look in user defaults
 		user_default = defaults.get(df.fieldname)
-		is_allowed_user_default = user_default and (not user_permissions_exist(df, doctype_user_permissions)
-			or user_default in allowed_records)
+
+		allowed_by_user_permission = True
+		if user_permissions_exist(df, doctype_user_permissions) and allowed_records:
+			# If allowed records is empty, that means there is *no* User Permission that
+			# is applicable to this new doctype.
+
+			# If not, check if this field value is allowed via User Permissions.
+			allowed_by_user_permission = user_default in allowed_records
 
 		# is this user default also allowed as per user permissions?
-		if is_allowed_user_default:
+		if user_default and allowed_by_user_permission:
 			return user_default
 
 def get_static_default_value(df, doctype_user_permissions, allowed_records):
