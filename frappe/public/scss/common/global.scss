@@ -84,7 +84,8 @@ html.firefox, html.safari {
 	@include card();
 }
 
-.frappe-control[data-fieldtype="Select"] .control-input {
+.frappe-control[data-fieldtype="Select"] .control-input,
+.frappe-control[data-fieldtype="Select"].form-group {
 	position: relative;
 
 	select {
@@ -94,14 +95,37 @@ html.firefox, html.safari {
 		-webkit-appearance: none;
 	}
 
-	.icon {
+	.select-icon {
+		padding-left: inherit;
+		padding-right: inherit;
 		position: absolute;
-		top: 8px;
-		height: 15px;
-		right: 12px;
 		pointer-events: none;
-		use {
-			stroke: var(--text-muted);
+		top: 7px;
+		right: 12px;
+
+		&.xs {
+			top: 3px;
+			right: 10px;
+		}
+
+		.icon {
+			use {
+				stroke: var(--text-muted);
+			}
+		}
+	}
+
+	.placeholder {
+		padding-left: inherit;
+		padding-right: inherit;
+		position: absolute;
+		pointer-events: none;
+		top: 7px;
+		left: 12px;
+		max-width: 80%;
+
+		&.xs {
+			top: 3px;
 		}
 	}
 }
