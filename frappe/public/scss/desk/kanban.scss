@@ -117,11 +117,13 @@
 			font-size: var(--text-lg);
 			color: var(--text-color);
 			font-weight: normal;
+			padding-right: var(--padding-xs);
+			max-width: 100%;
 
 			// margin-left: 10px;
 			.kanban-title {
 				font-size: var(--text-lg);
-				margin-left: 10px;
+				margin-left: var(--margin-sm);
 				font-weight: var(--text-bold, 600);
 			}
 		}
