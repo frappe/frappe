@@ -153,13 +153,15 @@
 
 		.kanban-card {
 			@include flex(flex, space-between, null, column);
-
-			@include card(
-				$padding: var(--padding-sm) var(--padding-md),
-				$background-color: var(--kanban-card-bg)
-			);
 			margin-top: var(--margin-sm);
 			min-height: 100px;
+			@include card(
+				$padding: 0,
+				$background-color: var(--kanban-card-bg)
+			);
+			.kanban-card-body {
+				padding: var(--padding-sm);
+			}
 		}
 	}
 
@@ -209,6 +211,27 @@
 			color: var(--text-muted);
 			margin-top: var(--margin-xs);
 		}
+	}
+
+	.kanban-image {
+		height: 125px;
+
+		img {
+			border-radius: var(--border-radius) var(--border-radius) 0 0;
+			object-position: top;
+			object-fit: cover;
+			margin: 0 auto;
+			height: 100%;
+			width: 100%;
+			min-width: 100%;
+			color: transparent;
+			position: relative;
+		}
+
+		@include broken-img(
+			$height: 125px,
+			$top: -4px,
+		)
 	}
 
 	.kanban-card-edit {
@@ -289,6 +312,7 @@
 				height: 22px;
 				width: auto;
 				padding: 2px 8px;
+				margin-bottom: var(--margin-xs);
 				margin-right: var(--margin-xs);
 			}
 		}
