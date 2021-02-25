@@ -301,7 +301,7 @@ frappe.provide("frappe.views");
 
 		function init() {
 			fluxify.doAction('init', opts);
-			store.on('change:columns', make_columns);
+			store.off('change:columns').on('change:columns', make_columns);
 			prepare();
 			store.on('change:cur_list', setup_restore_columns);
 			store.on('change:columns', setup_restore_columns);
