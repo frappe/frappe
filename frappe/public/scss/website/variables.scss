@@ -47,6 +47,10 @@ $font-sizes: (
 	}
 }
 
+$border-radius: var(--border-radius);
+$border-radius-sm: var(--border-radius-sm);
+$border-radius-lg: var(--border-radius-lg);
+
 $font-size-xs: 0.75rem !default;
 $font-size-sm: 0.875rem !default;
 $font-size-base: 1rem !default;

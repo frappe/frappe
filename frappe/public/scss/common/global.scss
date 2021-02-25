@@ -162,3 +162,34 @@ html.firefox, html.safari {
 	-webkit-transform: translate(-50%, -50%);
 }
 
+.hide {
+	display: none !important;
+}
+
+.btn-link {
+	box-shadow: none !important;
+	outline: none;
+	.icon, &:hover {
+		text-decoration: none !important;
+	}
+}
+
+.hidden {
+	@extend .d-none;
+}
+
+.margin {
+	margin: var(--margin-sm);
+}
+.margin-top {
+	margin-top: var(--margin-sm);
+}
+.margin-bottom {
+	margin-bottom: var(--margin-sm);
+}
+.margin-left {
+	margin-left: var(--margin-sm);
+}
+.margin-right {
+	margin-right: var(--margin-sm);
+}

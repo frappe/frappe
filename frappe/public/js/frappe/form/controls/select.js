@@ -138,9 +138,9 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		this.prop('disabled', false);
 	};
 
-	let originalVal = $.fn.val;
-	$.fn.val = function () {
-		let result = originalVal.apply(this, arguments);
+	let original_val = $.fn.val;
+	$.fn.val = function() {
+		let result = original_val.apply(this, arguments);
 		if (arguments.length > 0) $(this).trigger('select-change');
 		return result;
 	};
