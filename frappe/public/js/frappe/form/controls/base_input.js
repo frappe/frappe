@@ -95,7 +95,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					if (me.disp_area) {
 						me.set_disp_area(me.value);
 						$(me.disp_area).toggle(true);
-						make_input();
+						if (me.df.options == 'Phone') make_input();
 					}
 				}
 				me.$input && me.$input.prop("disabled", true);
