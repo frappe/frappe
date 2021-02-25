@@ -23,7 +23,7 @@ context('Control Select', () => {
 		cy.get('.frappe-control[data-fieldname=select_control] .control-input select').as('select');
 		cy.get('@control').get('.select-icon').should('exist');
 		cy.get('@control').get('.placeholder').should('have.css', 'display', 'block');
-		cy.get('@select').select('Option 1')
+		cy.get('@select').select('Option 1');
 		cy.get('@control').get('.placeholder').should('have.css', 'display', 'none');
 		cy.get('@select').invoke('val', '');
 		cy.get('@control').get('.placeholder').should('have.css', 'display', 'block');
