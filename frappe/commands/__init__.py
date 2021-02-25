@@ -11,6 +11,7 @@ import frappe.utils
 import subprocess # nosec
 from functools import wraps
 from six import StringIO
+from frappe.tenant import Tenant
 
 click.disable_unicode_literals_warning = True
 
@@ -42,6 +43,29 @@ def pass_context(f):
 		return ret
 
 	return click.pass_context(_func)
+
+def tenant_required(f):
+	"""Decorator to validate and configure tenant_id incase of postgres.
+	"""
+	@wraps(f)
+	def wrapper(context, *args, **kwargs):
+		site = get_site(context)
+		frappe.init(site=site)
+		frappe.connect()
+
+		tenant = kwargs.get('tenant')
+		tenant_id = None
+		if frappe.conf.db_type == 'postgres':
+			tenant_obj = Tenant.find(tenant) if tenant else None
+			tenant_id = tenant_obj.id if tenant_obj else None
+			if not tenant_id:
+				click.echo("Please provide valid tenant.")
+				return
+
+		if tenant_id:
+			frappe.init_tenant(tenant_id)
+		f(context, *args, **kwargs)
+	return wrapper
 
 def get_site(context, raise_err=True):
 	try:

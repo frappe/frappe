@@ -7,7 +7,7 @@ import click
 
 # imports - module imports
 import frappe
-from frappe.commands import get_site, pass_context
+from frappe.commands import get_site, pass_context, tenant_required
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.installer import _add_tenant
 from frappe.tenant import Tenant
@@ -195,9 +195,14 @@ def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_ro
 
 @click.command('install-app')
 @click.argument('apps', nargs=-1)
+@click.option('--tenant')
 @pass_context
-def install_app(context, apps):
-	"Install a new app to site, supports multiple apps"
+@tenant_required
+def install_app(context, apps, tenant=None):
+	"""Install a new app to site, supports multiple apps
+
+	TO-FIX: Though tenant is passed in CLI, app will be installed at site level in current version. Tenant level installation comes later.
+	"""
 	from frappe.installer import install_app as _install_app
 	exit_code = 0
 
@@ -226,8 +231,10 @@ def install_app(context, apps):
 
 
 @click.command("list-apps")
+@click.option('--tenant')
 @pass_context
-def list_apps(context):
+@tenant_required
+def list_apps(context, tenant=None):
 	"List apps in site"
 
 	def fix_whitespaces(text):
@@ -277,8 +284,10 @@ def list_apps(context):
 @click.option('--last-name')
 @click.option('--password')
 @click.option('--send-welcome-email', default=False, is_flag=True)
+@click.option('--tenant')
 @pass_context
-def add_system_manager(context, email, first_name, last_name, send_welcome_email, password):
+@tenant_required
+def add_system_manager(context, email, first_name, last_name, send_welcome_email, password, tenant=None):
 	"Add a new system manager to a site"
 	import frappe.utils.user
 	for site in context.sites:
@@ -294,8 +303,10 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 
 @click.command('disable-user')
 @click.argument('email')
+@click.option('--tenant')
 @pass_context
-def disable_user(context, email):
+@tenant_required
+def disable_user(context, email, tenant=None):
 	site = get_site(context)
 	with frappe.init_site(site):
 		frappe.connect()
@@ -579,8 +590,10 @@ def move(dest_dir, site):
 @click.command('set-admin-password')
 @click.argument('admin-password')
 @click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
+@click.option('--tenant')
 @pass_context
-def set_admin_password(context, admin_password, logout_all_sessions=False):
+@tenant_required
+def set_admin_password(context, admin_password, logout_all_sessions=False, tenant=None):
 	"Set Administrator password for a site"
 	import getpass
 	from frappe.utils.password import update_password
@@ -603,8 +616,10 @@ def set_admin_password(context, admin_password, logout_all_sessions=False):
 
 @click.command('set-last-active-for-user')
 @click.option('--user', help="Setup last active date for user")
+@click.option('--tenant')
 @pass_context
-def set_last_active_for_user(context, user=None):
+@tenant_required
+def set_last_active_for_user(context, user=None, tenant=None):
 	"Set users last active date to current datetime"
 
 	from frappe.core.doctype.user.user import get_system_users
@@ -632,8 +647,10 @@ def set_last_active_for_user(context, user=None):
 @click.option('--doctype')
 @click.option('--docname')
 @click.option('--after-commit')
+@click.option('--tenant')
 @pass_context
-def publish_realtime(context, event, message, room, user, doctype, docname, after_commit):
+@tenant_required
+def publish_realtime(context, event, message, room, user, doctype, docname, after_commit, tenant=None):
 	"Publish realtime event from bench"
 	from frappe import publish_realtime
 	for site in context.sites:
@@ -716,8 +733,10 @@ def start_ngrok(context):
 		ngrok.kill()
 
 @click.command('build-search-index')
+@click.option('--tenant')
 @pass_context
-def build_search_index(context):
+@tenant_required
+def build_search_index(context, tenant=None):
 	from frappe.search.website_search import build_index_for_all_routes
 	site = get_site(context)
 	if not site:
@@ -730,6 +749,7 @@ def build_search_index(context):
 		build_index_for_all_routes()
 	finally:
 		frappe.destroy()
+
 
 commands = [
 	add_system_manager,

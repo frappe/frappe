@@ -8,7 +8,7 @@ import sys
 import frappe
 from frappe.defaults import _clear_cache
 from frappe.tenant import Tenant
-
+from frappe.database import update_database_post_site_creation
 
 def _new_site(
 	db_name,
@@ -29,7 +29,6 @@ def _new_site(
 	new_site=False,
 ):
 	"""Install a new Frappe site"""
-	from frappe.database import update_database_post_site_creation
 
 	if not force and os.path.exists(site):
 		print("Site {0} already exists".format(site))
@@ -77,9 +76,11 @@ def _new_site(
 	frappe.db.commit()
 
 	# Update DB (Apply constraints) post site creation.
+	# failure case example: installation flow tries to access `System Settings` from `tabSingles` and
+	# that can fail in RLS enabled system bcs of no tenant_id set.
 	update_database_post_site_creation()
 
-	# FIXME: Being single tenant system used Guest user records in login flow.
+	# FIXME: Current single tenant system use Guest user records in login flow.
 	# Adding new guest tenant to make this pass through.
 	if frappe.conf.db_type == "postgres":
 		_add_tenant(site, 'Guest')
@@ -181,8 +182,10 @@ def configure_tenant(app: str, tenant: Tenant, verbose: bool=False,
 	frappe.flags.in_install = app
 
 	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
+
 	if set_as_patched:
 		set_all_patches_as_completed(app)
+
 	sync_for(app, force=True, verbose=verbose, reset_permissions=True)
 	sync_jobs()
 	sync_fixtures(app)
@@ -211,17 +214,11 @@ def _add_tenant(site, tenant_name, verbose=False, set_as_patched=True):
 	except Exception:
 		enable_scheduler = False
 
-	scheduler.toggle_scheduler(enable_scheduler)
-	scheduler_status = (
-		"disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
-	)
-
 	installed_apps = frappe.get_installed_apps()
 	for app in installed_apps:
 		configure_tenant(app, tenant, verbose=False, set_as_patched=set_as_patched)
 
 	post_install(rebuild_website=True)
-	print(f"Scheduler is {scheduler_status} for Tenant {tenant_name}")
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
@@ -229,10 +226,6 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
-		# FIXME: Do it for tenant by moving code
-		# if frappe.flags.in_install:
-		# 	post_install(rebuild_website)
-
 
 def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
