@@ -602,7 +602,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	delete_saved_draft() {
 		if (this.dialog) {
-			localforage.getItem(this.frm.doctype + this.frm.docname).catch(e => {
+			localforage.removeItem(this.frm.doctype + this.frm.docname).catch(e => {
 				if (e) {
 					// silently fail
 					console.log(e); // eslint-disable-line
