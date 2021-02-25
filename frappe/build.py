@@ -15,6 +15,7 @@ import frappe
 from frappe.utils.minify import JavascriptMinify
 
 import click
+import psutil
 from six import iteritems, text_type
 from six.moves.urllib.parse import urlparse
 
@@ -245,6 +246,18 @@ def check_yarn():
 	if not find_executable("yarn"):
 		print("Please install yarn using below command and try again.\nnpm install -g yarn")
 
+def get_available_memory_for_usage():
+	try:
+		# 80% of free virtual memory
+		available_memory = (psutil.virtual_memory().free / (1024 * 1024)) * 0.8
+		# 60% of free swap memory
+		available_swap = (psutil.swap_memory().free / (1024 * 1024)) * 0.6
+		available_usage = int(available_memory + available_swap)
+
+	except Exception:
+		available_usage = 0
+
+	return available_usage
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
