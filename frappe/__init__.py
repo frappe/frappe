@@ -17,7 +17,6 @@ from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
 import click
-from faker import Faker
 
 # public
 from .exceptions import *
@@ -1750,6 +1749,8 @@ def parse_json(val):
 	return parse_json(val)
 
 def mock(type, size=1, locale='en'):
+	from faker import Faker
+
 	results = []
 	faker = Faker(locale)
 	if not type in dir(faker):
