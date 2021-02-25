@@ -227,7 +227,7 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False,
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
-	frappe.commands.popen(command, cwd=frappe_app_path)
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
 def watch(no_compress):
@@ -239,12 +239,18 @@ def watch(no_compress):
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
-	frappe.commands.popen("{pacman} run watch".format(pacman=pacman), cwd=frappe_app_path)
+	frappe.commands.popen("{pacman} run watch".format(pacman=pacman),
+		cwd=frappe_app_path, env=get_node_env())
 
 
 def check_yarn():
 	if not find_executable("yarn"):
 		print("Please install yarn using below command and try again.\nnpm install -g yarn")
+
+def get_node_env():
+	# set max_old_space_size based on available memory
+	node_env = dict(NODE_OPTIONS=f"--max_old_space_size={get_available_memory_for_usage()}")
+	return node_env
 
 def get_available_memory_for_usage():
 	try:
