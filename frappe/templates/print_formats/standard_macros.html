@@ -128,11 +128,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
         {% include doc.print_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" %}
 		<i class="{{ 'fa fa-check' if doc[df.fieldname] }}"></i>
-<<<<<<< HEAD
-	{% elif df.fieldtype=="Image" %}
-=======
 	{% elif df.fieldtype in ("Image", "Attach Image") and frappe.utils.is_image(doc[doc.meta.get_field(df.fieldname).options]) %}
->>>>>>> 3bc1648939... fix: broken image rendering in print format
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
