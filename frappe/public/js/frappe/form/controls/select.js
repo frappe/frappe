@@ -25,11 +25,15 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_placeholder: function(is_xs_input) {
-		this.$wrapper.append(`
-			<div class="placeholder ellipsis text-extra-muted ${is_xs_input ? 'xs' : ''}">
+		const placeholder_html =
+			`<div class="placeholder ellipsis text-extra-muted ${is_xs_input ? 'xs' : ''}">
 				<span>${this.df.placeholder}</span>
-			</div>`
-		);
+			</div>`;
+		if (this.only_input) {
+			this.$wrapper.append(placeholder_html);
+		} else {
+			this.$wrapper.find('.control-input').append(placeholder_html);
+		}
 		this.toggle_placeholder();
 		this.$input && this.$input.on('select-change', () => this.toggle_placeholder());
 	},
