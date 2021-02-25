@@ -249,21 +249,20 @@ def check_yarn():
 
 def get_node_env():
 	# set max_old_space_size based on available memory
-	node_env = dict(NODE_OPTIONS=f"--max_old_space_size={get_available_memory_for_usage()}")
+	node_env = dict(NODE_OPTIONS=f"--max_old_space_size={get_safe_max_old_space_size()}")
 	return node_env
 
-def get_available_memory_for_usage():
+def get_safe_max_old_space_size():
+	safe_max_old_space_size = 0
 	try:
-		# 80% of free virtual memory
-		available_memory = (psutil.virtual_memory().free / (1024 * 1024)) * 0.8
-		# 60% of free swap memory
-		available_swap = (psutil.swap_memory().free / (1024 * 1024)) * 0.6
-		available_usage = int(available_memory + available_swap)
-
+		total_memory = psutil.virtual_memory().total / (1024 * 1024)
+		# reference for the safe limit assumption
+		# https://nodejs.org/api/cli.html#cli_max_old_space_size_size_in_megabytes
+		safe_max_old_space_size = int(total_memory * 0.75)
 	except Exception:
-		available_usage = 0
+		pass
 
-	return available_usage
+	return safe_max_old_space_size
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
