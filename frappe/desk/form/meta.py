@@ -130,7 +130,7 @@ class FormMeta(Meta):
 	def add_custom_script(self):
 		"""embed all require files"""
 		# custom script
-		custom = frappe.db.get_value("Custom Script", {"dt": self.name, "enabled": 1}, "script") or ""
+		custom = frappe.db.get_value("Client Script", {"dt": self.name, "enabled": 1}, "script") or ""
 
 		self.set("__custom_js", custom)
 
@@ -202,13 +202,17 @@ class FormMeta(Meta):
 		self.load_kanban_column_fields()
 
 	def load_kanban_column_fields(self):
-		values = frappe.get_list(
-			'Kanban Board', fields=['field_name'],
-			filters={'reference_doctype': self.name})
+		try:
+			values = frappe.get_list(
+				'Kanban Board', fields=['field_name'],
+				filters={'reference_doctype': self.name})
 
-		fields = [x['field_name'] for x in values]
-		fields = list(set(fields))
-		self.set("__kanban_column_fields", fields, as_value=True)
+			fields = [x['field_name'] for x in values]
+			fields = list(set(fields))
+			self.set("__kanban_column_fields", fields, as_value=True)
+		except frappe.PermissionError:
+			# no access to kanban board
+			pass
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []

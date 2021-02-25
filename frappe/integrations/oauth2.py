@@ -20,6 +20,7 @@ def get_oauth_server():
 	return frappe.local.oauth_server
 
 def sanitize_kwargs(param_kwargs):
+	"""Remove 'data' and 'cmd' keys, if present."""
 	arguments = param_kwargs
 	arguments.pop('data', None)
 	arguments.pop('cmd', None)
@@ -162,10 +163,13 @@ def openid_profile(*args, **kwargs):
 	first_name, last_name, avatar, name = frappe.db.get_value("User", frappe.session.user, ["first_name", "last_name", "user_image", "name"])
 	frappe_userid = frappe.db.get_value("User Social Login", {"parent":frappe.session.user, "provider": "frappe"}, "userid")
 	request_url = urlparse(frappe.request.url)
+	base_url = frappe.db.get_value("Social Login Key", "frappe", "base_url") or None
 
 	if avatar:
 		if validate_url(avatar):
 			picture = avatar
+		elif base_url:
+			picture = base_url + '/' + avatar
 		else:
 			picture = request_url.scheme + "://" + request_url.netloc + avatar
 

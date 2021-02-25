@@ -3,6 +3,7 @@
 
 frappe.last_edited_communication = {};
 frappe.standard_replies = {};
+frappe.separator_element = '<div>---</div>';
 
 frappe.views.CommunicationComposer = Class.extend({
 	init: function(opts) {
@@ -17,12 +18,15 @@ frappe.views.CommunicationComposer = Class.extend({
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
+			size: 'large',
 			primary_action: function() {
 				me.delete_saved_draft();
 				me.send_action();
 			},
 			minimizable: true
 		});
+
+		this.dialog.sections[0].wrapper.addClass('to_section');
 
 		['recipients', 'cc', 'bcc'].forEach(field => {
 			this.dialog.fields_dict[field].get_data = function() {
@@ -50,59 +54,139 @@ frappe.views.CommunicationComposer = Class.extend({
 		if (this.frm) {
 			$(document).trigger('form-typing', [this.frm]);
 		}
+
+		if (this.cc || this.bcc) {
+			this.toggle_more_options(true);
+		}
 	},
 
 	get_fields: function() {
 		let contactList = [];
-		var fields= [
-			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients",options:contactList},
-			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Email Template")},
-			{label:__("CC"), fieldtype:"MultiSelect", fieldname:"cc",options:contactList},
-			{label:__("BCC"), fieldtype:"MultiSelect", fieldname:"bcc",options:contactList},
-			{label:__("Email Template"), fieldtype:"Link", options:"Email Template",
-				fieldname:"email_template"},
-			{fieldtype: "Section Break"},
-			{label:__("Subject"), fieldtype:"Data", reqd: 1,
-				fieldname:"subject", length:524288},
-			{fieldtype: "Section Break"},
+		let fields = [
 			{
-				label:__("Message"),
-				fieldtype:"Text Editor", reqd: 1,
-				fieldname:"content",
-				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300)
+				label: __("To"),
+				fieldtype: "MultiSelect",
+				reqd: 0,
+				fieldname: "recipients",
+				options: contactList
 			},
-
-			{fieldtype: "Section Break"},
-			{fieldtype: "Column Break"},
-			{label:__("Send me a copy"), fieldtype:"Check",
-				fieldname:"send_me_a_copy", 'default': frappe.boot.user.send_me_a_copy},
-			{label:__("Send Read Receipt"), fieldtype:"Check",
-				fieldname:"send_read_receipt"},
-			{label:__("Attach Document Print"), fieldtype:"Check",
-				fieldname:"attach_document_print"},
-			{label:__("Select Print Format"), fieldtype:"Select",
-				fieldname:"select_print_format"},
-			{label:__("Select Languages"), fieldtype:"Select",
-				fieldname:"language_sel"},
-			{fieldtype: "Column Break"},
-			{label:__("Select Attachments"), fieldtype:"HTML",
-				fieldname:"select_attachments"}
+			{
+				fieldtype: "Button",
+				label: frappe.utils.icon('down'),
+				fieldname: 'option_toggle_button',
+				click: () => {
+					this.toggle_more_options();
+				}
+			},
+			{
+				fieldtype: "Section Break",
+				hidden: 1,
+				fieldname: "more_options"
+			},
+			{
+				label: __("CC"),
+				fieldtype: "MultiSelect",
+				fieldname: "cc",
+				options: contactList
+			},
+			{
+				label: __("BCC"),
+				fieldtype: "MultiSelect",
+				fieldname: "bcc",
+				options: contactList
+			},
+			{
+				label: __("Email Template"),
+				fieldtype: "Link",
+				options: "Email Template",
+				fieldname: "email_template"
+			},
+			{ fieldtype: "Section Break" },
+			{
+				label: __("Subject"),
+				fieldtype: "Data",
+				reqd: 1,
+				fieldname: "subject",
+				length: 524288
+			},
+			{
+				label: __("Message"),
+				fieldtype: "Text Editor",
+				fieldname: "content",
+				onchange: frappe.utils.debounce(
+					this.save_as_draft.bind(this),
+					300
+				)
+			},
+			{ fieldtype: "Section Break" },
+			{
+				label: __("Send me a copy"),
+				fieldtype: "Check",
+				fieldname: "send_me_a_copy",
+				default: frappe.boot.user.send_me_a_copy
+			},
+			{
+				label: __("Send Read Receipt"),
+				fieldtype: "Check",
+				fieldname: "send_read_receipt"
+			},
+			{
+				label: __("Attach Document Print"),
+				fieldtype: "Check",
+				fieldname: "attach_document_print"
+			},
+			{
+				label: __("Select Print Format"),
+				fieldtype: "Select",
+				fieldname: "select_print_format"
+			},
+			{
+				label: __("Select Languages"),
+				fieldtype: "Select",
+				fieldname: "language_sel"
+			},
+			{ fieldtype: "Column Break" },
+			{
+				label: __("Select Attachments"),
+				fieldtype: "HTML",
+				fieldname: "select_attachments"
+			}
 		];
 
 		// add from if user has access to multiple email accounts
-		var email_accounts = frappe.boot.email_accounts.filter(function(account, idx){
-			return !in_list(["All Accounts", "Sent", "Spam", "Trash"], account.email_account) &&
-				account.enable_outgoing
-		})
-		if(frappe.boot.email_accounts && email_accounts.length > 1) {
+		const email_accounts = frappe.boot.email_accounts.filter(account => {
+			return (
+				!in_list(
+					["All Accounts", "Sent", "Spam", "Trash"],
+					account.email_account
+				) && account.enable_outgoing
+			);
+		});
+
+		if (frappe.boot.email_accounts && email_accounts.length > 1) {
 			fields = [
-				{label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender",
-					options: email_accounts.map(function(e) { return e.email_id; }) }
+				{
+					label: __("From"),
+					fieldtype: "Select",
+					reqd: 1,
+					fieldname: "sender",
+					options: email_accounts.map(function(e) {
+						return e.email_id;
+					})
+				}
 			].concat(fields);
 		}
 
 		return fields;
 	},
+
+	toggle_more_options(show_options) {
+		show_options = show_options || this.dialog.fields_dict.more_options.df.hidden;
+		this.dialog.set_df_property('more_options', 'hidden', !show_options);
+		let label = frappe.utils.icon(show_options ? 'up-line': 'down');
+		this.dialog.get_field('option_toggle_button').set_label(label);
+	},
+
 	prepare: function() {
 		this.setup_subject_and_recipients();
 		this.setup_print_language();
@@ -302,21 +386,18 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	setup_print_language: function() {
-		var me = this;
 		var doc = this.doc || cur_frm.doc;
 		var fields = this.dialog.fields_dict;
 
 		//Load default print language from doctype
 		this.lang_code = doc.language
 
-		if (this.get_print_format().default_print_language) {
-			var default_print_language_code = this.get_print_format().default_print_language;
-			me.lang_code = default_print_language_code;
-		} else {
-			var default_print_language_code = null;
+		if (!this.lang_code && this.get_print_format().default_print_language) {
+			this.lang_code = this.get_print_format().default_print_language;
 		}
 
 		//On selection of language retrieve language code
+		var me = this;
 		$(fields.language_sel.input).change(function(){
 			me.lang_code = this.value
 		})
@@ -326,10 +407,8 @@ frappe.views.CommunicationComposer = Class.extend({
 			.empty()
 			.add_options(frappe.get_languages());
 
-		if (default_print_language_code) {
-			$(fields.language_sel.input).val(default_print_language_code);
-		} else {
-			$(fields.language_sel.input).val(doc.language);
+		if (this.lang_code) {
+			$(fields.language_sel.input).val(this.lang_code);
 		}
 	},
 
@@ -346,15 +425,17 @@ frappe.views.CommunicationComposer = Class.extend({
 		$(fields.select_print_format.wrapper).toggle(false);
 
 		if (cur_frm) {
+			const print_formats = frappe.meta.get_print_formats(cur_frm.meta.name);
 			$(fields.select_print_format.input)
 				.empty()
-				.add_options(cur_frm.print_preview.print_formats)
-				.val(cur_frm.print_preview.print_formats[0]);
+				.add_options(print_formats)
+				.val(print_formats[0]);
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
 
 	},
+
 	setup_attach: function() {
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper);
@@ -384,20 +465,20 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		$(`
-			<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>
+			<label class="control-label">
 				${__("Select Attachments")}
-			</h6>
+			</label>
 			<div class='attach-list'></div>
 			<p class='add-more-attachments'>
-				<a class='text-muted small'>
-					<i class='octicon octicon-plus' style='font-size: 12px'></i>
+				<button class='btn btn-xs btn-default'>
+					${frappe.utils.icon('small-add', 'xs')}&nbsp;
 					${__("Add Attachment")}
-				</a>
+				</button>
 			</p>
 		`).appendTo(attach.empty());
 
 		attach
-			.find(".add-more-attachments a")
+			.find(".add-more-attachments button")
 			.on('click', () => new frappe.ui.FileUploader(args));
 		this.render_attachment_rows();
 	},
@@ -429,19 +510,19 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	get_attachment_row(attachment, checked) {
-		return $(`<p class="checkbox">
-			<label>
-				<span>
-					<input
-						type="checkbox"
-						data-file-name="${attachment.name}"
-						${checked ? 'checked': ''}>
-					</input>
-				</span>
-				<span class="small">${attachment.file_name}</span>
-				<a href="${attachment.file_url}" target="_blank" class="text-muted small">
-				<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>
+		return $(`<p class="checkbox flex">
+			<label class="ellipsis" title="${attachment.file_name}">
+				<input
+					type="checkbox"
+					data-file-name="${attachment.name}"
+					${checked ? 'checked': ''}>
+				</input>
+				<span class="ellipsis">${attachment.file_name}</span>
 			</label>
+			&nbsp;
+			<a href="${attachment.file_url}" target="_blank" class="btn-linkF">
+				${frappe.utils.icon('link-url')}
+			</a>
 		</p>`);
 	},
 
@@ -506,26 +587,28 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	save_as_draft: function() {
 		if (this.dialog && this.frm) {
-			try {
-				let message = this.dialog.get_value('content');
-				message = message.split(frappe.separator_element)[0];
-				localStorage.setItem(this.frm.doctype + this.frm.docname, message);
-			} catch (e) {
-				// silently fail
-				console.log(e);
-				console.warn('[Communication] localStorage is full. Cannot save message as draft');
-			}
+			let message = this.dialog.get_value('content');
+			message = message.split(frappe.separator_element)[0];
+			localforage.setItem(this.frm.doctype + this.frm.docname, message).catch(e => {
+				if (e) {
+					// silently fail
+					console.log(e); // eslint-disable-line
+					console.warn('[Communication] localStorage is full. Cannot save message as draft'); // eslint-disable-line
+				}
+			});
+
 		}
 	},
 
 	delete_saved_draft() {
 		if (this.dialog) {
-			try {
-				localStorage.removeItem(this.frm.doctype + this.frm.docname);
-			} catch (e) {
-				console.log(e);
-				console.warn('[Communication] Cannot delete localStorage item'); // eslint-disable-line
-			}
+			localforage.removeItem(this.frm.doctype + this.frm.docname).catch(e => {
+				if (e) {
+					// silently fail
+					console.log(e); // eslint-disable-line
+					console.warn('[Communication] localStorage is full. Cannot save message as draft'); // eslint-disable-line
+				}
+			});
 		}
 	},
 
@@ -586,8 +669,6 @@ frappe.views.CommunicationComposer = Class.extend({
 						delete frappe.last_edited_communication[me.doc][me.key];
 					}
 					if (cur_frm) {
-						// clear input
-						cur_frm.timeline.input && cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
 					}
 
@@ -625,11 +706,20 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 	},
 
-	setup_earlier_reply: function() {
+	get_default_outgoing_email_account_signature: function() {
+		return frappe.db.get_value('Email Account', { 'default_outgoing': 1, 'add_signature': 1 }, 'signature');
+	},
+
+	setup_earlier_reply: async function() {
 		let fields = this.dialog.fields_dict;
 		let signature = frappe.boot.user.email_signature || "";
 
-		if(!frappe.utils.is_html(signature)) {
+		if (!signature) {
+			const res = await this.get_default_outgoing_email_account_signature();
+			signature = res.message.signature;
+		}
+
+		if (signature && !frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 
@@ -639,7 +729,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			// saved draft in localStorage
 			const { doctype, docname } = this.frm || {};
 			if (doctype && docname) {
-				this.message = localStorage.getItem(doctype + docname) || '';
+				this.message = await localforage.getItem(doctype + docname) || '';
 			}
 		}
 
@@ -685,7 +775,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			content = `
 				<div><br></div>
 				${reply}
-				${frappe.separator_element}
+				${frappe.separator_element || ''}
 				<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
 				<blockquote>
 				${last_email_content}
@@ -709,4 +799,3 @@ frappe.views.CommunicationComposer = Class.extend({
 		return text.replace(/\n{3,}/g, '\n\n');
 	}
 });
-

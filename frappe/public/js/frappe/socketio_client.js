@@ -97,7 +97,7 @@ frappe.socketio = {
 			frappe.socketio.form_stopped_typing(frm.doctype, frm.docname);
 		});
 
-		window.onbeforeunload = function() {
+		window.addEventListener('beforeunload', () => {
 			if (!cur_frm || cur_frm.is_new()) {
 				return;
 			}
@@ -106,7 +106,7 @@ frappe.socketio = {
 			if (cur_frm.doc) {
 				frappe.socketio.doc_close(cur_frm.doctype, cur_frm.docname);
 			}
-		}
+		});
 	},
 	get_host: function(port = 3000) {
 		var host = window.location.origin;

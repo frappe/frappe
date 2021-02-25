@@ -45,7 +45,7 @@ frappe.get_indicator = function(doc, doctype) {
 					"Info": "light-blue",
 				}[locals["Workflow State"][value].style];
 			}
-			if(!colour) colour = "darkgrey";
+			if (!colour) colour = "gray";
 
 			return [__(value), colour, workflow_fieldname + ',=,' + value];
 		}
