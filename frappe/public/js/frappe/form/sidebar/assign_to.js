@@ -218,18 +218,26 @@ frappe.ui.form.AssignmentDialog = class {
 
 	make() {
 		this.dialog = new frappe.ui.Dialog({
-			title: __('Assigned To'),
+			title: __('Assignments'),
 			size: 'small',
+			no_focus: true,
 			fields: [{
-				'label': 'Assign Users',
+				'label': __('Assign a user'),
 				'fieldname': 'user',
 				'fieldtype': 'Link',
 				'options': 'User',
 				'change': () => {
 					let value = this.dialog.get_value('user');
-					if (this.dialog.get_value('user')) {
+					if (value && !this.assigning) {
+						this.assigning = true;
+						this.dialog.set_df_property('user', 'read_only', 1);
+						this.dialog.set_df_property('user', 'description', __('Assigning...'));
 						this.add_assignment(value).then(() => {
 							this.dialog.set_value('user', null);
+						}).finally(() => {
+							this.dialog.set_df_property('user', 'description', null);
+							this.dialog.set_df_property('user', 'read_only', 0);
+							this.assigning = false;
 						});
 					}
 				}
@@ -268,7 +276,10 @@ frappe.ui.form.AssignmentDialog = class {
 		});
 	}
 	update_assignment(assignment) {
-		this.assignment_list.append(this.get_assignment_row(assignment));
+		const in_the_list = this.assignment_list.find(`[data-user="${assignment}"]`).length;
+		if (!in_the_list) {
+			this.assignment_list.append(this.get_assignment_row(assignment));
+		}
 	}
 	get_assignment_row(assignment) {
 		let row = $(`
