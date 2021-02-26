@@ -47,7 +47,7 @@ def get_page_context(path):
 def make_page_context(path):
 	context = resolve_route(path)
 	if not context:
-		raise frappe.DoesNotExistError
+		raise frappe.PageDoesNotExistError
 
 	context.doctype = context.ref_doctype
 
