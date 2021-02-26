@@ -11,6 +11,7 @@ import frappe.utils
 import subprocess # nosec
 from functools import wraps
 from six import StringIO
+from os import environ
 
 click.disable_unicode_literals_warning = True
 
@@ -58,6 +59,8 @@ def popen(command, *args, **kwargs):
 	shell = kwargs.get('shell', True)
 	raise_err = kwargs.get('raise_err')
 	env = kwargs.get('env')
+	if env:
+		env = dict(environ, **env)
 
 	proc = subprocess.Popen(command,
 		stdout = None if output else subprocess.PIPE,
