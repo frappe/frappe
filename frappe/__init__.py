@@ -1777,4 +1777,4 @@ def init_tenant(tenant_id: int) -> None:
 	"""
 
 	local.tenant_id = tenant_id
-	connect()
+	connect(set_admin_as_user=False)

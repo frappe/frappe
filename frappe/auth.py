@@ -19,6 +19,7 @@ from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
 from frappe.website.utils import get_home_page
+from frappe.tenant import Tenant
 
 from six.moves.urllib.parse import quote
 
@@ -39,14 +40,14 @@ class HTTPRequest:
 		else:
 			frappe.local.request_ip = '127.0.0.1'
 
+		# set db
+		self.connect()
+
 		# language
 		self.set_lang()
 
 		# load cookies
 		frappe.local.cookie_manager = CookieManager()
-
-		# set db
-		self.connect()
 
 		# login
 		frappe.local.login_manager = LoginManager()
@@ -184,7 +185,6 @@ class LoginManager:
 			frappe.local.response["redirect_to"] = redirect_to
 			frappe.cache().hdel('redirect_after_login', self.user)
 
-
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
 		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
@@ -196,6 +196,7 @@ class LoginManager:
 
 		# reset user if changed to Guest
 		self.user = frappe.local.session_obj.user
+
 		frappe.local.session = frappe.local.session_obj.data
 		self.clear_active_sessions()
 
@@ -215,8 +216,14 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_('Incomplete login details'), user=user)
 
+		# RemoveMe: Fix once the login frontend is setup to pass tenant details
+		# For now every user is logged into Guest Tenant
+		if not frappe.local.tenant_id:
+			frappe.init_tenant(Tenant.find_guest().id)
+
 		# Ignore password check if tmp_id is set, 2FA takes care of authentication.
 		validate_password = not bool(frappe.form_dict.get('tmp_id'))
+
 		user = User.find_by_credentials(user, pwd, validate_password=validate_password)
 
 		if not user:

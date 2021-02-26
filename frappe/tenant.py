@@ -1,10 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-"""
-"""
+
 import frappe
 
 class Tenant:
+	"""Tenant table wrapper
+	"""
 	def __init__(self, id, name, status, created, modified):
 		self.id = id
 		self.name = name
@@ -25,9 +26,18 @@ class Tenant:
 		return rows and cls.from_row(rows[0])
 
 	@classmethod
+	def find_by_id(cls, tenant_id):
+		rows = frappe.db.sql("select * from `tabTenant` where id=%s limit 1", tenant_id, as_dict=True)
+		return rows and cls.from_row(rows[0])
+
+	@classmethod
 	def find_all(cls):
 		rows = frappe.db.sql("select * from `tabTenant`", as_dict=True)
 		return (cls.from_row(row) for row in rows)
+
+	@classmethod
+	def find_guest(cls):
+		return cls.find('Guest')
 
 	@classmethod
 	def atleast_one_exist(cls):

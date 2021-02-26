@@ -176,7 +176,8 @@ class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(frappe.form_dict.get('sid') or
 			unquote(frappe.request.cookies.get('sid', 'Guest')))
-		self.tenant = get_tenant_from_request()
+
+		self.tenant = get_tenant_from_request() if not self.sid else None
 		self.user = user
 		self.device = frappe.form_dict.get("device") or "desktop"
 		self.user_type = user_type
@@ -189,7 +190,6 @@ class Session:
 
 		if resume:
 			self.resume()
-
 		else:
 			if self.user:
 				self.start()
@@ -252,14 +252,11 @@ class Session:
 		import frappe
 		from frappe.auth import validate_ip_address
 		data = self.get_session_record()
-
 		if data:
-			print("------", data, self.sid)
 			if self.is_guest_user():
 				current_tenant = self.tenant if self.tenant else Tenant.find_guest()
 				frappe.init_tenant(current_tenant.id)
 			else:
-				print("-------In else", data)
 				frappe.init_tenant(data.tenant_id)
 			# set language
 			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
@@ -318,7 +315,7 @@ class Session:
 		self.device = self.device and self.device[0][0] or 'desktop'
 
 		rec = frappe.db.sql("""
-			SELECT `user`, `sessiondata`
+			SELECT `user`, `sessiondata`, `tenant_id`
 			FROM `tabSessions` WHERE `sid`=%s AND
 			(NOW() - lastupdate) < %s
 			""", (self.sid, get_expiry_period_for_query(self.device)))
@@ -326,6 +323,7 @@ class Session:
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
+			data.tenant_id = rec[0][2]
 		else:
 			self.delete_session()
 			data = None
@@ -383,7 +381,7 @@ class Session:
 
 
 def get_tenant_from_request():
-	"""
+	"""Get tenant details from request
 	"""
 	tenant_name = frappe.request.args.get('tenant') or frappe.form_dict.get('tenant')
 	return Tenant.find(tenant_name) if tenant_name else None
