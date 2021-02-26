@@ -43,6 +43,9 @@ def create_notification_settings(user):
 		_doc.name = user
 		_doc.insert(ignore_permissions=True)
 
+def enable_disable_notifications(user, enabled):
+	frappe.set_value("Notification Settings", user, 'enabled', enabled)
+
 
 @frappe.whitelist()
 def get_subscribed_documents():
