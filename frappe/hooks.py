@@ -291,61 +291,70 @@ before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migr
 after_migrate = ['frappe.website.doctype.website_theme.website_theme.after_migrate']
 
 otp_methods = ['OTP App','Email','SMS']
-user_privacy_documents = [
-	{
-		'doctype': 'File',
-		'match_field': 'attached_to_name',
-		'personal_fields': ['file_name', 'file_url'],
-		'applies_to_website_user': 1
-	},
-	{
-		'doctype': 'Email Group Member',
-		'match_field': 'email',
-	},
-	{
-		'doctype': 'Email Unsubscribe',
-		'match_field': 'email',
-	},
-	{
-		'doctype': 'Email Queue',
-		'match_field': 'sender',
-	},
-	{
-		'doctype': 'Email Queue Recipient',
-		'match_field': 'recipient',
-	},
-	{
-		'doctype': 'Contact',
-		'match_field': 'email_id',
-		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
-	},
-	{
-		'doctype': 'Contact Email',
-		'match_field': 'email_id',
-	},
-	{
-		'doctype': 'Address',
-		'match_field': 'email_id',
-		'personal_fields': ['address_title', 'address_line1', 'address_line2', 'city', 'county', 'state', 'pincode',
-			'phone', 'fax'],
-	},
-	{
-		'doctype': 'Communication',
-		'match_field': 'sender',
-		'personal_fields': ['sender_full_name', 'phone_no', 'content'],
-	},
-	{
-		'doctype': 'Communication',
-		'match_field': 'recipients',
-	},
-	{
-		'doctype': 'User',
-		'match_field': 'name',
-		'personal_fields': ['email', 'username', 'first_name', 'middle_name', 'last_name', 'full_name', 'birth_date',
-			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature'],
-		'applies_to_website_user': 1
-	},
 
+user_data_fields = [
+	{"doctype": "Access Log", "strict": False},
+	{"doctype": "Activity Log", "strict": False},
+	{"doctype": "Comment"},
+	{
+		"doctype": "Contact",
+		"filter_by": "email_id",
+		"redact_fields": ["first_name", "last_name", "phone", "mobile_no"],
+		"rename": 1,
+	},
+	{"doctype": "Contact Email", "filter_by": "email_id"},
+	{
+		"doctype": "Address",
+		"filter_by": "email_id",
+		"redact_fields": [
+			"address_title",
+			"address_line1",
+			"address_line2",
+			"city",
+			"county",
+			"state",
+			"pincode",
+			"phone",
+			"fax",
+		],
+	},
+	{
+		"doctype": "Communication",
+		"filter_by": "sender",
+		"redact_fields": ["sender_full_name", "phone_no", "content"],
+	},
+	{"doctype": "Communication", "filter_by": "recipients"},
+	{"doctype": "Email Group Member", "filter_by": "email"},
+	{"doctype": "Email Unsubscribe", "filter_by": "email", "partial": 1},
+	{"doctype": "Email Queue", "filter_by": "sender"},
+	{"doctype": "Email Queue Recipient", "filter_by": "recipient"},
+	{
+		"doctype": "File",
+		"filter_by": "attached_to_name",
+		"redact_fields": ["file_name", "file_url"],
+	},
+	{
+		"doctype": "User",
+		"filter_by": "name",
+		"redact_fields": [
+			"email",
+			"username",
+			"first_name",
+			"middle_name",
+			"last_name",
+			"full_name",
+			"birth_date",
+			"user_image",
+			"phone",
+			"mobile_no",
+			"location",
+			"banner_image",
+			"interest",
+			"bio",
+			"email_signature",
+		],
+	},
+	{"doctype": "Version", "strict": False},
 ]
 
 global_search_doctypes = {
