@@ -17,7 +17,6 @@ from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
-from frappe.website.render import render
 from frappe.utils import cint
 from six import text_type
 from six.moves.urllib.parse import quote
@@ -26,8 +25,8 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 
 def report_error(status_code):
 	'''Build error. Show traceback in developer mode'''
-	if (cint(frappe.db.get_system_setting('allow_error_traceback'))
-		and (status_code!=404 or frappe.conf.logging)
+	allow_traceback = cint(frappe.db.get_system_setting('allow_error_traceback')) if frappe.db else True
+	if (allow_traceback and (status_code!=404 or frappe.conf.logging)
 		and not frappe.local.flags.disable_traceback):
 		frappe.errprint(frappe.utils.get_traceback())
 
@@ -150,6 +149,7 @@ def json_handler(obj):
 
 def as_page():
 	"""print web page"""
+	from frappe.website.render import render
 	return render(frappe.response['route'], http_status_code=frappe.response.get("http_status_code"))
 
 def redirect():

@@ -1,13 +1,10 @@
-@import "variables.less";
-@import "mixins.less";
-
 html {
 	min-height: 100%;
 }
 
 body {
 	height: 100%;
-	 // The html and body elements cannot have any padding or margin.
+	// The html and body elements cannot have any padding or margin.
 	margin: 0px;
 	padding: 0px !important;
 }
@@ -41,8 +38,8 @@ body {
 
 		.page-title .indicator {
 			float: left;
-			margin-top: 10px;
-			margin-right: 5px;
+			margin-top: var(--margin-sm);
+			margin-right: var(--margin-xs);
 		}
 
 
@@ -110,18 +107,8 @@ body {
 		height: 27px;
 	}
 
-	.sidebar .navbar-search-icon {
-		float: right;
-		color: @navbar-default-color;
-		font-size: inherit;
-		position: relative;
-		right: 7px;
-		top: -20px;
-		height: 0;
-	}
-
 	.sidebar form {
-		padding: 7px;
+		padding: var(--padding-sm);
 	}
 
 	.sidebar .main-menu {
@@ -135,7 +122,7 @@ body {
 
 	.sidebar .user-menu {
 		padding: 9px 14px;
-		background-color: @navbar-default-bg;
+		background-color: var(--navbar-bg);
 
 		position: absolute;
 		left: 0;
@@ -143,71 +130,40 @@ body {
 		right: 0;
 	}
 
-	.sidebar .user-menu,
-	.sidebar .user-menu .octicon {
-		color: @navbar-default-color;
-	}
-
 	.sidebar .user-menu img {
 		margin-top: -1px;
 	}
 
-	// navbar center
-	body[data-route^="Module"] {
-		.navbar-center-show;
-	}
+	// body[data-route=""],
+	// body[data-route="desktop"] {
+	// 	.navbar .navbar-home {
+	// 		// display: none !important;
+	// 		&:before {
+	// 			display: none;
+	// 		}
+	// 		img {
+	// 			margin-top: 0;
+	// 		}
+	// 	}
 
-	// show home when no breadcrumbs
-	body.no-breadcrumbs .navbar .navbar-home& {
-		display: inline-block !important;
-		padding-left: 0px;
-		margin-left: 0px;
-		padding-top: 6px;
+	// 	.toggle-sidebar {
+	// 		display: none !important;
+	// 	}
+	// }
 
-		&:before {
-			.breadcrumb-divider();
-			// .breadcrumb-divider-left();
-		}
-
-		&:hover:before,
-		&:focus:before,
-		&:active:before {
-			color: @text-color !important;
-		}
-	}
-
-	body[data-route=""],
-	body[data-route="desktop"] {
-		.navbar .navbar-home {
-			// display: none !important;
-			&:before {
-				display: none;
-			}
-			img {
-				margin-top: 0;
-			}
-		}
-
-		.toggle-sidebar {
-			display: none !important;
-		}
-	}
-
-	body[data-sidebar="0"] {
-		.toggle-sidebar {
-			display: none !important;
-		}
-	}
+	// body[data-sidebar="0"] {
+	// 	.toggle-sidebar {
+	// 		display: none !important;
+	// 	}
+	// }
 }
 
 @media(max-width: 767px) {
-	.toggle-sidebar {
-		margin-right: 0;
-	}
+
 	body[data-route^="Form"]{
 		.page-title {
 			.title-text {
-				font-size: 16px;
+				font-size: var(--text-lg);
 				max-width: 300px;
 			}
 
@@ -216,6 +172,7 @@ body {
 			}
 		}
 	}
+
 	.modal {
 		.file-upload {
 			.input-upload {
@@ -244,10 +201,6 @@ body {
 		}
 	}
 
-	.layout-main-section-wrapper {
-		padding: 0px;
-	}
-
 	.layout-main-section {
 		border-left-color: transparent !important;
 		border-right-color: transparent !important;
@@ -258,7 +211,7 @@ body {
 		padding: 13px 15px !important;
 	}
 
-	.doclist-row& {
+	.doclist-row {
 		position: relative;
 		padding-right: 10px;
 
@@ -317,16 +270,11 @@ body {
 		}
 	}
 
-	// chat
-	body[data-route^="chat"] {
-		.navbar-center-show;
-	}
-
 	#page-chat {
 		.layout-side-section {
 			position: relative;
 			left: 0px;
-			border-right: 1px solid @border-color;
+			border-right: 1px solid var(--border-color);
 			padding-left: 0px;
 			float: left;
 
@@ -338,7 +286,7 @@ body {
 			position: absolute;
 			left: 75px;
 			right: 0px;
-			border-left: 1px solid @border-color;
+			border-left: 1px solid var(--border-color);
 			float: left;
 		}
 
@@ -346,7 +294,7 @@ body {
 			margin: 0px;
 
 			.chat-sidebar-link {
-				padding: 15px;
+				padding: var(--padding-md);
 			}
 		}
 
@@ -359,7 +307,7 @@ body {
 		}
 
 		.message-row-right {
-			margin-top: 10px;
+			margin-top: var(--margin-sm);
 			text-align: left;
 		}
 	}
@@ -369,15 +317,15 @@ body {
 			content: none;
 		}
 		.timeline-new-email {
-			margin: 20px 0;
-			padding-left: 15px;
+			margin: var(--margin-lg) 0;
+			padding-left: var(--padding-md);
 			&::before {
 				content: none;
 			}
 		}
 		.timeline-item {
 			&.user-content {
-				margin: 20px 15px;
+				margin: var(--margin-lg) var(--margin-md);
 				.media-body {
 					margin-left: 0;
 					max-width: 100%;
@@ -401,11 +349,11 @@ body {
 						margin-left: 0;
 					}
 					.asset-details {
-						width: calc(~"100% - 30px")
+						width: calc(100% - 30px);
 					}
 				}
 				.avatar-medium {
-				    margin-right: 10px;
+					margin-right: 10px;
 				}
 				.reply {
 					padding: 10px;
@@ -418,13 +366,13 @@ body {
 				}
 			}
 			&.notification-content {
-				padding-left: 15px;
-				margin: 20px 0;
+				padding-left: var(--padding-md);
+				margin: var(--margin-lg) 0;
 				&::before {
 					content: none;
 				}
 				.small {
-				    padding-left: 0;
+					padding-left: 0;
 				}
 			}
 		}

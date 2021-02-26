@@ -17,7 +17,6 @@ from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
 import click
-from faker import Faker
 
 # public
 from .exceptions import *
@@ -196,17 +195,20 @@ def init(site, sites_path=None, new_site=False):
 
 	local.initialised = True
 
-def connect(site=None, db_name=None):
+def connect(site=None, db_name=None, set_admin_as_user=True):
 	"""Connect to site database instance.
 
 	:param site: If site is given, calls `frappe.init`.
-	:param db_name: Optional. Will use from `site_config.json`."""
+	:param db_name: Optional. Will use from `site_config.json`.
+	:param set_admin_as_user: Set Administrator as current user.
+	"""
 	from frappe.database import get_db
 	if site:
 		init(site)
 
 	local.db = get_db(user=db_name or local.conf.db_name)
-	set_user("Administrator")
+	if set_admin_as_user:
+		set_user("Administrator")
 
 def connect_replica():
 	from frappe.database import get_db
@@ -468,8 +470,8 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=[], sender="", subject="No Subject", message="No Message",
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
-		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, content=None, doctype=None, name=None, reply_to=None,
+		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, add_unsubscribe_link=1,
+		attachments=None, content=None, doctype=None, name=None, reply_to=None, queue_separately=False,
 		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
 		inline_images=None, template=None, args=None, header=None, print_letterhead=False, with_container=False):
@@ -516,10 +518,10 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	from frappe.email import queue
 	queue.send(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
-		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
+		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name, add_unsubscribe_link=add_unsubscribe_link,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
-		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
+		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, queue_separately=queue_separately,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
 		inline_images=inline_images, header=header, print_letterhead=print_letterhead, with_container=with_container)
 
@@ -1747,6 +1749,8 @@ def parse_json(val):
 	return parse_json(val)
 
 def mock(type, size=1, locale='en'):
+	from faker import Faker
+
 	results = []
 	faker = Faker(locale)
 	if not type in dir(faker):

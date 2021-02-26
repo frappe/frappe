@@ -386,21 +386,18 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	setup_print_language: function() {
-		var me = this;
 		var doc = this.doc || cur_frm.doc;
 		var fields = this.dialog.fields_dict;
 
 		//Load default print language from doctype
 		this.lang_code = doc.language
 
-		if (this.get_print_format().default_print_language) {
-			var default_print_language_code = this.get_print_format().default_print_language;
-			me.lang_code = default_print_language_code;
-		} else {
-			var default_print_language_code = null;
+		if (!this.lang_code && this.get_print_format().default_print_language) {
+			this.lang_code = this.get_print_format().default_print_language;
 		}
 
 		//On selection of language retrieve language code
+		var me = this;
 		$(fields.language_sel.input).change(function(){
 			me.lang_code = this.value
 		})
@@ -410,10 +407,8 @@ frappe.views.CommunicationComposer = Class.extend({
 			.empty()
 			.add_options(frappe.get_languages());
 
-		if (default_print_language_code) {
-			$(fields.language_sel.input).val(default_print_language_code);
-		} else {
-			$(fields.language_sel.input).val(doc.language);
+		if (this.lang_code) {
+			$(fields.language_sel.input).val(this.lang_code);
 		}
 	},
 
@@ -440,6 +435,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 	},
+
 	setup_attach: function() {
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper);
@@ -591,26 +587,28 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	save_as_draft: function() {
 		if (this.dialog && this.frm) {
-			try {
-				let message = this.dialog.get_value('content');
-				message = message.split(frappe.separator_element)[0];
-				localStorage.setItem(this.frm.doctype + this.frm.docname, message);
-			} catch (e) {
-				// silently fail
-				console.log(e);
-				console.warn('[Communication] localStorage is full. Cannot save message as draft');
-			}
+			let message = this.dialog.get_value('content');
+			message = message.split(frappe.separator_element)[0];
+			localforage.setItem(this.frm.doctype + this.frm.docname, message).catch(e => {
+				if (e) {
+					// silently fail
+					console.log(e); // eslint-disable-line
+					console.warn('[Communication] localStorage is full. Cannot save message as draft'); // eslint-disable-line
+				}
+			});
+
 		}
 	},
 
 	delete_saved_draft() {
 		if (this.dialog) {
-			try {
-				localStorage.removeItem(this.frm.doctype + this.frm.docname);
-			} catch (e) {
-				console.log(e);
-				console.warn('[Communication] Cannot delete localStorage item'); // eslint-disable-line
-			}
+			localforage.removeItem(this.frm.doctype + this.frm.docname).catch(e => {
+				if (e) {
+					// silently fail
+					console.log(e); // eslint-disable-line
+					console.warn('[Communication] localStorage is full. Cannot save message as draft'); // eslint-disable-line
+				}
+			});
 		}
 	},
 
@@ -721,7 +719,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			signature = res.message.signature;
 		}
 
-		if(!frappe.utils.is_html(signature)) {
+		if (signature && !frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 
@@ -731,7 +729,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			// saved draft in localStorage
 			const { doctype, docname } = this.frm || {};
 			if (doctype && docname) {
-				this.message = localStorage.getItem(doctype + docname) || '';
+				this.message = await localforage.getItem(doctype + docname) || '';
 			}
 		}
 
