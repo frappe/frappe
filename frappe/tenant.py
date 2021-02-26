@@ -40,7 +40,7 @@ class Tenant:
 		return cls.find('Guest')
 
 	@classmethod
-	def atleast_one_exist(cls):
+	def atleast_one_exists(cls):
 		rows = frappe.db.sql("select * from `tabTenant` limit 1", as_dict=True)
 		return bool(rows)
 
