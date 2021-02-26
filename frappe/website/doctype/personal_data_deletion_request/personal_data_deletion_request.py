@@ -121,12 +121,58 @@ class PersonalDataDeletionRequest(Document):
 		for doctype in self.full_match_privacy_docs:
 			self.redact_full_match_data(doctype, email)
 
+		for doctype in self.partial_privacy_docs:
+			self.redact_partial_match_data(doctype)
 
 		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
 		self.db_set("status", "Deleted")
 
+	def redact_partial_match_data(self, doctype):
+		match_fields = []
+		editable_text_fields = {
+			"Small Text",
+			"Text",
+			"Text Editor",
+			"Code",
+			"HTML Editor",
+			"Markdown Editor",
+			"Long Text",
+			"Data",
+		}
+
+		for df in frappe.get_meta(doctype["doctype"]).fields:
+			if df.fieldtype not in editable_text_fields:
 				continue
 
+			match_fields += [
+				f"`{df.fieldname}`= REPLACE(`{df.fieldname}`, %(name)s, 'REDACTED')",
+				f"`{df.fieldname}`= REPLACE(`{df.fieldname}`, %(email)s, '{self.anon}')",
+			]
+
+		update_predicate = f"SET  {', '.join(match_fields)}"
+		where_predicate = "" if doctype.get("strict") else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
+
+		frappe.db.sql(
+			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
+			{"name": self.full_name, "email": self.email},
+			debug=1
+		)
+
+		if doctype.get("rename"):
+			def new_name(email, number):
+				email_user, domain = email.split("@")
+				return f"{email_user}-{number}@{domain}"
+
+			for i, name in enumerate(
+				frappe.get_all(
+					doctype["doctype"],
+					filters={doctype.get("filter_by", "owner"): self.email},
+					pluck="name",
+				)
+			):
+				frappe.rename_doc(
+					doctype["doctype"], name, new_name(self.anon, i + 1), force=True, show_alert=False
+				)
 
 	def redact_full_match_data(self, ref, email):
 		"""Replaces the entire field value by the values set in the anonymization_value_map"""
@@ -190,7 +236,6 @@ class PersonalDataDeletionRequest(Document):
 		)
 
 		if ref.get("rename") and doc["name"] != self.anon:
-			print(f'redact_doc: {ref["doctype"]} {doc["name"]} {self.anon}')
 			frappe.rename_doc(
 				ref["doctype"], doc["name"], self.anon, force=True, show_alert=False
 			)

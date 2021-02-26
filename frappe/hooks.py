@@ -293,8 +293,8 @@ after_migrate = ['frappe.website.doctype.website_theme.website_theme.after_migra
 otp_methods = ['OTP App','Email','SMS']
 
 user_data_fields = [
-	{"doctype": "Access Log", "strict": False},
-	{"doctype": "Activity Log", "strict": False},
+	{"doctype": "Access Log", "strict": True},
+	{"doctype": "Activity Log", "strict": True},
 	{"doctype": "Comment"},
 	{
 		"doctype": "Contact",
@@ -354,7 +354,7 @@ user_data_fields = [
 			"email_signature",
 		],
 	},
-	{"doctype": "Version", "strict": False},
+	{"doctype": "Version", "strict": True},
 ]
 
 global_search_doctypes = {
