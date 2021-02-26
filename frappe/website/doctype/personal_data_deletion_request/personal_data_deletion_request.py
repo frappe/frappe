@@ -2,12 +2,13 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+import re
+
 import frappe
 from frappe import _
-import re
 from frappe.model.document import Document
-from frappe.utils import validate_email_address
+from frappe.utils import get_fullname
+from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 class PersonalDataDeletionRequest(Document):
@@ -17,37 +18,44 @@ class PersonalDataDeletionRequest(Document):
 	def after_insert(self):
 		self.send_verification_mail()
 
+	def generate_url_for_confirmation(self):
+		params = {"email": self.email, "name": self.name, "host_name": frappe.local.site}
+		api = frappe.utils.get_url(
+			"/api/method/frappe.website.doctype.personal_data_deletion_request"
+			".personal_data_deletion_request.confirm_deletion"
+		)
+		url = f"{api}?{get_signed_params(params)}"
+
+		if frappe.conf.developer_mode:
+			print(f"URL generated for {self.doctype} {self.name}: {url}")
+
+		return url
+
 	def send_verification_mail(self):
-		host_name = frappe.local.site
-		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.confirm_deletion") +\
-			"?" + get_signed_params({"email": self.email, "name": self.name, 'host_name': host_name})
+		url = self.generate_url_for_confirmation()
 
 		frappe.sendmail(
 			recipients=self.email,
 			subject=_("Confirm Deletion of Data"),
 			template="delete_data_confirmation",
 			args={
-				'email': self.email,
-				'name': self.name,
-				'host_name': host_name,
-				'link': url
+				"email": self.email,
+				"name": self.name,
+				"host_name": frappe.local.site,
+				"link": url,
 			},
-			header=[_("Confirm Deletion of Data"), "green"]
+			header=[_("Confirm Deletion of Data"), "green"],
 		)
 
 	def notify_system_managers(self):
-		from frappe.utils.user import get_system_managers
 		system_managers = get_system_managers(only_name=True)
 
 		frappe.sendmail(
 			recipients=system_managers,
 			subject=_("User {0} has requested for data deletion").format(self.email),
 			template="data_deletion_approval",
-			args={
-				'user': self.email,
-				'url': frappe.utils.get_url(self.get_url())
-			},
-			header=[_("Approval Required"), "green"]
+			args={"user": self.email, "url": frappe.utils.get_url(self.get_url())},
+			header=[_("Approval Required"), "green"],
 		)
 
 	def anonymize_data(self):
