@@ -27,7 +27,7 @@ def init_db_session(func):
 		conn = func(*args, **kwargs)
 		cursor = conn.cursor()
 		if frappe.local.tenant_id:
-			cursor.execute(f"SELECT set_config('app.current_tenant', '%s', false)", (frappe.local.tenant_id,))
+			cursor.execute("SELECT set_config('app.current_tenant', '%s', false)", (frappe.local.tenant_id,))
 		return conn
 	return wrapper
 

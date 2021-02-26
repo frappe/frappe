@@ -44,7 +44,7 @@ def _new_site(
 
 	frappe.init(site=site)
 
-	from frappe.utils import get_site_path, scheduler, touch_file
+	from frappe.utils import get_site_path, touch_file
 	make_site_dirs()
 
 	installing = touch_file(get_site_path("locks", "installing.lock"))
@@ -202,23 +202,15 @@ def configure_tenant(app: str, tenant: Tenant, verbose: bool=False,
 	frappe.flags.in_tenant_setup = False
 
 def _add_tenant(site, tenant_name, verbose=False, set_as_patched=True):
-	from frappe.commands.scheduler import _is_scheduler_enabled
-	from frappe.utils import scheduler
-
 	tenant = Tenant.new(tenant_name)
 	frappe.init_tenant(tenant.id)
-
-	try:
-		# enable scheduler post install?
-		enable_scheduler = _is_scheduler_enabled()
-	except Exception:
-		enable_scheduler = False
 
 	installed_apps = frappe.get_installed_apps()
 	for app in installed_apps:
 		configure_tenant(app, tenant, verbose=False, set_as_patched=set_as_patched)
 
 	post_install(rebuild_website=True)
+
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()

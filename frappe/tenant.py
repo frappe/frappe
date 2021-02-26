@@ -17,7 +17,7 @@ class Tenant:
 	def new(cls, name):
 		"""Creates a new tenant.
 		"""
-		row = frappe.db.sql("insert into `tabTenant` (`name`) values (%s)", name, auto_commit=1)
+		frappe.db.sql("insert into `tabTenant` (`name`) values (%s)", name, auto_commit=1)
 		return cls.find(name)
 
 	@classmethod

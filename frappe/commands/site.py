@@ -59,7 +59,7 @@ def add_tenant(context, tenant, site=None):
 
 	# Do not allow more than one tenant in mariaDB
 	if frappe.conf.db_type == 'mariadb' and Tenant.atleast_one_exists():
-		print(f"Multiple tenants are not supported in case of mariaDB, Please create new site and add tenant!")
+		print("Multiple tenants are not supported in case of mariaDB, Please create new site and add tenant!")
 		sys.exit(1)
 
 	if Tenant.find(tenant):
