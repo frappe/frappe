@@ -28,14 +28,17 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	get_result_fields() {
-		const show_next_page = () => { this.start += 20; this.get_results(); };
+		const show_next_page = () => {
+			this.start += 20;
+			this.get_results();
+		};
 		return [
 			{
 				fieldtype: "HTML", fieldname: "results_area"
 			},
 			{
 				fieldtype: "Button", fieldname: "more_btn",
-				label: __("More"), click: show_next_page
+				label: __("More"), click: show_next_page.bind(this)
 			}
 		];
 	}
@@ -57,12 +60,12 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		if (this.child_selection_mode && this.child_doctype) {
 			fields.push({ fieldtype: "HTML", fieldname: "child_selection_area" });
 		}
-		return fields
+		return fields;
 	}
 
 	make() {
 		let doctype_plural = this.doctype.plural();
-		let title = __("Select {0}", [this.for_select ? __("value") : __(doctype_plural)])
+		let title = __("Select {0}", [this.for_select ? __("value") : __(doctype_plural)]);
 
 		this.dialog = new frappe.ui.Dialog({
 			title: title,
