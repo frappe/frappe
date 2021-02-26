@@ -10,11 +10,11 @@ SITE_SPECIFIC_TABLES = ['tabProperty Setter', 'tabCustom Field', 'tabDefaultValu
 class PostgresTable(DBTable):
 	def create(self):
 		if self.table_name in SITE_SPECIFIC_TABLES:
-			self.create_site_specific_table()
+			self.create_table()
 		else:
-			self.create_tenant_specific_table()
+			self.create_table_multitenant()
 
-	def create_site_specific_table(self):
+	def create_table(self):
 		"""Create a table that is common to all the tenants in the site.
 		"""
 		# Get doctype columns and constraints
@@ -43,7 +43,7 @@ class PostgresTable(DBTable):
 		frappe.db.sql(sql.strip(',\n'))
 		frappe.db.commit()
 
-	def create_tenant_specific_table(self):
+	def create_table_multitenant(self):
 		"""Create a table that maintains tenant wise data.
 		"""
 		# Get doctype columns and constraints
@@ -168,8 +168,8 @@ class PostgresTable(DBTable):
 				elif frappe.db.is_duplicate_entry(e):
 					fieldname = str(e).split("'")[-2]
 					frappe.throw(_("""{0} field cannot be set as unique in {1},
-						as there are non-unique existing values""".format(
-						fieldname, self.table_name)))
+						as there are non-unique existing values""").format(
+						fieldname, self.table_name))
 					raise e
 				else:
 					raise e
