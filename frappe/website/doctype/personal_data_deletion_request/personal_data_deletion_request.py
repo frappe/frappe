@@ -23,6 +23,14 @@ class PersonalDataDeletionRequest(Document):
 		self.partial_privacy_docs = [
 			x for x in self.user_data_fields if x.get("partial") or not x.get("redact_fields")
 		]
+		self.anonymization_value_map = {
+			"Code": "[REDACTED]: Removed due to Personal Data Deletion Request",
+			"Data": "[REDACTED]",
+			"Date": "1111-01-01",
+			"Int": 0,
+			"Phone": "+91 0000000000",
+			"Name": "REDACTED",
+		}
 
 	def autoname(self):
 		from frappe.model.naming import set_name_from_naming_options
@@ -33,7 +41,8 @@ class PersonalDataDeletionRequest(Document):
 			r"([a-zA-Z0-9][-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9]))\."
 			r"([a-zA-Z]{2,13}|[a-zA-Z0-9-]{2,30}.[a-zA-Z]{2,3})$"
 		)
-		site = frappe.local.site if pattern.match(frappe.local.site) else f"{frappe.local.site}.com"
+		domain = frappe.local.site.replace("_", "-")
+		site = domain if pattern.match(domain) else f"{domain}.com"
 		autoname = f"format:deleted-user-{{####}}@{site}"
 		set_name_from_naming_options(autoname, self)
 		frappe.utils.validate_email_address(self.email, throw=True)
@@ -98,16 +107,7 @@ class PersonalDataDeletionRequest(Document):
 		self.email_regex = get_pattern(email)
 		self.full_name_regex = get_pattern(self.full_name)
 		self.is_full_name_set = email != self.full_name
-
-		self.anonymization_value_map = {
-			"Code": "[REDACTED]: Removed due to Personal Data Deletion Request",
-			"Data": "[REDACTED]",
-			"Date": "1111-01-01",
-			"Email": self.anon,
-			"Int": 0,
-			"Phone": "+91 0000000000",
-			"Name": "REDACTED",
-		}
+		self.anonymization_value_map["Email"] = self.anon
 
 	def trigger_data_deletion(self):
 		"""Redact user data defined in current site's hooks under `user_data_fields`"""
@@ -173,7 +173,6 @@ class PersonalDataDeletionRequest(Document):
 		frappe.db.sql(
 			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
 			{"name": self.full_name, "email": self.email},
-			debug=1,
 		)
 
 		if doctype.get("rename"):
