@@ -248,8 +248,9 @@ def check_yarn():
 		print("Please install yarn using below command and try again.\nnpm install -g yarn")
 
 def get_node_env():
-	# set max_old_space_size based on available memory
-	node_env = dict(NODE_OPTIONS=f"--max_old_space_size={get_safe_max_old_space_size()}")
+	node_env = {
+		"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"
+	}
 	return node_env
 
 def get_safe_max_old_space_size():
@@ -258,7 +259,8 @@ def get_safe_max_old_space_size():
 		total_memory = psutil.virtual_memory().total / (1024 * 1024)
 		# reference for the safe limit assumption
 		# https://nodejs.org/api/cli.html#cli_max_old_space_size_size_in_megabytes
-		safe_max_old_space_size = int(total_memory * 0.75)
+		# set minimum value 1GB
+		safe_max_old_space_size = max(1024, int(total_memory * 0.75))
 	except Exception:
 		pass
 

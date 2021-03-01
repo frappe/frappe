@@ -63,11 +63,11 @@ def popen(command, *args, **kwargs):
 		env = dict(environ, **env)
 
 	proc = subprocess.Popen(command,
-		stdout = None if output else subprocess.PIPE,
-		stderr = None if output else subprocess.PIPE,
-		shell = shell,
-		cwd = cwd,
-		env = env
+		stdout=None if output else subprocess.PIPE,
+		stderr=None if output else subprocess.PIPE,
+		shell=shell,
+		cwd=cwd,
+		env=env
 	)
 
 	return_ = proc.wait()
