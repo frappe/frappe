@@ -301,7 +301,7 @@ frappe.provide("frappe.views");
 
 		function init() {
 			fluxify.doAction('init', opts);
-			store.on('change:columns', make_columns);
+			store.off('change:columns').on('change:columns', make_columns);
 			prepare();
 			store.on('change:cur_list', setup_restore_columns);
 			store.on('change:columns', setup_restore_columns);
@@ -608,6 +608,7 @@ frappe.provide("frappe.views");
 				title: remove_img_tags(card.title),
 				disable_click: card._disable_click ? 'disable-click' : '',
 				creation: card.creation,
+				image_url: cur_list.get_image_url(card),
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
@@ -705,6 +706,7 @@ frappe.provide("frappe.views");
 			title: card[state.card_meta.title_field.fieldname],
 			creation: moment(card.creation).format('MMM DD, YYYY'),
 			_liked_by: card._liked_by,
+			image: card[cur_list.meta.image_field],
 			tags: card._user_tags,
 			column: card[state.board.field_name],
 			assigned_list: card.assigned_list || assigned_list,
