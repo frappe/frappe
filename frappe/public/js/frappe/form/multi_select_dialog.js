@@ -296,6 +296,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				this.get_results();
 			}
 		});
+		// 'Apply Filter' breaks since the filers are not in a popover
+		// Hence keeping it hidden
+		this.filter_group.wrapper.find('.apply-filters').hide();
 	}
 
 	get_custom_filters() {
@@ -431,6 +434,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			.forEach(result => {
 				me.$results.append(me.make_list_row(result));
 			});
+
+		this.$results.find(".list-item--head").css("z-index", 0);
 
 		if (frappe.flags.auto_scroll) {
 			this.$results.animate({ scrollTop: me.$results.prop('scrollHeight') }, 500);
