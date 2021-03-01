@@ -59,15 +59,9 @@ class TestImporter(unittest.TestCase):
 	def test_data_import_without_mandatory_values(self):
 		import_file = get_import_file('sample_import_file_without_mandatory')
 		data_import = self.get_importer(doctype_name, import_file)
-		print("-"*250)
-		print(data_import.import_log)
 		frappe.local.message_log = []
 		data_import.start_import()
-		print("-"*250)
-		print(data_import.import_log)
 		data_import.reload()
-		print("-"*250)
-		print(data_import.import_log)
 		import_log = frappe.parse_json(data_import.import_log)
 		self.assertEqual(import_log[0]['row_indexes'], [2,3])
 		expected_error = "Error: <b>Child 1 of DocType for Import</b> Row #1: Value missing for: Child Title"
