@@ -158,7 +158,7 @@ class Importer:
 						frappe._dict(
 							success=False,
 							exception=frappe.get_traceback(),
-							messages=frappe.local.message_log,
+							messages=list(frappe.local.message_log[-1]),
 							row_indexes=row_indexes,
 						)
 					)
