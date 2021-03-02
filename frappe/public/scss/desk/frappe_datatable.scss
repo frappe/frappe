@@ -26,6 +26,16 @@
 		border-radius: 0px;
 		border: none;
 		background-color: transparent;
+		height: 100%;
+
+		&:focus {
+			box-shadow: none;
+		}
+
+		&[data-fieldtype="Select"] .select-icon {
+			top: 5px;
+			right: 10px;
+		}
 	}
 
 	.dt-header {
