@@ -605,7 +605,7 @@ frappe.provide("frappe.views");
 		function make_dom() {
 			var opts = {
 				name: card.name,
-				title: remove_img_tags(card.title),
+				title: frappe.utils.html2text(card.title),
 				disable_click: card._disable_click ? 'disable-click' : '',
 				creation: card.creation,
 				image_url: cur_list.get_image_url(card),

@@ -203,7 +203,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(this.dialog.fields_dict.sender) {
 			this.dialog.fields_dict.sender.set_value(this.sender || '');
 		}
-		this.dialog.fields_dict.subject.set_value(this.subject || '');
+		this.dialog.fields_dict.subject.set_value(
+			frappe.utils.html2text(this.subject) || ''
+		);
 
 		this.setup_earlier_reply();
 	},
