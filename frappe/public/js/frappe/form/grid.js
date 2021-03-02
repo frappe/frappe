@@ -534,9 +534,15 @@ export default class Grid {
 	}
 
 	duplicate_row(d, copy_doc) {
+<<<<<<< HEAD
 		$.each(copy_doc, function(key, value) {
 			if(!["creation", "modified", "modified_by", "idx", "owner",
 				"parent", "doctype", "name", "parentield"].includes(key)) {
+=======
+		$.each(copy_doc, function (key, value) {
+			if (!["creation", "modified", "modified_by", "idx", "owner",
+				"parent", "doctype", "name", "parentfield"].includes(key)) {
+>>>>>>> 8488272743 (fix: typo)
 				d[key] = value;
 			}
 		});
