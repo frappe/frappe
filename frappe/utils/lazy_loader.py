@@ -7,12 +7,12 @@ def lazy_import(name, package=None):
 	The module is loaded when modules's attribute is accessed for the first time.
 	This works with both absolute and relative imports.
 	$ cat mod.py
-	print("I am loading..")
+	print("Loading mod.py")
 	$ python -i lazy_loader.py
 	>>> mod = lazy_import("mod") # Module is not loaded
 	>>> mod.__str__() # module is loaded on accessing attribute
-	I am loading..
-	"<module 'mod' from '/Users/leela/Work/ERPNext/frappe/frappe/utils/mod.py'>"
+	Loading mod.py
+	"<module 'mod' from '.../frappe/utils/mod.py'>"
 	>>>
 
 	Code based on https://github.com/python/cpython/blob/master/Doc/library/importlib.rst#implementing-lazy-imports.
@@ -25,10 +25,6 @@ def lazy_import(name, package=None):
 	spec = importlib.util.find_spec(name, package)
 	if not spec:
 		raise ImportError(f'Module {name} Not found.')
-
-	# Check for compatibility
-	if not hasattr(spec.loader, 'exec_module'):
-		raise ImportError('Not Supported')
 
 	loader = importlib.util.LazyLoader(spec.loader)
 	spec.loader = loader
