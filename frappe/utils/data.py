@@ -340,13 +340,6 @@ def flt(s, precision=None):
 
 	return num
 
-<<<<<<< HEAD
-def cint(s):
-	"""Convert to integer"""
-	try: num = int(float(s))
-	except: num = 0
-	return num
-=======
 def cint(s, default=0):
 	"""Convert to integer
 
@@ -366,7 +359,6 @@ def cint(s, default=0):
 		return int(float(s))
 	except Exception:
 		return default
->>>>>>> 6e5e0890f3... refactor: Cleaned authentication logic
 
 def floor(s):
 	"""

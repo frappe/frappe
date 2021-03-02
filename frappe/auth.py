@@ -361,7 +361,6 @@ def clear_cookies():
 		frappe.session.sid = ""
 	frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])
 
-<<<<<<< HEAD
 def get_website_user_home_page(user):
 	home_page_method = frappe.get_hooks('get_website_user_home_page')
 	if home_page_method:
@@ -372,40 +371,6 @@ def get_website_user_home_page(user):
 	else:
 		return '/me'
 
-def get_last_tried_login_data(user, get_last_login=False):
-	locked_account_time = frappe.cache().hget('locked_account_time', user)
-	if get_last_login and locked_account_time:
-		return locked_account_time
-
-	last_login_tried = frappe.cache().hget('last_login_tried', user)
-	if not last_login_tried or last_login_tried < get_datetime():
-		last_login_tried = get_datetime() + datetime.timedelta(seconds=60)
-
-	frappe.cache().hset('last_login_tried', user, last_login_tried)
-
-	return last_login_tried
-
-def get_login_failed_count(user):
-	return cint(frappe.cache().hget('login_failed_count', user)) or 0
-
-def check_consecutive_login_attempts(user, doc):
-	login_failed_count = get_login_failed_count(user)
-	last_login_tried = (get_last_tried_login_data(user, True)
-		+ datetime.timedelta(seconds=doc.allow_login_after_fail))
-
-	if login_failed_count >= cint(doc.allow_consecutive_login_attempts):
-		locked_account_time = frappe.cache().hget('locked_account_time', user)
-		if not locked_account_time:
-			frappe.cache().hset('locked_account_time', user, get_datetime())
-
-		if last_login_tried > get_datetime():
-			frappe.throw(_("Your account has been locked and will resume after {0} seconds")
-				.format(doc.allow_login_after_fail), frappe.SecurityException)
-		else:
-			delete_login_failed_cache(user)
-
-=======
->>>>>>> 6e5e0890f3... refactor: Cleaned authentication logic
 def validate_ip_address(user):
 	"""check if IP Address is valid"""
 	user = frappe.get_cached_doc("User", user) if not frappe.flags.in_test else frappe.get_doc("User", user)
