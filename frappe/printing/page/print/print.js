@@ -269,6 +269,7 @@ frappe.ui.form.PrintView = class {
 					based_on: data.based_on,
 				};
 				frappe.set_route('print-format-builder');
+				this.print_sel.val(data.print_format_name);
 			},
 			__('New Custom Print Format'),
 			__('Start')
