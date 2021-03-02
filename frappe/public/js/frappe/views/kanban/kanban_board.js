@@ -545,8 +545,14 @@ frappe.provide("frappe.views");
 		function make_dom() {
 			var opts = {
 				name: card.name,
+<<<<<<< HEAD
 				title: remove_img_tags(card.title),
 				disable_click: card._disable_click ? 'disable-click' : ''
+=======
+				title: frappe.utils.html2text(card.title),
+				disable_click: card._disable_click ? 'disable-click' : '',
+				creation: card.creation,
+>>>>>>> 9609462f6d (fix: strip html from kanban title)
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
