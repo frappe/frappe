@@ -72,6 +72,9 @@
 	--highlight-color: var(--gray-700);
 	--yellow-highlight-color: var(--yellow-700);
 
+	// input
+	--input-disabled-bg: none;
+
 	.frappe-card {
 		.btn-default {
 			background-color: var(--bg-color);
