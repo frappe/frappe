@@ -47,11 +47,11 @@ class PersonalDataDownloadRequest(Document):
 
 def get_user_data(user):
 	""" returns user data not linked to User doctype """
-	hooks = frappe.get_hooks("user_privacy_documents")
+	hooks = frappe.get_hooks("user_data_fields")
 	data = {}
 	for hook in hooks:
-		d = data.get(hook.get('doctype'),[])
-		d += frappe.get_all(hook.get('doctype'), {hook.get('match_field'): user}, ["*"])
+		d = data.get(hook.get("doctype"),[])
+		d += frappe.get_all(hook.get("doctype"), {hook.get("filter_by", "owner"): user}, ["*"])
 		if d:
-			data.update({ hook.get('doctype'):d })
+			data.update({ hook.get("doctype"):d })
 	return json.dumps(data, indent=2, default=str)
