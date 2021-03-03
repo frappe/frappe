@@ -25,7 +25,9 @@
 									<td width="15"></td>
 									<td valign="top">
 										<p>{{ content }}</p>
-										<p>{{ signature }}</p>
+										{% if signature %}
+											<p>{{ signature }}</p>
+										{% endif %}
 									</td>
 									<td width="15"></td>
 								</tr>

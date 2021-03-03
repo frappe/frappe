@@ -273,7 +273,6 @@ def get_formatted_html(subject, message, footer=None, print_html=None,
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
 		"header": get_header(header),
 		"content": message,
-		"signature": get_signature(email_account),
 		"footer": get_footer(email_account, footer),
 		"title": subject,
 		"print_html": print_html,
