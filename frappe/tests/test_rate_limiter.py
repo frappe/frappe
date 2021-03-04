@@ -4,13 +4,17 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
 import unittest
-import frappe
+from werkzeug.wrappers import Response
 import time
+
+import frappe
 import frappe.rate_limiter
 from frappe.rate_limiter import RateLimiter
 from frappe.utils import cint
-from werkzeug.wrappers import Response
+from frappe.frappeclient import FrappeClient
+from frappe.utils.data import get_url
 
 
 class TestRateLimiter(unittest.TestCase):
@@ -114,3 +118,23 @@ class TestRateLimiter(unittest.TestCase):
 		self.assertEqual(limiter.duration, cint(frappe.cache().get(limiter.key)))
 
 		frappe.cache().delete(limiter.key)
+
+	def test_rate_limit_decorator(self):
+		"""Check that rate limit decorator raises 417 when limit is crossed.
+		"""
+		url = get_url()
+		data={'cmd': 'frappe.core.doctype.user.user.test_ratelimit', 'user': 'test@test.com'}
+
+		# Clear rate limit tracker to start fresh
+		key = f"rl:{data['cmd']}:{data['user']}"
+		frappe.cache().delete(key)
+
+		c = FrappeClient(url)
+		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
+		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
+		res3 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
+
+		self.assertEqual(res1.status_code, 200)
+		self.assertEqual(res2.status_code, 200)
+		self.assertEqual(res3.status_code, 417)
+
