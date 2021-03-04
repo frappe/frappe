@@ -45,7 +45,7 @@ def create_notification_settings(user):
 
 def enable_disable_notifications(user, enabled):
 	if frappe.db.exists("Notification Settings", user):
-		frappe.set_value("Notification Settings", user, 'enabled', enabled)
+		frappe.db.set_value("Notification Settings", user, 'enabled', enabled)
 
 
 @frappe.whitelist()
