@@ -1,6 +1,5 @@
 {
  "actions": [],
- "autoname": "format:deleted-user-{####}@deleted.com",
  "creation": "2019-02-12 15:11:52.201733",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -31,7 +30,7 @@
   }
  ],
  "links": [],
- "modified": "2021-02-26 00:11:22.434940",
+ "modified": "2021-02-28 12:36:08.219719",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Personal Data Deletion Request",

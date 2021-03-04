@@ -295,7 +295,7 @@ otp_methods = ['OTP App','Email','SMS']
 user_data_fields = [
 	{"doctype": "Access Log", "strict": True},
 	{"doctype": "Activity Log", "strict": True},
-	{"doctype": "Comment"},
+	{"doctype": "Comment", "strict": True},
 	{
 		"doctype": "Contact",
 		"filter_by": "email_id",

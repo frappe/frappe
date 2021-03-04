@@ -24,6 +24,11 @@ class PersonalDataDeletionRequest(Document):
 			x for x in self.user_data_fields if x.get("partial") or not x.get("redact_fields")
 		]
 
+	def autoname(self):
+		from frappe.model.naming import set_name_from_naming_options
+		autoname = f"format:deleted-user-{{####}}@{frappe.local.site}"
+		set_name_from_naming_options(autoname, self)
+
 	def after_insert(self):
 		self.send_verification_mail()
 
@@ -86,8 +91,8 @@ class PersonalDataDeletionRequest(Document):
 		self.is_full_name_set = email != self.full_name
 
 		self.anonymization_value_map = {
-			"Code": "REDACTED: Removed due to Personal Data Deletion Request",
-			"Data": "REDACTED",
+			"Code": "[REDACTED]: Removed due to Personal Data Deletion Request",
+			"Data": "[REDACTED]",
 			"Date": "1111-01-01",
 			"Email": self.anon,
 			"Int": 0,
