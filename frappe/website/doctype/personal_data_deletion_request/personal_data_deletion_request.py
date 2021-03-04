@@ -26,8 +26,17 @@ class PersonalDataDeletionRequest(Document):
 
 	def autoname(self):
 		from frappe.model.naming import set_name_from_naming_options
-		autoname = f"format:deleted-user-{{####}}@{frappe.local.site}"
+
+		pattern = re.compile(
+			r"^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|"
+			r"([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|"
+			r"([a-zA-Z0-9][-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9]))\."
+			r"([a-zA-Z]{2,13}|[a-zA-Z0-9-]{2,30}.[a-zA-Z]{2,3})$"
+		)
+		site = frappe.local.site if pattern.match(frappe.local.site) else f"{frappe.local.site}.com"
+		autoname = f"format:deleted-user-{{####}}@{site}"
 		set_name_from_naming_options(autoname, self)
+		frappe.utils.validate_email_address(self.email, throw=True)
 
 	def after_insert(self):
 		self.send_verification_mail()
@@ -155,15 +164,20 @@ class PersonalDataDeletionRequest(Document):
 			]
 
 		update_predicate = f"SET  {', '.join(match_fields)}"
-		where_predicate = "" if doctype.get("strict") else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
+		where_predicate = (
+			""
+			if doctype.get("strict")
+			else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
+		)
 
 		frappe.db.sql(
 			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
 			{"name": self.full_name, "email": self.email},
-			debug=1
+			debug=1,
 		)
 
 		if doctype.get("rename"):
+
 			def new_name(email, number):
 				email_user, domain = email.split("@")
 				return f"{email_user}-{number}@{domain}"
