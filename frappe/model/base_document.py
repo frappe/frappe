@@ -12,11 +12,9 @@ from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
-from frappe.utils.password import get_decrypted_password, set_encrypted_password
 from frappe.utils import (cint, flt, now, cstr, strip_html,
 	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.utils.html_utils import unescape_html
-from bs4 import BeautifulSoup
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -69,13 +67,13 @@ def get_controller(doctype):
 
 	if frappe.local.dev_server:
 		return _get_controller()
-	
+
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
 	if doctype not in site_controllers:
 		site_controllers[doctype] = _get_controller()
-	
+
 	return site_controllers[doctype]
-	
+
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
 
@@ -94,6 +92,14 @@ class BaseDocument(object):
 		return self._meta
 
 	def update(self, d):
+		""" Update multiple fields of a doctype using a dictionary of key-value pairs.
+
+		Example:
+			doc.update({
+				"user": "admin",
+				"balance": 42000
+			})
+		"""
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
 
@@ -159,6 +165,15 @@ class BaseDocument(object):
 			del self.__dict__[key]
 
 	def append(self, key, value=None):
+		""" Append an item to a child table.
+
+		Example:
+			doc.append("childtable", {
+				"child_table_field": "value",
+				"child_table_int_field": 0,
+				...
+			})
+		"""
 		if value==None:
 			value={}
 		if isinstance(value, (dict, BaseDocument)):
@@ -402,24 +417,59 @@ class BaseDocument(object):
 				doc.db_update()
 
 	def show_unique_validation_message(self, e):
-		# TODO: Find a better way to extract fieldname
 		if frappe.db.db_type != 'postgres':
 			fieldname = str(e).split("'")[-2]
 			label = None
 
-			# unique_first_fieldname_second_fieldname is the constraint name
-			# created using frappe.db.add_unique
-			if "unique_" in fieldname:
-				fieldname = fieldname.split("_", 1)[1]
+			# MariaDB gives key_name in error. Extracting fieldname from key name
+			try:
+				fieldname = self.get_field_name_by_key_name(fieldname)
+			except IndexError:
+				pass
 
-			df = self.meta.get_field(fieldname)
-			if df:
-				label = df.label
+			label = self.get_label_from_fieldname(fieldname)
 
 			frappe.msgprint(_("{0} must be unique").format(label or fieldname))
 
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError(self.doctype, self.name, e)
+
+	def get_field_name_by_key_name(self, key_name):
+		"""MariaDB stores a mapping between `key_name` and `column_name`.
+		This function returns the `column_name` associated with the `key_name` passed
+
+		Args:
+			key_name (str): The name of the database index.
+
+		Raises:
+			IndexError: If the key is not found in the table.
+
+		Returns:
+			str: The column name associated with the key.
+		"""
+		return frappe.db.sql(f"""
+			SHOW
+				INDEX
+			FROM
+				`tab{self.doctype}`
+			WHERE
+				key_name=%s
+			AND
+				Non_unique=0
+			""", key_name, as_dict=True)[0].get("Column_name")
+
+	def get_label_from_fieldname(self, fieldname):
+		"""Returns the associated label for fieldname
+
+		Args:
+			fieldname (str): The fieldname in the DocType to use to pull the label.
+
+		Returns:
+			str: The label associated with the fieldname, if found, otherwise `None`.
+		"""
+		df = self.meta.get_field(fieldname)
+		if df:
+			return df.label
 
 	def update_modified(self):
 		"""Update modified timestamp"""
@@ -704,6 +754,8 @@ class BaseDocument(object):
 
 			- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
+		from bs4 import BeautifulSoup
+
 		if frappe.flags.in_install:
 			return
 
@@ -740,6 +792,8 @@ class BaseDocument(object):
 
 	def _save_passwords(self):
 		"""Save password field values in __Auth table"""
+		from frappe.utils.password import set_encrypted_password
+
 		if self.flags.ignore_save_passwords is True:
 			return
 
@@ -754,6 +808,8 @@ class BaseDocument(object):
 				self.set(df.fieldname, '*'*len(new_password))
 
 	def get_password(self, fieldname='password', raise_exception=True):
+		from frappe.utils.password import get_decrypted_password
+
 		if self.get(fieldname) and not self.is_dummy_password(self.get(fieldname)):
 			return self.get(fieldname)
 

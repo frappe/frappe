@@ -771,6 +771,8 @@ frappe.ui.Page = Class.extend({
 			df.placeholder = df.label;
 		}
 
+		df.input_class = 'input-xs';
+
 		var f = frappe.ui.form.make_control({
 			df: df,
 			parent: parent || this.page_form,
@@ -792,7 +794,7 @@ frappe.ui.Page = Class.extend({
 		// hidden fields dont have $input
 		if (!f.$input) f.make_input();
 
-		f.$input.addClass("input-xs").attr("placeholder", __(df.label));
+		f.$input.attr("placeholder", __(df.label));
 
 		if(df.fieldtype==="Check") {
 			$(f.wrapper).find(":first-child")
