@@ -12,6 +12,7 @@ from frappe.modules import scrub, get_module_path
 from frappe.utils import (
 	flt,
 	cint,
+	cstr,
 	get_html_format,
 	get_url_to_form,
 	gzip_decompress,
@@ -74,22 +75,26 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		res = report.execute_script_report(filters)
 
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
+	columns = [get_column_as_dict(col) for col in columns]
+	report_column_names = [col["fieldname"] for col in columns]
+
+	# convert to list of dicts
+	result = normalize_result(result, columns)
 
 	if report.custom_columns:
-		# Original query columns, needed to reorder data as per custom columns
-		query_columns = columns
-		# Reordered columns
+		# saved columns (with custom columns / with different column order)
 		columns = json.loads(report.custom_columns)
 
-		result = reorder_data_for_custom_columns(columns, query_columns, result)
-
-		result = add_data_to_custom_columns(columns, result)
-
+	# unsaved custom_columns
 	if custom_columns:
-		result = add_data_to_custom_columns(custom_columns, result)
-
 		for custom_column in custom_columns:
 			columns.insert(custom_column["insert_after_index"] + 1, custom_column)
+
+	# all columns which are not in original report
+	report_custom_columns = [column for column in columns if column["fieldname"] not in report_column_names]
+
+	if report_custom_columns:
+		result = add_custom_column_data(report_custom_columns, result)
 
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
@@ -109,6 +114,20 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		or 0,
 	}
 
+def normalize_result(result, columns):
+	# Converts to list of dicts from list of lists/tuples
+	data = []
+	column_names = [column["fieldname"] for column in columns]
+	if result and isinstance(result[0], (list, tuple)):
+		for row in result:
+			row_obj = {}
+			for idx, column_name in enumerate(column_names):
+				row_obj[column_name] = row[idx]
+			data.append(row_obj)
+	else:
+		data = result
+
+	return data
 
 @frappe.whitelist()
 def background_enqueue_run(report_name, filters=None, user=None):
@@ -177,14 +196,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 @frappe.read_only()
-def run(
-	report_name,
-	filters=None,
-	user=None,
-	ignore_prepared_report=False,
-	custom_columns=None,
-):
-
+def run(report_name, filters=None, user=None, ignore_prepared_report=False, custom_columns=None):
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
@@ -221,69 +233,20 @@ def run(
 	return result
 
 
-def add_data_to_custom_columns(columns, result):
-	custom_fields_data = get_data_for_custom_report(columns)
+def add_custom_column_data(custom_columns, result):
+	custom_column_data = get_data_for_custom_report(custom_columns)
 
-	data = []
-	for row in result:
-		row_obj = {}
-		if isinstance(row, tuple):
-			row = list(row)
+	for column in custom_columns:
+		key = (column.get('doctype'), column.get('fieldname'))
+		if key in custom_column_data:
+			for row in result:
+				row_reference = row.get(column.get('link_field'))
+				# possible if the row is empty
+				if not row_reference:
+					continue
+				row[column.get('fieldname')] = custom_column_data.get(key).get(row_reference)
 
-		if isinstance(row, list):
-			for idx, column in enumerate(columns):
-				if column.get("link_field"):
-					row_obj[column["fieldname"]] = None
-					row.insert(idx, None)
-				else:
-					row_obj[column["fieldname"]] = row[idx]
-			data.append(row_obj)
-		else:
-			data.append(row)
-
-	for row in data:
-		for column in columns:
-			if column.get("link_field"):
-				fieldname = column["fieldname"]
-				key = (column["doctype"], fieldname)
-				link_field = column["link_field"]
-				row[fieldname] = custom_fields_data.get(key, {}).get(
-					row.get(link_field)
-				)
-
-	return data
-
-
-def reorder_data_for_custom_columns(custom_columns, columns, result):
-	if not result:
-		return []
-
-	columns = [get_column_as_dict(col) for col in columns]
-	if isinstance(result[0], list) or isinstance(result[0], tuple):
-		# If the result is a list of lists
-		custom_column_names = [col["label"] for col in custom_columns]
-		original_column_names = [col["label"] for col in columns]
-		return get_columns_from_list(custom_column_names, original_column_names, result)
-	else:
-		# columns do not need to be reordered if result is a list of dicts
-		return result
-
-
-def get_columns_from_list(columns, target_columns, result):
-	reordered_result = []
-
-	for res in result:
-		r = []
-		for col_name in columns:
-			try:
-				idx = target_columns.index(col_name)
-				r.append(res[idx])
-			except ValueError:
-				pass
-
-		reordered_result.append(r)
-
-	return reordered_result
+	return result
 
 
 def get_prepared_report_result(report, filters, dn="", user=None):
@@ -343,31 +306,27 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 @frappe.whitelist()
 def export_query():
 	"""export from query reports"""
-
 	data = frappe._dict(frappe.local.form_dict)
-
-	del data["cmd"]
-	if "csrf_token" in data:
-		del data["csrf_token"]
+	data.pop("cmd", None)
+	data.pop("csrf_token", None)
 
 	if isinstance(data.get("filters"), string_types):
 		filters = json.loads(data["filters"])
-	if isinstance(data.get("report_name"), string_types):
+
+	if data.get("report_name"):
 		report_name = data["report_name"]
 		frappe.permissions.can_export(
 			frappe.get_cached_value("Report", report_name, "ref_doctype"),
 			raise_exception=True,
 		)
-	if isinstance(data.get("file_format_type"), string_types):
-		file_format_type = data["file_format_type"]
 
-	custom_columns = frappe.parse_json(data["custom_columns"])
+	file_format_type = data.get("file_format_type")
+	custom_columns = frappe.parse_json(data.get("custom_columns", "[]"))
+	include_indentation = data.get("include_indentation")
+	visible_idx = data.get("visible_idx")
 
-	include_indentation = data["include_indentation"]
-	if isinstance(data.get("visible_idx"), string_types):
-		visible_idx = json.loads(data.get("visible_idx"))
-	else:
-		visible_idx = None
+	if isinstance(visible_idx, string_types):
+		visible_idx = json.loads(visible_idx)
 
 	if file_format_type == "Excel":
 		data = run(report_name, filters, custom_columns=custom_columns)
@@ -386,8 +345,8 @@ def export_query():
 		data["result"] = handle_duration_fieldtype_values(
 			data.get("result"), data.get("columns")
 		)
-		xlsx_data = build_xlsx_data(columns, data, visible_idx, include_indentation)
-		xlsx_file = make_xlsx(xlsx_data, "Query Report")
+		xlsx_data, column_widths = build_xlsx_data(columns, data, visible_idx, include_indentation)
+		xlsx_file = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
 		frappe.response["filename"] = report_name + ".xlsx"
 		frappe.response["filecontent"] = xlsx_file.getvalue()
@@ -421,34 +380,38 @@ def handle_duration_fieldtype_values(result, columns):
 
 def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	result = [[]]
+	column_widths = []
 
-	# add column headings
-	for idx in range(len(data.columns)):
-		if not columns[idx].get("hidden"):
-			result[0].append(columns[idx]["label"])
+	for column in data.columns:
+		if column.get("hidden"):
+			continue
+		result[0].append(column["label"])
+		column_width = cint(column.get('width', 0))
+		# to convert into scale accepted by openpyxl
+		column_width /= 10
+		column_widths.append(column_width)
 
 	# build table from result
-	for i, row in enumerate(data.result):
+	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
-		if i in visible_idx:
+		if row_idx in visible_idx:
 			row_data = []
-
-			if isinstance(row, dict) and row:
-				for idx in range(len(data.columns)):
-					# check if column is not hidden
-					if not columns[idx].get("hidden"):
-						label = columns[idx]["label"]
-						fieldname = columns[idx]["fieldname"]
-						cell_value = row.get(fieldname, row.get(label, ""))
-						if cint(include_indentation) and "indent" in row and idx == 0:
-							cell_value = ("    " * cint(row["indent"])) + cell_value
-						row_data.append(cell_value)
-			else:
+			if isinstance(row, dict):
+				for col_idx, column in enumerate(data.columns):
+					if column.get("hidden"):
+						continue
+					label = column.get("label")
+					fieldname = column.get("fieldname")
+					cell_value = row.get(fieldname, row.get(label, ""))
+					if cint(include_indentation) and "indent" in row and col_idx == 0:
+						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+					row_data.append(cell_value)
+			elif row:
 				row_data = row
 
 			result.append(row_data)
 
-	return result
+	return result, column_widths
 
 
 def add_total_row(result, columns, meta=None):
@@ -755,6 +718,8 @@ def get_column_as_dict(col):
 				col_dict["fieldtype"], col_dict["options"] = col[1].split("/")
 			else:
 				col_dict["fieldtype"] = col[1]
+			if len(col) == 3:
+				col_dict["width"] = col[2]
 
 		col_dict["label"] = col[0]
 		col_dict["fieldname"] = frappe.scrub(col[0])

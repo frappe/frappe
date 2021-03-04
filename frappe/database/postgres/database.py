@@ -140,11 +140,11 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_table_missing(e):
-		return e.pgcode == '42P01'
+		return getattr(e, 'pgcode', None) == '42P01'
 
 	@staticmethod
 	def is_missing_column(e):
-		return e.pgcode == '42703'
+		return getattr(e, 'pgcode', None) == '42703'
 
 	@staticmethod
 	def is_access_denied(e):

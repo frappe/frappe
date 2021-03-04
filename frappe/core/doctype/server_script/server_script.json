@@ -8,6 +8,7 @@
  "field_order": [
   "script_type",
   "reference_doctype",
+  "event_frequency",
   "doctype_event",
   "api_method",
   "allow_guest",
@@ -24,17 +25,18 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Script Type",
-   "options": "DocType Event\nScheduler Event\nAPI",
+   "options": "DocType Event\nScheduler Event\nPermission Query\nAPI",
    "reqd": 1
   },
   {
    "fieldname": "script",
    "fieldtype": "Code",
    "label": "Script",
+   "options": "Python",
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.script_type==='DocType Event'",
+   "depends_on": "eval:['DocType Event', 'Permission Query'].includes(doc.script_type)",
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -46,7 +48,7 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
-   "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
+   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -83,11 +85,24 @@
   {
    "fieldname": "help_html",
    "fieldtype": "HTML"
+  },
+  {
+   "depends_on": "eval:doc.script_type == \"Scheduler Event\"",
+   "fieldname": "event_frequency",
+   "fieldtype": "Select",
+   "label": "Event Frequency",
+   "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
+   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long"
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2020-08-24 16:44:41.060350",
+ "links": [
+  {
+   "link_doctype": "Scheduled Job Type",
+   "link_fieldname": "server_script"
+  }
+ ],
+ "modified": "2021-02-18 12:36:19.803425",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

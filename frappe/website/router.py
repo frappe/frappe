@@ -7,8 +7,6 @@ import io
 import os
 import re
 
-import yaml
-
 import frappe
 from frappe.model.document import get_controller
 from frappe.website.utils import can_cache, delete_page_cache, extract_comment_tag, extract_title
@@ -49,7 +47,7 @@ def get_page_context(path):
 def make_page_context(path):
 	context = resolve_route(path)
 	if not context:
-		raise frappe.DoesNotExistError
+		raise frappe.PageDoesNotExistError
 
 	context.doctype = context.ref_doctype
 
@@ -275,8 +273,7 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	# extract properties from controller attributes
 	load_properties_from_controller(page_info)
 
-	# if not page_info.title:
-	# 	print('no-title-for', page_info.route)
+	page_info.build_version = frappe.utils.get_build_version()
 
 	return page_info
 
@@ -284,6 +281,7 @@ def get_frontmatter(string):
 	"""
 	Reference: https://github.com/jonbeebe/frontmatter
 	"""
+	import yaml
 
 	fmatter = ""
 	body = ""
@@ -394,7 +392,6 @@ def load_properties_from_source(page_info):
 		and "</body>" not in page_info.source):
 		page_info.source = '''{{% extends "{0}" %}}
 			{{% block page_content %}}{1}{{% endblock %}}'''.format(page_info.base_template, page_info.source)
-		page_info.no_cache = 1
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1

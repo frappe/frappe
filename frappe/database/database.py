@@ -16,7 +16,6 @@ import frappe.model.meta
 from frappe import _
 from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
-from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils import cint
 
@@ -319,8 +318,7 @@ class Database(object):
 			nres.append(nr)
 		return nres
 
-	@staticmethod
-	def build_conditions(filters):
+	def build_conditions(self, filters):
 		"""Convert filters sent as dict, lists to SQL conditions. filter's key
 		is passed by map function, build conditions like:
 
@@ -341,18 +339,12 @@ class Database(object):
 			value = filters.get(key)
 			values[key] = value
 			if isinstance(value, (list, tuple)):
-				# value is a tuble like ("!=", 0)
+				# value is a tuple like ("!=", 0)
 				_operator = value[0]
 				values[key] = value[1]
 				if isinstance(value[1], (tuple, list)):
 					# value is a list in tuple ("in", ("A", "B"))
-					inner_list = []
-					for i, v in enumerate(value[1]):
-						inner_key = "{0}_{1}".format(key, i)
-						values[inner_key] = v
-						inner_list.append("%({0})s".format(inner_key))
-
-					_rhs = " ({0})".format(", ".join(inner_list))
+					_rhs = " ({0})".format(", ".join([self.escape(v) for v in value[1]]))
 					del values[key]
 
 			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in", "not like"]:
@@ -753,12 +745,18 @@ class Database(object):
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+		for method in frappe.local.before_commit:
+			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
+
 		self.sql("commit")
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
 		enqueue_jobs_after_commit()
 		flush_local_link_count()
+
+	def add_before_commit(self, method, args=None, kwargs=None):
+		frappe.local.before_commit.append([method, args, kwargs])
 
 	@staticmethod
 	def flush_realtime_log():
@@ -786,6 +784,9 @@ class Database(object):
 	def table_exists(self, doctype):
 		"""Returns True if table for given doctype exists."""
 		return ("tab" + doctype) in self.get_tables()
+
+	def has_table(self, doctype):
+		return self.table_exists(doctype)
 
 	def get_tables(self):
 		tables = frappe.cache().get_value('db_tables')
@@ -959,13 +960,13 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype, conditions):
+	def delete(self, doctype, conditions, debug=False):
 		if conditions:
 			conditions, values = self.build_conditions(conditions)
 			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
 				doctype=doctype,
 				conditions=conditions
-			), values)
+			), values, debug=debug)
 		else:
 			frappe.throw(_('No conditions provided'))
 
@@ -1030,6 +1031,8 @@ class Database(object):
 				insert_list = []
 
 def enqueue_jobs_after_commit():
+	from frappe.utils.background_jobs import execute_job, get_queue
+
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
 			q = get_queue(job.get("queue"), is_async=job.get("is_async"))

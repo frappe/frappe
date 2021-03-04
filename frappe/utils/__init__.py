@@ -1,42 +1,35 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-# util __init__.py
+from __future__ import print_function, unicode_literals
 
-from __future__ import unicode_literals, print_function
-from werkzeug.test import Client
-import os, re, sys, json, hashlib, requests, traceback
 import functools
-from .html_utils import sanitize_html
-import frappe
-from frappe.utils.identicon import Identicon
-from email.utils import parseaddr, formataddr
+import hashlib
+import io
+import json
+import os
+import re
+import sys
+import traceback
+
 from email.header import decode_header, make_header
+from email.utils import formataddr, parseaddr
+from gzip import GzipFile
+from typing import Generator, Iterable
+
+from six import string_types, text_type
+from six.moves.urllib.parse import quote
+from werkzeug.test import Client
+
+import frappe
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from six.moves.urllib.parse import quote
-from six import text_type, string_types
-import io
-from gzip import GzipFile
+from frappe.utils.html_utils import sanitize_html
+
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
 	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
 
-# used in import_docs.py
-# TODO: deprecate it
-def getCSVelement(v):
-	"""
-		 Returns the CSV value of `v`, For example:
-
-		 * apple becomes "apple"
-		 * hi"there becomes "hi""there"
-	"""
-	v = cstr(v)
-	if not v: return ''
-	if (',' in v) or ('\n' in v) or ('"' in v):
-		if '"' in v: v = v.replace('"', '""')
-		return '"'+v+'"'
-	else: return v or ''
 
 def get_fullname(user=None):
 	"""get the full name (first name + last name) of the user from User"""
@@ -66,9 +59,14 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
+
 	if not mail:
-		mail = get_email_address(user)
-	return cstr(make_header(decode_header(formataddr((fullname, mail)))))
+		mail = get_email_address(user) or validate_email_address(user)
+
+	if not mail:
+		return ''
+	else:
+		return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
@@ -171,6 +169,8 @@ def random_string(length):
 
 def has_gravatar(email):
 	'''Returns gravatar url if user has set an avatar at gravatar.com'''
+	import requests
+
 	if (frappe.flags.in_import
 		or frappe.flags.in_install
 		or frappe.flags.in_test):
@@ -194,6 +194,8 @@ def get_gravatar_url(email):
 	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email.encode('utf-8')).hexdigest())
 
 def get_gravatar(email):
+	from frappe.utils.identicon import Identicon
+
 	gravatar_url = has_gravatar(email)
 
 	if not gravatar_url:
@@ -299,8 +301,8 @@ def unesc(s, esc_chars):
 
 def execute_in_shell(cmd, verbose=0):
 	# using Popen instead of os.system - as recommended by python docs
-	from subprocess import Popen
 	import tempfile
+	from subprocess import Popen
 
 	with tempfile.TemporaryFile() as stdout:
 		with tempfile.TemporaryFile() as stderr:
@@ -458,6 +460,7 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 def get_request_session(max_retries=3):
+	import requests
 	from urllib3.util import Retry
 	session = requests.Session()
 	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
@@ -466,8 +469,9 @@ def get_request_session(max_retries=3):
 
 def watch(path, handler=None, debug=True):
 	import time
-	from watchdog.observers import Observer
+
 	from watchdog.events import FileSystemEventHandler
+	from watchdog.observers import Observer
 
 	class Handler(FileSystemEventHandler):
 		def on_any_event(self, event):
@@ -566,9 +570,9 @@ def get_installed_apps_info():
 	return out
 
 def get_site_info():
-	from frappe.utils.user import get_system_managers
 	from frappe.core.doctype.user.user import STANDARD_USERS
 	from frappe.email.queue import get_emails_sent_this_month
+	from frappe.utils.user import get_system_managers
 
 	# only get system users
 	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
@@ -686,13 +690,19 @@ def get_safe_filters(filters):
 
 	return filters
 
-def create_batch(iterable, batch_size):
-	"""
-	Convert an iterable to multiple batches of constant size of batch_size
+def create_batch(iterable: Iterable, size: int) -> Generator[Iterable, None, None]:
+	"""Convert an iterable to multiple batches of constant size of batch_size
+
+	Args:
+		iterable (Iterable): Iterable object which is subscriptable
+		size (int): Maximum size of batches to be generated
+
+	Yields:
+		Generator[List]: Batched iterable of maximum length `size`
 	"""
 	total_count = len(iterable)
-	for i in range(0, total_count, batch_size):
-		yield iterable[i:min(i + batch_size, total_count)]
+	for i in range(0, total_count, size):
+		yield iterable[i : min(i + size, total_count)]
 
 def set_request(**kwargs):
 	from werkzeug.test import EnvironBuilder
@@ -706,3 +716,50 @@ def get_html_for_route(route):
 	response = render.render()
 	html = frappe.safe_decode(response.get_data())
 	return html
+
+def get_file_size(path, format=False):
+	num = os.path.getsize(path)
+
+	if not format:
+		return num
+
+	suffix = 'B'
+
+	for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+		if abs(num) < 1024:
+			return "{0:3.1f}{1}{2}".format(num, unit, suffix)
+		num /= 1024
+
+	return "{0:.1f}{1}{2}".format(num, 'Yi', suffix)
+
+def get_build_version():
+	try:
+		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))
+	except OSError:
+		# .build can sometimes not exist
+		# this is not a major problem so send fallback
+		return frappe.utils.random_string(8)
+
+def get_bench_relative_path(file_path):
+	"""Fixes paths relative to the bench root directory if exists and returns the absolute path
+
+	Args:
+		file_path (str, Path): Path of a file that exists on the file system
+
+	Returns:
+		str: Absolute path of the file_path
+	"""
+	if not os.path.exists(file_path):
+		base_path = '..'
+	elif file_path.startswith(os.sep):
+		base_path = os.sep
+	else:
+		base_path = '.'
+
+	file_path = os.path.join(base_path, file_path)
+
+	if not os.path.exists(file_path):
+		print('Invalid path {0}'.format(file_path[3:]))
+		sys.exit(1)
+
+	return os.path.abspath(file_path)

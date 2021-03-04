@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 	Customize Form is a Single DocType used to mask the Property Setter
 	Thus providing a better UI from user perspective
 """
+import json
 import frappe
 import frappe.translate
 from frappe import _
@@ -14,79 +15,8 @@ from frappe.model.document import Document
 from frappe.model import no_value_fields, core_doctypes_list
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, check_email_append_to
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.docfield import supports_translation
-
-doctype_properties = {
-	'search_fields': 'Data',
-	'title_field': 'Data',
-	'image_field': 'Data',
-	'sort_field': 'Data',
-	'sort_order': 'Data',
-	'default_print_format': 'Data',
-	'allow_copy': 'Check',
-	'istable': 'Check',
-	'quick_entry': 'Check',
-	'editable_grid': 'Check',
-	'max_attachments': 'Int',
-	'track_changes': 'Check',
-	'track_views': 'Check',
-	'allow_auto_repeat': 'Check',
-	'allow_import': 'Check',
-	'show_preview_popup': 'Check',
-	'email_append_to': 'Check',
-	'subject_field': 'Data',
-	'sender_field': 'Data'
-}
-
-docfield_properties = {
-	'idx': 'Int',
-	'label': 'Data',
-	'fieldtype': 'Select',
-	'options': 'Text',
-	'fetch_from': 'Small Text',
-	'fetch_if_empty': 'Check',
-	'permlevel': 'Int',
-	'width': 'Data',
-	'print_width': 'Data',
-	'reqd': 'Check',
-	'unique': 'Check',
-	'ignore_user_permissions': 'Check',
-	'in_list_view': 'Check',
-	'in_standard_filter': 'Check',
-	'in_global_search': 'Check',
-	'in_preview': 'Check',
-	'bold': 'Check',
-	'hidden': 'Check',
-	'collapsible': 'Check',
-	'collapsible_depends_on': 'Data',
-	'print_hide': 'Check',
-	'print_hide_if_no_value': 'Check',
-	'report_hide': 'Check',
-	'allow_on_submit': 'Check',
-	'translatable': 'Check',
-	'mandatory_depends_on': 'Data',
-	'read_only_depends_on': 'Data',
-	'depends_on': 'Data',
-	'description': 'Text',
-	'default': 'Text',
-	'precision': 'Select',
-	'read_only': 'Check',
-	'length': 'Int',
-	'columns': 'Int',
-	'remember_last_selected_value': 'Check',
-	'allow_bulk_edit': 'Check',
-	'auto_repeat': 'Link',
-	'allow_in_quick_entry': 'Check',
-	'hide_border': 'Check',
-	'hide_days': 'Check',
-	'hide_seconds': 'Check'
-}
-
-allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
-	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature', 'HTML Editor'), ('Data', 'Select'),
-	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'), ('Code', 'Geolocation'), ('Table', 'Table MultiSelect'))
-
-allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select', 'Data')
 
 class CustomizeForm(Document):
 	def on_update(self):
@@ -100,37 +30,70 @@ class CustomizeForm(Document):
 
 		meta = frappe.get_meta(self.doc_type)
 
-		if self.doc_type in core_doctypes_list:
-			return frappe.msgprint(_("Core DocTypes cannot be customized."))
+		self.validate_doctype(meta)
 
-		if meta.issingle:
-			return frappe.msgprint(_("Single DocTypes cannot be customized."))
-
-		if meta.custom:
-			return frappe.msgprint(_("Only standard DocTypes are allowed to be customized from Customize Form."))
-
-		# doctype properties
-		for property in doctype_properties:
-			self.set(property, meta.get(property))
-
-		for d in meta.get("fields"):
-			new_d = {"fieldname": d.fieldname, "is_custom_field": d.get("is_custom_field"), "name": d.name}
-			for property in docfield_properties:
-				new_d[property] = d.get(property)
-			self.append("fields", new_d)
+		# load the meta properties on the customize (self) object
+		self.load_properties(meta)
 
 		# load custom translation
 		translation = self.get_name_translation()
 		self.label = translation.translated_text if translation else ''
 
-		#If allow_auto_repeat is set, add auto_repeat custom field.
-		if self.allow_auto_repeat:
-			if not frappe.db.exists('Custom Field', {'fieldname': 'auto_repeat', 'dt': self.doc_type}):
-				insert_after = self.fields[len(self.fields) - 1].fieldname
-				df = dict(fieldname='auto_repeat', label='Auto Repeat', fieldtype='Link', options='Auto Repeat', insert_after=insert_after, read_only=1, no_copy=1, print_hide=1)
-				create_custom_field(self.doc_type, df)
+		self.create_auto_repeat_custom_field_if_required(meta)
 
-		# NOTE doc is sent to clientside by run_method
+		# NOTE doc (self) is sent to clientside by run_method
+
+	def validate_doctype(self, meta):
+		'''
+		Check if the doctype is allowed to be customized.
+		'''
+		if self.doc_type in core_doctypes_list:
+			frappe.throw(_("Core DocTypes cannot be customized."))
+
+		if meta.issingle:
+			frappe.throw(_("Single DocTypes cannot be customized."))
+
+		if meta.custom:
+			frappe.throw(_("Only standard DocTypes are allowed to be customized from Customize Form."))
+
+	def load_properties(self, meta):
+		'''
+		Load the customize object (this) with the metadata properties
+		'''
+		# doctype properties
+		for prop in doctype_properties:
+			self.set(prop, meta.get(prop))
+
+		for d in meta.get("fields"):
+			new_d = {"fieldname": d.fieldname, "is_custom_field": d.get("is_custom_field"), "name": d.name}
+			for prop in docfield_properties:
+				new_d[prop] = d.get(prop)
+			self.append("fields", new_d)
+
+		for fieldname in ('links', 'actions'):
+			for d in meta.get(fieldname):
+				self.append(fieldname, d)
+
+	def create_auto_repeat_custom_field_if_required(self, meta):
+		'''
+		Create auto repeat custom field if it's not already present
+		'''
+		if self.allow_auto_repeat:
+			all_fields = [df.fieldname for df in meta.fields]
+
+			if "auto_repeat" in all_fields:
+				return
+
+			insert_after = self.fields[len(self.fields) - 1].fieldname
+			create_custom_field(self.doc_type, dict(
+				fieldname='auto_repeat',
+				label='Auto Repeat',
+				fieldtype='Link',
+				options='Auto Repeat',
+				insert_after=insert_after,
+				read_only=1, no_copy=1, print_hide=1
+			))
+
 
 	def get_name_translation(self):
 		'''Get translation object if exists of current doctype name in the default language'''
@@ -195,72 +158,142 @@ class CustomizeForm(Document):
 
 	def set_property_setters(self):
 		meta = frappe.get_meta(self.doc_type)
-		# doctype property setters
 
-		for property in doctype_properties:
-			if self.get(property) != meta.get(property):
-				self.make_property_setter(property=property, value=self.get(property),
-					property_type=doctype_properties[property])
+		# doctype
+		self.set_property_setters_for_doctype(meta)
 
+		# docfield
 		for df in self.get("fields"):
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
-
 			if not meta_df or meta_df[0].get("is_custom_field"):
 				continue
+			self.set_property_setters_for_docfield(meta, df, meta_df)
 
-			for property in docfield_properties:
-				if property != "idx" and (df.get(property) or '') != (meta_df[0].get(property) or ''):
-					if property == "fieldtype":
-						self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
+		# action and links
+		self.set_property_setters_for_actions_and_links(meta)
 
-					elif property == "allow_on_submit" and df.get(property):
-						if not frappe.db.get_value("DocField",
-							{"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"):
-							frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
-								.format(df.idx))
-							continue
+	def set_property_setters_for_doctype(self, meta):
+		for prop, prop_type in doctype_properties.items():
+			if self.get(prop) != meta.get(prop):
+				self.make_property_setter(prop, self.get(prop), prop_type)
 
-					elif property == "reqd" and \
-						((frappe.db.get_value("DocField",
-							{"parent":self.doc_type,"fieldname":df.fieldname}, "reqd") == 1) \
-							and (df.get(property) == 0)):
-						frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields")\
-								.format(df.idx))
-						continue
+	def set_property_setters_for_docfield(self, meta, df, meta_df):
+		for prop, prop_type in docfield_properties.items():
+			if prop != "idx" and (df.get(prop) or '') != (meta_df[0].get(prop) or ''):
+				if not self.allow_property_change(prop, meta_df, df):
+					continue
 
-					elif property == "in_list_view" and df.get(property) \
-						and df.fieldtype!="Attach Image" and df.fieldtype in no_value_fields:
-								frappe.msgprint(_("'In List View' not allowed for type {0} in row {1}")
-									.format(df.fieldtype, df.idx))
-								continue
+				self.make_property_setter(prop, df.get(prop), prop_type,
+					fieldname=df.fieldname)
 
-					elif property == "precision" and cint(df.get("precision")) > 6 \
-							and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
-						self.flags.update_db = True
+	def allow_property_change(self, prop, meta_df, df):
+		if prop == "fieldtype":
+			self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
 
-					elif property == "unique":
-						self.flags.update_db = True
+		elif prop == "allow_on_submit" and df.get(prop):
+			if not frappe.db.get_value("DocField",
+				{"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"):
+				frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
+					.format(df.idx))
+				return False
 
-					elif (property == "read_only" and cint(df.get("read_only"))==0
-						and frappe.db.get_value("DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "read_only")==1):
-						# if docfield has read_only checked and user is trying to make it editable, don't allow it
-						frappe.msgprint(_("You cannot unset 'Read Only' for field {0}").format(df.label))
-						continue
+		elif prop == "reqd" and \
+			((frappe.db.get_value("DocField",
+				{"parent":self.doc_type,"fieldname":df.fieldname}, "reqd") == 1) \
+				and (df.get(prop) == 0)):
+			frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields")\
+					.format(df.idx))
+			return False
 
-					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change:
-						frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
-						continue
+		elif prop == "in_list_view" and df.get(prop) \
+			and df.fieldtype!="Attach Image" and df.fieldtype in no_value_fields:
+					frappe.msgprint(_("'In List View' not allowed for type {0} in row {1}")
+						.format(df.fieldtype, df.idx))
+					return False
 
-					elif property == 'translatable' and not supports_translation(df.get('fieldtype')):
-						frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
-						continue
+		elif prop == "precision" and cint(df.get("precision")) > 6 \
+				and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
+			self.flags.update_db = True
 
-					elif (property == 'in_global_search' and
-						df.in_global_search != meta_df[0].get("in_global_search")):
-						self.flags.rebuild_doctype_for_global_search = True
+		elif prop == "unique":
+			self.flags.update_db = True
 
-					self.make_property_setter(property=property, value=df.get(property),
-						property_type=docfield_properties[property], fieldname=df.fieldname)
+		elif (prop == "read_only" and cint(df.get("read_only"))==0
+				and frappe.db.get_value("DocField", {"parent": self.doc_type,
+				"fieldname": df.fieldname}, "read_only")==1):
+			# if docfield has read_only checked and user is trying to make it editable, don't allow it
+			frappe.msgprint(_("You cannot unset 'Read Only' for field {0}").format(df.label))
+			return False
+
+		elif prop == "options" and df.get("fieldtype") not in ALLOWED_OPTIONS_CHANGE:
+			frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
+			return False
+
+		elif prop == 'translatable' and not supports_translation(df.get('fieldtype')):
+			frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
+			return False
+
+		elif (prop == 'in_global_search' and
+			df.in_global_search != meta_df[0].get("in_global_search")):
+			self.flags.rebuild_doctype_for_global_search = True
+
+		return True
+
+	def set_property_setters_for_actions_and_links(self, meta):
+		'''
+		Apply property setters or create custom records for DocType Action and DocType Link
+		'''
+		for doctype, fieldname, field_map in (
+				('DocType Link', 'links', doctype_link_properties),
+				('DocType Action', 'actions', doctype_action_properties)
+			):
+			has_custom = False
+			items = []
+			for i, d in enumerate(self.get(fieldname) or []):
+				d.idx = i
+				if frappe.db.exists(doctype, d.name) and not d.custom:
+					# check property and apply property setter
+					original = frappe.get_doc(doctype, d.name)
+					for prop, prop_type in field_map.items():
+						if d.get(prop) != original.get(prop):
+							self.make_property_setter(prop, d.get(prop), prop_type,
+								apply_on=doctype, row_name=d.name)
+					items.append(d.name)
+				else:
+					# custom - just insert/update
+					d.parent = self.doc_type
+					d.custom = 1
+					d.save(ignore_permissions=True)
+					has_custom = True
+					items.append(d.name)
+
+			self.update_order_property_setter(has_custom, fieldname)
+			self.clear_removed_items(doctype, items)
+
+	def update_order_property_setter(self, has_custom, fieldname):
+		'''
+		We need to maintain the order of the link/actions if the user has shuffled them.
+		So we create a new property (ex `links_order`) to keep a list of items.
+		'''
+		property_name = '{}_order'.format(fieldname)
+		if has_custom:
+			# save the order of the actions and links
+			self.make_property_setter(property_name,
+				json.dumps([d.name for d in self.get(fieldname)]), 'Small Text')
+		else:
+			frappe.db.delete('Property Setter', dict(property=property_name,
+				doc_type=self.doc_type))
+
+
+	def clear_removed_items(self, doctype, items):
+		'''
+		Clear rows that do not appear in `items`. These have been removed by the user.
+		'''
+		if items:
+			frappe.db.delete(doctype, dict(parent=self.doc_type, custom=1,
+				name=('not in', items)))
+		else:
+			frappe.db.delete(doctype, dict(parent=self.doc_type, custom=1))
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
@@ -278,8 +311,8 @@ class CustomizeForm(Document):
 
 		d.dt = self.doc_type
 
-		for property in docfield_properties:
-			d.set(property, df.get(property))
+		for prop in docfield_properties:
+			d.set(prop, df.get(prop))
 
 		if i!=0:
 			d.insert_after = self.fields[i-1].fieldname
@@ -297,12 +330,12 @@ class CustomizeForm(Document):
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
 		changed = False
-		for property in docfield_properties:
-			if df.get(property) != custom_field.get(property):
-				if property == "fieldtype":
-					self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
+		for prop in docfield_properties:
+			if df.get(prop) != custom_field.get(prop):
+				if prop == "fieldtype":
+					self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
 
-				custom_field.set(property, df.get(property))
+				custom_field.set(prop, df.get(prop))
 				changed = True
 
 		# check and update `insert_after` property
@@ -328,32 +361,28 @@ class CustomizeForm(Document):
 			if df.get("is_custom_field"):
 				frappe.delete_doc("Custom Field", df.name)
 
-	def make_property_setter(self, property, value, property_type, fieldname=None):
-		self.delete_existing_property_setter(property, fieldname)
+	def make_property_setter(self, prop, value, property_type, fieldname=None,
+		apply_on=None, row_name = None):
+		delete_property_setter(self.doc_type, prop, fieldname)
 
-		property_value = self.get_existing_property_value(property, fieldname)
+		property_value = self.get_existing_property_value(prop, fieldname)
 
 		if property_value==value:
 			return
 
+		if not apply_on:
+			apply_on = "DocField" if fieldname else "DocType"
+
 		# create a new property setter
-		# ignore validation becuase it will be done at end
 		frappe.make_property_setter({
 			"doctype": self.doc_type,
-			"doctype_or_field": "DocField" if fieldname else "DocType",
+			"doctype_or_field": apply_on,
 			"fieldname": fieldname,
-			"property": property,
+			"row_name": row_name,
+			"property": prop,
 			"value": value,
 			"property_type": property_type
-		}, ignore_validate=True)
-
-	def delete_existing_property_setter(self, property, fieldname=None):
-		# first delete existing property setter
-		existing_property_setter = frappe.db.get_value("Property Setter", {"doc_type": self.doc_type,
-			"property": property, "field_name['']": fieldname or ''})
-
-		if existing_property_setter:
-			frappe.db.sql("delete from `tabProperty Setter` where name=%s", existing_property_setter)
+		})
 
 	def get_existing_property_value(self, property_name, fieldname=None):
 		# check if there is any need to make property setter!
@@ -361,20 +390,17 @@ class CustomizeForm(Document):
 			property_value = frappe.db.get_value("DocField", {"parent": self.doc_type,
 				"fieldname": fieldname}, property_name)
 		else:
-			try:
+			if frappe.db.has_column("DocType", property_name):
 				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
-			except Exception as e:
-				if frappe.db.is_column_missing(e):
-					property_value = None
-				else:
-					raise
+			else:
+				property_value = None
 
 		return property_value
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
 		allowed = False
 		self.check_length_for_fieldtypes = []
-		for allowed_changes in allowed_fieldtype_change:
+		for allowed_changes in ALLOWED_FIELDTYPE_CHANGE:
 			if (old_value in allowed_changes and new_value in allowed_changes):
 				allowed = True
 				old_value_length = cint(frappe.db.type_map.get(old_value)[1])
@@ -425,8 +451,113 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
-		frappe.db.sql("""DELETE FROM `tabProperty Setter` WHERE doc_type=%s
-			and `field_name`!='naming_series'
-			and `property`!='options'""", self.doc_type)
-		frappe.clear_cache(doctype=self.doc_type)
+		reset_customization(self.doc_type)
 		self.fetch_to_customize()
+
+def reset_customization(doctype):
+	setters = frappe.get_all("Property Setter", filters={
+		'doc_type': doctype,
+		'field_name': ['!=', 'naming_series'],
+		'property': ['!=', 'options']
+	}, pluck='name')
+
+	for setter in setters:
+		frappe.delete_doc("Property Setter", setter)
+
+	frappe.clear_cache(doctype=doctype)
+
+doctype_properties = {
+	'search_fields': 'Data',
+	'title_field': 'Data',
+	'image_field': 'Data',
+	'sort_field': 'Data',
+	'sort_order': 'Data',
+	'default_print_format': 'Data',
+	'allow_copy': 'Check',
+	'istable': 'Check',
+	'quick_entry': 'Check',
+	'editable_grid': 'Check',
+	'max_attachments': 'Int',
+	'track_changes': 'Check',
+	'track_views': 'Check',
+	'allow_auto_repeat': 'Check',
+	'allow_import': 'Check',
+	'show_preview_popup': 'Check',
+	'email_append_to': 'Check',
+	'subject_field': 'Data',
+	'sender_field': 'Data'
+}
+
+docfield_properties = {
+	'idx': 'Int',
+	'label': 'Data',
+	'fieldtype': 'Select',
+	'options': 'Text',
+	'fetch_from': 'Small Text',
+	'fetch_if_empty': 'Check',
+	'permlevel': 'Int',
+	'width': 'Data',
+	'print_width': 'Data',
+	'non_negative': 'Check',
+	'reqd': 'Check',
+	'unique': 'Check',
+	'ignore_user_permissions': 'Check',
+	'in_list_view': 'Check',
+	'in_standard_filter': 'Check',
+	'in_global_search': 'Check',
+	'in_preview': 'Check',
+	'bold': 'Check',
+	'hidden': 'Check',
+	'collapsible': 'Check',
+	'collapsible_depends_on': 'Data',
+	'print_hide': 'Check',
+	'print_hide_if_no_value': 'Check',
+	'report_hide': 'Check',
+	'allow_on_submit': 'Check',
+	'translatable': 'Check',
+	'mandatory_depends_on': 'Data',
+	'read_only_depends_on': 'Data',
+	'depends_on': 'Data',
+	'description': 'Text',
+	'default': 'Text',
+	'precision': 'Select',
+	'read_only': 'Check',
+	'length': 'Int',
+	'columns': 'Int',
+	'remember_last_selected_value': 'Check',
+	'allow_bulk_edit': 'Check',
+	'auto_repeat': 'Link',
+	'allow_in_quick_entry': 'Check',
+	'hide_border': 'Check',
+	'hide_days': 'Check',
+	'hide_seconds': 'Check'
+}
+
+doctype_link_properties = {
+	'link_doctype': 'Link',
+	'link_fieldname': 'Data',
+	'group': 'Data',
+	'hidden': 'Check'
+}
+
+doctype_action_properties = {
+	'label': 'Link',
+	'action_type': 'Select',
+	'action': 'Small Text',
+	'group': 'Data',
+	'hidden': 'Check'
+}
+
+
+ALLOWED_FIELDTYPE_CHANGE = (
+	('Currency', 'Float', 'Percent'),
+	('Small Text', 'Data'),
+	('Text', 'Data'),
+	('Text', 'Text Editor', 'Code', 'Signature', 'HTML Editor'),
+	('Data', 'Select'),
+	('Text', 'Small Text'),
+	('Text', 'Data', 'Barcode'),
+	('Code', 'Geolocation'),
+	('Table', 'Table MultiSelect'))
+
+ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Select', 'Data')

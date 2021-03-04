@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest
+import frappe, unittest, uuid
 
 from frappe.model.delete_doc import delete_doc
 from frappe.utils.data import today, add_to_date
@@ -20,6 +20,7 @@ class TestUser(unittest.TestCase):
 		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
 		frappe.db.set_value("System Settings", "System Settings", "minimum_password_score", "")
 		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 3)
+		frappe.set_user('Administrator')
 
 	def test_user_type(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
@@ -106,13 +107,17 @@ class TestUser(unittest.TestCase):
 		frappe.set_user("testperm@example.com")
 
 		me = frappe.get_doc("User", "testperm@example.com")
-		self.assertRaises(frappe.PermissionError, me.add_roles, "System Manager")
+		me.add_roles("System Manager")
+
+		# system manager is not added (it is reset)
+		self.assertFalse('System Manager' in [d.role for d in me.roles])
 
 		frappe.set_user("Administrator")
 
 		me = frappe.get_doc("User", "testperm@example.com")
 		me.add_roles("System Manager")
 
+		# system manager now added by Administrator
 		self.assertTrue("System Manager" in [d.role for d in me.get("roles")])
 
 	# def test_deny_multiple_sessions(self):
@@ -234,6 +239,29 @@ class TestUser(unittest.TestCase):
 		self.assertRegex(link, "\/update-password\?key=[A-Za-z0-9]*")
 
 		self.assertRaises(frappe.ValidationError, user.reset_password, False)
+
+	def test_user_rollback(self):
+		""" """
+		frappe.db.commit()
+		frappe.db.begin()
+		user_id = str(uuid.uuid4())
+		email = f'{user_id}@example.com'
+		try:
+			frappe.flags.in_import = True  # disable throttling
+			frappe.get_doc(dict(
+				doctype='User',
+				email=email,
+				first_name=user_id,
+			)).insert()
+		finally:
+			frappe.flags.in_import = False
+
+		# Check user has been added
+		self.assertIsNotNone(frappe.db.get("User", {"email": email}))
+
+		# Check that rollback works
+		frappe.db.rollback()
+		self.assertIsNone(frappe.db.get("User", {"email": email}))
 
 
 def delete_contact(user):

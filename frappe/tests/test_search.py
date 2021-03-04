@@ -41,15 +41,15 @@ class TestSearch(unittest.TestCase):
 
 	#Search for the word "pay", part of the word "pays" (country) in french.
 	def test_link_search_in_foreign_language(self):
-		frappe.local.lang = 'fr'
-		search_widget(doctype="DocType", txt="pay", page_length=20)
-		output = frappe.response["values"]
+		try:
+			frappe.local.lang = 'fr'
+			search_widget(doctype="DocType", txt="pay", page_length=20)
+			output = frappe.response["values"]
 
-		result = [['found' for x in y if x=="Country"] for y in output]
-		self.assertTrue(['found'] in result)
-
-	def tearDown(self):
-		frappe.local.lang = 'en'
+			result = [['found' for x in y if x=="Country"] for y in output]
+			self.assertTrue(['found'] in result)
+		finally:
+			frappe.local.lang = 'en'
 
 	def test_validate_and_sanitize_search_inputs(self):
 
@@ -74,6 +74,10 @@ class TestSearch(unittest.TestCase):
 		args = ("Random DocType", 'Random', 'email', '2', '10', dict())
 		kwargs = {'as_dict': False}
 		self.assertListEqual(frappe.call('frappe.tests.test_search.get_data', *args, **kwargs), [])
+
+		# should not fail if query has @ symbol in it
+		search_link('User', 'user@random', searchfield='name')
+		self.assertListEqual(frappe.response['results'], [])
 
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):

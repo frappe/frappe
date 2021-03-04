@@ -35,13 +35,13 @@
 {% if parent %}
 <li class="nav-item">
 	<a class="nav-link" href="{{ (item.url or '')|abs_url }}"
-		{{ item.target or ''}}>
+		{% if item.open_in_new_tab %} target="_blank" {% endif %}>
 		{{ item.label }}
 	</a>
 </li>
 {% else %}
 <a class="dropdown-item" href="{{ (item.url or '') | abs_url }}"
-	{{ item.target or '' }}>
+	{% if item.open_in_new_tab %} target="_blank" {% endif %}>
 	{{ item.label }}
 </a>
 {% endif %}
@@ -59,6 +59,7 @@
 </ul>
 {%- endif %}
 <ul class="ml-auto navbar-nav">
+	{% include "templates/includes/navbar/navbar_search.html" %}
 	{%- for item in top_bar_items -%}
 		{% if not item.parent_label and item.right -%}
 			{{ render_item(item, parent=True) }}
@@ -85,7 +86,6 @@
 	</div>
 	{% endif %}
 
-	{% include "templates/includes/navbar/navbar_search.html" %}
 	{% include "templates/includes/navbar/navbar_login.html" %}
 
 </ul>

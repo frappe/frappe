@@ -10,7 +10,7 @@ app_icon = "octicon octicon-circuit-board"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
-app_logo_url = '/assets/frappe/images/frappe-framework-logo.png'
+app_logo_url = '/assets/frappe/images/frappe-framework-logo.svg'
 
 develop_version = '13.x.x-develop'
 
@@ -18,7 +18,7 @@ app_email = "info@frappe.io"
 
 docs_app = "frappe_io"
 
-translator_url = "https://translatev2.erpnext.com"
+translator_url = "https://translate.erpnext.com"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -29,18 +29,17 @@ page_js = {
 
 # website
 app_include_js = [
-	"assets/js/libs.min.js",
-	"assets/js/desk.min.js",
-	"assets/js/list.min.js",
-	"assets/js/form.min.js",
-	"assets/js/control.min.js",
-	"assets/js/report.min.js",
+	"/assets/js/libs.min.js",
+	"/assets/js/desk.min.js",
+	"/assets/js/list.min.js",
+	"/assets/js/form.min.js",
+	"/assets/js/control.min.js",
+	"/assets/js/report.min.js",
 ]
 app_include_css = [
-	"assets/css/desk.min.css",
-	"assets/css/list.min.css",
-	"assets/css/form.min.css",
-	"assets/css/report.min.css",
+	"/assets/css/desk.min.css",
+	"/assets/css/list.min.css",
+	"/assets/css/report.min.css",
 ]
 
 doctype_js = {
@@ -59,6 +58,11 @@ website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/newsletters", "to_route": "Newsletter"},
 	{"from_route": "/profile", "to_route": "me"},
+	{"from_route": "/app/<path:app_path>", "to_route": "app"},
+]
+
+website_redirects = [
+	{"source": r"/desk(.*)", "target": r"/app\1"},
 ]
 
 base_template = "templates/base.html"
@@ -94,6 +98,7 @@ permission_query_conditions = {
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.get_permission_query_conditions",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
+	"Dashboard": "frappe.desk.doctype.dashboard.dashboard.get_permission_query_conditions",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
 	"Number Card": "frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",
@@ -140,9 +145,9 @@ doc_events = {
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
-			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
 			"frappe.core.doctype.file.file.attach_files_to_document",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -155,7 +160,8 @@ doc_events = {
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 		],
 		"on_change": [
-			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
+			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
+			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
 		]
 	},
 	"Event": {
@@ -205,7 +211,7 @@ scheduler_events = {
 		"frappe.utils.password.delete_password_reset_cache"
 	],
 	"daily": [
-		"frappe.email.queue.clear_outbox",
+		"frappe.email.queue.set_expiry_for_email_queue",
 		"frappe.desk.notifications.clear_notifications",
 		"frappe.core.doctype.error_log.error_log.set_old_logs_as_seen",
 		"frappe.desk.doctype.event.event.send_event_digest",
@@ -214,7 +220,6 @@ scheduler_events = {
 		"frappe.realtime.remove_old_task_logs",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
-		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.desk.form.document_follow.send_daily_updates",
 		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
@@ -222,7 +227,8 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
 		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
-		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports"
+		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports",
+		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",

@@ -15,7 +15,7 @@ import frappe
 from frappe.utils.minify import JavascriptMinify
 
 import click
-from requests import get
+import psutil
 from six import iteritems, text_type
 from six.moves.urllib.parse import urlparse
 
@@ -26,6 +26,8 @@ sites_path = os.path.abspath(os.getcwd())
 
 
 def download_file(url, prefix):
+	from requests import get
+
 	filename = urlparse(url).path.split("/")[-1]
 	local_filename = os.path.join(prefix, filename)
 	with get(url, stream=True, allow_redirects=True) as r:
@@ -40,6 +42,7 @@ def build_missing_files():
 	# check which files dont exist yet from the build.json and tell build.js to build only those!
 	missing_assets = []
 	current_asset_files = []
+	frappe_build = os.path.join("..", "apps", "frappe", "frappe", "public", "build.json")
 
 	for type in ["css", "js"]:
 		current_asset_files.extend(
@@ -49,7 +52,7 @@ def build_missing_files():
 			]
 		)
 
-	with open(os.path.join(sites_path, "assets", "frappe", "build.json")) as f:
+	with open(frappe_build) as f:
 		all_asset_files = json.load(f).keys()
 
 	for asset in all_asset_files:
@@ -104,20 +107,28 @@ def download_frappe_assets(verbose=True):
 	if frappe_head:
 		try:
 			url = get_assets_link(frappe_head)
-			click.secho("Retreiving assets...", fg="yellow")
+			click.secho("Retrieving assets...", fg="yellow")
 			prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
 			assets_archive = download_file(url, prefix)
 			print("\n{0} Downloaded Frappe assets from {1}".format(green('✔'), url))
 
 			if assets_archive:
 				import tarfile
+				directories_created = set()
 
 				click.secho("\nExtracting assets...\n", fg="yellow")
 				with tarfile.open(assets_archive) as tar:
 					for file in tar:
 						if not file.isdir():
 							dest = "." + file.name.replace("./frappe-bench/sites", "")
+							asset_directory = os.path.dirname(dest)
 							show = dest.replace("./assets/", "")
+
+							if asset_directory not in directories_created:
+								if not os.path.exists(asset_directory):
+									os.makedirs(asset_directory, exist_ok=True)
+								directories_created.add(asset_directory)
+
 							tar.makefile(file, dest)
 							print("{0} Restored {1}".format(green('✔'), show))
 
@@ -216,7 +227,7 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False,
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
-	frappe.commands.popen(command, cwd=frappe_app_path)
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
 def watch(no_compress):
@@ -228,13 +239,32 @@ def watch(no_compress):
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
-	frappe.commands.popen("{pacman} run watch".format(pacman=pacman), cwd=frappe_app_path)
+	frappe.commands.popen("{pacman} run watch".format(pacman=pacman),
+		cwd=frappe_app_path, env=get_node_env())
 
 
 def check_yarn():
 	if not find_executable("yarn"):
 		print("Please install yarn using below command and try again.\nnpm install -g yarn")
 
+def get_node_env():
+	node_env = {
+		"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"
+	}
+	return node_env
+
+def get_safe_max_old_space_size():
+	safe_max_old_space_size = 0
+	try:
+		total_memory = psutil.virtual_memory().total / (1024 * 1024)
+		# reference for the safe limit assumption
+		# https://nodejs.org/api/cli.html#cli_max_old_space_size_size_in_megabytes
+		# set minimum value 1GB
+		safe_max_old_space_size = max(1024, int(total_memory * 0.75))
+	except Exception:
+		pass
+
+	return safe_max_old_space_size
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.

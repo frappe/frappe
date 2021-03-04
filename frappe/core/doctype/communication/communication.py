@@ -99,10 +99,7 @@ class Communication(Document):
 			frappe.db.set_value("Communication", self.reference_name, "status", "Replied")
 
 		if self.communication_type == "Communication":
-			# send new comment to listening clients
-			frappe.publish_realtime('new_communication', self.as_dict(),
-				doctype=self.reference_doctype, docname=self.reference_name,
-				after_commit=True)
+			self.notify_change('add')
 
 		elif self.communication_type in ("Chat", "Notification", "Bot"):
 			if self.reference_name == frappe.session.user:
@@ -125,10 +122,14 @@ class Communication(Document):
 
 	def on_trash(self):
 		if self.communication_type == "Communication":
-			# send delete comment to listening clients
-			frappe.publish_realtime('delete_communication', self.as_dict(),
-				doctype= self.reference_doctype, docname = self.reference_name,
-				after_commit=True)
+			self.notify_change('delete')
+
+	def notify_change(self, action):
+		frappe.publish_realtime('update_docinfo_for_{}_{}'.format(self.reference_doctype, self.reference_name), {
+			'doc': self.as_dict(),
+			'key': 'communications',
+			'action': action
+		}, after_commit=True)
 
 	def set_status(self):
 		if not self.is_new():
@@ -244,9 +245,7 @@ class Communication(Document):
 
 		if delivery_status:
 			self.db_set('delivery_status', delivery_status)
-
-			frappe.publish_realtime('update_communication', self.as_dict(),
-				doctype=self.reference_doctype, docname=self.reference_name, after_commit=True)
+			self.notify_change('update')
 
 			# for list views and forms
 			self.notify_update()
@@ -260,10 +259,8 @@ class Communication(Document):
 	# Timeline Links
 	def set_timeline_links(self):
 		contacts = []
-		if (self.email_account and frappe.db.get_value("Email Account", self.email_account, "create_contact")) or \
-			frappe.flags.in_test:
-
-			contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
+		create_contact_enabled = self.email_account and frappe.db.get_value("Email Account", self.email_account, "create_contact")
+		contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc], auto_create_contact=create_contact_enabled)
 
 		for contact_name in contacts:
 			self.add_link('Contact', contact_name)
@@ -342,7 +339,7 @@ def get_permission_query_conditions_for_communication(user):
 		return """`tabCommunication`.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
 
-def get_contacts(email_strings):
+def get_contacts(email_strings, auto_create_contact=False):
 	email_addrs = []
 
 	for email_string in email_strings:
@@ -357,7 +354,7 @@ def get_contacts(email_strings):
 		email = get_email_without_link(email)
 		contact_name = get_contact_name(email)
 
-		if not contact_name and email:
+		if not contact_name and email and auto_create_contact:
 			email_parts = email.split("@")
 			first_name = frappe.unscrub(email_parts[0])
 

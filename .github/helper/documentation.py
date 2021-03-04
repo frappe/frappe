@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 
 docs_repos = [
-	"frappe_docs"
+	"frappe_docs",
 	"erpnext_documentation",
 	"erpnext_com",
 	"frappe_io",
@@ -17,12 +17,12 @@ def uri_validator(x):
 
 def docs_link_exists(body):
 	for line in body.splitlines():
-		for word in line:
+		for word in line.split():
 			if word.startswith('http') and uri_validator(word):
 				parsed_url = urlparse(word)
 				if parsed_url.netloc == "github.com":
-					_, org, repo, _type, ref = parsed_url.path.split('/')
-					if org == "frappe" and repo in docs_repos:
+					parts = parsed_url.path.split('/')
+					if len(parts) == 5 and parts[1] == "frappe" and parts[2] in docs_repos:
 						return True
 
 

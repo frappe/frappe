@@ -10,7 +10,12 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			.then(() => {
 				this.page_title = this.page_title + ' ' + __('Gantt');
 				this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-				if(this.calendar_settings.order_by) {
+
+				if (typeof this.calendar_settings.gantt == 'object') {
+					Object.assign(this.calendar_settings, this.calendar_settings.gantt);
+				}
+
+				if (this.calendar_settings.order_by) {
 					this.sort_by = this.calendar_settings.order_by;
 					this.sort_order = 'asc';
 				} else {
@@ -90,8 +95,15 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		const date_format = 'YYYY-MM-DD';
 
 		this.$result.empty();
+		this.$result.addClass('gantt-modern');
 
 		this.gantt = new Gantt(this.$result[0], this.tasks, {
+			bar_height: 35,
+			bar_corner_radius: 4,
+			resize_handle_width: 8,
+			resize_handle_height: 28,
+			resize_handle_corner_radius: 3,
+			resize_handle_offset: 4,
 			view_mode: gantt_view_mode,
 			date_format: "YYYY-MM-DD",
 			on_click: task => {

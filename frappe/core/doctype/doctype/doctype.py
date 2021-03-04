@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import re, copy, os, shutil
 import json
+from frappe.cache_manager import clear_user_cache, clear_controller_cache
 
 # imports - third party imports
 import six
@@ -25,7 +26,7 @@ from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
 from frappe.modules.import_file import get_file_path
 from frappe.model.meta import Meta
-
+from frappe.desk.utils import validate_route_conflict
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 class UniqueFieldnameError(frappe.ValidationError): pass
@@ -55,12 +56,44 @@ class DocType(Document):
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
 		- Add `amended_from` and `amended_by` if Amendable
-		- Add custom field `auto_repeat` if Repeatable"""
+		- Add custom field `auto_repeat` if Repeatable
+		- Check if links point to valid fieldnames"""
 
 		self.check_developer_mode()
 
 		self.validate_name()
 
+		self.set_defaults_for_single_and_table()
+		self.scrub_field_names()
+		self.set_default_in_list_view()
+		self.set_default_translatable()
+		self.validate_series()
+		self.validate_document_type()
+		validate_fields(self)
+
+		if not self.istable:
+			validate_permissions(self)
+
+		self.make_amendable()
+		self.make_repeatable()
+		self.validate_nestedset()
+		self.validate_website()
+		validate_links_table_fieldnames(self)
+
+		if not self.is_new():
+			self.before_update = frappe.get_doc('DocType', self.name)
+			self.setup_fields_to_fetch()
+
+		check_email_append_to(self)
+
+		if self.default_print_format and not self.custom:
+			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
+
+	def after_insert(self):
+		# clear user cache so that on the next reload this doctype is included in boot
+		clear_user_cache(frappe.session.user)
+
+	def set_defaults_for_single_and_table(self):
 		if self.issingle:
 			self.allow_import = 0
 			self.is_submittable = 0
@@ -69,39 +102,6 @@ class DocType(Document):
 		elif self.istable:
 			self.allow_import = 0
 			self.permissions = []
-
-		self.scrub_field_names()
-		self.set_default_in_list_view()
-		self.set_default_translatable()
-		self.validate_series()
-		self.validate_document_type()
-		validate_fields(self)
-
-		if self.istable:
-			# no permission records for child table
-			self.permissions = []
-		else:
-			validate_permissions(self)
-
-		self.make_amendable()
-		self.make_repeatable()
-		self.validate_nestedset()
-		self.validate_website()
-
-		if not self.is_new():
-			self.before_update = frappe.get_doc('DocType', self.name)
-
-		if not self.is_new():
-			self.setup_fields_to_fetch()
-
-		check_email_append_to(self)
-
-		if self.default_print_format and not self.custom:
-			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
-
-		if frappe.conf.get('developer_mode'):
-			self.owner = 'Administrator'
-			self.modified_by = 'Administrator'
 
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''
@@ -126,6 +126,10 @@ class DocType(Document):
 
 		if not frappe.conf.get("developer_mode") and not self.custom:
 			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."), CannotCreateStandardDoctypeError)
+
+		if frappe.conf.get('developer_mode'):
+			self.owner = 'Administrator'
+			self.modified_by = 'Administrator'
 
 	def setup_fields_to_fetch(self):
 		'''Setup query to update values for newly set fetch values'''
@@ -185,6 +189,9 @@ class DocType(Document):
 
 	def validate_website(self):
 		"""Ensure that website generator has field 'route'"""
+		if self.route:
+			self.route = self.route.strip('/')
+
 		if self.has_web_view:
 			# route field must be present
 			if not 'route' in [d.fieldname for d in self.fields]:
@@ -271,7 +278,6 @@ class DocType(Document):
 
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
-		self.delete_duplicate_custom_fields()
 		try:
 			frappe.db.updatedb(self.name, Meta(self))
 		except Exception as e:
@@ -283,9 +289,15 @@ class DocType(Document):
 
 		self.update_fields_to_fetch()
 
-		from frappe import conf
-		allow_doctype_export = frappe.flags.allow_doctype_export or (not frappe.flags.in_test and conf.get('developer_mode'))
-		if not self.custom and not frappe.flags.in_import and allow_doctype_export:
+		allow_doctype_export = (
+			not self.custom
+			and not frappe.flags.in_import
+			and (
+				frappe.conf.developer_mode
+				or frappe.flags.allow_doctype_export
+			)
+		)
+		if allow_doctype_export:
 			self.export_doc()
 			self.make_controller_template()
 
@@ -309,18 +321,6 @@ class DocType(Document):
 			del frappe.local.meta_cache[self.name]
 
 		clear_linked_doctype_cache()
-
-	def delete_duplicate_custom_fields(self):
-		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
-			return
-
-		fields = [d.fieldname for d in self.fields if d.fieldtype in data_fieldtypes]
-		if fields:
-			frappe.db.sql('''delete from
-				`tabCustom Field`
-				where
-				dt = {0} and fieldname in ({1})
-				'''.format('%s', ', '.join(['%s'] * len(fields))), tuple([self.name] + fields), as_dict=True)
 
 	def sync_global_search(self):
 		'''If global search settings are changed, rebuild search properties for this table'''
@@ -375,19 +375,31 @@ class DocType(Document):
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
-		# Do not rename and move files and folders for custom doctype
-		if not self.custom and not frappe.flags.in_test and not frappe.flags.in_patch:
-			self.rename_files_and_folders(old, new)
-
 	def after_rename(self, old, new, merge=False):
 		"""Change table name using `RENAME TABLE` if table exists. Or update
 		`doctype` property for Single type."""
+
 		if self.issingle:
 			frappe.db.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
 			frappe.db.sql("""update tabSingles set value=%s
 				where doctype=%s and field='name' and value = %s""", (new, new, old))
 		else:
-			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
+			frappe.db.multisql({
+				"mariadb": f"RENAME TABLE `tab{old}` TO `tab{new}`",
+				"postgres": f"ALTER TABLE `tab{old}` RENAME TO `tab{new}`"
+			})
+			frappe.db.commit()
+
+		# Do not rename and move files and folders for custom doctype
+		if not self.custom:
+			if not frappe.flags.in_patch:
+				self.rename_files_and_folders(old, new)
+
+			clear_controller_cache(old)
+
+	def after_delete(self):
+		if not self.custom:
+			clear_controller_cache(self.name)
 
 	def rename_files_and_folders(self, old, new):
 		# move files
@@ -565,7 +577,8 @@ class DocType(Document):
 	def make_repeatable(self):
 		"""If allow_auto_repeat is set, add auto_repeat custom field."""
 		if self.allow_auto_repeat:
-			if not frappe.db.exists('Custom Field', {'fieldname': 'auto_repeat', 'dt': self.name}):
+			if not frappe.db.exists('Custom Field', {'fieldname': 'auto_repeat', 'dt': self.name}) and \
+				not frappe.db.exists('DocField', {'fieldname': 'auto_repeat', 'parent': self.name}):
 				insert_after = self.fields[len(self.fields) - 1].fieldname
 				df = dict(fieldname='auto_repeat', label='Auto Repeat', fieldtype='Link', options='Auto Repeat', insert_after=insert_after, read_only=1, no_copy=1, print_hide=1)
 				create_custom_field(self.name, df)
@@ -643,7 +656,7 @@ class DocType(Document):
 		flags = {"flags": re.ASCII} if six.PY3 else {}
 
 		# a DocType name should not start or end with an empty space
-		if re.match("^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
+		if re.search("^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
 			frappe.throw(_("DocType's name should not start or end with whitespace"), frappe.NameError)
 
 		# a DocType's name should not start with a number or underscore
@@ -651,11 +664,24 @@ class DocType(Document):
 		if not re.match("^(?![\W])[^\d_\s][\w ]+$", name, **flags):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
+		validate_route_conflict(self.doctype, self.name)
+
+def validate_links_table_fieldnames(meta):
+	"""Validate fieldnames in Links table"""
+	if frappe.flags.in_patch: return
+	if frappe.flags.in_fixtures: return
+	if not meta.links: return
+
+	for index, link in enumerate(meta.links):
+		link_meta = frappe.get_meta(link.link_doctype)
+		if not link_meta.get_field(link.link_fieldname):
+			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
+			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
 def validate_fields_for_doctype(doctype):
-	doc = frappe.get_doc("DocType", doctype)
-	doc.delete_duplicate_custom_fields()
-	validate_fields(frappe.get_meta(doctype, cached=False))
+	meta = frappe.get_meta(doctype, cached=False)
+	validate_links_table_fieldnames(meta)
+	validate_fields(meta)
 
 # this is separate because it is also called via custom field
 def validate_fields(meta):
@@ -747,8 +773,8 @@ def validate_fields(meta):
 	def check_illegal_default(d):
 		if d.fieldtype == "Check" and not d.default:
 			d.default = '0'
-		if d.fieldtype == "Check" and d.default not in ('0', '1'):
-			frappe.throw(_("Default for 'Check' type of field must be either '0' or '1'"))
+		if d.fieldtype == "Check" and cint(d.default) not in (0, 1):
+			frappe.throw(_("Default for 'Check' type of field {0} must be either '0' or '1'").format(frappe.bold(d.fieldname)))
 		if d.fieldtype == "Select" and d.default:
 			if not d.options:
 				frappe.throw(_("Options for {0} must be set before setting the default value.").format(frappe.bold(d.fieldname)))
@@ -976,10 +1002,10 @@ def validate_fields(meta):
 	check_sort_field(meta)
 	check_image_field(meta)
 
-def validate_permissions_for_doctype(doctype, for_remove=False):
+def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
 	"""Validates if permissions are set correctly."""
 	doctype = frappe.get_doc("DocType", doctype)
-	validate_permissions(doctype, for_remove)
+	validate_permissions(doctype, for_remove, alert=alert)
 
 	# save permissions
 	for perm in doctype.get("permissions"):
@@ -1002,9 +1028,10 @@ def clear_permissions_cache(doctype):
 		""", doctype):
 		frappe.clear_cache(user=user)
 
-def validate_permissions(doctype, for_remove=False):
+def validate_permissions(doctype, for_remove=False, alert=False):
 	permissions = doctype.get("permissions")
-	if not permissions:
+	# Some DocTypes may not have permissions by default, don't show alert for them
+	if not permissions and alert:
 		frappe.msgprint(_('No Permissions Specified'), alert=True, indicator='orange')
 	issingle = issubmittable = isimportable = False
 	if doctype:
@@ -1016,7 +1043,7 @@ def validate_permissions(doctype, for_remove=False):
 		return _("For {0} at level {1} in {2} in row {3}").format(d.role, d.permlevel, d.parent, d.idx)
 
 	def check_atleast_one_set(d):
-		if not d.read and not d.write and not d.submit and not d.cancel and not d.create:
+		if not d.select and not d.read and not d.write and not d.submit and not d.cancel and not d.create:
 			frappe.throw(_("{0}: No basic permissions set").format(get_txt(d)))
 
 	def check_double(d):

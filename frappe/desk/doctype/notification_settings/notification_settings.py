@@ -42,7 +42,6 @@ def create_notification_settings(user):
 		_doc = frappe.new_doc('Notification Settings')
 		_doc.name = user
 		_doc.insert(ignore_permissions=True)
-		frappe.db.commit()
 
 
 @frappe.whitelist()

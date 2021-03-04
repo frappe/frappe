@@ -67,7 +67,6 @@ def set_new_name(doc):
 		frappe.get_meta(doc.doctype).get_field("name_case")
 	)
 
-
 def set_name_from_naming_options(autoname, doc):
 	"""
 	Get a name based on the autoname field option
@@ -93,15 +92,12 @@ def set_naming_from_document_naming_rule(doc):
 	if doc.doctype in log_types:
 		return
 
-	try:
-		for d in frappe.get_all('Document Naming Rule',
-			dict(document_type=doc.doctype, disabled=0), order_by='priority desc'):
-			frappe.get_cached_doc('Document Naming Rule', d.name).apply(doc)
-			if doc.name:
-				break
-	except frappe.db.TableMissingError: # noqa: E722
-		# not yet bootstrapped
-		pass
+	# ignore_ddl if naming is not yet bootstrapped
+	for d in frappe.get_all('Document Naming Rule',
+		dict(document_type=doc.doctype, disabled=0), order_by='priority desc', ignore_ddl=True):
+		frappe.get_cached_doc('Document Naming Rule', d.name).apply(doc)
+		if doc.name:
+			break
 
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""

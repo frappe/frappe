@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import requests
 import frappe
 from frappe import _
 from frappe.utils import get_request_site_address, encode
@@ -77,6 +76,8 @@ class WebsiteSettings(Document):
 		frappe.clear_cache()
 
 	def get_access_token(self):
+		import requests
+
 		google_settings = frappe.get_doc("Google Settings")
 
 		if not google_settings.enable:
@@ -136,9 +137,6 @@ def get_website_settings(context=None):
 
 	context.encoded_title = quote(encode(context.title or ""), str(""))
 
-	for update_website_context in hooks.update_website_context or []:
-		frappe.get_attr(update_website_context)(context)
-
 	context.web_include_js = hooks.web_include_js or []
 
 	context.web_include_css = hooks.web_include_css or []
@@ -153,7 +151,7 @@ def get_website_settings(context=None):
 	add_website_theme(context)
 
 	if not context.get("favicon"):
-		context["favicon"] = "/assets/frappe/images/favicon.png"
+		context["favicon"] = "/assets/frappe/images/frappe-favicon.svg"
 
 	if settings.favicon and settings.favicon != "attach_files:":
 		context["favicon"] = settings.favicon

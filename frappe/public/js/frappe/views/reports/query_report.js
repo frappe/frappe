@@ -1,8 +1,8 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from 'frappe-datatable';
-import { build_summary_item } from "../../widgets/utils";
 
+frappe.provide('frappe.widget.utils');
 frappe.provide('frappe.views');
 frappe.provide('frappe.query_reports');
 
@@ -50,18 +50,28 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		// Setup buttons
 		this.primary_action = null;
-		this.secondary_action = {
-			label: __('Refresh'),
-			action: () => {
-				this.setup_progress_bar();
-				this.refresh();
-			}
-		};
 
 		// throttle refresh for 300ms
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
 
 		this.menu_items = [];
+	}
+
+	set_default_secondary_action() {
+		this.refresh_button && this.refresh_button.remove();
+		this.refresh_button = this.page.add_action_icon("refresh", () => {
+			this.setup_progress_bar();
+			this.refresh();
+		});
+	}
+
+	get_no_result_message() {
+		return `<div class="msg-box no-border">
+			<div>
+				<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
+			</div>
+			<p>${__('Nothing to show')}</p>
+		</div>`;
 	}
 
 	setup_events() {
@@ -142,17 +152,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	add_chart_buttons_to_toolbar(show) {
 		if (show) {
-			this.page.add_inner_button(__("Set Chart"), () => {
+			this.create_chart_button && this.create_chart_button.remove();
+			this.create_chart_button = this.page.add_button(__("Set Chart"), () => {
 				this.open_create_chart_dialog();
 			});
 
 			if (this.chart_fields || this.chart_options) {
-				this.page.add_inner_button(__("Add Chart to Dashboard"), () => {
+				this.add_to_dashboard_button && this.add_to_dashboard_button.remove();
+				this.add_to_dashboard_button = this.page.add_button(__("Add Chart to Dashboard"), () => {
 					this.add_chart_to_dashboard();
 				});
 			}
 		} else {
-			this.page.clear_inner_toolbar();
+			this.create_chart_button && this.create_chart_button.remove();
+			this.add_to_dashboard_button && this.add_to_dashboard_button.remove();
 		}
 	}
 
@@ -321,13 +334,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		).then(() => {
 			let message;
 			if (dashboard_name) {
-				let dashboard_route_html = `<a href = "#dashboard/${dashboard_name}">${dashboard_name}</a>`;
-				message = __(`New {0} {1} added to Dashboard ` + dashboard_route_html, [doctype, name]);
+				let dashboard_route_html = `<a href="#dashboard-view/${dashboard_name}">${dashboard_name}</a>`;
+				message = __("New {0} {1} added to Dashboard {2}", [doctype, name, dashboard_route_html]);
 			} else {
-				message = __(`New {0} {1} created`, [doctype, name]);
+				message = __("New {0} {1} created", [doctype, name]);
 			}
 
-			frappe.msgprint(message, __(`New {0} Created`, [doctype]));
+			frappe.msgprint(message, __("New {0} Created", [doctype]));
 		});
 	}
 
@@ -338,6 +351,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return frappe.run_serially([
 			() => this.setup_filters(),
 			() => this.set_route_filters(),
+			() => this.page.clear_custom_actions(),
 			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => this.refresh()
 		]);
@@ -433,7 +447,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				try {
 					out = eval(expression.substr(5));
 				} catch (e) {
-					frappe.throw(__(`Invalid "depends_on" expression set in filter ${filter_label}`));
+					frappe.throw(__('Invalid "depends_on" expression set in filter {0}', [filter_label]));
 				}
 			} else {
 				var value = doc[expression];
@@ -451,10 +465,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
 
+		let filter_area = this.page.page_form;
+
 		this.filters = filters.map(df => {
 			if (df.fieldtype === 'Break') return;
 
-			let f = this.page.add_field(df);
+			let f = this.page.add_field(df, filter_area);
 
 			if (df.default) {
 				f.set_input(df.default);
@@ -631,7 +647,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_summary(data) {
 		data.forEach((summary) => {
-			build_summary_item(summary).appendTo(this.$summary);
+			frappe.utils.build_summary_item(summary).appendTo(this.$summary);
 		})
 
 		this.$summary.show();
@@ -644,7 +660,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if(doc){
+		if (doc) {
 			this.page.add_inner_button(__("Download Report"), function (){
 				window.open(
 					frappe.urllib.get_full_url(
@@ -657,11 +673,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			const part3 = __('See all past reports.');
 
 			this.show_status(`
-				<span class="indicator orange">
-					${part1}
-					${part2}
-					<a href="#List/Prepared%20Report?report_name=${this.report_name}">${part3}</a>
-				</span>
+				<div class="indicator orange">
+					<span>
+						${part1}
+						${part2}
+						<a href="/app/List/Prepared%20Report?report_name=${this.report_name}"> ${part3}</a>
+					</span>
+				</div>
 			`);
 		};
 
@@ -737,18 +755,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_queued_prepared_reports_warning_message(reports) {
-		const route = `#List/Prepared Report/List?status=Queued&report_name=${this.report_name}`;
+		const route = `/app/List/Prepared Report/List?status=Queued&report_name=${this.report_name}`;
+		const report_link_html = reports.length == 1
+			? `<a class="underline" href="${route}">${__('1 Report')}</a>`
+			: `<a class="underline" href="${route}">${__("{0} Reports", [reports.length])}</a>`;
+
 		const no_of_reports_html = reports.length == 1
-			? `${__('There is ')}<a class="underline" href="${route}">${__('1 Report')}</a>`
-			: `${__('There are ')}<a class="underline" href="${route}">${__(`{} Reports`, [reports.length])}</a>`;
+			? `${__('There is {0} with the same filters already in the queue:', [report_link_html])}`
+			: `${__('There are {0} with the same filters already in the queue:', [report_link_html])}`;
 
 		let warning_message = `
 			<p>
-				${__(`Are you sure you want to generate a new report?
-					{} with the same filters already in the queue:`, [no_of_reports_html])}
+				${__("Are you sure you want to generate a new report?")}
+				${no_of_reports_html}
 			</p>`;
 
-		let get_item_html = item => `<a class="underline" href="#Form/Prepared Report/${item.name}">${item.name}</a>`;
+		let get_item_html = item => `<a class="underline" href="/app/prepared-report/${item.name}">${item.name}</a>`;
 
 		warning_message += reports.map(get_item_html).join(', ');
 
@@ -769,7 +791,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.toggle_primary_button_disabled(true);
 		let mandatory = this.filters.filter(f => f.df.reqd);
 		let missing_mandatory = mandatory.filter(f => !f.get_value());
-		if (!missing_mandatory.length){
+		if (!missing_mandatory.length) {
 			let filters = this.get_filter_values(true);
 			return new Promise(resolve => frappe.call({
 				method: 'frappe.desk.query_report.background_enqueue_run',
@@ -783,8 +805,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
-				let alert_message = `Report initiated. You can track its status
-					<a class="bold" href='#Form/Prepared Report/${data.name}'>here</a>`;
+				let alert_message = `<a href='/app/prepared-report/${data.name}'>` +
+					__('Report initiated, click to view status') + `</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'}, 10);
 				this.toggle_nothing_to_show(true);
 			});
@@ -809,6 +831,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			data.splice(-1, 1);
 		}
 
+		this.$report.show();
 		if (this.datatable && this.datatable.options
 			&& (this.datatable.options.showTotalRow ===this.raw_data.add_total_row)) {
 			this.datatable.options.treeView = this.tree_report;
@@ -840,7 +863,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.report_settings.after_datatable_render) {
 			this.report_settings.after_datatable_render(this.datatable);
 		}
-		this.$report.show();
 	}
 
 	get_chart_options(data) {
@@ -863,6 +885,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		options.axisOptions = {
 			shortenYAxisNumbers: 1
 		};
+		options.height = 280;
 
 		return options;
 	}
@@ -1013,7 +1036,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						field.value == values.x_field
 					)[0].label;
 
-				options.title = __(`${this.report_name}: ${x_field_label} vs ${y_field_label}`);
+				options.title = __("{0}: {1} vs {2}", [this.report_name, x_field_label, y_field_label]);
 
 				this.render_chart(options);
 				this.add_chart_buttons_to_toolbar(true);
@@ -1039,7 +1062,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					// applied to Float, Currency fields, needed only for currency formatting.
 					// make first data column have value 'Total'
 					let index = 1;
-					if (this.datatable && this.datatable.options.checkboxColumn) index = 2;
+
+					if (this.report_settings.get_datatable_options) {
+						let datatable = this.report_settings.get_datatable_options({});
+						if (datatable && datatable.checkboxColumn) index = 2;
+					}
 
 					if (column.colIndex === index && !value) {
 						value = "Total";
@@ -1104,7 +1131,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_filter_values(raise) {
-		const mandatory = this.filters.filter(f => f.df.reqd);
+
+		// check for mandatory property for filters added via UI
+		const mandatory = this.filters.filter(f => (f.df.reqd || f.df.mandatory));
 		const missing_mandatory = mandatory.filter(f => !f.get_value());
 		if (raise && missing_mandatory.length > 0) {
 			let message = __('Please set filters');
@@ -1484,7 +1513,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								insert_after_index: insert_after_index,
 								link_field: this.doctype_field_map[values.doctype],
 								doctype: values.doctype,
-								options: df.fieldtype === "Link" ? df.options : undefined,
+								options: df.options,
 								width: 100
 							});
 
@@ -1633,6 +1662,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	setup_report_wrapper() {
 		if (this.$report) return;
 
+		// Remove border from
+		$(".page-head-content").removeClass('border-bottom');
+
 		let page_form = this.page.main.find('.page-form');
 		this.$status = $(`<div class="form-message text-muted small"></div>`)
 			.hide().insertAfter(page_form);
@@ -1654,26 +1686,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	show_footer_message() {
-		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
-		const execution_time_msg = __('Execution Time: {0} sec', [this.execution_time || 0.1]);
-
-		this.page.footer.removeClass('hide').addClass('text-muted col-md-12').html(`
-			<span class="text-left col-md-6">${message}</span><span class="text-right col-md-6">${execution_time_msg}</span>
-		`);
-
-		this.page.wrapper.find('.tree-footer').remove();
+		this.$report_footer && this.$report_footer.remove();
+		this.$report_footer = $(`<div class="report-footer text-muted"></div>`).appendTo(this.page.main);
 		if (this.tree_report) {
-			this.$tree_footer = this.page.footer.clone().addClass('tree-footer');
-			this.$tree_footer.html(`<div class="col-md-12">
+			this.$tree_footer = $(`<div class="tree-footer col-md-6">
 				<button class="btn btn-xs btn-default" data-action="expand_all_rows">
 					${__('Expand All')}</button>
 				<button class="btn btn-xs btn-default" data-action="collapse_all_rows">
 					${__('Collapse All')}</button>
 			</div>`);
-			this.page.footer.before(this.$tree_footer);
+			$(this.$report_footer).append(this.$tree_footer);
 			this.$tree_footer.find('[data-action=collapse_all_rows]').show();
 			this.$tree_footer.find('[data-action=expand_all_rows]').hide();
 		}
+
+		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
+		const execution_time_msg = __('Execution Time: {0} sec', [this.execution_time || 0.1]);
+
+		this.$report_footer.append(`<div class="col-md-12">
+			<span">${message}</span><span class="pull-right">${execution_time_msg}</span>
+		</div>`);
 	}
 
 	expand_all_rows() {
@@ -1708,7 +1740,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	toggle_nothing_to_show(flag) {
 		let message = this.prepared_report
 			? __('This is a background report. Please set the appropriate filters and then generate a new one.')
-			: __('Nothing to show')
+			: this.get_no_result_message();
 
 		this.toggle_message(flag, message);
 

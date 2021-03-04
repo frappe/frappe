@@ -1,0 +1,27 @@
+.breadcrumb {
+	padding-left: 0;
+	padding-right: 0;
+	background-color: white;
+	font-size: var(--text-sm);
+}
+
+#navbar-breadcrumbs {
+	margin-left: var(--margin-md);
+	font-size: var(--text-sm);
+	a {
+		font-size: var(--text-md);
+		margin-right: 10px;
+		&:before {
+			content: var(--right-arrow-svg);
+			display: inline-block;
+			margin-right: 10px;
+		}
+	}
+
+	li.disabled {
+		a {
+			color: var(--text-muted);
+			pointer-events: none;
+		}
+	}
+}

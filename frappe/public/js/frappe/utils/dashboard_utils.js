@@ -1,21 +1,34 @@
 frappe.dashboard_utils = {
 	render_chart_filters: function(filters, button_class, container, append) {
 		filters.forEach(filter => {
+			let icon_html = '', filter_class = '';
+
+			if (filter.icon) {
+				icon_html = frappe.utils.icon(filter.icon);
+			}
+
+			if (filter.class) {
+				filter_class = filter.class;
+			}
+
 			let chart_filter_html =
-				`<div class="${button_class} btn-group dropdown pull-right">
-					<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						<button class="btn btn-default btn-xs">
+				`<div class="${button_class} ${filter_class} btn-group dropdown pull-right">
+					<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<button class="btn btn-secondary btn-xs">
+			 				${icon_html}
 							<span class="filter-label">${filter.label}</span>
-							<span class="caret"></span>
+							${frappe.utils.icon('select', 'xs')}
 						</button>
 				</a>`;
 			let options_html;
 
 			if (filter.fieldnames) {
 				options_html = filter.options.map((option, i) =>
-					`<li><a data-fieldname = "${filter.fieldnames[i]}">${option}</a></li>`).join('');
+					`<li>
+						<a class="dropdown-item" data-fieldname="${filter.fieldnames[i]}">${option}</a>
+					</li>`).join('');
 			} else {
-				options_html = filter.options.map( option => `<li><a>${option}</a></li>`).join('');
+				options_html = filter.options.map( option => `<li><a class="dropdown-item">${option}</a></li>`).join('');
 			}
 
 			let dropdown_html = chart_filter_html + `<ul class="dropdown-menu">${options_html}</ul></div>`;
@@ -182,7 +195,7 @@ frappe.dashboard_utils = {
 				try {
 					f[3] = eval(f[3]);
 				} catch (e) {
-					frappe.throw(__(`Invalid expression set in filter ${f[1]} (${f[0]})`));
+					frappe.throw(__("Invalid expression set in filter {0} ({1})", [f[1], f[0]]));
 				}
 			});
 			filters = [...filters, ...dynamic_filters];
@@ -192,7 +205,7 @@ frappe.dashboard_utils = {
 					const val = eval(dynamic_filters[key]);
 					dynamic_filters[key] = val;
 				} catch (e) {
-					frappe.throw(__(`Invalid expression set in filter ${key}`));
+					frappe.throw(__("Invalid expression set in filter {0}", [key]));
 				}
 			}
 			Object.assign(filters, dynamic_filters);
@@ -238,7 +251,7 @@ frappe.dashboard_utils = {
 					let dashboard_route_html =
 						`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
 					let message =
-						__(`${doctype} ${values.name} added to Dashboard ` + dashboard_route_html);
+						__("{0} {1} added to Dashboard {2}", [doctype, values.name, dashboard_route_html]);
 
 					frappe.msgprint(message);
 				});

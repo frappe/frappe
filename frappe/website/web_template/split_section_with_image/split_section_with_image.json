@@ -47,6 +47,7 @@
    "reqd": 0
   },
   {
+   "default": "Top",
    "fieldname": "vertical_align",
    "fieldtype": "Select",
    "label": "Vertical Align",
@@ -55,8 +56,9 @@
   }
  ],
  "idx": 0,
- "modified": "2020-09-15 16:25:00.463085",
+ "modified": "2020-10-26 17:39:25.068819",
  "modified_by": "Administrator",
+ "module": "Website",
  "name": "Split Section with Image",
  "owner": "Administrator",
  "standard": 1,

@@ -249,43 +249,19 @@ class TestDocument(unittest.TestCase):
 
 			self.assertEqual(cint(old_current) - 1, new_current)
 
-	def test_rename_doc(self):
-		from random import choice, sample
+	def test_non_negative_check(self):
+		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
 
-		available_documents = []
-		doctype = "ToDo"
+		d = frappe.get_doc({
+			'doctype': 'Currency',
+			'currency_name': 'Frappe Coin',
+			'smallest_currency_fraction_value': -1
+		})
 
-		# data generation: 4 todo documents
-		for num in range(1, 5):
-			doc = frappe.get_doc({
-				"doctype": doctype,
-				"date": add_to_date(now(), days=num),
-				"description": "this is todo #{}".format(num)
-			}).insert()
-			available_documents.append(doc.name)
+		self.assertRaises(frappe.NonNegativeError, d.insert)
 
-		# test 1: document renaming
-		old_name = choice(available_documents)
-		new_name = old_name + '.new'
-		self.assertEqual(new_name, frappe.rename_doc(doctype, old_name, new_name, force=True))
-		available_documents.remove(old_name)
-		available_documents.append(new_name)
+		d.set('smallest_currency_fraction_value', 1)
+		d.insert()
+		self.assertEqual(frappe.db.get_value("Currency", d.name), d.name)
 
-		# test 2: merge documents
-		first_todo, second_todo = sample(available_documents, 2)
-
-		second_todo_doc = frappe.get_doc(doctype, second_todo)
-		second_todo_doc.priority = "High"
-		second_todo_doc.save()
-
-		merged_todo = frappe.rename_doc(doctype, first_todo, second_todo, merge=True, force=True)
-		merged_todo_doc = frappe.get_doc(doctype, merged_todo)
-		available_documents.remove(first_todo)
-
-		with self.assertRaises(DoesNotExistError):
-			frappe.get_doc(doctype, first_todo)
-
-		self.assertEqual(merged_todo_doc.priority, second_todo_doc.priority)
-
-		for docname in available_documents:
-			frappe.delete_doc(doctype, docname)
+		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)

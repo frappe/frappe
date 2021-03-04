@@ -1,0 +1,32 @@
+{
+ "actions": [],
+ "creation": "2020-06-30 10:54:53.301787",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "consumer"
+ ],
+ "fields": [
+  {
+   "fieldname": "consumer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Consumer",
+   "options": "Event Consumer",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-06-30 10:54:53.301787",
+ "modified_by": "Administrator",
+ "module": "Event Streaming",
+ "name": "Event Update Log Consumer",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -6,6 +6,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.scheduler import enqueue_events, is_dormant, schedule_jobs_based_on_activity
 from frappe.utils import add_days, get_datetime
+from frappe.utils.doctor import purge_pending_jobs
 
 import frappe
 import time
@@ -18,9 +19,9 @@ def test_timeout_10():
 
 def test_method():
 	pass
-
 class TestScheduler(TestCase):
 	def setUp(self):
+		purge_pending_jobs()
 		if not frappe.get_all('Scheduled Job Type', limit=1):
 			sync_jobs()
 
@@ -31,7 +32,7 @@ class TestScheduler(TestCase):
 		enqueue_events(site = frappe.local.site)
 		frappe.flags.execute_job = False
 
-		self.assertTrue('frappe.email.queue.clear_outbox', frappe.flags.enqueued_jobs)
+		self.assertTrue('frappe.email.queue.set_expiry_for_email_queue', frappe.flags.enqueued_jobs)
 		self.assertTrue('frappe.utils.change_log.check_for_update', frappe.flags.enqueued_jobs)
 		self.assertTrue('frappe.email.doctype.auto_email_report.auto_email_report.send_monthly', frappe.flags.enqueued_jobs)
 
@@ -42,12 +43,9 @@ class TestScheduler(TestCase):
 		job.db_set('last_execution', '2010-01-01 00:00:00')
 		frappe.db.commit()
 
-		# 1 job in queue
-		self.assertTrue(job.enqueue())
-		job.db_set('last_execution', '2010-01-01 00:00:00')
-		frappe.db.commit()
+		time.sleep(0.5)
 
-		# 2nd job not loaded
+		# 1st job is in the queue (or running), don't enqueue it again
 		self.assertFalse(job.enqueue())
 		frappe.db.sql('DELETE FROM `tabScheduled Job Log` WHERE `scheduled_job_type`=%s', job.name)
 

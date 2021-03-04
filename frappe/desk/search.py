@@ -80,13 +80,15 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			is_whitelisted(frappe.get_attr(query))
 			frappe.response["values"] = frappe.call(query, doctype, txt,
 				searchfield, start, page_length, filters, as_dict=as_dict)
-		except Exception as e:
+		except frappe.exceptions.PermissionError as e:
 			if frappe.local.conf.developer_mode:
 				raise e
 			else:
 				frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
 				indicator_color='red', http_status_code=404)
 			return
+		except Exception as e:
+			raise e
 	elif not query and doctype in standard_queries:
 		# from standard queries
 		search_widget(doctype, txt, standard_queries[doctype][0],
@@ -141,7 +143,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
 			formatted_fields.append("""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
-				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=doctype))
+				_txt=frappe.db.escape((txt or "").replace("%", "").replace("@", "")), doctype=doctype))
 
 
 			# In order_by, `idx` gets second priority, because it stores link count
@@ -150,7 +152,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			# 2 is the index of _relevance column
 			order_by = "_relevance, {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
 
-			ignore_permissions = True if doctype == "DocType" else (cint(ignore_user_permissions) and has_permission(doctype))
+			ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
+			ignore_permissions = True if doctype == "DocType" else (cint(ignore_user_permissions) and has_permission(doctype, ptype=ptype))
 
 			if doctype in UNTRANSLATED_DOCTYPES:
 				page_length = None

@@ -42,14 +42,12 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.page = frappe.ui.make_app_page({
 			parent: this.parent,
 			title: __("Print Format Builder"),
-			single_column: true
 		});
 
 		this.page.main.css({"border-color": "transparent"});
 
-		this.page.sidebar = $('<div class="print-format-builder-sidebar"></div>').appendTo(this.page.main);
-		this.page.main = $('<div class="border print-format-builder-main" \
-			style="width: calc(100% - 160px);"></div>').appendTo(this.page.main);
+		this.page.sidebar = $('<div class="print-format-builder-sidebar"></div>').appendTo(this.page.sidebar);
+		this.page.main = $('<div class="col-md-12 border print-format-builder-main frappe-card"></div>').appendTo(this.page.main);
 
 		// future-bindings for buttons on sections / fields
 		// bind only once
@@ -61,7 +59,6 @@ frappe.PrintFormatBuilder = Class.extend({
 	},
 	show_start: function() {
 		this.page.main.html(frappe.render_template("print_format_builder_start", {}));
-		this.page.sidebar.html("");
 		this.page.clear_actions();
 		this.page.set_title(__("Print Format Builder"));
 		this.start_edit_print_format();
@@ -168,16 +165,11 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	setup_sidebar: function() {
-		var me = this;
-		this.page.sidebar.empty();
-
 		// prepend custom HTML field
 		var fields = [this.get_custom_html_field()].concat(this.meta.fields);
-
-		$(frappe.render_template("print_format_builder_sidebar",
-			{fields: fields}))
-			.appendTo(this.page.sidebar);
-
+		this.page.sidebar.html(
+			$(frappe.render_template("print_format_builder_sidebar", {fields: fields}))
+		);
 		this.setup_field_filter();
 	},
 	get_custom_html_field: function() {
@@ -216,8 +208,8 @@ frappe.PrintFormatBuilder = Class.extend({
 		if(!this.print_heading_template) {
 			// default print heading template
 			this.print_heading_template = '<div class="print-heading">\
-				<h2>'+__(this.print_format.doc_type)
-					+'<br><small>{{ doc.name }}</small>\
+				<h2><div>'+__(this.print_format.doc_type)
+					+'</div><br><small class="sub-heading">{{ doc.name }}</small>\
 				</h2></div>';
 		}
 
@@ -319,7 +311,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		var me = this;
 
 		// drag from fields library
-		Sortable.create(this.page.sidebar.find(".print-format-builder-fields").get(0),
+		Sortable.create(this.page.sidebar.find(".print-format-builder-sidebar-fields").get(0),
 			{
 				group: {
 					name:'field', put: true, pull:"clone"
@@ -466,9 +458,6 @@ frappe.PrintFormatBuilder = Class.extend({
 							field.remove();
 						},
 						input_class: "btn-danger",
-						input_css: {
-							"margin-top": "10px"
-						}
 					}
 				],
 			});
@@ -795,6 +784,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			btn: this.page.btn_primary,
 			callback: function(r) {
 				me.print_format = r.message;
+				locals['Print Format'][me.print_format.name] = r.message;
 				frappe.show_alert({message: __("Saved"), indicator: 'green'});
 			}
 		});

@@ -14,7 +14,7 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 			this.$img = $("<img src='"+doc[this.df.options]+"' class='img-responsive'>")
 				.appendTo(this.$body);
 		} else {
-			this.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
+			this.$buffer = $(`<div class='missing-image'>${frappe.utils.icon('restriction', 'md')}</div>`)
 				.appendTo(this.$body);
 		}
 		return false;

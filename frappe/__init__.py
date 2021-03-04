@@ -1,8 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 """
-globals attached to frappe module
-+ some utility functions that should probably be moved
+Frappe - Low Code Open Source Framework in Python and JS
+
+Frappe, pronounced fra-pay, is a full stack, batteries-included, web
+framework written in Python and Javascript with MariaDB as the database.
+It is the framework which powers ERPNext. It is pretty generic and can
+be used to build database driven apps.
+
+Read the documentation: https://frappeframework.com/docs
 """
 from __future__ import unicode_literals, print_function
 
@@ -11,7 +17,6 @@ from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
 import click
-from faker import Faker
 
 # public
 from .exceptions import *
@@ -27,6 +32,7 @@ __version__ = '13.0.0-dev'
 __title__ = "Frappe Framework"
 
 local = Local()
+controllers = {}
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
@@ -148,6 +154,7 @@ def init(site, sites_path=None, new_site=False):
 		"new_site": new_site
 	})
 	local.rollback_observers = []
+	local.before_commit = []
 	local.test_objects = {}
 
 	local.site = site
@@ -188,17 +195,20 @@ def init(site, sites_path=None, new_site=False):
 
 	local.initialised = True
 
-def connect(site=None, db_name=None):
+def connect(site=None, db_name=None, set_admin_as_user=True):
 	"""Connect to site database instance.
 
 	:param site: If site is given, calls `frappe.init`.
-	:param db_name: Optional. Will use from `site_config.json`."""
+	:param db_name: Optional. Will use from `site_config.json`.
+	:param set_admin_as_user: Set Administrator as current user.
+	"""
 	from frappe.database import get_db
 	if site:
 		init(site)
 
 	local.db = get_db(user=db_name or local.conf.db_name)
-	set_user("Administrator")
+	if set_admin_as_user:
+		set_user("Administrator")
 
 def connect_replica():
 	from frappe.database import get_db
@@ -312,7 +322,7 @@ def log(msg):
 
 	debug_log.append(as_unicode(msg))
 
-def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None, is_minimizable=None, wide=None):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, indicator=None, alert=False, primary_action=None, is_minimizable=None, wide=None):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
@@ -321,11 +331,12 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	:param title: [optional] Message title.
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
+	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
 	:param primary_action: [optional] Bind a primary server/client side action.
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
 	"""
-	from frappe.utils import encode
+	from frappe.utils import strip_html_tags
 
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
@@ -346,19 +357,13 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 		return
 
 	if as_table and type(msg) in (list, tuple):
+		out.as_table = 1
 
-		table_rows = ''
-		for row in msg:
-			table_row_data = ''
-			for data in row:
-				table_row_data += '<td>{}</td>'.format(data)
-			table_rows += '<tr>{}</tr>'.format(table_row_data)
-
-		out.message = '''<table class="table table-bordered"
-			style="margin: 0;">{}</table>'''.format(table_rows)
+	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
+		out.as_list = 1
 
 	if flags.print_messages and out.message:
-		print(f"Message: {repr(out.message).encode('utf-8')}")
+		print(f"Message: {strip_html_tags(out.message)}")
 
 	if title:
 		out.title = title
@@ -405,12 +410,12 @@ def clear_last_message():
 	if len(local.message_log) > 0:
 		local.message_log = local.message_log[:-1]
 
-def throw(msg, exc=ValidationError, title=None, is_minimizable=None, wide=None):
+def throw(msg, exc=ValidationError, title=None, is_minimizable=None, wide=None, as_list=False):
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable, wide=wide)
+	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable, wide=wide, as_list=as_list)
 
 def emit_js(js, user=False, **kwargs):
 	if user == False:
@@ -465,11 +470,11 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=[], sender="", subject="No Subject", message="No Message",
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
-		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, content=None, doctype=None, name=None, reply_to=None,
+		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, add_unsubscribe_link=1,
+		attachments=None, content=None, doctype=None, name=None, reply_to=None, queue_separately=False,
 		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None, template=None, args=None, header=None, print_letterhead=False):
+		inline_images=None, template=None, args=None, header=None, print_letterhead=False, with_container=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -495,6 +500,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param template: Name of html template from templates/emails folder
 	:param args: Arguments for rendering the template
 	:param header: Append header in email
+	:param with_container: Wraps email inside a styled container
 	"""
 	text_content = None
 	if template:
@@ -512,12 +518,12 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	from frappe.email import queue
 	queue.send(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
-		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
+		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name, add_unsubscribe_link=add_unsubscribe_link,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
-		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
+		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, queue_separately=queue_separately,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
-		inline_images=inline_images, header=header, print_letterhead=print_letterhead)
+		inline_images=inline_images, header=header, print_letterhead=print_letterhead, with_container=with_container)
 
 whitelisted = []
 guest_methods = []
@@ -631,6 +637,21 @@ def clear_cache(user=None, doctype=None):
 			get_attr(fn)()
 
 	local.role_permissions = {}
+
+def only_has_select_perm(doctype, user=None, ignore_permissions=False):
+	if ignore_permissions:
+		return False
+
+	if not user:
+		user = local.session.user
+
+	import frappe.permissions
+	permissions = frappe.permissions.get_role_permissions(doctype, user=user)
+
+	if permissions.get('select') and not permissions.get('read'):
+		return True
+	else:
+		return False
 
 def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False):
 	"""Raises `frappe.PermissionError` if not permitted.
@@ -801,11 +822,17 @@ def get_doc(*args, **kwargs):
 
 	return doc
 
-def get_last_doc(doctype):
+def get_last_doc(doctype, filters=None, order_by="creation desc"):
 	"""Get last created document of this type."""
-	d = get_all(doctype, ["name"], order_by="creation desc", limit_page_length=1)
+	d = get_all(
+		doctype,
+		filters=filters,
+		limit_page_length=1,
+		order_by=order_by,
+		pluck="name"
+	)
 	if d:
-		return get_doc(doctype, d[0].name)
+		return get_doc(doctype, d[0])
 	else:
 		raise DoesNotExistError
 
@@ -944,7 +971,7 @@ def get_installed_apps(sort=False, frappe_last=False):
 		connect()
 
 	if not local.all_apps:
-		local.all_apps  = get_all_apps(True)
+		local.all_apps = cache().get_value('all_apps', get_all_apps)
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
@@ -1159,6 +1186,7 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 			'doctype_or_field': args.doctype_or_field,
 			'doc_type': doctype,
 			'field_name': args.fieldname,
+			'row_name': args.row_name,
 			'property': args.property,
 			'value': args.value,
 			'property_type': args.property_type or "Data",
@@ -1609,7 +1637,7 @@ def log_error(message=None, title=_("Error")):
 		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
-	html = '<a href="#Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
+	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
 	return html.format(
 		doctype=doctype,
 		name=name,
@@ -1721,6 +1749,8 @@ def parse_json(val):
 	return parse_json(val)
 
 def mock(type, size=1, locale='en'):
+	from faker import Faker
+
 	results = []
 	faker = Faker(locale)
 	if not type in dir(faker):
