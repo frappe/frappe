@@ -83,7 +83,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			// Important: We have to be careful because normal filenames may also contain ","
 			let file_url_parts = this.value.match(/^([^:]+),(.+):(.+)$/);
 			let filename;
-			if (!file_url_parts) {
+			if (file_url_parts) {
 				filename = file_url_parts[1];
 				dataurl = file_url_parts[2] + ':' + file_url_parts[3];
 			}
