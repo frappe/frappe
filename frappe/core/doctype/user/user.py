@@ -16,6 +16,7 @@ import frappe.share
 import frappe.defaults
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
+from frappe.rate_limiter import rate_limit
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -241,11 +242,6 @@ class User(Document):
 	def reset_password(self, send_email=False, password_expired=False):
 		from frappe.utils import random_string, get_url
 
-		rate_limit = frappe.db.get_single_value("System Settings", "password_reset_limit")
-
-		if rate_limit:
-			check_password_reset_limit(self.name, rate_limit)
-
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
 
@@ -257,7 +253,6 @@ class User(Document):
 		if send_email:
 			self.password_reset_mail(link)
 
-		update_password_reset_limit(self.name)
 		return link
 
 	def get_other_system_managers(self):
@@ -843,6 +838,7 @@ def sign_up(email, full_name, redirect_to):
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(key='user', limit=3, seconds = 24*60*60, methods=['POST'])
 def reset_password(user):
 	if user=="Administrator":
 		return 'not allowed'
@@ -1174,16 +1170,3 @@ def generate_keys(user):
 def switch_theme(theme):
 	if theme in ["Dark", "Light"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
-
-def update_password_reset_limit(user):
-	generated_link_count = get_generated_link_count(user)
-	generated_link_count += 1
-	frappe.cache().hset("password_reset_link_count", user, generated_link_count)
-
-def check_password_reset_limit(user, rate_limit):
-	generated_link_count = get_generated_link_count(user)
-	if generated_link_count >= rate_limit:
-		frappe.throw(_("You have reached the hourly limit for generating password reset links. Please try again later."))
-
-def get_generated_link_count(user):
-	return cint(frappe.cache().hget("password_reset_link_count", user)) or 0
