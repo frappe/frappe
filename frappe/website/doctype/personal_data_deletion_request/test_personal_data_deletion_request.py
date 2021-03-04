@@ -32,16 +32,21 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
 		self.delete_request.status = "Pending Approval"
 		self.delete_request.save()
 		self.delete_request.trigger_data_deletion()
+		self.delete_request.reload()
+
 		deleted_user = frappe.get_all(
 			"User",
 			filters={"name": self.delete_request.name},
 			fields=["first_name", "last_name", "phone", "birth_date"],
-		)
+		)[0]
 
-		self.assertEqual(deleted_user.first_name, self.anonymization_value_map["Data"])
-		self.assertEqual(deleted_user.last_name, self.anonymization_value_map["Data"])
-		self.assertEqual(deleted_user.phone, self.anonymization_value_map["Phone"])
-		self.assertEqual(deleted_user.birth_date, self.anonymization_value_map["Date"])
+		self.assertEqual(deleted_user.first_name, self.delete_request.anonymization_value_map["Data"])
+		self.assertEqual(deleted_user.last_name, self.delete_request.anonymization_value_map["Data"])
+		self.assertEqual(deleted_user.phone, self.delete_request.anonymization_value_map["Phone"])
+		self.assertEqual(
+			deleted_user.birth_date,
+			datetime.strptime(self.delete_request.anonymization_value_map["Date"], "%Y-%m-%d").date()
+		)
 		self.assertEqual(self.delete_request.status, "Deleted")
 
 	def test_unverified_record_removal(self):
