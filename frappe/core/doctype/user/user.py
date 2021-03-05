@@ -6,6 +6,9 @@ from __future__ import unicode_literals, print_function
 from bs4 import BeautifulSoup
 
 import frappe
+import frappe.share
+import frappe.defaults
+import frappe.permissions
 from frappe.model.document import Document
 from frappe.utils import cint, flt, has_gravatar, escape_html, format_datetime, now_datetime, get_formatted_email, today
 from frappe import throw, msgprint, _
@@ -1170,10 +1173,3 @@ def generate_keys(user):
 def switch_theme(theme):
 	if theme in ["Dark", "Light"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
-
-@frappe.whitelist(allow_guest=True)
-@rate_limit(key='user', limit=2, seconds = 60*60)
-def test_ratelimit(user):
-	"""This endpoint is used by testcases to check the ratelimit is functioning as expected.
-	"""
-	return
