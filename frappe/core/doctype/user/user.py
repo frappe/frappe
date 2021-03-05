@@ -120,15 +120,13 @@ class User(Document):
 
 		if not cint(self.enabled):
 			self.a_system_manager_should_exist()
-			# disable notifications if the user has been disabled
-			toggle_notifications(self.name, enable=False)
-		else:
-			# enable notifications if the user has been enabled
-			toggle_notifications(self.name, enable=True)
 
 		# clear sessions if disabled
 		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
+
+		# toggle notifications based on the user's status
+		toggle_notifications(self.name, enable=cint(self.enabled))
 
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
