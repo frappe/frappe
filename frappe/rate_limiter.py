@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 from functools import wraps
-from typing import Union
+from typing import Union, Callable
 
 from werkzeug.wrappers import Response
 
@@ -84,7 +84,7 @@ class RateLimiter:
 		if self.rejected:
 			return Response(_("Too Many Requests"), status=429)
 
-def rate_limit(key: str, limit: int = 5, seconds: int= 24*60*60, methods: Union[str, list]='ALL'):
+def rate_limit(key: str, limit: Union[int, Callable] = 5, seconds: int= 24*60*60, methods: Union[str, list]='ALL'):
 	"""Decorator to rate limit an endpoint.
 
 	This will limit Number of requests per endpoint to `limit` within `seconds`.
@@ -92,6 +92,7 @@ def rate_limit(key: str, limit: int = 5, seconds: int= 24*60*60, methods: Union[
 
 	:param key: Key is used to identify the requests uniqueness
 	:param limit: Maximum number of requests to allow with in window time
+	:type limit: Callable or Integer
 	:param seconds: window time to allow requests
 	:param methods: Limit the validation for these methods.
 		`ALL` is a wildcard that applies rate limit on all methods.
@@ -106,6 +107,8 @@ def rate_limit(key: str, limit: int = 5, seconds: int= 24*60*60, methods: Union[
 			if methods != 'ALL' and frappe.request.method.upper() not in methods:
 				return frappe.call(fun, **frappe.form_dict)
 
+			_limit = limit() if callable(limit) else limit
+
 			identity = frappe.form_dict[key]
 			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
 
@@ -114,7 +117,7 @@ def rate_limit(key: str, limit: int = 5, seconds: int= 24*60*60, methods: Union[
 				frappe.cache().set_value(cache_key, 0, expires_in_sec=seconds)
 
 			value = frappe.cache().incrby(cache_key, 1)
-			if value > limit:
+			if value > _limit:
 				frappe.throw(_("You hit the rate limit because of too many requests. Please try after sometime."))
 
 			return frappe.call(fun, **frappe.form_dict)

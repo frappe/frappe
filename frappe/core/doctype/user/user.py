@@ -2,21 +2,21 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
+
+from bs4 import BeautifulSoup
+
 import frappe
 from frappe.model.document import Document
 from frappe.utils import cint, flt, has_gravatar, escape_html, format_datetime, now_datetime, get_formatted_email, today
 from frappe import throw, msgprint, _
-from frappe.utils.password import update_password as _update_password, check_password
+from frappe.utils.password import update_password as _update_password, check_password, get_password_reset_limit
 from frappe.desk.notifications import clear_notifications
 from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings, toggle_notifications
 from frappe.utils.user import get_system_managers
-from bs4 import BeautifulSoup
-import frappe.permissions
-import frappe.share
-import frappe.defaults
 from frappe.website.utils import is_signup_enabled
-from frappe.utils.background_jobs import enqueue
 from frappe.rate_limiter import rate_limit
+from frappe.utils.background_jobs import enqueue
+
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -838,7 +838,7 @@ def sign_up(email, full_name, redirect_to):
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key='user', limit=3, seconds = 24*60*60, methods=['POST'])
+@rate_limit(key='user', limit=get_password_reset_limit, seconds = 24*60*60, methods=['POST'])
 def reset_password(user):
 	if user=="Administrator":
 		return 'not allowed'
