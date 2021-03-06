@@ -8,8 +8,7 @@ from pymysql.times import TimeDelta
 from pymysql.constants 	import ER, FIELD_TYPE
 from pymysql.converters import conversions
 
-from frappe.utils import get_datetime, cstr
-from markdown2 import UnicodeWithAttrs
+from frappe.utils import get_datetime, cstr, UnicodeWithAttrs
 from frappe.database.database import Database
 from six import PY2, binary_type, text_type, string_types
 from frappe.database.mariadb.schema import MariaDBTable

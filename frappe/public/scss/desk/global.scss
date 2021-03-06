@@ -102,11 +102,8 @@ a.badge-hover {
 }
 
 pre {
-	color: var(--text-light)
-}
-
-.hide {
-	display: none !important;
+	color: var(--text-light);
+	white-space: pre-wrap;
 }
 
 .col-xs-1 { @extend .col-1; }
@@ -150,23 +147,6 @@ footer {
 	float: right;
 }
 
-// .border-${position} {
-// 	.border-{$position} {
-// 		border-{$position}: 1px solid var(--border-color);
-// 	}
-// }
-// .border-#{$position} {
-// 	.border-#{$position} {
-// 		border-#{$position}: 1px solid var(--border-color);
-// 	}
-// }
-
-// @include border-(top);
-// @include border-(bottom);
-// @include border-(left);
-// @include border-(right);
-
-
 img {
 	max-width: 100%;
 	height: auto;
@@ -191,9 +171,6 @@ img {
 	}
 }
 
-.hidden {
-	@extend .d-none;
-}
 
 .hide-control {
 	@extend .d-none;
@@ -222,10 +199,6 @@ p {
 
 .small {
 	font-size: var(--text-sm);
-}
-
-.fill-width {
-	flex: 1
 }
 
 h1 {
@@ -280,6 +253,7 @@ select.input-xs {
 /* popover */
 .popover {
 	background-color: var(--popover-bg);
+	border: 0;
 }
 
 .bold {
@@ -384,31 +358,6 @@ kbd {
 
 .frappe-timestamp {
 	cursor: default;
-}
-
-.btn-link {
-	box-shadow: none !important;
-	outline: none;
-	.icon, &:hover {
-		text-decoration: none !important;
-	}
-}
-
-
-.margin {
-	margin: var(--margin-sm);
-}
-.margin-top {
-	margin-top: var(--margin-sm);
-}
-.margin-bottom {
-	margin-bottom: var(--margin-sm);
-}
-.margin-left {
-	margin-left: var(--margin-sm);
-}
-.margin-right {
-	margin-right: var(--margin-sm);
 }
 
 .standard-sidebar {
