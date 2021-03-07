@@ -3,19 +3,6 @@ html {
 	background-color: var(--bg-color);
 }
 
-// transition
-* {
-	transition: background-color 0.5s, background 0.5s;
-}
-
-a,
-.badge {
-	transition: 0.2s;
-}
-
-.btn {
-	transition: background-color 0.2s, background 0.2s;
-}
 
 
 body {

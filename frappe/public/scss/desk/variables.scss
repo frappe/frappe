@@ -95,6 +95,10 @@ $btn-active-box-shadow: var(--shadow-inset);
 $mark-bg: #FDF9AF;
 $mark-padding: 0;
 
+// transitions
+$btn-transition: none;
+$input-transition: none;
+
 // popover
 $enable-shadows: true;
 $popover-border-radius: var(--border-radius);
