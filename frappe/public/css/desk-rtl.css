@@ -116,3 +116,7 @@ ul.tree-children {
   direction: rtl;
   text-align: right;
 }
+
+.reports-dropdown {
+  transform: unset !important;
+}
