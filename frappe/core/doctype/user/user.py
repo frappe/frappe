@@ -8,7 +8,7 @@ from frappe.utils import cint, flt, has_gravatar, escape_html, format_datetime, 
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password
 from frappe.desk.notifications import clear_notifications
-from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings
+from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings, toggle_notifications
 from frappe.utils.user import get_system_managers
 from bs4 import BeautifulSoup
 import frappe.permissions
@@ -124,6 +124,9 @@ class User(Document):
 		# clear sessions if disabled
 		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
+
+		# toggle notifications based on the user's status
+		toggle_notifications(self.name, enable=cint(self.enabled))
 
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
@@ -333,6 +336,9 @@ class User(Document):
 		frappe.db.sql("""update `tabContact`
 			set `user`=null
 			where `user`=%s""", (self.name))
+
+		# delete notification settings
+		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
 
 
 	def before_rename(self, old_name, new_name, merge=False):
