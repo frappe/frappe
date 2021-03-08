@@ -144,6 +144,7 @@ def get_dict_from_hooks(fortype, name):
 
 	return translated_dict
 
+
 def make_dict_from_messages(messages, full_dict=None, load_user_translation=True):
 	"""Returns translated messages as a dict in Language specified in `frappe.local.lang`
 
@@ -165,9 +166,86 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 			if full_dict.get(key):
 				out[key] = full_dict[key]
 		if m[0] is not None and type(m[0]) == str and  m[0].startswith("DocType: "):
+			# This is for DocType:-Translations which will return from T.get_messages_from_doctype("PCG Pricelist")
+			# ('DocType: PCG Pricelist', 'PCG Pricelist'),
+			# ('DocType: PCG Pricelist', 'PCG Web'),
+			# ('DocType: PCG Pricelist', 'Name'),
 			key = m[0] + ':' + m[1]
 			if full_dict.get(key):
 				out[m[1]] = full_dict[key]
+		if len(m) == 4:
+			# This is for js files, which will return from T.get_messages_from_doctype("PCG Pricelist")
+			# ('apps/pcg_web/pcg_web/pcg_web/doctype/pcg_pricelist/pcg_pricelist.js',
+			#   'There are not items in this pricelist',
+			#   None,
+			#   40),
+			#  ('apps/pcg_web/pcg_web/pcg_web/doctype/pcg_pricelist/pcg_pricelist.js',
+			#   'Pricelist to fetch from',
+			#   None,
+			#   96),
+			#
+			key = m[0] + ":" + m[1]
+			if full_dict.get(key):
+				out[m[1]] = full_dict[key]
+#  In [1]: import frappe.translate as T
+#
+#  In [2]: T.make_dict_from_messages(T.get_messages_from_doctype("PCG Pricelist"))
+#  Out[2]:
+#  {'PCG Pricelist': 'Preisliste',
+#   'Name': 'Name',
+#   'Description': 'Beschreibung',
+#   'Validity': 'Gültigkeit',
+#   'Valid From': 'Gültig ab',
+#   'Can be empty': 'kann leer bleiben',
+#   'Valid Until': 'Gültig bis',
+#   'Display': 'anzeigen',
+#   'Color': 'Farbe',
+#   'System Manager': 'System-Manager',
+#   'There are not items in this pricelist': 'Diese Preisliste enthält keine Artikel',
+#   'Pricelist to fetch from': 'Preisliste von der übernommen werden soll',
+#   'Pricelist': 'Preisliste',
+#   'Reset Price': 'Preis resetten',
+#   'Are you sure you want to fetch the baseprice for selected items?': 'Sind Sie sicher, dass der Grundpreis für alle gewählten Artikel übernommen werden soll?',
+#   'Download': 'Herunterladen',
+#   'Reset Prices': 'Preise zurücksetzen',
+#   'Pricelistprices were reset to the values specified in the item': 'Preislistenpreise auf Grundpreise zurückgesetzt',
+#   'Actions': 'Aktionen',
+#   'Fetch prices from Pricelist': 'Preise aus anderer Preisliste übernehmen',
+#   'Pricelistprices were applyed from the pricelist {0}': 'Preislistenpreise von {0} übernommen',
+#   'Fetch items from Pricelist': 'Übernehme Artikel von Preisliste',
+#   'Items from {0} were added': 'Artiel von {0} wurden hinzugefügt',
+#   'Change price by amount': 'Preis nach Betrag ändern',
+#   'How much?': 'Betrag?',
+#   'Amount (negative to subtract)': 'Betrag (negativ zu subtrahieren)',
+#   'Pricelistprices were increased by {0} {1}': 'Preislistenpreise um {0}€ erhöht',
+#   'Pricelistprices were descresed by {0} {1}': 'Preislistenpreise um {0}€ reduziert',
+#   'Change price by percentage': 'Preis prozentual ändern',
+#   'Amount in % (negative to subtract)': 'Betrag in% (negativ zu subtrahieren)',
+#   'Pricelistprices were increased by {0}{1}': 'Preislistenpreise um {0}% erhöht',
+#   'Pricelistprices were descresed by {0}{1}': 'Preislistenpreise um {0}% reduziert',
+#   'Round prices': 'Preise runden',
+#   'How to Round?': 'Rundungsoption',
+#   'Round to whole numbers': 'Runden auf ganze Zahlen',
+#   'Round to whole 1/10ths': 'Runden auf 1/10',
+#   'Prices rounded to whole numbers': 'Preise auf ganze Euros gerundet',
+#   'Prices rounded to whole 1/10s of numbers': 'Preise auf ganze Zehner-Nachkommarstelle gerundet',
+#   'Add all items': 'Alle Artikel hinzufügen',
+#   'This will discard unsaved modifications and add all your items to this pricelist. Are you sure to execute this? Can not be undone.': 'Achtung! Diese Aktion verwirft nicht gespeicherte Änderungen und fügt alle Arikel dieser Preisliste hinzu. Sind Sie sicher?',
+#   'All Items were added': 'Alle Artikel wurden hinzugefügt'}
+#
+#  In [3]: T.make_dict_from_messages(T.get_messages_from_doctype("PCG Pricelist"))
+#  Out[3]:
+#  {'PCG Pricelist': 'Preisliste',
+#   'Name': 'Name',
+#   'Description': 'Beschreibung',
+#   'Validity': 'Gültigkeit',
+#   'Valid From': 'Gültig ab',
+#   'Can be empty': 'kann leer bleiben',
+#   'Valid Until': 'Gültig bis',
+#   'Display': 'anzeigen',
+#   'Color': 'Farbe',
+#   'System Manager': 'System-Manager'}
+
 
 
 	return out
