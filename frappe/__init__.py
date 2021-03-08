@@ -459,8 +459,8 @@ def get_roles(username=None):
 	import frappe.permissions
 	return frappe.permissions.get_roles(username or local.session.user)
 
-def get_doctype_roles(doctype):
-	"""Returns roles of doctype."""
+def get_doctype_roles(doctype, access_type="read"):
+	"""Returns a list of roles that are allowed to access passed doctype."""
 	meta = get_meta(doctype)
 	return [d.role for d in meta.get("permissions")]
 

@@ -85,14 +85,14 @@ class ToDo(Document):
 			else:
 				raise
 
-# NOTE: todo is viewable if either owner or assigned_to or any Todo doctype role in user's roles
+# NOTE: todo is viewable if a user is an owner, or set as assigned_to value, or has any role that is allowed to access ToDo doctype.
 def on_doctype_update():
 	frappe.db.add_index("ToDo", ["reference_type", "reference_name"])
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
-	todo_roles = frappe.get_doctype_roles('Todo')
+	todo_roles = frappe.get_doctype_roles('ToDo')
 	if 'All' in todo_roles: todo_roles.remove('All')
 
 	if any(check in todo_roles for check in frappe.get_roles(user)):
