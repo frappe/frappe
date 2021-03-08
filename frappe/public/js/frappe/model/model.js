@@ -621,6 +621,7 @@ $.extend(frappe.model, {
 							r.message || args.new_name]);
 						if(locals[doctype] && locals[doctype][docname])
 							delete locals[doctype][docname];
+						this.frm.reload_doc();
 						d.hide();
 						if(callback)
 							callback(r.message);

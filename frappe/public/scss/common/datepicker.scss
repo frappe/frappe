@@ -4,6 +4,14 @@
 
 	font-family: inherit;
 	z-index: 9999 !important;
+	background: var(--bg-color);
+	color: var(--text-color);
+	border-radius: var(--border-radius);
+	border: 1px solid var(--border-color);
+
+	&--nav {
+		border-bottom: 1px solid var(--border-color);
+	}
 
 	&--time-current-hours, &--time-current-minutes, &--time-current-seconds {
 		font-family: inherit;
@@ -43,6 +51,10 @@
 			background: fade(#0089FF, 90%);
 		}
 
+	}
+
+	&--time, &--buttons {
+		border-top: 1px solid var(--border-color);
 	}
 
 	&--time-row {

@@ -784,6 +784,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			btn: this.page.btn_primary,
 			callback: function(r) {
 				me.print_format = r.message;
+				locals['Print Format'][me.print_format.name] = r.message;
 				frappe.show_alert({message: __("Saved"), indicator: 'green'});
 			}
 		});

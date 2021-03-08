@@ -60,11 +60,12 @@ $link-color: var(--text-color);
 // input
 $input-bg: var(--control-bg);
 $input-placeholder-color: var(--gray-500);
-$input-disabled-bg: var(--gray-200);
+$input-disabled-bg: var(--input-disabled-bg);
 $input-color: var(--text-color);
 $input-box-shadow: none;
 $input-focus-border-color: var(--gray-500);
 $input-border-radius: var(--border-radius);
+$input-btn-focus-width: 2px;
 
 // dropdown
 $dropdown-color: var(--text-color);
@@ -93,6 +94,10 @@ $btn-active-box-shadow: var(--shadow-inset);
 // mark
 $mark-bg: #FDF9AF;
 $mark-padding: 0;
+
+// transitions
+$btn-transition: none;
+$input-transition: none;
 
 // popover
 $enable-shadows: true;
@@ -134,9 +139,9 @@ $grid-breakpoints: (
   2xl: 1440px
 ) !default;
 
-@import 'dark';
 @import 'typography';
 @import '~bootstrap/scss/functions';
 @import '~bootstrap/scss/variables';
 @import "~bootstrap/scss/mixins";
 @import 'css_variables';
+@import 'dark';

@@ -7,7 +7,7 @@
 	--dt-text-color: var(--text-light);
 	--dt-text-light: var(--bg-color);
 	--dt-spacer-1: 0.25rem;
-	--dt-spacer-2: 0.5rem;
+	--dt-spacer-2: var(--padding-xs);
 	--dt-spacer-3: 1rem;
 	--dt-border-radius: var(--border-radius);
 	--dt-cell-bg: var(--fg-color);
@@ -26,6 +26,16 @@
 		border-radius: 0px;
 		border: none;
 		background-color: transparent;
+		height: 100%;
+
+		&:focus {
+			box-shadow: none;
+		}
+
+		&[data-fieldtype="Select"] .select-icon {
+			top: 5px;
+			right: 10px;
+		}
 	}
 
 	.dt-header {
