@@ -182,8 +182,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		doctype,
 		fields = [
 			'{} as _unit'.format(datefield),
-			'SUM({value_field})'.format(value_field=value_field),
-			'COUNT({value_field})'.format(value_field=value_field)
+			'SUM({})'.format(value_field),
+			'COUNT({})'.format(value_field)
 		],
 		filters = filters,
 		group_by = '_unit',
