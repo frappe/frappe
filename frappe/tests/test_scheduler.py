@@ -2,19 +2,11 @@ from __future__ import unicode_literals
 
 from unittest import TestCase
 from dateutil.relativedelta import relativedelta
-<<<<<<< HEAD
 from frappe.utils.scheduler import (enqueue_applicable_events, restrict_scheduler_events_if_dormant,
 	get_enabled_scheduler_events)
 from frappe import _dict
 from frappe.utils.background_jobs import enqueue
 from frappe.utils import now_datetime, today, add_days, add_to_date
-=======
-from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.utils.scheduler import enqueue_events, is_dormant, schedule_jobs_based_on_activity
-from frappe.utils import add_days, get_datetime
-from frappe.utils.doctor import purge_pending_jobs
->>>>>>> 3368d83238... fix: Remove @ from relevance query (#11837)
 
 import frappe
 import time
@@ -25,7 +17,6 @@ def test_timeout():
 
 class TestScheduler(TestCase):
 	def setUp(self):
-<<<<<<< HEAD
 		frappe.db.set_global('enabled_scheduler_events', "")
 		frappe.flags.ran_schedulers = []
 
@@ -37,11 +28,6 @@ class TestScheduler(TestCase):
 	def test_enabled_events(self):
 		frappe.flags.enabled_events = ["hourly", "hourly_long", "daily", "daily_long",
 			"weekly", "weekly_long", "monthly", "monthly_long"]
-=======
-		purge_pending_jobs()
-		if not frappe.get_all('Scheduled Job Type', limit=1):
-			sync_jobs()
->>>>>>> 3368d83238... fix: Remove @ from relevance query (#11837)
 
 		# maintain last_event and next_event on the same day
 		last_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
