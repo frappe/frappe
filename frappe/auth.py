@@ -200,7 +200,7 @@ class LoginManager:
 		if frappe.session.user != "Guest":
 			clear_sessions(frappe.session.user, keep_current=True)
 
-	def authenticate(self, user: str = None, pwd: str = None):
+	def authenticate(self, user = None, pwd = None):
 		from frappe.core.doctype.user.user import User
 
 		if not (user and pwd):
@@ -399,7 +399,7 @@ class LoginAttemptTracker(object):
 
 	Lock the account for s number of seconds if there have been n consecutive unsuccessful attempts to log in.
 	"""
-	def __init__(self, user_name: str, max_consecutive_login_attempts: int=3, lock_interval:int = 5*60):
+	def __init__(self, user_name, max_consecutive_login_attempts=3, lock_interval=5*60):
 		""" Initialize the tracker.
 
 		:param user_name: Name of the loggedin user

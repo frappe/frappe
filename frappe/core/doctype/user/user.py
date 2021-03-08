@@ -504,7 +504,7 @@ class User(Document):
 		return [i.strip() for i in self.restrict_ip.split(",")]
 
 	@classmethod
-	def find_by_credentials(cls, user_name: str, password: str, validate_password: bool = True):
+	def find_by_credentials(cls, user_name, password, validate_password=True):
 		"""Find the user by credentials.
 		"""
 		login_with_mobile = cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number"))
