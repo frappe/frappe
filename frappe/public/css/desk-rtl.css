@@ -145,9 +145,6 @@ body[data-route^=Form] .page-title .indicator {
     right: 0px;
   }
   .dropdown-menu {
-    transform: translateX(83%) !important;
-  }
-  .navbar-right .dropdown-menu {
-    transform: translateX(78%) !important;
+    transform: translateX(0%) !important;
   }
 }

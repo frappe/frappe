@@ -602,7 +602,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			return `<span class="ellipsis"
-				title="${__(label)}: ${escape(_value)}">
+				title="${__(label)}: ${frappe.utils.escape_html(_value)}">
 				${html}
 			</span>`;
 		};
