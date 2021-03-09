@@ -11,12 +11,12 @@ import os
 import re
 import sys
 import traceback
+
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
 from gzip import GzipFile
 from typing import Generator, Iterable
 
-import requests
 from six import string_types, text_type
 from six.moves.urllib.parse import quote
 from werkzeug.test import Client
@@ -24,7 +24,6 @@ from werkzeug.test import Client
 import frappe
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from frappe.utils.identicon import Identicon
 from frappe.utils.html_utils import sanitize_html
 
 
@@ -170,6 +169,8 @@ def random_string(length):
 
 def has_gravatar(email):
 	'''Returns gravatar url if user has set an avatar at gravatar.com'''
+	import requests
+
 	if (frappe.flags.in_import
 		or frappe.flags.in_install
 		or frappe.flags.in_test):
@@ -193,6 +194,8 @@ def get_gravatar_url(email):
 	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email.encode('utf-8')).hexdigest())
 
 def get_gravatar(email):
+	from frappe.utils.identicon import Identicon
+
 	gravatar_url = has_gravatar(email)
 
 	if not gravatar_url:
@@ -457,6 +460,7 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 def get_request_session(max_retries=3):
+	import requests
 	from urllib3.util import Retry
 	session = requests.Session()
 	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
