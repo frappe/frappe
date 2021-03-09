@@ -11,6 +11,7 @@ import frappe.utils
 import subprocess # nosec
 from functools import wraps
 from six import StringIO
+from os import environ
 
 click.disable_unicode_literals_warning = True
 
@@ -53,16 +54,20 @@ def get_site(context, raise_err=True):
 		return None
 
 def popen(command, *args, **kwargs):
-	output    = kwargs.get('output', True)
-	cwd       = kwargs.get('cwd')
-	shell     = kwargs.get('shell', True)
+	output = kwargs.get('output', True)
+	cwd = kwargs.get('cwd')
+	shell = kwargs.get('shell', True)
 	raise_err = kwargs.get('raise_err')
+	env = kwargs.get('env')
+	if env:
+		env = dict(environ, **env)
 
 	proc = subprocess.Popen(command,
-		stdout = None if output else subprocess.PIPE,
-		stderr = None if output else subprocess.PIPE,
-		shell  = shell,
-		cwd    = cwd
+		stdout=None if output else subprocess.PIPE,
+		stderr=None if output else subprocess.PIPE,
+		shell=shell,
+		cwd=cwd,
+		env=env
 	)
 
 	return_ = proc.wait()

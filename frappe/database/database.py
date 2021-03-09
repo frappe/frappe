@@ -16,7 +16,6 @@ import frappe.model.meta
 from frappe import _
 from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
-from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils import cint
 
@@ -1032,6 +1031,8 @@ class Database(object):
 				insert_list = []
 
 def enqueue_jobs_after_commit():
+	from frappe.utils.background_jobs import execute_job, get_queue
+
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
 			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
