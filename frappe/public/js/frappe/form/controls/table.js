@@ -19,6 +19,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			var cur_table_field =$(e.target).closest('div [data-fieldtype="Table"]').data('fieldname');
 			var cur_field = $(e.target).data('fieldname');
 			var cur_grid= cur_frm.get_field(cur_table_field).grid;
+			var grid_pagination = cur_grid.grid_pagination;
 			var cur_grid_rows = cur_grid.grid_rows;
 			var cur_doctype = cur_grid.doctype;
 			var cur_row_docname =$(e.target).closest('div .grid-row').data('name');
@@ -30,9 +31,9 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			if (!pastedData) return;
 			var data = frappe.utils.csv_to_array(pastedData,'\t');
 			if (data.length === 1 & data[0].length === 1) return;
-			if (data.length > 100){
-				data = data.slice(0, 100);
-				frappe.msgprint(__('For performance, only the first 100 rows were processed.'));
+			if (data.length > 500){
+				data = data.slice(0, 500);
+				frappe.msgprint(__('For performance, only the first 500 rows were processed.'));
 			}
 			var fieldnames = [];
 			var get_field = function(name_or_label){
@@ -70,6 +71,9 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 				if(!blank_row) {
 					if (row_idx > cur_frm.doc[cur_table_field].length){
 						cur_grid.add_new_row();
+					}
+					if (row_idx > 1 && (row_idx - 1) % grid_pagination.page_length === 0){
+						grid_pagination.go_to_page(grid_pagination.page_index + 1);
 					}
 					var cur_row = cur_grid_rows[row_idx - 1];
 					row_idx ++;
