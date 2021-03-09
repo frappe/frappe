@@ -109,13 +109,14 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		}
 
 		// validation hack: get_values will check for missing data
-		let isvalid = super.get_values(this.allow_incomplete);
+		let doc_values = super.get_values(this.allow_incomplete);
 
-		if (!isvalid) return;
+		if (!doc_values) return;
 
 		if (window.saving) return;
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
 
+		Object.assign(this.doc, doc_values);
 		this.doc.doctype = this.doc_type;
 		this.doc.web_form_name = this.name;
 

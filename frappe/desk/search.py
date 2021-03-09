@@ -141,7 +141,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
 			formatted_fields.append("""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
-				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=doctype))
+				_txt=frappe.db.escape((txt or "").replace("%", "").replace("@", "")), doctype=doctype))
 
 
 			# In order_by, `idx` gets second priority, because it stores link count
