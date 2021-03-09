@@ -464,7 +464,7 @@ class LoginAttemptTracker(object):
 		del self.login_failed_count
 		del self.login_failed_time
 
-	def is_user_allowed(self) -> bool:
+	def is_user_allowed(self):
 		"""Is user allowed to login
 
 		User is not allowed to login if login failures are greater than threshold within in lock interval from first login failure.
