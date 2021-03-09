@@ -207,7 +207,7 @@ frappe.Application = Class.extend({
 				{
 					'fieldname': 'password',
 					'fieldtype': 'Password',
-					'label': __('Please enter the password for: {0}', [`<b>${email_account[i]["email_id"]}</b>`]),
+					'label': __('Please enter the password for: <b>{0}</b>', [email_account[i]["email_id"]]),
 					'reqd': 1
 				},
 				{
