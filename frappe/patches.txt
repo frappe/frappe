@@ -331,3 +331,4 @@ execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
 frappe.patches.v13_0.rename_desk_page_to_workspace # 02.02.2021
 frappe.patches.v13_0.delete_package_publish_tool
 frappe.patches.v13_0.rename_list_view_setting_to_list_view_settings
+frappe.patches.v13_0.remove_twilio_settings
