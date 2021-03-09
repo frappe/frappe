@@ -10,7 +10,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 	add_view_to_menu(view, action) {
 		let $el = this.page.add_custom_menu_item(
 			this.parent,
-			view,
+			__(view),
 			action,
 			true,
 			null,
@@ -51,10 +51,15 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				action: () => this.set_route("report"),
 				current_view_handler: () => {
 					const reports = this.get_reports();
-					this.setup_dropdown_in_sidebar("Report", reports, {
-						label: __("Report Builder"),
-						action: () => this.set_route("report")
-					});
+					let default_action = {};
+					// Only add action if current route is not report builder
+					if (frappe.get_route().length > 3) {
+						default_action = {
+							label: __("Report Builder"),
+							action: () => this.set_route("report")
+						};
+					}
+					this.setup_dropdown_in_sidebar("Report", reports, default_action);
 				}
 			},
 			Dashboard: {
@@ -147,13 +152,15 @@ frappe.views.ListViewSelect = class ListViewSelect {
 						${__("No {} Found", [view])}
 				</div>`;
 		} else {
+			const page_name = this.get_page_name();
 			items.map(item => {
-				if (item.name == this.get_page_name()) {
+				if (item.name.toLowerCase() == page_name.toLowerCase()) {
 					placeholder = item.name;
+				} else {
+					html += `<li><a class="dropdown-item" href="${item.route}">${
+						item.name
+					}</a></li>`;
 				}
-				html += `<li><a class="dropdown-item" href="${item.route}">${
-					item.name
-				}</a></li>`;
 			});
 		}
 
@@ -212,7 +219,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 					const report_type =
 						r.report_type === "Report Builder"
 							? `/app/list/${r.ref_doctype}/report`
-							: "query-report";
+							: "/app/query-report";
 
 					const route =
 						r.route || report_type + "/" + (r.title || r.name);
