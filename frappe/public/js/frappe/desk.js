@@ -180,8 +180,12 @@ frappe.Application = Class.extend({
 >>>>>>> e8d050a4f1... fix: Email Password popup grammer fix
 =======
 		let d = new frappe.ui.Dialog({
+<<<<<<< HEAD
 	  		title: __('Password missing in Email Account'),
 >>>>>>> 3717c98154... fix: implemented suggestions
+=======
+			title: __('Password missing in Email Account'),
+>>>>>>> 78a8cd74d0... fix: sider fix
 			fields: [
 				{
 					'fieldname': 'password',
