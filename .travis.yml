@@ -8,6 +8,15 @@ addons:
   mariadb: 10.3
   postgresql: 12.4
   firefox: latest
+  apt:
+    packages:
+    - postgresql-12
+    - postgresql-client-12
+
+env:
+  global:
+  - PGPORT=5433
+  - PGUSER=travis
 
 services:
   - xvfb
@@ -24,7 +33,6 @@ cache:
     # we also need to cache folder with Cypress binary
     # https://docs.cypress.io/guides/guides/continuous-integration.html#Caching
     - ~/.cache
-
 
 matrix:
   include:
