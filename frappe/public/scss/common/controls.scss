@@ -254,7 +254,7 @@ textarea.form-control {
 	overflow-wrap: break-word;
 }
 
-.frappe-control[data-fieldtype="Data"] .control-input {
+.frappe-control[data-fieldtype="Data"] .control-input, .control-value {
 	position: relative;
 }
 
