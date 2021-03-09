@@ -58,6 +58,11 @@ website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/newsletters", "to_route": "Newsletter"},
 	{"from_route": "/profile", "to_route": "me"},
+	{"from_route": "/app/<path:app_path>", "to_route": "app"},
+]
+
+website_redirects = [
+	{"source": r"/desk(.*)", "target": r"/app\1"},
 ]
 
 base_template = "templates/base.html"

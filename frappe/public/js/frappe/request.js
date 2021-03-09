@@ -492,7 +492,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 
 		if (!frappe.error_dialog) {
 			frappe.error_dialog = new frappe.ui.Dialog({
-				title: 'Server Error',
+				title: __('Server Error'),
 				primary_action_label: __('Report'),
 				primary_action: () => {
 					if (error_report_email) {

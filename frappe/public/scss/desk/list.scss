@@ -372,17 +372,20 @@ input.list-check-all, input.list-row-checkbox {
 	margin-top: var(--margin-xs);
 	height: var(--margin-xl);
 
-	.icon use {
-		stroke: var(--text-on-yellow);
+	.icon {
+		width: 14px;
+		height: 14px;
+		use {
+			stroke: var(--yellow-800);
+		}
 	}
 
 	&.btn {
-		box-shadow: none;
-		border: 1px solid;
 		@include button-variant(
 			$background: $light-yellow,
 			$border: darken($light-yellow, 5%),
 		);
+		box-shadow: none;
 	}
 }
 

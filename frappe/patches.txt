@@ -35,6 +35,7 @@ frappe.patches.v11_0.change_email_signature_fieldtype
 execute:frappe.reload_doc('core', 'doctype', 'activity_log')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
 execute:frappe.reload_doc('core', 'doctype', 'domain_settings')
+frappe.patches.v13_0.rename_custom_client_script
 frappe.patches.v8_0.rename_page_role_to_has_role #2017-03-16
 frappe.patches.v7_2.setup_custom_perms #2017-01-19
 frappe.patches.v8_0.set_user_permission_for_page_and_report #2017-03-20
@@ -329,3 +330,4 @@ frappe.core.doctype.page.patches.drop_unused_pages
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
 frappe.patches.v13_0.rename_desk_page_to_workspace # 02.02.2021
 frappe.patches.v13_0.delete_package_publish_tool
+frappe.patches.v13_0.rename_list_view_setting_to_list_view_settings

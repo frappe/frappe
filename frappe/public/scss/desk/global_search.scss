@@ -89,14 +89,10 @@
 			.result {
 				@include flex(flex, null, center, null);
 				padding: 8px 0;
-				color: var(--gray-800);
+				color: var(--text-light);
 
 				.result-image {
 					margin-right: var(--margin-sm);
-				}
-
-				a {
-					color: var(--gray-800);
 				}
 
 				mark {
