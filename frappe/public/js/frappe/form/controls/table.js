@@ -31,7 +31,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			if (!pastedData) return;
 			var data = frappe.utils.csv_to_array(pastedData,'\t');
 			if (data.length === 1 & data[0].length === 1) return;
-			if (data.length > 500){
+			if (data.length > 500) {
 				data = data.slice(0, 500);
 				frappe.msgprint(__('For performance, only the first 500 rows were processed.'));
 			}
@@ -72,7 +72,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 					if (row_idx > cur_frm.doc[cur_table_field].length){
 						cur_grid.add_new_row();
 					}
-					if (row_idx > 1 && (row_idx - 1) % grid_pagination.page_length === 0){
+					if (row_idx > 1 && (row_idx - 1) % grid_pagination.page_length === 0) {
 						grid_pagination.go_to_page(grid_pagination.page_index + 1);
 					}
 					var cur_row = cur_grid_rows[row_idx - 1];
