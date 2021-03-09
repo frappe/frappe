@@ -6,7 +6,7 @@ addons:
     - test_site
     - test_site_producer
   mariadb: 10.3
-  postgresql: 9.5
+  postgresql: 12.4
   firefox: latest
 
 services:
