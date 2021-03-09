@@ -334,7 +334,7 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 		}
 		if (action.action_type==='Server Action') {
-			frappe.xcall(action.action, {doc: this.doc}).then((doc) => {
+			frappe.xcall(action.action, {'doc': this.doc}).then((doc) => {
 				if (doc.doctype) {
 					// document is returned by the method,
 					// apply the changes locally and refresh

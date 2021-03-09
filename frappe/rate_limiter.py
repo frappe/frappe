@@ -5,10 +5,14 @@
 from __future__ import unicode_literals
 
 from datetime import datetime
+from functools import wraps
+from typing import Union, Callable
+
+from werkzeug.wrappers import Response
+
 import frappe
 from frappe import _
 from frappe.utils import cint
-from werkzeug.wrappers import Response
 
 
 def apply():
@@ -79,3 +83,43 @@ class RateLimiter:
 	def respond(self):
 		if self.rejected:
 			return Response(_("Too Many Requests"), status=429)
+
+def rate_limit(key: str, limit: Union[int, Callable] = 5, seconds: int= 24*60*60, methods: Union[str, list]='ALL'):
+	"""Decorator to rate limit an endpoint.
+
+	This will limit Number of requests per endpoint to `limit` within `seconds`.
+	Uses redis cache to track request counts.
+
+	:param key: Key is used to identify the requests uniqueness
+	:param limit: Maximum number of requests to allow with in window time
+	:type limit: Callable or Integer
+	:param seconds: window time to allow requests
+	:param methods: Limit the validation for these methods.
+		`ALL` is a wildcard that applies rate limit on all methods.
+	:type methods: string or list or tuple
+
+	:returns: a decorator function that limit the number of requests per endpoint
+	"""
+	def ratelimit_decorator(fun):
+		@wraps(fun)
+		def wrapper(*args, **kwargs):
+			# Do not apply rate limits if method is not opted to check
+			if methods != 'ALL' and frappe.request.method.upper() not in methods:
+				return frappe.call(fun, **frappe.form_dict)
+
+			_limit = limit() if callable(limit) else limit
+
+			identity = frappe.form_dict[key]
+			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
+
+			value = frappe.cache().get_value(cache_key, expires=True) or 0
+			if not value:
+				frappe.cache().set_value(cache_key, 0, expires_in_sec=seconds)
+
+			value = frappe.cache().incrby(cache_key, 1)
+			if value > _limit:
+				frappe.throw(_("You hit the rate limit because of too many requests. Please try after sometime."))
+
+			return frappe.call(fun, **frappe.form_dict)
+		return wrapper
+	return ratelimit_decorator

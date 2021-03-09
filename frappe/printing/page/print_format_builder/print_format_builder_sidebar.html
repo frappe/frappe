@@ -13,7 +13,7 @@
 				<span class="drag-handle">
 					<svg class="icon icon-xs"><use xlink:href="#icon-drag"></use></svg>
 				</span>
-				{%= __(f.label) %}
+				{%= __(f.label) || __(f.fieldname) %}
 			</div>
 		</div>
 		{% } %}

@@ -957,6 +957,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		)}'></span>`;
 	}
 
+	get_image_url(doc) {
+		let url = doc.image ? doc.image : doc[this.meta.image_field];
+		// absolute url for mobile
+		if (window.cordova && !frappe.utils.is_url(url)) {
+			url = frappe.base_url + url;
+		}
+		return url || null;
+	}
+
 	setup_events() {
 		this.setup_filterable();
 		this.setup_list_click();

@@ -100,6 +100,7 @@
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
 		"node_modules/socket.io-client/dist/socket.io.slim.js",
+		"node_modules/localforage/dist/localforage.min.js",
 		"public/js/lib/jSignature.min.js",
 		"public/js/lib/leaflet/leaflet.js",
 		"public/js/lib/leaflet/leaflet.draw.js",
