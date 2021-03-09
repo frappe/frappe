@@ -203,7 +203,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(this.dialog.fields_dict.sender) {
 			this.dialog.fields_dict.sender.set_value(this.sender || '');
 		}
-		this.dialog.fields_dict.subject.set_value(this.subject || '');
+		this.dialog.fields_dict.subject.set_value(
+			frappe.utils.html2text(this.subject) || ''
+		);
 
 		this.setup_earlier_reply();
 
@@ -394,21 +396,18 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	setup_print_language: function() {
-		var me = this;
 		var doc = this.doc || cur_frm.doc;
 		var fields = this.dialog.fields_dict;
 
 		//Load default print language from doctype
 		this.lang_code = doc.language
 
-		if (this.get_print_format().default_print_language) {
-			var default_print_language_code = this.get_print_format().default_print_language;
-			me.lang_code = default_print_language_code;
-		} else {
-			var default_print_language_code = null;
+		if (!this.lang_code && this.get_print_format().default_print_language) {
+			this.lang_code = this.get_print_format().default_print_language;
 		}
 
 		//On selection of language retrieve language code
+		var me = this;
 		$(fields.language_sel.input).change(function(){
 			me.lang_code = this.value
 		})
@@ -418,10 +417,8 @@ frappe.views.CommunicationComposer = Class.extend({
 			.empty()
 			.add_options(frappe.get_languages());
 
-		if (default_print_language_code) {
-			$(fields.language_sel.input).val(default_print_language_code);
-		} else {
-			$(fields.language_sel.input).val(doc.language);
+		if (this.lang_code) {
+			$(fields.language_sel.input).val(this.lang_code);
 		}
 	},
 
@@ -448,6 +445,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 	},
+
 	setup_attach: function() {
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper);
@@ -614,7 +612,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	delete_saved_draft() {
 		if (this.dialog) {
-			localforage.getItem(this.frm.doctype + this.frm.docname).catch(e => {
+			localforage.removeItem(this.frm.doctype + this.frm.docname).catch(e => {
 				if (e) {
 					// silently fail
 					console.log(e); // eslint-disable-line
