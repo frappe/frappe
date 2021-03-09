@@ -41,7 +41,8 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 				$.each(cur_grid.meta.fields,(ci,field)=>{
 					name_or_label = name_or_label.toLowerCase()
 					if (field.fieldname.toLowerCase() === name_or_label ||
-						(field.label && field.label.toLowerCase() === name_or_label)){
+						(field.label && ! in_list(frappe.model.no_value_type, field.fieldtype) && 
+						 field.label.toLowerCase() === name_or_label)) {
 						  fieldname = field.fieldname;
 						  return false;
 						}
