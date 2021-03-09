@@ -183,7 +183,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		fields = [
 			'{} as _unit'.format(datefield),
 			'SUM({})'.format(value_field),
-			'COUNT({})'.format(value_field)
+			'COUNT(*)'
 		],
 		filters = filters,
 		group_by = '_unit',
