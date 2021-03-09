@@ -36,13 +36,13 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 				frappe.msgprint(__('For performance, only the first 500 rows were processed.'));
 			}
 			var fieldnames = [];
-			var get_field = function(name_or_label){
+			var get_field = function(name_or_label) {
 				var fieldname;
 				$.each(cur_grid.meta.fields,(ci,field)=>{
 					name_or_label = name_or_label.toLowerCase()
 					if (field.fieldname.toLowerCase() === name_or_label ||
-						(field.label && ! in_list(frappe.model.no_value_type, field.fieldtype) && 
-						 field.label.toLowerCase() === name_or_label)) {
+						(field.label && !in_list(frappe.model.no_value_type, field.fieldtype) && 
+						field.label.toLowerCase() === name_or_label)) {
 						  fieldname = field.fieldname;
 						  return false;
 						}
