@@ -8,15 +8,26 @@ def get_leaderboards():
 		'User': {
 			'fields': ['points'],
 			'method': 'frappe.desk.leaderboard.get_energy_point_leaderboard',
-			'company_disabled': 1
+			'company_disabled': 1,
+			'icon': 'users'
 		}
 	}
 	return leaderboards
 
 @frappe.whitelist()
 def get_energy_point_leaderboard(date_range, company = None, field = None, limit = None):
+	all_users = frappe.db.get_all('User',
+		filters = {
+			'name': ['not in', ['Administrator', 'Guest']],
+			'enabled': 1,
+			'user_type': ['!=', 'Website User']
+		},
+		order_by = 'name ASC')
+	all_users_list = list(map(lambda x: x['name'], all_users))
+
 	filters = [
 		['type', '!=', 'Review'],
+		['user', 'in', all_users_list]
 	]
 	if date_range:
 		date_range = frappe.parse_json(date_range)
@@ -27,15 +38,7 @@ def get_energy_point_leaderboard(date_range, company = None, field = None, limit
 		group_by = 'user',
 		order_by = 'value desc'
 	)
-	all_users = frappe.db.get_all('User',
-		filters = {
-			'name': ['not in', ['Administrator', 'Guest']],
-			'enabled': 1,
-			'user_type': ['!=', 'Website User']
-		},
-		order_by = 'name ASC')
 
-	all_users_list = list(map(lambda x: x['name'], all_users))
 	energy_point_users_list = list(map(lambda x: x['name'], energy_point_users))
 	for user in all_users_list:
 		if user not in energy_point_users_list:

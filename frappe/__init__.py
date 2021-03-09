@@ -1,8 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 """
-globals attached to frappe module
-+ some utility functions that should probably be moved
+Frappe - Low Code Open Source Framework in Python and JS
+
+Frappe, pronounced fra-pay, is a full stack, batteries-included, web
+framework written in Python and Javascript with MariaDB as the database.
+It is the framework which powers ERPNext. It is pretty generic and can
+be used to build database driven apps.
+
+Read the documentation: https://frappeframework.com/docs
 """
 from __future__ import unicode_literals, print_function
 
@@ -11,11 +17,15 @@ from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
 import click
-from faker import Faker
 
-# public
+# Local application imports
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
+from .utils.lazy_loader import lazy_import
+
+# Lazy imports
+faker = lazy_import('faker')
+
 
 # Harmless for Python 3
 # For Python 2 set default encoding to utf-8
@@ -190,17 +200,20 @@ def init(site, sites_path=None, new_site=False):
 
 	local.initialised = True
 
-def connect(site=None, db_name=None):
+def connect(site=None, db_name=None, set_admin_as_user=True):
 	"""Connect to site database instance.
 
 	:param site: If site is given, calls `frappe.init`.
-	:param db_name: Optional. Will use from `site_config.json`."""
+	:param db_name: Optional. Will use from `site_config.json`.
+	:param set_admin_as_user: Set Administrator as current user.
+	"""
 	from frappe.database import get_db
 	if site:
 		init(site)
 
 	local.db = get_db(user=db_name or local.conf.db_name)
-	set_user("Administrator")
+	if set_admin_as_user:
+		set_user("Administrator")
 
 def connect_replica():
 	from frappe.database import get_db
@@ -462,11 +475,11 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=[], sender="", subject="No Subject", message="No Message",
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
-		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, content=None, doctype=None, name=None, reply_to=None,
+		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, add_unsubscribe_link=1,
+		attachments=None, content=None, doctype=None, name=None, reply_to=None, queue_separately=False,
 		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None, template=None, args=None, header=None, print_letterhead=False):
+		inline_images=None, template=None, args=None, header=None, print_letterhead=False, with_container=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -492,6 +505,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param template: Name of html template from templates/emails folder
 	:param args: Arguments for rendering the template
 	:param header: Append header in email
+	:param with_container: Wraps email inside a styled container
 	"""
 	text_content = None
 	if template:
@@ -509,12 +523,12 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	from frappe.email import queue
 	queue.send(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
-		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
+		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name, add_unsubscribe_link=add_unsubscribe_link,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
-		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
+		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, queue_separately=queue_separately,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
-		inline_images=inline_images, header=header, print_letterhead=print_letterhead)
+		inline_images=inline_images, header=header, print_letterhead=print_letterhead, with_container=with_container)
 
 whitelisted = []
 guest_methods = []
@@ -963,10 +977,6 @@ def get_installed_apps(sort=False, frappe_last=False):
 
 	if not local.all_apps:
 		local.all_apps = cache().get_value('all_apps', get_all_apps)
-
-		#cache bench apps
-		if not cache().get_value('all_apps'):
-			cache().set_value('all_apps', local.all_apps)
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
@@ -1632,7 +1642,7 @@ def log_error(message=None, title=_("Error")):
 		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
-	html = '<a href="#Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
+	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
 	return html.format(
 		doctype=doctype,
 		name=name,
@@ -1745,12 +1755,12 @@ def parse_json(val):
 
 def mock(type, size=1, locale='en'):
 	results = []
-	faker = Faker(locale)
-	if not type in dir(faker):
+	fake = faker.Faker(locale)
+	if type not in dir(fake):
 		raise ValueError('Not a valid mock type.')
 	else:
 		for i in range(size):
-			data = getattr(faker, type)()
+			data = getattr(fake, type)()
 			results.append(data)
 
 	from frappe.chat.util import squashify

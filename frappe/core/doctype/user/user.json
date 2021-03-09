@@ -7,20 +7,20 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "sb0_5",
   "enabled",
   "section_break_3",
   "email",
-  "first_name",
-  "middle_name",
   "last_name",
+  "language",
+  "column_break0",
+  "first_name",
   "full_name",
+  "time_zone",
+  "column_break_11",
+  "middle_name",
+  "username",
   "send_welcome_email",
   "unsubscribed",
-  "column_break0",
-  "username",
-  "language",
-  "time_zone",
   "user_image",
   "sb1",
   "role_profile_name",
@@ -28,15 +28,17 @@
   "roles",
   "short_bio",
   "gender",
-  "phone",
-  "mobile_no",
   "birth_date",
-  "location",
-  "banner_image",
-  "column_break_22",
   "interest",
+  "banner_image",
+  "desk_theme",
+  "column_break_26",
+  "phone",
+  "location",
   "bio",
   "mute_sounds",
+  "column_break_22",
+  "mobile_no",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -47,13 +49,13 @@
   "document_follow_notify",
   "document_follow_frequency",
   "email_settings",
+  "email_signature",
   "thread_notify",
   "send_me_a_copy",
   "allowed_in_mentions",
-  "email_signature",
-  "email_inbox",
   "user_emails",
   "sb_allow_modules",
+  "module_profile",
   "modules_html",
   "block_modules",
   "home_settings",
@@ -61,15 +63,16 @@
   "defaults",
   "sb3",
   "simultaneous_sessions",
-  "user_type",
-  "login_after",
-  "login_before",
   "restrict_ip",
-  "bypass_restrict_ip_check_if_2fa_enabled",
-  "column_break1",
-  "last_login",
   "last_ip",
+  "column_break1",
+  "login_after",
+  "user_type",
   "last_active",
+  "section_break_63",
+  "login_before",
+  "bypass_restrict_ip_check_if_2fa_enabled",
+  "last_login",
   "last_known_versions",
   "third_party_authentication",
   "social_logins",
@@ -80,10 +83,6 @@
   "api_secret"
  ],
  "fields": [
-  {
-   "fieldname": "sb0_5",
-   "fieldtype": "Section Break"
-  },
   {
    "default": "1",
    "fieldname": "enabled",
@@ -96,7 +95,8 @@
   {
    "depends_on": "enabled",
    "fieldname": "section_break_3",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Basic Info"
   },
   {
    "fieldname": "email",
@@ -302,7 +302,7 @@
    "no_copy": 1
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
    "label": "Logout From All Devices After Changing Password"
@@ -577,6 +577,30 @@
    "fieldtype": "Password",
    "label": "API Secret",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_63",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "desk_theme",
+   "fieldtype": "Select",
+   "label": "Desk Theme",
+   "options": "Light\nDark"
+  },
+  {
+   "fieldname": "module_profile",
+   "fieldtype": "Link",
+   "label": "Module Profile",
+   "options": "Module Profile"
   }
  ],
  "icon": "fa fa-user",
@@ -625,11 +649,6 @@
   },
   {
    "group": "Settings",
-   "link_doctype": "Assignment Rule",
-   "link_fieldname": "user"
-  },
-  {
-   "group": "Settings",
    "link_doctype": "Document Follow",
    "link_fieldname": "user"
   },
@@ -650,7 +669,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2020-10-18 15:18:53.126800",
+ "modified": "2021-02-01 16:11:06.037543",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -678,6 +697,7 @@
   }
  ],
  "quick_entry": 1,
+ "route": "user",
  "search_fields": "full_name",
  "show_name_in_global_search": 1,
  "sort_field": "modified",

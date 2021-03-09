@@ -1,98 +1,76 @@
-<ul class="list-unstyled sidebar-menu visible-sm visible-xs">
-	<li>
-		<a class="navbar-home" href="#">
-			<img class="app-logo" src="{{ frappe.app.logo_url }}">
-		</a>
-	</li>
-</ul>
 <ul class="list-unstyled sidebar-menu user-actions hide">
 	<li class="divider"></li>
 </ul>
-<ul class="list-unstyled sidebar-menu standard-actions">
-	{% if frappe.model.can_get_report(doctype) %}
-	<li class="list-sidebar-label">Views</li>
-	<li class="divider visible-sm visible-xs"></li>
-	<li class="list-link">
-		<div class="btn-group">
-			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
-				{{ __("Reports") }} <span class="caret"></span>
-			</a>
-			<ul class="dropdown-menu reports-dropdown" role="menu">
-				<li><a href="#List/{{ doctype }}/Report">{{ __("Report Builder") }}</a></li>
-			</ul>
+<ul class="list-unstyled sidebar-menu">
+	<div class="sidebar-section views-section hide">
+		<li class="sidebar-label">
+		</li>
+		<div class="current-view">
+			<li class="list-link">
+				<a class="btn btn-default btn-sm list-sidebar-button"
+					data-toggle="dropdown"
+					aria-haspopup="true"
+					aria-expanded="false"
+					href="#"
+				>
+					<span class="selected-view ellipsis">
+					</span>
+					<span>
+						<svg class="icon icon-xs">
+							<use xlink:href="#icon-select"></use>
+						</svg>
+					</span>
+				</a>
+				<ul class="dropdown-menu views-dropdown" role="menu">
+				</ul>
+			</li>
+			<li class="sidebar-action">
+				<a class="view-action"></a>
+			</li>
 		</div>
-	</li>
-	{% endif %}
-	<li class="divider"></li>
-	<li class="list-link" data-view="List">
-		<a href="#List/{%= doctype %}/List">{%= __("List") %}</a></li>
-	<li class="list-link" data-view="Dashboard">
-		<a href="#List/{%= doctype %}/Dashboard">{%= __("Dashboard") %}</a></li>
-	<li class="hide list-link" data-view="Image">
-		<a href="#List/{%= doctype %}/Image">{%= __("Images") %}</a></li>
-    <li class="hide list-link" data-view="Map">
-		<a href="#List/{%= doctype %}/Map">{%= __("Map") %}</a></li>
-	<li class="hide list-link" data-view="Gantt">
-		<a href="#List/{%= doctype %}/Gantt">{%= __("Gantt") %}</a></li>
-	<li class="hide tree-link">
-		<a href="#Tree/{%= doctype %}">{%= __("Tree") %}</a></li>
-	<li class="hide list-link" data-view="Calendar">
-		<a href="#List/{%= doctype %}/Calendar">{%= __("Calendar") %}</a></li>
-	<li class="hide list-link" data-view="Kanban">
-		<div class="btn-group">
-			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
-				{{ __("Kanban") }} <span class="caret"></span>
-			</a>
-			<ul class="dropdown-menu kanban-dropdown" style="max-height: 300px; overflow-y: auto;" role="menu">
-				<li class="new-kanban-board"><a href="#" onclick="return false;">{{ __("New Kanban Board") }}</a></li>
-			</ul>
-		</div>
-	</li>
-	<li class="hide list-link" data-view="Inbox">
-		<div class="btn-group">
-			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
-				{{ __("Email Inbox") }} <span class="caret"></span>
-			</a>
-			<ul class="dropdown-menu email-account-dropdown" style="max-height: 300px; overflow-y: auto;" role="menu">
-			</ul>
-		</div>
-	</li>
-	{% if(frappe.help.has_help(doctype)) { %}
-	<li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
-	{% } %}
-</ul>
-<ul class="list-unstyled sidebar-menu list-group-by">
-</ul>
+	</div>
 
-<ul class="list-unstyled sidebar-menu sidebar-stat">
-	<li class="list-sidebar-label stat-label">{{ __("Tags") }}</li>
-	<li class="list-stats list-link">
-		<div class="btn-group">
-			<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
-				{{ __("Tags") }} <span class="caret"></span>
-			</a>
-			<ul class="dropdown-menu list-stats-dropdown" role="menu">
-				<div class="dropdown-search">
-					<input type="text" placeholder="Search" data-element="search" class="form-control input-xs">
-				</div>
-			</ul>
+	<div class="sidebar-section filter-section">
+		<li class="sidebar-label">
+			{{ __("Filter By") }}
+		</li>
+
+		<div class="list-group-by">
 		</div>
-	</li>
-	<li class="list-link" style="margin-top: 10px;">
-		<a class="list-tag-preview hidden-xs text-muted">{{ __("Show Tags") }}</a>
-	</li>
-</ul>
-<ul class="list-unstyled sidebar-menu charts-menu hide">
-	<li class="h6">{%= __("Charts") %}</li>
-	<li class="list-link">
-		<a class="toggle-charts">{%= __("Toggle Charts") %}</a>
-	</li>
-	<li class="list-link">
-		<a class="configure-charts hidden">{%= __("Configure Charts") %}</a>
-	</li>
-</ul>
-<ul class="list-unstyled sidebar-menu list-filters"></ul>
-<ul class="list-unstyled close-sidebar-button visible-xs visible-sm">
-	<li class="divider"></li>
-	<li class="close-sidebar">{{ __("Close") }}</li>
+
+		<div class="list-tags">
+			<li class="list-stats list-link">
+				<a
+					class="btn btn-default btn-sm list-sidebar-button"
+					data-toggle="dropdown"
+					aria-haspopup="true"
+					aria-expanded="false"
+					href="#"
+				>
+					<span>{{ __("Tags") }}</span>
+					<span>
+						<svg class="icon icon-xs">
+							<use xlink:href="#icon-select"></use>
+						</svg>
+					</span>
+				</a>
+				<ul class="dropdown-menu list-stats-dropdown" role="menu">
+					<div class="dropdown-search">
+						<input type="text" placeholder={{__("Search") }} data-element="search" class="form-control input-xs">
+					</div>
+					<div class="stat-result">
+					</div>
+				</ul>
+			</li>
+			<li class="sidebar-action show-tags">
+				<a class="list-tag-preview">{{ __("Show Tags") }}</a>
+			</li>
+		</div>
+	</div>
+
+	<div class="sidebar-section save-filter-section">
+		<li class="sidebar-label">
+			{{ __("Save Filter") }}
+		</li>
+		<li class="list-filters list-link"></li>
 </ul>

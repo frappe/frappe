@@ -1,43 +1,54 @@
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 {% if top_performer.energy_points %}
-<h3>{{ _('Top Performer') }} 🏆 </h3>
-<p> {{ frappe.get_fullname(top_performer.user) }}
+<h1 class="text-2xl">{{ _('Top Performer') }} 🏆 </h1>
+<p>
 	<span class="text-muted">
-		{{ _('gained {0} points').format(frappe.utils.cint(top_performer.energy_points)) }}
+		{{ avatar(top_performer.user) }} &nbsp;
+		{{
+			_('{0} gained {1} points').format(
+				frappe.get_fullname(top_performer.user),
+				frappe.utils.cint(top_performer.energy_points)
+			)
+		}}
 	</span>
 </p>
 {% endif %}
 
 {% if top_reviewer.given_points %}
-<h3>{{ _('Top Reviewer') }} ❤️ </h3>
-<p> {{ frappe.get_fullname(top_reviewer.user) }}
+<h1 class="text-xl">{{ _('Top Reviewer') }} ❤️ </h1>
+<p>
 	<span class="text-muted">
-		{{ _('gave {0} points').format(frappe.utils.cint(top_reviewer.given_points)) }}
+		{{ avatar(top_reviewer.user) }} &nbsp;
+		{{
+			_('{0} gave {1} points').format(
+				frappe.get_fullname(top_reviewer.user),
+				frappe.utils.cint(top_reviewer.given_points)
+			)
+		}}
 	</span>
 </p>
-
-<hr style='margin: 20px 0px'>
 {% endif %}
 
 
-<h3>{{ _('Standings') }} ({{ _('Top {0}').format(standings|length) }}) </h3>
+<h3 class="text-regular" style="margin-top: 35px">{{ _('Standings') }} ({{ _('Top {0}').format(standings|length) }}) </h3>
 
 <table class='table table-bordered'>
-	<tr>
-		<th> # </th>
-		<th style='width: 70%'>{{ _('User') }}</th>
-		<th style='width: 15%'>{{ _('Energy Points') }}</th>
-		<th style='width: 15%'>{{ _('Points Given') }}</th>
+	<tr class="text-muted text-medium">
+		<td> # </td>
+		<td style='width: 70%'>{{ _('User') }}</td>
+		<td style='width: 15%'>{{ _('Energy Points') }}</td>
+		<td style='width: 15%'>{{ _('Points Given') }}</td>
 	</tr>
 	{% for user in standings %}
-	<tr>
+	<tr class="text-small">
 		<td>{{ loop.index }}</td>
 		<td>{{ frappe.get_fullname(user.user) }}</td>
-		<td>{{ frappe.utils.cint(user.energy_points) }}</td>
-		<td>{{ frappe.utils.cint(user.given_points) }}</td>
+		<td class="text-muted">{{ frappe.utils.cint(user.energy_points) }}</td>
+		<td class="text-muted">{{ frappe.utils.cint(user.given_points) }}</td>
 	</tr>
 	{% endfor %}
 </table>
 
-<p class="text-muted">
+<p class="text-muted text-medium">
 	{{ footer_message }}
 </p>
