@@ -50,8 +50,10 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 			// title
 			var label;
-			if (meta.title_field) {
+			if (meta.title_field && item.progress) {
 				label = $.format("{0} ({1}) - {2}%", [item[meta.title_field], item.name, item.progress]);
+			} else if (meta.title_field) {
+				label = $.format("{0} ({1})", [item[meta.title_field], item.name]);
 			} else {
 				label = item[field_map.title];
 			}
