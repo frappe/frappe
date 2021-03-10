@@ -16,13 +16,12 @@ def execute():
 		try:
 			if not file_exists(f.file_url):
 				continue
-		except Exception as e:
+			  frappe.db.set_value('File', f.name, {
+				  "file_name": filename,
+				  "file_url": f.file_url
+			  }, update_modified=False)
+		except Exception:
 			continue
-
-		frappe.db.set_values('File', f.name, {
-			"file_name": filename,
-			"file_url": f.file_url
-		})
 
 def file_exists(file_path):
 	file_path = frappe.utils.get_files_path(
