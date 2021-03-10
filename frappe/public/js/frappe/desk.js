@@ -171,21 +171,8 @@ frappe.Application = Class.extend({
 
 	email_password_prompt: function(email_account,user,i) {
 		var me = this;
-<<<<<<< HEAD
-		var d = new frappe.ui.Dialog({
-<<<<<<< HEAD
-			title: __('Email Account setup please enter your password for: '+email_account[i]["email_id"]),
-=======
-			title: __('Please enter your password for: {0}', [email_account[i]["email_id"]]),
->>>>>>> e8d050a4f1... fix: Email Password popup grammer fix
-=======
 		let d = new frappe.ui.Dialog({
-<<<<<<< HEAD
 	  		title: __('Password missing in Email Account'),
->>>>>>> 3717c98154... fix: implemented suggestions
-=======
-			title: __('Password missing in Email Account'),
->>>>>>> 78a8cd74d0... fix: sider fix
 			fields: [
 				{
 					'fieldname': 'password',
