@@ -75,8 +75,6 @@
 		"public/css/octicons/octicons.css",
 		"public/less/desk.less",
 		"public/less/module.less",
-		"public/less/link_preview.less",
-		"public/less/form.less",
 		"public/less/mobile.less",
 		"public/less/controls.less",
 		"public/less/chat.less",
@@ -95,14 +93,14 @@
 		"public/scss/print.scss"
 	],
 	"concat:js/libs.min.js": [
-		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
 		"node_modules/vue/dist/vue.min.js",
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
-		"public/js/lib/socket.io.min.js",
+		"node_modules/socket.io-client/dist/socket.io.slim.js",
+		"node_modules/localforage/dist/localforage.min.js",
 		"public/js/lib/jSignature.min.js",
 		"public/js/lib/leaflet/leaflet.js",
 		"public/js/lib/leaflet/leaflet.draw.js",
@@ -225,7 +223,6 @@
 		"public/js/frappe/form/form.js",
 		"public/js/frappe/meta_tag.js"
 	],
-	"css/list.min.css": "public/less/gantt.less",
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
 
@@ -292,11 +289,12 @@
 	"css/web_form.css": [
 		"website/css/web_form.css",
 		"public/css/octicons/octicons.css",
-		"public/less/controls.less",
+		"public/scss/controls.scss",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
 	"css/email.css": "public/scss/email.scss",
 	"js/barcode_scanner.min.js": "public/js/frappe/barcode_scanner/quagga.js",
 	"js/user_profile_controller.min.js": "desk/page/user_profile/user_profile_controller.js",
-	"css/login.css": "public/scss/login.scss"
+	"css/login.css": "public/scss/login.scss",
+	"js/data_import_tools.min.js": "public/js/frappe/data_import/index.js"
 }

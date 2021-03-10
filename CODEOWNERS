@@ -8,10 +8,10 @@ website/					@prssanna
 web_form/					@prssanna
 templates/				@surajshetty3416
 www/							@surajshetty3416
-integrations/			@nextchamp-saqib
+integrations/			@leela
 patches/					@surajshetty3416
 dashboard/				@prssanna
-email/						@saurabh6790
+email/						@leela
 event_streaming/	@ruchamahabal
 data_import*			@netchampfaris
 core/							@surajshetty3416

@@ -52,7 +52,7 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 		return cint(this.value, null);
 	},
 	set_formatted_input(value) {
-		let el = $(this.input_area).find('i');
+		let el = $(this.input_area).find('svg');
 		el.children('svg').prevObject.each( function(e) {
 			if (e < value) {
 				$(this).addClass('star-click');

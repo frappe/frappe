@@ -10,7 +10,6 @@ import os, mimetypes, json
 import re
 
 import six
-from bs4 import BeautifulSoup
 from six import iteritems
 from werkzeug.wrappers import Response
 from werkzeug.routing import Rule
@@ -56,7 +55,7 @@ def _render(path=None, http_status_code=None):
 		else:
 			try:
 				data = render_page_by_language(path)
-			except frappe.DoesNotExistError:
+			except frappe.PageDoesNotExistError:
 				doctype, name = get_doctype_from_path(path)
 				if doctype and name:
 					path = "printview"
@@ -147,6 +146,8 @@ def build_response(path, data, http_status_code, headers=None):
 
 
 def add_preload_headers(response):
+	from bs4 import BeautifulSoup
+
 	try:
 		preload = []
 		soup = BeautifulSoup(response.data, "lxml")

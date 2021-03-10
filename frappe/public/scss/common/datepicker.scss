@@ -1,0 +1,74 @@
+@import "~air-datepicker/dist/css/datepicker.min.css";
+
+.datepicker {
+
+	font-family: inherit;
+	z-index: 9999 !important;
+	background: var(--fg-color);
+	color: var(--text-color);
+	border-radius: var(--border-radius);
+	border: 1px solid var(--border-color);
+
+	&--nav {
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	&--time-current-hours, &--time-current-minutes, &--time-current-seconds {
+		font-family: inherit;
+	}
+
+	&--day-name {
+		color: var(--text-color);
+	}
+
+	&--cell {
+		&.-current- {
+			color: var(--brand-color);
+
+			&.-in-range- {
+				color: var(--brand-color);
+			}
+		}
+
+		&.-range-from-, &.-range-to- {
+			border: 1px solid fade(#0089FF, 30%);
+			background: fade(#0089FF, 10%);
+		}
+
+		&.-selected-, &.-current-.-selected- {
+			background: #0089FF;
+		}
+
+		&.-in-range- {
+			background: fade(#0089FF, 5%);
+		}
+
+		&.-in-range-.-focus- {
+			background: fade(#0089FF, 10%);
+		}
+
+		&.-selected-.-focus- {
+			background: fade(#0089FF, 90%);
+		}
+
+	}
+
+	&--time, &--buttons {
+		border-top: 1px solid var(--border-color);
+	}
+
+	&--time-row {
+		background-image: linear-gradient(to right, #0089FF, #0089FF);
+		background-repeat: no-repeat;
+		background-size: 100% 1px;
+		background-position: left 50%;
+	}
+
+	&--time-row:first-child {
+		margin: 0;
+	}
+}
+
+.datepicker--button {
+	color: var(--brand-color);
+}

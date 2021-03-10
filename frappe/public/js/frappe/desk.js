@@ -128,7 +128,7 @@ frappe.Application = Class.extend({
 		}
 
 		// REDESIGN-TODO: Fix preview popovers
-		//this.link_preview = new frappe.ui.LinkPreview();
+		this.link_preview = new frappe.ui.LinkPreview();
 
 		if (!frappe.boot.developer_mode) {
 			setInterval(function() {
@@ -201,12 +201,13 @@ frappe.Application = Class.extend({
 
 	email_password_prompt: function(email_account,user,i) {
 		var me = this;
-		var d = new frappe.ui.Dialog({
-			title: __('Email Account setup please enter your password for: {0}', [email_account[i]["email_id"]]),
+		let d = new frappe.ui.Dialog({
+			title: __('Password missing in Email Account'),
 			fields: [
-				{	'fieldname': 'password',
+				{
+					'fieldname': 'password',
 					'fieldtype': 'Password',
-					'label': 'Email Account Password',
+					'label': __('Please enter the password for: <b>{0}</b>', [email_account[i]["email_id"]]),
 					'reqd': 1
 				},
 				{
@@ -485,6 +486,7 @@ frappe.Application = Class.extend({
 		if (frappe.utils.is_rtl()) {
 			var ls = document.createElement('link');
 			ls.rel="stylesheet";
+			ls.type = "text/css";
 			ls.href= "assets/css/frappe-rtl.css";
 			document.getElementsByTagName('head')[0].appendChild(ls);
 			$('body').addClass('frappe-rtl');

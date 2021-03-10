@@ -3,25 +3,13 @@ html {
 	background-color: var(--bg-color);
 }
 
-// transition
-* {
-	transition: background-color 0.5s, background 0.5s;
-}
-
-a,
-.badge {
-	transition: 0.2s;
-}
-
-.btn {
-	transition: background-color 0.2s, background 0.2s;
-}
 
 
 body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	color: var(--text-light);
+	background-color: var(--bg-color);
 
 	&.full-width {
 	@include media-breakpoint-up(md) {
@@ -35,14 +23,74 @@ body {
 
 a {
 	color: $text-color;
+	cursor: pointer;
+}
+
+a,
+a:hover,
+a:active,
+a:focus,
+.btn,
+.btn:hover,
+.btn:active,
+.btn:focus {
+	outline: 0;
+}
+
+a.grey,
+.sidebar-section a,
+.control-value a,
+.data-row a {
+	text-decoration: none;
+}
+
+a.grey:hover,
+.sidebar-section a:hover,
+.control-value a:hover,
+.data-row a:hover,
+a.grey:focus,
+.sidebar-section a:focus,
+.control-value a:focus,
+.data-row a:focus {
+	text-decoration: underline;
+}
+
+a.disabled,
+a.disabled:hover {
+	color: var(--text-muted);
+	cursor: default;
+	text-decoration: none;
+}
+
+a.text-muted,
+a.text-extra-muted {
+	text-decoration: none;
+}
+
+a.badge-hover {
+	&:hover .badge,
+	&:focus .badge,
+	&:active .badge {
+		background-color: var(--bg-gray);
+	}
+}
+
+.underline {
+	text-decoration: underline;
+}
+
+.inline-block {
+	display: inline-block;
+}
+
+.bold,
+.strong {
+	font-weight: bold;
 }
 
 pre {
-	color: var(--text-light)
-}
-
-.hide {
-	display: none !important;
+	color: var(--text-light);
+	white-space: pre-wrap;
 }
 
 .col-xs-1 { @extend .col-1; }
@@ -91,9 +139,25 @@ img {
 	height: auto;
 }
 
-.hidden {
-	@extend .d-none;
+.missing-image {
+	background-color: var(--bg-light-gray);
+	line-height: 140px;
+	vertical-align: middle;
+	text-align: center;
+	width: 140px;
+	height: 140px;
+	border-radius: var(--border-radius-sm);
+
+	&.small {
+		width: 20px;
+		height: 20px;
+	}
+
+	.icon {
+		stroke: var(--text-muted);
+	}
 }
+
 
 .hide-control {
 	@extend .d-none;
@@ -101,10 +165,6 @@ img {
 
 .text-underline {
 	text-decoration: underline;
-}
-
-.text-extra-muted {
-	color: var(--gray-500) !important;
 }
 
 .no-underline {
@@ -126,10 +186,6 @@ p {
 
 .small {
 	font-size: var(--text-sm);
-}
-
-.fill-width {
-	flex: 1
 }
 
 h1 {
@@ -184,6 +240,7 @@ select.input-xs {
 /* popover */
 .popover {
 	background-color: var(--popover-bg);
+	border: 0;
 }
 
 .bold {
@@ -290,31 +347,6 @@ kbd {
 	cursor: default;
 }
 
-.btn-link {
-	box-shadow: none !important;
-	outline: none;
-	.icon, &:hover {
-		text-decoration: none !important;
-	}
-}
-
-
-.margin {
-	margin: var(--margin-sm);
-}
-.margin-top {
-	margin-top: var(--margin-sm);
-}
-.margin-bottom {
-	margin-bottom: var(--margin-sm);
-}
-.margin-left {
-	margin-left: var(--margin-sm);
-}
-.margin-right {
-	margin-right: var(--margin-sm);
-}
-
 .standard-sidebar {
 	font-size: var(--text-base);
 
@@ -395,3 +427,134 @@ kbd {
 #freeze.in {
 	opacity: 0.5;
 }
+
+.msg-box {
+	padding: var(--padding-xl) var(--padding-md);
+	text-align: center;
+	color: var(--text-muted);
+}
+
+/*rtl styles*/
+
+.frappe-rtl {
+	input, textarea {
+		direction: rtl !important;
+	}
+
+	.checkbox .disp-area {
+		margin-right: -20px;
+		margin-left: 0px;
+	}
+}
+
+/* broken image styling */
+
+img.no-image {
+	position: relative;
+	height: 100%;
+	width: 100%;
+	background-color: var(--bg-light-gray);
+}
+
+
+@media (min-width: 768px) {
+	.video-modal .modal-dialog {
+		width: 700px;
+	}
+}
+
+body.no-sidebar {
+	@include media-breakpoint-up(md) {
+		.layout-side-section {
+			display: none;
+		}
+
+		.layout-main-section-wrapper {
+			width: 100% !important;
+		}
+	}
+}
+
+.app-logo {
+	width: 24px;
+}
+
+.alt-pressed .alt-underline {
+	text-decoration: underline;
+}
+
+details > summary:focus {
+	outline: none;
+}
+
+.ellipsis {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	vertical-align: middle;
+}
+
+.ellipsis-width {
+	max-width: 200px;
+}
+
+.text-extra-muted {
+	color: var(--gray-500) !important;
+}
+
+.grayscale {
+	-webkit-filter: grayscale(100%);
+	filter: grayscale(100%);
+}
+
+.uppercase {
+	padding-bottom: var(--padding-xs);
+	text-transform: uppercase;
+	font-size: var(--text-sm);
+	letter-spacing: 0.4px;
+	color: var(--text-muted);
+}
+
+.text-regular {
+	font-size: var(--text-base);
+}
+
+.text-medium {
+	font-size: var(--text-md);
+}
+
+.text-small {
+	font-size: var(--text-sm);
+}
+
+.text-large {
+	font-size: var(--text-lg);
+}
+
+.disable-click {
+	pointer-events: none;
+}
+
+.popover-title {
+	display: none;
+}
+
+// REDESIGN TODO: Handling of broken images?
+// img.no-image:before {
+// 	.img-background();
+// }
+
+// img.no-image:after {
+// 	.img-foreground();
+// }
+
+// img.img-loading:before {
+// 	.img-background();
+// }
+
+// img.img-loading:after {
+// 	.img-foreground();
+// 	font-family: 'Octicons';
+// 	content: "\f00b";
+// }

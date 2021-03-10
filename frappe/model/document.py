@@ -6,7 +6,6 @@ import frappe
 import time
 from frappe import _, msgprint
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
-from frappe.utils.background_jobs import enqueue
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from six import iteritems, string_types
@@ -1015,6 +1014,8 @@ class Document(BaseDocument):
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
+		if frappe.flags.in_patch: return
+
 		frappe.publish_realtime("doc_update", {"modified": self.modified, "doctype": self.doctype, "name": self.name},
 			doctype=self.doctype, docname=self.name, after_commit=True)
 
@@ -1267,6 +1268,8 @@ class Document(BaseDocument):
 		# call _submit instead of submit, so you can override submit to call
 		# run_delayed based on some action
 		# See: Stock Reconciliation
+		from frappe.utils.background_jobs import enqueue
+
 		if hasattr(self, '_' + action):
 			action = '_' + action
 
