@@ -16,10 +16,10 @@ def execute():
 		try:
 			if not file_exists(f.file_url):
 				continue
-			  frappe.db.set_value('File', f.name, {
-				  "file_name": filename,
-				  "file_url": f.file_url
-			  }, update_modified=False)
+			frappe.db.set_value('File', f.name, {
+				"file_name": filename,
+				"file_url": f.file_url
+			}, update_modified=False)
 		except Exception:
 			continue
 
