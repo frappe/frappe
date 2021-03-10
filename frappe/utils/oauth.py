@@ -231,14 +231,14 @@ def update_oauth_user(user, data, provider):
 		save = True
 		user = frappe.new_doc("User")
 
-		gender = (data.get("gender") or "").title()
+		gender = data.get("gender", "").title()
 
-		if not frappe.db.exists("Gender", gender):
+		if gender and not frappe.db.exists("Gender", gender):
 			doc = frappe.new_doc("Gender", {"gender": gender})
 			doc.insert(ignore_permissions=True)
 
 		user.update({
-			"doctype":"User",
+			"doctype": "User",
 			"first_name": get_first_name(data),
 			"last_name": get_last_name(data),
 			"email": get_email(data),
