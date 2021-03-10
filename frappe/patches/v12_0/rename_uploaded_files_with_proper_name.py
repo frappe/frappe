@@ -60,7 +60,7 @@ def execute():
 		"file_url": ["is", "set"]
 	}, fields=['file_url', 'name'])
 
-	for f in file_names_empty
+	for f in file_names_empty:
 		filename = f.file_url.rsplit('/', 1)[-1]
 
 		# Check if file exists
