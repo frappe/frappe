@@ -85,7 +85,7 @@ jobs:
           cd ~/frappe-bench/
           pip install coverage==4.5.4
           pip install python-coveralls
-          coveralls -b ~/frappe-bench/apps/frappe -d ~/frappe-bench/sites/.coverage
+          coveralls -b apps/erpnext -d ../../sites/.coverage
         env:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
