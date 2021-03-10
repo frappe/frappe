@@ -101,8 +101,9 @@ def get_permission_query_conditions(user):
 		return """(`tabToDo`.owner = {user} or `tabToDo`.assigned_by = {user})"""\
 			.format(user=frappe.db.escape(user))
 
-def has_permission(doc, user):
-	todo_roles = frappe.get_doctype_roles('ToDo')
+def has_permission(doc, ptype="read", user=None):
+	user = user or frappe.session.user
+	todo_roles = frappe.get_doctype_roles('ToDo', ptype)
 	if 'All' in todo_roles: todo_roles.remove('All')
 
 	if any(check in todo_roles for check in frappe.get_roles(user)):
