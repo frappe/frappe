@@ -45,10 +45,7 @@ frappe.Application = Class.extend({
 		this.setup_frappe_vue();
 		this.load_bootinfo();
 		this.load_user_permissions();
-		this.set_app_logo_url()
-			.then(() => {
-				this.make_nav_bar();
-			});
+		this.make_nav_bar();
 		this.set_favicon();
 		this.setup_analytics();
 		this.set_fullwidth_if_enabled();
@@ -82,8 +79,11 @@ frappe.Application = Class.extend({
 		}
 
 		if (frappe.user_roles.includes('System Manager')) {
-			this.show_change_log();
-			this.show_update_available();
+			// delayed following requests to make boot faster
+			setTimeout(() => {
+				this.show_change_log();
+				this.show_update_available();
+			}, 1000);
 		}
 
 		if (!frappe.boot.developer_mode) {
@@ -128,7 +128,7 @@ frappe.Application = Class.extend({
 		}
 
 		// REDESIGN-TODO: Fix preview popovers
-		//this.link_preview = new frappe.ui.LinkPreview();
+		this.link_preview = new frappe.ui.LinkPreview();
 
 		if (!frappe.boot.developer_mode) {
 			setInterval(function() {
@@ -201,12 +201,13 @@ frappe.Application = Class.extend({
 
 	email_password_prompt: function(email_account,user,i) {
 		var me = this;
-		var d = new frappe.ui.Dialog({
-			title: __('Email Account setup please enter your password for: {0}', [email_account[i]["email_id"]]),
+		let d = new frappe.ui.Dialog({
+			title: __('Password missing in Email Account'),
 			fields: [
-				{	'fieldname': 'password',
+				{
+					'fieldname': 'password',
 					'fieldtype': 'Password',
-					'label': 'Email Account Password',
+					'label': __('Please enter the password for: <b>{0}</b>', [email_account[i]["email_id"]]),
 					'reqd': 1
 				},
 				{
@@ -470,19 +471,6 @@ frappe.Application = Class.extend({
 		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 	},
-
-	set_app_logo_url: function() {
-		return frappe.call('frappe.core.doctype.navbar_settings.navbar_settings.get_app_logo')
-			.then(r => {
-				frappe.app.logo_url = r.message;
-				if (window.cordova) {
-					let host = frappe.request.url;
-					host = host.slice(0, host.length - 1);
-					frappe.app.logo_url = host + frappe.app.logo_url;
-				}
-			});
-	},
-
 	trigger_primary_action: function() {
 		if(window.cur_dialog && cur_dialog.display) {
 			// trigger primary
@@ -498,6 +486,7 @@ frappe.Application = Class.extend({
 		if (frappe.utils.is_rtl()) {
 			var ls = document.createElement('link');
 			ls.rel="stylesheet";
+			ls.type = "text/css";
 			ls.href= "assets/css/frappe-rtl.css";
 			document.getElementsByTagName('head')[0].appendChild(ls);
 			$('body').addClass('frappe-rtl');

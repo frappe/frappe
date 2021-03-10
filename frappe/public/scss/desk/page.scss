@@ -44,6 +44,11 @@
 
 .page-container {
 	background-color: var(--bg-color);
+
+	.page-body.full-width {
+		width: 100%;
+		max-width: 100%;
+	}
 }
 
 .custom-actions {
@@ -169,4 +174,9 @@
 			}
 		}
 	}
+}
+
+.page-only-label {
+	margin-top: var(--margin-xs);
+	text-align: center;
 }

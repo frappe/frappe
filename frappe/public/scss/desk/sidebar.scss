@@ -38,6 +38,16 @@ body[data-route^="Module"] .main-menu {
 }
 
 .sidebar-menu {
+	.data-pill {
+		width: 100%;
+	}
+	&.user-actions {
+		margin-bottom: 15px;
+		a {
+			font-weight: bold;
+		}
+	}
+
 	h6,
 	.h6 {
 		margin-top: 0px;
@@ -379,22 +389,6 @@ body[data-route^="Module"] .main-menu {
 	display: inline-flex;
 }
 
-button.data-pill {
-	.icon {
-		margin-left: var(--margin-xs);
-		margin-right: 0;
-	}
-	display: flex;
-	height: var(--btn-height);
-	background-color: var(--fg-color);
-	border-radius: var(--border-radius);
-	padding: calc(var(--padding-xs) - 2px) var(--padding-sm);
-	color: var(--text-color);
-	justify-content: space-between;
-	align-items: center;
-	width: 100%;
-}
-
 .add-attachment-btn,
 .shares,
 .followed-by {
@@ -494,4 +488,8 @@ button.data-pill {
 	margin-bottom: var(--margin-sm);
 	display: inline-block;
 	font-size: var(--text-sm);
+}
+
+.shared-user {
+	margin-bottom: 10px;
 }

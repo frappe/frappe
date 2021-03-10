@@ -60,11 +60,12 @@ $link-color: var(--text-color);
 // input
 $input-bg: var(--control-bg);
 $input-placeholder-color: var(--gray-500);
-$input-disabled-bg: var(--gray-200);
+$input-disabled-bg: var(--input-disabled-bg);
 $input-color: var(--text-color);
 $input-box-shadow: none;
 $input-focus-border-color: var(--gray-500);
 $input-border-radius: var(--border-radius);
+$input-btn-focus-width: 2px;
 
 // dropdown
 $dropdown-color: var(--text-color);
@@ -94,11 +95,15 @@ $btn-active-box-shadow: var(--shadow-inset);
 $mark-bg: #FDF9AF;
 $mark-padding: 0;
 
+// transitions
+$btn-transition: none;
+$input-transition: none;
+
 // popover
 $enable-shadows: true;
 $popover-border-radius: var(--border-radius);
 $popover-bg: var(--popover-bg);
-$popover-box-shadow: var(--shadow-md);
+$popover-box-shadow: 	0px 2px 6px rgba(17, 43, 66, 0.08), 0px 1px 4px rgba(17, 43, 66, 0.1);
 $popover-body-padding-x: var(--padding-md);
 $popover-body-padding-y: var(--padding-md);
 $popover-border-color: var(--dark-border-color);
@@ -134,9 +139,9 @@ $grid-breakpoints: (
   2xl: 1440px
 ) !default;
 
-@import 'dark';
 @import 'typography';
 @import '~bootstrap/scss/functions';
 @import '~bootstrap/scss/variables';
 @import "~bootstrap/scss/mixins";
 @import 'css_variables';
+@import 'dark';
