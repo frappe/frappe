@@ -67,8 +67,6 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 			for fn in frappe.get_hooks("before_tests", app_name=app):
 				frappe.get_attr(fn)()
 
-		frappe.db.begin()
-
 		if doctype:
 			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile, junit_xml_output=junit_xml_output)
 		elif module:
@@ -181,6 +179,8 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False, junit_x
 	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, junit_xml_output=junit_xml_output)
 
 def _run_unittest(modules, verbose=False, tests=(), profile=False, junit_xml_output=False):
+	frappe.db.begin()
+
 	test_suite = unittest.TestSuite()
 
 	if not isinstance(modules, (list, tuple)):
