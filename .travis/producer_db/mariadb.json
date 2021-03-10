@@ -1,5 +1,6 @@
 {
-    "db_host": "localhost",
+    "db_host": "127.0.0.1",
+    "db_port": 3306,
     "db_name": "test_frappe_producer",
     "db_password": "test_frappe",
     "allow_tests": true,
