@@ -32,5 +32,8 @@ def execute():
 		frappe.db.set_value("File", f.name, "file_name", filename)
 
 def file_exists(file_path):
-	file_path = frappe.utils.get_site_path(file_path.lstrip('/'))
+	file_path = frappe.utils.get_files_path(
+		file_path.rsplit('/', 1)[-1],
+		is_private=file_path.startswith('/private')
+	)
 	return os.path.exists(file_path)
