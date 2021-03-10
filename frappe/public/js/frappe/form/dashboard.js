@@ -381,7 +381,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			method: method,
 			args: {
 				doctype: this.frm.doctype,
-				name: this.frm.doc.name,
+				name: this.frm.docname,
 				items: items
 			},
 			callback: function(r) {
@@ -681,7 +681,7 @@ class Section {
 		this.set_icon(hide);
 
 		// save state for next reload ('' is falsy)
-		localStorage.setItem(this.df.css_class + '-closed', hide ? '1' : '');	
+		localStorage.setItem(this.df.css_class + '-closed', hide ? '1' : '');
 	}
 
 	set_icon(hide) {
