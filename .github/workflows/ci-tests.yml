@@ -132,7 +132,7 @@ jobs:
           cd ~/frappe-bench/
           pip install coverage==4.5.4
           pip install python-coveralls
-          coveralls -b apps/frappe -d ../../sites/.coverage
+          coveralls -b ${GITHUB_WORKSPACE} -d sites/.coverage
         env:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
