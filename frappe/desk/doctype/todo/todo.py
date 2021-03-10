@@ -102,7 +102,7 @@ def get_permission_query_conditions(user):
 			.format(user=frappe.db.escape(user))
 
 def has_permission(doc, user):
-	todo_roles = frappe.get_doctype_roles('Todo')
+	todo_roles = frappe.get_doctype_roles('ToDo')
 	if 'All' in todo_roles: todo_roles.remove('All')
 
 	if any(check in todo_roles for check in frappe.get_roles(user)):
