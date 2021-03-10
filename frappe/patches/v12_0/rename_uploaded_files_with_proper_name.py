@@ -13,23 +13,16 @@ def execute():
 		if not f.file_url:
 			f.file_url = f.file_name
 
-		if not file_exists(f.file_url):
+		try:
+			if not file_exists(f.file_url):
+				continue
+		except Exception as e:
 			continue
 
 		frappe.db.set_values('File', f.name, {
 			"file_name": filename,
 			"file_url": f.file_url
 		})
-
-	files_without_filename = frappe.get_all("File", filters={
-		"is_folder": 0,
-		"file_name": ["is", "not set"],
-		"file_url": ["is", "set"]
-	}, fields=['file_url', 'name'])
-
-	for f in files_without_filename:
-		filename = f.file_url.rsplit('/', 1)[-1]
-		frappe.db.set_value("File", f.name, "file_name", filename)
 
 def file_exists(file_path):
 	file_path = frappe.utils.get_files_path(
