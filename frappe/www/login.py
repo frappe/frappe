@@ -25,7 +25,7 @@ def get_context(context):
 				redirect_to = get_home_page()
 			else:
 				redirect_to = "/app"
-		
+
 		if redirect_to != 'login':
 			frappe.local.flags.redirect_location = redirect_to
 			raise frappe.Redirect
@@ -44,11 +44,13 @@ def get_context(context):
 		client_secret = get_decrypted_password("Social Login Key", provider, "client_secret")
 		provider_name = frappe.get_value("Social Login Key", provider, "provider_name")
 
-		if provider_name != "Custom":
-			icon_url = frappe.get_value("Social Login Key", provider, "icon")
-			icon = "<img src='{0}' alt={1}>".format(icon_url, provider_name)
-		else:
-			icon = get_icon_html(frappe.get_value("Social Login Key", provider, "icon"), small=True)
+		icon = None
+		icon_url = frappe.get_value("Social Login Key", provider, "icon")
+		if icon_url:
+			if provider_name != "Custom":
+				icon = "<img src='{0}' alt={1}>".format(icon_url, provider_name)
+			else:
+				icon = get_icon_html(icon_url, small=True)
 
 		if (get_oauth_keys(provider) and client_secret and client_id and base_url):
 			context.provider_logins.append({

@@ -85,7 +85,10 @@
 							<div class="login-button-wrapper">
 								<a href="{{ provider.auth_url }}"
 									class="btn btn-block btn-default btn-sm btn-login-option btn-{{ provider.name }}">
-									{{ provider.icon }} {{ _("Login With") }} {{ provider.provider_name }}</a>
+									{% if provider.icon %}
+										{{ provider.icon }}
+									{% endif %}
+									{{ _("Login With") }} {{ provider.provider_name }}</a>
 							</div>
 							{% endfor %}
 							<p class="text-muted login-divider">{{ _("or") }}</p>
