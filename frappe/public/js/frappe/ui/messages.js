@@ -357,7 +357,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 		'yellow': "solid-warning",
 		'blue': "solid-success",
 		'green': "solid-success",
-		'red': "solid-red"
+		'red': "solid-error"
 	};
 
 	if (typeof message==='string') {
