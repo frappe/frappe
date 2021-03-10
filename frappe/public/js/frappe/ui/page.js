@@ -537,7 +537,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	get_inner_group_button: function(label) {
-		return this.inner_toolbar.find(`.inner-group-button[data-label="${encodeURIComponent(label)}"`);
+		return this.inner_toolbar.find(`.inner-group-button[data-label="${encodeURIComponent(label)}"]`);
 	},
 
 	set_inner_btn_group_as_primary: function(label) {
