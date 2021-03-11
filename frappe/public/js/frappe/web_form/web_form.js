@@ -88,16 +88,16 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	setup_delete_button() {
 		this.add_button_to_header(
-			'<i class="fa fa-trash" aria-hidden="true"></i>',
-			"light",
+			frappe.utils.icon('delete'),
+			"danger",
 			() => this.delete()
 		);
 	}
 
 	setup_print_button() {
 		this.add_button_to_header(
-			'<i class="fa fa-print" aria-hidden="true"></i>',
-			"light",
+			frappe.utils.icon('print'),
+			"primary",
 			() => this.print()
 		);
 	}
