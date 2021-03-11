@@ -284,7 +284,7 @@ export default {
 		frappe.breadcrumbs.add({
 			type: 'Custom',
 			label: __('Recorder'),
-			route: '#recorder'
+			route: '/app/recorder'
 		});
 		frappe.call({
 			method: "frappe.recorder.get",

@@ -122,6 +122,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 					label = is_label_null ? __(value) : __(v.label);
 				}
 			}
+
 			$('<option>').html(cstr(label))
 				.attr('value', value)
 				.prop('disabled', is_disabled)
@@ -129,6 +130,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		}
 		// select the first option
 		this.selectedIndex = 0;
+		$(this).trigger('select-change');
 		return $(this);
 	};
 	$.fn.set_working = function() {

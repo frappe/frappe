@@ -18,6 +18,12 @@ const routes = [
 		path: '/request/:id',
 		component: RequestDetail,
 	},
+	{
+		path: '/',
+		redirect: {
+			name: "recorder-detail"
+		}
+	}
 ];
 
 const router = new VueRouter({
@@ -26,11 +32,11 @@ const router = new VueRouter({
 	routes: routes,
 });
 
-new Vue({
+frappe.recorder.view = new Vue({
 	el: ".recorder-container",
 	router: router,
 	data: {
-		page: cur_page.page.page
+		page: frappe.pages["recorder"].page
 	},
 	template: "<recorder-root/>",
 	components: {

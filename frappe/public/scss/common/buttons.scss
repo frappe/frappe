@@ -78,8 +78,9 @@
 
 .btn.btn-primary {
 	background-color: var(--primary-color);
+	color: var(--white);
 	white-space: nowrap;
-	--icon-stroke: white;
+	--icon-stroke: currentColor;
 	--icon-fill-bg: var(--primary-color);
 }
 

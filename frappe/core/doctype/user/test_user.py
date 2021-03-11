@@ -11,6 +11,7 @@ from frappe.utils import get_url
 from frappe.core.doctype.user.user import get_total_users
 from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_strength
 from frappe.core.doctype.user.user import extract_mentions
+from frappe.frappeclient import FrappeClient
 
 test_records = frappe.get_test_records('User')
 
@@ -229,16 +230,22 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(extract_mentions(comment)[1], "test.again@example1.com")
 
 	def test_rate_limiting_for_reset_password(self):
-		from frappe.utils.password import delete_password_reset_cache
-		delete_password_reset_cache()
-
+		# Allow only one reset request for a day
 		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 1)
+		frappe.db.commit()
 
-		user = frappe.get_doc("User", "testperm@example.com")
-		link = user.reset_password()
-		self.assertRegex(link, "\/update-password\?key=[A-Za-z0-9]*")
+		url = get_url()
+		data={'cmd': 'frappe.core.doctype.user.user.reset_password', 'user': 'test@test.com'}
 
-		self.assertRaises(frappe.ValidationError, user.reset_password, False)
+		# Clear rate limit tracker to start fresh
+		key = f"rl:{data['cmd']}:{data['user']}"
+		frappe.cache().delete(key)
+
+		c = FrappeClient(url)
+		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
+		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
+		self.assertEqual(res1.status_code, 200)
+		self.assertEqual(res2.status_code, 417)
 
 	def test_user_rollback(self):
 		""" """
