@@ -1,25 +1,33 @@
-import frappe
-import os, mimetypes
+import mimetypes
+import os
 
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import wrap_file
 
-from frappe.website.render import (resolve_path, build_response)
+import frappe
+from frappe import _
+from frappe.utils import cint, cstr
+from frappe.model.document import get_controller
+from frappe.website.doctype.website_settings.website_settings import \
+	get_website_settings
 from frappe.website.redirect import resolve_redirect
-from frappe.website.router import (get_start_folders, get_doctypes_with_web_view,
-	get_page_info_from_web_page_with_dynamic_routes)
-from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
-	get_toc, get_next_link)
-from frappe.website.doctype.website_settings.website_settings import get_website_settings
+from frappe.website.render import build_response, resolve_path
+from frappe.website.router import (get_doctypes_with_web_view,
+	get_page_info_from_web_page_with_dynamic_routes, get_start_folders)
+from frappe.website.utils import (can_cache, delete_page_cache, get_home_page,
+	get_next_link, get_toc)
+
 
 def get_response(path=None, http_status_code=200):
 	"""render html page"""
+	query_string = None
 	if not path:
 		path = frappe.local.request.path
+		query_string = frappe.local.request.query_string
 
 	try:
 		path = path.strip('/ ')
-		resolve_redirect(path)
+		resolve_redirect(path, query_string)
 		path = resolve_path(path)
 		data = None
 
@@ -513,7 +521,7 @@ class DocumentPage(BaseTemplatePage):
 		if meta.is_published_field:
 			condition_field = meta.is_published_field
 		elif not meta.custom:
-			controller = get_controller(doctype)
+			controller = get_controller(meta.doctype)
 			condition_field = controller.website.condition_field
 
 		return condition_field

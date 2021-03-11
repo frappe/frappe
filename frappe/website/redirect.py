@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import re, frappe
 
-def resolve_redirect(path):
+def resolve_redirect(path, query_string=None):
 	'''
 	Resolve redirects from hooks
 
@@ -33,9 +33,13 @@ def resolve_redirect(path):
 
 	for rule in redirects:
 		pattern = rule['source'].strip('/ ') + '$'
-		if re.match(pattern, path):
-			redirect_to = re.sub(pattern, rule['target'], path)
+		path_to_match = path
+		if rule.get('match_with_query_string'):
+			path_to_match = path + '?' + frappe.safe_decode(query_string)
+
+		if re.match(pattern, path_to_match):
+			redirect_to = re.sub(pattern, rule['target'], path_to_match)
 			frappe.flags.redirect_location = redirect_to
-			frappe.cache().hset('website_redirects', path, redirect_to)
+			frappe.cache().hset('website_redirects', path_to_match, redirect_to)
 			raise frappe.Redirect
 

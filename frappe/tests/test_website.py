@@ -51,7 +51,7 @@ class TestWebsite(unittest.TestCase):
 
 	def test_page_load(self):
 		set_request(method='POST', path='login')
-		response = render.render()
+		response = serve.get_response()
 
 		self.assertEquals(response.status_code, 200)
 
@@ -103,7 +103,8 @@ class TestWebsite(unittest.TestCase):
 		frappe.hooks.website_redirects = [
 			dict(source=r'/testfrom', target=r'://testto1'),
 			dict(source=r'/testfromregex.*', target=r'://testto2'),
-			dict(source=r'/testsub/(.*)', target=r'://testto3/\1')
+			dict(source=r'/testsub/(.*)', target=r'://testto3/\1'),
+			dict(source=r'/courses/course\?course=(.*)', target=r'/courses/\1', match_with_query_string=True),
 		]
 
 		website_settings = frappe.get_doc('Website Settings')
@@ -117,28 +118,33 @@ class TestWebsite(unittest.TestCase):
 		frappe.cache().delete_key('website_redirects')
 
 		set_request(method='GET', path='/testfrom')
-		response = render.render()
+		response = serve.get_response()
 		self.assertEquals(response.status_code, 301)
 		self.assertEquals(response.headers.get('Location'), r'://testto1')
 
 		set_request(method='GET', path='/testfromregex/test')
-		response = render.render()
+		response = serve.get_response()
 		self.assertEquals(response.status_code, 301)
 		self.assertEquals(response.headers.get('Location'), r'://testto2')
 
 		set_request(method='GET', path='/testsub/me')
-		response = render.render()
+		response = serve.get_response()
 		self.assertEquals(response.status_code, 301)
 		self.assertEquals(response.headers.get('Location'), r'://testto3/me')
 
 		set_request(method='GET', path='/test404')
-		response = render.render()
+		response = serve.get_response()
 		self.assertEquals(response.status_code, 404)
 
 		set_request(method='GET', path='/testsource')
-		response = render.render()
+		response = serve.get_response()
 		self.assertEquals(response.status_code, 301)
 		self.assertEquals(response.headers.get('Location'), '/testtarget')
+
+		set_request(method='GET', path='/courses/course?course=data')
+		response = serve.get_response()
+		self.assertEquals(response.status_code, 301)
+		self.assertEquals(response.headers.get('Location'), '/courses/data')
 
 		delattr(frappe.hooks, 'website_redirects')
 		frappe.cache().delete_key('app_hooks')
