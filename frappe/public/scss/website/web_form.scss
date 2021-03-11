@@ -1,0 +1,17 @@
+@import "../common/form";
+
+.web-form-wrapper {
+	.form-control {
+		color: var(--text-color);
+	}
+
+	.form-column {
+		&:first-child {
+			padding-left: 0;
+		}
+
+		&:last-child {
+			padding-right: 0;
+		}
+	}
+}
