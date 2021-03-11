@@ -2,20 +2,22 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe, os
-from frappe import _
+import os
+
+import frappe
 import frappe.modules.import_file
-from frappe.model.document import Document
-from frappe.utils.data import format_datetime
+from frappe import _
 from frappe.core.doctype.data_import_legacy.importer import upload
+from frappe.model.document import Document
+from frappe.modules.import_file import import_file_by_path as _import_file_by_path
 from frappe.utils.background_jobs import enqueue
+from frappe.utils.data import format_datetime
 
 
 class DataImportLegacy(Document):
 	def autoname(self):
 		if not self.name:
-			self.name = "Import on " +format_datetime(self.creation)
+			self.name = "Import on " + format_datetime(self.creation)
 
 	def validate(self):
 		if not self.import_file:
@@ -32,6 +34,7 @@ class DataImportLegacy(Document):
 @frappe.whitelist()
 def get_importable_doctypes():
 	return frappe.cache().hget("can_import", frappe.session.user)
+
 
 @frappe.whitelist()
 def import_data(data_import):
@@ -57,7 +60,7 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False,
 	for f in files:
 		if f.endswith(".json"):
 			frappe.flags.mute_emails = True
-			frappe.modules.import_file.import_file_by_path(f, data_import=True, force=True, pre_process=pre_process, reset_permissions=True)
+			_import_file_by_path(f, data_import=True, force=True, pre_process=pre_process, reset_permissions=True)
 			frappe.flags.mute_emails = False
 			frappe.db.commit()
 		elif f.endswith(".csv"):
@@ -69,7 +72,7 @@ def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False,
 	from frappe.utils.csvutils import read_csv_content
 	print("Importing " + path)
 	with open(path, "r") as infile:
-		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, no_email=no_email, overwrite=overwrite,
+		upload(rows=read_csv_content(infile.read()), ignore_links=ignore_links, no_email=no_email, overwrite=overwrite,
 			submit_after_import=submit, pre_process=pre_process)
 
 

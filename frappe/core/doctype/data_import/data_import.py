@@ -2,16 +2,16 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import os
-import frappe
-from frappe.model.document import Document
 
-from frappe.core.doctype.data_import.importer import Importer
+import frappe
+from frappe import _
 from frappe.core.doctype.data_import.exporter import Exporter
+from frappe.core.doctype.data_import.importer import Importer
+from frappe.model.document import Document
+from frappe.modules.import_file import import_file_by_path
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.csvutils import validate_google_sheets_url
-from frappe import _
 
 
 class DataImport(Document):
@@ -173,15 +173,7 @@ def import_file(
 ##############
 
 
-def import_doc(
-	path,
-	overwrite=False,
-	ignore_links=False,
-	ignore_insert=False,
-	insert=False,
-	submit=False,
-	pre_process=None,
-):
+def import_doc(path, pre_process=None):
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
 	else:
@@ -190,30 +182,21 @@ def import_doc(
 	for f in files:
 		if f.endswith(".json"):
 			frappe.flags.mute_emails = True
-			frappe.modules.import_file.import_file_by_path(
-				f, data_import=True, force=True, pre_process=pre_process, reset_permissions=True
+			import_file_by_path(
+				f,
+				data_import=True,
+				force=True,
+				pre_process=pre_process,
+				reset_permissions=True
 			)
 			frappe.flags.mute_emails = False
 			frappe.db.commit()
 		elif f.endswith(".csv"):
-			import_file_by_path(
-				f,
-				ignore_links=ignore_links,
-				overwrite=overwrite,
-				submit=submit,
-				pre_process=pre_process,
-			)
+			validate_csv_import_file(f)
 			frappe.db.commit()
 
 
-def import_file_by_path(
-	path,
-	ignore_links=False,
-	overwrite=False,
-	submit=False,
-	pre_process=None,
-	no_email=True,
-):
+def validate_csv_import_file(path):
 	if path.endswith(".csv"):
 		print()
 		print("This method is deprecated.")
