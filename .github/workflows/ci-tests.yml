@@ -127,14 +127,20 @@ jobs:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
 
-      - name: Coverage
-        run: |
-          cd ~/frappe-bench/
-          pip install coverage==4.5.4
-          pip install python-coveralls
-          coveralls -b ${GITHUB_WORKSPACE} -d sites/.coverage
-        env:
-          DB: ${{ matrix.DB }}
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_GIT_BRANCH: ${{ secrets.GITHUB_REF }}
-          TYPE: ${{ matrix.TYPE }}
+      # - name: Coverage
+      #   run: |
+      #     cd ~/frappe-bench/
+      #     pip install coverage==4.5.4
+      #     pip install python-coveralls
+      #     coveralls -b ${GITHUB_WORKSPACE} -d sites/.coverage
+      #   env:
+      #     DB: ${{ matrix.DB }}
+      #     COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      #     COVERALLS_GIT_BRANCH: ${{ secrets.GITHUB_REF }}
+      #     TYPE: ${{ matrix.TYPE }}
+      - name: Publish to coveralls.io
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ github.token }}
+          path-to-lcov: ~/frappe-bench/sites/.coverage
+          base-path: ${GITHUB_WORKSPACE}
