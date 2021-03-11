@@ -1,8 +1,4 @@
-.form-control {
-	border: none;
-	font-size: var(--text-md);
-	position: relative;
-}
+@import "../common/form.scss";
 
 .form-section, .form-dashboard-section {
 	margin: 0px;
@@ -80,24 +76,6 @@
 .form-inner-toolbar {
 	padding-top: var(--padding-md);
 	text-align: right;
-}
-
-.form-control.bold {
-	font-weight: 500;
-}
-
-.like-disabled-input {
-	.for-description {
-		font-weight: normal;
-		font-size: var(--text-sm);
-	}
-	min-height: var(--input-height);
-	border-radius: $border-radius;
-	font-weight: 400;
-	padding: 8px 12px;
-	cursor: default;
-	color: var(--disabled-text-color);
-	background-color: var(--disabled-control-bg);
 }
 
 .form-control:disabled, .form-control[readonly] {
