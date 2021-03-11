@@ -1202,10 +1202,10 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 		ps.validate_fieldtype_change()
 		ps.insert()
 
-def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
+def import_doc(path):
 	"""Import a file using Data Import."""
 	from frappe.core.doctype.data_import.data_import import import_doc
-	import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
+	import_doc(path)
 
 def copy_doc(doc, ignore_no_copy=True):
 	""" No_copy fields also get copied."""
