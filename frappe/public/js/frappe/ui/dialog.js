@@ -52,6 +52,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		// make fields (if any)
 		super.make();
 
+		this.refresh_section_collapse();
+
 		// show footer
 		this.action = this.action || { primary: { }, secondary: { } };
 		if (this.primary_action || (this.action.primary && this.action.primary.onsubmit)) {

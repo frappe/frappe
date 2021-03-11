@@ -18,9 +18,14 @@ import os, sys, importlib, inspect, json
 from past.builtins import cmp
 import click
 
-# public
+# Local application imports
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
+from .utils.lazy_loader import lazy_import
+
+# Lazy imports
+faker = lazy_import('faker')
+
 
 # Harmless for Python 3
 # For Python 2 set default encoding to utf-8
@@ -1749,15 +1754,13 @@ def parse_json(val):
 	return parse_json(val)
 
 def mock(type, size=1, locale='en'):
-	from faker import Faker
-
 	results = []
-	faker = Faker(locale)
-	if not type in dir(faker):
+	fake = faker.Faker(locale)
+	if type not in dir(fake):
 		raise ValueError('Not a valid mock type.')
 	else:
 		for i in range(size):
-			data = getattr(faker, type)()
+			data = getattr(fake, type)()
 			results.append(data)
 
 	from frappe.chat.util import squashify

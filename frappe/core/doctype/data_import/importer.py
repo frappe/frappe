@@ -449,8 +449,8 @@ class ImportFile:
 			data_without_first_row = data[1:]
 			for row in data_without_first_row:
 				row_values = row.get_values(parent_column_indexes)
-				# if the row is blank, it's a child row doc
-				if all([v in INVALID_VALUES for v in row_values]):
+				# if the row is blank or same content as the previous parent row, it's a child row doc
+				if all([v in INVALID_VALUES for v in row_values]) or row_values == parent_row_values:
 					rows.append(row)
 					continue
 				# if we encounter a row which has values in parent columns,

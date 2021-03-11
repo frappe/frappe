@@ -101,6 +101,7 @@ frappe.router = {
 		let sub_path = this.get_sub_path();
 		if (this.re_route(sub_path)) return;
 
+		this.current_sub_path = sub_path;
 		this.current_route = this.parse();
 		this.set_history(sub_path);
 		this.render();
@@ -223,14 +224,14 @@ frappe.router = {
 			// it doesn't allow us to go back to the one prior to "new-doctype-1"
 			// Hence if this check is true, instead of changing location hash,
 			// we just do a back to go to the doc previous to the "new-doctype-1"
-			var re_route_val = this.get_sub_path(frappe.re_route[sub_path]);
-			if (decodeURIComponent(re_route_val) !== decodeURIComponent(sub_path)) {
+			const re_route_val = this.get_sub_path(frappe.re_route[sub_path]);
+			if (re_route_val === this.current_sub_path) {
 				window.history.back();
-				return true;
 			} else {
 				frappe.set_route(re_route_val);
-				return true;
 			}
+
+			return true;
 		}
 	},
 

@@ -76,6 +76,7 @@ frappe.ui.form.on("Customize Form", {
 							frm.trigger("setup_sortable");
 						}
 					}
+					localStorage["customize_doctype"] = frm.doc.doc_type;
 				}
 			});
 		} else {

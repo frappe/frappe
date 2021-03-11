@@ -289,7 +289,7 @@ frappe.ui.form.Layout = Class.extend({
 	},
 
 	refresh_section_collapse: function () {
-		if (!this.doc) return;
+		if (!(this.sections && this.sections.length)) return;
 
 		for (var i = 0; i < this.sections.length; i++) {
 			var section = this.sections[i];
