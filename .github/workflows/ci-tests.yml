@@ -136,5 +136,5 @@ jobs:
         env:
           DB: ${{ matrix.DB }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_GIT_BRANCH: ${{ github.ref }}
+          COVERALLS_GIT_BRANCH: ${{ secrets.GITHUB_REF }}
           TYPE: ${{ matrix.TYPE }}
