@@ -200,7 +200,7 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 		}
 
 		frappe.msg_dialog.set_primary_action(
-			__(data.primary_action.label || "Done"),
+			__(data.primary_action.label || data.primary_action_label || "Done"),
 			data.primary_action.action
 		);
 	} else {

@@ -47,6 +47,10 @@ $font-sizes: (
 	}
 }
 
+$border-radius: var(--border-radius);
+$border-radius-sm: var(--border-radius-sm);
+$border-radius-lg: var(--border-radius-lg);
+
 $font-size-xs: 0.75rem !default;
 $font-size-sm: 0.875rem !default;
 $font-size-base: 1rem !default;
@@ -127,5 +131,6 @@ $spacers: (
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
+@import 'css_variables';
 
 $code-color: $purple;

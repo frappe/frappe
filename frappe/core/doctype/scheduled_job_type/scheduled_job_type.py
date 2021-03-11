@@ -117,6 +117,7 @@ def execute_event(doc: str):
 	frappe.only_for("System Manager")
 	doc = json.loads(doc)
 	frappe.get_doc("Scheduled Job Type", doc.get("name")).enqueue(force=True)
+	return doc
 
 
 def run_scheduled_job(job_type: str):

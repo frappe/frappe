@@ -4,36 +4,10 @@ img {
 	position: relative;
 }
 
-// fallback for broken images
-// img:after {
-// 	content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='lightgrey' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-image'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>");
-// 	display: flex;
-// 	justify-content: center;
-// 	align-items: center;
-// 	position: absolute;
-// 	z-index: 1;
-// 	top: 0;
-// 	left: 0;
-// 	width: 100%;
-// 	height: 100%;
-// 	background-color: $light;
-// 	padding: 50% 0;
-// }
-
-img:after {
-	content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='lightgrey' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-image'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>");
-}
-
-img[alt]:after {
-	height: 175px;
-	@include flex();
-	position: absolute;
-	z-index: 1;
-	top: 0;
-	left: 0;
-	width: 100%;
-	background-color: var(--bg-color);
-}
+@include broken-img(
+	$height: 175px,
+	$border-radius: 0,
+);
 
 .website-image-placeholder {
 	display: flex;

@@ -293,7 +293,7 @@ def import_doc(context, path, force=False):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			import_doc(path, overwrite=context.force)
+			import_doc(path)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -578,7 +578,7 @@ def run_ui_tests(context, app, headless=False):
 		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
 
 	# run for headless mode
-	run_or_open = 'run --browser chrome --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
+	run_or_open = 'run --browser firefox --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
 
