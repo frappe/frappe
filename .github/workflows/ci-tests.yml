@@ -145,7 +145,7 @@ jobs:
 
       - name: Publish to coveralls.io
         uses: coverallsapp/github-action@v1.1.2
-        if: ${{matrix.TYPE == "server"}}
+        if: matrix.TYPE == 'server'
         with:
           github-token: ${{ github.token }}
           path-to-lcov: ~/frappe-bench/sites/.coverage
