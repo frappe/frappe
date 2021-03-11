@@ -164,8 +164,7 @@ def prepare_header_footer(soup):
 	head = soup.find("head").contents
 	styles = soup.find_all("style")
 
-	bootstrap = frappe.read_file(os.path.join(frappe.local.sites_path, "assets/frappe/css/bootstrap.css"))
-	fontawesome = frappe.read_file(os.path.join(frappe.local.sites_path, "assets/frappe/css/font-awesome.css"))
+	css = frappe.read_file(os.path.join(frappe.local.sites_path, "assets/css/printview.css"))
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
@@ -178,11 +177,10 @@ def prepare_header_footer(soup):
 			toggle_visible_pdf(content)
 			html = frappe.render_template("templates/print_formats/pdf_header_footer.html", {
 				"head": head,
-				"styles": styles,
 				"content": content,
+				"styles": styles,
 				"html_id": html_id,
-				"bootstrap": bootstrap,
-				"fontawesome": fontawesome
+				"css": css
 			})
 
 			# create temp file

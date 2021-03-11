@@ -14,6 +14,7 @@ from frappe.website.utils import (find_first_image, get_html_content_based_on_ty
 
 class BlogPost(WebsiteGenerator):
 	website = frappe._dict(
+		route = 'blog',
 		order_by = "published_on desc"
 	)
 

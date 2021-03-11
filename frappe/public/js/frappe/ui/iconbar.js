@@ -15,11 +15,11 @@ frappe.ui.IconBar = Class.extend({
 	},
 	get_group: function(group) {
 		var $ul = this.$wrapper.find(".iconbar-"+group+" ul");
-		
+
 		if(!$ul.length)
 			$ul = $('<div class="iconbar iconbar-'+group+' hide"><ul></ul></div>')
 				.appendTo(this.$wrapper).find("ul");
-		
+
 		return $ul;
 	},
 	add_btn: function(group, icon, label, click) {
@@ -30,10 +30,10 @@ frappe.ui.IconBar = Class.extend({
 				click.apply(this);
 				return false;
 			});
-			
-		$li.find("i").attr("title", label).tooltip();
 
-			
+		$li.find("i").attr("title", label).tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
+
+
 		this.$wrapper.find(".iconbar-" + group).removeClass("hide")
 		this.show();
 		return $li;

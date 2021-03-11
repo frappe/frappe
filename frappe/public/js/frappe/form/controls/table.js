@@ -15,12 +15,6 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 		if(this.frm) {
 			this.frm.grids[this.frm.grids.length] = this;
 		}
-
-		// description
-		if(this.df.description) {
-			$('<p class="text-muted small">' + __(this.df.description) + '</p>')
-				.appendTo(this.wrapper);
-		}
 		this.$wrapper.on('paste',':text', function(e) {
 			var cur_table_field =$(e.target).closest('div [data-fieldtype="Table"]').data('fieldname');
 			var cur_field = $(e.target).data('fieldname');

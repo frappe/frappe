@@ -49,7 +49,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		});
 	},
 
-	set_meta_and_mandatory_fields: function(){
+	set_meta_and_mandatory_fields: function() {
 		this.meta = frappe.get_meta(this.doctype);
 		let fields = this.meta.fields;
 
@@ -65,7 +65,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		}
 	},
 
-	is_quick_entry: function(){
+	is_quick_entry: function() {
 		if(this.meta.quick_entry != 1) {
 			return false;
 		}
@@ -79,7 +79,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		return true;
 	},
 
-	too_many_mandatory_fields: function(){
+	too_many_mandatory_fields: function() {
 		if(this.mandatory.length > 7) {
 			// too many fields, show form
 			return true;
@@ -96,14 +96,14 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		return false;
 	},
 
-	validate_for_prompt_autoname: function(){
+	validate_for_prompt_autoname: function() {
 		if(this.meta.autoname && this.meta.autoname.toLowerCase()==='prompt') {
 			this.mandatory = [{fieldname:'__newname', label:__('{0} Name', [this.meta.name]),
 				reqd: 1, fieldtype:'Data'}].concat(this.mandatory);
 		}
 	},
 
-	render_dialog: function(){
+	render_dialog: function() {
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
 			title: __("New {0}", [__(this.doctype)]),
@@ -136,7 +136,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		}
 	},
 
-	register_primary_action: function(){
+	register_primary_action: function() {
 		var me = this;
 		this.dialog.set_primary_action(__('Save'), function() {
 			if(me.dialog.working) {
@@ -264,18 +264,15 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		frappe.set_route('Form', this.doctype, this.doc.name);
 	},
 
-	render_edit_in_full_page_link: function(){
+	render_edit_in_full_page_link: function() {
 		var me = this;
-		var $link = $('<div style="padding-left: 7px; padding-top: 30px; padding-bottom: 10px;">' +
-			'<button class="edit-full btn-default btn-sm">' + __("Edit in full page") + '</button></div>').appendTo(this.dialog.body);
-
-		$link.find('.edit-full').on('click', function() {
-			// edit in form
-			me.open_doc(true);
-		});
+		this.dialog.add_custom_action(
+			`${frappe.utils.icon('edit', 'xs')} ${__("Edit in full page")}`,
+			() => me.open_doc(true)
+		);
 	},
 
-	set_defaults: function(){
+	set_defaults: function() {
 		var me = this;
 		// set defaults
 		$.each(this.dialog.fields_dict, function(fieldname, field) {

@@ -90,6 +90,29 @@ class EmailAccount(Document):
 			if self.append_to not in valid_doctypes:
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
+	def before_save(self):
+		messages = []
+		as_list = 1
+		if not self.enable_incoming and self.default_incoming:
+			self.default_incoming = False
+			messages.append(_("{} has been disabled. It can only be enabled if {} is checked.")
+				.format(
+					frappe.bold(_('Default Incoming')),
+					frappe.bold(_('Enable Incoming'))
+				)
+			)
+		if not self.enable_outgoing and self.default_outgoing:
+			self.default_outgoing = False
+			messages.append(_("{} has been disabled. It can only be enabled if {} is checked.")
+				.format(
+						frappe.bold(_('Default Outgoing')),
+						frappe.bold(_('Enable Outgoing'))
+					)
+				)
+		if messages:
+			if len(messages) == 1: (as_list, messages) = (0, messages[0])
+			frappe.msgprint(messages, as_list= as_list, indicator='orange', title=_("Defaults Updated"))
+
 	def on_update(self):
 		"""Check there is only one default of each type."""
 		from frappe.core.doctype.user.user import setup_user_email_inbox

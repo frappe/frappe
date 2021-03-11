@@ -1,0 +1,86 @@
+@mixin flex(
+	$dis: flex,
+	$x: center,
+	$y: center,
+	$dir: row
+) {
+	display: $dis;
+	justify-content: $x;
+	align-items: $y;
+	flex-direction: $dir;
+}
+
+@mixin card(
+	$radius: var(--border-radius-md),
+	$shadow: var(--card-shadow),
+	$padding: var(--padding-sm),
+	$background-color: var(--card-bg)
+) {
+	border-radius: $radius;
+	box-shadow: $shadow;
+	padding: $padding;
+	background-color: $background-color;
+}
+
+@mixin transition($property: all, $duration: 0.2s, $timing-fn: linear) {
+	transition: $property $duration $timing-fn;
+	-webkit-transition: $property $duration $timing-fn;
+}
+
+@mixin img-background() {
+	content: " ";
+	display: block;
+	position: absolute;
+	left: 0;
+	height: calc(100%);
+	width: 100%;
+	background-color: var(--bg-light-gray);
+}
+
+@mixin broken-img(
+	$content: null,
+	$height: 100%,
+	$top: 0,
+	$left: 0,
+	$background-color: var(--bg-color),
+	$border-radius: var(--border-radius),
+) {
+
+	@if $content {
+		img:after {
+			content: url($content);
+		}
+	} @else {
+		img:after {
+			content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='lightgrey' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-image'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>");
+		}
+	}
+
+	img[alt]:after {
+		height: $height;
+		top: $top;
+		left: $left;
+		background-color: $background-color;
+		border-radius: $border-radius;
+		width: 100%;
+		position: absolute;
+		@include flex();
+		z-index: 1;
+	}
+}
+
+// @mixin img-foreground() {
+// 	content: "\f1c5";
+// 	display: block;
+// 	font-style: normal;
+// 	font-family: FontAwesome;
+// 	font-size: 32px;
+// 	color: var(--text-muted);
+
+// 	position: absolute;
+// 	top: 50%;
+// 	transform: translateY(-50%);
+// 	left: 0;
+// 	width: 100%;
+// 	text-align: center;
+// }

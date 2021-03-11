@@ -1,19 +1,21 @@
-frappe.provide('frappe.route');
 frappe.route_history_queue = [];
 const routes_to_skip = ['Form', 'social', 'setup-wizard', 'recorder'];
 
 const save_routes = frappe.utils.debounce(() => {
+	if (frappe.session.user === 'Guest') return;
 	const routes = frappe.route_history_queue;
 	frappe.route_history_queue = [];
+	
 	frappe.xcall('frappe.deferred_insert.deferred_insert', {
 		'doctype': 'Route History',
 		'records': routes
 	}).catch(() => {
 		frappe.route_history_queue.concat(routes);
-	});
+	});	
+
 }, 10000);
 
-frappe.route.on('change', () => {
+frappe.router.on('change', () => {
 	const route = frappe.get_route();
 	if (is_route_useful(route)) {
 		frappe.route_history_queue.push({

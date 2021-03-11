@@ -22,13 +22,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 
-		this.setup_reports();
 		this.setup_list_filter();
-		this.setup_views();
-		this.setup_kanban_boards();
-		this.setup_calendar_view();
-		this.setup_email_inbox();
-		this.setup_keyboard_shortcuts();
 		this.setup_list_group_by();
 
 		// do not remove
@@ -36,7 +30,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		$(document).trigger('list_sidebar_setup');
 
 		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
-			this.sidebar.find('.sidebar-stat').remove();
+			this.sidebar.find('.list-tags').remove();
 		} else {
 			this.sidebar.find('.list-stats').on('click', (e) => {
 				this.reload_stats();
@@ -89,7 +83,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			this.sidebar.find('.list-link[data-view="Image"]').removeClass('hide');
 			show_list_link = true;
 		}
-		
+
 		if (this.list_view.settings.get_coords_method ||
 			(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
 			this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
@@ -159,78 +153,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		frappe.views.KanbanView.setup_dropdown_in_sidebar(this.doctype, $dropdown);
 	}
 
-	setup_calendar_view() {
-		const doctype = this.doctype;
-
-		frappe.db.get_list('Calendar View', {
-			filters: {
-				reference_doctype: doctype
-			}
-		}).then(result => {
-			if (!(result && Array.isArray(result) && result.length)) return;
-			const calendar_views = result;
-			const $link_calendar = this.sidebar.find('.list-link[data-view="Calendar"]');
-
-			let default_link = '';
-			if (frappe.views.calendar[this.doctype]) {
-				// has standard calendar view
-				default_link = `<li><a href="#List/${doctype}/Calendar/Default">
-					${ __("Default") }</a></li>`;
-			}
-			const other_links = calendar_views.map(
-				calendar_view => `<li><a href="#List/${doctype}/Calendar/${calendar_view.name}">
-					${ __(calendar_view.name) }</a>
-				</li>`
-			).join('');
-
-			const dropdown_html = `
-				<div class="btn-group">
-					<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						${ __("Calendar") } <span class="caret"></span>
-					</a>
-					<ul class="dropdown-menu calendar-dropdown" style="max-height: 300px; overflow-y: auto;">
-						${default_link}
-						${other_links}
-					</ul>
-				</div>
-			`;
-			$link_calendar.removeClass('hide');
-			$link_calendar.html(dropdown_html);
-		});
-	}
-
-	setup_email_inbox() {
-		// get active email account for the user and add in dropdown
-		if (this.doctype != "Communication")
-			return;
-
-		let $dropdown = this.page.sidebar.find('.email-account-dropdown');
-		let divider = false;
-
-		if (has_common(frappe.user_roles, ["System Manager", "Administrator"])) {
-			$(`<li class="new-email-account"><a>${__("New Email Account")}</a></li>`)
-				.appendTo($dropdown);
-		}
-
-		let accounts = frappe.boot.email_accounts;
-		accounts.forEach((account) => {
-			let email_account = (account.email_id == "All Accounts") ? "All Accounts" : account.email_account;
-			let route = ["List", "Communication", "Inbox", email_account].join('/');
-			let display_name = ["All Accounts", "Sent Mail", "Spam", "Trash"].includes(account.email_id) ? __(account.email_id) : account.email_id;
-
-			if (!divider) {
-				this.get_divider().appendTo($dropdown);
-				divider = true;
-			}
-			$(`<li><a href="#${route}">${display_name}</a></li>`).appendTo($dropdown);
-			if (account.email_id === "Sent Mail")
-				divider = false;
-		});
-
-		$dropdown.find('.new-email-account').click(function() {
-			frappe.new_doc("Email Account");
-		});
-	}
 
 	setup_keyboard_shortcuts() {
 		this.sidebar.find('.list-link > a, .list-link > .btn-group > a').each((i, el) => {
@@ -258,84 +180,48 @@ frappe.views.ListSidebar = class ListSidebar {
 				stats: me.stats,
 				doctype: me.doctype,
 				// wait for list filter area to be generated before getting filters, or fallback to default filters
-				filters: (me.list_view.filter_area ? me.list_filter.get_current_filters() : me.default_filters) || []
+				filters: (me.list_view.filter_area ? me.list_view.get_filters_for_args() : me.default_filters) || []
 			},
 			callback: function(r) {
-				me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
+				me.render_stat((r.message.stats || {})["_user_tags"]);
 				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
 				frappe.utils.setup_search(stats_dropdown, '.stat-link', '.stat-label');
 			}
 		});
 	}
 
-	render_stat(field, stat, tags) {
-		var me = this;
-		var sum = 0;
-		var stats = [];
-		var label = frappe.meta.docfield_map[this.doctype][field] ?
-			frappe.meta.docfield_map[this.doctype][field].label : field;
-
-		stat = (stat || []).sort(function(a, b) {
-			return b[1] - a[1];
-		});
-		$.each(stat, function(i, v) {
-			sum = sum + v[1];
-		});
-
-		if (tags) {
-			for (var t in tags) {
-				var nfound = -1;
-				for (var i in stat) {
-					if (tags[t] === stat[i][0]) {
-						stats.push(stat[i]);
-						nfound = i;
-						break;
-					}
-				}
-				if (nfound < 0) {
-					stats.push([tags[t], 0]);
-				} else {
-					me.tempstats["_user_tags"].splice(nfound, 1);
-				}
-			}
-			field = "_user_tags";
-		} else {
-			stats = stat;
-		}
-		var context = {
-			field: field,
-			stat: stats,
-			sum: sum,
-			label: field === '_user_tags' ? (tags ? __(label) : __("Tags")) : __(label),
+	render_stat(stats) {
+		let args = {
+			stats: stats,
+			label: __("Tags")
 		};
-		$(frappe.render_template("list_sidebar_stat", context))
-			.on("click", ".stat-link", function() {
-				var fieldname = $(this).attr('data-field');
-				var label = $(this).attr('data-label');
-				var condition = "like";
-				var existing = me.list_view.filter_area.filter_list.get_filter(fieldname);
-				if(existing) {
-					existing.remove();
-				}
-				if (label == "No Tags") {
-					label = "%,%";
-					condition = "not like";
-				}
-				me.list_view.filter_area.filter_list.add_filter(me.list_view.doctype, fieldname, condition, label)
-					.then(function() {
-						me.list_view.refresh();
-					});
-			})
-			.appendTo(this.sidebar.find(".list-stats-dropdown"));
+
+		let tag_list = $(frappe.render_template("list_sidebar_stat", args)).on("click", ".stat-link", (e) => {
+			let fieldname = $(e.currentTarget).attr('data-field');
+			let label = $(e.currentTarget).attr('data-label');
+			let condition = "like";
+			let existing = this.list_view.filter_area.filter_list.get_filter(fieldname);
+			if (existing) {
+				existing.remove();
+			}
+			if (label == "No Tags") {
+				label = "%,%";
+				condition = "not like";
+			}
+			this.list_view.filter_area.add(
+				this.doctype,
+				fieldname,
+				condition,
+				label
+			);
+		});
+
+		this.sidebar.find(".list-stats-dropdown .stat-result").html(tag_list);
 	}
 
 	reload_stats() {
 		this.sidebar.find(".stat-link").remove();
 		this.sidebar.find(".stat-no-records").remove();
 		this.get_stats();
-	}
-
-	get_divider() {
-		return $('<li role="separator" class="divider"></li>');
 	}
 };

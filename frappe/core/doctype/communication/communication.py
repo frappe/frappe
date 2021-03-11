@@ -99,10 +99,7 @@ class Communication(Document):
 			frappe.db.set_value("Communication", self.reference_name, "status", "Replied")
 
 		if self.communication_type == "Communication":
-			# send new comment to listening clients
-			frappe.publish_realtime('new_communication', self.as_dict(),
-				doctype=self.reference_doctype, docname=self.reference_name,
-				after_commit=True)
+			self.notify_change('add')
 
 		elif self.communication_type in ("Chat", "Notification", "Bot"):
 			if self.reference_name == frappe.session.user:
@@ -125,10 +122,14 @@ class Communication(Document):
 
 	def on_trash(self):
 		if self.communication_type == "Communication":
-			# send delete comment to listening clients
-			frappe.publish_realtime('delete_communication', self.as_dict(),
-				doctype= self.reference_doctype, docname = self.reference_name,
-				after_commit=True)
+			self.notify_change('delete')
+
+	def notify_change(self, action):
+		frappe.publish_realtime('update_docinfo_for_{}_{}'.format(self.reference_doctype, self.reference_name), {
+			'doc': self.as_dict(),
+			'key': 'communications',
+			'action': action
+		}, after_commit=True)
 
 	def set_status(self):
 		if not self.is_new():
@@ -244,9 +245,7 @@ class Communication(Document):
 
 		if delivery_status:
 			self.db_set('delivery_status', delivery_status)
-
-			frappe.publish_realtime('update_communication', self.as_dict(),
-				doctype=self.reference_doctype, docname=self.reference_name, after_commit=True)
+			self.notify_change('update')
 
 			# for list views and forms
 			self.notify_update()

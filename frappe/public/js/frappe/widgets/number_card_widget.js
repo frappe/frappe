@@ -4,6 +4,7 @@ frappe.provide("frappe.utils");
 
 export default class NumberCardWidget extends Widget {
 	constructor(opts) {
+		opts.shadow = true;
 		super(opts);
 	}
 
@@ -230,15 +231,19 @@ export default class NumberCardWidget extends Widget {
 		let color_class = '';
 
 		return this.get_percentage_stats().then(() => {
-			if (this.percentage_stat == undefined) return;
-
-			if (this.percentage_stat == 0) {
+			if (this.percentage_stat == 0 || this.percentage_stat == undefined) {
 				color_class = 'grey-stat';
 			} else if (this.percentage_stat > 0) {
-				caret_html = '<i class="fa fa-caret-up"></i>';
+				caret_html =
+					`<span class="indicator-pill-round green">
+						${frappe.utils.icon('arrow-up-right', 'xs')}
+					</span>`;
 				color_class = 'green-stat';
 			} else {
-				caret_html = '<i class="fa fa-caret-down"></i>';
+				caret_html =
+					`<span class="indicator-pill-round red">
+						${frappe.utils.icon('arrow-down-left', 'xs')}
+					</span>`;
 				color_class = 'red-stat';
 			}
 
@@ -251,15 +256,18 @@ export default class NumberCardWidget extends Widget {
 			const stats_qualifier = stats_qualifier_map[this.card_doc.stats_time_interval];
 
 			let get_stat = () => {
+				if (this.percentage_stat == undefined) return NaN;
 				const parts = this.percentage_stat.split(' ');
 				const symbol = parts[1] || '';
 				return Math.abs(parts[0]) + ' ' + symbol;
 			};
 
 			$(this.body).find('.widget-content').append(`<div class="card-stats ${color_class}">
-				<span class="percentage-stat">
+				<span class="percentage-stat-area">
 					${caret_html}
-					${get_stat()} %
+					<span class="percentage-stat">
+						${get_stat()} %
+					</span>
 				</span>
 				<span class="stat-period text-muted">
 					${stats_qualifier}
@@ -309,14 +317,14 @@ export default class NumberCardWidget extends Widget {
 		/* eslint-disable indent */
 		this.card_actions =
 			$(`<div class="card-actions dropdown pull-right">
-				<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					<button class="btn btn-default btn-xs"><span class="caret"></span></button>
+				<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				...
 				</a>
 				<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
 					${actions
 						.map(
 							action =>
-								`<li>
+								`<li class="dropdown-item">
 									<a data-action="${action.action}">${action.label}</a>
 								</li>`
 						).join('')}

@@ -6,12 +6,9 @@ Quill.register('modules/mention', Mention, true);
 frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 	make_wrapper() {
 		this.comment_wrapper = !this.no_wrapper ? $(`
-				<div class="comment-input-wrapper">
-					<div class="comment-input-header">
-					<span class="small text-muted">${__("Add a comment")}</span>
-					<button class="btn btn-default btn-comment btn-xs pull-right">
-						${__("Comment")}
-					</button>
+			<div class="comment-input-wrapper">
+				<div class="comment-input-header">
+					<span>${__("Add a comment")}</span>
 				</div>
 				<div class="comment-input-container">
 					<div class="frappe-control"></div>
@@ -19,6 +16,9 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 						${__("Ctrl+Enter to add comment")}
 					</div>
 				</div>
+				<button class="btn btn-default btn-comment btn-xs">
+					${__("Comment")}
+				</button>
 			</div>
 		`) : $('<div class="frappe-control"></div>');
 
@@ -122,5 +122,15 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 
 	clear() {
 		this.quill.setText('');
+	},
+
+	disable() {
+		this.quill.disable();
+		this.button.prop('disabled', true);
+	},
+
+	enable() {
+		this.quill.enable();
+		this.button.prop('disabled', false);
 	}
 });

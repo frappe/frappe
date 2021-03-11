@@ -88,7 +88,7 @@ def authorize_access(reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/desk#Form/{0}".format(quote("Google Drive"))
+			frappe.local.response["location"] = "/app/Form/{0}".format(quote("Google Drive"))
 
 			frappe.msgprint(_("Google Drive has been configured."))
 		except Exception as e:

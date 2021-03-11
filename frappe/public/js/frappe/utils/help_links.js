@@ -12,7 +12,7 @@ frappe.help.help_links['modules/Setup'] = [
 	{ label: 'Printing', url: 'http://frappe.github.io/erpnext/user/manual/en/setting-up/print/' },
 ]
 
-frappe.help.help_links['List/User'] = [
+frappe.help.help_links['user'] = [
 	{ label: 'Adding Users', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/users-and-permissions/adding-users' },
 	{ label: 'Rename User', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/articles/rename-user' },
 ]
@@ -25,19 +25,19 @@ frappe.help.help_links['user-permissions'] = [
 	{ label: 'User Permissions', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/users-and-permissions/user-permissions' },
 ]
 
-frappe.help.help_links['Form/System Settings'] = [
+frappe.help.help_links['system-settings'] = [
 	{ label: 'System Settings', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/settings/system-settings' },
 ]
 
-frappe.help.help_links['List/Email Account'] = [
+frappe.help.help_links['email-account'] = [
 	{ label: 'Email Account', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/email/email-account' },
 ]
 
-frappe.help.help_links['List/Notification'] = [
+frappe.help.help_links['notification'] = [
 	{ label: 'Notification', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/email/email-alerts' },
 ]
 
-frappe.help.help_links['Form/Print Settings'] = [
+frappe.help.help_links['print-settings'] = [
 	{ label: 'Print Settings', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/print/print-settings' },
 ]
 

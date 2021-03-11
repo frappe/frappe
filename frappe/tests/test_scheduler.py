@@ -19,7 +19,6 @@ def test_timeout_10():
 
 def test_method():
 	pass
-
 class TestScheduler(TestCase):
 	def setUp(self):
 		purge_pending_jobs()
@@ -43,6 +42,8 @@ class TestScheduler(TestCase):
 		self.assertTrue(job.enqueue())
 		job.db_set('last_execution', '2010-01-01 00:00:00')
 		frappe.db.commit()
+
+		time.sleep(0.5)
 
 		# 1st job is in the queue (or running), don't enqueue it again
 		self.assertFalse(job.enqueue())

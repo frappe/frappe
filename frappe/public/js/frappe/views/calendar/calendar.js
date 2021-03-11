@@ -10,7 +10,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 		if (route.length === 3) {
 			const doctype = route[1];
 			const user_settings = frappe.get_user_settings(doctype)['Calendar'] || {};
-			route.push(user_settings.last_calendar || 'Default');
+			route.push(user_settings.last_calendar || 'default');
 			frappe.set_route(route);
 			return true;
 		} else {
@@ -29,8 +29,13 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			.then(() => {
 				this.page_title = __('{0} Calendar', [this.page_title]);
 				this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-				this.calendar_name = frappe.get_route()[3];
+				this.calendar_name = frappe.utils.to_title_case(frappe.get_route()[3] || '');
 			});
+	}
+
+	setup_page() {
+		this.hide_page_form = true;
+		super.setup_page();
 	}
 
 	setup_view() {
@@ -89,11 +94,15 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	}
 
 	get required_libs() {
-		return [
+		let assets = [
 			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
 			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js',
-			'assets/frappe/js/lib/fullcalendar/locale-all.js'
 		];
+		let user_language = frappe.boot.user.language;
+		if (user_language && user_language !== 'en') {
+			assets.push('assets/frappe/js/lib/fullcalendar/locale-all.js');
+		}
+		return assets;
 	}
 };
 
@@ -180,12 +189,19 @@ frappe.views.Calendar = Class.extend({
 			.removeClass("fc-state-default")
 			.addClass("btn btn-default");
 
-		this.$wrapper.find(".fc-button-group").addClass("btn-group");
+		this.$wrapper
+			.find('.fc-month-button, .fc-agendaWeek-button, .fc-agendaDay-button')
+			.wrapAll('<div class="btn-group" />');
 
 		this.$wrapper.find('.fc-prev-button span')
-			.attr('class', '').addClass('fa fa-chevron-left');
+			.attr('class', '').html(frappe.utils.icon('left'));
 		this.$wrapper.find('.fc-next-button span')
-			.attr('class', '').addClass('fa fa-chevron-right');
+			.attr('class', '').html(frappe.utils.icon('right'));
+
+		this.$wrapper.find('.fc-today-button')
+			.prepend(frappe.utils.icon('today'));
+
+		this.$wrapper.find('.fc-day-number').wrap('<div class="fc-day"></div>');
 
 		var btn_group = this.$wrapper.find(".fc-button-group");
 		btn_group.find(".fc-state-active").addClass("active");
@@ -213,17 +229,18 @@ frappe.views.Calendar = Class.extend({
 	},
 	setup_options: function(defaults) {
 		var me = this;
+		defaults.meridiem = 'false';
 		this.cal_options = {
 			locale: frappe.boot.user.language || "en",
 			header: {
-				left: 'title',
-				center: '',
-				right: 'prev,today,next month,agendaWeek,agendaDay'
+				left: 'prev, title, next',
+				right: 'today, month, agendaWeek, agendaDay'
 			},
 			editable: true,
 			selectable: true,
 			selectHelper: true,
 			forceEventDuration: true,
+			displayEventTime: true,
 			defaultView: defaults.defaultView,
 			weekends: defaults.weekends,
 			nowIndicator: true,
@@ -239,6 +256,7 @@ frappe.views.Calendar = Class.extend({
 					}
 				});
 			},
+			displayEventEnd: true,
 			eventRender: function(event, element) {
 				element.attr('title', event.tooltip);
 			},
@@ -354,7 +372,7 @@ frappe.views.Calendar = Class.extend({
 			me.prepare_colors(d);
 
 			d.title = frappe.utils.html2text(d.title);
-			
+
 			return d;
 		});
 	},

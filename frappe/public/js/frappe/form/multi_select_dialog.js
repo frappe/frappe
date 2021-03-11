@@ -42,7 +42,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			title: __("Select {0}", [(this.doctype == '[Select]') ? __("value") : __(doctype_plural)]),
 			fields: fields,
 			primary_action_label: this.primary_action_label || __("Get Items"),
-			secondary_action_label: __("Make {0}", [me.doctype]),
+			secondary_action_label: __("Make {0}", [__(me.doctype)]),
 			primary_action: function () {
 				let filters_data = me.get_custom_filters();
 				me.action(me.get_checked_values(), cur_dialog.get_values(), me.args, filters_data);
@@ -236,7 +236,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				${
 	head ? `<span class="ellipsis text-muted" title="${__(frappe.model.unscrub(column))}">${__(frappe.model.unscrub(column))}</span>`
 		: (column !== "name" ? `<span class="ellipsis result-row" title="${__(result[column] || '')}">${__(result[column] || '')}</span>`
-			: `<a href="${"#Form/" + me.doctype + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
+			: `<a href="${"/app/" + frappe.router.slug(me.doctype) + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
 							${__(result[column] || '')}</a>`)}
 			</div>`;
 		});

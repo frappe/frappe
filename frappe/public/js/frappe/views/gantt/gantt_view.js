@@ -51,7 +51,9 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			// title
 			var label;
 			if (meta.title_field) {
-				label = $.format("{0} ({1})", [item[meta.title_field], item.name]);
+				label = item.progress
+					? __("{0} ({1}) - {2}%", [item[meta.title_field], item.name, item.progress])
+					: __("{0} ({1})", [item[meta.title_field], item.name]);
 			} else {
 				label = item[field_map.title];
 			}
@@ -95,8 +97,15 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		const date_format = 'YYYY-MM-DD';
 
 		this.$result.empty();
+		this.$result.addClass('gantt-modern');
 
 		this.gantt = new Gantt(this.$result[0], this.tasks, {
+			bar_height: 35,
+			bar_corner_radius: 4,
+			resize_handle_width: 8,
+			resize_handle_height: 28,
+			resize_handle_corner_radius: 3,
+			resize_handle_offset: 4,
 			view_mode: gantt_view_mode,
 			date_format: "YYYY-MM-DD",
 			on_click: task => {

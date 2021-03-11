@@ -120,7 +120,7 @@ def authorize_access(g_calendar, reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/desk#Form/{0}/{1}".format(quote("Google Calendar"), quote(google_calendar.name))
+			frappe.local.response["location"] = "/app/Form/{0}/{1}".format(quote("Google Calendar"), quote(google_calendar.name))
 
 			frappe.msgprint(_("Google Calendar has been configured."))
 		except Exception as e:

@@ -86,7 +86,7 @@ def get_result(doc, filters, to_date=None):
 	filters = frappe.parse_json(filters)
 
 	if not filters:
-			filters = []
+		filters = []
 
 	if to_date:
 		filters.append([doc.document_type, 'creation', '<', to_date])
@@ -107,9 +107,13 @@ def get_percentage_difference(doc, filters, result):
 		return
 
 	previous_result = calculate_previous_result(doc, filters)
-	difference = (result - previous_result)/100.0
-
-	return difference
+	if previous_result == 0:
+		return None
+	else:
+		if result == previous_result:
+			return 0
+		else:
+			return ((result/previous_result)-1)*100.0
 
 
 def calculate_previous_result(doc, filters):

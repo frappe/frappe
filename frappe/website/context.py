@@ -274,7 +274,7 @@ def add_metatags(context):
 
 	# Get meta tags from Website Route meta
 	# they can override the defaults set above
-	route = context.route
+	route = context.path
 	if route == '':
 		# homepage
 		route = frappe.db.get_single_value('Website Settings', 'home_page')

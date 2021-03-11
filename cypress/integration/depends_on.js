@@ -1,7 +1,7 @@
 context('Depends On', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/website');
 		return cy.window().its('frappe').then(frappe => {
 			return frappe.xcall('frappe.tests.ui_test_helpers.create_child_doctype', {
 				name: 'Child Test Depends On',
@@ -64,7 +64,7 @@ context('Depends On', () => {
 		cy.fill_field('test_field', 'Some Value');
 		cy.get('button.primary-action').contains('Save').click();
 		cy.get('.msgprint-dialog .modal-title').contains('Missing Fields').should('be.visible');
-		cy.get('body').click();
+		cy.hide_dialog();
 		cy.fill_field('test_field', 'Random value');
 		cy.get('button.primary-action').contains('Save').click();
 		cy.get('.msgprint-dialog .modal-title').contains('Missing Fields').should('not.be.visible');
@@ -92,7 +92,7 @@ context('Depends On', () => {
 		cy.fill_table_field('child_test_depends_on_field', '1', 'child_test_field', 'Some Value');
 		cy.fill_table_field('child_test_depends_on_field', '1', 'child_dependant_field', 'Some Other Value');
 
-		cy.get('@row1-form_in_grid').find('.octicon-triangle-up').click();
+		cy.get('@row1-form_in_grid').find('.grid-collapse-row').click();
 
 		// set the table to read-only
 		cy.fill_field('test_field', 'Some Other Value');

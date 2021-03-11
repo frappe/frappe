@@ -319,18 +319,22 @@ def send_summary(timespan):
 
 	from_date = getdate(from_date)
 	to_date = getdate()
-	all_users = [user.email for user in get_enabled_system_users()]
+
+	# select only those users that have energy point email notifications enabled
+	all_users = [user.email for user in get_enabled_system_users() if
+		is_email_notifications_enabled_for_type(user.name, 'Energy Point')]
 
 	frappe.sendmail(
-			subject='{} energy points summary'.format(timespan),
-			recipients=all_users,
-			template="energy_points_summary",
-			args={
+			subject = '{} energy points summary'.format(timespan),
+			recipients = all_users,
+			template = "energy_points_summary",
+			args = {
 				'top_performer': user_points[0],
 				'top_reviewer': max(user_points, key=lambda x:x['given_points']),
 				'standings': user_points[:10], # top 10
-				'footer_message': get_footer_message(timespan).format(from_date, to_date)
-			}
+				'footer_message': get_footer_message(timespan).format(from_date, to_date),
+			},
+			with_container = 1
 		)
 
 def get_footer_message(timespan):

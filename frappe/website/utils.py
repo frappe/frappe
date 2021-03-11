@@ -90,11 +90,18 @@ def get_home_page():
 
 		# global
 		if not home_page:
-			home_page = frappe.db.get_value("Website Settings", None, "home_page") or "login"
+			home_page = frappe.db.get_value("Website Settings", None, "home_page")
+
+		if not home_page:
+			home_page = "login" if frappe.session.user == 'Guest' else "me"
 
 		home_page = home_page.strip('/')
 
 		return home_page
+
+	if frappe.local.dev_server:
+		# dont return cached homepage in development
+		return _get_home_page()
 
 	return frappe.cache().hget("home_page", frappe.session.user, _get_home_page)
 

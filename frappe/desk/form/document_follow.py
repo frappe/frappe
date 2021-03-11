@@ -10,7 +10,15 @@ from frappe import _
 from itertools import groupby
 
 @frappe.whitelist()
-def follow_document(doctype, doc_name, user, force=False):
+def update_follow(doctype, doc_name, following):
+	if following:
+		return follow_document(doctype, doc_name, frappe.session.user)
+	else:
+		return unfollow_document(doctype, doc_name, frappe.session.user)
+
+
+@frappe.whitelist()
+def follow_document(doctype, doc_name, user):
 	'''
 		param:
 		Doctype name
@@ -76,7 +84,6 @@ def send_email_alert(receiver, docinfo, timeline):
 		)
 
 def send_document_follow_mails(frequency):
-
 	'''
 		param:
 		frequency for sanding mails
@@ -140,6 +147,8 @@ def get_version(doctype, doc_name, frequency, user):
 	return timeline
 
 def get_comments(doctype, doc_name, frequency, user):
+	from html2text import html2text
+
 	timeline = []
 	filters = get_filters("reference_name", doc_name, frequency, user)
 	comments = frappe.get_all("Comment",
@@ -159,7 +168,7 @@ def get_comments(doctype, doc_name, frequency, user):
 			"time": comment.modified,
 			"data": {
 				"time": time,
-				"comment": frappe.utils.html2text(str(comment.content)),
+				"comment": html2text(str(comment.content)),
 				"by": by
 			},
 			"doctype": doctype,
@@ -190,6 +199,8 @@ def get_follow_users(doctype, doc_name):
 	)
 
 def get_row_changed(row_changed, time, doctype, doc_name, v):
+	from html2text import html2text
+
 	items = []
 	for d in row_changed:
 		d[2] = d[2] if d[2] else ' '
@@ -202,8 +213,8 @@ def get_row_changed(row_changed, time, doctype, doc_name, v):
 					"table_field": d[0],
 					"row": str(d[1]),
 					"field": d[3][0][0],
-					"from": frappe.utils.html2text(str(d[3][0][1])),
-					"to": frappe.utils.html2text(str(d[3][0][2]))
+					"from": html2text(str(d[3][0][1])),
+					"to": html2text(str(d[3][0][2]))
 				},
 			"doctype": doctype,
 			"doc_name": doc_name,
@@ -229,6 +240,8 @@ def get_added_row(added, time, doctype, doc_name, v):
 	return items
 
 def get_field_changed(changed, time, doctype, doc_name, v):
+	from html2text import html2text
+
 	items = []
 	for d in changed:
 		d[1] = d[1] if d[1] else ' '
@@ -239,8 +252,8 @@ def get_field_changed(changed, time, doctype, doc_name, v):
 			"data": {
 					"time": time,
 					"field": d[0],
-					"from": frappe.utils.html2text(str(d[1])),
-					"to": frappe.utils.html2text(str(d[2]))
+					"from": html2text(str(d[1])),
+					"to": html2text(str(d[2]))
 				},
 			"doctype": doctype,
 			"doc_name": doc_name,

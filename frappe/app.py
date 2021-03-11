@@ -128,6 +128,8 @@ def init_request(request):
 	if frappe.local.conf.get('maintenance_mode'):
 		frappe.connect()
 		raise frappe.SessionStopped('Session Stopped')
+	else:
+		frappe.connect(set_admin_as_user=False)
 
 	make_form_dict(request)
 
@@ -180,6 +182,9 @@ def make_form_dict(request):
 		args = json.loads(request_data)
 	else:
 		args = request.form or request.args
+
+	if not isinstance(args, dict):
+		frappe.throw("Invalid request arguments")
 
 	try:
 		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \

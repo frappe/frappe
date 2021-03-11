@@ -154,7 +154,7 @@
    "fieldname": "font",
    "fieldtype": "Select",
    "label": "Font",
-   "options": "Default\nArial\nHelvetica\nVerdana\nMonospace"
+   "options": "Default\nHelvetica Neue\nArial\nHelvetica\nVerdana\nMonospace"
   },
   {
    "depends_on": "eval:!doc.raw_printing",
@@ -171,7 +171,7 @@
    "fieldname": "custom_html_help",
    "fieldtype": "HTML",
    "label": "Custom HTML Help",
-   "options": "<h3>Custom CSS Help</h3>\n\n<p>Notes:</p>\n\n<ol>\n<li>All field groups (label + value) are set attributes <code>data-fieldtype</code> and <code>data-fieldname</code></li>\n<li>All values are given class <code>value</code></li>\n<li>All Section Breaks are given class <code>section-break</code></li>\n<li>All Column Breaks are given class <code>column-break</code></li>\n</ol>\n\n<h4>Examples</h4>\n\n<p>1. Left align integers</p>\n\n<pre><code>[data-fieldtype=\"Int\"] .value { text-left: left; }</code></pre>\n\n<p>1. Add border to sections except the last section</p>\n\n<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n.section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
+   "options": "<h3>Custom CSS Help</h3>\n\n<p>Notes:</p>\n\n<ol>\n<li>All field groups (label + value) are set attributes <code>data-fieldtype</code> and <code>data-fieldname</code></li>\n<li>All values are given class <code>value</code></li>\n<li>All Section Breaks are given class <code>section-break</code></li>\n<li>All Column Breaks are given class <code>column-break</code></li>\n</ol>\n\n<h4>Examples</h4>\n\n<p>1. Left align integers</p>\n\n<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; }</code></pre>\n\n<p>1. Add border to sections except the last section</p>\n\n<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n.section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
   },
   {
    "depends_on": "custom_format",
@@ -211,7 +211,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-12-14 11:38:49.132061",
+ "modified": "2021-03-01 15:25:46.578863",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

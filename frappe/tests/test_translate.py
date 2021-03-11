@@ -15,10 +15,12 @@ class TestTranslate(unittest.TestCase):
 		self.assertListEqual(data, expected_output)
 
 	def test_translation_with_context(self):
-		frappe.local.lang = 'fr'
-		self.assertEqual(_('Change'), 'Changement')
-		self.assertEqual(_('Change', context='Coins'), 'la monnaie')
-		frappe.local.lang = 'en'
+		try:
+			frappe.local.lang = 'fr'
+			self.assertEqual(_('Change'), 'Changement')
+			self.assertEqual(_('Change', context='Coins'), 'la monnaie')
+		finally:
+			frappe.local.lang = 'en'
 
 expected_output = [
 	('apps/frappe/frappe/tests/translation_test_file.txt', 'Warning: Unable to find {0} in any table related to {1}', 'This is some context', 2),

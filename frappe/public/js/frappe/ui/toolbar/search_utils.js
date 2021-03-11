@@ -294,7 +294,7 @@ frappe.search.utils = {
 					label: __("Open {0}", [me.bolden_match_part(__(item.name), keywords)]),
 					value: __("Open {0}", [__(item.name)]),
 					index: level,
-					route: ["workspace", item.name]
+					route: [frappe.router.slug(item.name)]
 				};
 
 				out.push(ret);
@@ -314,7 +314,7 @@ frappe.search.utils = {
 					label: __("{0} Dashboard", [me.bolden_match_part(__(item.name), keywords)]),
 					value: __("{0} Dashboard", [__(item.name)]),
 					index: level,
-					route: ["dashboard", item.name]
+					route: ["dashboard-view", item.name]
 				};
 
 				out.push(ret);
@@ -481,47 +481,47 @@ frappe.search.utils = {
 		});
 		var in_keyword = keywords.split(" in ")[0];
 		return [{
-			title: "Recents",
+			title: __("Recents"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_recent_pages(keywords))
 		},
 		{
-			title: "Create a new ...",
+			title: __("Create a new ..."),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_creatables(keywords))
 		},
 		{
-			title: "Lists",
+			title: __("Lists"),
 			fetch_type: "Nav",
 			results: lists
 		},
 		{
-			title: "Reports",
+			title: __("Reports"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_reports(keywords))
 		},
 		{
-			title: "Administration",
+			title: __("Administration"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_pages(keywords))
 		},
 		{
-			title: "Workspace",
+			title: __("Workspace"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_workspaces(keywords))
 		},
 		{
-			title: "Dashboard",
+			title: __("Dashboard"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_dashboards(keywords))
 		},
 		{
-			title: "Setup",
+			title: __("Setup"),
 			fetch_type: "Nav",
 			results: setup
 		},
 		{
-			title: "Find '" + in_keyword + "' in ... ",
+			title: __("Find '{0}' in ...", [in_keyword]),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_search_in_list(keywords))
 		}];
@@ -594,7 +594,7 @@ frappe.search.utils = {
 			return str;
 		} else if(this.fuzzy_search(subseq, str) > 6) {
 			var regEx = new RegExp("("+ subseq +")", "ig");
-			return str.replace(regEx, '<b>$1</b>');
+			return str.replace(regEx, '<mark>$1</mark>');
 		} else {
 			var str_orig = str;
 			var str = str.toLowerCase();
@@ -607,9 +607,9 @@ frappe.search.utils = {
 					if(str.charCodeAt(j) === sub_ch) {
 						var str_char = str_orig.charAt(j);
 						if(str_char === str_char.toLowerCase()) {
-							rendered += '<b>' + subseq.charAt(i) + '</b>';
+							rendered += '<mark>' + subseq.charAt(i) + '</mark>';
 						} else {
-							rendered += '<b>' + subseq.charAt(i).toUpperCase() + '</b>';
+							rendered += '<mark>' + subseq.charAt(i).toUpperCase() + '</mark>';
 						}
 						j++;
 						continue outer;

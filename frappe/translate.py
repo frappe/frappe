@@ -17,7 +17,6 @@ from frappe.utils import cstr
 import frappe, os, re, io, codecs, json
 from frappe.model.utils import render_include, InvalidIncludePath
 from frappe.utils import strip, strip_html_tags, is_html
-from jinja2 import TemplateError
 import itertools, operator
 
 def guess_language(lang_list=None):
@@ -118,6 +117,8 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
+			messages += frappe.db.sql("select '', format from `tabWorkspace Shortcut` where format is not null")
+			messages += frappe.db.sql("select '', title from `tabOnboarding Step`")
 
 		message_dict = make_dict_from_messages(messages, load_user_translation=False)
 		message_dict.update(get_dict_from_hooks(fortype, name))
@@ -336,6 +337,8 @@ def get_messages_from_doctype(name):
 			options = d.options.split('\n')
 			if not "icon" in options[0]:
 				messages.extend(options)
+		if d.fieldtype=='HTML' and d.options:
+			messages.append(d.options)
 
 	# translations of roles
 	for d in meta.get("permissions"):
@@ -522,6 +525,8 @@ def extract_messages_from_code(code):
 		:param code: code from which translatable files are to be extracted
 		:param is_py: include messages in triple quotes e.g. `_('''message''')`
 	"""
+	from jinja2 import TemplateError
+
 	try:
 		code = frappe.as_unicode(render_include(code))
 	except (TemplateError, ImportError, InvalidIncludePath, IOError):

@@ -142,7 +142,7 @@ frappe.dom = {
 	},
 	freeze: function(msg, css_class) {
 		// blur
-		if(!$('#freeze').length) {
+		if (!$('#freeze').length) {
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
 				.on("click", function() {
 					if (cur_frm && cur_frm.cur_grid) {
@@ -150,7 +150,7 @@ frappe.dom = {
 						return false;
 					}
 				})
-				.appendTo("#body_div");
+				.appendTo("#body");
 
 			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message"><p class="lead">%(msg)s</p></div></div>',
 				{msg: msg || ""}));
@@ -289,33 +289,63 @@ frappe.scrub = function(text, spacer='_') {
 	return text.replace(/ /g, spacer).toLowerCase();
 };
 
+frappe.unscrub = function(txt) {
+	return frappe.model.unscrub(txt);
+};
+
+frappe.get_data_pill = (label, target_id=null, remove_action=null, image=null) => {
+	let data_pill_wrapper = $(`
+		<button class="data-pill btn">
+			<div class="flex align-center ellipsis">
+				${image ? image : ''}
+				<span class="pill-label ${image ? "ml-2" : ""}">${label}</span>
+			</div>
+		</button>
+	`);
+
+	if (remove_action) {
+		let remove_btn = $(`
+			<span class="remove-btn cursor-pointer">
+				${frappe.utils.icon('close', 'sm')}
+			</span>
+		`).click(() => {
+			remove_action(target_id || label, data_pill_wrapper);
+		});
+		data_pill_wrapper.append(remove_btn);
+	}
+
+	return data_pill_wrapper;
+};
+
 frappe.get_modal = function(title, content) {
 	return $(`<div class="modal fade" style="overflow: auto;" tabindex="-1">
-		<div class="modal-dialog">
+		<div class="modal-dialog modal-dialog-scrollable">
 			<div class="modal-content">
 				<div class="modal-header">
-					<div class="flex justify-between">
-						<div class="fill-width flex">
-							<span class="indicator hidden"></span>
-							<h4 class="modal-title" style="font-weight: bold;">${title}</h4>
-						</div>
-						<div>
-							<div class="text-right buttons">
-								<button type="button" class="btn btn-default btn-sm btn-modal-minimize hide">
-									<i class="octicon octicon-chevron-down" style="padding: 1px 0px;"></i>
-								</button>
-								<button type="button" class="btn btn-default btn-sm btn-modal-close" data-dismiss="modal">
-									<i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i>
-									<span class="hidden-xs">${__("Close")}</span>
-								</button>
-								<button type="button" class="btn btn-primary btn-sm hide">
-									${__("Confirm")}
-								</button>
-							</div>
-						</div>
+					<div class="fill-width flex title-section">
+						<span class="indicator hidden"></span>
+						<h4 class="modal-title">${title}</h4>
+					</div>
+					<div class="modal-actions">
+						<button class="btn btn-modal-minimize btn-link hide">
+							${frappe.utils.icon('collapse')}
+						</button>
+						<button class="btn btn-modal-close btn-link" data-dismiss="modal">
+							${frappe.utils.icon('close-alt', 'sm', 'close-alt')}
+						</button>
 					</div>
 				</div>
 				<div class="modal-body ui-front">${content}</div>
+				<div class="modal-footer hide">
+					<div class="custom-actions"></div>
+					<div class="standard-actions">
+						<button type="button" class="btn btn-secondary btn-sm hide btn-modal-secondary">
+						</button>
+						<button type="button" class="btn btn-primary btn-sm hide btn-modal-primary">
+							${__("Confirm")}
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>`);

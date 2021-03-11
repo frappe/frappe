@@ -1,42 +1,36 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-# util __init__.py
+from __future__ import print_function, unicode_literals
 
-from __future__ import unicode_literals, print_function
-from werkzeug.test import Client
-import os, re, sys, json, hashlib, requests, traceback
 import functools
-from .html_utils import sanitize_html
-import frappe
-from frappe.utils.identicon import Identicon
-from email.utils import parseaddr, formataddr
+import hashlib
+import io
+import json
+import os
+import re
+import sys
+import traceback
+import typing
+
 from email.header import decode_header, make_header
+from email.utils import formataddr, parseaddr
+from gzip import GzipFile
+from typing import Generator, Iterable
+
+from six import string_types, text_type
+from six.moves.urllib.parse import quote
+from werkzeug.test import Client
+
+import frappe
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from six.moves.urllib.parse import quote
-from six import text_type, string_types
-import io
-from gzip import GzipFile
+from frappe.utils.html_utils import sanitize_html
+
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
 	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
 
-# used in import_docs.py
-# TODO: deprecate it
-def getCSVelement(v):
-	"""
-		 Returns the CSV value of `v`, For example:
-
-		 * apple becomes "apple"
-		 * hi"there becomes "hi""there"
-	"""
-	v = cstr(v)
-	if not v: return ''
-	if (',' in v) or ('\n' in v) or ('"' in v):
-		if '"' in v: v = v.replace('"', '""')
-		return '"'+v+'"'
-	else: return v or ''
 
 def get_fullname(user=None):
 	"""get the full name (first name + last name) of the user from User"""
@@ -176,6 +170,8 @@ def random_string(length):
 
 def has_gravatar(email):
 	'''Returns gravatar url if user has set an avatar at gravatar.com'''
+	import requests
+
 	if (frappe.flags.in_import
 		or frappe.flags.in_install
 		or frappe.flags.in_test):
@@ -199,6 +195,8 @@ def get_gravatar_url(email):
 	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email.encode('utf-8')).hexdigest())
 
 def get_gravatar(email):
+	from frappe.utils.identicon import Identicon
+
 	gravatar_url = has_gravatar(email)
 
 	if not gravatar_url:
@@ -304,8 +302,8 @@ def unesc(s, esc_chars):
 
 def execute_in_shell(cmd, verbose=0):
 	# using Popen instead of os.system - as recommended by python docs
-	from subprocess import Popen
 	import tempfile
+	from subprocess import Popen
 
 	with tempfile.TemporaryFile() as stdout:
 		with tempfile.TemporaryFile() as stderr:
@@ -463,6 +461,7 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 def get_request_session(max_retries=3):
+	import requests
 	from urllib3.util import Retry
 	session = requests.Session()
 	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
@@ -471,8 +470,9 @@ def get_request_session(max_retries=3):
 
 def watch(path, handler=None, debug=True):
 	import time
-	from watchdog.observers import Observer
+
 	from watchdog.events import FileSystemEventHandler
+	from watchdog.observers import Observer
 
 	class Handler(FileSystemEventHandler):
 		def on_any_event(self, event):
@@ -571,9 +571,9 @@ def get_installed_apps_info():
 	return out
 
 def get_site_info():
-	from frappe.utils.user import get_system_managers
 	from frappe.core.doctype.user.user import STANDARD_USERS
 	from frappe.email.queue import get_emails_sent_this_month
+	from frappe.utils.user import get_system_managers
 
 	# only get system users
 	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
@@ -691,13 +691,19 @@ def get_safe_filters(filters):
 
 	return filters
 
-def create_batch(iterable, batch_size):
-	"""
-	Convert an iterable to multiple batches of constant size of batch_size
+def create_batch(iterable: Iterable, size: int) -> Generator[Iterable, None, None]:
+	"""Convert an iterable to multiple batches of constant size of batch_size
+
+	Args:
+		iterable (Iterable): Iterable object which is subscriptable
+		size (int): Maximum size of batches to be generated
+
+	Yields:
+		Generator[List]: Batched iterable of maximum length `size`
 	"""
 	total_count = len(iterable)
-	for i in range(0, total_count, batch_size):
-		yield iterable[i:min(i + batch_size, total_count)]
+	for i in range(0, total_count, size):
+		yield iterable[i : min(i + size, total_count)]
 
 def set_request(**kwargs):
 	from werkzeug.test import EnvironBuilder
@@ -758,3 +764,28 @@ def get_bench_relative_path(file_path):
 		sys.exit(1)
 
 	return os.path.abspath(file_path)
+
+
+def groupby_metric(iterable: typing.Dict[str, list], key: str):
+	""" Group records by a metric.
+
+	Usecase: Lets assume we got country wise players list with the ranking given for each player(multiple players in a country can have same ranking aswell).
+	We can group the players by ranking(can be any other metric) using this function.
+
+	>>> d = {
+		'india': [{'id':1, 'name': 'iplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'iplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'iplayer-3'}],
+		'Aus': [{'id':1, 'name': 'aplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'aplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'aplayer-3'}]
+	}
+	>>> groupby(d, key='ranking')
+	{1: {'Aus': [{'id': 1, 'name': 'aplayer-1', 'ranking': 1},
+				{'id': 2, 'name': 'aplayer-2', 'ranking': 1}],
+		'india': [{'id': 1, 'name': 'iplayer-1', 'ranking': 1},
+				{'id': 2, 'name': 'iplayer-2', 'ranking': 1}]},
+	2: {'Aus': [{'id': 2, 'name': 'aplayer-3', 'ranking': 2}],
+		'india': [{'id': 2, 'name': 'iplayer-3', 'ranking': 2}]}}
+	"""
+	records = {}
+	for category, items in iterable.items():
+		for item in items:
+			records.setdefault(item[key], {}).setdefault(category, []).append(item)
+	return records

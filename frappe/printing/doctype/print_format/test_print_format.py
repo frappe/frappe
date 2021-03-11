@@ -11,8 +11,8 @@ test_records = frappe.get_test_records('Print Format')
 class TestPrintFormat(unittest.TestCase):
 	def test_print_user(self, style=None):
 		print_html = frappe.get_print("User", "Administrator", style=style)
-		self.assertTrue("<label>First Name</label>" in print_html)
-		self.assertTrue(re.findall('<div class="col-xs-7[^"]*">[\s]*administrator[\s]*</div>', print_html))
+		self.assertTrue("<label>First Name: </label>" in print_html)
+		self.assertTrue(re.findall('<div class="col-xs-[^"]*">[\s]*administrator[\s]*</div>', print_html))
 		return print_html
 
 	def test_print_user_standard(self):

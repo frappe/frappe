@@ -14,7 +14,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 @frappe.read_only()
 def get():
 	args = get_form_params()

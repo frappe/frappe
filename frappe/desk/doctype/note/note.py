@@ -17,7 +17,7 @@ class Note(Document):
 			# expire this notification in a week (default)
 			self.expire_notification_on = frappe.utils.add_days(self.creation, 7)
 
-	def before_print(self):
+	def before_print(self, settings=None):
 		self.print_heading = self.name
 		self.sub_heading = ""
 

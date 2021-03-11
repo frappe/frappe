@@ -40,7 +40,7 @@ class BotParser(object):
 
 	def format_list(self, data):
 		'''Format list as markdown'''
-		return _('I found these: ') + ', '.join([' [{title}](#Form/{doctype}/{name})'.format(
+		return _('I found these: ') + ', '.join([' [{title}](/app/Form/{doctype}/{name})'.format(
 			title = d.title or d.name,
 			doctype=self.get_doctype(),
 			name=d.name) for d in data])
@@ -58,7 +58,7 @@ class ShowNotificationBot(BotParser):
 
 			if open_items:
 				return ("Following items need your attention:\n\n"
-					+ "\n\n".join(["{0} [{1}](#List/{1})".format(d[1], d[0])
+					+ "\n\n".join(["{0} [{1}](/app/List/{1})".format(d[1], d[0])
 						for d in open_items if d[1] > 0]))
 			else:
 				return 'Take it easy, nothing urgent needs your attention'
@@ -77,7 +77,7 @@ class GetOpenListBot(BotParser):
 					else:
 						data = [{'name':d[0], 'title':d[1]} for d in frappe.get_attr(filters)(as_list=True)]
 
-					return ", ".join('[{title}](#Form/{doctype}/{name})'.format(doctype=doctype,
+					return ", ".join('[{title}](/app/Form/{doctype}/{name})'.format(doctype=doctype,
 						name=d.get('name'), title=d.get('title') or d.get('name')) for d in data)
 				else:
 					return _("Can't identify open {0}. Try something else.").format(doctype)

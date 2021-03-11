@@ -6,7 +6,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 				<label>
 					<span class="input-area"></span>
 					<span class="disp-area"></span>
-					<span class="label-area ${this.df.is_web_form ? "" : "small"}"></span>
+					<span class="label-area"></span>
 				</label>
 				<p class="help-box small text-muted"></p>
 			</div>
