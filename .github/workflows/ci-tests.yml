@@ -138,6 +138,9 @@ jobs:
       #     COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
       #     COVERALLS_GIT_BRANCH: ${{ secrets.GITHUB_REF }}
       #     TYPE: ${{ matrix.TYPE }}
+
+      - run: ls ~/frappe-bench/sites/.coverage/
+
       - name: Publish to coveralls.io
         uses: coverallsapp/github-action@v1.1.2
         with:
