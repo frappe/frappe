@@ -334,10 +334,7 @@ frappe.router = {
 				return null;
 			} else {
 				a = String(a);
-				if (a && a.match(/[%'"\s\t]/)) {
-					// if special chars, then encode
-					a = encodeURIComponent(a);
-				}
+				a = encodeURIComponent(a);
 				return a;
 			}
 		}).join('/');
