@@ -135,4 +135,6 @@ jobs:
           coveralls -b ${GITHUB_WORKSPACE} -d sites/.coverage
         env:
           DB: ${{ matrix.DB }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          COVERALLS_GIT_BRANCH: ${{ github.ref }}
           TYPE: ${{ matrix.TYPE }}
