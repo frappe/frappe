@@ -75,7 +75,7 @@ class File(Document):
 			self.add_comment_in_reference_doc('Attachment',
 				_('Added {0}').format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
 					"icon": ' <i class="fa fa-lock text-warning"></i>' if self.is_private else "",
-					"file_url": quote(self.file_url.encode('utf8')) if self.file_url else self.file_name,
+					"file_url": quote(frappe.safe_encode(self.file_url)) if self.file_url else self.file_name,
 					"file_name": self.file_name or self.file_url
 				})))
 
