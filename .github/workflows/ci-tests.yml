@@ -159,9 +159,9 @@ jobs:
 
       - name: Coverage
         run: |
-          cd ~/frappe-bench/
+          cd ~/frappe-bench/sites/
           pip install coveralls==2.2.0
-          pip install coverage==5.2.1
+          pip install coverage==4.5.4
           coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
