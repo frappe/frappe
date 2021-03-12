@@ -1,10 +1,8 @@
 #!/bin/bash
 
-cd ~ || exit
+set -e
 
-# shellcheck disable=SC1091
-source ./.nvm/nvm.sh
-nvm install 12
+cd ~ || exit
 
 pip install frappe-bench
 
