@@ -10,13 +10,13 @@ pip install frappe-bench
 bench init frappe-bench --skip-assets --python $(which python) --frappe-path ${GITHUB_WORKSPACE}
 
 mkdir ~/frappe-bench/sites/test_site
-cp ${GITHUB_WORKSPACE}/.travis/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
+cp ${GITHUB_WORKSPACE}/.github/helper/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
 
 if [ $TYPE == "server" ]; then
       mkdir ~/frappe-bench/sites/test_site_producer;
-      cp ${GITHUB_WORKSPACE}/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json;
-    fi
-echo "server ends"
+      cp ${GITHUB_WORKSPACE}/.github/helper/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json;
+fi
+
 if [ $DB == "mariadb" ];then
       mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
       mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
@@ -33,10 +33,6 @@ if [ $DB == "mariadb" ];then
       mysql --host 127.0.0.1 --port 3306 -u root -e "FLUSH PRIVILEGES";
     fi
 
-
-echo "maria ends"
-
-
 if [ $DB == "postgres" ];then
     echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe_consumer" -U postgres;
     echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe_consumer WITH PASSWORD 'test_frappe'" -U postgres;
@@ -44,7 +40,6 @@ if [ $DB == "postgres" ];then
     echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe_producer" -U postgres;
     echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe_producer WITH PASSWORD 'test_frappe'" -U postgres;
 fi
-echo "postgres ends"
 
 cd ./frappe-bench
 
@@ -60,7 +55,6 @@ if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
 cd ./apps/frappe
 yarn add node-sass@4.13.1
 cd ../..
-echo "start bench"
 
 bench start &
 bench --site test_site reinstall --yes
