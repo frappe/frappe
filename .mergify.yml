@@ -16,7 +16,9 @@ pull_request_rules:
   - name: Automatic squash on CI success and review
     conditions:
       - status-success=Sider
-      - status-success=Travis CI - Pull Request
+      - status-success=CI / Python MariaDB (pull_request)
+      - status-success=CI / Python PostgreSQL (pull_request)
+      - status-success=CI / UI MariaDB (pull_request)
       - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label=squash
