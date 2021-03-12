@@ -15,12 +15,17 @@ jobs:
         - DB: "mariadb"
           TYPE: "server"
           JOB_NAME: "Python MariaDB"
+          RUN_COMMAND: bench --verbose --site test_site run-tests --coverage
+
         - DB: "postgres"
           TYPE: "server"
           JOB_NAME: "Python PostgreSQL"
+          RUN_COMMAND: bench --verbose --site test_site run-tests --coverage
+
         - DB: "mariadb"
           TYPE: "ui"
           JOB_NAME: "UI MariaDB"
+          RUN_COMMAND:  bench --site test_site run-ui-tests frappe --headless
 
     name: ${{ matrix.JOB_NAME }}
 
@@ -111,7 +116,14 @@ jobs:
           TYPE: ${{ matrix.TYPE }}
 
       - name: Run Tests
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/run_tests.sh
+        if: matrix.TYPE == 'ui'
+        run: bench --site test_site execute frappe.utils.install.complete_setup_wizard
+        env:
+          DB: ${{ matrix.DB }}
+          TYPE: ${{ matrix.TYPE }}
+
+      - name: Run Tests
+        run: matrix.RUN_COMMAND
         env:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
