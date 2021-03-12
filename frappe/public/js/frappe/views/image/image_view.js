@@ -142,20 +142,6 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		`;
 	}
 
-	get_image_url(data) {
-		var url;
-		url = data.image ? data.image : data[this.meta.image_field];
-
-		// absolute url for mobile
-		if (window.cordova && !frappe.utils.is_url(url)) {
-			url = frappe.base_url + url;
-		}
-		if (url) {
-			return url;
-		}
-		return null;
-	}
-
 	get_attached_images() {
 		return frappe
 			.call({

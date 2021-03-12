@@ -12,11 +12,9 @@ from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
-from frappe.utils.password import get_decrypted_password, set_encrypted_password
 from frappe.utils import (cint, flt, now, cstr, strip_html,
 	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.utils.html_utils import unescape_html
-from bs4 import BeautifulSoup
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -756,6 +754,8 @@ class BaseDocument(object):
 
 			- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
+		from bs4 import BeautifulSoup
+
 		if frappe.flags.in_install:
 			return
 
@@ -792,6 +792,8 @@ class BaseDocument(object):
 
 	def _save_passwords(self):
 		"""Save password field values in __Auth table"""
+		from frappe.utils.password import set_encrypted_password
+
 		if self.flags.ignore_save_passwords is True:
 			return
 
@@ -806,6 +808,8 @@ class BaseDocument(object):
 				self.set(df.fieldname, '*'*len(new_password))
 
 	def get_password(self, fieldname='password', raise_exception=True):
+		from frappe.utils.password import get_decrypted_password
+
 		if self.get(fieldname) and not self.is_dummy_password(self.get(fieldname)):
 			return self.get(fieldname)
 
