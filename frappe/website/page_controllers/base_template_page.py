@@ -1,6 +1,7 @@
+import os
+
 import frappe
 from frappe import _
-from frappe.website.context import add_sidebar_and_breadcrumbs
 from frappe.website.doctype.website_settings.website_settings import \
 	get_website_settings
 from frappe.website.page_controllers.web_page import WebPage
@@ -15,15 +16,12 @@ class BaseTemplatePage(WebPage):
 	def add_csrf_token(self, html):
 		if frappe.local.session:
 			return html.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
-					frappe.local.session.data.csrf_token))
+				frappe.local.session.data.csrf_token))
 		else:
 			return html
 
 	def post_process_context(self):
-		self.set_missing_values()
 		self.add_metatags()
-		self.add_sidebar_and_breadcrumbs()
-
 		self.set_base_template_if_missing()
 		self.set_title_with_prefix()
 		self.update_website_context()
@@ -39,7 +37,6 @@ class BaseTemplatePage(WebPage):
 		# context sends us a new template path
 		if self.context.template:
 			self.template_path = self.context.template
-
 
 	def set_base_template_if_missing(self):
 		if not self.context.base_template_path:
@@ -68,9 +65,6 @@ class BaseTemplatePage(WebPage):
 		self.set_metatags_from_website_route_meta()
 
 		self.context.metatags = self.tags
-
-	def add_sidebar_and_breadcrumbs(self):
-		add_sidebar_and_breadcrumbs(self.context)
 
 	def init_metatags_from_context(self):
 		for key in ('title', 'description', 'image', 'author', 'url', 'published_on'):

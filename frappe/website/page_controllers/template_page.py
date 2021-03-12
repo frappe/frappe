@@ -4,6 +4,7 @@ import os
 import frappe
 from frappe import _
 from frappe.website.page_controllers.base_template_page import BaseTemplatePage
+from frappe.website.context import add_sidebar_and_breadcrumbs
 from frappe.website.render import build_response
 from frappe.website.utils import (extract_comment_tag, extract_title,
 	get_next_link, get_toc)
@@ -60,6 +61,14 @@ class TemplatePage(BaseTemplatePage):
 
 		return html
 
+	def post_process_context(self):
+		self.add_sidebar_and_breadcrumbs()
+		self.set_missing_values()
+		super(TemplatePage, self).post_process_context()
+
+	def add_sidebar_and_breadcrumbs(self):
+		add_sidebar_and_breadcrumbs(self.context)
+
 	def set_pymodule(self):
 		'''
 		A template may have a python module with a `get_context` method along with it in the
@@ -85,7 +94,7 @@ class TemplatePage(BaseTemplatePage):
 		self.convert_from_markdown()
 
 		if self.extends_template():
-			self.context.base_template_path = self.context.base_template_path or 'templates/base.html'
+			self.context.base_template_path = self.context.base_template_path
 
 
 		# TODO: setup index.txt ?
@@ -246,9 +255,11 @@ class TemplatePage(BaseTemplatePage):
 		if self.context.url_prefix and self.context.url_prefix[-1]!='/':
 			self.context.url_prefix += '/'
 
+		self.context.path = self.path
+		self.context.pathname = frappe.local.path
+
 		# for backward compatibility
 		self.context.docs_base_url = '/docs'
-		self.context.path = self.path
 
 
 def get_start_folders():
