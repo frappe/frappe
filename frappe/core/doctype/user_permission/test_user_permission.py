@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 from frappe.core.doctype.user_permission.user_permission import add_user_permissions, remove_applicable
 from frappe.permissions import has_user_permission
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 
 import frappe
 import unittest
@@ -156,8 +157,6 @@ class TestUserPermission(unittest.TestCase):
 
 	def test_user_perm_on_new_doc_with_field_default(self):
 		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
-		from frappe.core.doctype.doctype.test_doctype import new_doctype
-
 		frappe.set_user('Administrator')
 		user = create_user("new_doc_test@example.com", "Blogger")
 
