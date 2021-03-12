@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python ${GITHUB_WORKSPACE}/.github/helper/roulette.py
+python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
 if [[ $? != 2 ]];then
   exit;
 fi
