@@ -24,7 +24,9 @@ def is_docs(file):
 
 if __name__ == "__main__":
     build_type = os.environ.get("TYPE")
-    commit_range = os.environ.get("COMMIT_RANGE")
+    before = os.environ.get("BEFORE")
+    after = os.environ.get("AFTER")
+    commit_range = before + '...' + after
     print("Build Type: {}".format(build_type))
     print("Commit Range: {}".format(commit_range))
 

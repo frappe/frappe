@@ -114,7 +114,8 @@ jobs:
       - name: Install Dependencies
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
         env:
-          COMMIT_RANGE: "${{ GITHUB_EVENT_PATH.before }}...${{ GITHUB_EVENT_PATH.after }}"
+          BEFORE: ${{ GITHUB_EVENT_PATH.before }}
+          AFTER: ${{ GITHUB_EVENT_PATH.after }}
           TYPE: ${{ matrix.TYPE }}
 
       - name: Install
