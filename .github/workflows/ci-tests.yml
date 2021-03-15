@@ -39,7 +39,7 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
       postgres:
-        image: postgres:9.5
+        image: postgres:12.4
         env:
           POSTGRES_PASSWORD: travis
         options: >-
