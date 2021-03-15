@@ -8,6 +8,7 @@ from frappe.website.page_controllers.not_permitted_page import NotPermittedPage
 from frappe.website.page_controllers.print_page import PrintPage
 from frappe.website.page_controllers.template_page import TemplatePage
 from frappe.website.page_controllers.static_page import StaticPage
+from frappe.website.page_controllers.web_form import WebFormPage
 
 from frappe.website.redirect import resolve_redirect
 from frappe.website.render import build_response, resolve_path
@@ -23,7 +24,6 @@ def get_response(path=None, http_status_code=200):
 		path = path.strip('/ ')
 		resolve_redirect(path, query_string)
 		path = resolve_path(path)
-		data = None
 
 		# there is no way to determine the type of the page based on the route
 		# so evaluate each type of page sequentially
@@ -32,6 +32,8 @@ def get_response(path=None, http_status_code=200):
 			response = TemplatePage(path, http_status_code).get()
 		if not response:
 			response = ListPage(path, http_status_code).get()
+		if not response:
+			response = WebFormPage(path, http_status_code).get()
 		if not response:
 			response = DocumentPage(path, http_status_code).get()
 		if not response:
