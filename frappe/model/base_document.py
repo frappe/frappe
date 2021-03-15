@@ -858,7 +858,7 @@ class BaseDocument(object):
 
 		if not currency:
 			currency = self.get(df.get("options"))
-			if currency not in [d.name for d in frappe.get_all('Currency')]:
+			if not frappe.db.exists('Currency', currency, cache=True):
 				currency = None
 
 		val = self.get(fieldname)
