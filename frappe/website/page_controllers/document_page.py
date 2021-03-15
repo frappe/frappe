@@ -82,7 +82,7 @@ class DocumentPage(BaseTemplatePage):
 		if meta.is_published_field:
 			condition_field = meta.is_published_field
 		elif not meta.custom:
-			controller = get_controller(meta.doctype)
+			controller = get_controller(meta.name)
 			condition_field = controller.website.condition_field
 
 		return condition_field
