@@ -36,17 +36,17 @@ class Dashboard {
 		} else {
 			// last opened
 			if (frappe.last_dashboard) {
-				frappe.set_route('dashboard-view', frappe.last_dashboard);
+				frappe.set_re_route('dashboard-view', frappe.last_dashboard);
 			} else {
 				// default dashboard
 				frappe.db.get_list('Dashboard', {filters: {is_default: 1}}).then(data => {
 					if (data && data.length) {
-						frappe.set_route('dashboard-view', data[0].name);
+						frappe.set_re_route('dashboard-view', data[0].name);
 					} else {
 						// no default, get the latest one
 						frappe.db.get_list('Dashboard', {limit: 1}).then(data => {
 							if (data && data.length) {
-								frappe.set_route('dashboard-view', data[0].name);
+								frappe.set_re_route('dashboard-view', data[0].name);
 							} else {
 								// create a new dashboard!
 								frappe.new_doc('Dashboard');
