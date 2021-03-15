@@ -101,14 +101,6 @@ class PersonalDataDeletionRequest(Document):
 		if self.status != "Pending Approval":
 			frappe.throw(_("This request has not yet been approved by the user."))
 
-	def __set_anonymization_data(self, email, anon):
-		self.anon = anon or self.name
-		self.full_name = get_fullname(email)
-		self.email_regex = get_pattern(email)
-		self.full_name_regex = get_pattern(self.full_name)
-		self.is_full_name_set = email != self.full_name
-		self.anonymization_value_map["Email"] = self.anon
-
 	def trigger_data_deletion(self):
 		"""Redact user data defined in current site's hooks under `user_data_fields`"""
 		self.validate_data_anonymization()
@@ -125,72 +117,28 @@ class PersonalDataDeletionRequest(Document):
 			now=frappe.flags.in_test,
 		)
 
-	def _anonymize_data(self, email=None, anon=None, set_data=True):
-		email = email or self.email
-		anon = anon or self.name
-
-		if set_data:
-			self.__set_anonymization_data(email, anon)
-
-		for doctype in self.full_match_privacy_docs:
-			self.redact_full_match_data(doctype, email)
-
-		for doctype in self.partial_privacy_docs:
-			self.redact_partial_match_data(doctype)
-
-		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
-		self.db_set("status", "Deleted")
-
 	def redact_partial_match_data(self, doctype):
-		match_fields = []
-		editable_text_fields = {
-			"Small Text",
-			"Text",
-			"Text Editor",
-			"Code",
-			"HTML Editor",
-			"Markdown Editor",
-			"Long Text",
-			"Data",
-		}
+		self.__redact_partial_match_data(doctype)
+		self.rename_documents(doctype)
 
-		for df in frappe.get_meta(doctype["doctype"]).fields:
-			if df.fieldtype not in editable_text_fields:
-				continue
+	def rename_documents(self, doctype):
+		if not doctype.get("rename"):
+			return
 
-			match_fields += [
-				f"`{df.fieldname}`= REPLACE(REPLACE(`{df.fieldname}`, %(name)s,"
-				f" 'REDACTED'), %(email)s, '{self.anon}')",
-			]
+		def new_name(email, number):
+			email_user, domain = email.split("@")
+			return f"{email_user}-{number}@{domain}"
 
-		update_predicate = f"SET  {', '.join(match_fields)}"
-		where_predicate = (
-			""
-			if doctype.get("strict")
-			else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
-		)
-
-		frappe.db.sql(
-			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
-			{"name": self.full_name, "email": self.email},
-		)
-
-		if doctype.get("rename"):
-
-			def new_name(email, number):
-				email_user, domain = email.split("@")
-				return f"{email_user}-{number}@{domain}"
-
-			for i, name in enumerate(
-				frappe.get_all(
-					doctype["doctype"],
-					filters={doctype.get("filter_by", "owner"): self.email},
-					pluck="name",
-				)
-			):
-				frappe.rename_doc(
-					doctype["doctype"], name, new_name(self.anon, i + 1), force=True, show_alert=False
-				)
+		for i, name in enumerate(
+			frappe.get_all(
+				doctype["doctype"],
+				filters={doctype.get("filter_by", "owner"): self.email},
+				pluck="name",
+			)
+		):
+			frappe.rename_doc(
+				doctype["doctype"], name, new_name(self.anon, i + 1), force=True, show_alert=False
+			)
 
 	def redact_full_match_data(self, ref, email):
 		"""Replaces the entire field value by the values set in the anonymization_value_map"""
@@ -257,6 +205,64 @@ class PersonalDataDeletionRequest(Document):
 			frappe.rename_doc(
 				ref["doctype"], doc["name"], self.anon, force=True, show_alert=False
 			)
+
+	def _anonymize_data(self, email=None, anon=None, set_data=True):
+		email = email or self.email
+		anon = anon or self.name
+
+		if set_data:
+			self.__set_anonymization_data(email, anon)
+
+		for doctype in self.full_match_privacy_docs:
+			self.redact_full_match_data(doctype, email)
+
+		for doctype in self.partial_privacy_docs:
+			self.redact_partial_match_data(doctype)
+
+		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
+		self.db_set("status", "Deleted")
+
+	def __set_anonymization_data(self, email, anon):
+		self.anon = anon or self.name
+		self.full_name = get_fullname(email)
+		self.email_regex = get_pattern(email)
+		self.full_name_regex = get_pattern(self.full_name)
+		self.is_full_name_set = email != self.full_name
+		self.anonymization_value_map["Email"] = self.anon
+
+	def __redact_partial_match_data(self, doctype):
+		match_fields = []
+		editable_text_fields = {
+			"Small Text",
+			"Text",
+			"Text Editor",
+			"Code",
+			"HTML Editor",
+			"Markdown Editor",
+			"Long Text",
+			"Data",
+		}
+
+		for df in frappe.get_meta(doctype["doctype"]).fields:
+			if df.fieldtype not in editable_text_fields:
+				continue
+
+			match_fields += [
+				f"`{df.fieldname}`= REPLACE(REPLACE(`{df.fieldname}`, %(name)s,"
+				f" 'REDACTED'), %(email)s, '{self.anon}')",
+			]
+
+		update_predicate = f"SET  {', '.join(match_fields)}"
+		where_predicate = (
+			""
+			if doctype.get("strict")
+			else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
+		)
+
+		frappe.db.sql(
+			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
+			{"name": self.full_name, "email": self.email},
+		)
 
 
 def remove_unverified_record():
