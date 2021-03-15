@@ -15,7 +15,8 @@
   "column_break_8",
   "submit",
   "cancel",
-  "amend"
+  "amend",
+  "delete"
  ],
  "fields": [
   {
@@ -85,12 +86,18 @@
    "fieldname": "amend",
    "fieldtype": "Check",
    "label": "Amend"
+  },
+  {
+   "default": "0",
+   "fieldname": "delete",
+   "fieldtype": "Check",
+   "label": "Delete"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-03-12 12:51:51.775950",
+ "modified": "2021-03-16 00:32:24.414313",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Document Type",

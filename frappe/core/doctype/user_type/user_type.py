@@ -115,9 +115,11 @@ class UserType(Document):
 
 		for doctype in user_doctypes:
 			doc = frappe.get_meta(doctype)
-			for field in doc.get_link_fields():
-				if field.options not in user_doctypes:
-					select_doctypes.append(field.options)
+			self.prepare_select_perm_doctypes(doc, user_doctypes, select_doctypes)
+
+			for child_table in doc.get_table_fields():
+				child_doc = frappe.get_meta(child_table.options)
+				self.prepare_select_perm_doctypes(child_doc, user_doctypes, select_doctypes)
 
 		if select_doctypes:
 			select_doctypes = set(select_doctypes)
@@ -125,6 +127,11 @@ class UserType(Document):
 				self.append('select_doctypes', {
 					'document_type': select_doctype
 				})
+
+	def prepare_select_perm_doctypes(self, doc, user_doctypes, select_doctypes):
+		for field in doc.get_link_fields():
+			if field.options not in user_doctypes:
+				select_doctypes.append(field.options)
 
 	def add_role_permissions_for_select_doctypes(self):
 		for doctype in ['select_doctypes', 'custom_select_doctypes']:
