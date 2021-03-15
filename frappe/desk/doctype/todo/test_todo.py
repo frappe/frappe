@@ -50,13 +50,24 @@ class TestToDo(unittest.TestCase):
 			frappe.db.get_value('User', todo.assigned_by, 'full_name'))
 
 	def test_access(self):
-		insert_test_records()
+		todo1 = create_new_todo('Test1', 'Administrator')
+		todo2 = create_new_todo('Test2', 'test4@example.com')
 
-		frappe.set_user('testperm@example.com')
+		frappe.set_user('test4@example.com')
 		test_user_data = DatabaseQuery('ToDo').execute()
+
+		self.assertFalse(todo1.has_permission("read"))
+		self.assertFalse(todo1.has_permission("write"))
+		self.assertTrue(todo2.has_permission("read"))
+		self.assertTrue(todo2.has_permission("write"))
 
 		frappe.set_user('Administrator')
 		admin_data = DatabaseQuery('ToDo').execute()
+
+		self.assertTrue(todo1.has_permission("read"))
+		self.assertTrue(todo1.has_permission("write"))
+		self.assertTrue(todo2.has_permission("read"))
+		self.assertTrue(todo2.has_permission("write"))
 
 		self.assertNotEqual(test_user_data, admin_data)
 
@@ -90,14 +101,10 @@ def test_fetch_if_empty(self):
 		self.assertEqual(todo.assigned_by_full_name,
 			frappe.db.get_value('User', todo.assigned_by, 'full_name'))
 
-def insert_test_records():
-	create_new_todo('Test1', 'Administrator')
-	create_new_todo('Test2', 'testperm@example.com')
-
 def create_new_todo(description, assigned_by):
 	todo = {
 		'doctype': 'ToDo',
 		'description': description,
 		'assigned_by': assigned_by
 	}
-	frappe.get_doc(todo).insert()
+	return frappe.get_doc(todo).insert()
