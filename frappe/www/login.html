@@ -88,7 +88,7 @@
 									{% if provider.icon %}
 										{{ provider.icon }}
 									{% endif %}
-									{{ _("Login With") }} {{ provider.provider_name }}</a>
+									{{ _("Login With {0}").format(provider.provider_name) }}</a>
 							</div>
 							{% endfor %}
 							<p class="text-muted login-divider">{{ _("or") }}</p>
