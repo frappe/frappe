@@ -159,8 +159,8 @@ class PersonalDataDeletionRequest(Document):
 				continue
 
 			match_fields += [
-				f"`{df.fieldname}`= REPLACE(`{df.fieldname}`, %(name)s, 'REDACTED')",
-				f"`{df.fieldname}`= REPLACE(`{df.fieldname}`, %(email)s, '{self.anon}')",
+				f"`{df.fieldname}`= REPLACE(REPLACE(`{df.fieldname}`, %(name)s,"
+				f" 'REDACTED'), %(email)s, '{self.anon}')",
 			]
 
 		update_predicate = f"SET  {', '.join(match_fields)}"
