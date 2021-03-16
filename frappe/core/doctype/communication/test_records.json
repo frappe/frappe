@@ -6,5 +6,47 @@
 		"sent_or_received": "Received",
 		"parenttype": "User",
 		"parent": "Administrator"
+	},
+	{
+		"doctype": "Communication",
+		"name": "_Test Communication 2",
+		"subject": "Test Communication",
+		"rating": 50,
+		"communication_date": "2018-12-30"
+	},
+	{
+		"doctype": "Communication",
+		"name": "_Test Communication 3",
+		"subject": "Test Communication",
+		"rating": 100,
+		"communication_date": "2019-1-4"
+	},
+	{
+		"doctype": "Communication",
+		"name": "_Test Communication 4",
+		"subject": "Test Communication",
+		"rating": 200,
+		"communication_date": "2019-1-6"
+	},
+	{
+		"doctype": "Communication",
+		"name": "_Test Communication 5",
+		"subject": "Test Communication",
+		"rating": 400,
+		"communication_date": "2019-1-7"
+	},
+	{
+		"doctype": "Communication",
+		"name": "_Test Communication 6",
+		"subject": "Test Communication",
+		"rating": 300,
+		"communication_date": "2019-1-8"
+	},
+	{
+		"doctype": "Communication",
+		"name": "_Test Communication 7",
+		"subject": "Test Communication",
+		"rating": 100,
+		"communication_date": "2019-1-10"
 	}
 ]
