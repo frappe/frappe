@@ -55,8 +55,6 @@ function prettyDate(date, mini) {
 				return __("1 week ago");
 			} else if (day_diff < 31) {
 				return __("{0} weeks ago", [Math.ceil(day_diff / 7)]);
-			} else if (day_diff < 62) {
-				return __("1 month ago");
 			} else if (day_diff < 365) {
 				return __("{0} months ago", [Math.ceil(day_diff / 30)]);
 			} else if (day_diff < 730) {
