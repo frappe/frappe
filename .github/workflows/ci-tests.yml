@@ -106,7 +106,7 @@ jobs:
 
 
       - name: Install
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        run: ls && bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
@@ -115,13 +115,14 @@ jobs:
         uses: mxschmitt/action-tmate@v3
 
 
-        
+
       - name: Run Tests
         run: bash ${GITHUB_WORKSPACE}/.github/helper/run_tests.sh
         env:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
 
+          
       - name: Coverage
         if: matrix.TYPE == 'server'
         run: |
