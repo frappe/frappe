@@ -136,8 +136,6 @@ class FormMeta(Meta):
 			order_by="creation asc"
 		) or ""
 
-		print(client_scripts)
-
 		list_script = ''
 		form_script = ''
 		for script in client_scripts:
