@@ -42,12 +42,24 @@ def get_controller(doctype):
 		from frappe.model.document import Document
 		from frappe.utils.nestedset import NestedSet
 
+<<<<<<< HEAD
 		module_name, custom = (
 			frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True)
 			or frappe.db.get_value("DocType", doctype, ("module", "custom"))
 >>>>>>> 05712abc60... fix: Check for db value if cache doesn't exist
 			or ["Core", False]
 		)
+=======
+		if frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_patch:
+			module_name, custom = ["Core", False]
+		else:
+			# this could be simplified in PY3.8 using walrus operators
+			result = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True)
+			if result:
+				module_name, custom = result
+			else:
+				module_name, custom = ["Core", bool(not frappe.db.exists(doctype))]
+>>>>>>> 877f9d08df... fix: Use fallback values if doctype values unset
 
 		if custom:
 			if frappe.db.field_exists("DocType", "is_tree"):
