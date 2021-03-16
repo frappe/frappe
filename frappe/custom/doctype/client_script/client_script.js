@@ -8,40 +8,42 @@ frappe.ui.form.on('Client Script', {
 				() => frappe.set_route('List', frm.doc.dt, 'List'));
 		}
 
-		frm.add_custom_button(__('Add script for Child Table'), () => {
-			frappe.model.with_doctype(frm.doc.dt, () => {
-				const child_tables = frappe.meta.get_docfields(frm.doc.dt, null, {
-					fieldtype: 'Table'
-				}).map(df => df.options);
+		if (frm.doc.view == 'Form') {
+			frm.add_custom_button(__('Add script for Child Table'), () => {
+				frappe.model.with_doctype(frm.doc.dt, () => {
+					const child_tables = frappe.meta.get_docfields(frm.doc.dt, null, {
+						fieldtype: 'Table'
+					}).map(df => df.options);
 
-				const d = new frappe.ui.Dialog({
-					title: __('Select Child Table'),
-					fields: [
-						{
-							label: __('Select Child Table'),
-							fieldtype: 'Link',
-							fieldname: 'cdt',
-							options: 'DocType',
-							get_query: () => {
-								return {
-									filters: {
-										istable: 1,
-										name: ['in', child_tables]
-									}
-								};
+					const d = new frappe.ui.Dialog({
+						title: __('Select Child Table'),
+						fields: [
+							{
+								label: __('Select Child Table'),
+								fieldtype: 'Link',
+								fieldname: 'cdt',
+								options: 'DocType',
+								get_query: () => {
+									return {
+										filters: {
+											istable: 1,
+											name: ['in', child_tables]
+										}
+									};
+								}
 							}
+						],
+						primary_action: ({ cdt }) => {
+							cdt = d.get_field('cdt').value;
+							frm.events.add_script_for_doctype(frm, cdt);
+							d.hide();
 						}
-					],
-					primary_action: ({ cdt }) => {
-						cdt = d.get_field('cdt').value;
-						frm.events.add_script_for_doctype(frm, cdt);
-						d.hide();
-					}
-				});
+					});
 
-				d.show();
+					d.show();
+				});
 			});
-		});
+		}
 
 		frm.set_query('dt', {
 			filters: {
