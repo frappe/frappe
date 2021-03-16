@@ -67,6 +67,10 @@ class EmailAccount(Document):
 		else:
 			self.login_id = None
 
+		# validate the imap settings
+		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
+			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
+
 		duplicate_email_account = frappe.get_all("Email Account", filters={
 			"email_id": self.email_id,
 			"name": ("!=", self.name)
@@ -100,10 +104,11 @@ class EmailAccount(Document):
 			for e in self.get_unreplied_notification_emails():
 				validate_email_address(e, True)
 
-		if self.enable_incoming and self.append_to:
-			valid_doctypes = [d[0] for d in get_append_to()]
-			if self.append_to not in valid_doctypes:
-				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+		for folder in self.imap_folder:
+			if self.enable_incoming and folder.append_to:
+				valid_doctypes = [d[0] for d in get_append_to()]
+				if folder.append_to not in valid_doctypes:
+					frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
@@ -177,13 +182,13 @@ class EmailAccount(Document):
 			return None
 
 		args = frappe._dict({
+			"email_account_name": self.email_account_name,
 			"email_account": self.name,
 			"host": self.email_server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
 			"use_imap": self.use_imap,
 			"email_sync_rule": email_sync_rule,
-			"uid_validity": self.uidvalidity,
 			"incoming_port": get_port(self),
 			"initial_sync_count": self.initial_sync_count or 100
 		})
@@ -457,6 +462,14 @@ class EmailAccount(Document):
 		"""retrive and return inbound mails.
 
 		"""
+		mails = []
+
+		def process_mail(messages):
+			for index, message in enumerate(messages.get("latest_messages", [])):
+				uid = messages['uid_list'][index] if messages.get('uid_list') else None
+				seen_status = 1 if messages.get('seen_status', {}).get(uid) == 'SEEN' else 0
+				mails.append(InboundMail(message, self, uid, seen_status))
+
 		if frappe.local.flags.in_test:
 			return [InboundMail(msg, self) for msg in test_mails or []]
 
@@ -466,16 +479,22 @@ class EmailAccount(Document):
 		email_sync_rule = self.build_email_sync_rule()
 		try:
 			email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
-			messages = email_server.get_messages() or {}
+			if self.use_imap:
+				# process all given imap folder
+				for folder in self.imap_folder:
+					email_server.select_imap_folder(folder.folder_name)
+					email_server.settings['uid_validity'] = folder.uidvalidity
+					messages = email_server.get_messages(folder=folder.folder_name) or {}
+					process_mail(messages)
+			else:
+				# process the pop3 account
+				messages = email_server.get_messages() or {}
+				process_mail(messages)
+			# close connection to mailserver
+			email_server.logout()
 		except Exception:
 			frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
 			return []
-
-		mails = []
-		for index, message in enumerate(messages.get("latest_messages", [])):
-			uid = messages['uid_list'][index] if messages.get('uid_list') else None
-			seen_status = 1 if messages.get('seen_status', {}).get(uid)=='SEEN' else 0
-			mails.append(InboundMail(message, self, uid, seen_status))
 
 		return mails
 
@@ -547,23 +566,22 @@ class EmailAccount(Document):
 		else:
 			return self.email_sync_option or "UNSEEN"
 
-	def mark_emails_as_read_unread(self):
+	def mark_emails_as_read_unread(self, email_server=None, folder_name="INBOX"):
 		""" mark Email Flag Queue of self.email_account mails as read"""
-
 		if not self.use_imap:
 			return
 
-		flags = frappe.db.sql("""select name, communication, uid, action from
-			`tabEmail Flag Queue` where is_completed=0 and email_account={email_account}
-			""".format(email_account=frappe.db.escape(self.name)), as_dict=True)
+		flags = frappe.db.sql("""select name, communication, uid, action, imap_folder from
+			`tabEmail Flag Queue` where is_completed=0 and email_account={email_account} and imap_folder={folder_name}
+			""".format(email_account=frappe.db.escape(self.name),folder_name=frappe.db.escape(folder_name)), as_dict=True)
 
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }
 		if flags and uid_list:
-			email_server = self.get_incoming_server()
+			if not email_server:
+				email_server = self.get_incoming_server()
 			if not email_server:
 				return
-
-			email_server.update_flag(uid_list=uid_list)
+			email_server.update_flag(folder_name, uid_list=uid_list)
 
 			# mark communication as read
 			docnames =  ",".join("'%s'"%flag.get("communication") for flag in flags \
@@ -651,15 +669,19 @@ def test_internet(host="8.8.8.8", port=53, timeout=3):
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
 		and `notify_if_unreplied` is set as true."""
-
 	for email_account in frappe.get_all("Email Account", "name", filters={"enable_incoming": 1, "notify_if_unreplied": 1}):
 		email_account = frappe.get_doc("Email Account", email_account.name)
-		if email_account.append_to:
 
+		if email_account.use_imap:
+			append_to = [folder.get("append_to") for folder in email_account.imap_folder]
+		else:
+			append_to = email_account.append_to
+
+		if append_to:
 			# get open communications younger than x mins, for given doctype
 			for comm in frappe.get_all("Communication", "name", filters=[
 					{"sent_or_received": "Received"},
-					{"reference_doctype": email_account.append_to},
+					{"reference_doctype": ("in", append_to)},
 					{"unread_notification_sent": 0},
 					{"email_account":email_account.name},
 					{"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))},
@@ -701,9 +723,6 @@ def pull_from_email_account(email_account):
 	'''Runs within a worker process'''
 	email_account = frappe.get_doc("Email Account", email_account)
 	email_account.receive()
-
-	# mark Email Flag Queue mail as read
-	email_account.mark_emails_as_read_unread()
 
 def get_max_email_uid(email_account):
 	# get maximum uid of emails
