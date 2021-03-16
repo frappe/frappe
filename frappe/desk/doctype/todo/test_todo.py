@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from frappe.model.db_query import DatabaseQuery
+from frappe.permissions import get_doc_permissions
 
 # test_records = frappe.get_test_records('ToDo')
 test_user_records = frappe.get_test_records('User')
@@ -72,6 +73,30 @@ class TestToDo(unittest.TestCase):
 		self.assertNotEqual(test_user_data, admin_data)
 
 		frappe.db.rollback()
+
+	def test_doc_read_access(self):
+		todo1 = create_new_todo('Test1', 'Administrator')
+		todo2 = create_new_todo('Test2', 'test4@example.com')
+
+		# user without role permission to read ToDo's
+		frappe.set_user('test4@example.com')
+		user_todo1_permission = get_doc_permissions(todo1)
+		user_todo2_permission = get_doc_permissions(todo2)
+		self.assertFalse(user_todo1_permission.get("read"))
+		self.assertTrue(user_todo2_permission.get("read"))
+
+		# user with role permission to read ToDo's
+		frappe.set_user('test@example.com')
+		user_todo1_permission = get_doc_permissions(todo1)
+		user_todo2_permission = get_doc_permissions(todo2)
+		self.assertTrue(user_todo1_permission.get("read"))
+		self.assertTrue(user_todo2_permission.get("read"))
+
+		frappe.set_user('Administrator')
+		admin_todo1_permission = get_doc_permissions(todo1)
+		admin_todo2_permission = get_doc_permissions(todo2)
+		self.assertTrue(admin_todo1_permission.get("read"))
+		self.assertTrue(admin_todo2_permission.get("read"))
 
 def test_fetch_if_empty(self):
 		frappe.db.sql('delete from tabToDo')
