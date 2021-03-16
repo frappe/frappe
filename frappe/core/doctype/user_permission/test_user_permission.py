@@ -226,7 +226,7 @@ class TestUserPermission(unittest.TestCase):
 		new_doc = frappe.new_doc("Doc A")
 
 		# User perm is created on ToDo but for doctype Assignment Rule only
-		# it should not have impact on WorkFlow
+		# it should not have impact on Doc A
 		self.assertEquals(new_doc.doc, "ToDo")
 
 		frappe.set_user('Administrator')
