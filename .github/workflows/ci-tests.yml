@@ -15,12 +15,17 @@ jobs:
         - DB: "mariadb"
           TYPE: "server"
           JOB_NAME: "Python MariaDB"
+          RUN_COMMAND: bench --verbose --site test_site run-tests --coverage
+
         - DB: "postgres"
           TYPE: "server"
           JOB_NAME: "Python PostgreSQL"
+          RUN_COMMAND: bench --verbose --site test_site run-tests --coverage
+
         - DB: "mariadb"
           TYPE: "ui"
           JOB_NAME: "UI MariaDB"
+          RUN_COMMAND:  bench --site test_site run-ui-tests frappe --headless
 
     name: ${{ matrix.JOB_NAME }}
 
@@ -53,6 +58,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+          check-latest: true
 
       - name: Add to Hosts
         run: |
@@ -103,6 +113,10 @@ jobs:
 
       - name: Install Dependencies
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+        env:
+          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
+          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          TYPE: ${{ matrix.TYPE }}
 
       - name: Install
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
@@ -110,8 +124,15 @@ jobs:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
 
+      - name: Run Set-Up
+        if: matrix.TYPE == 'ui'
+        run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
+        env:
+          DB: ${{ matrix.DB }}
+          TYPE: ${{ matrix.TYPE }}
+
       - name: Run Tests
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/run_tests.sh
+        run: cd ~/frappe-bench/ && ${{ matrix.RUN_COMMAND }}
         env:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
