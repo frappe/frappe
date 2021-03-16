@@ -299,7 +299,7 @@ user_data_fields = [
 		"doctype": "Contact",
 		"filter_by": "email_id",
 		"redact_fields": ["first_name", "last_name", "phone", "mobile_no"],
-		"rename": 1,
+		"rename": True,
 	},
 	{"doctype": "Contact Email", "filter_by": "email_id"},
 	{
@@ -324,7 +324,7 @@ user_data_fields = [
 	},
 	{"doctype": "Communication", "filter_by": "recipients"},
 	{"doctype": "Email Group Member", "filter_by": "email"},
-	{"doctype": "Email Unsubscribe", "filter_by": "email", "partial": 1},
+	{"doctype": "Email Unsubscribe", "filter_by": "email", "partial": True},
 	{"doctype": "Email Queue", "filter_by": "sender"},
 	{"doctype": "Email Queue Recipient", "filter_by": "recipient"},
 	{
