@@ -9,18 +9,18 @@ from frappe.model.document import Document
 
 class ClientScript(Document):
 	def autoname(self):
-		self.name = f"{self.dt}-{self.apply_to_view}"
+		self.name = f"{self.dt}-{self.view}"
 
 	def validate(self):
 		if not self.is_new():
 			return
 
 		exists = frappe.db.exists(
-			"Client Script", {"dt": self.dt, "apply_to_view": self.apply_to_view}
+			"Client Script", {"dt": self.dt, "view": self.view}
 		)
 		if exists:
 			frappe.throw(
-				_("Client Script for {0} {1} already exists").format(frappe.bold(self.dt), self.apply_to_view),
+				_("Client Script for {0} {1} already exists").format(frappe.bold(self.dt), self.view),
 				frappe.DuplicateEntryError,
 			)
 
