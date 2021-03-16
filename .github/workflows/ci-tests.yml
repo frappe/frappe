@@ -118,14 +118,11 @@ jobs:
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
           TYPE: ${{ matrix.TYPE }}
 
-
       - name: Install
-        run: ls && ls && bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
-
-
 
       - name: Run Set-Up
         if: matrix.TYPE == 'ui'
@@ -140,7 +137,6 @@ jobs:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
 
-          
       - name: Coverage
         if: matrix.TYPE == 'server'
         run: |
