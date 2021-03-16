@@ -83,6 +83,7 @@ def exists_in_backup(doctypes, file):
 	return all([predicate.format(doctype).lower() in content.lower() for doctype in doctypes])
 
 
+
 class BaseTestCommands(unittest.TestCase):
 	def execute(self, command, kwargs=None):
 		site = {"site": frappe.local.site}
