@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "dt",
+  "apply_to_view",
   "enabled",
   "script",
   "sample"
@@ -43,13 +44,20 @@
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled"
+  },
+  {
+   "default": "Form",
+   "fieldname": "apply_to_view",
+   "fieldtype": "Select",
+   "label": "Apply To",
+   "options": "List\nForm"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-02-04 13:57:56.509437",
+ "modified": "2021-03-16 17:09:25.918859",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Client Script",
