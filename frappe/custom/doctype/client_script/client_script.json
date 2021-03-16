@@ -8,7 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "dt",
-  "apply_to_view",
+  "view",
   "enabled",
   "script",
   "sample"
@@ -47,7 +47,7 @@
   },
   {
    "default": "Form",
-   "fieldname": "apply_to_view",
+   "fieldname": "view",
    "fieldtype": "Select",
    "label": "Apply To",
    "options": "List\nForm"
@@ -57,7 +57,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-03-16 17:09:25.918859",
+ "modified": "2021-03-16 17:47:02.758919",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Client Script",

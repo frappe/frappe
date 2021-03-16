@@ -132,17 +132,17 @@ class FormMeta(Meta):
 		# custom script
 		client_scripts = frappe.db.get_all("Client Script",
 			filters={"dt": self.name, "enabled": 1},
-			fields=["script", "apply_to_view"],
+			fields=["script", "view"],
 			order_by="creation asc"
 		) or ""
 
 		list_script = ''
 		form_script = ''
 		for script in client_scripts:
-			if script.apply_to_view == 'List':
+			if script.view == 'List':
 				list_script += script.script
 
-			if script.apply_to_view == 'Form':
+			if script.view == 'Form':
 				form_script += script.script
 
 		self.set("__custom_js", form_script)
