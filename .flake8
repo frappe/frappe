@@ -1,6 +1,5 @@
 [flake8]
 ignore =
-    W191,
     E121,
     E126,
     E127,
@@ -28,5 +27,6 @@ ignore =
     F403,
     B007,
     B950,
+    W191,
 
 max-line-length = 200
