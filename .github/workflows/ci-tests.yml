@@ -106,7 +106,7 @@ jobs:
 
 
       - name: Install
-        run: ls && bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        run: ls && ls && bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
