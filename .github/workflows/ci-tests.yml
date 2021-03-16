@@ -104,6 +104,9 @@ jobs:
       - name: Install Dependencies
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Install
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
