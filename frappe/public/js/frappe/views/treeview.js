@@ -172,6 +172,23 @@ frappe.views.TreeView = Class.extend({
 		this.post_render();
 	},
 
+	rebuild_tree: function() {
+		let me = this;
+
+		frappe.call({
+			"method": "frappe.utils.nestedset.rebuild_tree",
+			"args": {
+				'doctype': me.doctype,
+				'parent_field': "parent_"+me.doctype.toLowerCase().replace(/ /g, '_'),
+			},
+			"callback": function(r) {
+				if (!r.exc) {
+					me.make_tree();
+				}
+			}
+		});
+	},
+
 	post_render: function() {
 		var me = this;
 		me.opts.post_render && me.opts.post_render(me);
@@ -368,7 +385,7 @@ frappe.views.TreeView = Class.extend({
 			}, "add");
 		}
 	},
-	set_menu_item: function(){
+	set_menu_item: function() {
 		var me = this;
 
 		this.menu_items = [
@@ -392,6 +409,17 @@ frappe.views.TreeView = Class.extend({
 				}
 			},
 		];
+
+		if (frappe.user.has_role('System Manager')) {
+			this.menu_items.push(
+				{
+					label: __('Rebuild Tree'),
+					action: function() {
+						me.rebuild_tree();
+					}
+				}
+			);
+		}
 
 		if (me.opts.menu_items) {
 			me.menu_items.push.apply(me.menu_items, me.opts.menu_items)

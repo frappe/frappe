@@ -207,8 +207,7 @@ scheduler_events = {
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
-		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
-		"frappe.utils.password.delete_password_reset_cache"
+		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email"
 	],
 	"daily": [
 		"frappe.email.queue.set_expiry_for_email_queue",

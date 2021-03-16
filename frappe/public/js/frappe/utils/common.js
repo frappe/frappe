@@ -20,27 +20,25 @@ frappe.avatar = function (user, css_class, title, image_url=null, remove_color=f
 		title = user_info.fullname;
 	}
 
-	return frappe.get_avatar(
-		user, css_class, title, image_url || user_info.image, remove_color, filterable
-	);
-};
-
-frappe.get_avatar = function(user, css_class, title, image_url=null, remove_color, filterable) {
 	let data_attr = '';
-
-	if (!css_class) {
-		css_class = "avatar-small";
-	}
-
 	if (filterable) {
 		css_class += " filterable";
 		data_attr = `data-filter="_assign,like,%${user}%"`;
 	}
 
+	return frappe.get_avatar(
+		css_class, title, image_url || user_info.image, remove_color, data_attr
+	);
+};
+
+frappe.get_avatar = function(css_class, title, image_url=null, remove_color, data_attributes) {
+	if (!css_class) {
+		css_class = "avatar-small";
+	}
+
 	if (image_url) {
 		const image = (window.cordova && image_url.indexOf('http') === -1) ? frappe.base_url + image_url : image_url;
-
-		return `<span class="avatar ${css_class}" title="${title}" ${data_attr}>
+		return `<span class="avatar ${css_class}" title="${title}" ${data_attributes}>
 				<span class="avatar-frame" style='background-image: url("${image}")'
 					title="${title}"></span>
 			</span>`;
@@ -55,7 +53,8 @@ frappe.get_avatar = function(user, css_class, title, image_url=null, remove_colo
 		if (css_class === 'avatar-small' || css_class == 'avatar-xs') {
 			abbr = abbr.substr(0, 1);
 		}
-		return `<span class="avatar ${css_class}" title="${title}" ${data_attr}>
+
+		return `<span class="avatar ${css_class}" title="${title}" ${data_attributes}>
 			<div class="avatar-frame standard-image"
 				style="${style}">
 					${abbr}
