@@ -15,12 +15,12 @@ jobs:
         - DB: "mariadb"
           TYPE: "server"
           JOB_NAME: "Python MariaDB"
-          RUN_COMMAND: bench --verbose --site test_site run-tests --coverage
+          RUN_COMMAND: bench --site test_site run-tests --coverage
 
         - DB: "postgres"
           TYPE: "server"
           JOB_NAME: "Python PostgreSQL"
-          RUN_COMMAND: bench --verbose --site test_site run-tests --coverage
+          RUN_COMMAND: bench --site test_site run-tests --coverage
 
         - DB: "mariadb"
           TYPE: "ui"
