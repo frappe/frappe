@@ -244,18 +244,20 @@ class TestDashboardChart(unittest.TestCase):
 		frappe.db.rollback()
 
 def insert_test_records():
-	create_new_communication(datetime(2018, 12, 30), 50)
-	create_new_communication(datetime(2019, 1, 4), 100)
-	create_new_communication(datetime(2019, 1, 6), 200)
-	create_new_communication(datetime(2019, 1, 7), 400)
-	create_new_communication(datetime(2019, 1, 8), 300)
-	create_new_communication(datetime(2019, 1, 10), 100)
+	create_new_communication('Communication 1', datetime(2018, 12, 30), 50)
+	create_new_communication('Communication 2', datetime(2019, 1, 4), 100)
+	create_new_communication('Communication 3', datetime(2019, 1, 6), 200)
+	create_new_communication('Communication 4', datetime(2019, 1, 7), 400)
+	create_new_communication('Communication 5', datetime(2019, 1, 8), 300)
+	create_new_communication('Communication 6', datetime(2019, 1, 10), 100)
 
-def create_new_communication(date, rating):
+def create_new_communication(subject, date, rating):
 	communication = {
 		'doctype': 'Communication',
-		'subject': 'Test Communication',
+		'subject': subject,
 		'rating': rating,
 		'communication_date': date
 	}
-	frappe.get_doc(communication).insert()
+	comm = frappe.get_doc(communication)
+	if not frappe.db.exists("Communication", {'subject' : comm.subject }):
+		comm.insert()
