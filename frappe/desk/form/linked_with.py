@@ -91,9 +91,9 @@ def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=[]):
 		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
 	for i, doc in enumerate(docs, 1):
 		if validate_linked_doc(doc, ignore_doctypes_on_cancel_all):
-			frappe.publish_progress(percent=i * 100 / ((len(docs) - len(ignore_doctypes_on_cancel_all))), title=_("Cancelling documents"))
 			linked_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
 			linked_doc.cancel()
+		frappe.publish_progress(percent=i/len(docs) * 100, title=_("Cancelling documents"))
 
 
 def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=[]):
