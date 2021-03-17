@@ -53,6 +53,8 @@ frappe.ui.form.on('Client Script', {
 	},
 
 	dt(frm) {
+		frm.toggle_display('view', !frappe.boot.single_types.includes(frm.doc.dt));
+
 		if (!frm.doc.script) {
 			frm.events.add_script_for_doctype(frm, frm.doc.dt);
 		}
