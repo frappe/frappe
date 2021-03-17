@@ -1,6 +1,7 @@
 import Awesomplete from 'awesomplete';
 
 frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
+	trigger_change_on_input_event: false,
 	make_input() {
 		this._super();
 		this.setup_awesomplete();

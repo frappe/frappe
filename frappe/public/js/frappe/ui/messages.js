@@ -200,7 +200,7 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 		}
 
 		frappe.msg_dialog.set_primary_action(
-			__(data.primary_action.label || "Done"),
+			__(data.primary_action.label || data.primary_action_label || "Done"),
 			data.primary_action.action
 		);
 	} else {
@@ -357,7 +357,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 		'yellow': "solid-warning",
 		'blue': "solid-success",
 		'green': "solid-success",
-		'red': "solid-red"
+		'red': "solid-error"
 	};
 
 	if (typeof message==='string') {

@@ -10,6 +10,7 @@
  "hide_custom": 0,
  "icon": "customization",
  "idx": 0,
+ "is_default": 0,
  "is_standard": 1,
  "label": "Customization",
  "links": [
@@ -81,8 +82,8 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Custom Script",
-   "link_to": "Custom Script",
+   "label": "Client Script",
+   "link_to": "Client Script",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -115,7 +116,7 @@
    "type": "Link"
   }
  ],
- "modified": "2020-12-01 13:38:39.843773",
+ "modified": "2021-02-04 13:50:35.750463",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customization",
@@ -134,8 +135,14 @@
    "type": "DocType"
   },
   {
-   "label": "Custom Script",
-   "link_to": "Custom Script",
+   "label": "Client Script",
+   "link_to": "Client Script",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Server Script",
+   "link_to": "Server Script",
    "type": "DocType"
   }
  ]

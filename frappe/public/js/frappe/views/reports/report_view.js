@@ -1203,11 +1203,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						// Rerender the reports dropdown,
 						// so that this report is included in the dropdown as well.
 						frappe.boot.user.all_reports[r.message] = {
-							ref_doctype: "Item",
+							ref_doctype: this.doctype,
 							report_type: "Report Builder",
 							title: r.message,
 						};
-						this.list_sidebar.setup_reports();
+
 						frappe.set_route('List', this.doctype, 'Report', r.message);
 						return;
 					}

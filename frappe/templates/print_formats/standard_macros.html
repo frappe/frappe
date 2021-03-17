@@ -140,14 +140,18 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 			style="width: 12px; height: 12px; margin-top: 5px;">
 			<path d="M2 9.66667L5.33333 13L14 3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		</svg>
-	{% elif df.fieldtype in ("Image", "Attach Image") %}
+	{% elif df.fieldtype in ("Image", "Attach Image") and frappe.utils.is_image(doc[doc.meta.get_field(df.fieldname).options]) %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
+			class="img-responsive"
+			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
+	{% elif df.fieldtype=="Attach Image" %}
+		<img src="{{ doc[df.fieldname] }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="Signature" %}
 		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
-	{% elif df.fieldtype == "Attach" and doc[df.fieldname] and frappe.utils.is_image(doc[df.fieldname]) %}
+	{% elif df.fieldtype in ("Attach", "Attach Image") and frappe.utils.is_image(doc[df.fieldname]) %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="HTML" %}
@@ -161,7 +165,12 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endmacro %}
 
 {% macro get_width(df) -%}
-	{%- if df.print_width -%}{{ (df.print_width|str).replace("px", "") }}px
+	{%- if df.print_width -%}
+		{%- if df.print_width.endswith("%") -%}
+			{{ df.print_width }}
+		{%- else -%}
+			{{ df.print_width.replace("px", "") }}px
+		{%- endif -%}
 	{%- elif df.fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}px
 	{%- else -%}{{ 150 }}px{% endif -%}
 {%- endmacro %}

@@ -25,7 +25,7 @@ class NavbarSettings(Document):
 
 @frappe.whitelist(allow_guest=True)
 def get_app_logo():
-	app_logo = frappe.db.get_single_value('Navbar Settings', 'app_logo')
+	app_logo = frappe.db.get_single_value('Navbar Settings', 'app_logo', cache=True)
 	if not app_logo:
 		app_logo = frappe.get_hooks('app_logo_url')[-1]
 

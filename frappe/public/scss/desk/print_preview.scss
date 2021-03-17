@@ -44,20 +44,6 @@
 		display: none;
 	}
 
-	.frappe-control[data-fieldtype="Select"] .control-input {
-		select {
-			height: auto;
-			padding: var(--padding-xs) var(--padding-sm);
-			text-align: left;
-		}
-
-		.icon {
-			width: 13px;
-			top: 7px;
-			right: 5px;
-		}
-	}
-
 	.label-area {
 		white-space: nowrap;
 	}

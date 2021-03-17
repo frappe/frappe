@@ -73,6 +73,7 @@ def get_safe_globals():
 			format_date=frappe.utils.data.global_date_format,
 			form_dict=getattr(frappe.local, 'form_dict', {}),
 			bold=frappe.bold,
+			copy_doc=frappe.copy_doc,
 
 			get_meta=frappe.get_meta,
 			get_doc=frappe.get_doc,

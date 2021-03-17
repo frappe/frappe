@@ -15,7 +15,7 @@ $.extend(frappe.model, {
 
 	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
 		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
-		'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script'],
+		'Customize Form Field', 'Property Setter', 'Custom Field', 'Client Script'],
 
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},
@@ -180,6 +180,9 @@ $.extend(frappe.model, {
 		var meta = locals.DocType[doctype];
 		if(meta.__list_js) {
 			eval(meta.__list_js);
+		}
+		if(meta.__custom_list_js) {
+			eval(meta.__custom_list_js);
 		}
 		if(meta.__calendar_js) {
 			eval(meta.__calendar_js);

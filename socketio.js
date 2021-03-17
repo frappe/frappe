@@ -142,10 +142,10 @@ io.on('connection', function (socket) {
 
 	socket.on('doc_open', function (doctype, docname) {
 		can_subscribe_doc({
-			socket: socket,
-			sid: sid,
-			doctype: doctype,
-			docname: docname,
+			socket,
+			sid,
+			doctype,
+			docname,
 			callback: () => {
 				var room = get_open_doc_room(socket, doctype, docname);
 				socket.join(room);

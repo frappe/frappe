@@ -72,6 +72,9 @@
 	--highlight-color: var(--gray-700);
 	--yellow-highlight-color: var(--yellow-700);
 
+	// input
+	--input-disabled-bg: none;
+
 	.frappe-card {
 		.btn-default {
 			background-color: var(--bg-color);
@@ -131,4 +134,17 @@
 			fill: var(--gray-700);
 		}
 	}
+
+	.rating {
+		// rating
+		--star-fill: var(--gray-500);
+		.star-hover {
+			--star-fill: var(--gray-400);
+		}
+	}
+
+	// skeleton
+	--skeleton-bg: var(--gray-800);
+
+	--right-arrow-svg: url("data: image/svg+xml;utf8, <svg width='6' height='8' viewBox='0 0 6 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1.25 7.5L4.75 4L1.25 0.5' stroke='white' stroke-linecap='round' stroke-linejoin='round'/></svg>");
 }
