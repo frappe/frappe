@@ -1,9 +1,19 @@
+$font-sizes: (
+	"sm": 0.75rem,
+	"base": 1rem,
+	"lg": 1.125rem,
+	"xl": 1.41rem,
+	"2xl": 1.6rem,
+	"3xl": 2rem
+);
+
 .from-markdown {
 	color: $gray-700;
-	line-height: 1.625;
+	line-height: 1.7;
+	letter-spacing: -0.011em;
 
 	> * + * {
-		margin-top: 1rem;
+		margin-top: 0.875rem;
 	}
 
 	> :first-child {
@@ -27,13 +37,17 @@
 		list-style: decimal;
 	}
 
-	li > * + * {
-		margin-top: 1rem;
+	li {
+		text-indent: 0.25rem;
 	}
 
-	> ul > * + *,
-	> ol > * + * {
-		margin-top: 1rem;
+	li > * + * {
+		margin-top: 0.75rem;
+	}
+
+	ul > * + *,
+	ol > * + * {
+		margin-top: 0.75rem;
 	}
 
 	> blockquote {
@@ -55,60 +69,84 @@
 
 	b, strong {
 		color: $gray-800;
+		font-weight: 600;
 	}
 
 	h1, h2, h3, h4, h5, h6 {
 		color: $gray-900;
+		font-weight: 500;
 	}
 
-	h1 + p {
-		margin-top: 0.75rem;
-		font-size: $font-size-base;
+	h1 {
+		font-size: map-get($font-sizes, '3xl');
+		line-height: 1.5;
+		letter-spacing: -0.024em;
 
-		@include media-breakpoint-up(sm) {
-			margin-top: 1.25rem;
-			font-size: 1.125rem;
-		}
-		@include media-breakpoint-up(md) {
-			font-size: 1.25rem;
+		// for byline
+		& + p {
+			margin-top: 1.5rem;
+			margin-bottom: 1.25rem;
+			font-size: map-get($font-sizes, 'xl');
+			letter-spacing: -0.0175em;
+
+			// @include media-breakpoint-up(sm) {
+			// 	margin-top: 1.25rem;
+			// 	font-size: 1.125rem;
+			// }
+			// @include media-breakpoint-up(md) {
+			// 	font-size: 1.25rem;
+			// }
 		}
 	}
 
 	h2 {
+		font-size: map-get($font-sizes, '2xl');
+		line-height: 1.56;
+		letter-spacing: -0.0195em;
 		margin-bottom: 1rem;
-		margin-top: 3.5rem;
+		margin-top: 3rem;
 	}
 
 	h3 {
-		margin-top: 3rem;
+		font-size: map-get($font-sizes, 'xl');
+		line-height: 1.56;
+		letter-spacing: -0.0175em;
+		margin-top: 1.5rem;
 		margin-bottom: 1rem;
-		font-weight: 600;
-		line-height: 1.25;
-		font-size: $font-size-xl;
 	}
 
 	h4 {
+		font-size: map-get($font-sizes, 'lg');
+		line-height: 1.56;
+		letter-spacing: -0.014em;
 		margin-top: 2.5rem;
 		margin-bottom: 1rem;
-		font-size: 1.125rem;
-		font-weight: 600;
-		line-height: 1.25;
 	}
 
 	h5 {
+		font-size: map-get($font-sizes, 'base');
+		line-height: 1.5;
+		letter-spacing: -0.011em;
+		font-weight: 600;
 		margin-top: 2rem;
 		margin-bottom: 1rem;
-		font-size: $font-size-base;
-		font-weight: 600;
-		line-height: 1.25;
 	}
 
 	h6 {
+		font-size: map-get($font-sizes, 'sm');
+		line-height: 1.35;
+		font-weight: 600;
+		text-transform: uppercase;
 		margin-top: 1.5rem;
 		margin-bottom: 1rem;
-		font-size: $font-size-sm;
-		font-weight: 600;
-		line-height: 1.25;
+	}
+
+	p + h3 {
+		margin-top: 3rem;
+	}
+
+	h3 + p {
+		margin-top: 1rem;
 	}
 
 	tr > td,
@@ -137,5 +175,26 @@
 		padding: 0 0.25rem;
 		background: $light;
 		border-radius: 0.125rem;
+	}
+
+	table {
+		border-color: $gray-200;
+	}
+
+	table thead {
+		background-color: $light;
+	}
+
+	.table-bordered,
+	.table-bordered th,
+	.table-bordered td {
+		border-left: none;
+		border-right: none;
+		border-color: $gray-200;
+	}
+
+	.table-bordered thead th,
+	.table-bordered thead td {
+		border-bottom-width: 1px;
 	}
 }
