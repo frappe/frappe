@@ -165,7 +165,12 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endmacro %}
 
 {% macro get_width(df) -%}
-	{%- if df.print_width -%}{{ (df.print_width|str).replace("px", "") }}px
+	{%- if df.print_width -%}
+		{%- if df.print_width.endswith("%") -%}
+			{{ df.print_width }}
+		{%- else -%}
+			{{ df.print_width.replace("px", "") }}px
+		{%- endif -%}
 	{%- elif df.fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}px
 	{%- else -%}{{ 150 }}px{% endif -%}
 {%- endmacro %}

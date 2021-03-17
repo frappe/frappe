@@ -156,10 +156,11 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			items.map(item => {
 				if (item.name.toLowerCase() == page_name.toLowerCase()) {
 					placeholder = item.name;
+				} else {
+					html += `<li><a class="dropdown-item" href="${item.route}">${
+						item.name
+					}</a></li>`;
 				}
-				html += `<li><a class="dropdown-item" href="${item.route}">${
-					item.name
-				}</a></li>`;
 			});
 		}
 
