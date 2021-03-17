@@ -144,12 +144,13 @@ class WebPage(WebsiteGenerator):
 			raise frappe.Redirect
 
 	def set_metatags(self, context):
-		context.metatags = {
-			"name": self.meta_title or self.title,
-			"description": self.meta_description,
-			"image": self.meta_image or find_first_image(context.main_section or ""),
-			"og:type": "website"
-		}
+		if not context.metatags:
+			context.metatags = {
+				"name": self.meta_title or self.title,
+				"description": self.meta_description,
+				"image": self.meta_image or find_first_image(context.main_section or ""),
+				"og:type": "website"
+			}
 
 	def validate_dates(self):
 		if self.end_date:

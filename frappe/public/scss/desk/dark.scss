@@ -31,6 +31,7 @@
 	--fg-hover-color: var(--gray-700);
 	--card-bg: var(--gray-800);
 	--disabled-text-color: var(--gray-400);
+	--disabled-control-bg: var(--gray-700);
 	--control-bg: var(--gray-700);
 	--control-bg-on-gray: var(--gray-800);
 	--awesomebar-focus-bg: var(--control-bg);
@@ -42,6 +43,7 @@
 	// Background Text Color Pairs
 	--bg-blue: var(--blue-600);
 	--bg-light-blue: var(--blue-400);
+	--bg-dark-blue: var(--blue-900);
 	--bg-green: var(--dark-green-500);
 	--bg-yellow: var(--yellow-500);
 	--bg-orange: var(--orange-500);
@@ -52,6 +54,7 @@
 
 	--text-on-blue: var(--blue-50);
 	--text-on-light-blue: var(--blue-100);
+	--text-on-dark-blue: var(--blue-300);
 	--text-on-green: var(--dark-green-50);
 	--text-on-yellow: var(--yellow-50);
 	--text-on-orange: var(--orange-100);
@@ -69,9 +72,16 @@
 	--highlight-color: var(--gray-700);
 	--yellow-highlight-color: var(--yellow-700);
 
+	// input
+	--input-disabled-bg: none;
+
 	.frappe-card {
 		.btn-default {
 			background-color: var(--bg-color);
+
+			&:hover {
+				background-color: var(--fg-hover-color);
+			}
 		}
 	}
 
@@ -124,4 +134,17 @@
 			fill: var(--gray-700);
 		}
 	}
+
+	.rating {
+		// rating
+		--star-fill: var(--gray-500);
+		.star-hover {
+			--star-fill: var(--gray-400);
+		}
+	}
+
+	// skeleton
+	--skeleton-bg: var(--gray-800);
+
+	--right-arrow-svg: url("data: image/svg+xml;utf8, <svg width='6' height='8' viewBox='0 0 6 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1.25 7.5L4.75 4L1.25 0.5' stroke='white' stroke-linecap='round' stroke-linejoin='round'/></svg>");
 }

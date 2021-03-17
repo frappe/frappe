@@ -5,6 +5,7 @@ h5.modal-title {
 body.modal-open {
 	overflow: auto;
 	height: auto;
+	min-height: 100%;
 }
 
 .modal {
@@ -109,6 +110,11 @@ body.modal-open {
 			}
 		}
 	}
+
+	.hasDatepicker {
+		z-index: 1140;
+	}
+
 }
 
 .modal-minimize {
@@ -130,6 +136,7 @@ body.modal-open {
 			border-radius: var(--border-radius-md);
 			border-bottom-right-radius: 0;
 			border-bottom-left-radius: 0;
+			box-shadow: -10px 10px rgba(0, 0, 0, 0.100661);
 		}
 
 		@include media-breakpoint-down(sm) {

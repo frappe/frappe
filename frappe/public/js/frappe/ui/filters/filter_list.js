@@ -74,8 +74,8 @@ frappe.ui.FilterGroup = class {
 				}
 				this.set_filter_events();
 			}
-
-			hide_empty_filters && this.toggle_empty_filters(false);
+			this.toggle_empty_filters(false);
+			!hide_empty_filters && this.add_filter(this.doctype, 'name');
 		});
 
 		this.filter_button.on('hidden.bs.popover', () => {
@@ -286,7 +286,9 @@ frappe.ui.FilterGroup = class {
 		return $(`
 			<div class="filter-area">
 				<div class="filter-edit-area">
-					<div class="text-muted empty-filters text-center">${__('No filters selected')}</div>
+					<div class="text-muted empty-filters text-center">
+						${__('No filters selected')}
+					</div>
 				</div>
 				<hr class="divider"></hr>
 				<div class="filter-action-buttons">

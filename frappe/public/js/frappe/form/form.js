@@ -334,7 +334,7 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 		}
 		if (action.action_type==='Server Action') {
-			frappe.xcall(action.action, {doc: this.doc}).then((doc) => {
+			frappe.xcall(action.action, {'doc': this.doc}).then((doc) => {
 				if (doc.doctype) {
 					// document is returned by the method,
 					// apply the changes locally and refresh
@@ -564,13 +564,8 @@ frappe.ui.form.Form = class FrappeForm {
 		let me = this;
 		return new Promise((resolve, reject) => {
 			btn && $(btn).prop("disabled", true);
-			$(document.activeElement).blur();
-
 			frappe.ui.form.close_grid_form();
-			// let any pending js process finish
-			setTimeout(function() {
-				me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
-			}, 100);
+			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
 		}).then(() => {
 			me.show_success_action();
 		}).catch((e) => {
@@ -1503,7 +1498,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 					const escaped_name = encodeURIComponent(value);
 
-					return `<a class="indicator ${get_color(doc || {})}" href="/app/${frappe.router.slug(df.options)}/${escaped_name}" data-doctype="${doctype}" data-name="${value}">${label}</a>'`;
+					return `<a class="indicator ${get_color(doc || {})}" href="/app/${frappe.router.slug(df.options)}/${escaped_name}" data-doctype="${doctype}" data-name="${value}">${label}</a>`;
 				} else {
 					return '';
 				}

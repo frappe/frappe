@@ -231,9 +231,7 @@ export default class NumberCardWidget extends Widget {
 		let color_class = '';
 
 		return this.get_percentage_stats().then(() => {
-			if (this.percentage_stat == undefined) return;
-
-			if (this.percentage_stat == 0) {
+			if (this.percentage_stat == 0 || this.percentage_stat == undefined) {
 				color_class = 'grey-stat';
 			} else if (this.percentage_stat > 0) {
 				caret_html =
@@ -258,6 +256,7 @@ export default class NumberCardWidget extends Widget {
 			const stats_qualifier = stats_qualifier_map[this.card_doc.stats_time_interval];
 
 			let get_stat = () => {
+				if (this.percentage_stat == undefined) return NaN;
 				const parts = this.percentage_stat.split(' ');
 				const symbol = parts[1] || '';
 				return Math.abs(parts[0]) + ' ' + symbol;

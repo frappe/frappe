@@ -3,6 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+from typing import Dict, List
 
 import frappe, json
 from frappe.model.document import Document
@@ -11,12 +12,13 @@ from datetime import datetime
 from croniter import croniter
 from frappe.utils.background_jobs import enqueue, get_jobs
 
+
 class ScheduledJobType(Document):
 	def autoname(self):
-		self.name = '.'.join(self.method.split('.')[-2:])
+		self.name = ".".join(self.method.split(".")[-2:])
 
 	def validate(self):
-		if self.frequency != 'All':
+		if self.frequency != "All":
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
 
@@ -84,7 +86,7 @@ class ScheduledJobType(Document):
 
 	def log_status(self, status):
 		# log file
-		frappe.logger("scheduler").info('Scheduled Job {0}: {1} for {2}'.format(status, self.method, frappe.local.site))
+		frappe.logger("scheduler").info(f"Scheduled Job {status}: {self.method} for {frappe.local.site}")
 		self.update_scheduler_log(status)
 
 	def update_scheduler_log(self, status):
@@ -111,28 +113,29 @@ class ScheduledJobType(Document):
 
 
 @frappe.whitelist()
-def execute_event(doc):
-	frappe.only_for('System Manager')
+def execute_event(doc: str):
+	frappe.only_for("System Manager")
 	doc = json.loads(doc)
-	frappe.get_doc('Scheduled Job Type', doc.get('name')).enqueue(force=True)
+	frappe.get_doc("Scheduled Job Type", doc.get("name")).enqueue(force=True)
+	return doc
 
 
-def run_scheduled_job(job_type):
-	'''This is a wrapper function that runs a hooks.scheduler_events method'''
+def run_scheduled_job(job_type: str):
+	"""This is a wrapper function that runs a hooks.scheduler_events method"""
 	try:
-		frappe.get_doc('Scheduled Job Type', dict(method=job_type)).execute()
+		frappe.get_doc("Scheduled Job Type", dict(method=job_type)).execute()
 	except Exception:
 		print(frappe.get_traceback())
 
 
-def sync_jobs(hooks=None):
+def sync_jobs(hooks: Dict = None):
 	frappe.reload_doc("core", "doctype", "scheduled_job_type")
 	scheduler_events = hooks or frappe.get_hooks("scheduler_events")
 	all_events = insert_events(scheduler_events)
 	clear_events(all_events)
 
 
-def insert_events(scheduler_events):
+def insert_events(scheduler_events: Dict) -> List:
 	cron_jobs, event_jobs = [], []
 	for event_type in scheduler_events:
 		events = scheduler_events.get(event_type)
@@ -144,7 +147,7 @@ def insert_events(scheduler_events):
 	return cron_jobs + event_jobs
 
 
-def insert_cron_jobs(events):
+def insert_cron_jobs(events: Dict) -> List:
 	cron_jobs = []
 	for cron_format in events:
 		for event in events.get(cron_format):
@@ -153,25 +156,29 @@ def insert_cron_jobs(events):
 	return cron_jobs
 
 
-def insert_event_jobs(events, event_type):
+def insert_event_jobs(events: List, event_type: str) -> List:
 	event_jobs = []
 	for event in events:
 		event_jobs.append(event)
-		frequency = event_type.replace('_', ' ').title()
+		frequency = event_type.replace("_", " ").title()
 		insert_single_event(frequency, event)
 	return event_jobs
 
 
-def insert_single_event(frequency, event, cron_format=None):
+def insert_single_event(frequency: str, event: str, cron_format: str = None):
 	cron_expr = {"cron_format": cron_format} if cron_format else {}
-	doc = frappe.get_doc({
-		"doctype": "Scheduled Job Type",
-		"method": event,
-		"cron_format": cron_format,
-		"frequency": frequency
-	})
+	doc = frappe.get_doc(
+		{
+			"doctype": "Scheduled Job Type",
+			"method": event,
+			"cron_format": cron_format,
+			"frequency": frequency,
+		}
+	)
 
-	if not frappe.db.exists("Scheduled Job Type", {"method": event, "frequency": frequency, **cron_expr }):
+	if not frappe.db.exists(
+		"Scheduled Job Type", {"method": event, "frequency": frequency, **cron_expr}
+	):
 		try:
 			doc.insert()
 		except frappe.DuplicateEntryError:
@@ -179,7 +186,12 @@ def insert_single_event(frequency, event, cron_format=None):
 			doc.insert()
 
 
-def clear_events(all_events):
-	for event in frappe.get_all("Scheduled Job Type", ("name", "method")):
-		if event.method not in all_events:
+def clear_events(all_events: List):
+	for event in frappe.get_all(
+		"Scheduled Job Type", fields=["name", "method", "server_script"]
+	):
+		is_server_script = event.server_script
+		is_defined_in_hooks = event.method in all_events
+
+		if not (is_defined_in_hooks or is_server_script):
 			frappe.delete_doc("Scheduled Job Type", event.name)

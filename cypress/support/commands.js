@@ -275,7 +275,7 @@ Cypress.Commands.add('get_open_dialog', () => {
 });
 
 Cypress.Commands.add('hide_dialog', () => {
-	cy.wait(200);
+	cy.wait(300);
 	cy.get_open_dialog().find('.btn-modal-close').click();
 	cy.get('.modal:visible').should('not.exist');
 });
@@ -312,7 +312,6 @@ Cypress.Commands.add('add_filter', () => {
 	cy.get('.filter-section .filter-button').click();
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
-	cy.get('.filter-popover').find('.add-filter').click();
 });
 
 Cypress.Commands.add('clear_filters', () => {

@@ -269,6 +269,7 @@ frappe.ui.form.PrintView = class {
 					based_on: data.based_on,
 				};
 				frappe.set_route('print-format-builder');
+				this.print_sel.val(data.print_format_name);
 			},
 			__('New Custom Print Format'),
 			__('Start')
@@ -411,6 +412,12 @@ frappe.ui.form.PrintView = class {
 			`<style type="text/css">${out.style}</style>
 			<link href="${frappe.urllib.get_base_url()}/assets/css/printview.css" rel="stylesheet">`
 		);
+
+		if (frappe.utils.is_rtl(this.lang_code)) {
+			this.$print_format_body.find('head').append(
+				`<link type="text/css" rel="stylesheet" href="${frappe.urllib.get_base_url()}/assets/css/frappe-rtl.css"></link>`
+			);
+		}
 
 		this.$print_format_body.find('body').html(
 			`<div class="print-format print-format-preview">${out.html}</div>`
@@ -635,10 +642,13 @@ frappe.ui.form.PrintView = class {
 
 	refresh_print_options() {
 		this.print_formats = frappe.meta.get_print_formats(this.frm.doctype);
-		return this.print_sel.empty().add_options([
+		const print_format_select_val = this.print_sel.val();
+		this.print_sel.empty().add_options([
 			this.get_default_option_for_select(__('Select Print Format')),
 			...this.print_formats
 		]);
+		return this.print_formats.includes(print_format_select_val)
+			&& this.print_sel.val(print_format_select_val);
 	}
 
 	selected_format() {

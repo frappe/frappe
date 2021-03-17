@@ -17,6 +17,10 @@ class KanbanBoard(Document):
 	def on_update(self):
 		frappe.clear_cache(doctype=self.reference_doctype)
 
+	def before_insert(self):
+		for column in self.columns:
+			column.order = get_order_for_column(self, column.column_name)
+
 	def validate_column_name(self):
 		for column in self.columns:
 			if not column.column_name:
@@ -125,6 +129,53 @@ def update_order(board_name, order):
 	board.save()
 	return board, updated_cards
 
+@frappe.whitelist()
+def update_order_for_single_card(board_name, docname, from_colname, to_colname, old_index, new_index):
+	'''Save the order of cards in columns'''
+	board = frappe.get_doc('Kanban Board', board_name)
+	doctype = board.reference_doctype
+	fieldname = board.field_name
+	old_index = frappe.parse_json(old_index)
+	new_index = frappe.parse_json(new_index)
+
+	# save current order and index of columns to be updated
+	from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
+	to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
+
+	if from_colname == to_colname:
+		from_col_order = to_col_order
+
+	to_col_order.insert(new_index, from_col_order.pop((old_index)))
+
+	# save updated order
+	board.columns[from_col_idx].order = frappe.as_json(from_col_order)
+	board.columns[to_col_idx].order = frappe.as_json(to_col_order)
+	board.save()
+
+	# update changed value in doc
+	frappe.set_value(doctype, docname, fieldname, to_colname)
+
+	return board
+
+def get_kanban_column_order_and_index(board, colname):
+	for i, col in enumerate(board.columns):
+		if col.column_name == colname:
+			col_order = frappe.parse_json(col.order)
+			col_idx = i
+
+	return col_order, col_idx
+
+@frappe.whitelist()
+def add_card(board_name, docname, colname):
+	board = frappe.get_doc('Kanban Board', board_name)
+
+	col_order, col_idx = get_kanban_column_order_and_index(board, colname)
+	col_order.insert(0, docname)
+
+	board.columns[col_idx].order = frappe.as_json(col_order)
+
+	board.save()
+	return board
 
 @frappe.whitelist()
 def quick_kanban_board(doctype, board_name, field_name, project=None):
@@ -132,6 +183,13 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 
 	doc = frappe.new_doc('Kanban Board')
 	meta = frappe.get_meta(doctype)
+
+	doc.kanban_board_name = board_name
+	doc.reference_doctype = doctype
+	doc.field_name = field_name
+
+	if project:
+		doc.filters = '[["Task","project","=","{0}"]]'.format(project)
 
 	options = ''
 	for field in meta.fields:
@@ -149,12 +207,6 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 			column_name=column
 		))
 
-	doc.kanban_board_name = board_name
-	doc.reference_doctype = doctype
-	doc.field_name = field_name
-
-	if project:
-		doc.filters = '[["Task","project","=","{0}"]]'.format(project)
 
 	if doctype in ['Note', 'ToDo']:
 		doc.private = 1
@@ -162,6 +214,12 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 	doc.save()
 	return doc
 
+def get_order_for_column(board, colname):
+	filters = [[board.reference_doctype, board.field_name, '=', colname]]
+	if board.filters:
+		filters.append(frappe.parse_json(board.filters)[0])
+
+	return frappe.as_json(frappe.get_list(board.reference_doctype, filters=filters, pluck='name'))
 
 @frappe.whitelist()
 def update_column_order(board_name, order):

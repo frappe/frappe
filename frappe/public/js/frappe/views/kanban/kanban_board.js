@@ -124,7 +124,12 @@ frappe.provide("frappe.views");
 							const new_cards = state.cards.slice();
 							new_cards[index] = card;
 							updater.set({ cards: new_cards });
-							fluxify.doAction('update_order');
+							const args = {
+								new: 1,
+								name: card.name,
+								colname: updated_doc[state.board.field_name],
+							};
+							fluxify.doAction('update_order_for_single_card', args);
 						});
 				} else {
 					frappe.new_doc(this.doctype, doc);
@@ -153,6 +158,53 @@ frappe.provide("frappe.views");
 					var updated_doc = r.message;
 					var updated_card = prepare_card(card, state, updated_doc);
 					fluxify.doAction('update_card', updated_card);
+				});
+			},
+			update_order_for_single_card: function(updater, card) {
+				// cache original order
+				const _cards = this.cards.slice();
+				const _columns = this.columns.slice();
+				let args = {};
+				let method_name = "";
+
+				if (card.new) {
+					method_name = "add_card";
+					args = {
+						board_name: this.board.name,
+						docname: card.name,
+						colname: card.colname,
+					};
+				} else {
+					method_name = "update_order_for_single_card";
+					args = {
+						board_name: this.board.name,
+						docname: unescape(card.name),
+						from_colname: card.from_colname,
+						to_colname: card.to_colname,
+						old_index: card.old_index,
+						new_index: card.new_index,
+					};
+				}
+
+				frappe.call({
+					method: method_prefix + method_name,
+					args: args,
+					callback: (r) => {
+						let board = r.message;
+						let updated_cards = [{'name': card.name, 'column': card.to_colname || card.colname}];
+						let cards = update_cards_column(updated_cards);
+						let columns = prepare_columns(board.columns);
+						updater.set({
+							cards: cards,
+							columns: columns
+						});
+					}
+				}).fail(function() {
+					// revert original order
+					updater.set({
+						cards: _cards,
+						columns: _columns
+					});
 				});
 			},
 			update_order: function(updater) {
@@ -249,7 +301,7 @@ frappe.provide("frappe.views");
 
 		function init() {
 			fluxify.doAction('init', opts);
-			store.on('change:columns', make_columns);
+			store.off('change:columns').on('change:columns', make_columns);
 			prepare();
 			store.on('change:cur_list', setup_restore_columns);
 			store.on('change:columns', setup_restore_columns);
@@ -446,16 +498,24 @@ frappe.provide("frappe.views");
 				group: "cards",
 				animation: 150,
 				dataIdAttr: 'data-name',
+				forceFallback: true,
 				onStart: function() {
 					wrapper.find('.kanban-card.add-card').fadeOut(200, function() {
 						wrapper.find('.kanban-cards').height('100vh');
 					});
 				},
-				onEnd: function() {
+				onEnd: function(e) {
 					wrapper.find('.kanban-card.add-card').fadeIn(100);
 					wrapper.find('.kanban-cards').height('auto');
 					// update order
-					fluxify.doAction('update_order');
+					const args = {
+						name: $(e.item).attr('data-name'),
+						from_colname: $(e.from).parents('.kanban-column').attr('data-column-value'),
+						to_colname: $(e.to).parents('.kanban-column').attr('data-column-value'),
+						old_index: e.oldIndex,
+						new_index: e.newIndex,
+					};
+					fluxify.doAction('update_order_for_single_card', args);
 				},
 				onAdd: function() {
 				},
@@ -545,15 +605,26 @@ frappe.provide("frappe.views");
 		function make_dom() {
 			var opts = {
 				name: card.name,
-				title: remove_img_tags(card.title),
-				disable_click: card._disable_click ? 'disable-click' : ''
+				title: frappe.utils.html2text(card.title),
+				disable_click: card._disable_click ? 'disable-click' : '',
+				creation: card.creation,
+				image_url: cur_list.get_image_url(card),
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
 		}
 
+		function get_tags_html(card) {
+			return card.tags
+				? `<div class="kanban-tags">
+					${cur_list.get_tags_html(card.tags, 3, true)}
+				</div>`
+				: '';
+		}
+
 		function render_card_meta() {
-			var html = "";
+			let html = get_tags_html(card);
+
 			if (card.comment_count > 0)
 				html +=
 				`<span class="list-comment-count small text-muted ">
@@ -563,7 +634,10 @@ frappe.provide("frappe.views");
 
 			const $assignees_group = get_assignees_group();
 
-			html += `<span class="kanban-assignments"></span>`;
+			html += `
+				<span class="kanban-assignments"></span>
+				${cur_list.get_like_html(card)}
+			`;
 
 			if (card.color && frappe.ui.color.validate_hex(card.color)) {
 				const $div = $('<div>');
@@ -630,6 +704,10 @@ frappe.provide("frappe.views");
 			doctype: state.doctype,
 			name: card.name,
 			title: card[state.card_meta.title_field.fieldname],
+			creation: moment(card.creation).format('MMM DD, YYYY'),
+			_liked_by: card._liked_by,
+			image: card[cur_list.meta.image_field],
+			tags: card._user_tags,
 			column: card[state.board.field_name],
 			assigned_list: card.assigned_list || assigned_list,
 			comment_count: card.comment_count || comment_count,

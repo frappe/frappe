@@ -15,7 +15,6 @@ from frappe.utils import cint, cstr
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
-from frappe.utils.change_log import get_change_log
 import redis
 from six.moves.urllib.parse import unquote
 from six import text_type
@@ -117,6 +116,7 @@ def clear_expired_sessions():
 def get():
 	"""get session boot info"""
 	from frappe.boot import get_bootinfo, get_unseen_notes
+	from frappe.utils.change_log import get_change_log
 
 	bootinfo = None
 	if not getattr(frappe.conf,'disable_session_cache', None):

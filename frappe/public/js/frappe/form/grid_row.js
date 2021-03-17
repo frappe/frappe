@@ -229,7 +229,7 @@ export default class GridRow {
 				this.open_form_button = $(`
 					<div class="btn-open-row">
 						<a>${frappe.utils.icon('edit', 'xs')}</a>
-						<div class="hidden-xs edit-grid-row">Edit</div>
+						<div class="hidden-xs edit-grid-row">${ __("Edit") }</div>
 					</div>
 				`)
 					.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
