@@ -181,6 +181,9 @@ $.extend(frappe.model, {
 		if(meta.__list_js) {
 			eval(meta.__list_js);
 		}
+		if(meta.__custom_list_js) {
+			eval(meta.__custom_list_js);
+		}
 		if(meta.__calendar_js) {
 			eval(meta.__calendar_js);
 		}
