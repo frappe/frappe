@@ -339,7 +339,6 @@ class Document(BaseDocument):
 		if hasattr(self, "__unsaved"):
 			delattr(self, "__unsaved")
 
-		self.apply_fieldlevel_read_permissions()
 		return self
 
 	def copy_attachments_from_amended_from(self):
