@@ -17,19 +17,19 @@ function prettyDate(date, mini) {
 			if (diff < 60) {
 				return __("now");
 			} else if (diff < 3600) {
-				return __("{0} m", [Math.floor(diff / 60)]);
+				return __("{0} m", [Math.round(diff / 60)]);
 			} else if (diff < 86400) {
-				return __("{0} h", [Math.floor(diff / 3600)]);
+				return __("{0} h", [Math.round(diff / 3600)]);
 			}
 		} else {
 			if (day_diff < 7) {
 				return __("{0} d", [day_diff]);
 			} else if (day_diff < 31) {
-				return __("{0} w", [Math.ceil(day_diff / 7)]);
+				return __("{0} w", [Math.round(day_diff / 7)]);
 			} else if (day_diff < 365) {
-				return __("{0} M", [Math.ceil(day_diff / 30)]);
+				return __("{0} M", [Math.round(day_diff / 30)]);
 			} else {
-				return __("{0} y", [Math.ceil(day_diff / 365)]);
+				return __("{0} y", [Math.round(day_diff / 365)]);
 			}
 		}
 	} else {
@@ -40,11 +40,11 @@ function prettyDate(date, mini) {
 			} else if (diff < 120) {
 				return __("1 minute ago");
 			} else if (diff < 3600) {
-				return __("{0} minutes ago", [Math.floor(diff / 60)]);
+				return __("{0} minutes ago", [Math.round(diff / 60)]);
 			} else if (diff < 7200) {
 				return __("1 hour ago");
 			} else if (diff < 86400) {
-				return __("{0} hours ago", [Math.floor(diff / 3600)]);
+				return __("{0} hours ago", [Math.round(diff / 3600)]);
 			}
 		} else {
 			if (day_diff == 1) {
@@ -54,13 +54,11 @@ function prettyDate(date, mini) {
 			} else if (day_diff < 14) {
 				return __("1 week ago");
 			} else if (day_diff < 31) {
-				return __("{0} weeks ago", [Math.ceil(day_diff / 7)]);
+				return __("{0} weeks ago", [Math.round(day_diff / 7)]);
 			} else if (day_diff < 365) {
-				return __("{0} months ago", [Math.ceil(day_diff / 30)]);
-			} else if (day_diff < 730) {
-				return __("1 year ago");
+				return __("{0} months ago", [Math.round(day_diff / 30)]);
 			} else {
-				return __("{0} years ago", [Math.ceil(day_diff / 365)]);
+				return __("{0} years ago", [Math.round(day_diff / 365)]);
 			}
 		}
 	}
