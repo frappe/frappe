@@ -179,6 +179,8 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False, junit_x
 	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, junit_xml_output=junit_xml_output)
 
 def _run_unittest(modules, verbose=False, tests=(), profile=False, junit_xml_output=False):
+	frappe.db.begin()
+
 	test_suite = unittest.TestSuite()
 
 	if not isinstance(modules, (list, tuple)):
