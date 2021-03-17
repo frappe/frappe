@@ -255,7 +255,7 @@ def get_quarter_ending(date):
 
 def get_year_ending(date):
 	''' returns year ending of the given date '''
-
+	date = getdate(date)
 	# first day of next year (note year starts from 1)
 	date = add_to_date('{}-01-01'.format(date.year), months = 12)
 	# last day of this month
@@ -473,23 +473,23 @@ def get_weekday(datetime=None):
 def get_timespan_date_range(timespan):
 	today = nowdate()
 	date_range_map = {
-		"last week": lambda: (add_to_date(today, days=-7), today),
-		"last month": lambda: (add_to_date(today, months=-1), today),
-		"last quarter": lambda: (add_to_date(today, months=-3), today),
-		"last 6 months": lambda: (add_to_date(today, months=-6), today),
-		"last year": lambda: (add_to_date(today, years=-1), today),
+		"last week": lambda: (get_first_day_of_week(add_to_date(today, days=-7)), get_last_day_of_week(add_to_date(today, days=-7))),
+		"last month": lambda: (get_first_day(add_to_date(today, months=-1)), get_last_day(add_to_date(today, months=-1))),
+		"last quarter": lambda: (get_quarter_start(add_to_date(today, months=-3)), get_quarter_ending(add_to_date(today, months=-3))),
+		"last 6 months": lambda: (get_quarter_start(add_to_date(today, months=-6)), get_quarter_ending(add_to_date(today, months=-3))),
+		"last year": lambda: (get_year_start(add_to_date(today, years=-1)), get_year_ending(add_to_date(today, years=-1))),
 		"yesterday": lambda: (add_to_date(today, days=-1),) * 2,
 		"today": lambda: (today, today),
 		"tomorrow": lambda: (add_to_date(today, days=1),) * 2,
-		"this week": lambda: (get_first_day_of_week(today, as_str=True), today),
-		"this month": lambda: (get_first_day(today, as_str=True), today),
-		"this quarter": lambda: (get_quarter_start(today, as_str=True), today),
-		"this year": lambda: (get_year_start(today, as_str=True), today),
-		"next week": lambda: (today, add_to_date(today, days=7)),
-		"next month": lambda: (today, add_to_date(today, months=1)),
-		"next quarter": lambda: (today, add_to_date(today, months=3)),
-		"next 6 months": lambda: (today, add_to_date(today, months=6)),
-		"next year": lambda: (today, add_to_date(today, years=1)),
+		"this week": lambda: (get_first_day_of_week(today), today),
+		"this month": lambda: (get_first_day(today), today),
+		"this quarter": lambda: (get_quarter_start(today), today),
+		"this year": lambda: (get_year_start(today), today),
+		"next week": lambda: (get_first_day_of_week(add_to_date(today, days=7)), get_last_day_of_week(add_to_date(today, days=7))),
+		"next month": lambda: (get_first_day(add_to_date(today, months=1)), get_last_day(add_to_date(today, months=1))),
+		"next quarter": lambda: (get_quarter_start(add_to_date(today, months=3)), get_quarter_ending(add_to_date(today, months=3))),
+		"next 6 months": lambda: (get_quarter_start(add_to_date(today, months=3)), get_quarter_ending(add_to_date(today, months=6))),
+		"next year": lambda: (get_year_start(add_to_date(today, years=1)), get_year_ending(add_to_date(today, years=1))),
 	}
 
 	if timespan in date_range_map:
