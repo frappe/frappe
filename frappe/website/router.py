@@ -47,7 +47,7 @@ def get_page_context(path):
 def make_page_context(path):
 	context = resolve_route(path)
 	if not context:
-		raise frappe.DoesNotExistError
+		raise frappe.PageDoesNotExistError
 
 	context.doctype = context.ref_doctype
 
@@ -208,7 +208,7 @@ def get_pages_from_path(start, app, app_path):
 				if not '.' in fname:
 					continue
 				page_name, extn = fname.rsplit(".", 1)
-				if extn in ('js', 'css') and os.path.exists(os.path.join(basepath, fname + '.html')):
+				if extn in ('js', 'css') and os.path.exists(os.path.join(basepath, page_name + '.html')):
 					# js, css is linked to html, skip
 					continue
 

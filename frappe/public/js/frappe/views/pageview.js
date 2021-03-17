@@ -73,7 +73,6 @@ frappe.views.Page = class Page {
 				return;
 			}
 			this.wrapper = frappe.container.add_page(this.name);
-			this.wrapper.label = this.pagedoc.title || this.pagedoc.name;
 			this.wrapper.page_name = this.pagedoc.name;
 
 			// set content, script and style

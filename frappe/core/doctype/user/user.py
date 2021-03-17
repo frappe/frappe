@@ -2,20 +2,24 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
+
+from bs4 import BeautifulSoup
+
 import frappe
+import frappe.share
+import frappe.defaults
+import frappe.permissions
 from frappe.model.document import Document
 from frappe.utils import cint, flt, has_gravatar, escape_html, format_datetime, now_datetime, get_formatted_email, today
 from frappe import throw, msgprint, _
-from frappe.utils.password import update_password as _update_password, check_password
+from frappe.utils.password import update_password as _update_password, check_password, get_password_reset_limit
 from frappe.desk.notifications import clear_notifications
-from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings
+from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings, toggle_notifications
 from frappe.utils.user import get_system_managers
-from bs4 import BeautifulSoup
-import frappe.permissions
-import frappe.share
-import frappe.defaults
 from frappe.website.utils import is_signup_enabled
+from frappe.rate_limiter import rate_limit
 from frappe.utils.background_jobs import enqueue
+
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -146,6 +150,9 @@ class User(Document):
 		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
 
+		# toggle notifications based on the user's status
+		toggle_notifications(self.name, enable=cint(self.enabled))
+
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
 		if not cint(self.enabled) or ("System Manager" in [user_role.role for user_role in
@@ -238,11 +245,6 @@ class User(Document):
 	def reset_password(self, send_email=False, password_expired=False):
 		from frappe.utils import random_string, get_url
 
-		rate_limit = frappe.db.get_single_value("System Settings", "password_reset_limit")
-
-		if rate_limit:
-			check_password_reset_limit(self.name, rate_limit)
-
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
 
@@ -254,7 +256,6 @@ class User(Document):
 		if send_email:
 			self.password_reset_mail(link)
 
-		update_password_reset_limit(self.name)
 		return link
 
 	def get_other_system_managers(self):
@@ -357,6 +358,9 @@ class User(Document):
 		frappe.db.sql("""update `tabContact`
 			set `user`=null
 			where `user`=%s""", (self.name))
+
+		# delete notification settings
+		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
 
 
 	def before_rename(self, old_name, new_name, merge=False):
@@ -837,6 +841,7 @@ def sign_up(email, full_name, redirect_to):
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(key='user', limit=get_password_reset_limit, seconds = 24*60*60, methods=['POST'])
 def reset_password(user):
 	if user=="Administrator":
 		return 'not allowed'
@@ -1168,16 +1173,3 @@ def generate_keys(user):
 def switch_theme(theme):
 	if theme in ["Dark", "Light"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
-
-def update_password_reset_limit(user):
-	generated_link_count = get_generated_link_count(user)
-	generated_link_count += 1
-	frappe.cache().hset("password_reset_link_count", user, generated_link_count)
-
-def check_password_reset_limit(user, rate_limit):
-	generated_link_count = get_generated_link_count(user)
-	if generated_link_count >= rate_limit:
-		frappe.throw(_("You have reached the hourly limit for generating password reset links. Please try again later."))
-
-def get_generated_link_count(user):
-	return cint(frappe.cache().hget("password_reset_link_count", user)) or 0

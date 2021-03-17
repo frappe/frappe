@@ -2,13 +2,15 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+import typing
+
 import frappe
 from frappe.model import (
 	display_fieldtypes,
 	no_value_fields,
 	table_fields as table_fieldtypes,
 )
-from frappe.utils import flt, format_duration
+from frappe.utils import flt, format_duration, groupby_metric
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response
 
@@ -116,7 +118,6 @@ class Exporter:
 
 	def get_data_to_export(self):
 		frappe.permissions.can_export(self.doctype, raise_exception=True)
-		data_to_export = []
 
 		table_fields = [f for f in self.exportable_fields if f != self.doctype]
 		data = self.get_data_as_docs()
@@ -128,14 +129,13 @@ class Exporter:
 			if table_fields:
 				# add child table data
 				for f in table_fields:
-					for i, child_row in enumerate(doc[f]):
+					for i, child_row in enumerate(doc.get(f, [])):
 						table_df = self.meta.get_field(f)
 						child_doctype = table_df.options
 						rows = self.add_data_row(child_doctype, child_row.parentfield, child_row, rows, i)
 
-			data_to_export += rows
-
-		return data_to_export
+			for row in rows:
+				yield row
 
 	def add_data_row(self, doctype, parentfield, doc, rows, row_idx):
 		if len(rows) < row_idx + 1:
@@ -204,17 +204,13 @@ class Exporter:
 			)
 			child_data[key] = data
 
-		return self.merge_data(parent_data, child_data)
-
-	def merge_data(self, parent_data, child_data):
+		# Group children data by parent name
+		grouped_children_data = self.group_children_data_by_parent(child_data)
 		for doc in parent_data:
-			for table_field, table_rows in child_data.items():
-				doc[table_field] = [row for row in table_rows if row.parent == doc.name]
-
-		return parent_data
+			related_children_docs = grouped_children_data.get(doc.name, {})
+			yield {**doc, **related_children_docs}
 
 	def add_header(self):
-
 		header = []
 		for df in self.fields:
 			is_parent = not df.is_child_table_field
@@ -261,3 +257,6 @@ class Exporter:
 
 	def build_xlsx_response(self):
 		build_xlsx_response(self.get_csv_array_for_export(), self.doctype)
+
+	def group_children_data_by_parent(self, children_data: typing.Dict[str, list]):
+		return groupby_metric(children_data, key='parent')
