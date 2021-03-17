@@ -107,10 +107,10 @@ def build_csv_response(data, filename):
 	frappe.response["type"] = "csv"
 
 class UnicodeWriter:
-	def __init__(self, encoding="utf-8"):
+	def __init__(self, encoding="utf-8", quoting=csv.QUOTE_NONNUMERIC):
 		self.encoding = encoding
 		self.queue = StringIO()
-		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
+		self.writer = csv.writer(self.queue, quoting=quoting)
 
 	def writerow(self, row):
 		if six.PY2:
