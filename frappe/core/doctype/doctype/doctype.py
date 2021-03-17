@@ -1113,7 +1113,8 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			frappe.throw(_("{0}: Cannot set import as {1} is not importable").format(get_txt(d), doctype))
 
 	def validate_permission_for_all_role(d):
-		if frappe.session.user == 'Administrator': return
+		if frappe.session.user == 'Administrator':
+			return
 
 		if doctype.custom:
 			if d.role == 'All':

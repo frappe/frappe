@@ -60,7 +60,7 @@ frappe.ui.form.on('User', {
 		frm.can_edit_roles = has_access_to_edit_user();
 
 		if (frm.can_edit_roles && !frm.is_new() && in_list(['System User', 'Website User'], frm.doc.user_type)) {
-			if(!frm.roles_editor) {
+			if (!frm.roles_editor) {
 				const role_area = $('<div class="role-editor">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
 

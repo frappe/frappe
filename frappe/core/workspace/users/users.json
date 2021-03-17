@@ -10,6 +10,7 @@
  "hide_custom": 0,
  "icon": "users",
  "idx": 0,
+ "is_default": 0,
  "is_standard": 1,
  "label": "Users",
  "links": [
@@ -135,7 +136,7 @@
    "type": "Link"
   }
  ],
- "modified": "2020-12-01 13:38:40.085519",
+ "modified": "2021-03-25 23:02:34.582569",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Users",
@@ -162,6 +163,12 @@
    "label": "User Profile",
    "link_to": "user-profile",
    "type": "Page"
+  },
+  {
+   "doc_view": "",
+   "label": "User Type",
+   "link_to": "User Type",
+   "type": "DocType"
   }
  ]
 }

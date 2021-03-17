@@ -17,7 +17,8 @@ class UserType(Document):
 		self.add_select_perm_doctypes()
 
 	def on_update(self):
-		if self.is_standard: return
+		if self.is_standard:
+			return
 
 		self.validate_document_type_limit()
 		self.validate_role()
@@ -34,7 +35,8 @@ class UserType(Document):
 				.format(frappe.bold(self.name)))
 
 	def set_modules(self):
-		if not self.user_doctypes: return
+		if not self.user_doctypes:
+			return
 
 		modules = frappe.get_all('DocType', fields=['distinct module as module'],
 			filters={'name': ('in', [d.document_type for d in self.user_doctypes])})
@@ -95,7 +97,7 @@ class UserType(Document):
 			user.set('block_modules', block_modules)
 
 	def add_role_permissions_for_user_doctypes(self):
-		perms = ['read', 'write', 'create', 'submit', 'cancel', 'amend']
+		perms = ['read', 'write', 'create', 'submit', 'cancel', 'amend', 'delete']
 		for row in self.user_doctypes:
 			docperm = add_role_permissions(row.document_type, self.role)
 
@@ -106,7 +108,8 @@ class UserType(Document):
 			frappe.db.set_value('Custom DocPerm', docperm, values)
 
 	def add_select_perm_doctypes(self):
-		if not frappe.flags.in_patch and not frappe.conf.developer_mode: return
+		if not frappe.flags.in_patch and not frappe.conf.developer_mode:
+			return
 
 		self.select_doctypes = []
 
@@ -211,7 +214,8 @@ def get_user_id(parent):
 	return data
 
 def user_linked_with_permission_on_doctype(doc, user):
-	if not doc.apply_user_permission_on: return True
+	if not doc.apply_user_permission_on:
+		return True
 
 	if not doc.user_id_field:
 		frappe.throw(_('User Id Field is mandatory in the user type {0}')
@@ -231,13 +235,20 @@ def user_linked_with_permission_on_doctype(doc, user):
 
 def apply_permissions_for_non_standard_user_type(doc, method=None):
 	'''Create user permission for the non standard user type'''
+	if not frappe.db.table_exists('User Type'):
+		return
+
 	user_types = frappe.cache().get_value('non_standard_user_types')
 
 	if not user_types:
 		user_types = get_non_standard_user_type_details()
 
+	if not user_types:
+		return
+
 	for user_type, data in iteritems(user_types):
-		if (not doc.get(data[1]) or doc.doctype != data[0]): continue
+		if (not doc.get(data[1]) or doc.doctype != data[0]):
+			continue
 
 		if frappe.get_cached_value('User', doc.get(data[1]), 'user_type') != user_type:
 			return
