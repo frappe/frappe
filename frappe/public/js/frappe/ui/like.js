@@ -38,9 +38,9 @@ frappe.ui.toggle_like = function($btn, doctype, name, callback) {
 					+'"][data-doctype="'+ doctype.replace(/"/g, '\"')+'"]');
 
 				if(add==="Yes") {
-					action_buttons.removeClass("not-liked text-extra-muted");
+					action_buttons.removeClass("not-liked").addClass("liked");
 				} else {
-					action_buttons.addClass("not-liked text-extra-muted");
+					action_buttons.addClass("not-liked").removeClass("liked");
 				}
 
 				// update in locals (form)
@@ -94,21 +94,21 @@ frappe.ui.setup_like_popover = ($parent, selector, check_not_liked=true) => {
 		const target_element = $(this);
 		target_element.popover({
 			animation: true,
-			placement: 'right',
+			placement: 'bottom',
 			trigger: 'manual',
-			template:`<div class="liked-by-popover popover">
+			template: `<div class="liked-by-popover popover">
 				<div class="arrow"></div>
-				<div class="popover-content"></div>
+				<div class="popover-body popover-content"></div>
 			</div>`,
 			content: () => {
-				let liked_by = target_element.attr('data-liked-by');
+				let liked_by = target_element.parents(".liked-by").attr('data-liked-by');
 				liked_by = liked_by ? decodeURI(liked_by) : '[]';
 				liked_by = JSON.parse(liked_by);
 
 				const user = frappe.session.user;
 				// hack
 				if (check_not_liked) {
-					if (target_element.find(".not-liked").length) {
+					if (target_element.parents(".liked-by").find(".not-liked").length) {
 						if (liked_by.indexOf(user)!==-1) {
 							liked_by.splice(liked_by.indexOf(user), 1);
 						}
@@ -126,12 +126,12 @@ frappe.ui.setup_like_popover = ($parent, selector, check_not_liked=true) => {
 				let liked_by_list = $(`<ul class="list-unstyled"></ul>`);
 
 				// to show social profile of the user
-				let link_base = '#social/profile/';
+				let link_base = '/app/user-profile/';
 
 				liked_by.forEach(user => {
 					// append user list item
 					liked_by_list.append(`
-						<li data-user=${user}>${frappe.avatar(user)}
+						<li data-user=${user}>${frappe.avatar(user, "avatar-xs")}
 							<span>${frappe.user.full_name(user)}</span>
 						</li>
 					`);

@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 from frappe.desk.doctype.todo.todo import ToDo
+from frappe.cache_manager import clear_controller_cache
 
 class TestHooks(unittest.TestCase):
 	def test_hooks(self):
@@ -17,21 +18,20 @@ class TestHooks(unittest.TestCase):
 			hooks.get("doc_events").get("*").get("on_update"))
 
 	def test_override_doctype_class(self):
-		# mock get_hooks
-		original = frappe.get_hooks
-		def get_hooks(hook=None, default=None, app_name=None):
-			if hook == 'override_doctype_class':
-				return {
-					'ToDo': ['frappe.tests.test_hooks.CustomToDo']
-				}
-			return original(hook, default, app_name)
-		frappe.get_hooks = get_hooks
+		from frappe import hooks
+		
+		# Set hook
+		hooks.override_doctype_class = {
+			'ToDo': ['frappe.tests.test_hooks.CustomToDo']
+		}
+		
+		# Clear cache
+		frappe.cache().delete_value('app_hooks')
+		clear_controller_cache('ToDo')
 
 		todo = frappe.get_doc(doctype='ToDo', description='asdf')
 		self.assertTrue(isinstance(todo, CustomToDo))
 
-		# restore
-		frappe.get_hooks = original
 
 class CustomToDo(ToDo):
 	pass

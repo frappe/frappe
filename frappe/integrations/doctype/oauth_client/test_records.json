@@ -1,7 +1,6 @@
 [
  {
-  "app_name": "_Test OAuth Client", 
-  "client_id": "test_client_id", 
+  "app_name": "_Test OAuth Client",
   "client_secret": "test_client_secret", 
   "default_redirect_uri": "http://localhost", 
   "docstatus": 0, 

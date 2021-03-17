@@ -1,0 +1,88 @@
+.web-footer {
+	padding: 5rem 0;
+	min-height: 140px;
+}
+
+.footer-logo {
+	min-width: 5rem;
+	height: 1.5rem;
+	object-fit: contain;
+	object-position: left;
+}
+
+.footer-child-item {
+	margin-top: 0.5rem;
+}
+
+.footer-link, .footer-child-item a {
+	font-size: $font-size-sm;
+	font-weight: 500;
+	color: $gray-700;
+
+	&:hover {
+		color: $primary;
+		text-decoration: none;
+	}
+}
+
+.footer-col-right {
+	@include media-breakpoint-up(sm) {
+		text-align: right;
+	}
+}
+
+.footer-col-left, .footer-col-right {
+	padding-top: 0.8rem;
+	padding-bottom: 1rem;
+	line-height: 2;
+
+	&:empty {
+		padding: 0;
+	}
+}
+
+.footer-col-left .footer-link {
+	margin-right: 1rem;
+}
+
+.footer-col-right .footer-link {
+	margin-right: 1rem;
+	@include media-breakpoint-up(sm) {
+		margin-right: 0;
+		margin-left: 1rem;
+	}
+}
+
+.footer-group {
+	margin-top: 2rem;
+}
+
+.footer-group-label {
+	color: $text-muted;
+	font-size: $font-size-sm;
+	margin-bottom: 0.5rem;
+}
+
+.footer-grouped-links {
+	margin-bottom: 2rem;
+}
+
+.footer-group-links {
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	max-height: 10rem;
+	margin-bottom: 0;
+}
+
+.footer-info {
+	margin-top: 1rem;
+	border-top: 1px solid $border-color;
+	color: $text-muted;
+	font-size: $font-size-sm;
+}
+
+.form-control {
+	border: none;
+	font-size: var(--text-md);
+}

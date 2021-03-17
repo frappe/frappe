@@ -43,7 +43,7 @@ class ModuleDef(Document):
 	def on_trash(self):
 		"""Delete module name from modules.txt"""
 
-		if frappe.flags.in_uninstall or self.custom:
+		if not frappe.conf.get('developer_mode') or frappe.flags.in_uninstall or self.custom:
 			return
 
 		modules = None

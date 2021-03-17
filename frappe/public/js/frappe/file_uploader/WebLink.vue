@@ -6,9 +6,6 @@
 			{{ __('← Back to upload files') }}
 		</a>
 		<div class="input-group">
-			<div class="input-group-addon">
-				<span class="text-muted text-medium">{{ __('Web Link') }}</span>
-			</div>
 			<input
 				type="text"
 				class="form-control"

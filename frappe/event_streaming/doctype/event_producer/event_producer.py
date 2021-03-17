@@ -295,7 +295,7 @@ def set_update(update, producer_site):
 		if data.changed:
 			local_doc.update(data.changed)
 		if data.removed:
-			update_row_removed(local_doc, data.removed)
+			local_doc = update_row_removed(local_doc, data.removed)
 		if data.row_changed:
 			update_row_changed(local_doc, data.row_changed)
 		if data.added:
@@ -318,7 +318,17 @@ def update_row_removed(local_doc, removed):
 	for tablename, rownames in iteritems(removed):
 		table = local_doc.get_table_field_doctype(tablename)
 		for row in rownames:
-			frappe.db.delete(table, row)
+			table_rows = local_doc.get(tablename)
+			child_table_row = get_child_table_row(table_rows, row)
+			table_rows.remove(child_table_row)
+			local_doc.set(tablename, table_rows)
+	return local_doc
+
+
+def get_child_table_row(table_rows, row):
+	for entry in table_rows:
+		if entry.get('name') == row:
+			return entry
 
 
 def update_row_changed(local_doc, changed):

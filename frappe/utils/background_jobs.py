@@ -181,12 +181,9 @@ def get_jobs(site=None, queue=None, key='method'):
 		jobs = q.jobs + get_running_jobs_in_queue(q)
 		for job in jobs:
 			if job.kwargs.get('site'):
-				if site is None:
+				# if job belongs to current site, or if all jobs are requested
+				if (job.kwargs['site'] == site) or site is None:
 					add_to_dict(job)
-
-				elif job.kwargs['site'] == site:
-					add_to_dict(job)
-
 			else:
 				print('No site found in job', job.__dict__)
 

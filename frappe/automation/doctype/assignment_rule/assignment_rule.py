@@ -18,6 +18,8 @@ class AssignmentRule(Document):
 		if not len(set(assignment_days)) == len(assignment_days):
 			repeated_days = get_repeated(assignment_days)
 			frappe.throw(_("Assignment Day {0} has been repeated.").format(frappe.bold(repeated_days)))
+		if self.document_type == 'ToDo':
+			frappe.throw(_('Assignment Rule is not allowed on {0} document type').format(frappe.bold("ToDo")))
 
 	def on_update(self):
 		clear_assignment_rule_cache(self)

@@ -401,6 +401,13 @@ input.list-row-checkbox {
 .pswp__more-item img {
   max-height: 100%;
 }
+.map-view-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  height: calc(100vh - 284px);
+  z-index: 0;
+}
 .list-paging-area .gantt-view-mode {
   margin-left: 15px;
   margin-right: 15px;

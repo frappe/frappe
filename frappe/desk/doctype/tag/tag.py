@@ -26,6 +26,17 @@ def add_tag(tag, dt, dn, color=None):
 	return tag
 
 @frappe.whitelist()
+def add_tags(tags, dt, docs, color=None):
+	"adds a new tag to a record, and creates the Tag master"
+	tags = frappe.parse_json(tags)
+	docs = frappe.parse_json(docs)
+	for doc in docs:
+		for tag in tags:
+			DocTags(dt).add(doc, tag)
+
+	# return tag
+
+@frappe.whitelist()
 def remove_tag(tag, dt, dn):
 	"removes tag from the record"
 	DocTags(dt).remove(dn, tag)

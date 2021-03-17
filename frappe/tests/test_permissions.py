@@ -9,7 +9,7 @@ import frappe.defaults
 import unittest
 import frappe.model.meta
 from frappe.permissions import (add_user_permission, remove_user_permission,
-	clear_user_permissions_for_doctype, get_doc_permissions, add_permission)
+	clear_user_permissions_for_doctype, get_doc_permissions, add_permission, update_permission_property)
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
@@ -57,6 +57,24 @@ class TestPermissions(unittest.TestCase):
 	def test_basic_permission(self):
 		post = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertTrue(post.has_permission("read"))
+
+	def test_select_permission(self):
+		# grant only select perm to blog post
+		add_permission('Blog Post', 'Sales User', 0)
+		update_permission_property('Blog Post', 'Sales User', 0, 'select', 1)
+		update_permission_property('Blog Post', 'Sales User', 0, 'read', 0)
+		update_permission_property('Blog Post', 'Sales User', 0, 'write', 0)
+
+		frappe.clear_cache(doctype="Blog Post")
+		frappe.set_user("test3@example.com")
+
+		# validate select perm
+		post = frappe.get_doc("Blog Post", "-test-blog-post")
+		self.assertTrue(post.has_permission("select"))
+
+		# validate does not have read and write perm
+		self.assertFalse(post.has_permission("read"))
+		self.assertRaises(frappe.PermissionError, post.save)
 
 	def test_user_permissions_in_doc(self):
 		add_user_permission("Blog Category", "-test-blog-category-1",

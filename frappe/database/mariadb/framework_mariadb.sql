@@ -233,7 +233,7 @@ CREATE TABLE `tabDocType` (
 
 DROP TABLE IF EXISTS `tabSeries`;
 CREATE TABLE `tabSeries` (
-  `name` varchar(100) DEFAULT NULL,
+  `name` varchar(100),
   `current` int(10) NOT NULL DEFAULT 0,
   PRIMARY KEY(`name`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

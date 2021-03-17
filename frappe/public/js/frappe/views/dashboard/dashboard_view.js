@@ -8,12 +8,19 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	setup_defaults() {
 		return super.setup_defaults()
 			.then(() => {
+				this.page_title = __('{0} Dashboard', [this.doctype]);
 				this.dashboard_settings = frappe.get_user_settings(this.doctype)['dashboard_settings'] || null;
 			});
 	}
 
 	render() {
 
+	}
+
+	setup_page() {
+		this.hide_sidebar = true;
+		this.hide_page_form = true;
+		super.setup_page();
 	}
 
 	setup_view() {
@@ -24,40 +31,52 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		this.setup_dashboard_page();
 		this.setup_dashboard_customization();
 		this.make_dashboard();
-		this.setup_events();
 	}
 
 	setup_dashboard_customization() {
-		this.$customize = this.$chart_header.find('.customize-dashboard');
-		this.$save_or_discard = this.$chart_header.find('.customize-options');
+		this.page.add_menu_item(__('Customize Dashboard'), () => this.customize());
+		this.page.add_menu_item(__('Reset Dashboard Customizations'), () => this.reset_dashboard_customization());
+		this.add_customization_buttons();
 	}
 
 	setup_dashboard_page() {
-		const dashboard_name = __('{0} Dashboard', [this.doctype]);
 		const chart_wrapper_html = `<div class="dashboard-view"></div>`;
 
 		this.$frappe_list.html(chart_wrapper_html);
 		this.page.clear_secondary_action();
 		this.$dashboard_page = this.$page.find('.layout-main-section-wrapper').addClass('dashboard-page');
-		this.$page.find('.page-form').empty().html(
-			`<div class="dashboard-header">
-				<div class="text-muted">
-					<span class="uppercase header-title"> ${dashboard_name} </span>
-				</div>
-				<div class="text-muted customize-dashboard" data-action="customize">${__('Customize')}</div>
-				<div class="small text-muted customize-options small-bounce">
-					<span class="reset-customization customize-option" data-action="reset_dashboard_customization">${__('Reset')}</span>
-					<span> / </span>
-					<span class="save-customization customize-option" data-action="save_dashboard_customization">${__('Save')}</span>
-					<span> / </span>
-					<span class="discard-customization customize-option" data-action="discard_dashboard_customization">${__('Discard')}</span>
-				</div>
-			</div>`);
+		this.page.main.removeClass('frappe-card');
 
 		this.$dashboard_wrapper = this.$page.find('.dashboard-view');
 		this.$chart_header = this.$page.find('.dashboard-header');
 
 		frappe.utils.bind_actions_with_object(this.$dashboard_page, this);
+	}
+
+	add_customization_buttons() {
+		this.save_customizations_button = this.page.add_button(
+			__("Save Customizations"),
+			() => {
+				this.save_dashboard_customization();
+				this.page.standard_actions.show();
+			},
+			{btn_class: 'btn-primary'}
+		);
+
+		this.discard_customizations_button = this.page.add_button(
+			__("Discard"),
+			() => {
+				this.discard_dashboard_customization();
+				this.page.standard_actions.show();
+			}
+		);
+
+		this.toggle_customization_buttons(false);
+	}
+
+	toggle_customization_buttons(show) {
+		this.save_customizations_button.toggle(show);
+		this.discard_customizations_button.toggle(show);
 	}
 
 	make_dashboard() {
@@ -106,11 +125,6 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		}
 	}
 
-	setup_events() {
-		$(document.body).on('toggleFullWidth', () => this.render_dashboard());
-		$(document.body).on('toggleListSidebar', () => this.render_dashboard());
-	}
-
 	fetch_dashboard_items(doctype, filters, obj_name) {
 		return frappe.db.get_list(doctype, {
 			filters: filters,
@@ -144,6 +158,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 			container: this.$dashboard_wrapper,
 			type: "chart",
 			columns: 2,
+			height: 240,
 			options: {
 				allow_sorting: true,
 				allow_create: true,
@@ -170,7 +185,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				${__('Customize')}
 			</button></p>`;
 
-		const empty_state_image = '/assets/frappe/images/ui-states/empty.png';
+		const empty_state_image = '/assets/frappe/images/ui-states/list-empty-state.svg';
 
 		const empty_state_html = `<div class="msg-box no-border empty-dashboard">
 			<div>
@@ -188,6 +203,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		if (this.in_customize_mode) {
 			return;
 		}
+
+		this.page.standard_actions.hide();
 
 		if (this.$empty_state) {
 			this.$empty_state.remove();
@@ -241,8 +258,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	toggle_customize(show) {
-		this.$customize.toggle(!show);
-		this.$save_or_discard.toggle(show);
+		this.toggle_customization_buttons(show);
 		this.in_customize_mode = show;
 	}
 

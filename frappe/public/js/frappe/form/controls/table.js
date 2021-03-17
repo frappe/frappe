@@ -9,16 +9,11 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			frm: this.frm,
 			df: this.df,
 			perm: this.perm || (this.frm && this.frm.perm) || this.df.perm,
-			parent: this.wrapper
+			parent: this.wrapper,
+			control: this
 		});
 		if(this.frm) {
 			this.frm.grids[this.frm.grids.length] = this;
-		}
-
-		// description
-		if(this.df.description) {
-			$('<p class="text-muted small">' + __(this.df.description) + '</p>')
-				.appendTo(this.wrapper);
 		}
 		this.$wrapper.on('paste',':text', function(e) {
 			var cur_table_field =$(e.target).closest('div [data-fieldtype="Table"]').data('fieldname');

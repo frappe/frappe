@@ -31,7 +31,7 @@ class WebsiteSearch(FullTextSearch):
 			self (object): FullTextSearch Instance
 		"""
 		routes = get_static_pages_from_all_apps()
-		routes += get_doctype_routes_with_web_view()
+		routes += slugs_with_web_view()
 
 		documents = [self.get_document_to_index(route) for route in routes]
 		return documents
@@ -74,7 +74,7 @@ class WebsiteSearch(FullTextSearch):
 		)
 
 
-def get_doctype_routes_with_web_view():
+def slugs_with_web_view():
 	all_routes = []
 	filters = { "has_web_view": 1, "allow_guest_to_view": 1, "index_web_pages_for_search": 1}
 	fields = ["name", "is_published_field"]

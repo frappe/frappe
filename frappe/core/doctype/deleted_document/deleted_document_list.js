@@ -9,15 +9,16 @@ frappe.listview_settings["Deleted Document"] = {
 					args: { docnames },
 					callback: function (r) {
 						if (r.message) {
-							function body(docnames) {
+							let body = (docnames) => {
 								const html = docnames.map(docname => {
-									return `<li><a href='/desk#Form/Deleted Document/${docname}'>${docname}</a></li>`;
+									return `<li><a href='/app/deleted-document/${docname}'>${docname}</a></li>`;
 								});
 								return "<br><ul>" + html.join("");
-							}
-							function message(title, docnames) {
+							};
+
+							let message = (title, docnames) => {
 								return (docnames.length > 0) ? title + body(docnames) + "</ul>": "";
-							}
+							};
 
 							const { restored, invalid, failed } = r.message;
 							const restored_summary = message(__("Documents restored successfully"), restored);

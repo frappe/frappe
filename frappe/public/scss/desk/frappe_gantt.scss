@@ -1,0 +1,82 @@
+.gantt-modern .gantt {
+	.bar {
+		fill: white;
+	}
+
+	.arrow {
+		stroke: var(--gray-600);
+	}
+
+	.bar-wrapper {
+		.bar {
+			stroke: var(--gray-300);
+			stroke-width: 1;
+		}
+
+		&:hover {
+			.bar {
+				fill: white;
+				stroke: var(--gray-400);
+			}
+
+			.bar-progress {
+				fill: var(--gray-200);
+			}
+
+			.handle {
+				visibility: hidden;
+				opacity: 0;
+			}
+		}
+
+		&.active {
+			.handle {
+				visibility: visible;
+				opacity: 1;
+				fill: var(--blue-200);
+			}
+
+			.bar {
+				fill: var(--blue-300);
+				stroke: var(--blue-300);
+			}
+
+			.bar-progress {
+				fill: var(--blue-500);
+			}
+
+			.bar-label {
+				fill: white;
+			}
+		}
+	}
+
+	.bar-progress {
+		fill: var(--gray-200);
+	}
+
+	.bar-label {
+		fill: var(--text-color);
+		font-weight: normal;
+	}
+}
+
+.gantt-container .popup-wrapper {
+	min-width: 9rem;
+	border-radius: var(--border-radius);
+	font-size: var(--text-sm);
+
+	.title {
+		color: white;
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	.subtitle {
+		color: var(--gray-500);
+	}
+
+	.pointer {
+		height: 15px;
+	}
+}

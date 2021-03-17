@@ -1,0 +1,73 @@
+@import "variables";
+
+img {
+	position: relative;
+}
+
+@include broken-img(
+	$height: 175px,
+	$border-radius: 0,
+);
+
+.website-image-placeholder {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: $font-size-5xl;
+	color: $gray-300;
+	background: $light;
+}
+
+.website-image-lazy {
+	min-height: 200px;
+	height: 100%;
+	background-color: $light;
+}
+
+@mixin website-image {
+	display: inline-block;
+	object-fit: contain;
+}
+
+.website-image {
+	@include website-image;
+	width: 100%;
+}
+
+.website-image-extra-small {
+	@include website-image;
+	width: 2.5rem;
+	height: 2.5rem;
+}
+
+.website-image-small {
+	@include website-image;
+	width: 5rem;
+	height: 5rem;
+}
+
+.website-image-medium {
+	@include website-image;
+	width: 10rem;
+	height: 10rem;
+}
+
+.website-image-large {
+	@include website-image;
+	width: 15rem;
+	height: 15rem;
+}
+
+.website-image-extra-large {
+	@include website-image;
+	width: 30rem;
+	height: 30rem;
+}
+
+.website-image[src*="no-image.jpg"] {
+	padding: 46% 0;
+}
+
+.object-fit-cover {
+	object-fit: cover;
+}

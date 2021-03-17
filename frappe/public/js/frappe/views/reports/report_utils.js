@@ -1,8 +1,7 @@
 frappe.provide('frappe.report_utils');
 
 frappe.report_utils = {
-
-	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, colors }) {
+	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, colors, height }) {
 		const type = chart_type.toLowerCase();
 
 		let rows =  raw_data.result.filter(value => Object.keys(value).length);
@@ -15,7 +14,9 @@ frappe.report_utils = {
 
 		if (raw_data.add_total_row) {
 			labels = labels.slice(0, -1);
-			datasets[0].values = datasets[0].values.slice(0, -1);
+			datasets.forEach(dataset => {
+				dataset.values = dataset.values.slice(0, -1);
+			});
 		}
 
 		return {
@@ -25,9 +26,11 @@ frappe.report_utils = {
 			},
 			truncateLegends: 1,
 			type: type,
+			height: height ? height : 280,
 			colors: colors,
 			axisOptions: {
-				shortenYAxisNumbers: 1
+				shortenYAxisNumbers: 1,
+				xAxisMode: 'tick'
 			}
 		};
 

@@ -1,0 +1,246 @@
+// Image view
+.image-view {
+
+	.frappe-list {
+		padding: var(--padding-xs);
+	}
+
+	.list-header-subject {
+		.list-image-header {
+			display: flex;
+		}
+
+		.list-count {
+			font-size: var(--text-md);
+			margin: 0;
+		}
+
+		.list-image-header-item {
+			display: flex;
+			align-items: center;
+			margin-right: var(--margin-lg);
+
+			div {
+				margin-left: var(--margin-xs);
+			}
+		}
+
+	}
+
+	.image-view-container {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		max-width: 100%;
+
+		.image-view-row {
+			display: flex;
+			border-bottom: 1px solid var(--border-color);
+		}
+
+		.image-view-item {
+			position: relative;
+			padding: var(--padding-sm);
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+			height: 250px;
+			border-radius: var(--border-radius);
+
+			.list-row-checkbox {
+				&:before {
+					display: none;
+				}
+
+				&:checked:before {
+					display: block;
+					z-index: 1;
+				}
+			}
+
+			.not-liked {
+				display: none;
+			}
+		}
+
+		.image-view-item:hover {
+			border: none;
+			// background-color: var(--highlight-color);
+			box-shadow: var(--shadow-md);
+
+			.list-row-checkbox {
+				&:before {
+					display: block;
+					z-index: 1;
+				}
+			}
+
+			.not-liked {
+				display: block;
+				z-index: 1;
+			}
+
+			img {
+				filter: opacity(30%);
+			}
+		}
+
+		.image-view-header {
+			position: absolute;
+			top: 12px;
+			left: var(--padding-md);
+			right: var(--padding-md);
+			display: block;
+			margin-bottom: var(--margin-sm);
+
+			div {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.liked {
+				z-index: 1;
+			}
+		}
+
+		.image-view-info {
+			font-size: $font-size-sm;
+			color: var(--gray-600);
+			margin-bottom: 0;
+		}
+
+		.image-view-body {
+			height: 175px;
+			width: 100%;
+			margin: 0 auto;
+			position: relative;
+
+			&:hover .zoom-view {
+				opacity: 0.7;
+			}
+
+			a {
+				text-decoration: none;
+			}
+
+			&.no-image {
+				@include flex(flex, center, center, null);
+				background-color: var(--bg-color);
+				border-radius: $border-radius;
+			}
+		}
+
+		.image-field {
+			max-height: 100%;
+			position: relative;
+			display: flex;
+			width: 100%;
+			min-width: 100%;
+			border-radius: var(--border-radius);
+
+			.image-wrapper {
+				@include flex(flex, null, center, null);
+				width: 100%;
+				height: 100%;
+			}
+
+			img {
+				border-radius: var(--border-radius);
+				object-position: top;
+				object-fit: cover;
+				margin: 0 auto;
+				color: transparent;
+				position: relative;
+				width: 100%;
+			}
+
+			@include broken-img(
+				$height: 175px,
+				$border-radius: 0
+			);
+		}
+
+		.image-title {
+			input {
+				margin-right: 5px;
+			}
+
+			.ellipsis {
+				vertical-align: bottom;
+			}
+
+			display: flex;
+			font-weight: 500;
+			justify-content: flex-start;
+			align-items: center;
+			margin-top: var(--margin-sm);
+		}
+
+		.placeholder-text {
+			font-size: $font-size-4xl;
+			color: var(--gray-500);
+		}
+
+		.zoom-view {
+			cursor: pointer;
+			width: 18px;
+			height: 18px;
+			@include flex(flex, center, center, null);
+			bottom: var(--margin-xs);
+			right: var(--margin-xs);
+			opacity: 0;
+			font-size: $font-size-lg;
+			position: absolute;
+			background: var(--gray-300);
+			border-radius: $border-radius;
+
+			.icon {
+				use {
+					stroke: $text-color;
+				}
+			}
+
+			// show zoom button on mobile devices
+			// @media (max-width: $screen-xs) {
+			// 	opacity: 0.5
+			// }
+		}
+
+	}
+}
+
+
+.pswp--svg .pswp__button,
+.pswp--svg .pswp__button--arrow--left:before,
+.pswp--svg .pswp__button--arrow--right:before {
+	background-image: url('/assets/frappe/images/default-skin.svg') !important;
+}
+.pswp--svg .pswp__button--arrow--left,
+.pswp--svg .pswp__button--arrow--right {
+	background: none !important;
+}
+
+.pswp__bg {
+	background-color: #fff !important;
+}
+
+.pswp__more-items {
+	display: flex;
+	position: absolute;
+	bottom: 12px;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.pswp__more-item {
+	display: inline-flex;
+	margin: 5px;
+	height: 100px;
+	cursor: pointer;
+	border: 1px solid var(--border-color);
+
+
+	img {
+		max-height: 100%;
+	}
+}

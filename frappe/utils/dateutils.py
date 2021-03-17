@@ -5,10 +5,9 @@ from __future__ import unicode_literals
 import frappe
 import frappe.defaults
 import datetime
-from frappe.utils import get_datetime
-from frappe.utils import add_to_date, getdate
-from frappe.utils.data import get_last_day_of_week
-from frappe.desk.doctype.dashboard_chart.dashboard_chart import get_period_ending
+from frappe.utils import get_datetime, add_to_date, getdate
+from frappe.utils.data import get_first_day, get_first_day_of_week, get_quarter_start, get_year_start,\
+	get_last_day, get_last_day_of_week, get_quarter_ending, get_year_ending
 from six import string_types
 
 # global values -- used for caching
@@ -103,3 +102,51 @@ def get_dates_from_timegrain(from_date, to_date, timegrain="Daily"):
 			date = get_period_ending(add_to_date(dates[-1], years=years, months=months, days=days), timegrain)
 		dates.append(date)
 	return dates
+
+def get_from_date_from_timespan(to_date, timespan):
+	days = months = years = 0
+	if timespan == "Last Week":
+		days = -7
+	if timespan == "Last Month":
+		months = -1
+	elif timespan == "Last Quarter":
+		months = -3
+	elif timespan == "Last Year":
+		years = -1
+	elif timespan == "All Time":
+		years = -50
+	return add_to_date(to_date, years=years, months=months, days=days,
+		as_datetime=True)
+
+def get_period(date, interval='Monthly'):
+	date = getdate(date)
+	months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+	return {
+		'Daily': date.strftime('%d-%m-%y'),
+		'Weekly': date.strftime('%d-%m-%y'),
+		'Monthly': str(months[date.month - 1]) + ' ' + str(date.year),
+		'Quarterly': 'Quarter ' + str(((date.month-1)//3)+1) + ' ' + str(date.year),
+		'Yearly': str(date.year)
+	}[interval]
+
+def get_period_beginning(date, timegrain, as_str=True):
+	return getdate({
+		'Daily': date,
+		'Weekly': get_first_day_of_week(date),
+		'Monthly':  get_first_day(date),
+		'Quarterly': get_quarter_start(date),
+		'Yearly': get_year_start(date)
+	}[timegrain])
+
+def get_period_ending(date, timegrain):
+	date = getdate(date)
+	if timegrain == 'Daily':
+		return date
+	else:
+		return getdate({
+			'Daily': date,
+			'Weekly': get_last_day_of_week(date),
+			'Monthly':  get_last_day(date),
+			'Quarterly': get_quarter_ending(date),
+			'Yearly': get_year_ending(date)
+		}[timegrain])

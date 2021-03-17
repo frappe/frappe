@@ -170,7 +170,7 @@
    "fieldname": "font",
    "fieldtype": "Select",
    "label": "Font",
-   "options": "Default\nArial\nHelvetica\nVerdana\nMonospace"
+   "options": "Default\nHelvetica Neue\nArial\nHelvetica\nInter\nVerdana\nMonospace"
   },
   {
    "description": "In points. Default is 9.",
@@ -180,9 +180,10 @@
   }
  ],
  "icon": "fa fa-cog",
+ "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-07-02 16:14:47.470668",
+ "modified": "2020-10-22 23:42:09.471022",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",

@@ -59,6 +59,7 @@
 </ul>
 {%- endif %}
 <ul class="ml-auto navbar-nav">
+	{% include "templates/includes/navbar/navbar_search.html" %}
 	{%- for item in top_bar_items -%}
 		{% if not item.parent_label and item.right -%}
 			{{ render_item(item, parent=True) }}
@@ -85,7 +86,6 @@
 	</div>
 	{% endif %}
 
-	{% include "templates/includes/navbar/navbar_search.html" %}
 	{% include "templates/includes/navbar/navbar_login.html" %}
 
 </ul>

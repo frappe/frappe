@@ -68,13 +68,17 @@ class Newsletter(WebsiteGenerator):
 				except IOError:
 					frappe.throw(_("Unable to find attachment {0}").format(file.name))
 
-		send(recipients=self.recipients, sender=sender,
-			subject=self.subject, message=self.get_message(),
+		args = {
+			"message": self.get_message(),
+			"name": self.name
+		}
+		frappe.sendmail(recipients=self.recipients, sender=sender,
+			subject=self.subject, message=self.get_message(), template="newsletter",
 			reference_doctype=self.doctype, reference_name=self.name,
 			add_unsubscribe_link=self.send_unsubscribe_link, attachments=attachments,
 			unsubscribe_method="/unsubscribe",
 			unsubscribe_params={"name": self.name},
-			send_priority=0, queue_separately=True)
+			send_priority=0, queue_separately=True, args=args)
 
 		if not frappe.flags.in_test:
 			frappe.db.auto_commit_on_many_writes = False
@@ -85,11 +89,11 @@ class Newsletter(WebsiteGenerator):
 			self.db_set("scheduled_to_send", len(self.recipients))
 
 	def get_message(self):
-
+		if self.content_type == "HTML":
+			return frappe.render_template(self.message_html, {"doc": self.as_dict()})
 		return {
 			'Rich Text': self.message,
-			'Markdown': markdown(self.message_md),
-			'HTML': self.message_html
+			'Markdown': markdown(self.message_md)
 		}[self.content_type or 'Rich Text']
 
 	def get_recipients(self):

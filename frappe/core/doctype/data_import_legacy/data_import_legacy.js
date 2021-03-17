@@ -32,7 +32,7 @@ frappe.ui.form.on('Data Import Legacy', {
 					frm.reload_doc();
 				}
 				if (data.progress) {
-					let progress_bar = $(frm.dashboard.progress_area).find(".progress-bar");
+					let progress_bar = $(frm.dashboard.progress_area.body).find(".progress-bar");
 					if (progress_bar) {
 						$(progress_bar).removeClass("progress-bar-danger").addClass("progress-bar-success progress-bar-striped");
 						$(progress_bar).css("width", data.progress + "%");

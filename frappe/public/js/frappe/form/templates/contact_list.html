@@ -1,18 +1,18 @@
 <div class="clearfix"></div>
 {% for(var i=0, l=contact_list.length; i<l; i++) { %}
 	<div class="address-box">
-		<p class="h6">
+		<p class="h6 flex align-center">
 			{%= contact_list[i].first_name %} {%= contact_list[i].last_name %}
 			{% if(contact_list[i].is_primary_contact) { %}
-				<span class="text-muted">({%= __("Primary") %})</span>
+				<span class="text-muted">&nbsp;({%= __("Primary") %})</span>
 			{% } %}
 			{% if(contact_list[i].designation){ %}
 			 <span class="text-muted">&ndash; {%= contact_list[i].designation %}</span>
 			{% } %}
-			<a href="#Form/Contact/{%= encodeURIComponent(contact_list[i].name) %}"
-				class="btn btn-xs btn-default pull-right"
-				style="margin-top:-3px; margin-right: -5px;">
-				{%= __("Edit") %}</a>
+			<a href="/app/Form/Contact/{%= encodeURIComponent(contact_list[i].name) %}"
+				class="btn btn-xs btn-default ml-auto">
+				{%= __("Edit") %}
+			</a>
 		</p>
 		{% if (contact_list[i].phones || contact_list[i].email_ids) { %}
 		<p>

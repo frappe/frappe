@@ -16,7 +16,6 @@ import frappe.model.meta
 from frappe import _
 from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
-from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils import cint
 
@@ -746,12 +745,18 @@ class Database(object):
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+		for method in frappe.local.before_commit:
+			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
+
 		self.sql("commit")
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
 		enqueue_jobs_after_commit()
 		flush_local_link_count()
+
+	def add_before_commit(self, method, args=None, kwargs=None):
+		frappe.local.before_commit.append([method, args, kwargs])
 
 	@staticmethod
 	def flush_realtime_log():
@@ -1026,6 +1031,8 @@ class Database(object):
 				insert_list = []
 
 def enqueue_jobs_after_commit():
+	from frappe.utils.background_jobs import execute_job, get_queue
+
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
 			q = get_queue(job.get("queue"), is_async=job.get("is_async"))

@@ -54,6 +54,8 @@ def get_sites(site_arg):
 		return frappe.utils.get_sites()
 	elif site_arg:
 		return [site_arg]
+	elif os.environ.get('FRAPPE_SITE'):
+		return [os.environ.get('FRAPPE_SITE')]
 	elif os.path.exists('currentsite.txt'):
 		with open('currentsite.txt') as f:
 			site = f.read().strip()

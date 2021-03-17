@@ -15,13 +15,12 @@ from frappe.utils import cint, cstr
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
-from frappe.utils.change_log import get_change_log
 import redis
 from six.moves.urllib.parse import unquote
 from six import text_type
 from frappe.cache_manager import clear_user_cache
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def clear(user=None):
 	frappe.local.session_obj.update(force=True)
 	frappe.local.db.commit()
@@ -115,9 +114,9 @@ def clear_expired_sessions():
 		delete_session(sid, reason="Session Expired")
 
 def get():
-
 	"""get session boot info"""
 	from frappe.boot import get_bootinfo, get_unseen_notes
+	from frappe.utils.change_log import get_change_log
 
 	bootinfo = None
 	if not getattr(frappe.conf,'disable_session_cache', None):

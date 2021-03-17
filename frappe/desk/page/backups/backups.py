@@ -9,7 +9,7 @@ import datetime
 def get_context(context):
 	def get_time(path):
 		dt = os.path.getmtime(path)
-		return convert_utc_to_user_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime('%Y-%m-%d %H:%M')
+		return convert_utc_to_user_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime('%a %b %d %H:%M %Y')
 
 	def get_size(path):
 		size = os.path.getsize(path)

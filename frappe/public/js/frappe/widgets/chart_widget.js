@@ -6,6 +6,7 @@ frappe.provide("frappe.dashboards.chart_sources");
 
 export default class ChartWidget extends Widget {
 	constructor(opts) {
+		opts.shadow = true;
 		super(opts);
 		this.height = this.height || 240;
 	}
@@ -24,10 +25,11 @@ export default class ChartWidget extends Widget {
 		delete this.dashboard_chart;
 		this.set_body();
 		this.make_chart();
+		this.setup_events();
 	}
 
 	set_chart_title() {
-		const max_chars = this.widget.width() < 500 ? 20 : 60;
+		const max_chars = this.widget.width() < 600 ? 20 : 60;
 		this.set_title(max_chars);
 	}
 
@@ -81,7 +83,7 @@ export default class ChartWidget extends Widget {
 		}
 
 		this.summary.forEach(summary => {
-			frappe.widget.utils.build_summary_item(summary).appendTo(this.$summary);
+			frappe.utils.build_summary_item(summary).appendTo(this.$summary);
 		});
 		this.summary.length && this.$summary.show();
 	}
@@ -101,7 +103,6 @@ export default class ChartWidget extends Widget {
 			if (!this.in_customize_mode) {
 				this.action_area.empty();
 				this.prepare_chart_actions();
-				this.setup_filter_button();
 
 				if (
 					this.chart_doc.timeseries &&
@@ -112,6 +113,7 @@ export default class ChartWidget extends Widget {
 			}
 			frappe.run_serially([
 				() => this.prepare_chart_object(),
+				() => this.setup_filter_button(),
 				() => this.fetch_and_update_chart(),
 			]);
 		});
@@ -142,6 +144,17 @@ export default class ChartWidget extends Widget {
 		} else {
 			filters = [
 				{
+					label: this.chart_settings.time_interval || this.chart_doc.time_interval,
+					options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
+					icon: 'calendar',
+					class: 'time-interval-filter',
+					action: selected_item => {
+						this.selected_time_interval = selected_item;
+						this.save_chart_config_for_user({'time_interval': this.selected_time_interval});
+						this.fetch_and_update_chart();
+					}
+				},
+				{
 					label: this.chart_settings.timespan || this.chart_doc.timespan,
 					options: [
 						"Select Date Range",
@@ -150,11 +163,12 @@ export default class ChartWidget extends Widget {
 						"Last Month",
 						"Last Week"
 					],
+					class: 'timespan-filter',
 					action: selected_item => {
 						this.selected_timespan = selected_item;
 
 						if (this.selected_timespan === "Select Date Range") {
-							this.render_date_range_fields();
+							this.render_date_range_field();
 						} else {
 							this.selected_from_date = null;
 							this.selected_to_date = null;
@@ -164,6 +178,7 @@ export default class ChartWidget extends Widget {
 								// Title maybe hidden becuase of date range fields
 								// in half width chart
 								this.title_field.show();
+								this.subtitle_field.show();
 								this.head.css('flex-direction', "row");
 							}
 
@@ -177,15 +192,6 @@ export default class ChartWidget extends Widget {
 						}
 					}
 				},
-				{
-					label: this.chart_settings.time_interval || this.chart_doc.time_interval,
-					options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
-					action: selected_item => {
-						this.selected_time_interval = selected_item;
-						this.save_chart_config_for_user({'time_interval': this.selected_time_interval});
-						this.fetch_and_update_chart();
-					}
-				}
 			];
 		}
 		return filters;
@@ -212,27 +218,29 @@ export default class ChartWidget extends Widget {
 		});
 	}
 
-	render_date_range_fields() {
+	render_date_range_field() {
 		if (
 			!this.date_field_wrapper ||
-			!this.date_field_wrapper.is(":visible")
+			!this.date_field_wrapper.is(':visible')
 		) {
 			this.date_field_wrapper = $(
 				`<div class="dashboard-date-field pull-right"></div>`
-			).appendTo(this.action_area);
+			).insertAfter(this.action_area.find('.timespan-filter'));
 
-			if (this.width != "Full" && this.widget.width() < 700) {
+			if (this.width !== 'Full' && this.widget.width() < 700) {
 				this.title_field.hide();
-				this.head.css('flex-direction', "row-reverse");
+				this.subtitle_field.hide();
+				this.head.css('flex-direction', 'row-reverse');
 			}
 
 			this.date_range_field = frappe.ui.form.make_control({
 				df: {
-					fieldtype: "DateRange",
-					fieldname: "from_date",
-					placeholder: "Date Range",
-					input_class: "input-xs",
+					fieldtype: 'DateRange',
+					fieldname: 'from_date',
+					placeholder: 'Date Range',
+					input_class: 'input-xs',
 					default: [this.chart_settings.from_date, this.chart_settings.to_date],
+					value: [this.chart_settings.from_date, this.chart_settings.to_date],
 					reqd: 1,
 					change: () => {
 						let selected_date_range = this.date_range_field.get_value();
@@ -252,6 +260,8 @@ export default class ChartWidget extends Widget {
 				parent: this.date_field_wrapper,
 				render_input: 1
 			});
+
+			this.date_range_field.$input.focus();
 		}
 	}
 
@@ -342,47 +352,56 @@ export default class ChartWidget extends Widget {
 		this.is_document_type =
 			this.chart_doc.chart_type !== "Report" &&
 			this.chart_doc.chart_type !== "Custom";
+
 		this.filter_button = $(
-			`<div class="filter-chart btn btn-default btn-xs pull-right">${__(
-				"Filter"
-			)}</div>`
+			`<div class="filter-chart btn btn-xs pull-right">
+				${frappe.utils.icon('filter', 'sm')}
+			</div>`
 		);
+
 		this.filter_button.appendTo(this.action_area);
 
-		this.filter_button.on("click", () => {
-			let fields;
+		if (this.is_document_type) {
+			if (this.filter_group) {
+				this.filters = this.filter_group.get_filters();
+			}
+			this.create_filter_group_and_add_filters();
+		} else {
+			this.filter_button.on("click", () => {
+				let fields;
 
-			frappe.dashboard_utils
-				.get_filters_for_chart_type(this.chart_doc)
-				.then(filters => {
-					if (!this.is_document_type) {
-						if (!filters) {
+				frappe.dashboard_utils
+					.get_filters_for_chart_type(this.chart_doc)
+					.then(filters => {
+						if (!this.is_document_type) {
+							if (!filters) {
+								fields = [
+									{
+										fieldtype: "HTML",
+										options: __("No Filters Set")
+									}
+								];
+							} else {
+								fields = filters
+									.filter(df => df.fieldname)
+									.map(df => {
+										Object.assign(df, df.dashboard_config || {});
+										return df;
+									});
+							}
+						} else {
 							fields = [
 								{
 									fieldtype: "HTML",
-									options: __("No Filters Set")
+									fieldname: "filter_area"
 								}
 							];
-						} else {
-							fields = filters
-								.filter(df => df.fieldname)
-								.map(df => {
-									Object.assign(df, df.dashboard_config || {});
-									return df;
-								});
 						}
-					} else {
-						fields = [
-							{
-								fieldtype: "HTML",
-								fieldname: "filter_area"
-							}
-						];
-					}
 
-					this.setup_filter_dialog(fields);
-				});
-		});
+						this.setup_filter_dialog(fields);
+					});
+			});
+		}
 	}
 
 	setup_filter_dialog(fields) {
@@ -394,23 +413,13 @@ export default class ChartWidget extends Widget {
 				let values = this.get_values();
 				if (values) {
 					this.hide();
-					if (me.is_document_type) {
-						me.filters = me.filter_group.get_filters();
-					} else {
-						me.filters = values;
-					}
+					me.filters = values;
 					me.save_chart_config_for_user({'filters': me.filters});
 					me.fetch_and_update_chart();
 				}
 			},
 			primary_action_label: "Set"
 		});
-
-		if (this.is_document_type) {
-			this.create_filter_group_and_add_filters(
-				dialog.get_field("filter_area").$wrapper
-			);
-		}
 
 		dialog.show();
 
@@ -441,29 +450,42 @@ export default class ChartWidget extends Widget {
 		});
 	}
 
-	create_filter_group_and_add_filters(parent) {
+	create_filter_group_and_add_filters() {
 		this.filter_group = new frappe.ui.FilterGroup({
-			parent: parent,
 			doctype: this.chart_doc.document_type,
-			on_change: () => {}
+			filter_button: this.filter_button,
+			on_change: () => {
+				this.filters = this.filter_group.get_filters();
+				this.save_chart_config_for_user({
+					'filters': this.filters
+				});
+				this.fetch_and_update_chart();
+			}
 		});
 
-		frappe.model.with_doctype(this.chart_doc.document_type, () => {
-			this.filter_group.add_filters_to_filter_group(this.filters);
-		});
+		this.filters &&
+			frappe.model.with_doctype(this.chart_doc.document_type, () => {
+				this.filter_group.add_filters_to_filter_group(this.filters);
+			});
 	}
 
 	set_chart_actions(actions) {
 		/* eslint-disable indent */
 		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
-			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				<button class="btn btn-default btn-xs"><span class="caret"></span></button>
-			</a>
-			<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
+			<button data-toggle="dropdown"
+				aria-haspopup="true"aria-expanded="false"
+				class="btn btn-xs btn-secondary chart-menu"
+			>
+				<svg class="icon icon-sm">
+					<use xlink:href="#icon-dot-horizontal">
+					</use>
+				</svg>
+			</button>
+			<ul class="dropdown-menu dropdown-menu-right">
 				${actions
 					.map(
 						action =>
-							`<li><a data-action="${action.action}">${
+							`<li><a class="dropdown-item" data-action="${action.action}">${
 								action.label
 							}</a></li>`
 					)
@@ -518,10 +540,7 @@ export default class ChartWidget extends Widget {
 			const chart_args = this.get_chart_args();
 
 			if (!this.dashboard_chart) {
-				this.dashboard_chart = new frappe.Chart(
-					this.chart_wrapper[0],
-					chart_args
-				);
+				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
 			} else {
 				this.dashboard_chart.update(this.data);
 			}
@@ -564,7 +583,11 @@ export default class ChartWidget extends Widget {
 		let set_options = (options) => {
 			let custom_options = JSON.parse(options);
 			for (let key in custom_options) {
-				chart_args[key] = custom_options[key];
+				if (typeof chart_args[key] === 'object' && typeof custom_options[key] === 'object') {
+					chart_args[key] = Object.assign(chart_args[key], custom_options[key]);
+				} else {
+					chart_args[key] = custom_options[key];
+				}
 			}
 		};
 
@@ -617,14 +640,16 @@ export default class ChartWidget extends Widget {
 	}
 
 	update_last_synced() {
+		if (!this.chart_doc.last_synced_on) {
+			return;
+		}
 		let last_synced_text = __("Last synced {0}", [comment_when(this.chart_doc.last_synced_on)]);
-		this.footer.html(last_synced_text);
+		this.subtitle_field.html(last_synced_text);
 	}
 
 	update_chart_object() {
 		frappe.db.get_doc("Dashboard Chart", this.chart_doc.name).then(doc => {
 			this.chart_doc = doc;
-			this.prepare_chart_object();
 			this.update_last_synced();
 		});
 	}
@@ -710,5 +735,19 @@ export default class ChartWidget extends Widget {
 					}
 				}
 			});
+	}
+
+	setup_events() {
+		$(document.body).on('toggleSidebar', () => {
+			this.dashboard_chart && this.dashboard_chart.draw(true);
+		});
+
+		$(document.body).on('toggleListSidebar', () => {
+			this.dashboard_chart && this.dashboard_chart.draw(true);
+		});
+
+		$(document.body).on('toggleFullWidth', () => {
+			this.dashboard_chart && this.dashboard_chart.draw(true);
+		});
 	}
 }

@@ -1,49 +1,70 @@
-<div class="page-head flex align-center">
+<div class="page-head flex">
 	<div class="container">
-		<div class="row flex align-center">
-			<div class="col-md-7 col-sm-8 col-xs-6 page-title">
+		<div class="row flex align-center page-head-content justify-between">
+			<div class="col-md-4 col-sm-6 col-xs-8 page-title">
+				<!-- <div class="title-image hide hidden-md hidden-lg"></div> -->
 				<!-- title -->
-				<h1 class="flex" style="margin: auto;">
-					<div class="title-image hide hidden-md hidden-lg">
+				<span class="sidebar-toggle-btn">
+					<svg class="icon icon-md sidebar-toggle-placeholder">
+						<use xlink:href="#icon-menu"></use>
+					</svg>
+					<span class="sidebar-toggle-icon">
+						<svg class="icon icon-md">
+							<use xlink:href="#icon-sidebar-collapse">
+							</use>
+						</svg>
+					</span>
+				</span>
+				<div class="flex fill-width title-area">
+					<div>
+						<div class="flex">
+							<h3 class="ellipsis title-text"></h3>
+							<span class="indicator-pill whitespace-nowrap"></span>
+						</div>
+						<div class="ellipsis sub-heading hide text-muted"></div>
 					</div>
-					<div class="flex fill-width title-area" style="max-width: 100%">
-						<div class="ellipsis title-text"></div>
-						<span class="indicator whitespace-nowrap hide"></span>
-					</div>
-				</h1>
+					<button class="btn btn-default more-button hide">
+						<svg class="icon icon-sm">
+							<use xlink:href="#icon-dot-horizontal">
+							</use>
+						</svg>
+					</button>
+				</div>
 			</div>
-			<div class="text-right col-md-5 col-sm-4 col-xs-6 page-actions">
-				<!-- ID and icon buttons -->
-				<span class="checked-items-status text-ellipsis text-muted small hide hidden-xs hidden-sm" style="margin-right: 20px;">## items selected</span>
-				<h6 class="ellipsis sub-heading hide text-muted"></h6>
-				<span class="page-icon-group hide hidden-xs hidden-sm"></span>
-
+			<div class="flex col page-actions justify-content-end">
 				<!-- buttons -->
-				<div class="btn-group menu-btn-group hide">
-					<button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-						<span class="hidden-xs">
-							<span class="menu-btn-group-label">{%= __("Menu") %}</span>
-							<span class="caret"></span>
-						</span>
-						<span class="visible-xs">
-							<i class="octicon octicon-triangle-down"></i>
-						</span>
-					</button>
-					<ul class="dropdown-menu" role="menu"></ul>
+				<div class="custom-actions hide hidden-xs hidden-md"></div>
+				<div class="standard-actions flex">
+					<span class="page-icon-group hide hidden-xs hidden-sm"></span>
+					<div class="menu-btn-group hide">
+						<button type="button" class="btn btn-default icon-btn" data-toggle="dropdown" aria-expanded="false">
+							<span>
+								<span class="menu-btn-group-label">
+									<svg class="icon icon-sm">
+										<use xlink:href="#icon-dot-horizontal">
+										</use>
+									</svg>
+								</span>
+							</span>
+						</button>
+						<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+					</div>
+					<button class="btn btn-secondary btn-default btn-sm hide"></button>
+					<div class="actions-btn-group hide">
+						<button type="button" class="btn btn-primary btn-sm" data-toggle="dropdown" aria-expanded="false">
+							<span class="hidden-xs">
+								<span class="actions-btn-group-label">{%= __("Actions") %}</span>
+								<svg class="icon icon-xs">
+									<use xlink:href="#icon-select">
+									</use>
+								</svg>
+							</span>
+						</button>
+						<ul class="dropdown-menu dropdown-menu-right" role="menu">
+						</ul>
+					</div>
+					<button class="btn btn-primary btn-sm hide primary-action"></button>
 				</div>
-				<button class="btn btn-secondary btn-default btn-sm hide"></button>
-				<div class="btn-group actions-btn-group hide">
-					<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-						<span class="hidden-xs">
-							<span class="actions-btn-group-label">{%= __("Actions") %}</span>
-							<span class="caret"></span>
-						</span>
-						<span class="visible-xs octicon octicon-check"></span>
-					</button>
-					<ul class="dropdown-menu" role="menu">
-					</ul>
-				</div>
-				<button class="btn btn-primary btn-sm hide primary-action"></button>
 			</div>
 		</div>
 	</div>

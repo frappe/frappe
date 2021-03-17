@@ -26,8 +26,8 @@ frappe.ui.TagEditor = Class.extend({
 			return;
 		}
 
-		this.wrapper = $('<div class="tag-line" style="position: relative">').appendTo(this.parent);
-		if(!this.wrapper.length) return;
+		this.wrapper = this.parent;
+		if (!this.wrapper.length) return;
 
 		this.tags = new frappe.ui.Tags({
 			parent: this.wrapper,

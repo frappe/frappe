@@ -181,6 +181,7 @@ def get_context(context):
 			'document_type': doc.doctype,
 			'document_name': doc.name,
 			'subject': subject,
+			'from_user': doc.modified_by or doc.owner,
 			'email_content': frappe.render_template(self.message, context),
 			'attached_file': attachments and json.dumps(attachments[0])
 		}

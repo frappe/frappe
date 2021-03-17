@@ -1,0 +1,49 @@
+table.user-perm {
+	border-collapse: collapse;
+	width: 100%;
+	overflow-x: scroll;
+	-webkit-overflow-scrolling: touch;
+	-ms-overflow-style: -ms-autohiding-scrollbar;
+	tr td, tr th {
+		padding: 5px;
+		border-bottom: 1px solid var(--border-color);
+		min-width: 30px;
+		&:not(:first-child) {
+			text-align: center;
+		}
+	}
+	--icon-stroke: var(--text-muted)
+}
+
+.frappe-control {
+	.bulk-select-options {
+		margin: var(--margin-sm) 0 var(--margin-md) 0;
+		.select-all {
+			margin-right: var(--margin-xs);
+		}
+	}
+	.unit-checkbox {
+		color: var(--text-color);
+		margin-bottom: var(--margin-sm);
+		label {
+			position: relative;
+		}
+		input[type=checkbox] {
+			margin-left: 0;
+		}
+	}
+}
+
+.unit-checkbox {
+	.label-area {
+		cursor: pointer;
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}
+
+.module-block-list .checkbox {
+	margin-bottom: var(--margin-xs);
+	font-size: var(--text-md);
+}

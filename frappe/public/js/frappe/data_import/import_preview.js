@@ -101,6 +101,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					.replace('%H', 'HH')
 					.replace('%M', 'mm')
 					.replace('%S', 'ss')
+					.replace('%b', 'Mon')
 				: null;
 
 			let column_title = `<span class="indicator green">
@@ -187,8 +188,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			.join(',');
 		this.datatable.style.setStyle(row_classes, {
 			pointerEvents: 'none',
-			backgroundColor: frappe.ui.color.get_color_shade('white', 'light'),
-			color: frappe.ui.color.get_color_shade('black', 'extra-light')
+			backgroundColor: frappe.ui.color.get_color_shade('gray', 'extra-light'),
+			color: frappe.ui.color.get_color_shade('gray', 'dark')
 		});
 	}
 

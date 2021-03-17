@@ -293,7 +293,7 @@ def import_doc(context, path, force=False):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			import_doc(path, overwrite=context.force)
+			import_doc(path)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -483,7 +483,6 @@ def console(context):
 @click.option('--doctype', help="For DocType")
 @click.option('--doctype-list-path', help="Path to .txt file for list of doctypes. Example erpnext/tests/server/agriculture.txt")
 @click.option('--test', multiple=True, help="Specific test")
-@click.option('--driver', help="For Travis")
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
@@ -493,9 +492,9 @@ def console(context):
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @click.option('--failfast', is_flag=True, default=False)
 @pass_context
-def run_tests(context, app=None, module=None, doctype=None, test=(),
-	driver=None, profile=False, coverage=False, junit_xml_output=False, ui_tests = False,
-	doctype_list_path=None, skip_test_records=False, skip_before_tests=False, failfast=False):
+def run_tests(context, app=None, module=None, doctype=None, test=(), profile=False,
+		coverage=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None,
+		skip_test_records=False, skip_before_tests=False, failfast=False):
 
 	"Run tests"
 	import frappe.test_runner
@@ -535,8 +534,8 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-								force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-								ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast)
+		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
+		ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast)
 
 	if coverage:
 		cov.stop()
@@ -571,13 +570,14 @@ def run_ui_tests(context, app, headless=False):
 	plugin_path = "{0}/cypress-file-upload".format(node_bin)
 
 	# check if cypress in path...if not, install it.
-	if not (os.path.exists(cypress_path) or os.path.exists(plugin_path)):
+	if not (os.path.exists(cypress_path) or os.path.exists(plugin_path)) \
+		or not subprocess.getoutput("npm view cypress version").startswith("6."):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen("yarn add cypress@3 cypress-file-upload@^3.1 --no-lockfile")
+		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
 
 	# run for headless mode
-	run_or_open = 'run --browser chrome --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
+	run_or_open = 'run --browser firefox --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
 

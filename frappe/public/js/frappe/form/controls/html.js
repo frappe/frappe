@@ -9,6 +9,7 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 	},
 	get_content: function() {
 		var content = this.df.options || "";
+		content = __(content);
 		try {
 			return frappe.render(content, this);
 		} catch (e) {

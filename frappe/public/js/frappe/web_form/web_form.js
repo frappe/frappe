@@ -88,21 +88,22 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	setup_delete_button() {
 		this.add_button_to_header(
-			'<i class="fa fa-trash" aria-hidden="true"></i>',
-			"light",
+			frappe.utils.icon('delete'),
+			"danger",
 			() => this.delete()
 		);
 	}
 
 	setup_print_button() {
 		this.add_button_to_header(
-			'<i class="fa fa-print" aria-hidden="true"></i>',
+			frappe.utils.icon('print'),
 			"light",
 			() => this.print()
 		);
 	}
 
 	save() {
+		let is_new = this.is_new;
 		if (this.validate && !this.validate()) {
 			frappe.throw(__("Couldn't save, please check the data you have entered"), __("Validation Error"));
 		}
@@ -139,6 +140,18 @@ export default class WebForm extends frappe.ui.FieldGroup {
 					this.handle_success(response.message);
 					frappe.web_form.events.trigger('after_save');
 					this.after_save && this.after_save();
+					// args doctype and docname added to link doctype in file manager
+					if (is_new) {
+						frappe.call({
+							type: 'POST',
+							method: "frappe.handler.upload_file",
+							args: {
+								file_url: response.message.attachment,
+								doctype: response.message.doctype,
+								docname: response.message.name
+							}
+						});
+					}
 				}
 			},
 			always: function() {

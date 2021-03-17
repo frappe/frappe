@@ -13,7 +13,6 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email import policy
 
-
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
 	content=None, reply_to=None, cc=[], bcc=[], email_account=None, expose_recipients=None,
@@ -249,11 +248,14 @@ class EMail:
 		return self.msg_root.as_string(policy=policy.SMTPUTF8)
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
-		email_account=None, header=None, unsubscribe_link=None, sender=None):
+		email_account=None, header=None, unsubscribe_link=None, sender=None, with_container=False):
 	if not email_account:
 		email_account = get_outgoing_email_account(False, sender=sender)
 
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
+		"brand_logo": get_brand_logo(email_account) if with_container or header else None,
+		"with_container": with_container,
+		"site_url": get_url(),
 		"header": get_header(header),
 		"content": message,
 		"signature": get_signature(email_account),
@@ -272,14 +274,14 @@ def get_formatted_html(subject, message, footer=None, print_html=None,
 	return html
 
 @frappe.whitelist()
-def get_email_html(template, args, subject, header=None):
+def get_email_html(template, args, subject, header=None, with_container=False):
 	import json
-
+	with_container = cint(with_container)
 	args = json.loads(args)
 	if header and header.startswith('['):
 		header = json.loads(header)
 	email = frappe.utils.jinja.get_email_from_template(template, args)
-	return get_formatted_html(subject, email[0], header=header)
+	return get_formatted_html(subject, email[0], header=header, with_container=with_container)
 
 def inline_style_in_html(html):
 	''' Convert email.css and html to inline-styled html
@@ -288,11 +290,16 @@ def inline_style_in_html(html):
 
 	apps = frappe.get_installed_apps()
 
-	css_files = []
+	# add frappe email css file
+	css_files = ['assets/css/email.css']
+	if 'frappe' in apps:
+		apps.remove('frappe')
+
 	for app in apps:
 		path = 'assets/{0}/css/email.css'.format(app)
-		if os.path.exists(os.path.abspath(path)):
-			css_files.append(path)
+		css_files.append(path)
+
+	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
 
 	p = Premailer(html=html, external_styles=css_files, strip_important=False)
 
@@ -353,7 +360,7 @@ def get_message_id():
 
 def get_signature(email_account):
 	if email_account and email_account.add_signature and email_account.signature:
-		return "<br><br>" + email_account.signature
+		return "<br>" + email_account.signature
 	else:
 		return ""
 
@@ -366,10 +373,10 @@ def get_footer(email_account, footer=None):
 	if email_account and email_account.footer:
 		args.update({'email_account_footer': email_account.footer})
 
-	company_address = frappe.db.get_default("email_footer_address")
+	sender_address = frappe.db.get_default("email_footer_address")
 
-	if company_address:
-		args.update({'company_address': company_address})
+	if sender_address:
+		args.update({'sender_address': sender_address})
 
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
 		args.update({'default_mail_footer': frappe.get_hooks('default_mail_footer')})
@@ -467,3 +474,6 @@ def get_header(header=None):
 
 def sanitize_email_header(str):
 	return str.replace('\r', '').replace('\n', '')
+
+def get_brand_logo(email_account):
+	return email_account.get('brand_logo')

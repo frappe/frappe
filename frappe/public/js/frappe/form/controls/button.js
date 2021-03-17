@@ -55,9 +55,12 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	set_empty_description: function() {
 		this.$wrapper.find(".help-box").empty().toggle(false);
 	},
-	set_label: function() {
+	set_label: function(label) {
+		if (label) {
+			this.df.label = label;
+		}
+		label = (this.df.icon ? frappe.utils.icon(this.df.icon) : "") + __(this.df.label);
 		$(this.label_span).html("&nbsp;");
-		this.$input && this.$input.html((this.df.icon ?
-			('<i class="'+this.df.icon+' fa-fw"></i> ') : "") + __(this.df.label));
+		this.$input && this.$input.html(label);
 	}
 });

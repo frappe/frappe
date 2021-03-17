@@ -1,7 +1,7 @@
 export default class ListSettings {
 	constructor({ listview, doctype, meta, settings }) {
 		if (!doctype) {
-			frappe.throw(__('Doctype required'));
+			frappe.throw('DocType required');
 		}
 
 		this.listview = listview;

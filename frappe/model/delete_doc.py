@@ -68,7 +68,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				check_permission_and_not_submitted(doc)
 
 				frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
-				frappe.db.sql("delete from `tabCustom Script` where dt = %s", name)
+				frappe.db.sql("delete from `tabClient Script` where dt = %s", name)
 				frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
 				frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
 				frappe.db.sql("delete from `tabCustom DocPerm` where parent=%s", name)
@@ -76,7 +76,12 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
-			if not (for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_uninstall or frappe.flags.in_test):
+			if frappe.conf.developer_mode and not doc.custom and not (
+				for_reload
+				or frappe.flags.in_migrate
+				or frappe.flags.in_install
+				or frappe.flags.in_uninstall
+			):
 				try:
 					delete_controllers(name, doc.module)
 				except (FileNotFoundError, OSError, KeyError):
@@ -287,8 +292,8 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 					raise_link_exists_exception(doc, reference_doctype, reference_docname, at_position)
 
 def raise_link_exists_exception(doc, reference_doctype, reference_docname, row=''):
-	doc_link = '<a href="#Form/{0}/{1}">{1}</a>'.format(doc.doctype, doc.name)
-	reference_link = '<a href="#Form/{0}/{1}">{1}</a>'.format(reference_doctype, reference_docname)
+	doc_link = '<a href="/app/Form/{0}/{1}">{1}</a>'.format(doc.doctype, doc.name)
+	reference_link = '<a href="/app/Form/{0}/{1}">{1}</a>'.format(reference_doctype, reference_docname)
 
 	#hack to display Single doctype only once in message
 	if reference_doctype == reference_docname:
@@ -335,18 +340,24 @@ def clear_timeline_references(link_doctype, link_name):
 		WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
 
 def insert_feed(doc):
-	from frappe.utils import get_fullname
-
-	if frappe.flags.in_install or frappe.flags.in_import or getattr(doc, "no_feed_on_delete", False):
+	if (
+		frappe.flags.in_install
+		or frappe.flags.in_uninstall
+		or frappe.flags.in_import
+		or getattr(doc, "no_feed_on_delete", False)
+	):
 		return
+
+	from frappe.utils import get_fullname
 
 	frappe.get_doc({
 		"doctype": "Comment",
 		"comment_type": "Deleted",
 		"reference_doctype": doc.doctype,
 		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
-		"full_name": get_fullname(doc.owner)
+		"full_name": get_fullname(doc.owner),
 	}).insert(ignore_permissions=True)
+
 
 def delete_controllers(doctype, module):
 	"""

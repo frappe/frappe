@@ -65,8 +65,10 @@
   },
   {
    "fieldname": "theme_url",
-   "fieldtype": "Read Only",
-   "label": "Theme URL"
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Theme URL",
+   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -179,7 +181,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-24 11:42:33.867840",
+ "modified": "2021-01-18 17:43:39.804765",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

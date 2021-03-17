@@ -85,7 +85,7 @@ frappe.ui.form.States = Class.extend({
 		frappe.workflow.get_transitions(this.frm.doc).then(transitions => {
 			this.frm.page.clear_actions_menu();
 			transitions.forEach(d => {
-				if(frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
+				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function() {
 						// set the workflow_action for use in form scripts
@@ -103,17 +103,8 @@ frappe.ui.form.States = Class.extend({
 					});
 				}
 			});
-			if (!added) {
-				//call function and clear cancel button if Cancel doc state is defined in the workfloe
-				frappe.xcall('frappe.model.workflow.can_cancel_document', {doc: this.frm.doc}).then((can_cancel) => {
-					if (!can_cancel) {
-						this.frm.page.clear_secondary_action();
-					}
-				});
-			} else {
-				this.setup_btn(added);
-			}
 
+			this.setup_btn(added);
 		});
 
 	},

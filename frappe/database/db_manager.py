@@ -3,7 +3,6 @@ import frappe
 
 
 class DbManager:
-
 	def __init__(self, db):
 		"""
 		Pass root_conn here for access to all databases.
@@ -66,10 +65,10 @@ class DbManager:
 		esc = make_esc('$ ')
 
 		from distutils.spawn import find_executable
-		pipe = find_executable('pv')
-		if pipe:
-			pipe = '{pipe} {source} |'.format(
-				pipe=pipe,
+		pv = find_executable('pv')
+		if pv:
+			pipe = '{pv} {source} |'.format(
+				pv=pv,
 				source=source
 			)
 			source = ''
@@ -78,7 +77,7 @@ class DbManager:
 			source = '< {source}'.format(source=source)
 
 		if pipe:
-			print('Creating Database...')
+			print('Restoring Database file...')
 
 		command = '{pipe} mysql -u {user} -p{password} -h{host} ' + ('-P{port}' if frappe.db.port else '') + ' {target} {source}'
 		command = command.format(
