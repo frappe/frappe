@@ -65,7 +65,18 @@ frappe.ui.form.on('Client Script', {
 		}
 	},
 
+	view(frm) {
+		let has_form_boilerplate = frm.doc.script.includes('frappe.ui.form.on')
+		if (frm.doc.view === 'List' && has_form_boilerplate) {
+			frm.set_value('script', '');
+		}
+		if (frm.doc.view === 'Form' && !has_form_boilerplate) {
+			frm.trigger('dt');
+		}
+	},
+
 	add_script_for_doctype(frm, doctype) {
+		if (!doctype) return;
 		let boilerplate = `
 frappe.ui.form.on('${doctype}', {
 	refresh(frm) {
