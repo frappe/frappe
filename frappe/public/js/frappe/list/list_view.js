@@ -747,7 +747,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${_value}
 				</a>`;
 			} else if (
-				["Text Editor", "Text", "Small Text", "HTML Editor"].includes(
+				["Text Editor", "Text", "Small Text", "HTML Editor", "Markdown Editor"].includes(
 					df.fieldtype
 				)
 			) {
@@ -756,7 +756,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>`;
 			} else {
 				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${value}">
+					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
 					${format()}
 				</a>`;
 			}
