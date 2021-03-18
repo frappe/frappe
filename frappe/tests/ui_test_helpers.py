@@ -41,12 +41,12 @@ def create_todo_records():
 
 	frappe.get_doc({
 		"doctype": "ToDo",
-		"date": add_to_date(now(), days=3),
+		"date": add_to_date(now(), days=7),
 		"description": "this is first todo"
 	}).insert()
 	frappe.get_doc({
 		"doctype": "ToDo",
-		"date": add_to_date(now(), days=-3),
+		"date": add_to_date(now(), days=-7),
 		"description": "this is second todo"
 	}).insert()
 	frappe.get_doc({

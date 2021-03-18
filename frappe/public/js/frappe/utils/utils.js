@@ -1287,4 +1287,27 @@ Object.assign(frappe.utils, {
 			});
 		return names_for_mentions;
 	},
+	print(doctype, docname, print_format, letterhead, lang_code) {
+		let w = window.open(
+			frappe.urllib.get_full_url(
+				'/printview?doctype=' +
+				encodeURIComponent(doctype) +
+				'&name=' +
+				encodeURIComponent(docname) +
+				'&trigger_print=1' +
+				'&format=' +
+				encodeURIComponent(print_format) +
+				'&no_letterhead=' +
+				(letterhead ? '0' : '1') +
+				'&letterhead=' +
+				encodeURIComponent(letterhead) +
+				(lang_code ? '&_lang=' + lang_code : '')
+			)
+		);
+
+		if (!w) {
+			frappe.msgprint(__('Please enable pop-ups'));
+			return;
+		}
+	}
 });
