@@ -108,13 +108,8 @@ class TestConnectedApp(unittest.TestCase):
 
 		session = requests.Session()
 
-		# first login of a new user on a new site fails with "401 UNAUTHORIZED"
-		# when anybody fixes that, the two lines below can be removed
 		first_login = login()
-		self.assertEqual(first_login.status_code, 401)
-
-		second_login = login()
-		self.assertEqual(second_login.status_code, 200)
+		self.assertEqual(first_login.status_code, 200)
 
 		authorization_url = self.connected_app.initiate_web_application_flow(user=self.user_name)
 

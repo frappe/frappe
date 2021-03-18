@@ -3,6 +3,7 @@ frappe.provide('frappe.phone_call');
 frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	html_element: "input",
 	input_type: "text",
+	trigger_change_on_input_event: true,
 	make_input: function() {
 		if(this.$input) return;
 
@@ -22,8 +23,20 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.has_input = true;
 		this.bind_change_event();
 		this.setup_autoname_check();
-		// somehow this event does not bubble up to document
-		// after v7, if you can debug, remove this
+	},
+	bind_change_event: function() {
+		const change_handler = e => {
+			if (this.change) this.change(e);
+			else {
+				let value = this.get_input_value();
+				this.parse_validate_and_set_in_model(value, e);
+			}
+		};
+		this.$input.on("change", change_handler);
+		if (this.trigger_change_on_input_event) {
+			// debounce to avoid repeated validations on value change
+			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
+		}
 	},
 	setup_autoname_check: function() {
 		if (!this.df.parent) return;
@@ -116,5 +129,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		} else {
 			return v;
 		}
+	},
+	toggle_container_scroll: function(el_class, scroll_class, add=false) {
+		let el = this.$input.parents(el_class)[0];
+		if (el) $(el).toggleClass(scroll_class, add);
 	}
 });

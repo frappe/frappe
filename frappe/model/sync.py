@@ -61,7 +61,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 
 	for module_name in frappe.local.app_modules.get(app_name) or []:
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
-		get_doc_files(files, folder, force, sync_everything, verbose=verbose)
+		get_doc_files(files, folder)
 
 	l = len(files)
 	if l:
@@ -77,7 +77,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 		# print each progress bar on new line
 		print()
 
-def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=False):
+def get_doc_files(files, start_path):
 	"""walk and sync all doctypes and pages"""
 
 	# load in sequence - warning for devs

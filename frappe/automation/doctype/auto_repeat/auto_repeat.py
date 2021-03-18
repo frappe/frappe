@@ -15,6 +15,8 @@ from frappe.model.document import Document
 from frappe.core.doctype.communication.email import make
 from frappe.utils.background_jobs import get_jobs
 from frappe.automation.doctype.assignment_rule.assignment_rule import get_repeated
+from frappe.contacts.doctype.contact.contact import get_contacts_linked_from
+from frappe.contacts.doctype.contact.contact import get_contacts_linking_to
 
 month_map = {'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12}
 week_map = {'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6}
@@ -328,13 +330,8 @@ class AutoRepeat(Document):
 
 	def fetch_linked_contacts(self):
 		if self.reference_doctype and self.reference_document:
-			res = frappe.db.get_all('Contact',
-				fields=['email_id'],
-				filters=[
-					['Dynamic Link', 'link_doctype', '=', self.reference_doctype],
-					['Dynamic Link', 'link_name', '=', self.reference_document]
-				])
-
+			res = get_contacts_linking_to(self.reference_doctype, self.reference_document, fields=['email_id'])
+			res += get_contacts_linked_from(self.reference_doctype, self.reference_document, fields=['email_id'])
 			email_ids = list(set([d.email_id for d in res]))
 			if not email_ids:
 				frappe.msgprint(_('No contacts linked to document'), alert=True)

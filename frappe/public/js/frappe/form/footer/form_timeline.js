@@ -317,7 +317,7 @@ class FormTimeline extends BaseTimeline {
 			custom_timeline_contents.push({
 				icon: custom_item.icon,
 				icon_size: 'sm',
-				is_card: custom_item.show_card,
+				is_card: custom_item.is_card,
 				creation: custom_item.creation,
 				content: custom_item.content || frappe.render_template(custom_item.template, custom_item.template_data),
 			});
@@ -358,10 +358,11 @@ class FormTimeline extends BaseTimeline {
 		const args = {
 			doc: this.frm.doc,
 			frm: this.frm,
-			recipients: communication_doc ? communication_doc.sender : this.get_recipient(),
+			recipients: communication_doc && communication_doc.sender != frappe.session.user_email ? communication_doc.sender : this.get_recipient(),
 			is_a_reply: Boolean(communication_doc),
 			title: communication_doc ? __('Reply') : null,
-			last_email: communication_doc
+			last_email: communication_doc,
+			subject: communication_doc && communication_doc.subject
 		};
 
 		if (communication_doc && reply_all) {

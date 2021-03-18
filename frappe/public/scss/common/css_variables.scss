@@ -1,5 +1,7 @@
 :root,
 [data-theme="light"] {
+	--brand-color: #0089FF;
+
 	--pink-900: #5B1E34;
 	--pink-800: #702440;
 	--pink-700: #97264F;
@@ -141,6 +143,7 @@
 	// Background Text Color Pairs
 	--bg-blue: var(--blue-100);
 	--bg-light-blue: var(--blue-50);
+	--bg-dark-blue: var(--blue-300);
 	--bg-green: var(--dark-green-50);
 	--bg-yellow: var(--yellow-50);
 	--bg-orange: var(--orange-50);
@@ -151,6 +154,7 @@
 
 	--text-on-blue: var(--blue-600);
 	--text-on-light-blue: var(--blue-500);
+	--text-on-dark-blue: var(--blue-700);
 	--text-on-blue: var(--blue-600);
 	--text-on-green: var(--dark-green-500);
 	--text-on-yellow: var(--yellow-500);

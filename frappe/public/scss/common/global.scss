@@ -1,4 +1,3 @@
-
 /* checkbox */
 .checkbox {
 	label {
@@ -9,7 +8,6 @@
 	--checkbox-right-margin: 8px;
 
 	.label-area {
-		line-height: 1;
 		font-size: var(--text-sm);
 	}
 
@@ -48,21 +46,23 @@ input[type="checkbox"] {
 	}
 
 
-	&.disabled-deselected:before {
-		background: $gray-50;
+	&.disabled-deselected:before, &:disabled:not([checked])::before {
+		background: var(--disabled-control-bg);
 		border: 0.5px solid var(--gray-300);
 		box-sizing: border-box;
 		box-shadow: inset 0px 1px 7px rgba(0, 0, 0, 0.1);
 		border-radius: 4px;
+		pointer-events: none;
 	}
 
-	&.disabled-selected:before {
+	&.disabled-selected:before, &:disabled:checked::before {
 		content: url("data: image/svg+xml;utf8, <svg width='8' height='7' viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-		background: $gray-500;
+		background: var(--gray-500);
 		box-sizing: border-box;
 		box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
 		border-radius: 4px;
 		line-height: 10px;
+		pointer-events: none;
 	}
 }
 
@@ -83,7 +83,8 @@ html.firefox, html.safari {
 	@include card();
 }
 
-.frappe-control[data-fieldtype="Select"] .control-input {
+.frappe-control[data-fieldtype="Select"] .control-input,
+.frappe-control[data-fieldtype="Select"].form-group {
 	position: relative;
 
 	select {
@@ -93,14 +94,101 @@ html.firefox, html.safari {
 		-webkit-appearance: none;
 	}
 
-	.icon {
+	.select-icon {
+		padding-left: inherit;
+		padding-right: inherit;
 		position: absolute;
-		top: 8px;
-		height: 15px;
-		right: 12px;
 		pointer-events: none;
-		use {
-			stroke: var(--text-muted);
+		top: 7px;
+		right: 12px;
+
+		&.xs {
+			top: 3px;
+			right: 10px;
+		}
+
+		.icon {
+			use {
+				stroke: var(--text-muted);
+			}
 		}
 	}
+
+	.placeholder {
+		padding-left: inherit;
+		padding-right: inherit;
+		position: absolute;
+		pointer-events: none;
+		top: 7px;
+		left: 12px;
+		max-width: 80%;
+
+		&.xs {
+			top: 3px;
+		}
+	}
+}
+
+.no-border {
+	border: none !important;
+}
+
+.whitespace-nowrap {
+	white-space: nowrap;
+}
+
+.app-change-log-body {
+	h1 {
+		font-size: var(--text-2xl);
+	}
+}
+
+.new-version-log {
+	.new-version-links {
+		padding: var(--padding-xs) 0px;
+	}
+
+	&:not(:last-child) {
+		margin-bottom: 1em;
+	}
+}
+
+.centered {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	-webkit-transform: translate(-50%, -50%);
+}
+
+.hide {
+	display: none !important;
+}
+
+.btn-link {
+	box-shadow: none !important;
+	outline: none;
+	.icon, &:hover {
+		text-decoration: none !important;
+	}
+}
+
+.hidden {
+	@extend .d-none;
+}
+
+.margin {
+	margin: var(--margin-sm);
+}
+.margin-top {
+	margin-top: var(--margin-sm);
+}
+.margin-bottom {
+	margin-bottom: var(--margin-sm);
+}
+.margin-left {
+	margin-left: var(--margin-sm);
+}
+.margin-right {
+	margin-right: var(--margin-sm);
 }

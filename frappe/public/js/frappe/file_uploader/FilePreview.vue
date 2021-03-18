@@ -11,17 +11,18 @@
 		</div>
 		<div>
 			<div>
-				<a :href="file.doc.file_url" v-if="file.doc" target="_blank">
+				<a class="flex" :href="file.doc.file_url" v-if="file.doc" target="_blank">
 					<span class="file-name">{{ file.name | file_name }}</span>
-					<i v-html="frappe.utils.icon(file.doc.is_private ? 'lock' : 'unlock')"></i>
+					<div class="ml-2" v-html="private_icon"></div>
 				</a>
 				<span class="flex" v-else>
 					<span class="file-name">{{ file.name | file_name }}</span>
-					<span class="cursor-pointer" @click="$emit('toggle_private')" :title="__('Toggle Public/Private')">
-						<i v-html="frappe.utils.icon(file.is_private ? 'lock' : 'unlock')"></i>
-					</span>
+					<button class="ml-2 btn-reset" @click="$emit('toggle_private')" :title="__('Toggle Public/Private')">
+						<div v-html="private_icon"></div>
+					</button>
 				</span>
 			</div>
+
 			<div>
 				<span class="file-size">
 					{{ file.file_obj.size | file_size }}
@@ -30,7 +31,7 @@
 		</div>
 		<div class="file-actions">
 			<ProgressRing
-				v-show="file.uploading"
+				v-show="file.uploading && !uploaded"
 				primary="var(--primary-color)"
 				secondary="var(--gray-200)"
 				radius="24"
@@ -76,6 +77,12 @@ export default {
 		}
 	},
 	computed: {
+		private_icon() {
+			return frappe.utils.icon(this.is_private ? 'lock' : 'unlock');
+		},
+		is_private() {
+			return this.file.doc ? this.file.doc.is_private : this.file.private;
+		},
 		uploaded() {
 			return this.file.total && this.file.total === this.file.progress && !this.file.failed;
 		},
@@ -156,9 +163,10 @@ export default {
 }
 
 .file-actions {
-	width: 2.5rem;
+	width: 3rem;
 	flex-shrink: 0;
 	margin-left: auto;
+	text-align: center;
 }
 
 .file-actions .btn {

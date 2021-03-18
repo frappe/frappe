@@ -29,6 +29,18 @@
 				margin-bottom: 0;
 			}
 		}
+
+		.awesomplete {
+			ul[role="listbox"] {
+				min-width: 100%;
+				width: auto;
+
+				li {
+					max-width: 300px;
+				}
+			}
+		}
+
 	}
 
 	.empty-filters {

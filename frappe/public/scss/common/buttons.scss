@@ -78,12 +78,28 @@
 
 .btn.btn-primary {
 	background-color: var(--primary-color);
+	color: var(--white);
 	white-space: nowrap;
-	--icon-stroke: white;
+	--icon-stroke: currentColor;
 	--icon-fill-bg: var(--primary-color);
 }
 
 .btn.btn-danger {
 	background-color: var(--red-400);
 	color: $white;
+}
+
+.btn-reset {
+	padding: 0;
+	margin: 0;
+	border: 0;
+	font-size: inherit;
+	background-color: inherit;
+}
+
+[data-theme="dark"] {
+	.btn-primary-light {
+		background-color: var(--bg-dark-blue);
+		box-shadow: none;
+	}
 }

@@ -44,6 +44,11 @@
 
 .page-container {
 	background-color: var(--bg-color);
+
+	.page-body.full-width {
+		width: 100%;
+		max-width: 100%;
+	}
 }
 
 .custom-actions {
@@ -78,7 +83,7 @@
 }
 
 .page-head {
-	z-index: 2;
+	z-index: 4;
 	position: sticky;
 	top: var(--navbar-height);
 	background: var(--bg-color);
@@ -169,4 +174,9 @@
 			}
 		}
 	}
+}
+
+.page-only-label {
+	margin-top: var(--margin-xs);
+	text-align: center;
 }

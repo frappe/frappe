@@ -383,7 +383,7 @@ body {
 
 					&.active {
 						.step-index.step-pending {
-							background-color: var(--white);
+							background-color: var(--fg-color);
 						}
 					}
 				}
@@ -713,4 +713,23 @@ body {
 	-webkit-animation-name: zoom-in;
 	animation-name: zoom-in;
 	animation-duration: 400ms;
+}
+
+.workspace-skeleton {
+	transition: ease;
+	.widget-group-title {
+		height: 15px;
+		width: 200px;
+	}
+	.skeleton-card {
+		background-color: var(--skeleton-bg);
+		box-shadow: none;
+		border-radius: var(--border-radius-lg);
+	}
+	.shortcut-widget-box {
+		height: 60px;
+	}
+	.links-widget-box {
+		height: 200px;
+	}
 }

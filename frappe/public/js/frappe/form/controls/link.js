@@ -9,16 +9,17 @@ import Awesomplete from 'awesomplete';
 frappe.ui.form.recent_link_validations = {};
 
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
+	trigger_change_on_input_event: false,
 	make_input: function() {
 		var me = this;
-		// line-height: 1 is for Mozilla 51, shows extra padding otherwise
-		$('<div class="link-field ui-front" style="position: relative; line-height: 1;">\
-			<input type="text" class="input-with-feedback form-control">\
-			<span class="link-btn">\
-				<a class="btn-open no-decoration" title="' + __("Open Link") + '">\
-					<i class="octicon octicon-arrow-right"></i></a>\
-			</span>\
-		</div>').prependTo(this.input_area);
+		$(`<div class="link-field ui-front" style="position: relative;">
+			<input type="text" class="input-with-feedback form-control">
+			<span class="link-btn">
+				<a class="btn-open no-decoration" title="${__("Open Link")}">
+					${frappe.utils.icon('arrow-right', 'xs')}
+				</a>
+			</span>
+		</div>`).prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
 		this.$link = this.$input_area.find('.link-btn');
@@ -135,7 +136,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				return $('<li></li>')
 					.data('item.autocomplete', d)
 					.prop('aria-selected', 'false')
-					.html('<a><p>' + html + '</p></a>')
+					.html(`<a><p class="ellipsis" title="${_label}">${html}</p></a>`)
 					.get(0);
 			},
 			sort: function() {
@@ -235,18 +236,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$input.on("awesomplete-open", () => {
-			let modal = this.$input.parents('.modal-dialog')[0];
-			if (modal) {
-				$(modal).removeClass("modal-dialog-scrollable");
-			}
+			this.toggle_container_scroll('.modal-dialog', 'modal-dialog-scrollable');
+			this.toggle_container_scroll('.grid-form-body .form-area', 'scrollable');
+
 			this.autocomplete_open = true;
 		});
 
 		this.$input.on("awesomplete-close", () => {
-			let modal = this.$input.parents('.modal-dialog')[0];
-			if (modal) {
-				$(modal).addClass("modal-dialog-scrollable");
-			}
+			this.toggle_container_scroll('.modal-dialog', 'modal-dialog-scrollable', true);
+			this.toggle_container_scroll('.grid-form-body .form-area', 'scrollable', true);
+
 			this.autocomplete_open = false;
 		});
 

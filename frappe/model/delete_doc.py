@@ -68,7 +68,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				check_permission_and_not_submitted(doc)
 
 				frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
-				frappe.db.sql("delete from `tabCustom Script` where dt = %s", name)
+				frappe.db.sql("delete from `tabClient Script` where dt = %s", name)
 				frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
 				frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
 				frappe.db.sql("delete from `tabCustom DocPerm` where parent=%s", name)

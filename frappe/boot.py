@@ -21,7 +21,7 @@ from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabl
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.model.base_document import get_controller
 from frappe.social.doctype.post.post import frequently_visited_links
-from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings
+from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -62,6 +62,7 @@ def get_bootinfo():
 	doclist.extend(get_meta_bundle("Page"))
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
+	bootinfo.notification_settings = get_notification_settings()
 
 	# ipinfo
 	if frappe.session.data.get('ipinfo'):
@@ -90,6 +91,7 @@ def get_bootinfo():
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
 	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
 	bootinfo.desk_settings = get_desk_settings()
+	bootinfo.app_logo_url = get_app_logo()
 
 	return bootinfo
 
@@ -324,3 +326,6 @@ def get_desk_settings():
 			desk_settings[key] = desk_settings.get(key) or role.get(key)
 
 	return desk_settings
+
+def get_notification_settings():
+	return frappe.get_cached_doc('Notification Settings', frappe.session.user)

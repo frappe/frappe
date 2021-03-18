@@ -11,6 +11,7 @@
  "hide_custom": 0,
  "icon": "tool",
  "idx": 0,
+ "is_default": 0,
  "is_standard": 1,
  "label": "Build",
  "links": [
@@ -163,8 +164,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Custom Script",
-   "link_to": "Custom Script",
+   "label": "Client Script",
+   "link_to": "Client Script",
    "link_type": "DocType",
    "onboard": 0,
    "only_for": "",
@@ -181,7 +182,7 @@
    "type": "Link"
   }
  ],
- "modified": "2021-01-02 14:03:15.029699",
+ "modified": "2021-02-04 13:48:48.493146",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
