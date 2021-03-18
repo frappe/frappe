@@ -340,11 +340,25 @@ def flt(s, precision=None):
 
 	return num
 
-def cint(s):
-	"""Convert to integer"""
-	try: num = int(float(s))
-	except: num = 0
-	return num
+def cint(s, default=0):
+	"""Convert to integer
+
+		:param s: Number in string or other numeric format.
+		:returns: Converted number in python integer type.
+
+		Returns default if input can not be converted to integer.
+
+		Examples:
+		>>> cint("100")
+		100
+		>>> cint("a")
+		0
+
+	"""
+	try:
+		return int(float(s))
+	except Exception:
+		return default
 
 def floor(s):
 	"""
@@ -642,7 +656,7 @@ def is_image(filepath):
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
-	filepath = filepath.split('?')[0]
+	filepath = (filepath or "").split('?')[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 

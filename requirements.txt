@@ -61,6 +61,7 @@ six==1.13.0
 sqlparse==0.2.4
 stripe==2.40.0
 terminaltables==3.1.0
+Unidecode==1.1.1
 unittest-xml-reporting==2.5.2
 urllib3==1.25.7
 watchdog==0.8.0

@@ -43,7 +43,6 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	force = cint(force)
 	merge = cint(merge)
-
 	meta = frappe.get_meta(doctype)
 
 	# call before_rename
@@ -225,8 +224,17 @@ def update_link_field_values(link_fields, old, new, doctype):
 				# or no longer exists
 				pass
 		else:
-			# because the table hasn't been renamed yet!
-			parent = field['parent'] if field['parent']!=new else old
+			parent = field['parent']
+
+			# Handles the case where one of the link fields belongs to
+			# the DocType being renamed.
+			# Here this field could have the current DocType as its value too.
+
+			# In this case while updating link field value, the field's parent
+			# or the current DocType table name hasn't been renamed yet,
+			# so consider it's old name.
+			if parent == new and doctype == "DocType":
+				parent = old
 
 			frappe.db.sql("""
 				update `tab{table_name}` set `{fieldname}`=%s
@@ -282,8 +290,7 @@ def get_link_fields(doctype):
 
 def update_options_for_fieldtype(fieldtype, old, new):
 	if frappe.conf.developer_mode:
-		for name in frappe.db.sql_list("""select parent from
-			tabDocField where options=%s""", old):
+		for name in frappe.db.sql_list("""select parent from tabDocField where options=%s""", old):
 			doctype = frappe.get_doc("DocType", name)
 			save = False
 			for f in doctype.fields:
@@ -390,19 +397,19 @@ def update_parenttype_values(old, new):
 	fields = [d['fieldname'] for d in child_doctypes]
 
 	property_setter_child_doctypes = frappe.db.sql("""\
-		select value as options from `tabProperty Setter`
-		where doc_type=%s and property='options' and
-		field_name in ("%s")""" % ('%s', '", "'.join(fields)),
-		(new,))
+		select
+			value as options
+		from `tabProperty Setter`
+		where
+			doc_type=%s
+			and property='options'
+			and field_name in ('%s')""" % ('%s', '", "'.join(fields)), (new,))
 
+	child_doctypes = list(d['options'] for d in child_doctypes)
 	child_doctypes += property_setter_child_doctypes
-	child_doctypes = (d['options'] for d in child_doctypes)
 
 	for doctype in child_doctypes:
-		frappe.db.sql("""\
-			update `tab%s` set parenttype=%s
-			where parenttype=%s""" % (doctype, '%s', '%s'),
-		(new, old))
+		frappe.db.sql("update `tab{doctype}` set parenttype=%s where parenttype=%s".format(doctype=doctype), (new, old))
 
 def rename_dynamic_links(doctype, old, new):
 	for df in get_dynamic_link_map().get(doctype, []):
@@ -486,7 +493,6 @@ def get_fetch_fields(doctype, linked_to, ignore_doctypes=None):
 	"""
 		doctype = Master DocType in which the changes are being made
 		linked_to = DocType name of the field thats being updated in Master
-
 		This function fetches list of all DocType where both doctype and linked_to is found
 		as link fields.
 		Forms a list of dict in the form -

@@ -318,7 +318,10 @@ def send_summary(timespan):
 
 	from_date = getdate(from_date)
 	to_date = getdate()
-	all_users = [user.email for user in get_enabled_system_users()]
+
+	# select only those users that have energy point email notifications enabled
+	all_users = [user.email for user in get_enabled_system_users() if
+		is_email_notifications_enabled_for_type(user.name, 'Energy Point')]
 
 	frappe.sendmail(
 			subject='{} energy points summary'.format(timespan),

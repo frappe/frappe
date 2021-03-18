@@ -180,6 +180,7 @@ Cypress.Commands.add('get_open_dialog', () => {
 });
 
 Cypress.Commands.add('hide_dialog', () => {
+	cy.wait(300);
 	cy.get_open_dialog().find('.btn-modal-close').click();
 	cy.get('.modal:visible').should('not.exist');
 });
