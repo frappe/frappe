@@ -24,6 +24,7 @@ context('List View', () => {
 				url: 'api/method/frappe.desk.reportview.get'
 			}).as('real-time-update');
 			cy.wrap(elements).contains('Approve').click();
+			cy.get('.btn[data-label="Refresh"]').click();
 			cy.wait(['@bulk-approval', '@real-time-update']);
 			cy.hide_dialog();
 			cy.get('.list-row-container:visible').should('contain', 'Approved');

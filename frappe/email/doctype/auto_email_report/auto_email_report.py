@@ -26,6 +26,7 @@ class AutoEmailReport(Document):
 		self.validate_report_count()
 		self.validate_emails()
 		self.validate_report_format()
+		self.validate_mandatory_fields()
 
 	def validate_emails(self):
 		'''Cleanup list of emails'''
@@ -52,6 +53,21 @@ class AutoEmailReport(Document):
 		if self.format not in valid_report_formats:
 			frappe.throw(_("%s is not a valid report format. Report format should \
 				one of the following %s"%(frappe.bold(self.format), frappe.bold(", ".join(valid_report_formats)))))
+
+	def validate_mandatory_fields(self):
+		# Check if all Mandatory Report Filters are filled by the User
+		filters = frappe.parse_json(self.filters) if self.filters else {}
+		filter_meta = frappe.parse_json(self.filter_meta) if self.filter_meta else {}
+		throw_list = []
+		for meta in filter_meta:
+			if meta.get("reqd") and not filters.get(meta["fieldname"]):
+				throw_list.append(meta['label'])
+		if throw_list:
+			frappe.throw(
+				title= _('Missing Filters Required'),
+				msg= _('Following Report Filters have missing values:') +
+					'<br><br><ul><li>' + ' <li>'.join(throw_list) + '</ul>',
+			)
 
 	def get_report_content(self):
 		'''Returns file in for the report in given format'''

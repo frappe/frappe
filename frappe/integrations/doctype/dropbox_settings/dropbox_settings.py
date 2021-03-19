@@ -129,12 +129,10 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 
 	for f in frappe.get_all("File", filters={"is_folder": 0, "is_private": is_private,
 		"uploaded_to_dropbox": 0}, fields=['file_url', 'name', 'file_name']):
-		if is_private:
-			filename = f.file_url.replace('/private/files/', '')
-		else:
-			if not f.file_url:
-				f.file_url = '/files/' + f.file_name;
-			filename = f.file_url.replace('/files/', '')
+		if not f.file_url:
+			continue
+		filename = f.file_url.rsplit('/', 1)[-1]
+
 		filepath = os.path.join(path, filename)
 
 		if filename in ignore_list:

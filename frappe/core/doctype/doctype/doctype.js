@@ -53,6 +53,17 @@ frappe.ui.form.on('DocType', {
 		frm.events.autoname(frm);
 	},
 
+	before_save: function(frm) {
+		frappe.flags.update_bootinfo = frm.is_new();
+	},
+
+	after_save: function(frm) {
+		if (frappe.flags.update_bootinfo) {
+			frappe.boot.user.can_create.push(frm.doc.name);
+			frappe.flags.update_bootinfo = false;
+		}
+	},
+
 	autoname(frm) {
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	}
