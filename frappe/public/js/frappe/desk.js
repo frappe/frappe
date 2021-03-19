@@ -173,6 +173,9 @@ frappe.Application = Class.extend({
 			frappe.router.route();
 		}
 		frappe.after_ajax(() => frappe.flags.setting_original_route = false);
+		frappe.router.on('change', () => {
+			$(".tooltip").hide();
+		});
 	},
 
 	setup_frappe_vue() {
