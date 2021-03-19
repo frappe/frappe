@@ -11,10 +11,11 @@ from frappe.website.render import render
 from frappe.utils import random_string
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.website_generator import WebsiteGenerator
+from frappe.custom.doctype.customize_form.customize_form import reset_customization
 
 class TestBlogPost(unittest.TestCase):
 	def setUp(self):
-		frappe.set_user('Administrator')
+		reset_customization('Blog Post')
 
 	def test_generator_view(self):
 		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
