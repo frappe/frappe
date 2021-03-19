@@ -13,6 +13,9 @@ from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.website_generator import WebsiteGenerator
 
 class TestBlogPost(unittest.TestCase):
+	def setUp(self):
+		frappe.set_user('Administrator')
+
 	def test_generator_view(self):
 		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
 			filters={'published': 1, 'route': ('!=', '')}, limit =1)
@@ -97,6 +100,7 @@ def make_test_blog(category_title="Test Blog Category"):
 			doctype = 'Blogger',
 			short_name='test-blogger',
 			full_name='Test Blogger')).insert()
+
 	test_blog = frappe.get_doc(dict(
 		doctype = 'Blog Post',
 		blog_category = category_name,
