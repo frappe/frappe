@@ -47,6 +47,6 @@ def get_energy_point_leaderboard(date_range, company = None, field = None, limit
 	for user in energy_point_users:
 		user_id = user['name']
 		user['name'] = get_fullname(user['name'])
-		user['formatted_name'] = '<a href="#user-profile/{}">{}</a>'.format(user_id, get_fullname(user_id))
+		user['formatted_name'] = '<a href="/app/user-profile/{}">{}</a>'.format(user_id, get_fullname(user_id))
 
 	return energy_point_users

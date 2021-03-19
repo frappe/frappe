@@ -101,6 +101,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Cache cypress binary
+        if: matrix.TYPE == 'ui'
         uses: actions/cache@v2
         with:
           path: ~/.cache
