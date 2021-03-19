@@ -153,16 +153,20 @@ class TestUserPermission(unittest.TestCase):
 		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
 		self.assertFalse(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
 
-def create_user(email, role="System Manager"):
+def create_user(email, *roles):
 	''' create user with role system manager '''
 	if frappe.db.exists('User', email):
 		return frappe.get_doc('User', email)
-	else:
-		user = frappe.new_doc('User')
-		user.email = email
-		user.first_name = email.split("@")[0]
-		user.add_roles(role)
-		return user
+
+	user = frappe.new_doc('User')
+	user.email = email
+	user.first_name = email.split("@")[0]
+
+	if not roles:
+		roles = ('System Manager',)
+
+	user.add_roles(*roles)
+	return user
 
 def get_params(user, doctype, docname, is_default=0, hide_descendants=0, applicable=None):
 	''' Return param to insert '''
