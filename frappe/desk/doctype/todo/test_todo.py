@@ -50,53 +50,56 @@ class TestToDo(unittest.TestCase):
 		self.assertEqual(todo.assigned_by_full_name,
 			frappe.db.get_value('User', todo.assigned_by, 'full_name'))
 
-	def test_access(self):
-		todo1 = create_new_todo('Test1', 'Administrator')
-		todo2 = create_new_todo('Test2', 'test4@example.com')
+	def test_todo_list_access(self):
+		todo1 = create_new_todo('Test1', 'testperm@example.com')
 
 		frappe.set_user('test4@example.com')
+		todo2 = create_new_todo('Test2', 'test4@example.com')
 		test_user_data = DatabaseQuery('ToDo').execute()
 
-		self.assertFalse(todo1.has_permission("read"))
-		self.assertFalse(todo1.has_permission("write"))
-		self.assertTrue(todo2.has_permission("read"))
-		self.assertTrue(todo2.has_permission("write"))
+		frappe.set_user('testperm@example.com')
+		system_manager_data = DatabaseQuery('ToDo').execute()
 
-		frappe.set_user('Administrator')
-		admin_data = DatabaseQuery('ToDo').execute()
-
-		self.assertTrue(todo1.has_permission("read"))
-		self.assertTrue(todo1.has_permission("write"))
-		self.assertTrue(todo2.has_permission("read"))
-		self.assertTrue(todo2.has_permission("write"))
-
-		self.assertNotEqual(test_user_data, admin_data)
+		self.assertNotEqual(test_user_data, system_manager_data)
 
 		frappe.db.rollback()
 
 	def test_doc_read_access(self):
-		todo1 = create_new_todo('Test1', 'Administrator')
+		#owner and assigned_by is testperm
+		todo1 = create_new_todo('Test1', 'testperm@example.com')
+		test_user = frappe.get_doc('User', 'test4@example.com')
+
+		#owner is testperm, but assigned_by is test1
 		todo2 = create_new_todo('Test2', 'test4@example.com')
 
-		# user without role permission to read ToDo's
 		frappe.set_user('test4@example.com')
-		user_todo1_permission = get_doc_permissions(todo1)
-		user_todo2_permission = get_doc_permissions(todo2)
-		self.assertFalse(user_todo1_permission.get("read"))
-		self.assertTrue(user_todo2_permission.get("read"))
+		#owner and assigned_by is test1
+		todo3 = create_new_todo('Test3', 'test4@example.com')
+		
+		# user without any role to read or write todo document
+		self.assertFalse(todo1.has_permission("read"))
+		self.assertFalse(todo1.has_permission("write"))
 
-		# user with role permission to read ToDo's
-		frappe.set_user('test@example.com')
-		user_todo1_permission = get_doc_permissions(todo1)
-		user_todo2_permission = get_doc_permissions(todo2)
-		self.assertTrue(user_todo1_permission.get("read"))
-		self.assertTrue(user_todo2_permission.get("read"))
+		# user without any role but he/she is assigned_by of that todo document
+		self.assertTrue(todo2.has_permission("read"))
+		self.assertTrue(todo2.has_permission("write"))
+
+		# user is the owner and assigned_by of the todo document
+		self.assertTrue(todo3.has_permission("read"))
+		self.assertTrue(todo3.has_permission("write"))
 
 		frappe.set_user('Administrator')
-		admin_todo1_permission = get_doc_permissions(todo1)
-		admin_todo2_permission = get_doc_permissions(todo2)
-		self.assertTrue(admin_todo1_permission.get("read"))
-		self.assertTrue(admin_todo2_permission.get("read"))
+
+		test_user.add_roles('Blogger')
+		add_permission('ToDo', 'Blogger')
+
+		frappe.set_user('test4@example.com')
+
+		# user with only read access to todo document, not an owner or assigned_by
+		self.assertTrue(todo1.has_permission("read"))
+		self.assertFalse(todo1.has_permission("write"))
+
+		frappe.db.rollback()
 
 def test_fetch_if_empty(self):
 		frappe.db.sql('delete from tabToDo')
