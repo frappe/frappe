@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from frappe.model.db_query import DatabaseQuery
-from frappe.permissions import get_doc_permissions
+from frappe.permissions import get_doc_permissions, add_permission
 
 # test_records = frappe.get_test_records('ToDo')
 test_user_records = frappe.get_test_records('User')
