@@ -430,43 +430,41 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			this.docname, value);
 	},
 	validate_link_and_fetch: function(df, doctype, docname, value) {
+		if(!value) { return; }
 		var me = this;
 
-		if(value) {
-			return new Promise((resolve) => {
-				var fetch = '';
+		return new Promise((resolve) => {
+			var fetch = '';
+			var args = {}
 
-				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
-					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-				}
+			this.set_custom_query(args);
 
-				// check if value exist in the filtered dropdown values 
-				if (this.$input.cache[doctype] && !this.$input.cache[doctype][""].some(d => d.value === value)) {
-					value = "";
-				}
+			if(this.frm && this.frm.fetch_dict[df.fieldname]) {
+				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
+			}
 
-				return frappe.call({
-					method:'frappe.desk.form.utils.validate_link',
-					type: "GET",
-					args: {
-						'value': value,
-						'options': doctype,
-						'fetch': fetch
-					},
-					no_spinner: true,
-					callback: function(r) {
-						if(r.message=='Ok') {
-							if(r.fetch_values && docname) {
-								me.set_fetch_values(df, docname, r.fetch_values);
-							}
-							resolve(r.valid_value);
-						} else {
-							resolve("");
+			return frappe.call({
+				method:'frappe.desk.form.utils.validate_link',
+				type: "GET",
+				args: {
+					'value': value,
+					'options': doctype,
+					'fetch': fetch,
+					'filters': args.filters
+				},
+				no_spinner: true,
+				callback: function(r) {
+					if(r.message=='Ok') {
+						if(r.fetch_values && docname) {
+							me.set_fetch_values(df, docname, r.fetch_values);
 						}
+						resolve(r.valid_value);
+					} else {
+						resolve("");
 					}
-				});
+				}
 			});
-		}
+		});
 	},
 	set_fetch_values: function(df, docname, fetch_values) {
 		var fl = this.frm.fetch_dict[df.fieldname].fields;
