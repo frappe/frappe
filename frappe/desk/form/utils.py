@@ -15,7 +15,6 @@ from six import string_types
 def remove_attach():
     """remove attachment"""
     fid = frappe.form_dict.get('fid')
-    file_name = frappe.form_dict.get('file_name')
     frappe.delete_doc('File', fid)
 
 @frappe.whitelist()
@@ -94,7 +93,7 @@ def update_comment(name, content):
 def get_next(doctype, value, prev, filters=None, sort_order='desc', sort_field='modified'):
 
     prev = int(prev)
-    if not filters: filters = []
+    filters = filters or filters
     if isinstance(filters, string_types):
         filters = json.loads(filters)
 
