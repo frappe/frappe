@@ -24,14 +24,21 @@ def validate_link():
 	import frappe
 	import frappe.utils
 
-	value, options, fetch = frappe.form_dict.get('value'), frappe.form_dict.get('options'), frappe.form_dict.get('fetch')
+	value, options, fetch, filters = frappe.form_dict.get('value'), frappe.form_dict.get('options'), frappe.form_dict.get('fetch'), frappe.form_dict.get('filters')
 
 	# no options, don't validate
 	if not options or options=='null' or options=='undefined':
 		frappe.response['message'] = 'Ok'
 		return
 
-	valid_value = frappe.db.get_all(options, filters=dict(name=value), as_list=1, limit=1)
+	filters = json.loads(filters) if filters else dict()
+
+	if isinstance(filters, dict):
+		filters = dict(name=value, **filters)
+	if isinstance(filters, list):
+		filters.append(["name", "=", value])
+
+	valid_value = frappe.db.get_all(options, filters, as_list=1, limit=1)
 
 	if valid_value:
 		valid_value = valid_value[0][0]

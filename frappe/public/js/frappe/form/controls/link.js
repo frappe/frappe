@@ -435,6 +435,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if(value) {
 			return new Promise((resolve) => {
 				var fetch = '';
+				var args = {};
+
+				this.set_custom_query(args);
 
 				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
 					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
@@ -446,7 +449,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					args: {
 						'value': value,
 						'options': doctype,
-						'fetch': fetch
+						'fetch': fetch,
+						'filters': args.filters,
 					},
 					no_spinner: true,
 					callback: function(r) {
