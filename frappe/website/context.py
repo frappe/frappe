@@ -50,8 +50,12 @@ def update_controller_context(context, controller):
 				context[prop] = getattr(module, prop)
 
 		if hasattr(module, "get_context"):
+			import inspect
 			try:
-				ret = module.get_context(context)
+				if inspect.getargspec(module.get_context).args:
+					ret = module.get_context(context)
+				else:
+					ret = module.get_context()
 				if ret:
 					context.update(ret)
 			except (frappe.PermissionError, frappe.DoesNotExistError, frappe.Redirect):
