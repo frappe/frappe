@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import traceback
+import typing
 
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
@@ -402,6 +403,14 @@ def call_hook_method(hook, *args, **kwargs):
 	return out
 
 def update_progress_bar(txt, i, l):
+	if os.environ.get("CI"):
+		if i == 0:
+			sys.stdout.write(txt)
+
+		sys.stdout.write(".")
+		sys.stdout.flush()
+		return
+
 	if not getattr(frappe.local, 'request', None):
 		lt = len(txt)
 		try:
@@ -763,3 +772,28 @@ def get_bench_relative_path(file_path):
 		sys.exit(1)
 
 	return os.path.abspath(file_path)
+
+
+def groupby_metric(iterable: typing.Dict[str, list], key: str):
+	""" Group records by a metric.
+
+	Usecase: Lets assume we got country wise players list with the ranking given for each player(multiple players in a country can have same ranking aswell).
+	We can group the players by ranking(can be any other metric) using this function.
+
+	>>> d = {
+		'india': [{'id':1, 'name': 'iplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'iplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'iplayer-3'}],
+		'Aus': [{'id':1, 'name': 'aplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'aplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'aplayer-3'}]
+	}
+	>>> groupby(d, key='ranking')
+	{1: {'Aus': [{'id': 1, 'name': 'aplayer-1', 'ranking': 1},
+				{'id': 2, 'name': 'aplayer-2', 'ranking': 1}],
+		'india': [{'id': 1, 'name': 'iplayer-1', 'ranking': 1},
+				{'id': 2, 'name': 'iplayer-2', 'ranking': 1}]},
+	2: {'Aus': [{'id': 2, 'name': 'aplayer-3', 'ranking': 2}],
+		'india': [{'id': 2, 'name': 'iplayer-3', 'ranking': 2}]}}
+	"""
+	records = {}
+	for category, items in iterable.items():
+		for item in items:
+			records.setdefault(item[key], {}).setdefault(category, []).append(item)
+	return records

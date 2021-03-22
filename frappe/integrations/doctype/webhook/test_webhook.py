@@ -30,6 +30,10 @@ class TestWebhook(unittest.TestCase):
 		self.user.email = frappe.mock("email")
 		self.user.save()
 
+	def tearDown(self) -> None:
+		self.user.delete()
+		super().tearDown()
+
 	def test_validate_doc_events(self):
 		"Test creating a submit-related webhook for a non-submittable DocType"
 
