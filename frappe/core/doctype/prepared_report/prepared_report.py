@@ -24,8 +24,6 @@ class PreparedReport(Document):
 	def enqueue_report(self):
 		enqueue(run_background, prepared_report=self.name, timeout=6000)
 
-	def on_trash(self):
-		remove_all("Prepared Report", self.name)
 
 
 def run_background(prepared_report):
