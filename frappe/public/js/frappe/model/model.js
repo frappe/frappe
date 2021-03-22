@@ -256,13 +256,13 @@ $.extend(frappe.model, {
 	},
 
 	can_select: function(doctype) {
-		if(frappe.boot.user) {
+		if (frappe.boot.user) {
 			return frappe.boot.user.can_select.indexOf(doctype)!==-1;
 		}
 	},
 
 	can_read: function(doctype) {
-		if(frappe.boot.user) {
+		if (frappe.boot.user) {
 			return frappe.boot.user.can_read.indexOf(doctype)!==-1;
 		}
 	},
