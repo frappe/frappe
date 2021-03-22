@@ -181,6 +181,9 @@ $.extend(frappe.model, {
 		if(meta.__list_js) {
 			eval(meta.__list_js);
 		}
+		if(meta.__custom_list_js) {
+			eval(meta.__custom_list_js);
+		}
 		if(meta.__calendar_js) {
 			eval(meta.__calendar_js);
 		}
@@ -621,7 +624,6 @@ $.extend(frappe.model, {
 							r.message || args.new_name]);
 						if(locals[doctype] && locals[doctype][docname])
 							delete locals[doctype][docname];
-						this.frm.reload_doc();
 						d.hide();
 						if(callback)
 							callback(r.message);

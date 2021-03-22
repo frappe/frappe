@@ -7,8 +7,11 @@
 <script>
 export default {
 	name: "RecorderRoot",
-	created() {
-		this.$router.push({name: 'recorder-detail'});
-	},
+	watch: {
+		$route() {
+			frappe.router.current_route = frappe.router.parse();
+			frappe.breadcrumbs.update();
+		}
+	}
 };
 </script>
