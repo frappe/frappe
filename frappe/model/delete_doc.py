@@ -110,7 +110,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			doc.run_method("after_delete")
 
 			# delete attachments
-			remove_all(doctype, name, from_delete=True)
+			remove_all(doctype, name, from_delete=True, delete_permanently=delete_permanently)
 
 			if not for_reload:
 				# Enqueued at the end, because it gets committed
