@@ -280,8 +280,9 @@
   },
   {
    "fieldname": "default_email_template",
-   "fieldtype": "Data",
-   "label": "Default Email Template"
+   "fieldtype": "Link",
+   "label": "Default Email Template",
+   "options": "Email Template"
   },
   {
    "fieldname": "column_break_26",
@@ -294,7 +295,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-02-16 15:22:11.108256",
+ "modified": "2021-03-22 12:27:15.462727",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

@@ -540,8 +540,9 @@
   },
   {
    "fieldname": "default_email_template",
-   "fieldtype": "Data",
-   "label": "Default Email Template"
+   "fieldtype": "Link",
+   "label": "Default Email Template",
+   "options": "Email Template"
   },
   {
    "fieldname": "column_break_51",
@@ -627,7 +628,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-02-17 20:18:06.212232",
+ "modified": "2021-03-22 12:26:41.031135",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
