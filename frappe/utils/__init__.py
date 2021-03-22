@@ -403,6 +403,14 @@ def call_hook_method(hook, *args, **kwargs):
 	return out
 
 def update_progress_bar(txt, i, l):
+	if os.environ.get("CI"):
+		if i == 0:
+			sys.stdout.write(txt)
+
+		sys.stdout.write(".")
+		sys.stdout.flush()
+		return
+
 	if not getattr(frappe.local, 'request', None):
 		lt = len(txt)
 		try:

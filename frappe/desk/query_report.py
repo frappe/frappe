@@ -164,10 +164,14 @@ def get_script(report_name):
 	module = report.module or frappe.db.get_value(
 		"DocType", report.ref_doctype, "module"
 	)
-	module_path = get_module_path(module)
-	report_folder = os.path.join(module_path, "report", scrub(report.name))
-	script_path = os.path.join(report_folder, scrub(report.name) + ".js")
-	print_path = os.path.join(report_folder, scrub(report.name) + ".html")
+
+	is_custom_module = frappe.get_cached_value("Module Def", module, "custom")
+
+	# custom modules are virtual modules those exists in DB but not in disk.
+	module_path = '' if is_custom_module else get_module_path(module)
+	report_folder = module_path and os.path.join(module_path, "report", scrub(report.name))
+	script_path = report_folder and os.path.join(report_folder, scrub(report.name) + ".js")
+	print_path = report_folder and os.path.join(report_folder, scrub(report.name) + ".html")
 
 	script = None
 	if os.path.exists(script_path):
