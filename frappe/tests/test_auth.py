@@ -4,7 +4,24 @@ from __future__ import unicode_literals
 
 import time
 import unittest
+
+import frappe
 from frappe.auth import LoginAttemptTracker
+from frappe.frappeclient import FrappeClient
+
+
+class TestAuth(unittest.TestCase):
+	def test_admin_login(self):
+		# Make sure that authentication works when allow_login_using_mobile_number is set to 0
+		frappe.db.set_value("System Settings", "System Settings", "allow_login_using_mobile_number", 0)
+		frappe.db.commit()
+		FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
+
+		# Make sure that authentication works when allow_login_using_mobile_number is set to 1
+		frappe.db.set_value("System Settings", "System Settings", "allow_login_using_mobile_number", 1)
+		frappe.db.commit()
+		FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
+
 
 class TestLoginAttemptTracker(unittest.TestCase):
 	def test_account_lock(self):
