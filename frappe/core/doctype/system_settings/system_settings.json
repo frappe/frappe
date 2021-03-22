@@ -1,4 +1,10 @@
 {
+<<<<<<< HEAD
+=======
+ "actions": [],
+ "allow_read": 1,
+ "allow_workflow": 1,
+>>>>>>> e4c9313715... fix: update description for prepared_report_expiry_period
  "creation": "2014-04-17 16:53:52.640856",
  "doctype": "DocType",
  "document_type": "System",
@@ -404,7 +410,7 @@
   {
    "default": "7",
    "depends_on": "enable_prepared_report_auto_deletion",
-   "description": "System will automatically delete Prepared Reports after these many days since creation",
+   "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
    "fieldname": "prepared_report_expiry_period",
    "fieldtype": "Int",
    "label": "Prepared Report Expiry Period (Days)"
@@ -420,11 +426,31 @@
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
    "label": "Prepared Report"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "Frappe",
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "label": "App Name"
+  },
+  {
+   "default": "1",
+   "fieldname": "strip_exif_metadata_from_uploaded_images",
+   "fieldtype": "Check",
+   "label": "Strip EXIF tags from uploaded images"
+>>>>>>> e4c9313715... fix: update description for prepared_report_expiry_period
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
+<<<<<<< HEAD
  "modified": "2020-07-26 15:57:34.197718",
+=======
+ "links": [],
+ "modified": "2021-03-25 17:54:32.668876",
+>>>>>>> e4c9313715... fix: update description for prepared_report_expiry_period
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
