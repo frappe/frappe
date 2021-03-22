@@ -37,14 +37,14 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 				let fieldname;
 				cur_grid.meta.fields.some(field => {
 					if (frappe.model.no_value_type.includes(field.fieldtype)) {
-						return false
+						return false;
 					}
 
-					field_name = field_name.toLowerCase()
+					field_name = field_name.toLowerCase();
 					const is_field_matching = (field_name) => {
 						return field.fieldname.toLowerCase() === field_name
-							|| (field.label || "").toLowerCase() === field_name
-					}
+							|| (field.label || "").toLowerCase() === field_name;
+					};
 
 					if (is_field_matching()) {
 						fieldname = field.fieldname;
