@@ -33,19 +33,26 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			if (data.length === 1 & data[0].length === 1) return;
 
 			let fieldnames = [];
-			let get_field = function(name_or_label) {
+			let get_field = field_name => {
 				let fieldname;
-				cur_grid.meta.fields.forEach(field => {
-					name_or_label = name_or_label.toLowerCase()
-					if (field.fieldname.toLowerCase() === name_or_label ||
-						(field.label && !in_list(frappe.model.no_value_type, field.fieldtype) &&
-						field.label.toLowerCase() === name_or_label)) {
-							fieldname = field.fieldname;
-							return false;
-						}
+				cur_grid.meta.fields.some(field => {
+					if (frappe.model.no_value_type.includes(field.fieldtype)) {
+						return false
+					}
+
+					field_name = field_name.toLowerCase()
+					const is_field_matching = (field_name) => {
+						return field.fieldname.toLowerCase() === field_name
+							|| (field.label || "").toLowerCase() === field_name
+					}
+
+					if (is_field_matching()) {
+						fieldname = field.fieldname;
+						return true;
+					}
 				});
 				return fieldname;
-			}
+			};
 
 			// for raw data with column header
 			if (get_field(data[0][0])) {
@@ -65,7 +72,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 
 			data.forEach((row, i) => {
 				let blank_row = !row.filter(Boolean).length;
-				if (blank_row) return
+				if (blank_row) return;
 				setTimeout(() => {
 					if (row_idx > this.frm.doc[cur_table_field].length) {
 						this.grid.add_new_row();
