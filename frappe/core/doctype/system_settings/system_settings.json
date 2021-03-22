@@ -1,5 +1,7 @@
 {
  "actions": [],
+ "allow_read": 1,
+ "allow_workflow": 1,
  "creation": "2014-04-17 16:53:52.640856",
  "doctype": "DocType",
  "document_type": "System",
@@ -439,7 +441,7 @@
   {
    "default": "30",
    "depends_on": "enable_prepared_report_auto_deletion",
-   "description": "System will automatically delete Prepared Reports after these many days since creation",
+   "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
    "fieldname": "prepared_report_expiry_period",
    "fieldtype": "Int",
    "label": "Prepared Report Expiry Period (Days)"
@@ -463,13 +465,6 @@
    "label": "App Name"
   },
   {
-   "default": "3",
-   "description": "Hourly rate limit for generating password reset links",
-   "fieldname": "password_reset_limit",
-   "fieldtype": "Int",
-   "label": "Password Reset Link Generation Limit"
-  },
-  {
    "default": "1",
    "fieldname": "strip_exif_metadata_from_uploaded_images",
    "fieldtype": "Check",
@@ -479,7 +474,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2021-03-25 13:58:12.750629",
+ "modified": "2021-03-25 17:54:32.668876",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
