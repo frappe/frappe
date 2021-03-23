@@ -20,7 +20,7 @@ from frappe.utils import call_hook_method, cint, encode, get_files_path, get_hoo
 from frappe.utils.image import strip_exif_data, optimize_image
 from frappe.utils.file_manager import is_safe_path, safe_b64decode
 
-from .exceptions import MaxFileSizeReachedError, FolderNotEmpty
+from .exceptions import MaxFileSizeReachedError, FolderNotEmpty, AttachmentLimitReached
 from .utils import *
 
 
@@ -33,7 +33,10 @@ class File(Document):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.content = self.get("content", None)
+		# if content is set, file_url will be generated
+		# decode comes in the picture if content passed has to be decoded before writing to disk
+
+		self.content = self.get("content") or b""
 		self.decode = self.get("decode", False)
 
 	def autoname(self):
@@ -225,7 +228,7 @@ class File(Document):
 					_("Maximum Attachment Limit of {0} has been reached for {1} {2}.").format(
 						frappe.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
 					),
-					exc=frappe.exceptions.AttachmentLimitReached,
+					exc=AttachmentLimitReached,
 					title=_('Attachment Limit Reached')
 				)
 

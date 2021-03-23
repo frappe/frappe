@@ -5,3 +5,5 @@ class MaxFileSizeReachedError(frappe.ValidationError):
 
 class FolderNotEmpty(frappe.ValidationError):
 	pass
+
+from frappe.exceptions import *
