@@ -51,10 +51,10 @@ class TestToDo(unittest.TestCase):
 			frappe.db.get_value('User', todo.assigned_by, 'full_name'))
 
 	def test_todo_list_access(self):
-		todo1 = create_new_todo('Test1', 'testperm@example.com')
+		create_new_todo('Test1', 'testperm@example.com')
 
 		frappe.set_user('test4@example.com')
-		todo2 = create_new_todo('Test2', 'test4@example.com')
+		create_new_todo('Test2', 'test4@example.com')
 		test_user_data = DatabaseQuery('ToDo').execute()
 
 		frappe.set_user('testperm@example.com')
@@ -62,6 +62,7 @@ class TestToDo(unittest.TestCase):
 
 		self.assertNotEqual(test_user_data, system_manager_data)
 
+		frappe.set_user('Administrator')
 		frappe.db.rollback()
 
 	def test_doc_read_access(self):
@@ -99,6 +100,7 @@ class TestToDo(unittest.TestCase):
 		self.assertTrue(todo1.has_permission("read"))
 		self.assertFalse(todo1.has_permission("write"))
 
+		frappe.set_user('Administrator')
 		frappe.db.rollback()
 
 def test_fetch_if_empty(self):
