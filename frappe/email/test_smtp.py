@@ -16,8 +16,8 @@ class TestSMTP(unittest.TestCase):
 			make_server(port, 0, 1)
 
 	def test_get_email_account(self):
-		frappe.set_user("Administrator")
-
+		existing_email_accounts = frappe.get_all("Email Account", fields = ["*"])
+		frappe.db.sql("""delete from `tabEmail Account`""")
 		# remove mail_server config so that test@example.com is not created
 		mail_server = frappe.conf.get('mail_server')
 		del frappe.conf['mail_server']
@@ -37,7 +37,13 @@ class TestSMTP(unittest.TestCase):
 		self.assertEqual(get_outgoing_email_account(append_to="Issue").email_id, "append_to@gmail.com")
 
 		# add back the mail_server
+		print(existing_email_accounts)
 		frappe.conf['mail_server'] = mail_server
+		for email_account_dict in existing_email_accounts:
+			print(email_account_dict)
+			email_account = frappe.new_doc("Email Account")
+			email_account.update(email_account_dict)
+			email_account.save()
 
 def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None):
 	email_dict = {
