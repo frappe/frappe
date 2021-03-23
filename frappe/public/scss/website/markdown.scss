@@ -99,9 +99,9 @@ $font-sizes: (
 		// for byline
 		& + p {
 			margin-top: 1.5rem;
-			margin-bottom: 1.25rem;
 			font-size: map-get($font-sizes, 'xl');
 			letter-spacing: -0.0175em;
+			line-height: 1.4;
 
 			// @include media-breakpoint-up(sm) {
 			// 	margin-top: 1.25rem;
