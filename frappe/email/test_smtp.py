@@ -17,7 +17,7 @@ class TestSMTP(unittest.TestCase):
 
 	def test_get_email_account(self):
 		frappe.set_user("Administrator")
-		frappe.db.sql("""delete from `tabEmail Account`""")
+		frappe.db.sql("delete from `tabEmail Account`")
 
 		# remove mail_server config so that test@example.com is not created
 		mail_server = frappe.conf.get('mail_server')
