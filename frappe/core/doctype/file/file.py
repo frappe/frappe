@@ -101,22 +101,32 @@ class File(Document):
 			)
 
 	def on_rollback(self):
+		# following condition is only executed when an insert has been rolledback
+		if self.flags.new_file:
+			self._delete_file_on_disk()
+			self.flags.pop("new_file")
+			return
+
 		# if original_content flag is set, this rollback should revert the file to its original state
 		if self.flags.original_content:
 			file_path = self.get_full_path()
-			with open(file_path, "wb+") as f:
+
+			if isinstance(self.flags.original_content, bytes):
+				mode = "wb+"
+			elif isinstance(self.flags.original_content, str):
+				mode = "w+"
+
+			with open(file_path, mode) as f:
 				f.write(self.flags.original_content)
 				os.fsync(f.fileno())
+				self.flags.pop("original_content")
 
 		# used in case file path (File.file_url) has been changed
 		if self.flags.original_path:
 			target = self.flags.original_path["old"]
 			source = self.flags.original_path["new"]
 			shutil.move(source, target)
-
-		# following condition is only executed when an insert has been rolledback
-		if self.flags.new_file:
-			self._delete_file_on_disk()
+			self.flags.pop("original_path")
 
 	def get_name_based_on_parent_folder(self) -> Union[str, None]:
 		if self.folder:
