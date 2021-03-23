@@ -367,7 +367,11 @@ frappe.ui.form.Dashboard = Class.extend({
 
 				// update badges
 				$.each(r.message.count, function(i, d) {
-					me.frm.dashboard.set_badge_count(d.name, cint(d.open_count), cint(d.count));
+					if (typeof(d.docnames) !== "undefined"){
+						me.frm.dashboard.set_badge_count(d.name, cint(d.open_count), cint(d.count), d.docnames);
+					} else {
+						me.frm.dashboard.set_badge_count(d.name, cint(d.open_count), cint(d.count));
+					}
 				});
 
 				// update from internal links
