@@ -136,7 +136,7 @@ class CustomizeForm(Document):
 	def save_customization(self):
 		if not self.doc_type:
 			return
-		validate_series(self)
+		validate_series(self, self.autoname, self.doc_type)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 		self.set_property_setters()

@@ -651,17 +651,23 @@ class DocType(Document):
 				message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
 				frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
-def validate_series(dt):
-	if not dt.autoname and dt.get("fields", {"fieldname":"naming_series"}):
+def validate_series(dt, autoname=None, name=None):
+	"""Validate if `autoname` property is correctly set."""
+	if not autoname:
+		autoname = dt.autoname
+	if not name:
+		name = dt.name
+
+	if not autoname and dt.get("fields", {"fieldname":"naming_series"}):
 		dt.autoname = "naming_series:"
 	elif dt.autoname == "naming_series:" and not dt.get("fields", {"fieldname":"naming_series"}):
 		frappe.throw(_("Invalid fieldname '{0}' in autoname").format(dt.autoname))
 
 	# validate field name if autoname field:fieldname is used
 	# Create unique index on autoname field automatically.
-	if dt.autoname and dt.autoname.startswith('field:'):
-		field = dt.autoname.split(":")[1]
-		if not field or field not in [ df.fieldname for df in dt.fields ]:
+	if autoname and autoname.startswith('field:'):
+		field = autoname.split(":")[1]
+		if not field or field not in [df.fieldname for df in dt.fields]:
 			frappe.throw(_("Invalid fieldname '{0}' in autoname").format(field))
 		else:
 			for df in dt.fields:
@@ -669,19 +675,19 @@ def validate_series(dt):
 					df.unique = 1
 					break
 
-	if dt.autoname and (not dt.autoname.startswith('field:')) \
-		and (not dt.autoname.startswith('eval:')) \
-		and (not dt.autoname.lower() in ('prompt', 'hash')) \
-		and (not dt.autoname.startswith('naming_series:')) \
-		and (not dt.autoname.startswith('format:')):
+	if autoname and (not autoname.startswith('field:')) \
+		and (not autoname.startswith('eval:')) \
+		and (not autoname.lower() in ('prompt', 'hash')) \
+		and (not autoname.startswith('naming_series:')) \
+		and (not autoname.startswith('format:')):
 
-		prefix = dt.autoname.split('.')[0]
+		prefix = autoname.split('.')[0]
 		used_in = frappe.db.sql("""
 			SELECT `name`
 			FROM `tabDocType`
 			WHERE `autoname` LIKE CONCAT(%s, '.%%')
 			AND `name`!=%s
-		""", (prefix, dt.name))
+		""", (prefix, name))
 		if used_in:
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
