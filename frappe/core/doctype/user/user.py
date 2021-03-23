@@ -536,9 +536,15 @@ class User(Document):
 		"""Find the user by credentials.
 		"""
 		login_with_mobile = cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number"))
-		filter = {"mobile_no": user_name} if login_with_mobile else {"name": user_name}
 
-		user = frappe.db.get_value("User", filters=filter, fieldname=['name', 'enabled'], as_dict=True) or {}
+		user = None
+		if login_with_mobile:
+			filter = {"mobile_no": user_name}
+			user = frappe.db.get_value("User", filters=filter, fieldname=['name', 'enabled'], as_dict=True)
+		if not user:
+			filter = {"name": user_name}
+			user = frappe.db.get_value("User", filters=filter, fieldname=['name', 'enabled'], as_dict=True)
+
 		if not user:
 			return
 
@@ -863,11 +869,12 @@ def reset_password(user):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def user_query(doctype, txt, searchfield, start, page_len, filters):
-	from frappe.desk.reportview import get_match_cond
-
+	from frappe.desk.reportview import get_match_cond, get_filters_cond
+	conditions=[]
 	user_type_condition = "and user_type = 'System User'"
 	if filters and filters.get('ignore_user_type'):
 		user_type_condition = ''
+		filters.pop('ignore_user_type')
 
 	txt = "%{}%".format(txt)
 	return frappe.db.sql("""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
@@ -878,17 +885,22 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 			AND `name` NOT IN ({standard_users})
 			AND ({key} LIKE %(txt)s
 				OR CONCAT_WS(' ', first_name, middle_name, last_name) LIKE %(txt)s)
-			{mcond}
+			{fcond} {mcond}
 		ORDER BY
 			CASE WHEN `name` LIKE %(txt)s THEN 0 ELSE 1 END,
 			CASE WHEN concat_ws(' ', first_name, middle_name, last_name) LIKE %(txt)s
 				THEN 0 ELSE 1 END,
 			NAME asc
-		LIMIT %(page_len)s OFFSET %(start)s""".format(
+		LIMIT %(page_len)s OFFSET %(start)s
+	""".format(
 			user_type_condition = user_type_condition,
 			standard_users=", ".join([frappe.db.escape(u) for u in STANDARD_USERS]),
-			key=searchfield, mcond=get_match_cond(doctype)),
-			dict(start=start, page_len=page_len, txt=txt))
+			key=searchfield,
+			fcond=get_filters_cond(doctype, filters, conditions),
+			mcond=get_match_cond(doctype)
+		),
+		dict(start=start, page_len=page_len, txt=txt)
+	)
 
 def get_total_users():
 	"""Returns total no. of system users"""
