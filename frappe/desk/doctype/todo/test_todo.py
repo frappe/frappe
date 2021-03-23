@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from frappe.model.db_query import DatabaseQuery
-from frappe.permissions import get_doc_permissions, add_permission
+from frappe.permissions import add_permission, reset_perms
+from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 
 # test_records = frappe.get_test_records('ToDo')
 test_user_records = frappe.get_test_records('User')
@@ -62,7 +63,6 @@ class TestToDo(unittest.TestCase):
 
 		self.assertNotEqual(test_user_data, system_manager_data)
 
-		frappe.set_user('Administrator')
 		frappe.db.rollback()
 
 	def test_doc_read_access(self):
@@ -70,11 +70,11 @@ class TestToDo(unittest.TestCase):
 		todo1 = create_new_todo('Test1', 'testperm@example.com')
 		test_user = frappe.get_doc('User', 'test4@example.com')
 
-		#owner is testperm, but assigned_by is test1
+		#owner is testperm, but assigned_by is test4
 		todo2 = create_new_todo('Test2', 'test4@example.com')
 
 		frappe.set_user('test4@example.com')
-		#owner and assigned_by is test1
+		#owner and assigned_by is test4
 		todo3 = create_new_todo('Test3', 'test4@example.com')
 		
 		# user without any role to read or write todo document
@@ -101,6 +101,9 @@ class TestToDo(unittest.TestCase):
 		self.assertFalse(todo1.has_permission("write"))
 
 		frappe.set_user('Administrator')
+		test_user.remove_roles('Blogger')
+		reset_perms('ToDo')
+		clear_permissions_cache('ToDo')
 		frappe.db.rollback()
 
 def test_fetch_if_empty(self):
