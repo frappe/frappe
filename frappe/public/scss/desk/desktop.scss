@@ -733,3 +733,18 @@ body {
 		height: 200px;
 	}
 }
+
+[data-page-route="Workspaces"] {
+	@media (min-width: map-get($grid-breakpoints, "lg")) {
+		.layout-main {
+			height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
+			.layout-side-section, .layout-main-section-wrapper {
+				height: 100%;
+				overflow-y: scroll;
+			}
+			.desk-sidebar {
+				margin-bottom: var(--margin-2xl);
+			}
+		}
+	}
+}
