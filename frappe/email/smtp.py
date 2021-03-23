@@ -156,6 +156,8 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 	return email_account
 
 def _get_email_account(filters):
+	if frappe.flags.in_test:
+		filters['signature'] = "in test"
 	name = frappe.db.get_value("Email Account", filters)
 	return frappe.get_doc("Email Account", name) if name else None
 
