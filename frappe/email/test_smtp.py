@@ -16,17 +16,29 @@ class TestSMTP(unittest.TestCase):
 			make_server(port, 0, 1)
 
 	def test_get_email_account(self):
-		print(frappe.get_all('Email Account', fields='*'))
+		frappe.set_user("Administrator")
+		frappe.db.sql("""delete from `tabEmail Account`""")
+
+		# remove mail_server config so that test@example.com is not created
+		mail_server = frappe.conf.get('mail_server')
+		del frappe.conf['mail_server']
+
 		# lowest preference given to email account with only incoming enabled
-		create_email_account(email_id="outgoing_enabled@gmail.com", password="pass@1", enable_outgoing = 1)
+		create_email_account(email_id="outgoing_enabled@gmail.com", password="***", enable_outgoing = 1)
 		self.assertEqual(get_outgoing_email_account().email_id, "outgoing_enabled@gmail.com")
+		frappe.local.outgoing_email_account = {}
+
 		# second highest preference given to email account with default incoming enabled
-		create_email_account(email_id="default_outgoing_enabled@gmail.com", password="pass@2", enable_outgoing = 1, default_outgoing=1)
+		create_email_account(email_id="default_outgoing_enabled@gmail.com", password="***", enable_outgoing = 1, default_outgoing=1)
 		self.assertEqual(get_outgoing_email_account().email_id, "default_outgoing_enabled@gmail.com")
+		frappe.local.outgoing_email_account = {}
+
 		# highest preference given to email account with append_to matching
-		create_email_account(email_id="append_to@gmail.com", password="pass@3", enable_outgoing = 1, default_outgoing=1, append_to="Issue")
+		create_email_account(email_id="append_to@gmail.com", password="***", enable_outgoing = 1, default_outgoing=1, append_to="Issue")
 		self.assertEqual(get_outgoing_email_account(append_to="Issue").email_id, "append_to@gmail.com")
 
+		# add back the mail_server
+		frappe.conf['mail_server'] = mail_server
 
 def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None):
 	email_dict = {
@@ -34,13 +46,15 @@ def create_email_account(email_id, password, enable_outgoing, default_outgoing=0
 		"passsword": password,
 		"enable_outgoing":enable_outgoing ,
 		"default_outgoing":default_outgoing ,
+		"enable_incoming": 1,
 		"append_to":append_to,
-		"signature": "in test"
+		"is_dummy_password": 1,
+		"smtp_server": "localhost"
 	}
 
-	email_accout = frappe.new_doc('Email Account')
-	email_accout.update(email_dict)
-	email_accout.save()
+	email_account = frappe.new_doc('Email Account')
+	email_account.update(email_dict)
+	email_account.save()
 
 def make_server(port, ssl, tls):
 	server = SMTPServer(
