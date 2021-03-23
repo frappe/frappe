@@ -169,18 +169,20 @@ def get_task_log_file_path(task_id, stream_type):
 
 
 @frappe.whitelist(allow_guest=True)
-def can_subscribe_doc(doctype, docname, sid):
+def can_subscribe_doc(doctype, docname):
 	if os.environ.get('CI'):
 		return True
+
 	from frappe.sessions import Session
 	from frappe.exceptions import PermissionError
 	session = Session(None, resume=True).get_session_data()
 	if not frappe.has_permission(user=session.user, doctype=doctype, doc=docname, ptype='read'):
 		raise PermissionError()
+
 	return True
 
 @frappe.whitelist(allow_guest=True)
-def get_user_info(sid):
+def get_user_info():
 	from frappe.sessions import Session
 	session = Session(None, resume=True).get_session_data()
 	return {

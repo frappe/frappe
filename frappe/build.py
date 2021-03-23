@@ -15,7 +15,7 @@ import frappe
 from frappe.utils.minify import JavascriptMinify
 
 import click
-from requests import get
+import psutil
 from six import iteritems, text_type
 from six.moves.urllib.parse import urlparse
 
@@ -26,6 +26,8 @@ sites_path = os.path.abspath(os.getcwd())
 
 
 def download_file(url, prefix):
+	from requests import get
+
 	filename = urlparse(url).path.split("/")[-1]
 	local_filename = os.path.join(prefix, filename)
 	with get(url, stream=True, allow_redirects=True) as r:
@@ -225,7 +227,7 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False,
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
-	frappe.commands.popen(command, cwd=frappe_app_path)
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
 def watch(no_compress):
@@ -237,13 +239,32 @@ def watch(no_compress):
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
-	frappe.commands.popen("{pacman} run watch".format(pacman=pacman), cwd=frappe_app_path)
+	frappe.commands.popen("{pacman} run watch".format(pacman=pacman),
+		cwd=frappe_app_path, env=get_node_env())
 
 
 def check_yarn():
 	if not find_executable("yarn"):
 		print("Please install yarn using below command and try again.\nnpm install -g yarn")
 
+def get_node_env():
+	node_env = {
+		"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"
+	}
+	return node_env
+
+def get_safe_max_old_space_size():
+	safe_max_old_space_size = 0
+	try:
+		total_memory = psutil.virtual_memory().total / (1024 * 1024)
+		# reference for the safe limit assumption
+		# https://nodejs.org/api/cli.html#cli_max_old_space_size_size_in_megabytes
+		# set minimum value 1GB
+		safe_max_old_space_size = max(1024, int(total_memory * 0.75))
+	except Exception:
+		pass
+
+	return safe_max_old_space_size
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.

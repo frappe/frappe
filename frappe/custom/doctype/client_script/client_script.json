@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2013-01-10 16:34:01",
+ "description": "Adds a custom client script to a DocType",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "dt",
+  "view",
+  "enabled",
+  "script",
+  "sample"
+ ],
+ "fields": [
+  {
+   "fieldname": "dt",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "DocType",
+   "oldfieldname": "dt",
+   "oldfieldtype": "Link",
+   "options": "DocType",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Script",
+   "oldfieldname": "script",
+   "oldfieldtype": "Code",
+   "options": "JS"
+  },
+  {
+   "fieldname": "sample",
+   "fieldtype": "HTML",
+   "label": "Sample",
+   "options": "<h3>Client Script Help</h3>\n<p>Client Scripts are executed only on the client-side (i.e. in Forms). Here are some examples to get you started</p>\n<pre><code>\n\n// fetch local_tax_no on selection of customer \n// cur_frm.add_fetch(link_field,  source_fieldname,  target_fieldname); \ncur_frm.add_fetch('customer',  'local_tax_no',  'local_tax_no');\n\n// additional validation on dates \nfrappe.ui.form.on('Task',  'validate',  function(frm) {\n    if (frm.doc.from_date &lt; get_today()) {\n        msgprint('You can not select past date in From Date');\n        validated = false;\n    } \n});\n\n// make a field read-only after saving \nfrappe.ui.form.on('Task',  {\n    refresh: function(frm) {\n        // use the __islocal value of doc,  to check if the doc is saved or not\n        frm.set_df_property('myfield',  'read_only',  frm.doc.__islocal ? 0 : 1);\n    } \n});\n\n// additional permission check\nfrappe.ui.form.on('Task',  {\n    validate: function(frm) {\n        if(user=='user1@example.com' &amp;&amp; frm.doc.purpose!='Material Receipt') {\n            msgprint('You are only allowed Material Receipt');\n            validated = false;\n        }\n    } \n});\n\n// calculate sales incentive\nfrappe.ui.form.on('Sales Invoice',  {\n    validate: function(frm) {\n        // calculate incentives for each person on the deal\n        total_incentive = 0\n        $.each(frm.doc.sales_team,  function(i,  d) {\n            // calculate incentive\n            var incentive_percent = 2;\n            if(frm.doc.base_grand_total &gt; 400) incentive_percent = 4;\n            // actual incentive\n            d.incentives = flt(frm.doc.base_grand_total) * incentive_percent / 100;\n            total_incentive += flt(d.incentives)\n        });\n        frm.doc.total_incentive = total_incentive;\n    } \n})\n\n</code></pre>"
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "default": "Form",
+   "fieldname": "view",
+   "fieldtype": "Select",
+   "label": "Apply To",
+   "options": "List\nForm",
+   "set_only_once": 1
+  }
+ ],
+ "icon": "fa fa-glass",
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-03-16 20:33:51.400191",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Client Script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "track_changes": 1
+}

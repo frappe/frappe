@@ -25,6 +25,7 @@ gunicorn==19.10.0
 html2text==2016.9.19
 html5lib==1.0.1
 ipython==7.14.0
+jedi==0.17.2  # not directly required. Pinned to fix upstream issue with ipython.
 Jinja2==2.11.3
 ldap3==2.7
 markdown2==2.4.0
@@ -37,6 +38,7 @@ passlib==1.7.3
 pdfkit==0.6.1
 Pillow>=8.0.0
 premailer==3.6.1
+psutil==5.7.2
 psycopg2-binary==2.8.4
 pyasn1==0.4.8
 PyJWT==1.7.1

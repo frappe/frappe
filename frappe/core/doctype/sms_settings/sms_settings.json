@@ -202,7 +202,7 @@
  "issingle": 1, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-11-01 12:57:20.943845", 
+ "modified": "2021-03-02 18:06:00.868688", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "SMS Settings", 
@@ -233,6 +233,6 @@
  "read_only": 0, 
  "read_only_onload": 0, 
  "show_name_in_global_search": 0, 
- "track_changes": 0, 
+ "track_changes": 1, 
  "track_seen": 0
 }

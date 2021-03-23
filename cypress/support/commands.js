@@ -312,7 +312,6 @@ Cypress.Commands.add('add_filter', () => {
 	cy.get('.filter-section .filter-button').click();
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
-	cy.get('.filter-popover').find('.add-filter').click();
 });
 
 Cypress.Commands.add('clear_filters', () => {

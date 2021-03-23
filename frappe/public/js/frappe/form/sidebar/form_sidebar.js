@@ -210,7 +210,7 @@ frappe.ui.form.Sidebar = class {
 		if (follow == null) {
 			follow = this.frm.get_docinfo().is_document_followed;
 		}
-		this.follow_button.text(follow ? "Unfollow" : "Follow");
+		this.follow_button.text(follow ? __("Unfollow") : __("Follow"));
 	}
 
 	refresh_like() {

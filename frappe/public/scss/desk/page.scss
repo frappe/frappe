@@ -44,6 +44,11 @@
 
 .page-container {
 	background-color: var(--bg-color);
+
+	.page-body.full-width {
+		width: 100%;
+		max-width: 100%;
+	}
 }
 
 .custom-actions {

@@ -164,7 +164,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
 		if (match_rules_list.length) {
 			this.restricted_list = $(
-				`<button class="btn btn-default btn-xs restricted-button flex align-center">
+				`<button class="btn btn-xs restricted-button flex align-center">
 					${frappe.utils.icon('restriction', 'xs')}
 				</button>`
 			).click(() => this.show_restrictions(match_rules_list)).appendTo(this.page.page_form);
@@ -676,7 +676,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (col.type === "Tag") {
 			const tags_display_class = !this.tags_shown ? 'hide' : '';
-			let tags_html = doc._user_tags ? this.get_tags_html(doc._user_tags) : '<div class="tags-empty">-</div>';
+			let tags_html = doc._user_tags ? this.get_tags_html(doc._user_tags, 2) : '<div class="tags-empty">-</div>';
 			return `
 				<div class="list-row-col tag-col ${tags_display_class} hidden-xs ellipsis">
 					${tags_html}
@@ -707,25 +707,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const field_html = () => {
 			let html;
 			let _value;
-			// listview_setting formatter
-			if (
-				this.settings.formatters &&
-				this.settings.formatters[fieldname]
-			) {
-				_value = this.settings.formatters[fieldname](value, df, doc);
+			let strip_html_required =
+				df.fieldtype == "Text Editor" ||
+				(df.fetch_from &&
+					["Text", "Small Text"].includes(df.fieldtype));
+
+			if (strip_html_required) {
+				_value = strip_html(value);
 			} else {
-				let strip_html_required =
-					df.fieldtype == "Text Editor" ||
-					(df.fetch_from &&
-						["Text", "Small Text"].includes(df.fieldtype));
-				if (strip_html_required) {
-					_value = strip_html(value);
-				} else {
-					_value =
-						typeof value === "string"
-							? frappe.utils.escape_html(value)
-							: value;
-				}
+				_value =
+					typeof value === "string"
+						? frappe.utils.escape_html(value)
+						: value;
 			}
 
 			if (df.fieldtype === "Image") {
@@ -747,7 +740,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${_value}
 				</a>`;
 			} else if (
-				["Text Editor", "Text", "Small Text", "HTML Editor"].includes(
+				["Text Editor", "Text", "Small Text", "HTML Editor", "Markdown Editor"].includes(
 					df.fieldtype
 				)
 			) {
@@ -756,7 +749,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>`;
 			} else {
 				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${value}">
+					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
 					${format()}
 				</a>`;
 			}
@@ -781,7 +774,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			Subject: this.get_subject_html(doc),
 			Field: field_html(),
 		};
-		const column_html = html_map[col.type];
+		let column_html = html_map[col.type];
+
+		// listview_setting formatter
+		if (
+			this.settings.formatters &&
+			this.settings.formatters[fieldname]
+		) {
+			column_html = this.settings.formatters[fieldname](value, df, doc);
+		}
 
 		return `
 			<div class="${css_class}">
@@ -790,13 +791,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		`;
 	}
 
-	get_tags_html(user_tags) {
+	get_tags_html(user_tags, limit, colored=false) {
 		let get_tag_html = tag => {
+			let color = '', style = '';
 			if (tag) {
-				return `<div class="tag-pill ellipsis" title="${tag}">${tag}</div>`;
+				if (colored) {
+					color = frappe.get_palette(tag);
+					style = `background-color: var(${color[0]}); color: var(${color[1]})`;
+				}
+
+				return `<div class="tag-pill ellipsis" title="${tag}" style="${style}">${tag}</div>`;
 			}
 		};
-		return user_tags.split(',').slice(1, 3).map(get_tag_html).join('');
+		return user_tags.split(',').slice(1, limit + 1).map(get_tag_html).join('');
 	}
 
 	get_meta_html(doc) {
@@ -906,7 +913,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_subject_html(doc) {
 		let subject_field = this.columns[0].df;
-		let value = doc[subject_field.fieldname] || doc.name;
+		let value = doc[subject_field.fieldname];
+		if (this.settings.formatters && this.settings.formatters[subject_field.fieldname]) {
+			let formatter = this.settings.formatters[subject_field.fieldname];
+			value = formatter(value, subject_field, doc);
+		}
+		if (!value) {
+			value = doc.name;
+		}
 		let subject = strip_html(value.toString());
 		let escaped_subject = frappe.utils.escape_html(subject);
 
@@ -949,6 +963,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return `<span class='indicator ${indicator[1]}' title='${__(
 			indicator[0]
 		)}'></span>`;
+	}
+
+	get_image_url(doc) {
+		let url = doc.image ? doc.image : doc[this.meta.image_field];
+		// absolute url for mobile
+		if (window.cordova && !frappe.utils.is_url(url)) {
+			url = frappe.base_url + url;
+		}
+		return url || null;
 	}
 
 	setup_events() {

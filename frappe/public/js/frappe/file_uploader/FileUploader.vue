@@ -73,21 +73,13 @@
 			</div>
 		</div>
 		<div class="file-preview-area" v-show="files.length && !show_file_browser && !show_web_link">
-			<!-- <div class="margin-bottom" v-if="!upload_complete">
-				<label>
-					<input type="checkbox" class="input-with-feedback" @change="e => toggle_all_private(e.target.checked)">
-					<span class="text-medium" style="font-weight: normal;">
-						{{ __('Make all attachments private') }}
-					</span>
-				</label>
-			</div> -->
 			<div class="file-preview-container">
 				<FilePreview
 					v-for="(file, i) in files"
 					:key="file.name"
 					:file="file"
-					@remove="remove_file(i)"
-					@toggle_private="toggle_private(i)"
+					@remove="remove_file(file)"
+					@toggle_private="file.private = !file.private"
 				/>
 			</div>
 			<div class="flex align-center" v-if="show_upload_button && currently_uploading === -1">
@@ -217,15 +209,19 @@ export default {
 		on_file_input(e) {
 			this.add_files(this.$refs.file_input.files);
 		},
-		remove_file(i) {
-			this.files = this.files.filter((file, j) => i !== j);
+		remove_file(file) {
+			this.files = this.files.filter(f => f !== file);
 		},
-		toggle_private(i) {
-			this.files[i].private = !this.files[i].private;
-		},
-		toggle_all_private(flag) {
-			if (flag == null) {
-				flag = this.files.every(file => file.private);
+		toggle_all_private() {
+			let flag;
+			let private_values = this.files.filter(file => file.private);
+			if (private_values.length < this.files.length) {
+				// there are some private and some public
+				// set all to private
+				flag = true;
+			} else {
+				// all are private, set all to public
+				flag = false;
 			}
 			this.files = this.files.map(file => {
 				file.private = flag;

@@ -131,7 +131,7 @@ frappe.form.formatters = {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if(docfield && doctype) {
-			if (!frappe.model.can_select(doctype) && frappe.model.can_read(doctype)) {
+			if (frappe.model.can_read(doctype)) {
 				return `<a
 					href="/app/${encodeURIComponent(frappe.router.slug(doctype))}/${encodeURIComponent(original_value)}"
 					data-doctype="${doctype}"
