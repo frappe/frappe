@@ -649,7 +649,7 @@ class Document(BaseDocument):
 			self._has_access_to[permission_type] = []
 			roles = frappe.get_roles()
 			for perm in self.get_permissions():
-				if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
+				if perm.role in roles and perm.get(permission_type):
 					if perm.permlevel not in self._has_access_to[permission_type]:
 						self._has_access_to[permission_type].append(perm.permlevel)
 
