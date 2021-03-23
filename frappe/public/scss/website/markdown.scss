@@ -13,7 +13,8 @@ $font-sizes: (
 	letter-spacing: -0.011em;
 
 	> * + * {
-		margin-top: 0.875rem;
+		margin-top: 0.75rem;
+		margin-bottom: 0;
 	}
 
 	> :first-child {
@@ -109,16 +110,14 @@ $font-sizes: (
 		font-size: map-get($font-sizes, '2xl');
 		line-height: 1.56;
 		letter-spacing: -0.0195em;
-		margin-bottom: 1rem;
-		margin-top: 3rem;
+		margin-top: 4rem;
 	}
 
 	h3 {
 		font-size: map-get($font-sizes, 'xl');
 		line-height: 1.56;
 		letter-spacing: -0.0175em;
-		margin-top: 1.5rem;
-		margin-bottom: 1rem;
+		margin-top: 2.25rem;
 	}
 
 	h4 {
@@ -126,7 +125,6 @@ $font-sizes: (
 		line-height: 1.56;
 		letter-spacing: -0.014em;
 		margin-top: 2.5rem;
-		margin-bottom: 1rem;
 	}
 
 	h5 {
@@ -135,7 +133,6 @@ $font-sizes: (
 		letter-spacing: -0.011em;
 		font-weight: 600;
 		margin-top: 2rem;
-		margin-bottom: 1rem;
 	}
 
 	h6 {
@@ -144,15 +141,6 @@ $font-sizes: (
 		font-weight: 600;
 		text-transform: uppercase;
 		margin-top: 1.5rem;
-		margin-bottom: 1rem;
-	}
-
-	p + h3 {
-		margin-top: 3rem;
-	}
-
-	h3 + p {
-		margin-top: 1rem;
 	}
 
 	tr > td,
