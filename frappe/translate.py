@@ -560,6 +560,8 @@ def get_messages_from_include_files(app_name=None):
 	"""Returns messages from js files included at time of boot like desk.min.js for desk and web"""
 	messages = []
 	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
+		while file.startswith("/"):
+			file = file[1:]
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
 
 	return messages
@@ -672,6 +674,7 @@ def write_csv_file(path, app_messages, lang_dict):
 	:param app_messages: Translatable strings for this app.
 	:param lang_dict: Full translated dict.
 	"""
+	app_messages = list(filter(lambda a: a[0] is not None, app_messages))
 	app_messages.sort(key = lambda x: x[1])
 	from csv import writer
 	with open(path, 'w', newline='') as msgfile:
@@ -690,7 +693,7 @@ def write_csv_file(path, app_messages, lang_dict):
 				t = lang_dict.get(m, '')
 			# strip whitespaces
 			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
-			w.writerow([p if p else '', m, t])
+			w.writerow([m, t])
 
 def get_untranslated(lang, untranslated_file, app, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file
@@ -728,10 +731,10 @@ def get_untranslated(lang, untranslated_file, app, get_all=False):
 
 		for m in messages:
 			if m[0] is None or m[1] is None:
-				print(f"Can not ranslate {m}")
+				print(f"Can not translate {m}")
 				continue
 			lang_key = m[0] + ":" + m[1]
-			if not full_dict.get(lang_key):
+			if not (full_dict.get(lang_key) or full_dict.get(m[1])): # change to get(m[1]) for no context
 				untranslated.append(m[1])
 
 		if untranslated:
