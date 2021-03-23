@@ -81,7 +81,14 @@ $font-sizes: (
 
 	h1, h2, h3, h4, h5, h6 {
 		color: $gray-900;
-		font-weight: 500;
+	}
+
+	h1 {
+		font-weight: 700;
+	}
+
+	h2, h3, h4, h5, h6 {
+		font-weight: 600;
 	}
 
 	h1 {
