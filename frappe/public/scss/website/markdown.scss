@@ -26,7 +26,7 @@ $font-sizes: (
 
 	ul,
 	ol {
-		padding-left: 2.5rem;
+		padding-left: 2rem;
 	}
 
 	ul {
@@ -39,15 +39,21 @@ $font-sizes: (
 
 	li {
 		text-indent: 0.25rem;
+		padding-top: 1px;
+		padding-bottom: 1px;
 	}
 
-	li > * + * {
-		margin-top: 0.75rem;
+	li > ul, li > ol {
+		padding-left: 1.5rem;
+	}
+
+	ul > li:first-child {
+		margin-top: 3px;
 	}
 
 	ul > * + *,
 	ol > * + * {
-		margin-top: 0.75rem;
+		margin-top: 2px;
 	}
 
 	> blockquote {
