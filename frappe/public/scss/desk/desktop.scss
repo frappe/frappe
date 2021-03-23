@@ -485,6 +485,19 @@ body {
 				}
 			}
 		}
+
+		@media (max-width: map-get($grid-breakpoints, "sm")) {
+			.widget-body {
+				flex-direction: column;
+				.onboarding-steps-wrapper {
+					min-width: none;
+				}
+				.onboarding-step-preview {
+					padding-left: 0;
+					padding-top: var(--padding-lg);
+				}
+			}
+		}
 	}
 
 	&.shortcut-widget-box {
