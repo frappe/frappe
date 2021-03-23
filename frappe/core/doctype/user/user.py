@@ -874,6 +874,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	user_type_condition = "and user_type = 'System User'"
 	if filters and filters.get('ignore_user_type'):
 		user_type_condition = ''
+		filters.pop('ignore_user_type')
 
 	txt = "%{}%".format(txt)
 	return frappe.db.sql("""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
