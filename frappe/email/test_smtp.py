@@ -53,7 +53,7 @@ class TestSMTP(unittest.TestCase):
 				"default_outgoing": email_account['default_outgoing'],
 				"append_to": email_account['append_to']
 			}
-			frappe.db.set_value('Email Account', email_account['name'], unset_details)
+			frappe.db.set_value('Email Account', email_account['name'], set_details)
 
 def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None):
 	email_dict = {
