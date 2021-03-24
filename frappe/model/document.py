@@ -596,7 +596,7 @@ class Document(BaseDocument):
 
 		has_higher_permlevel = False
 
-		all_fields = self.meta.fields
+		all_fields = self.meta.fields.copy()
 		for table_field in self.meta.get_table_fields():
 			all_fields += frappe.get_meta(table_field.options).fields or []
 
