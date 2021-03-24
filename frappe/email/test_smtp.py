@@ -43,8 +43,8 @@ class TestSMTP(unittest.TestCase):
 
 		frappe.local.outgoing_email_account = {}
 		# highest preference given to email account with append_to matching
-		create_email_account(email_id="append_to@gmail.com", password="***", enable_outgoing = 1, default_outgoing=1, append_to="Issue")
-		self.assertEqual(get_outgoing_email_account(append_to="Issue").email_id, "append_to@gmail.com")
+		create_email_account(email_id="append_to@gmail.com", password="***", enable_outgoing = 1, default_outgoing=1, append_to="Blog")
+		self.assertEqual(get_outgoing_email_account(append_to="Blog").email_id, "append_to@gmail.com")
 
 		# add back the mail_server
 		print(existing_email_accounts)
