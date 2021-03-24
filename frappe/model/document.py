@@ -648,7 +648,6 @@ class Document(BaseDocument):
 		if not hasattr(self, "_has_access_to"):
 			self._has_access_to = {}
 
-		# if not self._has_access_to.get(permission_type):
 		self._has_access_to[permission_type] = []
 		roles = frappe.get_roles()
 		for perm in self.get_permissions():
