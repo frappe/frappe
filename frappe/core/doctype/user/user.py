@@ -536,9 +536,15 @@ class User(Document):
 		"""Find the user by credentials.
 		"""
 		login_with_mobile = cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number"))
-		filter = {"mobile_no": user_name} if login_with_mobile else {"name": user_name}
 
-		user = frappe.db.get_value("User", filters=filter, fieldname=['name', 'enabled'], as_dict=True) or {}
+		user = None
+		if login_with_mobile:
+			filter = {"mobile_no": user_name}
+			user = frappe.db.get_value("User", filters=filter, fieldname=['name', 'enabled'], as_dict=True)
+		if not user:
+			filter = {"name": user_name}
+			user = frappe.db.get_value("User", filters=filter, fieldname=['name', 'enabled'], as_dict=True)
+
 		if not user:
 			return
 
@@ -868,6 +874,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	user_type_condition = "and user_type = 'System User'"
 	if filters and filters.get('ignore_user_type'):
 		user_type_condition = ''
+		filters.pop('ignore_user_type')
 
 	txt = "%{}%".format(txt)
 	return frappe.db.sql("""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
