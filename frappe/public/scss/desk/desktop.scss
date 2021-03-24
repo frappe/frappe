@@ -753,7 +753,7 @@ body {
 			height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
 			.layout-side-section, .layout-main-section-wrapper {
 				height: 100%;
-				overflow-y: scroll;
+				overflow-y: auto;
 			}
 			.desk-sidebar {
 				margin-bottom: var(--margin-2xl);
