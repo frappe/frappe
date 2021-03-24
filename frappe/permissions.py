@@ -362,6 +362,11 @@ def get_roles(user=None, with_standard=True):
 
 	return roles
 
+def get_doctype_roles(doctype, access_type="read"):
+	"""Returns a list of roles that are allowed to access passed doctype."""
+	meta = frappe.get_meta(doctype)
+	return [d.role for d in meta.get("permissions") if d.get(access_type)]
+
 def get_perms_for(roles, perm_doctype='DocPerm'):
 	'''Get perms for given roles'''
 	filters = {
