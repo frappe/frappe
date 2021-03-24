@@ -625,6 +625,9 @@ class Document(BaseDocument):
 		if self.flags.ignore_permissions or frappe.flags.in_install:
 			return
 
+		if frappe.session.user == "Administrator":
+			return
+
 		has_access_to = self.get_permlevel_access()
 		high_permlevel_fields = self.meta.get_high_permlevel_fields()
 
@@ -645,13 +648,13 @@ class Document(BaseDocument):
 		if not hasattr(self, "_has_access_to"):
 			self._has_access_to = {}
 
-		if not self._has_access_to.get(permission_type):
-			self._has_access_to[permission_type] = []
-			roles = frappe.get_roles()
-			for perm in self.get_permissions():
-				if perm.role in roles and perm.get(permission_type):
-					if perm.permlevel not in self._has_access_to[permission_type]:
-						self._has_access_to[permission_type].append(perm.permlevel)
+		# if not self._has_access_to.get(permission_type):
+		self._has_access_to[permission_type] = []
+		roles = frappe.get_roles()
+		for perm in self.get_permissions():
+			if perm.role in roles and perm.get(permission_type):
+				if perm.permlevel not in self._has_access_to[permission_type]:
+					self._has_access_to[permission_type].append(perm.permlevel)
 
 		return self._has_access_to[permission_type]
 
