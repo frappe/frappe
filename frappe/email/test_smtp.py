@@ -29,7 +29,7 @@ class TestSMTP(unittest.TestCase):
 		# remove mail_server config so that test@example.com is not created
 		mail_server = frappe.conf.get('mail_server')
 		del frappe.conf['mail_server']
-
+		print(frappe.get_all("Email Account", fields = ["name", "enable_outgoing", "default_outgoing", "append_to"]))
 		# lowest preference given to email account with only incoming enabled
 		create_email_account(email_id="outgoing_enabled@gmail.com", password="***", enable_outgoing = 1)
 		self.assertEqual(get_outgoing_email_account().email_id, "outgoing_enabled@gmail.com")
