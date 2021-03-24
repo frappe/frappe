@@ -16,8 +16,16 @@ class TestSMTP(unittest.TestCase):
 			make_server(port, 0, 1)
 
 	def test_get_email_account(self):
-		existing_email_accounts = frappe.get_all("Email Account", fields = ["*"])
-		frappe.db.sql("""delete from `tabEmail Account`""")
+		existing_email_accounts = frappe.get_all("Email Account", fields = ["name", "enable_outgoing", "default_outgoing", "append_to"])
+		unset_details = {
+			"enable_outgoing": 0,
+			"default_outgoing": 0,
+			"append_to": None
+		}
+		for email_account in existing_email_accounts:
+			frappe.db.set_value('Email Account', email_account['name'], unset_details)
+
+		# frappe.db.sql("""delete from `tabEmail Account`""")
 		# remove mail_server config so that test@example.com is not created
 		mail_server = frappe.conf.get('mail_server')
 		del frappe.conf['mail_server']
@@ -39,11 +47,13 @@ class TestSMTP(unittest.TestCase):
 		# add back the mail_server
 		print(existing_email_accounts)
 		frappe.conf['mail_server'] = mail_server
-		for email_account_dict in existing_email_accounts:
-			print(email_account_dict)
-			email_account = frappe.new_doc("Email Account")
-			email_account.update(email_account_dict)
-			email_account.save()
+		for email_account in existing_email_accounts:
+			set_details = {
+				"enable_outgoing": email_account['enable_outgoing'],
+				"default_outgoing": email_account['default_outgoing'],
+				"append_to": email_account['append_to']
+			}
+			frappe.db.set_value('Email Account', email_account['name'], unset_details)
 
 def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None):
 	email_dict = {
