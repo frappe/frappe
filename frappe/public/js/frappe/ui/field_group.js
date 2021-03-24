@@ -86,8 +86,13 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			var f = this.fields_dict[key];
 			if(f.get_value) {
 				var v = f.get_value();
-				if(f.df.reqd && is_null(v))
+				if(f.df.reqd && is_null(v)) {
 					errors.push(__(f.df.label));
+				}
+
+				if ((f.df.reqd && f.df.fieldtype == "Check") && v == 0) {
+					errors.push(__(f.df.label));
+				}
 
 				if(!is_null(v)) ret[f.df.fieldname] = v;
 			}
