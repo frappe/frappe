@@ -429,11 +429,6 @@ def get_roles(username=None):
 	else:
 		return get_user().get_roles()
 
-def get_doctype_roles(doctype, access_type="read"):
-	"""Returns a list of roles that are allowed to access passed doctype."""
-	meta = get_meta(doctype)
-	return [d.role for d in meta.get("permissions") if d.get(access_type)]
-
 def get_request_header(key, default=None):
 	"""Return HTTP request header.
 
