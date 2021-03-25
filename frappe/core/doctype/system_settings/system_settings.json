@@ -417,12 +417,7 @@
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
-<<<<<<< HEAD
- "modified": "2020-07-26 15:57:34.197718",
-=======
- "links": [],
  "modified": "2021-03-25 13:58:12.750629",
->>>>>>> c4b0f54943... chore: Remove unused code (#12671)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
