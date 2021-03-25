@@ -95,6 +95,7 @@ class File(Document):
 			self.validate_duplicate_entry()
 			self.validate_attachment_limit()
 		self.validate_folder()
+		self.validate_file_url()
 
 		if not self.file_url and not self.flags.ignore_file_validate:
 			if not self.is_folder:
@@ -140,6 +141,11 @@ class File(Document):
 
 		if self.file_url and (self.is_private != self.file_url.startswith('/private')):
 			frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
+
+	def validate_file_url(self):
+		print(self.file_url)
+		if os.path.pardir in self.file_url:
+			frappe.throw(_('File url cannot have {0} (parent directory characters)').format(os.path.pardir))
 
 	def validate_attachment_limit(self):
 		attachment_limit = 0
