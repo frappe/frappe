@@ -144,7 +144,7 @@ class File(Document):
 
 	def validate_file_url(self):
 		if self.file_url and os.path.pardir in self.file_url:
-			frappe.throw(_('File url cannot have {0} (parent directory characters)').format(os.path.pardir))
+			frappe.throw(_('File URL cannot have {0} (parent directory characters)').format(os.path.pardir))
 
 	def validate_attachment_limit(self):
 		attachment_limit = 0
