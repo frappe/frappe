@@ -155,8 +155,11 @@ frappe.ui.form.Control = Class.extend({
 
 					if(me.df.change || me.df.onchange) {
 						// onchange event specified in df
-						return (me.df.change || me.df.onchange).apply(me, [e]);
+						let set = (me.df.change || me.df.onchange).apply(me, [e]);
+						me.set_invalid && me.set_invalid();
+						return set;
 					}
+					me.set_invalid && me.set_invalid();
 				}
 			]);
 		};
