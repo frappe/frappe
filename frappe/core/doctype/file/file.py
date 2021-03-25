@@ -143,8 +143,7 @@ class File(Document):
 			frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
 
 	def validate_file_url(self):
-		print(self.file_url)
-		if os.path.pardir in self.file_url:
+		if self.file_url and os.path.pardir in self.file_url:
 			frappe.throw(_('File url cannot have {0} (parent directory characters)').format(os.path.pardir))
 
 	def validate_attachment_limit(self):
@@ -343,7 +342,9 @@ class File(Document):
 		"""Returns [`file_name`, `content`] for given file name `fname`"""
 		if self.get('content'):
 			return self.content
+
 		file_path = self.get_full_path()
+		self.validate_file_url()
 
 		# read the file
 		if PY2:
@@ -844,6 +845,7 @@ def download_file(file_url):
 	"""
 	file_doc = frappe.get_doc("File", {"file_url": file_url})
 	file_doc.check_permission("read")
+	file_doc.validate_file_url()
 
 	frappe.local.response.filename = os.path.basename(file_url)
 	frappe.local.response.filecontent = file_doc.get_content()
