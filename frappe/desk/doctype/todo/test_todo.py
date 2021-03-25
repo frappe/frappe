@@ -63,6 +63,7 @@ class TestToDo(unittest.TestCase):
 
 		self.assertNotEqual(test_user_data, system_manager_data)
 
+		frappe.set_user('Administrator')
 		frappe.db.rollback()
 
 	def test_doc_read_access(self):
