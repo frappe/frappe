@@ -454,7 +454,7 @@ class Meta(Document):
 		has_access_to = []
 		roles = frappe.get_roles()
 		for perm in self.get_permissions(parenttype):
-			if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
+			if perm.role in roles and perm.get(permission_type):
 				if perm.permlevel not in has_access_to:
 					has_access_to.append(perm.permlevel)
 
