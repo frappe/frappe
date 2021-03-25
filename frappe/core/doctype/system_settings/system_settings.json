@@ -59,8 +59,7 @@
   "enable_prepared_report_auto_deletion",
   "prepared_report_expiry_period",
   "chat",
-  "enable_chat",
-  "use_socketio_to_upload_file"
+  "enable_chat"
  ],
  "fields": [
   {
@@ -385,12 +384,6 @@
    "label": "Enable Chat"
   },
   {
-   "default": "1",
-   "fieldname": "use_socketio_to_upload_file",
-   "fieldtype": "Check",
-   "label": "Use socketio to upload file"
-  },
-  {
    "fieldname": "column_break_21",
    "fieldtype": "Column Break"
   },
@@ -424,7 +417,7 @@
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
- "modified": "2020-07-26 15:57:34.197718",
+ "modified": "2021-03-25 13:58:12.750629",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
