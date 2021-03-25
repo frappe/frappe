@@ -53,7 +53,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	data = frappe.db.sql('''
 		select
 			{unit} as _unit,
-			{aggregate_function}({value_field})
+			SUM({value_field}),
+			COUNT(*)
 		from `tab{doctype}`
 		where
 			{conditions}
@@ -63,7 +64,6 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	'''.format(
 		unit = chart.based_on,
 		datefield = chart.based_on,
-		aggregate_function = get_aggregate_function(chart.chart_type),
 		value_field = chart.value_based_on or '1',
 		doctype = chart.document_type,
 		conditions = conditions,
@@ -72,7 +72,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	), values)
 
 	# add missing data points for periods where there was no result
-	result = get_result(data, timegrain, from_date, to_date)
+	result = get_result(data, timegrain, from_date, to_date, chart.chart_type)
 
 	chart_config = {
 		"labels": [get_period(r[0], timegrain) for r in result],
@@ -131,16 +131,22 @@ def get_aggregate_function(chart_type):
 		"Average": "AVG",
 	}[chart_type]
 
-def get_result(data, timegrain, from_date, to_date):
+def get_result(data, timegrain, from_date, to_date, chart_type):
 	dates = get_dates_from_timegrain(from_date, to_date, timegrain)
 	result = [[date, 0] for date in dates]
 
 	data_index = 0
 	if data:
 		for i, d in enumerate(result):
+			count = 0
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
 				d[1] += data[data_index][1]
+				count += data[data_index][2]
 				data_index += 1
+			if chart_type == 'Average' and not count == 0:
+				d[1] = d[1]/count
+			if chart_type == 'Count':
+				d[1] = count
 
 	return result
 
