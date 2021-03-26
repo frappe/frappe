@@ -18,6 +18,7 @@ class TestUserPermission(unittest.TestCase):
 				'nested_doc_user@example.com')""")
 		frappe.delete_doc_if_exists("DocType", "Person")
 		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabPerson`")
+		frappe.delete_doc_if_exists("DocType", "Doc A")
 		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabDoc A`")
 
 	def test_default_user_permission_validation(self):
