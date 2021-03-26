@@ -82,11 +82,15 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		return preview;
 	}
 
-	toggle_theme(theme) {
+	toggle_theme(theme, save_preferences=true) {
 		this.current_theme = theme.toLowerCase();
 		document.documentElement.setAttribute("data-theme", this.current_theme);
 		frappe.show_alert("Theme Changed", 3);
 
+		if(!save_preferences) {
+			return;
+		}
+		
 		frappe.xcall("frappe.core.doctype.user.user.switch_theme", {
 			theme: toTitle(theme)
 		});
@@ -99,3 +103,23 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		this.dialog.hide();
 	}
 };
+
+frappe.ui.add_system_theme_switch_listener = function() {
+	const toggle_theme = frappe.ui.toggle_theme;
+
+	frappe.ui.dark_theme_media_query.addEventListener('change', function(e) {
+		if (e.matches) {
+			toggle_theme('dark');
+			return;
+		}
+
+		toggle_theme('light');
+	})
+}
+
+frappe.ui.dark_theme_media_query = window.matchMedia("(prefers-color-scheme: dark)");
+
+frappe.ui.toggle_theme = function(theme) {
+	const theme_switcher = new frappe.ui.ThemeSwitcher();
+	theme_switcher.toggle_theme(theme, false);
+}

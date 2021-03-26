@@ -63,6 +63,12 @@ frappe.Application = Class.extend({
 			}
 		});
 
+		if(frappe.boot.desk_theme == 'Automatic') {
+			frappe.ui.add_system_theme_switch_listener();
+			const startup_theme = frappe.ui.dark_theme_media_query.matches ? 'dark' : 'light';
+			frappe.ui.toggle_theme(startup_theme);
+		}
+
 		this.set_rtl();
 
 		// page container
