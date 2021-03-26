@@ -12,8 +12,8 @@ from frappe.frappeclient import FrappeClient, AuthError
 class TestAuth(unittest.TestCase):
 	def __init__(self, *args, **kwargs):
 		super(TestAuth, self).__init__(*args, **kwargs)
-		self.test_user_email = 'test@test.com'
-		self.test_user_name = 'test_user'
+		self.test_user_email = 'test_auth@test.com'
+		self.test_user_name = 'test_auth_user'
 		self.test_user_mobile = '+911234567890'
 		self.test_user_password = 'pwd_012'
 
