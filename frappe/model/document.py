@@ -590,9 +590,18 @@ class Document(BaseDocument):
 
 	def apply_fieldlevel_read_permissions(self):
 		"""Remove values the user is not allowed to read (called when loading in desk)"""
+
+		if frappe.session.user == "Administrator":
+			return
+
 		has_higher_permlevel = False
-		for p in self.get_permissions():
-			if p.permlevel > 0:
+
+		all_fields = self.meta.fields.copy()
+		for table_field in self.meta.get_table_fields():
+			all_fields += frappe.get_meta(table_field.options).fields or []
+
+		for df in all_fields:
+			if df.permlevel > 0:
 				has_higher_permlevel = True
 				break
 
@@ -616,6 +625,9 @@ class Document(BaseDocument):
 		if self.flags.ignore_permissions or frappe.flags.in_install:
 			return
 
+		if frappe.session.user == "Administrator":
+			return
+
 		has_access_to = self.get_permlevel_access()
 		high_permlevel_fields = self.meta.get_high_permlevel_fields()
 
@@ -636,13 +648,12 @@ class Document(BaseDocument):
 		if not hasattr(self, "_has_access_to"):
 			self._has_access_to = {}
 
-		if not self._has_access_to.get(permission_type):
-			self._has_access_to[permission_type] = []
-			roles = frappe.get_roles()
-			for perm in self.get_permissions():
-				if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
-					if perm.permlevel not in self._has_access_to[permission_type]:
-						self._has_access_to[permission_type].append(perm.permlevel)
+		self._has_access_to[permission_type] = []
+		roles = frappe.get_roles()
+		for perm in self.get_permissions():
+			if perm.role in roles and perm.get(permission_type):
+				if perm.permlevel not in self._has_access_to[permission_type]:
+					self._has_access_to[permission_type].append(perm.permlevel)
 
 		return self._has_access_to[permission_type]
 
