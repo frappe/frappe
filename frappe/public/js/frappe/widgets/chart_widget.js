@@ -582,7 +582,7 @@ export default class ChartWidget extends Widget {
 						fieldtype: this.report_result.chart.fieldtype,
 						options: this.report_result.chart.options
 					}, { always_show_decimals: true, inline: true })
-			}
+			};
 		}
 
 		if (this.chart_doc.type == "Heatmap") {

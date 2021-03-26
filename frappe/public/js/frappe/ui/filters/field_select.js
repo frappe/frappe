@@ -38,11 +38,10 @@ frappe.ui.FieldSelect = Class.extend({
 		});
 		this.$input.on("awesomplete-open", () => {
 			let modal = this.$input.parents('.modal-dialog')[0];
-			console.log('opened', modal);
 			if (modal) {
 				$(modal).removeClass("modal-dialog-scrollable");
 			}
-		})
+		});
 		this.$input.on("awesomplete-close", () => {
 			let modal = this.$input.parents('.modal-dialog')[0];
 			if (modal) {
