@@ -125,7 +125,6 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfa
 			files.sort()
 			# print path
 			for filename in files:
-				filename = cstr(filename)
 				if filename.startswith("test_") and filename.endswith(".py")\
 					and filename != 'test_runner.py':
 					# print filename[:-3]
