@@ -121,8 +121,10 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfa
 				if dontwalk in folders:
 					folders.remove(dontwalk)
 
+			# for predictability
 			folders.sort()
 			files.sort()
+
 			# print path
 			for filename in files:
 				if filename.startswith("test_") and filename.endswith(".py")\
