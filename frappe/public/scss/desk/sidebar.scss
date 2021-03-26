@@ -225,7 +225,7 @@ body[data-route^="Module"] .main-menu {
 
 			.divider {
 				height: 1px;
-				background-color: #d8dfe5;
+				background-color: var(--border-color);
 				opacity: 0.7;
 			}
 
