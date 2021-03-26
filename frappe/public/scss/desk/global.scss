@@ -266,6 +266,11 @@ select.input-xs {
 	.dropdown-divider {
 		margin: 4px 0;
 	}
+
+	.divider {
+		@extend .dropdown-divider;
+	}
+
 	a:not([href]):hover:active {
 		color: $component-active-color;
 	}
