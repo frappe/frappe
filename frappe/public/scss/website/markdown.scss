@@ -1,10 +1,19 @@
-$font-sizes: (
+$font-sizes-desktop: (
 	"sm": 0.75rem,
 	"base": 1rem,
 	"lg": 1.125rem,
 	"xl": 1.41rem,
 	"2xl": 1.6rem,
 	"3xl": 2rem
+);
+
+$font-sizes-mobile: (
+	"sm": 0.75rem,
+	"base": 1rem,
+	"lg": 1.125rem,
+	"xl": 1.25rem,
+	"2xl": 1.5rem,
+	"3xl": 1.75rem
 );
 
 .from-markdown {
@@ -83,59 +92,68 @@ $font-sizes: (
 		color: $gray-900;
 	}
 
-	h1 {
-		font-weight: 700;
-	}
-
 	h2, h3, h4, h5, h6 {
 		font-weight: 600;
 	}
 
 	h1 {
-		font-size: map-get($font-sizes, '3xl');
+		font-size: map-get($font-sizes-mobile, '3xl');
 		line-height: 1.5;
-		letter-spacing: -0.024em;
+		letter-spacing: -0.021em;
+		font-weight: 700;
+
+		@include media-breakpoint-up(md) {
+			font-size: map-get($font-sizes-desktop, '3xl');
+			letter-spacing: -0.024em;
+		}
 
 		// for byline
 		& + p {
 			margin-top: 1.5rem;
-			font-size: map-get($font-sizes, 'xl');
-			letter-spacing: -0.0175em;
+			font-size: map-get($font-sizes-mobile, 'xl');
+			letter-spacing: -0.014em;
 			line-height: 1.4;
 
-			// @include media-breakpoint-up(sm) {
-			// 	margin-top: 1.25rem;
-			// 	font-size: 1.125rem;
-			// }
-			// @include media-breakpoint-up(md) {
-			// 	font-size: 1.25rem;
-			// }
+			@include media-breakpoint-up(md) {
+				font-size: map-get($font-sizes-desktop, 'xl');
+				letter-spacing: -0.0175em;
+			}
 		}
 	}
 
 	h2 {
-		font-size: map-get($font-sizes, '2xl');
+		font-size: map-get($font-sizes-mobile, '2xl');
 		line-height: 1.56;
-		letter-spacing: -0.0195em;
+		letter-spacing: -0.015em;
 		margin-top: 4rem;
+
+		@include media-breakpoint-up(md) {
+			font-size: map-get($font-sizes-desktop, '2xl');
+			letter-spacing: -0.0195em;
+		}
 	}
 
 	h3 {
-		font-size: map-get($font-sizes, 'xl');
+		font-size: map-get($font-sizes-mobile, 'xl');
 		line-height: 1.56;
-		letter-spacing: -0.0175em;
+		letter-spacing: -0.014em;
 		margin-top: 2.25rem;
+
+		@include media-breakpoint-up(md) {
+			font-size: map-get($font-sizes-desktop, 'xl');
+			letter-spacing: -0.0175em;
+		}
 	}
 
 	h4 {
-		font-size: map-get($font-sizes, 'lg');
+		font-size: map-get($font-sizes-mobile, 'lg');
 		line-height: 1.56;
 		letter-spacing: -0.014em;
 		margin-top: 2.5rem;
 	}
 
 	h5 {
-		font-size: map-get($font-sizes, 'base');
+		font-size: map-get($font-sizes-mobile, 'base');
 		line-height: 1.5;
 		letter-spacing: -0.011em;
 		font-weight: 600;
@@ -143,7 +161,7 @@ $font-sizes: (
 	}
 
 	h6 {
-		font-size: map-get($font-sizes, 'sm');
+		font-size: map-get($font-sizes-mobile, 'sm');
 		line-height: 1.35;
 		font-weight: 600;
 		text-transform: uppercase;
