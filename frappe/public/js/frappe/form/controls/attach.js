@@ -101,10 +101,10 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	},
 
 	on_upload_complete: function(attachment) {
-		if(this.frm) {
+		if (this.frm) {
 			this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
-			this.frm.doc.docstatus == 1 ? this.frm.save('Update') : this.frm.save();
+			this.upload_attached_img(attachment.file_url);
 		}
 		this.set_value(attachment.file_url);
 	},
@@ -112,5 +112,29 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	toggle_reload_button() {
 		this.$value.find('[data-action="reload_attachment"]')
 			.toggle(this.file_uploader && this.file_uploader.uploader.files.length > 0);
+	},
+
+	upload_attached_img(file_url) {
+		var me = this;
+		if (this.frm.doc.docstatus == 1) {
+			this.frm.save('Update');
+		} else {
+			frappe.call({
+				method: "frappe.core.doctype.file.file.upload_attached_img",
+				args: {
+					doc: this.frm.doc,
+					fieldname: this.df.fieldname,
+					file_url: file_url,
+				},
+				callback: function(r) {
+					if (!r.message) {
+						me.frm.save();
+					} else {
+						me.frm.doc.__unsaved = 0;
+						me.frm.refresh();
+					}
+				}
+			});
+		}
 	}
 });

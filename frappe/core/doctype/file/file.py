@@ -778,8 +778,12 @@ def has_permission(doc, ptype=None, user=None):
 		try:
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
+			has_upload_permission = has_controller_permissions(ref_doc, ptype='write', hook='has_upload_permission')
+			if has_upload_permission == None:
+				has_upload_permission = False
+
 			if ptype in ['write', 'create', 'delete']:
-				has_access = ref_doc.has_permission('write')
+				has_access = ref_doc.has_permission('write') or has_upload_permission
 
 				if ptype == 'delete' and not has_access:
 					frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
@@ -969,6 +973,15 @@ def get_files_by_search_text(text):
 		order_by='modified desc',
 		limit=20
 	)
+
+@frappe.whitelist()
+def upload_attached_img(doc, fieldname ,file_url):
+	doc = frappe.get_doc(json.loads(doc))
+
+	if has_controller_permissions(doc, ptype='write', hook='has_upload_permission'):
+		frappe.db.set_value(doc.doctype, doc.name, fieldname, file_url)
+		return True
+	return False
 
 def update_existing_file_docs(doc):
 	# Update is private and file url of all file docs that point to the same file

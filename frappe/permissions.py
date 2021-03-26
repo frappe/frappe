@@ -290,11 +290,11 @@ def has_user_permission(doc, user=None):
 
 	return True
 
-def has_controller_permissions(doc, ptype, user=None):
+def has_controller_permissions(doc, ptype, user=None, hook='has_permission'):
 	"""Returns controller permissions if defined. None if not defined"""
 	if not user: user = frappe.session.user
 
-	methods = frappe.get_hooks("has_permission").get(doc.doctype, [])
+	methods = frappe.get_hooks(hook).get(doc.doctype, [])
 
 	if not methods:
 		return None
