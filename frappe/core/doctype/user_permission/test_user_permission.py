@@ -222,7 +222,7 @@ class TestUserPermission(unittest.TestCase):
 
 		# User default Doctype value is ToDo via Session Defaults
 		frappe.set_user("user_default_test@example.com")
-		set_session_default_values({"doctype": "ToDo"})
+		set_session_default_values({"doc": "ToDo"})
 
 		new_doc = frappe.new_doc("Doc A")
 
