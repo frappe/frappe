@@ -31,6 +31,7 @@ from frappe import _, conf
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
 from frappe.utils.image import strip_exif_data
+from frappe.permissions import has_controller_permissions
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
@@ -779,7 +780,7 @@ def has_permission(doc, ptype=None, user=None):
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
 			has_upload_permission = has_controller_permissions(ref_doc, ptype='write', hook='has_upload_permission')
-			if has_upload_permission == None:
+			if has_upload_permission is None:
 				has_upload_permission = False
 
 			if ptype in ['write', 'create', 'delete']:
