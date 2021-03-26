@@ -82,7 +82,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		return preview;
 	}
 
-	toggle_theme(theme, options = {save_preferences:true, show_alert:true}) {
+	toggle_theme(theme, options = { save_preferences:true, show_alert:true }) {
 		this.current_theme = theme.toLowerCase();
 		document.documentElement.setAttribute("data-theme", this.current_theme);
 
@@ -90,7 +90,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 			frappe.show_alert("Theme Changed", 3);
 		}
 
-		if(options && options.save_preferences) {
+		if (options && options.save_preferences) {
 			frappe.xcall("frappe.core.doctype.user.user.switch_theme", {
 				theme: toTitle(theme)
 			});
@@ -115,8 +115,8 @@ frappe.ui.add_system_theme_switch_listener = function() {
 		}
 
 		toggle_theme('light');
-	})
-}
+	});
+};
 
 frappe.ui.dark_theme_media_query = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -126,4 +126,4 @@ frappe.ui.toggle_theme = function(theme) {
 		save_preferences: false,
 		show_alert: false
 	});
-}
+};
