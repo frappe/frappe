@@ -111,6 +111,13 @@ class File(Document):
 
 			return
 
+		# Probably an invalid web URL
+		if not self.file_url.startswith(("/files/", "/private/files/")):
+			frappe.throw(
+				_("URL must start with http:// or https://"),
+				title=_('Invalid URL')
+			)
+
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url)
 		self.is_private = cint(self.is_private)
