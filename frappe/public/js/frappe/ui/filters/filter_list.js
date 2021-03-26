@@ -299,9 +299,12 @@ frappe.ui.FilterGroup = class {
 						<button class="btn btn-secondary btn-xs clear-filters">
 							${__('Clear Filters')}
 						</button>
-						<button class="btn btn-primary btn-xs apply-filters">
-							${__('Apply Filters')}
-						</button>
+						${this.filter_button ?
+							`<button class="btn btn-primary btn-xs apply-filters">
+								${__('Apply Filters')}
+							</button>`
+							: ''
+						}
 					</div>
 				</div>
 			</div>`
