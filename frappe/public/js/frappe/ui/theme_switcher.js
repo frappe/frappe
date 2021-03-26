@@ -82,7 +82,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		return preview;
 	}
 
-	toggle_theme(theme, options = { save_preferences:true, show_alert:true }) {
+	toggle_theme(theme, options = { save_preferences: true, show_alert: true }) {
 		this.current_theme = theme.toLowerCase();
 		document.documentElement.setAttribute("data-theme", this.current_theme);
 
