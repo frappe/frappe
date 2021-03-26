@@ -179,7 +179,8 @@ frappe.views.BaseList = class BaseList {
 			'Calendar': 'calendar',
 			'Gantt': 'gantt',
 			'Kanban': 'kanban',
-			'Dashboard': 'dashboard'
+			'Dashboard': 'dashboard',
+			'Map': 'map',
 		};
 
 		if (frappe.boot.desk_settings.view_switcher) {
@@ -823,6 +824,7 @@ frappe.views.view_modes = [
 	"Image",
 	"Inbox",
 	"Tree",
+	"Map",
 ];
 frappe.views.is_valid = (view_mode) =>
 	frappe.views.view_modes.includes(view_mode);
