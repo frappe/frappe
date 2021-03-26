@@ -122,6 +122,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfa
 					folders.remove(dontwalk)
 
 			folders.sort()
+			files.sort()
 			# print path
 			for filename in files:
 				filename = cstr(filename)
