@@ -75,7 +75,7 @@ class DocType(Document):
 		self.scrub_field_names()
 		self.set_default_in_list_view()
 		self.set_default_translatable()
-		self.validate_series()
+		validate_series(self)
 		self.validate_document_type()
 		validate_fields(self)
 
@@ -237,44 +237,6 @@ class DocType(Document):
 
 			# unique is automatically an index
 			if d.unique: d.search_index = 0
-
-	def validate_series(self, autoname=None, name=None):
-		"""Validate if `autoname` property is correctly set."""
-		if not autoname: autoname = self.autoname
-		if not name: name = self.name
-
-		if not autoname and self.get("fields", {"fieldname":"naming_series"}):
-			self.autoname = "naming_series:"
-		elif self.autoname == "naming_series:" and not self.get("fields", {"fieldname":"naming_series"}):
-			frappe.throw(_("Invalid fieldname '{0}' in autoname").format(self.autoname))
-
-		# validate field name if autoname field:fieldname is used
-		# Create unique index on autoname field automatically.
-		if autoname and autoname.startswith('field:'):
-			field = autoname.split(":")[1]
-			if not field or field not in [ df.fieldname for df in self.fields ]:
-				frappe.throw(_("Invalid fieldname '{0}' in autoname").format(field))
-			else:
-				for df in self.fields:
-					if df.fieldname == field:
-						df.unique = 1
-						break
-
-		if autoname and (not autoname.startswith('field:')) \
-			and (not autoname.startswith('eval:')) \
-			and (not autoname.lower() in ('prompt', 'hash')) \
-			and (not autoname.startswith('naming_series:')) \
-			and (not autoname.startswith('format:')):
-
-			prefix = autoname.split('.')[0]
-			used_in = frappe.db.sql("""
-				SELECT `name`
-				FROM `tabDocType`
-				WHERE `autoname` LIKE CONCAT(%s, '.%%')
-				AND `name`!=%s
-			""", (prefix, name))
-			if used_in:
-				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
@@ -689,7 +651,45 @@ class DocType(Document):
 				message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
 				frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
+def validate_series(dt, autoname=None, name=None):
+	"""Validate if `autoname` property is correctly set."""
+	if not autoname:
+		autoname = dt.autoname
+	if not name:
+		name = dt.name
 
+	if not autoname and dt.get("fields", {"fieldname":"naming_series"}):
+		dt.autoname = "naming_series:"
+	elif dt.autoname == "naming_series:" and not dt.get("fields", {"fieldname":"naming_series"}):
+		frappe.throw(_("Invalid fieldname '{0}' in autoname").format(dt.autoname))
+
+	# validate field name if autoname field:fieldname is used
+	# Create unique index on autoname field automatically.
+	if autoname and autoname.startswith('field:'):
+		field = autoname.split(":")[1]
+		if not field or field not in [df.fieldname for df in dt.fields]:
+			frappe.throw(_("Invalid fieldname '{0}' in autoname").format(field))
+		else:
+			for df in dt.fields:
+				if df.fieldname == field:
+					df.unique = 1
+					break
+
+	if autoname and (not autoname.startswith('field:')) \
+		and (not autoname.startswith('eval:')) \
+		and (not autoname.lower() in ('prompt', 'hash')) \
+		and (not autoname.startswith('naming_series:')) \
+		and (not autoname.startswith('format:')):
+
+		prefix = autoname.split('.')[0]
+		used_in = frappe.db.sql("""
+			SELECT `name`
+			FROM `tabDocType`
+			WHERE `autoname` LIKE CONCAT(%s, '.%%')
+			AND `name`!=%s
+		""", (prefix, name))
+		if used_in:
+			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 def validate_fields_for_doctype(doctype):
 	doc = frappe.get_doc("DocType", doctype)
