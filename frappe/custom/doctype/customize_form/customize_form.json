@@ -273,6 +273,10 @@
    "options": "Email Template"
   },
   {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
+  },
+  {
    "collapsible": 1,
    "fieldname": "naming_section",
    "fieldtype": "Section Break",
