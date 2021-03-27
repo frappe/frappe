@@ -192,12 +192,9 @@ class TestSameContent(unittest.TestCase):
 
 
 class TestFile(unittest.TestCase):
-
-
 	def setUp(self):
 		self.delete_test_data()
 		self.upload_file()
-
 
 	def tearDown(self):
 		try:
@@ -352,6 +349,7 @@ class TestFile(unittest.TestCase):
 		self.assertEqual(file1.file_url, file2.file_url)
 		self.assertTrue(os.path.exists(file2.get_full_path()))
 
+<<<<<<< HEAD
 	def test_website_user_file_permission(self):
 		# Website User should be able to attach a file
 		# if they have write access to a document
@@ -369,6 +367,68 @@ class TestFile(unittest.TestCase):
 			"attached_to_doctype": 'User',
 			"attached_to_name": user.name,
 			"content": test_content1
+=======
+	def test_parent_directory_validation_in_file_url(self):
+		file1 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'parent_dir.txt',
+			"attached_to_doctype": "",
+			"attached_to_name": "",
+			"is_private": 1,
+			"content": test_content1}).insert()
+
+		file1.file_url = '/private/files/../test.txt'
+		self.assertRaises(frappe.exceptions.ValidationError, file1.save)
+
+		# No validation to see if file exists
+		file1.reload()
+		file1.file_url = '/private/files/parent_dir2.txt'
+		file1.save()
+
+class TestAttachment(unittest.TestCase):
+	test_doctype = 'Test For Attachment'
+
+	def setUp(self):
+		if frappe.db.exists('DocType', self.test_doctype):
+			return
+
+		frappe.get_doc(
+			doctype='DocType',
+			name=self.test_doctype,
+			module='Custom',
+			custom=1,
+			fields=[
+				{'label': 'Title', 'fieldname': 'title', 'fieldtype': 'Data'},
+				{'label': 'Attachment', 'fieldname': 'attachment', 'fieldtype': 'Attach'},
+			]
+		).insert()
+
+	def tearDown(self):
+		frappe.delete_doc('DocType', self.test_doctype)
+
+	def test_file_attachment_on_update(self):
+		doc = frappe.get_doc(
+			doctype=self.test_doctype,
+			title='test for attachment on update'
+		).insert()
+
+		file = frappe.get_doc({
+			'doctype': 'File',
+			'file_name': 'test_attach.txt',
+			'content': 'Test Content'
+		})
+		file.save()
+
+		doc.attachment = file.file_url
+		doc.save()
+
+		exists = frappe.db.exists('File', {
+			'file_name': 'test_attach.txt',
+			'file_url': file.file_url,
+			'attached_to_doctype': self.test_doctype,
+			'attached_to_name': doc.name,
+			'attached_to_field': 'attachment'
+>>>>>>> bbeb241232... fix: Always validate file URLs (#12685)
 		})
 		txt_file.insert()
 		# creation of file should not fail
