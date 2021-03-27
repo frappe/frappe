@@ -117,13 +117,16 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfa
 	test_suite = unittest.TestSuite()
 	for app in apps:
 		for path, folders, files in os.walk(frappe.get_pymodule_path(app)):
-			for dontwalk in ('locals', '.git', 'public'):
+			for dontwalk in ('locals', '.git', 'public', '__pycache__'):
 				if dontwalk in folders:
 					folders.remove(dontwalk)
 
+			# for predictability
+			folders.sort()
+			files.sort()
+
 			# print path
 			for filename in files:
-				filename = cstr(filename)
 				if filename.startswith("test_") and filename.endswith(".py")\
 					and filename != 'test_runner.py':
 					# print filename[:-3]
