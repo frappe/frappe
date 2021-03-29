@@ -220,8 +220,23 @@ Object.assign(frappe.utils, {
 		});
 		return out.join(newline);
 	},
+
+
 	escape_html: function(txt) {
-		return $("<div></div>").text(txt || "").html();
+		let escape_html_mapping = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			"'": '&#39;',
+			'/': '&#x2F;',
+			'`': '&#x60;',
+			'=': '&#x3D;'
+		};
+
+		return String(txt).replace(/[&<>"'`=/]/g, function(char) {
+			return escape_html_mapping[char];
+		});
 	},
 
 	html2text: function(html) {

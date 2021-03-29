@@ -19,4 +19,4 @@ jobs:
         python -m pip install -q semgrep
         git fetch origin $GITHUB_BASE_REF:$GITHUB_BASE_REF -q
         files=$(git diff --name-only --diff-filter=d $GITHUB_BASE_REF)
-        if [ -f .semgrep.yml ]; then semgrep --config=.semgrep.yml --quiet --error $files; fi
+        [[ -d .github/helper/semgrep_rules ]] && semgrep --config=.github/helper/semgrep_rules --quiet --error $files

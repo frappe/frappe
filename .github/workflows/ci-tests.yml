@@ -1,6 +1,10 @@
 name: CI
 
-on: [pull_request, workflow_dispatch, push]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_dispatch:
+  push:
 
 jobs:
   test:
@@ -101,6 +105,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Cache cypress binary
+        if: matrix.TYPE == 'ui'
         uses: actions/cache@v2
         with:
           path: ~/.cache
@@ -128,6 +133,10 @@ jobs:
         env:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
+
+      - name: Setup tmate session
+        if: contains(github.event.pull_request.labels.*.name, 'debug-gha')
+        uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests
         run: cd ~/frappe-bench/ && ${{ matrix.RUN_COMMAND }}
