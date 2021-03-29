@@ -293,6 +293,12 @@ frappe.form.formatters = {
 			return frappe.format(value, link_field, options, row);
 		});
 		return formatted_values.join(', ');
+	},
+	Color: (value) => {
+		return `<div>
+			<div class="selected-color" style="background-color: ${value}"></div>
+			<span class="color-value">${value}</span>
+		</div>`;
 	}
 }
 
