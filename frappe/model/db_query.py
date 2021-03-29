@@ -745,7 +745,7 @@ class DatabaseQuery(object):
 			return
 
 		_lower = parameters.lower()
-		if 'select' in _lower and ' from ' in _lower:
+		if 'select' in _lower and 'from' in _lower:
 			frappe.throw(_('Cannot use sub-query in order by'))
 
 		if re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*").match(_lower):
