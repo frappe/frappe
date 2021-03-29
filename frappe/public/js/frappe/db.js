@@ -15,7 +15,7 @@ frappe.db = {
 		}
 		return new Promise ((resolve) => {
 			frappe.call({
-				method: 'frappe.model.db_query.get_list',
+				method: 'frappe.desk.reportview.get_list',
 				args: args,
 				type: 'GET',
 				callback: function(r) {

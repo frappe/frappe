@@ -31,7 +31,7 @@ class DatabaseQuery(object):
 		self.flags = frappe._dict()
 		self.reference_doctype = None
 
-	def execute(self, query=None, fields=None, filters=None, or_filters=None,
+	def execute(self, fields=None, filters=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
@@ -90,12 +90,23 @@ class DatabaseQuery(object):
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
 
+<<<<<<< HEAD
 		if query:
 			result = self.run_custom_query(query)
 		else:
 			result = self.build_and_run()
 			if return_query:
 				return result
+=======
+		self.columns = self.get_table_columns()
+
+		# no table & ignore_ddl, return
+		if not self.columns: return []
+
+		result = self.build_and_run()
+		if return_query:
+			return result
+>>>>>>> a2ffea53f2... fix(refactor): lockdown frappe.desk.reportview
 
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
@@ -664,12 +675,23 @@ class DatabaseQuery(object):
 				if c:
 					conditions.append(c)
 
+<<<<<<< HEAD
 			return " and ".join(conditions) if conditions else None
 
 	def run_custom_query(self, query):
 		if '%(key)s' in query:
 			query = query.replace('%(key)s', '`name`')
 		return frappe.db.sql(query, as_dict = (not self.as_list))
+=======
+		permision_script_name = get_server_script_map().get("permission_query", {}).get(self.doctype)
+		if permision_script_name:
+			script = frappe.get_doc("Server Script", permision_script_name)
+			condition = script.get_permission_query_conditions(self.user)
+			if condition:
+				conditions.append(condition)
+
+		return " and ".join(conditions) if conditions else ""
+>>>>>>> a2ffea53f2... fix(refactor): lockdown frappe.desk.reportview
 
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
@@ -777,6 +799,7 @@ def get_order_by(doctype, meta):
 
 	return order_by
 
+<<<<<<< HEAD
 
 @frappe.whitelist()
 def get_list(doctype, *args, **kwargs):
@@ -800,6 +823,8 @@ def get_list(doctype, *args, **kwargs):
 
 	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
+=======
+>>>>>>> a2ffea53f2... fix(refactor): lockdown frappe.desk.reportview
 def is_parent_only_filter(doctype, filters):
 	#check if filters contains only parent doctype
 	only_parent_doctype = True

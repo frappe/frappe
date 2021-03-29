@@ -8,6 +8,7 @@ import frappe, json
 from six.moves import range
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
+from frappe.model import default_fields, optional_fields
 from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -18,10 +19,13 @@ from frappe.utils import cstr
 @frappe.read_only()
 def get():
 	args = get_form_params()
+	return compress(execute(**args), args=args)
 
-	data = compress(execute(**args), args = args)
-
-	return data
+@frappe.whitelist()
+@frappe.read_only()
+def get_list():
+	# uncompressed (refactored from frappe.model.db_query.get_list)
+	return execute(**get_form_params())
 
 def execute(doctype, *args, **kwargs):
 	return DatabaseQuery(doctype).execute(*args, **kwargs)
@@ -29,9 +33,104 @@ def execute(doctype, *args, **kwargs):
 def get_form_params():
 	"""Stringify GET request parameters."""
 	data = frappe._dict(frappe.local.form_dict)
+	clean_params(data)
+	parse_json(data)
 
-	is_report = data.get('view') == 'Report'
+	validate_fields(data)
+	if data.filters:
+		validate_filters(data, data.filters)
+	if data.or_filters:
+		validate_filters(data, data.or_filters)
 
+	data.strict = None
+
+	return data
+
+def get_fields(data):
+	if ((isinstance(fields, string_types) and fields == "*")
+		or (isinstance(fields, (list, tuple)) and len(fields) == 1 and fields[0] == "*")):
+		data["fields"] = frappe.db.get_table_columns(data.doctype)
+		fields = data["fields"]
+
+def validate_fields(data):
+	update_star_field_param(data)
+
+	for field in data.fields:
+		fieldname = extract_fieldname(field)
+		if is_standard(fieldname): continue
+
+		meta, df = get_meta_and_docfield(fieldname, data)
+
+		if not df:
+			raise_invalid_field(fieldname)
+
+		# remove the field from the query if the report hide flag is set and current view is Report
+		if df.report_hide and data.view == 'Report':
+			data.fields.remove(field)
+			continue
+
+		if df.fieldname in [_df.fieldname for _df in meta.get_high_permlevel_fields()]:
+			if df.get('permlevel') not in meta.get_permlevel_access(parenttype=data.doctype):
+				data.fields.remove(field)
+
+def validate_filters(data, filters):
+	if isinstance(filters, list):
+		# filters as list
+		for condition in filters:
+			if len(condition)==3:
+				# [fieldname, condition, value]
+				fieldname = condition[0]
+				if is_standard(fieldname): continue
+				meta, df = get_meta_and_docfield(fieldname, data)
+				if not df:
+					raise_invalid_field(condition[0])
+			else:
+				# [doctype, fieldname, condition, value]
+				fieldname = condition[1]
+				if is_standard(fieldname): continue
+				meta = frappe.get_meta(condition[0])
+				if not meta.get_field(fieldname):
+					raise_invalid_field(fieldname)
+
+	else:
+		for fieldname in filters:
+			if is_standard(fieldname): continue
+			meta, df = get_meta_and_docfield(fieldname, data)
+			if not df:
+				raise_invalid_field(fieldname)
+
+def raise_invalid_field(fieldname):
+	frappe.throw(_('Field not permitted in query') + ': {0}'.format(fieldname), frappe.DataError)
+
+def is_standard(fieldname):
+	if '.' in fieldname:
+		parenttype, fieldname = get_parenttype_and_fieldname(fieldname, None)
+	return fieldname in default_fields or fieldname in optional_fields
+
+def extract_fieldname(field):
+	fieldname = field.split(" as ")[0]
+
+	# certain functions allowed, extract the fieldname from the function
+	if (fieldname.startswith('count(')
+		or fieldname.startswith('sum(')
+		or fieldname.startswith('avg(')):
+		fieldname = fieldname.split('(', 1)[1].split(')')[0]
+
+	return fieldname
+
+def get_meta_and_docfield(fieldname, data):
+	parenttype, fieldname = get_parenttype_and_fieldname(fieldname, data)
+	meta = frappe.get_meta(parenttype)
+	df = meta.get_field(fieldname)
+	return meta, df
+
+def update_star_field_param(data):
+	if ((isinstance(data.fields, string_types) and data.fields == "*")
+		or (isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*")):
+		data.fields = frappe.db.get_table_columns(data.doctype)
+
+
+def clean_params(data):
 	data.pop('cmd', None)
 	data.pop('data', None)
 	data.pop('ignore_permissions', None)
@@ -40,8 +139,12 @@ def get_form_params():
 	if "csrf_token" in data:
 		del data["csrf_token"]
 
+
+def parse_json(data):
 	if isinstance(data.get("filters"), string_types):
 		data["filters"] = json.loads(data["filters"])
+	if isinstance(data.get("or_filters"), string_types):
+		data["or_filters"] = json.loads(data["or_filters"])
 	if isinstance(data.get("fields"), string_types):
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), string_types):
@@ -51,6 +154,7 @@ def get_form_params():
 	else:
 		data["save_user_settings"] = True
 
+<<<<<<< HEAD
 	fields = data["fields"]
 
 	for field in fields:
@@ -81,6 +185,17 @@ def get_form_params():
 	data.strict = None
 
 	return data
+=======
+
+def get_parenttype_and_fieldname(field, data):
+	if "." in field:
+		parenttype, fieldname = field.split(".")[0][4:-1], field.split(".")[1].strip("`")
+	else:
+		parenttype = data.doctype
+		fieldname = field.strip("`")
+
+	return parenttype, fieldname
+>>>>>>> a2ffea53f2... fix(refactor): lockdown frappe.desk.reportview
 
 def compress(data, args = {}):
 	"""separate keys and values"""
