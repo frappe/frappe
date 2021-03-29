@@ -122,7 +122,7 @@
 import FilePreview from './FilePreview.vue';
 import FileBrowser from './FileBrowser.vue';
 import WebLink from './WebLink.vue';
-import GoogleDrive from '../../integrations/google_drive';
+import GoogleDrivePicker from '../../integrations/google_drive_picker';
 
 export default {
 	name: 'FileUploader',
@@ -457,7 +457,7 @@ export default {
 			frappe.db.get_value("Google Settings", "Google Settings", ["client_id", "api_key", "app_id"]).then(resp => {
 				let dialog = cur_dialog;
 				dialog.hide();
-				let google_drive = new GoogleDrive({
+				let google_drive = new GoogleDrivePicker({
 					pickerCallback: data => this.google_drive_callback(data, dialog),
 					developerKey: resp.message.api_key,
 					clientId: resp.message.client_id,
