@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2019-06-14 00:08:37.255003",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -8,7 +9,8 @@
   "client_id",
   "client_secret",
   "sb_01",
-  "api_key"
+  "api_key",
+  "app_id"
  ],
  "fields": [
   {
@@ -46,10 +48,16 @@
    "fieldname": "sb_01",
    "fieldtype": "Section Break",
    "label": "API Key"
+  },
+  {
+   "fieldname": "app_id",
+   "fieldtype": "Data",
+   "label": "App ID"
   }
  ],
  "issingle": 1,
- "modified": "2019-08-06 22:37:41.699703",
+ "links": [],
+ "modified": "2021-03-28 22:24:05.963403",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Settings",
