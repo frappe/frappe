@@ -495,6 +495,7 @@ frappe.ui.filter_utils = {
 				'Dynamic Link',
 				'Read Only',
 				'Assign',
+				'Color',
 			].indexOf(df.fieldtype) != -1
 		) {
 			df.fieldtype = 'Data';
