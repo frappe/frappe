@@ -64,7 +64,10 @@ export default class GoogleDrive {
     createPicker() {
         // Create and render a Picker object for searching images.
         if (this.pickerApiLoaded && frappe.boot.user.google_drive_token) {
-            var view = new google.picker.View(google.picker.ViewId.DOCS);
+            var view = new google.picker.DocsView(google.picker.ViewId.DOCS)
+                .setParent('root') // show the root folder by default
+                .setIncludeFolders(true); // also show folders, not just files
+
             var picker = new google.picker.PickerBuilder()
                 .setAppId(this.appId)
                 .setOAuthToken(frappe.boot.user.google_drive_token)
