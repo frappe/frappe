@@ -63,6 +63,12 @@
 						</svg>
 						<div class="mt-1">{{ __('Camera') }}</div>
 					</button>
+					<button v-if="allow_google_drive" class="btn btn-file-upload" @click="show_google_drive_picker">
+						<svg width="30" height="30">
+							<image xlink:href="/assets/frappe/icons/social/google_drive.svg" width="30" height="30"/>
+						</svg>
+						<div class="mt-1">{{ __('Google Drive') }}</div>
+					</button>
 				</div>
 				<div class="text-muted text-medium">
 					{{ upload_notes }}
@@ -116,6 +122,7 @@
 import FilePreview from './FilePreview.vue';
 import FileBrowser from './FileBrowser.vue';
 import WebLink from './WebLink.vue';
+import GoogleDrive from '../../integrations/google_drive';
 
 export default {
 	name: 'FileUploader',
@@ -173,7 +180,15 @@ export default {
 			currently_uploading: -1,
 			show_file_browser: false,
 			show_web_link: false,
+			allow_take_photo: false,
+			allow_google_drive: false
 		}
+	},
+	created() {
+		this.allow_take_photo = window.navigator.mediaDevices;
+		frappe.db.get_single_value("Google Settings", "enable").then(resp => {
+			this.allow_google_drive = Boolean(resp);
+		});
 	},
 	watch: {
 		files(newvalue, oldvalue) {
@@ -187,9 +202,6 @@ export default {
 			return this.files.length > 0
 				&& this.files.every(
 					file => file.total !== 0 && file.progress === file.total);
-		},
-		allow_take_photo() {
-			return window.navigator.mediaDevices;
 		}
 	},
 	methods: {
@@ -408,6 +420,10 @@ export default {
 					form_data.append('file_url', file.file_url);
 				}
 
+				if (file.file_name) {
+					form_data.append('file_name', file.file_name);
+				}
+
 				if (this.doctype && this.docname) {
 					form_data.append('doctype', this.doctype);
 					form_data.append('docname', this.docname);
@@ -436,6 +452,30 @@ export default {
 					this.add_files([file])
 				);
 			});
+		},
+		show_google_drive_picker() {
+			frappe.db.get_value("Google Settings", "Google Settings", ["client_id", "api_key", "app_id"]).then(resp => {
+				let dialog = cur_dialog;
+				dialog.hide();
+				let google_drive = new GoogleDrive({
+					pickerCallback: data => this.google_drive_callback(data, dialog),
+					developerKey: resp.message.api_key,
+					clientId: resp.message.client_id,
+					appId: resp.message.app_id
+				});
+				google_drive.loadPicker();
+			});
+		},
+		google_drive_callback(data, dialog) {
+			if (data.action == google.picker.Action.PICKED) {
+				// debugger;
+				this.upload_file({
+					file_url: data.docs[0].url,
+					file_name: data.docs[0].name
+				});
+			} else if (data.action == google.picker.Action.CANCEL) {
+				dialog.show();
+			}
 		},
 		url_to_file(url, filename, mime_type) {
 			return fetch(url)
