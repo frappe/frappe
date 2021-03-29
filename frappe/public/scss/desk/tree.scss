@@ -19,7 +19,7 @@
 
 .tree-label {
 	margin-left: var(--margin-sm);
-	line-height: 1.4em;
+	line-height: 1.6em;
 }
 
 .tree-children {
@@ -122,6 +122,7 @@
 	color: var(--text-color) !important;
 	font-size: var(--text-md);
 	padding: var(--padding-xs);
+	margin-top: 3px;
 }
 
 .tree-link.active ~ .balance-area {

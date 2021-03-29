@@ -71,6 +71,7 @@ frappe.views.Container = Class.extend({
 		if(this.page && this.page != page) {
 			$(this.page).hide();
 			$(this.page).trigger('hide');
+			frappe.cur_page = null;
 		}
 
 		// show new
@@ -78,6 +79,7 @@ frappe.views.Container = Class.extend({
 			this.page = page;
 			// $(this.page).fadeIn(300);
 			$(this.page).show();
+			if (this.page.page) frappe.cur_page = this.page.page;
 		}
 
 		$(document).trigger("page-change");
@@ -86,6 +88,7 @@ frappe.views.Container = Class.extend({
 		$(this.page).trigger('show');
 		!this.page.disable_scroll_to_top && frappe.utils.scroll_to(0);
 		frappe.breadcrumbs.update();
+
 
 		return this.page;
 	},

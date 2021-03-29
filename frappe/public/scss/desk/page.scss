@@ -77,6 +77,10 @@
 	margin-bottom: var(--page-bottom-margin);
 }
 
+.page-bottom-alert {
+	margin-top: var(--margin-lg);
+}
+
 .layout-main-section.frappe-card {
 	overflow: hidden;
 	@include card($padding: 0px);
