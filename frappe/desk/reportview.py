@@ -117,6 +117,8 @@ def extract_fieldname(field):
 	if (fieldname.startswith('count(')
 		or fieldname.startswith('sum(')
 		or fieldname.startswith('avg(')):
+		if not fieldname.endswith(')'):
+			raise_invalid_field(field)
 		fieldname = fieldname.split('(', 1)[1].split(')')[0]
 
 	return fieldname
