@@ -1,4 +1,4 @@
-export default class GoogleDrive {
+export default class GoogleDrivePicker {
     constructor({
         pickerCallback,
         developerKey,
