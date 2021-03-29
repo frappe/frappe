@@ -8,7 +8,7 @@ export default class GoogleDrive {
         console.log('GoogleDrive constructor');
         this.pickerCallback = pickerCallback;
         this.pickerApiLoaded = false;
-        this.scope = ['https://www.googleapis.com/auth/drive.file'];
+        this.scope = ['https://www.googleapis.com/auth/drive.readonly'];
         this.developerKey = developerKey;
         this.clientId = clientId;
         this.appId = appId;
