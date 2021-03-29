@@ -108,6 +108,9 @@ def is_standard(fieldname):
 	return fieldname in default_fields or fieldname in optional_fields
 
 def extract_fieldname(field):
+	if ',' in field:
+		raise_invalid_field(field)
+
 	fieldname = field.split(" as ")[0]
 
 	# certain functions allowed, extract the fieldname from the function
