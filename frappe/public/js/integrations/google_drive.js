@@ -5,7 +5,6 @@ export default class GoogleDrive {
         clientId,
         appId
     } = {}) {
-        console.log('GoogleDrive constructor');
         this.pickerCallback = pickerCallback;
         this.pickerApiLoaded = false;
         this.scope = ['https://www.googleapis.com/auth/drive.readonly'];
@@ -31,13 +30,11 @@ export default class GoogleDrive {
         // load auth and picker libraries
         if (!frappe.boot.user.google_drive_token) {
             gapi.load('auth', function() {
-                console.log('gapi.load("auth") callback');
                 this.onAuthApiLoad();
             }.bind(this));
         }
 
         gapi.load('picker', function() {
-            console.log('gapi.load("picker") callback');
             this.onPickerApiLoad();
         }.bind(this));
     }
