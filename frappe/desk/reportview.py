@@ -111,15 +111,18 @@ def extract_fieldname(field):
 	if ',' in field:
 		raise_invalid_field(field)
 
-	fieldname = field.split(" as ")[0]
+	fieldname = field
+	for sep in (' as ', ' AS '):
+		if sep in fieldname:
+			fieldname = fieldname.split(sep)[0]
 
 	# certain functions allowed, extract the fieldname from the function
 	if (fieldname.startswith('count(')
 		or fieldname.startswith('sum(')
 		or fieldname.startswith('avg(')):
-		if not fieldname.endswith(')'):
+		if not fieldname.strip().endswith(')'):
 			raise_invalid_field(field)
-		fieldname = fieldname.split('(', 1)[1].split(')')[0]
+		fieldname = fieldname.split('(', 1)[1][:-1]
 
 	return fieldname
 
