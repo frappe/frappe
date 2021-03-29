@@ -32,7 +32,7 @@ class DatabaseQuery(object):
 		self.flags = frappe._dict()
 		self.reference_doctype = None
 
-	def execute(self, query=None, fields=None, filters=None, or_filters=None,
+	def execute(self, fields=None, filters=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
@@ -104,12 +104,9 @@ class DatabaseQuery(object):
 		# no table & ignore_ddl, return
 		if not self.columns: return []
 
-		if query:
-			result = self.run_custom_query(query)
-		else:
-			result = self.build_and_run()
-			if return_query:
-				return result
+		result = self.build_and_run()
+		if return_query:
+			return result
 
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
@@ -707,12 +704,6 @@ class DatabaseQuery(object):
 
 		return " and ".join(conditions) if conditions else ""
 
-
-	def run_custom_query(self, query):
-		if '%(key)s' in query:
-			query = query.replace('%(key)s', '`name`')
-		return frappe.db.sql(query, as_dict = (not self.as_list))
-
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
 
@@ -818,30 +809,6 @@ def get_order_by(doctype, meta):
 		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
 
 	return order_by
-
-
-@frappe.whitelist()
-def get_list(doctype, *args, **kwargs):
-	'''wrapper for DatabaseQuery'''
-	kwargs.pop('cmd', None)
-	kwargs.pop('ignore_permissions', None)
-	kwargs.pop('data', None)
-	kwargs.pop('strict', None)
-	kwargs.pop('user', None)
-
-	# If doctype is child table
-	if frappe.is_table(doctype):
-		# Example frappe.db.get_list('Purchase Receipt Item', {'parent': 'Purchase Receipt'})
-		# Here purchase receipt is the parent doctype of the child doctype Purchase Receipt Item
-
-		if not kwargs.get('parent'):
-			frappe.flags.error_message = _('Parent is required to get child table data')
-			raise frappe.PermissionError(doctype)
-
-		check_parent_permission(kwargs.get('parent'), doctype)
-		del kwargs['parent']
-
-	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
 def is_parent_only_filter(doctype, filters):
 	#check if filters contains only parent doctype
