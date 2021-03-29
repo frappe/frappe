@@ -70,11 +70,13 @@ export default class GoogleDrive {
 
             var picker = new google.picker.PickerBuilder()
                 .setAppId(this.appId)
+                .setDeveloperKey(this.developerKey)
                 .setOAuthToken(frappe.boot.user.google_drive_token)
                 .addView(view)
-                .setDeveloperKey(this.developerKey)
+                .setLocale(frappe.boot.lang)
                 .setCallback(this.pickerCallback)
                 .build();
+
             picker.setVisible(true);
         }
     }
