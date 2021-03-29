@@ -5,9 +5,9 @@ export default class GoogleDrive {
         clientId,
         appId
     } = {}) {
-        this.pickerCallback = pickerCallback;
-        this.pickerApiLoaded = false;
         this.scope = ['https://www.googleapis.com/auth/drive.readonly'];
+        this.pickerApiLoaded = false;
+        this.pickerCallback = pickerCallback;
         this.developerKey = developerKey;
         this.clientId = clientId;
         this.appId = appId;
@@ -19,24 +19,17 @@ export default class GoogleDrive {
             method: "GET",
             url: "https://apis.google.com/js/api.js",
             dataType: "script",
-            cache: true,
-            context: this
-        }).done(function() {
-            this.loadGapi();
-        }.bind(this));
+            cache: true
+        }).done(this.loadGapi.bind(this));
     }
 
     loadGapi() {
         // load auth and picker libraries
         if (!frappe.boot.user.google_drive_token) {
-            gapi.load('auth', function() {
-                this.onAuthApiLoad();
-            }.bind(this));
+            gapi.load('auth', this.onAuthApiLoad.bind(this));
         }
 
-        gapi.load('picker', function() {
-            this.onPickerApiLoad();
-        }.bind(this));
+        gapi.load('picker', this.onPickerApiLoad.bind(this));
     }
 
     onAuthApiLoad() {
@@ -44,9 +37,7 @@ export default class GoogleDrive {
             'client_id': this.clientId,
             'scope': this.scope,
             'immediate': false
-        }, function(authResult) {
-            this.handleAuthResult(authResult);
-        }.bind(this));
+        }, this.handleAuthResult.bind(this));
     }
 
     handleAuthResult(authResult) {
