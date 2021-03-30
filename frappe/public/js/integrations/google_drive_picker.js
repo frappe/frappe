@@ -1,3 +1,4 @@
+/* global gapi:false, google:false */
 export default class GoogleDrivePicker {
 	constructor({
 		pickerCallback,
