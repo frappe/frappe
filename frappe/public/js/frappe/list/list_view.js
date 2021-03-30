@@ -417,11 +417,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_no_result_message() {
 		let help_link = this.get_documentation_link();
-		let filters = this.filter_area.get();
-		let no_result_message = filters.length
+		let filters = this.filter_area && this.filter_area.get();
+		let no_result_message = filters && filters.length
 			? __("No {0} found", [__(this.doctype)])
 			: __("You haven't created a {0} yet", [__(this.doctype)]);
-		let new_button_label = filters.length
+		let new_button_label = filters && filters.length
 			? __("Create a new {0}", [__(this.doctype)])
 			: __("Create your first {0}", [__(this.doctype)]);
 		let empty_state_image =
@@ -461,7 +461,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	before_refresh() {
-		if (frappe.route_options) {
+		if (frappe.route_options && this.filter_area) {
 			this.filters = this.parse_filters_from_route_options();
 			frappe.route_options = null;
 
@@ -527,9 +527,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.view_name
 		);
 		this.save_view_user_settings({
-			filters: this.filter_area.get(),
-			sort_by: this.sort_selector.sort_by,
-			sort_order: this.sort_selector.sort_order,
+			filters: this.filter_area && this.filter_area.get(),
+			sort_by: this.sort_selector && this.sort_selector.sort_by,
+			sort_order: this.sort_selector && this.sort_selector.sort_order,
 		});
 		this.toggle_paging && this.$paging_area.toggle(false);
 	}
