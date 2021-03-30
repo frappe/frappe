@@ -76,7 +76,10 @@ def is_valid_http_method(method):
 	http_method = frappe.local.request.method
 
 	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+		throw_permission_error()
+
+def throw_permission_error():
+	frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 @frappe.whitelist(allow_guest=True)
 def version():
@@ -218,11 +221,8 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 
-	if not doc.has_permission("read"):
-		frappe.msgprint(_("Not permitted"), raise_exception = True)
-
-	if not doc:
-		return
+	if not doc or not doc.has_permission("read"):
+		throw_permission_error()
 
 	try:
 		args = json.loads(args)
@@ -240,25 +240,24 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		fnargs = inspect.getfullargspec(method_obj).args
 
 	if not fnargs or (len(fnargs)==1 and fnargs[0]=="self"):
-		r = doc.run_method(method)
+		response = doc.run_method(method)
 
 	elif "args" in fnargs or not isinstance(args, dict):
-		r = doc.run_method(method, args)
+		response = doc.run_method(method, args)
 
 	else:
-		r = doc.run_method(method, **args)
+		response = doc.run_method(method, **args)
 
 	frappe.response.docs.append(doc)
-
-	if not r:
+	if not response:
 		return
 
 	# build output as csv
 	if cint(frappe.form_dict.get('as_csv')):
-		build_csv_response(r, doc.doctype.replace(' ', ''))
+		build_csv_response(response, doc.doctype.replace(' ', ''))
 		return
 
-	frappe.response['message'] = r
+	frappe.response['message'] = response
 
 # for backwards compatibility
 runserverobj = run_doc_method
