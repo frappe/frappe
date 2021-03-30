@@ -296,8 +296,7 @@ class Session:
 			expiry = get_expiry_in_seconds(session_data.get("session_expiry"))
 
 			if self.time_diff > expiry:
-				print('deleting...')
-				self.delete_session()
+				self._delete_session()
 				data = None
 
 		return data and data.data
@@ -316,12 +315,12 @@ class Session:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
 		else:
-			self.delete_session()
+			self._delete_session()
 			data = None
 
 		return data
 
-	def delete_session(self):
+	def _delete_session(self):
 		delete_session(self.sid, reason="Session Expired")
 
 	def start_as_guest(self):
