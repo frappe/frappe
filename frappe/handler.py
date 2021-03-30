@@ -8,8 +8,6 @@ from werkzeug.wrappers import Response
 import frappe
 import frappe.utils
 import frappe.sessions
-import frappe.desk.form.run_method
-
 from frappe.utils import cint
 from frappe.api import validate_auth
 from frappe import _, is_whitelisted
