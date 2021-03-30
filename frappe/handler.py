@@ -199,7 +199,7 @@ def get_attr(cmd):
 def ping():
 	return "pong"
 
-@frappe.whitelist()
+
 def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	"""run controller method - old style"""
 	import json
@@ -230,7 +230,9 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		args = args
 
 	method_obj = getattr(doc, method)
-	is_whitelisted(getattr(method_obj, '__func__', method_obj))
+	fn = getattr(method_obj, '__func__', method_obj)
+	is_whitelisted(fn)
+	is_valid_http_method(fn)
 
 	try:
 		fnargs = inspect.getargspec(method_obj)[0]
