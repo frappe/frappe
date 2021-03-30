@@ -1150,7 +1150,7 @@ class Document(BaseDocument):
 
 	def is_whitelisted(self, method_name):
 		method = getattr(self, method_name, None)
-		if not fn:
+		if not method:
 			raise NotFound("Method {0} not found".format(method_name))
 
 		is_whitelisted(getattr(method, '__func__', method))
