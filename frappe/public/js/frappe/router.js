@@ -387,7 +387,7 @@ frappe.router = {
 		// set query parameters as frappe.route_options
 		var last_part = route[route.length - 1];
 		// add routing v2 compatability
-		if (!last_part.includes("?")) last_part = route[route.length - 1] + window.location.search
+		if (!last_part.includes("?")) last_part = route[route.length - 1] + window.location.search;
 		if (last_part.indexOf("?") < last_part.indexOf("=")) {
 			// has ? followed by =
 			let parts = last_part.split("?");
