@@ -558,8 +558,10 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 
 		# get function from the unbound / bound method
 		# this is needed because functions can be compared, but not methods
+		method = None
 		if hasattr(fn, '__func__'):
-			fn = fn.__func__
+			method = fn
+			fn = method.__func__
 
 		whitelisted.append(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
@@ -570,7 +572,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 			if xss_safe:
 				xss_safe_methods.append(fn)
 
-		return fn
+		return method or fn
 
 	return innerfn
 
