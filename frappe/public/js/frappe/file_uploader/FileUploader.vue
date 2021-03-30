@@ -63,7 +63,7 @@
 						</svg>
 						<div class="mt-1">{{ __('Camera') }}</div>
 					</button>
-					<button v-if="allow_google_drive" class="btn btn-file-upload" @click="show_google_drive_picker">
+					<button v-if="google_drive_settings.enabled" class="btn btn-file-upload" @click="show_google_drive_picker">
 						<svg width="30" height="30">
 							<image xlink:href="/assets/frappe/icons/social/google_drive.svg" width="30" height="30"/>
 						</svg>
@@ -181,13 +181,16 @@ export default {
 			show_file_browser: false,
 			show_web_link: false,
 			allow_take_photo: false,
-			allow_google_drive: false
+			google_drive_settings: {}
 		}
 	},
 	created() {
 		this.allow_take_photo = window.navigator.mediaDevices;
-		frappe.db.get_single_value("Google Settings", "enable").then(resp => {
-			this.allow_google_drive = Boolean(resp);
+		frappe.call({
+			method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
+			callback: (resp) => {
+				this.google_drive_settings = resp.message;
+			}
 		});
 	},
 	watch: {
@@ -454,21 +457,16 @@ export default {
 			});
 		},
 		show_google_drive_picker() {
-			frappe.db.get_value("Google Settings", "Google Settings", ["client_id", "api_key", "app_id"]).then(resp => {
-				let dialog = cur_dialog;
-				dialog.hide();
-				let google_drive = new GoogleDrivePicker({
-					pickerCallback: data => this.google_drive_callback(data, dialog),
-					developerKey: resp.message.api_key,
-					clientId: resp.message.client_id,
-					appId: resp.message.app_id
-				});
-				google_drive.loadPicker();
+			let dialog = cur_dialog;
+			dialog.hide();
+			let google_drive = new GoogleDrivePicker({
+				pickerCallback: data => this.google_drive_callback(data, dialog),
+				...this.google_drive_settings
 			});
+			google_drive.loadPicker();
 		},
 		google_drive_callback(data, dialog) {
 			if (data.action == google.picker.Action.PICKED) {
-				// debugger;
 				this.upload_file({
 					file_url: data.docs[0].url,
 					file_name: data.docs[0].name
