@@ -76,11 +76,11 @@ class TestClient(unittest.TestCase):
 		else:
 			report = frappe.get_doc('Report', 'Test Run Doc Method')
 
-		frappe.request = frappe._dict()
-		frappe.request.method = 'GET'
+		frappe.local.request = frappe._dict()
+		frappe.local.request.method = 'GET'
 
 		# Whitelisted, works as expected
-		frappe.form_dict = frappe._dict({
+		frappe.local.form_dict = frappe._dict({
 			'dt': report.doctype,
 			'dn': report.name,
 			'method': 'toggle_disable',
@@ -88,10 +88,10 @@ class TestClient(unittest.TestCase):
 			'args': 0
 		})
 
-		execute_cmd(frappe.form_dict.cmd)
+		execute_cmd(frappe.local.form_dict.cmd)
 
 		# Not whitelisted, throws permission error
-		frappe.form_dict = frappe._dict({
+		frappe.local.form_dict = frappe._dict({
 			'dt': report.doctype,
 			'dn': report.name,
 			'method': 'create_report_py',
@@ -99,4 +99,8 @@ class TestClient(unittest.TestCase):
 			'args': 0
 		})
 
-		self.assertRaises(frappe.PermissionError, execute_cmd, frappe.form_dict.cmd)
+		self.assertRaises(
+			frappe.PermissionError,
+			execute_cmd,
+			frappe.local.form_dict.cmd
+		)
