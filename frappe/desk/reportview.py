@@ -60,9 +60,11 @@ def validate_args(data):
 
 def validate_fields(data):
 	expand_fields(data)
-	update_star_field_param(data)
+	if update_wildcard_field_param(data):
+		# no need to validate wildcard fields
+		return
 
-	for field in data.fields:
+	for field in data.fields or []:
 		fieldname = extract_fieldname(field)
 		if is_standard(fieldname):
 			continue
@@ -163,10 +165,13 @@ def get_meta_and_docfield(fieldname, data):
 	df = meta.get_field(fieldname)
 	return meta, df
 
-def update_star_field_param(data):
+def update_wildcard_field_param(data):
 	if ((isinstance(data.fields, string_types) and data.fields == "*")
 		or (isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*")):
 		data.fields = frappe.db.get_table_columns(data.doctype)
+		return True
+
+	return False
 
 
 def clean_params(data):
