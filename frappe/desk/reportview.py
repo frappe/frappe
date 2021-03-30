@@ -57,18 +57,14 @@ def validate_args(data):
 
 	return data
 
-def get_fields(data):
-	if ((isinstance(fields, string_types) and fields == "*")
-		or (isinstance(fields, (list, tuple)) and len(fields) == 1 and fields[0] == "*")):
-		data["fields"] = frappe.db.get_table_columns(data.doctype)
-		fields = data["fields"]
-
 def validate_fields(data):
+	expand_fields(data)
 	update_star_field_param(data)
 
 	for field in data.fields:
 		fieldname = extract_fieldname(field)
-		if is_standard(fieldname): continue
+		if is_standard(fieldname):
+			continue
 
 		meta, df = get_meta_and_docfield(fieldname, data)
 
@@ -91,29 +87,30 @@ def validate_filters(data, filters):
 			if len(condition)==3:
 				# [fieldname, condition, value]
 				fieldname = condition[0]
-				if is_standard(fieldname): continue
+				if is_standard(fieldname):
+					continue
 				meta, df = get_meta_and_docfield(fieldname, data)
 				if not df:
 					raise_invalid_field(condition[0])
 			else:
 				# [doctype, fieldname, condition, value]
 				fieldname = condition[1]
-				if is_standard(fieldname): continue
+				if is_standard(fieldname):
+					continue
 				meta = frappe.get_meta(condition[0])
 				if not meta.get_field(fieldname):
 					raise_invalid_field(fieldname)
 
 	else:
 		for fieldname in filters:
-			if is_standard(fieldname): continue
+			if is_standard(fieldname):
+				continue
 			meta, df = get_meta_and_docfield(fieldname, data)
 			if not df:
 				raise_invalid_field(fieldname)
 
 def setup_group_by(data):
-	'''
-	Add columns for aggregated values e.g. count(name)
-	'''
+	'''Add columns for aggregated values e.g. count(name)'''
 	if data.group_by:
 		if data.aggregate_function.lower() not in ('count', 'sum', 'avg'):
 			frappe.throw('Invalid aggregate function')
@@ -125,6 +122,11 @@ def setup_group_by(data):
 
 		data.pop('aggregate_on')
 		data.pop('aggregate_function')
+
+def expand_fields(data):
+	if ((isinstance(data.fields, string_types) and data.fields == "*")
+		or (isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*")):
+		data.fields = frappe.db.get_table_columns(data.doctype)
 
 def raise_invalid_field(fieldname):
 	frappe.throw(_('Field not permitted in query') + ': {0}'.format(fieldname), frappe.DataError)
