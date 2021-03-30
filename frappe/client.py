@@ -33,7 +33,7 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	args = dict(
+	args = frappe._dict(
 		doctype=doctype,
 		fields=fields,
 		filters=filters,
