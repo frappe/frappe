@@ -215,9 +215,7 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_('Incomplete login details'), user=user)
 
-		# Ignore password check if tmp_id is set, 2FA takes care of authentication.
-		validate_password = not bool(frappe.form_dict.get('tmp_id'))
-		user = User.find_by_credentials(user, pwd, validate_password=validate_password)
+		user = User.find_by_credentials(user, pwd)
 
 		if not user:
 			self.fail('Invalid login credentials')
