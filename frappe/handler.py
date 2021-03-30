@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 
 from werkzeug.wrappers import Response
-from six import text_type, string_types, StringIO
 
 import frappe
 import frappe.utils
@@ -205,12 +204,15 @@ def ping():
 @frappe.whitelist()
 def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	"""run controller method - old style"""
-	import json, inspect
+	import json
+	import inspect
 
-	if not args: args = arg or ""
+	if not args:
+		args = arg or ""
 
 	if dt: # not called from a doctype (from a page)
-		if not dn: dn = dt # single
+		if not dn:
+			dn = dt # single
 		doc = frappe.get_doc(dt, dn)
 
 	else:
