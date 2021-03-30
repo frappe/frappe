@@ -59,9 +59,7 @@ def validate_args(data):
 	return data
 
 def validate_fields(data):
-	if update_wildcard_field_param(data):
-		# no need to validate wildcard fields
-		return
+	wildcard = update_wildcard_field_param(data)
 
 	for field in data.fields or []:
 		fieldname = extract_fieldname(field)
@@ -71,7 +69,10 @@ def validate_fields(data):
 		meta, df = get_meta_and_docfield(fieldname, data)
 
 		if not df:
-			raise_invalid_field(fieldname)
+			if wildcard:
+				continue
+			else:
+				raise_invalid_field(fieldname)
 
 		# remove the field from the query if the report hide flag is set and current view is Report
 		if df.report_hide and data.view == 'Report':
