@@ -92,25 +92,25 @@ frappe.db = {
 	},
 	count: function(doctype, args={}) {
 		let filters = args.filters || {};
-		const with_child_table_filter = Array.isArray(filters) && filters.some(filter => {
+
+		// has a filter with childtable?
+		const distinct = Array.isArray(filters) && filters.some(filter => {
 			return filter[0] !== doctype;
 		});
 
-		const fields = [
-			// cannot break this line as it adds extra \n's and \t's which breaks the query
-			`count(${with_child_table_filter ? 'distinct': ''} ${frappe.model.get_full_column_name('name', doctype)}) AS total_count`
-		];
+		const fields = [];
 
 		return frappe.call({
 			type: 'GET',
-			method: 'frappe.desk.reportview.get',
+			method: 'frappe.desk.reportview.get_count',
 			args: {
 				doctype,
 				filters,
 				fields,
+				distinct,
 			}
 		}).then(r => {
-			return r.message.values[0][0];
+			return r.message.values;
 		});
 	},
 	get_link_options(doctype, txt = '', filters={}) {

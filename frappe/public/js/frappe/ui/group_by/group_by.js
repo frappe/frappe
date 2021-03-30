@@ -160,6 +160,7 @@ frappe.ui.GroupBy = class {
 
 	set_args(args) {
 		if (this.aggregate_function && this.group_by) {
+<<<<<<< HEAD
 			let aggregate_column, aggregate_on_field;
 			if (this.aggregate_function === 'count') {
 				aggregate_column = 'count(`tab'+ this.doctype + '`.`name`)';
@@ -169,6 +170,8 @@ frappe.ui.GroupBy = class {
 				aggregate_on_field = '`tab' + this.aggregate_on_doctype + '`.`' + this.aggregate_on + '`';
 			}
 
+=======
+>>>>>>> 6d978a1df0... fix(report): move count, aggregation to serverside
 			this.report_view.group_by = this.group_by;
 			this.report_view.sort_by = '_aggregate_column';
 			this.report_view.sort_order = 'desc';
@@ -186,18 +189,27 @@ frappe.ui.GroupBy = class {
 			args.fields = this.report_view.get_fields();
 
 			// add aggregate column in both query args and report views
+<<<<<<< HEAD
 			this.report_view.fields.push(['_aggregate_column', this.aggregate_on_doctype || this.doctype]);
 			args.fields.push(aggregate_column + ' as _aggregate_column');
 
 			if (aggregate_on_field) {
 				args.fields.push(aggregate_on_field);
 			}
+=======
+			this.report_view.fields.push([
+				'_aggregate_column',
+				this.aggregate_on_doctype || this.doctype,
+			]);
+>>>>>>> 6d978a1df0... fix(report): move count, aggregation to serverside
 
 			// setup columns in datatable
 			this.report_view.setup_columns();
 
 			Object.assign(args, {
 				with_comment_count: false,
+				aggregate_on: this.aggregate_on || 'name',
+				aggregate_function: this.aggregate_function || 'count',
 				group_by: this.report_view.group_by || null,
 				order_by: '_aggregate_column desc'
 			});
