@@ -42,6 +42,7 @@ def get_form_params():
 	data = frappe._dict(frappe.local.form_dict)
 	clean_params(data)
 	validate_args(data)
+	return data
 
 def validate_args(data):
 	parse_json(data)
