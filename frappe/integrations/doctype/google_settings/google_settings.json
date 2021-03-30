@@ -10,6 +10,8 @@
   "client_secret",
   "sb_01",
   "api_key",
+  "section_break_7",
+  "google_drive_picker_enabled",
   "app_id"
  ],
  "fields": [
@@ -20,10 +22,12 @@
    "label": "Enable"
   },
   {
+   "description": "The Client ID obtained from the Google Cloud Console under \"APIs & Services\" > \"Credentials\".",
    "fieldname": "client_id",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Client ID"
+   "label": "Client ID",
+   "mandatory_depends_on": "google_drive_picker_enabled"
   },
   {
    "fieldname": "client_secret",
@@ -32,10 +36,11 @@
    "label": "Client Secret"
   },
   {
-   "description": "Used For Google Maps Integration.",
+   "description": "The browser API key obtained from the Google Cloud Console under \"APIs & Services\" > \"Credentials\".",
    "fieldname": "api_key",
    "fieldtype": "Data",
-   "label": "API Key"
+   "label": "API Key",
+   "mandatory_depends_on": "google_drive_picker_enabled"
   },
   {
    "depends_on": "enable",
@@ -50,14 +55,28 @@
    "label": "API Key"
   },
   {
+   "depends_on": "google_drive_picker_enabled",
+   "description": "The project number obtained from Google Cloud Console under \"IAM & Admin\" > \"Settings\".\n\n",
    "fieldname": "app_id",
    "fieldtype": "Data",
-   "label": "App ID"
+   "label": "App ID",
+   "mandatory_depends_on": "google_drive_picker_enabled"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break",
+   "label": "Google Drive Picker"
+  },
+  {
+   "default": "0",
+   "fieldname": "google_drive_picker_enabled",
+   "fieldtype": "Check",
+   "label": "Google Drive Picker Enabled"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2021-03-28 22:24:05.963403",
+ "modified": "2021-03-30 14:29:15.132565",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Settings",
