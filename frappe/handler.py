@@ -201,7 +201,7 @@ def ping():
 
 
 def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
-	"""run controller method - old style"""
+	"""run a whitelisted controller method"""
 	import json
 	import inspect
 
