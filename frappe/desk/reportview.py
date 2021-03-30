@@ -27,6 +27,13 @@ def get_list():
 	# uncompressed (refactored from frappe.model.db_query.get_list)
 	return execute(**get_form_params())
 
+@frappe.whitelist()
+@frappe.read_only()
+def get_count():
+	args = get_form_params()
+	args.fields = ['{distinct}count(name) as total_count'.format(distinct = 'distinct ' if args.distinct=='true' else '')]
+	return execute(**args)[0].get('total_count')
+
 def execute(doctype, *args, **kwargs):
 	return DatabaseQuery(doctype).execute(*args, **kwargs)
 
@@ -35,6 +42,7 @@ def get_form_params():
 	data = frappe._dict(frappe.local.form_dict)
 	clean_params(data)
 	parse_json(data)
+	setup_group_by(data)
 
 	validate_fields(data)
 	if data.filters:
@@ -98,6 +106,22 @@ def validate_filters(data, filters):
 			meta, df = get_meta_and_docfield(fieldname, data)
 			if not df:
 				raise_invalid_field(fieldname)
+
+def setup_group_by(data):
+	'''
+	Add columns for aggregated values e.g. count(name)
+	'''
+	if data.group_by:
+		if data.aggregate_function.lower() not in ('count', 'sum', 'avg'):
+			frappe.throw('Invalid aggregate function')
+		if '`' in data.aggregate_on:
+			raise_invalid_field(data.aggregate_on)
+		data.fields.append('{aggregate_function}(`tab{doctype}`.`{aggregate_on}`) AS _aggregate_column'.format(**data))
+		if data.aggregate_on:
+			data.fields.append(data.aggregate_on)
+
+		data.pop('aggregate_on')
+		data.pop('aggregate_function')
 
 def raise_invalid_field(fieldname):
 	frappe.throw(_('Field not permitted in query') + ': {0}'.format(fieldname), frappe.DataError)
