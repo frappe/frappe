@@ -76,7 +76,7 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	refresh() {
 		this._super();
 		let color = this.get_color();
-		if (this.picker.color !== color) {
+		if (this.picker && this.picker.color !== color) {
 			this.picker.color = color;
 			this.picker.refresh();
 		}

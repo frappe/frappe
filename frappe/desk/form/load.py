@@ -100,6 +100,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"assignment_logs": get_comments(doc.doctype, doc.name, 'assignment'),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
+		"info_logs": get_comments(doc.doctype, doc.name, 'Info'),
 		"share_logs": get_comments(doc.doctype, doc.name, 'share'),
 		"like_logs": get_comments(doc.doctype, doc.name, 'Like'),
 		"views": get_view_logs(doc.doctype, doc.name),
