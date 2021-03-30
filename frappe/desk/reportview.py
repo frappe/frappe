@@ -132,8 +132,9 @@ def is_standard(fieldname):
 	return fieldname in default_fields or fieldname in optional_fields
 
 def extract_fieldname(field):
-	if ',' in field:
-		raise_invalid_field(field)
+	for text in (',', '/*', '#'):
+		if text in field:
+			raise_invalid_field(field)
 
 	fieldname = field
 	for sep in (' as ', ' AS '):
