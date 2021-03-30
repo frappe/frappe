@@ -59,7 +59,6 @@ def validate_args(data):
 	return data
 
 def validate_fields(data):
-	expand_fields(data)
 	if update_wildcard_field_param(data):
 		# no need to validate wildcard fields
 		return
@@ -125,11 +124,6 @@ def setup_group_by(data):
 
 		data.pop('aggregate_on')
 		data.pop('aggregate_function')
-
-def expand_fields(data):
-	if ((isinstance(data.fields, string_types) and data.fields == "*")
-		or (isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*")):
-		data.fields = frappe.db.get_table_columns(data.doctype)
 
 def raise_invalid_field(fieldname):
 	frappe.throw(_('Field not permitted in query') + ': {0}'.format(fieldname), frappe.DataError)
