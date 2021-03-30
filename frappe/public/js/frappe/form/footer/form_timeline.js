@@ -139,6 +139,7 @@ class FormTimeline extends BaseTimeline {
 			this.timeline_items.push(...this.get_custom_timeline_contents());
 			this.timeline_items.push(...this.get_assignment_timeline_contents());
 			this.timeline_items.push(...this.get_attachment_timeline_contents());
+			this.timeline_items.push(...this.get_info_timeline_contents());
 			this.timeline_items.push(...this.get_milestone_timeline_contents());
 		}
 	}
@@ -267,6 +268,17 @@ class FormTimeline extends BaseTimeline {
 			});
 		});
 		return assignment_timeline_contents;
+	}
+
+	get_info_timeline_contents() {
+		let info_timeline_contents = [];
+		(this.doc_info.info_logs || []).forEach(info_log => {
+			info_timeline_contents.push({
+				creation: info_log.creation,
+				content: `${this.get_user_link(info_log.comment_email)} ${info_log.content}`,
+			});
+		});
+		return info_timeline_contents;
 	}
 
 	get_attachment_timeline_contents() {
