@@ -20,7 +20,7 @@ def get_file_picker_settings():
 		return {'enabled': False}
 
 	google_settings = frappe.get_single("Google Settings")
-	if not google_settings.enable:
+	if not (google_settings.enable and google_settings.google_drive_picker_enabled):
 		return {'enabled': False}
 
 	return {
