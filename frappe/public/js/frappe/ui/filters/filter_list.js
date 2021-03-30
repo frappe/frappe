@@ -294,7 +294,7 @@ frappe.ui.FilterGroup = class {
 				<hr class="divider"></hr>
 				<div class="filter-action-buttons">
 					<button class="text-muted add-filter btn btn-xs">
-						+ ${__(' Add a Filter')}
+						+ ${__('Add a Filter')}
 					</button>
 					<div>
 						<button class="btn btn-secondary btn-xs clear-filters">
