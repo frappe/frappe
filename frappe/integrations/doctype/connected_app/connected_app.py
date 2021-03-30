@@ -44,6 +44,7 @@ class ConnectedApp(Document):
 			scope=self.get_scopes()
 		)
 
+	@frappe.whitelist()
 	def initiate_web_application_flow(self, user=None, success_uri=None):
 		"""Return an authorization URL for the user. Save state in Token Cache."""
 		user = user or frappe.session.user
