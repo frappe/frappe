@@ -116,7 +116,7 @@ def setup_group_by(data):
 	'''Add columns for aggregated values e.g. count(name)'''
 	if data.group_by:
 		if data.aggregate_function.lower() not in ('count', 'sum', 'avg'):
-			frappe.throw('Invalid aggregate function')
+			frappe.throw(_('Invalid aggregate function'))
 		if '`' in data.aggregate_on:
 			raise_invalid_field(data.aggregate_on)
 		data.fields.append('{aggregate_function}(`tab{doctype}`.`{aggregate_on}`) AS _aggregate_column'.format(**data))
