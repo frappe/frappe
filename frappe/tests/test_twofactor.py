@@ -6,23 +6,34 @@ import unittest, frappe, pyotp
 from frappe.auth import HTTPRequest
 from frappe.utils import cint
 from frappe.utils import set_request
-from frappe.auth import validate_ip_address
+from frappe.auth import validate_ip_address, get_login_attempt_tracker
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, get_cached_user_pass,
 	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj)
+from . import update_system_settings, get_system_setting
 
 import time
 
 class TestTwoFactor(unittest.TestCase):
+	def __init__(self, *args, **kwargs):
+		super(TestTwoFactor, self).__init__(*args, **kwargs)
+		self.default_allowed_login_attempts = get_system_setting('allow_consecutive_login_attempts')
+
 	def setUp(self):
 		self.http_requests = create_http_request()
 		self.login_manager = frappe.local.login_manager
 		self.user = self.login_manager.user
+		update_system_settings({
+			'allow_consecutive_login_attempts': 2
+		})
 
 	def tearDown(self):
 		frappe.local.response['verification'] = None
 		frappe.local.response['tmp_id'] = None
 		disable_2fa()
 		frappe.clear_cache(user=self.user)
+		update_system_settings({
+			'allow_consecutive_login_attempts': self.default_allowed_login_attempts
+		})
 
 	def test_should_run_2fa(self):
 		'''Should return true if enabled.'''
@@ -152,6 +163,33 @@ class TestTwoFactor(unittest.TestCase):
 		user.save()
 		enable_2fa()
 		self.assertIsNone(validate_ip_address(self.user))
+
+	def test_otp_attempt_tracker(self):
+		"""Check that OTP login attempts are tracked.
+		"""
+		authenticate_for_2factor(self.user)
+		tmp_id = frappe.local.response['tmp_id']
+		otp = 'wrongotp'
+		with self.assertRaises(frappe.AuthenticationError):
+			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
+
+		with self.assertRaises(frappe.AuthenticationError):
+			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
+
+		# REMOVE ME: current logic allows allow_consecutive_login_attempts+1 attempts
+		# before raising security exception, remove below line when that is fixed.
+		with self.assertRaises(frappe.AuthenticationError):
+			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
+
+		with self.assertRaises(frappe.SecurityException):
+			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
+
+		# Remove tracking cache so that user can try loging in again
+		tracker = get_login_attempt_tracker(self.user, raise_locked_exception=False)
+		tracker.add_success_attempt()
+
+		otp = get_otp(self.user)
+		self.assertTrue(confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id))
 
 def create_http_request():
 	'''Get http request object.'''
