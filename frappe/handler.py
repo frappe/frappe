@@ -54,12 +54,7 @@ def execute_cmd(cmd, from_async=False):
 	try:
 		method = get_attr(cmd)
 	except Exception as e:
-		if frappe.local.conf.developer_mode:
-			raise e
-		else:
-			frappe.respond_as_web_page(title=_('Invalid Method'), html=_('Method not found'),
-				indicator_color='red', http_status_code=500)
-		return
+		frappe.throw(_('Invalid Method'))
 
 	if from_async:
 		method = method.queue
