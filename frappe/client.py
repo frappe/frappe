@@ -8,6 +8,8 @@ import frappe.model
 import frappe.utils
 import json, os
 from frappe.utils import get_safe_filters
+from frappe.desk.reportview import validate_args
+from frappe.model.db_query import check_parent_permission
 
 from six import iteritems, string_types, integer_types
 
@@ -31,8 +33,18 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	return frappe.get_list(doctype, fields=fields, filters=filters, order_by=order_by,
-		limit_start=limit_start, limit_page_length=limit_page_length, ignore_permissions=False)
+	args = frappe._dict(
+		doctype=doctype,
+		fields=fields,
+		filters=filters,
+		order_by=order_by,
+		limit_start=limit_start,
+		limit_page_length=limit_page_length,
+	)
+
+	validate_args(args)
+
+	return frappe.get_list(**args)
 
 @frappe.whitelist()
 def get_count(doctype, filters=None, debug=False, cache=False):
@@ -91,12 +103,12 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if frappe.get_meta(doctype).issingle:
 		value = frappe.db.get_values_from_single(fields, filters, doctype, as_dict=as_dict, debug=debug)
 	else:
-		value = frappe.get_list(doctype, filters=filters, fields=fields, debug=debug, limit=1)
+		value = get_list(doctype, filters=filters, fields=fields, limit_page_length=1)
 
 	if as_dict:
 		value = value[0] if value else {}
 	else:
-		value = value[0].fieldname
+		value = value[0][fieldname]
 
 	return value
 
@@ -377,18 +389,6 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 @frappe.whitelist()
 def get_hooks(hook, app_name=None):
 	return frappe.get_hooks(hook, app_name)
-
-def check_parent_permission(parent, child_doctype):
-	if parent:
-		# User may pass fake parent and get the information from the child table
-		if child_doctype and not frappe.db.exists('DocField',
-			{'parent': parent, 'options': child_doctype}):
-			raise frappe.PermissionError
-
-		if frappe.permissions.has_permission(parent):
-			return
-	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
-	raise frappe.PermissionError
 
 @frappe.whitelist()
 def is_document_amended(doctype, docname):
