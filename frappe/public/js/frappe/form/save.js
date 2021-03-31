@@ -112,7 +112,6 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	};
 
 	var check_mandatory = function () {
-		var me = this;
 		var has_errors = false;
 		frm.scroll_set = false;
 
@@ -124,8 +123,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 
 			$.each(frappe.meta.docfield_list[doc.doctype] || [], function (i, docfield) {
 				if (docfield.fieldname) {
-					var df = frappe.meta.get_docfield(doc.doctype,
-						docfield.fieldname, frm.doc.name);
+					const df = frappe.meta.get_docfield(doc.doctype,
+						docfield.fieldname, doc.name);
 
 					if (df.fieldtype === "Fold") {
 						folded = frm.layout.folded;
