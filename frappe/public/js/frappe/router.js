@@ -361,7 +361,7 @@ frappe.router = {
 		// return clean sub_path from hash or url
 		// supports both v1 and v2 routing
 		if (!route) {
-			route = window.location.hash || window.location.pathname;
+			route = window.location.hash || (window.location.pathname + window.location.search);
 		}
 
 		return this.strip_prefix(route);
@@ -386,8 +386,6 @@ frappe.router = {
 	set_route_options_from_url(route) {
 		// set query parameters as frappe.route_options
 		var last_part = route[route.length - 1];
-		// add routing v2 compatability
-		if (!last_part.includes("?")) last_part = route[route.length - 1] + window.location.search
 		if (last_part.indexOf("?") < last_part.indexOf("=")) {
 			// has ? followed by =
 			let parts = last_part.split("?");
