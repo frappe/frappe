@@ -31,6 +31,9 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			if (!pasted_data) return;
 
 			let data = frappe.utils.csv_to_array(pasted_data, '\t');
+
+			if (data.length === 1 && data[0].length === 1) return;
+
 			let fieldnames = [];
 			// for raw data with column header
 			if (this.get_field(data[0][0])) {
