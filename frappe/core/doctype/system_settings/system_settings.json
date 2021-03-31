@@ -1,7 +1,5 @@
 {
  "actions": [],
- "allow_read": 1,
- "allow_workflow": 1,
  "creation": "2014-04-17 16:53:52.640856",
  "doctype": "DocType",
  "document_type": "System",
@@ -460,9 +458,11 @@
   },
   {
    "default": "Frappe",
+   "description": "The application name will be used in the Login page.",
    "fieldname": "app_name",
    "fieldtype": "Data",
-   "label": "App Name"
+   "hidden": 1,
+   "label": "Application Name"
   },
   {
    "default": "1",
@@ -474,7 +474,11 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2021-03-25 13:58:12.750629",
+=======
+ "modified": "2021-03-30 11:47:47.330437",
+>>>>>>> 5688b3e7d9... fix: Miscellaneous changes (#12730)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
