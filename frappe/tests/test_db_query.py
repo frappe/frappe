@@ -17,6 +17,9 @@ from frappe.utils.testutils import add_custom_field, clear_custom_fields
 test_dependencies = ['User', 'Blog Post', 'Blog Category', 'Blogger']
 
 class TestReportview(unittest.TestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+
 	def test_basic(self):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
 

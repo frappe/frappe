@@ -286,15 +286,6 @@ frappe.ui.GroupBy = class {
 
 	set_args(args) {
 		if (this.aggregate_function && this.group_by) {
-			let aggregate_column, aggregate_on_field;
-
-			if (this.aggregate_function === 'count') {
-				aggregate_column = 'count(`tab' + this.doctype + '`.`name`)';
-			} else {
-				aggregate_column = `${this.aggregate_function}(${this.aggregate_on})`;
-				aggregate_on_field = this.aggregate_on;
-			}
-
 			this.report_view.group_by = this.group_by;
 			this.report_view.sort_by = '_aggregate_column';
 			this.report_view.sort_order = 'desc';
@@ -316,17 +307,14 @@ frappe.ui.GroupBy = class {
 				'_aggregate_column',
 				this.aggregate_on_doctype || this.doctype,
 			]);
-			args.fields.push(aggregate_column + ' as _aggregate_column');
-
-			if (aggregate_on_field) {
-				args.fields.push(aggregate_on_field);
-			}
 
 			// setup columns in datatable
 			this.report_view.setup_columns();
 
 			Object.assign(args, {
 				with_comment_count: false,
+				aggregate_on: this.aggregate_on || 'name',
+				aggregate_function: this.aggregate_function || 'count',
 				group_by: this.report_view.group_by || null,
 				order_by: '_aggregate_column desc',
 			});
