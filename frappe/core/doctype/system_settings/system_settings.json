@@ -474,11 +474,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2021-03-25 13:58:12.750629",
-=======
  "modified": "2021-03-30 11:47:47.330437",
->>>>>>> 5688b3e7d9... fix: Miscellaneous changes (#12730)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
