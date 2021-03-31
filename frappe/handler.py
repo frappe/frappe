@@ -57,8 +57,8 @@ def execute_cmd(cmd, from_async=False):
 		if frappe.local.conf.developer_mode:
 			raise e
 		else:
-			frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
-			indicator_color='red', http_status_code=404)
+			frappe.respond_as_web_page(title=_('Invalid Method'), html=_('Method not found'),
+				indicator_color='red', http_status_code=500)
 		return
 
 	if from_async:
