@@ -38,6 +38,7 @@ class DataImport(Document):
 			return
 		validate_google_sheets_url(self.google_sheets_url)
 
+	@frappe.whitelist()
 	def get_preview_from_template(self, import_file=None, google_sheets_url=None):
 		if import_file:
 			self.import_file = import_file

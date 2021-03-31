@@ -558,7 +558,7 @@ class User(Document):
 		user['is_authenticated'] = True
 		if validate_password:
 			try:
-				check_password(user['name'], password)
+				check_password(user['name'], password, delete_tracker_cache=False)
 			except frappe.AuthenticationError:
 				user['is_authenticated'] = False
 

@@ -65,7 +65,7 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 		raise e
 
 
-def check_password(user, pwd, doctype='User', fieldname='password'):
+def check_password(user, pwd, doctype='User', fieldname='password', delete_tracker_cache=True):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
 
 	auth = frappe.db.sql("""select `name`, `password` from `__Auth`
@@ -77,7 +77,11 @@ def check_password(user, pwd, doctype='User', fieldname='password'):
 
 	# lettercase agnostic
 	user = auth[0].name
-	delete_login_failed_cache(user)
+
+	# TODO: This need to be deleted after checking side effects of it.
+	# We have a `LoginAttemptTracker` that can take care of tracking related cache.
+	if delete_tracker_cache:
+		delete_login_failed_cache(user)
 
 	if not passlibctx.needs_update(auth[0].password):
 		update_password(user, pwd, doctype, fieldname)
