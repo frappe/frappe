@@ -79,9 +79,9 @@
 		"public/less/controls.less",
 		"public/less/chat.less",
 		"public/css/fonts/inter/inter.css",
-		"public/scss/desk.scss",
 		"node_modules/frappe-charts/dist/frappe-charts.min.css",
-		"node_modules/plyr/dist/plyr.css"
+		"node_modules/plyr/dist/plyr.css",
+		"public/scss/desk.scss"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
