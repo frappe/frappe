@@ -100,7 +100,7 @@ frappe.db = {
 
 		const fields = [];
 
-		return frappe.xcall('frappe.desk.reportview.get_count', {
+		return frappe.xcall('frappe.desk.reportview.get', {
 			doctype,
 			filters,
 			fields,
