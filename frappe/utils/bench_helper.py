@@ -6,6 +6,7 @@ import json
 import importlib
 import frappe.utils
 import traceback
+import warnings
 
 click.disable_unicode_literals_warning = True
 
@@ -98,5 +99,5 @@ def get_apps():
 	return frappe.get_all_apps(with_internal_apps=False, sites_path='.')
 
 if __name__ == "__main__":
+	warnings.simplefilter('ignore')
 	main()
-
