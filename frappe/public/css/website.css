@@ -388,8 +388,8 @@ a.no-decoration:active {
 .indicator-right.purple::after {
   background: #743ee2;
 }
-.indicator.darkgrey::before,
-.indicator-right.darkgrey::after {
+.indicator.gray::before,
+.indicator-right.gray::after {
   background: #b8c2cc;
 }
 .indicator.black::before,

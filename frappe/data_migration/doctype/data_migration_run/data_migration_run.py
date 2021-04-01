@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import frappe, json, math
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import get_source_value, cstr
+from frappe.utils import cstr
+from frappe.data_migration.doctype.data_migration_mapping.data_migration_mapping import get_source_value
 
 class DataMigrationRun(Document):
 	def run(self):

@@ -11,7 +11,7 @@ import email.utils
 from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
-
+from email import policy
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
@@ -68,8 +68,8 @@ class EMail:
 		self.subject = subject
 		self.expose_recipients = expose_recipients
 
-		self.msg_root = MIMEMultipart('mixed')
-		self.msg_alternative = MIMEMultipart('alternative')
+		self.msg_root = MIMEMultipart('mixed', policy=policy.SMTPUTF8)
+		self.msg_alternative = MIMEMultipart('alternative', policy=policy.SMTPUTF8)
 		self.msg_root.attach(self.msg_alternative)
 		self.cc = cc or []
 		self.bcc = bcc or []
@@ -100,7 +100,7 @@ class EMail:
 			Attach message in the text portion of multipart/alternative
 		"""
 		from email.mime.text import MIMEText
-		part = MIMEText(message, 'plain', 'utf-8')
+		part = MIMEText(message, 'plain', 'utf-8', policy=policy.SMTPUTF8)
 		self.msg_alternative.attach(part)
 
 	def set_part_html(self, message, inline_images):
@@ -113,9 +113,9 @@ class EMail:
 			message, _inline_images = replace_filename_with_cid(message)
 
 			# prepare parts
-			msg_related = MIMEMultipart('related')
+			msg_related = MIMEMultipart('related', policy=policy.SMTPUTF8)
 
-			html_part = MIMEText(message, 'html', 'utf-8')
+			html_part = MIMEText(message, 'html', 'utf-8', policy=policy.SMTPUTF8)
 			msg_related.attach(html_part)
 
 			for image in _inline_images:
@@ -124,7 +124,7 @@ class EMail:
 
 			self.msg_alternative.attach(msg_related)
 		else:
-			self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8'))
+			self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8', policy=policy.SMTPUTF8))
 
 	def set_html_as_text(self, html):
 		"""Set plain text from HTML"""
@@ -135,7 +135,7 @@ class EMail:
 		from email.mime.text import MIMEText
 
 		maintype, subtype = mime_type.split('/')
-		part = MIMEText(message, _subtype = subtype)
+		part = MIMEText(message, _subtype = subtype, policy=policy.SMTPUTF8)
 
 		if as_attachment:
 			part.add_header('Content-Disposition', 'attachment', filename=filename)
@@ -197,16 +197,19 @@ class EMail:
 
 	def set_message_id(self, message_id, is_notification=False):
 		if message_id:
-			self.msg_root["Message-Id"] = '<' + message_id + '>'
+			message_id = '<' + message_id + '>'
 		else:
-			self.msg_root["Message-Id"] = get_message_id()
-			self.msg_root["isnotification"] = '<notification>'
+			message_id = get_message_id()
+			self.set_header('isnotification', '<notification>')
+
 		if is_notification:
-			self.msg_root["isnotification"] = '<notification>'
+			self.set_header('isnotification', '<notification>')
+
+		self.set_header('Message-Id', message_id)
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
-		self.msg_root["In-Reply-To"] = in_reply_to
+		self.set_header('In-Reply-To', in_reply_to)
 
 	def make(self):
 		"""build into msg_root"""
@@ -222,7 +225,8 @@ class EMail:
 
 		# reset headers as values may be changed.
 		for key, val in iteritems(headers):
-			self.set_header(key, val)
+			if val:
+				self.set_header(key, val)
 
 		# call hook to enable apps to modify msg_root before sending
 		for hook in frappe.get_hooks("make_email_body_message"):
@@ -232,23 +236,33 @@ class EMail:
 		if key in self.msg_root:
 			del self.msg_root[key]
 
-		self.msg_root[key] = value
+		try:
+			self.msg_root[key] = value
+		except ValueError:
+			self.msg_root[key] = sanitize_email_header(value)
 
 	def as_string(self):
 		"""validate, build message and convert to string"""
 		self.validate()
 		self.make()
-		return self.msg_root.as_string()
+		return self.msg_root.as_string(policy=policy.SMTPUTF8)
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
-		email_account=None, header=None, unsubscribe_link=None, sender=None):
+		email_account=None, header=None, unsubscribe_link=None, sender=None, with_container=False):
 	if not email_account:
 		email_account = get_outgoing_email_account(False, sender=sender)
 
+	signature = None
+	if "<!-- signature-included -->" not in message:
+		signature = get_signature(email_account)
+
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
+		"brand_logo": get_brand_logo(email_account) if with_container or header else None,
+		"with_container": with_container,
+		"site_url": get_url(),
 		"header": get_header(header),
 		"content": message,
-		"signature": get_signature(email_account),
+		"signature": signature,
 		"footer": get_footer(email_account, footer),
 		"title": subject,
 		"print_html": print_html,
@@ -264,14 +278,14 @@ def get_formatted_html(subject, message, footer=None, print_html=None,
 	return html
 
 @frappe.whitelist()
-def get_email_html(template, args, subject, header=None):
+def get_email_html(template, args, subject, header=None, with_container=False):
 	import json
-
+	with_container = cint(with_container)
 	args = json.loads(args)
 	if header and header.startswith('['):
 		header = json.loads(header)
 	email = frappe.utils.jinja.get_email_from_template(template, args)
-	return get_formatted_html(subject, email[0], header=header)
+	return get_formatted_html(subject, email[0], header=header, with_container=with_container)
 
 def inline_style_in_html(html):
 	''' Convert email.css and html to inline-styled html
@@ -280,11 +294,16 @@ def inline_style_in_html(html):
 
 	apps = frappe.get_installed_apps()
 
-	css_files = []
+	# add frappe email css file
+	css_files = ['assets/css/email.css']
+	if 'frappe' in apps:
+		apps.remove('frappe')
+
 	for app in apps:
 		path = 'assets/{0}/css/email.css'.format(app)
-		if os.path.exists(os.path.abspath(path)):
-			css_files.append(path)
+		css_files.append(path)
+
+	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
 
 	p = Premailer(html=html, external_styles=css_files, strip_important=False)
 
@@ -345,7 +364,7 @@ def get_message_id():
 
 def get_signature(email_account):
 	if email_account and email_account.add_signature and email_account.signature:
-		return "<br><br>" + email_account.signature
+		return "<br>" + email_account.signature
 	else:
 		return ""
 
@@ -358,10 +377,10 @@ def get_footer(email_account, footer=None):
 	if email_account and email_account.footer:
 		args.update({'email_account_footer': email_account.footer})
 
-	company_address = frappe.db.get_default("email_footer_address")
+	sender_address = frappe.db.get_default("email_footer_address")
 
-	if company_address:
-		args.update({'company_address': company_address})
+	if sender_address:
+		args.update({'sender_address': sender_address})
 
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
 		args.update({'default_mail_footer': frappe.get_hooks('default_mail_footer')})
@@ -456,3 +475,9 @@ def get_header(header=None):
 	})
 
 	return email_header
+
+def sanitize_email_header(str):
+	return str.replace('\r', '').replace('\n', '')
+
+def get_brand_logo(email_account):
+	return email_account.get('brand_logo')

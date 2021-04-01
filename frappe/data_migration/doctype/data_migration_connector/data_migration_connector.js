@@ -30,7 +30,7 @@ frappe.ui.form.on('Data Migration Connector', {
 							frm.set_value('connector_type', 'Custom');
 							frm.set_value('python_module', r.message);
 							frm.save();
-							frappe.show_alert(__(`New module created ${r.message}`));
+							frappe.show_alert(__("New module created {0}", [r.message]));
 							d.hide();
 						}
 					});

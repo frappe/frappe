@@ -1,0 +1,33 @@
+<div class="hero-with-right-image">
+	<div class="hero-content">
+		<div>
+			<h1 class="hero-title">
+				{{ title }}
+			</h1>
+			{%- if subtitle -%}
+			<p class="hero-subtitle">
+				{{ subtitle }}
+			</p>
+			{%- endif -%}
+			<div>
+				{%- if primary_action -%}
+				<a class="btn btn-lg btn-primary" href="{{ primary_action }}">
+					{{ primary_action_label }}
+				</a>
+				{%- endif -%}
+				{%- if secondary_action -%}
+				<a class="btn btn-lg btn-primary-light" href="{{ secondary_action }}">
+					{{ secondary_action_label }}
+				</a>
+				{%- endif -%}
+			</div>
+		</div>
+	</div>
+	{%- if image -%}
+	{{ frappe.render_template('templates/includes/image_with_blur.html', {
+		"src": image,
+		"alt": "",
+		"class": ["hero-image", "contain-image" if contain_image else ""]
+	}) }}
+	{%- endif -%}
+</div>

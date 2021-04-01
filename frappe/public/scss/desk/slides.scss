@@ -1,0 +1,137 @@
+.slides-progress {
+	margin-top: 80px;
+	display: flex;
+	margin-bottom: var(--margin-lg);
+	justify-content: center;
+
+	.slide-step {
+		@include flex(flex, center, center, null);
+
+		height: 18px;
+		width: 18px;
+		border-radius: var(--border-radius-full);
+		border: 1px solid var(--gray-300);
+		margin: 0 var(--margin-xs);
+		background-color: var(--card-bg);
+
+		.slide-step-indicator {
+			height: 6px;
+			width: 6px;
+			background-color: var(--gray-300);
+			border-radius: var(--border-radius-full);
+			// display: none;
+		}
+
+		.slide-step-complete {
+			display: none;
+
+			.icon-xs {
+				height: 10px;
+				width: 10px;
+			}
+		}
+
+		&.active {
+			// background-color: var(--primary);
+			border: 1px solid var(--primary);
+
+			.slide-step-indicator {
+				display: block;
+				background-color: var(--primary);
+			}
+		}
+
+		// &.step-success.active {
+		// 	background-color: var(--primary);
+		// 	border: 1px solid var(--primary);
+
+		// 	.slide-step-indicator {
+		// 		display: block;
+		// 		background-color: var(--white);
+		// 	}
+		// }
+
+		&.step-success:not(.active) {
+			background-color: var(--primary);
+			border: 1px solid var(--primary);
+
+			.slide-step-indicator {
+				display: none;
+			}
+
+			.slide-step-complete {
+				display: flex;
+
+				.icon use {
+					stroke-width: 2;
+					stroke: var(--white);
+				}
+			}
+		}
+	}
+}
+
+.slides-wrapper {
+	width: 520px;
+	max-width: 520px;
+	background: var(--card-bg);
+	padding: var(--padding-xl);
+	box-shadow: var(--card-shadow);
+	border-radius: var(--border-radius-md);
+
+	.slide-wrapper:focus {
+		outline: none;
+	}
+
+	.slide-footer {
+		margin: var(--margin-md) 0;
+		padding: 0 var(--padding-lg);
+
+		.btn {
+			box-shadow: none;
+		}
+	}
+
+	h1.slide-title {
+		font-size: var(--text-3xl);
+		font-weight: 700;
+	}
+
+	.form-wrapper {
+		margin-top: var(--margin-xl);
+
+		.form {
+			.form-section {
+				padding: 0px var(--padding-sm);
+				border: none;
+			}
+		}
+	}
+
+	&.setup-in-progress {
+		.state-icon-container {
+			margin-top: var(--margin-xl);
+		}
+
+		.setup-message {
+			margin-top: var(--margin-lg);
+		}
+
+		.btn-abort {
+			margin: var(--margin-lg) auto;
+		}
+	}
+
+	.add-more {
+		margin-bottom: var(--margin-xl);
+	}
+
+	.lead {
+		margin-top: var(--margin-lg);
+		font-weight: 500;
+	}
+
+	.success-state {
+		margin-bottom: var(--margin-lg);
+	}
+}

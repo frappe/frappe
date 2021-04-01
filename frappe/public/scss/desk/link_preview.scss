@@ -1,0 +1,63 @@
+.link-preview-popover {
+	max-width: 100%;
+
+	.popover-content {
+		padding: var(--padding-md) 25px;
+
+		.preview-header {
+			@include flex(flex, null, center, column);
+		}
+
+		.preview-image {
+			margin-bottom: var(--margin-sm);
+
+			.avatar {
+				width: 52px;
+				height: 52px;
+
+				.standard-image {
+					font-size: var(--text-lg);
+				}
+			}
+		}
+
+		.preview-name {
+			font-size: var(--text-base);
+			font-weight: 500;
+		}
+
+		.preview-title:not(:empty) {
+			margin-top: var(--margin-xs);
+			font-size: var(--text-md);
+		}
+
+		.popover-body {
+			padding: 0;
+			.preview-table {
+				padding-bottom: var(--padding-xs);
+				max-width: 330px;
+				min-width: 200px;
+				overflow-wrap: break-word;
+
+				.preview-field {
+
+					.preview-label {
+						padding-bottom: 4px;
+					}
+
+					.preview-value {
+						font-weight: 500;
+					}
+
+					.ql-snow .ql-editor {
+						min-height: 0;
+					}
+
+					&:not(:last-child) {
+						margin-bottom: var(--margin-md);
+					}
+				}
+			}
+		}
+	}
+}

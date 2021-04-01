@@ -16,6 +16,8 @@
   "column_break_6",
   "fieldtype",
   "precision",
+  "hide_seconds",
+  "hide_days",
   "options",
   "fetch_from",
   "fetch_if_empty",
@@ -28,6 +30,7 @@
   "mandatory_depends_on",
   "read_only_depends_on",
   "properties",
+  "non_negative",
   "reqd",
   "unique",
   "read_only",
@@ -48,6 +51,7 @@
   "allow_in_quick_entry",
   "ignore_xss_filter",
   "translatable",
+  "hide_border",
   "description",
   "permlevel",
   "width",
@@ -116,7 +120,7 @@
    "label": "Field Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nGeolocation\nHTML\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
+   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nGeolocation\nHTML\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
    "reqd": 1
   },
   {
@@ -375,15 +379,45 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!in_list(['Table', 'Table MultiSelect'], doc.fieldtype);",
    "fieldname": "in_preview",
    "fieldtype": "Check",
    "label": "In Preview"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "fieldname": "hide_seconds",
+   "fieldtype": "Check",
+   "label": "Hide Seconds"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "fieldname": "hide_days",
+   "fieldtype": "Check",
+   "label": "Hide Days"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Section Break'",
+   "fieldname": "hide_border",
+   "fieldtype": "Check",
+   "label": "Hide Border"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\"], doc.fieldtype)",
+   "fieldname": "non_negative",
+   "fieldtype": "Check",
+   "label": "Non Negative"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-04-10 11:57:10.392218",
+ "modified": "2020-10-29 06:14:43.073329",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

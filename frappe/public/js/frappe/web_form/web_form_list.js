@@ -7,16 +7,15 @@ export default class WebFormList {
 		Object.assign(this, opts);
 		frappe.web_form_list = this;
 		this.wrapper = document.getElementById("datatable");
-		this.refresh();
 		this.make_actions();
 		this.make_filters();
-		$('.link-btn').remove()
+		$('.link-btn').remove();
 	}
 
 	refresh() {
 		if (this.table) {
 			Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
-			let check = document.getElementById('select-all')
+			let check = document.getElementById('select-all');
 			check.checked = false;
 		}
 		this.rows = [];
@@ -32,8 +31,8 @@ export default class WebFormList {
 	}
 
 	make_filters() {
-		this.filters = {}
-		this.filter_input = []
+		this.filters = {};
+		this.filter_input = [];
 		const filter_area = document.getElementById('list-filters');
 
 		frappe.call('frappe.website.doctype.web_form.web_form.get_web_form_filters', {
@@ -41,9 +40,10 @@ export default class WebFormList {
 		}).then(response => {
 			let fields = response.message;
 			fields.forEach(field => {
-				let col = document.createElement('div.col-sm-4')
-				col.classList.add('col', 'col-sm-3')
-				filter_area.appendChild(col)
+				let col = document.createElement('div.col-sm-4');
+				col.classList.add('col', 'col-sm-3');
+				filter_area.appendChild(col);
+				if (field.default) this.add_filter(field.fieldname, field.default, field.fieldtype);
 
 				let input = frappe.ui.form.make_control({
 					df: {
@@ -54,27 +54,27 @@ export default class WebFormList {
 						label: __(field.label),
 						onchange: (event) => {
 							$('#more').remove();
-							this.add_filter(field.fieldname, input.value, field.fieldtype)
+							this.add_filter(field.fieldname, input.value, field.fieldtype);
+							this.refresh();
 						}
 					},
 					parent: col,
 					value: field.default,
 					render_input: 1,
-				})
-				this.filter_input.push(input)
-			})
-		})
+				});
+				this.filter_input.push(input);
+			});
+			this.refresh();
+		});
 	}
 
 	add_filter(field, value, fieldtype) {
 		if (!value) {
-			delete this.filters[field]
+			delete this.filters[field];
+		} else {
+			if (fieldtype === 'Data') value = ['like', value + '%'];
+			Object.assign(this.filters, Object.fromEntries([[field, value]]));
 		}
-		else {
-			if (fieldtype === 'Data') value = ['like', value + '%']
-			Object.assign(this.filters, Object.fromEntries([[field, value]]))
-		}
-		this.refresh();
 	}
 
 	get_list_view_fields() {
@@ -106,13 +106,13 @@ export default class WebFormList {
 	}
 
 	more() {
-		this.web_list_start += this.page_length
+		this.web_list_start += this.page_length;
 		this.fetch_data().then((res) => {
 			if (res.message.length === 0) {
-				frappe.msgprint(__("No more items to display"))
+				frappe.msgprint(__("No more items to display"));
 			}
-			this.append_rows(res.message)
-		})
+			this.append_rows(res.message);
+		});
 
 	}
 
@@ -125,7 +125,7 @@ export default class WebFormList {
 			};
 		});
 
-		if (! this.table) {
+		if (!this.table) {
 			this.table = document.createElement("table");
 			this.table.classList.add("table");
 			this.make_table_head();

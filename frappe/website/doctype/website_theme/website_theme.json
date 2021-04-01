@@ -10,7 +10,7 @@
   "theme",
   "module",
   "custom",
-  "configuration_section",
+  "bootstrap_theme_section",
   "google_font",
   "font_size",
   "font_properties",
@@ -24,9 +24,10 @@
   "dark_color",
   "background_color",
   "stylesheet_section",
-  "theme_scss",
+  "custom_overrides",
   "custom_scss",
-  "theme_json",
+  "ignored_apps",
+  "theme_scss",
   "theme_url",
   "custom_js_section",
   "js"
@@ -64,8 +65,10 @@
   },
   {
    "fieldname": "theme_url",
-   "fieldtype": "Read Only",
-   "label": "Theme URL"
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Theme URL",
+   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -80,16 +83,9 @@
    "options": "JS"
   },
   {
-   "fieldname": "theme_json",
-   "fieldtype": "Code",
-   "hidden": 1,
-   "label": "Theme JSON",
-   "options": "JSON"
-  },
-  {
-   "fieldname": "configuration_section",
+   "fieldname": "bootstrap_theme_section",
    "fieldtype": "Section Break",
-   "label": "Configuration"
+   "label": "Theme Configuration"
   },
   {
    "fieldname": "google_font",
@@ -133,7 +129,8 @@
   {
    "fieldname": "custom_scss",
    "fieldtype": "Code",
-   "label": "Custom SCSS"
+   "label": "Custom SCSS",
+   "options": "SCSS"
   },
   {
    "fieldname": "light_color",
@@ -142,7 +139,7 @@
    "options": "Color"
   },
   {
-   "default": "300,600",
+   "default": "wght@300;400;500;600;700;800",
    "fieldname": "font_properties",
    "fieldtype": "Data",
    "label": "Font Properties"
@@ -168,10 +165,23 @@
   {
    "fieldname": "column_break_11",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_overrides",
+   "fieldtype": "Code",
+   "label": "Custom Overrides",
+   "options": "SCSS"
+  },
+  {
+   "fieldname": "ignored_apps",
+   "fieldtype": "Table",
+   "label": "Ignored Apps",
+   "options": "Website Theme Ignore App"
   }
  ],
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-04-19 05:18:49.820803",
+ "modified": "2021-01-18 17:43:39.804765",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

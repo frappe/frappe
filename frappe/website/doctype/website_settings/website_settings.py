@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import requests
 import frappe
 from frappe import _
 from frappe.utils import get_request_site_address, encode
@@ -77,6 +76,8 @@ class WebsiteSettings(Document):
 		frappe.clear_cache()
 
 	def get_access_token(self):
+		import requests
+
 		google_settings = frappe.get_doc("Google Settings")
 
 		if not google_settings.enable:
@@ -103,9 +104,10 @@ class WebsiteSettings(Document):
 		return res.get("access_token")
 
 
-def get_website_settings():
+def get_website_settings(context=None):
 	hooks = frappe.get_hooks()
-	context = frappe._dict({
+	context = context or frappe._dict()
+	context = context.update({
 		'top_bar_items': get_items('top_bar_items'),
 		'footer_items': get_items('footer_items'),
 		"post_login": [
@@ -115,10 +117,11 @@ def get_website_settings():
 	})
 
 	settings = frappe.get_single("Website Settings")
-	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
+	for k in ["banner_html", "banner_image", "brand_html", "copyright", "twitter_share_via",
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
-		"navbar_search", "enable_view_tracking"]:
+		"navbar_template", "footer_template", "navbar_search", "enable_view_tracking",
+		"footer_logo", "call_to_action", "call_to_action_url"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -134,9 +137,6 @@ def get_website_settings():
 
 	context.encoded_title = quote(encode(context.title or ""), str(""))
 
-	for update_website_context in hooks.update_website_context or []:
-		frappe.get_attr(update_website_context)(context)
-
 	context.web_include_js = hooks.web_include_js or []
 
 	context.web_include_css = hooks.web_include_css or []
@@ -151,10 +151,12 @@ def get_website_settings():
 	add_website_theme(context)
 
 	if not context.get("favicon"):
-		context["favicon"] = "/assets/frappe/images/favicon.png"
+		context["favicon"] = "/assets/frappe/images/frappe-favicon.svg"
 
 	if settings.favicon and settings.favicon != "attach_files:":
 		context["favicon"] = settings.favicon
+
+	context["hide_login"] = settings.hide_login
 
 	return context
 

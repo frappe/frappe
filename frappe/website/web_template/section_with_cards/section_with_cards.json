@@ -1,0 +1,251 @@
+{
+ "creation": "2020-04-21 20:55:01.740525",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "reqd": 0
+  },
+  {
+   "default": "Medium",
+   "fieldname": "card_size",
+   "fieldtype": "Select",
+   "label": "Card Size",
+   "options": "Small\nMedium\nLarge",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_1",
+   "fieldtype": "Section Break",
+   "label": "Card 1",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_1_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_1_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_1_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_2",
+   "fieldtype": "Section Break",
+   "label": "Card 2",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_2_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_2_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_2_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_3",
+   "fieldtype": "Section Break",
+   "label": "Card 3",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_3_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_3_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_3_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_4",
+   "fieldtype": "Section Break",
+   "label": "Card 4",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_4_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_4_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_4_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_5",
+   "fieldtype": "Section Break",
+   "label": "Card 5",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_5_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_5_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_5_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_6",
+   "fieldtype": "Section Break",
+   "label": "Card 6",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_6_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_6_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_6_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_7",
+   "fieldtype": "Section Break",
+   "label": "Card 7",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_7_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_7_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_7_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_8",
+   "fieldtype": "Section Break",
+   "label": "Card 8",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_8_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_8_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_8_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_9",
+   "fieldtype": "Section Break",
+   "label": "Card 9",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_9_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_9_content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "card_9_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-10-26 17:42:53.356024",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Section with Cards",
+ "owner": "Administrator",
+ "standard": 1,
+ "type": "Section"
+}

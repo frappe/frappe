@@ -1,7 +1,6 @@
 /* eslint-disable */
 import Quill from 'quill';
 import Keys from './constants/keys';
-import './quill.mention.css';
 import './blots/mention';
 
 

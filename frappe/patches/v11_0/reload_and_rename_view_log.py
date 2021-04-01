@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	if frappe.db.exists('DocType', 'View log'):
+	if frappe.db.table_exists('View log'):
 		# for mac users direct renaming would not work since mysql for mac saves table name in lower case
 		# so while renaming `tabView log` to `tabView Log` we get "Table 'tabView Log' already exists" error
 		# more info https://stackoverflow.com/a/44753093/5955589 ,

@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "Prompt",
+ "creation": "2020-04-17 12:12:52.145708",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "standard",
+  "module",
+  "template",
+  "fields"
+ ],
+ "fields": [
+  {
+   "depends_on": "eval:!doc.standard",
+   "fieldname": "template",
+   "fieldtype": "Code",
+   "label": "Template",
+   "options": "HTML"
+  },
+  {
+   "fieldname": "fields",
+   "fieldtype": "Table",
+   "label": "Fields",
+   "options": "Web Template Field"
+  },
+  {
+   "default": "0",
+   "fieldname": "standard",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Standard"
+  },
+  {
+   "default": "Section",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type",
+   "options": "Component\nSection\nNavbar\nFooter"
+  },
+  {
+   "depends_on": "standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "standard",
+   "options": "Module Def"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Web Page",
+   "link_fieldname": "web_template"
+  }
+ ],
+ "modified": "2020-10-26 17:22:55.459453",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Template",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

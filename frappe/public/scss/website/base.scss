@@ -1,0 +1,58 @@
+html {
+	height: 100%;
+}
+
+body {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-size: 16px;
+	color: $body-color;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+h1 {
+	font-size: $font-size-3xl;
+	font-weight: 800;
+	line-height: 1.25;
+	letter-spacing: -0.025em;
+	margin-bottom: 1rem;
+
+	@include media-breakpoint-up(sm) {
+		line-height: 2.5rem;
+		font-size: $font-size-4xl;
+	}
+	@include media-breakpoint-up(xl) {
+		line-height: 1;
+		font-size: $font-size-5xl;
+	}
+}
+
+h2 {
+	font-size: $font-size-xl;
+	font-weight: 700;
+	margin-bottom: 0.75rem;
+
+	@include media-breakpoint-up(sm) {
+		font-size: $font-size-2xl;
+	}
+	@include media-breakpoint-up(md) {
+		font-size: $font-size-3xl;
+	}
+}
+
+h3 {
+	font-size: $font-size-base;
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+
+	@include media-breakpoint-up(sm) {
+		font-size: $font-size-lg;
+	}
+	@include media-breakpoint-up(md) {
+		font-size: $font-size-xl;
+	}
+}

@@ -1,0 +1,101 @@
+.chart-column-container {
+	padding: var(--padding-md);
+	margin-bottom: var(--margin-xl);
+
+	.chart-wrapper {
+		.null-state {
+			@include flex(flex, center, center, null);
+			margin: 20px 0;
+			width: 100%;
+			height: 100px;
+		}
+		&:not(:last-of-type) {
+			border-bottom: 1px solid var(--border-color);
+		}
+	}
+
+	.chart-container {
+		margin: 0 -10px;
+	}
+
+	.performance-heatmap {
+		margin-top: -20px;
+
+		.chart-legend {
+			display: none;
+		}
+		.chart-container {
+			margin: 0 auto;
+		}
+	}
+
+	.performance-percentage-chart {
+		margin: -20px 0;
+	}
+
+	.title-area {
+		@include flex(flex, space-between, flex-start, null);
+
+		.card-title {
+			font-size: var(--text-xl);
+			font-weight: 600;
+		}
+
+		.chart-filter {
+			z-index: 1;
+			margin-left: var(--margin-sm);
+		}
+	}
+
+	.btn {
+		box-shadow: none;
+	}
+}
+
+.user-profile-sidebar {
+	.sidebar-image {
+		width: 100%;
+		height: 100%;
+		border-radius: var(--border-radius-lg);
+	}
+
+	.profile-details {
+		margin-top: var(--margin-lg);
+
+		.detail-item {
+			margin-top: var(--margin-2xl);
+
+			&:first-child {
+				margin-top: 0px;
+			}
+		}
+
+		.user-bio {
+			color: var(--text-light);
+		}
+
+		.user-stats-item {
+			// @include flex(flex, null, center, null);
+			@include flex(flex, null, null, null);
+
+			.stat-value {
+				font-size: var(--text-lg);
+				color: var(--text-color);
+				font-weight: var(--text-bold);
+				line-height: 20px;
+			}
+
+			.stat-label {
+				color: var(--text-muted);
+				line-height: 20px;
+			}
+
+			.icon {
+				stroke: none;
+				width: 28px;
+				height: 28px;
+				margin: 0 var(--margin-md) 0 0;
+			}
+		}
+	}
+}

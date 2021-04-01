@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import os, sys
+import os
 from frappe.database.db_manager import DbManager
 
 expected_settings_10_2_earlier = {
@@ -86,15 +86,27 @@ def drop_user_and_database(db_name, root_login, root_password):
 	dbman.drop_database(db_name)
 
 def bootstrap_database(db_name, verbose, source_sql=None):
+	import sys
+
 	frappe.connect(db_name=db_name)
 	if not check_database_settings():
 		print('Database settings do not match expected values; stopping database setup.')
 		sys.exit(1)
 
 	import_db_from_sql(source_sql, verbose)
-	if not 'tabDefaultValue' in frappe.db.get_tables():
-		print('''Database not installed, this can due to lack of permission, or that the database name exists.
-			Check your mysql root password, or use --force to reinstall''')
+
+	frappe.connect(db_name=db_name)
+	if 'tabDefaultValue' not in frappe.db.get_tables():
+		from click import secho
+
+		secho(
+			"Table 'tabDefaultValue' missing in the restored site. "
+			"Database not installed correctly, this can due to lack of "
+			"permission, or that the database name exists. Check your mysql"
+			" root password, validity of the backup file or use --force to"
+			" reinstall",
+			fg="red"
+		)
 		sys.exit(1)
 
 def import_db_from_sql(source_sql=None, verbose=False):

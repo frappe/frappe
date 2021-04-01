@@ -1,0 +1,27 @@
+{
+ "add_total_row": 0,
+ "creation": "2020-04-17 13:04:45.770148",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2020-04-17 16:10:30.168312",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Website Analytics",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Web Page View",
+ "report_name": "Website Analytics",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Website Manager"
+  }
+ ]
+}

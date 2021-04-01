@@ -17,7 +17,7 @@ class TestEmailBody(unittest.TestCase):
 <div>
 	<h3>Hey John Doe!</h3>
 	<p>This is embedded image you asked for</p>
-	<img embed="assets/frappe/images/favicon.png" />
+	<img embed="assets/frappe/images/frappe-favicon.svg" />
 </div>
 '''
 		email_text = '''
@@ -25,7 +25,7 @@ Hey John Doe!
 This is the text version of this email
 '''
 
-		img_path = os.path.abspath('assets/frappe/images/favicon.png')
+		img_path = os.path.abspath('assets/frappe/images/frappe-favicon.svg')
 		with open(img_path, 'rb') as f:
 			img_content = f.read()
 			img_base64 = base64.b64encode(img_content).decode()
@@ -39,7 +39,7 @@ This is the text version of this email
 			subject='Test Subject',
 			content=email_html,
 			text_content=email_text
-		).as_string()
+		).as_string().replace("\r\n", "\n")
 
 	def test_prepare_message_returns_already_encoded_string(self):
 
@@ -75,30 +75,13 @@ This is the text version of this email
 		else:
 			self.assertTrue(True)
 
-	def test_rfc_5322_header_is_wrapped_at_998_chars(self):
-		# unfortunately the db can only hold 140 chars so this can't be tested properly. test at max chars anyway.
-		email = get_email_queue(
-			recipients=['test@example.com'],
-			sender='me@example.com',
-			subject='Test Subject',
-			content='<h1>Whatever</h1>',
-			text_content='whatever',
-			message_id="a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
-			".really.long.message.id.that.should.not.wrap.unti")
-		result = safe_decode(prepare_message(email=email, recipient='test@test.com',
-					recipients_list=[]))
-		self.assertTrue(
-			"a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
-			".really.long.message.id.that.should.not.wrap.unti" in result)
-
 	def test_image(self):
 		img_signature = '''
-Content-Type: image/png
+Content-Type: image/svg+xml
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Content-Disposition: inline; filename="favicon.png"
+Content-Disposition: inline; filename="frappe-favicon.svg"
 '''
-
 		self.assertTrue(img_signature in self.email_string)
 		self.assertTrue(self.img_base64 in self.email_string)
 
@@ -133,7 +116,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 	def test_replace_filename_with_cid(self):
 		original_message = '''
 			<div>
-				<img embed="assets/frappe/images/favicon.png" alt="test" />
+				<img embed="assets/frappe/images/frappe-favicon.svg" alt="test" />
 				<img embed="notexists.jpg" />
 			</div>
 		'''
@@ -154,7 +137,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 '''
 		transformed_html = '''
 <h3>Hi John</h3>
-<p style="margin:1em 0 !important">This is a test email</p>
+<p style="margin:5px 0 !important">This is a test email</p>
 '''
 		self.assertTrue(transformed_html in inline_style_in_html(html))
 
@@ -169,11 +152,9 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			subject='Test Subject',
 			content=email_html,
 			header=['Email Title', 'green']
-		).as_string()
-
-		self.assertTrue('''<span class=3D"indicator indicator-green" style=3D"background-color:#98=
-d85b; border-radius:8px; display:inline-block; height:8px; margin-right:5px=
-; width:8px" bgcolor=3D"#98d85b" height=3D"8" width=3D"8"></span>''' in email_string)
+		).as_string().replace("\r\n", "\n")
+		# REDESIGN-TODO: Add style for indicators in email
+		self.assertTrue('''<span class=3D"indicator indicator-green"></span>''' in email_string)
 		self.assertTrue('<span>Email Title</span>' in email_string)
 
 	def test_get_email_header(self):

@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "Prompt",
  "creation": "2019-09-11 22:15:44.851526",
  "doctype": "DocType",
@@ -26,7 +27,7 @@
   {
    "fieldname": "subscribed_documents",
    "fieldtype": "Table MultiSelect",
-   "label": "Subscribed Documents",
+   "label": "Open Documents",
    "options": "Notification Subscribed Document"
   },
   {
@@ -86,7 +87,9 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-11-19 12:57:59.356786",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2020-11-04 12:54:57.989317",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",

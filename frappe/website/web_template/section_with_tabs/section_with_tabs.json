@@ -1,0 +1,98 @@
+{
+ "creation": "2020-04-17 16:34:09.726205",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_1_title",
+   "fieldtype": "Data",
+   "label": "Tab 1 Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_1_content",
+   "fieldtype": "Markdown Editor",
+   "label": "Tab 1 Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_2_title",
+   "fieldtype": "Data",
+   "label": "Tab 2 Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_2_content",
+   "fieldtype": "Markdown Editor",
+   "label": "Tab 2 Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_3_title",
+   "fieldtype": "Data",
+   "label": "Tab 3 Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_3_content",
+   "fieldtype": "Markdown Editor",
+   "label": "Tab 3 Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_4_title",
+   "fieldtype": "Data",
+   "label": "Tab 4 Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_4_content",
+   "fieldtype": "Markdown Editor",
+   "label": "Tab 4 Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_5_title",
+   "fieldtype": "Data",
+   "label": "Tab 5 Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_5_content",
+   "fieldtype": "Markdown Editor",
+   "label": "Tab 5 Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_6_title",
+   "fieldtype": "Data",
+   "label": "Tab 6 Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "tab_6_content",
+   "fieldtype": "Markdown Editor",
+   "label": "Tab 6 Content",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-09-11 15:52:40.687774",
+ "modified_by": "Administrator",
+ "name": "Section with Tabs",
+ "owner": "Administrator",
+ "standard": 1,
+ "type": "Section"
+}

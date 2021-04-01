@@ -111,3 +111,8 @@ ul.tree-children {
 .section-header {
   direction: ltr;
 }
+
+.ql-editor {
+  direction: rtl;
+  text-align: right;
+}

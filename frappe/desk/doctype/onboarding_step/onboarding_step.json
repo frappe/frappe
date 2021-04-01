@@ -1,0 +1,245 @@
+{
+ "actions": [],
+ "autoname": "prompt",
+ "creation": "2020-04-14 15:50:25.782387",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "column_break_2",
+  "is_complete",
+  "is_skipped",
+  "description_section",
+  "description",
+  "intro_video_url",
+  "section_break_5",
+  "action",
+  "action_label",
+  "column_break_7",
+  "reference_document",
+  "show_full_form",
+  "show_form_tour",
+  "is_single",
+  "reference_report",
+  "report_reference_doctype",
+  "report_type",
+  "report_description",
+  "path",
+  "callback_title",
+  "callback_message",
+  "validate_action",
+  "field",
+  "value_to_validate",
+  "video_url"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "is_complete",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Complete"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "label": "Action",
+   "options": "Create Entry\nUpdate Settings\nShow Form Tour\nView Report\nGo to Page\nWatch Video",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
+   "fieldname": "reference_document",
+   "fieldtype": "Link",
+   "label": "Reference Document",
+   "mandatory_depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval:doc.action == \"View Report\"",
+   "fieldname": "reference_report",
+   "fieldtype": "Link",
+   "label": "Reference Report",
+   "mandatory_depends_on": "eval:doc.action == \"View Report\"",
+   "options": "Report"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Watch Video\"",
+   "fieldname": "video_url",
+   "fieldtype": "Data",
+   "label": "Video URL",
+   "mandatory_depends_on": "eval:doc.action == \"Watch Video\""
+  },
+  {
+   "depends_on": "eval:doc.action == \"View Report\"",
+   "fetch_from": "reference_report.report_type",
+   "fieldname": "report_type",
+   "fieldtype": "Data",
+   "label": "Report Type",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_skipped",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Skipped"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Update Settings\" && doc.validate_action",
+   "fieldname": "field",
+   "fieldtype": "Select",
+   "label": "Field",
+   "mandatory_depends_on": "eval:doc.action == \"Update Settings\" && doc.validate_action"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Update Settings\" && doc.validate_action",
+   "description": "Use % for any non empty value.",
+   "fieldname": "value_to_validate",
+   "fieldtype": "Data",
+   "label": "Value to Validate",
+   "mandatory_depends_on": "eval:doc.action == \"Update Settings\" && doc.validate_action"
+  },
+  {
+   "depends_on": "eval:doc.action == \"View Report\"",
+   "description": "This will be shown to the user in a dialog after routing to the report",
+   "fieldname": "report_description",
+   "fieldtype": "Data",
+   "label": "Report Description",
+   "mandatory_depends_on": "eval:doc.action == \"View Report\""
+  },
+  {
+   "fetch_from": "reference_report.ref_doctype",
+   "fieldname": "report_reference_doctype",
+   "fieldtype": "Data",
+   "label": "Report Reference Doctype",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
+   "fetch_from": "reference_document.issingle",
+   "fieldname": "is_single",
+   "fieldtype": "Check",
+   "label": "Is Single"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "description": "Example: #Tree/Account",
+   "fieldname": "path",
+   "fieldtype": "Data",
+   "label": "Path",
+   "mandatory_depends_on": "eval:doc.action == \"Go to Page\""
+  },
+  {
+   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "fieldname": "callback_title",
+   "fieldtype": "Data",
+   "label": "Callback Title"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "description": "This will be shown in a modal after routing",
+   "fieldname": "callback_message",
+   "fieldtype": "Small Text",
+   "label": "Callback Message"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.action == \"Update Settings\"",
+   "fieldname": "validate_action",
+   "fieldtype": "Check",
+   "label": "Validate Field"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.action == \"Create Entry\"",
+   "description": "Show full form instead of a quick entry modal",
+   "fieldname": "show_full_form",
+   "fieldtype": "Check",
+   "label": "Show Full Form?"
+  },
+  {
+   "description": "Description to inform the user about any action that is going to be performed",
+   "fieldname": "description_section",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Markdown Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "intro_video_url",
+   "fieldtype": "Data",
+   "label": "Intro Video URL"
+  },
+  {
+   "fieldname": "action_label",
+   "fieldtype": "Data",
+   "label": "Action Label"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.action==\"Create Entry\" && doc.show_full_form",
+   "fieldname": "show_form_tour",
+   "fieldtype": "Check",
+   "label": "Show Form Tour"
+  }
+ ],
+ "links": [],
+ "modified": "2020-10-30 14:54:06.646513",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Onboarding Step",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
+  }
+ ],
+ "quick_entry": 1,
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

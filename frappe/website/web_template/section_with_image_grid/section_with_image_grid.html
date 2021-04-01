@@ -1,0 +1,18 @@
+<div class="section-with-image-grid">
+	<h2 class="section-title">{{ title }}</h2>
+	<p class="section-description">{{ subtitle }}</p>
+
+	<div class="section-image-grid">
+		{%- for index in ['1', '2', '3', '4'] -%}
+			{%- set image = values['image_' + index ] -%}
+			{%- set class = "narrow" if index in ['1', '4'] else "wide" -%}
+			{%- if image -%}
+				<div class="image-container {{ class }}">
+					{{ frappe.render_template('templates/includes/image_with_blur.html', {
+						"src": image
+					}) }}
+				</div>
+			{%- endif -%}
+		{%- endfor -%}
+	</div>
+</div>

@@ -1,8 +1,7 @@
 frappe.provide('frappe.report_utils');
 
 frappe.report_utils = {
-
-	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, colors }) {
+	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, colors, height }) {
 		const type = chart_type.toLowerCase();
 
 		let rows =  raw_data.result.filter(value => Object.keys(value).length);
@@ -15,19 +14,23 @@ frappe.report_utils = {
 
 		if (raw_data.add_total_row) {
 			labels = labels.slice(0, -1);
-			datasets[0].values = datasets[0].values.slice(0, -1);
+			datasets.forEach(dataset => {
+				dataset.values = dataset.values.slice(0, -1);
+			});
 		}
 
 		return {
 			data: {
-				labels: labels,
+				labels: labels.length? labels: null,
 				datasets: datasets
 			},
 			truncateLegends: 1,
 			type: type,
+			height: height ? height : 280,
 			colors: colors,
 			axisOptions: {
-				shortenYAxisNumbers: 1
+				shortenYAxisNumbers: 1,
+				xAxisMode: 'tick'
 			}
 		};
 
@@ -41,7 +44,7 @@ frappe.report_utils = {
 		}
 	},
 
-	get_possible_chart_options: function(columns, data) {
+	get_field_options_from_report: function(columns, data) {
 		const rows =  data.result.filter(value => Object.keys(value).length);
 		const first_row = Array.isArray(rows[0]) ? rows[0] : columns.map(col => rows[0][col.fieldname]);
 
@@ -136,6 +139,16 @@ frappe.report_utils = {
 				return acc;
 			}, {});
 		return filter_values;
+	},
+
+	get_result_of_fn(fn, values) {
+		const get_result = {
+			'Minimum': values => values.reduce((min, val) => Math.min(min, val), values[0]),
+			'Maximum': values => values.reduce((min, val) => Math.max(min, val), values[0]),
+			'Average': values => values.reduce((a, b) => a + b, 0) / values.length,
+			'Sum': values => values.reduce((a, b) => a + b, 0)
+		};
+		return get_result[fn](values);
 	},
 
 };

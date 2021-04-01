@@ -59,10 +59,6 @@ class EmailServer:
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except Exception as e:
-			frappe.msgprint(_('Cannot connect: {0}').format(str(e)))
-			raise
-
 	def connect_pop(self):
 		#this method return pop connection
 		try:
@@ -539,6 +535,8 @@ class Email:
 
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
+				pass
+			except frappe.FileAlreadyAttachedException:
 				pass
 			except frappe.DuplicateEntryError:
 				# same file attached twice??

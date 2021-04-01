@@ -12,9 +12,9 @@ class TestDataImportFixtures(unittest.TestCase):
 	def setUp(self):
 		pass
 
-	#start test for Custom Script
+	#start test for Client Script
 	def test_Custom_Script_fixture_simple(self):
-		fixture = "Custom Script"
+		fixture = "Client Script"
 		path = frappe.scrub(fixture) + "_original_style.csv"
 
 		export_csv(fixture, path)
@@ -22,7 +22,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_simple_name_equal_default(self):
-		fixture = ["Custom Script", {"name":["Item-Client"]}]
+		fixture = ["Client Script", {"name":["Item"]}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_equal_default.csv"
 
 		export_csv(fixture, path)
@@ -30,7 +30,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_simple_name_equal(self):
-		fixture = ["Custom Script", {"name":["Item-Client"],"op":"="}]
+		fixture = ["Client Script", {"name":["Item"],"op":"="}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_equal.csv"
 
 		export_csv(fixture, path)
@@ -38,7 +38,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_simple_name_not_equal(self):
-		fixture = ["Custom Script", {"name":["Item-Client"],"op":"!="}]
+		fixture = ["Client Script", {"name":["Item"],"op":"!="}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_not_equal.csv"
 
 		export_csv(fixture, path)
@@ -47,7 +47,7 @@ class TestDataImportFixtures(unittest.TestCase):
 
 	#without [] around the name...
 	def test_Custom_Script_fixture_simple_name_at_least_equal(self):
-		fixture = ["Custom Script", {"name":"Item-Cli"}]
+		fixture = ["Client Script", {"name":"Item-Cli"}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_at_least_equal.csv"
 
 		export_csv(fixture, path)
@@ -55,7 +55,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_multi_name_equal(self):
-		fixture = ["Custom Script", {"name":["Item-Client", "Customer-Client"],"op":"="}]
+		fixture = ["Client Script", {"name":["Item", "Customer"],"op":"="}]
 		path = frappe.scrub(fixture[0]) + "_multi_name_equal.csv"
 
 		export_csv(fixture, path)
@@ -63,7 +63,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_multi_name_not_equal(self):
-		fixture = ["Custom Script", {"name":["Item-Client", "Customer-Client"],"op":"!="}]
+		fixture = ["Client Script", {"name":["Item", "Customer"],"op":"!="}]
 		path = frappe.scrub(fixture[0]) + "_multi_name_not_equal.csv"
 
 		export_csv(fixture, path)
@@ -71,7 +71,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_empty_object(self):
-		fixture = ["Custom Script", {}]
+		fixture = ["Client Script", {}]
 		path = frappe.scrub(fixture[0]) + "_empty_object_should_be_all.csv"
 
 		export_csv(fixture, path)
@@ -79,16 +79,16 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_just_list(self):
-		fixture = ["Custom Script"]
+		fixture = ["Client Script"]
 		path = frappe.scrub(fixture[0]) + "_just_list_should_be_all.csv"
 
 		export_csv(fixture, path)
 		self.assertTrue(True)
 		os.remove(path)
 
-	# Custom Script regular expression
+	# Client Script regular expression
 	def test_Custom_Script_fixture_rex_no_flags(self):
-		fixture = ["Custom Script", {"name":r"^[i|A]"}]
+		fixture = ["Client Script", {"name":r"^[i|A]"}]
 		path = frappe.scrub(fixture[0]) + "_rex_no_flags.csv"
 
 		export_csv(fixture, path)
@@ -96,7 +96,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_rex_with_flags(self):
-		fixture = ["Custom Script", {"name":r"^[i|A]", "flags":"L,M"}]
+		fixture = ["Client Script", {"name":r"^[i|A]", "flags":"L,M"}]
 		path = frappe.scrub(fixture[0]) + "_rex_with_flags.csv"
 
 		export_csv(fixture, path)

@@ -1,0 +1,104 @@
+.filter-icon.active {
+	use {
+		stroke: var(--blue-500);
+	}
+}
+
+.filter-popover {
+	min-width: 500px;
+	min-height: 50px;
+	font-size: var(--text-md);
+}
+
+.filter-area {
+	.filter-box {
+		padding: var(--padding-xs) var(--padding-md) var(--padding-xs) 0;
+
+		.form-group {
+			margin-bottom: 0;
+		}
+
+		.remove-filter {
+			cursor: pointer;
+			line-height: 2;
+		}
+
+		.filter-field {
+			.frappe-control {
+				position: relative;
+				margin-bottom: 0;
+			}
+		}
+
+		.awesomplete {
+			ul[role="listbox"] {
+				min-width: 100%;
+				width: auto;
+
+				li {
+					max-width: 300px;
+				}
+			}
+		}
+
+	}
+
+	.empty-filters {
+		padding: 3px;
+	}
+
+	.filter-action-buttons {
+		display: flex;
+		justify-content: space-between;
+
+		.add-filter {
+			cursor: pointer;
+		}
+
+		.btn {
+			box-shadow: none;
+		}
+	}
+
+	.divider {
+		background-color: var(--border-color);
+	}
+}
+
+// for sm and above
+@include media-breakpoint-up(sm) {
+	.filter-box .row > div[class*="col-sm-"] {
+		padding-right: 0px;
+	}
+	.filter-field {
+		.frappe-control {
+			position: relative;
+		}
+	}
+}
+
+@include media-breakpoint-down(sm) {
+	.filter-popover {
+		min-width: 100%;
+		margin-left: -5px;
+	}
+
+	.filter-area {
+		.filter-box {
+			.form-group {
+				margin-bottom: 5px;
+			}
+
+			.remove-filter {
+				font-size: var(--text-sm);
+				color: var(--primary);
+			}
+
+			.filter-index {
+				font-size: var(--text-xs);
+				text-transform: uppercase;
+			}
+		}
+	}
+}
+

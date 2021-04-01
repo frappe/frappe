@@ -6,7 +6,7 @@ import frappe
 import sys
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
-from frappe import msgprint, _, safe_decode, safe_encode
+from frappe import msgprint, _, safe_decode, safe_encode, enqueue
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
@@ -24,7 +24,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		attachments=None, reply_to=None, cc=None, bcc=None, message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
 		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
-		header=None, print_letterhead=False):
+		header=None, print_letterhead=False, with_container=False):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -48,6 +48,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 	:param header: Append header in email (boolean)
+	:param with_container: Wraps email inside styled container
 	"""
 	if not unsubscribe_method:
 		unsubscribe_method = "/api/method/frappe.email.queue.unsubscribe"
@@ -130,7 +131,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 
 	email_content = get_formatted_html(subject, message,
 		email_account=email_account, header=header,
-		unsubscribe_link=unsubscribe_link)
+		unsubscribe_link=unsubscribe_link, with_container=with_container)
 
 	# add to queue
 	add(recipients, sender, subject,
@@ -348,7 +349,19 @@ def flush(from_test=False):
 				smtpserver = SMTPServer()
 				smtpserver_dict[email.sender] = smtpserver
 
-			send_one(email.name, smtpserver, auto_commit, from_test=from_test)
+			if from_test:
+				send_one(email.name, smtpserver, auto_commit)
+			else:
+				send_one_args = {
+					'email': email.name,
+					'smtpserver': smtpserver,
+					'auto_commit': auto_commit,
+				}
+				enqueue(
+					method = 'frappe.email.queue.send_one',
+					queue = 'short',
+					**send_one_args
+				)
 
 		# NOTE: removing commit here because we pass auto_commit
 		# finally:
@@ -366,7 +379,7 @@ def get_queue():
 		limit 500''', { 'now': now_datetime() }, as_dict=True)
 
 
-def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=False):
+def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	'''Send Email Queue with given smtpserver'''
 
 	email = frappe.db.sql('''select
@@ -377,7 +390,12 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			`tabEmail Queue`
 		where
 			name=%s
-		for update''', email, as_dict=True)[0]
+		for update''', email, as_dict=True)
+
+	if len(email):
+		email = email[0]
+	else:
+		return
 
 	recipients_list = frappe.db.sql('''select name, recipient, status from
 		`tabEmail Queue Recipient` where parent=%s''', email.name, as_dict=1)
@@ -399,6 +417,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 	if email.communication:
 		frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
+
+	email_sent_to_any_recipient = None
 
 	try:
 		message = None
@@ -441,7 +461,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
 		if smtpserver.append_emails_to_sent_folder and email_sent_to_any_recipient:
-			smtpserver.email_account.append_email_to_sent_folder(encode(message))
+			smtpserver.email_account.append_email_to_sent_folder(message)
 
 	except (smtplib.SMTPServerDisconnected,
 			smtplib.SMTPConnectError,
@@ -565,14 +585,15 @@ def prepare_message(email, recipient, recipients_list):
 
 	return safe_encode(message.as_string())
 
-def clear_outbox():
-	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
-	Called daily via scheduler.
+def clear_outbox(days=None):
+	"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
 	Note: Used separate query to avoid deadlock
 	"""
+	if not days:
+		days=31
 
 	email_queues = frappe.db.sql_list("""SELECT `name` FROM `tabEmail Queue`
-		WHERE `priority`=0 AND `modified` < (NOW() - INTERVAL '31' DAY)""")
+		WHERE `priority`=0 AND `modified` < (NOW() - INTERVAL '{0}' DAY)""".format(days))
 
 	if email_queues:
 		frappe.db.sql("""DELETE FROM `tabEmail Queue` WHERE `name` IN ({0})""".format(
@@ -582,6 +603,11 @@ def clear_outbox():
 		frappe.db.sql("""DELETE FROM `tabEmail Queue Recipient` WHERE `parent` IN ({0})""".format(
 			','.join(['%s']*len(email_queues)
 		)), tuple(email_queues))
+
+def set_expiry_for_email_queue():
+	''' Mark emails as expire that has not sent for 7 days.
+		Called daily via scheduler.
+	 '''
 
 	frappe.db.sql("""
 		UPDATE `tabEmail Queue`

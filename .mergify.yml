@@ -4,9 +4,8 @@ pull_request_rules:
       - status-success=Sider
       - status-success=Semantic Pull Request
       - status-success=Travis CI - Pull Request
-      - status-success=security/snyk - package.json (frappe)
-      - status-success=security/snyk - requirements.txt (frappe)
-      - label!=don't-merge
+      - status-success=security/snyk (frappe)
+      - label!=dont-merge
       - label!=squash
       - "#approved-reviews-by>=1"
     actions:
@@ -15,11 +14,9 @@ pull_request_rules:
   - name: Automatic squash on CI success and review
     conditions:
       - status-success=Sider
-      - status-success=Semantic Pull Request
       - status-success=Travis CI - Pull Request
-      - status-success=security/snyk - package.json (frappe)
-      - status-success=security/snyk - requirements.txt (frappe)
-      - label!=don't-merge
+      - status-success=security/snyk (frappe)
+      - label!=dont-merge
       - label=squash
       - "#approved-reviews-by>=1"
     actions:

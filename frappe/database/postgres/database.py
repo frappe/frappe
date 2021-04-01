@@ -51,7 +51,7 @@ class PostgresDatabase(Database):
 			'Data':			('varchar', self.VARCHAR_LEN),
 			'Link':			('varchar', self.VARCHAR_LEN),
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
-			'Password':		('varchar', self.VARCHAR_LEN),
+			'Password':		('text', ''),
 			'Select':		('varchar', self.VARCHAR_LEN),
 			'Rating':		('smallint', None),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
@@ -60,7 +60,8 @@ class PostgresDatabase(Database):
 			'Signature':	('text', ''),
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('text', ''),
-			'Geolocation':	('text', '')
+			'Geolocation':	('text', ''),
+			'Duration':		('decimal', '18,6')
 		}
 
 	def get_connection(self):
@@ -139,11 +140,11 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_table_missing(e):
-		return e.pgcode == '42P01'
+		return getattr(e, 'pgcode', None) == '42P01'
 
 	@staticmethod
 	def is_missing_column(e):
-		return e.pgcode == '42703'
+		return getattr(e, 'pgcode', None) == '42703'
 
 	@staticmethod
 	def is_access_denied(e):
@@ -178,7 +179,7 @@ class PostgresDatabase(Database):
 				"doctype" VARCHAR(140) NOT NULL,
 				"name" VARCHAR(255) NOT NULL,
 				"fieldname" VARCHAR(140) NOT NULL,
-				"password" VARCHAR(255) NOT NULL,
+				"password" TEXT NOT NULL,
 				"encrypted" INT NOT NULL DEFAULT 0,
 				PRIMARY KEY ("doctype", "name", "fieldname")
 			)""")

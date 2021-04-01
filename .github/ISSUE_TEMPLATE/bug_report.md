@@ -9,7 +9,7 @@ Welcome to the Frappe Framework issue tracker! Before creating an issue, please 
 
 1. This tracker should only be used to report bugs and request features / enhancements to Frappe
     - For questions and general support, use https://stackoverflow.com/questions/tagged/frappe
-    - For documentation issues, refer to https://frappe.io/docs/user/en or the developer cheetsheet https://github.com/frappe/frappe/wiki/Developer-Cheatsheet
+    - For documentation issues, refer to https://frappeframework.com/docs/user/en or the developer cheetsheet https://github.com/frappe/frappe/wiki/Developer-Cheatsheet
 2. Use the search function before creating a new issue. Duplicates will be closed and directed to
    the original discussion.
 3. When making a bug report, make sure you provide all required information. The easier it is for

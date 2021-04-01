@@ -8,17 +8,23 @@
  "engine": "InnoDB",
  "field_order": [
   "send_from",
-  "column_break_2",
+  "schedule_sending",
   "schedule_send",
   "recipients",
   "email_group",
   "email_sent",
   "newsletter_content",
   "subject",
+  "content_type",
   "message",
+  "message_md",
+  "message_html",
+  "section_break_13",
   "send_unsubscribe_link",
-  "send_attachements",
+  "send_attachments",
+  "column_break_9",
   "published",
+  "send_webview_link",
   "route",
   "test_the_newsletter",
   "test_email_id",
@@ -37,8 +43,7 @@
    "fieldname": "send_from",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
-   "label": "Sender",
-   "no_copy": 1
+   "label": "Sender"
   },
   {
    "default": "0",
@@ -50,7 +55,8 @@
   },
   {
    "fieldname": "newsletter_content",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Content"
   },
   {
    "fieldname": "subject",
@@ -61,23 +67,18 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval: doc.content_type === 'Rich Text'",
    "fieldname": "message",
    "fieldtype": "Text Editor",
    "in_list_view": 1,
    "label": "Message",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.content_type === 'Rich Text'"
   },
   {
    "default": "1",
    "fieldname": "send_unsubscribe_link",
    "fieldtype": "Check",
    "label": "Send Unsubscribe Link"
-  },
-  {
-   "default": "0",
-   "fieldname": "send_attachements",
-   "fieldtype": "Check",
-   "label": "Send Attachements"
   },
   {
    "default": "0",
@@ -93,16 +94,20 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
    "fieldname": "test_the_newsletter",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Testing"
   },
   {
    "description": "A Lead with this Email Address should exist",
    "fieldname": "test_email_id",
    "fieldtype": "Data",
-   "label": "Test Email Address"
+   "label": "Test Email Address",
+   "options": "Email"
   },
   {
+   "depends_on": "eval: doc.test_email_id",
    "fieldname": "test_send",
    "fieldtype": "Button",
    "label": "Test",
@@ -120,22 +125,69 @@
    "label": "Recipients"
   },
   {
+   "depends_on": "eval: doc.schedule_sending",
    "fieldname": "schedule_send",
    "fieldtype": "Datetime",
-   "label": "Schedule Send"
+   "label": "Schedule Send",
+   "read_only_depends_on": "eval: doc.email_sent"
   },
   {
-   "fieldname": "column_break_2",
+   "default": "0",
+   "fieldname": "send_attachments",
+   "fieldtype": "Check",
+   "label": "Send Attachments"
+  },
+  {
+   "fieldname": "content_type",
+   "fieldtype": "Select",
+   "label": "Content Type",
+   "options": "Rich Text\nMarkdown\nHTML"
+  },
+  {
+   "depends_on": "eval:doc.content_type === 'Markdown'",
+   "fieldname": "message_md",
+   "fieldtype": "Markdown Editor",
+   "label": "Message (Markdown)",
+   "mandatory_depends_on": "eval:doc.content_type === 'Markdown'"
+  },
+  {
+   "depends_on": "eval:doc.content_type === 'HTML'",
+   "fieldname": "message_html",
+   "fieldtype": "HTML Editor",
+   "label": "Message (HTML)",
+   "mandatory_depends_on": "eval:doc.content_type === 'HTML'"
+  },
+  {
+   "default": "0",
+   "fieldname": "schedule_sending",
+   "fieldtype": "Check",
+   "label": "Schedule Sending",
+   "read_only_depends_on": "eval: doc.email_sent"
+  },
+  {
+   "fieldname": "column_break_9",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "published",
+   "fieldname": "send_webview_link",
+   "fieldtype": "Check",
+   "label": "Send Web View Link"
+  },
+  {
+   "fieldname": "section_break_13",
+   "fieldtype": "Section Break"
   }
  ],
  "has_web_view": 1,
  "icon": "fa fa-envelope",
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
  "max_attachments": 3,
- "modified": "2020-03-02 06:26:51.622521",
+ "modified": "2021-02-22 14:33:56.095380",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

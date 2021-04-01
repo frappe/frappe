@@ -47,3 +47,8 @@ class TestPdf(unittest.TestCase):
 		if six.PY2:
 			password = frappe.safe_encode(password)
 		self.assertTrue(reader.decrypt(password))
+
+	def test_pdf_generation_as_a_user(self):
+		frappe.set_user("Administrator")
+		pdf = pdfgen.get_pdf(self.html)
+		self.assertTrue(pdf)

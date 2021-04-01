@@ -1,12 +1,12 @@
 <hr>
-<div style="padding: 0px 15px;">
+<div class="p-3">
 	<h4>{%= __("Quick Help for Setting Permissions") %}:</h4>
 	<ol>
 		<li>{%= __("Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.") %}</li>
 		<li>{%= __("Permissions get applied on Users based on what Roles they are assigned.") %}</li>
 		<li>{%= __("Roles can be set for users from their User page.") %}
-			<a href="#List/User">{%= __("Setup > User") %}</a></li>
-		<li>{%= __("The system provides many pre-defined roles. You can add new roles to set finer permissions.") %}<a href="#List/Role"> {%= __("Add a New Role") %}</a></li>
+			<a href="/app/List/User">{%= __("Setup > User") %}</a></li>
+		<li>{%= __("The system provides many pre-defined roles. You can add new roles to set finer permissions.") %}<a href="/app/List/Role"> {%= __("Add a New Role") %}</a></li>
 		<li>{%= __("Permissions are automatically applied to Standard Reports and searches.") %}</li>
 		<li>{%= __("As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.") %}</li>
 	</ol>
@@ -24,13 +24,13 @@
 		<li>{%= __("Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.") %}</li>
 		<li>{%= __("If a Role does not have access at Level 0, then higher levels are meaningless.") %}</li>
 		<li>{%= __("Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.") %}</li>
-		<li>{%= __("You can use Customize Form to set levels on fields.") %} <a href="#Form/Customize Form">{%= __("Setup > Customize Form") %}</a></li>
+		<li>{%= __("You can use Customize Form to set levels on fields.") %} <a href="/app/Form/Customize Form">{%= __("Setup > Customize Form") %}</a></li>
 	</ol>
 	<hr>
 	<h4>{%= __("User Permissions") %}:</h4>
 	<ol>
 		<li>{%= __("User Permissions are used to limit users to specific records.") %}
-			 <a href="#List/User Permission">{%= __("Setup > User Permissions") %}</a></li>
+			 <a href="/app/List/User Permission">{%= __("Setup > User Permissions") %}</a></li>
 		<li>{%= __("Select Document Types to set which User Permissions are used to limit access.") %}</li>
 		<li>{%= __("Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).") %}</li>
 		<li>{%= __("Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.") %}</li>

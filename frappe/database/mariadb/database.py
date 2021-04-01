@@ -8,8 +8,7 @@ from pymysql.times import TimeDelta
 from pymysql.constants 	import ER, FIELD_TYPE
 from pymysql.converters import conversions
 
-from frappe.utils import get_datetime, cstr
-from markdown2 import UnicodeWithAttrs
+from frappe.utils import get_datetime, cstr, UnicodeWithAttrs
 from frappe.database.database import Database
 from six import PY2, binary_type, text_type, string_types
 from frappe.database.mariadb.schema import MariaDBTable
@@ -46,7 +45,7 @@ class MariaDBDatabase(Database):
 			'Data':			('varchar', self.VARCHAR_LEN),
 			'Link':			('varchar', self.VARCHAR_LEN),
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
-			'Password':		('varchar', self.VARCHAR_LEN),
+			'Password':		('text', ''),
 			'Select':		('varchar', self.VARCHAR_LEN),
 			'Rating':		('int', '1'),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
@@ -55,7 +54,8 @@ class MariaDBDatabase(Database):
 			'Signature':	('longtext', ''),
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('longtext', ''),
-			'Geolocation':	('longtext', '')
+			'Geolocation':	('longtext', ''),
+			'Duration':		('decimal', '18,6')
 		}
 
 	def get_connection(self):
@@ -185,7 +185,7 @@ class MariaDBDatabase(Database):
 				`doctype` VARCHAR(140) NOT NULL,
 				`name` VARCHAR(255) NOT NULL,
 				`fieldname` VARCHAR(140) NOT NULL,
-				`password` VARCHAR(255) NOT NULL,
+				`password` TEXT NOT NULL,
 				`encrypted` INT(1) NOT NULL DEFAULT 0,
 				PRIMARY KEY (`doctype`, `name`, `fieldname`)
 			) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")

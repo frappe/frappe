@@ -7,7 +7,7 @@ frappe.listview_settings['Note'] = {
 		if(doc.public) {
 			return [__("Public"), "green", "public,=,Yes"];
 		} else {
-			return [__("Private"), "darkgrey", "public,=,No"];
+			return [__("Private"), "gray", "public,=,No"];
 		}
 	}
 }

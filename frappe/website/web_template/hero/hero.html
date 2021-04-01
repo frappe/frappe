@@ -1,0 +1,24 @@
+<div class="hero {{ 'align-center' if align == 'Center' else '' }}">
+	<div class="hero-content">
+		<h1 class="hero-title">{{ title }}</h1>
+		{%- if subtitle -%}
+		<p class="hero-subtitle">
+			{{ subtitle }}
+		</p>
+		{%- endif -%}
+		{%- if primary_action or secondary_action -%}
+		<div class="hero-buttons">
+			{%- if primary_action -%}
+			<a class="btn btn-lg btn-primary" href="{{ primary_action }}">
+				{{ primary_action_label }}
+			</a>
+			{%- endif -%}
+			{%- if secondary_action -%}
+			<a class="btn btn-lg btn-primary-light" href="{{ secondary_action }}">
+				{{ secondary_action_label }}
+			</a>
+			{%- endif -%}
+		</div>
+		{%- endif -%}
+	</div>
+</div>

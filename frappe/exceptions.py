@@ -13,6 +13,11 @@ if sys.version_info.major == 2:
 else:
 	from builtins import FileNotFoundError
 
+class SiteNotSpecifiedError(Exception):
+	def __init__(self, *args, **kwargs):
+		self.message = "Please specify --site sitename"
+		super(Exception, self).__init__(self.message)
+
 class ValidationError(Exception):
 	http_status_code = 417
 
@@ -26,6 +31,9 @@ class PermissionError(Exception):
 	http_status_code = 403
 
 class DoesNotExistError(ValidationError):
+	http_status_code = 404
+
+class PageDoesNotExistError(ValidationError):
 	http_status_code = 404
 
 class NameError(Exception):
@@ -49,6 +57,11 @@ class Redirect(Exception):
 class CSRFTokenError(Exception):
 	http_status_code = 400
 
+
+class TooManyRequestsError(Exception):
+	http_status_code = 429
+
+
 class ImproperDBConfigurationError(Exception):
 	"""
 	Used when frappe detects that database or tables are not properly
@@ -66,6 +79,7 @@ class UnknownDomainError(Exception): pass
 class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass
 class MandatoryError(ValidationError): pass
+class NonNegativeError(ValidationError): pass
 class InvalidSignatureError(ValidationError): pass
 class RateLimitExceededError(ValidationError): pass
 class CannotChangeConstantError(ValidationError): pass
@@ -93,7 +107,12 @@ class InvalidColumnName(ValidationError): pass
 class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
+class FileAlreadyAttachedException(Exception): pass
+class DocumentAlreadyRestored(Exception): pass
+class AttachmentLimitReached(Exception): pass
 # OAuth exceptions
 class InvalidAuthorizationHeader(CSRFTokenError): pass
 class InvalidAuthorizationPrefix(CSRFTokenError): pass
 class InvalidAuthorizationToken(CSRFTokenError): pass
+class InvalidDatabaseFile(ValidationError): pass
+class ExecutableNotFound(FileNotFoundError): pass

@@ -1,5 +1,5 @@
 language: python
-dist: trusty
+dist: bionic
 
 addons:
   hosts:
@@ -7,42 +7,53 @@ addons:
     - test_site_producer
   mariadb: 10.3
   postgresql: 9.5
+  firefox: latest
+
+services:
+  - xvfb
+  - mysql
 
 git:
   depth: 1
 
 cache:
-  - pip
-  - npm
-  - yarn
+  pip: true
+  npm: true
+  yarn: true
+  directories:
+    # we also need to cache folder with Cypress binary
+    # https://docs.cypress.io/guides/guides/continuous-integration.html#Caching
+    - ~/.cache
+
 
 matrix:
   include:
-  - name: "Python 3.6 MariaDB"
-    python: 3.6
+  - name: "Python 3.7 MariaDB"
+    python: 3.7
     env: DB=mariadb TYPE=server
-    script: bench --site test_site run-tests --coverage
+    script: bench --verbose --site test_site run-tests --coverage
 
-  - name: "Python 3.6 PostgreSQL"
-    python: 3.6
+  - name: "Python 3.7 PostgreSQL"
+    python: 3.7
     env: DB=postgres TYPE=server
-    script: bench --site test_site run-tests --coverage
+    script: bench --verbose --site test_site run-tests --coverage
 
   - name: "Cypress"
-    python: 3.6
+    python: 3.7
     env: DB=mariadb TYPE=ui
     before_script:
     - bench --site test_site execute frappe.utils.install.complete_setup_wizard
-    - bench --site test_site_producer execute frappe.utils.install.complete_setup_wizard
     script: bench --site test_site run-ui-tests frappe --headless
 
-  - name: "Python 2.7 MariaDB"
-    python: 2.7
-    env: DB=mariadb TYPE=server
-    script: bench --site test_site run-tests --coverage
-
 before_install:
-  # install wkhtmltopdf
+ # do we really want to run travis?
+  - |
+    python ./.travis/roulette.py
+    if [[ $? != 2 ]];then
+      exit;
+    fi
+
+ # install wkhtmltopdf
   - wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
   - tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
   - sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
@@ -54,18 +65,19 @@ before_install:
 install:
   - cd ~
   - source ./.nvm/nvm.sh
-  - nvm install v8.10.0
+  - nvm install 12
 
-  - git clone https://github.com/frappe/bench --depth 1
-  - pip install -e ./bench
+  - pip install frappe-bench
 
   - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
 
   - mkdir ~/frappe-bench/sites/test_site
   - cp $TRAVIS_BUILD_DIR/.travis/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
 
-  - mkdir ~/frappe-bench/sites/test_site_producer
-  - cp $TRAVIS_BUILD_DIR/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json
+  - if [ $TYPE == "server" ]; then
+      mkdir ~/frappe-bench/sites/test_site_producer;
+      cp $TRAVIS_BUILD_DIR/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json;
+    fi
 
   - if [ $DB == "mariadb" ];then
       mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
@@ -93,17 +105,22 @@ install:
 
   - cd ./frappe-bench
 
-  - sed -i 's/watch:/# watch:/g' Procfile
-  - sed -i 's/schedule:/# schedule:/g' Procfile
+  - sed -i 's/^watch:/# watch:/g' Procfile
+  - sed -i 's/^schedule:/# schedule:/g' Procfile
 
-  - if [ $TYPE == "server" ]; then sed -i 's/socketio:/# socketio:/g' Procfile; fi
-  - if [ $TYPE == "server" ]; then sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile; fi
+  - if [ $TYPE == "server" ]; then sed -i 's/^socketio:/# socketio:/g' Procfile; fi
+  - if [ $TYPE == "server" ]; then sed -i 's/^redis_socketio:/# redis_socketio:/g' Procfile; fi
 
   - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
 
+  # install node-sass which is required for website theme test
+  - cd ./apps/frappe
+  - yarn add node-sass@4.13.1
+  - cd ../..
+
   - bench start &
   - bench --site test_site reinstall --yes
-  - bench --site test_site_producer reinstall --yes
+  - if [ $TYPE == "server" ]; then bench --site test_site_producer reinstall --yes; fi
   - bench build --app frappe
 
 after_script:

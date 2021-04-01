@@ -13,7 +13,7 @@ class TestNotificationLog(unittest.TestCase):
 		user = get_user()
 
 		assign_task({
-			"assign_to": user,
+			"assign_to": [user],
 			"doctype": 'ToDo',
 			"name": todo.name,
 			"description": todo.description

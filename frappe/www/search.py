@@ -13,7 +13,7 @@ def get_context(context):
 		context.title = _('Search Results for ')
 		context.query = query
 		context.route = '/search'
-		context.update(get_search_results(query, frappe.form_dict.scope))
+		context.update(get_search_results(query, frappe.utils.sanitize_html(frappe.form_dict.scope)))
 	else:
 		context.title = _('Search')
 

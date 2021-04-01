@@ -5,10 +5,8 @@
 
 frappe.ui.form.AssignTo = Class.extend({
 	init: function(opts) {
-		var me = this;
-
 		$.extend(this, opts);
-		this.btn = this.parent.find(".add-assignment").on("click", function() { me.add(); });
+		this.btn = this.parent.find(".add-assignment-btn").on("click", () => this.add());
 		this.btn_wrapper = this.btn.parent();
 
 		this.refresh();
@@ -21,190 +19,291 @@ frappe.ui.form.AssignTo = Class.extend({
 		this.parent.toggle(true);
 		this.render(this.frm.get_docinfo().assignments);
 	},
-	render: function(d) {
-		var me = this;
-		this.frm.get_docinfo().assignments = d;
-		this.parent.find(".assignment-row").remove();
+	render: function(assignments) {
+		this.frm.get_docinfo().assignments = assignments;
 
-		if(me.primary_action) {
-			me.primary_action.remove();
-			me.primary_action = null;
+		let assignments_wrapper = this.parent.find('.assignments');
+
+		assignments_wrapper.empty();
+		let assigned_users = assignments.map(d => d.owner);
+
+		if (!assigned_users.length) {
+			assignments_wrapper.hide();
+			return;
 		}
 
-		if(this.dialog) {
-			this.dialog.hide();
-		}
+		let avatar_group = frappe.avatar_group(assigned_users, 5, {'align': 'left', 'overlap': true});
 
-		if(d && d.length) {
-			for(var i=0; i<d.length; i++) {
-				var info = frappe.user_info(d[i].owner);
-				info.assign_to_name = d[i].name
-				info.owner = d[i].owner;
-				info.avatar = frappe.avatar(d[i].owner);
-				info.description = d[i].description || "";
-
-				info._fullname = info.fullname;
-				if(info.fullname.length > 10) {
-					info._fullname = info.fullname.substr(0, 10) + '...';
-				}
-
-				$(repl('<li class="assignment-row">\
-					<a class="close" data-owner="%(owner)s">&times;</a>\
-					%(avatar)s\
-					<span><a href="#Form/ToDo/%(assign_to_name)s">%(_fullname)s</a></span>\
-				</li>', info))
-					.insertBefore(this.parent.find('.add-assignment'));
-
-				if(d[i].owner===frappe.session.user) {
-					me.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), function() {
-						me.remove(frappe.session.user);
-					}, "fa fa-check", "btn-success")
-				}
-
-				if(!(d[i].owner === frappe.session.user || me.frm.perm[0].write)) {
-					me.parent.find('a.close').remove();
-				}
-			}
-
-			// set remove
-			this.parent.find('a.close').click(function() {
-				me.remove($(this).attr('data-owner'));
-				return false;
+		assignments_wrapper.show();
+		assignments_wrapper.append(avatar_group);
+		avatar_group.click(() => {
+			new frappe.ui.form.AssignmentDialog({
+				assignments: assigned_users,
+				frm: this.frm
 			});
-
-			//this.btn_wrapper.addClass("hide");
-		} else {
-			//this.btn_wrapper.removeClass("hide");
-		}
+		});
 	},
 	add: function() {
 		var me = this;
 
-		if(this.frm.is_new()) {
+		if (this.frm.is_new()) {
 			frappe.throw(__("Please save the document before assignment"));
 			return;
 		}
 
-		if(!me.assign_to) {
+		if (!me.assign_to) {
 			me.assign_to = new frappe.ui.form.AssignToDialog({
-				obj: me,
-				method: 'frappe.desk.form.assign_to.add',
+				method: "frappe.desk.form.assign_to.add",
 				doctype: me.frm.doctype,
 				docname: me.frm.docname,
-				callback: function(r) {
+				frm: me.frm,
+				callback: function (r) {
 					me.render(r.message);
 				}
 			});
 		}
 		me.assign_to.dialog.clear();
-
-		if(me.frm.meta.title_field) {
-			me.assign_to.dialog.set_value("description", me.frm.doc[me.frm.meta.title_field])
-		}
-
 		me.assign_to.dialog.show();
-		me.assign_to = null;
 	},
 	remove: function(owner) {
-		var me = this;
-
-		if(this.frm.is_new()) {
+		if (this.frm.is_new()) {
 			frappe.throw(__("Please save the document before removing assignment"));
 			return;
 		}
 
-		frappe.call({
-			method:'frappe.desk.form.assign_to.remove',
-			args: {
-				doctype: me.frm.doctype,
-				name: me.frm.docname,
-				assign_to: owner
-			},
-			callback:function(r,rt) {
-				me.render(r.message);
-			}
+		return frappe.xcall('frappe.desk.form.assign_to.remove', {
+			doctype: this.frm.doctype,
+			name: this.frm.docname,
+			assign_to: owner
+		}).then((assignments) => {
+			this.render(assignments);
 		});
 	}
 });
 
 
 frappe.ui.form.AssignToDialog = Class.extend({
-	init: function(opts){
-		var me = this
-		var dialog = new frappe.ui.Dialog({
-			title: __('Add to To Do'),
-			fields: [
-				{ fieldtype: 'Link', fieldname: 'assign_to', options: 'User', label: __("Assign To"), reqd: true, filters: { 'user_type': 'System User' }},
-				{ fieldtype: 'Check', fieldname: 'myself', label: __("Assign to me"), "default": 0 },
-				{ fieldtype: 'Small Text', fieldname: 'description', label: __("Comment") },
-				{ fieldtype: 'Section Break' },
-				{ fieldtype: 'Column Break' },
-				{ fieldtype: 'Date', fieldname: 'date', label: __("Complete By") },
-				{ fieldtype: 'Column Break' },
-				{ fieldtype: 'Select', fieldname: 'priority', label: __("Priority"),
-					options: [
-						{ value: 'Low', label: __('Low') },
-						{ value: 'Medium', label: __('Medium') },
-						{ value: 'High', label: __('High') }
-					],
-					// Pick up priority from the source document, if it exists and is available in ToDo
-					'default': ["Low", "Medium", "High"].includes(opts.obj.frm && opts.obj.frm.doc.priority
-						? opts.obj.frm.doc.priority : 'Medium')
-				},
-			],
-			primary_action: function() { frappe.ui.add_assignment(opts, this) },
-			primary_action_label: __("Add")
-		})
-		$.extend(me, dialog);
+	init: function(opts) {
+		$.extend(this, opts);
 
-		me.dialog = dialog;
-
-		me.dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
-
-		var myself = me.dialog.get_input("myself").on("click", function() {
-			me.toggle_myself(this);
-		});
-		me.toggle_myself(myself);
+		this.make();
+		this.set_description_from_doc();
 	},
-	toggle_myself: function(myself) {
-		var me = this;
-		if($(myself).prop("checked")) {
-			me.dialog.set_value("assign_to", frappe.session.user);
-			me.dialog.get_field("notify").$wrapper.toggle(false);
-			me.dialog.get_field("assign_to").$wrapper.toggle(false);
-		} else {
-			me.dialog.set_value("assign_to", "");
-			me.dialog.get_field("assign_to").$wrapper.toggle(true);
-		}
-	},
+	make: function() {
+		let me = this;
 
-});
+		me.dialog = new frappe.ui.Dialog({
+			title: __('Add to ToDo'),
+			fields: me.get_fields(),
+			primary_action_label: __("Add"),
+			primary_action: function() {
+				let args = me.dialog.get_values();
 
-frappe.ui.add_assignment = function(opts, dialog) {
-	var assign_to = dialog.fields_dict.assign_to.get_value();
-	var args = dialog.get_values();
-	if(args && assign_to) {
-		dialog.set_message('Assigning...');
-		return frappe.call({
-			method: opts.method,
-			args: $.extend(args, {
-				doctype: opts.doctype,
-				name: opts.docname,
-				assign_to: assign_to,
-				bulk_assign:  opts.bulk_assign || false,
-				re_assign: opts.re_assign || false
-			}),
-			btn: dialog.get_primary_btn(),
-			callback: function(r) {
-				if(!r.exc) {
-					if(opts.callback){
-						opts.callback(r);
-					}
-					dialog && dialog.hide();
-				} else {
-					dialog.clear_message();
+				if (args && args.assign_to) {
+					me.dialog.set_message("Assigning...");
+
+					frappe.call({
+						method: me.method,
+						args: $.extend(args, {
+							doctype: me.doctype,
+							name: me.docname,
+							assign_to: args.assign_to,
+							bulk_assign: me.bulk_assign || false,
+							re_assign: me.re_assign || false
+						}),
+						btn: me.dialog.get_primary_btn(),
+						callback: function(r) {
+							if (!r.exc) {
+								if (me.callback) {
+									me.callback(r);
+								}
+								me.dialog && me.dialog.hide();
+							} else {
+								me.dialog.clear_message();
+							}
+						},
+					});
 				}
 			},
 		});
+	},
+	assign_to_me: function() {
+		let me = this;
+		let assign_to = [];
+
+		if (me.dialog.get_value("assign_to_me")) {
+			assign_to.push(frappe.session.user);
+		}
+
+		me.dialog.set_value("assign_to", assign_to);
+	},
+	set_description_from_doc: function() {
+		let me = this;
+
+		if (me.frm && me.frm.meta.title_field) {
+			me.dialog.set_value("description", me.frm.doc[me.frm.meta.title_field]);
+		}
+	},
+	get_fields: function() {
+		let me = this;
+
+		return [
+			{
+				label: __("Assign to me"),
+				fieldtype: 'Check',
+				fieldname: 'assign_to_me',
+				default: 0,
+				onchange: () => me.assign_to_me()
+			},
+			{
+				fieldtype: 'MultiSelectPills',
+				fieldname: 'assign_to',
+				label: __("Assign To"),
+				reqd: true,
+				get_data: function(txt) {
+					return frappe.db.get_link_options("User", txt, {user_type: "System User", enabled: 1});
+				}
+			},
+			{
+				label: __("Comment"),
+				fieldtype: 'Small Text',
+				fieldname: 'description'
+			},
+			{
+				fieldtype: 'Section Break'
+			},
+			{
+				fieldtype: 'Column Break'
+			},
+			{
+				label: __("Complete By"),
+				fieldtype: 'Date',
+				fieldname: 'date'
+			},
+			{
+				fieldtype: 'Column Break'
+			},
+			{
+				label: __("Priority"),
+				fieldtype: 'Select',
+				fieldname: 'priority',
+				options: [
+					{
+						value: 'Low',
+						label: __('Low')
+					},
+					{
+						value: 'Medium',
+						label: __('Medium')
+					},
+					{
+						value: 'High',
+						label: __('High')
+					}
+				],
+				// Pick up priority from the source document, if it exists and is available in ToDo
+				default: ["Low", "Medium", "High"].includes(me.frm && me.frm.doc.priority ? me.frm.doc.priority : 'Medium')
+			}
+		];
 	}
-}
+});
+
+
+frappe.ui.form.AssignmentDialog = class {
+	constructor(opts) {
+		this.frm = opts.frm;
+		this.assignments = opts.assignments;
+		this.make();
+	}
+
+	make() {
+		this.dialog = new frappe.ui.Dialog({
+			title: __('Assignments'),
+			size: 'small',
+			no_focus: true,
+			fields: [{
+				'label': __('Assign a user'),
+				'fieldname': 'user',
+				'fieldtype': 'Link',
+				'options': 'User',
+				'change': () => {
+					let value = this.dialog.get_value('user');
+					if (value && !this.assigning) {
+						this.assigning = true;
+						this.dialog.set_df_property('user', 'read_only', 1);
+						this.dialog.set_df_property('user', 'description', __('Assigning...'));
+						this.add_assignment(value).then(() => {
+							this.dialog.set_value('user', null);
+						}).finally(() => {
+							this.dialog.set_df_property('user', 'description', null);
+							this.dialog.set_df_property('user', 'read_only', 0);
+							this.assigning = false;
+						});
+					}
+				}
+			}, {
+				'fieldtype': 'HTML',
+				'fieldname': 'assignment_list'
+			}]
+		});
+
+		this.assignment_list = $(this.dialog.get_field('assignment_list').wrapper);
+		this.assignment_list.removeClass('frappe-control');
+
+		this.assignments.forEach(assignment => {
+			this.update_assignment(assignment);
+		});
+		this.dialog.show();
+	}
+	render(assignments) {
+		this.frm && this.frm.assign_to.render(assignments);
+	}
+	add_assignment(assignment) {
+		return frappe.xcall('frappe.desk.form.assign_to.add', {
+			doctype: this.frm.doctype,
+			name: this.frm.docname,
+			assign_to: [assignment],
+		}).then((assignments) => {
+			this.update_assignment(assignment);
+			this.render(assignments);
+		});
+	}
+	remove_assignment(assignment) {
+		return frappe.xcall('frappe.desk.form.assign_to.remove', {
+			doctype: this.frm.doctype,
+			name: this.frm.docname,
+			assign_to: assignment,
+		});
+	}
+	update_assignment(assignment) {
+		const in_the_list = this.assignment_list.find(`[data-user="${assignment}"]`).length;
+		if (!in_the_list) {
+			this.assignment_list.append(this.get_assignment_row(assignment));
+		}
+	}
+	get_assignment_row(assignment) {
+		let row = $(`
+			<div class="dialog-assignment-row" data-user="${assignment}">
+				<span>
+					${frappe.avatar(assignment)}
+					${frappe.user.full_name(assignment)}
+				</span>
+			</div>
+		`);
+
+		if (assignment === frappe.session.user || this.frm.perm[0].write) {
+			row.append(`
+				<span class="remove-btn cursor-pointer">
+					${frappe.utils.icon('close')}
+				</span>
+			`);
+			row.find('.remove-btn').click(() => {
+				this.remove_assignment(assignment).then((assignments) => {
+					row.remove();
+					this.render(assignments);
+				});
+			});
+		}
+		return row;
+	}
+};

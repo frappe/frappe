@@ -1,0 +1,37 @@
+.translation-item {
+	font-size: 12px;
+	padding: 12px 15px;
+	min-height: 40px;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+.translation-item:hover {
+	background-color: #fafbfc;
+}
+.translation-item.active {
+	background-color: #fffce7;
+}
+
+.translation-edit-section {
+	height: 100%;
+	overflow-y: scroll;
+	padding: 0px;
+}
+
+.translation-tool {
+	display: flex;
+	width: 100%;
+	padding: 0;
+	height: 72vh;
+}
+
+.left-side {
+	padding: 0px;
+	height: 100%;
+	overflow-y: scroll;
+}
+
+.contributed-translation {
+	padding: 0.5rem 0;
+}

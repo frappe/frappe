@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2014-09-01 14:14:14.292173",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -17,6 +18,10 @@
   "options",
   "max_length",
   "max_value",
+  "property_depends_on_section",
+  "mandatory_depends_on",
+  "column_break_16",
+  "read_only_depends_on",
   "section_break_6",
   "description",
   "column_break_8",
@@ -34,7 +39,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Fieldtype",
-   "options": "Attach\nAttach Image\nCheck\nCurrency\nData\nDate\nDatetime\nFloat\nHTML\nInt\nLink\nRating\nSelect\nSmall Text\nText\nText Editor\nTable\nSection Break\nColumn Break"
+   "options": "Attach\nAttach Image\nCheck\nCurrency\nData\nDate\nDatetime\nDuration\nFloat\nHTML\nInt\nLink\nRating\nSelect\nSmall Text\nText\nText Editor\nTable\nSection Break\nColumn Break"
   },
   {
    "fieldname": "label",
@@ -116,10 +121,32 @@
    "fieldname": "default",
    "fieldtype": "Data",
    "label": "Default"
+  },
+  {
+   "fieldname": "property_depends_on_section",
+   "fieldtype": "Section Break",
+   "label": "Property Depends On"
+  },
+  {
+   "fieldname": "mandatory_depends_on",
+   "fieldtype": "Code",
+   "label": "Mandatory Depends On",
+   "options": "JS"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "read_only_depends_on",
+   "fieldtype": "Code",
+   "label": "Read Only Depends On",
+   "options": "JS"
   }
  ],
  "istable": 1,
- "modified": "2019-06-07 12:17:10.547133",
+ "links": [],
+ "modified": "2020-11-10 23:20:44.354862",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Field",

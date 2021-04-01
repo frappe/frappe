@@ -8,8 +8,8 @@ import re
 import redis
 import json
 import os
-from bs4 import BeautifulSoup
 from frappe.utils import cint, strip_html_tags
+from frappe.utils.html_utils import unescape_html
 from frappe.model.base_document import get_controller
 from six import text_type
 
@@ -81,10 +81,10 @@ def rebuild_for_doctype(doctype):
 		return filters
 
 	meta = frappe.get_meta(doctype)
-	
+
 	if cint(meta.issingle) == 1:
 		return
-	
+
 	if cint(meta.istable) == 1:
 		parent_doctypes = frappe.get_all("DocField", fields="parent", filters={
 			"fieldtype": ["in", frappe.model.table_fields],
@@ -274,6 +274,10 @@ def update_global_search(doc):
 		sync_value_in_queue(value)
 
 def update_global_search_for_all_web_pages():
+	if frappe.conf.get('disable_global_search'):
+		return
+
+	print('Update global search for all web pages...')
 	routes_to_index = get_routes_to_index()
 	for route in routes_to_index:
 		add_route_to_global_search(route)
@@ -305,6 +309,7 @@ def get_routes_to_index():
 
 
 def add_route_to_global_search(route):
+	from bs4 import BeautifulSoup
 	from frappe.website.render import render_page
 	from frappe.utils import set_request
 	frappe.set_user('Guest')
@@ -341,11 +346,8 @@ def get_formatted_value(value, field):
 	:return:
 	"""
 
-	from six.moves.html_parser import HTMLParser
-
 	if getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]:
-		h = HTMLParser()
-		value = h.unescape(frappe.safe_decode(value))
+		value = unescape_html(frappe.safe_decode(value))
 		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', text_type(value))[0])
 		value = ' '.join(value.split())
 	return field.label + " : " + strip_html_tags(text_type(value))
@@ -506,15 +508,13 @@ def web_search(text, scope=None, start=0, limit=20):
 		mariadb_conditions = postgres_conditions = ' '.join([published_condition, scope_condition])
 
 		# https://mariadb.com/kb/en/library/full-text-index-overview/#in-boolean-mode
-		text = '"{}"'.format(text)
-		mariadb_conditions += 'MATCH(`content`) AGAINST (%(text)s IN BOOLEAN MODE)'
-		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY(%(text)s)'
+		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
+		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
 
 		values = {
 			"scope": "".join([scope, "%"]) if scope else '',
 			"limit": limit,
-			"start": start,
-			"text": text
+			"start": start
 		}
 
 		result = frappe.db.multisql({

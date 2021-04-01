@@ -21,5 +21,5 @@ import './commands';
 // require('./commands')
 
 Cypress.Cookies.defaults({
-	whitelist: 'sid'
+	preserve: 'sid'
 });

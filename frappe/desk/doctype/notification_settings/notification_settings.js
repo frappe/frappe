@@ -2,11 +2,18 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Notification Settings', {
-	onload: () => {
+	onload: (frm) => {
 		frappe.breadcrumbs.add({
 			label: __('Settings'),
 			route: '#modules/Settings',
 			type: 'Custom'
+		});
+		frm.set_query('subscribed_documents', () => {
+			return {
+				filters: {
+					istable: 0
+				}
+			};
 		});
 	},
 

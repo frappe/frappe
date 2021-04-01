@@ -108,7 +108,7 @@ def create_plan():
 		'connector_name': 'Local Connector',
 		'connector_type': 'Frappe',
 		# connect to same host.
-		'hostname': frappe.conf.host_name,
+		'hostname': frappe.conf.host_name or frappe.utils.get_site_url(frappe.local.site),
 		'username': 'Administrator',
-		'password': 'admin'
+		'password': frappe.conf.get("admin_password") or 'admin'
 	}).insert(ignore_if_duplicate=True)

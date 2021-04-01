@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Built on Frappe. https://frappe.io/ -->
+<!-- Built on Frappe. https://frappeframework.com/ -->
 <html lang="en">
 <head>
 	<meta charset="utf-8">
@@ -10,37 +10,43 @@
 		{% include "templates/includes/meta_block.html" %}
 	{% endblock %}
 
-	<title>{% block title %} {{ title | striptags }} {% endblock %}</title>
+	<title>{% block title %}{{ title | striptags }}{% endblock %}</title>
 
 	{% block favicon %}
 	<link
 		rel="shortcut icon"
-		href="{{ (favicon or "/assets/frappe/images/favicon.png") | abs_url }}"
+		href="{{ (favicon or "/assets/frappe/images/frappe-favicon.svg") | abs_url }}"
 		type="image/x-icon"
 	>
 	{% endblock %}
+
+	<link rel="canonical" href="{{ canonical }}">
 
 	{%- block head -%}
 		{% if head_html is defined -%}
 		{{ head_html or "" }}
 		{%- endif %}
 
-		{% if theme.theme_url %}
+		{%- if theme.name != 'Standard' -%}
 		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
-		{% else %}
-		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
+		{%- else -%}
+		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css?ver={{ build_version }}">
+		{%- endif -%}
 
 		{%- for link in web_include_css %}
-		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
+		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}?ver={{ build_version }}">
 		{%- endfor -%}
-		{% endif %}
 	{%- endblock -%}
 
 	{%- block head_include %}
 		{{ head_include or "" }}
 	{% endblock -%}
 
-	{%- block style %}{%- endblock -%}
+	{%- block style %}
+		{% if colocated_css -%}
+			<style>{{ colocated_css }}</style>
+		{%- endif %}
+	{%- endblock -%}
 
 	<script>
 		window.frappe = {};
@@ -49,10 +55,11 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
-		window.socketio_port = {{ frappe.socketio_port }};
-    </script>
+		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
+	</script>
 </head>
-<body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {% endif -%}>
+<body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {% endif -%} class="{{ body_class or ''}}">
+	{% include "public/icons/timeless/symbol-defs.svg" %}
 	{%- block banner -%}
 		{% include "templates/includes/banner_extension.html" ignore missing %}
 
@@ -62,11 +69,13 @@
 	{%- endblock -%}
 
 	{%- block navbar -%}
-		{%- if navbar_content -%}
-			{{ navbar_content }}
-		{%- else -%}
-			{% include "templates/includes/navbar/navbar.html" %}
-		{%- endif -%}
+		{{ web_block(
+			navbar_template or 'Standard Navbar',
+			values=_context_dict,
+			add_container=0,
+			add_top_padding=0,
+			add_bottom_padding=0,
+		) }}
 	{%- endblock -%}
 
 	{% block content %}
@@ -74,25 +83,31 @@
 	{% endblock %}
 
 	{%- block footer -%}
-		{%- if footer_content -%}
-			{{ footer_content }}
-		{%- else -%}
-			{% include "templates/includes/footer/footer.html" %}
-		{%- endif -%}
+		{{ web_block(
+			footer_template or 'Standard Footer',
+			values=_context_dict,
+			add_container=0,
+			add_top_padding=0,
+			add_bottom_padding=0
+		) }}
 	{%- endblock -%}
 
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
-	<script type="text/javascript" src="/assets/js/frappe-web.min.js"></script>
+	<script type="text/javascript" src="/assets/js/frappe-web.min.js?ver={{ build_version }}"></script>
 	<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
 	{% endblock %}
 
 	{%- for link in web_include_js %}
-	<script type="text/javascript" src="{{ link | abs_url }}"></script>
+	<script type="text/javascript" src="{{ link | abs_url }}?ver={{ build_version }}"></script>
 	{%- endfor -%}
 
-	{%- block script %}{%- endblock %}
+	{%- block script %}
+		{% if colocated_js -%}
+			<script>{{ colocated_js }}</script>
+		{%- endif %}
+	{%- endblock %}
 	<!-- csrf_token -->
 	{%- block body_include %}{{ body_include or "" }}{% endblock -%}
 </body>

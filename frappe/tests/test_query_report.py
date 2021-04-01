@@ -23,7 +23,11 @@ class TestQueryReport(unittest.TestCase):
 
 		# Create mock data
 		data = frappe._dict()
-		data.columns = ["column_a", "column_b", "column_c"]
+		data.columns = [
+			{"label": "Column A", "fieldname": "column_a"},
+			{"label": "Column B", "fieldname": "column_b", "width": 150},
+			{"label": "Column C", "fieldname": "column_c", "width": 100}
+		]
 		data.result = [
 			[1.0, 3.0, 5.5],
 			{"column_a": 22.1, "column_b": 21.8, "column_c": 30.2},
@@ -35,10 +39,12 @@ class TestQueryReport(unittest.TestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data = build_xlsx_data(columns, data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths = build_xlsx_data(columns, data, visible_idx, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
+		# column widths are divided by 10 to match the scale that is supported by openpyxl
+		self.assertListEqual(column_widths, [0, 15, 10])
 
 		for row in xlsx_data:
 			self.assertEqual(type(row), list)

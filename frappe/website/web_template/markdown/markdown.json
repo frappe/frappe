@@ -1,0 +1,30 @@
+{
+ "creation": "2020-04-19 15:56:20.833205",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "content",
+   "fieldtype": "Markdown Editor",
+   "label": "Content",
+   "options": "Markdown",
+   "reqd": 0
+  },
+  {
+   "default": "Left",
+   "fieldname": "align",
+   "fieldtype": "Select",
+   "label": "Align",
+   "options": "Left\nCenter",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-10-26 17:39:47.302460",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Markdown",
+ "owner": "Administrator",
+ "standard": 1,
+ "type": "Section"
+}

@@ -9,7 +9,7 @@ import frappe
 import os
 from frappe import _
 from frappe.model.document import Document
-from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size, get_chunk_site
 from frappe.integrations.utils import make_post_request
 from frappe.utils import (cint, get_request_site_address,
 	get_files_path, get_backups_path, get_url, encode)
@@ -56,7 +56,8 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)
 			if did_not_upload: raise Exception
 
-			send_email(True, "Dropbox", "Dropbox Settings", "send_notifications_to")
+			if cint(frappe.db.get_value("Dropbox Settings", None, "send_email_for_successful_backup")):
+				send_email(True, "Dropbox", "Dropbox Settings", "send_notifications_to")
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
@@ -90,16 +91,18 @@ def backup_to_dropbox(upload_db_backup=True):
 		dropbox_settings['access_token'] = access_token['oauth2_token']
 		set_dropbox_access_token(access_token['oauth2_token'])
 
-	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
+	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'], timeout=None)
 
 	if upload_db_backup:
 		if frappe.flags.create_new_backup:
 			backup = new_backup(ignore_files=True)
 			filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
+			site_config = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_conf))
 		else:
-			filename = get_latest_backup_file()
+			filename, site_config = get_latest_backup_file()
 
 		upload_file_to_dropbox(filename, "/database", dropbox_client)
+		upload_file_to_dropbox(site_config, "/database", dropbox_client)
 
 		# delete older databases
 		if dropbox_settings['no_of_backups']:
@@ -128,12 +131,10 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 
 	for f in frappe.get_all("File", filters={"is_folder": 0, "is_private": is_private,
 		"uploaded_to_dropbox": 0}, fields=['file_url', 'name', 'file_name']):
-		if is_private:
-			filename = f.file_url.replace('/private/files/', '')
-		else:
-			if not f.file_url:
-				f.file_url = '/files/' + f.file_name;
-			filename = f.file_url.replace('/files/', '')
+		if not f.file_url:
+			continue
+		filename = f.file_url.rsplit('/', 1)[-1]
+
 		filepath = os.path.join(path, filename)
 
 		if filename in ignore_list:
@@ -164,8 +165,9 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 		return
 
 	create_folder_if_not_exists(folder, dropbox_client)
-	chunk_size = 15 * 1024 * 1024
 	file_size = os.path.getsize(encode(filename))
+	chunk_size = get_chunk_site(file_size)
+
 	mode = (dropbox.files.WriteMode.overwrite)
 
 	f = open(encode(filename), 'rb')

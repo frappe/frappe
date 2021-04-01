@@ -1,21 +1,24 @@
 {
+ "actions": [],
  "creation": "2019-09-27 12:46:50.165135",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "local_fieldname",
+  "mapping_type",
+  "mapping",
+  "remote_value_filters",
+  "column_break_5",
   "remote_fieldname",
-  "is_child_table",
-  "child_table_mapping"
+  "default_value"
  ],
  "fields": [
   {
    "fieldname": "remote_fieldname",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Remote Fieldname",
-   "reqd": 1
+   "label": "Remote Fieldname"
   },
   {
    "fieldname": "local_fieldname",
@@ -25,21 +28,39 @@
    "reqd": 1
   },
   {
-   "default": "0",
-   "fieldname": "is_child_table",
-   "fieldtype": "Check",
-   "label": "Is Child Table"
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.is_child_table == 1",
-   "fieldname": "child_table_mapping",
+   "fieldname": "default_value",
+   "fieldtype": "Data",
+   "label": "Default Value"
+  },
+  {
+   "fieldname": "mapping_type",
+   "fieldtype": "Select",
+   "label": "Mapping Type",
+   "options": "\nChild Table\nDocument"
+  },
+  {
+   "depends_on": "eval:doc.mapping_type;",
+   "fieldname": "mapping",
    "fieldtype": "Link",
-   "label": "Child Table Mapping",
+   "label": "Mapping",
    "options": "Document Type Mapping"
+  },
+  {
+   "depends_on": "eval:doc.mapping_type==\"Document\";",
+   "fieldname": "remote_value_filters",
+   "fieldtype": "Code",
+   "label": "Remote Value Filters",
+   "mandatory_depends_on": "eval:doc.mapping_type===\"Document\";",
+   "options": "JSON"
   }
  ],
  "istable": 1,
- "modified": "2019-10-09 08:26:06.457122",
+ "links": [],
+ "modified": "2020-03-19 13:56:36.223799",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Document Type Field Mapping",

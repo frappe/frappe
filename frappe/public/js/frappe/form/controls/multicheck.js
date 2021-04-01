@@ -5,8 +5,10 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 
 	make() {
 		this._super();
-		this.$label = $(`<label class="control-label">${this.df.label || ''}</label>`).appendTo(this.wrapper);
-		this.$load_state = $('<div class="load-state text-muted small">' + __("Loading") + '...</div>');
+		if (this.df.label) {
+			this.$label = $(`<label class="control-label">${this.df.label}</label>`).appendTo(this.wrapper);
+		}
+		this.$load_state = $(`<div class="load-state text-muted small">${__("Loading")}...</div>`);
 		this.$select_buttons = this.get_select_buttons().appendTo(this.wrapper);
 		this.$load_state.appendTo(this.wrapper);
 
@@ -104,15 +106,16 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 
 	setup_select_all() {
 		this.$select_buttons.show();
-		let select_all = (deselect=false) => {
-			$(this.wrapper).find(`:checkbox`).prop("checked", deselect).trigger('click');
-		};
 		this.$select_buttons.find('.select-all').on('click', () => {
-			select_all();
+			this.select_all();
 		});
 		this.$select_buttons.find('.deselect-all').on('click', () => {
-			select_all(true);
+			this.select_all(true);
 		});
+	},
+
+	select_all(deselect=false) {
+		$(this.wrapper).find(`:checkbox`).prop("checked", deselect).trigger('click');
 	},
 
 	select_options(selected_options) {
@@ -140,11 +143,11 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		return $(`
 			<div class="checkbox unit-checkbox col-sm-${column_size}">
 				<label title="${option.description || ''}">
-				<input type="checkbox" data-unit="${option.value}">
-				</input>
-				<span class="label-area small" data-unit="${option.value}">${__(option.label)}</span>
+					<input type="checkbox" data-unit="${option.value}"></input>
+					<span class="label-area" data-unit="${option.value}">${__(option.label)}</span>
 				</label>
-			</div>`);
+			</div>
+		`);
 	},
 
 	get_select_buttons() {
@@ -154,7 +157,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 				${__("Select All")}
 			</button>
 			<button class="btn btn-xs btn-default deselect-all">
-			${__("Unselect All")}
+				${__("Unselect All")}
 			</button>
 		</div>
 		`);

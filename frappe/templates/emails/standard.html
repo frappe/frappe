@@ -8,11 +8,24 @@
 </head>
 
 <body>
-	<table class="body-table {% if header %}has-header{% endif %}" border="0" cellpadding="0" cellspacing="0" height="100%" width="100%">
+	<table class="body-table {% if header or with_container %} with-container {% endif %}" cellpadding="0" cellspacing="0">
 		<tr>
-			<td align="center" valign="top">
+			<td class="body-content" align="center" valign="top">
 				<table class="email-container" border="0" cellpadding="0" cellspacing="0"
-					width="{% if header %}600{% else %}100%{% endif %}">
+					width="{% if header %} 600 {% else %} 100% {% endif %}">
+					{% if brand_logo %}
+					<tr>
+						<td width="40" align="left" valign="middle">
+							<a href="{{ site_url or 'https://frappeframework.com' }}">
+								<img
+									src="{{ brand_logo or '/assets/frappe/images/frappe-framework-logo.png' }}"
+									height="40"
+									class="brand-logo"
+								/>
+							</a>
+						</td>
+					</tr>
+					{% endif %}
 					<tr>
 						<td valign="top">
 							{{ header or "" }}
@@ -22,12 +35,10 @@
 						<td valign="top">
 							<table class="email-body" border="0" cellpadding="0" cellspacing="0" width="100%">
 								<tr>
-									<td width="15"></td>
 									<td valign="top">
 										<p>{{ content }}</p>
-										<p>{{ signature }}</p>
+										<p class="signature">{{ signature }}</p>
 									</td>
-									<td width="15"></td>
 								</tr>
 							</table>
 						</td>

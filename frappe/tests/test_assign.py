@@ -60,7 +60,7 @@ class TestAssign(unittest.TestCase):
 
 def assign(doc, user):
 	return frappe.desk.form.assign_to.add({
-		"assign_to": user,
+		"assign_to": [user],
 		"doctype": doc.doctype,
 		"name": doc.name,
 		"description": 'test',

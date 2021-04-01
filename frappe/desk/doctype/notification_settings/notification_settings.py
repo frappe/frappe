@@ -28,6 +28,9 @@ def is_email_notifications_enabled_for_type(user, notification_type):
 	if not is_email_notifications_enabled(user):
 		return False
 
+	if notification_type == 'Alert':
+		return False
+
 	fieldname = 'enable_email_' + frappe.scrub(notification_type)
 	enabled = frappe.db.get_value('Notification Settings', user, fieldname)
 	if enabled is None:
@@ -39,7 +42,11 @@ def create_notification_settings(user):
 		_doc = frappe.new_doc('Notification Settings')
 		_doc.name = user
 		_doc.insert(ignore_permissions=True)
-		frappe.db.commit()
+
+
+def toggle_notifications(user, enable=False):
+	if frappe.db.exists("Notification Settings", user):
+		frappe.db.set_value("Notification Settings", user, 'enabled', enable)
 
 
 @frappe.whitelist()

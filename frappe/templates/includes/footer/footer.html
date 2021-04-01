@@ -1,39 +1,12 @@
 <footer class="web-footer">
-	<section class="footer-links">
-		<div class="container">
-			<div class="row">
-				<div class="col-sm-6 text-left">
-					{% if footer_items -%}
-					<div class="row">
-						{% include "templates/includes/footer/footer_items.html" %}
-					</div>
-					{% endif %}
-				</div>
+	<div class="container">
+		{% include "templates/includes/footer/footer_logo_extension.html" %}
 
-				<div class="col-sm-6 text-right">
-					{% block extension %}
-						{% include "templates/includes/footer/footer_extension.html" %}
-					{% endblock %}
-				</div>
-			</div>
-			<div class="row footer-bottom-line mt-5">
-				<div class="text-muted small col-sm-6 col-12">
-					{% if copyright %}
-						&copy; {{ copyright }}
-					{% endif %}
-					{% if footer_address %}
-						{% if copyright %}<br>{% endif %}
-						{{ footer_address }}
-					{% endif %}
-				</div>
-				{# powered #}
-				<div class="text-muted small col-sm-6 col-12
-					text-right footer-powered">
-					{% block powered %}
-						{% include "templates/includes/footer/footer_powered.html" %}
-					{% endblock %}
-				</div>
-			</div>
-		</div>
-	</section>
+		{% if footer_items -%}
+			{% include "templates/includes/footer/footer_grouped_links.html" %}
+		{% endif %}
+
+		{% include "templates/includes/footer/footer_links.html" %}
+		{% include "templates/includes/footer/footer_info.html" %}
+	</div>
 </footer>

@@ -4,7 +4,7 @@ const doctype_name = datetime_doctype.name;
 context('Control Date, Time and DateTime', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/website');
 		return cy.insert_doc('DocType', datetime_doctype, true);
 	});
 
@@ -42,7 +42,7 @@ context('Control Date, Time and DateTime', () => {
 					.should('be.visible');
 				cy.get(
 					'.datepickers-container .datepicker.active .datepicker--cell-day.-current-'
-				).click();
+				).click({ force: true });
 
 				cy.window()
 					.its('cur_frm')

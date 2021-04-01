@@ -4,7 +4,7 @@
 <li {% if child.label %}data-label="{{ child.label }}" {% endif %}
  class="{% if child.class %} {{ child.class }} {% endif %} logged-in" >
 	{%- if child.url -%}
-	<a href="{{ child.url | abs_url }}" {{ child.target or '' }}
+	<a href="{{ child.url | abs_url }}" {% if child.open_in_new_tab %} target="_blank" {% endif %}
 	rel="nofollow">
 	{{ child.label }}
 	</a>

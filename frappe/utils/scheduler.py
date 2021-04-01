@@ -7,16 +7,23 @@ Events:
 	monthly
 	weekly
 """
+# imports - compatibility imports
+from __future__ import print_function, unicode_literals
 
-from __future__ import unicode_literals, print_function
+# imports - standard imports
+import os
+import time
 
-import frappe, os, time
+# imports - third party imports
 import schedule
-from frappe.utils import now_datetime, get_datetime
-from frappe.utils import get_sites
-from frappe.installer import update_site_config
+
+# imports - module imports
+import frappe
 from frappe.core.doctype.user.user import STANDARD_USERS
+from frappe.installer import update_site_config
+from frappe.utils import get_sites, now_datetime
 from frappe.utils.background_jobs import get_jobs
+
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -48,9 +55,8 @@ def enqueue_events_for_all_sites():
 
 def enqueue_events_for_site(site):
 	def log_and_raise():
-		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site) +
-			'\n' + frappe.get_traceback())
-		raise # pylint: disable=misplaced-bare-raise
+		error_message = 'Exception in Enqueue Events for Site {0}\n{1}'.format(site, frappe.get_traceback())
+		frappe.logger("scheduler").error(error_message)
 
 	try:
 		frappe.init(site=site)
@@ -60,10 +66,10 @@ def enqueue_events_for_site(site):
 
 		enqueue_events(site=site)
 
-		frappe.logger(__name__).debug('Queued events for site {0}'.format(site))
+		frappe.logger("scheduler").debug('Queued events for site {0}'.format(site))
 	except frappe.db.OperationalError as e:
 		if frappe.db.is_access_denied(e):
-			frappe.logger(__name__).debug('Access denied for site {0}'.format(site))
+			frappe.logger("scheduler").debug('Access denied for site {0}'.format(site))
 		else:
 			log_and_raise()
 	except:

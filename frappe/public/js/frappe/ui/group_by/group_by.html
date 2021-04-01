@@ -1,48 +1,53 @@
-<div class="groupby-box" style="display: none">
+<div class="group-by-box">
+	<div class="visible-xs flex justify-flex-end">
+		<span class="remove-group-by">
+			{{ __("Remove") }}
+		</span>
+	</div>
 	<div class="list_groupby row">
-		<div class="col-sm-4 form-group ui-front">
-			<select class="groupby form-control">
+		<div class="col-sm-8 form-group">
+			<select class="group-by form-control input-xs">
 				<option value="" disabled selected>{{ __("Select Group By...") }}</option>
-				{% for (var parent_doctype in groupby_conditions) { %}
-					{% for (var val in groupby_conditions[parent_doctype]) { %}
+				{% for (var parent_doctype in group_by_conditions) { %}
+					{% for (var val in group_by_conditions[parent_doctype]) { %}
 						{% if (parent_doctype !== doctype) { %}
-						<option 
+						<option
 							data-doctype="{{parent_doctype}}"
-							value="{{groupby_conditions[parent_doctype][val].fieldname}}">
-							{{ groupby_conditions[parent_doctype][val].label }}
-							({{ parent_doctype }})
+							value="{{group_by_conditions[parent_doctype][val].fieldname}}"
+						>
+							{{ __(group_by_conditions[parent_doctype][val].label) }}
+							({{ __(parent_doctype) }})
 						</option>
 						{% } else { %}
-						<option 
+						<option
 							data-doctype="{{parent_doctype}}"
-							value="{{groupby_conditions[parent_doctype][val].fieldname}}">
-							{{ groupby_conditions[parent_doctype][val].label }}
+							value="{{group_by_conditions[parent_doctype][val].fieldname}}"
+						>
+							{{ __(group_by_conditions[parent_doctype][val].label) }}
 						</option>
 						{% } %}
 					{% } %}
 				{% } %}
 			</select>
 		</div>
-		<div class="col-sm-2 form-group">
-			<select class="aggregate-function form-control">
+		<div class="col-sm-3 form-group">
+			<select class="aggregate-function form-control input-xs">
 				{% for condition in aggregate_function_conditions %}
-				<option value="{{condition.name}}">{{ condition.label }}</option>
+				<option value="{{condition.name}}">{{ __(condition.label) }}</option>
 				{% endfor %}
 			</select>
 		</div>
-		<div class="col-sm-6 col-xs-12">
-			<div class="groupby-field pull-left">
-				<select class="aggregate-on form-control" style="display: none">
-					<option value="" disabled selected>{{ __("Select Field...") }}</option>
-				</select>
-			</div>
-			<div class="groupby-actions pull-left">
-				<a class="small grey remove-groupby pull-left">
-					<i class="octicon octicon-trashcan visible-xs"></i>
-					<span class="hidden-xs">{{ __("Remove") }}</span>
-				</a>
-			</div>
-			<div class="clearfix"></div>
+		<div class="col-sm-4 col-xs-12" style="display: none">
+			<select class="aggregate-on form-control input-xs">
+				<option value="" disabled selected>{{ __("Select Field...") }}</option>
+			</select>
+		</div>
+		<div class="groupby-actions pull-left col-sm-1 hidden-xs">
+			<span class="remove-group-by">
+				<svg class="icon icon-sm">
+					<use xlink:href="#icon-close"></use>
+				</svg>
+			</span>
 		</div>
 	</div>
 </div>

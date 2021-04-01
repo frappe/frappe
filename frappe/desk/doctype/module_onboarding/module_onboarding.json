@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2020-04-24 13:58:14.948024",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "subtitle",
+  "module",
+  "allow_roles",
+  "column_break_4",
+  "success_message",
+  "documentation_url",
+  "is_complete",
+  "section_break_6",
+  "steps"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "reqd": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "success_message",
+   "fieldtype": "Data",
+   "label": "Success Message",
+   "reqd": 1
+  },
+  {
+   "fieldname": "documentation_url",
+   "fieldtype": "Data",
+   "label": "Documentation URL",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_complete",
+   "fieldtype": "Check",
+   "label": "Is Complete",
+   "read_only": 1
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "Onboarding Step Map",
+   "reqd": 1
+  },
+  {
+   "description": "System managers are allowed by default",
+   "fieldname": "allow_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Allow Roles",
+   "options": "Onboarding Permission",
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "modified": "2020-06-08 15:36:04.701049",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Module Onboarding",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

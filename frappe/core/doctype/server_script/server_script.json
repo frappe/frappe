@@ -7,14 +7,17 @@
  "engine": "InnoDB",
  "field_order": [
   "script_type",
-  "disabled",
-  "column_break_3",
   "reference_doctype",
+  "event_frequency",
   "doctype_event",
   "api_method",
   "allow_guest",
+  "column_break_3",
+  "disabled",
   "section_break_8",
-  "script"
+  "script",
+  "help_section",
+  "help_html"
  ],
  "fields": [
   {
@@ -22,17 +25,18 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Script Type",
-   "options": "DocType Event\nScheduler Event\nAPI",
+   "options": "DocType Event\nScheduler Event\nPermission Query\nAPI",
    "reqd": 1
   },
   {
    "fieldname": "script",
    "fieldtype": "Code",
    "label": "Script",
+   "options": "Python",
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.script_type==='DocType Event'",
+   "depends_on": "eval:['DocType Event', 'Permission Query'].includes(doc.script_type)",
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -44,7 +48,7 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
-   "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
+   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -72,10 +76,33 @@
   {
    "fieldname": "section_break_8",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "help_section",
+   "fieldtype": "Section Break",
+   "label": "Help"
+  },
+  {
+   "fieldname": "help_html",
+   "fieldtype": "HTML"
+  },
+  {
+   "depends_on": "eval:doc.script_type == \"Scheduler Event\"",
+   "fieldname": "event_frequency",
+   "fieldtype": "Select",
+   "label": "Event Frequency",
+   "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
+   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long"
   }
  ],
- "links": [],
- "modified": "2020-04-06 11:24:38.161555",
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Scheduled Job Type",
+   "link_fieldname": "server_script"
+  }
+ ],
+ "modified": "2021-02-18 12:36:19.803425",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

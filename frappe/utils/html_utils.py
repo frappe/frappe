@@ -2,12 +2,12 @@ from __future__ import unicode_literals
 import frappe
 import json
 import re
-import bleach
 import bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
-from bs4 import BeautifulSoup
 
 def clean_html(html):
+	import bleach
+
 	if not isinstance(html, string_types):
 		return html
 
@@ -19,6 +19,8 @@ def clean_html(html):
 		strip=True, strip_comments=True)
 
 def clean_email_html(html):
+	import bleach
+
 	if not isinstance(html, string_types):
 		return html
 
@@ -34,13 +36,15 @@ def clean_email_html(html):
 			'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
 			'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
 			'font-size', 'font-weight', 'font-family', 'text-decoration',
-			'line-height', 'text-align', 'vertical-align'
+			'line-height', 'text-align', 'vertical-align', 'display'
 		],
 		protocols=['cid', 'http', 'https', 'mailto', 'data'],
 		strip=True, strip_comments=True)
 
 def clean_script_and_style(html):
 	# remove script and style
+	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(html, 'html5lib')
 	for s in soup(['script', 'style']):
 		s.decompose()
@@ -53,10 +57,16 @@ def sanitize_html(html, linkify=False):
 
 	Does not sanitize JSON, as it could lead to future problems
 	"""
+	import bleach
+	from bs4 import BeautifulSoup
+
 	if not isinstance(html, string_types):
 		return html
 
 	elif is_json(html):
+		return html
+
+	if not bool(BeautifulSoup(html, 'html.parser').find()):
 		return html
 
 	tags = (acceptable_elements + svg_elements + mathml_elements
@@ -65,12 +75,9 @@ def sanitize_html(html, linkify=False):
 	styles = bleach_whitelist.all_styles
 	strip_comments = False
 
-	# retuns html with escaped tags, escaped orphan >, <, etc.
+	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,
 		strip_comments=strip_comments, protocols=['cid', 'http', 'https', 'mailto'])
-
-	if linkify:
-		escaped_html = bleach.linkify(escaped_html, callbacks=[])
 
 	return escaped_html
 
@@ -106,9 +113,8 @@ def get_icon_html(icon, small=False):
 		return "<i class='{icon}'></i>".format(icon=icon)
 
 def unescape_html(value):
-	from six.moves.html_parser import HTMLParser
-	h = HTMLParser()
-	return h.unescape(value)
+	from html import unescape
+	return unescape(value)
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [

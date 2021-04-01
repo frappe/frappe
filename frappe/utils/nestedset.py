@@ -137,10 +137,16 @@ def update_move_node(doc, parent_field):
 	frappe.db.sql("""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s, modified=%s
 		where lft < 0""".format(doc.doctype), (new_diff, new_diff, n))
 
+@frappe.whitelist()
 def rebuild_tree(doctype, parent_field):
 	"""
 		call rebuild_node for all root nodes
 	"""
+
+	# Check for perm if called from client-side
+	if frappe.request and frappe.local.form_dict.cmd == 'rebuild_tree':
+		frappe.only_for('System Manager')
+
 	# get all roots
 	frappe.db.auto_commit_on_many_writes = 1
 

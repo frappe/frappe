@@ -62,11 +62,11 @@
    "label": "URLs"
   }
  ],
- "modified": "2019-11-07 13:21:19.395927",
+ "modified": "2020-09-18 17:26:09.703215",
  "modified_by": "Administrator",
  "module": "Chat",
  "name": "Chat Message",
- "owner": "arjun@gmail.com",
+ "owner": "Administrator",
  "permissions": [
   {
    "create": 1,

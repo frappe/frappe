@@ -112,9 +112,8 @@ $.extend(frappe, {
 			opts.args.cmd = opts.method;
 		}
 
-		// stringify
 		$.each(opts.args, function(key, val) {
-			if(typeof val != "string") {
+			if (typeof val != "string" && val !== null) {
 				opts.args[key] = JSON.stringify(val);
 			}
 		});
@@ -184,10 +183,6 @@ $.extend(frappe, {
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
 				+text+'</div>').appendTo(document.body);
 	},
-	get_sid: function() {
-		var sid = frappe.get_cookie("sid");
-		return sid && sid !== "Guest";
-	},
 	send_message: function(opts, btn) {
 		return frappe.call({
 			type: "POST",
@@ -213,16 +208,14 @@ $.extend(frappe, {
 		});
 	},
 	render_user: function() {
-		var sid = frappe.get_cookie("sid");
-		if(sid && sid!=="Guest") {
+		if (frappe.is_user_logged_in()) {
 			$(".btn-login-area").toggle(false);
 			$(".logged-in").toggle(true);
-			$(".full-name").html(frappe.get_cookie("full_name"));
 			$(".user-image").attr("src", frappe.get_cookie("user_image"));
 
-			$('.user-image-wrapper').html(frappe.avatar(null, 'avatar-small'));
-			$('.user-image-sidebar').html(frappe.avatar(null, 'avatar-small'));
-			$('.user-image-myaccount').html(frappe.avatar(null, 'avatar-large'));
+			$('.user-image-wrapper').html(frappe.avatar(null, 'avatar-medium', null, null, null, true));
+			$('.user-image-sidebar').html(frappe.avatar(null, 'avatar-medium', null, null, null, true));
+			$('.user-image-myaccount').html(frappe.avatar(null, 'avatar-large', null, null, null, true));
 		}
 	},
 	freeze_count: 0,
@@ -324,10 +317,26 @@ $.extend(frappe, {
 		return $(".navbar .search, .sidebar .search");
 	},
 	is_user_logged_in: function() {
-		return frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
+		return frappe.get_cookie("user_id") !== "Guest" && frappe.session.user !== "Guest";
 	},
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
+	},
+	add_link_to_headings: function() {
+		$('.doc-content .from-markdown').find('h2, h3, h4, h5, h6').each((i, $heading) => {
+			let id = $heading.id;
+			let $a = $('<a class="no-underline">')
+				.prop('href', '#' + id)
+				.attr('aria-hidden', 'true')
+				.html(`
+					<svg xmlns="http://www.w3.org/2000/svg" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+						stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link">
+						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+					</svg>
+				`);
+			$($heading).append($a);
+		});
 	},
 	setup_lazy_images: function() {
 		// Use IntersectionObserver to only load images that are visible in the viewport
@@ -370,9 +379,142 @@ $.extend(frappe, {
 	}
 });
 
+frappe.setup_search = function (target, search_scope) {
+	if (typeof target === "string") {
+		target = $(target);
+	}
+
+	let $search_input = $(`<div class="dropdown" id="dropdownMenuSearch">
+			<input type="search" class="form-control" placeholder="Search the docs (Press / to focus)" />
+			<div class="overflow-hidden shadow dropdown-menu w-100" aria-labelledby="dropdownMenuSearch">
+			</div>
+			<div class="search-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor" stroke-width="2" stroke-linecap="round"
+					stroke-linejoin="round"
+					class="feather feather-search">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+			</div>
+		</div>`);
+
+	target.empty();
+	$search_input.appendTo(target);
+
+	// let $dropdown = $search_input.find('.dropdown');
+	let $dropdown_menu = $search_input.find('.dropdown-menu');
+	let $input = $search_input.find('input');
+	let dropdownItems;
+	let offsetIndex = 0;
+
+	$(document).on('keypress', e => {
+		if ($(e.target).is('textarea, input, select')) {
+			return;
+		}
+		if (e.key === '/') {
+			e.preventDefault();
+			$input.focus();
+		}
+	});
+
+	$input.on('input', frappe.utils.debounce(() => {
+		if (!$input.val()) {
+			clear_dropdown();
+			return;
+		}
+
+		frappe.call({
+			method: 'frappe.search.web_search',
+			args: {
+				scope: search_scope || null,
+				query: $input.val(),
+				limit: 5
+			}
+		}).then(r => {
+			let results = r.message || [];
+			let dropdown_html;
+			if (results.length == 0) {
+				dropdown_html = `<div class="dropdown-item">No results found</div>`;
+			} else {
+				dropdown_html = results.map(r => {
+					return `<a class="dropdown-item" href="/${r.path}">
+						<h6>${r.title_highlights || r.title}</h6>
+						<div style="white-space: normal;">${r.content_highlights}</div>
+					</a>`;
+				}).join('');
+			}
+			$dropdown_menu.html(dropdown_html);
+			$dropdown_menu.addClass('show');
+			dropdownItems = $dropdown_menu.find(".dropdown-item");
+		});
+	}, 500));
+
+	$input.on('focus', () => {
+		if (!$input.val()) {
+			clear_dropdown();
+		} else {
+			$input.trigger('input');
+		}
+	});
+
+	$input.keydown(function(e) {
+		// up: 38, down: 40
+		if (e.which == 40) {
+			navigate(0);
+		}
+	});
+
+	$dropdown_menu.keydown(function(e) {
+		// up: 38, down: 40
+		if (e.which == 38) {
+			navigate(-1);
+		} else if (e.which == 40) {
+			navigate(1);
+		} else if (e.which == 27) {
+			setTimeout(() => {
+				clear_dropdown();
+			}, 300);
+		}
+	});
+
+	// Clear dropdown when clicked
+	$(window).click(function() {
+		clear_dropdown();
+	});
+
+	$search_input.click(function(event) {
+		event.stopPropagation();
+	});
+
+	// Navigate the list
+	var navigate = function(diff) {
+		offsetIndex += diff;
+
+		if (offsetIndex >= dropdownItems.length)
+			offsetIndex = 0;
+		if (offsetIndex < 0)
+			offsetIndex = dropdownItems.length - 1;
+		$input.off('blur');
+		dropdownItems.eq(offsetIndex).focus();
+	};
+
+	function clear_dropdown() {
+		offsetIndex = 0;
+		$dropdown_menu.html('');
+		$dropdown_menu.removeClass('show');
+		dropdownItems = undefined;
+	}
+
+	// Remove focus state on hover
+	$dropdown_menu.mouseover(function() {
+		dropdownItems.blur();
+	});
+};
+
 
 // Utility functions
-
 window.valid_email = function(id) {
 	// eslint-disable-next-line
 	// copied regex from frappe/utils.js validate_type
@@ -445,6 +587,7 @@ $(document).on("page-change", function() {
 	frappe.trigger_ready();
 	frappe.bind_filters();
 	frappe.highlight_code_blocks();
+	frappe.add_link_to_headings();
 	frappe.make_navbar_active();
 	// scroll to hash
 	if (window.location.hash) {

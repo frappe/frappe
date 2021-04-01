@@ -24,17 +24,19 @@ export default class Widget {
 		this.in_customize_mode = true;
 		this.action_area.empty();
 
-		options.allow_delete &&
-			this.add_custom_button(
-				'<i class="fa fa-trash" aria-hidden="true"></i>',
-				() => this.delete()
-			);
-
 		options.allow_sorting &&
 			this.add_custom_button(
-				'<i class="fa fa-arrows" aria-hidden="true"></i>',
+				frappe.utils.icon('drag', 'xs'),
 				null,
-				"drag-handle"
+				"drag-handle",
+			);
+
+		options.allow_delete &&
+			this.add_custom_button(
+				frappe.utils.icon('delete', 'xs'),
+				() => this.delete(),
+				"",
+				`${__('Delete')}`
 			);
 
 		if (options.allow_hiding) {
@@ -45,10 +47,12 @@ export default class Widget {
 				this.footer.css("opacity", 0.5);
 			}
 			const classname = this.hidden ? 'fa fa-eye' : 'fa fa-eye-slash';
+			const title = this.hidden ? `${__('Show')}` : `${__('Hide')}`;
 			this.add_custom_button(
 				`<i class="${classname}" aria-hidden="true"></i>`,
 				() => this.hide_or_show(),
-				"show-or-hide-button"
+				"show-or-hide-button",
+				title
 			);
 
 			this.show_or_hide_button = this.action_area.find(
@@ -58,10 +62,23 @@ export default class Widget {
 
 		options.allow_edit &&
 			this.add_custom_button(
-				'<i class="fa fa-pencil" aria-hidden="true"></i>',
+				frappe.utils.icon("edit", "xs"),
 				() => this.edit()
 			);
 
+		if (options.allow_resize) {
+			const title = this.width == 'Full'? `${__('Collapse')}` : `${__('Expand')}`;
+			this.add_custom_button(
+				'<i class="fa fa-expand" aria-hidden="true"></i>',
+				() => this.toggle_width(),
+				"resize-button",
+				title
+			);
+
+			this.resize_button = this.action_area.find(
+				".resize-button"
+			);
+		}
 	}
 
 	make() {
@@ -70,20 +87,25 @@ export default class Widget {
 	}
 
 	make_widget() {
-		this.widget = $(`<div class="widget ${
-			this.hidden ? "hidden" : ""
-		}" data-widget-name=${this.name ? this.name : ''}>
+		this.widget = $(`<div class="widget
+			${ this.hidden ? "hidden" : " " }
+			${ this.shadow ? "widget-shadow" : " " }
+		" data-widget-name="${this.name ? this.name : ''}">
 			<div class="widget-head">
-				<div class="widget-title ellipsis"></div>
+				<div>
+					<div class="widget-title ellipsis"></div>
+					<div class="widget-subtitle"></div>
+				</div>
 				<div class="widget-control"></div>
 			</div>
-		    <div class="widget-body">
+			<div class="widget-body">
 		    </div>
 		    <div class="widget-footer">
 		    </div>
 		</div>`);
 
 		this.title_field = this.widget.find(".widget-title");
+		this.subtitle_field = this.widget.find(".widget-subtitle");
 		this.body = this.widget.find(".widget-body");
 		this.action_area = this.widget.find(".widget-control");
 		this.head = this.widget.find(".widget-head");
@@ -91,13 +113,26 @@ export default class Widget {
 		this.refresh();
 	}
 
-	set_title() {
-		this.title_field[0].innerHTML = this.label;
+	set_title(max_chars) {
+		let base = this.label || this.name;
+		let title = max_chars ? frappe.ellipsis(base, max_chars) : base;
+
+		if (this.icon) {
+			let icon = frappe.utils.icon(this.icon);
+			this.title_field[0].innerHTML = `${icon} <span>${title}</span>`;
+		} else {
+			this.title_field[0].innerHTML = title;
+			if (max_chars) {
+				this.title_field[0].setAttribute('title', this.label);
+			}
+		}
+		this.subtitle && this.subtitle_field.html(this.subtitle);
 	}
 
-	add_custom_button(html, action, class_name = "") {
+	add_custom_button(html, action, class_name = "", title="", btn_type) {
+		if (!btn_type) btn_type = 'btn-secondary';
 		let button = $(
-			`<button class="btn btn-default btn-xs ${class_name}">${html}</button>`
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
 		);
 		button.click(event => {
 			event.stopPropagation();
@@ -106,13 +141,21 @@ export default class Widget {
 		button.appendTo(this.action_area);
 	}
 
-	delete() {
-		this.widget.addClass("zoomOutDelete");
-		// wait for animation
-		setTimeout(() => {
+	delete(animate=true) {
+		let remove_widget = (setup_new) => {
 			this.widget.remove();
-			this.options.on_delete && this.options.on_delete(this.name);
-		}, 300);
+			this.options.on_delete && this.options.on_delete(this.name, setup_new);
+		};
+
+		if (animate) {
+			this.widget.addClass("zoom-out");
+			// wait for animation
+			setTimeout(() => {
+				remove_widget(true);
+			}, 300);
+		} else {
+			remove_widget(false);
+		}
 	}
 
 	edit() {
@@ -134,6 +177,21 @@ export default class Widget {
 		this.edit_dialog.make();
 	}
 
+	toggle_width() {
+		if (this.width == 'Full') {
+			this.widget.removeClass("full-width");
+			this.width = null;
+			this.refresh();
+		} else {
+			this.widget.addClass("full-width");
+			this.width = 'Full';
+			this.refresh();
+		}
+
+		const title = this.width == 'Full' ? `${__('Collapse')}` : `${__('Expand')}`;
+		this.resize_button.attr('title', title);
+	}
+
 	hide_or_show() {
 		if (!this.hidden) {
 			this.body.css("opacity", 0.5);
@@ -149,7 +207,9 @@ export default class Widget {
 		this.show_or_hide_button.empty();
 
 		const classname = this.hidden ? 'fa fa-eye' : 'fa fa-eye-slash';
-		$(`<i class="${classname}" aria-hidden="true"></i>`).appendTo(
+		const title = this.hidden ? `${__('Show')}` : `${__('Hide')}`;
+
+		$(`<i class="${classname}" aria-hidden="true" title="${title}"></i>`).appendTo(
 			this.show_or_hide_button
 		);
 	}

@@ -1,17 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe
 from frappe import _
 
 @frappe.whitelist()
-def get_all_nodes(doctype, parent, tree_method, **filters):
+def get_all_nodes(doctype, label, parent, tree_method, **filters):
 	'''Recursively gets all data from tree nodes'''
 
 	if 'cmd' in filters:
 		del filters['cmd']
-
 	filters.pop('data', None)
 
 	tree_method = frappe.get_attr(tree_method)
@@ -20,7 +19,7 @@ def get_all_nodes(doctype, parent, tree_method, **filters):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	data = tree_method(doctype, parent, **filters)
-	out = [dict(parent=parent, data=data)]
+	out = [dict(parent=label, data=data)]
 
 	if 'is_root' in filters:
 		del filters['is_root']

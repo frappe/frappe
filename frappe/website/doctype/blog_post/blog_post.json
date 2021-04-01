@@ -8,20 +8,30 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "published_on",
-  "published",
-  "disable_comments",
-  "column_break_3",
   "blog_category",
   "blogger",
   "route",
+  "read_time",
+  "column_break_3",
+  "published_on",
+  "published",
+  "featured",
+  "hide_cta",
+  "disable_comments",
   "section_break_5",
   "blog_intro",
   "content_type",
   "content",
   "content_md",
   "content_html",
-  "email_sent"
+  "email_sent",
+  "meta_tags",
+  "meta_title",
+  "meta_description",
+  "column_break_18",
+  "meta_image",
+  "section_break_20",
+  "google_preview"
  ],
  "fields": [
   {
@@ -76,7 +86,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "Description for listing page, in plain text, only a couple of lines. (max 140 characters)",
+   "description": "Description for listing page, in plain text, only a couple of lines. (max 200 characters)",
    "fieldname": "blog_intro",
    "fieldtype": "Small Text",
    "label": "Blog Intro"
@@ -123,15 +133,74 @@
    "fieldname": "disable_comments",
    "fieldtype": "Check",
    "label": "Disable Comments"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Meta Description"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "meta_image",
+   "fieldtype": "Attach Image",
+   "label": "Meta Image",
+   "mandatory_depends_on": "eval:doc.featured"
+  },
+  {
+   "fieldname": "section_break_20",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "This is an example Google SERP Preview.",
+   "fieldname": "google_preview",
+   "fieldtype": "HTML",
+   "label": "Google Snippet Preview",
+   "read_only": 1
+  },
+  {
+   "fieldname": "meta_tags",
+   "fieldtype": "Section Break",
+   "label": "Meta Tags"
+  },
+  {
+   "description": "in minutes",
+   "fieldname": "read_time",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Read Time",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "featured",
+   "fieldtype": "Check",
+   "label": "Featured"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_cta",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Hide CTA"
+  },
+  {
+   "fieldname": "meta_title",
+   "fieldtype": "Data",
+   "label": "Meta Title",
+   "length": 60
   }
  ],
  "has_web_view": 1,
  "icon": "fa fa-quote-left",
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-04-08 19:58:13.672332",
+ "modified": "2020-12-23 14:28:36.311389",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",
@@ -160,7 +229,7 @@
    "write": 1
   }
  ],
- "route": "/blog",
+ "route": "blog",
  "sort_field": "modified",
  "sort_order": "ASC",
  "title_field": "title",

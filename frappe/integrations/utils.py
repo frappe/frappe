@@ -49,9 +49,12 @@ def make_post_request(url, auth=None, headers=None, data=None):
 		frappe.log_error()
 		raise exc
 
-def create_request_log(data, integration_type, service_name, name=None):
+def create_request_log(data, integration_type, service_name, name=None, error=None):
 	if isinstance(data, string_types):
 		data = json.loads(data)
+
+	if isinstance(error, string_types):
+		error = json.loads(error)
 
 	integration_request = frappe.get_doc({
 		"doctype": "Integration Request",
@@ -59,6 +62,7 @@ def create_request_log(data, integration_type, service_name, name=None):
 		"integration_request_service": service_name,
 		"reference_doctype": data.get("reference_doctype"),
 		"reference_docname": data.get("reference_docname"),
+		"error": json.dumps(error, default=json_handler),
 		"data": json.dumps(data, default=json_handler)
 	})
 

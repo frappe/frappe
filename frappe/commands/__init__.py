@@ -11,6 +11,7 @@ import frappe.utils
 import subprocess # nosec
 from functools import wraps
 from six import StringIO
+from os import environ
 
 click.disable_unicode_literals_warning = True
 
@@ -22,7 +23,11 @@ def pass_context(f):
 			pr = cProfile.Profile()
 			pr.enable()
 
-		ret = f(frappe._dict(ctx.obj), *args, **kwargs)
+		try:
+			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
+		except frappe.exceptions.SiteNotSpecifiedError as e:
+			click.secho(str(e), fg='yellow')
+			sys.exit(1)
 
 		if profile:
 			pr.disable()
@@ -39,25 +44,30 @@ def pass_context(f):
 
 	return click.pass_context(_func)
 
-def get_site(context):
+def get_site(context, raise_err=True):
 	try:
 		site = context.sites[0]
 		return site
 	except (IndexError, TypeError):
-		print('Please specify --site sitename')
-		sys.exit(1)
+		if raise_err:
+			raise frappe.SiteNotSpecifiedError
+		return None
 
 def popen(command, *args, **kwargs):
-	output    = kwargs.get('output', True)
-	cwd       = kwargs.get('cwd')
-	shell     = kwargs.get('shell', True)
+	output = kwargs.get('output', True)
+	cwd = kwargs.get('cwd')
+	shell = kwargs.get('shell', True)
 	raise_err = kwargs.get('raise_err')
+	env = kwargs.get('env')
+	if env:
+		env = dict(environ, **env)
 
 	proc = subprocess.Popen(command,
-		stdout = None if output else subprocess.PIPE,
-		stderr = None if output else subprocess.PIPE,
-		shell  = shell,
-		cwd    = cwd
+		stdout=None if output else subprocess.PIPE,
+		stderr=None if output else subprocess.PIPE,
+		shell=shell,
+		cwd=cwd,
+		env=env
 	)
 
 	return_ = proc.wait()

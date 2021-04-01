@@ -4,7 +4,7 @@
 	<div class="col-sm-6">
 		<div class="search-result">
 			{% if title %}
-			<h3 class="mb-4">{{ title }}</h3>
+			<h3 class="mb-6">{{ title }}</h3>
 			{% endif %}
 
 			{% include "templates/includes/search_result.html" %}
@@ -15,7 +15,7 @@
 	</div>
 {%- endmacro %}
 
-<div class="row mb-5">
+<div class="row mb-12">
 	<div class="col-sm-6">
 		<form action="{{ route }}">
 			<div class="input-group">
@@ -28,7 +28,7 @@
 				</div>
 			</div>
 			{% if frappe.form_dict.scope %}
-				<input type="text" hidden name="scope" value="{{ frappe.form_dict.scope }}">
+				<input type="text" hidden name="scope" value="{{ frappe.sanitize_html(frappe.form_dict.scope) }}">
 			{% endif %}
 		</form>
 	</div>

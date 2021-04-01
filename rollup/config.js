@@ -109,13 +109,17 @@ function get_rollup_options_for_js(output_file, input_files) {
 
 function get_rollup_options_for_css(output_file, input_files) {
 	const output_path = path.resolve(assets_path, output_file);
-	const minimize_css = output_path.startsWith('css/') && production;
+	const starts_with_css = output_file.startsWith('css/');
 
 	const plugins = [
 		// enables array of inputs
 		multi_entry(),
 		// less -> css
 		postcss({
+			plugins: [
+				starts_with_css ? require('autoprefixer')() : null,
+				starts_with_css && production ? require('cssnano')({ preset: 'default' }) : null
+			].filter(Boolean),
 			extract: output_path,
 			loaders: [less_loader],
 			use: [
@@ -125,15 +129,18 @@ function get_rollup_options_for_css(output_file, input_files) {
 						path.resolve(get_public_path('frappe'), 'less')
 					]
 				}],
-				['sass', get_options_for_scss()]
+				['sass', {
+					...get_options_for_scss(),
+					outFile: output_path,
+					sourceMapContents: true
+				}]
 			],
 			include: [
 				path.resolve(bench_path, '**/*.less'),
 				path.resolve(bench_path, '**/*.scss'),
 				path.resolve(bench_path, '**/*.css')
 			],
-			minimize: minimize_css,
-			sourceMap: output_file.startsWith('css/') && !production
+			sourceMap: starts_with_css && !production
 		})
 	];
 
@@ -147,6 +154,7 @@ function get_rollup_options_for_css(output_file, input_files) {
 
 				// console.warn everything else
 				log(chalk.yellow.underline(warning.code), ':', warning.message);
+				log(warning);
 			}
 		},
 		outputOptions: {
@@ -157,6 +165,31 @@ function get_rollup_options_for_css(output_file, input_files) {
 	};
 }
 
+function get_options(file, app="frappe") {
+	const build_json = get_build_json(app);
+	if (!build_json) return [];
+
+	return Object.keys(build_json)
+		.map(output_file => {
+			if (output_file === file) {
+				if (output_file.startsWith('concat:')) return null;
+				const input_files = build_json[output_file]
+					.map(input_file => {
+						let prefix = get_app_path(app);
+						if (input_file.startsWith('node_modules/')) {
+							prefix = path.resolve(get_app_path(app), '..');
+						}
+						return path.resolve(prefix, input_file);
+					});
+				return Object.assign(
+					get_rollup_options(output_file, input_files), {
+						output_file
+					});
+			}
+		})
+		.filter(Boolean);
+}
+
 function get_options_for(app) {
 	const build_json = get_build_json(app);
 	if (!build_json) return [];
@@ -165,7 +198,11 @@ function get_options_for(app) {
 		.map(output_file => {
 			if (output_file.startsWith('concat:')) return null;
 
-			const input_files = build_json[output_file]
+			let files = build_json[output_file];
+			if (typeof files === 'string') {
+				files = [files];
+			}
+			const input_files = files
 				.map(input_file => {
 					let prefix = get_app_path(app);
 					if (input_file.startsWith('node_modules/')) {
@@ -197,5 +234,6 @@ function ignore_css() {
 };
 
 module.exports = {
-	get_options_for
+	get_options_for,
+	get_options
 };

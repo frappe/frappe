@@ -21,7 +21,7 @@ def make_error_snapshot(exception):
 	if frappe.conf.disable_error_snapshot:
 		return
 
-	logger = frappe.logger(__name__, with_more_info=False)
+	logger = frappe.logger(with_more_info=True)
 
 	try:
 		error_id = '{timestamp:s}-{ip:s}-{hash:s}'.format(
@@ -123,22 +123,13 @@ def get_snapshot(exception, context=10):
 	# add exception type, value and attributes
 	if isinstance(evalue, BaseException):
 		for name in dir(evalue):
-			# prevent py26 DeprecationWarning
-			if (name != 'messages' or sys.version_info < (2.6)) and not name.startswith('__'):
+			if name != 'messages' and not name.startswith('__'):
 				value = pydoc.text.repr(getattr(evalue, name))
-
-				# render multilingual string properly
-				if isinstance(value, six.text_type):
-					value = eval(value)
-
 				s['exception'][name] = encode(value)
 
 	# add all local values (of last frame) to the snapshot
 	for name, value in locals.items():
-		if isinstance(value, six.text_type):
-			value = eval(value)
-
-		s['locals'][name] = pydoc.text.repr(value)
+		s['locals'][name] = value if isinstance(value, six.text_type) else pydoc.text.repr(value)
 
 	return s
 

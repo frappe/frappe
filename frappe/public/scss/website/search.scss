@@ -1,0 +1,40 @@
+.website-search {
+	position: relative;
+	width: 100%;
+
+	.search-icon {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 2.5rem;
+		height: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	svg {
+		color: $gray-600;
+	}
+
+	input {
+		padding-left: 2.5rem;
+	}
+
+	.dropdown-menu {
+		.dropdown-item {
+			padding: 1rem 0.75rem;
+
+			&:focus {
+				background-color: $gray-100;
+			}
+		}
+
+		.match {
+			background-color: $primary-light;
+			color: $primary;
+			font-weight: 500;
+			padding: 0 0.125rem;
+		}
+	}
+}

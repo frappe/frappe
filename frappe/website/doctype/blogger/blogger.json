@@ -13,8 +13,7 @@
   "full_name",
   "user",
   "bio",
-  "avatar",
-  "posts"
+  "avatar"
  ],
  "fields": [
   {
@@ -51,20 +50,13 @@
   },
   {
    "fieldname": "avatar",
-   "fieldtype": "Attach",
+   "fieldtype": "Attach Image",
    "label": "Avatar"
-  },
-  {
-   "fieldname": "posts",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Posts",
-   "no_copy": 1,
-   "read_only": 1
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
+ "image_field": "avatar",
  "links": [
   {
    "link_doctype": "Blog Post",
@@ -72,7 +64,7 @@
   }
  ],
  "max_attachments": 1,
- "modified": "2020-04-19 08:21:09.684300",
+ "modified": "2020-05-28 19:22:40.959895",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blogger",
