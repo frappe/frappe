@@ -68,7 +68,8 @@
 						</span>
 					</a>
 					<div class="dropdown-menu dropdown-menu-right" id="toolbar-help" role="menu">
-						<div class="divider documentation-links"></div>
+						<div id="help-links"></div>
+						<div class="dropdown-divider documentation-links"></div>
 						{% for item in navbar_settings.help_dropdown %}
 							{% if (!item.hidden) { %}
 								{% if (item.route) { %}
