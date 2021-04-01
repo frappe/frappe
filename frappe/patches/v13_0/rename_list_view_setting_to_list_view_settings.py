@@ -7,7 +7,7 @@ import frappe
 
 def execute():
 	if frappe.db.table_exists('List View Setting'):
-		existing_list_view_settings = frappe.get_all('List View Settings', as_list=True)
+		existing_list_view_settings = frappe.get_all('List View Setting', as_list=True)
 		for list_view_setting in frappe.get_all('List View Setting', fields = ['disable_count', 'disable_sidebar_stats', 'disable_auto_refresh', 'name']):
 			name = list_view_setting.pop('name')
 			if name not in [x[0] for x in existing_list_view_settings]:
