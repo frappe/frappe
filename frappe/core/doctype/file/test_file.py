@@ -192,12 +192,9 @@ class TestSameContent(unittest.TestCase):
 
 
 class TestFile(unittest.TestCase):
-
-
 	def setUp(self):
 		self.delete_test_data()
 		self.upload_file()
-
 
 	def tearDown(self):
 		try:
@@ -352,6 +349,22 @@ class TestFile(unittest.TestCase):
 		self.assertEqual(file1.file_url, file2.file_url)
 		self.assertTrue(os.path.exists(file2.get_full_path()))
 
+	def test_parent_directory_validation_in_file_url(self):
+		file1 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'parent_dir.txt',
+			"attached_to_doctype": "",
+			"attached_to_name": "",
+			"is_private": 1,
+			"content": test_content1}).insert()
+
+		file1.file_url = '/private/files/../test.txt'
+		self.assertRaises(frappe.exceptions.ValidationError, file1.save)
+
+		# No validation to see if file exists
+		file1.reload()
+		file1.file_url = '/private/files/parent_dir2.txt'
+		file1.save()
 
 class TestAttachment(unittest.TestCase):
 	test_doctype = 'Test For Attachment'

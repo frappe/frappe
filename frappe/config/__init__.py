@@ -36,48 +36,10 @@ def get_modules_from_all_apps():
 	return modules_list
 
 def get_modules_from_app(app):
-	try:
-		modules = frappe.get_attr(app + '.config.desktop.get_data')() or {}
-	except ImportError:
-		return []
-
-	active_domains = frappe.get_active_domains()
-
-	if isinstance(modules, dict):
-		active_modules_list = []
-		for m, module in iteritems(modules):
-			module['module_name'] = m
-			module['app'] = app
-			active_modules_list.append(module)
-	else:
-		for m in modules:
-			if m.get("type") == "module" and "category" not in m:
-				m["category"] = "Modules"
-
-		# Only newly formatted modules that have a category to be shown on desk
-		modules = [m for m in modules if m.get("category")]
-		active_modules_list = []
-
-		for m in modules:
-			to_add = True
-			module_name = m.get("module_name")
-
-			# Check Domain
-			if is_domain(m) and module_name not in active_domains:
-				to_add = False
-
-			# Check if config
-			if is_module(m) and not config_exists(app, frappe.scrub(module_name)):
-				to_add = False
-
-			if "condition" in m and not m["condition"]:
-				to_add = False
-
-			if to_add:
-				m["app"] = app
-				active_modules_list.append(m)
-
-	return active_modules_list
+	return frappe.get_all('Module Def',
+		filters={'app_name': app},
+		fields=['module_name', 'app_name as app']
+	)
 
 def get_all_empty_tables_by_module():
 	empty_tables = set(r[0] for r in frappe.db.multisql({

@@ -34,7 +34,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 		var me = this;
 		if(this.frm && this.frm.docname) {
 			frappe.call({
-				method: "runserverobj",
+				method: "run_doc_method",
 				args: {'docs': this.frm.doc, 'method': this.df.options },
 				btn: this.$input,
 				callback: function(r) {

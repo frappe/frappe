@@ -58,6 +58,7 @@ class Report(Document):
 	def get_columns(self):
 		return [d.as_dict(no_default_fields = True) for d in self.columns]
 
+	@frappe.whitelist()
 	def set_doctype_roles(self):
 		if not self.get('roles') and self.is_standard == 'No':
 			meta = frappe.get_meta(self.ref_doctype)
@@ -304,7 +305,7 @@ class Report(Document):
 
 		return data
 
-	@Document.whitelist
+	@frappe.whitelist()
 	def toggle_disable(self, disable):
 		self.db_set("disabled", cint(disable))
 

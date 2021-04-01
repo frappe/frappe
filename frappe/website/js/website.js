@@ -385,6 +385,9 @@ frappe.setup_search = function (target, search_scope) {
 	}
 
 	let $search_input = $(`<div class="dropdown" id="dropdownMenuSearch">
+			<input type="search" class="form-control" placeholder="Search the docs (Press / to focus)" />
+			<div class="overflow-hidden shadow dropdown-menu w-100" aria-labelledby="dropdownMenuSearch">
+			</div>
 			<div class="search-icon">
 				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
 					fill="none"
@@ -394,9 +397,6 @@ frappe.setup_search = function (target, search_scope) {
 					<circle cx="11" cy="11" r="8"></circle>
 					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
 				</svg>
-			</div>
-			<input type="search" class="form-control" placeholder="Search the docs (Press / to focus)" />
-			<div class="overflow-hidden shadow dropdown-menu w-100" aria-labelledby="dropdownMenuSearch">
 			</div>
 		</div>`);
 

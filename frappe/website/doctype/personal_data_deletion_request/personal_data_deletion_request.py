@@ -101,6 +101,7 @@ class PersonalDataDeletionRequest(Document):
 		if self.status != "Pending Approval":
 			frappe.throw(_("This request has not yet been approved by the user."))
 
+	@frappe.whitelist()
 	def trigger_data_deletion(self):
 		"""Redact user data defined in current site's hooks under `user_data_fields`"""
 		self.validate_data_anonymization()

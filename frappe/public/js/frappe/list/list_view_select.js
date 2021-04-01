@@ -123,7 +123,14 @@ frappe.views.ListViewSelect = class ListViewSelect {
 						kanbans => this.setup_kanban_switcher(kanbans)
 					);
 				}
-			}
+			},
+			Map: {
+				condition: this.list_view.settings.get_coords_method ||
+					(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
+					this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
+					(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation')),
+				action: () => this.set_route("map")
+			},
 		};
 
 		frappe.views.view_modes.forEach(view => {
