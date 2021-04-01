@@ -31,7 +31,9 @@ def get_list():
 @frappe.read_only()
 def get_count():
 	args = get_form_params()
-	args.fields = ['{distinct}count(name) as total_count'.format(distinct = 'distinct ' if args.distinct=='true' else '')]
+
+	distinct = 'distinct ' if args.distinct=='true' else ''
+	args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
 	return execute(**args)[0].get('total_count')
 
 def execute(doctype, *args, **kwargs):
