@@ -162,6 +162,9 @@ frappe.socketio = {
 		if (!frappe.socketio.last_doc
 			|| (frappe.socketio.last_doc[0] != doctype || frappe.socketio.last_doc[1] != docname)) {
 			frappe.socketio.socket.emit('doc_open', doctype, docname);
+
+			frappe.socketio.last_doc &&
+				frappe.socketio.doc_close(frappe.socketio.last_doc[0], frappe.socketio.last_doc[1]);
 		}
 		frappe.socketio.last_doc = [doctype, docname];
 	},
