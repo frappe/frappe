@@ -6,11 +6,10 @@ frappe.ui.form.FormViewers = class FormViewers {
 	}
 
 	refresh() {
-		// REDESIGN-TODO: fix this
-		// let users = this.frm.get_docinfo()['viewers'];
-		// let currently_viewing = users.current.filter(user => user != frappe.session.user);
-		// let avatar_group = frappe.avatar_group(currently_viewing, 5, {'align': 'left', 'overlap': true});
-		this.parent.empty(); //.append(avatar_group);
+		let users = this.frm.get_docinfo()['viewers'];
+		let currently_viewing = users.current.filter(user => user != frappe.session.user);
+		let avatar_group = frappe.avatar_group(currently_viewing, 5, {'align': 'left', 'overlap': true});
+		this.parent.empty().append(avatar_group);
 	}
 };
 
