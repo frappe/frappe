@@ -13,13 +13,20 @@ from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
+from frappe.model.base_document import get_controller
 
 
 @frappe.whitelist(allow_guest=True)
 @frappe.read_only()
 def get():
 	args = get_form_params()
-	return compress(execute(**args), args=args)
+	# If virtual doctype get data from controller het_list method
+	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="is_virtual"):
+		controller = get_controller(args.doctype)
+		data = compress(controller(args.doctype).get_list(args))
+	else:
+		data = compress(execute(**args), args=args)
+	return data
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -431,8 +438,9 @@ def get_stats(stats, doctype, filters=[]):
 
 	try:
 		columns = frappe.db.get_table_columns(doctype)
-	except frappe.db.InternalError:
+	except (frappe.db.InternalError, frappe.db.ProgrammingError):
 		# raised when _user_tags column is added on the fly
+		# raised if its a virtual doctype
 		columns = []
 
 	for tag in tags:

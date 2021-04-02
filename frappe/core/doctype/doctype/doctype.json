@@ -22,6 +22,7 @@
   "track_views",
   "custom",
   "beta",
+  "is_virtual",
   "fields_section_break",
   "fields",
   "sb1",
@@ -528,6 +529,12 @@
    "fieldname": "index_web_pages_for_search",
    "fieldtype": "Check",
    "label": "Index Web Pages for Search"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_virtual",
+   "fieldtype": "Check",
+   "label": "Is Virtual"
   }
  ],
  "icon": "fa fa-bolt",
@@ -609,7 +616,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-02-04 15:10:09.227205",
+ "modified": "2021-02-17 20:18:06.212232",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
