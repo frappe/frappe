@@ -1,5 +1,5 @@
 {
-  "name": "frappe",
+  "name": "frappe-framework",
   "scripts": {
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
