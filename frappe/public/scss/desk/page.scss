@@ -121,6 +121,10 @@
 			display: none;
 		}
 	}
+
+	.awesomplete > ul {
+		min-width: 300px;
+	}
 }
 
 .form-inner-toolbar {

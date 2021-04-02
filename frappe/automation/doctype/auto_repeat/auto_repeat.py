@@ -118,6 +118,7 @@ class AutoRepeat(Document):
 	def is_completed(self):
 		return self.end_date and getdate(self.end_date) < getdate(today())
 
+	@frappe.whitelist()
 	def get_auto_repeat_schedule(self):
 		schedule_details = []
 		start_date = getdate(self.start_date)
@@ -328,6 +329,7 @@ class AutoRepeat(Document):
 		make(doctype=new_doc.doctype, name=new_doc.name, recipients=recipients,
 			subject=subject, content=message, attachments=attachments, send_email=1)
 
+	@frappe.whitelist()
 	def fetch_linked_contacts(self):
 		if self.reference_doctype and self.reference_document:
 			res = get_contacts_linking_to(self.reference_doctype, self.reference_document, fields=['email_id'])

@@ -18,6 +18,7 @@ class BlogPost(WebsiteGenerator):
 		order_by = "published_on desc"
 	)
 
+	@frappe.whitelist()
 	def make_route(self):
 		if not self.route:
 			return frappe.db.get_value('Blog Category', self.blog_category,

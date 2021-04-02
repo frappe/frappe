@@ -3,7 +3,6 @@ import socket
 from six.moves.urllib.parse import urlparse
 from frappe import get_conf
 
-config = get_conf()
 REDIS_KEYS = ('redis_cache', 'redis_queue', 'redis_socketio')
 
 
@@ -21,13 +20,15 @@ def is_open(ip, port, timeout=10):
 
 
 def check_database():
+	config = get_conf()
 	db_type = config.get("db_type", "mariadb")
 	db_host = config.get("db_host", "localhost")
-	db_port = config.get("db_port", 3306 if db_type == "mariadb" else 5342)
+	db_port = config.get("db_port", 3306 if db_type == "mariadb" else 5432)
 	return {db_type: is_open(db_host, db_port)}
 
 
 def check_redis(redis_services=None):
+	config = get_conf()
 	services = redis_services or REDIS_KEYS
 	status = {}
 	for conn in services:
