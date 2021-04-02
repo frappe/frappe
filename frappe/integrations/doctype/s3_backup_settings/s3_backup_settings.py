@@ -132,6 +132,7 @@ def backup_to_s3():
 
 	upload_file_to_s3(db_filename, folder, conn, bucket)
 	upload_file_to_s3(site_config, folder, conn, bucket)
+
 	if backup_files:
 		if private_files:
 			upload_file_to_s3(private_files, folder, conn, bucket)
