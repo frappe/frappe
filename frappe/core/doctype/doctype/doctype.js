@@ -18,6 +18,7 @@ frappe.ui.form.on('DocType', {
 				frm.set_value("custom", 1);
 			}
 			frm.toggle_enable("custom", 0);
+			frm.toggle_enable("is_virtual", 0);
 			frm.toggle_enable("beta", 0);
 		}
 

@@ -480,8 +480,19 @@ class TestDocType(unittest.TestCase):
 			'link_doctype': "User",
 			'link_fieldname': "a_field_that_does_not_exists"
 		})
+
 		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 
+	def test_create_virtual_doctype(self):
+		"""Test virtual DOcTYpe."""
+		virtual_doc = new_doctype('Test Virtual Doctype')
+		virtual_doc.is_virtual = 1
+		virtual_doc.insert()
+		virtual_doc.save()
+		doc = frappe.get_doc("DocType", "Test Virtual Doctype")
+
+		self.assertEqual(doc.is_virtual, 1)
+		self.assertFalse(frappe.db.table_exists('Test Virtual Doctype'))
 
 def new_doctype(name, unique=0, depends_on='', fields=None):
 	doc = frappe.get_doc({

@@ -2,24 +2,12 @@ var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var cookie = require('cookie');
-var fs = require('fs');
-var path = require('path');
 var request = require('superagent');
 var { get_conf, get_redis_subscriber } = require('./node_utils');
 
 const log = console.log; // eslint-disable-line
 
 var conf = get_conf();
-var files_struct = {
-	name: null,
-	type: null,
-	size: 0,
-	data: [],
-	slice: 0,
-	site_name: null,
-	is_private: 0
-};
-
 var subscriber = get_redis_subscriber();
 
 // serve socketio
@@ -43,7 +31,6 @@ io.on('connection', function (socket) {
 	}
 
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
-	socket.files = {};
 
 	// frappe.chat
 	socket.on("frappe.chat.room:subscribe", function (rooms) {
@@ -96,10 +83,6 @@ io.on('connection', function (socket) {
 	};
 
 	join_chat_room();
-
-	socket.on('disconnect', function () {
-		delete socket.files;
-	});
 
 	socket.on('task_subscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);

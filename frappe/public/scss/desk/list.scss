@@ -261,7 +261,6 @@ input.list-check-all, input.list-row-checkbox {
 	input[type=checkbox] {
 		margin: 0;
 		margin-right: 5px;
-		flex: 0 0 12px;
 	}
 
 	.liked-by, .liked-by-filter-button {
@@ -332,10 +331,6 @@ input.list-check-all, input.list-row-checkbox {
 }
 
 .page-form {
-	// .awesomplete > ul {
-	// 	min-width: 300px;
-	// }
-
 	.standard-filter-section {
 		flex-wrap: wrap;
 		// width: 65%;
