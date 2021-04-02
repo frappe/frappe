@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, print_function
 import frappe
 import time
-from frappe import _, msgprint
+from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
@@ -126,10 +126,10 @@ class Document(BaseDocument):
 			raise ValueError('Illegal arguments')
 
 	@staticmethod
-	def whitelist(f):
+	def whitelist(fn):
 		"""Decorator: Whitelist method to be called remotely via REST API."""
-		f.whitelisted = True
-		return f
+		frappe.whitelist()(fn)
+		return fn
 
 	def reload(self):
 		"""Reload document from database"""
@@ -1148,12 +1148,12 @@ class Document(BaseDocument):
 
 		return composer
 
-	def is_whitelisted(self, method):
-		fn = getattr(self, method, None)
-		if not fn:
-			raise NotFound("Method {0} not found".format(method))
-		elif not getattr(fn, "whitelisted", False):
-			raise Forbidden("Method {0} not whitelisted".format(method))
+	def is_whitelisted(self, method_name):
+		method = getattr(self, method_name, None)
+		if not method:
+			raise NotFound("Method {0} not found".format(method_name))
+
+		is_whitelisted(getattr(method, '__func__', method))
 
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""Check that value of fieldname should be 'condition' val2

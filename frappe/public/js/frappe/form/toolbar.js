@@ -210,7 +210,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	make_viewers() {
-		if (this.frm.viewers) return;
+		if (this.frm.viewers) {
+			this.frm.viewers.parent.empty();
+			return;
+		}
 		this.frm.viewers = new frappe.ui.form.FormViewers({
 			frm: this.frm,
 			parent: $('<div class="form-viewers d-flex"></div>').prependTo(this.frm.page.page_actions)

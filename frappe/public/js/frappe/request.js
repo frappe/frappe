@@ -55,7 +55,7 @@ frappe.call = function(opts) {
 		args.cmd = opts.module+'.page.'+opts.page+'.'+opts.page+'.'+opts.method;
 	} else if(opts.doc) {
 		$.extend(args, {
-			cmd: "runserverobj",
+			cmd: "run_doc_method",
 			docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
 			method: opts.method,
 			args: opts.args,
