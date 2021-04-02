@@ -115,7 +115,7 @@ def backup_to_s3():
 
 	if frappe.flags.create_new_backup:
 		backup = new_backup(ignore_files=False, backup_path_db=None,
-							backup_path_files=None, backup_path_private_files=None, force=True)
+						backup_path_files=None, backup_path_private_files=None, force=True)
 		db_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
 		site_config = os.path.join(get_backups_path(), os.path.basename(backup.site_config_backup_path))
 		if backup_files:
@@ -133,17 +133,11 @@ def backup_to_s3():
 	upload_file_to_s3(db_filename, folder, conn, bucket)
 	upload_file_to_s3(site_config, folder, conn, bucket)
 	if backup_files:
-<<<<<<< HEAD
-		upload_file_to_s3(private_files, folder, conn, bucket)
-		upload_file_to_s3(files_filename, folder, conn, bucket)
-	delete_old_backups(doc.backup_limit, bucket)
-=======
 		if private_files:
 			upload_file_to_s3(private_files, folder, conn, bucket)
 
 		if files_filename:
 			upload_file_to_s3(files_filename, folder, conn, bucket)
->>>>>>> fc97e080c6... feat: remove useless functionality
 
 
 def upload_file_to_s3(filename, folder, conn, bucket):
@@ -155,32 +149,3 @@ def upload_file_to_s3(filename, folder, conn, bucket):
 	except Exception as e:
 		frappe.log_error()
 		print("Error uploading: %s" % (e))
-<<<<<<< HEAD
-
-
-def delete_old_backups(limit, bucket):
-	all_backups = []
-	doc = frappe.get_single("S3 Backup Settings")
-	backup_limit = int(limit)
-
-	s3 = boto3.resource(
-			's3',
-			aws_access_key_id=doc.access_key_id,
-			aws_secret_access_key=doc.get_password('secret_access_key'),
-			endpoint_url=doc.endpoint_url or 'https://s3.amazonaws.com'
-			)
-	bucket = s3.Bucket(bucket)
-	objects = bucket.meta.client.list_objects_v2(Bucket=bucket.name, Delimiter='/')
-	if objects:
-		for obj in objects.get('CommonPrefixes'):
-			all_backups.append(obj.get('Prefix'))
-
-	oldest_backup = sorted(all_backups)[0]
-
-	if len(all_backups) > backup_limit:
-		print("Deleting Backup: {0}".format(oldest_backup))
-		for obj in bucket.objects.filter(Prefix=oldest_backup):
-			# delete all keys that are inside the oldest_backup
-			s3.Object(bucket.name, obj.key).delete()
-=======
->>>>>>> fc97e080c6... feat: remove useless functionality
