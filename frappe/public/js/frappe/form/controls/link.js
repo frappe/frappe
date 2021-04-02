@@ -83,11 +83,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var doctype = this.get_options();
 		var me = this;
 
-		if(!doctype) return;
+		if (!doctype) return;
 
+		let df = this.df;
+		if (this.frm && this.frm.doctype !== this.df.parent) {
+			// incase of grid use common df set in grid
+			df = this.frm.get_docfield(this.doc.parentfield, this.df.fieldname);
+		}
 		// set values to fill in the new document
-		if(this.df.get_route_options_for_new_doc) {
-			frappe.route_options = this.df.get_route_options_for_new_doc(this);
+		if (df && df.get_route_options_for_new_doc) {
+			frappe.route_options = df.get_route_options_for_new_doc(this);
 		} else {
 			frappe.route_options = {};
 		}

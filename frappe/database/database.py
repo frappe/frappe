@@ -455,6 +455,10 @@ class Database(object):
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
 						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
+						if not out:
+							# check for virtual doctype
+							out = self.get_values_from_virtual_doctype(fields, filters, doctype, as_dict, debug, update)
+
 					else:
 						raise
 			else:
@@ -506,6 +510,10 @@ class Database(object):
 					return []
 			else:
 				return r and [[i[1] for i in r]] or []
+
+	def get_values_from_virtual_doctype(self, fields, filters, doctype, as_dict=False, debug=False, update=None):
+		"""Reture single values from virtual doctype."""
+		return frappe.get_doc(doctype).get_value(fields, filters, as_dict=False, debug=False, update=None)
 
 	def get_singles_dict(self, doctype, debug = False):
 		"""Get Single DocType as dict.
