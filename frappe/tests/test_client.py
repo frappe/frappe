@@ -2,7 +2,9 @@
 
 from __future__ import unicode_literals
 
-import unittest, frappe
+import unittest
+import frappe
+
 
 class TestClient(unittest.TestCase):
 	def test_set_value(self):
@@ -55,3 +57,49 @@ class TestClient(unittest.TestCase):
 		})
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, 'frappe.client.save')
+
+	def test_run_doc_method(self):
+		from frappe.handler import execute_cmd
+
+		if not frappe.db.exists('Report', 'Test Run Doc Method'):
+			report = frappe.get_doc({
+				'doctype': 'Report',
+				'ref_doctype': 'User',
+				'report_name': 'Test Run Doc Method',
+				'report_type': 'Query Report',
+				'is_standard': 'No',
+				'roles': [
+					{'role': 'System Manager'}
+				]
+			}).insert()
+		else:
+			report = frappe.get_doc('Report', 'Test Run Doc Method')
+
+		frappe.local.request = frappe._dict()
+		frappe.local.request.method = 'GET'
+
+		# Whitelisted, works as expected
+		frappe.local.form_dict = frappe._dict({
+			'dt': report.doctype,
+			'dn': report.name,
+			'method': 'toggle_disable',
+			'cmd': 'run_doc_method',
+			'args': 0
+		})
+
+		execute_cmd(frappe.local.form_dict.cmd)
+
+		# Not whitelisted, throws permission error
+		frappe.local.form_dict = frappe._dict({
+			'dt': report.doctype,
+			'dn': report.name,
+			'method': 'create_report_py',
+			'cmd': 'run_doc_method',
+			'args': 0
+		})
+
+		self.assertRaises(
+			frappe.PermissionError,
+			execute_cmd,
+			frappe.local.form_dict.cmd
+		)

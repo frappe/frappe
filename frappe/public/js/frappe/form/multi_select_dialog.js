@@ -251,7 +251,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		head ? $row.addClass('list-item--head')
 			: $row = $(`<div class="list-item-container" data-item-name="${result.name}"></div>`).append($row);
 
-		$(".modal-dialog .list-item--head").css("z-index", 0);
 		return $row;
 	}
 
@@ -264,6 +263,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			this.empty_list();
 		}
 		more_btn.hide();
+		$(".modal-dialog .list-item--head").css("z-index", 0);
 
 		if (results.length === 0) return;
 		if (more) more_btn.show();
