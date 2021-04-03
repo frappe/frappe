@@ -18,7 +18,7 @@ class TestGoogleSettings(unittest.TestCase):
 		settings.save()
 
 	def test_picker_as_guest(self):
-		# Google Drive Picker should be disbled for Guest
+		"""Google Drive Picker should be disbled for Guest."""
 		frappe.set_user('Guest')
 		frappe.db.set_value('Google Settings', None, 'enable', 1)
 		frappe.db.set_value('Google Settings', None, 'google_drive_picker_enabled', 1)
@@ -31,7 +31,7 @@ class TestGoogleSettings(unittest.TestCase):
 		frappe.set_user('Adminstrator')
 
 	def test_picker_disabled(self):
-		# Google Drive Picker should be disabled if it is not enabled in Google Settings
+		"""Google Drive Picker should be disabled if it is not enabled in Google Settings."""
 		frappe.db.set_value('Google Settings', None, 'enable', 1)
 		frappe.db.set_value('Google Settings', None, 'google_drive_picker_enabled', 0)
 		settings = get_file_picker_settings()
@@ -41,7 +41,7 @@ class TestGoogleSettings(unittest.TestCase):
 		self.assertEqual(1, len(settings))
 
 	def test_google_disabled(self):
-		# Google Drive Picker should be disabled if Google integration is not enabled
+		"""Google Drive Picker should be disabled if Google integration is not enabled."""
 		frappe.db.set_value('Google Settings', None, 'enable', 0)
 		frappe.db.set_value('Google Settings', None, 'google_drive_picker_enabled', 1)
 		settings = get_file_picker_settings()
@@ -49,3 +49,14 @@ class TestGoogleSettings(unittest.TestCase):
 		self.assertIn('enabled', settings)
 		self.assertEqual(False, settings.get('enabled', True))
 		self.assertEqual(1, len(settings))
+
+	def test_picker_enabled(self):
+		"""If picker is enabled, get_file_picker_settings should return the credentials."""
+		frappe.db.set_value('Google Settings', None, 'enable', 1)
+		frappe.db.set_value('Google Settings', None, 'google_drive_picker_enabled', 1)
+		settings = get_file_picker_settings()
+
+		self.assertEqual(True, settings.get('enabled', False))
+		self.assertEqual('test_client_id', settings.get('clientId', ''))
+		self.assertEqual('test_app_id', settings.get('appId', ''))
+		self.assertEqual('test_api_key', settings.get('developerKey', ''))
