@@ -220,7 +220,7 @@ def get_context(context):
 				"title": title,
 				"description": title,
 				"reference_doctype": "Web Form",
-				"reference_docname": webform.name,
+				"reference_docname": self.name,
 				"payer_email": frappe.session.user,
 				"payer_name": frappe.utils.get_fullname(frappe.session.user),
 				"order_id": doc.name,
