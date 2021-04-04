@@ -463,7 +463,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 	frappe.flags.web_form_doc = doc
 
 	if for_payment:
-		return web_form.get_payment_gateway_url(doc, web_form)
+		return web_form.get_payment_gateway_url(doc)
 	else:
 		return doc
 
