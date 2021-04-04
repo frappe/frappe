@@ -207,7 +207,7 @@ def get_context(context):
 				context.comment_list = get_comment_list(context.doc.doctype,
 					context.doc.name)
 
-	def get_payment_gateway_url(self, doc, webform):
+	def get_payment_gateway_url(self, doc):
 		if self.accept_payment:
 			controller = get_payment_gateway_controller(self.payment_gateway)
 
