@@ -207,7 +207,7 @@ def get_context(context):
 				context.comment_list = get_comment_list(context.doc.doctype,
 					context.doc.name)
 
-	def get_payment_gateway_url(self, doc, webform):
+	def get_payment_gateway_url(self, doc):
 		if self.accept_payment:
 			controller = get_payment_gateway_controller(self.payment_gateway)
 
@@ -220,7 +220,7 @@ def get_context(context):
 				"title": title,
 				"description": title,
 				"reference_doctype": "Web Form",
-				"reference_docname": webform.name,
+				"reference_docname": self.name,
 				"payer_email": frappe.session.user,
 				"payer_name": frappe.utils.get_fullname(frappe.session.user),
 				"order_id": doc.name,
@@ -463,7 +463,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 	frappe.flags.web_form_doc = doc
 
 	if for_payment:
-		return web_form.get_payment_gateway_url(doc, web_form)
+		return web_form.get_payment_gateway_url(doc)
 	else:
 		return doc
 
