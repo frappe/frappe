@@ -19,8 +19,10 @@ class DocShare(Document):
 		self.get_doc().run_method("validate_share", self)
 
 	def cascade_permissions_downwards(self):
-		if self.share or self.write:
+		if self.share or self.write or self.submit:
 			self.read = 1
+		if self.submit:
+			self.write = 1
 
 	def get_doc(self):
 		if not getattr(self, "_doc", None):
