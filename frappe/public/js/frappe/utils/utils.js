@@ -220,8 +220,23 @@ Object.assign(frappe.utils, {
 		});
 		return out.join(newline);
 	},
+
+
 	escape_html: function(txt) {
-		return $("<div></div>").text(txt || "").html();
+		let escape_html_mapping = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			"'": '&#39;',
+			'/': '&#x2F;',
+			'`': '&#x60;',
+			'=': '&#x3D;'
+		};
+
+		return String(txt).replace(/[&<>"'`=/]/g, function(char) {
+			return escape_html_mapping[char];
+		});
 	},
 
 	html2text: function(html) {
@@ -819,7 +834,7 @@ Object.assign(frappe.utils, {
 	get_form_link: function(doctype, name, html = false, display_text = null) {
 		display_text = display_text || name;
 		name = encodeURIComponent(name);
-		const route = `/app/${encodeURIComponent(frappe.router.slug(doctype))}/${name}`;
+		const route = `/app/${encodeURIComponent(doctype.toLowerCase().replace(/ /g, '-'))}/${name}`;
 		if (html) {
 			return `<a href="${route}">${display_text}</a>`;
 		}

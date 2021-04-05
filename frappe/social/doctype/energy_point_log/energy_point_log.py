@@ -52,6 +52,7 @@ class EnergyPointLog(Document):
 			reference_log.reverted = 0
 			reference_log.save()
 
+	@frappe.whitelist()
 	def revert(self, reason, ignore_permissions=False):
 		if not ignore_permissions:
 			frappe.only_for('System Manager')

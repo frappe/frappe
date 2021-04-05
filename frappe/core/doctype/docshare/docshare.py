@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import get_fullname
+from frappe.utils import get_fullname, cint
 
 exclude_from_linked_with = True
 
@@ -15,12 +15,15 @@ class DocShare(Document):
 	def validate(self):
 		self.validate_user()
 		self.check_share_permission()
+		self.check_is_submittable()
 		self.cascade_permissions_downwards()
 		self.get_doc().run_method("validate_share", self)
 
 	def cascade_permissions_downwards(self):
-		if self.share or self.write:
+		if self.share or self.write or self.submit:
 			self.read = 1
+		if self.submit:
+			self.write = 1
 
 	def get_doc(self):
 		if not getattr(self, "_doc", None):
@@ -38,6 +41,11 @@ class DocShare(Document):
 			not frappe.has_permission(self.share_doctype, "share", self.get_doc())):
 
 			frappe.throw(_('You need to have "Share" permission'), frappe.PermissionError)
+
+	def check_is_submittable(self):
+		if self.submit and not cint(frappe.db.get_value("DocType", self.share_doctype, "is_submittable")):
+			frappe.throw(_("Cannot share {0} with submit permission as the doctype {1} is not submittable").format(
+				frappe.bold(self.share_name), frappe.bold(self.share_doctype)))
 
 	def after_insert(self):
 		doc = self.get_doc()
