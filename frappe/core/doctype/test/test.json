@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "creation": "2021-03-31 10:06:57.919697",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "test"
+ ],
+ "fields": [
+  {
+   "fieldname": "test",
+   "fieldtype": "Data",
+   "label": "Test"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_virtual": 1,
+ "links": [],
+ "modified": "2021-03-31 10:06:57.919697",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "test",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

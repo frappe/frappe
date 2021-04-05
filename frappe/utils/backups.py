@@ -497,7 +497,6 @@ def get_backup():
 		).format(", ".join(recipient_list))
 	)
 
-
 @frappe.whitelist()
 def fetch_latest_backups(partial=False):
 	"""Fetches paths of the latest backup taken in the last 30 days

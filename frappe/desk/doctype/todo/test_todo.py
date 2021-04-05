@@ -5,8 +5,12 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
+from frappe.model.db_query import DatabaseQuery
+from frappe.permissions import add_permission, reset_perms
+from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 
 # test_records = frappe.get_test_records('ToDo')
+test_user_records = frappe.get_test_records('User')
 
 class TestToDo(unittest.TestCase):
 	def test_delete(self):
@@ -47,6 +51,62 @@ class TestToDo(unittest.TestCase):
 		self.assertEqual(todo.assigned_by_full_name,
 			frappe.db.get_value('User', todo.assigned_by, 'full_name'))
 
+	def test_todo_list_access(self):
+		create_new_todo('Test1', 'testperm@example.com')
+
+		frappe.set_user('test4@example.com')
+		create_new_todo('Test2', 'test4@example.com')
+		test_user_data = DatabaseQuery('ToDo').execute()
+
+		frappe.set_user('testperm@example.com')
+		system_manager_data = DatabaseQuery('ToDo').execute()
+
+		self.assertNotEqual(test_user_data, system_manager_data)
+
+		frappe.set_user('Administrator')
+		frappe.db.rollback()
+
+	def test_doc_read_access(self):
+		#owner and assigned_by is testperm
+		todo1 = create_new_todo('Test1', 'testperm@example.com')
+		test_user = frappe.get_doc('User', 'test4@example.com')
+
+		#owner is testperm, but assigned_by is test4
+		todo2 = create_new_todo('Test2', 'test4@example.com')
+
+		frappe.set_user('test4@example.com')
+		#owner and assigned_by is test4
+		todo3 = create_new_todo('Test3', 'test4@example.com')
+		
+		# user without any role to read or write todo document
+		self.assertFalse(todo1.has_permission("read"))
+		self.assertFalse(todo1.has_permission("write"))
+
+		# user without any role but he/she is assigned_by of that todo document
+		self.assertTrue(todo2.has_permission("read"))
+		self.assertTrue(todo2.has_permission("write"))
+
+		# user is the owner and assigned_by of the todo document
+		self.assertTrue(todo3.has_permission("read"))
+		self.assertTrue(todo3.has_permission("write"))
+
+		frappe.set_user('Administrator')
+
+		test_user.add_roles('Blogger')
+		add_permission('ToDo', 'Blogger')
+
+		frappe.set_user('test4@example.com')
+
+		# user with only read access to todo document, not an owner or assigned_by
+		self.assertTrue(todo1.has_permission("read"))
+		self.assertFalse(todo1.has_permission("write"))
+
+		frappe.set_user('Administrator')
+		test_user.remove_roles('Blogger')
+		reset_perms('ToDo')
+		clear_permissions_cache('ToDo')
+		frappe.db.rollback()
+
 def test_fetch_if_empty(self):
 		frappe.db.sql('delete from tabToDo')
 
@@ -74,3 +134,11 @@ def test_fetch_if_empty(self):
 
 		self.assertEqual(todo.assigned_by_full_name,
 			frappe.db.get_value('User', todo.assigned_by, 'full_name'))
+
+def create_new_todo(description, assigned_by):
+	todo = {
+		'doctype': 'ToDo',
+		'description': description,
+		'assigned_by': assigned_by
+	}
+	return frappe.get_doc(todo).insert()
