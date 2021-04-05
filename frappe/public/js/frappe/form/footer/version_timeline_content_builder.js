@@ -151,19 +151,23 @@ function get_version_comment(version_doc, text) {
 		let version_comment = "";
 		let unlinked_content = "";
 
-		Array.from($(text)).forEach(element => {
-			if ($(element).is('a')) {
-				version_comment += unlinked_content ? frappe.utils.get_form_link('Version', version_doc.name, true, unlinked_content) : "";
-				unlinked_content = "";
-				version_comment += element.outerHTML;
-			} else {
-				unlinked_content += element.outerHTML || element.textContent;
+		try {
+			Array.from($(text)).forEach(element => {
+				if ($(element).is('a')) {
+					version_comment += unlinked_content ? frappe.utils.get_form_link('Version', version_doc.name, true, unlinked_content) : "";
+					unlinked_content = "";
+					version_comment += element.outerHTML;
+				} else {
+					unlinked_content += element.outerHTML || element.textContent;
+				}
+			});
+			if (unlinked_content) {
+				version_comment += frappe.utils.get_form_link('Version', version_doc.name, true, unlinked_content);
 			}
-		});
-		if (unlinked_content) {
-			version_comment += frappe.utils.get_form_link('Version', version_doc.name, true, unlinked_content);
+			return version_comment;
+		} catch (e) {
+			// pass
 		}
-		return version_comment;
 	}
 	return frappe.utils.get_form_link('Version', version_doc.name, true, text);
 }
