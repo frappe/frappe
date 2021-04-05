@@ -30,12 +30,9 @@ class TestSMTP(unittest.TestCase):
 		del frappe.conf['mail_server']
 
 		frappe.local.outgoing_email_account = {}
-		# lowest preference given to email account with only incoming enabled
-		create_email_account(email_id="outgoing_enabled@gmail.com", password="***", enable_outgoing = 1)
-		self.assertEqual(get_outgoing_email_account().email_id, "outgoing_enabled@gmail.com")
 
 		frappe.local.outgoing_email_account = {}
-		# second highest preference given to email account with default incoming enabled
+		# lowest preference given to email account with default incoming enabled
 		create_email_account(email_id="default_outgoing_enabled@gmail.com", password="***", enable_outgoing = 1, default_outgoing=1)
 		self.assertEqual(get_outgoing_email_account().email_id, "default_outgoing_enabled@gmail.com")
 
