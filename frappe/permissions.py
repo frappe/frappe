@@ -78,14 +78,14 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 			push_perm_check_log(_('User {0} does not have doctype access via role permission for document {1}').format(frappe.bold(user), frappe.bold(doctype)))
 
 	def false_if_not_shared():
-		if ptype in ("read", "write", "share", "email", "print"):
+		if ptype in ("read", "write", "share", "submit", "email", "print"):
 			shared = frappe.share.get_shared(doctype, user,
 				["read" if ptype in ("email", "print") else ptype])
 
 			if doc:
 				doc_name = get_doc_name(doc)
 				if doc_name in shared:
-					if ptype in ("read", "write", "share") or meta.permissions[0].get(ptype):
+					if ptype in ("read", "write", "share", "submit") or meta.permissions[0].get(ptype):
 						return True
 
 			elif shared:
