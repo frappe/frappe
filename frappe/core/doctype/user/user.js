@@ -59,15 +59,18 @@ frappe.ui.form.on('User', {
 	onload: function(frm) {
 		frm.can_edit_roles = has_access_to_edit_user();
 
-		if (frm.can_edit_roles && !frm.is_new()) {
+		if (frm.can_edit_roles && !frm.is_new() && in_list(['System User', 'Website User'], frm.doc.user_type)) {
 			if (!frm.roles_editor) {
 				const role_area = $('<div class="role-editor">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
+
 				frm.roles_editor = new frappe.RoleEditor(role_area, frm, frm.doc.role_profile_name ? 1 : 0);
 
-				var module_area = $('<div>')
-					.appendTo(frm.fields_dict.modules_html.wrapper);
-				frm.module_editor = new frappe.ModuleEditor(frm, module_area);
+				if (frm.doc.user_type == 'System User') {
+					var module_area = $('<div>')
+						.appendTo(frm.fields_dict.modules_html.wrapper);
+					frm.module_editor = new frappe.ModuleEditor(frm, module_area);
+				}
 			} else {
 				frm.roles_editor.show();
 			}
@@ -75,7 +78,8 @@ frappe.ui.form.on('User', {
 	},
 	refresh: function(frm) {
 		var doc = frm.doc;
-		if(!frm.is_new() && !frm.roles_editor && frm.can_edit_roles) {
+		if (in_list(['System User', 'Website User'], frm.doc.user_type)
+			&& !frm.is_new() && !frm.roles_editor && frm.can_edit_roles) {
 			frm.reload_doc();
 			return;
 		}
@@ -250,15 +254,15 @@ frappe.ui.form.on('User', {
 			}
 		});
 	},
-	generate_keys: function(frm){
+	generate_keys: function(frm) {
 		frappe.call({
 			method: 'frappe.core.doctype.user.user.generate_keys',
 			args: {
 				user: frm.doc.name
 			},
-			callback: function(r){
-				if(r.message){
-					frappe.msgprint(__("Save API Secret: ") + r.message.api_secret);
+			callback: function(r) {
+				if (r.message) {
+					frappe.msgprint(__("Save API Secret: {0}", [r.message.api_secret]));
 				}
 			}
 		});
