@@ -94,6 +94,17 @@ class TestPassword(unittest.TestCase):
 
 		self.assertTrue(not get_password_list(doc))
 
+	def test_password_unset(self):
+		doc = self.make_email_account()
+
+		doc.password = 'asdf'
+		doc.save()
+		self.assertEqual(doc.get_password(raise_exception=False), 'asdf')
+
+		doc.password = ''
+		doc.save()
+		self.assertEqual(doc.get_password(raise_exception=False), None)
+
 
 def get_password_list(doc):
 	return frappe.db.sql("""SELECT `password`

@@ -14,7 +14,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	}
 
 	refresh() {
-		this.current_theme = document.body.dataset.theme;
+		this.current_theme = document.documentElement.getAttribute("data-theme") || "light";
 		this.fetch_themes().then(() => {
 			this.render();
 		});
@@ -45,7 +45,6 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		});
 	}
 
-
 	get_preview_html(theme) {
 		const preview = $(`<div class="${this.current_theme == theme.name ? "selected" : "" }">
 			<div data-theme=${theme.name}>
@@ -69,15 +68,9 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 			</div>
 		</div>`);
 
-		// preview.on('mouseover', () => {
-		// 	this.toggle_theme(theme.name, true)
-		// })
-
-		// preview.on('mouseleave', () => {
-		// 	this.toggle_theme(this.current_theme, true)
-		// })
-
 		preview.on('click', () => {
+			if (this.current_theme === theme.name) return;
+
 			this.themes.forEach((th) => {
 				th.$html.removeClass("selected");
 			});
@@ -89,19 +82,15 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		return preview;
 	}
 
-	toggle_theme(theme, preview=false) {
-		if (!preview) {
-			document.body.dataset.theme = theme.toLowerCase();
-			frappe.show_alert("Theme Changed", 3);
+	toggle_theme(theme) {
+		this.current_theme = theme.toLowerCase();
+		document.documentElement.setAttribute("data-theme", this.current_theme);
+		frappe.show_alert("Theme Changed", 3);
 
-			frappe.call('frappe.core.doctype.user.user.switch_theme', {
-				theme: toTitle(theme)
-			});
-		} else {
-			document.body.dataset.theme = theme.toLowerCase();
-		}
+		frappe.xcall("frappe.core.doctype.user.user.switch_theme", {
+			theme: toTitle(theme)
+		});
 	}
-
 	show() {
 		this.dialog.show();
 	}

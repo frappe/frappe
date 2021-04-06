@@ -61,7 +61,7 @@ def make_notification_logs(doc, users):
 	from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 
 	for user in users:
-		if frappe.db.exists('User', {"name": user, "enabled": 1}):
+		if frappe.db.exists('User', {"email": user, "enabled": 1}):
 			if is_notifications_enabled(user):
 				if doc.type == 'Energy Point' and not is_energy_point_enabled():
 					return

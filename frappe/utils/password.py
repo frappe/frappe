@@ -65,7 +65,14 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 		raise e
 
 
-def check_password(user, pwd, doctype='User', fieldname='password'):
+def remove_encrypted_password(doctype, name, fieldname='password'):
+	frappe.db.sql(
+		'DELETE FROM `__Auth` WHERE doctype = %s and name = %s and fieldname = %s',
+		values=[doctype, name, fieldname]
+	)
+
+
+def check_password(user, pwd, doctype='User', fieldname='password', delete_tracker_cache=True):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
 
 	auth = frappe.db.sql("""select `name`, `password` from `__Auth`
@@ -77,7 +84,11 @@ def check_password(user, pwd, doctype='User', fieldname='password'):
 
 	# lettercase agnostic
 	user = auth[0].name
-	delete_login_failed_cache(user)
+
+	# TODO: This need to be deleted after checking side effects of it.
+	# We have a `LoginAttemptTracker` that can take care of tracking related cache.
+	if delete_tracker_cache:
+		delete_login_failed_cache(user)
 
 	if not passlibctx.needs_update(auth[0].password):
 		update_password(user, pwd, doctype, fieldname)
@@ -89,14 +100,6 @@ def delete_login_failed_cache(user):
 	frappe.cache().hdel('last_login_tried', user)
 	frappe.cache().hdel('login_failed_count', user)
 	frappe.cache().hdel('locked_account_time', user)
-
-
-def delete_password_reset_cache(user=None):
-	if user:
-		frappe.cache().hdel('password_reset_link_count', user)
-	else:
-		frappe.cache().delete_key('password_reset_link_count')
-
 
 def update_password(user, pwd, doctype='User', fieldname='password', logout_all_sessions=False):
 	'''
@@ -179,3 +182,6 @@ def get_encryption_key():
 		frappe.local.conf.encryption_key = encryption_key
 
 	return frappe.local.conf.encryption_key
+
+def get_password_reset_limit():
+	return frappe.db.get_single_value("System Settings", "password_reset_limit") or 0

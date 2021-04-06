@@ -123,7 +123,14 @@ frappe.views.ListViewSelect = class ListViewSelect {
 						kanbans => this.setup_kanban_switcher(kanbans)
 					);
 				}
-			}
+			},
+			Map: {
+				condition: this.list_view.settings.get_coords_method ||
+					(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
+					this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
+					(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation')),
+				action: () => this.set_route("map")
+			},
 		};
 
 		frappe.views.view_modes.forEach(view => {
@@ -156,10 +163,11 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			items.map(item => {
 				if (item.name.toLowerCase() == page_name.toLowerCase()) {
 					placeholder = item.name;
+				} else {
+					html += `<li><a class="dropdown-item" href="${item.route}">${
+						item.name
+					}</a></li>`;
 				}
-				html += `<li><a class="dropdown-item" href="${item.route}">${
-					item.name
-				}</a></li>`;
 			});
 		}
 

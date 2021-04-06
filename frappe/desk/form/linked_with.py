@@ -79,28 +79,30 @@ def get_submitted_linked_docs(doctype, name, docs=None, visited=None):
 @frappe.whitelist()
 def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=[]):
 	"""
-	Cancel all linked doctype
+	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
 	Arguments:
-		docs (str) - It contains all list of dictionaries of a linked documents.
+		docs (json str) - It contains list of dictionaries of a linked documents.
+		ignore_doctypes_on_cancel_all (list) - List of doctypes to ignore while cancelling.
 	"""
 
 	docs = json.loads(docs)
 	if isinstance(ignore_doctypes_on_cancel_all, string_types):
 		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
 	for i, doc in enumerate(docs, 1):
-		if validate_linked_doc(doc, ignore_doctypes_on_cancel_all) is True:
-			frappe.publish_progress(percent=i * 100 / ((len(docs) - len(ignore_doctypes_on_cancel_all))), title=_("Cancelling documents"))
+		if validate_linked_doc(doc, ignore_doctypes_on_cancel_all):
 			linked_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
 			linked_doc.cancel()
+		frappe.publish_progress(percent=i/len(docs) * 100, title=_("Cancelling documents"))
 
 
 def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=[]):
 	"""
 	Validate a document to be submitted and non-exempted from auto-cancel.
 
-	Args:
-		docs (dict): The document to check for submitted and non-exempt from auto-cancel
+	Arguments:
+		docinfo (dict): The document to check for submitted and non-exempt from auto-cancel
+		ignore_doctypes_on_cancel_all (list) - List of doctypes to ignore while cancelling.
 
 	Returns:
 		bool: True if linked document passes all validations, else False

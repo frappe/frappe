@@ -8,6 +8,7 @@ from frappe.core.doctype.report.report import is_prepared_report_disabled
 from frappe.model.document import Document
 
 class RolePermissionforPageandReport(Document):
+	@frappe.whitelist()
 	def set_report_page_data(self):
 		self.set_custom_roles()
 		self.check_prepared_report_disabled()
@@ -35,12 +36,14 @@ class RolePermissionforPageandReport(Document):
 		doc = frappe.get_doc(doctype, docname)
 		return doc.roles
 
+	@frappe.whitelist()
 	def reset_roles(self):
 		roles = self.get_standard_roles()
 		self.set('roles', roles)
 		self.update_custom_roles()
 		self.update_disable_prepared_report()
 
+	@frappe.whitelist()
 	def update_report_page_data(self):
 		self.update_custom_roles()
 		self.update_disable_prepared_report()

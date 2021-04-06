@@ -1,5 +1,4 @@
 @import "variables";
-@import "css_variables";
 @import "../common/mixins.scss";
 @import "../common/global.scss";
 @import "../common/icons.scss";
@@ -24,7 +23,7 @@
 @import "notification";
 @import "global_search";
 @import "desktop";
-@import "awesomebar";
+@import "../common/awesomeplete";
 @import "sidebar";
 @import "filters";
 @import "list";
@@ -44,5 +43,5 @@
 @import "user_profile";
 @import "theme_switcher";
 @import "link_preview";
-@import "quill";
+@import "../common/quill";
 @import "plyr";
