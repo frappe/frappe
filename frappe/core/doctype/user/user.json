@@ -191,7 +191,7 @@
    "print_hide": 1
   },
   {
-   "depends_on": "enabled",
+   "depends_on": "eval:in_list(['System User', 'Website User'], doc.user_type) && doc.enabled == 1",
    "fieldname": "sb1",
    "fieldtype": "Section Break",
    "label": "Roles",
@@ -391,6 +391,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:in_list(['System User'], doc.user_type)",
    "fieldname": "sb_allow_modules",
    "fieldtype": "Section Break",
    "label": "Allow Modules",
@@ -453,18 +454,18 @@
    "label": "Simultaneous Sessions"
   },
   {
+   "bold": 1,
    "default": "System User",
    "description": "If the user has any role checked, then the user becomes a \"System User\". \"System User\" has access to the desktop",
    "fieldname": "user_type",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "User Type",
    "oldfieldname": "user_type",
    "oldfieldtype": "Select",
-   "options": "System User\nWebsite User",
-   "permlevel": 1,
-   "read_only": 1
+   "options": "User Type",
+   "permlevel": 1
   },
   {
    "description": "Allow user to login only after this hour (0-24)",
@@ -669,7 +670,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2021-02-01 16:11:06.037543",
+ "modified": "2021-02-02 16:11:06.037543",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
