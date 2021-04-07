@@ -198,7 +198,7 @@ def getseries(key, digits):
 	return ('%0'+str(digits)+'d') % current
 
 
-def revert_series_if_last(key, name, doc):
+def revert_series_if_last(key, name, doc=None):
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:

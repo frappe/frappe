@@ -244,7 +244,7 @@ class TestDocument(unittest.TestCase):
 			prefix = parse_naming_series(prefix)
 			old_current = frappe.db.get_value('Series', prefix, "current", order_by="name")
 
-			revert_series_if_last(series, name, doc)
+			revert_series_if_last(series, name)
 			new_current = cint(frappe.db.get_value('Series', prefix, "current", order_by="name"))
 
 			self.assertEqual(cint(old_current) - 1, new_current)
