@@ -938,7 +938,7 @@ Object.assign(frappe.utils, {
 		});
 	},
 	is_rtl(lang=null) {
-		return ["ar", "he", "fa"].includes(lang || frappe.boot.lang);
+		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
 	},
 	bind_actions_with_object($el, object) {
 		// remove previously bound event
