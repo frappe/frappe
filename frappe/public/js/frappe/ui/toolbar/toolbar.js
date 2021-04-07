@@ -200,6 +200,7 @@ $.extend(frappe.ui.toolbar, {
 
 frappe.ui.toolbar.clear_cache = frappe.utils.throttle(function() {
 	frappe.assets.clear_local_storage();
+	frappe.assets.clear_indexed_db();
 	frappe.xcall('frappe.sessions.clear').then(message => {
 		frappe.show_alert({
 			message: message,

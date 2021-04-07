@@ -54,6 +54,11 @@ frappe.assets = {
 		console.log("localStorage cleared");
 	},
 
+	clear_indexed_db: function () {
+		localforage.clear().then(() => {
+			console.log('IndexedDB cleared'); // eslint-disable-line no-console
+		});
+	},
 
 	// keep track of executed assets
 	executed_ : [],
