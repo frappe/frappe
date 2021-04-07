@@ -126,8 +126,9 @@
 							);
 					});
 					$("#language-switcher").removeClass('hide');
-					const language = localStorage.getItem('preferred-language');
-					$("#language-switcher").val(language || 'en');
+					const language = localStorage.getItem('preferred-language') || 'en';
+					$("#language-switcher").val(language);
+					document.documentElement.lang = language;
 					$("#language-switcher").change((e) => {
 						let lang = $("#language-switcher").val();
 						localStorage.setItem('preferred-language', $("#language-switcher").val())
