@@ -1,6 +1,10 @@
 var app = require('express')();
 var server = require('http').Server(app);
-var io = require('socket.io')(server);
+var io = require('socket.io')(server, {
+	cors: {
+		origin: "*",
+	}
+});
 var cookie = require('cookie');
 var request = require('superagent');
 var { get_conf, get_redis_subscriber } = require('./node_utils');
