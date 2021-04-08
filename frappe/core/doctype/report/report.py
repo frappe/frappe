@@ -307,6 +307,9 @@ class Report(Document):
 
 	@frappe.whitelist()
 	def toggle_disable(self, disable):
+		if not self.has_permission('write'):
+			frappe.throw(_("You are not allowed to edit the report."))
+
 		self.db_set("disabled", cint(disable))
 
 @frappe.whitelist()
