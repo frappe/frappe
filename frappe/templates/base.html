@@ -129,7 +129,7 @@
 							);
 					});
 					$("#language-switcher").removeClass('hide');
-					language = language || language_codes.includes(navigator.language) ? navigator.language : 'en';
+					language = language || (language_codes.includes(navigator.language) ? navigator.language : 'en');
 					$("#language-switcher").val(language);
 					document.documentElement.lang = language;
 					$("#language-switcher").change((e) => {
