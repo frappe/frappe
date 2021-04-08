@@ -110,7 +110,7 @@
 	{%- endblock %}
 	<!-- csrf_token -->
 	{%- block body_include %}{{ body_include or "" }}{% endblock -%}
-	<script >
+	<script>
 		frappe.ready(() => {
 			if (frappe.session.user === 'Guest') {
 				frappe.call("frappe.translate.get_all_languages", {
@@ -126,12 +126,11 @@
 							);
 					});
 					$("#language-switcher").removeClass('hide');
-					const language = localStorage.getItem('preferred-language') || 'en';
+					const language = frappe.get_cookie('preferred_language') || 'en';
 					$("#language-switcher").val(language);
 					document.documentElement.lang = language;
 					$("#language-switcher").change((e) => {
 						let lang = $("#language-switcher").val();
-						localStorage.setItem('preferred-language', $("#language-switcher").val())
 						frappe.call("frappe.translate.set_preferred_language_cookie", {
 							"preferred_language": lang
 						}).then(() => {
