@@ -198,7 +198,7 @@ def getseries(key, digits):
 	return ('%0'+str(digits)+'d') % current
 
 
-def revert_series_if_last(key, name):
+def revert_series_if_last(key, name, doc=None):
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:
@@ -207,7 +207,7 @@ def revert_series_if_last(key, name):
 		prefix = key
 
 	if '.' in prefix:
-		prefix = parse_naming_series(prefix.split('.'))
+		prefix = parse_naming_series(prefix.split('.'), doc=doc)
 
 	count = cint(name.replace(prefix, ""))
 	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (prefix,))

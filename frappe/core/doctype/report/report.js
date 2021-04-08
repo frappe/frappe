@@ -25,7 +25,7 @@ frappe.ui.form.on('Report', {
 			}
 		}, "fa fa-table");
 
-		if (doc.is_standard === "Yes") {
+		if (doc.is_standard === "Yes" && frm.perm[0].write) {
 			frm.add_custom_button(doc.disabled ? __("Enable Report") : __("Disable Report"), function() {
 				frm.call('toggle_disable', {
 					disable: doc.disabled ? 0 : 1

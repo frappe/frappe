@@ -78,14 +78,14 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 			push_perm_check_log(_('User {0} does not have doctype access via role permission for document {1}').format(frappe.bold(user), frappe.bold(doctype)))
 
 	def false_if_not_shared():
-		if ptype in ("read", "write", "share", "email", "print"):
+		if ptype in ("read", "write", "share", "submit", "email", "print"):
 			shared = frappe.share.get_shared(doctype, user,
 				["read" if ptype in ("email", "print") else ptype])
 
 			if doc:
 				doc_name = get_doc_name(doc)
 				if doc_name in shared:
-					if ptype in ("read", "write", "share") or meta.permissions[0].get(ptype):
+					if ptype in ("read", "write", "share", "submit") or meta.permissions[0].get(ptype):
 						return True
 
 			elif shared:
@@ -476,7 +476,7 @@ def setup_custom_perms(parent):
 		copy_perms(parent)
 		return True
 
-def add_permission(doctype, role, permlevel=0):
+def add_permission(doctype, role, permlevel=0, ptype=None):
 	'''Add a new permission rule to the given doctype
 		for the given Role and Permission Level'''
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
@@ -486,6 +486,9 @@ def add_permission(doctype, role, permlevel=0):
 		permlevel=permlevel, if_owner=0)):
 		return
 
+	if not ptype:
+		ptype = 'read'
+
 	custom_docperm = frappe.get_doc({
 		"doctype":"Custom DocPerm",
 		"__islocal": 1,
@@ -493,13 +496,14 @@ def add_permission(doctype, role, permlevel=0):
 		"parenttype": "DocType",
 		"parentfield": "permissions",
 		"role": role,
-		'read': 1,
 		"permlevel": permlevel,
+		ptype: 1,
 	})
 
 	custom_docperm.save()
 
 	validate_permissions_for_doctype(doctype)
+	return custom_docperm.name
 
 def copy_perms(parent):
 	'''Copy all DocPerm in to Custom DocPerm for the given document'''

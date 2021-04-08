@@ -104,7 +104,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if frappe.get_meta(doctype).issingle:
 		value = frappe.db.get_values_from_single(fields, filters, doctype, as_dict=as_dict, debug=debug)
 	else:
-		value = get_list(doctype, filters=filters, fields=fields, debug=debug, limit_page_length=1, as_dict=as_dict)
+		value = get_list(doctype, filters=filters, fields=fields, debug=debug, limit_page_length=1, parent=parent, as_dict=as_dict)
 
 	if as_dict:
 		return value[0] if value else {}
