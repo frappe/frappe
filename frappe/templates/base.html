@@ -116,8 +116,11 @@
 				frappe.call("frappe.translate.get_all_languages", {
 					with_language_name: true
 				}).then(res => {
-					let languages = res.message;
-					languages.forEach(language_doc => {
+					let language_list = res.message;
+					let language = frappe.get_cookie('preferred_language');
+					let language_codes = [];
+					language_list.forEach(language_doc => {
+						language_codes.push(language_doc.language_code)
 						$("#language-switcher")
 							.append(
 								$("<option></option>")
@@ -126,7 +129,7 @@
 							);
 					});
 					$("#language-switcher").removeClass('hide');
-					const language = frappe.get_cookie('preferred_language') || 'en';
+					language = language || language_codes.includes(navigator.language) ? navigator.language : 'en';
 					$("#language-switcher").val(language);
 					document.documentElement.lang = language;
 					$("#language-switcher").change((e) => {
