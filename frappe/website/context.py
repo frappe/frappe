@@ -58,7 +58,7 @@ def update_controller_context(context, controller):
 					ret = module.get_context()
 				if ret:
 					context.update(ret)
-			except (frappe.PermissionError, frappe.DoesNotExistError, frappe.Redirect):
+			except (frappe.PermissionError, frappe.PageDoesNotExistError, frappe.Redirect):
 				raise
 			except:
 				if not frappe.flags.in_migrate:
