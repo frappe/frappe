@@ -429,12 +429,12 @@ class TestAttachmentsAccess(unittest.TestCase):
 			"content": 'System Manager Home',
 		}).insert()
 
-		system_manager_files = [file.file_name for file in get_files_in_folder('Home')['files']]
-		system_manager_attachments_files = [file.file_name for file in get_files_in_folder('Home/Attachments')['files']]
+		system_manager_files = [file.file_name for file in get_files_in_folder('Home')]
+		system_manager_attachments_files = [file.file_name for file in get_files_in_folder('Home/Attachments')]
 
 		frappe.set_user('test4@example.com')
-		user_files = [file.file_name for file in get_files_in_folder('Home')['files']]
-		user_attachments_files = [file.file_name for file in get_files_in_folder('Home/Attachments')['files']]
+		user_files = [file.file_name for file in get_files_in_folder('Home')]
+		user_attachments_files = [file.file_name for file in get_files_in_folder('Home/Attachments')]
 
 		self.assertIn('test_sm_home.txt', system_manager_files)
 		self.assertNotIn('test_sm_home.txt', user_files)
