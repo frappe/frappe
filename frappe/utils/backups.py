@@ -570,11 +570,11 @@ def new_backup(
 	return odb
 
 
-def delete_temp_backups():
+def delete_temp_backups(older_than=24):
 	"""
-	Cleans up the backup_link_path directory by deleting files older than 24 hours
+	Cleans up the backup_link_path directory by deleting older files
 	"""
-	older_than = cint(frappe.conf.keep_backups_for_hours) or 24
+	older_than = cint(frappe.conf.keep_backups_for_hours) or older_than
 	backup_path = get_backup_path()
 	if os.path.exists(backup_path):
 		file_list = os.listdir(get_backup_path())
