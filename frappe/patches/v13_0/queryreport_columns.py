@@ -2,7 +2,8 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe
+import json
 
 def execute():
 	"""Convert Query Report json to support other content"""
