@@ -13,6 +13,7 @@ from frappe.permissions import (add_user_permission, remove_user_permission,
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
+from frappe.desk.form.load import getdoc
 
 test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
@@ -30,6 +31,8 @@ class TestPermissions(unittest.TestCase):
 
 			user = frappe.get_doc("User", "test3@example.com")
 			user.add_roles("Sales User")
+			user.add_roles("Blogger")
+
 			frappe.flags.permission_user_setup_done = True
 
 		reset('Blogger')
@@ -463,6 +466,28 @@ class TestPermissions(unittest.TestCase):
 
 		# delete the created doc
 		frappe.delete_doc('Blog Post', '-test-blog-post-title')
+
+	def test_if_owner_permission_on_getdoc(self):
+		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
+		update('Blog Post', 'Blogger', 0, 'read', 1)
+		update('Blog Post', 'Blogger', 0, 'write', 1)
+		update('Blog Post', 'Blogger', 0, 'delete', 1)
+		frappe.clear_cache(doctype="Blog Post")
+
+		frappe.set_user("test3@example.com")
+
+		doc = frappe.get_doc({
+			"doctype": "Blog Post",
+			"blog_category": "_Test Blog Category",
+			"blogger": "_Test Blogger 1",
+			"title": "_Test Blog Post Title",
+			"content": "_Test Blog Post Content"
+		})
+
+		doc.insert()
+
+		frappe.set_user("test2@example.com")
+		self.assertRaises(frappe.PermissionError, getdoc, 'Blog Post', doc.name)
 
 	def test_clear_user_permissions(self):
 		current_user = frappe.session.user
