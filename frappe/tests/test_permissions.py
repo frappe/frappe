@@ -478,7 +478,7 @@ class TestPermissions(unittest.TestCase):
 
 		doc = frappe.get_doc({
 			"doctype": "Blog Post",
-			"blog_category": "_Test Blog Category",
+			"blog_category": "-test-blog-category",
 			"blogger": "_Test Blogger 1",
 			"title": "_Test Blog Post Title",
 			"content": "_Test Blog Post Content"
