@@ -488,9 +488,6 @@ class TestPermissions(unittest.TestCase):
 		frappe.set_user("test2@example.com")
 		self.assertRaises(frappe.PermissionError, getdoc, 'Blog Post', doc.name)
 
-		# delete the created doc
-		frappe.delete_doc('Blog Post', '-test-blog-post-title')
-
 	def test_clear_user_permissions(self):
 		current_user = frappe.session.user
 		frappe.set_user('Administrator')
