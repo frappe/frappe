@@ -31,7 +31,6 @@ class TestPermissions(unittest.TestCase):
 
 			user = frappe.get_doc("User", "test3@example.com")
 			user.add_roles("Sales User")
-			user.add_roles("Blogger")
 
 			frappe.flags.permission_user_setup_done = True
 
@@ -474,7 +473,7 @@ class TestPermissions(unittest.TestCase):
 		update('Blog Post', 'Blogger', 0, 'delete', 1)
 		frappe.clear_cache(doctype="Blog Post")
 
-		frappe.set_user("test3@example.com")
+		frappe.set_user("test1@example.com")
 
 		doc = frappe.get_doc({
 			"doctype": "Blog Post",
@@ -488,6 +487,10 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user("test2@example.com")
 		self.assertRaises(frappe.PermissionError, getdoc, 'Blog Post', doc.name)
+
+		# delete the created doc
+		frappe.delete_doc('Blog Post', '-test-blog-post-title')
+		reset('Blog Post')
 
 	def test_clear_user_permissions(self):
 		current_user = frappe.session.user
