@@ -490,7 +490,6 @@ class TestPermissions(unittest.TestCase):
 
 		# delete the created doc
 		frappe.delete_doc('Blog Post', '-test-blog-post-title')
-		reset('Blog Post')
 
 	def test_clear_user_permissions(self):
 		current_user = frappe.session.user
