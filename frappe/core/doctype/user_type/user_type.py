@@ -121,8 +121,10 @@ class UserType(Document):
 			self.prepare_select_perm_doctypes(doc, user_doctypes, select_doctypes)
 
 			for child_table in doc.get_table_fields():
-				child_doc = frappe.get_meta(child_table.options)
-				self.prepare_select_perm_doctypes(child_doc, user_doctypes, select_doctypes)
+				if frappe.db.table_exists(child_table.options):
+					child_doc = frappe.get_meta(child_table.options)
+					if not child_doc.istable:
+						self.prepare_select_perm_doctypes(child_doc, user_doctypes, select_doctypes)
 
 		if select_doctypes:
 			select_doctypes = set(select_doctypes)
