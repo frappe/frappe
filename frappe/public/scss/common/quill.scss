@@ -191,3 +191,7 @@
 .mention>span {
 	margin: 0 3px;
 }
+
+.mention[data-is-group="true"] {
+	background-color: var(--purple-100) !important;
+}
