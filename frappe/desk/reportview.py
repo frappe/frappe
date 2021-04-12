@@ -13,13 +13,20 @@ from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
+from frappe.model.base_document import get_controller
 
 
 @frappe.whitelist(allow_guest=True)
 @frappe.read_only()
 def get():
 	args = get_form_params()
-	return compress(execute(**args), args=args)
+	# If virtual doctype get data from controller het_list method
+	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="is_virtual"):
+		controller = get_controller(args.doctype)
+		data = compress(controller(args.doctype).get_list(args))
+	else:
+		data = compress(execute(**args), args=args)
+	return data
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -31,7 +38,9 @@ def get_list():
 @frappe.read_only()
 def get_count():
 	args = get_form_params()
-	args.fields = ['{distinct}count(name) as total_count'.format(distinct = 'distinct ' if args.distinct=='true' else '')]
+
+	distinct = 'distinct ' if args.distinct=='true' else ''
+	args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
 	return execute(**args)[0].get('total_count')
 
 def execute(doctype, *args, **kwargs):
@@ -429,8 +438,9 @@ def get_stats(stats, doctype, filters=[]):
 
 	try:
 		columns = frappe.db.get_table_columns(doctype)
-	except frappe.db.InternalError:
+	except (frappe.db.InternalError, frappe.db.ProgrammingError):
 		# raised when _user_tags column is added on the fly
+		# raised if its a virtual doctype
 		columns = []
 
 	for tag in tags:
@@ -541,7 +551,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 				if isinstance(f[1], string_types) and f[1][0] == '!':
 					flt.append([doctype, f[0], '!=', f[1][1:]])
 				elif isinstance(f[1], (list, tuple)) and \
-					f[1][0] in (">", "<", ">=", "<=", "like", "not like", "in", "not in", "between"):
+					f[1][0] in (">", "<", ">=", "<=", "!=", "like", "not like", "in", "not in", "between"):
 
 					flt.append([doctype, f[0], f[1][0], f[1][1]])
 				else:

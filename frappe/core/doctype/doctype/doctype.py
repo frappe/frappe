@@ -127,6 +127,10 @@ class DocType(Document):
 		if not frappe.conf.get("developer_mode") and not self.custom:
 			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."), CannotCreateStandardDoctypeError)
 
+		if self.is_virtual and self.custom:
+			frappe.throw(_("Not allowed to create custom Virtual DocType."), CannotCreateStandardDoctypeError)
+
+
 		if frappe.conf.get('developer_mode'):
 			self.owner = 'Administrator'
 			self.modified_by = 'Administrator'
@@ -1112,6 +1116,21 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 		if d.get("import") and not isimportable:
 			frappe.throw(_("{0}: Cannot set import as {1} is not importable").format(get_txt(d), doctype))
 
+	def validate_permission_for_all_role(d):
+		if frappe.session.user == 'Administrator':
+			return
+
+		if doctype.custom:
+			if d.role == 'All':
+				frappe.throw(_('Row # {0}: Non administrator user can not set the role {1} to the custom doctype')
+					.format(d.idx, frappe.bold(_('All'))), title=_('Permissions Error'))
+
+			roles = [row.name for row in frappe.get_all('Role', filters={'is_custom': 1})]
+
+			if d.role in roles:
+				frappe.throw(_('Row # {0}: Non administrator user can not set the role {1} to the custom doctype')
+					.format(d.idx, frappe.bold(_(d.role))), title=_('Permissions Error'))
+
 	for d in permissions:
 		if not d.permlevel:
 			d.permlevel=0
@@ -1123,6 +1142,7 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			check_if_importable(d)
 		check_level_zero_is_set(d)
 		remove_rights_for_single(d)
+		validate_permission_for_all_role(d)
 
 def make_module_and_roles(doc, perm_fieldname="permissions"):
 	"""Make `Module Def` and `Role` records if already not made. Called while installing."""

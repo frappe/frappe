@@ -25,7 +25,8 @@
   "form_settings_section",
   "form_sidebar",
   "timeline",
-  "dashboard"
+  "dashboard",
+  "is_custom"
  ],
  "fields": [
   {
@@ -141,13 +142,20 @@
    "fieldname": "notifications",
    "fieldtype": "Check",
    "label": "Notifications"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_custom",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Custom"
   }
  ],
  "icon": "fa fa-bookmark",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-12-03 14:08:38.181035",
+ "modified": "2021-01-27 10:35:37.638350",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",

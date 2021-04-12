@@ -555,21 +555,24 @@ class BaseDocument(object):
 						not _df.get('fetch_if_empty')
 						or (_df.get('fetch_if_empty') and not self.get(_df.fieldname))
 				]
+				if not frappe.get_meta(doctype).get('is_virtual'):
+					if not fields_to_fetch:
+						# cache a single value type
+						values = frappe._dict(name=frappe.db.get_value(doctype, docname,
+							'name', cache=True))
+					else:
+						values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1]
+							for _df in fields_to_fetch]
 
-				if not fields_to_fetch:
-					# cache a single value type
-					values = frappe._dict(name=frappe.db.get_value(doctype, docname,
-						'name', cache=True))
-				else:
-					values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1]
-						for _df in fields_to_fetch]
-
-					# don't cache if fetching other values too
-					values = frappe.db.get_value(doctype, docname,
-						values_to_fetch, as_dict=True)
+						# don't cache if fetching other values too
+						values = frappe.db.get_value(doctype, docname,
+							values_to_fetch, as_dict=True)
 
 				if frappe.get_meta(doctype).issingle:
 					values.name = doctype
+
+				if frappe.get_meta(doctype).get('is_virtual'):
+					values = frappe.get_doc(doctype, docname)
 
 				if values:
 					setattr(self, df.fieldname, values.name)
@@ -792,7 +795,7 @@ class BaseDocument(object):
 
 	def _save_passwords(self):
 		"""Save password field values in __Auth table"""
-		from frappe.utils.password import set_encrypted_password
+		from frappe.utils.password import set_encrypted_password, remove_encrypted_password
 
 		if self.flags.ignore_save_passwords is True:
 			return
@@ -800,6 +803,10 @@ class BaseDocument(object):
 		for df in self.meta.get('fields', {'fieldtype': ('=', 'Password')}):
 			if self.flags.ignore_save_passwords and df.fieldname in self.flags.ignore_save_passwords: continue
 			new_password = self.get(df.fieldname)
+
+			if not new_password:
+				remove_encrypted_password(self.doctype, self.name, df.fieldname)
+
 			if new_password and not self.is_dummy_password(new_password):
 				# is not a dummy password like '*****'
 				set_encrypted_password(self.doctype, self.name, new_password, df.fieldname)

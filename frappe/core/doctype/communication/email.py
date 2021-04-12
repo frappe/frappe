@@ -8,8 +8,8 @@ import frappe
 import json
 from email.utils import formataddr
 from frappe.core.utils import get_parent_doc
-from frappe.utils import (get_url, get_formatted_email, cint,
-  validate_email_address, split_emails, parse_addr, get_datetime)
+from frappe.utils import (get_url, get_formatted_email, cint, list_to_str,
+	validate_email_address, split_emails, parse_addr, get_datetime)
 from frappe.email.email_body import get_message_id
 import frappe.email.smtp
 import time
@@ -20,7 +20,8 @@ from frappe.utils.background_jobs import enqueue
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
 	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
-	flags=None, read_receipt=None, print_letterhead=True, email_template=None):
+	flags=None, read_receipt=None, print_letterhead=True, email_template=None, communication_type=None,
+	ignore_permissions=False):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -42,15 +43,17 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
 	send_me_a_copy = cint(send_me_a_copy)
 
-	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not (flags or {}).get('ignore_doctype_permissions'):
-		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
-			doctype=doctype, name=name))
+	if not ignore_permissions:
+		if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not (flags or {}).get('ignore_doctype_permissions'):
+			raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
+				doctype=doctype, name=name))
 
 	if not sender:
 		sender = get_formatted_email(frappe.session.user)
 
-	if isinstance(recipients, list):
-		recipients = ', '.join(recipients)
+	recipients = list_to_str(recipients) if isinstance(recipients, list) else recipients
+	cc = list_to_str(cc) if isinstance(cc, list) else cc
+	bcc = list_to_str(bcc) if isinstance(bcc, list) else bcc
 
 	comm = frappe.get_doc({
 		"doctype":"Communication",
@@ -68,7 +71,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"email_template": email_template,
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
-		"has_attachment": 1 if attachments else 0
+		"has_attachment": 1 if attachments else 0,
+		"communication_type": communication_type
 	}).insert(ignore_permissions=True)
 
 	comm.save(ignore_permissions=True)
