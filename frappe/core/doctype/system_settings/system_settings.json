@@ -397,7 +397,7 @@
   {
    "default": "7",
    "depends_on": "enable_prepared_report_auto_deletion",
-   "description": "System will automatically delete Prepared Reports after these many days since creation",
+   "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
    "fieldname": "prepared_report_expiry_period",
    "fieldtype": "Int",
    "label": "Prepared Report Expiry Period (Days)"
@@ -417,7 +417,8 @@
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
- "modified": "2021-03-25 13:58:12.750629",
+ "links": [],
+ "modified": "2021-03-25 17:54:32.668876",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

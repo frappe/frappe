@@ -192,8 +192,6 @@ class TestSameContent(unittest.TestCase):
 
 
 class TestFile(unittest.TestCase):
-
-
 	def setUp(self):
 		self.delete_test_data()
 		self.upload_file()
@@ -375,3 +373,20 @@ class TestFile(unittest.TestCase):
 		# because user gets permission via has_web_form_permission
 		self.assertIsInstance(txt_file, File)
 		frappe.set_user('Administrator')
+
+	def test_parent_directory_validation_in_file_url(self):
+		file1 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'parent_dir.txt',
+			"attached_to_doctype": "",
+			"attached_to_name": "",
+			"is_private": 1,
+			"content": test_content1}).insert()
+
+		file1.file_url = '/private/files/../test.txt'
+		self.assertRaises(frappe.exceptions.ValidationError, file1.save)
+
+		# No validation to see if file exists
+		file1.reload()
+		file1.file_url = '/private/files/parent_dir2.txt'
+		file1.save()
