@@ -985,7 +985,7 @@ class Database(object):
 	def log_touched_tables(self, query, values=None):
 		if values:
 			query = frappe.safe_decode(self._cursor.mogrify(query, values))
-		if query.strip().lower().split()[0] in ('insert', 'delete', 'update', 'alter'):
+		if query.strip().lower().split()[0] in ('insert', 'delete', 'update', 'alter', 'drop', 'rename'):
 			# single_word_regex is designed to match following patterns
 			# `tabXxx`, tabXxx and "tabXxx"
 
