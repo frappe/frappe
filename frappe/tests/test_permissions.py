@@ -32,6 +32,9 @@ class TestPermissions(unittest.TestCase):
 			user = frappe.get_doc("User", "test3@example.com")
 			user.add_roles("Sales User")
 
+			user = frappe.get_doc("User", "testperm@example.com")
+			user.add_roles("Website Manager")
+
 			frappe.flags.permission_user_setup_done = True
 
 		reset('Blogger')
@@ -479,14 +482,56 @@ class TestPermissions(unittest.TestCase):
 			"doctype": "Blog Post",
 			"blog_category": "-test-blog-category",
 			"blogger": "_Test Blogger 1",
-			"title": "_Test Blog Post Title",
+			"title": "_Test Blog Post Title New",
 			"content": "_Test Blog Post Content"
 		})
 
 		doc.insert()
 
+		getdoc('Blog Post', doc.name)
+		doclist = [d.name for d in frappe.response.docs]
+		self.assertTrue(doc.name in doclist)
+
 		frappe.set_user("test2@example.com")
 		self.assertRaises(frappe.PermissionError, getdoc, 'Blog Post', doc.name)
+
+	def test_if_owner_permission_on_delete(self):
+		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
+		update('Blog Post', 'Blogger', 0, 'read', 1)
+		update('Blog Post', 'Blogger', 0, 'write', 1)
+		update('Blog Post', 'Blogger', 0, 'delete', 1)
+
+		# Remove delete perm
+		update('Blog Post', 'Website Manager', 0, 'delete', 0)
+
+
+		frappe.clear_cache(doctype="Blog Post")
+
+		frappe.set_user("test2@example.com")
+
+		doc = frappe.get_doc({
+			"doctype": "Blog Post",
+			"blog_category": "-test-blog-category",
+			"blogger": "_Test Blogger 1",
+			"title": "_Test Blog Post Title New 1",
+			"content": "_Test Blog Post Content"
+		})
+
+		doc.insert()
+
+		getdoc('Blog Post', doc.name)
+		doclist = [d.name for d in frappe.response.docs]
+		self.assertTrue(doc.name in doclist)
+
+		frappe.set_user("testperm@example.com")
+
+		## Website Manager able to read
+		getdoc('Blog Post', doc.name)
+		doclist = [d.name for d in frappe.response.docs]
+		self.assertTrue(doc.name in doclist)
+
+		##  Website Manager should not be able to delete
+		self.assertRaises(frappe.PermissionError, frappe.delete_doc, 'Blog Post', doc.name)
 
 	def test_clear_user_permissions(self):
 		current_user = frappe.session.user
