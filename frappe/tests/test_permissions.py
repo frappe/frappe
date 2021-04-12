@@ -525,13 +525,17 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user("testperm@example.com")
 
-		## Website Manager able to read
+		# Website Manager able to read
 		getdoc('Blog Post', doc.name)
 		doclist = [d.name for d in frappe.response.docs]
 		self.assertTrue(doc.name in doclist)
 
-		##  Website Manager should not be able to delete
+		# Website Manager should not be able to delete
 		self.assertRaises(frappe.PermissionError, frappe.delete_doc, 'Blog Post', doc.name)
+
+		frappe.set_user("test2@example.com")
+		frappe.delete_doc('Blog Post', '-test-blog-post-title-new-1')
+		update('Blog Post', 'Website Manager', 0, 'delete', 1)
 
 	def test_clear_user_permissions(self):
 		current_user = frappe.session.user
