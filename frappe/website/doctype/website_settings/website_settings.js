@@ -30,7 +30,9 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	set_parent_label_options: function(frm) {
-		frm.fields_dict.top_bar_items.grid.update_docfield_property('parent_label', 'options', frm.events.get_parent_options(frm, "top_bar_items"));
+		frm.fields_dict.top_bar_items.grid.update_docfield_property(
+			'parent_label', 'options', frm.events.get_parent_options(frm, "top_bar_items")
+		);
 
 		if ($(frm.fields_dict.top_bar_items.grid.wrapper).find(".grid-row-open")) {
 			frm.fields_dict.top_bar_items.grid.refresh();
@@ -38,7 +40,9 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	set_parent_label_options_footer: function(frm) {
-		frm.fields_dict.footer_items.grid.update_docfield_property('parent_label', 'options', frm.events.get_parent_options(frm, "top_bar_items"));
+		frm.fields_dict.footer_items.grid.update_docfield_property(
+			'parent_label', 'options', frm.events.get_parent_options(frm, "top_bar_items")
+		);
 
 		if ($(frm.fields_dict.footer_items.grid.wrapper).find(".grid-row-open")) {
 			frm.fields_dict.footer_items.grid.refresh();
