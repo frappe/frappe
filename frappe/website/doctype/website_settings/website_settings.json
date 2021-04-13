@@ -142,6 +142,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "top_bar_items",
    "fieldname": "top_bar",
    "fieldtype": "Section Break",
    "label": "Navbar"
@@ -160,6 +161,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "banner_html",
    "fieldname": "banner",
    "fieldtype": "Section Break",
    "label": "Banner"
@@ -173,6 +175,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "footer_items",
    "fieldname": "footer",
    "fieldtype": "Section Break",
    "label": "Footer"
@@ -415,7 +418,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-09-28 18:47:18.506700",
+ "modified": "2021-04-13 10:22:51.888788",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
