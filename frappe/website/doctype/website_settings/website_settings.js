@@ -30,9 +30,13 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	set_parent_label_options: function(frm) {
+<<<<<<< HEAD
 		frm.fields_dict.top_bar_items.grid.update_docfield_property(
 			'parent_label', 'options', frm.events.get_parent_options(frm, "top_bar_items")
 		);
+=======
+		frm.fields_dict.top_bar_items.grid.update_docfield_property('parent_label', 'options', frm.events.get_parent_options(frm, "top_bar_items"));
+>>>>>>> 3d22019b98... fix(minor): dynamically changing grid properties
 
 		if ($(frm.fields_dict.top_bar_items.grid.wrapper).find(".grid-row-open")) {
 			frm.fields_dict.top_bar_items.grid.refresh();
@@ -40,9 +44,13 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	set_parent_label_options_footer: function(frm) {
+<<<<<<< HEAD
 		frm.fields_dict.footer_items.grid.update_docfield_property(
 			'parent_label', 'options', frm.events.get_parent_options(frm, "top_bar_items")
 		);
+=======
+		frm.fields_dict.footer_items.grid.update_docfield_property('parent_label', 'options', frm.events.get_parent_options(frm, "top_bar_items"));
+>>>>>>> 3d22019b98... fix(minor): dynamically changing grid properties
 
 		if ($(frm.fields_dict.footer_items.grid.wrapper).find(".grid-row-open")) {
 			frm.fields_dict.footer_items.grid.refresh();

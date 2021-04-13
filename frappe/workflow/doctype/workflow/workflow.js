@@ -45,7 +45,11 @@ frappe.ui.form.on("Workflow", {
 			frappe.xcall(get_field_method, { doctype: doc.document_type })
 				.then(resp => {
 					frm.fields_dict.states.grid.update_docfield_property(
+<<<<<<< HEAD
 						'update_field', 'options', [""].concat(resp)
+=======
+						'update_field', options, [""].concat(resp)
+>>>>>>> 3d22019b98... fix(minor): dynamically changing grid properties
 					);
 				})
 		}
