@@ -3,7 +3,7 @@ import frappe
 def execute():
 	frappe.reload_doc('website', 'doctype', 'website_theme_ignore_app')
 	frappe.reload_doc('website', 'doctype', 'color')
-	frappe.reload_doctype('Website Theme')
+	frappe.reload_doc('website', 'doctype', 'website_theme', force=True)
 
 	for theme in frappe.get_all('Website Theme'):
 		doc = frappe.get_doc('Website Theme', theme.name)
