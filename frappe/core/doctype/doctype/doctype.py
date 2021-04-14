@@ -74,6 +74,7 @@ class DocType(Document):
 		if not self.istable:
 			validate_permissions(self)
 
+		self.make_cancellable()
 		self.make_amendable()
 		self.make_repeatable()
 		self.validate_nestedset()
@@ -536,6 +537,21 @@ class DocType(Document):
 						"fieldname": "amended_from",
 						"options": self.name,
 						"read_only": 1,
+						"print_hide": 1,
+						"no_copy": 1
+					})
+
+	def make_cancellable(self):
+		"""If is_submittable is set, add original_name docfield."""
+		if self.is_submittable:
+			if not frappe.db.sql("""select name from tabDocField
+				where fieldname = 'original_name' and parent = %s""", self.name):
+					self.append("fields", {
+						"label": "Original Name",
+						"fieldtype": "Text",
+						"fieldname": "original_name",
+						"read_only": 1,
+						"hidden": 1,
 						"print_hide": 1,
 						"no_copy": 1
 					})
