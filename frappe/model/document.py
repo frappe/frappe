@@ -7,7 +7,7 @@ import time
 from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
-from frappe.model.naming import set_new_name
+from frappe.model.naming import set_new_name, rename_cancelled_doc
 from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
@@ -919,6 +919,14 @@ class Document(BaseDocument):
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
+
+		# for backward compatibility
+		if self.amended_from and not self.original_name:
+			self.original_name = None
+		else:
+			self.original_name = self.name
+
+		self.name = rename_cancelled_doc(self)
 		self.docstatus = 2
 		self.save()
 

@@ -337,3 +337,4 @@ frappe.patches.v12_0.rename_uploaded_files_with_proper_name
 frappe.patches.v13_0.queryreport_columns
 frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
+frappe.patches.v13_0.add_original_name_docfield_to_submittable_doctypes #######
