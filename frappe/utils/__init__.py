@@ -19,7 +19,7 @@ from gzip import GzipFile
 from typing import Generator, Iterable
 
 from six import string_types, text_type
-from six.moves.urllib.parse import quote
+from six.moves.urllib.parse import quote, urlparse
 from werkzeug.test import Client
 
 import frappe
@@ -160,6 +160,19 @@ def split_emails(txt):
 			email_list.append(email)
 
 	return email_list
+
+def validate_url(txt, throw=False):
+	try:
+		url = urlparse(txt).netloc
+		if not url:
+			raise frappe.ValidationError
+	except Exception as e:
+		if throw:
+			frappe.throw(
+				frappe._("<strong>'{0}'</strong> is not a valid URL").format(txt)
+			)
+	
+	return False
 
 def random_string(length):
 	"""generate a random string"""
