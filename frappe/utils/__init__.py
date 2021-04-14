@@ -18,7 +18,12 @@ from email.utils import formataddr, parseaddr
 from gzip import GzipFile
 from typing import Generator, Iterable
 
+<<<<<<< HEAD
 from urllib.parse import quote, urlparse
+=======
+from six import string_types, text_type
+from six.moves.urllib.parse import quote, urlparse
+>>>>>>> 82b98330fd (feat: Add URL option for data type fields)
 from werkzeug.test import Client
 
 import frappe
@@ -160,6 +165,7 @@ def split_emails(txt):
 
 	return email_list
 
+<<<<<<< HEAD
 def validate_url(txt, throw=False, valid_schemes=None):
 	"""
 		Checks whether `txt` has a valid URL string
@@ -186,6 +192,20 @@ def validate_url(txt, throw=False, valid_schemes=None):
 		)
 
 	return is_valid
+=======
+def validate_url(txt, throw=False):
+	try:
+		url = urlparse(txt).netloc
+		if not url:
+			raise frappe.ValidationError
+	except Exception as e:
+		if throw:
+			frappe.throw(
+				frappe._("<strong>'{0}'</strong> is not a valid URL").format(txt)
+			)
+	
+	return False
+>>>>>>> 82b98330fd (feat: Add URL option for data type fields)
 
 def random_string(length):
 	"""generate a random string"""
