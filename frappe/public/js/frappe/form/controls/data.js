@@ -126,6 +126,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				this.df.invalid = email_invalid;
 				return v;
 			}
+		} else if (this.df.options == 'URL') {
+			this.df.invalid = !validate_url(v);
+			return v;
 		} else {
 			return v;
 		}
