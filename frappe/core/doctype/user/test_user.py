@@ -231,7 +231,7 @@ class TestUser(unittest.TestCase):
 
 		doc = frappe.get_doc({
 			'doctype': 'User Group',
-			'group_name': 'Team',
+			'name': 'Team',
 			'user_group_members': [{
 				'user': 'test@example.com'
 			}, {
