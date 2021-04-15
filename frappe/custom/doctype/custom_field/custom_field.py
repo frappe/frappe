@@ -40,6 +40,8 @@ class CustomField(Document):
 			frappe.throw(_("A field with the name '{}' already exists in doctype {}.").format(self.fieldname, self.dt))
 
 	def validate(self):
+		from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
+
 		meta = frappe.get_meta(self.dt, cached=False)
 		fieldnames = [df.fieldname for df in meta.get("fields")]
 
@@ -49,7 +51,11 @@ class CustomField(Document):
 		if self.insert_after and self.insert_after in fieldnames:
 			self.idx = fieldnames.index(self.insert_after) + 1
 
-		self._old_fieldtype = self.db_get('fieldtype')
+		old_fieldtype = self.db_get('fieldtype')
+		is_fieldtype_changed = (not self.is_new()) and (old_fieldtype != self.fieldtype)
+
+		if is_fieldtype_changed and not CustomizeForm.allow_fieldtype_change(old_fieldtype, self.fieldtype):
+			frappe.throw(_("Fieldtype cannot be changed from {0} to {1}").format(old_fieldtype, self.fieldtype))
 
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))

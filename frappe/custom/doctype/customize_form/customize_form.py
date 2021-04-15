@@ -401,22 +401,18 @@ class CustomizeForm(Document):
 		return property_value
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
-		allowed = False
-		self.check_length_for_fieldtypes = []
-		for allowed_changes in ALLOWED_FIELDTYPE_CHANGE:
-			if (old_value in allowed_changes and new_value in allowed_changes):
-				allowed = True
-				old_value_length = cint(frappe.db.type_map.get(old_value)[1])
-				new_value_length = cint(frappe.db.type_map.get(new_value)[1])
+		allowed = self.allow_fieldtype_change(old_value, new_value)
+		if allowed:
+			old_value_length = cint(frappe.db.type_map.get(old_value)[1])
+			new_value_length = cint(frappe.db.type_map.get(new_value)[1])
 
-				# Ignore fieldtype check validation if new field type has unspecified maxlength
-				# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
-				if new_value_length and (old_value_length > new_value_length):
-					self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
-					self.validate_fieldtype_length()
-				else:
-					self.flags.update_db = True
-				break
+			# Ignore fieldtype check validation if new field type has unspecified maxlength
+			# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
+			if new_value_length and (old_value_length > new_value_length):
+				self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
+				self.validate_fieldtype_length()
+			else:
+				self.flags.update_db = True
 		if not allowed:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 
@@ -457,6 +453,14 @@ class CustomizeForm(Document):
 
 		reset_customization(self.doc_type)
 		self.fetch_to_customize()
+
+	@classmethod
+	def allow_fieldtype_change(self, old_type: str, new_type: str) -> bool:
+		""" allow type change, if both old_type and new_type are in same field group.
+		field groups are defined in ALLOWED_FIELDTYPE_CHANGE variables.
+		"""
+		in_field_group = lambda group: (old_type in group) and (new_type in group)
+		return any(map(in_field_group, ALLOWED_FIELDTYPE_CHANGE))
 
 def reset_customization(doctype):
 	setters = frappe.get_all("Property Setter", filters={
