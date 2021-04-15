@@ -226,13 +226,14 @@ def revert_series_if_last(key, name, doc=None):
 			* will search hash in key then accordingly get prefix = "" 
 	"""
 
-	# do not revert if doc is amended, since cancelled docs still exist
-	if doc.docstatus != 2 and doc.amended_from:
-		return
+	if hasattr(doc, 'amended_from'):
+		# do not revert if doc is amended, since cancelled docs still exist
+		if doc.docstatus != 2 and doc.amended_from:
+			return
 
-	# for first cancelled doc
-	if doc.docstatus == 2 and not doc.amended_from and doc.original_name:
-		name = doc.original_name
+		# for first cancelled doc
+		if doc.docstatus == 2 and not doc.amended_from and doc.original_name:
+			name = doc.original_name
 
 >>>>>>> 1c4e1bc1df (refactor: set amended docname to original docname)
 	if ".#" in key:
