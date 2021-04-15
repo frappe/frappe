@@ -531,15 +531,15 @@ class DocType(Document):
 		if self.is_submittable:
 			if not frappe.db.sql("""select name from tabDocField
 				where fieldname = 'amended_from' and parent = %s""", self.name):
-					self.append("fields", {
-						"label": "Amended From",
-						"fieldtype": "Link",
-						"fieldname": "amended_from",
-						"options": self.name,
-						"read_only": 1,
-						"print_hide": 1,
-						"no_copy": 1
-					})
+				self.append("fields", {
+					"label": "Amended From",
+					"fieldtype": "Link",
+					"fieldname": "amended_from",
+					"options": self.name,
+					"read_only": 1,
+					"print_hide": 1,
+					"no_copy": 1
+				})
 
 	def make_cancellable(self):
 		"""If is_submittable is set, add original_name docfield."""
