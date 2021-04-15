@@ -169,7 +169,9 @@ def validate_url(txt, throw=False):
 	except Exception as e:
 		if throw:
 			frappe.throw(
-				frappe._("<strong>'{0}'</strong> is not a valid URL").format(txt)
+				frappe._(
+					"'{0}' is not a valid URL"
+				).format('<strong>' +  +'</strong>')
 			)
 	
 	return False
