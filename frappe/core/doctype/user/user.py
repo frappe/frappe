@@ -1019,8 +1019,11 @@ def extract_mentions(txt):
 	emails = []
 	for mention in soup.find_all(class_='mention'):
 		if mention.get('data-is-group'):
-			user_group = frappe.get_cached_doc('User Group', mention['data-id'])
-			emails += [d.user for d in user_group.user_group_members]
+			try:
+				user_group = frappe.get_cached_doc('User Group', mention['data-id'])
+				emails += [d.user for d in user_group.user_group_members]
+			except frappe.DoesNotExistError:
+				pass
 			continue
 		email = mention['data-id']
 		emails.append(email)

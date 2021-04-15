@@ -13,19 +13,22 @@
   {
    "fieldname": "group_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Group Name",
+   "reqd": 1,
    "unique": 1
   },
   {
    "fieldname": "user_group_members",
    "fieldtype": "Table MultiSelect",
    "label": "User Group Members",
-   "options": "User Group Member"
+   "options": "User Group Member",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-04-12 15:17:24.751710",
+ "modified": "2021-04-15 12:17:04.625640",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Group",
