@@ -1395,11 +1395,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					];
 
-					if (this.total_count > args.page_length) {
+					// display export all option, if all the records are not loaded or not dispalyed.
+					if (this.total_count > this.count_without_children || this.current_count > args.page_length) {
+						let label = __('Export All {0} records?', [(this.total_count + "").bold()]);
+						if (this.count_without_children != this.current_count) {
+							label = __('Export All {0} and its children records?', [(this.total_count + "").bold()]);
+						}
+
 						fields.push({
 							fieldtype: 'Check',
 							fieldname: 'export_all_rows',
-							label: __('Export All {0} rows?', [(this.total_count + "").bold()])
+							label: label
 						});
 					}
 

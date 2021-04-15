@@ -860,16 +860,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_count_str() {
-		let current_count = this.data.length;
-		let count_without_children = this.data.uniqBy((d) => d.name).length;
+		this.current_count = this.data.length;
+		this.count_without_children = this.data.uniqBy((d) => d.name).length;
 
 		return frappe.db.count(this.doctype, {
 			filters: this.get_filters_for_args()
 		}).then(total_count => {
-			this.total_count = total_count || current_count;
-			let str = __('{0} of {1}', [current_count, this.total_count]);
-			if (count_without_children !== current_count) {
-				str = __('{0} of {1} ({2} rows with children)', [count_without_children, this.total_count, current_count]);
+			this.total_count = total_count || this.current_count;
+			let str = __('{0} of {1}', [this.current_count, this.total_count]);
+			if (this.count_without_children !== this.current_count) {
+				str = __('{0} of {1} ({2} rows with children)',
+					[this.count_without_children, this.total_count, this.current_count]);
 			}
 			return str;
 		});
