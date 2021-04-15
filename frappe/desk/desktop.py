@@ -63,7 +63,7 @@ class Workspace:
 		for section in cards:
 			links = loads(section.get('links')) if isinstance(section.get('links'), string_types) else section.get('links')
 			for item in links:
-				if self.is_item_allowed(item.get('name'), item.get('type')):
+				if self.is_item_allowed(item.get('link_to'), item.get('link_type')):
 					return True
 
 		def _in_active_domains(item):
