@@ -119,18 +119,17 @@ class TestNaming(unittest.TestCase):
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
 
 	def test_naming_for_cancelled_and_amended_doc(self):
-		if not frappe.db.exists('DocType', 'Submittable Doctype'):
-			frappe.get_doc({
-				"doctype": "DocType",
-				"module": "Core",
-				"custom": 1,
-				"is_submittable": 1,
-				"permissions": [{
-					"role": "System Manager",
-					"read": 1
-				}],
-				"name": 'Submittable Doctype'
-			}).insert()
+		frappe.get_doc({
+			"doctype": "DocType",
+			"module": "Core",
+			"custom": 1,
+			"is_submittable": 1,
+			"permissions": [{
+				"role": "System Manager",
+				"read": 1
+			}],
+			"name": 'Submittable Doctype'
+		}).insert()
 
 		doc = frappe.new_doc('Submittable DocType')
 		doc.save()
