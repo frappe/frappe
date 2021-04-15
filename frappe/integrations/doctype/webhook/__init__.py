@@ -22,7 +22,7 @@ def run_webhooks(doc, method):
 			# query webhooks
 			webhooks_list = frappe.get_all('Webhook',
 						fields=["name", "`condition`", "webhook_docevent", "webhook_doctype"], 
-						filters={"enabled": "1"}
+						filters={"enabled": True}
 					)
 
 			# make webhooks map for cache
