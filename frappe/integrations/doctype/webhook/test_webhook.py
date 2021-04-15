@@ -38,7 +38,7 @@ class TestWebhook(unittest.TestCase):
 
 		cls.sample_webhooks = []
 		for wh_fields in samples_webhooks_data:
-			wh =  frappe.new_doc("Webhook")
+			wh = frappe.new_doc("Webhook")
 			wh.update(wh_fields)
 			wh.insert()
 			cls.sample_webhooks.append(wh)
