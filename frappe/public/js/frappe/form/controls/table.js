@@ -45,9 +45,12 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			} else {
 				// no column header, map to the existing visible columns
 				const visible_columns = grid_rows[0].get_visible_columns();
+				let target_column_matched = false;
 				visible_columns.forEach(column => {
-					if (column.fieldname === $(e.target).data('fieldname')) {
+					// consider all columns after the target column.
+					if (target_column_matched || column.fieldname === $(e.target).data('fieldname')) {
 						fieldnames.push(column.fieldname);
+						target_column_matched = true;
 					}
 				});
 			}
