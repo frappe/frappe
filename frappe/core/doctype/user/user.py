@@ -216,6 +216,9 @@ class User(Document):
 
 				frappe.msgprint(_('Role has been set as per the user type {0}')
 					.format(self.user_type), alert=True)
+			else:
+				user_type = frappe.db.get_value('User', self.name, 'user_type')
+				self.user_type = user_type if user_type else 'Website User'
 
 		user_type_doc.update_modules_in_user(self)
 
