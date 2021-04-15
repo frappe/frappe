@@ -59,6 +59,10 @@ $input-height: 28px !default;
 	--timeline-content-max-width: 700px;
 	--timeline-left-padding: calc(var(--padding-xl) + var(--timeline-item-icon-size) / 2);
 
+	// mentions
+	--user-mention-bg-color: var(--fg-color);
+	--group-mention-bg-color: var(--bg-purple);
+
 	// skeleton
 	--skeleton-bg: var(--gray-100);
 

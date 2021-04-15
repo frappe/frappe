@@ -99,7 +99,7 @@
 	.ql-editor {
 		color: var(--text-on-gray);
 		&.read-mode {
-			span,
+			span:not(.mention),
 			p,
 			u,
 			strong {
