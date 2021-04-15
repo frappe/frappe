@@ -385,9 +385,9 @@ $.extend(frappe, {
 				let language_list = res.message;
 				let language = frappe.get_cookie('preferred_language');
 				let language_codes = [];
-				let language_switcher = $("#language-switcher .form-control")
+				let language_switcher = $("#language-switcher .form-control");
 				language_list.forEach(language_doc => {
-					language_codes.push(language_doc.language_code)
+					language_codes.push(language_doc.language_code);
 					language_switcher
 						.append(
 							$("<option></option>")
@@ -399,7 +399,7 @@ $.extend(frappe, {
 				language = language || (language_codes.includes(navigator.language) ? navigator.language : 'en');
 				language_switcher.val(language);
 				document.documentElement.lang = language;
-				language_switcher.change((e) => {
+				language_switcher.change(() => {
 					let lang = language_switcher.val();
 					frappe.call("frappe.translate.set_preferred_language_cookie", {
 						"preferred_language": lang
