@@ -1290,7 +1290,8 @@ Object.assign(frappe.utils, {
 			names_for_mentions.push({
 				id: group,
 				value: group,
-				is_group: true
+				is_group: true,
+				link: frappe.utils.get_form_link('User Group', group)
 			});
 		});
 

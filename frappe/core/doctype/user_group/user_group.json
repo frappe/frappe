@@ -19,7 +19,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-04-15 14:24:23.168485",
+ "modified": "2021-04-15 16:12:31.455401",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Group",
@@ -36,6 +36,10 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
   }
  ],
  "sort_field": "modified",

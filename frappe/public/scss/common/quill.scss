@@ -120,6 +120,9 @@
 	padding: 2px 5px;
 	font-size: var(--text-sm);
 	background-color: var(--user-mention-bg-color);
+	a[href] {
+		text-decoration: none;
+	}
 }
 
 // table
