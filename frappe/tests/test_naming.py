@@ -97,7 +97,7 @@ class TestNaming(unittest.TestCase):
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
 
 	def test_naming_for_cancelled_and_amended_doc(self):
-		frappe.get_doc({
+		submittable_doctype = frappe.get_doc({
 			"doctype": "DocType",
 			"module": "Core",
 			"custom": 1,
@@ -127,3 +127,5 @@ class TestNaming(unittest.TestCase):
 		amended_doc.submit()
 		amended_doc.cancel()
 		self.assertEqual(amended_doc.name, "{}-2".format(original_name))
+
+		submittable_doctype.delete()
