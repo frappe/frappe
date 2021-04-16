@@ -108,7 +108,7 @@ class UserType(Document):
 			frappe.db.set_value('Custom DocPerm', docperm, values)
 
 	def add_select_perm_doctypes(self):
-		if not frappe.flags.in_patch and not frappe.conf.developer_mode:
+		if frappe.flags.ignore_select_perm:
 			return
 
 		self.select_doctypes = []
@@ -122,7 +122,8 @@ class UserType(Document):
 
 			for child_table in doc.get_table_fields():
 				child_doc = frappe.get_meta(child_table.options)
-				self.prepare_select_perm_doctypes(child_doc, user_doctypes, select_doctypes)
+				if not child_doc.istable:
+					self.prepare_select_perm_doctypes(child_doc, user_doctypes, select_doctypes)
 
 		if select_doctypes:
 			select_doctypes = set(select_doctypes)

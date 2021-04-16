@@ -970,12 +970,22 @@ def get_files_in_folder(folder, start=0, page_length=20):
 	start = cint(start)
 	page_length = cint(page_length)
 
-	files = frappe.db.get_all('File',
+	attachment_folder = frappe.db.get_value('File',
+		'Home/Attachments',
+		['name', 'file_name', 'file_url', 'is_folder', 'modified'],
+		as_dict=1
+	)
+
+	files = frappe.db.get_list('File',
 		{ 'folder': folder },
 		['name', 'file_name', 'file_url', 'is_folder', 'modified'],
 		start=start,
 		page_length=page_length + 1
 	)
+
+	if folder == 'Home' and attachment_folder not in files:
+		files.insert(0, attachment_folder)
+
 	return {
 		'files': files[:page_length],
 		'has_more': len(files) > page_length
