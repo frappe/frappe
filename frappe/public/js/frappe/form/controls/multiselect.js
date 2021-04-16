@@ -68,7 +68,7 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		let data;
 		if(this.df.get_data) {
 			data = this.df.get_data();
-			this.set_data(data);
+			if (data) this.set_data(data);
 		} else {
 			data = this._super();
 		}
