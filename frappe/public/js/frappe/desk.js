@@ -618,10 +618,12 @@ frappe.Application = Class.extend({
 					let sleep = (time) => {
 						return new Promise((resolve) => setTimeout(resolve, time));
 					};
-					frappe.dom.freeze(__('Copying {0}', [doc.doctype]));
 
+					frappe.dom.freeze(__('Creating {0}', [doc.doctype]) + '...');
+					// to avoid abrupt UX
+					// wait for activity feedback
 					sleep(500).then(() => {
-						frappe.model.with_doctype(doc.doctype, () => {
+						let res = frappe.model.with_doctype(doc.doctype, () => {
 							let newdoc = frappe.model.copy_doc(doc);
 							newdoc.__newname = doc.name;
 							newdoc.idx = null;
@@ -629,6 +631,7 @@ frappe.Application = Class.extend({
 							frappe.set_route('Form', newdoc.doctype, newdoc.name);
 							frappe.dom.unfreeze();
 						});
+						res && res.fail(frappe.dom.unfreeze);
 					});
 				}
 			} catch (e) {
