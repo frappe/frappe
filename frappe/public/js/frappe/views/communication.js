@@ -387,10 +387,8 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		//Load default print language from doctype
 		this.lang_code = doc.language
-
-		if (!this.lang_code && this.get_print_format().default_print_language) {
-			this.lang_code = this.get_print_format().default_print_language;
-		}
+			|| this.get_print_format().default_print_language
+			|| frappe.boot.lang;
 
 		//On selection of language retrieve language code
 		const me = this;
