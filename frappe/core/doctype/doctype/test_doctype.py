@@ -350,6 +350,7 @@ class TestDocType(unittest.TestCase):
 		dump_docs = json.dumps(docs.get('docs'))
 		cancel_all_linked_docs(dump_docs)
 		data_link_doc.cancel()
+		data_doc.name = '{}-1'.format(data_doc.name)
 		data_doc.load_from_db()
 		self.assertEqual(data_link_doc.docstatus, 2)
 		self.assertEqual(data_doc.docstatus, 2)
@@ -435,7 +436,10 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(frappe.LinkExistsError, data_link_doc_1.cancel)
 
 		data_doc.load_from_db()
+
+		data_doc_2.name = '{}-1'.format(data_doc_2.name)
 		data_doc_2.load_from_db()
+
 		self.assertEqual(data_link_doc_1.docstatus, 2)
 
 		#linked doc is canceled
