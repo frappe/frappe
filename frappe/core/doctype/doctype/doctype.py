@@ -544,7 +544,7 @@ class DocType(Document):
 	def make_cancellable(self):
 		"""If is_submittable is set, add original_name docfield."""
 		if self.is_submittable and\
-			not frappe.db.get_value('DocField', {'fieldname': 'amended_from', 'parent': self.name}):
+			not frappe.db.get_value('DocField', {'fieldname': 'original_name', 'parent': self.name}):
 
 			self.append("fields", {
 				"label": "Original Name",
