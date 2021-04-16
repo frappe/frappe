@@ -41,6 +41,7 @@ def get_context(context):
 	make_access_log(doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type='PDF', method='Print')
 
 	return {
+		"host_name": frappe.conf.host_name,
 		"body": get_rendered_template(doc, print_format = print_format,
 			meta=meta, trigger_print = frappe.form_dict.trigger_print,
 			no_letterhead=frappe.form_dict.no_letterhead, letterhead=letterhead,
