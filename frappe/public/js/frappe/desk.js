@@ -51,7 +51,7 @@ frappe.Application = Class.extend({
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
 		this.setup_energy_point_listeners();
-		this.copy_doc_listeners();
+		this.setup_copy_doc_listener();
 
 		frappe.ui.keys.setup();
 
@@ -607,7 +607,7 @@ frappe.Application = Class.extend({
 		});
 	},
 
-	copy_doc_listeners() {
+	setup_copy_doc_listener() {
 		$('body').on('paste', (e) => {
 			try {
 				let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
