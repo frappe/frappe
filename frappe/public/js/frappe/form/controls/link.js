@@ -227,7 +227,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					me.toggle_href(doctype);
 				}
 			});
-		}, 500));
+		}, 10));
 
 		this.$input.on("blur", function() {
 			if(me.selected) {
@@ -509,4 +509,3 @@ if (Awesomplete) {
 		});
 	};
 }
-
