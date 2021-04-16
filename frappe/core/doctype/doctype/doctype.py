@@ -577,33 +577,33 @@ class DocType(Document):
 
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
-		if self.is_submittable:
-			if not frappe.db.sql("""select name from tabDocField
-				where fieldname = 'amended_from' and parent = %s""", self.name):
-				self.append("fields", {
-					"label": "Amended From",
-					"fieldtype": "Link",
-					"fieldname": "amended_from",
-					"options": self.name,
-					"read_only": 1,
-					"print_hide": 1,
-					"no_copy": 1
-				})
+		if self.is_submittable and\
+			not frappe.db.get_value('DocField', {'fieldname': 'amended_from', 'parent': self.name}):
+
+			self.append("fields", {
+				"label": "Amended From",
+				"fieldtype": "Link",
+				"fieldname": "amended_from",
+				"options": self.name,
+				"read_only": 1,
+				"print_hide": 1,
+				"no_copy": 1
+			})
 
 	def make_cancellable(self):
 		"""If is_submittable is set, add original_name docfield."""
-		if self.is_submittable:
-			if not frappe.db.sql("""select name from tabDocField
-				where fieldname = 'original_name' and parent = %s""", self.name):
-					self.append("fields", {
-						"label": "Original Name",
-						"fieldtype": "Text",
-						"fieldname": "original_name",
-						"read_only": 1,
-						"hidden": 1,
-						"print_hide": 1,
-						"no_copy": 1
-					})
+		if self.is_submittable and\
+			not frappe.db.get_value('DocField', {'fieldname': 'amended_from', 'parent': self.name}):
+
+			self.append("fields", {
+				"label": "Original Name",
+				"fieldtype": "Text",
+				"fieldname": "original_name",
+				"read_only": 1,
+				"hidden": 1,
+				"print_hide": 1,
+				"no_copy": 1
+			})
 
 	def make_repeatable(self):
 		"""If allow_auto_repeat is set, add auto_repeat custom field."""
