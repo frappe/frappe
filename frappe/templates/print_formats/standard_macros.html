@@ -7,7 +7,7 @@
 		{{ render_text_field(df, doc) }}
 	{%- elif df.fieldtype in ("Image", "Attach Image")
 		and (
-			(guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  
+			(guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")
 			or doc[df.fieldname].startswith("http")
 		) -%}
 		{{ render_image(df, doc) }}

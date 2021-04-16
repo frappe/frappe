@@ -182,6 +182,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (this.group_by) {
 			this.$charts_wrapper.addClass('hidden');
 		} else if (this.chart) {
+			this.$charts_wrapper.removeClass('hidden');
 			this.refresh_charts();
 		}
 
