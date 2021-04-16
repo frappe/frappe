@@ -187,7 +187,7 @@ frappe.views.CommunicationComposer = Class.extend({
 						this.dialog.fields_dict[field].set_data(r.message);
 					}
 				});
-			}
+			};
 		});
 	},
 
@@ -210,12 +210,12 @@ frappe.views.CommunicationComposer = Class.extend({
 
 			if (last) {
 				this.subject = last.subject;
-				if(!this.recipients) {
+				if (!this.recipients) {
 					this.recipients = last.sender;
 				}
 
 				// prepend "Re:"
-				if(strip(this.subject.toLowerCase().split(":")[0])!="re") {
+				if (strip(this.subject.toLowerCase().split(":")[0])!="re") {
 					this.subject = __("Re: {0}", [this.subject]);
 				}
 			}
@@ -304,7 +304,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			if (this.frm) {
 				$(document).trigger("form-stopped-typing", [this.frm]);
 			}
-		}
+		};
 	},
 
 	get_last_edited_communication(clear) {
@@ -314,7 +314,6 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if (clear || !frappe.last_edited_communication[this.doctype][this.key]) {
 			frappe.last_edited_communication[this.doctype][this.key] = {};
-			console.log('cleared!');
 		}
 
 		return frappe.last_edited_communication[this.doctype][this.key];
@@ -527,7 +526,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		// email
 		const fields = this.dialog.fields_dict;
 
-		if(this.attach_document_print) {
+		if (this.attach_document_print) {
 			$(fields.attach_document_print.input).click();
 			$(fields.select_print_format.wrapper).toggle(true);
 		}
@@ -545,7 +544,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		const me = this;
 		const btn = me.dialog.get_primary_btn();
 		const form_values = this.get_values();
-		if(!form_values) return;
+		if (!form_values) return;
 
 		const selected_attachments =
 			$.map($(me.dialog.wrapper).find("[data-file-name]:checked"), function (element) {
@@ -553,7 +552,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			});
 
 
-		if(form_values.attach_document_print) {
+		if (form_values.attach_document_print) {
 			me.send_email(btn, form_values, selected_attachments, null, form_values.select_print_format || "");
 		} else {
 			me.send_email(btn, form_values, selected_attachments);
@@ -617,18 +616,18 @@ frappe.views.CommunicationComposer = Class.extend({
 		const me = this;
 		me.dialog.hide();
 
-		if(!form_values.recipients) {
+		if (!form_values.recipients) {
 			frappe.msgprint(__("Enter Email Recipient(s)"));
 			return;
 		}
 
-		if(!form_values.attach_document_print) {
+		if (!form_values.attach_document_print) {
 			print_html = null;
 			print_format = null;
 		}
 
 
-		if(this.frm && !frappe.model.can_email(me.doc.doctype, this.frm)) {
+		if (this.frm && !frappe.model.can_email(me.doc.doctype, this.frm)) {
 			frappe.msgprint(__("You are not allowed to send emails related to this document"));
 			return;
 		}
@@ -660,10 +659,10 @@ frappe.views.CommunicationComposer = Class.extend({
 			},
 			btn,
 			callback(r) {
-				if(!r.exc) {
+				if (!r.exc) {
 					frappe.utils.play_sound("email");
 
-					if(r.message["emails_not_sent_to"]) {
+					if (r.message["emails_not_sent_to"]) {
 						frappe.msgprint(__("Email not sent to {0} (unsubscribed / disabled)",
 							[ frappe.utils.escape_html(r.message["emails_not_sent_to"]) ]) );
 					}
@@ -680,7 +679,7 @@ frappe.views.CommunicationComposer = Class.extend({
 						try {
 							me.success(r);
 						} catch (e) {
-							console.log(e);
+							console.log(e); // eslint-disable-line
 						}
 					}
 
@@ -692,7 +691,7 @@ frappe.views.CommunicationComposer = Class.extend({
 						try {
 							me.error(r);
 						} catch (e) {
-							console.log(e);
+							console.log(e); // eslint-disable-line
 						}
 					}
 				}
@@ -777,14 +776,16 @@ frappe.views.CommunicationComposer = Class.extend({
 			last_email_content = last_email_content.slice(0, 20 * 1024);
 		}
 
-		const communication_date = last_email.communication_date || last_email.creation;
+		const communication_date = frappe.datetime.global_date_format(
+			last_email.communication_date || last_email.creation
+		);
+
 		return `
 			<div><br></div>
 			${separator_element || ''}
-			<p>${__("On {0}, {1} wrote:", [
-				frappe.datetime.global_date_format(communication_date),
-				last_email.sender
-			])}</p>
+			<p>
+			${__("On {0}, {1} wrote:", [communication_date, last_email.sender])}
+			</p>
 			<blockquote>
 			${last_email_content}
 			</blockquote>
