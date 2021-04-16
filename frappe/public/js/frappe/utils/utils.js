@@ -232,6 +232,9 @@ Object.assign(frappe.utils, {
 		var regExp;
 
 		switch ( type ) {
+			case "phone":
+				regExp = /^([0-9 +_\-,.*#()]){1,20}$/;
+				break;
 			case "number":
 				regExp = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
 				break;

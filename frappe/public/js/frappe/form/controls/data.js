@@ -98,56 +98,29 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		return val==null ? "" : val;
 	},
 	validate: function(v) {
+		if (!v) {
+			return '';
+		}
 		if(this.df.is_filter) {
 			return v;
 		}
 		if(this.df.options == 'Phone') {
-			if(v+''=='') {
-				return '';
-			}
-			var v1 = '';
-			// phone may start with + and must only have numbers later, '-' and ' ' are stripped
-			v = v.replace(/ /g, '').replace(/-/g, '').replace(/\(/g, '').replace(/\)/g, '');
-
-			// allow initial +,0,00
-			if(v && v.substr(0,1)=='+') {
-				v1 = '+'; v = v.substr(1);
-			}
-			if(v && v.substr(0,2)=='00') {
-				v1 += '00'; v = v.substr(2);
-			}
-			if(v && v.substr(0,1)=='0') {
-				v1 += '0'; v = v.substr(1);
-			}
-			v1 += cint(v) + '';
-			return v1;
+			this.df.invalid = !validate_phone(v);
+			return v;
 		} else if(this.df.options == 'Email') {
-			if(v+''=='') {
-				return '';
-			}
-
 			var email_list = frappe.utils.split_emails(v);
 			if (!email_list) {
-				// invalid email
 				return '';
 			} else {
-				var invalid_email = false;
+				let email_invalid = false;
 				email_list.forEach(function(email) {
 					if (!validate_email(email)) {
-						frappe.msgprint(__("Invalid Email: {0}", [email]));
-						invalid_email = true;
+						email_invalid = true;
 					}
 				});
-
-				if (invalid_email) {
-					// at least 1 invalid email
-					return '';
-				} else {
-					// all good
-					return v;
-				}
+				this.df.invalid = email_invalid;
+				return v;
 			}
-
 		} else {
 			return v;
 		}

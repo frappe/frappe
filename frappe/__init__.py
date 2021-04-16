@@ -23,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.16.3'
+__version__ = '12.17.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -794,7 +794,7 @@ def get_meta_module(doctype):
 	return frappe.modules.load_doctype_module(doctype)
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
-	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
+	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True, delete_permanently=False):
 	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
 
 	:param doctype: DocType of document to be delete.
@@ -802,10 +802,11 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	:param force: Allow even if document is linked. Warning: This may lead to data integrity errors.
 	:param ignore_doctypes: Ignore if child table is one of these.
 	:param for_reload: Call `before_reload` trigger before deleting.
-	:param ignore_permissions: Ignore user permissions."""
+	:param ignore_permissions: Ignore user permissions.
+	:param delete_permanently: Do not create a Deleted Document for the document."""
 	import frappe.model.delete_doc
 	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
-		ignore_permissions, flags, ignore_on_trash, ignore_missing)
+		ignore_permissions, flags, ignore_on_trash, ignore_missing, delete_permanently)
 
 def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""

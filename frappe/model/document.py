@@ -386,7 +386,7 @@ class Document(BaseDocument):
 		return getattr(self, '_doc_before_save', None)
 
 	def set_new_name(self, force=False):
-		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
+		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
 		if self.flags.name_set and not force:
 			return
 
