@@ -17,16 +17,15 @@ frappe.views.CommunicationComposer = Class.extend({
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
-			size: 'large',
 			primary_action() {
 				me.send_action();
-				me.clear_cache();
 			},
 			secondary_action_label: __("Discard"),
 			secondary_action() {
 				me.dialog.hide();
 				me.clear_cache();
 			},
+			size: 'large',
 			minimizable: true
 		});
 
@@ -665,11 +664,10 @@ frappe.views.CommunicationComposer = Class.extend({
 							[ frappe.utils.escape_html(r.message["emails_not_sent_to"]) ]) );
 					}
 
-					if ((frappe.last_edited_communication[me.doc] || {})[me.key]) {
-						delete frappe.last_edited_communication[me.doc][me.key];
-					}
-					if (this.frm) {
-						this.frm.reload_doc();
+					me.clear_cache();
+
+					if (me.frm) {
+						me.frm.reload_doc();
 					}
 
 					// try the success callback if it exists
