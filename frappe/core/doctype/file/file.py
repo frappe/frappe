@@ -947,10 +947,18 @@ def validate_filename(filename):
 
 @frappe.whitelist()
 def get_files_in_folder(folder):
-	return frappe.db.get_all('File',
+	attachment_folder = frappe.db.get_value('File',
+		'Home/Attachments',
+		['name', 'file_name', 'file_url', 'is_folder', 'modified'],
+		as_dict=1
+	)
+	files = frappe.db.get_list('File',
 		{ 'folder': folder },
 		['name', 'file_name', 'file_url', 'is_folder', 'modified']
 	)
+	if folder == 'Home' and attachment_folder not in files:
+		files.insert(0, attachment_folder)
+	return files
 
 def update_existing_file_docs(doc):
 	# Update is private and file url of all file docs that point to the same file
