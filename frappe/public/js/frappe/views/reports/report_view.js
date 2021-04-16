@@ -1399,7 +1399,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					if (this.total_count > this.count_without_children || this.current_count > args.page_length) {
 						let label = __('Export All {0} records?', [(this.total_count + "").bold()]);
 						if (this.count_without_children != this.current_count) {
-							label = __('Export All {0} and its children records?', [(this.total_count + "").bold()]);
+							label = __('Export All {0} and its children records?', [(String(this.total_count)).bold()]);
 						}
 
 						fields.push({
