@@ -182,5 +182,9 @@ frappe.patches.v13_0.queryreport_columns
 =======
 frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
+<<<<<<< HEAD
 frappe.patches.v13_0.add_original_name_docfield_to_submittable_doctypes #######
 >>>>>>> 1c4e1bc1df (refactor: set amended docname to original docname)
+=======
+frappe.patches.v13_0.add_original_name_docfield_to_submittable_doctypes
+>>>>>>> ba267b6e62 (fix: update patch)
