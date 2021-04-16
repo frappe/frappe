@@ -49,6 +49,7 @@ class SocialLoginKey(Document):
 			icon_file = icon_map[self.provider_name]
 			self.icon = '/assets/frappe/icons/social/{0}'.format(icon_file)
 
+	@frappe.whitelist()
 	def get_social_login_provider(self, provider, initialize=False):
 		providers = {}
 

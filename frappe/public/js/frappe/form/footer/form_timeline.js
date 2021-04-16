@@ -129,6 +129,7 @@ class FormTimeline extends BaseTimeline {
 
 	prepare_timeline_contents() {
 		this.timeline_items.push(...this.get_communication_timeline_contents());
+		this.timeline_items.push(...this.get_auto_messages_timeline_contents());
 		this.timeline_items.push(...this.get_comment_timeline_contents());
 		if (!this.only_communication) {
 			this.timeline_items.push(...this.get_view_timeline_contents());
@@ -139,6 +140,7 @@ class FormTimeline extends BaseTimeline {
 			this.timeline_items.push(...this.get_custom_timeline_contents());
 			this.timeline_items.push(...this.get_assignment_timeline_contents());
 			this.timeline_items.push(...this.get_attachment_timeline_contents());
+			this.timeline_items.push(...this.get_info_timeline_contents());
 			this.timeline_items.push(...this.get_milestone_timeline_contents());
 		}
 	}
@@ -180,7 +182,7 @@ class FormTimeline extends BaseTimeline {
 		return communication_timeline_contents;
 	}
 
-	get_communication_timeline_content(doc) {
+	get_communication_timeline_content(doc, allow_reply=true) {
 		doc._url = frappe.utils.get_form_link("Communication", doc.name);
 		this.set_communication_doc_status(doc);
 		if (doc.attachments && typeof doc.attachments === "string") {
@@ -188,8 +190,10 @@ class FormTimeline extends BaseTimeline {
 		}
 		doc.owner = doc.sender;
 		doc.user_full_name = doc.sender_full_name;
-		let communication_content =  $(frappe.render_template('timeline_message_box', { doc }));
-		this.setup_reply(communication_content, doc);
+		let communication_content = $(frappe.render_template('timeline_message_box', { doc }));
+		if (allow_reply) {
+			this.setup_reply(communication_content, doc);
+		}
 		return communication_content;
 	}
 
@@ -206,6 +210,22 @@ class FormTimeline extends BaseTimeline {
 		}
 		doc._doc_status = doc.delivery_status;
 		doc._doc_status_indicator = indicator_color;
+	}
+
+	get_auto_messages_timeline_contents() {
+		let auto_messages_timeline_contents = [];
+		(this.doc_info.automated_messages|| []).forEach(message => {
+			auto_messages_timeline_contents.push({
+				icon: 'notification',
+				icon_size: 'sm',
+				creation: message.creation,
+				is_card: true,
+				content: this.get_communication_timeline_content(message, false),
+				doctype: "Communication",
+				name: message.name
+			});
+		});
+		return auto_messages_timeline_contents;
 	}
 
 	get_comment_timeline_contents() {
@@ -267,6 +287,17 @@ class FormTimeline extends BaseTimeline {
 			});
 		});
 		return assignment_timeline_contents;
+	}
+
+	get_info_timeline_contents() {
+		let info_timeline_contents = [];
+		(this.doc_info.info_logs || []).forEach(info_log => {
+			info_timeline_contents.push({
+				creation: info_log.creation,
+				content: `${this.get_user_link(info_log.comment_email)} ${info_log.content}`,
+			});
+		});
+		return info_timeline_contents;
 	}
 
 	get_attachment_timeline_contents() {

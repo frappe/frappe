@@ -901,4 +901,21 @@ export default class Grid {
 		// hide all custom buttons
 		this.grid_buttons.find('.btn-custom').addClass('hidden');
 	}
+
+	update_docfield_property(fieldname, property, value) {
+		// update the docfield of each row
+		for (let row of this.grid_rows) {
+			let docfield = row.docfields.find(d => d.fieldname === fieldname);
+			if (docfield) {
+				docfield[property] = value;
+			} else {
+				throw `field ${fieldname} not found`;
+			}
+		}
+
+		// update the parent too (for new rows)
+		this.docfields.find(d => d.fieldname === fieldname)[property] = value;
+
+		this.refresh();
+	}
 }

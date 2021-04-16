@@ -7,6 +7,9 @@ import frappe
 
 def execute():
 	if frappe.db.table_exists('List View Setting'):
+		if not frappe.db.table_exists('List View Settings'):
+			frappe.reload_doc("desk", "doctype", "List View Settings")
+
 		existing_list_view_settings = frappe.get_all('List View Settings', as_list=True)
 		for list_view_setting in frappe.get_all('List View Setting', fields = ['disable_count', 'disable_sidebar_stats', 'disable_auto_refresh', 'name']):
 			name = list_view_setting.pop('name')
@@ -16,5 +19,6 @@ def execute():
 				# setting name here is necessary because autoname is set as prompt
 				list_view_settings.name = name
 				list_view_settings.insert()
+
 		frappe.delete_doc("DocType", "List View Setting", force=True)
 		frappe.db.commit()

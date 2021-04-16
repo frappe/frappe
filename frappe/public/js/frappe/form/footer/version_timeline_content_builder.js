@@ -144,6 +144,31 @@ function get_version_timeline_content(version_doc, frm) {
 
 
 function get_version_comment(version_doc, text) {
+	// TODO: Replace with a better solution
+	if (text.includes("<a")) {
+		// if text already has linked content in it
+		// then just add a version link to unlinked content
+		let version_comment = "";
+		let unlinked_content = "";
+
+		try {
+			Array.from($(text)).forEach(element => {
+				if ($(element).is('a')) {
+					version_comment += unlinked_content ? frappe.utils.get_form_link('Version', version_doc.name, true, unlinked_content) : "";
+					unlinked_content = "";
+					version_comment += element.outerHTML;
+				} else {
+					unlinked_content += element.outerHTML || element.textContent;
+				}
+			});
+			if (unlinked_content) {
+				version_comment += frappe.utils.get_form_link('Version', version_doc.name, true, unlinked_content);
+			}
+			return version_comment;
+		} catch (e) {
+			// pass
+		}
+	}
 	return frappe.utils.get_form_link('Version', version_doc.name, true, text);
 }
 
@@ -165,3 +190,4 @@ function get_user_link(doc) {
 }
 
 export { get_version_timeline_content };
+
