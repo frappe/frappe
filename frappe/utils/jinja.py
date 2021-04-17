@@ -23,7 +23,8 @@ def get_jenv():
 			'resolve_class': resolve_class,
 			'inspect': inspect,
 			'web_blocks': web_blocks,
-			'web_block': web_block
+			'web_block': web_block,
+			'js_asset': js_asset
 		})
 
 		frappe.local.jenv = jenv
@@ -228,3 +229,9 @@ def web_blocks(blocks):
 		html += '<script>{}</script>'.format(script)
 
 	return html
+
+def js_asset(path):
+	import frappe
+	if not frappe.local.dev_server or True:
+		path = path.replace('frappe/public/', '/assets/frappe/build/')
+	return f'<script type="text/javascript" src="{path}"></script>'

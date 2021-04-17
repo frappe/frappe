@@ -30,11 +30,11 @@ page_js = {
 # website
 app_include_js = [
 	"/assets/js/libs.min.js",
-	"/assets/js/desk.min.js",
-	"/assets/js/list.min.js",
-	"/assets/js/form.min.js",
-	"/assets/js/control.min.js",
-	"/assets/js/report.min.js",
+	"frappe/public/js/desk.bundle.js",
+	"frappe/public/js/list.bundle.js",
+	"frappe/public/js/form.bundle.js",
+	"frappe/public/js/controls.bundle.js",
+	"frappe/public/js/report.bundle.js",
 ]
 app_include_css = [
 	"/assets/css/desk.min.css",

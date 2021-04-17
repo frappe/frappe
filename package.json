@@ -4,8 +4,7 @@
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
     "watch": "node rollup/watch.js",
-    "snyk-protect": "snyk protect",
-    "prepare": "yarn run snyk-protect"
+    "snyk-protect": "snyk protect"
   },
   "repository": {
     "type": "git",
@@ -50,14 +49,20 @@
     "socket.io": "^2.4.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
-    "vue": "^2.6.11",
+    "vue": "2.6.12",
     "vue-router": "^2.0.0"
   },
   "devDependencies": {
     "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
+    "esbuild": "^0.11.11",
+    "esbuild-plugin-postcss2": "^0.0.9",
+    "esbuild-vue": "^0.2.0",
+    "fast-glob": "^3.2.5",
     "graphlib": "^2.1.8",
+    "http-proxy": "^1.18.1",
     "less": "^3.11.1",
+    "md5": "^2.3.0",
     "rollup": "^1.2.2",
     "rollup-plugin-buble": "^0.19.2",
     "rollup-plugin-commonjs": "^8.3.0",
@@ -66,8 +71,7 @@
     "rollup-plugin-postcss": "^2.0.3",
     "rollup-plugin-terser": "^4.0.4",
     "rollup-plugin-vue": "4.2.0",
-    "svg-sprite": "^1.5.0",
-    "vue-template-compiler": "^2.6.11"
+    "svg-sprite": "^1.5.0"
   },
   "snyk": true
 }

@@ -52,11 +52,14 @@
 
 		</script>
 
-		{% for include in include_js %}
-		<script type="text/javascript" src="{{ include }}?ver={{ build_version }}"></script>
-		{% endfor %}
-		{% include "templates/includes/app_analytics/google_analytics.html" %}
-		{% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
+	{% for include in include_js %}
+	{{ js_asset(include) }}
+	{% endfor %}
+
+	{{ js_asset('frappe/public/js/test.bundle.js') }}
+
+	{% include "templates/includes/app_analytics/google_analytics.html" %}
+	{% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 
 		{% for sound in (sounds or []) %}
 		<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>

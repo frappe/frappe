@@ -954,6 +954,14 @@ Object.assign(frappe.utils, {
 		return $el;
 	},
 
+	eval(code, context={}) {
+		let variable_names = Object.keys(context);
+		let variables = Object.values(context);
+		code = `return (${code})`;
+		let expression_function = new Function(...variable_names, code);
+		return expression_function(...variables);
+	},
+
 	get_browser() {
 		let ua = navigator.userAgent;
 		let tem;
