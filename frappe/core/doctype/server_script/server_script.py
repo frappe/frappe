@@ -5,11 +5,12 @@
 from __future__ import unicode_literals
 
 import ast
+from types import FunctionType, ModuleType
 from typing import Dict, List
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils.safe_exec import safe_exec
+from frappe.utils.safe_exec import get_safe_globals, safe_exec, NamespaceDict
 from frappe import _
 
 
@@ -121,6 +122,26 @@ class ServerScript(Document):
 		safe_exec(self.script, None, locals)
 		if locals["conditions"]:
 			return locals["conditions"]
+
+	@frappe.whitelist()
+	def get_autocompletion_items(self):
+		def get_keys(obj):
+			out = []
+			for key in obj:
+				if key.startswith('_'):
+					continue
+				value = obj[key]
+				if isinstance(value, (FunctionType, ModuleType)):
+					out.append(key)
+				elif isinstance(value, (NamespaceDict, dict)):
+					out += [f'{key}.{subkey}' for subkey in get_keys(value)]
+			return out
+
+		items = frappe.cache().get_value('server_script_autocompletion_items')
+		if not items:
+			items = get_keys(get_safe_globals())
+			frappe.cache().set_value('server_script_autocompletion_items', items)
+		return items
 
 
 @frappe.whitelist()
