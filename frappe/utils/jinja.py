@@ -19,7 +19,7 @@ def get_jenv():
 
 		jenv.globals.update(get_safe_globals())
 
-		methods, filters = get_jinja_hooks('methods')
+		methods, filters = get_jinja_hooks()
 		jenv.globals.update(methods or {})
 		jenv.filters.update(filters or {})
 
