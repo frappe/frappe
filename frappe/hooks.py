@@ -130,6 +130,10 @@ has_website_permission = {
 	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
 }
 
+jinja = {
+	"methods": "frappe.utils.jinja_globals"
+}
+
 standard_queries = {
 	"User": "frappe.core.doctype.user.user.user_query"
 }
