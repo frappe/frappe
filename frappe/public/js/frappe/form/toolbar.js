@@ -278,12 +278,17 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}, true)
 		}
 
-		// copy
+		// duplicate
 		if(in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
 			this.page.add_menu_item(__("Duplicate"), function() {
 				me.frm.copy_doc();
 			}, true);
 		}
+
+		// copy doc to clipboard
+		this.page.add_menu_item(__("Copy to Clipboard"), function() {
+			frappe.utils.copy_to_clipboard(JSON.stringify(me.frm.doc));
+		}, true);
 
 		// rename
 		if(this.can_rename()) {
