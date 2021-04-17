@@ -33,7 +33,7 @@ class Role(Document):
 		# set if desk_access is not allowed, unset all desk properties
 		if self.name == 'Guest':
 			self.desk_access = 0
-			
+
 		if not self.desk_access:
 			for key in desk_properties:
 				self.set(key, 0)
@@ -52,7 +52,6 @@ class Role(Document):
 				user.set_system_user()
 				if user_type != user.user_type:
 					user.save()
-
 
 def get_info_based_on_role(role, field='email'):
 	''' Get information of all users that have been assigned this role '''
@@ -73,3 +72,15 @@ def get_user_info(users, field='email'):
 def get_users(role):
 	return [d.parent for d in frappe.get_all("Has Role", filters={"role": role, "parenttype": "User"},
 		fields=["parent"])]
+
+
+# searches for active employees
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def role_query(doctype, txt, searchfield, start, page_len, filters):
+	report_filters = [['Role', 'name', 'like', '%{}%'.format(txt)], ['Role', 'is_custom', '=', 0]]
+	if filters and isinstance(filters, list):
+		report_filters.extend(filters)
+
+	return frappe.get_all('Role', limit_start=start, limit_page_length=page_len,
+		filters=report_filters, as_list=1)

@@ -25,9 +25,11 @@
   "set_banner_from_image",
   "favicon",
   "top_bar",
-  "navbar_search",
-  "hide_login",
   "top_bar_items",
+  "hide_login",
+  "navbar_search",
+  "show_language_picker",
+  "navbar_template_section",
   "navbar_template",
   "navbar_template_values",
   "edit_navbar_template_values",
@@ -142,6 +144,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "top_bar_items",
    "fieldname": "top_bar",
    "fieldtype": "Section Break",
    "label": "Navbar"
@@ -160,6 +163,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "banner_html",
    "fieldname": "banner",
    "fieldtype": "Section Break",
    "label": "Banner"
@@ -173,6 +177,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "footer_items",
    "fieldname": "footer",
    "fieldtype": "Section Break",
    "label": "Footer"
@@ -407,6 +412,19 @@
    "fieldname": "google_analytics_anonymize_ip",
    "fieldtype": "Check",
    "label": "Google Analytics Anonymize IP"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_language_picker",
+   "fieldtype": "Check",
+   "label": "Show Language Picker"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "navbar_template",
+   "fieldname": "navbar_template_section",
+   "fieldtype": "Section Break",
+   "label": "Navbar Template"
   }
  ],
  "icon": "fa fa-cog",
@@ -415,7 +433,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-09-28 18:47:18.506700",
+ "modified": "2021-04-14 17:39:56.609771",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

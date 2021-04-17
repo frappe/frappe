@@ -256,11 +256,15 @@ $.extend(frappe.model, {
 	},
 
 	can_select: function(doctype) {
-		return frappe.boot.user.can_select.indexOf(doctype)!==-1;
+		if (frappe.boot.user) {
+			return frappe.boot.user.can_select.indexOf(doctype)!==-1;
+		}
 	},
 
 	can_read: function(doctype) {
-		return frappe.boot.user.can_read.indexOf(doctype)!==-1;
+		if (frappe.boot.user) {
+			return frappe.boot.user.can_read.indexOf(doctype)!==-1;
+		}
 	},
 
 	can_write: function(doctype) {

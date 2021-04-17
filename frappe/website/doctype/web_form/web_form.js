@@ -20,7 +20,10 @@ frappe.web_form = {
 							return null;
 						}
 					});
-					frappe.meta.get_docfield("Web Form Field", "fieldname", frm.doc.name).options = [""].concat(fields);
+
+					frm.fields_dict.web_form_fields.grid.update_docfield_property(
+						'fieldname', 'options', fields
+					);
 					frappe.meta.get_docfield("Web Form", "amount_field", frm.doc.name).options = [""].concat(currency_fields);
 					frm.refresh_field("amount_field");
 					resolve();
