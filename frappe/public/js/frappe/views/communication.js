@@ -276,7 +276,7 @@ frappe.views.CommunicationComposer = class {
 					prepend_reply(r.message);
 				},
 			});
-		}
+		};
 	}
 
 	setup_last_edited_communication() {
