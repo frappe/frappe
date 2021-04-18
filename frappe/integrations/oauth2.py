@@ -98,6 +98,16 @@ def authorize(**kwargs):
 
 @frappe.whitelist(allow_guest=True)
 def get_token(*args, **kwargs):
+<<<<<<< HEAD
+=======
+	r = frappe.request
+
+	uri = url_fix(r.url)
+	http_method = r.method
+	body = r.form
+	headers = r.headers
+
+>>>>>>> 4c3d0ba92f... fix: id_token format
 	#Check whether frappe server URL is set
 	frappe_server_url = frappe.db.get_value("Social Login Key", "frappe", "base_url") or None
 	if not frappe_server_url:
@@ -133,8 +143,12 @@ def get_token(*args, **kwargs):
 			}
 
 			id_token_encoded = jwt.encode(id_token, client_secret, algorithm='HS256', headers=id_token_header)
+<<<<<<< HEAD
 			out.update({"id_token": str(id_token_encoded)})
 
+=======
+			out.update({"id_token": id_token_encoded.decode('utf-8') })
+>>>>>>> 4c3d0ba92f... fix: id_token format
 		frappe.local.response = out
 
 	except FatalClientError as e:
