@@ -149,24 +149,17 @@ def get_request_form_data():
 	return frappe.parse_json(data)
 
 def validate_auth():
-	if frappe.get_request_header("Authorization") is None:
-		return
-
 	VALID_AUTH_PREFIX_TYPES = ['basic', 'bearer', 'token']
 	VALID_AUTH_PREFIX_STRING = ", ".join(VALID_AUTH_PREFIX_TYPES).title()
 
 	authorization_header = frappe.get_request_header("Authorization", str()).split(" ")
 	authorization_type = authorization_header[0].lower()
 
-	if len(authorization_header) == 1:
-		frappe.throw(_('Invalid Authorization headers, add a token with a prefix from one of the following: {0}.').format(VALID_AUTH_PREFIX_STRING), frappe.InvalidAuthorizationHeader)
-
-	if authorization_type == "bearer":
+	if len(authorization_header) == 2:
 		validate_oauth(authorization_header)
-	elif authorization_type in VALID_AUTH_PREFIX_TYPES:
 		validate_auth_via_api_keys(authorization_header)
-	else:
-		frappe.throw(_('Invalid Authorization Type {0}, must be one of {1}.').format(authorization_type, VALID_AUTH_PREFIX_STRING), frappe.InvalidAuthorizationPrefix)
+
+	validate_auth_via_hooks()
 
 
 def validate_oauth(authorization_header):
@@ -192,14 +185,13 @@ def validate_oauth(authorization_header):
 
 	try:
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(get_url_delimiter())
+		valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
+
+		if valid:
+			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
+			frappe.local.form_dict = form_dict
 	except AttributeError:
-		frappe.throw(_("Invalid Bearer token, please provide a valid access token with prefix 'Bearer'."), frappe.InvalidAuthorizationToken)
-
-	valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
-
-	if valid:
-		frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
-		frappe.local.form_dict = form_dict
+		pass
 
 
 def validate_auth_via_api_keys(authorization_header):
@@ -222,7 +214,7 @@ def validate_auth_via_api_keys(authorization_header):
 	except binascii.Error:
 		frappe.throw(_("Failed to decode token, please provide a valid base64-encoded token."), frappe.InvalidAuthorizationToken)
 	except (AttributeError, TypeError, ValueError):
-		frappe.throw(_("Invalid token, please provide a valid token with prefix 'Basic' or 'Token'."), frappe.InvalidAuthorizationToken)
+		pass
 
 
 
@@ -248,3 +240,8 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		if frappe.local.login_manager.user in ('', 'Guest'):
 			frappe.set_user(user)
 		frappe.local.form_dict = form_dict
+
+
+def validate_auth_via_hooks():
+	for auth_hook in frappe.get_hooks('auth_hooks', []):
+		frappe.get_attr(auth_hook)()
