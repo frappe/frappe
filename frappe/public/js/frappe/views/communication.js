@@ -7,6 +7,10 @@ const separator_element = '<div>---</div>';
 frappe.views.CommunicationComposer = class {
 	constructor(opts) {
 		$.extend(this, opts);
+		if (!this.doc) {
+			this.doc = this.frm && this.frm.doc || {};
+		}
+
 		this.make();
 	}
 
@@ -269,7 +273,7 @@ frappe.views.CommunicationComposer = class {
 				method: 'frappe.email.doctype.email_template.email_template.get_email_template',
 				args: {
 					template_name: email_template,
-					doc: me.frm.doc,
+					doc: me.doc,
 					_lang: me.dialog.get_value("language_sel")
 				},
 				callback(r) {
@@ -382,11 +386,10 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	setup_print_language() {
-		const doc = this.frm && this.frm.doc;
 		const fields = this.dialog.fields_dict;
 
 		//Load default print language from doctype
-		this.lang_code = doc.language
+		this.lang_code = this.doc.language
 			|| this.get_print_format().default_print_language
 			|| frappe.boot.lang;
 
@@ -612,7 +615,7 @@ frappe.views.CommunicationComposer = class {
 
 	send_email(btn, form_values, selected_attachments, print_html, print_format) {
 		const me = this;
-		me.dialog.hide();
+		this.dialog.hide();
 
 		if (!form_values.recipients) {
 			frappe.msgprint(__("Enter Email Recipient(s)"));
@@ -625,7 +628,7 @@ frappe.views.CommunicationComposer = class {
 		}
 
 
-		if (this.frm && !frappe.model.can_email(me.doc.doctype, this.frm)) {
+		if (this.frm && !frappe.model.can_email(this.doc.doctype, this.frm)) {
 			frappe.msgprint(__("You are not allowed to send emails related to this document"));
 			return;
 		}
