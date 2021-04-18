@@ -306,6 +306,7 @@ frappe.provide("frappe.views");
 			store.on('change:cur_list', setup_restore_columns);
 			store.on('change:columns', setup_restore_columns);
 			store.on('change:empty_state', show_empty_state);
+			fluxify.doAction('update_order');
 		}
 
 		function prepare() {
