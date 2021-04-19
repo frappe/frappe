@@ -201,3 +201,27 @@ result = [
 
 		# check values
 		self.assertTrue('System User' in [d.get('type') for d in data[1]])
+
+	def test_toggle_disabled(self):
+		"""Make sure that authorization is respected.
+		"""
+		# Assuming that there will be reports in the system.
+		reports = frappe.get_all(doctype='Report', limit=1)
+		report_name = reports[0]['name']
+		doc = frappe.get_doc('Report', report_name)
+		status = doc.disabled
+
+		# User has write permission on reports and should pass through
+		frappe.set_user('test@example.com')
+		doc.toggle_disable(not status)
+		doc.reload()
+		self.assertNotEqual(status, doc.disabled)
+
+		# User has no write permission on reports, permission error is expected.
+		frappe.set_user('test1@example.com')
+		doc = frappe.get_doc('Report', report_name)
+		with self.assertRaises(frappe.exceptions.ValidationError):
+			doc.toggle_disable(1)
+
+		# Set user back to administrator
+		frappe.set_user('Administrator')

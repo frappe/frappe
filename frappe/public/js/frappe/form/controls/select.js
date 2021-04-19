@@ -96,7 +96,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		}
 	},
 	toggle_placeholder: function() {
-		const input_set = Boolean(this.$input.val());
+		const input_set = Boolean(this.$input.find('option:selected').text());
 		this.$wrapper.find('.placeholder').toggle(!input_set);
 	}
 });

@@ -208,6 +208,7 @@ export default class ChartWidget extends Widget {
 
 		this.fetch(this.filters, true, this.args).then(data => {
 			if (this.chart_doc.chart_type == "Report") {
+				this.report_result = data;
 				this.summary = data.report_summary;
 				data = this.get_report_chart_data(data);
 			}
@@ -571,8 +572,18 @@ export default class ChartWidget extends Widget {
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
 				shortenYAxisNumbers: 1
-			}
+			},
 		};
+
+		if (this.report_result && this.report_result.chart) {
+			chart_args.tooltipOptions = {
+				formatTooltipY: value =>
+					frappe.format(value, {
+						fieldtype: this.report_result.chart.fieldtype,
+						options: this.report_result.chart.options
+					}, { always_show_decimals: true, inline: true })
+			};
+		}
 
 		if (this.chart_doc.type == "Heatmap") {
 			const heatmap_year = parseInt(this.selected_heatmap_year || this.chart_settings.heatmap_year || this.chart_doc.heatmap_year);

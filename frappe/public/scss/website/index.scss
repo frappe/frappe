@@ -1,6 +1,4 @@
-@import '~quill/dist/quill.core';
-@import '~quill/dist/quill.snow.css';
-@import '~quill/dist/quill.bubble.css';
+@import '../common/quill';
 @import 'variables';
 @import '~bootstrap/scss/bootstrap';
 @import "../common/mixins";
@@ -12,9 +10,11 @@
 @import "../common/modal";
 @import "../common/indicator";
 @import "../common/controls";
+@import "../common/awesomeplete";
 @import 'multilevel_dropdown';
 @import 'website_image';
 @import 'website_avatar';
+@import 'web_form';
 @import 'page_builder';
 @import 'blog';
 @import 'markdown';
@@ -88,6 +88,13 @@
 
 .main-column .page-content-wrapper {
 	margin: 2rem 0;
+}
+
+@media (max-width: map-get($grid-breakpoints, "lg")) {
+	.page-content-wrapper .container {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
 }
 
 .breadcrumb-container {

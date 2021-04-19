@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "dt",
+  "view",
   "enabled",
   "script",
   "sample"
@@ -22,7 +23,8 @@
    "oldfieldname": "dt",
    "oldfieldtype": "Link",
    "options": "DocType",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "script",
@@ -43,13 +45,21 @@
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled"
+  },
+  {
+   "default": "Form",
+   "fieldname": "view",
+   "fieldtype": "Select",
+   "label": "Apply To",
+   "options": "List\nForm",
+   "set_only_once": 1
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-02-04 13:57:56.509437",
+ "modified": "2021-03-16 20:33:51.400191",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Client Script",

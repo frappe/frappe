@@ -10,7 +10,8 @@ import frappe.share
 import frappe.defaults
 import frappe.permissions
 from frappe.model.document import Document
-from frappe.utils import cint, flt, has_gravatar, escape_html, format_datetime, now_datetime, get_formatted_email, today
+from frappe.utils import (cint, flt, has_gravatar, escape_html, format_datetime,
+	now_datetime, get_formatted_email, today)
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password, check_password, get_password_reset_limit
 from frappe.desk.notifications import clear_notifications
@@ -19,6 +20,7 @@ from frappe.utils.user import get_system_managers
 from frappe.website.utils import is_signup_enabled
 from frappe.rate_limiter import rate_limit
 from frappe.utils.background_jobs import enqueue
+from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 
 
 STANDARD_USERS = ("Guest", "Administrator")
@@ -186,11 +188,36 @@ class User(Document):
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
 
 	def set_system_user(self):
-		'''Set as System User if any of the given roles has desk_access'''
-		if self.has_desk_access() or self.name == 'Administrator':
-			self.user_type = 'System User'
+		'''For the standard users like admin and guest, the user type is fixed.'''
+		user_type_mapper = {
+			'Administrator': 'System User',
+			'Guest': 'Website User'
+		}
+
+		if self.user_type and not frappe.get_cached_value('User Type', self.user_type, 'is_standard'):
+			if user_type_mapper.get(self.name):
+				self.user_type = user_type_mapper.get(self.name)
+			else:
+				self.set_roles_and_modules_based_on_user_type()
 		else:
-			self.user_type = 'Website User'
+			'''Set as System User if any of the given roles has desk_access'''
+			self.user_type = 'System User' if self.has_desk_access() else 'Website User'
+
+	def set_roles_and_modules_based_on_user_type(self):
+		user_type_doc = frappe.get_cached_doc('User Type', self.user_type)
+		if user_type_doc.role:
+			self.roles = []
+
+			# Check whether User has linked with the 'Apply User Permission On' doctype or not
+			if user_linked_with_permission_on_doctype(user_type_doc, self.name):
+				self.append('roles', {
+					'role': user_type_doc.role
+				})
+
+				frappe.msgprint(_('Role has been set as per the user type {0}')
+					.format(self.user_type), alert=True)
+
+		user_type_doc.update_modules_in_user(self)
 
 	def has_desk_access(self):
 		'''Return true if any of the set roles has desk access'''
@@ -534,23 +561,35 @@ class User(Document):
 	@classmethod
 	def find_by_credentials(cls, user_name: str, password: str, validate_password: bool = True):
 		"""Find the user by credentials.
-		"""
-		login_with_mobile = cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number"))
-		filter = {"mobile_no": user_name} if login_with_mobile else {"name": user_name}
 
-		user = frappe.db.get_value("User", filters=filter, fieldname=['name', 'enabled'], as_dict=True) or {}
-		if not user:
+		This is a login utility that needs to check login related system settings while finding the user.
+		1. Find user by email ID by default
+		2. If allow_login_using_mobile_number is set, you can use mobile number while finding the user.
+		3. If allow_login_using_user_name is set, you can use username while finding the user.
+		"""
+
+		login_with_mobile = cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number"))
+		login_with_username = cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_user_name"))
+
+		or_filters = [{"name": user_name}]
+		if login_with_mobile:
+			or_filters.append({"mobile_no": user_name})
+		if login_with_username:
+			or_filters.append({"username": user_name})
+
+		users = frappe.db.get_all('User', fields=['name', 'enabled'], or_filters=or_filters, limit=1)
+		if not users:
 			return
 
+		user = users[0]
 		user['is_authenticated'] = True
 		if validate_password:
 			try:
-				check_password(user_name, password)
+				check_password(user['name'], password, delete_tracker_cache=False)
 			except frappe.AuthenticationError:
 				user['is_authenticated'] = False
 
 		return user
-
 
 @frappe.whitelist()
 def get_timezones():
@@ -863,11 +902,13 @@ def reset_password(user):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def user_query(doctype, txt, searchfield, start, page_len, filters):
-	from frappe.desk.reportview import get_match_cond
+	from frappe.desk.reportview import get_match_cond, get_filters_cond
+	conditions=[]
 
-	user_type_condition = "and user_type = 'System User'"
+	user_type_condition = "and user_type != 'Website User'"
 	if filters and filters.get('ignore_user_type'):
 		user_type_condition = ''
+		filters.pop('ignore_user_type')
 
 	txt = "%{}%".format(txt)
 	return frappe.db.sql("""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
@@ -878,17 +919,22 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 			AND `name` NOT IN ({standard_users})
 			AND ({key} LIKE %(txt)s
 				OR CONCAT_WS(' ', first_name, middle_name, last_name) LIKE %(txt)s)
-			{mcond}
+			{fcond} {mcond}
 		ORDER BY
 			CASE WHEN `name` LIKE %(txt)s THEN 0 ELSE 1 END,
 			CASE WHEN concat_ws(' ', first_name, middle_name, last_name) LIKE %(txt)s
 				THEN 0 ELSE 1 END,
 			NAME asc
-		LIMIT %(page_len)s OFFSET %(start)s""".format(
+		LIMIT %(page_len)s OFFSET %(start)s
+	""".format(
 			user_type_condition = user_type_condition,
 			standard_users=", ".join([frappe.db.escape(u) for u in STANDARD_USERS]),
-			key=searchfield, mcond=get_match_cond(doctype)),
-			dict(start=start, page_len=page_len, txt=txt))
+			key=searchfield,
+			fcond=get_filters_cond(doctype, filters, conditions),
+			mcond=get_match_cond(doctype)
+		),
+		dict(start=start, page_len=page_len, txt=txt)
+	)
 
 def get_total_users():
 	"""Returns total no. of system users"""
@@ -972,8 +1018,16 @@ def extract_mentions(txt):
 	soup = BeautifulSoup(txt, 'html.parser')
 	emails = []
 	for mention in soup.find_all(class_='mention'):
+		if mention.get('data-is-group') == 'true':
+			try:
+				user_group = frappe.get_cached_doc('User Group', mention['data-id'])
+				emails += [d.user for d in user_group.user_group_members]
+			except frappe.DoesNotExistError:
+				pass
+			continue
 		email = mention['data-id']
 		emails.append(email)
+
 	return emails
 
 def handle_password_test_fail(result):

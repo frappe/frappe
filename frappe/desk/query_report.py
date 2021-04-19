@@ -36,7 +36,10 @@ def get_report_doc(report_name):
 		reference_report = custom_report_doc.reference_report
 		doc = frappe.get_doc("Report", reference_report)
 		doc.custom_report = report_name
-		doc.custom_columns = custom_report_doc.json
+		if custom_report_doc.json:
+			data = json.loads(custom_report_doc.json)
+			if data:
+				doc.custom_columns = data["columns"]
 		doc.is_custom_report = True
 
 	if not doc.is_permitted():
@@ -83,7 +86,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 
 	if report.custom_columns:
 		# saved columns (with custom columns / with different column order)
-		columns = json.loads(report.custom_columns)
+		columns = report.custom_columns
 
 	# unsaved custom_columns
 	if custom_columns:
@@ -164,10 +167,14 @@ def get_script(report_name):
 	module = report.module or frappe.db.get_value(
 		"DocType", report.ref_doctype, "module"
 	)
-	module_path = get_module_path(module)
-	report_folder = os.path.join(module_path, "report", scrub(report.name))
-	script_path = os.path.join(report_folder, scrub(report.name) + ".js")
-	print_path = os.path.join(report_folder, scrub(report.name) + ".html")
+
+	is_custom_module = frappe.get_cached_value("Module Def", module, "custom")
+
+	# custom modules are virtual modules those exists in DB but not in disk.
+	module_path = '' if is_custom_module else get_module_path(module)
+	report_folder = module_path and os.path.join(module_path, "report", scrub(report.name))
+	script_path = report_folder and os.path.join(report_folder, scrub(report.name) + ".js")
+	print_path = report_folder and os.path.join(report_folder, scrub(report.name) + ".html")
 
 	script = None
 	if os.path.exists(script_path):
@@ -520,9 +527,12 @@ def save_report(reference_report, report_name, columns):
 			"report_type": "Custom Report",
 		},
 	)
+
 	if docname:
 		report = frappe.get_doc("Report", docname)
-		report.update({"json": columns})
+		existing_jd = json.loads(report.json)
+		existing_jd["columns"] = json.loads(columns)
+		report.update({"json": json.dumps(existing_jd, separators=(',', ':'))})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
 
@@ -532,7 +542,7 @@ def save_report(reference_report, report_name, columns):
 			{
 				"doctype": "Report",
 				"report_name": report_name,
-				"json": columns,
+				"json": f'{{"columns":{columns}}}',
 				"ref_doctype": report_doc.ref_doctype,
 				"is_standard": "No",
 				"report_type": "Custom Report",

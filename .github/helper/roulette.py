@@ -24,10 +24,12 @@ def is_docs(file):
 
 if __name__ == "__main__":
     build_type = os.environ.get("TYPE")
-    commit_range = os.environ.get("TRAVIS_COMMIT_RANGE")
+    before = os.environ.get("BEFORE")
+    after = os.environ.get("AFTER")
+    commit_range = before + '...' + after
     print("Build Type: {}".format(build_type))
     print("Commit Range: {}".format(commit_range))
-    
+
     try:
         files_changed = get_output("git diff --name-only {}".format(commit_range), shell=False)
     except Exception:

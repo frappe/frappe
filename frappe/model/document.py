@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, print_function
 import frappe
 import time
-from frappe import _, msgprint
+from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
@@ -126,10 +126,10 @@ class Document(BaseDocument):
 			raise ValueError('Illegal arguments')
 
 	@staticmethod
-	def whitelist(f):
+	def whitelist(fn):
 		"""Decorator: Whitelist method to be called remotely via REST API."""
-		f.whitelisted = True
-		return f
+		frappe.whitelist()(fn)
+		return fn
 
 	def reload(self):
 		"""Reload document from database"""
@@ -590,9 +590,18 @@ class Document(BaseDocument):
 
 	def apply_fieldlevel_read_permissions(self):
 		"""Remove values the user is not allowed to read (called when loading in desk)"""
+
+		if frappe.session.user == "Administrator":
+			return
+
 		has_higher_permlevel = False
-		for p in self.get_permissions():
-			if p.permlevel > 0:
+
+		all_fields = self.meta.fields.copy()
+		for table_field in self.meta.get_table_fields():
+			all_fields += frappe.get_meta(table_field.options).fields or []
+
+		for df in all_fields:
+			if df.permlevel > 0:
 				has_higher_permlevel = True
 				break
 
@@ -616,6 +625,9 @@ class Document(BaseDocument):
 		if self.flags.ignore_permissions or frappe.flags.in_install:
 			return
 
+		if frappe.session.user == "Administrator":
+			return
+
 		has_access_to = self.get_permlevel_access()
 		high_permlevel_fields = self.meta.get_high_permlevel_fields()
 
@@ -636,13 +648,12 @@ class Document(BaseDocument):
 		if not hasattr(self, "_has_access_to"):
 			self._has_access_to = {}
 
-		if not self._has_access_to.get(permission_type):
-			self._has_access_to[permission_type] = []
-			roles = frappe.get_roles()
-			for perm in self.get_permissions():
-				if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
-					if perm.permlevel not in self._has_access_to[permission_type]:
-						self._has_access_to[permission_type].append(perm.permlevel)
+		self._has_access_to[permission_type] = []
+		roles = frappe.get_roles()
+		for perm in self.get_permissions():
+			if perm.role in roles and perm.get(permission_type):
+				if perm.permlevel not in self._has_access_to[permission_type]:
+					self._has_access_to[permission_type].append(perm.permlevel)
 
 		return self._has_access_to[permission_type]
 
@@ -686,7 +697,7 @@ class Document(BaseDocument):
 		`self.check_docstatus_transition`."""
 		conflict = False
 		self._action = "save"
-		if not self.get('__islocal'):
+		if not self.get('__islocal') and not self.meta.get('is_virtual'):
 			if self.meta.issingle:
 				modified = frappe.db.sql("""select value from tabSingles
 					where doctype=%s and field='modified' for update""", self.doctype)
@@ -1137,12 +1148,12 @@ class Document(BaseDocument):
 
 		return composer
 
-	def is_whitelisted(self, method):
-		fn = getattr(self, method, None)
-		if not fn:
-			raise NotFound("Method {0} not found".format(method))
-		elif not getattr(fn, "whitelisted", False):
-			raise Forbidden("Method {0} not whitelisted".format(method))
+	def is_whitelisted(self, method_name):
+		method = getattr(self, method_name, None)
+		if not method:
+			raise NotFound("Method {0} not found".format(method_name))
+
+		is_whitelisted(getattr(method, '__func__', method))
 
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""Check that value of fieldname should be 'condition' val2

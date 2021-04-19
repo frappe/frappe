@@ -1,0 +1,26 @@
+@import "../common/form";
+
+.web-form-wrapper {
+	.form-control {
+		color: var(--text-color);
+	}
+
+	.form-section {
+		.section-head {
+			font-weight: bold;
+			font-size: var(--text-xl);
+			padding: var(--padding-md) 0;
+		}
+	}
+
+	.form-column {
+		padding: 0 var(--padding-md);
+		&:first-child {
+			padding-left: 0;
+		}
+
+		&:last-child {
+			padding-right: 0;
+		}
+	}
+}

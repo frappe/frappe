@@ -10,6 +10,7 @@
 @import "mobile";
 @import "form";
 @import "print_preview";
+@import "scrollbar";
 @import "navbar";
 @import "../common/modal";
 @import "slides";
@@ -23,7 +24,7 @@
 @import "notification";
 @import "global_search";
 @import "desktop";
-@import "awesomebar";
+@import "../common/awesomeplete";
 @import "sidebar";
 @import "filters";
 @import "list";
@@ -43,5 +44,5 @@
 @import "user_profile";
 @import "theme_switcher";
 @import "link_preview";
-@import "quill";
+@import "../common/quill";
 @import "plyr";

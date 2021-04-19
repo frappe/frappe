@@ -78,14 +78,14 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 			push_perm_check_log(_('User {0} does not have doctype access via role permission for document {1}').format(frappe.bold(user), frappe.bold(doctype)))
 
 	def false_if_not_shared():
-		if ptype in ("read", "write", "share", "email", "print"):
+		if ptype in ("read", "write", "share", "submit", "email", "print"):
 			shared = frappe.share.get_shared(doctype, user,
 				["read" if ptype in ("email", "print") else ptype])
 
 			if doc:
 				doc_name = get_doc_name(doc)
 				if doc_name in shared:
-					if ptype in ("read", "write", "share") or meta.permissions[0].get(ptype):
+					if ptype in ("read", "write", "share", "submit") or meta.permissions[0].get(ptype):
 						return True
 
 			elif shared:
@@ -108,11 +108,18 @@ def get_doc_permissions(doc, user=None, ptype=None):
 
 	meta = frappe.get_meta(doc.doctype)
 
+	def is_user_owner():
+		doc_owner = doc.get('owner') or ''
+		doc_owner = doc_owner.lower()
+		session_user = frappe.session.user.lower()
+		return doc_owner == session_user
+
+
 	if has_controller_permissions(doc, ptype, user=user) == False :
 		push_perm_check_log('Not allowed via controller permission check')
 		return {ptype: 0}
 
-	permissions = copy.deepcopy(get_role_permissions(meta, user=user))
+	permissions = copy.deepcopy(get_role_permissions(meta, user=user, is_owner=is_user_owner()))
 
 	if not cint(meta.is_submittable):
 		permissions["submit"] = 0
@@ -120,13 +127,8 @@ def get_doc_permissions(doc, user=None, ptype=None):
 	if not cint(meta.allow_import):
 		permissions["import"] = 0
 
-	def is_user_owner():
-		doc_owner = doc.get('owner') or ''
-		doc_owner = doc_owner.lower()
-		session_user = frappe.session.user.lower()
-		return doc_owner == session_user
-
-	if is_user_owner():
+	# Override with `if_owner` perms irrespective of user
+	if permissions.get('has_if_owner_enabled'):
 		# apply owner permissions on top of existing permissions
 		# some access might be only for the owner
 		# eg. everyone might have read access but only owner can delete
@@ -143,7 +145,7 @@ def get_doc_permissions(doc, user=None, ptype=None):
 
 	return permissions
 
-def get_role_permissions(doctype_meta, user=None):
+def get_role_permissions(doctype_meta, user=None, is_owner=None):
 	"""
 	Returns dict of evaluated role permissions like
 		{
@@ -183,6 +185,8 @@ def get_role_permissions(doctype_meta, user=None):
 		applicable_permissions = list(filter(is_perm_applicable, getattr(doctype_meta, 'permissions', [])))
 		has_if_owner_enabled = any(p.get('if_owner', 0) for p in applicable_permissions)
 
+		perms['has_if_owner_enabled'] = has_if_owner_enabled
+
 		for ptype in rights:
 			pvalue = any(p.get(ptype, 0) for p in applicable_permissions)
 			# check if any perm object allows perm type
@@ -191,7 +195,7 @@ def get_role_permissions(doctype_meta, user=None):
 				and has_if_owner_enabled
 				and not has_permission_without_if_owner_enabled(ptype)
 				and ptype != 'create'):
-				perms['if_owner'][ptype] = 1
+				perms['if_owner'][ptype] = cint(pvalue and is_owner)
 				# has no access if not owner
 				# only provide select or read access so that user is able to at-least access list
 				# (and the documents will be filtered based on owner sin further checks)
@@ -362,6 +366,11 @@ def get_roles(user=None, with_standard=True):
 
 	return roles
 
+def get_doctype_roles(doctype, access_type="read"):
+	"""Returns a list of roles that are allowed to access passed doctype."""
+	meta = frappe.get_meta(doctype)
+	return [d.role for d in meta.get("permissions") if d.get(access_type)]
+
 def get_perms_for(roles, perm_doctype='DocPerm'):
 	'''Get perms for given roles'''
 	filters = {
@@ -471,7 +480,7 @@ def setup_custom_perms(parent):
 		copy_perms(parent)
 		return True
 
-def add_permission(doctype, role, permlevel=0):
+def add_permission(doctype, role, permlevel=0, ptype=None):
 	'''Add a new permission rule to the given doctype
 		for the given Role and Permission Level'''
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
@@ -481,6 +490,9 @@ def add_permission(doctype, role, permlevel=0):
 		permlevel=permlevel, if_owner=0)):
 		return
 
+	if not ptype:
+		ptype = 'read'
+
 	custom_docperm = frappe.get_doc({
 		"doctype":"Custom DocPerm",
 		"__islocal": 1,
@@ -488,13 +500,14 @@ def add_permission(doctype, role, permlevel=0):
 		"parenttype": "DocType",
 		"parentfield": "permissions",
 		"role": role,
-		'read': 1,
 		"permlevel": permlevel,
+		ptype: 1,
 	})
 
 	custom_docperm.save()
 
 	validate_permissions_for_doctype(doctype)
+	return custom_docperm.name
 
 def copy_perms(parent):
 	'''Copy all DocPerm in to Custom DocPerm for the given document'''

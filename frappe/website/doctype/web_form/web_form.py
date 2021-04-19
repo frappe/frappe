@@ -215,12 +215,17 @@ def get_context(context):
 			amount = self.amount
 			if self.amount_based_on_field:
 				amount = doc.get(self.amount_field)
+
+			from decimal import Decimal
+			if amount is None or Decimal(amount) <= 0:
+				return frappe.utils.get_url(self.success_url or self.route)
+				
 			payment_details = {
 				"amount": amount,
 				"title": title,
 				"description": title,
-				"reference_doctype": doc.doctype,
-				"reference_docname": doc.name,
+				"reference_doctype": "Web Form",
+				"reference_docname": self.name,
 				"payer_email": frappe.session.user,
 				"payer_name": frappe.utils.get_fullname(frappe.session.user),
 				"order_id": doc.name,

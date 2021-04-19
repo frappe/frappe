@@ -381,7 +381,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			method: method,
 			args: {
 				doctype: this.frm.doctype,
-				name: this.frm.doc.name,
+				name: this.frm.docname,
 				items: items
 			},
 			callback: function(r) {
@@ -535,14 +535,14 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	render_graph(args) {
 		this.chart_area.show();
 		this.chart_area.body.empty();
-		$.extend(args, {
+		$.extend({
 			type: 'line',
 			colors: ['green'],
 			truncateLegends: 1,
 			axisOptions: {
 				shortenYAxisNumbers: 1
 			}
-		});
+		}, args);
 		this.show();
 
 		this.chart = new frappe.Chart('.form-graph', args);
@@ -681,7 +681,7 @@ class Section {
 		this.set_icon(hide);
 
 		// save state for next reload ('' is falsy)
-		localStorage.setItem(this.df.css_class + '-closed', hide ? '1' : '');	
+		localStorage.setItem(this.df.css_class + '-closed', hide ? '1' : '');
 	}
 
 	set_icon(hide) {

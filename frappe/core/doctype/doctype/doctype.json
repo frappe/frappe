@@ -22,6 +22,7 @@
   "track_views",
   "custom",
   "beta",
+  "is_virtual",
   "fields_section_break",
   "fields",
   "sb1",
@@ -55,6 +56,8 @@
   "show_preview_popup",
   "show_name_in_global_search",
   "email_settings_sb",
+  "default_email_template",
+  "column_break_51",
   "email_append_to",
   "sender_field",
   "subject_field",
@@ -528,6 +531,22 @@
    "fieldname": "index_web_pages_for_search",
    "fieldtype": "Check",
    "label": "Index Web Pages for Search"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_virtual",
+   "fieldtype": "Check",
+   "label": "Is Virtual"
+  },
+  {
+   "fieldname": "default_email_template",
+   "fieldtype": "Link",
+   "label": "Default Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_51",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-bolt",
@@ -609,7 +628,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-02-04 15:10:09.227205",
+ "modified": "2021-04-16 12:26:41.031135",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
