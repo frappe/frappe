@@ -145,6 +145,7 @@ def get_token(*args, **kwargs):
 			id_token_encoded = jwt.encode(id_token, client_secret, algorithm='HS256', headers=id_token_header)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 			out.update({"id_token": str(id_token_encoded)})
 
 =======
@@ -153,6 +154,9 @@ def get_token(*args, **kwargs):
 =======
 			out.update({"id_token":id_token_encoded.decode('utf-8')})
 >>>>>>> b33ae466db... fix: sider errors
+=======
+			out.update({"id_token": frappe.safe_decode(id_token_encoded)})
+>>>>>>> fc4677e2ca... fix: use frappe.safe_decode to decode id_token
 		frappe.local.response = out
 
 	except FatalClientError as e:
@@ -208,6 +212,7 @@ def validate_url(url_string):
 		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
 	except:
 		return False
+<<<<<<< HEAD
 
 def encode_params(params):
 	"""
@@ -218,3 +223,5 @@ def encode_params(params):
 	as a whitespace.
 	"""
 	return urlencode(params, quote_via=quote)
+=======
+>>>>>>> fc4677e2ca... fix: use frappe.safe_decode to decode id_token
