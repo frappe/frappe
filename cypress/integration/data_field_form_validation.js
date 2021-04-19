@@ -18,7 +18,7 @@ context('Data Field Input Validation in New Form', () => {
 		cy.get(`.frappe-control[data-fieldname="${fieldname}"]`).should('not.have.class', 'has-error');
 	}
 
-    describe('Data Field Options', () => {
+	describe('Data Field Options', () => {
 		it('should validate email address', () => {
 			cy.new_form(doctype_name);
 			validateField('email', 'captian', 'hello@test.com');
@@ -35,5 +35,5 @@ context('Data Field Input Validation in New Form', () => {
 		it('should validate name', () => {
 			validateField('person_name', ' 777Hello', 'James Bond');
 		});
-    });
+	});
 });

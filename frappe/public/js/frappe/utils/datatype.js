@@ -54,7 +54,7 @@ window.validate_name = function(txt) {
 
 window.validate_url = function(txt) {
 	return frappe.utils.validate_type(txt, "url");
-}
+};
 
 window.nth = function(number) {
 	number = cint(number);
