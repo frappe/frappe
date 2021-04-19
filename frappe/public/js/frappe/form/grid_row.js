@@ -541,10 +541,10 @@ export default class GridRow {
 
 		if (this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows)) {
 			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
-				.addClass('hidden')
+				.addClass('hidden');
 		} else {
 			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
-				.removeClass('hidden')
+				.removeClass('hidden');
 		}
 
 		frappe.dom.freeze("", "dark");
