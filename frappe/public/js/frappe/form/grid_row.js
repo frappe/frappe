@@ -555,6 +555,15 @@ export default class GridRow {
 		this.grid_form.render();
 		this.row.toggle(false);
 		// this.form_panel.toggle(true);
+
+		if (this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows)) {
+			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
+				.addClass('hidden');
+		} else {
+			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
+				.removeClass('hidden');
+		}
+
 		frappe.dom.freeze("", "dark");
 		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
