@@ -37,8 +37,6 @@ def handle():
 	`/api/resource/{doctype}/{name}?run_method={method}` will run a whitelisted controller method
 	"""
 
-	validate_auth()
-
 	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None
 
@@ -149,6 +147,9 @@ def get_request_form_data():
 
 
 def validate_auth():
+	"""
+	Authenticate and sets user for the request.
+	"""
 	authorization_header = frappe.get_request_header("Authorization", str()).split(" ")
 
 	if len(authorization_header) == 2:
