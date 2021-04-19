@@ -24,7 +24,7 @@ ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/
 
 def handle():
 	"""handle request"""
-	validate_auth()
+
 	cmd = frappe.local.form_dict.cmd
 	data = None
 

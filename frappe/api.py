@@ -181,13 +181,13 @@ def validate_oauth(authorization_header):
 
 	try:
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(get_url_delimiter())
+		valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
+		if valid:
+			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
+			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass
 
-	valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
-	if valid:
-		frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
-		frappe.local.form_dict = form_dict
 
 
 def validate_auth_via_api_keys(authorization_header):
