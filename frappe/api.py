@@ -1,18 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
 
 import base64
 import binascii
 import json
-
-from six.moves.urllib.parse import urlencode, urlparse
+from urllib.parse import urlencode, urlparse
 
 import frappe
 import frappe.client
 import frappe.handler
 from frappe import _
 from frappe.utils.response import build_response
+
 
 def handle():
 	"""
@@ -37,7 +36,6 @@ def handle():
 
 	`/api/resource/{doctype}/{name}?run_method={method}` will run a whitelisted controller method
 	"""
-
 
 	validate_auth()
 
@@ -116,7 +114,7 @@ def handle():
 						frappe.local.form_dict['fields'] = json.loads(frappe.local.form_dict['fields'])
 					frappe.local.form_dict.setdefault('limit_page_length', 20)
 					frappe.local.response.update({
-						"data":  frappe.call(
+						"data": frappe.call(
 							frappe.client.get_list,
 							doctype,
 							**frappe.local.form_dict
@@ -140,6 +138,7 @@ def handle():
 
 	return build_response("json")
 
+
 def get_request_form_data():
 	if frappe.local.form_dict.data is None:
 		data = frappe.safe_decode(frappe.local.request.get_data())
@@ -148,12 +147,9 @@ def get_request_form_data():
 
 	return frappe.parse_json(data)
 
-def validate_auth():
-	VALID_AUTH_PREFIX_TYPES = ['basic', 'bearer', 'token']
-	VALID_AUTH_PREFIX_STRING = ", ".join(VALID_AUTH_PREFIX_TYPES).title()
 
+def validate_auth():
 	authorization_header = frappe.get_request_header("Authorization", str()).split(" ")
-	authorization_type = authorization_header[0].lower()
 
 	if len(authorization_header) == 2:
 		validate_oauth(authorization_header)
@@ -170,8 +166,8 @@ def validate_oauth(authorization_header):
 		authorization_header (list of str): The 'Authorization' header containing the prefix and token
 	"""
 
-	from frappe.oauth import get_url_delimiter
 	from frappe.integrations.oauth2 import get_oauth_server
+	from frappe.oauth import get_url_delimiter
 
 	form_dict = frappe.local.form_dict
 	token = authorization_header[1]
@@ -185,13 +181,13 @@ def validate_oauth(authorization_header):
 
 	try:
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(get_url_delimiter())
-		valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
-
-		if valid:
-			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
-			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass
+
+	valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
+	if valid:
+		frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
+		frappe.local.form_dict = form_dict
 
 
 def validate_auth_via_api_keys(authorization_header):
@@ -215,7 +211,6 @@ def validate_auth_via_api_keys(authorization_header):
 		frappe.throw(_("Failed to decode token, please provide a valid base64-encoded token."), frappe.InvalidAuthorizationToken)
 	except (AttributeError, TypeError, ValueError):
 		pass
-
 
 
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
