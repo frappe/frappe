@@ -827,7 +827,7 @@ def get_all_languages(with_language_name=False):
 		return frappe.db.sql_list('select name from tabLanguage')
 
 	def get_all_language_with_name():
-		return frappe.db.get_all('language', ['language_code', 'language_name'])
+		return frappe.db.get_all('Language', ['language_code', 'language_name'])
 
 	if not frappe.db:
 		frappe.connect()
