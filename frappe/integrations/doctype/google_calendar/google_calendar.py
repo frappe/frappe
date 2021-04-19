@@ -2,22 +2,23 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe
-import requests
-import googleapiclient.discovery
-import google.oauth2.credentials
 
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import get_request_site_address
-from googleapiclient.errors import HttpError
-from frappe.utils.password import set_encrypted_password
-from frappe.utils import add_days, get_datetime, get_weekdays, now_datetime, add_to_date, get_time_zone
-from dateutil import parser
 from datetime import datetime, timedelta
-from six.moves.urllib.parse import quote
+from urllib.parse import quote
+
+import google.oauth2.credentials
+import requests
+from dateutil import parser
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+import frappe
+from frappe import _
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.model.document import Document
+from frappe.utils import (add_days, add_to_date, get_datetime,
+	get_request_site_address, get_time_zone, get_weekdays, now_datetime)
+from frappe.utils.password import set_encrypted_password
 
 SCOPES = "https://www.googleapis.com/auth/calendar"
 
@@ -171,7 +172,12 @@ def get_google_calendar_object(g_calendar):
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
-	google_calendar = googleapiclient.discovery.build("calendar", "v3", credentials=credentials)
+	google_calendar = build(
+		serviceName="calendar",
+		version="v3",
+		credentials=credentials,
+		static_discovery=False
+	)
 
 	check_google_calendar(account, google_calendar)
 
