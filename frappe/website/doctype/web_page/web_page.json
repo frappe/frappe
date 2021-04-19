@@ -86,14 +86,14 @@
    "width": "50%"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "published",
    "fieldtype": "Check",
    "in_standard_filter": 1,
    "label": "Published"
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "show_title",
    "fieldtype": "Check",
    "label": "Show Title"
@@ -114,7 +114,7 @@
    "label": "Content"
   },
   {
-   "default": "Rich Text",
+   "default": "Page Builder",
    "fieldname": "content_type",
    "fieldtype": "Select",
    "label": "Content Type",
@@ -259,7 +259,7 @@
    "options": "Web Page Block"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "full_width",
    "fieldtype": "Check",
    "label": "Full Width"
@@ -314,7 +314,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 20,
- "modified": "2020-09-21 16:32:53.568573",
+ "modified": "2021-04-13 10:23:28.681197",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",
