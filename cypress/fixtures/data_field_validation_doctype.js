@@ -11,13 +11,13 @@ export default {
 			fieldname: 'email',
 			fieldtype: 'Data',
 			label: 'Email',
-            options: 'Email'
+			options: 'Email'
 		},
 		{
 			fieldname: 'URL',
 			fieldtype: 'Data',
 			label: 'URL',
-            options: 'URL'
+			options: 'URL'
 		},
 		{
 			fieldname: 'Phone',

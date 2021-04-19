@@ -166,12 +166,12 @@ def validate_url(txt, throw=False):
 		url = urlparse(txt).netloc
 		if not url:
 			raise frappe.ValidationError
-	except Exception as e:
+	except Exception:
 		if throw:
 			frappe.throw(
 				frappe._(
 					"'{0}' is not a valid URL"
-				).format('<strong>' +  +'</strong>')
+				).format('<strong>' + txt +'</strong>')
 			)
 	
 	return False
