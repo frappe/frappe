@@ -56,6 +56,8 @@
 		}
 		window.dev_server = {{ dev_server }};
 		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
+		window.show_language_picker = {{ show_language_picker }};
+		window.is_chat_enabled = {{ chat_enable }};
 	</script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {% endif -%} class="{{ body_class or ''}}">
@@ -110,39 +112,5 @@
 	{%- endblock %}
 	<!-- csrf_token -->
 	{%- block body_include %}{{ body_include or "" }}{% endblock -%}
-	<script>
-		frappe.ready(() => {
-			if (frappe.session.user === 'Guest') {
-				frappe.call("frappe.translate.get_all_languages", {
-					with_language_name: true
-				}).then(res => {
-					let language_list = res.message;
-					let language = frappe.get_cookie('preferred_language');
-					let language_codes = [];
-					language_list.forEach(language_doc => {
-						language_codes.push(language_doc.language_code)
-						$("#language-switcher")
-							.append(
-								$("<option></option>")
-									.attr("value", language_doc.language_code)
-									.text(language_doc.language_name)
-							);
-					});
-					$("#language-switcher").removeClass('hide');
-					language = language || (language_codes.includes(navigator.language) ? navigator.language : 'en');
-					$("#language-switcher").val(language);
-					document.documentElement.lang = language;
-					$("#language-switcher").change((e) => {
-						let lang = $("#language-switcher").val();
-						frappe.call("frappe.translate.set_preferred_language_cookie", {
-							"preferred_language": lang
-						}).then(() => {
-							window.location.reload();
-						});
-					});
-				});
-			}
-		})
-	</script>
 </body>
 </html>

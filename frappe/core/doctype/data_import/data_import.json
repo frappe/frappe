@@ -53,7 +53,8 @@
    "fieldname": "import_file",
    "fieldtype": "Attach",
    "in_list_view": 1,
-   "label": "Import File"
+   "label": "Import File",
+   "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
   },
   {
    "fieldname": "import_preview",
@@ -156,10 +157,11 @@
    "description": "Must be a publicly accessible Google Sheets URL",
    "fieldname": "google_sheets_url",
    "fieldtype": "Data",
-   "label": "Import from Google Sheets"
+   "label": "Import from Google Sheets",
+   "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
   },
   {
-   "depends_on": "eval:doc.google_sheets_url && !doc.__unsaved",
+   "depends_on": "eval:doc.google_sheets_url && !doc.__unsaved &&  ['Success', 'Partial Success'].includes(doc.status)",
    "fieldname": "refresh_google_sheet",
    "fieldtype": "Button",
    "label": "Refresh Google Sheet"
@@ -167,7 +169,7 @@
  ],
  "hide_toolbar": 1,
  "links": [],
- "modified": "2020-06-24 14:33:03.173876",
+ "modified": "2021-04-11 01:50:42.074623",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import",
