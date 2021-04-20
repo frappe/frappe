@@ -162,7 +162,7 @@ class ServerScript(Document):
 			return out
 
 		items = frappe.cache().get_value('server_script_autocompletion_items')
-		if not items or True:
+		if not items:
 			unsorted_items = get_keys(get_safe_globals())
 			sorted_items = sorted(unsorted_items, key=lambda k: k[1])
 			items = [d[0] for d in sorted_items]
