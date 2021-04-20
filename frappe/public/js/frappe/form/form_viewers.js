@@ -7,6 +7,11 @@ frappe.ui.form.FormViewers = class FormViewers {
 
 	refresh() {
 		let users = this.frm.get_docinfo()['viewers'];
+		if (!users || !users.current || !users.current.length) {
+			this.parent.empty();
+			return;
+		}
+
 		let currently_viewing = users.current.filter(user => user != frappe.session.user);
 		let avatar_group = frappe.avatar_group(currently_viewing, 5, {'align': 'left', 'overlap': true});
 		this.parent.empty().append(avatar_group);

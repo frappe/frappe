@@ -120,6 +120,7 @@ class LoginManager:
 				self.make_session()
 				self.set_user_info()
 
+	@frappe.whitelist()
 	def login(self):
 		# clear cache
 		frappe.clear_cache(user = frappe.form_dict.get('usr'))

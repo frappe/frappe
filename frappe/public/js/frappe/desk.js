@@ -51,6 +51,7 @@ frappe.Application = Class.extend({
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
 		this.setup_energy_point_listeners();
+		this.setup_copy_doc_listener();
 
 		frappe.ui.keys.setup();
 
@@ -606,6 +607,39 @@ frappe.Application = Class.extend({
 			frappe.show_alert(message);
 		});
 	},
+
+	setup_copy_doc_listener() {
+		$('body').on('paste', (e) => {
+			try {
+				let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
+				let pasted_data = clipboard_data.getData('Text');
+				let doc = JSON.parse(pasted_data);
+				if (doc.doctype) {
+					e.preventDefault();
+					let sleep = (time) => {
+						return new Promise((resolve) => setTimeout(resolve, time));
+					};
+
+					frappe.dom.freeze(__('Creating {0}', [doc.doctype]) + '...');
+					// to avoid abrupt UX
+					// wait for activity feedback
+					sleep(500).then(() => {
+						let res = frappe.model.with_doctype(doc.doctype, () => {
+							let newdoc = frappe.model.copy_doc(doc);
+							newdoc.__newname = doc.name;
+							newdoc.idx = null;
+							newdoc.__run_link_triggers = false;
+							frappe.set_route('Form', newdoc.doctype, newdoc.name);
+							frappe.dom.unfreeze();
+						});
+						res && res.fail(frappe.dom.unfreeze);
+					});
+				}
+			} catch (e) {
+				//
+			}
+		});
+	}
 });
 
 frappe.get_module = function(m, default_module) {

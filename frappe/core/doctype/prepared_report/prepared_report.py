@@ -37,7 +37,10 @@ def run_background(prepared_report):
 			custom_report_doc = report
 			reference_report = custom_report_doc.reference_report
 			report = frappe.get_doc("Report", reference_report)
-			report.custom_columns = custom_report_doc.json
+			if custom_report_doc.json:
+				data = json.loads(custom_report_doc.json)
+				if data:
+					report.custom_columns = data["columns"]
 
 		result = generate_report_result(
 			report=report,

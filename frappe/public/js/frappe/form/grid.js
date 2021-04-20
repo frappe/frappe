@@ -194,7 +194,10 @@ export default class Grid {
 		}
 
 		tasks.push(() => {
-			if (dirty) this.refresh();
+			if (dirty) {
+				this.refresh();
+				this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
+			}
 		});
 
 		frappe.run_serially(tasks);
@@ -210,6 +213,7 @@ export default class Grid {
 			this.frm.doc[this.df.fieldname] = [];
 			$(this.parent).find('.rows').empty();
 			this.grid_rows = [];
+			this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 
 			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 			this.refresh();
