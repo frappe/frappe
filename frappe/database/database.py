@@ -455,6 +455,7 @@ class Database(object):
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
 						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
+
 					else:
 						raise
 			else:
@@ -506,6 +507,7 @@ class Database(object):
 					return []
 			else:
 				return r and [[i[1] for i in r]] or []
+
 
 	def get_singles_dict(self, doctype, debug = False):
 		"""Get Single DocType as dict.
@@ -983,7 +985,7 @@ class Database(object):
 	def log_touched_tables(self, query, values=None):
 		if values:
 			query = frappe.safe_decode(self._cursor.mogrify(query, values))
-		if query.strip().lower().split()[0] in ('insert', 'delete', 'update', 'alter'):
+		if query.strip().lower().split()[0] in ('insert', 'delete', 'update', 'alter', 'drop', 'rename'):
 			# single_word_regex is designed to match following patterns
 			# `tabXxx`, tabXxx and "tabXxx"
 

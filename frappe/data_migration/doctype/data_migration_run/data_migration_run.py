@@ -10,6 +10,7 @@ from frappe.utils import cstr
 from frappe.data_migration.doctype.data_migration_mapping.data_migration_mapping import get_source_value
 
 class DataMigrationRun(Document):
+	@frappe.whitelist()
 	def run(self):
 		self.begin()
 		if self.total_pages > 0:

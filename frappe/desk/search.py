@@ -6,8 +6,7 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr, unique, cint
 from frappe.permissions import has_permission
-from frappe.handler import is_whitelisted
-from frappe import _
+from frappe import _, is_whitelisted
 from six import string_types
 import re
 import wrapt

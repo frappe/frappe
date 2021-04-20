@@ -20,6 +20,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	setup_page() {
 		this.hide_sidebar = true;
 		this.hide_page_form = true;
+		this.hide_filters = true;
+		this.hide_sort_selector = true;
 		super.setup_page();
 	}
 
@@ -72,6 +74,10 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		);
 
 		this.toggle_customization_buttons(false);
+	}
+
+	set_primary_action() {
+		// Don't render Add doc button for dashboard view
 	}
 
 	toggle_customization_buttons(show) {

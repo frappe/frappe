@@ -11,7 +11,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import get_bench_path, update_progress_bar
+from frappe.utils import get_bench_path, update_progress_bar, cint
 
 
 @click.command('build')
@@ -567,11 +567,14 @@ def run_ui_tests(context, app, headless=False):
 
 	node_bin = subprocess.getoutput("npm bin")
 	cypress_path = "{0}/cypress".format(node_bin)
-	plugin_path = "{0}/cypress-file-upload".format(node_bin)
+	plugin_path = "{0}/../cypress-file-upload".format(node_bin)
 
 	# check if cypress in path...if not, install it.
-	if not (os.path.exists(cypress_path) or os.path.exists(plugin_path)) \
-		or not subprocess.getoutput("npm view cypress version").startswith("6."):
+	if not (
+		os.path.exists(cypress_path)
+		and os.path.exists(plugin_path)
+		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
+	):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
 		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")

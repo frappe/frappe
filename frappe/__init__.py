@@ -15,6 +15,7 @@ from __future__ import unicode_literals, print_function
 from six import iteritems, binary_type, text_type, string_types, PY2
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
+import typing
 from past.builtins import cmp
 import click
 
@@ -34,6 +35,7 @@ if PY2:
 	sys.setdefaultencoding("utf-8")
 
 __version__ = '13.0.0-dev'
+
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -132,6 +134,14 @@ debug_log = local("debug_log")
 message_log = local("message_log")
 
 lang = local("lang")
+
+# This if block is never executed when running the code. It is only used for
+# telling static code analyzer where to find dynamically defined attributes.
+if typing.TYPE_CHECKING:
+	from frappe.database.mariadb.database import MariaDBDatabase
+	from frappe.database.postgres.database import PostgresDatabase
+	db: typing.Union[MariaDBDatabase, PostgresDatabase]
+# end: static analysis hack
 
 def init(site, sites_path=None, new_site=False):
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
@@ -555,8 +565,15 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 
 	def innerfn(fn):
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
-		whitelisted.append(fn)
 
+		# get function from the unbound / bound method
+		# this is needed because functions can be compared, but not methods
+		method = None
+		if hasattr(fn, '__func__'):
+			method = fn
+			fn = method.__func__
+
+		whitelisted.append(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
 
 		if allow_guest:
@@ -565,9 +582,23 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 			if xss_safe:
 				xss_safe_methods.append(fn)
 
-		return fn
+		return method or fn
 
 	return innerfn
+
+def is_whitelisted(method):
+	from frappe.utils import sanitize_html
+
+	is_guest = session['user'] == 'Guest'
+	if method not in whitelisted or is_guest and method not in guest_methods:
+		throw(_("Not permitted"), PermissionError)
+
+	if is_guest and method not in xss_safe_methods:
+		# strictly sanitize form_dict
+		# escapes html characters like <> except for predefined tags like a, b, ul etc.
+		for key, value in form_dict.items():
+			if isinstance(value, string_types):
+				form_dict[key] = sanitize_html(value)
 
 def read_only():
 	def innfn(fn):
@@ -854,8 +885,8 @@ def get_meta_module(doctype):
 	import frappe.modules
 	return frappe.modules.load_doctype_module(doctype)
 
-def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None,
-	for_reload=False, ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
+def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
+	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True, delete_permanently=False):
 	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
 
 	:param doctype: DocType of document to be delete.
@@ -863,10 +894,11 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None,
 	:param force: Allow even if document is linked. Warning: This may lead to data integrity errors.
 	:param ignore_doctypes: Ignore if child table is one of these.
 	:param for_reload: Call `before_reload` trigger before deleting.
-	:param ignore_permissions: Ignore user permissions."""
+	:param ignore_permissions: Ignore user permissions.
+	:param delete_permanently: Do not create a Deleted Document for the document."""
 	import frappe.model.delete_doc
 	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
-		ignore_permissions, flags, ignore_on_trash, ignore_missing)
+		ignore_permissions, flags, ignore_on_trash, ignore_missing, delete_permanently)
 
 def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""
@@ -1377,7 +1409,7 @@ def get_list(doctype, *args, **kwargs):
 		frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")})
 	"""
 	import frappe.model.db_query
-	return frappe.model.db_query.DatabaseQuery(doctype).execute(None, *args, **kwargs)
+	return frappe.model.db_query.DatabaseQuery(doctype).execute(*args, **kwargs)
 
 def get_all(doctype, *args, **kwargs):
 	"""List database query via `frappe.model.db_query`. Will **not** check for permissions.

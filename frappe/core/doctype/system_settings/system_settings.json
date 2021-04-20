@@ -67,8 +67,7 @@
   "enable_prepared_report_auto_deletion",
   "prepared_report_expiry_period",
   "chat",
-  "enable_chat",
-  "use_socketio_to_upload_file"
+  "enable_chat"
  ],
  "fields": [
   {
@@ -395,12 +394,6 @@
    "label": "Enable Chat"
   },
   {
-   "default": "1",
-   "fieldname": "use_socketio_to_upload_file",
-   "fieldtype": "Check",
-   "label": "Use socketio to upload file"
-  },
-  {
    "fieldname": "column_break_21",
    "fieldtype": "Column Break"
   },
@@ -446,7 +439,7 @@
   {
    "default": "30",
    "depends_on": "enable_prepared_report_auto_deletion",
-   "description": "System will automatically delete Prepared Reports after these many days since creation",
+   "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
    "fieldname": "prepared_report_expiry_period",
    "fieldtype": "Int",
    "label": "Prepared Report Expiry Period (Days)"
@@ -465,16 +458,11 @@
   },
   {
    "default": "Frappe",
+   "description": "The application name will be used in the Login page.",
    "fieldname": "app_name",
    "fieldtype": "Data",
-   "label": "App Name"
-  },
-  {
-   "default": "3",
-   "description": "Hourly rate limit for generating password reset links",
-   "fieldname": "password_reset_limit",
-   "fieldtype": "Int",
-   "label": "Password Reset Link Generation Limit"
+   "hidden": 1,
+   "label": "Application Name"
   },
   {
    "default": "1",
@@ -486,7 +474,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-12-30 18:52:22.161391",
+ "modified": "2021-03-30 11:47:47.330437",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

@@ -120,6 +120,7 @@ class LoginManager:
 				self.make_session()
 				self.set_user_info()
 
+	@frappe.whitelist()
 	def login(self):
 		# clear cache
 		frappe.clear_cache(user = frappe.form_dict.get('usr'))
@@ -215,35 +216,25 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_('Incomplete login details'), user=user)
 
-		# Ignore password check if tmp_id is set, 2FA takes care of authentication.
-		validate_password = not bool(frappe.form_dict.get('tmp_id'))
-		user = User.find_by_credentials(user, pwd, validate_password=validate_password)
+		user = User.find_by_credentials(user, pwd)
 
 		if not user:
 			self.fail('Invalid login credentials')
 
-		sys_settings = frappe.get_doc("System Settings")
-		track_login_attempts = (sys_settings.allow_consecutive_login_attempts >0)
-
-		tracker_kwargs = {}
-		if track_login_attempts:
-			tracker_kwargs['lock_interval'] = sys_settings.allow_login_after_fail
-			tracker_kwargs['max_consecutive_login_attempts'] = sys_settings.allow_consecutive_login_attempts
-
-		tracker = LoginAttemptTracker(user.name, **tracker_kwargs)
-
-		if track_login_attempts and not tracker.is_user_allowed():
-			frappe.throw(_("Your account has been locked and will resume after {0} seconds")
-				.format(sys_settings.allow_login_after_fail), frappe.SecurityException)
+		# Current login flow uses cached credentials for authentication while checking OTP.
+		# Incase of OTP check, tracker for auth needs to be disabled(If not, it can remove tracker history as it is going to succeed anyway)
+		# Tracker is activated for 2FA incase of OTP.
+		ignore_tracker = should_run_2fa(user.name) and ('otp' in frappe.form_dict)
+		tracker = None if ignore_tracker else get_login_attempt_tracker(user.name)
 
 		if not user.is_authenticated:
-			tracker.add_failure_attempt()
+			tracker and tracker.add_failure_attempt()
 			self.fail('Invalid login credentials', user=user.name)
 		elif not (user.name == 'Administrator' or user.enabled):
-			tracker.add_failure_attempt()
+			tracker and tracker.add_failure_attempt()
 			self.fail('User disabled or missing', user=user.name)
 		else:
-			tracker.add_success_attempt()
+			tracker and tracker.add_success_attempt()
 		self.user = user.name
 
 	def force_user_to_reset_password(self):
@@ -405,6 +396,27 @@ def validate_ip_address(user):
 			return
 
 	frappe.throw(_("Access not allowed from this IP Address"), frappe.AuthenticationError)
+
+def get_login_attempt_tracker(user_name: str, raise_locked_exception: bool = True):
+	"""Get login attempt tracker instance.
+
+	:param user_name: Name of the loggedin user
+	:param raise_locked_exception: If set, raises an exception incase of user not allowed to login
+	"""
+	sys_settings = frappe.get_doc("System Settings")
+	track_login_attempts = (sys_settings.allow_consecutive_login_attempts >0)
+	tracker_kwargs = {}
+
+	if track_login_attempts:
+		tracker_kwargs['lock_interval'] = sys_settings.allow_login_after_fail
+		tracker_kwargs['max_consecutive_login_attempts'] = sys_settings.allow_consecutive_login_attempts
+
+	tracker = LoginAttemptTracker(user_name, **tracker_kwargs)
+
+	if raise_locked_exception and track_login_attempts and not tracker.is_user_allowed():
+		frappe.throw(_("Your account has been locked and will resume after {0} seconds")
+			.format(sys_settings.allow_login_after_fail), frappe.SecurityException)
+	return tracker
 
 
 class LoginAttemptTracker(object):

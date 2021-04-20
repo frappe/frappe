@@ -14,7 +14,6 @@ import frappe.permissions
 from datetime import datetime
 import frappe, json, copy, re
 from frappe.model import optional_fields
-from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, get_timespan_date_range
 from frappe.model.meta import get_table_columns
@@ -32,7 +31,7 @@ class DatabaseQuery(object):
 		self.flags = frappe._dict()
 		self.reference_doctype = None
 
-	def execute(self, query=None, fields=None, filters=None, or_filters=None,
+	def execute(self, fields=None, filters=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
@@ -104,12 +103,9 @@ class DatabaseQuery(object):
 		# no table & ignore_ddl, return
 		if not self.columns: return []
 
-		if query:
-			result = self.run_custom_query(query)
-		else:
-			result = self.build_and_run()
-			if return_query:
-				return result
+		result = self.build_and_run()
+		if return_query:
+			return result
 
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
@@ -593,7 +589,7 @@ class DatabaseQuery(object):
 
 		else:
 			#if has if_owner permission skip user perm check
-			if role_permissions.get("if_owner", {}).get("read"):
+			if role_permissions.get("has_if_owner_enabled") and role_permissions.get("if_owner", {}):
 				self.match_conditions.append("`tab{0}`.`owner` = {1}".format(self.doctype,
 					frappe.db.escape(self.user, percent=False)))
 			# add user permission only if role has read perm
@@ -707,12 +703,6 @@ class DatabaseQuery(object):
 
 		return " and ".join(conditions) if conditions else ""
 
-
-	def run_custom_query(self, query):
-		if '%(key)s' in query:
-			query = query.replace('%(key)s', '`name`')
-		return frappe.db.sql(query, as_dict = (not self.as_list))
-
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
 
@@ -754,7 +744,7 @@ class DatabaseQuery(object):
 			return
 
 		_lower = parameters.lower()
-		if 'select' in _lower and ' from ' in _lower:
+		if 'select' in _lower and 'from' in _lower:
 			frappe.throw(_('Cannot use sub-query in order by'))
 
 		if re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*").match(_lower):
@@ -795,6 +785,18 @@ class DatabaseQuery(object):
 
 		update_user_settings(self.doctype, user_settings)
 
+def check_parent_permission(parent, child_doctype):
+	if parent:
+		# User may pass fake parent and get the information from the child table
+		if child_doctype and not frappe.db.exists('DocField',
+			{'parent': parent, 'options': child_doctype}):
+			raise frappe.PermissionError
+
+		if frappe.permissions.has_permission(parent):
+			return
+	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
+	raise frappe.PermissionError
+
 def get_order_by(doctype, meta):
 	order_by = ""
 
@@ -818,30 +820,6 @@ def get_order_by(doctype, meta):
 		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
 
 	return order_by
-
-
-@frappe.whitelist()
-def get_list(doctype, *args, **kwargs):
-	'''wrapper for DatabaseQuery'''
-	kwargs.pop('cmd', None)
-	kwargs.pop('ignore_permissions', None)
-	kwargs.pop('data', None)
-	kwargs.pop('strict', None)
-	kwargs.pop('user', None)
-
-	# If doctype is child table
-	if frappe.is_table(doctype):
-		# Example frappe.db.get_list('Purchase Receipt Item', {'parent': 'Purchase Receipt'})
-		# Here purchase receipt is the parent doctype of the child doctype Purchase Receipt Item
-
-		if not kwargs.get('parent'):
-			frappe.flags.error_message = _('Parent is required to get child table data')
-			raise frappe.PermissionError(doctype)
-
-		check_parent_permission(kwargs.get('parent'), doctype)
-		del kwargs['parent']
-
-	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
 def is_parent_only_filter(doctype, filters):
 	#check if filters contains only parent doctype

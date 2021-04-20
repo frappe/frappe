@@ -92,7 +92,7 @@
 	}
 }
 
-.frappe-control[data-fieldtype='Color']  {
+.frappe-control[data-fieldtype='Color'] {
 	input {
 		padding-left: 40px;
 	}
@@ -104,11 +104,20 @@
 		background-color: red;
 		position: absolute;
 		top: calc(50% + 1px);
-		left: 5px;
+		left: 8px;
 		content: ' ';
 		&.no-value {
 			background: url('/assets/frappe/images/color-circle.png');
 			background-size: contain;
+		}
+	}
+	.like-disabled-input {
+		.color-value {
+			padding-left: 25px;
+		}
+		.selected-color {
+			top: 20%;
+			cursor: default;
 		}
 	}
 }

@@ -2,11 +2,13 @@ name: CI
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
+  push:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
@@ -15,12 +17,12 @@ jobs:
         - DB: "mariadb"
           TYPE: "server"
           JOB_NAME: "Python MariaDB"
-          RUN_COMMAND: bench --verbose --site test_site run-tests --coverage
+          RUN_COMMAND: bench --site test_site run-tests --coverage
 
         - DB: "postgres"
           TYPE: "server"
           JOB_NAME: "Python PostgreSQL"
-          RUN_COMMAND: bench --verbose --site test_site run-tests --coverage
+          RUN_COMMAND: bench --site test_site run-tests --coverage
 
         - DB: "mariadb"
           TYPE: "ui"
@@ -39,7 +41,7 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
       postgres:
-        image: postgres:9.5
+        image: postgres:12.4
         env:
           POSTGRES_PASSWORD: travis
         options: >-
@@ -103,6 +105,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Cache cypress binary
+        if: matrix.TYPE == 'ui'
         uses: actions/cache@v2
         with:
           path: ~/.cache
@@ -131,6 +134,10 @@ jobs:
           DB: ${{ matrix.DB }}
           TYPE: ${{ matrix.TYPE }}
 
+      - name: Setup tmate session
+        if: contains(github.event.pull_request.labels.*.name, 'debug-gha')
+        uses: mxschmitt/action-tmate@v3
+
       - name: Run Tests
         run: cd ~/frappe-bench/ && ${{ matrix.RUN_COMMAND }}
         env:
@@ -142,9 +149,9 @@ jobs:
         run: |
           cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
           cd ${GITHUB_WORKSPACE}
-          pip install coveralls==2.2.0
-          pip install coverage==4.5.4
-          coveralls
+          pip install coveralls==3.0.1
+          pip install coverage==5.5
+          coveralls --service=github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}

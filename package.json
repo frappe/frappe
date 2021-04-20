@@ -1,5 +1,5 @@
 {
-  "name": "frappe",
+  "name": "frappe-framework",
   "scripts": {
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
@@ -28,7 +28,7 @@
     "driver.js": "^0.9.8",
     "express": "^4.17.1",
     "fast-deep-equal": "^2.0.1",
-    "frappe-charts": "^2.0.0-rc10",
+    "frappe-charts": "^2.0.0-rc13",
     "frappe-datatable": "^1.15.3",
     "frappe-gantt": "^0.5.0",
     "fuse.js": "^3.4.6",
@@ -46,7 +46,7 @@
     "qz-tray": "^2.0.8",
     "redis": "^2.8.0",
     "showdown": "^1.9.1",
-    "snyk": "^1.425.4",
+    "snyk": "^1.518.0",
     "socket.io": "^2.4.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",

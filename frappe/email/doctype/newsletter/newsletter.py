@@ -29,6 +29,7 @@ class Newsletter(WebsiteGenerator):
 		self.queue_all(test_email=True)
 		frappe.msgprint(_("Test email sent to {0}").format(self.test_email_id))
 
+	@frappe.whitelist()
 	def send_emails(self):
 		"""send emails to leads and customers"""
 		if self.email_sent:

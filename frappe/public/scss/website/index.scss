@@ -10,6 +10,7 @@
 @import "../common/modal";
 @import "../common/indicator";
 @import "../common/controls";
+@import "../common/awesomeplete";
 @import 'multilevel_dropdown';
 @import 'website_image';
 @import 'website_avatar';
@@ -87,6 +88,13 @@
 
 .main-column .page-content-wrapper {
 	margin: 2rem 0;
+}
+
+@media (max-width: map-get($grid-breakpoints, "lg")) {
+	.page-content-wrapper .container {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
 }
 
 .breadcrumb-container {

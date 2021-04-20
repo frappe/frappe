@@ -24,8 +24,6 @@ class PreparedReport(Document):
 	def enqueue_report(self):
 		enqueue(run_background, prepared_report=self.name, timeout=6000)
 
-	def on_trash(self):
-		remove_all("Prepared Report", self.name)
 
 
 def run_background(prepared_report):
@@ -39,7 +37,10 @@ def run_background(prepared_report):
 			custom_report_doc = report
 			reference_report = custom_report_doc.reference_report
 			report = frappe.get_doc("Report", reference_report)
-			report.custom_columns = custom_report_doc.json
+			if custom_report_doc.json:
+				data = json.loads(custom_report_doc.json)
+				if data:
+					report.custom_columns = data["columns"]
 
 		result = generate_report_result(
 			report=report,
@@ -100,7 +101,7 @@ def delete_expired_prepared_reports():
 def delete_prepared_reports(reports):
 	reports = frappe.parse_json(reports)
 	for report in reports:
-		frappe.delete_doc('Prepared Report', report['name'], ignore_permissions=True)
+		frappe.delete_doc('Prepared Report', report['name'], ignore_permissions=True, delete_permanently=True)
 
 def create_json_gz_file(data, dt, dn):
 	# Storing data in CSV file causes information loss

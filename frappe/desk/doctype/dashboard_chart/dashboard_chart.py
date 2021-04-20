@@ -171,7 +171,6 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	doctype = chart.document_type
 	datefield = chart.based_on
-	aggregate_function = get_aggregate_function(chart.chart_type)
 	value_field = chart.value_based_on or '1'
 	from_date = from_date.strftime('%Y-%m-%d')
 	to_date = to_date
@@ -183,7 +182,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		doctype,
 		fields = [
 			'{} as _unit'.format(datefield),
-			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
+			'SUM({})'.format(value_field),
+			'COUNT(*)'
 		],
 		filters = filters,
 		group_by = '_unit',
@@ -192,7 +192,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		ignore_ifnull = True
 	)
 
-	result = get_result(data, timegrain, from_date, to_date)
+	result = get_result(data, timegrain, from_date, to_date, chart.chart_type)
 
 	chart_config = {
 		"labels": [get_period(r[0], timegrain) for r in result],
@@ -288,15 +288,21 @@ def get_aggregate_function(chart_type):
 	}[chart_type]
 
 
-def get_result(data, timegrain, from_date, to_date):
+def get_result(data, timegrain, from_date, to_date, chart_type):
 	dates = get_dates_from_timegrain(from_date, to_date, timegrain)
 	result = [[date, 0] for date in dates]
 	data_index = 0
 	if data:
 		for i, d in enumerate(result):
+			count = 0
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
 				d[1] += data[data_index][1]
+				count += data[data_index][2]
 				data_index += 1
+			if chart_type == 'Average' and not count == 0:
+				d[1] = d[1]/count
+			if chart_type == 'Count':
+				d[1] = count
 
 	return result
 

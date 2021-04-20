@@ -335,7 +335,10 @@ frappe.router = {
 				return null;
 			} else {
 				a = String(a);
-				a = encodeURIComponent(a);
+				if (a && a.match(/[%'"\s\t]/)) {
+					// if special chars, then encode
+					a = encodeURIComponent(a);
+				}
 				return a;
 			}
 		}).join('/');
@@ -361,7 +364,7 @@ frappe.router = {
 		// return clean sub_path from hash or url
 		// supports both v1 and v2 routing
 		if (!route) {
-			route = window.location.hash || window.location.pathname;
+			route = window.location.hash || (window.location.pathname + window.location.search);
 		}
 
 		return this.strip_prefix(route);

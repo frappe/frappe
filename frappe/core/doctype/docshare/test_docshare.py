@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import frappe.share
 import unittest
+from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
 
 class TestDocShare(unittest.TestCase):
 	def setUp(self):
@@ -91,3 +92,24 @@ class TestDocShare(unittest.TestCase):
 		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", self.user))
 		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", "test1@example.com"))
 		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", "Guest"))
+
+	def test_share_with_submit_perm(self):
+		doctype = "Test DocShare with Submit"
+		create_submittable_doctype(doctype, submit_perms=0)
+
+		submittable_doc = frappe.get_doc(dict(doctype=doctype, test="test docshare with submit")).insert()
+
+		frappe.set_user(self.user)
+		self.assertFalse(frappe.has_permission(doctype, "submit", user=self.user))
+
+		frappe.set_user("Administrator")
+		frappe.share.add(doctype, submittable_doc.name, self.user, submit=1)
+
+		frappe.set_user(self.user)
+		self.assertTrue(frappe.has_permission(doctype, "submit", doc=submittable_doc.name, user=self.user))
+
+		# test cascade
+		self.assertTrue(frappe.has_permission(doctype, "read", doc=submittable_doc.name, user=self.user))
+		self.assertTrue(frappe.has_permission(doctype, "write", doc=submittable_doc.name, user=self.user))
+
+		frappe.share.remove(doctype, submittable_doc.name, self.user)

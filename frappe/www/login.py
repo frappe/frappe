@@ -96,14 +96,6 @@ def login_via_office365(code, state):
 	login_via_oauth2_id_token("office_365", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
-def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=None, generate_login_token=False):
-	if not ((data and provider and state) or (email_id and key)):
-		frappe.respond_as_web_page(_("Invalid Request"), _("Missing parameters for login"), http_status_code=417)
-		return
-
-	_login_oauth_user(data, provider, state, email_id, key, generate_login_token)
-
-@frappe.whitelist(allow_guest=True)
 def login_via_token(login_token):
 	sid = frappe.cache().get_value("login_token:{0}".format(login_token), expires=True)
 	if not sid:

@@ -121,7 +121,8 @@ def get_website_settings(context=None):
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
 		"navbar_template", "footer_template", "navbar_search", "enable_view_tracking",
-		"footer_logo", "call_to_action", "call_to_action_url"]:
+		"footer_logo", "call_to_action", "call_to_action_url", "show_language_picker",
+		"chat_enable"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -178,7 +179,3 @@ def get_items(parentfield):
 					t['child_items'].append(d)
 					break
 	return top_items
-
-@frappe.whitelist(allow_guest=True)
-def is_chat_enabled():
-	return bool(frappe.db.get_single_value('Website Settings', 'chat_enable'))

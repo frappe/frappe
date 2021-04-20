@@ -34,7 +34,6 @@ frappe.ui.form.Form = class FrappeForm {
 		this.grids = [];
 		this.cscript = new frappe.ui.form.Controller({ frm: this });
 		this.events = {};
-		this.pformat = {};
 		this.fetch_dict = {};
 		this.parent = parent;
 		this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
@@ -361,6 +360,7 @@ frappe.ui.form.Form = class FrappeForm {
 			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
 		frappe.ui.form.close_grid_form();
+		this.viewers && this.viewers.parent.empty();
 		this.docname = docname;
 		this.setup_docinfo_change_listener();
 	}
@@ -451,7 +451,7 @@ frappe.ui.form.Form = class FrappeForm {
 						return this.script_manager.trigger("onload_post_render");
 					}
 				},
-				() => this.focus_on_first_input(),
+				() => this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
 				() => this.dashboard.after_refresh()
 			]);
@@ -1075,7 +1075,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	refresh_field(fname) {
-		if(this.fields_dict[fname] && this.fields_dict[fname].refresh) {
+		if (this.fields_dict[fname] && this.fields_dict[fname].refresh) {
 			this.fields_dict[fname].refresh();
 			this.layout.refresh_dependency();
 		}
@@ -1142,10 +1142,6 @@ frappe.ui.form.Form = class FrappeForm {
 	//Remove specific custom button by button Label
 	remove_custom_button(label, group) {
 		this.page.remove_inner_button(label, group);
-	}
-
-	set_print_heading(txt) {
-		this.pformat[this.docname] = txt;
 	}
 
 	scroll_to_element() {
@@ -1241,20 +1237,22 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
-	set_df_property(fieldname, property, value, docname, table_field) {
-		var df;
+	set_df_property(fieldname, property, value, docname, table_field, table_row_name=null) {
+		let df;
 		if (!docname || !table_field) {
 			df = this.get_docfield(fieldname);
 		} else {
-			var grid = this.fields_dict[fieldname].grid,
-				fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': table_field});
-			if (fname && fname.length)
-				df = frappe.meta.get_docfield(fname[0].parent, table_field, docname);
+			const grid = this.fields_dict[fieldname].grid;
+			const filtered_fields = frappe.utils.filter_dict(grid.docfields, {'fieldname': table_field});
+			if (filtered_fields.length) {
+				df = frappe.meta.get_docfield(filtered_fields[0].parent, table_field, table_row_name);
+			}
 		}
 		if (df && df[property] != value) {
 			df[property] = value;
-			if (!docname || !table_field) {
-				// do not refresh childtable fields since `this.fields_dict` doesn't have child table fields
+			if (table_field && table_row_name) {
+				this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name].refresh_field(fieldname);
+			} else {
 				this.refresh_field(fieldname);
 			}
 		}

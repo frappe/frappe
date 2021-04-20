@@ -417,11 +417,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_no_result_message() {
 		let help_link = this.get_documentation_link();
-		let filters = this.filter_area.get();
-		let no_result_message = filters.length
+		let filters = this.filter_area && this.filter_area.get();
+		let no_result_message = filters && filters.length
 			? __("No {0} found", [__(this.doctype)])
 			: __("You haven't created a {0} yet", [__(this.doctype)]);
-		let new_button_label = filters.length
+		let new_button_label = filters && filters.length
 			? __("Create a new {0}", [__(this.doctype)])
 			: __("Create your first {0}", [__(this.doctype)]);
 		let empty_state_image =
@@ -461,7 +461,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	before_refresh() {
-		if (frappe.route_options) {
+		if (frappe.route_options && this.filter_area) {
 			this.filters = this.parse_filters_from_route_options();
 			frappe.route_options = null;
 
@@ -527,9 +527,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.view_name
 		);
 		this.save_view_user_settings({
-			filters: this.filter_area.get(),
-			sort_by: this.sort_selector.sort_by,
-			sort_order: this.sort_selector.sort_order,
+			filters: this.filter_area && this.filter_area.get(),
+			sort_by: this.sort_selector && this.sort_selector.sort_by,
+			sort_order: this.sort_selector && this.sort_selector.sort_order,
 		});
 		this.toggle_paging && this.$paging_area.toggle(false);
 	}
@@ -707,25 +707,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const field_html = () => {
 			let html;
 			let _value;
-			// listview_setting formatter
-			if (
-				this.settings.formatters &&
-				this.settings.formatters[fieldname]
-			) {
-				_value = this.settings.formatters[fieldname](value, df, doc);
+			let strip_html_required =
+				df.fieldtype == "Text Editor" ||
+				(df.fetch_from &&
+					["Text", "Small Text"].includes(df.fieldtype));
+
+			if (strip_html_required) {
+				_value = strip_html(value);
 			} else {
-				let strip_html_required =
-					df.fieldtype == "Text Editor" ||
-					(df.fetch_from &&
-						["Text", "Small Text"].includes(df.fieldtype));
-				if (strip_html_required) {
-					_value = strip_html(value);
-				} else {
-					_value =
-						typeof value === "string"
-							? frappe.utils.escape_html(value)
-							: value;
-				}
+				_value =
+					typeof value === "string"
+						? frappe.utils.escape_html(value)
+						: value;
 			}
 
 			if (df.fieldtype === "Image") {
@@ -747,7 +740,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${_value}
 				</a>`;
 			} else if (
-				["Text Editor", "Text", "Small Text", "HTML Editor"].includes(
+				["Text Editor", "Text", "Small Text", "HTML Editor", "Markdown Editor"].includes(
 					df.fieldtype
 				)
 			) {
@@ -756,7 +749,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>`;
 			} else {
 				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${value}">
+					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
 					${format()}
 				</a>`;
 			}
@@ -781,7 +774,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			Subject: this.get_subject_html(doc),
 			Field: field_html(),
 		};
-		const column_html = html_map[col.type];
+		let column_html = html_map[col.type];
+
+		// listview_setting formatter
+		if (
+			this.settings.formatters &&
+			this.settings.formatters[fieldname]
+		) {
+			column_html = this.settings.formatters[fieldname](value, df, doc);
+		}
 
 		return `
 			<div class="${css_class}">
@@ -912,7 +913,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_subject_html(doc) {
 		let subject_field = this.columns[0].df;
-		let value = doc[subject_field.fieldname] || doc.name;
+		let value = doc[subject_field.fieldname];
+		if (this.settings.formatters && this.settings.formatters[subject_field.fieldname]) {
+			let formatter = this.settings.formatters[subject_field.fieldname];
+			value = formatter(value, subject_field, doc);
+		}
+		if (!value) {
+			value = doc.name;
+		}
 		let subject = strip_html(value.toString());
 		let escaped_subject = frappe.utils.escape_html(subject);
 
