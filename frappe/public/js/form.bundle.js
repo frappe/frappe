@@ -1,5 +1,4 @@
 import "./frappe/form/templates/address_list.html";
-import "./frappe/form/templates/attachment.html";
 import "./frappe/form/templates/contact_list.html";
 import "./frappe/form/templates/form_dashboard.html";
 import "./frappe/form/templates/form_footer.html";

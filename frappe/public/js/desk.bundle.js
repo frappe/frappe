@@ -1,4 +1,3 @@
-import '../scss/desk.scss';
 import "./frappe/translate.js";
 import "./frappe/class.js";
 import "./frappe/polyfill.js";
