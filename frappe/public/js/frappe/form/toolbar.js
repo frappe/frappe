@@ -32,7 +32,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	set_title() {
 		if (this.frm.is_new()) {
-			var title = __('New {0}', [this.frm.meta.name]);
+			var title = __('New {0}', [__(this.frm.meta.name)]);
 		} else if (this.frm.meta.title_field) {
 			let title_field = (this.frm.doc[this.frm.meta.title_field] || "").toString().trim();
 			var title = strip_html(title_field || this.frm.docname);
