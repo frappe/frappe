@@ -140,32 +140,31 @@ class ServerScript(Document):
 				value = obj[key]
 				if isinstance(value, (NamespaceDict, dict)) and value:
 					if key == 'form_dict':
-						out.append(['form_dict', 3])
+						out.append(['form_dict', 7])
 						continue
 					for subkey, score in get_keys(value):
 						fullkey = f'{key}.{subkey}'
 						out.append([fullkey, score])
 				else:
-					if isinstance(value, ModuleType):
+					if isinstance(value, type) and issubclass(value, Exception):
 						score = 0
+					elif isinstance(value, ModuleType):
+						score = 10
 					elif isinstance(value, (FunctionType, MethodType)):
-						score = 1
-					elif isinstance(value, type) and issubclass(value, Exception):
 						score = 9
 					elif isinstance(value, type):
-						score = 2
+						score = 8
 					elif isinstance(value, dict):
-						score = 3
+						score = 7
 					else:
-						score = 4
+						score = 6
 					out.append([key, score])
 			return out
 
 		items = frappe.cache().get_value('server_script_autocompletion_items')
 		if not items:
-			unsorted_items = get_keys(get_safe_globals())
-			sorted_items = sorted(unsorted_items, key=lambda k: k[1])
-			items = [d[0] for d in sorted_items]
+			items = get_keys(get_safe_globals())
+			items = [{'value': d[0], 'score': d[1]} for d in items]
 			frappe.cache().set_value('server_script_autocompletion_items', items)
 		return items
 

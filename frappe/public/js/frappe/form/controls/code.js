@@ -66,12 +66,16 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 					if (autocompletions.length) {
 						callback(
 							null,
-							autocompletions.map(a => ({
-								name: 'frappe',
-								value: a,
-								score: 100,
-								meta: 'Frappe API'
-							}))
+							autocompletions.map(a => {
+								if (typeof a === 'string') {
+									a = { value: a };
+								}
+								return {
+									name: 'frappe',
+									value: a.value,
+									score: a.score
+								}
+							})
 						);
 					}
 				}
