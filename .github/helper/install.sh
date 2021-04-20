@@ -4,7 +4,8 @@ set -e
 
 cd ~ || exit
 
-pip install frappe-bench
+git clone https://github.com/frappe/bench .bench --depth 1
+pip install -e ./.bench
 
 bench init frappe-bench --skip-assets --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}"
 
