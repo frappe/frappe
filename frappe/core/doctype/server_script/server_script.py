@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 
 import ast
-from types import FunctionType, ModuleType
+from types import FunctionType, MethodType, ModuleType
 from typing import Dict, List
 
 import frappe
@@ -125,21 +125,47 @@ class ServerScript(Document):
 
 	@frappe.whitelist()
 	def get_autocompletion_items(self):
+		"""Generates a list of a autocompletion strings from the context dict
+		that is used while executing a Server Script.
+
+		Returns:
+			list: Returns list of autocompletion items.
+			For e.g., ["frappe.utils.cint", "frappe.db.get_all", ...]
+		"""
 		def get_keys(obj):
 			out = []
 			for key in obj:
 				if key.startswith('_'):
 					continue
 				value = obj[key]
-				if isinstance(value, (FunctionType, ModuleType)):
-					out.append(key)
-				elif isinstance(value, (NamespaceDict, dict)):
-					out += [f'{key}.{subkey}' for subkey in get_keys(value)]
+				if isinstance(value, (NamespaceDict, dict)) and value:
+					if key == 'form_dict':
+						out.append(['form_dict', 3])
+						continue
+					for subkey, score in get_keys(value):
+						fullkey = f'{key}.{subkey}'
+						out.append([fullkey, score])
+				else:
+					if isinstance(value, ModuleType):
+						score = 0
+					elif isinstance(value, (FunctionType, MethodType)):
+						score = 1
+					elif isinstance(value, type) and issubclass(value, Exception):
+						score = 9
+					elif isinstance(value, type):
+						score = 2
+					elif isinstance(value, dict):
+						score = 3
+					else:
+						score = 4
+					out.append([key, score])
 			return out
 
 		items = frappe.cache().get_value('server_script_autocompletion_items')
-		if not items:
-			items = get_keys(get_safe_globals())
+		if not items or True:
+			unsorted_items = get_keys(get_safe_globals())
+			sorted_items = sorted(unsorted_items, key=lambda k: k[1])
+			items = [d[0] for d in sorted_items]
 			frappe.cache().set_value('server_script_autocompletion_items', items)
 		return items
 

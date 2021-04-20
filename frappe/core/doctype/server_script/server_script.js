@@ -13,7 +13,7 @@ frappe.ui.form.on('Server Script', {
 		frm.call('get_autocompletion_items')
 			.then(r => r.message)
 			.then(items => {
-				frm.set_df_property('script', 'autocompletions', items)
+				frm.set_df_property('script', 'autocompletions', items);
 			});
 	},
 

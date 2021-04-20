@@ -53,11 +53,10 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		ace.config.loadModule("ace/ext/language_tools", langTools => {
 			this.editor.setOptions({
 				enableBasicAutocompletion: true,
-				enableSnippets: true,
 				enableLiveAutocompletion: true
 			});
 
-			let completer = {
+			langTools.addCompleter({
 				getCompletions: function(editor, session, pos, prefix, callback) {
 					if (prefix.length === 0) {
 						callback(null, []);
@@ -76,10 +75,8 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 						);
 					}
 				}
-			}
-			langTools.addCompleter(completer);
+			});
 		});
-
 		this._autocompletion_setup = true;
 	},
 
