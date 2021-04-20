@@ -292,17 +292,9 @@ def inline_style_in_html(html):
 	'''
 	from premailer import Premailer
 
-	apps = frappe.get_installed_apps()
-
-	# add frappe email css file
-	css_files = ['assets/css/email.css']
-	if 'frappe' in apps:
-		apps.remove('frappe')
-
-	for app in apps:
-		path = 'assets/{0}/css/email.css'.format(app)
-		css_files.append(path)
-
+	# get email css files from hooks
+	css_files = frappe.get_hooks('email_css')
+	css_files = [path.lstrip('/') for path in css_files]
 	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
 
 	p = Premailer(html=html, external_styles=css_files, strip_important=False)

@@ -52,6 +52,8 @@ web_include_js = [
 
 web_include_css = []
 
+email_css = ['/assets/frappe/build/scss/email.css']
+
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
