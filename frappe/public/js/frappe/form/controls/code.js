@@ -74,7 +74,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 									name: 'frappe',
 									value: a.value,
 									score: a.score
-								}
+								};
 							})
 						);
 					}
