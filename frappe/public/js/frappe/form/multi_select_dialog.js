@@ -42,7 +42,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			title: __("Select {0}", [(this.doctype == '[Select]') ? __("value") : __(doctype_plural)]),
 			fields: fields,
 			primary_action_label: this.primary_action_label || __("Get Items"),
-			secondary_action_label: __("Make {0}", [me.doctype]),
+			secondary_action_label: __("Make {0}", [__(me.doctype)]),
 			primary_action: function () {
 				let filters_data = me.get_custom_filters();
 				me.action(me.get_checked_values(), cur_dialog.get_values(), me.args, filters_data);
@@ -101,19 +101,25 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		columns[1] = [];
 		columns[2] = [];
 
-		Object.keys(this.setters).forEach((setter, index) => {
-			let df_prop = frappe.meta.docfield_map[this.doctype][setter];
-
-			// Index + 1 to start filling from index 1
-			// Since Search is a standrd field already pushed
-			columns[(index + 1) % 3].push({
-				fieldtype: df_prop.fieldtype,
-				label: df_prop.label,
-				fieldname: setter,
-				options: df_prop.options,
-				default: this.setters[setter]
+		if ($.isArray(this.setters)) {
+			this.setters.forEach((setter, index) => {
+				columns[(index + 1) % 3].push(setter);
 			});
-		});
+		} else {
+			Object.keys(this.setters).forEach((setter, index) => {
+				let df_prop = frappe.meta.docfield_map[this.doctype][setter];
+
+				// Index + 1 to start filling from index 1
+				// Since Search is a standrd field already pushed
+				columns[(index + 1) % 3].push({
+					fieldtype: df_prop.fieldtype,
+					label: df_prop.label,
+					fieldname: setter,
+					options: df_prop.options,
+					default: this.setters[setter]
+				});
+			});
+		}
 
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal
 		if (Object.seal) {
@@ -217,14 +223,20 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		let contents = ``;
 		let columns = ["name"];
 
-		columns = columns.concat(Object.keys(this.setters));
+		if ($.isArray(this.setters)) {
+			for (let df of this.setters) {
+				columns.push(df.fieldname);
+			}
+		} else {
+			columns = columns.concat(Object.keys(this.setters));
+		}
 
 		columns.forEach(function (column) {
 			contents += `<div class="list-item__content ellipsis">
 				${
 	head ? `<span class="ellipsis text-muted" title="${__(frappe.model.unscrub(column))}">${__(frappe.model.unscrub(column))}</span>`
 		: (column !== "name" ? `<span class="ellipsis result-row" title="${__(result[column] || '')}">${__(result[column] || '')}</span>`
-			: `<a href="${"#Form/" + me.doctype + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
+			: `<a href="${"/app/" + frappe.router.slug(me.doctype) + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
 							${__(result[column] || '')}</a>`)}
 			</div>`;
 		});
@@ -239,7 +251,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		head ? $row.addClass('list-item--head')
 			: $row = $(`<div class="list-item-container" data-item-name="${result.name}"></div>`).append($row);
 
-		$(".modal-dialog .list-item--head").css("z-index", 0);
 		return $row;
 	}
 
@@ -252,6 +263,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			this.empty_list();
 		}
 		more_btn.hide();
+		$(".modal-dialog .list-item--head").css("z-index", 0);
 
 		if (results.length === 0) return;
 		if (more) more_btn.show();
@@ -290,16 +302,24 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		let filters = this.get_query ? this.get_query().filters : {} || {};
 		let filter_fields = [];
 
-		Object.keys(this.setters).forEach(function (setter) {
-			var value = me.dialog.fields_dict[setter].get_value();
-			if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
-				filters[setter] = ["like", "%" + value + "%"];
-			} else {
-				filters[setter] = value || undefined;
-				me.args[setter] = filters[setter];
-				filter_fields.push(setter);
+		if ($.isArray(this.setters)) {
+			for (let df of this.setters) {
+				filters[df.fieldname] = me.dialog.fields_dict[df.fieldname].get_value() || undefined;
+				me.args[df.fieldname] = filters[df.fieldname];
+				filter_fields.push(df.fieldname);
 			}
-		});
+		} else {
+			Object.keys(this.setters).forEach(function (setter) {
+				var value = me.dialog.fields_dict[setter].get_value();
+				if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
+					filters[setter] = ["like", "%" + value + "%"];
+				} else {
+					filters[setter] = value || undefined;
+					me.args[setter] = filters[setter];
+					filter_fields.push(setter);
+				}
+			});
+		}
 
 		let filter_group = this.get_custom_filters();
 		Object.assign(filters, filter_group);

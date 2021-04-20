@@ -64,8 +64,6 @@ def get_oauth2_authorize_url(provider, redirect_to):
 
 	state = { "site": frappe.utils.get_url(), "token": frappe.generate_hash(), "redirect_to": redirect_to 	}
 
-	frappe.cache().set_value("{0}:{1}".format(provider, state["token"]), True, expires_in_sec=120)
-
 	# relative to absolute url
 	data = {
 		"redirect_uri": get_redirect_uri(provider),
@@ -176,11 +174,6 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 		frappe.respond_as_web_page(_("Invalid Request"), _("Token is missing"), http_status_code=417)
 		return
 
-	token = frappe.cache().get_value("{0}:{1}".format(provider, state["token"]), expires=True)
-	if not token:
-		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Token"), http_status_code=417)
-		return
-
 	user = get_email(data)
 
 	if not user:
@@ -213,6 +206,7 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 		redirect_post_login(
 			desk_user=frappe.local.response.get('message') == 'Logged In',
 			redirect_to=redirect_to,
+			provider=provider
 		)
 
 def update_oauth_user(user, data, provider):
@@ -229,12 +223,19 @@ def update_oauth_user(user, data, provider):
 
 		save = True
 		user = frappe.new_doc("User")
+
+		gender = data.get("gender", "").title()
+
+		if gender and not frappe.db.exists("Gender", gender):
+			doc = frappe.new_doc("Gender", {"gender": gender})
+			doc.insert(ignore_permissions=True)
+
 		user.update({
-			"doctype":"User",
+			"doctype": "User",
 			"first_name": get_first_name(data),
 			"last_name": get_last_name(data),
 			"email": get_email(data),
-			"gender": (data.get("gender") or "").title(),
+			"gender": gender,
 			"enabled": 1,
 			"new_password": frappe.generate_hash(get_email(data)),
 			"location": data.get("location"),
@@ -300,12 +301,14 @@ def get_last_name(data):
 def get_email(data):
 	return data.get("email") or data.get("upn") or data.get("unique_name")
 
-def redirect_post_login(desk_user, redirect_to=None):
+def redirect_post_login(desk_user, redirect_to=None, provider=None):
 	# redirect!
 	frappe.local.response["type"] = "redirect"
 
 	if not redirect_to:
 		# the #desktop is added to prevent a facebook redirect bug
-		redirect_to = "/desk#desktop" if desk_user else "/me"
+		desk_uri = "/app/workspace" if provider == 'facebook' else '/app'
+		redirect_to = desk_uri if desk_user else "/me"
+		redirect_to = frappe.utils.get_url(redirect_to)
 
 	frappe.local.response["location"] = redirect_to

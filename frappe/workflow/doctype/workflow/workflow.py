@@ -119,7 +119,9 @@ def get_workflow_state_count(doctype, workflow_state_field, states):
 	result = frappe.get_all(
 		doctype,
 		fields=[workflow_state_field, 'count(*) as count', 'docstatus'],
-		filters = {'workflow_state': ['not in', states]},
+		filters = {
+			workflow_state_field: ['not in', states]
+		},
 		group_by = workflow_state_field
 	)
 	return [r for r in result if r[workflow_state_field]]

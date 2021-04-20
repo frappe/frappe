@@ -30,7 +30,7 @@ frappe.ui.form.on('Auto Repeat', {
 	refresh: function(frm) {
 		// auto repeat message
 		if (frm.is_new()) {
-			let customize_form_link = `<a href="#Form/Customize Form">${__('Customize Form')}</a>`;
+			let customize_form_link = `<a href="/app/customize form">${__('Customize Form')}</a>`;
 			frm.dashboard.set_headline(__('To configure Auto Repeat, enable "Allow Auto Repeat" from {0}.', [customize_form_link]));
 		}
 
@@ -44,6 +44,22 @@ frappe.ui.form.on('Auto Repeat', {
 
 		// auto repeat schedule
 		frappe.auto_repeat.render_schedule(frm);
+
+		frm.trigger('toggle_submit_on_creation');
+	},
+
+	reference_doctype: function(frm) {
+		frm.trigger('toggle_submit_on_creation');
+	},
+
+	toggle_submit_on_creation: function(frm) {
+		// submit on creation checkbox
+		if (frm.doc.reference_doctype) {
+			frappe.model.with_doctype(frm.doc.reference_doctype, () => {
+				let meta = frappe.get_meta(frm.doc.reference_doctype);
+				frm.toggle_display('submit_on_creation', meta.is_submittable);
+			});
+		}
 	},
 
 	template: function(frm) {
@@ -86,15 +102,13 @@ frappe.ui.form.on('Auto Repeat', {
 
 frappe.auto_repeat.render_schedule = function(frm) {
 	if (!frm.is_dirty() && frm.doc.status !== 'Disabled') {
-		frappe.call({
-			method: "get_auto_repeat_schedule",
-			doc: frm.doc
-		}).done((r) => {
+		frm.call("get_auto_repeat_schedule").then(r => {
 			frm.dashboard.wrapper.empty();
 			frm.dashboard.add_section(
 				frappe.render_template("auto_repeat_schedule", {
-					schedule_details : r.message || []
-				})
+					schedule_details: r.message || []
+				}),
+				__('Auto Repeat Schedule')
 			);
 			frm.dashboard.show();
 		});

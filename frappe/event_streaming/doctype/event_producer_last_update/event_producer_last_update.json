@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "autoname": "field:event_producer",
+ "creation": "2020-10-26 12:53:11.940177",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "event_producer",
+  "last_update"
+ ],
+ "fields": [
+  {
+   "fieldname": "event_producer",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Event Producer",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "last_update",
+   "fieldtype": "Data",
+   "label": "Last Update"
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2020-10-26 13:22:27.056599",
+ "modified_by": "Administrator",
+ "module": "Event Streaming",
+ "name": "Event Producer Last Update",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

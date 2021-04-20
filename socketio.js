@@ -2,24 +2,12 @@ var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var cookie = require('cookie');
-var fs = require('fs');
-var path = require('path');
 var request = require('superagent');
 var { get_conf, get_redis_subscriber } = require('./node_utils');
 
 const log = console.log; // eslint-disable-line
 
 var conf = get_conf();
-var files_struct = {
-	name: null,
-	type: null,
-	size: 0,
-	data: [],
-	slice: 0,
-	site_name: null,
-	is_private: 0
-};
-
 var subscriber = get_redis_subscriber();
 
 // serve socketio
@@ -43,7 +31,6 @@ io.on('connection', function (socket) {
 	}
 
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
-	socket.files = {};
 
 	// frappe.chat
 	socket.on("frappe.chat.room:subscribe", function (rooms) {
@@ -97,10 +84,6 @@ io.on('connection', function (socket) {
 
 	join_chat_room();
 
-	socket.on('disconnect', function () {
-		delete socket.files;
-	});
-
 	socket.on('task_subscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);
 		socket.join(room);
@@ -141,21 +124,34 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('doc_open', function (doctype, docname) {
-		// show who is currently viewing the form
 		can_subscribe_doc({
-			socket: socket,
-			sid: sid,
-			doctype: doctype,
-			docname: docname,
+			socket,
+			sid,
+			doctype,
+			docname,
 			callback: () => {
 				var room = get_open_doc_room(socket, doctype, docname);
 				socket.join(room);
 
-				send_viewers({
-					socket: socket,
-					doctype: doctype,
-					docname: docname,
-				});
+				// show who is currently viewing the form
+				send_users(
+					{
+						socket: socket,
+						doctype: doctype,
+						docname: docname,
+					},
+					'view'
+				);
+
+				// show who is currently typing on the form
+				send_users(
+					{
+						socket: socket,
+						doctype: doctype,
+						docname: docname,
+					},
+					'type'
+				);
 			}
 		});
 	});
@@ -164,52 +160,44 @@ io.on('connection', function (socket) {
 		// remove this user from the list of 'who is currently viewing the form'
 		var room = get_open_doc_room(socket, doctype, docname);
 		socket.leave(room);
-		send_viewers({
-			socket: socket,
-			doctype: doctype,
-			docname: docname,
-		});
+		send_users(
+			{
+				socket: socket,
+				doctype: doctype,
+				docname: docname,
+			},
+			'view'
+		);
 	});
 
-	socket.on('upload-accept-slice', (data) => {
-		try {
-			if (!socket.files[data.name]) {
-				socket.files[data.name] = Object.assign({}, files_struct, data);
-				socket.files[data.name].data = [];
-			}
+	socket.on('doc_typing', function (doctype, docname) {
+		// show users that are currently typing on the form
+		const room = get_typing_room(socket, doctype, docname);
+		socket.join(room);
 
-			//convert the ArrayBuffer to Buffer
-			data.data = new Buffer(new Uint8Array(data.data));
-			//save the data
-			socket.files[data.name].data.push(data.data);
-			socket.files[data.name].slice++;
+		send_users(
+			{
+				socket: socket,
+				doctype: doctype,
+				docname: docname,
+			},
+			'type'
+		);
+	});
 
-			if (socket.files[data.name].slice * 24576 >= socket.files[data.name].size) {
-				// do something with the data
-				var fileBuffer = Buffer.concat(socket.files[data.name].data);
+	socket.on('doc_typing_stopped', function (doctype, docname) {
+		// remove this user from the list of users currently typing on the form'
+		const room = get_typing_room(socket, doctype, docname);
+		socket.leave(room);
 
-				const file_url = path.join((socket.files[data.name].is_private ? 'private' : 'public'),
-					'files', data.name);
-				const file_path = path.join('sites', get_site_name(socket), file_url);
-
-				fs.writeFile(file_path, fileBuffer, (err) => {
-					delete socket.files[data.name];
-					if (err) return socket.emit('upload error');
-					socket.emit('upload-end', {
-						file_url: '/' + file_url
-					});
-				});
-			} else {
-				socket.emit('upload-request-slice', {
-					currentSlice: socket.files[data.name].slice
-				});
-			}
-		} catch (e) {
-			log(e);
-			socket.emit('upload-error', {
-				error: e.message
-			});
-		}
+		send_users(
+			{
+				socket: socket,
+				doctype: doctype,
+				docname: docname,
+			},
+			'type'
+		);
 	});
 });
 
@@ -244,6 +232,10 @@ function get_doc_room(socket, doctype, docname) {
 
 function get_open_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ':open_doc:' + doctype + '/' + docname;
+}
+
+function get_typing_room(socket, doctype, docname) {
+	return get_site_name(socket) + ':typing:' + doctype + '/' + docname;
 }
 
 function get_user_room(socket, user) {
@@ -325,36 +317,38 @@ function can_subscribe_doc(args) {
 		});
 }
 
-function send_viewers(args) {
-	// send to doc room, 'users currently viewing this document'
+
+function send_users(args, action) {
 	if (!(args && args.doctype && args.docname)) {
 		return;
 	}
 
-	// open doc room
-	var room = get_open_doc_room(args.socket, args.doctype, args.docname);
+	const open_doc_room = get_open_doc_room(args.socket, args.doctype, args.docname);
 
-	var socketio_room = io.sockets.adapter.rooms[room] || {};
+	const room = action == 'view' ? open_doc_room: get_typing_room(args.socket, args.doctype, args.docname);
 
+	const socketio_room = io.sockets.adapter.rooms[room] || {};
 	// for compatibility with both v1.3.7 and 1.4.4
-	var clients_dict = ("sockets" in socketio_room) ? socketio_room.sockets : socketio_room;
+	const clients_dict = ('sockets' in socketio_room) ? socketio_room.sockets : socketio_room;
 
 	// socket ids connected to this room
-	var clients = Object.keys(clients_dict || {});
+	const clients = Object.keys(clients_dict || {});
 
-	var viewers = [];
-	for (var i in io.sockets.sockets) {
-		var s = io.sockets.sockets[i];
+	let users = [];
+	for (let i in io.sockets.sockets) {
+		const s = io.sockets.sockets[i];
 		if (clients.indexOf(s.id) !== -1) {
 			// this socket is connected to the room
-			viewers.push(s.user);
+			users.push(s.user);
 		}
 	}
 
+	const emit_event = action == 'view' ? 'doc_viewers' : 'doc_typers';
+
 	// notify
-	io.to(room).emit("doc_viewers", {
+	io.to(open_doc_room).emit(emit_event, {
 		doctype: args.doctype,
 		docname: args.docname,
-		viewers: viewers
+		users: Array.from(new Set(users))
 	});
 }

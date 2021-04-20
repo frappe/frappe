@@ -6,6 +6,9 @@
   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
   ga('create', '{{ google_analytics_id }}', 'auto');
+  {% if google_analytics_anonymize_ip %}
+  ga('set', 'anonymizeIp', true);
+  {% endif %}
 
   $(document).on("mousedown", function(event) {
     if(!frappe && !frappe.get_route) return;

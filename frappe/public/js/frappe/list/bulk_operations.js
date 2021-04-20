@@ -222,4 +222,43 @@ export default class BulkOperations {
 		dialog.refresh();
 		dialog.show();
 	}
+
+
+	add_tags(docnames, done) {
+		const dialog = new frappe.ui.Dialog({
+			title: __('Add Tags'),
+			fields: [
+				{
+					fieldtype: 'MultiSelectPills',
+					fieldname: 'tags',
+					label: __("Tags"),
+					reqd: true,
+					get_data: function(txt) {
+						return frappe.db.get_link_options("Tag", txt);
+					}
+				},
+			],
+			primary_action_label: __("Add"),
+			primary_action: () => {
+				let args = dialog.get_values();
+				if (args && args.tags) {
+					dialog.set_message("Adding Tags...");
+
+					frappe.call({
+						method: "frappe.desk.doctype.tag.tag.add_tags",
+						args: {
+							'tags': args.tags,
+							'dt': this.doctype,
+							'docs': docnames,
+						},
+						callback: () => {
+							dialog.hide();
+							done();
+						}
+					});
+				}
+			},
+		});
+		dialog.show();
+	}
 }

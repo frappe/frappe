@@ -122,10 +122,6 @@ def get_context(context):
 		'''Build context to render the `web_form.html` template'''
 		self.set_web_form_module()
 
-		context._login_required = False
-		if self.login_required and frappe.session.user == "Guest":
-			context._login_required = True
-
 		doc, delimeter = make_route_string(frappe.form_dict)
 		context.doc = doc
 		context.delimeter = delimeter
@@ -134,7 +130,7 @@ def get_context(context):
 		if frappe.session.user == "Guest" and frappe.form_dict.name:
 			frappe.throw(_("You need to be logged in to access this {0}.").format(self.doc_type), frappe.PermissionError)
 
-		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
+		if frappe.form_dict.name and not self.has_web_form_permission(self.doc_type, frappe.form_dict.name):
 			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
 
 		self.reset_field_parent()
@@ -142,7 +138,7 @@ def get_context(context):
 		if self.is_standard:
 			self.use_meta_fields()
 
-		if not context._login_required:
+		if not frappe.session.user == "Guest":
 			if self.allow_edit:
 				if self.allow_multiple:
 					if not frappe.form_dict.name and not frappe.form_dict.new:
@@ -219,12 +215,17 @@ def get_context(context):
 			amount = self.amount
 			if self.amount_based_on_field:
 				amount = doc.get(self.amount_field)
+
+			from decimal import Decimal
+			if amount is None or Decimal(amount) <= 0:
+				return frappe.utils.get_url(self.success_url or self.route)
+				
 			payment_details = {
 				"amount": amount,
 				"title": title,
 				"description": title,
-				"reference_doctype": doc.doctype,
-				"reference_docname": doc.name,
+				"reference_doctype": "Web Form",
+				"reference_docname": self.name,
 				"payer_email": frappe.session.user,
 				"payer_name": frappe.utils.get_fullname(frappe.session.user),
 				"order_id": doc.name,
@@ -347,6 +348,29 @@ def get_context(context):
 			frappe.throw(_('Mandatory Information missing:') + '<br><br>'
 				+ '<br>'.join(['{0} ({1})'.format(d.label, d.fieldtype) for d in missing]))
 
+	def allow_website_search_indexing(self):
+		return False
+
+	def has_web_form_permission(self, doctype, name, ptype='read'):
+		if frappe.session.user=="Guest":
+			return False
+
+		if self.apply_document_permissions:
+			return frappe.get_doc(doctype, name).has_permission()
+
+		# owner matches
+		elif frappe.db.get_value(doctype, name, "owner")==frappe.session.user:
+			return True
+
+		elif frappe.has_website_permission(name, ptype=ptype, doctype=doctype):
+			return True
+
+		elif check_webform_perm(doctype, name):
+			return True
+
+		else:
+			return False
+
 
 @frappe.whitelist(allow_guest=True)
 def accept(web_form, data, docname=None, for_payment=False):
@@ -395,7 +419,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 		doc.run_method('validate_payment')
 
 	if doc.name:
-		if has_web_form_permission(doc.doctype, doc.name, "write"):
+		if web_form.has_web_form_permission(doc.doctype, doc.name, "write"):
 			doc.save(ignore_permissions=True)
 		else:
 			# only if permissions are present
@@ -438,7 +462,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 	if files_to_delete:
 		for f in files_to_delete:
 			if f:
-				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
+				remove_file_by_url(f, doctype=doc.doctype, name=doc.name)
 
 
 	frappe.flags.web_form_doc = doc
@@ -482,24 +506,6 @@ def delete_multiple(web_form_name, docnames):
 		raise frappe.PermissionError("You do not have permisssion to delete " + ", ".join(restricted_docnames))
 
 
-def has_web_form_permission(doctype, name, ptype='read'):
-	if frappe.session.user=="Guest":
-		return False
-
-	# owner matches
-	elif frappe.db.get_value(doctype, name, "owner")==frappe.session.user:
-		return True
-
-	elif frappe.has_website_permission(name, ptype=ptype, doctype=doctype):
-		return True
-
-	elif check_webform_perm(doctype, name):
-		return True
-
-	else:
-		return False
-
-
 def check_webform_perm(doctype, name):
 	doc = frappe.get_doc(doctype, name)
 	if hasattr(doc, "has_webform_permission"):
@@ -536,7 +542,7 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 
 	if docname:
 		doc = frappe.get_doc(doctype, docname)
-		if has_web_form_permission(doctype, docname, ptype='read'):
+		if web_form.has_web_form_permission(doctype, docname, ptype='read'):
 			out.doc = doc
 		else:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)

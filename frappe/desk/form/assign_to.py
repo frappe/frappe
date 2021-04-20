@@ -168,8 +168,8 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	"""
 	if not (assigned_by and owner and doc_type and doc_name): return
 
-	# self assignment / closing - no message
-	if assigned_by==owner:
+	# return if self assigned or user disabled
+	if assigned_by == owner or not frappe.db.get_value('User', owner, 'enabled'):
 		return
 
 	# Search for email address in description -- i.e. assignee
@@ -177,7 +177,7 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	title = get_title(doc_type, doc_name)
 	description_html =  "<div>{0}</div>".format(description) if description else None
 
-	if action=='CLOSE':
+	if action == 'CLOSE':
 		subject = _('Your assignment on {0} {1} has been removed by {2}')\
 			.format(frappe.bold(doc_type), get_title_html(title), frappe.bold(user_name))
 	else:

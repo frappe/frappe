@@ -1,0 +1,200 @@
+@import '~quill/dist/quill.snow.css';
+@import '~quill/dist/quill.bubble.css';
+
+.ql-toolbar.ql-snow,
+.ql-container.ql-snow {
+	border-color: var(--border-color);
+	font-family: inherit;
+}
+
+.ql-editor {
+	font-family: var(--font-stack);
+	color: var(--text-color);
+	line-height: 1.6;
+	h1,
+	h2,
+	h3,
+	h4,
+	h5 {
+		margin-top: 0.5em;
+		margin-bottom: 0.25em;
+	}
+	a[href] {
+		text-decoration: underline;
+	}
+}
+
+.ql-toolbar.ql-snow {
+	border-top-left-radius: var(--border-radius);
+	border-top-right-radius: var(--border-radius);
+	background-color: var(--fg-color);
+	box-shadow: var(--shadow-inset);
+	padding-bottom: 0;
+}
+
+.ql-container.ql-snow {
+	border-bottom-left-radius: var(--border-radius);
+	border-bottom-right-radius: var(--border-radius);
+	overflow: hidden;
+}
+
+.ql-snow {
+	.ql-editor {
+		min-height: 400px;
+		max-height: 600px;
+	}
+	.ql-stroke {
+		stroke: var(--icon-stroke);
+		stroke-width: 1.2px;
+	}
+	.ql-picker-options {
+		border-color: var(--border-color) !important;
+		background-color: var(--bg-color);
+		border-radius: var(--border-radius);
+	}
+
+	.ql-tooltip {
+		background-color: var(--fg-color);
+		border-radius: var(--border-radius-sm);
+		border: none;
+		color: var(--text-color);
+		box-shadow: var(--shadow-base);
+	}
+
+}
+
+.print-format {
+	.ql-snow .ql-editor {
+		height: auto;
+		min-height: 0;
+		max-height: none;
+		overflow: hidden;
+	}
+}
+
+.ql-snow .ql-picker {
+	font-size: var(--text-sm);
+	color: var(--text-light);
+}
+
+.ql-snow .ql-picker-label {
+	outline: none;
+}
+
+.ql-formats {
+	margin-bottom: 8px;
+}
+
+.ql-bubble .ql-editor {
+	min-height: 100px;
+	max-height: 300px;
+	border-radius: var(--border-radius-sm);
+}
+
+.ql-mention-list-container {
+	width: 270px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-sm);
+	background-color: var(--fg-color);
+	box-shadow: var(--shadow-md);
+	z-index: 1;
+}
+
+.ql-mention-list-item {
+	font-size: var(--text-xs);
+	padding: 10px 12px;
+	height: initial;
+	line-height: initial;
+
+	&.selected {
+		background-color: var(--control-bg);
+	}
+}
+
+.mention {
+	display: inline-block;
+	height: auto;
+	width: auto;
+	border-radius: var(--border-radius-lg);
+	border: 1px solid var(--border-color);
+	padding: 2px 5px;
+	font-size: var(--text-sm);
+	background-color: var(--user-mention-bg-color);
+	a[href] {
+		text-decoration: none;
+	}
+}
+
+// table
+
+.ql-table {
+	width: 66px;
+
+	.ql-picker-label::before {
+		content: 'Table';
+	}
+
+	.ql-picker-options {
+		[data-value='insert-table']::before {
+			content: 'Insert Table';
+		}
+		[data-value='insert-row-above']::before {
+			content: 'Insert Row Above';
+		}
+		[data-value='insert-row-below']::before {
+			content: 'Insert Row Below';
+		}
+		[data-value='insert-column-right']::before {
+			content: 'Insert Column Right';
+		}
+		[data-value='insert-column-left']::before {
+			content: 'Insert Column Left';
+		}
+		[data-value='delete-row']::before {
+			content: 'Delete Row';
+		}
+		[data-value='delete-column']::before {
+			content: 'Delete Column';
+		}
+		[data-value='delete-table']::before {
+			content: 'Delete Table';
+		}
+	}
+}
+
+.ql-editor td {
+	border: 1px solid var(--border-color);
+}
+
+.ql-editor blockquote {
+	border-left: 4px solid var(--gray-300);
+	padding-left: var(--padding-sm);
+	font-size: var(--text-sm);
+	margin-top: 0px !important;
+	margin-bottom: 0px !important;
+}
+
+.ql-editor.read-mode {
+	padding: 0;
+	.mention {
+		--user-mention-bg-color: var(--control-bg);
+	}
+}
+
+
+.ql-mention-list {
+	border-radius: var(--border-radius-sm);
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 300px;
+	overflow: scroll;
+}
+
+.mention>span {
+	margin: 0 3px;
+}
+
+.mention[data-is-group="true"] {
+	background-color: var(--group-mention-bg-color);
+}

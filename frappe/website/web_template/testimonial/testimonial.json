@@ -23,9 +23,10 @@
   }
  ],
  "idx": 0,
- "modified": "2020-05-16 19:52:11.590319",
+ "modified": "2020-09-11 15:52:40.622205",
  "modified_by": "Administrator",
  "name": "Testimonial",
  "owner": "Administrator",
- "standard": 1
+ "standard": 1,
+ "type": "Section"
 }

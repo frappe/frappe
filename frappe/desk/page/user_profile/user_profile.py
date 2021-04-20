@@ -1,17 +1,23 @@
 import frappe
 from datetime import datetime
+from frappe.utils import getdate
 
 @frappe.whitelist()
 def get_energy_points_heatmap_data(user, date):
+	try:
+		date = getdate(date)
+	except Exception:
+		date = getdate()
+
 	return dict(frappe.db.sql("""select unix_timestamp(date(creation)), sum(points)
 		from `tabEnergy Point Log`
 		where
 			date(creation) > subdate('{date}', interval 1 year) and
 			date(creation) < subdate('{date}', interval -1 year) and
-			user = '{user}' and
+			user = %s and
 			type != 'Review'
 		group by date(creation)
-		order by creation asc""".format(user = user, date = date)))
+		order by creation asc""".format(date = date), user))
 
 
 @frappe.whitelist()

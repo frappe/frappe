@@ -65,6 +65,7 @@ import frappe
 from frappe import _
 import json
 import hmac
+import razorpay
 import hashlib
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
@@ -74,6 +75,11 @@ from frappe.integrations.utils import (make_get_request, make_post_request, crea
 
 class RazorpaySettings(Document):
 	supported_currencies = ["INR"]
+
+	def init_client(self):
+		if self.api_key:
+			secret = self.get_password(fieldname="api_secret", raise_exception=False)
+			self.client = razorpay.Client(auth=(self.api_key, secret))
 
 	def validate(self):
 		create_payment_gateway('Razorpay')

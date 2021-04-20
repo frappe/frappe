@@ -6,50 +6,33 @@
 frappe.ui.form.Share = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.shares = this.parent.find('.shares');
 	},
 	refresh: function() {
 		this.render_sidebar();
 	},
 	render_sidebar: function() {
-		var me = this;
-		this.parent.empty();
+		const shared = this.shared || this.frm.get_docinfo().shared;
+		const shared_users = shared.filter(Boolean).map(s => s.user);
 
-		var shared = this.shared || this.frm.get_docinfo().shared;
-		shared = shared.filter(function(d) { return d });
-		var users = [];
-		for (var i=0, l=shared.length; i < l; i++) {
-			var s = shared[i];
-
-			if (s.everyone) {
-				users.push({
-					icon: "octicon octicon-megaphone text-muted",
-					avatar_class: "avatar-empty share-doc-btn shared-with-everyone",
-					title: __("Shared with everyone")
-				});
-			} else {
-				var user_info = frappe.user_info(s.user);
-				users.push({
-					image: user_info.image,
-					fullname: user_info.fullname,
-					abbr: user_info.abbr,
-					color: user_info.color,
-					title: __("Shared with {0}", [user_info.fullname])
-				});
-			}
+		if (this.frm.is_new()) {
+			this.parent.find(".share-doc-btn").hide();
 		}
 
-		if (!me.frm.doc.__islocal) {
-			users.push({
-				icon: "octicon octicon-plus text-muted",
-				avatar_class: "avatar-empty share-doc-btn",
-				title: __("Share")
-			});
-		}
-
-		this.parent.append(frappe.render_template("users_in_sidebar", {"users": users}));
-		this.parent.find(".avatar").on("click", function() {
-			me.frm.share_doc();
+		this.parent.find(".share-doc-btn").on("click", () => {
+			this.frm.share_doc();
 		});
+
+		this.shares.empty();
+
+		if (!shared_users.length) {
+			this.shares.hide();
+			return;
+		}
+
+		this.shares.show();
+		// REDESIGN-TODO: handle "shared with everyone"
+		this.shares.append(frappe.avatar_group(shared_users, 5, {'align': 'left', 'overlap': true}));
 	},
 	show: function() {
 		var me = this;
@@ -140,6 +123,7 @@ frappe.ui.form.Share = Class.extend({
 					user: user,
 					read: $(d.body).find(".add-share-read").prop("checked") ? 1 : 0,
 					write: $(d.body).find(".add-share-write").prop("checked") ? 1 : 0,
+					submit: $(d.body).find(".add-share-submit").prop("checked") ? 1 : 0,
 					share: $(d.body).find(".add-share-share").prop("checked") ? 1 : 0,
 					notify: 1,
 				},

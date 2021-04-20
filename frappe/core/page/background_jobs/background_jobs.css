@@ -1,0 +1,60 @@
+.list-jobs {
+	font-size: var(--text-base);
+}
+
+.table {
+	margin-bottom: 0px;
+	margin-top: 0px;
+}
+
+thead {
+	background-color: var(--control-bg);
+	border-radius: var(--border-radius-sm);
+}
+
+thead > tr {
+	border-radius: var(--border-radius-sm);
+}
+
+thead > tr > th:first-child {
+	border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+}
+thead > tr > th:last-child {
+	border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+}
+
+.worker-name {
+	display: flex;
+	align-items: center;
+}
+
+.job-name {
+	font-size: var(--text-md);
+	font-family: "Courier New", Courier, monospace;
+	/* background-color: var(--control-bg); */
+	/* padding: var(--padding-xs) var(--padding-sm); */
+	/* border-radius: var(--border-radius-md); */
+}
+
+.background-job-row:hover {
+	background-color: var(--bg-color);
+}
+
+.no-background-jobs {
+	min-height: 320px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+}
+
+.no-background-jobs > img {
+	margin-bottom: var(--margin-md);
+	max-height: 100px;
+}
+
+.footer {
+	align-items: flex-end;
+	margin-top: var(--margin-md);
+	font-size: var(--text-base);
+}

@@ -4,7 +4,7 @@
 frappe.ui.form.on('Google Contacts', {
 	refresh: function(frm) {
 		if (!frm.doc.enable) {
-			frm.dashboard.set_headline(__("To use Google Contacts, enable {0}.", [`<a href='#Form/Google Settings'>${__('Google Settings')}</a>`]));
+			frm.dashboard.set_headline(__("To use Google Contacts, enable {0}.", [`<a href='/app/google-settings'>${__('Google Settings')}</a>`]));
 		}
 
 		frappe.realtime.on('import_google_contacts', (data) => {

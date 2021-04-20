@@ -10,7 +10,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.utils import cint
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None, notify=0):
+def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
@@ -38,6 +38,7 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 		# always add read, since you are adding!
 		"read": 1,
 		"write": cint(write),
+		"submit": cint(submit),
 		"share": cint(share)
 	})
 
@@ -78,11 +79,11 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 		if not value:
 			# un-set higher-order permissions too
 			if permission_to=="read":
-				share.read = share.write = share.share = 0
+				share.read = share.write = share.submit = share.share = 0
 
 		share.save()
 
-		if not (share.read or share.write or share.share):
+		if not (share.read or share.write or share.submit or share.share):
 			share.delete()
 			share = {}
 
@@ -91,13 +92,12 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 @frappe.whitelist()
 def get_users(doctype, name):
 	"""Get list of users with which this document is shared"""
-	return frappe.db.sql("""select
-			`name`, `user`, `read`, `write`, `share`, `everyone`
-		from
-			`tabDocShare`
-		where
-			share_doctype=%s and share_name=%s""",
-		(doctype, name), as_dict=True)
+	return frappe.db.get_all("DocShare",
+		fields=["`name`", "`user`", "`read`", "`write`", "`submit`", "`share`", "everyone", "owner", "creation"],
+		filters=dict(
+			share_doctype=doctype,
+			share_name=name
+		))
 
 def get_shared(doctype, user=None, rights=None):
 	"""Get list of shared document names for given user and DocType.

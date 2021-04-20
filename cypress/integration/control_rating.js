@@ -1,7 +1,7 @@
 context('Control Rating', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/app/website');
 	});
 
 	function get_dialog_with_rating() {
@@ -18,7 +18,7 @@ context('Control Rating', () => {
 		get_dialog_with_rating().as('dialog');
 
 		cy.get('div.rating')
-			.children('i.fa')
+			.children('svg')
 			.first()
 			.click()
 			.should('have.class', 'star-click');
@@ -33,7 +33,7 @@ context('Control Rating', () => {
 		get_dialog_with_rating();
 
 		cy.get('div.rating')
-			.children('i.fa')
+			.children('svg')
 			.first()
 			.invoke('trigger', 'mouseenter')
 			.should('have.class', 'star-hover')

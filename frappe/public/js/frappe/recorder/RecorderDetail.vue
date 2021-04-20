@@ -1,11 +1,6 @@
 <template>
 	<div>
-		<div class="frappe-list">
-			<div class="list-filters"></div>
-			<div style="margin-bottom:9px" class="list-toolbar-wrapper hide">
-				<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;"></div>
-			</div>
-			<div style="clear:both"></div>
+		<div class="page-form">
 			<div class="filter-list">
 				<div class="tag-filters-area">
 					<div class="active-tag-filters">
@@ -26,6 +21,13 @@
 					</button>
 				</div>
 			</div>
+		</div>
+		<div class="frappe-list">
+			<div class="list-filters"></div>
+			<div style="margin-bottom:9px" class="list-toolbar-wrapper hide">
+				<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;"></div>
+			</div>
+			<div style="clear:both"></div>
 			<div  v-if="requests.length != 0" class="result">
 				<div class="list-headers">
 					<header class="level list-row list-row-head text-muted small">

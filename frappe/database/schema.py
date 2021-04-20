@@ -30,6 +30,9 @@ class DBTable:
 		self.get_columns_from_docfields()
 
 	def sync(self):
+		if self.meta.get('is_virtual'):
+			# no schema to sync for virtual doctypes
+			return
 		if self.is_new():
 			self.create()
 		else:
@@ -186,7 +189,7 @@ class DbColumn:
 			column_def += ' not null default {0}'.format(default_value)
 
 		elif self.default and (self.default not in frappe.db.DEFAULT_SHORTCUTS) \
-			and not self.default.startswith(":") and column_def not in ('text', 'longtext'):
+			and not cstr(self.default).startswith(":") and column_def not in ('text', 'longtext'):
 			column_def += " default {}".format(frappe.db.escape(self.default))
 
 		if self.unique and (column_def not in ('text', 'longtext')):

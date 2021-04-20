@@ -6,7 +6,7 @@ frappe.ui.misc.about = function() {
 		$(d.body).html(repl("<div>\
 		<p>"+__("Open Source Applications for the Web")+"</p>  \
 		<p><i class='fa fa-globe fa-fw'></i>\
-			Website: <a href='https://frappe.io' target='_blank'>https://frappe.io</a></p>\
+			Website: <a href='https://frappeframework.com' target='_blank'>https://frappeframework.com</a></p>\
 		<p><i class='fa fa-github fa-fw'></i>\
 			Source: <a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>\
 		<p><i class='fa fa-linkedin fa-fw'></i>\

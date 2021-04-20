@@ -14,7 +14,7 @@
 		{{ _(item.title or item.label) }}
 	</a>
 	{% else %}
-	<form action='{{ item.route }}' class="mr-3">
+	<form action='{{ item.route }}' class="mr-4">
 		<input name='q' class='form-control' type='text' style="outline: none"
 			placeholder="{{ _(item.title or item.label) }}">
 	</form>

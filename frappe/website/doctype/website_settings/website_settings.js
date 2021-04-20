@@ -1,4 +1,17 @@
 frappe.ui.form.on('Website Settings', {
+	setup(frm) {
+		frm.set_query('navbar_template', () => ({
+			filters: {
+				type: 'Navbar'
+			}
+		}));
+		frm.set_query('footer_template', () => ({
+			filters: {
+				type: 'Footer'
+			}
+		}));
+	},
+
 	refresh: function(frm) {
 		frm.add_custom_button(__('View Website'), () => {
 			window.open('/', '_blank');
@@ -17,21 +30,15 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	set_parent_label_options: function(frm) {
-		frappe.meta.get_docfield("Top Bar Item", "parent_label", frm.docname).options =
-			frm.events.get_parent_options(frm, "top_bar_items");
-
-		if ($(frm.fields_dict.top_bar_items.grid.wrapper).find(".grid-row-open")) {
-			frm.fields_dict.top_bar_items.grid.refresh();
-		}
+		frm.fields_dict.top_bar_items.grid.update_docfield_property(
+			'parent_label', 'options', frm.events.get_parent_options(frm, "top_bar_items")
+		);
 	},
 
 	set_parent_label_options_footer: function(frm) {
-		frappe.meta.get_docfield("Top Bar Item", "parent_label", frm.docname).options =
-			frm.events.get_parent_options(frm, "footer_items");
-
-		if ($(frm.fields_dict.footer_items.grid.wrapper).find(".grid-row-open")) {
-			frm.fields_dict.footer_items.grid.refresh();
-		}
+		frm.fields_dict.footer_items.grid.update_docfield_property(
+			'parent_label', 'options', frm.events.get_parent_options(frm, "footer_items")
+		);
 	},
 
 	authorize_api_indexing_access: function(frm) {
@@ -80,9 +87,45 @@ frappe.ui.form.on('Website Settings', {
 		}
 		return main_items.join('\n');
 	},
+
+	edit_navbar_template_values(frm) {
+		frm.events.edit_template_values(frm, 'navbar_template');
+	},
+
+	edit_footer_template_values(frm) {
+		frm.events.edit_template_values(frm, 'footer_template');
+	},
+
+	edit_template_values(frm, template_field) {
+		let values_field = template_field + '_values';
+		let template = frm.doc[template_field];
+		if (!template) {
+			frappe.show_alert(__('Please select {0}', [frm.get_docfield(template_field).label]));
+			return;
+		}
+		let values = JSON.parse(frm.doc[values_field] || "{}");
+		open_web_template_values_editor(template, values)
+			.then(new_values => {
+				frm.set_value(values_field, JSON.stringify(new_values));
+			});
+	}
+
+
 });
 
 frappe.ui.form.on('Top Bar Item', {
+	top_bar_items_delete(frm) {
+		frm.events.set_parent_label_options(frm);
+	},
+
+	footer_items_add(frm, cdt, cdn) {
+		frappe.model.set_value(cdt, cdn, 'right', 0);
+	},
+
+	footer_items_delete(frm) {
+		frm.events.set_parent_label_options_footer(frm);
+	},
+
 	parent_label: function(frm, doctype, name) {
 		frm.events.set_parent_options(frm, doctype, name);
 	},

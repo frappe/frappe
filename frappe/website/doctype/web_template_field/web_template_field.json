@@ -9,7 +9,8 @@
   "fieldname",
   "fieldtype",
   "reqd",
-  "options"
+  "options",
+  "default"
  ],
  "fields": [
   {
@@ -31,7 +32,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Fieldtype",
-   "options": "Attach Image\nCheck\nData\nInt\nSelect\nSmall Text\nText\nMarkdown Editor\nSection Break\nColumn Break",
+   "options": "Attach Image\nCheck\nData\nInt\nLink\nSelect\nSmall Text\nText\nMarkdown Editor\nSection Break\nColumn Break\nTable Break",
    "reqd": 1
   },
   {
@@ -44,11 +45,16 @@
    "fieldname": "options",
    "fieldtype": "Small Text",
    "label": "Options"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Small Text",
+   "label": "Default"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-04-29 14:53:23.192395",
+ "modified": "2020-10-26 17:38:40.798713",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template Field",

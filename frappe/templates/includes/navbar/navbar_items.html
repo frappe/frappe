@@ -7,7 +7,7 @@
 <li class="nav-item dropdown {% if submenu %} dropdown-submenu {% endif %}">
 	<a class="nav-link dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
 		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		{{ item.label }}
+		{{ _(item.label) }}
 	</a>
   	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">
 		{% for child in item.child_items %}
@@ -20,7 +20,7 @@
 <li class="dropdown {% if submenu %} dropdown-submenu {% endif %}">
 	<a class="dropdown-item dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
 		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		{{ item.label }}
+		{{ _(item.label) }}
 	</a>
 	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">
 		{% for child in item.child_items %}
@@ -35,14 +35,14 @@
 {% if parent %}
 <li class="nav-item">
 	<a class="nav-link" href="{{ (item.url or '')|abs_url }}"
-		{{ item.target or ''}}>
-		{{ item.label }}
+		{% if item.open_in_new_tab %} target="_blank" {% endif %}>
+		{{ _(item.label) }}
 	</a>
 </li>
 {% else %}
 <a class="dropdown-item" href="{{ (item.url or '') | abs_url }}"
-	{{ item.target or '' }}>
-	{{ item.label }}
+	{% if item.open_in_new_tab %} target="_blank" {% endif %}>
+	{{ _(item.label) }}
 </a>
 {% endif %}
 
@@ -59,6 +59,7 @@
 </ul>
 {%- endif %}
 <ul class="ml-auto navbar-nav">
+	{% include "templates/includes/navbar/navbar_search.html" %}
 	{%- for item in top_bar_items -%}
 		{% if not item.parent_label and item.right -%}
 			{{ render_item(item, parent=True) }}
@@ -85,12 +86,11 @@
 	</div>
 	{% endif %}
 
-	{% include "templates/includes/navbar/navbar_search.html" %}
 	{% include "templates/includes/navbar/navbar_login.html" %}
 
 </ul>
 {%- if call_to_action -%}
-<a class="btn btn-primary" href="{{ call_to_action_url | abs_url }}">
+<a class="btn btn-primary navbar-cta" href="{{ call_to_action_url | abs_url }}">
 	{{ call_to_action }}
 </a>
 {%- endif -%}

@@ -7,6 +7,10 @@ import unittest
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
 from frappe.utils import ceil, floor
 
+from PIL import Image
+from frappe.utils.image import strip_exif_data
+import io
+
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
 		self.assertTrue(evaluate_filters({'doctype': 'User', 'status': 'Open'}, {'status': 'Open'}))
@@ -122,3 +126,14 @@ class TestHTMLUtils(unittest.TestCase):
 		clean = clean_email_html(sample)
 		self.assertTrue('<h1>Hello</h1>' in clean)
 		self.assertTrue('<a href="http://test.com">text</a>' in clean)
+
+class TestImage(unittest.TestCase):
+	def test_strip_exif_data(self):
+		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
+		original_image_content = io.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg", mode='rb').read()
+
+		new_image_content = strip_exif_data(original_image_content, "image/jpeg")
+		new_image = Image.open(io.BytesIO(new_image_content))
+
+		self.assertEqual(new_image._getexif(), None)
+		self.assertNotEqual(original_image._getexif(), new_image._getexif())

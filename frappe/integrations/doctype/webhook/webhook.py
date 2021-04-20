@@ -18,6 +18,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
+from frappe.utils.safe_exec import get_safe_globals
 
 WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
@@ -75,8 +76,7 @@ class Webhook(Document):
 
 
 def get_context(doc):
-	return {"doc": doc, "utils": frappe.utils}
-
+	return {'doc': doc, 'utils': get_safe_globals().get('frappe').get('utils')}
 
 def enqueue_webhook(doc, webhook):
 	webhook = frappe.get_doc("Webhook", webhook.get("name"))
@@ -85,7 +85,7 @@ def enqueue_webhook(doc, webhook):
 
 	for i in range(3):
 		try:
-			r = requests.post(webhook.request_url, data=json.dumps(data), headers=headers, timeout=5)
+			r = requests.post(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
 			break

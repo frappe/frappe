@@ -1,12 +1,12 @@
 <div align="center">
-    <img src=".github/frappe-framework-logo.png" height="150">
     <h1>
+        <br>
         <a href="https://frappeframework.com">
-            frappe
+            <img src=".github/frappe-framework-logo.svg" height="50">
         </a>
     </h1>
     <h3>
-        a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"
+        a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"</a>
     </h3>
     <h5>
         it's pronounced - <em>fra-pay</em>
@@ -14,10 +14,10 @@
 </div>
 
 <div align="center">
-    <a href="https://travis-ci.com/frappe/frappe">
-        <img src="https://travis-ci.com/frappe/frappe.svg?branch=develop">
+    <a href="https://github.com/frappe/frappe/actions/workflows/ci-tests.yml">
+        <img src="https://github.com/frappe/frappe/actions/workflows/ci-tests.yml/badge.svg?branch=develop">
     </a>
-    <a href='https://frappe.io/docs'>
+    <a href='https://frappeframework.com/docs'>
         <img src='https://img.shields.io/badge/docs-📖-7575FF.svg?style=flat-square'/>
     </a>
 	<a href='https://www.codetriage.com/frappe/frappe'>
@@ -43,7 +43,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 ## Contributing
 
-1. [Pull Request Requirements](https://github.com/frappe/erpnext/wiki/Pull-Request-Guidelines)
+1. [Contribution Guidelines](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
 1. [Translations](https://translate.erpnext.com)
 
 ### Website

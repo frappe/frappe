@@ -1,0 +1,18 @@
+[
+    {
+        "doctype": "Token Cache",
+        "user": "test@example.com",
+        "access_token": "test-access-token",
+        "refresh_token": "test-refresh-token",
+        "token_type": "Bearer",
+        "expires_in": 1000,
+        "scopes": [
+            {
+                "scope": "all"
+            },
+            {
+                "scope": "openid"
+            }
+        ]
+    }
+]

@@ -26,6 +26,7 @@
   "stylesheet_section",
   "custom_overrides",
   "custom_scss",
+  "ignored_apps",
   "theme_scss",
   "theme_url",
   "custom_js_section",
@@ -64,8 +65,10 @@
   },
   {
    "fieldname": "theme_url",
-   "fieldtype": "Read Only",
-   "label": "Theme URL"
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Theme URL",
+   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -126,7 +129,8 @@
   {
    "fieldname": "custom_scss",
    "fieldtype": "Code",
-   "label": "Custom SCSS"
+   "label": "Custom SCSS",
+   "options": "SCSS"
   },
   {
    "fieldname": "light_color",
@@ -167,10 +171,17 @@
    "fieldtype": "Code",
    "label": "Custom Overrides",
    "options": "SCSS"
+  },
+  {
+   "fieldname": "ignored_apps",
+   "fieldtype": "Table",
+   "label": "Ignored Apps",
+   "options": "Website Theme Ignore App"
   }
  ],
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-05-16 18:36:22.203519",
+ "modified": "2021-01-18 17:43:39.804765",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

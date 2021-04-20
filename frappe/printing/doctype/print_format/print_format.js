@@ -19,6 +19,7 @@ frappe.ui.form.on("Print Format", {
 		}
 		frm.trigger('render_buttons');
 		frm.toggle_display('standard', frappe.boot.developer_mode);
+		frm.trigger('hide_absolute_value_field');
 	},
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();
@@ -35,13 +36,20 @@ frappe.ui.form.on("Print Format", {
 			else if (frm.doc.custom_format && !frm.doc.raw_printing) {
 				frm.set_df_property("html", "reqd", 1);
 			}
-			frm.add_custom_button(__("Make Default"), function () {
-				frappe.call({
-					method: "frappe.printing.doctype.print_format.print_format.make_default",
-					args: {
-						name: frm.doc.name
-					}
-				})
+			frappe.db.get_value('DocType', frm.doc.doc_type, 'default_print_format', (r) => {
+				if (r.default_print_format != frm.doc.name) {
+					frm.add_custom_button(__("Set as Default"), function () {
+						frappe.call({
+							method: "frappe.printing.doctype.print_format.print_format.make_default",
+							args: {
+								name: frm.doc.name
+							},
+							callback: function() {
+								frm.refresh();
+							}
+						});
+					});
+				}
 			});
 		}
 	},
@@ -51,5 +59,20 @@ frappe.ui.form.on("Print Format", {
 		frm.set_value('show_section_headings', value);
 		frm.set_value('line_breaks', value);
 		frm.trigger('render_buttons');
+	},
+	doc_type: function (frm) {
+		frm.trigger('hide_absolute_value_field');
+	},
+	hide_absolute_value_field: function (frm) {
+		// TODO: make it work with frm.doc.doc_type
+		// Problem: frm isn't updated in some random cases
+		const doctype = locals[frm.doc.doctype][frm.doc.name].doc_type;
+		if (doctype) {
+			frappe.model.with_doctype(doctype, () => {
+				const meta = frappe.get_meta(doctype);
+				const has_int_float_currency_field = meta.fields.filter(df => in_list(['Int', 'Float', 'Currency'], df.fieldtype));
+				frm.toggle_display('absolute_value', has_int_float_currency_field.length);
+			});
+		}
 	}
-})
+});

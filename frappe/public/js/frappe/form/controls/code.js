@@ -10,7 +10,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			.appendTo(this.input_area);
 
 		this.expanded = false;
-		this.$expand_button = $(`<button class="btn btn-xs btn-default">${__('Expand')}</button>`).click(() => {
+		this.$expand_button = $(`<button class="btn btn-xs btn-default">${this.get_button_label()}</button>`).click(() => {
 			this.expanded = !this.expanded;
 			this.refresh_height();
 			this.toggle_label();
@@ -23,6 +23,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		const ace = window.ace;
 		this.editor = ace.edit(this.ace_editor_target.get(0));
 		this.editor.setTheme('ace/theme/tomorrow');
+		this.editor.setOption("showPrintMargin", false);
 		this.set_language();
 
 		// events
@@ -38,14 +39,19 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	},
 
 	toggle_label() {
-		const button_label = this.expanded ? __('Collapse') : __('Expand');
-		this.$expand_button.text(button_label);
+		this.$expand_button && this.$expand_button.text(this.get_button_label());
+	},
+
+	get_button_label() {
+		return this.expanded ? __('Collapse', null, 'Shrink code field.') : __('Expand', null, 'Enlarge code field.');
 	},
 
 	set_language() {
 		const language_map = {
 			'Javascript': 'ace/mode/javascript',
 			'JS': 'ace/mode/javascript',
+			'Python': 'ace/mode/python',
+			'Py': 'ace/mode/python',
 			'HTML': 'ace/mode/html',
 			'CSS': 'ace/mode/css',
 			'Markdown': 'ace/mode/markdown',
@@ -57,13 +63,14 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		const language = this.df.options;
 
 		const valid_languages = Object.keys(language_map);
-		if (!valid_languages.includes(language)) {
+		if (language && !valid_languages.includes(language)) {
 			// eslint-disable-next-line
 			console.warn(`Invalid language option provided for field "${this.df.label}". Valid options are ${valid_languages.join(', ')}.`);
 		}
 
 		const ace_language_mode = language_map[language] || '';
 		this.editor.session.setMode(ace_language_mode);
+		this.editor.setKeyboardHandler('ace/keyboard/vscode');
 	},
 
 	parse(value) {

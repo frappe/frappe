@@ -24,7 +24,7 @@ html, body {
 		<span class='indicator {{ indicator_color or "blue" }}'>
 			{{ title or _("Message") }}</span>
 	</h5>
-	<div class="page-card-body ellipsis">
+	<div class="page-card-body">
 	{% block message_body %}
 		<p>{{ message or "" }}</p>
 		{% if primary_action %}

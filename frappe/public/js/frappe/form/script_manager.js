@@ -19,7 +19,7 @@ frappe.ui.form.on = frappe.ui.form.on_change = function(doctype, fieldname, hand
 
 		let _handler = (...args) => {
 			try {
-				handler(...args);
+				return handler(...args);
 			} catch (error) {
 				console.error(handler);
 				throw error;
@@ -156,21 +156,27 @@ frappe.ui.form.ScriptManager = Class.extend({
 		return handlers;
 	},
 	setup: function() {
-		var doctype = this.frm.meta;
-		var me = this;
+		const doctype = this.frm.meta;
+		const me = this;
+		let client_script;
 
-		// js
-		var cs = doctype.__js;
-		if(cs) {
-			var tmp = eval(cs);
+		// process the custom script for this form
+		if (this.frm.doctype_layout) {
+			client_script = this.frm.doctype_layout.client_script;
+		} else {
+			client_script = doctype.__js;
 		}
 
-		if(doctype.__custom_js) {
+		if (client_script) {
+			eval(client_script);
+		}
+
+		if (!this.frm.doctype_layout && doctype.__custom_js) {
 			try {
 				eval(doctype.__custom_js);
 			} catch(e) {
 				frappe.msgprint({
-					title: __('Error in Custom Script'),
+					title: __('Error in Client Script'),
 					indicator: 'orange',
 					message: '<pre class="small"><code>' + e.stack  + '</code></pre>'
 				});
@@ -178,7 +184,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		}
 
 		function setup_add_fetch(df) {
-			if((['Data', 'Read Only', 'Text', 'Small Text', 'Currency',
+			if ((['Data', 'Read Only', 'Text', 'Small Text', 'Currency', 'Check',
 				'Text Editor', 'Code', 'Link', 'Float', 'Int', 'Date', 'Select'].includes(df.fieldtype) || df.read_only==1)
 				&& df.fetch_from && df.fetch_from.indexOf(".")!=-1) {
 				var parts = df.fetch_from.split(".");
@@ -202,7 +208,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		this.trigger('setup');
 	},
 	log_error: function(caller, e) {
-		frappe.show_alert("Error in Client Script.");
+		frappe.show_alert({message: __("Error in Client Script."), indicator: "error"});
 		console.group && console.group();
 		console.log("----- error in client script -----");
 		console.log("method: " + caller);

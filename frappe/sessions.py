@@ -15,13 +15,12 @@ from frappe.utils import cint, cstr
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
-from frappe.utils.change_log import get_change_log
 import redis
 from six.moves.urllib.parse import unquote
 from six import text_type
 from frappe.cache_manager import clear_user_cache
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def clear(user=None):
 	frappe.local.session_obj.update(force=True)
 	frappe.local.db.commit()
@@ -115,9 +114,9 @@ def clear_expired_sessions():
 		delete_session(sid, reason="Session Expired")
 
 def get():
-
 	"""get session boot info"""
 	from frappe.boot import get_bootinfo, get_unseen_notes
+	from frappe.utils.change_log import get_change_log
 
 	bootinfo = None
 	if not getattr(frappe.conf,'disable_session_cache', None):
@@ -171,13 +170,6 @@ def get_csrf_token():
 def generate_csrf_token():
 	frappe.local.session.data.csrf_token = frappe.generate_hash()
 	frappe.local.session_obj.update(force=True)
-
-	# send sid and csrf token to the user
-	# handles the case when a user logs in again from another tab
-	# and it leads to invalid request in the current tab
-	frappe.publish_realtime(event="csrf_generated",
-		message={"sid": frappe.local.session.sid, "csrf_token": frappe.local.session.data.csrf_token},
-		user=frappe.session.user, after_commit=True)
 
 class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
@@ -304,8 +296,7 @@ class Session:
 			expiry = get_expiry_in_seconds(session_data.get("session_expiry"))
 
 			if self.time_diff > expiry:
-				print('deleting...')
-				self.delete_session()
+				self._delete_session()
 				data = None
 
 		return data and data.data
@@ -324,12 +315,12 @@ class Session:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
 		else:
-			self.delete_session()
+			self._delete_session()
 			data = None
 
 		return data
 
-	def delete_session(self):
+	def _delete_session(self):
 		delete_session(self.sid, reason="Session Expired")
 
 	def start_as_guest(self):

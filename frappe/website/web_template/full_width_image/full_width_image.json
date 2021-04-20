@@ -17,10 +17,11 @@
   }
  ],
  "idx": 0,
- "modified": "2020-04-26 15:09:18.173851",
+ "modified": "2020-09-11 15:52:40.656939",
  "modified_by": "Administrator",
  "name": "Full Width Image",
  "owner": "Administrator",
  "standard": 1,
- "template": ""
+ "template": "",
+ "type": "Section"
 }

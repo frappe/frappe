@@ -8,7 +8,7 @@ import frappe
 import os
 import unittest
 from frappe import _
-from frappe.core.doctype.file.file import move_file
+from frappe.core.doctype.file.file import move_file, get_files_in_folder
 from frappe.utils import get_files_path
 # test_records = frappe.get_test_records('File')
 
@@ -160,6 +160,31 @@ class TestSameContent(unittest.TestCase):
 	def test_saved_content(self):
 		self.assertFalse(os.path.exists(get_files_path(self.dup_filename)))
 
+	def test_attachment_limit(self):
+		doctype, docname = make_test_doc()
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+		limit_property = make_property_setter('ToDo', None, 'max_attachments', 1, 'int', for_doctype=True)
+		file1 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'test-attachment',
+			"attached_to_doctype": doctype,
+			"attached_to_name": docname,
+			"content": 'test'
+		})
+
+		file1.insert()
+
+		file2 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'test-attachment',
+			"attached_to_doctype": doctype,
+			"attached_to_name": docname,
+			"content": 'test2'
+		})
+
+		self.assertRaises(frappe.exceptions.AttachmentLimitReached, file2.insert)
+		limit_property.delete()
+		frappe.clear_cache(doctype='ToDo')
 
 	def tearDown(self):
 		# File gets deleted on rollback, so blank
@@ -167,12 +192,9 @@ class TestSameContent(unittest.TestCase):
 
 
 class TestFile(unittest.TestCase):
-
-
 	def setUp(self):
 		self.delete_test_data()
 		self.upload_file()
-
 
 	def tearDown(self):
 		try:
@@ -294,4 +316,157 @@ class TestFile(unittest.TestCase):
 		folder = frappe.get_doc("File", "Home/Test Folder 1/Test Folder 3")
 		self.assertRaises(frappe.ValidationError, folder.delete)
 
+	def test_same_file_url_update(self):
+		attached_to_doctype1, attached_to_docname1 = make_test_doc()
+		attached_to_doctype2, attached_to_docname2 = make_test_doc()
 
+		file1 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'file1.txt',
+			"attached_to_doctype": attached_to_doctype1,
+			"attached_to_name": attached_to_docname1,
+			"is_private": 1,
+			"content": test_content1}).insert()
+
+		file2 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'file2.txt',
+			"attached_to_doctype": attached_to_doctype2,
+			"attached_to_name": attached_to_docname2,
+			"is_private": 1,
+			"content": test_content1}).insert()
+
+		self.assertEqual(file1.is_private, file2.is_private, 1)
+		self.assertEqual(file1.file_url, file2.file_url)
+		self.assertTrue(os.path.exists(file1.get_full_path()))
+
+		file1.is_private = 0
+		file1.save()
+
+		file2 = frappe.get_doc('File', file2.name)
+
+		self.assertEqual(file1.is_private, file2.is_private, 0)
+		self.assertEqual(file1.file_url, file2.file_url)
+		self.assertTrue(os.path.exists(file2.get_full_path()))
+
+	def test_parent_directory_validation_in_file_url(self):
+		file1 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'parent_dir.txt',
+			"attached_to_doctype": "",
+			"attached_to_name": "",
+			"is_private": 1,
+			"content": test_content1}).insert()
+
+		file1.file_url = '/private/files/../test.txt'
+		self.assertRaises(frappe.exceptions.ValidationError, file1.save)
+
+		# No validation to see if file exists
+		file1.reload()
+		file1.file_url = '/private/files/parent_dir2.txt'
+		file1.save()
+
+class TestAttachment(unittest.TestCase):
+	test_doctype = 'Test For Attachment'
+
+	def setUp(self):
+		if frappe.db.exists('DocType', self.test_doctype):
+			return
+
+		frappe.get_doc(
+			doctype='DocType',
+			name=self.test_doctype,
+			module='Custom',
+			custom=1,
+			fields=[
+				{'label': 'Title', 'fieldname': 'title', 'fieldtype': 'Data'},
+				{'label': 'Attachment', 'fieldname': 'attachment', 'fieldtype': 'Attach'},
+			]
+		).insert()
+
+	def tearDown(self):
+		frappe.delete_doc('DocType', self.test_doctype)
+
+	def test_file_attachment_on_update(self):
+		doc = frappe.get_doc(
+			doctype=self.test_doctype,
+			title='test for attachment on update'
+		).insert()
+
+		file = frappe.get_doc({
+			'doctype': 'File',
+			'file_name': 'test_attach.txt',
+			'content': 'Test Content'
+		})
+		file.save()
+
+		doc.attachment = file.file_url
+		doc.save()
+
+		exists = frappe.db.exists('File', {
+			'file_name': 'test_attach.txt',
+			'file_url': file.file_url,
+			'attached_to_doctype': self.test_doctype,
+			'attached_to_name': doc.name,
+			'attached_to_field': 'attachment'
+		})
+
+		self.assertTrue(exists)
+
+
+class TestAttachmentsAccess(unittest.TestCase):
+
+	def test_attachments_access(self):
+
+		frappe.set_user('test4@example.com')
+		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
+
+		frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'test_user.txt',
+			"attached_to_doctype": self.attached_to_doctype,
+			"attached_to_name": self.attached_to_docname,
+			"content": 'Testing User'
+		}).insert()
+
+		frappe.get_doc({
+			"doctype": "File",
+			"file_name": "test_user_home.txt",
+			"content": 'User Home',
+		}).insert()
+
+		frappe.set_user('test@example.com')
+
+		frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'test_system_manager.txt',
+			"attached_to_doctype": self.attached_to_doctype,
+			"attached_to_name": self.attached_to_docname,
+			"content": 'Testing System Manager'
+		}).insert()
+
+		frappe.get_doc({
+			"doctype": "File",
+			"file_name": "test_sm_home.txt",
+			"content": 'System Manager Home',
+		}).insert()
+
+		system_manager_files = [file.file_name for file in get_files_in_folder('Home')['files']]
+		system_manager_attachments_files = [file.file_name for file in get_files_in_folder('Home/Attachments')['files']]
+
+		frappe.set_user('test4@example.com')
+		user_files = [file.file_name for file in get_files_in_folder('Home')['files']]
+		user_attachments_files = [file.file_name for file in get_files_in_folder('Home/Attachments')['files']]
+
+		self.assertIn('test_sm_home.txt', system_manager_files)
+		self.assertNotIn('test_sm_home.txt', user_files)
+		self.assertIn('test_user_home.txt', system_manager_files)
+		self.assertIn('test_user_home.txt', user_files)
+
+		self.assertIn('test_system_manager.txt', system_manager_attachments_files)
+		self.assertNotIn('test_system_manager.txt', user_attachments_files)
+		self.assertIn('test_user.txt', system_manager_attachments_files)
+		self.assertIn('test_user.txt', user_attachments_files)
+
+		frappe.set_user('Administrator')
+		frappe.db.rollback()

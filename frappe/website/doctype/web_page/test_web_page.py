@@ -53,4 +53,24 @@ class TestWebPage(unittest.TestCase):
 		web_page.save()
 		self.assertTrue('html content' in get_page_content('/test-content-type'))
 
+		web_page.delete()
+
+	def test_dynamic_route(self):
+		web_page = frappe.get_doc(dict(
+			doctype = 'Web Page',
+			title = 'Test Dynamic Route',
+			published = 1,
+			dynamic_route = 1,
+			route = '/doctype-view/<doctype>',
+			content_type = 'HTML',
+			dymamic_template = 1,
+			main_section_html = '<div>{{ frappe.form_dict.doctype }}</div>'
+		)).insert()
+
+		try:
+			content = get_page_content('/doctype-view/DocField')
+			self.assertTrue('<div>DocField</div>' in content)
+		finally:
+			web_page.delete()
+
 

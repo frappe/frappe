@@ -160,7 +160,7 @@ Cypress.Commands.add('remove_doc', (doctype, name) => {
 
 Cypress.Commands.add('create_records', doc => {
 	return cy
-		.call('frappe.tests.ui_test_helpers.create_if_not_exists', { doc })
+		.call('frappe.tests.ui_test_helpers.create_if_not_exists', {doc})
 		.then(r => r.message);
 });
 
@@ -186,7 +186,7 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
 	if (fieldtype === 'Select') {
 		cy.get('@input').select(value);
 	} else {
-		cy.get('@input').type(value, { waitForAnimations: false, force: true });
+		cy.get('@input').type(value, {waitForAnimations: false, force: true});
 	}
 	return cy.get('@input');
 });
@@ -204,19 +204,54 @@ Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
 	return cy.get(selector);
 });
 
+Cypress.Commands.add('fill_table_field', (tablefieldname, row_idx, fieldname, value, fieldtype = 'Data') => {
+	cy.get_table_field(tablefieldname, row_idx, fieldname, fieldtype).as('input');
+
+	if (['Date', 'Time', 'Datetime'].includes(fieldtype)) {
+		cy.get('@input').click().wait(200);
+		cy.get('.datepickers-container .datepicker.active').should('exist');
+	}
+	if (fieldtype === 'Time') {
+		cy.get('@input').clear().wait(200);
+	}
+
+	if (fieldtype === 'Select') {
+		cy.get('@input').select(value);
+	} else {
+		cy.get('@input').type(value, {waitForAnimations: false, force: true});
+	}
+	return cy.get('@input');
+});
+
+Cypress.Commands.add('get_table_field', (tablefieldname, row_idx, fieldname, fieldtype = 'Data') => {
+	let selector = `.frappe-control[data-fieldname="${tablefieldname}"]`;
+	selector += ` [data-idx="${row_idx}"]`;
+	selector += ` .form-in-grid`;
+
+	if (fieldtype === 'Text Editor') {
+		selector += ` [data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]`;
+	} else if (fieldtype === 'Code') {
+		selector += ` [data-fieldname="${fieldname}"] .ace_text-input`;
+	} else {
+		selector += ` .form-control[data-fieldname="${fieldname}"]`;
+	}
+
+	return cy.get(selector);
+});
+
 Cypress.Commands.add('awesomebar', text => {
-	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, { delay: 100 });
+	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, {delay: 100});
 });
 
 Cypress.Commands.add('new_form', doctype => {
-	let route = `Form/${doctype}/New ${doctype} 1`;
-	cy.visit(`/desk#${route}`);
-	cy.get('body').should('have.attr', 'data-route', route);
+	let dt_in_route = doctype.toLowerCase().replace(/ /g, '-');
+	cy.visit(`/app/${dt_in_route}/new`);
+	cy.get('body').should('have.attr', 'data-route', `Form/${doctype}/new-${dt_in_route}-1`);
 	cy.get('body').should('have.attr', 'data-ajax-state', 'complete');
 });
 
 Cypress.Commands.add('go_to_list', doctype => {
-	cy.visit(`/desk#List/${doctype}/List`);
+	cy.visit(`/app/list/${doctype}/list`);
 });
 
 Cypress.Commands.add('clear_cache', () => {
@@ -240,9 +275,8 @@ Cypress.Commands.add('get_open_dialog', () => {
 });
 
 Cypress.Commands.add('hide_dialog', () => {
-	cy.get_open_dialog()
-		.find('.btn-modal-close')
-		.click();
+	cy.wait(300);
+	cy.get_open_dialog().find('.btn-modal-close').click();
 	cy.get('.modal:visible').should('not.exist');
 });
 
@@ -272,4 +306,21 @@ Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
 					return res.body.data;
 				});
 		});
+});
+
+Cypress.Commands.add('add_filter', () => {
+	cy.get('.filter-section .filter-button').click();
+	cy.wait(300);
+	cy.get('.filter-popover').should('exist');
+});
+
+Cypress.Commands.add('clear_filters', () => {
+	cy.get('.filter-section .filter-button').click();
+	cy.wait(300);
+	cy.get('.filter-popover').should('exist');
+	cy.get('.filter-popover').find('.clear-filters').click();
+	cy.get('.filter-section .filter-button').click();
+	cy.window().its('cur_list').then(cur_list => {
+		cur_list && cur_list.filter_area && cur_list.filter_area.clear();
+	});
 });

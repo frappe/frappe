@@ -1,0 +1,145 @@
+$threshold: 34;
+
+@mixin timeline-badge($badge-size) {
+	width: $badge-size;
+	height: $badge-size;
+	border-radius: 50%;
+	font-size: var(--text-xs);
+	position: absolute;
+	// doing this will prevent cssnano from converting 0px to 0
+	// clamp requires value unit to be valid
+	--zero-px: 0px;
+	top: unquote("clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
+	left: calc(-1 * (#{$badge-size} / 2));
+	background-color: var(--fg-color);
+	border: 1px solid var(--dark-border-color);
+	@extend .center-content;
+	--icon-stroke: var(--gray-600);
+}
+
+.new-timeline {
+	position: relative;
+	padding-left: var(--timeline-left-padding);
+	padding-top: var(--padding-lg);
+
+	@include media-breakpoint-down(xs) {
+		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
+	}
+
+	&:before {
+		content: ' ';
+		top: 40px; // TODO: get top and bottom programmatically
+		position: absolute;
+		border-left: 1px solid var(--dark-border-color);
+		bottom: calc(-1 * var(--timeline-item-bottom-margin) + 25px);
+	}
+	.timeline-dot {
+		@include timeline-badge(16px);
+		&:before {
+			content: ' ';
+			background: var(--gray-600);
+			border-radius: 50%;
+			height: 4px;
+			width: 4px;
+		}
+	}
+	.activity-toggle {
+		h4 {
+			margin-bottom: 0;
+			font-weight: 700;
+		}
+		nav {
+			margin-left: var(--margin-md);
+			.nav-link {
+				padding: var(--padding-xs) var(--padding-sm);
+				margin-right: var(--margin-xs);
+				border-radius: 50px;
+			}
+		}
+	}
+	.timeline-actions {
+		display: inline-flex;
+		width: 100%;
+		margin-bottom: var(--timeline-item-bottom-margin);
+		padding: var(--padding-sm);
+		position: relative;
+		.action-btn {
+			margin-left: var(--margin-md);
+			display: flex;
+			align-items: center;
+			line-height: var(--text-xl);
+			.icon {
+				margin-right: var(--margin-xs);
+			}
+		}
+		.action-btn:first-of-type {
+			margin-left: var(--timeline-item-left-margin);
+		}
+	}
+	.document-email-link-container {
+		@extend .ellipsis;
+		position: relative;
+		padding: var(--padding-sm);
+		font-size: var(--text-sm);
+		margin-bottom: var(--timeline-item-bottom-margin);
+		span:first-of-type {
+			margin-left: var(--timeline-item-left-margin);
+		}
+	}
+	.timeline-item {
+		font-size: var(--text-md);
+		position: relative;
+		margin-bottom: var(--timeline-item-bottom-margin);
+		b {
+			color: var(--text-color);
+			font-weight: var(--text-bold);
+		}
+		.timeline-content {
+			max-width: var(--timeline-content-max-width);
+			padding: var(--padding-sm);
+			margin-left: var(--timeline-item-left-margin);
+			&.frappe-card {
+				@include card($padding: var(--padding-md));
+				margin: calc(var(--timeline-item-bottom-margin) + var(--padding-md)) 0;
+				margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));
+			}
+		}
+		.timeline-badge {
+			@include timeline-badge(var(--timeline-item-icon-size))
+		}
+
+		.timeline-message-box {
+			.content {
+				margin-top: var(--margin-md);
+				overflow: auto;
+				max-height: 500px;
+			}
+
+			.actions {
+				display: flex;
+				> * {
+					color: var(--text-muted);
+				}
+			}
+
+			.action-btn {
+				padding: 0;
+				padding-bottom: 0;
+				margin-left: var(--margin-sm);
+				--icon-stroke: var(--text-muted);
+			}
+
+			.action-btn:hover {
+				text-decoration: none;
+				--icon-stroke: var(--text-color);
+			}
+		}
+		.comment-edit-box {
+			background-color: var(--control-bg);
+			border: 1px solid var(--border-color);
+			border-radius: var(--border-radius-sm);
+			margin-top: var(--margin-sm);
+			--icon-stroke: var(--text-color);
+		}
+	}
+}

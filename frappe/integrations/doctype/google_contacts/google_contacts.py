@@ -2,17 +2,17 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe
-import requests
-import googleapiclient.discovery
-import google.oauth2.credentials
 
-from frappe.model.document import Document
-from frappe import _
+import google.oauth2.credentials
+import requests
+from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from frappe.utils import get_request_site_address
+
+import frappe
+from frappe import _
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.model.document import Document
+from frappe.utils import get_request_site_address
 
 SCOPES = "https://www.googleapis.com/auth/contacts"
 
@@ -79,7 +79,7 @@ def authorize_access(g_contact, reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/desk#Form/Google%20Contacts/{}".format(google_contact.name)
+			frappe.local.response["location"] = "/app/Form/Google%20Contacts/{}".format(google_contact.name)
 
 			frappe.msgprint(_("Google Contacts has been configured."))
 		except Exception as e:
@@ -118,7 +118,12 @@ def get_google_contacts_object(g_contact):
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
-	google_contacts = googleapiclient.discovery.build("people", "v1", credentials=credentials)
+	google_contacts = build(
+		serviceName="people",
+		version="v1",
+		credentials=credentials,
+		static_discovery=False
+	)
 
 	return google_contacts, account
 

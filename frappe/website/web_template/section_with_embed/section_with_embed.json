@@ -1,0 +1,32 @@
+{
+ "creation": "2020-08-18 17:45:13.606363",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "reqd": 0
+  },
+  {
+   "fieldname": "embed_html",
+   "fieldtype": "Markdown Editor",
+   "label": "Embed HTML",
+   "reqd": 0
+  }
+ ],
+ "idx": 2,
+ "modified": "2020-09-11 15:52:40.439927",
+ "modified_by": "Administrator",
+ "name": "Section with Embed",
+ "owner": "Administrator",
+ "standard": 1,
+ "type": "Section"
+}

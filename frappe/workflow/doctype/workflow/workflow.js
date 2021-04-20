@@ -44,7 +44,9 @@ frappe.ui.form.on("Workflow", {
 			const get_field_method = 'frappe.workflow.doctype.workflow.workflow.get_fieldnames_for';
 			frappe.xcall(get_field_method, { doctype: doc.document_type })
 				.then(resp => {
-					frappe.meta.get_docfield("Workflow Document State", "update_field", frm.doc.name).options = [""].concat(resp);
+					frm.fields_dict.states.grid.update_docfield_property(
+						'update_field', 'options', [""].concat(resp)
+					);
 				})
 		}
 	},
@@ -53,9 +55,8 @@ frappe.ui.form.on("Workflow", {
 			`<p class="bold">
 				${__('Are you sure you want to save this document?')}
 			</p>
-			<p>${__(`There are documents which have workflow states that do not exist in this Workflow.
-				It is recommended that you add these states to the Workflow and change their states
-				before removing these states.`)}
+			<p>
+				${__("There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states.")}
 			</p>`;
 		const message_html = warning_html + frm.state_table_html;
 		let proceed_action = () => {
@@ -63,7 +64,12 @@ frappe.ui.form.on("Workflow", {
 			frm.save();
 		};
 
-		frappe.warn(__(`Worflow States Don't Exist`), message_html, proceed_action, __(`Save Anyway`));
+		frappe.warn(
+			__("Worflow States Don't Exist"),
+			message_html,
+			proceed_action,
+			__("Save Anyway")
+		);
 	},
 	set_table_html: function(frm) {
 
@@ -96,6 +102,7 @@ frappe.ui.form.on("Workflow", {
 		});
 	},
 	get_orphaned_states_and_count: function(frm) {
+		if (frm.is_new()) return;
 		let states_list = [];
 		frm.doc.states.map(state => states_list.push(state.state));
 		return frappe.xcall('frappe.workflow.doctype.workflow.workflow.get_workflow_state_count', {
@@ -144,4 +151,3 @@ frappe.ui.form.on("Workflow Document State", {
 		});
 	}
 });
-

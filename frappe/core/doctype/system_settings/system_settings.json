@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "localization",
+  "app_name",
   "country",
   "language",
   "column_break_3",
@@ -37,9 +38,11 @@
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "allow_error_traceback",
+  "strip_exif_metadata_from_uploaded_images",
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
+  "password_reset_limit",
   "column_break_31",
   "enable_password_policy",
   "minimum_password_score",
@@ -59,9 +62,12 @@
   "column_break_18",
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
+  "attach_view_link",
+  "prepared_report_section",
+  "enable_prepared_report_auto_deletion",
+  "prepared_report_expiry_period",
   "chat",
-  "enable_chat",
-  "use_socketio_to_upload_file"
+  "enable_chat"
  ],
  "fields": [
   {
@@ -351,7 +357,7 @@
    "collapsible": 1,
    "fieldname": "email",
    "fieldtype": "Section Break",
-   "label": "EMail"
+   "label": "Email"
   },
   {
    "description": "Your organization name and address for the email footer.",
@@ -388,12 +394,6 @@
    "label": "Enable Chat"
   },
   {
-   "default": "1",
-   "fieldname": "use_socketio_to_upload_file",
-   "fieldtype": "Check",
-   "label": "Use socketio to upload file"
-  },
-  {
    "fieldname": "column_break_21",
    "fieldtype": "Column Break"
   },
@@ -412,6 +412,13 @@
    "label": "Run Jobs only Daily if Inactive For (Days)"
   },
   {
+   "default": "3",
+   "description": "Hourly rate limit for generating password reset links",
+   "fieldname": "password_reset_limit",
+   "fieldtype": "Int",
+   "label": "Password Reset Link Generation Limit"
+  },
+  {
    "default": "1",
    "fieldname": "logout_on_password_reset",
    "fieldtype": "Check",
@@ -422,12 +429,52 @@
    "fieldname": "enable_onboarding",
    "fieldtype": "Check",
    "label": "Enable Onboarding"
+  },
+  {
+   "default": "1",
+   "fieldname": "attach_view_link",
+   "fieldtype": "Check",
+   "label": "Send document Web View link in email"
+  },
+  {
+   "default": "30",
+   "depends_on": "enable_prepared_report_auto_deletion",
+   "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
+   "fieldname": "prepared_report_expiry_period",
+   "fieldtype": "Int",
+   "label": "Prepared Report Expiry Period (Days)"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_prepared_report_auto_deletion",
+   "fieldtype": "Check",
+   "label": "Enable Auto-deletion of Prepared Reports"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "prepared_report_section",
+   "fieldtype": "Section Break",
+   "label": "Prepared Report"
+  },
+  {
+   "default": "Frappe",
+   "description": "The application name will be used in the Login page.",
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Application Name"
+  },
+  {
+   "default": "1",
+   "fieldname": "strip_exif_metadata_from_uploaded_images",
+   "fieldtype": "Check",
+   "label": "Strip EXIF tags from uploaded images"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-05-01 19:21:15.496065",
+ "modified": "2021-03-30 11:47:47.330437",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

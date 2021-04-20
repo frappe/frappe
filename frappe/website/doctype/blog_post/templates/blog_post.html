@@ -12,7 +12,7 @@
 			<div>
 				<a class="mr-2" href="/blog">{{ _('Blog') }}</a>
 				<span class="text-muted">/</span>
-				<a class="ml-2" href="/blog/{{ category.title }}">{{ category.title }}</a>
+				<a class="ml-2" href="/{{ category.route }}">{{ category.title }}</a>
 			</div>
 			<h1 itemprop="headline" class="blog-title">{{ title }}</h1>
 			<p class="blog-intro">
@@ -33,17 +33,14 @@
 		<!-- end blog content -->
 	</article>
 	{%- if enable_cta -%}
-		{{ web_blocks([
-				{
-					'template': "Section With Small CTA",
-					'values': cta,
-					'add_container': 0,
-					'add_top_padding': 0,
-					'add_bottom_padding': 0,
-					'css_class': "my-5"
-				}
-			])
-		}}
+		{{ web_block(
+			"Section With Small CTA",
+			values=cta,
+			add_container=0,
+			add_top_padding=0,
+			add_bottom_padding=0,
+			css_class="my-5"
+		) }}
 	{%- endif -%}
 	<div class="blog-footer">
 		<div>

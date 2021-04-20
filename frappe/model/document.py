@@ -4,9 +4,8 @@
 from __future__ import unicode_literals, print_function
 import frappe
 import time
-from frappe import _, msgprint
+from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
-from frappe.utils.background_jobs import enqueue
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from six import iteritems, string_types
@@ -28,6 +27,7 @@ def get_doc(*args, **kwargs):
 
 	:param arg1: Document dict or DocType name.
 	:param arg2: [optional] document name.
+	:param for_update: [optional] select document for update.
 
 	There are multiple ways to call `get_doc`
 
@@ -45,6 +45,9 @@ def get_doc(*args, **kwargs):
 
 		# create new object with keyword arguments
 		user = get_doc(doctype='User', email_id='test@example.com')
+
+		# select a document for update
+		user = get_doc("User", "test@example.com", for_update=True)
 	"""
 	if args:
 		if isinstance(args[0], BaseDocument):
@@ -60,7 +63,7 @@ def get_doc(*args, **kwargs):
 		else:
 			raise ValueError('First non keyword argument must be a string or dict')
 
-	if kwargs:
+	if len(args) < 2 and kwargs:
 		if 'doctype' in kwargs:
 			doctype = kwargs['doctype']
 		else:
@@ -103,6 +106,9 @@ class Document(BaseDocument):
 				else:
 					self.name = args[1]
 
+				if 'for_update' in kwargs:
+					self.flags.for_update = kwargs.get('for_update')
+
 			self.load_from_db()
 			return
 
@@ -120,10 +126,10 @@ class Document(BaseDocument):
 			raise ValueError('Illegal arguments')
 
 	@staticmethod
-	def whitelist(f):
+	def whitelist(fn):
 		"""Decorator: Whitelist method to be called remotely via REST API."""
-		f.whitelisted = True
-		return f
+		frappe.whitelist()(fn)
+		return fn
 
 	def reload(self):
 		"""Reload document from database"""
@@ -144,7 +150,7 @@ class Document(BaseDocument):
 			self._fix_numeric_types()
 
 		else:
-			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
+			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1, for_update=self.flags.for_update)
 			if not d:
 				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
 
@@ -232,9 +238,6 @@ class Document(BaseDocument):
 		self._validate()
 		self.set_docstatus()
 		self.flags.in_insert = False
-
-		# follow document on document creation
-
 
 		# run validate, on update etc.
 
@@ -396,9 +399,21 @@ class Document(BaseDocument):
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
+	def has_value_changed(self, fieldname):
+		'''Returns true if value is changed before and after saving'''
+		previous = self.get_doc_before_save()
+		return previous.get(fieldname)!=self.get(fieldname) if previous else True
+
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
+
 		if self.flags.name_set and not force:
+			return
+
+		# If autoname has set as Prompt (name)
+		if self.get("__newname"):
+			self.name = self.get("__newname")
+			self.flags.name_set = True
 			return
 
 		if set_name:
@@ -477,6 +492,7 @@ class Document(BaseDocument):
 		self._validate_mandatory()
 		self._validate_data_fields()
 		self._validate_selects()
+		self._validate_non_negative()
 		self._validate_length()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
@@ -487,6 +503,7 @@ class Document(BaseDocument):
 		for d in children:
 			d._validate_data_fields()
 			d._validate_selects()
+			d._validate_non_negative()
 			d._validate_length()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
@@ -497,6 +514,21 @@ class Document(BaseDocument):
 				self.set(fieldname, None)
 		else:
 			self.validate_set_only_once()
+
+	def _validate_non_negative(self):
+		def get_msg(df):
+			if self.parentfield:
+				return "{} {} #{}: {} {}".format(frappe.bold(_(self.doctype)),
+					_("Row"), self.idx, _("Value cannot be negative for"), frappe.bold(_(df.label)))
+			else:
+				return _("Value cannot be negative for {0}: {1}").format(_(df.parent), frappe.bold(_(df.label)))
+
+		for df in self.meta.get('fields', {'non_negative': ('=', 1),
+			'fieldtype': ('in', ['Int', 'Float', 'Currency'])}):
+
+			if flt(self.get(df.fieldname)) < 0:
+				msg = get_msg(df)
+				frappe.throw(msg, frappe.NonNegativeError, title=_("Negative Value"))
 
 	def validate_workflow(self):
 		"""Validate if the workflow transition is valid"""
@@ -558,9 +590,18 @@ class Document(BaseDocument):
 
 	def apply_fieldlevel_read_permissions(self):
 		"""Remove values the user is not allowed to read (called when loading in desk)"""
+
+		if frappe.session.user == "Administrator":
+			return
+
 		has_higher_permlevel = False
-		for p in self.get_permissions():
-			if p.permlevel > 0:
+
+		all_fields = self.meta.fields.copy()
+		for table_field in self.meta.get_table_fields():
+			all_fields += frappe.get_meta(table_field.options).fields or []
+
+		for df in all_fields:
+			if df.permlevel > 0:
 				has_higher_permlevel = True
 				break
 
@@ -584,6 +625,9 @@ class Document(BaseDocument):
 		if self.flags.ignore_permissions or frappe.flags.in_install:
 			return
 
+		if frappe.session.user == "Administrator":
+			return
+
 		has_access_to = self.get_permlevel_access()
 		high_permlevel_fields = self.meta.get_high_permlevel_fields()
 
@@ -604,13 +648,12 @@ class Document(BaseDocument):
 		if not hasattr(self, "_has_access_to"):
 			self._has_access_to = {}
 
-		if not self._has_access_to.get(permission_type):
-			self._has_access_to[permission_type] = []
-			roles = frappe.get_roles()
-			for perm in self.get_permissions():
-				if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
-					if perm.permlevel not in self._has_access_to[permission_type]:
-						self._has_access_to[permission_type].append(perm.permlevel)
+		self._has_access_to[permission_type] = []
+		roles = frappe.get_roles()
+		for perm in self.get_permissions():
+			if perm.role in roles and perm.get(permission_type):
+				if perm.permlevel not in self._has_access_to[permission_type]:
+					self._has_access_to[permission_type].append(perm.permlevel)
 
 		return self._has_access_to[permission_type]
 
@@ -654,7 +697,7 @@ class Document(BaseDocument):
 		`self.check_docstatus_transition`."""
 		conflict = False
 		self._action = "save"
-		if not self.get('__islocal'):
+		if not self.get('__islocal') and not self.meta.get('is_virtual'):
 			if self.meta.issingle:
 				modified = frappe.db.sql("""select value from tabSingles
 					where doctype=%s and field='modified' for update""", self.doctype)
@@ -825,7 +868,7 @@ class Document(BaseDocument):
 
 	def run_notifications(self, method):
 		"""Run notifications for this method"""
-		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
+		if (frappe.flags.in_import and frappe.flags.mute_emails) or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
 		if self.flags.notifications_executed==None:
@@ -889,9 +932,9 @@ class Document(BaseDocument):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self._cancel()
 
-	def delete(self):
+	def delete(self, ignore_permissions=False):
 		"""Delete document."""
-		frappe.delete_doc(self.doctype, self.name, flags=self.flags)
+		frappe.delete_doc(self.doctype, self.name, ignore_permissions = ignore_permissions, flags=self.flags)
 
 	def run_before_save_methods(self):
 		"""Run standard methods before  `INSERT` or `UPDATE`. Standard Methods are:
@@ -906,15 +949,17 @@ class Document(BaseDocument):
 		self.load_doc_before_save()
 		self.reset_seen()
 
+		# before_validate method should be executed before ignoring validations
+		if self._action in ("save", "submit"):
+			self.run_method("before_validate")
+
 		if self.flags.ignore_validate:
 			return
 
 		if self._action=="save":
-			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_save")
 		elif self._action=="submit":
-			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_submit")
 		elif self._action=="cancel":
@@ -961,27 +1006,12 @@ class Document(BaseDocument):
 
 		update_global_search(self)
 
-		if getattr(self.meta, 'track_changes', False) and not self.flags.ignore_version \
-			and not self.doctype == 'Version' and not frappe.flags.in_install:
-			self.save_version()
+		self.save_version()
 
 		self.run_method('on_change')
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
-
-		# make event update log for doctypes having event consumers
-		if not frappe.flags.in_install and not frappe.flags.in_migrate and check_doctype_has_consumers(self.doctype):
-			if self.flags.update_log_for_doc_creation:
-				make_event_update_log(self, update_type='Create')
-				self.flags.update_log_for_doc_creation = False
-			else:
-				from frappe.event_streaming.doctype.event_update_log.event_update_log import get_update
-				diff = get_update(doc_before_save, self)
-				if diff:
-					doc = self
-					doc.diff = diff
-					make_event_update_log(doc, update_type='Update')
 
 		self.latest = None
 
@@ -995,6 +1025,8 @@ class Document(BaseDocument):
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
+		if frappe.flags.in_patch: return
+
 		frappe.publish_realtime("doc_update", {"modified": self.modified, "doctype": self.doctype, "name": self.name},
 			doctype=self.doctype, docname=self.name, after_commit=True)
 
@@ -1059,7 +1091,14 @@ class Document(BaseDocument):
 
 	def save_version(self):
 		"""Save version info"""
-		if not self._doc_before_save and frappe.flags.in_patch: return
+
+		# don't track version under following conditions
+		if (not getattr(self.meta, 'track_changes', False)
+			or self.doctype == 'Version'
+			or self.flags.ignore_version
+			or frappe.flags.in_install
+			or (not self._doc_before_save and frappe.flags.in_patch)):
+			return
 
 		version = frappe.new_doc('Version')
 		if not self._doc_before_save:
@@ -1068,6 +1107,7 @@ class Document(BaseDocument):
 		elif version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
+				# follow since you made a change?
 				follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
@@ -1108,12 +1148,12 @@ class Document(BaseDocument):
 
 		return composer
 
-	def is_whitelisted(self, method):
-		fn = getattr(self, method, None)
-		if not fn:
-			raise NotFound("Method {0} not found".format(method))
-		elif not getattr(fn, "whitelisted", False):
-			raise Forbidden("Method {0} not whitelisted".format(method))
+	def is_whitelisted(self, method_name):
+		method = getattr(self, method_name, None)
+		if not method:
+			raise NotFound("Method {0} not found".format(method_name))
+
+		is_whitelisted(getattr(method, '__func__', method))
 
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""Check that value of fieldname should be 'condition' val2
@@ -1162,8 +1202,8 @@ class Document(BaseDocument):
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
 
 	def get_url(self):
-		"""Returns Desk URL for this document. `/desk#Form/{doctype}/{name}`"""
-		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
+		"""Returns Desk URL for this document. `/app/Form/{doctype}/{name}`"""
+		return "/app/Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
 
 	def add_comment(self, comment_type='Comment', text=None, comment_email=None, link_doctype=None, link_name=None, comment_by=None):
 		"""Add a comment to this document.
@@ -1239,6 +1279,8 @@ class Document(BaseDocument):
 		# call _submit instead of submit, so you can override submit to call
 		# run_delayed based on some action
 		# See: Stock Reconciliation
+		from frappe.utils.background_jobs import enqueue
+
 		if hasattr(self, '_' + action):
 			action = '_' + action
 
@@ -1295,6 +1337,16 @@ class Document(BaseDocument):
 		users = set([assignment.owner for assignment in assignments])
 		return users
 
+	def add_tag(self, tag):
+		"""Add a Tag to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+		DocTags(self.doctype).add(self.name, tag)
+
+	def get_tags(self):
+		"""Return a list of Tags attached to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+
 def execute_action(doctype, name, action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""
 	doc = frappe.get_doc(doctype, name)
@@ -1314,34 +1366,4 @@ def execute_action(doctype, name, action, **kwargs):
 		doc.notify_update()
 
 
-def make_event_update_log(doc, update_type):
-	"""Save update info for doctypes that have event consumers"""
-	if update_type != 'Delete':
-		# diff for update type, doc for create type
-		data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
-	else:
-		data = None
-	log_doc = frappe.get_doc({
-		'doctype': 'Event Update Log',
-		'update_type': update_type,
-		'ref_doctype': doc.doctype,
-		'docname': doc.name,
-		'data': data
-	})
-	log_doc.insert(ignore_permissions=True)
-	frappe.db.commit()
 
-
-def check_doctype_has_consumers(doctype):
-	"""Check if doctype has event consumers for event streaming"""
-	if not frappe.db.exists('DocType', 'Event Consumer'):
-		return False
-
-	event_consumers = frappe.get_all('Event Consumer Document Type', {
-		'ref_doctype': doctype,
-		'status': 'Approved'
-	}, limit=1)
-
-	if len(event_consumers) and event_consumers[0]:
-		return True
-	return False

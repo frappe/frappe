@@ -42,9 +42,12 @@ def get_dynamic_link_map(for_delete=False):
 				# always check in Single DocTypes
 				dynamic_link_map.setdefault(meta.name, []).append(df)
 			else:
-				links = frappe.db.sql_list("""select distinct {options} from `tab{parent}`""".format(**df))
-				for doctype in links:
-					dynamic_link_map.setdefault(doctype, []).append(df)
+				try:
+					links = frappe.db.sql_list("""select distinct {options} from `tab{parent}`""".format(**df))
+					for doctype in links:
+						dynamic_link_map.setdefault(doctype, []).append(df)
+				except frappe.db.TableMissingError: # noqa: E722
+					pass
 
 		frappe.local.dynamic_link_map = dynamic_link_map
 	return frappe.local.dynamic_link_map

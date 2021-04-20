@@ -10,15 +10,15 @@ app_icon = "octicon octicon-circuit-board"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
-app_logo_url = '/assets/frappe/images/frappe-framework-logo.png'
+app_logo_url = '/assets/frappe/images/frappe-framework-logo.svg'
 
-develop_version = '12.x.x-develop'
+develop_version = '13.x.x-develop'
 
 app_email = "info@frappe.io"
 
 docs_app = "frappe_io"
 
-translator_url = "https://translatev2.erpnext.com"
+translator_url = "https://translate.erpnext.com"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -29,19 +29,22 @@ page_js = {
 
 # website
 app_include_js = [
-	"assets/js/libs.min.js",
-	"assets/js/desk.min.js",
-	"assets/js/list.min.js",
-	"assets/js/form.min.js",
-	"assets/js/control.min.js",
-	"assets/js/report.min.js",
+	"/assets/js/libs.min.js",
+	"/assets/js/desk.min.js",
+	"/assets/js/list.min.js",
+	"/assets/js/form.min.js",
+	"/assets/js/control.min.js",
+	"/assets/js/report.min.js",
 ]
 app_include_css = [
-	"assets/css/desk.min.css",
-	"assets/css/list.min.css",
-	"assets/css/form.min.css",
-	"assets/css/report.min.css",
+	"/assets/css/desk.min.css",
+	"/assets/css/report.min.css",
 ]
+
+doctype_js = {
+	"Web Page": "public/js/frappe/utils/web_template.js",
+	"Website Settings": "public/js/frappe/utils/web_template.js"
+}
 
 web_include_js = [
 	"website_script.js"
@@ -54,6 +57,11 @@ website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/newsletters", "to_route": "Newsletter"},
 	{"from_route": "/profile", "to_route": "me"},
+	{"from_route": "/app/<path:app_path>", "to_route": "app"},
+]
+
+website_redirects = [
+	{"source": r"/desk(.*)", "target": r"/app\1"},
 ]
 
 base_template = "templates/base.html"
@@ -89,6 +97,7 @@ permission_query_conditions = {
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.get_permission_query_conditions",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
+	"Dashboard": "frappe.desk.doctype.dashboard.dashboard.get_permission_query_conditions",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
 	"Number Card": "frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",
@@ -127,12 +136,18 @@ standard_queries = {
 
 doc_events = {
 	"*": {
+		"after_insert": [
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
-			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
+			"frappe.core.doctype.file.file.attach_files_to_document",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
+			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -141,10 +156,12 @@ doc_events = {
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 		],
 		"on_change": [
-			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
+			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
+			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
 		]
 	},
 	"Event": {
@@ -163,9 +180,6 @@ doc_events = {
 	"Page": {
 		"after_insert": "frappe.cache_manager.build_domain_restriced_page_cache",
 		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
-	},
-	"Event Update Log": {
-		"after_insert": "frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 	}
 }
 
@@ -196,7 +210,7 @@ scheduler_events = {
 		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email"
 	],
 	"daily": [
-		"frappe.email.queue.clear_outbox",
+		"frappe.email.queue.set_expiry_for_email_queue",
 		"frappe.desk.notifications.clear_notifications",
 		"frappe.core.doctype.error_log.error_log.set_old_logs_as_seen",
 		"frappe.desk.doctype.event.event.send_event_digest",
@@ -205,14 +219,15 @@ scheduler_events = {
 		"frappe.realtime.remove_old_task_logs",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
-		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.desk.form.document_follow.send_daily_updates",
 		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
-		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails"
+		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
+		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports",
+		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -272,67 +287,73 @@ setup_wizard_exception = [
 ]
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
-after_migrate = [
-	'frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist',
-	'frappe.modules.full_text_search.build_index_for_all_routes'
-]
+after_migrate = ['frappe.website.doctype.website_theme.website_theme.after_migrate']
 
 otp_methods = ['OTP App','Email','SMS']
-user_privacy_documents = [
-	{
-		'doctype': 'File',
-		'match_field': 'attached_to_name',
-		'personal_fields': ['file_name', 'file_url'],
-		'applies_to_website_user': 1
-	},
-	{
-		'doctype': 'Email Group Member',
-		'match_field': 'email',
-	},
-	{
-		'doctype': 'Email Unsubscribe',
-		'match_field': 'email',
-	},
-	{
-		'doctype': 'Email Queue',
-		'match_field': 'sender',
-	},
-	{
-		'doctype': 'Email Queue Recipient',
-		'match_field': 'recipient',
-	},
-	{
-		'doctype': 'Contact',
-		'match_field': 'email_id',
-		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
-	},
-	{
-		'doctype': 'Contact Email',
-		'match_field': 'email_id',
-	},
-	{
-		'doctype': 'Address',
-		'match_field': 'email_id',
-		'personal_fields': ['address_title', 'address_line1', 'address_line2', 'city', 'county', 'state', 'pincode',
-			'phone', 'fax'],
-	},
-	{
-		'doctype': 'Communication',
-		'match_field': 'sender',
-		'personal_fields': ['sender_full_name', 'phone_no', 'content'],
-	},
-	{
-		'doctype': 'Communication',
-		'match_field': 'recipients',
-	},
-	{
-		'doctype': 'User',
-		'match_field': 'name',
-		'personal_fields': ['email', 'username', 'first_name', 'middle_name', 'last_name', 'full_name', 'birth_date',
-			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature'],
-		'applies_to_website_user': 1
-	},
 
+user_data_fields = [
+	{"doctype": "Access Log", "strict": True},
+	{"doctype": "Activity Log", "strict": True},
+	{"doctype": "Comment", "strict": True},
+	{
+		"doctype": "Contact",
+		"filter_by": "email_id",
+		"redact_fields": ["first_name", "last_name", "phone", "mobile_no"],
+		"rename": True,
+	},
+	{"doctype": "Contact Email", "filter_by": "email_id"},
+	{
+		"doctype": "Address",
+		"filter_by": "email_id",
+		"redact_fields": [
+			"address_title",
+			"address_line1",
+			"address_line2",
+			"city",
+			"county",
+			"state",
+			"pincode",
+			"phone",
+			"fax",
+		],
+	},
+	{
+		"doctype": "Communication",
+		"filter_by": "sender",
+		"redact_fields": ["sender_full_name", "phone_no", "content"],
+	},
+	{"doctype": "Communication", "filter_by": "recipients"},
+	{"doctype": "Email Group Member", "filter_by": "email"},
+	{"doctype": "Email Unsubscribe", "filter_by": "email", "partial": True},
+	{"doctype": "Email Queue", "filter_by": "sender"},
+	{"doctype": "Email Queue Recipient", "filter_by": "recipient"},
+	{
+		"doctype": "File",
+		"filter_by": "attached_to_name",
+		"redact_fields": ["file_name", "file_url"],
+	},
+	{
+		"doctype": "User",
+		"filter_by": "name",
+		"redact_fields": [
+			"email",
+			"username",
+			"first_name",
+			"middle_name",
+			"last_name",
+			"full_name",
+			"birth_date",
+			"user_image",
+			"phone",
+			"mobile_no",
+			"location",
+			"banner_image",
+			"interest",
+			"bio",
+			"email_signature",
+		],
+	},
+	{"doctype": "Version", "strict": True},
 ]
 
 global_search_doctypes = {

@@ -36,6 +36,10 @@
 <style>
 {{ style or "" }}
 </style>
+
+{%- for style in page_builder_styles -%}
+<style>{{ style }}</style>
+{%- endfor -%}
 {% endblock %}
 
 {% block script %}

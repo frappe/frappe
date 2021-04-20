@@ -1,0 +1,204 @@
+$navbar-height: 7.625rem;
+$navbar-height-lg: 4.5rem;
+
+.doc-layout {
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+	padding-top: $navbar-height;
+	// border-bottom: 1px solid $gray-200;
+
+	@include media-breakpoint-up(lg) {
+		padding-top: $navbar-height-lg;
+	}
+}
+
+.sidebar-column {
+	display: none;
+
+	@include media-breakpoint-up(lg) {
+		display: block;
+	}
+}
+
+.doc-container {
+	max-width: 1280px;
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+}
+
+.navbar-expand-lg .doc-container {
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+}
+
+.doc-navbar {
+	background-color: white;
+	padding-left: 0;
+	padding-right: 0;
+
+	.navbar-toggler {
+		margin-left: 0.75rem;
+	}
+
+	.web-sidebar {
+		display: block;
+		border-top: 1px solid $gray-200;
+
+		@include media-breakpoint-up(lg) {
+			display: none;
+		}
+	}
+
+	.navbar-collapse {
+		height: calc(100vh - #{$navbar-height-lg});
+		overflow: auto;
+
+		@include media-breakpoint-up(lg) {
+			height: auto;
+			overflow: initial;
+		}
+	}
+
+	.navbar-nav {
+		margin-left: -1rem;
+		margin-top: 0.75rem;
+		margin-bottom: 1.5rem;
+
+		@include media-breakpoint-up(lg) {
+			margin-top: 0;
+			margin-bottom: 0;
+		}
+	}
+}
+
+.doc-search-container {
+	display: flex;
+	margin-top: 0.75rem;
+
+	@include media-breakpoint-up(lg) {
+		margin-top: 0;
+	}
+}
+
+.doc-search {
+	@include media-breakpoint-up(lg) {
+		padding-left: 4rem;
+		padding-right: 4rem;
+	}
+}
+
+.doc-sidebar {
+	position: sticky;
+	top: $navbar-height;
+	padding-bottom: 4rem;
+	height: 100vh;
+	overflow: hidden;
+
+	.web-sidebar {
+		height: 100%;
+		overflow: auto;
+		padding-top: 3rem;
+		padding-bottom: 4rem;
+	}
+
+	@include media-breakpoint-up(lg) {
+		top: $navbar-height-lg;
+	}
+}
+
+.doc-main .page-content-wrapper {
+	padding: 0 0 2rem 0;
+
+	@include media-breakpoint-up(lg) {
+		padding: 0rem 4rem 4rem 4rem;
+	}
+}
+
+.doc-sidebar-logo {
+	padding-top: 2.5rem;
+	padding-bottom: 2rem;
+}
+
+.page-toc {
+	font-size: $font-size-sm;
+
+	h5 {
+		font-size: $font-size-sm;
+		margin-bottom: 0.5rem;
+		color: $gray-500;
+	}
+
+	> div {
+		padding-top: 3rem;
+		padding-bottom: 4rem;
+		position: sticky;
+		top: $navbar-height;
+
+		@include media-breakpoint-up(lg) {
+			top: $navbar-height-lg;
+		}
+	}
+
+	ul {
+		padding-left: 0;
+		list-style-type: none;
+	}
+
+	li > ul {
+		padding-left: 0.5rem;
+	}
+
+	a {
+		display: block;
+		padding: 0.25rem 0;
+
+		color: $gray-600;
+		text-decoration: none;
+		font-weight: 500;
+		@include transition();
+
+		&:hover {
+			color: $gray-800;
+		}
+	}
+}
+
+// typography styles for documentation content
+.doc-content .from-markdown {
+	> :first-child {
+		margin-top: 3rem;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		&::before {
+			height: 6rem;
+			margin-top: -6rem;
+			content: '';
+			display: block;
+			visibility: hidden;
+		}
+	}
+}
+
+// next links
+.btn-next-wrapper {
+	border-top: 1px solid $gray-200;
+	margin-top: 2rem;
+	padding-top: 1rem;
+	text-align: right;
+}
+
+.doc-content .breadcrumb-container {
+	padding-left: 0;
+	padding-right: 0;
+	margin-top: 3rem;
+
+	.breadcrumb {
+		margin-bottom: 0;
+	}
+}

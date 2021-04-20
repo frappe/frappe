@@ -16,6 +16,7 @@
    "reqd": 0
   },
   {
+   "default": "Medium",
    "fieldname": "card_size",
    "fieldtype": "Select",
    "label": "Card Size",
@@ -240,9 +241,11 @@
   }
  ],
  "idx": 0,
- "modified": "2020-05-15 13:52:02.984001",
+ "modified": "2020-10-26 17:42:53.356024",
  "modified_by": "Administrator",
+ "module": "Website",
  "name": "Section with Cards",
  "owner": "Administrator",
- "standard": 1
+ "standard": 1,
+ "type": "Section"
 }

@@ -41,3 +41,15 @@ class ModuleOnboarding(Document):
 
 	def before_export(self, doc):
 		doc.is_complete = 0
+
+	def reset_onboarding(self):
+		frappe.only_for("Administrator")
+
+		self.is_complete = 0
+		steps = self.get_steps()
+		for step in steps:
+			step.is_complete = 0
+			step.is_skipped = 0
+			step.save()
+
+		self.save()

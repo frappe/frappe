@@ -9,6 +9,7 @@ frappe.ui.FieldSelect = Class.extend({
 		this.$input = $('<input class="form-control">')
 			.appendTo(this.parent)
 			.on("click", function () { $(this).select(); });
+		this.input_class && this.$input.addClass(this.input_class);
 		this.select_input = this.$input.get(0);
 		this.awesomplete = new Awesomplete(this.select_input, {
 			minChars: 0,
@@ -34,6 +35,18 @@ frappe.ui.FieldSelect = Class.extend({
 			var value = o.text.value;
 			var item = me.awesomplete.get_item(value);
 			me.$input.val(item.label);
+		});
+		this.$input.on("awesomplete-open", () => {
+			let modal = this.$input.parents('.modal-dialog')[0];
+			if (modal) {
+				$(modal).removeClass("modal-dialog-scrollable");
+			}
+		});
+		this.$input.on("awesomplete-close", () => {
+			let modal = this.$input.parents('.modal-dialog')[0];
+			if (modal) {
+				$(modal).addClass("modal-dialog-scrollable");
+			}
 		});
 
 		if(this.filter_fields) {

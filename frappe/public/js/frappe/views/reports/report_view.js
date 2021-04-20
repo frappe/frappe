@@ -48,6 +48,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		super.setup_new_doc_event();
+		this.page.main.addClass('report-view');
+	}
+
+	toggle_side_bar() {
+		super.toggle_side_bar();
+		// refresh datatable when sidebar is toggled to accomodate extra space
+		this.render(true);
 	}
 
 	setup_result_area() {
@@ -73,7 +80,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.setup_paging_area();
 		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
 		this.$paging_area.find('.level-left').append(
-			`<p class="text-muted text-medium margin-left">${message}</p>`
+			`<span class="comparison-message text-muted">${message}</span>`
 		)
 	}
 
@@ -199,9 +206,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	render_count() {
 		let $list_count = this.$paging_area.find('.list-count');
 		if (!$list_count.length) {
-			this.$paging_area.find('.btn-more').addClass('margin-left');
 			$list_count = $('<span>')
-				.addClass('text-muted text-medium list-count')
+				.addClass('text-muted list-count')
 				.prependTo(this.$paging_area.find('.level-right'));
 		}
 		this.get_count_str()
@@ -337,7 +343,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						],
 						primary_action: ({ column, insert_before }) => {
 							if (!columns_in_picker.map(col => col.value).includes(column)) {
-								frappe.show_alert(__('Invalid column'));
+								frappe.show_alert({message: __('Invalid column'), indicator: 'orange'});
 								d.hide();
 								return;
 							}
@@ -645,12 +651,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_fields() {
+		// default fields
+		['name', 'docstatus'].map((f) => this._add_field(f));
+
 		if (this.report_name && this.report_doc.json.fields) {
-			this.fields = this.report_doc.json.fields.slice();
+			let fields = this.report_doc.json.fields.slice();
+			fields.forEach(f => this._add_field(f[0], f[1]));
 			return;
 		} else if (this.view_user_settings.fields) {
 			// get from user_settings
-			this.fields = this.view_user_settings.fields;
+			let fields = this.view_user_settings.fields;
+			fields.forEach(f => this._add_field(f[0], f[1]));
 			return;
 		}
 
@@ -659,12 +670,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	set_default_fields() {
 		// get fields from meta
-		this.fields = [];
+		this.fields = this.fields || [];
 		const add_field = f => this._add_field(f);
 
 		// default fields
 		[
-			'name', 'docstatus',
 			this.meta.title_field,
 			this.meta.image_field
 		].map(add_field);
@@ -696,6 +706,32 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	build_fields() {
 		super.build_fields();
+	}
+
+	reorder_fields() {
+		// generate table fields in the required format ["name", "DocType"]
+		// these are fields in the column before adding new fields
+		let table_fields = this.columns.map(df => [df.field, df.docfield.parent]);
+
+		// filter fields that are already in table
+		// iterate over table_fields to preserve the existing order of fields
+		// The filter will ensure the unchecked fields are removed
+		let fields_already_in_table = table_fields.filter(df => {
+			return this.fields.find((field) => {
+				return df[0] == field[0] && df[1] == field[1]
+			})
+		})
+
+		// find new fields that didn't already exists
+		// This will be appended to the end of the table
+		let fields_to_add = this.fields.filter(df => {
+			return !table_fields.find((field) => {
+				return df[0] == field[0] && df[1] == field[1];
+			});
+		});
+
+		// rebuild fields
+		this.fields = [...fields_already_in_table, ...fields_to_add];
 	}
 
 	get_fields() {
@@ -766,10 +802,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const index = this.fields.findIndex(f => column.field === f[0]);
 		if (index === -1) return;
 		const field = this.fields[index];
-		if (field[0] === 'name' && this.group_by === null) {
+
+		if (field[0] === 'name') {
 			this.refresh();
 			frappe.throw(__('Cannot remove ID field'));
 		}
+
 		this.fields.splice(index, 1);
 		this.build_fields();
 		this.setup_columns();
@@ -832,8 +870,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			const child_table_fields = frappe.meta.get_docfields(cdt).filter(standard_fields_filter);
 
 			out[cdt] = child_table_fields;
-		});
 
+			// add index column for child tables
+			out[cdt].push({
+				label: __('Index'),
+				fieldname: 'idx',
+				fieldtype: 'Int',
+				parent: cdt
+			});
+		});
 		return out;
 	}
 
@@ -848,12 +893,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			columns: 2,
 			options: columns[this.doctype]
 				.filter(df => {
-					return !df.hidden;
+					return !df.hidden && df.fieldname !== 'name';
 				})
 				.map(df => ({
 					label: __(df.label),
 					value: df.fieldname,
-					checked: this.fields.find(f => f[0] === df.fieldname)
+					checked: this.fields.find(f => f[0] === df.fieldname && f[1] === this.doctype)
 				}))
 		});
 
@@ -930,6 +975,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// group by column
 		if (fieldname === '_aggregate_column') {
 			docfield = this.group_by_control.get_group_by_docfield();
+		}
+
+		// child table index column
+		if (fieldname === 'idx' && doctype !== this.doctype) {
+			docfield = {
+				label: "Index",
+				fieldtype: "Int",
+				parent: doctype,
+			};
 		}
 
 		if (!docfield) {
@@ -1030,15 +1084,30 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					name: __('Totals Row'),
 					content: totals[col.id],
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true }, data[0]);
+						let formatted_value = frappe.format(value, col.docfield, {
+							always_show_decimals: true
+						}, data[0]);
+						if (i === 0) {
+							return this.format_total_cell(formatted_value, col);
+						}
+						return formatted_value;
 					}
-				}
-			})
+				};
+			});
 
-			totals_row[0].content = __('Totals').bold();
 			out.push(totals_row);
 		}
 		return out;
+	}
+
+	format_total_cell(formatted_value, df) {
+		let cell_value = __('Totals').bold();
+		if (frappe.model.is_numeric_field(df.docfield)) {
+			cell_value = `<span class="flex justify-between">
+				${cell_value} ${$(formatted_value).text()}
+			</span>`;
+		}
+		return cell_value;
 	}
 
 	build_row(d) {
@@ -1134,11 +1203,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						// Rerender the reports dropdown,
 						// so that this report is included in the dropdown as well.
 						frappe.boot.user.all_reports[r.message] = {
-							ref_doctype: "Item",
+							ref_doctype: this.doctype,
 							report_type: "Report Builder",
 							title: r.message,
 						};
-						this.list_sidebar.setup_reports();
+
 						frappe.set_route('List', this.doctype, 'Report', r.message);
 						return;
 					}
@@ -1221,8 +1290,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: __('Show Totals'),
 				action: () => {
 					this.add_totals_row = !this.add_totals_row;
-					this.save_view_user_settings(
-						{ add_totals_row: this.add_totals_row });
+					this.save_view_user_settings({
+						add_totals_row: this.add_totals_row
+					});
 					this.datatable.refresh(this.get_data(this.data));
 				}
 			},
@@ -1285,6 +1355,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 							this.fields.map(f => this.add_currency_column(f[0], f[1]));
 
+							this.reorder_fields();
 							this.build_fields();
 							this.setup_columns();
 
@@ -1296,9 +1367,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					});
 
-					d.$body.prepend(`<div class="columns-search">
-						<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
-					</div>`);
+					d.$body.prepend(`
+						<div class="columns-search">
+							<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
+						</div>
+					`);
 
 					frappe.utils.setup_search(d.$body, '.unit-checkbox', '.label-area');
 					d.show();

@@ -12,11 +12,9 @@ from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
-from frappe.utils.password import get_decrypted_password, set_encrypted_password
 from frappe.utils import (cint, flt, now, cstr, strip_html,
 	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.utils.html_utils import unescape_html
-from bs4 import BeautifulSoup
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -26,18 +24,16 @@ max_positive_value = {
 
 DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
 
-_classes = {}
-
 def get_controller(doctype):
 	"""Returns the **class** object of the given DocType.
 	For `custom` type, returns `frappe.model.document.Document`.
 
 	:param doctype: DocType name as string."""
-	from frappe.model.document import Document
-	from frappe.utils.nestedset import NestedSet
-	global _classes
 
-	if not doctype in _classes:
+	def _get_controller():
+		from frappe.model.document import Document
+		from frappe.utils.nestedset import NestedSet
+
 		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
 			or ["Core", False]
 
@@ -48,8 +44,17 @@ def get_controller(doctype):
 				is_tree = False
 			_class = NestedSet if is_tree else Document
 		else:
-			module = load_doctype_module(doctype, module_name)
-			classname = doctype.replace(" ", "").replace("-", "")
+			class_overrides = frappe.get_hooks('override_doctype_class')
+			if class_overrides and class_overrides.get(doctype):
+				import_path = class_overrides[doctype][-1]
+				module_path, classname = import_path.rsplit('.', 1)
+				module = frappe.get_module(module_path)
+				if not hasattr(module, classname):
+					raise ImportError('{0}: {1} does not exist in module {2}'.format(doctype, classname, module_path))
+			else:
+				module = load_doctype_module(doctype, module_name)
+				classname = doctype.replace(" ", "").replace("-", "")
+
 			if hasattr(module, classname):
 				_class = getattr(module, classname)
 				if issubclass(_class, BaseDocument):
@@ -58,9 +63,16 @@ def get_controller(doctype):
 					raise ImportError(doctype)
 			else:
 				raise ImportError(doctype)
-		_classes[doctype] = _class
+		return _class
 
-	return _classes[doctype]
+	if frappe.local.dev_server:
+		return _get_controller()
+
+	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
+	if doctype not in site_controllers:
+		site_controllers[doctype] = _get_controller()
+
+	return site_controllers[doctype]
 
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
@@ -80,6 +92,14 @@ class BaseDocument(object):
 		return self._meta
 
 	def update(self, d):
+		""" Update multiple fields of a doctype using a dictionary of key-value pairs.
+
+		Example:
+			doc.update({
+				"user": "admin",
+				"balance": 42000
+			})
+		"""
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
 
@@ -145,6 +165,15 @@ class BaseDocument(object):
 			del self.__dict__[key]
 
 	def append(self, key, value=None):
+		""" Append an item to a child table.
+
+		Example:
+			doc.append("childtable", {
+				"child_table_field": "value",
+				"child_table_int_field": 0,
+				...
+			})
+		"""
 		if value==None:
 			value={}
 		if isinstance(value, (dict, BaseDocument)):
@@ -299,7 +328,12 @@ class BaseDocument(object):
 		return frappe.as_json(self.as_dict())
 
 	def get_table_field_doctype(self, fieldname):
-		return self.meta.get_field(fieldname).options
+		try:
+			return self.meta.get_field(fieldname).options
+		except AttributeError:
+			if self.doctype == 'DocType':
+				return dict(links='DocType Link', actions='DocType Action').get(fieldname)
+			raise
 
 	def get_parentfield_of_doctype(self, doctype):
 		fieldname = [df.fieldname for df in self.meta.get_table_fields() if df.options==doctype]
@@ -330,11 +364,14 @@ class BaseDocument(object):
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname=="hash":
 					# hash collision? try again
+					frappe.flags.retry_count = (frappe.flags.retry_count or 0) + 1
+					if frappe.flags.retry_count > 5 and not frappe.flags.in_test:
+						raise
 					self.name = None
 					self.db_insert()
 					return
 
-				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
+				frappe.msgprint(_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)), title=_("Duplicate Name"), indicator="red")
 				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
@@ -380,24 +417,59 @@ class BaseDocument(object):
 				doc.db_update()
 
 	def show_unique_validation_message(self, e):
-		# TODO: Find a better way to extract fieldname
 		if frappe.db.db_type != 'postgres':
 			fieldname = str(e).split("'")[-2]
 			label = None
 
-			# unique_first_fieldname_second_fieldname is the constraint name
-			# created using frappe.db.add_unique
-			if "unique_" in fieldname:
-				fieldname = fieldname.split("_", 1)[1]
+			# MariaDB gives key_name in error. Extracting fieldname from key name
+			try:
+				fieldname = self.get_field_name_by_key_name(fieldname)
+			except IndexError:
+				pass
 
-			df = self.meta.get_field(fieldname)
-			if df:
-				label = df.label
+			label = self.get_label_from_fieldname(fieldname)
 
 			frappe.msgprint(_("{0} must be unique").format(label or fieldname))
 
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError(self.doctype, self.name, e)
+
+	def get_field_name_by_key_name(self, key_name):
+		"""MariaDB stores a mapping between `key_name` and `column_name`.
+		This function returns the `column_name` associated with the `key_name` passed
+
+		Args:
+			key_name (str): The name of the database index.
+
+		Raises:
+			IndexError: If the key is not found in the table.
+
+		Returns:
+			str: The column name associated with the key.
+		"""
+		return frappe.db.sql(f"""
+			SHOW
+				INDEX
+			FROM
+				`tab{self.doctype}`
+			WHERE
+				key_name=%s
+			AND
+				Non_unique=0
+			""", key_name, as_dict=True)[0].get("Column_name")
+
+	def get_label_from_fieldname(self, fieldname):
+		"""Returns the associated label for fieldname
+
+		Args:
+			fieldname (str): The fieldname in the DocType to use to pull the label.
+
+		Returns:
+			str: The label associated with the fieldname, if found, otherwise `None`.
+		"""
+		df = self.meta.get_field(fieldname)
+		if df:
+			return df.label
 
 	def update_modified(self):
 		"""Update modified timestamp"""
@@ -483,21 +555,24 @@ class BaseDocument(object):
 						not _df.get('fetch_if_empty')
 						or (_df.get('fetch_if_empty') and not self.get(_df.fieldname))
 				]
+				if not frappe.get_meta(doctype).get('is_virtual'):
+					if not fields_to_fetch:
+						# cache a single value type
+						values = frappe._dict(name=frappe.db.get_value(doctype, docname,
+							'name', cache=True))
+					else:
+						values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1]
+							for _df in fields_to_fetch]
 
-				if not fields_to_fetch:
-					# cache a single value type
-					values = frappe._dict(name=frappe.db.get_value(doctype, docname,
-						'name', cache=True))
-				else:
-					values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1]
-						for _df in fields_to_fetch]
-
-					# don't cache if fetching other values too
-					values = frappe.db.get_value(doctype, docname,
-						values_to_fetch, as_dict=True)
+						# don't cache if fetching other values too
+						values = frappe.db.get_value(doctype, docname,
+							values_to_fetch, as_dict=True)
 
 				if frappe.get_meta(doctype).issingle:
 					values.name = doctype
+
+				if frappe.get_meta(doctype).get('is_virtual'):
+					values = frappe.get_doc(doctype, docname)
 
 				if values:
 					setattr(self, df.fieldname, values.name)
@@ -682,6 +757,8 @@ class BaseDocument(object):
 
 			- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
+		from bs4 import BeautifulSoup
+
 		if frappe.flags.in_install:
 			return
 
@@ -702,16 +779,13 @@ class BaseDocument(object):
 			df = self.meta.get_field(fieldname)
 			sanitized_value = value
 
-			if df and df.get("fieldtype") in ("Data", "Code", "Small Text", "Text") and df.get("options")=="Email":
-				sanitized_value = sanitize_email(value)
+			if df and (df.get("ignore_xss_filter")
+				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options")=="Email")
+				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
 
-			elif df and (df.get("ignore_xss_filter")
-						or (df.get("fieldtype")=="Code" and df.get("options")!="Email")
-						or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode")
-
-						# cancelled and submit but not update after submit should be ignored
-						or self.docstatus==2
-						or (self.docstatus==1 and not df.get("allow_on_submit"))):
+				# cancelled and submit but not update after submit should be ignored
+				or self.docstatus==2
+				or (self.docstatus==1 and not df.get("allow_on_submit"))):
 				continue
 
 			else:
@@ -721,12 +795,18 @@ class BaseDocument(object):
 
 	def _save_passwords(self):
 		"""Save password field values in __Auth table"""
+		from frappe.utils.password import set_encrypted_password, remove_encrypted_password
+
 		if self.flags.ignore_save_passwords is True:
 			return
 
 		for df in self.meta.get('fields', {'fieldtype': ('=', 'Password')}):
 			if self.flags.ignore_save_passwords and df.fieldname in self.flags.ignore_save_passwords: continue
 			new_password = self.get(df.fieldname)
+
+			if not new_password:
+				remove_encrypted_password(self.doctype, self.name, df.fieldname)
+
 			if new_password and not self.is_dummy_password(new_password):
 				# is not a dummy password like '*****'
 				set_encrypted_password(self.doctype, self.name, new_password, df.fieldname)
@@ -735,6 +815,8 @@ class BaseDocument(object):
 				self.set(df.fieldname, '*'*len(new_password))
 
 	def get_password(self, fieldname='password', raise_exception=True):
+		from frappe.utils.password import get_decrypted_password
+
 		if self.get(fieldname) and not self.is_dummy_password(self.get(fieldname)):
 			return self.get(fieldname)
 
@@ -781,16 +863,21 @@ class BaseDocument(object):
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
+		if not currency:
+			currency = self.get(df.get("options"))
+			if not frappe.db.exists('Currency', currency, cache=True):
+				currency = None
+
 		val = self.get(fieldname)
 
 		if translated:
 			val = _(val)
 
-		if absolute_value and isinstance(val, (int, float)):
-			val = abs(self.get(fieldname))
-
 		if not doc:
 			doc = getattr(self, "parent_doc", None) or self
+
+		if (absolute_value or doc.get('absolute_value')) and isinstance(val, (int, float)):
+			val = abs(self.get(fieldname))
 
 		return format_value(val, df=df, doc=doc, currency=currency)
 

@@ -1,0 +1,65 @@
+{
+ "creation": "2020-08-18 13:10:11.476496",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "reqd": 0
+  },
+  {
+   "default": "3",
+   "fieldname": "columns",
+   "fieldtype": "Select",
+   "label": "Columns",
+   "options": "2\n3\n4",
+   "reqd": 0
+  },
+  {
+   "fieldname": "features",
+   "fieldtype": "Table Break",
+   "label": "Features",
+   "reqd": 0
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Attach Image",
+   "label": "Icon",
+   "reqd": 0
+  }
+ ],
+ "idx": 2,
+ "modified": "2020-10-26 17:43:08.219285",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Section with Features",
+ "owner": "Administrator",
+ "standard": 1,
+ "type": "Section"
+}

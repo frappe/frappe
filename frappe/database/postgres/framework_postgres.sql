@@ -128,7 +128,7 @@ CREATE TABLE "tabDocType Action" (
   "parenttype" varchar(255) DEFAULT NULL,
   "idx" bigint NOT NULL DEFAULT 0,
   "label" varchar(140) NOT NULL,
-  "group" varchar(140) DEFAULT NULL,
+  "group" text DEFAULT NULL,
   "action_type" varchar(140) NOT NULL,
   "action" varchar(140) NOT NULL,
   PRIMARY KEY ("name")
@@ -281,7 +281,7 @@ CREATE TABLE "__Auth" (
 	"doctype" VARCHAR(140) NOT NULL,
 	"name" VARCHAR(255) NOT NULL,
 	"fieldname" VARCHAR(140) NOT NULL,
-	"password" VARCHAR(255) NOT NULL,
+	"password" TEXT NOT NULL,
 	"encrypted" int NOT NULL DEFAULT 0,
 	PRIMARY KEY ("doctype", "name", "fieldname")
 );

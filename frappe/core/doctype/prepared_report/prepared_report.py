@@ -24,8 +24,6 @@ class PreparedReport(Document):
 	def enqueue_report(self):
 		enqueue(run_background, prepared_report=self.name, timeout=6000)
 
-	def on_trash(self):
-		remove_all("Prepared Report", self.name)
 
 
 def run_background(prepared_report):
@@ -39,7 +37,10 @@ def run_background(prepared_report):
 			custom_report_doc = report
 			reference_report = custom_report_doc.reference_report
 			report = frappe.get_doc("Report", reference_report)
-			report.custom_columns = custom_report_doc.json
+			if custom_report_doc.json:
+				data = json.loads(custom_report_doc.json)
+				if data:
+					report.custom_columns = data["columns"]
 
 		result = generate_report_result(
 			report=report,
@@ -69,6 +70,38 @@ def run_background(prepared_report):
 		user=frappe.session.user
 	)
 
+@frappe.whitelist()
+def get_reports_in_queued_state(report_name, filters):
+	reports = frappe.get_all('Prepared Report',
+		filters = {
+			'report_name': report_name,
+			'filters': json.dumps(json.loads(filters)),
+			'status': 'Queued'
+		})
+	return reports
+
+def delete_expired_prepared_reports():
+	system_settings = frappe.get_single('System Settings')
+	enable_auto_deletion = system_settings.enable_prepared_report_auto_deletion
+	if enable_auto_deletion:
+		expiry_period = system_settings.prepared_report_expiry_period
+		prepared_reports_to_delete = frappe.get_all('Prepared Report',
+			filters = {
+				'creation': ['<', frappe.utils.add_days(frappe.utils.now(), -expiry_period)]
+			})
+
+		batches = frappe.utils.create_batch(prepared_reports_to_delete, 100)
+		for batch in batches:
+			args = {
+				'reports': batch,
+			}
+			enqueue(method=delete_prepared_reports, job_name="delete_prepared_reports", **args)
+
+@frappe.whitelist()
+def delete_prepared_reports(reports):
+	reports = frappe.parse_json(reports)
+	for report in reports:
+		frappe.delete_doc('Prepared Report', report['name'], ignore_permissions=True, delete_permanently=True)
 
 def create_json_gz_file(data, dt, dn):
 	# Storing data in CSV file causes information loss

@@ -21,7 +21,7 @@ frappe.ui.form.set_user_image = function(frm) {
 
 		image_section
 			.find(".sidebar-image")
-			.css("background-image", 'url("' + image + '")')
+			.attr("src", image)
 			.removeClass("hide");
 
 		image_section
@@ -29,8 +29,7 @@ frappe.ui.form.set_user_image = function(frm) {
 			.addClass('hide');
 
 		title_image
-			.css('background-color', '')
-			.css("background-image", 'url("' + image + '")')
+			.css("background-image", `url("${image}")`)
 			.html('');
 
 		image_actions.find('.sidebar-image-change, .sidebar-image-remove').show();
@@ -38,7 +37,7 @@ frappe.ui.form.set_user_image = function(frm) {
 	} else {
 		image_section
 			.find(".sidebar-image")
-			.css("background-image", null)
+			.attr("src", null)
 			.addClass("hide");
 
 		var title = frm.get_title();
@@ -47,11 +46,9 @@ frappe.ui.form.set_user_image = function(frm) {
 			.find('.sidebar-standard-image')
 			.removeClass('hide')
 			.find('.standard-image')
-			.css({'background-color': frappe.get_palette(title)})
 			.html(frappe.get_abbr(title));
 
 		title_image.css("background-image", '')
-			.css({'background-color': frappe.get_palette(title)})
 			.html(frappe.get_abbr(title));
 
 		image_actions.find('.sidebar-image-change').show();

@@ -57,6 +57,8 @@ def relink(name, reference_doctype=None, reference_name=None):
 			communication_type = "Communication" and
 			name = %s""", (reference_doctype, reference_name, name))
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
 	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
 	user_perms.build_permissions()

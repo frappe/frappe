@@ -7,8 +7,8 @@ import os
 from six import iteritems
 import logging
 
-from werkzeug.wrappers import Request
 from werkzeug.local import LocalManager
+from werkzeug.wrappers import Request, Response
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.shared_data import SharedDataMiddleware
@@ -57,19 +57,22 @@ def application(request):
 		frappe.monitor.start()
 		frappe.rate_limiter.apply()
 
-		if frappe.local.form_dict.cmd:
+		if request.method == "OPTIONS":
+			response = Response()
+
+		elif frappe.form_dict.cmd:
 			response = frappe.handler.handle()
 
-		elif frappe.request.path.startswith("/api/"):
+		elif request.path.startswith("/api/"):
 			response = frappe.api.handle()
 
-		elif frappe.request.path.startswith('/backups'):
+		elif request.path.startswith('/backups'):
 			response = frappe.utils.response.download_backup(request.path)
 
-		elif frappe.request.path.startswith('/private/files/'):
+		elif request.path.startswith('/private/files/'):
 			response = frappe.utils.response.download_private_file(request.path)
 
-		elif frappe.local.request.method in ('GET', 'HEAD', 'POST'):
+		elif request.method in ('GET', 'HEAD', 'POST'):
 			response = frappe.website.render.render()
 
 		else:
@@ -88,30 +91,25 @@ def application(request):
 		rollback = after_request(rollback)
 
 	finally:
-		if frappe.local.request.method in ("POST", "PUT") and frappe.db and rollback:
+		if request.method in ("POST", "PUT") and frappe.db and rollback:
 			frappe.db.rollback()
-
-		# set cookies
-		if response and hasattr(frappe.local, 'cookie_manager'):
-			frappe.local.cookie_manager.flush_cookies(response=response)
 
 		frappe.rate_limiter.update()
 		frappe.monitor.stop(response)
 		frappe.recorder.dump()
 
-		frappe.logger("frappe.web").info({
-			"site": get_site_name(request.host),
-			"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
-			"base_url": getattr(request, "base_url", "NOTFOUND"),
-			"full_path": getattr(request, "full_path", "NOTFOUND"),
-			"method": getattr(request, "method", "NOTFOUND"),
-			"scheme": getattr(request, "scheme", "NOTFOUND"),
-			"http_status_code": getattr(response, "status_code", "NOTFOUND")
-		})
+		if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
+			frappe.logger("frappe.web", allow_site=frappe.local.site).info({
+				"site": get_site_name(request.host),
+				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
+				"base_url": getattr(request, "base_url", "NOTFOUND"),
+				"full_path": getattr(request, "full_path", "NOTFOUND"),
+				"method": getattr(request, "method", "NOTFOUND"),
+				"scheme": getattr(request, "scheme", "NOTFOUND"),
+				"http_status_code": getattr(response, "status_code", "NOTFOUND")
+			})
 
-		if response and hasattr(frappe.local, 'rate_limiter'):
-			response.headers.extend(frappe.local.rate_limiter.headers())
-
+		process_response(response)
 		frappe.destroy()
 
 	return response
@@ -130,10 +128,51 @@ def init_request(request):
 	if frappe.local.conf.get('maintenance_mode'):
 		frappe.connect()
 		raise frappe.SessionStopped('Session Stopped')
+	else:
+		frappe.connect(set_admin_as_user=False)
 
 	make_form_dict(request)
 
-	frappe.local.http_request = frappe.auth.HTTPRequest()
+	if request.method != "OPTIONS":
+		frappe.local.http_request = frappe.auth.HTTPRequest()
+
+def process_response(response):
+	if not response:
+		return
+
+	# set cookies
+	if hasattr(frappe.local, 'cookie_manager'):
+		frappe.local.cookie_manager.flush_cookies(response=response)
+
+	# rate limiter headers
+	if hasattr(frappe.local, 'rate_limiter'):
+		response.headers.extend(frappe.local.rate_limiter.headers())
+
+	# CORS headers
+	if hasattr(frappe.local, 'conf') and frappe.conf.allow_cors:
+		set_cors_headers(response)
+
+def set_cors_headers(response):
+	origin = frappe.request.headers.get('Origin')
+	allow_cors = frappe.conf.allow_cors
+	if not (origin and allow_cors):
+		return
+
+	if allow_cors != "*":
+		if not isinstance(allow_cors, list):
+			allow_cors = [allow_cors]
+
+		if origin not in allow_cors:
+			return
+
+	response.headers.extend({
+		'Access-Control-Allow-Origin': origin,
+		'Access-Control-Allow-Credentials': 'true',
+		'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+		'Access-Control-Allow-Headers': ('Authorization,DNT,X-Mx-ReqToken,'
+			'Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,'
+			'Cache-Control,Content-Type')
+	})
 
 def make_form_dict(request):
 	import json
@@ -143,6 +182,9 @@ def make_form_dict(request):
 		args = json.loads(request_data)
 	else:
 		args = request.form or request.args
+
+	if not isinstance(args, dict):
+		frappe.throw("Invalid request arguments")
 
 	try:
 		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
@@ -158,6 +200,10 @@ def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
+
+	if frappe.conf.get('developer_mode'):
+		# don't fail silently
+		print(frappe.get_traceback())
 
 	if frappe.get_request_header('Accept') and (frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept')):
 		# handle ajax responses first
@@ -192,7 +238,8 @@ def handle_exception(e):
 
 	else:
 		traceback = "<pre>" + sanitize_html(frappe.get_traceback()) + "</pre>"
-		if frappe.local.flags.disable_traceback:
+		# disable traceback in production if flag is set
+		if frappe.local.flags.disable_traceback and not frappe.local.dev_server:
 			traceback = ""
 
 		frappe.respond_as_web_page("Server Error",
@@ -256,9 +303,11 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 		'SERVER_NAME': 'localhost:8000'
 	}
 
+	log = logging.getLogger('werkzeug')
+	log.propagate = False
+
 	in_test_env = os.environ.get('CI')
 	if in_test_env:
-		log = logging.getLogger('werkzeug')
 		log.setLevel(logging.ERROR)
 
 	run_simple('0.0.0.0', int(port), application,

@@ -3,20 +3,18 @@
 
 	{% if frappe.session.user != 'Guest' %}
 	<li class="nav-item dropdown logged-in" id="website-post-login" data-label="website-post-login" style="display: none">
-		<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+		<a href="#" class="nav-link nav-avatar" data-toggle="dropdown">
 			<span class="user-image-wrapper"></span>
-			<span class="full-name"></span>
-			<b class="caret"></b>
 		</a>
 		<ul class="dropdown-menu dropdown-menu-right" role="menu">
 			{%- for child in post_login -%}
 			{%- if child.url -%}
-			<a class="dropdown-item" href="{{ child.url | abs_url }}" {{ child.target or '' }} rel="nofollow">
+			<a class="dropdown-item" href="{{ child.url | abs_url }}"  {% if child.open_in_new_tab %} target="_blank" {% endif %} rel="nofollow">
 				{{ child.label }}
 			</a>
 			{%- endif -%}
 			{%- endfor -%}
-			<a class="dropdown-item switch-to-desk hidden" href="/desk">{{ _('Switch To Desk') }}</a>
+			<a class="dropdown-item switch-to-desk hidden" href="/app">{{ _('Switch To Desk') }}</a>
 		</ul>
 	</li>
 	{% endif %}
