@@ -547,7 +547,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 		let fields = this.frm.fields
 			.filter(visible_fields_filter)
-			.map(f => ({ label: f.df.label, value: f.df.fieldname }));
+			.map(f => ({ label: __(f.df.label), value: f.df.fieldname }));
 
 		let dialog = new frappe.ui.Dialog({
 			title: __('Jump to field'),
