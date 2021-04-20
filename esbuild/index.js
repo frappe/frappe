@@ -5,15 +5,10 @@ let html_plugin = require("./esbuild-plugin-html");
 let vue = require("esbuild-vue");
 let postCssPlugin = require("esbuild-plugin-postcss2").default;
 let ignore_assets = require("./ignore-assets");
-let {
-	app_list,
-	get_options_for_scss,
-	get_public_path,
-	run_serially
-} = require("./utils");
+let sass_options = require("./sass_options");
+let { app_list, get_public_path, run_serially } = require("./utils");
 
 const TOTAL_BUILD_TIME = "Total Build Time";
-
 
 (async function() {
 	console.time(TOTAL_BUILD_TIME);
@@ -27,14 +22,18 @@ function run_build_for_apps(apps) {
 
 function run_build_for_app(app) {
 	let public_path = get_public_path(app);
-	let include_patterns = path.resolve(public_path, "**", "*.bundle.js");
+	let include_patterns = path.resolve(
+		public_path,
+		"**",
+		"*.bundle.{js,ts,css,sass,scss,less,styl}"
+	);
 	let ignore_patterns = [
 		path.resolve(public_path, "node_modules"),
 		path.resolve(public_path, "build")
 	];
 
 	return glob(include_patterns, { ignore: ignore_patterns }).then(files => {
-		console.log(`\nBuilding assets for ${app}...`);
+		// console.log(`\nBuilding assets for ${app}...`);
 		return build_files({
 			files,
 			outdir: path.resolve(public_path, "build"),
@@ -62,23 +61,7 @@ function build_files({ files, outdir, outbase }) {
 				vue(),
 				postCssPlugin({
 					plugins: [require("autoprefixer")],
-					sassOptions: {
-						...get_options_for_scss(),
-						importer: function(url) {
-							if (url.startsWith("~")) {
-								// strip ~ so that it can resolve from node_modules
-								url = url.slice(1);
-							}
-							if (url.endsWith(".css")) {
-								// strip .css from end of path
-								url = url.slice(0, -4);
-							}
-							// normal file, let it go
-							return {
-								file: url
-							};
-						}
-					}
+					sassOptions: sass_options
 				})
 			]
 
