@@ -490,8 +490,14 @@ def get_server_messages(app):
 def get_messages_from_include_files(app_name=None):
 	"""Returns messages from js files included at time of boot like desk.min.js for desk and web"""
 	messages = []
-	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
-		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
+	app_include_js = frappe.get_hooks("app_include_js", app_name=app_name) or []
+	web_include_js = frappe.get_hooks("web_include_js", app_name=app_name) or []
+	include_js = app_include_js + web_include_js
+
+	for js_path in include_js:
+		relative_path = os.path.join(frappe.local.sites_path, js_path.strip('/'))
+		messages_from_file = get_messages_from_file(relative_path)
+		messages.extend(messages_from_file)
 
 	return messages
 
