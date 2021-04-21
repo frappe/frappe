@@ -115,7 +115,7 @@ def get_dict(fortype, name=None):
 				messages.extend(get_server_messages(app))
 			messages = deduplicate_messages(messages)
 
-			messages += frappe.db.sql("""select "navbar", item_label from `tabNavbar Item` where item_label is not null""")
+			messages += frappe.db.sql("""select 'navbar', item_label from `tabNavbar Item` where item_label is not null""")
 			messages = get_messages_from_include_files()
 			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
