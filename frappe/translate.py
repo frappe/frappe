@@ -446,9 +446,14 @@ def get_messages_from_report(name):
 	if report.columns:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bf4a73c3d4... fix: translate report filter labels
 		messages.extend([(None, report_column.label) for report_column in report.columns])
+=======
+		context = "Column of report '%s'" % report.name # context has to match context in `prepare_columns` in query_report.js
+		messages.extend([(None, report_column.label, context) for report_column in report.columns])
+>>>>>>> 6250c4ac9d... fix: add context to filter columns
 
 	if report.filters:
 		messages.extend([(None, report_filter.label) for report_filter in report.filters])
