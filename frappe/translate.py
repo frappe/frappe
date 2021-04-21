@@ -443,8 +443,12 @@ def get_messages_from_report(name):
 	messages = _get_messages_from_page_or_report("Report", name,
 		frappe.db.get_value("DocType", report.ref_doctype, "module"))
 
+	if report.columns:
+		messages.extend([(None, column.label) for column in report.columns])
+
 	if report.query:
 		messages.extend([(None, message) for message in re.findall('"([^:,^"]*):', report.query) if is_translatable(message)])
+
 	messages.append((None,report.report_name))
 	return messages
 
