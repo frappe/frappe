@@ -8,7 +8,7 @@ import frappe
 import os
 import unittest
 from frappe import _
-from frappe.core.doctype.file.file import move_file
+from frappe.core.doctype.file.file import move_file, get_files_in_folder
 from frappe.utils import get_files_path
 # test_records = frappe.get_test_records('File')
 
@@ -412,3 +412,61 @@ class TestAttachment(unittest.TestCase):
 		})
 
 		self.assertTrue(exists)
+
+
+class TestAttachmentsAccess(unittest.TestCase):
+
+	def test_attachments_access(self):
+
+		frappe.set_user('test4@example.com')
+		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
+
+		frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'test_user.txt',
+			"attached_to_doctype": self.attached_to_doctype,
+			"attached_to_name": self.attached_to_docname,
+			"content": 'Testing User'
+		}).insert()
+
+		frappe.get_doc({
+			"doctype": "File",
+			"file_name": "test_user_home.txt",
+			"content": 'User Home',
+		}).insert()
+
+		frappe.set_user('test@example.com')
+
+		frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'test_system_manager.txt',
+			"attached_to_doctype": self.attached_to_doctype,
+			"attached_to_name": self.attached_to_docname,
+			"content": 'Testing System Manager'
+		}).insert()
+
+		frappe.get_doc({
+			"doctype": "File",
+			"file_name": "test_sm_home.txt",
+			"content": 'System Manager Home',
+		}).insert()
+
+		system_manager_files = [file.file_name for file in get_files_in_folder('Home')['files']]
+		system_manager_attachments_files = [file.file_name for file in get_files_in_folder('Home/Attachments')['files']]
+
+		frappe.set_user('test4@example.com')
+		user_files = [file.file_name for file in get_files_in_folder('Home')['files']]
+		user_attachments_files = [file.file_name for file in get_files_in_folder('Home/Attachments')['files']]
+
+		self.assertIn('test_sm_home.txt', system_manager_files)
+		self.assertNotIn('test_sm_home.txt', user_files)
+		self.assertIn('test_user_home.txt', system_manager_files)
+		self.assertIn('test_user_home.txt', user_files)
+
+		self.assertIn('test_system_manager.txt', system_manager_attachments_files)
+		self.assertNotIn('test_system_manager.txt', user_attachments_files)
+		self.assertIn('test_user.txt', system_manager_attachments_files)
+		self.assertIn('test_user.txt', user_attachments_files)
+
+		frappe.set_user('Administrator')
+		frappe.db.rollback()

@@ -211,7 +211,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 	make_viewers() {
 		if (this.frm.viewers) {
-			this.frm.viewers.parent.empty();
 			return;
 		}
 		this.frm.viewers = new frappe.ui.form.FormViewers({

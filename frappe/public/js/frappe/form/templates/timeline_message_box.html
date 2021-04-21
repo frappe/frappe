@@ -1,7 +1,32 @@
 <div class="timeline-message-box" data-communication-type="{{ doc.communication_type }}">
 	<span class="flex justify-between">
 		<span class="text-color flex">
-			{% if (doc.comment_type && doc.comment_type == "Comment") { %}
+			{% if (doc.communication_type && doc.communication_type == "Automated Message") { %}
+				<span>
+					<!-- Display maximum of 3 users-->
+					{{ __("Notification sent to") }}
+					{% var recipients = (doc.recipients && doc.recipients.split(",")) || [] %}
+					{% var cc = (doc.cc && doc.cc.split(",")) || [] %}
+					{% var bcc = (doc.bcc && doc.bcc.split(",")) || [] %}
+					{% var emails = recipients.concat(cc, bcc) %}
+					{% var display_emails_len = Math.min(emails.length, 3) %}
+
+					{% for (var i=0, len=display_emails_len; i<len; i++) { var email = emails[i]; %}
+						{{ frappe.user_info(email).fullname || email }}
+						{% if (len > i+1) { %}
+							{{ "," }}
+						{% } %}
+					{% } %}
+
+					{% if (emails.length > display_emails_len) { %}
+						{{ "..." }}
+					{% } %}
+
+					<div class="text-muted">
+						{{ comment_when(doc.creation) }}
+					</div>
+				</span>
+			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
 				<span>
 					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }} {{ __("commented") }}
 					<span class="text-muted margin-left">

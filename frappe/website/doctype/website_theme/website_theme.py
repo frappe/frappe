@@ -98,6 +98,7 @@ class WebsiteTheme(Document):
 		else:
 			self.generate_bootstrap_theme()
 
+	@frappe.whitelist()
 	def set_as_default(self):
 		self.generate_bootstrap_theme()
 		self.save()
@@ -106,6 +107,7 @@ class WebsiteTheme(Document):
 		website_settings.ignore_validate = True
 		website_settings.save()
 
+	@frappe.whitelist()
 	def get_apps(self):
 		from frappe.utils.change_log import get_versions
 		apps = get_versions()

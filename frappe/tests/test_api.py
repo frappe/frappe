@@ -143,8 +143,7 @@ class TestAPI(unittest.TestCase):
 		self.assertFalse(frappe.db.get_value('Note', {'title': 'delete'}))
 
 	def test_auth_via_api_key_secret(self):
-
-		# generate api ke and api secret for administrator
+		# generate API key and API secret for administrator
 		keys = generate_keys("Administrator")
 		frappe.db.commit()
 		generated_secret = frappe.utils.password.get_decrypted_password(

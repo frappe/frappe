@@ -216,7 +216,7 @@ def get_traceback():
 def log(event, details):
 	frappe.logger().info(details)
 
-def dict_to_str(args, sep='&'):
+def dict_to_str(args, sep = '&'):
 	"""
 	Converts a dictionary to URL
 	"""
@@ -224,6 +224,13 @@ def dict_to_str(args, sep='&'):
 	for k in list(args):
 		t.append(str(k)+'='+quote(str(args[k] or '')))
 	return sep.join(t)
+
+def list_to_str(seq, sep = ', '):
+	"""Convert a sequence into a string using seperator.
+
+	Same as str.join, but does type conversion and strip extra spaces.
+	"""
+	return sep.join(map(str.strip, map(str, seq)))
 
 # Get Defaults
 # ==============================================================================
@@ -403,6 +410,14 @@ def call_hook_method(hook, *args, **kwargs):
 	return out
 
 def update_progress_bar(txt, i, l):
+	if os.environ.get("CI"):
+		if i == 0:
+			sys.stdout.write(txt)
+
+		sys.stdout.write(".")
+		sys.stdout.flush()
+		return
+
 	if not getattr(frappe.local, 'request', None):
 		lt = len(txt)
 		try:
