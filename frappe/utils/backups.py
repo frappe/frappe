@@ -68,6 +68,7 @@ class BackupGenerator:
 		self.include_doctypes = include_doctypes
 		self.exclude_doctypes = exclude_doctypes
 		self.partial = False
+		self.nice = which("nice") or ""
 
 		if not self.db_type:
 			self.db_type = "mariadb"
@@ -324,11 +325,11 @@ class BackupGenerator:
 			)
 
 			if self.compress_files:
-				cmd_string = "tar cf - {1} | gzip > {0}"
+				cmd_string = "{0} tar cf - {2} | gzip > {1}"
 			else:
-				cmd_string = "tar -cf {0} {1}"
+				cmd_string = "{0} tar -cf {1} {2}"
 			output = subprocess.check_output(
-				cmd_string.format(backup_path, files_path), shell=True
+				cmd_string.format(self.nice, backup_path, files_path), shell=True
 			)
 
 			if self.verbose and output:
@@ -399,7 +400,7 @@ class BackupGenerator:
 				)
 
 			cmd_string = (
-				"{db_exc} postgres://{user}:{password}@{db_host}:{db_port}/{db_name}"
+				"{nice} {db_exc} postgres://{user}:{password}@{db_host}:{db_port}/{db_name}"
 				" {include} {exclude} | {gzip} >> {backup_path_db}"
 			)
 
@@ -415,12 +416,13 @@ class BackupGenerator:
 				)
 
 			cmd_string = (
-				"{db_exc} --single-transaction --quick --lock-tables=false -u {user}"
+				"{nice} {db_exc} --single-transaction --quick --lock-tables=false -u {user}"
 				" -p{password} {db_name} -h {db_host} -P {db_port} {include} {exclude}"
 				" | {gzip} >> {backup_path_db}"
 			)
 
 		command = cmd_string.format(
+			nice=self.nice,
 			user=args.user,
 			password=args.password,
 			db_exc=db_exc,
