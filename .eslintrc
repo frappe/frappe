@@ -140,6 +140,7 @@
 		"Cypress": true,
 		"cy": true,
 		"it": true,
+		"describe": true,
 		"expect": true,
 		"context": true,
 		"before": true,
