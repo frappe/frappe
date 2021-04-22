@@ -434,7 +434,7 @@ class BackupGenerator:
 		if self.verbose:
 			print(command + "\n")
 
-		err, out = frappe.utils.execute_in_shell(command, low_priority=True)
+		frappe.utils.execute_in_shell(command, low_priority=True)
 
 	def send_email(self):
 		"""
