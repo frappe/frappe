@@ -290,7 +290,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		// bind links
 		transactions_area_body.find(".badge-link").on('click', function() {
-			me.open_document_list($(this).parent());
+			me.open_document_list($(this).closest('.document-link'));
 		});
 
 		// bind reports
