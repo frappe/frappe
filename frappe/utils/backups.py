@@ -315,8 +315,6 @@ class BackupGenerator:
 			print(template.format(_type.title(), info["path"], info["size"]))
 
 	def backup_files(self):
-		import subprocess
-
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = (
@@ -327,12 +325,12 @@ class BackupGenerator:
 				cmd_string = "tar cf - {1} | gzip > {0}"
 			else:
 				cmd_string = "tar -cf {0} {1}"
-			output = subprocess.check_output(
-				cmd_string.format(backup_path, files_path), shell=True
-			)
 
-			if self.verbose and output:
-				print(output.decode("utf8"))
+			frappe.utils.execute_in_shell(
+				cmd_string.format(backup_path, files_path),
+				verbose=self.verbose,
+				low_priority=True
+			)
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
@@ -436,7 +434,7 @@ class BackupGenerator:
 		if self.verbose:
 			print(command + "\n")
 
-		err, out = frappe.utils.execute_in_shell(command)
+		frappe.utils.execute_in_shell(command, low_priority=True)
 
 	def send_email(self):
 		"""
