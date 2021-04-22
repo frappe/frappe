@@ -16,7 +16,6 @@ from six import iteritems, binary_type, text_type, string_types, PY2
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 import typing
-from past.builtins import cmp
 import click
 
 # Local application imports
@@ -634,6 +633,20 @@ def only_for(roles, message=False):
 		if message:
 			msgprint(_('This action is only allowed for {}').format(bold(', '.join(roles))), _('Not Permitted'))
 		raise PermissionError
+
+def low_priority(func):
+	"""Decorator for executing a function with low CPU priority."""
+	from functools import wraps
+
+	@wraps(func)
+	def reniced(*args, **kwargs):
+		os.nice(10)
+		try:
+			return func(*args,**kwargs)
+		finally:
+			os.nice(-10)
+
+	return reniced
 
 def get_domain_data(module):
 	try:

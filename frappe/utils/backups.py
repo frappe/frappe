@@ -314,6 +314,7 @@ class BackupGenerator:
 			template = "{{0:{0}}}: {{1:{1}}} {{2}}".format(title, path)
 			print(template.format(_type.title(), info["path"], info["size"]))
 
+	@frappe.low_priority
 	def backup_files(self):
 		import subprocess
 
@@ -341,6 +342,7 @@ class BackupGenerator:
 		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
 			n.write(c.read())
 
+	@frappe.low_priority
 	def take_dump(self):
 		import frappe.utils
 		from frappe.utils.change_log import get_app_branch
