@@ -66,6 +66,10 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		this._rows_list = this.rows.map(row => row[link_field.fieldname]);
 		return this.rows;
 	},
+	get_model_value() {
+		let value = this._super();
+		return value ? value.filter(d => !d.__islocal) : value;
+	},
 	validate(value) {
 		const rows = (value || []).slice();
 
