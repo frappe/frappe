@@ -558,10 +558,10 @@ export default class GridRow {
 		// this.form_panel.toggle(true);
 
 		if (this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows)) {
-			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
+			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row, .grid-append-row')
 				.addClass('hidden');
 		} else {
-			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
+			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row, .grid-append-row')
 				.removeClass('hidden');
 		}
 
