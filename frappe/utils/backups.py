@@ -434,7 +434,11 @@ class BackupGenerator:
 		if self.verbose:
 			print(command + "\n")
 
+<<<<<<< HEAD
 		frappe.utils.execute_in_shell(command, low_priority=True)
+=======
+		err, out = frappe.utils.execute_in_shell(command, low_priority=True)
+>>>>>>> 9d3be5160f... perf: low priority for backup processes
 
 	def send_email(self):
 		"""
