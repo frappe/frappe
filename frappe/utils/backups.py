@@ -15,7 +15,7 @@ import click
 # imports - module imports
 import frappe
 from frappe import _, conf
-from frappe.utils import get_file_size, get_url, now, now_datetime
+from frappe.utils import get_file_size, get_url, now, now_datetime, cint
 
 # backup variable for backwards compatibility
 verbose = False
@@ -475,29 +475,6 @@ download only after 24 hours.""" % {
 
 
 @frappe.whitelist()
-def get_backup():
-	"""
-	This function is executed when the user clicks on
-	Toos > Download Backup
-	"""
-	delete_temp_backups()
-	odb = BackupGenerator(
-		frappe.conf.db_name,
-		frappe.conf.db_name,
-		frappe.conf.db_password,
-		db_host=frappe.db.host,
-		db_type=frappe.conf.db_type,
-		db_port=frappe.conf.db_port,
-	)
-	odb.get_backup()
-	recipient_list = odb.send_email()
-	frappe.msgprint(
-		_(
-			"Download link for your backup will be emailed on the following email address: {0}"
-		).format(", ".join(recipient_list))
-	)
-
-@frappe.whitelist()
 def fetch_latest_backups(partial=False):
 	"""Fetches paths of the latest backup taken in the last 30 days
 	Only for: System Managers
@@ -570,7 +547,7 @@ def new_backup(
 	force=False,
 	verbose=False,
 ):
-	delete_temp_backups(older_than=frappe.conf.keep_backups_for_hours or 24)
+	delete_temp_backups()
 	odb = BackupGenerator(
 		frappe.conf.db_name,
 		frappe.conf.db_name,
@@ -595,8 +572,9 @@ def new_backup(
 
 def delete_temp_backups(older_than=24):
 	"""
-	Cleans up the backup_link_path directory by deleting files older than 24 hours
+	Cleans up the backup_link_path directory by deleting older files
 	"""
+	older_than = cint(frappe.conf.keep_backups_for_hours) or older_than
 	backup_path = get_backup_path()
 	if os.path.exists(backup_path):
 		file_list = os.listdir(get_backup_path())
