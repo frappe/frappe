@@ -149,7 +149,11 @@ def get_jinja_hooks():
 	def get_obj_dict_from_paths(object_paths):
 		out = {}
 		for obj_path in object_paths:
-			obj = frappe.get_attr(obj_path)
+			try:
+				obj = frappe.get_module(obj_path)
+			except ModuleNotFoundError:
+				obj = frappe.get_attr(obj_path)
+
 			if isinstance(obj, ModuleType):
 				functions = getmembers(obj, isfunction)
 				for function_name, function in functions:
