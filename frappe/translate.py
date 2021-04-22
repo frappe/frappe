@@ -115,7 +115,7 @@ def get_dict(fortype, name=None):
 				messages.extend(get_server_messages(app))
 			messages = deduplicate_messages(messages)
 
-			messages += frappe.db.sql("""select "navbar", item_label from `tabNavbar Item` where item_label is not null""")
+			messages += frappe.db.sql("""select 'navbar', item_label from `tabNavbar Item` where item_label is not null""")
 			messages = get_messages_from_include_files()
 			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
@@ -518,8 +518,13 @@ def get_messages_from_file(path):
 	apps_path = get_bench_dir()
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
+			try:
+				file_contents = sourcefile.read()
+			except Exception:
+				print("Could not scan file for translation: {0}".format(path))
+				return []
 			data = [(os.path.relpath(path, apps_path), message, context, line) \
-				for line, message, context in  extract_messages_from_code(sourcefile.read())]
+				for line, message, context in extract_messages_from_code(file_contents)]
 			return data
 	else:
 		# print "Translate: {0} missing".format(os.path.abspath(path))
@@ -601,11 +606,23 @@ def write_csv_file(path, app_messages, lang_dict):
 	from csv import writer
 	with open(path, 'w', newline='') as msgfile:
 		w = writer(msgfile, lineterminator='\n')
-		for p, m in app_messages:
-			t = lang_dict.get(m, '')
+
+		for app_message in app_messages:
+			context = None
+			if len(app_message) == 2:
+				path, message = app_message
+			elif len(app_message) == 3:
+				path, message, lineno = app_message
+			elif len(app_message) == 4:
+				path, message, context, lineno = app_message
+			else:
+				continue
+
+			t = lang_dict.get(message, '')
 			# strip whitespaces
-			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
-			w.writerow([p if p else '', m, t])
+			translated_string = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
+			if translated_string:
+				w.writerow([message, translated_string, context])
 
 def get_untranslated(lang, untranslated_file, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file

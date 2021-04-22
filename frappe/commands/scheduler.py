@@ -18,21 +18,32 @@ def _is_scheduler_enabled():
 
 	return enable_scheduler
 
-@click.command('trigger-scheduler-event')
-@click.argument('event')
+
+@click.command("trigger-scheduler-event", help="Trigger a scheduler event")
+@click.argument("event")
 @pass_context
 def trigger_scheduler_event(context, event):
-	"Trigger a scheduler event"
 	import frappe.utils.scheduler
+
+	exit_code = 0
+
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.utils.scheduler.trigger(site, event, now=True)
+			try:
+				frappe.get_doc("Scheduled Job Type", {"method": event}).execute()
+			except frappe.DoesNotExistError:
+				click.secho(f"Event {event} does not exist!", fg="red")
+				exit_code = 1
 		finally:
 			frappe.destroy()
+
 	if not context.sites:
 		raise SiteNotSpecifiedError
+
+	sys.exit(exit_code)
+
 
 @click.command('enable-scheduler')
 @pass_context
