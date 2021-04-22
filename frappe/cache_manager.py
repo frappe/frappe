@@ -18,7 +18,7 @@ global_cache_keys = ("app_hooks", "installed_apps", 'all_apps',
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
 		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
 		'domain_restricted_doctypes', 'domain_restricted_pages', 'information_schema:counts',
-		'sitemap_routes', 'db_tables') + doctype_map_keys
+		'sitemap_routes', 'db_tables', 'server_script_autocompletion_items') + doctype_map_keys
 
 user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "home_page", "linked_with",

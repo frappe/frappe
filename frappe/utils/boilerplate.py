@@ -190,6 +190,15 @@ app_license = "{app_license}"
 # automatically create page for each record of this doctype
 # website_generators = ["Web Page"]
 
+# Jinja
+# ----------
+
+# add methods and filters to jinja environment
+# jinja = {{
+# 	"methods": "{app_name}.utils.jinja_methods",
+# 	"filters": "{app_name}.utils.jinja_filters"
+# }}
+
 # Installation
 # ------------
 
