@@ -13,13 +13,20 @@ from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
+from frappe.model.base_document import get_controller
 
 
 @frappe.whitelist(allow_guest=True)
 @frappe.read_only()
 def get():
 	args = get_form_params()
-	return compress(execute(**args), args=args)
+	# If virtual doctype get data from controller het_list method
+	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="is_virtual"):
+		controller = get_controller(args.doctype)
+		data = compress(controller(args.doctype).get_list(args))
+	else:
+		data = compress(execute(**args), args=args)
+	return data
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -119,13 +126,14 @@ def setup_group_by(data):
 	if data.group_by:
 		if data.aggregate_function.lower() not in ('count', 'sum', 'avg'):
 			frappe.throw(_('Invalid aggregate function'))
-		if '`' in data.aggregate_on:
-			raise_invalid_field(data.aggregate_on)
-		data.fields.append('{aggregate_function}(`tab{doctype}`.`{aggregate_on}`) AS _aggregate_column'.format(**data))
-		if data.aggregate_on:
-			data.fields.append(data.aggregate_on)
 
-		data.pop('aggregate_on')
+		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
+			data.fields.append('{aggregate_function}(`tab{aggregate_on_doctype}`.`{aggregate_on_field}`) AS _aggregate_column'.format(**data))
+		else:
+			raise_invalid_field(data.aggregate_on_field)
+
+		data.pop('aggregate_on_doctype')
+		data.pop('aggregate_on_field')
 		data.pop('aggregate_function')
 
 def raise_invalid_field(fieldname):
@@ -431,8 +439,9 @@ def get_stats(stats, doctype, filters=[]):
 
 	try:
 		columns = frappe.db.get_table_columns(doctype)
-	except frappe.db.InternalError:
+	except (frappe.db.InternalError, frappe.db.ProgrammingError):
 		# raised when _user_tags column is added on the fly
+		# raised if its a virtual doctype
 		columns = []
 
 	for tag in tags:
@@ -543,7 +552,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 				if isinstance(f[1], string_types) and f[1][0] == '!':
 					flt.append([doctype, f[0], '!=', f[1][1:]])
 				elif isinstance(f[1], (list, tuple)) and \
-					f[1][0] in (">", "<", ">=", "<=", "like", "not like", "in", "not in", "between"):
+					f[1][0] in (">", "<", ">=", "<=", "!=", "like", "not like", "in", "not in", "between"):
 
 					flt.append([doctype, f[0], f[1][0], f[1][1]])
 				else:

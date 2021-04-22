@@ -34,7 +34,6 @@ frappe.ui.form.Form = class FrappeForm {
 		this.grids = [];
 		this.cscript = new frappe.ui.form.Controller({ frm: this });
 		this.events = {};
-		this.pformat = {};
 		this.fetch_dict = {};
 		this.parent = parent;
 		this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
@@ -361,6 +360,7 @@ frappe.ui.form.Form = class FrappeForm {
 			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
 		frappe.ui.form.close_grid_form();
+		this.viewers && this.viewers.parent.empty();
 		this.docname = docname;
 		this.setup_docinfo_change_listener();
 	}
@@ -1142,10 +1142,6 @@ frappe.ui.form.Form = class FrappeForm {
 	//Remove specific custom button by button Label
 	remove_custom_button(label, group) {
 		this.page.remove_inner_button(label, group);
-	}
-
-	set_print_heading(txt) {
-		this.pformat[this.docname] = txt;
 	}
 
 	scroll_to_element() {

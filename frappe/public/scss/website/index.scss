@@ -90,6 +90,13 @@
 	margin: 2rem 0;
 }
 
+@media (max-width: map-get($grid-breakpoints, "lg")) {
+	.page-content-wrapper .container {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+}
+
 .breadcrumb-container {
 	margin-top: 1rem;
 	padding-top:  0.25rem;

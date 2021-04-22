@@ -2,105 +2,278 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+import re
+
 import frappe
 from frappe import _
-import re
 from frappe.model.document import Document
-from frappe.utils import validate_email_address
+from frappe.utils import get_fullname
+from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
 
+
 class PersonalDataDeletionRequest(Document):
-	def validate(self):
-		validate_email_address(self.email, throw=True)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.user_data_fields = frappe.get_hooks("user_data_fields")
+		self.full_match_privacy_docs = [
+			x for x in self.user_data_fields if x.get("redact_fields")
+		]
+		self.partial_privacy_docs = [
+			x for x in self.user_data_fields if x.get("partial") or not x.get("redact_fields")
+		]
+		self.anonymization_value_map = {
+			"Code": "[REDACTED]: Removed due to Personal Data Deletion Request",
+			"Data": "[REDACTED]",
+			"Date": "1111-01-01",
+			"Int": 0,
+			"Phone": "+91 0000000000",
+			"Name": "REDACTED",
+		}
+
+	def autoname(self):
+		from frappe.model.naming import set_name_from_naming_options
+
+		pattern = re.compile(
+			r"^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|"
+			r"([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|"
+			r"([a-zA-Z0-9][-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9]))\."
+			r"([a-zA-Z]{2,13}|[a-zA-Z0-9-]{2,30}.[a-zA-Z]{2,3})$"
+		)
+		domain = frappe.local.site.replace("_", "-")
+		site = domain if pattern.match(domain) else f"{domain}.com"
+		autoname = f"format:deleted-user-{{####}}@{site}"
+		set_name_from_naming_options(autoname, self)
+		frappe.utils.validate_email_address(self.email, throw=True)
 
 	def after_insert(self):
 		self.send_verification_mail()
 
+	def generate_url_for_confirmation(self):
+		params = {"email": self.email, "name": self.name, "host_name": frappe.local.site}
+		api = frappe.utils.get_url(
+			"/api/method/frappe.website.doctype.personal_data_deletion_request"
+			".personal_data_deletion_request.confirm_deletion"
+		)
+		url = f"{api}?{get_signed_params(params)}"
+
+		if frappe.conf.developer_mode:
+			print(f"URL generated for {self.doctype} {self.name}: {url}")
+
+		return url
+
+	def disable_user(self):
+		user = frappe.get_doc("User", self.email)
+		user.enabled = False
+		user.save()
+
 	def send_verification_mail(self):
-		host_name = frappe.local.site
-		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.confirm_deletion") +\
-			"?" + get_signed_params({"email": self.email, "name": self.name, 'host_name': host_name})
+		url = self.generate_url_for_confirmation()
 
 		frappe.sendmail(
 			recipients=self.email,
 			subject=_("Confirm Deletion of Data"),
 			template="delete_data_confirmation",
 			args={
-				'email': self.email,
-				'name': self.name,
-				'host_name': host_name,
-				'link': url
+				"email": self.email,
+				"name": self.name,
+				"host_name": frappe.local.site,
+				"link": url,
 			},
-			header=[_("Confirm Deletion of Data"), "green"]
+			header=[_("Confirm Deletion of Data"), "green"],
 		)
 
 	def notify_system_managers(self):
-		from frappe.utils.user import get_system_managers
 		system_managers = get_system_managers(only_name=True)
 
 		frappe.sendmail(
 			recipients=system_managers,
 			subject=_("User {0} has requested for data deletion").format(self.email),
 			template="data_deletion_approval",
-			args={
-				'user': self.email,
-				'url': frappe.utils.get_url(self.get_url())
-			},
-			header=[_("Approval Required"), "green"]
+			args={"user": self.email, "url": frappe.utils.get_url(self.get_url())},
+			header=[_("Approval Required"), "green"],
 		)
 
-	def anonymize_data(self):
-		""" mask user data with non identifiable data """
-		frappe.only_for('System Manager')
-		if not (self.status == 'Pending Approval'):
+	def validate_data_anonymization(self):
+		frappe.only_for("System Manager")
+
+		if self.status != "Pending Approval":
 			frappe.throw(_("This request has not yet been approved by the user."))
 
-		privacy_docs = frappe.get_hooks("user_privacy_documents")
+	@frappe.whitelist()
+	def trigger_data_deletion(self):
+		"""Redact user data defined in current site's hooks under `user_data_fields`"""
+		self.validate_data_anonymization()
+		self.disable_user()
+		self.anonymize_data()
 
-		anonymize_value_map = {
-			'Date': '1111-01-01',
-			'Int': 0,
-			'Code': 'http://xxxxx'
-		}
+	def anonymize_data(self):
+		return frappe.enqueue_doc(
+			self.doctype,
+			self.name,
+			"_anonymize_data",
+			queue="long",
+			timeout=3000,
+			now=frappe.flags.in_test,
+		)
 
-		regex = re.compile(r"(?<!\.)\b{0}\b(?!\.)".format(re.escape(self.email)))
+	def redact_partial_match_data(self, doctype):
+		self.__redact_partial_match_data(doctype)
+		self.rename_documents(doctype)
 
-		for ref_doc in privacy_docs:
-			meta = frappe.get_meta(ref_doc['doctype'])
-			personal_fields = ref_doc.get('personal_fields', [])
+	def rename_documents(self, doctype):
+		if not doctype.get("rename"):
+			return
 
-			if ref_doc.get('applies_to_website_user') and 'Guest' not in frappe.get_roles(self.email):
+		def new_name(email, number):
+			email_user, domain = email.split("@")
+			return f"{email_user}-{number}@{domain}"
+
+		for i, name in enumerate(
+			frappe.get_all(
+				doctype["doctype"],
+				filters={doctype.get("filter_by", "owner"): self.email},
+				pluck="name",
+			)
+		):
+			frappe.rename_doc(
+				doctype["doctype"], name, new_name(self.anon, i + 1), force=True, show_alert=False
+			)
+
+	def redact_full_match_data(self, ref, email):
+		"""Replaces the entire field value by the values set in the anonymization_value_map"""
+		filter_by = ref["filter_by"]
+
+		docs = frappe.get_all(
+			ref["doctype"],
+			filters={filter_by: ("like", "%" + email + "%")},
+			fields=["name", filter_by],
+		)
+
+		# skip if there are no Documents
+		if not docs:
+			return
+
+		self.anonymize_fields_dict = self.generate_anonymization_dict(ref)
+
+		for doc in docs:
+			self.redact_doc(doc, ref)
+
+	def generate_anonymization_dict(self, ref):
+		anonymize_fields_dict = {}
+		meta = frappe.get_meta(ref["doctype"])
+
+		for field in ref.get("redact_fields", []):
+			field_details = meta.get_field(field)
+
+			if not field_details:
+				print(f"Incorrect personal_field {field} defined in hooks")
 				continue
 
-			anonymize_fields = ''
-			for field in personal_fields:
-				field_details = meta.get_field(field)
-				field_value = anonymize_value_map.get(field_details.fieldtype, str(field)) if not field_details.unique else self.name.split("@")[0]
-				anonymize_fields += ', `{0}`= \'{1}\''.format(field, field_value)
+			field_value = (
+				self.anon
+				if field_details.unique
+				else (
+					self.anonymization_value_map.get(field_details.options)
+					or self.anonymization_value_map.get(field_details.fieldtype)
+					or field
+				)
+			)
+			anonymize_fields_dict[field] = field_value
 
-			docs = frappe.get_all(ref_doc['doctype'], {ref_doc['match_field']:('like', '%'+self.email+'%')}, ['name', ref_doc['match_field']])
-			for d in docs:
-				if not re.search(regex, d[ref_doc['match_field']]):
-					continue
+		return anonymize_fields_dict
 
-				anonymize_match_value = ', '.join(map(lambda x: self.name if re.search(regex, x) else x, d[ref_doc['match_field']].split()))
-				frappe.db.sql("""UPDATE `tab{0}`
-					SET `{1}` = '{2}' {3}
-					WHERE `name` = '{4}' """.format( #nosec
-					ref_doc['doctype'],
-					ref_doc['match_field'],
-					anonymize_match_value,
-					anonymize_fields,
-					d['name']
-				))
-		self.db_set('status', 'Deleted')
+	def redact_doc(self, doc, ref):
+		filter_by = ref["filter_by"]
+		meta = frappe.get_meta(ref["doctype"])
+		filter_by_meta = meta.get_field(filter_by)
+
+		if filter_by_meta and filter_by_meta.fieldtype != "Link":
+
+			if self.email in doc[filter_by]:
+				value = re.sub(
+					self.full_name_regex, self.anonymization_value_map["Data"], doc[filter_by]
+				)
+				value = re.sub(self.email_regex, self.anon, value)
+				self.anonymize_fields_dict[filter_by] = value
+
+		frappe.db.set_value(
+			ref["doctype"], doc["name"], self.anonymize_fields_dict, modified_by="Administrator",
+		)
+
+		if ref.get("rename") and doc["name"] != self.anon:
+			frappe.rename_doc(
+				ref["doctype"], doc["name"], self.anon, force=True, show_alert=False
+			)
+
+	def _anonymize_data(self, email=None, anon=None, set_data=True):
+		email = email or self.email
+		anon = anon or self.name
+
+		if set_data:
+			self.__set_anonymization_data(email, anon)
+
+		for doctype in self.full_match_privacy_docs:
+			self.redact_full_match_data(doctype, email)
+
+		for doctype in self.partial_privacy_docs:
+			self.redact_partial_match_data(doctype)
+
+		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
+		self.db_set("status", "Deleted")
+
+	def __set_anonymization_data(self, email, anon):
+		self.anon = anon or self.name
+		self.full_name = get_fullname(email)
+		self.email_regex = get_pattern(email)
+		self.full_name_regex = get_pattern(self.full_name)
+		self.is_full_name_set = email != self.full_name
+		self.anonymization_value_map["Email"] = self.anon
+
+	def __redact_partial_match_data(self, doctype):
+		match_fields = []
+		editable_text_fields = {
+			"Small Text",
+			"Text",
+			"Text Editor",
+			"Code",
+			"HTML Editor",
+			"Markdown Editor",
+			"Long Text",
+			"Data",
+		}
+
+		for df in frappe.get_meta(doctype["doctype"]).fields:
+			if df.fieldtype not in editable_text_fields:
+				continue
+
+			match_fields += [
+				f"`{df.fieldname}`= REPLACE(REPLACE(`{df.fieldname}`, %(name)s,"
+				f" 'REDACTED'), %(email)s, '{self.anon}')",
+			]
+
+		update_predicate = f"SET  {', '.join(match_fields)}"
+		where_predicate = (
+			""
+			if doctype.get("strict")
+			else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
+		)
+
+		frappe.db.sql(
+			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
+			{"name": self.full_name, "email": self.email},
+		)
+
 
 def remove_unverified_record():
-	frappe.db.sql("""
+	frappe.db.sql(
+		"""
 		DELETE FROM `tabPersonal Data Deletion Request`
 		WHERE `status` = 'Pending Verification'
-		AND `creation` < (NOW() - INTERVAL '7' DAY)""")
+		AND `creation` < (NOW() - INTERVAL '7' DAY)"""
+	)
+
 
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email, name, host_name):
@@ -109,15 +282,27 @@ def confirm_deletion(email, name, host_name):
 
 	doc = frappe.get_doc("Personal Data Deletion Request", name)
 	host_name = frappe.local.site
-	if doc.status == 'Pending Verification':
-		doc.status = 'Pending Approval'
+
+	if doc.status == "Pending Verification":
+		doc.status = "Pending Approval"
 		doc.save(ignore_permissions=True)
 		doc.notify_system_managers()
 		frappe.db.commit()
-		frappe.respond_as_web_page(_("Confirmed"),
-			_("The process for deletion of {0} data associated with {1} has been initiated.").format(host_name, email),
-			indicator_color='green')
+		frappe.respond_as_web_page(
+			_("Confirmed"),
+			_(
+				"The process for deletion of {0} data associated with {1} has been initiated."
+			).format(host_name, email),
+			indicator_color="green",
+		)
+
 	else:
-		frappe.respond_as_web_page(_("Link Expired"),
+		frappe.respond_as_web_page(
+			_("Link Expired"),
 			_("This link has already been activated for verification."),
-			indicator_color='red')
+			indicator_color="red",
+		)
+
+
+def get_pattern(full_match):
+	return re.compile(r"(?<!\.)\b{0}\b(?!\.)".format(re.escape(full_match)))

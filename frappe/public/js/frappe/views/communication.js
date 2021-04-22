@@ -603,7 +603,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	delete_saved_draft() {
-		if (this.dialog) {
+		if (this.dialog && this.frm) {
 			localforage.removeItem(this.frm.doctype + this.frm.docname).catch(e => {
 				if (e) {
 					// silently fail
@@ -775,8 +775,8 @@ frappe.views.CommunicationComposer = Class.extend({
 
 			let communication_date = last_email.communication_date || last_email.creation;
 			content = `
-				<div><br></div>
 				${reply}
+				<div><br></div>
 				${frappe.separator_element || ''}
 				<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
 				<blockquote>
@@ -784,7 +784,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				</blockquote>
 			`;
 		} else {
-			content = "<div><br></div>" + reply;
+			content = reply;
 		}
 		fields.content.set_value(content);
 	},

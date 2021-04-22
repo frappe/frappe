@@ -40,7 +40,7 @@ frappe.search.utils = {
 		frappe.route_history.forEach(function(route, i) {
 			if(route[0]==='Form') {
 				values.push([route[2], route]);
-			} else if(['List', 'Tree', 'modules', 'query-report'].includes(route[0]) || route[2]==='Report') {
+			} else if(['List', 'Tree', 'Workspaces', 'query-report'].includes(route[0]) || route[2]==='Report') {
 				if(route[1]) {
 					values.push([route[1], route]);
 				}
@@ -61,9 +61,9 @@ frappe.search.utils = {
 					out.label = __(match[1][1]).bold();
 					out.value = __(match[1][1]);
 				}
-			} else if (['List', 'Tree', 'modules', 'query-report'].includes(match[1][0]) && (match[1].length > 1)) {
+			} else if (['List', 'Tree', 'Workspaces', 'query-report'].includes(match[1][0]) && (match[1].length > 1)) {
 				var type = match[1][0], label = type;
-				if(type==='modules') label = 'Module';
+				if(type==='Workspaces') label = 'Workspace';
 				else if(type==='query-report' || match[1][2] ==='Report') label = 'Report';
 				out.label = __(match[1][1]).bold() + " " + __(label);
 				out.value = __(match[1][1]) + " " + __(label);

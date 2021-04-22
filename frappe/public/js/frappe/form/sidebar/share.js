@@ -123,6 +123,7 @@ frappe.ui.form.Share = Class.extend({
 					user: user,
 					read: $(d.body).find(".add-share-read").prop("checked") ? 1 : 0,
 					write: $(d.body).find(".add-share-write").prop("checked") ? 1 : 0,
+					submit: $(d.body).find(".add-share-submit").prop("checked") ? 1 : 0,
 					share: $(d.body).find(".add-share-share").prop("checked") ? 1 : 0,
 					notify: 1,
 				},

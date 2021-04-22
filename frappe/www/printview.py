@@ -48,7 +48,7 @@ def get_context(context):
 		"css": get_print_style(frappe.form_dict.style, print_format),
 		"comment": frappe.session.user,
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name,
-		"has_rtl": True if frappe.local.lang in ["ar", "he", "fa"] else False
+		"has_rtl": True if frappe.local.lang in ["ar", "he", "fa", "ps"] else False
 	}
 
 def get_print_format_doc(print_format_name, meta):
