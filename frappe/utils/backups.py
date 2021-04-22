@@ -435,10 +435,14 @@ class BackupGenerator:
 			print(command + "\n")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		frappe.utils.execute_in_shell(command, low_priority=True)
 =======
 		err, out = frappe.utils.execute_in_shell(command, low_priority=True)
 >>>>>>> 9d3be5160f... perf: low priority for backup processes
+=======
+		frappe.utils.execute_in_shell(command, low_priority=True)
+>>>>>>> ab3be339fd... fix: remove unsused variables
 
 	def send_email(self):
 		"""
