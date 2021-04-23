@@ -18,6 +18,41 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			this.$input.attr("maxlength", this.df.length || 140);
 		}
 
+		this.$input.on('paste', (e) => {
+			let pasted_data = frappe.utils.get_clipboard_data(e);
+			let maxlength = this.$input.attr('maxlength');
+			if (maxlength && pasted_data.length > maxlength) {
+				let warning_message = __('The value you pasted was {0} characters long. Max allowed characters is {1}.', [
+					cstr(pasted_data.length).bold(),
+					cstr(maxlength).bold()
+				]);
+
+				// Only show edit link to users who can update the doctype
+				if (this.frm && frappe.model.can_write(this.frm.doctype)) {
+					let doctype_edit_link = null
+					if (this.frm.meta.custom) {
+						doctype_edit_link = frappe.utils.get_form_link('DocType', this.frm.doctype, true,
+							__('this form'))
+					} else {
+						doctype_edit_link = frappe.utils.get_form_link('Customize Form', 'Customize Form', true, null, {
+							doc_type: this.frm.doctype
+						})
+					}
+					let edit_note = __('{0}: You can increase the limit for the field if required via {1}', [
+						__('Note').bold(),
+						doctype_edit_link
+					]);
+					warning_message += `<br><br><span class="text-muted text-small">${edit_note}</span>`;
+				}
+
+				frappe.msgprint({
+					message: warning_message,
+					indicator: 'orange',
+					title: __('Data Clipped')
+				});
+			}
+		});
+
 		this.set_input_attributes();
 		this.input = this.$input.get(0);
 		this.has_input = true;
