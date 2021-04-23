@@ -831,10 +831,13 @@ Object.assign(frappe.utils, {
 			if (callNow) func.apply(context, args);
 		};
 	},
-	get_form_link: function(doctype, name, html = false, display_text = null) {
+	get_form_link: function(doctype, name, html=false, display_text=null, query_params_obj=null) {
 		display_text = display_text || name;
 		name = encodeURIComponent(name);
-		const route = `/app/${encodeURIComponent(doctype.toLowerCase().replace(/ /g, '-'))}/${name}`;
+		let route = `/app/${encodeURIComponent(doctype.toLowerCase().replace(/ /g, '-'))}/${name}`;
+		if (query_params_obj) {
+			route += frappe.utils.make_query_string(query_params_obj);
+		}
 		if (html) {
 			return `<a href="${route}">${display_text}</a>`;
 		}
