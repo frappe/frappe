@@ -10,6 +10,9 @@ import os, re
 import frappe
 from frappe import _
 import frappe.sessions
+import json
+from frappe.utils.response import json_handler
+
 
 def get_context(context):
 	if frappe.session.user == "Guest":
@@ -31,7 +34,8 @@ def get_context(context):
 
 	desk_theme = frappe.db.get_value("User", frappe.session.user, "desk_theme")
 
-	boot_json = frappe.as_json(boot)
+	# Fix login with account with Russian language set
+	boot_json = json.dumps(boot, indent=1, default=json_handler, separators=(',', ': '))
 
 	# remove script tags from boot
 	boot_json = re.sub("\<script[^<]*\</script\>", "", boot_json)
