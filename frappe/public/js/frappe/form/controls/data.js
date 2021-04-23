@@ -1,10 +1,10 @@
 frappe.provide('frappe.phone_call');
 
-frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
-	html_element: "input",
-	input_type: "text",
-	trigger_change_on_input_event: true,
-	make_input: function() {
+frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInput {
+	html_element = "input";
+	input_type = "text";
+	trigger_change_on_input_event = true;
+	make_input() {
 		if(this.$input) return;
 
 		this.$input = $("<"+ this.html_element +">")
@@ -23,8 +23,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.has_input = true;
 		this.bind_change_event();
 		this.setup_autoname_check();
-	},
-	bind_change_event: function() {
+	}
+	bind_change_event() {
 		const change_handler = e => {
 			if (this.change) this.change(e);
 			else {
@@ -37,8 +37,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			// debounce to avoid repeated validations on value change
 			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
 		}
-	},
-	setup_autoname_check: function() {
+	}
+	setup_autoname_check() {
 		if (!this.df.parent) return;
 		this.meta = frappe.get_meta(this.df.parent);
 		if (this.meta && ((this.meta.autoname
@@ -67,8 +67,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				}
 			});
 		}
-	},
-	set_input_attributes: function() {
+	}
+	set_input_attributes() {
 		this.$input
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
@@ -82,24 +82,24 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		if(this.df.input_class) {
 			this.$input.addClass(this.df.input_class);
 		}
-	},
-	set_input: function(value) {
+	}
+	set_input(value) {
 		this.last_value = this.value;
 		this.value = value;
 		this.set_formatted_input(value);
 		this.set_disp_area(value);
 		this.set_mandatory && this.set_mandatory(value);
-	},
-	set_formatted_input: function(value) {
+	}
+	set_formatted_input(value) {
 		this.$input && this.$input.val(this.format_for_input(value));
-	},
-	get_input_value: function() {
+	}
+	get_input_value() {
 		return this.$input ? this.$input.val() : undefined;
-	},
-	format_for_input: function(val) {
+	}
+	format_for_input(val) {
 		return val==null ? "" : val;
-	},
-	validate: function(v) {
+	}
+	validate(v) {
 		if (!v) {
 			return '';
 		}
@@ -129,9 +129,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		} else {
 			return v;
 		}
-	},
-	toggle_container_scroll: function(el_class, scroll_class, add=false) {
+	}
+	toggle_container_scroll(el_class, scroll_class, add=false) {
 		let el = this.$input.parents(el_class)[0];
 		if (el) $(el).toggleClass(scroll_class, add);
 	}
-});
+};

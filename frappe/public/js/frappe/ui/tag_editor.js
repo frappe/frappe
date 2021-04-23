@@ -1,5 +1,5 @@
-frappe.ui.TagEditor = Class.extend({
-	init: function(opts) {
+frappe.ui.TagEditor = class TagEditor {
+	constructor(opts) {
 		/* docs:
 		Arguments
 
@@ -17,8 +17,8 @@ frappe.ui.TagEditor = Class.extend({
 		}
 		this.initialized = true;
 		this.refresh(this.user_tags);
-	},
-	setup_tags: function() {
+	}
+	setup_tags() {
 		var me = this;
 
 		// hidden form, does not have parent
@@ -65,8 +65,8 @@ frappe.ui.TagEditor = Class.extend({
 		});
 		this.setup_awesomplete();
 		this.setup_complete = true;
-	},
-	setup_awesomplete: function() {
+	}
+	setup_awesomplete() {
 		var me = this;
 		var $input = this.wrapper.find("input.tags-input");
 		var input = $input.get(0);
@@ -99,15 +99,15 @@ frappe.ui.TagEditor = Class.extend({
 				$input.trigger("input");
 			}
 		});
-	},
-	get_args: function(tag) {
+	}
+	get_args(tag) {
 		return {
 			tag: tag,
 			dt: this.frm.doctype,
 			dn: this.frm.docname,
 		}
-	},
-	refresh: function(user_tags) {
+	}
+	refresh(user_tags) {
 		var me = this;
 		if (!this.initialized || !this.setup_complete || this.refreshing) return;
 
@@ -126,4 +126,4 @@ frappe.ui.TagEditor = Class.extend({
 		me.refreshing = false;
 
 	}
-})
+}
