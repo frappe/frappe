@@ -1299,5 +1299,11 @@ Object.assign(frappe.utils, {
 			frappe.msgprint(__('Please enable pop-ups'));
 			return;
 		}
+	},
+
+	get_clipboard_data(clipboard_paste_event) {
+		let e = clipboard_paste_event;
+		let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
+		return clipboard_data.getData('Text');
 	}
 });
