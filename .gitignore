@@ -189,6 +189,5 @@ typings/
 # cypress
 cypress/screenshots
 cypress/videos
-
 # JetBrains IDEs
 .idea/

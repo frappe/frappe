@@ -2,6 +2,7 @@ from __future__ import unicode_literals, absolute_import, print_function
 import click
 from frappe.commands import pass_context, get_site
 from frappe.exceptions import SiteNotSpecifiedError
+from frappe import get_all_apps
 
 # translation
 @click.command('build-message-files')
@@ -39,17 +40,18 @@ def new_language(context, lang_code, app):
 
 @click.command('get-untranslated')
 @click.argument('lang')
+@click.option('--app', default=None, help=f'Optional app argument from apps.txt to translate single app')
 @click.argument('untranslated_file')
 @click.option('--all', default=False, is_flag=True, help='Get all message strings')
 @pass_context
-def get_untranslated(context, lang, untranslated_file, all=None):
+def get_untranslated(context, lang, untranslated_file, app=None, all=None):
 	"Get untranslated strings for language"
 	import frappe.translate
 	site = get_site(context)
 	try:
 		frappe.init(site=site)
 		frappe.connect()
-		frappe.translate.get_untranslated(lang, untranslated_file, get_all=all)
+		frappe.translate.get_untranslated(lang, untranslated_file, app=app, get_all=all)
 	finally:
 		frappe.destroy()
 
