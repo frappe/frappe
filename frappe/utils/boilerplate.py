@@ -312,6 +312,13 @@ user_data_fields = [
 	}}
 ]
 
+# Authentication and authorization
+# --------------------------------
+
+# auth_hooks = [
+# 	"{app_name}.auth.validate"
+# ]
+
 """
 
 desktop_template = """# -*- coding: utf-8 -*-
