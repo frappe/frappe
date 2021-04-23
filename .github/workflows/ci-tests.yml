@@ -153,6 +153,6 @@ jobs:
           pip install coverage==5.5
           coveralls --service=github-actions
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_SERVICE_NAME: 'github-actions'
+          GITHUB_TOKEN: $COVERALLS_REPO_TOKEN
