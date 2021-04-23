@@ -1,3 +1,15 @@
+.navbar {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+@media (max-width: map-get($grid-breakpoints, "lg")) {
+	.navbar {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+}
+
 .navbar-light {
 	border-bottom: 1px solid $border-color;
 	background: $navbar-bg;

@@ -462,9 +462,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
 					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
 				}
-
 				// if default and no fetch, no need to validate
-				if (!fetch && df.__default_value && df.__default_value===value) return value;
+				if (!fetch && df.__default_value && df.__default_value===value) {
+					resolve(value);
+				}
 
 				this.fetch_and_validate_link(resolve, df, doctype, docname, value, fetch);
 			});

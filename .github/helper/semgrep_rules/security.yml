@@ -12,3 +12,18 @@ rules:
     exclude:
       - frappe/__init__.py
       - frappe/commands/utils.py
+
+- id: frappe-sqli-format-strings
+  patterns:
+    - pattern-inside: |
+        @frappe.whitelist()
+        def $FUNC(...):
+            ...
+    - pattern-either:
+        - pattern: frappe.db.sql("..." % ...)
+        - pattern: frappe.db.sql(f"...", ...)
+        - pattern: frappe.db.sql("...".format(...), ...)
+  message: |
+      Detected use of raw string formatting for SQL queries. This can lead to sql injection vulnerabilities. Refer security guidelines - https://github.com/frappe/erpnext/wiki/Code-Security-Guidelines
+  languages: [python]
+  severity: WARNING
