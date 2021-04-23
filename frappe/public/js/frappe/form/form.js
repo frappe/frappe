@@ -1203,10 +1203,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		$.each(grid_field_label_map, function(fname, label) {
 			fname = fname.split("-");
-			$.each(me.doc[parentfield] || [], function(i, child_doc) {
-				var df = frappe.meta.get_docfield(fname[0], fname[1], child_doc.name);
-				if(df) df.label = label;
-			})
+			me.fields_dict[parentfield].grid.update_docfield_property(fname[1], 'label', label);
 		});
 	}
 
