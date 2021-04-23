@@ -21,7 +21,7 @@
 		<link rel="icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
 		{% for include in include_css -%}
-		<link type="text/css" rel="stylesheet" href="{{ include }}?ver={{ build_version }}">
+		{{ style(include) }}
 		{%- endfor -%}
 	</head>
 	<body>
@@ -53,10 +53,8 @@
 		</script>
 
 	{% for include in include_js %}
-	{{ js_asset(include) }}
+	{{ script(include) }}
 	{% endfor %}
-
-	{{ js_asset('frappe/public/js/test.bundle.js') }}
 
 	{% include "templates/includes/app_analytics/google_analytics.html" %}
 	{% include "templates/includes/app_analytics/mixpanel_analytics.html" %}

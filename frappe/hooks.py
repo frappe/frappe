@@ -37,8 +37,8 @@ app_include_js = [
 	"frappe/public/js/report.bundle.js",
 ]
 app_include_css = [
-	"/assets/css/desk.min.css",
-	"/assets/css/report.min.css",
+	"frappe/public/scss/desk.bundle.scss",
+	"frappe/public/scss/report.bundle.scss",
 ]
 
 doctype_js = {
