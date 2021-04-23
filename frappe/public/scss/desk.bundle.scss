@@ -4,14 +4,6 @@
 @import "frappe/public/js/lib/leaflet/easy-button.css";
 @import "frappe/public/css/font-awesome.css";
 @import "frappe/public/css/octicons/octicons.css";
-// TODO: esbuild
-// @import "frappe/public/less/module.less";
-// @import "frappe/public/less/mobile.less";
-// @import "frappe/public/less/controls.less";
-
-// TODO: esbuild
-// chat has a separate bundle, so this shouldn't be needed
-// @import "frappe/public/less/chat.less";
 @import "frappe/public/css/fonts/inter/inter.css";
 @import "~frappe-charts/dist/frappe-charts.min";
 @import "~plyr/dist/plyr";
