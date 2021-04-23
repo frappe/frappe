@@ -43,6 +43,7 @@ def get_controller(doctype):
 		from frappe.utils.nestedset import NestedSet
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		module_name, custom = (
 			frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True)
 			or frappe.db.get_value("DocType", doctype, ("module", "custom"))
@@ -60,6 +61,11 @@ def get_controller(doctype):
 			else:
 				module_name, custom = ["Core", bool(not frappe.db.exists(doctype))]
 >>>>>>> 877f9d08df... fix: Use fallback values if doctype values unset
+=======
+		module_name, custom = frappe.db.get_value(
+			"DocType", doctype, ("module", "custom"), cache=True
+		) or ["Core", False]
+>>>>>>> 87ed7796de... fix: Use older logic to set module_name and custom vars
 
 		if custom:
 			if frappe.db.field_exists("DocType", "is_tree"):
