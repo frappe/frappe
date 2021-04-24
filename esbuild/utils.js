@@ -94,6 +94,24 @@ function get_apps_list() {
 		.filter(Boolean);
 }
 
+function get_cli_arg(name) {
+	let args = process.argv.slice(2);
+
+	for (let i in args) {
+		let arg = args[i];
+		let value = null;
+		if (arg == `--${name}`) {
+			value = true;
+		}
+		if (args[i + 1]) {
+			value = args[i + 1];
+		}
+		if (value) {
+			return value;
+		}
+	}
+}
+
 module.exports = {
 	app_list,
 	bench_path,
@@ -106,5 +124,6 @@ module.exports = {
 	get_app_path,
 	delete_file,
 	run_serially,
-	get_options_for_scss
+	get_options_for_scss,
+	get_cli_arg
 };

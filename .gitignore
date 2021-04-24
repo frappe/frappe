@@ -9,7 +9,7 @@ locale
 dist/
 # build/
 frappe/docs/current
-frappe/public/build
+frappe/public/dist
 .vscode
 node_modules
 .kdev4/
