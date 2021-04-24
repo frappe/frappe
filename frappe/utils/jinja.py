@@ -235,13 +235,13 @@ def web_blocks(blocks):
 def script(path):
 	path = assets_url(path)
 	if '/public/' in path:
-		path = path.replace('/public/', '/build/')
+		path = path.replace('/public/', '/dist/')
 	return f'<script type="text/javascript" src="{path}"></script>'
 
 def style(path):
 	path = assets_url(path)
 	if '/public/' in path:
-		path = path.replace('/public/', '/build/')
+		path = path.replace('/public/', '/dist/')
 	if path.endswith(('.scss', '.sass', '.less', '.styl')):
 		path = path.rsplit('.', 1)[0] + '.css'
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'

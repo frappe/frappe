@@ -164,7 +164,7 @@ def prepare_header_footer(soup):
 	head = soup.find("head").contents
 	styles = soup.find_all("style")
 
-	css = frappe.read_file(os.path.join(frappe.local.sites_path, "assets/css/printview.css"))
+	css = frappe.read_file(os.path.join(frappe.local.sites_path, "assets/frappe/dist/css/print.bundle.css"))
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):

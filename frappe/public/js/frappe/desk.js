@@ -491,7 +491,7 @@ frappe.Application = class Application {
 			var ls = document.createElement('link');
 			ls.rel="stylesheet";
 			ls.type = "text/css";
-			ls.href= "assets/css/frappe-rtl.css";
+			ls.href= "/assets/frappe/dist/css/frappe-rtl.bundle.css";
 			document.getElementsByTagName('head')[0].appendChild(ls);
 			$('body').addClass('frappe-rtl');
 		}

@@ -30,11 +30,11 @@
 		{%- if theme.name != 'Standard' -%}
 		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
 		{%- else -%}
-		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css?ver={{ build_version }}">
+		<link type="text/css" rel="stylesheet" href="/assets/frappe/dist/css/website.bundle.css">
 		{%- endif -%}
 
 		{%- for link in web_include_css %}
-		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}?ver={{ build_version }}">
+		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
 		{%- endfor -%}
 	{%- endblock -%}
 
@@ -96,7 +96,7 @@
 
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
-	<script type="text/javascript" src="/assets/frappe/build/js/frappe-web.bundle.js"></script>
+	<script type="text/javascript" src="/assets/frappe/dist/js/frappe-web.bundle.js"></script>
 	{% endblock %}
 
 	{%- for link in web_include_js %}

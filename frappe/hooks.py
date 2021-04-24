@@ -29,16 +29,16 @@ page_js = {
 
 # website
 app_include_js = [
-	"frappe/public/js/libs.bundle.js",
-	"frappe/public/js/desk.bundle.js",
-	"frappe/public/js/list.bundle.js",
-	"frappe/public/js/form.bundle.js",
-	"frappe/public/js/controls.bundle.js",
-	"frappe/public/js/report.bundle.js",
+	"/assets/frappe/dist/js/libs.bundle.js",
+	"/assets/frappe/dist/js/desk.bundle.js",
+	"/assets/frappe/dist/js/list.bundle.js",
+	"/assets/frappe/dist/js/form.bundle.js",
+	"/assets/frappe/dist/js/controls.bundle.js",
+	"/assets/frappe/dist/js/report.bundle.js",
 ]
 app_include_css = [
-	"frappe/public/scss/desk.bundle.scss",
-	"frappe/public/scss/report.bundle.scss",
+	"/assets/frappe/dist/css/desk.bundle.css",
+	"/assets/frappe/dist/css/report.bundle.css",
 ]
 
 doctype_js = {
@@ -52,7 +52,7 @@ web_include_js = [
 
 web_include_css = []
 
-email_css = ['/assets/frappe/build/scss/email.css']
+email_css = ['/assets/frappe/dist/css/email.bundle.css']
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},

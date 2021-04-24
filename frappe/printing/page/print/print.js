@@ -410,12 +410,12 @@ frappe.ui.form.PrintView = class {
 		this.print_wrapper.find('.print-format-skeleton').remove();
 		this.$print_format_body.find('head').html(
 			`<style type="text/css">${out.style}</style>
-			<link href="${frappe.urllib.get_base_url()}/assets/css/printview.css" rel="stylesheet">`
+			<link href="${frappe.urllib.get_base_url()}/assets/frappe/dist/css/print.bundle.css" rel="stylesheet">`
 		);
 
 		if (frappe.utils.is_rtl(this.lang_code)) {
 			this.$print_format_body.find('head').append(
-				`<link type="text/css" rel="stylesheet" href="${frappe.urllib.get_base_url()}/assets/css/frappe-rtl.css"></link>`
+				`<link type="text/css" rel="stylesheet" href="${frappe.urllib.get_base_url()}/assets/frappe/dist/css/frappe-rtl.bundle.css"></link>`
 			);
 		}
 
