@@ -29,7 +29,7 @@ page_js = {
 
 # website
 app_include_js = [
-	"/assets/js/libs.min.js",
+	"frappe/public/js/libs.bundle.js",
 	"frappe/public/js/desk.bundle.js",
 	"frappe/public/js/list.bundle.js",
 	"frappe/public/js/form.bundle.js",

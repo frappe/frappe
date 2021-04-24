@@ -1,4 +1,3 @@
-import 'bootstrap/dist/js/bootstrap.bundle';
 
 // multilevel dropdown
 $('.dropdown-menu a.dropdown-toggle').on('click', function (e) {

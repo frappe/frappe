@@ -605,8 +605,7 @@ $(document).ready(function() {
 
 $(document).on("page-change", function() {
 	$(document).trigger("apply_permissions");
-	// TODO: esbuild
-	// $('.dropdown-toggle').dropdown();
+	$('.dropdown-toggle').dropdown();
 
 	//multilevel dropdown fix
 	$('.dropdown-menu .dropdown-submenu .dropdown-toggle').on('click', function(e) {

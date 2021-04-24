@@ -1,3 +1,4 @@
+import "./jquery-bootstrap";
 import "./frappe/class.js";
 import "./frappe/polyfill.js";
 import "./lib/md5.min.js";
