@@ -9,10 +9,10 @@ let ignore_assets = require("./ignore-assets");
 let sass_options = require("./sass_options");
 let {
 	app_list,
+	assets_path,
+	apps_path,
 	get_app_path,
 	get_public_path,
-	run_serially,
-	bench_path,
 	get_cli_arg
 } = require("./utils");
 
@@ -31,32 +31,21 @@ const NODE_PATHS = [].concat(
 
 (async function() {
 	console.time(TOTAL_BUILD_TIME);
-	await run_build_for_apps(app_list);
+	await build_assets_for_apps(app_list);
 	console.timeEnd(TOTAL_BUILD_TIME);
 })();
 
-function run_build_for_apps(apps) {
-	return run_serially(apps.map(app => () => run_build_for_app(app)));
-}
-
-function run_build_for_app(app) {
-	let public_path = get_public_path(app);
-	let include_patterns = path.resolve(
-		public_path,
-		"**",
-		"*.bundle.{js,ts,css,sass,scss,less,styl}"
-	);
-	let ignore_patterns = [
-		path.resolve(public_path, "node_modules"),
-		path.resolve(public_path, "dist")
-	];
+function build_assets_for_apps(apps) {
+	let { include_patterns, ignore_patterns } = get_files_to_build(apps);
 
 	return glob(include_patterns, { ignore: ignore_patterns }).then(files => {
-		// console.log(`\nBuilding assets for ${app}...`);
+		let output_path = assets_path;
 
-		let dist_path = path.resolve(public_path, "dist");
 		let file_map = {};
 		for (let file of files) {
+			let relative_app_path = path.relative(apps_path, file);
+			let app = relative_app_path.split(path.sep)[0];
+
 			let extension = path.extname(file);
 			let output_name = path.basename(file, extension);
 			if (
@@ -66,6 +55,7 @@ function run_build_for_app(app) {
 			} else if ([".js", ".ts"].includes(extension)) {
 				output_name = path.join("js", output_name);
 			}
+			output_name = path.join(app, "dist", output_name);
 
 			if (Object.keys(file_map).includes(output_name)) {
 				console.warn(
@@ -75,20 +65,44 @@ function run_build_for_app(app) {
 
 			file_map[output_name] = file;
 		}
+
 		return build_files({
 			files: file_map,
-			outdir: dist_path,
-			outbase: public_path
+			outdir: output_path
 		});
 	});
 }
 
-function build_files({ files, outdir, outbase }) {
+function get_files_to_build(apps) {
+	let include_patterns = [];
+	let ignore_patterns = [];
+
+	for (let app of apps) {
+		let public_path = get_public_path(app);
+		include_patterns.push(
+			path.resolve(
+				public_path,
+				"**",
+				"*.bundle.{js,ts,css,sass,scss,less,styl}"
+			)
+		);
+		ignore_patterns.push(
+			path.resolve(public_path, "node_modules"),
+			path.resolve(public_path, "dist")
+		);
+	}
+
+	return {
+		include_patterns,
+		ignore_patterns
+	};
+}
+
+function build_files({ files, outdir }) {
 	return esbuild
 		.build({
 			entryPoints: files,
 			outdir,
-			outbase,
 			sourcemap: true,
 			bundle: true,
 			metafile: true,
@@ -133,7 +147,7 @@ function log_build_meta(metafile) {
 		if (outfile.endsWith(".map")) continue;
 		let data = metafile.outputs[outfile];
 		outfile = path.resolve(outfile);
-		outfile = path.relative(path.resolve(bench_path, "apps"), outfile);
+		outfile = path.relative(assets_path, outfile);
 		console.log(outfile, data.bytes / 1000 + " Kb");
 	}
 }

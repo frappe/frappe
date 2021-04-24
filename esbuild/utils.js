@@ -4,11 +4,12 @@ const fs = require("fs");
 const frappe_path = path.resolve(__dirname, "..");
 const bench_path = path.resolve(frappe_path, "..", "..");
 const sites_path = path.resolve(bench_path, "sites");
+const apps_path = path.resolve(bench_path, "apps");
 const assets_path = path.resolve(sites_path, "assets");
 const app_list = get_apps_list();
 
 const app_paths = app_list.reduce((out, app) => {
-	out[app] = path.resolve(bench_path, "apps", app, app);
+	out[app] = path.resolve(apps_path, app, app);
 	return out;
 }, {});
 const public_paths = app_list.reduce((out, app) => {
@@ -117,6 +118,7 @@ module.exports = {
 	bench_path,
 	assets_path,
 	sites_path,
+	apps_path,
 	bundle_map,
 	get_public_path,
 	get_build_json_path,
