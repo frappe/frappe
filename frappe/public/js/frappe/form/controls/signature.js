@@ -5,25 +5,18 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 		var me = this;
 		super.make();
 
-		// make jSignature field
-		this.body = $('<div class="signature-field"></div>').appendTo(me.wrapper);
+		this.load_lib().then(() => {
+			// make jSignature field
+			this.body = $('<div class="signature-field"></div>').appendTo(me.wrapper);
 
-		if (this.body.is(':visible')) {
-			this.make_pad();
-		} else {
-			$(document).on('frappe.ui.Dialog:shown', () => {
+			if (this.body.is(':visible')) {
 				this.make_pad();
-			});
-		}
-
-		this.img_wrapper = $(`<div class="signature-display">
-			<div class="missing-image attach-missing-image">
-				${frappe.utils.icon('restriction', 'md')}</i>
-			</div></div>`)
-			.appendTo(this.wrapper);
-		this.img = $("<img class='img-responsive attach-image-display'>")
-			.appendTo(this.img_wrapper).toggle(false);
-
+			} else {
+				$(document).on('frappe.ui.Dialog:shown', () => {
+					this.make_pad();
+				});
+			}
+		});
 	}
 	make_pad() {
 		let width = this.body.width();
@@ -51,6 +44,14 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 				});
 
 		}
+
+		this.img_wrapper = $(`<div class="signature-display">
+			<div class="missing-image attach-missing-image">
+				${frappe.utils.icon('restriction', 'md')}</i>
+			</div></div>`)
+			.appendTo(this.wrapper);
+		this.img = $("<img class='img-responsive attach-image-display'>")
+			.appendTo(this.img_wrapper).toggle(false);
 	}
 	refresh_input(e) {
 		// prevent to load the second time
@@ -129,5 +130,12 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 		var base64_img = this.$pad.jSignature("getData");
 		this.set_my_value(base64_img);
 		this.set_image(this.get_value());
+	}
+
+	load_lib() {
+		if (!this.load_lib_promise) {
+			this.load_lib_promise = frappe.require('/assets/frappe/js/lib/jSignature.min.js');
+		}
+		return this.load_lib_promise;
 	}
 };
