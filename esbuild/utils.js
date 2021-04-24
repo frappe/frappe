@@ -97,20 +97,17 @@ function get_apps_list() {
 
 function get_cli_arg(name) {
 	let args = process.argv.slice(2);
+	let arg = `--${name}`;
+	let index = args.indexOf(arg);
 
-	for (let i in args) {
-		let arg = args[i];
-		let value = null;
-		if (arg == `--${name}`) {
-			value = true;
-		}
-		if (args[i + 1]) {
-			value = args[i + 1];
-		}
-		if (value) {
-			return value;
-		}
+	let value = null;
+	if (index != -1) {
+		value = true;
 	}
+	if (value && args[index + 1]) {
+		value = args[index + 1];
+	}
+	return value;
 }
 
 module.exports = {

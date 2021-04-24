@@ -22,6 +22,7 @@
     "autoprefixer": "^9.8.6",
     "awesomplete": "^1.1.5",
     "bootstrap": "4.5.0",
+    "cliui": "^7.0.4",
     "cookie": "^0.4.0",
     "cssnano": "^4.1.10",
     "driver.js": "^0.9.8",
