@@ -34,6 +34,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 
 		// setup autocompletion when it is set the first time
 		Object.defineProperty(this.df, 'autocompletions', {
+			configurable: true,
 			get() {
 				return this._autocompletions || [];
 			},
