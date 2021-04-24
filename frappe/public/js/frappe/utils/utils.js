@@ -957,9 +957,15 @@ Object.assign(frappe.utils, {
 	eval(code, context={}) {
 		let variable_names = Object.keys(context);
 		let variables = Object.values(context);
-		code = `return (${code})`;
-		let expression_function = new Function(...variable_names, code);
-		return expression_function(...variables);
+		code = `let out = ${code}; return out`;
+		try {
+			let expression_function = new Function(...variable_names, code);
+			return expression_function(...variables);
+		} catch (error) {
+			console.log('Error evaluating the following expression:');
+			console.error(code);
+			throw error;
+		}
 	},
 
 	get_browser() {
