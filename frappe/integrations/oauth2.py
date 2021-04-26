@@ -6,7 +6,12 @@ from oauthlib.openid.connect.core.endpoints.pre_configured import (
 )
 
 import frappe
-from frappe.oauth import OAuthWebRequestValidator, generate_json_error_response
+from frappe.oauth import (
+	OAuthWebRequestValidator,
+	generate_json_error_response,
+	get_server_url,
+	get_userinfo,
+)
 from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import (
 	get_oauth_settings,
 )
@@ -27,6 +32,17 @@ def sanitize_kwargs(param_kwargs):
 	arguments.pop("cmd", None)
 
 	return arguments
+
+
+def encode_params(params):
+	"""
+	Encode a dict of params into a query string.
+
+	Use `quote_via=urllib.parse.quote` so that whitespaces will be encoded as
+	`%20` instead of as `+`. This is needed because oauthlib cannot handle `+`
+	as a whitespace.
+	"""
+	return urlencode(params, quote_via=quote)
 
 
 @frappe.whitelist()
@@ -172,12 +188,70 @@ def openid_profile(*args, **kwargs):
 		return generate_json_error_response(e)
 
 
-def encode_params(params):
-	"""
-	Encode a dict of params into a query string.
+@frappe.whitelist(allow_guest=True)
+def openid_configuration():
+	frappe_server_url = get_server_url()
+	frappe.local.response = frappe._dict(
+		{
+			"issuer": frappe_server_url,
+			"authorization_endpoint": f"{frappe_server_url}/api/method/frappe.integrations.oauth2.authorize",
+			"token_endpoint": f"{frappe_server_url}/api/method/frappe.integrations.oauth2.get_token",
+			"userinfo_endpoint": f"{frappe_server_url}/api/method/frappe.integrations.oauth2.openid_profile",
+			"revocation_endpoint": f"{frappe_server_url}/api/method/frappe.integrations.oauth2.revoke_token",
+			"introspection_endpoint": f"{frappe_server_url}/api/method/frappe.integrations.oauth2.introspect_token",
+			"response_types_supported": [
+				"code",
+				"token",
+				"code id_token",
+				"code token id_token",
+				"id_token",
+				"id_token token",
+			],
+			"subject_types_supported": ["public"],
+			"id_token_signing_alg_values_supported": ["HS256"],
+		}
+	)
 
-	Use `quote_via=urllib.parse.quote` so that whitespaces will be encoded as
-	`%20` instead of as `+`. This is needed because oauthlib cannot handle `+`
-	as a whitespace.
-	"""
-	return urlencode(params, quote_via=quote)
+
+@frappe.whitelist(allow_guest=True)
+def introspect_token(token=None, token_type_hint=None):
+	if token_type_hint not in ["access_token", "refresh_token"]:
+		token_type_hint = "access_token"
+	try:
+		bearer_token = None
+		if token_type_hint == "access_token":
+			bearer_token = frappe.get_doc("OAuth Bearer Token", {"access_token": token})
+		elif token_type_hint == "refresh_token":
+			bearer_token = frappe.get_doc(
+				"OAuth Bearer Token", {"refresh_token": token}
+			)
+
+		client = frappe.get_doc("OAuth Client", bearer_token.client)
+
+		token_response = frappe._dict(
+			{
+				"client_id": client.client_id,
+				"trusted_client": client.skip_authorization,
+				"active": bearer_token.status == "Active",
+				"exp": round(bearer_token.expiration_time.timestamp()),
+				"scope": bearer_token.scopes,
+			}
+		)
+
+		if "openid" in bearer_token.scopes:
+			sub = frappe.get_value(
+				"User Social Login",
+				{"provider": "frappe", "parent": bearer_token.user},
+				"userid",
+			)
+
+			if sub:
+				token_response.update({"sub": sub})
+				user = frappe.get_doc("User", bearer_token.user)
+				userinfo = get_userinfo(user)
+				token_response.update(userinfo)
+
+		frappe.local.response = token_response
+
+	except Exception as e:
+		frappe.local.response = frappe._dict({"active": False})
