@@ -227,7 +227,7 @@
    "label": "Disable Signup"
   },
   {
-   "description": "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org]",
+   "description": "A graphic file with .png extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org]",
    "fieldname": "favicon",
    "fieldtype": "Attach",
    "label": "FavIcon"
