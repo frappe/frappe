@@ -286,7 +286,7 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 
 	from werkzeug.serving import run_simple
 
-	if profile:
+	if profile or os.environ.get('USE_PROFILER'):
 		application = ProfilerMiddleware(application, sort_by=('cumtime', 'calls'))
 
 	if not os.environ.get('NO_STATICS'):
