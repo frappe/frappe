@@ -71,7 +71,8 @@ class TestOAuth20(unittest.TestCase):
 				"grant_type": "authorization_code",
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
-				"client_id": self.client_id
+				"client_id": self.client_id,
+				"scope": self.scope,
 			})
 		)
 

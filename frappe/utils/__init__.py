@@ -19,7 +19,7 @@ from gzip import GzipFile
 from typing import Generator, Iterable
 
 from six import string_types, text_type
-from six.moves.urllib.parse import quote
+from six.moves.urllib.parse import quote, urlparse
 from werkzeug.test import Client
 
 import frappe
@@ -813,3 +813,11 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
+
+def validate_url(url_string):
+	try:
+		result = urlparse(url_string)
+		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
+	except:
+		return False
+
