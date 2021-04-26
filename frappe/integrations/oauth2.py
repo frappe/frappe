@@ -253,5 +253,5 @@ def introspect_token(token=None, token_type_hint=None):
 
 		frappe.local.response = token_response
 
-	except Exception as e:
+	except Exception:
 		frappe.local.response = frappe._dict({"active": False})
