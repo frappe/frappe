@@ -2,10 +2,14 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import unittest, frappe, requests, time, jwt
-from frappe.test_runner import make_test_records
+import unittest
+import requests
+import jwt
 from six.moves.urllib.parse import urlparse, parse_qs, urljoin
 from urllib.parse import urlencode, quote
+
+import frappe
+from frappe.test_runner import make_test_records
 from frappe.integrations.oauth2 import encode_params
 
 class TestOAuth20(unittest.TestCase):
@@ -34,7 +38,7 @@ class TestOAuth20(unittest.TestCase):
 		self.assertFalse(check_valid_openid_response())
 
 	def test_login_using_authorization_code(self):
-		client = update_client_for_auth_code_grant(self.client_id)
+		update_client_for_auth_code_grant(self.client_id)
 
 		session = requests.Session()
 		login(session)
@@ -84,7 +88,7 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(check_valid_openid_response(bearer_token.get("access_token")))
 
 	def test_login_using_authorization_code_with_pkce(self):
-		client = update_client_for_auth_code_grant(self.client_id)
+		update_client_for_auth_code_grant(self.client_id)
 
 		session = requests.Session()
 		login(session)
