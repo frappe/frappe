@@ -818,6 +818,6 @@ def validate_url(url_string):
 	try:
 		result = urlparse(url_string)
 		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
-	except:
+	except Exception:
 		return False
 

@@ -234,8 +234,9 @@ class OAuthWebRequestValidator(RequestValidator):
 					"user",
 				)
 			)
-		except Exception as e:
+		except Exception:
 			otoken.user = frappe.session.user
+
 		otoken.scopes = get_url_delimiter().join(request.scopes)
 		otoken.access_token = token["access_token"]
 		otoken.refresh_token = token.get("refresh_token")
@@ -301,20 +302,14 @@ class OAuthWebRequestValidator(RequestValidator):
 		Method is used by:
 		- Revocation Endpoint
 		"""
-		otoken = None
-
 		if token_type_hint == "access_token":
-			otoken = frappe.db.set_value(
-				"OAuth Bearer Token", token, "status", "Revoked"
-			)
+			frappe.db.set_value("OAuth Bearer Token", token, "status", "Revoked")
 		elif token_type_hint == "refresh_token":
-			otoken = frappe.db.set_value(
+			frappe.db.set_value(
 				"OAuth Bearer Token", {"refresh_token": token}, "status", "Revoked"
 			)
 		else:
-			otoken = frappe.db.set_value(
-				"OAuth Bearer Token", token, "status", "Revoked"
-			)
+			frappe.db.set_value("OAuth Bearer Token", token, "status", "Revoked")
 		frappe.db.commit()
 
 	def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs):
@@ -347,10 +342,6 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def finalize_id_token(self, id_token, token, token_handler, request):
 		# Check whether frappe server URL is set
-		frappe_server_url = (
-			frappe.db.get_value("Social Login Key", "frappe", "base_url") or request.uri
-		)
-
 		id_token_header = {"typ": "jwt", "alg": "HS256"}
 
 		user = frappe.get_doc(
@@ -518,7 +509,7 @@ class OAuthWebRequestValidator(RequestValidator):
 					if verified_payload:
 						return user.name == frappe.session.user
 
-			except Exception as e:
+			except Exception:
 				return False
 
 		elif frappe.session.user != "Guest":
@@ -559,8 +550,8 @@ def calculate_at_hash(access_token, hash_alg):
 	then take the left-most 128 bits and base64url encode them. The at_hash value is a
 	case sensitive string.
 	Args:
-									access_token (str): An access token string.
-									hash_alg (callable): A callable returning a hash object, e.g. hashlib.sha256
+																	access_token (str): An access token string.
+																	hash_alg (callable): A callable returning a hash object, e.g. hashlib.sha256
 	"""
 	hash_digest = hash_alg(access_token.encode("utf-8")).digest()
 	cut_at = int(len(hash_digest) / 2)
