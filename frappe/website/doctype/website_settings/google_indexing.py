@@ -2,17 +2,18 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe
-import requests
-import googleapiclient.discovery
-import google.oauth2.credentials
 
-from frappe import _
+from urllib.parse import quote
+
+import google.oauth2.credentials
+import requests
+from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from frappe.utils import get_request_site_address
-from six.moves.urllib.parse import quote
+
+import frappe
+from frappe import _
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.utils import get_request_site_address
 
 SCOPES = "https://www.googleapis.com/auth/indexing"
 
@@ -82,7 +83,12 @@ def get_google_indexing_object():
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
-	google_indexing = googleapiclient.discovery.build("indexing", "v3", credentials=credentials)
+	google_indexing = build(
+		serviceName="indexing",
+		version="v3",
+		credentials=credentials,
+		static_discovery=False
+	)
 
 	return google_indexing
 

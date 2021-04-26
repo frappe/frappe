@@ -307,14 +307,23 @@ def unesc(s, esc_chars):
 		s = s.replace(esc_str, c)
 	return s
 
-def execute_in_shell(cmd, verbose=0):
+def execute_in_shell(cmd, verbose=0, low_priority=False):
 	# using Popen instead of os.system - as recommended by python docs
 	import tempfile
 	from subprocess import Popen
 
 	with tempfile.TemporaryFile() as stdout:
 		with tempfile.TemporaryFile() as stderr:
-			p = Popen(cmd, shell=True, stdout=stdout, stderr=stderr)
+			kwargs = {
+				"shell": True,
+				"stdout": stdout,
+				"stderr": stderr
+			}
+
+			if low_priority:
+				kwargs["preexec_fn"] = lambda: os.nice(10)
+
+			p = Popen(cmd, **kwargs)
 			p.wait()
 
 			stdout.seek(0)
