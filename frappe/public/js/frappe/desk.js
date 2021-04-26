@@ -309,7 +309,9 @@ frappe.Application = class Application {
 		}
 		if (!frappe.workspaces['home']) {
 			// default workspace is settings for Frappe
-			frappe.workspaces['home'] = frappe.workspaces['pcg-web'];        // hack; I could not figure out HOW it should work
+			frappe.workspaces['home'] =
+				frappe.workspaces['pcg-web'] ? frappe.workspaces['pcg-web'] : frappe.workspaces['build'];
+				// hack; I could not figure out HOW it should work
 		}
 	},
 
