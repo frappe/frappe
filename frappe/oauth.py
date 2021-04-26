@@ -206,6 +206,12 @@ class OAuthWebRequestValidator(RequestValidator):
 			"OAuth Client", client_id, "default_redirect_uri"
 		)
 
+		redirect_uris = frappe.db.get_value("OAuth Client", client_id, "redirect_uris")
+
+		if redirect_uris:
+			redirect_uris = redirect_uris.split(get_url_delimiter())
+			return redirect_uri in redirect_uris
+
 		return saved_redirect_uri == redirect_uri
 
 	def validate_grant_type(
@@ -352,8 +358,12 @@ class OAuthWebRequestValidator(RequestValidator):
 		if request.nonce:
 			id_token["nonce"] = request.nonce
 
+		userinfo = get_userinfo(user)
+
+		if userinfo.get("iss"):
+			id_token["iss"] = userinfo.get("iss")
+
 		if "openid" in request.scopes:
-			userinfo = get_userinfo(user, request)
 			id_token.update(userinfo)
 
 		id_token_encoded = jwt.encode(
@@ -391,7 +401,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def get_userinfo_claims(self, request):
 		user = frappe.get_doc("User", frappe.session.user)
-		userinfo = get_userinfo(user, request)
+		userinfo = get_userinfo(user)
 		return userinfo
 
 	def validate_id_token(self, token, scopes, request):
@@ -550,8 +560,8 @@ def calculate_at_hash(access_token, hash_alg):
 	then take the left-most 128 bits and base64url encode them. The at_hash value is a
 	case sensitive string.
 	Args:
-																	access_token (str): An access token string.
-																	hash_alg (callable): A callable returning a hash object, e.g. hashlib.sha256
+	access_token (str): An access token string.
+	hash_alg (callable): A callable returning a hash object, e.g. hashlib.sha256
 	"""
 	hash_digest = hash_alg(access_token.encode("utf-8")).digest()
 	cut_at = int(len(hash_digest) / 2)
@@ -586,21 +596,15 @@ def get_client_scopes(client_id):
 	return scopes_string.split()
 
 
-def get_userinfo(user, request):
+def get_userinfo(user):
 	picture = None
-	frappe_server_url = (
-		frappe.db.get_value("Social Login Key", "frappe", "base_url") or None
-	)
-
-	request_url = urlparse(request.uri)
+	frappe_server_url = get_server_url()
 
 	if user.user_image:
 		if frappe.utils.validate_url(user.user_image):
 			picture = user.user_image
-		elif frappe_server_url:
-			picture = frappe_server_url + "/" + user.user_image
 		else:
-			picture = request_url.scheme + "://" + request_url.netloc + user.user_image
+			picture = frappe_server_url + "/" + user.user_image
 
 	userinfo = frappe._dict(
 		{
@@ -615,10 +619,9 @@ def get_userinfo(user, request):
 			"email": user.email,
 			"picture": picture,
 			"roles": frappe.get_roles(user.name),
+			"iss": frappe_server_url,
 		}
 	)
-
-	userinfo["iss"] = frappe_server_url or request.uri
 
 	return userinfo
 
@@ -640,3 +643,9 @@ def generate_json_error_response(e):
 	)
 	frappe.local.response["http_status_code"] = getattr(e, "status_code", 500)
 	return
+
+
+def get_server_url():
+	request_url = urlparse(frappe.request.url)
+	request_url = f"{request_url.scheme}://{request_url.netloc}"
+	return frappe.get_value("Social Login Key", "frappe", "base_url") or request_url
