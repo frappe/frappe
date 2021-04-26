@@ -307,7 +307,11 @@ frappe.Application = class Application {
 			frappe.modules[page.module] = page;
 			frappe.workspaces[frappe.router.slug(page.name)] = page;
 		}
-	}
+		if (!frappe.workspaces['home']) {
+			// default workspace is settings for Frappe
+			frappe.workspaces['home'] = frappe.workspaces['pcg-web'];        // hack; I could not figure out HOW it should work
+		}
+	},
 
 	load_user_permissions() {
 		frappe.defaults.update_user_permissions();
