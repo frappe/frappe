@@ -491,10 +491,11 @@ def console(context):
 @click.option('--skip-before-tests', is_flag=True, default=False, help="Don't run before tests hook")
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @click.option('--failfast', is_flag=True, default=False)
+@click.option('--suite-number')
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(), profile=False,
 		coverage=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None,
-		skip_test_records=False, skip_before_tests=False, failfast=False):
+		skip_test_records=False, skip_before_tests=False, failfast=False, suite_number=1):
 
 	"Run tests"
 	import frappe.test_runner
@@ -535,7 +536,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-		ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast)
+		ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast, suite_number=suite_number)
 
 	if coverage:
 		cov.stop()

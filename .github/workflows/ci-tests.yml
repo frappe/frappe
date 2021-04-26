@@ -3,8 +3,6 @@ name: CI
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
-  workflow_dispatch:
-  push:
 
 jobs:
   test:
@@ -16,16 +14,16 @@ jobs:
        include:
         - DB: "mariadb"
           TYPE: "server"
-          JOB_NAME: "Python MariaDB"
-          RUN_COMMAND: bench --site test_site run-tests --coverage --suite_number 1
+          JOB_NAME: "Python MariaDB 1"
+          RUN_COMMAND: bench --site test_site run-tests --coverage --suite-number 1
         - DB: "mariadb"
           TYPE: "server"
-          JOB_NAME: "Python MariaDB"
-          RUN_COMMAND: bench --site test_site run-tests --coverage --suite_number 2
+          JOB_NAME: "Python MariaDB 2"
+          RUN_COMMAND: bench --site test_site run-tests --coverage --suite-number 2
         - DB: "mariadb"
           TYPE: "server"
-          JOB_NAME: "Python MariaDB"
-          RUN_COMMAND: bench --site test_site run-tests --coverage --suite_number 1
+          JOB_NAME: "Python MariaDB 3"
+          RUN_COMMAND: bench --site test_site run-tests --coverage --suite-number 1
 
 
     name: ${{ matrix.JOB_NAME }}

@@ -28,7 +28,7 @@ def xmlrunner_wrapper(output):
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 	force=False, profile=False, junit_xml_output=None, ui_tests=False,
-	doctype_list_path=None, skip_test_records=False, failfast=False):
+	doctype_list_path=None, skip_test_records=False, failfast=False, suite_number=1):
 	global unittest_runner
 
 	if doctype_list_path:
@@ -72,7 +72,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		elif module:
 			ret = run_tests_for_module(module, verbose, tests, profile, junit_xml_output=junit_xml_output)
 		else:
-			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output)
+			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output, suite_number=suite_number)
 
 		if frappe.db: frappe.db.commit()
 
@@ -109,29 +109,20 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 		super(TimeLoggingTestResult, self).addSuccess(test)
 
 
-def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfast=False, junit_xml_output=False):
+def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfast=False, junit_xml_output=False, suite_number=1):
 	import os
 
-	apps = [app] if app else frappe.get_installed_apps()
 
 	test_suite = unittest.TestSuite()
-	for app in apps:
-		for path, folders, files in os.walk(frappe.get_pymodule_path(app)):
-			for dontwalk in ('locals', '.git', 'public', '__pycache__'):
-				if dontwalk in folders:
-					folders.remove(dontwalk)
 
-			# for predictability
-			folders.sort()
-			files.sort()
 
-			# print path
-			for filename in files:
-				if filename.startswith("test_") and filename.endswith(".py")\
-					and filename != 'test_runner.py':
-					# print filename[:-3]
-					_add_test(app, path, filename, verbose,
-						test_suite, ui_tests)
+	with open(frappe.get_app_path('frappe', f'tests/suite{suite_number}'), 'r') as f:
+		for path in f.read().splitlines():
+			filename = path.split('/')[-1]
+			path = frappe.get_app_path('frappe', path.rsplit('/', 1)[0])
+			_add_test('frappe', path, filename, verbose,
+				test_suite, ui_tests)
+
 
 	if junit_xml_output:
 		runner = unittest_runner(verbosity=1+(verbose and 1 or 0), failfast=failfast)
