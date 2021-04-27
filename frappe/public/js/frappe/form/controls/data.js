@@ -29,14 +29,17 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 
 				// Only show edit link to users who can update the doctype
 				if (this.frm && frappe.model.can_write(this.frm.doctype)) {
-					let doctype_edit_link = null
+					let doctype_edit_link = null;
 					if (this.frm.meta.custom) {
-						doctype_edit_link = frappe.utils.get_form_link('DocType', this.frm.doctype, true,
-							__('this form'))
+						doctype_edit_link = frappe.utils.get_form_link(
+							'DocType', 
+							this.frm.doctype, true,
+							__('this form')
+						);
 					} else {
 						doctype_edit_link = frappe.utils.get_form_link('Customize Form', 'Customize Form', true, null, {
 							doc_type: this.frm.doctype
-						})
+						});
 					}
 					let edit_note = __('{0}: You can increase the limit for the field if required via {1}', [
 						__('Note').bold(),
