@@ -557,13 +557,10 @@ export default class GridRow {
 		this.row.toggle(false);
 		// this.form_panel.toggle(true);
 
-		if (this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows)) {
-			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
-				.addClass('hidden');
-		} else {
-			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
-				.removeClass('hidden');
-		}
+		let cannot_add_rows = this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows);
+		this.wrapper
+			.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row, .grid-append-row')
+			.toggle(!cannot_add_rows);
 
 		frappe.dom.freeze("", "dark");
 		if (cur_frm) cur_frm.cur_grid = this;

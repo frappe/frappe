@@ -2,14 +2,15 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+import json
+from datetime import datetime
 from typing import Dict, List
 
-import frappe, json
-from frappe.model.document import Document
-from frappe.utils import now_datetime, get_datetime
-from datetime import datetime
 from croniter import croniter
+
+import frappe
+from frappe.model.document import Document
+from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, get_jobs
 
 

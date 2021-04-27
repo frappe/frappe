@@ -15,7 +15,7 @@ import click
 # imports - module imports
 import frappe
 from frappe import _, conf
-from frappe.utils import get_file_size, get_url, now, now_datetime
+from frappe.utils import get_file_size, get_url, now, now_datetime, cint
 
 # backup variable for backwards compatibility
 verbose = False
@@ -315,8 +315,6 @@ class BackupGenerator:
 			print(template.format(_type.title(), info["path"], info["size"]))
 
 	def backup_files(self):
-		import subprocess
-
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = (
@@ -327,12 +325,12 @@ class BackupGenerator:
 				cmd_string = "tar cf - {1} | gzip > {0}"
 			else:
 				cmd_string = "tar -cf {0} {1}"
-			output = subprocess.check_output(
-				cmd_string.format(backup_path, files_path), shell=True
-			)
 
-			if self.verbose and output:
-				print(output.decode("utf8"))
+			frappe.utils.execute_in_shell(
+				cmd_string.format(backup_path, files_path),
+				verbose=self.verbose,
+				low_priority=True
+			)
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
@@ -436,7 +434,7 @@ class BackupGenerator:
 		if self.verbose:
 			print(command + "\n")
 
-		err, out = frappe.utils.execute_in_shell(command)
+		frappe.utils.execute_in_shell(command, low_priority=True)
 
 	def send_email(self):
 		"""
@@ -473,29 +471,6 @@ download only after 24 hours.""" % {
 		frappe.sendmail(recipients=recipient_list, msg=msg, subject=subject)
 		return recipient_list
 
-
-@frappe.whitelist()
-def get_backup():
-	"""
-	This function is executed when the user clicks on
-	Toos > Download Backup
-	"""
-	delete_temp_backups()
-	odb = BackupGenerator(
-		frappe.conf.db_name,
-		frappe.conf.db_name,
-		frappe.conf.db_password,
-		db_host=frappe.db.host,
-		db_type=frappe.conf.db_type,
-		db_port=frappe.conf.db_port,
-	)
-	odb.get_backup()
-	recipient_list = odb.send_email()
-	frappe.msgprint(
-		_(
-			"Download link for your backup will be emailed on the following email address: {0}"
-		).format(", ".join(recipient_list))
-	)
 
 @frappe.whitelist()
 def fetch_latest_backups(partial=False):
@@ -570,7 +545,7 @@ def new_backup(
 	force=False,
 	verbose=False,
 ):
-	delete_temp_backups(older_than=frappe.conf.keep_backups_for_hours or 24)
+	delete_temp_backups()
 	odb = BackupGenerator(
 		frappe.conf.db_name,
 		frappe.conf.db_name,
@@ -595,8 +570,9 @@ def new_backup(
 
 def delete_temp_backups(older_than=24):
 	"""
-	Cleans up the backup_link_path directory by deleting files older than 24 hours
+	Cleans up the backup_link_path directory by deleting older files
 	"""
+	older_than = cint(frappe.conf.keep_backups_for_hours) or older_than
 	backup_path = get_backup_path()
 	if os.path.exists(backup_path):
 		file_list = os.listdir(get_backup_path())

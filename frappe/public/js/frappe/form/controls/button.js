@@ -6,7 +6,10 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
 		const btn_type = this.df.primary ? 'btn-primary': 'btn-default';
-		this.$input = $(`<button class="btn btn-xs ${btn_type}">`)
+		const btn_size = this.df.btn_size
+			? `btn-${this.df.btn_size}`
+			: "btn-xs";
+		this.$input = $(`<button class="btn ${btn_size} ${btn_type}">`)
 			.prependTo(me.input_area)
 			.on("click", function() {
 				me.onclick();

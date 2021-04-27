@@ -15,6 +15,7 @@ from __future__ import unicode_literals, print_function
 from six import iteritems, binary_type, text_type, string_types, PY2
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
+import typing
 from past.builtins import cmp
 import click
 
@@ -133,6 +134,14 @@ debug_log = local("debug_log")
 message_log = local("message_log")
 
 lang = local("lang")
+
+# This if block is never executed when running the code. It is only used for
+# telling static code analyzer where to find dynamically defined attributes.
+if typing.TYPE_CHECKING:
+	from frappe.database.mariadb.database import MariaDBDatabase
+	from frappe.database.postgres.database import PostgresDatabase
+	db: typing.Union[MariaDBDatabase, PostgresDatabase]
+# end: static analysis hack
 
 def init(site, sites_path=None, new_site=False):
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""

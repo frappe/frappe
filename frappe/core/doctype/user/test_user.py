@@ -229,6 +229,28 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(extract_mentions(comment)[0], "test_user@example.com")
 		self.assertEqual(extract_mentions(comment)[1], "test.again@example1.com")
 
+		doc = frappe.get_doc({
+			'doctype': 'User Group',
+			'name': 'Team',
+			'user_group_members': [{
+				'user': 'test@example.com'
+			}, {
+				'user': 'test1@example.com'
+			}]
+		})
+		doc.insert(ignore_if_duplicate=True)
+
+		comment = '''
+			<div>
+				Testing comment for
+				<span class="mention" data-id="Team" data-value="Team" data-is-group="true" data-denotation-char="@">
+					<span><span class="ql-mention-denotation-char">@</span>Team</span>
+				</span>
+				please check
+			</div>
+		'''
+		self.assertListEqual(extract_mentions(comment), ['test@example.com', 'test1@example.com'])
+
 	def test_rate_limiting_for_reset_password(self):
 		# Allow only one reset request for a day
 		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 1)
