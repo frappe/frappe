@@ -1,5 +1,5 @@
 let esbuild = require("esbuild");
-let htmlPlugin = require("./esbuild-plugin-html");
+let htmlPlugin = require("./frappe-html");
 let vue = require("esbuild-vue");
 let http = require("http");
 let httpProxy = require("http-proxy");
