@@ -654,7 +654,6 @@ frappe.views.CommunicationComposer = Class.extend({
 		if (this.is_a_reply === 'undefined') {
 			this.is_a_reply = true;
 		}
-		console.log("sfjg")
 		if (this.is_a_reply || this.forward) {
 			let last_email = this.last_email;
 
