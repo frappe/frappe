@@ -117,7 +117,7 @@ export default class GridRowForm {
 		});
 	}
 	toggle_add_delete_button_display($parent) {
-		$parent.find(".row-actions")
+		$parent.find(".row-actions, .grid-append-row")
 			.toggle(this.row.grid.is_editable());
 	}
 	refresh_field(fieldname) {

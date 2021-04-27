@@ -17,12 +17,9 @@
   "bucket",
   "endpoint_url",
   "column_break_13",
-  "region",
   "backup_details_section",
   "frequency",
-  "backup_files",
-  "column_break_18",
-  "backup_limit"
+  "backup_files"
  ],
  "fields": [
   {
@@ -40,7 +37,7 @@
   },
   {
    "default": "1",
-   "description": "Note: By default emails for failed backups are sent.",
+   "description": "By default, emails are only sent for failed backups.",
    "fieldname": "send_email_for_successful_backup",
    "fieldtype": "Check",
    "label": "Send Email for Successful Backup"
@@ -68,14 +65,7 @@
    "reqd": 1
   },
   {
-   "default": "us-east-1",
-   "description": "See https://docs.aws.amazon.com/de_de/general/latest/gr/rande.html#s3_region for details.",
-   "fieldname": "region",
-   "fieldtype": "Select",
-   "label": "Region",
-   "options": "us-east-1\nus-east-2\nus-west-1\nus-west-2\nap-south-1\nap-southeast-1\nap-southeast-2\nap-northeast-1\nap-northeast-2\nap-northeast-3\nca-central-1\ncn-north-1\ncn-northwest-1\neu-central-1\neu-west-1\neu-west-2\neu-west-3\neu-north-1\nsa-east-1"
-  },
-  {
+   "default": "https://s3.amazonaws.com",
    "fieldname": "endpoint_url",
    "fieldtype": "Data",
    "label": "Endpoint URL"
@@ -84,13 +74,6 @@
    "fieldname": "bucket",
    "fieldtype": "Data",
    "label": "Bucket Name",
-   "reqd": 1
-  },
-  {
-   "description": "Set to 0 for no limit on the number of backups taken.",
-   "fieldname": "backup_limit",
-   "fieldtype": "Int",
-   "label": "Backup Limit",
    "reqd": 1
   },
   {
@@ -135,15 +118,11 @@
    "fieldname": "backup_files",
    "fieldtype": "Check",
    "label": "Backup Files"
-  },
-  {
-   "fieldname": "column_break_18",
-   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
  "issingle": 1,
- "modified": "2020-04-13 21:15:35.197420",
+ "modified": "2020-12-07 15:30:55.047689",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "S3 Backup Settings",
