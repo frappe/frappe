@@ -18,13 +18,10 @@ def get_jenv():
 		set_filters(jenv)
 
 		jenv.globals.update(get_safe_globals())
-		jenv.globals.update(get_jenv_customization('methods'))
-		jenv.globals.update({
-			'resolve_class': resolve_class,
-			'inspect': inspect,
-			'web_blocks': web_blocks,
-			'web_block': web_block
-		})
+
+		methods, filters = get_jinja_hooks()
+		jenv.globals.update(methods or {})
+		jenv.filters.update(filters or {})
 
 		frappe.local.jenv = jenv
 
@@ -127,104 +124,49 @@ def get_jloader():
 
 def set_filters(jenv):
 	import frappe
-	from frappe.utils import global_date_format, cint, cstr, flt, markdown
-	from frappe.website.utils import get_shade, abs_url
+	from frappe.utils import cint, cstr, flt
 
-	jenv.filters["global_date_format"] = global_date_format
-	jenv.filters["markdown"] = markdown
 	jenv.filters["json"] = frappe.as_json
-	jenv.filters["get_shade"] = get_shade
 	jenv.filters["len"] = len
 	jenv.filters["int"] = cint
 	jenv.filters["str"] = cstr
 	jenv.filters["flt"] = flt
-	jenv.filters["abs_url"] = abs_url
 
 	if frappe.flags.in_setup_help:
 		return
 
-	jenv.filters.update(get_jenv_customization('filters'))
 
-
-def get_jenv_customization(customization_type):
-	'''Returns a dict with filter/method name as key and definition as value'''
-
+def get_jinja_hooks():
+	"""Returns a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
 	import frappe
 
-	out = {}
 	if not getattr(frappe.local, "site", None):
+		return (None, None)
+
+	from types import FunctionType, ModuleType
+	from inspect import getmembers, isfunction
+
+	def get_obj_dict_from_paths(object_paths):
+		out = {}
+		for obj_path in object_paths:
+			try:
+				obj = frappe.get_module(obj_path)
+			except ModuleNotFoundError:
+				obj = frappe.get_attr(obj_path)
+
+			if isinstance(obj, ModuleType):
+				functions = getmembers(obj, isfunction)
+				for function_name, function in functions:
+					out[function_name] = function
+			elif isinstance(obj, FunctionType):
+				function_name = obj.__name__
+				out[function_name] = obj
 		return out
 
-	values = frappe.get_hooks("jenv", {}).get(customization_type)
-	if not values:
-		return out
+	values = frappe.get_hooks("jinja")
+	methods, filters = values.get("methods", []), values.get("filters", [])
 
-	for value in values:
-		fn_name, fn_string = value.split(":")
-		out[fn_name] = frappe.get_attr(fn_string)
+	method_dict = get_obj_dict_from_paths(methods)
+	filter_dict = get_obj_dict_from_paths(filters)
 
-	return out
-
-
-def resolve_class(classes):
-	import frappe
-
-	if classes is None:
-		return ''
-
-	if isinstance(classes, frappe.string_types):
-		return classes
-
-	if isinstance(classes, (list, tuple)):
-		return ' '.join([resolve_class(c) for c in classes]).strip()
-
-	if isinstance(classes, dict):
-		return ' '.join([classname for classname in classes if classes[classname]]).strip()
-
-	return classes
-
-
-def inspect(var, render=True):
-	context = { "var": var }
-	if render:
-		html = "<pre>{{ var | pprint | e }}</pre>"
-	else:
-		html = ""
-	return get_jenv().from_string(html).render(context)
-
-
-def web_block(template, values=None, **kwargs):
-	options = {"template": template, "values": values}
-	options.update(kwargs)
-	return web_blocks([options])
-
-
-def web_blocks(blocks):
-	from frappe import throw, _dict
-	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
-
-	web_blocks = []
-	for block in blocks:
-		if not block.get('template'):
-			throw('Web Template is not specified')
-
-		doc = _dict({
-			'doctype': 'Web Page Block',
-			'web_template': block['template'],
-			'web_template_values': block.get('values', {}),
-			'add_top_padding': 1,
-			'add_bottom_padding': 1,
-			'add_container': 1,
-			'hide_block': 0,
-			'css_class': ''
-		})
-		doc.update(block)
-		web_blocks.append(doc)
-
-	out = get_web_blocks_html(web_blocks)
-
-	html = out.html
-	for script in out.scripts:
-		html += '<script>{}</script>'.format(script)
-
-	return html
+	return method_dict, filter_dict

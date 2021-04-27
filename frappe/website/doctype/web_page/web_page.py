@@ -242,11 +242,11 @@ def extract_script_and_style_tags(html):
 	styles = []
 
 	for script in soup.find_all('script'):
-		scripts.append(script.text)
+		scripts.append(script.string)
 		script.extract()
 
 	for style in soup.find_all('style'):
-		styles.append(style.text)
+		styles.append(style.string)
 		style.extract()
 
 	return str(soup), scripts, styles

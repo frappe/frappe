@@ -676,10 +676,8 @@ def start_ngrok(context):
 	frappe.init(site=site)
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
-	public_url = ngrok.connect(port=port, options={
-		'host_header': site
-	})
-	print(f'Public URL: {public_url}')
+	tunnel = ngrok.connect(addr=str(port), host_header=site)
+	print(f'Public URL: {tunnel.public_url}')
 	print('Inspect logs at http://localhost:4040')
 
 	ngrok_process = ngrok.get_ngrok_process()
