@@ -146,7 +146,6 @@
 		"it": true,
 		"describe": true,
 		"expect": true,
-		"describe": true,
 		"context": true,
 		"before": true,
 		"beforeEach": true,
