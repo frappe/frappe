@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import re
 
 from frappe.utils import set_request
-from frappe.website.render import render
+from frappe.website.serve import get_response
 from frappe.utils import random_string
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.website_generator import WebsiteGenerator
@@ -22,7 +22,7 @@ class TestBlogPost(unittest.TestCase):
 			filters={'published': 1, 'route': ('!=', '')}, limit =1)
 
 		set_request(path=pages[0].route)
-		response = render()
+		response = get_response()
 
 		self.assertTrue(response.status_code, 200)
 
@@ -36,7 +36,7 @@ class TestBlogPost(unittest.TestCase):
 		frappe.db.set_value('Blog Post', pages[0].name, 'route', 'test-route-000')
 
 		set_request(path='test-route-000')
-		response = render()
+		response = get_response()
 
 		self.assertTrue(response.status_code, 404)
 
@@ -46,7 +46,7 @@ class TestBlogPost(unittest.TestCase):
 
 		# Visit the blog post page
 		set_request(path=blog.route)
-		blog_page_response = render()
+		blog_page_response = get_response()
 		blog_page_html = frappe.safe_decode(blog_page_response.get_data())
 
 		# On blog post page find link to the category page
@@ -56,7 +56,7 @@ class TestBlogPost(unittest.TestCase):
 
 		# Visit the category page (by following the link found in above stage)
 		set_request(path=category_page_url)
-		category_page_response = render()
+		category_page_response = get_response()
 		category_page_html = frappe.safe_decode(category_page_response.get_data())
 
 		# Category page should contain the blog post title

@@ -2,14 +2,14 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 from frappe.website.router import resolve_route
-import frappe.website.render
+from frappe.website.serve import get_response
 from frappe.utils import set_request
 
 test_records = frappe.get_test_records('Web Page')
 
 def get_page_content(route):
 	set_request(method='GET', path = route)
-	response = frappe.website.render.render()
+	response = get_response()
 	return frappe.as_unicode(response.data)
 
 class TestWebPage(unittest.TestCase):
