@@ -6,12 +6,12 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import get_controller
 from frappe.utils import get_datetime, nowdate, get_url
-from frappe.website.router import get_pages, get_all_page_context_from_doctypes
+from frappe.website.router import get_pages
 from six import iteritems
-from six.moves.urllib.parse import quote, urljoin
+from six.moves.urllib.parse import quote
 
 no_cache = 1
-base_template_path = "templates/www/sitemap.xml"
+base_template_path = "www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
