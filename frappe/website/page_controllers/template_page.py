@@ -148,30 +148,6 @@ class TemplatePage(BaseTemplatePage):
 			self.source = '''{{% extends "{0}" %}}
 				{{% block page_content %}}{1}{{% endblock %}}'''.format(context.base_template, self.source)
 
-		if "<!-- no-breadcrumbs -->" in self.source:
-			context.no_breadcrumbs = 1
-
-		if "<!-- show-sidebar -->" in self.source:
-			context.show_sidebar = 1
-
-		if "<!-- add-breadcrumbs -->" in self.source:
-			context.add_breadcrumbs = 1
-
-		if "<!-- no-header -->" in self.source:
-			context.no_header = 1
-
-		if "<!-- add-next-prev-links -->" in self.source:
-			context.add_next_prev_links = 1
-
-		if "<!-- no-cache -->" in self.source:
-			context.no_cache = 1
-
-		if "<!-- no-sitemap -->" in self.source:
-			context.sitemap = 0
-
-		if "<!-- sitemap -->" in self.source:
-			context.sitemap = 1
-
 	def run_pymodule_method(self, method):
 		if hasattr(self.pymodule, method):
 			try:
