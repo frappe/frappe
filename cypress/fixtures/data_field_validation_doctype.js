@@ -30,6 +30,14 @@ export default {
 			fieldtype: 'Data',
 			label: 'Person Name',
 			options: 'Name'
+		},
+		{
+			fieldname: 'read_only_url',
+			fieldtype: 'Data',
+			label: 'Read Only URL',
+			options: 'URL',
+			read_only: '1',
+			default: 'https://frappe.io'
 		}
 	],
 	issingle: 1,
