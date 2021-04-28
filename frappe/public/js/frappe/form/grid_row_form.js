@@ -66,7 +66,7 @@ export default class GridRowForm {
 				</div>
 			</div>
 			<div class="grid-form-body">
-				<div class="form-area scrollable"></div>
+				<div class="form-area"></div>
 				<div class="grid-footer-toolbar hidden-xs flex justify-between">
 					<div class="grid-shortcuts">
 						<span> ${frappe.utils.icon("keyboard", "md")} </span>
