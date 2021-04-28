@@ -313,7 +313,7 @@ class Session:
 			""", (self.sid, get_expiry_period_for_query(self.device)))
 
 		if rec:
-			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
+			data = frappe._dict(frappe.safe_eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
 		else:
 			self._delete_session()

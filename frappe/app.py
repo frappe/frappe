@@ -185,7 +185,7 @@ def make_form_dict(request):
 		args = request.form or request.args
 
 	if not isinstance(args, dict):
-		frappe.throw("Invalid request arguments")
+		frappe.throw(_("Invalid request arguments"))
 
 	try:
 		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \

@@ -1,5 +1,4 @@
 import frappe
-from frappe import _
 
 class WebPage(object):
 	def __init__(self, path=None, http_status_code=None):
