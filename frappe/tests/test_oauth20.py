@@ -2,10 +2,14 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import unittest, frappe, requests, time
-from frappe.test_runner import make_test_records
+import unittest
+import requests
+import jwt
 from six.moves.urllib.parse import urlparse, parse_qs, urljoin
 from urllib.parse import urlencode, quote
+
+import frappe
+from frappe.test_runner import make_test_records
 from frappe.integrations.oauth2 import encode_params
 
 class TestOAuth20(unittest.TestCase):
@@ -34,11 +38,7 @@ class TestOAuth20(unittest.TestCase):
 		self.assertFalse(check_valid_openid_response())
 
 	def test_login_using_authorization_code(self):
-		client = frappe.get_doc("OAuth Client", self.client_id)
-		client.grant_type = "Authorization Code"
-		client.response_type = "Code"
-		client.save()
-		frappe.db.commit()
+		update_client_for_auth_code_grant(self.client_id)
 
 		session = requests.Session()
 		login(session)
@@ -71,7 +71,8 @@ class TestOAuth20(unittest.TestCase):
 				"grant_type": "authorization_code",
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
-				"client_id": self.client_id
+				"client_id": self.client_id,
+				"scope": self.scope,
 			})
 		)
 
@@ -85,6 +86,54 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(bearer_token.get("scope"))
 		self.assertTrue(bearer_token.get("token_type") == "Bearer")
 		self.assertTrue(check_valid_openid_response(bearer_token.get("access_token")))
+
+	def test_login_using_authorization_code_with_pkce(self):
+		update_client_for_auth_code_grant(self.client_id)
+
+		session = requests.Session()
+		login(session)
+
+		redirect_destination = None
+
+		# Go to Authorize url
+		try:
+			session.get(
+				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
+				params=encode_params({
+					"client_id": self.client_id,
+					"scope": self.scope,
+					"response_type": "code",
+					"redirect_uri": self.redirect_uri,
+					"code_challenge_method": 'S256',
+					"code_challenge": '21XaP8MJjpxCMRxgEzBP82sZ73PRLqkyBUta1R309J0' ,
+				})
+			)
+		except requests.exceptions.ConnectionError as ex:
+			redirect_destination = ex.request.url
+
+		# Get authorization code from redirected URL
+		query = parse_qs(urlparse(redirect_destination).query)
+		auth_code = query.get("code")[0]
+
+		# Request for bearer token
+		token_response = requests.post(
+			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
+			headers=self.form_header,
+			data=encode_params({
+				"grant_type": "authorization_code",
+				"code": auth_code,
+				"redirect_uri": self.redirect_uri,
+				"client_id": self.client_id,
+				"scope": self.scope,
+				"code_verifier": "420",
+			})
+		)
+
+		# Parse bearer token json
+		bearer_token = token_response.json()
+
+		self.assertTrue(bearer_token.get("access_token"))
+		self.assertTrue(bearer_token.get("id_token"))
 
 	def test_revoke_token(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
@@ -203,6 +252,61 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(response_dict.get("token_type"))
 		self.assertTrue(check_valid_openid_response(response_dict.get("access_token")[0]))
 
+	def test_openid_code_id_token(self):
+		client = update_client_for_auth_code_grant(self.client_id)
+
+		session = requests.Session()
+		login(session)
+
+		redirect_destination = None
+
+		nonce = frappe.generate_hash()
+
+		# Go to Authorize url
+		try:
+			session.get(
+				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
+				params=encode_params({
+					"client_id": self.client_id,
+					"scope": self.scope,
+					"response_type": "code",
+					"redirect_uri": self.redirect_uri,
+					"nonce": nonce,
+				})
+			)
+		except requests.exceptions.ConnectionError as ex:
+			redirect_destination = ex.request.url
+
+		# Get authorization code from redirected URL
+		query = parse_qs(urlparse(redirect_destination).query)
+		auth_code = query.get("code")[0]
+
+		# Request for bearer token
+		token_response = requests.post(
+			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
+			headers=self.form_header,
+			data=encode_params({
+				"grant_type": "authorization_code",
+				"code": auth_code,
+				"redirect_uri": self.redirect_uri,
+				"client_id": self.client_id,
+				"scope": self.scope,
+			})
+		)
+
+		# Parse bearer token json
+		bearer_token = token_response.json()
+
+		id_token = bearer_token.get("id_token")
+		payload = jwt.decode(
+			id_token,
+			audience=client.client_id,
+			key=client.client_secret,
+			algorithm="HS256",
+		)
+
+		self.assertTrue(payload.get("nonce") == nonce)
+
 
 def check_valid_openid_response(access_token=None):
 	"""Return True for valid response."""
@@ -233,3 +337,12 @@ def login(session):
 def get_full_url(endpoint):
 	"""Turn '/endpoint' into 'http://127.0.0.1:8000/endpoint'."""
 	return urljoin(frappe.utils.get_url(), endpoint)
+
+
+def update_client_for_auth_code_grant(client_id):
+	client = frappe.get_doc("OAuth Client", client_id)
+	client.grant_type = "Authorization Code"
+	client.response_type = "Code"
+	client.save()
+	frappe.db.commit()
+	return client
