@@ -33,16 +33,18 @@ class TestBlogPost(unittest.TestCase):
 		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
 			filters={'published': 0}, limit =1)
 
-		frappe.db.set_value('Blog Post', pages[0].name, 'route', 'test-route-000')
+		route = f'test-route-{frappe.generate_hash(length=5)}'
 
-		set_request(path='test-route-000')
+		frappe.db.set_value('Blog Post', pages[0].name, 'route', route)
+
+		set_request(path=route)
 		response = get_response()
 
 		self.assertTrue(response.status_code, 404)
 
 	def test_category_link(self):
 		# Make a temporary Blog Post (and a Blog Category)
-		blog = make_test_blog()
+		blog = make_test_blog('Test Category Link')
 
 		# Visit the blog post page
 		set_request(path=blog.route)
@@ -62,7 +64,7 @@ class TestBlogPost(unittest.TestCase):
 		# Category page should contain the blog post title
 		self.assertIn(blog.title, category_page_html)
 
-		# Cleanup afterwords
+		# Cleanup
 		frappe.delete_doc("Blog Post", blog.name)
 		frappe.delete_doc("Blog Category", blog.blog_category)
 
