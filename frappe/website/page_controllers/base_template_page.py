@@ -107,7 +107,7 @@ class BaseTemplatePage(WebPage):
 		Get meta tags from Website Route meta
 		they can override the defaults set above
 		'''
-		route = self.context.path
+		route = self.path
 		if route == '':
 			# homepage
 			route = frappe.db.get_single_value('Website Settings', 'home_page')
