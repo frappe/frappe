@@ -1,7 +1,4 @@
-import os
-
 import frappe
-from frappe import _
 from frappe.website.doctype.website_settings.website_settings import \
 	get_website_settings
 from frappe.website.page_controllers.web_page import WebPage
@@ -69,10 +66,11 @@ class BaseTemplatePage(WebPage):
 
 	def init_metatags_from_context(self):
 		for key in ('title', 'description', 'image', 'author', 'url', 'published_on'):
-			if not key in self.tags and self.context.get(key):
+			if key not in self.tags and self.context.get(key):
 				self.tags[key] = self.context[key]
 
-		if not self.tags.get('title'): self.tags['title'] = self.context.get('name')
+		if not self.tags.get('title'):
+			self.tags['title'] = self.context.get('name')
 
 		if self.tags.get('image'):
 			self.tags['image'] = frappe.utils.get_url(self.tags['image'])

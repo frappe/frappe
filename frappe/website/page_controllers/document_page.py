@@ -1,5 +1,4 @@
 import frappe
-from frappe import _
 from frappe.model.document import get_controller
 from frappe.website.page_controllers.base_template_page import BaseTemplatePage
 from frappe.website.render import build_response
@@ -36,7 +35,8 @@ class DocumentPage(BaseTemplatePage):
 					self.meta = meta
 					return True
 			except Exception as e:
-				if not frappe.db.is_missing_column(e): raise e
+				if not frappe.db.is_missing_column(e):
+					raise e
 
 	def search_web_page_dynamic_routes(self):
 		d = get_page_info_from_web_page_with_dynamic_routes(self.path)
@@ -74,7 +74,7 @@ class DocumentPage(BaseTemplatePage):
 				self.context.update(ret)
 
 		for prop in ("no_cache", "sitemap"):
-			if not prop in self.context:
+			if prop not in self.context:
 				self.context[prop] = getattr(self.doc, prop, False)
 
 	def get_condition_field(self, meta):

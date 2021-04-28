@@ -10,7 +10,6 @@ import requests.exceptions
 from jinja2.exceptions import TemplateSyntaxError
 
 import frappe
-from frappe import _
 from frappe.utils import get_datetime, now, strip_html, quoted
 from frappe.utils.jinja import render_template
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow

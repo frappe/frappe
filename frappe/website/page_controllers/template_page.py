@@ -2,7 +2,6 @@ import io
 import os
 
 import frappe
-from frappe import _
 from frappe.website.page_controllers.base_template_page import BaseTemplatePage
 from frappe.website.context import add_sidebar_and_breadcrumbs
 from frappe.website.render import build_response
@@ -95,8 +94,6 @@ class TemplatePage(BaseTemplatePage):
 
 		if self.extends_template():
 			self.context.base_template_path = self.context.base_template_path
-
-
 		# TODO: setup index.txt ?
 
 	def update_context(self):
@@ -110,10 +107,9 @@ class TemplatePage(BaseTemplatePage):
 			self.set_pymodule_properties()
 
 			data = self.run_pymodule_method('get_context')
-
 			# some methods may return a "context" object
-			if data: self.context.update(data)
-
+			if data:
+				self.context.update(data)
 			# TODO: self.context.children = self.run_pymodule_method('get_children')
 
 		self.context.developer_mode = frappe.conf.developer_mode
@@ -128,7 +124,7 @@ class TemplatePage(BaseTemplatePage):
 
 	def set_page_properties(self):
 		self.context.template = self.template_path
-		self.context.base_template =  self.context.base_template or 'templates/web.html'
+		self.context.base_template = self.context.base_template or 'templates/web.html'
 
 	def set_properties_from_source(self):
 		if not self.source:
@@ -154,7 +150,7 @@ class TemplatePage(BaseTemplatePage):
 				return getattr(self.pymodule, method)(self.context)
 			except (frappe.PermissionError, frappe.DoesNotExistError, frappe.Redirect):
 				raise
-			except:
+			except Exception:
 				if not frappe.flags.in_migrate:
 					frappe.errprint(frappe.utils.get_traceback())
 
@@ -225,7 +221,7 @@ class TemplatePage(BaseTemplatePage):
 		self.template_path = 'www/{path}.html'.format(path=path)
 
 	def set_missing_values(self):
-		if not "url_prefix" in self.context:
+		if "url_prefix" not in self.context:
 			self.context.url_prefix = ""
 
 		if self.context.url_prefix and self.context.url_prefix[-1]!='/':

@@ -1,5 +1,4 @@
 import frappe
-from frappe import _
 from frappe.utils import cstr
 
 from frappe.website.page_controllers.document_page import DocumentPage
