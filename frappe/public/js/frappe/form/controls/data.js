@@ -61,6 +61,53 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.has_input = true;
 		this.bind_change_event();
 		this.setup_autoname_check();
+
+		if (this.df.options == 'URL') {
+			this.setup_url_field();
+		}
+	},
+	setup_url_field: function() {
+		this.$wrapper.find('.control-input').append(
+			`<span class="link-btn">
+				<a class="btn-open no-decoration" title="${__("Open Link")}" target="_blank">
+					${frappe.utils.icon('link-url', 'xs')}
+				</a>
+			</span>`
+		);
+		
+		this.$link = this.$wrapper.find('.link-btn');
+		this.$link_open = this.$link.find('.btn-open');
+		
+		this.$input.on("focus", () => {
+			setTimeout(() => {
+				let inputValue = this.get_input_value();
+				
+				if(inputValue && validate_url(inputValue)) {
+					this.$link.toggle(true);
+					this.$link_open.attr('href', this.get_input_value());
+				}
+			}, 500);
+		});
+
+
+		this.$input.bind("input", () => {
+			let inputValue = this.get_input_value();
+
+			if(inputValue && validate_url(inputValue)) {
+				this.$link.toggle(true);
+				this.$link_open.attr('href', this.get_input_value());
+			} else {
+				this.$link.toggle(false);
+			}
+		});
+		
+		this.$input.on("blur", () => {
+			// if this disappears immediately, the user's click
+			// does not register, hence timeout
+			setTimeout(() => {
+				this.$link.toggle(false);
+			}, 500);
+		});
 	},
 	bind_change_event: function() {
 		const change_handler = e => {
