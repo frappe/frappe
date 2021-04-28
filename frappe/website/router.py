@@ -433,8 +433,10 @@ def get_doctypes_with_web_view():
 	def _get():
 		installed_apps = frappe.get_installed_apps()
 		doctypes = frappe.get_hooks("website_generators")
-		doctypes += [d.name for d in frappe.get_all('DocType', 'name, module',
-			dict(has_web_view=1)) if frappe.local.module_app[frappe.scrub(d.module)] in installed_apps]
+		doctypes_with_web_view = frappe.get_all('DocType', fields=['name', 'module'],
+			filters=dict(has_web_view=1))
+		module_app_map = frappe.local.module_app
+		doctypes += [d.name for d in doctypes_with_web_view if module_app_map[frappe.scrub(d.module)] in installed_apps]
 		return doctypes
 
 	return frappe.cache().get_value('doctypes_with_web_view', _get)

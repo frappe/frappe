@@ -12,8 +12,8 @@ class StaticPage(WebPage):
 	def validate(self):
 		if ('.' not in self.path):
 			return False
-		extn = self.path.rsplit('.', 1)[-1]
-		if extn in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json'):
+		extension = self.path.rsplit('.', 1)[-1]
+		if extension in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json'):
 			return False
 
 		if self.find_path_in_apps():
@@ -30,11 +30,7 @@ class StaticPage(WebPage):
 		return False
 
 	def render(self):
-		try:
-			f = open(self.file_path, 'rb')
-		except IOError:
-			raise frappe.exceptions.NotFound
-
+		f = open(self.file_path, 'rb')
 		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
 		response.mimetype = mimetypes.guess_type(self.file_path)[0] or 'application/octet-stream'
 		return response

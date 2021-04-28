@@ -15,10 +15,11 @@ class BaseTemplatePage(WebPage):
 
 	def add_csrf_token(self, html):
 		if frappe.local.session:
-			return html.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
-				frappe.local.session.data.csrf_token))
-		else:
-			return html
+			csrf_token = frappe.local.session.data.csrf_token
+			return html.replace("<!-- csrf_token -->",
+				f'<script>frappe.csrf_token = "{csrf_token}";</script>')
+
+		return html
 
 	def post_process_context(self):
 		self.add_metatags()
