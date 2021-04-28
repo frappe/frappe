@@ -1,13 +1,13 @@
-import pytz
-import jwt
-import hashlib
-import re
 import base64
 import datetime
-
+import hashlib
+import re
 from http import cookies
+from urllib.parse import unquote, urlparse
+
+import jwt
+import pytz
 from oauthlib.openid import RequestValidator
-from urllib.parse import urlparse, unquote
 
 import frappe
 from frappe.auth import LoginManager
