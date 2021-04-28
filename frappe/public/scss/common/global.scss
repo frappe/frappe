@@ -50,6 +50,15 @@ input[type="checkbox"] {
 		border: none;
 	}
 
+	&:focus {
+		outline: none; // Prevent browser behavior
+		box-shadow: 0 0 0 2px var(--gray-300);
+
+		[data-theme="dark"] & {
+			box-shadow: 0 0 0 2px var(--gray-600);
+		}
+	}
+
 	&.disabled-deselected, &:disabled {
 		background-color: var(--disabled-control-bg);
 		box-shadow: inset 0px 1px 7px rgba(0, 0, 0, 0.1);
