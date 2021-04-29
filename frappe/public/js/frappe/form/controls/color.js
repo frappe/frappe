@@ -57,14 +57,6 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 			this.selected_color.insertAfter(this.$input);
 		}
 
-		if (!this.$wrapper.find('.control-input').get(0)) {
-			this.$wrapper.find('.selected-color')
-				.css({
-					"top": "calc(23% + 1px)",
-					"z-index": "2"
-				});
-		}
-
 		this.$wrapper.find('.selected-color').parent().on('click', (e) => {
 			this.$wrapper.popover('toggle');
 			if (!this.get_color()) {
