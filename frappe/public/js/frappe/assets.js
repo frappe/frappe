@@ -9,6 +9,12 @@ frappe.require = function(items, callback) {
 	if(typeof items === "string") {
 		items = [items];
 	}
+	items = items.map(item => {
+		if (!item.startsWith('/assets') && item.includes('.bundle.')) {
+			return frappe.boot.assets_json[item] || item;
+		}
+		return item;
+	});
 
 	return new Promise(resolve => {
 		frappe.assets.execute(items, () => {
