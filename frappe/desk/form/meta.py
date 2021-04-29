@@ -109,8 +109,9 @@ class FormMeta(Meta):
 	def _add_code(self, path, fieldname):
 		js = get_js(path)
 		if js:
-			self.set(fieldname, (self.get(fieldname) or "")
-				+ "\n\n/* Adding {0} */\n\n".format(path) + js)
+			comment = f"\n\n/* Adding {path} */\n\n"
+			sourceURL = f"\n\n//# sourceURL={scrub(self.name) + fieldname}"
+			self.set(fieldname, (self.get(fieldname) or "") + comment + js + sourceURL)
 
 	def add_html_templates(self, path):
 		if self.custom:
@@ -144,6 +145,10 @@ class FormMeta(Meta):
 
 			if script.view == 'Form':
 				form_script += script.script
+
+		file = scrub(self.name)
+		form_script += f"\n\n//# sourceURL={file}__custom_js"
+		list_script += f"\n\n//# sourceURL={file}__custom_list_js"
 
 		self.set("__custom_js", form_script)
 		self.set("__custom_list_js", list_script)
