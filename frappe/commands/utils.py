@@ -529,7 +529,8 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 			'*.scss',
 			'*.vue',
 			'*/doctype/*/*_dashboard.py',
-			'*/patches/*'
+			'*/patches/*',
+			'*/commands/*'
 		])
 		cov.start()
 
