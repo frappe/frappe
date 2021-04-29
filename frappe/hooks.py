@@ -29,16 +29,16 @@ page_js = {
 
 # website
 app_include_js = [
-	"/assets/frappe/dist/js/libs.bundle.js",
-	"/assets/frappe/dist/js/desk.bundle.js",
-	"/assets/frappe/dist/js/list.bundle.js",
-	"/assets/frappe/dist/js/form.bundle.js",
-	"/assets/frappe/dist/js/controls.bundle.js",
-	"/assets/frappe/dist/js/report.bundle.js",
+	"libs.bundle.js",
+	"desk.bundle.js",
+	"list.bundle.js",
+	"form.bundle.js",
+	"controls.bundle.js",
+	"report.bundle.js",
 ]
 app_include_css = [
-	"/assets/frappe/dist/css/desk.bundle.css",
-	"/assets/frappe/dist/css/report.bundle.css",
+	"desk.bundle.css",
+	"report.bundle.css",
 ]
 
 doctype_js = {

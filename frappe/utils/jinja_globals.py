@@ -69,23 +69,21 @@ def web_blocks(blocks):
 
 	return html
 
-def script(path):
-	path = assets_url(path)
-	if '/public/' in path:
-		path = path.replace('/public/', '/dist/')
+
+def include_script(path):
+	if not path.startswith("/assets") and ".bundle." in path:
+		path = bundled_asset_path(path)
 	return f'<script type="text/javascript" src="{path}"></script>'
 
-def style(path):
-	path = assets_url(path)
-	if '/public/' in path:
-		path = path.replace('/public/', '/dist/')
-	if path.endswith(('.scss', '.sass', '.less', '.styl')):
-		path = path.rsplit('.', 1)[0] + '.css'
+
+def include_style(path):
+	if not path.startswith("/assets") and ".bundle." in path:
+		path = bundled_asset_path(path)
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
-def assets_url(path):
-	if not path.startswith('/'):
-		path = '/' + path
-	if not path.startswith('/assets'):
-		path = '/assets' + path
-	return path
+
+def bundled_asset_path(path):
+	from frappe.utils import get_assets_json
+
+	bundled_assets = get_assets_json()
+	return bundled_assets.get(path)

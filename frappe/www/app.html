@@ -21,7 +21,7 @@
 		<link rel="icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
 		{% for include in include_css -%}
-		{{ style(include) }}
+		{{ include_style(include) }}
 		{%- endfor -%}
 	</head>
 	<body>
@@ -51,7 +51,7 @@
 		</script>
 
 	{% for include in include_js %}
-	{{ script(include) }}
+	{{ include_script(include) }}
 	{% endfor %}
 
 	{% include "templates/includes/app_analytics/google_analytics.html" %}

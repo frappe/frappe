@@ -13,6 +13,7 @@ let {
 	app_list,
 	assets_path,
 	apps_path,
+	sites_path,
 	get_app_path,
 	get_public_path,
 	get_cli_arg
@@ -39,18 +40,26 @@ const NODE_PATHS = [].concat(
 	}
 
 	console.time(TOTAL_BUILD_TIME);
-	build_assets_for_apps(apps)
-		.then(() => {
-			console.timeEnd(TOTAL_BUILD_TIME);
-			console.log();
-			if (WATCH_MODE) {
-				console.log('Watching for changes...')
-			}
-		})
-		.catch(() => {
-			let error = chalk.white.bgRed(" ERROR ");
-			console.error(`${error} There were some problems during build`);
-		});
+	await clean_dist_folders(apps);
+
+	let result;
+	try {
+		result = await build_assets_for_apps(apps);
+	} catch (e) {
+		let error = chalk.white.bgRed(" ERROR ");
+		console.error(`${error} There were some problems during build`);
+		console.log();
+		console.log(chalk.dim(e.stack));
+	}
+
+	if (!WATCH_MODE) {
+		log_built_assets(result.metafile);
+		console.timeEnd(TOTAL_BUILD_TIME);
+		console.log();
+		await write_meta_file(result.metafile);
+	} else {
+		console.log("Watching for changes...");
+	}
 })();
 
 function build_assets_for_apps(apps) {
@@ -117,48 +126,57 @@ function get_files_to_build(apps) {
 }
 
 function build_files({ files, outdir }) {
-	return esbuild
-		.build({
-			entryPoints: files,
-			outdir,
-			sourcemap: true,
-			bundle: true,
-			metafile: true,
-			// minify: true,
-			nodePaths: NODE_PATHS,
-			define: {
-				"process.env.NODE_ENV": "'development'"
-			},
-			plugins: [
-				html_plugin,
-				ignore_assets,
-				vue(),
-				postCssPlugin({
-					plugins: [require("autoprefixer")],
-					sassOptions: sass_options
-				})
-			],
+	return esbuild.build({
+		entryPoints: files,
+		entryNames: "[dir]/[name].[hash]",
+		outdir,
+		sourcemap: true,
+		bundle: true,
+		metafile: true,
+		// minify: true,
+		nodePaths: NODE_PATHS,
+		define: {
+			"process.env.NODE_ENV": "'development'"
+		},
+		plugins: [
+			html_plugin,
+			ignore_assets,
+			vue(),
+			postCssPlugin({
+				plugins: [require("autoprefixer")],
+				sassOptions: sass_options
+			})
+		],
 
-			watch: WATCH_MODE
-				? {
-						onRebuild(error, result) {
-							if (error)
-								console.error("watch build failed:", error);
-							else {
-								console.log(`${new Date().toLocaleTimeString()}: Compiled changes...`)
-								// log_build_meta(result.metafile);
-							}
+		watch: WATCH_MODE
+			? {
+					onRebuild(error, result) {
+						if (error) console.error("watch build failed:", error);
+						else {
+							console.log(
+								`${new Date().toLocaleTimeString()}: Compiled changes...`
+							);
 						}
-				  }
-				: null
-		})
-		.then(result => {
-			log_build_meta(result.metafile);
-		});
+					}
+			  }
+			: null
+	});
 }
 
-function log_build_meta(metafile) {
-	let column_widths = [40, 20];
+async function clean_dist_folders(apps) {
+	for (let app of apps) {
+		let public_path = get_public_path(app);
+		await fs.promises.rmdir(path.resolve(public_path, "dist", "js"), {
+			recursive: true
+		});
+		await fs.promises.rmdir(path.resolve(public_path, "dist", "css"), {
+			recursive: true
+		});
+	}
+}
+
+function log_built_assets(metafile) {
+	let column_widths = [60, 20];
 	cliui.div(
 		{
 			text: chalk.cyan.bold("File"),
@@ -216,4 +234,20 @@ function log_build_meta(metafile) {
 		cliui.div("");
 	}
 	console.log(cliui.toString());
+}
+
+function write_meta_file(metafile) {
+	let out = {};
+	for (let output in metafile.outputs) {
+		let info = metafile.outputs[output];
+		let asset_path = "/" + path.relative(sites_path, output);
+		if (info.entryPoint) {
+			out[path.basename(info.entryPoint)] = asset_path;
+		}
+	}
+
+	return fs.promises.writeFile(
+		path.resolve(assets_path, "frappe", "dist", "assets.json"),
+		JSON.stringify(out, null, 4)
+	);
 }

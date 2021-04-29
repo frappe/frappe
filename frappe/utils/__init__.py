@@ -765,6 +765,22 @@ def get_build_version():
 		# this is not a major problem so send fallback
 		return frappe.utils.random_string(8)
 
+def get_assets_json():
+	if not hasattr(frappe.local, "assets_json"):
+
+		assets_json = frappe.cache().get_value("assets_json", shared=True)
+		if not assets_json:
+			import json
+			assets_json = json.loads(
+				frappe.read_file("assets/frappe/dist/assets.json")
+			)
+			frappe.cache().set_value("assets_json", assets_json, shared=True)
+
+		frappe.local.assets_json = assets_json
+
+	return frappe.local.assets_json
+
+
 def get_bench_relative_path(file_path):
 	"""Fixes paths relative to the bench root directory if exists and returns the absolute path
 
