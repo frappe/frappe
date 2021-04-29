@@ -51,7 +51,6 @@ import "./frappe/utils/user.js";
 import "./frappe/utils/common.js";
 import "./frappe/utils/urllib.js";
 import "./frappe/utils/pretty_date.js";
-import "./frappe/utils/test_utils.js";
 import "./frappe/utils/tools.js";
 import "./frappe/utils/datetime.js";
 import "./frappe/utils/number_format.js";

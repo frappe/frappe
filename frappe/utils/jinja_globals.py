@@ -71,19 +71,20 @@ def web_blocks(blocks):
 
 
 def include_script(path):
-	if not path.startswith("/assets") and ".bundle." in path:
-		path = bundled_asset_path(path)
+	path = bundled_asset(path)
 	return f'<script type="text/javascript" src="{path}"></script>'
 
 
 def include_style(path):
-	if not path.startswith("/assets") and ".bundle." in path:
-		path = bundled_asset_path(path)
+	path = bundled_asset(path)
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
 
-def bundled_asset_path(path):
+def bundled_asset(path):
 	from frappe.utils import get_assets_json
+
+	if path.startswith("/assets") and ".bundle." not in path:
+		return path
 
 	bundled_assets = get_assets_json()
 	return bundled_assets.get(path)

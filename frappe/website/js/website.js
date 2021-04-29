@@ -637,10 +637,10 @@ frappe.ready(function() {
 		frappe.require([
 			"/assets/frappe/node_modules/moment/min/moment-with-locales.min.js",
 			"/assets/frappe/node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
-			"/assets/frappe/dist/less/chat.bundle.css",
+			"chat.bundle.css",
 			"/assets/frappe/js/lib/socket.io.min.js"
 		], () => {
-			frappe.require('/assets/frappe/dist/js/chat.bundle.js', () => {
+			frappe.require('chat.bundle.js', () => {
 				frappe.chat.setup();
 			});
 		});
