@@ -162,7 +162,6 @@
 		"public/js/frappe/utils/common.js",
 		"public/js/frappe/utils/urllib.js",
 		"public/js/frappe/utils/pretty_date.js",
-		"public/js/frappe/utils/test_utils.js",
 		"public/js/frappe/utils/tools.js",
 		"public/js/frappe/utils/datetime.js",
 		"public/js/frappe/utils/number_format.js",
