@@ -4,57 +4,79 @@
 frappe.ui.form.Dashboard = class FormDashboard {
 	constructor(opts) {
 		$.extend(this, opts);
+		this.setup_dashboard_tabs();
 		this.setup_dashboard_sections();
 	}
 
-	setup_dashboard_sections() {
-		this.progress_area = new Section(this.parent, {
-			css_class: 'progress-area',
+	setup_dashboard_tabs() {
+		this.overview_tab = new frappe.ui.form.Tab(this.frm.layout, {
+			label: __("Overview"),
 			hidden: 1,
-			collapsible: 1
+			fieldname: 'dashboard-overview'
 		});
 
-		this.heatmap_area = new Section(this.parent, {
-			title: __("Overview"),
+		this.connections_tab = new frappe.ui.form.Tab(this.frm.layout, {
+			label: __("Connections"),
+			hidden: 1,
+			fieldname: 'dashboard-connection'
+		});
+	}
+
+	setup_dashboard_sections() {
+		this.progress_area = this.make_section({
+			css_class: 'progress-area',
+			hidden: 1,
+			is_dashboard_section: 1,
+		}, this.overview_tab);
+
+		this.heatmap_area = this.make_section({
+			label: __("Overview"),
 			css_class: 'form-heatmap',
 			hidden: 1,
-			collapsible: 1,
+			is_dashboard_section: 1,
 			body_html: `
 				<div id="heatmap-${frappe.model.scrub(this.frm.doctype)}" class="heatmap"></div>
 				<div class="text-muted small heatmap-message hidden"></div>
 			`
-		});
+		}, this.overview_tab);
 
-		this.chart_area = new Section(this.parent, {
-			title: __("Graph"),
+		this.chart_area = this.make_section({
+			label: __("Graph"),
 			css_class: 'form-graph',
 			hidden: 1,
-			collapsible: 1
-		});
+			is_dashboard_section: 1
+		}, this.overview_tab);
 
 		this.stats_area_row = $(`<div class="row"></div>`);
-		this.stats_area = new Section(this.parent, {
-			title: __("Stats"),
+		this.stats_area = this.make_section({
+			label: __("Stats"),
 			css_class: 'form-stats',
 			hidden: 1,
-			collapsible: 1,
+			is_dashboard_section: 1,
 			body_html: this.stats_area_row
-		});
+		}, this.overview_tab);
 
 		this.transactions_area = $(`<div class="transactions"></div`);
-		this.links_area = new Section(this.parent, {
-			title: __("Connections"),
+		console.log(this.frm.layout);
+		this.links_area = this.make_section({
+			label: __("Connections"),
 			css_class: 'form-links',
 			hidden: 1,
-			collapsible: 1,
+			is_dashboard_section: 1,
 			body_html: this.transactions_area
-		});
+		}, this.connections_tab);
+	}
 
-
+	make_section(df, tab) {
+		return new frappe.ui.form.Section(
+			this.frm.layout,
+			df,
+			tab,
+		);
 	}
 
 	reset() {
-		this.hide();
+		// this.hide();
 
 		// clear progress
 		this.progress_area.body.empty();
@@ -70,19 +92,24 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		// clear custom
 		this.parent.find('.custom').remove();
-		this.hide();
+		// this.hide();
 	}
 
-	add_section(body_html, title=null, css_class="custom", hidden=false) {
+	add_section(body_html, label=null, css_class="custom", hidden=false, tab=null) {
+		if (!tab) tab = this.overview_tab;
 		let options = {
-			title,
+			label,
 			css_class,
 			hidden,
 			body_html,
 			make_card: true,
-			collapsible: 1
+			is_dashboard_section: 1
 		};
-		return new Section(this.parent, options).body;
+		return new frappe.ui.form.Section(this.frm.layout, options, tab).body;
+	}
+
+	remove_section(title) {
+		section.wrapper.remove();
 	}
 
 	add_progress(title, percent, message) {
@@ -154,7 +181,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	make_progress_chart(title) {
 		this.progress_area.show();
-		var progress_chart = $('<div class="progress-chart" title="'+(title || '')+'"></div>')
+		let progress_chart = $('<div class="progress-chart" title="'+(title || '')+'"></div>')
 			.appendTo(this.progress_area.body);
 		return progress_chart;
 	}
@@ -169,7 +196,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			this.init_data();
 		}
 
-		var show = false;
+		let show = false;
 
 		if (this.data && ((this.data.transactions || []).length
 			|| (this.data.reports || []).length)) {
@@ -198,11 +225,10 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	after_refresh() {
-		var me = this;
 		// show / hide new buttons (if allowed)
-		this.links_area.body.find('.btn-new').each(function() {
-			if (me.frm.can_create($(this).attr('data-doctype'))) {
-				$(this).removeClass('hidden');
+		this.links_area.body.find('.btn-new').each((i, el) => {
+			if (this.frm.can_create($(this).attr('data-doctype'))) {
+				$(el).removeClass('hidden');
 			}
 		});
 	}
@@ -269,7 +295,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	render_links() {
-		var me = this;
+		let me = this;
 		this.links_area.show();
 		this.links_area.body.find('.btn-new').addClass('hidden');
 		if (this.data_rendered) {
@@ -324,7 +350,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	open_document_list($link, show_open) {
 		// show document list with filters
-		var doctype = $link.attr('data-doctype'),
+		let doctype = $link.attr('data-doctype'),
 			names = $link.attr('data-names') || [];
 
 		if (this.data.internal_links[doctype]) {
@@ -346,8 +372,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	get_document_filter(doctype) {
 		// return the default filter for the given document
 		// like {"customer": frm.doc.name}
-		var filter = {};
-		var fieldname = this.data.non_standard_fieldnames
+		let filter = {};
+		let fieldname = this.data.non_standard_fieldnames
 			? (this.data.non_standard_fieldnames[doctype] || this.data.fieldname)
 			: this.data.fieldname;
 
@@ -366,7 +392,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		}
 
 		// list all items from the transaction list
-		var items = [],
+		let items = [],
 			me = this;
 
 		this.data.transactions.forEach(function(group) {
@@ -375,7 +401,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			});
 		});
 
-		var method = this.data.method || 'frappe.desk.notifications.get_open_count';
+		let method = this.data.method || 'frappe.desk.notifications.get_open_count';
 		frappe.call({
 			type: "GET",
 			method: method,
@@ -424,7 +450,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	set_badge_count(doctype, open_count, count, names) {
-		var $link = $(this.transactions_area)
+		let $link = $(this.transactions_area)
 			.find('.document-link[data-doctype="'+doctype+'"]');
 
 		if (open_count) {
@@ -471,7 +497,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			this.heatmap_area.body.find('svg').css({'margin': 'auto'});
 
 			// message
-			var heatmap_message = this.heatmap_area.body.find('.heatmap-message');
+			let heatmap_message = this.heatmap_area.body.find('.heatmap-message');
 			if (this.data.heatmap_message) {
 				heatmap_message.removeClass('hidden').html(this.data.heatmap_message);
 			} else {
@@ -486,9 +512,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 
 		// set colspan
-		var indicators = this.stats_area_row.find('.indicator-column');
-		var n_indicators = indicators.length + 1;
-		var colspan;
+		let indicators = this.stats_area_row.find('.indicator-column');
+		let n_indicators = indicators.length + 1;
+		let colspan;
 		if (n_indicators > 4) {
 			colspan = 3;
 		} else {
@@ -500,7 +526,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			indicators.removeClass().addClass('col-sm-'+colspan).addClass('indicator-column');
 		}
 
-		var indicator = $('<div class="col-sm-'+colspan+' indicator-column"><span class="indicator '+color+'">'
+		let indicator = $('<div class="col-sm-'+colspan+' indicator-column"><span class="indicator '+color+'">'
 			+label+'</span></div>').appendTo(this.stats_area_row);
 
 		return indicator;
@@ -508,9 +534,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	// graphs
 	setup_graph() {
-		var me = this;
-		var method = this.data.graph_method;
-		var args = {
+		let me = this;
+		let method = this.data.graph_method;
+		let args = {
 			doctype: this.frm.doctype,
 			docname: this.frm.doc.name,
 		};
@@ -574,11 +600,10 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	add_comment(text, alert_class, permanent) {
-		var me = this;
 		this.set_headline_alert(text, alert_class);
 		if (!permanent) {
-			setTimeout(function() {
-				me.clear_headline();
+			setTimeout(() => {
+				this.clear_headline();
 			}, 10000);
 		}
 	}
@@ -595,109 +620,3 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		}
 	}
 };
-
-class Section {
-	constructor(parent, options) {
-		this.parent = parent;
-		this.df = options || {};
-		this.make();
-
-		if (this.df.title && this.df.collapsible && localStorage.getItem(options.css_class + '-closed')) {
-			this.collapse();
-		}
-		this.refresh();
-	}
-
-	make() {
-		this.wrapper = $(`<div class="form-dashboard-section ${ this.df.make_card ? "card-section" : "" }">`)
-			.appendTo(this.parent);
-
-		if (this.df) {
-			if (this.df.title) {
-				this.make_head();
-			}
-			if (this.df.description) {
-				this.description_wrapper = $(
-					`<div class="col-sm-12 form-section-description">
-						${__(this.df.description)}
-					</div>`
-				);
-
-				this.wrapper.append(this.description_wrapper);
-			}
-			if (this.df.css_class) {
-				this.wrapper.addClass(this.df.css_class);
-			}
-			if (this.df.hide_border) {
-				this.wrapper.toggleClass("hide-border", true);
-			}
-		}
-
-		this.body = $('<div class="section-body">').appendTo(this.wrapper);
-
-		if (this.df.body_html) {
-			this.body.append(this.df.body_html);
-		}
-	}
-
-	make_head() {
-		this.head = $(`
-			<div class="section-head">
-				${__(this.df.title)}
-				<span class="ml-2 collapse-indicator mb-1"></span>
-			</div>
-		`);
-
-		this.head.appendTo(this.wrapper);
-		this.indicator = this.head.find('.collapse-indicator');
-		this.indicator.hide();
-
-		if (this.df.collapsible) {
-			// show / hide based on status
-			this.collapse_link = this.head.on("click", () => {
-				this.collapse();
-			});
-			this.set_icon();
-			this.indicator.show();
-		}
-	}
-
-	refresh() {
-		if (!this.df) return;
-
-		// hide if explicitly hidden
-		let hide = this.df.hidden;
-		this.wrapper.toggle(!hide);
-	}
-
-	collapse(hide) {
-		if (hide === undefined) {
-			hide = !this.body.hasClass("hide");
-		}
-
-		this.body.toggleClass("hide", hide);
-		this.head && this.head.toggleClass("collapsed", hide);
-
-		this.set_icon(hide);
-
-		// save state for next reload ('' is falsy)
-		localStorage.setItem(this.df.css_class + '-closed', hide ? '1' : '');
-	}
-
-	set_icon(hide) {
-		let indicator_icon = hide ? 'down' : 'up-line';
-		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, 'sm', 'mb-1'));
-	}
-
-	is_collapsed() {
-		return this.body.hasClass('hide');
-	}
-
-	hide() {
-		this.wrapper.hide();
-	}
-
-	show() {
-		this.wrapper.show();
-	}
-}

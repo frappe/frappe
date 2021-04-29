@@ -93,6 +93,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.watch_model_updates();
 
 		if (!this.meta.hide_toolbar && frappe.boot.desk_settings.timeline) {
+			// this.footer_tab = new frappe.ui.form.Tab(this.layout, {
+			// 	label: __("Activity"),
+			// 	fieldname: 'timeline'
+			// });
+
 			this.footer = new frappe.ui.form.Footer({
 				frm: this,
 				parent: $('<div>').appendTo(this.page.main.parent())
@@ -141,6 +146,7 @@ frappe.ui.form.Form = class FrappeForm {
 			frm: this,
 			with_dashboard: true,
 			card_layout: true,
+			tabbed_layout: true,
 		});
 		this.layout.make();
 
@@ -149,7 +155,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.dashboard = new frappe.ui.form.Dashboard({
 			frm: this,
-			parent: $('<div class="form-dashboard">').insertAfter(this.layout.wrapper.find('.form-message'))
+			parent: this.layout.wrapper,
 		});
 
 		// workflow state
@@ -453,7 +459,7 @@ frappe.ui.form.Form = class FrappeForm {
 				},
 				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
-				() => this.dashboard.after_refresh()
+				() => this.dashboard.after_refresh(),
 			]);
 
 		} else {
@@ -462,11 +468,17 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.$wrapper.trigger('render_complete');
 
+		this.cscript.is_onload && this.set_first_tab_as_active();
 		if(!this.hidden) {
 			this.layout.show_empty_form_message();
 		}
 
 		this.scroll_to_element();
+	}
+
+	set_first_tab_as_active() {
+		this.layout.tabs[0]
+			&& this.layout.tabs[0].set_active();
 	}
 
 	focus_on_first_input() {
@@ -1579,6 +1591,11 @@ frappe.ui.form.Form = class FrappeForm {
 		if (!field) return;
 
 		let $el = field.$wrapper;
+
+		// set tab as active
+		if (field.tab && !field.tab.is_active()) {
+			field.tab.set_active();
+		}
 
 		// uncollapse section
 		if (field.section.is_collapsed()) {

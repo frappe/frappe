@@ -5,7 +5,6 @@ frappe.provide('frappe.ui');
 frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 	constructor(opts) {
 		super(opts);
-		this.first_button = false;
 		this.dirty = false;
 		$.each(this.fields || [], function(i, f) {
 			if(!f.fieldname && f.label) {
@@ -16,6 +15,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			this.set_values(this.values);
 		}
 	}
+
 	make() {
 		var me = this;
 		if(this.fields) {
@@ -61,6 +61,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			}
 		});
 	}
+
 	catch_enter_as_submit() {
 		var me = this;
 		$(this.body).find('input[type="text"], input[type="password"], select').keypress(function(e) {
@@ -72,13 +73,16 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			}
 		});
 	}
+
 	get_input(fieldname) {
 		var field = this.fields_dict[fieldname];
 		return $(field.txt ? field.txt : field.input);
 	}
+
 	get_field(fieldname) {
 		return this.fields_dict[fieldname];
 	}
+
 	get_values(ignore_errors) {
 		var ret = {};
 		var errors = [];
@@ -111,10 +115,12 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		}
 		return ret;
 	}
+
 	get_value(key) {
 		var f = this.fields_dict[key];
 		return f && (f.get_value ? f.get_value() : null);
 	}
+
 	set_value(key, val){
 		return new Promise(resolve => {
 			var f = this.fields_dict[key];
@@ -129,9 +135,11 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			}
 		});
 	}
+
 	set_input(key, val) {
 		return this.set_value(key, val);
 	}
+
 	set_values(dict) {
 		let promises = [];
 		for(var key in dict) {
@@ -142,6 +150,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 
 		return Promise.all(promises);
 	}
+
 	clear() {
 		for(var key in this.fields_dict) {
 			var f = this.fields_dict[key];
@@ -150,9 +159,10 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			}
 		}
 	}
+
 	set_df_property (fieldname, prop, value) {
-		const field    = this.get_field(fieldname);
+		const field = this.get_field(fieldname);
 		field.df[prop] = value;
 		field.refresh();
 	}
-};
+}

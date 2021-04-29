@@ -50,11 +50,11 @@
 	@extend .frappe-card;
 }
 
-.form-dashboard {
+.form-dashboard-section {
 	.section-body:first-child {
 		margin-top: 0;
 	}
-	.form-dashboard-section .section-body {
+	.section-body {
 		display: block;
 		padding-left: var(--padding-md);
 		padding-right: var(--padding-md);
@@ -299,6 +299,24 @@
 		position: absolute;
 		height: 28px;
 		right: 0;
+	}
+}
+
+.form-tabs {
+	.nav-item {
+		.nav-link {
+			padding-bottom: 15px;
+			color: var(--gray-700);
+			padding-left: 0;
+			padding-right: 0;
+			margin-right: 30px;
+
+			&.active {
+				font-weight: 500;
+				border-bottom: 1px solid var(--primary);
+				color: var(--text-color);
+			}
+		}
 	}
 }
 
