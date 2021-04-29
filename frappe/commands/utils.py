@@ -533,7 +533,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 		]
 
 		if not app or app=='frappe':
-			omit.append('frappe/commands/*')
+			omit.append('*/commands/*')
 
 		cov = Coverage(source=[source_path], omit=omit)
 		cov.start()
