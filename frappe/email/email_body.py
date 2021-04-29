@@ -291,9 +291,11 @@ def inline_style_in_html(html):
 	''' Convert email.css and html to inline-styled html
 	'''
 	from premailer import Premailer
+	from frappe.utils.jinja_globals import bundled_asset
 
 	# get email css files from hooks
 	css_files = frappe.get_hooks('email_css')
+	css_files = [bundled_asset(path) for path in css_files]
 	css_files = [path.lstrip('/') for path in css_files]
 	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
 
