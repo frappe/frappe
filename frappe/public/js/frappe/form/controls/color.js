@@ -48,7 +48,24 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 			$(window).off('hashchange.color-popover');
 		});
 
-		this.$wrapper.find('.control-input').on('click', (e) => {
+		this.picker.on_change = (color) => {
+			this.set_value(color);
+		};
+
+		if (!this.selected_color) {
+			this.selected_color = $(`<div class="selected-color"></div>`);
+			this.selected_color.insertAfter(this.$input);
+		}
+
+		if (!this.$wrapper.find('.control-input').get(0)) {
+			this.$wrapper.find('.selected-color')
+				.css({
+					"top": "calc(23% + 1px)",
+					"z-index": "2"
+				});
+		}
+
+		this.$wrapper.find('.selected-color').parent().on('click', (e) => {
 			this.$wrapper.popover('toggle');
 			if (!this.get_color()) {
 				this.$input.val('');
@@ -63,15 +80,6 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 				this.$wrapper.popover('hide');
 			});
 		});
-
-		this.picker.on_change = (color) => {
-			this.set_value(color);
-		};
-
-		if (!this.selected_color) {
-			this.selected_color = $(`<div class="selected-color"></div>`);
-			this.selected_color.insertAfter(this.$input);
-		}
 	},
 	refresh() {
 		this._super();
