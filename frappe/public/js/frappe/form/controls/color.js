@@ -6,6 +6,7 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		this.make_color_input();
 	},
 	make_color_input: function () {
+		this.df.placeholder = __('Choose a color');
 		let picker_wrapper = $('<div>');
 		this.picker = new Picker({
 			parent: picker_wrapper[0],
@@ -83,8 +84,7 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
-
-		this.$input.val(value || __('Choose a color'));
+		this.$input.val(value);
 		this.selected_color.css({
 			"background-color": value || 'transparent',
 		});
