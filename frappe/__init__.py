@@ -1620,6 +1620,12 @@ def enqueue(*args, **kwargs):
 	import frappe.utils.background_jobs
 	return frappe.utils.background_jobs.enqueue(*args, **kwargs)
 
+def task(**task_kwargs):
+	def decorator_task(f):
+		f.enqueue = lambda **fun_kwargs: enqueue(f, **task_kwargs, **fun_kwargs)
+		return f
+	return decorator_task
+
 def enqueue_doc(*args, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
