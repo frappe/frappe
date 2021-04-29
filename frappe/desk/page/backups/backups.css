@@ -5,6 +5,7 @@
 .download-backup-card {
 	display: block;
 	text-decoration: none;
+	margin: var(--margin-sm);
 }
 
 .download-backup-card:hover {
