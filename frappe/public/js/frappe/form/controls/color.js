@@ -2,11 +2,11 @@ import Picker from '../../color_picker/color_picker';
 
 frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	make_input: function () {
+		this.df.placeholder = this.df.placeholder || __('Choose a color');
 		this._super();
 		this.make_color_input();
 	},
 	make_color_input: function () {
-		this.df.placeholder = __('Choose a color');
 		let picker_wrapper = $('<div>');
 		this.picker = new Picker({
 			parent: picker_wrapper[0],
