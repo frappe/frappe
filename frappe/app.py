@@ -185,8 +185,24 @@ def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
+	accept_header = frappe.get_request_header("Accept") or ""
+	respond_as_json = (
+		frappe.get_request_header('Accept')
+		and (frappe.local.is_ajax or 'application/json' in accept_header)
+		or (
+			frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text")
+		)
+	)
 
+<<<<<<< HEAD
 	if frappe.get_request_header('Accept') and (frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept')):
+=======
+	if frappe.conf.get('developer_mode'):
+		# don't fail silently
+		print(frappe.get_traceback())
+
+	if respond_as_json:
+>>>>>>> fcf63622bc (fix: Respond to /api requests as JSON by default)
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
