@@ -30,7 +30,7 @@ input[type="checkbox"] {
 	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
 	border-radius: 4px;
 
-	// Reset Browser Behavior
+	// Reset browser behavior
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
@@ -52,11 +52,7 @@ input[type="checkbox"] {
 
 	&:focus {
 		outline: none; // Prevent browser behavior
-		box-shadow: 0 0 0 2px var(--gray-300);
-
-		[data-theme="dark"] & {
-			box-shadow: 0 0 0 2px var(--gray-600);
-		}
+		box-shadow: var(--checkbox-focus-shadow);
 	}
 
 	&.disabled-deselected, &:disabled {
