@@ -86,15 +86,8 @@ class TemplatePage(BaseTemplatePage):
 	def setup_template(self):
 		'''Setup template source, frontmatter and markdown conversion'''
 		self.source = self.get_raw_template()
-
-		if self.template_path.endswith(('.md', '.html')):
-			self.extract_frontmatter()
-
+		self.extract_frontmatter()
 		self.convert_from_markdown()
-
-		if self.extends_template():
-			self.context.base_template_path = self.context.base_template_path
-		# TODO: setup index.txt ?
 
 	def update_context(self):
 		self.set_page_properties()
@@ -166,7 +159,7 @@ class TemplatePage(BaseTemplatePage):
 		return html
 
 	def extends_template(self):
-		return (self.template_path.endswith(('.html', '.md', ))
+		return (self.template_path.endswith(('.html', '.md'))
 			and ('{%- extends' in self.source
 				or '{% extends' in self.source))
 
@@ -188,6 +181,9 @@ class TemplatePage(BaseTemplatePage):
 			return f.read()
 
 	def extract_frontmatter(self):
+		if not self.template_path.endswith(('.md', '.html')):
+			return
+
 		try:
 			# values will be used to update self
 			res = get_frontmatter(self.source)
