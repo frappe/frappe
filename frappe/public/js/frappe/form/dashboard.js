@@ -476,7 +476,15 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	update_heatmap(data) {
 		if (this.heatmap) {
-			this.heatmap.update({ dataPoints: data });
+			/* this original code:
+				this.heatmap.update({dataPoints: data});
+			   would not respect any start/end setting - but thats also not respected in the frappe.js code,
+			   which always reads it from this update call
+			*/
+			if (data.start && Number.isInteger(data.start)) data.start = new Date(moment().add(data.start, 'month').toDate())
+			if (data.end && Number.isInteger(data.end)) data.end = new Date(moment().add(data.end, 'month').toDate())
+			//data.startSubDomain= 'Monday'; does not work ??
+			this.heatmap.update(data.start ? data : {dataPoints: data});
 		}
 	}
 
