@@ -422,7 +422,7 @@ export default class GridRow {
 			field.$input
 				.addClass('input-sm')
 				.attr('data-col-idx', column.column_index)
-				.attr('placeholder', __(df.label));
+				.attr('placeholder', __(df.placeholder || df.label));
 			// flag list input
 			if (this.columns_list && this.columns_list.slice(-1)[0]===column) {
 				field.$input.attr('data-last-input', 1);
