@@ -56,6 +56,7 @@ def application(request):
 		frappe.recorder.record()
 		frappe.monitor.start()
 		frappe.rate_limiter.apply()
+		frappe.api.validate_auth()
 
 		if request.method == "OPTIONS":
 			response = Response()

@@ -100,11 +100,8 @@ frappe.form.formatters = {
 		}
 	},
 	Check: function(value) {
-		if (value) {
-			return `<input type="checkbox" class="disabled-selected">`;
-		} else {
-			return `<input type="checkbox" class="disabled-deselected">`;
-		}
+		return `<input type="checkbox" disabled
+			class="disabled-${value ? "selected" : "deselected"}">`;
 	},
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
