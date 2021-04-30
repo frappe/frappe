@@ -11,6 +11,7 @@ import frappe.client
 import frappe.handler
 from frappe import _
 from frappe.utils.response import build_response
+from frappe.utils.data import sbool
 
 
 def handle():
@@ -108,25 +109,39 @@ def handle():
 
 			elif doctype:
 				if frappe.local.request.method == "GET":
-					if frappe.local.form_dict.get('fields'):
-						frappe.local.form_dict['fields'] = json.loads(frappe.local.form_dict['fields'])
-					frappe.local.form_dict.setdefault('limit_page_length', 20)
-					frappe.local.response.update({
-						"data": frappe.call(
-							frappe.client.get_list,
-							doctype,
-							**frappe.local.form_dict
-						)
-					})
+					# set fields for frappe.get_list
+					if frappe.local.form_dict.get("fields"):
+						frappe.local.form_dict["fields"] = json.loads(frappe.local.form_dict["fields"])
+
+					# set limit of records for frappe.get_list
+					frappe.local.form_dict.setdefault(
+						"limit_page_length",
+						frappe.local.form_dict.limit or frappe.local.form_dict.limit_page_length or 20,
+					)
+
+					# convert strings to native types
+					frappe.local.form_dict.update(
+						{x: sbool(y) for x, y in frappe.local.form_dict.items()}
+					)
+
+					# evaluate frappe.get_list
+					data = frappe.call(frappe.client.get_list, doctype, **frappe.local.form_dict)
+
+					# set frappe.get_list result to response
+					frappe.local.response.update({"data": data})
 
 				if frappe.local.request.method == "POST":
+					# fetch data from from dict
 					data = get_request_form_data()
-					data.update({
-						"doctype": doctype
-					})
-					frappe.local.response.update({
-						"data": frappe.get_doc(data).insert().as_dict()
-					})
+					data.update({"doctype": doctype})
+
+					# insert document from request data
+					doc = frappe.get_doc(data).insert()
+
+					# set response data
+					frappe.local.response.update({"data": doc.as_dict()})
+
+					# commit for POST requests
 					frappe.db.commit()
 			else:
 				raise frappe.DoesNotExistError
