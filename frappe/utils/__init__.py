@@ -194,9 +194,6 @@ def validate_url(txt, throw=False, valid_schemes=None):
 	return is_valid
 =======
 def validate_url(txt, throw=False):
-	if not txt:
-		return True
-
 	try:
 		url = urlparse(txt).netloc
 		if not url:
