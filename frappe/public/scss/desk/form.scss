@@ -302,19 +302,23 @@
 	}
 }
 
-.form-tabs {
-	.nav-item {
-		.nav-link {
-			padding-bottom: 15px;
-			color: var(--gray-700);
-			padding-left: 0;
-			padding-right: 0;
-			margin-right: 30px;
+.form-tabs-list {
+	margin-bottom: var(--margin-lg);
 
-			&.active {
-				font-weight: 500;
-				border-bottom: 1px solid var(--primary);
-				color: var(--text-color);
+	.form-tabs {
+		.nav-item {
+			.nav-link {
+				padding-bottom: var(--padding-md);
+				color: var(--gray-700);
+				padding-left: 0;
+				padding-right: 0;
+				margin-right: var(--margin-xl);
+
+				&.active {
+					font-weight: 500;
+					border-bottom: 1px solid var(--primary);
+					color: var(--text-color);
+				}
 			}
 		}
 	}
@@ -373,7 +377,4 @@
 	.form-column:not(:first-child) {
 		padding-top: var(--padding-md);
 	}
-
-
-
 }
