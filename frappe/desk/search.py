@@ -234,7 +234,7 @@ def get_names_for_mentions(search_term):
 			continue
 
 		mention_data['link'] = frappe.utils.get_url_to_form(
-			'User Group' if mention_data.get('is_group') else 'User',
+			'User Group' if mention_data.get('is_group') else 'User Profile',
 			mention_data['id']
 		)
 
