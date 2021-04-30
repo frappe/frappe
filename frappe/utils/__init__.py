@@ -162,9 +162,6 @@ def split_emails(txt):
 	return email_list
 
 def validate_url(txt, throw=False):
-	if not txt:
-		return True
-
 	try:
 		url = urlparse(txt).netloc
 		if not url:
