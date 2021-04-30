@@ -439,3 +439,62 @@ def delete_oauth2_data():
 def get_client_scopes(client_id):
 	scopes_string = frappe.db.get_value("OAuth Client", client_id, "scopes")
 	return scopes_string.split()
+<<<<<<< HEAD
+=======
+
+
+def get_userinfo(user):
+	picture = None
+	frappe_server_url = get_server_url()
+	valid_url_schemes = ("http", "https", "ftp", "ftps")
+
+	if user.user_image:
+		if frappe.utils.validate_url(user.user_image, valid_schemes=valid_url_schemes):
+			picture = user.user_image
+		else:
+			picture = frappe_server_url + "/" + user.user_image
+
+	userinfo = frappe._dict(
+		{
+			"sub": frappe.db.get_value(
+				"User Social Login",
+				{"parent": user.name, "provider": "frappe"},
+				"userid",
+			),
+			"name": " ".join(filter(None, [user.first_name, user.last_name])),
+			"given_name": user.first_name,
+			"family_name": user.last_name,
+			"email": user.email,
+			"picture": picture,
+			"roles": frappe.get_roles(user.name),
+			"iss": frappe_server_url,
+		}
+	)
+
+	return userinfo
+
+
+def get_url_delimiter(separator_character=" "):
+	return separator_character
+
+
+def generate_json_error_response(e):
+	if not e:
+		e = frappe._dict({})
+
+	frappe.local.response = frappe._dict(
+		{
+			"description": getattr(e, "description", "Internal Server Error"),
+			"status_code": getattr(e, "status_code", 500),
+			"error": getattr(e, "error", "internal_server_error"),
+		}
+	)
+	frappe.local.response["http_status_code"] = getattr(e, "status_code", 500)
+	return
+
+
+def get_server_url():
+	request_url = urlparse(frappe.request.url)
+	request_url = f"{request_url.scheme}://{request_url.netloc}"
+	return frappe.get_value("Social Login Key", "frappe", "base_url") or request_url
+>>>>>>> 024e759a70... refactor: Add optional URL scheme validation
