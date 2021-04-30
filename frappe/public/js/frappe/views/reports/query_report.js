@@ -1343,7 +1343,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				open_url_post(frappe.request.url, args);
 			}
-		}, __('Export Report: '+ this.report_name), __('Download'));
+		}, __('Export Report: {0}',[this.report_name]), __('Download'));
 	}
 
 	get_data_for_csv(include_indentation) {
