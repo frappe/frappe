@@ -103,11 +103,11 @@ class LoginManager:
 		self.user_type = None
 
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
-			if self.login()==False: return
-			self.resume = False
+			if self.login():
+				self.resume = False
 
-			# run login triggers
-			self.run_trigger('on_session_creation')
+				# run login triggers
+				self.run_trigger('on_session_creation')
 		else:
 			try:
 				self.resume = True
