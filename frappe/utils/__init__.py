@@ -194,10 +194,16 @@ def validate_url(txt, throw=False, valid_schemes=None):
 	return is_valid
 =======
 def validate_url(txt, throw=False):
+	if not url:
+		return True
+
 	try:
 		url = urlparse(txt).netloc
 		if not url:
 			raise frappe.ValidationError
+		else:
+			return True
+
 	except Exception:
 		if throw:
 			frappe.throw(
@@ -872,6 +878,7 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
+<<<<<<< HEAD
 
 def validate_url(url_string):
 	try:
@@ -880,3 +887,5 @@ def validate_url(url_string):
 	except Exception:
 		return False
 
+=======
+>>>>>>> 9d4ee238d7 (fix: Remove duplicate validation function)
