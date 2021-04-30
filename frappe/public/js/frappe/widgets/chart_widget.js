@@ -25,7 +25,6 @@ export default class ChartWidget extends Widget {
 		delete this.dashboard_chart;
 		this.set_body();
 		this.make_chart();
-		this.setup_events();
 	}
 
 	set_chart_title() {
@@ -746,19 +745,5 @@ export default class ChartWidget extends Widget {
 					}
 				}
 			});
-	}
-
-	setup_events() {
-		$(document.body).on('toggleSidebar', () => {
-			this.dashboard_chart && this.dashboard_chart.draw(true);
-		});
-
-		$(document.body).on('toggleListSidebar', () => {
-			this.dashboard_chart && this.dashboard_chart.draw(true);
-		});
-
-		$(document.body).on('toggleFullWidth', () => {
-			this.dashboard_chart && this.dashboard_chart.draw(true);
-		});
 	}
 }

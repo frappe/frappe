@@ -1,5 +1,5 @@
 context('Table MultiSelect', () => {
-	beforeEach(() => {
+	before(() => {
 		cy.login();
 	});
 

@@ -130,6 +130,16 @@ has_website_permission = {
 	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
 }
 
+jinja = {
+	"methods": "frappe.utils.jinja_globals",
+	"filters": [
+		"frappe.utils.data.global_date_format",
+		"frappe.utils.markdown",
+		"frappe.website.utils.get_shade",
+		"frappe.website.utils.abs_url",
+	]
+}
+
 standard_queries = {
 	"User": "frappe.core.doctype.user.user.user_query"
 }

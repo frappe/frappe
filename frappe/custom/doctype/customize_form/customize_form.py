@@ -491,6 +491,7 @@ doctype_properties = {
 	'allow_auto_repeat': 'Check',
 	'allow_import': 'Check',
 	'show_preview_popup': 'Check',
+	'default_email_template': 'Data',
 	'email_append_to': 'Check',
 	'subject_field': 'Data',
 	'sender_field': 'Data',

@@ -11,7 +11,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import get_bench_path, update_progress_bar
+from frappe.utils import get_bench_path, update_progress_bar, cint
 
 
 @click.command('build')
@@ -520,7 +520,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		cov = Coverage(source=[source_path], omit=[
+		omit=[
 			'*.html',
 			'*.js',
 			'*.xml',
@@ -530,7 +530,12 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 			'*.vue',
 			'*/doctype/*/*_dashboard.py',
 			'*/patches/*'
-		])
+		]
+
+		if not app or app == 'frappe':
+			omit.append('*/commands/*')
+
+		cov = Coverage(source=[source_path], omit=omit)
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
@@ -567,11 +572,14 @@ def run_ui_tests(context, app, headless=False):
 
 	node_bin = subprocess.getoutput("npm bin")
 	cypress_path = "{0}/cypress".format(node_bin)
-	plugin_path = "{0}/cypress-file-upload".format(node_bin)
+	plugin_path = "{0}/../cypress-file-upload".format(node_bin)
 
 	# check if cypress in path...if not, install it.
-	if not (os.path.exists(cypress_path) or os.path.exists(plugin_path)) \
-		or not subprocess.getoutput("npm view cypress version").startswith("6."):
+	if not (
+		os.path.exists(cypress_path)
+		and os.path.exists(plugin_path)
+		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
+	):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
 		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
