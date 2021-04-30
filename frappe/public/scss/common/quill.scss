@@ -105,6 +105,7 @@
 	padding: 10px 12px;
 	height: initial;
 	line-height: initial;
+	cursor: pointer;
 
 	&.selected {
 		background-color: var(--control-bg);
