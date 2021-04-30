@@ -56,8 +56,12 @@ class EventProducer(Document):
 			self.reload()
 
 	def check_url(self):
+<<<<<<< HEAD
 		if not validate_url(self.producer_url):
 			frappe.throw(_('Invalid URL'))
+=======
+		frappe.utils.validate_url(self.producer_url, throw=True)
+>>>>>>> 9d4ee238d7... fix: Remove duplicate validation function
 
 		# remove '/' from the end of the url like http://test_site.com/
 		# to prevent mismatch in get_url() results

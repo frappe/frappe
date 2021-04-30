@@ -162,10 +162,16 @@ def split_emails(txt):
 	return email_list
 
 def validate_url(txt, throw=False):
+	if not url:
+		return True
+
 	try:
 		url = urlparse(txt).netloc
 		if not url:
 			raise frappe.ValidationError
+		else:
+			return True
+
 	except Exception:
 		if throw:
 			frappe.throw(
