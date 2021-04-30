@@ -155,21 +155,32 @@ def split_emails(txt):
 
 	return email_list
 
-def validate_url(txt, throw=False):
-	try:
-		url = urlparse(txt).netloc
-		if not url:
-			raise frappe.ValidationError
-		else:
-			return True
+def validate_url(txt, throw=False, valid_schemes=None):
+	"""
+		Tests wether the `txt` is a valid URL
 
-	except Exception:
-		if throw:
-			frappe.throw(
-				frappe._("'{0}' is not a valid URL").format(frappe.bold(txt))
-			)
-	
-	return False
+		Parameters:
+			throw (`bool`): throws a validationError if URL is not valid
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this 
+
+		Returns:
+			bool: if `txt` represents a valid URL
+	"""
+	url = urlparse(txt)
+	is_valid = bool(url.netloc)
+
+	# Handle scheme validation
+	if isinstance(valid_schemes, str):
+		is_valid = is_valid and (url.scheme == valid_schemes)
+	elif isinstance(valid_schemes, (list, tuple, set)):
+		is_valid = is_valid and (url.scheme in valid_schemes)
+
+	if not is_valid and throw:
+		frappe.throw(
+			frappe._("'{0}' is not a valid URL").format(frappe.bold(txt))
+		)
+
+	return is_valid
 
 def random_string(length):
 	"""generate a random string"""
