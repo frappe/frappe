@@ -20,7 +20,7 @@ module.exports = {
 				.then(content => {
 					content = scrub_html_template(content);
 					return {
-						contents: `\n\tfrappe.templates['${filename}'] = '${content}';\n`
+						contents: `\n\tfrappe.templates['${filename}'] = \`${content}\`;\n`
 					};
 				})
 				.catch(() => {
@@ -38,7 +38,6 @@ module.exports = {
 };
 
 function scrub_html_template(content) {
-	content = content.replace(/\s/g, " ");
-	content = content.replace(/(<!--.*?-->)/g, "");
-	return content.replace("'", "'"); // eslint-disable-line
+	content = content.replace(/`/g, "\\`");
+	return content;
 }
