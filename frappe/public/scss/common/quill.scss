@@ -197,5 +197,8 @@
 }
 
 .mention[data-is-group="true"] {
-	background-color: var(--group-mention-bg-color);
+	.icon {
+		margin-top: -2px;
+		margin-left: 4px;
+	}
 }
