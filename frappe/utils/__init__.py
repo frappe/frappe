@@ -156,10 +156,16 @@ def split_emails(txt):
 	return email_list
 
 def validate_url(txt, throw=False):
+	if not url:
+		return True
+
 	try:
 		url = urlparse(txt).netloc
 		if not url:
 			raise frappe.ValidationError
+		else:
+			return True
+
 	except Exception:
 		if throw:
 			frappe.throw(
@@ -820,11 +826,3 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
-
-
-def validate_url(url_string):
-	try:
-		result = urlparse(url_string)
-		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
-	except Exception:
-		return False

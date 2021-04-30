@@ -55,8 +55,7 @@ class EventProducer(Document):
 			self.reload()
 
 	def check_url(self):
-		if not frappe.utils.validate_url(self.producer_url):
-			frappe.throw(_('Invalid URL'))
+		frappe.utils.validate_url(self.producer_url, throw=True)
 
 		# remove '/' from the end of the url like http://test_site.com/
 		# to prevent mismatch in get_url() results
