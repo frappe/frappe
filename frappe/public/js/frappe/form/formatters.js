@@ -292,12 +292,12 @@ frappe.form.formatters = {
 		return formatted_values.join(', ');
 	},
 	Color: (value) => {
-		return `<div>
+		return value ? `<div>
 			<div class="selected-color" style="background-color: ${value}"></div>
 			<span class="color-value">${value}</span>
-		</div>`;
+		</div>` : '';
 	}
-}
+};
 
 frappe.form.get_formatter = function(fieldtype) {
 	if(!fieldtype)
