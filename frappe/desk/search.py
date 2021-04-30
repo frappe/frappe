@@ -246,10 +246,10 @@ def get_users_for_mentions():
 	return frappe.get_all('User',
 		fields=['name as id', 'full_name as value'],
 		filters={
-		'name': ['not in', ('Administrator', 'Guest')],
-		'allowed_in_mentions': True,
-		'user_type': 'System User',
-	})
+			'name': ['not in', ('Administrator', 'Guest')],
+			'allowed_in_mentions': True,
+			'user_type': 'System User',
+		})
 
 def get_user_groups():
 	return frappe.get_all('User Group', fields=['name as id', 'name as value'], update={

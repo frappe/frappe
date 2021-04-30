@@ -96,7 +96,6 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 			renderItem(item) {
 				let value = item.value;
 				return `${value} ${item.is_group ? frappe.utils.icon('users') : ''}`;
-
 			}
 		};
 	},
