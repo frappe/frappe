@@ -180,15 +180,25 @@ $.extend(frappe.ui.toolbar, {
 
 		parent_element.insertBefore(new_element, parent_element.children[index]);
 	},
+	get_fullwidth_from_localStorage() {
+		let fullwidth = true;
+		if ("container_fullwidth" in localStorage) {
+			fullwidth = JSON.parse(localStorage.container_fullwidth);
+		}
+		return fullwidth;
+	},
 	toggle_full_width() {
-		let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
+		let fullwidth = this.get_fullwidth_from_localStorage();
 		fullwidth = !fullwidth;
 		localStorage.container_fullwidth = fullwidth;
-		frappe.ui.toolbar.set_fullwidth_if_enabled();
+		this.set_fullwidth_if_enabled(fullwidth);
 		$(document.body).trigger('toggleFullWidth');
 	},
-	set_fullwidth_if_enabled() {
-		let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
+	set_fullwidth_if_enabled(fullwidth) {
+		if (fullwidth === undefined) {
+			fullwidth = this.get_fullwidth_from_localStorage();
+		}
+
 		$(document.body).toggleClass('full-width', fullwidth);
 	},
 	show_shortcuts (e) {
