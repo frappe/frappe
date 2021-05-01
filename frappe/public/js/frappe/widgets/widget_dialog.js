@@ -240,7 +240,7 @@ class ShortcutDialog extends WidgetDialog {
 				fieldtype: "Select",
 				fieldname: "color",
 				label: __("Color"),
-				options: ["Grey", "Green", "Red", "Orange", "Pink", "Yellow", "Blue", "Cyan", "Teal"],
+				options: ["Grey", "Green", "Red", "Orange", "Pink", "Yellow", "Blue", "Cyan"],
 				default: "Grey",
 				onchange: () => {
 					let color = this.dialog.fields_dict.color.value.toLowerCase();
@@ -248,7 +248,7 @@ class ShortcutDialog extends WidgetDialog {
 					if (!$select.parent().find('.color-box').get(0)) {
 						$(`<div class="color-box"></div>`).insertBefore($select.get(0));
 					}
-					$select.parent().find('.color-box').get(0).style.backgroundColor = color;
+					$select.parent().find('.color-box').get(0).style.backgroundColor = `var(--text-on-${color})`;
 				}
 			},
 			{

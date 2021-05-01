@@ -77,6 +77,16 @@
 	@include indicator-pill-color('green');
 }
 
+.indicator.cyan {
+	@include indicator-color('cyan');
+}
+
+.indicator-pill.cyan,
+.indicator-pill-right.cyan,
+.indicator-pill-round.cyan {
+	@include indicator-pill-color('cyan');
+}
+
 .indicator.blue {
 	@include indicator-color('blue');
 }
@@ -129,6 +139,16 @@
 .indicator-pill-right.red,
 .indicator-pill-round.red {
 	@include indicator-pill-color('red');
+}
+
+.indicator.pink {
+	@include indicator-color('pink');
+}
+
+.indicator-pill.pink,
+.indicator-pill-right.pink,
+.indicator-pill-round.pink {
+	@include indicator-pill-color('pink');
 }
 
 .indicator-pill.darkgrey,
