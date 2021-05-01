@@ -58,6 +58,7 @@ class EventProducer(Document):
 	def check_url(self):
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if not validate_url(self.producer_url):
 			frappe.throw(_('Invalid URL'))
 =======
@@ -65,6 +66,9 @@ class EventProducer(Document):
 >>>>>>> 9d4ee238d7... fix: Remove duplicate validation function
 =======
 		valid_url_schemes = ("http", "https", "ftp", "ftps")
+=======
+		valid_url_schemes = ("http", "https")
+>>>>>>> f4e4fc98f9... fix: remove unnecessary schemes and minor changes
 		frappe.utils.validate_url(self.producer_url, throw=True, valid_schemes=valid_url_schemes)
 >>>>>>> 024e759a70... refactor: Add optional URL scheme validation
 
