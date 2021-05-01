@@ -59,7 +59,7 @@ const NODE_PATHS = [].concat(
 		.filter(fs.existsSync)
 );
 
-execute();
+execute().catch(e => console.error(e));
 
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
@@ -81,7 +81,7 @@ async function execute() {
 	} else {
 		log("Watching for changes...");
 	}
-	await write_meta_file(result.metafile);
+	return await write_meta_file(result.metafile);
 }
 
 function build_assets_for_apps(apps) {
@@ -287,7 +287,12 @@ function write_meta_file(metafile) {
 		.then(() => {
 			let client = get_redis_subscriber("redis_cache");
 			// update assets_json cache in redis, so that it can be read directly by python
-			return client.set("assets_json", assets_json);
+			client.set("assets_json", assets_json, (err) => {
+				if (err) {
+					log_warn("Could not update assets_json in redis_cache");
+				}
+				client.unref();
+			});
 		});
 }
 
@@ -296,7 +301,6 @@ async function notify_redis({ error, success }) {
 	// notify redis which in turns tells socketio to publish this to browser
 
 	let payload = null;
-
 	if (error) {
 		let formatted = await esbuild.formatMessages(error.errors, {
 			kind: "error",
@@ -338,4 +342,6 @@ function open_in_editor() {
 	subscriber.subscribe("open_in_editor");
 }
 
-open_in_editor();
+if (WATCH_MODE) {
+	open_in_editor();
+}
