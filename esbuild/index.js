@@ -3,6 +3,7 @@ let fs = require("fs");
 let glob = require("fast-glob");
 let esbuild = require("esbuild");
 let vue = require("esbuild-vue");
+let yargs = require("yargs");
 let cliui = require("cliui")();
 let chalk = require("chalk");
 let html_plugin = require("./frappe-html");
@@ -16,11 +17,35 @@ let {
 	sites_path,
 	get_app_path,
 	get_public_path,
-	get_cli_arg
+	log,
+	log_warn,
+	log_error,
 } = require("./utils");
 
+let argv = yargs
+	.usage("Usage: node esbuild [options]")
+	.option("apps", {
+		type: "string",
+		description: "Run build for specific apps"
+	})
+	.option("watch", {
+		type: "boolean",
+		description: "Run in watch mode and rebuild on file changes"
+	})
+	.option("production", {
+		type: "boolean",
+		description: "Run build in production mode"
+	})
+	.example(
+		"node esbuild --apps frappe,erpnext",
+		"Run build only for frappe and erpnext"
+	)
+	.version(false).argv;
+
+const APPS = !argv.apps ? app_list : argv.apps.split(",");
+const WATCH_MODE = Boolean(argv.watch);
+const PRODUCTION = Boolean(argv.production);
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
-const WATCH_MODE = get_cli_arg("watch");
 const NODE_PATHS = [].concat(
 	// node_modules of apps directly importable
 	app_list
@@ -32,35 +57,30 @@ const NODE_PATHS = [].concat(
 		.filter(fs.existsSync)
 );
 
-(async function() {
-	let apps = app_list;
-	let apps_arg = get_cli_arg("apps");
-	if (apps_arg) {
-		apps = apps_arg.split(",");
-	}
+execute();
 
+async function execute() {
 	console.time(TOTAL_BUILD_TIME);
-	await clean_dist_folders(apps);
+	await clean_dist_folders(APPS);
 
 	let result;
 	try {
-		result = await build_assets_for_apps(apps);
+		result = await build_assets_for_apps(APPS);
 	} catch (e) {
-		let error = chalk.white.bgRed(" ERROR ");
-		console.error(`${error} There were some problems during build`);
-		console.log();
-		console.log(chalk.dim(e.stack));
+		log_error("There were some problems during build");
+		log();
+		log(chalk.dim(e.stack));
 	}
 
 	if (!WATCH_MODE) {
 		log_built_assets(result.metafile);
 		console.timeEnd(TOTAL_BUILD_TIME);
-		console.log();
-		await write_meta_file(result.metafile);
+		log();
 	} else {
-		console.log("Watching for changes...");
+		log("Watching for changes...");
 	}
-})();
+	await write_meta_file(result.metafile);
+}
 
 function build_assets_for_apps(apps) {
 	let { include_patterns, ignore_patterns } = get_files_to_build(apps);
@@ -85,7 +105,7 @@ function build_assets_for_apps(apps) {
 			output_name = path.join(app, "dist", output_name);
 
 			if (Object.keys(file_map).includes(output_name)) {
-				console.warn(
+				log_warn(
 					`Duplicate output file ${output_name} generated from ${file}`
 				);
 			}
@@ -133,10 +153,12 @@ function build_files({ files, outdir }) {
 		sourcemap: true,
 		bundle: true,
 		metafile: true,
-		// minify: true,
+		minify: PRODUCTION,
 		nodePaths: NODE_PATHS,
 		define: {
-			"process.env.NODE_ENV": "'development'"
+			"process.env.NODE_ENV": JSON.stringify(
+				PRODUCTION ? "production" : "development"
+			)
 		},
 		plugins: [
 			html_plugin,

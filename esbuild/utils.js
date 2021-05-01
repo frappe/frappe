@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const chalk = require("chalk");
 
 const frappe_path = path.resolve(__dirname, "..");
 const bench_path = path.resolve(frappe_path, "..", "..");
@@ -95,6 +96,20 @@ function get_cli_arg(name) {
 	return value;
 }
 
+function log_error(message, badge = "ERROR") {
+	badge = chalk.white.bgRed(` ${badge} `);
+	console.error(`${badge} ${message}`);
+}
+
+function log_warn(message, badge = "WARN") {
+	badge = chalk.black.bgYellowBright(` ${badge} `);
+	console.warn(`${badge} ${message}`);
+}
+
+function log(...args) {
+	console.log(...args);
+}
+
 module.exports = {
 	app_list,
 	bench_path,
@@ -108,5 +123,8 @@ module.exports = {
 	get_app_path,
 	delete_file,
 	run_serially,
-	get_cli_arg
+	get_cli_arg,
+	log,
+	log_warn,
+	log_error
 };
