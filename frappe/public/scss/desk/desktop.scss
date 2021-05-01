@@ -754,7 +754,28 @@ body {
 			.layout-side-section, .layout-main-section-wrapper {
 				height: 100%;
 				overflow-y: auto;
+				padding-right: 25px;
+				scrollbar-color: var(--gray-200) transparent;
+				[data-theme="dark"] & {
+					scrollbar-color: var(--gray-800) transparent;
+				}
+
+				&::-webkit-scrollbar-track {
+					background: transparent;
+				}
+
+				&::-webkit-scrollbar-thumb {
+					background: var(--gray-200);
+					[data-theme="dark"] & {
+						background: var(--gray-800);
+					}
+				}
 			}
+
+			.layout-side-section {
+				margin-right: 20px;
+			}
+
 			.desk-sidebar {
 				margin-bottom: var(--margin-2xl);
 			}

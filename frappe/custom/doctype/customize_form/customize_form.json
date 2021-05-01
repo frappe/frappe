@@ -33,6 +33,8 @@
   "show_preview_popup",
   "image_view",
   "email_settings_section",
+  "default_email_template",
+  "column_break_26",
   "email_append_to",
   "sender_field",
   "subject_field",
@@ -265,6 +267,16 @@
    "options": "DocType Action"
   },
   {
+   "fieldname": "default_email_template",
+   "fieldtype": "Link",
+   "label": "Default Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
+  },
+  {
    "collapsible": 1,
    "fieldname": "naming_section",
    "fieldtype": "Section Break",
@@ -275,6 +287,16 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
+  },
+  {
+   "fieldname": "default_email_template",
+   "fieldtype": "Link",
+   "label": "Default Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -283,7 +305,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-02-16 15:22:11.108256",
+ "modified": "2021-03-22 12:27:15.462727",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
