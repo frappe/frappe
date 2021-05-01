@@ -213,7 +213,7 @@ def validate_url(txt, throw=False):
 =======
 def validate_url(txt, throw=False, valid_schemes=None):
 	"""
-		Tests wether the `txt` is a valid URL
+		Checks whether `txt` has a valid URL string
 
 		Parameters:
 			throw (`bool`): throws a validationError if URL is not valid

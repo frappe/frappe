@@ -154,7 +154,7 @@ class TestValidationUtils(unittest.TestCase):
 		self.assertRaises(
 			frappe.ValidationError, 
 			validate_url, 
-			'bitcoin://joker.edu', 
+			'gopher://frappe.io', 
 			valid_schemes='https',
 			throw=True
 		)

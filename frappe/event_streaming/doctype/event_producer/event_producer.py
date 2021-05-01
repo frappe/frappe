@@ -55,7 +55,7 @@ class EventProducer(Document):
 			self.reload()
 
 	def check_url(self):
-		valid_url_schemes = ("http", "https", "ftp", "ftps")
+		valid_url_schemes = ("http", "https")
 		frappe.utils.validate_url(self.producer_url, throw=True, valid_schemes=valid_url_schemes)
 
 		# remove '/' from the end of the url like http://test_site.com/
