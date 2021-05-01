@@ -1,9 +1,9 @@
 {
   "name": "frappe-framework",
   "scripts": {
-    "build": "node rollup/build.js",
-    "production": "FRAPPE_ENV=production node rollup/build.js",
-    "watch": "node rollup/watch.js",
+    "build": "node esbuild",
+    "production": "node esbuild --production",
+    "watch": "node esbuild --watch",
     "snyk-protect": "snyk protect"
   },
   "repository": {
@@ -64,6 +64,7 @@
     "fast-glob": "^3.2.5",
     "graphlib": "^2.1.8",
     "http-proxy": "^1.18.1",
+    "launch-editor": "^2.2.1",
     "less": "^3.11.1",
     "md5": "^2.3.0",
     "rollup": "^1.2.2",

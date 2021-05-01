@@ -38,9 +38,9 @@ function get_conf() {
 	return conf;
 }
 
-function get_redis_subscriber() {
+function get_redis_subscriber(kind="redis_socketio") {
 	const conf = get_conf();
-	const host = conf.redis_socketio || conf.redis_async_broker_port;
+	const host = conf[kind] || conf.redis_async_broker_port;
 	return redis.createClient(host);
 }
 

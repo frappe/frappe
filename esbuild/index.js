@@ -20,7 +20,9 @@ let {
 	log,
 	log_warn,
 	log_error,
+	bench_path
 } = require("./utils");
+let { get_redis_subscriber } = require("../node_utils");
 
 let argv = yargs
 	.usage("Usage: node esbuild [options]")
@@ -173,11 +175,19 @@ function build_files({ files, outdir }) {
 		watch: WATCH_MODE
 			? {
 					onRebuild(error, result) {
-						if (error) console.error("watch build failed:", error);
-						else {
+						if (error) {
+							log_error(
+								"There was an error during rebuilding changes."
+							);
+							log();
+							log(chalk.dim(error.stack));
+							notify_redis({ error });
+						} else {
 							console.log(
 								`${new Date().toLocaleTimeString()}: Compiled changes...`
 							);
+							write_meta_file(result.metafile);
+							notify_redis({ success: true });
 						}
 					}
 			  }
@@ -268,8 +278,64 @@ function write_meta_file(metafile) {
 		}
 	}
 
-	return fs.promises.writeFile(
-		path.resolve(assets_path, "frappe", "dist", "assets.json"),
-		JSON.stringify(out, null, 4)
+	let assets_json = JSON.stringify(out, null, 4);
+	return fs.promises
+		.writeFile(
+			path.resolve(assets_path, "frappe", "dist", "assets.json"),
+			assets_json
+		)
+		.then(() => {
+			let client = get_redis_subscriber("redis_cache");
+			// update assets_json cache in redis, so that it can be read directly by python
+			return client.set("assets_json", assets_json);
+		});
+}
+
+async function notify_redis({ error, success }) {
+	let subscriber = get_redis_subscriber("redis_socketio");
+	// notify redis which in turns tells socketio to publish this to browser
+
+	let payload = null;
+
+	if (error) {
+		let formatted = await esbuild.formatMessages(error.errors, {
+			kind: "error",
+			terminalWidth: 100
+		});
+		let stack = error.stack.replace(new RegExp(bench_path, "g"), "");
+		payload = {
+			error,
+			formatted,
+			stack
+		};
+	}
+	if (success) {
+		payload = {
+			success: true
+		};
+	}
+
+	subscriber.publish(
+		"events",
+		JSON.stringify({
+			event: "build_event",
+			message: payload
+		})
 	);
 }
+
+function open_in_editor() {
+	let subscriber = get_redis_subscriber("redis_socketio");
+	subscriber.on("message", (event, file) => {
+		if (event === "open_in_editor") {
+			file = JSON.parse(file);
+			let file_path = path.resolve(file.file);
+			console.log("Opening file in editor:", file_path);
+			let launch = require("launch-editor");
+			launch(`${file_path}:${file.line}:${file.column}`);
+		}
+	});
+	subscriber.subscribe("open_in_editor");
+}
+
+open_in_editor();

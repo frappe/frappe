@@ -117,7 +117,7 @@ frappe.Application = class Application {
 		this.setup_user_group_listeners();
 
 		// listen to build errors
-		this.setup_build_error_listener();
+		this.setup_build_events();
 
 		if (frappe.sys_defaults.email_user_password) {
 			var email_list =  frappe.sys_defaults.email_user_password.split(',');
@@ -585,11 +585,9 @@ frappe.Application = class Application {
 		}
 	}
 
-	setup_build_error_listener() {
+	setup_build_events() {
 		if (frappe.boot.developer_mode) {
-			frappe.realtime.on('build_error', (data) => {
-				console.log(data);
-			});
+			frappe.require("build_events.bundle.js");
 		}
 	}
 

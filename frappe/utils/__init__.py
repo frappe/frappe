@@ -762,18 +762,15 @@ def get_build_version():
 
 def get_assets_json():
 	if not hasattr(frappe.local, "assets_json"):
-
-		assets_json = frappe.cache().get_value("assets_json", shared=True)
+		cache = frappe.cache()
+		# using .get instead of .get_value to avoid pickle.loads
+		assets_json = cache.get("assets_json")
 		if not assets_json:
-			import json
-			assets_json = json.loads(
-				frappe.read_file("assets/frappe/dist/assets.json")
-			)
-			frappe.cache().set_value("assets_json", assets_json, shared=True)
+			assets_json = frappe.read_file("assets/frappe/dist/assets.json")
+			cache.set_value("assets_json", assets_json, shared=True)
+		frappe.local.assets_json = frappe.safe_decode(assets_json)
 
-		frappe.local.assets_json = assets_json
-
-	return frappe.local.assets_json
+	return frappe.parse_json(frappe.local.assets_json)
 
 
 def get_bench_relative_path(file_path):
