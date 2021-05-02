@@ -15,6 +15,8 @@ import cProfile, pstats
 from six import StringIO
 from six.moves import reload_module
 from frappe.model.naming import revert_series_if_last
+import click
+import requests
 
 unittest_runner = unittest.TextTestRunner
 SLOW_TEST_THRESHOLD = 2
@@ -422,3 +424,193 @@ def get_test_record_log():
 			frappe.flags.test_record_log = []
 
 	return frappe.flags.test_record_log
+
+class Writeln(object):
+	def __init__(self,stream):
+		self.stream = stream
+
+	def __getattr__(self, attr):
+		if attr in ('stream', '__getstate__'):
+			raise AttributeError(attr)
+		return getattr(self.stream,attr)
+
+	def writeln(self, arg=None):
+		if arg:
+			self.write(arg)
+		self.write('\n')
+
+class PrettyPrintResult(unittest.TextTestResult):
+	def startTest(self, test):
+		super(unittest.TextTestResult, self).startTest(test)
+		click.echo('\n')
+
+	def addSuccess(self, test):
+		super(unittest.TextTestResult, self).addSuccess(test)
+		click.echo("%s %s" % (click.style(' PASS ', bg='green', fg='black'), self.getDescription(test)))
+
+	def addError(self, test, err):
+		super(unittest.TextTestResult, self).addError(test, err)
+		click.echo("%s %s" % (click.style(' ERROR ', bg='red', fg='white'), self.getDescription(test)))
+
+	def addFailure(self, test, err):
+		super(unittest.TextTestResult, self).addFailure(test, err)
+		click.echo("%s %s" % (click.style(' FAIL ', bg='red', fg='white'), self.getDescription(test)))
+		click.echo('\n')
+
+	def printErrors(self):
+		if self.dots or self.showAll:
+			self.stream.writeln()
+		self.printErrorList(' ERROR ', self.errors, 'red')
+		self.printErrorList(' FAIL ', self.failures, 'red')
+
+	def printErrorList(self, flavour, errors, color):
+		for test, err in errors:
+			click.echo(self.separator1)
+			click.echo("%s %s" % (click.style(flavour, bg=color), self.getDescription(test)))
+			click.echo(self.separator2)
+			click.echo("%s" % err)
+
+	def __repr__(self):
+		return f"run={self.testsRun} errors={len(self.errors)} failures={len(self.failures)}"
+
+def get_all_tests():
+	test_file_list = []
+	for path, folders, files in os.walk(frappe.get_pymodule_path('frappe')):
+		for dontwalk in ('locals', '.git', 'public', '__pycache__'):
+			if dontwalk in folders:
+				folders.remove(dontwalk)
+
+		# for predictability
+		folders.sort()
+		files.sort()
+
+		# print path
+		for filename in files:
+			if filename.startswith("test_") and filename.endswith(".py")\
+				and filename != 'test_runner.py':
+				test_file_list.append(os.path.join(path, filename))
+	return test_file_list
+
+class ParallelTestRunner():
+	def __init__(self, app, site, build_id, instance_id=None):
+		self.app = app
+		self.site = site
+		self.orchestrator_url = 'http://localhost:3000'
+		self.build_id = build_id or '12321'
+		self.setup_test_site()
+		self.instance_id = instance_id or frappe.generate_hash(length=10)
+		frappe.flags.in_test = True
+		self.start_test()
+
+	def setup_test_site(self):
+		frappe.init(site=self.site)
+		if not frappe.db:
+			frappe.connect()
+
+		frappe.clear_cache()
+		frappe.utils.scheduler.disable_scheduler()
+		set_test_email_config()
+
+	def run_before_test_hook(self):
+		for fn in frappe.get_hooks("before_tests", app_name=self.app):
+			frappe.get_attr(fn)()
+
+	def start_test(self):
+		self.register_instance()
+		self.test_result = PrettyPrintResult(stream=Writeln(sys.stderr), descriptions=True, verbosity=2)
+		self.test_status = 'ongoing'
+
+		while self.test_status == 'ongoing':
+			self.run_tests_for_file(self.get_next_test())
+
+		self.print_result()
+
+	def register_instance(self):
+		test_spec_list = get_all_tests()
+		self.call_orchestrator('init-test', data={
+			'test_spec_list': test_spec_list
+		})
+
+	def get_next_test(self):
+		response_data = self.call_orchestrator('get-next-test')
+		self.test_status = response_data.get('status')
+		return response_data.get('next_test')
+
+	def run_tests_for_file(self, file_path):
+		if not file_path:
+			return
+
+		app = self.app
+		filename = file_path.split('/')[-1]
+		path = file_path.rsplit('/', 1)[0]
+
+		if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
+			# in /doctype/doctype/boilerplate/
+			return
+
+		app_path = frappe.get_pymodule_path(app)
+		relative_path = os.path.relpath(path, app_path)
+		if relative_path == '.':
+			module_name = app
+		else:
+			module_name = '{app}.{relative_path}.{module_name}'.format(app=app,
+				relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
+
+		module = importlib.import_module(module_name)
+		if hasattr(module, "test_dependencies"):
+			for doctype in module.test_dependencies:
+				make_test_records(doctype)
+
+		test_suite = unittest.TestSuite()
+		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
+		test_suite.addTest(module_test_cases)
+		test_suite(self.test_result)
+
+	def print_result(self):
+		self.test_result.printErrors()
+		click.echo(self.test_result)
+
+	def call_orchestrator(self, endpoint, data={}):
+		# add repo token header
+		# build id in header
+		res = requests.get(f'{self.orchestrator_url}/{endpoint}', data=data, headers={
+			'CI-BUILD-ID': self.build_id,
+			'CI-INSTANCE-ID': self.instance_id,
+			'REPO-TOKEN': '2948288382838DE'
+		})
+		res.raise_for_status()
+		return res.json() if 'application/json' in res.headers.get('content-type') else {}
+
+	# def setup_coverage(self):
+	# 	if self.with_coverage:
+	# 		from coverage import Coverage
+	# 		from frappe.utils import get_bench_path
+
+	# 		# Generate coverage report only for app that is being tested
+	# 		source_path = os.path.join(get_bench_path(), 'apps', self.app)
+	# 		omit=[
+	# 			'*.html',
+	# 			'*.js',
+	# 			'*.xml',
+	# 			'*.css',
+	# 			'*.less',
+	# 			'*.scss',
+	# 			'*.vue',
+	# 			'*/doctype/*/*_dashboard.py',
+	# 			'*/patches/*'
+	# 		]
+
+	# 		if self.app == 'frappe':
+	# 			omit.append('*/commands/*')
+
+	# 		self.coverage = Coverage(source=[source_path], omit=omit, data_file='coverage_report')
+	# 		self.cov.start()
+
+	# def submit_coverage(self):
+	# 	if self.with_coverage:
+	# 		self.cov.stop()
+
+	# 	if self.is_master:
+	# 		pass
+
+# [] coverage
