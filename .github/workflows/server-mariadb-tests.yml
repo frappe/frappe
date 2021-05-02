@@ -1,4 +1,4 @@
-name: Server Mariadb tests
+name: Server
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ jobs:
       matrix:
        containers: [1, 2]
 
-    name: Server Mariadb
+    name: MariaDB Tests
 
     services:
       mysql:
@@ -94,7 +94,7 @@ jobs:
         uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --with-coverage --ci-build-id $GITHUB_RUN_NUMBER
+        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --with-coverage --ci-build-id $GITHUB_RUN_ID
 
       # - name: Coverage - Pull Request
       #   if: github.event_name == 'pull_request'
