@@ -554,12 +554,13 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 @click.command('run-parallel-tests')
 @click.option('--app', help="For App", default='frappe')
-@click.option('--build-id', help="For App")
+@click.option('--ci-build-id', help="CI Build ID")
+@click.option('--with-coverage', is_flag=True, help="Build coverage file")
 @pass_context
-def run_parallel_tests(context, app, build_id):
+def run_parallel_tests(context, app, ci_build_id, with_coverage):
 	from frappe.test_runner import ParallelTestRunner
 	site = get_site(context)
-	ParallelTestRunner(app, site=site, build_id=build_id)
+	ParallelTestRunner(app, site=site, ci_build_id=ci_build_id, with_coverage=with_coverage)
 
 @click.command('run-ui-tests')
 @click.argument('app')
