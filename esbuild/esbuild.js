@@ -278,21 +278,28 @@ function write_meta_file(metafile) {
 		}
 	}
 
-	let assets_json = JSON.stringify(out, null, 4);
 	return fs.promises
 		.writeFile(
 			path.resolve(assets_path, "frappe", "dist", "assets.json"),
-			assets_json
+			JSON.stringify(out, null, 4)
 		)
 		.then(() => {
 			let client = get_redis_subscriber("redis_cache");
 			// update assets_json cache in redis, so that it can be read directly by python
-			client.set("assets_json", assets_json, (err) => {
+			client.get("assets_json", (err, data) => {
+				if (err) return;
+				// get existing json
+				let assets_json = JSON.parse(data || "{}");
+				// overwrite new values
+				assets_json = Object.assign({}, assets_json, out);
+
+				client.set("assets_json", JSON.stringify(assets_json), err => {
 				if (err) {
 					log_warn("Could not update assets_json in redis_cache");
 				}
 				client.unref();
 			});
+		});
 		});
 }
 
