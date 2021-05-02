@@ -203,44 +203,36 @@ def setup():
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
 
-def get_node_pacman():
-	exec_ = find_executable("yarn")
-	if exec_:
-		return exec_
-	raise ValueError("Yarn not found")
-
-
-def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False, skip_frappe=False):
+def bundle(mode, apps=None, make_copy=False, restore=False, verbose=False, skip_frappe=False):
 	"""concat / minify js files"""
 	setup()
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
-	pacman = get_node_pacman()
-	mode = "build" if no_compress else "production"
-	command = "{pacman} run {mode}".format(pacman=pacman, mode=mode)
+	mode = "production" if mode == "production" else "build"
+	command = "yarn run {mode}".format(mode=mode)
 
-	if app:
-		command += " --app {app}".format(app=app)
+	if apps:
+		command += " --apps {apps}".format(apps=apps)
 
 	if skip_frappe:
 		command += " --skip_frappe"
 
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
+	frappe_app_path = frappe.get_app_path("frappe", "..")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
-def watch(no_compress):
+def watch(apps=None):
 	"""watch and rebuild if necessary"""
 	setup()
 
-	pacman = get_node_pacman()
+	command = "yarn run watch"
+	if apps:
+		command += " --apps {apps}".format(apps=apps)
 
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
-	frappe.commands.popen("{pacman} run watch".format(pacman=pacman),
-		cwd=frappe_app_path, env=get_node_env())
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
 def check_yarn():

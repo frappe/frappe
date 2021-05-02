@@ -30,6 +30,10 @@ let argv = yargs
 		type: "string",
 		description: "Run build for specific apps"
 	})
+	.option("skip_frappe", {
+		type: "boolean",
+		description: "Skip building frappe assets"
+	})
 	.option("watch", {
 		type: "boolean",
 		description: "Run in watch mode and rebuild on file changes"
@@ -44,7 +48,9 @@ let argv = yargs
 	)
 	.version(false).argv;
 
-const APPS = !argv.apps ? app_list : argv.apps.split(",");
+const APPS = (!argv.apps ? app_list : argv.apps.split(",")).filter(
+	app => !(argv.skip_frappe && app == "frappe")
+);
 const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
@@ -294,12 +300,12 @@ function write_meta_file(metafile) {
 				assets_json = Object.assign({}, assets_json, out);
 
 				client.set("assets_json", JSON.stringify(assets_json), err => {
-				if (err) {
-					log_warn("Could not update assets_json in redis_cache");
-				}
-				client.unref();
+					if (err) {
+						log_warn("Could not update assets_json in redis_cache");
+					}
+					client.unref();
+				});
 			});
-		});
 		});
 }
 
