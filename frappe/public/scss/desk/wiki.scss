@@ -1,0 +1,154 @@
+[data-page-route="wiki"] {
+	@media (min-width: map-get($grid-breakpoints, "lg")) {
+		.layout-main {
+			height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
+			.layout-side-section, .layout-main-section-wrapper {
+				height: 100%;
+				overflow-y: auto;
+			}
+			.desk-sidebar {
+				margin-bottom: var(--margin-2xl);
+			}
+		}
+	}
+}
+
+.ce-header {
+	padding: 0 !important;
+	margin-bottom: 0 !important;
+}
+
+.codex-editor {
+	min-height: 630px;
+
+	svg {
+		fill: none;
+	}
+
+	.ce-toolbar {
+		svg {
+			fill: currentColor;
+		}
+
+		.icon {
+			stroke: none;
+			width: fit-content;
+		}
+	}
+
+	.ce-inline-tool, .ce-inline-toolbar__dropdown {
+		.icon {
+			fill: currentColor;
+		}
+	}
+	@media (min-width: 1199px) {
+		.ce-toolbar__content {
+			max-width: 930px;
+		}
+	}
+	@media (max-width: 995px) {
+		.ce-toolbar__content {
+			max-width: 760px;
+		}
+	}
+
+	@media (max-width: 1199px) {
+		.ce-block.col-4 {
+			flex: 0 0 50%;
+			max-width: 50%;
+		}
+	}
+	
+	@media (max-width: 750px) {
+		.ce-block.col-4 {
+			flex: 0 0 100%;
+			max-width: 100%;
+		}
+	}
+	@media (max-width: 750px) {
+		.ce-block.col-6 {
+			flex: 0 0 100%;
+			max-width: 100%;
+		}
+	}
+	
+	div[card_name] {
+		height: inherit;
+	}
+	
+}
+
+.codex-editor__redactor{
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+	margin: 0px -7px;
+}
+.ce-block{
+	width: 100%;
+	padding-left: 0;
+	padding-right: 0;
+}
+.cdx-settings-input{
+	border: 1px solid rgba(201,201,204,.48);
+	-webkit-box-shadow: inset 0 1px 2px 0 rgba(35,44,72,.06);
+	box-shadow: inset 0 1px 2px 0 rgba(35,44,72,.06);
+	border-radius: 3px;padding: 3px 8px;outline: none;
+	width: 100%;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+.cdx-small{
+	font-size: .6rem
+}
+.ce-block__content {
+	max-width: 100%;
+	height: 100%;
+	padding: 7px;
+
+	&> div {
+		height: 100%;
+	}
+}
+
+.cdx-settings-button.disabled{
+	pointer-events: none;
+	opacity: .5
+}
+.cdx-settings-sidebar{
+	position: absolute;
+	right: 100%;
+	top:0;
+	background: #fff;
+	width: 108px;
+	height: 145px;
+	box-shadow: 0 3px 15px -3px rgba(13,20,33,.13);
+	border-radius: 0 4px 4px 0;z-index: 0;
+}
+
+
+[data-page-route="wiki"] {
+
+	.standard-sidebar-item {
+		justify-content: space-between;
+	}
+
+	.sidebar-child-item-container {
+		margin-left: 10px;
+
+		.standard-sidebar-item {
+			justify-content: start;
+		}
+	}
+
+	.sidebar-item-label {
+		flex: 1;
+	}
+
+	.item-anchor {
+		display: flex;
+		overflow: hidden;
+		flex: 1;
+	}
+	
+}

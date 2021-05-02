@@ -119,6 +119,7 @@ frappe.router = {
 
 	convert_to_standard_route(route) {
 		// /app/settings = ["Workspaces", "Settings"]
+		// /app/wiki/accounting = ["wiki", "Accounting"]
 		// /app/user = ["List", "User"]
 		// /app/user/view/report = ["List", "User", "Report"]
 		// /app/user/view/tree = ["Tree", "User"]
@@ -129,6 +130,9 @@ frappe.router = {
 		if (frappe.workspaces[route[0]]) {
 			// workspace
 			route = ['Workspaces', frappe.workspaces[route[0]].name];
+		} else if (frappe.wiki_pages && frappe.wiki_pages[route[1]]) {
+			// wiki-pages
+			route = ['wiki', frappe.wiki_pages[route[1]].name];
 		} else if (this.routes[route[0]]) {
 			// route
 			route = this.set_doctype_route(route);

@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "autoname": "field:title",
+ "creation": "2021-05-02 14:44:26.490935",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "icon",
+  "parent_page",
+  "column_break_4",
+  "sequence_id",
+  "private",
+  "section_break_7",
+  "content"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "parent_page",
+   "fieldtype": "Data",
+   "label": "Parent Page"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sequence_id",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Sequence Id"
+  },
+  {
+   "default": "0",
+   "fieldname": "private",
+   "fieldtype": "Check",
+   "label": "Private"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Long Text",
+   "label": "Content"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-05-02 16:06:35.033197",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Internal Wiki Page",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

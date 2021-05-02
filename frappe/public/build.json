@@ -178,6 +178,7 @@
 		"public/js/frappe/views/breadcrumbs.js",
 		"public/js/frappe/views/factory.js",
 		"public/js/frappe/views/pageview.js",
+		"public/js/frappe/views/wiki.js",
 
 		"public/js/frappe/ui/toolbar/awesome_bar.js",
 		"public/js/frappe/ui/toolbar/energy_points_notifications.js",
@@ -195,6 +196,8 @@
 		"public/js/frappe/views/workspace/workspace.js",
 
 		"public/js/frappe/widgets/widget_group.js",
+
+		"public/js/frappe/wiki_blocks/blocks.js",
 
 		"public/js/frappe/ui/sort_selector.html",
 		"public/js/frappe/ui/sort_selector.js",

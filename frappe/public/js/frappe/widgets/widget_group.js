@@ -186,4 +186,47 @@ export default class WidgetGroup {
 	}
 }
 
+export class SingleWidgetGroup {
+	constructor(opts) {
+		Object.assign(this, opts);
+		this.widgets_list = [];
+		this.widgets_dict = {};
+		this.widget_order = [];
+		this.make();
+	}
+
+	make() {
+		this.add_widget(this.widgets);
+	}
+
+	add_widget(widget) {
+		let widget_object = frappe.widget.make_widget({
+			...widget,
+			widget_type: this.type,
+			container: this.container,
+			height: this.height || null,
+			options: {
+				...this.options,
+				on_delete: (name) => this.on_delete(name),
+			},
+		});
+
+		this.widgets_list.push(widget_object);
+		this.widgets_dict[widget.name] = widget_object;
+
+		return widget_object;
+	}
+
+	customize() {
+		// if (!this.hidden) this.widget_area.show();
+		this.widgets_list.forEach((wid) => {
+			wid.customize(this.options);
+		});
+
+		// this.options.allow_create && this.setup_new_widget();
+		// this.options.allow_sorting && this.setup_sortable();
+	}
+}
+
 frappe.widget.WidgetGroup = WidgetGroup;
+frappe.widget.SingleWidgetGroup = SingleWidgetGroup;
