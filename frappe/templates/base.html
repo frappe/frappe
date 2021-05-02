@@ -56,7 +56,7 @@
 		}
 		window.dev_server = {{ dev_server }};
 		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
-		window.show_language_picker = {{ show_language_picker }};
+		window.show_language_picker = {{ show_language_picker or 'false' }};
 		window.is_chat_enabled = {{ chat_enable }};
 	</script>
 </head>
