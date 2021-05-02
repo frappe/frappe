@@ -492,13 +492,14 @@ def get_all_tests():
 	return test_file_list
 
 class ParallelTestRunner():
-	def __init__(self, app, site, build_id, instance_id=None):
+	def __init__(self, app, site, ci_build_id, ci_instance_id=None, with_coverage=False):
 		self.app = app
 		self.site = site
-		self.orchestrator_url = 'http://localhost:3000'
-		self.build_id = build_id or '12321'
+		self.orchestrator_url = 'https://8b52f89a8c13.ngrok.io'
+		self.ci_build_id = ci_build_id
+		self.with_coverage = with_coverage
 		self.setup_test_site()
-		self.instance_id = instance_id or frappe.generate_hash(length=10)
+		self.ci_instance_id = ci_instance_id or frappe.generate_hash(length=10)
 		frappe.flags.in_test = True
 		self.start_test()
 
@@ -520,16 +521,20 @@ class ParallelTestRunner():
 		self.test_result = PrettyPrintResult(stream=Writeln(sys.stderr), descriptions=True, verbosity=2)
 		self.test_status = 'ongoing'
 
+		self.setup_coverage()
 		while self.test_status == 'ongoing':
 			self.run_tests_for_file(self.get_next_test())
 
 		self.print_result()
+		self.call_orchestrator('test-completed')
+		self.submit_coverage()
 
 	def register_instance(self):
 		test_spec_list = get_all_tests()
-		self.call_orchestrator('init-test', data={
+		response_data = self.call_orchestrator('init-test', data={
 			'test_spec_list': test_spec_list
 		})
+		self.is_master = response_data.get('is_master')
 
 	def get_next_test(self):
 		response_data = self.call_orchestrator('get-next-test')
@@ -570,47 +575,88 @@ class ParallelTestRunner():
 		self.test_result.printErrors()
 		click.echo(self.test_result)
 
-	def call_orchestrator(self, endpoint, data={}):
+	def call_orchestrator(self, endpoint, data={}, files={}):
 		# add repo token header
 		# build id in header
-		res = requests.get(f'{self.orchestrator_url}/{endpoint}', data=data, headers={
-			'CI-BUILD-ID': self.build_id,
-			'CI-INSTANCE-ID': self.instance_id,
+		headers = {
+			'CI-BUILD-ID': self.ci_build_id,
+			'CI-INSTANCE-ID': self.ci_instance_id,
 			'REPO-TOKEN': '2948288382838DE'
-		})
+		}
+		url = f'{self.orchestrator_url}/{endpoint}'
+
+		if files:
+			res = requests.post(url, headers=headers, files=files)
+		else:
+			res = requests.get(url, data=data, headers=headers)
+		print(self.ci_build_id, self.ci_instance_id, endpoint)
 		res.raise_for_status()
-		return res.json() if 'application/json' in res.headers.get('content-type') else {}
+		response_data = {}
+		if 'application/json' in res.headers.get('content-type'):
+			response_data = res.json()
+		elif 'application/zip' in res.headers.get('content-type'):
+			response_data = res.content
 
-	# def setup_coverage(self):
-	# 	if self.with_coverage:
-	# 		from coverage import Coverage
-	# 		from frappe.utils import get_bench_path
+		return response_data
 
-	# 		# Generate coverage report only for app that is being tested
-	# 		source_path = os.path.join(get_bench_path(), 'apps', self.app)
-	# 		omit=[
-	# 			'*.html',
-	# 			'*.js',
-	# 			'*.xml',
-	# 			'*.css',
-	# 			'*.less',
-	# 			'*.scss',
-	# 			'*.vue',
-	# 			'*/doctype/*/*_dashboard.py',
-	# 			'*/patches/*'
-	# 		]
+	def setup_coverage(self):
+		if self.with_coverage:
+			from coverage import Coverage
+			from frappe.utils import get_bench_path
 
-	# 		if self.app == 'frappe':
-	# 			omit.append('*/commands/*')
+			# Generate coverage report only for app that is being tested
+			source_path = os.path.join(get_bench_path(), 'apps', self.app)
+			omit=[
+				'*.html',
+				'*.js',
+				'*.xml',
+				'*.css',
+				'*.less',
+				'*.scss',
+				'*.vue',
+				'*/doctype/*/*_dashboard.py',
+				'*/patches/*'
+			]
 
-	# 		self.coverage = Coverage(source=[source_path], omit=omit, data_file='coverage_report')
-	# 		self.cov.start()
+			if self.app == 'frappe':
+				omit.append('*/commands/*')
 
-	# def submit_coverage(self):
-	# 	if self.with_coverage:
-	# 		self.cov.stop()
+			self.coverage = Coverage(
+				source=[source_path],
+				omit=omit,
+				data_file='coverage_data',
+				data_suffix=self.ci_instance_id
+			)
+			self.coverage.start()
 
-	# 	if self.is_master:
-	# 		pass
+	def submit_coverage(self):
+		if self.with_coverage:
+			self.coverage.stop()
+			self.coverage.save()
 
-# [] coverage
+		if self.is_master:
+			self.build_coverage_file()
+		else:
+			self.upload_coverage_file()
+
+
+	def upload_coverage_file(self):
+		files = {'upload_file': open(f'coverage_data.{self.ci_instance_id}','rb')}
+		self.call_orchestrator('upload-coverage-file', files=files)
+
+
+	def build_coverage_file(self):
+		import time
+		import zipfile
+		import io
+		click.echo()
+		while self.call_orchestrator('test-status')['test_status'] == 'ongoing':
+			click.echo('Waiting for tests to complete...')
+			time.sleep(5)
+
+		res = self.call_orchestrator('download-coverage-files')
+		z = zipfile.ZipFile(io.BytesIO(res))
+		z.extractall("./coverage_files")
+		file_list = os.listdir('./coverage_files')
+
+		self.coverage.combine(data_paths=file_list)
