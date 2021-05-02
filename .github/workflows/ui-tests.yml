@@ -1,4 +1,4 @@
-name: UI tests
+name: UI
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ jobs:
       matrix:
        containers: [1, 2]
 
-    name: UI Mariadb
+    name: Mariadb Tests
 
     services:
       mysql:
@@ -103,4 +103,4 @@ jobs:
         run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
 
       - name: Run Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_NUMBER
+        run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID
