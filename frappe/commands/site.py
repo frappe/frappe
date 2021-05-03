@@ -256,7 +256,7 @@ def list_apps(context, format):
 	if format == "json":
 		import json
 
-		print(json.dumps(summary_dict))
+		click.echo(json.dumps(summary_dict))
 
 @click.command('add-system-manager')
 @click.argument('email')
