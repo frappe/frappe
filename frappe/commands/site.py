@@ -254,9 +254,7 @@ def list_apps(context, format):
 		frappe.destroy()
 
 	if format == "json":
-		import json
-
-		click.echo(json.dumps(summary_dict))
+		click.echo(frappe.as_json(summary_dict))
 
 @click.command('add-system-manager')
 @click.argument('email')
