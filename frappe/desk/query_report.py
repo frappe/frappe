@@ -380,11 +380,14 @@ def handle_duration_fieldtype_values(result, columns):
 				row = result[entry]
 				if isinstance(row, dict):
 					val_in_seconds = row[col.fieldname]
+					if val_in_seconds:
+						duration_val = format_duration(val_in_seconds)
+						row[col.fieldname] = duration_val
 				else:
-					val_in_seconds = row[entry][i]
-				if val_in_seconds:
-					duration_val = format_duration(val_in_seconds)
-					result[entry][i] = duration_val
+					val_in_seconds = row[i]
+					if val_in_seconds:
+						duration_val = format_duration(val_in_seconds)
+						row[i] = duration_val
 
 	return result
 
