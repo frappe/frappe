@@ -247,6 +247,11 @@ def list_apps(context):
 
 		frappe.destroy()
 
+<<<<<<< HEAD
+=======
+	if format == "json":
+		click.echo(frappe.as_json(summary_dict))
+>>>>>>> 991965fe6b... fix: Format JSON outputs better
 
 @click.command('add-system-manager')
 @click.argument('email')

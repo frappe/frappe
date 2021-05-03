@@ -143,7 +143,7 @@ def show_config(context, format):
 		frappe.destroy()
 
 	if format == "json":
-		click.echo(sites_config)
+		click.echo(frappe.as_json(sites_config))
 
 
 @click.command('reset-perms')
