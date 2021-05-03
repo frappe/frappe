@@ -96,23 +96,25 @@ def destroy_all_sessions(context, reason=None):
 		raise SiteNotSpecifiedError
 
 @click.command('show-config')
+@click.option("--format", "-f", type=click.Choice(["text", "json"]), default="text")
 @pass_context
-def show_config(context):
-	"Print configuration file to STDOUT in text format"
+def show_config(context, format):
+	"Print configuration file to STDOUT in speified format"
 
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
+	sites_config = {}
+
 	from frappe.utils.commands import render_table
 
-	def print_config(config, prefix=None, site_config=None):
-		if not site_config:
-			site_config = []
+	def transform_config(config, prefix=None):
 		prefix = f"{prefix}." if prefix else ""
+		site_config = []
 
 		for conf, value in config.items():
 			if isinstance(value, dict):
-				site_config += print_config(value, prefix=f"{prefix}{conf}")
+				site_config += transform_config(value, prefix=f"{prefix}{conf}")
 			else:
 				log_value = json.dumps(value) if isinstance(value, list) else value
 				site_config += [[f"{prefix}{conf}", log_value]]
@@ -122,16 +124,26 @@ def show_config(context):
 	for site in context.sites:
 		frappe.init(site)
 
-		if len(context.sites) != 1:
-			click.secho(f"\nSite {site}", fg="yellow")
+		if len(context.sites) != 1 and format == "text":
+			if context.sites.index(site) != 0:
+				click.echo()
+			click.secho(f"Site {site}", fg="yellow")
 
 		sites_path = frappe.get_site_path()
 		configuration = frappe.get_site_config(sites_path=sites_path, site_path=site)
-		data = print_config(configuration)
-		data.insert(0, ['Config','Value'])
-		render_table(data)
+
+		if format == "text":
+			data = transform_config(configuration)
+			data.insert(0, ['Config','Value'])
+			render_table(data)
+
+		if format == "json":
+			sites_config[site] = configuration
 
 		frappe.destroy()
+
+	if format == "json":
+		click.echo(sites_config)
 
 
 @click.command('reset-perms')
