@@ -540,8 +540,12 @@ def extract_messages_from_code(code):
 
 	try:
 		code = frappe.as_unicode(render_include(code))
-	except (TemplateError, ImportError, InvalidIncludePath, IOError):
-		# Exception will occur when it encounters John Resig's microtemplating code
+
+	# Exception will occur when it encounters John Resig's microtemplating code
+	except (TemplateError, ImportError, InvalidIncludePath, IOError) as e:
+		if isinstance(e, InvalidIncludePath):
+			frappe.clear_last_message()
+
 		pass
 
 	messages = []
