@@ -17,9 +17,13 @@ body.modal-open[style^="padding-right"] {
 		border-color: var(--border-color);
 	}
 	.modal-header {
+		position: sticky;
+		top: 0;
+		z-index: 3;
+		background: inherit;
 		padding: var(--padding-md) var(--padding-lg);
-		padding-bottom: 0;
-		border-bottom: 0;
+		// padding-bottom: 0;
+		border-bottom: 1px solid var(--border-color);
 
 		.modal-title {
 			font-weight: 500;
@@ -64,9 +68,17 @@ body.modal-open[style^="padding-right"] {
 		}
 	}
 
+	.awesomplete ul {
+		z-index: 2;
+	}
+
 	.modal-footer {
+		position: sticky;
+		bottom: 0;
+		z-index: 1;
+		background: inherit;
 		padding: var(--padding-md) var(--padding-lg);
-		border-top: 0;
+		border-top: 1px solid var(--border-color);
 		justify-content: space-between;
 
 		button {
