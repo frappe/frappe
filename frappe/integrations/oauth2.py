@@ -1,19 +1,20 @@
 import json
 from urllib.parse import quote, urlencode
+
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
 from oauthlib.openid.connect.core.endpoints.pre_configured import (
 	Server as WebApplicationServer,
 )
 
 import frappe
+from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import (
+	get_oauth_settings,
+)
 from frappe.oauth import (
 	OAuthWebRequestValidator,
 	generate_json_error_response,
 	get_server_url,
 	get_userinfo,
-)
-from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import (
-	get_oauth_settings,
 )
 
 

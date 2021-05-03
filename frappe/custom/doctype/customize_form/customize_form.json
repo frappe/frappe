@@ -278,6 +278,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "doc_type",
    "fieldname": "naming_section",
    "fieldtype": "Section Break",
    "label": "Naming"
@@ -287,6 +288,16 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
+  },
+  {
+   "fieldname": "default_email_template",
+   "fieldtype": "Link",
+   "label": "Default Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -295,7 +306,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-03-22 12:27:15.462727",
+ "modified": "2021-04-29 21:21:06.476372",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

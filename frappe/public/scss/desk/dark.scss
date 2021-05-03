@@ -78,6 +78,9 @@
 	// input
 	--input-disabled-bg: none;
 
+	// checkbox
+	--checkbox-focus-shadow: 0 0 0 2px var(--gray-600);
+
 	color-scheme: dark;
 
 	.frappe-card {
