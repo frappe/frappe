@@ -4,7 +4,7 @@
 	scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
 }
 
-html, .modal {
+html {
 	scrollbar-width: auto;
 }
 
@@ -23,7 +23,7 @@ html, .modal {
 	height: 6px;
 }
 
-body::-webkit-scrollbar, .modal::-webkit-scrollbar {
+body::-webkit-scrollbar {
 	width: 12px;
 	height: 12px;
 }
