@@ -327,6 +327,13 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 		threaded=not no_threading)
 
 def patch_werkzeug_reloader():
+	"""
+	This function monkey patches Werkzeug reloader to ignore reloading files in
+	the __pycache__ directory.
+
+	To be deprecated when upgrading to Werkzeug 2.
+	"""
+
 	from werkzeug._reloader import WatchdogReloaderLoop
 
 	trigger_reload = WatchdogReloaderLoop.trigger_reload
