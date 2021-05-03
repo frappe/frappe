@@ -155,7 +155,7 @@ export default {
 				number: 1,
 				status: (current_page == 1) ? "disabled" : "",
 			},{
-				label: __("Previous)",
+				label: __("Previous"),
 				number: Math.max(current_page - 1, 1),
 				status: (current_page == 1) ? "disabled" : "",
 			}, {
