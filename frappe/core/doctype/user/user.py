@@ -56,6 +56,7 @@ class User(Document):
 
 	def after_insert(self):
 		create_notification_settings(self.name)
+		frappe.cache().delete_key('users_for_mentions')
 
 	def validate(self):
 		self.check_demo()
@@ -128,6 +129,9 @@ class User(Document):
 		# Set user selected timezone
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
+
+		if self.has_value_changed('allow_in_mentions') or self.has_value_changed('user_type'):
+			frappe.cache().delete_key('users_for_mentions')
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -388,6 +392,9 @@ class User(Document):
 
 		# delete notification settings
 		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
+
+		if self.get('allow_in_mentions'):
+			frappe.cache().delete_key('users_for_mentions')
 
 
 	def before_rename(self, old_name, new_name, merge=False):

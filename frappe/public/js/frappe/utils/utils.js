@@ -1272,31 +1272,6 @@ Object.assign(frappe.utils, {
 		</div>`);
 	},
 
-	get_names_for_mentions() {
-		let names_for_mentions = Object.keys(frappe.boot.user_info || [])
-			.filter(user => {
-				return !["Administrator", "Guest"].includes(user)
-					&& frappe.boot.user_info[user].allowed_in_mentions
-					&& frappe.boot.user_info[user].user_type === 'System User';
-			})
-			.map(user => {
-				return {
-					id: frappe.boot.user_info[user].name,
-					value: frappe.boot.user_info[user].fullname,
-				};
-			});
-
-		frappe.boot.user_groups && frappe.boot.user_groups.map(group => {
-			names_for_mentions.push({
-				id: group,
-				value: group,
-				is_group: true,
-				link: frappe.utils.get_form_link('User Group', group)
-			});
-		});
-
-		return names_for_mentions;
-	},
 	print(doctype, docname, print_format, letterhead, lang_code) {
 		let w = window.open(
 			frappe.urllib.get_full_url(
