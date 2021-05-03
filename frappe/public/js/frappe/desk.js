@@ -114,8 +114,6 @@ frappe.Application = Class.extend({
 			dialog.get_close_btn().toggle(false);
 		});
 
-		this.setup_user_group_listeners();
-
 		// listen to build errors
 		this.setup_build_error_listener();
 
@@ -491,7 +489,7 @@ frappe.Application = Class.extend({
 			var ls = document.createElement('link');
 			ls.rel="stylesheet";
 			ls.type = "text/css";
-			ls.href= "assets/css/frappe-rtl.css";
+			ls.href= "/assets/css/frappe-rtl.css";
 			document.getElementsByTagName('head')[0].appendChild(ls);
 			$('body').addClass('frappe-rtl');
 		}
@@ -591,15 +589,6 @@ frappe.Application = Class.extend({
 				console.log(data);
 			});
 		}
-	},
-
-	setup_user_group_listeners() {
-		frappe.realtime.on('user_group_added', (user_group) => {
-			frappe.boot.user_groups && frappe.boot.user_groups.push(user_group);
-		});
-		frappe.realtime.on('user_group_deleted', (user_group) => {
-			frappe.boot.user_groups = (frappe.boot.user_groups || []).filter(el => el !== user_group);
-		});
 	},
 
 	setup_energy_point_listeners() {

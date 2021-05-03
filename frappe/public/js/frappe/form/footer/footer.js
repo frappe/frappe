@@ -24,7 +24,7 @@ frappe.ui.form.Footer = Class.extend({
 			parent: this.wrapper.find(".comment-box"),
 			render_input: true,
 			only_input: true,
-			mentions: frappe.utils.get_names_for_mentions(),
+			enable_mentions: true,
 			df: {
 				fieldtype: 'Comment',
 				fieldname: 'comment'

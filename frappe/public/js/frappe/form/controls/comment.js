@@ -78,35 +78,25 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 	},
 
 	get_mention_options() {
-		if (!(this.mentions && this.mentions.length)) {
+		if (!this.enable_mentions) {
 			return null;
 		}
-
-		const at_values = this.mentions.slice();
-
+		let me = this;
 		return {
 			allowedChars: /^[A-Za-z0-9_]*$/,
 			mentionDenotationChars: ["@"],
 			isolateCharacter: true,
-			source: function (searchTerm, renderList, mentionChar) {
-				let values;
-
-				if (mentionChar === "@") {
-					values = at_values;
-				}
-
-				if (searchTerm.length === 0) {
-					renderList(values, searchTerm);
-				} else {
-					const matches = [];
-					for (let i = 0; i < values.length; i++) {
-						if (~values[i].value.toLowerCase().indexOf(searchTerm.toLowerCase())) {
-							matches.push(values[i]);
-						}
-					}
-					renderList(matches, searchTerm);
-				}
-			},
+			source: frappe.utils.debounce(async function(search_term, renderList) {
+				let method = me.mention_search_method || 'frappe.desk.search.get_names_for_mentions';
+				let values = await frappe.xcall(method, {
+					search_term
+				});
+				renderList(values, search_term);
+			}, 300),
+			renderItem(item) {
+				let value = item.value;
+				return `${value} ${item.is_group ? frappe.utils.icon('users') : ''}`;
+			}
 		};
 	},
 
