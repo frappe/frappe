@@ -1,7 +1,7 @@
 frappe.ui.form.ControlCurrency = class ControlCurrency extends frappe.ui.form.ControlFloat {
 	format_for_input(value) {
 		var formatted_value = format_number(value, this.get_number_format(), this.get_precision());
-		return isNaN(parseFloat(value)) ? "" : formatted_value;
+		return isNaN(Number(value)) ? "" : formatted_value;
 	}
 
 	get_precision() {

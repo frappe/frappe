@@ -71,7 +71,8 @@ numeric_fieldtypes = (
 data_field_options = (
 	'Email',
 	'Name',
-	'Phone'
+	'Phone',
+	'URL'
 )
 
 default_fields = (

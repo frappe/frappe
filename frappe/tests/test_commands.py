@@ -365,6 +365,17 @@ class TestCommands(BaseTestCommands):
 			installed_apps = set(frappe.get_installed_apps())
 		self.assertSetEqual(list_apps, installed_apps)
 
+		# test 3: parse json format
+		self.execute("bench --site all list-apps --format json")
+		self.assertEquals(self.returncode, 0)
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} list-apps --format json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} list-apps -f json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
 	def test_get_bench_relative_path(self):
 		bench_path = frappe.utils.get_bench_path()
 		test1_path = os.path.join(bench_path, "test1.txt")

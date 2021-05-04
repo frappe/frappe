@@ -335,12 +335,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let message;
 			if (dashboard_name) {
 				let dashboard_route_html = `<a href="#dashboard-view/${dashboard_name}">${dashboard_name}</a>`;
-				message = __("New {0} {1} added to Dashboard {2}", [doctype, name, dashboard_route_html]);
+				message = __("New {0} {1} added to Dashboard {2}", [__(doctype), name, dashboard_route_html]);
 			} else {
-				message = __("New {0} {1} created", [doctype, name]);
+				message = __("New {0} {1} created", [__(doctype), name]);
 			}
 
-			frappe.msgprint(message, __("New {0} Created", [doctype]));
+			frappe.msgprint(message, __("New {0} Created", [__(doctype)]));
 		});
 	}
 
@@ -937,7 +937,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			else {
 				wrapper[0].innerHTML =
 				`<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
-					<div>Please select X and Y fields</div>
+					<div>${__("Please select X and Y fields")}</div>
 				</div>`;
 			}
 		}
@@ -1094,7 +1094,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			return Object.assign(column, {
 				id: column.fieldname,
-				name: __(column.label),
+				name: __(column.label, null, `Column of report '${this.report_name}'`), // context has to match context in   get_messages_from_report in translate.py
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,
@@ -1343,7 +1343,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				open_url_post(frappe.request.url, args);
 			}
-		}, __('Export Report: '+ this.report_name), __('Download'));
+		}, __('Export Report: {0}', [this.report_name]), __('Download'));
 	}
 
 	get_data_for_csv(include_indentation) {

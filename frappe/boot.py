@@ -42,8 +42,6 @@ def get_bootinfo():
 		bootinfo.user_info = get_user_info()
 		bootinfo.sid = frappe.session['sid']
 
-	bootinfo.user_groups = frappe.get_all('User Group', pluck="name")
-
 	bootinfo.modules = {}
 	bootinfo.module_list = []
 	load_desktop_data(bootinfo)
