@@ -365,6 +365,46 @@ class TestCommands(BaseTestCommands):
 			installed_apps = set(frappe.get_installed_apps())
 		self.assertSetEqual(list_apps, installed_apps)
 
+<<<<<<< HEAD
+=======
+		# test 3: parse json format
+		self.execute("bench --site all list-apps --format json")
+		self.assertEquals(self.returncode, 0)
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} list-apps --format json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} list-apps -f json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+	def test_show_config(self):
+		# test 1: sanity check for command
+		self.execute("bench --site all show-config")
+		self.assertEquals(self.returncode, 0)
+
+		# test 2: test keys in table text
+		self.execute(
+			"bench --site {site} set-config test_key '{second_order}' --as-dict",
+			{"second_order": json.dumps({"test_key": "test_value"})},
+		)
+		self.execute("bench --site {site} show-config")
+		self.assertEquals(self.returncode, 0)
+		self.assertIn("test_key.test_key", self.stdout.split())
+		self.assertIn("test_value", self.stdout.split())
+
+		# test 3: parse json format
+		self.execute("bench --site all show-config --format json")
+		self.assertEquals(self.returncode, 0)
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} show-config --format json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} show-config -f json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+>>>>>>> 3b34474f8d... test: Add tests for bench show-config
 	def test_get_bench_relative_path(self):
 		bench_path = frappe.utils.get_bench_path()
 		test1_path = os.path.join(bench_path, "test1.txt")
