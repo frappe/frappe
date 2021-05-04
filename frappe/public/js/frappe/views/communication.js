@@ -654,8 +654,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		if (this.is_a_reply === 'undefined') {
 			this.is_a_reply = true;
 		}
-
-		if (this.is_a_reply) {
+		if (this.is_a_reply || this.forward) {
 			let last_email = this.last_email;
 
 			if (!last_email) {
@@ -676,16 +675,20 @@ frappe.views.CommunicationComposer = Class.extend({
 				last_email_content += '<div>' + __('Message clipped') + '</div>' + last_email_content;
 				last_email_content = last_email_content.slice(0, 20 * 1024);
 			}
-
+			const fwd = this.forward ? "<b>Forwarded Message</b><br>" : "";
 			let communication_date = last_email.communication_date || last_email.creation;
 			content = `
 				<div><br></div>
-				${reply}
+				${this.message || ''}
 				${frappe.separator_element}
+				${fwd}
 				<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
 				<blockquote>
 				${last_email_content}
 				</blockquote>
+				${frappe.separator_element}
+				${signature || ''}
+
 			`;
 		} else {
 			content = "<div><br></div>" + reply;
