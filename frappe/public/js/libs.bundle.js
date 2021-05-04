@@ -8,8 +8,8 @@ import Sortable from "./lib/Sortable.min.js";
 // Don't think jquery.hotkeys is being used anywhere. Will remove this after being sure.
 // import "./lib/jquery/jquery.hotkeys.js";
 
-
+window.moment = moment;
 window.moment = momentTimezone;
 window.Vue = Vue;
 window.Sortable = Sortable;
-window.io = io
+window.io = io;

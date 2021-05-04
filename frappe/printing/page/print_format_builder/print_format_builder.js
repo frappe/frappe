@@ -177,7 +177,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			fieldtype: "Custom HTML",
 			fieldname: "_custom_html",
 			label: __("Custom HTML")
-		}
+		};
 	}
 	render_layout() {
 		this.page.main.empty();

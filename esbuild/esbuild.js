@@ -367,8 +367,8 @@ function run_build_command_for_apps(apps) {
 		let root_app_path = path.resolve(get_app_path(app), "..");
 		let package_json = path.resolve(root_app_path, "package.json");
 		if (fs.existsSync(package_json)) {
-			let package = require(package_json);
-			if (package.scripts && package.scripts.build) {
+			let { scripts } = require(package_json);
+			if (scripts && scripts.build) {
 				log("\nRunning build command for", chalk.bold(app));
 				process.chdir(root_app_path);
 				execSync("yarn build", { encoding: "utf8", stdio: "inherit" });

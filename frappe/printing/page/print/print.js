@@ -408,7 +408,7 @@ frappe.ui.form.PrintView = class {
 
 	setup_print_format_dom(out, $print_format) {
 		this.print_wrapper.find('.print-format-skeleton').remove();
-		let base_url = frappe.urllib.get_base_url()
+		let base_url = frappe.urllib.get_base_url();
 		let print_css = frappe.assets.bundled_asset('print.bundle.css');
 		this.$print_format_body.find('head').html(
 			`<style type="text/css">${out.style}</style>

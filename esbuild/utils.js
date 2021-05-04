@@ -98,16 +98,16 @@ function get_cli_arg(name) {
 
 function log_error(message, badge = "ERROR") {
 	badge = chalk.white.bgRed(` ${badge} `);
-	console.error(`${badge} ${message}`);
+	console.error(`${badge} ${message}`); // eslint-disable-line no-console
 }
 
 function log_warn(message, badge = "WARN") {
 	badge = chalk.black.bgYellowBright(` ${badge} `);
-	console.warn(`${badge} ${message}`);
+	console.warn(`${badge} ${message}`); // eslint-disable-line no-console
 }
 
 function log(...args) {
-	console.log(...args);
+	console.log(...args); // eslint-disable-line no-console
 }
 
 module.exports = {

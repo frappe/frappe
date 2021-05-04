@@ -965,8 +965,8 @@ Object.assign(frappe.utils, {
 			let expression_function = new Function(...variable_names, code);
 			return expression_function(...variables);
 		} catch (error) {
-			console.log('Error evaluating the following expression:');
-			console.error(code);
+			console.log('Error evaluating the following expression:'); // eslint-disable-line no-console
+			console.error(code); // eslint-disable-line no-console
 			throw error;
 		}
 	},
