@@ -65,10 +65,6 @@ def get_context(context):
 """)
 
 	def validate_standard(self):
-		# indicates that this is a new doc
-		if self._doc_before_save is None and not frappe.conf.developer_mode:
-			self.is_standard = False
-			return
 		if self.is_standard and not frappe.conf.developer_mode:
 			frappe.throw(_('Cannot edit Standard Notification. To edit, please disable this and duplicate it'))
 
