@@ -105,6 +105,7 @@ def show_config(context, format):
 		raise SiteNotSpecifiedError
 
 	sites_config = {}
+	sites_path = os.getcwd()
 
 	from frappe.utils.commands import render_table
 
@@ -129,7 +130,6 @@ def show_config(context, format):
 				click.echo()
 			click.secho(f"Site {site}", fg="yellow")
 
-		sites_path = frappe.get_site_path()
 		configuration = frappe.get_site_config(sites_path=sites_path, site_path=site)
 
 		if format == "text":
