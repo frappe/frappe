@@ -34,6 +34,10 @@ let argv = yargs
 		type: "boolean",
 		description: "Skip building frappe assets"
 	})
+	.option("files", {
+		type: "string",
+		description: "Run build for specified bundles"
+	})
 	.option("watch", {
 		type: "boolean",
 		description: "Run in watch mode and rebuild on file changes"
@@ -46,11 +50,16 @@ let argv = yargs
 		"node esbuild --apps frappe,erpnext",
 		"Run build only for frappe and erpnext"
 	)
+	.example(
+		"node esbuild --files frappe/website.bundle.js,frappe/desk.bundle.js",
+		"Run build only for specified bundles"
+	)
 	.version(false).argv;
 
 const APPS = (!argv.apps ? app_list : argv.apps.split(",")).filter(
 	app => !(argv.skip_frappe && app == "frappe")
 );
+const FILES_TO_BUILD = argv.files ? argv.files.split(",") : [];
 const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
@@ -69,11 +78,13 @@ execute().catch(e => console.error(e));
 
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
-	await clean_dist_folders(APPS);
+	if (!FILES_TO_BUILD.length) {
+		await clean_dist_folders(APPS);
+	}
 
 	let result;
 	try {
-		result = await build_assets_for_apps(APPS);
+		result = await build_assets_for_apps(APPS, FILES_TO_BUILD);
 	} catch (e) {
 		log_error("There were some problems during build");
 		log();
@@ -87,11 +98,13 @@ async function execute() {
 	} else {
 		log("Watching for changes...");
 	}
-	return await write_meta_file(result.metafile);
+	return await write_assets_json(result.metafile);
 }
 
-function build_assets_for_apps(apps) {
-	let { include_patterns, ignore_patterns } = get_files_to_build(apps);
+function build_assets_for_apps(apps, files) {
+	let { include_patterns, ignore_patterns } = files.length
+		? get_files_to_build(files)
+		: get_all_files_to_build(apps);
 
 	return glob(include_patterns, { ignore: ignore_patterns }).then(files => {
 		let output_path = assets_path;
@@ -128,7 +141,7 @@ function build_assets_for_apps(apps) {
 	});
 }
 
-function get_files_to_build(apps) {
+function get_all_files_to_build(apps) {
 	let include_patterns = [];
 	let ignore_patterns = [];
 
@@ -141,6 +154,27 @@ function get_files_to_build(apps) {
 				"*.bundle.{js,ts,css,sass,scss,less,styl}"
 			)
 		);
+		ignore_patterns.push(
+			path.resolve(public_path, "node_modules"),
+			path.resolve(public_path, "dist")
+		);
+	}
+
+	return {
+		include_patterns,
+		ignore_patterns
+	};
+}
+
+function get_files_to_build(files) {
+	// files: ['frappe/website.bundle.js', 'erpnext/main.bundle.js']
+	let include_patterns = [];
+	let ignore_patterns = [];
+
+	for (let file of files) {
+		let [app, bundle] = file.split("/");
+		let public_path = get_public_path(app);
+		include_patterns.push(path.resolve(public_path, "**", bundle));
 		ignore_patterns.push(
 			path.resolve(public_path, "node_modules"),
 			path.resolve(public_path, "dist")
@@ -192,7 +226,7 @@ function build_files({ files, outdir }) {
 							console.log(
 								`${new Date().toLocaleTimeString()}: Compiled changes...`
 							);
-							write_meta_file(result.metafile);
+							write_assets_json(result.metafile);
 							notify_redis({ success: true });
 						}
 					}
@@ -274,7 +308,7 @@ function log_built_assets(metafile) {
 	console.log(cliui.toString());
 }
 
-function write_meta_file(metafile) {
+async function write_assets_json(metafile) {
 	let out = {};
 	for (let output in metafile.outputs) {
 		let info = metafile.outputs[output];
@@ -284,29 +318,41 @@ function write_meta_file(metafile) {
 		}
 	}
 
-	return fs.promises
-		.writeFile(
-			path.resolve(assets_path, "frappe", "dist", "assets.json"),
-			JSON.stringify(out, null, 4)
-		)
-		.then(() => {
-			let client = get_redis_subscriber("redis_cache");
-			// update assets_json cache in redis, so that it can be read directly by python
-			client.get("assets_json", (err, data) => {
-				if (err) return;
-				// get existing json
-				let assets_json = JSON.parse(data || "{}");
-				// overwrite new values
-				assets_json = Object.assign({}, assets_json, out);
+	let assets_json_path = path.resolve(
+		assets_path,
+		"frappe",
+		"dist",
+		"assets.json"
+	);
+	let assets_json;
+	try {
+		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");
+	} catch (error) {
+		assets_json = "{}";
+	}
+	assets_json = JSON.parse(assets_json);
+	// update with new values
+	assets_json = Object.assign({}, assets_json, out);
 
-				client.set("assets_json", JSON.stringify(assets_json), err => {
-					if (err) {
-						log_warn("Could not update assets_json in redis_cache");
-					}
-					client.unref();
-				});
-			});
+	await fs.promises.writeFile(
+		assets_json_path,
+		JSON.stringify(assets_json, null, 4)
+	);
+	await update_assets_json_in_cache(assets_json);
+}
+
+function update_assets_json_in_cache(assets_json) {
+	// update assets_json cache in redis, so that it can be read directly by python
+	return new Promise(resolve => {
+		let client = get_redis_subscriber("redis_cache");
+		client.set("assets_json", JSON.stringify(assets_json), err => {
+			if (err) {
+				log_warn("Could not update assets_json in redis_cache");
+			}
+			client.unref();
+			resolve();
 		});
+	});
 }
 
 async function notify_redis({ error, success }) {
