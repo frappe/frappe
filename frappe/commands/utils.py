@@ -502,6 +502,7 @@ def console(context):
 			locals()[app] = __import__(app)
 		except ModuleNotFoundError:
 			failed_to_import.append(app)
+			all_apps.remove(app)
 
 	print("Apps in this namespace:\n{}".format(", ".join(all_apps)))
 	if failed_to_import:
