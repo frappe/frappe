@@ -39,35 +39,36 @@ def download_file(url, prefix):
 
 
 def build_missing_files():
-	# check which files dont exist yet from the build.json and tell build.js to build only those!
+	'''Check which files dont exist yet from the assets.json and run build for those files'''
+
 	missing_assets = []
 	current_asset_files = []
-	frappe_build = os.path.join("..", "apps", "frappe", "frappe", "public", "build.json")
 
 	for type in ["css", "js"]:
-		current_asset_files.extend(
-			[
-				"{0}/{1}".format(type, name)
-				for name in os.listdir(os.path.join(sites_path, "assets", type))
-			]
-		)
+		folder = os.path.join(sites_path, "assets", "frappe", "dist", type)
+		current_asset_files.extend(os.listdir(folder))
 
-	with open(frappe_build) as f:
-		all_asset_files = json.load(f).keys()
+	development = frappe.local.conf.developer_mode or frappe.local.dev_server
+	build_mode = "development" if development else "production"
 
-	for asset in all_asset_files:
-		if asset.replace("concat:", "") not in current_asset_files:
-			missing_assets.append(asset)
+	assets_json = frappe.read_file(frappe.get_app_path('frappe', 'public', 'dist', 'assets.json'))
+	if assets_json:
+		assets_json = frappe.parse_json(assets_json)
 
-	if missing_assets:
-		from subprocess import check_call
-		from shlex import split
+		for bundle_file, output_file in assets_json.items():
+			if not output_file.startswith('/assets/frappe'):
+				continue
 
-		click.secho("\nBuilding missing assets...\n", fg="yellow")
-		command = split(
-			"node rollup/build.js --files {0} --no-concat".format(",".join(missing_assets))
-		)
-		check_call(command, cwd=os.path.join("..", "apps", "frappe"))
+			if os.path.basename(output_file) not in current_asset_files:
+				missing_assets.append(bundle_file)
+
+		if missing_assets:
+			click.secho("\nBuilding missing assets...\n", fg="yellow")
+			files_to_build = ["frappe/" + name for name in missing_assets]
+			bundle(build_mode, files=files_to_build)
+	else:
+		# no assets.json, run full build
+		bundle(build_mode, apps="frappe")
 
 
 def get_assets_link(frappe_head):
@@ -203,7 +204,7 @@ def setup():
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
 
-def bundle(mode, apps=None, make_copy=False, restore=False, verbose=False, skip_frappe=False):
+def bundle(mode, apps=None, make_copy=False, restore=False, verbose=False, skip_frappe=False, files=None):
 	"""concat / minify js files"""
 	setup()
 	make_asset_dirs(make_copy=make_copy, restore=restore)
@@ -216,6 +217,9 @@ def bundle(mode, apps=None, make_copy=False, restore=False, verbose=False, skip_
 
 	if skip_frappe:
 		command += " --skip_frappe"
+
+	if files:
+		command += " --files {files}".format(files=','.join(files))
 
 	check_yarn()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
