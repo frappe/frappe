@@ -755,50 +755,6 @@ def rebuild_global_search(context, static_pages=False):
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
-@click.command('auto-deploy')
-@click.argument('app')
-@click.option('--migrate', is_flag=True, default=False, help='Migrate after pulling')
-@click.option('--restart', is_flag=True, default=False, help='Restart after migration')
-@click.option('--remote', default='upstream', help='Remote, default is "upstream"')
-@pass_context
-def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
-	'''Pull and migrate sites that have new version'''
-	from frappe.utils.gitutils import get_app_branch
-	from frappe.utils import get_sites
-
-	branch = get_app_branch(app)
-	app_path = frappe.get_app_path(app)
-
-	# fetch
-	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
-
-	# get diff
-	if subprocess.check_output(['git', 'diff', '{0}..{1}/{0}'.format(branch, remote)], cwd = app_path):
-		print('Updates found for {0}'.format(app))
-		if app=='frappe':
-			# run bench update
-			import shlex
-			subprocess.check_output(shlex.split('bench update --no-backup'), cwd = '..')
-		else:
-			updated = False
-			subprocess.check_output(['git', 'pull', '--rebase', remote, branch],
-				cwd = app_path)
-			# find all sites with that app
-			for site in get_sites():
-				frappe.init(site)
-				if app in frappe.get_installed_apps():
-					print('Updating {0}'.format(site))
-					updated = True
-					subprocess.check_output(['bench', '--site', site, 'clear-cache'], cwd = '..')
-					if migrate:
-						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
-				frappe.destroy()
-
-			if updated or restart:
-				subprocess.check_output(['bench', 'restart'], cwd = '..')
-	else:
-		print('No Updates')
-
 
 commands = [
 	build,
