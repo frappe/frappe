@@ -74,7 +74,9 @@ const NODE_PATHS = [].concat(
 		.filter(fs.existsSync)
 );
 
-execute().catch(e => console.error(e));
+execute()
+	.then(() => !WATCH_MODE && run_build_command_for_apps(APPS))
+	.catch(e => console.error(e));
 
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
@@ -353,6 +355,28 @@ function update_assets_json_in_cache(assets_json) {
 			resolve();
 		});
 	});
+}
+
+function run_build_command_for_apps(apps) {
+	let cwd = process.cwd();
+	let { execSync } = require("child_process");
+
+	for (let app of apps) {
+		if (app === "frappe") continue;
+
+		let root_app_path = path.resolve(get_app_path(app), "..");
+		let package_json = path.resolve(root_app_path, "package.json");
+		if (fs.existsSync(package_json)) {
+			let package = require(package_json);
+			if (package.scripts && package.scripts.build) {
+				log("\nRunning build command for", chalk.bold(app));
+				process.chdir(root_app_path);
+				execSync("yarn build", { encoding: "utf8", stdio: "inherit" });
+			}
+		}
+	}
+
+	process.chdir(cwd);
 }
 
 async function notify_redis({ error, success }) {
