@@ -543,7 +543,7 @@ class ParallelTestRunner():
 
 		self.print_result()
 		self.call_orchestrator('test-completed')
-		self.submit_coverage()
+		self.save_coverage()
 
 		if self.test_result.failures or self.test_result.errors:
 			if os.environ.get('CI'):
@@ -646,13 +646,11 @@ class ParallelTestRunner():
 
 			self.coverage = Coverage(
 				source=[source_path],
-				omit=omit,
-				data_file='coverage_data',
-				data_suffix=self.ci_instance_id
+				omit=omit
 			)
 			self.coverage.start()
 
-	def submit_coverage(self):
+	def save_coverage(self):
 		if not self.with_coverage:
 			return
 
