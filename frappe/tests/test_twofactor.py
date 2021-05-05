@@ -208,12 +208,14 @@ def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):
 	system_settings.bypass_2fa_for_retricted_ip_users = cint(bypass_two_factor_auth)
 	system_settings.bypass_restrict_ip_check_if_2fa_enabled = cint(bypass_restrict_ip_check)
 	system_settings.two_factor_method = 'OTP App'
+	system_settings.flags.ignore_mandatory = True
 	system_settings.save(ignore_permissions=True)
 	frappe.db.commit()
 
 def disable_2fa():
 	system_settings = frappe.get_doc('System Settings')
 	system_settings.enable_two_factor_auth = 0
+	system_settings.flags.ignore_mandatory = True
 	system_settings.save(ignore_permissions=True)
 	frappe.db.commit()
 
