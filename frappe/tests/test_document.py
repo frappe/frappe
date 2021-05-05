@@ -6,9 +6,8 @@ import os
 import unittest
 
 import frappe
-from frappe.utils import cint, add_to_date, now
+from frappe.utils import cint
 from frappe.model.naming import revert_series_if_last, make_autoname, parse_naming_series
-from frappe.exceptions import DoesNotExistError
 
 
 class TestDocument(unittest.TestCase):
@@ -87,13 +86,13 @@ class TestDocument(unittest.TestCase):
 		d.insert()
 		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
 
-	def test_confict_validation(self):
+	def test_conflict_validation(self):
 		d1 = self.test_insert()
 		d2 = frappe.get_doc(d1.doctype, d1.name)
 		d1.save()
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
 
-	def test_confict_validation_single(self):
+	def test_conflict_validation_single(self):
 		d1 = frappe.get_doc("Website Settings", "Website Settings")
 		d1.home_page = "test-web-page-1"
 
@@ -110,7 +109,7 @@ class TestDocument(unittest.TestCase):
 
 	def test_permission_single(self):
 		frappe.set_user("Guest")
-		d = frappe.get_doc("Website Settings", "Website Settigns")
+		d = frappe.get_doc("Website Settings", "Website Settings")
 		self.assertRaises(frappe.PermissionError, d.save)
 		frappe.set_user("Administrator")
 
@@ -197,11 +196,6 @@ class TestDocument(unittest.TestCase):
 		self.assertTrue(escaped_xss in d.subject)
 
 	def test_link_count(self):
-		if os.environ.get('CI'):
-			# cannot run this test reliably in travis due to its handling
-			# of parallelism
-			return
-
 		from frappe.model.utils.link_count import update_link_count
 
 		update_link_count()
