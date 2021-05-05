@@ -685,20 +685,21 @@ def make_app(destination, app_name):
 @click.command('set-config')
 @click.argument('key')
 @click.argument('value')
-@click.option('-g', '--global', 'global_', is_flag = True, default = False, help = 'Set Global Site Config')
-@click.option('--as-dict', is_flag=True, default=False)
+@click.option('-g', '--global', 'global_', is_flag=True, default=False, help='Set value in bench config')
+@click.option('-p', '--parse', '--as-dict', is_flag=True, default=False, help='Evaluate as Python Object')
 @pass_context
-def set_config(context, key, value, global_ = False, as_dict=False):
+def set_config(context, key, value, global_=False, parse=False):
 	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
-	import ast
-	if as_dict:
+
+	if parse:
+		import ast
 		value = ast.literal_eval(value)
 
 	if global_:
-		sites_path = os.getcwd() # big assumption.
+		sites_path = os.getcwd()
 		common_site_config_path = os.path.join(sites_path, 'common_site_config.json')
-		update_site_config(key, value, validate = False, site_config_path = common_site_config_path)
+		update_site_config(key, value, validate=False, site_config_path=common_site_config_path)
 	else:
 		for site in context.sites:
 			frappe.init(site=site)
