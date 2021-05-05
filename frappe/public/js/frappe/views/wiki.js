@@ -11,7 +11,7 @@ frappe.views.Wiki = class Wiki {
 		this.pages = {};
 		this.sections = {};
 		this.sidebar_items = {};
-		this.sorted_sidebar_items = {}
+		this.sorted_sidebar_items = [];
 		this.tools = {}
 		this.isReadOnly = true;
 		this.prepare_container();
@@ -26,7 +26,6 @@ frappe.views.Wiki = class Wiki {
 		`).appendTo(this.wrapper.find(".layout-side-section"));
 		this.sidebar = list_sidebar.find(".desk-sidebar");
 		this.body = this.wrapper.find(".layout-main-section");
-		// this.body.addClass("frappe-card");
 	}
 
 	setup_wiki_pages() {
@@ -39,29 +38,8 @@ frappe.views.Wiki = class Wiki {
 				}
 				frappe.router.route();
 				this.make_sidebar(root_pages);
-				this.make_sidebar_sortable();
 			}
 		})
-	}
-
-	make_sidebar_sortable() {
-		let me = this;
-		this.sidebar_sortable = Sortable.create(this.page.sidebar.find(".standard-sidebar-section").get(0), {
-			handle: ".standard-sidebar-item-container",
-			draggable: ".standard-sidebar-item-container",
-			animation: 150,
-			onEnd: function (evt){
-				// let sb_items = me.all_pages.filter(page => page.parent_page == '' || page.parent_page == null)
-				// let startBlock = sb_items[evt.oldIndex];
-				// let endBlock = sb_items[evt.newIndex];
-				// startBlock.sequence_id = parseInt(me.sidebar.find('.standard-sidebar-item-container')[evt.oldIndex].getAttribute('item-sequence'));
-				// let oldName = me.sidebar.find('.standard-sidebar-item-container')[evt.oldIndex].getAttribute('item-name');
-				// endBlock.sequence_id = parseInt(me.sidebar.find('.standard-sidebar-item-container')[evt.newIndex].getAttribute('item-sequence'));
-				// let newName = me.sidebar.find('.standard-sidebar-item-container')[evt.newIndex].getAttribute('item-name');
-				// frappe.db.set_value('Internal Wiki Page', newName, {["sequence_id"]: startBlock.sequence_id})
-				// frappe.db.set_value('Internal Wiki Page', oldName, {["sequence_id"]: endBlock.sequence_id})
-			}
-		});
 	}
 
 	get_pages() {
@@ -235,7 +213,7 @@ frappe.views.Wiki = class Wiki {
 		} else if (this.all_pages) {
 			default_page = this.all_pages[0].name;
 		} else {
-			default_page = "Home";
+			default_page = "Build";
 		}
 
 		let page = frappe.get_route()[1] || default_page;
@@ -275,26 +253,57 @@ frappe.views.Wiki = class Wiki {
 				this.editor.readOnly.toggle();
 				this.editor.isReady
 				.then(() => {
-					let me = this;
 					this.undo = new Undo({ editor: this.editor });
 					this.undo.initialize({blocks: JSON.parse(this.content)});
 					this.setup_customization_buttons();
-					this.page_sortable = Sortable.create(this.page.main.find(".codex-editor__redactor").get(0), {
-						handle: ".ce-block",
-						animation: 150,
-						onEnd: function (evt){
-							me.editor.blocks.move(evt.newIndex, evt.oldIndex);
-						},
-						setData: function (dataTransfer, dragEl) {
-							//Do Nothing
-						}
-					});
+					this.make_sidebar_sortable();
+					this.make_blocks_sortable();
 				})
 			},
 		);
 
 		this.page.add_inner_button(__('Create Page'), () => {
 			this.initialize_new_page();
+		});
+	}
+
+	make_sidebar_sortable() {
+		let me = this;
+		this.sidebar_sortable = Sortable.create(this.page.sidebar.find(".standard-sidebar-section").get(0), {
+			handle: ".standard-sidebar-item-container",
+			draggable: ".standard-sidebar-item-container",
+			animation: 150,
+			onEnd: function (evt){
+				let new_sb_items = [];
+				let old_sb_items = me.all_pages.filter(page => page.parent_page == '' || page.parent_page == null)
+				for (let page of evt.srcElement.childNodes) {
+					new_sb_items.push({
+						name: page.attributes['item-name'].value,
+						sequence_id: parseInt(page.attributes['item-sequence'].value)
+					})
+				}
+				me.sorted_sidebar_items = [];
+				new_sb_items.forEach((old, index) => {
+					if (old.sequence_id != old_sb_items[index].sequence_id) {
+						old.sequence_id = old_sb_items[index].sequence_id;
+						me.sorted_sidebar_items.push(old);
+					}
+				});
+			}
+		});
+	}
+
+	make_blocks_sortable() {
+		let me = this;
+		this.page_sortable = Sortable.create(this.page.main.find(".codex-editor__redactor").get(0), {
+			handle: ".ce-block",
+			animation: 150,
+			onEnd: function (evt){
+				me.editor.blocks.move(evt.newIndex, evt.oldIndex);
+			},
+			setData: function (dataTransfer, dragEl) {
+				//Do Nothing
+			}
 		});
 	}
 
@@ -312,6 +321,7 @@ frappe.views.Wiki = class Wiki {
 				this.editor.readOnly.toggle();
 				this.isReadOnly = true;
 				this.page_sortable.option("disabled", true);
+				this.sidebar_sortable.option("disabled", true);
 			},
 			null,
 			__("Saving")
@@ -325,6 +335,7 @@ frappe.views.Wiki = class Wiki {
 				this.editor.readOnly.toggle();
 				this.isReadOnly = true;
 				this.page_sortable.option("disabled", true);
+				this.sidebar_sortable.option("disabled", true);
 				this.reload();
 				frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 			}
@@ -401,6 +412,7 @@ frappe.views.Wiki = class Wiki {
 				args: {
 					title: me.title,
 					parent: me.parent || '',
+					sb_items: me.sorted_sidebar_items,
 					blocks: JSON.stringify(outputData.blocks),
 					save: save
 				},
@@ -410,6 +422,7 @@ frappe.views.Wiki = class Wiki {
 						frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
 						me.title = '';
 						me.parent = '';
+						me.sorted_sidebar_items = [];
 						me.reload();
 					}
 				}

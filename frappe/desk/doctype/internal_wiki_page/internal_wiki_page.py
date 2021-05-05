@@ -16,7 +16,7 @@ class InternalWikiPage(Document):
 			self.sequence_id = frappe.get_last_doc('Internal Wiki Page').sequence_id + 1
 
 @frappe.whitelist()
-def save_wiki_page(title, parent, blocks, save=True):
+def save_wiki_page(title, parent, sb_items, blocks, save=True):
 	if save: 
 		if not frappe.db.exists("Workspace", title):
 			wspace = frappe.new_doc('Workspace')
@@ -32,7 +32,13 @@ def save_wiki_page(title, parent, blocks, save=True):
 		doc = frappe.get_doc('Internal Wiki Page', title)
 		doc.content = blocks
 		doc.save()
-	
+
+	if json.loads(sb_items):
+		for d in json.loads(sb_items):
+			doc = frappe.get_doc('Internal Wiki Page', d.get('name'))
+			doc.sequence_id = d.get('sequence_id')
+			doc.save()
+
 	return doc.title
 
 @frappe.whitelist()
