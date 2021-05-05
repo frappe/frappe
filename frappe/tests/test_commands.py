@@ -216,7 +216,7 @@ class TestCommands(BaseTestCommands):
 
 		# test 7: take a backup with frappe.conf.backup.includes
 		self.execute(
-			"bench --site {site} set-config backup '{includes}' --as-dict",
+			"bench --site {site} set-config backup '{includes}' --parse",
 			{"includes": json.dumps(backup["includes"])},
 		)
 		self.execute("bench --site {site} backup --verbose")
@@ -226,7 +226,7 @@ class TestCommands(BaseTestCommands):
 
 		# test 8: take a backup with frappe.conf.backup.excludes
 		self.execute(
-			"bench --site {site} set-config backup '{excludes}' --as-dict",
+			"bench --site {site} set-config backup '{excludes}' --parse",
 			{"excludes": json.dumps(backup["excludes"])},
 		)
 		self.execute("bench --site {site} backup --verbose")
@@ -383,7 +383,7 @@ class TestCommands(BaseTestCommands):
 
 		# test 2: test keys in table text
 		self.execute(
-			"bench --site {site} set-config test_key '{second_order}' --as-dict",
+			"bench --site {site} set-config test_key '{second_order}' --parse",
 			{"second_order": json.dumps({"test_key": "test_value"})},
 		)
 		self.execute("bench --site {site} show-config")
