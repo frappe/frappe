@@ -96,28 +96,19 @@ jobs:
       - name: Run Tests
         run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --with-coverage --ci-build-id $GITHUB_RUN_ID
 
-      # - name: Coverage - Pull Request
-      #   if: github.event_name == 'pull_request'
-      #   run: |
-      #     cp ~/frappe-bench/sites/combined_coverage ${GITHUB_WORKSPACE}
-      #     cd ${GITHUB_WORKSPACE}
-      #     if [ -f "./combined_coverage" ]; pip install coveralls==2.2.0 && pip install coverage==4.5.4; fi
-      #     if [ -f "./combined_coverage" ]; coveralls --service=github --source ./combined_coverage; fi
-      #     coveralls --service=github
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-      #     COVERALLS_SERVICE_NAME: github
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          flag-name: run-${{ matrix.test_number }}
+          parallel: true
 
-      # - name: Coverage - Push
-      #   if: github.event_name == 'push'
-      #   run: |
-      #     cp ~/frappe-bench/sites/combined_coverage ${GITHUB_WORKSPACE}/.coverage
-      #     cd ${GITHUB_WORKSPACE}
-      #     pip install coveralls==2.2.0
-      #     pip install coverage==4.5.4
-      #     coveralls --service=github-actions
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-      #     COVERALLS_SERVICE_NAME: github-actions
+  finish:
+      needs: test
+      runs-on: ubuntu-18.04
+      steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true

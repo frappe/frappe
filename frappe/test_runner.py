@@ -509,7 +509,7 @@ class ParallelTestRunner():
 		self.site = site
 		self.orchestrator_url = 'http://1b4f43f01e4d.ngrok.io'
 		self.ci_build_id = ci_build_id or '123123'
-		self.with_coverage = False
+		self.with_coverage = with_coverage
 		self.setup_test_site()
 		self.ci_instance_id = ci_instance_id or frappe.generate_hash(length=10)
 		frappe.flags.in_test = True
@@ -657,10 +657,10 @@ class ParallelTestRunner():
 		self.coverage.stop()
 		self.coverage.save()
 
-		if self.is_master:
-			self.build_coverage_file()
-		else:
-			self.upload_coverage_file()
+		# if self.is_master:
+		# 	self.build_coverage_file()
+		# else:
+		# 	self.upload_coverage_file()
 
 
 	def upload_coverage_file(self):
