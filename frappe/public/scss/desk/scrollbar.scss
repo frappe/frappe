@@ -9,11 +9,6 @@ html {
 }
 
 /* Works on Chrome, Edge, and Safari */
-*::-webkit-scrollbar {
-	width: 6px;
-	height: 6px;
-}
-
 *::-webkit-scrollbar-thumb {
 	background: var(--scrollbar-thumb-color);
 }
@@ -23,7 +18,12 @@ html {
 	background: var(--scrollbar-track-color);
 }
 
+*::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
 body::-webkit-scrollbar {
-	width: unset;
-	height: unset;
+	width: 12px;
+	height: 12px;
 }
