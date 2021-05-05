@@ -513,6 +513,7 @@ class ParallelTestRunner():
 		self.setup_test_site()
 		self.ci_instance_id = ci_instance_id or frappe.generate_hash(length=10)
 		frappe.flags.in_test = True
+		self.run_before_test_hooks()
 		self.start_test()
 
 	def setup_test_site(self):
@@ -524,7 +525,8 @@ class ParallelTestRunner():
 		frappe.utils.scheduler.disable_scheduler()
 		set_test_email_config()
 
-	def run_before_test_hook(self):
+	def run_before_test_hooks(self):
+		click.echo('Running "before_tests" hooks...')
 		for fn in frappe.get_hooks("before_tests", app_name=self.app):
 			frappe.get_attr(fn)()
 
