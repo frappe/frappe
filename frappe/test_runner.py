@@ -17,6 +17,9 @@ from six.moves import reload_module
 from frappe.model.naming import revert_series_if_last
 import click
 import requests
+import unittest.util
+
+click.get_current_context().color = True
 
 unittest_runner = unittest.TextTestRunner
 SLOW_TEST_THRESHOLD = 2
@@ -239,6 +242,12 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 		module_name = '{app}.{relative_path}.{module_name}'.format(app=app,
 			relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
 
+	test_module = importlib.import_module(f'{app}.tests')
+
+	if hasattr(test_module, "global_test_dependencies"):
+		for doctype in test_module.global_test_dependencies:
+			make_test_records(doctype, verbose=verbose)
+
 	module = importlib.import_module(module_name)
 
 	if hasattr(module, "test_dependencies"):
@@ -425,57 +434,60 @@ def get_test_record_log():
 
 	return frappe.flags.test_record_log
 
-class Writeln(object):
-	def __init__(self,stream):
-		self.stream = stream
 
-	def __getattr__(self, attr):
-		if attr in ('stream', '__getstate__'):
-			raise AttributeError(attr)
-		return getattr(self.stream,attr)
-
-	def writeln(self, arg=None):
-		if arg:
-			self.write(arg)
-		self.write('\n')
-
-class PrettyPrintResult(unittest.TextTestResult):
+class ParallelTestResult(unittest.TextTestResult):
 	def startTest(self, test):
 		super(unittest.TextTestResult, self).startTest(test)
-		click.echo('\n')
+		test_class = unittest.util.strclass(test.__class__)
+		if not hasattr(self, 'current_test_class') or self.current_test_class != test_class:
+			click.echo(f"\n{unittest.util.strclass(test.__class__)}")
+			self.current_test_class = test_class
+
+	def getTestMethodName(self, test):
+		return test._testMethodName if hasattr(test, '_testMethodName') else str(test)
 
 	def addSuccess(self, test):
 		super(unittest.TextTestResult, self).addSuccess(test)
-		click.echo("%s %s" % (click.style(' PASS ', bg='green', fg='black'), self.getDescription(test)))
+		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")
 
 	def addError(self, test, err):
 		super(unittest.TextTestResult, self).addError(test, err)
-		click.echo("%s %s" % (click.style(' ERROR ', bg='red', fg='white'), self.getDescription(test)))
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
 
 	def addFailure(self, test, err):
 		super(unittest.TextTestResult, self).addFailure(test, err)
-		click.echo("%s %s" % (click.style(' FAIL ', bg='red', fg='white'), self.getDescription(test)))
-		click.echo('\n')
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addSkip(self, test, reason):
+		super(unittest.TextTestResult, self).addSkip(test, reason)
+		click.echo(f"  {click.style(' = ', fg='white')} {self.getTestMethodName(test)}")
+
+	def addExpectedFailure(self, test, err):
+		super(unittest.TextTestResult, self).addExpectedFailure(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addUnexpectedSuccess(self, test):
+		super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
+		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")
 
 	def printErrors(self):
-		if self.dots or self.showAll:
-			self.stream.writeln()
+		click.echo('\n')
 		self.printErrorList(' ERROR ', self.errors, 'red')
 		self.printErrorList(' FAIL ', self.failures, 'red')
 
 	def printErrorList(self, flavour, errors, color):
 		for test, err in errors:
 			click.echo(self.separator1)
-			click.echo("%s %s" % (click.style(flavour, bg=color), self.getDescription(test)))
+			click.echo(f"{click.style(flavour, bg=color)} {self.getDescription(test)}")
 			click.echo(self.separator2)
-			click.echo("%s" % err)
+			click.echo(err)
 
 	def __repr__(self):
-		return f"run={self.testsRun} errors={len(self.errors)} failures={len(self.failures)}"
+		return f"Tests={self.testsRun} Failing={len(self.failures)} Errors={len(self.errors)}"
 
-def get_all_tests():
+def get_all_tests(app):
 	test_file_list = []
-	for path, folders, files in os.walk(frappe.get_pymodule_path('frappe')):
+	for path, folders, files in os.walk(frappe.get_pymodule_path(app)):
 		for dontwalk in ('locals', '.git', 'public', '__pycache__'):
 			if dontwalk in folders:
 				folders.remove(dontwalk)
@@ -486,7 +498,7 @@ def get_all_tests():
 
 		# print path
 		for filename in files:
-			if filename.startswith("test_") and filename.endswith(".py")\
+			if filename.startswith("test_") and filename.endswith(".py") \
 				and filename != 'test_runner.py':
 				test_file_list.append(os.path.join(path, filename))
 	return test_file_list
@@ -495,9 +507,9 @@ class ParallelTestRunner():
 	def __init__(self, app, site, ci_build_id, ci_instance_id=None, with_coverage=False):
 		self.app = app
 		self.site = site
-		self.orchestrator_url = 'https://8b52f89a8c13.ngrok.io'
-		self.ci_build_id = ci_build_id
-		self.with_coverage = with_coverage
+		self.orchestrator_url = 'http://1b4f43f01e4d.ngrok.io'
+		self.ci_build_id = ci_build_id or '123123'
+		self.with_coverage = False
 		self.setup_test_site()
 		self.ci_instance_id = ci_instance_id or frappe.generate_hash(length=10)
 		frappe.flags.in_test = True
@@ -518,7 +530,7 @@ class ParallelTestRunner():
 
 	def start_test(self):
 		self.register_instance()
-		self.test_result = PrettyPrintResult(stream=Writeln(sys.stderr), descriptions=True, verbosity=2)
+		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
 		self.test_status = 'ongoing'
 
 		self.setup_coverage()
@@ -529,8 +541,12 @@ class ParallelTestRunner():
 		self.call_orchestrator('test-completed')
 		self.submit_coverage()
 
+		if self.test_result.failures or self.test_result.errors:
+			if os.environ.get('CI'):
+				sys.exit(1)
+
 	def register_instance(self):
-		test_spec_list = get_all_tests()
+		test_spec_list = get_all_tests(self.app)
 		response_data = self.call_orchestrator('init-test', data={
 			'test_spec_list': test_spec_list
 		})
@@ -562,9 +578,13 @@ class ParallelTestRunner():
 				relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
 
 		module = importlib.import_module(module_name)
+		frappe.set_user('Administrator')
 		if hasattr(module, "test_dependencies"):
 			for doctype in module.test_dependencies:
-				make_test_records(doctype)
+				try:
+					make_test_records(doctype)
+				except:
+					pass
 
 		test_suite = unittest.TestSuite()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
@@ -589,7 +609,6 @@ class ParallelTestRunner():
 			res = requests.post(url, headers=headers, files=files)
 		else:
 			res = requests.get(url, data=data, headers=headers)
-		print(self.ci_build_id, self.ci_instance_id, endpoint)
 		res.raise_for_status()
 		response_data = {}
 		if 'application/json' in res.headers.get('content-type'):
@@ -630,9 +649,11 @@ class ParallelTestRunner():
 			self.coverage.start()
 
 	def submit_coverage(self):
-		if self.with_coverage:
-			self.coverage.stop()
-			self.coverage.save()
+		if not self.with_coverage:
+			return
+
+		self.coverage.stop()
+		self.coverage.save()
 
 		if self.is_master:
 			self.build_coverage_file()

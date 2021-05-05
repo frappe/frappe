@@ -90,17 +90,16 @@ jobs:
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
-          TYPE: 'ui'
+          TYPE: ui
 
       - name: Install
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
-          DB: 'mariadb'
-          TYPE: 'ui'
+          DB: mariadb
+          TYPE: ui
 
-      - name: Run Set-Up
-        if: matrix.TYPE == 'ui'
+      - name: Site Setup
         run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
 
-      - name: Run Tests
+      - name: UI Tests
         run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID
