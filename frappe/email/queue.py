@@ -7,7 +7,8 @@ import sys
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
 from frappe import msgprint, _, safe_decode, safe_encode, enqueue
-from frappe.email.smtp import SMTPServer, get_outgoing_email_account
+from frappe.email.smtp import SMTPServer
+from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
@@ -73,7 +74,9 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	if isinstance(send_after, int):
 		send_after = add_days(nowdate(), send_after)
 
-	email_account = get_outgoing_email_account(True, append_to=reference_doctype, sender=sender)
+	email_account = EmailAccount.find_outgoing(
+		match_by_doctype=reference_doctype, match_by_email=sender, _raise_error=True)
+
 	if not sender or sender == "Administrator":
 		sender = email_account.default_sender
 
@@ -516,7 +519,7 @@ def prepare_message(email, recipient, recipients_list):
 		return ""
 
 	# Parse "Email Account" from "Email Sender"
-	email_account = get_outgoing_email_account(raise_exception_not_set=False, sender=email.sender)
+	email_account = EmailAccount.find_outgoing(match_by_email=email.sender)
 	if frappe.conf.use_ssl and email_account.track_email_status:
 		# Using SSL => Publically available domain => Email Read Reciept Possible
 		message = message.replace("<!--email open check-->", quopri.encodestring('<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'.format(frappe.local.site, email.communication).encode()).decode())
