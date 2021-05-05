@@ -19,10 +19,12 @@ import click
 import requests
 import unittest.util
 
-click.get_current_context().color = True
-
 unittest_runner = unittest.TextTestRunner
 SLOW_TEST_THRESHOLD = 2
+
+click_ctx = click.get_current_context(True)
+if click_ctx:
+	click_ctx.color = True
 
 def xmlrunner_wrapper(output):
 	"""Convenience wrapper to keep method signature unchanged for XMLTestRunner and TextTestRunner"""
