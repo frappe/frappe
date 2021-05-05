@@ -9,7 +9,6 @@ import frappe
 import frappe.utils
 import frappe.sessions
 from frappe.utils import cint
-from frappe.api import validate_auth
 from frappe import _, is_whitelisted
 from frappe.utils.response import build_response
 from frappe.utils.csvutils import build_csv_response
@@ -24,7 +23,7 @@ ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/
 
 def handle():
 	"""handle request"""
-	validate_auth()
+
 	cmd = frappe.local.form_dict.cmd
 	data = None
 

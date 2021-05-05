@@ -313,7 +313,8 @@ frappe.ui.GroupBy = class {
 
 			Object.assign(args, {
 				with_comment_count: false,
-				aggregate_on: this.aggregate_on || 'name',
+				aggregate_on_field: this.aggregate_on_field || 'name',
+				aggregate_on_doctype: this.aggregate_on_doctype || this.doctype,
 				aggregate_function: this.aggregate_function || 'count',
 				group_by: this.report_view.group_by || null,
 				order_by: '_aggregate_column desc',

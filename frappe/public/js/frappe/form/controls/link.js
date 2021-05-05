@@ -241,16 +241,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$input.on("awesomplete-open", () => {
-			this.toggle_container_scroll('.modal-dialog', 'modal-dialog-scrollable');
-			this.toggle_container_scroll('.grid-form-body .form-area', 'scrollable');
-
 			this.autocomplete_open = true;
 		});
 
 		this.$input.on("awesomplete-close", () => {
-			this.toggle_container_scroll('.modal-dialog', 'modal-dialog-scrollable', true);
-			this.toggle_container_scroll('.grid-form-body .form-area', 'scrollable', true);
-
 			this.autocomplete_open = false;
 		});
 
@@ -462,9 +456,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
 					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
 				}
-
 				// if default and no fetch, no need to validate
-				if (!fetch && df.__default_value && df.__default_value===value) return value;
+				if (!fetch && df.__default_value && df.__default_value===value) {
+					resolve(value);
+				}
 
 				this.fetch_and_validate_link(resolve, df, doctype, docname, value, fetch);
 			});

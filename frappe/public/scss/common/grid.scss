@@ -196,7 +196,7 @@
 		margin-left: 1rem;
 	}
 
-	.grid-static-col[data-fieldtype="Code"] {
+	.grid-static-col[data-fieldtype="Code"], .grid-static-col[data-fieldtype="HTML Editor"] {
 		overflow: hidden;
 
 		.static-area {

@@ -44,7 +44,7 @@
     "quill": "2.0.0-dev.4",
     "quill-image-resize": "^3.0.9",
     "qz-tray": "^2.0.8",
-    "redis": "^2.8.0",
+    "redis": "^3.1.1",
     "showdown": "^1.9.1",
     "snyk": "^1.518.0",
     "socket.io": "^2.4.0",
