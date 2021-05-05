@@ -101,7 +101,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           flag-name: run-${{ matrix.test_number }}
-          path-to-cov: ~/frappe-bench/sites/.coverage
+          path-to-lcov: ~/frappe-bench/sites/.coverage
           parallel: true
 
   finish:
