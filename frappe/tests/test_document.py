@@ -195,36 +195,6 @@ class TestDocument(unittest.TestCase):
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
 
-	def test_link_count(self):
-		from frappe.model.utils.link_count import update_link_count
-
-		update_link_count()
-
-		doctype, name = 'User', 'test@example.com'
-
-		d = self.test_insert()
-		d.append('event_participants', {"reference_doctype": doctype, "reference_docname": name})
-
-		d.save()
-
-		link_count = frappe.cache().get_value('_link_count') or {}
-		old_count = link_count.get((doctype, name)) or 0
-
-		frappe.db.commit()
-
-		link_count = frappe.cache().get_value('_link_count') or {}
-		new_count = link_count.get((doctype, name)) or 0
-
-		self.assertEqual(old_count + 1, new_count)
-
-		before_update = frappe.db.get_value(doctype, name, 'idx')
-
-		update_link_count()
-
-		after_update = frappe.db.get_value(doctype, name, 'idx')
-
-		self.assertEqual(before_update + new_count, after_update)
-
 	def test_naming_series(self):
 		data = ["TEST-", "TEST/17-18/.test_data./.####", "TEST.YYYY.MM.####"]
 
