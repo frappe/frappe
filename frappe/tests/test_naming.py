@@ -106,7 +106,7 @@ class TestNaming(unittest.TestCase):
 
 		self.assertEqual(count.get('current'), 2)
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
-  
+
 		series = ''
 		key = '.#####.-2021-22'
 		name = '00003-2021-22'
