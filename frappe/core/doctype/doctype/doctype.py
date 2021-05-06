@@ -76,6 +76,7 @@ class DocType(Document):
 		self.validate_series()
 		self.validate_document_type()
 		validate_fields(self)
+		self.validate_field_name_conflicts()
 
 		if self.istable:
 			# no permission records for child table
@@ -97,6 +98,55 @@ class DocType(Document):
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
 
+<<<<<<< HEAD
+=======
+		if frappe.conf.get('developer_mode'):
+			self.owner = 'Administrator'
+			self.modified_by = 'Administrator'
+
+	def validate_field_name_conflicts(self):
+		"""Check if field names dont conflict with controller properties and methods"""
+		from frappe.model.base_document import get_controller
+
+		controller = get_controller(self.name)
+		available_objects = {x for x in dir(controller) if isinstance(x, str)}
+		property_set = {
+			x for x in available_objects if isinstance(getattr(controller, x, None), property)
+		}
+		method_set = {
+			x for x in available_objects if x not in property_set and callable(getattr(controller, x, None))
+		}
+
+		for docfield in self.get("fields") or []:
+			conflict_type = ""
+			field = docfield.fieldname
+			field_label = docfield.label or docfield.fieldname
+
+			if docfield.fieldname in method_set:
+				conflict_type = "controller method"
+			if docfield.fieldname in property_set:
+				conflict_type = "class property"
+
+			if conflict_type:
+				frappe.throw(
+					_("Fieldname '{0}' conflicting with a {1} of the name {2} in {3}")
+						.format(field_label, conflict_type, field, self.name)
+				)
+
+	def after_insert(self):
+		# clear user cache so that on the next reload this doctype is included in boot
+		clear_user_cache(frappe.session.user)
+
+	def set_defaults_for_single_and_table(self):
+		if self.issingle:
+			self.allow_import = 0
+			self.is_submittable = 0
+			self.istable = 0
+
+		elif self.istable:
+			self.allow_import = 0
+			self.permissions = []
+>>>>>>> c652c7b7f5... feat: Validate field name conflicts in DocType.validate
 
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''
