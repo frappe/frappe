@@ -526,16 +526,20 @@ class ParallelTestRunner():
 		set_test_email_config()
 
 	def run_before_test_hooks(self):
-		click.echo('Running "before_tests" hooks...')
+		start_time = time.time()
 		for fn in frappe.get_hooks("before_tests", app_name=self.app):
 			frappe.get_attr(fn)()
+		self.make_test_records()
+
+		elapsed = time.time() - start_time
+		elapsed = click.style(f' ({elapsed:.03}s)', fg='red')
+		click.echo(f'Before Test {elapsed}')
+
 
 	def start_test(self):
 		self.register_instance()
 		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
 		self.test_status = 'ongoing'
-
-		self.make_test_records()
 
 		self.setup_coverage()
 		while self.test_status == 'ongoing':

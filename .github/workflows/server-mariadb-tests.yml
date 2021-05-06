@@ -134,7 +134,7 @@ jobs:
       - name: Coveralls Finished
         run: |
           cd ${GITHUB_WORKSPACE}
-          pip install coveralls==3.0.0
+          pip install coveralls==3.0.1
           pip install coverage==4.5.4
           coveralls debug --finish
         env:
