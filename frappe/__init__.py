@@ -1173,9 +1173,8 @@ def get_newargs(fn, kwargs):
 		fnargs = fn.fnargs
 	else:
 		fnargs = inspect.getfullargspec(fn).args
-		varargs = inspect.getfullargspec(fn).varargs
+		fnargs.extend(inspect.getfullargspec(fn).kwonlyargs)
 		varkw = inspect.getfullargspec(fn).varkw
-		defaults = inspect.getfullargspec(fn).defaults
 
 	newargs = {}
 	for a in kwargs:
