@@ -124,6 +124,7 @@ def handle_setup_exception(args):
 	frappe.db.rollback()
 	if args:
 		traceback = frappe.get_traceback()
+		print(traceback)
 		for hook in frappe.get_hooks("setup_wizard_exception"):
 			frappe.get_attr(hook)(traceback, args)
 
