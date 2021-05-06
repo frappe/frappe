@@ -8,7 +8,7 @@ from frappe.utils import cint
 from frappe.utils import set_request
 from frappe.auth import validate_ip_address, get_login_attempt_tracker
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, get_cached_user_pass,
-	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj)
+	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj, ExpiredLoginException)
 from . import update_system_settings, get_system_setting
 
 import time
@@ -111,6 +111,7 @@ class TestTwoFactor(unittest.TestCase):
 
 	def test_confirm_otp_token(self):
 		'''Ensure otp is confirmed'''
+		frappe.flags.otp_expiry = 2
 		authenticate_for_2factor(self.user)
 		tmp_id = frappe.local.response['tmp_id']
 		otp = 'wrongotp'
@@ -118,10 +119,11 @@ class TestTwoFactor(unittest.TestCase):
 			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
 		otp = get_otp(self.user)
 		self.assertTrue(confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id))
+		frappe.flags.otp_expiry = None
 		if frappe.flags.tests_verbose:
-			print('Sleeping for 30secs to confirm token expires..')
-		time.sleep(30)
-		with self.assertRaises(frappe.AuthenticationError):
+			print('Sleeping for 2 secs to confirm token expires..')
+		time.sleep(2)
+		with self.assertRaises(ExpiredLoginException):
 			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
 
 	def test_get_verification_obj(self):
