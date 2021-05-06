@@ -232,6 +232,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.get_minimize_btn().html(frappe.utils.icon(icon));
 		this.on_minimize_toggle && this.on_minimize_toggle(this.is_minimized);
 		this.header.find('.modal-title').toggleClass('cursor-pointer');
+		var body = $("body");
+		body.hasClass("modal-open") ? body.removeClass("modal-open") : body.addClass("modal-open");
 	}
 
 	add_custom_action(label, action, css_class=null) {
