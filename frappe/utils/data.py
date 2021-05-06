@@ -871,7 +871,7 @@ def in_words(integer, in_million=True):
 	return ret.replace('-', ' ')
 
 def is_html(text):
-	if not isinstance(text, frappe.string_types):
+	if not isinstance(text, str):
 		return False
 	return re.search('<[^>]+>', text)
 
