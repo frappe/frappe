@@ -163,11 +163,11 @@ class PersonalDataDeletionRequest(Document):
 
 	def redact_full_match_data(self, ref, email):
 		"""Replaces the entire field value by the values set in the anonymization_value_map"""
-		filter_by = ref["filter_by"]
+		filter_by = ref.get("filter_by", "owner")
 
 		docs = frappe.get_all(
 			ref["doctype"],
-			filters={filter_by: ("like", "%" + email + "%")},
+			filters={filter_by: email},
 			fields=["name", filter_by],
 		)
 
@@ -205,7 +205,7 @@ class PersonalDataDeletionRequest(Document):
 		return anonymize_fields_dict
 
 	def redact_doc(self, doc, ref):
-		filter_by = ref["filter_by"]
+		filter_by = ref.get("filter_by", "owner")
 		meta = frappe.get_meta(ref["doctype"])
 		filter_by_meta = meta.get_field(filter_by)
 
