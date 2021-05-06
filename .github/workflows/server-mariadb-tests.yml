@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       containers: [1, 2]
+       container: [1, 2]
 
     name: MariaDB Tests
 
@@ -96,20 +96,48 @@ jobs:
       - name: Run Tests
         run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --with-coverage --ci-build-id $GITHUB_RUN_ID
 
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          flag-name: run-${{ matrix.test_number }}
-          path-to-lcov: ~/frappe-bench/sites/.coverage
-          parallel: true
+      - name: Upload Coverage Data
+        if: github.event_name == 'pull_request'
+        run: |
+          cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
+          cd ${GITHUB_WORKSPACE}
+          pip install coveralls==2.2.0
+          pip install coverage==4.5.4
+          coveralls debug --service=github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+          COVERALLS_FLAG_NAME: run-${{ matrix.test_number }}
+          COVERALLS_SERVICE_NAME: github
+          COVERALLS_PARALLEL: true
 
-  finish:
-      needs: test
-      runs-on: ubuntu-18.04
-      steps:
+      - name: Upload Coverage Data
+        if: github.event_name == 'push'
+        run: |
+          cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
+          cd ${GITHUB_WORKSPACE}
+          pip install coveralls==2.2.0
+          pip install coverage==4.5.4
+          coveralls debug --service=github-actions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+          COVERALLS_FLAG_NAME: run-${{ matrix.container }}
+          COVERALLS_SERVICE_NAME: github-actions
+          COVERALLS_PARALLEL: true
+
+  coveralls:
+    name: Coverage Wrap Up
+    needs: test
+    runs-on: ubuntu-18.04
+    container: python:3-slim
+    steps:
       - name: Coveralls Finished
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.github_token }}
-          parallel-finished: true
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          pip install coveralls==3.0.0
+          pip install coverage==4.5.4
+          coveralls debug --finish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
