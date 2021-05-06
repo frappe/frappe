@@ -1172,6 +1172,7 @@ def get_newargs(fn, kwargs):
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:
+<<<<<<< HEAD
 		try:
 			fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
 		except ValueError:
@@ -1179,6 +1180,11 @@ def get_newargs(fn, kwargs):
 			varargs = inspect.getfullargspec(fn).varargs
 			varkw = inspect.getfullargspec(fn).varkw
 			defaults = inspect.getfullargspec(fn).defaults
+=======
+		fnargs = inspect.getfullargspec(fn).args
+		fnargs.extend(inspect.getfullargspec(fn).kwonlyargs)
+		varkw = inspect.getfullargspec(fn).varkw
+>>>>>>> 6c85c36630... refactor: Remove deprecated inspect.getargspec
 
 	newargs = {}
 	for a in kwargs:
