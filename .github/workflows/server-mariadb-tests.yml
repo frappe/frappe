@@ -130,7 +130,6 @@ jobs:
     name: Coverage Wrap Up
     needs: test
     runs-on: ubuntu-18.04
-    container: python:3-slim
     steps:
       - name: Coveralls Finished
         run: |
