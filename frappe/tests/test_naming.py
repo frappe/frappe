@@ -16,50 +16,50 @@ class TestNaming(unittest.TestCase):
 		todo_doctype.autoname = 'hash'
 		todo_doctype.save()
 
-	# def test_append_number_if_name_exists(self):
-	# 	'''
-	# 	Append number to name based on existing values
-	# 	if Bottle exists
-	# 		Bottle -> Bottle-1
-	# 	if Bottle-1 exists
-	# 		Bottle -> Bottle-2
-	# 	'''
+	def test_append_number_if_name_exists(self):
+		'''
+		Append number to name based on existing values
+		if Bottle exists
+			Bottle -> Bottle-1
+		if Bottle-1 exists
+			Bottle -> Bottle-2
+		'''
 
-	# 	note = frappe.new_doc('Note')
-	# 	note.title = 'Test'
-	# 	note.insert()
+		note = frappe.new_doc('Note')
+		note.title = 'Test'
+		note.insert()
 
-	# 	title2 = append_number_if_name_exists('Note', 'Test')
-	# 	self.assertEqual(title2, 'Test-1')
+		title2 = append_number_if_name_exists('Note', 'Test')
+		self.assertEqual(title2, 'Test-1')
 
-	# 	title2 = append_number_if_name_exists('Note', 'Test', 'title', '_')
-	# 	self.assertEqual(title2, 'Test_1')
+		title2 = append_number_if_name_exists('Note', 'Test', 'title', '_')
+		self.assertEqual(title2, 'Test_1')
 
-	# def test_format_autoname(self):
-	# 	'''
-	# 	Test if braced params are replaced in format autoname
-	# 	'''
-	# 	doctype = 'ToDo'
+	def test_format_autoname(self):
+		'''
+		Test if braced params are replaced in format autoname
+		'''
+		doctype = 'ToDo'
 
-	# 	todo_doctype = frappe.get_doc('DocType', doctype)
-	# 	todo_doctype.autoname = 'format:TODO-{MM}-{status}-{##}'
-	# 	todo_doctype.save()
+		todo_doctype = frappe.get_doc('DocType', doctype)
+		todo_doctype.autoname = 'format:TODO-{MM}-{status}-{##}'
+		todo_doctype.save()
 
-	# 	description = 'Format'
+		description = 'Format'
 
-	# 	todo = frappe.new_doc(doctype)
-	# 	todo.description = description
-	# 	todo.insert()
+		todo = frappe.new_doc(doctype)
+		todo.description = description
+		todo.insert()
 
-	# 	series = getseries('', 2)
+		series = getseries('', 2)
 
-	# 	series = str(int(series)-1)
+		series = str(int(series)-1)
 
-	# 	if len(series) < 2:
-	# 		series = '0' + series
+		if len(series) < 2:
+			series = '0' + series
 
-	# 	self.assertEqual(todo.name, 'TODO-{month}-{status}-{series}'.format(
-	# 		month=now_datetime().strftime('%m'), status=todo.status, series=series))
+		self.assertEqual(todo.name, 'TODO-{month}-{status}-{series}'.format(
+			month=now_datetime().strftime('%m'), status=todo.status, series=series))
 
 	def test_revert_series(self):
 		from datetime import datetime
