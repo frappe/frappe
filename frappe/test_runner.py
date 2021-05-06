@@ -244,12 +244,6 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 		module_name = '{app}.{relative_path}.{module_name}'.format(app=app,
 			relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
 
-	test_module = importlib.import_module(f'{app}.tests')
-
-	if hasattr(test_module, "global_test_dependencies"):
-		for doctype in test_module.global_test_dependencies:
-			make_test_records(doctype, verbose=verbose)
-
 	module = importlib.import_module(module_name)
 
 	if hasattr(module, "test_dependencies"):
@@ -439,6 +433,7 @@ def get_test_record_log():
 
 class ParallelTestResult(unittest.TextTestResult):
 	def startTest(self, test):
+		self._started_at = time.time()
 		super(unittest.TextTestResult, self).startTest(test)
 		test_class = unittest.util.strclass(test.__class__)
 		if not hasattr(self, 'current_test_class') or self.current_test_class != test_class:
@@ -450,7 +445,10 @@ class ParallelTestResult(unittest.TextTestResult):
 
 	def addSuccess(self, test):
 		super(unittest.TextTestResult, self).addSuccess(test)
-		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")
+		elapsed = time.time() - self._started_at
+		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
+		elapsed = click.style(f' ({elapsed:.03}s)', fg='red') if threshold_passed else ''
+		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed}")
 
 	def addError(self, test, err):
 		super(unittest.TextTestResult, self).addError(test, err)
@@ -537,6 +535,8 @@ class ParallelTestRunner():
 		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
 		self.test_status = 'ongoing'
 
+		self.make_test_records()
+
 		self.setup_coverage()
 		while self.test_status == 'ongoing':
 			self.run_tests_for_file(self.get_next_test())
@@ -560,6 +560,13 @@ class ParallelTestRunner():
 		response_data = self.call_orchestrator('get-next-test')
 		self.test_status = response_data.get('status')
 		return response_data.get('next_test')
+
+	def make_test_records(self):
+		test_module = importlib.import_module(f'{self.app}.tests')
+
+		if hasattr(test_module, "global_test_dependencies"):
+			for doctype in test_module.global_test_dependencies:
+				make_test_records(doctype)
 
 	def run_tests_for_file(self, file_path):
 		if not file_path:
