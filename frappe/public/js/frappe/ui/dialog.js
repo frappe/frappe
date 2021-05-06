@@ -232,7 +232,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.get_minimize_btn().html(frappe.utils.icon(icon));
 		this.on_minimize_toggle && this.on_minimize_toggle(this.is_minimized);
 		this.header.find('.modal-title').toggleClass('cursor-pointer');
-		$("body").toggleClass("modal-open", !this.is_minimized);
+		this.is_minimized ? $("body").css("overflow","auto") : $("body").css("overflow", "hidden")
 	}
 
 	add_custom_action(label, action, css_class=null) {
