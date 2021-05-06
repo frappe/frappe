@@ -258,10 +258,10 @@ app_license = "{app_license}"
 # 	],
 # 	"weekly": [
 # 		"{app_name}.tasks.weekly"
-# 	]
+# 	],
 # 	"monthly": [
 # 		"{app_name}.tasks.monthly"
-# 	]
+# 	],
 # }}
 
 # Testing
