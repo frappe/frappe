@@ -504,14 +504,13 @@ def get_all_tests(app):
 	return test_file_list
 
 class ParallelTestRunner():
-	def __init__(self, app, site, ci_build_id, ci_instance_id=None, with_coverage=False):
+	def __init__(self, app, site, build_number=1, total_builds=1, with_coverage=False):
 		self.app = app
 		self.site = site
-		self.orchestrator_url = 'http://1b4f43f01e4d.ngrok.io'
-		self.ci_build_id = ci_build_id or '123123'
 		self.with_coverage = with_coverage
 		self.setup_test_site()
-		self.ci_instance_id = ci_instance_id or frappe.generate_hash(length=10)
+		self.build_number = frappe.utils.cint(build_number) or 1
+		self.total_builds = frappe.utils.cint(total_builds)
 		frappe.flags.in_test = True
 		self.run_before_test_hooks()
 		self.start_test()
@@ -537,33 +536,20 @@ class ParallelTestRunner():
 
 
 	def start_test(self):
-		self.register_instance()
 		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
 		self.test_status = 'ongoing'
 
 		self.setup_coverage()
-		while self.test_status == 'ongoing':
-			self.run_tests_for_file(self.get_next_test())
+		for test in self.get_test_list():
+			self.run_tests_for_file(test)
 
 		self.print_result()
-		self.call_orchestrator('test-completed')
 		self.save_coverage()
 
 		if self.test_result.failures or self.test_result.errors:
 			if os.environ.get('CI'):
 				sys.exit(1)
 
-	def register_instance(self):
-		test_spec_list = get_all_tests(self.app)
-		response_data = self.call_orchestrator('init-test', data={
-			'test_spec_list': test_spec_list
-		})
-		self.is_master = response_data.get('is_master')
-
-	def get_next_test(self):
-		response_data = self.call_orchestrator('get-next-test')
-		self.test_status = response_data.get('status')
-		return response_data.get('next_test')
 
 	def make_test_records(self):
 		test_module = importlib.import_module(f'{self.app}.tests')
@@ -601,6 +587,14 @@ class ParallelTestRunner():
 				except:
 					pass
 
+		if os.path.basename(os.path.dirname(path)) == "doctype":
+			txt_file = os.path.join(path, filename[5:].replace(".py", ".json"))
+			if os.path.exists(txt_file):
+				with open(txt_file, 'r') as f:
+					doc = json.loads(f.read())
+				doctype = doc["name"]
+				make_test_records(doctype)
+
 		test_suite = unittest.TestSuite()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		test_suite.addTest(module_test_cases)
@@ -610,28 +604,6 @@ class ParallelTestRunner():
 		self.test_result.printErrors()
 		click.echo(self.test_result)
 
-	def call_orchestrator(self, endpoint, data={}, files={}):
-		# add repo token header
-		# build id in header
-		headers = {
-			'CI-BUILD-ID': self.ci_build_id,
-			'CI-INSTANCE-ID': self.ci_instance_id,
-			'REPO-TOKEN': '2948288382838DE'
-		}
-		url = f'{self.orchestrator_url}/{endpoint}'
-
-		if files:
-			res = requests.post(url, headers=headers, files=files)
-		else:
-			res = requests.get(url, data=data, headers=headers)
-		res.raise_for_status()
-		response_data = {}
-		if 'application/json' in res.headers.get('content-type'):
-			response_data = res.json()
-		elif 'application/zip' in res.headers.get('content-type'):
-			response_data = res.content
-
-		return response_data
 
 	def setup_coverage(self):
 		if self.with_coverage:
@@ -668,29 +640,10 @@ class ParallelTestRunner():
 		self.coverage.stop()
 		self.coverage.save()
 
-		# if self.is_master:
-		# 	self.build_coverage_file()
-		# else:
-		# 	self.upload_coverage_file()
 
+	def get_test_list(self):
+		test_list = get_all_tests(self.app)
+		split_size = frappe.utils.ceil(len(test_list) / self.total_builds)
+		test_chunks = [test_list[x:x+split_size] for x in range(0, len(test_list), split_size)]
+		return test_chunks[self.build_number - 1]
 
-	def upload_coverage_file(self):
-		files = {'upload_file': open(f'coverage_data.{self.ci_instance_id}','rb')}
-		self.call_orchestrator('upload-coverage-file', files=files)
-
-
-	def build_coverage_file(self):
-		import time
-		import zipfile
-		import io
-		click.echo()
-		while self.call_orchestrator('test-status')['test_status'] == 'ongoing':
-			click.echo('Waiting for tests to complete...')
-			time.sleep(5)
-
-		res = self.call_orchestrator('download-coverage-files')
-		z = zipfile.ZipFile(io.BytesIO(res))
-		z.extractall("./coverage_files")
-		file_list = os.listdir('./coverage_files')
-
-		self.coverage.combine(data_paths=file_list)
