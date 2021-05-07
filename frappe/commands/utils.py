@@ -686,11 +686,17 @@ def make_app(destination, app_name):
 @click.argument('key')
 @click.argument('value')
 @click.option('-g', '--global', 'global_', is_flag=True, default=False, help='Set value in bench config')
-@click.option('-p', '--parse', '--as-dict', is_flag=True, default=False, help='Evaluate as Python Object')
+@click.option('-p', '--parse', is_flag=True, default=False, help='Evaluate as Python Object')
+@click.option('--as-dict', is_flag=True, default=False, help='Legacy: Evaluate as Python Object')
 @pass_context
-def set_config(context, key, value, global_=False, parse=False):
+def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
+
+	if as_dict:
+		from frappe.utils.commands import warn
+		warn("--as-dict will be deprecated in v14. Use --parse instead", category=PendingDeprecationWarning)
+		parse = as_dict
 
 	if parse:
 		import ast
