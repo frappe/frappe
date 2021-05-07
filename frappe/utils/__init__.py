@@ -160,6 +160,36 @@ def split_emails(txt):
 
 	return email_list
 
+<<<<<<< HEAD
+=======
+def validate_url(txt, throw=False, valid_schemes=None):
+	"""
+		Checks whether `txt` has a valid URL string
+
+		Parameters:
+			throw (`bool`): throws a validationError if URL is not valid
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
+
+		Returns:
+			bool: if `txt` represents a valid URL
+	"""
+	url = urlparse(txt)
+	is_valid = bool(url.netloc)
+
+	# Handle scheme validation
+	if isinstance(valid_schemes, str):
+		is_valid = is_valid and (url.scheme == valid_schemes)
+	elif isinstance(valid_schemes, (list, tuple, set)):
+		is_valid = is_valid and (url.scheme in valid_schemes)
+
+	if not is_valid and throw:
+		frappe.throw(
+			frappe._("'{0}' is not a valid URL").format(frappe.bold(txt))
+		)
+
+	return is_valid
+
+>>>>>>> 855efcfd59... style: Trim whitespace and remove unnecessary parenthesis
 def random_string(length):
 	"""generate a random string"""
 	import string
@@ -406,7 +436,7 @@ def get_test_client():
 	return Client(application)
 
 def get_hook_method(hook_name, fallback=None):
-	method = (frappe.get_hooks().get(hook_name))
+	method = frappe.get_hooks().get(hook_name)
 	if method:
 		method = frappe.get_attr(method[0])
 		return method
