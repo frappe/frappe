@@ -1,3 +1,5 @@
+import ast
+import glob
 import os
 import shutil
 import unittest
@@ -74,3 +76,13 @@ class TestBoilerPlate(unittest.TestCase):
 
 		for path in all_paths:
 			self.assertTrue(os.path.exists(path), msg=f"{path} should exist in new app")
+
+		# check if python files are parsable
+		python_files = glob.glob(new_app_dir + "**/*.py", recursive=True)
+
+		for python_file in python_files:
+			with open(python_file) as p:
+				try:
+					ast.parse(p.read())
+				except Exception as e:
+					self.fail(f"Can't parse python file in new app: {python_file}\n" + str(e))
