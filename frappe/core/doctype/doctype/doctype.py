@@ -70,7 +70,6 @@ class DocType(Document):
 		validate_series(self)
 		self.validate_document_type()
 		validate_fields(self)
-		self.validate_field_name_conflicts()
 
 		if not self.istable:
 			validate_permissions(self)
@@ -84,6 +83,7 @@ class DocType(Document):
 		if not self.is_new():
 			self.before_update = frappe.get_doc('DocType', self.name)
 			self.setup_fields_to_fetch()
+			self.validate_field_name_conflicts()
 
 		check_email_append_to(self)
 
