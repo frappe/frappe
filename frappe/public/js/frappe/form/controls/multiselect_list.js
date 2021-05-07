@@ -1,5 +1,9 @@
 frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends frappe.ui.form.ControlData {
-	trigger_change_on_input_event = false
+	constructor(opts) {
+		opts.trigger_change_on_input_event = false;
+		super(opts);
+	}
+
 	make_input() {
 		let template  = `
 			<div class="multiselect-list dropdown">

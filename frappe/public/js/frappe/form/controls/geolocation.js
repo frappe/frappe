@@ -1,7 +1,10 @@
 frappe.provide('frappe.utils.utils');
 
 frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.form.ControlData {
-	horizontal = false
+	constructor(opts) {
+		opts.horizontal = false;
+		super(opts);
+	}
 
 	make_wrapper() {
 		// Create the elements for map area

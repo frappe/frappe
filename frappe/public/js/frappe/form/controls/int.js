@@ -1,5 +1,9 @@
 frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData {
-	trigger_change_on_input_event = false
+	constructor(opts) {
+		opts.trigger_change_on_input_event = false;
+		super(opts);
+	}
+
 	make () {
 		super.make();
 		// $(this.label_area).addClass('pull-right');

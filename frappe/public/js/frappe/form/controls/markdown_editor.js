@@ -1,5 +1,9 @@
 frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frappe.ui.form.ControlCode {
-	editor_class = 'markdown'
+	constructor(opts) {
+		opts.editor_class = 'markdown';
+		super(opts);
+	}
+
 	make_ace_editor() {
 		super.make_ace_editor();
 

@@ -1,5 +1,9 @@
 frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.ControlData {
-	html_element = 'select';
+	constructor(opts) {
+		opts.html_element = 'select';
+		super(opts);
+	}
+
 	make_input() {
 		super.make_input();
 
