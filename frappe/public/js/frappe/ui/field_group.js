@@ -3,9 +3,9 @@ import '../form/layout';
 frappe.provide('frappe.ui');
 
 frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
-	first_button = false
 	constructor(opts) {
 		super(opts);
+		this.first_button = false;
 		this.dirty = false;
 		$.each(this.fields || [], function(i, f) {
 			if(!f.fieldname && f.label) {
