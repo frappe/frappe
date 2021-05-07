@@ -389,6 +389,11 @@ export default {
 							} catch(e) {
 								// pass
 							}
+							frappe.msgprint({
+								title: __('Not Permitted to upload files - Contact Admninistrator'),
+    							indicator: 'red',
+    							message: error.exc
+							});
 							frappe.request.cleanup({}, error);
 						}
 					}
