@@ -323,7 +323,7 @@ def make_asset_dirs(make_copy=False, restore=False):
 					except OSError:
 						print("Cannot link {} to {}".format(source, target))
 			else:
-				# warnings.warn('Source {source} does not exist.'.format(source = source))
+				warnings.warn('Source {source} does not exist.'.format(source = source))
 				pass
 
 
