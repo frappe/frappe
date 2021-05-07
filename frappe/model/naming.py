@@ -203,6 +203,7 @@ def revert_series_if_last(key, name, doc=None):
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:
 			key = key.rsplit(".")
+			# get the hash part from the key
 			hash = list(filter(re.compile(".*#").match, key))[0]
 			if not hash:
 				return

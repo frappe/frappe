@@ -70,9 +70,9 @@ class TestNaming(unittest.TestCase):
 		name = 'TEST-{}-00001'.format(year)
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 1)""", (series,))
 		revert_series_if_last(key, name)
-		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
+		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
-		self.assertEqual(count.get('current'), 0)
+		self.assertEqual(current_index.get('current'), 0)
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
 
 		series = 'TEST-{}-'.format(year)
@@ -80,9 +80,9 @@ class TestNaming(unittest.TestCase):
 		name = 'TEST-{}-00002'.format(year)
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 2)""", (series,))
 		revert_series_if_last(key, name)
-		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
+		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
-		self.assertEqual(count.get('current'), 1)
+		self.assertEqual(current_index.get('current'), 1)
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
 
 		series = 'TEST-'
@@ -91,9 +91,9 @@ class TestNaming(unittest.TestCase):
 		frappe.db.sql("DELETE FROM `tabSeries` WHERE `name`=%s", series)
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
-		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
+		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
-		self.assertEqual(count.get('current'), 2)
+		self.assertEqual(current_index.get('current'), 2)
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
 
 		series = 'TEST1-'
@@ -102,9 +102,9 @@ class TestNaming(unittest.TestCase):
 		frappe.db.sql("DELETE FROM `tabSeries` WHERE `name`=%s", series)
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
-		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
+		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
-		self.assertEqual(count.get('current'), 2)
+		self.assertEqual(current_index.get('current'), 2)
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
 
 		series = ''
@@ -113,7 +113,7 @@ class TestNaming(unittest.TestCase):
 		frappe.db.sql("DELETE FROM `tabSeries` WHERE `name`=%s", series)
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
-		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
+		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
-		self.assertEqual(count.get('current'), 2)
+		self.assertEqual(current_index.get('current'), 2)
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
