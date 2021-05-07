@@ -161,7 +161,7 @@ def validate_url(txt, throw=False, valid_schemes=None):
 
 		Parameters:
 			throw (`bool`): throws a validationError if URL is not valid
-			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this 
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
 
 		Returns:
 			bool: if `txt` represents a valid URL
@@ -428,7 +428,7 @@ def get_test_client():
 	return Client(application)
 
 def get_hook_method(hook_name, fallback=None):
-	method = (frappe.get_hooks().get(hook_name))
+	method = frappe.get_hooks().get(hook_name)
 	if method:
 		method = frappe.get_attr(method[0])
 		return method
