@@ -203,14 +203,17 @@ def get_gravatar(email):
 
 	return gravatar_url
 
-def get_traceback():
+def get_traceback() -> str:
 	"""
 		 Returns the traceback of the Exception
 	"""
 	exc_type, exc_value, exc_tb = sys.exc_info()
+
+	if not any(exc_type, exc_value, exc_tb):
+		return ""
+
 	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
-	body = "".join(cstr(t) for t in trace_list)
-	return body
+	return "".join(cstr(t) for t in trace_list)
 
 def log(event, details):
 	frappe.logger().info(details)
@@ -417,6 +420,16 @@ def call_hook_method(hook, *args, **kwargs):
 
 	return out
 
+def is_cli() -> bool:
+	"""Returns True if current instance is being run via a terminal
+	"""
+	invoked_from_terminal = False
+	try:
+		invoked_from_terminal = bool(os.get_terminal_size())
+	except Exception:
+		invoked_from_terminal = sys.stdin.isatty()
+	return invoked_from_terminal
+
 def update_progress_bar(txt, i, l):
 	if os.environ.get("CI"):
 		if i == 0:
@@ -426,7 +439,7 @@ def update_progress_bar(txt, i, l):
 		sys.stdout.flush()
 		return
 
-	if not getattr(frappe.local, 'request', None):
+	if not getattr(frappe.local, 'request', None) or is_cli():
 		lt = len(txt)
 		try:
 			col = 40 if os.get_terminal_size().columns > 80 else 20
