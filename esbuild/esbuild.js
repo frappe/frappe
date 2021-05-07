@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 let path = require("path");
 let fs = require("fs");
 let glob = require("fast-glob");
@@ -213,28 +214,30 @@ function build_files({ files, outdir }) {
 				sassOptions: sass_options
 			})
 		],
-
-		watch: WATCH_MODE
-			? {
-					onRebuild(error, result) {
-						if (error) {
-							log_error(
-								"There was an error during rebuilding changes."
-							);
-							log();
-							log(chalk.dim(error.stack));
-							notify_redis({ error });
-						} else {
-							console.log(
-								`${new Date().toLocaleTimeString()}: Compiled changes...`
-							);
-							write_assets_json(result.metafile);
-							notify_redis({ success: true });
-						}
-					}
-			  }
-			: null
+		watch: get_watch_config()
 	});
+}
+
+function get_watch_config() {
+	if (WATCH_MODE) {
+		return {
+			onRebuild(error, result) {
+				if (error) {
+					log_error("There was an error during rebuilding changes.");
+					log();
+					log(chalk.dim(error.stack));
+					notify_redis({ error });
+				} else {
+					log(
+						`${new Date().toLocaleTimeString()}: Compiled changes...`
+					);
+					write_assets_json(result.metafile);
+					notify_redis({ success: true });
+				}
+			}
+		};
+	}
+	return null;
 }
 
 async function clean_dist_folders(apps) {
@@ -307,7 +310,7 @@ function log_built_assets(metafile) {
 		}
 		cliui.div("");
 	}
-	console.log(cliui.toString());
+	log(cliui.toString());
 }
 
 async function write_assets_json(metafile) {
@@ -417,7 +420,7 @@ function open_in_editor() {
 		if (event === "open_in_editor") {
 			file = JSON.parse(file);
 			let file_path = path.resolve(file.file);
-			console.log("Opening file in editor:", file_path);
+			log("Opening file in editor:", file_path);
 			let launch = require("launch-editor");
 			launch(`${file_path}:${file.line}:${file.column}`);
 		}
