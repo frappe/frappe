@@ -76,7 +76,6 @@ class DocType(Document):
 		self.validate_series()
 		self.validate_document_type()
 		validate_fields(self)
-		self.validate_field_name_conflicts()
 
 		if self.istable:
 			# no permission records for child table
@@ -91,6 +90,11 @@ class DocType(Document):
 
 		if not self.is_new():
 			self.before_update = frappe.get_doc('DocType', self.name)
+<<<<<<< HEAD
+=======
+			self.setup_fields_to_fetch()
+			self.validate_field_name_conflicts()
+>>>>>>> 926d13e69e... fix: Skip field-method conflicts validation on new docs
 
 		if not self.is_new():
 			self.setup_fields_to_fetch()
