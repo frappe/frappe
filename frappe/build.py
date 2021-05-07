@@ -221,6 +221,8 @@ def bundle(mode, apps=None, make_copy=False, restore=False, verbose=False, skip_
 	if files:
 		command += " --files {files}".format(files=','.join(files))
 
+	command += " --run-build-command"
+
 	check_yarn()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())

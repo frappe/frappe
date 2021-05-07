@@ -47,6 +47,10 @@ let argv = yargs
 		type: "boolean",
 		description: "Run build in production mode"
 	})
+	.option("run-build-command", {
+		type: "boolean",
+		description: "Run build command for apps"
+	})
 	.example(
 		"node esbuild --apps frappe,erpnext",
 		"Run build only for frappe and erpnext"
@@ -63,6 +67,8 @@ const APPS = (!argv.apps ? app_list : argv.apps.split(",")).filter(
 const FILES_TO_BUILD = argv.files ? argv.files.split(",") : [];
 const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
+const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
+
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
 const NODE_PATHS = [].concat(
 	// node_modules of apps directly importable
@@ -76,7 +82,7 @@ const NODE_PATHS = [].concat(
 );
 
 execute()
-	.then(() => !WATCH_MODE && run_build_command_for_apps(APPS))
+	.then(() => RUN_BUILD_COMMAND && run_build_command_for_apps(APPS))
 	.catch(e => console.error(e));
 
 async function execute() {
