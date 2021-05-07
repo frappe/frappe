@@ -231,7 +231,7 @@ def get_traceback() -> str:
 	"""
 	exc_type, exc_value, exc_tb = sys.exc_info()
 
-	if not any(exc_type, exc_value, exc_tb):
+	if not any([exc_type, exc_value, exc_tb]):
 		return ""
 
 	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
