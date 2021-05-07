@@ -1,4 +1,5 @@
 import os
+import shutil
 import unittest
 from unittest.mock import patch
 
@@ -7,6 +8,14 @@ from frappe.utils.boilerplate import make_boilerplate
 
 
 class TestBoilerPlate(unittest.TestCase):
+	@classmethod
+	def tearDownClass(cls):
+
+		bench_path = frappe.utils.get_bench_path()
+		test_app_dir = os.path.join(bench_path, "apps", "test_app")
+		if os.path.exists(test_app_dir):
+			shutil.rmtree(test_app_dir)
+
 	def test_create_app(self):
 		title = "Test App"
 		description = "Test app for unit testing"
