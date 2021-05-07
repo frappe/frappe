@@ -36,18 +36,6 @@ frappe.ui.FieldSelect = Class.extend({
 			var item = me.awesomplete.get_item(value);
 			me.$input.val(item.label);
 		});
-		this.$input.on("awesomplete-open", () => {
-			let modal = this.$input.parents('.modal-dialog')[0];
-			if (modal) {
-				$(modal).removeClass("modal-dialog-scrollable");
-			}
-		});
-		this.$input.on("awesomplete-close", () => {
-			let modal = this.$input.parents('.modal-dialog')[0];
-			if (modal) {
-				$(modal).addClass("modal-dialog-scrollable");
-			}
-		});
 
 		if(this.filter_fields) {
 			for(var i in this.filter_fields)

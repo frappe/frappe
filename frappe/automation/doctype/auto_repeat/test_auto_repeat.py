@@ -173,7 +173,7 @@ class TestAutoRepeat(unittest.TestCase):
 			fields=['docstatus'],
 			limit=1
 		)
-		self.assertEquals(docnames[0].docstatus, 1)
+		self.assertEqual(docnames[0].docstatus, 1)
 
 
 def make_auto_repeat(**args):

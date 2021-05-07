@@ -185,7 +185,7 @@ def make_form_dict(request):
 		args = request.form or request.args
 
 	if not isinstance(args, dict):
-		frappe.throw("Invalid request arguments")
+		frappe.throw(_("Invalid request arguments"))
 
 	try:
 		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
@@ -296,7 +296,7 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 	from werkzeug.serving import run_simple
 	patch_werkzeug_reloader()
 
-	if profile:
+	if profile or os.environ.get('USE_PROFILER'):
 		application = ProfilerMiddleware(application, sort_by=('cumtime', 'calls'))
 
 	if not os.environ.get('NO_STATICS'):
