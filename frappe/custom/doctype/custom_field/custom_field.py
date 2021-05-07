@@ -68,14 +68,15 @@ class CustomField(Document):
 			check_if_fieldname_conflicts_with_methods(self.dt, self.fieldname)
 
 	def on_update(self):
-		frappe.clear_cache(doctype=self.dt)
+		if not frappe.flags.in_setup_wizard:
+			frappe.clear_cache(doctype=self.dt)
 		if not self.flags.ignore_validate:
 			# validate field
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			validate_fields_for_doctype(self.dt)
 
 		# update the schema
-		if not frappe.db.get_value('DocType', self.dt, 'issingle'):
+		if not frappe.db.get_value('DocType', self.dt, 'issingle') and not frappe.flags.in_setup_wizard:
 			frappe.db.updatedb(self.dt)
 
 	def on_trash(self):
@@ -144,6 +145,10 @@ def create_custom_fields(custom_fields, ignore_validate = False, update=True):
 	'''Add / update multiple custom fields
 
 	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`'''
+
+	if not ignore_validate and frappe.flags.in_setup_wizard:
+		ignore_validate = True
+
 	for doctype, fields in custom_fields.items():
 		if isinstance(fields, dict):
 			# only one field
@@ -162,6 +167,10 @@ def create_custom_fields(custom_fields, ignore_validate = False, update=True):
 				custom_field.flags.ignore_validate = ignore_validate
 				custom_field.update(df)
 				custom_field.save()
+
+		frappe.clear_cache(doctype=doctype)
+		frappe.db.updatedb(doctype)
+
 
 
 @frappe.whitelist()
