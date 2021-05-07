@@ -94,4 +94,4 @@ jobs:
           TYPE: server
 
       - name: Run Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --ci-build-id $GITHUB_RUN_ID
+        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --build-number ${{ matrix.container }} --total-builds 3

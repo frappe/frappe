@@ -89,36 +89,17 @@ jobs:
           DB: mariadb
           TYPE: server
 
-      - name: Setup tmate session
-        if: contains(github.event.pull_request.labels.*.name, 'debug-gha')
-        uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --with-coverage --ci-build-id $GITHUB_RUN_ID
+        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --build-number ${{ matrix.container }} --total-builds 2 --with-coverage
 
       - name: Upload Coverage Data
-        if: github.event_name == 'pull_request'
         run: |
           cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
           cd ${GITHUB_WORKSPACE}
-          pip install coveralls==2.2.0
-          pip install coverage==4.5.4
-          coveralls debug --service=github
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_FLAG_NAME: run-${{ matrix.test_number }}
-          COVERALLS_SERVICE_NAME: github
-          COVERALLS_PARALLEL: true
-
-      - name: Upload Coverage Data
-        if: github.event_name == 'push'
-        run: |
-          cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
-          cd ${GITHUB_WORKSPACE}
-          pip install coveralls==2.2.0
-          pip install coverage==4.5.4
-          coveralls debug --service=github-actions
+          pip3 install coverage==5.5
+          pip3 install coveralls==3.0.1
+          coveralls --service=github-actions
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
@@ -129,14 +110,17 @@ jobs:
   coveralls:
     name: Coverage Wrap Up
     needs: test
+    container: python:3-slim
     runs-on: ubuntu-18.04
     steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
       - name: Coveralls Finished
         run: |
           cd ${GITHUB_WORKSPACE}
-          pip install coveralls==3.0.1
-          pip install coverage==4.5.4
-          coveralls debug --finish
+          pip3 install coverage==5.5
+          pip3 install coveralls==3.0.1
+          coveralls --finish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
