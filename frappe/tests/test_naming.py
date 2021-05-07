@@ -131,7 +131,7 @@ class TestNaming(unittest.TestCase):
 			"name": 'Submittable Doctype'
 		}).insert()
 
-		doc = frappe.new_doc('Submittable DocType')
+		doc = frappe.new_doc('Submittable Doctype')
 		doc.save()
 		original_name = doc.name
 
