@@ -15,7 +15,6 @@ from email.utils import formataddr, parseaddr
 from gzip import GzipFile
 from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
-
 from werkzeug.test import Client
 
 import frappe
@@ -155,6 +154,33 @@ def split_emails(txt):
 			email_list.append(email)
 
 	return email_list
+
+def validate_url(txt, throw=False, valid_schemes=None):
+	"""
+		Checks whether `txt` has a valid URL string
+
+		Parameters:
+			throw (`bool`): throws a validationError if URL is not valid
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this 
+
+		Returns:
+			bool: if `txt` represents a valid URL
+	"""
+	url = urlparse(txt)
+	is_valid = bool(url.netloc)
+
+	# Handle scheme validation
+	if isinstance(valid_schemes, str):
+		is_valid = is_valid and (url.scheme == valid_schemes)
+	elif isinstance(valid_schemes, (list, tuple, set)):
+		is_valid = is_valid and (url.scheme in valid_schemes)
+
+	if not is_valid and throw:
+		frappe.throw(
+			frappe._("'{0}' is not a valid URL").format(frappe.bold(txt))
+		)
+
+	return is_valid
 
 def random_string(length):
 	"""generate a random string"""
@@ -808,11 +834,3 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
-
-
-def validate_url(url_string):
-	try:
-		result = urlparse(url_string)
-		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
-	except Exception:
-		return False

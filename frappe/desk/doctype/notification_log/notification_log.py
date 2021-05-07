@@ -46,7 +46,7 @@ def enqueue_create_notification(users, doc):
 
 	doc = frappe._dict(doc)
 
-	if isinstance(users, frappe.string_types):
+	if isinstance(users, str):
 		users = [user.strip() for user in users.split(',') if user.strip()]
 	users = list(set(users))
 

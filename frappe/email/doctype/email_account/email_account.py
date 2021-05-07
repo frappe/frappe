@@ -8,9 +8,14 @@ import re
 import json
 import socket
 import time
-from frappe import _
+import functools
+
+import email.utils
+
+from frappe import _, are_emails_muted
 from frappe.model.document import Document
-from frappe.utils import validate_email_address, cint, cstr, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html, add_days
+from frappe.utils import (validate_email_address, cint, cstr, get_datetime,
+	DATE_FORMAT, strip, comma_or, sanitize_html, add_days, parse_addr)
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
@@ -21,17 +26,37 @@ from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
 from frappe.utils.html_utils import clean_email_html
+from frappe.utils.error import raise_error_on_no_output
 from frappe.email.utils import get_port
+
+OUTGOING_EMAIL_ACCOUNT_MISSING = _("Please setup default Email Account from Setup > Email > Email Account")
 
 class SentEmailInInbox(Exception):
 	pass
 
-class InvalidEmailCredentials(frappe.ValidationError):
-	pass
+def cache_email_account(cache_name):
+	def decorator_cache_email_account(func):
+		@functools.wraps(func)
+		def wrapper_cache_email_account(*args, **kwargs):
+			if not hasattr(frappe.local, cache_name):
+				setattr(frappe.local, cache_name, {})
+
+			cached_accounts = getattr(frappe.local, cache_name)
+			match_by = list(kwargs.values()) + ['default']
+			matched_accounts = list(filter(None, [cached_accounts.get(key) for key in match_by]))
+			if matched_accounts:
+				return matched_accounts[0]
+
+			matched_accounts = func(*args, **kwargs)
+			cached_accounts.update(matched_accounts or {})
+			return matched_accounts and list(matched_accounts.values())[0]
+		return wrapper_cache_email_account
+	return decorator_cache_email_account
 
 class EmailAccount(Document):
+	DOCTYPE = 'Email Account'
+
 	def autoname(self):
 		"""Set name as `email_account_name` or make title from Email Address."""
 		if not self.email_account_name:
@@ -72,9 +97,8 @@ class EmailAccount(Document):
 					self.get_incoming_server()
 					self.no_failed = 0
 
-
 				if self.enable_outgoing:
-					self.check_smtp()
+					self.validate_smtp_conn()
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					frappe.throw(_("Password is required or select Awaiting Password"))
@@ -89,6 +113,13 @@ class EmailAccount(Document):
 			valid_doctypes = [d[0] for d in get_append_to()]
 			if self.append_to not in valid_doctypes:
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+
+	def validate_smtp_conn(self):
+		if not self.smtp_server:
+			frappe.throw(_("SMTP Server is required"))
+
+		server = self.get_smtp_server()
+		return server.session
 
 	def before_save(self):
 		messages = []
@@ -150,24 +181,6 @@ class EmailAccount(Document):
 			return frappe.db.get_value("Email Domain", domain[1], fields, as_dict=True)
 		except Exception:
 			pass
-
-	def check_smtp(self):
-		"""Checks SMTP settings."""
-		if self.enable_outgoing:
-			if not self.smtp_server:
-				frappe.throw(_("{0} is required").format("SMTP Server"))
-
-			server = SMTPServer(
-				login = getattr(self, "login_id", None) or self.email_id,
-				server=self.smtp_server,
-				port=cint(self.smtp_port),
-				use_tls=cint(self.use_tls),
-				use_ssl=cint(self.use_ssl_for_outgoing)
-			)
-			if self.password and not self.no_smtp_authentication:
-				server.password = self.get_password()
-
-			server.sess
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
 		"""Returns logged in POP3/IMAP connection object."""
@@ -231,7 +244,7 @@ class EmailAccount(Document):
 				return None
 
 			elif not in_receive and any(map(lambda t: t in message, auth_error_codes)):
-				self.throw_invalid_credentials_exception()
+				SMTPServer.throw_invalid_credentials_exception()
 			else:
 				frappe.throw(cstr(e))
 
@@ -249,13 +262,142 @@ class EmailAccount(Document):
 			else:
 				raise
 
+	@property
+	def _password(self):
+		raise_exception = not (self.no_smtp_authentication or frappe.flags.in_test)
+		return self.get_password(raise_exception=raise_exception)
+
+	@property
+	def default_sender(self):
+		return email.utils.formataddr((self.name, self.get("email_id")))
+
+	def is_exists_in_db(self):
+		"""Some of the Email Accounts we create from configs and those doesn't exists in DB.
+		This is is to check the specific email account exists in DB or not.
+		"""
+		return self.find_one_by_filters(name=self.name)
+
 	@classmethod
-	def throw_invalid_credentials_exception(cls):
-		frappe.throw(
-			_("Incorrect email or password. Please check your login credentials."),
-			exc=InvalidEmailCredentials,
-			title=_("Invalid Credentials")
-		)
+	def from_record(cls, record):
+		email_account = frappe.new_doc(cls.DOCTYPE)
+		email_account.update(record)
+		return email_account
+
+	@classmethod
+	def find(cls, name):
+		return frappe.get_doc(cls.DOCTYPE, name)
+
+	@classmethod
+	def find_one_by_filters(cls, **kwargs):
+		name = frappe.db.get_value(cls.DOCTYPE, kwargs)
+		return cls.find(name) if name else None
+
+	@classmethod
+	def find_from_config(cls):
+		config = cls.get_account_details_from_site_config()
+		return cls.from_record(config) if config else None
+
+	@classmethod
+	def create_dummy(cls):
+		return cls.from_record({"sender": "notifications@example.com"})
+
+	@classmethod
+	@raise_error_on_no_output(
+		keep_quiet = lambda: not cint(frappe.get_system_settings('setup_complete')),
+		error_message = OUTGOING_EMAIL_ACCOUNT_MISSING, error_type = frappe.OutgoingEmailError) # noqa
+	@cache_email_account('outgoing_email_account')
+	def find_outgoing(cls, match_by_email=None, match_by_doctype=None, _raise_error=False):
+		"""Find the outgoing Email account to use.
+
+		:param match_by_email: Find account using emailID
+		:param match_by_doctype: Find account by matching `Append To` doctype
+		:param _raise_error: This is used by raise_error_on_no_output decorator to raise error.
+		"""
+		if match_by_email:
+			match_by_email = parse_addr(match_by_email)[1]
+			doc = cls.find_one_by_filters(enable_outgoing=1, email_id=match_by_email)
+			if doc:
+				return {match_by_email: doc}
+
+		if match_by_doctype:
+			doc = cls.find_one_by_filters(enable_outgoing=1, enable_incoming=1, append_to=match_by_doctype)
+			if doc:
+				return {match_by_doctype: doc}
+
+		doc = cls.find_default_outgoing()
+		if doc:
+			return {'default': doc}
+
+	@classmethod
+	def find_default_outgoing(cls):
+		""" Find default outgoing account.
+		"""
+		doc = cls.find_one_by_filters(enable_outgoing=1, default_outgoing=1)
+		doc = doc or cls.find_from_config()
+		return doc or (are_emails_muted() and cls.create_dummy())
+
+	@classmethod
+	def find_incoming(cls, match_by_email=None, match_by_doctype=None):
+		"""Find the incoming Email account to use.
+		:param match_by_email: Find account using emailID
+		:param match_by_doctype: Find account by matching `Append To` doctype
+		"""
+		doc = cls.find_one_by_filters(enable_incoming=1, email_id=match_by_email)
+		if doc:
+			return doc
+
+		doc = cls.find_one_by_filters(enable_incoming=1, append_to=match_by_doctype)
+		if doc:
+			return doc
+
+		doc = cls.find_default_incoming()
+		return doc
+
+	@classmethod
+	def find_default_incoming(cls):
+		doc = cls.find_one_by_filters(enable_incoming=1, default_incoming=1)
+		return doc
+
+	@classmethod
+	def get_account_details_from_site_config(cls):
+		if not frappe.conf.get("mail_server"):
+			return {}
+
+		field_to_conf_name_map = {
+			'smtp_server': {'conf_names': ('mail_server',)},
+			'smtp_port': {'conf_names': ('mail_port',)},
+			'use_tls': {'conf_names': ('use_tls', 'mail_login')},
+			'login_id': {'conf_names': ('mail_login',)},
+			'email_id': {'conf_names': ('auto_email_id', 'mail_login'), 'default': 'notifications@example.com'},
+			'password': {'conf_names': ('mail_password',)},
+			'always_use_account_email_id_as_sender':
+				{'conf_names': ('always_use_account_email_id_as_sender',), 'default': 0},
+			'always_use_account_name_as_sender_name':
+				{'conf_names': ('always_use_account_name_as_sender_name',), 'default': 0},
+			'name': {'conf_names': ('email_sender_name',), 'default': 'Frappe'},
+			'from_site_config': {'default': True}
+		}
+
+		account_details = {}
+		for doc_field_name, d in field_to_conf_name_map.items():
+			conf_names, default = d.get('conf_names') or [], d.get('default')
+			value = [frappe.conf.get(k) for k in conf_names if frappe.conf.get(k)]
+			account_details[doc_field_name] = (value and value[0]) or default
+		return account_details
+
+	def sendmail_config(self):
+		return {
+			'server': self.smtp_server,
+			'port': cint(self.smtp_port),
+			'login': getattr(self, "login_id", None) or self.email_id,
+			'password': self._password,
+			'use_ssl': cint(self.use_ssl_for_outgoing),
+			'use_tls': cint(self.use_tls)
+		}
+
+	def get_smtp_server(self):
+		config = self.sendmail_config()
+		return SMTPServer(**config)
 
 	def handle_incoming_connect_error(self, description):
 		if test_internet():
@@ -642,6 +784,8 @@ class EmailAccount(Document):
 
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
+		from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
+
 		if self.enable_auto_reply:
 			set_incoming_outgoing_accounts(communication)
 
@@ -653,7 +797,7 @@ class EmailAccount(Document):
 			frappe.sendmail(recipients = [email.from_email],
 				sender = self.email_id,
 				reply_to = communication.incoming_email_account,
-				subject = _("Re: ") + communication.subject,
+				subject = " ".join([_("Re:"), communication.subject]),
 				content = render_template(self.auto_reply_message or "", communication.as_dict()) or \
 					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype = communication.reference_doctype,
