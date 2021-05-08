@@ -10,6 +10,8 @@ from frappe.model.document import Document
 from frappe.utils import get_fullname
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
+import json
+from frappe.core.utils import find
 
 
 class PersonalDataDeletionRequest(Document):
@@ -118,6 +120,24 @@ class PersonalDataDeletionRequest(Document):
 			now=frappe.flags.in_test,
 		)
 
+	def add_deletion_steps(self):
+		if self.deletion_steps:
+			return
+
+		for step in self.full_match_privacy_docs + self.partial_privacy_docs:
+			row_data = {
+				"status": "Pending",
+				"document_type": step.get("doctype"),
+				"partial": step.get("partial") or False,
+				"fields": json.dumps(step.get("redact_fields", [])),
+				"filtered_by": step.get("filtered_by") or "",
+			}
+			self.append("deletion_steps", row_data)
+
+		self.anonymization_matrix = json.dumps(self.anonymization_value_map, indent=4)
+		self.save()
+		self.reload()
+
 	def redact_partial_match_data(self, doctype):
 		self.__redact_partial_match_data(doctype)
 		self.rename_documents(doctype)
@@ -143,11 +163,11 @@ class PersonalDataDeletionRequest(Document):
 
 	def redact_full_match_data(self, ref, email):
 		"""Replaces the entire field value by the values set in the anonymization_value_map"""
-		filter_by = ref["filter_by"]
+		filter_by = ref.get("filter_by", "owner")
 
 		docs = frappe.get_all(
 			ref["doctype"],
-			filters={filter_by: ("like", "%" + email + "%")},
+			filters={filter_by: email},
 			fields=["name", filter_by],
 		)
 
@@ -185,7 +205,7 @@ class PersonalDataDeletionRequest(Document):
 		return anonymize_fields_dict
 
 	def redact_doc(self, doc, ref):
-		filter_by = ref["filter_by"]
+		filter_by = ref.get("filter_by", "owner")
 		meta = frappe.get_meta(ref["doctype"])
 		filter_by_meta = meta.get_field(filter_by)
 
@@ -207,21 +227,57 @@ class PersonalDataDeletionRequest(Document):
 				ref["doctype"], doc["name"], self.anon, force=True, show_alert=False
 			)
 
-	def _anonymize_data(self, email=None, anon=None, set_data=True):
+	def _anonymize_data(self, email=None, anon=None, set_data=True, commit=False):
 		email = email or self.email
 		anon = anon or self.name
 
 		if set_data:
 			self.__set_anonymization_data(email, anon)
 
-		for doctype in self.full_match_privacy_docs:
-			self.redact_full_match_data(doctype, email)
+		self.add_deletion_steps()
 
-		for doctype in self.partial_privacy_docs:
+		self.full_match_doctypes = (
+			x
+			for x in self.full_match_privacy_docs
+			if filter(
+				lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps
+			)
+		)
+
+		self.partial_match_doctypes = (
+			x
+			for x in self.partial_privacy_docs
+			if filter(
+				lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps
+			)
+		)
+
+		for doctype in self.full_match_doctypes:
+			self.redact_full_match_data(doctype, email)
+			self.set_step_status(doctype["doctype"])
+			if commit:
+				frappe.db.commit()
+
+		for doctype in self.partial_match_doctypes:
 			self.redact_partial_match_data(doctype)
+			self.set_step_status(doctype["doctype"])
+			if commit:
+				frappe.db.commit()
 
 		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
 		self.db_set("status", "Deleted")
+		if commit:
+			frappe.db.commit()
+
+	def set_step_status(self, step, status="Deleted"):
+		del_step = find(self.deletion_steps, lambda x: x.document_type == step and x.status != status)
+
+		if not del_step:
+			del_step = find(self.deletion_steps, lambda x: x.document_type == step)
+
+		del_step.status = status
+		self.save()
+		self.reload()
 
 	def __set_anonymization_data(self, email, anon):
 		self.anon = anon or self.name
@@ -290,9 +346,8 @@ def confirm_deletion(email, name, host_name):
 		frappe.db.commit()
 		frappe.respond_as_web_page(
 			_("Confirmed"),
-			_(
-				"The process for deletion of {0} data associated with {1} has been initiated."
-			).format(host_name, email),
+			_("The process for deletion of {0} data associated with {1} has been initiated.")
+			.format(host_name, email),
 			indicator_color="green",
 		)
 

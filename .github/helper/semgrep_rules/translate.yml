@@ -42,7 +42,7 @@ rules:
 
 - id: frappe-translation-python-splitting
   pattern-either:
-  - pattern: _(...) + ... + _(...)
+  - pattern: _(...) + _(...)
   - pattern: _("..." + "...")
   - pattern-regex: '_\([^\)]*\\\s*'    # lines broken by `\`
   - pattern-regex: '_\(\s*\n'          # line breaks allowed by python for using ( )

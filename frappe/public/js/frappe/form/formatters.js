@@ -15,7 +15,10 @@ frappe.form.formatters = {
 			return "<div style='text-align: right'>" + value + "</div>";
 		}
 	},
-	Data: function(value) {
+	Data: function(value, df) {
+		if (df && df.options == "URL") {
+			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
+		}
 		return value==null ? "" : value;
 	},
 	Select: function(value) {
@@ -97,11 +100,8 @@ frappe.form.formatters = {
 		}
 	},
 	Check: function(value) {
-		if (value) {
-			return `<input type="checkbox" class="disabled-selected">`;
-		} else {
-			return `<input type="checkbox" class="disabled-deselected">`;
-		}
+		return `<input type="checkbox" disabled
+			class="disabled-${value ? "selected" : "deselected"}">`;
 	},
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
@@ -159,7 +159,7 @@ frappe.form.formatters = {
 		return value || "";
 	},
 	DateRange: function(value) {
-		if($.isArray(value)) {
+		if (Array.isArray(value)) {
 			return __("{0} to {1}", [frappe.datetime.str_to_user(value[0]), frappe.datetime.str_to_user(value[1])]);
 		} else {
 			return value || "";
@@ -295,12 +295,12 @@ frappe.form.formatters = {
 		return formatted_values.join(', ');
 	},
 	Color: (value) => {
-		return `<div>
+		return value ? `<div>
 			<div class="selected-color" style="background-color: ${value}"></div>
 			<span class="color-value">${value}</span>
-		</div>`;
+		</div>` : '';
 	}
-}
+};
 
 frappe.form.get_formatter = function(fieldtype) {
 	if(!fieldtype)

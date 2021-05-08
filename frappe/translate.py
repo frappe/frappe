@@ -443,8 +443,16 @@ def get_messages_from_report(name):
 	messages = _get_messages_from_page_or_report("Report", name,
 		frappe.db.get_value("DocType", report.ref_doctype, "module"))
 
+	if report.columns:
+		context = "Column of report '%s'" % report.name # context has to match context in `prepare_columns` in query_report.js
+		messages.extend([(None, report_column.label, context) for report_column in report.columns])
+
+	if report.filters:
+		messages.extend([(None, report_filter.label) for report_filter in report.filters])
+
 	if report.query:
 		messages.extend([(None, message) for message in re.findall('"([^:,^"]*):', report.query) if is_translatable(message)])
+
 	messages.append((None,report.report_name))
 	return messages
 
@@ -540,8 +548,12 @@ def extract_messages_from_code(code):
 
 	try:
 		code = frappe.as_unicode(render_include(code))
-	except (TemplateError, ImportError, InvalidIncludePath, IOError):
-		# Exception will occur when it encounters John Resig's microtemplating code
+
+	# Exception will occur when it encounters John Resig's microtemplating code
+	except (TemplateError, ImportError, InvalidIncludePath, IOError) as e:
+		if isinstance(e, InvalidIncludePath):
+			frappe.clear_last_message()
+
 		pass
 
 	messages = []

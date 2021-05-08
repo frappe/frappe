@@ -52,6 +52,10 @@ window.validate_name = function(txt) {
 	return frappe.utils.validate_type(txt, "name");
 };
 
+window.validate_url = function(txt) {
+	return frappe.utils.validate_type(txt, "url");
+};
+
 window.nth = function(number) {
 	number = cint(number);
 	var s = 'th';
