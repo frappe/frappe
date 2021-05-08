@@ -8,7 +8,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	setup_defaults() {
 		return super.setup_defaults()
 			.then(() => {
-				this.page_title = __('{0} Dashboard', [this.doctype]);
+				this.page_title = __('{0} Dashboard', [__(this.doctype)]);
 				this.dashboard_settings = frappe.get_user_settings(this.doctype)['dashboard_settings'] || null;
 			});
 	}
@@ -271,7 +271,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	show_add_chart_dialog() {
 		let fields = this.get_field_options();
 		const dialog = new frappe.ui.Dialog({
-			title: __("Add a {0} Chart", [this.doctype]),
+			title: __("Add a {0} Chart", [__(this.doctype)]),
 			fields: [
 				{
 					fieldname: 'new_or_existing',

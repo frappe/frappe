@@ -858,7 +858,7 @@ class Database(object):
 		if not datetime:
 			return '0001-01-01 00:00:00.000000'
 
-		if isinstance(datetime, frappe.string_types):
+		if isinstance(datetime, str):
 			if ':' not in datetime:
 				datetime = datetime + ' 00:00:00.000000'
 		else:
