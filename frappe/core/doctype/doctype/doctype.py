@@ -137,7 +137,7 @@ class DocType(Document):
 		}
 
 		for docfield in self.get("fields") or []:
-			conflict_type = ""
+			conflict_type = None
 			field = docfield.fieldname
 			field_label = docfield.label or docfield.fieldname
 
