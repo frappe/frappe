@@ -277,6 +277,8 @@ class DocType(Document):
 							d.fieldname = d.fieldname + '_section'
 						elif d.fieldtype=='Column Break':
 							d.fieldname = d.fieldname + '_column'
+						elif d.fieldtype=='Tab Break':
+							d.fieldname = d.fieldname + '_tab'
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 				else:
