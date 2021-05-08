@@ -8,7 +8,7 @@ frappe.ui.form.on("Web Form", {
 		}
 
 		set_fields(frm);
-		frm.events.add_get_fields_button();
+		frm.events.add_get_fields_button(frm);
 	},
 
 	add_get_fields_button(frm) {
