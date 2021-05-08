@@ -105,12 +105,12 @@ frappe.ui.form.Layout = class Layout {
 		this.section = null;
 		this.column = null;
 
-		if (this.with_dashboard) {
-			this.setup_dashboard_section();
-		}
+		// if (this.with_dashboard) {
+		// 	this.setup_dashboard_section();
+		// }
 
-		if (this.tabbed_layout) {
-			this.first_tab = this.make_tab({label: __('Details'), fieldname: 'details'})
+		if (this.tabbed_layout && this.no_opening_tab()) {
+			this.make_tab({label: __('Details'), fieldname: 'details'})
 		}
 
 		if (this.no_opening_section()) {
@@ -139,6 +139,10 @@ frappe.ui.form.Layout = class Layout {
 
 	no_opening_section() {
 		return (this.fields[0] && this.fields[0].fieldtype != "Section Break") || !this.fields.length;
+	}
+
+	no_opening_tab() {
+		return (this.fields[1] && this.fields[1].fieldtype != "Tab Break") || !this.fields.length;
 	}
 
 	setup_dashboard_section() {
