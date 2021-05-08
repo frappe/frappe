@@ -272,22 +272,13 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 				doc.attachments.append(a)
 
 def set_incoming_outgoing_accounts(doc):
-	doc.incoming_email_account = doc.outgoing_email_account = None
+	from frappe.email.doctype.email_account.email_account import EmailAccount
+	incoming_email_account = EmailAccount.find_incoming(
+		match_by_email=doc.sender, match_by_doctype=doc.reference_doctype)
+	doc.incoming_email_account = incoming_email_account.email_id if incoming_email_account else None
 
-	if not doc.incoming_email_account and doc.sender:
-		doc.incoming_email_account = frappe.db.get_value("Email Account",
-			{"email_id": doc.sender, "enable_incoming": 1}, "email_id")
-
-	if not doc.incoming_email_account and doc.reference_doctype:
-		doc.incoming_email_account = frappe.db.get_value("Email Account",
-			{"append_to": doc.reference_doctype, }, "email_id")
-
-	if not doc.incoming_email_account:
-		doc.incoming_email_account = frappe.db.get_value("Email Account",
-			{"default_incoming": 1, "enable_incoming": 1},  "email_id")
-
-	doc.outgoing_email_account = frappe.email.smtp.get_outgoing_email_account(raise_exception_not_set=False,
-		append_to=doc.doctype, sender=doc.sender)
+	doc.outgoing_email_account = EmailAccount.find_outgoing(
+		match_by_email=doc.sender, match_by_doctype=doc.reference_doctype)
 
 	if doc.sent_or_received == "Sent":
 		doc.db_set("email_account", doc.outgoing_email_account.name)

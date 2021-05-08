@@ -442,6 +442,11 @@ kbd {
 /*rtl styles*/
 
 .frappe-rtl {
+	text-align: right;
+	.modal-actions {
+		right: auto !important;
+		left: 5px;
+	}
 	input, textarea {
 		direction: rtl !important;
 	}

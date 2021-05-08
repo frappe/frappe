@@ -233,7 +233,7 @@ class Importer:
 			return updated_doc
 		else:
 			# throw if no changes
-			frappe.throw("No changes to update")
+			frappe.throw(_("No changes to update"))
 
 	def get_eta(self, current, total, processing_time):
 		self.last_eta = getattr(self, "last_eta", 0)
@@ -319,7 +319,7 @@ class ImportFile:
 		self.warnings = []
 
 		self.file_doc = self.file_path = self.google_sheets_url = None
-		if isinstance(file, frappe.string_types):
+		if isinstance(file, str):
 			if frappe.db.exists("File", {"file_url": file}):
 				self.file_doc = frappe.get_doc("File", {"file_url": file})
 			elif "docs.google.com/spreadsheets" in file:
@@ -626,7 +626,7 @@ class Row:
 				return
 		elif df.fieldtype in ["Date", "Datetime"]:
 			value = self.get_date(value, col)
-			if isinstance(value, frappe.string_types):
+			if isinstance(value, str):
 				# value was not parsed as datetime object
 				self.warnings.append(
 					{

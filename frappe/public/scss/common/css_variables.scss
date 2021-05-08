@@ -24,6 +24,17 @@
 	--blue-100: #D3E9FC;
 	--blue-50 : #F0F8FE;
 
+	--cyan-900: #006464; 
+	--cyan-800: #007272;
+	--cyan-700: #008b8b;
+	--cyan-600: #02c5c5;
+	--cyan-500: #00ffff;
+	--cyan-400: #2ef8f8;
+	--cyan-300: #6efcfc;
+	--cyan-200: #a0f8f8;
+	--cyan-100: #c7fcfc;
+	--cyan-50 : #dafafa;
+
 	--green-900: #2D401D;
 	--green-800: #44622A;
 	--green-700: #518B21;
@@ -151,6 +162,8 @@
 	--bg-gray: var(--gray-200);
 	--bg-light-gray: var(--gray-100);
 	--bg-purple: var(--purple-100);
+	--bg-pink: var(--pink-50);
+	--bg-cyan: var(--cyan-50);
 
 	--text-on-blue: var(--blue-600);
 	--text-on-light-blue: var(--blue-500);
@@ -163,6 +176,8 @@
 	--text-on-gray: var(--gray-600);
 	--text-on-light-gray: var(--gray-800);
 	--text-on-purple: var(--purple-500);
+	--text-on-pink: var(--pink-500);
+	--text-on-cyan: var(--cyan-600);
 
 	--awesomplete-hover-bg: var(--control-bg);
 

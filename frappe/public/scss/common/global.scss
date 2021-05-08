@@ -16,71 +16,80 @@
 	}
 }
 
+$check-icon: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+
 input[type="checkbox"] {
 	position: relative;
-	width: 0 !important;
-	height: var(--custom-checkbox-size);
-	margin-right: calc(var(--custom-checkbox-size) + var(--checkbox-right-margin)) !important;
-	font-size: calc(var(--custom-checkbox-size) - 1px);
+	width: var(--checkbox-size) !important;
+	height: var(--checkbox-size);
+	margin-right: var(--checkbox-right-margin) !important;
+	background-repeat: no-repeat;
+	background-position: center;
+	border: 1px solid var(--gray-400);
+	box-sizing: border-box;
+	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+	border-radius: 4px;
 
-	&:before {
-		width: var(--custom-checkbox-size);
-		height: var(--custom-checkbox-size);
-		position: absolute;
-		top: 0;
-		display: inline-block;
-		line-height: 1;
-		text-align: center;
-		content: ' ';
-		border: 1px solid var(--gray-400);
-		box-sizing: border-box;
-		box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
-		border-radius: 4px;
+	// Reset browser behavior
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+
+	-webkit-print-color-adjust: exact;
+	color-adjust: exact;
+
+	.grid-static-col & {
+		margin-right: 0 !important;
 	}
 
-	&:checked:before {
-		content: url("data: image/svg+xml;utf8, <svg width='8' height='7' viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-		background: linear-gradient(180deg, #4AC3F8 -124.51%, #2490EF 100%);
+	&:checked {
+		background-color: #2490EF;
+		background-image: $check-icon, linear-gradient(180deg, #4AC3F8 -124.51%, #2490EF 100%);
+		background-size: 57%, 100%;
 		box-shadow: none;
 		border: none;
 	}
 
+	&:focus {
+		outline: none; // Prevent browser behavior
+		box-shadow: var(--checkbox-focus-shadow);
+	}
 
-	&.disabled-deselected:before, &:disabled:not([checked])::before {
-		background: var(--disabled-control-bg);
-		border: 0.5px solid var(--gray-300);
-		box-sizing: border-box;
+	&.disabled-deselected, &:disabled {
+		background-color: var(--disabled-control-bg);
 		box-shadow: inset 0px 1px 7px rgba(0, 0, 0, 0.1);
-		border-radius: 4px;
+		border: 0.5px solid var(--gray-300);
 		pointer-events: none;
 	}
 
-	&.disabled-selected:before, &:disabled:checked::before {
-		content: url("data: image/svg+xml;utf8, <svg width='8' height='7' viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-		background: var(--gray-500);
-		box-sizing: border-box;
+	&.disabled-selected, &:disabled:checked {
+		background-color: var(--gray-500);
+		background-image: $check-icon;
+		background-size: 57%;
 		box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
-		border-radius: 4px;
-		line-height: 10px;
+		border: none;
 		pointer-events: none;
-	}
-}
-
-// Firefox doesn't support
-// pseudo elements on checkbox
-html.firefox, html.safari {
-	:root {
-		--custom-checkbox-size: 0px;
-	}
-	input[type="checkbox"] {
-		width: var(--base-checkbox-size) !important;
-		height: var(--base-checkbox-size);
-		margin-right: var(--checkbox-right-margin) !important;
 	}
 }
 
 .frappe-card {
 	@include card();
+}
+
+.frappe-control[data-fieldtype="Select"].frappe-control[data-fieldname="color"] {
+	select {
+		padding-left: 40px;
+	}
+
+	.color-box {
+		position: absolute;
+		top: calc(50% - 11px);
+		left: 8px;
+		width: 22px;
+		height: 22px;
+		border-radius: 5px;
+		z-index: 1;
+	}
 }
 
 .frappe-control[data-fieldtype="Select"] .control-input,
