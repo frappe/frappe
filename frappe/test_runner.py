@@ -16,7 +16,6 @@ from six import StringIO
 from six.moves import reload_module
 from frappe.model.naming import revert_series_if_last
 import click
-import requests
 import unittest.util
 
 unittest_runner = unittest.TextTestRunner
@@ -584,7 +583,7 @@ class ParallelTestRunner():
 			for doctype in module.test_dependencies:
 				try:
 					make_test_records(doctype)
-				except:
+				except Exception:
 					pass
 
 		if os.path.basename(os.path.dirname(path)) == "doctype":
