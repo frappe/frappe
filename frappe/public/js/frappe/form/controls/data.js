@@ -1,13 +1,9 @@
 frappe.provide('frappe.phone_call');
 
 frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInput {
-	constructor(opts) {
-		opts.html_element = "input";
-		opts.input_type = "text";
-		opts.trigger_change_on_input_event = true;
-		super(opts);
-	}
-
+	html_element = "input";
+	input_type = "text";
+	trigger_change_on_input_event = true;
 	make_input() {
 		if(this.$input) return;
 

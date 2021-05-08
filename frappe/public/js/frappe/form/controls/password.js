@@ -1,9 +1,5 @@
 frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.ControlData {
-	constructor(opts) {
-		opts.input_type = "password";
-		super(opts);
-	}
-
+	input_type = "password"
 	make() {
 		super.make();
 	}

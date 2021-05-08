@@ -1,9 +1,5 @@
 frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlData {
-	constructor(opts) {
-		opts.trigger_change_on_input_event = false;
-		super(opts);
-	}
-
+	trigger_change_on_input_event = false
 	make_input() {
 		super.make_input();
 		this.make_picker();

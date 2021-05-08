@@ -1,9 +1,5 @@
 frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control {
-	constructor(opts) {
-		opts.horizontal = true;
-		super(opts);
-	}
-
+	horizontal = true
 	make() {
 		// parent element
 		super.make();
