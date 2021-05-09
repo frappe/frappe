@@ -1,0 +1,66 @@
+<div class="row">
+	<div class="col-12">
+		<div class="card mb-4">
+			<div class="card-header py-3">
+				<h4 class="m-0 font-weight-bold text-primary">{%= __("Cpu Usage") %}</h4>
+			</div>
+			<div class="card-body">
+				<div id="chartz"></div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-4">
+		<div class="card mb-4">
+			<div class="card-header py-3">
+				<h4 class="m-0 font-weight-bold text-primary">{%= __("User Processes") %}</h4>
+			</div>
+			<div class="card-body text-center">
+				<h2 class="text-secondary" id="user-process"></h2>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-4">
+		<div class="card mb-4">
+			<div class="card-header py-3">
+				<h4 class="m-0 font-weight-bold text-primary">{%= __("System Processes") %}</h4>
+			</div>
+			<div class="card-body text-center">
+				<h2 class="text-secondary" id="system-process"></h2>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-4">
+		<div class="card mb-4">
+			<div class="card-header py-3">
+				<h4 class="m-0 font-weight-bold text-primary">{%= __("All Processes") %}</h4>
+			</div>
+			<div class="card-body text-center">
+				<h2 class="text-secondary" id="all-process"></h2>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-6 mt-2">
+		<div class="card">
+			<div>
+				<div class="card-header py-3">
+					<h4 class="m-0 font-weight-bold text-primary">{%= __("CPU Frequency") %}</h4>
+				</div>
+				<div class="card-body">
+					<div id="gauge1"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-6 mt-2">
+		<div class="card">
+			<div>
+				<div class="card-header py-3">
+					<h4 class="m-0 font-weight-bold text-primary">{%= __("Max CPU usage") %}</h4>
+				</div>
+				<div class="card-body">
+					<div id="gauge2"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
