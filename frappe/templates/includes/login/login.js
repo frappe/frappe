@@ -291,17 +291,10 @@ var verify_token = function (event) {
 }
 
 var request_otp = function (r) {
-	$('.login-content').empty().append($('<div>').attr({ 'id': 'twofactor_div' }).html(
-		'<form class="form-verify">\
-			<div class="page-card-head">\
-				<span class="indicator blue" data-text="Verification">{{ _("Verification") }}</span>\
-			</div>\
-			<div id="otp_div"></div>\
-			<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder={{ _("Verification Code") }} required="" autofocus="">\
-			<button class="btn btn-sm btn-primary btn-block" id="verify_token">{{ _("Verify") }}</button>\
-		</form>'));
-	// add event handler for submit button
-	verify_token();
+	$('.login-content').empty();
+	$('.login-content:visible').append($('<div>').attr({ 'id': 'twofactor_div' }).html('{{ _("Verification") }}<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder={{ _("Verification Code") }} required="" autofocus="">{{ _("Verify") }}'));
+		// add event handler for submit button
+		verify_token();
 }
 
 var continue_otp_app = function (setup, qrcode) {
