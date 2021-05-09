@@ -202,13 +202,13 @@ def revert_series_if_last(key, name, doc=None):
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:
-			key = key.rsplit(".")
+			key = key.split(".")
 			# get the hash part from the key
 			hash = list(filter(re.compile(".*#").match, key))[0]
 			if not hash:
 				return
 			name = name.replace(hashes, "")
-			prefix, hashes = key[:key.index(hash)+1]
+			prefix = prefix.replace(".{}".format(hash), "")
 	else:
 		prefix = key
 
