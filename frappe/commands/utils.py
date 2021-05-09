@@ -587,14 +587,19 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 @click.command('run-parallel-tests')
 @click.option('--app', help="For App", default='frappe')
-@click.option('--build-number', help="Build number")
-@click.option('--total-builds', help="Total number of builds")
+@click.option('--build-number', help="Build number", default=1)
+@click.option('--total-builds', help="Total number of builds", default=1)
 @click.option('--with-coverage', is_flag=True, help="Build coverage file")
+@click.option('--use-orchestrator', is_flag=True, help="Use orchestrator to run parallel tests")
 @pass_context
-def run_parallel_tests(context, app, build_number, total_builds, with_coverage):
-	from frappe.parallel_test_runner import ParallelTestRunner
+def run_parallel_tests(context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False):
 	site = get_site(context)
-	ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds, with_coverage=with_coverage)
+	if use_orchestrator:
+		from frappe.parallel_test_runner import ParallelTestWithOrchestrator
+		ParallelTestWithOrchestrator(app, site=site, with_coverage=with_coverage)
+	else:
+		from frappe.parallel_test_runner import ParallelTestRunner
+		ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds, with_coverage=with_coverage)
 
 @click.command('run-ui-tests')
 @click.argument('app')
