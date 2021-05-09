@@ -80,7 +80,7 @@ class LDAPSettings(Document):
 
 	def sync_roles(self, user, additional_groups=None):
 
-		current_roles = set([d.role for d in user.get("roles")])
+		current_roles = set(d.role for d in user.get("roles"))
 
 		needed_roles = set()
 		needed_roles.add(self.default_role)

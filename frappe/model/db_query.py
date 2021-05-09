@@ -620,7 +620,7 @@ class DatabaseQuery(object):
 
 	def get_share_condition(self):
 		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["%s"] * len(self.shared))) % \
-			tuple([frappe.db.escape(s, percent=False) for s in self.shared])
+			tuple(frappe.db.escape(s, percent=False) for s in self.shared)
 
 	def add_user_permissions(self, user_permissions):
 		meta = frappe.get_meta(self.doctype)
@@ -726,8 +726,8 @@ class DatabaseQuery(object):
 					# `idx desc, modified desc`
 					# will covert to
 					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
-					args.order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(self.doctype,
-						f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
+					args.order_by = ', '.join('`tab{0}`.`{1}` {2}'.format(self.doctype,
+						f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(','))
 				else:
 					sort_field = meta.sort_field or 'modified'
 					sort_order = (meta.sort_field and meta.sort_order) or 'desc'
@@ -807,8 +807,8 @@ def get_order_by(doctype, meta):
 		# `idx desc, modified desc`
 		# will covert to
 		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
-		order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(doctype,
-			f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
+		order_by = ', '.join('`tab{0}`.`{1}` {2}'.format(doctype,
+			f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(','))
 	else:
 		sort_field = meta.sort_field or 'modified'
 		sort_order = (meta.sort_field and meta.sort_order) or 'desc'

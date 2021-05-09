@@ -594,7 +594,7 @@ class EmailAccount(Document):
 			# get email account user and set communication as seen
 			users = frappe.get_all("User Email", filters={ "email_account": self.name },
 				fields=["parent"])
-			users = list(set([ user.get("parent") for user in users ]))
+			users = list(set(user.get("parent") for user in users))
 			communication._seen = json.dumps(users)
 
 		communication.flags.in_receive = True
@@ -851,8 +851,8 @@ class EmailAccount(Document):
 			email_server.update_flag(uid_list=uid_list)
 
 			# mark communication as read
-			docnames =  ",".join([ "'%s'"%flag.get("communication") for flag in flags \
-				if flag.get("action") == "Read" ])
+			docnames =  ",".join("'%s'"%flag.get("communication") for flag in flags \
+				if flag.get("action") == "Read")
 			self.set_communication_seen_status(docnames, seen=1)
 
 			# mark communication as unread

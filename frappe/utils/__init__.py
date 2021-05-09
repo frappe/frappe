@@ -186,7 +186,7 @@ def random_string(length):
 	"""generate a random string"""
 	import string
 	from random import choice
-	return ''.join([choice(string.ascii_letters + string.digits) for i in range(length)])
+	return ''.join(choice(string.ascii_letters + string.digits) for i in range(length))
 
 
 def has_gravatar(email):
@@ -305,7 +305,7 @@ def make_esc(esc_chars):
 	"""
 		Function generator for Escaping special characters
 	"""
-	return lambda s: ''.join(['\\' + c if c in esc_chars else c for c in s])
+	return lambda s: ''.join('\\' + c if c in esc_chars else c for c in s)
 
 # esc / unescape characters -- used for command line
 def esc(s, esc_chars):
