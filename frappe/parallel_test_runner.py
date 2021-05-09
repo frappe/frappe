@@ -6,6 +6,7 @@ import time
 import unittest
 import click
 import frappe
+import requests
 
 from .test_runner import (SLOW_TEST_THRESHOLD, make_test_records, set_test_email_config)
 
@@ -51,7 +52,6 @@ class ParallelTestRunner():
 
 	def run_tests(self):
 		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
-		self.test_status = 'ongoing'
 
 		self.start_coverage()
 
@@ -62,6 +62,8 @@ class ParallelTestRunner():
 		self.print_result()
 
 	def run_tests_for_file(self, file_info):
+		if not file_info: return
+
 		frappe.set_user('Administrator')
 		path, filename = file_info
 		module = self.get_module(path, filename)
@@ -210,3 +212,66 @@ def get_all_tests(app):
 				test_file_list.append([path, filename])
 
 	return test_file_list
+
+
+class ParallelTestWithOrchestrator(ParallelTestRunner):
+	'''
+		This can be used to balanceout test time across multiple instances
+		This is dependent on external orchestrator which returns next test to run
+
+		orchestrator endpoints
+		- register-instance (build_id, instance_id, test_spec_list)
+		- get-next-test-spec (build_id, instance_id)
+		- test-completed (build_id, instance_id)
+	'''
+	def __init__(self, app, site, with_coverage=False):
+		self.orchestrator_url = 'https://test-orchestrator.herokuapp.com' # 'http://localhost:3000'
+		self.ci_build_id = os.environ.get('CI_BUILD_ID')
+		self.ci_instance_id = os.environ.get('CI_INSTANCE_ID') or frappe.generate_hash(length=10)
+		if not self.ci_build_id:
+			click.echo('CI_BUILD_ID environment variable not found!')
+			return
+
+		ParallelTestRunner.__init__(self, app, site, with_coverage=with_coverage)
+
+	def run_tests(self):
+		self.test_status = 'ongoing'
+		self.register_instance()
+		super().run_tests()
+
+	def get_test_file_list(self):
+		while self.test_status == 'ongoing':
+			yield self.get_next_test()
+
+	def register_instance(self):
+		test_spec_list = get_all_tests(self.app)
+		response_data = self.call_orchestrator('register-instance', data={
+			'test_spec_list': test_spec_list
+		})
+		self.is_master = response_data.get('is_master')
+
+	def get_next_test(self):
+		response_data = self.call_orchestrator('get-next-test-spec')
+		self.test_status = response_data.get('status')
+		return response_data.get('next_test')
+
+	def print_result(self):
+		self.call_orchestrator('test-completed')
+		return super().print_result()
+
+	def call_orchestrator(self, endpoint, data={}):
+		# add repo token header
+		# build id in header
+		headers = {
+			'CI-BUILD-ID': self.ci_build_id,
+			'CI-INSTANCE-ID': self.ci_instance_id,
+			'REPO-TOKEN': '2948288382838DE'
+		}
+		url = f'{self.orchestrator_url}/{endpoint}'
+		res = requests.get(url, json=data, headers=headers)
+		res.raise_for_status()
+		response_data = {}
+		if 'application/json' in res.headers.get('content-type'):
+			response_data = res.json()
+
+		return response_data
