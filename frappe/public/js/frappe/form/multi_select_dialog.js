@@ -129,27 +129,14 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.$results.append(this.make_list_row());
 	}
 
-	toggle_secondary_action(label, action) {
-		this.dialog.set_secondary_action_label(label);
-		this.dialog.set_secondary_action(action.bind(this));
-	}
-
-	show_parent_selector() {
-		const label = __("Fetch {0}", [this.child_doctype.plural()]);
-		this.toggle_secondary_action(label, this.fetch_child_items);
-
-		this.$wrapper.removeClass('hidden');
-		this.$child_wrapper.addClass('hidden');
-	}
-
 	get_child_result() {
-		const selected_parent = this.get_checked_values();
+		const parents = this.results.map(res => res.name);
 		return frappe.call({
 			method: "frappe.client.get_list",
 			args: {
 				doctype: this.child_doctype,
 				filters: [
-					["parent", "in", selected_parent]
+					["parent", "in", parents]
 				],
 				fields: ['name', 'parent', ...this.child_columns],
 				parent: this.doctype
@@ -157,17 +144,21 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		});
 	}
 
-	async fetch_child_items() {
-		const label = __("Select {0}", [this.doctype.plural()]);
-		this.toggle_secondary_action(label, this.show_parent_selector);
-		
-		this.get_child_result().then(r => {
-			this.child_results = r.message || [];
-			this.render_child_datatable();
-
-			this.$wrapper.addClass('hidden');
-			this.$child_wrapper.removeClass('hidden');
-		});
+	toggle_child_selection() {
+		if (this.dialog.fields_dict['child_selection_mode'].get_value()) {
+			this.get_child_result().then(r => {
+				this.child_results = r.message || [];
+				this.render_child_datatable();
+	
+				this.$wrapper.addClass('hidden');
+				this.$child_wrapper.removeClass('hidden');
+			});
+		} else {
+			this.child_results = [];
+			this.get_results();
+			this.$wrapper.removeClass('hidden');
+			this.$child_wrapper.addClass('hidden');
+		}
 	}
 
 	render_child_datatable() {
@@ -177,6 +168,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			setTimeout(() => {
 				this.child_datatable.rowmanager.checkMap = [];
 				this.child_datatable.refresh(this.get_child_datatable_rows());
+				this.$child_wrapper.find('.dt-scrollable').css('height', '300px');
 			}, 500);
 		}
 	}
@@ -208,20 +200,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			disableReorderColumn: true
 		});
 		this.$child_wrapper.find('.dt-scrollable').css('height', '300px');
-	}
-
-	show_fetch_child_items() {
-		const selected_parent = this.get_checked_values();
-
-		if (selected_parent.length == 0) {
-			// update secondary option and link default secondary action
-			const label = __("Make {0}", [this.doctype.plural()]);
-			this.toggle_secondary_action(label, this.make_new_document);
-		} else {
-			// update secondary option and link new secondary action
-			const label = __("Fetch {0}", [this.child_doctype.plural()]);
-			this.toggle_secondary_action(label, this.fetch_child_items);
-		}
 	}
 
 	get_primary_filters() {
@@ -265,6 +243,15 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		if (Object.seal) {
 			Object.seal(columns);
 			// now a is a fixed-size array with mutable entries
+		}
+
+		if (this.child_selection_mode) {
+			columns[0].push({
+				fieldtype: "Check",
+				label: __("Select Individual Items"),
+				fieldname: "child_selection_mode",
+				onchange: this.toggle_child_selection.bind(this)
+			});
 		}
 
 		fields = [
@@ -320,13 +307,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			if (!$(e.target).is(':checkbox') && !$(e.target).is('a')) {
 				$(this).find(':checkbox').trigger('click');
 			}
-			if (me.child_selection_mode) me.show_fetch_child_items();
 		});
 
 		this.$results.on('click', '.list-item--head :checkbox', (e) => {
 			this.$results.find('.list-item-container .list-row-check')
 				.prop("checked", ($(e.target).is(':checked')));
-			if (me.child_selection_mode) me.show_fetch_child_items();
 		});
 
 		this.$parent.find('.input-with-feedback').on('change', () => {
