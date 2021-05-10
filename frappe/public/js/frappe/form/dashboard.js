@@ -57,7 +57,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		}, this.overview_tab);
 
 		this.transactions_area = $(`<div class="transactions"></div`);
-		console.log(this.frm.layout);
+
 		this.links_area = this.make_section({
 			label: __("Connections"),
 			css_class: 'form-links',
