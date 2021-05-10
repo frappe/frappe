@@ -307,6 +307,8 @@ def get_dependencies(doctype):
 			if doctype_name in options_list:
 				options_list.remove(doctype_name)
 
+	options_list.sort()
+
 	return options_list
 
 def make_test_records_for_doctype(doctype, verbose=0, force=False):
