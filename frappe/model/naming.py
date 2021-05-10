@@ -214,7 +214,7 @@ def revert_series_if_last(key, name, doc=None):
 
 	*Example:*
 		1. key = SINV-.YYYY.- 
-  			* If key doesn't have hash it will add hash at the end
+			* If key doesn't have hash it will add hash at the end
 			* prefix will be SINV-YYYY based on this will get current index from Series table.
 		2. key = SINV-.####.-2021
 			* now prefix = SINV-#### and hashes = 2021 (hash doesn't exist)
