@@ -97,4 +97,4 @@ jobs:
         run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --use-orchestrator
         env:
           CI_BUILD_ID: ${{ github.run_id }}
-          ORCHESTRATOR_URL: ${{ secrets.ORCHESTRATOR_URL }}
+          ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
