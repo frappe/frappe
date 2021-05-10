@@ -216,21 +216,26 @@ def get_all_tests(app):
 
 class ParallelTestWithOrchestrator(ParallelTestRunner):
 	'''
-		This can be used to balanceout test time across multiple instances
+		This can be used to balance-out test time across multiple instances
 		This is dependent on external orchestrator which returns next test to run
 
 		orchestrator endpoints
-		- register-instance (build_id, instance_id, test_spec_list)
-		- get-next-test-spec (build_id, instance_id)
-		- test-completed (build_id, instance_id)
+		- register-instance (<build_id>, <instance_id>, test_spec_list)
+		- get-next-test-spec (<build_id>, <instance_id>)
+		- test-completed (<build_id>, <instance_id>)
 	'''
 	def __init__(self, app, site, with_coverage=False):
-		self.orchestrator_url = 'https://test-orchestrator.herokuapp.com' # 'http://localhost:3000'
+		self.orchestrator_url = os.environ.get('ORCHESTRATOR_URL')
+		if not self.orchestrator_url:
+			click.echo('ORCHESTRATOR_URL environment variable not found!')
+			click.echo('Pass public URL after hosting https://github.com/frappe/test-orchestrator')
+			sys.exit(1)
+
 		self.ci_build_id = os.environ.get('CI_BUILD_ID')
 		self.ci_instance_id = os.environ.get('CI_INSTANCE_ID') or frappe.generate_hash(length=10)
 		if not self.ci_build_id:
 			click.echo('CI_BUILD_ID environment variable not found!')
-			return
+			sys.exit(1)
 
 		ParallelTestRunner.__init__(self, app, site, with_coverage=with_coverage)
 
