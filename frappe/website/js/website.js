@@ -62,10 +62,12 @@ $.extend(frappe, {
 		}
 		return $.ajax({
 			type: opts.type || "POST",
-			url: "/",
+			url: "/api/method/" + opts.method,
 			data: opts.args,
 			dataType: "json",
-			headers: { "X-Frappe-CSRF-Token": frappe.csrf_token, "X-Frappe-CMD": (opts.args && opts.args.cmd  || '') || '' },
+			headers: {
+				"X-Frappe-CSRF-Token": frappe.csrf_token
+			},
 			statusCode: opts.statusCode || {
 				404: function() {
 					frappe.msgprint(__("Not found"));
@@ -108,8 +110,9 @@ $.extend(frappe, {
 		if(!opts.args) opts.args = {};
 
 		// method
-		if(opts.method) {
-			opts.args.cmd = opts.method;
+		if(opts.args.cmd) {
+			opts.method = opts.args.cmd;
+			delete opts.args.cmd;
 		}
 
 		$.each(opts.args, function(key, val) {
@@ -117,14 +120,8 @@ $.extend(frappe, {
 				opts.args[key] = JSON.stringify(val);
 			}
 		});
-
-		if(!opts.no_spinner) {
-			//NProgress.start();
-		}
 	},
 	process_response: function(opts, data) {
-		//if(!opts.no_spinner) NProgress.done();
-
 		if(opts.btn) {
 			$(opts.btn).prop("disabled", false);
 		}
@@ -148,10 +145,6 @@ $.extend(frappe, {
 		}
 
 		if(data.exc) {
-			// if(opts.btn) {
-			// 	$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-danger" : "text-danger");
-			// 	setTimeout(function() { $(opts.btn).removeClass("btn-danger text-danger"); }, 1000);
-			// }
 			try {
 				var err = JSON.parse(data.exc);
 				if($.isArray(err)) {
@@ -161,13 +154,8 @@ $.extend(frappe, {
 			} catch(e) {
 				console.log(data.exc);
 			}
-
-		} else{
-			// if(opts.btn) {
-			// 	$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-success" : "text-success");
-			// 	setTimeout(function() { $(opts.btn).removeClass("btn-success text-success"); }, 1000);
-			// }
 		}
+
 		if(opts.msg && data.message) {
 			$(opts.msg).html(data.message).toggle(true);
 		}
