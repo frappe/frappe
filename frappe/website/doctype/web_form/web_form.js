@@ -9,6 +9,13 @@ frappe.ui.form.on("Web Form", {
 
 		set_fields(frm);
 		frm.events.add_get_fields_button(frm);
+		frm.set_query('print_format', () => {
+			return {
+				filters: {
+					doc_type: frm.doc.doc_type
+				}
+			}
+		})
 	},
 
 	add_get_fields_button(frm) {

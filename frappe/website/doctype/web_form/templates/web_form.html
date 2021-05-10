@@ -2,100 +2,85 @@
 
 {% block title %}{{ _(title) }}{% endblock %}
 
-{% block header %}
-<h2>{{ _(title) }}</h2>
-{% endblock %}
-
 {% block breadcrumbs %}
 {% if has_header and login_required %}
 {% include "templates/includes/breadcrumbs.html" %}
 {% endif %}
 {% endblock %}
 
-{% block header_actions %}
-{% if is_list %}
-<div class="list-view-actions"></div>
-{% else %}
-<div class="web-form-actions"></div>
-{% endif %}
-{% endblock %}
-
 {% macro container_attributes() %}
-data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-required="{{ frappe.utils.cint(login_required and frappe.session.user=='Guest') }}" data-is-list="{{ frappe.utils.cint(is_list) }}" data-allow-delete="{{ allow_delete }}"
+{% set attributes = {
+	'data-web-form': name,
+	'data-web-form-doctype': doc_type,
+	'data-login-required': frappe.utils.cint(login_required and frappe.session.user=='Guest'),
+	'data-is-list': frappe.utils.cint(is_list),
+	'data-allow-delete': allow_delete
+} %}
+
+{%- for attr in attributes -%}
+{{ attr }}="{{ attributes[attr] }}"
+{% endfor -%}
 {% endmacro %}
 
-{% block page_content %}
-<div>
-	{% if is_list %}
-	{# web form list #}
-	<div class="web-form-wrapper" {{ container_attributes() }}></div>
-	<div id="list-filters" class="row"></div>
-	<div id="datatable" class="pt-4"></div>
-	<div class="list-view-footer text-right"></div>
-	{% else %}
-	{# web form #}
-	<div role="form">
-		<div id="introduction" class="text-muted"></div>
-		<hr>
-		<div class="web-form-wrapper" {{ container_attributes() }}></div>
-		<div class="web-form-footer pull-right"></div>
-	</div>
 
-	{% if show_attachments and not frappe.form_dict.new and attachments %}
-	<div class="attachments">
-		<h5>{{ _("Attachments") }}</h5>
-		{% for attachment in attachments %}
-		<div class="attachment">
-			<a class="no-underline attachment-link" href="{{ attachment.file_url }}" target="blank">
-				<div class="row">
-					<div class="col-9">
-						<span class="file-name">{{ attachment.file_name }}</span>
-					</div>
-					<div class="col-3">
-						<span class="pull-right file-size">{{ attachment.file_size }}</span>
-					</div>
-				</div>
-			</a>
+{% block page_container %}
+<div class="container">
+	<div class="web-form-container" style="--webform-width: {{ '800px' if has_column_break else '600px' }}">
+		<div class="web-form-header">
+			<h2>{{ _(title) }}</h2>
+			<div class="web-form-actions"></div>
 		</div>
-		{% endfor %}
+		<form>
+			<div class="web-form-introduction">{{ introduction_text }}</div>
+			<div class="web-form-wrapper" {{ container_attributes() }}></div>
+			<div class="web-form-footer"></div>
+		</form>
+		<div class="web-form-success-message"></div>
+		{% if show_attachments and not frappe.form_dict.new and attachments %}
+		<div class="attachments">
+			<h5>{{ _("Attachments") }}</h5>
+			{% for attachment in attachments %}
+			<div class="attachment">
+				<a class="no-underline attachment-link" href="{{ attachment.file_url }}" target="blank">
+					<div class="row">
+						<div class="col-9">
+							<span class="file-name">{{ attachment.file_name }}</span>
+						</div>
+						<div class="col-3">
+							<span class="pull-right file-size">{{ attachment.file_size }}</span>
+						</div>
+					</div>
+				</a>
+			</div>
+			{% endfor %}
+		</div>
+		{% endif %} {# attachments #}
+		{% if allow_comments and not frappe.form_dict.new and not is_list -%}
+		<div class="mt-6 comments">
+			<h3>{{ _("Comments") }}</h3>
+			{% include 'templates/includes/comments/comments.html' %}
+		</div>
+		{%- endif %} {# comments #}
 	</div>
-	{% endif %} {# attachments #}
-
-	{% if allow_comments and not frappe.form_dict.new and not is_list -%}
-	<div class="comments mt-6">
-		<h3>{{ _("Comments") }}</h3>
-		{% include 'templates/includes/comments/comments.html' %}
-	</div>
-	{%- endif %} {# comments #}
-
-	{% endif %}
 </div>
-{% endblock page_content %}
+{% endblock page_container %}
 
 {% block script %}
 <script>
-frappe.boot = {
-	sysdefaults: {
-		float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
-		date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
-	}
-};
-// for backward compatibility of some libs
-frappe.sys_defaults = frappe.boot.sysdefaults;
-frappe._messages = {{ translated_messages }};
-$(".file-size").each(function() {
-	$(this).text(frappe.form.formatters.FileSize($(this).text()));
-});
+	frappe.boot = {
+		sysdefaults: {
+			float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
+			date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
+		}
+	};
+	// for backward compatibility of some libs
+	frappe.sys_defaults = frappe.boot.sysdefaults;
+	frappe._messages = JSON.parse(`{{ translated_messages }}`);
+	$(".file-size").each(function () {
+		$(this).text(frappe.form.formatters.FileSize($(this).text()));
+	});
 </script>
 <script type="text/javascript" src="/assets/js/control.min.js"></script>
-{% if is_list %}
-{# web form list #}
-<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
-<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
-<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
-<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
-{% else %}
-{# web form #}
 <script type="text/javascript" src="/assets/js/dialog.min.js"></script>
 <script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
 <script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
@@ -106,7 +91,6 @@ $(".file-size").each(function() {
 <script type="text/javascript" src="/assets/js/web_form.min.js"></script>
 <script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
 <script>
-
 {% if client_script %}
 frappe.init_client_script = () => {
 	try {
@@ -122,14 +106,10 @@ frappe.init_client_script = () => {
 	{{ script }}
 {% endif %}
 </script>
-{% endif %}
 {% endblock script %}
 
 {% block style %}
-{% if not is_list %}
 <link type="text/css" rel="stylesheet" href="/assets/css/web_form.css">
-{% endif %}
-
 <style>
 {% if style is defined %}
 	{{ style }}

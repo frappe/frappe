@@ -1,4 +1,43 @@
+@import "./variables";
 @import "../common/form";
+
+.web-form-container {
+	border: 1px solid $border-color;
+	border-radius: $border-radius-lg;
+	padding: 2rem;
+	margin-top: 2rem;
+	max-width: var(--webform-width, 600px);
+	margin-left: auto;
+	margin-right: auto;
+
+	@include media-breakpoint-down(sm) {
+		padding: 0;
+		border: none;
+	}
+}
+
+.web-form-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+
+	h2 {
+		margin-bottom: 0;
+	}
+}
+
+.web-form-actions * + *,
+.web-form-footer * + * {
+	margin-left: 0.5rem;
+}
+
+.web-form-introduction {
+	font-size: $font-size-sm;
+	margin-top: 0.75rem;
+	margin-bottom: 1rem;
+	padding-bottom: 0.75rem;
+	border-bottom: 1px solid $border-color;
+}
 
 .web-form-wrapper {
 	.form-control {
@@ -13,14 +52,20 @@
 		}
 	}
 
-	.form-column {
-		padding: 0 var(--padding-md);
-		&:first-child {
-			padding-left: 0;
-		}
-
-		&:last-child {
-			padding-right: 0;
-		}
+	.form-section .section-body {
+		width: 100%;
+		margin: 0;
+		@extend .row;
 	}
+}
+
+.web-form-footer {
+	display: flex;
+	justify-content: flex-end;
+	padding-top: 1rem;
+	border-top: 1px solid $border-color;
+}
+
+.web-form-success-message {
+	margin-top: 0.5rem;
 }

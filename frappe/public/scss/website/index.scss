@@ -199,21 +199,6 @@ h5.modal-title {
 	@extend .d-sm-none;
 }
 
-.form-section {
-	// margin-right: -45px;
-	margin: 0px;
-}
-
-.form-section .section-body {
-	width: 100%;
-	margin: 0;
-	@extend .row;
-}
-
-.pull-right {
-	float: right;
-}
-
 .image-with-blur {
 	transition: filter 300ms ease-in-out;
 	filter: blur(1.5rem);

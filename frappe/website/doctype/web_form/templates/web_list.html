@@ -1,0 +1,72 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _(title) }}{% endblock %}
+
+{% block breadcrumbs %}
+{% if has_header and login_required %}
+{% include "templates/includes/breadcrumbs.html" %}
+{% endif %}
+{% endblock %}
+
+{% macro container_attributes() %}
+{% set attributes = {
+	'data-web-form': name,
+	'data-web-form-doctype': doc_type,
+	'data-login-required': frappe.utils.cint(login_required and frappe.session.user=='Guest'),
+	'data-is-list': frappe.utils.cint(is_list),
+	'data-allow-delete': allow_delete
+} %}
+
+{%- for attr in attributes -%}
+{{ attr }}="{{ attributes[attr] }}"
+{% endfor -%}
+{% endmacro %}
+
+{% block page_container %}
+<div class="container">
+	<div class="web-list-container">
+		<div>
+			<h2>{{ _(title) }}</h2>
+			<div class="list-view-actions"></div>
+		</div>
+		<div class="web-list-wrapper" {{ container_attributes() }}></div>
+		<div id="list-filters" class="row"></div>
+		<div id="datatable" class="pt-4"></div>
+		<div class="text-right list-view-footer"></div>
+	</div>
+</div>
+{% endblock page_container %}
+
+{% block script %}
+<script>
+	frappe.boot = {
+		sysdefaults: {
+			float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
+			date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
+		}
+	};
+	// for backward compatibility of some libs
+	frappe.sys_defaults = frappe.boot.sysdefaults;
+	frappe._messages = JSON.parse(`{{ translated_messages }}`);
+	$(".file-size").each(function () {
+		$(this).text(frappe.form.formatters.FileSize($(this).text()));
+	});
+</script>
+
+<script type="text/javascript" src="/assets/js/control.min.js"></script>
+<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
+<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
+<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
+<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
+{% endblock script %}
+
+{% block style %}
+<style>
+{% if style is defined %}
+	{{ style }}
+{% endif %}
+{% if custom_css %}
+	{{ custom_css }}
+{% endif %}
+</style>
+{% endblock %}

@@ -133,9 +133,14 @@ def get_context(context):
 		'''Build context to render the `web_form.html` template'''
 		self.set_web_form_module()
 
-		doc, delimeter = make_route_string(frappe.form_dict)
-		context.doc = doc
-		context.delimeter = delimeter
+		if frappe.form_dict.is_list:
+			context.template = 'website/doctype/web_form/templates/web_list.html'
+		else:
+			context.template = 'website/doctype/web_form/templates/web_form.html'
+
+		# doc, delimeter = make_route_string(frappe.form_dict)
+		# context.doc = doc
+		# context.delimeter = delimeter
 
 		# check permissions
 		if frappe.session.user == "Guest" and frappe.form_dict.name:
@@ -144,31 +149,52 @@ def get_context(context):
 		if frappe.form_dict.name and not self.has_web_form_permission(self.doc_type, frappe.form_dict.name):
 			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
 
+		# Show new form when
+		# - User is Guest
+		# - Login not required
+		# - Editing not allowed
+		route_to_new = frappe.session.user == 'Guest' or not self.login_required or not self.allow_edit
+		if not frappe.form_dict.is_new and route_to_new:
+			frappe.redirect(f'/{self.route}/new')
+
 		self.reset_field_parent()
 
 		if self.is_standard:
 			self.use_meta_fields()
 
-		if not frappe.session.user == "Guest":
-			if self.allow_edit:
-				if self.allow_multiple:
-					if not frappe.form_dict.name and not frappe.form_dict.new:
-						# list data is queried via JS
-						context.is_list = True
-				else:
-					if frappe.session.user != 'Guest' and not frappe.form_dict.name:
-						frappe.form_dict.name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
+		# if not frappe.session.user == "Guest":
+		# 	if self.allow_edit:
+		# 		if self.allow_multiple:
+		# 			if not frappe.form_dict.name and not frappe.form_dict.is_new:
+		# 				# list data is queried via JS
+		# 				context.is_list = True
+		# 		else:
+		# 			if frappe.session.user != 'Guest' and not frappe.form_dict.name:
+		# 				frappe.form_dict.name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
 
-					if not frappe.form_dict.name:
-						# only a single doc allowed and no existing doc, hence new
-						frappe.form_dict.new = 1
+		# 			if not frappe.form_dict.name:
+		# 				# only a single doc allowed and no existing doc, hence new
+		# 				frappe.form_dict.is_new = 1
+
 
 		if frappe.form_dict.is_list:
 			context.is_list = True
 
-		# always render new form if login is not required or doesn't allow editing existing ones
-		if not self.login_required or not self.allow_edit:
-			frappe.form_dict.new = 1
+		if frappe.form_dict.is_new:
+			context.is_new = True
+
+		if frappe.form_dict.is_edit:
+			context.is_edit = True
+
+		if frappe.form_dict.is_view:
+			context.is_view = True
+
+
+
+		for df in self.web_form_fields:
+			if df.fieldtype  == "Column Break":
+				context.has_column_break = True
+				break
 
 		self.load_document(context)
 		context.parents = self.get_parents(context)
@@ -176,7 +202,7 @@ def get_context(context):
 		if self.breadcrumbs:
 			context.parents = frappe.safe_eval(self.breadcrumbs, { "_": _ })
 
-		context.has_header = ((frappe.form_dict.name or frappe.form_dict.new)
+		context.has_header = ((frappe.form_dict.name or frappe.form_dict.is_new)
 			and (frappe.session.user!="Guest" or not self.login_required))
 
 		if context.success_message:
@@ -198,7 +224,7 @@ def get_context(context):
 
 	def load_document(self, context):
 		'''Load document `doc` and `layout` properties for template'''
-		if frappe.form_dict.name or frappe.form_dict.new:
+		if frappe.form_dict.name or frappe.form_dict.is_new:
 			context.layout = self.get_layout()
 			context.parents = [{"route": self.route, "label": _(self.title) }]
 
@@ -482,6 +508,33 @@ def accept(web_form, data, docname=None, for_payment=False):
 		return web_form.get_payment_gateway_url(doc)
 	else:
 		return doc
+
+@frappe.whitelist(allow_guest=True)
+def new(web_form, doc):
+	web_form = frappe.get_doc('Web Form', web_form)
+
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must login to submit this form"), frappe.AuthenticationError)
+
+	doc = frappe.parse_json(doc)
+	newdoc = frappe.new_doc(doc.doctype)
+	# set fields that are defined in the web form
+	for field in web_form.web_form_fields:
+		newdoc.set(field.fieldname, doc.get(field.fieldname))
+
+	ignore_permissions = not web_form.login_required
+	ignore_mandatory = web_form.allow_incomplete
+	newdoc.insert(ignore_permissions=ignore_permissions, ignore_mandatory=ignore_mandatory)
+
+	out = {"doc": newdoc}
+	if web_form.accept_payment:
+		out.payment_url = web_form.get_payment_gateway_url(newdoc)
+	return out
+
+
+@frappe.whitelist(allow_guest=True)
+def update(webform, doc):
+	pass
 
 @frappe.whitelist()
 def delete(web_form_name, docname):

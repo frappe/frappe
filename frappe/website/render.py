@@ -287,13 +287,15 @@ def set_content_type(response, data, path):
 
 	response.mimetype = 'text/html'
 	response.charset = 'utf-8'
-
-	if "." in path:
-		content_type, encoding = mimetypes.guess_type(path)
-		if content_type:
-			response.mimetype = content_type
-			if encoding:
-				response.charset = encoding
+	# TODO: webform refactor
+	# this code will set the mimetype of a path /test/admin@example.com to x-msdownload which downloads the file
+	# this shouldn't be necessary
+	# if "." in path:
+	# 	content_type, encoding = mimetypes.guess_type(path)
+	# 	if content_type:
+	# 		response.mimetype = content_type
+	# 		if encoding:
+	# 			response.charset = encoding
 
 	return data
 
