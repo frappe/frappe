@@ -107,7 +107,7 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 
 	doc = frappe.get_doc(docdict)
 
-	if doc.meta.is_tree:
+	if hasattr(doc.meta, 'is_tree') and getattr(doc.meta, 'is_tree'):
 		doc.lft = None
 		doc.rgt = None
 
