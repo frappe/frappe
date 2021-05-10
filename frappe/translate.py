@@ -332,8 +332,8 @@ def get_messages_for_app(app, deduplicate=True):
 
 def get_messages_from_navbar():
 	"""Return all labels from Navbar Items, as specified in Navbar Settings."""
-	labels = frappe.get_all('Navbar Item', filters={'item_label': ('is', 'set')}, fields=['item_label'])
-	return [('Navbar:', row.item_label, 'Label of a Navbar Item') for row in labels]
+	labels = frappe.get_all('Navbar Item', filters={'item_label': ('is', 'set')}, pluck='item_label')
+	return [('Navbar:', label, 'Label of a Navbar Item') for label in labels]
 
 
 def get_messages_from_doctype(name):
