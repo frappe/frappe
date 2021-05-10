@@ -62,11 +62,24 @@ def popen(command, *args, **kwargs):
 	if env:
 		env = dict(environ, **env)
 
+	def set_low_prio():
+		import psutil
+		if psutil.LINUX:
+			psutil.Process().nice(19)
+			psutil.Process().ionice(psutil.IOPRIO_CLASS_IDLE)
+		elif psutil.WINDOWS:
+			psutil.Process().nice(psutil.IDLE_PRIORITY_CLASS)
+			psutil.Process().ionice(psutil.IOPRIO_VERYLOW)
+		else:
+			psutil.Process().nice(19)
+			# ionice not supported
+
 	proc = subprocess.Popen(command,
 		stdout=None if output else subprocess.PIPE,
 		stderr=None if output else subprocess.PIPE,
 		shell=shell,
 		cwd=cwd,
+		preexec_fn=set_low_prio,
 		env=env
 	)
 

@@ -177,7 +177,7 @@ acceptable_attributes = [
 	'data-value', 'role', 'frameborder', 'allowfullscreen', 'spellcheck',
 	'data-mode', 'data-gramm', 'data-placeholder', 'data-comment',
 	'data-id', 'data-denotation-char', 'itemprop', 'itemscope',
-	'itemtype', 'itemid', 'itemref', 'datetime'
+	'itemtype', 'itemid', 'itemref', 'datetime', 'data-is-group'
 ]
 
 mathml_attributes = [

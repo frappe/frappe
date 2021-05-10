@@ -56,6 +56,7 @@ def application(request):
 		frappe.recorder.record()
 		frappe.monitor.start()
 		frappe.rate_limiter.apply()
+		frappe.api.validate_auth()
 
 		if request.method == "OPTIONS":
 			response = Response()
@@ -200,12 +201,20 @@ def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
+	accept_header = frappe.get_request_header("Accept") or ""
+	respond_as_json = (
+		frappe.get_request_header('Accept')
+		and (frappe.local.is_ajax or 'application/json' in accept_header)
+		or (
+			frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text")
+		)
+	)
 
 	if frappe.conf.get('developer_mode'):
 		# don't fail silently
 		print(frappe.get_traceback())
 
-	if frappe.get_request_header('Accept') and (frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept')):
+	if respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
@@ -285,6 +294,7 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 	_sites_path = sites_path
 
 	from werkzeug.serving import run_simple
+	patch_werkzeug_reloader()
 
 	if profile:
 		application = ProfilerMiddleware(application, sort_by=('cumtime', 'calls'))
@@ -315,3 +325,23 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,
 		threaded=not no_threading)
+
+def patch_werkzeug_reloader():
+	"""
+	This function monkey patches Werkzeug reloader to ignore reloading files in
+	the __pycache__ directory.
+
+	To be deprecated when upgrading to Werkzeug 2.
+	"""
+
+	from werkzeug._reloader import WatchdogReloaderLoop
+
+	trigger_reload = WatchdogReloaderLoop.trigger_reload
+
+	def custom_trigger_reload(self, filename):
+		if os.path.basename(os.path.dirname(filename)) == "__pycache__":
+			return
+
+		return trigger_reload(self, filename)
+
+	WatchdogReloaderLoop.trigger_reload = custom_trigger_reload

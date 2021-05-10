@@ -89,10 +89,16 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		doc = frappe.get_doc(doctype, name)
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
+
+	all_communications = _get_communications(doc.doctype, doc.name)
+	automated_messages = filter(lambda x: x['communication_type'] == 'Automated Message', all_communications)
+	communications_except_auto_messages = filter(lambda x: x['communication_type'] != 'Automated Message', all_communications)
+
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
 		"attachment_logs": get_comments(doc.doctype, doc.name, 'attachment'),
-		"communications": _get_communications(doc.doctype, doc.name),
+		"communications": communications_except_auto_messages,
+		"automated_messages": automated_messages,
 		'comments': get_comments(doc.doctype, doc.name),
 		'total_comments': len(json.loads(doc.get('_comments') or '[]')),
 		'versions': get_versions(doc),
@@ -187,7 +193,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			C.sender, C.sender_full_name, C.cc, C.bcc,
 			C.creation AS creation, C.subject, C.delivery_status,
 			C._liked_by, C.reference_doctype, C.reference_name,
-			C.read_by_recipient, C.rating
+			C.read_by_recipient, C.rating, C.recipients
 		'''
 
 	conditions = ''
@@ -206,7 +212,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	part1 = '''
 		SELECT {fields}
 		FROM `tabCommunication` as C
-		WHERE C.communication_type IN ('Communication', 'Feedback')
+		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
 	'''.format(fields=fields, conditions=conditions)
@@ -216,7 +222,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		SELECT {fields}
 		FROM `tabCommunication` as C
 		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
-		WHERE C.communication_type IN ('Communication', 'Feedback')
+		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
 	'''.format(fields=fields, conditions=conditions)

@@ -938,7 +938,7 @@ Object.assign(frappe.utils, {
 		});
 	},
 	is_rtl(lang=null) {
-		return ["ar", "he", "fa"].includes(lang || frappe.boot.lang);
+		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
 	},
 	bind_actions_with_object($el, object) {
 		// remove previously bound event
@@ -1272,21 +1272,6 @@ Object.assign(frappe.utils, {
 		</div>`);
 	},
 
-	get_names_for_mentions() {
-		let names_for_mentions = Object.keys(frappe.boot.user_info || [])
-			.filter(user => {
-				return !["Administrator", "Guest"].includes(user)
-					&& frappe.boot.user_info[user].allowed_in_mentions
-					&& frappe.boot.user_info[user].user_type === 'System User';
-			})
-			.map(user => {
-				return {
-					id: frappe.boot.user_info[user].name,
-					value: frappe.boot.user_info[user].fullname,
-				};
-			});
-		return names_for_mentions;
-	},
 	print(doctype, docname, print_format, letterhead, lang_code) {
 		let w = window.open(
 			frappe.urllib.get_full_url(

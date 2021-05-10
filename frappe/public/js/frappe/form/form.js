@@ -34,7 +34,6 @@ frappe.ui.form.Form = class FrappeForm {
 		this.grids = [];
 		this.cscript = new frappe.ui.form.Controller({ frm: this });
 		this.events = {};
-		this.pformat = {};
 		this.fetch_dict = {};
 		this.parent = parent;
 		this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
@@ -361,6 +360,7 @@ frappe.ui.form.Form = class FrappeForm {
 			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
 		frappe.ui.form.close_grid_form();
+		this.viewers && this.viewers.parent.empty();
 		this.docname = docname;
 		this.setup_docinfo_change_listener();
 	}
@@ -451,7 +451,7 @@ frappe.ui.form.Form = class FrappeForm {
 						return this.script_manager.trigger("onload_post_render");
 					}
 				},
-				() => this.is_new() && this.focus_on_first_input(),
+				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
 				() => this.dashboard.after_refresh()
 			]);
@@ -1144,10 +1144,6 @@ frappe.ui.form.Form = class FrappeForm {
 		this.page.remove_inner_button(label, group);
 	}
 
-	set_print_heading(txt) {
-		this.pformat[this.docname] = txt;
-	}
-
 	scroll_to_element() {
 		if (frappe.route_options && frappe.route_options.scroll_to) {
 			var scroll_to = frappe.route_options.scroll_to;
@@ -1207,8 +1203,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		$.each(grid_field_label_map, function(fname, label) {
 			fname = fname.split("-");
-			var df = frappe.meta.get_docfield(fname[0], fname[1], me.doc.name);
-			if(df) df.label = label;
+			me.fields_dict[parentfield].grid.update_docfield_property(fname[1], 'label', label);
 		});
 	}
 

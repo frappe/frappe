@@ -194,7 +194,10 @@ export default class Grid {
 		}
 
 		tasks.push(() => {
-			if (dirty) this.refresh();
+			if (dirty) {
+				this.refresh();
+				this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
+			}
 		});
 
 		frappe.run_serially(tasks);
@@ -210,6 +213,7 @@ export default class Grid {
 			this.frm.doc[this.df.fieldname] = [];
 			$(this.parent).find('.rows').empty();
 			this.grid_rows = [];
+			this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 
 			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 			this.refresh();
@@ -382,6 +386,8 @@ export default class Grid {
 		} else if (this.grid_rows.length < this.grid_pagination.page_length) {
 			this.wrapper.find('.grid-footer').toggle(false);
 		}
+
+		this.wrapper.find('.grid-add-row, .grid-add-multiple-rows').toggle(this.is_editable());
 
 	}
 
@@ -900,5 +906,22 @@ export default class Grid {
 	clear_custom_buttons() {
 		// hide all custom buttons
 		this.grid_buttons.find('.btn-custom').addClass('hidden');
+	}
+
+	update_docfield_property(fieldname, property, value) {
+		// update the docfield of each row
+		for (let row of this.grid_rows) {
+			let docfield = row.docfields.find(d => d.fieldname === fieldname);
+			if (docfield) {
+				docfield[property] = value;
+			} else {
+				throw `field ${fieldname} not found`;
+			}
+		}
+
+		// update the parent too (for new rows)
+		this.docfields.find(d => d.fieldname === fieldname)[property] = value;
+
+		this.refresh();
 	}
 }

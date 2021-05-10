@@ -10,7 +10,8 @@ import frappe.share
 import frappe.defaults
 import frappe.permissions
 from frappe.model.document import Document
-from frappe.utils import cint, flt, has_gravatar, escape_html, format_datetime, now_datetime, get_formatted_email, today
+from frappe.utils import (cint, flt, has_gravatar, escape_html, format_datetime,
+	now_datetime, get_formatted_email, today)
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password, check_password, get_password_reset_limit
 from frappe.desk.notifications import clear_notifications
@@ -19,6 +20,7 @@ from frappe.utils.user import get_system_managers
 from frappe.website.utils import is_signup_enabled
 from frappe.rate_limiter import rate_limit
 from frappe.utils.background_jobs import enqueue
+from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 
 
 STANDARD_USERS = ("Guest", "Administrator")
@@ -54,6 +56,7 @@ class User(Document):
 
 	def after_insert(self):
 		create_notification_settings(self.name)
+		frappe.cache().delete_key('users_for_mentions')
 
 	def validate(self):
 		self.check_demo()
@@ -127,6 +130,9 @@ class User(Document):
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
 
+		if self.has_value_changed('allow_in_mentions') or self.has_value_changed('user_type'):
+			frappe.cache().delete_key('users_for_mentions')
+
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
 		return self.name == frappe.session.user
@@ -186,11 +192,36 @@ class User(Document):
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
 
 	def set_system_user(self):
-		'''Set as System User if any of the given roles has desk_access'''
-		if self.has_desk_access() or self.name == 'Administrator':
-			self.user_type = 'System User'
+		'''For the standard users like admin and guest, the user type is fixed.'''
+		user_type_mapper = {
+			'Administrator': 'System User',
+			'Guest': 'Website User'
+		}
+
+		if self.user_type and not frappe.get_cached_value('User Type', self.user_type, 'is_standard'):
+			if user_type_mapper.get(self.name):
+				self.user_type = user_type_mapper.get(self.name)
+			else:
+				self.set_roles_and_modules_based_on_user_type()
 		else:
-			self.user_type = 'Website User'
+			'''Set as System User if any of the given roles has desk_access'''
+			self.user_type = 'System User' if self.has_desk_access() else 'Website User'
+
+	def set_roles_and_modules_based_on_user_type(self):
+		user_type_doc = frappe.get_cached_doc('User Type', self.user_type)
+		if user_type_doc.role:
+			self.roles = []
+
+			# Check whether User has linked with the 'Apply User Permission On' doctype or not
+			if user_linked_with_permission_on_doctype(user_type_doc, self.name):
+				self.append('roles', {
+					'role': user_type_doc.role
+				})
+
+				frappe.msgprint(_('Role has been set as per the user type {0}')
+					.format(self.user_type), alert=True)
+
+		user_type_doc.update_modules_in_user(self)
 
 	def has_desk_access(self):
 		'''Return true if any of the set roles has desk access'''
@@ -361,6 +392,9 @@ class User(Document):
 
 		# delete notification settings
 		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
+
+		if self.get('allow_in_mentions'):
+			frappe.cache().delete_key('users_for_mentions')
 
 
 	def before_rename(self, old_name, new_name, merge=False):
@@ -877,7 +911,8 @@ def reset_password(user):
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond, get_filters_cond
 	conditions=[]
-	user_type_condition = "and user_type = 'System User'"
+
+	user_type_condition = "and user_type != 'Website User'"
 	if filters and filters.get('ignore_user_type'):
 		user_type_condition = ''
 		filters.pop('ignore_user_type')
@@ -990,8 +1025,16 @@ def extract_mentions(txt):
 	soup = BeautifulSoup(txt, 'html.parser')
 	emails = []
 	for mention in soup.find_all(class_='mention'):
+		if mention.get('data-is-group') == 'true':
+			try:
+				user_group = frappe.get_cached_doc('User Group', mention['data-id'])
+				emails += [d.user for d in user_group.user_group_members]
+			except frappe.DoesNotExistError:
+				pass
+			continue
 		email = mention['data-id']
 		emails.append(email)
+
 	return emails
 
 def handle_password_test_fail(result):

@@ -32,7 +32,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	set_title() {
 		if (this.frm.is_new()) {
-			var title = __('New {0}', [this.frm.meta.name]);
+			var title = __('New {0}', [__(this.frm.meta.name)]);
 		} else if (this.frm.meta.title_field) {
 			let title_field = (this.frm.doc[this.frm.meta.title_field] || "").toString().trim();
 			var title = strip_html(title_field || this.frm.docname);
@@ -211,7 +211,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 	make_viewers() {
 		if (this.frm.viewers) {
-			this.frm.viewers.parent.empty();
 			return;
 		}
 		this.frm.viewers = new frappe.ui.form.FormViewers({
@@ -278,12 +277,17 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}, true)
 		}
 
-		// copy
+		// duplicate
 		if(in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
 			this.page.add_menu_item(__("Duplicate"), function() {
 				me.frm.copy_doc();
 			}, true);
 		}
+
+		// copy doc to clipboard
+		this.page.add_menu_item(__("Copy to Clipboard"), function() {
+			frappe.utils.copy_to_clipboard(JSON.stringify(me.frm.doc));
+		}, true);
 
 		// rename
 		if(this.can_rename()) {
@@ -547,7 +551,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 		let fields = this.frm.fields
 			.filter(visible_fields_filter)
-			.map(f => ({ label: f.df.label, value: f.df.fieldname }));
+			.map(f => ({ label: __(f.df.label), value: f.df.fieldname }));
 
 		let dialog = new frappe.ui.Dialog({
 			title: __('Jump to field'),

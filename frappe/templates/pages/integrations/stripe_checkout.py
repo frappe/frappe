@@ -26,7 +26,7 @@ def get_context(context):
 
 		context['amount'] = fmt_money(amount=context['amount'], currency=context['currency'])
 
-		if frappe.db.get_value(context.reference_doctype, context.reference_docname, "is_a_subscription"):
+		if is_a_subscription(context.reference_doctype, context.reference_docname):
 			payment_plan = frappe.db.get_value(context.reference_doctype, context.reference_docname, "payment_plan")
 			recurrence = frappe.db.get_value("Payment Plan", payment_plan, "recurrence")
 
@@ -60,7 +60,7 @@ def make_payment(stripe_token_id, data, reference_doctype=None, reference_docnam
 
 	gateway_controller = get_gateway_controller(reference_doctype,reference_docname)
 
-	if frappe.db.get_value(reference_doctype, reference_docname, 'is_a_subscription'):
+	if is_a_subscription(reference_doctype, reference_docname):
 		reference = frappe.get_doc(reference_doctype, reference_docname)
 		data =  reference.create_subscription("stripe", gateway_controller, data)
 	else:
@@ -68,3 +68,8 @@ def make_payment(stripe_token_id, data, reference_doctype=None, reference_docnam
 
 	frappe.db.commit()
 	return data
+
+def is_a_subscription(reference_doctype, reference_docname):
+	if not frappe.get_meta(reference_doctype).has_field('is_a_subscription'):
+		return False
+	return frappe.db.get_value(reference_doctype, reference_docname, "is_a_subscription")

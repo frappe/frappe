@@ -252,7 +252,7 @@ def make_links(columns, data):
 			elif col.fieldtype == "Dynamic Link":
 				if col.options and row.get(col.fieldname) and row.get(col.options):
 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
-			elif col.fieldtype == "Currency":
+			elif col.fieldtype == "Currency" and row.get(col.fieldname):
 				row[col.fieldname] = frappe.format_value(row[col.fieldname], col)
 
 	return columns, data

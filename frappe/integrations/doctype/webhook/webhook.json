@@ -11,6 +11,7 @@
   "webhook_doctype",
   "cb_doc_events",
   "webhook_docevent",
+  "enabled",
   "sb_condition",
   "condition",
   "cb_condition",
@@ -147,10 +148,16 @@
    "fieldname": "webhook_secret",
    "fieldtype": "Password",
    "label": "Webhook Secret"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
   }
  ],
  "links": [],
- "modified": "2020-01-13 01:53:04.459968",
+ "modified": "2021-04-14 05:35:28.532049",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

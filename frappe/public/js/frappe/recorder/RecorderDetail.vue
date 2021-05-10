@@ -5,7 +5,7 @@
 				<div class="tag-filters-area">
 					<div class="active-tag-filters">
 						<button class="btn btn-default btn-xs add-filter text-muted">
-							Add Filter
+							{{ __("Add Filter") }}
 						</button>
 					</div>
 				</div>
@@ -71,12 +71,12 @@
 			</div>
 			<div v-if="requests.length == 0" class="no-result text-muted flex justify-center align-center" style="">
 				<div class="msg-box no-border" v-if="status.status == 'Inactive'" >
-					<p>Recorder is Inactive</p>
-					<p><button class="btn btn-primary btn-sm btn-new-doc" @click="start()">Start Recording</button></p>
+					<p>{{ __("Recorder is Inactive") }}</p>
+					<p><button class="btn btn-primary btn-sm btn-new-doc" @click="start()">{{ __("Start Recording") }}</button></p>
 				</div>
 				<div class="msg-box no-border" v-if="status.status == 'Active'" >
-					<p>No Requests found</p>
-					<p>Go make some noise</p>
+					<p>{{ __("No Requests found") }}</p>
+					<p>{{ __("Go make some noise") }}</p>
 				</div>
 			</div>
 			<div v-if="requests.length != 0" class="list-paging-area">
@@ -108,12 +108,12 @@ export default {
 		return {
 			requests: [],
 			columns: [
-				{label: "Path", slug: "path"},
-				{label: "Duration (ms)", slug: "duration", sortable: true, number: true},
-				{label: "Time in Queries (ms)", slug: "time_queries", sortable: true, number: true},
-				{label: "Queries", slug: "queries", sortable: true, number: true},
-				{label: "Method", slug: "method"},
-				{label: "Time", slug: "time", sortable: true},
+				{label: __("Path"), slug: "path"},
+				{label: __("Duration (ms)"), slug: "duration", sortable: true, number: true},
+				{label: __("Time in Queries (ms)"), slug: "time_queries", sortable: true, number: true},
+				{label: __("Queries"), slug: "queries", sortable: true, number: true},
+				{label: __("Method"), slug: "method"},
+				{label: __("Time"), slug: "time", sortable: true},
 			],
 			query: {
 				sort: "duration",
@@ -140,7 +140,7 @@ export default {
 	mounted() {
 		this.fetch_status();
 		this.refresh();
-		this.$root.page.set_secondary_action("Clear", () => {
+		this.$root.page.set_secondary_action(__("Clear"), () => {
 			frappe.set_route("recorder");
 			this.clear();
 		});
@@ -151,11 +151,11 @@ export default {
 			const current_page = this.query.pagination.page;
 			const total_pages = this.query.pagination.total;
 			return [{
-				label: "First",
+				label: __("First"),
 				number: 1,
 				status: (current_page == 1) ? "disabled" : "",
 			},{
-				label: "Previous",
+				label: __("Previous"),
 				number: Math.max(current_page - 1, 1),
 				status: (current_page == 1) ? "disabled" : "",
 			}, {
@@ -163,11 +163,11 @@ export default {
 				number: current_page,
 				status: "btn-info",
 			}, {
-				label: "Next",
+				label: __("Next"),
 				number: Math.min(current_page + 1, total_pages),
 				status: (current_page == total_pages) ? "disabled" : "",
 			}, {
-				label: "Last",
+				label: __("Last"),
 				number: total_pages,
 				status: (current_page == total_pages) ? "disabled" : "",
 			}];
@@ -230,11 +230,11 @@ export default {
 		},
 		update_buttons: function() {
 			if(this.status.status == "Active") {
-				this.$root.page.set_primary_action("Stop", () => {
+				this.$root.page.set_primary_action(__("Stop"), () => {
 					this.stop();
 				});
 			} else {
-				this.$root.page.set_primary_action("Start", () => {
+				this.$root.page.set_primary_action(__("Start"), () => {
 					this.start();
 				});
 			}

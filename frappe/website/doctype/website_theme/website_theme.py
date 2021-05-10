@@ -180,7 +180,7 @@ def after_migrate():
 	the end of every `bench migrate`.
 	"""
 	website_theme = frappe.db.get_single_value('Website Settings', 'website_theme')
-	if website_theme == 'Standard':
+	if not website_theme or website_theme == 'Standard':
 		return
 
 	doc = frappe.get_doc('Website Theme', website_theme)

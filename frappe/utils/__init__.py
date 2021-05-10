@@ -18,8 +18,7 @@ from email.utils import formataddr, parseaddr
 from gzip import GzipFile
 from typing import Generator, Iterable
 
-from six import string_types, text_type
-from six.moves.urllib.parse import quote
+from urllib.parse import quote, urlparse
 from werkzeug.test import Client
 
 import frappe
@@ -72,7 +71,7 @@ def get_formatted_email(user, mail=None):
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
 	email_id = parse_addr(email)[1]
-	if email_id and isinstance(email_id, string_types) and not isinstance(email_id, text_type):
+	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
@@ -216,7 +215,7 @@ def get_traceback():
 def log(event, details):
 	frappe.logger().info(details)
 
-def dict_to_str(args, sep='&'):
+def dict_to_str(args, sep = '&'):
 	"""
 	Converts a dictionary to URL
 	"""
@@ -224,6 +223,13 @@ def dict_to_str(args, sep='&'):
 	for k in list(args):
 		t.append(str(k)+'='+quote(str(args[k] or '')))
 	return sep.join(t)
+
+def list_to_str(seq, sep = ', '):
+	"""Convert a sequence into a string using seperator.
+
+	Same as str.join, but does type conversion and strip extra spaces.
+	"""
+	return sep.join(map(str.strip, map(str, seq)))
 
 # Get Defaults
 # ==============================================================================
@@ -300,14 +306,23 @@ def unesc(s, esc_chars):
 		s = s.replace(esc_str, c)
 	return s
 
-def execute_in_shell(cmd, verbose=0):
+def execute_in_shell(cmd, verbose=0, low_priority=False):
 	# using Popen instead of os.system - as recommended by python docs
 	import tempfile
 	from subprocess import Popen
 
 	with tempfile.TemporaryFile() as stdout:
 		with tempfile.TemporaryFile() as stderr:
-			p = Popen(cmd, shell=True, stdout=stdout, stderr=stderr)
+			kwargs = {
+				"shell": True,
+				"stdout": stdout,
+				"stderr": stderr
+			}
+
+			if low_priority:
+				kwargs["preexec_fn"] = lambda: os.nice(10)
+
+			p = Popen(cmd, **kwargs)
 			p.wait()
 
 			stdout.seek(0)
@@ -354,14 +369,14 @@ def get_site_url(site):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], string_types) and isinstance(d[key], text_type):
+		if isinstance(d[key], str) and isinstance(d[key], str):
 			d[key] = d[key].encode(encoding)
 
 	return d
 
 def decode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], string_types) and not isinstance(d[key], text_type):
+		if isinstance(d[key], str) and not isinstance(d[key], str):
 			d[key] = d[key].decode(encoding, "ignore")
 
 	return d
@@ -628,7 +643,7 @@ def parse_json(val):
 	"""
 	Parses json if string else return
 	"""
-	if isinstance(val, string_types):
+	if isinstance(val, str):
 		val = json.loads(val)
 	if isinstance(val, dict):
 		val = frappe._dict(val)
@@ -797,3 +812,11 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
+
+def validate_url(url_string):
+	try:
+		result = urlparse(url_string)
+		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
+	except Exception:
+		return False
+

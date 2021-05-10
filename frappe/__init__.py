@@ -10,11 +10,11 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
-from __future__ import unicode_literals, print_function
 
-from six import iteritems, binary_type, text_type, string_types, PY2
+from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
-import os, sys, importlib, inspect, json
+import os, sys, importlib, inspect, json, warnings
+import typing
 from past.builtins import cmp
 import click
 
@@ -26,18 +26,14 @@ from .utils.lazy_loader import lazy_import
 # Lazy imports
 faker = lazy_import('faker')
 
+__version__ = '13.1.2'
 
-# Harmless for Python 3
-# For Python 2 set default encoding to utf-8
-if PY2:
-	reload(sys)
-	sys.setdefaultencoding("utf-8")
-
-__version__ = '13.0.0-dev'
 __title__ = "Frappe Framework"
 
 local = Local()
 controllers = {}
+warnings.simplefilter('always', DeprecationWarning)
+warnings.simplefilter('always', PendingDeprecationWarning)
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
@@ -132,6 +128,14 @@ debug_log = local("debug_log")
 message_log = local("message_log")
 
 lang = local("lang")
+
+# This if block is never executed when running the code. It is only used for
+# telling static code analyzer where to find dynamically defined attributes.
+if typing.TYPE_CHECKING:
+	from frappe.database.mariadb.database import MariaDBDatabase
+	from frappe.database.postgres.database import PostgresDatabase
+	db: typing.Union[MariaDBDatabase, PostgresDatabase]
+# end: static analysis hack
 
 def init(site, sites_path=None, new_site=False):
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
@@ -965,7 +969,7 @@ def get_pymodule_path(modulename, *joins):
 	:param *joins: Join additional path elements using `os.path.join`."""
 	if not "public" in joins:
 		joins = [scrub(part) for part in joins]
-	return os.path.join(os.path.dirname(get_module(scrub(modulename)).__file__), *joins)
+	return os.path.join(os.path.dirname(get_module(scrub(modulename)).__file__ or ''), *joins)
 
 def get_module_list(app_name):
 	"""Get list of modules for given all via `app/modules.txt`."""
