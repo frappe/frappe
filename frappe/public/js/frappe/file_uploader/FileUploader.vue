@@ -390,9 +390,8 @@ export default {
 								// pass
 							}
 							frappe.msgprint({
-								title: __('Not Permitted to upload files - Contact Admininistrator'),
+								title: __('Not Permitted to upload files'),
     							indicator: 'red',
-    							message: error.exc
 							});
 							frappe.request.cleanup({}, error);
 						}
