@@ -75,8 +75,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			primary_action: () => {
 				let filters_data = this.get_custom_filters();
 				const data_values = cur_dialog.get_values(); // to pass values of data fields
-				const filtered_children = this.get_checked_child_names();
-				this.action(this.get_checked_values(), {
+				const filtered_children = this.get_selected_child_names();
+				const selected_documents = [...this.get_checked_values(), ...this.get_parent_name_of_selected_children()];
+				this.action(selected_documents, {
 					...this.args,
 					...data_values,
 					...filters_data,
@@ -330,7 +331,21 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		});
 	}
 
-	get_checked_child_names() {
+	get_parent_name_of_selected_children() {
+		if (!this.child_datatable.datamanager.rows.length) return [];
+
+		let parent_names = this.child_datatable.rowmanager.checkMap.reduce((parent_names, checked, index) => {
+			if (checked == 1) {
+				const parent_name = this.child_results[index].parent;
+				parent_names.push(parent_name);
+			}
+			return parent_names;
+		}, []);
+
+		return parent_names;
+	}
+
+	get_selected_child_names() {
 		if (!this.child_datatable.datamanager.rows.length) return [];
 
 		let checked_names = this.child_datatable.rowmanager.checkMap.reduce((checked_names, checked, index) => {
