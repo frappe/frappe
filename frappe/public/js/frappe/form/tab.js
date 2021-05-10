@@ -42,7 +42,8 @@ frappe.ui.form.Tab = class Tab {
 		if (!hide && this.layout && this.layout.frm && !this.layout.frm.get_perm(this.df.permlevel || 0, "read")) {
 			hide = true;
 		}
-		this.toggle(!hide);
+		
+		hide && this.toggle(false);
 	}
 
 	toggle(show) {
@@ -50,6 +51,7 @@ frappe.ui.form.Tab = class Tab {
 		this.wrapper.toggleClass('hide', !show);
 		this.parent.toggleClass('show', show);
 		this.wrapper.toggleClass('show', show);
+		this.hidden = !show;
 	}
 
 	show() {
@@ -70,7 +72,7 @@ frappe.ui.form.Tab = class Tab {
 	}
 
 	is_hidden() {
-		this.wrapper.hasClass('hidden')
-			&& this.parent.hasClass('hidden');
+		this.wrapper.hasClass('hide')
+			&& this.parent.hasClass('hide');
 	}
 }

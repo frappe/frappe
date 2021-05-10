@@ -280,7 +280,7 @@ frappe.ui.form.Layout = class Layout {
 		this.refresh_sections();
 
 		// refresh tabs
-		this.refresh_tabs();
+		this.tabbed_layout && this.refresh_tabs();
 
 		if (this.frm) {
 			// collapse sections
@@ -305,7 +305,7 @@ frappe.ui.form.Layout = class Layout {
 
 	refresh_tabs() {
 		this.tabs.forEach(tab => {
-			if (!tab.wrapper.hasClass('hide') && !tab.parent.hasClass('hide')) {
+			if (!tab.wrapper.hasClass('hide') || !tab.parent.hasClass('hide')) {
 				tab.parent.removeClass('show hide');
 				tab.wrapper.removeClass('show hide');
 				if (tab.wrapper.find(
@@ -318,6 +318,11 @@ frappe.ui.form.Layout = class Layout {
 				}
 			}
 		});
+
+		const visible_tabs = this.tabs.filter(tab => !tab.hidden);
+		if (visible_tabs && visible_tabs.length == 1) {
+			visible_tabs[0].parent.toggleClass('hide show');
+		}
 	}
 
 	refresh_fields(fields) {
