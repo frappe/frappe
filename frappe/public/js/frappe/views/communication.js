@@ -729,8 +729,14 @@ frappe.views.CommunicationComposer = class {
 				<!-- salutation-ends --><br>${message}`;
 		}
 
+<<<<<<< HEAD
 		if (this.is_a_reply) {
 			message += this.get_earlier_reply();
+=======
+		if (this.real_name && !message.includes("<!-- salutation-ends -->")) {
+			this.message = `<p>${__('Dear')} ${this.real_name},</p>
+				<!-- salutation-ends --><br>${message}`;
+>>>>>>> 0e85716002 (fix: check if salutation already exists in email body)
 		}
 
 		await this.dialog.set_value("content", message);
