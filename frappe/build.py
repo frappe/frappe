@@ -14,6 +14,7 @@ from frappe.utils.minify import JavascriptMinify
 import click
 import psutil
 from urllib.parse import urlparse
+from simple_chalk import green
 
 
 timestamps = {}
@@ -93,7 +94,6 @@ def download_frappe_assets(verbose=True):
 	commit HEAD.
 	Returns True if correctly setup else returns False.
 	"""
-	from simple_chalk import green
 	from subprocess import getoutput
 
 	assets_setup = False
@@ -207,10 +207,10 @@ def get_node_pacman():
 	raise ValueError("Yarn not found")
 
 
-def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False, skip_frappe=False):
+def bundle(no_compress, app=None, hard_link=False, verbose=False, skip_frappe=False):
 	"""concat / minify js files"""
 	setup()
-	make_asset_dirs(make_copy=make_copy, restore=restore)
+	make_asset_dirs(hard_link=hard_link)
 
 	pacman = get_node_pacman()
 	mode = "build" if no_compress else "production"
@@ -315,38 +315,49 @@ def clear_broken_symlinks():
 			os.remove(path)
 
 
-def make_asset_dirs(make_copy=False, restore=False):
+
+def unstrip(message):
+	try:
+		max_str = os.get_terminal_size().columns
+	except Exception:
+		max_str = 80
+	_len = len(message)
+	_rem = max_str - _len
+	return f"{message}{' ' * _rem}"
+
+
+def make_asset_dirs(hard_link=False):
 	setup_assets_dirs()
 	clear_broken_symlinks()
 	symlinks = generate_assets_map()
 
 	for source, target in symlinks.items():
-		link_assets_dir(source, target, make_copy=make_copy, restore=restore)
+		start_message = unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
+		fail_message = unstrip(f"Cannot {'copy' if hard_link else 'link'} {source} to {target}")
+
+		try:
+			print(start_message, end="\r")
+			link_assets_dir(source, target, hard_link=hard_link)
+		except Exception:
+			print(fail_message, end="\r")
+
+	print(unstrip(f"{green('✔')} Application Assets Linked") + "\n")
 
 
-def link_assets_dir(source, target, restore=False, make_copy=False):
+def link_assets_dir(source, target, hard_link=False):
 	if not os.path.exists(source):
 		return
 
-	if restore:
-		if os.path.exists(target):
-			if os.path.islink(target):
-				os.unlink(target)
-			else:
-				shutil.rmtree(target)
-			shutil.copytree(source, target)
-	elif make_copy:
+	if os.path.exists(target):
+		if os.path.islink(target):
+			os.unlink(target)
+		else:
+			shutil.rmtree(target)
+
+	if hard_link:
 		shutil.copytree(source, target, dirs_exist_ok=True)
 	else:
-		if os.path.exists(target):
-			if os.path.islink(target):
-				os.unlink(target)
-			else:
-				shutil.rmtree(target)
-		try:
-			symlink(source, target, overwrite=True)
-		except OSError:
-			print("Cannot link {} to {}".format(source, target))
+		symlink(source, target, overwrite=True)
 
 
 def build(no_compress=False, verbose=False):
