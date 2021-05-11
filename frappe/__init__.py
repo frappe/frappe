@@ -10,11 +10,10 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
-from __future__ import unicode_literals, print_function
 
-from six import iteritems, binary_type, text_type, string_types, PY2
+from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
-import os, sys, importlib, inspect, json
+import os, sys, importlib, inspect, json, warnings
 import typing
 from past.builtins import cmp
 import click
@@ -40,6 +39,8 @@ __title__ = "Frappe Framework"
 
 local = Local()
 controllers = {}
+warnings.simplefilter('always', DeprecationWarning)
+warnings.simplefilter('always', PendingDeprecationWarning)
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
