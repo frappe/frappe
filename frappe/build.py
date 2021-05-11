@@ -1,14 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import print_function, unicode_literals
-
 import os
 import re
 import json
 import shutil
-import warnings
-import tempfile
+from tempfile import mkdtemp
 from distutils.spawn import find_executable
 
 import frappe
@@ -16,8 +13,7 @@ from frappe.utils.minify import JavascriptMinify
 
 import click
 import psutil
-from six import iteritems, text_type
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 
 
 timestamps = {}
@@ -75,8 +71,8 @@ def get_assets_link(frappe_head):
 	from requests import head
 
 	tag = getoutput(
-			"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
-			" refs/tags/,,' -e 's/\^{}//'"
+			r"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
+			r" refs/tags/,,' -e 's/\^{}//'"
 			% frappe_head
 		)
 
@@ -99,7 +95,6 @@ def download_frappe_assets(verbose=True):
 	"""
 	from simple_chalk import green
 	from subprocess import getoutput
-	from tempfile import mkdtemp
 
 	assets_setup = False
 	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
@@ -166,7 +161,7 @@ def symlink(target, link_name, overwrite=False):
 
 	# Create link to target with temporary filename
 	while True:
-		temp_link_name = tempfile.mktemp(dir=link_dir)
+		temp_link_name = mktemp(dir=link_dir)
 
 		# os.* functions mimic as closely as possible system functions
 		# The POSIX symlink() returns EEXIST if link_name already exists
@@ -348,7 +343,7 @@ def get_build_maps():
 		if os.path.exists(path):
 			with open(path) as f:
 				try:
-					for target, sources in iteritems(json.loads(f.read())):
+					for target, sources in (json.loads(f.read() or "{}")).items():
 						# update app path
 						source_paths = []
 						for source in sources:
@@ -381,7 +376,7 @@ def pack(target, sources, no_compress, verbose):
 		timestamps[f] = os.path.getmtime(f)
 		try:
 			with open(f, "r") as sourcefile:
-				data = text_type(sourcefile.read(), "utf-8", errors="ignore")
+				data = str(sourcefile.read(), "utf-8", errors="ignore")
 
 			extn = f.rsplit(".", 1)[1]
 
@@ -396,7 +391,7 @@ def pack(target, sources, no_compress, verbose):
 				jsm.minify(tmpin, tmpout)
 				minified = tmpout.getvalue()
 				if minified:
-					outtxt += text_type(minified or "", "utf-8").strip("\n") + ";"
+					outtxt += str(minified or "", "utf-8").strip("\n") + ";"
 
 				if verbose:
 					print("{0}: {1}k".format(f, int(len(minified) / 1024)))
@@ -426,16 +421,16 @@ def html_to_js_template(path, content):
 def scrub_html_template(content):
 	"""Returns HTML content with removed whitespace and comments"""
 	# remove whitespace to a single space
-	content = re.sub("\s+", " ", content)
+	content = re.sub(r"\s+", " ", content)
 
 	# strip comments
-	content = re.sub("(<!--.*?-->)", "", content)
+	content = re.sub(r"(<!--.*?-->)", "", content)
 
 	return content.replace("'", "\'")
 
 
 def files_dirty():
-	for target, sources in iteritems(get_build_maps()):
+	for target, sources in get_build_maps().items():
 		for f in sources:
 			if ":" in f:
 				f, suffix = f.split(":")
