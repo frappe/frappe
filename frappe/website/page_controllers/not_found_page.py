@@ -1,4 +1,3 @@
-from frappe import _
 from frappe.website.page_controllers.template_page import TemplatePage
 
 class NotFoundPage(TemplatePage):

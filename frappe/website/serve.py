@@ -17,6 +17,8 @@ from frappe.website.render import build_response, resolve_path
 def get_response(path=None, http_status_code=200):
 	"""render html page"""
 	query_string = None
+	response = None
+
 	if not path:
 		path = frappe.local.request.path
 		query_string = frappe.local.request.query_string
@@ -25,12 +27,11 @@ def get_response(path=None, http_status_code=200):
 		path = path.strip('/ ')
 		resolve_redirect(path, query_string)
 		path = resolve_path(path)
-
 		# there is no way to determine the type of the page based on the route
 		# so evaluate each type of page sequentially
 		renderers = [StaticPage, TemplatePage, ListPage, WebFormPage, DocumentPage, PrintPage, NotFoundPage]
-		for resolver in renderers:
-			response = resolver(path, http_status_code).get()
+		for renderer in renderers:
+			response = renderer(path, http_status_code).get()
 			if response:
 				break
 	except frappe.Redirect:

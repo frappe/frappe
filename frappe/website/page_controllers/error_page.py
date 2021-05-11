@@ -1,5 +1,3 @@
-from frappe import _
-from frappe.website.page_controllers.not_found_page import NotFoundPage
 from frappe.website.page_controllers.template_page import TemplatePage
 
 class ErrorPage(TemplatePage):
