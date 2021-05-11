@@ -14,6 +14,7 @@ frappe.views.Wiki = class Wiki {
 		this.sorted_sidebar_items = [];
 		this.tools = {}
 		this.isReadOnly = true;
+		this.new_page = null;
 		this.prepare_container();
 		this.setup_wiki_pages();
 	}
@@ -38,6 +39,10 @@ frappe.views.Wiki = class Wiki {
 				}
 				frappe.router.route();
 				this.make_sidebar(root_pages);
+			}
+			if (this.new_page) {
+				frappe.set_route(`wiki/${frappe.router.slug(this.new_page)}`)
+				this.new_page = null;
 			}
 		})
 	}
@@ -258,6 +263,7 @@ frappe.views.Wiki = class Wiki {
 					this.setup_customization_buttons();
 					this.make_sidebar_sortable();
 					this.make_blocks_sortable();
+					// this.customize();
 				})
 			},
 		);
@@ -296,7 +302,8 @@ frappe.views.Wiki = class Wiki {
 	make_blocks_sortable() {
 		let me = this;
 		this.page_sortable = Sortable.create(this.page.main.find(".codex-editor__redactor").get(0), {
-			handle: ".ce-block",
+			handle: ".drag-handle",
+			draggable: ".ce-block",
 			animation: 150,
 			onEnd: function (evt){
 				me.editor.blocks.move(evt.newIndex, evt.oldIndex);
@@ -374,6 +381,8 @@ frappe.views.Wiki = class Wiki {
 						this.isReadOnly = false;
 						this.editor.readOnly.toggle();
 					}
+					this.make_sidebar_sortable();
+					this.make_blocks_sortable();
 					this.dirty = false;
 				})
 			}
@@ -407,6 +416,17 @@ frappe.views.Wiki = class Wiki {
 		}
 		let me = this;
 		this.editor.save().then((outputData) => {
+			let new_widgets = {};
+			outputData.blocks.forEach(item => {
+				if (item.data.new) {
+					if (!new_widgets[item.type]) {
+						new_widgets[item.type] = []
+					}
+					new_widgets[item.type].push(item.data.new);
+					delete item.data['new'];
+				}
+			})
+
 			frappe.call({
 				method: "frappe.desk.doctype.internal_wiki_page.internal_wiki_page.save_wiki_page",
 				args: {
@@ -419,10 +439,22 @@ frappe.views.Wiki = class Wiki {
 				callback: function(res) {
 					frappe.dom.unfreeze();
 					if (res.message) {
+						let cur_page = res.message;
+						if (!$.isEmptyObject(new_widgets)) {
+							frappe.call('frappe.desk.desktop.save_new_widget', {
+								page: me.title,
+								new_widgets: new_widgets
+							}).then(res => {
+								if(res.message) {
+									me.reload();
+								}
+							});
+						}
 						frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
 						me.title = '';
 						me.parent = '';
 						me.sorted_sidebar_items = [];
+						me.new_page = cur_page;
 						me.reload();
 					}
 				}

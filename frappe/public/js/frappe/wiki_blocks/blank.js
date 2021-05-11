@@ -15,11 +15,11 @@ export default class Blank {
 		this.api = api;
 		this.config = config;
 		this.readOnly = readOnly;
-		this.col = this.data.col ? this.data.col : "12",
-		this.pt = this.data.pt ? this.data.pt : "0",
-		this.pr = this.data.pr ? this.data.pr : "0",
-		this.pb = this.data.pb ? this.data.pb : "0",
-		this.pl = this.data.pl ? this.data.pl : "0"
+		this.col = this.data.col ? this.data.col : "12";
+		this.pt = this.data.pt ? this.data.pt : "0";
+		this.pr = this.data.pr ? this.data.pr : "0";
+		this.pb = this.data.pb ? this.data.pb : "0";
+		this.pl = this.data.pl ? this.data.pl : "0";
 	}
 
 	render() {

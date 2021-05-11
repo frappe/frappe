@@ -1,3 +1,4 @@
+import get_dialog_constructor from "../widgets/widget_dialog.js";
 export default class Shortcut {
 	static get toolbox() {
 		return {
@@ -15,28 +16,25 @@ export default class Shortcut {
 		this.api = api;
 		this.config = config;
 		this.readOnly = readOnly;
-		this.sections = {};
-		this.col = this.data.col ? this.data.col : "12",
-		this.pt = this.data.pt ? this.data.pt : "0",
-		this.pr = this.data.pr ? this.data.pr : "0",
-		this.pb = this.data.pb ? this.data.pb : "0",
-		this.pl = this.data.pl ? this.data.pl : "0"
+		this.col = this.data.col ? this.data.col : "12";
+		this.pt = this.data.pt ? this.data.pt : "0";
+		this.pr = this.data.pr ? this.data.pr : "0";
+		this.pb = this.data.pb ? this.data.pb : "0";
+		this.pl = this.data.pl ? this.data.pl : "0";
+		this.allow_customization = !this.readOnly;
+		this.options = {
+			allow_sorting: this.allow_customization,
+			allow_create: this.allow_customization,
+			allow_delete: this.allow_customization,
+			allow_hiding: false,
+			allow_edit: true,
+		}
 	}
 
 	render() {
-		let me = this;
 		this.wrapper = document.createElement('div');
-		this._make_fieldgroup(this.wrapper, [{
-			fieldtype: "Select", 
-			label: "Shortcut Name", 
-			fieldname: "shortcut_name",
-			options: this.config.page_data.shortcuts.items.map(({ label }) => label),
-			change: function() {
-				if (this.value) {
-					me._make_shortcuts(this.value);
-				}
-			}
-		}]);
+		this._new_shortcut();
+
 		if (this.data && this.data.shortcut_name) {
 			this._make_shortcuts(this.data.shortcut_name)
 		}
@@ -50,7 +48,8 @@ export default class Shortcut {
 			pt: this._getPadding("t"),
 			pr: this._getPadding("r"),
 			pb: this._getPadding("b"),
-			pl: this._getPadding("l")
+			pl: this._getPadding("l"),
+			new: this.new_shortcut_widget
 		}
 	}
 
@@ -61,6 +60,30 @@ export default class Shortcut {
 		e.classList.add("pr-" + this.pr)
 		e.classList.add("pb-" + this.pb)
 		e.classList.add("pl-" + this.pl)
+	}
+
+	_new_shortcut() {
+		const dialog_class = get_dialog_constructor('shortcut');
+		this.dialog = new dialog_class({
+			label: this.label,
+			type: 'shortcut',
+			primary_action: (widget) => {
+				widget.in_customize_mode = 1;
+				let wid = frappe.widget.make_widget({
+					...widget,
+					widget_type: 'shortcut',
+					container: this.wrapper,
+					options: this.options,
+				});
+				wid.customize(this.options);
+				this.wrapper.setAttribute("shortcut_name", wid.label);
+				this.new_shortcut_widget = wid.get_config();
+			},
+		});
+
+		if (!this.readOnly && this.data && !this.data.shortcut_name) { 
+			this.dialog.make();
+		}
 	}
 
 	_getCol() {
@@ -134,20 +157,16 @@ export default class Shortcut {
 			return obj.label == shortcut_name
 		});
 		this.wrapper.innerHTML = '';
-		this.sections = {};
-		this.sections["shortcuts"] = new frappe.widget.SingleWidgetGroup({
+		shortcut.in_customize_mode = !this.readOnly;
+		let shortcut_widget = new frappe.widget.SingleWidgetGroup({
 			container: this.wrapper,
 			type: "shortcut",
-			columns: 3,
-			options: {
-				allow_sorting: this.allow_customization,
-				allow_create: this.allow_customization,
-				allow_delete: this.allow_customization,
-				allow_hiding: false,
-				allow_edit: true,
-			},
+			options: this.options,
 			widgets: shortcut
 		});
 		this.wrapper.setAttribute("shortcut_name", shortcut_name);
+		if (!this.readOnly) {
+			shortcut_widget.customize();
+		}
 	}
 }

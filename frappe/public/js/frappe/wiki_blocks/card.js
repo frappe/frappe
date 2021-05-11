@@ -16,11 +16,12 @@ export default class Card {
 		this.config = config;
 		this.readOnly = readOnly;
 		this.sections = {};
-		this.col = this.data.col ? this.data.col : "12",
-		this.pt = this.data.pt ? this.data.pt : "0",
-		this.pr = this.data.pr ? this.data.pr : "0",
-		this.pb = this.data.pb ? this.data.pb : "0",
-		this.pl = this.data.pl ? this.data.pl : "0"
+		this.col = this.data.col ? this.data.col : "12";
+		this.pt = this.data.pt ? this.data.pt : "0";
+		this.pr = this.data.pr ? this.data.pr : "0";
+		this.pb = this.data.pb ? this.data.pb : "0";
+		this.pl = this.data.pl ? this.data.pl : "0";
+		this.allow_customization = !this.readOnly;
 	}
 
 	render() {
@@ -135,15 +136,16 @@ export default class Card {
 		});
 		this.wrapper.innerHTML = '';
 		this.sections = {};
+		card.in_customize_mode = !this.readOnly;
 		let cards = new frappe.widget.SingleWidgetGroup({
 			container: this.wrapper,
 			type: "links",
 			columns: 3,
 			options: {
 				allow_sorting: this.allow_customization,
-				allow_create: false,
-				allow_delete: false,
-				allow_hiding: this.allow_customization,
+				allow_create: this.allow_customization,
+				allow_delete: this.allow_customization,
+				allow_hiding: false,
 				allow_edit: false,
 			},
 			widgets: card
@@ -151,5 +153,8 @@ export default class Card {
 
 		this.sections["cards"] = cards;
 		this.wrapper.setAttribute("card_name", card_name);
+		if (!this.readOnly) {
+			this.sections["cards"].customize();
+		}
 	}
 }

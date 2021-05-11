@@ -218,13 +218,9 @@ export class SingleWidgetGroup {
 	}
 
 	customize() {
-		// if (!this.hidden) this.widget_area.show();
 		this.widgets_list.forEach((wid) => {
 			wid.customize(this.options);
 		});
-
-		// this.options.allow_create && this.setup_new_widget();
-		// this.options.allow_sorting && this.setup_sortable();
 	}
 }
 

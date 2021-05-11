@@ -537,6 +537,56 @@ def save_customization(page, config):
 
 	return True
 
+@frappe.whitelist()
+def save_new_widget(page, new_widgets):
+	original_page = frappe.get_doc("Workspace", page)
+	widgets = _dict(loads(new_widgets))
+
+	if widgets.chart:
+		original_page.charts = new_widget(widgets.chart, "Workspace Chart", "charts")
+	if widgets.shortcut:
+		original_page.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
+	if widgets.card:
+		original_page.build_links_table_from_cards(widgets.card)
+
+	try:
+		original_page.save(ignore_permissions=True)
+	except (ValidationError, TypeError) as e:
+		# Create a json string to log
+		json_config = dumps(widgets, sort_keys=True, indent=4)
+
+		# Error log body
+		log = \
+			"""
+		page: {0}
+		config: {1}
+		exception: {2}
+		""".format(page, json_config, e)
+		frappe.log_error(log, _("Could not save customization"))
+		return False
+
+	return True
+
+def new_widget(config, doctype, parentfield):
+	if not config:
+		return []
+	prepare_widget_list = []
+	for idx, widget in enumerate(config):
+		# Some cleanup
+		widget.pop("name", None)
+
+		# New Doc
+		doc = frappe.new_doc(doctype)
+		doc.update(widget)
+
+		# Manually Set IDX
+		doc.idx = idx + 1
+
+		# Set Parent Field
+		doc.parentfield = parentfield
+
+		prepare_widget_list.append(doc)
+	return prepare_widget_list
 
 def prepare_widget(config, doctype, parentfield):
 	"""Create widget child table entries with parent details

@@ -16,11 +16,12 @@ export default class Chart {
 		this.config = config;
 		this.readOnly = readOnly;
 		this.sections = {};
-		this.col = this.data.col ? this.data.col : "12",
-		this.pt = this.data.pt ? this.data.pt : "0",
-		this.pr = this.data.pr ? this.data.pr : "0",
-		this.pb = this.data.pb ? this.data.pb : "0",
-		this.pl = this.data.pl ? this.data.pl : "0"
+		this.col = this.data.col ? this.data.col : "12";
+		this.pt = this.data.pt ? this.data.pt : "0";
+		this.pr = this.data.pr ? this.data.pr : "0";
+		this.pb = this.data.pb ? this.data.pb : "0";
+		this.pl = this.data.pl ? this.data.pl : "0";
+		this.allow_customization = !this.readOnly;
 	}
 
 	render() {
@@ -135,6 +136,7 @@ export default class Chart {
 		});
 		this.wrapper.innerHTML = '';
 		this.sections = {};
+		chart.in_customize_mode = !this.readOnly;
 		this.sections["charts"] = new frappe.widget.SingleWidgetGroup({
 			container: this.wrapper,
 			type: "chart",
@@ -152,5 +154,8 @@ export default class Chart {
 			widgets: chart
 		});
 		this.wrapper.setAttribute("chart_name", chart_name)
+		if (!this.readOnly) {
+			this.sections["charts"].customize();
+		}
 	}
 }
