@@ -1,15 +1,18 @@
 /*******************************************************************************
- *              bootstrap-rtl (version 3.3.4)
- *      Author: Morteza Ansarinia (http://github.com/morteza)
- *  Created on: August 13,2015
- *     Project: bootstrap-rtl
- *   Copyright: Unlicensed Public Domain
- *******************************************************************************/
+*              bootstrap-rtl (version 3.3.4)
+*      Author: Morteza Ansarinia (http://github.com/morteza)
+*  Created on: August 13,2015
+*     Project: bootstrap-rtl
+*   Copyright: Unlicensed Public Domain
+*******************************************************************************/
 
 html {
   direction: rtl;
 }
 body {
+  direction: ltr;
+}
+.main-section {
   direction: rtl;
 }
 .flip.text-left {
@@ -885,8 +888,8 @@ th {
 .radio-inline input[type="radio"],
 .checkbox input[type="checkbox"],
 .checkbox-inline input[type="checkbox"] {
-  margin-right: -20px;
-  margin-left: auto;
+  margin-right: -10px !important;
+  margin-left: 10px !important;
 }
 .radio-inline,
 .checkbox-inline {

@@ -1,6 +1,6 @@
 $threshold: 34;
 
-@mixin timeline-badge($badge-size) {
+@mixin timeline-badge($badge-size, $rtl: false) {
 	width: $badge-size;
 	height: $badge-size;
 	border-radius: 50%;
@@ -10,7 +10,11 @@ $threshold: 34;
 	// clamp requires value unit to be valid
 	--zero-px: 0px;
 	top: unquote("clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
-	left: calc(-1 * (#{$badge-size} / 2));
+	@if ($rtl) {
+		right: calc(-1 * (#{$badge-size} / 2));
+	} @else {
+		left: calc(-1 * (#{$badge-size} / 2));
+	}
 	background-color: var(--fg-color);
 	border: 1px solid var(--dark-border-color);
 	@extend .center-content;

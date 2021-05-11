@@ -1,0 +1,21 @@
+.frappe-rtl {
+	.new-timeline {
+		.timeline-dot {
+			@include timeline-badge(16px, true);
+		}
+	}
+
+	.timeline-actions {
+		.action-btn:first-of-type {
+			margin-right: var(--timeline-item-left-margin);
+			margin-left: 0;
+		}
+	}
+
+	.timeline-item {
+		.timeline-content {
+			margin-right: var(--timeline-item-left-margin);
+			margin-left: 0;
+		}
+	}
+}

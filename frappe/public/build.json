@@ -86,6 +86,7 @@
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
 		"public/css/desk-rtl.css",
+		"public/scss/desk-rtl.scss",
 		"public/css/report-rtl.css"
 	],
 	"css/printview.css": [
