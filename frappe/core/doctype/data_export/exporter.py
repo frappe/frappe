@@ -282,7 +282,7 @@ class DataExporter:
 				try:
 					sflags = self.docs_to_export.get("flags", "I,U").upper()
 					flags = 0
-					for a in re.split(r'\W+',sflags):
+					for a in re.split(r'\W+', sflags):
 						flags = flags | reflags.get(a,0)
 
 					c = re.compile(names, flags)
