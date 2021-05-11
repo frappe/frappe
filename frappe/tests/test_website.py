@@ -65,7 +65,7 @@ class TestWebsite(unittest.TestCase):
 		self.assertEqual(response.status_code, 200)
 
 	def test_error_page(self):
-		set_request(method='GET', path='/error')
+		set_request(method='GET', path='/_test/problematic_page')
 		response = get_response()
 		self.assertEqual(response.status_code, 500)
 
