@@ -80,6 +80,7 @@
 		"validate_email": true,
 		"validate_name": true,
 		"validate_phone": true,
+		"validate_url": true,
 		"get_number_format": true,
 		"format_number": true,
 		"format_currency": true,

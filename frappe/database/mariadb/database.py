@@ -1,5 +1,3 @@
-import warnings
-
 import pymysql
 from pymysql.constants import ER, FIELD_TYPE
 from pymysql.converters import conversions, escape_string
@@ -55,7 +53,6 @@ class MariaDBDatabase(Database):
 		}
 
 	def get_connection(self):
-		warnings.filterwarnings('ignore', category=pymysql.Warning)
 		usessl = 0
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
 			usessl = 1

@@ -53,7 +53,7 @@ class TestWebsite(unittest.TestCase):
 		set_request(method='POST', path='login')
 		response = serve.get_response()
 
-		self.assertEquals(response.status_code, 200)
+		self.assertEqual(response.status_code, 200)
 
 		html = frappe.safe_decode(response.get_data())
 
@@ -63,17 +63,17 @@ class TestWebsite(unittest.TestCase):
 	def test_static_page(self):
 		set_request(method='GET', path='/_test/static-file-test.png')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 200)
+		self.assertEqual(response.status_code, 200)
 
 	def test_error_page(self):
 		set_request(method='GET', path='/error')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 500)
+		self.assertEqual(response.status_code, 500)
 
 	def test_login(self):
 		set_request(method='GET', path='/login')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 200)
+		self.assertEqual(response.status_code, 200)
 
 		html = frappe.safe_decode(response.get_data())
 
@@ -84,7 +84,7 @@ class TestWebsite(unittest.TestCase):
 		frappe.set_user('Administrator')
 		set_request(method='GET', path='/app')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 200)
+		self.assertEqual(response.status_code, 200)
 
 		html = frappe.safe_decode(response.get_data())
 		self.assertTrue('window.app = true;' in html)
@@ -93,7 +93,7 @@ class TestWebsite(unittest.TestCase):
 	def test_not_found(self):
 		set_request(method='GET', path='/_test/missing')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 404)
+		self.assertEqual(response.status_code, 404)
 
 
 	def test_redirect(self):
@@ -119,32 +119,32 @@ class TestWebsite(unittest.TestCase):
 
 		set_request(method='GET', path='/testfrom')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 301)
-		self.assertEquals(response.headers.get('Location'), r'://testto1')
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get('Location'), r'://testto1')
 
 		set_request(method='GET', path='/testfromregex/test')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 301)
-		self.assertEquals(response.headers.get('Location'), r'://testto2')
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get('Location'), r'://testto2')
 
 		set_request(method='GET', path='/testsub/me')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 301)
-		self.assertEquals(response.headers.get('Location'), r'://testto3/me')
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get('Location'), r'://testto3/me')
 
 		set_request(method='GET', path='/test404')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 404)
+		self.assertEqual(response.status_code, 404)
 
 		set_request(method='GET', path='/testsource')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 301)
-		self.assertEquals(response.headers.get('Location'), '/testtarget')
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get('Location'), '/testtarget')
 
 		set_request(method='GET', path='/courses/course?course=data')
 		response = serve.get_response()
-		self.assertEquals(response.status_code, 301)
-		self.assertEquals(response.headers.get('Location'), '/courses/data')
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get('Location'), '/courses/data')
 
 		delattr(frappe.hooks, 'website_redirects')
 		frappe.cache().delete_key('app_hooks')
