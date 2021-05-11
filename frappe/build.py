@@ -5,7 +5,7 @@ import os
 import re
 import json
 import shutil
-from tempfile import mkdtemp
+from tempfile import mkdtemp, mktemp
 from distutils.spawn import find_executable
 
 import frappe
@@ -188,7 +188,8 @@ def symlink(target, link_name, overwrite=False):
 
 
 def setup():
-	global app_paths
+	global app_paths, assets_path
+
 	pymodules = []
 	for app in frappe.get_all_apps(True):
 		try:
@@ -196,6 +197,7 @@ def setup():
 		except ImportError:
 			pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
+	assets_path = os.path.join(frappe.local.sites_path, "assets")
 
 
 def get_node_pacman():
@@ -261,75 +263,90 @@ def get_safe_max_old_space_size():
 
 	return safe_max_old_space_size
 
-def make_asset_dirs(make_copy=False, restore=False):
-	# don't even think of making assets_path absolute - rm -rf ahead.
-	assets_path = os.path.join(frappe.local.sites_path, "assets")
+def generate_assets_map():
+	symlinks = {}
 
-	for dir_path in [os.path.join(assets_path, "js"), os.path.join(assets_path, "css")]:
-		if not os.path.exists(dir_path):
-			os.makedirs(dir_path)
+	for app_name in frappe.get_all_apps():
+		app_doc_path = None
 
-	for app_name in frappe.get_all_apps(True):
 		pymodule = frappe.get_module(app_name)
 		app_base_path = os.path.abspath(os.path.dirname(pymodule.__file__))
-
-		symlinks = []
 		app_public_path = os.path.join(app_base_path, "public")
-		# app/public > assets/app
-		symlinks.append([app_public_path, os.path.join(assets_path, app_name)])
-		# app/node_modules > assets/app/node_modules
-		if os.path.exists(os.path.abspath(app_public_path)):
-			symlinks.append(
-				[
-					os.path.join(app_base_path, "..", "node_modules"),
-					os.path.join(assets_path, app_name, "node_modules"),
-				]
-			)
+		app_node_modules_path = os.path.join(app_base_path, "..", "node_modules")
+		app_docs_path = os.path.join(app_base_path, "docs")
+		app_www_docs_path = os.path.join(app_base_path, "www", "docs")
 
-		app_doc_path = None
-		if os.path.isdir(os.path.join(app_base_path, "docs")):
+		app_assets = os.path.abspath(app_public_path)
+		app_node_modules = os.path.abspath(app_node_modules_path)
+
+		# {app}/public > assets/{app}
+		if os.path.isdir(app_assets):
+			symlinks[app_assets] = os.path.join(assets_path, app_name)
+
+		# {app}/node_modules > assets/{app}/node_modules
+		if os.path.isdir(app_node_modules):
+			symlinks[app_node_modules] = os.path.join(assets_path, app_name, "node_modules")
+
+		# {app}/docs > assets/{app}_docs
+		if os.path.isdir(app_docs_path):
 			app_doc_path = os.path.join(app_base_path, "docs")
-
-		elif os.path.isdir(os.path.join(app_base_path, "www", "docs")):
+		elif os.path.isdir(app_www_docs_path):
 			app_doc_path = os.path.join(app_base_path, "www", "docs")
-
 		if app_doc_path:
-			symlinks.append([app_doc_path, os.path.join(assets_path, app_name + "_docs")])
+			app_docs = os.path.abspath(app_doc_path)
+			symlinks[app_docs] = os.path.join(assets_path, app_name + "_docs")
 
-		for source, target in symlinks:
-			source = os.path.abspath(source)
-			if os.path.exists(source):
-				if restore:
-					if os.path.exists(target):
-						if os.path.islink(target):
-							os.unlink(target)
-						else:
-							shutil.rmtree(target)
-						shutil.copytree(source, target)
-				elif make_copy:
-					if os.path.exists(target):
-						warnings.warn("Target {target} already exists.".format(target=target))
-					else:
-						shutil.copytree(source, target)
-				else:
-					if os.path.exists(target):
-						if os.path.islink(target):
-							os.unlink(target)
-						else:
-							shutil.rmtree(target)
-					try:
-						symlink(source, target, overwrite=True)
-					except OSError:
-						print("Cannot link {} to {}".format(source, target))
+	return symlinks
+
+
+def setup_assets_dirs():
+	for dir_path in (os.path.join(assets_path, x) for x in ("js", "css")):
+		os.makedirs(dir_path, exist_ok=True)
+
+
+def clear_broken_symlinks():
+	for path in os.listdir(assets_path):
+		path = os.path.join(assets_path, path)
+		if os.path.islink(path) and not os.path.exists(path):
+			os.remove(path)
+
+
+def make_asset_dirs(make_copy=False, restore=False):
+	setup_assets_dirs()
+	clear_broken_symlinks()
+	symlinks = generate_assets_map()
+
+	for source, target in symlinks.items():
+		link_assets_dir(source, target, make_copy=make_copy, restore=restore)
+
+
+def link_assets_dir(source, target, restore=False, make_copy=False):
+	if not os.path.exists(source):
+		return
+
+	if restore:
+		if os.path.exists(target):
+			if os.path.islink(target):
+				os.unlink(target)
 			else:
-				warnings.warn('Source {source} does not exist.'.format(source = source))
-				pass
+				shutil.rmtree(target)
+			shutil.copytree(source, target)
+	elif make_copy:
+		shutil.copytree(source, target, dirs_exist_ok=True)
+	else:
+		if os.path.exists(target):
+			if os.path.islink(target):
+				os.unlink(target)
+			else:
+				shutil.rmtree(target)
+		try:
+			symlink(source, target, overwrite=True)
+		except OSError:
+			print("Cannot link {} to {}".format(source, target))
 
 
 def build(no_compress=False, verbose=False):
-	assets_path = os.path.join(frappe.local.sites_path, "assets")
-
-	for target, sources in iteritems(get_build_maps()):
+	for target, sources in get_build_maps().items():
 		pack(os.path.join(assets_path, target), sources, no_compress, verbose)
 
 
