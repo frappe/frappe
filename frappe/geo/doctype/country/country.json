@@ -54,7 +54,7 @@
  "icon": "fa fa-globe",
  "idx": 1,
  "links": [],
- "modified": "2020-02-24 15:44:31.837133",
+ "modified": "2021-05-06 13:44:14.029801",
  "modified_by": "Administrator",
  "module": "Geo",
  "name": "Country",
@@ -62,6 +62,7 @@
  "permissions": [
   {
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
    "import": 1,
