@@ -54,7 +54,8 @@
    "fieldname": "client_id",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Client Id"
+   "label": "Client Id",
+   "mandatory_depends_on": "eval:doc.redirect_uri"
   },
   {
    "fieldname": "redirect_uri",
@@ -96,12 +97,14 @@
   {
    "fieldname": "authorization_uri",
    "fieldtype": "Data",
-   "label": "Authorization URI"
+   "label": "Authorization URI",
+   "mandatory_depends_on": "eval:doc.redirect_uri"
   },
   {
    "fieldname": "token_uri",
    "fieldtype": "Data",
-   "label": "Token URI"
+   "label": "Token URI",
+   "mandatory_depends_on": "eval:doc.redirect_uri"
   },
   {
    "fieldname": "revocation_uri",
@@ -136,7 +139,7 @@
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2020-11-16 16:29:50.277405",
+ "modified": "2021-05-10 05:03:06.296863",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",
