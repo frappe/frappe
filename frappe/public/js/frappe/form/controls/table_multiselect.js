@@ -67,7 +67,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 		return this.rows;
 	}
 	get_model_value() {
-		let value = this._super();
+		let value = super.get_model_value();
 		return value ? value.filter(d => !d.__islocal) : value;
 	}
 	validate(value) {
