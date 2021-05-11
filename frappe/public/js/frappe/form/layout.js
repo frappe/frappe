@@ -18,19 +18,24 @@ frappe.ui.form.Layout = class Layout {
 		this.message = $('<div class="form-message hidden"></div>').appendTo(this.wrapper);
 
 		this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
+		this.tabbed_layout && this.setup_tabbed_layout();
+
+		if (!this.fields) {
+			this.fields = this.get_doctype_fields();
+		}
+
+		this.setup_tabbing();
+		this.render();
+	}
+
+	setup_tabbed_layout() {
 		$(`<div class="form-tabs-list">
 			<ul class="nav form-tabs" id="form-tabs" role="tablist"></ul>
 		</div>`).appendTo(this.page);
 		this.tabs_list = this.page.find('.form-tabs');
 		this.tabs_content = $(`<div class="form-tab-content tab-content"></div>`).appendTo(this.page);
 
-		if (!this.fields) {
-			this.fields = this.get_doctype_fields();
-		}
-
 		this.setup_events();
-		this.setup_tabbing();
-		this.render();
 	}
 
 	show_empty_form_message() {
@@ -312,9 +317,9 @@ frappe.ui.form.Layout = class Layout {
 					".form-section:not(.hide-control, .empty-section), .form-dashboard-section:not(.hide-control, .empty-section)"
 					).length
 				) {
-					tab.toggle(true)
+					tab.toggle(true);
 				} else {
-					tab.toggle(false)
+					tab.toggle(false);
 				}
 			}
 		});
