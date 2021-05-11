@@ -473,7 +473,7 @@ frappe.Application = class Application {
 		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 	}
-	trigger_primary_action: function() {
+	trigger_primary_action() {
 		// to trigger change event on active input before triggering primary action
 		$(document.activeElement).blur();
 		// wait for possible JS validations triggered after blur (it might change primary button)
