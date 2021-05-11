@@ -3,8 +3,6 @@
 
 from __future__ import unicode_literals, print_function
 
-from six.moves import input
-
 import frappe, os, re, git
 from frappe.utils import touch_file, cstr
 
@@ -288,24 +286,24 @@ app_license = "{app_license}"
 # --------------------
 
 # user_data_fields = [
-# 	{
+# 	{{
 # 		"doctype": "{{doctype_1}}",
 # 		"filter_by": "{{filter_by}}",
 # 		"redact_fields": ["{{field_1}}", "{{field_2}}"],
 # 		"partial": 1,
-# 	},
-# 	{
+# 	}},
+# 	{{
 # 		"doctype": "{{doctype_2}}",
 # 		"filter_by": "{{filter_by}}",
 # 		"partial": 1,
-# 	},
-# 	{
+# 	}},
+# 	{{
 # 		"doctype": "{{doctype_3}}",
 # 		"strict": False,
-# 	},
-# 	{
+# 	}},
+# 	{{
 # 		"doctype": "{{doctype_4}}"
-# 	}
+# 	}}
 # ]
 
 # Authentication and authorization

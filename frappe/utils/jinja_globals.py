@@ -10,7 +10,7 @@ def resolve_class(classes):
 	if classes is None:
 		return ""
 
-	if isinstance(classes, frappe.string_types):
+	if isinstance(classes, str):
 		return classes
 
 	if isinstance(classes, (list, tuple)):

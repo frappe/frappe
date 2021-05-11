@@ -1347,6 +1347,22 @@ class Document(BaseDocument):
 		from frappe.desk.doctype.tag.tag import DocTags
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
 
+	def __repr__(self):
+		name = self.name or "unsaved"
+		doctype = self.__class__.__name__
+
+		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
+		parent = f" parent={self.parent}" if self.parent else ""
+
+		return f"<{doctype}: {name}{docstatus}{parent}>"
+
+	def __str__(self):
+		name = self.name or "unsaved"
+		doctype = self.__class__.__name__
+
+		return f"{doctype}({name})"
+
+
 def execute_action(doctype, name, action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""
 	doc = frappe.get_doc(doctype, name)

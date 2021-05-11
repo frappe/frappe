@@ -173,19 +173,19 @@ def add(recipients, sender, subject, **kwargs):
 			if not email_queue:
 				email_queue = get_email_queue([r], sender, subject, **kwargs)
 				if kwargs.get('now'):
-					send_one(email_queue.name, now=True)
+					email_queue.send()
 			else:
 				duplicate = email_queue.get_duplicate([r])
 				duplicate.insert(ignore_permissions=True)
 
 				if kwargs.get('now'):
-					send_one(duplicate.name, now=True)
+					duplicate.send()
 
 			frappe.db.commit()
 	else:
 		email_queue = get_email_queue(recipients, sender, subject, **kwargs)
 		if kwargs.get('now'):
-			send_one(email_queue.name, now=True)
+			email_queue.send()
 
 def get_email_queue(recipients, sender, subject, **kwargs):
 	'''Make Email Queue object'''
@@ -237,6 +237,9 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 			', '.join(mail.recipients), traceback.format_exc()), 'Email Not Sent')
 
 	recipients = list(set(recipients + kwargs.get('cc', []) + kwargs.get('bcc', [])))
+	email_account = kwargs.get('email_account')
+	email_account_name = email_account and email_account.is_exists_in_db() and email_account.name
+
 	e.set_recipients(recipients)
 	e.reference_doctype = kwargs.get('reference_doctype')
 	e.reference_name = kwargs.get('reference_name')
@@ -248,8 +251,8 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	e.send_after = kwargs.get('send_after')
 	e.show_as_cc = ",".join(kwargs.get('cc', []))
 	e.show_as_bcc = ",".join(kwargs.get('bcc', []))
+	e.email_account = email_account_name or None
 	e.insert(ignore_permissions=True)
-
 	return e
 
 def get_emails_sent_this_month():
@@ -331,44 +334,25 @@ def return_unsubscribed_page(email, doctype, name):
 		indicator_color='green')
 
 def flush(from_test=False):
-	"""flush email queue, every time: called from scheduler"""
-	# additional check
-
-	auto_commit = not from_test
+	"""flush email queue, every time: called from scheduler
+	"""
+	from frappe.email.doctype.email_queue.email_queue import send_mail
+	# To avoid running jobs inside unit tests
 	if frappe.are_emails_muted():
 		msgprint(_("Emails are muted"))
 		from_test = True
 
-	smtpserver_dict = frappe._dict()
+	if cint(frappe.defaults.get_defaults().get("hold_queue"))==1:
+		return
 
-	for email in get_queue():
+	for row in get_queue():
+		try:
+			func = send_mail if from_test else send_mail.enqueue
+			is_background_task = not from_test
+			func(email_queue_name = row.name, is_background_task = is_background_task)
+		except Exception:
+			frappe.log_error()
 
-		if cint(frappe.defaults.get_defaults().get("hold_queue"))==1:
-			break
-
-		if email.name:
-			smtpserver = smtpserver_dict.get(email.sender)
-			if not smtpserver:
-				smtpserver = SMTPServer()
-				smtpserver_dict[email.sender] = smtpserver
-
-			if from_test:
-				send_one(email.name, smtpserver, auto_commit)
-			else:
-				send_one_args = {
-					'email': email.name,
-					'smtpserver': smtpserver,
-					'auto_commit': auto_commit,
-				}
-				enqueue(
-					method = 'frappe.email.queue.send_one',
-					queue = 'short',
-					**send_one_args
-				)
-
-		# NOTE: removing commit here because we pass auto_commit
-		# finally:
-		# 	frappe.db.commit()
 def get_queue():
 	return frappe.db.sql('''select
 			name, sender
@@ -380,213 +364,6 @@ def get_queue():
 		order
 			by priority desc, creation asc
 		limit 500''', { 'now': now_datetime() }, as_dict=True)
-
-
-def send_one(email, smtpserver=None, auto_commit=True, now=False):
-	'''Send Email Queue with given smtpserver'''
-
-	email = frappe.db.sql('''select
-			name, status, communication, message, sender, reference_doctype,
-			reference_name, unsubscribe_param, unsubscribe_method, expose_recipients,
-			show_as_cc, add_unsubscribe_link, attachments, retry
-		from
-			`tabEmail Queue`
-		where
-			name=%s
-		for update''', email, as_dict=True)
-
-	if len(email):
-		email = email[0]
-	else:
-		return
-
-	recipients_list = frappe.db.sql('''select name, recipient, status from
-		`tabEmail Queue Recipient` where parent=%s''', email.name, as_dict=1)
-
-	if frappe.are_emails_muted():
-		frappe.msgprint(_("Emails are muted"))
-		return
-
-	if cint(frappe.defaults.get_defaults().get("hold_queue"))==1 :
-		return
-
-	if email.status not in ('Not Sent','Partially Sent') :
-		# rollback to release lock and return
-		frappe.db.rollback()
-		return
-
-	frappe.db.sql("""update `tabEmail Queue` set status='Sending', modified=%s where name=%s""",
-		(now_datetime(), email.name), auto_commit=auto_commit)
-
-	if email.communication:
-		frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
-
-	email_sent_to_any_recipient = None
-
-	try:
-		message = None
-
-		if not frappe.flags.in_test:
-			if not smtpserver:
-				smtpserver = SMTPServer()
-
-			# to avoid always using default email account for outgoing
-			if getattr(frappe.local, "outgoing_email_account", None):
-				frappe.local.outgoing_email_account = {}
-
-			smtpserver.setup_email_account(email.reference_doctype, sender=email.sender)
-
-		for recipient in recipients_list:
-			if recipient.status != "Not Sent":
-				continue
-
-			message = prepare_message(email, recipient.recipient, recipients_list)
-			if not frappe.flags.in_test:
-				smtpserver.sess.sendmail(email.sender, recipient.recipient, message)
-
-			recipient.status = "Sent"
-			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
-				(now_datetime(), recipient.name), auto_commit=auto_commit)
-
-		email_sent_to_any_recipient = any("Sent" == s.status for s in recipients_list)
-
-		#if all are sent set status
-		if email_sent_to_any_recipient:
-			frappe.db.sql("""update `tabEmail Queue` set status='Sent', modified=%s where name=%s""",
-				(now_datetime(), email.name), auto_commit=auto_commit)
-		else:
-			frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
-				where name=%s""", ("No recipients to send to", email.name), auto_commit=auto_commit)
-		if frappe.flags.in_test:
-			frappe.flags.sent_mail = message
-			return
-		if email.communication:
-			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
-
-		if smtpserver.append_emails_to_sent_folder and email_sent_to_any_recipient:
-			smtpserver.email_account.append_email_to_sent_folder(message)
-
-	except (smtplib.SMTPServerDisconnected,
-			smtplib.SMTPConnectError,
-			smtplib.SMTPHeloError,
-			smtplib.SMTPAuthenticationError,
-			smtplib.SMTPRecipientsRefused,
-			JobTimeoutException):
-
-		# bad connection/timeout, retry later
-
-		if email_sent_to_any_recipient:
-			frappe.db.sql("""update `tabEmail Queue` set status='Partially Sent', modified=%s where name=%s""",
-				(now_datetime(), email.name), auto_commit=auto_commit)
-		else:
-			frappe.db.sql("""update `tabEmail Queue` set status='Not Sent', modified=%s where name=%s""",
-				(now_datetime(), email.name), auto_commit=auto_commit)
-
-		if email.communication:
-			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
-
-		# no need to attempt further
-		return
-
-	except Exception as e:
-		frappe.db.rollback()
-
-		if email.retry < 3:
-			frappe.db.sql("""update `tabEmail Queue` set status='Not Sent', modified=%s, retry=retry+1 where name=%s""",
-				(now_datetime(), email.name), auto_commit=auto_commit)
-		else:
-			if email_sent_to_any_recipient:
-				frappe.db.sql("""update `tabEmail Queue` set status='Partially Errored', error=%s where name=%s""",
-					(text_type(e), email.name), auto_commit=auto_commit)
-			else:
-				frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
-					where name=%s""", (text_type(e), email.name), auto_commit=auto_commit)
-
-		if email.communication:
-			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
-
-		if now:
-			print(frappe.get_traceback())
-			raise e
-
-		else:
-			# log to Error Log
-			frappe.log_error('frappe.email.queue.flush')
-
-def prepare_message(email, recipient, recipients_list):
-	message = email.message
-	if not message:
-		return ""
-
-	# Parse "Email Account" from "Email Sender"
-	email_account = EmailAccount.find_outgoing(match_by_email=email.sender)
-	if frappe.conf.use_ssl and email_account.track_email_status:
-		# Using SSL => Publically available domain => Email Read Reciept Possible
-		message = message.replace("<!--email open check-->", quopri.encodestring('<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'.format(frappe.local.site, email.communication).encode()).decode())
-	else:
-		# No SSL => No Email Read Reciept
-		message = message.replace("<!--email open check-->", quopri.encodestring("".encode()).decode())
-
-	if email.add_unsubscribe_link and email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
-		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
-		email.unsubscribe_method, email.unsubscribe_params)
-		message = message.replace("<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url.encode()).decode())
-
-	if email.expose_recipients == "header":
-		pass
-	else:
-		if email.expose_recipients == "footer":
-			if isinstance(email.show_as_cc, string_types):
-				email.show_as_cc = email.show_as_cc.split(",")
-			email_sent_to = [r.recipient for r in recipients_list]
-			email_sent_cc = ", ".join([e for e in email_sent_to if e in email.show_as_cc])
-			email_sent_to = ", ".join([e for e in email_sent_to if e not in email.show_as_cc])
-
-			if email_sent_cc:
-				email_sent_message = _("This email was sent to {0} and copied to {1}").format(email_sent_to,email_sent_cc)
-			else:
-				email_sent_message = _("This email was sent to {0}").format(email_sent_to)
-			message = message.replace("<!--cc message-->", quopri.encodestring(email_sent_message.encode()).decode())
-
-		message = message.replace("<!--recipient-->", recipient)
-
-	message = (message and message.encode('utf8')) or ''
-	message = safe_decode(message)
-
-	if PY3:
-		from email.policy import SMTPUTF8
-		message = Parser(policy=SMTPUTF8).parsestr(message)
-	else:
-		message = Parser().parsestr(message)
-
-	if email.attachments:
-		# On-demand attachments
-
-		attachments = json.loads(email.attachments)
-
-		for attachment in attachments:
-			if attachment.get('fcontent'):
-				continue
-
-			fid = attachment.get("fid")
-			if fid:
-				_file = frappe.get_doc("File", fid)
-				fcontent = _file.get_content()
-				attachment.update({
-					'fname': _file.file_name,
-					'fcontent': fcontent,
-					'parent': message
-				})
-				attachment.pop("fid", None)
-				add_attachment(**attachment)
-
-			elif attachment.get("print_format_attachment") == 1:
-				attachment.pop("print_format_attachment", None)
-				print_format_file = frappe.attach_print(**attachment)
-				print_format_file.update({"parent": message})
-				add_attachment(**print_format_file)
-
-	return safe_encode(message.as_string())
 
 def clear_outbox(days=None):
 	"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
