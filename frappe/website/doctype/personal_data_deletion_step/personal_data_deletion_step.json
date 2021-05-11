@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "creation": "2021-04-23 13:25:26.162797",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "status",
+  "partial",
+  "fields",
+  "filtered_by"
+ ],
+ "fields": [
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "document_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Status",
+   "options": "Pending\nDeleted",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "partial",
+   "fieldtype": "Check",
+   "in_preview": 1,
+   "label": "Partial",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fields",
+   "fieldtype": "Small Text",
+   "label": "Fields",
+   "read_only": 1
+  },
+  {
+   "fieldname": "filtered_by",
+   "fieldtype": "Data",
+   "label": "Filtered By",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-04-23 13:48:59.658681",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Personal Data Deletion Step",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

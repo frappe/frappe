@@ -78,7 +78,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		points_after_closing_todo = get_points('test@example.com')
 
 		# test max_points cap
-		self.assertNotEquals(points_after_closing_todo,
+		self.assertNotEqual(points_after_closing_todo,
 			energy_point_of_user + round(todo_point_rule.points * multiplier_value))
 
 		self.assertEqual(points_after_closing_todo,

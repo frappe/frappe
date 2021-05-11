@@ -150,13 +150,13 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		const views_wrapper = this.sidebar.sidebar.find(".views-section");
 		views_wrapper.find(".sidebar-label").html(`${__(view)}`);
 		const $dropdown = views_wrapper.find(".views-dropdown");
-
-		let placeholder = `Select ${view}`;
+		
+		let placeholder = `${__("Select {0}", [__(view)])}`;
 		let html = ``;
 
 		if (!items || !items.length) {
 			html = `<div class="empty-state">
-						${__("No {} Found", [view])}
+						${__("No {0} Found", [__(view)])}
 				</div>`;
 		} else {
 			const page_name = this.get_page_name();
