@@ -641,9 +641,9 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 		}
 
-		if(this.real_name) {
-			this.message = '<p>'+__('Dear') +' '
-				+ this.real_name + ",</p><!-- salutation-ends --><br>" + (this.message || "");
+		if (this.real_name && !message.includes("<!-- salutation-ends -->")) {
+			this.message = `<p>${__('Dear')} ${this.real_name},</p>
+				<!-- salutation-ends --><br>${message}`;
 		}
 
 		if(this.message && signature && this.message.includes(signature)) {
