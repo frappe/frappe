@@ -115,7 +115,7 @@ frappe.ui.form.Layout = class Layout {
 		// }
 
 		if (this.tabbed_layout && this.no_opening_tab()) {
-			this.make_tab({label: __('Details'), fieldname: 'details'})
+			this.make_tab({label: __('Details'), fieldname: 'details'});
 		}
 
 		if (this.no_opening_section()) {
@@ -400,10 +400,9 @@ frappe.ui.form.Layout = class Layout {
 
 	setup_events() {
 		this.tabs_list.off('click').on('click', '.nav-link', (e) => {
-			e.preventDefault()
+			e.preventDefault();
 			e.stopImmediatePropagation();
 			$(e.currentTarget).tab('show');
-			// this.$current_tab = $(e.currentTarget);
 		});
 	}
 
@@ -602,7 +601,7 @@ frappe.ui.form.Layout = class Layout {
 		let doc = this.doc;
 
 		if (!doc && this.get_values) {
-			let doc = this.get_values(true);
+			doc = this.get_values(true);
 		}
 
 		if (!doc) {
@@ -640,4 +639,4 @@ frappe.ui.form.Layout = class Layout {
 
 		return out;
 	}
-}
+};

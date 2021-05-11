@@ -469,6 +469,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.$wrapper.trigger('render_complete');
 
 		this.cscript.is_onload && this.set_first_tab_as_active();
+
 		if(!this.hidden) {
 			this.layout.show_empty_form_message();
 		}

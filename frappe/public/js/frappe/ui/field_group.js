@@ -121,10 +121,10 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		return f && (f.get_value ? f.get_value() : null);
 	}
 
-	set_value(key, val){
+	set_value(key, val) {
 		return new Promise(resolve => {
 			var f = this.fields_dict[key];
-			if(f) {
+			if (f) {
 				f.set_value(val).then(() => {
 					f.set_input(val);
 					this.refresh_dependency();
@@ -165,4 +165,4 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		field.df[prop] = value;
 		field.refresh();
 	}
-}
+};

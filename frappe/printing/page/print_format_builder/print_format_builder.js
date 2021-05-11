@@ -261,7 +261,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			} else if(f.fieldtype==="Column Break") {
 				set_column();
 
-			} else if(!in_list(["Section Break", "Column Break", "Tab Break", "Fold"], f.fieldtype)
+			} else if (!in_list(["Section Break", "Column Break", "Tab Break", "Fold"], f.fieldtype)
 				&& f.label) {
 				if(!column) set_column();
 
@@ -298,7 +298,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 	init_visible_columns(f) {
 		f.visible_columns = []
 		$.each(frappe.get_meta(f.options).fields, function(i, _f) {
-			if(!in_list(["Section Break", "Column Break", "Tab Break"], _f.fieldtype) &&
+			if (!in_list(["Section Break", "Column Break", "Tab Break"], _f.fieldtype) &&
 				!_f.print_hide && f.label) {
 
 				// column names set as fieldname|width

@@ -38,4 +38,4 @@ frappe.ui.form.Column = class Column {
 	refresh() {
 		this.section.refresh();
 	}
-}
+};
