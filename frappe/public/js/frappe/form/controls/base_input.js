@@ -1,5 +1,5 @@
 frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control {
-	horizontal = true
+	static horizontal = true
 	make() {
 		// parent element
 		super.make();
@@ -45,7 +45,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 	}
 	set_max_width() {
-		if(this.horizontal) {
+		if(this.constructor.horizontal) {
 			this.$wrapper.addClass("input-max-width");
 		}
 	}

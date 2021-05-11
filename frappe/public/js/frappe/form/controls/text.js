@@ -1,6 +1,6 @@
 frappe.ui.form.ControlText = class ControlText extends frappe.ui.form.ControlData {
-	html_element = "textarea"
-	horizontal = false
+	static html_element = "textarea"
+	static horizontal = false
 	make_wrapper() {
 		super.make_wrapper();
 		this.$wrapper.find(".like-disabled-input").addClass("for-description");

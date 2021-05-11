@@ -1,14 +1,16 @@
 frappe.provide('frappe.phone_call');
 
 frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInput {
-	html_element = "input";
-	input_type = "text";
-	trigger_change_on_input_event = true;
+	static html_element = "input";
+	static input_type = "text";
+	static trigger_change_on_input_event = true;
 	make_input() {
 		if(this.$input) return;
 
-		this.$input = $("<"+ this.html_element +">")
-			.attr("type", this.input_type)
+		let { html_element, input_type } = this.constructor;
+
+		this.$input = $("<"+ html_element +">")
+			.attr("type", input_type)
 			.attr("autocomplete", "off")
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area);
@@ -120,7 +122,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 			}
 		};
 		this.$input.on("change", change_handler);
-		if (this.trigger_change_on_input_event) {
+		if (this.constructor.trigger_change_on_input_event) {
 			// debounce to avoid repeated validations on value change
 			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
 		}

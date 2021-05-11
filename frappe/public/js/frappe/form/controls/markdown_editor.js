@@ -1,10 +1,10 @@
 frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frappe.ui.form.ControlCode {
-	editor_class = 'markdown'
+	static editor_class = 'markdown'
 	make_ace_editor() {
 		super.make_ace_editor();
 
 		this.ace_editor_target.wrap(`<div class="${this.editor_class}-container">`);
-		this.markdown_container = this.$input_wrapper.find(`.${this.editor_class}-container`);
+		this.markdown_container = this.$input_wrapper.find(`.${this.constructor.editor_class}-container`);
 
 		this.editor.getSession().setUseWrapMode(true);
 

@@ -1,5 +1,5 @@
 frappe.ui.form.ControlHTMLEditor = class ControlHTMLEditor extends frappe.ui.form.ControlMarkdownEditor {
-	editor_class = 'html';
+	static editor_class = 'html';
 	set_language() {
 		this.df.options = 'HTML';
 		super.set_language();

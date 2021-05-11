@@ -1,5 +1,5 @@
 frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.ControlData {
-	input_type = "password"
+	static input_type = "password"
 	make() {
 		super.make();
 	}

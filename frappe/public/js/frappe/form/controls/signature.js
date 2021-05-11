@@ -1,8 +1,8 @@
 frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.ControlData {
-	saving = false
-	loading = false
 	make() {
 		var me = this;
+		this.saving = false;
+		this.loading = false;
 		super.make();
 
 		this.load_lib().then(() => {

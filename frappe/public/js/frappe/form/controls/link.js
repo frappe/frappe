@@ -9,7 +9,7 @@ import Awesomplete from 'awesomplete';
 frappe.ui.form.recent_link_validations = {};
 
 frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlData {
-	trigger_change_on_input_event = false
+	static trigger_change_on_input_event = false
 	make_input() {
 		var me = this;
 		$(`<div class="link-field ui-front" style="position: relative;">
