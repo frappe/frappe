@@ -98,9 +98,9 @@ export default class Paragraph {
 
 	_getCol() {
 		var e = 12;
-		t = "col-12";
-		n = this._element.parentNode.parentNode;
-		r = new RegExp(/\bcol-.+?\b/, "g");
+		var t = "col-12";
+		var n = this._element.parentNode.parentNode;
+		var r = new RegExp(/\bcol-.+?\b/, "g");
 		if (n.className.match(r)) {
 			n.classList.forEach(function (e) {
 				e.match(r) && (t = e);
@@ -113,13 +113,13 @@ export default class Paragraph {
 
 	_getPadding() {
 		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
-		t = 0;
-		n = "p" + e + "-0";
-		r = this._element.parentNode.parentNode;
-		a = new RegExp(/\pl-.+?\b/, "g");
-		i = new RegExp(/\pr-.+?\b/, "g");
-		o = new RegExp(/\pt-.+?\b/, "g");
-		c = new RegExp(/\pb-.+?\b/, "g");
+		var t = 0;
+		var n = "p" + e + "-0";
+		var r = this._element.parentNode.parentNode;
+		var a = new RegExp(/\pl-.+?\b/, "g");
+		var i = new RegExp(/\pr-.+?\b/, "g");
+		var o = new RegExp(/\pt-.+?\b/, "g");
+		var c = new RegExp(/\pb-.+?\b/, "g");
 		if ("l" == e) {
 			if (r.className.match(a)) {
 				r.classList.forEach(function (e) {
