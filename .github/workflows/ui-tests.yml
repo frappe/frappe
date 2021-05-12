@@ -13,7 +13,7 @@ jobs:
       matrix:
        containers: [1, 2]
 
-    name: Mariadb Tests
+    name: UI Tests (Cypress)
 
     services:
       mysql:
