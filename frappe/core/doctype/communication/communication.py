@@ -21,9 +21,11 @@ from frappe.automation.doctype.assignment_rule.assignment_rule import apply as a
 exclude_from_linked_with = True
 
 class Communication(Document):
+	"""Communication represents an external communication like Email.
+	"""
 	no_feed_on_delete = True
+	DOCTYPE = 'Communication'
 
-	"""Communication represents an external communication like Email."""
 	def onload(self):
 		"""create email flag queue"""
 		if self.communication_type == "Communication" and self.communication_medium == "Email" \
@@ -149,6 +151,23 @@ class Communication(Document):
 
 			self.email_status = "Spam"
 
+	@classmethod
+	def find(cls, name, ignore_error=False):
+		try:
+			return frappe.get_doc(cls.DOCTYPE, name)
+		except frappe.DoesNotExistError:
+			if ignore_error:
+				return
+			raise
+
+	@classmethod
+	def find_one_by_filters(cls, *, order_by=None, **kwargs):
+		name = frappe.db.get_value(cls.DOCTYPE, kwargs, order_by=order_by)
+		return cls.find(name) if name else None
+
+	def update_db(self, **kwargs):
+		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
+
 	def set_sender_full_name(self):
 		if not self.sender_full_name and self.sender:
 			if self.sender == "Administrator":
@@ -179,6 +198,8 @@ class Communication(Document):
 
 				if not self.sender_full_name:
 					self.sender_full_name = sender_email
+
+
 
 	def send(self, print_html=None, print_format=None, attachments=None,
 		send_me_a_copy=False, recipients=None):
@@ -305,6 +326,21 @@ class Communication(Document):
 
 		if autosave:
 			self.save(ignore_permissions=ignore_permissions)
+
+	# @classmethod
+	# def add_incoming_mail(cls, email, uid, seen_status):
+	# 	if exists_already():
+	# 		pass # Modify UID
+	# 	else:
+	# 		pass # Call new() to create object
+class InMailMixin:
+	@classmethod
+	def add_incoming_mail(cls, email, uid, seen_status):
+		if exists_already():
+			pass # Modify UID
+		else:
+			pass # Call new() to create object
+
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""

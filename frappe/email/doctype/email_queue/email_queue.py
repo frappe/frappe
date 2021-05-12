@@ -45,6 +45,11 @@ class EmailQueue(Document):
 	def find(cls, name):
 		return frappe.get_doc(cls.DOCTYPE, name)
 
+	@classmethod
+	def find_one_by_filters(cls, **kwargs):
+		name = frappe.db.get_value(cls.DOCTYPE, kwargs)
+		return cls.find(name) if name else None
+
 	def update_db(self, commit=False, **kwargs):
 		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
 		if commit:
