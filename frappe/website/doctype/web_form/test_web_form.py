@@ -8,7 +8,7 @@ import unittest, json
 from frappe.website.render import build_page
 from frappe.website.doctype.web_form.web_form import accept
 
-test_records = frappe.get_test_records('Web Form')
+test_dependencies = ['Web Form']
 
 class TestWebForm(unittest.TestCase):
 	def setUp(self):
