@@ -4,7 +4,7 @@
 frappe.ui.form.on('Document Naming Rule', {
 	refresh: function(frm) {
 		frm.trigger('document_type');
-		frm.trigger("add_button")
+		frm.trigger("add_button");
 	},
 	document_type: (frm) => {
 		// update the select field options with fieldnames
@@ -32,7 +32,7 @@ frappe.ui.form.on('Document Naming Rule', {
 				default: frm.doc.counter,
 				reqd: 1,
 				description: __('This will update the counter and will affect all documents that will be created')
-			}]
+			}];
 
 			let primary_action_label = __('Save');
 
@@ -44,10 +44,10 @@ frappe.ui.form.on('Document Naming Rule', {
 						new_counter: fields.new_counter
 					},
 					callback: function() {
-						frm.set_value("counter",  fields.new_counter)
-						dialog.hide()
+						frm.set_value("counter",  fields.new_counter);
+						dialog.hide();
 					}
-				})
+				});
 			};
 
 			var dialog = new frappe.ui.Dialog({
@@ -57,7 +57,7 @@ frappe.ui.form.on('Document Naming Rule', {
 				primary_action
 			});
 
-			dialog.show()
+			dialog.show();
 
 		});
 	}
