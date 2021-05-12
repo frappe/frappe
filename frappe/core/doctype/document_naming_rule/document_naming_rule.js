@@ -4,6 +4,7 @@
 frappe.ui.form.on('Document Naming Rule', {
 	refresh: function(frm) {
 		frm.trigger('document_type');
+		frm.trigger("add_button")
 	},
 	document_type: (frm) => {
 		// update the select field options with fieldnames
@@ -20,5 +21,45 @@ frappe.ui.form.on('Document Naming Rule', {
 				);
 			});
 		}
+	},
+	add_button: (frm) => {
+		frm.add_custom_button(__('Update Counter'), function() {
+
+			const fields = [{
+				fieldtype: 'Data',
+				fieldname: 'new_counter',
+				label: __('New Counter'),
+				default: frm.doc.counter,
+				reqd: 1,
+				description: __('This will update the counter and will affect all documents that will be created')
+			}]
+
+			let primary_action_label = __('Save');
+
+			let primary_action = (fields) => {
+				debugger
+				frappe.call({
+					method: 'frappe.core.doctype.document_naming_rule.document_naming_rule.update_current',
+					args: {
+						name: frm.doc.name,
+						new_counter: fields.new_counter
+					},
+					callback: function() {
+						frm.set_value("counter",  fields.new_counter)
+						dialog.hide()
+					}
+				})
+			};
+
+			var dialog = new frappe.ui.Dialog({
+				title: __('Update Counter Value for Prefix: ' + frm.doc.prefix),
+				fields,
+				primary_action_label,
+				primary_action
+			});
+
+			dialog.show()
+
+		});
 	}
 });
