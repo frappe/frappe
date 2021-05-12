@@ -543,11 +543,11 @@ def save_new_widget(page, new_widgets):
 	widgets = _dict(loads(new_widgets))
 
 	if widgets.chart:
-		original_page.charts = new_widget(widgets.chart, "Workspace Chart", "charts")
+		original_page.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
 	if widgets.shortcut:
 		original_page.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
 	if widgets.card:
-		original_page.build_links_table_from_cards(widgets.card)
+		original_page.build_links_table_from_card(widgets.card)
 
 	try:
 		original_page.save(ignore_permissions=True)

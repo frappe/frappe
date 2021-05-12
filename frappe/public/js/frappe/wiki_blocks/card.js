@@ -1,3 +1,4 @@
+import get_dialog_constructor from "../widgets/widget_dialog.js";
 export default class Card {
 	static get toolbox() {
 		return {
@@ -22,22 +23,19 @@ export default class Card {
 		this.pb = this.data.pb ? this.data.pb : "0";
 		this.pl = this.data.pl ? this.data.pl : "0";
 		this.allow_customization = !this.readOnly;
+		this.options = {
+			allow_sorting: this.allow_customization,
+			allow_create: this.allow_customization,
+			allow_delete: this.allow_customization,
+			allow_hiding: false,
+			allow_edit: false,
+		}
 	}
 
 	render() {
-		let me = this;
 		this.wrapper = document.createElement('div');
-		this._make_fieldgroup(this.wrapper, [{
-			fieldtype: "Select", 
-			label: "Card Name", 
-			fieldname: "card_name",
-			options: this.config.page_data.cards.items.map(({ label }) => label),
-			change: function() {
-				if (this.value) {
-					me._make_cards(this.value)
-				}
-			}
-		}]);
+		this._new_card();
+
 		if (this.data && this.data.card_name) {
 			this._make_cards(this.data.card_name)
 		}
@@ -51,7 +49,8 @@ export default class Card {
 			pt: this._getPadding("t"),
 			pr: this._getPadding("r"),
 			pb: this._getPadding("b"),
-			pl: this._getPadding("l")
+			pl: this._getPadding("l"),
+			new: this.new_card_widget
 		}
 	}
 
@@ -62,6 +61,30 @@ export default class Card {
 		e.classList.add("pr-" + this.pr)
 		e.classList.add("pb-" + this.pb)
 		e.classList.add("pl-" + this.pl)
+	}
+
+	_new_card() {
+		const dialog_class = get_dialog_constructor('card');
+		this.dialog = new dialog_class({
+			label: this.label,
+			type: 'card',
+			primary_action: (widget) => {
+				widget.in_customize_mode = 1;
+				let wid = frappe.widget.make_widget({
+					...widget,
+					widget_type: 'links',
+					container: this.wrapper,
+					options: this.options,
+				});
+				wid.customize(this.options);
+				this.wrapper.setAttribute("card_name", wid.label);
+				this.new_card_widget = wid.get_config();
+			},
+		});
+
+		if (!this.readOnly && this.data && !this.data.card_name) { 
+			this.dialog.make();
+		}
 	}
 
 	_getCol() {
@@ -135,26 +158,16 @@ export default class Card {
 			return obj.label == card_name
 		});
 		this.wrapper.innerHTML = '';
-		this.sections = {};
 		card.in_customize_mode = !this.readOnly;
-		let cards = new frappe.widget.SingleWidgetGroup({
+		let card_widget = new frappe.widget.SingleWidgetGroup({
 			container: this.wrapper,
 			type: "links",
-			columns: 3,
-			options: {
-				allow_sorting: this.allow_customization,
-				allow_create: this.allow_customization,
-				allow_delete: this.allow_customization,
-				allow_hiding: false,
-				allow_edit: false,
-			},
+			options: this.options,
 			widgets: card
 		});
-
-		this.sections["cards"] = cards;
 		this.wrapper.setAttribute("card_name", card_name);
 		if (!this.readOnly) {
-			this.sections["cards"].customize();
+			card_widget.customize();
 		}
 	}
 }

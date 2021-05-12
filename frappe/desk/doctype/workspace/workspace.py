@@ -100,6 +100,35 @@ class Workspace(Document):
 					"is_query_report": link.get('is_query_report')
 				})
 
+	def build_links_table_from_card(self, config):
+		# Empty links table
+		# self.links = []
+		# order = config.get('order')
+		# widgets = config.get('widgets')
+
+		for idx, card in enumerate(config):
+			# card = widgets[name].copy()
+			links = loads(card.get('links'))
+
+			self.append('links', {
+				"label": card.get('label'),
+				"type": "Card Break",
+				"icon": card.get('icon'),
+				"hidden": card.get('hidden') or False
+			})
+
+			for link in links:
+				self.append('links', {
+					"label": link.get('label'),
+					"type": "Link",
+					"link_type": link.get('link_type'),
+					"link_to": link.get('link_to'),
+					"onboard": link.get('onboard'),
+					"only_for": link.get('only_for'),
+					"dependencies": link.get('dependencies'),
+					"is_query_report": link.get('is_query_report')
+				})
+
 
 def disable_saving_as_standard():
 	return frappe.flags.in_install or \
