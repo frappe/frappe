@@ -13,7 +13,7 @@ jobs:
       matrix:
        container: [1, 2]
 
-    name: MariaDB Tests
+    name: Python Unit Tests (MariaDB)
 
     services:
       mysql:

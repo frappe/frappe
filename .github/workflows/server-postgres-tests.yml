@@ -13,7 +13,7 @@ jobs:
       matrix:
        container: [1, 2]
 
-    name: PostgreSQL Tests
+    name: Python Unit Tests (Postgres)
 
     services:
       postgres:
