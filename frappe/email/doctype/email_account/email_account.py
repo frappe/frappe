@@ -594,7 +594,7 @@ class EmailAccount(Document):
 			# get email account user and set communication as seen
 			users = frappe.get_all("User Email", filters={ "email_account": self.name },
 				fields=["parent"])
-			users = list(set(user.get("parent") for user in users))
+			users = list({user.get("parent") for user in users})
 			communication._seen = json.dumps(users)
 
 		communication.flags.in_receive = True
