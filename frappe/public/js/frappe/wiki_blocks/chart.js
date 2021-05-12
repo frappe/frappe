@@ -10,7 +10,7 @@ export default class Chart {
 		return true;
 	}
 
-	constructor({data, api, config, readOnly}){
+	constructor({data, api, config, readOnly}) {
 		this.data = data;
 		this.api = api;
 		this.config = config;
@@ -34,12 +34,12 @@ export default class Chart {
 			options: this.config.page_data.charts.items.map(({ chart_name }) => chart_name),
 			change: function() {
 				if (this.value) {
-					me._make_charts(this.value)
+					me._make_charts(this.value);
 				}
 			}
 		}]);
 		if (this.data && this.data.chart_name) {
-			this._make_charts(this.data.chart_name)
+			this._make_charts(this.data.chart_name);
 		}
 		return this.wrapper;
 	}
@@ -52,22 +52,22 @@ export default class Chart {
 			pr: this._getPadding("r"),
 			pb: this._getPadding("b"),
 			pl: this._getPadding("l")
-		}
+		};
 	}
 
 	rendered() {
 		var e = this.wrapper.parentNode.parentNode;
-		e.classList.add("col-" + this.col)
-		e.classList.add("pt-" + this.pt)
-		e.classList.add("pr-" + this.pr)
-		e.classList.add("pb-" + this.pb)
-		e.classList.add("pl-" + this.pl)
+		e.classList.add("col-" + this.col);
+		e.classList.add("pt-" + this.pt);
+		e.classList.add("pr-" + this.pr);
+		e.classList.add("pb-" + this.pb);
+		e.classList.add("pl-" + this.pl);
 	}
 
 	_getCol() {
-		var e = 12,
-		t = "col-12",
-		n = this.wrapper.parentNode.parentNode,
+		var e = 12;
+		t = "col-12";
+		n = this.wrapper.parentNode.parentNode;
 		r = new RegExp(/\bcol-.+?\b/, "g");
 		if (n.className.match(r)) {
 			n.classList.forEach(function (e) {
@@ -80,13 +80,13 @@ export default class Chart {
 	}
 
 	_getPadding() {
-		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l",
-		t = 0,
-		n = "p" + e + "-0",
-		r = this.wrapper.parentNode.parentNode,
-		a = new RegExp(/\pl-.+?\b/, "g"),
-		i = new RegExp(/\pr-.+?\b/, "g"),
-		o = new RegExp(/\pt-.+?\b/, "g"),
+		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
+		t = 0;
+		n = "p" + e + "-0";
+		r = this.wrapper.parentNode.parentNode;
+		a = new RegExp(/\pl-.+?\b/, "g");
+		i = new RegExp(/\pr-.+?\b/, "g");
+		o = new RegExp(/\pt-.+?\b/, "g");
 		c = new RegExp(/\pb-.+?\b/, "g");
 		if ("l" == e) {
 			if (r.className.match(a)) {
@@ -132,7 +132,7 @@ export default class Chart {
 
 	_make_charts(chart_name) {
 		let chart = this.config.page_data.charts.items.find(obj => {
-			return obj.chart_name == chart_name
+			return obj.chart_name == chart_name;
 		});
 		this.wrapper.innerHTML = '';
 		this.sections = {};
@@ -153,7 +153,7 @@ export default class Chart {
 			},
 			widgets: chart
 		});
-		this.wrapper.setAttribute("chart_name", chart_name)
+		this.wrapper.setAttribute("chart_name", chart_name);
 		if (!this.readOnly) {
 			this.sections["charts"].customize();
 		}

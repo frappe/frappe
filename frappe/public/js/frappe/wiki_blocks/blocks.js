@@ -19,5 +19,5 @@ frappe.wiki_block.blocks = {
 };
 
 frappe.wiki_block.tunes = {
-	spacing_tune : SpacingTune
-}
+	spacing_tune: SpacingTune
+};

@@ -1,4 +1,4 @@
-frappe.provide('frappe.views')
+frappe.provide('frappe.views');
 
 frappe.pages['wiki'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
@@ -12,4 +12,4 @@ frappe.pages['wiki'].on_page_load = function(wrapper) {
 	$(wrapper).bind('show', function () {
 		frappe.wiki.show();
 	});
-}
+};

@@ -62,7 +62,7 @@ export default class Paragraph {
 
 	merge(data) {
 		let newData = {
-		text : this.data.text + data.text
+			text: this.data.text + data.text
 		};
 
 		this.data = newData;
@@ -70,7 +70,7 @@ export default class Paragraph {
 
 	validate(savedData) {
 		if (savedData.text.trim() === '' && !this._preserveBlank) {
-		return false;
+			return false;
 		}
 
 		return true;
@@ -89,17 +89,17 @@ export default class Paragraph {
 
 	rendered() {
 		var e = this._element.parentNode.parentNode;
-		e.classList.add("col-" + this.col)
-		e.classList.add("pt-" + this.pt)
-		e.classList.add("pr-" + this.pr)
-		e.classList.add("pb-" + this.pb)
-		e.classList.add("pl-" + this.pl)
+		e.classList.add("col-" + this.col);
+		e.classList.add("pt-" + this.pt);
+		e.classList.add("pr-" + this.pr);
+		e.classList.add("pb-" + this.pb);
+		e.classList.add("pl-" + this.pl);
 	}
 
 	_getCol() {
-		var e = 12,
-		t = "col-12",
-		n = this._element.parentNode.parentNode,
+		var e = 12;
+		t = "col-12";
+		n = this._element.parentNode.parentNode;
 		r = new RegExp(/\bcol-.+?\b/, "g");
 		if (n.className.match(r)) {
 			n.classList.forEach(function (e) {
@@ -112,13 +112,13 @@ export default class Paragraph {
 	}
 
 	_getPadding() {
-		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l",
-		t = 0,
-		n = "p" + e + "-0",
-		r = this._element.parentNode.parentNode,
-		a = new RegExp(/\pl-.+?\b/, "g"),
-		i = new RegExp(/\pr-.+?\b/, "g"),
-		o = new RegExp(/\pt-.+?\b/, "g"),
+		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
+		t = 0;
+		n = "p" + e + "-0";
+		r = this._element.parentNode.parentNode;
+		a = new RegExp(/\pl-.+?\b/, "g");
+		i = new RegExp(/\pr-.+?\b/, "g");
+		o = new RegExp(/\pt-.+?\b/, "g");
 		c = new RegExp(/\pb-.+?\b/, "g");
 		if ("l" == e) {
 			if (r.className.match(a)) {
@@ -156,7 +156,7 @@ export default class Paragraph {
 
 	onPaste(event) {
 		const data = {
-		text: event.detail.data.innerHTML
+			text: event.detail.data.innerHTML
 		};
 
 		this.data = data;
@@ -164,16 +164,16 @@ export default class Paragraph {
 
 	static get conversionConfig() {
 		return {
-		export: 'text', // to convert Paragraph to other block, use 'text' property of saved data
-		import: 'text' // to covert other block's exported string to Paragraph, fill 'text' property of tool data
+			export: 'text', // to convert Paragraph to other block, use 'text' property of saved data
+			import: 'text' // to covert other block's exported string to Paragraph, fill 'text' property of tool data
 		};
 	}
 
 	static get sanitize() {
 		return {
-		text: {
-			br: true,
-		}
+			text: {
+				br: true,
+			}
 		};
 	}
 
@@ -197,7 +197,7 @@ export default class Paragraph {
 
 	static get pasteConfig() {
 		return {
-		tags: [ 'P' ]
+			tags: [ 'P' ]
 		};
 	}
 

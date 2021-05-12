@@ -12,7 +12,7 @@ frappe.views.Wiki = class Wiki {
 		this.sections = {};
 		this.sidebar_items = {};
 		this.sorted_sidebar_items = [];
-		this.tools = {}
+		this.tools = {};
 		this.isReadOnly = true;
 		this.new_page = null;
 		this.prepare_container();
@@ -31,9 +31,9 @@ frappe.views.Wiki = class Wiki {
 
 	setup_wiki_pages() {
 		this.get_pages().then(() => {
-			if(this.all_pages) {
+			if (this.all_pages) {
 				frappe.wiki_pages = {};
-				let root_pages = this.all_pages.filter(page => page.parent_page == '' || page.parent_page == null)
+				let root_pages = this.all_pages.filter(page => page.parent_page == '' || page.parent_page == null);
 				for (let page of this.all_pages || []) {
 					frappe.wiki_pages[frappe.router.slug(page.name)] = page;
 				}
@@ -41,10 +41,10 @@ frappe.views.Wiki = class Wiki {
 				this.make_sidebar(root_pages);
 			}
 			if (this.new_page) {
-				frappe.set_route(`wiki/${frappe.router.slug(this.new_page)}`)
+				frappe.set_route(`wiki/${frappe.router.slug(this.new_page)}`);
 				this.new_page = null;
 			}
-		})
+		});
 	}
 
 	get_pages() {
@@ -55,7 +55,7 @@ frappe.views.Wiki = class Wiki {
 
 	make_sidebar(items) {
 		if (this.sidebar.find('.standard-sidebar-section')[0]) {
-			this.sidebar.find('.standard-sidebar-section')[0].remove()
+			this.sidebar.find('.standard-sidebar-section')[0].remove();
 		}
 		let sidebar_section = $(`<div class="standard-sidebar-section"></div>`);
 
@@ -95,25 +95,25 @@ frappe.views.Wiki = class Wiki {
 						</a>
 					</div>
 				`);
-			}
+			};
 	
 			const make_sidebar_child_item = item => {
 				let $child_item = get_child_item(item);
-				$child_item.appendTo(child_item_section)
+				$child_item.appendTo(child_item_section);
 				this.sidebar_items[item.name] = $child_item;
-			}
+			};
 
 			let $item = get_sidebar_item(item);
 			let drop_icon = $item.find('.drop-icon').get(0);
 			let child_item_section = $item.find('.sidebar-child-item').get(0);
-			if(this.all_pages.some(e => e.parent_page == item.name)) {
+			if (this.all_pages.some(e => e.parent_page == item.name)) {
 				drop_icon.classList.remove('hidden');
 				drop_icon.addEventListener('click', () => {
 					child_item_section.classList.toggle("hidden");
 				});
 			}
 
-			let child_items = this.all_pages.filter(page => page.parent_page == item.name)
+			let child_items = this.all_pages.filter(page => page.parent_page == item.name);
 			child_items.forEach(item => make_sidebar_child_item(item));
 
 			$item.appendTo(sidebar_section);
@@ -138,7 +138,7 @@ frappe.views.Wiki = class Wiki {
 		this.show_page(page);
 		this.get_content(page).then(() => {
 			this.get_data(page).then(() => {
-				if(this.content){
+				if (this.content) {
 					this.tools = {
 						header: {
 							class: Header,
@@ -176,22 +176,22 @@ frappe.views.Wiki = class Wiki {
 						},
 						blank: frappe.wiki_block.blocks['blank'],
 						spacingTune: frappe.wiki_block.tunes['spacing_tune'],
-					}
-					if(this.editor) {
+					};
+					if (this.editor) {
 						this.editor.isReady.then(() => {
 							this.editor.configuration.tools.chart.config.page_data = this.page_data;
 							this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
 							this.editor.configuration.tools.card.config.page_data = this.page_data;
 							this.editor.render({
 								blocks: JSON.parse(this.content) || []
-							})
-						})
+							});
+						});
 					} else {
 						this.initialize_editorjs(JSON.parse(this.content));
 					}
 				}
-			})
-		})
+			});
+		});
 	}
 
 	get_content(page) {
@@ -257,14 +257,14 @@ frappe.views.Wiki = class Wiki {
 				this.isReadOnly = false;
 				this.editor.readOnly.toggle();
 				this.editor.isReady
-				.then(() => {
-					this.undo = new Undo({ editor: this.editor });
-					this.undo.initialize({blocks: JSON.parse(this.content)});
-					this.setup_customization_buttons();
-					this.make_sidebar_sortable();
-					this.make_blocks_sortable();
-					// this.customize();
-				})
+					.then(() => {
+						this.undo = new Undo({ editor: this.editor });
+						this.undo.initialize({blocks: JSON.parse(this.content)});
+						this.setup_customization_buttons();
+						this.make_sidebar_sortable();
+						this.make_blocks_sortable();
+						// this.customize();
+					});
 			},
 		);
 
@@ -279,14 +279,14 @@ frappe.views.Wiki = class Wiki {
 			handle: ".standard-sidebar-item-container",
 			draggable: ".standard-sidebar-item-container",
 			animation: 150,
-			onEnd: function (evt){
+			onEnd: function (evt) {
 				let new_sb_items = [];
-				let old_sb_items = me.all_pages.filter(page => page.parent_page == '' || page.parent_page == null)
+				let old_sb_items = me.all_pages.filter(page => page.parent_page == '' || page.parent_page == null);
 				for (let page of evt.srcElement.childNodes) {
 					new_sb_items.push({
 						name: page.attributes['item-name'].value,
 						sequence_id: parseInt(page.attributes['item-sequence'].value)
-					})
+					});
 				}
 				me.sorted_sidebar_items = [];
 				new_sb_items.forEach((old, index) => {
@@ -305,7 +305,7 @@ frappe.views.Wiki = class Wiki {
 			handle: ".drag-handle",
 			draggable: ".ce-block",
 			animation: 150,
-			onEnd: function (evt){
+			onEnd: function (evt) {
 				me.editor.blocks.move(evt.newIndex, evt.oldIndex);
 			},
 			setData: function (dataTransfer, dragEl) {
@@ -377,14 +377,14 @@ frappe.views.Wiki = class Wiki {
 						}
 					]
 				}).then(() => {
-					if(this.editor.configuration.readOnly) {
+					if (this.editor.configuration.readOnly) {
 						this.isReadOnly = false;
 						this.editor.readOnly.toggle();
 					}
 					this.make_sidebar_sortable();
 					this.make_blocks_sortable();
 					this.dirty = false;
-				})
+				});
 			}
 		});
 		d.show();
@@ -394,7 +394,7 @@ frappe.views.Wiki = class Wiki {
 		this.dirty = false;
 		const data = {
 			blocks: blocks || []
-		}
+		};
 		this.editor = new EditorJS({
 			tools: this.tools,
 			autofocus: false,
@@ -421,11 +421,11 @@ frappe.views.Wiki = class Wiki {
 				if (item.data.new) {
 					if (!new_widgets[item.type]) {
 						new_widgets[item.type] = []
-					}
+					};
 					new_widgets[item.type].push(item.data.new);
 					delete item.data['new'];
 				}
-			})
+			});
 
 			frappe.call({
 				method: "frappe.desk.doctype.internal_wiki_page.internal_wiki_page.save_wiki_page",
@@ -445,7 +445,7 @@ frappe.views.Wiki = class Wiki {
 								page: me.title,
 								new_widgets: new_widgets
 							}).then(res => {
-								if(res.message) {
+								if (res.message) {
 									me.reload();
 								}
 							});
@@ -460,7 +460,8 @@ frappe.views.Wiki = class Wiki {
 				}
 			});
 		}).catch((error) => {
-			console.log('Saving failed: ', error);
+			error;
+			// console.log('Saving failed: ', error);
 		});
 	}
 
@@ -468,4 +469,4 @@ frappe.views.Wiki = class Wiki {
 		this.setup_wiki_pages();
 		this.dirty = false;
 	}
-}
+};

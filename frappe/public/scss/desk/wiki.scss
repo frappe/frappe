@@ -11,6 +11,28 @@
 			}
 		}
 	}
+
+	.standard-sidebar-item {
+		justify-content: space-between;
+	}
+
+	.sidebar-child-item-container {
+		margin-left: 10px;
+
+		.standard-sidebar-item {
+			justify-content: start;
+		}
+	}
+
+	.sidebar-item-label {
+		flex: 1;
+	}
+
+	.item-anchor {
+		display: flex;
+		overflow: hidden;
+		flex: 1;
+	}
 }
 
 .ce-header {
@@ -124,31 +146,4 @@
 	height: 145px;
 	box-shadow: 0 3px 15px -3px rgba(13,20,33,.13);
 	border-radius: 0 4px 4px 0;z-index: 0;
-}
-
-
-[data-page-route="wiki"] {
-
-	.standard-sidebar-item {
-		justify-content: space-between;
-	}
-
-	.sidebar-child-item-container {
-		margin-left: 10px;
-
-		.standard-sidebar-item {
-			justify-content: start;
-		}
-	}
-
-	.sidebar-item-label {
-		flex: 1;
-	}
-
-	.item-anchor {
-		display: flex;
-		overflow: hidden;
-		flex: 1;
-	}
-	
 }

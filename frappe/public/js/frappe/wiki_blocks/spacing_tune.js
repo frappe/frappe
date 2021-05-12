@@ -71,7 +71,7 @@ export default class SpacingTune {
 		}
 
 		let currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -82,13 +82,13 @@ export default class SpacingTune {
 		let colClass = new RegExp(/\bcol-.+?\b/, 'g');
 		if (currentBlockElement.className.match(colClass)) {
 			currentBlockElement.classList.forEach( cn => {
-				if(cn.match(colClass)){
+				if (cn.match(colClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
 			let width = parseInt(parts[1]);
-			if(width >= 2){
+			if (width >= 2) {
 				currentBlockElement.classList.remove('col-'+width);
 				width = width - 1;
 				currentBlockElement.classList.add('col-'+width);
@@ -104,7 +104,7 @@ export default class SpacingTune {
 		}
 
 		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -115,23 +115,23 @@ export default class SpacingTune {
 		const colClass = new RegExp(/\bcol-.+?\b/, 'g');
 		if (currentBlockElement.className.match(colClass)) {
 			currentBlockElement.classList.forEach( cn => {
-			if(cn.match(colClass)){
-				className = cn;
-			}
+				if (cn.match(colClass)) {
+					className = cn;
+				}
 			});
 			let parts = className.split('-');
 			let width = parseInt(parts[1]);
-			if(width <= 11){
-					currentBlockElement.classList.remove('col-'+width);
-					width = width + 1;
+			if (width <= 11) {
+				currentBlockElement.classList.remove('col-'+width);
+				width = width + 1;
 				currentBlockElement.classList.add('col-'+width);
-				}
+			}
 		}
 	}
 		
 	showPadding(event, button) {
 		let me = this;
-		if(button.classList.contains('cdx-settings-button--active')){
+		if (button.classList.contains('cdx-settings-button--active')) {
 			this.sidebar.remove();
 			button.classList.remove('cdx-settings-button--active');
 		} else {
@@ -290,12 +290,12 @@ export default class SpacingTune {
 	increasePaddingLeft(event, button) {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
-		if(currentBlockIndex < 0){
+		if (currentBlockIndex < 0) {
 			return;
 		}
 
 		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -306,13 +306,13 @@ export default class SpacingTune {
 		const paddingClass = new RegExp(/\pl-.+?\b/, 'g');
 		if (currentBlockElement.className.match(paddingClass)) {
 			currentBlockElement.classList.forEach( cn => {
-				if(cn.match(paddingClass)){
+				if (cn.match(paddingClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
 			let padding = parseInt(parts[1]);
-			if(padding <= 4){
+			if (padding <= 4) {
 				currentBlockElement.classList.remove('pl-'+padding);
 				padding = padding + 1;
 				currentBlockElement.classList.add('pl-'+padding);
@@ -324,12 +324,12 @@ export default class SpacingTune {
 	decreasePaddingLeft(event, button) {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
-		if(currentBlockIndex < 0){
+		if (currentBlockIndex < 0) {
 			return;
 		}
 
 		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -340,13 +340,13 @@ export default class SpacingTune {
 		const paddingClass = new RegExp(/\pl-.+?\b/, 'g');
 		if (currentBlockElement.className.match(paddingClass)) {
 			currentBlockElement.classList.forEach( cn => {
-				if(cn.match(paddingClass)){
+				if (cn.match(paddingClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
 			let padding = parseInt(parts[1]);
-			if(padding >= 1){
+			if (padding >= 1) {
 				currentBlockElement.classList.remove('pl-'+padding);
 				padding = padding - 1;
 				currentBlockElement.classList.add('pl-'+padding);
@@ -357,12 +357,12 @@ export default class SpacingTune {
 	increasePaddingRight(event, button) {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
-		if(currentBlockIndex < 0){
+		if (currentBlockIndex < 0) {
 			return;
 		}
 
 		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -373,13 +373,13 @@ export default class SpacingTune {
 		const paddingClass = new RegExp(/\pr-.+?\b/, 'g');
 		if (currentBlockElement.className.match(paddingClass)) {
 			currentBlockElement.classList.forEach( cn => {
-				if(cn.match(paddingClass)){
+				if (cn.match(paddingClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
 			let padding = parseInt(parts[1]);
-			if(padding <= 4){
+			if (padding <= 4) {
 				currentBlockElement.classList.remove('pr-'+padding);
 				padding = padding + 1;
 				currentBlockElement.classList.add('pr-'+padding);
@@ -390,12 +390,12 @@ export default class SpacingTune {
 	decreasePaddingRight(event, button) {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
-		if(currentBlockIndex < 0){
+		if (currentBlockIndex < 0) {
 			return;
 		}
 
 		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -406,13 +406,13 @@ export default class SpacingTune {
 		const paddingClass = new RegExp(/\pr-.+?\b/, 'g');
 		if (currentBlockElement.className.match(paddingClass)) {
 			currentBlockElement.classList.forEach( cn => {
-				if(cn.match(paddingClass)){
+				if (cn.match(paddingClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
 			let padding = parseInt(parts[1]);
-			if(padding >= 1){
+			if (padding >= 1) {
 				currentBlockElement.classList.remove('pr-'+padding);
 				padding = padding - 1;
 				currentBlockElement.classList.add('pr-'+padding);
@@ -423,12 +423,12 @@ export default class SpacingTune {
 	increasePaddingTop(event, button) {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
-		if(currentBlockIndex < 0){
+		if (currentBlockIndex < 0) {
 			return;
 		}
 
 		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -439,13 +439,13 @@ export default class SpacingTune {
 		const paddingClass = new RegExp(/\pt-.+?\b/, 'g');
 		if (currentBlockElement.className.match(paddingClass)) {
 			currentBlockElement.classList.forEach( cn => {
-				if(cn.match(paddingClass)){
+				if (cn.match(paddingClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
 			let padding = parseInt(parts[1]);
-			if(padding <= 4){
+			if (padding <= 4) {
 				currentBlockElement.classList.remove('pt-'+padding);
 				padding = padding + 1;
 				currentBlockElement.classList.add('pt-'+padding);
@@ -456,12 +456,12 @@ export default class SpacingTune {
 	decreasePaddingTop(event, button) {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
-		if(currentBlockIndex < 0){
+		if (currentBlockIndex < 0) {
 			return;
 		}
 
 		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -472,13 +472,13 @@ export default class SpacingTune {
 		const paddingClass = new RegExp(/\pt-.+?\b/, 'g');
 		if (currentBlockElement.className.match(paddingClass)) {
 			currentBlockElement.classList.forEach( cn => {
-				if(cn.match(paddingClass)){
+				if (cn.match(paddingClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
 			let padding = parseInt(parts[1]);
-			if(padding >= 1){
+			if (padding >= 1) {
 				currentBlockElement.classList.remove('pt-'+padding);
 				padding = padding - 1;
 				currentBlockElement.classList.add('pt-'+padding);
@@ -489,12 +489,12 @@ export default class SpacingTune {
 	increasePaddingBottom(event, button) {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
-		if(currentBlockIndex < 0){
+		if (currentBlockIndex < 0) {
 			return;
 		}
 
 		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -505,13 +505,13 @@ export default class SpacingTune {
 		const paddingClass = new RegExp(/\pb-.+?\b/, 'g');
 		if (currentBlockElement.className.match(paddingClass)) {
 			currentBlockElement.classList.forEach( cn => {
-				if(cn.match(paddingClass)){
+				if (cn.match(paddingClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
 			let padding = parseInt(parts[1]);
-			if(padding <= 4){
+			if (padding <= 4) {
 				currentBlockElement.classList.remove('pb-'+padding);
 				padding = padding + 1;
 				currentBlockElement.classList.add('pb-'+padding);
@@ -522,12 +522,12 @@ export default class SpacingTune {
 	decreasePaddingBottom(event, button) {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
-		if(currentBlockIndex < 0){
+		if (currentBlockIndex < 0) {
 			return;
 		}
 
 		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock){
+		if (!currentBlock) {
 			return;
 		}
 
@@ -538,13 +538,13 @@ export default class SpacingTune {
 		const paddingClass = new RegExp(/\pb-.+?\b/, 'g');
 		if (currentBlockElement.className.match(paddingClass)) {
 			currentBlockElement.classList.forEach( cn => {
-				if(cn.match(paddingClass)){
+				if (cn.match(paddingClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
 			let padding = parseInt(parts[1]);
-			if(padding >= 1){
+			if (padding >= 1) {
 				currentBlockElement.classList.remove('pb-'+padding);
 				padding = padding - 1;
 				currentBlockElement.classList.add('pb-'+padding);

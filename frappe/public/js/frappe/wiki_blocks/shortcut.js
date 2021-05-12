@@ -11,7 +11,7 @@ export default class Shortcut {
 		return true;
 	}
 
-	constructor({data, api, config, readOnly}){
+	constructor({data, api, config, readOnly}) {
 		this.data = data;
 		this.api = api;
 		this.config = config;
@@ -28,7 +28,7 @@ export default class Shortcut {
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
 			allow_edit: true,
-		}
+		};
 	}
 
 	render() {
@@ -36,7 +36,7 @@ export default class Shortcut {
 		this._new_shortcut();
 
 		if (this.data && this.data.shortcut_name) {
-			this._make_shortcuts(this.data.shortcut_name)
+			this._make_shortcuts(this.data.shortcut_name);
 		}
 		return this.wrapper;
 	}
@@ -50,16 +50,16 @@ export default class Shortcut {
 			pb: this._getPadding("b"),
 			pl: this._getPadding("l"),
 			new: this.new_shortcut_widget
-		}
+		};
 	}
 
 	rendered() {
 		var e = this.wrapper.parentNode.parentNode;
-		e.classList.add("col-" + this.col)
-		e.classList.add("pt-" + this.pt)
-		e.classList.add("pr-" + this.pr)
-		e.classList.add("pb-" + this.pb)
-		e.classList.add("pl-" + this.pl)
+		e.classList.add("col-" + this.col);
+		e.classList.add("pt-" + this.pt);
+		e.classList.add("pr-" + this.pr);
+		e.classList.add("pb-" + this.pb);
+		e.classList.add("pl-" + this.pl);
 	}
 
 	_new_shortcut() {
@@ -87,9 +87,9 @@ export default class Shortcut {
 	}
 
 	_getCol() {
-		var e = 12,
-		t = "col-12",
-		n = this.wrapper.parentNode.parentNode,
+		var e = 12;
+		t = "col-12";
+		n = this.wrapper.parentNode.parentNode;
 		r = new RegExp(/\bcol-.+?\b/, "g");
 		if (n.className.match(r)) {
 			n.classList.forEach(function (e) {
@@ -102,13 +102,13 @@ export default class Shortcut {
 	}
 
 	_getPadding() {
-		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l",
-		t = 0,
-		n = "p" + e + "-0",
-		r = this.wrapper.parentNode.parentNode,
-		a = new RegExp(/\pl-.+?\b/, "g"),
-		i = new RegExp(/\pr-.+?\b/, "g"),
-		o = new RegExp(/\pt-.+?\b/, "g"),
+		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
+		t = 0;
+		n = "p" + e + "-0";
+		r = this.wrapper.parentNode.parentNode;
+		a = new RegExp(/\pl-.+?\b/, "g");
+		i = new RegExp(/\pr-.+?\b/, "g");
+		o = new RegExp(/\pt-.+?\b/, "g");
 		c = new RegExp(/\pb-.+?\b/, "g");
 		if ("l" == e) {
 			if (r.className.match(a)) {
@@ -154,7 +154,7 @@ export default class Shortcut {
 
 	_make_shortcuts(shortcut_name) {
 		let shortcut = this.config.page_data.shortcuts.items.find(obj => {
-			return obj.label == shortcut_name
+			return obj.label == shortcut_name;
 		});
 		this.wrapper.innerHTML = '';
 		shortcut.in_customize_mode = !this.readOnly;
