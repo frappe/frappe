@@ -40,7 +40,7 @@ class BotParser(object):
 
 	def format_list(self, data):
 		'''Format list as markdown'''
-		return _('I found these: ') + ', '.join(' [{title}](/app/Form/{doctype}/{name})'.format(
+		return _('I found these:') + ' ' + ', '.join(' [{title}](/app/Form/{doctype}/{name})'.format(
 			title = d.title or d.name,
 			doctype=self.get_doctype(),
 			name=d.name) for d in data)
