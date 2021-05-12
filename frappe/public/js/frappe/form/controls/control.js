@@ -35,6 +35,7 @@ import './geolocation';
 import './multiselect';
 import './multicheck';
 import './table_multiselect';
+import './table_dialog';
 import './multiselect_pills';
 import './multiselect_list';
 import './rating';

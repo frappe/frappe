@@ -52,6 +52,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	add_button(name, type, action, wrapper_class = ".web-form-actions") {
 		return $("<button>")
+			.prop('type', 'button')
 			.addClass(`btn btn-${type} btn-sm`)
 			.html(name)
 			.on("click", action)

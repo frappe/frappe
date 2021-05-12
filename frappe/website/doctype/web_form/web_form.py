@@ -192,8 +192,8 @@ def get_context(context):
 
 
 		for df in self.web_form_fields:
-			if df.fieldtype  == "Column Break":
-				context.has_column_break = True
+			if df.fieldtype in ["Column Break", "Table"]:
+				context.render_wide = True
 				break
 
 		self.load_document(context)
@@ -599,7 +599,7 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	out = frappe._dict()
-	out.web_form = web_form
+	out.web_form = web_form.as_dict(no_nulls=True)
 
 	if frappe.session.user != 'Guest' and not docname and not web_form.allow_multiple:
 		docname = frappe.db.get_value(doctype, {"owner": frappe.session.user}, "name")
@@ -614,8 +614,8 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
-			field.fields = get_in_list_view_fields(field.options)
-			out.update({field.fieldname: field.fields})
+			field.fieldtype = "TableDialog"
+			field.table_fields = get_in_list_view_fields(field.options)
 
 		if field.fieldtype == "Link":
 			field.fieldtype = "Autocomplete"

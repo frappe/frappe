@@ -25,13 +25,13 @@
 
 {% block page_container %}
 <div class="container">
-	<div class="web-form-container" style="--webform-width: {{ '800px' if has_column_break else '600px' }}">
+	<div class="web-form-container" style="--webform-width: {{ '800px' if render_wide else '600px' }}">
 		<div class="web-form-header">
 			<h2>{{ _(title) }}</h2>
 			<div class="web-form-actions"></div>
 		</div>
 		<form>
-			<div class="web-form-introduction">{{ introduction_text }}</div>
+			<div class="web-form-introduction">{{ introduction_text or '' }}</div>
 			<div class="web-form-wrapper" {{ container_attributes() }}></div>
 			<div class="web-form-footer"></div>
 		</form>

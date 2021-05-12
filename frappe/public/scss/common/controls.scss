@@ -54,6 +54,10 @@ select.form-control {
 	display: inline;
 }
 
+.table-dialog th {
+	vertical-align: middle;
+}
+
 .awesomplete .input-with-feedback {
 	background-color: var(--control-bg);
 	color: var(--text-color);
