@@ -308,7 +308,7 @@ frappe.views.Wiki = class Wiki {
 			onEnd: function (evt) {
 				me.editor.blocks.move(evt.newIndex, evt.oldIndex);
 			},
-			setData: function (dataTransfer, dragEl) {
+			setData: function () {
 				//Do Nothing
 			}
 		});
@@ -420,8 +420,8 @@ frappe.views.Wiki = class Wiki {
 			outputData.blocks.forEach(item => {
 				if (item.data.new) {
 					if (!new_widgets[item.type]) {
-						new_widgets[item.type] = []
-					};
+						new_widgets[item.type] = [];
+					}
 					new_widgets[item.type].push(item.data.new);
 					delete item.data['new'];
 				}

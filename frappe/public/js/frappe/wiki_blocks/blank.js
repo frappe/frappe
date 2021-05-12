@@ -32,7 +32,7 @@ export default class Blank {
 		return this.wrapper;
 	}
 
-	save(blockContent) {
+	save() {
 		return {
 			col: this._getCol(),
 			pt: this._getPadding("t"),

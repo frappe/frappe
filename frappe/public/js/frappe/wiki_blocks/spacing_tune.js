@@ -37,7 +37,7 @@ export default class SpacingTune {
 		this.api.listeners.on(
 			paddingButton,
 			'click',
-			(event) => me.showPadding(event, paddingButton),
+			() => me.showPadding(paddingButton),
 			false
 		);
 
@@ -46,7 +46,7 @@ export default class SpacingTune {
 		this.api.listeners.on(
 			decreaseWidthButton,
 			'click',
-			(event) => me.decreaseWidth(event, decreaseWidthButton),
+			() => me.decreaseWidth(),
 			false
 		);
 
@@ -55,7 +55,7 @@ export default class SpacingTune {
 		this.api.listeners.on(
 			increaseWidthButton,
 			'click',
-			(event) => me.increaseWidth(event, increaseWidthButton),
+			() => me.increaseWidth(),
 			false
 		);
 
@@ -63,7 +63,7 @@ export default class SpacingTune {
 		return layoutWrapper;
 	}
 
-	decreaseWidth(event, button) {
+	decreaseWidth() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -96,7 +96,7 @@ export default class SpacingTune {
 		}
 	}
 
-	increaseWidth(event, button) {
+	increaseWidth() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -129,7 +129,7 @@ export default class SpacingTune {
 		}
 	}
 		
-	showPadding(event, button) {
+	showPadding(button) {
 		let me = this;
 		if (button.classList.contains('cdx-settings-button--active')) {
 			this.sidebar.remove();
@@ -195,7 +195,7 @@ export default class SpacingTune {
 			this.api.listeners.on(
 				increasePaddingLeft,
 				'click',
-				(event) => me.increasePaddingLeft(event, increasePaddingLeft),
+				() => me.increasePaddingLeft(),
 				false
 			);
 			sidebarWrapper.appendChild(increasePaddingLeft);
@@ -206,7 +206,7 @@ export default class SpacingTune {
 			this.api.listeners.on(
 				decreasePaddingLeft,
 				'click',
-				(event) => me.decreasePaddingLeft(event, decreasePaddingLeft),
+				() => me.decreasePaddingLeft(),
 				false
 			);
 			sidebarWrapper.appendChild(decreasePaddingLeft);
@@ -219,7 +219,7 @@ export default class SpacingTune {
 			this.api.listeners.on(
 				increasePaddingRight,
 				'click',
-				(event) => me.increasePaddingRight(event, increasePaddingRight),
+				() => me.increasePaddingRight(),
 				false
 			);
 			sidebarWrapper.appendChild(increasePaddingRight);
@@ -230,7 +230,7 @@ export default class SpacingTune {
 			this.api.listeners.on(
 				decreasePaddingRight,
 				'click',
-				(event) => me.decreasePaddingRight(event, decreasePaddingRight),
+				() => me.decreasePaddingRight(),
 				false
 			);
 			sidebarWrapper.appendChild(decreasePaddingRight);
@@ -243,7 +243,7 @@ export default class SpacingTune {
 			this.api.listeners.on(
 				increasePaddingTop,
 				'click',
-				(event) => me.increasePaddingTop(event, increasePaddingTop),
+				() => me.increasePaddingTop(),
 				false
 			);
 			sidebarWrapper.appendChild(increasePaddingTop);
@@ -254,7 +254,7 @@ export default class SpacingTune {
 			this.api.listeners.on(
 				decreasePaddingTop,
 				'click',
-				(event) => me.decreasePaddingTop(event, decreasePaddingTop),
+				() => me.decreasePaddingTop(),
 				false
 			);
 			sidebarWrapper.appendChild(decreasePaddingTop);
@@ -267,7 +267,7 @@ export default class SpacingTune {
 			this.api.listeners.on(
 				increasePaddingBottom,
 				'click',
-				(event) => me.increasePaddingBottom(event, increasePaddingBottom),
+				() => me.increasePaddingBottom(),
 				false
 			);
 			sidebarWrapper.appendChild(increasePaddingBottom);
@@ -278,7 +278,7 @@ export default class SpacingTune {
 			this.api.listeners.on(
 				decreasePaddingBottom,
 				'click',
-				(event) => me.decreasePaddingBottom(event, decreasePaddingBottom),
+				() => me.decreasePaddingBottom(),
 				false
 			);
 			sidebarWrapper.appendChild(decreasePaddingBottom);
@@ -287,7 +287,7 @@ export default class SpacingTune {
 		}
 	}
 
-	increasePaddingLeft(event, button) {
+	increasePaddingLeft() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -321,7 +321,7 @@ export default class SpacingTune {
 
 	}
 
-	decreasePaddingLeft(event, button) {
+	decreasePaddingLeft() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -354,7 +354,7 @@ export default class SpacingTune {
 		}
 	}
 
-	increasePaddingRight(event, button) {
+	increasePaddingRight() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -387,7 +387,7 @@ export default class SpacingTune {
 		}
 	}
 
-	decreasePaddingRight(event, button) {
+	decreasePaddingRight() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -420,7 +420,7 @@ export default class SpacingTune {
 		}
 	}
 
-	increasePaddingTop(event, button) {
+	increasePaddingTop() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -453,7 +453,7 @@ export default class SpacingTune {
 		}
 	}
 
-	decreasePaddingTop(event, button) {
+	decreasePaddingTop() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -486,7 +486,7 @@ export default class SpacingTune {
 		}
 	}
 
-	increasePaddingBottom(event, button) {
+	increasePaddingBottom() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -519,7 +519,7 @@ export default class SpacingTune {
 		}
 	}
 
-	decreasePaddingBottom(event, button) {
+	decreasePaddingBottom() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
