@@ -37,7 +37,6 @@ frappe.ui.form.on('Document Naming Rule', {
 			let primary_action_label = __('Save');
 
 			let primary_action = (fields) => {
-				debugger
 				frappe.call({
 					method: 'frappe.core.doctype.document_naming_rule.document_naming_rule.update_current',
 					args: {
