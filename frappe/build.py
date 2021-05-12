@@ -268,17 +268,14 @@ def generate_assets_map():
 
 	for app_name in frappe.get_all_apps():
 		app_doc_path = None
+
 		pymodule = frappe.get_module(app_name)
 		app_base_path = os.path.abspath(os.path.dirname(pymodule.__file__))
-
 		app_public_path = os.path.join(app_base_path, "public")
 		app_node_modules_path = os.path.join(app_base_path, "..", "node_modules")
-		internal_app_node_modules_path = os.path.join(app_base_path, "..", "node_modules")
-		node_modules_required = (
-			os.path.realpath(app_node_modules_path) != os.path.realpath(internal_app_node_modules_path)
-		)
 		app_docs_path = os.path.join(app_base_path, "docs")
 		app_www_docs_path = os.path.join(app_base_path, "www", "docs")
+
 		app_assets = os.path.abspath(app_public_path)
 		app_node_modules = os.path.abspath(app_node_modules_path)
 
@@ -287,8 +284,7 @@ def generate_assets_map():
 			symlinks[app_assets] = os.path.join(assets_path, app_name)
 
 		# {app}/node_modules > assets/{app}/node_modules
-		# node_modules_required is set if its not already a path of {app}/public
-		if os.path.isdir(app_node_modules) and node_modules_required:
+		if os.path.isdir(app_node_modules):
 			symlinks[app_node_modules] = os.path.join(assets_path, app_name, "node_modules")
 
 		# {app}/docs > assets/{app}_docs
