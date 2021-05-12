@@ -27,7 +27,7 @@ export default class Shortcut {
 			allow_create: this.allow_customization,
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
-			allow_edit: true,
+			allow_edit: true
 		};
 	}
 
@@ -72,9 +72,12 @@ export default class Shortcut {
 				let wid = frappe.widget.make_widget({
 					...widget,
 					widget_type: 'shortcut',
-					container: this.wrapper,
-					options: this.options,
+					container: this.wrapper
 				});
+				wid.options = {
+					...this.options,
+					on_delete: () => this.api.blocks.delete(),
+				}
 				wid.customize(this.options);
 				this.wrapper.setAttribute("shortcut_name", wid.label);
 				this.new_shortcut_widget = wid.get_config();
@@ -162,7 +165,8 @@ export default class Shortcut {
 			container: this.wrapper,
 			type: "shortcut",
 			options: this.options,
-			widgets: shortcut
+			widgets: shortcut,
+			api: this.api
 		});
 		this.wrapper.setAttribute("shortcut_name", shortcut_name);
 		if (!this.readOnly) {

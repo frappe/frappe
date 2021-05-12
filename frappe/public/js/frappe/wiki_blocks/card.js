@@ -73,9 +73,12 @@ export default class Card {
 				let wid = frappe.widget.make_widget({
 					...widget,
 					widget_type: 'links',
-					container: this.wrapper,
-					options: this.options,
+					container: this.wrapper
 				});
+				wid.options = {
+					...this.options,
+					on_delete: () => this.api.blocks.delete()
+				}
 				wid.customize(this.options);
 				this.wrapper.setAttribute("card_name", wid.label);
 				this.new_card_widget = wid.get_config();
@@ -163,7 +166,8 @@ export default class Card {
 			container: this.wrapper,
 			type: "links",
 			options: this.options,
-			widgets: card
+			widgets: card,
+			api: this.api
 		});
 		this.wrapper.setAttribute("card_name", card_name);
 		if (!this.readOnly) {

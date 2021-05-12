@@ -205,16 +205,19 @@ export class SingleWidgetGroup {
 			widget_type: this.type,
 			container: this.container,
 			height: this.height || null,
-			options: {
-				...this.options,
-				on_delete: (name) => this.on_delete(name),
-			},
 		});
-
+		widget_object.options = {
+			...this.options,
+			on_delete: (name) => this.on_delete(name)
+		};
 		this.widgets_list.push(widget_object);
 		this.widgets_dict[widget.name] = widget_object;
 
 		return widget_object;
+	}
+
+	on_delete(name, setup_new) {
+		this.api.blocks.delete();
 	}
 
 	customize() {
