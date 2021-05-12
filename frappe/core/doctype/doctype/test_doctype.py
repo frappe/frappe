@@ -92,7 +92,7 @@ class TestDocType(unittest.TestCase):
 			fields=["parent", "depends_on", "collapsible_depends_on", "mandatory_depends_on",\
 				"read_only_depends_on", "fieldname", "fieldtype"])
 
-		pattern = r"""[\w\.:_]+\s*={1}\s*[\w\.@'"]+"""
+		pattern = r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+'
 		for field in docfields:
 			for depends_on in ["depends_on", "collapsible_depends_on", "mandatory_depends_on", "read_only_depends_on"]:
 				condition = field.get(depends_on)

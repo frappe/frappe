@@ -7,6 +7,8 @@ import frappe.share
 import unittest
 from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
 
+test_dependencies = ['User']
+
 class TestDocShare(unittest.TestCase):
 	def setUp(self):
 		self.user = "test@example.com"
