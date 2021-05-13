@@ -5,6 +5,7 @@ import frappe
 from frappe.website.page_controllers.base_template_page import BaseTemplatePage
 from frappe.website.context import add_sidebar_and_breadcrumbs
 from frappe.website.render import build_response
+from frappe.website.router import get_base_template
 from frappe.website.utils import (extract_comment_tag, extract_title,
 	get_next_link, get_toc)
 
@@ -31,6 +32,7 @@ class TemplatePage(BaseTemplatePage):
 					self.app = app
 					self.app_path = app_path
 					self.template_path = os.path.relpath(file_path, self.app_path)
+					self.basepath = os.path.dirname(file_path)
 					return True
 
 	def get_index_path_options(self, search_path):
@@ -74,7 +76,6 @@ class TemplatePage(BaseTemplatePage):
 		same folder. Also the hyphens will be coverted to underscore for python module names.
 		This method sets the pymodule_name if it exists.
 		'''
-		self.basepath = self.template_path.rsplit('.', 1)[0]
 		self.pymodule_name = None
 
 		# replace - with _ in the internal modules names
@@ -90,6 +91,9 @@ class TemplatePage(BaseTemplatePage):
 		self.convert_from_markdown()
 
 	def update_context(self):
+		self.context.base_template = self.context.base_template or get_base_template(self.path)
+		self.context.basepath = self.basepath
+		self.context.path = self.path
 		self.set_page_properties()
 		self.set_properties_from_source()
 		self.load_colocated_files()
@@ -196,7 +200,7 @@ class TemplatePage(BaseTemplatePage):
 	def convert_from_markdown(self):
 		if self.template_path.endswith('.md'):
 			self.source = frappe.utils.md_to_html(self.source)
-			self.page_toc_html = self.source.toc_html
+			self.context.page_toc_html = self.source.toc_html
 
 			if not self.context.show_sidebar:
 				self.source = '<div class="from-markdown">' + self.source + '</div>'
