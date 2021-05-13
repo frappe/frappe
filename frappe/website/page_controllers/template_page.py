@@ -76,10 +76,11 @@ class TemplatePage(BaseTemplatePage):
 		same folder. Also the hyphens will be coverted to underscore for python module names.
 		This method sets the pymodule_name if it exists.
 		'''
+		template_basepath = os.path.splitext(self.template_path)[0]
 		self.pymodule_name = None
 
 		# replace - with _ in the internal modules names
-		self.pymodule_path = os.path.join(self.basepath.replace("-", "_") + ".py")
+		self.pymodule_path = os.path.join(template_basepath.replace("-", "_") + ".py")
 
 		if os.path.exists(os.path.join(self.app_path, self.pymodule_path)):
 			self.pymodule_name = self.app + "." + self.pymodule_path.replace(os.path.sep, ".")[:-3]
