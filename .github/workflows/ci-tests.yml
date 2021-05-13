@@ -151,7 +151,8 @@ jobs:
           cd ${GITHUB_WORKSPACE}
           pip install coveralls==2.2.0
           pip install coverage==4.5.4
-          coveralls
+          coveralls --service=github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+          COVERALLS_SERVICE_NAME: github

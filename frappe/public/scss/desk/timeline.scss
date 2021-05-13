@@ -77,6 +77,7 @@ $threshold: 34;
 		}
 	}
 	.document-email-link-container {
+		@extend .ellipsis;
 		position: relative;
 		padding: var(--padding-sm);
 		font-size: var(--text-sm);

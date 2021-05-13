@@ -290,7 +290,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		// bind links
 		transactions_area_body.find(".badge-link").on('click', function() {
-			me.open_document_list($(this).parent());
+			me.open_document_list($(this).closest('.document-link'));
 		});
 
 		// bind reports
@@ -535,14 +535,14 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	render_graph(args) {
 		this.chart_area.show();
 		this.chart_area.body.empty();
-		$.extend(args, {
+		$.extend({
 			type: 'line',
 			colors: ['green'],
 			truncateLegends: 1,
 			axisOptions: {
 				shortenYAxisNumbers: 1
 			}
-		});
+		}, args);
 		this.show();
 
 		this.chart = new frappe.Chart('.form-graph', args);

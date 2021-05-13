@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2021-04-12 15:17:24.751710",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user_group_members"
+ ],
+ "fields": [
+  {
+   "fieldname": "user_group_members",
+   "fieldtype": "Table MultiSelect",
+   "label": "User Group Members",
+   "options": "User Group Member",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-04-15 16:12:31.455401",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Group",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
