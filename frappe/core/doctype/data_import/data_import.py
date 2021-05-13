@@ -211,7 +211,7 @@ def export_json(
 	doctype, path, filters=None, or_filters=None, name=None, order_by="creation asc"
 ):
 	def post_process(out):
-		del_keys = ("modified_by", "creation", "owner", "idx")
+		del_keys = ("modified_by", "creation", "owner", "idx", "lft", "rgt")
 		for doc in out:
 			for key in del_keys:
 				if key in doc:
