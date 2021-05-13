@@ -5,7 +5,7 @@ import os
 import re
 import json
 import shutil
-from tempfile import mkdtemp, mktemp
+from tempfile import NamedTemporaryFile, mkdtemp
 from distutils.spawn import find_executable
 
 import frappe
@@ -161,7 +161,8 @@ def symlink(target, link_name, overwrite=False):
 
 	# Create link to target with temporary filename
 	while True:
-		temp_link_name = mktemp(dir=link_dir)
+		# updated usage from mktemp to NamedTemporaryFile
+		temp_link_name = NamedTemporaryFile(dir=link_dir)
 
 		# os.* functions mimic as closely as possible system functions
 		# The POSIX symlink() returns EEXIST if link_name already exists
