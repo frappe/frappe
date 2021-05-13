@@ -344,32 +344,6 @@ def link_assets_dir(source, target, hard_link=False):
 	if not os.path.exists(source):
 		return
 
-<<<<<<< HEAD
-	if restore:
-		if os.path.exists(target):
-			if os.path.islink(target):
-				os.unlink(target)
-			else:
-<<<<<<< HEAD
-				# warnings.warn('Source {source} does not exist.'.format(source = source))
-				pass
-=======
-				shutil.rmtree(target)
-			shutil.copytree(source, target)
-	elif make_copy:
-		shutil.copytree(source, target, dirs_exist_ok=True)
-	else:
-		if os.path.exists(target):
-			if os.path.islink(target):
-				os.unlink(target)
-			else:
-				shutil.rmtree(target)
-		try:
-			symlink(source, target, overwrite=True)
-		except OSError:
-			print("Cannot link {} to {}".format(source, target))
->>>>>>> e54b1d5835... refactor: Link static assets from apps to sites/assets
-=======
 	if os.path.exists(target):
 		if os.path.islink(target):
 			os.unlink(target)
@@ -380,7 +354,6 @@ def link_assets_dir(source, target, hard_link=False):
 		shutil.copytree(source, target, dirs_exist_ok=True)
 	else:
 		symlink(source, target, overwrite=True)
->>>>>>> 098f1564f3... refactor: bench build
 
 
 def build(no_compress=False, verbose=False):

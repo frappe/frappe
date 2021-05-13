@@ -160,8 +160,6 @@ def split_emails(txt):
 
 	return email_list
 
-<<<<<<< HEAD
-=======
 def validate_url(txt, throw=False, valid_schemes=None):
 	"""
 		Checks whether `txt` has a valid URL string
@@ -189,7 +187,6 @@ def validate_url(txt, throw=False, valid_schemes=None):
 
 	return is_valid
 
->>>>>>> 855efcfd59... style: Trim whitespace and remove unnecessary parenthesis
 def random_string(length):
 	"""generate a random string"""
 	import string
