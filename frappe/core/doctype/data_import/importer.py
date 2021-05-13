@@ -936,8 +936,8 @@ class Column:
 		elif self.df.fieldtype == "Select":
 			options = get_select_options(self.df)
 			if options:
-				values = list({cstr(v) for v in self.column_values[1:] if v})
-				invalid = list(set(values) - set(options))
+				values = {cstr(v) for v in self.column_values[1:] if v}
+				invalid = values - set(options)
 				if invalid:
 					valid_values = ", ".join(frappe.bold(o) for o in options)
 					invalid_values = ", ".join(frappe.bold(i) for i in invalid)
