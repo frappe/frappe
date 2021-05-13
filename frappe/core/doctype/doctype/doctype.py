@@ -671,12 +671,12 @@ class DocType(Document):
 		flags = {"flags": re.ASCII} if six.PY3 else {}
 
 		# a DocType name should not start or end with an empty space
-		if re.search("^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
+		if re.search(r"^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
 			frappe.throw(_("DocType's name should not start or end with whitespace"), frappe.NameError)
 
 		# a DocType's name should not start with a number or underscore
 		# and should only contain letters, numbers and underscore
-		if not re.match("^(?![\W])[^\d_\s][\w ]+$", name, **flags):
+		if not re.match(r"^(?![\W])[^\d_\s][\w ]+$", name, **flags):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
 		validate_route_conflict(self.doctype, self.name)
