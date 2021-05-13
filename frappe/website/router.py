@@ -158,7 +158,7 @@ def evaluate_dynamic_routes(rules, path):
 	route_map = Map(rules)
 	endpoint = None
 
-	if frappe.local.request:
+	if hasattr(frappe.local, 'request') and frappe.local.request.environ:
 		urls = route_map.bind_to_environ(frappe.local.request.environ)
 		try:
 			endpoint, args = urls.match("/" + path)

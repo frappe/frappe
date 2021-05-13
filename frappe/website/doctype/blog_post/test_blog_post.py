@@ -13,6 +13,8 @@ from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
 
+test_dependencies = ['Blog Post']
+
 class TestBlogPost(unittest.TestCase):
 	def setUp(self):
 		reset_customization('Blog Post')
