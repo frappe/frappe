@@ -98,6 +98,7 @@ def get_dict(fortype, name=None):
 	translation_assets = cache.hget("translation_assets", frappe.local.lang, shared=True) or {}
 
 	if not asset_key in translation_assets:
+		messages = []
 		if fortype=="doctype":
 			messages = get_messages_from_doctype(name)
 		elif fortype=="page":
@@ -109,14 +110,12 @@ def get_dict(fortype, name=None):
 		elif fortype=="jsfile":
 			messages = get_messages_from_file(name)
 		elif fortype=="boot":
-			messages = []
 			apps = frappe.get_all_apps(True)
 			for app in apps:
 				messages.extend(get_server_messages(app))
-			messages = deduplicate_messages(messages)
 
-			messages += frappe.db.sql("""select 'navbar', item_label from `tabNavbar Item` where item_label is not null""")
-			messages = get_messages_from_include_files()
+			messages += get_messages_from_navbar()
+			messages += get_messages_from_include_files()
 			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
@@ -124,6 +123,7 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select '', format from `tabWorkspace Shortcut` where format is not null")
 			messages += frappe.db.sql("select '', title from `tabOnboarding Step`")
 
+		messages = deduplicate_messages(messages)
 		message_dict = make_dict_from_messages(messages, load_user_translation=False)
 		message_dict.update(get_dict_from_hooks(fortype, name))
 		# remove untranslated
@@ -320,9 +320,21 @@ def get_messages_for_app(app, deduplicate=True):
 
 	# server_messages
 	messages.extend(get_server_messages(app))
+
+	# messages from navbar settings
+	messages.extend(get_messages_from_navbar())
+
 	if deduplicate:
 		messages = deduplicate_messages(messages)
+
 	return messages
+
+
+def get_messages_from_navbar():
+	"""Return all labels from Navbar Items, as specified in Navbar Settings."""
+	labels = frappe.get_all('Navbar Item', filters={'item_label': ('is', 'set')}, pluck='item_label')
+	return [('Navbar:', label, 'Label of a Navbar Item') for label in labels]
+
 
 def get_messages_from_doctype(name):
 	"""Extract all translatable messages for a doctype. Includes labels, Python code,
@@ -490,8 +502,14 @@ def get_server_messages(app):
 def get_messages_from_include_files(app_name=None):
 	"""Returns messages from js files included at time of boot like desk.min.js for desk and web"""
 	messages = []
-	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
-		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
+	app_include_js = frappe.get_hooks("app_include_js", app_name=app_name) or []
+	web_include_js = frappe.get_hooks("web_include_js", app_name=app_name) or []
+	include_js = app_include_js + web_include_js
+
+	for js_path in include_js:
+		relative_path = os.path.join(frappe.local.sites_path, js_path.lstrip('/'))
+		messages_from_file = get_messages_from_file(relative_path)
+		messages.extend(messages_from_file)
 
 	return messages
 
