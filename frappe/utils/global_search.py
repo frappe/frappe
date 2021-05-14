@@ -310,14 +310,14 @@ def get_routes_to_index():
 
 def add_route_to_global_search(route):
 	from bs4 import BeautifulSoup
-	from frappe.website.serve import get_response
+	from frappe.website.serve import get_response_content
 	from frappe.utils import set_request
 	frappe.set_user('Guest')
 	frappe.local.no_cache = True
 
 	try:
 		set_request(method='GET', path=route)
-		content = get_response(route)
+		content = get_response_content(route)
 		soup = BeautifulSoup(content, 'html.parser')
 		page_content = soup.find(class_='page_content')
 		text_content = page_content.text if page_content else ''
@@ -332,8 +332,8 @@ def add_route_to_global_search(route):
 			route=route
 		)
 		sync_value_in_queue(value)
-	except (frappe.PermissionError, frappe.DoesNotExistError, frappe.ValidationError, Exception):
-		pass
+	except (frappe.PermissionError, frappe.DoesNotExistError, frappe.ValidationError, Exception) as e:
+		raise e
 
 	frappe.set_user('Administrator')
 

@@ -1485,7 +1485,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None,
 	:param style: Print Format style.
 	:param as_pdf: Return as PDF. Default False.
 	:param password: Password to encrypt the pdf with. Default None"""
-	from frappe.website.serve import get_response
+	from frappe.website.serve import get_response_content
 	from frappe.utils.pdf import get_pdf
 
 	local.form_dict.doctype = doctype
@@ -1500,7 +1500,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None,
 		options = {'password': password}
 
 	if not html:
-		html = get_response("printview")
+		html = get_response_content("printview")
 
 	if as_pdf:
 		return get_pdf(html, output = output, options = options)

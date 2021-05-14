@@ -46,3 +46,7 @@ def get_response(path=None, http_status_code=200):
 		response = ErrorPage(path, http_status_code, exception=e).get()
 
 	return response
+
+def get_response_content(path=None, http_status_code=200):
+	response = get_response(path, http_status_code)
+	return response.data
