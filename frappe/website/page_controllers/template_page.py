@@ -6,9 +6,10 @@ from frappe.website.page_controllers.base_template_page import BaseTemplatePage
 from frappe.website.context import add_sidebar_and_breadcrumbs
 from frappe.website.render import build_response
 from frappe.website.router import get_base_template
-from frappe.website.utils import (extract_comment_tag, extract_title,
-	get_next_link, get_toc)
+from frappe.website.utils import (extract_comment_tag,
+	extract_title, get_next_link, get_toc, get_frontmatter)
 
+WEBPAGE_PY_MODULE_PROPERTIES = ("base_template_path", "template", "no_cache", "sitemap", "condition_field")
 
 class TemplatePage(BaseTemplatePage):
 	def validate(self):
@@ -36,12 +37,7 @@ class TemplatePage(BaseTemplatePage):
 					return True
 
 	def get_index_path_options(self, search_path):
-		return (
-			search_path,
-			search_path + '.html',
-			search_path + '.md',
-			search_path + '/index.html',
-			search_path + '/index.md')
+		return (f'{search_path}{d}' for d in ('', '.html', '.md', '/index.html', '/index.md'))
 
 	def render(self):
 		return build_response(self.path, self.get_html(), self.http_status_code, self.headers)
@@ -115,8 +111,7 @@ class TemplatePage(BaseTemplatePage):
 			self.http_status_code = self.context.http_status_code
 
 	def set_pymodule_properties(self):
-		for prop in ("base_template_path", "template", "no_cache", "sitemap",
-			"condition_field"):
+		for prop in WEBPAGE_PY_MODULE_PROPERTIES:
 			if hasattr(self.pymodule, prop):
 				self.context[prop] = getattr(self.pymodule, prop)
 
@@ -237,24 +232,3 @@ class TemplatePage(BaseTemplatePage):
 
 def get_start_folders():
 	return frappe.local.flags.web_pages_folders or ('www', 'templates/pages')
-
-def get_frontmatter(string):
-	"""
-	Reference: https://github.com/jonbeebe/frontmatter
-	"""
-	import re
-
-	import yaml
-
-	fmatter = ""
-	body = ""
-	result = re.compile(r'^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$', re.S | re.M).search(string)
-
-	if result:
-		fmatter = result.group(1)
-		body = result.group(2)
-
-	return {
-		"attributes": yaml.safe_load(fmatter),
-		"body": body,
-	}

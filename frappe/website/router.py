@@ -9,7 +9,7 @@ import re
 
 import frappe
 from frappe.model.document import get_controller
-from frappe.website.utils import can_cache, delete_page_cache, extract_comment_tag, extract_title
+from frappe.website.utils import can_cache, extract_comment_tag, extract_title
 from werkzeug.routing import Map, Rule, NotFound
 
 def resolve_route(path):

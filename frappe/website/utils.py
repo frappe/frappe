@@ -6,6 +6,8 @@ import functools
 import re
 import os
 import frappe
+import re
+import yaml
 
 from six import iteritems
 from past.builtins import cmp
@@ -424,3 +426,17 @@ def clear_cache(path=None):
 
 def clear_sitemap():
 	delete_page_cache("*")
+
+def get_frontmatter(string):
+	"Reference: https://github.com/jonbeebe/frontmatter"
+	frontmatter = ""
+	body = ""
+	result = re.compile(r'^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$', re.S | re.M).search(string)
+	if result:
+		frontmatter = result.group(1)
+		body = result.group(2)
+
+	return {
+		"attributes": yaml.safe_load(frontmatter),
+		"body": body,
+	}
