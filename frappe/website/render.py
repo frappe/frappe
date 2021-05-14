@@ -22,10 +22,10 @@ from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
 from frappe.website.router import clear_sitemap, evaluate_dynamic_routes
 from frappe.translate import guess_language
 
-from frappe.website.serve import get_response
 class PageNotFoundError(Exception): pass
 
 def render(path=None, http_status_code=None):
+	from frappe.website.serve import get_response
 	return get_response(path, http_status_code)
 
 def build_response(path, data, http_status_code, headers=None):

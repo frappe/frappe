@@ -7,6 +7,7 @@ class WebPage(object):
 		if not path:
 			path = frappe.local.request.path
 		self.path = path.strip('/ ')
+		self.basepath = ''
 
 	def get(self):
 		if self.validate():
