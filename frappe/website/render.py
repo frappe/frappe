@@ -22,112 +22,11 @@ from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
 from frappe.website.router import clear_sitemap, evaluate_dynamic_routes
 from frappe.translate import guess_language
 
+from frappe.website.serve import get_response
 class PageNotFoundError(Exception): pass
 
 def render(path=None, http_status_code=None):
-	# temp feature flag
-	if True or frappe.conf.flag_new_website:
-		from frappe.website.serve import get_response
-		return get_response(path, http_status_code)
-	else:
-		return _render(path, http_status_code)
-
-def _render(path=None, http_status_code=None):
-	"""render html page"""
-	if not path:
-		path = frappe.local.request.path
-
-	try:
-		path = path.strip('/ ')
-		raise_if_disabled(path)
-		resolve_redirect(path)
-		path = resolve_path(path)
-		data = None
-
-		# if in list of already known 404s, send it
-		if can_cache() and frappe.cache().hget('website_404', frappe.request.url):
-			data = render_page('404')
-			http_status_code = 404
-		elif is_static_file(path):
-			return get_static_file_response()
-		elif is_web_form(path):
-			data = render_web_form(path)
-		else:
-			try:
-				data = render_page_by_language(path)
-			except frappe.PageDoesNotExistError:
-				doctype, name = get_doctype_from_path(path)
-				if doctype and name:
-					path = "printview"
-					frappe.local.form_dict.doctype = doctype
-					frappe.local.form_dict.name = name
-				elif doctype:
-					path = "list"
-					frappe.local.form_dict.doctype = doctype
-				else:
-					# 404s are expensive, cache them!
-					frappe.cache().hset('website_404', frappe.request.url, True)
-					data = render_page('404')
-					http_status_code = 404
-
-				if not data:
-					try:
-						data = render_page(path)
-					except frappe.PermissionError as e:
-						data, http_status_code = render_403(e, path)
-
-			except frappe.PermissionError as e:
-				data, http_status_code = render_403(e, path)
-
-			except frappe.Redirect as e:
-				raise e
-
-			except Exception:
-				path = "error"
-				data = render_page(path)
-				http_status_code = 500
-
-		data = add_csrf_token(data)
-
-	except frappe.Redirect:
-		return build_response(path, "", 301, {
-			"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
-			"Cache-Control": "no-store, no-cache, must-revalidate"
-		})
-
-	return build_response(path, data, http_status_code or 200)
-
-def is_static_file(path):
-	if ('.' not in path):
-		return False
-	extn = path.rsplit('.', 1)[-1]
-	if extn in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json'):
-		return False
-
-	for app in frappe.get_installed_apps():
-		file_path = frappe.get_app_path(app, 'www') + '/' + path
-		if os.path.exists(file_path):
-			frappe.flags.file_path = file_path
-			return True
-
-	return False
-
-def is_web_form(path):
-	return bool(frappe.get_all("Web Form", filters={'route': path}))
-
-def render_web_form(path):
-	data = render_page(path)
-	return data
-
-def get_static_file_response():
-	try:
-		f = open(frappe.flags.file_path, 'rb')
-	except IOError:
-		raise NotFound
-
-	response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
-	response.mimetype = mimetypes.guess_type(frappe.flags.file_path)[0] or 'application/octet-stream'
-	return response
+	return get_response(path, http_status_code)
 
 def build_response(path, data, http_status_code, headers=None):
 	# build response
@@ -167,23 +66,6 @@ def add_preload_headers(response):
 		import traceback
 		traceback.print_exc()
 
-
-def render_page_by_language(path):
-	translated_languages = frappe.get_hooks("translated_languages_for_website")
-	user_lang = guess_language(translated_languages)
-	if translated_languages and user_lang in translated_languages:
-		try:
-			if path and path != "index":
-				lang_path = '{0}/{1}'.format(user_lang, path)
-			else:
-				lang_path = user_lang # index
-
-			return render_page(lang_path)
-		except frappe.DoesNotExistError:
-			return render_page(path)
-
-	else:
-		return render_page(path)
 
 def render_page(path):
 	"""get page html"""
@@ -307,7 +189,6 @@ def set_content_type(response, data, path):
 
 def clear_cache(path=None):
 	'''Clear website caches
-
 	:param path: (optional) for the given path'''
 	for key in ('website_generator_routes', 'website_pages',
 		'website_full_index', 'sitemap_routes'):
@@ -327,54 +208,3 @@ def clear_cache(path=None):
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
-
-def render_403(e, pathname):
-	frappe.local.message = cstr(e.message if six.PY2 else e)
-	frappe.local.message_title = _("Not Permitted")
-	frappe.local.response['context'] = dict(
-		indicator_color = 'red',
-		primary_action = '/login',
-		primary_label = _('Login'),
-		fullpage=True
-	)
-	return render_page("message"), e.http_status_code
-
-def get_doctype_from_path(path):
-	doctypes = frappe.db.sql_list("select name from tabDocType")
-
-	parts = path.split("/")
-
-	doctype = parts[0]
-	name = parts[1] if len(parts) > 1 else None
-
-	if doctype in doctypes:
-		return doctype, name
-
-	# try scrubbed
-	doctype = doctype.replace("_", " ").title()
-	if doctype in doctypes:
-		return doctype, name
-
-	return None, None
-
-def add_csrf_token(data):
-	if frappe.local.session:
-		return data.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
-				frappe.local.session.data.csrf_token))
-	else:
-		return data
-
-def raise_if_disabled(path):
-	routes = frappe.db.get_all('Portal Menu Item',
-		fields=['route', 'enabled'],
-		filters={
-			'enabled': 0,
-			'route': ['like', '%{0}'.format(path)]
-		}
-	)
-
-	for r in routes:
-		_path = r.route.lstrip('/')
-		if path == _path and not r.enabled:
-			raise frappe.PermissionError
-
