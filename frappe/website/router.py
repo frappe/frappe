@@ -1,16 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import io
 import os
 import re
 
+from werkzeug.routing import Map, NotFound, Rule
+
 import frappe
 from frappe.model.document import get_controller
 from frappe.website.utils import can_cache, extract_comment_tag, extract_title
-from werkzeug.routing import Map, Rule, NotFound
+
 
 def resolve_route(path):
 	"""Returns the page route object based on searching in pages and generators.

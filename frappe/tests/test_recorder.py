@@ -8,7 +8,7 @@ import unittest
 import frappe
 import frappe.recorder
 from frappe.utils import set_request
-from frappe.website.render import render_page
+from frappe.website.serve import get_response
 
 import sqlparse
 
@@ -122,5 +122,5 @@ class TestRecorder(unittest.TestCase):
 			self.assertEqual(call['exact_copies'], query[1])
 
 	def test_error_page_rendering(self):
-		content = render_page("error")
+		content = get_response("error")
 		self.assertIn("Error", content)

@@ -1,23 +1,21 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-import frappe
-from frappe import _
-import frappe.sessions
-from frappe.utils import cstr
-import mimetypes, json
+import json
+import mimetypes
 import re
 
 from six import iteritems
-from werkzeug.wrappers import Response
 from werkzeug.routing import Rule
-from werkzeug.wsgi import wrap_file
+from werkzeug.wrappers import Response
 
+import frappe
+import frappe.sessions
+from frappe import _
 from frappe.website.context import get_context
-from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
-	get_toc, get_next_link)
 from frappe.website.router import evaluate_dynamic_routes
+from frappe.website.utils import (can_cache, get_home_page, get_next_link, get_toc)
+
 
 class PageNotFoundError(Exception): pass
 
@@ -60,38 +58,6 @@ def add_preload_headers(response):
 		import traceback
 		traceback.print_exc()
 
-
-def render_page(path):
-	"""get page html"""
-	out = None
-
-	if can_cache():
-		# return rendered page
-		page_cache = frappe.cache().hget("website_page", path)
-		if page_cache and frappe.local.lang in page_cache:
-			out = page_cache[frappe.local.lang]
-
-	if out:
-		frappe.local.response.from_cache = True
-		return out
-
-	return build(path)
-
-def build(path):
-	if not frappe.db:
-		frappe.connect()
-
-	try:
-		return build_page(path)
-	except frappe.DoesNotExistError:
-		hooks = frappe.get_hooks()
-		if hooks.website_catch_all:
-			path = hooks.website_catch_all[0]
-			return build_page(path)
-		else:
-			raise
-	except Exception:
-		raise
 
 def build_page(path):
 	if not getattr(frappe.local, "path", None):
