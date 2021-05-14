@@ -6,27 +6,21 @@ import frappe
 from frappe import _
 import frappe.sessions
 from frappe.utils import cstr
-import os, mimetypes, json
+import mimetypes, json
 import re
 
-import six
 from six import iteritems
 from werkzeug.wrappers import Response
 from werkzeug.routing import Rule
 from werkzeug.wsgi import wrap_file
 
 from frappe.website.context import get_context
-from frappe.website.redirect import resolve_redirect
 from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
 	get_toc, get_next_link)
-from frappe.website.router import clear_sitemap, evaluate_dynamic_routes
-from frappe.translate import guess_language
+from frappe.website.router import evaluate_dynamic_routes
 
 class PageNotFoundError(Exception): pass
 
-def render(path=None, http_status_code=None):
-	from frappe.website.serve import get_response
-	return get_response(path, http_status_code)
 
 def build_response(path, data, http_status_code, headers=None):
 	# build response
@@ -188,23 +182,6 @@ def set_content_type(response, data, path):
 	return data
 
 def clear_cache(path=None):
-	'''Clear website caches
-	:param path: (optional) for the given path'''
-	for key in ('website_generator_routes', 'website_pages',
-		'website_full_index', 'sitemap_routes'):
-		frappe.cache().delete_value(key)
-
-	frappe.cache().delete_value("website_404")
-	if path:
-		frappe.cache().hdel('website_redirects', path)
-		delete_page_cache(path)
-	else:
-		clear_sitemap()
-		frappe.clear_cache("Guest")
-		for key in ('portal_menu_items', 'home_page', 'website_route_rules',
-			'doctypes_with_web_view', 'website_redirects', 'page_context',
-			'website_page'):
-			frappe.cache().delete_value(key)
-
-	for method in frappe.get_hooks("website_clear_cache"):
-		frappe.get_attr(method)(path)
+	# TODO: Remove this
+	from frappe.website.utils import clear_cache
+	return clear_cache(path)

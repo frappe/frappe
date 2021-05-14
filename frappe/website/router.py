@@ -85,9 +85,6 @@ def get_page_context_from_doctype(path):
 		return frappe.get_doc(page_info.get("doctype"),
 			page_info.get("name")).get_page_info()
 
-def clear_sitemap():
-	delete_page_cache("*")
-
 def get_all_page_context_from_doctypes():
 	'''
 	Get all doctype generated routes (for sitemap.xml)

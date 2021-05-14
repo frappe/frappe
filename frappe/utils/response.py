@@ -217,7 +217,8 @@ def send_private_file(path):
 	return response
 
 def handle_session_stopped():
+	from frappe.website.serve import get_response
 	frappe.respond_as_web_page(_("Updating"),
 		_("Your system is being updated. Please refresh again after a few moments."),
 		http_status_code=503, indicator_color='orange', fullpage = True, primary_action=None)
-	return frappe.website.render.render("message", http_status_code=503)
+	return get_response("message", http_status_code=503)

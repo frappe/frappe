@@ -11,7 +11,6 @@ from six import iteritems
 from past.builtins import cmp
 from frappe.utils import md_to_html
 
-
 def delete_page_cache(path):
 	cache = frappe.cache()
 	cache.delete_value('full_index')
@@ -399,3 +398,29 @@ def get_html_content_based_on_type(doc, fieldname, content_type):
 			content = ''
 
 		return content
+
+
+def clear_cache(path=None):
+	'''Clear website caches
+	:param path: (optional) for the given path'''
+	for key in ('website_generator_routes', 'website_pages',
+		'website_full_index', 'sitemap_routes'):
+		frappe.cache().delete_value(key)
+
+	frappe.cache().delete_value("website_404")
+	if path:
+		frappe.cache().hdel('website_redirects', path)
+		delete_page_cache(path)
+	else:
+		clear_sitemap()
+		frappe.clear_cache("Guest")
+		for key in ('portal_menu_items', 'home_page', 'website_route_rules',
+			'doctypes_with_web_view', 'website_redirects', 'page_context',
+			'website_page'):
+			frappe.cache().delete_value(key)
+
+	for method in frappe.get_hooks("website_clear_cache"):
+		frappe.get_attr(method)(path)
+
+def clear_sitemap():
+	delete_page_cache("*")
