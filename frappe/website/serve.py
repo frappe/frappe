@@ -29,7 +29,7 @@ def get_response(path=None, http_status_code=200):
 		path = resolve_path(path)
 		# there is no way to determine the type of the page based on the route
 		# so evaluate each type of page sequentially
-		renderers = [StaticPage, TemplatePage, ListPage, WebFormPage, DocumentPage, PrintPage, NotFoundPage]
+		renderers = [StaticPage, WebFormPage, TemplatePage, ListPage, DocumentPage, PrintPage, NotFoundPage]
 		for renderer in renderers:
 			response = renderer(path, http_status_code).get()
 			if response:
