@@ -11,13 +11,9 @@ from werkzeug.wrappers import Response
 
 import frappe
 import frappe.sessions
-from frappe import _
 from frappe.website.context import get_context
 from frappe.website.router import evaluate_dynamic_routes
 from frappe.website.utils import (can_cache, get_home_page, get_next_link, get_toc)
-
-
-class PageNotFoundError(Exception): pass
 
 
 def build_response(path, data, http_status_code, headers=None):

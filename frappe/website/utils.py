@@ -6,7 +6,6 @@ import functools
 import re
 import os
 import frappe
-import re
 import yaml
 
 from six import iteritems
