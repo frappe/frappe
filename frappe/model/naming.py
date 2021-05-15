@@ -254,7 +254,7 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 	filters.update({fieldname: value})
 	exists = frappe.db.exists(doctype, filters)
 
-	regex = "^{value}{separator}\d+$".format(value=re.escape(value), separator=separator)
+	regex = "^{value}{separator}\\d+$".format(value=re.escape(value), separator=separator)
 
 	if exists:
 		last = frappe.db.sql("""SELECT `{fieldname}` FROM `tab{doctype}`
