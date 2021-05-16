@@ -39,7 +39,7 @@ class TestWebPage(unittest.TestCase):
 			published = 1,
 			content_type = 'Rich Text',
 			main_section = 'rich text',
-			main_section_md = '# h1\n\markdown content',
+			main_section_md = '# h1\nmarkdown content',
 			main_section_html = '<div>html content</div>'
 		)).insert()
 
