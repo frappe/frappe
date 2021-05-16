@@ -70,6 +70,7 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 			this.input,
 			this.get_awesomplete_settings()
 		);
+		$(this.input_area).find('.awesomplete').css('position', 'relative');
 
 		$(this.input_area)
 			.find('.awesomplete ul')
