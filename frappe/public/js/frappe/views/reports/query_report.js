@@ -1507,7 +1507,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							const insert_after_index = this.columns
 								.findIndex(column => column.label === values.insert_after);
 
-							let fieldname = this.get_fieldname_for_column(df.fieldname)
+							let fieldname = this.get_fieldname_for_column(df.fieldname);
 
 							custom_columns.push({
 								fieldname: fieldname,
