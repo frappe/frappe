@@ -175,7 +175,7 @@ def get_page_info_from_web_form(path):
 		elif path.endswith('/edit'):
 			frappe.form_dict.is_edit = True
 		else:
-			frappe.form_dict.is_view = True
+			frappe.form_dict.is_read = True
 		return page_info[end_point]
 
 

@@ -182,6 +182,11 @@ input[type="checkbox"] {
 	}
 }
 
+.link-unstyled, .link-unstyled:link, .link-unstyled:hover {
+	color: inherit;
+	text-decoration: inherit;
+}
+
 .hidden {
 	@extend .d-none;
 }

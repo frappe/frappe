@@ -5,30 +5,35 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "title_and_route_section",
   "title",
   "route",
+  "published",
+  "column_break_4",
   "doc_type",
   "module",
-  "column_break_4",
   "is_standard",
-  "published",
+  "configuration_section",
   "login_required",
-  "route_to_success_link",
   "allow_edit",
   "allow_multiple",
-  "apply_document_permissions",
-  "show_in_grid",
   "allow_delete",
+  "allow_incomplete",
+  "column_break_13",
+  "apply_document_permissions",
   "allow_print",
   "print_format",
   "allow_comments",
   "show_attachments",
-  "allow_incomplete",
+  "max_attachment_size",
+  "list_settings_section",
+  "show_list",
+  "list_title",
+  "list_columns",
   "introduction",
   "introduction_text",
   "fields",
   "web_form_fields",
-  "max_attachment_size",
   "client_script_section",
   "client_script",
   "custom_css_section",
@@ -107,31 +112,17 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.login_required",
-   "fieldname": "route_to_success_link",
-   "fieldtype": "Check",
-   "label": "Route to Success Link"
-  },
-  {
-   "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_edit",
    "fieldtype": "Check",
-   "label": "Allow Edit"
+   "label": "Allow Editing After Submit"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_multiple",
    "fieldtype": "Check",
-   "label": "Allow Multiple"
-  },
-  {
-   "default": "0",
-   "depends_on": "allow_multiple",
-   "fieldname": "show_in_grid",
-   "fieldtype": "Check",
-   "label": "Show as Grid"
+   "label": "Allow Multiple Responses"
   },
   {
    "default": "0",
@@ -169,7 +160,6 @@
   },
   {
    "default": "0",
-   "description": "Allow saving if mandatory fields are not filled",
    "fieldname": "allow_incomplete",
    "fieldtype": "Check",
    "label": "Allow Incomplete Forms"
@@ -178,7 +168,7 @@
    "collapsible": 1,
    "fieldname": "introduction",
    "fieldtype": "Section Break",
-   "label": "Introduction"
+   "label": "Intro"
   },
   {
    "fieldname": "introduction_text",
@@ -355,13 +345,53 @@
    "fieldname": "apply_document_permissions",
    "fieldtype": "Check",
    "label": "Apply Document Permissions"
+  },
+  {
+   "fieldname": "title_and_route_section",
+   "fieldtype": "Section Break",
+   "label": "Title & Route"
+  },
+  {
+   "fieldname": "configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Form Settings"
+  },
+  {
+   "fieldname": "column_break_13",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_list",
+   "fieldname": "list_settings_section",
+   "fieldtype": "Section Break",
+   "label": "List Settings"
+  },
+  {
+   "depends_on": "show_list",
+   "fieldname": "list_title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_list",
+   "fieldtype": "Check",
+   "label": "Show List"
+  },
+  {
+   "depends_on": "show_list",
+   "fieldname": "list_columns",
+   "fieldtype": "Table",
+   "label": "List Columns",
+   "options": "Web Form List Column"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2020-08-07 13:12:03.945686",
+ "modified": "2021-05-16 16:01:37.658912",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

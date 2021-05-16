@@ -1,7 +1,7 @@
 @import "./variables";
 @import "../common/form";
 
-.web-form-container {
+.web-form-container, .web-list-container {
 	border: 1px solid $border-color;
 	border-radius: $border-radius-lg;
 	padding: 2rem;
@@ -16,7 +16,11 @@
 	}
 }
 
-.web-form-header {
+.web-list-container {
+	--webform-width: 1000px;
+}
+
+.web-form-header, .web-list-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -57,6 +61,12 @@
 		margin: 0;
 		@extend .row;
 	}
+
+	.help-box {
+		margin-top: 4px;
+		margin-bottom: 8px;
+		font-size: var(--text-sm);
+	}
 }
 
 .web-form-footer {
@@ -72,4 +82,35 @@
 
 .modal .form-section {
 	margin: 0;
+}
+
+.web-list-table {
+	margin-top: 0.75rem;
+}
+
+.web-list-table-header, .web-list-table-row {
+	padding: 1rem 0;
+	padding-left: 0.5rem;
+	margin-left: -0.5rem;
+	border-bottom: 1px solid var(--border-color);
+	font-size: var(--font-size-sm);
+}
+
+.web-list-table-header {
+	color: var(--text-muted);
+}
+
+.web-list-table-row {
+	display: block;
+	@extend .link-unstyled;
+
+	&:hover {
+		background-color: var(--gray-50);
+	}
+}
+
+.web-list-table-footer {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 1rem;
 }

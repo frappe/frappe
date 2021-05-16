@@ -16,8 +16,9 @@ from frappe.custom.doctype.customize_form.customize_form import docfield_propert
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.integrations.utils import get_payment_gateway_controller
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import cstr
+from frappe.utils import cstr, cint, strip_html, dict_with_keys
 from frappe.website.utils import get_comment_list
+from frappe.www.list import get_list_data
 from frappe.website.website_generator import WebsiteGenerator
 
 
@@ -138,10 +139,6 @@ def get_context(context):
 		else:
 			context.template = 'website/doctype/web_form/templates/web_form.html'
 
-		# doc, delimeter = make_route_string(frappe.form_dict)
-		# context.doc = doc
-		# context.delimeter = delimeter
-
 		# check permissions
 		if frappe.session.user == "Guest" and frappe.form_dict.name:
 			frappe.throw(_("You need to be logged in to access this {0}.").format(self.doc_type), frappe.PermissionError)
@@ -149,11 +146,28 @@ def get_context(context):
 		if frappe.form_dict.name and not self.has_web_form_permission(self.doc_type, frappe.form_dict.name):
 			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
 
+		if context.path == self.route:
+			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
+			frappe.redirect(path)
+
+		if frappe.form_dict.is_list and not self.show_list:
+			frappe.redirect(f"/{self.route}/new")
+
+		if frappe.form_dict.is_edit and not self.allow_edit:
+			path = context.path.rstrip("/edit")
+			frappe.redirect("/" + path)
+
+		if not frappe.form_dict.is_edit and self.allow_edit and frappe.form_dict.name:
+			frappe.redirect("/" + context.path + "/edit")
+
+		if frappe.session.user != "Guest" and not self.allow_multiple and not frappe.form_dict.name and not frappe.form_dict.is_list:
+			name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
+			frappe.redirect(f"/{self.route}/{name}")
+
 		# Show new form when
 		# - User is Guest
 		# - Login not required
-		# - Editing not allowed
-		route_to_new = frappe.session.user == 'Guest' or not self.login_required or not self.allow_edit
+		route_to_new = frappe.session.user == 'Guest' or not self.login_required
 		if not frappe.form_dict.is_new and route_to_new:
 			frappe.redirect(f'/{self.route}/new')
 
@@ -162,41 +176,19 @@ def get_context(context):
 		if self.is_standard:
 			self.use_meta_fields()
 
-		# if not frappe.session.user == "Guest":
-		# 	if self.allow_edit:
-		# 		if self.allow_multiple:
-		# 			if not frappe.form_dict.name and not frappe.form_dict.is_new:
-		# 				# list data is queried via JS
-		# 				context.is_list = True
-		# 		else:
-		# 			if frappe.session.user != 'Guest' and not frappe.form_dict.name:
-		# 				frappe.form_dict.name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
-
-		# 			if not frappe.form_dict.name:
-		# 				# only a single doc allowed and no existing doc, hence new
-		# 				frappe.form_dict.is_new = 1
-
-
-		if frappe.form_dict.is_list:
-			context.is_list = True
-
-		if frappe.form_dict.is_new:
-			context.is_new = True
-
-		if frappe.form_dict.is_edit:
-			context.is_edit = True
-
-		if frappe.form_dict.is_view:
-			context.is_view = True
-
-
+		# add keys from form_dict to context
+		context.update(dict_with_keys(frappe.form_dict, ['is_list', 'is_new', 'is_edit', 'is_read']))
 
 		for df in self.web_form_fields:
 			if df.fieldtype in ["Column Break", "Table"]:
 				context.render_wide = True
 				break
 
-		self.load_document(context)
+		if context.is_list:
+			self.load_list_data(context)
+		else:
+			self.load_form_data(context)
+
 		context.parents = self.get_parents(context)
 
 		if self.breadcrumbs:
@@ -213,7 +205,6 @@ def get_context(context):
 		if not context.max_attachment_size:
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
-		context.show_in_grid = self.show_in_grid
 		self.load_translations(context)
 
 	def load_translations(self, context):
@@ -222,27 +213,75 @@ def get_context(context):
 		translated_messages['Sr'] = _('Sr')
 		context.translated_messages = frappe.as_json(translated_messages)
 
-	def load_document(self, context):
+	def load_list_data(self, context):
+		'''Load data for rendering the list view'''
+		# page 1: 0, 2
+		# page 2: 2, 2
+		# page 3: 4, 2
+		page_number = cint(frappe.form_dict.page) or 1
+		if page_number < 0:
+			page_number = 1
+		page_length = 10
+		start = (page_number - 1) * page_length
+		context.page_number = page_number
+
+		data = get_list_data(self.doc_type, limit_start=start, limit=page_length + 1, web_form_name=self.name)
+		context.last_page = len(data) < page_length + 1
+		if not context.last_page:
+			context.list_data = data[:-1]
+		else:
+			context.list_data = data
+
+		if self.list_columns:
+			meta = frappe.get_meta(self.doc_type)
+			context.list_columns = []
+			for df in self.list_columns:
+				column = meta.get_field(df.fieldname).as_dict()
+				column.label = df.label
+				context.list_columns.append(column)
+		else:
+			context.list_columns = get_in_list_view_fields(self.doc_type)
+
+	def load_form_data(self, context):
 		'''Load document `doc` and `layout` properties for template'''
-		if frappe.form_dict.name or frappe.form_dict.is_new:
-			context.layout = self.get_layout()
-			context.parents = [{"route": self.route, "label": _(self.title) }]
+		context.parents = []
+		if self.show_list:
+			context.parents.append({
+				"label": _(self.list_title or self.title),
+				"route": f"{self.route}/list",
+			})
 
+		# load web form doc
+		context.web_form_doc = self.as_dict(no_nulls=True)
+		# For Table fields, server-side processing for meta
+		for field in context.web_form_doc.web_form_fields:
+			if field.fieldtype == "Table":
+				field.fieldtype = "TableDialog"
+				field.table_fields = get_in_list_view_fields(field.options)
+
+			if field.fieldtype == "Link":
+				field.fieldtype = "Autocomplete"
+				field.options = get_link_options(
+					self.name,
+					field.options,
+					field.allow_read_on_all_link_options
+				)
+
+		# load reference doc
 		if frappe.form_dict.name:
-			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
-			context.title = context.doc.get(context.doc.meta.get_title_field())
-			context.doc.add_seen()
-
-			context.reference_doctype = context.doc.doctype
-			context.reference_name = context.doc.name
+			context.reference_doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
+			context.title = strip_html(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+			context.reference_doc.add_seen()
+			context.reference_doctype = context.reference_doc.doctype
+			context.reference_name = context.reference_doc.name
 
 			if self.show_attachments:
 			    context.attachments = frappe.get_all('File', filters= {"attached_to_name": context.reference_name, "attached_to_doctype": context.reference_doctype, "is_private": 0},
 					fields=['file_name','file_url', 'file_size'])
 
 			if self.allow_comments:
-				context.comment_list = get_comment_list(context.doc.doctype,
-					context.doc.name)
+				context.comment_list = get_comment_list(context.reference_doc.doctype,
+					context.reference_doc.name)
 
 	def get_payment_gateway_url(self, doc):
 		if self.accept_payment:
@@ -524,6 +563,11 @@ def new(web_form, doc):
 
 	ignore_permissions = not web_form.login_required
 	ignore_mandatory = web_form.allow_incomplete
+	newdoc.flags.updater_reference = {
+		'doctype': 'Web Form',
+		'docname': web_form.name,
+		'label': _('via {0}').format(web_form.title)
+	}
 	newdoc.insert(ignore_permissions=ignore_permissions, ignore_mandatory=ignore_mandatory)
 
 	out = {"doc": newdoc}
@@ -533,8 +577,27 @@ def new(web_form, doc):
 
 
 @frappe.whitelist(allow_guest=True)
-def update(webform, doc):
-	pass
+def update(web_form, doc):
+	web_form = frappe.get_doc('Web Form', web_form)
+
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must login to submit this form"), frappe.AuthenticationError)
+
+	updated_doc = frappe.parse_json(doc)
+	doc = frappe.get_doc(updated_doc.doctype, updated_doc.name)
+	# update fields that are defined in the web form
+	for field in web_form.web_form_fields:
+		doc.set(field.fieldname, updated_doc.get(field.fieldname))
+
+	ignore_permissions = not web_form.login_required
+	doc.flags.updater_reference = {
+		'doctype': 'Web Form',
+		'docname': web_form.name,
+		'label': _('via {0}').format(web_form.title)
+	}
+	doc.save(ignore_permissions=ignore_permissions)
+	return {"doc": doc}
+
 
 @frappe.whitelist()
 def delete(web_form_name, docname):
@@ -591,7 +654,7 @@ def make_route_string(parameters):
 				delimeter = '&'
 	return (route_string, delimeter)
 
-@frappe.whitelist(allow_guest=True)
+
 def get_form_data(doctype, docname=None, web_form_name=None):
 	web_form = frappe.get_doc('Web Form', web_form_name)
 

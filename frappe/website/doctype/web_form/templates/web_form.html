@@ -79,6 +79,13 @@
 	$(".file-size").each(function () {
 		$(this).text(frappe.form.formatters.FileSize($(this).text()));
 	});
+
+	frappe.web_form_doc = {{ web_form_doc | json }};
+	{% if reference_doc %}
+	frappe.reference_doc = {{ reference_doc.as_json() }};
+	{% endif %}
+	frappe.web_form_doc.is_new = {{ frappe.utils.cint(is_new or False) }};
+	frappe.web_form_doc.is_list = {{ frappe.utils.cint(is_list or False) }};
 </script>
 <script type="text/javascript" src="/assets/js/control.min.js"></script>
 <script type="text/javascript" src="/assets/js/dialog.min.js"></script>
@@ -109,7 +116,6 @@ frappe.init_client_script = () => {
 {% endblock script %}
 
 {% block style %}
-<link type="text/css" rel="stylesheet" href="/assets/css/web_form.css">
 <style>
 {% if style is defined %}
 	{{ style }}

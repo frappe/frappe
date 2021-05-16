@@ -25,13 +25,17 @@
 {% block page_container %}
 <div class="container">
 	<div class="web-list-container">
-		<div>
-			<h2>{{ _(title) }}</h2>
-			<div class="list-view-actions"></div>
+		<div class="web-list-header">
+			<h2>{{ _(list_title or title) }}</h2>
+			<div class="list-view-actions">
+				{%- if allow_multiple -%}
+				<a class="btn btn-primary btn-sm" href="/{{ route }}/new">New</a>
+				{%- endif -%}
+			</div>
 		</div>
 		<div class="web-list-wrapper" {{ container_attributes() }}></div>
 		<div id="list-filters" class="row"></div>
-		<div id="datatable" class="pt-4"></div>
+		{% include "frappe/website/doctype/web_form/templates/web_list_table.html" %}
 		<div class="text-right list-view-footer"></div>
 	</div>
 </div>

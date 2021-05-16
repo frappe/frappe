@@ -1,0 +1,40 @@
+<div class="web-list-table">
+	<div class="web-list-table-header">
+		<div class="row">
+			{%- for df in list_columns -%}
+			<div class="col">{{ df.label }}</div>
+			{%- endfor -%}
+		</div>
+	</div>
+	<div class="web-list-table-body">
+		{%- for row in list_data -%}
+		{%- set item_route -%}
+			{%- if allow_edit -%}
+			/{{ route }}/{{ row.name }}/edit
+			{%- else -%}
+			/{{ route }}/{{ row.name }}
+			{%- endif -%}
+		{%- endset -%}
+		<a class="web-list-table-row" href="{{ item_route }}">
+			<div class="row">
+				{%- for df in list_columns -%}
+				{%- set content = frappe.format(row.get(df.fieldname), df, row) -%}
+				<div class="col">{{ frappe.utils.strip_html(content)  }}</div>
+				{%- endfor -%}
+			</div>
+		</a>
+		{%- else -%}
+		<div class="web-list-table-row text-center text-muted">
+			{{ _('No data') }}
+		</div>
+		{%- endfor -%}
+	</div>
+	<div class="web-list-table-footer">
+		{%- if page_number > 1 -%}
+		<a class="btn btn-default btn-sm" href="/{{ route }}/list?page={{ page_number - 1 }}">Previous</a>
+		{%- endif -%}
+		{%- if not last_page -%}
+		<a class="btn btn-default btn-sm ml-2" href="/{{ route }}/list?page={{ page_number + 1 }}">Next</a>
+		{%- endif -%}
+	</div>
+</div>

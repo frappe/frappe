@@ -285,12 +285,6 @@
 		"public/js/frappe/utils/datetime.js",
 		"public/js/frappe/web_form/webform_script.js"
 	],
-	"css/web_form.css": [
-		"website/css/web_form.css",
-		"public/css/octicons/octicons.css",
-		"public/scss/controls.scss",
-		"node_modules/frappe-datatable/dist/frappe-datatable.css"
-	],
 	"css/email.css": "public/scss/email.scss",
 	"js/barcode_scanner.min.js": "public/js/frappe/barcode_scanner/quagga.js",
 	"js/user_profile_controller.min.js": "desk/page/user_profile/user_profile_controller.js",

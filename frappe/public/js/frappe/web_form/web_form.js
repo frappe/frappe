@@ -23,7 +23,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (this.allow_print && !this.is_new) this.setup_print_button();
 		if (this.allow_delete && !this.is_new) this.setup_delete_button();
 		if (this.is_new) this.setup_cancel_button();
-		this.setup_primary_action();
+
+		if (this.allow_edit) {
+			this.setup_primary_action();
+		}
 		// $(".link-btn").remove();
 
 		// webform client script
@@ -45,8 +48,16 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	set_default_values() {
+		let defaults = {};
+		for (let df of this.fields) {
+			if (df.default) {
+				defaults[df.fieldname] = df.default;
+			}
+		}
 		let values = frappe.utils.get_query_params();
 		delete values.new;
+		Object.assign(defaults, values);
+
 		this.set_values(values);
 	}
 
@@ -171,9 +182,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	handle_success(data) {
 		let redirect_url = data.payment_url || this.success_url;
-		if (!redirect_url && this.login_required) {
-			redirect_url = window.location.pathname + "?name=" + data.name;
-		}
 		if (redirect_url) {
 			this.show_success_message(
 				__("Your information has been submitted. Redirecting...")
