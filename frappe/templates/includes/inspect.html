@@ -1,0 +1,43 @@
+<div class="inspect-window" style="display: {{ 'block' if render else 'none' }} ">
+	<div class="inspect-body">
+		{%- for arg in args -%}
+		<pre>{{ arg | pprint | e }}</pre>
+		{%- if not loop.last -%}
+		<hr>
+		{%- endif -%}
+		{%- endfor -%}
+	</div>
+</div>
+
+<style>
+	.inspect-window {
+		z-index: 999999;
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+	}
+
+	.inspect-body {
+		background-color: white;
+		padding: 2rem;
+		border-radius: 0.5rem;
+		width: 600px;
+		margin: 1rem auto;
+		max-height: calc(100vh - 2rem);
+		overflow: auto;
+	}
+</style>
+
+<script>
+	frappe.ready(() => {
+		let $inspect_window = $('.inspect-window');
+		$inspect_window.on('click', (e) => {
+			if (!$('.inspect-body').get(0).contains(e.target)) {
+				$inspect_window.remove();
+			}
+		});
+	})
+</script>

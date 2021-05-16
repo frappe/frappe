@@ -2,8 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from frappe.utils.jinja import get_jenv
-import frappe
+from frappe.utils.jinja import render_template
 
 
 def resolve_class(classes):
@@ -22,13 +21,9 @@ def resolve_class(classes):
 	return classes
 
 
-def inspect(var, render=True):
-	context = {"var": var}
-	if render:
-		html = "<pre>{{ var | pprint | e }}</pre>"
-	else:
-		return ""
-	return get_jenv().from_string(html).render(context)
+def inspect(*args, render=True):
+	context = {"args": args, "render": render}
+	return render_template("templates/includes/inspect.html", context)
 
 
 def web_block(template, values=None, **kwargs):
@@ -68,4 +63,3 @@ def web_blocks(blocks):
 		html += "<script>{}</script>".format(script)
 
 	return html
-
