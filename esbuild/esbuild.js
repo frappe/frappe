@@ -103,6 +103,7 @@ async function execute() {
 		log_error("There were some problems during build");
 		log();
 		log(chalk.dim(e.stack));
+		return;
 	}
 
 	if (!WATCH_MODE) {
@@ -374,10 +375,11 @@ function update_assets_json_in_cache(assets_json) {
 	// update assets_json cache in redis, so that it can be read directly by python
 	return new Promise(resolve => {
 		let client = get_redis_subscriber("redis_cache");
+		// handle error event to avoid printing stack traces
+		client.on("error", _ => {
+			log_warn("Cannot connect to redis_cache to update assets_json");
+		});
 		client.set("assets_json", JSON.stringify(assets_json), err => {
-			if (err) {
-				log_warn("Could not update assets_json in redis_cache");
-			}
 			client.unref();
 			resolve();
 		});
@@ -407,8 +409,11 @@ function run_build_command_for_apps(apps) {
 }
 
 async function notify_redis({ error, success }) {
-	let subscriber = get_redis_subscriber("redis_socketio");
 	// notify redis which in turns tells socketio to publish this to browser
+	let subscriber = get_redis_subscriber("redis_socketio");
+	subscriber.on("error", _ => {
+		log_warn("Cannot connect to redis_socketio for browser events");
+	});
 
 	let payload = null;
 	if (error) {
@@ -440,6 +445,9 @@ async function notify_redis({ error, success }) {
 
 function open_in_editor() {
 	let subscriber = get_redis_subscriber("redis_socketio");
+	subscriber.on("error", _ => {
+		log_warn("Cannot connect to redis_socketio for open_in_editor events");
+	});
 	subscriber.on("message", (event, file) => {
 		if (event === "open_in_editor") {
 			file = JSON.parse(file);

@@ -41,7 +41,16 @@ function get_conf() {
 function get_redis_subscriber(kind="redis_socketio") {
 	const conf = get_conf();
 	const host = conf[kind] || conf.redis_async_broker_port;
-	return redis.createClient(host);
+	return redis.createClient({
+		host,
+		retry_strategy: function(options) {
+			// abort after 5 connection attempts
+			if (options.attempt > 5) {
+				return undefined;
+			}
+			return Math.min(options.attempt * 100, 2000);
+		},
+	});
 }
 
 module.exports = {
