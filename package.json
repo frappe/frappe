@@ -16,7 +16,7 @@
     "url": "https://github.com/frappe/frappe/issues"
   },
   "engines": {
-    "node" : ">=14"
+    "node": ">=14"
   },
   "homepage": "https://frappeframework.com",
   "dependencies": {
@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "chalk": "^2.3.2",
-    "esbuild": "^0.11.11",
+    "esbuild": "^0.11.21",
     "esbuild-plugin-postcss2": "^0.0.9",
     "esbuild-vue": "^0.2.0",
     "fast-glob": "^3.2.5",

@@ -2249,10 +2249,10 @@ esbuild-vue@^0.2.0:
     piscina "^2.2.0"
     vue-template-compiler "^2.6.12"
 
-esbuild@^0.11.11:
-  version "0.11.11"
-  resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.11.11.tgz#8f235e0a1a34253a47fd80d51f12084dd98074bd"
-  integrity sha512-iq5YdV63vY/nUAFIvY92BXVkYjMbOchnofLKoLKMPZIa4uuIJAJG9WRA+ZRjQBZbrsORUwvZcANeG2d3p46PJQ==
+esbuild@^0.11.21:
+  version "0.11.21"
+  resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.11.21.tgz#9220b0185ae40947811dcaff6bfcfb572bebac08"
+  integrity sha512-FqpYdJqiTeLDbj3vqxc/fG8UmHIEvQrDaUxSw1oJf4giLd/tnMDUUlXellCjOab7qGKQ5hUFD5eQgmO+tkZeow==
 
 escalade@^3.0.2:
   version "3.0.2"

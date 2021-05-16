@@ -85,6 +85,11 @@ execute()
 	.then(() => RUN_BUILD_COMMAND && run_build_command_for_apps(APPS))
 	.catch(e => console.error(e));
 
+if (WATCH_MODE) {
+	// listen for open files in editor event
+	open_in_editor();
+}
+
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
 	if (!FILES_TO_BUILD.length) {
@@ -227,17 +232,20 @@ function build_files({ files, outdir }) {
 function get_watch_config() {
 	if (WATCH_MODE) {
 		return {
-			onRebuild(error, result) {
+			async onRebuild(error, result) {
 				if (error) {
 					log_error("There was an error during rebuilding changes.");
 					log();
 					log(chalk.dim(error.stack));
 					notify_redis({ error });
 				} else {
-					log(
-						`${new Date().toLocaleTimeString()}: Compiled changes...`
-					);
-					write_assets_json(result.metafile);
+					let {
+						assets_json,
+						prev_assets_json
+					} = await write_assets_json(result.metafile);
+					if (prev_assets_json) {
+						log_rebuilt_assets(prev_assets_json, assets_json);
+					}
 					notify_redis({ success: true });
 				}
 			}
@@ -319,7 +327,12 @@ function log_built_assets(metafile) {
 	log(cliui.toString());
 }
 
+// to store previous build's assets.json for comparison
+let prev_assets_json;
+let curr_assets_json;
+
 async function write_assets_json(metafile) {
+	prev_assets_json = curr_assets_json;
 	let out = {};
 	for (let output in metafile.outputs) {
 		let info = metafile.outputs[output];
@@ -344,12 +357,17 @@ async function write_assets_json(metafile) {
 	assets_json = JSON.parse(assets_json);
 	// update with new values
 	assets_json = Object.assign({}, assets_json, out);
+	curr_assets_json = assets_json;
 
 	await fs.promises.writeFile(
 		assets_json_path,
 		JSON.stringify(assets_json, null, 4)
 	);
 	await update_assets_json_in_cache(assets_json);
+	return {
+		assets_json,
+		prev_assets_json
+	};
 }
 
 function update_assets_json_in_cache(assets_json) {
@@ -434,6 +452,27 @@ function open_in_editor() {
 	subscriber.subscribe("open_in_editor");
 }
 
-if (WATCH_MODE) {
-	open_in_editor();
+function log_rebuilt_assets(prev_assets, new_assets) {
+	let added_files = [];
+	let old_files = Object.values(prev_assets);
+	let new_files = Object.values(new_assets);
+
+	for (let filepath of new_files) {
+		if (!old_files.includes(filepath)) {
+			added_files.push(filepath);
+		}
+	}
+
+	log(
+		chalk.yellow(
+			`${new Date().toLocaleTimeString()}: Compiled ${
+				added_files.length
+			} files...`
+		)
+	);
+	for (let filepath of added_files) {
+		let filename = path.basename(filepath);
+		log("    " + filename);
+	}
+	log();
 }
