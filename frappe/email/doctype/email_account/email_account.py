@@ -35,9 +35,6 @@ OUTGOING_EMAIL_ACCOUNT_MISSING = _("Please setup default Email Account from Setu
 class SentEmailInInbox(Exception):
 	pass
 
-class InvalidEmailCredentials(frappe.ValidationError):
-	pass
-
 def cache_email_account(cache_name):
 	def decorator_cache_email_account(func):
 		@functools.wraps(func)
@@ -100,9 +97,8 @@ class EmailAccount(Document):
 					self.get_incoming_server()
 					self.no_failed = 0
 
-
 				if self.enable_outgoing:
-					self.check_smtp()
+					self.validate_smtp_conn()
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					frappe.throw(_("Password is required or select Awaiting Password"))
@@ -117,6 +113,13 @@ class EmailAccount(Document):
 			valid_doctypes = [d[0] for d in get_append_to()]
 			if self.append_to not in valid_doctypes:
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+
+	def validate_smtp_conn(self):
+		if not self.smtp_server:
+			frappe.throw(_("SMTP Server is required"))
+
+		server = self.get_smtp_server()
+		return server.session
 
 	def before_save(self):
 		messages = []
@@ -178,24 +181,6 @@ class EmailAccount(Document):
 			return frappe.db.get_value("Email Domain", domain[1], fields, as_dict=True)
 		except Exception:
 			pass
-
-	def check_smtp(self):
-		"""Checks SMTP settings."""
-		if self.enable_outgoing:
-			if not self.smtp_server:
-				frappe.throw(_("{0} is required").format("SMTP Server"))
-
-			server = SMTPServer(
-				login = getattr(self, "login_id", None) or self.email_id,
-				server=self.smtp_server,
-				port=cint(self.smtp_port),
-				use_tls=cint(self.use_tls),
-				use_ssl=cint(self.use_ssl_for_outgoing)
-			)
-			if self.password and not self.no_smtp_authentication:
-				server.password = self.get_password()
-
-			server.sess
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
 		"""Returns logged in POP3/IMAP connection object."""
@@ -259,7 +244,7 @@ class EmailAccount(Document):
 				return None
 
 			elif not in_receive and any(map(lambda t: t in message, auth_error_codes)):
-				self.throw_invalid_credentials_exception()
+				SMTPServer.throw_invalid_credentials_exception()
 			else:
 				frappe.throw(cstr(e))
 
@@ -279,20 +264,18 @@ class EmailAccount(Document):
 
 	@property
 	def _password(self):
-		raise_exception = not self.no_smtp_authentication
+		raise_exception = not (self.no_smtp_authentication or frappe.flags.in_test)
 		return self.get_password(raise_exception=raise_exception)
 
 	@property
 	def default_sender(self):
 		return email.utils.formataddr((self.name, self.get("email_id")))
 
-	@classmethod
-	def throw_invalid_credentials_exception(cls):
-		frappe.throw(
-			_("Incorrect email or password. Please check your login credentials."),
-			exc=InvalidEmailCredentials,
-			title=_("Invalid Credentials")
-		)
+	def is_exists_in_db(self):
+		"""Some of the Email Accounts we create from configs and those doesn't exists in DB.
+		This is is to check the specific email account exists in DB or not.
+		"""
+		return self.find_one_by_filters(name=self.name)
 
 	@classmethod
 	def from_record(cls, record):
@@ -401,6 +384,20 @@ class EmailAccount(Document):
 			value = [frappe.conf.get(k) for k in conf_names if frappe.conf.get(k)]
 			account_details[doc_field_name] = (value and value[0]) or default
 		return account_details
+
+	def sendmail_config(self):
+		return {
+			'server': self.smtp_server,
+			'port': cint(self.smtp_port),
+			'login': getattr(self, "login_id", None) or self.email_id,
+			'password': self._password,
+			'use_ssl': cint(self.use_ssl_for_outgoing),
+			'use_tls': cint(self.use_tls)
+		}
+
+	def get_smtp_server(self):
+		config = self.sendmail_config()
+		return SMTPServer(**config)
 
 	def handle_incoming_connect_error(self, description):
 		if test_internet():

@@ -115,12 +115,12 @@ class TestCommands(BaseTestCommands):
 	def test_execute(self):
 		# test 1: execute a command expecting a numeric output
 		self.execute("bench --site {site} execute frappe.db.get_database_size")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		self.assertIsInstance(float(self.stdout), float)
 
 		# test 2: execute a command expecting an errored output as local won't exist
 		self.execute("bench --site {site} execute frappe.local.site")
-		self.assertEquals(self.returncode, 1)
+		self.assertEqual(self.returncode, 1)
 		self.assertIsNotNone(self.stderr)
 
 		# test 3: execute a command with kwargs
@@ -128,8 +128,8 @@ class TestCommands(BaseTestCommands):
 		# terminal command has been escaped to avoid .format string replacement
 		# The returned value has quotes which have been trimmed for the test
 		self.execute("""bench --site {site} execute frappe.bold --kwargs '{{"text": "DocType"}}'""")
-		self.assertEquals(self.returncode, 0)
-		self.assertEquals(self.stdout[1:-1], frappe.bold(text="DocType"))
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(self.stdout[1:-1], frappe.bold(text="DocType"))
 
 	def test_backup(self):
 		backup = {
@@ -155,7 +155,7 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} backup")
 		after_backup = fetch_latest_backups()
 
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		self.assertIn("successfully completed", self.stdout)
 		self.assertNotEqual(before_backup["database"], after_backup["database"])
 
@@ -164,7 +164,7 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} backup --with-files")
 		after_backup = fetch_latest_backups()
 
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		self.assertIn("successfully completed", self.stdout)
 		self.assertIn("with files", self.stdout)
 		self.assertNotEqual(before_backup, after_backup)
@@ -175,7 +175,7 @@ class TestCommands(BaseTestCommands):
 		backup_path = os.path.join(home, "backups")
 		self.execute("bench --site {site} backup --backup-path {backup_path}", {"backup_path": backup_path})
 
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		self.assertTrue(os.path.exists(backup_path))
 		self.assertGreaterEqual(len(os.listdir(backup_path)), 2)
 
@@ -200,19 +200,19 @@ class TestCommands(BaseTestCommands):
 			kwargs,
 		)
 
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		for path in kwargs.values():
 			self.assertTrue(os.path.exists(path))
 
 		# test 5: take a backup with --compress
 		self.execute("bench --site {site} backup --with-files --compress")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		compressed_files = glob.glob(site_backup_path + "/*.tgz")
 		self.assertGreater(len(compressed_files), 0)
 
 		# test 6: take a backup with --verbose
 		self.execute("bench --site {site} backup --verbose")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 
 		# test 7: take a backup with frappe.conf.backup.includes
 		self.execute(
@@ -220,7 +220,7 @@ class TestCommands(BaseTestCommands):
 			{"includes": json.dumps(backup["includes"])},
 		)
 		self.execute("bench --site {site} backup --verbose")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
@@ -230,7 +230,7 @@ class TestCommands(BaseTestCommands):
 			{"excludes": json.dumps(backup["excludes"])},
 		)
 		self.execute("bench --site {site} backup --verbose")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
 		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
@@ -240,7 +240,7 @@ class TestCommands(BaseTestCommands):
 			"bench --site {site} backup --include '{include}'",
 			{"include": ",".join(backup["includes"]["includes"])},
 		)
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
@@ -249,13 +249,13 @@ class TestCommands(BaseTestCommands):
 			"bench --site {site} backup --exclude '{exclude}'",
 			{"exclude": ",".join(backup["excludes"]["excludes"])},
 		)
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
 
 		# test 11: take a backup with --ignore-backup-conf
 		self.execute("bench --site {site} backup --ignore-backup-conf")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups()["database"]
 		self.assertTrue(exists_in_backup(backup["excludes"]["excludes"], database))
 
@@ -296,7 +296,7 @@ class TestCommands(BaseTestCommands):
 		)
 		site_data.update({"database": json.loads(self.stdout)["database"]})
 		self.execute("bench --site {another_site} restore {database}", site_data)
-		self.assertEquals(self.returncode, 1)
+		self.assertEqual(self.returncode, 1)
 
 	def test_partial_restore(self):
 		_now = now()
@@ -319,8 +319,8 @@ class TestCommands(BaseTestCommands):
 		frappe.db.commit()
 
 		self.execute("bench --site {site} partial-restore {path}", {"path": db_path})
-		self.assertEquals(self.returncode, 0)
-		self.assertEquals(frappe.db.count("ToDo"), todo_count)
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(frappe.db.count("ToDo"), todo_count)
 
 	def test_recorder(self):
 		frappe.recorder.stop()
@@ -343,18 +343,18 @@ class TestCommands(BaseTestCommands):
 
 		# test 1: remove app from installed_apps global default
 		self.execute("bench --site {site} remove-from-installed-apps {app}", {"app": app})
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		self.execute("bench --site {site} list-apps")
 		self.assertNotIn(app, self.stdout)
 
 	def test_list_apps(self):
 		# test 1: sanity check for command
 		self.execute("bench --site all list-apps")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 
 		# test 2: bare functionality for single site
 		self.execute("bench --site {site} list-apps")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		list_apps = set([
 			_x.split()[0] for _x in self.stdout.split("\n")
 		])
@@ -367,7 +367,7 @@ class TestCommands(BaseTestCommands):
 
 		# test 3: parse json format
 		self.execute("bench --site all list-apps --format json")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		self.assertIsInstance(json.loads(self.stdout), dict)
 
 		self.execute("bench --site {site} list-apps --format json")
@@ -379,7 +379,7 @@ class TestCommands(BaseTestCommands):
 	def test_show_config(self):
 		# test 1: sanity check for command
 		self.execute("bench --site all show-config")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 
 		# test 2: test keys in table text
 		self.execute(
@@ -387,13 +387,13 @@ class TestCommands(BaseTestCommands):
 			{"second_order": json.dumps({"test_key": "test_value"})},
 		)
 		self.execute("bench --site {site} show-config")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		self.assertIn("test_key.test_key", self.stdout.split())
 		self.assertIn("test_value", self.stdout.split())
 
 		# test 3: parse json format
 		self.execute("bench --site all show-config --format json")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		self.assertIsInstance(json.loads(self.stdout), dict)
 
 		self.execute("bench --site {site} show-config --format json")
@@ -423,6 +423,6 @@ class TestCommands(BaseTestCommands):
 	def test_frappe_site_env(self):
 		os.putenv('FRAPPE_SITE', frappe.local.site)
 		self.execute("bench execute frappe.ping")
-		self.assertEquals(self.returncode, 0)
+		self.assertEqual(self.returncode, 0)
 		self.assertIn("pong", self.stdout)
 

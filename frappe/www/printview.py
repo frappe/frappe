@@ -409,7 +409,7 @@ def get_print_style(style=None, print_format=None, for_legacy=False):
 		css = css + '\n' + frappe.db.get_value('Print Style', style, 'css')
 
 	# move @import to top
-	for at_import in list(set(re.findall("(@import url\([^\)]+\)[;]?)", css))):
+	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
 		css = css.replace(at_import, "")
 
 		# prepend css with at_import
