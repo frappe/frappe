@@ -97,11 +97,8 @@ frappe.form.formatters = {
 		}
 	},
 	Check: function(value) {
-		if (value) {
-			return `<input type="checkbox" class="disabled-selected">`;
-		} else {
-			return `<input type="checkbox" class="disabled-deselected">`;
-		}
+		return `<input type="checkbox" disabled
+			class="disabled-${value ? "selected" : "deselected"}">`;
 	},
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
@@ -295,12 +292,12 @@ frappe.form.formatters = {
 		return formatted_values.join(', ');
 	},
 	Color: (value) => {
-		return `<div>
+		return value ? `<div>
 			<div class="selected-color" style="background-color: ${value}"></div>
 			<span class="color-value">${value}</span>
-		</div>`;
+		</div>` : '';
 	}
-}
+};
 
 frappe.form.get_formatter = function(fieldtype) {
 	if(!fieldtype)

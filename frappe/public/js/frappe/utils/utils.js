@@ -1285,6 +1285,16 @@ Object.assign(frappe.utils, {
 					value: frappe.boot.user_info[user].fullname,
 				};
 			});
+
+		frappe.boot.user_groups && frappe.boot.user_groups.map(group => {
+			names_for_mentions.push({
+				id: group,
+				value: group,
+				is_group: true,
+				link: frappe.utils.get_form_link('User Group', group)
+			});
+		});
+
 		return names_for_mentions;
 	},
 	print(doctype, docname, print_format, letterhead, lang_code) {

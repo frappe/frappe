@@ -31,9 +31,6 @@ $input-height: 28px !default;
 	--modal-bg: white;
 	--toast-bg: var(--modal-bg);
 	--popover-bg: white;
-	--checkbox-right-margin: var(--margin-xs);
-	--base-checkbox-size: 14px;
-	--custom-checkbox-size: 14px;
 
 	--appreciation-color: var(--dark-green-600);
 	--appreciation-bg: var(--dark-green-100);
@@ -52,12 +49,21 @@ $input-height: 28px !default;
 	--input-height: #{$input-height};
 	--input-disabled-bg: var(--gray-200);
 
+	// checkbox
+	--checkbox-right-margin: var(--margin-xs);
+	--checkbox-size: 14px;
+	--checkbox-focus-shadow: 0 0 0 2px var(--gray-300);
+
 	// timeline
 	--timeline-item-icon-size: 34px;
 	--timeline-item-left-margin: var(--margin-xl);
 	--timeline-item-bottom-margin: var(--margin-sm);
 	--timeline-content-max-width: 700px;
 	--timeline-left-padding: calc(var(--padding-xl) + var(--timeline-item-icon-size) / 2);
+
+	// mentions
+	--user-mention-bg-color: var(--fg-color);
+	--group-mention-bg-color: var(--bg-purple);
 
 	// skeleton
 	--skeleton-bg: var(--gray-100);

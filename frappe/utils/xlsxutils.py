@@ -1,18 +1,19 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
-import frappe
+import re
+from io import BytesIO
 
 import openpyxl
 import xlrd
-import re
-from openpyxl.styles import Font
 from openpyxl import load_workbook
+from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
-from six import BytesIO, string_types
+
+import frappe
 
 ILLEGAL_CHARACTERS_RE = re.compile(r'[\000-\010]|[\013-\014]|[\016-\037]')
+
+
 # return xlsx file object
 def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	column_widths = column_widths or []
@@ -31,12 +32,12 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	for row in data:
 		clean_row = []
 		for item in row:
-			if isinstance(item, string_types) and (sheet_name not in ['Data Import Template', 'Data Export']):
+			if isinstance(item, str) and (sheet_name not in ['Data Import Template', 'Data Export']):
 				value = handle_html(item)
 			else:
 				value = item
 
-			if isinstance(item, string_types) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
+			if isinstance(item, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
 				# Remove illegal characters from the string
 				value = re.sub(ILLEGAL_CHARACTERS_RE, '', value)
 
@@ -80,12 +81,12 @@ def handle_html(data):
 
 	return value
 
+
 def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):
 	if file_url:
 		_file = frappe.get_doc("File", {"file_url": file_url})
 		filename = _file.get_full_path()
 	elif fcontent:
-		from io import BytesIO
 		filename = BytesIO(fcontent)
 	elif filepath:
 		filename = filepath
@@ -102,6 +103,7 @@ def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=Non
 		rows.append(tmp_list)
 	return rows
 
+
 def read_xls_file_from_attached_file(content):
 	book = xlrd.open_workbook(file_contents=content)
 	sheets = book.sheets()
@@ -110,6 +112,7 @@ def read_xls_file_from_attached_file(content):
 	for i in range(sheet.nrows):
 		rows.append(sheet.row_values(i))
 	return rows
+
 
 def build_xlsx_response(data, filename):
 	xlsx_file = make_xlsx(data, filename)

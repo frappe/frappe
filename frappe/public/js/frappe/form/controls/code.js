@@ -31,6 +31,57 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			const input_value = this.get_input_value();
 			this.parse_validate_and_set_in_model(input_value);
 		}, 300));
+
+		// setup autocompletion when it is set the first time
+		Object.defineProperty(this.df, 'autocompletions', {
+			get() {
+				return this._autocompletions || [];
+			},
+			set: (value) => {
+				this.setup_autocompletion();
+				this.df._autocompletions = value;
+			}
+		});
+	},
+
+	setup_autocompletion() {
+		if (this._autocompletion_setup) return;
+
+		const ace = window.ace;
+		const get_autocompletions = () => this.df.autocompletions;
+
+		ace.config.loadModule("ace/ext/language_tools", langTools => {
+			this.editor.setOptions({
+				enableBasicAutocompletion: true,
+				enableLiveAutocompletion: true
+			});
+
+			langTools.addCompleter({
+				getCompletions: function(editor, session, pos, prefix, callback) {
+					if (prefix.length === 0) {
+						callback(null, []);
+						return;
+					}
+					let autocompletions = get_autocompletions();
+					if (autocompletions.length) {
+						callback(
+							null,
+							autocompletions.map(a => {
+								if (typeof a === 'string') {
+									a = { value: a };
+								}
+								return {
+									name: 'frappe',
+									value: a.value,
+									score: a.score
+								};
+							})
+						);
+					}
+				}
+			});
+		});
+		this._autocompletion_setup = true;
 	},
 
 	refresh_height() {
