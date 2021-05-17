@@ -78,7 +78,7 @@ export default class Card {
 				wid.options = {
 					...this.options,
 					on_delete: () => this.api.blocks.delete()
-				}
+				};
 				wid.customize(this.options);
 				this.wrapper.setAttribute("card_name", wid.label);
 				this.new_card_widget = wid.get_config();

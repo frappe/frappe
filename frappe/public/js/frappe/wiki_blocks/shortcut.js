@@ -11,9 +11,10 @@ export default class Shortcut {
 		return true;
 	}
 
-	constructor({data, api, config, readOnly}) {
+	constructor({data, api, config, readOnly, block}) {
 		this.data = data;
 		this.api = api;
+		this.block = block;
 		this.config = config;
 		this.readOnly = readOnly;
 		this.col = this.data.col ? this.data.col : "12";
@@ -69,18 +70,19 @@ export default class Shortcut {
 			type: 'shortcut',
 			primary_action: (widget) => {
 				widget.in_customize_mode = 1;
-				let wid = frappe.widget.make_widget({
+				this.shortcut_widget = frappe.widget.make_widget({
 					...widget,
 					widget_type: 'shortcut',
 					container: this.wrapper
 				});
-				wid.options = {
+				this.shortcut_widget.options = {
 					...this.options,
 					on_delete: () => this.api.blocks.delete(),
-				}
-				wid.customize(this.options);
-				this.wrapper.setAttribute("shortcut_name", wid.label);
-				this.new_shortcut_widget = wid.get_config();
+					on_edit: () => this.on_edit(this.shortcut_widget)
+				};
+				this.shortcut_widget.customize(this.options);
+				this.wrapper.setAttribute("shortcut_name", this.shortcut_widget.label);
+				this.new_shortcut_widget = this.shortcut_widget.get_config();
 			},
 		});
 
@@ -155,22 +157,30 @@ export default class Shortcut {
 		this.shortcut_field.make();
 	}
 
+	on_edit(shortcut_obj) {
+		let shortcut = shortcut_obj.get_config();
+		this.shortcut_widget.widgets = shortcut;
+		this.wrapper.setAttribute("shortcut_name", shortcut.label);
+		this.new_shortcut_widget = shortcut_obj.get_config();
+	}
+
 	_make_shortcuts(shortcut_name) {
 		let shortcut = this.config.page_data.shortcuts.items.find(obj => {
 			return obj.label == shortcut_name;
 		});
 		this.wrapper.innerHTML = '';
 		shortcut.in_customize_mode = !this.readOnly;
-		let shortcut_widget = new frappe.widget.SingleWidgetGroup({
+		this.shortcut_widget = new frappe.widget.SingleWidgetGroup({
 			container: this.wrapper,
 			type: "shortcut",
 			options: this.options,
 			widgets: shortcut,
-			api: this.api
+			api: this.api,
+			block: this.block
 		});
 		this.wrapper.setAttribute("shortcut_name", shortcut_name);
 		if (!this.readOnly) {
-			shortcut_widget.customize();
+			this.shortcut_widget.customize();
 		}
 	}
 }

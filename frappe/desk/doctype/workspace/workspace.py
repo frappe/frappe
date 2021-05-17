@@ -101,13 +101,8 @@ class Workspace(Document):
 				})
 
 	def build_links_table_from_card(self, config):
-		# Empty links table
-		# self.links = []
-		# order = config.get('order')
-		# widgets = config.get('widgets')
 
 		for idx, card in enumerate(config):
-			# card = widgets[name].copy()
 			links = loads(card.get('links'))
 
 			self.append('links', {

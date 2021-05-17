@@ -404,6 +404,7 @@ frappe.views.Wiki = class Wiki {
 				this.dirty = true;
 			},
 			readOnly: true,
+			logLevel: 'ERROR'
 		});
 	}
 
@@ -440,22 +441,19 @@ frappe.views.Wiki = class Wiki {
 					frappe.dom.unfreeze();
 					if (res.message) {
 						let cur_page = res.message;
-						if (!$.isEmptyObject(new_widgets)) {
-							frappe.call('frappe.desk.desktop.save_new_widget', {
-								page: me.title,
-								new_widgets: new_widgets
-							}).then(res => {
-								if (res.message) {
-									me.reload();
-								}
-							});
-						}
-						frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
-						me.title = '';
-						me.parent = '';
-						me.sorted_sidebar_items = [];
-						me.new_page = cur_page;
-						me.reload();
+						frappe.call('frappe.desk.desktop.save_new_widget', {
+							page: me.title,
+							new_widgets: new_widgets
+						}).then(res => {
+							if (res.message) {
+								frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
+								me.title = '';
+								me.parent = '';
+								me.sorted_sidebar_items = [];
+								me.new_page = cur_page;
+								me.reload();
+							}
+						});
 					}
 				}
 			});

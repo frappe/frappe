@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from json import loads, dumps
 from frappe import _, DoesNotExistError, ValidationError, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
@@ -548,6 +549,11 @@ def save_new_widget(page, new_widgets):
 		original_page.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
 	if widgets.card:
 		original_page.build_links_table_from_card(widgets.card)
+
+	content = frappe.db.get_value("Internal Wiki Page", page, "content")
+	for wid in ['shortcut']:
+		widd = [x['data'][ wid + '_name'] for x in json.loads(content) if x['type'] == wid]
+		original_page.set(wid+'s', [ele for ele in original_page.get(wid+'s') if ele.label in widd])
 
 	try:
 		original_page.save(ignore_permissions=True)

@@ -208,7 +208,8 @@ export class SingleWidgetGroup {
 		});
 		widget_object.options = {
 			...this.options,
-			on_delete: (name) => this.on_delete(name)
+			on_delete: () => this.on_delete(),
+			on_edit: () => this.on_edit(widget_object)
 		};
 		this.widgets_list.push(widget_object);
 		this.widgets_dict[widget.name] = widget_object;
@@ -216,8 +217,12 @@ export class SingleWidgetGroup {
 		return widget_object;
 	}
 
-	on_delete(name, setup_new) {
+	on_delete() {
 		this.api.blocks.delete();
+	}
+
+	on_edit(widget_object) {
+		this.block.call("on_edit", widget_object);
 	}
 
 	customize() {

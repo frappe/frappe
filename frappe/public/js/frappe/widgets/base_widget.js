@@ -170,6 +170,7 @@ export default class Widget {
 				data.name = this.name;
 
 				this.refresh();
+				this.options.on_edit && this.options.on_edit(data);
 			},
 			primary_action_label: __("Save")
 		});
