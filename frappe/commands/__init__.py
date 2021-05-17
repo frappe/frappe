@@ -28,6 +28,10 @@ def pass_context(f):
 		except frappe.exceptions.SiteNotSpecifiedError as e:
 			click.secho(str(e), fg='yellow')
 			sys.exit(1)
+		except frappe.exceptions.IncorrectSitePath:
+			site = ctx.obj.get("sites", "")[0]
+			click.secho(f'Site {site} does not exist!', fg='yellow')
+			sys.exit(1)
 
 		if profile:
 			pr.disable()
