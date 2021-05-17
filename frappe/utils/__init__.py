@@ -402,7 +402,9 @@ def encode_dict(d, encoding="utf-8"):
 def decode_dict(d, encoding="utf-8"):
 	for key in d:
 		if isinstance(d[key], str) and not isinstance(d[key], str):
+			d[key] = d[key].decode(encoding, "ignore")
 	return d
+
 @functools.lru_cache()
 def get_site_name(hostname):
 	return hostname.split(':')[0]
