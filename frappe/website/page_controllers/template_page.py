@@ -3,7 +3,7 @@ import os
 
 import frappe
 from frappe.website.page_controllers.base_template_page import BaseTemplatePage
-from frappe.website.context import add_sidebar_and_breadcrumbs
+from frappe.website.context import get_sidebar_data
 from frappe.website.render import build_response
 from frappe.website.router import get_base_template
 from frappe.website.utils import (extract_comment_tag,
@@ -12,29 +12,32 @@ from frappe.website.utils import (extract_comment_tag,
 WEBPAGE_PY_MODULE_PROPERTIES = ("base_template_path", "template", "no_cache", "sitemap", "condition_field")
 
 class TemplatePage(BaseTemplatePage):
-	def validate(self):
-		for app in frappe.get_installed_apps(frappe_last=True):
-			if self.find_page_in_app(app):
-				return True
+	def __init__(self, path, http_status_code=None):
+		super().__init__(path=path, http_status_code=http_status_code)
+		self.set_template_path()
 
-	def find_page_in_app(self, app):
+	def set_template_path(self):
 		'''
 		Searches for file matching the path in the /www
-		and /templates/pages folders
+		and /templates/pages folders and sets path if match is found
 		'''
-		app_path = frappe.get_app_path(app)
 		folders = get_start_folders()
+		for app in frappe.get_installed_apps(frappe_last=True):
+			app_path = frappe.get_app_path(app)
 
-		for dirname in folders:
-			search_path = os.path.join(app_path, dirname, self.path)
-			for p in self.get_index_path_options(search_path):
-				file_path = frappe.as_unicode(p)
-				if os.path.exists(file_path) and not os.path.isdir(file_path):
-					self.app = app
-					self.app_path = app_path
-					self.template_path = os.path.relpath(file_path, self.app_path)
-					self.basepath = os.path.dirname(file_path)
-					return True
+			for dirname in folders:
+				search_path = os.path.join(app_path, dirname, self.path)
+				for p in self.get_index_path_options(search_path):
+					file_path = frappe.as_unicode(p)
+					if os.path.exists(file_path) and not os.path.isdir(file_path):
+						self.app = app
+						self.app_path = app_path
+						self.template_path = os.path.relpath(file_path, self.app_path)
+						self.basepath = os.path.dirname(file_path)
+						return
+
+	def validate(self):
+		return hasattr(self, 'template_path') and bool(self.template_path)
 
 	def get_index_path_options(self, search_path):
 		return (f'{search_path}{d}' for d in ('', '.html', '.md', '/index.html', '/index.md'))
@@ -59,12 +62,20 @@ class TemplatePage(BaseTemplatePage):
 		return html
 
 	def post_process_context(self):
+		self.set_user_info()
 		self.add_sidebar_and_breadcrumbs()
 		self.set_missing_values()
 		super(TemplatePage, self).post_process_context()
 
 	def add_sidebar_and_breadcrumbs(self):
-		add_sidebar_and_breadcrumbs(self.context)
+		if self.basepath:
+			sidebar_data = get_sidebar_data(self.context.website_sidebar, self.basepath) or None
+			self.context.sidebar_items = sidebar_data.sidebar_items
+
+		if self.context.add_breadcrumbs and not self.context.parents:
+			# TODO: set correct title and route for breadcrumbs
+			parent_path = os.path.dirname(self.path)
+			self.context.parents = [dict(route=parent_path, title=extract_title(source='', path=parent_path))]
 
 	def set_pymodule(self):
 		'''
@@ -228,6 +239,13 @@ class TemplatePage(BaseTemplatePage):
 
 		# for backward compatibility
 		self.context.docs_base_url = '/docs'
+
+	def set_user_info(self):
+		from frappe.utils.user import get_fullname_and_avatar
+		info = get_fullname_and_avatar(frappe.session.user)
+		self.context["fullname"] = info.fullname
+		self.context["user_image"] = info.avatar
+		self.context["user"] = info.name
 
 
 def get_start_folders():
