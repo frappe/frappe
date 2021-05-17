@@ -237,9 +237,19 @@ class ShortcutDialog extends WidgetDialog {
 				hidden: 1,
 			},
 			{
-				fieldtype: "Color",
+				fieldtype: "Select",
 				fieldname: "color",
 				label: __("Color"),
+				options: ["Grey", "Green", "Red", "Orange", "Pink", "Yellow", "Blue", "Cyan"],
+				default: "Grey",
+				onchange: () => {
+					let color = this.dialog.fields_dict.color.value.toLowerCase();
+					let $select = this.dialog.fields_dict.color.$input;
+					if (!$select.parent().find('.color-box').get(0)) {
+						$(`<div class="color-box"></div>`).insertBefore($select.get(0));
+					}
+					$select.parent().find('.color-box').get(0).style.backgroundColor = `var(--text-on-${color})`;
+				}
 			},
 			{
 				fieldtype: "Column Break",

@@ -221,3 +221,37 @@ def validate_and_sanitize_search_inputs(fn, instance, args, kwargs):
 		return []
 
 	return fn(**kwargs)
+
+
+@frappe.whitelist()
+def get_names_for_mentions(search_term):
+	users_for_mentions = frappe.cache().get_value('users_for_mentions', get_users_for_mentions)
+	user_groups = frappe.cache().get_value('user_groups', get_user_groups)
+
+	filtered_mentions = []
+	for mention_data in users_for_mentions + user_groups:
+		if search_term.lower() not in mention_data.value.lower():
+			continue
+
+		mention_data['link'] = frappe.utils.get_url_to_form(
+			'User Group' if mention_data.get('is_group') else 'User Profile',
+			mention_data['id']
+		)
+
+		filtered_mentions.append(mention_data)
+
+	return sorted(filtered_mentions, key=lambda d: d['value'])
+
+def get_users_for_mentions():
+	return frappe.get_all('User',
+		fields=['name as id', 'full_name as value'],
+		filters={
+			'name': ['not in', ('Administrator', 'Guest')],
+			'allowed_in_mentions': True,
+			'user_type': 'System User',
+		})
+
+def get_user_groups():
+	return frappe.get_all('User Group', fields=['name as id', 'name as value'], update={
+		'is_group': True
+	})
