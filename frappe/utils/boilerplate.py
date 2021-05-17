@@ -3,8 +3,6 @@
 
 from __future__ import unicode_literals, print_function
 
-from six.moves import input
-
 import frappe, os, re, git
 from frappe.utils import touch_file, cstr
 
@@ -42,7 +40,7 @@ def make_boilerplate(dest, app_name):
 			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
 				print("App Name must be all lowercase and without spaces")
 				hook_val = ""
-			elif hook_key=="app_title" and not re.match("^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
+			elif hook_key=="app_title" and not re.match(r"^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
 				print("App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores")
 				hook_val = ""
 
@@ -254,10 +252,10 @@ app_license = "{app_license}"
 # 	],
 # 	"weekly": [
 # 		"{app_name}.tasks.weekly"
-# 	]
+# 	],
 # 	"monthly": [
 # 		"{app_name}.tasks.monthly"
-# 	]
+# 	],
 # }}
 
 # Testing
@@ -287,26 +285,26 @@ app_license = "{app_license}"
 # User Data Protection
 # --------------------
 
-user_data_fields = [
-	{{
-		"doctype": "{{doctype_1}}",
-		"filter_by": "{{filter_by}}",
-		"redact_fields": ["{{field_1}}", "{{field_2}}"],
-		"partial": 1,
-	}},
-	{{
-		"doctype": "{{doctype_2}}",
-		"filter_by": "{{filter_by}}",
-		"partial": 1,
-	}},
-	{{
-		"doctype": "{{doctype_3}}",
-		"strict": False,
-	}},
-	{{
-		"doctype": "{{doctype_4}}"
-	}}
-]
+# user_data_fields = [
+# 	{{
+# 		"doctype": "{{doctype_1}}",
+# 		"filter_by": "{{filter_by}}",
+# 		"redact_fields": ["{{field_1}}", "{{field_2}}"],
+# 		"partial": 1,
+# 	}},
+# 	{{
+# 		"doctype": "{{doctype_2}}",
+# 		"filter_by": "{{filter_by}}",
+# 		"partial": 1,
+# 	}},
+# 	{{
+# 		"doctype": "{{doctype_3}}",
+# 		"strict": False,
+# 	}},
+# 	{{
+# 		"doctype": "{{doctype_4}}"
+# 	}}
+# ]
 
 # Authentication and authorization
 # --------------------------------

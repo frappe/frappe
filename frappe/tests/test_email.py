@@ -6,11 +6,7 @@ from __future__ import unicode_literals
 import unittest, frappe, re, email
 from six import PY3
 
-from frappe.test_runner import make_test_records
-
-make_test_records("User")
-make_test_records("Email Account")
-
+test_dependencies = ['Email Account']
 
 class TestEmail(unittest.TestCase):
 	def setUp(self):

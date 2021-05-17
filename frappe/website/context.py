@@ -52,7 +52,7 @@ def update_controller_context(context, controller):
 		if hasattr(module, "get_context"):
 			import inspect
 			try:
-				if inspect.getargspec(module.get_context).args:
+				if inspect.getfullargspec(module.get_context).args:
 					ret = module.get_context(context)
 				else:
 					ret = module.get_context()
@@ -61,7 +61,7 @@ def update_controller_context(context, controller):
 			except (frappe.PermissionError, frappe.PageDoesNotExistError, frappe.Redirect):
 				raise
 			except:
-				if not frappe.flags.in_migrate:
+				if not any([frappe.flags.in_migrate, frappe.flags.in_website_search_build]):
 					frappe.errprint(frappe.utils.get_traceback())
 
 		if hasattr(module, "get_children"):
