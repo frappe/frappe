@@ -68,6 +68,8 @@ frappe.breadcrumbs = {
 			if (breadcrumbs.doctype && ["print", "form"].includes(view)) {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_form_breadcrumb(breadcrumbs, view);
+			} else if (breadcrumbs.doctype && view === 'list') {
+				this.set_list_breadcrumb(breadcrumbs);
 			}
 		}
 
