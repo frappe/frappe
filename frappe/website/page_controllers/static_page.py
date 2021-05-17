@@ -7,27 +7,31 @@ from werkzeug.wsgi import wrap_file
 import frappe
 from frappe.website.page_controllers.web_page import WebPage
 
+UNSUPPORTED_STATIC_PAGE_TYPES = ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json')
 
 class StaticPage(WebPage):
-	def validate(self):
-		if ('.' not in self.path):
-			return False
-		extension = self.path.rsplit('.', 1)[-1]
-		if extension in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json'):
-			return False
+	def __init__(self, path, http_status_code=None):
+		super().__init__(path=path, http_status_code=http_status_code)
+		self.set_file_path()
 
-		if self.find_path_in_apps():
-			return True
-
-		return False
-
-	def find_path_in_apps(self):
+	def set_file_path(self):
+		self.file_path = ''
+		if not self.is_valid_file_path(): return
 		for app in frappe.get_installed_apps():
 			file_path = frappe.get_app_path(app, 'www') + '/' + self.path
 			if os.path.exists(file_path):
 				self.file_path = file_path
-				return True
-		return False
+
+	def validate(self):
+		return self.is_valid_file_path() and self.file_path
+
+	def is_valid_file_path(self):
+		if ('.' not in self.path):
+			return False
+		extension = self.path.rsplit('.', 1)[-1]
+		if extension in UNSUPPORTED_STATIC_PAGE_TYPES:
+			return False
+		return True
 
 	def render(self):
 		f = open(self.file_path, 'rb')

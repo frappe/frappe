@@ -11,9 +11,8 @@ from werkzeug.wrappers import Response
 
 import frappe
 import frappe.sessions
-from frappe.website.context import get_context
 from frappe.website.router import evaluate_dynamic_routes
-from frappe.website.utils import (can_cache, get_home_page, get_next_link, get_toc)
+from frappe.website.utils import get_home_page
 
 
 def build_response(path, data, http_status_code, headers=None):
@@ -53,36 +52,6 @@ def add_preload_headers(response):
 	except Exception:
 		import traceback
 		traceback.print_exc()
-
-
-def build_page(path):
-	if not getattr(frappe.local, "path", None):
-		frappe.local.path = path
-
-	context = get_context(path)
-
-	if context.source:
-		html = frappe.render_template(context.source, context)
-	elif context.template:
-		if path.endswith('min.js'):
-			html = frappe.get_jloader().get_source(frappe.get_jenv(), context.template)[0]
-		else:
-			html = frappe.get_template(context.template).render(context)
-
-	if '{index}' in html:
-		html = html.replace('{index}', get_toc(context.route))
-
-	if '{next}' in html:
-		html = html.replace('{next}', get_next_link(context.route))
-
-	# html = frappe.get_template(context.base_template_path).render(context)
-
-	if can_cache(context.no_cache):
-		page_cache = frappe.cache().hget("website_page", path) or {}
-		page_cache[frappe.local.lang] = html
-		frappe.cache().hset("website_page", path, page_cache)
-
-	return html
 
 def resolve_path(path):
 	if not path:
