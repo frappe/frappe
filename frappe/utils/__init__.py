@@ -846,11 +846,3 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
-
-def validate_url(url_string):
-	try:
-		result = urlparse(url_string)
-		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
-	except Exception:
-		return False
-
