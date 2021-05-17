@@ -4,11 +4,9 @@ import hashlib
 import re
 from http import cookies
 from urllib.parse import unquote, urlparse
-
 import jwt
 import pytz
 from oauthlib.openid import RequestValidator
-
 import frappe
 from frappe.auth import LoginManager
 
