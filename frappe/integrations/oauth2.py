@@ -1,6 +1,5 @@
 import json
 from urllib.parse import quote, urlencode
-
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
 from oauthlib.openid.connect.core.endpoints.pre_configured import (
 	Server as WebApplicationServer,
