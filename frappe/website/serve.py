@@ -4,22 +4,12 @@ from frappe.website.page_controllers.not_permitted_page import NotPermittedPage
 from frappe.website.page_controllers.redirect_page import RedirectPage
 from frappe.website.path_resolver import PathResolver
 
-#from frappe.website.utils import can_cache
 
 def get_response(path=None, http_status_code=200):
 	"""Resolves path and renders page"""
 	response = None
 	path = path or frappe.local.request.path
 	endpoint = path
-	# if can_cache():
-	# 	# return rendered page
-	# 	page_cache = frappe.cache().hget("website_page", path)
-	# 	if page_cache and frappe.local.lang in page_cache:
-	# 		out = page_cache[frappe.local.lang]
-
-	# if out:
-	# 	frappe.local.response.from_cache = True
-	# 	return out
 
 	try:
 		path_resolver = PathResolver(path, http_status_code)

@@ -7,6 +7,7 @@ import functools
 import json
 import os
 import re
+from functools import wraps
 
 import yaml
 from past.builtins import cmp
@@ -526,3 +527,24 @@ def get_sidebar_json_path(path, look_for=False):
 			return get_sidebar_json_path(os.path.split(path)[0], look_for)
 		else:
 			return ''
+
+def cache_html(func):
+	@wraps(func)
+	def cache_html_decorator(*args, **kwargs):
+		if can_cache():
+			html = None
+			page_cache = frappe.cache().hget("website_page", args[0].path)
+			if page_cache and frappe.local.lang in page_cache:
+				html = page_cache[frappe.local.lang]
+			if html:
+				frappe.local.response.from_cache = True
+				return html
+		html = func(*args, **kwargs)
+		if can_cache():
+			page_cache = frappe.cache().hget("website_page", args[0].path) or {}
+			page_cache[frappe.local.lang] = html
+			frappe.cache().hset("website_page", args[0].path, page_cache)
+
+		return html
+
+	return cache_html_decorator

@@ -6,8 +6,8 @@ from frappe.website.page_controllers.base_template_page import BaseTemplatePage
 from frappe.website.utils import get_sidebar_items
 from frappe.website.render import build_response
 from frappe.website.router import get_base_template
-from frappe.website.utils import (extract_comment_tag,
-	extract_title, get_next_link, get_toc, get_frontmatter)
+from frappe.website.utils import (extract_comment_tag, extract_title,
+	get_next_link, get_toc, get_frontmatter, cache_html)
 
 WEBPAGE_PY_MODULE_PROPERTIES = ("base_template_path", "template", "no_cache", "sitemap", "condition_field")
 
@@ -45,6 +45,7 @@ class TemplatePage(BaseTemplatePage):
 	def render(self):
 		return build_response(self.path, self.get_html(), self.http_status_code, self.headers)
 
+	@cache_html
 	def get_html(self):
 		# context object should be separate from self for security
 		# because it will be accessed via the user defined template
