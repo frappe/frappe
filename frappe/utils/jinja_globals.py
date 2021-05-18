@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 from frappe.utils.jinja import get_jenv
-import frappe
 
 
 def resolve_class(classes):
@@ -38,13 +37,13 @@ def web_block(template, values=None, **kwargs):
 
 
 def web_blocks(blocks):
-	from frappe import throw, _dict
+	from frappe import throw, _dict, _
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
 
 	web_blocks = []
 	for block in blocks:
 		if not block.get("template"):
-			throw("Web Template is not specified")
+			throw(_("Web Template is not specified"))
 
 		doc = _dict(
 			{
