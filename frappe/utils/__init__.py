@@ -803,6 +803,11 @@ def get_assets_json():
 		cache = frappe.cache()
 		# using .get instead of .get_value to avoid pickle.loads
 		assets_json = cache.get("assets_json")
+		try:
+			assets_json = assets_json.decode('utf-8')
+		except UnicodeDecodeError:
+			assets_json = None
+
 		if not assets_json:
 			assets_json = frappe.read_file("assets/frappe/dist/assets.json")
 			cache.set_value("assets_json", assets_json, shared=True)
