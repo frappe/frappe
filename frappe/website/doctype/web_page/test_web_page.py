@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 from frappe.website.router import resolve_route
-from frappe.website.serve import get_response
+from frappe.website.serve import get_response, get_response_content
 from frappe.utils import set_request
 
 test_records = frappe.get_test_records('Web Page')
@@ -73,4 +73,11 @@ class TestWebPage(unittest.TestCase):
 		finally:
 			web_page.delete()
 
+	def test_custom_base_template_path(self):
+		content = get_response_content('/_test/_test_folder/_test_page')
+		# assert the text in base template is rendered
+		self.assertTrue('<h1>This is for testing</h1>' in frappe.as_unicode(content))
+
+		# assert template block rendered
+		self.assertTrue('<p>Test content</p>' in frappe.as_unicode(content))
 
