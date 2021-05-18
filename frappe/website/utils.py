@@ -468,7 +468,7 @@ def get_sidebar_items(parent_sidebar, basepath):
 
 def get_portal_sidebar_items():
 	sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
-	if sidebar_items == None:
+	if sidebar_items is None:
 		sidebar_items = []
 		roles = frappe.get_roles()
 		portal_settings = frappe.get_doc('Portal Settings', 'Portal Settings')
@@ -486,7 +486,8 @@ def get_portal_sidebar_items():
 
 		items_via_hooks = frappe.get_hooks('portal_menu_items')
 		if items_via_hooks:
-			for i in items_via_hooks: i['enabled'] = 1
+			for i in items_via_hooks:
+				i['enabled'] = 1
 			add_items(sidebar_items, items_via_hooks)
 
 		frappe.cache().hset('portal_menu_items', frappe.session.user, sidebar_items)
@@ -494,9 +495,10 @@ def get_portal_sidebar_items():
 	return sidebar_items
 
 def get_sidebar_items_from_sidebar_file(basepath, look_for_sidebar_json):
-	sidebar_items = frappe._dict()
+	sidebar_items = []
 	sidebar_json_path = get_sidebar_json_path(basepath, look_for_sidebar_json)
-	if not sidebar_json_path: return sidebar_items
+	if not sidebar_json_path:
+		return sidebar_items
 
 	with open(sidebar_json_path, 'r') as sidebarfile:
 		try:

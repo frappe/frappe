@@ -16,7 +16,8 @@ class StaticPage(WebPage):
 
 	def set_file_path(self):
 		self.file_path = ''
-		if not self.is_valid_file_path(): return
+		if not self.is_valid_file_path():
+			return
 		for app in frappe.get_installed_apps():
 			file_path = frappe.get_app_path(app, 'www') + '/' + self.path
 			if os.path.exists(file_path):
