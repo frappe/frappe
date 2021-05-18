@@ -38,17 +38,10 @@ function get_conf() {
 	return conf;
 }
 
-function get_redis_subscriber(kind="redis_socketio", options=null) {
+function get_redis_subscriber(kind="redis_socketio", options={}) {
 	const conf = get_conf();
 	const host = conf[kind] || conf.redis_async_broker_port;
-
-	if (options) {
-		return redis.createClient({
-			host,
-			...options
-		});
-	}
-	return redis.createClient(host);
+	return redis.createClient({ url: host, ...options });
 }
 
 module.exports = {

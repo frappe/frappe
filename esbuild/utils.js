@@ -111,12 +111,12 @@ function log(...args) {
 }
 
 function get_redis_subscriber(kind) {
-	// get redis subscriber that aborts after 50 connection attempts
+	// get redis subscriber that aborts after 10 connection attempts
 	let { get_redis_subscriber: get_redis } = require("../node_utils");
 	return get_redis(kind, {
 		retry_strategy: function(options) {
-			// abort after 50 connection attempts
-			if (options.attempt > 50) {
+			// abort after 10 connection attempts
+			if (options.attempt > 10) {
 				return undefined;
 			}
 			return Math.min(options.attempt * 100, 2000);
