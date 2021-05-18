@@ -61,7 +61,9 @@ def get_safe_globals():
 
 	out = NamespaceDict(
 		# make available limited methods of frappe
-		json=json,
+		json=NamespaceDict(
+			loads = json.loads,
+			dumps = json.dumps),
 		dict=dict,
 		log=frappe.log,
 		_dict=frappe._dict,
