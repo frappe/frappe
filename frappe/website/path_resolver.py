@@ -8,6 +8,7 @@ from frappe.website.page_controllers.template_page import TemplatePage
 from frappe.website.page_controllers.web_form import WebFormPage
 from frappe.website.redirect import resolve_redirect
 from frappe.website.render import resolve_path
+from frappe.website.utils import can_cache
 
 
 class PathResolver():
@@ -21,8 +22,15 @@ class PathResolver():
 
 	def resolve(self):
 		'''Returns endpoint and a renderer instance that can render the endpoint'''
-		query_string = frappe.local.request.query_string if hasattr(frappe.local, 'request') else None
-		resolve_redirect(self.path, query_string)
+		request = frappe._dict()
+		if hasattr(frappe.local, 'request'):
+			request = frappe.local.request or request
+
+		# check if the request url is in 404 list
+		if request.url and can_cache() and frappe.cache().hget('website_404', request.url):
+			return self.path, NotFoundPage(self.path)
+
+		resolve_redirect(self.path, request.query_string)
 		endpoint = resolve_path(self.path)
 
 		renderers = (StaticPage, WebFormPage, TemplatePage, ListPage, DocumentPage, PrintPage, NotFoundPage)
