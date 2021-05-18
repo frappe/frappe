@@ -207,6 +207,16 @@ frappe.views.Wiki = class Wiki {
 			page: page
 		}).then(data => {
 			this.page_data = data;
+			if (!this.page_data) return;
+
+			return frappe.dashboard_utils.get_dashboard_settings().then(settings => {
+				let chart_config = settings.chart_config ? JSON.parse(settings.chart_config) : {};
+				if (this.page_data.charts.items) {
+					this.page_data.charts.items.map(chart => {
+						chart.chart_settings = chart_config[chart.chart_name] || {};
+					});
+				}
+			});
 		});
 	}
 
