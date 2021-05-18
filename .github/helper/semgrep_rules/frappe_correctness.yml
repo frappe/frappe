@@ -133,3 +133,17 @@ rules:
       key `$X` is uselessly assigned twice. This could be a potential bug.
   languages: [python]
   severity: ERROR
+
+- id: frappe-disable-button-during-request
+  patterns:
+    - pattern: |
+        frappe.call({...}, ...)
+    - pattern-not-inside: |
+        frappe.call({..., btn: $BUTTON, ...}, ...)
+    - pattern-inside: |
+        $DIALOG.set_primary_action(...)
+  message: |
+      Set `btn: $DIALOG.get_primary_btn()` in `frappe.call` to disable button while ajax call is being made.
+      This is required to prevent duplication of requests in case of multiple clicks.
+  severity: ERROR
+  languages: [javascript]
