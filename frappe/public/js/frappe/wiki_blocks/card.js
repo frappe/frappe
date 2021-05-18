@@ -11,9 +11,10 @@ export default class Card {
 		return true;
 	}
 
-	constructor({data, api, config, readOnly}) {
+	constructor({data, api, config, readOnly, block}) {
 		this.data = data;
 		this.api = api;
+		this.block = block;
 		this.config = config;
 		this.readOnly = readOnly;
 		this.sections = {};
@@ -28,7 +29,7 @@ export default class Card {
 			allow_create: this.allow_customization,
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
-			allow_edit: false,
+			allow_edit: true,
 		};
 	}
 
@@ -64,24 +65,25 @@ export default class Card {
 	}
 
 	_new_card() {
-		const dialog_class = get_dialog_constructor('card');
+		const dialog_class = get_dialog_constructor('links');
 		this.dialog = new dialog_class({
 			label: this.label,
 			type: 'card',
 			primary_action: (widget) => {
 				widget.in_customize_mode = 1;
-				let wid = frappe.widget.make_widget({
+				this.card_widget = frappe.widget.make_widget({
 					...widget,
 					widget_type: 'links',
-					container: this.wrapper
+					container: this.wrapper,
+					options: {
+						...this.options,
+						on_delete: () => this.api.blocks.delete(),
+						on_edit: () => this.on_edit(this.card_widget)
+					}
 				});
-				wid.options = {
-					...this.options,
-					on_delete: () => this.api.blocks.delete()
-				};
-				wid.customize(this.options);
-				this.wrapper.setAttribute("card_name", wid.label);
-				this.new_card_widget = wid.get_config();
+				this.card_widget.customize(this.options);
+				this.wrapper.setAttribute("card_name", this.card_widget.label);
+				this.new_card_widget = this.card_widget.get_config();
 			},
 		});
 
@@ -156,22 +158,30 @@ export default class Card {
 		this.card_field.make();
 	}
 
+	on_edit(card_obj) {
+		let card = card_obj.get_config();
+		this.card_widget.widgets = card;
+		this.wrapper.setAttribute("card_name", card.label);
+		this.new_card_widget = card_obj.get_config();
+	}
+
 	_make_cards(card_name) {
 		let card = this.config.page_data.cards.items.find(obj => {
 			return obj.label == card_name;
 		});
 		this.wrapper.innerHTML = '';
 		card.in_customize_mode = !this.readOnly;
-		let card_widget = new frappe.widget.SingleWidgetGroup({
+		this.card_widget = new frappe.widget.SingleWidgetGroup({
 			container: this.wrapper,
 			type: "links",
 			options: this.options,
 			widgets: card,
-			api: this.api
+			api: this.api,
+			block: this.block
 		});
 		this.wrapper.setAttribute("card_name", card_name);
 		if (!this.readOnly) {
-			card_widget.customize();
+			this.card_widget.customize();
 		}
 	}
 }

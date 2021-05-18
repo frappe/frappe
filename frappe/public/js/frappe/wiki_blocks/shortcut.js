@@ -73,13 +73,13 @@ export default class Shortcut {
 				this.shortcut_widget = frappe.widget.make_widget({
 					...widget,
 					widget_type: 'shortcut',
-					container: this.wrapper
+					container: this.wrapper,
+					options: {
+						...this.options,
+						on_delete: () => this.api.blocks.delete(),
+						on_edit: () => this.on_edit(this.shortcut_widget)
+					}
 				});
-				this.shortcut_widget.options = {
-					...this.options,
-					on_delete: () => this.api.blocks.delete(),
-					on_edit: () => this.on_edit(this.shortcut_widget)
-				};
 				this.shortcut_widget.customize(this.options);
 				this.wrapper.setAttribute("shortcut_name", this.shortcut_widget.label);
 				this.new_shortcut_widget = this.shortcut_widget.get_config();

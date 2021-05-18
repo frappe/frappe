@@ -105,11 +105,18 @@ class Workspace(Document):
 		for idx, card in enumerate(config):
 			links = loads(card.get('links'))
 
+			# remove duplicate before adding
+			duplicate_links = [x for x in self.links if(x.label == card.get('label') and x.type == 'Card Break')]
+			for v in duplicate_links:
+				del self.links[ v.idx-1 : v.idx+v.link_count]
+
 			self.append('links', {
 				"label": card.get('label'),
 				"type": "Card Break",
 				"icon": card.get('icon'),
-				"hidden": card.get('hidden') or False
+				"hidden": card.get('hidden') or False,
+				"link_count": card.get('link_count'),
+				"idx": self.links[-1].idx + 1
 			})
 
 			for link in links:
@@ -121,9 +128,9 @@ class Workspace(Document):
 					"onboard": link.get('onboard'),
 					"only_for": link.get('only_for'),
 					"dependencies": link.get('dependencies'),
-					"is_query_report": link.get('is_query_report')
+					"is_query_report": link.get('is_query_report'),
+					"idx": self.links[-1].idx + 1
 				})
-
 
 def disable_saving_as_standard():
 	return frappe.flags.in_install or \

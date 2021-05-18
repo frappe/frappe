@@ -142,9 +142,9 @@ class CardDialog extends WidgetDialog {
 				fieldtype: 'Table',
 				label: __('Card Links'),
 				editable_grid: 1,
-				data: this.data || [],
+				data: me.values ? JSON.parse(me.values.links) : [],
 				get_data: () => {
-					return this.data || [];
+					return me.values ? JSON.parse(me.values.links) : [];
 				},
 				fields: [
 					{
@@ -529,7 +529,7 @@ export default function get_dialog_constructor(type) {
 		chart: ChartDialog,
 		shortcut: ShortcutDialog,
 		number_card: NumberCardDialog,
-		card: CardDialog,
+		links: CardDialog,
 	};
 
 	return widget_map[type] || WidgetDialog;
