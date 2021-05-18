@@ -30,3 +30,14 @@ body {
 
 // Custom Theme
 {{ custom_scss or '' }}
+
+:root {
+	--primary: #{$primary};
+	--primary-color: #{$primary};
+	--primary-light: #{$primary-light};
+	--light: #{$light};
+	--bg-color: #{$body-bg};
+	--text-color: #{$body-color};
+	--text-light: #{$body-color};
+}
+
