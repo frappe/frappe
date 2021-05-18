@@ -3,7 +3,7 @@ import os
 
 import frappe
 from frappe.website.page_controllers.base_template_page import BaseTemplatePage
-from frappe.website.context import get_sidebar_data
+from frappe.website.utils import get_sidebar_items
 from frappe.website.render import build_response
 from frappe.website.router import get_base_template
 from frappe.website.utils import (extract_comment_tag,
@@ -69,8 +69,7 @@ class TemplatePage(BaseTemplatePage):
 
 	def add_sidebar_and_breadcrumbs(self):
 		if self.basepath:
-			sidebar_data = get_sidebar_data(self.context.website_sidebar, self.basepath) or None
-			self.context.sidebar_items = sidebar_data.sidebar_items
+			self.context.sidebar_items = get_sidebar_items(self.context.website_sidebar, self.basepath)
 
 		if self.context.add_breadcrumbs and not self.context.parents:
 			# TODO: set correct title and route for breadcrumbs

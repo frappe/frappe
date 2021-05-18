@@ -1,10 +1,10 @@
 import frappe
-
 from frappe.website.page_controllers.error_page import ErrorPage
 from frappe.website.page_controllers.not_permitted_page import NotPermittedPage
 from frappe.website.page_controllers.redirect_page import RedirectPage
 from frappe.website.path_resolver import PathResolver
-from frappe.website.utils import can_cache
+
+#from frappe.website.utils import can_cache
 
 def get_response(path=None, http_status_code=200):
 	"""Resolves path and renders page"""
