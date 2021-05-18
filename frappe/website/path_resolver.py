@@ -21,7 +21,7 @@ class PathResolver():
 
 	def resolve(self):
 		'''Returns endpoint and a renderer instance that can render the endpoint'''
-		query_string = frappe.local.request.query_string
+		query_string = frappe.local.request.query_string if hasattr(frappe.local, 'request') else None
 		resolve_redirect(self.path, query_string)
 		endpoint = resolve_path(self.path)
 

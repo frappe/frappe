@@ -234,7 +234,7 @@ class TemplatePage(BaseTemplatePage):
 			self.context.url_prefix += '/'
 
 		self.context.path = self.path
-		self.context.pathname = frappe.local.path
+		self.context.pathname = frappe.local.path if hasattr(frappe, 'local') else self.path
 
 		# for backward compatibility
 		self.context.docs_base_url = '/docs'
