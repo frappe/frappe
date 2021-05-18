@@ -1,4 +1,4 @@
-frappe.ui.form.Column = class Column {
+export default class Column {
 	constructor(section, df) {
 		if (!df) df = {};
 

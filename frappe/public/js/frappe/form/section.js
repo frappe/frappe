@@ -1,6 +1,6 @@
 // import '../class';
 
-frappe.ui.form.Section = class Section {
+export default class Section {
 	constructor(layout, df, tab) {
 		this.layout = layout;
 		this.tab = tab;

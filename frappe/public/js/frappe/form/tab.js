@@ -1,4 +1,4 @@
-frappe.ui.form.Tab = class Tab {
+export default class Tab {
 	constructor(layout, df) {
 		this.layout = layout;
 		this.df = df || {};

@@ -1,6 +1,9 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import Section from "./section.js";
+import Tab from "./tab.js";
+
 frappe.ui.form.Dashboard = class FormDashboard {
 	constructor(opts) {
 		$.extend(this, opts);
@@ -9,13 +12,13 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	setup_dashboard_tabs() {
-		this.overview_tab = new frappe.ui.form.Tab(this.frm.layout, {
+		this.overview_tab = new Tab(this.frm.layout, {
 			label: __("Overview"),
 			hidden: 1,
 			fieldname: 'dashboard-overview'
 		});
 
-		this.connections_tab = new frappe.ui.form.Tab(this.frm.layout, {
+		this.connections_tab = new Tab(this.frm.layout, {
 			label: __("Connections"),
 			hidden: 1,
 			fieldname: 'dashboard-connection'
@@ -68,7 +71,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	make_section(df, tab) {
-		return new frappe.ui.form.Section(
+		return new Section(
 			this.frm.layout,
 			df,
 			tab,
@@ -105,7 +108,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			make_card: true,
 			is_dashboard_section: 1
 		};
-		return new frappe.ui.form.Section(this.frm.layout, options, tab).body;
+		return new Section(this.frm.layout, options, tab).body;
 	}
 
 	remove_section(title) {

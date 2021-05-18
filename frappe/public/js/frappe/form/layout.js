@@ -1,3 +1,7 @@
+import Section from "./section.js";
+import Tab from "./tab.js";
+import Column from "./column.js"
+
 frappe.ui.form.Layout = class Layout {
 	constructor (opts) {
 		this.views = {};
@@ -235,7 +239,7 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_section(df) {
-		this.section = new frappe.ui.form.Section(this, df, this.tab || null);
+		this.section = new Section(this, df, this.tab || null);
 
 		// append to layout fields
 		if (df) {
@@ -247,14 +251,14 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_column(df) {
-		this.column = new frappe.ui.form.Column(this.section, df);
+		this.column = new Column(this.section, df);
 		if (df && df.fieldname) {
 			this.fields_list.push(this.column);
 		}
 	}
 
 	make_tab(df) {
-		this.tab = new frappe.ui.form.Tab(this, df);
+		this.tab = new Tab(this, df);
 
 		if (df) {
 			this.fields_dict[df.fieldname] = this.tab;
