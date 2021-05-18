@@ -13,11 +13,11 @@ import './script_helpers';
 import './sidebar/form_sidebar';
 import './footer/footer';
 
-frappe.ui.form.Controller = Class.extend({
-	init: function(opts) {
+frappe.ui.form.Controller = class FormController {
+	constructor(opts) {
 		$.extend(this, opts);
 	}
-});
+};
 
 frappe.ui.form.Form = class FrappeForm {
 	constructor(doctype, parent, in_form, doctype_layout_name) {

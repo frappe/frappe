@@ -445,7 +445,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				out = expression;
 			} else if (expression.substr(0, 5) == 'eval:') {
 				try {
-					out = eval(expression.substr(5));
+					out = frappe.utils.eval(expression.substr(5), { doc });
 				} catch (e) {
 					frappe.throw(__('Invalid "depends_on" expression set in filter {0}', [filter_label]));
 				}

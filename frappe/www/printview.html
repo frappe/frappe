@@ -5,9 +5,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
-	<link type="text/css" rel="stylesheet" href="/assets/css/printview.css">
+	{{ include_style('print.bundle.css') }}
 	{%- if has_rtl -%}
-		<link type="text/css" rel="stylesheet" href="assets/css/frappe-rtl.css">
+		{{ include_style('frappe-rtl.bundle.css') }}
 	{%- endif -%}
 	<style>
 	{{ css }}

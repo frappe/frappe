@@ -50,7 +50,7 @@ context('Recorder', () => {
 		cy.get('.result-list').should('contain', '/api/method/frappe.desk.reportview.get');
 	});
 
-	it.only('Recorder View Request', () => {
+	it('Recorder View Request', () => {
 		cy.get('.primary-action').should('contain', 'Start').click();
 
 		cy.visit('/app/List/DocType/List');
