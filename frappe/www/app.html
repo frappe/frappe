@@ -21,7 +21,7 @@
 		<link rel="icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
 		{% for include in include_css -%}
-		<link type="text/css" rel="stylesheet" href="{{ include }}?ver={{ build_version }}">
+		{{ include_style(include) }}
 		{%- endfor -%}
 	</head>
 	<body>
@@ -35,8 +35,7 @@
 			<div id="body"></div>
 			<footer></footer>
 		</div>
-
-		<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+		<div id="build-events-overlay"></div>
 
 		<script type="text/javascript">
 		window._version_number = "{{ build_version }}";
@@ -52,11 +51,12 @@
 
 		</script>
 
-		{% for include in include_js %}
-		<script type="text/javascript" src="{{ include }}?ver={{ build_version }}"></script>
-		{% endfor %}
-		{% include "templates/includes/app_analytics/google_analytics.html" %}
-		{% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
+	{% for include in include_js %}
+	{{ include_script(include) }}
+	{% endfor %}
+
+	{% include "templates/includes/app_analytics/google_analytics.html" %}
+	{% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 
 		{% for sound in (sounds or []) %}
 		<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>

@@ -30,11 +30,11 @@
 		{%- if theme.name != 'Standard' -%}
 		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
 		{%- else -%}
-		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css?ver={{ build_version }}">
+		{{ include_style('website.bundle.css') }}
 		{%- endif -%}
 
 		{%- for link in web_include_css %}
-		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}?ver={{ build_version }}">
+		{{ include_style(link) }}
 		{%- endfor -%}
 	{%- endblock -%}
 
@@ -56,7 +56,7 @@
 		}
 		window.dev_server = {{ dev_server }};
 		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
-		window.show_language_picker = {{ show_language_picker }};
+		window.show_language_picker = {{ show_language_picker or 'false' }};
 		window.is_chat_enabled = {{ chat_enable }};
 	</script>
 </head>
@@ -96,13 +96,11 @@
 
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
-	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
-	<script type="text/javascript" src="/assets/js/frappe-web.min.js?ver={{ build_version }}"></script>
-	<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
+	{{ include_script('frappe-web.bundle.js') }}
 	{% endblock %}
 
 	{%- for link in web_include_js %}
-	<script type="text/javascript" src="{{ link | abs_url }}?ver={{ build_version }}"></script>
+	{{ include_script(link) }}
 	{%- endfor -%}
 
 	{%- block script %}

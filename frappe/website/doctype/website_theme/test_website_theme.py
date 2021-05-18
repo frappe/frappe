@@ -27,7 +27,7 @@ class TestWebsiteTheme(unittest.TestCase):
 		self.assertTrue('fonts.googleapis.com' in css)
 
 	def test_get_scss_paths(self):
-		self.assertIn('frappe/public/scss/website', get_scss_paths())
+		self.assertIn('frappe/public/scss/website.bundle', get_scss_paths())
 
 	def test_imports_to_ignore(self):
 		frappe.delete_doc_if_exists('Website Theme', 'test-theme')

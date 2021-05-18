@@ -11,7 +11,7 @@ permission, homepage, default variables, system defaults etc
 import frappe, json
 from frappe import _
 import frappe.utils
-from frappe.utils import cint, cstr
+from frappe.utils import cint, cstr, get_assets_json
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
@@ -149,6 +149,7 @@ def get():
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
+	bootinfo.assets_json = get_assets_json()
 
 	for hook in frappe.get_hooks("extend_bootinfo"):
 		frappe.get_attr(hook)(bootinfo=bootinfo)

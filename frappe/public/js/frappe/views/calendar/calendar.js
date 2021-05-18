@@ -106,12 +106,24 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	}
 };
 
-frappe.views.Calendar = Class.extend({
-	init: function(options) {
+frappe.views.Calendar = class Calendar {
+	constructor(options) {
 		$.extend(this, options);
+		this.field_map = {
+			"id": "name",
+			"start": "start",
+			"end": "end",
+			"allDay": "all_day",
+		}
+		this.color_map = {
+			"danger": "red",
+			"success": "green",
+			"warning": "orange",
+			"default": "blue"
+		}
 		this.get_default_options();
-	},
-	get_default_options: function() {
+	}
+	get_default_options() {
 		return new Promise ((resolve) => {
 			let defaultView = localStorage.getItem('cal_defaultView');
 			let weekends = localStorage.getItem('cal_weekends');
@@ -127,8 +139,8 @@ frappe.views.Calendar = Class.extend({
 			this.setup_view_mode_button(defaults);
 			this.bind();
 		});
-	},
-	make_page: function() {
+	}
+	make_page() {
 		var me = this;
 
 		// add links to other calendars
@@ -144,9 +156,9 @@ frappe.views.Calendar = Class.extend({
 		$(this.parent).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
 		});
-	},
+	}
 
-	make: function() {
+	make() {
 		this.$wrapper = this.parent;
 		this.$cal = $("<div>").appendTo(this.$wrapper);
 		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.$wrapper,
@@ -155,19 +167,19 @@ frappe.views.Calendar = Class.extend({
 
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();
-	},
-	setup_view_mode_button: function(defaults) {
+	}
+	setup_view_mode_button(defaults) {
 		var me = this;
 		$(me.footnote_area).find('.btn-weekend').detach();
 		let btnTitle = (defaults.weekends) ? __('Hide Weekends') : __('Show Weekends');
 		const btn = `<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`;
 		me.footnote_area.append(btn);
-	},
-	set_localStorage_option: function(option, value) {
+	}
+	set_localStorage_option(option, value) {
 		localStorage.removeItem(option);
 		localStorage.setItem(option, value);
-	},
-	bind: function() {
+	}
+	bind() {
 		const me = this;
 		let btn_group = me.$wrapper.find(".fc-button-group");
 		btn_group.on("click", ".btn", function() {
@@ -182,8 +194,8 @@ frappe.views.Calendar = Class.extend({
 			me.set_css();
 			me.setup_view_mode_button(me.cal_options);
 		});
-	},
-	set_css: function() {
+	}
+	set_css() {
 		// flatify buttons
 		this.$wrapper.find("button.fc-state-default")
 			.removeClass("fc-state-default")
@@ -210,24 +222,13 @@ frappe.views.Calendar = Class.extend({
 			btn_group.find(".btn").removeClass("active");
 			$(this).addClass("active");
 		});
-	},
-	field_map: {
-		"id": "name",
-		"start": "start",
-		"end": "end",
-		"allDay": "all_day",
-	},
-	color_map: {
-		"danger": "red",
-		"success": "green",
-		"warning": "orange",
-		"default": "blue"
-	},
-	get_system_datetime: function(date) {
+	}
+
+	get_system_datetime(date) {
 		date._offset = (moment(date).tz(frappe.sys_defaults.time_zone)._offset);
 		return frappe.datetime.convert_to_system_tz(date);
-	},
-	setup_options: function(defaults) {
+	}
+	setup_options(defaults) {
 		var me = this;
 		defaults.meridiem = 'false';
 		this.cal_options = {
@@ -321,8 +322,8 @@ frappe.views.Calendar = Class.extend({
 		if(this.options) {
 			$.extend(this.cal_options, this.options);
 		}
-	},
-	get_args: function(start, end) {
+	}
+	get_args(start, end) {
 		var args = {
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
@@ -332,11 +333,11 @@ frappe.views.Calendar = Class.extend({
 			field_map: this.field_map
 		};
 		return args;
-	},
-	refresh: function() {
+	}
+	refresh() {
 		this.$cal.fullCalendar('refetchEvents');
-	},
-	prepare_events: function(events) {
+	}
+	prepare_events(events) {
 		var me = this;
 
 		return (events || []).map(d => {
@@ -375,8 +376,8 @@ frappe.views.Calendar = Class.extend({
 
 			return d;
 		});
-	},
-	prepare_colors: function(d) {
+	}
+	prepare_colors(d) {
 		let color, color_name;
 		if(this.get_css_class) {
 			color_name = this.color_map[this.get_css_class(d)] || 'blue';
@@ -397,8 +398,8 @@ frappe.views.Calendar = Class.extend({
 			d.textColor = frappe.ui.color.get_contrast_color(color);
 		}
 		return d;
-	},
-	update_event: function(event, revertFunc) {
+	}
+	update_event(event, revertFunc) {
 		var me = this;
 		frappe.model.remove_from_locals(me.doctype, event.name);
 		return frappe.call({
@@ -414,8 +415,8 @@ frappe.views.Calendar = Class.extend({
 				revertFunc();
 			}
 		});
-	},
-	get_update_args: function(event) {
+	}
+	get_update_args(event) {
 		var me = this;
 		var args = {
 			name: event[this.field_map.id]
@@ -441,13 +442,13 @@ frappe.views.Calendar = Class.extend({
 		args.doctype = event.doctype || this.doctype;
 
 		return { args: args, field_map: this.field_map };
-	},
+	}
 
-	fix_end_date_for_event_render: function(event) {
+	fix_end_date_for_event_render(event) {
 		if (event.allDay) {
 			// We use inclusive end dates. This workaround fixes the rendering of events
 			event.start = event.start ? $.fullCalendar.moment(event.start).stripTime() : null;
 			event.end = event.end ? $.fullCalendar.moment(event.end).add(1, "day").stripTime() : null;
 		}
 	}
-});
+};
