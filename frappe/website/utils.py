@@ -540,7 +540,8 @@ def cache_html(func):
 				frappe.local.response.from_cache = True
 				return html
 		html = func(*args, **kwargs)
-		if can_cache():
+		context = args[0].context
+		if can_cache(context.no_cache):
 			page_cache = frappe.cache().hget("website_page", args[0].path) or {}
 			page_cache[frappe.local.lang] = html
 			frappe.cache().hset("website_page", args[0].path, page_cache)
