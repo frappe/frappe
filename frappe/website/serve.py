@@ -1,49 +1,37 @@
 import frappe
-from frappe.utils import cstr
 
-from frappe.website.page_controllers.document_page import DocumentPage
 from frappe.website.page_controllers.error_page import ErrorPage
-from frappe.website.page_controllers.list_page import ListPage
-from frappe.website.page_controllers.not_found_page import NotFoundPage
 from frappe.website.page_controllers.not_permitted_page import NotPermittedPage
-from frappe.website.page_controllers.print_page import PrintPage
-from frappe.website.page_controllers.template_page import TemplatePage
-from frappe.website.page_controllers.static_page import StaticPage
-from frappe.website.page_controllers.web_form import WebFormPage
-
-from frappe.website.redirect import resolve_redirect
-from frappe.website.render import build_response, resolve_path
+from frappe.website.page_controllers.redirect_page import RedirectPage
+from frappe.website.path_resolver import PathResolver
+from frappe.website.utils import can_cache
 
 def get_response(path=None, http_status_code=200):
-	"""render html page"""
-	query_string = None
+	"""Resolves path and renders page"""
 	response = None
+	path = path or frappe.local.request.path
+	endpoint = path
+	# if can_cache():
+	# 	# return rendered page
+	# 	page_cache = frappe.cache().hget("website_page", path)
+	# 	if page_cache and frappe.local.lang in page_cache:
+	# 		out = page_cache[frappe.local.lang]
 
-	if not path:
-		path = frappe.local.request.path
-		query_string = frappe.local.request.query_string
+	# if out:
+	# 	frappe.local.response.from_cache = True
+	# 	return out
 
 	try:
-		path = path.strip('/ ')
-		resolve_redirect(path, query_string)
-		path = resolve_path(path)
-		# there is no way to determine the type of the page based on the route
-		# so evaluate each type of page sequentially
-		renderers = [StaticPage, WebFormPage, TemplatePage, ListPage, DocumentPage, PrintPage, NotFoundPage]
-		for renderer in renderers:
-			response = renderer(path, http_status_code).get()
-			if response:
-				break
+		path_resolver = PathResolver(path, http_status_code)
+		endpoint, renderer_instance = path_resolver.resolve()
+		if renderer_instance:
+			response = renderer_instance.render()
 	except frappe.Redirect:
-		return build_response(path, "", 301, {
-			"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
-			"Cache-Control": "no-store, no-cache, must-revalidate"
-		})
+		return RedirectPage(endpoint or path, http_status_code).render()
 	except frappe.PermissionError as e:
-		frappe.local.message = cstr(e)
-		response = NotPermittedPage(path, http_status_code).get()
+		response = NotPermittedPage(endpoint, http_status_code, exception=e).render()
 	except Exception as e:
-		response = ErrorPage(path, http_status_code, exception=e).get()
+		response = ErrorPage(exception=e).render()
 
 	return response
 
