@@ -110,6 +110,20 @@ function log(...args) {
 	console.log(...args); // eslint-disable-line no-console
 }
 
+function get_redis_subscriber(kind) {
+	// get redis subscriber that aborts after 50 connection attempts
+	let { get_redis_subscriber: get_redis } = require("../node_utils");
+	return get_redis(kind, {
+		retry_strategy: function(options) {
+			// abort after 50 connection attempts
+			if (options.attempt > 50) {
+				return undefined;
+			}
+			return Math.min(options.attempt * 100, 2000);
+		}
+	});
+}
+
 module.exports = {
 	app_list,
 	bench_path,
@@ -126,5 +140,6 @@ module.exports = {
 	get_cli_arg,
 	log,
 	log_warn,
-	log_error
+	log_error,
+	get_redis_subscriber
 };

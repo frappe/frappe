@@ -38,19 +38,17 @@ function get_conf() {
 	return conf;
 }
 
-function get_redis_subscriber(kind="redis_socketio") {
+function get_redis_subscriber(kind="redis_socketio", options=null) {
 	const conf = get_conf();
 	const host = conf[kind] || conf.redis_async_broker_port;
-	return redis.createClient({
-		host,
-		retry_strategy: function(options) {
-			// abort after 5 connection attempts
-			if (options.attempt > 5) {
-				return undefined;
-			}
-			return Math.min(options.attempt * 100, 2000);
-		},
-	});
+
+	if (options) {
+		return redis.createClient({
+			host,
+			...options
+		});
+	}
+	return redis.createClient(host);
 }
 
 module.exports = {

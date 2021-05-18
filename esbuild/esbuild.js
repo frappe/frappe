@@ -21,9 +21,9 @@ let {
 	log,
 	log_warn,
 	log_error,
-	bench_path
+	bench_path,
+	get_redis_subscriber
 } = require("./utils");
-let { get_redis_subscriber } = require("../node_utils");
 
 let argv = yargs
 	.usage("Usage: node esbuild [options]")
