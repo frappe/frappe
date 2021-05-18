@@ -106,9 +106,9 @@ class Workspace(Document):
 			links = loads(card.get('links'))
 
 			# remove duplicate before adding
-			duplicate_links = [x for x in self.links if(x.label == card.get('label') and x.type == 'Card Break')]
-			for v in duplicate_links:
-				del self.links[ v.idx-1 : v.idx+v.link_count]
+			for idx, link in enumerate(self.links):
+				if link.label == card.get('label') and link.type == 'Card Break':
+					del self.links[idx : idx + link.link_count + 1]
 
 			self.append('links', {
 				"label": card.get('label'),
