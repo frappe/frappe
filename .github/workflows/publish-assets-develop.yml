@@ -15,7 +15,7 @@ jobs:
           path: 'frappe'
       - uses: actions/setup-node@v1
         with:
-          python-version: '12.x'
+          node-version: 14
       - uses: actions/setup-python@v2
         with:
           python-version: '3.6'
