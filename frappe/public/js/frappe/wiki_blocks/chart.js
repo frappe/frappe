@@ -1,3 +1,4 @@
+import get_dialog_constructor from "../widgets/widget_dialog.js";
 export default class Chart {
 	static get toolbox() {
 		return {
@@ -10,34 +11,32 @@ export default class Chart {
 		return true;
 	}
 
-	constructor({data, api, config, readOnly}) {
+	constructor({data, api, config, readOnly, block}) {
 		this.data = data;
 		this.api = api;
+		this.block = block;
 		this.config = config;
 		this.readOnly = readOnly;
-		this.sections = {};
 		this.col = this.data.col ? this.data.col : "12";
 		this.pt = this.data.pt ? this.data.pt : "0";
 		this.pr = this.data.pr ? this.data.pr : "0";
 		this.pb = this.data.pb ? this.data.pb : "0";
 		this.pl = this.data.pl ? this.data.pl : "0";
 		this.allow_customization = !this.readOnly;
+		this.options = {
+			allow_sorting: this.allow_customization,
+			allow_create: this.allow_customization,
+			allow_delete: this.allow_customization,
+			allow_hiding: false,
+			allow_edit: true,
+			max_widget_count: 2,
+		};
 	}
 
 	render() {
-		let me = this;
 		this.wrapper = document.createElement('div');
-		this._make_fieldgroup(this.wrapper, [{
-			fieldtype: "Select", 
-			label: "Chart Name", 
-			fieldname: "chart_name",
-			options: this.config.page_data.charts.items.map(({ chart_name }) => chart_name),
-			change: function() {
-				if (this.value) {
-					me._make_charts(this.value);
-				}
-			}
-		}]);
+		this._new_chart();
+
 		if (this.data && this.data.chart_name) {
 			this._make_charts(this.data.chart_name);
 		}
@@ -51,7 +50,8 @@ export default class Chart {
 			pt: this._getPadding("t"),
 			pr: this._getPadding("r"),
 			pb: this._getPadding("b"),
-			pl: this._getPadding("l")
+			pl: this._getPadding("l"),
+			new: this.new_chart_widget
 		};
 	}
 
@@ -62,6 +62,34 @@ export default class Chart {
 		e.classList.add("pr-" + this.pr);
 		e.classList.add("pb-" + this.pb);
 		e.classList.add("pl-" + this.pl);
+	}
+
+	_new_chart() {
+		const dialog_class = get_dialog_constructor('chart');
+		this.dialog = new dialog_class({
+			label: this.label,
+			type: 'chart',
+			primary_action: (widget) => {
+				widget.in_customize_mode = 1;
+				this.chart_widget = frappe.widget.make_widget({
+					...widget,
+					widget_type: 'chart',
+					container: this.wrapper,
+					options: {
+						...this.options,
+						on_delete: () => this.api.blocks.delete(),
+						on_edit: () => this.on_edit(this.chart_widget)
+					}
+				});
+				this.chart_widget.customize(this.options);
+				this.wrapper.setAttribute("chart_name", this.chart_widget.label);
+				this.new_chart_widget = this.chart_widget.get_config();
+			},
+		});
+
+		if (!this.readOnly && this.data && !this.data.chart_name) { 
+			this.dialog.make();
+		}
 	}
 
 	_getCol() {
@@ -130,32 +158,31 @@ export default class Chart {
 		this.chart_field.make();
 	}
 
+	on_edit(chart_obj) {
+		let chart = chart_obj.get_config();
+		this.chart_widget.widgets = chart;
+		this.wrapper.setAttribute("chart_name", chart.label);
+		this.new_chart_widget = chart_obj.get_config();
+	}
+
 	_make_charts(chart_name) {
 		let chart = this.config.page_data.charts.items.find(obj => {
-			return obj.chart_name == chart_name;
+			return obj.label == chart_name;
 		});
+		if (!chart) return;
 		this.wrapper.innerHTML = '';
-		this.sections = {};
-		chart.in_customize_mode = !this.readOnly;
-		this.sections["charts"] = new frappe.widget.SingleWidgetGroup({
+		this.chart_widget = new frappe.widget.SingleWidgetGroup({
 			container: this.wrapper,
 			type: "chart",
-			columns: 1,
 			class_name: "widget-charts",
-			// hidden: Boolean(this.onboarding_widget),
-			options: {
-				allow_sorting: this.allow_customization,
-				allow_create: this.allow_customization,
-				allow_delete: this.allow_customization,
-				allow_hiding: false,
-				allow_edit: true,
-				max_widget_count: 2,
-			},
-			widgets: chart
+			options: this.options,
+			widgets: chart,
+			api: this.api,
+			block: this.block
 		});
 		this.wrapper.setAttribute("chart_name", chart_name);
 		if (!this.readOnly) {
-			this.sections["charts"].customize();
+			this.chart_widget.customize();
 		}
 	}
 }

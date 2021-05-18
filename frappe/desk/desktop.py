@@ -551,22 +551,7 @@ def save_new_widget(page, new_widgets):
 		original_page.build_links_table_from_card(widgets.card)
 
 	# remove duplicate and unwanted widgets
-	content = frappe.db.get_value("Internal Wiki Page", page, "content")
-	page_widgets = {}
-	for wid in ['shortcut', 'card', 'chart']:
-		# get list of widget's name from internal wiki page  
-		page_widgets[wid] = [x['data'][wid + '_name'] for x in json.loads(content) if x['type'] == wid]
-
-	updated_widgets = []
-	original_page.get('shortcuts').reverse()
-	for w in original_page.get('shortcuts'):
-		if w.label in page_widgets['shortcut'] and w.label not in [x.label for x in updated_widgets]:
-			updated_widgets.append(w)
-	original_page.set('shortcuts', updated_widgets)
-
-	for i, v in enumerate(original_page.links):
-		if v.type == 'Card Break' and v.label not in page_widgets['card']:
-			del original_page.links[ i : i+v.link_count+1]
+	clean_up(original_page, page)
 
 	try:
 		original_page.save(ignore_permissions=True)
@@ -585,6 +570,30 @@ def save_new_widget(page, new_widgets):
 		return False
 
 	return True
+
+def clean_up(original_page, page):
+	page_widgets = {}
+
+	content = frappe.db.get_value("Internal Wiki Page", page, "content")
+
+	for wid in ['shortcut', 'card', 'chart']:
+		# get list of widget's name from internal wiki page  
+		page_widgets[wid] = [x['data'][wid + '_name'] for x in json.loads(content) if x['type'] == wid]
+
+	# shortcut & chart cleanup
+	for wid in ['shortcut', 'chart']:
+		updated_widgets = []
+		original_page.get(wid+'s').reverse()
+
+		for w in original_page.get(wid+'s'):
+			if w.label in page_widgets[wid] and w.label not in [x.label for x in updated_widgets]:
+				updated_widgets.append(w)
+		original_page.set(wid+'s', updated_widgets)
+
+	# card cleanup
+	for i, v in enumerate(original_page.links):
+		if v.type == 'Card Break' and v.label not in page_widgets['card']:
+			del original_page.links[i : i+v.link_count+1]
 
 def new_widget(config, doctype, parentfield):
 	if not config:
