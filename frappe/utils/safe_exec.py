@@ -44,10 +44,29 @@ def get_safe_globals():
 
 	out = frappe._dict(
 		# make available limited methods of frappe
+<<<<<<< HEAD
 		json = json,
 		dict = dict,
 		frappe =  frappe._dict(
 			flags = frappe._dict(),
+=======
+		json=NamespaceDict(
+			loads = json.loads,
+			dumps = json.dumps),
+		dict=dict,
+		log=frappe.log,
+		_dict=frappe._dict,
+		frappe=NamespaceDict(
+			flags=frappe._dict(),
+			format=frappe.format_value,
+			format_value=frappe.format_value,
+			date_format=date_format,
+			time_format=time_format,
+			format_date=frappe.utils.data.global_date_format,
+			form_dict=getattr(frappe.local, 'form_dict', {}),
+			bold=frappe.bold,
+			copy_doc=frappe.copy_doc,
+>>>>>>> 2b8aaa5375 (fix(minor): expose limited methods of json module)
 
 			format = frappe.format_value,
 			format_value = frappe.format_value,
