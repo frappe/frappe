@@ -805,7 +805,7 @@ def get_assets_json():
 		assets_json = cache.get("assets_json")
 		try:
 			assets_json = assets_json.decode('utf-8')
-		except UnicodeDecodeError:
+		except (UnicodeDecodeError, AttributeError):
 			assets_json = None
 
 		if not assets_json:
