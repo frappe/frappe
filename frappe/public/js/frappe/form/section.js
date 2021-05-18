@@ -155,4 +155,4 @@ export default class Section {
 		this.wrapper.toggleClass("hide-control", false);
 		this.tab && this.tab.toggle(true);
 	}
-};
+}

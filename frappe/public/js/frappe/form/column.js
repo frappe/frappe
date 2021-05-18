@@ -38,4 +38,4 @@ export default class Column {
 	refresh() {
 		this.section.refresh();
 	}
-};
+}

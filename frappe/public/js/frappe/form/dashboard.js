@@ -111,10 +111,6 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		return new Section(this.frm.layout, options, tab).body;
 	}
 
-	remove_section(title) {
-		section.wrapper.remove();
-	}
-
 	add_progress(title, percent, message) {
 		let progress_chart = this.make_progress_chart(title);
 

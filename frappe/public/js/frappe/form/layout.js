@@ -1,6 +1,6 @@
 import Section from "./section.js";
 import Tab from "./tab.js";
-import Column from "./column.js"
+import Column from "./column.js";
 
 frappe.ui.form.Layout = class Layout {
 	constructor (opts) {
