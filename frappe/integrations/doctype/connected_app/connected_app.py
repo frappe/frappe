@@ -26,20 +26,27 @@ class ConnectedApp(Document):
 		self.redirect_uri = urljoin(base_url, callback_path)
 
 	def get_oauth2_session(self, user=None, init=False):
+		"""Return an auto-refreshing OAuth2 session which is an extension of a requests.Session()"""
 		token = None
 		token_updater = None
+		auto_refresh_kwargs = None
 
 		if not init:
 			user = user or frappe.session.user
 			token_cache = self.get_user_token(user)
 			token = token_cache.get_json()
 			token_updater = token_cache.update_data
+			auto_refresh_kwargs = {'client_id': self.client_id}
+			client_secret = self.get_password('client_secret')
+			if client_secret:
+				auto_refresh_kwargs['client_secret'] = client_secret
 
 		return OAuth2Session(
 			client_id=self.client_id,
 			token=token,
 			token_updater=token_updater,
 			auto_refresh_url=self.token_uri,
+			auto_refresh_kwargs=auto_refresh_kwargs,
 			redirect_uri=self.redirect_uri,
 			scope=self.get_scopes()
 		)

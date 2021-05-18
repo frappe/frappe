@@ -1,14 +1,15 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-import frappe
-from bs4 import BeautifulSoup
-from whoosh.fields import TEXT, ID, Schema
-from frappe.search.full_text_search import FullTextSearch
-from frappe.website.render import render_page
-from frappe.utils import set_request
 import os
+
+from bs4 import BeautifulSoup
+from whoosh.fields import ID, TEXT, Schema
+
+import frappe
+from frappe.search.full_text_search import FullTextSearch
+from frappe.utils import set_request, update_progress_bar
+from frappe.website.render import render_page
 
 INDEX_NAME = "web_routes"
 
@@ -30,11 +31,21 @@ class WebsiteSearch(FullTextSearch):
 		Returns:
 			self (object): FullTextSearch Instance
 		"""
-		routes = get_static_pages_from_all_apps()
-		routes += slugs_with_web_view()
 
-		documents = [self.get_document_to_index(route) for route in routes]
-		return documents
+		if getattr(self, "_items_to_index", False):
+			return self._items_to_index
+
+		routes = get_static_pages_from_all_apps() + slugs_with_web_view()
+
+		self._items_to_index = []
+
+		for i, route in enumerate(routes):
+			update_progress_bar("Retrieving Routes", i, len(routes))
+			self._items_to_index += [self.get_document_to_index(route)]
+
+		print()
+
+		return self.get_items_to_index()
 
 	def get_document_to_index(self, route):
 		"""Render a page and parse it using BeautifulSoup

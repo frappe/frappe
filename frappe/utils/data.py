@@ -1278,7 +1278,9 @@ def make_filter_dict(filters):
 
 def sanitize_column(column_name):
 	from frappe import _
+	import sqlparse
 	regex = re.compile("^.*[,'();].*")
+	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
 	blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case', 'and', 'or']
 
 	def _raise_exception():

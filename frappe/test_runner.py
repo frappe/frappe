@@ -9,7 +9,6 @@ import time
 import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
-from frappe.utils import cstr
 import frappe.utils.scheduler
 import cProfile, pstats
 from six import StringIO
@@ -307,6 +306,8 @@ def get_dependencies(doctype):
 		for doctype_name in test_module.test_ignore:
 			if doctype_name in options_list:
 				options_list.remove(doctype_name)
+
+	options_list.sort()
 
 	return options_list
 

@@ -9,6 +9,7 @@ from shutil import rmtree
 
 import frappe
 from frappe.model.document import Document
+from frappe.website.render import clear_cache
 from frappe import _
 from frappe.modules.export_file import (
 	write_document_file,
@@ -36,6 +37,19 @@ class WebTemplate(Document):
 			was_standard = (self.get_doc_before_save() or {}).get("standard")
 			if was_standard and not self.standard:
 				self.import_from_files()
+
+	def on_update(self):
+		"""Clear cache for all Web Pages in which this template is used"""
+		routes = frappe.db.get_all(
+			"Web Page",
+			filters=[
+				["Web Page Block", "web_template", "=", self.name],
+				["Web Page", "published", "=", 1],
+			],
+			pluck="route",
+		)
+		for route in routes:
+			clear_cache(route)
 
 	def on_trash(self):
 		if frappe.conf.developer_mode and self.standard:
