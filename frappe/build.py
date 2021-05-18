@@ -5,6 +5,7 @@ import os
 import re
 import json
 import shutil
+import subprocess
 from tempfile import mkdtemp, mktemp
 from distutils.spawn import find_executable
 
@@ -15,6 +16,7 @@ import click
 import psutil
 from urllib.parse import urlparse
 from simple_chalk import green
+from semantic_version import Version
 
 
 timestamps = {}
@@ -220,7 +222,7 @@ def bundle(mode, apps=None, hard_link=False, make_copy=False, restore=False, ver
 
 	command += " --run-build-command"
 
-	check_yarn()
+	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
@@ -233,14 +235,19 @@ def watch(apps=None):
 	if apps:
 		command += " --apps {apps}".format(apps=apps)
 
-	check_yarn()
+	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
-def check_yarn():
+def check_node_executable():
+	node_version = Version(subprocess.getoutput('node -v')[1:])
+	warn = '⚠️ '
+	if node_version.major < 14:
+		click.echo(f"{warn} Please update your node version to 14")
 	if not find_executable("yarn"):
-		print("Please install yarn using below command and try again.\nnpm install -g yarn")
+		click.echo(f"{warn} Please install yarn using below command and try again.\nnpm install -g yarn")
+	click.echo()
 
 def get_node_env():
 	node_env = {
