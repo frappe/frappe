@@ -1,8 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
-
 import functools
 import json
 import os
@@ -156,91 +153,15 @@ def cleanup_page_name(title):
 	name = title.lower()
 	name = re.sub(r'[~!@#$%^&*+()<>,."\'\?]', '', name)
 	name = re.sub('[:/]', '-', name)
-
 	name = '-'.join(name.split())
-
 	# replace repeating hyphens
 	name = re.sub(r"(-)\1+", r"\1", name)
-
 	return name[:140]
 
 
-def get_shade(color, percent):
-	color, color_format = detect_color_format(color)
-	r, g, b, a = color
-
-	avg = (float(int(r) + int(g) + int(b)) / 3)
-	# switch dark and light shades
-	if avg > 128:
-		percent = -percent
-
-	# stronger diff for darker shades
-	if percent < 25 and avg < 64:
-		percent = percent * 2
-
-	new_color = []
-	for channel_value in (r, g, b):
-		new_color.append(get_shade_for_channel(channel_value, percent))
-
-	r, g, b = new_color
-
-	return format_color(r, g, b, a, color_format)
-
-
-def detect_color_format(color):
-	if color.startswith("rgba"):
-		color_format = "rgba"
-		color = [c.strip() for c in color[5:-1].split(",")]
-
-	elif color.startswith("rgb"):
-		color_format = "rgb"
-		color = [c.strip() for c in color[4:-1].split(",")] + [1]
-
-	else:
-		# assume hex
-		color_format = "hex"
-
-		if color.startswith("#"):
-			color = color[1:]
-
-		if len(color) == 3:
-			# hex in short form like #fff
-			color = "{0}{0}{1}{1}{2}{2}".format(*tuple(color))
-
-		color = [int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), 1]
-
-	return color, color_format
-
-
-def get_shade_for_channel(channel_value, percent):
-	v = int(channel_value) + int(int('ff', 16) * (float(percent)/100))
-	if v < 0:
-		v=0
-	if v > 255:
-		v=255
-
-	return v
-
-
-def format_color(r, g, b, a, color_format):
-	if color_format == "rgba":
-		return "rgba({0}, {1}, {2}, {3})".format(r, g, b, a)
-
-	elif color_format == "rgb":
-		return "rgb({0}, {1}, {2})".format(r, g, b)
-
-	else:
-		# assume hex
-		return "#{0}{1}{2}".format(convert_to_hex(r), convert_to_hex(g), convert_to_hex(b))
-
-
-def convert_to_hex(channel_value):
-	h = hex(channel_value)[2:]
-
-	if len(h) < 2:
-		h = "0" + h
-
-	return h
+def get_shade(color, percent=None):
+	frappe.msgprint('get_shade method has been deprecated!')
+	return color
 
 def abs_url(path):
 	"""Deconstructs and Reconstructs a URL into an absolute URL or a URL relative from root '/'"""
@@ -370,25 +291,6 @@ def extract_comment_tag(source, tag):
 	else:
 		return None
 
-
-def add_missing_headers():
-	'''Walk and add missing headers in docs (to be called from bench execute)'''
-	path = frappe.get_app_path('erpnext', 'docs')
-	for basepath, folders, files in os.walk(path):
-		for fname in files:
-			if fname.endswith('.md'):
-				with open(os.path.join(basepath, fname), 'r') as f:
-					content = frappe.as_unicode(f.read())
-
-				if not content.startswith('# ') and not '<h1>' in content:
-					with open(os.path.join(basepath, fname), 'w') as f:
-						if fname=='index.md':
-							fname = os.path.basename(basepath)
-						else:
-							fname = fname[:-3]
-						h = fname.replace('_', ' ').replace('-', ' ').title()
-						content = '# {0}\n\n'.format(h) + content
-						f.write(content.encode('utf-8'))
 
 def get_html_content_based_on_type(doc, fieldname, content_type):
 		'''
