@@ -99,5 +99,6 @@ def get_apps():
 	return frappe.get_all_apps(with_internal_apps=False, sites_path='.')
 
 if __name__ == "__main__":
-	warnings.simplefilter('ignore')
+	if not frappe._dev_server:
+		warnings.simplefilter('ignore')
 	main()
