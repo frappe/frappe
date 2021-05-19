@@ -136,14 +136,8 @@ def get_home_page_via_hooks():
 	return home_page
 
 
-def is_signup_enabled():
-	if getattr(frappe.local, "is_signup_enabled", None) is None:
-		frappe.local.is_signup_enabled = True
-		if frappe.utils.cint(frappe.db.get_value("Website Settings",
-			"Website Settings", "disable_signup")):
-				frappe.local.is_signup_enabled = False
-
-	return frappe.local.is_signup_enabled
+def is_signup_disabled():
+	return frappe.db.get_single_value('Website Settings', 'disable_signup', True)
 
 def cleanup_page_name(title):
 	"""make page name from title"""
@@ -353,7 +347,7 @@ def get_sidebar_items(parent_sidebar, basepath):
 	sidebar_items = []
 
 	hooks = frappe.get_hooks('look_for_sidebar_json')
-	look_for_sidebar_json = hooks[0] if hooks else 0
+	look_for_sidebar_json = hooks[0] if hooks else frappe.flags.look_for_sidebar
 
 	if basepath and look_for_sidebar_json:
 		sidebar_items = get_sidebar_items_from_sidebar_file(basepath, look_for_sidebar_json)

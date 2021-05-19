@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cint, quoted
-from frappe.website.render import resolve_path
+from frappe.website.path_resolver import resolve_path
 from frappe.model.document import get_controller, Document
 from frappe import _
 
