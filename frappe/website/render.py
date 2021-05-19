@@ -103,7 +103,9 @@ def set_content_type(response, data, path):
 	response.mimetype = 'text/html'
 	response.charset = 'utf-8'
 
-	if "." in path:
+	# ignore paths ending with .com to avoid unnecessary download
+	# https://bugs.python.org/issue22347
+	if "." in path and not path.endswith('.com'):
 		content_type, encoding = mimetypes.guess_type(path)
 		if content_type:
 			response.mimetype = content_type
