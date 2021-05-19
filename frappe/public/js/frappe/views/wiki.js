@@ -12,6 +12,7 @@ frappe.views.Wiki = class Wiki {
 		this.sections = {};
 		this.sidebar_items = {};
 		this.sorted_sidebar_items = [];
+		this.deleted_sidebar_items = [];
 		this.tools = {};
 		this.isReadOnly = true;
 		this.new_page = null;
@@ -37,13 +38,13 @@ frappe.views.Wiki = class Wiki {
 				for (let page of this.all_pages || []) {
 					frappe.wiki_pages[frappe.router.slug(page.name)] = page;
 				}
-				frappe.router.route();
 				this.make_sidebar(root_pages);
 			}
 			if (this.new_page) {
 				frappe.set_route(`wiki/${frappe.router.slug(this.new_page)}`);
 				this.new_page = null;
 			}
+			frappe.router.route();
 		});
 	}
 
@@ -65,12 +66,12 @@ frappe.views.Wiki = class Wiki {
 					<div class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}">
 						<a
 							href="/app/wiki/${frappe.router.slug(item.name)}"
-							class="item-anchor"
+							class="item-anchor" title="${item.name}"
 						>
 							<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
 							<span class="sidebar-item-label">${item.label || item.name}<span>
 						</a>
-						<span class="drop-icon hidden">${frappe.utils.icon("small-down", "sm")}</span>
+						<div class="sidebar-item-control"></div>
 					</div>
 					<div class="sidebar-child-item hidden"></div>
 				</div>
@@ -85,25 +86,34 @@ frappe.views.Wiki = class Wiki {
 
 			const get_child_item = function (item) {
 				return $(`
-					<div class="sidebar-child-item-container">
-						<a
-							href="/app/wiki/${frappe.router.slug(item.name)}"
-							class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}"
-						>
-							<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
-							<span class="sidebar-item-label">${item.label || item.name}<span>
-						</a>
+					<div class="sidebar-child-item-container" item-name="${item.name}" item-sequence="${item.sequence_id}">
+						<div class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}">
+							<a
+								href="/app/wiki/${frappe.router.slug(item.name)}"
+								class="item-anchor" title="${item.name}"
+							>
+								<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
+								<span class="sidebar-item-label">${item.label || item.name}<span>
+							</a>
+							<div class="sidebar-item-control"></div>
+						</div>
 					</div>
 				`);
 			};
 	
 			const make_sidebar_child_item = item => {
 				let $child_item = get_child_item(item);
+				let sidebar_control = $child_item.find('.sidebar-item-control');
+				this.add_sidebar_actions(item, sidebar_control);
 				$child_item.appendTo(child_item_section);
 				this.sidebar_items[item.name] = $child_item;
 			};
 
 			let $item = get_sidebar_item(item);
+			let sidebar_control = $item.find('.sidebar-item-control');
+			this.add_sidebar_actions(item, sidebar_control);
+			let $drop_icon = $(`<span class="drop-icon hidden">${frappe.utils.icon("small-down", "sm")}</span>`);
+			$drop_icon.appendTo(sidebar_control);
 			let drop_icon = $item.find('.drop-icon').get(0);
 			let child_item_section = $item.find('.sidebar-child-item').get(0);
 			if (this.all_pages.some(e => e.parent_page == item.name)) {
@@ -260,7 +270,6 @@ frappe.views.Wiki = class Wiki {
 
 	setup_actions() {
 		this.page.clear_inner_toolbar();
-
 		this.page.set_secondary_action(
 			__("Customize"),
 			() => {
@@ -271,9 +280,9 @@ frappe.views.Wiki = class Wiki {
 						this.undo = new Undo({ editor: this.editor });
 						this.undo.initialize({blocks: JSON.parse(this.content)});
 						this.setup_customization_buttons();
+						this.show_sidebar_actions();
 						this.make_sidebar_sortable();
 						this.make_blocks_sortable();
-						// this.customize();
 					});
 			},
 		);
@@ -283,10 +292,55 @@ frappe.views.Wiki = class Wiki {
 		});
 	}
 
+	show_sidebar_actions() {
+		$('.sidebar-item-control .drag-handle').removeClass('hidden');
+		$('.sidebar-item-control .delete-page').removeClass('hidden');
+	}
+
+	add_sidebar_actions(item, sidebar_control) {
+		this.add_custom_button(
+			frappe.utils.icon('drag', 'xs'),
+			null,
+			"drag-handle hidden",
+			`${__('Drag')}`,
+			null,
+			sidebar_control
+		);
+		this.add_custom_button(
+			frappe.utils.icon('delete', 'xs'),
+			() => this.delete_page(item.name),
+			"delete-page hidden",
+			`${__('Delete')}`,
+			null,
+			sidebar_control
+		);
+	}
+
+	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
+		if (!btn_type) btn_type = 'btn-secondary';
+		let button = $(
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
+		);
+		button.click(event => {
+			event.stopPropagation();
+			action && action();
+		});
+		button.appendTo(wrapper);
+	}
+
+	delete_page(name) {
+		if (!this.deleted_sidebar_items.includes(name)) {
+			this.deleted_sidebar_items.push(name)
+		}
+		frappe.confirm(__("Are you sure you want to delete page {0}?", [name]), () => {
+			this.sidebar.find(`.standard-sidebar-section [item-name="${name}"]`).addClass('hidden')
+		});
+	}
+
 	make_sidebar_sortable() {
 		let me = this;
 		this.sidebar_sortable = Sortable.create(this.page.sidebar.find(".standard-sidebar-section").get(0), {
-			handle: ".standard-sidebar-item-container",
+			handle: ".drag-handle",
 			draggable: ".standard-sidebar-item-container",
 			animation: 150,
 			onEnd: function (evt) {
@@ -353,6 +407,7 @@ frappe.views.Wiki = class Wiki {
 				this.isReadOnly = true;
 				this.page_sortable.option("disabled", true);
 				this.sidebar_sortable.option("disabled", true);
+				this.deleted_sidebar_items = [];
 				this.reload();
 				frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 			}
@@ -372,10 +427,6 @@ frappe.views.Wiki = class Wiki {
 				this.setup_customization_buttons();
 				this.title = values.title;
 				this.parent = values.parent;
-				// const index = this.all_pages.findIndex(e => e.selected == true )
-				// this.all_pages[index].selected = false;
-				// let item = {name: this.title, selected: true}
-				// this.make_sidebar([...this.all_pages, item], 'new')
 				this.editor.render({
 					blocks: [
 						{
@@ -444,26 +495,21 @@ frappe.views.Wiki = class Wiki {
 					title: me.title,
 					parent: me.parent || '',
 					sb_items: me.sorted_sidebar_items,
+					deleted_pages: me.deleted_sidebar_items,
+					new_widgets: new_widgets,
 					blocks: JSON.stringify(outputData.blocks),
 					save: save
 				},
 				callback: function(res) {
 					frappe.dom.unfreeze();
 					if (res.message) {
-						let cur_page = res.message;
-						frappe.call('frappe.desk.desktop.save_new_widget', {
-							page: me.title,
-							new_widgets: new_widgets
-						}).then(res => {
-							if (res.message) {
-								frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
-								me.title = '';
-								me.parent = '';
-								me.sorted_sidebar_items = [];
-								me.new_page = cur_page;
-								me.reload();
-							}
-						});
+						frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
+						me.title = '';
+						me.parent = '';
+						me.sorted_sidebar_items = [];
+						me.deleted_sidebar_items = [];
+						me.new_page = res.message;
+						me.reload();
 					}
 				}
 			});

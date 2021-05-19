@@ -14,6 +14,23 @@
 
 	.standard-sidebar-item {
 		justify-content: space-between;
+
+		.sidebar-item-control {
+			> * {
+				align-self: center;
+				margin-left: 3px;
+				box-shadow: none;
+			}
+
+			.drag-handle {
+				cursor: all-scroll;
+				cursor: -webkit-grabbing;
+			}
+
+			svg {
+				margin-right: 0;
+			}
+		}
 	}
 
 	.sidebar-child-item-container {

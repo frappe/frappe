@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
+from frappe.desk.desktop import save_new_widget
 from frappe.model.document import Document
 
 class InternalWikiPage(Document):
@@ -16,7 +17,7 @@ class InternalWikiPage(Document):
 			self.sequence_id = frappe.get_last_doc('Internal Wiki Page').sequence_id + 1
 
 @frappe.whitelist()
-def save_wiki_page(title, parent, sb_items, blocks, save=True):
+def save_wiki_page(title, parent, sb_items, deleted_pages, new_widgets, blocks, save=True):
 	if save: 
 		if not frappe.db.exists("Workspace", title):
 			wspace = frappe.new_doc('Workspace')
@@ -38,6 +39,18 @@ def save_wiki_page(title, parent, sb_items, blocks, save=True):
 			doc = frappe.get_doc('Internal Wiki Page', d.get('name'))
 			doc.sequence_id = d.get('sequence_id')
 			doc.save()
+	
+	if json.loads(deleted_pages):
+		for d in json.loads(deleted_pages):
+			wiki_doc = frappe.get_doc('Internal Wiki Page', d)
+			wiki_doc.delete()
+			wspace_doc = frappe.get_doc('Workspace', d)
+			if not wspace_doc.is_standard:
+				wspace_doc.delete()
+		return 'Build'
+
+	if json.loads(new_widgets):
+		save_new_widget(title, new_widgets)
 
 	return doc.title
 

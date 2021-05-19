@@ -538,7 +538,6 @@ def save_customization(page, config):
 
 	return True
 
-@frappe.whitelist()
 def save_new_widget(page, new_widgets):
 	original_page = frappe.get_doc("Workspace", page)
 	widgets = _dict(loads(new_widgets))
