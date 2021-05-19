@@ -12,7 +12,7 @@ def get_response(path=None, http_status_code=200):
 	endpoint = path
 
 	try:
-		path_resolver = PathResolver(path, http_status_code)
+		path_resolver = PathResolver(path)
 		endpoint, renderer_instance = path_resolver.resolve()
 		if renderer_instance:
 			response = renderer_instance.render()

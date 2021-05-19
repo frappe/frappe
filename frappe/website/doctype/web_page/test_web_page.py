@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import unittest
 import frappe
-from frappe.website.router import resolve_route
+from frappe.website.path_resolver import PathResolver
 from frappe.website.serve import get_response, get_response_content
 from frappe.utils import set_request
 
@@ -18,10 +18,11 @@ class TestWebPage(unittest.TestCase):
 		for t in test_records:
 			frappe.get_doc(t).insert()
 
-	def test_check_sitemap(self):
-		resolve_route("test-web-page-1")
-		resolve_route("test-web-page-1/test-web-page-2")
-		resolve_route("test-web-page-1/test-web-page-3")
+	def test_path_resolver(self):
+		self.assertTrue(PathResolver("test-web-page-1").is_valid_path())
+		self.assertTrue(PathResolver("test-web-page-1/test-web-page-2").is_valid_path())
+		self.assertTrue(PathResolver("test-web-page-1/test-web-page-3").is_valid_path())
+		self.assertFalse(PathResolver("test-web-page-1/test-web-page-Random").is_valid_path())
 
 	def test_base_template(self):
 		content = get_page_content('/_test/_test_custom_base.html')
