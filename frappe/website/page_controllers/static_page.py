@@ -20,7 +20,7 @@ class StaticPage(WebPage):
 			return
 		for app in frappe.get_installed_apps():
 			file_path = frappe.get_app_path(app, 'www') + '/' + self.path
-			if os.path.exists(file_path):
+			if os.path.isfile(file_path):
 				self.file_path = file_path
 
 	def validate(self):
