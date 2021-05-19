@@ -57,6 +57,17 @@
 	margin-bottom: 0 !important;
 }
 
+.widget.header {
+	display: flex;
+	justify-content: center;
+	padding-left: 12px !important;
+	min-height: 65px;
+	box-shadow: none;
+	background-color: var(--control-bg);
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
 .codex-editor {
 	min-height: 630px;
 

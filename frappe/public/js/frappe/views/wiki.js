@@ -1,7 +1,4 @@
 import EditorJS from '@editorjs/editorjs';
-import Header from '@editorjs/header';
-import Checklist from '@editorjs/checklist';
-import List from '@editorjs/list';
 import Undo from 'editorjs-undo';
 
 frappe.views.Wiki = class Wiki {
@@ -151,20 +148,12 @@ frappe.views.Wiki = class Wiki {
 				if (this.content) {
 					this.tools = {
 						header: {
-							class: Header,
+							class: frappe.wiki_block.blocks['header'],
 							inlineToolbar: true
 						},
 						paragraph: {
 							class: frappe.wiki_block.blocks['paragraph'],
 							inlineToolbar: true
-						},
-						checklist: {
-							class: Checklist,
-							inlineToolbar: true,
-						},
-						list: {
-							class: List,
-							inlineToolbar: true,
 						},
 						chart: {
 							class: frappe.wiki_block.blocks['chart'],
@@ -184,7 +173,7 @@ frappe.views.Wiki = class Wiki {
 								page_data: this.page_data || []
 							}
 						},
-						blank: frappe.wiki_block.blocks['blank'],
+						spacer: frappe.wiki_block.blocks['spacer'],
 						spacingTune: frappe.wiki_block.tunes['spacing_tune'],
 					};
 					if (this.editor) {
