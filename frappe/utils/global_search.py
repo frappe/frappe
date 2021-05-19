@@ -332,8 +332,8 @@ def add_route_to_global_search(route):
 			route=route
 		)
 		sync_value_in_queue(value)
-	except (frappe.PermissionError, frappe.DoesNotExistError, frappe.ValidationError, Exception) as e:
-		raise e
+	except Exception:
+		pass
 
 	frappe.set_user('Administrator')
 

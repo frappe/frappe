@@ -63,7 +63,7 @@ class TestWebPage(unittest.TestCase):
 			dynamic_route = 1,
 			route = '/doctype-view/<doctype>',
 			content_type = 'HTML',
-			dymamic_template = 1,
+			dynamic_template = 1,
 			main_section_html = '<div>{{ frappe.form_dict.doctype }}</div>'
 		)).insert()
 
@@ -81,3 +81,32 @@ class TestWebPage(unittest.TestCase):
 		# assert template block rendered
 		self.assertTrue('<p>Test content</p>' in frappe.as_unicode(content))
 
+	def test_home_page(self):
+		content = get_response_content(path='/')
+		print(content)
+		content = get_response_content(path='/index')
+		print(content)
+
+	def test_table_of_content(self):
+		page = get_response(path='/_test/_test_folder/_test_toc')
+		print(page)
+
+	def test_sidebar_data(self):
+		pass
+
+	def test_meta_tags(self):
+		pass
+
+	def test_breadcrumbs(self):
+		pass
+
+	def test_downloadable_file(self):
+		pass
+
+
+
+
+# breadcrumb
+# validate
+# cache no-cache
+# page context caching
