@@ -5,6 +5,7 @@ import os
 import re
 import json
 import shutil
+import subprocess
 from tempfile import mkdtemp, mktemp
 from distutils.spawn import find_executable
 
@@ -15,6 +16,7 @@ import click
 import psutil
 from urllib.parse import urlparse
 from simple_chalk import green
+from semantic_version import Version
 
 
 timestamps = {}
@@ -36,35 +38,36 @@ def download_file(url, prefix):
 
 
 def build_missing_files():
-	# check which files dont exist yet from the build.json and tell build.js to build only those!
+	'''Check which files dont exist yet from the assets.json and run build for those files'''
+
 	missing_assets = []
 	current_asset_files = []
-	frappe_build = os.path.join("..", "apps", "frappe", "frappe", "public", "build.json")
 
 	for type in ["css", "js"]:
-		current_asset_files.extend(
-			[
-				"{0}/{1}".format(type, name)
-				for name in os.listdir(os.path.join(sites_path, "assets", type))
-			]
-		)
+		folder = os.path.join(sites_path, "assets", "frappe", "dist", type)
+		current_asset_files.extend(os.listdir(folder))
 
-	with open(frappe_build) as f:
-		all_asset_files = json.load(f).keys()
+	development = frappe.local.conf.developer_mode or frappe.local.dev_server
+	build_mode = "development" if development else "production"
 
-	for asset in all_asset_files:
-		if asset.replace("concat:", "") not in current_asset_files:
-			missing_assets.append(asset)
+	assets_json = frappe.read_file(frappe.get_app_path('frappe', 'public', 'dist', 'assets.json'))
+	if assets_json:
+		assets_json = frappe.parse_json(assets_json)
 
-	if missing_assets:
-		from subprocess import check_call
-		from shlex import split
+		for bundle_file, output_file in assets_json.items():
+			if not output_file.startswith('/assets/frappe'):
+				continue
 
-		click.secho("\nBuilding missing assets...\n", fg="yellow")
-		command = split(
-			"node rollup/build.js --files {0} --no-concat".format(",".join(missing_assets))
-		)
-		check_call(command, cwd=os.path.join("..", "apps", "frappe"))
+			if os.path.basename(output_file) not in current_asset_files:
+				missing_assets.append(bundle_file)
+
+		if missing_assets:
+			click.secho("\nBuilding missing assets...\n", fg="yellow")
+			files_to_build = ["frappe/" + name for name in missing_assets]
+			bundle(build_mode, files=files_to_build)
+	else:
+		# no assets.json, run full build
+		bundle(build_mode, apps="frappe")
 
 
 def get_assets_link(frappe_head):
@@ -200,49 +203,51 @@ def setup():
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 
 
-def get_node_pacman():
-	exec_ = find_executable("yarn")
-	if exec_:
-		return exec_
-	raise ValueError("Yarn not found")
-
-
-def bundle(no_compress, app=None, hard_link=False, verbose=False, skip_frappe=False):
+def bundle(mode, apps=None, hard_link=False, make_copy=False, restore=False, verbose=False, skip_frappe=False, files=None):
 	"""concat / minify js files"""
 	setup()
 	make_asset_dirs(hard_link=hard_link)
 
-	pacman = get_node_pacman()
-	mode = "build" if no_compress else "production"
-	command = "{pacman} run {mode}".format(pacman=pacman, mode=mode)
+	mode = "production" if mode == "production" else "build"
+	command = "yarn run {mode}".format(mode=mode)
 
-	if app:
-		command += " --app {app}".format(app=app)
+	if apps:
+		command += " --apps {apps}".format(apps=apps)
 
 	if skip_frappe:
 		command += " --skip_frappe"
 
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
-	check_yarn()
+	if files:
+		command += " --files {files}".format(files=','.join(files))
+
+	command += " --run-build-command"
+
+	check_node_executable()
+	frappe_app_path = frappe.get_app_path("frappe", "..")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
-def watch(no_compress):
+def watch(apps=None):
 	"""watch and rebuild if necessary"""
 	setup()
 
-	pacman = get_node_pacman()
+	command = "yarn run watch"
+	if apps:
+		command += " --apps {apps}".format(apps=apps)
 
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
-	check_yarn()
+	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
-	frappe.commands.popen("{pacman} run watch".format(pacman=pacman),
-		cwd=frappe_app_path, env=get_node_env())
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
-def check_yarn():
+def check_node_executable():
+	node_version = Version(subprocess.getoutput('node -v')[1:])
+	warn = '⚠️ '
+	if node_version.major < 14:
+		click.echo(f"{warn} Please update your node version to 14")
 	if not find_executable("yarn"):
-		print("Please install yarn using below command and try again.\nnpm install -g yarn")
+		click.echo(f"{warn} Please install yarn using below command and try again.\nnpm install -g yarn")
+	click.echo()
 
 def get_node_env():
 	node_env = {
