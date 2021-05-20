@@ -66,7 +66,7 @@ def get_formatted_email(user, mail=None):
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
 	email_id = parse_addr(email)[1]
-	if email_id and isinstance(email_id, bytes):
+	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
@@ -161,7 +161,7 @@ def validate_url(txt, throw=False, valid_schemes=None):
 
 		Parameters:
 			throw (`bool`): throws a validationError if URL is not valid
-			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this 
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
 
 		Returns:
 			bool: if `txt` represents a valid URL
@@ -225,14 +225,17 @@ def get_gravatar(email):
 
 	return gravatar_url
 
-def get_traceback():
+def get_traceback() -> str:
 	"""
 		 Returns the traceback of the Exception
 	"""
 	exc_type, exc_value, exc_tb = sys.exc_info()
+
+	if not any([exc_type, exc_value, exc_tb]):
+		return ""
+
 	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
-	body = "".join(cstr(t) for t in trace_list)
-	return body
+	return "".join(cstr(t) for t in trace_list)
 
 def log(event, details):
 	frappe.logger().info(details)
@@ -391,16 +394,15 @@ def get_site_url(site):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], str):
+		if isinstance(d[key], str) and isinstance(d[key], str):
 			d[key] = d[key].encode(encoding)
 
 	return d
 
 def decode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], bytes):
+		if isinstance(d[key], str) and not isinstance(d[key], str):
 			d[key] = d[key].decode(encoding, "ignore")
-
 	return d
 
 @functools.lru_cache()
@@ -425,7 +427,7 @@ def get_test_client():
 	return Client(application)
 
 def get_hook_method(hook_name, fallback=None):
-	method = (frappe.get_hooks().get(hook_name))
+	method = frappe.get_hooks().get(hook_name)
 	if method:
 		method = frappe.get_attr(method[0])
 		return method
@@ -439,6 +441,16 @@ def call_hook_method(hook, *args, **kwargs):
 
 	return out
 
+def is_cli() -> bool:
+	"""Returns True if current instance is being run via a terminal
+	"""
+	invoked_from_terminal = False
+	try:
+		invoked_from_terminal = bool(os.get_terminal_size())
+	except Exception:
+		invoked_from_terminal = sys.stdin.isatty()
+	return invoked_from_terminal
+
 def update_progress_bar(txt, i, l):
 	if os.environ.get("CI"):
 		if i == 0:
@@ -448,7 +460,7 @@ def update_progress_bar(txt, i, l):
 		sys.stdout.flush()
 		return
 
-	if not getattr(frappe.local, 'request', None):
+	if not getattr(frappe.local, 'request', None) or is_cli():
 		lt = len(txt)
 		try:
 			col = 40 if os.get_terminal_size().columns > 80 else 20
@@ -785,6 +797,24 @@ def get_build_version():
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback
 		return frappe.utils.random_string(8)
+
+def get_assets_json():
+	if not hasattr(frappe.local, "assets_json"):
+		cache = frappe.cache()
+		# using .get instead of .get_value to avoid pickle.loads
+		assets_json = cache.get("assets_json")
+		try:
+			assets_json = assets_json.decode('utf-8')
+		except (UnicodeDecodeError, AttributeError):
+			assets_json = None
+
+		if not assets_json:
+			assets_json = frappe.read_file("assets/frappe/dist/assets.json")
+			cache.set_value("assets_json", assets_json, shared=True)
+		frappe.local.assets_json = frappe.safe_decode(assets_json)
+
+	return frappe.parse_json(frappe.local.assets_json)
+
 
 def get_bench_relative_path(file_path):
 	"""Fixes paths relative to the bench root directory if exists and returns the absolute path

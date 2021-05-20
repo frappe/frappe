@@ -910,6 +910,10 @@ export default class Grid {
 
 	update_docfield_property(fieldname, property, value) {
 		// update the docfield of each row
+		if (!this.grid_rows) {
+			return;
+		}
+
 		for (let row of this.grid_rows) {
 			let docfield = row.docfields.find(d => d.fieldname === fieldname);
 			if (docfield) {

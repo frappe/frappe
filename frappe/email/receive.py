@@ -284,7 +284,7 @@ class EmailServer:
 
 		flags = []
 		for flag in imaplib.ParseFlags(flag_string) or []:
-			pattern = re.compile("\w+")
+			pattern = re.compile(r"\w+")
 			match = re.search(pattern, frappe.as_unicode(flag))
 			flags.append(match.group(0))
 
@@ -555,7 +555,7 @@ class Email:
 
 	def get_thread_id(self):
 		"""Extract thread ID from `[]`"""
-		l = re.findall('(?<=\[)[\w/-]+', self.subject)
+		l = re.findall(r'(?<=\[)[\w/-]+', self.subject)
 		return l and l[0] or None
 
 

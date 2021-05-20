@@ -193,6 +193,7 @@ class TestSameContent(unittest.TestCase):
 
 class TestFile(unittest.TestCase):
 	def setUp(self):
+		frappe.set_user('Administrator')
 		self.delete_test_data()
 		self.upload_file()
 
