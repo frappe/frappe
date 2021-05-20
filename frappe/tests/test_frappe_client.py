@@ -1,8 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
 
-import unittest, frappe, os
+import unittest, frappe
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.utils.data import get_url
@@ -10,7 +9,7 @@ from frappe.utils.data import get_url
 import requests
 import base64
 
-class TestAPI(unittest.TestCase):
+class TestFrappeClient(unittest.TestCase):
 	def test_insert_many(self):
 		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
 		frappe.db.sql("delete from `tabNote` where title in ('Sing','a','song','of','sixpence')")
