@@ -706,7 +706,7 @@ def parse_val(v):
 		v = int(v)
 	return v
 
-def fmt_money(amount, format=None, precision=None, currency=None):
+def fmt_money(amount, precision=None, currency=None, format=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
