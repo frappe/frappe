@@ -3,7 +3,7 @@ import Mention from './quill-mention/quill.mention';
 
 Quill.register('modules/mention', Mention, true);
 
-frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
+frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.ControlTextEditor {
 	make_wrapper() {
 		this.comment_wrapper = !this.no_wrapper ? $(`
 			<div class="comment-input-wrapper">
@@ -32,10 +32,10 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 		this.wrapper = this.$wrapper;
 
 		this.button = this.comment_wrapper.find('.btn-comment');
-	},
+	}
 
 	bind_events() {
-		this._super();
+		super.bind_events();
 
 		this.button.click(() => {
 			this.submit();
@@ -52,11 +52,11 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 		this.quill.on('text-change', frappe.utils.debounce(() => {
 			this.update_state();
 		}, 300));
-	},
+	}
 
 	submit() {
 		this.on_submit && this.on_submit(this.get_value());
-	},
+	}
 
 	update_state() {
 		const value = this.get_value();
@@ -65,50 +65,40 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 		} else {
 			this.button.addClass('btn-default').removeClass('btn-primary');
 		}
-	},
+	}
 
 	get_quill_options() {
-		const options = this._super();
+		const options = super.get_quill_options();
 		return Object.assign(options, {
 			theme: 'bubble',
 			modules: Object.assign(options.modules, {
 				mention: this.get_mention_options()
 			})
 		});
-	},
+	}
 
 	get_mention_options() {
-		if (!(this.mentions && this.mentions.length)) {
+		if (!this.enable_mentions) {
 			return null;
 		}
-
-		const at_values = this.mentions.slice();
-
+		let me = this;
 		return {
 			allowedChars: /^[A-Za-z0-9_]*$/,
 			mentionDenotationChars: ["@"],
 			isolateCharacter: true,
-			source: function (searchTerm, renderList, mentionChar) {
-				let values;
-
-				if (mentionChar === "@") {
-					values = at_values;
-				}
-
-				if (searchTerm.length === 0) {
-					renderList(values, searchTerm);
-				} else {
-					const matches = [];
-					for (let i = 0; i < values.length; i++) {
-						if (~values[i].value.toLowerCase().indexOf(searchTerm.toLowerCase())) {
-							matches.push(values[i]);
-						}
-					}
-					renderList(matches, searchTerm);
-				}
-			},
+			source: frappe.utils.debounce(async function(search_term, renderList) {
+				let method = me.mention_search_method || 'frappe.desk.search.get_names_for_mentions';
+				let values = await frappe.xcall(method, {
+					search_term
+				});
+				renderList(values, search_term);
+			}, 300),
+			renderItem(item) {
+				let value = item.value;
+				return `${value} ${item.is_group ? frappe.utils.icon('users') : ''}`;
+			}
 		};
-	},
+	}
 
 	get_toolbar_options() {
 		return [
@@ -118,19 +108,19 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
 			['clean']
 		];
-	},
+	}
 
 	clear() {
 		this.quill.setText('');
-	},
+	}
 
 	disable() {
 		this.quill.disable();
 		this.button.prop('disabled', true);
-	},
+	}
 
 	enable() {
 		this.quill.enable();
 		this.button.prop('disabled', false);
 	}
-});
+};

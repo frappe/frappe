@@ -197,8 +197,7 @@ $level-margin-right: 8px;
 
 input.list-check-all, input.list-row-checkbox {
 	margin-top: 0px;
-	margin-left: calc(var(--custom-checkbox-size) / 2);
-	--checkbox-right-margin: #{$level-margin-right};
+	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
 }
 
 .filterable {

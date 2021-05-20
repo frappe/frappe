@@ -34,8 +34,9 @@ def get_controller(doctype):
 		from frappe.model.document import Document
 		from frappe.utils.nestedset import NestedSet
 
-		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
-			or ["Core", False]
+		module_name, custom = frappe.db.get_value(
+			"DocType", doctype, ("module", "custom"), cache=True
+		) or ["Core", False]
 
 		if custom:
 			if frappe.db.field_exists("DocType", "is_tree"):
@@ -666,6 +667,12 @@ class BaseDocument(object):
 			if data_field_options == "Phone":
 				frappe.utils.validate_phone_number(data, throw=True)
 
+			if data_field_options == "URL":
+				if not data:
+					continue
+				
+				frappe.utils.validate_url(data, throw=True)
+
 	def _validate_constants(self):
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
 			return
@@ -863,7 +870,7 @@ class BaseDocument(object):
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
-		if not currency:
+		if not currency and df:
 			currency = self.get(df.get("options"))
 			if not frappe.db.exists('Currency', currency, cache=True):
 				currency = None

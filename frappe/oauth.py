@@ -4,11 +4,9 @@ import hashlib
 import re
 from http import cookies
 from urllib.parse import unquote, urlparse
-
 import jwt
 import pytz
 from oauthlib.openid import RequestValidator
-
 import frappe
 from frappe.auth import LoginManager
 
@@ -599,9 +597,10 @@ def get_client_scopes(client_id):
 def get_userinfo(user):
 	picture = None
 	frappe_server_url = get_server_url()
+	valid_url_schemes = ("http", "https", "ftp", "ftps")
 
 	if user.user_image:
-		if frappe.utils.validate_url(user.user_image):
+		if frappe.utils.validate_url(user.user_image, valid_schemes=valid_url_schemes):
 			picture = user.user_image
 		else:
 			picture = frappe_server_url + "/" + user.user_image
