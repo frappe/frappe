@@ -32,6 +32,7 @@ class BaseTemplatePage(WebPage):
 		# to be able to inspect the context dict
 		# Use the macro "inspect" from macros.html
 		self.context._context_dict = self.context
+		self.context.canonical = frappe.utils.get_url(frappe.utils.escape_html(self.path))
 
 		# context sends us a new template path
 		if self.context.template:
