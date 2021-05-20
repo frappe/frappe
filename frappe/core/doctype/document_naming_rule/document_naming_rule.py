@@ -35,4 +35,3 @@ class DocumentNamingRule(Document):
 def update_current(name, new_counter):
 	frappe.only_for('System Manager')
 	frappe.db.set_value('Document Naming Rule', name, 'counter', new_counter)
-	frappe.db.commit()
