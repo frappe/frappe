@@ -25,6 +25,11 @@
 			.drag-handle {
 				cursor: all-scroll;
 				cursor: -webkit-grabbing;
+				display: none;
+			}
+
+			.delete-page {
+				display: none;
 			}
 
 			svg {
@@ -49,6 +54,30 @@
 		display: flex;
 		overflow: hidden;
 		flex: 1;
+	}
+
+	.standard-sidebar-section.show-control {
+		.desk-sidebar-item.standard-sidebar-item {
+			&:hover {
+				.drag-handle {
+					display: inline-block;
+				}
+	
+				.delete-page {
+					display: inline-block;
+				}
+			}
+			
+			&.selected {
+				.drag-handle {
+					display: inline-block;
+				}
+	
+				.delete-page {
+					display: inline-block;
+				}
+			}
+		}
 	}
 }
 

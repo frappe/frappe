@@ -282,15 +282,14 @@ frappe.views.Wiki = class Wiki {
 	}
 
 	show_sidebar_actions() {
-		$('.sidebar-item-control .drag-handle').removeClass('hidden');
-		$('.sidebar-item-control .delete-page').removeClass('hidden');
+		this.sidebar.find('.standard-sidebar-section').addClass('show-control');
 	}
 
 	add_sidebar_actions(item, sidebar_control) {
 		this.add_custom_button(
 			frappe.utils.icon('drag', 'xs'),
 			null,
-			"drag-handle hidden",
+			"drag-handle",
 			`${__('Drag')}`,
 			null,
 			sidebar_control
@@ -298,7 +297,7 @@ frappe.views.Wiki = class Wiki {
 		this.add_custom_button(
 			frappe.utils.icon('delete', 'xs'),
 			() => this.delete_page(item.name),
-			"delete-page hidden",
+			"delete-page",
 			`${__('Delete')}`,
 			null,
 			sidebar_control
