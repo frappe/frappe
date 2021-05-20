@@ -82,6 +82,15 @@ class TestWebPage(unittest.TestCase):
 		# assert template block rendered
 		self.assertTrue('<p>Test content</p>' in frappe.as_unicode(content))
 
+	def test_json_sidebar_data(self):
+		frappe.flags.look_for_sidebar = False
+		content = get_response_content('/_test/_test_folder/_test_page')
+		self.assertTrue('Test Sidebar' not in frappe.as_unicode(content))
+		frappe.flags.look_for_sidebar = True
+		content = get_response_content('/_test/_test_folder/_test_page')
+		self.assertTrue('Test Sidebar' in frappe.as_unicode(content))
+		frappe.flags.look_for_sidebar = False
+
 	def test_home_page(self):
 		content = get_response_content(path='/')
 		print(content)
