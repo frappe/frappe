@@ -513,7 +513,7 @@ def move(dest_dir, site):
 		site_dump_exists = os.path.exists(final_new_path)
 		count = int(count or 0) + 1
 
-	os.rename(old_path, final_new_path)
+	shutil.move(old_path, final_new_path)
 	frappe.destroy()
 	return final_new_path
 

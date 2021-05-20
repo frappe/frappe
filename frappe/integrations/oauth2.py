@@ -101,7 +101,7 @@ def get_token(*args, **kwargs):
 	http_method = r.method
 	body = r.form
 	headers = r.headers
-	
+
 	#Check whether frappe server URL is set
 	frappe_server_url = frappe.db.get_value("Social Login Key", "frappe", "base_url") or None
 	if not frappe_server_url:
@@ -130,7 +130,7 @@ def get_token(*args, **kwargs):
 			}
 			import jwt
 			id_token_encoded = jwt.encode(id_token, client_secret, algorithm='HS256', headers=id_token_header)
-			out.update({"id_token":str(id_token_encoded)})
+			out.update({"id_token": frappe.safe_decode(id_token_encoded)})
 		frappe.local.response = out
 
 	except FatalClientError as e:
@@ -177,7 +177,7 @@ def openid_profile(*args, **kwargs):
 			"email": name,
 			"picture": picture
 		})
-	
+
 	frappe.local.response = user_profile
 
 def validate_url(url_string):
