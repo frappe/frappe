@@ -11,6 +11,7 @@ from past.builtins import cmp
 from six import iteritems
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import md_to_html
 
@@ -154,7 +155,7 @@ def cleanup_page_name(title):
 
 
 def get_shade(color, percent=None):
-	frappe.msgprint('get_shade method has been deprecated!')
+	frappe.msgprint(_('get_shade method has been deprecated.'))
 	return color
 
 def abs_url(path):
