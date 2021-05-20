@@ -31,7 +31,7 @@ frappe.ui.form.on('Document Naming Rule', {
 				label: __('New Counter'),
 				default: frm.doc.counter,
 				reqd: 1,
-				description: __('This will update the counter and will affect all documents that will be created')
+				description: __('Updating counter may lead to document name conflicts if not done properly')
 			}];
 
 			let primary_action_label = __('Save');
