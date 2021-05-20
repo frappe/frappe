@@ -1,8 +1,8 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
+from frappe.utils import update_progress_bar
 
 from whoosh.index import create_in, open_dir, EmptyIndexError
 from whoosh.fields import TEXT, ID, Schema
@@ -95,9 +95,10 @@ class FullTextSearch:
 		ix = self.create_index()
 		writer = ix.writer()
 
-		for document in self.documents:
+		for i, document in enumerate(self.documents):
 			if document:
 				writer.add_document(**document)
+			update_progress_bar("Building Index", i, len(self.documents))
 
 		writer.commit(optimize=True)
 

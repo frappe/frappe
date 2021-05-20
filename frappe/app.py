@@ -99,17 +99,7 @@ def application(request):
 		frappe.monitor.stop(response)
 		frappe.recorder.dump()
 
-		if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
-			frappe.logger("frappe.web", allow_site=frappe.local.site).info({
-				"site": get_site_name(request.host),
-				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
-				"base_url": getattr(request, "base_url", "NOTFOUND"),
-				"full_path": getattr(request, "full_path", "NOTFOUND"),
-				"method": getattr(request, "method", "NOTFOUND"),
-				"scheme": getattr(request, "scheme", "NOTFOUND"),
-				"http_status_code": getattr(response, "status_code", "NOTFOUND")
-			})
-
+		log_request(request, response)
 		process_response(response)
 		frappe.destroy()
 
@@ -136,6 +126,19 @@ def init_request(request):
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = frappe.auth.HTTPRequest()
+
+def log_request(request, response):
+	if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
+		frappe.logger("frappe.web", allow_site=frappe.local.site).info({
+			"site": get_site_name(request.host),
+			"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
+			"base_url": getattr(request, "base_url", "NOTFOUND"),
+			"full_path": getattr(request, "full_path", "NOTFOUND"),
+			"method": getattr(request, "method", "NOTFOUND"),
+			"scheme": getattr(request, "scheme", "NOTFOUND"),
+			"http_status_code": getattr(response, "status_code", "NOTFOUND")
+		})
+
 
 def process_response(response):
 	if not response:
