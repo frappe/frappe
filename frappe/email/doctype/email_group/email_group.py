@@ -105,10 +105,6 @@ def send_welcome_email(welcome_email, email, email_group):
 		email=email,
 		email_group=email_group
 	)
-	if welcome_email.response is None:
-		email_message=welcome_email.response_html
-	else:
-		email_message=welcome_email.response
+	email_message = welcome_email.response or welcome_email.response_html
 	message = frappe.render_template(email_message, args)
 	frappe.sendmail(email, subject=welcome_email.subject, message=message)
-
