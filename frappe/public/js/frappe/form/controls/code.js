@@ -1,8 +1,8 @@
-frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
+frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlText {
 	make_input() {
 		if (this.editor) return;
 		this.load_lib().then(() => this.make_ace_editor());
-	},
+	}
 
 	make_ace_editor() {
 		if (this.editor) return;
@@ -34,6 +34,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 
 		// setup autocompletion when it is set the first time
 		Object.defineProperty(this.df, 'autocompletions', {
+			configurable: true,
 			get() {
 				return this._autocompletions || [];
 			},
@@ -42,7 +43,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 				this.df._autocompletions = value;
 			}
 		});
-	},
+	}
 
 	setup_autocompletion() {
 		if (this._autocompletion_setup) return;
@@ -82,20 +83,20 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			});
 		});
 		this._autocompletion_setup = true;
-	},
+	}
 
 	refresh_height() {
 		this.ace_editor_target.css('height', this.expanded ? 600 : 300);
 		this.editor.resize();
-	},
+	}
 
 	toggle_label() {
 		this.$expand_button && this.$expand_button.text(this.get_button_label());
-	},
+	}
 
 	get_button_label() {
 		return this.expanded ? __('Collapse', null, 'Shrink code field.') : __('Expand', null, 'Enlarge code field.');
-	},
+	}
 
 	set_language() {
 		const language_map = {
@@ -122,14 +123,14 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		const ace_language_mode = language_map[language] || '';
 		this.editor.session.setMode(ace_language_mode);
 		this.editor.setKeyboardHandler('ace/keyboard/vscode');
-	},
+	}
 
 	parse(value) {
 		if (value == null) {
 			value = "";
 		}
 		return value;
-	},
+	}
 
 	set_formatted_input(value) {
 		return this.load_lib().then(() => {
@@ -138,11 +139,11 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			if (value === this.get_input_value()) return;
 			this.editor.session.setValue(value);
 		});
-	},
+	}
 
 	get_input_value() {
 		return this.editor ? this.editor.session.getValue() : '';
-	},
+	}
 
 	load_lib() {
 		if (this.library_loaded) return this.library_loaded;
@@ -162,4 +163,4 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 
 		return this.library_loaded;
 	}
-});
+};

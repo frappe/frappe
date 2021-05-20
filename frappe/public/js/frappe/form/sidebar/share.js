@@ -3,15 +3,15 @@
 
 
 
-frappe.ui.form.Share = Class.extend({
-	init: function(opts) {
+frappe.ui.form.Share = class Share {
+	constructor(opts) {
 		$.extend(this, opts);
 		this.shares = this.parent.find('.shares');
-	},
-	refresh: function() {
+	}
+	refresh() {
 		this.render_sidebar();
-	},
-	render_sidebar: function() {
+	}
+	render_sidebar() {
 		const shared = this.shared || this.frm.get_docinfo().shared;
 		const shared_users = shared.filter(Boolean).map(s => s.user);
 
@@ -33,8 +33,8 @@ frappe.ui.form.Share = Class.extend({
 		this.shares.show();
 		// REDESIGN-TODO: handle "shared with everyone"
 		this.shares.append(frappe.avatar_group(shared_users, 5, {'align': 'left', 'overlap': true}));
-	},
-	show: function() {
+	}
+	show() {
 		var me = this;
 		var d = new frappe.ui.Dialog({
 			title: __("Share {0} with", [this.frm.doc.name]),
@@ -62,8 +62,8 @@ frappe.ui.form.Share = Class.extend({
 		}
 
 		d.show();
-	},
-	render_shared: function(shared) {
+	}
+	render_shared(shared) {
 		if(shared)
 			this.shared = shared;
 		var d = this.dialog;
@@ -88,8 +88,8 @@ frappe.ui.form.Share = Class.extend({
 			// if cannot share, disable sharing settings.
 			$(d.body).find(".edit-share").prop("disabled", true);
 		}
-	},
-	make_user_input: function() {
+	}
+	make_user_input() {
 		// make add-user input
 		this.dialog.share_with = frappe.ui.form.make_control({
 			parent: $(this.dialog.body).find(".input-wrapper-add-share"),
@@ -107,8 +107,8 @@ frappe.ui.form.Share = Class.extend({
 			render_input: true
 		});
 
-	},
-	add_share_button: function() {
+	}
+	add_share_button() {
 		var me = this, d = this.dialog;
 		$(d.body).find(".btn-add-share").on("click", function() {
 			var user = d.share_with.get_value();
@@ -142,8 +142,8 @@ frappe.ui.form.Share = Class.extend({
 				}
 			});
 		});
-	},
-	set_edit_share_events: function() {
+	}
+	set_edit_share_events() {
 		var me = this, d = this.dialog;
 		$(d.body).find(".edit-share").on("click", function() {
 			var user = $(this).parents(".shared-user:first").attr("data-user") || "",
@@ -186,5 +186,5 @@ frappe.ui.form.Share = Class.extend({
 				}
 			});
 		});
-	},
-});
+	}
+};

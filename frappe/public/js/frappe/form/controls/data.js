@@ -1,14 +1,16 @@
 frappe.provide('frappe.phone_call');
 
-frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
-	html_element: "input",
-	input_type: "text",
-	trigger_change_on_input_event: true,
-	make_input: function() {
+frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInput {
+	static html_element = "input";
+	static input_type = "text";
+	static trigger_change_on_input_event = true;
+	make_input() {
 		if(this.$input) return;
 
-		this.$input = $("<"+ this.html_element +">")
-			.attr("type", this.input_type)
+		let { html_element, input_type } = this.constructor;
+
+		this.$input = $("<"+ html_element +">")
+			.attr("type", input_type)
 			.attr("autocomplete", "off")
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area);
@@ -32,7 +34,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 					let doctype_edit_link = null;
 					if (this.frm.meta.custom) {
 						doctype_edit_link = frappe.utils.get_form_link(
-							'DocType', 
+							'DocType',
 							this.frm.doctype, true,
 							__('this form')
 						);
@@ -65,8 +67,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		if (this.df.options == 'URL') {
 			this.setup_url_field();
 		}
-	},
-	setup_url_field: function() {
+	}
+
+	setup_url_field() {
 		this.$wrapper.find('.control-input').append(
 			`<span class="link-btn">
 				<a class="btn-open no-decoration" title="${__("Open Link")}" target="_blank">
@@ -74,14 +77,14 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				</a>
 			</span>`
 		);
-		
+
 		this.$link = this.$wrapper.find('.link-btn');
 		this.$link_open = this.$link.find('.btn-open');
-		
+
 		this.$input.on("focus", () => {
 			setTimeout(() => {
 				let inputValue = this.get_input_value();
-				
+
 				if (inputValue && validate_url(inputValue)) {
 					this.$link.toggle(true);
 					this.$link_open.attr('href', this.get_input_value());
@@ -100,7 +103,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				this.$link.toggle(false);
 			}
 		});
-		
+
 		this.$input.on("blur", () => {
 			// if this disappears immediately, the user's click
 			// does not register, hence timeout
@@ -108,8 +111,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				this.$link.toggle(false);
 			}, 500);
 		});
-	},
-	bind_change_event: function() {
+	}
+
+	bind_change_event() {
 		const change_handler = e => {
 			if (this.change) this.change(e);
 			else {
@@ -118,12 +122,12 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			}
 		};
 		this.$input.on("change", change_handler);
-		if (this.trigger_change_on_input_event) {
+		if (this.constructor.trigger_change_on_input_event) {
 			// debounce to avoid repeated validations on value change
 			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
 		}
-	},
-	setup_autoname_check: function() {
+	}
+	setup_autoname_check() {
 		if (!this.df.parent) return;
 		this.meta = frappe.get_meta(this.df.parent);
 		if (this.meta && ((this.meta.autoname
@@ -152,8 +156,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				}
 			});
 		}
-	},
-	set_input_attributes: function() {
+	}
+	set_input_attributes() {
 		this.$input
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
@@ -167,24 +171,24 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		if(this.df.input_class) {
 			this.$input.addClass(this.df.input_class);
 		}
-	},
-	set_input: function(value) {
+	}
+	set_input(value) {
 		this.last_value = this.value;
 		this.value = value;
 		this.set_formatted_input(value);
 		this.set_disp_area(value);
 		this.set_mandatory && this.set_mandatory(value);
-	},
-	set_formatted_input: function(value) {
+	}
+	set_formatted_input(value) {
 		this.$input && this.$input.val(this.format_for_input(value));
-	},
-	get_input_value: function() {
+	}
+	get_input_value() {
 		return this.$input ? this.$input.val() : undefined;
-	},
-	format_for_input: function(val) {
+	}
+	format_for_input(val) {
 		return val==null ? "" : val;
-	},
-	validate: function(v) {
+	}
+	validate(v) {
 		if (!v) {
 			return '';
 		}
@@ -217,9 +221,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		} else {
 			return v;
 		}
-	},
-	toggle_container_scroll: function(el_class, scroll_class, add=false) {
+	}
+	toggle_container_scroll(el_class, scroll_class, add=false) {
 		let el = this.$input.parents(el_class)[0];
 		if (el) $(el).toggleClass(scroll_class, add);
 	}
-});
+};

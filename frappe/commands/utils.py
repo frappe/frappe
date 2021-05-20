@@ -16,23 +16,33 @@ from frappe.utils import get_bench_path, update_progress_bar, cint
 
 @click.command('build')
 @click.option('--app', help='Build assets for app')
+@click.option('--apps', help='Build assets for specific apps')
 @click.option('--hard-link', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--make-copy', is_flag=True, default=False, help='[DEPRECATED] Copy the files instead of symlinking')
 @click.option('--restore', is_flag=True, default=False, help='[DEPRECATED] Copy the files instead of symlinking with force')
+@click.option('--production', is_flag=True, default=False, help='Build assets in production mode')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', is_flag=True, default=False, help='Force build assets instead of downloading available')
-def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=False, force=False):
-	"Minify + concatenate JS and CSS files, build translations"
+def build(app=None, apps=None, hard_link=False, make_copy=False, restore=False, production=False, verbose=False, force=False):
+	"Compile JS and CSS source files"
+	from frappe.build import bundle, download_frappe_assets
 	frappe.init('')
-	# don't minify in developer_mode for faster builds
-	no_compress = frappe.local.conf.developer_mode or False
+
+	if not apps and app:
+		apps = app
 
 	# dont try downloading assets if force used, app specified or running via CI
-	if not (force or app or os.environ.get('CI')):
+	if not (force or apps or os.environ.get('CI')):
 		# skip building frappe if assets exist remotely
-		skip_frappe = frappe.build.download_frappe_assets(verbose=verbose)
+		skip_frappe = download_frappe_assets(verbose=verbose)
 	else:
 		skip_frappe = False
+
+	# don't minify in developer_mode for faster builds
+	development = frappe.local.conf.developer_mode or frappe.local.dev_server
+	mode = "development" if development else "production"
+	if production:
+		mode = "production"
 
 	if make_copy or restore:
 		hard_link = make_copy or restore
@@ -41,21 +51,17 @@ def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=Fal
 			fg="yellow",
 		)
 
-	frappe.build.bundle(
-		skip_frappe=skip_frappe,
-		no_compress=no_compress,
-		hard_link=hard_link,
-		verbose=verbose,
-		app=app,
-	)
+	bundle(mode, apps=apps, hard_link=hard_link, verbose=verbose, skip_frappe=skip_frappe)
+
 
 
 @click.command('watch')
-def watch():
-	"Watch and concatenate JS and CSS files as and when they change"
-	import frappe.build
+@click.option('--apps', help='Watch assets for specific apps')
+def watch(apps=None):
+	"Watch and compile JS and CSS files as and when they change"
+	from frappe.build import watch
 	frappe.init('')
-	frappe.build.watch(True)
+	watch(apps)
 
 
 @click.command('clear-cache')
@@ -501,8 +507,6 @@ frappe.db.connect()
 @pass_context
 def console(context):
 	"Start ipython console for a site"
-	import warnings
-
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.connect()
@@ -523,7 +527,6 @@ def console(context):
 	if failed_to_import:
 		print("\nFailed to import:\n{}".format(", ".join(failed_to_import)))
 
-	warnings.simplefilter('ignore')
 	IPython.embed(display_banner="", header="", colors="neutral")
 
 
