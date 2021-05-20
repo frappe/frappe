@@ -69,16 +69,31 @@
 		box-shadow: none;
 		background-color: var(--control-bg);
 		color: var(--text-muted);
-		cursor: pointer;
-
-		&:focus {
-			outline: none;
-		}
 	}
 
+	&:focus {
+		outline: none;
+	}
+	
 	&.new-widget {
 		align-items: inherit;
 	}
+
+	.paragraph-control {
+		display: flex;
+		flex-direction: row-reverse;
+		position: absolute;
+		right: 20px;
+		gap: 5px;
+		background-color: var(--card-bg);
+		padding-left: 5px;
+
+		.drag-handle {
+			cursor: all-scroll;
+			cursor: -webkit-grabbing;
+		}
+	}
+
 }
 
 .codex-editor {

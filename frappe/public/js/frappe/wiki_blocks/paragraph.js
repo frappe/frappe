@@ -57,7 +57,50 @@ export default class Paragraph {
 	}
 
 	render() {
+		this.wrapper = document.createElement('div');
+		this.wrapper.contentEditable = this.readOnly ? 'false' : 'true';
+		if (!this.readOnly) {
+			let $para_control = $(`<div class="paragraph-control"></div>`)
+
+			this.wrapper.appendChild(this._element);
+			this._element.classList.remove('widget');
+			$para_control.appendTo(this.wrapper);
+			
+			this.wrapper.classList.add('widget');
+
+			this.add_custom_button(
+				frappe.utils.icon('delete', 'xs'),
+				() => this.api.blocks.delete(),
+				"delete-paragraph",
+				`${__('Delete')}`,
+				null,
+				$para_control
+			);
+
+			this.add_custom_button(
+				frappe.utils.icon('drag', 'xs'),
+				null,
+				"drag-handle",
+				`${__('Drag')}`,
+				null,
+				$para_control
+			);
+
+			return this.wrapper;
+		}
 		return this._element;
+	}
+
+	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
+		if (!btn_type) btn_type = 'btn-secondary';
+		let button = $(
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
+		);
+		button.click(event => {
+			event.stopPropagation();
+			action && action();
+		});
+		button.appendTo(wrapper);
 	}
 
 	merge(data) {
