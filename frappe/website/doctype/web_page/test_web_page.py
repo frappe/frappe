@@ -93,16 +93,10 @@ class TestWebPage(unittest.TestCase):
 
 	def test_home_page(self):
 		content = get_response_content(path='/')
-		print(content)
 		content = get_response_content(path='/index')
-		print(content)
 
 	def test_table_of_content(self):
 		page = get_response(path='/_test/_test_folder/_test_toc')
-		print(page)
-
-	def test_sidebar_data(self):
-		pass
 
 	def test_meta_tags(self):
 		pass
@@ -118,5 +112,4 @@ class TestWebPage(unittest.TestCase):
 
 # breadcrumb
 # validate
-# cache no-cache
 # page context caching
