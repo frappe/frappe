@@ -25,11 +25,51 @@ export default class Spacer {
 	render() {
 		this.wrapper = document.createElement('div');
 		if (!this.readOnly) {
-			this.wrapper.innerText = 'Spacer';
+			let $spacer = $(`
+				<div class="widget-head">
+					<div></div>
+					<div>Spacer</div>
+					<div class="widget-control"></div>
+				</div>
+			`)
+			$spacer.appendTo(this.wrapper);
+
 			this.wrapper.classList.add('widget', 'new-widget');
 			this.wrapper.style.minHeight = 50 + 'px';
+
+			let $widget_control = $spacer.find('.widget-control')
+
+			this.add_custom_button(
+				frappe.utils.icon('delete', 'xs'),
+				() => this.api.blocks.delete(),
+				"delete-spacer",
+				`${__('Delete')}`,
+				null,
+				$widget_control
+			);
+			
+			this.add_custom_button(
+				frappe.utils.icon('drag', 'xs'),
+				null,
+				"drag-handle",
+				`${__('Drag')}`,
+				null,
+				$widget_control
+			);
 		}
 		return this.wrapper;
+	}
+
+	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
+		if (!btn_type) btn_type = 'btn-secondary';
+		let button = $(
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
+		);
+		button.click(event => {
+			event.stopPropagation();
+			action && action();
+		});
+		button.appendTo(wrapper);
 	}
 
 	save() {
@@ -43,7 +83,7 @@ export default class Spacer {
 	}
 
 	rendered() {
-		var e = this.wrapper.parentNode.parentNode;
+		var e = this.wrapper.closest('.ce-block');
 		e.classList.add("col-" + this.col);
 		e.classList.add("pt-" + this.pt);
 		e.classList.add("pr-" + this.pr);
@@ -54,7 +94,7 @@ export default class Spacer {
 	_getCol() {
 		var e = 12;
 		var t = "col-12";
-		var n = this.wrapper.parentNode.parentNode;
+		var n = this.wrapper.closest('.ce-block');
 		var r = new RegExp(/\bcol-.+?\b/, "g");
 		if (n.className.match(r)) {
 			n.classList.forEach(function (e) {
@@ -70,7 +110,7 @@ export default class Spacer {
 		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
 		var t = 0;
 		var n = "p" + e + "-0";
-		var r = this.wrapper.parentNode.parentNode;
+		var r = this.wrapper.closest('.ce-block');
 		var a = new RegExp(/\pl-.+?\b/, "g");
 		var i = new RegExp(/\pr-.+?\b/, "g");
 		var o = new RegExp(/\pt-.+?\b/, "g");

@@ -43,11 +43,51 @@ export default class Header {
 	}
 
 	render() {
+		this.wrapper = document.createElement('div');
+		this.wrapper.contentEditable = this.readOnly ? 'false' : 'true';
 		if (!this.readOnly) {
-			this._element.classList.add('widget', 'header');
-			this._element.style.minHeight = 50 + 'px';
+			let $widget_head = $(`<div class="widget-head"></div>`)
+			let $widget_control = $(`<div class="widget-control"></div>`)
+
+			$widget_head[0].appendChild(this._element);
+			$widget_control.appendTo($widget_head);
+			$widget_head.appendTo(this.wrapper);
+			
+			this.wrapper.classList.add('widget', 'header');
+
+			this.add_custom_button(
+				frappe.utils.icon('delete', 'xs'),
+				() => this.api.blocks.delete(),
+				"delete-header",
+				`${__('Delete')}`,
+				null,
+				$widget_control
+			);
+
+			this.add_custom_button(
+				frappe.utils.icon('drag', 'xs'),
+				null,
+				"drag-handle",
+				`${__('Drag')}`,
+				null,
+				$widget_control
+			);
+
+			return this.wrapper;
 		}
 		return this._element;
+	}
+
+	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
+		if (!btn_type) btn_type = 'btn-secondary';
+		let button = $(
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
+		);
+		button.click(event => {
+			event.stopPropagation();
+			action && action();
+		});
+		button.appendTo(wrapper);
 	}
 
 	renderSettings() {
@@ -108,7 +148,7 @@ export default class Header {
 
 	save(toolsContent) {
 		return {
-			text: toolsContent.innerHTML,
+			text: toolsContent.innerText,
 			level: this.currentLevel.number,
 			col: this._getCol(),
 			pt: this._getPadding("t"),
@@ -119,7 +159,7 @@ export default class Header {
 	}
 
 	rendered() {
-		var e = this._element.parentNode.parentNode;
+		var e = this._element.closest('.ce-block');
 		e.classList.add("col-" + this.col);
 		e.classList.add("pt-" + this.pt);
 		e.classList.add("pr-" + this.pr);
@@ -130,7 +170,7 @@ export default class Header {
 	_getCol() {
 		var e = 12;
 		var t = "col-12";
-		var n = this._element.parentNode.parentNode;
+		var n = this._element.closest('.ce-block');
 		var r = new RegExp(/\bcol-.+?\b/, "g");
 		if (n.className.match(r)) {
 			n.classList.forEach(function (e) {
@@ -146,7 +186,7 @@ export default class Header {
 		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
 		var t = 0;
 		var n = "p" + e + "-0";
-		var r = this._element.parentNode.parentNode;
+		var r = this._element.closest('.ce-block');
 		var a = new RegExp(/\pl-.+?\b/, "g");
 		var i = new RegExp(/\pr-.+?\b/, "g");
 		var o = new RegExp(/\pt-.+?\b/, "g");
@@ -224,9 +264,8 @@ export default class Header {
 			this._element.innerHTML = this._data.text || '';
 		}
 
-		if (!this.readOnly) {
-			this._element.classList.add('widget', 'header');
-			this._element.style.minHeight = 50 + 'px';
+		if (!this.readOnly && this.wrapper) {
+			this.wrapper.classList.add('widget', 'header');
 		}
 	}
 
@@ -236,8 +275,6 @@ export default class Header {
 		tag.innerHTML = this._data.text || '';
 
 		tag.classList.add(this._CSS.wrapper);
-
-		tag.contentEditable = this.readOnly ? 'false' : 'true';
 
 		tag.dataset.placeholder = this.api.i18n.t(this._settings.placeholder || '');
 

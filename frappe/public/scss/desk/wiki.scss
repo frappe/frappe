@@ -55,17 +55,30 @@
 .ce-header {
 	padding: 0 !important;
 	margin-bottom: 0 !important;
+	flex: 1;
 }
 
-.widget.header {
-	display: flex;
-	justify-content: center;
-	padding-left: 12px !important;
-	min-height: 65px;
-	box-shadow: none;
-	background-color: var(--control-bg);
-	color: var(--text-muted);
-	cursor: pointer;
+.widget{
+	&.header {
+		display: flex;
+		justify-content: center;
+		flex: 1;
+		padding-left: 15px !important;
+		padding-right: 15px !important;
+		min-height: 50px;
+		box-shadow: none;
+		background-color: var(--control-bg);
+		color: var(--text-muted);
+		cursor: pointer;
+
+		&:focus {
+			outline: none;
+		}
+	}
+
+	&.new-widget {
+		align-items: inherit;
+	}
 }
 
 .codex-editor {

@@ -78,7 +78,7 @@ export default class Paragraph {
 
 	save(toolsContent) {
 		return {
-			text: toolsContent.innerHTML,
+			text: toolsContent.innerText,
 			col: this._getCol(),
 			pt: this._getPadding("t"),
 			pr: this._getPadding("r"),
@@ -88,7 +88,7 @@ export default class Paragraph {
 	}
 
 	rendered() {
-		var e = this._element.parentNode.parentNode;
+		var e = this._element.closest('.ce-block');
 		e.classList.add("col-" + this.col);
 		e.classList.add("pt-" + this.pt);
 		e.classList.add("pr-" + this.pr);
@@ -99,7 +99,7 @@ export default class Paragraph {
 	_getCol() {
 		var e = 12;
 		var t = "col-12";
-		var n = this._element.parentNode.parentNode;
+		var n = this._element.closest('.ce-block');
 		var r = new RegExp(/\bcol-.+?\b/, "g");
 		if (n.className.match(r)) {
 			n.classList.forEach(function (e) {
@@ -115,7 +115,7 @@ export default class Paragraph {
 		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
 		var t = 0;
 		var n = "p" + e + "-0";
-		var r = this._element.parentNode.parentNode;
+		var r = this._element.closest('.ce-block');
 		var a = new RegExp(/\pl-.+?\b/, "g");
 		var i = new RegExp(/\pr-.+?\b/, "g");
 		var o = new RegExp(/\pt-.+?\b/, "g");
