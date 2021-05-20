@@ -317,13 +317,20 @@ def clear_broken_symlinks():
 
 
 
-def unstrip(message):
+def unstrip(message: str) -> str:
+	"""Pads input string on the right side until the last available column in the terminal
+	"""
+	_len = len(message)
 	try:
 		max_str = os.get_terminal_size().columns
 	except Exception:
 		max_str = 80
-	_len = len(message)
-	_rem = max_str - _len
+
+	if _len < max_str:
+		_rem = max_str - _len
+	else:
+		_rem = max_str % _len
+
 	return f"{message}{' ' * _rem}"
 
 
@@ -336,6 +343,7 @@ def make_asset_dirs(hard_link=False):
 		start_message = unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
 		fail_message = unstrip(f"Cannot {'copy' if hard_link else 'link'} {source} to {target}")
 
+		# Used '\r' instead of '\x1b[1K\r' to print entire lines in smaller terminal sizes
 		try:
 			print(start_message, end="\r")
 			link_assets_dir(source, target, hard_link=hard_link)
