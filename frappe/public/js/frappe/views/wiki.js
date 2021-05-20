@@ -319,10 +319,10 @@ frappe.views.Wiki = class Wiki {
 
 	delete_page(name) {
 		if (!this.deleted_sidebar_items.includes(name)) {
-			this.deleted_sidebar_items.push(name)
+			this.deleted_sidebar_items.push(name);
 		}
 		frappe.confirm(__("Are you sure you want to delete page {0}?", [name]), () => {
-			this.sidebar.find(`.standard-sidebar-section [item-name="${name}"]`).addClass('hidden')
+			this.sidebar.find(`.standard-sidebar-section [item-name="${name}"]`).addClass('hidden');
 		});
 	}
 

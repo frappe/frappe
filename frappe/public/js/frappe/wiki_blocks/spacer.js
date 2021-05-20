@@ -31,13 +31,13 @@ export default class Spacer {
 					<div>Spacer</div>
 					<div class="widget-control"></div>
 				</div>
-			`)
+			`);
 			$spacer.appendTo(this.wrapper);
 
 			this.wrapper.classList.add('widget', 'new-widget');
 			this.wrapper.style.minHeight = 50 + 'px';
 
-			let $widget_control = $spacer.find('.widget-control')
+			let $widget_control = $spacer.find('.widget-control');
 
 			this.add_custom_button(
 				frappe.utils.icon('delete', 'xs'),
@@ -47,7 +47,7 @@ export default class Spacer {
 				null,
 				$widget_control
 			);
-			
+
 			this.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
 				null,

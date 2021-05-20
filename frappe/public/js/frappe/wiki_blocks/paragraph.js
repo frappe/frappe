@@ -60,7 +60,7 @@ export default class Paragraph {
 		this.wrapper = document.createElement('div');
 		this.wrapper.contentEditable = this.readOnly ? 'false' : 'true';
 		if (!this.readOnly) {
-			let $para_control = $(`<div class="paragraph-control"></div>`)
+			let $para_control = $(`<div class="paragraph-control"></div>`);
 
 			this.wrapper.appendChild(this._element);
 			this._element.classList.remove('widget');

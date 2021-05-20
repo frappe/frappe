@@ -46,13 +46,13 @@ export default class Header {
 		this.wrapper = document.createElement('div');
 		this.wrapper.contentEditable = this.readOnly ? 'false' : 'true';
 		if (!this.readOnly) {
-			let $widget_head = $(`<div class="widget-head"></div>`)
-			let $widget_control = $(`<div class="widget-control"></div>`)
+			let $widget_head = $(`<div class="widget-head"></div>`);
+			let $widget_control = $(`<div class="widget-control"></div>`);
 
 			$widget_head[0].appendChild(this._element);
 			$widget_control.appendTo($widget_head);
 			$widget_head.appendTo(this.wrapper);
-			
+
 			this.wrapper.classList.add('widget', 'header');
 
 			this.add_custom_button(
@@ -300,7 +300,7 @@ export default class Header {
 			if (userSpecified) {
 				return userSpecified;
 			} else {
-				console.warn('(ง\'̀-\'́)ง Heading Tool: the default level specified was not found in available levels');
+				// console.warn('(ง\'̀-\'́)ง Heading Tool: the default level specified was not found in available levels');
 			}
 		}
 
