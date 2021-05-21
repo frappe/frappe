@@ -151,12 +151,12 @@ jobs:
           cd ${GITHUB_WORKSPACE}
           pip install coveralls==2.2.0
           pip install coverage==4.5.4
-          coveralls --service=github
+          coveralls --service=github-actions
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_SERVICE_NAME: github
-          
+          COVERALLS_SERVICE_NAME: github-actions
+
       - name: Coverage - Push
         if: matrix.TYPE == 'server' && github.event_name == 'push'
         run: |
@@ -169,4 +169,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
           COVERALLS_SERVICE_NAME: github-actions
-
