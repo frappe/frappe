@@ -468,7 +468,6 @@ class EmailAccount(Document):
 	def get_inbound_mails(self, test_mails=None):
 		"""retrive and return inbound mails.
 
-		TODO: Handle for tests
 		"""
 		if not self.enable_incoming:
 			return []
@@ -482,13 +481,11 @@ class EmailAccount(Document):
 			messages = email_server.get_messages() or {}
 		except Exception:
 			raise
-			print("In exception...")
 			frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
 			return []
 
 		mails = []
 		for index, message in enumerate(messages.get("latest_messages", [])):
-			print("RAW MESSAGE TYPE: ", type(message))
 			uid = messages['uid_list'][index]
 			seen_status = 1 if messages['seen_status'][uid]=='SEEN' else 0
 			mails.append(InboundMail(message, self, uid, seen_status))

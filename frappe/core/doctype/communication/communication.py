@@ -199,8 +199,6 @@ class Communication(Document):
 				if not self.sender_full_name:
 					self.sender_full_name = sender_email
 
-
-
 	def send(self, print_html=None, print_format=None, attachments=None,
 		send_me_a_copy=False, recipients=None):
 		"""Send communication via Email.
@@ -326,21 +324,6 @@ class Communication(Document):
 
 		if autosave:
 			self.save(ignore_permissions=ignore_permissions)
-
-	# @classmethod
-	# def add_incoming_mail(cls, email, uid, seen_status):
-	# 	if exists_already():
-	# 		pass # Modify UID
-	# 	else:
-	# 		pass # Call new() to create object
-class InMailMixin:
-	@classmethod
-	def add_incoming_mail(cls, email, uid, seen_status):
-		if exists_already():
-			pass # Modify UID
-		else:
-			pass # Call new() to create object
-
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
