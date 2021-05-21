@@ -299,6 +299,65 @@ def generate_assets_map():
 	return symlinks
 
 
+def clear_broken_symlinks():
+	for path in os.listdir(assets_path):
+		path = os.path.join(assets_path, path)
+		if os.path.islink(path) and not os.path.exists(path):
+			os.remove(path)
+
+
+def unstrip(message: str) -> str:
+	"""Pads input string on the right side until the last available column in the terminal
+	"""
+	_len = len(message)
+	try:
+		max_str = os.get_terminal_size().columns
+	except Exception:
+		max_str = 80
+
+	if _len < max_str:
+		_rem = max_str - _len
+	else:
+		_rem = max_str % _len
+
+	return f"{message}{' ' * _rem}"
+
+
+def make_asset_dirs(hard_link=False):
+	setup_assets_dirs()
+	clear_broken_symlinks()
+	symlinks = generate_assets_map()
+
+	for source, target in symlinks.items():
+		start_message = unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
+		fail_message = unstrip(f"Cannot {'copy' if hard_link else 'link'} {source} to {target}")
+
+		# Used '\r' instead of '\x1b[1K\r' to print entire lines in smaller terminal sizes
+		try:
+			print(start_message, end="\r")
+			link_assets_dir(source, target, hard_link=hard_link)
+		except Exception:
+			print(fail_message, end="\r")
+
+	print(unstrip(f"{green('✔')} Application Assets Linked") + "\n")
+
+
+def link_assets_dir(source, target, hard_link=False):
+	if not os.path.exists(source):
+		return
+
+	if os.path.exists(target):
+		if os.path.islink(target):
+			os.unlink(target)
+		else:
+			shutil.rmtree(target)
+
+	if hard_link:
+		shutil.copytree(source, target, dirs_exist_ok=True)
+	else:
+		symlink(source, target, overwrite=True)
+
+
 def setup_assets_dirs():
 	for dir_path in (os.path.join(assets_path, x) for x in ("js", "css")):
 		os.makedirs(dir_path, exist_ok=True)
