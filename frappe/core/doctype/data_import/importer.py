@@ -1020,6 +1020,13 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		name_by_fieldname = (
 			"name" if doctype == parent_doctype else "{0}.name".format(table_df.fieldname)
 		)
+		name_by_label_translated = (
+			_("ID") if doctype == parent_doctype else "{0} ({1})".format(_("ID"), _(table_df.label))
+		)
+		name_by_fieldname_translated = (
+			_("name") if doctype == parent_doctype else "{0}.{1}".format(table_df.fieldname, _("name"))
+		)
+		
 		name_df = frappe._dict(
 			{
 				"fieldtype": "Data",
@@ -1036,6 +1043,8 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 		out[name_by_label] = name_df
 		out[name_by_fieldname] = name_df
+		out[name_by_label_translated] = name_df
+		out[name_by_fieldname_translated] = name_df			
 
 		# other fields
 		fields = get_standard_fields(doctype) + frappe.get_meta(doctype).fields
@@ -1053,6 +1062,8 @@ def build_fields_dict_for_column_matching(parent_doctype):
 						# if Label is already set, don't set it again
 						# in case of duplicate column headers
 						out[label] = df
+					if not out.get(_(label)):
+						out[_(label)] = df						
 					out[df.fieldname] = df
 					label_with_fieldname = "{0} ({1})".format(label, df.fieldname)
 					out[label_with_fieldname] = df
@@ -1066,6 +1077,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 					)
 					for table_field in table_fields:
 						by_label = "{0} ({1})".format(label, table_field.label)
+						by_label_translated = "{0} ({1})".format(_(label), _(table_field.label))						
 						by_fieldname = "{0}.{1}".format(table_field.fieldname, df.fieldname)
 
 						# create a new df object to avoid mutation problems
@@ -1077,6 +1089,8 @@ def build_fields_dict_for_column_matching(parent_doctype):
 						new_df.is_child_table_field = True
 						new_df.child_table_df = table_field
 						out[by_label] = new_df
+						if by_label != by_label_translated:
+							out[by_label_translated] = new_df					
 						out[by_fieldname] = new_df
 
 	# if autoname is based on field
@@ -1087,6 +1101,10 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		# ID field should also map to the autoname field
 		out["ID"] = autoname_field
 		out["name"] = autoname_field
+		out["{0} ({1})".format(_("ID"), _(autoname_field.label))] = autoname_field
+		# ID field should also map to the autoname field
+		out[_("ID")] = autoname_field
+		out[_("name")] = autoname_field		
 
 	return out
 
