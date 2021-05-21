@@ -5,7 +5,7 @@ frappe.provide("frappe.ui.form.handlers");
 
 window.extend_cscript = (cscript, controller_object) => {
 	$.extend(cscript, controller_object);
-	if (controller_object.__proto__) {
+	if (cscript && controller_object) {
 		cscript.__proto__ = controller_object.__proto__;
 	}
 };
