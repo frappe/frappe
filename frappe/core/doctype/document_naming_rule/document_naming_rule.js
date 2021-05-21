@@ -50,7 +50,7 @@ frappe.ui.form.on('Document Naming Rule', {
 				});
 			};
 
-			var dialog = new frappe.ui.Dialog({
+			const dialog = new frappe.ui.Dialog({
 				title: __('Update Counter Value for Prefix: {0}', [frm.doc.prefix]),
 				fields,
 				primary_action_label,
