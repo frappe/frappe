@@ -149,7 +149,7 @@ jobs:
         run: |
           cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
           cd ${GITHUB_WORKSPACE}
-          pip3 install coverage==5.5
+          pip3 install coverage==4.5.4
           pip3 install coveralls==3.0.1
           coveralls
         env:
@@ -162,7 +162,7 @@ jobs:
         run: |
           cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
           cd ${GITHUB_WORKSPACE}
-          pip3 install coverage==5.5
+          pip3 install coverage==4.5.4
           pip3 install coveralls==3.0.1
           coveralls
         env:
