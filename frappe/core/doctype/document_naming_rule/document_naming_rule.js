@@ -22,7 +22,7 @@ frappe.ui.form.on('Document Naming Rule', {
 			});
 		}
 	},
-	add_button: (frm) => {
+	add_update_counter_button: (frm) => {
 		frm.add_custom_button(__('Update Counter'), function() {
 
 			const fields = [{
