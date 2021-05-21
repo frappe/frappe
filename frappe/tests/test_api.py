@@ -46,7 +46,7 @@ class TestResourceAPI(unittest.TestCase):
 				f"{self.SITE_URL}/api/method/login",
 				data={
 					"usr": "Administrator",
-					"pwd": "root" or frappe.conf.admin_password or "admin",
+					"pwd": frappe.conf.admin_password or "admin",
 				},
 			).cookies.get("sid")
 
