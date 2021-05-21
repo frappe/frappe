@@ -6,7 +6,7 @@ const bench_path = path.resolve(__dirname, '..', '..');
 function get_conf() {
 	// defaults
 	var conf = {
-		redis_async_broker_port: 12311,
+		redis_async_broker_port: 'redis://localhost:12311',
 		socketio_port: 3000
 	};
 
