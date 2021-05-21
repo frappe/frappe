@@ -15,6 +15,7 @@ class TestEmail(unittest.TestCase):
 		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")
 
 	def test_email_queue(self, send_after=None):
+		frappe.conf.use_ssl = True
 		frappe.sendmail(recipients=['test@example.com', 'test1@example.com'],
 						sender="admin@example.com",
 						reference_doctype='User', reference_name='Administrator',
@@ -29,6 +30,9 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('test1@example.com' in queue_recipients)
 		self.assertEqual(len(queue_recipients), 2)
 		self.assertTrue('<!--unsubscribe url-->' in email_queue[0]['message'])
+		# check for email tracker
+		self.assertTrue('frappe.core.doctype.communication.email.mark_email_as_seen' in email_queue[0]['message'])
+		frappe.conf.use_ssl = False
 
 	def test_send_after(self):
 		self.test_email_queue(send_after=1)
