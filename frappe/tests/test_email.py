@@ -15,7 +15,6 @@ class TestEmail(unittest.TestCase):
 		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")
 
 	def test_email_queue(self, send_after=None):
-		frappe.conf.use_ssl = True
 		frappe.sendmail(recipients=['test@example.com', 'test1@example.com'],
 						sender="admin@example.com",
 						reference_doctype='User', reference_name='Administrator',
@@ -30,9 +29,6 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('test1@example.com' in queue_recipients)
 		self.assertEqual(len(queue_recipients), 2)
 		self.assertTrue('<!--unsubscribe url-->' in email_queue[0]['message'])
-		# check for email tracker
-		self.assertTrue('frappe.core.doctype.communication.email.mark_email_as_seen' in email_queue[0]['message'])
-		frappe.conf.use_ssl = False
 
 	def test_send_after(self):
 		self.test_email_queue(send_after=1)
@@ -75,6 +71,7 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('CC: test1@example.com' in message)
 
 	def test_cc_footer(self):
+		frappe.conf.use_ssl = True
 		# test if sending with cc's makes it into header
 		frappe.sendmail(recipients=['test@example.com'],
 						cc=['test1@example.com'],
@@ -92,7 +89,12 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('This email was sent to test@example.com and copied to test1@example.com' in frappe.safe_decode(
 			frappe.flags.sent_mail))
 
+		# check for email tracker
+		self.assertTrue('mark_email_as_seen' in frappe.safe_decode(frappe.flags.sent_mail))
+		frappe.conf.use_ssl = False
+
 	def test_expose(self):
+
 		from frappe.utils.verified_command import verify_request
 		frappe.sendmail(recipients=['test@example.com'],
 						cc=['test1@example.com'],
