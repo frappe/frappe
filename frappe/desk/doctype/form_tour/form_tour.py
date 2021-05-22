@@ -13,6 +13,7 @@ def get_form_tour_steps(tour_name):
 	def get_step(step_doc):
 		return dict(
 			title=step_doc.title,
+			condition=step_doc.condition,
 			fieldname=step_doc.fieldname,
 			description=step_doc.description,
 			position=slug(step_doc.position),
