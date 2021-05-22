@@ -102,7 +102,7 @@ class EmailQueue(Document):
 
 				message = ctx.build_message(recipient.recipient)
 				if not frappe.flags.in_test:
-					ctx.smtp_session.sendmail(recipient.recipient, self.sender, message)
+					ctx.smtp_session.sendmail(from_addr=self.sender, to_addrs=recipient.recipient, msg=message)
 				ctx.add_to_sent_list(recipient)
 
 			if frappe.flags.in_test:
