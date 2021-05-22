@@ -65,7 +65,7 @@ export default class LinksWidget extends Widget {
 				name: item.link_to,
 				type: item.link_type,
 				is_query_report: item.is_query_report
-			}
+			};
 
 			if (item.link_type == "Report" && !item.is_query_report) {
 				opts.doctype = item.dependencies;
