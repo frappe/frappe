@@ -218,7 +218,7 @@ class SendMailContext:
 			'<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'
 
 		message = ''
-		if frappe.conf.use_ssl and self.queue_doc.track_email_status:
+		if frappe.conf.use_ssl and self.email_account_doc.track_email_status:
 			message = quopri.encodestring(
 				tracker_url_html.format(frappe.local.site, self.queue_doc.communication).encode()
 			).decode()
