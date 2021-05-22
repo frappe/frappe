@@ -1180,10 +1180,12 @@ Object.assign(frappe.utils, {
 							route = "";
 					}
 				}
-			} else if (type === "report" && item.is_query_report) {
-				route = "query-report/" + item.name;
 			} else if (type === "report") {
-				route = frappe.router.slug(item.name) + "/view/report";
+				if (item.is_query_report) {
+					route = "query-report/" + item.name;
+				} else {
+					route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+				}
 			} else if (type === "page") {
 				route = item.name;
 			} else if (type === "dashboard") {
