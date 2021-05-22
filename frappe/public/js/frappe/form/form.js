@@ -1635,7 +1635,8 @@ frappe.ui.form.Form = class FrappeForm {
 				element: `.frappe-control[data-fieldname='${step.fieldname}']`,
 				popover: {
 					title: step.title || field.label,
-					description: step.description
+					description: step.description,
+					position: step.position || 'bottom'
 				}
 			};
 		});
