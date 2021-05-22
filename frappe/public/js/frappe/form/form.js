@@ -1621,12 +1621,7 @@ frappe.ui.form.Form = class FrappeForm {
 			keyboardControl: true,
 			nextBtnText: 'Next',
 			prevBtnText: 'Previous',
-			opacity: 0.25,
-			onNext: () => {
-				if (!driver.hasNextStep()) {
-					on_finish && on_finish();
-				}
-			}
+			opacity: 0.25
 		});
 
 		this.layout.sections.forEach(section => section.collapse(false));
@@ -1639,6 +1634,16 @@ frappe.ui.form.Form = class FrappeForm {
 					title: step.title || field.label,
 					description: step.description,
 					position: step.position || 'bottom'
+				},
+				onNext: () => {
+					const next_condition_satisfied = this.layout.evaluate_depends_on_value(step.condition || true);
+					if (!next_condition_satisfied) {
+						driver.preventMove();
+					}
+
+					if (!driver.hasNextStep()) {
+						on_finish && on_finish();
+					}
 				}
 			};
 		});
