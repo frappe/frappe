@@ -15,6 +15,7 @@ def get_form_tour_steps(tour_name):
 			title=step_doc.title,
 			fieldname=step_doc.fieldname,
 			description=step_doc.description,
+			position=slug(step_doc.position),
 		)
 
 	tour = frappe.get_doc('Form Tour', tour_name)
