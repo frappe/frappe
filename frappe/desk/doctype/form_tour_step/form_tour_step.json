@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "position",
   "description",
   "column_break_2",
   "field",
@@ -53,12 +54,19 @@
   {
    "fieldname": "column_break_2",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "Bottom",
+   "fieldname": "position",
+   "fieldtype": "Select",
+   "label": "Position",
+   "options": "Left\nLeft Center\nLeft Bottom\nTop\nTop Center\nTop Right\nRight\nRight Center\nRight Bottom\nBottom\nBottom Center\nBottom Right\nMid Center"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-05-22 20:49:58.961230",
+ "modified": "2021-05-22 20:59:58.961230",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour Step",
