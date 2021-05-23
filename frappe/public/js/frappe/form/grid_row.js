@@ -316,6 +316,14 @@ export default class GridRow {
 
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
 		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
+
+		if (!this.doc) {
+			const static_area = $col.static_area[0];
+			if (static_area.offsetWidth < static_area.scrollWidth) {
+				$col.tooltip({title: txt});
+			}
+		}
+
 		$col.df = df;
 		$col.column_index = ci;
 
