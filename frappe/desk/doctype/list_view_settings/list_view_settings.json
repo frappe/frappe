@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2019-10-23 15:00:48.392374",
  "doctype": "DocType",
@@ -52,7 +53,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-12 18:27:15.568199",
+ "modified": "2021-05-14 12:07:33.298944",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",

@@ -846,7 +846,7 @@ def validate_fields(meta):
 			if d.fieldtype not in ("Data", "Link", "Read Only"):
 				frappe.throw(_("{0}: Fieldtype {1} for {2} cannot be unique").format(docname, d.fieldtype, d.label), NonUniqueError)
 
-			if not d.get("__islocal") and frappe.db.has_column(d.parent, d.fieldname):
+			if not meta.is_virtual and not d.get("__islocal") and frappe.db.has_column(d.parent, d.fieldname):
 				has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
 					from `tab{doctype}` where ifnull(`{fieldname}`, '') != ''
 					group by `{fieldname}` having count(*) > 1 limit 1""".format(

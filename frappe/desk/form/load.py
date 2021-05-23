@@ -26,9 +26,6 @@ def getdoc(doctype, name, user=None):
 	if not name:
 		name = doctype
 
-	if not frappe.db.exists(doctype, name):
-		return []
-
 	try:
 		doc = frappe.get_doc(doctype, name)
 		run_onload(doc)
@@ -42,10 +39,9 @@ def getdoc(doctype, name, user=None):
 		# add file list
 		doc.add_viewed()
 		get_docinfo(doc)
-
-	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
-		raise
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return []
 
 	doc.add_seen()
 
