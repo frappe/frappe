@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 
+import re
 import frappe
 from frappe.model.document import Document
 from frappe.desk.form import assign_to
@@ -21,6 +22,8 @@ class AssignmentRule(Document):
 		if self.document_type == 'ToDo':
 			frappe.throw(_('Assignment Rule is not allowed on {0} document type').format(frappe.bold("ToDo")))
 
+		self.validate_conditions()
+
 	def on_update(self):
 		clear_assignment_rule_cache(self)
 
@@ -37,6 +40,12 @@ class AssignmentRule(Document):
 
 		return False
 
+	def validate_conditions(self):
+		for field in ['assign_condition', 'unassign_condition', 'close_condition']:
+			condition = self.get(field, None)
+			if condition and ("=" in condition) and \
+				re.match(r"""[\w\.:_]+\s*={1}\s*[\w\.@'"]+""", condition):
+				frappe.throw(_("Invalid {0} condition").format(frappe.unscrub(field)), frappe.ValidationError)
 
 	def apply_assign(self, doc):
 		if self.safe_eval('assign_condition', doc):
@@ -133,7 +142,8 @@ class AssignmentRule(Document):
 		except Exception as e:
 			# when assignment fails, don't block the document as it may be
 			# a part of the email pulling
-			frappe.msgprint(frappe._('Auto assignment failed: {0}').format(str(e)), indicator = 'orange')
+			frappe.msgprint(frappe._('Auto assignment failed for {} with {}: {0}').format(
+				doc.name, frappe.unscrub(fieldname), str(e)), indicator = 'orange')
 
 		return False
 
