@@ -1203,7 +1203,7 @@ class Document(BaseDocument):
 
 	def get_url(self):
 		"""Returns Desk URL for this document. `/app/{doctype}/{name}`"""
-		return "/app/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
+		return f"/app/{self.doctype}/{self.name}"
 
 	def add_comment(self, comment_type='Comment', text=None, comment_email=None, link_doctype=None, link_name=None, comment_by=None):
 		"""Add a comment to this document.
