@@ -18,6 +18,7 @@ from frappe import _
 from frappe.utils import now, cint
 from frappe.model import no_value_fields, default_fields, data_fieldtypes, table_fields, data_field_options
 from frappe.model.document import Document
+from frappe.model.base_document import get_controller
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.desk.notifications import delete_notification_count_for
@@ -107,8 +108,6 @@ class DocType(Document):
 		if self.name in core_doctypes:
 			return
 
-		from frappe.model.base_document import get_controller
-
 		try:
 			controller = get_controller(self.name)
 		except ImportError:
@@ -123,12 +122,10 @@ class DocType(Document):
 		}
 
 		for docfield in self.get("fields") or []:
-			if docfield.fieldtype == "Button":
-				continue
-
 			conflict_type = None
 			field = docfield.fieldname
 			field_label = docfield.label or docfield.fieldname
+			conflict_should_exist = docfield.fieldtype == "Button"
 
 			if docfield.fieldname in method_set:
 				conflict_type = "controller method"
@@ -136,6 +133,12 @@ class DocType(Document):
 				conflict_type = "class property"
 
 			if conflict_type:
+				if conflict_should_exist:
+					frappe.msgprint(
+						_("Button '{0}' should have corresponding method with the name '{1}' in the {2}'s controller")
+							.format(field_label, field, self.name)
+					)
+
 				frappe.throw(
 					_("Fieldname '{0}' conflicting with a {1} of the name {2} in {3}")
 						.format(field_label, conflict_type, field, self.name)
