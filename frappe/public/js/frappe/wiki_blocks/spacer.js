@@ -40,7 +40,7 @@ export default class Spacer {
 			let $widget_control = $spacer.find('.widget-control');
 
 			this.add_custom_button(
-				frappe.utils.icon('dot-vertical', 'xs'),
+				frappe.utils.icon('dot-horizontal', 'xs'),
 				(event) => {
 					let evn = event;
 					!$('.ce-settings.ce-settings--opened').length &&
@@ -51,7 +51,7 @@ export default class Spacer {
 							top: position.top + 25,
 							left: position.left - 77
 						});
-					}, 50)
+					}, 50);
 				},
 				"tune-btn",
 				`${__('Tune')}`,

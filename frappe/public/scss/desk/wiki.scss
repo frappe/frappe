@@ -36,6 +36,16 @@
 				margin-right: 0;
 			}
 		}
+
+		.sidebar-item-label {
+			flex: 1;
+		}
+
+		.item-anchor {
+			display: flex;
+			overflow: hidden;
+			flex: 1;
+		}
 	}
 
 	.sidebar-child-item-container {
@@ -44,16 +54,6 @@
 		.standard-sidebar-item {
 			justify-content: start;
 		}
-	}
-
-	.sidebar-item-label {
-		flex: 1;
-	}
-
-	.item-anchor {
-		display: flex;
-		overflow: hidden;
-		flex: 1;
 	}
 
 	.standard-sidebar-section.show-control {
@@ -81,64 +81,85 @@
 	}
 }
 
-.ce-settings {
-	width: fit-content;
-}
-
-.tune-btn > * {
-	pointer-events: none;
-}
-
-.ce-toolbar__settings-btn {
-	display: none;
-}
-
-.ce-header {
-	padding: 0 !important;
-	margin-bottom: 0 !important;
-	flex: 1;
-}
-
-.widget{
-	&.header {
-		display: flex;
-		justify-content: center;
-		flex: 1;
-		padding-left: 15px !important;
-		padding-right: 15px !important;
-		min-height: 50px;
-		box-shadow: none;
-		background-color: var(--control-bg);
-		color: var(--text-muted);
-	}
-
-	&:focus {
-		outline: none;
-	}
-	
-	&.new-widget {
-		align-items: inherit;
-	}
-
-	.paragraph-control {
-		display: flex;
-		flex-direction: row-reverse;
-		position: absolute;
-		right: 20px;
-		gap: 5px;
-		background-color: var(--card-bg);
-		padding-left: 5px;
-
-		.drag-handle {
-			cursor: all-scroll;
-			cursor: -webkit-grabbing;
-		}
-	}
-
-}
-
 .codex-editor {
 	min-height: 630px;
+
+	.codex-editor__redactor{
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+		margin: 0px -7px;
+		padding-bottom: 20px !important;
+	
+		.ce-block{
+			width: 100%;
+			padding-left: 0;
+			padding-right: 0;
+
+			&.ce-block--selected {
+				.ce-block__content {
+					background-color: inherit;
+				}
+			}
+		
+			.ce-block__content {
+				max-width: 100%;
+				height: 100%;
+				padding: 7px;
+			
+				&> div {
+					height: 100%;
+				}
+
+				.tune-btn > * {
+					pointer-events: none;
+				}
+
+				.ce-header {
+					padding: 0 !important;
+					margin-bottom: 0 !important;
+					flex: 1;
+				}
+
+				.widget{
+					&.header {
+						display: flex;
+						justify-content: center;
+						flex: 1;
+						padding-left: 15px !important;
+						padding-right: 15px !important;
+						min-height: 50px;
+						box-shadow: none;
+						background-color: var(--control-bg);
+						color: var(--text-muted);
+					}
+
+					&:focus {
+						outline: none;
+					}
+
+					&.new-widget {
+						align-items: inherit;
+					}
+
+					.paragraph-control {
+						display: flex;
+						flex-direction: row-reverse;
+						position: absolute;
+						right: 20px;
+						gap: 5px;
+						background-color: var(--card-bg);
+						padding-left: 5px;
+				
+						.drag-handle {
+							cursor: all-scroll;
+							cursor: -webkit-grabbing;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	svg {
 		fill: none;
@@ -153,6 +174,29 @@
 			stroke: none;
 			width: fit-content;
 		}
+
+		.ce-settings {
+			width: fit-content;
+		
+			.cdx-settings-button.disabled{
+				pointer-events: none;
+				opacity: .5
+			}
+			.cdx-settings-sidebar{
+				position: absolute;
+				right: 100%;
+				top:0;
+				background: #fff;
+				width: 108px;
+				height: 145px;
+				box-shadow: 0 3px 15px -3px rgba(13,20,33,.13);
+				border-radius: 0 4px 4px 0;z-index: 0;
+			}
+		}
+
+		.ce-toolbar__settings-btn {
+			display: none;
+		}
 	}
 
 	.ce-inline-tool, .ce-inline-toolbar__dropdown {
@@ -160,6 +204,7 @@
 			fill: currentColor;
 		}
 	}
+
 	@media (min-width: 1199px) {
 		.ce-toolbar__content {
 			max-width: 930px;
@@ -190,57 +235,5 @@
 			max-width: 100%;
 		}
 	}
-	
-	div[card_name] {
-		height: inherit;
-	}
-	
-}
 
-.codex-editor__redactor{
-	display: flex;
-	flex-wrap: wrap;
-	flex-direction: row;
-	margin: 0px -7px;
-}
-.ce-block{
-	width: 100%;
-	padding-left: 0;
-	padding-right: 0;
-}
-.cdx-settings-input{
-	border: 1px solid rgba(201,201,204,.48);
-	-webkit-box-shadow: inset 0 1px 2px 0 rgba(35,44,72,.06);
-	box-shadow: inset 0 1px 2px 0 rgba(35,44,72,.06);
-	border-radius: 3px;padding: 3px 8px;outline: none;
-	width: 100%;
-	-webkit-box-sizing: border-box;
-	box-sizing: border-box;
-}
-.cdx-small{
-	font-size: .6rem
-}
-.ce-block__content {
-	max-width: 100%;
-	height: 100%;
-	padding: 7px;
-
-	&> div {
-		height: 100%;
-	}
-}
-
-.cdx-settings-button.disabled{
-	pointer-events: none;
-	opacity: .5
-}
-.cdx-settings-sidebar{
-	position: absolute;
-	right: 100%;
-	top:0;
-	background: #fff;
-	width: 108px;
-	height: 145px;
-	box-shadow: 0 3px 15px -3px rgba(13,20,33,.13);
-	border-radius: 0 4px 4px 0;z-index: 0;
 }

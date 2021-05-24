@@ -44,7 +44,7 @@ export default class Chart {
 		if (!this.readOnly) {
 			let $widget_control = $(this.wrapper).find('.widget-control');
 			this.add_custom_button(
-				frappe.utils.icon('dot-vertical', 'xs'),
+				frappe.utils.icon('dot-horizontal', 'xs'),
 				(event) => {
 					let evn = event;
 					!$('.ce-settings.ce-settings--opened').length &&
@@ -55,7 +55,7 @@ export default class Chart {
 							top: position.top + 25,
 							left: position.left - 77
 						});
-					}, 50)
+					}, 50);
 				},
 				"tune-btn",
 				`${__('Tune')}`,

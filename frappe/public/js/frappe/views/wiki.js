@@ -15,6 +15,37 @@ frappe.views.Wiki = class Wiki {
 		this.new_page = null;
 		this.prepare_container();
 		this.setup_wiki_pages();
+
+		this.tools = {
+			header: {
+				class: frappe.wiki_block.blocks['header'],
+				inlineToolbar: true
+			},
+			paragraph: {
+				class: frappe.wiki_block.blocks['paragraph'],
+				inlineToolbar: true
+			},
+			chart: {
+				class: frappe.wiki_block.blocks['chart'],
+				config: {
+					page_data: this.page_data || []
+				}
+			},
+			card: {
+				class: frappe.wiki_block.blocks['card'],
+				config: {
+					page_data: this.page_data || []
+				}
+			},
+			shortcut: {
+				class: frappe.wiki_block.blocks['shortcut'],
+				config: {
+					page_data: this.page_data || []
+				}
+			},
+			spacer: frappe.wiki_block.blocks['spacer'],
+			spacingTune: frappe.wiki_block.tunes['spacing_tune'],
+		};
 	}
 
 	prepare_container() {
@@ -99,6 +130,11 @@ frappe.views.Wiki = class Wiki {
 			};
 	
 			const make_sidebar_child_item = item => {
+
+				if (frappe.router.slug(item.name) == this.get_page_to_show() || item.name == this.new_page) {
+					child_item_section.classList.toggle("hidden");
+				}
+
 				let $child_item = get_child_item(item);
 				let sidebar_control = $child_item.find('.sidebar-item-control');
 				this.add_sidebar_actions(item, sidebar_control);
@@ -146,36 +182,6 @@ frappe.views.Wiki = class Wiki {
 		this.get_content(page).then(() => {
 			this.get_data(page).then(() => {
 				if (this.content) {
-					this.tools = {
-						header: {
-							class: frappe.wiki_block.blocks['header'],
-							inlineToolbar: true
-						},
-						paragraph: {
-							class: frappe.wiki_block.blocks['paragraph'],
-							inlineToolbar: true
-						},
-						chart: {
-							class: frappe.wiki_block.blocks['chart'],
-							config: {
-								page_data: this.page_data || []
-							}
-						},
-						card: {
-							class: frappe.wiki_block.blocks['card'],
-							config: {
-								page_data: this.page_data || []
-							}
-						},
-						shortcut: {
-							class: frappe.wiki_block.blocks['shortcut'],
-							config: {
-								page_data: this.page_data || []
-							}
-						},
-						spacer: frappe.wiki_block.blocks['spacer'],
-						spacingTune: frappe.wiki_block.tunes['spacing_tune'],
-					};
 					if (this.editor) {
 						this.editor.isReady.then(() => {
 							this.editor.configuration.tools.chart.config.page_data = this.page_data;
@@ -258,6 +264,7 @@ frappe.views.Wiki = class Wiki {
 	}
 
 	setup_actions() {
+		if (!this.isReadOnly) return;
 		this.page.clear_inner_toolbar();
 		this.page.set_secondary_action(
 			__("Customize"),

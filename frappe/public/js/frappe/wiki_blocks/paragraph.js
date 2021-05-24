@@ -69,7 +69,7 @@ export default class Paragraph {
 			this.wrapper.classList.add('widget');
 
 			this.add_custom_button(
-				frappe.utils.icon('dot-vertical', 'xs'),
+				frappe.utils.icon('dot-horizontal', 'xs'),
 				(event) => {
 					let evn = event;
 					!$('.ce-settings.ce-settings--opened').length &&
@@ -80,7 +80,7 @@ export default class Paragraph {
 							top: position.top + 25,
 							left: position.left - 77
 						});
-					}, 50)
+					}, 50);
 				},
 				"tune-btn",
 				`${__('Tune')}`,
