@@ -39,7 +39,7 @@ class BaseTemplatePage(WebPage):
 		self.context.canonical = frappe.utils.get_url(frappe.utils.escape_html(self.path))
 
 		# context sends us a new template path
-		self.template_path = self.context.template or ''
+		self.template_path = self.context.template or self.template_path
 
 	def set_base_template_if_missing(self):
 		if not self.context.base_template_path:
