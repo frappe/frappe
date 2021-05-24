@@ -53,8 +53,8 @@ class DocumentPage(BaseTemplatePage):
 		self.init_context()
 		self.update_context()
 		self.post_process_context()
-
-		html = frappe.get_template(self.context.template_path).render(self.context)
+		template_path = self.context.template_path or self.context.template or ''
+		html = frappe.get_template(template_path).render(self.context)
 		html = self.add_csrf_token(html)
 
 		return build_response(self.path, html, self.http_status_code or 200, self.headers)
