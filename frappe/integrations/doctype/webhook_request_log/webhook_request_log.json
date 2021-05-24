@@ -1,0 +1,82 @@
+{
+ "actions": [],
+ "autoname": "WEBHOOK-REQ-.#####",
+ "creation": "2021-05-24 21:35:59.104776",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "url",
+  "headers",
+  "response",
+  "column_break_4",
+  "timestamp",
+  "data"
+ ],
+ "fields": [
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "fieldname": "headers",
+   "fieldtype": "Code",
+   "label": "Headers",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "response",
+   "fieldtype": "Code",
+   "label": "Response",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "timestamp",
+   "fieldtype": "Data",
+   "label": "Timestamp"
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Code",
+   "label": "Data",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-05-24 22:05:34.859499",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Webhook Request Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
