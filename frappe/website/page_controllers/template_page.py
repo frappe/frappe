@@ -65,7 +65,6 @@ class TemplatePage(BaseTemplatePage):
 	def post_process_context(self):
 		self.set_user_info()
 		self.add_sidebar_and_breadcrumbs()
-		self.set_missing_values()
 		super(TemplatePage, self).post_process_context()
 
 	def add_sidebar_and_breadcrumbs(self):
@@ -228,15 +227,7 @@ class TemplatePage(BaseTemplatePage):
 		self.template_path = 'www/{path}.html'.format(path=path)
 
 	def set_missing_values(self):
-		if "url_prefix" not in self.context:
-			self.context.url_prefix = ""
-
-		if self.context.url_prefix and self.context.url_prefix[-1]!='/':
-			self.context.url_prefix += '/'
-
-		self.context.path = self.path
-		self.context.pathname = frappe.local.path if hasattr(frappe, 'local') else self.path
-
+		super().set_missing_values()
 		# for backward compatibility
 		self.context.docs_base_url = '/docs'
 

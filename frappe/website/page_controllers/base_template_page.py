@@ -28,18 +28,10 @@ class BaseTemplatePage(WebPage):
 		self.set_base_template_if_missing()
 		self.set_title_with_prefix()
 		self.update_website_context()
-
-		# set using frappe.respond_as_web_page
-		if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
-			self.context.update(frappe.local.response.context)
-
-		# to be able to inspect the context dict
-		# Use the macro "inspect" from macros.html
-		self.context._context_dict = self.context
-		self.context.canonical = frappe.utils.get_url(frappe.utils.escape_html(self.path))
-
 		# context sends us a new template path
 		self.template_path = self.context.template or self.template_path
+		self.context._context_dict = self.context
+		self.set_missing_values()
 
 	def set_base_template_if_missing(self):
 		if not self.context.base_template_path:
@@ -50,6 +42,24 @@ class BaseTemplatePage(WebPage):
 		if (self.context.title_prefix and self.context.title
 			and not self.context.title.startswith(self.context.title_prefix)):
 			self.context.title = '{0} - {1}'.format(self.context.title_prefix, self.context.title)
+
+	def set_missing_values(self):
+		# set using frappe.respond_as_web_page
+		if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
+			self.context.update(frappe.local.response.context)
+
+		# to be able to inspect the context dict
+		# Use the macro "inspect" from macros.html
+		self.context.canonical = frappe.utils.get_url(frappe.utils.escape_html(self.path))
+
+		if "url_prefix" not in self.context:
+			self.context.url_prefix = ""
+
+		if self.context.url_prefix and self.context.url_prefix[-1]!='/':
+			self.context.url_prefix += '/'
+
+		self.context.path = self.path
+		self.context.pathname = frappe.local.path if hasattr(frappe, 'local') else self.path
 
 	def update_website_context(self):
 		# apply context from hooks
