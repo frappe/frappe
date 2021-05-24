@@ -106,7 +106,7 @@ def log_request(url, headers, data, res):
 		"url": url,
 		"headers": json.dumps(headers, indent=4) if headers else None,
 		"data": json.dumps(data, indent=4) if isinstance(data, dict) else data,
-		"response": json.dumps(res, indent=4) if res else None
+		"response": json.dumps(res.json(), indent=4) if res else None
 	})
 
 	request_log.save(ignore_permissions=True)
