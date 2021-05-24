@@ -102,7 +102,7 @@ class EmailQueue(Document):
 
 				message = ctx.build_message(recipient.recipient)
 				if not frappe.flags.in_test:
-					ctx.smtp_session.sendmail(recipient.recipient, self.sender, message)
+					ctx.smtp_session.sendmail(from_addr=self.sender, to_addrs=recipient.recipient, msg=message)
 				ctx.add_to_sent_list(recipient)
 
 			if frappe.flags.in_test:
@@ -218,7 +218,7 @@ class SendMailContext:
 			'<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'
 
 		message = ''
-		if frappe.conf.use_ssl and self.queue_doc.track_email_status:
+		if frappe.conf.use_ssl and self.email_account_doc.track_email_status:
 			message = quopri.encodestring(
 				tracker_url_html.format(frappe.local.site, self.queue_doc.communication).encode()
 			).decode()
