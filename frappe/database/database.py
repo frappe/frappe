@@ -447,6 +447,9 @@ class Database(object):
 						# table not found, look in singles
 						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 
+						if not out:
+							# check for virtual doctype
+							out = self.get_values_from_virtual_doctype(fields, filters, doctype, as_dict, debug, update)
 					else:
 						raise
 			else:
@@ -456,6 +459,12 @@ class Database(object):
 			self.value_cache[(doctype, filters, fieldname)] = out
 
 		return out
+
+	def get_values_from_virtual_doctype(self, fields, filters, doctype, as_dict=False, debug=False, update=None):
+		"""Reture single values from virtual doctype."""
+		from frappe.model.base_document import get_controller
+		controller = get_controller(doctype)
+		return controller.get_value(fields, filters, as_dict=False, debug=False, update=None)
 
 	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False, update=None):
 		"""Get values from `tabSingles` (Single DocTypes) (internal).

@@ -21,7 +21,7 @@ def get():
 	# If virtual doctype get data from controller het_list method
 	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="is_virtual"):
 		controller = get_controller(args.doctype)
-		data = compress(controller(args.doctype).get_list(args))
+		data = compress(controller.get_list(args))
 	else:
 		data = compress(execute(**args), args=args)
 	return data

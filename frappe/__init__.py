@@ -1403,6 +1403,11 @@ def get_list(doctype, *args, **kwargs):
 		# filter as a list of dicts
 		frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")})
 	"""
+	if get_value("DocType", filters={"name": doctype}, fieldname="is_virtual"):
+		from frappe.model.base_document import get_controller
+		controller = get_controller(doctype)
+		return controller.get_list(args, kwargs)
+
 	import frappe.model.db_query
 	return frappe.model.db_query.DatabaseQuery(doctype).execute(*args, **kwargs)
 

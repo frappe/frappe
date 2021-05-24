@@ -257,8 +257,14 @@ def make_boilerplate(template, doc, opts=None):
 	def db_update(self):
 		pass
 
+	@staticmethod
 	def get_list(self, args):
-		pass"""
+		pass
+
+	@staticmethod
+	def get_value(fields, filters, **kwargs):
+		pass
+		"""
 
 		with open(target_file_path, 'w') as target:
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),

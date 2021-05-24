@@ -106,13 +106,13 @@ def get_next(doctype, value, prev, filters=None, sort_order='desc', sort_field='
 		fields = ["name"],
 		filters = filters,
 		order_by = "`tab{0}`.{1}".format(doctype, sort_field) + " " + sort_order,
-		limit_start=0, limit_page_length=1, as_list=True)
+		limit_start=0, limit_page_length=1)
 
 	if not res:
 		frappe.msgprint(_("No further records"))
 		return None
 	else:
-		return res[0][0]
+		return res[0]['name']
 
 def get_pdf_link(doctype, docname, print_format='Standard', no_letterhead=0):
 	return '/api/method/frappe.utils.print_format.download_pdf?doctype={doctype}&name={docname}&format={print_format}&no_letterhead={no_letterhead}'.format(
