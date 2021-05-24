@@ -37,8 +37,9 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Now",
    "fieldname": "timestamp",
-   "fieldtype": "Data",
+   "fieldtype": "Datetime",
    "label": "Timestamp"
   },
   {
@@ -57,7 +58,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-05-24 22:05:34.859499",
+ "modified": "2021-05-24 22:59:21.103338",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",
