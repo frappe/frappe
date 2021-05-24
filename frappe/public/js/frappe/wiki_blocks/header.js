@@ -56,10 +56,21 @@ export default class Header {
 			this.wrapper.classList.add('widget', 'header');
 
 			this.add_custom_button(
-				frappe.utils.icon('delete', 'xs'),
-				() => this.api.blocks.delete(),
-				"delete-header",
-				`${__('Delete')}`,
+				frappe.utils.icon('dot-vertical', 'xs'),
+				(event) => {
+					let evn = event;
+					!$('.ce-settings.ce-settings--opened').length &&
+					setTimeout(() => {
+						this.api.toolbar.toggleBlockSettings();
+						var position = $(evn.target).offset();
+						$('.ce-settings.ce-settings--opened').offset({
+							top: position.top + 25,
+							left: position.left - 77
+						});
+					}, 50)
+				},
+				"tune-btn",
+				`${__('Tune')}`,
 				null,
 				$widget_control
 			);
@@ -69,6 +80,15 @@ export default class Header {
 				null,
 				"drag-handle",
 				`${__('Drag')}`,
+				null,
+				$widget_control
+			);
+
+			this.add_custom_button(
+				frappe.utils.icon('delete', 'xs'),
+				() => this.api.blocks.delete(),
+				"delete-header",
+				`${__('Delete')}`,
 				null,
 				$widget_control
 			);
@@ -85,7 +105,7 @@ export default class Header {
 		);
 		button.click(event => {
 			event.stopPropagation();
-			action && action();
+			action && action(event);
 		});
 		button.appendTo(wrapper);
 	}

@@ -69,10 +69,21 @@ export default class Paragraph {
 			this.wrapper.classList.add('widget');
 
 			this.add_custom_button(
-				frappe.utils.icon('delete', 'xs'),
-				() => this.api.blocks.delete(),
-				"delete-paragraph",
-				`${__('Delete')}`,
+				frappe.utils.icon('dot-vertical', 'xs'),
+				(event) => {
+					let evn = event;
+					!$('.ce-settings.ce-settings--opened').length &&
+					setTimeout(() => {
+						this.api.toolbar.toggleBlockSettings();
+						var position = $(evn.target).offset();
+						$('.ce-settings.ce-settings--opened').offset({
+							top: position.top + 25,
+							left: position.left - 77
+						});
+					}, 50)
+				},
+				"tune-btn",
+				`${__('Tune')}`,
 				null,
 				$para_control
 			);
@@ -82,6 +93,15 @@ export default class Paragraph {
 				null,
 				"drag-handle",
 				`${__('Drag')}`,
+				null,
+				$para_control
+			);
+
+			this.add_custom_button(
+				frappe.utils.icon('delete', 'xs'),
+				() => this.api.blocks.delete(),
+				"delete-paragraph",
+				`${__('Delete')}`,
 				null,
 				$para_control
 			);
@@ -98,7 +118,7 @@ export default class Paragraph {
 		);
 		button.click(event => {
 			event.stopPropagation();
-			action && action();
+			action && action(event);
 		});
 		button.appendTo(wrapper);
 	}

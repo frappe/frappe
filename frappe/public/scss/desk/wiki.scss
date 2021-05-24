@@ -81,6 +81,18 @@
 	}
 }
 
+.ce-settings {
+	width: fit-content;
+}
+
+.tune-btn > * {
+	pointer-events: none;
+}
+
+.ce-toolbar__settings-btn {
+	display: none;
+}
+
 .ce-header {
 	padding: 0 !important;
 	margin-bottom: 0 !important;

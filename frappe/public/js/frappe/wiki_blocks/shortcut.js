@@ -39,7 +39,42 @@ export default class Shortcut {
 		if (this.data && this.data.shortcut_name) {
 			this._make_shortcuts(this.data.shortcut_name);
 		}
+
+		if (!this.readOnly) {
+			let $widget_control = $(this.wrapper).find('.widget-control');
+			this.add_custom_button(
+				frappe.utils.icon('dot-vertical', 'xs'),
+				(event) => {
+					let evn = event;
+					!$('.ce-settings.ce-settings--opened').length &&
+					setTimeout(() => {
+						this.api.toolbar.toggleBlockSettings();
+						var position = $(evn.target).offset();
+						$('.ce-settings.ce-settings--opened').offset({
+							top: position.top + 25,
+							left: position.left - 77
+						});
+					}, 50)
+				},
+				"tune-btn",
+				`${__('Tune')}`,
+				null,
+				$widget_control
+			);
+		}
 		return this.wrapper;
+	}
+
+	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
+		if (!btn_type) btn_type = 'btn-secondary';
+		let button = $(
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
+		);
+		button.click(event => {
+			event.stopPropagation();
+			action && action(event);
+		});
+		wrapper.prepend(button);
 	}
 
 	save(blockContent) {
