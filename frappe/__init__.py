@@ -1173,7 +1173,7 @@ def get_newargs(fn, kwargs):
 		fnargs = fn.fnargs
 	else:
 		try:
-			fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
+			fnargs, varargs, varkw, defaults = inspect.getfullargspec(fn)
 		except ValueError:
 			fnargs = inspect.getfullargspec(fn).args
 			varargs = inspect.getfullargspec(fn).varargs
