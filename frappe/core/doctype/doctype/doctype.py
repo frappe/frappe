@@ -122,10 +122,12 @@ class DocType(Document):
 		}
 
 		for docfield in self.get("fields") or []:
+			if docfield.fieldtype in no_value_fields:
+				continue
+
 			conflict_type = None
 			field = docfield.fieldname
 			field_label = docfield.label or docfield.fieldname
-			conflict_should_exist = docfield.fieldtype == "Button"
 
 			if docfield.fieldname in method_set:
 				conflict_type = "controller method"
@@ -133,12 +135,6 @@ class DocType(Document):
 				conflict_type = "class property"
 
 			if conflict_type:
-				if conflict_should_exist:
-					frappe.msgprint(
-						_("Button '{0}' should have corresponding method with the name '{1}' in the {2}'s controller")
-							.format(field_label, field, self.name)
-					)
-
 				frappe.throw(
 					_("Fieldname '{0}' conflicting with a {1} of the name {2} in {3}")
 						.format(field_label, conflict_type, field, self.name)
