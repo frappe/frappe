@@ -129,6 +129,8 @@ class WebsiteGenerator(Document):
 		if not route.page_title:
 			route.page_title = self.get(self.get_title_field())
 
+		route.title = route.page_title
+
 		return route
 
 	def send_indexing_request(self, operation_type='URL_UPDATED'):

@@ -53,8 +53,7 @@ class DocumentPage(BaseTemplatePage):
 		self.init_context()
 		self.update_context()
 		self.post_process_context()
-		template_path = self.context.template_path or self.context.template or ''
-		html = frappe.get_template(template_path).render(self.context)
+		html = frappe.get_template(self.template_path).render(self.context)
 		html = self.add_csrf_token(html)
 
 		return build_response(self.path, html, self.http_status_code or 200, self.headers)
@@ -62,10 +61,12 @@ class DocumentPage(BaseTemplatePage):
 	def update_context(self):
 		self.context.doc = self.doc
 		self.context.update(self.context.doc.as_dict())
-		self.context.update(self.context.doc.get_website_properties())
+		self.context.update(self.context.doc.get_page_info())
 
-		if not self.context.template_path:
-			self.context.template_path = self.context.doc.meta.get_web_template()
+		self.template_path = self.context.template or self.template_path
+
+		if not self.template_path:
+			self.template_path = self.context.doc.meta.get_web_template()
 
 		if hasattr(self.doc, "get_context"):
 			ret = self.doc.get_context(self.context)

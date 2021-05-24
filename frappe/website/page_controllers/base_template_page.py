@@ -5,6 +5,10 @@ from frappe.website.website_components.metatags import MetaTags
 
 
 class BaseTemplatePage(WebPage):
+	def __init__(self, path, http_status_code):
+		super().__init__(path=path, http_status_code=http_status_code)
+		self.template_path = ''
+
 	def init_context(self):
 		self.context = frappe._dict()
 		self.context.update(get_website_settings())
@@ -35,8 +39,7 @@ class BaseTemplatePage(WebPage):
 		self.context.canonical = frappe.utils.get_url(frappe.utils.escape_html(self.path))
 
 		# context sends us a new template path
-		if self.context.template:
-			self.template_path = self.context.template
+		self.template_path = self.context.template or ''
 
 	def set_base_template_if_missing(self):
 		if not self.context.base_template_path:
