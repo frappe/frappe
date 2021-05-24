@@ -22,7 +22,7 @@ class AssignmentRule(Document):
 		if self.document_type == 'ToDo':
 			frappe.throw(_('Assignment Rule is not allowed on {0} document type').format(frappe.bold("ToDo")))
 
-		self.validate_conditions()
+		self.validate_assign_conditions()
 
 	def on_update(self):
 		clear_assignment_rule_cache(self)
@@ -40,7 +40,7 @@ class AssignmentRule(Document):
 
 		return False
 
-	def validate_conditions(self):
+	def validate_assign_conditions(self):
 		for field in ['assign_condition', 'unassign_condition', 'close_condition']:
 			condition = self.get(field, None)
 			if condition and ("=" in condition) and \
