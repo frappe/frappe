@@ -94,11 +94,8 @@ export default class GridRow {
 				} else {
 					data = this.grid.df.data;
 				}
-				let index = -1;
-				
-				if (me.doc.name) {
-					index = data.findIndex(d => d.name === me.doc.name);
-				}
+
+				const index = data.findIndex(d => d.name === me.doc.name);
 
 				if (index > -1) {
 					// mutate array directly,
