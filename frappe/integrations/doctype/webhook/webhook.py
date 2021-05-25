@@ -88,7 +88,7 @@ def enqueue_webhook(doc, webhook):
 			if webhook.request_method == 'POST':
 				r = requests.post(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
 			elif webhook.request_method == 'PUT':
-				r = requests.post(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
+				r = requests.put(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
 			elif webhook.request_method == 'DELETE':
 				r = requests.delete(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
 
