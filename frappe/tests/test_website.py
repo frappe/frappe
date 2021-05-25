@@ -146,9 +146,6 @@ class TestWebsite(unittest.TestCase):
 		})
 		website_settings.save()
 
-		frappe.cache().delete_key('app_hooks')
-		frappe.cache().delete_key('website_redirects')
-
 		set_request(method='GET', path='/testfrom')
 		response = get_response()
 		self.assertEqual(response.status_code, 301)
@@ -190,3 +187,5 @@ def set_home_page_hook(key, value):
 			delattr(hooks, hook)
 
 	setattr(hooks, key, value)
+	frappe.cache().delete_key('app_hooks')
+
