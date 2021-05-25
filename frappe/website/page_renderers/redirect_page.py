@@ -1,5 +1,5 @@
 import frappe
-from frappe.website.render import build_response
+from frappe.website.utils import build_response
 
 class RedirectPage(object):
 	def __init__(self, path, http_status_code=301):

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import frappe
 import re
-from frappe.website.render import clear_cache
+from frappe.website.utils import clear_cache
 from frappe.utils import add_to_date, now
 
 from frappe import _

@@ -9,10 +9,6 @@ class WebPage(object):
 		self.path = path.strip('/ ')
 		self.basepath = ''
 
-	def get(self):
-		if self.validate():
-			return self.render()
-
 	def can_render(self):
 		pass
 

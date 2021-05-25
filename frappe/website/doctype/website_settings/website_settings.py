@@ -68,7 +68,7 @@ class WebsiteSettings(Document):
 		# clear web cache (for menus!)
 		frappe.clear_cache(user = 'Guest')
 
-		from frappe.website.render import clear_cache
+		from frappe.website.utils import clear_cache
 		clear_cache()
 
 		# clears role based home pages

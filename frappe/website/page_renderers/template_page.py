@@ -4,11 +4,9 @@ import click
 
 import frappe
 from frappe.website.page_renderers.base_template_page import BaseTemplatePage
-from frappe.website.utils import get_sidebar_items
-from frappe.website.render import build_response
 from frappe.website.router import get_base_template
-from frappe.website.utils import (extract_comment_tag, extract_title,
-	get_next_link, get_toc, get_frontmatter, cache_html)
+from frappe.website.utils import (extract_comment_tag, extract_title, get_next_link,
+	get_toc, get_frontmatter, cache_html, get_sidebar_items, build_response)
 
 WEBPAGE_PY_MODULE_PROPERTIES = ("base_template_path", "template", "no_cache", "sitemap", "condition_field")
 

@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.website.utils import cleanup_page_name
-from frappe.website.render import clear_cache
+from frappe.website.utils import clear_cache
 from frappe.modules import get_module_name
 from frappe.search.website_search import update_index_for_path, remove_document_from_index
 

@@ -6,7 +6,7 @@ import os
 import re
 
 import frappe
-from frappe.website.utils import extract_comment_tag, extract_title
+from frappe.website.utils import extract_title
 from werkzeug.routing import Map, Rule, NotFound
 
 def get_page_info_from_web_page_with_dynamic_routes(path):
@@ -143,13 +143,11 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	# get the source
 	setup_source(page_info)
 
-	# extract properties from HTML comments
-	load_properties_from_source(page_info)
+	if not page_info.title:
+		page_info.title = extract_title(page_info.source, page_info.route)
 
 	# extract properties from controller attributes
 	load_properties_from_controller(page_info)
-
-	page_info.build_version = frappe.utils.get_build_version()
 
 	return page_info
 
@@ -251,47 +249,6 @@ def setup_index(page_info):
 		index_txt_path = os.path.join(page_info.basepath, 'index.txt')
 		if os.path.exists(index_txt_path):
 			page_info.index = open(index_txt_path, 'r').read().splitlines()
-
-def load_properties_from_source(page_info):
-	'''Load properties like no_cache, title from source html'''
-
-	if not page_info.title:
-		page_info.title = extract_title(page_info.source, page_info.route)
-
-	base_template = extract_comment_tag(page_info.source, 'base_template')
-	if base_template:
-		page_info.base_template = base_template
-
-	if (page_info.base_template
-		and "{%- extends" not in page_info.source
-		and "{% extends" not in page_info.source
-		and "</body>" not in page_info.source):
-		page_info.source = '''{{% extends "{0}" %}}
-			{{% block page_content %}}{1}{{% endblock %}}'''.format(page_info.base_template, page_info.source)
-
-	if "<!-- no-breadcrumbs -->" in page_info.source:
-		page_info.no_breadcrumbs = 1
-
-	if "<!-- show-sidebar -->" in page_info.source:
-		page_info.show_sidebar = 1
-
-	if "<!-- add-breadcrumbs -->" in page_info.source:
-		page_info.add_breadcrumbs = 1
-
-	if "<!-- no-header -->" in page_info.source:
-		page_info.no_header = 1
-
-	if "<!-- add-next-prev-links -->" in page_info.source:
-		page_info.add_next_prev_links = 1
-
-	if "<!-- no-cache -->" in page_info.source:
-		page_info.no_cache = 1
-
-	if "<!-- no-sitemap -->" in page_info.source:
-		page_info.sitemap = 0
-
-	if "<!-- sitemap -->" in page_info.source:
-		page_info.sitemap = 1
 
 def load_properties_from_controller(page_info):
 	if not page_info.controller: return

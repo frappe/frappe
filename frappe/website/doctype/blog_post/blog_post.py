@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.website.render import clear_cache
+from frappe.website.utils import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown, sanitize_html
 from math import ceil
 from frappe.website.utils import (find_first_image, get_html_content_based_on_type,
