@@ -5,7 +5,7 @@ from frappe.website.website_components.metatags import MetaTags
 
 
 class BaseTemplatePage(WebPage):
-	def __init__(self, path, http_status_code):
+	def __init__(self, path, http_status_code=None):
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.template_path = ''
 
