@@ -1,4 +1,4 @@
-from frappe.website.page_controllers.web_page import WebPage
+from frappe.website.page_renderers.web_page import WebPage
 import frappe
 
 class WebFormPage(WebPage):

@@ -5,7 +5,7 @@ from werkzeug.wrappers import Response
 from werkzeug.wsgi import wrap_file
 
 import frappe
-from frappe.website.page_controllers.web_page import WebPage
+from frappe.website.page_renderers.web_page import WebPage
 
 UNSUPPORTED_STATIC_PAGE_TYPES = ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json')
 

@@ -1,7 +1,7 @@
 import frappe
-from frappe.website.page_controllers.error_page import ErrorPage
-from frappe.website.page_controllers.not_permitted_page import NotPermittedPage
-from frappe.website.page_controllers.redirect_page import RedirectPage
+from frappe.website.page_renderers.error_page import ErrorPage
+from frappe.website.page_renderers.not_permitted_page import NotPermittedPage
+from frappe.website.page_renderers.redirect_page import RedirectPage
 from frappe.website.path_resolver import PathResolver
 
 

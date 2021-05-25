@@ -2,7 +2,7 @@ import os
 from urllib.parse import urlparse
 
 import frappe
-from frappe.website.page_controllers.template_page import TemplatePage
+from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.utils import can_cache
 
 HOMEPAGE_PATHS = ('/', '/index', 'index')

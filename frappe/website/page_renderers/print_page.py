@@ -1,5 +1,5 @@
 import frappe
-from frappe.website.page_controllers.template_page import TemplatePage
+from frappe.website.page_renderers.template_page import TemplatePage
 
 class PrintPage(TemplatePage):
 	'''

@@ -1,4 +1,4 @@
-from frappe.website.page_controllers.template_page import TemplatePage
+from frappe.website.page_renderers.template_page import TemplatePage
 
 class ErrorPage(TemplatePage):
 	def __init__(self, path=None, http_status_code=None, exception=None):

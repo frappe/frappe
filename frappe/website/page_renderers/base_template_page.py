@@ -1,6 +1,6 @@
 import frappe
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
-from frappe.website.page_controllers.web_page import WebPage
+from frappe.website.page_renderers.web_page import WebPage
 from frappe.website.website_components.metatags import MetaTags
 
 

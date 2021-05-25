@@ -3,14 +3,14 @@ import re
 from werkzeug.routing import Rule
 
 import frappe
-from frappe.website.page_controllers.document_page import DocumentPage
-from frappe.website.page_controllers.list_page import ListPage
-from frappe.website.page_controllers.not_found_page import NotFoundPage
-from frappe.website.page_controllers.print_page import PrintPage
-from frappe.website.page_controllers.redirect_page import RedirectPage
-from frappe.website.page_controllers.static_page import StaticPage
-from frappe.website.page_controllers.template_page import TemplatePage
-from frappe.website.page_controllers.web_form import WebFormPage
+from frappe.website.page_renderers.document_page import DocumentPage
+from frappe.website.page_renderers.list_page import ListPage
+from frappe.website.page_renderers.not_found_page import NotFoundPage
+from frappe.website.page_renderers.print_page import PrintPage
+from frappe.website.page_renderers.redirect_page import RedirectPage
+from frappe.website.page_renderers.static_page import StaticPage
+from frappe.website.page_renderers.template_page import TemplatePage
+from frappe.website.page_renderers.web_form import WebFormPage
 from frappe.website.router import evaluate_dynamic_routes
 from frappe.website.utils import can_cache, get_home_page
 

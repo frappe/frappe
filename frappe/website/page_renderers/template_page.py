@@ -3,7 +3,7 @@ import os
 import click
 
 import frappe
-from frappe.website.page_controllers.base_template_page import BaseTemplatePage
+from frappe.website.page_renderers.base_template_page import BaseTemplatePage
 from frappe.website.utils import get_sidebar_items
 from frappe.website.render import build_response
 from frappe.website.router import get_base_template
