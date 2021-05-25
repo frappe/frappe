@@ -91,12 +91,18 @@ class TestWebPage(unittest.TestCase):
 		self.assertTrue('Test Sidebar' in frappe.as_unicode(content))
 		frappe.flags.look_for_sidebar = False
 
-	def test_home_page(self):
-		content = get_response_content(path='/')
-		content = get_response_content(path='/index')
+	def test_index_and_next_comment(self):
+		content = get_response_content('/_test/_test_folder')
+		# test if {index} was rendered
+		self.assertTrue('<a href="/_test/_test_folder/_test_page"> Test Page</a>' \
+			in frappe.as_unicode(content))
+		self.assertTrue('<a href="/_test/_test_folder/_test_toc"> Test Toc</a>' \
+			in frappe.as_unicode(content))
 
-	def test_table_of_content(self):
-		page = get_response(path='/_test/_test_folder/_test_toc')
+		content = get_response_content('/_test/_test_folder/_test_page')
+		# test if {next} was rendered
+		self.assertTrue('Next: <a class="btn-next" href="/_test/_test_folder/_test_toc"> Test Toc</a>' \
+			in frappe.as_unicode(content))
 
 	def test_meta_tags(self):
 		pass
