@@ -1,8 +1,8 @@
 import Awesomplete from 'awesomplete';
 
-frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
+frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends frappe.ui.form.ControlAutocomplete {
 	get_awesomplete_settings() {
-		const settings = this._super();
+		const settings = super.get_awesomplete_settings();
 
 		return Object.assign(settings, {
 			filter: function(text, input) {
@@ -30,10 +30,10 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 				this.input.value = before + text + ", ";
 			}
 		});
-	},
+	}
 
 	get_value() {
-		let data = this._super();
+		let data = super.get_value();
 		// find value of label from option list and return actual value string
 		if (this.df.options && this.df.options.length && this.df.options[0].label) {
 			data = data.split(',').map(op => op.trim());
@@ -43,7 +43,7 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 			}).filter(n => n != null).join(', ');
 		}
 		return data;
-	},
+	}
 
 	set_formatted_input(value) {
 		if (!value) return;
@@ -54,15 +54,15 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 				return option ? option.label : val;
 			}).filter(n => n != null).join(', ');
 		}
-		this._super(value);
-	},
+		super.set_formatted_input(value);
+	}
 
 	get_values() {
 		const value = this.get_value() || '';
 		const values = value.split(/\s*,\s*/).filter(d => d);
 
 		return values;
-	},
+	}
 
 	get_data() {
 		let data;
@@ -70,7 +70,7 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 			data = this.df.get_data();
 			if (data) this.set_data(data);
 		} else {
-			data = this._super();
+			data = super.get_data();
 		}
 		const values = this.get_values() || [];
 
@@ -78,4 +78,4 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		if(data) data.filter(d => !values.includes(d));
 		return data;
 	}
-});
+};
