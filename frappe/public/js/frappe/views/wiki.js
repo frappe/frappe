@@ -86,11 +86,25 @@ frappe.views.Wiki = class Wiki {
 		if (this.sidebar.find('.standard-sidebar-section')[0]) {
 			this.sidebar.find('.standard-sidebar-section')[0].remove();
 		}
-		let sidebar_section = $(`<div class="standard-sidebar-section"></div>`);
+		let sidebar_section = $(`<div class="standard-sidebar-section nested-container"></div>`);
+		this.prepare_sidebar(items, sidebar_section, this.sidebar);
+	}
 
-		const get_sidebar_item = function (item) {
+	prepare_sidebar(items, child_container, item_container) {
+		items.forEach(item => this.append_item(item, child_container));
+		child_container.appendTo(item_container);
+	}
+
+	append_item(item, container) {
+		let is_current_page = frappe.router.slug(item.name) == frappe.router.slug(this.get_page_to_show()) || item.name == this.new_page;
+		if (is_current_page) {
+			item.selected = true;
+			this.current_page_name = item.name;
+		}
+
+		const item_container = function (item) {
 			return $(`
-				<div class="standard-sidebar-item-container" item-name="${item.name}" item-sequence="${item.sequence_id}">
+				<div class="sidebar-item-container" item-parent="${item.parent_page}" item-name="${item.name}">
 					<div class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}">
 						<a
 							href="/app/wiki/${frappe.router.slug(item.name)}"
@@ -101,71 +115,40 @@ frappe.views.Wiki = class Wiki {
 						</a>
 						<div class="sidebar-item-control"></div>
 					</div>
-					<div class="sidebar-child-item hidden"></div>
 				</div>
 			`);
 		};
 
-		const make_sidebar_category_item = item => {
-			if (item.name == this.get_page_to_show()) {
-				item.selected = true;
-				this.current_page_name = item.name;
-			}
+		let $item_container = item_container(item);
+		let sidebar_control = $item_container.find('.sidebar-item-control');
 
-			const get_child_item = function (item) {
-				return $(`
-					<div class="sidebar-child-item-container" item-name="${item.name}" item-sequence="${item.sequence_id}">
-						<div class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}">
-							<a
-								href="/app/wiki/${frappe.router.slug(item.name)}"
-								class="item-anchor" title="${item.name}"
-							>
-								<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
-								<span class="sidebar-item-label">${item.label || item.name}<span>
-							</a>
-							<div class="sidebar-item-control"></div>
-						</div>
-					</div>
-				`);
-			};
-	
-			const make_sidebar_child_item = item => {
+		this.add_sidebar_actions(item, sidebar_control);
 
-				if (frappe.router.slug(item.name) == this.get_page_to_show() || item.name == this.new_page) {
-					child_item_section.classList.toggle("hidden");
-				}
+		let child_items = this.all_pages.filter(page => page.parent_page == item.name);
+		if (child_items.length > 0) {
+			let child_container = $(`<div class="sidebar-child-item hidden nested-container"></div>`);
+			this.prepare_sidebar(child_items, child_container, $item_container);
+		}
 
-				let $child_item = get_child_item(item);
-				let sidebar_control = $child_item.find('.sidebar-item-control');
-				this.add_sidebar_actions(item, sidebar_control);
-				$child_item.appendTo(child_item_section);
-				this.sidebar_items[item.name] = $child_item;
-			};
+		$item_container.appendTo(container);
+		this.sidebar_items[item.name] = $item_container;
 
-			let $item = get_sidebar_item(item);
-			let sidebar_control = $item.find('.sidebar-item-control');
-			this.add_sidebar_actions(item, sidebar_control);
-			let $drop_icon = $(`<span class="drop-icon hidden">${frappe.utils.icon("small-down", "sm")}</span>`);
-			$drop_icon.appendTo(sidebar_control);
-			let drop_icon = $item.find('.drop-icon').get(0);
-			let child_item_section = $item.find('.sidebar-child-item').get(0);
-			if (this.all_pages.some(e => e.parent_page == item.name)) {
-				drop_icon.classList.remove('hidden');
-				drop_icon.addEventListener('click', () => {
-					child_item_section.classList.toggle("hidden");
-				});
-			}
+		if ($item_container.parent().hasClass('hidden') && is_current_page) {
+			$item_container.parent().toggleClass('hidden');
+		}
 
-			let child_items = this.all_pages.filter(page => page.parent_page == item.name);
-			child_items.forEach(item => make_sidebar_child_item(item));
-
-			$item.appendTo(sidebar_section);
-			this.sidebar_items[item.name] = $item;
-		};
-
-		items.forEach(item => make_sidebar_category_item(item));
-
-		sidebar_section.appendTo(this.sidebar);
+		let $drop_icon = $(`<span class="drop-icon hidden">${frappe.utils.icon("small-down", "sm")}</span>`);
+		$drop_icon.appendTo(sidebar_control);
+		let drop_icon = $item_container.find('.drop-icon').get(0);
+		let child_item_section = $item_container.find('.sidebar-child-item').get(0);
+		if (this.all_pages.some(e => e.parent_page == item.name)) {
+			drop_icon.classList.remove('hidden');
+			drop_icon.addEventListener('click', () => {
+				child_item_section.classList.toggle("hidden");
+				let icon = $(drop_icon).find("use").attr("href")==="#icon-small-down" ? "#icon-small-up" : "#icon-small-down";
+				$(drop_icon).find("use").attr("href", icon);
+			});
+		}
 	}
 
 	show() {
@@ -275,6 +258,7 @@ frappe.views.Wiki = class Wiki {
 					.then(() => {
 						this.undo = new Undo({ editor: this.editor });
 						this.undo.initialize({blocks: JSON.parse(this.content)});
+						this.undo.readOnly = false;
 						this.setup_customization_buttons();
 						this.show_sidebar_actions();
 						this.make_sidebar_sortable();
@@ -334,27 +318,28 @@ frappe.views.Wiki = class Wiki {
 
 	make_sidebar_sortable() {
 		let me = this;
-		this.sidebar_sortable = Sortable.create(this.page.sidebar.find(".standard-sidebar-section").get(0), {
-			handle: ".drag-handle",
-			draggable: ".standard-sidebar-item-container",
-			animation: 150,
-			onEnd: function (evt) {
-				let new_sb_items = [];
-				let old_sb_items = me.all_pages.filter(page => page.parent_page == '' || page.parent_page == null);
-				for (let page of evt.srcElement.childNodes) {
-					new_sb_items.push({
-						name: page.attributes['item-name'].value,
-						sequence_id: parseInt(page.attributes['item-sequence'].value)
-					});
-				}
-				me.sorted_sidebar_items = [];
-				new_sb_items.forEach((old, index) => {
-					if (old.sequence_id != old_sb_items[index].sequence_id) {
-						old.sequence_id = old_sb_items[index].sequence_id;
-						me.sorted_sidebar_items.push(old);
+		$('.nested-container').each( function() {
+			new Sortable(this, {
+				handle: ".drag-handle",
+				draggable: ".sidebar-item-container",
+				group: 'nested',
+				animation: 150,
+				fallbackOnBody: true,
+				swapThreshold: 0.65,
+				onEnd: function (evt) {
+					me.sorted_sidebar_items = [];
+					for (let page of $('.standard-sidebar-section').find('.sidebar-item-container')) {
+						let parent_page = "";
+						if (page.closest('.nested-container').classList.contains('sidebar-child-item')) {
+							parent_page = page.parentElement.parentElement.attributes["item-name"].value;
+						}
+						me.sorted_sidebar_items.push({
+							name: page.attributes['item-name'].value,
+							parent_page: parent_page
+						});
 					}
-				});
-			}
+				}
+			});
 		});
 	}
 
@@ -383,11 +368,10 @@ frappe.views.Wiki = class Wiki {
 			() => {
 				this.page.clear_primary_action();
 				this.page.clear_secondary_action();
+				this.undo.readOnly = true;
 				this.save_page();
 				this.editor.readOnly.toggle();
 				this.isReadOnly = true;
-				this.page_sortable.option("disabled", true);
-				this.sidebar_sortable.option("disabled", true);
 			},
 			null,
 			__("Saving")
@@ -400,8 +384,6 @@ frappe.views.Wiki = class Wiki {
 				this.page.clear_secondary_action();
 				this.editor.readOnly.toggle();
 				this.isReadOnly = true;
-				this.page_sortable.option("disabled", true);
-				this.sidebar_sortable.option("disabled", true);
 				this.deleted_sidebar_items = [];
 				this.reload();
 				frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
@@ -413,8 +395,17 @@ frappe.views.Wiki = class Wiki {
 		const d = new frappe.ui.Dialog({
 			title: __('Set Title'),
 			fields: [
-				{ label: __('Title'), fieldtype: 'Data', fieldname: 'title'},
-				{ label: __('Parent'), fieldtype: 'Select', fieldname: 'parent', options: this.all_pages.map(pages => pages.name)}
+				{
+					label: __('Title'),
+					fieldtype: 'Data',
+					fieldname: 'title'
+				},
+				{
+					label: __('Parent'),
+					fieldtype: 'Select',
+					fieldname: 'parent',
+					options: this.all_pages.filter(page => !page.parent_page).map(page => page.name)
+				}
 			],
 			primary_action_label: __('Create'),
 			primary_action: (values) => {
@@ -439,7 +430,6 @@ frappe.views.Wiki = class Wiki {
 					}
 					this.make_sidebar_sortable();
 					this.make_blocks_sortable();
-					this.dirty = false;
 				});
 			}
 		});
@@ -447,7 +437,6 @@ frappe.views.Wiki = class Wiki {
 	}
 
 	initialize_editorjs(blocks) {
-		this.dirty = false;
 		const data = {
 			blocks: blocks || []
 		};
@@ -456,9 +445,6 @@ frappe.views.Wiki = class Wiki {
 			autofocus: false,
 			data,
 			tunes: ['spacingTune'],
-			onChange: () => {
-				this.dirty = true;
-			},
 			readOnly: true,
 			logLevel: 'ERROR'
 		});
@@ -516,6 +502,6 @@ frappe.views.Wiki = class Wiki {
 
 	reload() {
 		this.setup_wiki_pages();
-		this.dirty = false;
+		this.undo.readOnly = true;
 	}
 };

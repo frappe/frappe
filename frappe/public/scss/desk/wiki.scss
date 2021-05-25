@@ -14,8 +14,11 @@
 
 	.standard-sidebar-item {
 		justify-content: space-between;
+		padding: 0px;
 
 		.sidebar-item-control {
+			margin-right: 8px;
+
 			> * {
 				align-self: center;
 				margin-left: 3px;
@@ -32,6 +35,11 @@
 				display: none;
 			}
 
+			.drop-icon {
+				padding: 10px 12px 10px 0px;
+				margin-right: -8px;
+			}
+
 			svg {
 				margin-right: 0;
 			}
@@ -44,15 +52,18 @@
 		.item-anchor {
 			display: flex;
 			overflow: hidden;
+			padding: 8px 0px 8px 12px;
 			flex: 1;
 		}
 	}
 
-	.sidebar-child-item-container {
-		margin-left: 10px;
+	.sidebar-item-container {
+		.sidebar-item-container{
+			margin-left: 10px;
 
-		.standard-sidebar-item {
-			justify-content: start;
+			.standard-sidebar-item {
+				justify-content: start;
+			}
 		}
 	}
 

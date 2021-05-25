@@ -35,10 +35,12 @@ def save_wiki_page(title, parent, sb_items, deleted_pages, new_widgets, blocks, 
 		doc.save()
 
 	if json.loads(sb_items):
-		for d in json.loads(sb_items):
+		for seq, d in enumerate(json.loads(sb_items)):
 			doc = frappe.get_doc('Internal Wiki Page', d.get('name'))
-			doc.sequence_id = d.get('sequence_id')
+			doc.sequence_id = seq + 1
+			doc.parent_page = d.get('parent_page') or ""
 			doc.save()
+		doc.title = title
 	
 	if json.loads(deleted_pages):
 		for d in json.loads(deleted_pages):

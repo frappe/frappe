@@ -60,7 +60,7 @@
     "@editorjs/list": "^1.6.2",
     "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
-    "editorjs-undo": "^0.1.5",
+    "editorjs-undo": "^0.1.6",
     "graphlib": "^2.1.8",
     "less": "^3.11.1",
     "rollup": "^1.2.2",

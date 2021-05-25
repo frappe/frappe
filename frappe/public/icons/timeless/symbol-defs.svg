@@ -57,6 +57,9 @@
 	<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-small-down">
 		<path d="M2.625 4.375L6 7.75l3.375-3.375" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
+	<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-small-up">
+		<path d="M9.5 7.75L6 4.25L2.5 7.75" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-small-add">
 		<path d="M8 4v8M4 8h8" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>

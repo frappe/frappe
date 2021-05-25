@@ -2265,10 +2265,10 @@
     "jsbn" "~0.1.0"
     "safer-buffer" "^2.1.0"
 
-"editorjs-undo@^0.1.5":
-  "integrity" "sha512-+qRmTe7Asn9KrsYHMCtNQi6rCBa+qrinJx/p7/Hj8K62HFzhMEuy7aMRbADd/KqcV2AsPVzgCj3PMHPmb6ZAkA=="
-  "resolved" "https://registry.npmjs.org/editorjs-undo/-/editorjs-undo-0.1.5.tgz"
-  "version" "0.1.5"
+"editorjs-undo@^0.1.6":
+  "integrity" "sha512-zVHPnBf2mcI8hWT9Eu8H3bGDEcMj4gppXbQjJW11Aa8Kdy2SVBGhM6fS59OUlBsm8iHWLxuoG2NUIfy9Rd30sw=="
+  "resolved" "https://registry.npmjs.org/editorjs-undo/-/editorjs-undo-0.1.6.tgz"
+  "version" "0.1.6"
 
 "ee-first@1.1.1":
   "integrity" "sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0="
