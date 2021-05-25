@@ -8,7 +8,7 @@ import re
 import json
 import socket
 import time
-from frappe import _
+from frappe import _, safe_encode
 from frappe.model.document import Document
 from frappe.utils import validate_email_address, cint, cstr, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html, add_days
 from frappe.utils.user import is_system_user
@@ -738,7 +738,6 @@ class EmailAccount(Document):
 
 
 	def append_email_to_sent_folder(self, message):
-
 		email_server = None
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
@@ -752,7 +751,8 @@ class EmailAccount(Document):
 
 		if email_server.imap:
 			try:
-				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message.encode())
+				message = safe_encode(message)
+				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
 			except Exception:
 				frappe.log_error()
 

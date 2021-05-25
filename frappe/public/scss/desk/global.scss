@@ -120,6 +120,12 @@ pre {
 	}
 }
 
+.hidden-lg {
+	@include media-breakpoint-up(md) {
+		display: none !important;
+	}
+}
+
 .visible-xs {
 	@include media-breakpoint-up(sm) {
 		display: none !important;

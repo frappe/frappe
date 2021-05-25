@@ -98,7 +98,7 @@ class RedisWrapper(redis.Redis):
 			return self.keys(key)
 
 		except redis.exceptions.ConnectionError:
-			regex = re.compile(cstr(key).replace("|", "\|").replace("*", "[\w]*"))
+			regex = re.compile(cstr(key).replace("|", r"\|").replace("*", r"[\w]*"))
 			return [k for k in list(frappe.local.cache) if regex.match(cstr(k))]
 
 	def delete_keys(self, key):
