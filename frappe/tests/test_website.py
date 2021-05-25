@@ -4,7 +4,7 @@ import unittest
 
 import frappe
 from frappe.website.serve import get_response
-from frappe.website.utils import get_home_page
+from frappe.website.utils import get_home_page, clear_website_cache
 from frappe.utils import set_request
 
 class TestWebsite(unittest.TestCase):
@@ -14,32 +14,29 @@ class TestWebsite(unittest.TestCase):
 	def tearDown(self):
 		frappe.set_user('Administrator')
 
-	def test_home_page_for_role(self):
+	def test_home_page(self):
 		frappe.set_user('Administrator')
-		frappe.delete_doc_if_exists('User', 'test-user-for-home-page@example.com')
-		frappe.delete_doc_if_exists('Role', 'home-page-test')
-		frappe.delete_doc_if_exists('Web Page', 'home-page-test')
+		# test home page via role
 		user = frappe.get_doc(dict(
 			doctype='User',
 			email='test-user-for-home-page@example.com',
-			first_name='test')).insert()
+			first_name='test')).insert(ignore_if_duplicate=True)
 
 		role = frappe.get_doc(dict(
 			doctype = 'Role',
 			role_name = 'home-page-test',
 			desk_access = 0,
-			home_page = '/home-page-test'
-		)).insert()
+		)).insert(ignore_if_duplicate=True)
 
 		user.add_roles(role.name)
 		user.save()
 
+		frappe.db.set_value('Role', 'home-page-test', 'home_page', 'home-page-test')
 		frappe.set_user('test-user-for-home-page@example.com')
 		self.assertEqual(get_home_page(), 'home-page-test')
 
 		frappe.set_user('Administrator')
-		role.home_page = ''
-		role.save()
+		frappe.db.set_value('Role', 'home-page-test', 'home_page', '')
 
 		# home page via portal settings
 		frappe.db.set_value('Portal Settings', None, 'default_portal_home', 'test-portal-home')
@@ -47,6 +44,42 @@ class TestWebsite(unittest.TestCase):
 		frappe.set_user('test-user-for-home-page@example.com')
 		frappe.cache().hdel('home_page', frappe.session.user)
 		self.assertEqual(get_home_page(), 'test-portal-home')
+
+		frappe.db.set_value("Portal Settings", None, "default_portal_home", '')
+		clear_website_cache()
+
+		# home page via website settings
+		frappe.db.set_value("Website Settings", None, "home_page", 'contact')
+		self.assertEqual(get_home_page(), 'contact')
+
+		frappe.db.set_value("Website Settings", None, "home_page", None)
+		clear_website_cache()
+
+		# fallback homepage
+		self.assertEqual(get_home_page(), 'me')
+
+		# fallback homepage for guest
+		frappe.set_user('Guest')
+		self.assertEqual(get_home_page(), 'login')
+		frappe.set_user('Administrator')
+
+		# test homepage via hooks
+		clear_website_cache()
+		set_home_page_hook('get_website_user_home_page', 'frappe.www._test._test_home_page.get_website_user_home_page')
+		self.assertEqual(get_home_page(), '_test/_test_folder')
+
+		clear_website_cache()
+		set_home_page_hook('website_user_home_page', 'login')
+		self.assertEqual(get_home_page(), 'login')
+
+		clear_website_cache()
+		set_home_page_hook('home_page', 'about')
+		self.assertEqual(get_home_page(), 'about')
+
+		clear_website_cache()
+		set_home_page_hook('role_home_page', {'home-page-test': 'home-page-test'})
+		self.assertEqual(get_home_page(), 'home-page-test')
+
 
 	def test_page_load(self):
 		set_request(method='POST', path='login')
@@ -147,3 +180,13 @@ class TestWebsite(unittest.TestCase):
 
 		delattr(frappe.hooks, 'website_redirects')
 		frappe.cache().delete_key('app_hooks')
+
+
+def set_home_page_hook(key, value):
+	from frappe import hooks
+	# reset home_page hooks
+	for hook in ('get_website_user_home_page','website_user_home_page','role_home_page','home_page'):
+		if hasattr(hooks, hook):
+			delattr(hooks, hook)
+
+	setattr(hooks, key, value)

@@ -328,6 +328,9 @@ def clear_cache(path=None):
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
 
+def clear_website_cache(path=None):
+	clear_cache(path)
+
 def clear_sitemap():
 	delete_page_cache("*")
 
