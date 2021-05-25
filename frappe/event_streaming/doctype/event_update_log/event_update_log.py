@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.utils import get_url
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_jobs
 from frappe.model import no_value_fields, table_fields
@@ -90,13 +91,17 @@ def make_event_update_log(doc, update_type):
 		data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
 	else:
 		data = None
-	return frappe.get_doc({
+
+	update_log = frappe.get_doc({
 		'doctype': 'Event Update Log',
 		'update_type': update_type,
 		'ref_doctype': doc.doctype,
 		'docname': doc.name,
 		'data': data
-	}).insert(ignore_permissions=True)
+	})
+	update_file_urls(update_log)
+	update_log.insert(ignore_permissions=True)
+	return update_log
 
 def make_maps(old_value, new_value):
 	"""make maps"""
@@ -274,3 +279,68 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 
 	result.reverse()
 	return result
+
+
+def update_file_urls(update_log):
+	"""
+	Prepends all file urls with the Producer's URL
+	:param update_log: The event update log that is being inserted
+	"""
+	if update_log.update_type == "Delete":
+		return
+
+	meta = frappe.get_meta(update_log.ref_doctype)
+	data = frappe.parse_json(update_log.data)
+	if update_log.update_type == "Create":
+		update_log.data = frappe.as_json(_update_file_url(update_log.ref_doctype, data))
+	elif update_log.update_type == "Update":
+		# changed
+		data.changed = _update_file_url(doctype=update_log.ref_doctype, doc=data.changed)
+
+		# row_changed
+		for table_df, rows in data.row_changed.items():
+			cdt = meta.get_field(table_df).options
+			for r in rows:
+				r.update(_update_file_url(doctype=cdt, doc=r))
+
+		# added
+		for table_df, rows in data.added.items():
+			cdt = meta.get_field(table_df).options
+			for r in rows:
+				r.update(_update_file_url(doctype=cdt, doc=r))
+
+		# removed
+		# nothing to do
+
+		update_log.data = frappe.as_json(data)
+
+
+def _update_file_url(doctype, doc):
+	file_df = ['Attach', 'Attach Image']
+	meta = frappe.get_meta(doctype)
+
+	doc = frappe._dict(doc)
+	for i, v in doc.items():
+		if not meta.get_field(i):
+			continue
+		if meta.get_field(i).fieldtype in file_df:
+			doc[i] = get_file_url(v)
+
+	for table_df in meta.get_table_fields():
+		if table_df.fieldname not in doc:
+			continue
+		
+		if not isinstance(doc[table_df.fieldname], (list, tuple)):
+			continue
+
+		for cd in doc[table_df.fieldname]:
+			cd.update(_update_file_url(table_df.options, cd))
+
+	return doc
+
+def get_file_url(v):
+	if not v:
+		return v
+	if "http" not in v:
+		return f"{get_url()}{v}"
+	return v

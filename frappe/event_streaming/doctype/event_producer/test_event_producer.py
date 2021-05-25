@@ -297,6 +297,43 @@ class TestEventProducer(unittest.TestCase):
 
 		reset_configuration(producer_url)
 
+	def test_file_urls(self):
+		producer = get_remote_site()
+		event_producer = frappe.get_doc('Event Producer', producer_url, for_update=True)
+		event_producer.producer_doctypes = []
+		event_producer.append('producer_doctypes', {
+			'ref_doctype': 'Blogger',
+			'use_same_name': 1
+		})
+		event_producer.save()
+
+		producer_file_1 = frappe._dict(doctype="File", file_name="test1.txt", content="Hello World!")
+		producer_file_1 = producer.insert(producer_file_1)
+
+		http_img = "https://i.imgur.com/YcP0tik.jpg"
+		producer_file_2 = frappe._dict(doctype="File", file_url=http_img)
+		producer_file_2 = producer.insert(producer_file_2)
+
+		# File 1
+		producer_blogger_1 = frappe._dict(
+			doctype="Blogger", short_name="BLG_A",
+			full_name="Blogger A", avatar=producer_file_1.file_url)
+		producer_blogger_1 = producer.insert(producer_blogger_1)
+
+		self.pull_producer_data()
+		self.assertTrue(frappe.db.exists("Blogger", producer_blogger_1.name))
+		local_blogger = frappe.get_doc("Blogger", producer_blogger_1.name)
+		self.assertTrue(local_blogger.avatar.startswith(producer_url))
+
+		# File 2, HTTP
+		producer_blogger_1.avatar = producer_file_2.file_url
+		producer_blogger_1 = producer.update(producer_blogger_1)
+
+		self.pull_producer_data()
+
+		local_blogger.reload()
+		self.assertEqual(local_blogger.avatar, http_img)
+
 def can_sync_note(consumer, doc, update_log):
 	return doc.public == 1
 
