@@ -15,7 +15,7 @@ from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
 from frappe.cache_manager import clear_global_cache
 from frappe.desk.notifications import clear_notifications
-from frappe.website.utils import clear_cache as clear_website_cache
+from frappe.website.utils import clear_website_cache
 from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
