@@ -196,9 +196,7 @@ export default class Grid {
 		tasks.push(() => {
 			if (dirty) {
 				this.refresh();
-				if (this.frm) {
-					this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
-				}
+				this.frm && this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 			}
 		});
 
