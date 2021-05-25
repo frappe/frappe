@@ -1,5 +1,6 @@
 import io
 import os
+import click
 
 import frappe
 from frappe.website.page_controllers.base_template_page import BaseTemplatePage
@@ -10,6 +11,17 @@ from frappe.website.utils import (extract_comment_tag, extract_title,
 	get_next_link, get_toc, get_frontmatter, cache_html)
 
 WEBPAGE_PY_MODULE_PROPERTIES = ("base_template_path", "template", "no_cache", "sitemap", "condition_field")
+
+COMMENT_PROPERTY_KEY_VALUE_MAP = {
+	"no-breadcrumbs": ("no_breadcrumbs", 1),
+	"show-sidebar": ("show_sidebar", 1),
+	"add-breadcrumbs": ("add_breadcrumbs", 1),
+	"no-header": ("no_header", 1),
+	"add-next-prev-links": ("add_next_prev_links", 1),
+	"no-cache": ("no_cache", 1),
+	"no-sitemap": ("sitemap", 0),
+	"sitemap": ("sitemap", 1)
+}
 
 class TemplatePage(BaseTemplatePage):
 	def __init__(self, path, http_status_code=None):
@@ -146,6 +158,15 @@ class TemplatePage(BaseTemplatePage):
 			and "</body>" not in self.source):
 			self.source = '''{{% extends "{0}" %}}
 				{{% block page_content %}}{1}{{% endblock %}}'''.format(context.base_template, self.source)
+
+		self.set_properties_via_comments()
+
+	def set_properties_via_comments(self):
+		for comment, (context_key, value) in COMMENT_PROPERTY_KEY_VALUE_MAP.items():
+			comment_tag = f"<!-- {comment} -->"
+			if comment_tag in self.source:
+				self.context[context_key] = value
+				click.echo(f'⚠️  DEPRECATION WARNING: {comment_tag} will be deprecated on 2021-12-31.')
 
 	def run_pymodule_method(self, method):
 		if hasattr(self.pymodule, method):
