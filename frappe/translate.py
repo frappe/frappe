@@ -650,7 +650,7 @@ def write_csv_file(path, app_messages, lang_dict):
 
 			t = lang_dict.get(message, '')
 			# strip whitespaces
-			translated_string = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
+			translated_string = re.sub(r'{\s?([0-9]+)\s?}', r"{\g<1>}", t)
 			if translated_string:
 				w.writerow([message, translated_string, context])
 
