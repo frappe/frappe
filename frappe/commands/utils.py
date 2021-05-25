@@ -16,33 +16,52 @@ from frappe.utils import get_bench_path, update_progress_bar, cint
 
 @click.command('build')
 @click.option('--app', help='Build assets for app')
-@click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
-@click.option('--restore', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
+@click.option('--apps', help='Build assets for specific apps')
+@click.option('--hard-link', is_flag=True, default=False, help='Copy the files instead of symlinking')
+@click.option('--make-copy', is_flag=True, default=False, help='[DEPRECATED] Copy the files instead of symlinking')
+@click.option('--restore', is_flag=True, default=False, help='[DEPRECATED] Copy the files instead of symlinking with force')
+@click.option('--production', is_flag=True, default=False, help='Build assets in production mode')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', is_flag=True, default=False, help='Force build assets instead of downloading available')
-def build(app=None, make_copy=False, restore=False, verbose=False, force=False):
-	"Minify + concatenate JS and CSS files, build translations"
-	import frappe.build
+def build(app=None, apps=None, hard_link=False, make_copy=False, restore=False, production=False, verbose=False, force=False):
+	"Compile JS and CSS source files"
+	from frappe.build import bundle, download_frappe_assets
 	frappe.init('')
-	# don't minify in developer_mode for faster builds
-	no_compress = frappe.local.conf.developer_mode or False
+
+	if not apps and app:
+		apps = app
 
 	# dont try downloading assets if force used, app specified or running via CI
-	if not (force or app or os.environ.get('CI')):
+	if not (force or apps or os.environ.get('CI')):
 		# skip building frappe if assets exist remotely
-		skip_frappe = frappe.build.download_frappe_assets(verbose=verbose)
+		skip_frappe = download_frappe_assets(verbose=verbose)
 	else:
 		skip_frappe = False
 
-	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore=restore, verbose=verbose, skip_frappe=skip_frappe)
+	# don't minify in developer_mode for faster builds
+	development = frappe.local.conf.developer_mode or frappe.local.dev_server
+	mode = "development" if development else "production"
+	if production:
+		mode = "production"
+
+	if make_copy or restore:
+		hard_link = make_copy or restore
+		click.secho(
+			"bench build: --make-copy and --restore options are deprecated in favour of --hard-link",
+			fg="yellow",
+		)
+
+	bundle(mode, apps=apps, hard_link=hard_link, verbose=verbose, skip_frappe=skip_frappe)
+
 
 
 @click.command('watch')
-def watch():
-	"Watch and concatenate JS and CSS files as and when they change"
-	import frappe.build
+@click.option('--apps', help='Watch assets for specific apps')
+def watch(apps=None):
+	"Watch and compile JS and CSS files as and when they change"
+	from frappe.build import watch
 	frappe.init('')
-	frappe.build.watch(True)
+	watch(apps)
 
 
 @click.command('clear-cache')
@@ -585,12 +604,29 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 	if os.environ.get('CI'):
 		sys.exit(ret)
 
+@click.command('run-parallel-tests')
+@click.option('--app', help="For App", default='frappe')
+@click.option('--build-number', help="Build number", default=1)
+@click.option('--total-builds', help="Total number of builds", default=1)
+@click.option('--with-coverage', is_flag=True, help="Build coverage file")
+@click.option('--use-orchestrator', is_flag=True, help="Use orchestrator to run parallel tests")
+@pass_context
+def run_parallel_tests(context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False):
+	site = get_site(context)
+	if use_orchestrator:
+		from frappe.parallel_test_runner import ParallelTestWithOrchestrator
+		ParallelTestWithOrchestrator(app, site=site, with_coverage=with_coverage)
+	else:
+		from frappe.parallel_test_runner import ParallelTestRunner
+		ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds, with_coverage=with_coverage)
 
 @click.command('run-ui-tests')
 @click.argument('app')
 @click.option('--headless', is_flag=True, help="Run UI Test in headless mode")
+@click.option('--parallel', is_flag=True, help="Run UI Test in parallel mode")
+@click.option('--ci-build-id')
 @pass_context
-def run_ui_tests(context, app, headless=False):
+def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 	"Run UI tests"
 	site = get_site(context)
 	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), '..'))
@@ -621,6 +657,12 @@ def run_ui_tests(context, app, headless=False):
 	run_or_open = 'run --browser firefox --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
+
+	if parallel:
+		formatted_command += ' --parallel'
+
+	if ci_build_id:
+		formatted_command += ' --ci-build-id {}'.format(ci_build_id)
 
 	click.secho("Running Cypress...", fg="yellow")
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
@@ -797,5 +839,6 @@ commands = [
 	watch,
 	bulk_rename,
 	add_to_email_queue,
-	rebuild_global_search
+	rebuild_global_search,
+	run_parallel_tests
 ]

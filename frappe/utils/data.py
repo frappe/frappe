@@ -706,11 +706,11 @@ def parse_val(v):
 		v = int(v)
 	return v
 
-def fmt_money(amount, precision=None, currency=None):
+def fmt_money(amount, precision=None, currency=None, format=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	number_format = format or frappe.db.get_default("number_format") or "#,###.##"
 	if precision is None:
 		precision = cint(frappe.db.get_default('currency_precision')) or None
 
@@ -1278,7 +1278,9 @@ def make_filter_dict(filters):
 
 def sanitize_column(column_name):
 	from frappe import _
+	import sqlparse
 	regex = re.compile("^.*[,'();].*")
+	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
 	blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case', 'and', 'or']
 
 	def _raise_exception():

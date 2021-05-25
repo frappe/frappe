@@ -1,8 +1,8 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.LinkSelector = Class.extend({
-	init: function (opts) {
+frappe.ui.form.LinkSelector = class LinkSelector {
+	constructor (opts) {
 		/* help: Options: doctype, get_query, target */
 		$.extend(this, opts);
 
@@ -14,8 +14,8 @@ frappe.ui.form.LinkSelector = Class.extend({
 		} else {
 			this.make();
 		}
-	},
-	make: function () {
+	}
+	make () {
 		var me = this;
 
 		this.start = 0;
@@ -54,8 +54,8 @@ frappe.ui.form.LinkSelector = Class.extend({
 		});
 		this.dialog.show();
 		this.search();
-	},
-	search: function () {
+	}
+	search () {
 		var args = {
 			txt: this.dialog.fields_dict.txt.get_value(),
 			searchfield: "name",
@@ -129,8 +129,8 @@ frappe.ui.form.LinkSelector = Class.extend({
 
 		}, this.dialog.get_primary_btn());
 
-	},
-	set_in_grid: function (value) {
+	}
+	set_in_grid (value) {
 		var me = this, updated = false;
 		var d = null;
 		if (this.qty_fieldname) {
@@ -174,7 +174,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 			frappe.show_alert(__("{0} added", [value]));
 		}
 	}
-});
+};
 
 frappe.link_search = function (doctype, args, callback, btn) {
 	if (!args) {

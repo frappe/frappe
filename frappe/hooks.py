@@ -29,16 +29,16 @@ page_js = {
 
 # website
 app_include_js = [
-	"/assets/js/libs.min.js",
-	"/assets/js/desk.min.js",
-	"/assets/js/list.min.js",
-	"/assets/js/form.min.js",
-	"/assets/js/control.min.js",
-	"/assets/js/report.min.js",
+	"libs.bundle.js",
+	"desk.bundle.js",
+	"list.bundle.js",
+	"form.bundle.js",
+	"controls.bundle.js",
+	"report.bundle.js",
 ]
 app_include_css = [
-	"/assets/css/desk.min.css",
-	"/assets/css/report.min.css",
+	"desk.bundle.css",
+	"report.bundle.css",
 ]
 
 doctype_js = {
@@ -51,6 +51,8 @@ web_include_js = [
 ]
 
 web_include_css = []
+
+email_css = ['email.bundle.css']
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
@@ -226,7 +228,6 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
-		"frappe.realtime.remove_old_task_logs",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
