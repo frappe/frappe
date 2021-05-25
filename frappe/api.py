@@ -119,10 +119,11 @@ def handle():
 						frappe.local.form_dict.limit or frappe.local.form_dict.limit_page_length or 20,
 					)
 
-					# convert strings to native types
-					frappe.local.form_dict.update(
-						{x: sbool(y) for x, y in frappe.local.form_dict.items()}
-					)
+					# convert strings to native types - only as_dict and debug accept bool
+					for param in ["as_dict", "debug"]:
+						param_val = frappe.local.form_dict.get(param)
+						if param_val is not None:
+							frappe.local.form_dict[param] = sbool(param_val)
 
 					# evaluate frappe.get_list
 					data = frappe.call(frappe.client.get_list, doctype, **frappe.local.form_dict)
