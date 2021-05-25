@@ -85,7 +85,13 @@ def enqueue_webhook(doc, webhook):
 
 	for i in range(3):
 		try:
-			r = requests.post(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
+			if webhook.request_method == 'POST':
+				r = requests.post(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
+			elif webhook.request_method == 'PUT':
+				r = requests.post(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
+			elif webhook.request_method == 'DELETE':
+				r = requests.delete(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
+
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
 			log_request(webhook.request_url, headers, data, r)
