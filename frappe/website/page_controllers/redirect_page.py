@@ -6,7 +6,7 @@ class RedirectPage(object):
 		self.path = path
 		self.http_status_code = http_status_code
 
-	def validate(self):
+	def can_render(self):
 		return True
 
 	def render(self):

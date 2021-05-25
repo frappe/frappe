@@ -6,5 +6,5 @@ class ErrorPage(TemplatePage):
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.http_status_code = getattr(exception, 'http_status_code', None) or http_status_code or 500
 
-	def validate(self):
+	def can_render(self):
 		return True

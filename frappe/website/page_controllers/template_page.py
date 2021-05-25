@@ -36,7 +36,7 @@ class TemplatePage(BaseTemplatePage):
 						self.basepath = os.path.dirname(file_path)
 						return
 
-	def validate(self):
+	def can_render(self):
 		return hasattr(self, 'template_path') and bool(self.template_path)
 
 	def get_index_path_options(self, search_path):

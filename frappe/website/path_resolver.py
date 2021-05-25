@@ -32,15 +32,14 @@ class PathResolver():
 		try:
 			resolve_redirect(self.path, request.query_string)
 		except frappe.Redirect:
-			return self.path, RedirectPage(self.path)
+			return frappe.flags.redirect_location, RedirectPage(self.path)
 
 		endpoint = resolve_path(self.path)
 		renderers = (StaticPage, WebFormPage, TemplatePage, ListPage, DocumentPage, PrintPage, NotFoundPage)
 
 		for renderer in renderers:
 			renderer_instance = renderer(endpoint, 200)
-			can_render = renderer_instance.validate()
-			if can_render:
+			if renderer_instance.can_render():
 				return endpoint, renderer_instance
 
 		return endpoint, NotFoundPage(endpoint)

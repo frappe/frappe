@@ -9,7 +9,7 @@ class NotPermittedPage(TemplatePage):
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.http_status_code = 403
 
-	def validate(self):
+	def can_render(self):
 		return True
 
 	def render(self):

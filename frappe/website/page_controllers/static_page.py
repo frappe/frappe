@@ -23,7 +23,7 @@ class StaticPage(WebPage):
 			if os.path.isfile(file_path):
 				self.file_path = file_path
 
-	def validate(self):
+	def can_render(self):
 		return self.is_valid_file_path() and self.file_path
 
 	def is_valid_file_path(self):

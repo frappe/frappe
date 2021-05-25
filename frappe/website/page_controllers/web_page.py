@@ -13,7 +13,7 @@ class WebPage(object):
 		if self.validate():
 			return self.render()
 
-	def validate(self):
+	def can_render(self):
 		pass
 
 	def render(self):

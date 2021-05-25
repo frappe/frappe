@@ -6,7 +6,7 @@ class PrintPage(TemplatePage):
 	default path returns a printable object (based on permission)
 	/Quotation/Q-0001
 	'''
-	def validate(self):
+	def can_render(self):
 		parts = self.path.split('/', 1)
 		if len(parts)==2:
 			if (frappe.db.exists('DocType', parts[0], True)

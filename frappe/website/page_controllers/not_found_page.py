@@ -15,7 +15,7 @@ class NotFoundPage(TemplatePage):
 		http_status_code = 404
 		super().__init__(path=path, http_status_code=http_status_code)
 
-	def validate(self):
+	def can_render(self):
 		return True
 
 	def render(self):

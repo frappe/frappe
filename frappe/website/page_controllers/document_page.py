@@ -7,7 +7,7 @@ from frappe.website.router import (get_doctypes_with_web_view,
 
 
 class DocumentPage(BaseTemplatePage):
-	def validate(self):
+	def can_render(self):
 		'''
 		Find a document with matching `route` from all doctypes with `has_web_view`=1
 		'''
