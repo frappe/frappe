@@ -88,9 +88,9 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	if(!$.isArray(fields)) fields = [fields];
 	var d = new frappe.ui.Dialog({
 		fields: fields,
-		title: title || __("Enter Value"),
+		title: title || __("Enter Value", null, "Title of prompt dialog"),
 	});
-	d.set_primary_action(primary_label || __("Submit"), function() {
+	d.set_primary_action(primary_label || __("Submit", null, "Primary action of prompt dialog"), function() {
 		var values = d.get_values();
 		if(!values) {
 			return;
