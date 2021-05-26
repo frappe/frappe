@@ -61,11 +61,17 @@ export default class LinksWidget extends Widget {
 		};
 
 		this.link_list = this.links.map(item => {
-			const route = frappe.utils.generate_route({
+			const opts = {
 				name: item.link_to,
 				type: item.link_type,
 				is_query_report: item.is_query_report
-			});
+			};
+
+			if (item.link_type == "Report" && !item.is_query_report) {
+				opts.doctype = item.dependencies;
+			}
+
+			const route = frappe.utils.generate_route(opts);
 
 			return $(`<a href="${route}" class="link-item ellipsis ${
 				item.onboard ? "onboard-spotlight" : ""
