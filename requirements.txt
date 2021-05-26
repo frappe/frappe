@@ -13,7 +13,6 @@ cryptography~=3.4.7
 dropbox~=11.7.0
 email-reply-parser~=0.5.12
 Faker~=8.1.0
-future==0.18.2
 git-url-parse~=1.2.2
 gitdb~=4.0.7
 GitPython~=3.1.14
