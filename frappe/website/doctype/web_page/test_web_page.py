@@ -104,18 +104,15 @@ class TestWebPage(unittest.TestCase):
 		self.assertTrue('Next: <a class="btn-next" href="/_test/_test_folder/_test_toc"> Test Toc</a>' \
 			in frappe.as_unicode(content))
 
-	def test_meta_tags(self):
-		pass
+	def test_colocated_assets(self):
+		content = get_response_content('/_test/_test_folder/_test_page')
+		self.assertTrue("<script>console.log('test data');</script>" \
+			in frappe.as_unicode(content))
+		self.assertTrue("background-color: var(--bg-color);" \
+			in frappe.as_unicode(content))
 
 	def test_breadcrumbs(self):
 		pass
 
 	def test_downloadable_file(self):
 		pass
-
-
-
-
-# breadcrumb
-# validate
-# page context caching

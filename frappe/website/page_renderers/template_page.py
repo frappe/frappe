@@ -42,6 +42,7 @@ class TemplatePage(BaseTemplatePage):
 					if os.path.exists(file_path) and not os.path.isdir(file_path):
 						self.app = app
 						self.app_path = app_path
+						self.basename = os.path.splitext(file_path)[0]
 						self.template_path = os.path.relpath(file_path, self.app_path)
 						self.basepath = os.path.dirname(file_path)
 						return
@@ -110,6 +111,7 @@ class TemplatePage(BaseTemplatePage):
 	def update_context(self):
 		self.context.base_template = self.context.base_template or get_base_template(self.path)
 		self.context.basepath = self.basepath
+		self.context.basename = self.basename
 		self.context.path = self.path
 		self.set_page_properties()
 		self.set_properties_from_source()
@@ -197,11 +199,11 @@ class TemplatePage(BaseTemplatePage):
 
 	def load_colocated_files(self):
 		'''load co-located css/js files with the same name'''
-		js_path = self.basepath + '.js'
+		js_path = self.basename + '.js'
 		if os.path.exists(js_path) and '{% block script %}' not in self.source:
 			self.context.colocated_js = self.get_colocated_file(js_path)
 
-		css_path = self.basepath + '.css'
+		css_path = self.basename + '.css'
 		if os.path.exists(css_path) and '{% block style %}' not in self.source:
 			self.context.colocated_css = self.get_colocated_file(css_path)
 
