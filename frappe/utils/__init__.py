@@ -618,7 +618,7 @@ def get_installed_apps_info():
 	out = []
 	from frappe.utils.change_log import get_versions
 
-	for app, version_details in iteritems(get_versions()):
+	for app, version_details in get_versions().items():
 		out.append({
 			'app_name': app,
 			'version': version_details.get('branch_version') or version_details.get('version'),
