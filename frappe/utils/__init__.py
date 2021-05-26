@@ -520,41 +520,17 @@ def get_sites(sites_path=None):
 
 	return sorted(sites)
 
-def get_request_session(max_retries=3):
+def get_request_session(max_retries=5):
 	import requests
 	from urllib3.util import Retry
+
 	session = requests.Session()
-	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
-	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
+	http_adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
+
+	session.mount("http://", http_adapter)
+	session.mount("https://", http_adapter)
+
 	return session
-
-def watch(path, handler=None, debug=True):
-	import time
-
-	from watchdog.events import FileSystemEventHandler
-	from watchdog.observers import Observer
-
-	class Handler(FileSystemEventHandler):
-		def on_any_event(self, event):
-			if debug:
-				print("File {0}: {1}".format(event.event_type, event.src_path))
-
-			if not handler:
-				print("No handler specified")
-				return
-
-			handler(event.src_path, event.event_type)
-
-	event_handler = Handler()
-	observer = Observer()
-	observer.schedule(event_handler, path, recursive=True)
-	observer.start()
-	try:
-		while True:
-			time.sleep(1)
-	except KeyboardInterrupt:
-		observer.stop()
-	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
 	html = text if is_html(text) else frappe.utils.md_to_html(text)
