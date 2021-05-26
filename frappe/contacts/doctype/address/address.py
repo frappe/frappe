@@ -171,13 +171,10 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length = 20,
 def has_website_permission(doc, ptype, user, verbose=False):
 	"""Returns true if there is a related lead or contact related to this document"""
 	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
+
 	if contact_name:
 		contact = frappe.get_doc('Contact', contact_name)
 		return contact.has_common_link(doc)
-
-		lead_name = frappe.db.get_value("Lead", {"email_id": frappe.session.user})
-		if lead_name:
-			return doc.has_link('Lead', lead_name)
 
 	return False
 

@@ -371,7 +371,7 @@ def get_path(*path, **kwargs):
 		base = frappe.local.site_path
 	return os.path.join(base, *path)
 
-def get_site_base_path(sites_dir=None, hostname=None):
+def get_site_base_path():
 	return frappe.local.site_path
 
 def get_site_path(*path):
