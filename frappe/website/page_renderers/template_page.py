@@ -45,6 +45,8 @@ class TemplatePage(BaseTemplatePage):
 						self.basename = os.path.splitext(file_path)[0]
 						self.template_path = os.path.relpath(file_path, self.app_path)
 						self.basepath = os.path.dirname(file_path)
+						self.filename = os.path.basename(file_path)
+						self.name = os.path.splitext(self.filename)[0]
 						return
 
 	def can_render(self):
@@ -109,10 +111,6 @@ class TemplatePage(BaseTemplatePage):
 		self.convert_from_markdown()
 
 	def update_context(self):
-		self.context.base_template = self.context.base_template or get_base_template(self.path)
-		self.context.basepath = self.basepath
-		self.context.basename = self.basename
-		self.context.path = self.path
 		self.set_page_properties()
 		self.set_properties_from_source()
 		self.load_colocated_files()
@@ -138,8 +136,15 @@ class TemplatePage(BaseTemplatePage):
 				self.context[prop] = getattr(self.pymodule, prop)
 
 	def set_page_properties(self):
+		self.context.base_template = self.context.base_template \
+			or get_base_template(self.path) \
+			or 'templates/web.html'
+		self.context.basepath = self.basepath
+		self.context.basename = self.basename
+		self.context.name = self.name
+		self.context.path = self.path
+		self.context.route = self.path
 		self.context.template = self.template_path
-		self.context.base_template = self.context.base_template or 'templates/web.html'
 
 	def set_properties_from_source(self):
 		if not self.source:
