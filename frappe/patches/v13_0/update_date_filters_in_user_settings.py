@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe, json
 from frappe.model.utils.user_settings import update_user_settings, sync_user_settings
 

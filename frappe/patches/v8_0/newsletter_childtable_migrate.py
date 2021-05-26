@@ -1,7 +1,6 @@
 # Copyright (c) 2017, Frappe and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 
 def execute():
@@ -10,7 +9,7 @@ def execute():
 
 	if "email_group" not in frappe.db.get_table_columns("Newsletter"):
 		return
-		
+
 	newsletters = frappe.get_all("Newsletter", fields=["name", "email_group"])
 	for newsletter in newsletters:
 		if newsletter.email_group:

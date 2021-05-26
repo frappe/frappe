@@ -7,7 +7,6 @@ import subprocess  # nosec
 
 import requests
 from semantic_version import Version
-from six.moves import range
 
 import frappe
 from frappe import _, safe_decode

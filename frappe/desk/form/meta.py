@@ -2,9 +2,7 @@
 # MIT License. See license.txt
 
 # metadata
-
-from __future__ import unicode_literals
-import frappe, os
+import frappe, os, io
 from frappe.model.meta import Meta
 from frappe.modules import scrub, get_module_path, load_doctype_module
 from frappe.utils import get_html_format
@@ -12,9 +10,6 @@ from frappe.translate import make_dict_from_messages, extract_messages_from_code
 from frappe.model.utils import render_include
 from frappe.build import scrub_html_template
 
-import io
-
-from six import iteritems
 
 def get_meta(doctype, cached=True):
 	# don't cache for developer mode as js files, templates may be edited
@@ -199,7 +194,7 @@ class FormMeta(Meta):
 			app = module.__name__.split(".")[0]
 			templates = {}
 			if hasattr(module, "form_grid_templates"):
-				for key, path in iteritems(module.form_grid_templates):
+				for key, path in module.form_grid_templates.items():
 					templates[key] = get_html_format(frappe.get_app_path(app, path))
 
 				self.set("__form_grid_templates", templates)

@@ -12,7 +12,6 @@ from email.header import decode_header
 
 import _socket
 import chardet
-import six
 from email_reply_parser import EmailReplyParser
 
 import frappe
@@ -361,13 +360,10 @@ class Email:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
-		if six.PY2:
-			self.mail = email.message_from_string(safe_encode(content))
+		if isinstance(content, bytes):
+			self.mail = email.message_from_bytes(content)
 		else:
-			if isinstance(content, bytes):
-				self.mail = email.message_from_bytes(content)
-			else:
-				self.mail = email.message_from_string(content)
+			self.mail = email.message_from_string(content)
 
 		self.text_content = ''
 		self.html_content = ''

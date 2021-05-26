@@ -1,9 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
 import json
 from collections import defaultdict
-from six import string_types
 import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
@@ -87,7 +85,7 @@ def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=[]):
 	"""
 
 	docs = json.loads(docs)
-	if isinstance(ignore_doctypes_on_cancel_all, string_types):
+	if isinstance(ignore_doctypes_on_cancel_all, str):
 		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
 	for i, doc in enumerate(docs, 1):
 		if validate_linked_doc(doc, ignore_doctypes_on_cancel_all):
@@ -139,7 +137,7 @@ def get_exempted_doctypes():
 
 @frappe.whitelist()
 def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
-	if isinstance(linkinfo, string_types):
+	if isinstance(linkinfo, str):
 		# additional fields are added in linkinfo
 		linkinfo = json.loads(linkinfo)
 
@@ -202,7 +200,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 				else:
 					link_fieldnames = link.get("fieldname")
 					if link_fieldnames:
-						if isinstance(link_fieldnames, string_types): link_fieldnames = [link_fieldnames]
+						if isinstance(link_fieldnames, str): link_fieldnames = [link_fieldnames]
 						or_filters = [[dt, fieldname, '=', name] for fieldname in link_fieldnames]
 						# dynamic link
 						if link.get("doctype_fieldname"):

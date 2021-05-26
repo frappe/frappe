@@ -1,8 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
 import frappe
 import os
 from frappe.core.doctype.file.file import get_content_hash, get_file_name
@@ -19,7 +16,6 @@ from frappe.utils import get_files_path, get_site_path
 #   a backup from a time before version 3 migration
 #
 # * Patch remaining unpatched File records.
-from six import iteritems
 
 
 def execute():
@@ -52,7 +48,7 @@ def get_replaced_files():
 	old_files = dict(frappe.db.sql("select name, file_name from `tabFile` where ifnull(content_hash, '')=''"))
 	invfiles = invert_dict(new_files)
 
-	for nname, nfilename in iteritems(new_files):
+	for nname, nfilename in new_files.items():
 		if 'files/' + nfilename in old_files.values():
 			ret.append((nfilename, invfiles[nfilename]))
 	return ret
@@ -85,7 +81,7 @@ def rename_replacing_files():
 
 def invert_dict(ddict):
 	ret = {}
-	for k,v in iteritems(ddict):
+	for k,v in ddict.items():
 		if not ret.get(v):
 			ret[v] = [k]
 		else:

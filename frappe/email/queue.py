@@ -1,10 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import sys
-from six.moves import html_parser as HTMLParser
+from html.parser import HTMLParser
 import smtplib, quopri, json
 from frappe import msgprint, _, safe_decode, safe_encode, enqueue
 from frappe.email.smtp import SMTPServer
@@ -14,7 +13,6 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
 from frappe.utils import get_url, nowdate, now_datetime, add_days, split_emails, cstr, cint
 from rq.timeouts import JobTimeoutException
-from six import text_type, string_types, PY3
 from email.parser import Parser
 
 
@@ -62,13 +60,13 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	if not bcc:
 		bcc = []
 
-	if isinstance(recipients, string_types):
+	if isinstance(recipients, str):
 		recipients = split_emails(recipients)
 
-	if isinstance(cc, string_types):
+	if isinstance(cc, str):
 		cc = split_emails(cc)
 
-	if isinstance(bcc, string_types):
+	if isinstance(bcc, str):
 		bcc = split_emails(bcc)
 
 	if isinstance(send_after, int):

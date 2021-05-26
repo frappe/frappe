@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 from frappe.database.mariadb.setup_db import check_database_settings
 from frappe.model.meta import trim_tables

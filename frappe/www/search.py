@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 from frappe.utils.global_search import web_search
 from html2text import html2text

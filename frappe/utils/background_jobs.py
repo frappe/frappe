@@ -1,4 +1,3 @@
-from __future__ import unicode_literals, print_function
 import redis
 from rq import Connection, Queue, Worker
 from rq.logutils import setup_loghandlers
@@ -7,11 +6,9 @@ from collections import defaultdict
 import frappe
 import os, socket, time
 from frappe import _
-from six import string_types
 from uuid import uuid4
 import frappe.monitor
 
-# imports - third-party imports
 
 default_timeout = 300
 queue_timeout = {
@@ -89,7 +86,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		if user:
 			frappe.set_user(user)
 
-	if isinstance(method, string_types):
+	if isinstance(method, str):
 		method_name = method
 		method = frappe.get_attr(method)
 	else:
@@ -193,7 +190,7 @@ def get_queue_list(queue_list=None):
 	'''Defines possible queues. Also wraps a given queue in a list after validating.'''
 	default_queue_list = list(queue_timeout)
 	if queue_list:
-		if isinstance(queue_list, string_types):
+		if isinstance(queue_list, str):
 			queue_list = [queue_list]
 
 		for queue in queue_list:
