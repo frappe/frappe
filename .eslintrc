@@ -149,6 +149,7 @@
 		"before": true,
 		"beforeEach": true,
 		"qz": true,
-		"localforage": true
+		"localforage": true,
+		"extend_cscript": true
 	}
 }

@@ -3,6 +3,14 @@
 
 frappe.provide("frappe.ui.form.handlers");
 
+window.extend_cscript = (cscript, controller_object) => {
+	$.extend(cscript, controller_object);
+	if (cscript && controller_object) {
+		cscript.__proto__ = controller_object.__proto__;
+	}
+	return cscript;
+};
+
 frappe.ui.form.get_event_handler_list = function(doctype, fieldname) {
 	if(!frappe.ui.form.handlers[doctype]) {
 		frappe.ui.form.handlers[doctype] = {};
@@ -74,7 +82,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		$.extend(this, opts);
 	}
 	make(ControllerClass) {
-		this.frm.cscript = $.extend(this.frm.cscript,
+		this.frm.cscript = extend_cscript(this.frm.cscript,
 			new ControllerClass({frm: this.frm}));
 	}
 	trigger(event_name, doctype, name) {
