@@ -38,7 +38,7 @@ def docfields_query(doctype, txt, searchfield, start, page_len, filters):
 	docfields = frappe.get_all(
 		doctype,
 		fields=["name as value", "label", "fieldtype"],
-		filters={ 'parent': parent_doctype, 'fieldtype': ['not in', excluded_fieldtypes] },
+		filters={'parent': parent_doctype, 'fieldtype': ['not in', excluded_fieldtypes]},
 		or_filters=or_filters,
 		limit_start=start,
 		limit_page_length=page_len
