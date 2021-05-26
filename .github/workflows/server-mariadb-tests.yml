@@ -3,6 +3,8 @@ name: Server
 on:
   pull_request:
   workflow_dispatch:
+  push:
+    branches: [ develop ]
 
 jobs:
   test:

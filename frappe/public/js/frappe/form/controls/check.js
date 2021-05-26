@@ -14,8 +14,10 @@ frappe.ui.form.ControlCheck = class ControlCheck extends frappe.ui.form.ControlD
 		</div>`).appendTo(this.parent);
 	}
 	set_input_areas() {
-		this.label_area = this.label_span = this.$wrapper.find(".label-area").get(0);
 		this.input_area = this.$wrapper.find(".input-area").get(0);
+		if (this.only_input) return;
+
+		this.label_area = this.label_span = this.$wrapper.find(".label-area").get(0);
 		this.disp_area = this.$wrapper.find(".disp-area").get(0);
 	}
 	make_input() {
