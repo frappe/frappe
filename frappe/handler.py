@@ -228,10 +228,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	is_whitelisted(fn)
 	is_valid_http_method(fn)
 
-	try:
-		fnargs = inspect.getargspec(method_obj)[0]
-	except ValueError:
-		fnargs = inspect.getfullargspec(method_obj).args
+	fnargs = inspect.getfullargspec(method_obj).args
 
 	if not fnargs or (len(fnargs)==1 and fnargs[0]=="self"):
 		response = doc.run_method(method)

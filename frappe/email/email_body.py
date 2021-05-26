@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, re, os
 from frappe.utils.pdf import get_pdf
-from frappe.email.smtp import get_outgoing_email_account
+from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
 	split_emails, to_markdown, markdown, random_string, parse_addr)
 import email.utils
@@ -75,7 +75,8 @@ class EMail:
 		self.bcc = bcc or []
 		self.html_set = False
 
-		self.email_account = email_account or get_outgoing_email_account(sender=sender)
+		self.email_account = email_account or \
+			EmailAccount.find_outgoing(match_by_email=sender, _raise_error=True)
 
 	def set_html(self, message, text_content = None, footer=None, print_html=None,
 		formatted=None, inline_images=None, header=None):
@@ -249,8 +250,8 @@ class EMail:
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
 		email_account=None, header=None, unsubscribe_link=None, sender=None, with_container=False):
-	if not email_account:
-		email_account = get_outgoing_email_account(False, sender=sender)
+
+	email_account = email_account or EmailAccount.find_outgoing(match_by_email=sender)
 
 	signature = None
 	if "<!-- signature-included -->" not in message:
@@ -291,18 +292,12 @@ def inline_style_in_html(html):
 	''' Convert email.css and html to inline-styled html
 	'''
 	from premailer import Premailer
+	from frappe.utils.jinja_globals import bundled_asset
 
-	apps = frappe.get_installed_apps()
-
-	# add frappe email css file
-	css_files = ['assets/css/email.css']
-	if 'frappe' in apps:
-		apps.remove('frappe')
-
-	for app in apps:
-		path = 'assets/{0}/css/email.css'.format(app)
-		css_files.append(path)
-
+	# get email css files from hooks
+	css_files = frappe.get_hooks('email_css')
+	css_files = [bundled_asset(path) for path in css_files]
+	css_files = [path.lstrip('/') for path in css_files]
 	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
 
 	p = Premailer(html=html, external_styles=css_files, strip_important=False)

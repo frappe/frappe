@@ -33,8 +33,7 @@ def execute():
 def scrub_relative_urls(html):
 	"""prepend a slash before a relative url"""
 	try:
-		return re.sub("""src[\s]*=[\s]*['"]files/([^'"]*)['"]""", 'src="/files/\g<1>"', html)
-		# return re.sub("""(src|href)[^\w'"]*['"](?!http|ftp|mailto|/|#|%|{|cid:|\.com/www\.)([^'" >]+)['"]""", '\g<1>="/\g<2>"', html)
+		return re.sub(r'src[\s]*=[\s]*[\'"]files/([^\'"]*)[\'"]', r'src="/files/\g<1>"', html)
 	except:
 		print("Error", html)
 		raise

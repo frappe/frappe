@@ -1,7 +1,7 @@
 // <select> widget with all fields of a doctype as options
-frappe.ui.FieldSelect = Class.extend({
+frappe.ui.FieldSelect = class FieldSelect {
 	// opts parent, doctype, filter_fields, with_blank, select
-	init(opts) {
+	constructor(opts) {
 		var me = this;
 		$.extend(this, opts);
 		this.fields_by_name = {};
@@ -36,18 +36,6 @@ frappe.ui.FieldSelect = Class.extend({
 			var item = me.awesomplete.get_item(value);
 			me.$input.val(item.label);
 		});
-		this.$input.on("awesomplete-open", () => {
-			let modal = this.$input.parents('.modal-dialog')[0];
-			if (modal) {
-				$(modal).removeClass("modal-dialog-scrollable");
-			}
-		});
-		this.$input.on("awesomplete-close", () => {
-			let modal = this.$input.parents('.modal-dialog')[0];
-			if (modal) {
-				$(modal).addClass("modal-dialog-scrollable");
-			}
-		});
 
 		if(this.filter_fields) {
 			for(var i in this.filter_fields)
@@ -56,22 +44,22 @@ frappe.ui.FieldSelect = Class.extend({
 			this.build_options();
 		}
 		this.set_value(this.doctype, "name");
-	},
+	}
 	get_value() {
 		return this.selected_doctype ? this.selected_doctype + "." + this.selected_fieldname : null;
-	},
+	}
 	val(value) {
 		if(value===undefined) {
 			return this.get_value();
 		} else {
 			this.set_value(value);
 		}
-	},
+	}
 	clear() {
 		this.selected_doctype = null;
 		this.selected_fieldname = null;
 		this.$input.val("");
-	},
+	}
 	set_value(doctype, fieldname) {
 		var me = this;
 		this.clear();
@@ -92,7 +80,7 @@ frappe.ui.FieldSelect = Class.extend({
 				return false;
 			}
 		});
-	},
+	}
 	build_options() {
 		var me = this;
 		me.table_fields = [];
@@ -147,7 +135,7 @@ frappe.ui.FieldSelect = Class.extend({
 				});
 			}
 		});
-	},
+	}
 
 	add_field_option(df) {
 		let me = this;
@@ -182,5 +170,5 @@ frappe.ui.FieldSelect = Class.extend({
 			if(!me.fields_by_name[df.parent]) me.fields_by_name[df.parent] = {};
 			me.fields_by_name[df.parent][df.fieldname] = df;
 		}
-	},
-});
+	}
+};

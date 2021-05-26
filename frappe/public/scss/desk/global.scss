@@ -120,6 +120,12 @@ pre {
 	}
 }
 
+.hidden-lg {
+	@include media-breakpoint-up(md) {
+		display: none !important;
+	}
+}
+
 .visible-xs {
 	@include media-breakpoint-up(sm) {
 		display: none !important;
@@ -442,6 +448,11 @@ kbd {
 /*rtl styles*/
 
 .frappe-rtl {
+	text-align: right;
+	.modal-actions {
+		right: auto !important;
+		left: 5px;
+	}
 	input, textarea {
 		direction: rtl !important;
 	}

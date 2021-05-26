@@ -8,7 +8,7 @@ import unittest, json
 from frappe.website.render import build_page
 from frappe.website.doctype.web_form.web_form import accept
 
-test_records = frappe.get_test_records('Web Form')
+test_dependencies = ['Web Form']
 
 class TestWebForm(unittest.TestCase):
 	def setUp(self):
@@ -42,7 +42,7 @@ class TestWebForm(unittest.TestCase):
 			'name': self.event_name
 		}
 
-		self.assertNotEquals(frappe.db.get_value("Event",
+		self.assertNotEqual(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))
 
 		accept(web_form='manage-events', docname=self.event_name, data=json.dumps(doc))

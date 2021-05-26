@@ -11,7 +11,7 @@ permission, homepage, default variables, system defaults etc
 import frappe, json
 from frappe import _
 import frappe.utils
-from frappe.utils import cint, cstr
+from frappe.utils import cint, cstr, get_assets_json
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
@@ -70,7 +70,7 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 
 	return frappe.db.sql_list("""
 		SELECT `sid` FROM `tabSessions`
-		WHERE user=%(user)s
+		WHERE `tabSessions`.user=%(user)s
 		AND device in %(device)s
 		{condition}
 		ORDER BY `lastupdate` DESC
@@ -149,6 +149,7 @@ def get():
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
+	bootinfo.assets_json = get_assets_json()
 
 	for hook in frappe.get_hooks("extend_bootinfo"):
 		frappe.get_attr(hook)(bootinfo=bootinfo)
@@ -312,7 +313,7 @@ class Session:
 			""", (self.sid, get_expiry_period_for_query(self.device)))
 
 		if rec:
-			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
+			data = frappe._dict(frappe.safe_eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
 		else:
 			self._delete_session()

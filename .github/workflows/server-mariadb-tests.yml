@@ -1,10 +1,8 @@
-name: CI
+name: Server
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
-  push:
 
 jobs:
   test:
@@ -13,23 +11,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       include:
-        - DB: "mariadb"
-          TYPE: "server"
-          JOB_NAME: "Python MariaDB"
-          RUN_COMMAND: bench --site test_site run-tests --coverage
+       container: [1, 2]
 
-        - DB: "postgres"
-          TYPE: "server"
-          JOB_NAME: "Python PostgreSQL"
-          RUN_COMMAND: bench --site test_site run-tests --coverage
-
-        - DB: "mariadb"
-          TYPE: "ui"
-          JOB_NAME: "UI MariaDB"
-          RUN_COMMAND:  bench --site test_site run-ui-tests frappe --headless
-
-    name: ${{ matrix.JOB_NAME }}
+    name: Python Unit Tests (MariaDB)
 
     services:
       mysql:
@@ -39,18 +23,6 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
-
-      postgres:
-        image: postgres:12.4
-        env:
-          POSTGRES_PASSWORD: travis
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - name: Clone
@@ -63,7 +35,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: 14
           check-latest: true
 
       - name: Add to Hosts
@@ -104,68 +76,54 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Cache cypress binary
-        if: matrix.TYPE == 'ui'
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache
-          key: ${{ runner.os }}-cypress-
-          restore-keys: |
-            ${{ runner.os }}-cypress-
-            ${{ runner.os }}-
-
       - name: Install Dependencies
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
-          TYPE: ${{ matrix.TYPE }}
+          TYPE: server
 
       - name: Install
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
-          DB: ${{ matrix.DB }}
-          TYPE: ${{ matrix.TYPE }}
+          DB: mariadb
+          TYPE: server
 
-      - name: Run Set-Up
-        if: matrix.TYPE == 'ui'
-        run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
-        env:
-          DB: ${{ matrix.DB }}
-          TYPE: ${{ matrix.TYPE }}
-
-      - name: Setup tmate session
-        if: contains(github.event.pull_request.labels.*.name, 'debug-gha')
-        uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests
-        run: cd ~/frappe-bench/ && ${{ matrix.RUN_COMMAND }}
+        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --use-orchestrator --with-coverage
         env:
-          DB: ${{ matrix.DB }}
-          TYPE: ${{ matrix.TYPE }}
+          CI_BUILD_ID: ${{ github.run_id }}
+          ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
 
-      - name: Coverage - Pull Request
-        if: matrix.TYPE == 'server' && github.event_name == 'pull_request'
+      - name: Upload Coverage Data
         run: |
           cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
           cd ${GITHUB_WORKSPACE}
-          pip install coveralls==2.2.0
-          pip install coverage==4.5.4
-          coveralls --service=github
+          pip3 install coverage==5.5
+          pip3 install coveralls==3.0.1
+          coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_SERVICE_NAME: github
-          
-      - name: Coverage - Push
-        if: matrix.TYPE == 'server' && github.event_name == 'push'
+          COVERALLS_FLAG_NAME: run-${{ matrix.container }}
+          COVERALLS_SERVICE_NAME: ${{ github.event_name == 'pull_request' && 'github' || 'github-actions' }}
+          COVERALLS_PARALLEL: true
+
+  coveralls:
+    name: Coverage Wrap Up
+    needs: test
+    container: python:3-slim
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Coveralls Finished
         run: |
-          cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
           cd ${GITHUB_WORKSPACE}
-          pip install coveralls==2.2.0
-          pip install coverage==4.5.4
-          coveralls --service=github-actions
+          pip3 install coverage==5.5
+          pip3 install coveralls==3.0.1
+          coveralls --finish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_SERVICE_NAME: github-actions

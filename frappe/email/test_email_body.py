@@ -7,9 +7,9 @@ from frappe import safe_decode
 from frappe.email.receive import Email
 from frappe.email.email_body import (replace_filename_with_cid,
 					get_email, inline_style_in_html, get_header)
-from frappe.email.queue import prepare_message, get_email_queue
+from frappe.email.queue import get_email_queue
+from frappe.email.doctype.email_queue.email_queue import SendMailContext
 from six import PY3
-
 
 class TestEmailBody(unittest.TestCase):
 	def setUp(self):
@@ -57,7 +57,8 @@ This is the text version of this email
 			content='<h1>' + uni_chr1 + 'abcd' + uni_chr2 + '</h1>',
 			formatted='<h1>' + uni_chr1 + 'abcd' + uni_chr2 + '</h1>',
 			text_content='whatever')
-		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
+		mail_ctx = SendMailContext(queue_doc = email)
+		result = mail_ctx.build_message(recipient_email = 'test@test.com')
 		self.assertTrue(b"<h1>=EA=80=80abcd=DE=B4</h1>" in result)
 
 	def test_prepare_message_returns_cr_lf(self):
@@ -68,8 +69,10 @@ This is the text version of this email
 			content='<h1>\n this is a test of newlines\n' + '</h1>',
 			formatted='<h1>\n this is a test of newlines\n' + '</h1>',
 			text_content='whatever')
-		result = safe_decode(prepare_message(email=email,
-						recipient='test@test.com', recipients_list=[]))
+
+		mail_ctx = SendMailContext(queue_doc = email)
+		result = safe_decode(mail_ctx.build_message(recipient_email='test@test.com'))
+
 		if PY3:
 			self.assertTrue(result.count('\n') == result.count("\r"))
 		else:

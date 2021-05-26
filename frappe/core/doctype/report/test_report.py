@@ -106,7 +106,7 @@ class TestReport(unittest.TestCase):
 		else:
 			report = frappe.get_doc('Report', 'Test Report')
 
-		self.assertNotEquals(report.is_permitted(), True)
+		self.assertNotEqual(report.is_permitted(), True)
 		frappe.set_user('Administrator')
 
 	# test for the `_format` method if report data doesn't have sort_by parameter
