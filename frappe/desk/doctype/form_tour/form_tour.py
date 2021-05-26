@@ -41,6 +41,7 @@ def docfields_query(doctype, txt, searchfield, start, page_len, filters):
 		filters={'parent': parent_doctype, 'fieldtype': ['not in', excluded_fieldtypes]},
 		or_filters=or_filters,
 		limit_start=start,
-		limit_page_length=page_len
+		limit_page_length=page_len,
+		as_list=1,
 	)
 	return docfields
