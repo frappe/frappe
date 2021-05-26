@@ -8,6 +8,9 @@ class WebPage(object):
 			path = frappe.local.request.path
 		self.path = path.strip('/ ')
 		self.basepath = ''
+		self.basename = ''
+		self.name = ''
+		self.route = ''
 
 	def can_render(self):
 		pass
