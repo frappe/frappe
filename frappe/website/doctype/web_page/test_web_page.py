@@ -28,10 +28,10 @@ class TestWebPage(unittest.TestCase):
 		content = get_page_content('/_test/_test_custom_base.html')
 
 		# assert the text in base template is rendered
-		self.assertTrue('<h1>This is for testing</h1>' in frappe.as_unicode(content))
+		self.assertIn('<h1>This is for testing</h1>', frappe.as_unicode(content))
 
 		# assert template block rendered
-		self.assertTrue('<p>Test content</p>' in frappe.as_unicode(content))
+		self.assertIn('<p>Test content</p>', frappe.as_unicode(content))
 
 	def test_content_type(self):
 		web_page = frappe.get_doc(dict(
@@ -44,15 +44,15 @@ class TestWebPage(unittest.TestCase):
 			main_section_html = '<div>html content</div>'
 		)).insert()
 
-		self.assertTrue('rich text' in get_page_content('/test-content-type'))
+		self.assertIn('rich text', get_page_content('/test-content-type'))
 
 		web_page.content_type = 'Markdown'
 		web_page.save()
-		self.assertTrue('markdown content' in get_page_content('/test-content-type'))
+		self.assertIn('markdown content', get_page_content('/test-content-type'))
 
 		web_page.content_type = 'HTML'
 		web_page.save()
-		self.assertTrue('html content' in get_page_content('/test-content-type'))
+		self.assertIn('html content', get_page_content('/test-content-type'))
 
 		web_page.delete()
 
@@ -70,46 +70,47 @@ class TestWebPage(unittest.TestCase):
 
 		try:
 			content = get_page_content('/doctype-view/DocField')
-			self.assertTrue('<div>DocField</div>' in content)
+			self.assertIn('<div>DocField</div>', content)
 		finally:
 			web_page.delete()
 
 	def test_custom_base_template_path(self):
 		content = get_response_content('/_test/_test_folder/_test_page')
 		# assert the text in base template is rendered
-		self.assertTrue('<h1>This is for testing</h1>' in frappe.as_unicode(content))
+		self.assertIn('<h1>This is for testing</h1>', frappe.as_unicode(content))
 
 		# assert template block rendered
-		self.assertTrue('<p>Test content</p>' in frappe.as_unicode(content))
+		self.assertIn('<p>Test content</p>', frappe.as_unicode(content))
 
 	def test_json_sidebar_data(self):
 		frappe.flags.look_for_sidebar = False
 		content = get_response_content('/_test/_test_folder/_test_page')
-		self.assertTrue('Test Sidebar' not in frappe.as_unicode(content))
+		self.assertNotIn('Test Sidebar', frappe.as_unicode(content))
 		frappe.flags.look_for_sidebar = True
 		content = get_response_content('/_test/_test_folder/_test_page')
-		self.assertTrue('Test Sidebar' in frappe.as_unicode(content))
+		self.assertIn('Test Sidebar', frappe.as_unicode(content))
 		frappe.flags.look_for_sidebar = False
 
 	def test_index_and_next_comment(self):
 		content = get_response_content('/_test/_test_folder')
 		# test if {index} was rendered
-		self.assertTrue('<a href="/_test/_test_folder/_test_page"> Test Page</a>' \
-			in frappe.as_unicode(content))
-		self.assertTrue('<a href="/_test/_test_folder/_test_toc"> Test Toc</a>' \
-			in frappe.as_unicode(content))
+		self.assertIn('<a href="/_test/_test_folder/_test_page"> Test Page</a>',
+			frappe.as_unicode(content))
+
+		self.assertIn('<a href="/_test/_test_folder/_test_toc">Test TOC</a>',
+			frappe.as_unicode(content))
 
 		content = get_response_content('/_test/_test_folder/_test_page')
 		# test if {next} was rendered
-		self.assertTrue('Next: <a class="btn-next" href="/_test/_test_folder/_test_toc"> Test Toc</a>' \
-			in frappe.as_unicode(content))
+		self.assertIn('Next: <a class="btn-next" href="/_test/_test_folder/_test_toc">Test TOC</a>',
+			frappe.as_unicode(content))
 
 	def test_colocated_assets(self):
 		content = get_response_content('/_test/_test_folder/_test_page')
-		self.assertTrue("<script>console.log('test data');</script>" \
-			in frappe.as_unicode(content))
-		self.assertTrue("background-color: var(--bg-color);" \
-			in frappe.as_unicode(content))
+		self.assertIn("<script>console.log('test data');</script>",
+			frappe.as_unicode(content))
+		self.assertIn("background-color: var(--bg-color);",
+			frappe.as_unicode(content))
 
 	def test_breadcrumbs(self):
 		pass
