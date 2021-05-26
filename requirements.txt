@@ -1,6 +1,6 @@
 Babel~=2.9.0
 beautifulsoup4~=4.9.3
-bleach-whitelist~=0.0.11
+bleach-allowlist~=1.0.3
 bleach~=3.3.0
 boto3~=1.17.53
 braintree~=4.8.0
