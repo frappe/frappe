@@ -1507,7 +1507,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							const insert_after_index = this.columns
 								.findIndex(column => column.label === values.insert_after);
 
-							let fieldname = this.get_fieldname_for_column(df.fieldname);
+							let fieldname = this.get_fieldname_for_column(df.fieldname, values.doctype);
 
 							custom_columns.push({
 								fieldname: fieldname,
@@ -1607,16 +1607,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 
-	get_fieldname_for_column(fieldname) {
+	get_fieldname_for_column(fieldname, doctype) {
 		// check if fieldname already used for any other column
 		let existing_fieldnames = [];
 		this.columns.forEach(column => {
 			existing_fieldnames.push(column.fieldname);
 		});
 
-		// Append random string after fieldname to avoid conflict
+		// Append doctype after fieldname to avoid conflict
 		if (existing_fieldnames.includes(fieldname)) {
-			fieldname = fieldname + Math.random().toString(36).substring(2, 15);
+			fieldname = fieldname + cstr(doctype);
 		}
 
 		return fieldname;
