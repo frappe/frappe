@@ -117,7 +117,10 @@ def validate_email_address(email_str, throw=False):
 
 		else:
 			email_id = extract_email_id(e)
-			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email_id.lower()) if email_id else None
+			match = re.match(
+				r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+				email_id.lower()
+			) if email_id else None
 
 			if not match:
 				_valid = False
@@ -287,7 +290,7 @@ def remove_blanks(d):
 
 def strip_html_tags(text):
 	"""Remove html tags from text"""
-	return re.sub("\<[^>]*\>", "", text)
+	return re.sub(r"\<[^>]*\>", "", text)
 
 def get_file_timestamp(fn):
 	"""
@@ -499,7 +502,7 @@ def is_markdown(text):
 	elif "<!-- html -->" in text:
 		return False
 	else:
-		return not re.search("<p[\s]*>|<br[\s]*>", text)
+		return not re.search(r"<p[\s]*>|<br[\s]*>", text)
 
 def get_sites(sites_path=None):
 	if not sites_path:
@@ -609,7 +612,7 @@ def check_format(email_id):
 
 def get_name_from_email_string(email_string, email_id, name):
 	name = email_string.replace(email_id, '')
-	name = re.sub('[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+', '', name).strip()
+	name = re.sub(r'[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+', '', name).strip()
 	if not name:
 		name = email_id
 	return name
