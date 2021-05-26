@@ -26,7 +26,7 @@ def get_context(context):
 				"lastmod": nowdate()
 			})
 
-	for route, data in get_public_pages_from_doctypes().items:
+	for route, data in get_public_pages_from_doctypes().items():
 		links.append({
 			"loc": get_url(quote((route or "").encode("utf-8"))),
 			"lastmod": get_datetime(data.get("modified")).strftime("%Y-%m-%d")
