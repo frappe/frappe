@@ -151,7 +151,7 @@ def split_emails(txt):
 
 	# emails can be separated by comma or newline
 	s = re.sub(r'[\t\n\r]', ' ', cstr(txt))
-	for email in re.split('''[,\\n](?=(?:[^"]|"[^"]*")*$)''', s):
+	for email in re.split(r'[,\n](?=(?:[^"]|"[^"]*")*$)', s):
 		email = strip(cstr(email))
 		if email:
 			email_list.append(email)

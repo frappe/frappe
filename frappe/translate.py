@@ -589,7 +589,7 @@ def is_translatable(m):
 def add_line_number(messages, code):
 	ret = []
 	messages = sorted(messages, key=lambda x: x[0])
-	newlines = [m.start() for m in re.compile('\\n').finditer(code)]
+	newlines = [m.start() for m in re.compile(r'\n').finditer(code)]
 	line = 1
 	newline_i = 0
 	for pos, message, context in messages:
