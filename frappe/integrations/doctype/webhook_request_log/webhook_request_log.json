@@ -7,58 +7,56 @@
  "engine": "InnoDB",
  "field_order": [
   "user",
-  "url",
   "headers",
-  "response",
+  "data",
   "column_break_4",
-  "timestamp",
-  "data"
+  "url",
+  "response"
  ],
  "fields": [
   {
    "fieldname": "url",
    "fieldtype": "Data",
-   "label": "URL"
+   "label": "URL",
+   "read_only": 1
   },
   {
    "fieldname": "headers",
    "fieldtype": "Code",
    "label": "Headers",
-   "options": "JSON"
+   "options": "JSON",
+   "read_only": 1
   },
   {
    "fieldname": "response",
    "fieldtype": "Code",
    "label": "Response",
-   "options": "JSON"
+   "options": "JSON",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_4",
    "fieldtype": "Column Break"
   },
   {
-   "default": "Now",
-   "fieldname": "timestamp",
-   "fieldtype": "Datetime",
-   "label": "Timestamp"
-  },
-  {
    "fieldname": "data",
    "fieldtype": "Code",
    "label": "Data",
-   "options": "JSON"
+   "options": "JSON",
+   "read_only": 1
   },
   {
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "User",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-05-24 22:59:21.103338",
+ "modified": "2021-05-26 23:57:58.495261",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",
