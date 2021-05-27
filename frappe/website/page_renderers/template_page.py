@@ -3,6 +3,7 @@ import os
 import click
 
 import frappe
+from frappe.website.router import get_page_info
 from frappe.website.page_renderers.base_template_page import BaseTemplatePage
 from frappe.website.router import get_base_template
 from frappe.website.utils import (extract_comment_tag, extract_title, get_next_link,
@@ -37,11 +38,11 @@ class TemplatePage(BaseTemplatePage):
 
 			for dirname in folders:
 				search_path = os.path.join(app_path, dirname, self.path)
-				for p in self.get_index_path_options(search_path):
-					file_path = frappe.as_unicode(p)
-					if os.path.exists(file_path) and not os.path.isdir(file_path):
+				for file_path in self.get_index_path_options(search_path):
+					if os.path.isfile(file_path):
 						self.app = app
 						self.app_path = app_path
+						self.file_dir = dirname
 						self.basename = os.path.splitext(file_path)[0]
 						self.template_path = os.path.relpath(file_path, self.app_path)
 						self.basepath = os.path.dirname(file_path)
@@ -52,8 +53,9 @@ class TemplatePage(BaseTemplatePage):
 	def can_render(self):
 		return hasattr(self, 'template_path') and bool(self.template_path)
 
-	def get_index_path_options(self, search_path):
-		return (f'{search_path}{d}' for d in ('', '.html', '.md', '/index.html', '/index.md'))
+	@staticmethod
+	def get_index_path_options(search_path):
+		return (frappe.as_unicode(f'{search_path}{d}') for d in ('.html', '.md', '/index.html', '/index.md'))
 
 	def render(self):
 		return build_response(self.path, self.get_html(), self.http_status_code, self.headers)
@@ -85,9 +87,18 @@ class TemplatePage(BaseTemplatePage):
 			self.context.sidebar_items = get_sidebar_items(self.context.website_sidebar, self.basepath)
 
 		if self.context.add_breadcrumbs and not self.context.parents:
-			# TODO: set correct title and route for breadcrumbs
 			parent_path = os.path.dirname(self.path)
-			self.context.parents = [dict(route=parent_path, title=extract_title(source='', path=parent_path))]
+			if self.path.endswith('index'):
+				# in case of index page move one directory up for parent path
+				parent_path = os.path.dirname(parent_path)
+
+			for parent_file_path in self.get_index_path_options(parent_path):
+				parent_file_path = os.path.join(self.app_path, self.file_dir, parent_file_path)
+				if os.path.isfile(parent_file_path):
+					parent_page_context = get_page_info(parent_file_path, self.app, self.file_dir)
+					if parent_page_context:
+						self.context.parents = [dict(route=os.path.dirname(self.path), title=parent_page_context.title)]
+					break
 
 	def set_pymodule(self):
 		'''
