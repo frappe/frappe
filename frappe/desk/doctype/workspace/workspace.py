@@ -116,7 +116,7 @@ class Workspace(Document):
 				"icon": card.get('icon'),
 				"hidden": card.get('hidden') or False,
 				"link_count": card.get('link_count'),
-				"idx": self.links[-1].idx + 1
+				"idx": 1 if not self.links else self.links[-1].idx + 1
 			})
 
 			for link in links:

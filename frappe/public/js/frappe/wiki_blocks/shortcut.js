@@ -41,28 +41,32 @@ export default class Shortcut {
 		}
 
 		if (!this.readOnly) {
-			let $widget_control = $(this.wrapper).find('.widget-control');
-			this.add_custom_button(
-				frappe.utils.icon('dot-horizontal', 'xs'),
-				(event) => {
-					let evn = event;
-					!$('.ce-settings.ce-settings--opened').length &&
-					setTimeout(() => {
-						this.api.toolbar.toggleBlockSettings();
-						var position = $(evn.target).offset();
-						$('.ce-settings.ce-settings--opened').offset({
-							top: position.top + 25,
-							left: position.left - 77
-						});
-					}, 50);
-				},
-				"tune-btn",
-				`${__('Tune')}`,
-				null,
-				$widget_control
-			);
+			this._add_tune_button();
 		}
 		return this.wrapper;
+	}
+
+	_add_tune_button() {
+		let $widget_control = $(this.wrapper).find('.widget-control');
+		this.add_custom_button(
+			frappe.utils.icon('dot-horizontal', 'xs'),
+			(event) => {
+				let evn = event;
+				!$('.ce-settings.ce-settings--opened').length &&
+				setTimeout(() => {
+					this.api.toolbar.toggleBlockSettings();
+					var position = $(evn.target).offset();
+					$('.ce-settings.ce-settings--opened').offset({
+						top: position.top + 25,
+						left: position.left - 77
+					});
+				}, 50);
+			},
+			"tune-btn",
+			`${__('Tune')}`,
+			null,
+			$widget_control
+		);
 	}
 
 	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
@@ -75,6 +79,14 @@ export default class Shortcut {
 			action && action(event);
 		});
 		wrapper.prepend(button);
+	}
+
+	validate(savedData) {
+		if (!savedData.shortcut_name) {
+			return false;
+		}
+
+		return true;
 	}
 
 	save(blockContent) {
@@ -118,6 +130,7 @@ export default class Shortcut {
 				this.shortcut_widget.customize(this.options);
 				this.wrapper.setAttribute("shortcut_name", this.shortcut_widget.label);
 				this.new_shortcut_widget = this.shortcut_widget.get_config();
+				this._add_tune_button();
 			},
 		});
 

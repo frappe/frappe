@@ -233,6 +233,12 @@ frappe.views.Wiki = class Wiki {
 		if (this.sidebar_items && this.sidebar_items[this.current_page_name]) {
 			this.sidebar_items[this.current_page_name][0].firstElementChild.classList.remove("selected");
 			this.sidebar_items[page][0].firstElementChild.classList.add("selected");
+			if (this.sidebar_items[page].parents('.sidebar-item-container')[0]) {
+				this.sidebar_items[page]
+					.parents('.sidebar-item-container')
+					.find('.drop-icon use')
+					.attr("href", "#icon-small-up");
+			}
 		}
 		this.current_page_name = page;
 		localStorage.current_wiki_page = page;
@@ -475,6 +481,7 @@ frappe.views.Wiki = class Wiki {
 			}
 			$sidebar_item.appendTo($child_section);
 			$child_section.removeClass('hidden');
+			$item_container.find('.drop-icon use').attr("href", "#icon-small-up");
 		}
 	}
 

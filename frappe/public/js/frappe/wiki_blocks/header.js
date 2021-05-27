@@ -296,6 +296,10 @@ export default class Header {
 
 		tag.classList.add(this._CSS.wrapper);
 
+		if (!this.readOnly) {
+			tag.contentEditable = true;
+		}
+
 		tag.dataset.placeholder = this.api.i18n.t(this._settings.placeholder || '');
 
 		return tag;
