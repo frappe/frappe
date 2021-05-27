@@ -24,7 +24,7 @@ def get_form_tour_steps(tour_name):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def docfields_query(doctype, txt, searchfield, start, page_len, filters):
+def get_docfield_list(doctype, txt, searchfield, start, page_len, filters):
 	or_filters = [
 		['fieldname', 'like', '%' + txt + '%'],
 		['label', 'like', '%' + txt + '%'],
