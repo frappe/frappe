@@ -7,11 +7,18 @@
 	Translation tools for frappe
 """
 
-import frappe, os, re, io, json
-from frappe.model.utils import render_include, InvalidIncludePath
-from frappe.utils import strip, strip_html_tags, is_html
-import itertools, operator
+import io
+import itertools
+import json
+import operator
+import os
+import re
 from csv import reader
+
+import frappe
+from frappe.model.utils import InvalidIncludePath, render_include
+from frappe.utils import is_html, strip, strip_html_tags
+
 
 def guess_language(lang_list=None):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
@@ -606,7 +613,7 @@ def read_csv_file(path):
 
 	with io.open(path, mode='r', encoding='utf-8', newline='') as msgfile:
 		data = reader(msgfile)
-		newdata = [[ val for val in row ] for row in data]
+		newdata = [[val for val in row] for row in data]
 
 	return newdata
 

@@ -1,16 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-import frappe, copy
+import copy
+
+import frappe
+import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
-import frappe.share
 
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
-
-# TODO:
-
-# optimize: meta.get_link_map (check if the doctype link exists for the given permission type)
 
 def check_admin_or_system_manager(user=None):
 	if not user: user = frappe.session.user

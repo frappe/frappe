@@ -2,12 +2,14 @@
 # MIT License. See license.txt
 import json
 from collections import defaultdict
+
 import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
 from frappe.model.meta import is_single
 from frappe.modules import load_doctype_module
+
 
 @frappe.whitelist()
 def get_submitted_linked_docs(doctype, name, docs=None, visited=None):
@@ -200,7 +202,8 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 				else:
 					link_fieldnames = link.get("fieldname")
 					if link_fieldnames:
-						if isinstance(link_fieldnames, str): link_fieldnames = [link_fieldnames]
+						if isinstance(link_fieldnames, str):
+							link_fieldnames = [link_fieldnames]
 						or_filters = [[dt, fieldname, '=', name] for fieldname in link_fieldnames]
 						# dynamic link
 						if link.get("doctype_fieldname"):

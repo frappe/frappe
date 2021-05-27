@@ -1,6 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-import redis, frappe, re, pickle
+import pickle
+import re
+
+import redis
+
+import frappe
 from frappe.utils import cstr
 
 

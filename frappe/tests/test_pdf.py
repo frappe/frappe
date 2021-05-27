@@ -1,12 +1,14 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+import io
 import unittest
 
-import frappe.utils.pdf as pdfgen
-import frappe, io
 from PyPDF2 import PdfFileReader
 
-#class TestPdfBorders(unittest.TestCase):
+import frappe
+import frappe.utils.pdf as pdfgen
+
+
 class TestPdf(unittest.TestCase):
 	@property
 	def html(self):

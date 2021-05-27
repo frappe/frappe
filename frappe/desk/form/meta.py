@@ -1,14 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+import io
+import os
 
-# metadata
-import frappe, os, io
-from frappe.model.meta import Meta
-from frappe.modules import scrub, get_module_path, load_doctype_module
-from frappe.utils import get_html_format
-from frappe.translate import make_dict_from_messages, extract_messages_from_code
-from frappe.model.utils import render_include
+import frappe
 from frappe.build import scrub_html_template
+from frappe.model.meta import Meta
+from frappe.model.utils import render_include
+from frappe.modules import get_module_path, load_doctype_module, scrub
+from frappe.translate import extract_messages_from_code, make_dict_from_messages
+from frappe.utils import get_html_format
 
 
 def get_meta(doctype, cached=True):
