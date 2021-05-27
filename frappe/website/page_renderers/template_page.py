@@ -55,7 +55,7 @@ class TemplatePage(BaseTemplatePage):
 
 	@staticmethod
 	def get_index_path_options(search_path):
-		return (frappe.as_unicode(f'{search_path}{d}') for d in ('.html', '.md', '/index.html', '/index.md'))
+		return (frappe.as_unicode(f'{search_path}{d}') for d in ('', '.html', '.md', '/index.html', '/index.md'))
 
 	def render(self):
 		return build_response(self.path, self.get_html(), self.http_status_code, self.headers)
