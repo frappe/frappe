@@ -7,10 +7,10 @@ class WebPage(object):
 		if not path:
 			path = frappe.local.request.path
 		self.path = path.strip('/ ')
-		self.basepath = None
-		self.basename = None
-		self.name = None
-		self.route = None
+		self.basepath = ''
+		self.basename = ''
+		self.name = ''
+		self.route = ''
 		self.file_dir = None
 
 	def can_render(self):
