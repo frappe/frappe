@@ -1,10 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+import json
 
-import frappe, json
+import frappe
 from frappe import _
-from frappe.utils import cstr
 from frappe.model import default_fields, table_fields
+from frappe.utils import cstr
+
 
 @frappe.whitelist()
 def make_mapped_doc(method, source_name, selected_children=None, args=None):
