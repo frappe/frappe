@@ -113,7 +113,13 @@ class TestWebPage(unittest.TestCase):
 			frappe.as_unicode(content))
 
 	def test_breadcrumbs(self):
-		pass
+		content = get_response_content('/_test/_test_folder/_test_page')
+		self.assertIn('<span itemprop="name">Test TOC</span>', content)
+		self.assertIn('<span itemprop="name"> Test Page</span>', content)
+
+		content = get_response_content('/_test/_test_folder/index')
+		self.assertIn('<span itemprop="name"> Test</span>', content)
+		self.assertIn('<span itemprop="name">Test TOC</span>', content)
 
 	def test_downloadable_file(self):
 		pass
