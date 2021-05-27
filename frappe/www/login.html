@@ -53,7 +53,7 @@
 {% endmacro %}
 
 {% block head_include %}
-<link type="text/css" rel="stylesheet" href="/assets/css/login.css?ver={{ build_version }}">
+{{ include_style('login.bundle.css') }}
 {% endblock %}
 
 {% macro logo_section() %}

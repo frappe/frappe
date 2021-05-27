@@ -18,6 +18,44 @@
 
 $check-icon: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
 
+input[type="radio"] {
+	position: relative;
+	width: var(--checkbox-size) !important;
+	height: var(--checkbox-size);
+	margin-right: 8px !important;
+	font-size: calc(var(--checkbox-size) - 1px);
+	background-repeat: no-repeat;
+	background-position: center;
+	cursor: pointer;
+
+	// Reset browser behavior
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+
+	-webkit-print-color-adjust: exact;
+	color-adjust: exact;
+
+	&:focus {
+		outline: none;
+	}
+
+	&:before {
+		width: var(--checkbox-size);
+		height: var(--checkbox-size);
+		position: absolute;
+		content: ' ';
+		border: 1px solid var(--gray-400);
+		border-radius: 16px;
+	}
+
+	&:checked::before {
+		background-color: var(--blue-500);
+		border-radius: 16px;
+		box-shadow: inset 0 0 0 2px white;
+	}
+}
+
 input[type="checkbox"] {
 	position: relative;
 	width: var(--checkbox-size) !important;
@@ -43,7 +81,7 @@ input[type="checkbox"] {
 	}
 
 	&:checked {
-		background-color: #2490EF;
+		background-color: var(--blue-500);
 		background-image: $check-icon, linear-gradient(180deg, #4AC3F8 -124.51%, #2490EF 100%);
 		background-size: 57%, 100%;
 		box-shadow: none;

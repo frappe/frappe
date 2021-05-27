@@ -33,13 +33,13 @@ def web_block(template, values=None, **kwargs):
 
 
 def web_blocks(blocks):
-	from frappe import throw, _dict
+	from frappe import throw, _dict, _
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
 
 	web_blocks = []
 	for block in blocks:
 		if not block.get("template"):
-			throw("Web Template is not specified")
+			throw(_("Web Template is not specified"))
 
 		doc = _dict(
 			{
@@ -63,3 +63,24 @@ def web_blocks(blocks):
 		html += "<script>{}</script>".format(script)
 
 	return html
+
+
+def include_script(path):
+	path = bundled_asset(path)
+	return f'<script type="text/javascript" src="{path}"></script>'
+
+
+def include_style(path):
+	path = bundled_asset(path)
+	return f'<link type="text/css" rel="stylesheet" href="{path}">'
+
+
+def bundled_asset(path):
+	from frappe.utils import get_assets_json
+	from frappe.website.utils import abs_url
+
+	if ".bundle." in path and not path.startswith("/assets"):
+		bundled_assets = get_assets_json()
+		path = bundled_assets.get(path) or path
+
+	return abs_url(path)

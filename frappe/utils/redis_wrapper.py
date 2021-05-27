@@ -28,7 +28,7 @@ class RedisWrapper(redis.Redis):
 
 		return "{0}|{1}".format(frappe.conf.db_name, key).encode('utf-8')
 
-	def set_value(self, key, val, user=None, expires_in_sec=None):
+	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
 		"""Sets cache value.
 
 		:param key: Cache key
@@ -36,7 +36,7 @@ class RedisWrapper(redis.Redis):
 		:param user: Prepends key with User
 		:param expires_in_sec: Expire value of this key in X seconds
 		"""
-		key = self.make_key(key, user)
+		key = self.make_key(key, user, shared)
 
 		if not expires_in_sec:
 			frappe.local.cache[key] = val
@@ -50,7 +50,7 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			return None
 
-	def get_value(self, key, generator=None, user=None, expires=False):
+	def get_value(self, key, generator=None, user=None, expires=False, shared=False):
 		"""Returns cache value. If not found and generator function is
 			given, it will call the generator.
 
@@ -59,7 +59,7 @@ class RedisWrapper(redis.Redis):
 		:param expires: If the key is supposed to be with an expiry, don't store it in frappe.local
 		"""
 		original_key = key
-		key = self.make_key(key, user)
+		key = self.make_key(key, user, shared)
 
 		if key in frappe.local.cache:
 			val = frappe.local.cache[key]
@@ -98,7 +98,7 @@ class RedisWrapper(redis.Redis):
 			return self.keys(key)
 
 		except redis.exceptions.ConnectionError:
-			regex = re.compile(cstr(key).replace("|", "\|").replace("*", "[\w]*"))
+			regex = re.compile(cstr(key).replace("|", r"\|").replace("*", r"[\w]*"))
 			return [k for k in list(frappe.local.cache) if regex.match(cstr(k))]
 
 	def delete_keys(self, key):

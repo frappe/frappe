@@ -199,10 +199,39 @@ def getseries(key, digits):
 
 
 def revert_series_if_last(key, name, doc=None):
-	if ".#" in key:
+	"""
+	Reverts the series for particular naming series:
+	* key is naming series		- SINV-.YYYY-.####
+	* name is actual name		- SINV-2021-0001
+		
+	1. This function split the key into two parts prefix (SINV-YYYY) & hashes (####).
+	2. Use prefix to get the current index of that naming series from Series table
+	3. Then revert the current index.
+
+	*For custom naming series:*
+	1. hash can exist anywhere, if it exist in hashes then it take normal flow.
+	2. If hash doesn't exit in hashes, we get the hash from prefix, then update name and prefix accordingly.
+
+	*Example:*
+		1. key = SINV-.YYYY.- 
+			* If key doesn't have hash it will add hash at the end
+			* prefix will be SINV-YYYY based on this will get current index from Series table.
+		2. key = SINV-.####.-2021
+			* now prefix = SINV-#### and hashes = 2021 (hash doesn't exist)
+			* will search hash in key then accordingly get prefix = SINV-
+		3. key = ####.-2021
+			* prefix = #### and hashes = 2021 (hash doesn't exist)
+			* will search hash in key then accordingly get prefix = "" 
+	"""
+	if ".#" in key: 
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:
-			return
+			# get the hash part from the key
+			hash = re.search("#+", key)
+			if not hash:
+				return
+			name = name.replace(hashes, "")
+			prefix = prefix.replace(hash.group(), "")
 	else:
 		prefix = key
 
@@ -254,7 +283,7 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 	filters.update({fieldname: value})
 	exists = frappe.db.exists(doctype, filters)
 
-	regex = "^{value}{separator}\d+$".format(value=re.escape(value), separator=separator)
+	regex = "^{value}{separator}\\d+$".format(value=re.escape(value), separator=separator)
 
 	if exists:
 		last = frappe.db.sql("""SELECT `{fieldname}` FROM `tab{doctype}`

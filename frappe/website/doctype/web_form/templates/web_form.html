@@ -87,16 +87,15 @@
 	frappe.web_form_doc.is_new = {{ frappe.utils.cint(is_new or False) }};
 	frappe.web_form_doc.is_list = {{ frappe.utils.cint(is_list or False) }};
 </script>
-<script type="text/javascript" src="/assets/js/control.min.js"></script>
-<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
-<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
+{{ include_script("controls.bundle.js") }}
+{{ include_script("dialog.bundle.js") }}
+// include moment
 <script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
 <script>
 	Vue.prototype.__ = window.__;
 	Vue.prototype.frappe = window.frappe;
 </script>
-<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
-<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
+{{ include_script("web_form.bundle.js") }}
 <script>
 {% if client_script %}
 frappe.init_client_script = () => {

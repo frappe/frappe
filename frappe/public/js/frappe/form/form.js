@@ -13,11 +13,11 @@ import './script_helpers';
 import './sidebar/form_sidebar';
 import './footer/footer';
 
-frappe.ui.form.Controller = Class.extend({
-	init: function(opts) {
+frappe.ui.form.Controller = class FormController {
+	constructor(opts) {
 		$.extend(this, opts);
 	}
-});
+};
 
 frappe.ui.form.Form = class FrappeForm {
 	constructor(doctype, parent, in_form, doctype_layout_name) {
@@ -1125,9 +1125,17 @@ frappe.ui.form.Form = class FrappeForm {
 
 	add_custom_button(label, fn, group) {
 		// temp! old parameter used to be icon
-		if(group && group.indexOf("fa fa-")!==-1) group = null;
-		var btn = this.page.add_inner_button(label, fn, group);
-		if(btn) {
+		if (group && group.indexOf("fa fa-") !== -1)
+			group = null;
+
+		let btn = this.page.add_inner_button(label, fn, group);
+
+		if (btn) {
+			// Add actions as menu item in Mobile View
+			let menu_item_label = group ? `${group} > ${label}` : label;
+			let menu_item = this.page.add_menu_item(menu_item_label, fn, false);
+			menu_item.parent().addClass("hidden-lg");
+
 			this.custom_buttons[label] = btn;
 		}
 		return btn;
