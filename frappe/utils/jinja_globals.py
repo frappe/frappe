@@ -85,6 +85,7 @@ def bundled_asset(path):
 
 	if ".bundle." in path and not path.startswith("/assets"):
 		bundled_assets = get_assets_json()
-		path = bundled_assets.get(path) or path
+		if bundled_assets:
+			path = bundled_assets.get(path) or path
 
 	return abs_url(path)
