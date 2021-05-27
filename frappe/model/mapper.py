@@ -137,10 +137,8 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 def map_doc(source_doc, target_doc, table_map, source_parent=None):
 	if table_map.get("validation"):
 		for key, condition in table_map["validation"].items():
-			if condition[0]=="=":
-				if source_doc.get(key) != condition[1]:
-					frappe.throw(_("Cannot map because following condition fails: ")
-						+ key + "=" + cstr(condition[1]))
+			if condition[0] == "=" and source_doc.get(key) != condition[1]:
+				frappe.throw(_("Cannot map because following condition fails:") + f" {key}={cstr(condition[1])}")
 
 	map_fields(source_doc, target_doc, table_map, source_parent)
 
