@@ -118,16 +118,20 @@ frappe.views.Wiki = class Wiki {
 			$item_container.parent().toggleClass('hidden');
 		}
 
-		let $drop_icon = $(`<span class="drop-icon hidden">${frappe.utils.icon("small-down", "sm")}</span>`);
-		$drop_icon.appendTo(sidebar_control);
-		let drop_icon = $item_container.find('.drop-icon').get(0);
-		let child_item_section = $item_container.find('.sidebar-child-item').get(0);
+		this.add_drop_icon(item, sidebar_control, $item_container);
+	}
+
+	add_drop_icon(item, sidebar_control, $item_container) {
+		let $child_item_section = $item_container.find('.sidebar-child-item');
+		let $drop_icon = $(`<span class="drop-icon hidden">${frappe.utils.icon("small-down", "sm")}</span>`)
+			.appendTo(sidebar_control);
+
 		if (this.all_pages.some(e => e.parent_page == item.name)) {
-			drop_icon.classList.remove('hidden');
-			drop_icon.addEventListener('click', () => {
-				child_item_section.classList.toggle("hidden");
-				let icon = $(drop_icon).find("use").attr("href")==="#icon-small-down" ? "#icon-small-up" : "#icon-small-down";
-				$(drop_icon).find("use").attr("href", icon);
+			$drop_icon.removeClass('hidden');
+			$drop_icon.on('click', () => {
+				let icon = $drop_icon.find("use").attr("href")==="#icon-small-down" ? "#icon-small-up" : "#icon-small-down";
+				$drop_icon.find("use").attr("href", icon);
+				$child_item_section.toggleClass("hidden");
 			});
 		}
 	}
@@ -461,7 +465,14 @@ frappe.views.Wiki = class Wiki {
 		if (!parent) {
 			$sidebar_item.appendTo($sidebar);
 		} else {
-			let $child_section = $sidebar.find(`[item-name="${parent}"] .sidebar-child-item`);
+			let $item_container = $sidebar.find(`[item-name="${parent}"]`);
+			let $child_section = $item_container.find('.sidebar-child-item');
+			let $drop_icon = $item_container.find('.drop-icon');
+			if (!$child_section[0]) {
+				$child_section = $(`<div class="sidebar-child-item hidden nested-container"></div>`)
+					.appendTo($item_container);
+				$drop_icon.toggleClass('hidden');
+			}
 			$sidebar_item.appendTo($child_section);
 			$child_section.removeClass('hidden');
 		}
