@@ -111,8 +111,8 @@ def get_default_address(doctype, name, sort_key='is_primary_address'):
 	if out:
 		for contact in out:
 			if contact.get(sort_key):
-				return contact.parent
-		return out[0].parent
+				return contact.name
+		return out[0].name
 	else:
 		return None
 
