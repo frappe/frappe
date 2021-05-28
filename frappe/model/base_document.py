@@ -862,7 +862,7 @@ class BaseDocument(object):
 		return self._precision[cache_key][fieldname]
 
 
-	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False):
+	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False, format=None):
 		from frappe.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
@@ -886,7 +886,7 @@ class BaseDocument(object):
 		if (absolute_value or doc.get('absolute_value')) and isinstance(val, (int, float)):
 			val = abs(self.get(fieldname))
 
-		return format_value(val, df=df, doc=doc, currency=currency)
+		return format_value(val, df=df, doc=doc, currency=currency, format=format)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
 		"""Returns true if fieldname is to be hidden for print.
