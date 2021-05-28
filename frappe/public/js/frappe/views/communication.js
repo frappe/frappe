@@ -722,6 +722,8 @@ frappe.views.CommunicationComposer = class {
 		if (message) {
 			this.content_set = true;
 		}
+		
+		message += await this.get_signature();
 
 		const SALUTATION_END_COMMENT = "<!-- salutation-ends -->";
 		if (this.real_name && !message.includes(SALUTATION_END_COMMENT)) {
