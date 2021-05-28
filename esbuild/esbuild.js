@@ -343,12 +343,7 @@ async function write_assets_json(metafile) {
 		}
 	}
 
-	let assets_json_path = path.resolve(
-		assets_path,
-		"frappe",
-		"dist",
-		"assets.json"
-	);
+	let assets_json_path = path.resolve(assets_path, "assets.json");
 	let assets_json;
 	try {
 		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");

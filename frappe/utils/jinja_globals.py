@@ -81,9 +81,10 @@ def include_style(path):
 
 def bundled_asset(path):
 	from frappe.utils import get_assets_json
+	from frappe.website.utils import abs_url
 
-	if path.startswith("/assets") or ".bundle." not in path:
-		return path
+	if ".bundle." in path and not path.startswith("/assets"):
+		bundled_assets = get_assets_json()
+		path = bundled_assets.get(path) or path
 
-	bundled_assets = get_assets_json()
-	return bundled_assets.get(path) or path
+	return abs_url(path)
