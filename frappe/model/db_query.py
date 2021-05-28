@@ -167,7 +167,6 @@ class DatabaseQuery(object):
 				join_type=join['join_type'], left_table= join['left_table'], left_field=join['left_field'],
 				right_table= join['right_table'], right_field=join['right_field']
 			)
-		print(args.tables)
 
 		# left join parent, child tables
 		for child in self.tables[1:]:
