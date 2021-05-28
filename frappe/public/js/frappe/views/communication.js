@@ -640,10 +640,14 @@ frappe.views.CommunicationComposer = Class.extend({
 				this.message = localStorage.getItem(doctype + docname) || '';
 			}
 		}
-
-		if(this.real_name) {
-			this.message = '<p>'+__('Dear') +' '
-				+ this.real_name + ",</p><!-- salutation-ends --><br>" + (this.message || "");
+		
+		const SALUTATION_END_COMMENT = "<!-- salutation-ends -->";
+		if (this.real_name && !message.includes(SALUTATION_END_COMMENT)) {
+			this.message = `
+				<p>${__('Dear')} ${this.real_name},</p>
+				${SALUTATION_END_COMMENT}<br>
+				${message}
+			`;
 		}
 
 		if(this.message && signature && this.message.includes(signature)) {
