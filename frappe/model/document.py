@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+from typing import TypeVar, Type
 import frappe
 import time
 from frappe import _, msgprint, is_whitelisted
@@ -17,8 +18,7 @@ from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.utils.data import get_absolute_url
 
-# once_only validation
-# methods
+D = TypeVar('D', bound='Document')
 
 def get_doc(*args, **kwargs):
 	"""returns a frappe.model.Document object.
@@ -132,18 +132,16 @@ class Document(BaseDocument):
 			raise ValueError('Illegal arguments')
 
 	@classmethod
-	def new(cls):
+	def new(cls: Type[D]) -> D:
 		if hasattr(cls, "_DOCTYPE_NAME"):
-			new_doc: cls = frappe.new_doc(cls._DOCTYPE_NAME)
-			return new_doc
+			return frappe.new_doc(cls._DOCTYPE_NAME)
 		else:
 			frappe.throw(f"_DOCTYPE_NAME not defined in {cls.__name__}")
 
 	@classmethod
-	def from_cache(cls, name):
+	def from_cache(cls: Type[D], name: str) -> D:
 		if hasattr(cls, "_DOCTYPE_NAME"):
-			doc: cls = frappe.get_cached_doc(cls._DOCTYPE_NAME, name)
-			return doc
+			return frappe.get_cached_doc(cls._DOCTYPE_NAME, name)
 		else:
 			frappe.throw(f"_DOCTYPE_NAME not defined in {cls.__name__}")
 
