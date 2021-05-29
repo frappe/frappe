@@ -131,6 +131,14 @@ class Document(BaseDocument):
 			# incorrect arguments. let's not proceed.
 			raise ValueError('Illegal arguments')
 
+	@classmethod
+	def new(cls):
+		if hasattr(cls, "_DOCTYPE_NAME"):
+			new_doc: cls = frappe.new_doc(cls._DOCTYPE_NAME)
+			return new_doc
+		else:
+			frappe.throw(f"_DOCTYPE_NAME not defined in {cls.__name__}")
+
 	@staticmethod
 	def whitelist(fn):
 		"""Decorator: Whitelist method to be called remotely via REST API."""
