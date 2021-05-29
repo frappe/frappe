@@ -88,11 +88,13 @@ class Document(BaseDocument):
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
+		_DOCTYPE_NAME = getattr(self.__class__, "_DOCTYPE_NAME", None)
+
 		if args and args[0] and isinstance(args[0], str):
 			# first arugment is doctype
 			if len(args)==1:
-				if hasattr(self.__class__, "_DOCTYPE_NAME"):
-					self.doctype = self.__class__._DOCTYPE_NAME
+				if _DOCTYPE_NAME:
+					self.doctype = _DOCTYPE_NAME
 					self.name = args[0]
 				else:
 					# single
@@ -120,8 +122,8 @@ class Document(BaseDocument):
 				kwargs = args[0]
 
 			# if doctype is not set, use _DOCTYPE_NAME
-			if hasattr(self.__class__, "_DOCTYPE_NAME"):
-				kwargs.setdefault("doctype", self.__class__._DOCTYPE_NAME)
+			if _DOCTYPE_NAME:
+				kwargs.setdefault("doctype", _DOCTYPE_NAME)
 
 			# init base document
 			super(Document, self).__init__(kwargs)
