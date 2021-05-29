@@ -112,13 +112,13 @@ class Document(BaseDocument):
 					self.flags.for_update = kwargs.get('for_update')
 
 			self.load_from_db()
-			return
 
-		if args and args[0] and isinstance(args[0], dict):
-			# first argument is a dict
-			kwargs = args[0]
+		# create new doc from dict or kwargs.
+		elif (args and args[0] and isinstance(args[0], dict)) or kwargs:
 
-		if kwargs:
+			if args and args[0] and isinstance(args[0], dict):
+				kwargs = args[0]
+
 			# if doctype is not set, use _DOCTYPE_NAME
 			if hasattr(self.__class__, "_DOCTYPE_NAME"):
 				kwargs.setdefault("doctype", self.__class__._DOCTYPE_NAME)
