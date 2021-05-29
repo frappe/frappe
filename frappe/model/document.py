@@ -127,6 +127,9 @@ class Document(BaseDocument):
 			if _DOCTYPE_NAME:
 				kwargs.setdefault("doctype", _DOCTYPE_NAME)
 
+			if "doctype" not in kwargs:
+				raise ValueError('"doctype" is a required key')
+
 			# init base document
 			super(Document, self).__init__(kwargs)
 			self.init_valid_columns()
