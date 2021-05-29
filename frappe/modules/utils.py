@@ -245,7 +245,8 @@ def make_boilerplate(template, doc, opts=None):
 			base_class = 'NestedSet'
 			base_class_import = 'from frappe.utils.nestedset import NestedSet'
 
-		custom_controller = 'pass'
+		custom_controller = f"""_DOCTYPE_NAME = "{doc.name}"
+	pass"""
 		if doc.get('is_virtual'):
 			custom_controller = """
 	def db_insert(self):
