@@ -11,9 +11,10 @@
 }) -%}
 <div class="mt-6 {{ col_classes }}">
 	<div class="card {{ card_classes }} h-100">
-	        {%- if image -%}
-	        {{ frappe.render_template('templates/includes/image_with_blur.html', {
+		{%- if image -%}
+		{{ frappe.render_template('templates/includes/image_with_blur.html', {
 			"src": image,
+			"class": ["card-img-top"]
 		}) }}
 		{%- endif -%}
 		<div class="card-body">
