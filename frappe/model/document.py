@@ -91,8 +91,12 @@ class Document(BaseDocument):
 		if args and args[0] and isinstance(args[0], str):
 			# first arugment is doctype
 			if len(args)==1:
-				# single
-				self.doctype = self.name = args[0]
+				if hasattr(self.__class__, "_DOCTYPE_NAME"):
+					self.doctype = self.__class__._DOCTYPE_NAME
+					self.name = args[0]
+				else:
+					# single
+					self.doctype = self.name = args[0]
 			else:
 				self.doctype = args[0]
 				if isinstance(args[1], dict):
