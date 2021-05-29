@@ -119,6 +119,10 @@ class Document(BaseDocument):
 			kwargs = args[0]
 
 		if kwargs:
+			# if doctype is not set, use _DOCTYPE_NAME
+			if hasattr(self.__class__, "_DOCTYPE_NAME"):
+				kwargs.setdefault("doctype", self.__class__._DOCTYPE_NAME)
+
 			# init base document
 			super(Document, self).__init__(kwargs)
 			self.init_valid_columns()
