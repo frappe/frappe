@@ -84,6 +84,8 @@ class Document(BaseDocument):
 		If DocType name and document name are passed, the object will load
 		all values (including child documents) from the database.
 		"""
+		from frappe.model.meta import is_single
+
 		self.doctype = self.name = None
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
@@ -128,6 +130,10 @@ class Document(BaseDocument):
 			# init base document
 			super(Document, self).__init__(kwargs)
 			self.init_valid_columns()
+
+		elif _DOCTYPE_NAME and is_single(_DOCTYPE_NAME):
+			self.doctype = self.name = _DOCTYPE_NAME
+			self.load_from_db()
 
 		else:
 			# incorrect arguments. let's not proceed.
