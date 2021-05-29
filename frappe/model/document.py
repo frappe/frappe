@@ -139,6 +139,14 @@ class Document(BaseDocument):
 		else:
 			frappe.throw(f"_DOCTYPE_NAME not defined in {cls.__name__}")
 
+	@classmethod
+	def from_cache(cls, name):
+		if hasattr(cls, "_DOCTYPE_NAME"):
+			doc: cls = frappe.get_cached_doc(cls._DOCTYPE_NAME, name)
+			return doc
+		else:
+			frappe.throw(f"_DOCTYPE_NAME not defined in {cls.__name__}")
+
 	@staticmethod
 	def whitelist(fn):
 		"""Decorator: Whitelist method to be called remotely via REST API."""
