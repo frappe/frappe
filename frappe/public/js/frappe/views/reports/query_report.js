@@ -1616,7 +1616,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		// Append doctype after fieldname to avoid conflict
 		if (existing_fieldnames.includes(fieldname)) {
-			fieldname = fieldname + cstr(doctype);
+			fieldname = frappe.model.scrub(fieldname + " " + doctype);
 		}
 
 		return fieldname;
