@@ -64,7 +64,7 @@
    "options": "Left\nLeft Center\nLeft Bottom\nTop\nTop Center\nTop Right\nRight\nRight Center\nRight Bottom\nBottom\nBottom Center\nBottom Right\nMid Center"
   },
   {
-   "fieldname": "condition",
+   "fieldname": "next_step_condition",
    "fieldtype": "Code",
    "label": "Next Step Condition",
    "options": "JS"
