@@ -42,7 +42,7 @@ def make_boilerplate(dest, app_name):
 			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
 				print("App Name must be all lowercase and without spaces")
 				hook_val = ""
-			elif hook_key=="app_title" and not re.match("^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
+			elif hook_key=="app_title" and not re.match(r"^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
 				print("App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores")
 				hook_val = ""
 
