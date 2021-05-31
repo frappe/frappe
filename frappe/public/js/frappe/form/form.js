@@ -1068,7 +1068,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		if(!this.doc.__islocal) {
 			frappe.model.remove_from_locals(this.doctype, this.docname);
-			frappe.model.with_doc(this.doctype, this.docname, () => {
+			return frappe.model.with_doc(this.doctype, this.docname, () => {
 				this.refresh();
 			});
 		}
