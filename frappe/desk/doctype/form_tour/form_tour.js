@@ -13,7 +13,7 @@ frappe.ui.form.on('Form Tour', {
 
 		frm.set_query("field", "steps", function() {
 			return {
-				query: "frappe.desk.doctype.form_tour.form_tour.docfields_query",
+				query: "frappe.desk.doctype.form_tour.form_tour.get_docfield_list",
 				filters: {
 					doctype: frm.doc.reference_doctype,
 					hidden: 0

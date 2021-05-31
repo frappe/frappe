@@ -1634,7 +1634,7 @@ frappe.ui.form.Form = class FrappeForm {
 					position: step.position || 'bottom'
 				},
 				onNext: () => {
-					const next_condition_satisfied = this.layout.evaluate_depends_on_value(step.condition || true);
+					const next_condition_satisfied = this.layout.evaluate_depends_on_value(step.next_step_condition || true);
 					if (!next_condition_satisfied) {
 						driver.preventMove();
 					}
