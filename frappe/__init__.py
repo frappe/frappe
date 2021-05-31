@@ -1559,6 +1559,23 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 		"round": round
 	}
 
+	UNSAFE_ATTRIBUTES = {
+		# Generator Attributes
+		"gi_frame", "gi_code",
+		# Coroutine Attributes
+		"cr_frame", "cr_code", "cr_origin",
+		# Async Generator Attributes
+		"ag_code", "ag_frame",
+		# Traceback Attributes
+		"tb_frame", "tb_next",
+		# Format Attributes
+		"format", "format_map",
+	}
+
+	for attribute in UNSAFE_ATTRIBUTES:
+		if attribute in code:
+			throw('Illegal rule {0}. Cannot use "{1}"'.format(bold(code), attribute))
+
 	if '__' in code:
 		throw('Illegal rule {0}. Cannot use "__"'.format(bold(code)))
 
