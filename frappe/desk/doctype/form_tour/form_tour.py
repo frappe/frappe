@@ -9,20 +9,6 @@ class FormTour(Document):
 	pass
 
 @frappe.whitelist()
-def get_form_tour_steps(tour_name):
-	def get_step(step_doc):
-		return dict(
-			title=step_doc.title,
-			condition=step_doc.condition,
-			fieldname=step_doc.fieldname,
-			description=step_doc.description,
-			position=slug(step_doc.position),
-		)
-
-	tour = frappe.get_doc('Form Tour', tour_name)
-	return [get_step(d) for d in tour.steps]
-
-@frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_docfield_list(doctype, txt, searchfield, start, page_len, filters):
 	or_filters = [
