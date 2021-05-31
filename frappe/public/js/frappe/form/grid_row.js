@@ -529,7 +529,7 @@ export default class GridRow {
 		// hide other
 		var open_row = this.get_open_form();
 
-		if (show===undefined) show = !!!open_row;
+		if (show === undefined) show = !open_row;
 
 		// call blur
 		document.activeElement && document.activeElement.blur();
@@ -594,17 +594,40 @@ export default class GridRow {
 		this.wrapper.removeClass("grid-row-open");
 	}
 	open_prev() {
-		const row_index = this.wrapper.index();
-		if (this.grid.grid_rows[row_index - 1]) {
-			this.grid.grid_rows[row_index - 1].toggle_view(true);
-		}
+		if (!this.doc) return;
+		this.open_row_at_index(this.doc.idx - 2);
 	}
 	open_next() {
-		const row_index = this.wrapper.index();
-		if (this.grid.grid_rows[row_index + 1]) {
-			this.grid.grid_rows[row_index + 1].toggle_view(true);
-		} else {
+		if (!this.doc) return;
+
+		if (!this.open_row_at_index(this.doc.idx)) {
 			this.grid.add_new_row(null, null, true);
+		}
+	}
+	open_row_at_index(row_index) {
+		if (!this.grid.data[row_index]) return;
+
+		this.change_page_if_reqd(row_index);
+		this.grid.grid_rows[row_index].toggle_view(true);
+		return true;
+	}
+	change_page_if_reqd(row_index) {
+		const {
+			page_index,
+			page_length
+		} = this.grid.grid_pagination;
+
+		row_index++;
+		let new_page;
+
+		if (row_index <= (page_index - 1) * page_length) {
+			new_page = page_index - 1;
+		} else if (row_index > page_index * page_length) {
+			new_page = page_index + 1;
+		}
+
+		if (new_page) {
+			this.grid.grid_pagination.go_to_page(new_page);
 		}
 	}
 	refresh_field(fieldname, txt) {
