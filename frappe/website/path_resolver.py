@@ -35,7 +35,8 @@ class PathResolver():
 			return frappe.flags.redirect_location, RedirectPage(self.path)
 
 		endpoint = resolve_path(self.path)
-		renderers = (StaticPage, WebFormPage, TemplatePage, ListPage, DocumentPage, PrintPage, NotFoundPage)
+		custom_renderers = frappe.get_hooks('page_renderer')
+		renderers = custom_renderers + [StaticPage, WebFormPage, TemplatePage, ListPage, DocumentPage, PrintPage, NotFoundPage]
 
 		for renderer in renderers:
 			renderer_instance = renderer(endpoint, 200)
