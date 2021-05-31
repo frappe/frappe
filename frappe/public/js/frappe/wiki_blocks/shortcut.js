@@ -11,8 +11,8 @@ export default class Shortcut extends Block {
 		return true;
 	}
 
-	constructor(opts = {data, api, config, readOnly, block}) {
-		super(opts);
+	constructor({data, api, config, readOnly, block}) {
+		super(arguments[0]);
 		this.col = this.data.col ? this.data.col : "12";
 		this.pt = this.data.pt ? this.data.pt : "0";
 		this.pr = this.data.pr ? this.data.pr : "0";

@@ -1,5 +1,5 @@
 import Block from "./block.js";
-export default class Paragraph extends Block{
+export default class Paragraph extends Block {
 
 	static get DEFAULT_PLACEHOLDER() {
 		return '';

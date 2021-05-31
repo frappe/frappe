@@ -134,7 +134,7 @@ export default class Block {
 				let parts = pad_name.split("-");
 				padding = parseInt(parts[1]);
 			}
-		}
+		};
 
 		if ("l" == direction) {
 			get_padding(pad_left);

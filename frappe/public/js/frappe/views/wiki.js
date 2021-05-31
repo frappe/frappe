@@ -140,8 +140,8 @@ frappe.views.Wiki = class Wiki {
 		this.add_drop_icon(item, sidebar_control, $item_container);
 	}
 
-	add_drop_icon(item, sidebar_control, $item_container) {
-		let $child_item_section = $item_container.find('.sidebar-child-item');
+	add_drop_icon(item, sidebar_control, item_container) {
+		let $child_item_section = item_container.find('.sidebar-child-item');
 		let $drop_icon = $(`<span class="drop-icon hidden">${frappe.utils.icon("small-down", "sm")}</span>`)
 			.appendTo(sidebar_control);
 
@@ -400,7 +400,8 @@ frappe.views.Wiki = class Wiki {
 				{
 					label: __('Title'),
 					fieldtype: 'Data',
-					fieldname: 'title'
+					fieldname: 'title',
+					"reqd": 1
 				},
 				{
 					label: __('Parent'),
@@ -422,7 +423,7 @@ frappe.views.Wiki = class Wiki {
 							type: "header",
 							data: {
 								text: this.title,
-								level: 2
+								level: 4
 							}
 						}
 					]
