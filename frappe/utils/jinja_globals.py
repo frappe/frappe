@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from frappe.utils.jinja import get_jenv
 
 
 def resolve_class(classes):
@@ -22,6 +21,8 @@ def resolve_class(classes):
 
 
 def inspect(var, render=True):
+	from frappe.utils.jinja import get_jenv
+
 	context = {"var": var}
 	if render:
 		html = "<pre>{{ var | pprint | e }}</pre>"
