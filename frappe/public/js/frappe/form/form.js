@@ -175,6 +175,7 @@ frappe.ui.form.Form = class FrappeForm {
 				field && ["Link", "Dynamic Link"].includes(field.df.fieldtype) && field.validate && field.validate(value);
 
 				me.layout.refresh_dependency();
+				me.layout.refresh_sections();
 				let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				return object;
 			}
@@ -1078,6 +1079,7 @@ frappe.ui.form.Form = class FrappeForm {
 		if (this.fields_dict[fname] && this.fields_dict[fname].refresh) {
 			this.fields_dict[fname].refresh();
 			this.layout.refresh_dependency();
+			this.layout.refresh_sections();
 		}
 	}
 
