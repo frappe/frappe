@@ -528,15 +528,19 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	if not delayed:
 		now = True
 
-	from frappe.email import queue
-	queue.send(recipients=recipients, sender=sender,
+	from frappe.email.doctype.email_queue.email_queue import QueueBuilder
+	builder = QueueBuilder(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name, add_unsubscribe_link=add_unsubscribe_link,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, queue_separately=queue_separately,
-		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
+		communication=communication, read_receipt=read_receipt, is_notification=is_notification,
 		inline_images=inline_images, header=header, print_letterhead=print_letterhead, with_container=with_container)
+
+	# build email queue and send the email if send_now is True.
+	builder.process(send_now=now)
+
 
 whitelisted = []
 guest_methods = []
