@@ -1,32 +1,25 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
-import frappe
+import email.utils
+import functools
 import imaplib
-import re
-import json
 import socket
 import time
-import functools
-
-import email.utils
-
-from frappe import _, are_emails_muted
-from frappe.model.document import Document
-from frappe.utils import (validate_email_address, cint, cstr, get_datetime,
-	DATE_FORMAT, strip, comma_or, sanitize_html, add_days, parse_addr)
-from frappe.utils.user import is_system_user
-from frappe.utils.jinja import render_template
-from frappe.email.smtp import SMTPServer
-from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
-from poplib import error_proto
-from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
+from poplib import error_proto
+
+import frappe
+from frappe import _, are_emails_muted
 from frappe.desk.form import assign_to
-from frappe.utils.user import get_system_managers
-from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.utils.html_utils import clean_email_html
-from frappe.utils.error import raise_error_on_no_output
+from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
+from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
+from frappe.model.document import Document
+from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_address
+from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.error import raise_error_on_no_output
+from frappe.utils.jinja import render_template
+from frappe.utils.user import get_system_managers
 
 OUTGOING_EMAIL_ACCOUNT_MISSING = _("Please setup default Email Account from Setup > Email > Email Account")
 
