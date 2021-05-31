@@ -355,8 +355,7 @@ class CustomizeForm(Document):
 
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)
-		fields_to_remove = (set(df.fieldname for df in meta.get("fields"))
-			- set(df.fieldname for df in self.get("fields")))
+		fields_to_remove = {df.fieldname for df in meta.get("fields") if df not in self.get("fields")}
 
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]

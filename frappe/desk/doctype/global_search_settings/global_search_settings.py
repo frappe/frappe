@@ -21,7 +21,7 @@ class GlobalSearchSettings(Document):
 			dts.append(dt.document_type)
 
 		if core_dts:
-			core_dts = (", ".join(frappe.bold(dt) for dt in core_dts))
+			core_dts = ", ".join(frappe.bold(dt) for dt in core_dts)
 			frappe.throw(_("Core Modules {0} cannot be searched in Global Search.").format(core_dts))
 
 		if repeated_dts:
