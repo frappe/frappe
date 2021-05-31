@@ -199,6 +199,11 @@ io.on('connection', function (socket) {
 			'type'
 		);
 	});
+
+	socket.on('open_in_editor', (data) => {
+		let s = get_redis_subscriber('redis_socketio');
+		s.publish('open_in_editor', JSON.stringify(data));
+	});
 });
 
 subscriber.on("message", function (_channel, message) {

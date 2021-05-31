@@ -1,11 +1,11 @@
 frappe.provide('frappe.utils.utils');
 
-frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
-	horizontal: false,
+frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.form.ControlData {
+	static horizontal = false
 
 	make_wrapper() {
 		// Create the elements for map area
-		this._super();
+		super.make_wrapper();
 
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
 		this.map_id = frappe.dom.get_unique_id();
@@ -24,14 +24,14 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 				this.make_map();
 			});
 		}
-	},
+	}
 
 	make_map() {
 		this.bind_leaflet_map();
 		this.bind_leaflet_draw_control();
 		this.bind_leaflet_locate_control();
 		this.bind_leaflet_refresh_button();
-	},
+	}
 
 	format_for_input(value) {
 		if (!this.map) return;
@@ -65,7 +65,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		} else if ((value===undefined) || (value == JSON.stringify(new L.FeatureGroup().toGeoJSON()))) {
 			this.locate_control.start();
 		}
-	},
+	}
 
 	bind_leaflet_map() {
 		var circleToGeoJSON = L.Circle.prototype.toGeoJSON;
@@ -97,13 +97,13 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 
 		L.tileLayer(frappe.utils.map_defaults.tiles,
 			frappe.utils.map_defaults.options).addTo(this.map);
-	},
+	}
 
 	bind_leaflet_locate_control() {
 		// To request location update and set location, sets current geolocation on load
 		this.locate_control = L.control.locate({position:'topright'});
 		this.locate_control.addTo(this.map);
-	},
+	}
 
 	bind_leaflet_draw_control() {
 		this.editableLayers = new L.FeatureGroup();
@@ -160,7 +160,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
-	},
+	}
 
 	bind_leaflet_refresh_button() {
 		L.easyButton({
@@ -177,7 +177,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 				icon: 'fa fa-refresh'
 			}]
 		}).addTo(this.map);
-	},
+	}
 
 	add_non_group_layers(source_layer, target_group) {
 		// https://gis.stackexchange.com/a/203773
@@ -189,11 +189,11 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		} else {
 			target_group.addLayer(source_layer);
 		}
-	},
+	}
 
 	clear_editable_layers() {
 		this.editableLayers.eachLayer((l)=>{
 			this.editableLayers.removeLayer(l);
 		});
 	}
-});
+};

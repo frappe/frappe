@@ -61,7 +61,9 @@ def get_safe_globals():
 
 	out = NamespaceDict(
 		# make available limited methods of frappe
-		json=json,
+		json=NamespaceDict(
+			loads = json.loads,
+			dumps = json.dumps),
 		dict=dict,
 		log=frappe.log,
 		_dict=frappe._dict,
@@ -119,7 +121,7 @@ def get_safe_globals():
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=1 if os.environ.get('DEV_SERVER', False) else 0,
+		dev_server=1 if frappe._dev_server else 0,
 		run_script=run_script
 	)
 

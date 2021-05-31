@@ -157,9 +157,7 @@ export default class OnboardingWidget extends Widget {
 		let route = frappe.utils.generate_route({
 			name: step.reference_report,
 			type: "report",
-			is_query_report: ["Query Report", "Script Report"].includes(
-				step.report_type
-			),
+			is_query_report: step.report_type !== "Report Builder",
 			doctype: step.report_reference_doctype,
 		});
 

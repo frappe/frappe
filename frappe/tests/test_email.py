@@ -1,16 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import unittest, frappe, re, email
 from six import PY3
 
-from frappe.test_runner import make_test_records
-
-make_test_records("User")
-make_test_records("Email Account")
-
+test_dependencies = ['Email Account']
 
 class TestEmail(unittest.TestCase):
 	def setUp(self):
@@ -75,6 +69,7 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('CC: test1@example.com' in message)
 
 	def test_cc_footer(self):
+		frappe.conf.use_ssl = True
 		# test if sending with cc's makes it into header
 		frappe.sendmail(recipients=['test@example.com'],
 						cc=['test1@example.com'],
@@ -92,7 +87,12 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('This email was sent to test@example.com and copied to test1@example.com' in frappe.safe_decode(
 			frappe.flags.sent_mail))
 
+		# check for email tracker
+		self.assertTrue('mark_email_as_seen' in frappe.safe_decode(frappe.flags.sent_mail))
+		frappe.conf.use_ssl = False
+
 	def test_expose(self):
+
 		from frappe.utils.verified_command import verify_request
 		frappe.sendmail(recipients=['test@example.com'],
 						cc=['test1@example.com'],
@@ -176,7 +176,8 @@ class TestEmail(unittest.TestCase):
 		frappe.db.sql('''delete from `tabCommunication` where sender = 'sukh@yyy.com' ''')
 
 		with open(frappe.get_app_path('frappe', 'tests', 'data', 'email_with_image.txt'), 'r') as raw:
-			communication = email_account.insert_communication(raw.read())
+			mails = email_account.get_inbound_mails(test_mails=[raw.read()])
+			communication = mails[0].process()
 
 		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco1.png[^>]*>''', communication.content))
 		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco2.png[^>]*>''', communication.content))

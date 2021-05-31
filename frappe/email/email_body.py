@@ -292,18 +292,12 @@ def inline_style_in_html(html):
 	''' Convert email.css and html to inline-styled html
 	'''
 	from premailer import Premailer
+	from frappe.utils.jinja_globals import bundled_asset
 
-	apps = frappe.get_installed_apps()
-
-	# add frappe email css file
-	css_files = ['assets/css/email.css']
-	if 'frappe' in apps:
-		apps.remove('frappe')
-
-	for app in apps:
-		path = 'assets/{0}/css/email.css'.format(app)
-		css_files.append(path)
-
+	# get email css files from hooks
+	css_files = frappe.get_hooks('email_css')
+	css_files = [bundled_asset(path) for path in css_files]
+	css_files = [path.lstrip('/') for path in css_files]
 	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
 
 	p = Premailer(html=html, external_styles=css_files, strip_important=False)
@@ -359,9 +353,7 @@ def add_attachment(fname, fcontent, content_type=None,
 
 def get_message_id():
 	'''Returns Message ID created from doctype and name'''
-	return "<{unique}@{site}>".format(
-			site=frappe.local.site,
-			unique=email.utils.make_msgid(random_string(10)).split('@')[0].split('<')[1])
+	return email.utils.make_msgid(domain=frappe.local.site)
 
 def get_signature(email_account):
 	if email_account and email_account.add_signature and email_account.signature:

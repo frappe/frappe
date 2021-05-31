@@ -34,10 +34,10 @@ def get_context(context):
 	boot_json = frappe.as_json(boot)
 
 	# remove script tags from boot
-	boot_json = re.sub("\<script[^<]*\</script\>", "", boot_json)
+	boot_json = re.sub(r"\<script[^<]*\</script\>", "", boot_json)
 
 	# TODO: Find better fix
-	boot_json = re.sub("</script\>", "", boot_json)
+	boot_json = re.sub(r"</script\>", "", boot_json)
 
 	context.update({
 		"no_cache": 1,
