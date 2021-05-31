@@ -353,9 +353,7 @@ def add_attachment(fname, fcontent, content_type=None,
 
 def get_message_id():
 	'''Returns Message ID created from doctype and name'''
-	return "<{unique}@{site}>".format(
-			site=frappe.local.site,
-			unique=email.utils.make_msgid(random_string(10)).split('@')[0].split('<')[1])
+	return email.utils.make_msgid(domain=frappe.local.site)
 
 def get_signature(email_account):
 	if email_account and email_account.add_signature and email_account.signature:
