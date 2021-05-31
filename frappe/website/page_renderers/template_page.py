@@ -70,8 +70,8 @@ class TemplatePage(BaseTemplatePage):
 		self.setup_template()
 		self.update_context()
 		self.post_process_context()
-		html = self.render_template()
 
+		html = self.render_template()
 		html = self.update_toc(html)
 		html = self.add_csrf_token(html)
 
@@ -182,7 +182,8 @@ class TemplatePage(BaseTemplatePage):
 			comment_tag = f"<!-- {comment} -->"
 			if comment_tag in self.source:
 				self.context[context_key] = value
-				click.echo(f'⚠️  DEPRECATION WARNING: {comment_tag} will be deprecated on 2021-12-31.')
+				click.echo(f'\n⚠️  DEPRECATION WARNING: {comment_tag} will be deprecated on 2021-12-31.')
+				click.echo(f'Please remove it from {self.template_path} in {self.app}')
 
 	def run_pymodule_method(self, method):
 		if hasattr(self.pymodule, method):
