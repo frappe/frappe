@@ -12,7 +12,7 @@ class InternalWikiPage(Document):
 
 	def before_insert(self):
 		sequence_id_list = frappe.get_all('Internal Wiki Page', {'sequence_id'})
-		self.sequence_id = max([page.sequence_id for page in sequence_id_list]) + 1
+		self.sequence_id = max([page.sequence_id for page in sequence_id_list] or [0]) + 1
 
 @frappe.whitelist()
 def save_wiki_page(title, parent, sb_items, deleted_pages, new_widgets, blocks, save=True):
