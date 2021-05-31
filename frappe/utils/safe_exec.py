@@ -44,12 +44,13 @@ def get_safe_globals():
 
 	out = frappe._dict(
 		# make available limited methods of frappe
-		json = frappe._dict
+		json = frappe._dict(
 			loads = json.loads,
 			dumps = json.dumps),
 		dict = dict,
 		frappe =  frappe._dict(
 			flags = frappe._dict(),
+
 			format = frappe.format_value,
 			format_value = frappe.format_value,
 			date_format = date_format,
