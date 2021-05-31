@@ -1,23 +1,23 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-from __future__ import unicode_literals
-from frappe.core.doctype import communication
-from frappe.core.doctype.communication.communication import Communication
+import os
+import email
+import unittest
+from datetime import datetime, timedelta
+
 from frappe.email.receive import InboundMail, SentEmailInInboxError, Email
 from frappe.email.email_body import get_message_id
-import frappe, os
-import unittest, email
-
+import frappe
 from frappe.test_runner import make_test_records
+from frappe.core.doctype.communication.email import make
+from frappe.desk.form.load import get_attachments
+from frappe.email.doctype.email_account.email_account import notify_unreplied
 
 make_test_records("User")
 make_test_records("Email Account")
 
-from frappe.core.doctype.communication.email import make
-from frappe.desk.form.load import get_attachments
-from frappe.email.doctype.email_account.email_account import notify_unreplied
-from datetime import datetime, timedelta
+
 
 class TestEmailAccount(unittest.TestCase):
 	@classmethod
@@ -240,7 +240,7 @@ class TestInboundMail(unittest.TestCase):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.db_set("enable_incoming", 0)
 
-	def tearDown(self):
+	def setUp(self):
 		cleanup()
 		frappe.db.sql('delete from `tabEmail Queue`')
 		frappe.db.sql('delete from `tabToDo`')

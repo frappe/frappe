@@ -19,7 +19,7 @@ from frappe.utils import (validate_email_address, cint, cstr, get_datetime,
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
-from frappe.email.receive import EmailServer, Email, InboundMail, SentEmailInInboxError
+from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
 from poplib import error_proto
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
@@ -469,11 +469,11 @@ class EmailAccount(Document):
 		"""retrive and return inbound mails.
 
 		"""
-		if not self.enable_incoming:
-			return []
-
 		if frappe.local.flags.in_test:
 			return [InboundMail(msg, self) for msg in test_mails or []]
+
+		if not self.enable_incoming:
+			return []
 
 		email_sync_rule = self.build_email_sync_rule()
 		try:

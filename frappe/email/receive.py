@@ -821,7 +821,6 @@ class InboundMail(Email):
 	@staticmethod
 	def get_doc(doctype, docname, ignore_error=False):
 		try:
-			print(doctype, docname)
 			return frappe.get_doc(doctype, docname)
 		except frappe.DoesNotExistError:
 			if ignore_error:
@@ -862,7 +861,6 @@ class InboundMail(Email):
 		for field in email_fields:
 			if hasattr(meta, field):
 				fields[field] = getattr(meta, field)
-		print("FIELDS::::", fields)
 		return fields
 
 	@staticmethod
