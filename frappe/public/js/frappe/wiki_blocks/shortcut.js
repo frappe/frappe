@@ -1,5 +1,5 @@
-import get_dialog_constructor from "../widgets/widget_dialog.js";
-export default class Shortcut {
+import Block from "./block.js";
+export default class Shortcut extends Block {
 	static get toolbox() {
 		return {
 			title: 'Shortcut',
@@ -11,12 +11,8 @@ export default class Shortcut {
 		return true;
 	}
 
-	constructor({data, api, config, readOnly, block}) {
-		this.data = data;
-		this.api = api;
-		this.block = block;
-		this.config = config;
-		this.readOnly = readOnly;
+	constructor(opts = {data, api, config, readOnly, block}) {
+		super(opts);
 		this.col = this.data.col ? this.data.col : "12";
 		this.pt = this.data.pt ? this.data.pt : "0";
 		this.pr = this.data.pr ? this.data.pr : "0";
@@ -34,51 +30,16 @@ export default class Shortcut {
 
 	render() {
 		this.wrapper = document.createElement('div');
-		this._new_shortcut();
+		this.new('shortcut');
 
 		if (this.data && this.data.shortcut_name) {
-			this._make_shortcuts(this.data.shortcut_name);
+			this.make('shortcut', this.data.shortcut_name);
 		}
 
 		if (!this.readOnly) {
-			this._add_tune_button();
+			this.add_tune_button();
 		}
 		return this.wrapper;
-	}
-
-	_add_tune_button() {
-		let $widget_control = $(this.wrapper).find('.widget-control');
-		this.add_custom_button(
-			frappe.utils.icon('dot-horizontal', 'xs'),
-			(event) => {
-				let evn = event;
-				!$('.ce-settings.ce-settings--opened').length &&
-				setTimeout(() => {
-					this.api.toolbar.toggleBlockSettings();
-					var position = $(evn.target).offset();
-					$('.ce-settings.ce-settings--opened').offset({
-						top: position.top + 25,
-						left: position.left - 77
-					});
-				}, 50);
-			},
-			"tune-btn",
-			`${__('Tune')}`,
-			null,
-			$widget_control
-		);
-	}
-
-	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
-		if (!btn_type) btn_type = 'btn-secondary';
-		let button = $(
-			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
-		);
-		button.click(event => {
-			event.stopPropagation();
-			action && action(event);
-		});
-		wrapper.prepend(button);
 	}
 
 	validate(savedData) {
@@ -92,143 +53,12 @@ export default class Shortcut {
 	save(blockContent) {
 		return {
 			shortcut_name: blockContent.getAttribute('shortcut_name'),
-			col: this._getCol(),
-			pt: this._getPadding("t"),
-			pr: this._getPadding("r"),
-			pb: this._getPadding("b"),
-			pl: this._getPadding("l"),
-			new: this.new_shortcut_widget
+			col: this.get_col(),
+			pt: this.get_padding("t"),
+			pr: this.get_padding("r"),
+			pb: this.get_padding("b"),
+			pl: this.get_padding("l"),
+			new: this.new_block_widget
 		};
-	}
-
-	rendered() {
-		var e = this.wrapper.closest('.ce-block');
-		e.classList.add("col-" + this.col);
-		e.classList.add("pt-" + this.pt);
-		e.classList.add("pr-" + this.pr);
-		e.classList.add("pb-" + this.pb);
-		e.classList.add("pl-" + this.pl);
-	}
-
-	_new_shortcut() {
-		const dialog_class = get_dialog_constructor('shortcut');
-		this.dialog = new dialog_class({
-			label: this.label,
-			type: 'shortcut',
-			primary_action: (widget) => {
-				widget.in_customize_mode = 1;
-				this.shortcut_widget = frappe.widget.make_widget({
-					...widget,
-					widget_type: 'shortcut',
-					container: this.wrapper,
-					options: {
-						...this.options,
-						on_delete: () => this.api.blocks.delete(),
-						on_edit: () => this.on_edit(this.shortcut_widget)
-					}
-				});
-				this.shortcut_widget.customize(this.options);
-				this.wrapper.setAttribute("shortcut_name", this.shortcut_widget.label);
-				this.new_shortcut_widget = this.shortcut_widget.get_config();
-				this._add_tune_button();
-			},
-		});
-
-		if (!this.readOnly && this.data && !this.data.shortcut_name) { 
-			this.dialog.make();
-		}
-	}
-
-	_getCol() {
-		var e = 12;
-		var t = "col-12";
-		var n = this.wrapper.closest('.ce-block');
-		var r = new RegExp(/\bcol-.+?\b/, "g");
-		if (n.className.match(r)) {
-			n.classList.forEach(function (e) {
-				e.match(r) && (t = e);
-			});
-			var a = t.split("-");
-			e = parseInt(a[1]);
-		}
-		return e;
-	}
-
-	_getPadding() {
-		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
-		var t = 0;
-		var n = "p" + e + "-0";
-		var r = this.wrapper.closest('.ce-block');
-		var a = new RegExp(/\pl-.+?\b/, "g");
-		var i = new RegExp(/\pr-.+?\b/, "g");
-		var o = new RegExp(/\pt-.+?\b/, "g");
-		var c = new RegExp(/\pb-.+?\b/, "g");
-		if ("l" == e) {
-			if (r.className.match(a)) {
-				r.classList.forEach(function (e) {
-					e.match(a) && (n = e);
-				});
-				var s = n.split("-");
-				t = parseInt(s[1]);
-			}
-		} else if ("r" == e) {
-			if (r.className.match(i)) {
-				r.classList.forEach(function (e) {
-					e.match(i) && (n = e);
-				});
-				var l = n.split("-");
-				t = parseInt(l[1]);
-			}
-		} else if ("t" == e) {
-			if (r.className.match(o)) {
-				r.classList.forEach(function (e) {
-					e.match(o) && (n = e);
-				});
-				var u = n.split("-");
-				t = parseInt(u[1]);
-			}
-		} else if ("b" == e && r.className.match(c)) {
-			r.classList.forEach(function (e) {
-				e.match(c) && (n = e);
-			});
-			var p = n.split("-");
-			t = parseInt(p[1]);
-		}
-		return t;
-	}
-
-	_make_fieldgroup(parent, ddf_list) {
-		this.shortcut_field = new frappe.ui.FieldGroup({
-			"fields": ddf_list,
-			"parent": parent
-		});
-		this.shortcut_field.make();
-	}
-
-	on_edit(shortcut_obj) {
-		let shortcut = shortcut_obj.get_config();
-		this.shortcut_widget.widgets = shortcut;
-		this.wrapper.setAttribute("shortcut_name", shortcut.label);
-		this.new_shortcut_widget = shortcut_obj.get_config();
-	}
-
-	_make_shortcuts(shortcut_name) {
-		let shortcut = this.config.page_data.shortcuts.items.find(obj => {
-			return obj.label == shortcut_name;
-		});
-		this.wrapper.innerHTML = '';
-		shortcut.in_customize_mode = !this.readOnly;
-		this.shortcut_widget = new frappe.widget.SingleWidgetGroup({
-			container: this.wrapper,
-			type: "shortcut",
-			options: this.options,
-			widgets: shortcut,
-			api: this.api,
-			block: this.block
-		});
-		this.wrapper.setAttribute("shortcut_name", shortcut_name);
-		if (!this.readOnly) {
-			this.shortcut_widget.customize();
-		}
 	}
 }

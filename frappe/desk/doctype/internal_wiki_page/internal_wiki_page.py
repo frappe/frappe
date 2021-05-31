@@ -53,12 +53,3 @@ def save_wiki_page(title, parent, sb_items, deleted_pages, new_widgets, blocks, 
 		save_new_widget(title, new_widgets)
 
 	return doc.title
-
-@frappe.whitelist()
-def get_page_content(page):
-	return frappe.db.get_value("Internal Wiki Page", page, "content")
-
-@frappe.whitelist()
-def get_pages():
-	return frappe.db.get_list('Internal Wiki Page', fields=['name', 'icon', 'private', 'parent_page', 'sequence_id'], 
-		order_by="sequence_id asc")

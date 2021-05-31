@@ -1319,5 +1319,18 @@ Object.assign(frappe.utils, {
 		let e = clipboard_paste_event;
 		let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
 		return clipboard_data.getData('Text');
+	},
+
+	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper, prepend) {
+		if (!btn_type) btn_type = 'btn-secondary';
+		let button = $(
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
+		);
+		button.click(event => {
+			event.stopPropagation();
+			action && action(event);
+		});
+		!prepend && button.appendTo(wrapper);
+		prepend && wrapper.prepend(button);
 	}
 });

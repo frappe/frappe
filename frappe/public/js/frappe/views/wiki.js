@@ -57,7 +57,8 @@ frappe.views.Wiki = class Wiki {
 	}
 
 	setup_wiki_pages() {
-		this.get_pages().then(() => {
+		this.get_pages().then(pages => {
+			this.all_pages = pages;
 			if (this.all_pages) {
 				frappe.wiki_pages = {};
 				let root_pages = this.all_pages.filter(page => page.parent_page == '' || page.parent_page == null);
@@ -75,9 +76,27 @@ frappe.views.Wiki = class Wiki {
 	}
 
 	get_pages() {
-		return frappe.xcall("frappe.desk.doctype.internal_wiki_page.internal_wiki_page.get_pages").then(data => {
-			this.all_pages = data;
+		return frappe.db.get_list('Internal Wiki Page', {
+			fields: ['name', 'icon', 'private', 'parent_page', 'sequence_id'], 
+			order_by: "sequence_id asc"
 		});
+	}
+
+	sidebar_item_container(item) {
+		return $(`
+			<div class="sidebar-item-container" item-parent="${item.parent_page}" item-name="${item.name}">
+				<div class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}">
+					<a
+						href="/app/wiki/${frappe.router.slug(item.name)}"
+						class="item-anchor" title="${item.name}"
+					>
+						<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
+						<span class="sidebar-item-label">${item.label || item.name}<span>
+					</a>
+					<div class="sidebar-item-control"></div>
+				</div>
+			</div>
+		`);
 	}
 
 	make_sidebar(items) {
@@ -136,60 +155,19 @@ frappe.views.Wiki = class Wiki {
 		}
 	}
 
-	sidebar_item_container(item) {
-		return $(`
-			<div class="sidebar-item-container" item-parent="${item.parent_page}" item-name="${item.name}">
-				<div class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}">
-					<a
-						href="/app/wiki/${frappe.router.slug(item.name)}"
-						class="item-anchor" title="${item.name}"
-					>
-						<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
-						<span class="sidebar-item-label">${item.label || item.name}<span>
-					</a>
-					<div class="sidebar-item-control"></div>
-				</div>
-			</div>
-		`);
-	}
-
 	show() {
 		if (!this.all_pages) {
 			// pages not yet loaded, call again after a bit
 			setTimeout(() => {
 				this.show();
-			}, 500);
+			}, 100);
 			return;
 		}
+
 		let page = this.get_page_to_show();
 		this.page.set_title(`${__(page)}`);
-		this.show_page(page);
-		this.get_content(page).then(() => {
-			this.get_data(page).then(() => {
-				if (this.content) {
-					if (this.editor) {
-						this.editor.isReady.then(() => {
-							this.editor.configuration.tools.chart.config.page_data = this.page_data;
-							this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
-							this.editor.configuration.tools.card.config.page_data = this.page_data;
-							this.editor.render({
-								blocks: JSON.parse(this.content) || []
-							});
-						});
-					} else {
-						this.initialize_editorjs(JSON.parse(this.content));
-					}
-				}
-			});
-		});
-	}
 
-	get_content(page) {
-		return frappe.xcall("frappe.desk.doctype.internal_wiki_page.internal_wiki_page.get_page_content", {
-			page: page
-		}).then(data => {
-			this.content = data;
-		});
+		this.show_page(page);
 	}
 
 	get_data(page) {
@@ -233,6 +211,7 @@ frappe.views.Wiki = class Wiki {
 		if (this.sidebar_items && this.sidebar_items[this.current_page_name]) {
 			this.sidebar_items[this.current_page_name][0].firstElementChild.classList.remove("selected");
 			this.sidebar_items[page][0].firstElementChild.classList.add("selected");
+
 			if (this.sidebar_items[page].parents('.sidebar-item-container')[0]) {
 				this.sidebar_items[page]
 					.parents('.sidebar-item-container')
@@ -240,6 +219,7 @@ frappe.views.Wiki = class Wiki {
 					.attr("href", "#icon-small-up");
 			}
 		}
+
 		this.current_page_name = page;
 		localStorage.current_wiki_page = page;
 
@@ -252,6 +232,28 @@ frappe.views.Wiki = class Wiki {
 		}
 
 		this.setup_actions();
+		this.prepare_editorjs(page);
+	}
+
+	prepare_editorjs(page) {
+		frappe.db.get_value("Internal Wiki Page", page, "content")
+			.then(content => {
+				this.content = JSON.parse(content.message["content"]);
+				this.get_data(page).then(() => {
+					if (this.editor) {
+						this.editor.isReady.then(() => {
+							this.editor.configuration.tools.chart.config.page_data = this.page_data;
+							this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
+							this.editor.configuration.tools.card.config.page_data = this.page_data;
+							this.editor.render({
+								blocks: this.content || []
+							});
+						});
+					} else {
+						this.initialize_editorjs(this.content);
+					}
+				});
+			});
 	}
 
 	setup_actions() {
@@ -280,8 +282,41 @@ frappe.views.Wiki = class Wiki {
 
 	initialize_editorjs_undo() {
 		this.undo = new Undo({ editor: this.editor });
-		this.undo.initialize({blocks: JSON.parse(this.content)});
+		this.undo.initialize({blocks: this.content});
 		this.undo.readOnly = false;
+	}
+
+	setup_customization_buttons() {
+		this.page.clear_primary_action();
+		this.page.clear_secondary_action();
+		this.page.clear_inner_toolbar();
+
+		this.page.set_primary_action(
+			__("Save Customizations"),
+			() => {
+				this.page.clear_primary_action();
+				this.page.clear_secondary_action();
+				this.undo.readOnly = true;
+				this.save_page();
+				this.editor.readOnly.toggle();
+				this.isReadOnly = true;
+			},
+			null,
+			__("Saving")
+		);
+
+		this.page.set_secondary_action(
+			__("Discard"),
+			() => {
+				this.page.clear_primary_action();
+				this.page.clear_secondary_action();
+				this.editor.readOnly.toggle();
+				this.isReadOnly = true;
+				this.deleted_sidebar_items = [];
+				this.reload();
+				frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
+			}
+		);
 	}
 
 	show_sidebar_actions() {
@@ -289,7 +324,7 @@ frappe.views.Wiki = class Wiki {
 	}
 
 	add_sidebar_actions(item, sidebar_control) {
-		this.add_custom_button(
+		frappe.utils.add_custom_button(
 			frappe.utils.icon('drag', 'xs'),
 			null,
 			"drag-handle",
@@ -297,7 +332,7 @@ frappe.views.Wiki = class Wiki {
 			null,
 			sidebar_control
 		);
-		this.add_custom_button(
+		frappe.utils.add_custom_button(
 			frappe.utils.icon('delete', 'xs'),
 			() => this.delete_page(item.name),
 			"delete-page",
@@ -305,18 +340,6 @@ frappe.views.Wiki = class Wiki {
 			null,
 			sidebar_control
 		);
-	}
-
-	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
-		if (!btn_type) btn_type = 'btn-secondary';
-		let button = $(
-			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
-		);
-		button.click(event => {
-			event.stopPropagation();
-			action && action();
-		});
-		button.appendTo(wrapper);
 	}
 
 	delete_page(name) {
@@ -368,39 +391,6 @@ frappe.views.Wiki = class Wiki {
 				//Do Nothing
 			}
 		});
-	}
-
-	setup_customization_buttons() {
-		this.page.clear_primary_action();
-		this.page.clear_secondary_action();
-		this.page.clear_inner_toolbar();
-
-		this.page.set_primary_action(
-			__("Save Customizations"),
-			() => {
-				this.page.clear_primary_action();
-				this.page.clear_secondary_action();
-				this.undo.readOnly = true;
-				this.save_page();
-				this.editor.readOnly.toggle();
-				this.isReadOnly = true;
-			},
-			null,
-			__("Saving")
-		);
-
-		this.page.set_secondary_action(
-			__("Discard"),
-			() => {
-				this.page.clear_primary_action();
-				this.page.clear_secondary_action();
-				this.editor.readOnly.toggle();
-				this.isReadOnly = true;
-				this.deleted_sidebar_items = [];
-				this.reload();
-				frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
-			}
-		);
 	}
 
 	initialize_new_page() {
@@ -459,7 +449,7 @@ frappe.views.Wiki = class Wiki {
 		};
 		let $sidebar_item = this.sidebar_item_container(item);
 
-		this.add_custom_button(
+		frappe.utils.add_custom_button(
 			frappe.utils.icon('drag', 'xs'),
 			null,
 			"drag-handle",
@@ -486,13 +476,12 @@ frappe.views.Wiki = class Wiki {
 	}
 
 	initialize_editorjs(blocks) {
-		const data = {
-			blocks: blocks || []
-		};
 		this.editor = new EditorJS({
+			data: {
+				blocks: blocks || []
+			},
 			tools: this.tools,
 			autofocus: false,
-			data,
 			tunes: ['spacingTune'],
 			readOnly: true,
 			logLevel: 'ERROR'

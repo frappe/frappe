@@ -1,4 +1,5 @@
-export default class Spacer {
+import Block from './block.js';
+export default class Spacer extends Block {
 	static get toolbox() {
 		return {
 			title: 'Spacer',
@@ -10,11 +11,8 @@ export default class Spacer {
 		return true;
 	}
 
-	constructor({data, api, config, readOnly}) {
-		this.data = data;
-		this.api = api;
-		this.config = config;
-		this.readOnly = readOnly;
+	constructor(opts = {data, api, config, readOnly}) {
+		super(opts);
 		this.col = this.data.col ? this.data.col : "12";
 		this.pt = this.data.pt ? this.data.pt : "0";
 		this.pr = this.data.pr ? this.data.pr : "0";
@@ -39,7 +37,7 @@ export default class Spacer {
 
 			let $widget_control = $spacer.find('.widget-control');
 
-			this.add_custom_button(
+			frappe.utils.add_custom_button(
 				frappe.utils.icon('dot-horizontal', 'xs'),
 				(event) => {
 					let evn = event;
@@ -59,7 +57,7 @@ export default class Spacer {
 				$widget_control
 			);
 
-			this.add_custom_button(
+			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
 				null,
 				"drag-handle",
@@ -68,7 +66,7 @@ export default class Spacer {
 				$widget_control
 			);
 
-			this.add_custom_button(
+			frappe.utils.add_custom_button(
 				frappe.utils.icon('delete', 'xs'),
 				() => this.api.blocks.delete(),
 				"delete-spacer",
@@ -80,92 +78,13 @@ export default class Spacer {
 		return this.wrapper;
 	}
 
-	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
-		if (!btn_type) btn_type = 'btn-secondary';
-		let button = $(
-			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
-		);
-		button.click(event => {
-			event.stopPropagation();
-			action && action(event);
-		});
-		button.appendTo(wrapper);
-	}
-
 	save() {
 		return {
-			col: this._getCol(),
-			pt: this._getPadding("t"),
-			pr: this._getPadding("r"),
-			pb: this._getPadding("b"),
-			pl: this._getPadding("l")
+			col: this.get_col(),
+			pt: this.get_padding("t"),
+			pr: this.get_padding("r"),
+			pb: this.get_padding("b"),
+			pl: this.get_padding("l")
 		};
-	}
-
-	rendered() {
-		var e = this.wrapper.closest('.ce-block');
-		e.classList.add("col-" + this.col);
-		e.classList.add("pt-" + this.pt);
-		e.classList.add("pr-" + this.pr);
-		e.classList.add("pb-" + this.pb);
-		e.classList.add("pl-" + this.pl);
-	}
-
-	_getCol() {
-		var e = 12;
-		var t = "col-12";
-		var n = this.wrapper.closest('.ce-block');
-		var r = new RegExp(/\bcol-.+?\b/, "g");
-		if (n.className.match(r)) {
-			n.classList.forEach(function (e) {
-				e.match(r) && (t = e);
-			});
-			var a = t.split("-");
-			e = parseInt(a[1]);
-		}
-		return e;
-	}
-
-	_getPadding() {
-		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
-		var t = 0;
-		var n = "p" + e + "-0";
-		var r = this.wrapper.closest('.ce-block');
-		var a = new RegExp(/\pl-.+?\b/, "g");
-		var i = new RegExp(/\pr-.+?\b/, "g");
-		var o = new RegExp(/\pt-.+?\b/, "g");
-		var c = new RegExp(/\pb-.+?\b/, "g");
-		if ("l" == e) {
-			if (r.className.match(a)) {
-				r.classList.forEach(function (e) {
-					e.match(a) && (n = e);
-				});
-				var s = n.split("-");
-				t = parseInt(s[1]);
-			}
-		} else if ("r" == e) {
-			if (r.className.match(i)) {
-				r.classList.forEach(function (e) {
-					e.match(i) && (n = e);
-				});
-				var l = n.split("-");
-				t = parseInt(l[1]);
-			}
-		} else if ("t" == e) {
-			if (r.className.match(o)) {
-				r.classList.forEach(function (e) {
-					e.match(o) && (n = e);
-				});
-				var u = n.split("-");
-				t = parseInt(u[1]);
-			}
-		} else if ("b" == e && r.className.match(c)) {
-			r.classList.forEach(function (e) {
-				e.match(c) && (n = e);
-			});
-			var p = n.split("-");
-			t = parseInt(p[1]);
-		}
-		return t;
 	}
 }

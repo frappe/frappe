@@ -1,12 +1,13 @@
-export default class Paragraph {
+import Block from "./block.js";
+export default class Paragraph extends Block{
 
 	static get DEFAULT_PLACEHOLDER() {
 		return '';
 	}
 
 	constructor({data, config, api, readOnly}) {
-		this.api = api;
-		this.readOnly = readOnly;
+		let opts = {config, api, readOnly};
+		super(opts);
 
 		this._CSS = {
 			block: this.api.styles.block,
@@ -17,10 +18,10 @@ export default class Paragraph {
 			this.onKeyUp = this.onKeyUp.bind(this);
 		}
 
-		this._placeholder = config.placeholder ? config.placeholder : Paragraph.DEFAULT_PLACEHOLDER;
+		this._placeholder = this.config.placeholder ? this.config.placeholder : Paragraph.DEFAULT_PLACEHOLDER;
 		this._data = {};
 		this._element = this.drawView();
-		this._preserveBlank = config.preserveBlank !== undefined ? config.preserveBlank : false;
+		this._preserveBlank = this.config.preserveBlank !== undefined ? this.config.preserveBlank : false;
 
 		this.data = data;
 		this.col = this.data.col ? this.data.col : "12";
@@ -68,7 +69,7 @@ export default class Paragraph {
 			
 			this.wrapper.classList.add('widget');
 
-			this.add_custom_button(
+			frappe.utils.add_custom_button(
 				frappe.utils.icon('dot-horizontal', 'xs'),
 				(event) => {
 					let evn = event;
@@ -88,7 +89,7 @@ export default class Paragraph {
 				$para_control
 			);
 
-			this.add_custom_button(
+			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
 				null,
 				"drag-handle",
@@ -97,7 +98,7 @@ export default class Paragraph {
 				$para_control
 			);
 
-			this.add_custom_button(
+			frappe.utils.add_custom_button(
 				frappe.utils.icon('delete', 'xs'),
 				() => this.api.blocks.delete(),
 				"delete-paragraph",
@@ -109,18 +110,6 @@ export default class Paragraph {
 			return this.wrapper;
 		}
 		return this._element;
-	}
-
-	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper) {
-		if (!btn_type) btn_type = 'btn-secondary';
-		let button = $(
-			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
-		);
-		button.click(event => {
-			event.stopPropagation();
-			action && action(event);
-		});
-		button.appendTo(wrapper);
 	}
 
 	merge(data) {
@@ -140,13 +129,14 @@ export default class Paragraph {
 	}
 
 	save(toolsContent) {
+		this.wrapper = this._element;
 		return {
 			text: toolsContent.innerText,
-			col: this._getCol(),
-			pt: this._getPadding("t"),
-			pr: this._getPadding("r"),
-			pb: this._getPadding("b"),
-			pl: this._getPadding("l")
+			col: this.get_col(),
+			pt: this.get_padding("t"),
+			pr: this.get_padding("r"),
+			pb: this.get_padding("b"),
+			pl: this.get_padding("l")
 		};
 	}
 
@@ -157,64 +147,6 @@ export default class Paragraph {
 		e.classList.add("pr-" + this.pr);
 		e.classList.add("pb-" + this.pb);
 		e.classList.add("pl-" + this.pl);
-	}
-
-	_getCol() {
-		var e = 12;
-		var t = "col-12";
-		var n = this._element.closest('.ce-block');
-		var r = new RegExp(/\bcol-.+?\b/, "g");
-		if (n.className.match(r)) {
-			n.classList.forEach(function (e) {
-				e.match(r) && (t = e);
-			});
-			var a = t.split("-");
-			e = parseInt(a[1]);
-		}
-		return e;
-	}
-
-	_getPadding() {
-		var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
-		var t = 0;
-		var n = "p" + e + "-0";
-		var r = this._element.closest('.ce-block');
-		var a = new RegExp(/\pl-.+?\b/, "g");
-		var i = new RegExp(/\pr-.+?\b/, "g");
-		var o = new RegExp(/\pt-.+?\b/, "g");
-		var c = new RegExp(/\pb-.+?\b/, "g");
-		if ("l" == e) {
-			if (r.className.match(a)) {
-				r.classList.forEach(function (e) {
-					e.match(a) && (n = e);
-				});
-				var s = n.split("-");
-				t = parseInt(s[1]);
-			}
-		} else if ("r" == e) {
-			if (r.className.match(i)) {
-				r.classList.forEach(function (e) {
-					e.match(i) && (n = e);
-				});
-				var l = n.split("-");
-				t = parseInt(l[1]);
-			}
-		} else if ("t" == e) {
-			if (r.className.match(o)) {
-				r.classList.forEach(function (e) {
-					e.match(o) && (n = e);
-				});
-				var u = n.split("-");
-				t = parseInt(u[1]);
-			}
-		} else if ("b" == e && r.className.match(c)) {
-			r.classList.forEach(function (e) {
-				e.match(c) && (n = e);
-			});
-			var p = n.split("-");
-			t = parseInt(p[1]);
-		}
-		return t;
 	}
 
 	onPaste(event) {
