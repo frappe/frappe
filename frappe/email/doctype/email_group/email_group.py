@@ -105,6 +105,6 @@ def send_welcome_email(welcome_email, email, email_group):
 		email=email,
 		email_group=email_group
 	)
-
-	message = frappe.render_template(welcome_email.response, args)
+	email_message = welcome_email.response or welcome_email.response_html
+	message = frappe.render_template(email_message, args)
 	frappe.sendmail(email, subject=welcome_email.subject, message=message)
