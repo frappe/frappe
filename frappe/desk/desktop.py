@@ -543,20 +543,40 @@ def save_customization(page, config):
 
 def save_new_widget(page, new_widgets):
 	original_page = frappe.get_doc("Workspace", page)
+	page_doc = get_custom_workspace_for_user(page)
+
+	# Update field values
+	page_doc.update({
+		"icon": original_page.icon,
+		"charts_label": original_page.charts_label,
+		"cards_label": original_page.cards_label,
+		"shortcuts_label": original_page.shortcuts_label,
+		"module": original_page.module,
+		"onboarding": original_page.onboarding,
+		"developer_mode_only": original_page.developer_mode_only,
+		"category": original_page.category,
+		"charts": original_page.charts,
+		"shortcuts": original_page.shortcuts,
+		"links": original_page.links,
+	})
+
 	widgets = _dict(loads(new_widgets))
 
 	if widgets.chart:
-		original_page.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
+		page_doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
 	if widgets.shortcut:
-		original_page.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
+		page_doc.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
 	if widgets.card:
-		original_page.build_links_table_from_card(widgets.card)
+		page_doc.build_links_table_from_card(widgets.card)
 
 	# remove duplicate and unwanted widgets
-	clean_up(original_page, page)
+	clean_up(page_doc, page)
+
+	# Set label
+	page_doc.label = page + '-' + frappe.session.user
 
 	try:
-		original_page.save(ignore_permissions=True)
+		page_doc.save(ignore_permissions=True)
 	except (ValidationError, TypeError) as e:
 		# Create a json string to log
 		json_config = dumps(widgets, sort_keys=True, indent=4)
