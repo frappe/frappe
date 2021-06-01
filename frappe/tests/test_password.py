@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 import frappe
 import unittest
-from frappe.utils.password import update_password, check_password, passlibctx
+from frappe.utils.password import update_password, check_password, passlibctx, encrypt, decrypt
 
 class TestPassword(unittest.TestCase):
 	def setUp(self):
@@ -105,6 +105,16 @@ class TestPassword(unittest.TestCase):
 		doc.save()
 		self.assertEqual(doc.get_password(raise_exception=False), None)
 
+	def test_custom_encryption_key(self):
+		text = 'Frappe Framework'
+		custom_encryption_key = 'DFTBA'
+
+		encrypted_text = encrypt(text, encryption_key=custom_encryption_key)
+		decrypted_text = decrypt(encrypted_text, encryption_key=custom_encryption_key)
+		
+		self.assertEqual(text, decrypted_text)
+
+		pass
 
 def get_password_list(doc):
 	return frappe.db.sql("""SELECT `password`
