@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import unittest, frappe, re, email
 from six import PY3
 
@@ -178,7 +176,8 @@ class TestEmail(unittest.TestCase):
 		frappe.db.sql('''delete from `tabCommunication` where sender = 'sukh@yyy.com' ''')
 
 		with open(frappe.get_app_path('frappe', 'tests', 'data', 'email_with_image.txt'), 'r') as raw:
-			communication = email_account.insert_communication(raw.read())
+			mails = email_account.get_inbound_mails(test_mails=[raw.read()])
+			communication = mails[0].process()
 
 		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco1.png[^>]*>''', communication.content))
 		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco2.png[^>]*>''', communication.content))
