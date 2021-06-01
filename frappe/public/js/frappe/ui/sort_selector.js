@@ -1,4 +1,4 @@
-frappe.ui.SortSelector = Class.extend({
+frappe.ui.SortSelector = class SortSelector {
 	// parent:
 	// change:
 	// args:
@@ -7,18 +7,18 @@ frappe.ui.SortSelector = Class.extend({
 	//		sort_by_label:
 	//		sort_order:
 	//		doctype: (optional)
-	init: function(opts) {
+	constructor(opts) {
 		$.extend(this, opts);
 		this.labels = {};
 		this.make();
-	},
-	make: function() {
+	}
+	make() {
 		this.prepare_args();
 		this.parent.find('.sort-selector').remove();
 		this.wrapper = $(frappe.render_template('sort_selector', this.args)).appendTo(this.parent);
 		this.bind_events();
-	},
-	bind_events: function() {
+	}
+	bind_events() {
 		var me = this;
 
 		// order
@@ -42,8 +42,8 @@ frappe.ui.SortSelector = Class.extend({
 			(me.onchange || me.change)(me.sort_by, me.sort_order);
 		});
 
-	},
-	prepare_args: function() {
+	}
+	prepare_args() {
 		var me = this;
 		if(!this.args) {
 			this.args = {};
@@ -87,8 +87,8 @@ frappe.ui.SortSelector = Class.extend({
 			});
 		}
 
-	},
-	setup_from_doctype: function() {
+	}
+	setup_from_doctype() {
 		var me = this;
 		var meta = frappe.get_meta(this.doctype);
 		if (!meta) return;
@@ -154,8 +154,8 @@ frappe.ui.SortSelector = Class.extend({
 		// set default
 		this.sort_by = this.args.sort_by;
 		this.sort_order = this.args.sort_order;
-	},
-	get_meta_sort_field: function() {
+	}
+	get_meta_sort_field() {
 		var meta = frappe.get_meta(this.doctype);
 
 		if (!meta) {
@@ -177,17 +177,17 @@ frappe.ui.SortSelector = Class.extend({
 				meta_sort_order: meta.sort_order ? meta.sort_order.toLowerCase() : ''
 			}
 		}
-	},
-	get_label: function(fieldname) {
+	}
+	get_label(fieldname) {
 		if(fieldname==='idx') {
 			return __("Most Used");
 		} else {
 			return this.labels[fieldname]
 				|| frappe.meta.get_label(this.doctype, fieldname);
 		}
-	},
-	get_sql_string: function() {
+	}
+	get_sql_string() {
 		// build string like `tabTask`.`subject` desc
 		return '`tab' + this.doctype + '`.`' + this.sort_by + '` ' +  this.sort_order;
 	}
-})
+}

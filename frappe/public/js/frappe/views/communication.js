@@ -1,6 +1,8 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import localforage from "localforage";
+
 frappe.last_edited_communication = {};
 const separator_element = '<div>---</div>';
 
@@ -722,9 +724,14 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		message += await this.get_signature();
-		if (this.real_name && !message.includes("<!-- salutation-ends -->")) {
-			message = `<p>${__('Dear')} ${this.real_name},</p>
-				<!-- salutation-ends --><br>${message}`;
+
+		const SALUTATION_END_COMMENT = "<!-- salutation-ends -->";
+		if (this.real_name && !message.includes(SALUTATION_END_COMMENT)) {
+			this.message = `
+				<p>${__('Dear')} ${this.real_name},</p>
+				${SALUTATION_END_COMMENT}<br>
+				${message}
+			`;
 		}
 
 		if (this.is_a_reply) {

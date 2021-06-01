@@ -1,18 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+import copy
 
-from __future__ import unicode_literals, print_function
-from six import string_types
-import frappe, copy, json
+import frappe
+import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
-import frappe.share
+
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
-
-# TODO:
-
-# optimize: meta.get_link_map (check if the doctype link exists for the given permission type)
 
 def check_admin_or_system_manager(user=None):
 	if not user: user = frappe.session.user
@@ -58,7 +54,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 	meta = frappe.get_meta(doctype)
 
 	if doc:
-		if isinstance(doc, string_types):
+		if isinstance(doc, str):
 			doc = frappe.get_doc(meta.name, doc)
 		perm = get_doc_permissions(doc, user=user, ptype=ptype).get(ptype)
 		if not perm: push_perm_check_log(_('User {0} does not have access to this document').format(frappe.bold(user)))
@@ -159,7 +155,7 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None):
 				}
 		}
 	"""
-	if isinstance(doctype_meta, string_types):
+	if isinstance(doctype_meta, str):
 		doctype_meta = frappe.get_meta(doctype_meta) # assuming doctype name was passed
 
 	if not user: user = frappe.session.user
@@ -534,7 +530,7 @@ def get_linked_doctypes(dt):
 
 def get_doc_name(doc):
 	if not doc: return None
-	return doc if isinstance(doc, string_types) else doc.name
+	return doc if isinstance(doc, str) else doc.name
 
 def allow_everything():
 	'''

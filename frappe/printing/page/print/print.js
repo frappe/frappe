@@ -408,14 +408,17 @@ frappe.ui.form.PrintView = class {
 
 	setup_print_format_dom(out, $print_format) {
 		this.print_wrapper.find('.print-format-skeleton').remove();
+		let base_url = frappe.urllib.get_base_url();
+		let print_css = frappe.assets.bundled_asset('print.bundle.css');
 		this.$print_format_body.find('head').html(
 			`<style type="text/css">${out.style}</style>
-			<link href="${frappe.urllib.get_base_url()}/assets/css/printview.css" rel="stylesheet">`
+			<link href="${base_url}${print_css}" rel="stylesheet">`
 		);
 
 		if (frappe.utils.is_rtl(this.lang_code)) {
+			let rtl_css = frappe.assets.bundled_asset('frappe-rtl.bundle.css');
 			this.$print_format_body.find('head').append(
-				`<link type="text/css" rel="stylesheet" href="${frappe.urllib.get_base_url()}/assets/css/frappe-rtl.css"></link>`
+				`<link type="text/css" rel="stylesheet" href="${base_url}${rtl_css}"></link>`
 			);
 		}
 

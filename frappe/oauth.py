@@ -4,11 +4,9 @@ import hashlib
 import re
 from http import cookies
 from urllib.parse import unquote, urlparse
-
 import jwt
 import pytz
 from oauthlib.openid import RequestValidator
-
 import frappe
 from frappe.auth import LoginManager
 
@@ -488,6 +486,7 @@ class OAuthWebRequestValidator(RequestValidator):
 				user = None
 				payload = jwt.decode(
 					id_token_hint,
+					algorithms=["HS256"],
 					options={
 						"verify_signature": False,
 						"verify_aud": False,
@@ -510,7 +509,7 @@ class OAuthWebRequestValidator(RequestValidator):
 						id_token_hint,
 						key=client_secret,
 						audience=client_id,
-						algorithm="HS256",
+						algorithms=["HS256"],
 						options={
 							"verify_exp": False,
 						},

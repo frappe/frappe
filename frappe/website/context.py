@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe, os, json
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
@@ -61,7 +60,7 @@ def update_controller_context(context, controller):
 			except (frappe.PermissionError, frappe.PageDoesNotExistError, frappe.Redirect):
 				raise
 			except:
-				if not frappe.flags.in_migrate:
+				if not any([frappe.flags.in_migrate, frappe.flags.in_website_search_build]):
 					frappe.errprint(frappe.utils.get_traceback())
 
 		if hasattr(module, "get_children"):

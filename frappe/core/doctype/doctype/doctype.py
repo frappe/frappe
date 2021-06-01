@@ -2,14 +2,9 @@
 # MIT License. See license.txt
 
 # imports - standard imports
-from __future__ import unicode_literals
 import re, copy, os, shutil
 import json
 from frappe.cache_manager import clear_user_cache, clear_controller_cache
-
-# imports - third party imports
-import six
-from six import iteritems
 
 # imports - module imports
 import frappe
@@ -18,6 +13,7 @@ from frappe import _
 from frappe.utils import now, cint
 from frappe.model import no_value_fields, default_fields, data_fieldtypes, table_fields, data_field_options
 from frappe.model.document import Document
+from frappe.model.base_document import get_controller
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.desk.notifications import delete_notification_count_for
@@ -107,8 +103,6 @@ class DocType(Document):
 		if self.name in core_doctypes:
 			return
 
-		from frappe.model.base_document import get_controller
-
 		try:
 			controller = get_controller(self.name)
 		except ImportError:
@@ -123,6 +117,9 @@ class DocType(Document):
 		}
 
 		for docfield in self.get("fields") or []:
+			if docfield.fieldtype in no_value_fields:
+				continue
+
 			conflict_type = None
 			field = docfield.fieldname
 			field_label = docfield.label or docfield.fieldname
@@ -484,7 +481,7 @@ class DocType(Document):
 		# remove null and empty fields
 		def remove_null_fields(o):
 			to_remove = []
-			for attr, value in iteritems(o):
+			for attr, value in o.items():
 				if isinstance(value, list):
 					for v in value:
 						remove_null_fields(v)
@@ -668,15 +665,15 @@ class DocType(Document):
 		if not name:
 			name = self.name
 
-		flags = {"flags": re.ASCII} if six.PY3 else {}
+		flags = {"flags": re.ASCII}
 
 		# a DocType name should not start or end with an empty space
-		if re.search("^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
+		if re.search(r"^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
 			frappe.throw(_("DocType's name should not start or end with whitespace"), frappe.NameError)
 
 		# a DocType's name should not start with a number or underscore
 		# and should only contain letters, numbers and underscore
-		if not re.match("^(?![\W])[^\d_\s][\w ]+$", name, **flags):
+		if not re.match(r"^(?![\W])[^\d_\s][\w ]+$", name, **flags):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
 		validate_route_conflict(self.doctype, self.name)

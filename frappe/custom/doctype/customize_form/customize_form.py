@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 """
 	Customize Form is a Single DocType used to mask the Property Setter
 	Thus providing a better UI from user perspective

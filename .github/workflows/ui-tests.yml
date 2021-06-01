@@ -3,6 +3,8 @@ name: UI
 on:
   pull_request:
   workflow_dispatch:
+  push:
+    branches: [ develop ]
 
 jobs:
   test:
@@ -35,7 +37,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: 14
           check-latest: true
 
       - name: Add to Hosts

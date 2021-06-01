@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import unittest, frappe
 from frappe.utils.safe_exec import safe_exec, get_safe_globals
 

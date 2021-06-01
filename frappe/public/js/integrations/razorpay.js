@@ -3,7 +3,7 @@
 Razorpay Payment
 
 1. 	Include checkout script in your code
-	<script type="text/javascript" src="/assets/js/checkout.min.js"></script>
+	{{ include_script('checkout.bundle.js) }}
 
 2.	Create the Order controller in your backend
 	def get_razorpay_order(self):

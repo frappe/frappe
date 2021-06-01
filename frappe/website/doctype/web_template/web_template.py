@@ -2,8 +2,6 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-
 import os
 from shutil import rmtree
 

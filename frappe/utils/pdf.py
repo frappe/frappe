@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 import io
 import os
 import re
@@ -9,14 +7,13 @@ from distutils.version import LooseVersion
 import subprocess
 
 import pdfkit
-import six
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
 import frappe
 from frappe import _
 from frappe.utils import scrub_urls
-
+from frappe.utils.jinja_globals import bundled_asset
 
 PDF_CONTENT_ERRORS = ["ContentNotFoundError", "ContentOperationNotPermittedError",
 	"UnknownContentError", "RemoteHostClosedError"]
@@ -57,8 +54,6 @@ def get_pdf(html, options=None, output=None):
 
 	if "password" in options:
 		password = options["password"]
-		if six.PY2:
-			password = frappe.safe_encode(password)
 
 	if output:
 		output.appendPagesFromReader(reader)
@@ -164,7 +159,8 @@ def prepare_header_footer(soup):
 	head = soup.find("head").contents
 	styles = soup.find_all("style")
 
-	css = frappe.read_file(os.path.join(frappe.local.sites_path, "assets/css/printview.css"))
+	print_css = bundled_asset('print.bundle.css').lstrip('/')
+	css = frappe.read_file(os.path.join(frappe.local.sites_path, print_css))
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):

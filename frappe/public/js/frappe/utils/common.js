@@ -1,4 +1,5 @@
 // common file between desk and website
+import md5 from 'md5';
 
 frappe.avatar = function (user, css_class, title, image_url=null, remove_color=false, filterable=false) {
 	let user_info;
