@@ -143,12 +143,12 @@ class Report(Document):
 
 	def execute_script(self, filters):
 		# server script
-		loc = {"filters": frappe._dict(filters), 'data':None, 'result':None}
+		loc = {"filters": frappe._dict(filters), 'data':None, 'result':None, 'chart': None}
 		safe_exec(self.report_script, None, loc)
 		if loc['data']:
 			return loc['data']
 		else:
-			return self.get_columns(), loc['result']
+			return self.get_columns(), loc['result'], None, loc['chart']
 
 	def get_data(self, filters=None, limit=None, user=None, as_dict=False, ignore_prepared_report=False):
 		if self.report_type in ('Query Report', 'Script Report', 'Custom Report'):
