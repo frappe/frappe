@@ -44,7 +44,9 @@ def get_safe_globals():
 
 	out = frappe._dict(
 		# make available limited methods of frappe
-		json = json,
+		json = frappe._dict(
+			loads = json.loads,
+			dumps = json.dumps),
 		dict = dict,
 		frappe =  frappe._dict(
 			flags = frappe._dict(),
