@@ -158,12 +158,21 @@ def create_auth_table():
 
 
 def encrypt(txt, encryption_key=None):
-	cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))
+	# Only use Fernet.generate_key().decode() to enter encyption_key value
+
+	try:
+		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))
+	except:
+		# encryption_key is not in 32 url-safe base64-encoded format
+		frappe.throw(_('Encryption key is in invalid format!'))
+
 	cipher_text = cstr(cipher_suite.encrypt(encode(txt)))
 	return cipher_text
 
 
 def decrypt(txt, encryption_key=None):
+	# Only use encryption_key value generated with Fernet.generate_key().decode() 
+
 	try:
 		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))
 		plain_text = cstr(cipher_suite.decrypt(encode(txt)))
