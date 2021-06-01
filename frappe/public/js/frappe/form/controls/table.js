@@ -25,6 +25,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			const doctype = grid.doctype;
 			const row_docname = $(e.target).closest('.grid-row').data('name');
 			const in_grid_form = $(e.target).closest('.form-in-grid').length;
+			const total_rows = this.frm.doc[table_field].length;
 
 			let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
 			let pasted_data = clipboard_data.getData('Text');
@@ -61,8 +62,8 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 				setTimeout(() => {
 					let blank_row = !row.filter(Boolean).length;
 					if (!blank_row) {
-						if (row_idx > this.frm.doc[table_field].length) {
-							this.grid.add_new_row();
+						if (row_idx > total_rows) {
+							grid.add_new_row();
 						}
 
 						if (row_idx > 1 && (row_idx - 1) % grid_pagination.page_length === 0) {
@@ -76,11 +77,11 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 							}
 						});
 						row_idx++;
-						if (data_length >= 10) {
-							let progress = i + 1;
-							frappe.show_progress(__('Processing'), progress, data_length, null, true);
-						}
 					}
+					if (data_length >= 10) {
+						let progress = i + 1;
+						frappe.show_progress(__('Processing'), progress, data_length, null, true);
+					}					
 				}, 0);
 			});
 			return false; // Prevent the default handler from running.
@@ -88,16 +89,17 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 	},
 	get_field(field_name) {
 		let fieldname;
+		field_name = field_name.toLowerCase();		
 		this.grid.meta.fields.some(field => {
 			if (frappe.model.no_value_type.includes(field.fieldtype)) {
 				return false;
 			}
 
-			field_name = field_name.toLowerCase();
-			const is_field_matching = field_name => {
+			const is_field_matching = () => {
 				return (
 					field.fieldname.toLowerCase() === field_name ||
-					(field.label || '').toLowerCase() === field_name
+					(field.label || '').toLowerCase() === field_name ||
+					(__(field.label) || '').toLowerCase() === field_name
 				);
 			};
 
