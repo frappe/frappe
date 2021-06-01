@@ -74,7 +74,7 @@ class DatabaseQuery(object):
 		self.docstatus = docstatus or []
 		self.group_by = group_by
 		self.order_by = order_by
-		self.limit_start = 0 if (limit_start is False) else cint(limit_start)
+		self.limit_start = cint(limit_start)
 		self.limit_page_length = cint(limit_page_length) if limit_page_length else None
 		self.with_childnames = with_childnames
 		self.debug = debug
