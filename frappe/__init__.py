@@ -1108,9 +1108,7 @@ def setup_module_map():
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
-		for app in get_all_apps(True):
-			if app == "webnotes":
-				app = "frappe"
+		for app in get_all_apps(with_internal_apps=True):
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
