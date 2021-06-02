@@ -11,14 +11,8 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 				<p class="help-box small text-muted"></p>
 			</div>
 		</div>`).appendTo(this.parent);
-<<<<<<< HEAD
 	},
 	set_input_areas: function() {
-		this.label_area = this.label_span = this.$wrapper.find(".label-area").get(0);
-=======
-	}
-	set_input_areas() {
->>>>>>> e79ce22d4d (fix: double checkboxes showing in editable grid)
 		this.input_area = this.$wrapper.find(".input-area").get(0);
 		if (this.only_input) return;
 
