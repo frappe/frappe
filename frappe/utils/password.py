@@ -157,20 +157,29 @@ def create_auth_table():
 	frappe.db.create_auth_table()
 
 
-def encrypt(pwd):
-	cipher_suite = Fernet(encode(get_encryption_key()))
-	cipher_text = cstr(cipher_suite.encrypt(encode(pwd)))
+def encrypt(txt, encryption_key=None):
+	# Only use Fernet.generate_key().decode() to enter encyption_key value
+
+	try:
+		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))
+	except Exception:
+		# encryption_key is not in 32 url-safe base64-encoded format
+		frappe.throw(_('Encryption key is in invalid format!'))
+
+	cipher_text = cstr(cipher_suite.encrypt(encode(txt)))
 	return cipher_text
 
 
-def decrypt(pwd):
+def decrypt(txt, encryption_key=None):
+	# Only use encryption_key value generated with Fernet.generate_key().decode() 
+
 	try:
-		cipher_suite = Fernet(encode(get_encryption_key()))
-		plain_text = cstr(cipher_suite.decrypt(encode(pwd)))
+		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))
+		plain_text = cstr(cipher_suite.decrypt(encode(txt)))
 		return plain_text
 	except InvalidToken:
 		# encryption_key in site_config is changed and not valid
-		frappe.throw(_('Encryption key is invalid, Please check site_config.json'))
+		frappe.throw(_('Encryption key is invalid' + '!' if encryption_key else ', please check site_config.json.'))
 
 
 def get_encryption_key():

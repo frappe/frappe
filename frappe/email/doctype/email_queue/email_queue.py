@@ -9,14 +9,18 @@ from rq.timeouts import JobTimeoutException
 import smtplib
 import quopri
 from email.parser import Parser
+from email.policy import SMTPUTF8
+from html2text import html2text
+from six.moves import html_parser as HTMLParser
 
 import frappe
 from frappe import _, safe_encode, task
 from frappe.model.document import Document
-from frappe.email.queue import get_unsubcribed_url
-from frappe.email.email_body import add_attachment
-from frappe.utils import cint
-from email.policy import SMTPUTF8
+from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
+from frappe.email.email_body import add_attachment, get_formatted_html, get_email
+from frappe.utils import cint, split_emails, add_days, nowdate, cstr
+from frappe.email.doctype.email_account.email_account import EmailAccount
+
 
 MAX_RETRY_COUNT = 3
 class EmailQueue(Document):
@@ -42,8 +46,26 @@ class EmailQueue(Document):
 		return duplicate
 
 	@classmethod
+	def new(cls, doc_data, ignore_permissions=False):
+		data = doc_data.copy()
+		if not data.get('recipients'):
+			return
+
+		recipients = data.pop('recipients')
+		doc = frappe.new_doc(cls.DOCTYPE)
+		doc.update(data)
+		doc.set_recipients(recipients)
+		doc.insert(ignore_permissions=ignore_permissions)
+		return doc
+
+	@classmethod
 	def find(cls, name):
 		return frappe.get_doc(cls.DOCTYPE, name)
+
+	@classmethod
+	def find_one_by_filters(cls, **kwargs):
+		name = frappe.db.get_value(cls.DOCTYPE, kwargs)
+		return cls.find(name) if name else None
 
 	def update_db(self, commit=False, **kwargs):
 		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
@@ -69,8 +91,6 @@ class EmailQueue(Document):
 		return json.loads(self.attachments) if self.attachments else []
 
 	def get_email_account(self):
-		from frappe.email.doctype.email_account.email_account import EmailAccount
-
 		if self.email_account:
 			return frappe.get_doc('Email Account', self.email_account)
 
@@ -295,3 +315,283 @@ def send_now(name):
 def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
 	frappe.db.add_index('Email Queue', ('status', 'send_after', 'priority', 'creation'), 'index_bulk_flush')
+
+class QueueBuilder:
+	"""Builds Email Queue from the given data
+	"""
+	def __init__(self, recipients=None, sender=None, subject=None, message=None,
+			text_content=None, reference_doctype=None, reference_name=None,
+			unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
+			attachments=None, reply_to=None, cc=None, bcc=None, message_id=None, in_reply_to=None,
+			send_after=None, expose_recipients=None, send_priority=1, communication=None,
+			read_receipt=None, queue_separately=False, is_notification=False,
+			add_unsubscribe_link=1, inline_images=None, header=None,
+			print_letterhead=False, with_container=False):
+		"""Add email to sending queue (Email Queue)
+
+		:param recipients: List of recipients.
+		:param sender: Email sender.
+		:param subject: Email subject.
+		:param message: Email message.
+		:param text_content: Text version of email message.
+		:param reference_doctype: Reference DocType of caller document.
+		:param reference_name: Reference name of caller document.
+		:param send_priority: Priority for Email Queue, default 1.
+		:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/frappe.email.queue.unsubscribe`.
+		:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
+		:param attachments: Attachments to be sent.
+		:param reply_to: Reply to be captured here (default inbox)
+		:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
+		:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
+		:param communication: Communication link to be set in Email Queue record
+		:param queue_separately: Queue each email separately
+		:param is_notification: Marks email as notification so will not trigger notifications from system
+		:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
+		:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
+		:param header: Append header in email (boolean)
+		:param with_container: Wraps email inside styled container
+		"""
+
+		self._unsubscribe_method = unsubscribe_method
+		self._recipients = recipients
+		self._cc = cc
+		self._bcc = bcc
+		self._send_after = send_after
+		self._sender = sender
+		self._text_content = text_content
+		self._message = message
+		self._add_unsubscribe_link = add_unsubscribe_link
+		self._unsubscribe_message = unsubscribe_message
+		self._attachments = attachments
+
+		self._unsubscribed_user_emails = None
+		self._email_account = None
+
+		self.unsubscribe_params = unsubscribe_params
+		self.subject = subject
+		self.reference_doctype = reference_doctype
+		self.reference_name = reference_name
+		self.expose_recipients = expose_recipients
+		self.with_container = with_container
+		self.header = header
+		self.reply_to = reply_to
+		self.message_id = message_id
+		self.in_reply_to = in_reply_to
+		self.send_priority = send_priority
+		self.communication = communication
+		self.read_receipt = read_receipt
+		self.queue_separately = queue_separately
+		self.is_notification = is_notification
+		self.inline_images = inline_images
+		self.print_letterhead = print_letterhead
+
+	@property
+	def unsubscribe_method(self):
+		return self._unsubscribe_method or '/api/method/frappe.email.queue.unsubscribe'
+
+	def _get_emails_list(self, emails=None):
+		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])
+		return [each for each in set(emails) if each]
+
+	@property
+	def recipients(self):
+		return self._get_emails_list(self._recipients)
+
+	@property
+	def cc(self):
+		return self._get_emails_list(self._cc)
+
+	@property
+	def bcc(self):
+		return self._get_emails_list(self._bcc)
+
+	@property
+	def send_after(self):
+		if isinstance(self._send_after, int):
+			return add_days(nowdate(), self._send_after)
+		return self._send_after
+
+	@property
+	def sender(self):
+		if not self._sender or self._sender == "Administrator":
+			email_account = self.get_outgoing_email_account()
+			return email_account.default_sender
+		return self._sender
+
+	def email_text_content(self):
+		unsubscribe_msg = self.unsubscribe_message()
+		unsubscribe_text_message = (unsubscribe_msg and unsubscribe_msg.text) or ''
+
+		if self._text_content:
+			return self._text_content + unsubscribe_text_message
+
+		try:
+			text_content = html2text(self._message)
+		except HTMLParser.HTMLParseError:
+			text_content = "See html attachment"
+		return text_content + unsubscribe_text_message
+
+	def email_html_content(self):
+		email_account = self.get_outgoing_email_account()
+		return get_formatted_html(self.subject, self._message, header=self.header,
+			email_account=email_account, unsubscribe_link=self.unsubscribe_message(),
+			with_container=self.with_container)
+
+	def should_include_unsubscribe_link(self):
+		return (self._add_unsubscribe_link == 1
+			and self.reference_doctype
+			and (self._unsubscribe_message or self.reference_doctype=="Newsletter"))
+
+	def unsubscribe_message(self):
+		if self.should_include_unsubscribe_link():
+			return get_unsubscribe_message(self._unsubscribe_message, self.expose_recipients)
+
+	def get_outgoing_email_account(self):
+		if self._email_account:
+			return self._email_account
+
+		self._email_account = EmailAccount.find_outgoing(
+			match_by_doctype=self.reference_doctype, match_by_email=self._sender, _raise_error=True)
+		return self._email_account
+
+	def get_unsubscribed_user_emails(self):
+		if self._unsubscribed_user_emails is not None:
+			return self._unsubscribed_user_emails
+
+		all_ids = tuple(set(self.recipients + self.cc))
+
+		unsubscribed = frappe.db.sql_list('''
+			SELECT
+				distinct email
+			from
+				`tabEmail Unsubscribe`
+			where
+				email in %(all_ids)s
+				and (
+					(
+						reference_doctype = %(reference_doctype)s
+						and reference_name = %(reference_name)s
+					)
+					or global_unsubscribe = 1
+				)
+		''', {
+			'all_ids': all_ids,
+			'reference_doctype': self.reference_doctype,
+			'reference_name': self.reference_name,
+		})
+
+		self._unsubscribed_user_emails = unsubscribed or []
+		return self._unsubscribed_user_emails
+
+	def final_recipients(self):
+		unsubscribed_emails = self.get_unsubscribed_user_emails()
+		return [mail_id for mail_id in self.recipients if mail_id not in unsubscribed_emails]
+
+	def final_cc(self):
+		unsubscribed_emails = self.get_unsubscribed_user_emails()
+		return [mail_id for mail_id in self.cc if mail_id not in unsubscribed_emails]
+
+	def get_attachments(self):
+		attachments = []
+		if self._attachments:
+			# store attachments with fid or print format details, to be attached on-demand later
+			for att in self._attachments:
+				if att.get('fid'):
+					attachments.append(att)
+				elif att.get("print_format_attachment") == 1:
+					if not att.get('lang', None):
+						att['lang'] = frappe.local.lang
+					att['print_letterhead'] = self.print_letterhead
+					attachments.append(att)
+		return attachments
+
+	def prepare_email_content(self):
+		mail = get_email(recipients=self.final_recipients(),
+			sender=self.sender,
+			subject=self.subject,
+			formatted=self.email_html_content(),
+			text_content=self.email_text_content(),
+			attachments=self._attachments,
+			reply_to=self.reply_to,
+			cc=self.final_cc(),
+			bcc=self.bcc,
+			email_account=self.get_outgoing_email_account(),
+			expose_recipients=self.expose_recipients,
+			inline_images=self.inline_images,
+			header=self.header)
+
+		mail.set_message_id(self.message_id, self.is_notification)
+		if self.read_receipt:
+			mail.msg_root["Disposition-Notification-To"] = self.sender
+		if self.in_reply_to:
+			mail.set_in_reply_to(self.in_reply_to)
+		return mail
+
+	def process(self, send_now=False):
+		"""Build and return the email queues those are created.
+
+		Sends email incase if it is requested to send now.
+		"""
+		final_recipients = self.final_recipients()
+		queue_separately = (final_recipients and self.queue_separately) or len(final_recipients) > 20
+		if not (final_recipients + self.final_cc()):
+			return []
+
+		email_queues = []
+		queue_data = self.as_dict(include_recipients=False)
+		if not queue_data:
+			return []
+
+		if not queue_separately:
+			recipients = list(set(final_recipients + self.final_cc() + self.bcc))
+			q = EmailQueue.new({**queue_data, **{'recipients': recipients}}, ignore_permissions=True)
+			email_queues.append(q)
+		else:
+			for r in final_recipients:
+				recipients = [r] if email_queues else list(set([r] + self.final_cc() + self.bcc))
+				q = EmailQueue.new({**queue_data, **{'recipients': recipients}}, ignore_permissions=True)
+				email_queues.append(q)
+
+		if send_now:
+			for doc in email_queues:
+				doc.send()
+		return email_queues
+
+	def as_dict(self, include_recipients=True):
+		email_account = self.get_outgoing_email_account()
+		email_account_name = email_account and email_account.is_exists_in_db() and email_account.name
+
+		mail = self.prepare_email_content()
+		try:
+			mail_to_string = cstr(mail.as_string())
+		except frappe.InvalidEmailAddressError:
+			# bad Email Address - don't add to queue
+			frappe.log_error('Invalid Email ID Sender: {0}, Recipients: {1}, \nTraceback: {2} '
+				.format(self.sender, ', '.join(self.final_recipients()), traceback.format_exc()),
+				'Email Not Sent'
+			)
+			return
+
+		d = {
+			'priority': self.send_priority,
+			'attachments': json.dumps(self.get_attachments()),
+			'message_id': mail.msg_root["Message-Id"].strip(" <>"),
+			'message': mail_to_string,
+			'sender': self.sender,
+			'reference_doctype': self.reference_doctype,
+			'reference_name': self.reference_name,
+			'add_unsubscribe_link': self._add_unsubscribe_link,
+			'unsubscribe_method': self.unsubscribe_method,
+			'unsubscribe_params': self.unsubscribe_params,
+			'expose_recipients': self.expose_recipients,
+			'communication': self.communication,
+			'send_after': self.send_after,
+			'show_as_cc': ",".join(self.final_cc()),
+			'show_as_bcc': ','.join(self.bcc),
+			'email_account': email_account_name or None
+		}
+
+		if include_recipients:
+			d['recipients'] = self.final_recipients()
+
+		return d

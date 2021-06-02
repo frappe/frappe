@@ -622,6 +622,26 @@ def ceil(s):
 def cstr(s, encoding='utf-8'):
 	return frappe.as_unicode(s, encoding)
 
+def sbool(x):
+	"""Converts str object to Boolean if possible.
+	Example:
+		"true" becomes True
+		"1" becomes True
+		"{}" remains "{}"
+
+	Args:
+		x (str): String to be converted to Bool
+
+	Returns:
+		object: Returns Boolean or type(x)
+	"""
+	from distutils.util import strtobool
+
+	try:
+		return bool(strtobool(x))
+	except Exception:
+		return x
+
 def rounded(num, precision=0):
 	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
 	precision = cint(precision)
@@ -706,11 +726,11 @@ def parse_val(v):
 		v = int(v)
 	return v
 
-def fmt_money(amount, precision=None, currency=None):
+def fmt_money(amount, precision=None, currency=None, format=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	number_format = format or frappe.db.get_default("number_format") or "#,###.##"
 	if precision is None:
 		precision = cint(frappe.db.get_default('currency_precision')) or None
 
