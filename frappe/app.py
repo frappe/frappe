@@ -194,15 +194,11 @@ def handle_exception(e):
 		)
 	)
 
-<<<<<<< HEAD
-	if frappe.get_request_header('Accept') and (frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept')):
-=======
 	if frappe.conf.get('developer_mode'):
 		# don't fail silently
 		print(frappe.get_traceback())
 
 	if respond_as_json:
->>>>>>> fcf63622bc (fix: Respond to /api requests as JSON by default)
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
