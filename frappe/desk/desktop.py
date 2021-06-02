@@ -555,10 +555,13 @@ def save_new_widget(page, new_widgets):
 		"onboarding": original_page.onboarding,
 		"developer_mode_only": original_page.developer_mode_only,
 		"category": original_page.category,
-		"charts": original_page.charts,
-		"shortcuts": original_page.shortcuts,
-		"links": original_page.links,
 	})
+	if page_doc.is_new():
+		page_doc.update({
+			"charts": original_page.charts,
+			"shortcuts": original_page.shortcuts,
+			"links": original_page.links,
+		})
 
 	widgets = _dict(loads(new_widgets))
 
