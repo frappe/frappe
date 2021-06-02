@@ -43,8 +43,14 @@ class DatabaseQuery(object):
 
 		# filters and fields swappable
 		# its hard to remember what comes first
-		if (isinstance(fields, dict)
-			or (isinstance(fields, list) and fields and isinstance(fields[0], list))):
+		if (
+			isinstance(fields, dict)
+			or (
+				fields
+				and isinstance(fields, list)
+				and isinstance(fields[0], list)
+			)
+		):
 			# if fields is given as dict/list of list, its probably filters
 			filters, fields = fields, filters
 
@@ -308,8 +314,7 @@ class DatabaseQuery(object):
 		doctype = table_name[4:-1]
 		ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
 
-		if (not self.flags.ignore_permissions) and\
-			 (not frappe.has_permission(doctype, ptype=ptype)):
+		if not self.flags.ignore_permissions and not frappe.has_permission(doctype, ptype=ptype):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
 
@@ -538,10 +543,12 @@ class DatabaseQuery(object):
 			if isinstance(value, str) and not f.operator.lower() == 'between':
 				value = f"{frappe.db.escape(value, percent=False)}"
 
-		if (self.ignore_ifnull
+		if (
+			self.ignore_ifnull
 			or not can_be_null
 			or (f.value and f.operator.lower() in ('=', 'like'))
-			or 'ifnull(' in column_name.lower()):
+			or 'ifnull(' in column_name.lower()
+		):
 			if f.operator.lower() == 'like' and frappe.conf.get('db_type') == 'postgres':
 				f.operator = 'ilike'
 			condition = f'{column_name} {f.operator} {value}'
@@ -564,10 +571,12 @@ class DatabaseQuery(object):
 		role_permissions = frappe.permissions.get_role_permissions(meta, user=self.user)
 		self.shared = frappe.share.get_shared(self.doctype, self.user)
 
-		if (not meta.istable and
+		if (
+			not meta.istable and
 			not (role_permissions.get("select") or role_permissions.get("read")) and
 			not self.flags.ignore_permissions and
-			not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)):
+			not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)
+		):
 			only_if_shared = True
 			if not self.shared:
 				frappe.throw(_("No permission to read {0}").format(self.doctype), frappe.PermissionError)
@@ -640,9 +649,7 @@ class DatabaseQuery(object):
 						docs.append(permission.get('doc'))
 
 					# append docs based on user permission applicable on reference doctype
-
 					# this is useful when getting list of docs from a link field
-
 					# in this case parent doctype of the link
 					# will be the reference doctype
 
