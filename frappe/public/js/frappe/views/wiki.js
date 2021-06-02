@@ -172,7 +172,8 @@ frappe.views.Wiki = class Wiki {
 
 	get_data(page) {
 		return frappe.xcall("frappe.desk.desktop.get_desktop_page", {
-			page: page
+			page: page,
+			wiki: true
 		}).then(data => {
 			this.page_data = data;
 			if (!this.page_data) return;

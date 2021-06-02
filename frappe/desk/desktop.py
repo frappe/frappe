@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
+from typing import Dict, List
 from json import loads, dumps
 from frappe import _, DoesNotExistError, ValidationError, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
@@ -30,7 +31,9 @@ def handle_not_exist(fn):
 
 
 class Workspace:
-	def __init__(self, page_name, minimal=False):
+	def __init__(self, page_name, minimal=False, wiki=False) -> List[Dict]:
+		if isinstance(wiki, str):
+			wiki = json.loads(wiki)
 		self.page_name = page_name
 		self.extended_links = []
 		self.extended_charts = []
@@ -39,7 +42,7 @@ class Workspace:
 		self.user = frappe.get_user()
 		self.allowed_modules = self.get_cached('user_allowed_modules', self.get_allowed_modules)
 
-		self.doc = self.get_page_for_user()
+		self.doc = self.get_page_for_user(wiki)
 
 		if self.doc.module and self.doc.module not in self.allowed_modules:
 			raise frappe.PermissionError
@@ -104,11 +107,12 @@ class Workspace:
 
 		return self.user.allow_modules
 
-	def get_page_for_user(self):
+	def get_page_for_user(self, wiki=False):
 		filters = {
 			'extends': self.page_name,
 			'for_user': frappe.session.user
 		}
+		filters['for_wiki'] = wiki
 		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
 		if user_pages:
 			return frappe.get_cached_doc("Workspace", user_pages[0])
@@ -350,7 +354,7 @@ class Workspace:
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_desktop_page(page):
+def get_desktop_page(page, wiki=False):
 	"""Applies permissions, customizations and returns the configruration for a page
 	on desk.
 
@@ -361,7 +365,7 @@ def get_desktop_page(page):
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
-		wspace = Workspace(page)
+		wspace = Workspace(page, wiki=wiki)
 		wspace.build_workspace()
 		return {
 			'charts': wspace.charts,
@@ -461,7 +465,7 @@ def get_custom_report_list(module):
 
 	return out
 
-def get_custom_workspace_for_user(page):
+def get_custom_workspace_for_user(page, wiki=False):
 	"""Get custom page from workspace if exists or create one
 
 	Args:
@@ -474,12 +478,14 @@ def get_custom_workspace_for_user(page):
 		'extends': page,
 		'for_user': frappe.session.user
 	}
+	filters['for_wiki'] = wiki
 	pages = frappe.get_list("Workspace", filters=filters)
 	if pages:
 		return frappe.get_doc("Workspace", pages[0])
 	doc = frappe.new_doc("Workspace")
 	doc.extends = page
 	doc.for_user = frappe.session.user
+	doc.for_wiki = wiki
 	return doc
 
 
@@ -543,7 +549,7 @@ def save_customization(page, config):
 
 def save_new_widget(page, new_widgets):
 	original_page = frappe.get_doc("Workspace", page)
-	page_doc = get_custom_workspace_for_user(page)
+	page_doc = get_custom_workspace_for_user(page, True)
 
 	# Update field values
 	page_doc.update({
@@ -576,7 +582,7 @@ def save_new_widget(page, new_widgets):
 	clean_up(page_doc, page)
 
 	# Set label
-	page_doc.label = page + '-' + frappe.session.user
+	page_doc.label = page + '-Wiki-' + frappe.session.user
 
 	try:
 		page_doc.save(ignore_permissions=True)

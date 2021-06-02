@@ -24,6 +24,7 @@
   "pin_to_top",
   "pin_to_bottom",
   "hide_custom",
+  "for_wiki",
   "section_break_2",
   "charts_label",
   "charts",
@@ -209,16 +210,22 @@
    "options": "Workspace Link"
   },
   {
-    "default": "0",
-    "depends_on": "extends_another_page",
-    "description": "Sets the current page as default for all users",
-    "fieldname": "is_default",
-    "fieldtype": "Check",
-    "label": "Is Default"
-   }
+   "default": "0",
+   "depends_on": "extends_another_page",
+   "description": "Sets the current page as default for all users",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "label": "Is Default"
+  },
+  {
+   "default": "0",
+   "fieldname": "for_wiki",
+   "fieldtype": "Check",
+   "label": "For Wiki"
+  }
  ],
  "links": [],
- "modified": "2021-01-21 12:09:36.156614",
+ "modified": "2021-06-02 15:35:08.963507",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
