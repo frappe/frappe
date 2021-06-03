@@ -2,20 +2,19 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe
 import json
 import time
+
 import requests
-from six import iteritems
+
+import frappe
 from frappe import _
-from frappe.model.document import Document
-from frappe.frappeclient import FrappeClient
-from frappe.utils.background_jobs import get_jobs
-from frappe.utils.data import get_url, get_link_to_form
-from frappe.utils.password import get_decrypted_password
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.integrations.oauth2 import validate_url
+from frappe.frappeclient import FrappeClient
+from frappe.model.document import Document
+from frappe.utils.background_jobs import get_jobs
+from frappe.utils.data import get_link_to_form, get_url
+from frappe.utils.password import get_decrypted_password
 
 
 class EventProducer(Document):
@@ -56,8 +55,8 @@ class EventProducer(Document):
 			self.reload()
 
 	def check_url(self):
-		if not validate_url(self.producer_url):
-			frappe.throw(_('Invalid URL'))
+		valid_url_schemes = ("http", "https")
+		frappe.utils.validate_url(self.producer_url, throw=True, valid_schemes=valid_url_schemes)
 
 		# remove '/' from the end of the url like http://test_site.com/
 		# to prevent mismatch in get_url() results
@@ -272,8 +271,8 @@ def set_insert(update, producer_site, event_producer):
 	if update.mapping:
 		if update.get('dependencies'):
 			dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
-			for fieldname, value in iteritems(dependencies_created):
-				doc.update({ fieldname : value })
+			for fieldname, value in dependencies_created.items():
+				doc.update({fieldname: value})
 	else:
 		sync_dependencies(doc, producer_site)
 
@@ -304,8 +303,8 @@ def set_update(update, producer_site):
 		if update.mapping:
 			if update.get('dependencies'):
 				dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
-				for fieldname, value in iteritems(dependencies_created):
-					local_doc.update({ fieldname : value })
+				for fieldname, value in dependencies_created.items():
+					local_doc.update({fieldname: value})
 		else:
 			sync_dependencies(local_doc, producer_site)
 
@@ -315,7 +314,7 @@ def set_update(update, producer_site):
 
 def update_row_removed(local_doc, removed):
 	"""Sync child table row deletion type update"""
-	for tablename, rownames in iteritems(removed):
+	for tablename, rownames in removed.items():
 		table = local_doc.get_table_field_doctype(tablename)
 		for row in rownames:
 			table_rows = local_doc.get(tablename)
@@ -333,7 +332,7 @@ def get_child_table_row(table_rows, row):
 
 def update_row_changed(local_doc, changed):
 	"""Sync child table row updation type update"""
-	for tablename, rows in iteritems(changed):
+	for tablename, rows in changed.items():
 		old = local_doc.get(tablename)
 		for doc in old:
 			for row in rows:
@@ -343,7 +342,7 @@ def update_row_changed(local_doc, changed):
 
 def update_row_added(local_doc, added):
 	"""Sync child table row addition type update"""
-	for tablename, rows in iteritems(added):
+	for tablename, rows in added.items():
 		local_doc.extend(tablename, rows)
 		for child in rows:
 			child_doc = frappe.get_doc(child)

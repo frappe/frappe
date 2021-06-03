@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import unittest
 
 import frappe
@@ -48,7 +46,7 @@ class TestWebsite(unittest.TestCase):
 		set_request(method='POST', path='login')
 		response = render.render()
 
-		self.assertEquals(response.status_code, 200)
+		self.assertEqual(response.status_code, 200)
 
 		html = frappe.safe_decode(response.get_data())
 
@@ -76,27 +74,27 @@ class TestWebsite(unittest.TestCase):
 
 		set_request(method='GET', path='/testfrom')
 		response = render.render()
-		self.assertEquals(response.status_code, 301)
-		self.assertEquals(response.headers.get('Location'), r'://testto1')
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get('Location'), r'://testto1')
 
 		set_request(method='GET', path='/testfromregex/test')
 		response = render.render()
-		self.assertEquals(response.status_code, 301)
-		self.assertEquals(response.headers.get('Location'), r'://testto2')
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get('Location'), r'://testto2')
 
 		set_request(method='GET', path='/testsub/me')
 		response = render.render()
-		self.assertEquals(response.status_code, 301)
-		self.assertEquals(response.headers.get('Location'), r'://testto3/me')
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get('Location'), r'://testto3/me')
 
 		set_request(method='GET', path='/test404')
 		response = render.render()
-		self.assertEquals(response.status_code, 404)
+		self.assertEqual(response.status_code, 404)
 
 		set_request(method='GET', path='/testsource')
 		response = render.render()
-		self.assertEquals(response.status_code, 301)
-		self.assertEquals(response.headers.get('Location'), '/testtarget')
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get('Location'), '/testtarget')
 
 		delattr(frappe.hooks, 'website_redirects')
 		frappe.cache().delete_key('app_hooks')

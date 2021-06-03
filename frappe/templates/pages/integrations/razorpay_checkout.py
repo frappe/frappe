@@ -1,11 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import flt, cint
 import json
-from six import string_types
 
 no_cache = 1
 
@@ -47,7 +45,7 @@ def get_api_key():
 def make_payment(razorpay_payment_id, options, reference_doctype, reference_docname, token):
 	data = {}
 
-	if isinstance(options, string_types):
+	if isinstance(options, str):
 		data = json.loads(options)
 
 	data.update({

@@ -1,20 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-# metadata
-
-from __future__ import unicode_literals
-import frappe, os
-from frappe.model.meta import Meta
-from frappe.modules import scrub, get_module_path, load_doctype_module
-from frappe.utils import get_html_format
-from frappe.translate import make_dict_from_messages, extract_messages_from_code
-from frappe.model.utils import render_include
-from frappe.build import scrub_html_template
-
 import io
+import os
 
-from six import iteritems
+import frappe
+from frappe.build import scrub_html_template
+from frappe.model.meta import Meta
+from frappe.model.utils import render_include
+from frappe.modules import get_module_path, load_doctype_module, scrub
+from frappe.translate import extract_messages_from_code, make_dict_from_messages
+from frappe.utils import get_html_format
+
 
 def get_meta(doctype, cached=True):
 	# don't cache for developer mode as js files, templates may be edited
@@ -109,8 +105,9 @@ class FormMeta(Meta):
 	def _add_code(self, path, fieldname):
 		js = get_js(path)
 		if js:
-			self.set(fieldname, (self.get(fieldname) or "")
-				+ "\n\n/* Adding {0} */\n\n".format(path) + js)
+			comment = f"\n\n/* Adding {path} */\n\n"
+			sourceURL = f"\n\n//# sourceURL={scrub(self.name) + fieldname}"
+			self.set(fieldname, (self.get(fieldname) or "") + comment + js + sourceURL)
 
 	def add_html_templates(self, path):
 		if self.custom:
@@ -144,6 +141,10 @@ class FormMeta(Meta):
 
 			if script.view == 'Form':
 				form_script += script.script
+
+		file = scrub(self.name)
+		form_script += f"\n\n//# sourceURL={file}__custom_js"
+		list_script += f"\n\n//# sourceURL={file}__custom_list_js"
 
 		self.set("__custom_js", form_script)
 		self.set("__custom_list_js", list_script)
@@ -194,7 +195,7 @@ class FormMeta(Meta):
 			app = module.__name__.split(".")[0]
 			templates = {}
 			if hasattr(module, "form_grid_templates"):
-				for key, path in iteritems(module.form_grid_templates):
+				for key, path in module.form_grid_templates.items():
 					templates[key] = get_html_format(frappe.get_app_path(app, path))
 
 				self.set("__form_grid_templates", templates)

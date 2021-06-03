@@ -1,13 +1,13 @@
-frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
-	trigger_change_on_input_event: false,
-	make: function () {
-		this._super();
+frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData {
+	static trigger_change_on_input_event = false
+	make () {
+		super.make();
 		// $(this.label_area).addClass('pull-right');
 		// $(this.disp_area).addClass('text-right');
-	},
-	make_input: function () {
+	}
+	make_input () {
 		var me = this;
-		this._super();
+		super.make_input();
 		this.$input
 			// .addClass("text-right")
 			.on("focus", function () {
@@ -19,11 +19,11 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 				}, 100);
 				return false;
 			});
-	},
-	validate: function (value) {
+	}
+	validate (value) {
 		return this.parse(value);
-	},
-	eval_expression: function (value) {
+	}
+	eval_expression (value) {
 		if (typeof value === 'string') {
 			if (value.match(/^[0-9+\-/* ]+$/)) {
 				// If it is a string containing operators
@@ -36,8 +36,8 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 			}
 		}
 		return value;
-	},
-	parse: function (value) {
+	}
+	parse (value) {
 		return cint(this.eval_expression(value), null);
 	}
-});
+};

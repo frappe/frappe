@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -42,7 +41,7 @@ class SystemSettings(Document):
 
 	def on_update(self):
 		for df in self.meta.get("fields"):
-			if df.fieldtype not in no_value_fields:
+			if df.fieldtype not in no_value_fields and self.has_value_changed(df.fieldname):
 				frappe.db.set_default(df.fieldname, self.get(df.fieldname))
 
 		if self.language:

@@ -15,11 +15,11 @@ jobs:
           path: 'frappe'
       - uses: actions/setup-node@v1
         with:
-          python-version: '12.x'
+          node-version: 14
       - uses: actions/setup-python@v2
         with:
           python-version: '3.6'
-      - name: Set up bench for current push
+      - name: Set up bench and build assets
         run: |
           npm install -g yarn
           pip3 install -U frappe-bench
@@ -29,7 +29,7 @@ jobs:
       - name: Package assets
         run: |
           mkdir -p $GITHUB_WORKSPACE/build
-          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
+          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/frappe/dist
 
       - name: Publish assets to S3
         uses: jakejarvis/s3-sync-action@master

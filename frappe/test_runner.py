@@ -1,19 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
 import frappe
 import unittest, json, sys, os
 import time
 import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
-from frappe.utils import cstr
 import frappe.utils.scheduler
 import cProfile, pstats
-from six import StringIO
-from six.moves import reload_module
+from io import StringIO
+from importlib import reload
 from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
@@ -282,7 +278,7 @@ def get_modules(doctype):
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
-			reload_module(test_module)
+			reload(test_module)
 	except ImportError:
 		test_module = None
 
@@ -307,6 +303,8 @@ def get_dependencies(doctype):
 		for doctype_name in test_module.test_ignore:
 			if doctype_name in options_list:
 				options_list.remove(doctype_name)
+
+	options_list.sort()
 
 	return options_list
 

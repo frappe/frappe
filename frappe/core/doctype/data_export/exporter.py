@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 from frappe import _
 import frappe.permissions
@@ -10,7 +8,6 @@ import re, csv, os
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint, format_duration
 from frappe.core.doctype.data_import_legacy.importer import get_data_keys
-from six import string_types
 from frappe.core.doctype.access_log.access_log import make_access_log
 
 reflags = {
@@ -57,7 +54,7 @@ class DataExporter:
 
 		self.docs_to_export = {}
 		if self.doctype:
-			if isinstance(self.doctype, string_types):
+			if isinstance(self.doctype, str):
 				self.doctype = [self.doctype]
 
 			if len(self.doctype) > 1:
@@ -282,7 +279,7 @@ class DataExporter:
 				try:
 					sflags = self.docs_to_export.get("flags", "I,U").upper()
 					flags = 0
-					for a in re.split('\W+',sflags):
+					for a in re.split(r'\W+', sflags):
 						flags = flags | reflags.get(a,0)
 
 					c = re.compile(names, flags)

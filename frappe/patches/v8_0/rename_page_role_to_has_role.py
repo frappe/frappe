@@ -1,7 +1,6 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 
 def execute():
@@ -17,7 +16,7 @@ def reload_doc():
 	frappe.reload_doc("core", 'doctype', "report")
 	frappe.reload_doc("core", 'doctype', "user")
 	frappe.reload_doc("core", 'doctype', "has_role")
-	
+
 def set_ref_doctype_roles_to_report():
 	for data in frappe.get_all('Report', fields=["name"]):
 		doc = frappe.get_doc('Report', data.name)

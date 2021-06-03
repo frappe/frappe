@@ -333,7 +333,7 @@ export default {
 				frappe.msgprint(__('Invalid URL'));
 				return Promise.reject();
 			}
-
+			file_url = decodeURI(file_url)
 			return this.upload_file({
 				file_url
 			});
