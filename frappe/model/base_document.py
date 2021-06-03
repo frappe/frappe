@@ -1,9 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
-from six import iteritems, string_types
-
 import frappe
 import datetime
 from frappe import _
@@ -109,7 +105,7 @@ class BaseDocument(object):
 			if key in d:
 				self.set(key, d.get(key))
 
-		for key, value in iteritems(d):
+		for key, value in d.items():
 			self.set(key, value)
 
 		return self
@@ -120,7 +116,7 @@ class BaseDocument(object):
 
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
-		for key, value in iteritems(d):
+		for key, value in d.items():
 			# dont_update_if_missing is a list of fieldnames, for which, you don't want to set default value
 			if (self.get(key) is None) and (value is not None) and (key not in self.dont_update_if_missing):
 				self.set(key, value)
@@ -670,7 +666,7 @@ class BaseDocument(object):
 			if data_field_options == "URL":
 				if not data:
 					continue
-				
+
 				frappe.utils.validate_url(data, throw=True)
 
 	def _validate_constants(self):
@@ -705,7 +701,7 @@ class BaseDocument(object):
 
 		type_map = frappe.db.type_map
 
-		for fieldname, value in iteritems(self.get_valid_dict()):
+		for fieldname, value in self.get_valid_dict().items():
 			df = self.meta.get_field(fieldname)
 
 			if not df or df.fieldtype == 'Check':
@@ -770,7 +766,7 @@ class BaseDocument(object):
 			return
 
 		for fieldname, value in self.get_valid_dict().items():
-			if not value or not isinstance(value, string_types):
+			if not value or not isinstance(value, str):
 				continue
 
 			value = frappe.as_unicode(value)
@@ -839,7 +835,7 @@ class BaseDocument(object):
 		:param parentfield: If fieldname is in child table."""
 		from frappe.model.meta import get_field_precision
 
-		if parentfield and not isinstance(parentfield, string_types):
+		if parentfield and not isinstance(parentfield, str):
 			parentfield = parentfield.parentfield
 
 		cache_key = parentfield or "main"
@@ -986,7 +982,7 @@ def _filter(data, filters, limit=None):
 					fval = ("not None", fval)
 				elif fval is False:
 					fval = ("None", fval)
-				elif isinstance(fval, string_types) and fval.startswith("^"):
+				elif isinstance(fval, str) and fval.startswith("^"):
 					fval = ("^", fval[1:])
 				else:
 					fval = ("=", fval)
@@ -995,7 +991,7 @@ def _filter(data, filters, limit=None):
 
 	for d in data:
 		add = True
-		for f, fval in iteritems(_filters):
+		for f, fval in _filters.items():
 			if not frappe.compare(getattr(d, f, None), fval[0], fval[1]):
 				add = False
 				break

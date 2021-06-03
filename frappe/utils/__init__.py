@@ -117,7 +117,10 @@ def validate_email_address(email_str, throw=False):
 
 		else:
 			email_id = extract_email_id(e)
-			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email_id.lower()) if email_id else None
+			match = re.match(
+				r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+				email_id.lower()
+			) if email_id else None
 
 			if not match:
 				_valid = False
@@ -148,7 +151,7 @@ def split_emails(txt):
 
 	# emails can be separated by comma or newline
 	s = re.sub(r'[\t\n\r]', ' ', cstr(txt))
-	for email in re.split('''[,\\n](?=(?:[^"]|"[^"]*")*$)''', s):
+	for email in re.split(r'[,\n](?=(?:[^"]|"[^"]*")*$)', s):
 		email = strip(cstr(email))
 		if email:
 			email_list.append(email)
@@ -287,7 +290,7 @@ def remove_blanks(d):
 
 def strip_html_tags(text):
 	"""Remove html tags from text"""
-	return re.sub("\<[^>]*\>", "", text)
+	return re.sub(r"\<[^>]*\>", "", text)
 
 def get_file_timestamp(fn):
 	"""
@@ -368,7 +371,7 @@ def get_path(*path, **kwargs):
 		base = frappe.local.site_path
 	return os.path.join(base, *path)
 
-def get_site_base_path(sites_dir=None, hostname=None):
+def get_site_base_path():
 	return frappe.local.site_path
 
 def get_site_path(*path):
@@ -499,7 +502,7 @@ def is_markdown(text):
 	elif "<!-- html -->" in text:
 		return False
 	else:
-		return not re.search("<p[\s]*>|<br[\s]*>", text)
+		return not re.search(r"<p[\s]*>|<br[\s]*>", text)
 
 def get_sites(sites_path=None):
 	if not sites_path:
@@ -517,41 +520,17 @@ def get_sites(sites_path=None):
 
 	return sorted(sites)
 
-def get_request_session(max_retries=3):
+def get_request_session(max_retries=5):
 	import requests
 	from urllib3.util import Retry
+
 	session = requests.Session()
-	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
-	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
+	http_adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
+
+	session.mount("http://", http_adapter)
+	session.mount("https://", http_adapter)
+
 	return session
-
-def watch(path, handler=None, debug=True):
-	import time
-
-	from watchdog.events import FileSystemEventHandler
-	from watchdog.observers import Observer
-
-	class Handler(FileSystemEventHandler):
-		def on_any_event(self, event):
-			if debug:
-				print("File {0}: {1}".format(event.event_type, event.src_path))
-
-			if not handler:
-				print("No handler specified")
-				return
-
-			handler(event.src_path, event.event_type)
-
-	event_handler = Handler()
-	observer = Observer()
-	observer.schedule(event_handler, path, recursive=True)
-	observer.start()
-	try:
-		while True:
-			time.sleep(1)
-	except KeyboardInterrupt:
-		observer.stop()
-	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
 	html = text if is_html(text) else frappe.utils.md_to_html(text)
@@ -609,7 +588,7 @@ def check_format(email_id):
 
 def get_name_from_email_string(email_string, email_id, name):
 	name = email_string.replace(email_id, '')
-	name = re.sub('[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+', '', name).strip()
+	name = re.sub(r'[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+', '', name).strip()
 	if not name:
 		name = email_id
 	return name
@@ -618,7 +597,7 @@ def get_installed_apps_info():
 	out = []
 	from frappe.utils.change_log import get_versions
 
-	for app, version_details in iteritems(get_versions()):
+	for app, version_details in get_versions().items():
 		out.append({
 			'app_name': app,
 			'version': version_details.get('branch_version') or version_details.get('version'),
@@ -739,7 +718,7 @@ def get_safe_filters(filters):
 	try:
 		filters = json.loads(filters)
 
-		if isinstance(filters, (integer_types, float)):
+		if isinstance(filters, (int, float)):
 			filters = frappe.as_unicode(filters)
 
 	except (TypeError, ValueError):

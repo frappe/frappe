@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 from frappe.exceptions import DataError
 from frappe.utils.password import get_decrypted_password

@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
 import os
 
 def resize_images(path, maxdim=700):
@@ -24,7 +22,7 @@ def strip_exif_data(content, content_type):
 	Works by creating a new Image object which ignores exif by
 	default and then extracts the binary data back into content.
 
-	Returns: 
+	Returns:
 		Bytes: Stripped image content
 	"""
 
@@ -33,11 +31,11 @@ def strip_exif_data(content, content_type):
 
 	original_image = Image.open(io.BytesIO(content))
 	output = io.BytesIO()
-	
+
 	new_image = Image.new(original_image.mode, original_image.size)
 	new_image.putdata(list(original_image.getdata()))
 	new_image.save(output, format=content_type.split('/')[1])
-	
+
 	content = output.getvalue()
 
 	return content

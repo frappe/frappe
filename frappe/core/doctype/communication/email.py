@@ -1,9 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, absolute_import
-from six.moves import range
-from six import string_types
 import frappe
 import json
 from email.utils import formataddr
@@ -77,7 +74,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	comm.save(ignore_permissions=True)
 
-	if isinstance(attachments, string_types):
+	if isinstance(attachments, str):
 		attachments = json.loads(attachments)
 
 	# if not committed, delayed task doesn't find the communication
@@ -249,11 +246,11 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 			"name":doc.reference_name, "print_format":print_format, "html":print_html})
 
 	if attachments:
-		if isinstance(attachments, string_types):
+		if isinstance(attachments, str):
 			attachments = json.loads(attachments)
 
 		for a in attachments:
-			if isinstance(a, string_types):
+			if isinstance(a, str):
 				# is it a filename?
 				try:
 					# check for both filename and file id
@@ -355,7 +352,7 @@ def add_attachments(name, attachments):
 	'''Add attachments to the given Communication'''
 	# loop through attachments
 	for a in attachments:
-		if isinstance(a, string_types):
+		if isinstance(a, str):
 			attach = frappe.db.get_value("File", {"name":a},
 				["file_name", "file_url", "is_private"], as_dict=1)
 

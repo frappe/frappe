@@ -2,14 +2,9 @@
 # MIT License. See license.txt
 
 # imports - standard imports
-from __future__ import unicode_literals
 import re, copy, os, shutil
 import json
 from frappe.cache_manager import clear_user_cache, clear_controller_cache
-
-# imports - third party imports
-import six
-from six import iteritems
 
 # imports - module imports
 import frappe
@@ -486,7 +481,7 @@ class DocType(Document):
 		# remove null and empty fields
 		def remove_null_fields(o):
 			to_remove = []
-			for attr, value in iteritems(o):
+			for attr, value in o.items():
 				if isinstance(value, list):
 					for v in value:
 						remove_null_fields(v)
@@ -670,7 +665,7 @@ class DocType(Document):
 		if not name:
 			name = self.name
 
-		flags = {"flags": re.ASCII} if six.PY3 else {}
+		flags = {"flags": re.ASCII}
 
 		# a DocType name should not start or end with an empty space
 		if re.search(r"^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):

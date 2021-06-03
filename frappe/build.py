@@ -1,11 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
 import os
 import re
 import json
 import shutil
 import subprocess
+from io import StringIO
 from tempfile import mkdtemp, mktemp
 from distutils.spawn import find_executable
 
@@ -402,8 +402,6 @@ def get_build_maps():
 
 
 def pack(target, sources, no_compress, verbose):
-	from six import StringIO
-
 	outtype, outtxt = target.split(".")[-1], ""
 	jsm = JavascriptMinify()
 
