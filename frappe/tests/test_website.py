@@ -3,9 +3,10 @@ from __future__ import unicode_literals
 import unittest
 
 import frappe
-from frappe.website.serve import get_response
-from frappe.website.utils import get_home_page, clear_website_cache
 from frappe.utils import set_request
+from frappe.website.serve import get_response, get_response_content
+from frappe.website.utils import (build_response, clear_website_cache, get_home_page)
+
 
 class TestWebsite(unittest.TestCase):
 	def setUp(self):
@@ -178,6 +179,25 @@ class TestWebsite(unittest.TestCase):
 		delattr(frappe.hooks, 'website_redirects')
 		frappe.cache().delete_key('app_hooks')
 
+	def test_custom_page_renderer(self):
+		import frappe.hooks
+		frappe.hooks.page_renderer = ['frappe.tests.test_website.CustomPageRenderer']
+		frappe.cache().delete_key('app_hooks')
+		set_request(method='GET', path='/custom')
+		response = get_response()
+		self.assertEqual(response.status_code, 3984)
+
+		set_request(method='GET', path='/new')
+		content = get_response_content()
+		self.assertIn("<div>Custom Page Response</div>", content)
+
+		set_request(method='GET', path='/random')
+		response = get_response()
+		self.assertEqual(response.status_code, 404)
+
+		delattr(frappe.hooks, 'page_renderer')
+		frappe.cache().delete_key('app_hooks')
+
 
 def set_home_page_hook(key, value):
 	from frappe import hooks
@@ -189,3 +209,15 @@ def set_home_page_hook(key, value):
 	setattr(hooks, key, value)
 	frappe.cache().delete_key('app_hooks')
 
+class CustomPageRenderer():
+	def __init__(self, path, status_code=None):
+		self.path = path
+		# custom status code
+		self.status_code = 3984
+
+	def can_render(self):
+		if self.path in ('new', 'custom'):
+			return True
+
+	def render(self):
+		return build_response(self.path, """<div>Custom Page Response</div>""", self.status_code)
