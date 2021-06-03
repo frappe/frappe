@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
 
 import os
-from six import iteritems
 import logging
 
 from werkzeug.local import LocalManager
@@ -191,8 +189,9 @@ def make_form_dict(request):
 		frappe.throw(_("Invalid request arguments"))
 
 	try:
-		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
-			for k, v in iteritems(args) })
+		frappe.local.form_dict = frappe._dict({
+			k: v[0] if isinstance(v, (list, tuple)) else v for k, v in args.items()
+		})
 	except IndexError:
 		frappe.local.form_dict = frappe._dict(args)
 

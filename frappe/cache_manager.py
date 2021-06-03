@@ -1,8 +1,6 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe, json
 from frappe.model.document import Document
 from frappe.desk.notifications import (delete_notification_count_for,

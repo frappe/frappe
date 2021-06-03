@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe, unittest, json
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError

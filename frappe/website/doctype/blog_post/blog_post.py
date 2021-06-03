@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator

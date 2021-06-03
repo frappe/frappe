@@ -222,7 +222,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 
 			if profile:
 				import pstats
-				from six import StringIO
+				from io import StringIO
 
 				pr.disable()
 				s = StringIO()

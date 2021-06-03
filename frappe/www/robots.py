@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 
 base_template_path = "www/robots.txt"

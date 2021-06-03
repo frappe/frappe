@@ -1,6 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from six.moves.urllib.parse import quote
+from urllib.parse import quote
 
 import frappe
 from frappe import _

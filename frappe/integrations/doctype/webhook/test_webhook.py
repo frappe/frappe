@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import unittest
 
 import frappe
@@ -86,7 +84,7 @@ class TestWebhook(unittest.TestCase):
 
 		# Insert the user to db
 		self.test_user.insert()
-		
+
 		self.assertTrue("User" in frappe.flags.webhooks)
 		# only 1 hook (enabled) must be queued
 		self.assertEqual(
@@ -95,7 +93,7 @@ class TestWebhook(unittest.TestCase):
 		)
 		self.assertTrue(self.test_user.email in frappe.flags.webhooks_executed)
 		self.assertEqual(
-			frappe.flags.webhooks_executed.get(self.test_user.email)[0], 
+			frappe.flags.webhooks_executed.get(self.test_user.email)[0],
 			self.sample_webhooks[0].name
 		)
 

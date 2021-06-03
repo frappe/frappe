@@ -1,4 +1,3 @@
-from __future__ import print_function, unicode_literals
 from subprocess import Popen, call, PIPE
 
 def execute():

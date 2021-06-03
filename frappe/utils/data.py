@@ -1,14 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 import operator
 import json
 import re, datetime, math, time
-from six.moves.urllib.parse import quote, urljoin
-from six import iteritems, text_type, string_types, integer_types
+from urllib.parse import quote, urljoin
 from frappe.desk.utils import slug
 
 DATE_FORMAT = "%Y-%m-%d"
@@ -72,7 +69,7 @@ def get_datetime(datetime_str=None):
 def to_timedelta(time_str):
 	from dateutil import parser
 
-	if isinstance(time_str, string_types):
+	if isinstance(time_str, str):
 		t = parser.parse(time_str)
 		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond)
 
@@ -91,7 +88,7 @@ def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, se
 	if hours:
 		as_datetime = True
 
-	if isinstance(date, string_types):
+	if isinstance(date, str):
 		as_string = True
 		if " " in date:
 			as_datetime = True
@@ -274,17 +271,17 @@ def get_time(time_str):
 		return parser.parse(time_str).time()
 
 def get_datetime_str(datetime_obj):
-	if isinstance(datetime_obj, string_types):
+	if isinstance(datetime_obj, str):
 		datetime_obj = get_datetime(datetime_obj)
 	return datetime_obj.strftime(DATETIME_FORMAT)
 
 def get_date_str(date_obj):
-	if isinstance(date_obj, string_types):
+	if isinstance(date_obj, str):
 		date_obj = get_datetime(date_obj)
 	return date_obj.strftime(DATE_FORMAT)
 
 def get_time_str(timedelta_obj):
-	if isinstance(timedelta_obj, string_types):
+	if isinstance(timedelta_obj, str):
 		timedelta_obj = to_timedelta(timedelta_obj)
 
 	hours, remainder = divmod(timedelta_obj.seconds, 3600)
@@ -457,7 +454,7 @@ def duration_to_seconds(duration):
 
 def validate_duration_format(duration):
 	import re
-	is_valid_duration = re.match("^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", duration)
+	is_valid_duration = re.match(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", duration)
 	if not is_valid_duration:
 		frappe.throw(frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration)))
 
@@ -549,7 +546,7 @@ def flt(s, precision=None):
 		>>> flt("a")
 		0.0
 	"""
-	if isinstance(s, string_types):
+	if isinstance(s, str):
 		s = s.replace(',','')
 
 	try:
@@ -706,12 +703,12 @@ def encode(obj, encoding="utf-8"):
 	if isinstance(obj, list):
 		out = []
 		for o in obj:
-			if isinstance(o, text_type):
+			if isinstance(o, str):
 				out.append(o.encode(encoding))
 			else:
 				out.append(o)
 		return out
-	elif isinstance(obj, text_type):
+	elif isinstance(obj, str):
 		return obj.encode(encoding)
 	else:
 		return obj
@@ -719,10 +716,10 @@ def encode(obj, encoding="utf-8"):
 def parse_val(v):
 	"""Converts to simple datatypes from SQL query results"""
 	if isinstance(v, (datetime.date, datetime.datetime)):
-		v = text_type(v)
+		v = str(v)
 	elif isinstance(v, datetime.timedelta):
-		v = ":".join(text_type(v).split(":")[:2])
-	elif isinstance(v, integer_types):
+		v = ":".join(str(v).split(":")[:2])
+	elif isinstance(v, int):
 		v = int(v)
 	return v
 
@@ -743,7 +740,7 @@ def fmt_money(amount, precision=None, currency=None, format=None):
 	# 40,000.00000 -> 40,000.00
 	# 40,000.23000 -> 40,000.23
 
-	if isinstance(amount, string_types):
+	if isinstance(amount, str):
 		amount = flt(amount, precision)
 
 	if decimal_str:
@@ -959,7 +956,7 @@ def strip_html(text):
 	return _striptags_re.sub("", text)
 
 def escape_html(text):
-	if not isinstance(text, string_types):
+	if not isinstance(text, str):
 		return text
 
 	html_escape_table = {
@@ -982,7 +979,7 @@ def pretty_date(iso_datetime):
 	if not iso_datetime: return ''
 	import math
 
-	if isinstance(iso_datetime, string_types):
+	if isinstance(iso_datetime, str):
 		iso_datetime = datetime.datetime.strptime(iso_datetime, DATETIME_FORMAT)
 	now_dt = datetime.datetime.strptime(now(), DATETIME_FORMAT)
 	dt_diff = now_dt - iso_datetime
@@ -1031,7 +1028,7 @@ def comma_and(some_list ,add_quotes=True):
 def comma_sep(some_list, pattern, add_quotes=True):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
-		some_list = [text_type(s) for s in list(some_list)]
+		some_list = [str(s) for s in list(some_list)]
 		if not some_list:
 			return ""
 		elif len(some_list) == 1:
@@ -1045,7 +1042,7 @@ def comma_sep(some_list, pattern, add_quotes=True):
 def new_line_sep(some_list):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
-		some_list = [text_type(s) for s in list(some_list)]
+		some_list = [str(s) for s in list(some_list)]
 		if not some_list:
 			return ""
 		elif len(some_list) == 1:
@@ -1131,7 +1128,7 @@ def get_link_to_report(name, label=None, report_type=None, doctype=None, filters
 
 	if filters:
 		conditions = []
-		for k,v in iteritems(filters):
+		for k,v in filters.items():
 			if isinstance(v, list):
 				for value in v:
 					conditions.append(str(k)+'='+'["'+str(value[0]+'"'+','+'"'+str(value[1])+'"]'))
@@ -1187,7 +1184,7 @@ operator_map = {
 def evaluate_filters(doc, filters):
 	'''Returns true if doc matches filters'''
 	if isinstance(filters, dict):
-		for key, value in iteritems(filters):
+		for key, value in filters.items():
 			f = get_filter(None, {key:value})
 			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 				return False
@@ -1344,10 +1341,10 @@ def expand_relative_urls(html):
 
 		return "".join(to_expand)
 
-	html = re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
+	html = re.sub(r'(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
 
 	# background-image: url('/assets/...')
-	html = re.sub('(:[\s]?url)(\([\'"]?)((?!http)[^\'" >]+)([\'"]?\))', _expand_relative_urls, html)
+	html = re.sub(r'(:[\s]?url)(\([\'"]?)((?!http)[^\'" >]+)([\'"]?\))', _expand_relative_urls, html)
 	return html
 
 def quoted(url):
@@ -1358,7 +1355,7 @@ def quote_urls(html):
 		groups = list(match.groups())
 		groups[2] = quoted(groups[2])
 		return "".join(groups)
-	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)',
+	return re.sub(r'(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)',
 		_quote_url, html)
 
 def unique(seq):
@@ -1375,7 +1372,7 @@ def strip(val, chars=None):
 
 def to_markdown(html):
 	from html2text import html2text
-	from six.moves import html_parser as HTMLParser
+	from html.parser import HTMLParser
 
 	text = None
 	try:
@@ -1514,7 +1511,7 @@ def get_user_info_for_avatar(user_id):
 	return user_info
 
 
-class UnicodeWithAttrs(text_type):
+class UnicodeWithAttrs(str):
 	def __init__(self, text):
 		self.toc_html = text.toc_html
 		self.metadata = text.metadata

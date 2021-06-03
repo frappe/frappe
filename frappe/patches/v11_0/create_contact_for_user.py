@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 from frappe.core.doctype.user.user import create_contact
 import re

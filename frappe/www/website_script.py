@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.utils import strip
 from frappe.website.doctype.website_theme.website_theme import get_active_theme
