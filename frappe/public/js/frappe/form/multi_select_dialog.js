@@ -57,7 +57,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	get_child_selection_fields() {
 		const fields = [];
-		if (this.child_selection_mode && this.child_doctype) {
+		if (this.allow_child_item_selection && this.child_fieldname) {
 			fields.push({ fieldtype: "HTML", fieldname: "child_selection_area" });
 		}
 		return fields;
@@ -131,13 +131,12 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	get_child_result() {
-		const parents = this.results.map(res => res.name);
 		return frappe.call({
 			method: "frappe.client.get_list",
 			args: {
 				doctype: this.child_doctype,
 				filters: [
-					["parent", "in", parents]
+					["parentfield", "=", this.child_fieldname]
 				],
 				fields: ['name', 'parent', ...this.child_columns],
 				parent: this.doctype
@@ -146,7 +145,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	toggle_child_selection() {
-		if (this.dialog.fields_dict['child_selection_mode'].get_value()) {
+		if (this.dialog.fields_dict['allow_child_item_selection'].get_value()) {
 			this.get_child_result().then(r => {
 				this.child_results = r.message || [];
 				this.render_child_datatable();
@@ -246,11 +245,12 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			// now a is a fixed-size array with mutable entries
 		}
 
-		if (this.child_selection_mode) {
+		if (this.allow_child_item_selection) {
+			this.child_doctype = frappe.meta.get_docfield(this.doctype, this.child_fieldname).options;
 			columns[0].push({
 				fieldtype: "Check",
-				label: __("Select Individual Items"),
-				fieldname: "child_selection_mode",
+				label: __("Select {0}", [this.child_doctype]),
+				fieldname: "allow_child_item_selection",
 				onchange: this.toggle_child_selection.bind(this)
 			});
 		}
