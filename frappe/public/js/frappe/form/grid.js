@@ -196,7 +196,7 @@ export default class Grid {
 		tasks.push(() => {
 			if (dirty) {
 				this.refresh();
-				this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
+				this.frm && this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 			}
 		});
 
@@ -344,6 +344,9 @@ export default class Grid {
 			}
 			if (d.idx === undefined) {
 				d.idx = ri + 1;
+			}
+			if (d.name === undefined) {
+				d.name = "row " + d.idx;
 			}
 			if (this.grid_rows[ri] && !append_row) {
 				var grid_row = this.grid_rows[ri];
