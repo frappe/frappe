@@ -583,7 +583,6 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 			'*.less',
 			'*.scss',
 			'*.vue',
-			'*.pyc',
 			'*.html',
 			'*/test_*',
 			'*/node_modules/*',
