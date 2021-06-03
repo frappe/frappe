@@ -7,7 +7,6 @@ import re
 from functools import wraps
 
 import yaml
-from past.builtins import cmp
 from six import iteritems
 from werkzeug.wrappers import Response
 
