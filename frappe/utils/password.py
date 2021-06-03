@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import string
 import frappe
 from frappe import _
@@ -61,7 +60,7 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 	except frappe.db.DataError as e:
 		if ((frappe.db.db_type == 'mariadb' and e.args[0] == DATA_TOO_LONG) or
 			(frappe.db.db_type == 'postgres' and e.pgcode == STRING_DATA_RIGHT_TRUNCATION)):
-			frappe.throw(_("Most probably your password is too long.", exc=e))
+			frappe.throw(_("Most probably your password is too long."), exc=e)
 		raise e
 
 
@@ -171,7 +170,7 @@ def encrypt(txt, encryption_key=None):
 
 
 def decrypt(txt, encryption_key=None):
-	# Only use encryption_key value generated with Fernet.generate_key().decode() 
+	# Only use encryption_key value generated with Fernet.generate_key().decode()
 
 	try:
 		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))

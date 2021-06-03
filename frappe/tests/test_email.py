@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 import unittest, frappe, re, email
-from six import PY3
 
 test_dependencies = ['Email Account']
 
@@ -116,10 +115,7 @@ class TestEmail(unittest.TestCase):
 			content = part.get_payload(decode=True)
 
 			if content:
-				if PY3:
-					eol = "\r\n"
-				else:
-					eol = "\n"
+				eol = "\r\n"
 
 				frappe.local.flags.signed_query_string = \
 					re.search(r'(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=' + eol + ')',

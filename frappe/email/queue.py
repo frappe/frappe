@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, _
 from frappe.utils.verified_command import get_signed_params, verify_request

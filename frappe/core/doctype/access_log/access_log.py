@@ -3,8 +3,6 @@
 # For license information, please see license.txt
 
 # imports - standard imports
-from __future__ import unicode_literals
-
 # imports - module imports
 import frappe
 from frappe.model.document import Document

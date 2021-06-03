@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, absolute_import, print_function
 import sys
 import click
 import cProfile
@@ -10,7 +9,7 @@ import frappe
 import frappe.utils
 import subprocess # nosec
 from functools import wraps
-from six import StringIO
+from io import StringIO
 from os import environ
 
 click.disable_unicode_literals_warning = True
