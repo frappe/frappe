@@ -1,14 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
 import frappe
 import time
 from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
-from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields, table_fields
@@ -54,7 +51,7 @@ def get_doc(*args, **kwargs):
 		if isinstance(args[0], BaseDocument):
 			# already a document
 			return args[0]
-		elif isinstance(args[0], string_types):
+		elif isinstance(args[0], str):
 			doctype = args[0]
 
 		elif isinstance(args[0], dict):
@@ -91,7 +88,7 @@ class Document(BaseDocument):
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
-		if args and args[0] and isinstance(args[0], string_types):
+		if args and args[0] and isinstance(args[0], str):
 			# first arugment is doctype
 			if len(args)==1:
 				# single
@@ -438,7 +435,7 @@ class Document(BaseDocument):
 		def get_values():
 			values = self.as_dict()
 			# format values
-			for key, value in iteritems(values):
+			for key, value in values.items():
 				if value==None:
 					values[key] = ""
 			return values
@@ -455,7 +452,7 @@ class Document(BaseDocument):
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
 		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
-		for field, value in iteritems(d):
+		for field, value in d.items():
 			if field != "doctype":
 				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))

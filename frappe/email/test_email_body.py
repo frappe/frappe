@@ -1,14 +1,12 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
-from __future__ import unicode_literals
-
 import unittest, os, base64
 from frappe import safe_decode
 from frappe.email.receive import Email
 from frappe.email.email_body import (replace_filename_with_cid,
 					get_email, inline_style_in_html, get_header)
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, QueueBuilder
-from six import PY3
+
 
 class TestEmailBody(unittest.TestCase):
 	def setUp(self):
@@ -41,13 +39,8 @@ This is the text version of this email
 		).as_string().replace("\r\n", "\n")
 
 	def test_prepare_message_returns_already_encoded_string(self):
-
-		if PY3:
-			uni_chr1 = chr(40960)
-			uni_chr2 = chr(1972)
-		else:
-			uni_chr1 = unichr(40960)
-			uni_chr2 = unichr(1972)
+		uni_chr1 = chr(40960)
+		uni_chr2 = chr(1972)
 
 		queue_doc = QueueBuilder(
 			recipients=['test@example.com'],
@@ -70,10 +63,7 @@ This is the text version of this email
 		mail_ctx = SendMailContext(queue_doc = queue_doc)
 		result = safe_decode(mail_ctx.build_message(recipient_email='test@test.com'))
 
-		if PY3:
-			self.assertTrue(result.count('\n') == result.count("\r"))
-		else:
-			self.assertTrue(True)
+		self.assertTrue(result.count('\n') == result.count("\r"))
 
 	def test_image(self):
 		img_signature = '''

@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import string
 import frappe
 from frappe import _
@@ -171,7 +170,7 @@ def encrypt(txt, encryption_key=None):
 
 
 def decrypt(txt, encryption_key=None):
-	# Only use encryption_key value generated with Fernet.generate_key().decode() 
+	# Only use encryption_key value generated with Fernet.generate_key().decode()
 
 	try:
 		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))

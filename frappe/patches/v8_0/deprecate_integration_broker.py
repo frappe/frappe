@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 from frappe.integrations.utils import create_payment_gateway
 
@@ -7,14 +7,14 @@ def execute():
 
 	for doctype in ["integration_request", "oauth_authorization_code", "oauth_bearer_token", "oauth_client"]:
 		frappe.reload_doc('integrations', 'doctype', doctype)
-	
+
 	frappe.reload_doc("core", "doctype", "payment_gateway")
 	update_doctype_module()
 	create_payment_gateway_master_records()
 
 	for doctype in ["Integration Service", "Integration Service Parameter"]:
 		frappe.delete_doc("DocType", doctype)
-	
+
 	if not frappe.db.get_value("DocType", {"module": "Integration Broker"}, "name"):
 		frappe.delete_doc("Module Def", "Integration Broker")
 

@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 # model __init__.py
-from __future__ import unicode_literals
 import frappe
 
 data_fieldtypes = (

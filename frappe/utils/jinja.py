@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 def get_jenv():
 	import frappe
 	from frappe.utils.safe_exec import get_safe_globals
@@ -67,7 +65,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 	:param safe_render: (optional) prevent server side scripting via jinja templating
 	'''
 
-	from frappe import get_traceback, throw, _
+	from frappe import _, get_traceback, throw
 	from jinja2 import TemplateError
 
 	if not template:
