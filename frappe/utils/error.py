@@ -213,7 +213,7 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 	>>> @raise_error_on_no_output("Ingradients missing")
 	... def get_indradients(_raise_error=1): return
 	...
-	>>> get_indradients()
+	>>> get_ingradients()
 	`Exception Name`: Ingradients missing
 	"""
 	def decorator_raise_error_on_no_output(func):
