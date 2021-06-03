@@ -1,4 +1,5 @@
 import re
+import click
 
 from werkzeug.routing import Rule
 
@@ -35,7 +36,7 @@ class PathResolver():
 			return frappe.flags.redirect_location, RedirectPage(self.path)
 
 		endpoint = resolve_path(self.path)
-		custom_renderers = frappe.get_hooks('page_renderer')
+		custom_renderers = self.get_custom_page_renderers()
 		renderers = custom_renderers + [StaticPage, WebFormPage, TemplatePage, ListPage, DocumentPage, PrintPage, NotFoundPage]
 
 		for renderer in renderers:
@@ -48,6 +49,27 @@ class PathResolver():
 	def is_valid_path(self):
 		_endpoint, renderer_instance = self.resolve()
 		return not isinstance(renderer_instance, NotFoundPage)
+
+	@staticmethod
+	def get_custom_page_renderers():
+		custom_renderers = []
+		for renderer_path in frappe.get_hooks('page_renderer') or []:
+			try:
+				renderer = frappe.get_attr(renderer_path)
+				if not hasattr(renderer, 'can_render'):
+					click.echo(f'{renderer.__name__} does not have can_render method')
+					continue
+				if not hasattr(renderer, 'render'):
+					click.echo(f'{renderer.__name__} does not have render method')
+					continue
+
+				custom_renderers.append(renderer)
+
+			except Exception:
+				click.echo(f'Failed to load page renderer. Import path: {renderer_path}')
+
+		return custom_renderers
+
 
 
 def resolve_redirect(path, query_string=None):
