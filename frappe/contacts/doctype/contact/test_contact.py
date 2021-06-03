@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-from frappe.exceptions import ValidationError
+
+test_dependencies = ['Contact', 'Salutation']
 
 class TestContact(unittest.TestCase):
 

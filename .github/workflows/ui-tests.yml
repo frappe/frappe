@@ -1,10 +1,8 @@
-name: CI
+name: UI
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
-  push:
 
 jobs:
   test:
@@ -13,23 +11,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       include:
-        - DB: "mariadb"
-          TYPE: "server"
-          JOB_NAME: "Python MariaDB"
-          RUN_COMMAND: bench --site test_site run-tests --coverage
+       containers: [1, 2]
 
-        - DB: "postgres"
-          TYPE: "server"
-          JOB_NAME: "Python PostgreSQL"
-          RUN_COMMAND: bench --site test_site run-tests --coverage
-
-        - DB: "mariadb"
-          TYPE: "ui"
-          JOB_NAME: "UI MariaDB"
-          RUN_COMMAND:  bench --site test_site run-ui-tests frappe --headless
-
-    name: ${{ matrix.JOB_NAME }}
+    name: UI Tests (Cypress)
 
     services:
       mysql:
@@ -39,18 +23,6 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
-
-      postgres:
-        image: postgres:12.4
-        env:
-          POSTGRES_PASSWORD: travis
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - name: Clone
@@ -105,7 +77,6 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Cache cypress binary
-        if: matrix.TYPE == 'ui'
         uses: actions/cache@v2
         with:
           path: ~/.cache
@@ -119,54 +90,16 @@ jobs:
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
-          TYPE: ${{ matrix.TYPE }}
+          TYPE: ui
 
       - name: Install
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
-          DB: ${{ matrix.DB }}
-          TYPE: ${{ matrix.TYPE }}
+          DB: mariadb
+          TYPE: ui
 
-      - name: Run Set-Up
-        if: matrix.TYPE == 'ui'
+      - name: Site Setup
         run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
-        env:
-          DB: ${{ matrix.DB }}
-          TYPE: ${{ matrix.TYPE }}
 
-      - name: Setup tmate session
-        if: contains(github.event.pull_request.labels.*.name, 'debug-gha')
-        uses: mxschmitt/action-tmate@v3
-
-      - name: Run Tests
-        run: cd ~/frappe-bench/ && ${{ matrix.RUN_COMMAND }}
-        env:
-          DB: ${{ matrix.DB }}
-          TYPE: ${{ matrix.TYPE }}
-
-      - name: Coverage - Pull Request
-        if: matrix.TYPE == 'server' && github.event_name == 'pull_request'
-        run: |
-          cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
-          cd ${GITHUB_WORKSPACE}
-          pip install coveralls==2.2.0
-          pip install coverage==4.5.4
-          coveralls --service=github
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_SERVICE_NAME: github
-          
-      - name: Coverage - Push
-        if: matrix.TYPE == 'server' && github.event_name == 'push'
-        run: |
-          cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
-          cd ${GITHUB_WORKSPACE}
-          pip install coveralls==2.2.0
-          pip install coverage==4.5.4
-          coveralls --service=github-actions
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_SERVICE_NAME: github-actions
-
+      - name: UI Tests
+        run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID
