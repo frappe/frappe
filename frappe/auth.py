@@ -38,9 +38,6 @@ class HTTPRequest:
 		else:
 			frappe.local.request_ip = '127.0.0.1'
 
-		# language
-		self.set_lang()
-
 		# load cookies
 		frappe.local.cookie_manager = CookieManager()
 
@@ -49,6 +46,9 @@ class HTTPRequest:
 
 		# login
 		frappe.local.login_manager = LoginManager()
+
+		# language
+		self.set_lang()
 
 		if frappe.form_dict._lang:
 			lang = get_lang_code(frappe.form_dict._lang)
