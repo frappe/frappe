@@ -441,10 +441,7 @@ class EmailAccount(Document):
 					if self.enable_auto_reply:
 						self.send_auto_reply(communication, mail)
 
-					attachments = []
-					if hasattr(communication, '_attachments'):
-						attachments = [d.file_name for d in communication._attachments]
-					communication.notify(attachments=attachments, fetched_from_email_account=True)
+					communication.send_email(is_inbound_mail_communcation=True)
 			except SentEmailInInboxError:
 				frappe.db.rollback()
 			except Exception:
@@ -453,6 +450,8 @@ class EmailAccount(Document):
 				if self.use_imap:
 					self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
 				exceptions.append(frappe.get_traceback())
+			else:
+				frappe.db.commit()
 
 		#notify if user is linked to account
 		if len(inbound_mails)>0 and not frappe.local.flags.in_test:
