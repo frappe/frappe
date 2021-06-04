@@ -196,6 +196,11 @@ class TestWebsite(unittest.TestCase):
 		delattr(frappe.hooks, 'page_renderer')
 		frappe.cache().delete_key('app_hooks')
 
+	def test_printview_page(self):
+		content = get_response_content('/Language/en')
+		self.assertIn('<div class="print-format">', content)
+		self.assertIn('<div>Language</div>', content)
+
 
 def set_home_page_hook(key, value):
 	from frappe import hooks
