@@ -141,7 +141,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				return $('<li></li>')
 					.data('item.autocomplete', d)
 					.prop('aria-selected', 'false')
-					.html(`<a><p class="ellipsis" title="${_label}">${html}</p></a>`)
+					.html(`<a><p title="${_label}">${html}</p></a>`)
 					.get(0);
 			},
 			sort: function() {

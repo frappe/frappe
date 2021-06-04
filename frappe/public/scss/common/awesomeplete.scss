@@ -45,6 +45,8 @@
 			}
 			p {
 				margin-bottom: 0;
+				overflow-y: clip;
+				text-overflow: ellipsis;
 			}
 		}
 
