@@ -912,6 +912,9 @@ export default class Grid {
 	}
 
 	update_docfield_property(fieldname, property, value) {
+		// grid might not have any rows
+		if (this.grid_rows === undefined) return;
+
 		// update the docfield of each row
 		for (let row of this.grid_rows) {
 			let docfield = row.docfields.find(d => d.fieldname === fieldname);
