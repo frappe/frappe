@@ -1,6 +1,10 @@
-from frappe.website.page_renderers.web_page import WebPage
+from frappe.website.page_renderers.document_page import DocumentPage
 import frappe
 
-class WebFormPage(WebPage):
+class WebFormPage(DocumentPage):
 	def can_render(self):
-		return bool(frappe.get_all("Web Form", filters={'route': self.path}))
+		webform_name = frappe.db.exists("Web Form", {'route': self.path}, cache=True)
+		if webform_name:
+			self.doctype = 'Web Form'
+			self.docname = webform_name
+		return bool(webform_name)

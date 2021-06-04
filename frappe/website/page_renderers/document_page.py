@@ -32,7 +32,6 @@ class DocumentPage(BaseTemplatePage):
 				self.docname = frappe.db.get_value(doctype, filters, 'name')
 				if self.docname:
 					self.doctype = doctype
-					self.meta = meta
 					return True
 			except Exception as e:
 				if not frappe.db.is_missing_column(e):
@@ -43,7 +42,6 @@ class DocumentPage(BaseTemplatePage):
 		if d:
 			self.doctype = 'Web Page'
 			self.docname = d.name
-			self.meta = frappe.get_meta(self.doctype)
 			return True
 		else:
 			return False
