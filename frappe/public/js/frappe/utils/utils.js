@@ -268,7 +268,9 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled) {
+	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled, callback) {
+		if (frappe.flags.disable_auto_scroll) return;
+
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
 		let scroll_top = 0;
 		if (element) {
@@ -289,7 +291,7 @@ Object.assign(frappe.utils, {
 		}
 
 		if (animate) {
-			element_to_be_scrolled.animate({ scrollTop: scroll_top });
+			element_to_be_scrolled.animate({ scrollTop: scroll_top }).promise().then(callback);
 		} else {
 			element_to_be_scrolled.scrollTop(scroll_top);
 		}
@@ -1319,5 +1321,9 @@ Object.assign(frappe.utils, {
 		let e = clipboard_paste_event;
 		let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
 		return clipboard_data.getData('Text');
+	},
+
+	sleep(time) {
+		return new Promise((resolve) => setTimeout(resolve, time));
 	}
 });
