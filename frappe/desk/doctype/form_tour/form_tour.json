@@ -9,6 +9,7 @@
   "title",
   "reference_doctype",
   "completed",
+  "save_on_complete",
   "section_break_3",
   "steps"
  ],
@@ -19,10 +20,10 @@
    "in_list_view": 1,
    "label": "Reference Document",
    "options": "DocType",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
+   "depends_on": "reference_doctype",
    "fieldname": "steps",
    "fieldtype": "Table",
    "label": "Steps",
@@ -46,11 +47,17 @@
    "label": "Title",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "save_on_complete",
+   "fieldtype": "Check",
+   "label": "Save on Completion"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-05-26 19:36:59.093753",
+ "modified": "2021-06-05 21:39:52.416111",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour",
