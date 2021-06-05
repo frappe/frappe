@@ -22,9 +22,15 @@ frappe.ui.form.FormTour = class FormTour {
         this.frm.layout.sections.forEach(section => section.collapse(false));
     }
 
-    async set_tour(tour_name, on_finish) {
-        this.tour = await frappe.db.get_doc('Form Tour', tour_name);
-        this.on_finish = on_finish;
+    async init({ tour_name, on_finish }) {
+        if (tour_name) {
+            this.tour = await frappe.db.get_doc('Form Tour', tour_name);
+        } else {
+            this.tour = { steps: frappe.tour[this.frm.doctype] }
+        }
+        
+        if (on_finish) this.on_finish = on_finish;
+
         this.build_steps();
         this.define_steps();
     }
@@ -70,7 +76,7 @@ frappe.ui.form.FormTour = class FormTour {
         this.driver.defineSteps(steps);
     }
 
-    start_tour() {
+    start() {
         if (this.driver_steps.length == 0) {
             return;
         }
