@@ -3,6 +3,28 @@
 
 frappe.ui.form.on('Form Tour', {
 	setup: function(frm) {
+		if (!frm.doc.is_standard) {
+			frm.trigger('setup_queries');
+		}
+	},
+
+	refresh(frm) {
+		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
+			frm.trigger("disable_form");
+		}
+	},
+
+	disable_form: function(frm) {
+		frm.set_read_only();
+		frm.fields
+			.filter((field) => field.has_input)
+			.forEach((field) => {
+				frm.set_df_property(field.df.fieldname, "read_only", "1");
+			});
+		frm.disable_save();
+	},
+
+	setup_queries(frm) {
 		frm.set_query("reference_doctype", function() {
 			return {
 				filters: {
