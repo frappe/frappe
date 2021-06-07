@@ -2,7 +2,6 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe, json
 from frappe.model.document import Document
 from frappe.permissions import (get_valid_perms, update_permission_property)

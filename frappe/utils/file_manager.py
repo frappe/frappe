@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import os, base64, re, json
 import hashlib
@@ -11,8 +10,7 @@ from frappe.utils import get_hook_method, get_files_path, random_string, encode,
 from frappe import _
 from frappe import conf
 from copy import copy
-from six.moves.urllib.parse import unquote
-from six import text_type, PY2, string_types
+from urllib.parse import unquote
 
 
 class MaxFileSizeReachedError(frappe.ValidationError):
@@ -123,7 +121,7 @@ def get_uploaded_content():
 
 def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, df=None):
 	if decode:
-		if isinstance(content, text_type):
+		if isinstance(content, str):
 			content = content.encode("utf-8")
 
 		if b"," in content:
@@ -207,7 +205,7 @@ def write_file(content, fname, is_private=0):
 	# create directory (if not exists)
 	frappe.create_folder(file_path)
 	# write the file
-	if isinstance(content, text_type):
+	if isinstance(content, str):
 		content = content.encode()
 	with open(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8')), 'wb+') as f:
 		f.write(content)
@@ -297,18 +295,14 @@ def get_file(fname):
 	file_path = get_file_path(fname)
 
 	# read the file
-	if PY2:
-		with open(encode(file_path)) as f:
-			content = f.read()
-	else:
-		with io.open(encode(file_path), mode='rb') as f:
-			content = f.read()
-			try:
-				# for plain text files
-				content = content.decode()
-			except UnicodeDecodeError:
-				# for .png, .jpg, etc
-				pass
+	with io.open(encode(file_path), mode='rb') as f:
+		content = f.read()
+		try:
+			# for plain text files
+			content = content.decode()
+		except UnicodeDecodeError:
+			# for .png, .jpg, etc
+			pass
 
 	return [file_path.rsplit("/", 1)[-1], content]
 
@@ -338,7 +332,7 @@ def get_file_path(file_name):
 
 
 def get_content_hash(content):
-	if isinstance(content, text_type):
+	if isinstance(content, str):
 		content = content.encode()
 	return hashlib.md5(content).hexdigest()
 
@@ -397,8 +391,8 @@ def extract_images_from_html(doc, content):
 			filename = headers.split("filename=")[-1]
 
 			# decode filename
-			if not isinstance(filename, text_type):
-				filename = text_type(filename, 'utf-8')
+			if not isinstance(filename, str):
+				filename = str(filename, 'utf-8')
 		else:
 			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
@@ -443,12 +437,12 @@ def validate_filename(filename):
 @frappe.whitelist()
 def add_attachments(doctype, name, attachments):
 	'''Add attachments to the given DocType'''
-	if isinstance(attachments, string_types):
+	if isinstance(attachments, str):
 		attachments = json.loads(attachments)
 	# loop through attachments
 	files =[]
 	for a in attachments:
-		if isinstance(a, string_types):
+		if isinstance(a, str):
 			attach = frappe.db.get_value("File", {"name":a}, ["file_name", "file_url", "is_private"], as_dict=1)
 			# save attachments to new doc
 			f = save_url(attach.file_url, attach.file_name, doctype, name, "Home/Attachments", attach.is_private)

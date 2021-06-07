@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.desk.notifications import clear_notifications
 from frappe.cache_manager import clear_defaults_cache, common_default_keys

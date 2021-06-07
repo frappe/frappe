@@ -2,11 +2,9 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 import json,datetime
-from six.moves.urllib.parse import parse_qs
-from six import string_types, text_type
+from urllib.parse import parse_qs
 from frappe.utils import get_request_session
 from frappe import _
 
@@ -50,10 +48,10 @@ def make_post_request(url, auth=None, headers=None, data=None):
 		raise exc
 
 def create_request_log(data, integration_type, service_name, name=None, error=None):
-	if isinstance(data, string_types):
+	if isinstance(data, str):
 		data = json.loads(data)
 
-	if isinstance(error, string_types):
+	if isinstance(error, str):
 		error = json.loads(error)
 
 	integration_request = frappe.get_doc({
@@ -116,4 +114,4 @@ def create_payment_gateway(gateway, settings=None, controller=None):
 
 def json_handler(obj):
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
-		return text_type(obj)
+		return str(obj)

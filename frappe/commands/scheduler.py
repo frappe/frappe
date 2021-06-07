@@ -1,4 +1,3 @@
-from __future__ import unicode_literals, absolute_import, print_function
 import click
 import sys
 import frappe

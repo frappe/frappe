@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 from frappe import _
 from frappe.desk.doctype.global_search_settings.global_search_settings import update_global_search_doctypes

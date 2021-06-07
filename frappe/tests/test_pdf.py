@@ -1,14 +1,14 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
+import io
 import unittest
 
-import frappe.utils.pdf as pdfgen
-import frappe, io, six
 from PyPDF2 import PdfFileReader
 
-#class TestPdfBorders(unittest.TestCase):
+import frappe
+import frappe.utils.pdf as pdfgen
+
+
 class TestPdf(unittest.TestCase):
 	@property
 	def html(self):
@@ -44,8 +44,6 @@ class TestPdf(unittest.TestCase):
 		pdf = pdfgen.get_pdf(self.html, options={"password": password})
 		reader = PdfFileReader(io.BytesIO(pdf))
 		self.assertTrue(reader.isEncrypted)
-		if six.PY2:
-			password = frappe.safe_encode(password)
 		self.assertTrue(reader.decrypt(password))
 
 	def test_pdf_generation_as_a_user(self):
