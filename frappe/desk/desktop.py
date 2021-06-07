@@ -365,6 +365,8 @@ def get_desktop_page(page, wiki=False):
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
+		if wiki and not frappe.db.exists("Workspace", page):
+			return
 		wspace = Workspace(page, wiki=wiki)
 		wspace.build_workspace()
 		return {
@@ -547,7 +549,7 @@ def save_customization(page, config):
 
 	return True
 
-def save_new_widget(page, new_widgets):
+def save_new_widget(page, blocks, new_widgets):
 	original_page = frappe.get_doc("Workspace", page)
 	page_doc = get_custom_workspace_for_user(page, True)
 
@@ -579,7 +581,7 @@ def save_new_widget(page, new_widgets):
 		page_doc.build_links_table_from_card(widgets.card)
 
 	# remove duplicate and unwanted widgets
-	clean_up(page_doc, page)
+	if widgets: clean_up(page_doc, blocks)
 
 	# Set label
 	page_doc.label = page + '-Wiki-' + frappe.session.user
@@ -602,14 +604,12 @@ def save_new_widget(page, new_widgets):
 
 	return True
 
-def clean_up(original_page, page):
+def clean_up(original_page, blocks):
 	page_widgets = {}
-
-	content = frappe.db.get_value("Internal Wiki Page", page, "content")
 
 	for wid in ['shortcut', 'card', 'chart']:
 		# get list of widget's name from internal wiki page  
-		page_widgets[wid] = [x['data'][wid + '_name'] for x in json.loads(content) if x['type'] == wid]
+		page_widgets[wid] = [x['data'][wid + '_name'] for x in json.loads(blocks) if x['type'] == wid]
 
 	# shortcut & chart cleanup
 	for wid in ['shortcut', 'chart']:

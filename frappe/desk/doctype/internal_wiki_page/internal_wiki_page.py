@@ -4,52 +4,32 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
-from frappe.desk.desktop import save_new_widget
 from frappe.model.document import Document
 
 class InternalWikiPage(Document):
+	pass
 
-	def before_insert(self):
-		sequence_id_list = frappe.get_all('Internal Wiki Page', {'sequence_id'})
-		self.sequence_id = max([page.sequence_id for page in sequence_id_list] or [0]) + 1
+def new_internal_wiki_page(title, blocks, parent, parentfield):
+	new_doc = frappe.new_doc('Internal Wiki Page')
+	new_doc.title = title
+	new_doc.content = blocks
+	new_doc.parent_page = parent
+	new_doc.parentfield = parentfield
+	return new_doc
 
-@frappe.whitelist()
-def save_wiki_page(title, parent, sb_items, deleted_pages, new_widgets, blocks, save=True):
-	if save: 
-		if not frappe.db.exists("Workspace", title):
-			wspace = frappe.new_doc('Workspace')
-			wspace.label = title
-			wspace.insert()
+def delete_page(user, wiki_page):
+	doc = frappe.get_doc("Internal Wiki", user)
+	for idx, page in enumerate(doc.wiki_pages):
+		if page.title == wiki_page.get("title") and page.parent == wiki_page.get("parent_wiki"):
+			del doc.wiki_pages[idx]
+	doc.save(ignore_permissions=True)
 
-		doc = frappe.new_doc('Internal Wiki Page')
-		doc.title = title
-		doc.parent_page = parent
-		doc.content = blocks
-		doc.insert()
-	else:
-		doc = frappe.get_doc('Internal Wiki Page', title)
-		doc.content = blocks
-		doc.save()
-
-	if json.loads(sb_items):
-		for seq, d in enumerate(json.loads(sb_items)):
-			doc = frappe.get_doc('Internal Wiki Page', d.get('name'))
-			doc.sequence_id = seq + 1
-			doc.parent_page = d.get('parent_page') or ""
-			doc.save()
-		doc.title = title
-	
-	if json.loads(deleted_pages):
-		for d in json.loads(deleted_pages):
-			wiki_doc = frappe.get_doc('Internal Wiki Page', d)
-			wiki_doc.delete()
-			wspace_doc = frappe.get_doc('Workspace', d)
-			if not wspace_doc.is_standard:
-				wspace_doc.delete()
-		return 'Build'
-
-	if json.loads(new_widgets):
-		save_new_widget(title, new_widgets)
-
-	return doc.title
+def sort_page(user, pages):
+	doc = frappe.get_doc("Internal Wiki", user)
+	for seq, d in enumerate(pages):
+		for page in doc.wiki_pages:
+			if page.title == d.get('title'):
+				page.idx = seq + 1
+				page.parent_page = d.get('parent_page') or ""
+				break
+	doc.save(ignore_permissions=True)
