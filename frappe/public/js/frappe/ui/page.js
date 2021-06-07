@@ -510,13 +510,8 @@ frappe.ui.Page = Class.extend({
 				let item = $(this).html();
 				return $(item).attr('data-label') === label;
 			});
-<<<<<<< HEAD
-		return result.length > 0;
-	},
-=======
 		return result.length > 0 && result;
-	}
->>>>>>> 02765c98c9 (fix: ensure `Page.add_dropdown_item` returns link even if it already exists (#13420))
+	},
 
 	clear_btn_group: function(parent) {
 		parent.empty();
