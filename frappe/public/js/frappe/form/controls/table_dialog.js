@@ -1,7 +1,7 @@
 // Simpler table implementation where values are edited in a dialog
 // Used in web form
 
-frappe.ui.form.ControlTableDialog = frappe.ui.form.Control.extend({
+frappe.ui.form.ControlTableDialog = class ControlTableDialog extends frappe.ui.form.Control {
 	make() {
 		this._super();
 		frappe.utils.bind_actions_with_object(this.$wrapper, this);
@@ -31,14 +31,14 @@ frappe.ui.form.ControlTableDialog = frappe.ui.form.Control.extend({
 			</div>
 		`);
 		this.update_table();
-	},
+	}
 
 	add_row() {
 		this.edit_in_dialog().then(values => {
 			this.rows.push(values);
 			this.update_table();
 		});
-	},
+	}
 
 	edit_row(e, $btn) {
 		let index = parseInt($btn.data("index"));
@@ -47,13 +47,13 @@ frappe.ui.form.ControlTableDialog = frappe.ui.form.Control.extend({
 			this.rows[index] = values;
 			this.update_table();
 		});
-	},
+	}
 
 	delete_row(e, $btn) {
 		let index = parseInt($btn.data("index"));
 		this.rows = this.rows.filter((row, i) => i != index);
 		this.update_table();
-	},
+	}
 
 	edit_in_dialog(initial_values = {}) {
 		let fields = this.get_table_fields().filter(
@@ -71,7 +71,7 @@ frappe.ui.form.ControlTableDialog = frappe.ui.form.Control.extend({
 			d.set_values(initial_values);
 			d.show();
 		});
-	},
+	}
 
 	update_table() {
 		let html = "";
@@ -88,7 +88,7 @@ frappe.ui.form.ControlTableDialog = frappe.ui.form.Control.extend({
 			</tr>`;
 		}
 		this.$wrapper.find("tbody").html(html);
-	},
+	}
 
 	get_row_html(row, i) {
 		let header_fields = this.get_header_fields();
@@ -103,7 +103,7 @@ frappe.ui.form.ControlTableDialog = frappe.ui.form.Control.extend({
 				</td>
 			</tr>
 		`;
-	},
+	}
 
 	get_table_fields() {
 		if (this.df.options) {
@@ -113,7 +113,7 @@ frappe.ui.form.ControlTableDialog = frappe.ui.form.Control.extend({
 			}
 		}
 		return this.df.table_fields || [];
-	},
+	}
 
 	get_header_fields() {
 		let fields = this.get_table_fields();
@@ -122,18 +122,18 @@ frappe.ui.form.ControlTableDialog = frappe.ui.form.Control.extend({
 			header_fields = fields.filter(df => df.in_list_view);
 		}
 		return header_fields.slice(0, 4);
-	},
+	}
 
 	validate(value) {
 		return value;
-	},
+	}
 
 	set_input(value) {
 		this.rows = value;
 		this.update_table();
-	},
+	}
 
 	get_value() {
 		return this.rows;
 	}
-});
+};
