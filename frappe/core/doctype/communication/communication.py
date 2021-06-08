@@ -474,22 +474,25 @@ def calculate_first_response_time(issue, first_responded_on):
 	support_hours = frappe.get_doc("Service Level Agreement", issue.service_level_agreement).support_and_resolution
 
 	if issue_creation_date.day == first_responded_on.day:
+		if is_work_day(issue_creation_date, support_hours):
+			start_time, end_time = get_working_hours(issue_creation_date, support_hours)
 
-		start_time, end_time = get_working_hours(issue_creation_date, support_hours)
+			# issue creation and response on the same day during working hours
+			if is_during_working_hours(issue_creation_date, support_hours) and is_during_working_hours(first_responded_on, support_hours):
+				return get_elapsed_time(first_responded_on, issue_creation_date)
 
-		# issue creation and response on the same day during working hours
-		if is_during_working_hours(issue_creation_date, support_hours) and is_during_working_hours(first_responded_on, support_hours):
-			return get_elapsed_time(first_responded_on, issue_creation_date)
+			# issue creation is during working hours, but first response was after working hours
+			elif is_during_working_hours(issue_creation_date, support_hours):
+				return get_elapsed_time(end_time, issue_creation_time)
 
-		# issue creation is during working hours, but first response was after working hours
-		elif is_during_working_hours(issue_creation_date, support_hours):
-			return get_elapsed_time(end_time, issue_creation_time)
+			# issue creation was before working hours but first response is during working hours
+			elif is_during_working_hours(first_responded_on, support_hours):
+				return get_elapsed_time(start_time, first_responded_on_in_seconds)
 
-		# issue creation was before working hours but first response is during working hours
-		elif is_during_working_hours(first_responded_on, support_hours):
-			return get_elapsed_time(start_time, first_responded_on_in_seconds)
-
-		# both issue creation and first response were after working hours
+			# both issue creation and first response were after working hours
+			else:
+				return 0.0
+			
 		else:
 			return 0.0
 
@@ -501,40 +504,43 @@ def calculate_first_response_time(issue, first_responded_on):
 			first_response_time = calculate_initial_frt(issue_creation_date, first_responded_on.day - issue_creation_date.day - 1, support_hours)
 
 		# time taken on day of issue creation
-		start_time, end_time = get_working_hours(issue_creation_date, support_hours)
+		if is_work_day(issue_creation_date, support_hours):
+			start_time, end_time = get_working_hours(issue_creation_date, support_hours)
 
-		if is_during_working_hours(issue_creation_date, support_hours):
-			first_response_time += get_elapsed_time(issue_creation_time, end_time)
+			if is_during_working_hours(issue_creation_date, support_hours):
+				first_response_time += get_elapsed_time(issue_creation_time, end_time)
 
-		elif is_before_working_hours(issue_creation_date, support_hours):
-			first_response_time += get_elapsed_time(start_time, end_time)	
-		else:
-			first_response_time += 0
+			elif is_before_working_hours(issue_creation_date, support_hours):
+				first_response_time += get_elapsed_time(start_time, end_time)	
+			else:
+				first_response_time += 0
 
 		# time taken on day of first response
-		start_time, end_time = get_working_hours(first_responded_on, support_hours)
+		if is_work_day(first_responded_on, support_hours):
+			start_time, end_time = get_working_hours(first_responded_on, support_hours)
 
-		if is_before_working_hours(first_responded_on, support_hours):
-			first_response_time += 0
-		elif is_during_working_hours(first_responded_on, support_hours):
-			first_response_time += get_elapsed_time(start_time, first_responded_on_in_seconds)
-		else:
-			first_response_time += get_elapsed_time(start_time, end_time)
+			if is_before_working_hours(first_responded_on, support_hours):
+				first_response_time += 0
+			elif is_during_working_hours(first_responded_on, support_hours):
+				first_response_time += get_elapsed_time(start_time, first_responded_on_in_seconds)
+			else:
+				first_response_time += get_elapsed_time(start_time, end_time)
 
-		return first_response_time
+			return first_response_time
 
 def get_time_in_seconds(date):
 	return timedelta(hours=date.hour, minutes=date.minute, seconds=date.second)
 
-def get_working_hours(date, work_days):
-	weekday = frappe.utils.get_weekday(date)
-	if is_work_day(weekday, work_days):
-		for day in work_days:
+def get_working_hours(date, support_hours):
+	if is_work_day(date, support_hours):
+		weekday = frappe.utils.get_weekday(date)
+		for day in support_hours:
 			if day.workday == weekday:
 				return day.start_time, day.end_time
 
-def is_work_day(weekday, work_days):
-	for day in work_days:
+def is_work_day(date, support_hours):
+	weekday = frappe.utils.get_weekday(date)
+	for day in support_hours:
 		if day.workday == weekday:
 			return True
 	return False
