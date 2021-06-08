@@ -471,7 +471,7 @@ def calculate_first_response_time(issue, first_responded_on):
 	issue_creation_date = issue.creation
 	issue_creation_time = get_time_in_seconds(issue_creation_date)
 	first_responded_on_in_seconds = get_time_in_seconds(first_responded_on)
-	support_hours = frappe.get_doc("Service Level Agreement", issue.service_level_agreement).support_and_resolution
+	support_hours = frappe.get_cached_doc("Service Level Agreement", issue.service_level_agreement).support_and_resolution
 
 	if issue_creation_date.day == first_responded_on.day:
 		if is_work_day(issue_creation_date, support_hours):
@@ -479,11 +479,11 @@ def calculate_first_response_time(issue, first_responded_on):
 
 			# issue creation and response on the same day during working hours
 			if is_during_working_hours(issue_creation_date, support_hours) and is_during_working_hours(first_responded_on, support_hours):
-				return get_elapsed_time(first_responded_on, issue_creation_date)
+				return get_elapsed_time(issue_creation_date, first_responded_on)
 
 			# issue creation is during working hours, but first response was after working hours
 			elif is_during_working_hours(issue_creation_date, support_hours):
-				return get_elapsed_time(end_time, issue_creation_time)
+				return get_elapsed_time(issue_creation_time, end_time)
 
 			# issue creation was before working hours but first response is during working hours
 			elif is_during_working_hours(first_responded_on, support_hours):
@@ -556,7 +556,7 @@ def calculate_initial_frt(issue_creation_date, days_in_between, support_hours):
 	if fixed_working_hours:
 		start_time = support_hours[0].start_time
 		end_time = support_hours[0].end_time
-		initial_frt = days_in_between * get_elapsed_time(end_time, start_time)
+		initial_frt = days_in_between * get_elapsed_time(start_time, end_time)
 	else:
 		initial_frt = 0
 		for i in range(days_in_between):
