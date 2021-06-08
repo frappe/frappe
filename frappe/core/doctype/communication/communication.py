@@ -566,8 +566,9 @@ def calculate_initial_frt(issue_creation_date, days_in_between, support_hours):
 		initial_frt = 0
 		for i in range(days_in_between):
 			date = issue_creation_date + timedelta(days = (i+1))
-			start_time, end_time = get_working_hours(date, support_hours)
-			initial_frt += get_elapsed_time(start_time, end_time)
+			if is_work_day(date, support_hours):
+				start_time, end_time = get_working_hours(date, support_hours)
+				initial_frt += get_elapsed_time(start_time, end_time)
 
 	return initial_frt
 
