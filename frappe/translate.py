@@ -117,6 +117,7 @@ def get_dict(fortype, name=None):
 
 			messages += frappe.db.sql("""select 'navbar', item_label from `tabNavbar Item` where item_label is not null""")
 			messages = get_messages_from_include_files()
+			messages += get_all_messages_from_js_files()
 			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
