@@ -509,21 +509,16 @@ def calculate_first_response_time(issue, first_responded_on):
 
 			if is_during_working_hours(issue_creation_date, support_hours):
 				first_response_time += get_elapsed_time(issue_creation_time, end_time)
-
 			elif is_before_working_hours(issue_creation_date, support_hours):
 				first_response_time += get_elapsed_time(start_time, end_time)	
-			else:
-				first_response_time += 0
 
 		# time taken on day of first response
 		if is_work_day(first_responded_on, support_hours):
 			start_time, end_time = get_working_hours(first_responded_on, support_hours)
 
-			if is_before_working_hours(first_responded_on, support_hours):
-				first_response_time += 0
-			elif is_during_working_hours(first_responded_on, support_hours):
+			if is_during_working_hours(first_responded_on, support_hours):
 				first_response_time += get_elapsed_time(start_time, first_responded_on_in_seconds)
-			else:
+			elif not is_before_working_hours(first_responded_on, support_hours):
 				first_response_time += get_elapsed_time(start_time, end_time)
 
 			return first_response_time
