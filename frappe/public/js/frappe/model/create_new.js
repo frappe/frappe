@@ -69,8 +69,7 @@ $.extend(frappe.model, {
 					in_list(
 						["Link", "Data", "Select", "Dynamic Link"],
 						df.fieldtype
-					) &&
-					!df.no_copy
+					)
 				) {
 					doc[fieldname] = value;
 				}
