@@ -1,3 +1,4 @@
+import inspect
 import json
 import os
 import re
@@ -8,6 +9,7 @@ import click
 import frappe
 import requests
 
+from frappe.model.base_document import get_controller
 from .test_runner import (SLOW_TEST_THRESHOLD, make_test_records, set_test_email_config)
 
 click_ctx = click.get_current_context(True)
@@ -134,8 +136,25 @@ class ParallelTestRunner():
 			]
 
 			if self.app == 'frappe':
+				# skip files with empty controller classes
+				modules = frappe.get_all("Module Def", {"app_name": "frappe"}, pluck="name")
+				doctypes = frappe.get_all("DocType", {"module": ("in", modules)}, pluck="name")
+				empty_controllers = []
+
+				for dt in doctypes:
+					try:
+						controller = get_controller(dt)
+						if any(x for x in controller.__dict__.keys() if not x.startswith('__')):
+							controller_file = inspect.getfile(controller)
+							with open(controller_file) as f:
+								if len(f.read().split('\n')) < 10:
+									empty_controllers.append(controller_file)
+					except Exception:
+						pass
+
 				omit.append('*/tests/*')
 				omit.append('*/commands/*')
+				omit.extend(empty_controllers)
 
 			self.coverage = Coverage(source=[source_path], omit=omit, include=incl)
 			self.coverage.start()
