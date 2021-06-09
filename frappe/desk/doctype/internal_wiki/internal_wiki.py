@@ -13,7 +13,7 @@ class InternalWiki(Document):
 
 @frappe.whitelist()
 def get_wiki_pages():
-	has_access = ("System Manager" in frappe.get_roles())
+	has_access = "System Manager" in frappe.get_roles()
 
 	default_pages = frappe.get_doc("Internal Wiki", "Default").wiki_pages
 	pages = prepare_pages(default_pages)
@@ -41,15 +41,10 @@ def prepare_pages(pages, is_editable=False):
 	return prepared_pages
 
 @frappe.whitelist()
-def save_wiki_page(title, parent, public, sb_items, deleted_pages, new_widgets, blocks, save=True):
+def save_wiki_page(title, parent, public, sb_items, deleted_pages, new_widgets, blocks, save):
+	save = frappe.parse_json(save)
+	public = frappe.parse_json(public)
 	if save: 
-		# Create Workspace if not exist
-		if not frappe.db.exists("Workspace", title):
-			wspace = frappe.new_doc('Workspace')
-			wspace.label = title
-			wspace.for_wiki = 1
-			wspace.insert(ignore_permissions=True)
-
 		# create new Internal Wiki Page
 		new_doc = new_internal_wiki_page(title, blocks, parent, 'wiki_pages')
 

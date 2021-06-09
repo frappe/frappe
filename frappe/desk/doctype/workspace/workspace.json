@@ -10,6 +10,7 @@
   "label",
   "for_user",
   "extends",
+  "wiki_label",
   "module",
   "category",
   "icon",
@@ -229,10 +230,15 @@
    "fieldname": "public",
    "fieldtype": "Check",
    "label": "Public"
+  },
+  {
+   "fieldname": "wiki_label",
+   "fieldtype": "Data",
+   "label": "Wiki Label"
   }
  ],
  "links": [],
- "modified": "2021-06-09 14:50:41.204381",
+ "modified": "2021-06-09 18:39:47.947069",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

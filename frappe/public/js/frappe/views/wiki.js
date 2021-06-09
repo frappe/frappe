@@ -333,7 +333,7 @@ frappe.views.Wiki = class Wiki {
 
 	add_sidebar_actions(item, sidebar_control) {
 		if (!item.is_editable) {
-			$(`<span class="sidebar-info">${frappe.utils.icon("solid-info", "sm")}</span>`)
+			$(`<span class="sidebar-info">${frappe.utils.icon("lock", "sm")}</span>`)
 				.appendTo(sidebar_control);
 			sidebar_control.find('.sidebar-info').click(() => {
 				frappe.show_alert({
@@ -428,7 +428,7 @@ frappe.views.Wiki = class Wiki {
 					label: __('Title'),
 					fieldtype: 'Data',
 					fieldname: 'title',
-					"reqd": 1
+					reqd: 1
 				},
 				{
 					label: __('Parent'),
@@ -445,6 +445,10 @@ frappe.views.Wiki = class Wiki {
 			],
 			primary_action_label: __('Create'),
 			primary_action: (values) => {
+				if (this.all_pages.filter(p => p.title == values.title)[0]) {
+					frappe.throw(__("Page with title '{0}' already exist.", [__(values.title)]));
+					return;
+				}
 				d.hide();
 				this.initialize_editorjs_undo();
 				this.setup_customization_buttons(true);
@@ -529,7 +533,8 @@ frappe.views.Wiki = class Wiki {
 		let save = true;
 		if (!this.title && this.current_page_name) {
 			this.title = this.current_page_name;
-			save = '';
+			this.public = this.all_pages.filter(p => p.title == this.title)[0].parent_wiki == "Default";
+			save = false;
 		} else {
 			this.current_page_name = this.title;
 		}
@@ -551,7 +556,7 @@ frappe.views.Wiki = class Wiki {
 				args: {
 					title: me.title,
 					parent: me.parent || '',
-					public: me.public || null,
+					public: me.public || 0,
 					sb_items: me.sorted_sidebar_items,
 					deleted_pages: me.deleted_sidebar_items,
 					new_widgets: new_widgets,

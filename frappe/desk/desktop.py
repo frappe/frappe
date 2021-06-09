@@ -42,7 +42,10 @@ class Workspace:
 		self.user = frappe.get_user()
 		self.allowed_modules = self.get_cached('user_allowed_modules', self.get_allowed_modules)
 
-		self.doc = self.get_page_for_user(wiki)
+		if wiki:
+			self.doc = self.get_wiki_page_for_user()
+		else:
+			self.doc = self.get_page_for_user()
 
 		if self.doc.module and self.doc.module not in self.allowed_modules:
 			raise frappe.PermissionError
@@ -107,20 +110,10 @@ class Workspace:
 
 		return self.user.allow_modules
 
-	def get_page_for_user(self, wiki=False):
-		filters = {
-			'extends': self.page_name,
-			'public': 1,
-			'for_wiki': wiki
-		}
-		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
-		if user_pages:
-			return frappe.get_cached_doc("Workspace", user_pages[0])
-
+	def get_page_for_user(self):
 		filters = {
 			'extends': self.page_name,
 			'for_user': frappe.session.user,
-			'for_wiki': wiki
 		}
 		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
 		if user_pages:
@@ -137,6 +130,25 @@ class Workspace:
 
 		self.get_pages_to_extend()
 		return frappe.get_cached_doc("Workspace", self.page_name)
+
+	def get_wiki_page_for_user(self):
+		filters = {
+			'wiki_label': self.page_name,
+			'public': 1,
+			'for_wiki': 1
+		}
+		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
+		if user_pages:
+			return frappe.get_cached_doc("Workspace", user_pages[0])
+
+		filters = {
+			'wiki_label': self.page_name,
+			'for_user': frappe.session.user,
+			'for_wiki': 1
+		}
+		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
+		if user_pages:
+			return frappe.get_cached_doc("Workspace", user_pages[0])
 
 	def get_onboarding_doc(self):
 		# Check if onboarding is enabled
@@ -374,7 +386,11 @@ def get_desktop_page(page, wiki=False):
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
-		if wiki and not frappe.db.exists("Workspace", page):
+		if wiki and not frappe.db.exists({
+			'doctype': 'Workspace',
+			'wiki_label': page,
+			'for_wiki': 1
+		}):
 			return
 		wspace = Workspace(page, wiki=wiki)
 		wspace.build_workspace()
@@ -476,7 +492,7 @@ def get_custom_report_list(module):
 
 	return out
 
-def get_custom_workspace_for_user(page, wiki=False):
+def get_custom_workspace_for_user(page):
 	"""Get custom page from workspace if exists or create one
 
 	Args:
@@ -485,18 +501,9 @@ def get_custom_workspace_for_user(page, wiki=False):
 	Returns:
 		Object: Document object
 	"""
-	if wiki:
-		filters = {
-			'extends': page,
-			'public': 1
-		}
-		pages = frappe.get_list("Workspace", filters=filters)
-		if pages:
-			return frappe.get_doc("Workspace", pages[0])
 	filters = {
 		'extends': page,
 		'for_user': frappe.session.user,
-		'for_wiki': wiki
 	}
 	pages = frappe.get_list("Workspace", filters=filters)
 	if pages:
@@ -504,9 +511,43 @@ def get_custom_workspace_for_user(page, wiki=False):
 	doc = frappe.new_doc("Workspace")
 	doc.extends = page
 	doc.for_user = frappe.session.user
-	doc.for_wiki = wiki
 	return doc
 
+def get_custom_wiki_for_user(page, public):
+	"""Get custom page from workspace if exists or create one
+
+	Args:
+		page (stirng): Page name
+
+	Returns:
+		Object: Document object
+	"""
+	filters = {
+		'wiki_label': page,
+		'public': 1
+	}
+	pages = frappe.get_list("Workspace", filters=filters)
+	if pages:
+		return frappe.get_doc("Workspace", pages[0])
+
+	filters = {
+		'wiki_label': page,
+		'for_user': frappe.session.user,
+		'for_wiki': 1
+	}
+	pages = frappe.get_list("Workspace", filters=filters)
+	if pages:
+		return frappe.get_doc("Workspace", pages[0])
+	doc = frappe.new_doc("Workspace")
+	doc.wiki_label = page
+	doc.label = page + '-Wiki-' + frappe.session.user
+	doc.for_user = frappe.session.user
+	doc.for_wiki = 1
+	doc.public = public
+	doc.charts = []
+	doc.shortcuts = []
+	doc.links = []
+	return doc
 
 @frappe.whitelist()
 def save_customization(page, config):
@@ -567,27 +608,7 @@ def save_customization(page, config):
 	return True
 
 def save_new_widget(page, blocks, new_widgets, public=False):
-	original_page = frappe.get_doc("Workspace", page)
-	page_doc = get_custom_workspace_for_user(page, True)
-
-	# Update field values
-	page_doc.update({
-		"icon": original_page.icon,
-		"charts_label": original_page.charts_label,
-		"cards_label": original_page.cards_label,
-		"shortcuts_label": original_page.shortcuts_label,
-		"module": original_page.module,
-		"onboarding": original_page.onboarding,
-		"developer_mode_only": original_page.developer_mode_only,
-		"category": original_page.category,
-	})
-	if page_doc.is_new():
-		page_doc.update({
-			"charts": original_page.charts,
-			"shortcuts": original_page.shortcuts,
-			"links": original_page.links,
-			"public": public
-		})
+	page_doc = get_custom_wiki_for_user(page, public)
 
 	widgets = _dict(loads(new_widgets))
 
@@ -601,9 +622,6 @@ def save_new_widget(page, blocks, new_widgets, public=False):
 	# remove duplicate and unwanted widgets
 	if widgets: 
 		clean_up(page_doc, blocks)
-
-	# Set label
-	page_doc.label = page + '-Wiki-' + frappe.session.user
 
 	try:
 		page_doc.save(ignore_permissions=True)
