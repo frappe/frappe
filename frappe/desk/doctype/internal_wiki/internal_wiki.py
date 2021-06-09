@@ -63,13 +63,16 @@ def save_wiki_page(title, parent, public, sb_items, deleted_pages, new_widgets, 
 		else:
 			doc = frappe.get_doc("Internal Wiki", frappe.session.user)
 			doc.wiki_pages.extend([new_doc])
+		doc.save(ignore_permissions=True)
 	else:
-		# update the content of Internal Wiki Page of current user
-		doc = frappe.get_doc("Internal Wiki", frappe.session.user)
-		for d in doc.wiki_pages:
-			if d.title == title:
-				d.content = blocks
-	doc.save(ignore_permissions=True)
+		for page in ["Default", frappe.session.user]:
+			if frappe.db.exists("Internal Wiki", page):
+				doc = frappe.get_doc("Internal Wiki", page)
+				for d in doc.wiki_pages:
+					if d.title == title:
+						d.content = blocks
+						break
+				doc.save(ignore_permissions=True)
 
 	if json.loads(deleted_pages):
 		return delete_pages(json.loads(deleted_pages))
@@ -78,7 +81,7 @@ def save_wiki_page(title, parent, public, sb_items, deleted_pages, new_widgets, 
 		sort_pages(json.loads(sb_items))
 
 	if json.loads(new_widgets):
-		save_new_widget(title, blocks, new_widgets)
+		save_new_widget(title, blocks, new_widgets, public)
 
 	return title
 

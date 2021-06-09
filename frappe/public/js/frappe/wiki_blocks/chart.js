@@ -34,7 +34,8 @@ export default class Chart extends Block {
 		this.new('chart');
 
 		if (this.data && this.data.chart_name) {
-			this.make('chart', this.data.chart_name);
+			let has_data = this.make('chart', this.data.chart_name);
+			if (!has_data) return;
 		}
 
 		if (!this.readOnly) {

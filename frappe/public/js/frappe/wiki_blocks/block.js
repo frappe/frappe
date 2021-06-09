@@ -9,7 +9,7 @@ export default class Block {
 		let block_data = this.config.page_data[block+'s'].items.find(obj => {
 			return obj.label == block_name;
 		});
-		if (!block_data) return;
+		if (!block_data) return false;
 		this.wrapper.innerHTML = '';
 		block_data.in_customize_mode = !this.readOnly;
 		this.block_widget = new frappe.widget.SingleWidgetGroup({
@@ -25,6 +25,7 @@ export default class Block {
 		if (!this.readOnly) {
 			this.block_widget.customize();
 		}
+		return true;
 	}
 
 	rendered() {

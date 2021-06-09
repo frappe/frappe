@@ -110,9 +110,18 @@ class Workspace:
 	def get_page_for_user(self, wiki=False):
 		filters = {
 			'extends': self.page_name,
-			'for_user': frappe.session.user
+			'public': 1,
+			'for_wiki': wiki
 		}
-		filters['for_wiki'] = wiki
+		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
+		if user_pages:
+			return frappe.get_cached_doc("Workspace", user_pages[0])
+
+		filters = {
+			'extends': self.page_name,
+			'for_user': frappe.session.user,
+			'for_wiki': wiki
+		}
 		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
 		if user_pages:
 			return frappe.get_cached_doc("Workspace", user_pages[0])
@@ -476,11 +485,19 @@ def get_custom_workspace_for_user(page, wiki=False):
 	Returns:
 		Object: Document object
 	"""
+	if wiki:
+		filters = {
+			'extends': page,
+			'public': 1
+		}
+		pages = frappe.get_list("Workspace", filters=filters)
+		if pages:
+			return frappe.get_doc("Workspace", pages[0])
 	filters = {
 		'extends': page,
-		'for_user': frappe.session.user
+		'for_user': frappe.session.user,
+		'for_wiki': wiki
 	}
-	filters['for_wiki'] = wiki
 	pages = frappe.get_list("Workspace", filters=filters)
 	if pages:
 		return frappe.get_doc("Workspace", pages[0])
@@ -549,7 +566,7 @@ def save_customization(page, config):
 
 	return True
 
-def save_new_widget(page, blocks, new_widgets):
+def save_new_widget(page, blocks, new_widgets, public=False):
 	original_page = frappe.get_doc("Workspace", page)
 	page_doc = get_custom_workspace_for_user(page, True)
 
@@ -569,6 +586,7 @@ def save_new_widget(page, blocks, new_widgets):
 			"charts": original_page.charts,
 			"shortcuts": original_page.shortcuts,
 			"links": original_page.links,
+			"public": public
 		})
 
 	widgets = _dict(loads(new_widgets))
