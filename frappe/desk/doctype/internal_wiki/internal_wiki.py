@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 import json
 from frappe.desk.desktop import save_new_widget
 from frappe.desk.doctype.internal_wiki_page.internal_wiki_page import new_internal_wiki_page, delete_page, sort_page

@@ -581,7 +581,8 @@ def save_new_widget(page, blocks, new_widgets):
 		page_doc.build_links_table_from_card(widgets.card)
 
 	# remove duplicate and unwanted widgets
-	if widgets: clean_up(page_doc, blocks)
+	if widgets: 
+		clean_up(page_doc, blocks)
 
 	# Set label
 	page_doc.label = page + '-Wiki-' + frappe.session.user

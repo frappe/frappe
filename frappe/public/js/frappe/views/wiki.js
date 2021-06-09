@@ -341,7 +341,7 @@ frappe.views.Wiki = class Wiki {
 					indicator: 'info'
 				}, 5);
 			});
-		} else{
+		} else {
 			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
 				null,
@@ -415,9 +415,11 @@ frappe.views.Wiki = class Wiki {
 	}
 
 	initialize_new_page() {
-		let parent_pages = this.all_pages.filter(page => !page.parent_page && page.parent_wiki != "Default").map(page => page.title)
+		let parent_pages = this.all_pages
+			.filter(page => !page.parent_page && page.parent_wiki != "Default")
+			.map(page => page.title);
 		if (this.has_access) {
-			parent_pages = this.all_pages.filter(page => !page.parent_page).map(page => page.title)
+			parent_pages = this.all_pages.filter(page => !page.parent_page).map(page => page.title);
 		}
 		const d = new frappe.ui.Dialog({
 			title: __('Set Title'),
@@ -549,7 +551,7 @@ frappe.views.Wiki = class Wiki {
 				args: {
 					title: me.title,
 					parent: me.parent || '',
-					public: me.public || false,
+					public: me.public || null,
 					sb_items: me.sorted_sidebar_items,
 					deleted_pages: me.deleted_sidebar_items,
 					new_widgets: new_widgets,
