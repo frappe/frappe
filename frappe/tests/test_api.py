@@ -3,6 +3,7 @@ from random import choice
 
 import requests
 from semantic_version import Version
+from tenacity import retry, stop_after_attempt, retry_if_exception_type, wait_fixed
 
 import frappe
 from frappe.utils import get_site_url
@@ -124,6 +125,7 @@ class TestResourceAPI(unittest.TestCase):
 		self.assertIsInstance(docname, str)
 		self.GENERATED_DOCUMENTS.append(docname)
 
+	@retry(stop=stop_after_attempt(2) | retry_if_exception_type(AssertionError), wait=wait_fixed(3))
 	def test_update_document(self):
 		# test 8: PUT method on /api/resource to update doc
 		generated_desc = frappe.mock("paragraph")
