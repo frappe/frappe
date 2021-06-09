@@ -134,7 +134,7 @@ def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 
 		token = parsed_access['id_token']
 
-		info = jwt.decode(token, flow.client_secret, options={"verify_signature": False})
+		info = jwt.decode(token, flow.client_secret, verify=False)
 	else:
 		api_endpoint = oauth2_providers[provider].get("api_endpoint")
 		api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
