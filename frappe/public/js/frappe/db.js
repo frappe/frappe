@@ -13,6 +13,9 @@ frappe.db = {
 		if (!args.limit) {
 			args.limit = 20;
 		}
+		if (args.limit == -1) {
+			delete args.limit
+		}
 		return new Promise ((resolve) => {
 			frappe.call({
 				method: 'frappe.desk.reportview.get_list',
