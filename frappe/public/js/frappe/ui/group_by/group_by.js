@@ -384,7 +384,7 @@ frappe.ui.GroupBy = class {
 		const fields = this.report_view.meta.fields.filter((f) =>
 			['Select', 'Link', 'Data', 'Int', 'Check'].includes(f.fieldtype)
 		);
-		const tag_field = {fieldname:'_user_tags', fieldtype:'Data', label:__('Tags')};
+		const tag_field = {fieldname: '_user_tags', fieldtype: 'Data', label: __('Tags')};
 		this.group_by_fields[this.doctype] = fields.concat(tag_field);
 		this.all_fields[this.doctype] = this.report_view.meta.fields;
 
