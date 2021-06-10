@@ -110,6 +110,7 @@ class BlogPost(WebsiteGenerator):
 		context.parents = [{"name": _("Home"), "route":"/"},
 			{"name": "Blog", "route": "/blog"},
 			{"label": context.category.title, "route":context.category.route}]
+		context.guest_allowed = True
 
 	def fetch_cta(self):
 		if frappe.db.get_single_value("Blog Settings", "show_cta_in_blog", cache=True):
