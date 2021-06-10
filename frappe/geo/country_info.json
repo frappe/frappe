@@ -953,7 +953,7 @@
   "currency_fraction_units": 100,
   "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
-  "number_format": "#,###.##",
+  "number_format": "#.###,##",
   "timezones": [
    "Europe/Berlin"
   ]
