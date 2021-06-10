@@ -4,8 +4,6 @@
 # Database Module
 # --------------------
 
-from __future__ import unicode_literals
-
 import re
 import time
 import frappe
@@ -19,13 +17,6 @@ from frappe.utils import now, getdate, cast_fieldtype, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils import cint
 
-# imports - compatibility imports
-from six import (
-	integer_types,
-	string_types,
-	text_type,
-	iteritems
-)
 
 class Database(object):
 	"""
@@ -277,7 +268,7 @@ class Database(object):
 		for r in result:
 			values = []
 			for value in r:
-				if as_utf8 and isinstance(value, text_type):
+				if as_utf8 and isinstance(value, str):
 					value = value.encode('utf-8')
 				values.append(value)
 
@@ -294,7 +285,7 @@ class Database(object):
 		"""Returns true if the first row in the result has a Date, Datetime, Long Int."""
 		if result and result[0]:
 			for v in result[0]:
-				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, integer_types)):
+				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, int)):
 					return True
 				if formatted and isinstance(v, (int, float)):
 					return True
@@ -312,7 +303,7 @@ class Database(object):
 		for r in res:
 			nr = []
 			for val in r:
-				if as_utf8 and isinstance(val, text_type):
+				if as_utf8 and isinstance(val, str):
 					val = val.encode('utf-8')
 				nr.append(val)
 			nres.append(nr)
@@ -363,7 +354,7 @@ class Database(object):
 			# docname is a number, convert to string
 			filters = str(filters)
 
-		if isinstance(filters, string_types):
+		if isinstance(filters, str):
 			filters = { "name": filters }
 
 		for f in filters:
@@ -428,7 +419,7 @@ class Database(object):
 			user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
-		if cache and isinstance(filters, string_types) and \
+		if cache and isinstance(filters, str) and \
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
@@ -440,7 +431,7 @@ class Database(object):
 		else:
 			fields = fieldname
 			if fieldname!="*":
-				if isinstance(fieldname, string_types):
+				if isinstance(fieldname, str):
 					fields = [fieldname]
 				else:
 					fields = fieldname
@@ -461,7 +452,7 @@ class Database(object):
 			else:
 				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 
-		if cache and isinstance(filters, string_types):
+		if cache and isinstance(filters, str):
 			self.value_cache[(doctype, filters, fieldname)] = out
 
 		return out
@@ -673,7 +664,7 @@ class Database(object):
 				where field in ({0}) and
 					doctype=%s'''.format(', '.join(['%s']*len(keys))),
 					list(keys) + [dt], debug=debug)
-			for key, value in iteritems(to_update):
+			for key, value in to_update.items():
 				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
@@ -811,7 +802,7 @@ class Database(object):
 
 		:param dt: DocType name.
 		:param dn: Document name or filter dict."""
-		if isinstance(dt, string_types):
+		if isinstance(dt, str):
 			if dt!="DocType" and dt==dn:
 				return True # single always exists (!)
 			try:

@@ -3,9 +3,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, print_function
-
-from six.moves import range
 import requests
 import frappe, json
 import frappe.permissions
@@ -16,7 +13,6 @@ from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
 from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_absolute_url, duration_to_seconds
-from six import string_types
 
 
 @frappe.whitelist()
@@ -42,7 +38,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		frappe.cache().hdel("lang", user)
 		frappe.set_user_lang(user)
 
-	if data_import_doc and isinstance(data_import_doc, string_types):
+	if data_import_doc and isinstance(data_import_doc, str):
 		data_import_doc = frappe.get_doc("Data Import Legacy", data_import_doc)
 	if data_import_doc and from_data_import == "Yes":
 		no_email = data_import_doc.no_email
@@ -152,7 +148,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								elif fieldtype in ("Float", "Currency", "Percent"):
 									d[fieldname] = flt(d[fieldname])
 								elif fieldtype == "Date":
-									if d[fieldname] and isinstance(d[fieldname], string_types):
+									if d[fieldname] and isinstance(d[fieldname], str):
 										d[fieldname] = getdate(parse_date(d[fieldname]))
 								elif fieldtype == "Datetime":
 									if d[fieldname]:

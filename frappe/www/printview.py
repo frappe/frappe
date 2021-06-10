@@ -1,15 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe, os, copy, json, re
 from frappe import _
 
 from frappe.modules import get_doc_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cint, sanitize_html, strip_html
-from six import string_types
 
 no_cache = 1
 
@@ -73,7 +70,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 	print_settings = frappe.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
 
-	if isinstance(no_letterhead, string_types):
+	if isinstance(no_letterhead, str):
 		no_letterhead = cint(no_letterhead)
 
 	elif no_letterhead is None:
@@ -186,10 +183,10 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 	settings=None, templates=None):
 	"""Returns `html` and `style` of print format, used in PDF etc"""
 
-	if isinstance(doc, string_types) and isinstance(name, string_types):
+	if isinstance(doc, str) and isinstance(name, str):
 		doc = frappe.get_doc(doc, name)
 
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = frappe.get_doc(json.loads(doc))
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
@@ -211,10 +208,10 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang=None):
 	"""Returns Rendered Raw Commands of print format, used to send directly to printer"""
 
-	if isinstance(doc, string_types) and isinstance(name, string_types):
+	if isinstance(doc, str) and isinstance(name, str):
 		doc = frappe.get_doc(doc, name)
 
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = frappe.get_doc(json.loads(doc))
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
@@ -380,7 +377,7 @@ def has_value(df, doc):
 	if value in (None, ""):
 		return False
 
-	elif isinstance(value, string_types) and not strip_html(value).strip():
+	elif isinstance(value, str) and not strip_html(value).strip():
 		if df.fieldtype in ["Text", "Text Editor"]:
 			return True
 
@@ -480,7 +477,7 @@ def column_has_value(data, fieldname, col_df):
 	for row in data:
 		value = row.get(fieldname)
 		if value:
-			if isinstance(value, string_types):
+			if isinstance(value, str):
 				if strip_html(value).strip():
 					has_value = True
 					break

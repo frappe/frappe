@@ -2,7 +2,6 @@ import re
 import frappe
 import psycopg2
 import psycopg2.extensions
-from six import string_types
 from frappe.utils import cstr
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
@@ -253,7 +252,7 @@ class PostgresDatabase(Database):
 		self.sql("""CREATE INDEX IF NOT EXISTS "{}" ON `{}`("{}")""".format(index_name, table_name, '", "'.join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		if isinstance(fields, string_types):
+		if isinstance(fields, str):
 			fields = [fields]
 		if not constraint_name:
 			constraint_name = "unique_" + "_".join(fields)

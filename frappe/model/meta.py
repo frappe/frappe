@@ -14,10 +14,7 @@ Example:
 
 
 '''
-
-from __future__ import unicode_literals, print_function
 from datetime import datetime
-from six.moves import range
 import frappe, json, os
 from frappe.utils import cstr, cint, cast_fieldtype
 from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes, table_fields

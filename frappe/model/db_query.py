@@ -1,10 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
-
-from six import iteritems, string_types
-
 """build query for doclistview and return results"""
 
 import frappe.defaults
@@ -54,7 +49,7 @@ class DatabaseQuery(object):
 			filters, fields = fields, filters
 
 		elif fields and isinstance(filters, list) \
-			and len(filters) > 1 and isinstance(filters[0], string_types):
+			and len(filters) > 1 and isinstance(filters[0], str):
 			# if `filters` is a list of strings, its probably fields
 			filters, fields = fields, filters
 
@@ -209,7 +204,7 @@ class DatabaseQuery(object):
 
 	def parse_args(self):
 		"""Convert fields and filters from strings to list, dicts"""
-		if isinstance(self.fields, string_types):
+		if isinstance(self.fields, str):
 			if self.fields == "*":
 				self.fields = ["*"]
 			else:
@@ -223,13 +218,13 @@ class DatabaseQuery(object):
 
 		for filter_name in ["filters", "or_filters"]:
 			filters = getattr(self, filter_name)
-			if isinstance(filters, string_types):
+			if isinstance(filters, str):
 				filters = json.loads(filters)
 
 			if isinstance(filters, dict):
 				fdict = filters
 				filters = []
-				for key, value in iteritems(fdict):
+				for key, value in fdict.items():
 					filters.append(make_filter_tuple(self.doctype, key, value))
 			setattr(self, filter_name, filters)
 
@@ -357,7 +352,7 @@ class DatabaseQuery(object):
 		# remove from filters
 		to_remove = []
 		for each in self.filters:
-			if isinstance(each, string_types):
+			if isinstance(each, str):
 				each = [each]
 
 			for element in each:
@@ -391,7 +386,7 @@ class DatabaseQuery(object):
 			filters = [filters]
 
 		for f in filters:
-			if isinstance(f, string_types):
+			if isinstance(f, str):
 				conditions.append(f)
 			else:
 				conditions.append(self.prepare_filter_condition(f))
@@ -522,12 +517,12 @@ class DatabaseQuery(object):
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
 
-			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, string_types) and
+			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, str) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
 					value = "" if f.value==None else f.value
 					fallback = "''"
 
-					if f.operator.lower() in ("like", "not like") and isinstance(value, string_types):
+					if f.operator.lower() in ("like", "not like") and isinstance(value, str):
 						# because "like" uses backslash (\) for escaping
 						value = value.replace("\\", "\\\\").replace("%", "%%")
 
@@ -544,7 +539,7 @@ class DatabaseQuery(object):
 				fallback = 0
 
 			# escape value
-			if isinstance(value, string_types) and not f.operator.lower() == 'between':
+			if isinstance(value, str) and not f.operator.lower() == 'between':
 				value = "{0}".format(frappe.db.escape(value, percent=False))
 
 		if (self.ignore_ifnull
@@ -735,7 +730,7 @@ class DatabaseQuery(object):
 					args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype, sort_field or "modified", sort_order or "desc")
 
 				# draft docs always on top
-				if meta.is_submittable:
+				if hasattr(meta, 'is_submittable') and meta.is_submittable:
 					args.order_by = "`tab{0}`.docstatus asc, {1}".format(self.doctype, args.order_by)
 
 	def validate_order_by_and_group_by(self, parameters):
