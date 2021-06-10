@@ -441,10 +441,7 @@ class EmailAccount(Document):
 					if self.enable_auto_reply:
 						self.send_auto_reply(communication, mail)
 
-					attachments = []
-					if hasattr(communication, '_attachments'):
-						attachments = [d.file_name for d in communication._attachments]
-					communication.notify(attachments=attachments, fetched_from_email_account=True)
+					communication.send_email(is_inbound_mail_communcation=True)
 			except SentEmailInInboxError:
 				frappe.db.rollback()
 			except Exception:
@@ -453,6 +450,8 @@ class EmailAccount(Document):
 				if self.use_imap:
 					self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
 				exceptions.append(frappe.get_traceback())
+			else:
+				frappe.db.commit()
 
 		#notify if user is linked to account
 		if len(inbound_mails)>0 and not frappe.local.flags.in_test:
@@ -478,14 +477,13 @@ class EmailAccount(Document):
 			email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
 			messages = email_server.get_messages() or {}
 		except Exception:
-			raise
 			frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
 			return []
 
 		mails = []
 		for index, message in enumerate(messages.get("latest_messages", [])):
-			uid = messages['uid_list'][index]
-			seen_status = 1 if messages['seen_status'][uid]=='SEEN' else 0
+			uid = messages['uid_list'][index] if messages.get('uid_list') else None
+			seen_status = 1 if messages.get('seen_status', {}).get(uid)=='SEEN' else 0
 			mails.append(InboundMail(message, self, uid, seen_status))
 
 		return mails
