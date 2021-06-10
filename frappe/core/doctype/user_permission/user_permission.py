@@ -2,7 +2,6 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe, json
 from frappe.model.document import Document
 from frappe.permissions import (get_valid_perms, update_permission_property)
@@ -191,7 +190,7 @@ def clear_user_permissions(user, for_doctype):
 def add_user_permissions(data):
 	''' Add and update the user permissions '''
 	frappe.only_for('System Manager')
-	if isinstance(data, frappe.string_types):
+	if isinstance(data, str):
 		data = json.loads(data)
 	data = frappe._dict(data)
 

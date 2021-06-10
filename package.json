@@ -1,11 +1,10 @@
 {
   "name": "frappe-framework",
   "scripts": {
-    "build": "node rollup/build.js",
-    "production": "FRAPPE_ENV=production node rollup/build.js",
-    "watch": "node rollup/watch.js",
-    "snyk-protect": "snyk protect",
-    "prepare": "yarn run snyk-protect"
+    "build": "node esbuild",
+    "production": "node esbuild --production",
+    "watch": "node esbuild --watch",
+    "snyk-protect": "snyk protect"
   },
   "repository": {
     "type": "git",
@@ -16,13 +15,17 @@
   "bugs": {
     "url": "https://github.com/frappe/frappe/issues"
   },
+  "engines": {
+    "node": ">=14"
+  },
   "homepage": "https://frappeframework.com",
   "dependencies": {
     "ace-builds": "^1.4.8",
     "air-datepicker": "github:frappe/air-datepicker",
     "autoprefixer": "^9.8.6",
     "awesomplete": "^1.1.5",
-    "bootstrap": "4",
+    "bootstrap": "4.5.0",
+    "cliui": "^7.0.4",
     "cookie": "^0.4.0",
     "cssnano": "^4.1.10",
     "driver.js": "^0.9.8",
@@ -33,6 +36,7 @@
     "frappe-gantt": "^0.5.0",
     "fuse.js": "^3.4.6",
     "highlight.js": "^10.4.1",
+    "jquery": "2.2.4",
     "js-sha256": "^0.9.0",
     "jsbarcode": "^3.9.0",
     "localforage": "^1.9.0",
@@ -40,6 +44,7 @@
     "moment-timezone": "^0.5.28",
     "node-sass": "^4.14.1",
     "plyr": "^3.6.2",
+    "popper.js": "^1.16.0",
     "quagga": "^0.12.1",
     "quill": "2.0.0-dev.4",
     "quill-image-resize": "^3.0.9",
@@ -50,24 +55,18 @@
     "socket.io": "^2.4.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
-    "vue": "^2.6.11",
+    "vue": "2.6.12",
     "vue-router": "^2.0.0"
   },
   "devDependencies": {
-    "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
-    "graphlib": "^2.1.8",
-    "less": "^3.11.1",
-    "rollup": "^1.2.2",
-    "rollup-plugin-buble": "^0.19.2",
-    "rollup-plugin-commonjs": "^8.3.0",
-    "rollup-plugin-multi-entry": "^2.0.2",
-    "rollup-plugin-node-resolve": "^4.0.1",
-    "rollup-plugin-postcss": "^2.0.3",
-    "rollup-plugin-terser": "^4.0.4",
-    "rollup-plugin-vue": "4.2.0",
-    "svg-sprite": "^1.5.0",
-    "vue-template-compiler": "^2.6.11"
+    "esbuild": "^0.11.21",
+    "esbuild-plugin-postcss2": "^0.0.9",
+    "esbuild-vue": "^0.2.0",
+    "fast-glob": "^3.2.5",
+    "launch-editor": "^2.2.1",
+    "md5": "^2.3.0",
+    "yargs": "^16.2.0"
   },
   "snyk": true
 }

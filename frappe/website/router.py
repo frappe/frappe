@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import io
 import os
 import re
@@ -158,7 +156,7 @@ def evaluate_dynamic_routes(rules, path):
 	route_map = Map(rules)
 	endpoint = None
 
-	if frappe.local.request:
+	if hasattr(frappe.local, 'request') and frappe.local.request.environ:
 		urls = route_map.bind_to_environ(frappe.local.request.environ)
 		try:
 			endpoint, args = urls.match("/" + path)
@@ -374,7 +372,8 @@ def setup_index(page_info):
 		# load index.txt if loading all pages
 		index_txt_path = os.path.join(page_info.basepath, 'index.txt')
 		if os.path.exists(index_txt_path):
-			page_info.index = open(index_txt_path, 'r').read().splitlines()
+			with open(index_txt_path, 'r') as f:
+				page_info.index = f.read().splitlines()
 
 def load_properties_from_source(page_info):
 	'''Load properties like no_cache, title from source html'''

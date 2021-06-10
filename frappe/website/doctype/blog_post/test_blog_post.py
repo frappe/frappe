@@ -1,6 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
 import frappe
 import unittest
 from bs4 import BeautifulSoup
@@ -12,6 +11,8 @@ from frappe.utils import random_string
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
+
+test_dependencies = ['Blog Post']
 
 class TestBlogPost(unittest.TestCase):
 	def setUp(self):

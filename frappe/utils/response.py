@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import json
 import datetime
 import decimal
@@ -18,8 +17,7 @@ from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
 from frappe.utils import cint
-from six import text_type
-from six.moves.urllib.parse import quote
+from urllib.parse import quote
 from frappe.core.doctype.access_log.access_log import make_access_log
 
 
@@ -125,13 +123,13 @@ def json_handler(obj):
 	import collections.abc
 
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
-		return text_type(obj)
+		return str(obj)
 
 	elif isinstance(obj, decimal.Decimal):
 		return float(obj)
 
 	elif isinstance(obj, LocalProxy):
-		return text_type(obj)
+		return str(obj)
 
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		doc = obj.as_dict(no_nulls=True)

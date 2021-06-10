@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-from __future__ import unicode_literals
 import frappe, json, os
 import unittest
 from frappe.desk.query_report import run, save_report
@@ -106,7 +105,7 @@ class TestReport(unittest.TestCase):
 		else:
 			report = frappe.get_doc('Report', 'Test Report')
 
-		self.assertNotEquals(report.is_permitted(), True)
+		self.assertNotEqual(report.is_permitted(), True)
 		frappe.set_user('Administrator')
 
 	# test for the `_format` method if report data doesn't have sort_by parameter

@@ -4,8 +4,6 @@
 # Database Module
 # --------------------
 
-from __future__ import unicode_literals
-
 def setup_database(force, source_sql=None, verbose=None, no_mariadb_socket=False):
 	import frappe
 	if frappe.conf.db_type == 'postgres':

@@ -1,7 +1,7 @@
 frappe.pages['translation-tool'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: 'Translation Tool',
+		title: __('Translation Tool'),
 		single_column: true,
 		card_layout: true,
 	});

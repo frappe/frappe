@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import re, frappe
 
 def resolve_redirect(path):

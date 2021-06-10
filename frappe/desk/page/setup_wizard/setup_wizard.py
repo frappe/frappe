@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: See license.txt
 
-from __future__ import unicode_literals
-
 import frappe, json, os
 from frappe.utils import strip, cint
 from frappe.translate import (set_default_language, get_dict, send_translations)
@@ -10,7 +8,6 @@ from frappe.geo.country_info import get_country_info
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
 from . import install_fixtures
-from six import string_types
 
 def get_setup_stages(args):
 
@@ -208,14 +205,14 @@ def update_user_name(args):
 def parse_args(args):
 	if not args:
 		args = frappe.local.form_dict
-	if isinstance(args, string_types):
+	if isinstance(args, str):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
 
 	# strip the whitespace
 	for key, value in args.items():
-		if isinstance(value, string_types):
+		if isinstance(value, str):
 			args[key] = strip(value)
 
 	return args
@@ -294,7 +291,7 @@ def reset_is_first_startup():
 def prettify_args(args):
 	# remove attachments
 	for key, val in args.items():
-		if isinstance(val, string_types) and "data:image" in val:
+		if isinstance(val, str) and "data:image" in val:
 			filename = val.split("data:image", 1)[0].strip(", ")
 			size = round((len(val) * 3 / 4) / 1048576.0, 2)
 			args[key] = "Image Attached: '{0}' of size {1} MB".format(filename, size)

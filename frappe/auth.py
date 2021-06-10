@@ -1,9 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
 import datetime
-
 from frappe import _
 import frappe
 import frappe.database
@@ -19,8 +16,7 @@ from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
 from frappe.website.utils import get_home_page
-
-from six.moves.urllib.parse import quote
+from urllib.parse import quote
 
 
 class HTTPRequest:

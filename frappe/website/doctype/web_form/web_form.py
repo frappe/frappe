@@ -1,14 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-
 import json
 import os
-
-from six import iteritems
-from six.moves.urllib.parse import urlencode
-
 import frappe
 from frappe import _, scrub
 from frappe.core.doctype.file.file import get_max_file_size, remove_file_by_url
@@ -109,9 +103,7 @@ class WebForm(WebsiteGenerator):
 			# py
 			if not os.path.exists(path + '.py'):
 				with open(path + '.py', 'w') as f:
-					f.write("""from __future__ import unicode_literals
-
-import frappe
+					f.write("""import frappe
 
 def get_context(context):
 	# do your magic here
@@ -219,7 +211,7 @@ def get_context(context):
 			from decimal import Decimal
 			if amount is None or Decimal(amount) <= 0:
 				return frappe.utils.get_url(self.success_url or self.route)
-				
+
 			payment_details = {
 				"amount": amount,
 				"title": title,

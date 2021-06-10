@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
 
 import os
-from six import iteritems
 import logging
 
 from werkzeug.local import LocalManager
@@ -99,17 +97,7 @@ def application(request):
 		frappe.monitor.stop(response)
 		frappe.recorder.dump()
 
-		if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
-			frappe.logger("frappe.web", allow_site=frappe.local.site).info({
-				"site": get_site_name(request.host),
-				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
-				"base_url": getattr(request, "base_url", "NOTFOUND"),
-				"full_path": getattr(request, "full_path", "NOTFOUND"),
-				"method": getattr(request, "method", "NOTFOUND"),
-				"scheme": getattr(request, "scheme", "NOTFOUND"),
-				"http_status_code": getattr(response, "status_code", "NOTFOUND")
-			})
-
+		log_request(request, response)
 		process_response(response)
 		frappe.destroy()
 
@@ -136,6 +124,19 @@ def init_request(request):
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = frappe.auth.HTTPRequest()
+
+def log_request(request, response):
+	if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
+		frappe.logger("frappe.web", allow_site=frappe.local.site).info({
+			"site": get_site_name(request.host),
+			"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
+			"base_url": getattr(request, "base_url", "NOTFOUND"),
+			"full_path": getattr(request, "full_path", "NOTFOUND"),
+			"method": getattr(request, "method", "NOTFOUND"),
+			"scheme": getattr(request, "scheme", "NOTFOUND"),
+			"http_status_code": getattr(response, "status_code", "NOTFOUND")
+		})
+
 
 def process_response(response):
 	if not response:
@@ -185,11 +186,12 @@ def make_form_dict(request):
 		args = request.form or request.args
 
 	if not isinstance(args, dict):
-		frappe.throw("Invalid request arguments")
+		frappe.throw(_("Invalid request arguments"))
 
 	try:
-		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
-			for k, v in iteritems(args) })
+		frappe.local.form_dict = frappe._dict({
+			k: v[0] if isinstance(v, (list, tuple)) else v for k, v in args.items()
+		})
 	except IndexError:
 		frappe.local.form_dict = frappe._dict(args)
 
@@ -294,8 +296,9 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 	_sites_path = sites_path
 
 	from werkzeug.serving import run_simple
+	patch_werkzeug_reloader()
 
-	if profile:
+	if profile or os.environ.get('USE_PROFILER'):
 		application = ProfilerMiddleware(application, sort_by=('cumtime', 'calls'))
 
 	if not os.environ.get('NO_STATICS'):
@@ -324,3 +327,23 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,
 		threaded=not no_threading)
+
+def patch_werkzeug_reloader():
+	"""
+	This function monkey patches Werkzeug reloader to ignore reloading files in
+	the __pycache__ directory.
+
+	To be deprecated when upgrading to Werkzeug 2.
+	"""
+
+	from werkzeug._reloader import WatchdogReloaderLoop
+
+	trigger_reload = WatchdogReloaderLoop.trigger_reload
+
+	def custom_trigger_reload(self, filename):
+		if os.path.basename(os.path.dirname(filename)) == "__pycache__":
+			return
+
+		return trigger_reload(self, filename)
+
+	WatchdogReloaderLoop.trigger_reload = custom_trigger_reload

@@ -1,10 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
-from six.moves import input
-
 import frappe, os, re, git
 from frappe.utils import touch_file, cstr
 
@@ -42,7 +37,7 @@ def make_boilerplate(dest, app_name):
 			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
 				print("App Name must be all lowercase and without spaces")
 				hook_val = ""
-			elif hook_key=="app_title" and not re.match("^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
+			elif hook_key=="app_title" and not re.match(r"^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
 				print("App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores")
 				hook_val = ""
 
@@ -75,7 +70,7 @@ def make_boilerplate(dest, app_name):
 		f.write(frappe.as_unicode(setup_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
-		f.write("frappe")
+		f.write("# frappe -- https://github.com/frappe/frappe is installed via 'bench init'")
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(frappe.as_unicode("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
@@ -126,16 +121,12 @@ recursive-include {app_name} *.svg
 recursive-include {app_name} *.txt
 recursive-exclude {app_name} *.pyc"""
 
-init_template = """# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+init_template = """
 __version__ = '0.0.1'
 
 """
 
-hooks_template = """# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from . import __version__ as app_version
+hooks_template = """from . import __version__ as app_version
 
 app_name = "{app_name}"
 app_title = "{app_title}"
@@ -189,6 +180,15 @@ app_license = "{app_license}"
 
 # automatically create page for each record of this doctype
 # website_generators = ["Web Page"]
+
+# Jinja
+# ----------
+
+# add methods and filters to jinja environment
+# jinja = {{
+# 	"methods": "{app_name}.utils.jinja_methods",
+# 	"filters": "{app_name}.utils.jinja_filters"
+# }}
 
 # Installation
 # ------------
@@ -249,10 +249,10 @@ app_license = "{app_license}"
 # 	],
 # 	"weekly": [
 # 		"{app_name}.tasks.weekly"
-# 	]
+# 	],
 # 	"monthly": [
 # 		"{app_name}.tasks.monthly"
-# 	]
+# 	],
 # }}
 
 # Testing
@@ -282,26 +282,26 @@ app_license = "{app_license}"
 # User Data Protection
 # --------------------
 
-user_data_fields = [
-	{{
-		"doctype": "{{doctype_1}}",
-		"filter_by": "{{filter_by}}",
-		"redact_fields": ["{{field_1}}", "{{field_2}}"],
-		"partial": 1,
-	}},
-	{{
-		"doctype": "{{doctype_2}}",
-		"filter_by": "{{filter_by}}",
-		"partial": 1,
-	}},
-	{{
-		"doctype": "{{doctype_3}}",
-		"strict": False,
-	}},
-	{{
-		"doctype": "{{doctype_4}}"
-	}}
-]
+# user_data_fields = [
+# 	{{
+# 		"doctype": "{{doctype_1}}",
+# 		"filter_by": "{{filter_by}}",
+# 		"redact_fields": ["{{field_1}}", "{{field_2}}"],
+# 		"partial": 1,
+# 	}},
+# 	{{
+# 		"doctype": "{{doctype_2}}",
+# 		"filter_by": "{{filter_by}}",
+# 		"partial": 1,
+# 	}},
+# 	{{
+# 		"doctype": "{{doctype_3}}",
+# 		"strict": False,
+# 	}},
+# 	{{
+# 		"doctype": "{{doctype_4}}"
+# 	}}
+# ]
 
 # Authentication and authorization
 # --------------------------------
@@ -312,9 +312,7 @@ user_data_fields = [
 
 """
 
-desktop_template = """# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from frappe import _
+desktop_template = """from frappe import _
 
 def get_data():
 	return [
@@ -328,8 +326,7 @@ def get_data():
 	]
 """
 
-setup_template = """# -*- coding: utf-8 -*-
-from setuptools import setup, find_packages
+setup_template = """from setuptools import setup, find_packages
 
 with open('requirements.txt') as f:
 	install_requires = f.read().strip().split('\\n')

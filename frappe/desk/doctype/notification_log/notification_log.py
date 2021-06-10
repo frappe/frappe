@@ -2,7 +2,6 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -46,7 +45,7 @@ def enqueue_create_notification(users, doc):
 
 	doc = frappe._dict(doc)
 
-	if isinstance(users, frappe.string_types):
+	if isinstance(users, str):
 		users = [user.strip() for user in users.split(',') if user.strip()]
 	users = list(set(users))
 
