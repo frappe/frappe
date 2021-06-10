@@ -209,16 +209,10 @@ class LoginManager:
 			self.fail(_('Incomplete login details'), user=user)
 
 		# Ignore password check if tmp_id is set, 2FA takes care of authentication.
-		tmp_id = bool(frappe.form_dict.get('tmp_id'))
-
-		# Check if 2FA is enabled or not
-		enabled = int(frappe.db.get_value('System Settings', None, 'enable_two_factor_auth') or 0)
-
-		validate_password = True
-		
-		if tmp_id and enabled:
-			validate_password = False
-		
+		tmp_id = bool(frappe.form_dict.tmp_id)
+		enabled = cint(frappe.db.get_single_value('System Settings', 'enable_two_factor_auth'))
+		# if tmp_id is set and 2FA is enabled, skip validation by password
+		validate_password = not (tmp_id and enabled)
 		user = User.find_by_credentials(user, pwd, validate_password=validate_password)
 
 		if not user:
