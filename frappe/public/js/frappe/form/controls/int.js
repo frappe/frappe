@@ -10,12 +10,11 @@ frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData 
 		super.make_input();
 		this.$input
 			// .addClass("text-right")
-			.on("focus", function () {
+			.on("focusout", function () {
 				setTimeout(function () {
 					if (!document.activeElement) return;
 					document.activeElement.value
 						= me.validate(document.activeElement.value);
-					document.activeElement.select();
 				}, 100);
 				return false;
 			});
