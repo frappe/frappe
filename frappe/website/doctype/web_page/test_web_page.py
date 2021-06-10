@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import unittest
 import frappe
 from frappe.website.router import resolve_route

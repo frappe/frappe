@@ -1,11 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint
 from frappe import _
-from six import string_types
 import json
 
 class WorkflowStateError(frappe.ValidationError): pass
@@ -268,7 +266,7 @@ def print_workflow_log(messages, title, doctype, indicator):
 @frappe.whitelist()
 def get_common_transition_actions(docs, doctype):
 	common_actions = []
-	if isinstance(docs, string_types):
+	if isinstance(docs, str):
 		docs = json.loads(docs)
 	try:
 		for (i, doc) in enumerate(docs, 1):

@@ -21,7 +21,6 @@ if _dev_server:
 from werkzeug.local import Local, release_local
 import sys, importlib, inspect, json
 import typing
-from past.builtins import cmp
 import click
 
 # Local application imports
@@ -528,15 +527,19 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	if not delayed:
 		now = True
 
-	from frappe.email import queue
-	queue.send(recipients=recipients, sender=sender,
+	from frappe.email.doctype.email_queue.email_queue import QueueBuilder
+	builder = QueueBuilder(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name, add_unsubscribe_link=add_unsubscribe_link,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, queue_separately=queue_separately,
-		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
+		communication=communication, read_receipt=read_receipt, is_notification=is_notification,
 		inline_images=inline_images, header=header, print_letterhead=print_letterhead, with_container=with_container)
+
+	# build email queue and send the email if send_now is True.
+	builder.process(send_now=now)
+
 
 whitelisted = []
 guest_methods = []
@@ -1107,9 +1110,7 @@ def setup_module_map():
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
-		for app in get_all_apps(True):
-			if app == "webnotes":
-				app = "frappe"
+		for app in get_all_apps(with_internal_apps=True):
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
@@ -1692,6 +1693,23 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 		"long": int,
 		"round": round
 	}
+
+	UNSAFE_ATTRIBUTES = {
+		# Generator Attributes
+		"gi_frame", "gi_code",
+		# Coroutine Attributes
+		"cr_frame", "cr_code", "cr_origin",
+		# Async Generator Attributes
+		"ag_code", "ag_frame",
+		# Traceback Attributes
+		"tb_frame", "tb_next",
+		# Format Attributes
+		"format", "format_map",
+	}
+
+	for attribute in UNSAFE_ATTRIBUTES:
+		if attribute in code:
+			throw('Illegal rule {0}. Cannot use "{1}"'.format(bold(code), attribute))
 
 	if '__' in code:
 		throw('Illegal rule {0}. Cannot use "__"'.format(bold(code)))

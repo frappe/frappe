@@ -2,8 +2,6 @@
 # Copyright (c) 2015, Maxwell Morais and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-
 import os
 import sys
 import traceback
@@ -17,7 +15,7 @@ import pydoc
 import cgitb
 import datetime
 import json
-import six
+
 
 def make_error_snapshot(exception):
 	if frappe.conf.disable_error_snapshot:
@@ -51,7 +49,7 @@ def get_snapshot(exception, context=10):
 	"""
 
 	etype, evalue, etb = sys.exc_info()
-	if isinstance(etype, six.class_types):
+	if isinstance(etype, type):
 		etype = etype.__name__
 
 	# creates a snapshot dict with some basic information
@@ -131,7 +129,7 @@ def get_snapshot(exception, context=10):
 
 	# add all local values (of last frame) to the snapshot
 	for name, value in locals.items():
-		s['locals'][name] = value if isinstance(value, six.text_type) else pydoc.text.repr(value)
+		s['locals'][name] = value if isinstance(value, str) else pydoc.text.repr(value)
 
 	return s
 
@@ -215,7 +213,7 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 	>>> @raise_error_on_no_output("Ingradients missing")
 	... def get_indradients(_raise_error=1): return
 	...
-	>>> get_indradients()
+	>>> get_ingradients()
 	`Exception Name`: Ingradients missing
 	"""
 	def decorator_raise_error_on_no_output(func):

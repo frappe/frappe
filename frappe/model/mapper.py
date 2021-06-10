@@ -1,12 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+import json
 
-from __future__ import unicode_literals
-import frappe, json
+import frappe
 from frappe import _
-from frappe.utils import cstr
 from frappe.model import default_fields, table_fields
-from six import string_types
+from frappe.utils import cstr
+
 
 @frappe.whitelist()
 def make_mapped_doc(method, source_name, selected_children=None, args=None):
@@ -60,7 +60,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	# main
 	if not target_doc:
 		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
-	elif isinstance(target_doc, string_types):
+	elif isinstance(target_doc, str):
 		target_doc = frappe.get_doc(json.loads(target_doc))
 
 	if (not apply_strict_user_permissions
@@ -137,10 +137,8 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 def map_doc(source_doc, target_doc, table_map, source_parent=None):
 	if table_map.get("validation"):
 		for key, condition in table_map["validation"].items():
-			if condition[0]=="=":
-				if source_doc.get(key) != condition[1]:
-					frappe.throw(_("Cannot map because following condition fails: ")
-						+ key + "=" + cstr(condition[1]))
+			if condition[0] == "=" and source_doc.get(key) != condition[1]:
+				frappe.throw(_("Cannot map because following condition fails:") + f" {key}={cstr(condition[1])}")
 
 	map_fields(source_doc, target_doc, table_map, source_parent)
 
