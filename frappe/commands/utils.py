@@ -12,6 +12,8 @@ from frappe.utils.response import json_handler
 from coverage import Coverage
 import cProfile, pstats
 from six import StringIO
+from shlex import split
+
 
 @click.command('build')
 @click.option('--app', help='Build assets for app')
@@ -522,14 +524,16 @@ def run_ui_tests(context, app, headless=False):
 	admin_password = frappe.get_conf(site).admin_password
 
 	# override baseUrl using env variable
-	site_env = 'CYPRESS_baseUrl={}'.format(site_url)
-	password_env = 'CYPRESS_adminPassword={}'.format(admin_password) if admin_password else ''
+	cmd_env = {"CYPRESS_baseUrl": site_url}
+	if admin_password:
+		cmd_env.update({"CYPRESS_adminPassword": admin_password})
 
 	# run for headless mode
 	run_or_open = 'run' if headless else 'open'
-	command = '{site_env} {password_env} yarn run cypress:{run_or_open}'
-	formatted_command = command.format(site_env=site_env, password_env=password_env, run_or_open=run_or_open)
-	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
+	formatted_command = 'yarn run cypress:{0}'.format(run_or_open)
+
+	os.chdir(app_base_path)
+	os.execve(find_executable("yarn"), split(formatted_command), env=cmd_env)
 
 @click.command('run-setup-wizard-ui-test')
 @click.option('--app', help="App to run tests on, leave blank for all apps")
