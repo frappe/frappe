@@ -62,8 +62,7 @@ class DatabaseQuery(object):
 		if fields:
 			self.fields = fields
 		else:
-			pluck = pluck or "name"
-			self.fields =  [f"`tab{self.doctype}`.`{pluck}`"]
+			self.fields =  [f"`tab{self.doctype}`.`{pluck or 'name'}`"]
 
 		if start: limit_start = start
 		if page_length: limit_page_length = page_length
