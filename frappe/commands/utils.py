@@ -525,7 +525,8 @@ def run_ui_tests(context, app, headless=False):
 
 	# set envvars required for running cypress
 	cmd_env = {"CYPRESS_baseUrl": site_url}
-	cmd_env.update(os.environ)
+	yarn_path = "{}/.yarn/bin".format(os.path.expanduser("~"))
+	cmd_env["PATH"] = '{}:{}'.format(yarn_path, os.environ["PATH"])
 	if admin_password:
 		cmd_env.update({"CYPRESS_adminPassword": admin_password})
 
