@@ -36,7 +36,7 @@
     "frappe-gantt": "^0.5.0",
     "fuse.js": "^3.4.6",
     "highlight.js": "^10.4.1",
-    "jquery": "2.2.4",
+    "jquery": "3.5.0",
     "js-sha256": "^0.9.0",
     "jsbarcode": "^3.9.0",
     "localforage": "^1.9.0",
