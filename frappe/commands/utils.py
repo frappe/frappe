@@ -523,8 +523,9 @@ def run_ui_tests(context, app, headless=False):
 	site_url = frappe.utils.get_site_url(site)
 	admin_password = frappe.get_conf(site).admin_password
 
-	# override baseUrl using env variable
+	# set envvars required for running cypress
 	cmd_env = {"CYPRESS_baseUrl": site_url}
+	cmd_env.update(os.environ)
 	if admin_password:
 		cmd_env.update({"CYPRESS_adminPassword": admin_password})
 
