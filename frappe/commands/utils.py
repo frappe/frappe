@@ -525,10 +525,11 @@ def run_ui_tests(context, app, headless=False):
 
 	# set envvars required for running cypress
 	cmd_env = {"CYPRESS_baseUrl": site_url}
-	yarn_path = "{}/.yarn/bin".format(os.path.expanduser("~"))
-	cmd_env["PATH"] = '{}:{}'.format(yarn_path, os.environ["PATH"])
 	if admin_password:
 		cmd_env.update({"CYPRESS_adminPassword": admin_password})
+	yarn_path = "{}/.yarn/bin".format(os.path.expanduser("~"))
+	cypress_path = "{}/node_modules/cypress/bin".format(app_base_path)
+	cmd_env["PATH"] = '{}:{}:{}'.format(yarn_path, cypress_path, os.environ["PATH"])
 
 	# run for headless mode
 	run_or_open = 'run' if headless else 'open'
