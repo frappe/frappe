@@ -163,6 +163,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			['link', 'image'],
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
+			[{ 'align': [] }],
 			[{'table': [
 				'insert-table',
 				'insert-row-above',
