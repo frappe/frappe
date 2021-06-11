@@ -51,7 +51,7 @@ before_install:
 install:
   - cd ~
   - source ./.nvm/nvm.sh
-  - nvm install v8.10.0
+  - nvm install v12
   - pip install -U frappe-bench --only-binary='all'
 
   - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
