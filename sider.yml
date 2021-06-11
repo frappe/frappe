@@ -1,3 +1,16 @@
 linter:
   flake8:
     config: .flake8
+
+  eslint:
+    root_dir: "."
+    npm_install: false
+    config: ".eslintrc"
+
+  stylelint:
+    root_dir: "."
+    npm_install: false
+    glob: "**/*.{css,scss,sass,styl,less}"
+
+  remark_lint:
+    npm_install: false
