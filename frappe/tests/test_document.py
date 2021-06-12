@@ -236,7 +236,6 @@ class TestDocument(unittest.TestCase):
 			'name': 'Test Formatted',
 			'module': 'Custom',
 			'custom': 1,
-			'istable': 1,
 			'fields': [
 				{'label': 'Currency', 'fieldname': 'currency', 'reqd': 1, 'fieldtype': 'Currency'},
 			]
