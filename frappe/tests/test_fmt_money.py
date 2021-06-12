@@ -94,6 +94,9 @@ class TestFmtMoney(unittest.TestCase):
 		self.assertEqual(fmt_money(1000.456), "1.000,456")
 		frappe.db.set_default("currency_precision", "")
 
+	def test_custom_fmt_money_format(self):
+		self.assertEqual(fmt_money(100000, format="#,###.##"), '100,000.00')
+
 if __name__=="__main__":
 	frappe.connect()
 	unittest.main()
