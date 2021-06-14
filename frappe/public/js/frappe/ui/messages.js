@@ -26,13 +26,13 @@ frappe.throw = function(msg) {
 
 frappe.confirm = function(message, confirm_action, reject_action) {
 	var d = new frappe.ui.Dialog({
-		title: __("Confirm"),
-		primary_action_label: __("Yes"),
+		title: __("Confirm", null, "Title of confirmation dialog"),
+		primary_action_label: __("Yes", null, "Approve confirmation dialog"),
 		primary_action: () => {
 			confirm_action && confirm_action();
 			d.hide();
 		},
-		secondary_action_label: __("No"),
+		secondary_action_label: __("No", null, "Dismiss confirmation dialog"),
 		secondary_action: () => d.hide(),
 	});
 
@@ -88,9 +88,9 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	if(!$.isArray(fields)) fields = [fields];
 	var d = new frappe.ui.Dialog({
 		fields: fields,
-		title: title || __("Enter Value"),
+		title: title || __("Enter Value", null, "Title of prompt dialog"),
 	});
-	d.set_primary_action(primary_label || __("Submit"), function() {
+	d.set_primary_action(primary_label || __("Submit", null, "Primary action of prompt dialog"), function() {
 		var values = d.get_values();
 		if(!values) {
 			return;

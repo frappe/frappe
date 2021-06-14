@@ -177,7 +177,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 						if d.get("name") and d["name"].startswith('"'):
 							d["name"] = d["name"][1:-1]
 
-						if sum([0 if not val else 1 for val in d.values()]):
+						if sum(0 if not val else 1 for val in d.values()):
 							d['doctype'] = dt
 							if dt == doctype:
 								doc.update(d)
@@ -533,6 +533,6 @@ def get_parent_field(doctype, parenttype):
 
 def delete_child_rows(rows, doctype):
 	"""delete child rows for all parents"""
-	for p in list(set([r[1] for r in rows])):
+	for p in list(set(r[1] for r in rows)):
 		if p:
 			frappe.db.sql("""delete from `tab{0}` where parent=%s""".format(doctype), p)

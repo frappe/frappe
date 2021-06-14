@@ -664,7 +664,7 @@ def trim_tables(doctype=None):
 			and not f.startswith("_")]
 		if columns_to_remove:
 			print(doctype, "columns removed:", columns_to_remove)
-			columns_to_remove = ", ".join(["drop `{0}`".format(c) for c in columns_to_remove])
+			columns_to_remove = ", ".join("drop `{0}`".format(c) for c in columns_to_remove)
 			query = """alter table `tab{doctype}` {columns}""".format(
 				doctype=doctype, columns=columns_to_remove)
 			frappe.db.sql_ddl(query)
