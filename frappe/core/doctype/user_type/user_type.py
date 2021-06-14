@@ -112,7 +112,7 @@ class UserType(Document):
 		self.select_doctypes = []
 
 		select_doctypes = []
-		user_doctypes = tuple([row.document_type for row in self.user_doctypes])
+		user_doctypes = [row.document_type for row in self.user_doctypes]
 
 		for doctype in user_doctypes:
 			doc = frappe.get_meta(doctype)
