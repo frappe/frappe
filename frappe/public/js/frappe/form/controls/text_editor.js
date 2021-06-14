@@ -4,7 +4,7 @@ import MagicUrl from 'quill-magic-url';
 
 
 Quill.register('modules/imageResize', ImageResize);
-Quill.register('modules/magicUrl', MagicUrl)
+Quill.register('modules/magicUrl', MagicUrl);
 const CodeBlockContainer = Quill.import('formats/code-block-container');
 CodeBlockContainer.tagName = 'PRE';
 Quill.register(CodeBlockContainer, true);
