@@ -323,6 +323,7 @@ frappe.ui.FilterGroup = class {
 	}
 
 	add_filters_to_filter_group(filters) {
+		this.toggle_empty_filters(false);
 		filters.forEach((filter) => {
 			this.add_filter(filter[0], filter[1], filter[2], filter[3]);
 		});
