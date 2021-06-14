@@ -210,9 +210,9 @@ export default class Grid {
 
 	delete_all_rows() {
 		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
-			this.frm.doc[this.df.fieldname] = [];
-			$(this.parent).find('.rows').empty();
-			this.grid_rows = [];
+			this.grid_rows.forEach(row => {
+				row.remove();
+			});
 			this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 
 			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
