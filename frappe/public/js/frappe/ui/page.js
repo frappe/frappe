@@ -377,11 +377,12 @@ frappe.ui.Page = class Page {
 		});
 	}
 
-	add_actions_menu_item(label, click, standard) {
+	add_actions_menu_item(label, click, standard, shortcut) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
+			shortcut,
 			parent: this.actions,
 			show_parent: false
 		});

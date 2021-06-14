@@ -6,15 +6,61 @@ from frappe import msgprint, _
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.utils import get_url, now_datetime, cint
 
-def get_emails_sent_this_month():
-	return frappe.db.sql("""
-		SELECT COUNT(*) FROM `tabEmail Queue`
-		WHERE `status`='Sent' AND EXTRACT(YEAR_MONTH FROM `creation`) = EXTRACT(YEAR_MONTH FROM NOW())
-	""")[0][0]
+def get_emails_sent_this_month(email_account=None):
+	"""Get count of emails sent from a specific email account.
 
-def get_emails_sent_today():
-	return frappe.db.sql("""SELECT COUNT(`name`) FROM `tabEmail Queue` WHERE
-		`status` in ('Sent', 'Not Sent', 'Sending') AND `creation` > (NOW() - INTERVAL '24' HOUR)""")[0][0]
+	:param email_account: name of the email account used to send mail
+
+	if email_account=None, email account filter is not applied while counting
+	"""
+	q = """
+		SELECT
+			COUNT(*)
+		FROM
+			`tabEmail Queue`
+		WHERE
+			`status`='Sent'
+			AND
+			EXTRACT(YEAR_MONTH FROM `creation`) = EXTRACT(YEAR_MONTH FROM NOW())
+	"""
+
+	q_args = {}
+	if email_account is not None:
+		if email_account:
+			q += " AND email_account = %(email_account)s"
+			q_args['email_account'] = email_account
+		else:
+			q += " AND (email_account is null OR email_account='')"
+
+	return frappe.db.sql(q, q_args)[0][0]
+
+def get_emails_sent_today(email_account=None):
+	"""Get count of emails sent from a specific email account.
+
+	:param email_account: name of the email account used to send mail
+
+	if email_account=None, email account filter is not applied while counting
+	"""
+	q = """
+		SELECT
+			COUNT(`name`)
+		FROM
+			`tabEmail Queue`
+		WHERE
+			`status` in ('Sent', 'Not Sent', 'Sending')
+			AND
+			`creation` > (NOW() - INTERVAL '24' HOUR)
+	"""
+
+	q_args = {}
+	if email_account is not None:
+		if email_account:
+			q += " AND email_account = %(email_account)s"
+			q_args['email_account'] = email_account
+		else:
+			q += " AND (email_account is null OR email_account='')"
+
+	return frappe.db.sql(q, q_args)[0][0]
 
 def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	if unsubscribe_message:
