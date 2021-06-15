@@ -37,7 +37,7 @@ def update_feedback(reference_doctype, reference_name, rating, feedback, feedbac
 
 def send_mail(feedback, subject):
 	doc = frappe.get_doc(feedback.reference_doctype, feedback.reference_name)
- 
+
 	message = ("<p>{0} ({1})</p>".format(feedback.feedback, feedback.rating)
 		+ "<p><a href='{0}/app/marketing-asset-feedback/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
 			feedback.name,
