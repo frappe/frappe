@@ -80,6 +80,7 @@ class User(Document):
 		self.validate_roles()
 		self.validate_allowed_modules()
 		self.validate_user_image()
+		self.set_time_zone()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -593,6 +594,13 @@ class User(Document):
 				user['is_authenticated'] = False
 
 		return user
+
+	def set_time_zone(self):
+		from frappe.utils import get_time_zone
+
+		if not self.time_zone:
+			frappe.msgprint(_("User Time Zone was not set, defaulting to System Time Zone."), title=_("User Time Zone"))
+			self.time_zone = get_time_zone()
 
 @frappe.whitelist()
 def get_timezones():

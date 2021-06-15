@@ -13,33 +13,44 @@ frappe.provide("frappe.datetime");
 $.extend(frappe.datetime, {
 	convert_to_user_tz: function(date, format) {
 		// format defaults to true
-		if(frappe.sys_defaults.time_zone) {
-			var date_obj = moment.tz(date, frappe.sys_defaults.time_zone).local();
+		// Converts the datetime string to system time zone first since the database only stores datetime in
+		// system time zone and then convert the string to user time zone(from User doctype).
+		let date_obj = null;
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system_time_zone && frappe.boot.time_zone.user_time_zone) {
+			date_obj = moment.tz(date, frappe.boot.time_zone.system_time_zone)
+				.clone()
+				.tz(frappe.boot.time_zone.user_time_zone);
 		} else {
-			var date_obj = moment(date);
+			date_obj = moment(date);
 		}
 
-		return (format===false) ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
+		return format===false ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
 	},
 
 	convert_to_system_tz: function(date, format) {
 		// format defaults to true
-
-		if(frappe.sys_defaults.time_zone) {
-			var date_obj = moment(date).tz(frappe.sys_defaults.time_zone);
+		// Converts the datetime string to user time zone (from User doctype) first since this fn is called in datetime which accepts datetime
+		// in user time zone then convert the string to user time zone.
+		// This is done so that only one timezone is present in database and we do not end up storing local timezone since it changes
+		// as per the location of user.
+		let date_obj = null;
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system_time_zone && frappe.boot.time_zone.user_time_zone) {
+			date_obj = moment.tz(date, frappe.boot.time_zone.user_time_zone)
+				.clone()
+				.tz(frappe.boot.time_zone.system_time_zone);
 		} else {
-			var date_obj = moment(date);
+			date_obj = moment(date);
 		}
 
-		return (format===false) ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
+		return format===false ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
 	},
 
 	is_timezone_same: function() {
-		if(frappe.sys_defaults.time_zone) {
-			return moment().tz(frappe.sys_defaults.time_zone).utcOffset() === moment().utcOffset();
-		} else {
-			return true;
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system_time_zone && frappe.boot.time_zone.user_time_zone) {
+			return moment().tz(frappe.boot.time_zone.system_time_zone).utcOffset() === moment().tz(frappe.boot.time_zone.user_time_zone).utcOffset();
 		}
+
+		return true;
 	},
 
 	str_to_obj: function(d) {
@@ -186,18 +197,18 @@ $.extend(frappe.datetime, {
 	},
 
 	_date: function(format, as_obj = false) {
-		const time_zone = frappe.sys_defaults && frappe.sys_defaults.time_zone;
-		let date;
-		if (time_zone) {
-			date = moment.tz(time_zone);
-		} else {
-			date = moment();
-		}
-		if (as_obj) {
-			return frappe.datetime.moment_to_date_obj(date);
-		} else {
-			return date.format(format);
-		}
+		/**
+		 * Whenever we are getting now_date/datetime, always make sure dates are fetched using usertime zone.
+		 * This is to make sure that time is as per user time zone set in User doctype, If a user had to change the timezone,
+		 * we will end up having multiple timezone by not honouring timezone in User doctype.
+		 * This will make sure that at any point we know which timezone the user if following and not have random timezone
+		 * when the timezone of the local machine changes.
+		 */
+		let time_zone = frappe.boot.time_zone.user_time_zone || frappe.boot.time_zone.system_time_zone;
+		if (!time_zone) time_zone = frappe.sys_defaults.time_zone;
+
+		let date = moment.tz(time_zone);
+		return as_obj ? frappe.datetime.moment_to_date_obj(date) : date.format(format);
 	},
 
 	moment_to_date_obj: function(moment) {
