@@ -253,4 +253,4 @@ class TestDocument(unittest.TestCase):
 			'doctype': 'Test Formatted',
 			'currency': 100000
 		})
-		self.assertEquals(d.get_formatted('curency', currency='INR', format="#,###.##"), '₹ 100,000.00')
+		self.assertEquals(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
