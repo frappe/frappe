@@ -18,6 +18,7 @@ def add_feedback(reference_doctype, reference_name, rating, feedback, feedback_e
 
 	subject = _('New Feedback on {0}: {1}').format(reference_doctype, reference_name)
 	send_mail(doc, subject)
+	return doc
 
 @frappe.whitelist()
 def update_feedback(reference_doctype, reference_name, rating, feedback, feedback_email):
@@ -34,6 +35,7 @@ def update_feedback(reference_doctype, reference_name, rating, feedback, feedbac
 
 	subject = _('Feedback updated on {0}: {1}').format(reference_doctype, reference_name)
 	send_mail(doc, subject)
+	return doc
 
 def send_mail(feedback, subject):
 	doc = frappe.get_doc(feedback.reference_doctype, feedback.reference_name)
