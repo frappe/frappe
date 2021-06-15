@@ -5,11 +5,11 @@ from werkzeug.wrappers import Response
 from werkzeug.wsgi import wrap_file
 
 import frappe
-from frappe.website.page_renderers.web_page import WebPage
+from frappe.website.page_renderers.base_renderer import BaseRenderer
 
 UNSUPPORTED_STATIC_PAGE_TYPES = ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json')
 
-class StaticPage(WebPage):
+class StaticPage(BaseRenderer):
 	def __init__(self, path, http_status_code=None):
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.set_file_path()

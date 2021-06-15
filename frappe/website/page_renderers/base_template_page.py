@@ -1,10 +1,10 @@
 import frappe
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
-from frappe.website.page_renderers.web_page import WebPage
+from frappe.website.page_renderers.base_renderer import BaseRenderer
 from frappe.website.website_components.metatags import MetaTags
 
 
-class BaseTemplatePage(WebPage):
+class BaseTemplatePage(BaseRenderer):
 	def __init__(self, path, http_status_code=None):
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.template_path = ''

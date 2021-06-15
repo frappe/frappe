@@ -1,6 +1,7 @@
 import frappe
+from frappe.website.utils import build_response
 
-class WebPage(object):
+class BaseRenderer(object):
 	def __init__(self, path=None, http_status_code=None):
 		self.headers = None
 		self.http_status_code = http_status_code or 200
@@ -14,8 +15,11 @@ class WebPage(object):
 		self.file_dir = None
 
 	def can_render(self):
-		pass
+		raise NotImplementedError
 
 	def render(self):
-		pass
+		raise NotImplementedError
+
+	def build_response(self, data, http_status_code=None, headers=None):
+		return build_response(self.path, data, http_status_code or self.http_status_code, headers or self.headers)
 
