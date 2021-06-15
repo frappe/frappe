@@ -569,17 +569,29 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		cov = Coverage(source=[source_path], omit=[
+		incl = [
+			'*.py',
+		]
+		omit = [
 			'*.html',
 			'*.js',
 			'*.xml',
+			'*.pyc',
 			'*.css',
 			'*.less',
 			'*.scss',
 			'*.vue',
+			'*/test_*',
+			'*/node_modules/*',
 			'*/doctype/*/*_dashboard.py',
-			'*/patches/*'
-		])
+			'*/patches/*',
+		]
+
+		if not app or app == 'frappe':
+			omit.append('*/tests/*')
+			omit.append('*/commands/*')
+
+		cov = Coverage(source=[source_path], omit=omit, include=incl)
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,

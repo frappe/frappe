@@ -1,19 +1,12 @@
-name: Server
+name: Patch
 
-on:
-  pull_request:
-  workflow_dispatch:
+on: [pull_request, workflow_dispatch]
 
 jobs:
   test:
     runs-on: ubuntu-18.04
 
-    strategy:
-      fail-fast: false
-      matrix:
-       container: [1, 2]
-
-    name: Python Unit Tests (MariaDB)
+    name: Patch Test
 
     services:
       mysql:
@@ -33,15 +26,8 @@ jobs:
         with:
           python-version: 3.7
 
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-          check-latest: true
-
       - name: Add to Hosts
-        run: |
-          echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
-          echo "127.0.0.1 test_site_producer" | sudo tee -a /etc/hosts
+        run: echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
 
       - name: Cache pip
         uses: actions/cache@v2
@@ -89,8 +75,9 @@ jobs:
           DB: mariadb
           TYPE: server
 
-      - name: Run Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --use-orchestrator
-        env:
-          CI_BUILD_ID: ${{ github.run_id }}
-          ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
+      - name: Run Patch Tests
+        run: |
+          cd ~/frappe-bench/
+          wget https://frappeframework.com/files/v10-frappe.sql.gz
+          bench --site test_site --force restore ~/frappe-bench/v10-frappe.sql.gz
+          bench --site test_site migrate

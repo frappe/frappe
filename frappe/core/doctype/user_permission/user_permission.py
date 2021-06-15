@@ -17,11 +17,11 @@ class UserPermission(Document):
 		self.validate_default_permission()
 
 	def on_update(self):
-		frappe.cache().delete_value('user_permissions')
+		frappe.cache().hdel('user_permissions', self.user)
 		frappe.publish_realtime('update_user_permissions')
 
 	def on_trash(self): # pylint: disable=no-self-use
-		frappe.cache().delete_value('user_permissions')
+		frappe.cache().hdel('user_permissions', self.user)
 		frappe.publish_realtime('update_user_permissions')
 
 	def validate_user_permission(self):

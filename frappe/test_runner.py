@@ -178,6 +178,7 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False, junit_x
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose)
 
+	frappe.db.commit()
 	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, junit_xml_output=junit_xml_output)
 
 def _run_unittest(modules, verbose=False, tests=(), profile=False, junit_xml_output=False):
