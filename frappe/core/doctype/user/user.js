@@ -271,6 +271,12 @@ frappe.ui.form.on('User', {
 				}
 			}
 		});
+	},
+	after_save: function(frm) {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.user_time_zone !== frm.doc.time_zone) {
+			// Clear cache after saving to refresh the values of time_zone
+			frappe.ui.toolbar.clear_cache();
+		}
 	}
 });
 

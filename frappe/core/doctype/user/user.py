@@ -599,7 +599,6 @@ class User(Document):
 		from frappe.utils import get_time_zone
 
 		if not self.time_zone:
-			frappe.msgprint(_("User Time Zone was not set, defaulting to System Time Zone."), title=_("User Time Zone"))
 			self.time_zone = get_time_zone()
 
 @frappe.whitelist()

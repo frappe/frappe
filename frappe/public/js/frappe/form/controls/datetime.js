@@ -30,7 +30,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (value) {
 			value = frappe.datetime.user_to_str(value, false);
 
-			if (!frappe.datetime.is_timezone_same()) {
+			if (!frappe.datetime.is_system_time_zone()) {
 				value = frappe.datetime.convert_to_system_tz(value, true);
 			}
 
@@ -40,9 +40,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	format_for_input(value) {
 		if (!value) return "";
 
-		let m = frappe.datetime.is_timezone_same();
-		if (!frappe.datetime.is_timezone_same()) {
-			m = frappe.datetime.convert_to_user_tz(value, true)
+		if (!frappe.datetime.is_system_time_zone()) {
 			value = frappe.datetime.convert_to_user_tz(value, true);
 		}
 
@@ -50,7 +48,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	set_description() {
 		const description = this.df.description;
-		const time_zone = frappe.boot.time_zone ? frappe.boot.time_zone.user_time_zone : frappe.sys_defaults.time_zone;
+		const time_zone = this.get_user_time_zone();
 
 		if (!this.df.hide_timezone) {
 			// Always show the timezone when rendering the Datetime field since the datetime value will
@@ -63,6 +61,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			}
 		}
 		super.set_description();
+	}
+	get_user_time_zone() {
+		return frappe.boot.time_zone ? frappe.boot.time_zone.user_time_zone : frappe.sys_defaults.time_zone;
 	}
 	set_datepicker() {
 		super.set_datepicker();
