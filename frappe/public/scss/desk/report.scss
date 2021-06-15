@@ -89,9 +89,19 @@
 }
 
 .report-view {
-	.dt-row:last-child:not(.dt-row-filter) {
-		.dt-cell {
-			border-bottom: 1px solid var(--border-color);
+	margin-bottom: calc(var(--page-bottom-margin) * -1);
+
+	.result {
+		min-height: calc(100vh - 320px) !important;
+
+		.dt-row:last-child:not(.dt-row-filter) {
+			.dt-cell {
+				border-bottom: 1px solid var(--border-color);
+			}
+		}
+
+		.dt-scrollable {
+			height: 30vw;
 		}
 	}
 }
