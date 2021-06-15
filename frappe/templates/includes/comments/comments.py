@@ -13,6 +13,9 @@ from frappe import _
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
 	doc = frappe.get_doc(reference_doctype, reference_name)
 
+	if not doc.doctype in ['Blog Post', 'Web Page']:
+		return
+
 	if not comment.strip():
 		frappe.msgprint(_('The comment cannot be empty'))
 		return False
