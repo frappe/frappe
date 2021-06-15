@@ -110,7 +110,7 @@ class TestLoginAttemptTracker(unittest.TestCase):
 	def test_account_unlock(self):
 		"""Make sure that locked account gets unlocked after lock_interval of time.
 		"""
-		lock_interval = 10 # In sec
+		lock_interval = 2 # In sec
 		tracker = LoginAttemptTracker(user_name='tester', max_consecutive_login_attempts=1, lock_interval=lock_interval)
 		# Clear the cache by setting attempt as success
 		tracker.add_success_attempt()

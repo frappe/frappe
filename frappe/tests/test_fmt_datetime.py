@@ -45,6 +45,7 @@ class TestFmtDatetime(unittest.TestCase):
 		frappe.db.set_default("time_format", self.pre_test_time_format)
 		frappe.local.user_date_format = None
 		frappe.local.user_time_format = None
+		frappe.db.rollback()
 
 	# Test utility functions
 
@@ -97,27 +98,11 @@ class TestFmtDatetime(unittest.TestCase):
 			self.assertEqual(formatdate(test_date), valid_fmt)
 
 	# Test time formatters
-
 	def test_format_time_forced(self):
 		# Test with forced time formats
 		self.assertEqual(
 			format_time(test_time, 'ss:mm:HH'),
 			test_date_obj.strftime('%S:%M:%H'))
-
-	@unittest.expectedFailure
-	def test_format_time_forced_broken_locale(self):
-		# Test with forced time formats
-		# Currently format_time defaults to HH:mm:ss if the locale is
-		# broken, so this is an expected failure.
-		lang = frappe.local.lang
-		try:
-			# Force fallback from Babel
-			frappe.local.lang = 'FAKE'
-			self.assertEqual(
-				format_time(test_time, 'ss:mm:HH'),
-				test_date_obj.strftime('%S:%M:%H'))
-		finally:
-			frappe.local.lang = lang
 
 	def test_format_time(self):
 		# Test format_time with various default time formats set
@@ -134,21 +119,6 @@ class TestFmtDatetime(unittest.TestCase):
 		self.assertEqual(
 			format_datetime(test_datetime, 'dd-yyyy-MM ss:mm:HH'),
 			test_date_obj.strftime('%d-%Y-%m %S:%M:%H'))
-
-	@unittest.expectedFailure
-	def test_format_datetime_forced_broken_locale(self):
-		# Test with forced datetime formats
-		# Currently format_datetime defaults to yyyy-MM-dd HH:mm:ss
-		# if the locale is broken, so this is an expected failure.
-		lang = frappe.local.lang
-		# Force fallback from Babel
-		try:
-			frappe.local.lang = 'FAKE'
-			self.assertEqual(
-				format_datetime(test_datetime, 'dd-yyyy-MM ss:mm:HH'),
-				test_date_obj.strftime('%d-%Y-%m %S:%M:%H'))
-		finally:
-			frappe.local.lang = lang
 
 	def test_format_datetime(self):
 		# Test formatdate with various default date formats set

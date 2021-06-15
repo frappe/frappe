@@ -141,7 +141,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				return $('<li></li>')
 					.data('item.autocomplete', d)
 					.prop('aria-selected', 'false')
-					.html(`<a><p class="ellipsis" title="${_label}">${html}</p></a>`)
+					.html(`<a><p title="${_label}">${html}</p></a>`)
 					.get(0);
 			},
 			sort: function() {
@@ -200,10 +200,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						if(frappe.model.can_create(doctype)) {
 							// new item
 							r.results.push({
-								label: "<span class='text-primary link-option'>"
+								html: "<span class='text-primary link-option'>"
 									+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
 									+ __("Create a new {0}", [__(me.get_options())])
 									+ "</span>",
+								label: __("Create a new {0}", [__(me.get_options())]),
 								value: "create_new__link_option",
 								action: me.new_doc
 							});
@@ -213,10 +214,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						if (locals && locals['DocType']) {
 							// not applicable in web forms
 							r.results.push({
-								label: "<span class='text-primary link-option'>"
+								html: "<span class='text-primary link-option'>"
 									+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
 									+ __("Advanced Search")
 									+ "</span>",
+								label: __("Advanced Search"),
 								value: "advanced_search__link_option",
 								action: me.open_advanced_search
 							});

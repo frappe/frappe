@@ -569,17 +569,29 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		cov = Coverage(source=[source_path], omit=[
+		incl = [
+			'*.py',
+		]
+		omit = [
 			'*.html',
 			'*.js',
 			'*.xml',
+			'*.pyc',
 			'*.css',
 			'*.less',
 			'*.scss',
 			'*.vue',
+			'*/test_*',
+			'*/node_modules/*',
 			'*/doctype/*/*_dashboard.py',
-			'*/patches/*'
-		])
+			'*/patches/*',
+		]
+
+		if not app or app == 'frappe':
+			omit.append('*/tests/*')
+			omit.append('*/commands/*')
+
+		cov = Coverage(source=[source_path], omit=omit, include=incl)
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
@@ -596,12 +608,29 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 	if os.environ.get('CI'):
 		sys.exit(ret)
 
+@click.command('run-parallel-tests')
+@click.option('--app', help="For App", default='frappe')
+@click.option('--build-number', help="Build number", default=1)
+@click.option('--total-builds', help="Total number of builds", default=1)
+@click.option('--with-coverage', is_flag=True, help="Build coverage file")
+@click.option('--use-orchestrator', is_flag=True, help="Use orchestrator to run parallel tests")
+@pass_context
+def run_parallel_tests(context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False):
+	site = get_site(context)
+	if use_orchestrator:
+		from frappe.parallel_test_runner import ParallelTestWithOrchestrator
+		ParallelTestWithOrchestrator(app, site=site, with_coverage=with_coverage)
+	else:
+		from frappe.parallel_test_runner import ParallelTestRunner
+		ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds, with_coverage=with_coverage)
 
 @click.command('run-ui-tests')
 @click.argument('app')
 @click.option('--headless', is_flag=True, help="Run UI Test in headless mode")
+@click.option('--parallel', is_flag=True, help="Run UI Test in parallel mode")
+@click.option('--ci-build-id')
 @pass_context
-def run_ui_tests(context, app, headless=False):
+def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 	"Run UI tests"
 	site = get_site(context)
 	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), '..'))
@@ -632,6 +661,12 @@ def run_ui_tests(context, app, headless=False):
 	run_or_open = 'run --browser firefox --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
+
+	if parallel:
+		formatted_command += ' --parallel'
+
+	if ci_build_id:
+		formatted_command += ' --ci-build-id {}'.format(ci_build_id)
 
 	click.secho("Running Cypress...", fg="yellow")
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
@@ -808,5 +843,6 @@ commands = [
 	watch,
 	bulk_rename,
 	add_to_email_queue,
-	rebuild_global_search
+	rebuild_global_search,
+	run_parallel_tests
 ]
