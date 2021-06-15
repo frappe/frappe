@@ -12,17 +12,9 @@
 						</div>
 						<div class="col-sm-6">
 							<div class="rating">
-								<svg class="icon icon-md" data-rating="1">
-									<use href="#icon-star"></use>
-								</svg><svg class="icon icon-md" data-rating="2">
-									<use href="#icon-star"></use>
-								</svg><svg class="icon icon-md" data-rating="3">
-									<use href="#icon-star"></use>
-								</svg><svg class="icon icon-md" data-rating="4">
-									<use href="#icon-star"></use>
-								</svg><svg class="icon icon-md" data-rating="5">
-									<use href="#icon-star"></use>
-								</svg>
+								{% for rating in [1, 2, 3, 4, 5 ,6, 7, 8, 9, 10] %}
+									<div class="icon rating-box" data-rating="{{ rating }}">{{ rating }}</div>
+								{% endfor %}
 							</div>
 						</div>
 					</div>
@@ -44,8 +36,8 @@
 <script type="text/javascript">
 	frappe.ready(() => {
 		let feedback = "{{ user_feedback.feedback or ''}}"
-		let rating = parseInt("{{ user_feedback.rating or 0 }}")
-
+		let user_rating = parseInt("{{ user_feedback.rating or 0 }}")
+		let rating = user_rating;
 		feedback && $("#submit-feedback").html(__("Update"));
 
 		if (frappe.is_user_logged_in()) {
@@ -60,35 +52,34 @@
 		$('.give-feedback').click(() => toggle_feedback());
 
 
-		$('.rating').find('svg').hover((ev) => {
+		$('.rating').find('.rating-box').hover((ev) => {
 			const el = $(ev.currentTarget);
 			rating = el.data('rating');
-			el.parent().children('svg').each( function(e) {
+			el.parent().children('.rating-box').each( function(e) {
 				if (e < rating) {
-					$(this).addClass('star-hover');
+					$(this).addClass('rating-hover');
 				} else {
-					$(this).removeClass('star-hover');
+					$(this).removeClass('rating-hover');
 				}
 			});
 		}, (ev) => {
 			const el = $(ev.currentTarget);
-			el.parent().children('svg').each( function() {
-				$(this).removeClass('star-hover');
+			el.parent().children('.rating-box').each( function() {
+				$(this).removeClass('rating-hover');
 			});
 		});
 
-		$('.rating').find('svg').click((ev) => {
+		$('.rating').find('.rating-box').click((ev) => {
 			const el = $(ev.currentTarget);
 			rating = el.data('rating');
-			el.parent().children('svg').each( function(e) {
+			el.parent().children('.rating-box').each( function(e) {
 				if (e < rating) {
-					$(this).addClass('star-click');
+					$(this).addClass('rating-click');
 				} else {
-					$(this).removeClass('star-click');
+					$(this).removeClass('rating-click');
 				}
 			});
 		});
-
 
 		$('#submit-feedback').click((ev) => {
 			let update = ev.target.innerText !== __("Submit");
@@ -126,13 +117,14 @@
 							set_rating(0);
 						} else {
 							feedback = $("[name='feedback']").val();
+							user_rating = rating;
 							$("#submit-feedback").html(__("Update"));
 						}
 						frappe.msgprint({message:__("Thank you for your valuable feedback!"), indicator:'green'});
 					}
 				})
 			} else {
-				if (feedback == $("[name='feedback']").val()) {
+				if (feedback == $("[name='feedback']").val() && rating == user_rating) {
 					frappe.msgprint({message:__("Please update rating or feedback before saving."), indicator:'red'});
 					return false;
 				}
@@ -142,6 +134,7 @@
 					callback: function(r) {
 						toggle_feedback();
 						feedback = $("[name='feedback']").val();
+						user_rating = rating;
 						frappe.msgprint({message:__("Feedback updated successfully!"), indicator:'green'});
 					}
 				})
@@ -155,12 +148,12 @@
 		})
 
 		function set_rating(rating) {
-			let el = $('.rating').find('svg');
-			el.children('svg').prevObject.each( function(e) {
+			let el = $('.rating').find('.rating-box');
+			el.children('.rating-box').prevObject.each( function(e) {
 				if (e < rating) {
-					$(this).addClass('star-click');
+					$(this).addClass('rating-click');
 				} else {
-					$(this).removeClass('star-click');
+					$(this).removeClass('rating-click');
 				}
 			});
 		}
