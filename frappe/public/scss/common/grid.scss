@@ -58,8 +58,15 @@
 }
 
 .form-grid .template-row {
-	width: calc(100% - 30px);
+	width: calc(100% - 20px);
 	padding: 8px 15px;
+}
+
+.template-row-index {
+	text-align: left;
+	margin-right: -50px;
+	padding: 8px 10px 0 15px;
+	width: 70px;
 }
 
 .grid-body .data-row {
