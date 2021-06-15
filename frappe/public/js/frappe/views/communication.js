@@ -646,7 +646,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if (this.real_name && !this.message.includes(SALUTATION_END_COMMENT)) {
 			this.message = `
-				<p>${__('Dear')} ${this.real_name},</p>
+				<p>${__('Dear {0},', [this.real_name], 'Salutation in new email')},</p>
 				${SALUTATION_END_COMMENT}<br>
 				${this.message}
 			`;
