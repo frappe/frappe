@@ -37,7 +37,7 @@ frappe.ui.form.FormTour = class FormTour {
 		if (tour_name) {
 			this.tour = await frappe.db.get_doc('Form Tour', tour_name);
 		} else {
-			this.tour = { steps: frappe.tour[this.frm.doctype] }
+			this.tour = { steps: frappe.tour[this.frm.doctype] };
 		}
 		
 		if (on_finish) this.on_finish = on_finish;
@@ -51,13 +51,13 @@ frappe.ui.form.FormTour = class FormTour {
 		this.tour.steps.forEach((step) => {
 			const on_next = () => {
 				if (!this.is_next_condition_satisfied(step)) {
-				   this.driver.preventMove();
+					this.driver.preventMove();
 				}
 
 				if (!this.driver.hasNextStep()) {
 					this.on_finish && this.on_finish();
 				}
-			}
+			};
 
 			const driver_step = this.get_step(step, on_next);
 			this.driver_steps.push(driver_step);
@@ -170,7 +170,7 @@ frappe.ui.form.FormTour = class FormTour {
 	expand_row_and_proceed(step, start_from) {
 		this.open_first_row_of(step.fieldname);
 		this.update_driver_steps(); // need to define again, since driver.js only considers steps which are inside DOM
-		frappe.utils.sleep(300).then(() => this.driver.start(start_from))
+		frappe.utils.sleep(300).then(() => this.driver.start(start_from));
 	}
 
 	open_first_row_of(fieldname) {

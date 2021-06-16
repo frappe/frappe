@@ -7,7 +7,8 @@ from frappe.modules.export_file import export_to_files
 
 class FormTour(Document):
 	def before_insert(self):
-		if not self.is_standard: return
+		if not self.is_standard:
+			return
 
 		# while syncing, set proper docfield reference
 		for d in self.steps:

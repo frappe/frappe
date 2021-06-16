@@ -89,7 +89,7 @@ frappe.ui.form.on('Form Tour Step', {
 					hidden: 0
 				}
 			};
-		}
+		};
 	}
 });
 
