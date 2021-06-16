@@ -8,6 +8,10 @@ from frappe import _
 
 @frappe.whitelist(allow_guest=True)
 def add_feedback(reference_doctype, reference_name, rating, feedback, feedback_email):
+	doc = frappe.get_doc(reference_doctype, reference_name)
+	if doc.disable_feedback == 1:
+		return
+
 	doc = frappe.new_doc('Feedback')
 	doc.reference_doctype = reference_doctype
 	doc.reference_name = reference_name
@@ -22,6 +26,10 @@ def add_feedback(reference_doctype, reference_name, rating, feedback, feedback_e
 
 @frappe.whitelist()
 def update_feedback(reference_doctype, reference_name, rating, feedback, feedback_email):
+	doc = frappe.get_doc(reference_doctype, reference_name)
+	if doc.disable_feedback == 1:
+		return
+
 	filters = {
 		"email": feedback_email,
 		"reference_doctype": reference_doctype,
