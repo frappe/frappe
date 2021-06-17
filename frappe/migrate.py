@@ -89,24 +89,18 @@ Otherwise, check the server logs and ensure that all the required services are r
 			for fn in frappe.get_hooks('after_migrate', app_name=app):
 				frappe.get_attr(fn)()
 
+		# build web_routes index
+		if not skip_search_index:
+			# Run this last as it updates the current session
+			print('Building search index for {}'.format(frappe.local.site))
+			build_index_for_all_routes()
+
 		frappe.db.commit()
 
 		clear_notifications()
 
 		frappe.publish_realtime("version-update")
 		frappe.flags.in_migrate = False
-
-		# build web_routes index
-		if not skip_search_index:
-			# Run this last as it updates the current session
-			print('Queuing search index build for {}'.format(frappe.local.site))
-			enqueue(
-				method=build_index_for_all_routes, 
-				job_name='Search index build for {}'.format(frappe.local.site), 
-				now=0,
-				queue='background',
-				timeout=10000
-			)
 
 	finally:
 		with open(touched_tables_file, 'w') as f:
