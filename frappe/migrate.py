@@ -4,6 +4,8 @@
 import json
 import os
 import sys
+
+from rq import queue
 import frappe
 import frappe.translate
 import frappe.modules.patch_handler
@@ -98,7 +100,13 @@ Otherwise, check the server logs and ensure that all the required services are r
 		if not skip_search_index:
 			# Run this last as it updates the current session
 			print('Queuing search index build for {}'.format(frappe.local.site))
-			enqueue(method=build_index_for_all_routes, job_name='Search index build for {}'.format(frappe.local.site), now=0)
+			enqueue(
+				method=build_index_for_all_routes, 
+				job_name='Search index build for {}'.format(frappe.local.site), 
+				now=0,
+				queue='background',
+				timeout=10000
+			)
 
 	finally:
 		with open(touched_tables_file, 'w') as f:
