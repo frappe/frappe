@@ -9,6 +9,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		$.extend(this, opts);
 		this.setup_dashboard_tabs();
 		this.setup_dashboard_sections();
+		this.set_open_count = frappe.utils.throttle(this.set_open_count, 500);
 	}
 
 	setup_dashboard_tabs() {

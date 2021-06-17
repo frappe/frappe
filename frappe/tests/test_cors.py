@@ -1,7 +1,5 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 import frappe, unittest
 from werkzeug.wrappers import Response
 from frappe.app import process_response

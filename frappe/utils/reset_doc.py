@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 import json, os
 from frappe.modules import scrub, get_module_path, utils
@@ -7,7 +7,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.core.page.permission_manager.permission_manager import get_standard_permissions
 from frappe.permissions import setup_custom_perms
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 
 branch = 'develop'
 

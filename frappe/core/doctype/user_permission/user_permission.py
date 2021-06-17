@@ -2,7 +2,6 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe, json
 from frappe.model.document import Document
 from frappe.permissions import (get_valid_perms, update_permission_property)
@@ -17,11 +16,11 @@ class UserPermission(Document):
 		self.validate_default_permission()
 
 	def on_update(self):
-		frappe.cache().delete_value('user_permissions')
+		frappe.cache().hdel('user_permissions', self.user)
 		frappe.publish_realtime('update_user_permissions')
 
 	def on_trash(self): # pylint: disable=no-self-use
-		frappe.cache().delete_value('user_permissions')
+		frappe.cache().hdel('user_permissions', self.user)
 		frappe.publish_realtime('update_user_permissions')
 
 	def validate_user_permission(self):

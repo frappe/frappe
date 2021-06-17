@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
@@ -9,7 +8,6 @@ from frappe.desk.form.document_follow import follow_document
 from frappe.utils.file_manager import extract_images_from_html
 
 from frappe import _
-from six import string_types
 
 @frappe.whitelist()
 def remove_attach():
@@ -90,7 +88,7 @@ def get_next(doctype, value, prev, filters=None, sort_order='desc', sort_field='
 
 	prev = int(prev)
 	if not filters: filters = []
-	if isinstance(filters, string_types):
+	if isinstance(filters, str):
 		filters = json.loads(filters)
 
 	# # condition based on sort order

@@ -2,10 +2,8 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
-from six import iteritems
 from frappe.utils import get_link_to_form
 from frappe.config import get_modules_from_app
 from frappe.permissions import add_permission, add_user_permission
@@ -114,7 +112,7 @@ class UserType(Document):
 		self.select_doctypes = []
 
 		select_doctypes = []
-		user_doctypes = tuple([row.document_type for row in self.user_doctypes])
+		user_doctypes = [row.document_type for row in self.user_doctypes]
 
 		for doctype in user_doctypes:
 			doc = frappe.get_meta(doctype)
@@ -247,7 +245,7 @@ def apply_permissions_for_non_standard_user_type(doc, method=None):
 	if not user_types:
 		return
 
-	for user_type, data in iteritems(user_types):
+	for user_type, data in user_types.items():
 		if (not doc.get(data[1]) or doc.doctype != data[0]):
 			continue
 

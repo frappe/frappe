@@ -2,7 +2,6 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 import json
 import requests
@@ -31,7 +30,7 @@ class EventConsumer(Document):
 			self.update_consumer_status()
 		else:
 			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
-		
+
 		frappe.cache().delete_value('event_consumer_document_type_map')
 
 	def on_trash(self):
