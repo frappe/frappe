@@ -165,6 +165,10 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	_doctypes = tuple([d for d in _doctypes if re.search(txt+".*", _(d[0]), re.IGNORECASE)])
 
 	all_doctypes = [d[0] for d in doctypes + _doctypes]
+	# Company does not have a contact_html field.
+	if filters['fieldname'] == 'contact_html':
+		all_doctypes.append('Company')
+
 	allowed_doctypes = frappe.permissions.get_doctypes_with_read()
 
 	valid_doctypes = sorted(set(all_doctypes).intersection(set(allowed_doctypes)))
