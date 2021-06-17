@@ -50,6 +50,7 @@ class WebPage(WebsiteGenerator):
 
 		if self.enable_comments:
 			context.comment_list = get_comment_list(self.doctype, self.name)
+			context.guest_allowed = True
 
 		context.update({
 			"style": self.css or "",

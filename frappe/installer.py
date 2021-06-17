@@ -537,7 +537,7 @@ def is_downgrade(sql_file_path, verbose=False):
 
 def is_partial(sql_file_path):
 	with open(sql_file_path) as f:
-		header = " ".join([f.readline() for _ in range(5)])
+		header = " ".join(f.readline() for _ in range(5))
 		if "Partial Backup" in header:
 			return True
 	return False

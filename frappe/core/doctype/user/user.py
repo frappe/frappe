@@ -931,7 +931,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		LIMIT %(page_len)s OFFSET %(start)s
 	""".format(
 			user_type_condition = user_type_condition,
-			standard_users=", ".join([frappe.db.escape(u) for u in STANDARD_USERS]),
+			standard_users=", ".join(frappe.db.escape(u) for u in STANDARD_USERS),
 			key=searchfield,
 			fcond=get_filters_cond(doctype, filters, conditions),
 			mcond=get_match_cond(doctype)

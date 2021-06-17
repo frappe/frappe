@@ -449,7 +449,7 @@ class ImportFile:
 			for row in data_without_first_row:
 				row_values = row.get_values(parent_column_indexes)
 				# if the row is blank, it's a child row doc
-				if all([v in INVALID_VALUES for v in row_values]):
+				if all(v in INVALID_VALUES for v in row_values):
 					rows.append(row)
 					continue
 				# if we encounter a row which has values in parent columns,
@@ -606,7 +606,7 @@ class Row:
 		if df.fieldtype == "Select":
 			select_options = get_select_options(df)
 			if select_options and value not in select_options:
-				options_string = ", ".join([frappe.bold(d) for d in select_options])
+				options_string = ", ".join(frappe.bold(d) for d in select_options)
 				msg = _("Value must be one of {0}").format(options_string)
 				self.warnings.append(
 					{"row": self.row_number, "field": df_as_json(df), "message": msg,}
@@ -902,7 +902,7 @@ class Column:
 
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
-			values = list(set([cstr(v) for v in self.column_values[1:] if v]))
+			values = list({cstr(v) for v in self.column_values[1:] if v})
 			exists = [
 				d.name for d in frappe.db.get_all(self.df.options, filters={"name": ("in", values)})
 			]
@@ -935,11 +935,11 @@ class Column:
 		elif self.df.fieldtype == "Select":
 			options = get_select_options(self.df)
 			if options:
-				values = list(set([cstr(v) for v in self.column_values[1:] if v]))
-				invalid = list(set(values) - set(options))
+				values = {cstr(v) for v in self.column_values[1:] if v}
+				invalid = values - set(options)
 				if invalid:
-					valid_values = ", ".join([frappe.bold(o) for o in options])
-					invalid_values = ", ".join([frappe.bold(i) for i in invalid])
+					valid_values = ", ".join(frappe.bold(o) for o in options)
+					invalid_values = ", ".join(frappe.bold(i) for i in invalid)
 					self.warnings.append(
 						{
 							"col": self.column_number,
