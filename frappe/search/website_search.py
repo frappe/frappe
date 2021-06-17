@@ -95,7 +95,7 @@ def slugs_with_web_view(_items_to_index):
 
 	for doctype in doctype_with_web_views:
 		if doctype.is_published_field:
-			docs = frappe.get_all(doctype.name, filters={doctype.is_published_field: 1}, fields=["route", doctype.website_search_field])
+			docs = frappe.get_all(doctype.name, filters={doctype.is_published_field: 1}, fields=["route", doctype.website_search_field, 'title'])
 			if doctype.website_search_field:
 				for doc in docs:
 					_items_to_index += [frappe._dict(title=doc.title, content=getattr(doc, doctype.website_search_field), path=doc.route)]
