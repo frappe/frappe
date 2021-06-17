@@ -110,7 +110,7 @@ class TemplatePage(BaseTemplatePage):
 		self.pymodule_name = None
 
 		# replace - with _ in the internal modules names
-		self.pymodule_path = os.path.join(template_basepath.replace("-", "_") + ".py")
+		self.pymodule_path = os.path.join(os.path.dirname(template_basepath), os.path.basename(template_basepath.replace("-", "_")) + ".py")
 
 		if os.path.exists(os.path.join(self.app_path, self.pymodule_path)):
 			self.pymodule_name = self.app + "." + self.pymodule_path.replace(os.path.sep, ".")[:-3]
