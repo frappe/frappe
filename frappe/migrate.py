@@ -11,6 +11,7 @@ import frappe.model.sync
 from frappe.utils.fixtures import sync_fixtures
 from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
+from frappe.utils.background_jobs import enqueue
 from frappe.cache_manager import clear_global_cache
 from frappe.desk.notifications import clear_notifications
 from frappe.website import render
@@ -86,18 +87,19 @@ Otherwise, check the server logs and ensure that all the required services are r
 			for fn in frappe.get_hooks('after_migrate', app_name=app):
 				frappe.get_attr(fn)()
 
-		# build web_routes index
-		if not skip_search_index:
-			# Run this last as it updates the current session
-			print('Building search index for {}'.format(frappe.local.site))
-			build_index_for_all_routes()
-
 		frappe.db.commit()
 
 		clear_notifications()
 
 		frappe.publish_realtime("version-update")
 		frappe.flags.in_migrate = False
+
+		# build web_routes index
+		if not skip_search_index:
+			# Run this last as it updates the current session
+			print('Queuing search index build for {}'.format(frappe.local.site))
+			enqueue(method=build_index_for_all_routes, job_name='Search index build for {}'.format(frappe.local.site), now=0)
+
 	finally:
 		with open(touched_tables_file, 'w') as f:
 			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
