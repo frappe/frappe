@@ -10,7 +10,6 @@ from frappe.utils import cint, sanitize_html, strip_html
 
 no_cache = 1
 
-base_template_path = "templates/www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):
