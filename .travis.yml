@@ -52,9 +52,7 @@ install:
   - cd ~
   - source ./.nvm/nvm.sh
   - nvm install v8.10.0
-
-  - git clone https://github.com/frappe/bench --depth 1
-  - pip install -e ./bench
+  - pip install -U frappe-bench --only-binary='all'
 
   - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
 

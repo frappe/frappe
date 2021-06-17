@@ -148,3 +148,8 @@ body[data-route^=Form] .page-title .indicator {
     transform: translateX(0%) !important;
   }
 }
+
+.print-format-builder-main {
+  margin-left: 0px;
+  margin-right: 160px;
+}
