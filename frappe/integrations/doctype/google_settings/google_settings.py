@@ -12,19 +12,16 @@ def get_auth_url():
 	return "https://www.googleapis.com/oauth2/v4/token"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def get_file_picker_settings():
 	"""Return all the data FileUploader needs to start the Google Drive Picker."""
-	if frappe.session.user == 'Guest':
-		return {'enabled': False}
-
 	google_settings = frappe.get_single("Google Settings")
 	if not (google_settings.enable and google_settings.google_drive_picker_enabled):
-		return {'enabled': False}
+		return {}
 
 	return {
-		'enabled': True,
-		'appId': google_settings.app_id,
-		'developerKey': google_settings.api_key,
-		'clientId': google_settings.client_id
+		"enabled": True,
+		"appId": google_settings.app_id,
+		"developerKey": google_settings.api_key,
+		"clientId": google_settings.client_id
 	}
