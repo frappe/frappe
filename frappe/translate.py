@@ -98,6 +98,7 @@ def get_dict(fortype, name=None):
 	translation_assets = cache.hget("translation_assets", frappe.local.lang, shared=True) or {}
 
 	if not asset_key in translation_assets:
+		messages = []
 		if fortype=="doctype":
 			messages = get_messages_from_doctype(name)
 		elif fortype=="page":
@@ -109,14 +110,12 @@ def get_dict(fortype, name=None):
 		elif fortype=="jsfile":
 			messages = get_messages_from_file(name)
 		elif fortype=="boot":
-			messages = []
 			apps = frappe.get_all_apps(True)
 			for app in apps:
 				messages.extend(get_server_messages(app))
-			messages = deduplicate_messages(messages)
 
-			messages += frappe.db.sql("""select 'navbar', item_label from `tabNavbar Item` where item_label is not null""")
-			messages = get_messages_from_include_files()
+			messages += get_messages_from_navbar()
+			messages += get_messages_from_include_files()
 			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
@@ -124,6 +123,7 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select '', format from `tabWorkspace Shortcut` where format is not null")
 			messages += frappe.db.sql("select '', title from `tabOnboarding Step`")
 
+		messages = deduplicate_messages(messages)
 		message_dict = make_dict_from_messages(messages, load_user_translation=False)
 		message_dict.update(get_dict_from_hooks(fortype, name))
 		# remove untranslated
@@ -320,9 +320,21 @@ def get_messages_for_app(app, deduplicate=True):
 
 	# server_messages
 	messages.extend(get_server_messages(app))
+
+	# messages from navbar settings
+	messages.extend(get_messages_from_navbar())
+
 	if deduplicate:
 		messages = deduplicate_messages(messages)
+
 	return messages
+
+
+def get_messages_from_navbar():
+	"""Return all labels from Navbar Items, as specified in Navbar Settings."""
+	labels = frappe.get_all('Navbar Item', filters={'item_label': ('is', 'set')}, pluck='item_label')
+	return [('Navbar:', label, 'Label of a Navbar Item') for label in labels]
+
 
 def get_messages_from_doctype(name):
 	"""Extract all translatable messages for a doctype. Includes labels, Python code,
@@ -443,8 +455,16 @@ def get_messages_from_report(name):
 	messages = _get_messages_from_page_or_report("Report", name,
 		frappe.db.get_value("DocType", report.ref_doctype, "module"))
 
+	if report.columns:
+		context = "Column of report '%s'" % report.name # context has to match context in `prepare_columns` in query_report.js
+		messages.extend([(None, report_column.label, context) for report_column in report.columns])
+
+	if report.filters:
+		messages.extend([(None, report_filter.label) for report_filter in report.filters])
+
 	if report.query:
 		messages.extend([(None, message) for message in re.findall('"([^:,^"]*):', report.query) if is_translatable(message)])
+
 	messages.append((None,report.report_name))
 	return messages
 
@@ -482,8 +502,14 @@ def get_server_messages(app):
 def get_messages_from_include_files(app_name=None):
 	"""Returns messages from js files included at time of boot like desk.min.js for desk and web"""
 	messages = []
-	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
-		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
+	app_include_js = frappe.get_hooks("app_include_js", app_name=app_name) or []
+	web_include_js = frappe.get_hooks("web_include_js", app_name=app_name) or []
+	include_js = app_include_js + web_include_js
+
+	for js_path in include_js:
+		relative_path = os.path.join(frappe.local.sites_path, js_path.lstrip('/'))
+		messages_from_file = get_messages_from_file(relative_path)
+		messages.extend(messages_from_file)
 
 	return messages
 
@@ -540,8 +566,12 @@ def extract_messages_from_code(code):
 
 	try:
 		code = frappe.as_unicode(render_include(code))
-	except (TemplateError, ImportError, InvalidIncludePath, IOError):
-		# Exception will occur when it encounters John Resig's microtemplating code
+
+	# Exception will occur when it encounters John Resig's microtemplating code
+	except (TemplateError, ImportError, InvalidIncludePath, IOError) as e:
+		if isinstance(e, InvalidIncludePath):
+			frappe.clear_last_message()
+
 		pass
 
 	messages = []
@@ -606,11 +636,23 @@ def write_csv_file(path, app_messages, lang_dict):
 	from csv import writer
 	with open(path, 'w', newline='') as msgfile:
 		w = writer(msgfile, lineterminator='\n')
-		for p, m in app_messages:
-			t = lang_dict.get(m, '')
+
+		for app_message in app_messages:
+			context = None
+			if len(app_message) == 2:
+				path, message = app_message
+			elif len(app_message) == 3:
+				path, message, lineno = app_message
+			elif len(app_message) == 4:
+				path, message, context, lineno = app_message
+			else:
+				continue
+
+			t = lang_dict.get(message, '')
 			# strip whitespaces
-			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
-			w.writerow([p if p else '', m, t])
+			translated_string = re.sub(r'{\s?([0-9]+)\s?}', r"{\g<1>}", t)
+			if translated_string:
+				w.writerow([message, translated_string, context])
 
 def get_untranslated(lang, untranslated_file, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file

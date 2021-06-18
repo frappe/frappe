@@ -64,8 +64,6 @@ def get_oauth2_authorize_url(provider, redirect_to):
 
 	state = { "site": frappe.utils.get_url(), "token": frappe.generate_hash(), "redirect_to": redirect_to 	}
 
-	frappe.cache().set_value("{0}:{1}".format(provider, state["token"]), True, expires_in_sec=120)
-
 	# relative to absolute url
 	data = {
 		"redirect_uri": get_redirect_uri(provider),
@@ -174,11 +172,6 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 
 	if not (state and state["token"]):
 		frappe.respond_as_web_page(_("Invalid Request"), _("Token is missing"), http_status_code=417)
-		return
-
-	token = frappe.cache().get_value("{0}:{1}".format(provider, state["token"]), expires=True)
-	if not token:
-		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Token"), http_status_code=417)
 		return
 
 	user = get_email(data)

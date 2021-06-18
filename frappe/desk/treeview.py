@@ -66,7 +66,7 @@ def add_node():
 	doc.save()
 
 def make_tree_args(**kwarg):
-	del kwarg['cmd']
+	kwarg.pop('cmd', None)
 
 	doctype = kwarg['doctype']
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')

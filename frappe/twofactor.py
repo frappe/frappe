@@ -73,11 +73,11 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 
 	# set increased expiry time for SMS and Email
 	if verification_method in ['SMS', 'Email']:
-		expiry_time = 300
+		expiry_time = frappe.flags.token_expiry or 300
 		frappe.cache().set(tmp_id + '_token', token)
 		frappe.cache().expire(tmp_id + '_token', expiry_time)
 	else:
-		expiry_time = 180
+		expiry_time = frappe.flags.otp_expiry or 180
 	for k, v in iteritems({'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}):
 		frappe.cache().set("{0}{1}".format(tmp_id, k), v)
 		frappe.cache().expire("{0}{1}".format(tmp_id, k), expiry_time)

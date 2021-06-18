@@ -24,6 +24,7 @@ class Newsletter(WebsiteGenerator):
 		if self.send_from:
 			validate_email_address(self.send_from, True)
 
+	@frappe.whitelist()
 	def test_send(self, doctype="Lead"):
 		self.recipients = frappe.utils.split_emails(self.test_email_id)
 		self.queue_all(test_email=True)

@@ -325,9 +325,8 @@ def get_group_by_field(args, doctype):
 	if args['aggregate_function'] == 'count':
 		group_by_field = 'count(*) as _aggregate_column'
 	else:
-		group_by_field = '{0}(`tab{1}`.{2}) as _aggregate_column'.format(
+		group_by_field = '{0}({1}) as _aggregate_column'.format(
 			args.aggregate_function,
-			doctype,
 			args.aggregate_on
 		)
 

@@ -36,7 +36,10 @@ def get_report_doc(report_name):
 		reference_report = custom_report_doc.reference_report
 		doc = frappe.get_doc("Report", reference_report)
 		doc.custom_report = report_name
-		doc.custom_columns = custom_report_doc.json
+		if custom_report_doc.json:
+			data = json.loads(custom_report_doc.json)
+			if data:
+				doc.custom_columns = data["columns"]
 		doc.is_custom_report = True
 
 	if not doc.is_permitted():
@@ -83,7 +86,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 
 	if report.custom_columns:
 		# saved columns (with custom columns / with different column order)
-		columns = json.loads(report.custom_columns)
+		columns = report.custom_columns
 
 	# unsaved custom_columns
 	if custom_columns:
@@ -374,10 +377,17 @@ def handle_duration_fieldtype_values(result, columns):
 
 		if fieldtype == "Duration":
 			for entry in range(0, len(result)):
-				val_in_seconds = result[entry][i]
-				if val_in_seconds:
-					duration_val = format_duration(val_in_seconds)
-					result[entry][i] = duration_val
+				row = result[entry]
+				if isinstance(row, dict):
+					val_in_seconds = row[col.fieldname]
+					if val_in_seconds:
+						duration_val = format_duration(val_in_seconds)
+						row[col.fieldname] = duration_val
+				else:
+					val_in_seconds = row[i]
+					if val_in_seconds:
+						duration_val = format_duration(val_in_seconds)
+						row[i] = duration_val
 
 	return result
 
@@ -488,12 +498,17 @@ def add_total_row(result, columns, meta=None):
 
 
 @frappe.whitelist()
-def get_data_for_custom_field(doctype, field):
+def get_data_for_custom_field(doctype, fieldname, field=None):
 
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
-	value_map = frappe._dict(frappe.get_all(doctype, fields=["name", field], as_list=1))
+	if field:
+		custom_field = field + " as " + fieldname
+	else:
+		custom_field = fieldname
+
+	value_map = frappe._dict(frappe.get_all(doctype, fields=["name", custom_field], as_list=1))
 
 	return value_map
 
@@ -505,8 +520,9 @@ def get_data_for_custom_report(columns):
 		if column.get("link_field"):
 			fieldname = column.get("fieldname")
 			doctype = column.get("doctype")
+			field = column.get("field")
 			doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(
-				doctype, fieldname
+				doctype, fieldname, field
 			)
 
 	return doc_field_value_map
@@ -524,9 +540,12 @@ def save_report(reference_report, report_name, columns):
 			"report_type": "Custom Report",
 		},
 	)
+
 	if docname:
 		report = frappe.get_doc("Report", docname)
-		report.update({"json": columns})
+		existing_jd = json.loads(report.json)
+		existing_jd["columns"] = json.loads(columns)
+		report.update({"json": json.dumps(existing_jd, separators=(',', ':'))})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
 
@@ -536,7 +555,7 @@ def save_report(reference_report, report_name, columns):
 			{
 				"doctype": "Report",
 				"report_name": report_name,
-				"json": columns,
+				"json": f'{{"columns":{columns}}}',
 				"ref_doctype": report_doc.ref_doctype,
 				"is_standard": "No",
 				"report_type": "Custom Report",

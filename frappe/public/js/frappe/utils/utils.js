@@ -1180,10 +1180,12 @@ Object.assign(frappe.utils, {
 							route = "";
 					}
 				}
-			} else if (type === "report" && item.is_query_report) {
-				route = "query-report/" + item.name;
 			} else if (type === "report") {
-				route = frappe.router.slug(item.name) + "/view/report";
+				if (item.is_query_report) {
+					route = "query-report/" + item.name;
+				} else {
+					route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+				}
 			} else if (type === "page") {
 				route = item.name;
 			} else if (type === "dashboard") {
@@ -1272,21 +1274,6 @@ Object.assign(frappe.utils, {
 		</div>`);
 	},
 
-	get_names_for_mentions() {
-		let names_for_mentions = Object.keys(frappe.boot.user_info || [])
-			.filter(user => {
-				return !["Administrator", "Guest"].includes(user)
-					&& frappe.boot.user_info[user].allowed_in_mentions
-					&& frappe.boot.user_info[user].user_type === 'System User';
-			})
-			.map(user => {
-				return {
-					id: frappe.boot.user_info[user].name,
-					value: frappe.boot.user_info[user].fullname,
-				};
-			});
-		return names_for_mentions;
-	},
 	print(doctype, docname, print_format, letterhead, lang_code) {
 		let w = window.open(
 			frappe.urllib.get_full_url(

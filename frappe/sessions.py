@@ -70,7 +70,7 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 
 	return frappe.db.sql_list("""
 		SELECT `sid` FROM `tabSessions`
-		WHERE user=%(user)s
+		WHERE `tabSessions`.user=%(user)s
 		AND device in %(device)s
 		{condition}
 		ORDER BY `lastupdate` DESC

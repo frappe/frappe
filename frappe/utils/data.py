@@ -622,6 +622,26 @@ def ceil(s):
 def cstr(s, encoding='utf-8'):
 	return frappe.as_unicode(s, encoding)
 
+def sbool(x):
+	"""Converts str object to Boolean if possible.
+	Example:
+		"true" becomes True
+		"1" becomes True
+		"{}" remains "{}"
+
+	Args:
+		x (str): String to be converted to Bool
+
+	Returns:
+		object: Returns Boolean or type(x)
+	"""
+	from distutils.util import strtobool
+
+	try:
+		return bool(strtobool(x))
+	except Exception:
+		return x
+
 def rounded(num, precision=0):
 	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
 	precision = cint(precision)
@@ -1278,7 +1298,9 @@ def make_filter_dict(filters):
 
 def sanitize_column(column_name):
 	from frappe import _
+	import sqlparse
 	regex = re.compile("^.*[,'();].*")
+	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
 	blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case', 'and', 'or']
 
 	def _raise_exception():

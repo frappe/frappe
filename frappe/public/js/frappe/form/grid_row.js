@@ -7,7 +7,8 @@ export default class GridRow {
 		$.extend(this, opts);
 		if (this.doc && this.parent_df.options) {
 			frappe.meta.make_docfield_copy_for(this.parent_df.options, this.doc.name, this.docfields);
-			this.docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
+			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
+			this.docfields = docfields.length ? docfields : opts.docfields;
 		}
 		this.columns = {};
 		this.columns_list = [];
@@ -315,6 +316,12 @@ export default class GridRow {
 
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
 		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
+
+		// set title attribute to see full label for columns in the heading row
+		if (!this.doc) {
+			$col.attr("title", txt);
+		}
+
 		$col.df = df;
 		$col.column_index = ci;
 
@@ -422,7 +429,7 @@ export default class GridRow {
 			field.$input
 				.addClass('input-sm')
 				.attr('data-col-idx', column.column_index)
-				.attr('placeholder', __(df.label));
+				.attr('placeholder', __(df.placeholder || df.label));
 			// flag list input
 			if (this.columns_list && this.columns_list.slice(-1)[0]===column) {
 				field.$input.attr('data-last-input', 1);
@@ -522,7 +529,7 @@ export default class GridRow {
 		// hide other
 		var open_row = this.get_open_form();
 
-		if (show===undefined) show = !!!open_row;
+		if (show === undefined) show = !open_row;
 
 		// call blur
 		document.activeElement && document.activeElement.blur();
@@ -557,13 +564,13 @@ export default class GridRow {
 		this.row.toggle(false);
 		// this.form_panel.toggle(true);
 
-		if (this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows)) {
-			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
-				.addClass('hidden');
-		} else {
-			this.wrapper.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row')
-				.removeClass('hidden');
-		}
+		let cannot_add_rows = this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows);
+		this.wrapper
+			.find('.grid-insert-row-below, .grid-insert-row, .grid-duplicate-row, .grid-append-row')
+			.toggle(!cannot_add_rows);
+
+		this.wrapper.find('.grid-delete-row')
+			.toggle(!(this.grid.df && this.grid.df.cannot_delete_rows));
 
 		frappe.dom.freeze("", "dark");
 		if (cur_frm) cur_frm.cur_grid = this;
@@ -590,17 +597,40 @@ export default class GridRow {
 		this.wrapper.removeClass("grid-row-open");
 	}
 	open_prev() {
-		const row_index = this.wrapper.index();
-		if (this.grid.grid_rows[row_index - 1]) {
-			this.grid.grid_rows[row_index - 1].toggle_view(true);
-		}
+		if (!this.doc) return;
+		this.open_row_at_index(this.doc.idx - 2);
 	}
 	open_next() {
-		const row_index = this.wrapper.index();
-		if (this.grid.grid_rows[row_index + 1]) {
-			this.grid.grid_rows[row_index + 1].toggle_view(true);
-		} else {
+		if (!this.doc) return;
+
+		if (!this.open_row_at_index(this.doc.idx)) {
 			this.grid.add_new_row(null, null, true);
+		}
+	}
+	open_row_at_index(row_index) {
+		if (!this.grid.data[row_index]) return;
+
+		this.change_page_if_reqd(row_index);
+		this.grid.grid_rows[row_index].toggle_view(true);
+		return true;
+	}
+	change_page_if_reqd(row_index) {
+		const {
+			page_index,
+			page_length
+		} = this.grid.grid_pagination;
+
+		row_index++;
+		let new_page;
+
+		if (row_index <= (page_index - 1) * page_length) {
+			new_page = page_index - 1;
+		} else if (row_index > page_index * page_length) {
+			new_page = page_index + 1;
+		}
+
+		if (new_page) {
+			this.grid.grid_pagination.go_to_page(new_page);
 		}
 	}
 	refresh_field(fieldname, txt) {

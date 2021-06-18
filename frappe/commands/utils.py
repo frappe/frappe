@@ -11,18 +11,18 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import get_bench_path, update_progress_bar
+from frappe.utils import get_bench_path, update_progress_bar, cint
 
 
 @click.command('build')
 @click.option('--app', help='Build assets for app')
-@click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
-@click.option('--restore', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
+@click.option('--hard-link', is_flag=True, default=False, help='Copy the files instead of symlinking')
+@click.option('--make-copy', is_flag=True, default=False, help='[DEPRECATED] Copy the files instead of symlinking')
+@click.option('--restore', is_flag=True, default=False, help='[DEPRECATED] Copy the files instead of symlinking with force')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', is_flag=True, default=False, help='Force build assets instead of downloading available')
-def build(app=None, make_copy=False, restore=False, verbose=False, force=False):
+def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=False, force=False):
 	"Minify + concatenate JS and CSS files, build translations"
-	import frappe.build
 	frappe.init('')
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
@@ -34,7 +34,20 @@ def build(app=None, make_copy=False, restore=False, verbose=False, force=False):
 	else:
 		skip_frappe = False
 
-	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore=restore, verbose=verbose, skip_frappe=skip_frappe)
+	if make_copy or restore:
+		hard_link = make_copy or restore
+		click.secho(
+			"bench build: --make-copy and --restore options are deprecated in favour of --hard-link",
+			fg="yellow",
+		)
+
+	frappe.build.bundle(
+		skip_frappe=skip_frappe,
+		no_compress=no_compress,
+		hard_link=hard_link,
+		verbose=verbose,
+		app=app,
+	)
 
 
 @click.command('watch')
@@ -96,22 +109,54 @@ def destroy_all_sessions(context, reason=None):
 		raise SiteNotSpecifiedError
 
 @click.command('show-config')
+@click.option("--format", "-f", type=click.Choice(["text", "json"]), default="text")
 @pass_context
-def show_config(context):
-	"print configuration file"
-	print("\t\033[92m{:<50}\033[0m \033[92m{:<15}\033[0m".format('Config','Value'))
-	sites_path = os.path.join(frappe.utils.get_bench_path(), 'sites')
-	site_path = context.sites[0]
-	configuration = frappe.get_site_config(sites_path=sites_path, site_path=site_path)
-	print_config(configuration)
+def show_config(context, format):
+	"Print configuration file to STDOUT in speified format"
 
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
-def print_config(config):
-	for conf, value in config.items():
-		if isinstance(value, dict):
-			print_config(value)
-		else:
-			print("\t{:<50} {:<15}".format(conf, value))
+	sites_config = {}
+	sites_path = os.getcwd()
+
+	from frappe.utils.commands import render_table
+
+	def transform_config(config, prefix=None):
+		prefix = f"{prefix}." if prefix else ""
+		site_config = []
+
+		for conf, value in config.items():
+			if isinstance(value, dict):
+				site_config += transform_config(value, prefix=f"{prefix}{conf}")
+			else:
+				log_value = json.dumps(value) if isinstance(value, list) else value
+				site_config += [[f"{prefix}{conf}", log_value]]
+
+		return site_config
+
+	for site in context.sites:
+		frappe.init(site)
+
+		if len(context.sites) != 1 and format == "text":
+			if context.sites.index(site) != 0:
+				click.echo()
+			click.secho(f"Site {site}", fg="yellow")
+
+		configuration = frappe.get_site_config(sites_path=sites_path, site_path=site)
+
+		if format == "text":
+			data = transform_config(configuration)
+			data.insert(0, ['Config','Value'])
+			render_table(data)
+
+		if format == "json":
+			sites_config[site] = configuration
+
+		frappe.destroy()
+
+	if format == "json":
+		click.echo(frappe.as_json(sites_config))
 
 
 @click.command('reset-perms')
@@ -456,6 +501,8 @@ frappe.db.connect()
 @pass_context
 def console(context):
 	"Start ipython console for a site"
+	import warnings
+
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.connect()
@@ -470,11 +517,13 @@ def console(context):
 			locals()[app] = __import__(app)
 		except ModuleNotFoundError:
 			failed_to_import.append(app)
+			all_apps.remove(app)
 
 	print("Apps in this namespace:\n{}".format(", ".join(all_apps)))
 	if failed_to_import:
 		print("\nFailed to import:\n{}".format(", ".join(failed_to_import)))
 
+	warnings.simplefilter('ignore')
 	IPython.embed(display_banner="", header="", colors="neutral")
 
 
@@ -520,17 +569,29 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		cov = Coverage(source=[source_path], omit=[
+		incl = [
+			'*.py',
+		]
+		omit = [
 			'*.html',
 			'*.js',
 			'*.xml',
+			'*.pyc',
 			'*.css',
 			'*.less',
 			'*.scss',
 			'*.vue',
+			'*/test_*',
+			'*/node_modules/*',
 			'*/doctype/*/*_dashboard.py',
-			'*/patches/*'
-		])
+			'*/patches/*',
+		]
+
+		if not app or app == 'frappe':
+			omit.append('*/tests/*')
+			omit.append('*/commands/*')
+
+		cov = Coverage(source=[source_path], omit=omit, include=incl)
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
@@ -547,12 +608,29 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 	if os.environ.get('CI'):
 		sys.exit(ret)
 
+@click.command('run-parallel-tests')
+@click.option('--app', help="For App", default='frappe')
+@click.option('--build-number', help="Build number", default=1)
+@click.option('--total-builds', help="Total number of builds", default=1)
+@click.option('--with-coverage', is_flag=True, help="Build coverage file")
+@click.option('--use-orchestrator', is_flag=True, help="Use orchestrator to run parallel tests")
+@pass_context
+def run_parallel_tests(context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False):
+	site = get_site(context)
+	if use_orchestrator:
+		from frappe.parallel_test_runner import ParallelTestWithOrchestrator
+		ParallelTestWithOrchestrator(app, site=site, with_coverage=with_coverage)
+	else:
+		from frappe.parallel_test_runner import ParallelTestRunner
+		ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds, with_coverage=with_coverage)
 
 @click.command('run-ui-tests')
 @click.argument('app')
 @click.option('--headless', is_flag=True, help="Run UI Test in headless mode")
+@click.option('--parallel', is_flag=True, help="Run UI Test in parallel mode")
+@click.option('--ci-build-id')
 @pass_context
-def run_ui_tests(context, app, headless=False):
+def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 	"Run UI tests"
 	site = get_site(context)
 	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), '..'))
@@ -567,11 +645,14 @@ def run_ui_tests(context, app, headless=False):
 
 	node_bin = subprocess.getoutput("npm bin")
 	cypress_path = "{0}/cypress".format(node_bin)
-	plugin_path = "{0}/cypress-file-upload".format(node_bin)
+	plugin_path = "{0}/../cypress-file-upload".format(node_bin)
 
 	# check if cypress in path...if not, install it.
-	if not (os.path.exists(cypress_path) or os.path.exists(plugin_path)) \
-		or not subprocess.getoutput("npm view cypress version").startswith("6."):
+	if not (
+		os.path.exists(cypress_path)
+		and os.path.exists(plugin_path)
+		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
+	):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
 		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
@@ -580,6 +661,12 @@ def run_ui_tests(context, app, headless=False):
 	run_or_open = 'run --browser firefox --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
+
+	if parallel:
+		formatted_command += ' --parallel'
+
+	if ci_build_id:
+		formatted_command += ' --ci-build-id {}'.format(ci_build_id)
 
 	click.secho("Running Cypress...", fg="yellow")
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
@@ -649,20 +736,27 @@ def make_app(destination, app_name):
 @click.command('set-config')
 @click.argument('key')
 @click.argument('value')
-@click.option('-g', '--global', 'global_', is_flag = True, default = False, help = 'Set Global Site Config')
-@click.option('--as-dict', is_flag=True, default=False)
+@click.option('-g', '--global', 'global_', is_flag=True, default=False, help='Set value in bench config')
+@click.option('-p', '--parse', is_flag=True, default=False, help='Evaluate as Python Object')
+@click.option('--as-dict', is_flag=True, default=False, help='Legacy: Evaluate as Python Object')
 @pass_context
-def set_config(context, key, value, global_ = False, as_dict=False):
+def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
-	import ast
+
 	if as_dict:
+		from frappe.utils.commands import warn
+		warn("--as-dict will be deprecated in v14. Use --parse instead", category=PendingDeprecationWarning)
+		parse = as_dict
+
+	if parse:
+		import ast
 		value = ast.literal_eval(value)
 
 	if global_:
-		sites_path = os.getcwd() # big assumption.
+		sites_path = os.getcwd()
 		common_site_config_path = os.path.join(sites_path, 'common_site_config.json')
-		update_site_config(key, value, validate = False, site_config_path = common_site_config_path)
+		update_site_config(key, value, validate=False, site_config_path=common_site_config_path)
 	else:
 		for site in context.sites:
 			frappe.init(site=site)
@@ -719,50 +813,6 @@ def rebuild_global_search(context, static_pages=False):
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
-@click.command('auto-deploy')
-@click.argument('app')
-@click.option('--migrate', is_flag=True, default=False, help='Migrate after pulling')
-@click.option('--restart', is_flag=True, default=False, help='Restart after migration')
-@click.option('--remote', default='upstream', help='Remote, default is "upstream"')
-@pass_context
-def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
-	'''Pull and migrate sites that have new version'''
-	from frappe.utils.gitutils import get_app_branch
-	from frappe.utils import get_sites
-
-	branch = get_app_branch(app)
-	app_path = frappe.get_app_path(app)
-
-	# fetch
-	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
-
-	# get diff
-	if subprocess.check_output(['git', 'diff', '{0}..{1}/{0}'.format(branch, remote)], cwd = app_path):
-		print('Updates found for {0}'.format(app))
-		if app=='frappe':
-			# run bench update
-			import shlex
-			subprocess.check_output(shlex.split('bench update --no-backup'), cwd = '..')
-		else:
-			updated = False
-			subprocess.check_output(['git', 'pull', '--rebase', remote, branch],
-				cwd = app_path)
-			# find all sites with that app
-			for site in get_sites():
-				frappe.init(site)
-				if app in frappe.get_installed_apps():
-					print('Updating {0}'.format(site))
-					updated = True
-					subprocess.check_output(['bench', '--site', site, 'clear-cache'], cwd = '..')
-					if migrate:
-						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
-				frappe.destroy()
-
-			if updated or restart:
-				subprocess.check_output(['bench', 'restart'], cwd = '..')
-	else:
-		print('No Updates')
-
 
 commands = [
 	build,
@@ -793,5 +843,6 @@ commands = [
 	watch,
 	bulk_rename,
 	add_to_email_queue,
-	rebuild_global_search
+	rebuild_global_search,
+	run_parallel_tests
 ]

@@ -5,6 +5,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.setup_dashboard_sections();
+		this.set_open_count = frappe.utils.throttle(this.set_open_count, 500);
 	}
 
 	setup_dashboard_sections() {
@@ -535,14 +536,14 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	render_graph(args) {
 		this.chart_area.show();
 		this.chart_area.body.empty();
-		$.extend(args, {
+		$.extend({
 			type: 'line',
 			colors: ['green'],
 			truncateLegends: 1,
 			axisOptions: {
 				shortenYAxisNumbers: 1
 			}
-		});
+		}, args);
 		this.show();
 
 		this.chart = new frappe.Chart('.form-graph', args);

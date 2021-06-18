@@ -18,8 +18,7 @@ from email.utils import formataddr, parseaddr
 from gzip import GzipFile
 from typing import Generator, Iterable
 
-from six import string_types, text_type
-from six.moves.urllib.parse import quote
+from urllib.parse import quote, urlparse
 from werkzeug.test import Client
 
 import frappe
@@ -72,7 +71,7 @@ def get_formatted_email(user, mail=None):
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
 	email_id = parse_addr(email)[1]
-	if email_id and isinstance(email_id, string_types) and not isinstance(email_id, text_type):
+	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
@@ -161,6 +160,33 @@ def split_emails(txt):
 
 	return email_list
 
+def validate_url(txt, throw=False, valid_schemes=None):
+	"""
+		Checks whether `txt` has a valid URL string
+
+		Parameters:
+			throw (`bool`): throws a validationError if URL is not valid
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
+
+		Returns:
+			bool: if `txt` represents a valid URL
+	"""
+	url = urlparse(txt)
+	is_valid = bool(url.netloc)
+
+	# Handle scheme validation
+	if isinstance(valid_schemes, str):
+		is_valid = is_valid and (url.scheme == valid_schemes)
+	elif isinstance(valid_schemes, (list, tuple, set)):
+		is_valid = is_valid and (url.scheme in valid_schemes)
+
+	if not is_valid and throw:
+		frappe.throw(
+			frappe._("'{0}' is not a valid URL").format(frappe.bold(txt))
+		)
+
+	return is_valid
+
 def random_string(length):
 	"""generate a random string"""
 	import string
@@ -204,14 +230,17 @@ def get_gravatar(email):
 
 	return gravatar_url
 
-def get_traceback():
+def get_traceback() -> str:
 	"""
 		 Returns the traceback of the Exception
 	"""
 	exc_type, exc_value, exc_tb = sys.exc_info()
+
+	if not any([exc_type, exc_value, exc_tb]):
+		return ""
+
 	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
-	body = "".join(cstr(t) for t in trace_list)
-	return body
+	return "".join(cstr(t) for t in trace_list)
 
 def log(event, details):
 	frappe.logger().info(details)
@@ -307,14 +336,23 @@ def unesc(s, esc_chars):
 		s = s.replace(esc_str, c)
 	return s
 
-def execute_in_shell(cmd, verbose=0):
+def execute_in_shell(cmd, verbose=0, low_priority=False):
 	# using Popen instead of os.system - as recommended by python docs
 	import tempfile
 	from subprocess import Popen
 
 	with tempfile.TemporaryFile() as stdout:
 		with tempfile.TemporaryFile() as stderr:
-			p = Popen(cmd, shell=True, stdout=stdout, stderr=stderr)
+			kwargs = {
+				"shell": True,
+				"stdout": stdout,
+				"stderr": stderr
+			}
+
+			if low_priority:
+				kwargs["preexec_fn"] = lambda: os.nice(10)
+
+			p = Popen(cmd, **kwargs)
 			p.wait()
 
 			stdout.seek(0)
@@ -361,14 +399,14 @@ def get_site_url(site):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], string_types) and isinstance(d[key], text_type):
+		if isinstance(d[key], str) and isinstance(d[key], str):
 			d[key] = d[key].encode(encoding)
 
 	return d
 
 def decode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], string_types) and not isinstance(d[key], text_type):
+		if isinstance(d[key], str) and not isinstance(d[key], str):
 			d[key] = d[key].decode(encoding, "ignore")
 
 	return d
@@ -395,7 +433,7 @@ def get_test_client():
 	return Client(application)
 
 def get_hook_method(hook_name, fallback=None):
-	method = (frappe.get_hooks().get(hook_name))
+	method = frappe.get_hooks().get(hook_name)
 	if method:
 		method = frappe.get_attr(method[0])
 		return method
@@ -409,6 +447,16 @@ def call_hook_method(hook, *args, **kwargs):
 
 	return out
 
+def is_cli() -> bool:
+	"""Returns True if current instance is being run via a terminal
+	"""
+	invoked_from_terminal = False
+	try:
+		invoked_from_terminal = bool(os.get_terminal_size())
+	except Exception:
+		invoked_from_terminal = sys.stdin.isatty()
+	return invoked_from_terminal
+
 def update_progress_bar(txt, i, l):
 	if os.environ.get("CI"):
 		if i == 0:
@@ -418,7 +466,7 @@ def update_progress_bar(txt, i, l):
 		sys.stdout.flush()
 		return
 
-	if not getattr(frappe.local, 'request', None):
+	if not getattr(frappe.local, 'request', None) or is_cli():
 		lt = len(txt)
 		try:
 			col = 40 if os.get_terminal_size().columns > 80 else 20
@@ -635,7 +683,7 @@ def parse_json(val):
 	"""
 	Parses json if string else return
 	"""
-	if isinstance(val, string_types):
+	if isinstance(val, str):
 		val = json.loads(val)
 	if isinstance(val, dict):
 		val = frappe._dict(val)
@@ -804,3 +852,11 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
+
+def validate_url(url_string):
+	try:
+		result = urlparse(url_string)
+		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
+	except Exception:
+		return False
+

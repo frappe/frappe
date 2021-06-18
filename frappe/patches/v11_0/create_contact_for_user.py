@@ -8,7 +8,6 @@ def execute():
 	frappe.reload_doc('integrations', 'doctype', 'google_contacts')
 	frappe.reload_doc('contacts', 'doctype', 'contact')
 	frappe.reload_doc('core', 'doctype', 'dynamic_link')
-	frappe.reload_doc('communication', 'doctype', 'call_log')
 
 	contact_meta = frappe.get_meta("Contact")
 	if contact_meta.has_field("phone_nos") and contact_meta.has_field("email_ids"):

@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "autoname": "field:title",
+ "creation": "2021-05-21 23:02:52.242721",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "reference_doctype",
+  "completed",
+  "section_break_3",
+  "steps"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document",
+   "options": "DocType",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "Form Tour Step",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.__islocal != 1",
+   "fieldname": "completed",
+   "fieldtype": "Check",
+   "label": "Mark as Completed"
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-05-26 19:36:59.093753",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Form Tour",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

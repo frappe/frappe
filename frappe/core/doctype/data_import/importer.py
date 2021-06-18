@@ -641,7 +641,7 @@ class Row:
 				return
 		elif df.fieldtype == "Duration":
 			import re
-			is_valid_duration = re.match("^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", value)
+			is_valid_duration = re.match(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", value)
 			if not is_valid_duration:
 				self.warnings.append(
 					{
@@ -929,10 +929,7 @@ class Column:
 				self.warnings.append(
 					{
 						"col": self.column_number,
-						"message": _(
-							"Date format could not be determined from the values in"
-							" this column. Defaulting to yyyy-mm-dd."
-						),
+						"message": _("Date format could not be determined from the values in this column. Defaulting to yyyy-mm-dd."),
 						"type": "info",
 					}
 				)
