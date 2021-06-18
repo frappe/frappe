@@ -498,12 +498,17 @@ def add_total_row(result, columns, meta=None):
 
 
 @frappe.whitelist()
-def get_data_for_custom_field(doctype, field):
+def get_data_for_custom_field(doctype, fieldname, field=None):
 
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
-	value_map = frappe._dict(frappe.get_all(doctype, fields=["name", field], as_list=1))
+	if field:
+		custom_field = field + " as " + fieldname
+	else:
+		custom_field = fieldname
+
+	value_map = frappe._dict(frappe.get_all(doctype, fields=["name", custom_field], as_list=1))
 
 	return value_map
 
@@ -515,8 +520,9 @@ def get_data_for_custom_report(columns):
 		if column.get("link_field"):
 			fieldname = column.get("fieldname")
 			doctype = column.get("doctype")
+			field = column.get("field")
 			doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(
-				doctype, fieldname
+				doctype, fieldname, field
 			)
 
 	return doc_field_value_map
