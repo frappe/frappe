@@ -196,7 +196,7 @@ export default class Grid {
 		tasks.push(() => {
 			if (dirty) {
 				this.refresh();
-				this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
+				this.frm && this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 			}
 		});
 
@@ -236,6 +236,10 @@ export default class Grid {
 	}
 
 	refresh_remove_rows_button() {
+		if (this.df.cannot_delete_rows) {
+			return;
+		}
+
 		this.remove_rows_button.toggleClass('hidden',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 		this.remove_all_rows_button.toggleClass('hidden',
@@ -344,6 +348,9 @@ export default class Grid {
 			}
 			if (d.idx === undefined) {
 				d.idx = ri + 1;
+			}
+			if (d.name === undefined) {
+				d.name = "row " + d.idx;
 			}
 			if (this.grid_rows[ri] && !append_row) {
 				var grid_row = this.grid_rows[ri];
@@ -910,6 +917,10 @@ export default class Grid {
 
 	update_docfield_property(fieldname, property, value) {
 		// update the docfield of each row
+		if (!this.grid_rows) {
+			return;
+		}
+
 		for (let row of this.grid_rows) {
 			let docfield = row.docfields.find(d => d.fieldname === fieldname);
 			if (docfield) {

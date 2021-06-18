@@ -216,7 +216,7 @@ class TestCommands(BaseTestCommands):
 
 		# test 7: take a backup with frappe.conf.backup.includes
 		self.execute(
-			"bench --site {site} set-config backup '{includes}' --as-dict",
+			"bench --site {site} set-config backup '{includes}' --parse",
 			{"includes": json.dumps(backup["includes"])},
 		)
 		self.execute("bench --site {site} backup --verbose")
@@ -226,7 +226,7 @@ class TestCommands(BaseTestCommands):
 
 		# test 8: take a backup with frappe.conf.backup.excludes
 		self.execute(
-			"bench --site {site} set-config backup '{excludes}' --as-dict",
+			"bench --site {site} set-config backup '{excludes}' --parse",
 			{"excludes": json.dumps(backup["excludes"])},
 		)
 		self.execute("bench --site {site} backup --verbose")
@@ -364,6 +364,43 @@ class TestCommands(BaseTestCommands):
 		else:
 			installed_apps = set(frappe.get_installed_apps())
 		self.assertSetEqual(list_apps, installed_apps)
+
+		# test 3: parse json format
+		self.execute("bench --site all list-apps --format json")
+		self.assertEquals(self.returncode, 0)
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} list-apps --format json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} list-apps -f json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+	def test_show_config(self):
+		# test 1: sanity check for command
+		self.execute("bench --site all show-config")
+		self.assertEquals(self.returncode, 0)
+
+		# test 2: test keys in table text
+		self.execute(
+			"bench --site {site} set-config test_key '{second_order}' --parse",
+			{"second_order": json.dumps({"test_key": "test_value"})},
+		)
+		self.execute("bench --site {site} show-config")
+		self.assertEquals(self.returncode, 0)
+		self.assertIn("test_key.test_key", self.stdout.split())
+		self.assertIn("test_value", self.stdout.split())
+
+		# test 3: parse json format
+		self.execute("bench --site all show-config --format json")
+		self.assertEquals(self.returncode, 0)
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} show-config --format json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
+
+		self.execute("bench --site {site} show-config -f json")
+		self.assertIsInstance(json.loads(self.stdout), dict)
 
 	def test_get_bench_relative_path(self):
 		bench_path = frappe.utils.get_bench_path()

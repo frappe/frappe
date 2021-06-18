@@ -510,7 +510,7 @@ frappe.ui.form.Layout = Class.extend({
 			form_obj = this;
 		}
 		if (form_obj) {
-			if (this.doc && this.doc.parent) {
+			if (this.doc && this.doc.parent && this.doc.parentfield) {
 				form_obj.setting_dependency = true;
 				form_obj.set_df_property(this.doc.parentfield, property, value, this.doc.parent, fieldname, this.doc.name);
 				form_obj.setting_dependency = false;

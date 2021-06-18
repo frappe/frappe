@@ -335,12 +335,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let message;
 			if (dashboard_name) {
 				let dashboard_route_html = `<a href="#dashboard-view/${dashboard_name}">${dashboard_name}</a>`;
-				message = __("New {0} {1} added to Dashboard {2}", [doctype, name, dashboard_route_html]);
+				message = __("New {0} {1} added to Dashboard {2}", [__(doctype), name, dashboard_route_html]);
 			} else {
-				message = __("New {0} {1} created", [doctype, name]);
+				message = __("New {0} {1} created", [__(doctype), name]);
 			}
 
-			frappe.msgprint(message, __("New {0} Created", [doctype]));
+			frappe.msgprint(message, __("New {0} Created", [__(doctype)]));
 		});
 	}
 
@@ -937,7 +937,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			else {
 				wrapper[0].innerHTML =
 				`<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
-					<div>Please select X and Y fields</div>
+					<div>${__("Please select X and Y fields")}</div>
 				</div>`;
 			}
 		}
@@ -1094,7 +1094,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			return Object.assign(column, {
 				id: column.fieldname,
-				name: __(column.label),
+				name: __(column.label, null, `Column of report '${this.report_name}'`), // context has to match context in   get_messages_from_report in translate.py
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,
@@ -1343,7 +1343,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				open_url_post(frappe.request.url, args);
 			}
-		}, __('Export Report: '+ this.report_name), __('Download'));
+		}, __('Export Report: {0}', [this.report_name]), __('Download'));
 	}
 
 	get_data_for_csv(include_indentation) {
@@ -1506,8 +1506,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							let df = frappe.meta.get_docfield(values.doctype, values.field);
 							const insert_after_index = this.columns
 								.findIndex(column => column.label === values.insert_after);
+
+							let fieldname = this.get_fieldname_for_column(df.fieldname, values.doctype);
+
 							custom_columns.push({
-								fieldname: df.fieldname,
+								fieldname: fieldname,
+								field: values.field,
 								fieldtype: df.fieldtype,
 								label: df.label,
 								insert_after_index: insert_after_index,
@@ -1521,14 +1525,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							frappe.call({
 								method: 'frappe.desk.query_report.get_data_for_custom_field',
 								args: {
-									field: values.field,
-									doctype: values.doctype
+									doctype: values.doctype,
+									fieldname: fieldname,
+									field: values.field
 								},
 								callback: (r) => {
 									const custom_data = r.message;
 									const link_field = this.doctype_field_map[values.doctype];
-
-									this.add_custom_column(custom_columns, custom_data, link_field, values.field, insert_after_index);
+									this.add_custom_column(custom_columns, custom_data, link_field, fieldname, insert_after_index);
 									d.hide();
 								}
 							});
@@ -1601,6 +1605,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				dialog.set_df_property('orientation', 'description', description);
 			});
 		}
+	}
+
+	get_fieldname_for_column(fieldname, doctype) {
+		// check if fieldname already used for any other column
+		let existing_fieldnames = [];
+		this.columns.forEach(column => {
+			existing_fieldnames.push(column.fieldname);
+		});
+
+		// Append doctype after fieldname to avoid conflict
+		if (existing_fieldnames.includes(fieldname)) {
+			fieldname = frappe.model.scrub(fieldname + " " + doctype);
+		}
+
+		return fieldname;
 	}
 
 	add_custom_column(custom_column, custom_data, link_field, column_field, insert_after_index) {

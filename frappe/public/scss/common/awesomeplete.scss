@@ -31,6 +31,7 @@
 		margin: 0;
 		padding: var(--padding-xs);
 		z-index: 1;
+		min-width: 250px;
 
 		&> li {
 			cursor: pointer;
@@ -44,6 +45,8 @@
 			}
 			p {
 				margin-bottom: 0;
+				overflow-y: clip;
+				text-overflow: ellipsis;
 			}
 		}
 

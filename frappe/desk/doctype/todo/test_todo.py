@@ -9,8 +9,7 @@ from frappe.model.db_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 
-# test_records = frappe.get_test_records('ToDo')
-test_user_records = frappe.get_test_records('User')
+test_dependencies = ['User']
 
 class TestToDo(unittest.TestCase):
 	def test_delete(self):
@@ -77,7 +76,7 @@ class TestToDo(unittest.TestCase):
 		frappe.set_user('test4@example.com')
 		#owner and assigned_by is test4
 		todo3 = create_new_todo('Test3', 'test4@example.com')
-		
+
 		# user without any role to read or write todo document
 		self.assertFalse(todo1.has_permission("read"))
 		self.assertFalse(todo1.has_permission("write"))

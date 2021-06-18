@@ -6,7 +6,8 @@ boto3~=1.17.53
 braintree~=4.8.0
 chardet~=4.0.0
 Click~=7.1.2
-coverage~=4.5.4
+colorama~=0.4.4
+coverage==5.5
 croniter~=1.0.11
 cryptography~=3.4.7
 dropbox~=11.7.0
