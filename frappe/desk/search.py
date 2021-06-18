@@ -169,6 +169,9 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				as_list=not as_dict,
 				strict=False)
 
+			# Bring Parent doctype to top and child doctype below it using sorting
+			values = sorted(values, key=lambda x: ((x[1] is not None), (x[0])))
+
 			if doctype in UNTRANSLATED_DOCTYPES:
 				values = tuple([v for v in list(values) if re.search(re.escape(txt)+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
 
