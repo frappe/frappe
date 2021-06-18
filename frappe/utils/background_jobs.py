@@ -1,7 +1,8 @@
+from typing import List
 import redis
 from rq import Connection, Queue, Worker
 from rq.logutils import setup_loghandlers
-from frappe.utils import cstr
+from frappe.utils import cstr, get_bench_id
 from collections import defaultdict
 import frappe
 import os, socket, time
@@ -136,12 +137,12 @@ def start_worker(queue=None, quiet = False):
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
 		redis_connection = get_redis_conn()
+		queues = get_queue_list(queue)
 
 	if os.environ.get('CI'):
 		setup_loghandlers('ERROR')
 
 	with Connection(redis_connection):
-		queues = get_queue_list(queue)
 		logging_level = "INFO"
 		if quiet:
 			logging_level = "WARNING"
@@ -195,11 +196,9 @@ def get_queue_list(queue_list=None):
 
 		for queue in queue_list:
 			validate_queue(queue, default_queue_list)
-
-		return queue_list
-
 	else:
-		return default_queue_list
+		queue_list = default_queue_list
+	return [rename_queue(q) for q in queue_list]
 
 def get_workers(queue):
 	'''Returns a list of Worker objects tied to a queue object'''
@@ -218,7 +217,7 @@ def get_running_jobs_in_queue(queue):
 def get_queue(queue, is_async=True):
 	'''Returns a Queue object tied to a redis connection'''
 	validate_queue(queue)
-	return Queue(queue, connection=get_redis_conn(), is_async=is_async)
+	return Queue(rename_queue(queue), connection=get_redis_conn(), is_async=is_async)
 
 def validate_queue(queue, default_queue_list=None):
 	if not default_queue_list:
@@ -240,6 +239,23 @@ def get_redis_conn():
 		redis_connection = redis.from_url(frappe.local.conf.redis_queue)
 
 	return redis_connection
+
+def get_queues() -> List[Queue]:
+	"""Get all the queues linked to the current bench.
+	"""
+	queues = Queue.all(connection=get_redis_conn())
+	return [q for q in queues if is_queue_accessible(q)]
+
+def rename_queue(qname: str) -> str:
+	"""Rename qname by adding bench name as prefix
+	"""
+	return f"{get_bench_id()}:{qname}"
+
+def is_queue_accessible(qobj: Queue) -> bool:
+	"""Checks whether queue is relate to current bench or not.
+	"""
+	accessible_queues = [rename_queue(q) for q in list(queue_timeout)]
+	return qobj.name in accessible_queues
 
 def enqueue_test_job():
 	enqueue('frappe.utils.background_jobs.test_job', s=100)

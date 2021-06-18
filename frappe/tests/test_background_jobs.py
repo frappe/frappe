@@ -1,20 +1,16 @@
 import unittest
 
-from rq import Queue
-
 import frappe
 from frappe.core.page.background_jobs.background_jobs import remove_failed_jobs
-from frappe.utils.background_jobs import get_redis_conn
+from frappe.utils.background_jobs import get_queues
 import time
-
 
 class TestBackgroundJobs(unittest.TestCase):
 	def test_remove_failed_jobs(self):
 		frappe.enqueue(method="frappe.tests.test_background_jobs.fail_function", queue="short")
 		# wait for enqueued job to execute
 		time.sleep(2)
-		conn = get_redis_conn()
-		queues = Queue.all(conn)
+		queues = get_queues()
 
 		for queue in queues:
 			if queue.name == "short":
