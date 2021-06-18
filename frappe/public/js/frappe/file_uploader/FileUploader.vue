@@ -181,17 +181,24 @@ export default {
 			show_file_browser: false,
 			show_web_link: false,
 			allow_take_photo: false,
-			google_drive_settings: {}
+			google_drive_settings: {
+				enabled: false
+			}
 		}
 	},
 	created() {
 		this.allow_take_photo = window.navigator.mediaDevices;
-		frappe.call({
-			method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
-			callback: (resp) => {
-				this.google_drive_settings = resp.message;
-			}
-		});
+		if (frappe.user_id !== "Guest") {
+			frappe.call({
+				// method only available after login
+				method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
+				callback: (resp) => {
+					if (!resp.exc) {
+						this.google_drive_settings = resp.message;
+					}
+				}
+			});
+		}
 	},
 	watch: {
 		files(newvalue, oldvalue) {
