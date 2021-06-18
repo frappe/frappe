@@ -232,37 +232,26 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 
 			*/
+
 			show = true;
+			let chart_widgets = this.data.chart_widgets;
+			let frm = this.frm;
 			let columns = this.data.chart_settings && this.data.chart_settings.columns ? this.data.chart_settings.columns : 2;
 			let height = this.data.chart_settings && this.data.chart_settings.height ? this.data.chart_settings.height : 240;
-			let not_undefined = function(e){return typeof(e) !== "undefined"};
-			var count = 0;
-			console.log(this.data.chart_widgets.map(r => r.filter_field));
-			Promise.all(
-				this.data.chart_widgets.map(widget => {
-					return new Promise((resolve, reject) => {
-						frappe.db.get_doc("Dashboard Chart", widget.chartname).then(chart => {
-							console.log(chart, widget.filter_field);
-							// see set_chart_filters in chart_widget.js 
-							if (! ["", undefined, null].includes(widget.filter_field)){
-								chart.chart_settings = {"filters": {}}
-								chart.chart_settings.filters[widget.filter_field] = this.frm.docname;
-								chart.filters_json = JSON.stringify(chart["chart_settings"]["filters"]);
-							}
-							if (! ["", undefined, null].includes(widget.width)){
-								chart.width = widget.width;
-							}
-							chart.count = count;
-							count = count + 1;
-							console.log("resolving ", chart.count, chart.chart_settings);
-							resolve(chart);
-						})
-					});
+			Promise.all(chart_widgets.map(widget => frappe.db.get_doc("Dashboard Chart", widget.chartname))).then(widget_docs => {
+				let widgets = widget_docs.map(function(chart, i) {
+					let widget_setting = chart_widgets[i];
+					if (! ["", undefined, null].includes(widget_setting.filter_field)){
+						chart.chart_settings = {"filters": {}}
+						chart.chart_settings.filters[widget_setting.filter_field] = frm.docname;
+						chart.filters_json = JSON.stringify(chart["chart_settings"]["filters"]);
+					}
+					if (! ["", undefined, null].includes(widget_setting.width)){
+						chart.width = widget_setting.width;
+					}
+					return chart;
 				})
-			).then(widgets_responses => {
-				let widgets = widgets_responses; // .filter(not_undefined); // .map(r => r.message); // {let obj = r.message; obj.chart_settings = {filters: JSON.parse(obj.filters_json)}; return obj;});
-				console.log(widgets.map(r => [r.count, r.width, r.chart_settings]))
-				debugger;
+					
 				this.chart_widgets_area.body.empty();
 				this.chart_group = new frappe.widget.WidgetGroup({
 					container: $(this.chart_widgets_area.body),
@@ -279,13 +268,12 @@ frappe.ui.form.Dashboard = class FormDashboard {
 					widgets: widgets,
 					in_customize_mode: false,
 				});
+
 				// the chartslibrary does not like to render charts in to hidden dom nodes,
 				// but it still seems to work
-				// If it doesn't work anymore, we must be more clever:
+				// If it doesn't work anymore, we must be more clever.... 
 
 				this.chart_widgets_area.show();  
-				// this.chart_widgets_area.collapse();
-
 			});
 		}
 
