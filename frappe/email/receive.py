@@ -738,9 +738,6 @@ class InboundMail(Email):
 		if not reference_document and self.email_account.append_to:
 			reference_document = self.match_record_by_subject_and_sender(self.email_account.append_to)
 
-			# if not reference_document:
-			# 	reference_document = Create_reference_document(self.email_account.append_to)
-
 		self._reference_document = reference_document or ''
 		return self._reference_document
 
@@ -805,7 +802,7 @@ class InboundMail(Email):
 		except frappe.DuplicateEntryError:
 			# try and find matching parent
 			parent_name = frappe.db.get_value(self.email_account.append_to,
-				{email_fileds.sender_field: email.from_email}
+				{email_fileds.sender_field: self.from_email}
 			)
 			if parent_name:
 				parent.name = parent_name

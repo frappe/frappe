@@ -335,7 +335,7 @@ class Database(object):
 				values[key] = value[1]
 				if isinstance(value[1], (tuple, list)):
 					# value is a list in tuple ("in", ("A", "B"))
-					_rhs = " ({0})".format(", ".join([self.escape(v) for v in value[1]]))
+					_rhs = " ({0})".format(", ".join(self.escape(v) for v in value[1]))
 					del values[key]
 
 			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in", "not like"]:
@@ -1010,7 +1010,7 @@ class Database(object):
 			:params values: list of list of values
 		"""
 		insert_list = []
-		fields = ", ".join(["`"+field+"`" for field in fields])
+		fields = ", ".join("`"+field+"`" for field in fields)
 
 		for idx, value in enumerate(values):
 			insert_list.append(tuple(value))

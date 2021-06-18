@@ -10,10 +10,10 @@ def resolve_class(classes):
 		return classes
 
 	if isinstance(classes, (list, tuple)):
-		return " ".join([resolve_class(c) for c in classes]).strip()
+		return " ".join(resolve_class(c) for c in classes).strip()
 
 	if isinstance(classes, dict):
-		return " ".join([classname for classname in classes if classes[classname]]).strip()
+		return " ".join(classname for classname in classes if classes[classname]).strip()
 
 	return classes
 

@@ -1,14 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-import frappe
-from frappe.model.document import get_controller
-from frappe.utils import get_datetime, nowdate, get_url
-from frappe.website.router import get_pages, get_all_page_context_from_doctypes
 from urllib.parse import quote
 
+import frappe
+from frappe.model.document import get_controller
+from frappe.utils import get_datetime, get_url, nowdate
+from frappe.website.router import get_pages
+
 no_cache = 1
-base_template_path = "templates/www/sitemap.xml"
+base_template_path = "www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
