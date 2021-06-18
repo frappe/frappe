@@ -92,7 +92,7 @@ def get_sidebar_items():
 def clear_cache():
 	clear_website_cache()
 
-	from frappe.website.render import clear_cache
+	from frappe.website.utils import clear_cache
 	clear_cache()
 
 def clear_website_cache(path=None):

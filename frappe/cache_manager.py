@@ -53,7 +53,7 @@ def clear_domain_cache(user=None):
 	cache.delete_value(domain_cache_keys)
 
 def clear_global_cache():
-	from frappe.website.render import clear_cache as clear_website_cache
+	from frappe.website.utils import clear_website_cache
 
 	clear_doctype_cache()
 	clear_website_cache()
