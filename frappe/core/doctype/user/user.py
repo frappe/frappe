@@ -446,6 +446,7 @@ class User(Document):
 		"""Add roles to user and save"""
 		self.append_roles(*roles)
 		self.save()
+		self.reload()
 
 	def remove_roles(self, *roles):
 		existing_roles = dict((d.role, d) for d in self.get("roles"))
