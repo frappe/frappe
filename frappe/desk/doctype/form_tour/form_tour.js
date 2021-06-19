@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Form Tour', {
 	setup: function(frm) {
-		if (!frm.doc.is_standard) {
+		if (!frm.doc.is_standard || frappe.boot.developer_mode) {
 			frm.trigger('setup_queries');
 		}
 	},
@@ -12,6 +12,23 @@ frappe.ui.form.on('Form Tour', {
 		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
 			frm.trigger("disable_form");
 		}
+
+		frm.add_custom_button(__('Show Tour'), async () => {
+			const issingle = await check_if_single(frm.doc.reference_doctype);
+
+			if (issingle) {
+				frappe.set_route('Form', frm.doc.reference_doctype)
+			} else {
+				const new_name =  'new-' + frappe.scrub(frm.doc.reference_doctype) + '-1';
+				frappe.set_route('Form', frm.doc.reference_doctype, new_name);
+			}
+			frappe.utils.sleep(500).then(() => {
+				const tour_name = frm.doc.name;
+				cur_frm.tour
+					.init({ tour_name })
+					.then(() => cur_frm.tour.start());
+			});
+		});
 	},
 
 	disable_form: function(frm) {
@@ -98,4 +115,9 @@ function get_child_field(child_table, child_name, fieldname) {
 	const grid = cur_frm.fields_dict[child_table].grid;
 	const grid_row = grid.grid_rows_by_docname[child_name];
 	return grid_row.grid_form.fields_dict[fieldname];
+}
+
+async function check_if_single(doctype) {
+	const { message } = await frappe.db.get_value('DocType', doctype, 'issingle');
+	return message.issingle || 0;
 }
