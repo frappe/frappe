@@ -172,9 +172,16 @@ def start_scheduler():
 @click.command('worker')
 @click.option('--queue', type=str)
 @click.option('--quiet', is_flag = True, default = False, help = 'Hide Log Outputs')
-def start_worker(queue, quiet = False):
+@click.option('--site', default=None, help='site name')
+@click.option('-u', '--rq-username', default=None, help='Redis ACL user')
+@click.option('-p', '--rq-password', default=None, help='Redis ACL user password')
+@pass_context
+def start_worker(context, queue, quiet = False, site=None, rq_username=None, rq_password=None):
+	"""Site is used to find redis credentals.
+	"""
 	from frappe.utils.background_jobs import start_worker
-	start_worker(queue, quiet = quiet)
+	site = site or get_site(context, raise_err=False)
+	start_worker(queue, quiet = quiet, site=site, rq_username=rq_username, rq_password=rq_password)
 
 @click.command('ready-for-migration')
 @click.option('--site', help='site name')

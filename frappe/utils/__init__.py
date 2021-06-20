@@ -386,8 +386,8 @@ def get_bench_path():
 def get_bench_id():
 	return frappe.local.conf.get('bench_id', 'DefaultBench')
 
-def get_site_id():
-	return f"{frappe.local.site}@{get_bench_id()}"
+def get_site_id(site=None):
+	return f"{site or frappe.local.site}@{get_bench_id()}"
 
 def get_backups_path():
 	return get_site_path("private", "backups")

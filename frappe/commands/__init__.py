@@ -23,6 +23,7 @@ def pass_context(f):
 			pr.enable()
 
 		try:
+			# TODO: ctx need to be passed instead of ctx.obj
 			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
 		except frappe.exceptions.SiteNotSpecifiedError as e:
 			click.secho(str(e), fg='yellow')
@@ -102,7 +103,8 @@ def get_commands():
 	from .site import commands as site_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
-
-	return list(set(scheduler_commands + site_commands + translate_commands + utils_commands))
+	from .redis import commands as redis_commands
+	all_commands = scheduler_commands + site_commands + translate_commands + utils_commands + redis_commands
+	return list(set(all_commands))
 
 commands = get_commands()

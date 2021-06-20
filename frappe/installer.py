@@ -7,6 +7,8 @@ import sys
 
 import frappe
 from frappe.defaults import _clear_cache
+from frappe.utils import get_site_id
+from frappe.utils.rq import RedisQueue
 
 
 def _new_site(
@@ -82,6 +84,10 @@ def _new_site(
 
 	scheduler.toggle_scheduler(enable_scheduler)
 	frappe.db.commit()
+
+	if frappe.conf.get('use_redis_auth'):
+		rq = RedisQueue.new()
+		rq.add_user(get_site_id())
 
 	scheduler_status = (
 		"disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"

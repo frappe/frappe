@@ -674,14 +674,15 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 	click.secho("Running Cypress...", fg="yellow")
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
 
-
 @click.command('serve')
 @click.option('--port', default=8000)
 @click.option('--profile', is_flag=True, default=False)
 @click.option('--noreload', "no_reload", is_flag=True, default=False)
 @click.option('--nothreading', "no_threading", is_flag=True, default=False)
+@click.option('--sync-rq-user', is_flag=True, default=False)
 @pass_context
-def serve(context, port=None, profile=False, no_reload=False, no_threading=False, sites_path='.', site=None):
+def serve(context, port=None, profile=False, no_reload=False,
+		no_threading=False, sites_path='.', site=None, sync_rq_user=False):
 	"Start development web server"
 	import frappe.app
 
@@ -689,6 +690,10 @@ def serve(context, port=None, profile=False, no_reload=False, no_threading=False
 		site = None
 	else:
 		site = context.sites[0]
+
+	if sync_rq_user and site:
+		from frappe.commands.redis import sync_rq_user
+		context.invoke(sync_rq_user, site=site)
 
 	frappe.app.serve(port=port, profile=profile, no_reload=no_reload, no_threading=no_threading, site=site, sites_path='.')
 

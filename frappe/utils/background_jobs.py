@@ -1,14 +1,18 @@
-from typing import List
+import os, socket, time
+from uuid import uuid4
+from collections import defaultdict
+
 import redis
+from typing import List
 from rq import Connection, Queue, Worker
 from rq.logutils import setup_loghandlers
-from frappe.utils import cstr, get_bench_id
-from collections import defaultdict
+
 import frappe
-import os, socket, time
 from frappe import _
-from uuid import uuid4
 import frappe.monitor
+from frappe.utils import cstr, get_bench_id, get_site_id
+from frappe.utils.rq import RedisQueue
+from frappe.utils.commands import log
 
 
 default_timeout = 300
@@ -123,7 +127,6 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		frappe.db.commit()
 		print(frappe.get_traceback())
 		raise
-
 	else:
 		frappe.db.commit()
 
@@ -132,11 +135,11 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		if is_async:
 			frappe.destroy()
 
-def start_worker(queue=None, quiet = False):
+def start_worker(queue=None, quiet = False, site=None, rq_username=None, rq_password=None):
 	'''Wrapper to start rq worker. Connects to redis and monitors these queues.'''
-	with frappe.init_site():
+	with frappe.init_site(site=site):
 		# empty init is required to get redis_queue from common_site_config.json
-		redis_connection = get_redis_conn()
+		redis_connection = get_redis_conn(username=rq_username, password=rq_password)
 		queues = get_queue_list(queue)
 
 	if os.environ.get('CI'):
@@ -226,7 +229,7 @@ def validate_queue(queue, default_queue_list=None):
 	if queue not in default_queue_list:
 		frappe.throw(_("Queue should be one of {0}").format(', '.join(default_queue_list)))
 
-def get_redis_conn():
+def get_redis_conn(username=None, password=None):
 	if not hasattr(frappe.local, 'conf'):
 		raise Exception('You need to call frappe.init')
 
@@ -235,8 +238,28 @@ def get_redis_conn():
 
 	global redis_connection
 
-	if not redis_connection:
-		redis_connection = redis.from_url(frappe.local.conf.redis_queue)
+	cred = {}
+	if frappe.conf.get('use_redis_auth'):
+		if username:
+			cred['username'] = username
+			cred['password'] = password
+		elif frappe.local.site:
+			cred['username'] = get_site_id()
+			cred['password'] = frappe.get_site_config().rq_password
+
+	try:
+		redis_connection = RedisQueue.get_connection(**cred)
+	except (redis.exceptions.AuthenticationError, redis.exceptions.ResponseError):
+		if cred:
+			log('Wrong user credentials used. You can reset credentials using `bench sync-rq-user` CLI',
+				colour='red')
+		else:
+			log('You can not access redis queue without credentials. Please enable use_redis_auth flag and try',
+				colour='red')
+		raise
+	except:
+		log(f'Please make sure that Redis Queue runs @ {frappe.local.conf.redis_queue}', colour='red')
+		raise
 
 	return redis_connection
 
@@ -257,6 +280,7 @@ def is_queue_accessible(qobj: Queue) -> bool:
 	accessible_queues = [rename_queue(q) for q in list(queue_timeout)]
 	return qobj.name in accessible_queues
 
+@frappe.whitelist()
 def enqueue_test_job():
 	enqueue('frappe.utils.background_jobs.test_job', s=100)
 

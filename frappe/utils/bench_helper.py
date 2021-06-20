@@ -44,7 +44,8 @@ def app_group(ctx, site=False, force=False, verbose=False, profile=False):
 		'sites': get_sites(site),
 		'force': force,
 		'verbose': verbose,
-		'profile': profile
+		'profile': profile,
+		'invoke': ctx.invoke #FixMe: Remove when the whole contxt object is passed to command instead of ctx.obj
 	}
 	if ctx.info_name == 'frappe':
 		ctx.info_name = ''
