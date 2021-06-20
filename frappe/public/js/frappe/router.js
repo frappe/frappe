@@ -457,8 +457,9 @@ frappe.router = {
 	},
 
 	slug(name) {
-		return name.toLowerCase().replace(/ /g, "-");
-	},
+		if (!name) return "";
+		return name.toLowerCase().replace(/ /g, '-');
+	}
 };
 
 // global functions for backward compatibility
