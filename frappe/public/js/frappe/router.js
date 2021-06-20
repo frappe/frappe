@@ -416,6 +416,7 @@ frappe.router = {
 	},
 
 	slug(name) {
+		if (!name) return "";
 		return name.toLowerCase().replace(/ /g, '-');
 	}
 };
