@@ -354,7 +354,7 @@ class BaseDocument(object):
 			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
 					VALUES ({values})""".format(
 					doctype = self.doctype,
-					columns = ", ".join(["`"+c+"`" for c in columns]),
+					columns = ", ".join("`"+c+"`" for c in columns),
 					values = ", ".join(["%s"] * len(columns))
 				), list(d.values()))
 		except Exception as e:
@@ -397,7 +397,7 @@ class BaseDocument(object):
 			frappe.db.sql("""UPDATE `tab{doctype}`
 				SET {values} WHERE `name`=%s""".format(
 					doctype = self.doctype,
-					values = ", ".join(["`"+c+"`=%s" for c in columns])
+					values = ", ".join("`"+c+"`=%s" for c in columns)
 				), list(d.values()) + [name])
 		except Exception as e:
 			if frappe.db.is_unique_key_violation(e):

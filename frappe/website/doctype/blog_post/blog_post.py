@@ -4,18 +4,13 @@
 import frappe
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.website.render import clear_cache
+from frappe.website.utils import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown, sanitize_html
 from math import ceil
 from frappe.website.utils import (find_first_image, get_html_content_based_on_type,
 	get_comment_list)
 
 class BlogPost(WebsiteGenerator):
-	website = frappe._dict(
-		route = 'blog',
-		order_by = "published_on desc"
-	)
-
 	@frappe.whitelist()
 	def make_route(self):
 		if not self.route:
@@ -102,12 +97,14 @@ class BlogPost(WebsiteGenerator):
 		context.metatags["image"] = self.meta_image or image or None
 
 		self.load_comments(context)
+		self.load_feedback(context)
 
 		context.category = frappe.db.get_value("Blog Category",
 			context.doc.blog_category, ["title", "route"], as_dict=1)
 		context.parents = [{"name": _("Home"), "route":"/"},
 			{"name": "Blog", "route": "/blog"},
 			{"label": context.category.title, "route":context.category.route}]
+		context.guest_allowed = True
 
 	def fetch_cta(self):
 		if frappe.db.get_single_value("Blog Settings", "show_cta_in_blog", cache=True):
@@ -148,6 +145,17 @@ class BlogPost(WebsiteGenerator):
 				context.comment_text = _('1 comment')
 			else:
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
+
+	def load_feedback(self, context):
+		feedback = frappe.get_all('Feedback',
+			fields=['email', 'feedback', 'rating'],
+			filters=dict(
+				reference_doctype=self.doctype,
+				reference_name=self.name,
+				email=frappe.session.user
+			)
+		)
+		context.user_feedback = feedback[0] if feedback else ''
 
 	def set_read_time(self):
 		content = self.content or self.content_html or ''

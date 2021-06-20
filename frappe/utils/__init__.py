@@ -189,7 +189,7 @@ def random_string(length):
 	"""generate a random string"""
 	import string
 	from random import choice
-	return ''.join([choice(string.ascii_letters + string.digits) for i in range(length)])
+	return ''.join(choice(string.ascii_letters + string.digits) for i in range(length))
 
 
 def has_gravatar(email):
@@ -311,7 +311,7 @@ def make_esc(esc_chars):
 	"""
 		Function generator for Escaping special characters
 	"""
-	return lambda s: ''.join(['\\' + c if c in esc_chars else c for c in s])
+	return lambda s: ''.join('\\' + c if c in esc_chars else c for c in s)
 
 # esc / unescape characters -- used for command line
 def esc(s, esc_chars):
@@ -748,9 +748,9 @@ def set_request(**kwargs):
 	frappe.local.request = Request(builder.get_environ())
 
 def get_html_for_route(route):
-	from frappe.website import render
+	from frappe.website.serve import get_response
 	set_request(method='GET', path=route)
-	response = render.render()
+	response = get_response()
 	html = frappe.safe_decode(response.get_data())
 	return html
 

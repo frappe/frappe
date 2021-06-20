@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.website.render import clear_cache
+from frappe.website.utils import clear_cache
 
 class BlogCategory(WebsiteGenerator):
 	def autoname(self):
