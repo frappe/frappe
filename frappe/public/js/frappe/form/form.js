@@ -446,8 +446,6 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this.refresh_fields(),
 				// call trigger
 				() => this.script_manager.trigger("refresh"),
-				// route back to the parent document
-				() => frappe.router.route(),
 				// call onload post render for callbacks to be fired
 				() => {
 					if(this.cscript.is_onload) {
@@ -989,7 +987,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		frappe.re_route[frappe.router.get_sub_path()] = `${encodeURIComponent(frappe.router.slug(this.doctype))}/${encodeURIComponent(name)}`;
-		frappe.set_route('Form', this.doctype, name);
+		!frappe._from_link && frappe.set_route('Form', this.doctype, name);
 	}
 
 	// ACTIONS
