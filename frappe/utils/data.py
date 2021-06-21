@@ -1097,7 +1097,9 @@ def get_url(uri=None, full_address=False):
 	if not uri and full_address:
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
-	port = frappe.conf.http_port or frappe.conf.webserver_port
+	port = frappe.get_request_header('X-Forwarded-Port', None)
+	if not port:
+		port = frappe.conf.http_port or frappe.conf.webserver_port
 
 	if not (frappe.conf.restart_supervisor_on_update or frappe.conf.restart_systemd_on_update) and host_name and not url_contains_port(host_name) and port:
 		host_name = host_name + ':' + str(port)
