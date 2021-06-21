@@ -282,10 +282,10 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 
 def post_install(rebuild_website=False):
-	from frappe.website import render
+	from frappe.website.utils import clear_website_cache
 
 	if rebuild_website:
-		render.clear_cache()
+		clear_website_cache()
 
 	init_singles()
 	frappe.db.commit()

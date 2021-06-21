@@ -9,7 +9,7 @@ from frappe.core.doctype.user.user import extract_mentions
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
 	get_title, get_title_html
 from frappe.utils import get_fullname
-from frappe.website.render import clear_cache
+from frappe.website.utils import clear_cache
 from frappe.database.schema import add_column
 from frappe.exceptions import ImplicitCommitError
 

@@ -16,9 +16,9 @@ import frappe.handler
 import frappe.auth
 import frappe.api
 import frappe.utils.response
-import frappe.website.render
 from frappe.utils import get_site_name, sanitize_html
 from frappe.middlewares import StaticDataMiddleware
+from frappe.website.serve import get_response
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
@@ -72,7 +72,7 @@ def application(request):
 			response = frappe.utils.response.download_private_file(request.path)
 
 		elif request.method in ('GET', 'HEAD', 'POST'):
-			response = frappe.website.render.render()
+			response = get_response()
 
 		else:
 			raise NotFound
@@ -266,8 +266,7 @@ def handle_exception(e):
 		make_error_snapshot(e)
 
 	if return_as_message:
-		response = frappe.website.render.render("message",
-			http_status_code=http_status_code)
+		response = get_response("message", http_status_code=http_status_code)
 
 	return response
 
