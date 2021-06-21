@@ -160,7 +160,13 @@ frappe.ui.form.Control = class BaseControl {
 	validate_and_set_in_model(value, e) {
 		var me = this;
 		let force_value_set = (this.doc && this.doc.__run_link_triggers);
-		let is_value_same = (this.get_model_value() === value);
+		let model_value = this.get_model_value();
+
+		if (this.df && this.df.fieldtype == 'Datetime') {
+			model_value = frappe.datetime.get_datetime_as_string(model_value);
+		}
+
+		let is_value_same = (model_value === value);
 
 		if (this.inside_change_event || (!force_value_set && is_value_same)) {
 			return Promise.resolve();
