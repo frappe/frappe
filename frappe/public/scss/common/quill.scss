@@ -176,6 +176,7 @@
 }
 
 .ql-editor.read-mode {
+	height: unset;
 	padding: 0;
 	.mention {
 		--user-mention-bg-color: var(--control-bg);

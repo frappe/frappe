@@ -505,8 +505,9 @@ window.print();
 
 // close the window after print
 // NOTE: doesn't close if print is cancelled in Chrome
+// Changed timeout to 5s from 1s because it blocked mobile view rendering
 setTimeout(function() {
 	window.close();
-}, 1000);
+}, 5000);
 </script>
 """

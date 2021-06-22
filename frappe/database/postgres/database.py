@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import re
 import frappe
 import psycopg2
@@ -65,7 +63,6 @@ class PostgresDatabase(Database):
 		}
 
 	def get_connection(self):
-		# warnings.filterwarnings('ignore', category=psycopg2.Warning)
 		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
 			self.host, self.user, self.user, self.password, self.port
 		))

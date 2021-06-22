@@ -41,6 +41,7 @@ class TestSeen(unittest.TestCase):
 		self.assertTrue('test1@example.com' in json.loads(ev._seen))
 
 		ev.save()
+		ev = frappe.get_doc('Event', ev.name)
 
 		self.assertFalse('test@example.com' in json.loads(ev._seen))
 		self.assertTrue('test1@example.com' in json.loads(ev._seen))
