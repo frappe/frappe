@@ -1,11 +1,5 @@
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
-execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.', '.v4_0.')""") #2014-05-12
-frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
 execute:frappe.utils.global_search.setup_global_search_table()
-frappe.patches.v8_0.update_global_search_table
-frappe.patches.v7_0.update_auth
-frappe.patches.v8_0.drop_in_dialog #2017-09-22
-frappe.patches.v7_2.remove_in_filter
 execute:frappe.reload_doc('core', 'doctype', 'doctype_action', force=True) #2019-09-23
 execute:frappe.reload_doc('core', 'doctype', 'doctype_link', force=True) #2020-10-17
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-09-22
@@ -14,7 +8,6 @@ frappe.patches.v11_0.drop_column_apply_user_permissions
 execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2018-05-29
 execute:frappe.reload_doc('core', 'doctype', 'comment')
-frappe.patches.v8_0.drop_is_custom_from_docperm
 execute:frappe.reload_doc('core', 'doctype', 'document_naming_rule', force=True)
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2020-08-28
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
@@ -25,190 +18,40 @@ execute:frappe.reload_doc('core', 'doctype', 'communication') #2019-10-02
 execute:frappe.reload_doc('core', 'doctype', 'server_script')
 frappe.patches.v11_0.replicate_old_user_permissions
 frappe.patches.v11_0.reload_and_rename_view_log #2019-01-03
-frappe.patches.v7_1.rename_scheduler_log_to_error_log
-frappe.patches.v6_1.rename_file_data
-frappe.patches.v7_0.re_route #2016-06-27
-frappe.patches.v8_0.update_records_in_global_search #11-05-2017
-frappe.patches.v8_0.update_published_in_global_search
 frappe.patches.v11_0.copy_fetch_data_from_options
 frappe.patches.v11_0.change_email_signature_fieldtype
 execute:frappe.reload_doc('core', 'doctype', 'activity_log')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
 execute:frappe.reload_doc('core', 'doctype', 'domain_settings')
 frappe.patches.v13_0.rename_custom_client_script
-frappe.patches.v8_0.rename_page_role_to_has_role #2017-03-16
-frappe.patches.v7_2.setup_custom_perms #2017-01-19
-frappe.patches.v8_0.set_user_permission_for_page_and_report #2017-03-20
 execute:frappe.reload_doc('core', 'doctype', 'role') #2017-05-23
 execute:frappe.reload_doc('core', 'doctype', 'user') #2017-10-27
-execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
-execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
 execute:frappe.reload_doc('core', 'doctype', 'report_column')
 execute:frappe.reload_doc('core', 'doctype', 'report_filter')
 execute:frappe.reload_doc('core', 'doctype', 'report') #2020-08-25
-execute:frappe.reload_doc('core', 'doctype', 'translation') #2016-03-03
-execute:frappe.reload_doc('email', 'doctype', 'email_alert') #2014-07-15
-execute:frappe.reload_doc('desk', 'doctype', 'todo') #2014-12-31-1
-execute:frappe.reload_doc('custom', 'doctype', 'property_setter') #2014-12-31-1
-execute:frappe.reload_doc('core', 'doctype', 'patch_log') #2016-10-31
-execute:frappe.reload_doctype("File") # 2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'error_snapshot')
-execute:frappe.clear_cache()
-frappe.patches.v7_1.rename_scheduler_log_to_error_log
-frappe.patches.v7_1.sync_language_doctype
-frappe.patches.v7_0.rename_bulk_email_to_email_queue
-frappe.patches.v7_1.rename_chinese_language_codes
-
-execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), engine=InnoDB")
-execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
-frappe.patches.v4_0.change_varchar_length
-frappe.patches.v6_4.reduce_varchar_length
-frappe.patches.v5_2.change_checks_to_not_null
-frappe.patches.v6_9.int_float_not_null #2015-11-25
-frappe.patches.v5_0.v4_to_v5
-
-frappe.patches.v5_0.remove_shopping_cart_app
-frappe.patches.v4_0.webnotes_to_frappe
-execute:frappe.permissions.reset_perms("Module Def")
-execute:import frappe.installer;frappe.installer.make_site_dirs() #2014-02-19
-frappe.patches.v4_0.rename_profile_to_user
-frappe.patches.v4_0.deprecate_control_panel
-frappe.patches.v4_0.remove_old_parent
-frappe.patches.v4_0.rename_sitemap_to_route
-frappe.patches.v4_0.website_sitemap_hierarchy
-frappe.patches.v4_0.remove_index_sitemap
-frappe.patches.v4_0.set_website_route_idx
-frappe.patches.v4_0.add_delete_permission
-frappe.patches.v4_0.set_todo_checked_as_closed
-frappe.patches.v4_0.private_backups
-frappe.patches.v4_0.set_module_in_report
-frappe.patches.v4_0.update_datetime
-frappe.patches.v4_0.file_manager_hooks
 execute:frappe.get_doc("User", "Guest").save()
-frappe.patches.v4_0.update_custom_field_insert_after
-frappe.patches.v4_0.deprecate_link_selects
-frappe.patches.v4_0.set_user_gravatar
-frappe.patches.v4_0.set_user_permissions
-frappe.patches.v4_0.create_custom_field_for_owner_match
-frappe.patches.v4_0.enable_scheduler_in_system_settings
-execute:frappe.db.sql("update tabReport set apply_user_permissions=1") #2014-06-03
-frappe.patches.v4_0.replace_deprecated_timezones
-execute:import frappe.website.render; frappe.website.render.clear_cache("login"); #2014-06-10
-frappe.patches.v4_0.fix_attach_field_file_url
-execute:frappe.permissions.reset_perms("User") #2015-03-24
-execute:frappe.db.sql("""delete from `tabUserRole` where ifnull(parentfield, '')='' or ifnull(`role`, '')=''""") #2014-08-18
-frappe.patches.v4_0.remove_user_owner_custom_field
-execute:frappe.delete_doc("DocType", "Website Template")
-execute:frappe.db.sql("""update `tabProperty Setter` set property_type='Text' where property in ('options', 'default')""") #2014-06-20
-frappe.patches.v4_1.enable_outgoing_email_settings
-execute:frappe.db.sql("""update `tabSingles` set `value`=`doctype` where `field`='name'""") #2014-07-04
-frappe.patches.v4_1.enable_print_as_pdf #2014-06-17
-execute:frappe.db.sql("""update `tabDocPerm` set email=1 where parent='User' and permlevel=0 and `role`='All' and `read`=1 and apply_user_permissions=1""") #2014-07-15
-execute:frappe.db.sql("""update `tabPrint Format` set print_format_type='Client' where ifnull(print_format_type, '')=''""") #2014-07-28
-frappe.patches.v4_1.file_manager_fix
-frappe.patches.v4_2.print_with_letterhead
 execute:frappe.delete_doc("DocType", "Control Panel", force=1)
-execute:frappe.reload_doc('website', 'doctype', 'web_form') #2014-09-04
-execute:frappe.reload_doc('website', 'doctype', 'web_form_field') #2014-09-04
-frappe.patches.v4_2.refactor_website_routing
-frappe.patches.v4_2.set_assign_in_doc
-frappe.patches.v4_3.remove_allow_on_submit_customization
-frappe.patches.v5_0.rename_table_fieldnames
-frappe.patches.v5_0.communication_parent
-frappe.patches.v5_0.clear_website_group_and_notifications
-frappe.patches.v5_0.update_shared
-execute:frappe.reload_doc("core", "doctype", "docshare") #2015-07-21
-frappe.patches.v6_19.comment_feed_communication
-frappe.patches.v6_16.star_to_like
-frappe.patches.v5_0.bookmarks_to_stars
-frappe.patches.v5_0.style_settings_to_website_theme
-frappe.patches.v5_0.rename_ref_type_fieldnames
-frappe.patches.v5_0.fix_email_alert
-frappe.patches.v5_0.fix_null_date_datetime
-frappe.patches.v5_0.force_sync_website
 execute:frappe.delete_doc("DocType", "Tag")
 execute:frappe.db.sql("delete from `tabProperty Setter` where `property` in ('idx', '_idx')")
-frappe.patches.v5_0.move_scheduler_last_event_to_system_settings
 execute:frappe.db.sql("update tabUser set new_password='' where ifnull(new_password, '')!=''")
-frappe.patches.v5_0.fix_text_editor_file_urls
-frappe.patches.v5_0.modify_session
-frappe.patches.v5_0.expire_old_scheduler_logs
 execute:frappe.permissions.reset_perms("DocType")
 execute:frappe.db.sql("delete from `tabProperty Setter` where `property` = 'idx'")
-frappe.patches.v6_0.communication_status_and_permission
-frappe.patches.v6_0.make_task_log_folder
-frappe.patches.v6_0.document_type_rename
-frappe.patches.v6_0.fix_ghana_currency
-frappe.patches.v6_2.ignore_user_permissions_if_missing
 execute:frappe.db.sql("delete from tabSessions where user is null")
-frappe.patches.v6_2.rename_backup_manager
 execute:frappe.delete_doc("DocType", "Backup Manager")
-execute:frappe.db.sql("""update `tabCommunication` set parenttype=null, parent=null, parentfield=null""") #2015-10-22
 execute:frappe.permissions.reset_perms("Web Page")
-frappe.patches.v6_6.user_last_active
-frappe.patches.v6_6.fix_file_url
-frappe.patches.v6_11.rename_field_in_email_account
-frappe.patches.v7_0.create_private_file_folder
-frappe.patches.v6_15.remove_property_setter_for_previous_field #2015-12-29
-frappe.patches.v6_15.set_username
 execute:frappe.permissions.reset_perms("Error Snapshot")
-frappe.patches.v6_16.feed_doc_owner
-frappe.patches.v6_21.print_settings_repeat_header_footer
-frappe.patches.v6_24.set_language_as_code
-frappe.patches.v6_20x.update_insert_after
-frappe.patches.v6_20x.set_allow_draft_for_print
-frappe.patches.v6_20x.remove_roles_from_website_user
-frappe.patches.v7_0.set_user_fullname
-frappe.patches.v7_0.add_communication_in_doc
-frappe.patches.v7_0.update_send_after_in_bulk_email
-execute:frappe.db.sql('''delete from `tabSingles` where doctype="Email Settings"''') # 2016-06-13
 execute:frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
-frappe.patches.v7_0.rename_newsletter_list_to_email_group
-frappe.patches.v7_0.set_email_group
-frappe.patches.v7_1.setup_integration_services #2016-10-27
-frappe.patches.v7_1.rename_chinese_language_codes
 execute:frappe.core.doctype.language.language.update_language_names() # 2017-04-12
 execute:frappe.db.set_value("Print Settings", "Print Settings", "add_draft_heading", 1)
-frappe.patches.v7_0.cleanup_list_settings
 execute:frappe.db.set_default('language', '')
-frappe.patches.v7_1.refactor_integration_broker
-frappe.patches.v7_1.set_backup_limit
-frappe.patches.v7_2.set_doctype_engine
-frappe.patches.v7_2.merge_knowledge_base
-frappe.patches.v7_0.update_report_builder_json
-frappe.patches.v7_2.set_in_standard_filter_property #1
-frappe.patches.v8_0.drop_unwanted_indexes
 execute:frappe.db.sql("update tabCommunication set communication_date = creation where time(communication_date) = 0")
-frappe.patches.v7_2.fix_email_queue_recipient
-frappe.patches.v7_2.update_feedback_request # 2017-02-27
 execute:frappe.rename_doc('Country', 'Macedonia, Republic of', 'Macedonia', ignore_if_exists=True)
 execute:frappe.rename_doc('Country', 'Iran, Islamic Republic of', 'Iran', ignore_if_exists=True)
 execute:frappe.rename_doc('Country', 'Tanzania, United Republic of', 'Tanzania', ignore_if_exists=True)
 execute:frappe.rename_doc('Country', 'Syrian Arab Republic', 'Syria', ignore_if_exists=True)
-frappe.patches.v8_0.rename_listsettings_to_usersettings
-frappe.patches.v7_2.update_communications
-frappe.patches.v8_0.deprecate_integration_broker
-frappe.patches.v8_0.update_gender_and_salutation
-frappe.patches.v8_0.setup_email_inbox #2017-03-29
-frappe.patches.v8_0.newsletter_childtable_migrate
-frappe.patches.v8_0.set_doctype_values_in_custom_role
-frappe.patches.v8_0.install_new_build_system_requirements
-frappe.patches.v8_0.set_currency_field_precision	# 2017-05-09
 execute:frappe.reload_doc('desk', 'doctype', 'notification_log')
-frappe.patches.v8_0.rename_print_to_printing
-frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
 execute:frappe.db.sql('update tabReport set module="Desk" where name="ToDo"')
-frappe.patches.v8_1.enable_allow_error_traceback_in_system_settings
-frappe.patches.v8_1.update_format_options_in_auto_email_report
-frappe.patches.v8_1.delete_custom_docperm_if_doctype_not_exists
-frappe.patches.v8_5.delete_email_group_member_with_invalid_emails
-frappe.patches.v8_x.update_user_permission
-frappe.patches.v8_5.patch_event_colors
-frappe.patches.v8_10.delete_static_web_page_from_global_search
-frappe.patches.v9_1.add_sms_sender_name_as_parameters
-frappe.patches.v9_1.resave_domain_settings
-frappe.patches.v9_1.revert_domain_settings
-frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
 frappe.patches.v10_0.reload_countries_and_currencies # 2021-02-03
 frappe.patches.v10_0.refactor_social_login_keys

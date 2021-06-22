@@ -2,12 +2,10 @@
 # MIT License. See license.txt
 # Author - Shivam Mishra <shivam@frappe.io>
 
-from __future__ import unicode_literals
 import frappe
 from json import loads, dumps
 from frappe import _, DoesNotExistError, ValidationError, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
-from six import string_types
 from functools import wraps
 from frappe.cache_manager import (
 	build_domain_restriced_doctype_cache,
@@ -61,7 +59,7 @@ class Workspace:
 		shortcuts = self.doc.shortcuts + self.extended_shortcuts
 
 		for section in cards:
-			links = loads(section.get('links')) if isinstance(section.get('links'), string_types) else section.get('links')
+			links = loads(section.get('links')) if isinstance(section.get('links'), str) else section.get('links')
 			for item in links:
 				if self.is_item_allowed(item.get('link_to'), item.get('link_type')):
 					return True

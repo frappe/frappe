@@ -1,16 +1,17 @@
-from __future__ import unicode_literals
-import frappe
-from frappe.utils.global_search import web_search
 from html2text import html2text
-from frappe import _
 from jinja2 import utils
+
+import frappe
+from frappe import _
 from frappe.utils import sanitize_html
+from frappe.utils.global_search import web_search
+
 
 def get_context(context):
 	context.no_cache = 1
 	if frappe.form_dict.q:
 		query = str(utils.escape(sanitize_html(frappe.form_dict.q)))
-		context.title = _('Search Results for ')
+		context.title = _('Search Results for')
 		context.query = query
 		context.route = '/search'
 		context.update(get_search_results(query, frappe.utils.sanitize_html(frappe.form_dict.scope)))

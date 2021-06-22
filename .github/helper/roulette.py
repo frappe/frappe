@@ -18,7 +18,7 @@ def is_js(file):
     return file.endswith("js")
 
 def is_docs(file):
-    regex = re.compile('\.(md|png|jpg|jpeg)$|^.github|LICENSE')
+    regex = re.compile(r'\.(md|png|jpg|jpeg)$|^.github|LICENSE')
     return bool(regex.search(file))
 
 

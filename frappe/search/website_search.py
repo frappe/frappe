@@ -9,7 +9,7 @@ from whoosh.fields import ID, TEXT, Schema
 import frappe
 from frappe.search.full_text_search import FullTextSearch
 from frappe.utils import set_request, update_progress_bar
-from frappe.website.render import render_page
+from frappe.website.serve import get_response_content
 
 INDEX_NAME = "web_routes"
 
@@ -61,7 +61,7 @@ class WebsiteSearch(FullTextSearch):
 
 		try:
 			set_request(method="GET", path=route)
-			content = render_page(route)
+			content = get_response_content(route)
 			soup = BeautifulSoup(content, "html.parser")
 			page_content = soup.find(class_="page_content")
 			text_content = page_content.text if page_content else ""

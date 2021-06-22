@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import frappe
 import os
 from frappe.database.db_manager import DbManager
