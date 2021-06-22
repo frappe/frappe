@@ -179,7 +179,14 @@ class SendMailContext:
 		else:
 			email_status = self.is_mail_sent_to_all() and 'Sent'
 			email_status = email_status or (self.sent_to and 'Partially Sent') or 'Not Sent'
-			self.queue_doc.update_status(status = email_status, commit = True)
+
+			update_fields = {'status': email_status}
+			if self.email_account_doc.is_exists_in_db():
+				update_fields['email_account'] = self.email_account_doc.name
+			else:
+				update_fields['email_account'] = None
+
+			self.queue_doc.update_status(**update_fields, commit = True)
 
 	def log_exception(self, exc_type, exc_val, exc_tb):
 		if exc_type:
