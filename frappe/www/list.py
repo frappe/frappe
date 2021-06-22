@@ -161,6 +161,14 @@ def get_list_context(context, doctype, web_form_name=None):
 		module = load_doctype_module(doctype)
 		list_context = update_context_from_module(module, list_context)
 
+	# get context for custom doctype
+	if meta.custom:
+		get_custom_website_context = frappe.get_hooks('get_custom_website_context')
+		if get_custom_website_context:
+			out = frappe._dict(frappe.get_attr(get_custom_website_context[0])() or {})
+			if out:
+				list_context = out
+
 	# get context from web form module
 	if web_form_name:
 		web_form = frappe.get_doc('Web Form', web_form_name)
