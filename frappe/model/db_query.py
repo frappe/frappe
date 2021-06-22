@@ -128,6 +128,14 @@ class DatabaseQuery(object):
 			args.fields = 'distinct ' + args.fields
 			args.order_by = '' # TODO: recheck for alternative
 
+		if args.order_by and args.group_by:
+			order_field = args.order_by
+			order_field = order_field.replace(" order by ", "").replace(" ASC", "").replace(" DESC", "")
+			if not order_field in args.fields:
+				order_fieldm = order_field.replace("`", "")
+				args.fields += ", MAX(" + order_fieldm.split(".")[1] + ") as `" + order_fieldm + "`"
+				args.order_by = args.order_by.replace(order_field, "`" + order_fieldm + "`")
+
 		query = """select %(fields)s
 			from %(tables)s
 			%(conditions)s
