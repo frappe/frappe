@@ -18,12 +18,7 @@ from email.utils import formataddr, parseaddr
 from gzip import GzipFile
 from typing import Generator, Iterable
 
-<<<<<<< HEAD
 from urllib.parse import quote, urlparse
-=======
-from six import string_types, text_type
-from six.moves.urllib.parse import quote, urlparse
->>>>>>> 82b98330fd (feat: Add URL option for data type fields)
 from werkzeug.test import Client
 
 import frappe
@@ -165,52 +160,6 @@ def split_emails(txt):
 
 	return email_list
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-def validate_url(txt, throw=False, valid_schemes=None):
-	"""
-		Checks whether `txt` has a valid URL string
-
-		Parameters:
-			throw (`bool`): throws a validationError if URL is not valid
-			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
-
-		Returns:
-			bool: if `txt` represents a valid URL
-	"""
-	url = urlparse(txt)
-	is_valid = bool(url.netloc)
-
-	# Handle scheme validation
-	if isinstance(valid_schemes, str):
-		is_valid = is_valid and (url.scheme == valid_schemes)
-	elif isinstance(valid_schemes, (list, tuple, set)):
-		is_valid = is_valid and (url.scheme in valid_schemes)
-
-	if not is_valid and throw:
-		frappe.throw(
-			frappe._("'{0}' is not a valid URL").format(frappe.bold(txt))
-		)
-
-	return is_valid
-=======
-def validate_url(txt, throw=False):
-	try:
-		url = urlparse(txt).netloc
-		if not url:
-			raise frappe.ValidationError
-		else:
-			return True
-
-	except Exception:
-		if throw:
-			frappe.throw(
-				frappe._("'{0}' is not a valid URL").format(frappe.bold(txt))
-			)
-	
-	return False
->>>>>>> 82b98330fd (feat: Add URL option for data type fields)
-=======
 def validate_url(txt, throw=False, valid_schemes=None):
 	"""
 		Checks whether `txt` has a valid URL string
@@ -237,7 +186,6 @@ def validate_url(txt, throw=False, valid_schemes=None):
 		)
 
 	return is_valid
->>>>>>> 024e759a70 (refactor: Add optional URL scheme validation)
 
 def random_string(length):
 	"""generate a random string"""
@@ -904,14 +852,3 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
-<<<<<<< HEAD
-
-def validate_url(url_string):
-	try:
-		result = urlparse(url_string)
-		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
-	except Exception:
-		return False
-
-=======
->>>>>>> 9d4ee238d7 (fix: Remove duplicate validation function)
