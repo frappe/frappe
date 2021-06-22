@@ -421,6 +421,7 @@ frappe.views.Wiki = class Wiki {
 		if (this.has_access) {
 			parent_pages = this.all_pages.filter(page => !page.parent_page).map(page => page.title);
 		}
+		parent_pages.unshift('');
 		const d = new frappe.ui.Dialog({
 			title: __('Set Title'),
 			fields: [
