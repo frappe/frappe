@@ -1,34 +1,25 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
-
-from __future__ import unicode_literals, print_function
-import frappe
+import email.utils
+import functools
 import imaplib
-import re
-import json
 import socket
 import time
-import functools
-
-import email.utils
-
-from frappe import _, are_emails_muted
-from frappe.model.document import Document
-from frappe.utils import (validate_email_address, cint, cstr, get_datetime,
-	DATE_FORMAT, strip, comma_or, sanitize_html, add_days, parse_addr)
-from frappe.utils.user import is_system_user
-from frappe.utils.jinja import render_template
-from frappe.email.smtp import SMTPServer
-from frappe.email.receive import EmailServer, Email
-from poplib import error_proto
-from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
+from poplib import error_proto
+
+import frappe
+from frappe import _, are_emails_muted, safe_encode
 from frappe.desk.form import assign_to
-from frappe.utils.user import get_system_managers
-from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.utils.html_utils import clean_email_html
-from frappe.utils.error import raise_error_on_no_output
+from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
+from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
+from frappe.model.document import Document
+from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_address
+from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.error import raise_error_on_no_output
+from frappe.utils.jinja import render_template
+from frappe.utils.user import get_system_managers
 
 OUTGOING_EMAIL_ACCOUNT_MISSING = _("Please setup default Email Account from Setup > Email > Email Account")
 
@@ -430,89 +421,74 @@ class EmailAccount(Document):
 
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
-		def get_seen(status):
-			if not status:
-				return None
-			seen = 1 if status == "SEEN" else 0
-			return seen
+		exceptions = []
+		inbound_mails = self.get_inbound_mails(test_mails=test_mails)
+		for mail in inbound_mails:
+			try:
+				communication = mail.process()
+				frappe.db.commit()
+				# If email already exists in the system
+				# then do not send notifications for the same email.
+				if communication and mail.flags.is_new_communication:
+					# notify all participants of this thread
+					if self.enable_auto_reply:
+						self.send_auto_reply(communication, mail)
 
-		if self.enable_incoming:
-			uid_list = []
-			exceptions = []
-			seen_status = []
-			uid_reindexed = False
-			email_server = None
-
-			if frappe.local.flags.in_test:
-				incoming_mails = test_mails or []
+					communication.send_email(is_inbound_mail_communcation=True)
+			except SentEmailInInboxError:
+				frappe.db.rollback()
+			except Exception:
+				frappe.db.rollback()
+				frappe.log_error('email_account.receive')
+				if self.use_imap:
+					self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
+				exceptions.append(frappe.get_traceback())
 			else:
-				email_sync_rule = self.build_email_sync_rule()
+				frappe.db.commit()
 
-				try:
-					email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
-				except Exception:
-					frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
+		#notify if user is linked to account
+		if len(inbound_mails)>0 and not frappe.local.flags.in_test:
+			frappe.publish_realtime('new_email',
+				{"account":self.email_account_name, "number":len(inbound_mails)}
+			)
 
-				if not email_server:
-					return
+		if exceptions:
+			raise Exception(frappe.as_json(exceptions))
 
-				emails = email_server.get_messages()
-				if not emails:
-					return
+	def get_inbound_mails(self, test_mails=None):
+		"""retrive and return inbound mails.
 
-				incoming_mails = emails.get("latest_messages", [])
-				uid_list = emails.get("uid_list", [])
-				seen_status = emails.get("seen_status", [])
-				uid_reindexed = emails.get("uid_reindexed", False)
+		"""
+		if frappe.local.flags.in_test:
+			return [InboundMail(msg, self) for msg in test_mails or []]
 
-			for idx, msg in enumerate(incoming_mails):
-				uid = None if not uid_list else uid_list[idx]
-				self.flags.notify = True
+		if not self.enable_incoming:
+			return []
 
-				try:
-					args = {
-						"uid": uid,
-						"seen": None if not seen_status else get_seen(seen_status.get(uid, None)),
-						"uid_reindexed": uid_reindexed
-					}
-					communication = self.insert_communication(msg, args=args)
+		email_sync_rule = self.build_email_sync_rule()
+		try:
+			email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
+			messages = email_server.get_messages() or {}
+		except Exception:
+			frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
+			return []
 
-				except SentEmailInInbox:
-					frappe.db.rollback()
+		mails = []
+		for index, message in enumerate(messages.get("latest_messages", [])):
+			uid = messages['uid_list'][index] if messages.get('uid_list') else None
+			seen_status = 1 if messages.get('seen_status', {}).get(uid)=='SEEN' else 0
+			mails.append(InboundMail(message, self, uid, seen_status))
 
-				except Exception:
-					frappe.db.rollback()
-					frappe.log_error('email_account.receive')
-					if self.use_imap:
-						self.handle_bad_emails(email_server, uid, msg, frappe.get_traceback())
-					exceptions.append(frappe.get_traceback())
+		return mails
 
-				else:
-					frappe.db.commit()
-					if communication and self.flags.notify:
-
-						# If email already exists in the system
-						# then do not send notifications for the same email.
-
-						attachments = []
-
-						if hasattr(communication, '_attachments'):
-							attachments = [d.file_name for d in communication._attachments]
-
-						communication.notify(attachments=attachments, fetched_from_email_account=True)
-
-			#notify if user is linked to account
-			if len(incoming_mails)>0 and not frappe.local.flags.in_test:
-				frappe.publish_realtime('new_email', {"account":self.email_account_name, "number":len(incoming_mails)})
-
-			if exceptions:
-				raise Exception(frappe.as_json(exceptions))
-
-	def handle_bad_emails(self, email_server, uid, raw, reason):
-		if email_server and cint(email_server.settings.use_imap):
+	def handle_bad_emails(self, uid, raw, reason):
+		if cint(self.use_imap):
 			import email
 			try:
-				mail = email.message_from_string(raw)
+				if isinstance(raw, bytes):
+					mail = email.message_from_bytes(raw)
+				else:
+					mail = email.message_from_string(raw)
 
 				message_id = mail.get('Message-ID')
 			except Exception:
@@ -524,275 +500,18 @@ class EmailAccount(Document):
 				"reason":reason,
 				"message_id": message_id,
 				"doctype": "Unhandled Email",
-				"email_account": email_server.settings.email_account
+				"email_account": self.name
 			})
 			unhandled_email.insert(ignore_permissions=True)
 			frappe.db.commit()
 
-	def insert_communication(self, msg, args=None):
-		if isinstance(msg, list):
-			raw, uid, seen = msg
-		else:
-			raw = msg
-			uid = -1
-			seen = 0
-		if isinstance(args, dict):
-			if args.get("uid", -1): uid = args.get("uid", -1)
-			if args.get("seen", 0): seen = args.get("seen", 0)
-
-		email = Email(raw)
-
-		if email.from_email == self.email_id and not email.mail.get("Reply-To"):
-			# gmail shows sent emails in inbox
-			# and we don't want emails sent by us to be pulled back into the system again
-			# dont count emails sent by the system get those
-			if frappe.flags.in_test:
-				print('WARN: Cannot pull email. Sender sames as recipient inbox')
-			raise SentEmailInInbox
-
-		if email.message_id:
-			# https://stackoverflow.com/a/18367248
-			names = frappe.db.sql("""SELECT DISTINCT `name`, `creation` FROM `tabCommunication`
-				WHERE `message_id`='{message_id}'
-				ORDER BY `creation` DESC LIMIT 1""".format(
-					message_id=email.message_id
-				), as_dict=True)
-
-			if names:
-				name = names[0].get("name")
-				# email is already available update communication uid instead
-				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
-
-				self.flags.notify = False
-
-				return frappe.get_doc("Communication", name)
-
-		if email.content_type == 'text/html':
-			email.content = clean_email_html(email.content)
-
-		communication = frappe.get_doc({
-			"doctype": "Communication",
-			"subject": email.subject,
-			"content": email.content,
-			'text_content': email.text_content,
-			"sent_or_received": "Received",
-			"sender_full_name": email.from_real_name,
-			"sender": email.from_email,
-			"recipients": email.mail.get("To"),
-			"cc": email.mail.get("CC"),
-			"email_account": self.name,
-			"communication_medium": "Email",
-			"uid": int(uid or -1),
-			"message_id": email.message_id,
-			"communication_date": email.date,
-			"has_attachment": 1 if email.attachments else 0,
-			"seen": seen or 0
-		})
-
-		self.set_thread(communication, email)
-		if communication.seen:
-			# get email account user and set communication as seen
-			users = frappe.get_all("User Email", filters={ "email_account": self.name },
-				fields=["parent"])
-			users = list(set([ user.get("parent") for user in users ]))
-			communication._seen = json.dumps(users)
-
-		communication.flags.in_receive = True
-		communication.insert(ignore_permissions=True)
-
-		# save attachments
-		communication._attachments = email.save_attachments_in_doc(communication)
-
-		# replace inline images
-		dirty = False
-		for file in communication._attachments:
-			if file.name in email.cid_map and email.cid_map[file.name]:
-				dirty = True
-
-				email.content = email.content.replace("cid:{0}".format(email.cid_map[file.name]),
-					file.file_url)
-
-		if dirty:
-			# not sure if using save() will trigger anything
-			communication.db_set("content", sanitize_html(email.content))
-
-		# notify all participants of this thread
-		if self.enable_auto_reply and getattr(communication, "is_first", False):
-			self.send_auto_reply(communication, email)
-
-		return communication
-
-	def set_thread(self, communication, email):
-		"""Appends communication to parent based on thread ID. Will extract
-		parent communication and will link the communication to the reference of that
-		communication. Also set the status of parent transaction to Open or Replied.
-
-		If no thread id is found and `append_to` is set for the email account,
-		it will create a new parent transaction (e.g. Issue)"""
-		parent = None
-
-		parent = self.find_parent_from_in_reply_to(communication, email)
-
-		if not parent and self.append_to:
-			self.set_sender_field_and_subject_field()
-
-		if not parent and self.append_to:
-			parent = self.find_parent_based_on_subject_and_sender(communication, email)
-
-		if not parent and self.append_to and self.append_to!="Communication":
-			parent = self.create_new_parent(communication, email)
-
-		if parent:
-			communication.reference_doctype = parent.doctype
-			communication.reference_name = parent.name
-
-		# check if message is notification and disable notifications for this message
-		isnotification = email.mail.get("isnotification")
-		if isnotification:
-			if "notification" in isnotification:
-				communication.unread_notification_sent = 1
-
-	def set_sender_field_and_subject_field(self):
-		'''Identify the sender and subject fields from the `append_to` DocType'''
-		# set subject_field and sender_field
-		meta = frappe.get_meta(self.append_to)
-		self.subject_field = None
-		self.sender_field = None
-
-		if hasattr(meta, "subject_field"):
-			self.subject_field = meta.subject_field
-
-		if hasattr(meta, "sender_field"):
-			self.sender_field = meta.sender_field
-
-	def find_parent_based_on_subject_and_sender(self, communication, email):
-		'''Find parent document based on subject and sender match'''
-		parent = None
-
-		if self.append_to and self.sender_field:
-			if self.subject_field:
-				if '#' in email.subject:
-					# try and match if ID is found
-					# document ID is appended to subject
-					# example "Re: Your email (#OPP-2020-2334343)"
-					parent_id = email.subject.rsplit('#', 1)[-1].strip(' ()')
-					if parent_id:
-						parent = frappe.db.get_all(self.append_to, filters = dict(name = parent_id),
-							fields = 'name')
-
-				if not parent:
-					# try and match by subject and sender
-					# if sent by same sender with same subject,
-					# append it to old coversation
-					subject = frappe.as_unicode(strip(re.sub(r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*",
-						"", email.subject, 0, flags=re.IGNORECASE)))
-
-					parent = frappe.db.get_all(self.append_to, filters={
-						self.sender_field: email.from_email,
-						self.subject_field: ("like", "%{0}%".format(subject)),
-						"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
-					}, fields = "name", limit = 1)
-
-				if not parent and len(subject) > 10 and is_system_user(email.from_email):
-					# match only subject field
-					# when the from_email is of a user in the system
-					# and subject is atleast 10 chars long
-					parent = frappe.db.get_all(self.append_to, filters={
-						self.subject_field: ("like", "%{0}%".format(subject)),
-						"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
-					}, fields = "name", limit = 1)
-
-
-
-			if parent:
-				parent = frappe._dict(doctype=self.append_to, name=parent[0].name)
-				return parent
-
-	def create_new_parent(self, communication, email):
-		'''If no parent found, create a new reference document'''
-
-		# no parent found, but must be tagged
-		# insert parent type doc
-		parent = frappe.new_doc(self.append_to)
-
-		if self.subject_field:
-			parent.set(self.subject_field, frappe.as_unicode(email.subject)[:140])
-
-		if self.sender_field:
-			parent.set(self.sender_field, frappe.as_unicode(email.from_email))
-
-		if parent.meta.has_field("email_account"):
-			parent.email_account = self.name
-
-		parent.flags.ignore_mandatory = True
-
-		try:
-			parent.insert(ignore_permissions=True)
-		except frappe.DuplicateEntryError:
-			# try and find matching parent
-			parent_name = frappe.db.get_value(self.append_to, {self.sender_field: email.from_email})
-			if parent_name:
-				parent.name = parent_name
-			else:
-				parent = None
-
-		# NOTE if parent isn't found and there's no subject match, it is likely that it is a new conversation thread and hence is_first = True
-		communication.is_first = True
-
-		return parent
-
-	def find_parent_from_in_reply_to(self, communication, email):
-		'''Returns parent reference if embedded in In-Reply-To header
-
-		Message-ID is formatted as `{message_id}@{site}`'''
-		parent = None
-		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
-
-		if in_reply_to:
-			if "@{0}".format(frappe.local.site) in in_reply_to:
-				# reply to a communication sent from the system
-				email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['communication','reference_doctype', 'reference_name'])
-				if email_queue:
-					parent_communication, parent_doctype, parent_name = email_queue
-					if parent_communication:
-						communication.in_reply_to = parent_communication
-				else:
-					reference, domain = in_reply_to.split("@", 1)
-					parent_doctype, parent_name = 'Communication', reference
-
-				if frappe.db.exists(parent_doctype, parent_name):
-					parent = frappe._dict(doctype=parent_doctype, name=parent_name)
-
-					# set in_reply_to of current communication
-					if parent_doctype=='Communication':
-						# communication.in_reply_to = email_queue.communication
-
-						if parent.reference_name:
-							# the true parent is the communication parent
-							parent = frappe.get_doc(parent.reference_doctype,
-								parent.reference_name)
-			else:
-				comm = frappe.db.get_value('Communication',
-						dict(
-							message_id=in_reply_to,
-							creation=['>=', add_days(get_datetime(), -30)]),
-						['reference_doctype', 'reference_name'], as_dict=1)
-				if comm:
-					parent = frappe._dict(doctype=comm.reference_doctype, name=comm.reference_name)
-
-		return parent
-
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
 		from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
-
 		if self.enable_auto_reply:
 			set_incoming_outgoing_accounts(communication)
 
-			if self.send_unsubscribe_message:
-				unsubscribe_message = _("Leave this conversation")
-			else:
-				unsubscribe_message = ""
+			unsubscribe_message = (self.send_unsubscribe_message and _("Leave this conversation")) or ""
 
 			frappe.sendmail(recipients = [email.from_email],
 				sender = self.email_id,
@@ -851,8 +570,8 @@ class EmailAccount(Document):
 			email_server.update_flag(uid_list=uid_list)
 
 			# mark communication as read
-			docnames =  ",".join([ "'%s'"%flag.get("communication") for flag in flags \
-				if flag.get("action") == "Read" ])
+			docnames =  ",".join("'%s'"%flag.get("communication") for flag in flags \
+				if flag.get("action") == "Read")
 			self.set_communication_seen_status(docnames, seen=1)
 
 			# mark communication as unread
@@ -882,7 +601,6 @@ class EmailAccount(Document):
 
 
 	def append_email_to_sent_folder(self, message):
-
 		email_server = None
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
@@ -896,7 +614,8 @@ class EmailAccount(Document):
 
 		if email_server.imap:
 			try:
-				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message.encode())
+				message = safe_encode(message)
+				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
 			except Exception:
 				frappe.log_error()
 

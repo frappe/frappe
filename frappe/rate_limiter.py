@@ -2,8 +2,6 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 from datetime import datetime
 from functools import wraps
 from typing import Union, Callable

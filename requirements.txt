@@ -1,6 +1,6 @@
 Babel~=2.9.0
 beautifulsoup4~=4.9.3
-bleach-whitelist~=0.0.11
+bleach-allowlist~=1.0.3
 bleach~=3.3.0
 boto3~=1.17.53
 braintree~=4.8.0
@@ -13,7 +13,6 @@ cryptography~=3.4.7
 dropbox~=11.7.0
 email-reply-parser~=0.5.12
 Faker~=8.1.0
-future==0.18.2
 git-url-parse~=1.2.2
 gitdb~=4.0.7
 GitPython~=3.1.14
@@ -27,7 +26,7 @@ html2text==2020.1.16
 html5lib~=1.1
 ipython~=7.16.1
 jedi==0.17.2  # not directly required. Pinned to fix upstream IPython issue (https://github.com/ipython/ipython/issues/12740)
-Jinja2~=2.11.3
+Jinja2~=3.0.1
 ldap3~=2.9
 markdown2~=2.4.0
 maxminddb-geolite2==2018.703
@@ -44,7 +43,7 @@ psutil~=5.8.0
 psycopg2-binary~=2.8.6
 pyasn1~=0.4.8
 pycryptodome~=3.10.1
-PyJWT~=1.7.1
+PyJWT~=2.0.1
 PyMySQL~=1.0.2
 pyngrok~=5.0.5
 pyOpenSSL~=20.0.1
@@ -72,7 +71,6 @@ stripe~=2.56.0
 terminaltables~=3.1.0
 unittest-xml-reporting~=3.0.4
 urllib3~=1.26.4
-watchdog~=2.0.2
 Werkzeug~=0.16.1
 Whoosh~=2.7.4
 wrapt~=1.12.1

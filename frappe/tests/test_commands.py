@@ -80,7 +80,7 @@ def exists_in_backup(doctypes, file):
 	)
 	with gzip.open(file, "rb") as f:
 		content = f.read().decode("utf8")
-	return all([predicate.format(doctype).lower() in content.lower() for doctype in doctypes])
+	return all(predicate.format(doctype).lower() in content.lower() for doctype in doctypes)
 
 
 class BaseTestCommands(unittest.TestCase):
@@ -355,12 +355,12 @@ class TestCommands(BaseTestCommands):
 		# test 2: bare functionality for single site
 		self.execute("bench --site {site} list-apps")
 		self.assertEqual(self.returncode, 0)
-		list_apps = set([
+		list_apps = set(
 			_x.split()[0] for _x in self.stdout.split("\n")
-		])
+		)
 		doctype = frappe.get_single("Installed Applications").installed_applications
 		if doctype:
-			installed_apps = set([x.app_name for x in doctype])
+			installed_apps = set(x.app_name for x in doctype)
 		else:
 			installed_apps = set(frappe.get_installed_apps())
 		self.assertSetEqual(list_apps, installed_apps)

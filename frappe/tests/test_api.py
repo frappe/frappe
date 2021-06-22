@@ -39,6 +39,11 @@ class TestResourceAPI(unittest.TestCase):
 		for name in self.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(self.DOCTYPE, name)
 
+	def setUp(self):
+		# commit to ensure consistency in session (postgres CI randomly fails)
+		if frappe.conf.db_type == "postgres":
+			frappe.db.commit()
+
 	@property
 	def sid(self):
 		if not getattr(self, "_sid", None):
