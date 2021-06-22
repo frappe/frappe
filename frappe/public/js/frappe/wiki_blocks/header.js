@@ -2,8 +2,7 @@ import Block from "./block.js";
 export default class Header extends Block {
 
 	constructor({ data, config, api, readOnly }) {
-		let opts = { config, api, readOnly };
-		super(opts);
+		super({ config, api, readOnly });
 
 		this._CSS = {
 			block: this.api.styles.block,

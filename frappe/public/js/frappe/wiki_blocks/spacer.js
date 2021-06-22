@@ -11,8 +11,8 @@ export default class Spacer extends Block {
 		return true;
 	}
 
-	constructor({data, api, config, readOnly}) {
-		super(arguments[0]);
+	constructor({ data, api, config, readOnly }) {
+		super({ data, api, config, readOnly });
 		this.col = this.data.col ? this.data.col : "12";
 		this.pt = this.data.pt ? this.data.pt : "0";
 		this.pr = this.data.pr ? this.data.pr : "0";

@@ -5,9 +5,8 @@ export default class Paragraph extends Block {
 		return '';
 	}
 
-	constructor({data, config, api, readOnly}) {
-		let opts = {config, api, readOnly};
-		super(opts);
+	constructor({ data, config, api, readOnly }) {
+		super({ config, api, readOnly });
 
 		this._CSS = {
 			block: this.api.styles.block,
