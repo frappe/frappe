@@ -375,7 +375,6 @@ def make_records(records, debug=False):
 
 	# LOG every success and failure
 	for record in records:
-
 		doctype = record.get("doctype")
 		condition = record.get('__condition')
 
@@ -392,6 +391,7 @@ def make_records(records, debug=False):
 
 		try:
 			doc.insert(ignore_permissions=True)
+			frappe.db.commit()
 
 		except frappe.DuplicateEntryError as e:
 			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
