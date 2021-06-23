@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import json
 import os
 import subprocess
@@ -12,6 +10,13 @@ import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import get_bench_path, update_progress_bar, cint
+
+
+DATA_IMPORT_DEPRECATION = click.style(
+	"[DEPRECATED] The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
+	"Use `data-import` command instead to import data via 'Data Import'.",
+	fg="yellow"
+)
 
 
 @click.command('build')
@@ -350,7 +355,8 @@ def import_doc(context, path, force=False):
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
-@click.command('import-csv')
+
+@click.command('import-csv', help=DATA_IMPORT_DEPRECATION)
 @click.argument('path')
 @click.option('--only-insert', default=False, is_flag=True, help='Do not overwrite existing records')
 @click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
@@ -358,11 +364,7 @@ def import_doc(context, path, force=False):
 @click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
-	click.secho(
-		"The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
-		"Use `data-import` command instead to import data via 'Data Import'.",
-		fg="yellow",
-	)
+	click.secho(DATA_IMPORT_DEPRECATION)
 	sys.exit(1)
 
 
