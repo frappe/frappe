@@ -802,7 +802,7 @@ class InboundMail(Email):
 		except frappe.DuplicateEntryError:
 			# try and find matching parent
 			parent_name = frappe.db.get_value(self.email_account.append_to,
-				{email_fileds.sender_field: email.from_email}
+				{email_fileds.sender_field: self.from_email}
 			)
 			if parent_name:
 				parent.name = parent_name

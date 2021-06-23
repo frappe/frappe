@@ -1,32 +1,25 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
-import frappe
+import email.utils
+import functools
 import imaplib
-import re
-import json
 import socket
 import time
-import functools
-
-import email.utils
-
-from frappe import _, are_emails_muted
-from frappe.model.document import Document
-from frappe.utils import (validate_email_address, cint, cstr, get_datetime,
-	DATE_FORMAT, strip, comma_or, sanitize_html, add_days, parse_addr)
-from frappe.utils.user import is_system_user
-from frappe.utils.jinja import render_template
-from frappe.email.smtp import SMTPServer
-from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
-from poplib import error_proto
-from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
+from poplib import error_proto
+
+import frappe
+from frappe import _, are_emails_muted, safe_encode
 from frappe.desk.form import assign_to
-from frappe.utils.user import get_system_managers
-from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.utils.html_utils import clean_email_html
-from frappe.utils.error import raise_error_on_no_output
+from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
+from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
+from frappe.model.document import Document
+from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_address
+from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.error import raise_error_on_no_output
+from frappe.utils.jinja import render_template
+from frappe.utils.user import get_system_managers
 
 OUTGOING_EMAIL_ACCOUNT_MISSING = _("Please setup default Email Account from Setup > Email > Email Account")
 
@@ -441,10 +434,7 @@ class EmailAccount(Document):
 					if self.enable_auto_reply:
 						self.send_auto_reply(communication, mail)
 
-					attachments = []
-					if hasattr(communication, '_attachments'):
-						attachments = [d.file_name for d in communication._attachments]
-					communication.notify(attachments=attachments, fetched_from_email_account=True)
+					communication.send_email(is_inbound_mail_communcation=True)
 			except SentEmailInInboxError:
 				frappe.db.rollback()
 			except Exception:
@@ -453,6 +443,8 @@ class EmailAccount(Document):
 				if self.use_imap:
 					self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
 				exceptions.append(frappe.get_traceback())
+			else:
+				frappe.db.commit()
 
 		#notify if user is linked to account
 		if len(inbound_mails)>0 and not frappe.local.flags.in_test:
@@ -578,8 +570,8 @@ class EmailAccount(Document):
 			email_server.update_flag(uid_list=uid_list)
 
 			# mark communication as read
-			docnames =  ",".join([ "'%s'"%flag.get("communication") for flag in flags \
-				if flag.get("action") == "Read" ])
+			docnames =  ",".join("'%s'"%flag.get("communication") for flag in flags \
+				if flag.get("action") == "Read")
 			self.set_communication_seen_status(docnames, seen=1)
 
 			# mark communication as unread
@@ -609,7 +601,6 @@ class EmailAccount(Document):
 
 
 	def append_email_to_sent_folder(self, message):
-
 		email_server = None
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
@@ -623,7 +614,8 @@ class EmailAccount(Document):
 
 		if email_server.imap:
 			try:
-				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message.encode())
+				message = safe_encode(message)
+				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
 			except Exception:
 				frappe.log_error()
 
