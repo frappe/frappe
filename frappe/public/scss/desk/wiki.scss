@@ -34,7 +34,6 @@
 		padding: 0px;
 
 		.sidebar-item-control {
-			margin-right: 8px;
 
 			> * {
 				align-self: center;
@@ -53,8 +52,7 @@
 			}
 
 			.drop-icon {
-				padding: 10px 12px 10px 0px;
-				margin-right: -8px;
+				padding: 10px 12px 10px 2px;
 			}
 
 			.sidebar-info {
@@ -98,10 +96,16 @@
 	
 				.delete-page {
 					display: inline-block;
+					margin-right: 8px;
 				}
 
 				.sidebar-info {
 					display: inline-block;
+				}
+
+				.drop-icon {
+					padding: 10px 8px 10px 2px;
+					margin-left: -4px;
 				}
 			}
 
