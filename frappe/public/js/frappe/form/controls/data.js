@@ -77,7 +77,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		
 		this.$link = this.$wrapper.find('.link-btn');
 		this.$link_open = this.$link.find('.btn-open');
-		
+		this.$input[0].style.paddingRight = "24px"; // To prevent text-icon mixup
+
 		this.$input.on("focus", () => {
 			setTimeout(() => {
 				let inputValue = this.get_input_value();
