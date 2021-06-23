@@ -77,15 +77,18 @@ frappe.ui.form.FormTour = class FormTour {
 	}
 
 	get_step(step_info, on_next) {
-		const { name, fieldname, title, description, position } = step_info;
+		const { name, fieldname, title, description, position, is_table_field } = step_info;
 		const field = this.frm.get_field(fieldname);
-		// if field is a child table field, `field` will be undefined
-		const element = field ? field.wrapper : `.frappe-control[data-fieldname='${fieldname}']`;
+		let element = field ? field.wrapper : `.frappe-control[data-fieldname='${fieldname}']`;
+
+		if (is_table_field) {
+			element = `.grid-row-open .frappe-control[data-fieldname='${fieldname}']`;
+		}
 
 		return {
 			element,
 			name,
-			popover: { title, description, position },
+			popover: { title, description, position: frappe.router.slug(position) },
 			onNext: on_next
 		};
 	}
@@ -126,8 +129,9 @@ frappe.ui.form.FormTour = class FormTour {
 			const is_next_field_in_curr_table = next_step.parent_field == curr_step.field;
 
 			if (!is_next_field_in_curr_table) return;
-
-			const table_has_rows = this.frm.doc[curr_step.fieldname].length > 0;
+			
+			const rows = this.frm.doc[curr_step.fieldname];
+			const table_has_rows = rows && rows.length > 0;
 			if (table_has_rows) {
 				// table already has rows
 				// then just edit the first one on next step
@@ -228,7 +232,8 @@ frappe.ui.form.FormTour = class FormTour {
 	}
 
 	add_step_to_save() {
-		const $save_btn = '.standard-actions .primary-action';
+		const page_id = `#page-${this.frm.doctype}`;
+		const $save_btn = `${page_id} .standard-actions .primary-action`;
 		const save_step = {
 			element: $save_btn,
 			is_save_step: true,
