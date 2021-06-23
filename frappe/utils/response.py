@@ -147,8 +147,8 @@ def json_handler(obj):
 
 def as_page():
 	"""print web page"""
-	from frappe.website.render import render
-	return render(frappe.response['route'], http_status_code=frappe.response.get("http_status_code"))
+	from frappe.website.serve import get_response
+	return get_response(frappe.response['route'], http_status_code=frappe.response.get("http_status_code"))
 
 def redirect():
 	return werkzeug.utils.redirect(frappe.response.location)
@@ -215,7 +215,8 @@ def send_private_file(path):
 	return response
 
 def handle_session_stopped():
+	from frappe.website.serve import get_response
 	frappe.respond_as_web_page(_("Updating"),
 		_("Your system is being updated. Please refresh again after a few moments."),
 		http_status_code=503, indicator_color='orange', fullpage = True, primary_action=None)
-	return frappe.website.render.render("message", http_status_code=503)
+	return get_response("message", http_status_code=503)
