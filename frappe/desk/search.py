@@ -169,11 +169,20 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				as_list=not as_dict,
 				strict=False)
 
-			# Bring Parent doctype to top and child doctype below it using sorting
-			values = sorted(values, key=lambda x: ((x[1] is not None), (x[0])))
+			# Filtering the values array so that query is included in very element
+			values = tuple(
+					[
+						v for v in list(values)
+						if re.search(
+							re.escape(txt) + ".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE
+						)
+					]
+				)
 
-			if doctype in UNTRANSLATED_DOCTYPES:
-				values = tuple([v for v in list(values) if re.search(re.escape(txt)+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
+			# Sorting the values array so that relevant results always come first
+			# This will first bring elements on top in which query is a prefix of element
+			# Then it will bring the rest of the elements and sort them in lexicographical order
+			values = sorted(values, key=lambda x: sorting_comparator(x, txt, as_dict))
 
 			# remove _relevance from results
 			if as_dict:
@@ -212,6 +221,13 @@ def scrub_custom_query(query, key, txt):
 	if '%s' in query:
 		query = query.replace('%s', ((txt or '') + '%'))
 	return query
+
+def sorting_comparator(key, query, as_dict):
+	value = (_(key.name) if as_dict else _(key[0]))
+	return (
+		value.lower().startswith(query.lower()) is False,
+		value
+	)
 
 @wrapt.decorator
 def validate_and_sanitize_search_inputs(fn, instance, args, kwargs):
