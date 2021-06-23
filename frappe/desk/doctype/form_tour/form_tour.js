@@ -17,7 +17,7 @@ frappe.ui.form.on('Form Tour', {
 			const issingle = await check_if_single(frm.doc.reference_doctype);
 
 			if (issingle) {
-				frappe.set_route('Form', frm.doc.reference_doctype)
+				frappe.set_route('Form', frm.doc.reference_doctype);
 			} else {
 				const new_name =  'new-' + frappe.scrub(frm.doc.reference_doctype) + '-1';
 				frappe.set_route('Form', frm.doc.reference_doctype, new_name);

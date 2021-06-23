@@ -31,7 +31,7 @@ context('Form Tour', () => {
 		cy.get('@first_name').should('have.class', 'driver-highlighted-element');
 
 		// after filling the field, next step should be highlighted
-		cy.fill_field('first_name', 'Test Name', 'Data')
+		cy.fill_field('first_name', 'Test Name', 'Data');
 		cy.wait(500);
 		cy.get('@next_btn').click();
 		cy.wait(500);
@@ -41,7 +41,7 @@ context('Form Tour', () => {
 		cy.get('@last_name').should('have.class', 'driver-highlighted-element');
 		
 		// after filling the field, next step should be highlighted
-		cy.fill_field('last_name', 'Test Last Name', 'Data')
+		cy.fill_field('last_name', 'Test Last Name', 'Data');
 		cy.wait(500);
 		cy.get('@next_btn').click();
 		cy.wait(500);
