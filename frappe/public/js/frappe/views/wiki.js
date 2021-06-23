@@ -177,6 +177,8 @@ frappe.views.Wiki = class Wiki {
 			wiki: true
 		}).then(data => {
 			this.page_data = data;
+			this.pages[page] && delete this.pages[page];
+			this.pages[page] = data;
 			if (!this.page_data || Object.keys(this.page_data).length === 0) return;
 
 			return frappe.dashboard_utils.get_dashboard_settings().then(settings => {
@@ -206,10 +208,6 @@ frappe.views.Wiki = class Wiki {
 	}
 
 	show_page(page) {
-		if (this.current_page_name && this.pages[this.current_page_name]) {
-			this.pages[this.current_page_name].hide();
-		}
-
 		if (this.sidebar_items && this.sidebar_items[this.current_page_name]) {
 			this.sidebar_items[this.current_page_name][0].firstElementChild.classList.remove("selected");
 			this.sidebar_items[page][0].firstElementChild.classList.add("selected");
@@ -231,29 +229,33 @@ frappe.views.Wiki = class Wiki {
 			`).appendTo(this.body);
 		}
 
-		this.setup_actions(page);
-		this.prepare_editorjs(page);
-	}
-
-	prepare_editorjs(page) {
 		if (this.all_pages) {
 			let this_page = this.all_pages.filter(p => p.title == page)[0];
 			this.setup_actions(page);
 			this.content = this_page && JSON.parse(this_page.content);
-			this.get_data(page).then(() => {
-				if (this.editor) {
-					this.editor.isReady.then(() => {
-						this.editor.configuration.tools.chart.config.page_data = this.page_data;
-						this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
-						this.editor.configuration.tools.card.config.page_data = this.page_data;
-						this.editor.render({
-							blocks: this.content || []
-						});
-					});
-				} else {
-					this.initialize_editorjs(this.content);
-				}
+			if (this.pages[page]) {
+				this.page_data = this.pages[page];
+				this.prepare_editorjs();
+			} else {
+				this.get_data(page).then(() => {
+					this.prepare_editorjs();
+				});
+			}
+		}
+	}
+
+	prepare_editorjs() {
+		if (this.editor) {
+			this.editor.isReady.then(() => {
+				this.editor.configuration.tools.chart.config.page_data = this.page_data;
+				this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
+				this.editor.configuration.tools.card.config.page_data = this.page_data;
+				this.editor.render({
+					blocks: this.content || []
+				});
 			});
+		} else {
+			this.initialize_editorjs(this.content);
 		}
 	}
 
@@ -568,6 +570,7 @@ frappe.views.Wiki = class Wiki {
 					frappe.dom.unfreeze();
 					if (res.message) {
 						frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
+						me.pages[res.message] && delete me.pages[res.message];
 						me.title = '';
 						me.parent = '';
 						me.public = false;
