@@ -358,32 +358,12 @@ def import_doc(context, path, force=False):
 @click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
-	"Import CSV using data import"
-	from frappe.core.doctype.data_import_legacy import importer
-	from frappe.utils.csvutils import read_csv_content
-	site = get_site(context)
-
-	if not os.path.exists(path):
-		path = os.path.join('..', path)
-	if not os.path.exists(path):
-		print('Invalid path {0}'.format(path))
-		sys.exit(1)
-
-	with open(path, 'r') as csvfile:
-		content = read_csv_content(csvfile.read())
-
-	frappe.init(site=site)
-	frappe.connect()
-
-	try:
-		importer.upload(content, submit_after_import=submit_after_import, no_email=no_email,
-			ignore_encoding_errors=ignore_encoding_errors, overwrite=not only_insert,
-			via_console=True)
-		frappe.db.commit()
-	except Exception:
-		print(frappe.get_traceback())
-
-	frappe.destroy()
+	click.secho(
+		"The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
+		"Use `data-import` command instead to import data via 'Data Import'.",
+		fg="yellow",
+	)
+	sys.exit(1)
 
 
 @click.command('data-import')
