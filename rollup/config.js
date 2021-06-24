@@ -183,9 +183,9 @@ function get_options(file, app = "frappe") {
 						return path.resolve(prefix, input_file);
 					});
 				return Object.assign(
-					get_rollup_options(output_file, input_files), {
-					output_file
-				});
+					get_rollup_options(output_file, input_files),
+					{ output_file }
+				);
 			}
 		})
 		.filter(Boolean);
@@ -204,7 +204,7 @@ function get_options_for(app) {
 					public_path,
 					"**",
 					"*.bundle.{js,css,sass,scss,less}"
-				)
+				);
 			let ignore_pattern = path.resolve(public_path, "node_modules");
 			let files = glob.sync(include_pattern, { ignore: ignore_pattern });
 
@@ -218,7 +218,7 @@ function get_options_for(app) {
 		} else {
 			build_json = {};
 		}
-	};
+	}
 
 	return Object.keys(build_json)
 		.map(output_file => {
@@ -237,9 +237,9 @@ function get_options_for(app) {
 					return path.resolve(prefix, input_file);
 				});
 			return Object.assign(
-				get_rollup_options(output_file, input_files), {
-				output_file
-			});
+				get_rollup_options(output_file, input_files),
+				{ output_file }
+			);
 		})
 		.filter(Boolean);
 }
