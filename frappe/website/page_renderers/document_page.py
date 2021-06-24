@@ -47,10 +47,6 @@ class DocumentPage(BaseTemplatePage):
 			return False
 
 	def render(self):
-		self.doc = frappe.get_doc(self.doctype, self.docname)
-		self.init_context()
-		self.update_context()
-		self.post_process_context()
 		html = self.get_html()
 		html = self.add_csrf_token(html)
 
@@ -58,6 +54,10 @@ class DocumentPage(BaseTemplatePage):
 
 	@cache_html
 	def get_html(self):
+		self.doc = frappe.get_doc(self.doctype, self.docname)
+		self.init_context()
+		self.update_context()
+		self.post_process_context()
 		html = frappe.get_template(self.template_path).render(self.context)
 		return html
 

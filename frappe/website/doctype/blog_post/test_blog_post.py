@@ -98,14 +98,14 @@ class TestBlogPost(unittest.TestCase):
 		clear_website_cache()
 		# first response no-cache
 		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
-			filters={'published': 1, 'route': ('!=', '')}, limit =1)
+			filters={'published': 1, 'title': "_Test Blog Post"}, limit=1)
 
-		set_request(path=pages[0].route)
-		response = get_response()
+		route = pages[0].route
+
+		response = get_response(route)
 		self.assertIn(('X-From-Cache', 'False'), list(response.headers))
 
-		# first response returned from cache
-		response = get_response()
+		response = get_response(route)
 		self.assertIn(('X-From-Cache', 'True'), list(response.headers))
 
 		frappe.flags.force_website_cache = True
