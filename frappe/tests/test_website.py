@@ -201,6 +201,10 @@ class TestWebsite(unittest.TestCase):
 		self.assertIn('<div class="print-format">', content)
 		self.assertIn('<div>Language</div>', content)
 
+	def test_get_context_without_context_object(self):
+		content = get_response_content('/_test/_test_no_context')
+		self.assertIn("Custom Content", content)
+
 
 def set_home_page_hook(key, value):
 	from frappe import hooks
