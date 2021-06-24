@@ -1,3 +1,5 @@
+// TODO: Refactor for better UX
+
 frappe.provide("frappe.views");
 
 (function() {
@@ -185,7 +187,7 @@ frappe.provide("frappe.views");
 						new_index: card.new_index,
 					};
 				}
-
+				frappe.dom.freeze();
 				frappe.call({
 					method: method_prefix + method_name,
 					args: args,
@@ -198,6 +200,7 @@ frappe.provide("frappe.views");
 							cards: cards,
 							columns: columns
 						});
+						frappe.dom.unfreeze();
 					}
 				}).fail(function() {
 					// revert original order
@@ -205,6 +208,7 @@ frappe.provide("frappe.views");
 						cards: _cards,
 						columns: _columns
 					});
+					frappe.dom.unfreeze();
 				});
 			},
 			update_order: function(updater) {

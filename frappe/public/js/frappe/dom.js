@@ -319,7 +319,7 @@ frappe.get_data_pill = (label, target_id=null, remove_action=null, image=null) =
 
 frappe.get_modal = function(title, content) {
 	return $(`<div class="modal fade" style="overflow: auto;" tabindex="-1">
-		<div class="modal-dialog modal-dialog-scrollable">
+		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
 					<div class="fill-width flex title-section">
