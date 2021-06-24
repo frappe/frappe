@@ -69,8 +69,10 @@ class TemplatePage(BaseTemplatePage):
 		self.init_context()
 
 		self.set_pymodule()
-		self.setup_template()
 		self.update_context()
+		self.setup_template()
+		self.load_colocated_files()
+		self.set_properties_from_source()
 		self.post_process_context()
 
 		html = self.render_template()
@@ -125,7 +127,6 @@ class TemplatePage(BaseTemplatePage):
 	def update_context(self):
 		self.set_page_properties()
 		self.set_properties_from_source()
-		self.load_colocated_files()
 		self.context.build_version = frappe.utils.get_build_version()
 
 		if self.pymodule_name:
@@ -218,7 +219,7 @@ class TemplatePage(BaseTemplatePage):
 				or '{% extends' in self.source))
 
 	def get_raw_template(self):
-		return frappe.get_jloader().get_source(frappe.get_jenv(), self.template_path)[0]
+		return frappe.get_jloader().get_source(frappe.get_jenv(), self.context.template)[0]
 
 	def load_colocated_files(self):
 		'''load co-located css/js files with the same name'''
