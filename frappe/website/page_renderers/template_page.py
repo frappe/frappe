@@ -191,7 +191,7 @@ class TemplatePage(BaseTemplatePage):
 			try:
 				import inspect
 				method = getattr(self.pymodule, method_name)
-				if inspect.getargspec(method).args:
+				if inspect.getfullargspec(method).args:
 					return method(self.context)
 				else:
 					return method()
