@@ -185,10 +185,15 @@ class TemplatePage(BaseTemplatePage):
 				click.echo(f'\n⚠️  DEPRECATION WARNING: {comment_tag} will be deprecated on 2021-12-31.')
 				click.echo(f'Please remove it from {self.template_path} in {self.app}')
 
-	def run_pymodule_method(self, method):
-		if hasattr(self.pymodule, method):
+	def run_pymodule_method(self, method_name):
+		if hasattr(self.pymodule, method_name):
 			try:
-				return getattr(self.pymodule, method)(self.context)
+				import inspect
+				method = getattr(self.pymodule, method_name)
+				if inspect.getargspec(method).args:
+					return method(self.context)
+				else:
+					return method()
 			except (frappe.PermissionError, frappe.DoesNotExistError, frappe.Redirect):
 				raise
 			except Exception:
