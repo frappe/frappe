@@ -770,19 +770,23 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 @click.command('version')
 def get_version():
 	"Show the versions of all the installed apps"
+	from git import Repo
 	from frappe.utils.change_log import get_app_branch
 	frappe.init('')
 
-	for m in sorted(frappe.get_all_apps()):
-		branch_name = get_app_branch(m)
-		module = frappe.get_module(m)
-		app_hooks = frappe.get_module(m + ".hooks")
+	for app in sorted(frappe.get_all_apps()):
+		branch_name = get_app_branch(app)
+		module = frappe.get_module(app)
+		app_hooks = frappe.get_module(app + ".hooks")
+		repo = Repo(frappe.get_app_path(app, ".."))
+		branch = repo.head.ref.name
+		commit = repo.head.ref.commit.hexsha[:7]
 
 		if hasattr(app_hooks, '{0}_version'.format(branch_name)):
-			print("{0} {1}".format(m, getattr(app_hooks, '{0}_version'.format(branch_name))))
+			click.echo("{0} {1} {2} ({3})".format(app, getattr(app_hooks, '{0}_version'.format(branch_name)), branch, commit))
 
 		elif hasattr(module, "__version__"):
-			print("{0} {1}".format(m, module.__version__))
+			click.echo("{0} {1} {2} ({3})".format(app, module.__version__, branch, commit))
 
 
 @click.command('rebuild-global-search')
