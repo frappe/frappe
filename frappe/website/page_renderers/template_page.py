@@ -58,7 +58,9 @@ class TemplatePage(BaseTemplatePage):
 		return (frappe.as_unicode(f'{search_path}{d}') for d in ('', '.html', '.md', '/index.html', '/index.md'))
 
 	def render(self):
-		return build_response(self.path, self.get_html(), self.http_status_code, self.headers)
+		html = self.get_html()
+		html = self.add_csrf_token(html)
+		return build_response(self.path, html, self.http_status_code, self.headers)
 
 	@cache_html
 	def get_html(self):
@@ -73,7 +75,6 @@ class TemplatePage(BaseTemplatePage):
 
 		html = self.render_template()
 		html = self.update_toc(html)
-		html = self.add_csrf_token(html)
 
 		return html
 
