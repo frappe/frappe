@@ -256,6 +256,21 @@ class TestWebsite(unittest.TestCase):
 		content = get_response_content('/_test/_test_no_context')
 		self.assertIn("Custom Content", content)
 
+	def test_caching(self):
+		# to enable caching
+		dev_mode = frappe.conf.developer_mode
+		frappe.conf.developer_mode = 0
+
+		clear_website_cache()
+		# first response no-cache
+		response = get_response('/_test/_test_folder/_test_page')
+		self.assertIn(('X-From-Cache', 'False'), list(response.headers))
+
+		# first response returned from cache
+		response = get_response('/_test/_test_folder/_test_page')
+		self.assertIn(('X-From-Cache', 'True'), list(response.headers))
+
+		frappe.conf.developer_mode = dev_mode
 
 def set_home_page_hook(key, value):
 	from frappe import hooks

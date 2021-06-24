@@ -9,6 +9,7 @@ from frappe.utils import set_request
 from frappe.website.serve import get_response
 from frappe.utils import random_string
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
+from frappe.website.utils import clear_website_cache
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
 
@@ -89,6 +90,26 @@ class TestBlogPost(unittest.TestCase):
 		for blog in blogs:
 			frappe.delete_doc(blog.doctype, blog.name)
 		frappe.delete_doc("Blog Category", blogs[0].blog_category)
+
+	def test_caching(self):
+		# to enable caching
+		dev_mode = frappe.conf.developer_mode
+		frappe.conf.developer_mode = 0
+
+		clear_website_cache()
+		# first response no-cache
+		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
+			filters={'published': 1, 'route': ('!=', '')}, limit =1)
+
+		set_request(path=pages[0].route)
+		response = get_response()
+		self.assertIn(('X-From-Cache', 'False'), list(response.headers))
+
+		# first response returned from cache
+		response = get_response()
+		self.assertIn(('X-From-Cache', 'True'), list(response.headers))
+
+		frappe.conf.developer_mode = dev_mode
 
 def scrub(text):
 	return WebsiteGenerator.scrub(None, text)
