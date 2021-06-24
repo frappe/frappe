@@ -291,10 +291,13 @@ var verify_token = function (event) {
 }
 
 var request_otp = function (r) {
+	const otp_form_template = '{{ _("Verification") }}<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder={{ _("Verification Code") }} required="" autofocus="">{{ _("Verify") }}';
 	$('.login-content').empty();
-	$('.login-content:visible').append($('<div>').attr({ 'id': 'twofactor_div' }).html('{{ _("Verification") }}<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder={{ _("Verification Code") }} required="" autofocus="">{{ _("Verify") }}'));
-		// add event handler for submit button
-		verify_token();
+	$('.login-content:visible').append(
+		$('<div>').attr({ 'id': 'twofactor_div' }).html(otp_form_template)
+	);
+	// add event handler for submit button
+	verify_token();
 }
 
 var continue_otp_app = function (setup, qrcode) {
