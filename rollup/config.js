@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const chalk = require('chalk');
+const glob = require('fast-glob');
 const log = console.log; // eslint-disable-line
 
 const multi_entry = require('rollup-plugin-multi-entry');
@@ -28,7 +29,7 @@ const {
 function get_rollup_options(output_file, input_files) {
 	if (output_file.endsWith('.js')) {
 		return get_rollup_options_for_js(output_file, input_files);
-	} else if(output_file.endsWith('.css')) {
+	} else if (output_file.endsWith('.css')) {
 		return get_rollup_options_for_css(output_file, input_files);
 	}
 }
@@ -165,7 +166,7 @@ function get_rollup_options_for_css(output_file, input_files) {
 	};
 }
 
-function get_options(file, app="frappe") {
+function get_options(file, app = "frappe") {
 	const build_json = get_build_json(app);
 	if (!build_json) return [];
 
@@ -183,16 +184,41 @@ function get_options(file, app="frappe") {
 					});
 				return Object.assign(
 					get_rollup_options(output_file, input_files), {
-						output_file
-					});
+					output_file
+				});
 			}
 		})
 		.filter(Boolean);
 }
 
 function get_options_for(app) {
-	const build_json = get_build_json(app);
-	if (!build_json) return [];
+	let build_json = get_build_json(app);
+	if (!build_json) {
+		if (app != 'frappe') {
+			// Forward compatibility with .bundle. files
+			// if build.json is not found, check if there are .bundle. files
+			// and make a build.json out of them
+			let public_path = get_public_path(app);
+			let include_pattern =
+				path.resolve(
+					public_path,
+					"**",
+					"*.bundle.{js,css,sass,scss,less}"
+				)
+			let ignore_pattern = path.resolve(public_path, "node_modules");
+			let files = glob.sync(include_pattern, { ignore: ignore_pattern });
+
+			build_json = {};
+			for (let file of files) {
+				let extension = path.extname(file);
+				let output_name = path.basename(file, extension);
+				let file_type = extension == '.js' ? 'js' : 'css';
+				build_json[`${file_type}/${output_name}.${file_type}`] = file;
+			}
+		} else {
+			build_json = {};
+		}
+	};
 
 	return Object.keys(build_json)
 		.map(output_file => {
@@ -212,8 +238,8 @@ function get_options_for(app) {
 				});
 			return Object.assign(
 				get_rollup_options(output_file, input_files), {
-					output_file
-				});
+				output_file
+			});
 		})
 		.filter(Boolean);
 }

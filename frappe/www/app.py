@@ -39,11 +39,13 @@ def get_context(context):
 	# TODO: Find better fix
 	boot_json = re.sub(r"</script\>", "", boot_json)
 
+	# app_include_js and app_include_css
+	app_assets = get_app_assets(hooks)
+	context.update(app_assets)
+
 	context.update({
 		"no_cache": 1,
 		"build_version": frappe.utils.get_build_version(),
-		"include_js": hooks["app_include_js"],
-		"include_css": hooks["app_include_css"],
 		"sounds": hooks["sounds"],
 		"boot": boot if context.get("for_mobile") else boot_json,
 		"desk_theme": desk_theme or "Light",
@@ -54,6 +56,30 @@ def get_context(context):
 	})
 
 	return context
+
+def get_app_assets(hooks):
+	'''Returns assets that need to be loaded in /app
+	
+	Will also handle .bundle. files that are introduced in v14 for forward compatibility
+	'''
+
+	def get_file_path(file):
+		if '.bundle.' in file:
+			file_type = 'js' if file.endswith('.js') else 'css'
+			asset_path = os.path.join('assets', file_type, file)
+			output_file_path = os.path.join(frappe.utils.get_bench_path(), 'sites', asset_path)
+			if os.path.exists(output_file_path):
+				return '/' + asset_path
+		return file
+
+	js = list(map(get_file_path, hooks["app_include_js"]))
+	css = list(map(get_file_path, hooks["app_include_css"]))
+
+	return {
+		"include_js": js,
+		"include_css": css,
+	}
+
 
 @frappe.whitelist()
 def get_desk_assets(build_version):
