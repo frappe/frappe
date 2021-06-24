@@ -642,11 +642,13 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 		
 		const SALUTATION_END_COMMENT = "<!-- salutation-ends -->";
-		if (this.real_name && !message.includes(SALUTATION_END_COMMENT)) {
+		this.message = this.message || '';
+
+		if (this.real_name && !this.message.includes(SALUTATION_END_COMMENT)) {
 			this.message = `
 				<p>${__('Dear')} ${this.real_name},</p>
 				${SALUTATION_END_COMMENT}<br>
-				${message}
+				${this.message}
 			`;
 		}
 
@@ -688,13 +690,12 @@ frappe.views.CommunicationComposer = Class.extend({
 				${this.message || ''}
 				${frappe.separator_element}
 				${fwd}
+				${signature || ''}
+				${frappe.separator_element}
 				<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
 				<blockquote>
 				${last_email_content}
 				</blockquote>
-				${frappe.separator_element}
-				${signature || ''}
-
 			`;
 		} else {
 			content = "<div><br></div>" + reply;
