@@ -7,7 +7,7 @@ from frappe.website.router import get_page_info
 from frappe.website.page_renderers.base_template_page import BaseTemplatePage
 from frappe.website.router import get_base_template
 from frappe.website.utils import (extract_comment_tag, extract_title, get_next_link,
-	get_toc, get_frontmatter, cache_html, get_sidebar_items, build_response)
+	get_toc, get_frontmatter, cache_html, get_sidebar_items)
 
 WEBPAGE_PY_MODULE_PROPERTIES = ("base_template_path", "template", "no_cache", "sitemap", "condition_field")
 
@@ -60,7 +60,7 @@ class TemplatePage(BaseTemplatePage):
 	def render(self):
 		html = self.get_html()
 		html = self.add_csrf_token(html)
-		return build_response(self.path, html, self.http_status_code, self.headers)
+		return self.build_response(html)
 
 	@cache_html
 	def get_html(self):
