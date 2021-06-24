@@ -53,7 +53,12 @@
 	display: none;
 }
 
+.form-grid .grid-heading-row .template-row {
+	margin-left: 20px;
+}
+
 .form-grid .template-row {
+	width: calc(100% - 30px);
 	padding: 8px 15px;
 }
 
