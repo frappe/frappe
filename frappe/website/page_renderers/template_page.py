@@ -83,7 +83,7 @@ class TemplatePage(BaseTemplatePage):
 		super(TemplatePage, self).post_process_context()
 
 	def add_sidebar_and_breadcrumbs(self):
-		if self.basepath:
+		if self.basepath and not self.context.sidebar_items:
 			self.context.sidebar_items = get_sidebar_items(self.context.website_sidebar, self.basepath)
 
 		if self.context.add_breadcrumbs and not self.context.parents:
