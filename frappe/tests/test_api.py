@@ -142,6 +142,7 @@ class TestResourceAPI(unittest.TestCase):
 		response = self.delete(f"{self.DOCTYPE}/{doc_to_delete}")
 		self.assertEqual(response.status_code, 202)
 		self.assertDictEqual(response.json(), {"message": "ok"})
+		self.GENERATED_DOCUMENTS.remove(doc_to_delete)
 
 		non_existent_doc = frappe.generate_hash(length=12)
 		response = self.delete(f"{self.DOCTYPE}/{non_existent_doc}")
