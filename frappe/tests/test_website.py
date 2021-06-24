@@ -259,8 +259,7 @@ class TestWebsite(unittest.TestCase):
 
 	def test_caching(self):
 		# to enable caching
-		dev_mode = frappe.conf.developer_mode
-		frappe.conf.developer_mode = 0
+		frappe.flags.force_website_cache = True
 
 		clear_website_cache()
 		# first response no-cache
@@ -271,7 +270,8 @@ class TestWebsite(unittest.TestCase):
 		response = get_response('/_test/_test_folder/_test_page')
 		self.assertIn(('X-From-Cache', 'True'), list(response.headers))
 
-		frappe.conf.developer_mode = dev_mode
+		frappe.flags.force_website_cache = False
+
 
 def set_home_page_hook(key, value):
 	from frappe import hooks

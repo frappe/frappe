@@ -9,7 +9,7 @@ from frappe.utils import set_request
 from frappe.website.serve import get_response
 from frappe.utils import random_string
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
-from frappe.website.utils import clear_website_cache
+from frappe.website.utils import can_cache, clear_website_cache
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
 
@@ -93,8 +93,7 @@ class TestBlogPost(unittest.TestCase):
 
 	def test_caching(self):
 		# to enable caching
-		dev_mode = frappe.conf.developer_mode
-		frappe.conf.developer_mode = 0
+		frappe.flags.force_website_cache = True
 
 		clear_website_cache()
 		# first response no-cache
@@ -109,7 +108,7 @@ class TestBlogPost(unittest.TestCase):
 		response = get_response()
 		self.assertIn(('X-From-Cache', 'True'), list(response.headers))
 
-		frappe.conf.developer_mode = dev_mode
+		frappe.flags.force_website_cache = True
 
 def scrub(text):
 	return WebsiteGenerator.scrub(None, text)
