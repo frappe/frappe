@@ -213,6 +213,7 @@ class TestWebsite(unittest.TestCase):
 		frappe.flags.look_for_sidebar = False
 		content = get_response_content('/_test/_test_folder/_test_page')
 		self.assertNotIn('Test Sidebar', content)
+		clear_website_cache()
 		frappe.flags.look_for_sidebar = True
 		content = get_response_content('/_test/_test_folder/_test_page')
 		self.assertIn('Test Sidebar', content)
