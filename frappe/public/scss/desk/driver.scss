@@ -1,0 +1,79 @@
+@import "~driver.js/src/driver.scss";
+
+div#driver-popover-item {
+	$text-color: var(--text-color);
+	$popover-bg: var(--card-bg);
+
+	padding: var(--padding-md) var(--padding-lg);
+	max-width: 350px;
+	border-radius: var(--border-radius-md);
+	box-shadow: var(--shadow-md);
+
+	.driver-popover-title {
+		font-size: var(--text-lg);
+		color: var(--text-color);
+		margin-bottom: var(--margin-sm);
+	}
+
+	.driver-popover-description {
+		font-size: var(--text-md);
+		color: var(--text-light);
+		line-height: 20px;
+	}
+
+	.driver-popover-footer {
+		margin-top: var(--margin-lg);
+
+		button,
+		button.driver-next-btn,
+		button.driver-prev-btn,
+		button.driver-close-btn,
+		button.driver-disabled {
+			@extend .btn;
+			@extend .btn-sm;
+
+			text-decoration: none;
+			text-shadow: none;
+			box-shadow: none;
+		}
+
+		button.driver-next-btn {
+			@extend .btn-primary;
+		}
+
+		button.driver-prev-btn {
+			@extend .btn-secondary;
+			margin-left: var(--margin-sm);
+		}
+
+		button.driver-close-btn {
+			@extend .btn-link;
+			@extend .text-muted;
+			@extend .px-0;
+		}
+
+		button.driver-disabled {
+			@extend .btn-disabled !optional;
+		}
+	}
+}
+
+#driver-highlighted-element-stage {
+	border-radius: var(--border-radius) !important;
+}
+
+input.driver-highlighted-element {
+	background-color: var(--fg-color);
+}
+
+.driver-fix-stacking {
+	z-index: auto !important;
+	position: unset !important;
+	opacity: 1.0 !important;
+	transform: none !important;
+	filter: none !important;
+	perspective: none !important;
+	transform-style: flat !important;
+	transform-box: border-box !important;
+	will-change: unset !important;
+}

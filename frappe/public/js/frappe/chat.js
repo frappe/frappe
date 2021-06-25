@@ -9,7 +9,7 @@ import './socketio_client'
 import './ui/dialog'
 import './ui/capture'
 
-import './misc/user'
+import './utils/user'
 
 /* eslint semi: "never" */
 // Fuck semicolons - https://mislav.net/2010/05/semicolons
@@ -192,7 +192,7 @@ frappe.quick_edit      = (doctype, docname, fn) => {
 				})
 
 				const dialog   = new frappe.ui.Dialog({
-					 title: __(`Edit ${doctype} (${docname})`),
+					title: __('Edit') + `${doctype} (${docname})`,
 					fields: required,
 					action: {
 						primary: {
@@ -227,7 +227,7 @@ frappe.quick_edit      = (doctype, docname, fn) => {
 				`)
 				$element.find('.qe-fp').click(() => {
 					dialog.hide()
-					frappe.set_route(`Form/${doctype}/${docname}`)
+					frappe.set_route('Form', doctype, docname)
 				})
 
 				dialog.show()
@@ -682,7 +682,7 @@ frappe.chat.profile.STATUSES
 	},
 	{
 		 name: "Offline",
-		color: "darkgrey"
+		color: "gray"
 	}
 ]
 
@@ -718,7 +718,7 @@ frappe.chat.room.create = function (kind, owner, users, name, fn) {
 
 	return new Promise(resolve => {
 		frappe.call("frappe.chat.doctype.chat_room.chat_room.create",
-			{ kind: kind, owner: owner || frappe.session.user, users: users, name: name },
+			{ kind: kind, token: owner || frappe.session.user, users: users, name: name },
 			r => {
 				let room = r.message
 				room     = { ...room, creation: new frappe.datetime.datetime(room.creation) }
@@ -1305,8 +1305,6 @@ class {
 		this.set_wrapper(selector ? selector : "body")
 		this.set_options(options)
 
-		// Load Emojis.
-		frappe.chat.emoji()
 	}
 
 	/**
@@ -1421,7 +1419,7 @@ class extends Component {
 			const state     = [ ]
 
 			for (const room of rooms)
-				if ( ["Group", "Visitor"].includes(room.type) || room.owner === frappe.session.user || room.last_message ) {
+				  if ( ["Group", "Visitor"].includes(room.type) || room.owner === frappe.session.user || room.last_message || room.users.includes(frappe.session.user)) {
 					frappe.log.info(`Adding ${room.name} to component.`)
 					state.push(room)
 				}
@@ -1566,14 +1564,23 @@ class extends Component {
 				const  alert   = // TODO: ellipses content
 				`
 				<span data-action="show-message" class="cursor-pointer">
-					<span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
+					<span class="indicator yellow"/>
+						<span class="avatar avatar-small">
+							<span class="avatar-frame" style="background-image: url(${frappe.user.image(r.user)})"></span>
+						</span>
+						<b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
 				`
-				frappe.show_alert(alert, 3, {
+				frappe.show_alert(alert, 15, {
 					"show-message": function (r) {
 						this.room.select(r.room)
 						this.base.firstChild._component.toggle()
 					}.bind(this, r)
+				})
+				frappe.notify(`${frappe.user.first_name(r.user)}`, {
+					body: r.content,
+					icon: frappe.user.image(r.user),
+					tag: r.user
 				})
 			}
 
@@ -2212,7 +2219,7 @@ class extends Component {
 		const item          = { }
 
 		if ( ["Group", "Visitor"].includes(props.type) ) {
-			item.route      = `Form/Chat Room/${props.name}`
+			item.route      = `chat-room/${props.name}`
 
 			item.title      = props.room_name
 			item.image      = props.avatar
@@ -2223,14 +2230,13 @@ class extends Component {
 				item.subtitle = `${users.join(", ")} typing...`
 			} else
 				item.subtitle = props.type === "Group" ?
-					__(`${props.users.length} ${frappe._.pluralize('member', props.users.length)}`)
-					:
-					""
+					`${props.users.length} ${frappe._.pluralize('member', props.users.length)}`
+					: ""
 		}
 		else {
 			const user      = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner
 
-			item.route      = `Form/User/${user}`
+			item.route      = `user/${user}`
 
 			item.title      = frappe.user.full_name(user)
 			item.image      = frappe.user.image(user)
@@ -2250,14 +2256,19 @@ class extends Component {
 						) : null,
 					h("div","",
 						h("div", { class: "panel-title" },
-							h("div", { class: "cursor-pointer", onclick: () => { frappe.set_route(item.route) }},
+							h("div", { class: "cursor-pointer", onclick: () => {
+								frappe.session.user !== "Guest" ?
+									frappe.set_route(item.route) : null;
+							}},
 								h(frappe.Chat.Widget.MediaProfile, { ...item })
 							)
 						)
 					),
-					h("div", { class: popper ? "col-xs-1"  : "col-xs-3" },
+					h("div", { class: popper ? "col-xs-2"  : "col-xs-3" },
 						h("div", { class: "text-right" },
-
+							frappe._.is_mobile() && h(frappe.components.Button, { class: "frappe-chat-close", onclick: props.toggle },
+								h(frappe.components.Octicon, { type: "x" })
+							)
 						)
 					)
 				)
@@ -2389,11 +2400,11 @@ class extends Component {
 		return (
 			h("div",{class:`chat-bubble ${props.groupable ? "chat-groupable" : ""} chat-bubble-${me ? "r" : "l"}`,
 				onclick: this.onclick},
-				props.room_type === "Group" && !me?
+				props.room_type === "Group" && !me ?
 					h("div",{class:"chat-bubble-author"},
-						h("a", { onclick: () => { frappe.set_route(`Form/User/${props.user}`) } },
-							frappe.user.full_name(props.user)
-						)
+					h("a", { onclick: () => { frappe.set_route('Form', 'User', props.user) } },
+						frappe.user.full_name(props.user)
+					)
 					) : null,
 				h("div",{class:"chat-bubble-content"},
 						h("small","",
@@ -2514,7 +2525,7 @@ class extends Component {
 					h("div",{class:"input-group input-group-lg"},
 						!frappe._.is_empty(props.actions) ?
 							h("div",{class:"input-group-btn dropup"},
-								h(frappe.components.Button,{ class: "dropdown-toggle", "data-toggle": "dropdown"},
+								h(frappe.components.Button,{ class: (frappe.session.user === "Guest" ? "disabled" : "dropdown-toggle"), "data-toggle": "dropdown"},
 									h(frappe.components.FontAwesome, { class: "text-muted", type: "paperclip", fixed: true })
 								),
 								h("div",{ class:"dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
@@ -2656,20 +2667,6 @@ frappe.chat.render = (render = true, force = false) =>
 		// With the assumption, that there's only one navbar.
 		const $placeholder = $('.navbar .frappe-chat-dropdown')
 
-		// Render if frappe-chat-toggle doesn't exist.
-		if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
-			const $template = $(`
-				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
-					<div>
-						<i class="octicon octicon-comment-discussion"/>
-					</div>
-				</a>
-			`)
-
-			$placeholder.addClass('dropdown hidden')
-			$placeholder.html($template)
-		}
-
 		if ( render ) {
 			$placeholder.removeClass('hidden')
 		} else {
@@ -2743,7 +2740,7 @@ frappe.chat.setup  = () => {
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
 			frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
 
-			if ( 'desk' in frappe ) { // same as desk?
+			if ( 'desk' in frappe && frappe.sys_defaults ) { // same as desk?
 				const should_render = Boolean(parseInt(frappe.sys_defaults.enable_chat)) && enable_chat
 				frappe.chat.render(should_render)
 			}
@@ -2784,7 +2781,8 @@ frappe.chat.setup  = () => {
 	}
 }
 
-$(document).on('ready toolbar_setup', () =>
-{
-	frappe.chat.setup()
-})
+// TODO: Re-enable after re-designing chat
+// $(document).on('ready toolbar_setup', () =>
+// {
+// 	frappe.chat.setup()
+// })

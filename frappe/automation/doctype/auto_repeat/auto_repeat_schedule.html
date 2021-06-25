@@ -1,0 +1,19 @@
+<table class="table table-bordered small">
+	<thead>
+		<tr>
+			<th style="width: 20%">{{ __("Reference Document") }}</th>
+			<th style="width: 20%">{{ __("Frequency") }}</th>
+			<th style="width: 20%">{{ __("Next Scheduled Date") }}</th>
+		</tr>
+	</thead>
+
+	<tbody>
+	{% for(var i=0; i < schedule_details.length; i++) { %}
+		<tr>
+			<td>{{ schedule_details[i].reference_document }}</td>
+			<td> {{ __(schedule_details[i].frequency) }} </td>
+			<td> {{ frappe.datetime.str_to_user(schedule_details[i].next_scheduled_date) }} </td>
+		</tr>
+	{% } %}
+	</tbody>
+</table>

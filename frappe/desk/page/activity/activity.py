@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint
 from frappe.core.doctype.activity_log.feed import get_feed_match_conditions
@@ -14,13 +13,13 @@ def get_feed(start, page_length):
 
 	result = frappe.db.sql("""select X.*
 		from (select name, owner, modified, creation, seen, comment_type,
-				reference_doctype, reference_name, link_doctype, link_name, subject,
+				reference_doctype, reference_name, '' as link_doctype, '' as link_name, subject,
 				communication_type, communication_medium, content
 			from
 				`tabCommunication`
 			where
-				communication_type = "Communication"
-				and communication_medium != "Email"
+				communication_type = 'Communication'
+				and communication_medium != 'Email'
 				and {match_conditions_communication}
 		UNION
 			select name, owner, modified, creation, '0', 'Updated',

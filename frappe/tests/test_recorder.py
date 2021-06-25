@@ -3,11 +3,11 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import unittest
 import frappe
 import frappe.recorder
-from .test_website import set_request
+from frappe.utils import set_request
+from frappe.website.serve import get_response_content
 
 import sqlparse
 
@@ -86,7 +86,7 @@ class TestRecorder(unittest.TestCase):
 			{'mariadb': 'COMMIT', 'postgres': 'COMMIT'},
 		]
 
-		sql_dialect = frappe.conf.db_type or 'mariadb'
+		sql_dialect = frappe.db.db_type or 'mariadb'
 		for query in queries:
 			frappe.db.sql(query[sql_dialect])
 
@@ -119,3 +119,7 @@ class TestRecorder(unittest.TestCase):
 
 		for query, call in zip(queries, request['calls']):
 			self.assertEqual(call['exact_copies'], query[1])
+
+	def test_error_page_rendering(self):
+		content = get_response_content("error")
+		self.assertIn("Error", content)

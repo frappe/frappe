@@ -1,14 +1,11 @@
 # Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
-
-from __future__ import unicode_literals
-from six import iteritems
 import frappe
-
+from frappe import _
 
 field_map = {
-	"Contact": [ "first_name", "last_name", "phone", "mobile_no", "email_id", "is_primary_contact" ],
-	"Address": [ "address_line1", "address_line2", "city", "state", "pincode", "country", "is_primary_address" ]
+	"Contact": ["first_name", "last_name", "address", "phone", "mobile_no", "email_id", "is_primary_contact"],
+	"Address": ["address_line1", "address_line2", "city", "state", "pincode", "country", "is_primary_address"]
 }
 
 def execute(filters=None):
@@ -27,8 +24,8 @@ def get_columns(filters):
 		"Is Primary Address:Check",
 		"First Name",
 		"Last Name",
+		"Address",
 		"Phone",
-		"Mobile No",
 		"Email Id",
 		"Is Primary Contact:Check"
 	]
@@ -49,7 +46,7 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 		return []
 
 	if reference_name:
-		filters = { "name": reference_name }
+		filters = {"name": reference_name}
 
 	reference_list = [d[0] for d in frappe.get_list(reference_doctype, filters=filters, fields=["name"], as_list=True)]
 
@@ -58,7 +55,7 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 	reference_details = get_reference_details(reference_doctype, "Address", reference_list, reference_details)
 	reference_details = get_reference_details(reference_doctype, "Contact", reference_list, reference_details)
 
-	for reference_name, details in iteritems(reference_details):
+	for reference_name, details in reference_details.items():
 		addresses = details.get("address", [])
 		contacts  = details.get("contact", [])
 		if not any([addresses, contacts]):
@@ -93,6 +90,9 @@ def get_reference_details(reference_doctype, doctype, reference_list, reference_
 
 	for d in records:
 		temp_records.append(d[1:])
+
+	if not reference_list:
+		frappe.throw(_("No records present in {0}").format(reference_doctype))
 
 	reference_details[reference_list[0]][frappe.scrub(doctype)] = temp_records
 	return reference_details

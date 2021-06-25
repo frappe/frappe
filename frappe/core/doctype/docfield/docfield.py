@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 from frappe.model.document import Document
 
@@ -26,3 +24,8 @@ class DocField(Document):
 			}, 'options')
 
 			return link_doctype
+
+	def get_select_options(self):
+		if self.fieldtype == 'Select':
+			options = self.options or ''
+			return [d for d in options.split('\n') if d]

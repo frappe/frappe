@@ -1,0 +1,249 @@
+h5.modal-title {
+	margin: 0px !important;
+}
+
+// Hack to fix incorrect padding applied by Bootstrap
+body.modal-open[style^="padding-right"] {
+	padding-right: 12px !important;
+
+	header.navbar {
+		padding-right: 12px !important;
+		margin-right: -12px !important;
+	}
+}
+
+.modal {
+	// Same scrollbar as body
+	scrollbar-width: auto;
+	&::-webkit-scrollbar {
+		width: 12px;
+		height: 12px;
+	}
+
+	// Hide scrollbar on touch devices
+	@media(max-width: 991px) {
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			width: 0;
+			height: 0;
+		}
+	}
+
+	.modal-content {
+		border-color: var(--border-color);
+	}
+	.modal-header {
+		position: sticky;
+		top: 0;
+		z-index: 3;
+		background: inherit;
+		padding: var(--padding-md) var(--padding-lg);
+		// padding-bottom: 0;
+		border-bottom: 1px solid var(--border-color);
+
+		.modal-title {
+			font-weight: 500;
+			line-height: 2em;
+			font-size: $font-size-lg;
+			max-width: calc(100% - 80px);
+		}
+
+		.modal-actions {
+			position: absolute;
+			top: 10px;
+			right: 5px;
+
+			.btn-modal-minimize {
+				padding-right: 0;
+
+				.icon {
+					width: 14px;
+					height: 14px;
+					use {
+						stroke: var(--gray-500);
+					}
+				}
+			}
+		}
+	}
+
+	.modal-body {
+		padding: var(--padding-md) var(--padding-lg);
+		.form-layout:first-child > .form-page {
+			.visible-section:first-child {
+				padding-top: 0;
+				.section-body {
+					margin-top: 0;
+				}
+			}
+		}
+
+		.form-layout:last-child > .form-page {
+			.visible-section:last-child {
+				padding-bottom: 0;
+			}
+		}
+	}
+
+	.awesomplete ul {
+		z-index: 2;
+	}
+
+	.modal-footer {
+		position: sticky;
+		bottom: 0;
+		z-index: 1;
+		background: inherit;
+		padding: var(--padding-md) var(--padding-lg);
+		border-top: 1px solid var(--border-color);
+		justify-content: space-between;
+
+		button {
+			box-shadow: none;
+		}
+
+		.standard-actions {
+			button:not(:last-child) {
+				margin-right: var(--margin-xs);
+			}
+		}
+
+		& > * {
+			margin: 0;
+		}
+	}
+
+	.form-section {
+		padding: var(--padding-sm) 0;
+
+		&:not(:first-child) {
+			border-top: 1px solid var(--border-color);
+		}
+
+		&.hide-border {
+			border-top: none !important;
+			padding-top: 0px !important;
+		}
+
+		.form-column {
+			&:first-child {
+				padding-left: 0;
+			}
+			&:last-child {
+				padding-right: 0;
+			}
+		}
+
+		.section-head {
+			padding: 0;
+			font-size: var(--text-md);
+
+			&:not(.collapsed) {
+				padding-bottom: var(--padding-sm);
+			}
+		}
+	}
+
+	.hasDatepicker {
+		z-index: 1140;
+	}
+
+}
+
+.modal-minimize {
+	position: initial;
+
+	.modal-dialog {
+		position: fixed;
+		right: 15px;
+		bottom: 0;
+		margin: 0;
+		min-width: 400px;
+		.modal-header {
+			padding-top: var(--padding-sm);
+			padding-bottom: var(--padding-xs);
+		}
+
+		.modal-content {
+			min-height: 0;
+			border-radius: var(--border-radius-md);
+			border-bottom-right-radius: 0;
+			border-bottom-left-radius: 0;
+			box-shadow: -10px 10px rgba(0, 0, 0, 0.100661);
+		}
+
+		@include media-breakpoint-down(sm) {
+			right: 0;
+			width: 100%;
+			min-width: 100%;
+		}
+	}
+
+	.modal-body, .modal-footer {
+		display: none;
+	}
+}
+
+/* msgprint dialog */
+.msgprint-dialog {
+	.modal-content {
+		min-height: 110px;
+	}
+}
+
+.msgprint {
+	word-wrap: break-word;
+
+	pre {
+		text-align: left;
+	}
+
+	a:not(.btn) {
+		text-decoration: underline;
+	}
+}
+
+// used in CommunicationComposer
+.modal .to_section {
+	form {
+		display: flex;
+		align-items: center;
+		.frappe-control:first-child {
+			flex: 1;
+			margin-bottom: 0px;
+		}
+		.frappe-control:last-child {
+			margin-left: 10px;
+			margin-bottom: -24px;
+			button {
+				// same as form-control input
+				height: calc(1.5em + .75rem + 2px);
+			}
+		}
+	}
+}
+
+.dialog-assignment-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 5px 15px;
+	border-radius: var(--border-radius-md);
+	color: var(--text-color);
+	&:not(:last-child) {
+		margin-bottom: 5px;
+	}
+	@extend .row;
+	.remove-btn {
+		display: none;
+	}
+	&:hover {
+		background: var(--fg-hover-color);
+		.remove-btn {
+			display: block;
+		}
+	}
+	.avatar {
+		margin-right: var(--margin-md);
+	}
+}

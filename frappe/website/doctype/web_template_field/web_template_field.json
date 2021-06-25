@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "creation": "2020-04-17 12:12:31.857277",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "fieldname",
+  "fieldtype",
+  "reqd",
+  "options",
+  "default"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fieldname"
+  },
+  {
+   "default": "Data",
+   "fieldname": "fieldtype",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fieldtype",
+   "options": "Attach Image\nCheck\nData\nInt\nLink\nSelect\nSmall Text\nText\nMarkdown Editor\nSection Break\nColumn Break\nTable Break",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "reqd",
+   "fieldtype": "Check",
+   "label": "Mandatory"
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Small Text",
+   "label": "Options"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Small Text",
+   "label": "Default"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-10-26 17:38:40.798713",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Template Field",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

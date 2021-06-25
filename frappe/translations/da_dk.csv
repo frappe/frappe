@@ -1,0 +1,8 @@
+Half Day,Half Day,
+Half Yearly,Halvdelen Årlig,
+"""Company History""",'Virksomhedshistorie',
+1 Currency = [?] Fraction\nFor e.g. 1 USD = 100 Cent,1 Valuta = [?] Fraktion For eksempel 1 USD = 100 Cent,
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Ukendt fil kodning. Prøvede utf-8, vinduer-1250, vinduer-1252.",
+zoom-in,zoom-in,
+zoom-out,zoom-out,
+{0} {1} cannot be a leaf node as it has children,"{0} {1} kan ikke være en blad node, da den har undernoder",

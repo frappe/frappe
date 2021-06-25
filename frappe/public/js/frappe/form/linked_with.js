@@ -1,7 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui.form");
 
 frappe.ui.form.LinkedWith = class LinkedWith {
 
@@ -24,7 +23,6 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	make_dialog() {
 
 		this.dialog = new frappe.ui.Dialog({
-			hide_on_page_refresh: true,
 			title: __("Linked With")
 		});
 
@@ -159,7 +157,7 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 		return `<div class="list-row-container">
 			<div class="level list-row small">
 				<div class="level-left bold">
-					<a href="#Form/${doctype}/${doc.name}">${doc.name}</a>
+					<a href="/app/${frappe.router.slug(doctype)}/${doc.name}">${doc.name}</a>
 				</div>
 			</div>
 		</div>`;

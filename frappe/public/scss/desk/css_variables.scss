@@ -1,0 +1,80 @@
+@import '../common/css_variables.scss';
+
+$input-height: 28px !default;
+
+:root,
+[data-theme="light"] {
+	--text-xs: 11px;
+	--text-sm: 12px;
+	--text-md: 13px;
+	--text-base: 14px;
+	--text-lg: 16px;
+	--text-xl: 18px;
+	--text-2xl: 20px;
+	--text-3xl: 22px;
+
+	// breakpoints
+	--xxl-width: map-get($grid-breakpoints, '2xl');
+	--xl-width: map-get($grid-breakpoints, 'xl');
+	--lg-width: map-get($grid-breakpoints, 'lg');
+	--md-width: map-get($grid-breakpoints, 'md');
+	--sm-width: map-get($grid-breakpoints, 'sm');
+	--xs-width: map-get($grid-breakpoints, 'xs');
+
+	--text-bold: 500;
+
+	--navbar-height: 60px;
+
+	// Layout Colors
+	--bg-color: var(--gray-50);
+	--fg-color: white;
+	--navbar-bg: white;
+	--fg-hover-color: var(--gray-100);
+	--card-bg: var(--fg-color);
+	--disabled-text-color: var(--gray-700);
+	--disabled-control-bg: var(--gray-50);
+	--control-bg: var(--gray-100);
+	--control-bg-on-gray: var(--gray-200);
+	--awesomebar-focus-bg: var(--fg-color);
+	--modal-bg: white;
+	--toast-bg: var(--modal-bg);
+	--popover-bg: white;
+
+	--appreciation-color: var(--dark-green-600);
+	--appreciation-bg: var(--dark-green-100);
+	--criticism-color: var(--red-600);
+	--criticism-bg: var(--red-100);
+
+	// Error colors
+	--error-bg: var(--red-50);
+	--error-border: var(--red-400);
+
+	// page
+	--page-head-height: 75px;
+	--page-bottom-margin: 60px;
+
+	// input
+	--input-height: #{$input-height};
+	--input-disabled-bg: var(--gray-200);
+
+	// checkbox
+	--checkbox-right-margin: var(--margin-xs);
+	--checkbox-size: 14px;
+	--checkbox-focus-shadow: 0 0 0 2px var(--gray-300);
+
+	// timeline
+	--timeline-item-icon-size: 34px;
+	--timeline-item-left-margin: var(--margin-xl);
+	--timeline-item-bottom-margin: var(--margin-sm);
+	--timeline-content-max-width: 700px;
+	--timeline-left-padding: calc(var(--padding-xl) + var(--timeline-item-icon-size) / 2);
+
+	// mentions
+	--user-mention-bg-color: var(--fg-color);
+	--group-mention-bg-color: var(--bg-purple);
+
+	// skeleton
+	--skeleton-bg: var(--gray-100);
+
+	--right-arrow-svg: url("data: image/svg+xml;utf8, <svg width='6' height='8' viewBox='0 0 6 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1.25 7.5L4.75 4L1.25 0.5' stroke='%231F272E' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}

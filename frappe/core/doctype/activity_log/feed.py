@@ -1,13 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import frappe.permissions
 from frappe.utils import get_fullname
 from frappe import _
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from six import string_types
 
 def update_feed(doc, method=None):
 	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
@@ -23,7 +21,7 @@ def update_feed(doc, method=None):
 		feed = doc.get_feed()
 
 		if feed:
-			if isinstance(feed, string_types):
+			if isinstance(feed, str):
 				feed = {"subject": feed}
 
 			feed = frappe._dict(feed)
@@ -67,7 +65,7 @@ def get_feed_match_conditions(user=None, doctype='Comment'):
 	user_permissions = frappe.permissions.get_user_permissions(user)
 	can_read = frappe.get_user().get_can_read()
 
-	can_read_doctypes = ["'{}'".format(doctype) for doctype in
+	can_read_doctypes = ["'{}'".format(dt) for dt in
 		list(set(can_read) - set(list(user_permissions)))]
 
 	if can_read_doctypes:
@@ -81,9 +79,9 @@ def get_feed_match_conditions(user=None, doctype='Comment'):
 
 		if user_permissions:
 			can_read_docs = []
-			for doctype, obj in user_permissions.items():
+			for dt, obj in user_permissions.items():
 				for n in obj:
-					can_read_docs.append('{}|{}'.format(doctype, frappe.db.escape(n.get('doc', ''))))
+					can_read_docs.append('{}|{}'.format(frappe.db.escape(dt), frappe.db.escape(n.get('doc', ''))))
 
 			if can_read_docs:
 				conditions.append("concat_ws('|', `tab{doctype}`.reference_doctype, `tab{doctype}`.reference_name) in ({values})".format(

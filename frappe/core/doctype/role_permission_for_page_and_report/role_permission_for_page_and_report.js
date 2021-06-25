@@ -3,26 +3,32 @@
 
 frappe.ui.form.on('Role Permission for Page and Report', {
 	setup: function(frm) {
-		frm.trigger("set_queries")
+		frm.trigger("set_queries");
 	},
 
 	refresh: function(frm) {
 		frm.disable_save();
 		frm.role_area.hide();
-
-		frm.add_custom_button(__("Reset to defaults"), function() {
-			frm.trigger("reset_roles");
-		});
-
-		frm.add_custom_button(__("Update"), function() {
-			frm.trigger("update_report_page_data");
-		}).addClass('btn-primary');
+		frm.events.setup_buttons(frm);
 	},
-	
+
+	setup_buttons: function(frm) {
+		frm.clear_custom_buttons();
+		frm.page.clear_actions();
+		if (frm.doc.set_role_for && frm.doc[frappe.model.scrub(frm.doc.set_role_for)]) {
+			frm.add_custom_button(__("Reset to defaults"), function() {
+				frm.trigger("reset_roles");
+			});
+
+			frm.page.set_primary_action(__("Update"), () => {
+				frm.trigger("update_report_page_data");
+			});
+		}
+	},
+
 	onload: function(frm) {
-		if(!frm.roles_editor) {
-			frm.role_area = $('<div style="min-height: 300px">')
-				.appendTo(frm.fields_dict.roles_html.wrapper);
+		if (!frm.roles_editor) {
+			frm.role_area = $(frm.fields_dict.roles_html.wrapper);
 			frm.roles_editor = new frappe.RoleEditor(frm.role_area, frm);
 		}
 	},
@@ -48,14 +54,20 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 	},
 
 	page: function(frm) {
-		if(frm.doc.page) {
+		frm.events.setup_buttons(frm);
+		if (frm.doc.page) {
 			frm.trigger("set_report_page_data");
+		} else {
+			frm.trigger("set_role_for");
 		}
 	},
 
-	report: function(frm){
-		if(frm.doc.report) {
+	report: function(frm) {
+		frm.events.setup_buttons(frm);
+		if (frm.doc.report) {
 			frm.trigger("set_report_page_data");
+		} else {
+			frm.trigger("set_role_for");
 		}
 	},
 
@@ -107,7 +119,7 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 		if(!frm.doc.set_role_for){
 			frappe.throw(__("Mandatory field: set role for"))
 		}
-		
+
 		if(frm.doc.set_role_for && !frm.doc[frm.doc.set_role_for.toLocaleLowerCase()]) {
 			frappe.throw(__("Mandatory field: {0}", [frm.doc.set_role_for]))
 		}

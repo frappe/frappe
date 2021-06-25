@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 
 def get_notification_config():
@@ -14,13 +13,6 @@ def get_notification_config():
 			"Error Snapshot": {"seen": 0, "parent_error_snapshot": None},
 			"Workflow Action": {"status": 'Open'}
 		},
-		"for_other": {
-			"Likes": "frappe.core.notifications.get_unseen_likes",
-			"Email": "frappe.core.notifications.get_unread_emails",
-		},
-		"for_module": {
-			"Social": "frappe.social.doctype.post.post.get_unseen_post_count"
-		}
 	}
 
 def get_things_todo(as_list=False):

@@ -40,7 +40,7 @@ frappe.search.utils = {
 		frappe.route_history.forEach(function(route, i) {
 			if(route[0]==='Form') {
 				values.push([route[2], route]);
-			} else if(['List', 'Tree', 'modules', 'query-report'].includes(route[0]) || route[2]==='Report') {
+			} else if(['List', 'Tree', 'Workspaces', 'query-report'].includes(route[0]) || route[2]==='Report') {
 				if(route[1]) {
 					values.push([route[1], route]);
 				}
@@ -61,9 +61,9 @@ frappe.search.utils = {
 					out.label = __(match[1][1]).bold();
 					out.value = __(match[1][1]);
 				}
-			} else if (['List', 'Tree', 'modules', 'query-report'].includes(match[1][0]) && (match[1].length > 1)) {
+			} else if (['List', 'Tree', 'Workspaces', 'query-report'].includes(match[1][0]) && (match[1].length > 1)) {
 				var type = match[1][0], label = type;
-				if(type==='modules') label = 'Module';
+				if(type==='Workspaces') label = 'Workspace';
 				else if(type==='query-report' || match[1][2] ==='Report') label = 'Report';
 				out.label = __(match[1][1]).bold() + " " + __(label);
 				out.value = __(match[1][1]) + " " + __(label);
@@ -152,9 +152,15 @@ frappe.search.utils = {
 
 		var level, target;
 		var option = function(type, route, order) {
+			// check to skip extra list in the text
+			// eg. Price List List should be only Price List
+			let skip_list = type === 'List' && target.endsWith('List');
+			let label = me.bolden_match_part(__(target), keywords);
+			label += skip_list ? '' : ` ${__(type)}`;
+
 			return {
 				type: type,
-				label: me.bolden_match_part(__(target), keywords) + " " + __(type),
+				label: label,
 				value: __(target + " " + type),
 				index: level + order,
 				match: target,
@@ -277,31 +283,40 @@ frappe.search.utils = {
 		return out;
 	},
 
-	get_modules: function(keywords) {
+	get_workspaces: function(keywords) {
 		var me = this;
 		var out = [];
-		Object.keys(frappe.modules).forEach(function(item) {
-			var level = me.fuzzy_search(keywords, item);
-			if(level > 0) {
-				var module = frappe.modules[item];
-				if (module._doctype) return;
-
-				// disallow restricted modules
-				if (frappe.boot.user.allow_modules &&
-					!frappe.boot.user.allow_modules.includes(module.module_name)) {
-					return;
-				}
+		frappe.boot.allowed_workspaces.forEach(function(item) {
+			var level = me.fuzzy_search(keywords, item.name);
+			if (level > 0) {
 				var ret = {
-					type: "Module",
-					label: __("Open {0}", [me.bolden_match_part(__(item), keywords)]),
-					value: __("Open {0}", [__(item)]),
+					type: "Workspace",
+					label: __("Open {0}", [me.bolden_match_part(__(item.name), keywords)]),
+					value: __("Open {0}", [__(item.name)]),
 					index: level,
+					route: [frappe.router.slug(item.name)]
 				};
-				if(module.link) {
-					ret.route = [module.link];
-				} else {
-					ret.route = ["Module", item];
-				}
+
+				out.push(ret);
+			}
+		});
+		return out;
+	},
+
+	get_dashboards: function(keywords) {
+		var me = this;
+		var out = [];
+		frappe.boot.dashboards.forEach(function(item) {
+			var level = me.fuzzy_search(keywords, item.name);
+			if (level > 0) {
+				var ret = {
+					type: "Dashboard",
+					label: __("{0} Dashboard", [me.bolden_match_part(__(item.name), keywords)]),
+					value: __("{0} Dashboard", [__(item.name)]),
+					index: level,
+					route: ["dashboard-view", item.name]
+				};
+
 				out.push(ret);
 			}
 		});
@@ -466,42 +481,47 @@ frappe.search.utils = {
 		});
 		var in_keyword = keywords.split(" in ")[0];
 		return [{
-			title: "Recents",
+			title: __("Recents"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_recent_pages(keywords))
 		},
 		{
-			title: "Create a new ...",
+			title: __("Create a new ..."),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_creatables(keywords))
 		},
 		{
-			title: "Lists",
+			title: __("Lists"),
 			fetch_type: "Nav",
 			results: lists
 		},
 		{
-			title: "Reports",
+			title: __("Reports"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_reports(keywords))
 		},
 		{
-			title: "Administration",
+			title: __("Administration"),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_pages(keywords))
 		},
 		{
-			title: "Modules",
+			title: __("Workspace"),
 			fetch_type: "Nav",
-			results: sort_uniques(this.get_modules(keywords))
+			results: sort_uniques(this.get_workspaces(keywords))
 		},
 		{
-			title: "Setup",
+			title: __("Dashboard"),
+			fetch_type: "Nav",
+			results: sort_uniques(this.get_dashboards(keywords))
+		},
+		{
+			title: __("Setup"),
 			fetch_type: "Nav",
 			results: setup
 		},
 		{
-			title: "Find '" + in_keyword + "' in ... ",
+			title: __("Find '{0}' in ...", [in_keyword]),
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_search_in_list(keywords))
 		}];
@@ -514,19 +534,22 @@ frappe.search.utils = {
 
 		// **Specific use-case step**
 		keywords = keywords || '';
+		var item = __(_item || '');
+		var item_without_hyphen = item.replace(/-/g, " ");
 
-		var item = __(_item || '').replace(/-/g, " ");
-
-		var ilen = item.length;
-		var klen = keywords.length;
-		var length_ratio = klen/ilen;
+		var item_length = item.length;
+		var query_length = keywords.length;
+		var length_ratio = query_length / item_length;
 		var max_skips = 3, max_mismatch_len = 2;
 
-		if (klen > ilen) {
+		if (query_length > item_length) {
 			return 0;
 		}
 
-		if(keywords === item || item.toLowerCase().indexOf(keywords) === 0) {
+		// check for perfect string matches or
+		// matches that start with the keyword
+		if ([item, item_without_hyphen].includes(keywords)
+				|| [item, item_without_hyphen].some((txt) => txt.toLowerCase().indexOf(keywords) === 0)) {
 			return 10 + length_ratio;
 		}
 
@@ -542,12 +565,12 @@ frappe.search.utils = {
 		}
 
 		var skips = 0, mismatches = 0;
-		outer: for (var i = 0, j = 0; i < klen; i++) {
-			if(mismatches !== 0) skips++;
-			if(skips > max_skips) return 0;
+		outer: for (var i = 0, j = 0; i < query_length; i++) {
+			if (mismatches !== 0) skips++;
+			if (skips > max_skips) return 0;
 			var k_ch = keywords.charCodeAt(i);
 			mismatches = 0;
-			while (j < ilen) {
+			while (j < item_length) {
 				if (item.charCodeAt(j++) === k_ch) {
 					continue outer;
 				}
@@ -571,7 +594,7 @@ frappe.search.utils = {
 			return str;
 		} else if(this.fuzzy_search(subseq, str) > 6) {
 			var regEx = new RegExp("("+ subseq +")", "ig");
-			return str.replace(regEx, '<b>$1</b>');
+			return str.replace(regEx, '<mark>$1</mark>');
 		} else {
 			var str_orig = str;
 			var str = str.toLowerCase();
@@ -584,9 +607,9 @@ frappe.search.utils = {
 					if(str.charCodeAt(j) === sub_ch) {
 						var str_char = str_orig.charAt(j);
 						if(str_char === str_char.toLowerCase()) {
-							rendered += '<b>' + subseq.charAt(i) + '</b>';
+							rendered += '<mark>' + subseq.charAt(i) + '</mark>';
 						} else {
-							rendered += '<b>' + subseq.charAt(i).toUpperCase() + '</b>';
+							rendered += '<mark>' + subseq.charAt(i).toUpperCase() + '</mark>';
 						}
 						j++;
 						continue outer;
@@ -613,20 +636,21 @@ frappe.search.utils = {
 					value:  this.bolden_match_part(__(item.label), txt),
 					index: this.fuzzy_search(txt, target),
 					match: item.label,
-					onclick: item.action,
+					onclick: () => item.action.apply(this, item.args)
 				});
 			}
 		});
 		return results;
 	},
-	make_function_searchable(_function, label=null) {
+	make_function_searchable(_function, label=null, args=null) {
 		if (typeof _function !== 'function') {
 			throw new Error('First argument should be a function');
 		}
 
 		this.searchable_functions.push({
 			'label': label || _function.name,
-			'action': _function
+			'action': _function,
+			'args': args,
 		});
 	},
 	searchable_functions: [],

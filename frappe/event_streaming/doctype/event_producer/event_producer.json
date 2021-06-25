@@ -1,0 +1,96 @@
+{
+ "actions": [],
+ "autoname": "field:producer_url",
+ "creation": "2019-08-26 19:17:24.919196",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "producer_url",
+  "producer_doctypes",
+  "section_break_3",
+  "api_key",
+  "api_secret",
+  "column_break_6",
+  "user",
+  "incoming_change"
+ ],
+ "fields": [
+  {
+   "fieldname": "producer_url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Producer URL",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "API Key of the user(Event Subscriber) on the producer site",
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "reqd": 1
+  },
+  {
+   "description": "API Secret of the user(Event Subscriber) on the producer site",
+   "fieldname": "api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Event Subscriber",
+   "options": "User",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "incoming_change",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Incoming Change"
+  },
+  {
+   "fieldname": "producer_doctypes",
+   "fieldtype": "Table",
+   "label": "Event Producer Document Types",
+   "options": "Event Producer Document Type",
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "modified": "2020-10-26 13:00:15.361316",
+ "modified_by": "Administrator",
+ "module": "Event Streaming",
+ "name": "Event Producer",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

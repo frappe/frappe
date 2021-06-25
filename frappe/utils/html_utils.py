@@ -1,27 +1,32 @@
-from __future__ import unicode_literals
+import json
+import re
+
+from bleach_allowlist import bleach_allowlist
+
 import frappe
-import json, re
-import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
-from six import string_types
-from bs4 import BeautifulSoup
+
 
 def clean_html(html):
-	if not isinstance(html, string_types):
+	import bleach
+
+	if not isinstance(html, str):
 		return html
 
 	return bleach.clean(clean_script_and_style(html),
-		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em',
-                'table', 'thead', 'tbody', 'td', 'tr'],
+		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'u',
+			'table', 'thead', 'tbody', 'td', 'tr'],
 		attributes=[],
 		styles=['color', 'border', 'border-color'],
 		strip=True, strip_comments=True)
 
 def clean_email_html(html):
-	if not isinstance(html, string_types):
+	import bleach
+
+	if not isinstance(html, str):
 		return html
 
 	return bleach.clean(clean_script_and_style(html),
-		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em', 'a',
+		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'u', 'a',
 			'table', 'thead', 'tbody', 'td', 'tr', 'th', 'pre', 'code',
 			'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'img'],
 		attributes=['border', 'colspan', 'rowspan',
@@ -32,13 +37,15 @@ def clean_email_html(html):
 			'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
 			'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
 			'font-size', 'font-weight', 'font-family', 'text-decoration',
-			'line-height', 'text-align', 'vertical-align'
+			'line-height', 'text-align', 'vertical-align', 'display'
 		],
 		protocols=['cid', 'http', 'https', 'mailto', 'data'],
 		strip=True, strip_comments=True)
 
 def clean_script_and_style(html):
 	# remove script and style
+	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(html, 'html5lib')
 	for s in soup(['script', 'style']):
 		s.decompose()
@@ -47,28 +54,31 @@ def clean_script_and_style(html):
 def sanitize_html(html, linkify=False):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
-	Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults
+	Based on bleach clean, bleach whitelist and html5lib's Sanitizer defaults
 
 	Does not sanitize JSON, as it could lead to future problems
 	"""
-	if not isinstance(html, string_types):
+	import bleach
+	from bs4 import BeautifulSoup
+
+	if not isinstance(html, str):
 		return html
 
 	elif is_json(html):
 		return html
 
+	if not bool(BeautifulSoup(html, 'html.parser').find()):
+		return html
+
 	tags = (acceptable_elements + svg_elements + mathml_elements
-		+ ["html", "head", "meta", "link", "body", "iframe", "style", "o:p"])
+		+ ["html", "head", "meta", "link", "body", "style", "o:p"])
 	attributes = {"*": acceptable_attributes, 'svg': svg_attributes}
-	styles = bleach_whitelist.all_styles
+	styles = bleach_allowlist.all_styles
 	strip_comments = False
 
-	# retuns html with escaped tags, escaped orphan >, <, etc.
+	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,
 		strip_comments=strip_comments, protocols=['cid', 'http', 'https', 'mailto'])
-
-	if linkify:
-		escaped_html = bleach.linkify(escaped_html, callbacks=[])
 
 	return escaped_html
 
@@ -91,6 +101,7 @@ def get_icon_html(icon, small=False):
 		u"(\ud83c[\udde0-\uddff])"
 		"+", flags=re.UNICODE)
 
+	icon = icon or ""
 	if icon and emoji_pattern.match(icon):
 		return '<span class="text-muted">' + icon + '</span>'
 
@@ -101,6 +112,10 @@ def get_icon_html(icon, small=False):
 			'<img src="{icon}">'.format(icon=icon)
 	else:
 		return "<i class='{icon}'></i>".format(icon=icon)
+
+def unescape_html(value):
+	from html import unescape
+	return unescape(value)
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [
@@ -161,7 +176,9 @@ acceptable_attributes = [
 	'urn', 'valign', 'value', 'variable', 'volume', 'vspace', 'vrml',
 	'width', 'wrap', 'xml:lang', 'data-row', 'data-list', 'data-language',
 	'data-value', 'role', 'frameborder', 'allowfullscreen', 'spellcheck',
-	'data-mode', 'data-gramm', 'data-placeholder', 'data-comment'
+	'data-mode', 'data-gramm', 'data-placeholder', 'data-comment',
+	'data-id', 'data-denotation-char', 'itemprop', 'itemscope',
+	'itemtype', 'itemid', 'itemref', 'datetime', 'data-is-group'
 ]
 
 mathml_attributes = [

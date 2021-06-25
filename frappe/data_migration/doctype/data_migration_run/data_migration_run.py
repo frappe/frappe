@@ -2,13 +2,14 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe, json, math
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import get_source_value
+from frappe.utils import cstr
+from frappe.data_migration.doctype.data_migration_mapping.data_migration_mapping import get_source_value
 
 class DataMigrationRun(Document):
+	@frappe.whitelist()
 	def run(self):
 		self.begin()
 		if self.total_pages > 0:
@@ -213,19 +214,19 @@ class DataMigrationRun(Document):
 	def get_deleted_local_data(self):
 		'''Fetch local deleted data using `frappe.get_all`. Used during Push'''
 		mapping = self.get_mapping(self.current_mapping)
-		or_filters = self.get_or_filters(mapping)
-		filters = dict(
-			deleted_doctype=mapping.local_doctype
-		)
+		filters = self.get_last_modified_condition()
+		filters.update({
+			"deleted_doctype": mapping.local_doctype
+		})
 
-		data = frappe.get_all('Deleted Document', fields=['data'],
-			filters=filters, or_filters=or_filters)
+		data = frappe.get_all('Deleted Document', fields=['name', 'data'],
+			filters=filters)
 
 		_data = []
 		for d in data:
 			doc = json.loads(d.data)
 			if doc.get(mapping.migration_id_field):
-				doc['_deleted_document_name'] = d.name
+				doc['_deleted_document_name'] = d["name"]
 				_data.append(doc)
 
 		return _data
@@ -306,8 +307,8 @@ class DataMigrationRun(Document):
 				self.update_log('push_insert', 1)
 				# post process after insert
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
-			except Exception:
-				self.update_log('push_failed', d.name)
+			except Exception as e:
+				self.update_log('push_failed', {d.name: cstr(e)})
 
 		# update page_start
 		self.db_set('current_mapping_start',
@@ -338,8 +339,8 @@ class DataMigrationRun(Document):
 				self.update_log('push_update', 1)
 				# post process after update
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
-			except Exception:
-				self.update_log('push_failed', d.name)
+			except Exception as e:
+				self.update_log('push_failed', {d.name: cstr(e)})
 
 		# update page_start
 		self.db_set('current_mapping_start',
@@ -370,8 +371,8 @@ class DataMigrationRun(Document):
 				self.update_log('push_delete', 1)
 				# post process only when action is success
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
-			except Exception:
-				self.update_log('push_failed', d.name)
+			except Exception as e:
+				self.update_log('push_failed', {d.name: cstr(e)})
 
 		# update page_start
 		self.db_set('current_mapping_start',
@@ -412,9 +413,9 @@ class DataMigrationRun(Document):
 						self.update_log('pull_update', 1)
 					# post process doc after success
 					self.post_process_doc(remote_doc=d, local_doc=local_doc)
-				except Exception:
+				except Exception as e:
 					# failed, append to log
-					self.update_log('pull_failed', migration_id_value)
+					self.update_log('pull_failed', {migration_id_value: cstr(e)})
 
 		if len(data) < mapping.page_length:
 			# last page, done with pull

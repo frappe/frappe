@@ -1,15 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
-from frappe.utils.html_utils import clean_email_html
 from frappe.desk.form.document_follow import follow_document
+from frappe.utils.file_manager import extract_images_from_html
 
 from frappe import _
-from six import string_types
 
 @frappe.whitelist()
 def remove_attach():
@@ -17,7 +15,6 @@ def remove_attach():
 	fid = frappe.form_dict.get('fid')
 	file_name = frappe.form_dict.get('file_name')
 	frappe.delete_doc('File', fid)
-
 
 @frappe.whitelist()
 def validate_link():
@@ -48,7 +45,7 @@ def validate_link():
 			except Exception as e:
 				error_message = str(e).split("Unknown column '")
 				fieldname = None if len(error_message)<=1 else error_message[1].split("'")[0]
-				frappe.msgprint(_("Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script").format(fieldname))
+				frappe.msgprint(_("Wrong fieldname <b>{0}</b> in add_fetch configuration of custom client script").format(fieldname))
 				frappe.errprint(frappe.get_traceback())
 
 			if fetch_value:
@@ -57,17 +54,20 @@ def validate_link():
 		frappe.response['valid_value'] = valid_value
 		frappe.response['message'] = 'Ok'
 
+
 @frappe.whitelist()
-def add_comment(reference_doctype, reference_name, content, comment_email):
+def add_comment(reference_doctype, reference_name, content, comment_email, comment_by):
 	"""allow any logged user to post a comment"""
 	doc = frappe.get_doc(dict(
-		doctype = 'Comment',
-		reference_doctype = reference_doctype,
-		reference_name = reference_name,
-		content = clean_email_html(content),
-		comment_email = comment_email,
-		comment_type = 'Comment'
-	)).insert(ignore_permissions = True)
+		doctype='Comment',
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
+		comment_email=comment_email,
+		comment_type='Comment',
+		comment_by=comment_by
+	))
+	doc.content = extract_images_from_html(doc, content)
+	doc.insert(ignore_permissions=True)
 
 	follow_document(doc.reference_doctype, doc.reference_name, frappe.session.user)
 	return doc.as_dict()
@@ -84,32 +84,28 @@ def update_comment(name, content):
 	doc.save(ignore_permissions=True)
 
 @frappe.whitelist()
-def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
+def get_next(doctype, value, prev, filters=None, sort_order='desc', sort_field='modified'):
 
-	prev = not int(prev)
-	sort_field, sort_order = order_by.split(" ")
-
+	prev = int(prev)
 	if not filters: filters = []
-	if isinstance(filters, string_types):
+	if isinstance(filters, str):
 		filters = json.loads(filters)
 
-	# condition based on sort order
-	condition = ">" if sort_order.lower()=="desc" else "<"
+	# # condition based on sort order
+	condition = ">" if sort_order.lower() == "asc" else "<"
 
 	# switch the condition
 	if prev:
-		condition = "<" if condition==">" else "<"
-	else:
-		sort_order = "asc" if sort_order.lower()=="desc" else "desc"
+		sort_order = "asc" if sort_order.lower() == "desc" else "desc"
+		condition = "<" if condition == ">" else ">"
 
-	# add condition for next or prev item
-	if not order_by[0] in [f[1] for f in filters]:
-		filters.append([doctype, sort_field, condition, value])
+	# # add condition for next or prev item
+	filters.append([doctype, sort_field, condition, frappe.get_value(doctype, value, sort_field)])
 
 	res = frappe.get_list(doctype,
 		fields = ["name"],
 		filters = filters,
-		order_by = sort_field + " " + sort_order,
+		order_by = "`tab{0}`.{1}".format(doctype, sort_field) + " " + sort_order,
 		limit_start=0, limit_page_length=1, as_list=True)
 
 	if not res:

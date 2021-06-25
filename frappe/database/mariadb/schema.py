@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
@@ -80,7 +78,9 @@ class MariaDBTable(DBTable):
 				frappe.throw(str(e))
 			elif e.args[0]==1062:
 				fieldname = str(e).split("'")[-2]
-				frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values".format(
-					fieldname, self.table_name)))
+				frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values").format(
+					fieldname, self.table_name))
+			elif e.args[0]==1067:
+				frappe.throw(str(e.args[1]))
 			else:
 				raise e

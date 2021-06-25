@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 """Allow adding of likes to documents"""
 
 import frappe, json
@@ -33,10 +31,6 @@ def _toggle_like(doctype, name, add, user=None):
 
 	try:
 		liked_by = frappe.db.get_value(doctype, name, "_liked_by")
-
-		# CHANGED: Allow someone to like their own documents as it also works as a bookmark
-		# if owner==frappe.session.user and add=="Yes":
-		# 	frappe.throw(_("You cannot like something that you created"))
 
 		if liked_by:
 			liked_by = json.loads(liked_by)

@@ -1,16 +1,18 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import unittest
 import frappe
 
 from frappe.utils import global_search
 from frappe.test_runner import make_test_objects
+from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
+
 import frappe.utils
 
 class TestGlobalSearch(unittest.TestCase):
 	def setUp(self):
+		update_global_search_doctypes()
 		global_search.setup_global_search_table()
 		self.assertTrue('__global_search' in frappe.db.get_tables())
 		doctype = "Event"
@@ -39,7 +41,7 @@ class TestGlobalSearch(unittest.TestCase):
 			frappe.get_doc(dict(
 				doctype='Event',
 				subject=text,
-				repeat_on='Every Month',
+				repeat_on='Monthly',
 				starts_on=frappe.utils.now_datetime())).insert()
 
 		global_search.sync_global_search()
@@ -70,13 +72,13 @@ class TestGlobalSearch(unittest.TestCase):
 
 	def test_update_fields(self):
 		self.insert_test_events()
-		results = global_search.search('Every Month')
+		results = global_search.search('Monthly')
 		self.assertEqual(len(results), 0)
 		doctype = "Event"
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 		make_property_setter(doctype, "repeat_on", "in_global_search", 1, "Int")
 		global_search.rebuild_for_doctype(doctype)
-		results = global_search.search('Every Month')
+		results = global_search.search('Monthly')
 		self.assertEqual(len(results), 3)
 
 	def test_delete_doc(self):
@@ -188,3 +190,6 @@ class TestGlobalSearch(unittest.TestCase):
 		frappe.db.commit()
 		results = global_search.web_search('unsubscribe')
 		self.assertTrue('Unsubscribe' in results[0].content)
+		results = global_search.web_search(text='unsubscribe',
+					scope="manufacturing\" UNION ALL SELECT 1,2,3,4,doctype from __global_search")
+		self.assertTrue(results == [])

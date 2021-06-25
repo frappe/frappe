@@ -2,7 +2,6 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe, json
 from frappe import _
 from frappe.model.document import Document
@@ -20,6 +19,7 @@ class SocialLoginKey(Document):
 		self.name = frappe.scrub(self.provider_name)
 
 	def validate(self):
+		self.set_icon()
 		if self.custom_base_url and not self.base_url:
 			frappe.throw(_("Please enter Base URL"), exc=BaseUrlNotSetError)
 		if not self.authorize_url:
@@ -33,6 +33,22 @@ class SocialLoginKey(Document):
 		if self.enable_social_login and not self.client_secret:
 			frappe.throw(_("Please enter Client Secret before social login is enabled"), exc=ClientSecretNotSetError)
 
+	def set_icon(self):
+		icon_map = {
+			"Google": "google.svg",
+			"Frappe": "frappe.svg",
+			"Facebook": "facebook.svg",
+			"Office 365": "office_365.svg",
+			"GitHub": "github.svg",
+			"Salesforce": "salesforce.svg",
+			"fairlogin": "fair.svg"
+		}
+
+		if self.provider_name in icon_map:
+			icon_file = icon_map[self.provider_name]
+			self.icon = '/assets/frappe/icons/social/{0}'.format(icon_file)
+
+	@frappe.whitelist()
 	def get_social_login_provider(self, provider, initialize=False):
 		providers = {}
 
@@ -108,7 +124,7 @@ class SocialLoginKey(Document):
 			"provider_name": "Frappe",
 			"enable_social_login": 1,
 			"custom_base_url": 1,
-			"icon":"/assets/frappe/images/favicon.png",
+			"icon":"/assets/frappe/images/frappe-favicon.svg",
 			"redirect_url": "/api/method/frappe.www.login.login_via_frappe",
 			"api_endpoint": "/api/method/frappe.integrations.oauth2.openid_profile",
 			"api_endpoint_args":None,

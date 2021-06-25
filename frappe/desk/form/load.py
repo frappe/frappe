@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe, json
 import frappe.utils
 import frappe.share
@@ -11,8 +10,9 @@ from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.desk.form.document_follow import is_document_followed
 from frappe import _
+from urllib.parse import quote
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def getdoc(doctype, name, user=None):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
@@ -51,7 +51,7 @@ def getdoc(doctype, name, user=None):
 
 	frappe.response.docs.append(doc)
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	"""load doctype"""
 
@@ -88,20 +88,33 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		doc = frappe.get_doc(doctype, name)
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
+
+	all_communications = _get_communications(doc.doctype, doc.name)
+	automated_messages = filter(lambda x: x['communication_type'] == 'Automated Message', all_communications)
+	communications_except_auto_messages = filter(lambda x: x['communication_type'] != 'Automated Message', all_communications)
+
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
-		"communications": _get_communications(doc.doctype, doc.name),
+		"attachment_logs": get_comments(doc.doctype, doc.name, 'attachment'),
+		"communications": communications_except_auto_messages,
+		"automated_messages": automated_messages,
 		'comments': get_comments(doc.doctype, doc.name),
 		'total_comments': len(json.loads(doc.get('_comments') or '[]')),
 		'versions': get_versions(doc),
 		"assignments": get_assignments(doc.doctype, doc.name),
+		"assignment_logs": get_comments(doc.doctype, doc.name, 'assignment'),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
-		"rating": get_feedback_rating(doc.doctype, doc.name),
+		"info_logs": get_comments(doc.doctype, doc.name, 'Info'),
+		"share_logs": get_comments(doc.doctype, doc.name, 'share'),
+		"like_logs": get_comments(doc.doctype, doc.name, 'Like'),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
+		"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
 		"milestones": get_milestones(doc.doctype, doc.name),
-		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user)
+		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
+		"tags": get_tags(doc.doctype, doc.name),
+		"document_email": get_document_email(doc.doctype, doc.name)
 	}
 
 def get_milestones(doctype, name):
@@ -125,15 +138,27 @@ def get_communications(doctype, name, start=0, limit=20):
 	return _get_communications(doctype, name, start, limit)
 
 
-def get_comments(doctype, name):
-	comments = frappe.get_all('Comment', fields = ['*'], filters = dict(
+def get_comments(doctype, name, comment_type='Comment'):
+	comment_types = [comment_type]
+
+	if comment_type == 'share':
+		comment_types = ['Shared', 'Unshared']
+
+	elif comment_type == 'assignment':
+		comment_types = ['Assignment Completed', 'Assigned']
+
+	elif comment_type == 'attachment':
+		comment_types = ['Attachment', 'Attachment Removed']
+
+	comments = frappe.get_all('Comment', fields = ['name', 'creation', 'content', 'owner', 'comment_type'], filters=dict(
 		reference_doctype = doctype,
-		reference_name = name
+		reference_name = name,
+		comment_type = ['in', comment_types]
 	))
 
 	# convert to markdown (legacy ?)
-	for c in comments:
-		if c.comment_type == 'Comment':
+	if comment_type == 'Comment':
+		for c in comments:
 			c.content = frappe.utils.markdown(c.content)
 
 	return comments
@@ -161,46 +186,70 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	group_by=None, as_dict=True):
 	'''Returns list of communications for a given document'''
 	if not fields:
-		fields = '''`name`, `communication_type`,`communication_medium`, `comment_type`,
-			`communication_date`, `content`, `sender`, `sender_full_name`, `cc`, `bcc`,
-			`creation`, `subject`, `delivery_status`, `_liked_by`,
-			`timeline_doctype`, `timeline_name`, `reference_doctype`, `reference_name`,
-			`link_doctype`, `link_name`, `read_by_recipient`, `rating`, 'Communication' AS `doctype`'''
+		fields = '''
+			C.name, C.communication_type, C.communication_medium,
+			C.comment_type, C.communication_date, C.content,
+			C.sender, C.sender_full_name, C.cc, C.bcc,
+			C.creation AS creation, C.subject, C.delivery_status,
+			C._liked_by, C.reference_doctype, C.reference_name,
+			C.read_by_recipient, C.rating, C.recipients
+		'''
 
-	conditions = '''communication_type in ('Communication', 'Feedback')
-			and (
-				(reference_doctype=%(doctype)s and reference_name=%(name)s)
-				or (
-					(timeline_doctype=%(doctype)s and timeline_name=%(name)s)
-					and (communication_type='Communication')
-				)
-			)'''
-
-
+	conditions = ''
 	if after:
 		# find after a particular date
-		conditions+= ' and creation > {0}'.format(after)
+		conditions += '''
+			AND C.creation > {0}
+		'''.format(after)
 
 	if doctype=='User':
-		conditions+= " and not (reference_doctype='User' and communication_type='Communication')"
+		conditions += '''
+			AND NOT (C.reference_doctype='User' AND C.communication_type='Communication')
+		'''
 
-	communications = frappe.db.sql("""select {fields}
-		from `tabCommunication`
-		where {conditions} {group_by}
-		order by creation desc LIMIT %(limit)s OFFSET %(start)s""".format(
-			fields = fields, conditions=conditions, group_by=group_by or ""),
-			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
-			as_dict=as_dict)
+	# communications linked to reference_doctype
+	part1 = '''
+		SELECT {fields}
+		FROM `tabCommunication` as C
+		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
+		{conditions}
+	'''.format(fields=fields, conditions=conditions)
+
+	# communications linked in Timeline Links
+	part2 = '''
+		SELECT {fields}
+		FROM `tabCommunication` as C
+		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
+		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
+		{conditions}
+	'''.format(fields=fields, conditions=conditions)
+
+	communications = frappe.db.sql('''
+		SELECT *
+		FROM (({part1}) UNION ({part2})) AS combined
+		{group_by}
+		ORDER BY creation DESC
+		LIMIT %(limit)s
+		OFFSET %(start)s
+	'''.format(part1=part1, part2=part2, group_by=(group_by or '')), dict(
+		doctype=doctype,
+		name=name,
+		start=frappe.utils.cint(start),
+		limit=limit
+	), as_dict=as_dict)
 
 	return communications
 
 def get_assignments(dt, dn):
-	cl = frappe.db.sql("""select `name`, owner, description from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status='Open'
-		order by modified desc limit 5""", {
-			"doctype": dt,
-			"name": dn
-		}, as_dict=True)
+	cl = frappe.get_all("ToDo",
+		fields=['name', 'owner', 'description', 'status'],
+		filters={
+			'reference_type': dt,
+			'reference_name': dn,
+			'status': ('!=', 'Cancelled'),
+		})
 
 	return cl
 
@@ -219,21 +268,6 @@ def run_onload(doc):
 	doc.set("__onload", frappe._dict())
 	doc.run_method("onload")
 
-def get_feedback_rating(doctype, docname):
-	""" get and return the latest feedback rating if available """
-
-	rating= frappe.get_all("Communication", filters={
-		"reference_doctype": doctype,
-		"reference_name": docname,
-		"communication_type": "Feedback"
-	}, fields=["rating"], order_by="creation desc", as_list=True)
-
-	if not rating:
-		return 0
-	else:
-		return rating[0][0]
-
-
 def get_view_logs(doctype, docname):
 	""" get and return the latest view logs if available """
 	logs = []
@@ -246,3 +280,33 @@ def get_view_logs(doctype, docname):
 		if view_logs:
 			logs = view_logs
 	return logs
+
+def get_tags(doctype, name):
+	tags = [tag.tag for tag in frappe.get_all("Tag Link", filters={
+			"document_type": doctype,
+			"document_name": name
+		}, fields=["tag"])]
+
+	return ",".join(tags)
+
+def get_document_email(doctype, name):
+	email = get_automatic_email_link()
+	if not email:
+		return None
+
+	email = email.split("@")
+	return "{0}+{1}+{2}@{3}".format(email[0], quote(doctype), quote(name), email[1])
+
+def get_automatic_email_link():
+	return frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id")
+
+def get_additional_timeline_content(doctype, docname):
+	contents = []
+	hooks = frappe.get_hooks().get('additional_timeline_content', {})
+	methods_for_all_doctype = hooks.get('*', [])
+	methods_for_current_doctype = hooks.get(doctype, [])
+
+	for method in methods_for_all_doctype + methods_for_current_doctype:
+		contents.extend(frappe.get_attr(method)(doctype, docname) or [])
+
+	return contents

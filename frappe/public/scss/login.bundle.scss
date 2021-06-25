@@ -1,0 +1,209 @@
+@import "./desk/variables";
+
+body {
+	background-color: var(--bg-light-gray);
+}
+
+.for-login,
+.for-forgot,
+.for-signup,
+.for-email-login {
+	display: none;
+	margin: 70px 0;
+
+	@include media-breakpoint-up(sm) {
+		.page-card {
+			padding-top: 45px;
+			padding-bottom: 45px;
+			background-color: #fff;
+			box-shadow: var(--shadow-base);
+		}
+	}
+
+	.page-card {
+		max-width: 400px;
+		margin: 0 auto;
+		border-radius: var(--border-radius-md);
+
+		form {
+			max-width: 320px;
+			margin: 0 auto;
+
+			.form-group {
+				margin-bottom: var(--margin-sm);
+			}
+		}
+
+		.page-card-actions {
+			margin-top: var(--margin-lg);
+		}
+
+		.page-card-body {
+			::placeholder, /* Chrome, Firefox, Opera, Safari 10.1+ */
+			::-ms-input-placeholder {
+				/* Microsoft Edge */
+				color: var(--text-light);
+				opacity: 1; /* Firefox */
+			}
+
+			input[type="text"],
+			input[type="email"],
+			input[type="password"] {
+				border: none;
+				color: var(--text-color);
+				font-size: var(--text-base);
+				background-color: var(--control-bg);
+				margin-bottom: 1rem;
+			}
+
+			&.invalid {
+				input[type="text"],
+				input[type="email"],
+				input[type="password"] {
+					border: 1px solid var(--red-500);
+				}
+			}
+
+			.form-label {
+				font-size: var(--text-base);
+			}
+
+			.forgot-password-message {
+				text-align: right;
+				line-height: 1;
+
+				> * {
+					color: var(--text-light);
+					font-size: var(--text-sm);
+				}
+			}
+
+			.field-icon {
+				left: 9px;
+				top: 8px;
+				position: absolute;
+				z-index: 2;
+			}
+
+			.email-field,
+			.password-field {
+				position: relative;
+
+				input {
+					padding-left: 35px;
+				}
+
+				.toggle-password {
+					right: 9px;
+					top: 9px;
+					position: absolute;
+					z-index: 2;
+					cursor: pointer;
+					font-size: 12px;
+				}
+			}
+
+			.btn-login-option {
+				font-size: var(--text-md);
+				font-weight: 500;
+				color: var(--text-gray-700);
+				background: var(--gray-100);
+				box-shadow: none;
+				border: none;
+				display: flex;
+				place-content: center;
+
+				&.btn-salesforce {
+					i {
+						color: var(--blue-400);
+					}
+				}
+
+				img {
+					margin-right: var(--padding-xs);
+				}
+
+				&:hover {
+					border: none;
+					background: var(--gray-300);
+				}
+			}
+
+			.social-logins {
+				margin: var(--margin-md) 0;
+				font-size: var(--text-md);
+
+				.social-login-buttons {
+					margin-top: var(--margin-md);
+
+					.login-button-wrapper {
+						@include media-breakpoint-up(md) {
+							min-width: 33.33%;
+						}
+						min-width: 50%;
+						padding: 0 4px;
+						margin-bottom: var(--margin-sm);
+					}
+				}
+			}
+
+			.login-divider {
+				margin: var(--margin-md) 0;
+			}
+		}
+	}
+
+	.page-card-head {
+		margin: 0 auto;
+		text-align: center;
+		font-size: var(--text-xl);
+		font-weight: 600;
+		margin-bottom: 2.5rem;
+
+		img {
+			max-height: 42px;
+			margin-bottom: var(--margin-lg, 30px);
+		}
+
+		h4 {
+			font-size: var(--text-xl);
+			color: var(--text-color);
+		}
+	}
+
+	.sign-up-message {
+		margin-top: 2rem;
+		color: var(--text-light);
+		font-size: var(--text-md);
+
+		a {
+			font-size: var(--text-md);
+			color: var(--primary);
+		}
+	}
+
+	.invalid-login {
+		-webkit-animation: wiggle 0.5s linear;
+	}
+
+	@-webkit-keyframes wiggle {
+		8%,
+		41% {
+			-webkit-transform: translateX(-10px);
+		}
+		25%,
+		58% {
+			-webkit-transform: translateX(10px);
+		}
+		75% {
+			-webkit-transform: translateX(-5px);
+		}
+		92% {
+			-webkit-transform: translateX(5px);
+		}
+		0%,
+		100% {
+			-webkit-transform: translateX(0);
+		}
+	}
+}

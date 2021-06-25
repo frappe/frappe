@@ -1,9 +1,9 @@
-from __future__ import unicode_literals, absolute_import, print_function
 import click
 import sys
 import frappe
 from frappe.utils import cint
 from frappe.commands import pass_context, get_site
+from frappe.exceptions import SiteNotSpecifiedError
 
 def _is_scheduler_enabled():
 	enable_scheduler = False
@@ -17,19 +17,32 @@ def _is_scheduler_enabled():
 
 	return enable_scheduler
 
-@click.command('trigger-scheduler-event')
-@click.argument('event')
+
+@click.command("trigger-scheduler-event", help="Trigger a scheduler event")
+@click.argument("event")
 @pass_context
 def trigger_scheduler_event(context, event):
-	"Trigger a scheduler event"
 	import frappe.utils.scheduler
+
+	exit_code = 0
+
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.utils.scheduler.trigger(site, event, now=True)
+			try:
+				frappe.get_doc("Scheduled Job Type", {"method": event}).execute()
+			except frappe.DoesNotExistError:
+				click.secho(f"Event {event} does not exist!", fg="red")
+				exit_code = 1
 		finally:
 			frappe.destroy()
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	sys.exit(exit_code)
+
 
 @click.command('enable-scheduler')
 @pass_context
@@ -45,6 +58,8 @@ def enable_scheduler(context):
 			print("Enabled for", site)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('disable-scheduler')
 @pass_context
@@ -60,7 +75,8 @@ def disable_scheduler(context):
 			print("Disabled for", site)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 
 @click.command('scheduler')
@@ -115,9 +131,12 @@ def set_maintenance_mode(context, state, site=None):
 
 @click.command('doctor') #Passing context always gets a site and if there is no use site it breaks
 @click.option('--site', help='site name')
-def doctor(site=None):
+@pass_context
+def doctor(context, site=None):
 	"Get diagnostic info about background workers"
 	from frappe.utils.doctor import doctor as _doctor
+	if not site:
+		site = get_site(context, raise_err=False)
 	return _doctor(site=site)
 
 @click.command('show-pending-jobs')

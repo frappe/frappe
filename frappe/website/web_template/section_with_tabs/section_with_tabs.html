@@ -1,0 +1,52 @@
+{%- if title -%}
+<h2 class="section-title">{{ title }}</h2>
+{%- endif -%}
+
+{%- if subtitle -%}
+<p class="section-description">{{ subtitle }}</p>
+{%- endif -%}
+
+<div class="mt-12">
+	{% set ns = namespace(tabs=[]) %}
+
+	{%- for index in ['1', '2', '3', '4', '5', '6'] -%}
+
+	{%- set buttonid = 'id-' + frappe.utils.generate_hash('TabButton', 12) -%}
+	{%- set panelid = 'id-' + frappe.utils.generate_hash('TabPanel', 12) -%}
+
+	{%- set tab = {
+		'title': values['tab_' + index + '_title'],
+		'content': values['tab_' + index + '_content'],
+		'buttonid': buttonid,
+		'panelid': panelid, }
+	-%}
+
+	{%- if tab.title and tab.content -%}
+	{%- set ns.tabs = ns.tabs + [tab] -%}
+	{%- endif -%}
+
+	{%- endfor -%}
+	<ul class="nav nav-tabs" role="tablist" aria-label="{{ title or '' }}">
+		{%- for tab in ns.tabs -%}
+		{%- set first_tab = true if loop.index0 == 0 else false -%}
+		<li class="nav-item">
+			<a class="nav-link {{ 'active' if first_tab else '' }}" id="{{ tab.buttonid }}" data-toggle="tab"
+				href="#{{ tab.panelid }}"
+				role="tab" aria-controls="{{ tab.panelid }}" aria-selected="{{ 'true' if first_tab else 'false' }}">
+				{{ tab.title }}
+			</a>
+		</li>
+		{%- endfor -%}
+	</ul>
+	<div class="mt-6 tab-content">
+		{%- for tab in ns.tabs -%}
+		{%- set first_tab = true if loop.index0 == 0 else false -%}
+		<div class="tab-pane fade {{ 'show active' if first_tab else '' }}" id="{{ tab.panelid }}" role="tabpanel"
+			aria-labelledby="{{ tab.buttonid }}">
+			<div class="from-markdown">
+				{{ frappe.utils.md_to_html(tab.content) }}
+			</div>
+		</div>
+		{%- endfor -%}
+	</div>
+</div>

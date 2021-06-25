@@ -1,0 +1,146 @@
+{
+ "autoname": "field:calendar_name",
+ "creation": "2019-07-06 17:54:09.450100",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enable",
+  "sb_00",
+  "calendar_name",
+  "user",
+  "authorize_google_calendar_access",
+  "sb_01",
+  "pull_from_google_calendar",
+  "cb_01",
+  "push_to_google_calendar",
+  "section_break_3",
+  "google_calendar_id",
+  "refresh_token",
+  "authorization_code",
+  "next_sync_token"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
+  },
+  {
+   "depends_on": "eval: doc.enable",
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break",
+   "label": "Google Calendar"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "description": "The name that will appear in Google Calendar",
+   "fieldname": "calendar_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Calendar Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "depends_on": "eval: doc.enable",
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Refresh Token"
+  },
+  {
+   "fieldname": "authorization_code",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Authorization Code"
+  },
+  {
+   "fieldname": "next_sync_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Next Sync Token"
+  },
+  {
+   "fieldname": "google_calendar_id",
+   "fieldtype": "Data",
+   "label": "Google Calendar ID",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "authorize_google_calendar_access",
+   "fieldtype": "Button",
+   "label": "Authorize Google Calendar Access"
+  },
+  {
+   "depends_on": "eval: doc.enable",
+   "fieldname": "sb_01",
+   "fieldtype": "Section Break",
+   "label": "Sync"
+  },
+  {
+   "default": "1",
+   "fieldname": "pull_from_google_calendar",
+   "fieldtype": "Check",
+   "label": "Pull from Google Calendar"
+  },
+  {
+   "fieldname": "cb_01",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "push_to_google_calendar",
+   "fieldtype": "Check",
+   "label": "Push to Google Calendar"
+  }
+ ],
+ "modified": "2019-08-08 15:44:15.798362",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Google Calendar",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

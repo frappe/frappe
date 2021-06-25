@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "creation": "2020-11-16 15:30:45.784417",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "label",
+  "icon",
+  "only_for",
+  "hidden",
+  "link_details_section",
+  "link_type",
+  "link_to",
+  "column_break_7",
+  "dependencies",
+  "onboard",
+  "is_query_report"
+ ],
+ "fields": [
+  {
+   "default": "Link",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Link\nCard Break",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.type == \"Card Break\"",
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.type == \"Card Break\"",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "label": "Hidden"
+  },
+  {
+   "depends_on": "eval:doc.type == \"Link\"",
+   "fieldname": "link_details_section",
+   "fieldtype": "Section Break",
+   "label": "Link Details"
+  },
+  {
+   "fieldname": "link_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Link Type",
+   "mandatory_depends_on": "eval:doc.type==\"Link\"",
+   "options": "DocType\nPage\nReport",
+   "read_only_depends_on": "eval:doc.type!=\"Link\""
+  },
+  {
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Link To",
+   "mandatory_depends_on": "eval:doc.type==\"Link\"",
+   "options": "link_type",
+   "read_only_depends_on": "eval:doc.type!=\"Link\""
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dependencies",
+   "fieldtype": "Data",
+   "label": "Dependencies"
+  },
+  {
+   "fieldname": "only_for",
+   "fieldtype": "Link",
+   "label": "Only for",
+   "options": "Country"
+  },
+  {
+   "default": "0",
+   "fieldname": "onboard",
+   "fieldtype": "Check",
+   "label": "Onboard"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.link_type == \"Report\"",
+   "fieldname": "is_query_report",
+   "fieldtype": "Check",
+   "label": "Is Query Report"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-05-13 13:10:18.128512",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Workspace Link",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

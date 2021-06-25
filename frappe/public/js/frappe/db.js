@@ -15,7 +15,7 @@ frappe.db = {
 		}
 		return new Promise ((resolve) => {
 			frappe.call({
-				method: 'frappe.model.db_query.get_list',
+				method: 'frappe.desk.reportview.get_list',
 				args: args,
 				type: 'GET',
 				callback: function(r) {
@@ -91,12 +91,36 @@ frappe.db = {
 		});
 	},
 	count: function(doctype, args={}) {
+		let filters = args.filters || {};
+
+		// has a filter with childtable?
+		const distinct = Array.isArray(filters) && filters.some(filter => {
+			return filter[0] !== doctype;
+		});
+
+		const fields = [];
+
+		return frappe.xcall('frappe.desk.reportview.get_count', {
+			doctype,
+			filters,
+			fields,
+			distinct,
+		});
+	},
+	get_link_options(doctype, txt = '', filters={}) {
 		return new Promise(resolve => {
 			frappe.call({
-				method: 'frappe.client.get_count',
 				type: 'GET',
-				args: Object.assign(args, { doctype })
-			}).then(r => resolve(r.message));
+				method: 'frappe.desk.search.search_link',
+				args: {
+					doctype,
+					txt,
+					filters
+				},
+				callback(r) {
+					resolve(r.results);
+				}
+			});
 		});
 	}
 };

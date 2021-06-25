@@ -1,19 +1,25 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 def get_jenv():
 	import frappe
+	from frappe.utils.safe_exec import get_safe_globals
 
 	if not getattr(frappe.local, 'jenv', None):
-		from jinja2 import Environment, DebugUndefined
+		from jinja2 import DebugUndefined
+		from jinja2.sandbox import SandboxedEnvironment
 
 		# frappe will be loaded last, so app templates will get precedence
-		jenv = Environment(loader = get_jloader(),
-			undefined=DebugUndefined)
+		jenv = SandboxedEnvironment(
+			loader=get_jloader(),
+			undefined=DebugUndefined
+		)
 		set_filters(jenv)
 
-		jenv.globals.update(get_allowed_functions_for_jenv())
+		jenv.globals.update(get_safe_globals())
+
+		methods, filters = get_jinja_hooks()
+		jenv.globals.update(methods or {})
+		jenv.filters.update(filters or {})
 
 		frappe.local.jenv = jenv
 
@@ -59,123 +65,32 @@ def render_template(template, context, is_path=None, safe_render=True):
 	:param safe_render: (optional) prevent server side scripting via jinja templating
 	'''
 
-	from frappe import get_traceback, throw
+	from frappe import _, get_traceback, throw
 	from jinja2 import TemplateError
 
 	if not template:
 		return ""
 
-	# if it ends with .html then its a freaking path, not html
-	if (is_path
-		or template.startswith("templates/")
-		or (template.endswith('.html') and '\n' not in template)):
+	if (is_path or guess_is_path(template)):
 		return get_jenv().get_template(template).render(context)
 	else:
 		if safe_render and ".__" in template:
-			throw("Illegal template")
+			throw(_("Illegal template"))
 		try:
 			return get_jenv().from_string(template).render(context)
 		except TemplateError:
 			throw(title="Jinja Template Error", msg="<pre>{template}</pre><pre>{tb}</pre>".format(template=template, tb=get_traceback()))
 
+def guess_is_path(template):
+	# template can be passed as a path or content
+	# if its single line and ends with a html, then its probably a path
+	if '\n' not in template and '.' in template:
+		extn = template.rsplit('.')[-1]
+		if extn in ('html', 'css', 'scss', 'py', 'md', 'json', 'js', 'xml'):
+			return True
 
-def get_allowed_functions_for_jenv():
-	import os, json
-	import frappe
-	import frappe.utils
-	import frappe.utils.data
-	from frappe.utils.autodoc import automodule, get_version
-	from frappe.model.document import get_controller
-	from frappe.website.utils import (get_shade, get_toc, get_next_link)
-	from frappe.modules import scrub
-	import mimetypes
-	from html2text import html2text
-	from frappe.www.printview import get_visible_columns
+	return False
 
-	datautils = {}
-	if frappe.db:
-		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
-	else:
-		date_format = 'yyyy-mm-dd'
-
-	for key, obj in frappe.utils.data.__dict__.items():
-		if key.startswith("_"):
-			# ignore
-			continue
-
-		if hasattr(obj, "__call__"):
-			# only allow functions
-			datautils[key] = obj
-
-	if "_" in getattr(frappe.local, 'form_dict', {}):
-		del frappe.local.form_dict["_"]
-
-	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
-
-	out = {
-		# make available limited methods of frappe
-		"frappe": {
-			"_": frappe._,
-			"get_url": frappe.utils.get_url,
-			'format': frappe.format_value,
-			"format_value": frappe.format_value,
-			'date_format': date_format,
-			"format_date": frappe.utils.data.global_date_format,
-			"form_dict": getattr(frappe.local, 'form_dict', {}),
-			"get_hooks": frappe.get_hooks,
-			"get_meta": frappe.get_meta,
-			"get_doc": frappe.get_doc,
-			"get_cached_doc": frappe.get_cached_doc,
-			"get_list": frappe.get_list,
-			"get_all": frappe.get_all,
-			'get_system_settings': frappe.get_system_settings,
-			"utils": datautils,
-			"user": user,
-			"get_fullname": frappe.utils.get_fullname,
-			"get_gravatar": frappe.utils.get_gravatar_url,
-			"full_name": frappe.local.session.data.full_name if getattr(frappe.local, "session", None) else "Guest",
-			"render_template": frappe.render_template,
-			"request": getattr(frappe.local, 'request', {}),
-			'session': {
-				'user': user,
-				'csrf_token': frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
-			},
-			"socketio_port": frappe.conf.socketio_port,
-		},
-		'style': {
-			'border_color': '#d1d8dd'
-		},
-		"autodoc": {
-			"get_version": get_version,
-			"automodule": automodule,
-			"get_controller": get_controller
-		},
-		'get_toc': get_toc,
-		'get_next_link': get_next_link,
-		"_": frappe._,
-		"get_shade": get_shade,
-		"scrub": scrub,
-		"guess_mimetype": mimetypes.guess_type,
-		'html2text': html2text,
-		'json': json,
-		"dev_server": 1 if os.environ.get('DEV_SERVER', False) else 0
-	}
-
-	if not frappe.flags.in_setup_help:
-		out['get_visible_columns'] = get_visible_columns
-		out['frappe']['date_format'] = date_format
-		out['frappe']["db"] = {
-			"get_value": frappe.db.get_value,
-			"get_single_value": frappe.db.get_single_value,
-			"get_default": frappe.db.get_default,
-			"escape": frappe.db.escape,
-		}
-
-	# load jenv methods from hooks.py
-	for method_name, method_definition in get_jenv_customization("methods"):
-		out[method_name] = frappe.get_attr(method_definition)
-
-	return out
 
 def get_jloader():
 	import frappe
@@ -190,7 +105,7 @@ def get_jloader():
 				apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
 				apps.reverse()
 
-		if not "frappe" in apps:
+		if "frappe" not in apps:
 			apps.append('frappe')
 
 		frappe.local.jloader = ChoiceLoader(
@@ -207,32 +122,49 @@ def get_jloader():
 
 def set_filters(jenv):
 	import frappe
-	from frappe.utils import global_date_format, cint, cstr, flt, markdown
-	from frappe.website.utils import get_shade, abs_url
+	from frappe.utils import cint, cstr, flt
 
-	jenv.filters["global_date_format"] = global_date_format
-	jenv.filters["markdown"] = markdown
 	jenv.filters["json"] = frappe.as_json
-	jenv.filters["get_shade"] = get_shade
 	jenv.filters["len"] = len
 	jenv.filters["int"] = cint
 	jenv.filters["str"] = cstr
 	jenv.filters["flt"] = flt
-	jenv.filters["abs_url"] = abs_url
 
-	if frappe.flags.in_setup_help: return
+	if frappe.flags.in_setup_help:
+		return
 
-	# load jenv_filters from hooks.py
-	for filter_name, filter_function in get_jenv_customization("filters"):
-		jenv.filters[filter_name] = frappe.get_attr(filter_function)
 
-def get_jenv_customization(customizable_type):
+def get_jinja_hooks():
+	"""Returns a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
 	import frappe
 
-	if getattr(frappe.local, "site", None):
-		for app in frappe.get_installed_apps():
-			for jenv_customizable, jenv_customizable_definition in frappe.get_hooks(app_name=app).get("jenv", {}).items():
-				if customizable_type == jenv_customizable:
-					for data in jenv_customizable_definition:
-						split_data = data.split(":")
-						yield split_data[0], split_data[1]
+	if not getattr(frappe.local, "site", None):
+		return (None, None)
+
+	from types import FunctionType, ModuleType
+	from inspect import getmembers, isfunction
+
+	def get_obj_dict_from_paths(object_paths):
+		out = {}
+		for obj_path in object_paths:
+			try:
+				obj = frappe.get_module(obj_path)
+			except ModuleNotFoundError:
+				obj = frappe.get_attr(obj_path)
+
+			if isinstance(obj, ModuleType):
+				functions = getmembers(obj, isfunction)
+				for function_name, function in functions:
+					out[function_name] = function
+			elif isinstance(obj, FunctionType):
+				function_name = obj.__name__
+				out[function_name] = obj
+		return out
+
+	values = frappe.get_hooks("jinja")
+	methods, filters = values.get("methods", []), values.get("filters", [])
+
+	method_dict = get_obj_dict_from_paths(methods)
+	filter_dict = get_obj_dict_from_paths(filters)
+
+	return method_dict, filter_dict

@@ -1,17 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 
 @frappe.whitelist()
-def get_all_nodes(doctype, parent, tree_method, **filters):
+def get_all_nodes(doctype, label, parent, tree_method, **filters):
 	'''Recursively gets all data from tree nodes'''
 
 	if 'cmd' in filters:
 		del filters['cmd']
-
 	filters.pop('data', None)
 
 	tree_method = frappe.get_attr(tree_method)
@@ -20,7 +18,7 @@ def get_all_nodes(doctype, parent, tree_method, **filters):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	data = tree_method(doctype, parent, **filters)
-	out = [dict(parent=parent, data=data)]
+	out = [dict(parent=label, data=data)]
 
 	if 'is_root' in filters:
 		del filters['is_root']
@@ -38,32 +36,36 @@ def get_all_nodes(doctype, parent, tree_method, **filters):
 
 @frappe.whitelist()
 def get_children(doctype, parent='', **filters):
+	return _get_children(doctype, parent)
+
+def _get_children(doctype, parent='', ignore_permissions=False):
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
-	filters=[['ifnull(`{0}`,"")'.format(parent_field), '=', parent],
+	filters = [['ifnull(`{0}`,"")'.format(parent_field), '=', parent],
 		['docstatus', '<' ,'2']]
 
-	doctype_meta = frappe.get_meta(doctype)
-	data = frappe.get_list(doctype, fields=[
-		'name as value',
-		'{0} as title'.format(doctype_meta.get('title_field') or 'name'),
-		'is_group as expandable'],
-		filters=filters,
-		order_by='name')
+	meta = frappe.get_meta(doctype)
 
-	return data
+	return frappe.get_list(
+		doctype,
+		fields=[
+			'name as value',
+			'{0} as title'.format(meta.get('title_field') or 'name'),
+			'is_group as expandable'
+		],
+		filters=filters,
+		order_by='name',
+		ignore_permissions=ignore_permissions
+	)
 
 @frappe.whitelist()
 def add_node():
 	args = make_tree_args(**frappe.form_dict)
 	doc = frappe.get_doc(args)
 
-	if args.doctype == "Sales Person":
-		doc.employee = frappe.form_dict.get('employee')
-
 	doc.save()
 
 def make_tree_args(**kwarg):
-	del kwarg['cmd']
+	kwarg.pop('cmd', None)
 
 	doctype = kwarg['doctype']
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')

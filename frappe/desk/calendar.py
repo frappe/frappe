@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 from frappe import _
 import json
@@ -29,6 +27,7 @@ def get_event_conditions(doctype, filters=None):
 def get_events(doctype, start, end, field_map, filters=None, fields=None):
 
 	field_map = frappe._dict(json.loads(field_map))
+	fields = frappe.parse_json(fields)
 
 	doc_meta = frappe.get_meta(doctype)
 	for d in doc_meta.fields:

@@ -1,11 +1,12 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
-from __future__ import unicode_literals
-
 import unittest, os, base64
+from frappe import safe_decode
 from frappe.email.receive import Email
 from frappe.email.email_body import (replace_filename_with_cid,
-	get_email, inline_style_in_html, get_header)
+					get_email, inline_style_in_html, get_header)
+from frappe.email.doctype.email_queue.email_queue import SendMailContext, QueueBuilder
+
 
 class TestEmailBody(unittest.TestCase):
 	def setUp(self):
@@ -13,7 +14,7 @@ class TestEmailBody(unittest.TestCase):
 <div>
 	<h3>Hey John Doe!</h3>
 	<p>This is embedded image you asked for</p>
-	<img embed="assets/frappe/images/favicon.png" />
+	<img embed="assets/frappe/images/frappe-favicon.svg" />
 </div>
 '''
 		email_text = '''
@@ -21,7 +22,7 @@ Hey John Doe!
 This is the text version of this email
 '''
 
-		img_path = os.path.abspath('assets/frappe/images/favicon.png')
+		img_path = os.path.abspath('assets/frappe/images/frappe-favicon.svg')
 		with open(img_path, 'rb') as f:
 			img_content = f.read()
 			img_base64 = base64.b64encode(img_content).decode()
@@ -35,20 +36,44 @@ This is the text version of this email
 			subject='Test Subject',
 			content=email_html,
 			text_content=email_text
-		).as_string()
+		).as_string().replace("\r\n", "\n")
 
+	def test_prepare_message_returns_already_encoded_string(self):
+		uni_chr1 = chr(40960)
+		uni_chr2 = chr(1972)
+
+		queue_doc = QueueBuilder(
+			recipients=['test@example.com'],
+			sender='me@example.com',
+			subject='Test Subject',
+			message='<h1>' + uni_chr1 + 'abcd' + uni_chr2 + '</h1>',
+			text_content='whatever').process()[0]
+		mail_ctx = SendMailContext(queue_doc = queue_doc)
+		result = mail_ctx.build_message(recipient_email = 'test@test.com')
+		self.assertTrue(b"<h1>=EA=80=80abcd=DE=B4</h1>" in result)
+
+	def test_prepare_message_returns_cr_lf(self):
+		queue_doc = QueueBuilder(
+			recipients=['test@example.com'],
+			sender='me@example.com',
+			subject='Test Subject',
+			message='<h1>\n this is a test of newlines\n' + '</h1>',
+			text_content='whatever').process()[0]
+
+		mail_ctx = SendMailContext(queue_doc = queue_doc)
+		result = safe_decode(mail_ctx.build_message(recipient_email='test@test.com'))
+
+		self.assertTrue(result.count('\n') == result.count("\r"))
 
 	def test_image(self):
 		img_signature = '''
-Content-Type: image/png
+Content-Type: image/svg+xml
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Content-Disposition: inline; filename="favicon.png"
+Content-Disposition: inline; filename="frappe-favicon.svg"
 '''
-
 		self.assertTrue(img_signature in self.email_string)
 		self.assertTrue(self.img_base64 in self.email_string)
-
 
 	def test_text_content(self):
 		text_content = '''
@@ -61,7 +86,6 @@ Hey John Doe!
 This is the text version of this email
 '''
 		self.assertTrue(text_content in self.email_string)
-
 
 	def test_email_content(self):
 		html_head = '''
@@ -79,11 +103,10 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 		self.assertTrue(html_head in self.email_string)
 		self.assertTrue(html in self.email_string)
 
-
 	def test_replace_filename_with_cid(self):
 		original_message = '''
 			<div>
-				<img embed="assets/frappe/images/favicon.png" alt="test" />
+				<img embed="assets/frappe/images/frappe-favicon.svg" alt="test" />
 				<img embed="notexists.jpg" />
 			</div>
 		'''
@@ -104,7 +127,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 '''
 		transformed_html = '''
 <h3>Hi John</h3>
-<p style="margin:1em 0 !important">This is a test email</p>
+<p style="margin:5px 0 !important">This is a test email</p>
 '''
 		self.assertTrue(transformed_html in inline_style_in_html(html))
 
@@ -119,11 +142,9 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			subject='Test Subject',
 			content=email_html,
 			header=['Email Title', 'green']
-		).as_string()
-
-		self.assertTrue('''<span class=3D"indicator indicator-green" style=3D"background-color:#98=
-d85b; border-radius:8px; display:inline-block; height:8px; margin-right:5px=
-; width:8px" bgcolor=3D"#98d85b" height=3D"8" width=3D"8"></span>''' in email_string)
+		).as_string().replace("\r\n", "\n")
+		# REDESIGN-TODO: Add style for indicators in email
+		self.assertTrue('''<span class=3D"indicator indicator-green"></span>''' in email_string)
 		self.assertTrue('<span>Email Title</span>' in email_string)
 
 	def test_get_email_header(self):
@@ -152,6 +173,7 @@ Reply-To: test2_@erpnext.com
 		mail = Email(content_bytes)
 		self.assertEqual(mail.text_content, text_content)
 
+
 def fixed_column_width(string, chunk_size):
-	parts = [string[0+i:chunk_size+i] for i in range(0, len(string), chunk_size)]
+	parts = [string[0 + i:chunk_size + i] for i in range(0, len(string), chunk_size)]
 	return '\n'.join(parts)

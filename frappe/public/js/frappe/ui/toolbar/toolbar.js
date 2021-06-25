@@ -4,34 +4,26 @@
 frappe.provide("frappe.ui.toolbar");
 frappe.provide('frappe.search');
 
-frappe.ui.toolbar.Toolbar = Class.extend({
-	init: function() {
-		$('header').append(frappe.render_template("navbar", {
-			avatar: frappe.avatar(frappe.session.user)
+frappe.ui.toolbar.Toolbar = class {
+	constructor () {
+		$('header').replaceWith(frappe.render_template("navbar", {
+			avatar: frappe.avatar(frappe.session.user, 'avatar-medium'),
+			navbar_settings: frappe.boot.navbar_settings
 		}));
 		$('.dropdown-toggle').dropdown();
 
-		let awesome_bar = new frappe.search.AwesomeBar();
-		awesome_bar.setup("#navbar-search");
-		awesome_bar.setup("#modal-search");
-
-		this.make();
-	},
-
-	make: function() {
-		this.setup_sidebar();
+		this.setup_awesomebar();
+		this.setup_notifications();
 		this.setup_help();
+		this.make();
+	}
 
+	make () {
 		this.bind_events();
-
 		$(document).trigger('toolbar_setup');
-	},
+	}
 
-	bind_events: function() {
-		$(document).on("notification-update", function() {
-			frappe.ui.notifications.update_notifications();
-		});
-
+	bind_events () {
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
 			$("header .navbar .custom-menu").remove();
@@ -47,45 +39,16 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar-toggle-full-width').click(() => {
 			frappe.ui.toolbar.toggle_full_width();
 		});
-	},
+	}
 
-	setup_sidebar: function() {
-		var header = $('header');
-		header.find(".toggle-sidebar").on("click", function() {
-			var layout_side_section = $('.layout-side-section');
-			var overlay_sidebar = layout_side_section.find('.overlay-sidebar');
 
-			overlay_sidebar.addClass('opened');
-			overlay_sidebar.find('.reports-dropdown')
-				.removeClass('dropdown-menu')
-				.addClass('list-unstyled');
-			overlay_sidebar.find('.dropdown-toggle')
-				.addClass('text-muted').find('.caret')
-				.addClass('hidden-xs hidden-sm');
-
-			$('<div class="close-sidebar">').hide().appendTo(layout_side_section).fadeIn();
-
-			var scroll_container = $('html');
-			scroll_container.css("overflow-y", "hidden");
-
-			layout_side_section.find(".close-sidebar").on('click', close_sidebar);
-			layout_side_section.on("click", "a", close_sidebar);
-
-			function close_sidebar(e) {
-				scroll_container.css("overflow-y", "");
-
-				layout_side_section.find("div.close-sidebar").fadeOut(function() {
-					overlay_sidebar.removeClass('opened')
-						.find('.dropdown-toggle')
-						.removeClass('text-muted');
-					overlay_sidebar.find('.reports-dropdown')
-						.addClass('dropdown-menu');
-				});
-			}
-		});
-	},
-
-	setup_help: function() {
+	setup_help () {
+		if (!frappe.boot.desk_settings.notifications) {
+			// hide the help section
+			$('.navbar .vertical-bar').removeClass('d-sm-block');
+			$('.dropdown-help').removeClass('d-lg-block');
+			return;
+		}
 		frappe.provide('frappe.help');
 		frappe.help.show_results = show_results;
 
@@ -132,7 +95,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				var link = links[i];
 				var url = link.url;
 				$("<a>", {
-					href: link.url,
+					href: url,
+					class: "dropdown-item",
 					text: link.label,
 					target: "_blank"
 				}).appendTo($help_links);
@@ -158,7 +122,27 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}
 		}
 	}
-});
+
+	setup_awesomebar() {
+		if (frappe.boot.desk_settings.search_bar) {
+			let awesome_bar = new frappe.search.AwesomeBar();
+			awesome_bar.setup("#navbar-search");
+
+			// TODO: Remove this in v14
+			frappe.search.utils.make_function_searchable(function() {
+				frappe.set_route("List", "Client Script");
+			}, __("Custom Script List"));
+
+		}
+	}
+
+	setup_notifications () {
+		if (frappe.boot.desk_settings.notifications && frappe.session.user !== 'Guest') {
+			this.notifications = new frappe.ui.Notifications();
+		}
+	}
+
+};
 
 $.extend(frappe.ui.toolbar, {
 	add_dropdown_button: function(parent, label, click, icon) {
@@ -201,32 +185,29 @@ $.extend(frappe.ui.toolbar, {
 		fullwidth = !fullwidth;
 		localStorage.container_fullwidth = fullwidth;
 		frappe.ui.toolbar.set_fullwidth_if_enabled();
+		$(document.body).trigger('toggleFullWidth');
 	},
 	set_fullwidth_if_enabled() {
 		let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
 		$(document.body).toggleClass('full-width', fullwidth);
 	},
+	show_shortcuts (e) {
+		e.preventDefault();
+		frappe.ui.keys.show_keyboard_shortcut_dialog();
+		return false;
+	},
 });
 
-frappe.ui.toolbar.clear_cache = function() {
+frappe.ui.toolbar.clear_cache = frappe.utils.throttle(function() {
 	frappe.assets.clear_local_storage();
-	frappe.call({
-		method: 'frappe.sessions.clear',
-		callback: function(r) {
-			if(!r.exc) {
-				frappe.show_alert({message:r.message, indicator:'green'});
-				location.reload(true);
-			}
-		}
+	frappe.xcall('frappe.sessions.clear').then(message => {
+		frappe.show_alert({
+			message: message,
+			indicator: 'info'
+		});
+		location.reload(true);
 	});
-	return false;
-};
-
-frappe.ui.toolbar.download_backup = function() {
-	frappe.msgprint(__("Your download is being built, this may take a few moments..."));
-	$c('frappe.utils.backups.get_backup',{},function(r,rt) {});
-	return false;
-};
+}, 10000);
 
 frappe.ui.toolbar.show_about = function() {
 	try {
@@ -235,4 +216,67 @@ frappe.ui.toolbar.show_about = function() {
 		console.log(e);
 	}
 	return false;
+};
+
+frappe.ui.toolbar.route_to_user = function() {
+	frappe.set_route('Form', 'User', frappe.session.user);
+};
+
+frappe.ui.toolbar.view_website = function() {
+	let website_tab = window.open();
+	website_tab.opener = null;
+	website_tab.location = '/index';
+};
+
+frappe.ui.toolbar.setup_session_defaults = function() {
+	let fields = [];
+	frappe.call({
+		method: 'frappe.core.doctype.session_default_settings.session_default_settings.get_session_default_values',
+		callback: function (data) {
+			fields = JSON.parse(data.message);
+			let perms = frappe.perm.get_perm('Session Default Settings');
+			//add settings button only if user is a System Manager or has permission on 'Session Default Settings'
+			if ((in_list(frappe.user_roles, 'System Manager')) || (perms[0].read == 1))  {
+				fields[fields.length] = {
+					'fieldname': 'settings',
+					'fieldtype': 'Button',
+					'label': __('Settings'),
+					'click': () => {
+						frappe.set_route('Form', 'Session Default Settings', 'Session Default Settings');
+					}
+				};
+			}
+			frappe.prompt(fields, function(values) {
+				//if default is not set for a particular field in prompt
+				fields.forEach(function(d) {
+					if (!values[d.fieldname]) {
+						values[d.fieldname] = "";
+					}
+				});
+				frappe.call({
+					method: 'frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values',
+					args: {
+						default_values: values,
+					},
+					callback: function(data) {
+						if (data.message == "success") {
+							frappe.show_alert({
+								'message': __('Session Defaults Saved'),
+								'indicator': 'green'
+							});
+							frappe.ui.toolbar.clear_cache();
+						}	else {
+							frappe.show_alert({
+								'message': __('An error occurred while setting Session Defaults'),
+								'indicator': 'red'
+							});
+						}
+					}
+				});
+			},
+			__('Session Defaults'),
+			__('Save'),
+			);
+		}
+	});
 };

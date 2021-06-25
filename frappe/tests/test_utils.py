@@ -1,12 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 import unittest
 import frappe
 
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
-from frappe.utils import ceil, floor, now, add_to_date
+from frappe.utils import validate_url, validate_email_address
+from frappe.utils import ceil, floor
+
+from PIL import Image
+from frappe.utils.image import strip_exif_data
+import io
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -51,14 +54,15 @@ class TestMoney(unittest.TestCase):
 
 		for num in nums_bhd:
 			self.assertEqual(
-				money_in_words(num[0], "BHD"), num[1], "{0} is not the same as {1}".
-					format(money_in_words(num[0], "BHD"), num[1])
+				money_in_words(num[0], "BHD"),
+				num[1],
+				"{0} is not the same as {1}".format(money_in_words(num[0], "BHD"), num[1])
 			)
 
 		for num in nums_ngn:
 			self.assertEqual(
-				money_in_words(num[0], "NGN"), num[1], "{0} is not the same as {1}".
-					format(money_in_words(num[0], "NGN"), num[1])
+				money_in_words(num[0], "NGN"), num[1],
+				"{0} is not the same as {1}".format(money_in_words(num[0], "NGN"), num[1])
 			)
 
 class TestDataManipulation(unittest.TestCase):
@@ -90,7 +94,7 @@ class TestDataManipulation(unittest.TestCase):
 class TestMathUtils(unittest.TestCase):
 	def test_floor(self):
 		from decimal import Decimal
-		self.assertEqual(floor(2),              2 )
+		self.assertEqual(floor(2),              2)
 		self.assertEqual(floor(12.32904),       12)
 		self.assertEqual(floor(22.7330),        22)
 		self.assertEqual(floor('24.7'),         24)
@@ -99,7 +103,7 @@ class TestMathUtils(unittest.TestCase):
 
 	def test_ceil(self):
 		from decimal import Decimal
-		self.assertEqual(ceil(2),               2 )
+		self.assertEqual(ceil(2),               2)
 		self.assertEqual(ceil(12.32904),        13)
 		self.assertEqual(ceil(22.7330),         23)
 		self.assertEqual(ceil('24.7'),          25)
@@ -124,28 +128,63 @@ class TestHTMLUtils(unittest.TestCase):
 		self.assertTrue('<h1>Hello</h1>' in clean)
 		self.assertTrue('<a href="http://test.com">text</a>' in clean)
 
-@frappe.whitelist()
-def create_todo_records():
-	if frappe.db.get_all('ToDo', {'description': 'this is first todo'}):
-		return
+class TestValidationUtils(unittest.TestCase):
+	def test_valid_url(self):
+		# Edge cases
+		self.assertFalse(validate_url(''))
+		self.assertFalse(validate_url(None))
 
-	frappe.get_doc({
-		"doctype": "ToDo",
-		"date": add_to_date(now(), days=3),
-		"description": "this is first todo"
-	}).insert()
-	frappe.get_doc({
-		"doctype": "ToDo",
-		"date": add_to_date(now(), days=-3),
-		"description": "this is second todo"
-	}).insert()
-	frappe.get_doc({
-		"doctype": "ToDo",
-		"date": add_to_date(now(), months=2),
-		"description": "this is third todo"
-	}).insert()
-	frappe.get_doc({
-		"doctype": "ToDo",
-		"date": add_to_date(now(), months=-2),
-		"description": "this is fourth todo"
-	}).insert()
+		# Valid URLs
+		self.assertTrue(validate_url('https://google.com'))
+		self.assertTrue(validate_url('http://frappe.io', throw=True))
+
+		# Invalid URLs without throw
+		self.assertFalse(validate_url('google.io'))
+		self.assertFalse(validate_url('google.io'))
+
+		# Invalid URL with throw
+		self.assertRaises(frappe.ValidationError, validate_url, 'frappe', throw=True)
+
+		# Scheme validation
+		self.assertFalse(validate_url('https://google.com', valid_schemes='http'))
+		self.assertTrue(validate_url('ftp://frappe.cloud', valid_schemes=['https', 'ftp']))
+		self.assertFalse(validate_url('bolo://frappe.io', valid_schemes=("http", "https", "ftp", "ftps")))
+		self.assertRaises(
+			frappe.ValidationError,
+			validate_url,
+			'gopher://frappe.io',
+			valid_schemes='https',
+			throw=True
+		)
+
+	def test_valid_email(self):
+		# Edge cases
+		self.assertFalse(validate_email_address(''))
+		self.assertFalse(validate_email_address(None))
+
+		# Valid addresses
+		self.assertTrue(validate_email_address('someone@frappe.com'))
+		self.assertTrue(validate_email_address('someone@frappe.com, anyone@frappe.io'))
+
+		# Invalid address
+		self.assertFalse(validate_email_address('someone'))
+		self.assertFalse(validate_email_address('someone@----.com'))
+
+		# Invalid with throw
+		self.assertRaises(
+			frappe.InvalidEmailAddressError,
+			validate_email_address,
+			'someone.com',
+			throw=True
+		)
+
+class TestImage(unittest.TestCase):
+	def test_strip_exif_data(self):
+		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
+		original_image_content = io.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg", mode='rb').read()
+
+		new_image_content = strip_exif_data(original_image_content, "image/jpeg")
+		new_image = Image.open(io.BytesIO(new_image_content))
+
+		self.assertEqual(new_image._getexif(), None)
+		self.assertNotEqual(original_image._getexif(), new_image._getexif())

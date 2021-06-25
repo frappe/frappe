@@ -2,7 +2,6 @@
 # Copyright (c) 2018, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import cint
@@ -19,7 +18,7 @@ class PrintSettings(Document):
 		try:
 			import cups
 		except ImportError:
-			frappe.throw("You need to install pycups to use this feature!")
+			frappe.throw(_("You need to install pycups to use this feature!"))
 			return
 		try:
 			cups.setServer(self.server_ip)
@@ -29,7 +28,7 @@ class PrintSettings(Document):
 			printer_list = printers.keys()
 		except RuntimeError:
 			frappe.throw(_("Failed to connect to server"))
-		except ValidationError:
+		except frappe.ValidationError:
 			frappe.throw(_("Failed to connect to server"))
 		return printer_list
 

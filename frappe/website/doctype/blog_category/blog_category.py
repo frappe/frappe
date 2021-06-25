@@ -1,19 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.website.render import clear_cache
+from frappe.website.utils import clear_cache
 
 class BlogCategory(WebsiteGenerator):
 	def autoname(self):
 		# to override autoname of WebsiteGenerator
-		self.name = self.category_name
+		self.name = self.scrub(self.title)
 
 	def on_update(self):
 		clear_cache()
 
-	def validate(self):
-		if not self.route:
-			self.route = 'blog/' + self.scrub(self.name)
-		super(BlogCategory, self).validate()
+	def set_route(self):
+		# Override blog route since it has to been templated
+		self.route = 'blog/' + self.name

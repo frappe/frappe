@@ -2,11 +2,10 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 from frappe.utils import get_url, call_hook_method, cint, flt
 from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
 
@@ -76,7 +75,7 @@ class StripeSettings(Document):
 	def create_charge_on_stripe(self):
 		import stripe
 		try:
-			charge = stripe.Charge.create(amount=cint(flt(self.data.amount)*100), currency=self.data.currency, source=self.data.stripe_token_id, description=self.data.description)
+			charge = stripe.Charge.create(amount=cint(flt(self.data.amount)*100), currency=self.data.currency, source=self.data.stripe_token_id, description=self.data.description, receipt_email=self.data.payer_email)
 
 			if charge.captured == True:
 				self.integration_request.db_set('status', 'Completed', update_modified=False)

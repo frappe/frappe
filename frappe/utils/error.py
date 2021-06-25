@@ -2,26 +2,26 @@
 # Copyright (c) 2015, Maxwell Morais and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+import os
+import sys
+import traceback
+import functools
 
 import frappe
 from frappe.utils import cstr, encode
-import os
-import sys
 import inspect
-import traceback
 import linecache
 import pydoc
 import cgitb
 import datetime
 import json
-import six
+
 
 def make_error_snapshot(exception):
 	if frappe.conf.disable_error_snapshot:
 		return
 
-	logger = frappe.logger(__name__, with_more_info=False)
+	logger = frappe.logger(with_more_info=True)
 
 	try:
 		error_id = '{timestamp:s}-{ip:s}-{hash:s}'.format(
@@ -49,7 +49,7 @@ def get_snapshot(exception, context=10):
 	"""
 
 	etype, evalue, etb = sys.exc_info()
-	if isinstance(etype, six.class_types):
+	if isinstance(etype, type):
 		etype = etype.__name__
 
 	# creates a snapshot dict with some basic information
@@ -123,22 +123,13 @@ def get_snapshot(exception, context=10):
 	# add exception type, value and attributes
 	if isinstance(evalue, BaseException):
 		for name in dir(evalue):
-			# prevent py26 DeprecationWarning
-			if (name != 'messages' or sys.version_info < (2.6)) and not name.startswith('__'):
+			if name != 'messages' and not name.startswith('__'):
 				value = pydoc.text.repr(getattr(evalue, name))
-
-				# render multilingual string properly
-				if type(value)==str and value.startswith(b"u'"):
-					value = eval(value)
-
 				s['exception'][name] = encode(value)
 
 	# add all local values (of last frame) to the snapshot
 	for name, value in locals.items():
-		if type(value)==str and value.startswith(b"u'"):
-			value = eval(value)
-
-		s['locals'][name] = pydoc.text.repr(value)
+		s['locals'][name] = value if isinstance(value, str) else pydoc.text.repr(value)
 
 	return s
 
@@ -199,3 +190,45 @@ def clear_old_snapshots():
 
 def get_error_snapshot_path():
 	return frappe.get_site_path('error-snapshots')
+
+def get_default_args(func):
+	"""Get default arguments of a function from its signature.
+	"""
+	signature = inspect.signature(func)
+	return {k: v.default
+		for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
+
+def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
+	"""Decorate any function to throw error incase of missing output.
+
+	TODO: Remove keep_quiet flag after testing and fixing sendmail flow.
+
+	:param error_message: error message to raise
+	:param error_type: type of error to raise
+	:param keep_quiet: control error raising with external factor.
+	:type error_message: str
+	:type error_type: Exception Class
+	:type keep_quiet: function
+
+	>>> @raise_error_on_no_output("Ingradients missing")
+	... def get_indradients(_raise_error=1): return
+	...
+	>>> get_ingradients()
+	`Exception Name`: Ingradients missing
+	"""
+	def decorator_raise_error_on_no_output(func):
+		@functools.wraps(func)
+		def wrapper_raise_error_on_no_output(*args, **kwargs):
+			response = func(*args, **kwargs)
+			if callable(keep_quiet) and keep_quiet():
+				return response
+
+			default_kwargs = get_default_args(func)
+			default_raise_error = default_kwargs.get('_raise_error')
+			raise_error = kwargs.get('_raise_error') if '_raise_error' in kwargs else default_raise_error
+
+			if (not response) and raise_error:
+				frappe.throw(error_message, error_type or Exception)
+			return response
+		return wrapper_raise_error_on_no_output
+	return decorator_raise_error_on_no_output

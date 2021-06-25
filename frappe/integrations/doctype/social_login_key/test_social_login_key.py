@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import frappe
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
 import unittest
@@ -22,3 +20,17 @@ def make_social_login_key(**kwargs):
 		kwargs["provider_name"] = "Test OAuth2 Provider"
 	doc = frappe.get_doc(kwargs)
 	return doc
+
+def create_or_update_social_login_key():
+	# used in other tests (connected app, oauth20)
+	try:
+		social_login_key = frappe.get_doc("Social Login Key", "frappe")
+	except frappe.DoesNotExistError:
+		social_login_key = frappe.new_doc("Social Login Key")
+	social_login_key.get_social_login_provider("Frappe", initialize=True)
+	social_login_key.base_url = frappe.utils.get_url()
+	social_login_key.enable_social_login = 0
+	social_login_key.save()
+	frappe.db.commit()
+
+	return social_login_key

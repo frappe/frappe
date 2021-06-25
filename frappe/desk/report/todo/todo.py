@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import getdate
@@ -24,7 +23,7 @@ def execute(filters=None):
 	for todo in todo_list:
 		if todo.owner==frappe.session.user or todo.assigned_by==frappe.session.user:
 			if todo.reference_type:
-				todo.reference = """<a href="#Form/%s/%s">%s: %s</a>""" % (todo.reference_type,
+				todo.reference = """<a href="/app/Form/%s/%s">%s: %s</a>""" % (todo.reference_type,
 					todo.reference_name, todo.reference_type, todo.reference_name)
 			else:
 				todo.reference = None

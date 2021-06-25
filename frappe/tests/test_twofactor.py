@@ -1,28 +1,37 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 import unittest, frappe, pyotp
 from frappe.auth import HTTPRequest
 from frappe.utils import cint
-from frappe.tests import set_request
+from frappe.utils import set_request
+from frappe.auth import validate_ip_address, get_login_attempt_tracker
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, get_cached_user_pass,
-	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj,
-	render_string_template)
+	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj, ExpiredLoginException)
+from . import update_system_settings, get_system_setting
 
 import time
 
 class TestTwoFactor(unittest.TestCase):
+	def __init__(self, *args, **kwargs):
+		super(TestTwoFactor, self).__init__(*args, **kwargs)
+		self.default_allowed_login_attempts = get_system_setting('allow_consecutive_login_attempts')
+
 	def setUp(self):
 		self.http_requests = create_http_request()
 		self.login_manager = frappe.local.login_manager
 		self.user = self.login_manager.user
+		update_system_settings({
+			'allow_consecutive_login_attempts': 2
+		})
 
 	def tearDown(self):
 		frappe.local.response['verification'] = None
 		frappe.local.response['tmp_id'] = None
 		disable_2fa()
 		frappe.clear_cache(user=self.user)
+		update_system_settings({
+			'allow_consecutive_login_attempts': self.default_allowed_login_attempts
+		})
 
 	def test_should_run_2fa(self):
 		'''Should return true if enabled.'''
@@ -100,6 +109,7 @@ class TestTwoFactor(unittest.TestCase):
 
 	def test_confirm_otp_token(self):
 		'''Ensure otp is confirmed'''
+		frappe.flags.otp_expiry = 2
 		authenticate_for_2factor(self.user)
 		tmp_id = frappe.local.response['tmp_id']
 		otp = 'wrongotp'
@@ -107,10 +117,11 @@ class TestTwoFactor(unittest.TestCase):
 			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
 		otp = get_otp(self.user)
 		self.assertTrue(confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id))
+		frappe.flags.otp_expiry = None
 		if frappe.flags.tests_verbose:
-			print('Sleeping for 30secs to confirm token expires..')
-		time.sleep(30)
-		with self.assertRaises(frappe.AuthenticationError):
+			print('Sleeping for 2 secs to confirm token expires..')
+		time.sleep(2)
+		with self.assertRaises(ExpiredLoginException):
 			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
 
 	def test_get_verification_obj(self):
@@ -123,7 +134,7 @@ class TestTwoFactor(unittest.TestCase):
 		'''String template renders as expected with variables.'''
 		args = {'issuer_name':'Frappe Technologies'}
 		_str = 'Verification Code from {{issuer_name}}'
-		_str = render_string_template(_str,args)
+		_str = frappe.render_template(_str,args)
 		self.assertEqual(_str,'Verification Code from Frappe Technologies')
 
 	def test_bypass_restict_ip(self):
@@ -140,25 +151,52 @@ class TestTwoFactor(unittest.TestCase):
 		user.save()
 		enable_2fa(bypass_restrict_ip_check=0)
 		with self.assertRaises(frappe.AuthenticationError):
-			self.login_manager.validate_ip_address()
+			validate_ip_address(self.user)
 
 		#2
 		enable_2fa(bypass_restrict_ip_check=1)
-		self.assertIsNone(self.login_manager.validate_ip_address())
+		self.assertIsNone(validate_ip_address(self.user))
 
 		#3
 		user = frappe.get_doc('User', self.user)
 		user.bypass_restrict_ip_check_if_2fa_enabled = 1
 		user.save()
 		enable_2fa()
-		self.assertIsNone(self.login_manager.validate_ip_address())
+		self.assertIsNone(validate_ip_address(self.user))
+
+	def test_otp_attempt_tracker(self):
+		"""Check that OTP login attempts are tracked.
+		"""
+		authenticate_for_2factor(self.user)
+		tmp_id = frappe.local.response['tmp_id']
+		otp = 'wrongotp'
+		with self.assertRaises(frappe.AuthenticationError):
+			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
+
+		with self.assertRaises(frappe.AuthenticationError):
+			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
+
+		# REMOVE ME: current logic allows allow_consecutive_login_attempts+1 attempts
+		# before raising security exception, remove below line when that is fixed.
+		with self.assertRaises(frappe.AuthenticationError):
+			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
+
+		with self.assertRaises(frappe.SecurityException):
+			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
+
+		# Remove tracking cache so that user can try loging in again
+		tracker = get_login_attempt_tracker(self.user, raise_locked_exception=False)
+		tracker.add_success_attempt()
+
+		otp = get_otp(self.user)
+		self.assertTrue(confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id))
 
 def create_http_request():
 	'''Get http request object.'''
 	set_request(method='POST', path='login')
 	enable_2fa()
-	frappe.form_dict['usr'] = 'test@erpnext.com'
-	frappe.form_dict['pwd'] = 'test'
+	frappe.form_dict['usr'] = 'test@example.com'
+	frappe.form_dict['pwd'] = 'Eastern_43A1W'
 	frappe.local.form_dict['cmd'] = 'login'
 	http_requests = HTTPRequest()
 	return http_requests
@@ -170,12 +208,14 @@ def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):
 	system_settings.bypass_2fa_for_retricted_ip_users = cint(bypass_two_factor_auth)
 	system_settings.bypass_restrict_ip_check_if_2fa_enabled = cint(bypass_restrict_ip_check)
 	system_settings.two_factor_method = 'OTP App'
+	system_settings.flags.ignore_mandatory = True
 	system_settings.save(ignore_permissions=True)
 	frappe.db.commit()
 
 def disable_2fa():
 	system_settings = frappe.get_doc('System Settings')
 	system_settings.enable_two_factor_auth = 0
+	system_settings.flags.ignore_mandatory = True
 	system_settings.save(ignore_permissions=True)
 	frappe.db.commit()
 

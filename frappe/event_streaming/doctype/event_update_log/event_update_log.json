@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "creation": "2019-07-30 15:31:26.352527",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "update_type",
+  "ref_doctype",
+  "docname",
+  "data",
+  "consumers"
+ ],
+ "fields": [
+  {
+   "fieldname": "update_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Update Type",
+   "options": "Create\nUpdate\nDelete",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "DocType",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "docname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Code",
+   "label": "Data",
+   "read_only": 1
+  },
+  {
+   "fieldname": "consumers",
+   "fieldtype": "Table MultiSelect",
+   "label": "Consumers",
+   "options": "Event Update Log Consumer",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2020-09-04 07:31:52.599804",
+ "modified_by": "Administrator",
+ "module": "Event Streaming",
+ "name": "Event Update Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

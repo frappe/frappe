@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: See license.txt
 
-from __future__ import unicode_literals
-
 import frappe, json, os
 from frappe.utils import strip, cint
 from frappe.translate import (set_default_language, get_dict, send_translations)
@@ -10,7 +8,6 @@ from frappe.geo.country_info import get_country_info
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
 from . import install_fixtures
-from six import string_types
 
 def get_setup_stages(args):
 
@@ -54,13 +51,14 @@ def setup_complete(args):
 
 	# Setup complete: do not throw an exception, let the user continue to desk
 	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-		return
+		return {'status': 'ok'}
 
 	args = parse_args(args)
 
 	stages = get_setup_stages(args)
 
 	try:
+		frappe.flags.in_setup_wizard = True
 		current_task = None
 		for idx, stage in enumerate(stages):
 			frappe.publish_realtime('setup_task', {"progress": [idx, len(stages)],
@@ -75,6 +73,8 @@ def setup_complete(args):
 	else:
 		run_setup_success(args)
 		return {'status': 'ok'}
+	finally:
+		frappe.flags.in_setup_wizard = False
 
 def update_global_settings(args):
 	if args.language and args.language != "English":
@@ -121,6 +121,7 @@ def handle_setup_exception(args):
 	frappe.db.rollback()
 	if args:
 		traceback = frappe.get_traceback()
+		print(traceback)
 		for hook in frappe.get_hooks("setup_wizard_exception"):
 			frappe.get_attr(hook)(traceback, args)
 
@@ -141,6 +142,7 @@ def update_system_settings(args):
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
+		'time_format': frappe.db.get_value("Country", args.get("country"), "time_format"),
 		'number_format': number_format,
 		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
 		'backup_limit': 3 # Default for downloadable backups
@@ -203,14 +205,14 @@ def update_user_name(args):
 def parse_args(args):
 	if not args:
 		args = frappe.local.form_dict
-	if isinstance(args, string_types):
+	if isinstance(args, str):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
 
 	# strip the whitespace
 	for key, value in args.items():
-		if isinstance(value, string_types):
+		if isinstance(value, str):
 			args[key] = strip(value)
 
 	return args
@@ -224,9 +226,12 @@ def add_all_roles_to(name):
 	user.save()
 
 def disable_future_access():
-	frappe.db.set_default('desktop:home_page', 'desktop')
+	frappe.db.set_default('desktop:home_page', 'workspace')
 	frappe.db.set_value('System Settings', 'System Settings', 'setup_complete', 1)
 	frappe.db.set_value('System Settings', 'System Settings', 'is_first_startup', 1)
+
+	# Enable onboarding after install
+	frappe.db.set_value('System Settings', 'System Settings', 'enable_onboarding', 1)
 
 	if not frappe.flags.in_test:
 		# remove all roles and add 'Administrator' to prevent future access
@@ -286,7 +291,7 @@ def reset_is_first_startup():
 def prettify_args(args):
 	# remove attachments
 	for key, val in args.items():
-		if isinstance(val, string_types) and "data:image" in val:
+		if isinstance(val, str) and "data:image" in val:
 			filename = val.split("data:image", 1)[0].strip(", ")
 			size = round((len(val) * 3 / 4) / 1048576.0, 2)
 			args[key] = "Image Attached: '{0}' of size {1} MB".format(filename, size)
@@ -348,6 +353,11 @@ def email_setup_wizard_exception(traceback, args):
 		message=message,
 		delayed=False)
 
+def log_setup_wizard_exception(traceback, args):
+	with open('../logs/setup-wizard.log', 'w+') as setup_log:
+		setup_log.write(traceback)
+		setup_log.write(json.dumps(args))
+
 def get_language_code(lang):
 	return frappe.db.get_value('Language', {'language_name':lang})
 
@@ -389,7 +399,7 @@ def make_records(records, debug=False):
 			# pass DuplicateEntryError and continue
 			if e.args and e.args[0]==doc.doctype and e.args[1]==doc.name:
 				# make sure DuplicateEntryError is for the exact same doc and not a related doc
-				pass
+				frappe.clear_messages()
 			else:
 				raise
 

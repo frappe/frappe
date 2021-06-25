@@ -2,14 +2,21 @@
 // MIT License. See license.txt
 
 // library to mange assets (js, css, models, html) etc in the app.
-// will try and get from localStorge if latest are available
+// will try and get from localStorage if latest are available
 // depends on frappe.versions to manage versioning
 
 frappe.require = function(items, callback) {
 	if(typeof items === "string") {
 		items = [items];
 	}
-	frappe.assets.execute(items, callback);
+	items = items.map(item => frappe.assets.bundled_asset(item));
+
+	return new Promise(resolve => {
+		frappe.assets.execute(items, () => {
+			resolve();
+			callback && callback();
+		});
+	});
 };
 
 frappe.assets = {
@@ -160,4 +167,11 @@ frappe.assets = {
 			frappe.dom.set_style(txt);
 		}
 	},
+
+	bundled_asset(path) {
+		if (!path.startsWith('/assets') && path.includes('.bundle.')) {
+			return frappe.boot.assets_json[path] || path;
+		}
+		return path;
+	}
 };

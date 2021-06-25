@@ -1,0 +1,107 @@
+{
+ "actions": [
+  {
+   "action": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event",
+   "action_type": "Server Action",
+   "label": "Execute"
+  }
+ ],
+ "creation": "2019-09-23 14:34:09.205368",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "stopped",
+  "method",
+  "server_script",
+  "frequency",
+  "cron_format",
+  "last_execution",
+  "create_log"
+ ],
+ "fields": [
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Method",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "stopped",
+   "fieldtype": "Check",
+   "label": "Stopped"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.frequency==='All'",
+   "fieldname": "create_log",
+   "fieldtype": "Check",
+   "label": "Create Log"
+  },
+  {
+   "fieldname": "last_execution",
+   "fieldtype": "Datetime",
+   "label": "Last Execution",
+   "read_only": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "depends_on": "eval:doc.frequency==='Cron'",
+   "fieldname": "cron_format",
+   "fieldtype": "Data",
+   "label": "Cron Format",
+   "read_only": 1
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Frequency",
+   "options": "All\nHourly\nHourly Long\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "server_script",
+   "fieldtype": "Link",
+   "label": "Server Script",
+   "options": "Server Script",
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [
+  {
+   "link_doctype": "Scheduled Job Log",
+   "link_fieldname": "scheduled_job_type"
+  }
+ ],
+ "modified": "2020-10-07 10:39:24.519460",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Scheduled Job Type",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

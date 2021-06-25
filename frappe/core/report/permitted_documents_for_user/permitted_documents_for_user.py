@@ -1,27 +1,26 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _, throw
 import frappe.utils.user
-from frappe.permissions import check_admin_or_system_manager
+from frappe.permissions import check_admin_or_system_manager, rights
 from frappe.model import data_fieldtypes
 
 def execute(filters=None):
 	user, doctype, show_permissions = filters.get("user"), filters.get("doctype"), filters.get("show_permissions")
+
 	if not validate(user, doctype): return [], []
 
 	columns, fields = get_columns_and_fields(doctype)
 	data = frappe.get_list(doctype, fields=fields, as_list=True, user=user)
 
 	if show_permissions:
-		columns = columns + ["Read", "Write", "Create", "Delete", "Submit", "Cancel", "Amend", "Print", "Email",
-		                     "Report", "Import", "Export", "Share"]
+		columns = columns + [frappe.unscrub(right) + ':Check:80' for right in rights]
 		data = list(data)
-		for i,item in enumerate(data):
-			temp = frappe.permissions.get_doc_permissions(frappe.get_doc(doctype, item[0]), False,user)
-			data[i] = item+(temp.get("read"),temp.get("write"),temp.get("create"),temp.get("delete"),temp.get("submit"),temp.get("cancel"),temp.get("amend"),temp.get("print"),temp.get("email"),temp.get("report"),temp.get("import"),temp.get("export"),temp.get("share"),)
+		for i, doc in enumerate(data):
+			permission = frappe.permissions.get_doc_permissions(frappe.get_doc(doctype, doc[0]), user)
+			data[i] = doc + tuple(permission.get(right) for right in rights)
 
 	return columns, data
 
@@ -41,11 +40,13 @@ def get_columns_and_fields(doctype):
 
 	return columns, fields
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def query_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	user = filters.get("user")
 	user_perms = frappe.utils.user.UserPermissions(user)
 	user_perms.build_permissions()
-	can_read = user_perms.can_read
+	can_read = user_perms.can_read # Does not include child tables
 
 	single_doctypes = [d[0] for d in frappe.db.get_values("DocType", {"issingle": 1})]
 

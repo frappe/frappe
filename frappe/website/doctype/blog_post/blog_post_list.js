@@ -4,7 +4,7 @@ frappe.listview_settings['Blog Post'] = {
 		if(doc.published) {
 			return [__("Published"), "green", "published,=,Yes"];
 		} else {
-			return [__("Not Published"), "darkgrey", "published,=,Yes"];
+			return [__("Not Published"), "gray", "published,=,Yes"];
 		}
 	}
 };

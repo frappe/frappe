@@ -1,12 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+import json
 
-from __future__ import unicode_literals
-import frappe, json
+import frappe
 from frappe import _
-from frappe.utils import cstr
 from frappe.model import default_fields, table_fields
-from six import string_types
+from frappe.utils import cstr
+
 
 @frappe.whitelist()
 def make_mapped_doc(method, source_name, selected_children=None, args=None):
@@ -14,6 +14,12 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	Sets selected_children as flags for the `get_mapped_doc` method.
 
 	Called from `open_mapped_doc` from create_new.js'''
+
+	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(method, []):
+		# override using the first hook
+		method = hook
+		break
+
 	method = frappe.get_attr(method)
 
 	if method not in frappe.whitelisted:
@@ -30,27 +36,35 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	return method(source_name)
 
 @frappe.whitelist()
-def map_docs(method, source_names, target_doc):
-	'''Returns the mapped document calling the given mapper method
-	with each of the given source docs on the target doc'''
+def map_docs(method, source_names, target_doc, args=None):
+	''' Returns the mapped document calling the given mapper method
+	with each of the given source docs on the target doc
+
+	:param args: Args as string to pass to the mapper method
+	E.g. args: "{ 'supplier': 'XYZ' }" '''
+
 	method = frappe.get_attr(method)
 	if method not in frappe.whitelisted:
 		raise frappe.PermissionError
 
 	for src in json.loads(source_names):
-		target_doc = method(src, target_doc)
+		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
+		target_doc = method(*_args)
 	return target_doc
 
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
 
+	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+
 	# main
 	if not target_doc:
 		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
-	elif isinstance(target_doc, string_types):
+	elif isinstance(target_doc, str):
 		target_doc = frappe.get_doc(json.loads(target_doc))
 
-	if not ignore_permissions and not target_doc.has_permission("create"):
+	if (not apply_strict_user_permissions
+		and not ignore_permissions and not target_doc.has_permission("create")):
 		target_doc.raise_no_permission_to("create")
 
 	source_doc = frappe.get_doc(from_doctype, from_docname)
@@ -113,15 +127,18 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess(source_doc, target_doc)
 
 	target_doc.set_onload("load_after_mapping", True)
+
+	if (apply_strict_user_permissions
+		and not ignore_permissions and not target_doc.has_permission("create")):
+		target_doc.raise_no_permission_to("create")
+
 	return target_doc
 
 def map_doc(source_doc, target_doc, table_map, source_parent=None):
 	if table_map.get("validation"):
 		for key, condition in table_map["validation"].items():
-			if condition[0]=="=":
-				if source_doc.get(key) != condition[1]:
-					frappe.throw(_("Cannot map because following condition fails: ")
-						+ key + "=" + cstr(condition[1]))
+			if condition[0] == "=" and source_doc.get(key) != condition[1]:
+				frappe.throw(_("Cannot map because following condition fails:") + f" {key}={cstr(condition[1])}")
 
 	map_fields(source_doc, target_doc, table_map, source_parent)
 

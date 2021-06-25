@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 
 from frappe import _
@@ -10,7 +9,7 @@ import re
 
 def load_address_and_contact(doc, key=None):
 	"""Loads address list and contact list in `__onload`"""
-	from frappe.contacts.doctype.address.address import get_address_display
+	from frappe.contacts.doctype.address.address import get_address_display, get_condensed_address
 
 	filters = [
 		["Dynamic Link", "link_doctype", "=", doc.doctype],
@@ -36,6 +35,24 @@ def load_address_and_contact(doc, key=None):
 		["Dynamic Link", "parenttype", "=", "Contact"],
 	]
 	contact_list = frappe.get_all("Contact", filters=filters, fields=["*"])
+
+	for contact in contact_list:
+		contact["email_ids"] = frappe.get_list("Contact Email", filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary": 0
+			}, fields=["email_id"])
+
+		contact["phone_nos"] = frappe.get_list("Contact Phone", filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary_phone": 0,
+				"is_primary_mobile_no": 0
+			}, fields=["phone"])
+
+		if contact.address:
+			address = frappe.get_doc("Address", contact.address)
+			contact["address"] = get_condensed_address(address)
 
 	contact_list = sorted(contact_list,
 		key = functools.cmp_to_key(lambda a, b:
@@ -128,13 +145,15 @@ def delete_contact_and_address(doctype, docname):
 			if len(doc.links)==1:
 				doc.delete()
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	if not txt: txt = ""
 
 	doctypes = frappe.db.get_all("DocField", filters=filters, fields=["parent"],
 		distinct=True, as_list=True)
 
-	doctypes = tuple([d for d in doctypes if re.search(txt+".*", _(d[0]), re.IGNORECASE)])
+	doctypes = tuple(d for d in doctypes if re.search(txt+".*", _(d[0]), re.IGNORECASE))
 
 	filters.update({
 		"dt": ("not in", [d[0] for d in doctypes])
@@ -152,3 +171,11 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	valid_doctypes = [[doctype] for doctype in valid_doctypes]
 
 	return valid_doctypes
+
+def set_link_title(doc):
+	if not doc.links:
+		return
+	for link in doc.links:
+		if not link.link_title:
+			linked_doc = frappe.get_doc(link.link_doctype, link.link_name)
+			link.link_title = linked_doc.get("title_field") or linked_doc.get("name")

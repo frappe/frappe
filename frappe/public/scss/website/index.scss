@@ -1,0 +1,252 @@
+@import '../common/quill';
+@import 'variables';
+@import '~bootstrap/scss/bootstrap';
+@import "../common/mixins";
+@import "../common/global";
+@import "../common/icons";
+@import 'base';
+@import "../common/flex";
+@import "../common/buttons";
+@import "../common/modal";
+@import "../common/indicator";
+@import "../common/controls";
+@import "../common/awesomeplete";
+@import 'multilevel_dropdown';
+@import 'website_image';
+@import 'website_avatar';
+@import 'web_form';
+@import 'page_builder';
+@import 'blog';
+@import 'markdown';
+@import 'sidebar';
+@import 'portal';
+@import 'search';
+@import 'doc';
+@import 'navbar';
+@import 'footer';
+
+.ql-editor.read-mode {
+	padding: 0;
+	line-height: 1.6;
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5 {
+		margin-top: 0.5em;
+		margin-bottom: 0.25em;
+	}
+}
+
+.container {
+	padding-left: 1.25rem;
+	padding-right: 1.25rem;
+}
+
+@include media-breakpoint-up(sm) {
+	.container {
+		padding-left: 0;
+		padding-right: 0;
+	}
+}
+
+@include media-breakpoint-up(lg) {
+	.container {
+		padding-left: 2.5rem;
+		padding-right: 2.5rem;
+	}
+}
+
+@include media-breakpoint-up(xl) {
+	.container {
+		padding-left: 5rem;
+		padding-right: 5rem;
+	}
+}
+
+@include media-breakpoint-up(2xl) {
+	.container {
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
+	}
+}
+
+.dropdown-menu {
+	padding: 0.25rem;
+}
+
+.dropdown-item {
+	border-radius: $dropdown-border-radius;
+}
+
+.input-dark {
+	background-color: $dark;
+	border-color: darken($primary, 40%);
+	color: $light;
+}
+
+.main-column .page-content-wrapper {
+	margin: 2rem 0;
+}
+
+@media (max-width: map-get($grid-breakpoints, "lg")) {
+	.page-content-wrapper .container {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+}
+
+.breadcrumb-container {
+	margin-top: 1rem;
+	padding-top:  0.25rem;
+}
+
+.breadcrumb {
+	padding: 0;
+	font-size: $font-size-sm;
+	background-color: $breadcrumb-bg;
+}
+
+a.card {
+	text-decoration: none;
+}
+
+.hidden {
+	@extend .d-none;
+}
+
+.hide-control {
+	@extend .d-none;
+}
+
+.text-underline {
+	text-decoration: underline;
+}
+
+.text-extra-muted {
+	color: #d1d8dd !important;
+}
+
+.no-underline {
+	text-decoration: none !important;
+}
+
+.indicator {
+	font-size: inherit;
+}
+
+h4.modal-title {
+	font-size: 1em;
+}
+
+h5.modal-title {
+	margin: 0px !important;
+}
+
+.col-xs-1 {
+	@extend .col-1;
+}
+.col-xs-2 {
+	@extend .col-2;
+}
+.col-xs-3 {
+	@extend .col-3;
+}
+.col-xs-4 {
+	@extend .col-4;
+}
+.col-xs-5 {
+	@extend .col-5;
+}
+.col-xs-6 {
+	@extend .col-6;
+}
+.col-xs-7 {
+	@extend .col-7;
+}
+.col-xs-8 {
+	@extend .col-8;
+}
+.col-xs-9 {
+	@extend .col-9;
+}
+.col-xs-10 {
+	@extend .col-10;
+}
+.col-xs-11 {
+	@extend .col-11;
+}
+.col-xs-12 {
+	@extend .col-12;
+}
+
+.btn-default {
+	@extend .btn-light;
+}
+
+.btn-xs {
+	@extend .btn-sm;
+}
+
+.hidden-xs {
+	@extend .d-none;
+	@extend .d-sm-block;
+}
+
+.visible-xs {
+	@extend .d-block;
+	@extend .d-sm-none;
+}
+
+.form-section {
+	// margin-right: -45px;
+	margin: 0px;
+}
+
+.form-section .section-body {
+	width: 100%;
+	margin: 0;
+	@extend .row;
+}
+
+.pull-right {
+	float: right;
+}
+
+.image-with-blur {
+	transition: filter 300ms ease-in-out;
+	filter: blur(1.5rem);
+}
+
+.image-loaded {
+	filter: blur(0rem);
+}
+
+.embed-container {
+	position: relative;
+	padding-bottom: 56.25%;
+	height: 0;
+	overflow: hidden;
+	max-width: 100%;
+}
+
+.embed-container iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.ellipsis {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.about-section {
+	padding-top: 1rem;
+}
+.about-footer {
+	padding-top: 1rem;
+}

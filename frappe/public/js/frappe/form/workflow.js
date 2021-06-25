@@ -1,8 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.States = Class.extend({
-	init: function(opts) {
+frappe.ui.form.States = class FormStates {
+	constructor(opts) {
 		$.extend(this, opts);
 		this.state_fieldname = frappe.workflow.get_state_fieldname(this.frm.doctype);
 
@@ -16,9 +16,9 @@ frappe.ui.form.States = Class.extend({
 		$(this.frm.wrapper).bind("render_complete", function() {
 			me.refresh();
 		});
-	},
+	}
 
-	setup_help: function() {
+	setup_help() {
 		var me = this;
 		this.frm.page.add_action_item(__("Help"), function() {
 			frappe.workflow.setup(me.frm.doctype);
@@ -29,27 +29,24 @@ frappe.ui.form.States = Class.extend({
 			});
 
 			frappe.workflow.get_transitions(me.frm.doc).then((transitions) => {
-				var next_html = $.map(transitions,
-					function(d) {
-						return d.action.bold() + __(" by Role ") + d.allowed;
-					}).join(", ") || __("None: End of Workflow").bold();
+				const next_actions = $.map(transitions, d => `${d.action.bold()} ${__("by Role")} ${d.allowed}`)
+					.join(", ") || __("None: End of Workflow").bold();
 
-				$(d.body).html("<p>"+__("Current status")+": " + state.bold() + "</p>"
-					+ "<p>"+__("Document is only editable by users of role")+": "
-						+ frappe.workflow.get_document_state(me.frm.doctype,
-							state).allow_edit.bold() + "</p>"
-					+ "<p>"+__("Next actions")+": "+ next_html +"</p>"
-					+ (me.frm.doc.__islocal ? ("<div class='alert alert-info'>"
-						+__("Workflow will start after saving.")+"</div>") : "")
-					+ "<p class='help'>"+__("Note: Other permission rules may also apply")+"</p>"
-				).css({padding: '15px'});
+				const document_editable_by = frappe.workflow.get_document_state(me.frm.doctype, state).allow_edit.bold();
+
+				$(d.body).html(`
+					<p>${__("Current status")}: ${state.bold()}</p>
+					<p>${__("Document is only editable by users with role")}: ${document_editable_by}</p>
+					<p>${__("Next actions")}: ${next_actions}</p>
+					<p>${__("{0}: Other permission rules may also apply", [__('Note').bold()])}</p>
+				`).css({padding: '15px'});
+
 				d.show();
 			});
 		}, true);
-	},
+	}
 
-	refresh: function() {
-		const me = this;
+	refresh() {
 		// hide if its not yet saved
 		if(this.frm.doc.__islocal) {
 			this.set_default_state();
@@ -59,19 +56,15 @@ frappe.ui.form.States = Class.extend({
 		// state text
 		const state = this.get_state();
 
-		let doctype = this.frm.doctype;
-
 		if(state) {
 			// show actions from that state
 			this.show_actions(state);
 		}
-	},
+	}
 
-	show_actions: function() {
+	show_actions() {
 		var added = false;
 		var me = this;
-
-		this.frm.page.clear_actions_menu();
 
 		// if the loaded doc is dirty, don't show workflow buttons
 		if (this.frm.doc.__unsaved===1) {
@@ -90,44 +83,52 @@ frappe.ui.form.States = Class.extend({
 		}
 
 		frappe.workflow.get_transitions(this.frm.doc).then(transitions => {
-			$.each(transitions, function(i, d) {
-				if(frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
+			this.frm.page.clear_actions_menu();
+			transitions.forEach(d => {
+				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function() {
-						frappe.xcall('frappe.model.workflow.apply_workflow',
-							{doc: me.frm.doc, action: d.action})
-							.then((doc) => {
-								frappe.model.sync(doc);
-								me.frm.refresh();
-							});
+						// set the workflow_action for use in form scripts
+						me.frm.selected_workflow_action = d.action;
+						me.frm.script_manager.trigger('before_workflow_action').then(() => {
+							frappe.xcall('frappe.model.workflow.apply_workflow',
+								{doc: me.frm.doc, action: d.action})
+								.then((doc) => {
+									frappe.model.sync(doc);
+									me.frm.refresh();
+									me.frm.selected_workflow_action = null;
+									me.frm.script_manager.trigger("after_workflow_action");
+								});
+						});
 					});
 				}
 			});
+
 			this.setup_btn(added);
 		});
 
-	},
+	}
 
-	setup_btn: function(action_added) {
+	setup_btn(action_added) {
 		if(action_added) {
 			this.frm.page.btn_primary.addClass("hide");
 			this.frm.page.btn_secondary.addClass("hide");
 			this.frm.toolbar.current_status = "";
 			this.setup_help();
 		}
-	},
+	}
 
-	set_default_state: function() {
+	set_default_state() {
 		var default_state = frappe.workflow.get_default_state(this.frm.doctype, this.frm.doc.docstatus);
 		if(default_state) {
 			this.frm.set_value(this.state_fieldname, default_state);
 		}
-	},
+	}
 
-	get_state: function() {
+	get_state() {
 		if(!this.frm.doc[this.state_fieldname]) {
 			this.set_default_state();
 		}
 		return this.frm.doc[this.state_fieldname];
 	}
-});
+};

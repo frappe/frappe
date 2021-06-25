@@ -1,0 +1,47 @@
+{
+ "creation": "2020-04-17 19:29:21.186193",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Small Text",
+   "label": "Subtitle",
+   "reqd": 0
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image",
+   "reqd": 0
+  },
+  {
+   "fieldname": "image_description",
+   "fieldtype": "Data",
+   "label": "Image Description",
+   "reqd": 0
+  },
+  {
+   "default": "Left",
+   "fieldname": "align",
+   "fieldtype": "Select",
+   "label": "Align",
+   "options": "Left\nCenter",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-10-26 17:40:11.558331",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Section with Image",
+ "owner": "Administrator",
+ "standard": 1,
+ "type": "Section"
+}

@@ -1,15 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import json
 
 from frappe.model.document import Document
 from frappe.utils import get_fullname
 
-subject_field = "description"
-sender_field = "sender"
 exclude_from_linked_with = True
 
 class ToDo(Document):
@@ -31,7 +28,7 @@ class ToDo(Document):
 			# NOTE the previous value is only available in validate method
 			if self.get_db_value("status") != self.status:
 				self._assignment = {
-					"text": frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
+					"text": frappe._("Assignment closed by {0}").format(get_fullname(frappe.session.user)),
 					"comment_type": "Assignment Completed"
 				}
 
@@ -43,8 +40,11 @@ class ToDo(Document):
 
 	def on_trash(self):
 		# unlink todo from linked comments
-		frappe.db.sql("""update `tabCommunication` set link_doctype=null, link_name=null
-			where link_doctype=%(doctype)s and link_name=%(name)s""", {"doctype": self.doctype, "name": self.name})
+		frappe.db.sql("""
+			delete from `tabCommunication Link`
+			where link_doctype=%(doctype)s and link_name=%(name)s""", {
+				"doctype": self.doctype, "name": self.name
+		})
 
 		self.update_in_reference()
 
@@ -63,7 +63,7 @@ class ToDo(Document):
 				filters={
 					"reference_type": self.reference_type,
 					"reference_name": self.reference_name,
-					"status": "Open"
+					"status": ("!=", "Cancelled")
 				},
 				fields=["owner"], as_list=True)]
 
@@ -84,21 +84,30 @@ class ToDo(Document):
 			else:
 				raise
 
-# NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
+# NOTE: todo is viewable if a user is an owner, or set as assigned_to value, or has any role that is allowed to access ToDo doctype.
 def on_doctype_update():
 	frappe.db.add_index("ToDo", ["reference_type", "reference_name"])
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
-	if "System Manager" in frappe.get_roles(user):
+	todo_roles = frappe.permissions.get_doctype_roles('ToDo')
+	if 'All' in todo_roles:
+		todo_roles.remove('All')
+
+	if any(check in todo_roles for check in frappe.get_roles(user)):
 		return None
 	else:
-		return """(tabToDo.owner = {user} or tabToDo.assigned_by = {user})"""\
+		return """(`tabToDo`.owner = {user} or `tabToDo`.assigned_by = {user})"""\
 			.format(user=frappe.db.escape(user))
 
-def has_permission(doc, user):
-	if "System Manager" in frappe.get_roles(user):
+def has_permission(doc, ptype="read", user=None):
+	user = user or frappe.session.user
+	todo_roles = frappe.permissions.get_doctype_roles('ToDo', ptype)
+	if 'All' in todo_roles:
+		todo_roles.remove('All')
+
+	if any(check in todo_roles for check in frappe.get_roles(user)):
 		return True
 	else:
 		return doc.owner==user or doc.assigned_by==user

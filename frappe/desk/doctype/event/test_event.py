@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 """Use blog post test to test user permissions logic"""
 
 import frappe
@@ -71,7 +69,7 @@ class TestEvent(unittest.TestCase):
 		ev = frappe.get_doc(self.test_records[0]).insert()
 
 		add({
-			"assign_to": "test@example.com",
+			"assign_to": ["test@example.com"],
 			"doctype": "Event",
 			"name": ev.name,
 			"description": "Test Assignment"
@@ -83,7 +81,7 @@ class TestEvent(unittest.TestCase):
 
 		# add another one
 		add({
-			"assign_to": self.test_user,
+			"assign_to": [self.test_user],
 			"doctype": "Event",
 			"name": ev.name,
 			"description": "Test Assignment"
@@ -93,10 +91,10 @@ class TestEvent(unittest.TestCase):
 
 		self.assertEqual(set(json.loads(ev._assign)), set(["test@example.com", self.test_user]))
 
-		# close an assignment
+		# Remove an assignment
 		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
 			"owner": self.test_user})
-		todo.status = "Closed"
+		todo.status = "Cancelled"
 		todo.save()
 
 		ev = frappe.get_doc("Event", ev.name)
@@ -112,7 +110,7 @@ class TestEvent(unittest.TestCase):
 			"starts_on": "2014-02-01",
 			"event_type": "Public",
 			"repeat_this_event": 1,
-			"repeat_on": "Every Year"
+			"repeat_on": "Yearly"
 		})
 		ev.insert()
 

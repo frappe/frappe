@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import os
 from frappe.model.document import Document
@@ -9,8 +8,8 @@ from frappe.build import html_to_js_template
 from frappe.model.utils import render_include
 from frappe import conf, _, safe_decode
 from frappe.desk.form.meta import get_code_files_via_hooks, get_js
+from frappe.desk.utils import validate_route_conflict
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
-from six import text_type
 
 class Page(Document):
 	def autoname(self):
@@ -33,6 +32,8 @@ class Page(Document):
 				self.name += '-' + str(cnt)
 
 	def validate(self):
+		validate_route_conflict(self.doctype, self.name)
+
 		if self.is_new() and not getattr(conf,'developer_mode', 0):
 			frappe.throw(_("Not in Developer Mode"))
 

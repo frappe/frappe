@@ -7,5 +7,6 @@
     <a href="{{ link }}" rel="nofollow" class="btn btn-primary btn-sm primary-action" style="padding: 8px 20px;">{{ _("Confirm Request") }}</a>
 </p>
 <p style="font-size: 85%;">
-    {{_("You can also copy-paste this ")}} <a href="{{ link }}">{{_("Verification Link")}}</a>{{_(" to your browser")}}
+    {% set verification_link = '<a href="{{ link }}">{{ _("Verification Link") }}</a>' %}
+    {{_("You can also copy-paste this {0} to your browser").format(verification_link) }}
 </p>

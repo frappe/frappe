@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import frappe
 import unittest
 
@@ -104,7 +102,7 @@ def get_translation_data():
 def create_translation(key, val):
 	translation = frappe.new_doc('Translation')
 	translation.language = key
-	translation.source_name = val[0]
-	translation.target_name = val[1]
+	translation.source_text = val[0]
+	translation.translated_text = val[1]
 	translation.save()
 	return translation

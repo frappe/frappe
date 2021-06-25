@@ -34,7 +34,7 @@ frappe.dom = {
 	},
 	remove_script_and_style: function(txt) {
 		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
-		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'));
+		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'), 's');
 		if (!regex.test(txt)) {
 			// no evil tags found, skip the DOM method entirely!
 			return txt;
@@ -83,6 +83,10 @@ frappe.dom = {
 			&& rect.bottom - tolerance <= $(window).height()
 			&& rect.right - tolerance <= $(window).width()
 		);
+	},
+
+	is_element_in_modal(element) {
+		return Boolean($(element).parents('.modal').length);
 	},
 
 	set_style: function(txt, id) {
@@ -138,7 +142,7 @@ frappe.dom = {
 	},
 	freeze: function(msg, css_class) {
 		// blur
-		if(!$('#freeze').length) {
+		if (!$('#freeze').length) {
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
 				.on("click", function() {
 					if (cur_frm && cur_frm.cur_grid) {
@@ -146,7 +150,7 @@ frappe.dom = {
 						return false;
 					}
 				})
-				.appendTo("#body_div");
+				.appendTo("#body");
 
 			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message"><p class="lead">%(msg)s</p></div></div>',
 				{msg: msg || ""}));
@@ -285,33 +289,66 @@ frappe.scrub = function(text, spacer='_') {
 	return text.replace(/ /g, spacer).toLowerCase();
 };
 
+frappe.unscrub = function(txt) {
+	return frappe.model.unscrub(txt);
+};
+
+frappe.get_data_pill = (label, target_id=null, remove_action=null, image=null) => {
+	let data_pill_wrapper = $(`
+		<button class="data-pill btn">
+			<div class="flex align-center ellipsis">
+				${image ? image : ''}
+				<span class="pill-label ${image ? "ml-2" : ""}">${label}</span>
+			</div>
+		</button>
+	`);
+
+	if (remove_action) {
+		let remove_btn = $(`
+			<span class="remove-btn cursor-pointer">
+				${frappe.utils.icon('close', 'sm')}
+			</span>
+		`).click(() => {
+			remove_action(target_id || label, data_pill_wrapper);
+		});
+		data_pill_wrapper.append(remove_btn);
+	}
+
+	return data_pill_wrapper;
+};
+
 frappe.get_modal = function(title, content) {
 	return $(`<div class="modal fade" style="overflow: auto;" tabindex="-1">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
-	                <div class="row">
-	                    <div class="col-xs-7">
-							<span class="indicator hidden"></span>
-	                        <h4 class="modal-title" style="font-weight: bold;">${title}</h4>
-	                    </div>
-	                    <div class="col-xs-5">
-	                        <div class="text-right buttons">
-	            				<button type="button" class="btn btn-default btn-sm btn-modal-close"
-	                                data-dismiss="modal">
-									<i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i>
-									<span class="hidden-xs">${__("Close")}</span></button>
-	            				<button type="button" class="btn btn-primary btn-sm hide">
-	                                ${__("Confirm")}</button>
-	                        </div>
-	                    </div>
-	                </div>
+					<div class="fill-width flex title-section">
+						<span class="indicator hidden"></span>
+						<h4 class="modal-title">${title}</h4>
+					</div>
+					<div class="modal-actions">
+						<button class="btn btn-modal-minimize btn-link hide">
+							${frappe.utils.icon('collapse')}
+						</button>
+						<button class="btn btn-modal-close btn-link" data-dismiss="modal">
+							${frappe.utils.icon('close-alt', 'sm', 'close-alt')}
+						</button>
+					</div>
 				</div>
-				<div class="modal-body ui-front">${content}
+				<div class="modal-body ui-front">${content}</div>
+				<div class="modal-footer hide">
+					<div class="custom-actions"></div>
+					<div class="standard-actions">
+						<button type="button" class="btn btn-secondary btn-sm hide btn-modal-secondary">
+						</button>
+						<button type="button" class="btn btn-primary btn-sm hide btn-modal-primary">
+							${__("Confirm")}
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>`)
+	</div>`);
 };
 
 frappe.is_online = function() {
@@ -339,90 +376,3 @@ $(window).on('offline', function() {
 		message: __('Connection lost. Some features might not work.')
 	});
 });
-
-
-// add <option> list to <select>
-(function($) {
-	$.fn.add_options = function(options_list) {
-		// create options
-		for(var i=0, j=options_list.length; i<j; i++) {
-			var v = options_list[i];
-			if (is_null(v)) {
-				var value = null;
-				var label = null;
-			} else {
-				var is_value_null = is_null(v.value);
-				var is_label_null = is_null(v.label);
-				var is_disabled = Boolean(v.disabled);
-
-				if (is_value_null && is_label_null) {
-					var value = v;
-					var label = __(v);
-				} else {
-					var value = is_value_null ? "" : v.value;
-					var label = is_label_null ? __(value) : __(v.label);
-				}
-			}
-			$('<option>').html(cstr(label))
-				.attr('value', value)
-				.prop('disabled', is_disabled)
-				.appendTo(this);
-		}
-		// select the first option
-		this.selectedIndex = 0;
-		return $(this);
-	}
-	$.fn.set_working = function() {
-		this.prop('disabled', true);
-	}
-	$.fn.done_working = function() {
-		this.prop('disabled', false);
-	}
-})(jQuery);
-
-(function($) {
-	function pasteIntoInput(el, text) {
-		el.focus();
-		if (typeof el.selectionStart == "number") {
-			var val = el.value;
-			var selStart = el.selectionStart;
-			el.value = val.slice(0, selStart) + text + val.slice(el.selectionEnd);
-			el.selectionEnd = el.selectionStart = selStart + text.length;
-		} else if (typeof document.selection != "undefined") {
-			var textRange = document.selection.createRange();
-			textRange.text = text;
-			textRange.collapse(false);
-			textRange.select();
-		}
-	}
-
-	function allowTabChar(el) {
-		$(el).keydown(function(e) {
-			if (e.which == 9) {
-				pasteIntoInput(this, "\t");
-				return false;
-			}
-		});
-
-		// For Opera, which only allows suppression of keypress events, not keydown
-		$(el).keypress(function(e) {
-			if (e.which == 9) {
-				return false;
-			}
-		});
-	}
-
-	$.fn.allowTabs = function() {
-		if (this.jquery) {
-			this.each(function() {
-				if (this.nodeType == 1) {
-					var nodeName = this.nodeName.toLowerCase();
-					if (nodeName == "textarea" || (nodeName == "input" && this.type == "text")) {
-						allowTabChar(this);
-					}
-				}
-			})
-		}
-		return this;
-	}
-})(jQuery);

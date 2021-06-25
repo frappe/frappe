@@ -1,0 +1,150 @@
+.form-print-wrapper {
+	border: 1px solid var(--border-color);
+	border-top: none;
+	padding: 0;
+}
+
+.print-preview-wrapper {
+	padding: 80px 0;
+	background-color: var(--gray-200);
+	border-radius: var(--border-radius);
+
+	@include media-breakpoint-down(md) {
+		padding: 0;
+	}
+}
+
+.print-toolbar {
+	margin: 0px;
+	padding: var(--padding-md) 0;
+	border-bottom: 1px solid var(--border-color);
+
+	> div {
+		padding-right: 0px;
+	}
+	> div:last-child {
+		padding-right: var(--padding-md);
+	}
+}
+
+.print-preview-refresh {
+	margin-left: var(--margin-xs);
+}
+
+[data-theme="dark"] {
+	.print-preview-wrapper {
+		background-color: var(--gray-700);
+	}
+}
+
+.layout-side-section.print-preview-sidebar {
+	padding-right: var(--padding-md);
+
+	.clearfix {
+		display: none;
+	}
+
+	.label-area {
+		white-space: nowrap;
+	}
+}
+
+.print-preview {
+	padding: 0;
+	max-width: 8.3in;
+	margin: auto;
+	min-height: 11.69in;
+	background: white;
+	border-radius: var(--border-radius);
+}
+
+.print-format-skeleton {
+	padding: 0.75in;
+	min-height: 11.69in;
+	position: relative;
+
+	.skeleton-section {
+		padding: var(--padding-sm) 0;
+		.row {
+			padding: var(--padding-sm) 0;
+		}
+	}
+
+	.skeleton-body {
+
+		.skeleton-table {
+			width: 100%;
+
+			.skeleton-table-row {
+				display: flex;
+				border-bottom: 1px solid var(--border-color);
+
+				.skeleton-table-column {
+					margin: var(--margin-lg) 25px;
+					margin-left: 0;
+
+					&:last-child {
+						margin-right: 0;
+					}
+				}
+			}
+		}
+	}
+
+	.skeleton-card {
+		height: 8px;
+		border-radius: 50px;
+		background-size: 600px;
+		animation: loading 1.5s infinite linear;
+
+		&.dark {
+			background-image: linear-gradient(
+				90deg,
+				rgba(#c8cfd5, 1) 0,
+				rgba(#c8cfd5, 0.5) 50%,
+				rgba(#c8cfd5, 1) 100%
+			);
+		}
+
+		&.light {
+			background-image: linear-gradient(
+				90deg,
+				rgba(#e2e6e9, 1) 0,
+				rgba(#e2e6e9, 0.5) 50%,
+				rgba(#e2e6e9, 1) 100%
+			);
+		}
+
+		&.large {
+			height: 12px;
+		}
+	}
+
+	.skeleton-footer {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		padding: 0.75in;
+		width: 100%;
+
+		.skeleton-card {
+			margin: var(--margin-sm) auto;
+
+			&:first-child {
+				margin-bottom: var(--margin-lg);
+			}
+		}
+	}
+}
+
+@keyframes loading {
+	0% {
+		background-position: -100px;
+	}
+
+	50%, 100% {
+		background-position: 500px;
+	}
+}
+
+

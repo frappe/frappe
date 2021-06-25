@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import frappe, json
 import unittest
 
@@ -48,10 +46,12 @@ class TestComment(unittest.TestCase):
 		add_comment('pleez vizits my site http://mysite.com', 'test@test.com', 'bad commentor',
 			'Blog Post', test_blog.name, test_blog.route)
 
-		self.assertEqual(frappe.get_all('Comment', fields = ['*'], filters = dict(
+		self.assertEqual(len(frappe.get_all('Comment', fields = ['*'], filters = dict(
 			reference_doctype = test_blog.doctype,
 			reference_name = test_blog.name
-		))[0].published, 0)
+		))), 0)
+
+		test_blog.delete()
 
 
 

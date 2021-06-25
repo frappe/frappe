@@ -1,0 +1,31 @@
+<div class="section-with-features">
+	{%- if title -%}
+	<h2 class="section-title">{{ title }}</h2>
+	{%- endif -%}
+	{%- if subtitle -%}
+	<p class="section-description">{{ subtitle }}</p>
+	{%- endif -%}
+
+	<div class="section-features" data-columns="{{ columns or 3 }}">
+		{%- for feature in features -%}
+		<div class="section-feature">
+			<div>
+				{%- if feature.icon -%}
+				<img class="feature-icon" src="{{ feature.icon }}" alt="Icon for {{ feature.title }}">
+				{%- endif -%}
+				{%- if feature.title -%}
+				<h3 class="feature-title">{{ feature.title }}</h3>
+				{%- endif -%}
+				{%- if feature.content -%}
+				<p class="feature-content">{{ feature.content }}</p>
+				{%- endif -%}
+			</div>
+			<div>
+				{%- if feature.url -%}
+				<a href="{{ feature.url }}" class="feature-url stretched-link">Learn more →</a>
+				{%- endif -%}
+			</div>
+		</div>
+		{%- endfor -%}
+	</div>
+</div>

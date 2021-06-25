@@ -1,32 +1,35 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from urllib.parse import quote
 
 import frappe
 from frappe.model.document import get_controller
-from frappe.utils import get_request_site_address, get_datetime, nowdate
-from frappe.website.router import get_pages, get_all_page_context_from_doctypes
-from six import iteritems
-from six.moves.urllib.parse import quote, urljoin
+from frappe.utils import get_datetime, get_url, nowdate
+from frappe.website.router import get_pages
 
 no_cache = 1
-base_template_path = "templates/www/sitemap.xml"
+base_template_path = "www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
-	host = get_request_site_address()
+
+	# the site might be accessible from multiple host_names
+	# for e.g gadgets.erpnext.com and gadgetsinternational.com
+	# so it should be picked from the request
+	host = frappe.utils.get_host_name_from_request()
+
 	links = []
-	for route, page in iteritems(get_pages()):
+	for route, page in get_pages().items():
 		if page.sitemap:
 			links.append({
-				"loc": urljoin(host, quote(page.name.encode("utf-8"))),
+				"loc": get_url(quote(page.name.encode("utf-8"))),
 				"lastmod": nowdate()
 			})
 
-	for route, data in iteritems(get_public_pages_from_doctypes()):
+	for route, data in get_public_pages_from_doctypes().items():
 		links.append({
-			"loc": urljoin(host, quote((route or "").encode("utf-8"))),
+			"loc": get_url(quote((route or "").encode("utf-8"))),
 			"lastmod": get_datetime(data.get("modified")).strftime("%Y-%m-%d")
 		})
 

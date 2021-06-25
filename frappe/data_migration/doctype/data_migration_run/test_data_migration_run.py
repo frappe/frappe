@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
 import frappe, unittest
 
 class TestDataMigrationRun(unittest.TestCase):
@@ -18,7 +17,7 @@ class TestDataMigrationRun(unittest.TestCase):
 		frappe.get_doc(dict(
 			doctype='Event',
 			subject=event_subject,
-			repeat_on='Every Month',
+			repeat_on='Monthly',
 			starts_on=frappe.utils.now_datetime()
 		)).insert()
 
@@ -108,7 +107,7 @@ def create_plan():
 		'connector_name': 'Local Connector',
 		'connector_type': 'Frappe',
 		# connect to same host.
-		'hostname': frappe.conf.host_name,
+		'hostname': frappe.conf.host_name or frappe.utils.get_site_url(frappe.local.site),
 		'username': 'Administrator',
-		'password': 'admin'
+		'password': frappe.conf.get("admin_password") or 'admin'
 	}).insert(ignore_if_duplicate=True)

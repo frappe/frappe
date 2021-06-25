@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors and Contributors
 # See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import unittest
 
@@ -20,7 +19,7 @@ class TestNote(unittest.TestCase):
 		note = self.insert_note()
 		note.title = 'test note 1'
 		note.content = '1'
-		note.save()
+		note.save(ignore_version=False)
 
 		version = frappe.get_doc('Version', dict(docname=note.name))
 		data = version.get_data()
@@ -33,7 +32,7 @@ class TestNote(unittest.TestCase):
 
 		# test add
 		note.append('seen_by', {'user': 'Administrator'})
-		note.save()
+		note.save(ignore_version=False)
 
 		version = frappe.get_doc('Version', dict(docname=note.name))
 		data = version.get_data()
@@ -48,7 +47,7 @@ class TestNote(unittest.TestCase):
 
 		# test row change
 		note.seen_by[0].user = 'Guest'
-		note.save()
+		note.save(ignore_version=False)
 
 		version = frappe.get_doc('Version', dict(docname=note.name))
 		data = version.get_data()
@@ -62,7 +61,7 @@ class TestNote(unittest.TestCase):
 
 		# test remove
 		note.seen_by = []
-		note.save()
+		note.save(ignore_version=False)
 
 		version = frappe.get_doc('Version', dict(docname=note.name))
 		data = version.get_data()

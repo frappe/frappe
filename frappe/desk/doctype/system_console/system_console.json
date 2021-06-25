@@ -1,0 +1,68 @@
+{
+ "actions": [
+  {
+   "action": "#List/Console Log/List",
+   "action_type": "Route",
+   "label": "Logs"
+  },
+  {
+   "action": "frappe.desk.doctype.system_console.system_console.execute_code",
+   "action_type": "Server Action",
+   "hidden": 1,
+   "label": "Execute"
+  }
+ ],
+ "creation": "2020-08-18 17:44:35.647815",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "console",
+  "commit",
+  "output"
+ ],
+ "fields": [
+  {
+   "description": "To print output use <code>log(text)</code>",
+   "fieldname": "console",
+   "fieldtype": "Code",
+   "label": "Console",
+   "options": "Python"
+  },
+  {
+   "fieldname": "output",
+   "fieldtype": "Code",
+   "label": "Output",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "commit",
+   "fieldtype": "Check",
+   "label": "Commit"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-08-21 14:44:35.296877",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "System Console",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

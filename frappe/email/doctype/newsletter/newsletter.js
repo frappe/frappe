@@ -4,21 +4,60 @@
 frappe.ui.form.on('Newsletter', {
 	refresh(frm) {
 		let doc = frm.doc;
-		if(!doc.__islocal && !cint(doc.email_sent) && !doc.__unsaved
+		if (!doc.__islocal && !cint(doc.email_sent) && !doc.__unsaved
 				&& in_list(frappe.boot.user.can_write, doc.doctype)) {
-			frm.add_custom_button(__('Send'), function() {
-				frm.call('send_emails').then(() => {
-					frm.refresh();
+			frm.add_custom_button(__('Send Now'), function() {
+				frappe.confirm(__("Do you really want to send this email newsletter?"), function() {
+					frm.call('send_emails').then(() => {
+						frm.refresh();
+					});
 				});
 			}, "fa fa-play", "btn-success");
 		}
 
 		frm.events.setup_dashboard(frm);
 
-		if(doc.__islocal && !doc.send_from) {
+		if (doc.__islocal && !doc.send_from) {
 			let { fullname, email } = frappe.user_info(doc.owner);
 			frm.set_value('send_from', `${fullname} <${email}>`);
 		}
+	},
+
+	onload_post_render(frm) {
+		frm.trigger('setup_schedule_send');
+	},
+
+	setup_schedule_send(frm) {
+		let today = new Date();
+
+		// setting datepicker options to set min date & min time
+		today.setHours(today.getHours() + 1 );
+		frm.get_field('schedule_send').$input.datepicker({
+			maxMinutes: 0,
+			minDate: today,
+			timeFormat: 'hh:00:00',
+			onSelect: function (fd, d, picker) {
+				if (!d) return;
+				var date = d.toDateString();
+				if (date === today.toDateString()) {
+					picker.update({
+						minHours: (today.getHours() + 1)
+					});
+				} else {
+					picker.update({
+						minHours: 0
+					});
+				}
+				frm.get_field('schedule_send').$input.trigger('change');
+			}
+		});
+
+
+		const $tp = frm.get_field('schedule_send').datepicker.timepicker;
+		$tp.$minutes.parent().css('display', 'none');
+		$tp.$minutesText.css('display', 'none');
+		$tp.$minutesText.prev().css('display', 'none');
+		$tp.$seconds.parent().css('display', 'none');
 	},
 
 	setup_dashboard(frm) {

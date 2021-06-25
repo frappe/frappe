@@ -1,0 +1,60 @@
+{
+ "actions": [],
+ "autoname": "field:module_profile_name",
+ "creation": "2020-12-22 22:00:30.614475",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "module_profile_name",
+  "module_html",
+  "block_modules"
+ ],
+ "fields": [
+  {
+   "fieldname": "module_profile_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Module Profile Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "module_html",
+   "fieldtype": "HTML",
+   "label": "Module HTML"
+  },
+  {
+   "fieldname": "block_modules",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Block Modules",
+   "options": "Block Module",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-01-03 15:36:52.622696",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Module Profile",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

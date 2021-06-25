@@ -1,0 +1,133 @@
+{
+ "creation": "2019-08-13 17:24:05.470876",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable",
+  "google_drive_section",
+  "backup_folder_name",
+  "frequency",
+  "email",
+  "send_email_for_successful_backup",
+  "file_backup",
+  "authorize_google_drive_access",
+  "column_break_5",
+  "backup_folder_id",
+  "last_backup_on",
+  "refresh_token",
+  "authorization_code"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
+  },
+  {
+   "fieldname": "backup_folder_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Backup Folder Name",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "authorize_google_drive_access",
+   "fieldtype": "Button",
+   "label": "Authorize Google Drive Access"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "backup_folder_id",
+   "fieldtype": "Data",
+   "label": "Backup Folder ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "\nDaily\nWeekly",
+   "reqd": 1
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Refresh Token"
+  },
+  {
+   "fieldname": "authorization_code",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Authorization Code"
+  },
+  {
+   "fieldname": "last_backup_on",
+   "fieldtype": "Datetime",
+   "label": "Last Backup On",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Note: By default emails for failed backups are sent.",
+   "fieldname": "send_email_for_successful_backup",
+   "fieldtype": "Check",
+   "label": "Send Email for Successful backup"
+  },
+  {
+   "default": "0",
+   "fieldname": "file_backup",
+   "fieldtype": "Check",
+   "label": "File Backup"
+  },
+  {
+   "depends_on": "enable",
+   "fieldname": "google_drive_section",
+   "fieldtype": "Section Break",
+   "label": "Google Drive"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Send Notification To",
+   "options": "Email",
+   "reqd": 1
+  }
+ ],
+ "issingle": 1,
+ "modified": "2020-09-18 17:26:09.703215",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Google Drive",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "track_changes": 1
+}

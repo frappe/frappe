@@ -6,11 +6,10 @@ frappe.provide('frappe.pages');
 frappe.provide('frappe.views');
 
 window.cur_page = null;
-frappe.views.Container = Class.extend({
-	_intro: "Container contains pages inside `#container` and manages \
-			page creation, switching",
-	init: function() {
-		this.container = $('#body_div').get(0);
+frappe.views.Container = class Container {
+	// Container contains pages inside `#container` and manages page creation, switching
+	constructor() {
+		this.container = $('#body').get(0);
 		this.page = null; // current page
 		this.pagewidth = $(this.container).width();
 		this.pagemargin = 50;
@@ -27,8 +26,8 @@ frappe.views.Container = Class.extend({
 		$(document).bind('rename', function(event, dt, old_name, new_name) {
 			frappe.breadcrumbs.rename(dt, old_name, new_name);
 		});
-	},
-	add_page: function(label) {
+	}
+	add_page(label) {
 		var page = $('<div class="content page-container"></div>')
 			.attr('id', "page-" + label)
 			.attr("data-page-route", label)
@@ -38,8 +37,8 @@ frappe.views.Container = Class.extend({
 		frappe.pages[label] = page;
 
 		return page;
-	},
-	change_to: function(label) {
+	}
+	change_to(label) {
 		cur_page = this;
 		if(this.page && this.page.label === label) {
 			$(this.page).trigger('show');
@@ -60,7 +59,11 @@ frappe.views.Container = Class.extend({
 
 		// hide dialog
 		if(window.cur_dialog && cur_dialog.display && !cur_dialog.keep_open) {
-			cur_dialog.hide();
+			if (!cur_dialog.minimizable) {
+				cur_dialog.hide();
+			} else if (!cur_dialog.is_minimized) {
+				cur_dialog.toggle_minimize();
+			}
 		}
 
 		// hide current
@@ -78,14 +81,14 @@ frappe.views.Container = Class.extend({
 
 		$(document).trigger("page-change");
 
-		this.page._route = window.location.hash;
+		this.page._route = frappe.router.get_sub_path();
 		$(this.page).trigger('show');
-		frappe.utils.scroll_to(0);
+		!this.page.disable_scroll_to_top && frappe.utils.scroll_to(0);
 		frappe.breadcrumbs.update();
 
 		return this.page;
-	},
-	has_sidebar: function() {
+	}
+	has_sidebar() {
 		var flag = 0;
 		var route_str = frappe.get_route_str();
 		// check in frappe.ui.pages
@@ -99,7 +102,7 @@ frappe.views.Container = Class.extend({
 		}
 
 		return flag;
-	},
-});
+	}
+};
 
 

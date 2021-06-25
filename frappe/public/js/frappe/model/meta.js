@@ -8,7 +8,7 @@ frappe.provide('frappe.meta.doctypes');
 frappe.provide("frappe.meta.precision_map");
 
 frappe.get_meta = function(doctype) {
-	return locals["DocType"][doctype];
+	return locals['DocType'] ? locals['DocType'][doctype] : null;
 }
 
 $.extend(frappe.meta, {
@@ -38,14 +38,14 @@ $.extend(frappe.meta, {
 		frappe.meta.docfield_list[df.parent].push(df);
 	},
 
-	make_docfield_copy_for: function(doctype, docname) {
+	make_docfield_copy_for: function(doctype, docname, docfield_list=null) {
 		var c = frappe.meta.docfield_copy;
 		if(!c[doctype])
 			c[doctype] = {};
 		if(!c[doctype][docname])
 			c[doctype][docname] = {};
 
-		var docfield_list = frappe.meta.docfield_list[doctype] || [];
+		docfield_list = docfield_list || frappe.meta.docfield_list[doctype] || [];
 		for(var i=0, j=docfield_list.length; i<j; i++) {
 			var df = docfield_list[i];
 			c[doctype][docname][df.fieldname || df.label] = copy_dict(df);
@@ -161,8 +161,7 @@ $.extend(frappe.meta, {
 
 			if(!out) {
 				// eslint-disable-next-line
-				console.log(__('Warning: Unable to find {0} in any table related to {1}', [
-					key, __(doctype)]));
+				console.log(__('Warning: Unable to find {0} in any table related to {1}', [key, __(doctype)]));
 			}
 		}
 		return out;
@@ -253,7 +252,7 @@ $.extend(frappe.meta, {
 
 	get_field_precision: function(df, doc) {
 		var precision = null;
-		if (df && cint(df.precision)) {
+		if (df && df.precision) {
 			precision = cint(df.precision);
 		} else if(df && df.fieldtype === "Currency") {
 			precision = cint(frappe.defaults.get_default("currency_precision"));
@@ -266,5 +265,5 @@ $.extend(frappe.meta, {
 			precision = cint(frappe.defaults.get_default("float_precision")) || 3;
 		}
 		return precision;
-	},
+	}
 });

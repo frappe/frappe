@@ -80,4 +80,4 @@ To subclass, use:
 
 	// export
 	global.Class = Class;
-  })(this);
+  })(window);

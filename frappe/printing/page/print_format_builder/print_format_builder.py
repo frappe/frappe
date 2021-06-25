@@ -1,7 +1,7 @@
 import frappe
 
 @frappe.whitelist()
-def create_custom_format(doctype, name, based_on):
+def create_custom_format(doctype, name, based_on='Standard'):
 	doc = frappe.new_doc('Print Format')
 	doc.doc_type = doctype
 	doc.name = name

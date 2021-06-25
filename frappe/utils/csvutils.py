@@ -1,13 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, _
 import json
 import csv
-import six
-from six import StringIO, text_type, string_types
+import requests
+from io import StringIO
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
@@ -39,11 +37,11 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
 
-	if not isinstance(fcontent, text_type):
+	if not isinstance(fcontent, str):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
 			try:
-				fcontent = text_type(fcontent, encoding)
+				fcontent = str(fcontent, encoding)
 				decoded = True
 				break
 			except UnicodeDecodeError:
@@ -55,10 +53,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 	fcontent = fcontent.encode("utf-8")
 	content  = [ ]
 	for line in fcontent.splitlines(True):
-		if six.PY2:
-			content.append(line)
-		else:
-			content.append(frappe.safe_decode(line))
+		content.append(frappe.safe_decode(line))
 
 	try:
 		rows = []
@@ -84,7 +79,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 
 @frappe.whitelist()
 def send_csv_to_client(args):
-	if isinstance(args, string_types):
+	if isinstance(args, str):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
@@ -100,16 +95,18 @@ def to_csv(data):
 
 	return writer.getvalue()
 
+def build_csv_response(data, filename):
+	frappe.response["result"] = cstr(to_csv(data))
+	frappe.response["doctype"] = filename
+	frappe.response["type"] = "csv"
 
 class UnicodeWriter:
-	def __init__(self, encoding="utf-8"):
+	def __init__(self, encoding="utf-8", quoting=csv.QUOTE_NONNUMERIC):
 		self.encoding = encoding
 		self.queue = StringIO()
-		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
+		self.writer = csv.writer(self.queue, quoting=quoting)
 
 	def writerow(self, row):
-		if six.PY2:
-			row = encode(row, self.encoding)
 		self.writer.writerow(row)
 
 	def getvalue(self):
@@ -167,4 +164,44 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 			doc.get('name')))
 
 def getlink(doctype, name):
-	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
+	return '<a href="/app/Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
+
+def get_csv_content_from_google_sheets(url):
+	# https://docs.google.com/spreadsheets/d/{sheetid}}/edit#gid={gid}
+	validate_google_sheets_url(url)
+	# get gid, defaults to first sheet
+	if "gid=" in url:
+		gid = url.rsplit('gid=', 1)[1]
+	else:
+		gid = 0
+	# remove /edit path
+	url = url.rsplit('/edit', 1)[0]
+	# add /export path,
+	url = url + '/export?format=csv&gid={0}'.format(gid)
+
+	headers = {
+		'Accept': 'text/csv'
+	}
+	response = requests.get(url, headers=headers)
+
+	if response.ok:
+		# if it returns html, it couldn't find the CSV content
+		# because of invalid url or no access
+		if response.text.strip().endswith('</html>'):
+			frappe.throw(
+				_('Google Sheets URL is invalid or not publicly accessible.'),
+				title=_("Invalid URL")
+			)
+		return response.content
+	elif response.status_code == 400:
+		frappe.throw(_('Google Sheets URL must end with "gid={number}". Copy and paste the URL from the browser address bar and try again.'),
+			title=_("Incorrect URL"))
+	else:
+		response.raise_for_status()
+
+def validate_google_sheets_url(url):
+	if "docs.google.com/spreadsheets" not in url:
+		frappe.throw(
+			_('"{0}" is not a valid Google Sheets URL').format(url),
+			title=_("Invalid URL"),
+		)

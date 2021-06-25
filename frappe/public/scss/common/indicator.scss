@@ -1,0 +1,178 @@
+@mixin indicator-pill-color($color) {
+	background: var(--bg-#{$color});
+	color: var(--text-on-#{$color});
+	&::before,
+	&::after {
+		background: var(--text-on-#{$color});
+	}
+}
+
+@mixin indicator-color($color) {
+	&::before,
+	&::after {
+		background: var(--text-on-#{$color});
+	}
+}
+
+.indicator,
+.indicator-pill,
+.indicator-pill-right,
+.indicator-pill-round {
+	display: inline-flex;
+	align-items: center;
+}
+
+.indicator::before {
+	content: '';
+	height: 6px;
+	width: 6px;
+	border-radius: var(--border-radius);
+	margin: 0px 8px 0px 0px;
+}
+
+.indicator-pill,
+.indicator-pill-right {
+	padding: 3px 10px;
+	font-size: var(--text-sm);
+	border-radius: var( --border-radius);
+	font-weight: 500;
+	height: 24px;
+}
+
+.indicator-pill-round {
+	justify-content: center;
+	font-size: var(--text-sm);
+	border-radius: 50%;
+	font-weight: 500;
+	width: 24px;
+	height: 24px;
+}
+
+.indicator-pill::before,
+.indicator-pill-right::after {
+	content:'';
+	display: inline-table;
+	height: 4px;
+	width: 4px;
+	border-radius: 50%;
+	margin-right: 6px;
+}
+
+.indicator-pill.no-margin::before,
+.indicator-pill-right.no-margin::after {
+	margin-right: 0px;
+}
+
+.indicator-pill-right::after {
+	margin: 0 0 0 4px;
+}
+
+.indicator.green {
+	@include indicator-color('green');
+}
+
+.indicator-pill.green,
+.indicator-pill-right.green,
+.indicator-pill-round.green {
+	@include indicator-pill-color('green');
+}
+
+.indicator.cyan {
+	@include indicator-color('cyan');
+}
+
+.indicator-pill.cyan,
+.indicator-pill-right.cyan,
+.indicator-pill-round.cyan {
+	@include indicator-pill-color('cyan');
+}
+
+.indicator.blue {
+	@include indicator-color('blue');
+}
+
+.indicator-pill.blue,
+.indicator-pill-right.blue,
+.indicator-pill-round.blue  {
+	@include indicator-pill-color('blue');
+}
+
+.indicator.orange {
+	@include indicator-color('orange');
+}
+
+.indicator-pill.orange,
+.indicator-pill-right.orange
+.indicator-pill-round.orange {
+	@include indicator-pill-color('orange');
+}
+
+.indicator.yellow {
+	@include indicator-color('yellow');
+}
+
+.indicator-pill.yellow,
+.indicator-pill-right.yellow
+.indicator-pill-round.yellow {
+	@include indicator-pill-color('yellow');
+}
+
+.indicator.gray,
+.indicator.grey {
+	@include indicator-color('gray');
+}
+
+.indicator-pill.gray,
+.indicator-pill-right.gray,
+.indicator-pill-round.gray,
+.indicator-pill.grey,
+.indicator-pill-right.grey,
+.indicator-pill-round.grey  {
+	@include indicator-pill-color('light-gray');
+}
+
+.indicator.red {
+	@include indicator-color('red');
+}
+
+.indicator-pill.red,
+.indicator-pill-right.red,
+.indicator-pill-round.red {
+	@include indicator-pill-color('red');
+}
+
+.indicator.pink {
+	@include indicator-color('pink');
+}
+
+.indicator-pill.pink,
+.indicator-pill-right.pink,
+.indicator-pill-round.pink {
+	@include indicator-pill-color('pink');
+}
+
+.indicator-pill.darkgrey,
+.indicator-pill-right.darkgrey,
+.indicator-pill-round.darkgrey {
+	@include indicator-pill-color('gray');
+}
+
+.indicator-pill.purple,
+.indicator-pill-right.purple,
+.indicator-pill-round.purple {
+	@include indicator-pill-color('purple');
+}
+
+.indicator-pill.lightblue,
+.indicator-pill-right.lightblue,
+.indicator-pill-round.lightblue {
+	@include indicator-pill-color('light-blue');
+}
+
+.indicator.blink {
+	animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+	50% { opacity: 0.5; }
+}

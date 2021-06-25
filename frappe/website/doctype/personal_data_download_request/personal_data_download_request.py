@@ -2,7 +2,6 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 import json
 from frappe import _
@@ -11,11 +10,10 @@ from frappe.utils.verified_command import get_signed_params
 
 class PersonalDataDownloadRequest(Document):
 	def after_insert(self):
-		if frappe.session.user in ['Administrator', 'Guest']:
-			frappe.throw(_("This user cannot request to download data"))
-		else:
-			personal_data = get_user_data(frappe.session.user)
-			self.generate_file_and_send_mail(personal_data)
+		personal_data = get_user_data(self.user)
+
+		frappe.enqueue_doc(self.doctype, self.name, 'generate_file_and_send_mail',
+			queue='short', personal_data=personal_data, now=frappe.flags.in_test)
 
 	def generate_file_and_send_mail(self, personal_data):
 		"""generate the file link for download"""
@@ -34,25 +32,25 @@ class PersonalDataDownloadRequest(Document):
 			"?" + get_signed_params({"file_url": f.file_url})
 		host_name = frappe.local.site
 		frappe.sendmail(
-			recipients=frappe.session.user,
+			recipients=self.user,
 			subject=_("Download Your Data"),
 			template="download_data",
 			args={
-				'user':frappe.session.user,
-				'user_name':self.user_name,
-				'link':file_link,
-				'host_name':host_name
+				'user': self.user,
+				'user_name': self.user_name,
+				'link': file_link,
+				'host_name': host_name
 			},
 			header=[_("Download Your Data"), "green"]
 		)
 
 def get_user_data(user):
 	""" returns user data not linked to User doctype """
-	hooks = frappe.get_hooks("user_privacy_documents")
+	hooks = frappe.get_hooks("user_data_fields")
 	data = {}
 	for hook in hooks:
-		d = data.get(hook.get('doctype'),[])
-		d += frappe.get_all(hook.get('doctype'), {hook.get('match_field'): user}, ["*"])
+		d = data.get(hook.get("doctype"),[])
+		d += frappe.get_all(hook.get("doctype"), {hook.get("filter_by", "owner"): user}, ["*"])
 		if d:
-			data.update({ hook.get('doctype'):d })
+			data.update({ hook.get("doctype"):d })
 	return json.dumps(data, indent=2, default=str)

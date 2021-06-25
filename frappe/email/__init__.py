@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.desk.reportview import build_match_conditions
 
@@ -23,7 +22,7 @@ def get_contact_list(txt, page_length=20):
 		out = frappe.db.sql("""select email_id as value,
 			concat(first_name, ifnull(concat(' ',last_name), '' )) as description
 			from tabContact
-			where name like %(txt)s
+			where name like %(txt)s or email_id like %(txt)s
 			%(condition)s
 			limit %(page_length)s""", {
 				'txt': '%' + txt + '%',
@@ -57,6 +56,8 @@ def relink(name, reference_doctype=None, reference_name=None):
 			communication_type = "Communication" and
 			name = %s""", (reference_doctype, reference_name, name))
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
 	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
 	user_perms.build_permissions()
@@ -65,7 +66,7 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 	com_doctypes = []
 	if len(txt)<2:
 
-		for name in ["Customer", "Supplier"]:
+		for name in frappe.get_hooks("communication_doctypes"):
 			try:
 				module = load_doctype_module(name, suffix='_dashboard')
 				if hasattr(module, 'get_data'):
@@ -91,7 +92,7 @@ def get_cached_contacts(txt):
 	if not txt:
 		return contacts
 
-	match = [d for d in contacts if (d.value and (txt in d.value or txt in d.description))]
+	match = [d for d in contacts if (d.value and ((d.value and txt in d.value) or (d.description and txt in d.description)))]
 	return match
 
 def update_contact_cache(contacts):

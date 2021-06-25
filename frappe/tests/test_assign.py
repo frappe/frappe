@@ -1,10 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 import frappe, unittest
 import frappe.desk.form.assign_to
-from frappe.desk.listview import get_user_assignments_and_count
+from frappe.desk.listview import get_group_by_count
 from frappe.automation.doctype.assignment_rule.test_assignment_rule import make_note
 
 class TestAssign(unittest.TestCase):
@@ -44,13 +42,13 @@ class TestAssign(unittest.TestCase):
 		note = make_note()
 		assign(note, "test_assign2@example.com")
 
-		data = {d.name: d.count for d in get_user_assignments_and_count('Note', [])}
+		data = {d.name: d.count for d in get_group_by_count('Note', '[]', 'assigned_to')}
 
 		self.assertTrue('test_assign1@example.com' in data)
 		self.assertEqual(data['test_assign1@example.com'], 1)
 		self.assertEqual(data['test_assign2@example.com'], 3)
 
-		data = {d.name: d.count for d in get_user_assignments_and_count('Note', [{'public': 1}])}
+		data = {d.name: d.count for d in get_group_by_count('Note', '[{"public": 1}]', 'assigned_to')}
 
 		self.assertFalse('test_assign1@example.com' in data)
 		self.assertEqual(data['test_assign2@example.com'], 2)
@@ -60,7 +58,7 @@ class TestAssign(unittest.TestCase):
 
 def assign(doc, user):
 	return frappe.desk.form.assign_to.add({
-		"assign_to": user,
+		"assign_to": [user],
 		"doctype": doc.doctype,
 		"name": doc.name,
 		"description": 'test',

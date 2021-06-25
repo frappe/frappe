@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import os
 import frappe
 from frappe import _
@@ -9,7 +9,7 @@ import datetime
 def get_context(context):
 	def get_time(path):
 		dt = os.path.getmtime(path)
-		return convert_utc_to_user_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime('%Y-%m-%d %H:%M')
+		return convert_utc_to_user_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime('%a %b %d %H:%M %Y')
 
 	def get_size(path):
 		size = os.path.getsize(path)
@@ -30,7 +30,7 @@ def get_context(context):
 		get_size(os.path.join(path, _file))) for _file in files if _file.endswith('sql.gz')]
 	files.sort(key=lambda x: x[1], reverse=True)
 
-	return {"files": files}
+	return {"files": files[:backup_limit]}
 
 def get_scheduled_backup_limit():
 	backup_limit = frappe.db.get_singles_value('System Settings', 'backup_limit')

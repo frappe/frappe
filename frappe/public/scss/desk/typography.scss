@@ -1,0 +1,28 @@
+// Typography
+$text-muted: var(--text-muted);
+$text-light: var(--text-light);
+$text-color: var(--text-color);
+$headings-color: var(--heading-color) !default;
+$font-family-base: var(--font-stack);
+
+$font-size-xs: 0.6875rem !default;
+$font-size-sm: 0.75rem !default;
+$font-size-md: 0.8125rem !default;
+$font-size-base: 0.875rem !default;
+$font-size-lg: 1rem !default;
+$font-size-xl: 1.125rem !default;
+$font-size-2xl: 1.3125rem !default;
+$font-size-3xl: 1.625rem !default;
+$font-size-4xl: 2rem !default;
+$font-size-5xl: 2.625rem !default;
+$font-size-6xl: 3.5rem !default;
+
+$btn-font-size: $font-size-sm !default;
+$dropdown-font-size: $font-size-sm !default;
+
+$h1-font-size: 1.75rem;
+$h2-font-size: 1.5rem;
+$h3-font-size: 1.25rem;
+$h4-font-size: 1.125rem;
+$h5-font-size: 0.875rem;
+$h6-font-size: 0.6875rem;

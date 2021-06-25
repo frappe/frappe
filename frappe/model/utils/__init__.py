@@ -1,14 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-from six.moves import range
 import frappe
+from frappe import _
 from frappe.utils import cstr
 from frappe.build import html_to_js_template
 import re
-from six import text_type
-
 import io
 
 STANDARD_FIELD_CONVERSION_MAP = {
@@ -62,7 +58,7 @@ def render_include(content):
 		if "{% include" in content:
 			paths = re.findall(r'''{% include\s['"](.*)['"]\s%}''', content)
 			if not paths:
-				frappe.throw('Invalid include path', InvalidIncludePath)
+				frappe.throw(_('Invalid include path'), InvalidIncludePath)
 
 			for path in paths:
 				app, app_path = path.split('/', 1)

@@ -1,0 +1,105 @@
+.center-content {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.btn {
+	border: none;
+	border-radius: var(--border-radius);
+	box-shadow: var(--btn-shadow);
+	font-size: var(--text-md);
+	&.icon-btn {
+		height: var(--btn-height);
+		padding: 0px;
+		@extend .center-content;
+		&.btn-default, &.btn-secondary {
+			min-width: 28px;
+		}
+	}
+}
+
+.btn-secondary-dark {
+	@include button-variant(
+		$background: $gray-600,
+		$border: $gray-600,
+		$hover-background: lighten($gray-600, 1%),
+		$hover-border: $gray-600,
+		$active-background: lighten($gray-600, 1%),
+		$active-border: darken($gray-600, 12.5%)
+	);
+
+	color: $white;
+	&:hover, &:active, &:focus {
+		color: $white;
+	}
+	.icon {
+		--icon-stroke: currentColor;
+	}
+}
+
+.btn-primary-light {
+	@include button-variant(
+		$background: $primary-light,
+		$border: $primary-light,
+		$hover-background: lighten($primary-light, 1%),
+		$hover-border: $primary-light,
+		$active-background: lighten($primary-light, 1%),
+		$active-border: darken($primary-light, 12.5%)
+	);
+
+	color: var(--primary);
+	&:hover, &:active {
+		color: var(--primary);
+	}
+
+	&:focus {
+		box-shadow: 0 0 0 0.2rem var(--primary-light);
+	}
+}
+
+.btn.btn-secondary {
+	background-color: var(--control-bg);
+	color: var(--text-color);
+	&:hover, &:active {
+		background-color: var(--gray-300);
+		color: var(--text-color);
+	}
+}
+
+.btn.btn-default {
+	background-color: var(--fg-color);
+	color: var(--text-color);
+	&:hover, &:active {
+		background: var(--fg-hover-color);
+		color: var(--text-color);
+	}
+}
+
+.btn.btn-primary {
+	background-color: var(--primary);
+	color: var(--white);
+	white-space: nowrap;
+	--icon-stroke: currentColor;
+	--icon-fill-bg: var(--primary);
+}
+
+.btn.btn-danger {
+	background-color: var(--red-400);
+	color: $white;
+}
+
+.btn-reset {
+	padding: 0;
+	margin: 0;
+	border: 0;
+	font-size: inherit;
+	background-color: inherit;
+}
+
+[data-theme="dark"] {
+	.btn-primary-light {
+		background-color: var(--bg-dark-blue);
+		box-shadow: none;
+	}
+}

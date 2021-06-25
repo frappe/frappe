@@ -1,41 +1,43 @@
-frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
-	make: function() {
-		this._super();
+frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData {
+	static trigger_change_on_input_event = false
+	make () {
+		super.make();
 		// $(this.label_area).addClass('pull-right');
 		// $(this.disp_area).addClass('text-right');
-	},
-	make_input: function() {
+	}
+	make_input () {
 		var me = this;
-		this._super();
+		super.make_input();
 		this.$input
 			// .addClass("text-right")
-			.on("focus", function() {
-				setTimeout(function() {
-					if(!document.activeElement) return;
+			.on("focus", function () {
+				setTimeout(function () {
+					if (!document.activeElement) return;
 					document.activeElement.value
 						= me.validate(document.activeElement.value);
 					document.activeElement.select();
 				}, 100);
 				return false;
 			});
-	},
-	eval_expression: function(value) {
-		if (typeof value==='string'
-			&& value.match(/^[0-9+-/* ]+$/)
-			// strings with commas are evaluated incorrectly
-			// for e.g 47,186.00 -> 186
-			&& !value.includes(',')) {
-			try {
-				return eval(value);
-			} catch (e) {
-				// bad expression
-				return value;
+	}
+	validate (value) {
+		return this.parse(value);
+	}
+	eval_expression (value) {
+		if (typeof value === 'string') {
+			if (value.match(/^[0-9+\-/* ]+$/)) {
+				// If it is a string containing operators
+				try {
+					return eval(value);
+				} catch (e) {
+					// bad expression
+					return value;
+				}
 			}
-		} else {
-			return value;
 		}
-	},
-	parse: function(value) {
+		return value;
+	}
+	parse (value) {
 		return cint(this.eval_expression(value), null);
 	}
-});
+};

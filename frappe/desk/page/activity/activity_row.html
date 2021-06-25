@@ -2,10 +2,10 @@
 	<div class="col-xs-3 text-right activity-date"><span class="{%= date_class %}">
 		{%= date_sep || "" %}</span></div>
 	<div class="col-xs-9 activity-message"
-		data-doctype="{%= reference_doctype %}"
-		data-docname="{%= reference_name %}"
-		data-link-doctype="{{ link_doctype }}"
-		data-link-name="{{ link_name }}"
+		data-doctype="{%= encodeURIComponent(reference_doctype) %}"
+		data-docname="{%= encodeURIComponent(reference_name) %}"
+		data-link-doctype="{{ encodeURIComponent(link_doctype) }}"
+		data-link-name="{{ encodeURIComponent(link_name) }}"
 		title="{%= by %} / {%= frappe.datetime.str_to_user(creation) %}">
 		{{ avatar }}
 		<span class="small">

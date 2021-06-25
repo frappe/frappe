@@ -1,0 +1,19 @@
+{
+ "action": "Watch Video",
+ "creation": "2020-04-28 22:09:02.120939",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_mandatory": 1,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2020-05-28 13:51:51.485924",
+ "modified_by": "Administrator",
+ "name": "Introduction to Website",
+ "owner": "Administrator",
+ "show_full_form": 0,
+ "title": "Introduction to Website",
+ "validate_action": 0,
+ "video_url": "https://www.youtube.com/watch?v=lyW6mfFBSNw"
+}

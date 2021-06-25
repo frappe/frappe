@@ -3,7 +3,7 @@ frappe.listview_settings['Communication'] = {
 		"sent_or_received","recipients", "subject",
 		"communication_medium", "communication_type",
 		"sender", "seen", "reference_doctype", "reference_name",
-		"has_attachment"
+		"has_attachment", "communication_date"
 	],
 
 	filters: [["status", "=", "Open"]],
@@ -20,6 +20,6 @@ frappe.listview_settings['Communication'] = {
 	},
 
 	primary_action: function() {
-		new frappe.views.CommunicationComposer({ doc: {} });
+		new frappe.views.CommunicationComposer();
 	}
 };

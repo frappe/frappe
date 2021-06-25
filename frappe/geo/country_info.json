@@ -558,6 +558,8 @@
   "code": "cn",
   "currency": "CNY",
   "currency_name": "Yuan Renminbi",
+  "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "date_format": "yyyy-mm-dd",
   "number_format": "#,###.##",
   "timezones": [
@@ -620,7 +622,12 @@
  },
  "Congo, The Democratic Republic of the": {
   "code": "cd",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "currency": "CDF",
+  "currency_name": "Congolese franc",
+  "currency_symbol": "FC",
+  "currency_fraction": "Centime",
+  "currency_fraction_units": 100
  },
  "Cook Islands": {
   "code": "ck",
@@ -772,11 +779,13 @@
  },
  "El Salvador": {
   "code": "sv",
-  "currency": "SVC",
+  "currency": "USD",
   "currency_fraction": "Centavo",
   "currency_fraction_units": 100,
-  "currency_name": "El Salvador Colon",
-  "currency_symbol": "\u20a1",
+  "smallest_currency_fraction_value": 0.01,
+  "currency_name": "Dolar estadounidense",
+  "currency_symbol": "$",
+  "date_format": "dd-mm-yyyy",
   "number_format": "#,###.##",
   "timezones": [
    "America/El_Salvador"
@@ -808,10 +817,10 @@
  },
  "Estonia": {
   "code": "ee",
-  "currency": "EEK",
+  "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
-  "currency_name": "Kroon",
+  "currency_name": "Euro",
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -944,7 +953,7 @@
   "currency_fraction_units": 100,
   "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
-  "number_format": "#,###.##",
+  "number_format": "#.###,##",
   "timezones": [
    "Europe/Berlin"
   ]
@@ -1382,7 +1391,10 @@
   "code": "la",
   "currency": "LAK",
   "currency_name": "Kip",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "timezones":[
+      "Asia/Vientiane"
+  ]
  },
  "Latvia": {
   "code": "lv",
@@ -2330,6 +2342,7 @@
  },
  "Suriname": {
   "code": "sr",
+  "currency": "SRD",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
@@ -2716,11 +2729,11 @@
  },
  "Zimbabwe": {
   "code": "zw",
-  "currency": "ZWD",
-  "currency_fraction": "Thebe",
+  "currency": "ZWL",
+  "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_name": "Zimbabwe Dollar",
-  "currency_symbol": "P",
+  "currency_symbol": "ZWL$",
   "number_format": "# ###.##",
   "timezones": [
    "Africa/Harare"

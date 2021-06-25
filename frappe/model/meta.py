@@ -14,12 +14,9 @@ Example:
 
 
 '''
-
-from __future__ import unicode_literals, print_function
 from datetime import datetime
-from six.moves import range
 import frappe, json, os
-from frappe.utils import cstr, cint
+from frappe.utils import cstr, cint, cast_fieldtype
 from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes, table_fields
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
@@ -46,8 +43,7 @@ def load_meta(doctype):
 	return Meta(doctype)
 
 def get_table_columns(doctype):
-	return frappe.cache().hget("table_columns", doctype,
-		lambda: frappe.db.get_table_columns(doctype))
+	return frappe.db.get_table_columns(doctype)
 
 def load_doctype_from_file(doctype):
 	fname = frappe.scrub(doctype)
@@ -69,7 +65,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def")
+	special_doctypes = ("DocField", "DocPerm", "DocType", "Module Def", 'DocType Action', 'DocType Link')
 
 	def __init__(self, doctype):
 		self._fields = {}
@@ -104,6 +100,7 @@ class Meta(Document):
 		self.sort_fields()
 		self.get_valid_columns()
 		self.set_custom_permissions()
+		self.add_custom_links_and_actions()
 
 	def as_dict(self, no_nulls = False):
 		def serialize(doc):
@@ -118,7 +115,7 @@ class Meta(Document):
 						# non standard list object, skip
 						continue
 
-				if (isinstance(value, (frappe.text_type, int, float, datetime, list, tuple))
+				if (isinstance(value, (str, int, float, datetime, list, tuple))
 					or (not no_nulls and value is None)):
 					out[key] = value
 
@@ -128,6 +125,9 @@ class Meta(Document):
 
 	def get_link_fields(self):
 		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
+
+	def get_data_fields(self):
+		return self.get("fields", {"fieldtype": "Data"})
 
 	def get_dynamic_link_fields(self):
 		if not hasattr(self, '_dynamic_link_fields'):
@@ -152,7 +152,7 @@ class Meta(Document):
 			if self.name!="DocType":
 				self._table_fields = self.get('fields', {"fieldtype": ['in', table_fields]})
 			else:
-				self._table_fields = doctype_table_fields
+				self._table_fields = DOCTYPE_TABLE_FIELDS
 
 		return self._table_fields
 
@@ -166,7 +166,8 @@ class Meta(Document):
 
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
-			if self.name in ("DocType", "DocField", "DocPerm", "Property Setter"):
+			table_exists = frappe.db.table_exists(self.name)
+			if self.name in self.special_doctypes and table_exists:
 				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
@@ -175,7 +176,12 @@ class Meta(Document):
 		return self._valid_columns
 
 	def get_table_field_doctype(self, fieldname):
-		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
+		return {
+			"fields": "DocField",
+			"permissions": "DocPerm",
+			"actions": "DocType Action",
+			'links': 'DocType Link'
+		}.get(fieldname)
 
 	def get_field(self, fieldname):
 		'''Return docfield from meta'''
@@ -200,7 +206,8 @@ class Meta(Document):
 				'owner': _('Created By'),
 				'modified_by': _('Modified By'),
 				'creation': _('Created On'),
-				'modified': _('Last Modified On')
+				'modified': _('Last Modified On'),
+				'_assign': _('Assigned To')
 			}.get(fieldname) or _('No Label')
 		return label
 
@@ -286,42 +293,76 @@ class Meta(Document):
 		return get_workflow_name(self.name)
 
 	def add_custom_fields(self):
-		try:
-			self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
-				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1,
-				update={"is_custom_field": 1}))
-		except Exception as e:
-			if frappe.db.is_table_missing(e):
-				return
-			else:
-				raise
+		if not frappe.db.table_exists('Custom Field'):
+			return
+
+		custom_fields = frappe.db.sql("""
+			SELECT * FROM `tabCustom Field`
+			WHERE dt = %s AND docstatus < 2
+		""", (self.name,), as_dict=1, update={"is_custom_field": 1})
+
+		self.extend("fields", custom_fields)
 
 	def apply_property_setters(self):
+		"""
+		Property Setters are set via Customize Form. They override standard properties
+		of the doctype or its child properties like fields, links etc. This method
+		applies the customized properties over the standard meta object
+		"""
+		if not frappe.db.table_exists('Property Setter'):
+			return
+
 		property_setters = frappe.db.sql("""select * from `tabProperty Setter` where
 			doc_type=%s""", (self.name,), as_dict=1)
 
 		if not property_setters: return
 
-		integer_docfield_properties = [d.fieldname for d in frappe.get_meta('DocField').fields
-			if d.fieldtype in ('Int', 'Check')]
-
 		for ps in property_setters:
 			if ps.doctype_or_field=='DocType':
-				if ps.property_type in ('Int', 'Check'):
-					ps.value = cint(ps.value)
+				self.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
 
-				self.set(ps.property, ps.value)
-			else:
-				docfield = self.get("fields", {"fieldname":ps.field_name}, limit=1)
-				if docfield:
-					docfield = docfield[0]
-				else:
-					continue
+			elif ps.doctype_or_field=='DocField':
+				for d in self.fields:
+					if d.fieldname == ps.field_name:
+						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+						break
 
-				if ps.property in integer_docfield_properties:
-					ps.value = cint(ps.value)
+			elif ps.doctype_or_field=='DocType Link':
+				for d in self.links:
+					if d.name == ps.row_name:
+						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+						break
 
-				docfield.set(ps.property, ps.value)
+			elif ps.doctype_or_field=='DocType Action':
+				for d in self.actions:
+					if d.name == ps.row_name:
+						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+						break
+
+	def add_custom_links_and_actions(self):
+		for doctype, fieldname in (('DocType Link', 'links'), ('DocType Action', 'actions')):
+			# ignore_ddl because the `custom` column was added later via a patch
+			for d in frappe.get_all(doctype, fields='*', filters=dict(parent=self.name, custom=1), ignore_ddl=True):
+				self.append(fieldname, d)
+
+			# set the fields in order if specified
+			# order is saved as `links_order`
+			order = json.loads(self.get('{}_order'.format(fieldname)) or '[]')
+			if order:
+				name_map = {d.name:d for d in self.get(fieldname)}
+				new_list = []
+				for name in order:
+					if name in name_map:
+						new_list.append(name_map[name])
+
+				# add the missing items that have not be added
+				# maybe these items were added to the standard product
+				# after the customization was done
+				for d in self.get(fieldname):
+					if d not in new_list:
+						new_list.append(d)
+
+				self.set(fieldname, new_list)
 
 	def sort_fields(self):
 		"""sort on basis of insert_after"""
@@ -374,8 +415,9 @@ class Meta(Document):
 			if custom_perms:
 				self.permissions = [Document(d) for d in custom_perms]
 
-	def get_fieldnames_with_value(self):
-		return [df.fieldname for df in self.fields if df.fieldtype not in no_value_fields]
+	def get_fieldnames_with_value(self, with_field_meta=False):
+		return [df if with_field_meta else df.fieldname \
+			for df in self.fields if df.fieldtype not in no_value_fields]
 
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
@@ -405,23 +447,95 @@ class Meta(Document):
 
 		return self.high_permlevel_fields
 
+	def get_permlevel_access(self, permission_type='read', parenttype=None):
+		has_access_to = []
+		roles = frappe.get_roles()
+		for perm in self.get_permissions(parenttype):
+			if perm.role in roles and perm.get(permission_type):
+				if perm.permlevel not in has_access_to:
+					has_access_to.append(perm.permlevel)
+
+		return has_access_to
+
+	def get_permissions(self, parenttype=None):
+		if self.istable and parenttype:
+			# use parent permissions
+			permissions = frappe.get_meta(parenttype).permissions
+		else:
+			permissions = self.get('permissions', [])
+
+		return permissions
+
 	def get_dashboard_data(self):
 		'''Returns dashboard setup related to this doctype.
 
-		This method will return the `data` property in the
-		`[doctype]_dashboard.py` file in the doctype folder'''
+		This method will return the `data` property in the `[doctype]_dashboard.py`
+		file in the doctype's folder, along with any overrides or extensions
+		implemented in other Frappe applications via hooks.
+		'''
 		data = frappe._dict()
-		try:
-			module = load_doctype_module(self.name, suffix='_dashboard')
-			if hasattr(module, 'get_data'):
-				data = frappe._dict(module.get_data())
-		except ImportError:
-			pass
+		if not self.custom:
+			try:
+				module = load_doctype_module(self.name, suffix='_dashboard')
+				if hasattr(module, 'get_data'):
+					data = frappe._dict(module.get_data())
+			except ImportError:
+				pass
+
+		self.add_doctype_links(data)
+
+		if not self.custom:
+			for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
+				data = frappe._dict(frappe.get_attr(hook)(data=data))
 
 		return data
 
+	def add_doctype_links(self, data):
+		'''add `links` child table in standard link dashboard format'''
+		dashboard_links = []
+
+		if hasattr(self, 'links') and self.links:
+			dashboard_links.extend(self.links)
+
+		if not data.transactions:
+			# init groups
+			data.transactions = []
+
+		if not data.non_standard_fieldnames:
+			data.non_standard_fieldnames = {}
+
+		for link in dashboard_links:
+			link.added = False
+			if link.hidden:
+				continue
+
+			for group in data.transactions:
+				group = frappe._dict(group)
+				# group found
+				if link.group and group.label == link.group:
+					if link.link_doctype not in group.get('items'):
+						group.get('items').append(link.link_doctype)
+					link.added = True
+
+			if not link.added:
+				# group not found, make a new group
+				data.transactions.append(dict(
+					label = link.group,
+					items = [link.link_doctype]
+				))
+
+			if link.link_fieldname != data.fieldname:
+				if data.fieldname:
+					data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
+				else:
+					data.fieldname = link.link_fieldname
+
+
 	def get_row_template(self):
 		return self.get_web_template(suffix='_row')
+
+	def get_list_template(self):
+		return self.get_web_template(suffix='_list')
 
 	def get_web_template(self, suffix=''):
 		'''Returns the relative path of the row template for this doctype'''
@@ -437,9 +551,11 @@ class Meta(Document):
 	def is_nested_set(self):
 		return self.has_field('lft') and self.has_field('rgt')
 
-doctype_table_fields = [
+DOCTYPE_TABLE_FIELDS = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
-	frappe._dict({"fieldname": "permissions", "options": "DocPerm"})
+	frappe._dict({"fieldname": "permissions", "options": "DocPerm"}),
+	frappe._dict({"fieldname": "actions", "options": "DocType Action"}),
+	frappe._dict({"fieldname": "links", "options": "DocType Link"}),
 ]
 
 #######
@@ -477,7 +593,7 @@ def get_field_currency(df, doc=None):
 
 		if ":" in cstr(df.get("options")):
 			split_opts = df.get("options").split(":")
-			if len(split_opts)==3:
+			if len(split_opts)==3 and doc.get(split_opts[1]):
 				currency = frappe.get_cached_value(split_opts[0], doc.get(split_opts[1]), split_opts[2])
 		else:
 			currency = doc.get(df.get("options"))
@@ -485,7 +601,9 @@ def get_field_currency(df, doc=None):
 				if currency:
 					ref_docname = doc.name
 				else:
-					currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
+					if frappe.get_meta(doc.parenttype).has_field(df.get("options")):
+						# only get_value if parent has currency field
+						currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
 
 		if currency:
 			frappe.local.field_currency.setdefault((doc.doctype, ref_docname), frappe._dict())\
@@ -498,7 +616,7 @@ def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
 	from frappe.utils import get_number_format_info
 
-	if cint(df.precision):
+	if df.precision:
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":
@@ -546,7 +664,7 @@ def trim_tables(doctype=None):
 			and not f.startswith("_")]
 		if columns_to_remove:
 			print(doctype, "columns removed:", columns_to_remove)
-			columns_to_remove = ", ".join(["drop `{0}`".format(c) for c in columns_to_remove])
+			columns_to_remove = ", ".join("drop `{0}`".format(c) for c in columns_to_remove)
 			query = """alter table `tab{doctype}` {columns}""".format(
 				doctype=doctype, columns=columns_to_remove)
 			frappe.db.sql_ddl(query)

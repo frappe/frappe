@@ -15,10 +15,12 @@ html, body {
 }
 {% include "templates/styles/card_style.css" %}
 </style>
-
+<script>
+	window.is_404 = true;
+</script>
 <div class='page-card'>
 	<div class='page-card-head'>
-		<span class='indicator darkgrey'>{{_("Page Missing or Moved")}}</span>
+		<span class='indicator gray'>{{_("Page Missing or Moved")}}</span>
 	</div>
 	<p>{{_("The page you are looking for is missing. This could be because it is moved or there is a typo in the link.")}}</p>
 	<div><a href='/' class='btn btn-primary btn-sm'>{{ _("Home") }}</a></div>

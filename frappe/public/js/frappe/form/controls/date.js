@@ -1,18 +1,23 @@
-
-
-frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
-	make_input: function() {
-		this._super();
+frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlData {
+	static trigger_change_on_input_event = false
+	make_input() {
+		super.make_input();
+		this.make_picker();
+	}
+	make_picker() {
 		this.set_date_options();
 		this.set_datepicker();
 		this.set_t_for_today();
-	},
-	set_formatted_input: function(value) {
-		this._super(value);
+	}
+	set_formatted_input(value) {
+		super.set_formatted_input(value);
+		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
-		if(!value) {
+		if (!value) {
 			this.datepicker.clear();
 			return;
+		} else if (value === "Today") {
+			value = this.get_now_date();
 		}
 
 		let should_refresh = this.last_value && this.last_value !== value;
@@ -34,12 +39,13 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		if(should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
 		}
-	},
-	set_date_options: function() {
+	}
+	set_date_options() {
 		// webformTODO:
 		let sysdefaults = frappe.boot.sysdefaults;
 
-		let lang = frappe.boot.user.language || 'en';
+		let lang = 'en';
+		frappe.boot.user && (lang = frappe.boot.user.language);
 		if(!$.fn.datepicker.language[lang]) {
 			lang = 'en';
 		}
@@ -69,21 +75,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				this.update_datepicker_position();
 			}
 		};
-	},
-	update_datepicker_position: function() {
-		if(!this.frm) return;
-		// show datepicker above or below the input
-		// based on scroll position
-		var window_height = $(window).height();
-		var window_scroll_top = $(window).scrollTop();
-		var el_offset_top = this.$input.offset().top + 280;
-		var position = 'top left';
-		if(window_height + window_scroll_top >= el_offset_top) {
-			position = 'bottom left';
-		}
-		this.datepicker.update('position', position);
-	},
-	set_datepicker: function() {
+	}
+	set_datepicker() {
 		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data('datepicker');
 
@@ -94,11 +87,34 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			.click(() => {
 				this.datepicker.selectDate(this.get_now_date());
 			});
-	},
-	get_now_date: function() {
+	}
+	update_datepicker_position() {
+		if(!this.frm) return;
+		// show datepicker above or below the input
+		// based on scroll position
+		// We have to bodge around the timepicker getting its position
+		// wrong by 42px when opening upwards.
+		const $header = $('.page-head');
+		const header_bottom = $header.position().top + $header.outerHeight();
+		const picker_height = this.datepicker.$datepicker.outerHeight() + 12;
+		const picker_top = this.$input.offset().top - $(window).scrollTop() - picker_height;
+
+		var position = 'top left';
+		// 12 is the default datepicker.opts[offset]
+		if (picker_top <= header_bottom) {
+			position = 'bottom left';
+			if (this.timepicker_only) this.datepicker.opts['offset'] = 12;
+		} else {
+			// To account for 42px incorrect positioning
+			if (this.timepicker_only) this.datepicker.opts['offset'] = -30;
+		}
+
+		this.datepicker.update('position', position);
+	}
+	get_now_date() {
 		return frappe.datetime.now_date(true);
-	},
-	set_t_for_today: function() {
+	}
+	set_t_for_today() {
 		var me = this;
 		this.$input.on("keydown", function(e) {
 			if(e.which===84) { // 84 === t
@@ -112,19 +128,19 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				return false;
 			}
 		});
-	},
-	parse: function(value) {
+	}
+	parse(value) {
 		if(value) {
 			return frappe.datetime.user_to_str(value);
 		}
-	},
-	format_for_input: function(value) {
+	}
+	format_for_input(value) {
 		if(value) {
 			return frappe.datetime.str_to_user(value);
 		}
 		return "";
-	},
-	validate: function(value) {
+	}
+	validate(value) {
 		if(value && !frappe.datetime.validate(value)) {
 			let sysdefaults = frappe.sys_defaults;
 			let date_format = sysdefaults && sysdefaults.date_format
@@ -134,4 +150,4 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 		return value;
 	}
-});
+};

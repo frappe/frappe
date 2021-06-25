@@ -1,16 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-from six.moves import range
-import json, os
-from semantic_version import Version
-import frappe
+import json
+import os
+import subprocess  # nosec
+
 import requests
-import subprocess # nosec
-from frappe.utils import cstr
-from frappe.utils.gitutils import get_app_branch
+from semantic_version import Version
+
+import frappe
 from frappe import _, safe_decode
+from frappe.utils import cstr
 
 
 def get_change_log(user=None):
@@ -118,8 +118,9 @@ def get_versions():
 def get_app_branch(app):
 	'''Returns branch of an app'''
 	try:
-		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-			shell=True)
+		with open(os.devnull, 'wb') as null_stream:
+			result = subprocess.check_output(f'cd ../apps/{app} && git rev-parse --abbrev-ref HEAD',
+				shell=True, stdin=null_stream, stderr=null_stream)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
@@ -128,8 +129,9 @@ def get_app_branch(app):
 
 def get_app_last_commit_ref(app):
 	try:
-		result = subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD --short 7'.format(app),
-			shell=True)
+		with open(os.devnull, 'wb') as null_stream:
+			result = subprocess.check_output(f'cd ../apps/{app} && git rev-parse HEAD --short 7',
+				shell=True, stdin=null_stream, stderr=null_stream)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
@@ -164,9 +166,10 @@ def check_for_update():
 
 	add_message_to_redis(updates)
 
+
 def parse_latest_non_beta_release(response):
 	"""
-	Pasrses the response JSON for all the releases and returns the latest non prerelease
+	Parses the response JSON for all the releases and returns the latest non prerelease
 
 	Parameters
 	response (list): response object returned by github
@@ -174,37 +177,58 @@ def parse_latest_non_beta_release(response):
 	Returns
 	json   : json object pertaining to the latest non-beta release
 	"""
-	for release in response:
-		if release['prerelease'] == True: continue
-		return release
+	version_list = [release.get('tag_name').strip('v') for release in response if not release.get('prerelease')]
 
-def check_release_on_github(app):
-	# Check if repo remote is on github
-	from subprocess import CalledProcessError
+	if version_list:
+		return sorted(version_list, key=Version, reverse=True)[0]
+
+	return None
+
+
+def check_release_on_github(app: str):
+	"""
+	Check the latest release for a given Frappe application hosted on Github.
+
+	Args:
+		app (str): The name of the Frappe application.
+
+	Returns:
+		tuple(Version, str): The semantic version object of the latest release and the
+			organization name, if the application exists, otherwise None.
+	"""
+
+	from giturlparse import parse
+	from giturlparse.parser import ParserError
+
 	try:
-		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True).decode()
-	except CalledProcessError:
-		# Passing this since some apps may not have git initializaed in them
-		return None
+		# Check if repo remote is on github
+		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
+	except subprocess.CalledProcessError:
+		# Passing this since some apps may not have git initialized in them
+		return
 
 	if isinstance(remote_url, bytes):
 		remote_url = remote_url.decode()
 
-	if "github.com" not in remote_url:
-		return None
+	try:
+		parsed_url = parse(remote_url)
+	except ParserError:
+		# Invalid URL
+		return
 
-	# Get latest version from github
-	if 'https' not in remote_url:
-		return None
+	if parsed_url.resource != "github.com":
+		return
 
-	org_name = remote_url.split('/')[3]
-	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
-	if r.status_code == 200 and r.json():
-		lastest_non_beta_release = parse_latest_non_beta_release(r.json())
-		return Version(lastest_non_beta_release['tag_name'].strip('v')), org_name
-	else:
-		# In case of an improper response or if there are no releases
-		return None
+	owner = parsed_url.owner
+	repo = parsed_url.name
+
+	# Get latest version from GitHub
+	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
+	if r.ok:
+		latest_non_beta_release = parse_latest_non_beta_release(r.json())
+		if latest_non_beta_release:
+			return Version(latest_non_beta_release), owner
+
 
 def add_message_to_redis(update_json):
 	# "update-message" will store the update message string
@@ -233,14 +257,15 @@ def show_update_popup():
 			release_links = ""
 			for app in updates[update_type]:
 				app = frappe._dict(app)
-				release_links += "<a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'><b>{title}</b>: v{available_version}</a><br>".format(
+				release_links += "<b>{title}</b>: <a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'>v{available_version}</a><br>".format(
 					available_version = app.available_version,
 					org_name          = app.org_name,
 					app_name          = app.app_name,
 					title             = app.title
 				)
 			if release_links:
-				update_message += _("New {} releases for the following apps are available".format(update_type)) + ":<br><br>{}".format(release_links)
+				message = _("New {} releases for the following apps are available").format(_(update_type))
+				update_message += "<div class='new-version-log'>{0}<div class='new-version-links'>{1}</div></div>".format(message, release_links)
 
 	if update_message:
 		frappe.msgprint(update_message, title=_("New updates are available"), indicator='green')

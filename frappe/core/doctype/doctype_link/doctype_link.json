@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "creation": "2019-09-24 11:41:25.291377",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "link_doctype",
+  "link_fieldname",
+  "group",
+  "hidden",
+  "custom"
+ ],
+ "fields": [
+  {
+   "fieldname": "link_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Link DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "link_fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Link Fieldname",
+   "reqd": 1
+  },
+  {
+   "fieldname": "group",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Group"
+  },
+  {
+   "default": "0",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "label": "Hidden"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Custom"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2020-09-24 14:19:25.189511",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DocType Link",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

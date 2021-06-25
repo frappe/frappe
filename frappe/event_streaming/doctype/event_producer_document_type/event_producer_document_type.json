@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "creation": "2019-10-03 21:08:25.890352",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ref_doctype",
+  "status",
+  "use_same_name",
+  "unsubscribe",
+  "has_mapping",
+  "mapping",
+  "condition"
+ ],
+ "fields": [
+  {
+   "columns": 3,
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "default": "0",
+   "description": "If the document has different field names on the Producer and Consumer's end check this and set up the Mapping",
+   "fieldname": "has_mapping",
+   "fieldtype": "Check",
+   "label": "Has Mapping"
+  },
+  {
+   "depends_on": "eval: doc.has_mapping",
+   "fieldname": "mapping",
+   "fieldtype": "Link",
+   "label": "Mapping",
+   "options": "Document Type Mapping"
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "description": "If this is checked the documents will have the same name as they have on the Event Producer's site",
+   "fieldname": "use_same_name",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Use Same Name"
+  },
+  {
+   "columns": 3,
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Approval Status",
+   "options": "Pending\nApproved\nRejected",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "unsubscribe",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Unsubscribe"
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-11-07 09:26:58.463868",
+ "modified_by": "Administrator",
+ "module": "Event Streaming",
+ "name": "Event Producer Document Type",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

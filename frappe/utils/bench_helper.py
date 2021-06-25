@@ -1,4 +1,3 @@
-from __future__ import unicode_literals, print_function
 import click
 import frappe
 import os
@@ -6,6 +5,7 @@ import json
 import importlib
 import frappe.utils
 import traceback
+import warnings
 
 click.disable_unicode_literals_warning = True
 
@@ -50,14 +50,18 @@ def app_group(ctx, site=False, force=False, verbose=False, profile=False):
 		ctx.info_name = ''
 
 def get_sites(site_arg):
-	if site_arg and site_arg == 'all':
+	if site_arg == 'all':
 		return frappe.utils.get_sites()
-	else:
-		if site_arg:
-			return [site_arg]
-		if os.path.exists('currentsite.txt'):
-			with open('currentsite.txt') as f:
-				return [f.read().strip()]
+	elif site_arg:
+		return [site_arg]
+	elif os.environ.get('FRAPPE_SITE'):
+		return [os.environ.get('FRAPPE_SITE')]
+	elif os.path.exists('currentsite.txt'):
+		with open('currentsite.txt') as f:
+			site = f.read().strip()
+			if site:
+				return [site]
+	return []
 
 def get_app_commands(app):
 	if os.path.exists(os.path.join('..', 'apps', app, app, 'commands.py'))\
@@ -94,5 +98,7 @@ def get_apps():
 	return frappe.get_all_apps(with_internal_apps=False, sites_path='.')
 
 if __name__ == "__main__":
-	main()
+	if not frappe._dev_server:
+		warnings.simplefilter('ignore')
 
+	main()

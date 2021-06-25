@@ -14,7 +14,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 
 	show() {
 		if (!this.setting) return;
-		if (this.form.doc.docstatus === 0 && !this.form.is_first_creation()) return;
+		if (this.form.doc.docstatus === 0 && !this.is_first_creation()) return;
 
 		this.prepare_dom();
 		this.show_alert();
@@ -28,15 +28,16 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 	}
 
 	show_alert() {
-		frappe.db.count(this.form.doctype)
-			.then(count => {
+		frappe.db.get_list(this.form.doctype, {limit: 2})
+			.then(result => {
+				const count = result.length;
 				const setting = this.setting;
 				let message = count === 1 ?
 					setting.first_success_message :
 					setting.message;
 
 				const $buttons = this.get_actions().map(action => {
-					const $btn = $(`<button class="next-action"><span>${action.label}</span></button>`);
+					const $btn = $(`<button class="next-action"><span>${__(action.label)}</span></button>`);
 					$btn.click(() => action.action(this.form));
 					return $btn;
 				});
@@ -49,7 +50,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 					message: message,
 					body: html,
 					indicator: 'green',
-				}, setting.action_timeout);
+				}, setting.action_timeout || 7);
 			});
 	}
 
@@ -90,4 +91,15 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 			}
 		};
 	}
+
+	is_first_creation() {
+		let { modified, creation } = this.form.doc;
+
+		// strip out milliseconds
+		modified = modified.split('.')[0];
+		creation = creation.split('.')[0];
+
+		return modified === creation;
+	}
+
 };

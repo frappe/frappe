@@ -1,0 +1,47 @@
+{% if google_font %}
+@import url("https://fonts.googleapis.com/css2?family={{ google_font.replace(' ', '+') }}:{{ font_properties }}&display=swap");
+$font-family-sans-serif: "{{ google_font }}", -apple-system, BlinkMacSystemFont,
+	"Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+	"Droid Sans", "Helvetica Neue", sans-serif;
+{% endif -%}
+
+{% if primary_color %}$primary: {{ frappe.db.get_value('Color', primary_color, 'color') }};{% endif -%}
+{% if dark_color %}$dark: {{ frappe.db.get_value('Color', dark_color, 'color') }};{% endif -%}
+{% if text_color %}$body-text-color: {{ frappe.db.get_value('Color', text_color, 'color') }};{% endif -%}
+{% if background_color %}$body-bg: {{ frappe.db.get_value('Color', background_color, 'color') }};{% endif -%}
+
+$enable-shadows: {{ button_shadows and "true" or "false" }};
+$enable-gradients: {{ button_gradients and "true" or "false" }};
+$enable-rounded: {{ button_rounded_corners and "true" or "false" }};
+
+// Bootstrap Variable Overrides
+{{ custom_overrides or '' }}
+
+// Import themes from installed apps
+{%- for import_path in website_theme_scss %}
+@import "{{ import_path }}";
+{%- endfor %}
+
+{% if font_size -%}
+body {
+	font-size: {{ font_size }};
+}
+{%- endif %}
+
+// Custom Theme
+{{ custom_scss or '' }}
+
+:root {
+	{% if primary_color %}
+	--primary: #{$primary};
+	--primary-color: #{$primary};
+	{% endif -%}
+	{% if background_color %}
+	--bg-color: #{$body-bg};
+	{% endif -%}
+	{% if text_color %}
+	--text-color: #{$body-text-color};
+	--text-light: #{$body-text-color};
+	{% endif -%}
+}
+

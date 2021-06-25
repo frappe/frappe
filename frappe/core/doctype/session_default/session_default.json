@@ -1,0 +1,29 @@
+{
+ "creation": "2019-07-17 16:21:33.546379",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ref_doctype"
+ ],
+ "fields": [
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType"
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-07-21 13:22:25.752553",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Session Default",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

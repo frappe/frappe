@@ -1,10 +1,10 @@
 import Quill from 'quill';
+import ImageResize from 'quill-image-resize';
+import MagicUrl from 'quill-magic-url';
 
-// replace <p> tag with <div>
-const Block = Quill.import('blots/block');
-Block.tagName = 'DIV';
-Quill.register(Block, true);
 
+Quill.register('modules/imageResize', ImageResize);
+Quill.register('modules/magicUrl', MagicUrl);
 const CodeBlockContainer = Quill.import('formats/code-block-container');
 CodeBlockContainer.tagName = 'PRE';
 Quill.register(CodeBlockContainer, true);
@@ -17,7 +17,8 @@ Table.create = (value) => {
 	node.classList.add('table');
 	node.classList.add('table-bordered');
 	return node;
-}
+};
+
 Quill.register(Table, true);
 
 // link without href
@@ -28,7 +29,7 @@ class MyLink extends Link {
 		let node = super.create(value);
 		value = this.sanitize(value);
 		node.setAttribute('href', value);
-		if(value.startsWith('/') || value.indexOf(window.location.host)) {
+		if (value.startsWith('/') || value.indexOf(window.location.host)) {
 			// no href if internal link
 			node.removeAttribute('target');
 		}
@@ -36,7 +37,7 @@ class MyLink extends Link {
 	}
 }
 
-Quill.register(MyLink);
+Quill.register(MyLink, true);
 
 // image uploader
 const Uploader = Quill.import('modules/uploader');
@@ -54,23 +55,38 @@ Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
 Quill.register(DirectionStyle, true);
 
-frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
+// replace font tag with span
+const Inline = Quill.import('blots/inline');
+
+class CustomColor extends Inline {
+	constructor(domNode, value) {
+		super(domNode, value);
+		this.domNode.style.color = this.domNode.color;
+		domNode.outerHTML = this.domNode.outerHTML.replace(/<font/g, '<span').replace(/<\/font>/g, '</span>');
+	}
+}
+
+CustomColor.blotName = "customColor";
+CustomColor.tagName = "font";
+
+Quill.register(CustomColor, true);
+
+frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.form.ControlCode {
 	make_wrapper() {
-		this._super();
-		this.$wrapper.find(".like-disabled-input").addClass("ql-editor");
-	},
+		super.make_wrapper();
+	}
 
 	make_input() {
 		this.has_input = true;
 		this.make_quill_editor();
-	},
+	}
 
 	make_quill_editor() {
 		if (this.quill) return;
 		this.quill_container = $('<div>').appendTo(this.input_area);
 		this.quill = new Quill(this.quill_container[0], this.get_quill_options());
 		this.bind_events();
-	},
+	}
 
 	bind_events() {
 		this.quill.on('text-change', frappe.utils.debounce((delta, oldDelta, source) => {
@@ -122,33 +138,34 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 			e.preventDefault();
 		});
-	},
+	}
 
 	is_quill_dirty(source) {
 		if (source === 'api') return false;
 		let input_value = this.get_input_value();
 		return this.value !== input_value;
-	},
+	}
 
 	get_quill_options() {
 		return {
 			modules: {
 				toolbar: this.get_toolbar_options(),
-				table: true
+				table: true,
+				imageResize: {},
+				magicUrl: true
 			},
 			theme: 'snow'
 		};
-	},
+	}
 
 	get_toolbar_options() {
 		return [
 			[{ 'header': [1, 2, 3, false] }],
-			['bold', 'italic', 'underline'],
+			['bold', 'italic', 'underline', 'clean'],
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
 			['link', 'image'],
-			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
-			[{ 'align': [] }],
+			[{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
 			[{'table': [
 				'insert-table',
@@ -160,16 +177,15 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'delete-column',
 				'delete-table',
 			]}],
-			['clean']
 		];
-	},
+	}
 
 	parse(value) {
 		if (value == null) {
 			value = "";
 		}
 		return frappe.dom.remove_script_and_style(value);
-	},
+	}
 
 	set_formatted_input(value) {
 		if (!this.quill) return;
@@ -183,22 +199,25 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		// set html without triggering a focus
 		const delta = this.quill.clipboard.convert({ html: value, text: '' });
 		this.quill.setContents(delta);
-	},
+	}
 
 	get_input_value() {
 		let value = this.quill ? this.quill.root.innerHTML : '';
-		// quill keeps ol as a common container for both type of lists
-		// and uses css for appearances, this is not semantic
-		// so we convert ol to ul if it is unordered
-		const $value = $(`<div>${value}</div>`);
-		$value.find('ol li[data-list=bullet]:first-child').each((i, li) => {
-			let $li = $(li);
-			let $parent = $li.parent();
-			let $children = $parent.children();
-			let $ul = $('<ul>').append($children);
-			$parent.replaceWith($ul);
-		});
-		value = $value.html();
+		// hack to retain space sequence.
+		value = value.replace(/(\s)(\s)/g, ' &nbsp;');
+
+		try {
+			if (!$(value).find('.ql-editor').length) {
+				value = `<div class="ql-editor read-mode">${value}</div>`;
+			}
+		} catch(e) {
+			value = `<div class="ql-editor read-mode">${value}</div>`;
+		}
+
 		return value;
 	}
-});
+
+	set_focus() {
+		this.quill.focus();
+	}
+};

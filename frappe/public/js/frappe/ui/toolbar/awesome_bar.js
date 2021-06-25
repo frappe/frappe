@@ -1,11 +1,13 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 frappe.provide('frappe.search');
+frappe.provide('frappe.tags');
 
-frappe.search.AwesomeBar = Class.extend({
-	setup: function(element) {
+frappe.search.AwesomeBar = class AwesomeBar {
+	setup(element) {
 		var me = this;
 
+		$('.search-bar').removeClass('hidden');
 		var $input = $(element);
 		var input = $input.get(0);
 
@@ -35,7 +37,7 @@ frappe.search.AwesomeBar = Class.extend({
 				}
 				return $('<li></li>')
 					.data('item.autocomplete', d)
-					.html('<a style="font-weight:normal"><p>' + html + '</p></a>')
+					.html(`<a style="font-weight:normal">${html}</a>`)
 					.get(0);
 			},
 			sort: function(a, b) {
@@ -45,6 +47,8 @@ frappe.search.AwesomeBar = Class.extend({
 
 		// Added to aid UI testing of global search
 		input.awesomplete = awesomplete;
+
+		this.awesomplete = awesomplete;
 
 		$input.on("input", function(e) {
 			var value = e.target.value;
@@ -106,13 +110,7 @@ frappe.search.AwesomeBar = Class.extend({
 			if(item.onclick) {
 				item.onclick(item.match);
 			} else {
-				var previous_hash = window.location.hash;
 				frappe.set_route(item.route);
-
-				// hashchange didn't fire!
-				if (window.location.hash == previous_hash) {
-					frappe.route();
-				}
 			}
 			$input.val("");
 		});
@@ -120,10 +118,17 @@ frappe.search.AwesomeBar = Class.extend({
 		$input.on("awesomplete-selectcomplete", function(e) {
 			$input.val("");
 		});
-		frappe.search.utils.setup_recent();
-	},
 
-	add_help: function() {
+		$input.on('keydown', (e) => {
+			if (e.key == 'Escape') {
+				$input.trigger('blur');
+			}
+		})
+		frappe.search.utils.setup_recent();
+		frappe.tags.utils.fetch_tags();
+	}
+
+	add_help() {
 		this.options.push({
 			value: __("Help on Search"),
 			index: -10,
@@ -136,6 +141,8 @@ frappe.search.AwesomeBar = Class.extend({
 						__("document type..., e.g. customer")+'</td></tr>\
 					<tr><td>'+__("Search in a document type")+'</td><td>'+
 						__("text in document type")+'</td></tr>\
+					<tr><td>'+__("Tags")+'</td><td>'+
+						__("tag name..., e.g. #tag")+'</td></tr>\
 					<tr><td>'+__("Open a module or tool")+'</td><td>'+
 						__("module name...")+'</td></tr>\
 					<tr><td>'+__("Calculate")+'</td><td>'+
@@ -144,9 +151,9 @@ frappe.search.AwesomeBar = Class.extend({
 				frappe.msgprint(txt, __("Search Help"));
 			}
 		});
-	},
+	}
 
-	set_specifics: function(txt, end_txt) {
+	set_specifics(txt, end_txt) {
 		var me = this;
 		var results = this.build_options(txt);
 		results.forEach(function(r) {
@@ -154,31 +161,36 @@ frappe.search.AwesomeBar = Class.extend({
 				me.options.push(r);
 			}
 		});
-	},
+	}
 
-	add_defaults: function(txt) {
+	add_defaults(txt) {
 		this.make_global_search(txt);
 		this.make_search_in_current(txt);
 		this.make_calculator(txt);
-	},
+		this.make_random(txt);
+	}
 
-	build_options: function(txt) {
+	build_options(txt) {
 		var options = frappe.search.utils.get_creatables(txt).concat(
 			frappe.search.utils.get_search_in_list(txt),
 			frappe.search.utils.get_doctypes(txt),
 			frappe.search.utils.get_reports(txt),
 			frappe.search.utils.get_pages(txt),
-			frappe.search.utils.get_modules(txt),
+			frappe.search.utils.get_workspaces(txt),
+			frappe.search.utils.get_dashboards(txt),
 			frappe.search.utils.get_recent_pages(txt || ""),
 			frappe.search.utils.get_executables(txt)
 		);
+		if (txt.charAt(0) === "#") {
+			options = frappe.tags.utils.get_tags(txt);
+		}
 		var out = this.deduplicate(options);
 		return out.sort(function(a, b) {
 			return b.index - a.index;
 		});
-	},
+	}
 
-	deduplicate: function(options) {
+	deduplicate(options) {
 		var out = [], routes = [];
 		options.forEach(function(option) {
 			if(option.route) {
@@ -202,17 +214,52 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 		});
 		return out;
-	},
+	}
 
-	set_global_results: function(global_results, txt) {
+	set_global_results(global_results, txt) {
 		this.global_results = this.global_results.concat(global_results);
-	},
+	}
 
-	make_global_search: function(txt) {
-		var me = this;
+	make_global_search(txt) {
+		// let search_text = $(this.awesomplete.ul).find('.search-text');
+
+		// if (txt.charAt(0) === "#" || !txt) {
+		// 	search_text && search_text.remove();
+		// 	return;
+		// }
+
+		// if (!search_text.length) {
+		// 	search_text = $(this.awesomplete.ul).prepend(`
+		// 		<div class="search-text">
+		// 			<span class="search-text"></span>
+		// 		<div>`
+		// 	).find(".search-text");
+		// }
+
+		// search_text.html(`
+		// 	<span class="flex justify-between">
+		// 		<span class="ellipsis">Search for ${frappe.utils.xss_sanitise(txt).bold()}</span>
+		// 		<kbd>↵</kbd>
+		// 	</span>
+		// `);
+
+		// search_text.click(() => {
+		// 	frappe.searchdialog.search.init_search(txt, "global_search");
+		// });
+
+		// REDESIGN TODO: Remove this as a selectable option
+		if (txt.charAt(0) === "#") {
+			return;
+		}
+
 		this.options.push({
-			label: __("Search for '{0}'", [txt.bold()]),
-			value: __("Search for '{0}'", [txt]),
+			label: `
+				<span class="flex justify-between text-medium">
+					<span class="ellipsis">${ __('Search for {0}', [frappe.utils.xss_sanitise(txt).bold()])}</span>
+					<kbd>↵</kbd>
+				</span>
+			`,
+			value: __("Search for {0}", [txt]),
 			match: txt,
 			index: 100,
 			default: "Search",
@@ -220,9 +267,9 @@ frappe.search.AwesomeBar = Class.extend({
 				frappe.searchdialog.search.init_search(txt, "global_search");
 			}
 		});
-	},
+	}
 
-	make_search_in_current: function(txt) {
+	make_search_in_current(txt) {
 		var route = frappe.get_route();
 		if(route[0]==="List" && txt.indexOf(" in") === -1) {
 			// search in title field
@@ -242,9 +289,9 @@ frappe.search.AwesomeBar = Class.extend({
 				match: txt
 			});
 		}
-	},
+	}
 
-	make_calculator: function(txt) {
+	make_calculator(txt) {
 		var first = txt.substr(0,1);
 		if(first==parseInt(first) || first==="(" || first==="=") {
 			if(first==="=") {
@@ -267,5 +314,17 @@ frappe.search.AwesomeBar = Class.extend({
 				// pass
 			}
 		}
-	},
-});
+	}
+
+	make_random(txt) {
+		if(txt.toLowerCase().includes('random')) {
+			this.options.push({
+				label: "Generate Random Password",
+				value: frappe.utils.get_random(16),
+				onclick: function() {
+					frappe.msgprint(frappe.utils.get_random(16), "Result");
+				}
+			})
+		}
+	}
+};

@@ -1,5 +1,5 @@
-frappe.ui.TagEditor = Class.extend({
-	init: function(opts) {
+frappe.ui.TagEditor = class TagEditor {
+	constructor(opts) {
 		/* docs:
 		Arguments
 
@@ -17,8 +17,8 @@ frappe.ui.TagEditor = Class.extend({
 		}
 		this.initialized = true;
 		this.refresh(this.user_tags);
-	},
-	setup_tags: function() {
+	}
+	setup_tags() {
 		var me = this;
 
 		// hidden form, does not have parent
@@ -26,8 +26,8 @@ frappe.ui.TagEditor = Class.extend({
 			return;
 		}
 
-		this.wrapper = $('<div class="tag-line" style="position: relative">').appendTo(this.parent);
-		if(!this.wrapper.length) return;
+		this.wrapper = this.parent;
+		if (!this.wrapper.length) return;
 
 		this.tags = new frappe.ui.Tags({
 			parent: this.wrapper,
@@ -35,13 +35,14 @@ frappe.ui.TagEditor = Class.extend({
 			onTagAdd: (tag) => {
 				if(me.initialized && !me.refreshing) {
 					return frappe.call({
-						method: 'frappe.desk.tags.add_tag',
+						method: "frappe.desk.doctype.tag.tag.add_tag",
 						args: me.get_args(tag),
 						callback: function(r) {
 							var user_tags = me.user_tags ? me.user_tags.split(",") : [];
 							user_tags.push(tag)
 							me.user_tags = user_tags.join(",");
 							me.on_change && me.on_change(me.user_tags);
+							frappe.tags.utils.fetch_tags();
 						}
 					});
 				}
@@ -49,13 +50,14 @@ frappe.ui.TagEditor = Class.extend({
 			onTagRemove: (tag) => {
 				if(!me.refreshing) {
 					return frappe.call({
-						method: 'frappe.desk.tags.remove_tag',
+						method: "frappe.desk.doctype.tag.tag.remove_tag",
 						args: me.get_args(tag),
 						callback: function(r) {
 							var user_tags = me.user_tags.split(",");
 							user_tags.splice(user_tags.indexOf(tag), 1);
 							me.user_tags = user_tags.join(",");
 							me.on_change && me.on_change(me.user_tags);
+							frappe.tags.utils.fetch_tags();
 						}
 					});
 				}
@@ -63,8 +65,8 @@ frappe.ui.TagEditor = Class.extend({
 		});
 		this.setup_awesomplete();
 		this.setup_complete = true;
-	},
-	setup_awesomplete: function() {
+	}
+	setup_awesomplete() {
 		var me = this;
 		var $input = this.wrapper.find("input.tags-input");
 		var input = $input.get(0);
@@ -82,12 +84,10 @@ frappe.ui.TagEditor = Class.extend({
 		$input.on("input", function(e) {
 			var value = e.target.value;
 			frappe.call({
-				method:"frappe.desk.tags.get_tags",
+				method: "frappe.desk.doctype.tag.tag.get_tags",
 				args:{
 					doctype: me.frm.doctype,
 					txt: value.toLowerCase(),
-					cat_tags: me.list_sidebar ?
-						JSON.stringify(me.list_sidebar.get_cat_tags()) : '[]'
 				},
 				callback: function(r) {
 					me.awesomplete.list = r.message;
@@ -99,15 +99,15 @@ frappe.ui.TagEditor = Class.extend({
 				$input.trigger("input");
 			}
 		});
-	},
-	get_args: function(tag) {
+	}
+	get_args(tag) {
 		return {
 			tag: tag,
 			dt: this.frm.doctype,
 			dn: this.frm.docname,
 		}
-	},
-	refresh: function(user_tags) {
+	}
+	refresh(user_tags) {
 		var me = this;
 		if (!this.initialized || !this.setup_complete || this.refreshing) return;
 
@@ -126,4 +126,4 @@ frappe.ui.TagEditor = Class.extend({
 		me.refreshing = false;
 
 	}
-})
+}

@@ -1,313 +1,262 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# -*- coding: utf-8 -*-
+# Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+import typing
 
-import frappe, json
-from frappe import _
-import frappe.permissions
-import re, csv, os, sys
-from frappe.utils.csvutils import UnicodeWriter
-from frappe.utils import cstr, formatdate, format_datetime
-from frappe.core.doctype.data_import.importer import get_data_keys
-from six import string_types
+import frappe
+from frappe.model import (
+	display_fieldtypes,
+	no_value_fields,
+	table_fields as table_fieldtypes,
+)
+from frappe.utils import flt, format_duration, groupby_metric
+from frappe.utils.csvutils import build_csv_response
+from frappe.utils.xlsxutils import build_xlsx_response
 
-reflags = {
-	"I":re.I,
-	"L":re.L,
-	"M":re.M,
-	"U":re.U,
-	"S":re.S,
-	"X":re.X,
-	"D": re.DEBUG
-}
 
-@frappe.whitelist()
-def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No", select_columns=None,
-	from_data_import="No", excel_format="No"):
-	all_doctypes = all_doctypes=="Yes"
-	if select_columns:
-		select_columns = json.loads(select_columns);
-	docs_to_export = {}
-	if doctype:
-		if isinstance(doctype, string_types):
-			doctype = [doctype];
-		if len(doctype) > 1:
-			docs_to_export = doctype[1]
-		doctype = doctype[0]
+class Exporter:
+	def __init__(
+		self,
+		doctype,
+		export_fields=None,
+		export_data=False,
+		export_filters=None,
+		export_page_length=None,
+		file_type="CSV",
+	):
+		"""
+		Exports records of a DocType for use with Importer
+			:param doctype: Document Type to export
+			:param export_fields=None: One of 'All', 'Mandatory' or {'DocType': ['field1', 'field2'], 'Child DocType': ['childfield1']}
+			:param export_data=False: Whether to export data as well
+			:param export_filters=None: The filters (dict or list) which is used to query the records
+			:param file_type: One of 'Excel' or 'CSV'
+		"""
+		self.doctype = doctype
+		self.meta = frappe.get_meta(doctype)
+		self.export_fields = export_fields
+		self.export_filters = export_filters
+		self.export_page_length = export_page_length
+		self.file_type = file_type
 
-	if not parent_doctype:
-		parent_doctype = doctype
+		# this will contain the csv content
+		self.csv_array = []
 
-	column_start_end = {}
+		# fields that get exported
+		self.exportable_fields = self.get_all_exportable_fields()
+		self.fields = self.serialize_exportable_fields()
+		self.add_header()
 
-	if all_doctypes:
-		child_doctypes = []
-		for df in frappe.get_meta(doctype).get_table_fields():
-			child_doctypes.append(dict(doctype=df.options, parentfield=df.fieldname))
-
-	def get_data_keys_definition():
-		return get_data_keys()
-
-	def add_main_header():
-		w.writerow([_('Data Import Template')])
-		w.writerow([get_data_keys_definition().main_table, doctype])
-
-		if parent_doctype != doctype:
-			w.writerow([get_data_keys_definition().parent_table, parent_doctype])
+		if export_data:
+			self.data = self.get_data_to_export()
 		else:
-			w.writerow([''])
+			self.data = []
+		self.add_data()
 
-		w.writerow([''])
-		w.writerow([_('Notes:')])
-		w.writerow([_('Please do not change the template headings.')])
-		w.writerow([_('First data column must be blank.')])
-		w.writerow([_('If you are uploading new records, leave the "name" (ID) column blank.')])
-		w.writerow([_('If you are uploading new records, "Naming Series" becomes mandatory, if present.')])
-		w.writerow([_('Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.')])
-		w.writerow([_('For updating, you can update only selective columns.')])
-		w.writerow([_('You can only upload upto 5000 records in one go. (may be less in some cases)')])
-		if key == "parent":
-			w.writerow([_('"Parent" signifies the parent table in which this row must be added')])
-			w.writerow([_('If you are updating, please select "Overwrite" else existing rows will not be deleted.')])
+	def get_all_exportable_fields(self):
+		child_table_fields = [
+			df.fieldname for df in self.meta.fields if df.fieldtype in table_fieldtypes
+		]
 
-	def build_field_columns(dt, parentfield=None):
-		meta = frappe.get_meta(dt)
+		meta = frappe.get_meta(self.doctype)
+		exportable_fields = frappe._dict({})
 
-		# build list of valid docfields
-		tablecolumns = []
-		for f in frappe.db.sql('desc `tab%s`' % dt):
-			field = meta.get_field(f[0])
-			if field and ((select_columns and f[0] in select_columns[dt]) or not select_columns):
-				tablecolumns.append(field)
+		for key, fieldnames in self.export_fields.items():
+			if key == self.doctype:
+				# parent fields
+				exportable_fields[key] = self.get_exportable_fields(key, fieldnames)
 
-		tablecolumns.sort(key = lambda a: int(a.idx))
+			elif key in child_table_fields:
+				# child fields
+				child_df = meta.get_field(key)
+				child_doctype = child_df.options
+				exportable_fields[key] = self.get_exportable_fields(child_doctype, fieldnames)
 
-		_column_start_end = frappe._dict(start=0)
+		return exportable_fields
 
-		if dt==doctype:
-			_column_start_end = frappe._dict(start=0)
-		else:
-			_column_start_end = frappe._dict(start=len(columns))
+	def serialize_exportable_fields(self):
+		fields = []
+		for key, exportable_fields in self.exportable_fields.items():
+			for _df in exportable_fields:
+				# make a copy of df dict to avoid reference mutation
+				if isinstance(_df, frappe.core.doctype.docfield.docfield.DocField):
+					df = _df.as_dict()
+				else:
+					df = _df.copy()
 
-			append_field_column(frappe._dict({
-				"fieldname": "name",
-				"parent": dt,
-				"label": "ID",
+				df.is_child_table_field = key != self.doctype
+				if df.is_child_table_field:
+					df.child_table_df = self.meta.get_field(key)
+				fields.append(df)
+		return fields
+
+	def get_exportable_fields(self, doctype, fieldnames):
+		meta = frappe.get_meta(doctype)
+
+		def is_exportable(df):
+			return df and df.fieldtype not in (display_fieldtypes + no_value_fields)
+
+		# add name field
+		name_field = frappe._dict(
+			{
 				"fieldtype": "Data",
+				"fieldname": "name",
+				"label": "ID",
 				"reqd": 1,
-				"idx": 0,
-				"info": _("Leave blank for new records")
-			}), True)
+				"parent": doctype,
+			}
+		)
 
-		for docfield in tablecolumns:
-			append_field_column(docfield, True)
+		fields = [meta.get_field(fieldname) for fieldname in fieldnames]
+		fields = [df for df in fields if is_exportable(df)]
 
-		# all non mandatory fields
-		for docfield in tablecolumns:
-			append_field_column(docfield, False)
+		if "name" in fieldnames:
+			fields = [name_field] + fields
 
-		# if there is one column, add a blank column (?)
-		if len(columns)-_column_start_end.start == 1:
-			append_empty_field_column()
+		return fields or []
 
-		# append DocType name
-		tablerow[_column_start_end.start + 1] = dt
+	def get_data_to_export(self):
+		frappe.permissions.can_export(self.doctype, raise_exception=True)
 
-		if parentfield:
-			tablerow[_column_start_end.start + 2] = parentfield
+		table_fields = [f for f in self.exportable_fields if f != self.doctype]
+		data = self.get_data_as_docs()
 
-		_column_start_end.end = len(columns) + 1
+		for doc in data:
+			rows = []
+			rows = self.add_data_row(self.doctype, None, doc, rows, 0)
 
-		column_start_end[(dt, parentfield)] = _column_start_end
+			if table_fields:
+				# add child table data
+				for f in table_fields:
+					for i, child_row in enumerate(doc.get(f, [])):
+						table_df = self.meta.get_field(f)
+						child_doctype = table_df.options
+						rows = self.add_data_row(child_doctype, child_row.parentfield, child_row, rows, i)
 
-	def append_field_column(docfield, for_mandatory):
-		if not docfield:
-			return
-		if for_mandatory and not docfield.reqd:
-			return
-		if not for_mandatory and docfield.reqd:
-			return
-		if docfield.fieldname in ('parenttype', 'trash_reason'):
-			return
-		if docfield.hidden:
-			return
-		if select_columns and docfield.fieldname not in select_columns.get(docfield.parent, []):
-			return
+			for row in rows:
+				yield row
 
-		tablerow.append("")
-		fieldrow.append(docfield.fieldname)
-		labelrow.append(_(docfield.label))
-		mandatoryrow.append(docfield.reqd and 'Yes' or 'No')
-		typerow.append(docfield.fieldtype)
-		inforow.append(getinforow(docfield))
-		columns.append(docfield.fieldname)
+	def add_data_row(self, doctype, parentfield, doc, rows, row_idx):
+		if len(rows) < row_idx + 1:
+			rows.append([""] * len(self.fields))
 
-	def append_empty_field_column():
-		tablerow.append("~")
-		fieldrow.append("~")
-		labelrow.append("")
-		mandatoryrow.append("")
-		typerow.append("")
-		inforow.append("")
-		columns.append("")
+		row = rows[row_idx]
 
-	def getinforow(docfield):
-		"""make info comment for options, links etc."""
-		if docfield.fieldtype == 'Select':
-			if not docfield.options:
-				return ''
-			else:
-				return _("One of") + ': %s' % ', '.join(filter(None, docfield.options.split('\n')))
-		elif docfield.fieldtype == 'Link':
-			return 'Valid %s' % docfield.options
-		elif docfield.fieldtype == 'Int':
-			return 'Integer'
-		elif docfield.fieldtype == "Check":
-			return "0 or 1"
-		elif docfield.fieldtype in ["Date", "Datetime"]:
-			return cstr(frappe.defaults.get_defaults().date_format)
-		elif hasattr(docfield, "info"):
-			return docfield.info
+		for i, df in enumerate(self.fields):
+			if df.parent == doctype:
+				if df.is_child_table_field and df.child_table_df.fieldname != parentfield:
+					continue
+				value = doc.get(df.fieldname, None)
+
+				if df.fieldtype == "Duration":
+					value = flt(value or 0)
+					value = format_duration(value, df.hide_days)
+
+				row[i] = value
+		return rows
+
+	def get_data_as_docs(self):
+		def format_column_name(df):
+			return "`tab{0}`.`{1}`".format(df.parent, df.fieldname)
+
+		filters = self.export_filters
+
+		if self.meta.is_nested_set():
+			order_by = "`tab{0}`.`lft` ASC".format(self.doctype)
 		else:
-			return ''
+			order_by = "`tab{0}`.`creation` DESC".format(self.doctype)
 
-	def add_field_headings():
-		w.writerow(tablerow)
-		w.writerow(labelrow)
-		w.writerow(fieldrow)
-		w.writerow(mandatoryrow)
-		w.writerow(typerow)
-		w.writerow(inforow)
-		w.writerow([get_data_keys_definition().data_separator])
+		parent_fields = [
+			format_column_name(df) for df in self.fields if df.parent == self.doctype
+		]
+		parent_data = frappe.db.get_list(
+			self.doctype,
+			filters=filters,
+			fields=["name"] + parent_fields,
+			limit_page_length=self.export_page_length,
+			order_by=order_by,
+			as_list=0,
+		)
+		parent_names = [p.name for p in parent_data]
 
-	def add_data():
-		def add_data_row(row_group, dt, parentfield, doc, rowidx):
-			d = doc.copy()
-			meta = frappe.get_meta(dt)
-			if all_doctypes:
-				d.name = '"'+ d.name+'"'
+		child_data = {}
+		for key in self.exportable_fields:
+			if key == self.doctype:
+				continue
+			child_table_df = self.meta.get_field(key)
+			child_table_doctype = child_table_df.options
+			child_fields = ["name", "idx", "parent", "parentfield"] + list(
+				set(
+					[format_column_name(df) for df in self.fields if df.parent == child_table_doctype]
+				)
+			)
+			data = frappe.db.get_list(
+				child_table_doctype,
+				filters={
+					"parent": ("in", parent_names),
+					"parentfield": child_table_df.fieldname,
+					"parenttype": self.doctype,
+				},
+				fields=child_fields,
+				order_by="idx asc",
+				as_list=0,
+			)
+			child_data[key] = data
 
-			if len(row_group) < rowidx + 1:
-				row_group.append([""] * (len(columns) + 1))
-			row = row_group[rowidx]
+		# Group children data by parent name
+		grouped_children_data = self.group_children_data_by_parent(child_data)
+		for doc in parent_data:
+			related_children_docs = grouped_children_data.get(doc.name, {})
+			yield {**doc, **related_children_docs}
 
-			_column_start_end = column_start_end.get((dt, parentfield))
+	def add_header(self):
+		header = []
+		for df in self.fields:
+			is_parent = not df.is_child_table_field
+			if is_parent:
+				label = df.label
+			else:
+				label = "{0} ({1})".format(df.label, df.child_table_df.label)
 
-			if _column_start_end:
-				for i, c in enumerate(columns[_column_start_end.start:_column_start_end.end]):
-					df = meta.get_field(c)
-					fieldtype = df.fieldtype if df else "Data"
-					value = d.get(c, "")
-					if value:
-						if fieldtype == "Date":
-							value = formatdate(value)
-						elif fieldtype == "Datetime":
-							value = format_datetime(value)
+			if label in header:
+				# this label is already in the header,
+				# which means two fields with the same label
+				# add the fieldname to avoid clash
+				if is_parent:
+					label = "{0}".format(df.fieldname)
+				else:
+					label = "{0}.{1}".format(df.child_table_df.fieldname, df.fieldname)
+			header.append(label)
 
-					row[_column_start_end.start + i + 1] = value
+		self.csv_array.append(header)
 
-		if with_data=='Yes':
-			frappe.permissions.can_export(parent_doctype, raise_exception=True)
+	def add_data(self):
+		self.csv_array += self.data
 
-			# sort nested set doctypes by `lft asc`
-			order_by = None
-			table_columns = frappe.db.get_table_columns(parent_doctype)
-			if 'lft' in table_columns and 'rgt' in table_columns:
-				order_by = '`tab{doctype}`.`lft` asc'.format(doctype=parent_doctype)
+	def get_csv_array(self):
+		return self.csv_array
 
-			# get permitted data only
-			data = frappe.get_list(doctype, fields=["*"], limit_page_length=None, order_by=order_by)
+	def get_csv_array_for_export(self):
+		csv_array = self.csv_array
 
-			for doc in data:
-				op = docs_to_export.get("op")
-				names = docs_to_export.get("name")
+		if not self.data:
+			# add 2 empty rows
+			csv_array += [[]] * 2
 
-				if names and op:
-					if op == '=' and doc.name not in names:
-						continue
-					elif op == '!=' and doc.name in names:
-						continue
-				elif names:
-					try:
-						sflags = docs_to_export.get("flags", "I,U").upper()
-						flags = 0
-						for a in re.split('\W+',sflags):
-							flags = flags | reflags.get(a,0)
+		return csv_array
 
-						c = re.compile(names, flags)
-						m = c.match(doc.name)
-						if not m:
-							continue
-					except:
-						if doc.name not in names:
-							continue
-				# add main table
-				row_group = []
+	def build_response(self):
+		if self.file_type == "CSV":
+			self.build_csv_response()
+		elif self.file_type == "Excel":
+			self.build_xlsx_response()
 
-				add_data_row(row_group, doctype, None, doc, 0)
+	def build_csv_response(self):
+		build_csv_response(self.get_csv_array_for_export(), self.doctype)
 
-				if all_doctypes:
-					# add child tables
-					for c in child_doctypes:
-						for ci, child in enumerate(frappe.db.sql("""select * from `tab{0}`
-							where parent=%s and parentfield=%s order by idx""".format(c['doctype']),
-							(doc.name, c['parentfield']), as_dict=1)):
-							add_data_row(row_group, c['doctype'], c['parentfield'], child, ci)
+	def build_xlsx_response(self):
+		build_xlsx_response(self.get_csv_array_for_export(), self.doctype)
 
-				for row in row_group:
-					w.writerow(row)
-
-	w = UnicodeWriter()
-	key = 'parent' if parent_doctype != doctype else 'name'
-
-	add_main_header()
-
-	w.writerow([''])
-	tablerow = [get_data_keys_definition().doctype, ""]
-	labelrow = [_("Column Labels:"), "ID"]
-	fieldrow = [get_data_keys_definition().columns, key]
-	mandatoryrow = [_("Mandatory:"), _("Yes")]
-	typerow = [_('Type:'), 'Data (text)']
-	inforow = [_('Info:'), '']
-	columns = [key]
-
-	build_field_columns(doctype)
-
-	if all_doctypes:
-		for d in child_doctypes:
-			append_empty_field_column()
-			if (select_columns and select_columns.get(d['doctype'], None)) or not select_columns:
-				# if atleast one column is selected for this doctype
-				build_field_columns(d['doctype'], d['parentfield'])
-
-	add_field_headings()
-	add_data()
-
-	if from_data_import == "Yes" and excel_format == "Yes":
-		filename = frappe.generate_hash("", 10)
-		with open(filename, 'wb') as f:
-			f.write(cstr(w.getvalue()).encode("utf-8"))
-		f = open(filename)
-
-		# increase the field limit in case of larger fields
-		# works for Python 2.x and 3.x
-		csv.field_size_limit(sys.maxsize)
-		reader = csv.reader(f)
-
-		from frappe.utils.xlsxutils import make_xlsx
-		xlsx_file = make_xlsx(reader, "Data Import Template")
-
-		f.close()
-		os.remove(filename)
-
-		# write out response as a xlsx type
-		frappe.response['filename'] = doctype + '.xlsx'
-		frappe.response['filecontent'] = xlsx_file.getvalue()
-		frappe.response['type'] = 'binary'
-
-	else:
-		# write out response as a type csv
-		frappe.response['result'] = cstr(w.getvalue())
-		frappe.response['type'] = 'csv'
-		frappe.response['doctype'] = doctype
+	def group_children_data_by_parent(self, children_data: typing.Dict[str, list]):
+		return groupby_metric(children_data, key='parent')

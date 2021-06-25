@@ -13,18 +13,34 @@
 
 frappe.ui.form.on('DocType', {
 	refresh: function(frm) {
+		frm.set_query('role', 'permissions', function(doc) {
+			if (doc.custom && frappe.session.user != 'Administrator') {
+				return {
+					query: "frappe.core.doctype.role.role.role_query",
+					filters: [['Role', 'name', '!=', 'All']]
+				};
+			}
+		});
+
 		if(frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
 			if(frm.is_new()) {
 				frm.set_value("custom", 1);
 			}
 			frm.toggle_enable("custom", 0);
+			frm.toggle_enable("is_virtual", 0);
 			frm.toggle_enable("beta", 0);
 		}
 
 		if (!frm.is_new() && !frm.doc.istable) {
-			frm.add_custom_button(__('Go to {0} List', [frm.doc.name]), () => {
-				frappe.set_route('List', frm.doc.name, 'List');
-			});
+			if (frm.doc.issingle) {
+				frm.add_custom_button(__('Go to {0}', [__(frm.doc.name)]), () => {
+					window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
+				});
+			} else {
+				frm.add_custom_button(__('Go to {0} List', [__(frm.doc.name)]), () => {
+					window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
+				});
+			}
 		}
 
 		if(!frappe.boot.developer_mode && !frm.doc.custom) {
@@ -47,7 +63,7 @@ frappe.ui.form.on('DocType', {
 		frm.events.autoname(frm);
 	},
 
-	autoname(frm) {
+	autoname: function(frm) {
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	}
 })

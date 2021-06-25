@@ -15,7 +15,6 @@ body {
 }
 article,
 aside,
-details,
 figcaption,
 figure,
 footer,
@@ -24,8 +23,7 @@ hgroup,
 main,
 menu,
 nav,
-section,
-summary {
+section {
   display: block;
 }
 audio,
@@ -3494,7 +3492,7 @@ tbody.collapse.in {
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 990;
+  z-index: 99;
 }
 .pull-right > .dropdown-menu {
   right: 0;

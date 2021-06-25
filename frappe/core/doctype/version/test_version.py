@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import frappe
 import unittest, copy
 from frappe.test_runner import make_test_objects
@@ -9,6 +7,7 @@ from frappe.core.doctype.version.version import get_diff
 
 class TestVersion(unittest.TestCase):
 	def test_get_diff(self):
+		frappe.set_user('Administrator')
 		test_records = make_test_objects('Event', reset = True)
 		old_doc = frappe.get_doc("Event", test_records[0])
 		new_doc = copy.deepcopy(old_doc)
@@ -26,9 +25,9 @@ class TestVersion(unittest.TestCase):
 
 		diff = get_diff(old_doc, new_doc)['changed']
 
-		self.assertEqual(get_fieldnames(diff)[0], 'starts_on')
-		self.assertEqual(get_old_values(diff)[0], '01-01-2014 00:00:00')
-		self.assertEqual(get_new_values(diff)[0], '07-20-2017 00:00:00')
+		self.assertEqual(get_fieldnames(diff)[1], 'starts_on')
+		self.assertEqual(get_old_values(diff)[1], '01-01-2014 00:00:00')
+		self.assertEqual(get_new_values(diff)[1], '07-20-2017 00:00:00')
 
 def get_fieldnames(change_array):
 	return [d[0] for d in change_array]

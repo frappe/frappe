@@ -1,14 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
+	get_title, get_title_html
 from frappe.utils import cint
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None, notify=0):
+def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
@@ -36,11 +37,12 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 		# always add read, since you are adding!
 		"read": 1,
 		"write": cint(write),
+		"submit": cint(submit),
 		"share": cint(share)
 	})
 
 	doc.save(ignore_permissions=True)
-	notify_assignment(user, doctype, name, description=None, notify=notify)
+	notify_assignment(user, doctype, name, everyone, notify=notify)
 
 	follow_document(doctype, name, user)
 
@@ -76,11 +78,11 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 		if not value:
 			# un-set higher-order permissions too
 			if permission_to=="read":
-				share.read = share.write = share.share = 0
+				share.read = share.write = share.submit = share.share = 0
 
 		share.save()
 
-		if not (share.read or share.write or share.share):
+		if not (share.read or share.write or share.submit or share.share):
 			share.delete()
 			share = {}
 
@@ -89,13 +91,12 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 @frappe.whitelist()
 def get_users(doctype, name):
 	"""Get list of users with which this document is shared"""
-	return frappe.db.sql("""select
-			`name`, `user`, `read`, `write`, `share`, `everyone`
-		from
-			`tabDocShare`
-		where
-			share_doctype=%s and share_name=%s""",
-		(doctype, name), as_dict=True)
+	return frappe.db.get_all("DocShare",
+		fields=["`name`", "`user`", "`read`", "`write`", "`submit`", "`share`", "everyone", "owner", "creation"],
+		filters=dict(
+			share_doctype=doctype,
+			share_name=name
+		))
 
 def get_shared(doctype, user=None, rights=None):
 	"""Get list of shared document names for given user and DocType.
@@ -143,18 +144,27 @@ def get_share_name(doctype, name, user, everyone):
 def check_share_permission(doctype, name):
 	"""Check if the user can share with other users"""
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
-		frappe.throw(_("No permission to {0} {1} {2}".format("share", doctype, name)), frappe.PermissionError)
+		frappe.throw(_("No permission to {0} {1} {2}").format("share", doctype, name), frappe.PermissionError)
 
-def notify_assignment(shared_by, doc_type, doc_name, description=None, notify=0):
+def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
 
-	if not (shared_by and doc_type and doc_name): return
+	if not (shared_by and doctype and doc_name) or everyone or not notify:
+		return
 
-	from frappe.utils import get_link_to_form
-	document = get_link_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
+	from frappe.utils import get_fullname
 
-	arg = {
-		'contact': shared_by,
-		'txt': _("A new document {0} has been shared by with you {1}.").format(document,
-				shared_by),
-		'notify': notify
+	title = get_title(doctype, doc_name)
+
+	reference_user = get_fullname(frappe.session.user)
+	notification_message = _('{0} shared a document {1} {2} with you').format(
+		frappe.bold(reference_user), frappe.bold(doctype), get_title_html(title))
+
+	notification_doc = {
+		'type': 'Share',
+		'document_type': doctype,
+		'subject': notification_message,
+		'document_name': doc_name,
+		'from_user': frappe.session.user
 	}
+
+	enqueue_create_notification(shared_by, notification_doc)

@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 import frappe.defaults
@@ -30,8 +29,16 @@ def get_roles_and_doctypes():
 		"restrict_to_domain": ("in", active_domains)
 	}, fields=["name"])
 
+	restricted_roles = ['Administrator']
+	if frappe.session.user != 'Administrator':
+		custom_user_type_roles = frappe.get_all('User Type', filters = {'is_standard': 0}, fields=['role'])
+		for row in custom_user_type_roles:
+			restricted_roles.append(row.role)
+
+		restricted_roles.append('All')
+
 	roles = frappe.get_all("Role", filters={
-		"name": ("not in", "Administrator"),
+		"name": ("not in", restricted_roles),
 		"disabled": 0,
 	}, or_filters={
 		"ifnull(restrict_to_domain, '')": "",
@@ -54,9 +61,14 @@ def get_permissions(doctype=None, role=None):
 		if doctype:
 			out = [p for p in out if p.parent == doctype]
 	else:
-		out = frappe.get_all('Custom DocPerm', fields='*', filters=dict(parent = doctype), order_by="permlevel")
+		filters=dict(parent = doctype)
+		if frappe.session.user != 'Administrator':
+			custom_roles = frappe.get_all('Role', filters={'is_custom': 1})
+			filters['role'] = ['not in', [row.name for row in custom_roles]]
+
+		out = frappe.get_all('Custom DocPerm', fields='*', filters=filters, order_by="permlevel")
 		if not out:
-			out = frappe.get_all('DocPerm', fields='*', filters=dict(parent = doctype), order_by="permlevel")
+			out = frappe.get_all('DocPerm', fields='*', filters=filters, order_by="permlevel")
 
 	linked_doctypes = {}
 	for d in out:
@@ -66,6 +78,7 @@ def get_permissions(doctype=None, role=None):
 		meta = frappe.get_meta(d.parent)
 		if meta:
 			d.is_submittable = meta.is_submittable
+			d.in_create = meta.in_create
 
 	return out
 
@@ -76,6 +89,18 @@ def add(parent, role, permlevel):
 
 @frappe.whitelist()
 def update(doctype, role, permlevel, ptype, value=None):
+	"""Update role permission params
+
+	Args:
+	    doctype (str): Name of the DocType to update params for
+	    role (str): Role to be updated for, eg "Website Manager".
+	    permlevel (int): perm level the provided rule applies to
+	    ptype (str): permission type, example "read", "delete", etc.
+	    value (None, optional): value for ptype, None indicates False
+
+	Returns:
+	    str: Refresh flag is permission is updated successfully
+	"""
 	frappe.only_for("System Manager")
 	out = update_permission_property(doctype, role, permlevel, ptype, value)
 	return 'refresh' if out else None
@@ -91,7 +116,7 @@ def remove(doctype, role, permlevel):
 	if not frappe.get_all('Custom DocPerm', dict(parent=doctype)):
 		frappe.throw(_('There must be atleast one permission rule.'), title=_('Cannot Remove'))
 
-	validate_permissions_for_doctype(doctype, for_remove=True)
+	validate_permissions_for_doctype(doctype, for_remove=True, alert=True)
 
 @frappe.whitelist()
 def reset(doctype):
@@ -102,7 +127,7 @@ def reset(doctype):
 @frappe.whitelist()
 def get_users_with_role(role):
 	frappe.only_for("System Manager")
-	_get_user_with_role(role)
+	return _get_user_with_role(role)
 
 @frappe.whitelist()
 def get_standard_permissions(doctype):

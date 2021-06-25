@@ -75,3 +75,30 @@ body {
 .modal-header {
 	padding: 10px 15px;
 }
+
+.form-in-grid .form-section {
+  margin: 0px;
+  padding: 15px;
+}
+
+.form-clickable-section {
+  border-top: 1px solid #d1d8dd;
+  padding: 10px 15px;
+  background-color: #F7FAFC;
+}
+
+.table > tbody > tr > td {
+     vertical-align: middle;
+}
+
+table {
+	border: 1px solid #ebecf1;
+}
+
+.table > tbody > tr:hover {
+	background-color: rgb(247, 250, 252);
+}
+
+.grid-body .data-row {
+    font-size: inherit;
+}

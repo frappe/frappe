@@ -1,0 +1,92 @@
+<div class="timeline-message-box" data-communication-type="{{ doc.communication_type }}">
+	<span class="flex justify-between">
+		<span class="text-color flex">
+			{% if (doc.communication_type && doc.communication_type == "Automated Message") { %}
+				<span>
+					<!-- Display maximum of 3 users-->
+					{{ __("Notification sent to") }}
+					{% var recipients = (doc.recipients && doc.recipients.split(",")) || [] %}
+					{% var cc = (doc.cc && doc.cc.split(",")) || [] %}
+					{% var bcc = (doc.bcc && doc.bcc.split(",")) || [] %}
+					{% var emails = recipients.concat(cc, bcc) %}
+					{% var display_emails_len = Math.min(emails.length, 3) %}
+
+					{% for (var i=0, len=display_emails_len; i<len; i++) { var email = emails[i]; %}
+						{{ frappe.user_info(email).fullname || email }}
+						{% if (len > i+1) { %}
+							{{ "," }}
+						{% } %}
+					{% } %}
+
+					{% if (emails.length > display_emails_len) { %}
+						{{ "..." }}
+					{% } %}
+
+					<div class="text-muted">
+						{{ comment_when(doc.creation) }}
+					</div>
+				</span>
+			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
+				<span>
+					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }} {{ __("commented") }}
+					<span class="text-muted margin-left">
+						{{ comment_when(doc.creation) }}
+					</span>
+				</span>
+			{% } else { %}
+				<span class="margin-right">
+					{{ frappe.avatar(doc.owner, "avatar-medium") }}
+				</span>
+				<span>
+					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
+					<div class="text-muted">
+						{{ comment_when(doc.creation) }}
+					</div>
+				</span>
+			{% } %}
+		</span>
+		<span class="actions">
+			{% if (doc._doc_status && doc._doc_status_indicator) { %}
+			<span class="indicator-pill {%= doc._doc_status_indicator %}"
+				title="{%= __(doc._doc_status) %}"
+				style="order: -1">
+				<span class="hidden-xs small">
+					{%= __(doc._doc_status) %}
+				</span>
+			</span>
+			{% } %}
+
+			{% if (doc._url) { %}
+			<a class="action-btn" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
+				<svg class="icon icon-sm">
+					<use href="#icon-link-url" class="like-icon"></use>
+				</svg>
+			</a>
+			{% } %}
+		</span>
+	</span>
+	<div class="content">
+		{{ doc.content }}
+	</div>
+	{% if (doc.attachments && doc.attachments.length) { %}
+	<div style="margin-top: 10px">
+	{% $.each(doc.attachments, function(i, a) { %}
+	<div class="ellipsis flex">
+		<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}"
+			class="text-muted small" target="_blank" rel="noopener noreferrer">
+			<svg viewBox="0 0 16 16" class="icon icon-xs" xmlns="http://www.w3.org/2000/svg">
+				<path d="M14 7.66625L8.68679 12.8875C7.17736 14.3708 4.64151 14.3708 3.13208 12.8875C1.62264 11.4042 1.62264 8.91224 3.13208 7.42892L7.84151 2.80099C8.9283 1.733 10.6189 1.733 11.7057 2.80099C12.7925 3.86897 12.7925 5.53028 11.7057 6.59827L7.35849 10.8109C6.75472 11.4042 5.78868 11.4042 5.24528 10.8109C4.64151 10.2176 4.64151 9.26823 5.24528 8.73424L8.86792 5.17429" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round"/>
+			</svg>
+			{%= a.file_url.split("/").slice(-1)[0] %}
+			{% if (a.is_private) { %}
+				<svg class="icon icon-xs" style="color: var(--yellow-300)"
+					xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+					<path fill-rule="evenodd" clip-rule="evenodd" d="M8.077 1.45h-.055a3.356 3.356 0 00-3.387 3.322v.35H3.75a2 2 0 00-2 2v5.391a2 2 0 002 2h8.539a2 2 0 002-2V7.122a2 2 0 00-2-2h-.885v-.285A3.356 3.356 0 008.082 1.45h-.005zm2.327 3.672V4.83a2.356 2.356 0 00-2.33-2.38h-.06a2.356 2.356 0 00-2.38 2.33v.342h4.77zm-6.654 1a1 1 0 00-1 1v5.391a1 1 0 001 1h8.539a1 1 0 001-1V7.122a1 1 0 00-1-1H3.75zm4.27 4.269a.573.573 0 100-1.147.573.573 0 000 1.147zm1.573-.574a1.573 1.573 0 11-3.147 0 1.573 1.573 0 013.147 0z" fill="currentColor" stroke="currentColor"></path>
+				</svg>
+			{% } %}
+		</a>
+	</div>
+	{% }); %}
+	</div>
+	{% } %}
+</div>

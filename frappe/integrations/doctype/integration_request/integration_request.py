@@ -2,10 +2,10 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 import json
+from frappe.integrations.utils import json_handler
 
 class IntegrationRequest(Document):
 	def autoname(self):
@@ -20,3 +20,17 @@ class IntegrationRequest(Document):
 		self.status = status
 		self.save(ignore_permissions=True)
 		frappe.db.commit()
+
+	def handle_success(self, response):
+		"""update the output field with the response along with the relevant status"""
+		if isinstance(response, str):
+			response = json.loads(response)
+		self.db_set("status", "Completed")
+		self.db_set("output", json.dumps(response, default=json_handler))
+
+	def handle_failure(self, response):
+		"""update the error field with the response along with the relevant status"""
+		if isinstance(response, str):
+			response = json.loads(response)
+		self.db_set("status", "Failed")
+		self.db_set("error", json.dumps(response, default=json_handler))

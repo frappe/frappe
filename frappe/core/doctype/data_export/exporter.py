@@ -1,16 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 from frappe import _
 import frappe.permissions
 import re, csv, os
 from frappe.utils.csvutils import UnicodeWriter
-from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint
-from frappe.core.doctype.data_import.importer import get_data_keys
-from six import string_types
+from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint, format_duration
+from frappe.core.doctype.data_import_legacy.importer import get_data_keys
+from frappe.core.doctype.access_log.access_log import make_access_log
 
 reflags = {
 	"I":re.I,
@@ -25,6 +23,10 @@ reflags = {
 @frappe.whitelist()
 def export_data(doctype=None, parent_doctype=None, all_doctypes=True, with_data=False,
 		select_columns=None, file_type='CSV', template=False, filters=None):
+	_doctype = doctype
+	if isinstance(_doctype, list):
+		_doctype = _doctype[0]
+	make_access_log(doctype=_doctype, file_type=file_type, columns=select_columns, filters=filters, method=parent_doctype)
 	exporter = DataExporter(doctype=doctype, parent_doctype=parent_doctype, all_doctypes=all_doctypes, with_data=with_data,
 		select_columns=select_columns, file_type=file_type, template=template, filters=filters)
 	exporter.build_response()
@@ -52,7 +54,7 @@ class DataExporter:
 
 		self.docs_to_export = {}
 		if self.doctype:
-			if isinstance(self.doctype, string_types):
+			if isinstance(self.doctype, str):
 				self.doctype = [self.doctype]
 
 			if len(self.doctype) > 1:
@@ -277,7 +279,7 @@ class DataExporter:
 				try:
 					sflags = self.docs_to_export.get("flags", "I,U").upper()
 					flags = 0
-					for a in re.split('\W+',sflags):
+					for a in re.split(r'\W+', sflags):
 						flags = flags | reflags.get(a,0)
 
 					c = re.compile(names, flags)
@@ -325,6 +327,8 @@ class DataExporter:
 						value = formatdate(value)
 					elif fieldtype == "Datetime":
 						value = format_datetime(value)
+					elif fieldtype == "Duration":
+						value = format_duration(value, df.hide_days)
 
 				row[_column_start_end.start + i + 1] = value
 
