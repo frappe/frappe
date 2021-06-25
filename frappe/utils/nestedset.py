@@ -262,6 +262,28 @@ class NestedSet(Document):
 	def get_ancestors(self):
 		return get_ancestors_of(self.doctype, self.name)
 
+	@property
+	def parent(self, **kwargs):
+		"""Return the parent Document."""
+		parent_name = self.get(self.nsm_parent_field)
+		if parent_name:
+			return frappe.get_cached_doc(self.doctype, parent_name, **kwargs)
+
+	@property
+	def children(self, **kwargs):
+		"""Return a list of child Documents."""
+		return [
+			frappe.get_cached_doc("Organization", name)
+			for name in frappe.get_list(
+				self.doctype,
+				filters={
+					self.nsm_parent_field: self.name
+				},
+				pluck="name"
+			)
+		]
+
+
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""
 	result = frappe.db.sql("""select t1.name from `tab{0}` t1 where
