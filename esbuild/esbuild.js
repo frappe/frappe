@@ -8,6 +8,7 @@ let yargs = require("yargs");
 let cliui = require("cliui")();
 let chalk = require("chalk");
 let html_plugin = require("./frappe-html");
+let rtlcss = require('rtlcss');
 let postCssPlugin = require("esbuild-plugin-postcss2").default;
 let ignore_assets = require("./ignore-assets");
 let sass_options = require("./sass_options");
@@ -99,6 +100,7 @@ async function execute() {
 	let result;
 	try {
 		result = await build_assets_for_apps(APPS, FILES_TO_BUILD);
+		result = await create_rtl_assets(result);
 	} catch (e) {
 		log_error("There were some problems during build");
 		log();
@@ -260,7 +262,8 @@ async function clean_dist_folders(apps) {
 		let public_path = get_public_path(app);
 		let paths = [
 			path.resolve(public_path, "dist", "js"),
-			path.resolve(public_path, "dist", "css")
+			path.resolve(public_path, "dist", "css"),
+			path.resolve(public_path, "dist", "css-rtl")
 		];
 		for (let target of paths) {
 			if (fs.existsSync(target)) {
@@ -483,4 +486,24 @@ function log_rebuilt_assets(prev_assets, new_assets) {
 		log("    " + filename);
 	}
 	log();
+}
+
+async function create_rtl_assets(result) {
+	for (let file_path in result.metafile.outputs) {
+		if (file_path.endsWith('.css')) {
+			console.log(file_path);
+			let content = fs.readFileSync(file_path, {'encoding': 'utf-8'});
+			let rtl_content = rtlcss.process(content);
+			let rtl_file_path = file_path.replace('/css/', '/css-rtl/');
+			let rtl_folder_path = path.dirname(rtl_file_path);
+			if (fs.existsSync(rtl_file_path)) {
+				continue;
+			}
+			if (!fs.existsSync(rtl_folder_path)) {
+				fs.mkdirSync(rtl_folder_path);
+			}
+			fs.writeFileSync(rtl_file_path, rtl_content);
+		}
+	}
+	return result;
 }

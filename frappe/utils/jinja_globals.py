@@ -73,8 +73,13 @@ def include_script(path):
 	return f'<script type="text/javascript" src="{path}"></script>'
 
 
-def include_style(path):
+def include_style(path, rtl=None):
 	path = bundled_asset(path)
+	if rtl is None:
+		rtl = is_rtl()
+
+	if rtl:
+		path = path.replace('/css/', '/css-rtl/')
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
 
@@ -87,3 +92,7 @@ def bundled_asset(path):
 		path = bundled_assets.get(path) or path
 
 	return abs_url(path)
+
+def is_rtl():
+	from frappe import local
+	return local.lang in ["ar", "he", "fa", "ps"]
