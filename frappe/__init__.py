@@ -807,6 +807,11 @@ def get_cached_doc(*args, **kwargs):
 
 	# database
 	doc = get_doc(*args, **kwargs)
+	# set in cache
+	if args and len(args) > 1:
+		key = get_document_cache_key(args[0], args[1])
+		local.document_cache[key] = doc
+		cache().hset('document_cache', key, doc.as_dict())
 
 	return doc
 
@@ -849,15 +854,7 @@ def get_doc(*args, **kwargs):
 
 	"""
 	import frappe.model.document
-	doc = frappe.model.document.get_doc(*args, **kwargs)
-
-	# set in cache
-	if args and len(args) > 1:
-		key = get_document_cache_key(args[0], args[1])
-		local.document_cache[key] = doc
-		cache().hset('document_cache', key, doc.as_dict())
-
-	return doc
+	return frappe.model.document.get_doc(*args, **kwargs)
 
 def get_last_doc(doctype, filters=None, order_by="creation desc"):
 	"""Get last created document of this type."""
