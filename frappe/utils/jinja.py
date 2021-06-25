@@ -228,3 +228,18 @@ def web_blocks(blocks):
 		html += '<script>{}</script>'.format(script)
 
 	return html
+
+
+def include_style(path, rtl=None):
+	#path = bundled_asset(path)
+	if rtl is None:
+		rtl = is_rtl()
+
+	if rtl:
+		path = path.replace('/css/', '/css-rtl/')
+	return f'<link type="text/css" rel="stylesheet" href="{path}">'
+
+
+def is_rtl():
+	from frappe import local
+	return local.lang in ["ar", "he", "fa", "ps"]
