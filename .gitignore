@@ -7,8 +7,9 @@ locale
 *.swp
 *.egg-info
 dist/
-build/
+# build/
 frappe/docs/current
+frappe/public/dist
 .vscode
 node_modules
 .kdev4/
@@ -28,7 +29,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+# build/
 develop-eggs/
 dist/
 downloads/
@@ -189,3 +190,6 @@ typings/
 # cypress
 cypress/screenshots
 cypress/videos
+
+# JetBrains IDEs
+.idea/

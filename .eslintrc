@@ -5,7 +5,7 @@
 		"es6": true
 	},
 	"parserOptions": {
-		"ecmaVersion": 8,
+		"ecmaVersion": 9,
 		"sourceType": "module"
 	},
 	"extends": "eslint:recommended",
@@ -51,15 +51,17 @@
 		],
 		"no-control-regex": [
 			"off"
-		]
+		],
+		"space-before-blocks": "warn",
+		"keyword-spacing": "warn",
+		"comma-spacing": "warn",
+		"key-spacing": "warn",
 	},
 	"root": true,
 	"globals": {
 		"frappe": true,
 		"Vue": true,
 		"__": true,
-		"_p": true,
-		"_f": true,
 		"repl": true,
 		"Class": true,
 		"locals": true,
@@ -76,6 +78,9 @@
 		"has_common": true,
 		"has_words": true,
 		"validate_email": true,
+		"validate_name": true,
+		"validate_phone": true,
+		"validate_url": true,
 		"get_number_format": true,
 		"format_number": true,
 		"format_currency": true,
@@ -83,6 +88,7 @@
 		"open_url_post": true,
 		"toTitle": true,
 		"lstrip": true,
+		"rstrip": true,
 		"strip": true,
 		"strip_html": true,
 		"replace_all": true,
@@ -93,6 +99,7 @@
 		"CANCEL": true,
 		"copy_dict": true,
 		"get_number_format_info": true,
+		"strip_number_groups": true,
 		"print_table": true,
 		"Layout": true,
 		"web_form_settings": true,
@@ -129,7 +136,6 @@
 		"PhotoSwipeUI_Default": true,
 		"fluxify": true,
 		"io": true,
-		"QUnit": true,
 		"JsBarcode": true,
 		"L": true,
 		"Chart": true,
@@ -137,10 +143,13 @@
 		"Cypress": true,
 		"cy": true,
 		"it": true,
+		"describe": true,
 		"expect": true,
 		"context": true,
 		"before": true,
 		"beforeEach": true,
-		"qz": true
+		"qz": true,
+		"localforage": true,
+		"extend_cscript": true
 	}
 }

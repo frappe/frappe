@@ -6,7 +6,7 @@ const bench_path = path.resolve(__dirname, '..', '..');
 function get_conf() {
 	// defaults
 	var conf = {
-		redis_async_broker_port: 12311,
+		redis_async_broker_port: 'redis://localhost:12311',
 		socketio_port: 3000
 	};
 
@@ -27,7 +27,10 @@ function get_conf() {
 	read_config('config.json');
 	read_config('sites/common_site_config.json');
 
-	// detect current site
+	// set default site
+	if (process.env.FRAPPE_SITE) {
+		conf.default_site = process.env.FRAPPE_SITE;
+	}
 	if (fs.existsSync('sites/currentsite.txt')) {
 		conf.default_site = fs.readFileSync('sites/currentsite.txt').toString().trim();
 	}
@@ -35,10 +38,10 @@ function get_conf() {
 	return conf;
 }
 
-function get_redis_subscriber() {
+function get_redis_subscriber(kind="redis_socketio", options={}) {
 	const conf = get_conf();
-	const host = conf.redis_socketio || conf.redis_async_broker_port;
-	return redis.createClient(host);
+	const host = conf[kind] || conf.redis_async_broker_port;
+	return redis.createClient({ url: host, ...options });
 }
 
 module.exports = {
