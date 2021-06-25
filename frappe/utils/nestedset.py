@@ -273,7 +273,7 @@ class NestedSet(Document):
 	def children(self, **kwargs):
 		"""Return a list of child Documents."""
 		return [
-			frappe.get_cached_doc("Organization", name)
+			frappe.get_cached_doc(self.doctype, name)
 			for name in frappe.get_list(
 				self.doctype,
 				filters={
