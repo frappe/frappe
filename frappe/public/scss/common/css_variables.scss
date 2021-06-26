@@ -24,7 +24,7 @@
 	--blue-100: #D3E9FC;
 	--blue-50 : #F0F8FE;
 
-	--cyan-900: #006464; 
+	--cyan-900: #006464;
 	--cyan-800: #007272;
 	--cyan-700: #008b8b;
 	--cyan-600: #02c5c5;
@@ -179,6 +179,10 @@
 	--text-on-pink: var(--pink-500);
 	--text-on-cyan: var(--cyan-600);
 
+	--disabled-control-bg: var(--gray-50);
+	--control-bg: var(--gray-100);
+	--control-bg-on-gray: var(--gray-200);
+
 	--awesomplete-hover-bg: var(--control-bg);
 
 	// Other Colors
@@ -208,5 +212,4 @@
 	--checkbox-right-margin: var(--margin-xs);
 	--checkbox-size: 14px;
 	--checkbox-focus-shadow: 0 0 0 2px var(--gray-300);
-	
 }
