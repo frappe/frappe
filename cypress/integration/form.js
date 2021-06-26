@@ -18,6 +18,7 @@ context('Form', () => {
 		cy.get('.primary-action').click();
 		cy.wait('@form_save').its('response.statusCode').should('eq', 200);
 		cy.visit('/app/todo');
+		cy.wait(300);
 		cy.get('.title-text').should('be.visible').and('contain', 'To Do');
 		cy.get('.list-row').should('contain', 'this is a test todo');
 	});

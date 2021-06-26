@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import frappe
 import unittest
 import time
@@ -65,12 +63,12 @@ class TestActivityLog(unittest.TestCase):
 		frappe.local.login_manager = LoginManager()
 
 		auth_log = self.get_auth_log()
-		self.assertEquals(auth_log.status, 'Success')
+		self.assertEqual(auth_log.status, 'Success')
 
 		# test user logout log
 		frappe.local.login_manager.logout()
 		auth_log = self.get_auth_log(operation='Logout')
-		self.assertEquals(auth_log.status, 'Success')
+		self.assertEqual(auth_log.status, 'Success')
 
 		# test invalid login
 		frappe.form_dict.update({ 'pwd': 'password' })
@@ -90,4 +88,5 @@ class TestActivityLog(unittest.TestCase):
 def update_system_settings(args):
 	doc = frappe.get_doc('System Settings')
 	doc.update(args)
+	doc.flags.ignore_mandatory = 1
 	doc.save()

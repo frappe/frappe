@@ -1,10 +1,7 @@
-from __future__ import unicode_literals
-
 import re
 import frappe
 import psycopg2
 import psycopg2.extensions
-from six import string_types
 from frappe.utils import cstr
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
@@ -13,9 +10,9 @@ from frappe.database.postgres.schema import PostgresTable
 
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
-    psycopg2.extensions.DECIMAL.values,
-    'DEC2FLOAT',
-    lambda value, curs: float(value) if value is not None else None)
+	psycopg2.extensions.DECIMAL.values,
+	'DEC2FLOAT',
+	lambda value, curs: float(value) if value is not None else None)
 
 psycopg2.extensions.register_type(DEC2FLOAT)
 
@@ -65,7 +62,6 @@ class PostgresDatabase(Database):
 		}
 
 	def get_connection(self):
-		# warnings.filterwarnings('ignore', category=psycopg2.Warning)
 		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
 			self.host, self.user, self.user, self.password, self.port
 		))
@@ -114,7 +110,7 @@ class PostgresDatabase(Database):
 		if not date:
 			return '0001-01-01'
 
-		if not isinstance(date, frappe.string_types):
+		if not isinstance(date, str):
 			date = date.strftime('%Y-%m-%d')
 
 		return date
@@ -256,7 +252,7 @@ class PostgresDatabase(Database):
 		self.sql("""CREATE INDEX IF NOT EXISTS "{}" ON `{}`("{}")""".format(index_name, table_name, '", "'.join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		if isinstance(fields, string_types):
+		if isinstance(fields, str):
 			fields = [fields]
 		if not constraint_name:
 			constraint_name = "unique_" + "_".join(fields)

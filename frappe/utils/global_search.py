@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 import re
 import redis
@@ -11,7 +9,6 @@ import os
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.html_utils import unescape_html
 from frappe.model.base_document import get_controller
-from six import text_type
 
 def setup_global_search_table():
 	"""
@@ -310,14 +307,14 @@ def get_routes_to_index():
 
 def add_route_to_global_search(route):
 	from bs4 import BeautifulSoup
-	from frappe.website.render import render_page
+	from frappe.website.serve import get_response_content
 	from frappe.utils import set_request
 	frappe.set_user('Guest')
 	frappe.local.no_cache = True
 
 	try:
 		set_request(method='GET', path=route)
-		content = render_page(route)
+		content = get_response_content(route)
 		soup = BeautifulSoup(content, 'html.parser')
 		page_content = soup.find(class_='page_content')
 		text_content = page_content.text if page_content else ''
@@ -332,7 +329,7 @@ def add_route_to_global_search(route):
 			route=route
 		)
 		sync_value_in_queue(value)
-	except (frappe.PermissionError, frappe.DoesNotExistError, frappe.ValidationError, Exception):
+	except Exception:
 		pass
 
 	frappe.set_user('Administrator')
@@ -348,9 +345,9 @@ def get_formatted_value(value, field):
 
 	if getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]:
 		value = unescape_html(frappe.safe_decode(value))
-		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', text_type(value))[0])
+		value = (re.subn(r'(?s)<[\s]*(script|style).*?</\1>', '', str(value))[0])
 		value = ' '.join(value.split())
-	return field.label + " : " + strip_html_tags(text_type(value))
+	return field.label + " : " + strip_html_tags(str(value))
 
 
 def sync_global_search():

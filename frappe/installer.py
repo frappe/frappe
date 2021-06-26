@@ -282,10 +282,10 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 
 def post_install(rebuild_website=False):
-	from frappe.website import render
+	from frappe.website.utils import clear_website_cache
 
 	if rebuild_website:
-		render.clear_cache()
+		clear_website_cache()
 
 	init_singles()
 	frappe.db.commit()
@@ -390,19 +390,16 @@ def get_conf_params(db_name=None, db_password=None):
 
 
 def make_site_dirs():
-	site_public_path = os.path.join(frappe.local.site_path, 'public')
-	site_private_path = os.path.join(frappe.local.site_path, 'private')
-	for dir_path in (
-			os.path.join(site_private_path, 'backups'),
-			os.path.join(site_public_path, 'files'),
-			os.path.join(site_private_path, 'files'),
-			os.path.join(frappe.local.site_path, 'logs'),
-			os.path.join(frappe.local.site_path, 'task-logs')):
-		if not os.path.exists(dir_path):
-			os.makedirs(dir_path)
-	locks_dir = frappe.get_site_path('locks')
-	if not os.path.exists(locks_dir):
-			os.makedirs(locks_dir)
+	for dir_path in [
+		os.path.join("public", "files"),
+		os.path.join("private", "backups"),
+		os.path.join("private", "files"),
+		"error-snapshots",
+		"locks",
+		"logs",
+	]:
+		path = frappe.get_site_path(dir_path)
+		os.makedirs(path, exist_ok=True)
 
 
 def add_module_defs(app):
@@ -540,7 +537,7 @@ def is_downgrade(sql_file_path, verbose=False):
 
 def is_partial(sql_file_path):
 	with open(sql_file_path) as f:
-		header = " ".join([f.readline() for _ in range(5)])
+		header = " ".join(f.readline() for _ in range(5))
 		if "Partial Backup" in header:
 			return True
 	return False

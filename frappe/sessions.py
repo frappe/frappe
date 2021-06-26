@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
 """
 Boot session from cache or build
 
@@ -11,13 +9,12 @@ permission, homepage, default variables, system defaults etc
 import frappe, json
 from frappe import _
 import frappe.utils
-from frappe.utils import cint, cstr
+from frappe.utils import cint, cstr, get_assets_json
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
 import redis
-from six.moves.urllib.parse import unquote
-from six import text_type
+from urllib.parse import unquote
 from frappe.cache_manager import clear_user_cache
 
 @frappe.whitelist(allow_guest=True)
@@ -70,7 +67,7 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 
 	return frappe.db.sql_list("""
 		SELECT `sid` FROM `tabSessions`
-		WHERE user=%(user)s
+		WHERE `tabSessions`.user=%(user)s
 		AND device in %(device)s
 		{condition}
 		ORDER BY `lastupdate` DESC
@@ -149,6 +146,7 @@ def get():
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
+	bootinfo.assets_json = get_assets_json()
 
 	for hook in frappe.get_hooks("extend_bootinfo"):
 		frappe.get_attr(hook)(bootinfo=bootinfo)
@@ -169,7 +167,8 @@ def get_csrf_token():
 
 def generate_csrf_token():
 	frappe.local.session.data.csrf_token = frappe.generate_hash()
-	frappe.local.session_obj.update(force=True)
+	if not frappe.flags.in_test:
+		frappe.local.session_obj.update(force=True)
 
 class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
@@ -312,7 +311,7 @@ class Session:
 			""", (self.sid, get_expiry_period_for_query(self.device)))
 
 		if rec:
-			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
+			data = frappe._dict(frappe.safe_eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
 		else:
 			self._delete_session()
@@ -336,7 +335,7 @@ class Session:
 		now = frappe.utils.now()
 
 		self.data['data']['last_updated'] = now
-		self.data['data']['lang'] = text_type(frappe.lang)
+		self.data['data']['lang'] = str(frappe.lang)
 
 		# update session in db
 		last_updated = frappe.cache().hget("last_db_session_update", self.sid)

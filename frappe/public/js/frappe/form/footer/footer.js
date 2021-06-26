@@ -1,8 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import FormTimeline from "./form_timeline";
-frappe.ui.form.Footer = Class.extend({
-	init: function(opts) {
+frappe.ui.form.Footer = class FormFooter {
+	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
 		this.make_comment_box();
@@ -11,15 +11,15 @@ frappe.ui.form.Footer = Class.extend({
 		$(this.frm.wrapper).on("render_complete", () => {
 			this.refresh();
 		});
-	},
-	make: function() {
+	}
+	make() {
 		this.wrapper = $(frappe.render_template("form_footer", {}))
 			.appendTo(this.parent);
 		this.wrapper.find(".btn-save").click(() => {
 			this.frm.save('Save', null, this);
 		});
-	},
-	make_comment_box: function() {
+	}
+	make_comment_box() {
 		this.frm.comment_box = frappe.ui.form.make_control({
 			parent: this.wrapper.find(".comment-box"),
 			render_input: true,
@@ -50,19 +50,19 @@ frappe.ui.form.Footer = Class.extend({
 				}
 			}
 		});
-	},
+	}
 	make_timeline() {
 		this.frm.timeline = new FormTimeline({
 			parent: this.wrapper.find(".timeline"),
 			frm: this.frm
 		});
-	},
-	refresh: function() {
+	}
+	refresh() {
 		if (this.frm.doc.__islocal) {
 			this.parent.addClass("hide");
 		} else {
 			this.parent.removeClass("hide");
 			this.frm.timeline.refresh();
 		}
-	},
-});
+	}
+};

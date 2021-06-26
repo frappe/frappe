@@ -268,7 +268,9 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled) {
+	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled, callback) {
+		if (frappe.flags.disable_auto_scroll) return;
+
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
 		let scroll_top = 0;
 		if (element) {
@@ -289,7 +291,7 @@ Object.assign(frappe.utils, {
 		}
 
 		if (animate) {
-			element_to_be_scrolled.animate({ scrollTop: scroll_top });
+			element_to_be_scrolled.animate({ scrollTop: scroll_top }).promise().then(callback);
 		} else {
 			element_to_be_scrolled.scrollTop(scroll_top);
 		}
@@ -405,7 +407,7 @@ Object.assign(frappe.utils, {
 				regExp = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 				break;
 			case "url":
-				regExp = /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!$&'()*+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[$&'()*+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!$&'()*+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!$&'()*+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!$&'()*+,;=]|:|@)|\/|\?)*)?$/i;
+				regExp = /^((([A-Za-z0-9.+-]+:(?:\/\/)?)(?:[-;:&=\+\,\w]@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/i;
 				break;
 			case "dateIso":
 				regExp = /^(\d{4})\D?(0[1-9]|1[0-2])\D?([12]\d|0[1-9]|3[01])$/;
@@ -831,10 +833,13 @@ Object.assign(frappe.utils, {
 			if (callNow) func.apply(context, args);
 		};
 	},
-	get_form_link: function(doctype, name, html = false, display_text = null) {
+	get_form_link: function(doctype, name, html=false, display_text=null, query_params_obj=null) {
 		display_text = display_text || name;
 		name = encodeURIComponent(name);
-		const route = `/app/${encodeURIComponent(doctype.toLowerCase().replace(/ /g, '-'))}/${name}`;
+		let route = `/app/${encodeURIComponent(doctype.toLowerCase().replace(/ /g, '-'))}/${name}`;
+		if (query_params_obj) {
+			route += frappe.utils.make_query_string(query_params_obj);
+		}
 		if (html) {
 			return `<a href="${route}">${display_text}</a>`;
 		}
@@ -952,6 +957,20 @@ Object.assign(frappe.utils, {
 		});
 
 		return $el;
+	},
+
+	eval(code, context={}) {
+		let variable_names = Object.keys(context);
+		let variables = Object.values(context);
+		code = `let out = ${code}; return out`;
+		try {
+			let expression_function = new Function(...variable_names, code);
+			return expression_function(...variables);
+		} catch (error) {
+			console.log('Error evaluating the following expression:'); // eslint-disable-line no-console
+			console.error(code); // eslint-disable-line no-console
+			throw error;
+		}
 	},
 
 	get_browser() {
@@ -1180,10 +1199,12 @@ Object.assign(frappe.utils, {
 							route = "";
 					}
 				}
-			} else if (type === "report" && item.is_query_report) {
-				route = "query-report/" + item.name;
 			} else if (type === "report") {
-				route = frappe.router.slug(item.name) + "/view/report";
+				if (item.is_query_report) {
+					route = "query-report/" + item.name;
+				} else {
+					route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+				}
 			} else if (type === "page") {
 				route = item.name;
 			} else if (type === "dashboard") {
@@ -1294,5 +1315,15 @@ Object.assign(frappe.utils, {
 			frappe.msgprint(__('Please enable pop-ups'));
 			return;
 		}
+	},
+
+	get_clipboard_data(clipboard_paste_event) {
+		let e = clipboard_paste_event;
+		let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
+		return clipboard_data.getData('Text');
+	},
+
+	sleep(time) {
+		return new Promise((resolve) => setTimeout(resolve, time));
 	}
 });

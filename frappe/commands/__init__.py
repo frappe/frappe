@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, absolute_import, print_function
 import sys
 import click
 import cProfile
@@ -10,7 +9,7 @@ import frappe
 import frappe.utils
 import subprocess # nosec
 from functools import wraps
-from six import StringIO
+from io import StringIO
 from os import environ
 
 click.disable_unicode_literals_warning = True
@@ -27,6 +26,10 @@ def pass_context(f):
 			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
 		except frappe.exceptions.SiteNotSpecifiedError as e:
 			click.secho(str(e), fg='yellow')
+			sys.exit(1)
+		except frappe.exceptions.IncorrectSitePath:
+			site = ctx.obj.get("sites", "")[0]
+			click.secho(f'Site {site} does not exist!', fg='yellow')
 			sys.exit(1)
 
 		if profile:

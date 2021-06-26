@@ -1,14 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 import frappe.utils
 from frappe import throw, _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.utils.verified_command import get_signed_params, verify_request
-from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
 from frappe.utils import parse_addr, now_datetime, markdown, validate_email_address
 

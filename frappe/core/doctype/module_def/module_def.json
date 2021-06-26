@@ -55,7 +55,7 @@
    "link_fieldname": "module"
   }
  ],
- "modified": "2020-08-06 12:39:30.740379",
+ "modified": "2021-06-02 13:04:53.118716",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",
@@ -69,6 +69,7 @@
    "read": 1,
    "report": 1,
    "role": "Administrator",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -78,7 +79,14 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1
   }
  ],
  "show_name_in_global_search": 1,

@@ -1,9 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import os
-from six import string_types, integer_types
 import shutil
 
 import frappe
@@ -17,7 +15,7 @@ from frappe.utils.password import delete_all_passwords_for
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
-from frappe.exceptions import FileNotFoundError
+
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File",
 	"Version", "Document Follow", "Comment" , "View Log", "Tag Link", "Notification Log", "Email Queue")
@@ -35,7 +33,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		name = frappe.form_dict.get('dn')
 
 	names = name
-	if isinstance(name, string_types) or isinstance(name, integer_types):
+	if isinstance(name, str) or isinstance(name, int):
 		names = [name]
 
 	for name in names or []:

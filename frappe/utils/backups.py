@@ -307,8 +307,8 @@ class BackupGenerator:
 		backup_summary = self.get_summary()
 		print("Backup Summary for {0} at {1}".format(frappe.local.site, now()))
 
-		title = max([len(x) for x in backup_summary])
-		path = max([len(x["path"]) for x in backup_summary.values()])
+		title = max(len(x) for x in backup_summary)
+		path = max(len(x["path"]) for x in backup_summary.values())
 
 		for _type, info in backup_summary.items():
 			template = "{{0:{0}}}: {{1:{1}}} {{2}}".format(title, path)
@@ -381,7 +381,7 @@ class BackupGenerator:
 				"",
 			])
 
-		generated_header = "\n".join([f"-- {x}" for x in database_header_content]) + "\n"
+		generated_header = "\n".join(f"-- {x}" for x in database_header_content) + "\n"
 
 		with gzip.open(args.backup_path_db, "wt") as f:
 			f.write(generated_header)

@@ -1,14 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import frappe
 import unittest, json
 
-from frappe.website.render import build_page
+from frappe.website.serve import get_response_content
 from frappe.website.doctype.web_form.web_form import accept
 
-test_records = frappe.get_test_records('Web Form')
+test_dependencies = ['Web Form']
 
 class TestWebForm(unittest.TestCase):
 	def setUp(self):
@@ -42,10 +40,17 @@ class TestWebForm(unittest.TestCase):
 			'name': self.event_name
 		}
 
-		self.assertNotEquals(frappe.db.get_value("Event",
+		self.assertNotEqual(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))
 
 		accept(web_form='manage-events', docname=self.event_name, data=json.dumps(doc))
 
 		self.assertEqual(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))
+
+	def test_webform_render(self):
+		content = get_response_content('request-data')
+		self.assertIn('<h2>Request Data</h2>', content)
+		self.assertIn('data-doctype="Web Form"', content)
+		self.assertIn('data-path="request-data"', content)
+		self.assertIn('source-type="Generator"', content)

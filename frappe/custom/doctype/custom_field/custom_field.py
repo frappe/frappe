@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import json
 from frappe.utils import cstr
@@ -64,8 +63,8 @@ class CustomField(Document):
 			self.translatable = 0
 
 		if not self.flags.ignore_validate:
-			from frappe.core.doctype.doctype.doctype import check_if_fieldname_conflicts_with_methods
-			check_if_fieldname_conflicts_with_methods(self.dt, self.fieldname)
+			from frappe.core.doctype.doctype.doctype import check_fieldname_conflicts
+			check_fieldname_conflicts(self.dt, self.fieldname)
 
 	def on_update(self):
 		if not frappe.flags.in_setup_wizard:
