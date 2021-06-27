@@ -3,6 +3,11 @@ import ListSettings from "./list_settings";
 
 frappe.provide("frappe.views");
 
+// this prevents heavy UI work; we simply skip another rendering request if on is stil running.
+// could be more generix here.
+let _COUNTING = false;
+let _LISTRENDERING = false;
+
 frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	static load_last_view() {
 		const route = frappe.get_route();
@@ -574,9 +579,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render_count() {
+
+		if (_COUNTING) {
+			//console.log("Skip counting")
+			return;
+		}
+		_COUNTING = true;
 		if (!this.list_view_settings.disable_count) {
 			this.get_count_str().then((str) => {
 				this.$result.find(".list-count").html(`<span>${str}</span>`);
+				_COUNTING = false;
 			});
 		}
 	}
@@ -1281,6 +1293,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const { doctype, name } = data;
 			if (doctype !== this.doctype) return;
 
+			if (_LISTRENDERING) {
+				//console.log("skip rendering")
+				return;
+			}
+			_LISTRENDERING = true;
 			// filters to get only the doc with this name
 			const call_args = this.get_call_args();
 			call_args.args.filters.push([this.doctype, "name", "=", name]);
@@ -1332,6 +1349,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				if (this.$checks && this.$checks.length) {
 					this.set_rows_as_checked();
 				}
+				_LISTRENDERING = false;
 			});
 		});
 	}
