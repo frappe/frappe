@@ -607,9 +607,7 @@ frappe.Application = class Application {
 				let doc = JSON.parse(pasted_data);
 				if (doc.doctype) {
 					e.preventDefault();
-					let sleep = (time) => {
-						return new Promise((resolve) => setTimeout(resolve, time));
-					};
+					const sleep = frappe.utils.sleep;
 
 					frappe.dom.freeze(__('Creating {0}', [doc.doctype]) + '...');
 					// to avoid abrupt UX

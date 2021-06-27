@@ -201,6 +201,77 @@ class TestWebsite(unittest.TestCase):
 		self.assertIn('<div class="print-format">', content)
 		self.assertIn('<div>Language</div>', content)
 
+	def test_custom_base_template_path(self):
+		content = get_response_content('/_test/_test_folder/_test_page')
+		# assert the text in base template is rendered
+		self.assertIn('<h1>This is for testing</h1>', content)
+
+		# assert template block rendered
+		self.assertIn('<p>Test content</p>', content)
+
+	def test_json_sidebar_data(self):
+		frappe.flags.look_for_sidebar = False
+		content = get_response_content('/_test/_test_folder/_test_page')
+		self.assertNotIn('Test Sidebar', content)
+		clear_website_cache()
+		frappe.flags.look_for_sidebar = True
+		content = get_response_content('/_test/_test_folder/_test_page')
+		self.assertIn('Test Sidebar', content)
+		frappe.flags.look_for_sidebar = False
+
+	def test_base_template(self):
+		content = get_response_content('/_test/_test_custom_base.html')
+
+		# assert the text in base template is rendered
+		self.assertIn('<h1>This is for testing</h1>', content)
+
+		# assert template block rendered
+		self.assertIn('<p>Test content</p>', content)
+
+	def test_index_and_next_comment(self):
+		content = get_response_content('/_test/_test_folder')
+		# test if {index} was rendered
+		self.assertIn('<a href="/_test/_test_folder/_test_page"> Test Page</a>', content)
+
+		self.assertIn('<a href="/_test/_test_folder/_test_toc">Test TOC</a>', content)
+
+		content = get_response_content('/_test/_test_folder/_test_page')
+		# test if {next} was rendered
+		self.assertIn('Next: <a class="btn-next" href="/_test/_test_folder/_test_toc">Test TOC</a>', content)
+
+	def test_colocated_assets(self):
+		content = get_response_content('/_test/_test_folder/_test_page')
+		self.assertIn("<script>console.log('test data');</script>", content)
+		self.assertIn("background-color: var(--bg-color);", content)
+
+	def test_breadcrumbs(self):
+		content = get_response_content('/_test/_test_folder/_test_page')
+		self.assertIn('<span itemprop="name">Test TOC</span>', content)
+		self.assertIn('<span itemprop="name"> Test Page</span>', content)
+
+		content = get_response_content('/_test/_test_folder/index')
+		self.assertIn('<span itemprop="name"> Test</span>', content)
+		self.assertIn('<span itemprop="name">Test TOC</span>', content)
+
+	def test_get_context_without_context_object(self):
+		content = get_response_content('/_test/_test_no_context')
+		self.assertIn("Custom Content", content)
+
+	def test_caching(self):
+		# to enable caching
+		frappe.flags.force_website_cache = True
+
+		clear_website_cache()
+		# first response no-cache
+		response = get_response('/_test/_test_folder/_test_page')
+		self.assertIn(('X-From-Cache', 'False'), list(response.headers))
+
+		# first response returned from cache
+		response = get_response('/_test/_test_folder/_test_page')
+		self.assertIn(('X-From-Cache', 'True'), list(response.headers))
+
+		frappe.flags.force_website_cache = False
+
 
 def set_home_page_hook(key, value):
 	from frappe import hooks
