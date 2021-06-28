@@ -118,14 +118,14 @@ frappe.ui.form.PrintView = class {
 				fieldtype: 'Autocomplete',
 				fieldname: 'letterhead',
 				label: __('Select Letterhead'),
-				options: [__('Select Letterhead'),__('No Letterhead')],
+				options: [__('Select Letterhead'), __('No Letterhead')],
 				change: () => this.preview(),
 				default: this.print_settings.with_letterhead
 					? __('No Letterhead')
 					: __('Select Letterhead')
 			},
 		);
-		this.letterhead_selector = this.letterhead_selector_df.$input
+		this.letterhead_selector = this.letterhead_selector_df.$input;
 		this.sidebar_dynamic_section = $(
 			`<div class="dynamic-settings"></div>`
 		).appendTo(this.sidebar);
@@ -345,7 +345,7 @@ frappe.ui.form.PrintView = class {
 					return letterhead_options.push(letterhead.name);
 				});
 
-				this.letterhead_selector_df.set_data(letterhead_options)
+				this.letterhead_selector_df.set_data(letterhead_options);
 				let selected_letterhead = doc_letterhead || default_letterhead;
 				if (selected_letterhead)
 					this.letterhead_selector.val(selected_letterhead);
