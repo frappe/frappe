@@ -41,7 +41,7 @@ def get_context(context):
 		"build_version": frappe.utils.get_build_version(),
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
-		"dir": "rtl" if is_rtl() else "ltr",
+		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"lang": frappe.local.lang,
 		"sounds": hooks["sounds"],
 		"boot": boot if context.get("for_mobile") else boot_json,
