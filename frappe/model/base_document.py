@@ -866,7 +866,11 @@ class BaseDocument(object):
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
+<<<<<<< HEAD
 		if not currency and df:
+=======
+		if df and not currency:
+>>>>>>> 3584503574 (fix: Set currency only if df exists)
 			currency = self.get(df.get("options"))
 			if not frappe.db.exists('Currency', currency, cache=True):
 				currency = None
