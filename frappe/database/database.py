@@ -447,7 +447,7 @@ class Database(object):
 						# table not found, look in singles
 						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 
-						if not out:
+						if not out and frappe.db.get_value("DocType", doctype, "is_virtual", cache=True):
 							# check for virtual doctype
 							out = self.get_values_from_virtual_doctype(fields, filters, doctype, as_dict, debug, update)
 					else:
