@@ -22,11 +22,8 @@ class TestGoogleSettings(unittest.TestCase):
 		frappe.set_user('Guest')
 		frappe.db.set_value('Google Settings', None, 'enable', 1)
 		frappe.db.set_value('Google Settings', None, 'google_drive_picker_enabled', 1)
-		settings = get_file_picker_settings()
 
-		self.assertIn('enabled', settings)
-		self.assertEqual(False, settings.get('enabled', True))
-		self.assertEqual(1, len(settings))
+		self.assertRaises(frappe.PermissionError, get_file_picker_settings)
 
 		frappe.set_user('Adminstrator')
 
@@ -36,9 +33,7 @@ class TestGoogleSettings(unittest.TestCase):
 		frappe.db.set_value('Google Settings', None, 'google_drive_picker_enabled', 0)
 		settings = get_file_picker_settings()
 
-		self.assertIn('enabled', settings)
-		self.assertEqual(False, settings.get('enabled', True))
-		self.assertEqual(1, len(settings))
+		self.assertEqual(settings, {})
 
 	def test_google_disabled(self):
 		"""Google Drive Picker should be disabled if Google integration is not enabled."""
@@ -46,9 +41,7 @@ class TestGoogleSettings(unittest.TestCase):
 		frappe.db.set_value('Google Settings', None, 'google_drive_picker_enabled', 1)
 		settings = get_file_picker_settings()
 
-		self.assertIn('enabled', settings)
-		self.assertEqual(False, settings.get('enabled', True))
-		self.assertEqual(1, len(settings))
+		self.assertEqual(settings, {})
 
 	def test_picker_enabled(self):
 		"""If picker is enabled, get_file_picker_settings should return the credentials."""
