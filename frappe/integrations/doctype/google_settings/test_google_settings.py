@@ -17,16 +17,6 @@ class TestGoogleSettings(unittest.TestCase):
 		settings.api_key = 'test_api_key'
 		settings.save()
 
-	def test_picker_as_guest(self):
-		"""Google Drive Picker should be disbled for Guest."""
-		frappe.set_user('Guest')
-		frappe.db.set_value('Google Settings', None, 'enable', 1)
-		frappe.db.set_value('Google Settings', None, 'google_drive_picker_enabled', 1)
-
-		self.assertRaises(frappe.PermissionError, get_file_picker_settings)
-
-		frappe.set_user('Adminstrator')
-
 	def test_picker_disabled(self):
 		"""Google Drive Picker should be disabled if it is not enabled in Google Settings."""
 		frappe.db.set_value('Google Settings', None, 'enable', 1)
