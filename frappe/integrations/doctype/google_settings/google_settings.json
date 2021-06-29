@@ -76,7 +76,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2021-06-18 16:57:10.502174",
+ "modified": "2021-06-29 18:26:07.094851",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Settings",
@@ -89,16 +89,6 @@
    "print": 1,
    "read": 1,
    "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
-   "role": "All",
    "share": 1,
    "write": 1
   }
