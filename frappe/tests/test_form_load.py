@@ -4,6 +4,7 @@ import frappe, unittest
 from frappe.desk.form.load import getdoctype, getdoc
 from frappe.core.page.permission_manager.permission_manager import update, reset, add
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.contacts.doctype.contact.contact import Contact
 
 test_dependencies = ['Blog Category', 'Blogger']
 
@@ -98,7 +99,7 @@ class TestFormLoad(unittest.TestCase):
 		frappe.delete_doc(blog_post_property_setter.doctype, blog_post_property_setter.name)
 
 	def test_fieldlevel_permissions_in_load_for_child_table(self):
-		contact = frappe.new_doc('Contact')
+		contact = Contact.new()
 		contact.first_name = '_Test Contact 1'
 		contact.append('phone_nos', {'phone': '123456'})
 		contact.insert()
@@ -116,7 +117,7 @@ class TestFormLoad(unittest.TestCase):
 
 		frappe.set_user(user.name)
 
-		contact = frappe.get_doc('Contact', '_Test Contact 1')
+		contact = Contact('_Test Contact 1')
 
 		contact.phone_nos[0].phone = '654321'
 		contact.save()
@@ -130,7 +131,7 @@ class TestFormLoad(unittest.TestCase):
 		contact.phone_nos[0].phone = '654321'
 		contact.save()
 
-		contact = frappe.get_doc('Contact', '_Test Contact 1')
+		contact = Contact('_Test Contact 1')
 		self.assertEqual(contact.phone_nos[0].phone, '654321')
 
 		frappe.set_user('Administrator')

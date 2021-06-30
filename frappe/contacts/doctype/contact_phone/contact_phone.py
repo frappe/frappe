@@ -6,4 +6,4 @@
 from frappe.model.document import Document
 
 class ContactPhone(Document):
-	pass
+	_DOCTYPE_NAME = "Contact Phone"

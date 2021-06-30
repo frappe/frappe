@@ -9,6 +9,8 @@ from frappe.utils.jinja import validate_template
 from frappe import _
 
 class AddressTemplate(Document):
+	_DOCTYPE_NAME = "Address Template"
+
 	def validate(self):
 		if not self.template:
 			self.template = get_default_address_template()

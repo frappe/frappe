@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 import functools
 import re
+from frappe.contacts.doctype.address.address import Address
 
 def load_address_and_contact(doc, key=None):
 	"""Loads address list and contact list in `__onload`"""
@@ -51,7 +52,7 @@ def load_address_and_contact(doc, key=None):
 			}, fields=["phone"])
 
 		if contact.address:
-			address = frappe.get_doc("Address", contact.address)
+			address = Address(contact.address)
 			contact["address"] = get_condensed_address(address)
 
 	contact_list = sorted(contact_list,

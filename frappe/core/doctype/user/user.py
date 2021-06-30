@@ -27,6 +27,7 @@ class MaxUsersReachedError(frappe.ValidationError):
 
 
 class User(Document):
+	_DOCTYPE_NAME = "User"
 	__new_password = None
 
 	def __setup__(self):
@@ -1156,13 +1157,12 @@ def update_roles(role_profile):
 		user.add_roles(*roles)
 
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
-	from frappe.contacts.doctype.contact.contact import get_contact_name
+	from frappe.contacts.doctype.contact.contact import get_contact_name, Contact
 	if user.name in ["Administrator", "Guest"]: return
 
 	contact_name = get_contact_name(user.email)
 	if not contact_name:
-		contact = frappe.get_doc({
-			"doctype": "Contact",
+		contact = Contact({
 			"first_name": user.first_name,
 			"last_name": user.last_name,
 			"user": user.name,
@@ -1179,7 +1179,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
 		contact.insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
 	else:
-		contact = frappe.get_doc("Contact", contact_name)
+		contact = Contact(contact_name)
 		contact.first_name = user.first_name
 		contact.last_name = user.last_name
 		contact.gender = user.gender

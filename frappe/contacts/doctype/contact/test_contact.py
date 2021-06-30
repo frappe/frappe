@@ -4,6 +4,8 @@
 import frappe
 import unittest
 
+from frappe.contacts.doctype.contact.contact import Contact
+
 test_dependencies = ['Contact', 'Salutation']
 
 class TestContact(unittest.TestCase):
@@ -33,8 +35,7 @@ class TestContact(unittest.TestCase):
 		self.assertEqual(contact.mobile_no, "+91 0000000003")
 
 def create_contact(name, salutation, emails=None, phones=None, save=True):
-	doc = frappe.get_doc({
-			"doctype": "Contact",
+	doc = Contact({
 			"first_name": name,
 			"status": "Open",
 			"salutation": salutation

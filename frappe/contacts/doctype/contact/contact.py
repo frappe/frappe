@@ -6,10 +6,12 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.naming import append_number_if_name_exists
-from frappe.contacts.address_and_contact import set_link_title
+from frappe.core.doctype.user.user import User
 
 
 class Contact(Document):
+	_DOCTYPE_NAME = "Contact"
+
 	def autoname(self):
 		# concat first and last name
 		self.name = " ".join(filter(None,
@@ -24,6 +26,8 @@ class Contact(Document):
 			break
 
 	def validate(self):
+		from frappe.contacts.address_and_contact import set_link_title
+
 		self.set_primary_email()
 		self.set_primary("phone")
 		self.set_primary("mobile_no")
@@ -147,14 +151,13 @@ def get_default_contact(doctype, name):
 
 @frappe.whitelist()
 def invite_user(contact):
-	contact = frappe.get_doc("Contact", contact)
+	contact = Contact(contact)
 
 	if not contact.email_id:
 		frappe.throw(_("Please set Email Address"))
 
 	if contact.has_permission("write"):
-		user = frappe.get_doc({
-			"doctype": "User",
+		user = User({
 			"first_name": contact.first_name,
 			"last_name": contact.last_name,
 			"email": contact.email_id,
@@ -166,7 +169,7 @@ def invite_user(contact):
 
 @frappe.whitelist()
 def get_contact_details(contact):
-	contact = frappe.get_doc("Contact", contact)
+	contact = Contact(contact)
 	out = {
 		"contact_person": contact.get("name"),
 		"contact_display": " ".join(filter(None,
@@ -183,7 +186,7 @@ def update_contact(doc, method):
 	'''Update contact when user is updated, if contact is found. Called via hooks'''
 	contact_name = frappe.db.get_value("Contact", {"email_id": doc.name})
 	if contact_name:
-		contact = frappe.get_doc("Contact", contact_name)
+		contact = Contact(contact_name)
 		for key in ("first_name", "last_name", "phone"):
 			if doc.get(key):
 				contact.set(key, doc.get(key))

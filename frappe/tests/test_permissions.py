@@ -12,6 +12,7 @@ from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
 from frappe.desk.form.load import getdoc
+from frappe.contacts.doctype.contact.contact import Contact
 
 test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
@@ -346,8 +347,8 @@ class TestPermissions(unittest.TestCase):
 		add_user_permission("Salutation", "Mr", "test3@example.com")
 		self.set_strict_user_permissions(0)
 
-		allowed_contact = frappe.get_doc('Contact', '_Test Contact For _Test Customer')
-		other_contact = frappe.get_doc('Contact', '_Test Contact For _Test Supplier')
+		allowed_contact = Contact('_Test Contact For _Test Customer')
+		other_contact = Contact('_Test Contact For _Test Supplier')
 
 		frappe.set_user("test3@example.com")
 		self.assertTrue(allowed_contact.has_permission('read'))

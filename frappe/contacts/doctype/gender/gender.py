@@ -5,4 +5,4 @@
 from frappe.model.document import Document
 
 class Gender(Document):
-	pass
+	_DOCTYPE_NAME = "Gender"

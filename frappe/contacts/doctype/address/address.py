@@ -11,10 +11,12 @@ from frappe.model.document import Document
 from jinja2 import TemplateSyntaxError
 from frappe.model.naming import make_autoname
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
-from frappe.contacts.address_and_contact import set_link_title
+from frappe.contacts.doctype.contact.contact import Contact
 
 
 class Address(Document):
+	_DOCTYPE_NAME = "Address"
+
 	def __setup__(self):
 		self.flags.linked = False
 
@@ -32,6 +34,8 @@ class Address(Document):
 			throw(_("Address Title is mandatory."))
 
 	def validate(self):
+		from frappe.contacts.address_and_contact import set_link_title
+
 		self.link_address()
 		self.validate_preferred_address()
 		set_link_title(self)
@@ -42,7 +46,7 @@ class Address(Document):
 		if not self.links:
 			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
 			if contact_name:
-				contact = frappe.get_cached_doc('Contact', contact_name)
+				contact = Contact.from_cache(contact_name)
 				for link in contact.links:
 					self.append('links', dict(link_doctype=link.link_doctype, link_name=link.link_name))
 				return True
@@ -139,7 +143,7 @@ def get_territory_from_address(address):
 		return
 
 	if isinstance(address, str):
-		address = frappe.get_cached_doc("Address", address)
+		address = Address.from_cache(address)
 
 	territory = None
 	for fieldname in ("city", "state", "country"):
@@ -173,7 +177,7 @@ def has_website_permission(doc, ptype, user, verbose=False):
 	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
 
 	if contact_name:
-		contact = frappe.get_doc('Contact', contact_name)
+		contact = Contact(contact_name)
 		return contact.has_common_link(doc)
 
 	return False

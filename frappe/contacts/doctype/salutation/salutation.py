@@ -5,4 +5,4 @@
 from frappe.model.document import Document
 
 class Salutation(Document):
-	pass
+	_DOCTYPE_NAME = "Salutation"
