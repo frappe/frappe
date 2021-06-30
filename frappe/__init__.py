@@ -205,6 +205,11 @@ def init(site, sites_path=None, new_site=False):
 
 	setup_module_map()
 
+	try:
+		enqueue("frappe.doctypes.generate")
+	except Exception:
+		pass
+
 	local.initialised = True
 
 def connect(site=None, db_name=None, set_admin_as_user=True):
