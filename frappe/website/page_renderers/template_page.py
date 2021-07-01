@@ -150,8 +150,7 @@ class TemplatePage(BaseTemplatePage):
 
 	def set_page_properties(self):
 		self.context.base_template = self.context.base_template \
-			or get_base_template(self.path) \
-			or 'templates/web.html'
+			or get_base_template(self.path)
 		self.context.basepath = self.basepath
 		self.context.basename = self.basename
 		self.context.name = self.name
