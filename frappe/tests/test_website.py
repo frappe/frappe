@@ -253,12 +253,12 @@ class TestWebsite(unittest.TestCase):
 
 	def test_breadcrumbs(self):
 		content = get_response_content('/_test/_test_folder/_test_page')
-		self.assertIn('<span itemprop="name">Test TOC</span>', content)
+		self.assertIn('<span itemprop="name">Test Folder</span>', content)
 		self.assertIn('<span itemprop="name"> Test Page</span>', content)
 
 		content = get_response_content('/_test/_test_folder/index')
 		self.assertIn('<span itemprop="name"> Test</span>', content)
-		self.assertIn('<span itemprop="name">Test TOC</span>', content)
+		self.assertIn('<span itemprop="name">Test Folder</span>', content)
 
 	def test_get_context_without_context_object(self):
 		content = get_response_content('/_test/_test_no_context')
