@@ -12,6 +12,7 @@ import './script_manager';
 import './script_helpers';
 import './sidebar/form_sidebar';
 import './footer/footer';
+import './form_tour';
 
 frappe.ui.form.Controller = class FormController {
 	constructor(opts) {
@@ -150,6 +151,10 @@ frappe.ui.form.Form = class FrappeForm {
 		this.dashboard = new frappe.ui.form.Dashboard({
 			frm: this,
 			parent: $('<div class="form-dashboard">').insertAfter(this.layout.wrapper.find('.form-message'))
+		});
+
+		this.tour = new frappe.ui.form.FormTour({
+			frm: this
 		});
 
 		// workflow state
@@ -987,7 +992,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		frappe.re_route[frappe.router.get_sub_path()] = `${encodeURIComponent(frappe.router.slug(this.doctype))}/${encodeURIComponent(name)}`;
-		frappe.set_route('Form', this.doctype, name);
+		!frappe._from_link && frappe.set_route('Form', this.doctype, name);
 	}
 
 	// ACTIONS
@@ -1604,53 +1609,6 @@ frappe.ui.form.Form = class FrappeForm {
 			$el.removeClass('has-error');
 			$el.find('input, select, textarea').focus();
 		}, 1000);
-	}
-
-	show_tour(on_finish) {
-		const tour_info = frappe.tour[this.doctype];
-
-		if (!Array.isArray(tour_info)) {
-			return;
-		}
-
-		const driver = new frappe.Driver({
-			className: 'frappe-driver',
-			allowClose: false,
-			padding: 10,
-			overlayClickNext: true,
-			keyboardControl: true,
-			nextBtnText: 'Next',
-			prevBtnText: 'Previous',
-			opacity: 0.25
-		});
-
-		this.layout.sections.forEach(section => section.collapse(false));
-
-		let steps = tour_info.map(step => {
-			let field = this.get_docfield(step.fieldname);
-			return {
-				element: `.frappe-control[data-fieldname='${step.fieldname}']`,
-				popover: {
-					title: step.title || field.label,
-					description: step.description,
-					position: step.position || 'bottom'
-				},
-				onNext: () => {
-					const next_condition_satisfied = this.layout.evaluate_depends_on_value(step.next_step_condition || true);
-					if (!next_condition_satisfied) {
-						driver.preventMove();
-					}
-
-					if (!driver.hasNextStep()) {
-						on_finish && on_finish();
-					}
-				}
-			};
-		});
-
-		driver.defineSteps(steps);
-		frappe.router.on('change', () => driver.reset());
-		driver.start();
 	}
 
 	setup_docinfo_change_listener() {
