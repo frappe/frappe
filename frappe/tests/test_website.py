@@ -244,6 +244,13 @@ class TestWebsite(unittest.TestCase):
 		self.assertIn("<script>console.log('test data');</script>", content)
 		self.assertIn("background-color: var(--bg-color);", content)
 
+	def test_raw_assets_are_loaded(self):
+		content = get_response_content('/_test/assets/js_asset.js')
+		self.assertEqual("console.log('in');", content)
+
+		content = get_response_content('/_test/assets/css_asset.css')
+		self.assertEqual("""body{color:red}""", content)
+
 	def test_breadcrumbs(self):
 		content = get_response_content('/_test/_test_folder/_test_page')
 		self.assertIn('<span itemprop="name">Test TOC</span>', content)
