@@ -84,8 +84,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	if attachments:
 		add_attachments(comm.name, attachments)
 
-	frappe.db.commit()
-
 	if cint(send_email):
 		frappe.flags.print_letterhead = cint(print_letterhead)
 		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)

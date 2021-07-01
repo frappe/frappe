@@ -18,11 +18,97 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			this.$input.attr("maxlength", this.df.length || 140);
 		}
 
+		this.$input.on('paste', (e) => {
+			let pasted_data = frappe.utils.get_clipboard_data(e);
+			let maxlength = this.$input.attr('maxlength');
+			if (maxlength && pasted_data.length > maxlength) {
+				let warning_message = __('The value you pasted was {0} characters long. Max allowed characters is {1}.', [
+					cstr(pasted_data.length).bold(),
+					cstr(maxlength).bold()
+				]);
+
+				// Only show edit link to users who can update the doctype
+				if (this.frm && frappe.model.can_write(this.frm.doctype)) {
+					let doctype_edit_link = null;
+					if (this.frm.meta.custom) {
+						doctype_edit_link = frappe.utils.get_form_link(
+							'DocType', 
+							this.frm.doctype, true,
+							__('this form')
+						);
+					} else {
+						doctype_edit_link = frappe.utils.get_form_link('Customize Form', 'Customize Form', true, null, {
+							doc_type: this.frm.doctype
+						});
+					}
+					let edit_note = __('{0}: You can increase the limit for the field if required via {1}', [
+						__('Note').bold(),
+						doctype_edit_link
+					]);
+					warning_message += `<br><br><span class="text-muted text-small">${edit_note}</span>`;
+				}
+
+				frappe.msgprint({
+					message: warning_message,
+					indicator: 'orange',
+					title: __('Data Clipped')
+				});
+			}
+		});
+
 		this.set_input_attributes();
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.bind_change_event();
 		this.setup_autoname_check();
+
+		if (this.df.options == 'URL') {
+			this.setup_url_field();
+		}
+	},
+	setup_url_field: function() {
+		this.$wrapper.find('.control-input').append(
+			`<span class="link-btn">
+				<a class="btn-open no-decoration" title="${__("Open Link")}" target="_blank">
+					${frappe.utils.icon('link-url', 'sm')}
+				</a>
+			</span>`
+		);
+		
+		this.$link = this.$wrapper.find('.link-btn');
+		this.$link_open = this.$link.find('.btn-open');
+		this.$input[0].style.paddingRight = "24px"; // To prevent text-icon mixup
+
+		this.$input.on("focus", () => {
+			setTimeout(() => {
+				let inputValue = this.get_input_value();
+				
+				if (inputValue && validate_url(inputValue)) {
+					this.$link.toggle(true);
+					this.$link_open.attr('href', this.get_input_value());
+				}
+			}, 500);
+		});
+
+
+		this.$input.bind("input", () => {
+			let inputValue = this.get_input_value();
+
+			if (inputValue && validate_url(inputValue)) {
+				this.$link.toggle(true);
+				this.$link_open.attr('href', this.get_input_value());
+			} else {
+				this.$link.toggle(false);
+			}
+		});
+		
+		this.$input.on("blur", () => {
+			// if this disappears immediately, the user's click
+			// does not register, hence timeout
+			setTimeout(() => {
+				this.$link.toggle(false);
+			}, 500);
+		});
 	},
 	bind_change_event: function() {
 		const change_handler = e => {
@@ -126,6 +212,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				this.df.invalid = email_invalid;
 				return v;
 			}
+		} else if (this.df.options == 'URL') {
+			this.df.invalid = !validate_url(v);
+			return v;
 		} else {
 			return v;
 		}
