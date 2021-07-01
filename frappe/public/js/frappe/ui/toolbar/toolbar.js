@@ -104,7 +104,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}
 		});
 
-		$(document).on("page-change", function () {
+		$(document).on("page-change toolbar_setup", function () {
 			var $help_links = $(".dropdown-help #help-links");
 			$help_links.html("");
 
