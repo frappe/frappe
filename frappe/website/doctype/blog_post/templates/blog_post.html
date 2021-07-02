@@ -65,6 +65,11 @@
 			{% include 'templates/includes/comments/comments.html' %}
 		</div>
 	{% endif %}
+	{% if not disable_feedback %}
+	<div class="blog-feedback">
+		{% include 'templates/includes/feedback/feedback.html' %}
+	</div>
+	{% endif %}
 
 </div>
 <script>

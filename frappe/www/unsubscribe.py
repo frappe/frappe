@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 from frappe.utils.verified_command import verify_request
 from frappe.email.doctype.newsletter.newsletter import confirmed_unsubscribe

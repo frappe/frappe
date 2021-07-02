@@ -3,6 +3,8 @@ name: UI
 on:
   pull_request:
   workflow_dispatch:
+  push:
+    branches: [ develop ]
 
 jobs:
   test:
@@ -35,7 +37,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: 14
           check-latest: true
 
       - name: Add to Hosts
@@ -103,3 +105,5 @@ jobs:
 
       - name: UI Tests
         run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID
+        env:
+          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb

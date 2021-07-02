@@ -157,9 +157,7 @@ export default class OnboardingWidget extends Widget {
 		let route = frappe.utils.generate_route({
 			name: step.reference_report,
 			type: "report",
-			is_query_report: ["Query Report", "Script Report"].includes(
-				step.report_type
-			),
+			is_query_report: step.report_type !== "Report Builder",
 			doctype: step.report_reference_doctype,
 		});
 
@@ -205,7 +203,7 @@ export default class OnboardingWidget extends Widget {
 
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
-			frm.show_tour(() => {
+			const on_finish = () => {
 				let msg_dialog = frappe.msgprint({
 					message: __("Let's take you back to onboarding"),
 					title: __("Great Job"),
@@ -219,7 +217,10 @@ export default class OnboardingWidget extends Widget {
 						label: () => __("Continue"),
 					},
 				});
-			});
+			};
+			frm.tour
+				.init({ on_finish })
+				.then(() => frm.tour.start());
 		};
 
 		frappe.set_route(route);
@@ -292,12 +293,15 @@ export default class OnboardingWidget extends Widget {
 
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
-			frm.show_tour(() => {
+			const on_finish = () => {
 				frappe.msgprint({
 					message: __("Awesome, now try making an entry yourself"),
 					title: __("Great"),
 				});
-			});
+			};
+			frm.tour
+				.init({ on_finish })
+				.then(() => frm.tour.start());
 		};
 
 		let callback = () => {

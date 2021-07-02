@@ -87,24 +87,26 @@ $(".file-size").each(function() {
 	$(this).text(frappe.form.formatters.FileSize($(this).text()));
 });
 </script>
-<script type="text/javascript" src="/assets/js/control.min.js"></script>
+{{ include_script("controls.bundle.js") }}
 {% if is_list %}
 {# web form list #}
-<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
-<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
-<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
-<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
+<script type="text/javascript" src="/assets/frappe/node_modules/moment/min/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="/assets/frappe/node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"></script>
+{{ include_script("dialog.bundle.js") }}
+{{ include_script("web_form.bundle.js") }}
+{{ include_script("bootstrap-4-web.bundle.js") }}
 {% else %}
 {# web form #}
-<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
-<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
+{{ include_script("dialog.bundle.js") }}
+<script type="text/javascript" src="/assets/frappe/node_modules/moment/min/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="/assets/frappe/node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"></script>
 <script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
 <script>
 	Vue.prototype.__ = window.__;
 	Vue.prototype.frappe = window.frappe;
 </script>
-<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
-<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
+{{ include_script("web_form.bundle.js") }}
+{{ include_script("bootstrap-4-web.bundle.js") }}
 <script>
 
 {% if client_script %}
@@ -127,7 +129,7 @@ frappe.init_client_script = () => {
 
 {% block style %}
 {% if not is_list %}
-<link type="text/css" rel="stylesheet" href="/assets/css/web_form.css">
+{{ include_style('web_form.bundle.css') }}
 {% endif %}
 
 <style>

@@ -1,7 +1,10 @@
 import Quill from 'quill';
 import ImageResize from 'quill-image-resize';
+import MagicUrl from 'quill-magic-url';
+
 
 Quill.register('modules/imageResize', ImageResize);
+Quill.register('modules/magicUrl', MagicUrl);
 const CodeBlockContainer = Quill.import('formats/code-block-container');
 CodeBlockContainer.tagName = 'PRE';
 Quill.register(CodeBlockContainer, true);
@@ -68,22 +71,22 @@ CustomColor.tagName = "font";
 
 Quill.register(CustomColor, true);
 
-frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
+frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.form.ControlCode {
 	make_wrapper() {
-		this._super();
-	},
+		super.make_wrapper();
+	}
 
 	make_input() {
 		this.has_input = true;
 		this.make_quill_editor();
-	},
+	}
 
 	make_quill_editor() {
 		if (this.quill) return;
 		this.quill_container = $('<div>').appendTo(this.input_area);
 		this.quill = new Quill(this.quill_container[0], this.get_quill_options());
 		this.bind_events();
-	},
+	}
 
 	bind_events() {
 		this.quill.on('text-change', frappe.utils.debounce((delta, oldDelta, source) => {
@@ -135,24 +138,25 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 			e.preventDefault();
 		});
-	},
+	}
 
 	is_quill_dirty(source) {
 		if (source === 'api') return false;
 		let input_value = this.get_input_value();
 		return this.value !== input_value;
-	},
+	}
 
 	get_quill_options() {
 		return {
 			modules: {
 				toolbar: this.get_toolbar_options(),
 				table: true,
-				imageResize: {}
+				imageResize: {},
+				magicUrl: true
 			},
 			theme: 'snow'
 		};
-	},
+	}
 
 	get_toolbar_options() {
 		return [
@@ -174,14 +178,14 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'delete-table',
 			]}],
 		];
-	},
+	}
 
 	parse(value) {
 		if (value == null) {
 			value = "";
 		}
 		return frappe.dom.remove_script_and_style(value);
-	},
+	}
 
 	set_formatted_input(value) {
 		if (!this.quill) return;
@@ -195,7 +199,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		// set html without triggering a focus
 		const delta = this.quill.clipboard.convert({ html: value, text: '' });
 		this.quill.setContents(delta);
-	},
+	}
 
 	get_input_value() {
 		let value = this.quill ? this.quill.root.innerHTML : '';
@@ -211,9 +215,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		}
 
 		return value;
-	},
+	}
 
 	set_focus() {
 		this.quill.focus();
 	}
-});
+};

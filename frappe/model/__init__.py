@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 # model __init__.py
-from __future__ import unicode_literals
 import frappe
 
 data_fieldtypes = (
@@ -166,7 +165,7 @@ def delete_fields(args_dict, delete=0):
 			frappe.db.sql("""
 				DELETE FROM `tabSingles`
 				WHERE doctype='%s' AND field IN (%s)
-			""" % (dt, ", ".join(["'{}'".format(f) for f in fields])))
+			""" % (dt, ", ".join("'{}'".format(f) for f in fields)))
 		else:
 			existing_fields = frappe.db.multisql({
 					"mariadb": "DESC `tab%s`" % dt,
@@ -189,7 +188,7 @@ def delete_fields(args_dict, delete=0):
 				frappe.db.commit()
 
 			query = "ALTER TABLE `tab%s` " % dt + \
-				", ".join(["DROP COLUMN `%s`" % f for f in fields_need_to_delete])
+				", ".join("DROP COLUMN `%s`" % f for f in fields_need_to_delete)
 			frappe.db.sql(query)
 
 		if frappe.db.db_type == 'postgres':

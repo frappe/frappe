@@ -180,7 +180,7 @@ frappe.provide("frappe.views");
 					method_name = "update_order_for_single_card";
 					args = {
 						board_name: this.board.name,
-						docname: unescape(card.name),
+						docname: card.name,
 						from_colname: card.from_colname,
 						to_colname: card.to_colname,
 						old_index: card.old_index,
@@ -222,7 +222,7 @@ frappe.provide("frappe.views");
 						var col_name = $(this).data().columnValue;
 						order[col_name] = [];
 						$(this).find('.kanban-card-wrapper').each(function() {
-							var card_name = unescape($(this).data().name);
+							var card_name = decodeURIComponent($(this).data().name);
 							order[col_name].push(card_name);
 						});
 					});
@@ -514,7 +514,7 @@ frappe.provide("frappe.views");
 					wrapper.find('.kanban-cards').height('auto');
 					// update order
 					const args = {
-						name: $(e.item).attr('data-name'),
+						name: decodeURIComponent($(e.item).attr('data-name')),
 						from_colname: $(e.from).parents('.kanban-column').attr('data-column-value'),
 						to_colname: $(e.to).parents('.kanban-column').attr('data-column-value'),
 						old_index: e.oldIndex,

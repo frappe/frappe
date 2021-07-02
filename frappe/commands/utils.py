@@ -16,23 +16,33 @@ from frappe.utils import get_bench_path, update_progress_bar, cint
 
 @click.command('build')
 @click.option('--app', help='Build assets for app')
+@click.option('--apps', help='Build assets for specific apps')
 @click.option('--hard-link', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--make-copy', is_flag=True, default=False, help='[DEPRECATED] Copy the files instead of symlinking')
 @click.option('--restore', is_flag=True, default=False, help='[DEPRECATED] Copy the files instead of symlinking with force')
+@click.option('--production', is_flag=True, default=False, help='Build assets in production mode')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', is_flag=True, default=False, help='Force build assets instead of downloading available')
-def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=False, force=False):
-	"Minify + concatenate JS and CSS files, build translations"
+def build(app=None, apps=None, hard_link=False, make_copy=False, restore=False, production=False, verbose=False, force=False):
+	"Compile JS and CSS source files"
+	from frappe.build import bundle, download_frappe_assets
 	frappe.init('')
-	# don't minify in developer_mode for faster builds
-	no_compress = frappe.local.conf.developer_mode or False
+
+	if not apps and app:
+		apps = app
 
 	# dont try downloading assets if force used, app specified or running via CI
-	if not (force or app or os.environ.get('CI')):
+	if not (force or apps or os.environ.get('CI')):
 		# skip building frappe if assets exist remotely
-		skip_frappe = frappe.build.download_frappe_assets(verbose=verbose)
+		skip_frappe = download_frappe_assets(verbose=verbose)
 	else:
 		skip_frappe = False
+
+	# don't minify in developer_mode for faster builds
+	development = frappe.local.conf.developer_mode or frappe.local.dev_server
+	mode = "development" if development else "production"
+	if production:
+		mode = "production"
 
 	if make_copy or restore:
 		hard_link = make_copy or restore
@@ -41,21 +51,17 @@ def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=Fal
 			fg="yellow",
 		)
 
-	frappe.build.bundle(
-		skip_frappe=skip_frappe,
-		no_compress=no_compress,
-		hard_link=hard_link,
-		verbose=verbose,
-		app=app,
-	)
+	bundle(mode, apps=apps, hard_link=hard_link, verbose=verbose, skip_frappe=skip_frappe)
+
 
 
 @click.command('watch')
-def watch():
-	"Watch and concatenate JS and CSS files as and when they change"
-	import frappe.build
+@click.option('--apps', help='Watch assets for specific apps')
+def watch(apps=None):
+	"Watch and compile JS and CSS files as and when they change"
+	from frappe.build import watch
 	frappe.init('')
-	frappe.build.watch(True)
+	watch(apps)
 
 
 @click.command('clear-cache')
@@ -63,14 +69,14 @@ def watch():
 def clear_cache(context):
 	"Clear cache, doctype cache and defaults"
 	import frappe.sessions
-	import frappe.website.render
+	from frappe.website.utils import clear_website_cache
 	from frappe.desk.notifications import clear_notifications
 	for site in context.sites:
 		try:
 			frappe.connect(site)
 			frappe.clear_cache()
 			clear_notifications()
-			frappe.website.render.clear_cache()
+			clear_website_cache()
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -80,12 +86,12 @@ def clear_cache(context):
 @pass_context
 def clear_website_cache(context):
 	"Clear website cache"
-	import frappe.website.render
+	from frappe.website.utils import clear_website_cache
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.website.render.clear_cache()
+			clear_website_cache()
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -216,7 +222,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 
 			if profile:
 				import pstats
-				from six import StringIO
+				from io import StringIO
 
 				pr.disable()
 				s = StringIO()
@@ -501,8 +507,6 @@ frappe.db.connect()
 @pass_context
 def console(context):
 	"Start ipython console for a site"
-	import warnings
-
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.connect()
@@ -523,7 +527,6 @@ def console(context):
 	if failed_to_import:
 		print("\nFailed to import:\n{}".format(", ".join(failed_to_import)))
 
-	warnings.simplefilter('ignore')
 	IPython.embed(display_banner="", header="", colors="neutral")
 
 
@@ -569,22 +572,29 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		omit=[
-			'*.html',
+		incl = [
+			'*.py',
+		]
+		omit = [
 			'*.js',
 			'*.xml',
+			'*.pyc',
 			'*.css',
 			'*.less',
 			'*.scss',
 			'*.vue',
+			'*.html',
+			'*/test_*',
+			'*/node_modules/*',
 			'*/doctype/*/*_dashboard.py',
-			'*/patches/*'
+			'*/patches/*',
 		]
 
 		if not app or app == 'frappe':
+			omit.append('*/tests/*')
 			omit.append('*/commands/*')
 
-		cov = Coverage(source=[source_path], omit=omit)
+		cov = Coverage(source=[source_path], omit=omit, include=incl)
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
@@ -651,7 +661,7 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
 
 	# run for headless mode
-	run_or_open = 'run --browser firefox --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
+	run_or_open = 'run --browser firefox --record' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
 

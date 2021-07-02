@@ -1,10 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
-
-from six import iteritems, text_type
-
 """
 bootstrap client session
 """
@@ -75,7 +70,7 @@ def get_bootinfo():
 		frappe.get_attr(method)(bootinfo)
 
 	if bootinfo.lang:
-		bootinfo.lang = text_type(bootinfo.lang)
+		bootinfo.lang = str(bootinfo.lang)
 	bootinfo.versions = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.conf.error_report_email
@@ -220,7 +215,7 @@ def load_translations(bootinfo):
 		messages[name] = frappe._(name)
 
 	# only untranslated
-	messages = {k:v for k, v in iteritems(messages) if k!=v}
+	messages = {k: v for k, v in messages.items() if k!=v}
 
 	bootinfo["__messages"] = messages
 

@@ -3,8 +3,8 @@
 frappe.provide('frappe.search');
 frappe.provide('frappe.tags');
 
-frappe.search.AwesomeBar = Class.extend({
-	setup: function(element) {
+frappe.search.AwesomeBar = class AwesomeBar {
+	setup(element) {
 		var me = this;
 
 		$('.search-bar').removeClass('hidden');
@@ -119,14 +119,16 @@ frappe.search.AwesomeBar = Class.extend({
 			$input.val("");
 		});
 
-		$input.on("keydown", null, 'esc', function() {
-			$input.blur();
-		});
+		$input.on('keydown', (e) => {
+			if (e.key == 'Escape') {
+				$input.trigger('blur');
+			}
+		})
 		frappe.search.utils.setup_recent();
 		frappe.tags.utils.fetch_tags();
-	},
+	}
 
-	add_help: function() {
+	add_help() {
 		this.options.push({
 			value: __("Help on Search"),
 			index: -10,
@@ -149,9 +151,9 @@ frappe.search.AwesomeBar = Class.extend({
 				frappe.msgprint(txt, __("Search Help"));
 			}
 		});
-	},
+	}
 
-	set_specifics: function(txt, end_txt) {
+	set_specifics(txt, end_txt) {
 		var me = this;
 		var results = this.build_options(txt);
 		results.forEach(function(r) {
@@ -159,16 +161,16 @@ frappe.search.AwesomeBar = Class.extend({
 				me.options.push(r);
 			}
 		});
-	},
+	}
 
-	add_defaults: function(txt) {
+	add_defaults(txt) {
 		this.make_global_search(txt);
 		this.make_search_in_current(txt);
 		this.make_calculator(txt);
 		this.make_random(txt);
-	},
+	}
 
-	build_options: function(txt) {
+	build_options(txt) {
 		var options = frappe.search.utils.get_creatables(txt).concat(
 			frappe.search.utils.get_search_in_list(txt),
 			frappe.search.utils.get_doctypes(txt),
@@ -186,9 +188,9 @@ frappe.search.AwesomeBar = Class.extend({
 		return out.sort(function(a, b) {
 			return b.index - a.index;
 		});
-	},
+	}
 
-	deduplicate: function(options) {
+	deduplicate(options) {
 		var out = [], routes = [];
 		options.forEach(function(option) {
 			if(option.route) {
@@ -212,13 +214,13 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 		});
 		return out;
-	},
+	}
 
-	set_global_results: function(global_results, txt) {
+	set_global_results(global_results, txt) {
 		this.global_results = this.global_results.concat(global_results);
-	},
+	}
 
-	make_global_search: function(txt) {
+	make_global_search(txt) {
 		// let search_text = $(this.awesomplete.ul).find('.search-text');
 
 		// if (txt.charAt(0) === "#" || !txt) {
@@ -265,9 +267,9 @@ frappe.search.AwesomeBar = Class.extend({
 				frappe.searchdialog.search.init_search(txt, "global_search");
 			}
 		});
-	},
+	}
 
-	make_search_in_current: function(txt) {
+	make_search_in_current(txt) {
 		var route = frappe.get_route();
 		if(route[0]==="List" && txt.indexOf(" in") === -1) {
 			// search in title field
@@ -287,9 +289,9 @@ frappe.search.AwesomeBar = Class.extend({
 				match: txt
 			});
 		}
-	},
+	}
 
-	make_calculator: function(txt) {
+	make_calculator(txt) {
 		var first = txt.substr(0,1);
 		if(first==parseInt(first) || first==="(" || first==="=") {
 			if(first==="=") {
@@ -312,9 +314,9 @@ frappe.search.AwesomeBar = Class.extend({
 				// pass
 			}
 		}
-	},
+	}
 
-	make_random: function(txt) {
+	make_random(txt) {
 		if(txt.toLowerCase().includes('random')) {
 			this.options.push({
 				label: "Generate Random Password",
@@ -325,4 +327,4 @@ frappe.search.AwesomeBar = Class.extend({
 			})
 		}
 	}
-});
+};
