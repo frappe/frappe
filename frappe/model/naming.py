@@ -221,6 +221,16 @@ def revert_series_if_last(key, name, doc=None):
 			* prefix = #### and hashes = 2021 (hash doesn't exist)
 			* will search hash in key then accordingly get prefix = ""
 	"""
+
+	if hasattr(doc, 'amended_from'):
+		# do not revert if doc is amended, since cancelled docs still exist
+		if doc.docstatus != 2 and doc.amended_from:
+			return
+
+		# for first cancelled doc
+		if doc.docstatus == 2 and not doc.amended_from and doc.original_name:
+			name = doc.original_name
+
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:
@@ -304,14 +314,48 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 
 
 def _set_amended_name(doc):
+	if doc.original_name:
+		doc.name = doc.original_name
+	else:
+		original_name = get_original_name(doc)
+		doc.name = doc.amended_from
+
+		# rename original doc to next name in series, and set amended doc name as original name
+		next_name_in_series = get_new_name_from_amended_from(doc)
+		frappe.rename_doc(doc.doctype, original_name, next_name_in_series, force=True, show_alert=False)
+		doc.name = original_name
+		doc.amended_from = next_name_in_series
+		doc.original_name = original_name
+
+	return doc.name
+
+def get_original_name(doc):
+	# get original doc name from chain of amended docs
+	amended_from = original_name = doc.amended_from
+	while amended_from:
+		original_name = amended_from
+		amended_from = frappe.db.get_value(doc.doctype, amended_from, "amended_from")
+
+	return original_name
+
+def get_new_name_from_amended_from(doc):
 	am_id = 1
-	am_prefix = doc.amended_from
-	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
+	am_prefix = doc.name
+	if frappe.db.get_value(doc.doctype, doc.name, "amended_from"):
 		am_id = cint(doc.amended_from.split("-")[-1]) + 1
 		am_prefix = "-".join(doc.amended_from.split("-")[:-1])  # except the last hyphen
 
-	doc.name = am_prefix + "-" + str(am_id)
-	return doc.name
+	new_name = am_prefix + "-" + str(am_id)
+	if new_name == doc.name:
+		am_id += 1
+		new_name = am_prefix + "-" + str(am_id)
+	return new_name
+
+def rename_cancelled_doc(doc):
+	doc = frappe.parse_json(doc)
+	new_name = get_new_name_from_amended_from(doc)
+	frappe.rename_doc(doc.doctype, doc.name, new_name, force=True, show_alert=False)
+	return new_name
 
 
 def _field_autoname(autoname, doc, skip_slicing=None):
