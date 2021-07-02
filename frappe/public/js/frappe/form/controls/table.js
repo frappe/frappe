@@ -26,8 +26,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			const row_docname = $(e.target).closest('.grid-row').data('name');
 			const in_grid_form = $(e.target).closest('.form-in-grid').length;
 
-			let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
-			let pasted_data = clipboard_data.getData('Text');
+			let pasted_data = frappe.utils.get_clipboard_data(e);
 
 			if (!pasted_data || in_grid_form) return;
 
@@ -88,16 +87,17 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 	},
 	get_field(field_name) {
 		let fieldname;
+		field_name = field_name.toLowerCase();
 		this.grid.meta.fields.some(field => {
 			if (frappe.model.no_value_type.includes(field.fieldtype)) {
 				return false;
 			}
-
-			field_name = field_name.toLowerCase();
-			const is_field_matching = field_name => {
+			
+			const is_field_matching = () => {
 				return (
 					field.fieldname.toLowerCase() === field_name ||
-					(field.label || '').toLowerCase() === field_name
+					(field.label || '').toLowerCase() === field_name  ||
+					(__(field.label) || '').toLowerCase() === field_name
 				);
 			};
 
