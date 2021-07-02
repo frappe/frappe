@@ -26,8 +26,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			const row_docname = $(e.target).closest('.grid-row').data('name');
 			const in_grid_form = $(e.target).closest('.form-in-grid').length;
 
-			let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
-			let pasted_data = clipboard_data.getData('Text');
+			let pasted_data = frappe.utils.get_clipboard_data(e);
 
 			if (!pasted_data || in_grid_form) return;
 

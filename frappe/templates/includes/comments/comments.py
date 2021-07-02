@@ -9,9 +9,12 @@ from frappe.utils import add_to_date, now
 
 from frappe import _
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
 	doc = frappe.get_doc(reference_doctype, reference_name)
+
+	if frappe.session.user == 'Guest' and doc.doctype not in ['Blog Post', 'Web Page']:
+		return
 
 	if not comment.strip():
 		frappe.msgprint(_('The comment cannot be empty'))
@@ -24,17 +27,14 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		frappe.msgprint(_('Comments cannot have links or email addresses'))
 		return False
 
-	if not comment_email == frappe.session.user:
-		comment_email = frappe.session.user
-
 	comments_count = frappe.db.count("Comment", {
 		"comment_type": "Comment",
-		"comment_email": frappe.session.user,
+		"comment_email": comment_email,
 		"creation": (">", add_to_date(now(), hours=-1))
 	})
 
 	if comments_count > 20:
-		frappe.msgprint(_('Hourly comment limit reached for: {0}').format(frappe.bold(frappe.session.user)))
+		frappe.msgprint(_('Hourly comment limit reached for: {0}').format(frappe.bold(comment_email)))
 		return False
 
 	comment = doc.add_comment(
