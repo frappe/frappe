@@ -4139,7 +4139,7 @@ Document is only editable by users with role,Dokument jest edytowalny tylko prze
 {0}: Other permission rules may also apply,{0}: mogą obowiązywać również inne reguły dotyczące uprawnień,
 {0} Page Views,{0} Wyświetlenia strony,
 Expand,Rozszerzać,
-Collapse,Zawalić się,
+Collapse,Zwiń,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.",Nieprawidłowy token okaziciela. Podaj prawidłowy token dostępu z przedrostkiem „Okaziciel”.,
 "Failed to decode token, please provide a valid base64-encoded token.",Nie udało się zdekodować tokena. Podaj prawidłowy token zakodowany w base64.,
 "Invalid token, please provide a valid token with prefix 'Basic' or 'Token'.","Nieprawidłowy token, podaj prawidłowy token z prefiksem „Basic” lub „Token”.",
