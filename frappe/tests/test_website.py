@@ -244,14 +244,21 @@ class TestWebsite(unittest.TestCase):
 		self.assertIn("<script>console.log('test data');</script>", content)
 		self.assertIn("background-color: var(--bg-color);", content)
 
+	def test_raw_assets_are_loaded(self):
+		content = get_response_content('/_test/assets/js_asset.js')
+		self.assertEqual("console.log('in');", content)
+
+		content = get_response_content('/_test/assets/css_asset.css')
+		self.assertEqual("""body{color:red}""", content)
+
 	def test_breadcrumbs(self):
 		content = get_response_content('/_test/_test_folder/_test_page')
-		self.assertIn('<span itemprop="name">Test TOC</span>', content)
+		self.assertIn('<span itemprop="name">Test Folder</span>', content)
 		self.assertIn('<span itemprop="name"> Test Page</span>', content)
 
 		content = get_response_content('/_test/_test_folder/index')
 		self.assertIn('<span itemprop="name"> Test</span>', content)
-		self.assertIn('<span itemprop="name">Test TOC</span>', content)
+		self.assertIn('<span itemprop="name">Test Folder</span>', content)
 
 	def test_get_context_without_context_object(self):
 		content = get_response_content('/_test/_test_no_context')
