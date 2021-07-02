@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
 """
 Boot session from cache or build
 
@@ -16,8 +14,7 @@ import frappe.model.meta
 import frappe.defaults
 import frappe.translate
 import redis
-from six.moves.urllib.parse import unquote
-from six import text_type
+from urllib.parse import unquote
 from frappe.cache_manager import clear_user_cache
 
 @frappe.whitelist(allow_guest=True)
@@ -170,7 +167,8 @@ def get_csrf_token():
 
 def generate_csrf_token():
 	frappe.local.session.data.csrf_token = frappe.generate_hash()
-	frappe.local.session_obj.update(force=True)
+	if not frappe.flags.in_test:
+		frappe.local.session_obj.update(force=True)
 
 class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
@@ -337,7 +335,7 @@ class Session:
 		now = frappe.utils.now()
 
 		self.data['data']['last_updated'] = now
-		self.data['data']['lang'] = text_type(frappe.lang)
+		self.data['data']['lang'] = str(frappe.lang)
 
 		# update session in db
 		last_updated = frappe.cache().hget("last_db_session_update", self.sid)

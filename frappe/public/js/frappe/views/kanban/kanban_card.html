@@ -1,4 +1,4 @@
-<div class="kanban-card-wrapper {{ disable_click }}" data-name="{{escape(name)}}">
+<div class="kanban-card-wrapper {{ disable_click }}" data-name="{{encodeURIComponent(name)}}">
 	<a class="kanban-card-redirect" href="#">
 		<div class="kanban-card content">
 			{% if(image_url) { %}

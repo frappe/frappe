@@ -2,7 +2,6 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.modules.export_file import export_to_files
@@ -44,20 +43,19 @@ class Workspace(Document):
 
 	def get_link_groups(self):
 		cards = []
-		current_card = {
+		current_card = frappe._dict({
 			"label": "Link",
 			"type": "Card Break",
 			"icon": None,
 			"hidden": False,
-		}
+		})
 
 		card_links = []
 
 		for link in self.links:
 			link = link.as_dict()
 			if link.type == "Card Break":
-
-				if card_links:
+				if card_links and (not current_card.only_for or current_card.only_for == frappe.get_system_settings('country')):
 					current_card['links'] = card_links
 					cards.append(current_card)
 

@@ -2,7 +2,6 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils import unique
@@ -132,7 +131,7 @@ def update_tags(doc, tags):
 		:param doc: Document to be added to global tags
 	"""
 
-	new_tags = list(set([tag.strip() for tag in tags.split(",") if tag]))
+	new_tags = {tag.strip() for tag in tags.split(",") if tag}
 
 	for tag in new_tags:
 		if not frappe.db.exists("Tag Link", {"parenttype": doc.doctype, "parent": doc.name, "tag": tag}):

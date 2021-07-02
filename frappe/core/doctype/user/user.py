@@ -1,10 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
 from bs4 import BeautifulSoup
-
 import frappe
 import frappe.share
 import frappe.defaults
@@ -17,7 +13,7 @@ from frappe.utils.password import update_password as _update_password, check_pas
 from frappe.desk.notifications import clear_notifications
 from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings, toggle_notifications
 from frappe.utils.user import get_system_managers
-from frappe.website.utils import is_signup_enabled
+from frappe.website.utils import is_signup_disabled
 from frappe.rate_limiter import rate_limit
 from frappe.utils.background_jobs import enqueue
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
@@ -843,7 +839,7 @@ def verify_password(password):
 
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name, redirect_to):
-	if not is_signup_enabled():
+	if is_signup_disabled():
 		frappe.throw(_('Sign Up is disabled'), title='Not Allowed')
 
 	user = frappe.db.get("User", {"email": email})
@@ -935,7 +931,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		LIMIT %(page_len)s OFFSET %(start)s
 	""".format(
 			user_type_condition = user_type_condition,
-			standard_users=", ".join([frappe.db.escape(u) for u in STANDARD_USERS]),
+			standard_users=", ".join(frappe.db.escape(u) for u in STANDARD_USERS),
 			key=searchfield,
 			fcond=get_filters_cond(doctype, filters, conditions),
 			mcond=get_match_cond(doctype)

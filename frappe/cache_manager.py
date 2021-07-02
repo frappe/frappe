@@ -1,8 +1,6 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe, json
 from frappe.model.document import Document
 from frappe.desk.notifications import (delete_notification_count_for,
@@ -55,7 +53,7 @@ def clear_domain_cache(user=None):
 	cache.delete_value(domain_cache_keys)
 
 def clear_global_cache():
-	from frappe.website.render import clear_cache as clear_website_cache
+	from frappe.website.utils import clear_website_cache
 
 	clear_doctype_cache()
 	clear_website_cache()
