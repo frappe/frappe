@@ -245,8 +245,9 @@ class TestWebsite(unittest.TestCase):
 		self.assertIn("background-color: var(--bg-color);", content)
 
 	def test_raw_assets_are_loaded(self):
-		content = get_response_content('/_test/assets/js_asset.js')
-		self.assertEqual("console.log('in');", content)
+		content = get_response_content('/_test/assets/js_asset.min.js')
+		# minified js files should not be passed through jinja renderer
+		self.assertEqual("//{% if title %} {{title}} {% endif %}\nconsole.log('in');", content)
 
 		content = get_response_content('/_test/assets/css_asset.css')
 		self.assertEqual("""body{color:red}""", content)
