@@ -449,15 +449,15 @@ def cache_html(func):
 
 	return cache_html_decorator
 
-def build_response(path, data, http_status_code, headers=None):
+def build_response(path, data, http_status_code, headers=None, preload_assets=True):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
 	response.headers["X-Page-Name"] = path.encode("ascii", errors="xmlcharrefreplace")
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
-
-	add_preload_headers(response)
+	if preload_assets:
+		add_preload_headers(response)
 	if headers:
 		for key, val in iteritems(headers):
 			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
