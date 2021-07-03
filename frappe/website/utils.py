@@ -449,15 +449,14 @@ def cache_html(func):
 
 	return cache_html_decorator
 
-def build_response(path, data, http_status_code, headers=None, preload_assets=True):
+def build_response(path, data, http_status_code, headers=None):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
 	response.headers["X-Page-Name"] = path.encode("ascii", errors="xmlcharrefreplace")
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
-	if preload_assets:
-		add_preload_headers(response)
+	add_preload_headers(response)
 	if headers:
 		for key, val in iteritems(headers):
 			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
@@ -486,11 +485,12 @@ def set_content_type(response, data, path):
 	return data
 
 def add_preload_headers(response):
-	from bs4 import BeautifulSoup
+	from bs4 import BeautifulSoup, SoupStrainer
 
 	try:
 		preload = []
-		soup = BeautifulSoup(response.data, "lxml")
+		strainer = SoupStrainer(re.compile("script|link"))
+		soup = BeautifulSoup(response.data, "lxml", parse_only=strainer)
 		for elem in soup.find_all('script', src=re.compile(".*")):
 			preload.append(("script", elem.get("src")))
 
