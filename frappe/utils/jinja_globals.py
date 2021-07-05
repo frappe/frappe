@@ -75,9 +75,6 @@ def include_script(path):
 
 def include_style(path, rtl=None):
 	path = bundled_asset(path)
-
-	if is_rtl(rtl):
-		path = path.replace('/css/', '/css-rtl/')
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
 
@@ -87,9 +84,9 @@ def bundled_asset(path, rtl=None):
 
 	if ".bundle." in path and not path.startswith("/assets"):
 		bundled_assets = get_assets_json()
-		path = bundled_assets.get(path) or path
 		if path.endswith('.css') and is_rtl(rtl):
-			path = path.replace('/css/', '/css-rtl/')
+			path = f"rtl_{path}"
+		path = bundled_assets.get(path) or path
 
 	return abs_url(path)
 

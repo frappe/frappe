@@ -170,10 +170,10 @@ frappe.assets = {
 
 	bundled_asset(path, is_rtl=null) {
 		if (!path.startsWith('/assets') && path.includes('.bundle.')) {
-			path = frappe.boot.assets_json[path] || path;
 			if (path.endsWith('.css') && is_rtl) {
-				path = path.replace('/css/', '/css-rtl/');
+				path = `rtl_${path}`;
 			}
+			path = frappe.boot.assets_json[path] || path;
 			return path;
 		}
 		return path;

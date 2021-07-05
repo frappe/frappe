@@ -385,7 +385,11 @@ async function write_assets_json(metafile) {
 		let info = metafile.outputs[output];
 		let asset_path = "/" + path.relative(sites_path, output);
 		if (info.entryPoint) {
-			out[path.basename(info.entryPoint)] = asset_path;
+			let key = path.basename(info.entryPoint);
+			if (key.endsWith('.css') && asset_path.includes('/css-rtl/')) {
+				key = `rtl_${key}`;
+			}
+			out[key] = asset_path;
 		}
 	}
 
