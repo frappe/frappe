@@ -115,7 +115,7 @@ async function execute() {
 		log("Watching for changes...");
 	}
 	for (const result of results) {
-		write_assets_json(result.metafile);
+		await write_assets_json(result.metafile);
 	}
 }
 
