@@ -302,6 +302,15 @@ select.input-xs {
 	}
 }
 
+/*!rtl:raw:
+.dropdown-menu {
+	right: auto;
+}
+.popover {
+	right: auto;
+}
+*/
+
 .custom-control.custom-switch {
 	font-size: var(--text-md);
 	line-height: 1.6;
