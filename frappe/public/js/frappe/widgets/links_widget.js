@@ -64,6 +64,7 @@ export default class LinksWidget extends Widget {
 			const opts = {
 				name: item.link_to,
 				type: item.link_type,
+				doctype: item.doctype,
 				is_query_report: item.is_query_report
 			};
 
