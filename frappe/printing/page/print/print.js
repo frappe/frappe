@@ -118,7 +118,8 @@ frappe.ui.form.PrintView = class {
 				fieldtype: 'Autocomplete',
 				fieldname: 'letterhead',
 				label: __('Select Letterhead'),
-				options: [__('Select Letterhead'),__('No Letterhead')],
+				placeholder: __('Select Letterhead'),
+				options: [__('No Letterhead')],
 				change: () => this.preview(),
 				default: this.print_settings.with_letterhead
 					? __('No Letterhead')
@@ -333,7 +334,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_letterhead_options() {
-		let letterhead_options = [__('Select Letterhead'), __('No Letterhead')];
+		let letterhead_options = [__('No Letterhead')];
 		let default_letterhead;
 		let doc_letterhead = this.frm.doc.letter_head;
 
