@@ -3,7 +3,6 @@ from frappe.model.document import Document
 from frappe.model.base_document import get_controller
 
 import frappe
-import sys
 
 FRAPPE_KEY = bytes("frappe", "utf8")
 
@@ -52,9 +51,3 @@ except Exception:
 # loads controllers from Redis and save it under the frappe.doctypes namespace
 for dt, ct in BENCH_CONTROLLERS.items():
 	globals()[modulize(dt)] = ct
-
-
-if not BENCH_CONTROLLERS:
-	if __name__ in sys.modules:
-		print("`frappe.doctypes` can't be accessed at this time")
-		sys.modules.pop(__name__)
