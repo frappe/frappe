@@ -767,14 +767,15 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 			frappe.destroy()
 
 
-@click.command('version')
-@click.option('--output', help='Output format. One of: plain, table, json, legacy.', default='legacy')
+@click.command("version")
+@click.option("-f", "--format", "output",
+	type=click.Choice(["plain", "table", "json", "legacy"]), help="Output format", default="legacy")
 def get_version(output):
-	"Show the versions of all the installed apps"
+	"""Show the versions of all the installed apps."""
 	from git import Repo
 	from frappe.utils.commands import render_table
 
-	frappe.init('')
+	frappe.init("")
 	data = []
 
 	for app in sorted(frappe.get_all_apps()):
@@ -786,27 +787,28 @@ def get_version(output):
 		app_info.app = app
 		app_info.branch = repo.head.ref.name
 		app_info.commit = repo.head.ref.commit.hexsha[:7]
-
-		if hasattr(app_hooks, '{0}_version'.format(app_info.branch)):
-			app_info.version = getattr(app_hooks, '{0}_version'.format(app_info.branch))
-		elif hasattr(module, "__version__"):
-			app_info.version = module.__version__
+		app_info.version = getattr(app_hooks, f"{app_info.branch}_version", None) or module.__version__
 
 		data.append(app_info)
 
-	if output == 'table':
-		table = [['App', 'Version', 'Branch', 'Commit']]
-		for app_info in data:
-			table.append([app_info.app, app_info.version, app_info.branch, app_info.commit])
-		render_table(table)
-	elif output == 'json':
-		click.echo(json.dumps(data, indent=4))
-	elif output == 'plain':
-		for app_info in data:
-			click.echo(f'{app_info.app} {app_info.version} {app_info.branch} ({app_info.commit})')
-	else: # legacy
-		for app_info in data:
-			click.echo(f'{app_info.app} {app_info.version}')
+	{
+		"legacy": lambda: [
+			click.echo(f"{app_info.app} {app_info.version}")
+			for app_info in data
+		],
+		"plain": lambda: [
+			click.echo(f"{app_info.app} {app_info.version} {app_info.branch} ({app_info.commit})")
+			for app_info in data
+		],
+		"table": lambda: render_table(
+			[["App", "Version", "Branch", "Commit"]] +
+			[
+				[app_info.app, app_info.version, app_info.branch, app_info.commit] 
+				for app_info in data
+			]
+		),
+		"json": lambda: click.echo(json.dumps(data, indent=4)),
+	}[output]()
 
 
 @click.command('rebuild-global-search')
