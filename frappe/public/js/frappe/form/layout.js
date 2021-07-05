@@ -543,7 +543,7 @@ frappe.ui.form.Layout = class Layout {
 
 		} else if (expression.substr(0, 5)=='eval:') {
 			try {
-				out = frappe.utils.eval(expression.substr(5), { doc });
+				out = frappe.utils.eval(expression.substr(5), { doc, parent });
 				if (parent && parent.istable && expression.includes('is_submittable')) {
 					out = true;
 				}

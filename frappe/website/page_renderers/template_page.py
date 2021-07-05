@@ -70,7 +70,7 @@ class TemplatePage(BaseTemplatePage):
 
 		self.set_pymodule()
 		self.update_context()
-		self.setup_template()
+		self.setup_template_source()
 		self.load_colocated_files()
 		self.set_properties_from_source()
 		self.post_process_context()
@@ -118,7 +118,7 @@ class TemplatePage(BaseTemplatePage):
 		if os.path.exists(os.path.join(self.app_path, self.pymodule_path)):
 			self.pymodule_name = self.app + "." + self.pymodule_path.replace(os.path.sep, ".")[:-3]
 
-	def setup_template(self):
+	def setup_template_source(self):
 		'''Setup template source, frontmatter and markdown conversion'''
 		self.source = self.get_raw_template()
 		self.extract_frontmatter()
@@ -126,7 +126,6 @@ class TemplatePage(BaseTemplatePage):
 
 	def update_context(self):
 		self.set_page_properties()
-		self.set_properties_from_source()
 		self.context.build_version = frappe.utils.get_build_version()
 
 		if self.pymodule_name:
@@ -150,8 +149,7 @@ class TemplatePage(BaseTemplatePage):
 
 	def set_page_properties(self):
 		self.context.base_template = self.context.base_template \
-			or get_base_template(self.path) \
-			or 'templates/web.html'
+			or get_base_template(self.path)
 		self.context.basepath = self.basepath
 		self.context.basename = self.basename
 		self.context.name = self.name
@@ -203,13 +201,10 @@ class TemplatePage(BaseTemplatePage):
 					frappe.errprint(frappe.utils.get_traceback())
 
 	def render_template(self):
-		if self.source:
+		if self.template_path.endswith('min.js'):
+			html = self.source # static
+		else:
 			html = frappe.render_template(self.source, self.context)
-		elif self.template_path:
-			if self.path.endswith('min.js'):
-				html = self.get_raw_template() # static
-			else:
-				html = frappe.get_template(self.template_path).render(self.context)
 
 		return html
 

@@ -37,7 +37,7 @@ class PathResolver():
 
 		endpoint = resolve_path(self.path)
 		custom_renderers = self.get_custom_page_renderers()
-		renderers = custom_renderers + [StaticPage, WebFormPage, ListPage, DocumentPage, TemplatePage, PrintPage, NotFoundPage]
+		renderers = custom_renderers + [StaticPage, WebFormPage, DocumentPage, TemplatePage, ListPage, PrintPage, NotFoundPage]
 
 		for renderer in renderers:
 			renderer_instance = renderer(endpoint, 200)
