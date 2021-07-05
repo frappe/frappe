@@ -126,7 +126,7 @@ frappe.ui.form.PrintView = class {
 					: __('Select Letterhead')
 			},
 		);
-		this.letterhead_selector = this.letterhead_selector_df.$input
+		this.letterhead_selector = this.letterhead_selector_df.$input;
 		this.sidebar_dynamic_section = $(
 			`<div class="dynamic-settings"></div>`
 		).appendTo(this.sidebar);
@@ -339,14 +339,14 @@ frappe.ui.form.PrintView = class {
 		let doc_letterhead = this.frm.doc.letter_head;
 
 		return frappe.db
-			.get_list('Letter Head', { fields: ['name', 'is_default'], limit: 0 }   )
+			.get_list('Letter Head', { fields: ['name', 'is_default'], limit: 0 })
 			.then((letterheads) => {
 				letterheads.map((letterhead) => {
 					if (letterhead.is_default) default_letterhead = letterhead.name;
 					return letterhead_options.push(letterhead.name);
 				});
 
-				this.letterhead_selector_df.set_data(letterhead_options)
+				this.letterhead_selector_df.set_data(letterhead_options);
 				let selected_letterhead = doc_letterhead || default_letterhead;
 				if (selected_letterhead)
 					this.letterhead_selector.val(selected_letterhead);
