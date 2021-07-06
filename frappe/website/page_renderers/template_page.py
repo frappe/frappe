@@ -7,7 +7,7 @@ from frappe.website.router import get_page_info
 from frappe.website.page_renderers.base_template_page import BaseTemplatePage
 from frappe.website.router import get_base_template
 from frappe.website.utils import (extract_comment_tag, extract_title, get_next_link,
-	get_toc, get_frontmatter, cache_html, get_sidebar_items, build_response)
+	get_toc, get_frontmatter, cache_html, get_sidebar_items)
 
 WEBPAGE_PY_MODULE_PROPERTIES = ("base_template_path", "template", "no_cache", "sitemap", "condition_field")
 
@@ -58,7 +58,9 @@ class TemplatePage(BaseTemplatePage):
 		return (frappe.as_unicode(f'{search_path}{d}') for d in ('', '.html', '.md', '/index.html', '/index.md'))
 
 	def render(self):
-		return build_response(self.path, self.get_html(), self.http_status_code, self.headers)
+		html = self.get_html()
+		html = self.add_csrf_token(html)
+		return self.build_response(html)
 
 	@cache_html
 	def get_html(self):
@@ -67,13 +69,14 @@ class TemplatePage(BaseTemplatePage):
 		self.init_context()
 
 		self.set_pymodule()
-		self.setup_template()
 		self.update_context()
+		self.setup_template_source()
+		self.load_colocated_files()
+		self.set_properties_from_source()
 		self.post_process_context()
 
 		html = self.render_template()
 		html = self.update_toc(html)
-		html = self.add_csrf_token(html)
 
 		return html
 
@@ -115,7 +118,7 @@ class TemplatePage(BaseTemplatePage):
 		if os.path.exists(os.path.join(self.app_path, self.pymodule_path)):
 			self.pymodule_name = self.app + "." + self.pymodule_path.replace(os.path.sep, ".")[:-3]
 
-	def setup_template(self):
+	def setup_template_source(self):
 		'''Setup template source, frontmatter and markdown conversion'''
 		self.source = self.get_raw_template()
 		self.extract_frontmatter()
@@ -123,8 +126,6 @@ class TemplatePage(BaseTemplatePage):
 
 	def update_context(self):
 		self.set_page_properties()
-		self.set_properties_from_source()
-		self.load_colocated_files()
 		self.context.build_version = frappe.utils.get_build_version()
 
 		if self.pymodule_name:
@@ -148,8 +149,7 @@ class TemplatePage(BaseTemplatePage):
 
 	def set_page_properties(self):
 		self.context.base_template = self.context.base_template \
-			or get_base_template(self.path) \
-			or 'templates/web.html'
+			or get_base_template(self.path)
 		self.context.basepath = self.basepath
 		self.context.basename = self.basename
 		self.context.name = self.name
@@ -185,10 +185,15 @@ class TemplatePage(BaseTemplatePage):
 				click.echo(f'\n⚠️  DEPRECATION WARNING: {comment_tag} will be deprecated on 2021-12-31.')
 				click.echo(f'Please remove it from {self.template_path} in {self.app}')
 
-	def run_pymodule_method(self, method):
-		if hasattr(self.pymodule, method):
+	def run_pymodule_method(self, method_name):
+		if hasattr(self.pymodule, method_name):
 			try:
-				return getattr(self.pymodule, method)(self.context)
+				import inspect
+				method = getattr(self.pymodule, method_name)
+				if inspect.getfullargspec(method).args:
+					return method(self.context)
+				else:
+					return method()
 			except (frappe.PermissionError, frappe.DoesNotExistError, frappe.Redirect):
 				raise
 			except Exception:
@@ -196,13 +201,10 @@ class TemplatePage(BaseTemplatePage):
 					frappe.errprint(frappe.utils.get_traceback())
 
 	def render_template(self):
-		if self.source:
+		if self.template_path.endswith('min.js'):
+			html = self.source # static
+		else:
 			html = frappe.render_template(self.source, self.context)
-		elif self.template_path:
-			if self.path.endswith('min.js'):
-				html = self.get_raw_template() # static
-			else:
-				html = frappe.get_template(self.template_path).render(self.context)
 
 		return html
 
@@ -212,7 +214,7 @@ class TemplatePage(BaseTemplatePage):
 				or '{% extends' in self.source))
 
 	def get_raw_template(self):
-		return frappe.get_jloader().get_source(frappe.get_jenv(), self.template_path)[0]
+		return frappe.get_jloader().get_source(frappe.get_jenv(), self.context.template)[0]
 
 	def load_colocated_files(self):
 		'''load co-located css/js files with the same name'''

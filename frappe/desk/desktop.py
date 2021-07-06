@@ -368,6 +368,7 @@ def get_desktop_page(page):
 			'allow_customization': not wspace.doc.disable_user_customization
 		}
 	except DoesNotExistError:
+		frappe.log_error(frappe.get_traceback())
 		return {}
 
 @frappe.whitelist()
