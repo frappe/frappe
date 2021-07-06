@@ -192,16 +192,16 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
 });
 
 Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
-	let selector = `.form-control[data-fieldname="${fieldname}"]`;
+	let selector = `[data-fieldname="${fieldname}"] input:visible`;
 
 	if (fieldtype === 'Text Editor') {
-		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]`;
+		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true] input:visible`;
 	}
 	if (fieldtype === 'Code') {
-		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
+		selector = `[data-fieldname="${fieldname}"] .ace_text-input input:visible`;
 	}
 
-	return cy.get(selector);
+	return cy.get(selector).first();
 });
 
 Cypress.Commands.add('fill_table_field', (tablefieldname, row_idx, fieldname, value, fieldtype = 'Data') => {
