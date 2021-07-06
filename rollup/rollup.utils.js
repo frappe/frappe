@@ -44,7 +44,14 @@ const get_build_json_path = app => path.resolve(get_public_path(app), 'build.jso
 
 function get_build_json(app) {
 	try {
-		return require(get_build_json_path(app));
+		let build_json = Object.assign({}, require(get_build_json_path(app)));
+		let rtl_assets = {};
+		Object.keys(build_json).forEach(key => {
+			if (key.endsWith('.css')) {
+				rtl_assets[key.replace('css/', 'css-rtl/')] = build_json[key];
+			}
+		});
+		return Object.assign(build_json, rtl_assets);
 	} catch (e) {
 		// build.json does not exist
 		return null;

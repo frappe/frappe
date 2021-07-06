@@ -28,7 +28,7 @@ const {
 function get_rollup_options(output_file, input_files) {
 	if (output_file.endsWith('.js')) {
 		return get_rollup_options_for_js(output_file, input_files);
-	} else if(output_file.endsWith('.css')) {
+	} else if (output_file.endsWith('.css')) {
 		return get_rollup_options_for_css(output_file, input_files);
 	}
 }
@@ -110,6 +110,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 function get_rollup_options_for_css(output_file, input_files) {
 	const output_path = path.resolve(assets_path, output_file);
 	const starts_with_css = output_file.startsWith('css/');
+	console.log(require("rtlcss"))
 
 	const plugins = [
 		// enables array of inputs
@@ -133,8 +134,9 @@ function get_rollup_options_for_css(output_file, input_files) {
 					...get_options_for_scss(),
 					outFile: output_path,
 					sourceMapContents: true
-				}]
-			],
+				}],
+				output_file.startsWith('css/') ? ['rtlcss', require("rtlcss")] : null
+			].filter(Boolean),
 			include: [
 				path.resolve(bench_path, '**/*.less'),
 				path.resolve(bench_path, '**/*.scss'),
