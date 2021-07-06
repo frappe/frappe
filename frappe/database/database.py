@@ -18,7 +18,6 @@ from time import time
 from frappe.utils import now, getdate, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils import cint, cast_fieldtype
 
 # imports - compatibility imports
 from six import (
