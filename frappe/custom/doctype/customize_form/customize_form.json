@@ -21,6 +21,7 @@
   "track_views",
   "allow_auto_repeat",
   "allow_import",
+  "enable_qr_code",
   "fields_section_break",
   "fields",
   "naming_section",
@@ -280,6 +281,12 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_qr_code",
+   "fieldtype": "Check",
+   "label": "Enable QR Code"
   }
  ],
  "hide_toolbar": 1,
@@ -288,7 +295,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-06-21 19:01:06.920663",
+ "modified": "2021-07-06 19:54:11.056891",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

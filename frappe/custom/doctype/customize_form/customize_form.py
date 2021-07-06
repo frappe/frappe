@@ -5,6 +5,9 @@
 	Customize Form is a Single DocType used to mask the Property Setter
 	Thus providing a better UI from user perspective
 """
+import os
+import io
+from pyqrcode import create as qrcreate
 import json
 import frappe
 import frappe.translate
@@ -120,6 +123,18 @@ class CustomizeForm(Document):
 					source_text=self.doc_type,
 					translated_text=self.label,
 					language_code=frappe.local.lang or 'en')).insert()
+	
+	def set_qr_code_custom_field(self):
+		if self.enable_qr_code == 1:
+			create_custom_field(self.doc_type, dict(
+				fieldname='qr_code',
+				label='QR Code',
+				fieldtype='Attach Image',
+				read_only=1, no_copy=1, hidden=1
+			))
+		else:
+			docname = self.doc_type + '-qr_code'
+			frappe.delete_doc_if_exists('Custom Field', docname)
 
 	def clear_existing_doc(self):
 		doc_type = self.doc_type
@@ -143,6 +158,7 @@ class CustomizeForm(Document):
 		self.set_property_setters()
 		self.update_custom_fields()
 		self.set_name_translation()
+		self.set_qr_code_custom_field()
 		validate_fields_for_doctype(self.doc_type)
 		check_email_append_to(self)
 
@@ -489,6 +505,7 @@ doctype_properties = {
 	'track_views': 'Check',
 	'allow_auto_repeat': 'Check',
 	'allow_import': 'Check',
+	'enable_qr_code': 'Check',
 	'show_preview_popup': 'Check',
 	'default_email_template': 'Data',
 	'email_append_to': 'Check',
@@ -570,3 +587,53 @@ ALLOWED_FIELDTYPE_CHANGE = (
 	('Table', 'Table MultiSelect'))
 
 ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Select', 'Data')
+
+
+def genrate_qr_code_file(doc, method):
+	"""
+	Generate and attach QR Code for the document for public access
+	"""
+	# if QR Code field not present, do nothing
+	if not hasattr(doc, 'qr_code'):
+		return
+
+	# Don't create QR Code if it already exists
+	qr_code = doc.get("qr_code")
+	if qr_code and frappe.db.exists({"doctype": "File", "file_url": qr_code}):
+		return
+
+	# Creating public url to print format
+	default_print_format = frappe.db.get_value('Property Setter', dict(property='default_print_format', doc_type=doc.doctype), "value")
+
+	# System Language
+	language = frappe.get_system_settings('language')
+
+	# creating qr code for the url
+	url = f"{ frappe.utils.get_url() }/{ doc.doctype }/{ doc.name }?format={ default_print_format or 'Standard' }&_lang={ language }&key={ doc.get_signature() }"
+	qr_image = io.BytesIO()
+	url = qrcreate(url, error='L')
+	url.png(qr_image, scale=2, quiet_zone=1)
+
+	# making file
+	filename = f"QR-CODE-{doc.name}.png".replace(os.path.sep, "__")
+	_file = frappe.get_doc({
+		"doctype": "File",
+		"file_name": filename,
+		"is_private": 0,
+		"content": qr_image.getvalue()
+	})
+
+	_file.save()
+
+	# assigning to document
+	doc.db_set('qr_code', _file.file_url)
+	doc.notify_update()
+
+def delete_qr_code_file(doc, method):
+	if hasattr(doc, 'qr_code'):
+		if doc.get('qr_code'):
+			file_doc = frappe.get_list('File', {
+				'file_url': doc.qr_code
+			})
+			if len(file_doc):
+				frappe.delete_doc('File', file_doc[0].name)
