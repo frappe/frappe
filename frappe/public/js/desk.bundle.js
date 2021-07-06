@@ -67,7 +67,6 @@ import "./frappe/views/container.js";
 import "./frappe/views/breadcrumbs.js";
 import "./frappe/views/factory.js";
 import "./frappe/views/pageview.js";
-import "./frappe/views/wiki.js";
 
 import "./frappe/ui/toolbar/awesome_bar.js";
 // import "./frappe/ui/toolbar/energy_points_notifications.js";
@@ -83,10 +82,9 @@ import "./frappe/ui/toolbar/toolbar.js";
 import "./frappe/views/communication.js";
 import "./frappe/views/translation_manager.js";
 import "./frappe/views/workspace/workspace.js";
+import "./frappe/views/workspace/blocks/index.js";
 
 import "./frappe/widgets/widget_group.js";
-
-import "./frappe/wiki_blocks/blocks.js";
 
 import "./frappe/ui/sort_selector.html";
 import "./frappe/ui/sort_selector.js";

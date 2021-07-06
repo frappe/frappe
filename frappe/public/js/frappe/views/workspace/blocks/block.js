@@ -1,4 +1,4 @@
-import get_dialog_constructor from "../widgets/widget_dialog.js";
+import get_dialog_constructor from "../../../widgets/widget_dialog.js";
 
 export default class Block {
 	constructor(opts) {

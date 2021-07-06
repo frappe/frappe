@@ -3,9 +3,11 @@
 # For license information, please see license.txt
 
 import frappe
+import json
 from frappe import _
 from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
+from frappe.desk.desktop import save_new_widget
 from frappe.desk.utils import validate_route_conflict
 
 from json import loads
@@ -154,3 +156,102 @@ def get_link_type(key):
 def get_report_type(report):
 	report_type = frappe.get_value("Report", report, "report_type")
 	return report_type in ["Query Report", "Script Report", "Custom Report"]
+
+
+@frappe.whitelist()
+def get_pages():
+	has_access = "System Manager" in frappe.get_roles()
+	fields = ['name', 'title', 'icon', 'public', 'parent_page', 'content']
+
+	pages = get_page_list(fields, { 'public': 1 })
+	private_pages = get_page_list(fields, { 'for_user': frappe.session.user })
+
+	if private_pages:
+		pages.extend(private_pages)
+
+	return { 'pages': pages, 'has_access': has_access }
+
+@frappe.whitelist()
+def save_page(title, parent, public, sb_items, deleted_pages, new_widgets, blocks, save):
+	save = frappe.parse_json(save)
+	public = frappe.parse_json(public)
+	if save: 
+		doc = frappe.new_doc('Workspace')
+		doc.title = title
+		doc.content = blocks
+		doc.parent_page = parent
+
+		if public:
+			doc.label = title
+			doc.public = 1
+		else:
+			doc.label = title + "-" + frappe.session.user
+			doc.for_user = frappe.session.user
+		doc.save(ignore_permissions=True)
+	else:
+		if public:
+			filters = {
+				'public': public,
+				'label': title
+			}
+		else:
+			filters = {
+				'for_user': frappe.session.user,
+				'label': title + "-" + frappe.session.user
+			}
+		pages = frappe.get_list("Workspace", filters=filters)
+		if pages:
+			doc = frappe.get_doc("Workspace", pages[0])
+
+		doc.content = blocks
+		doc.save(ignore_permissions=True)
+
+	if json.loads(sb_items):
+		sort_pages(json.loads(sb_items))
+
+	if json.loads(new_widgets):
+		save_new_widget(doc, title, blocks, new_widgets)
+
+	if json.loads(deleted_pages):
+		return delete_pages(json.loads(deleted_pages))
+
+	return { "name": title, "public": public }
+
+def delete_pages(deleted_pages):
+	for page in deleted_pages:
+		if page.get("public") and "System Manager" not in frappe.get_roles():
+			return { "name": page.get("title"), "public": 1 }
+
+		if frappe.db.exists("Workspace", page.get("name")):
+			frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)
+
+	return { "name": "Home", "public": 1 }
+
+def sort_pages(sb_items):
+	public_pages = [page for page in sb_items if page.get('public')=='1']
+	private_pages = [page for page in sb_items if page.get('public')=='0']
+
+	wspace_public_pages = get_page_list(['name', 'title'], { 'public': 1 })
+	wspace_private_pages = get_page_list(['name', 'title'], { 'for_user': frappe.session.user })
+
+	sort_page(wspace_private_pages, private_pages)
+
+	if "System Manager" in frappe.get_roles():
+		sort_page(wspace_public_pages, public_pages)
+
+def sort_page(wspace_pages, pages):
+	for seq, d in enumerate(pages):
+		for page in wspace_pages:
+			if page.title == d.get('title'):
+				doc = frappe.get_doc('Workspace', page.name)
+				doc.sequence_id = seq + 1
+				doc.parent_page = d.get('parent_page') or ""
+				doc.save(ignore_permissions=True)
+				break
+
+def get_page_list(fields, filters):
+	return frappe.get_list("Workspace",
+		fields=fields,
+		filters=filters,
+		order_by='sequence_id asc'
+	)

@@ -4,7 +4,6 @@
 
 import frappe
 import json
-from typing import Dict, List
 from json import loads, dumps
 from frappe import _, DoesNotExistError, ValidationError, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
@@ -29,10 +28,10 @@ def handle_not_exist(fn):
 
 
 class Workspace:
-	def __init__(self, page_name, minimal=False, wiki=False) -> List[Dict]:
-		if isinstance(wiki, str):
-			wiki = json.loads(wiki)
-		self.page_name = page_name
+	def __init__(self, page, minimal=False):
+		self.page_name = page.get('name')
+		self.page_title = page.get('title')
+		self.public_page = page.get('public')
 		self.extended_links = []
 		self.extended_charts = []
 		self.extended_shortcuts = []
@@ -40,10 +39,7 @@ class Workspace:
 		self.user = frappe.get_user()
 		self.allowed_modules = self.get_cached('user_allowed_modules', self.get_allowed_modules)
 
-		if wiki:
-			self.doc = self.get_wiki_page_for_user()
-		else:
-			self.doc = self.get_page_for_user()
+		self.doc = self.get_page_for_user()
 
 		if self.doc.module and self.doc.module not in self.allowed_modules:
 			raise frappe.PermissionError
@@ -109,40 +105,18 @@ class Workspace:
 		return self.user.allow_modules
 
 	def get_page_for_user(self):
-		filters = {
-			'extends': self.page_name,
-			'for_user': frappe.session.user,
-		}
-		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
-		if user_pages:
-			return frappe.get_cached_doc("Workspace", user_pages[0])
+		if self.public_page:
+			filters = {
+				'label': self.page_name,
+				'public': 1
+			}
+			public_pages = frappe.get_all("Workspace", filters=filters, limit=1)
+			if public_pages:
+				return frappe.get_cached_doc("Workspace", public_pages[0])
 
 		filters = {
-			'extends_another_page': 1,
-			'extends': self.page_name,
-			'is_default': 1
-		}
-		default_page = frappe.get_all("Workspace", filters=filters, limit=1)
-		if default_page:
-			return frappe.get_cached_doc("Workspace", default_page[0])
-
-		self.get_pages_to_extend()
-		return frappe.get_cached_doc("Workspace", self.page_name)
-
-	def get_wiki_page_for_user(self):
-		filters = {
-			'wiki_label': self.page_name,
-			'public': 1,
-			'for_wiki': 1
-		}
-		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
-		if user_pages:
-			return frappe.get_cached_doc("Workspace", user_pages[0])
-
-		filters = {
-			'wiki_label': self.page_name,
-			'for_user': frappe.session.user,
-			'for_wiki': 1
+			'label': self.page_title + "-" + frappe.session.user,
+			'for_user': frappe.session.user
 		}
 		user_pages = frappe.get_all("Workspace", filters=filters, limit=1)
 		if user_pages:
@@ -373,7 +347,7 @@ class Workspace:
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_desktop_page(page, wiki=False):
+def get_desktop_page(page):
 	"""Applies permissions, customizations and returns the configruration for a page
 	on desk.
 
@@ -384,13 +358,7 @@ def get_desktop_page(page, wiki=False):
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
-		if wiki and not frappe.db.exists({
-			'doctype': 'Workspace',
-			'wiki_label': page,
-			'for_wiki': 1
-		}):
-			return
-		wspace = Workspace(page, wiki=wiki)
+		wspace = Workspace(loads(page))
 		wspace.build_workspace()
 		return {
 			'charts': wspace.charts,
@@ -428,7 +396,7 @@ def get_desk_sidebar_items():
 	# Filter Page based on Permission
 	for page in all_pages:
 		try:
-			wspace = Workspace(page.get('name'), True)
+			wspace = Workspace(page.get('name'))
 			if wspace.is_page_allowed():
 				pages.append(page)
 				page['label'] = _(page.get('name'))
@@ -511,42 +479,6 @@ def get_custom_workspace_for_user(page):
 	doc.for_user = frappe.session.user
 	return doc
 
-def get_custom_wiki_for_user(page, public):
-	"""Get custom page from workspace if exists or create one
-
-	Args:
-		page (stirng): Page name
-
-	Returns:
-		Object: Document object
-	"""
-	filters = {
-		'wiki_label': page,
-		'public': 1
-	}
-	pages = frappe.get_list("Workspace", filters=filters)
-	if pages:
-		return frappe.get_doc("Workspace", pages[0])
-
-	filters = {
-		'wiki_label': page,
-		'for_user': frappe.session.user,
-		'for_wiki': 1
-	}
-	pages = frappe.get_list("Workspace", filters=filters)
-	if pages:
-		return frappe.get_doc("Workspace", pages[0])
-	doc = frappe.new_doc("Workspace")
-	doc.wiki_label = page
-	doc.label = page + '-Wiki-' + frappe.session.user
-	doc.for_user = frappe.session.user
-	doc.for_wiki = 1
-	doc.public = public
-	doc.charts = []
-	doc.shortcuts = []
-	doc.links = []
-	return doc
-
 @frappe.whitelist()
 def save_customization(page, config):
 	"""Save customizations as a separate doctype in Workspace per user
@@ -605,24 +537,23 @@ def save_customization(page, config):
 
 	return True
 
-def save_new_widget(page, blocks, new_widgets, public=False):
-	page_doc = get_custom_wiki_for_user(page, public)
+def save_new_widget(doc, page, blocks, new_widgets):
 
 	widgets = _dict(loads(new_widgets))
 
 	if widgets.chart:
-		page_doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
+		doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
 	if widgets.shortcut:
-		page_doc.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
+		doc.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
 	if widgets.card:
-		page_doc.build_links_table_from_card(widgets.card)
+		doc.build_links_table_from_card(widgets.card)
 
 	# remove duplicate and unwanted widgets
 	if widgets: 
-		clean_up(page_doc, blocks)
+		clean_up(doc, blocks)
 
 	try:
-		page_doc.save(ignore_permissions=True)
+		doc.save(ignore_permissions=True)
 	except (ValidationError, TypeError) as e:
 		# Create a json string to log
 		json_config = dumps(widgets, sort_keys=True, indent=4)
@@ -638,12 +569,11 @@ def save_new_widget(page, blocks, new_widgets, public=False):
 		return False
 
 	return True
-
 def clean_up(original_page, blocks):
 	page_widgets = {}
 
 	for wid in ['shortcut', 'card', 'chart']:
-		# get list of widget's name from internal wiki page  
+		# get list of widget's name from blocks 
 		page_widgets[wid] = [x['data'][wid + '_name'] for x in json.loads(blocks) if x['type'] == wid]
 
 	# shortcut & chart cleanup
