@@ -15,7 +15,6 @@ from frappe import _
 from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils import cint, cast_fieldtype
 
 
 class Database(object):
