@@ -61,5 +61,5 @@ def update_wspace(doc, seq, content):
 	else:
 		new_doc.for_user = doc.for_user
 		new_doc.title = doc.extends
-	doc.delete()
-	new_doc.save()
+	frappe.delete_doc("Workspace", doc.name, force=1)
+	new_doc.insert(ignore_permissions=True)
