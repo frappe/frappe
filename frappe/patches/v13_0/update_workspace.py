@@ -16,9 +16,10 @@ def create_content(doc):
 	if doc.charts:
 		invalid_links = []
 		for c in doc.charts:
-			content.append({"type":"chart","data":{"chart_name":c.label,"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
 			if c.get_invalid_links()[0]:
 				invalid_links.append(c)
+			else:
+				content.append({"type":"chart","data":{"chart_name":c.label,"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
 		for l in invalid_links:
 			del doc.charts[doc.charts.index(l)]
 	if doc.shortcuts:
@@ -26,9 +27,10 @@ def create_content(doc):
 		content.append({"type":"spacer","data":{"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
 		content.append({"type":"header","data":{"text":doc.shortcuts_label or _("Your Shortcuts"),"level":4,"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
 		for s in doc.shortcuts:
-			content.append({"type":"shortcut","data":{"shortcut_name":s.label,"col":4,"pt":0,"pr":0,"pb":0,"pl":0}})
 			if s.get_invalid_links()[0]:
 				invalid_links.append(s)
+			else:
+				content.append({"type":"shortcut","data":{"shortcut_name":s.label,"col":4,"pt":0,"pr":0,"pb":0,"pl":0}})
 		for l in invalid_links:
 			del doc.shortcuts[doc.shortcuts.index(l)]
 	if doc.links:
@@ -45,27 +47,19 @@ def create_content(doc):
 	return content
 
 def update_wspace(doc, seq, content):
-	doc.sequence_id = seq + 1
-	doc.content = json.dumps(content)
+	new_doc = frappe.new_doc('Workspace')
+	new_doc.label = doc.label
+	new_doc.icon = doc.icon
+	new_doc.sequence_id = seq + 1
+	new_doc.content = json.dumps(content)
+	new_doc.charts = doc.charts or []
+	new_doc.shortcuts = doc.shortcuts or []
+	new_doc.links = doc.links or []
 	if doc.is_standard:
-		doc.public = 1
-		doc.for_user = ''
-		doc.title = doc.label
+		new_doc.public = 1
+		new_doc.title = doc.label
 	else:
-		doc.public = 0
-		doc.for_user = doc.for_user
-		doc.title = doc.extends
-	doc.extends = ''
-	doc.module = ''
-	doc.category = ''
-	doc.restrict_to_domain = ''
-	doc.onboarding = ''
-	doc.extends_another_page = 0
-	doc.is_default = 0
-	doc.is_standard = 0
-	doc.developer_mode_only = 0
-	doc.disable_user_customization = 0
-	doc.pin_to_top = 0
-	doc.pin_to_bottom = 0
-	doc.hide_custom = 0
-	doc.save()
+		new_doc.for_user = doc.for_user
+		new_doc.title = doc.extends
+	doc.delete()
+	new_doc.save()
