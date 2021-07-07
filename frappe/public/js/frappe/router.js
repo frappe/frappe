@@ -143,7 +143,7 @@ frappe.router = {
 
 	doctype_route_exist(route) {
 		route = this.get_sub_path_string(route).split('/');
-		return this.routes[route[0]]
+		return this.routes[route[0]];
 	},
 
 	set_doctype_route(route) {

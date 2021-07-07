@@ -27,7 +27,7 @@ frappe.views.Workspace = class Workspace {
 		this.sidebar_items = {
 			'public': {},
 			'private': {}
-		}
+		};
 		this.sidebar_categories = [
 			"Public",
 			frappe.user.first_name()
@@ -96,11 +96,11 @@ frappe.views.Workspace = class Workspace {
 				}
 				if (this.new_page && this.new_page.name) {
 					if (!frappe.workspaces[frappe.router.slug(this.new_page.name)]) {
-						this.new_page = { name:this.all_pages[0].title, public:this.all_pages[0].public };
+						this.new_page = { name: this.all_pages[0].title, public: this.all_pages[0].public };
 					}
 					if (this.new_page.public) {
 						frappe.set_route(`${frappe.router.slug(this.new_page.name)}`);
-					} else{
+					} else {
 						frappe.set_route(`private/${frappe.router.slug(this.new_page.name)}`);
 					}
 					this.new_page = null;
@@ -159,7 +159,7 @@ frappe.views.Workspace = class Workspace {
 			let icon = $(e.target).find("span use").attr("href")==="#icon-small-down" ? "#icon-right" : "#icon-small-down";
 			$(e.target).find("span use").attr("href", icon);
 			$(e.target).parent().find('.sidebar-item-container').toggleClass('hidden');
-		})
+		});
 
 		if (Object.keys(root_pages).length === 0) {
 			sidebar_section.addClass('hidden');
@@ -226,7 +226,7 @@ frappe.views.Workspace = class Workspace {
 		let page = {
 			name: this.get_page_to_show().name,
 			public: this.get_page_to_show().public
-		}
+		};
 		this.page.set_title(`${__(page.name)}`);
 
 		this.show_page(page);
@@ -254,16 +254,16 @@ frappe.views.Workspace = class Workspace {
 		let default_page;
 
 		if (localStorage.current_page) {
-			default_page = { name:localStorage.current_page, public:localStorage.is_current_page_public == 'true' };
+			default_page = { name: localStorage.current_page, public: localStorage.is_current_page_public == 'true' };
 		} else if (Object.keys(this.all_pages).length !== 0) {
-			default_page = { name:this.all_pages[0].title, public:true };
+			default_page = { name: this.all_pages[0].title, public: true };
 		} else {
-			default_page = { name:"Build", public:true };
+			default_page = { name: "Build", public: true };
 		}
 
 		let page = (frappe.get_route()[1] == 'private' ? frappe.get_route()[2] : frappe.get_route()[1]) || default_page.name;
 		let is_public = frappe.get_route()[1] ? frappe.get_route()[1] != 'private' : default_page.public;
-		return { name:page, public:is_public };
+		return { name: page, public: is_public };
 	}
 
 	show_page(page) {
@@ -280,7 +280,7 @@ frappe.views.Workspace = class Workspace {
 			}
 		}
 
-		this.current_page = { name:page.name, public:page.public };
+		this.current_page = { name: page.name, public: page.public };
 		localStorage.current_page = page.name;
 		localStorage.is_current_page_public = page.public;
 

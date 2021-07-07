@@ -163,13 +163,13 @@ def get_pages():
 	has_access = "System Manager" in frappe.get_roles()
 	fields = ['name', 'title', 'icon', 'public', 'parent_page', 'content']
 
-	pages = get_page_list(fields, { 'public': 1 })
-	private_pages = get_page_list(fields, { 'for_user': frappe.session.user })
+	pages = get_page_list(fields, {'public': 1})
+	private_pages = get_page_list(fields, {'for_user': frappe.session.user})
 
 	if private_pages:
 		pages.extend(private_pages)
 
-	return { 'pages': pages, 'has_access': has_access }
+	return {'pages': pages, 'has_access': has_access}
 
 @frappe.whitelist()
 def save_page(title, parent, public, sb_items, deleted_pages, new_widgets, blocks, save):
@@ -215,24 +215,24 @@ def save_page(title, parent, public, sb_items, deleted_pages, new_widgets, block
 	if json.loads(deleted_pages):
 		return delete_pages(json.loads(deleted_pages))
 
-	return { "name": title, "public": public }
+	return {"name": title, "public": public}
 
 def delete_pages(deleted_pages):
 	for page in deleted_pages:
 		if page.get("public") and "System Manager" not in frappe.get_roles():
-			return { "name": page.get("title"), "public": 1 }
+			return {"name": page.get("title"), "public": 1}
 
 		if frappe.db.exists("Workspace", page.get("name")):
 			frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)
 
-	return { "name": "Home", "public": 1 }
+	return {"name": "Home", "public": 1}
 
 def sort_pages(sb_items):
 	public_pages = [page for page in sb_items if page.get('public')=='1']
 	private_pages = [page for page in sb_items if page.get('public')=='0']
 
-	wspace_public_pages = get_page_list(['name', 'title'], { 'public': 1 })
-	wspace_private_pages = get_page_list(['name', 'title'], { 'for_user': frappe.session.user })
+	wspace_public_pages = get_page_list(['name', 'title'], {'public': 1})
+	wspace_private_pages = get_page_list(['name', 'title'], {'for_user': frappe.session.user})
 
 	sort_page(wspace_private_pages, private_pages)
 
@@ -250,8 +250,4 @@ def sort_page(wspace_pages, pages):
 				break
 
 def get_page_list(fields, filters):
-	return frappe.get_list("Workspace",
-		fields=fields,
-		filters=filters,
-		order_by='sequence_id asc'
-	)
+	return frappe.get_list("Workspace", fields=fields, filters=filters, order_by='sequence_id asc')

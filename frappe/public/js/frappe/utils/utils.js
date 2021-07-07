@@ -1334,7 +1334,7 @@ Object.assign(frappe.utils, {
 		});
 		!prepend && button.appendTo(wrapper);
 		prepend && wrapper.prepend(button);
-  },
+	},
 
 	sleep(time) {
 		return new Promise((resolve) => setTimeout(resolve, time));
