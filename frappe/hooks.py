@@ -171,7 +171,7 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
-			"frappe.custom.doctype.customize_form.customize_form.genrate_qr_code_file"
+			"frappe.custom.doctype.customize_form.customize_form.delete_qr_code_file"
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
