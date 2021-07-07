@@ -169,15 +169,16 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				as_list=not as_dict,
 				strict=False)
 
-			# Filtering the values array so that query is included in very element
-			values = tuple(
-					[
-						v for v in list(values)
-						if re.search(
-							re.escape(txt) + ".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE
-						)
-					]
-				)
+			if doctype in UNTRANSLATED_DOCTYPES:
+				# Filtering the values array so that query is included in very element
+				values = tuple(
+						[
+							v for v in list(values)
+							if re.search(
+								re.escape(txt) + ".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE
+							)
+						]
+					)
 
 			# Sorting the values array so that relevant results always come first
 			# This will first bring elements on top in which query is a prefix of element
