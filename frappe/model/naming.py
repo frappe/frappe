@@ -147,13 +147,19 @@ def parse_naming_series(parts, doctype='', doc=''):
 	if isinstance(parts, str):
 		parts = parts.split('.')
 	series_set = False
+	hash_ = False
 	today = now_datetime()
 	for e in parts:
 		part = ''
 		if e.startswith('#'):
 			if not series_set:
+				if "[hash]" in e.lower():
+					e = e.split("[")[0]
+					hash_ = True
 				digits = len(e)
 				part = getseries(n, digits)
+				if hash_:
+					part = frappe.generate_hash(doctype + part, digits).upper()
 				series_set = True
 		elif e == 'YY':
 			part = today.strftime('%y')
