@@ -38,7 +38,7 @@ frappe.ui.form.FormTour = class FormTour {
 		} else {
 			const doctype_tour_exists = await frappe.db.exists('Form Tour', this.frm.doctype);
 			if (doctype_tour_exists) {
-				this.tour = await frappe.db.get_doc('Form Tour', this.frm.doctype)
+				this.tour = await frappe.db.get_doc('Form Tour', this.frm.doctype);
 			} else {
 				this.tour = { steps: frappe.tour[this.frm.doctype] };
 			}
