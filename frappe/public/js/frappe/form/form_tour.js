@@ -2,8 +2,6 @@ frappe.ui.form.FormTour = class FormTour {
 	constructor({ frm }) {
 		this.frm = frm;
 		this.driver_steps = [];
-
-		this.init_driver();
 	}
 
 	init_driver() {
@@ -48,6 +46,7 @@ frappe.ui.form.FormTour = class FormTour {
 		
 		if (on_finish) this.on_finish = on_finish;
 
+		this.init_driver();
 		this.build_steps();
 		this.update_driver_steps();
 	}
