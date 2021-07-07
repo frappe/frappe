@@ -15,9 +15,8 @@ frappe.ui.form.FormTour = class FormTour {
 			prevBtnText: 'Previous',
 			opacity: 0.25,
 			onHighlighted: (step) => {
-				// if last step is to save, or if is submit step
-				// then attach a listener on highlighted elem to reset the driver
-				if ((step.options.is_save_step && !this.driver.hasNextStep())|| step.options.is_submit_step) {
+				// if last step is to save, then attach a listener to save button
+				if (step.options.is_save_step) {
 					$(step.options.element).one('click', () => this.driver.reset());
 				}
 
@@ -73,10 +72,6 @@ frappe.ui.form.FormTour = class FormTour {
 
 		if (this.tour.save_on_complete) {
 			this.add_step_to_save();
-		}
-
-		if (this.tour.submit_on_complete) {
-			this.add_step_to_submit();
 		}
 	}
 
@@ -259,37 +254,6 @@ frappe.ui.form.FormTour = class FormTour {
 			}
 		};
 		this.driver_steps.push(save_step);
-
-		let after_save = () => this.on_finish && this.on_finish();
-
-		if (this.tour.submit_on_complete) {
-			after_save = () => {
-				this.update_driver_steps();
-				this.driver.start(this.driver.steps.length - 1);
-			}
-		}
-		frappe.ui.form.on(this.frm.doctype, 'after_save', after_save);
-	}
-
-	add_step_to_submit() {
-		const page_id = `[id="page-${this.frm.doctype}"]`;
-		const $submit_btn = `${page_id} .standard-actions .primary-action`;
-		const submit_step = {
-			element: $submit_btn,
-			is_submit_step: true,
-			allowClose: false,
-			overlayClickNext: false,
-			popover: {
-				title: __("Submit"),
-				description: "",
-				position: "left",
-				doneBtnText: __("Submit")
-			},
-			onNext: () => {
-				this.frm.savesubmit();
-			}
-		};
-		this.driver_steps.push(submit_step);
-		frappe.ui.form.on(this.frm.doctype, 'after_submit', () => this.on_finish && this.on_finish());
+		frappe.ui.form.on(this.frm.doctype, 'after_save', () => this.on_finish && this.on_finish());
 	}
 };

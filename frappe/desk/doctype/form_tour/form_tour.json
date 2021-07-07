@@ -11,7 +11,6 @@
   "module",
   "is_standard",
   "save_on_complete",
-  "submit_on_complete",
   "section_break_3",
   "steps"
  ],
@@ -63,18 +62,11 @@
    "label": "Module",
    "options": "Module Def",
    "read_only": 1
-  },
-  {
-   "default": "0",
-   "depends_on": "save_on_complete",
-   "fieldname": "submit_on_complete",
-   "fieldtype": "Check",
-   "label": "Submit on Completion"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-06-29 15:23:26.893068",
+ "modified": "2021-06-06 20:32:54.068774",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour",
