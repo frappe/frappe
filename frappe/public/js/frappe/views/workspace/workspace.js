@@ -24,6 +24,7 @@ frappe.views.Workspace = class Workspace {
 		this.new_page = null;
 		this.sorted_sidebar_items = [];
 		this.deleted_sidebar_items = [];
+		this.current_page = {};
 		this.sidebar_items = {
 			'public': {},
 			'private': {}
