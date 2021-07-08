@@ -206,11 +206,11 @@ def save_page(title, parent, public, sb_items, deleted_pages, new_widgets, block
 		doc.content = blocks
 		doc.save(ignore_permissions=True)
 
-	if json.loads(sb_items):
-		sort_pages(json.loads(sb_items))
-
 	if json.loads(new_widgets):
 		save_new_widget(doc, title, blocks, new_widgets)
+
+	if json.loads(sb_items):
+		sort_pages(json.loads(sb_items))
 
 	if json.loads(deleted_pages):
 		return delete_pages(json.loads(deleted_pages))

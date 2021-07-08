@@ -145,6 +145,8 @@ frappe.views.Workspace = class Workspace {
 			}
 			this.build_sidebar_section(category, root_pages);
 		});
+
+		this.sidebar.find('.selected')[0].scrollIntoView();
 	}
 
 	build_sidebar_section(title, root_pages) {
@@ -152,7 +154,7 @@ frappe.views.Workspace = class Workspace {
 
 		let $title = $(`<div class="standard-sidebar-label">
 			<span>${frappe.utils.icon("small-down", "xs")}</span>
-			<span>${__(title)}<span>
+			<span class="section-title">${__(title)}<span>
 		</div>`).appendTo(sidebar_section);
 		this.prepare_sidebar(root_pages, sidebar_section, this.sidebar);
 
@@ -161,6 +163,10 @@ frappe.views.Workspace = class Workspace {
 			$(e.target).find("span use").attr("href", icon);
 			$(e.target).parent().find('.sidebar-item-container').toggleClass('hidden');
 		});
+
+		if (!this.current_page.name) {
+			$title.trigger("click");
+		}
 
 		if (Object.keys(root_pages).length === 0) {
 			sidebar_section.addClass('hidden');
