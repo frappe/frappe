@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Type
 from frappe.model.document import Document
 from frappe.model.base_document import get_controller
 
