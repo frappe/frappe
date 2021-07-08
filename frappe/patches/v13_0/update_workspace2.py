@@ -4,7 +4,7 @@ from frappe import _
 
 def execute():
 	frappe.reload_doc('desk', 'doctype', 'workspace', force=True)
-	order_by = "is_standard asc, pin_to_top desc, pin_to_bottom asc, name asc"
+	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
 	for seq, wspace in enumerate(frappe.get_all('Workspace', order_by=order_by)):
 		doc = frappe.get_doc('Workspace', wspace.name)
 		content = create_content(doc)
@@ -47,19 +47,21 @@ def create_content(doc):
 	return content
 
 def update_wspace(doc, seq, content):
-	new_doc = frappe.new_doc('Workspace')
-	new_doc.label = doc.label
-	new_doc.icon = doc.icon
-	new_doc.sequence_id = seq + 1
-	new_doc.content = json.dumps(content)
-	new_doc.charts = doc.charts or []
-	new_doc.shortcuts = doc.shortcuts or []
-	new_doc.links = doc.links or []
-	if doc.is_standard:
-		new_doc.public = 1
-		new_doc.title = doc.label
-	else:
-		new_doc.for_user = doc.for_user
-		new_doc.title = doc.extends
-	frappe.delete_doc("Workspace", doc.name, force=1)
-	new_doc.insert(ignore_permissions=True)
+	if not doc.is_standard and not doc.public:
+		doc.sequence_id = seq + 1
+		doc.content = json.dumps(content)
+		doc.public = 0
+		doc.title = doc.extends
+		doc.extends = ''
+		doc.category = ''
+		doc.restrict_to_domain = ''
+		doc.onboarding = ''
+		doc.extends_another_page = 0
+		doc.is_default = 0
+		doc.is_standard = 0
+		doc.developer_mode_only = 0
+		doc.disable_user_customization = 0
+		doc.pin_to_top = 0
+		doc.pin_to_bottom = 0
+		doc.hide_custom = 0
+		doc.save(ignore_permissions=True)

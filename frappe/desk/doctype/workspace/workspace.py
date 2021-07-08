@@ -26,10 +26,10 @@ class Workspace(Document):
 			frappe.throw(_("You can only have one default page that extends a particular standard page."))
 
 	def on_update(self):
-		if disable_saving_as_standard():
-			return
+		# if disable_saving_as_standard():
+		# 	return
 
-		if frappe.conf.developer_mode and self.is_standard:
+		if frappe.conf.developer_mode and self.module and self.public:
 			export_to_files(record_list=[['Workspace', self.name]], record_module=self.module)
 
 	@staticmethod
