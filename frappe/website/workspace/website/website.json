@@ -1,20 +1,20 @@
 {
- "category": "Modules",
- "charts": [
-  {
-   "chart_name": "Website Analytics"
-  }
- ],
+ "category": "",
+ "charts": [],
+ "content": "[{\"type\": \"spacer\", \"data\": {\"col\": 12, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"header\", \"data\": {\"text\": \"Your Shortcuts\", \"level\": 4, \"col\": 12, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Blog Post\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Blogger\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Web Page\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Web Form\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Website Settings\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"spacer\", \"data\": {\"col\": 12, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"header\", \"data\": {\"text\": \"Reports & Masters\", \"level\": 4, \"col\": 12, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Setup\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Blog\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Web Site\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Portal\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Knowledge Base\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}]",
  "creation": "2020-03-02 14:13:51.089373",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
  "docstatus": 0,
  "doctype": "Workspace",
+ "extends": "",
  "extends_another_page": 0,
+ "for_user": "",
  "hide_custom": 0,
  "icon": "website",
  "idx": 0,
- "is_standard": 1,
+ "is_default": 0,
+ "is_standard": 0,
  "label": "Website",
  "links": [
   {
@@ -22,6 +22,7 @@
    "icon": "setting",
    "is_query_report": 0,
    "label": "Setup",
+   "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -30,6 +31,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Website Settings",
+   "link_count": 0,
    "link_to": "Website Settings",
    "link_type": "DocType",
    "onboard": 1,
@@ -40,6 +42,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Website Theme",
+   "link_count": 0,
    "link_to": "Website Theme",
    "link_type": "DocType",
    "onboard": 1,
@@ -50,6 +53,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Website Script",
+   "link_count": 0,
    "link_to": "Website Script",
    "link_type": "DocType",
    "onboard": 0,
@@ -60,6 +64,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "About Us Settings",
+   "link_count": 0,
    "link_to": "About Us Settings",
    "link_type": "DocType",
    "onboard": 0,
@@ -70,6 +75,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Contact Us Settings",
+   "link_count": 0,
    "link_to": "Contact Us Settings",
    "link_type": "DocType",
    "onboard": 0,
@@ -80,6 +86,7 @@
    "icon": "",
    "is_query_report": 0,
    "label": "Blog",
+   "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -88,6 +95,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Blog Post",
+   "link_count": 0,
    "link_to": "Blog Post",
    "link_type": "DocType",
    "onboard": 1,
@@ -98,6 +106,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Blogger",
+   "link_count": 0,
    "link_to": "Blogger",
    "link_type": "DocType",
    "onboard": 0,
@@ -108,6 +117,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Blog Category",
+   "link_count": 0,
    "link_to": "Blog Category",
    "link_type": "DocType",
    "onboard": 0,
@@ -118,6 +128,7 @@
    "icon": "website",
    "is_query_report": 0,
    "label": "Web Site",
+   "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -126,6 +137,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Web Page",
+   "link_count": 0,
    "link_to": "Web Page",
    "link_type": "DocType",
    "onboard": 1,
@@ -136,6 +148,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Web Form",
+   "link_count": 0,
    "link_to": "Web Form",
    "link_type": "DocType",
    "onboard": 1,
@@ -146,6 +159,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Website Sidebar",
+   "link_count": 0,
    "link_to": "Website Sidebar",
    "link_type": "DocType",
    "onboard": 0,
@@ -156,6 +170,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Website Slideshow",
+   "link_count": 0,
    "link_to": "Website Slideshow",
    "link_type": "DocType",
    "onboard": 0,
@@ -166,6 +181,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Website Route Meta",
+   "link_count": 0,
    "link_to": "Website Route Meta",
    "link_type": "DocType",
    "onboard": 0,
@@ -176,6 +192,7 @@
    "icon": "website",
    "is_query_report": 0,
    "label": "Portal",
+   "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -184,6 +201,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Portal Settings",
+   "link_count": 0,
    "link_to": "Portal Settings",
    "link_type": "DocType",
    "onboard": 1,
@@ -194,6 +212,7 @@
    "icon": "project",
    "is_query_report": 0,
    "label": "Knowledge Base",
+   "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -202,6 +221,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Help Category",
+   "link_count": 0,
    "link_to": "Help Category",
    "link_type": "DocType",
    "onboard": 0,
@@ -212,20 +232,24 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Help Article",
+   "link_count": 0,
    "link_to": "Help Article",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2020-12-01 13:38:39.556588",
+ "modified": "2021-07-08 15:32:03.078096",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
- "onboarding": "Website",
+ "onboarding": "",
  "owner": "Administrator",
  "pin_to_bottom": 0,
  "pin_to_top": 0,
+ "public": 1,
+ "restrict_to_domain": "",
+ "sequence_id": 28,
  "shortcuts": [
   {
    "color": "Green",
@@ -261,5 +285,6 @@
    "link_to": "Website Settings",
    "type": "DocType"
   }
- ]
+ ],
+ "title": "Website"
 }
