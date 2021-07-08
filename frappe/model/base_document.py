@@ -336,49 +336,82 @@ class BaseDocument(object):
 		fieldname = [df.fieldname for df in self.meta.get_table_fields() if df.options==doctype]
 		return fieldname[0] if fieldname else None
 
-	def db_insert(self):
-		"""INSERT the document (with valid columns) in the database."""
-		if not self.name:
-			# name will be set by document class in most cases
-			set_new_name(self)
+	def db_insert(self, docs=None, doctype=None):
+		"""INSERT the document(s) (with valid columns) in the database."""
 
-		if not self.creation:
-			self.creation = self.modified = now()
-			self.created_by = self.modified_by = frappe.session.user
+		if not docs:
+			docs = (self,)
 
-		# if doctype is "DocType", don't insert null values as we don't know who is valid yet
-		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in DOCTYPES_FOR_DOCTYPE)
+		if not doctype:
+			doctype = docs[0].doctype
 
-		columns = list(d)
+		to_insert = []
+		for doc in docs:
+			if not doc.name:
+				# name will be set by document class in most cases
+				set_new_name(doc)
+
+			if not doc.creation:
+				doc.creation = doc.modified = now()
+				doc.created_by = doc.modified_by = frappe.session.user
+
+			to_insert.append(
+				doc.get_valid_dict(
+					convert_dates_to_str=True,
+					ignore_nulls=doc.doctype in DOCTYPES_FOR_DOCTYPE
+				)
+			)
+
+		first_doc = to_insert[0]
+		doc_values_placeholder = f'({", ".join(["%s"] * len(first_doc))})'
+		values_placeholder = ", ".join([doc_values_placeholder] * len(to_insert))
+		values = [value for doc in to_insert for value in doc.values()]
+
 		try:
-			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
-					VALUES ({values})""".format(
-					doctype = self.doctype,
-					columns = ", ".join("`"+c+"`" for c in columns),
-					values = ", ".join(["%s"] * len(columns))
-				), list(d.values()))
+			frappe.db.sql(
+				"INSERT INTO `tab{doctype}` ({columns}) VALUES {values}".format(
+					doctype=doctype,
+					columns=", ".join(f"`{column}`" for column in first_doc),
+					values=values_placeholder
+				),
+				values,
+			)
 		except Exception as e:
+			error_message = str(e)
+			for doc in docs:
+				if doc.name in error_message:
+					break
+			else:
+				raise
+
 			if frappe.db.is_primary_key_violation(e):
-				if self.meta.autoname=="hash":
+				if doc.meta.autoname=="hash":
 					# hash collision? try again
 					frappe.flags.retry_count = (frappe.flags.retry_count or 0) + 1
 					if frappe.flags.retry_count > 5 and not frappe.flags.in_test:
 						raise
-					self.name = None
-					self.db_insert()
+
+					doc.name = None
+					doc.db_insert(docs, doctype)
 					return
 
-				frappe.msgprint(_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)), title=_("Duplicate Name"), indicator="red")
-				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+				frappe.msgprint(
+					_("{0} {1} already exists").format(
+						doc.doctype, frappe.bold(doc.name)
+					),
+					title=_("Duplicate Name"),
+					indicator="red"
+				)
+				raise frappe.DuplicateEntryError(doc.doctype, doc.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
 				# unique constraint
-				self.show_unique_validation_message(e)
+				doc.show_unique_validation_message(e)
 
-			else:
-				raise
+			raise
 
-		self.set("__islocal", False)
+		for doc in docs:
+			doc.set("__islocal", False)
 
 	def db_update(self):
 		if self.get("__islocal") or not self.name:
@@ -425,7 +458,6 @@ class BaseDocument(object):
 				pass
 
 			label = self.get_label_from_fieldname(fieldname)
-
 			frappe.msgprint(_("{0} must be unique").format(label or fieldname))
 
 		# this is used to preserve traceback

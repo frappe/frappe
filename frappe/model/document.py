@@ -249,10 +249,7 @@ class Document(BaseDocument):
 				if not ignore_if_duplicate:
 					raise e
 
-		# children
-		for d in self.get_all_children():
-			d.db_insert()
-
+		self.insert_children()
 		self.run_method("after_insert")
 		self.flags.in_insert = True
 
@@ -356,6 +353,25 @@ class Document(BaseDocument):
 				"folder": "Home/Attachments"})
 			_file.save()
 
+	def insert_children(self):
+		all_children = self.get_all_children()
+
+		if not all_children:
+			return
+
+		if self.doctype == "DocType":
+			for d in all_children:
+				d.db_insert()
+
+			return
+
+		doctype_wise_children = {}
+		for child in all_children:
+			children = doctype_wise_children.setdefault(child.doctype, [])
+			children.append(child)
+
+		for doctype, children in doctype_wise_children.items():
+			self.db_insert(children, doctype)
 
 	def update_children(self):
 		"""update child tables"""
