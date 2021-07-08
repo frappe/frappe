@@ -4,14 +4,22 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "is_table_field",
+  "section_break_2",
+  "parent_field",
   "field",
   "title",
   "description",
   "column_break_2",
   "position",
-  "fieldname",
   "label",
-  "condition"
+  "has_next_condition",
+  "next_step_condition",
+  "section_break_13",
+  "fieldname",
+  "parent_fieldname",
+  "fieldtype",
+  "child_doctype"
  ],
  "fields": [
   {
@@ -30,6 +38,7 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval: (!doc.is_table_field || (doc.is_table_field && doc.parent_field))",
    "fieldname": "field",
    "fieldtype": "Link",
    "label": "Field",
@@ -64,16 +73,73 @@
    "options": "Left\nLeft Center\nLeft Bottom\nTop\nTop Center\nTop Right\nRight\nRight Center\nRight Bottom\nBottom\nBottom Center\nBottom Right\nMid Center"
   },
   {
+   "depends_on": "has_next_condition",
    "fieldname": "next_step_condition",
    "fieldtype": "Code",
    "label": "Next Step Condition",
+   "oldfieldname": "condition",
    "options": "JS"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_next_condition",
+   "fieldtype": "Check",
+   "label": "Has Next Condition"
+  },
+  {
+   "default": "0",
+   "fetch_from": "field.fieldtype",
+   "fieldname": "fieldtype",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Fieldtype",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_table_field",
+   "fieldtype": "Check",
+   "label": "Is Table Field"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "is_table_field",
+   "fieldname": "parent_field",
+   "fieldtype": "Link",
+   "label": "Parent Field",
+   "mandatory_depends_on": "is_table_field",
+   "options": "DocField"
+  },
+  {
+   "fieldname": "section_break_13",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Hidden Fields"
+  },
+  {
+   "fetch_from": "parent_field.options",
+   "fieldname": "child_doctype",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Child Doctype",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "parent_field.fieldname",
+   "fieldname": "parent_fieldname",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Parent Fieldname",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-05-26 19:44:48.737453",
+ "modified": "2021-06-06 20:52:21.076972",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour Step",

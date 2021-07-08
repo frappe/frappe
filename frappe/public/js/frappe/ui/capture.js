@@ -116,10 +116,7 @@ frappe.ui.Capture = class {
 			})
 			.catch(err => {
 				if (this.options.error) {
-					const alert = `<span class="indicator red"/> ${
-						frappe.ui.Capture.ERR_MESSAGE
-					}`;
-					frappe.show_alert(alert, 3);
+					frappe.show_alert(frappe.ui.Capture.ERR_MESSAGE, 3);
 				}
 
 				throw err;
