@@ -390,14 +390,14 @@ def get_desk_sidebar_items():
 
 	# pages sorted based on pinned to top and then by name
 	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
-	all_pages = frappe.get_all("Workspace", fields=["name", "category", "icon",  "module"],
+	all_pages = frappe.get_all("Workspace", fields=["name", "title", "public",  "module", "icon"],
 		filters=filters, order_by=order_by, ignore_permissions=True)
 	pages = []
 
 	# Filter Page based on Permission
 	for page in all_pages:
 		try:
-			wspace = Workspace(page.get('name'))
+			wspace = Workspace(page)
 			if wspace.is_page_allowed():
 				pages.append(page)
 				page['label'] = _(page.get('name'))
