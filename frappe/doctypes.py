@@ -13,7 +13,7 @@ def modulize(dt: str) -> str:
 	return dt.replace(" ", "").replace("-", "_")
 
 
-def generate_doctype_map() -> Dict[str, Document]:
+def generate_doctype_map() -> Dict[str, Type[Document]]:
 	"""Generate and return DocType -> Module Controller mapping
 	"""
 	doctype_mapping = {}
