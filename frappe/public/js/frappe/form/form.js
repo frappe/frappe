@@ -1259,7 +1259,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		if (df && df[property] != value) {
 			df[property] = value;
-			if (table_field && table_row_name) {
+			if (table_field && table_row_name && this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name]) {
 				this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name].refresh_field(fieldname);
 			} else {
 				this.refresh_field(fieldname);
