@@ -43,8 +43,8 @@ class TestDB(unittest.TestCase):
 				"fieldname": 'test_'+fieldtype.lower(),
 				"label": 'Test '+fieldtype,
 				"fieldtype": fieldtype,
-		})
-		 
+			})
+
 		#test
 		for inp in test_inputs:
 			fieldname = 'test_'+inp['fieldtype'].lower()
