@@ -5,6 +5,7 @@
 
 import unittest
 from random import choice
+import datetime
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
@@ -45,11 +46,27 @@ class TestDB(unittest.TestCase):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
 
 	def test_get_single_value(self):
-		frappe.db.set_value('System Settings', 'System Settings', 'backup_limit', 5)
-		frappe.db.commit()
+		#setup
+		fieldtypes = ['Float', 'Int', 'Percent', 'Currency', 'Data', 'Date', 'Datetime', 'Time']
+		values = [1.5, 1, 55.5, 12.5, 'Test', datetime.datetime.now().date(), datetime.datetime.now(), datetime.timedelta(hours=9, minutes=45, seconds=10)]
+		test_inputs = [{
+			'fieldtype': fieldtypes[i],
+			'value': values[i]} for i in range(len(fieldtypes))]
+		for fieldtype in fieldtypes:
+			create_custom_field('Print Settings', {
+				"fieldname": 'test_'+fieldtype.lower(),
+				"label": 'Test '+fieldtype,
+				"fieldtype": fieldtype,
+		})
+		 
+		#test
+		for inp in test_inputs:
+			fieldname = 'test_'+inp['fieldtype'].lower()
+			frappe.db.set_value('Print Settings', 'Print Settings', fieldname, inp['value'])
+			self.assertEqual(frappe.db.get_single_value('Print Settings', fieldname), inp['value'])
 
-		limit = frappe.db.get_single_value('System Settings', 'backup_limit')
-		self.assertEqual(limit, 5)
+		#teardown 
+		clear_custom_fields('Print Settings')
 
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
