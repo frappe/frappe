@@ -63,6 +63,12 @@
 						</svg>
 						<div class="mt-1">{{ __('Camera') }}</div>
 					</button>
+					<button v-if="google_drive_settings.enabled" class="btn btn-file-upload" @click="show_google_drive_picker">
+						<svg width="30" height="30">
+							<image xlink:href="/assets/frappe/icons/social/google_drive.svg" width="30" height="30"/>
+						</svg>
+						<div class="mt-1">{{ __('Google Drive') }}</div>
+					</button>
 				</div>
 				<div class="text-muted text-medium">
 					{{ upload_notes }}
@@ -116,6 +122,7 @@
 import FilePreview from './FilePreview.vue';
 import FileBrowser from './FileBrowser.vue';
 import WebLink from './WebLink.vue';
+import GoogleDrivePicker from '../../integrations/google_drive_picker';
 
 export default {
 	name: 'FileUploader',
@@ -173,6 +180,24 @@ export default {
 			currently_uploading: -1,
 			show_file_browser: false,
 			show_web_link: false,
+			allow_take_photo: false,
+			google_drive_settings: {
+				enabled: false
+			}
+		}
+	},
+	created() {
+		this.allow_take_photo = window.navigator.mediaDevices;
+		if (frappe.user_id !== "Guest") {
+			frappe.call({
+				// method only available after login
+				method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
+				callback: (resp) => {
+					if (!resp.exc) {
+						this.google_drive_settings = resp.message;
+					}
+				}
+			});
 		}
 	},
 	watch: {
@@ -187,9 +212,6 @@ export default {
 			return this.files.length > 0
 				&& this.files.every(
 					file => file.total !== 0 && file.progress === file.total);
-		},
-		allow_take_photo() {
-			return window.navigator.mediaDevices;
 		}
 	},
 	methods: {
@@ -408,6 +430,10 @@ export default {
 					form_data.append('file_url', file.file_url);
 				}
 
+				if (file.file_name) {
+					form_data.append('file_name', file.file_name);
+				}
+
 				if (this.doctype && this.docname) {
 					form_data.append('doctype', this.doctype);
 					form_data.append('docname', this.docname);
@@ -436,6 +462,25 @@ export default {
 					this.add_files([file])
 				);
 			});
+		},
+		show_google_drive_picker() {
+			let dialog = cur_dialog;
+			dialog.hide();
+			let google_drive = new GoogleDrivePicker({
+				pickerCallback: data => this.google_drive_callback(data, dialog),
+				...this.google_drive_settings
+			});
+			google_drive.loadPicker();
+		},
+		google_drive_callback(data, dialog) {
+			if (data.action == google.picker.Action.PICKED) {
+				this.upload_file({
+					file_url: data.docs[0].url,
+					file_name: data.docs[0].name
+				});
+			} else if (data.action == google.picker.Action.CANCEL) {
+				dialog.show();
+			}
 		},
 		url_to_file(url, filename, mime_type) {
 			return fetch(url)
