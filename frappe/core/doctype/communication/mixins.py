@@ -89,7 +89,7 @@ class CommunicationEmailMixin:
 		return self._final_cc
 
 	def get_mail_cc_with_displayname(self, is_inbound_mail_communcation=False, include_sender = False):
-		cc_list = self.mail_cc(is_inbound_mail_communcation=False, include_sender = False)
+		cc_list = self.mail_cc(is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender = include_sender)
 		return [self.get_email_with_displayname(email) for email in cc_list]
 
 	def mail_bcc(self, is_inbound_mail_communcation=False):
