@@ -20,7 +20,12 @@ import itertools, operator
 
 def guess_language(lang_list=None):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
-	lang_codes = frappe.request.accept_languages.values()
+	preferred_language_cookie = frappe.request.cookies.get('preferred_language')
+	lang_codes = list(frappe.request.accept_languages.values())
+
+	if preferred_language_cookie:
+		lang_codes.append(preferred_language_cookie)
+
 	if not lang_codes:
 		return frappe.local.lang
 
