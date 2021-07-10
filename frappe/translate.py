@@ -22,12 +22,12 @@ from frappe.utils import is_html, strip, strip_html_tags
 
 def guess_language(lang_list=None):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
-	user_preferred_language = frappe.request.cookies.get('preferred_language')
-	is_guest_user = not frappe.session.user or frappe.session.user == 'Guest'
-	if is_guest_user and user_preferred_language:
-		return user_preferred_language
+	preferred_language_cookie = frappe.request.cookies.get('preferred_language')
+	lang_codes = list(frappe.request.accept_languages.values())
 
-	lang_codes = frappe.request.accept_languages.values()
+	if preferred_language_cookie:
+		lang_codes.append(preferred_language_cookie)
+
 	if not lang_codes:
 		return frappe.local.lang
 
