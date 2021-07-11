@@ -19,6 +19,10 @@
   "html",
   "raw_commands",
   "section_break_9",
+  "margin_top",
+  "margin_bottom",
+  "margin_left",
+  "margin_right",
   "align_labels_right",
   "show_section_headings",
   "line_breaks",
@@ -31,7 +35,8 @@
   "section_break_13",
   "print_format_help",
   "format_data",
-  "print_format_builder"
+  "print_format_builder",
+  "print_format_builder_beta"
  ],
  "fields": [
   {
@@ -205,13 +210,43 @@
    "fieldname": "absolute_value",
    "fieldtype": "Check",
    "label": "Show Absolute Values"
+  },
+  {
+   "default": "0",
+   "fieldname": "print_format_builder_beta",
+   "fieldtype": "Check",
+   "label": "Print Format Builder Beta"
+  },
+  {
+   "default": "15",
+   "fieldname": "margin_top",
+   "fieldtype": "Float",
+   "label": "Margin Top"
+  },
+  {
+   "default": "15",
+   "fieldname": "margin_bottom",
+   "fieldtype": "Float",
+   "label": "Margin Bottom"
+  },
+  {
+   "default": "15",
+   "fieldname": "margin_left",
+   "fieldtype": "Float",
+   "label": "Margin Left"
+  },
+  {
+   "default": "15",
+   "fieldname": "margin_right",
+   "fieldtype": "Float",
+   "label": "Margin Right"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-03-01 15:25:46.578863",
+ "modified": "2021-07-11 11:53:52.028982",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

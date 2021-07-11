@@ -258,6 +258,11 @@ frappe.ui.form.PrintView = class {
 					fieldtype: 'Read Only',
 					default: print_format.name || 'Standard',
 				},
+				{
+					label: __('Use the new Print Format Builder Beta'),
+					fieldname: 'beta',
+					fieldtype: 'Check'
+				},
 			],
 			(data) => {
 				frappe.route_options = {
@@ -265,6 +270,7 @@ frappe.ui.form.PrintView = class {
 					doctype: this.frm.doctype,
 					name: data.print_format_name,
 					based_on: data.based_on,
+					beta: data.beta
 				};
 				frappe.set_route('print-format-builder');
 				this.print_sel.val(data.print_format_name);

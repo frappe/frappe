@@ -38,6 +38,10 @@ class PrintFormat(Document):
 
 	def extract_images(self):
 		from frappe.core.doctype.file.file import extract_images_from_html
+
+		if self.print_format_builder_beta:
+			return
+
 		if self.format_data:
 			data = json.loads(self.format_data)
 			for df in data:
