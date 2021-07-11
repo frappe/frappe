@@ -159,6 +159,10 @@ def get():
 
 	return bootinfo
 
+@frappe.whitelist()
+def get_boot_assets_json():
+	return get_assets_json()
+
 def get_csrf_token():
 	if not frappe.local.session.data.csrf_token:
 		generate_csrf_token()
