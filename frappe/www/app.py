@@ -40,11 +40,13 @@ def get_context(context):
 	# TODO: Find better fix
 	boot_json = re.sub(r"</script\>", "", boot_json)
 
+	style_urls = hooks["app_include_css"]
+
 	context.update({
 		"no_cache": 1,
 		"build_version": frappe.utils.get_build_version(),
 		"include_js": hooks["app_include_js"],
-		"include_css": hooks["app_include_css"],
+		"include_css": get_rtl_styles(style_urls) if is_rtl() else style_urls,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"lang": frappe.local.lang,
 		"sounds": hooks["sounds"],
@@ -57,6 +59,12 @@ def get_context(context):
 	})
 
 	return context
+
+def get_rtl_styles(style_urls):
+	rtl_style_urls = []
+	for style_url in style_urls:
+		rtl_style_urls.append(style_url.replace('/css/', '/css-rtl/'))
+	return rtl_style_urls
 
 @frappe.whitelist()
 def get_desk_assets(build_version):
