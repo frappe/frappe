@@ -21,6 +21,18 @@ class TestReportview(unittest.TestCase):
 	def test_basic(self):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
 
+	def test_extract_tables(self):
+		db_query = DatabaseQuery("DocType")
+		add_custom_field("DocType", 'test_tab_field', 'Data')
+
+		db_query.fields = ["tabNote.creation", "test_tab_field", "tabDocType.test_tab_field"]
+		db_query.extract_tables()
+		self.assertIn("`tabNote`", db_query.tables)
+		self.assertIn("`tabDocType`", db_query.tables)
+		self.assertNotIn("test_tab_field", db_query.tables)
+
+		clear_custom_fields("DocType")
+
 	def test_build_match_conditions(self):
 		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
 

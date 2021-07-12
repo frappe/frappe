@@ -203,7 +203,7 @@ export default class OnboardingWidget extends Widget {
 
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
-			frm.show_tour(() => {
+			const on_finish = () => {
 				let msg_dialog = frappe.msgprint({
 					message: __("Let's take you back to onboarding"),
 					title: __("Great Job"),
@@ -217,7 +217,10 @@ export default class OnboardingWidget extends Widget {
 						label: () => __("Continue"),
 					},
 				});
-			});
+			};
+			frm.tour
+				.init({ on_finish })
+				.then(() => frm.tour.start());
 		};
 
 		frappe.set_route(route);
@@ -290,12 +293,15 @@ export default class OnboardingWidget extends Widget {
 
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
-			frm.show_tour(() => {
+			const on_finish = () => {
 				frappe.msgprint({
 					message: __("Awesome, now try making an entry yourself"),
 					title: __("Great"),
 				});
-			});
+			};
+			frm.tour
+				.init({ on_finish })
+				.then(() => frm.tour.start());
 		};
 
 		let callback = () => {

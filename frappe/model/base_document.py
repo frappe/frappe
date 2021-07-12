@@ -83,10 +83,14 @@ class BaseDocument(object):
 
 	@property
 	def meta(self):
-		if not hasattr(self, "_meta"):
+		if not getattr(self, "_meta", None):
 			self._meta = frappe.get_meta(self.doctype)
 
 		return self._meta
+
+	def __getstate__(self):
+		self._meta = None
+		return self.__dict__
 
 	def update(self, d):
 		""" Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -354,7 +358,7 @@ class BaseDocument(object):
 			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
 					VALUES ({values})""".format(
 					doctype = self.doctype,
-					columns = ", ".join(["`"+c+"`" for c in columns]),
+					columns = ", ".join("`"+c+"`" for c in columns),
 					values = ", ".join(["%s"] * len(columns))
 				), list(d.values()))
 		except Exception as e:
@@ -397,7 +401,7 @@ class BaseDocument(object):
 			frappe.db.sql("""UPDATE `tab{doctype}`
 				SET {values} WHERE `name`=%s""".format(
 					doctype = self.doctype,
-					values = ", ".join(["`"+c+"`=%s" for c in columns])
+					values = ", ".join("`"+c+"`=%s" for c in columns)
 				), list(d.values()) + [name])
 		except Exception as e:
 			if frappe.db.is_unique_key_violation(e):
