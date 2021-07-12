@@ -566,6 +566,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 	frappe.flags.skip_test_records = skip_test_records
 
 	if coverage:
+		import frappe.coverage
 		from coverage import Coverage
 
 		# Generate coverage report only for app that is being tested

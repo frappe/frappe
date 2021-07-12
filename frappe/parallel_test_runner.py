@@ -109,6 +109,7 @@ class ParallelTestRunner():
 
 	def start_coverage(self):
 		if self.with_coverage:
+			import frappe.coverage
 			from coverage import Coverage
 			from frappe.utils import get_bench_path
 
