@@ -11,6 +11,15 @@
 		max-height: 210px;
 		cursor: pointer;
 
+		/* Hide scrollbar for IE, Edge and Firefox */
+		-ms-overflow-style: none;  /* IE and Edge */
+		scrollbar-width: none;  /* Firefox */
+
+		/* Hide scrollbar for Chrome, Safari and Opera */
+		&::-webkit-scrollbar {
+			display: none;
+		}
+
 		.icon-wrapper {
 			display: flex;
 			width: 30px;
@@ -33,17 +42,6 @@
 			top: 7px;
 			left: 7px;
 		}
-	}
-
-	/* Hide scrollbar for Chrome, Safari and Opera */
-	.icons::-webkit-scrollbar {
-		display: none;
-	}
-
-	/* Hide scrollbar for IE, Edge and Firefox */
-	.icons {
-		-ms-overflow-style: none;  /* IE and Edge */
-		scrollbar-width: none;  /* Firefox */
 	}
 }
 .icon-picker-popover {
@@ -81,5 +79,17 @@
 	.selected-icon {
 		top: calc(50% - 11px);
 		z-index: 2;
+	}
+}
+
+.dt-cell__content {
+	.selected-icon {
+		display: contents;
+	}
+}
+
+.dt-cell__edit, .filter-field {
+	.selected-icon {
+		top: 5px !important;
 	}
 }
