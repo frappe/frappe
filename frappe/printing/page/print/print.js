@@ -403,12 +403,12 @@ frappe.ui.form.PrintView = class {
 	setup_print_format_dom(out, $print_format) {
 		this.print_wrapper.find('.print-format-skeleton').remove();
 		let base_url = frappe.urllib.get_base_url();
-		let print_css = ''; // frappe.assets.bundled_asset('print.bundle.css', frappe.utils.is_rtl(this.lang_code));
+		let print_css_url = `${base_url}/assets/${frappe.utils.is_rtl(this.lang_code) ? 'css-rtl' : 'css'}/printview.css`;
 		this.$print_format_body.find('html').attr('dir', frappe.utils.is_rtl(this.lang_code) ? 'rtl': 'ltr');
 		this.$print_format_body.find('html').attr('lang', this.lang_code);
 		this.$print_format_body.find('head').html(
 			`<style type="text/css">${out.style}</style>
-			<link href="${base_url}${print_css}" rel="stylesheet">`
+			<link href="${print_css_url}" rel="stylesheet">`
 		);
 
 		this.$print_format_body.find('body').html(

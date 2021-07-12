@@ -23,7 +23,8 @@ def get_jenv():
 			'resolve_class': resolve_class,
 			'inspect': inspect,
 			'web_blocks': web_blocks,
-			'web_block': web_block
+			'web_block': web_block,
+			'include_style': include_style
 		})
 
 		frappe.local.jenv = jenv
@@ -230,13 +231,14 @@ def web_blocks(blocks):
 	return html
 
 
-def include_style(path, rtl=None):
-	#path = bundled_asset(path)
+def include_style(file_name, rtl=None):
 	if rtl is None:
 		rtl = is_rtl()
 
 	if rtl:
-		path = path.replace('/css/', '/css-rtl/')
+		path = f"/assets/css-rtl/{file_name}"
+	else:
+		path = f"/assets/css/{file_name}"
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
 
