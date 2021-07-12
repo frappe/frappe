@@ -62,14 +62,14 @@ class TestDB(unittest.TestCase):
 			"value": value} for fieldtype, value in values_dict.items()]
 		for fieldtype in values_dict.keys():
 			create_custom_field("Print Settings", {
-				"fieldname": "test_{0}".format(fieldtype.lower()),
-				"label": "Test {0}".format(fieldtype),
+				"fieldname": f"test_{fieldtype.lower()}",
+				"label": f"Test {fieldtype}",
 				"fieldtype": fieldtype,
 			})
 
 		#test
 		for inp in test_inputs:
-			fieldname = "test_{0}".format(inp["fieldtype"].lower())
+			fieldname = f"test_{inp['fieldtype'].lower()}"
 			frappe.db.set_value("Print Settings", "Print Settings", fieldname, inp["value"])
 			self.assertEqual(frappe.db.get_single_value("Print Settings", fieldname), inp["value"])
 
@@ -157,29 +157,29 @@ class TestDB(unittest.TestCase):
 
 		# Testing read
 		self.assertEqual(list(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])[0], random_field)
-		self.assertEqual(list(frappe.get_all("ToDo", fields=["`{0}` as total".format(random_field)], limit=1)[0])[0], "total")
+		self.assertEqual(list(frappe.get_all("ToDo", fields=[f"`{random_field}` as total"], limit=1)[0])[0], "total")
 
 		# Testing read for distinct and sql functions
 		self.assertEqual(list(
 			frappe.get_all("ToDo",
-				fields=["`{0}` as total".format(random_field)],
+				fields=[f"`{random_field}` as total"],
 				distinct=True,
 				limit=1,
 			)[0]
 		)[0], "total")
 		self.assertEqual(list(
 			frappe.get_all("ToDo",
-			fields=["`{0}`".format(random_field)],
+			fields=[f"`{random_field}`"],
 			distinct=True,
 			limit=1,
 			)[0]
 		)[0], random_field)
 		self.assertEqual(list(
 			frappe.get_all("ToDo",
-				fields=["count(`{0}`)".format(random_field)],
+				fields=[f"count(`{random_field}`)"],
 				limit=1
 			)[0]
-		)[0], "count" if frappe.conf.db_type == "postgres" else "count(`{0}`)".format(random_field))
+		)[0], "count" if frappe.conf.db_type == "postgres" else f"count(`{random_field}`)")
 
 		# Testing update
 		frappe.db.set_value(test_doctype, random_doc, random_field, random_value)
