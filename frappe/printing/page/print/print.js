@@ -113,22 +113,20 @@ frappe.ui.form.PrintView = class {
 			},
 		).$input;
 
-		this.letterhead_selector = this.add_sidebar_item(
+		this.letterhead_selector_df = this.add_sidebar_item(
 			{
-				fieldtype: 'Select',
+				fieldtype: 'Autocomplete',
 				fieldname: 'letterhead',
 				label: __('Select Letterhead'),
-				options: [
-					this.get_default_option_for_select(__('Select Letterhead')),
-					__('No Letterhead')
-				],
+				placeholder: __('Select Letterhead'),
+				options: [__('No Letterhead')],
 				change: () => this.preview(),
 				default: this.print_settings.with_letterhead
 					? __('No Letterhead')
 					: __('Select Letterhead')
 			},
-		).$input;
-
+		);
+		this.letterhead_selector = this.letterhead_selector_df.$input;
 		this.sidebar_dynamic_section = $(
 			`<div class="dynamic-settings"></div>`
 		).appendTo(this.sidebar);
@@ -336,23 +334,19 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_letterhead_options() {
-		let letterhead_options = [
-			this.get_default_option_for_select(__('Select Letterhead')),
-			__('No Letterhead')
-		];
+		let letterhead_options = [__('No Letterhead')];
 		let default_letterhead;
 		let doc_letterhead = this.frm.doc.letter_head;
 
 		return frappe.db
-			.get_list('Letter Head', { fields: ['name', 'is_default'] })
+			.get_list('Letter Head', { fields: ['name', 'is_default'], limit: 0 })
 			.then((letterheads) => {
-				this.letterhead_selector.empty();
 				letterheads.map((letterhead) => {
 					if (letterhead.is_default) default_letterhead = letterhead.name;
 					return letterhead_options.push(letterhead.name);
 				});
 
-				this.letterhead_selector.add_options(letterhead_options);
+				this.letterhead_selector_df.set_data(letterhead_options);
 				let selected_letterhead = doc_letterhead || default_letterhead;
 				if (selected_letterhead)
 					this.letterhead_selector.val(selected_letterhead);
