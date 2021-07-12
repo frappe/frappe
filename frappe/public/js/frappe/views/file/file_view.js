@@ -315,7 +315,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 						acc += "/" + curr;
 					}
 					return acc;
-				}, "/app/file");
+				}, "/app/file/view");
 
 				return `<a href="${route}">${folder}</a>`;
 			})
