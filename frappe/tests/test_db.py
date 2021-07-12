@@ -49,26 +49,34 @@ class TestDB(unittest.TestCase):
 
 	def test_get_single_value(self):
 		#setup
-		fieldtypes = ['Float', 'Int', 'Percent', 'Currency', 'Data', 'Date', 'Datetime', 'Time']
-		values = [1.5, 1, 55.5, 12.5, 'Test', datetime.datetime.now().date(), datetime.datetime.now(), datetime.timedelta(hours=9, minutes=45, seconds=10)]
+		values_dict = {
+			"Float": 1.5,
+			"Int": 1,
+			"Percent": 55.5,
+			"Currency": 12.5,
+			"Data": "Test",
+			"Date": datetime.datetime.now().date(),
+			"Datetime": datetime.datetime.now(),
+			"Time": datetime.timedelta(hours=9, minutes=45, seconds=10)
+		}
 		test_inputs = [{
-			'fieldtype': fieldtypes[i],
-			'value': values[i]} for i in range(len(fieldtypes))]
-		for fieldtype in fieldtypes:
-			create_custom_field('Print Settings', {
-				"fieldname": 'test_'+fieldtype.lower(),
-				"label": 'Test '+fieldtype,
+			"fieldtype": fieldtype,
+			"value": value} for fieldtype, value in values_dict.items()]
+		for fieldtype in values_dict.keys():
+			create_custom_field("Print Settings", {
+				"fieldname": "test_{0}".format(fieldtype.lower()),
+				"label": "Test {0}".format(fieldtype),
 				"fieldtype": fieldtype,
 			})
 
 		#test
 		for inp in test_inputs:
-			fieldname = 'test_'+inp['fieldtype'].lower()
-			frappe.db.set_value('Print Settings', 'Print Settings', fieldname, inp['value'])
-			self.assertEqual(frappe.db.get_single_value('Print Settings', fieldname), inp['value'])
+			fieldname = "test_{0}".format(inp["fieldtype"].lower())
+			frappe.db.set_value("Print Settings", "Print Settings", fieldname, inp["value"])
+			self.assertEqual(frappe.db.get_single_value("Print Settings", fieldname), inp["value"])
 
 		#teardown 
-		clear_custom_fields('Print Settings')
+		clear_custom_fields("Print Settings")
 
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
