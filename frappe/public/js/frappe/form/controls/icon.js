@@ -10,7 +10,7 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 
 	get_all_icons() {
 		frappe.symbols = [];
-		$("#all-symbols > symbol[id]").each(function() {
+		$("#frappe-symbols > symbol[id]").each(function() {
 			frappe.symbols.push(this.id.replace('icon-',''));
 		});
 	}
@@ -25,7 +25,7 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 
 		this.$wrapper.popover({
 			trigger: 'manual',
-			offset: `${-this.$wrapper.width() / 4}, 5`,
+			offset: `${-this.$wrapper.width() / 4.5}, 5`,
 			boundary: 'viewport',
 			placement: 'bottom',
 			template: `
