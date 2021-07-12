@@ -302,15 +302,6 @@ select.input-xs {
 	}
 }
 
-/*!rtl:raw:
-.dropdown-menu {
-	right: auto;
-}
-.popover {
-	right: auto;
-}
-*/
-
 .custom-control.custom-switch {
 	font-size: var(--text-md);
 	line-height: 1.6;
@@ -583,3 +574,15 @@ details > summary:focus {
 // 	font-family: 'Octicons';
 // 	content: "\f00b";
 // }
+
+/*rtl:raw:
+.dropdown-menu {
+	right: auto;
+}
+.popover {
+	right: auto;
+}
+.chart-container {
+	direction: ltr;
+}
+*/
