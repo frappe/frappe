@@ -49,6 +49,27 @@ def make_post_request(url, auth=None, headers=None, data=None):
 		frappe.log_error()
 		raise exc
 
+def make_put_request(url, auth=None, headers=None, data=None):
+	if not auth:
+		auth = ''
+	if not data:
+		data = {}
+	if not headers:
+		headers = {}
+
+	try:
+		s = get_request_session()
+		frappe.flags.integration_request = s.put(url, data=data, auth=auth, headers=headers)
+		frappe.flags.integration_request.raise_for_status()
+
+		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
+			return parse_qs(frappe.flags.integration_request.text)
+
+		return frappe.flags.integration_request.json()
+	except Exception as exc:
+		frappe.log_error()
+		raise exc
+
 def create_request_log(data, integration_type, service_name, name=None, error=None):
 	if isinstance(data, string_types):
 		data = json.loads(data)
