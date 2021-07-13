@@ -231,9 +231,6 @@ def update_global_search(doc):
 	if frappe.local.conf.get('disable_global_search'):
 		return
 
-	if frappe.local.conf.get('disable_global_search'):
-		return
-
 	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) \
 		or doc.get("disabled"):
 			return
