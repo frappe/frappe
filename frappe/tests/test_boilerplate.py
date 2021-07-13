@@ -20,7 +20,7 @@ class TestBoilerPlate(unittest.TestCase):
 
 	def test_create_app(self):
 		title = "Test App"
-		description = "Test app for unit testing"
+		description = "This app's description contains 'single quotes' and \"double quotes\"."
 		publisher = "Test Publisher"
 		email = "example@example.org"
 		icon = ""  # empty -> default
