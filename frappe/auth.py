@@ -10,7 +10,7 @@ import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
-from frappe.translate import guess_language
+from frappe.translate import get_language
 from frappe.utils.password import check_password
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
@@ -92,7 +92,7 @@ class HTTPRequest:
 				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
 	def set_lang(self):
-		frappe.local.lang = guess_language()
+		frappe.local.lang = get_language()
 
 	def get_db_name(self):
 		"""get database name from conf"""
