@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
@@ -5,22 +6,30 @@ from __future__ import unicode_literals
 import datetime
 
 from frappe import _
+=======
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
+from urllib.parse import quote
+
+>>>>>>> 736c6c9b8a (fix: Don't redefine datetime)
 import frappe
 import frappe.database
 import frappe.utils
-from frappe.utils import cint, get_datetime, datetime, date_diff, today
 import frappe.utils.user
-from frappe import conf
-from frappe.sessions import Session, clear_sessions, delete_session
-from frappe.modules.patch_handler import check_session_stopped
-from frappe.translate import get_language
-from frappe.utils.password import check_password
+from frappe import _, conf
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
-	confirm_otp_token, get_cached_user_pass)
+from frappe.modules.patch_handler import check_session_stopped
+from frappe.sessions import Session, clear_sessions, delete_session
+from frappe.translate import get_language
+from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, get_cached_user_pass, should_run_2fa
+from frappe.utils import cint, date_diff, datetime, get_datetime, today
+from frappe.utils.password import check_password
 from frappe.website.utils import get_home_page
+<<<<<<< HEAD
 
 from six.moves.urllib.parse import quote
+=======
+>>>>>>> 736c6c9b8a (fix: Don't redefine datetime)
 
 
 class HTTPRequest:
