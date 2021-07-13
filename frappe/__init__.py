@@ -1714,9 +1714,18 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals.update(whitelisted_globals)
 	return eval(code, eval_globals, eval_locals)
 
-def get_system_settings(key):
+def get_system_settings(key, ignore_if_not_exists=False):
+	"""Get a system setting value.
+
+	:param ignore_if_not_exists: Do not raise error if key does not exists.
+	"""
+	doctype = 'System Settings'
+
+	if ignore_if_not_exists and not get_meta(doctype).get_field(key):
+		return
+
 	if key not in local.system_settings:
-		local.system_settings.update({key: db.get_single_value('System Settings', key)})
+		local.system_settings.update({key: db.get_single_value(doctype, key)})
 	return local.system_settings.get(key)
 
 def get_active_domains():
