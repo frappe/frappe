@@ -169,8 +169,9 @@ class LoginManager:
 		self.make_session()
 		self.setup_boot_cache()
 		self.set_user_info()
+		self.clear_preferred_language()
 
-	def get_user_info(self, resume=False):
+	def get_user_info(self):
 		self.info = frappe.db.get_value("User", self.user,
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 
@@ -208,10 +209,12 @@ class LoginManager:
 			frappe.local.response["redirect_to"] = redirect_to
 			frappe.cache().hdel('redirect_after_login', self.user)
 
-
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
 		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
+
+	def clear_preferred_language(self):
+		frappe.local.cookie_manager.delete_cookie("preferred_language")
 
 	def make_session(self, resume=False):
 		# start session
