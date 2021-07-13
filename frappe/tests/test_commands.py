@@ -435,4 +435,4 @@ class TestCommands(BaseTestCommands):
 			self.assertEqual(self.returncode, 0)
 		
 		self.execute("bench version -f invalid")
-		self.assertEqual(self.returncode, 1)
+		self.assertEqual(self.returncode, 2)
