@@ -22,7 +22,7 @@ class NotificationLog(Document):
 			try:
 				send_notification_email(self)
 			except frappe.OutgoingEmailError:
-				frappe.log_error(message = frappe.get_traceback(), title=_("Error Sending Notification Email."))
+				frappe.log_error(message=frappe.get_traceback(), title=_("Failed to send notification email"))
 
 
 def get_permission_query_conditions(for_user):
