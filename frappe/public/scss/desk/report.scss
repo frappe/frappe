@@ -102,7 +102,7 @@
 
 .report-view {
 	.result {
-		min-height: calc(100vh - 320px);
+		min-height: 50vh !important;
 		.dt-row:last-child:not(.dt-row-filter) {
 			.dt-cell {
 				border-bottom: 1px solid var(--border-color);
@@ -118,7 +118,6 @@
 		}
 	}
 }
-
 
 .group-by-button {
 	margin: 5px;
