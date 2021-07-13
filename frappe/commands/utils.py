@@ -768,35 +768,14 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 @click.option("-f", "--format", "output",
 	type=click.Choice(["plain", "table", "json", "legacy"]), help="Output format", default="legacy")
 def get_version(output):
-<<<<<<< HEAD
-	"Show the versions of all the installed apps"
-<<<<<<< HEAD
-	from frappe.utils.change_log import get_app_branch
-=======
-	from git import Repo
-	from frappe.utils.commands import render_table
-
->>>>>>> ef0a5e904b (feat: different output formats for `bench version`)
-	frappe.init('')
-=======
 	"""Show the versions of all the installed apps."""
 	from git import Repo
 	from frappe.utils.commands import render_table
 	from frappe.utils.change_log import get_app_branch
 
 	frappe.init("")
->>>>>>> d1555263e1 (refactor: suggestions from review)
 	data = []
 
-<<<<<<< HEAD
-	for m in sorted(frappe.get_all_apps()):
-		branch_name = get_app_branch(m)
-		module = frappe.get_module(m)
-		app_hooks = frappe.get_module(m + ".hooks")
-
-		if hasattr(app_hooks, '{0}_version'.format(branch_name)):
-			print("{0} {1}".format(m, getattr(app_hooks, '{0}_version'.format(branch_name))))
-=======
 	for app in sorted(frappe.get_all_apps()):
 		module = frappe.get_module(app)
 		app_hooks = frappe.get_module(app + ".hooks")
@@ -804,41 +783,8 @@ def get_version(output):
 
 		app_info = frappe._dict()
 		app_info.app = app
-<<<<<<< HEAD
-		app_info.branch = repo.head.ref.name
-		app_info.commit = repo.head.ref.commit.hexsha[:7]
-<<<<<<< HEAD
->>>>>>> ef0a5e904b (feat: different output formats for `bench version`)
-
-		if hasattr(app_hooks, '{0}_version'.format(app_info.branch)):
-			app_info.version = getattr(app_hooks, '{0}_version'.format(app_info.branch))
-		elif hasattr(module, "__version__"):
-<<<<<<< HEAD
-			print("{0} {1}".format(m, module.__version__))
-=======
-			app_info.version = module.__version__
-
-		data.append(app_info)
-
-	if output == 'table':
-		table = [['App', 'Version', 'Branch', 'Commit']]
-		for app_info in data:
-			table.append([app_info.app, app_info.version, app_info.branch, app_info.commit])
-		render_table(table)
-	elif output == 'json':
-		click.echo(json.dumps(data, indent=4))
-	elif output == 'plain':
-		for app_info in data:
-			click.echo(f'{app_info.app} {app_info.version} {app_info.branch} ({app_info.commit})')
-	else: # legacy
-		for app_info in data:
-			click.echo(f'{app_info.app} {app_info.version}')
->>>>>>> ef0a5e904b (feat: different output formats for `bench version`)
-=======
-=======
 		app_info.branch = get_app_branch(app)
 		app_info.commit = repo.head.object.hexsha[:7]
->>>>>>> 04094110f5 (fix: handle detached head)
 		app_info.version = getattr(app_hooks, f"{app_info.branch}_version", None) or module.__version__
 
 		data.append(app_info)
@@ -855,13 +801,12 @@ def get_version(output):
 		"table": lambda: render_table(
 			[["App", "Version", "Branch", "Commit"]] +
 			[
-				[app_info.app, app_info.version, app_info.branch, app_info.commit] 
+				[app_info.app, app_info.version, app_info.branch, app_info.commit]
 				for app_info in data
 			]
 		),
 		"json": lambda: click.echo(json.dumps(data, indent=4)),
 	}[output]()
->>>>>>> d1555263e1 (refactor: suggestions from review)
 
 
 @click.command('rebuild-global-search')
