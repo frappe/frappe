@@ -10,9 +10,9 @@ context('Datetime Validation', () => {
 	it('datetime field form validation', () => {
 		cy.visit('/app/communication');
 		cy.get('a[title="Test Form Communication 1"]').invoke('attr', 'data-name')
-		.then((name) => {
-			cy.visit(`/app/communication/${name}`);
-			cy.get('.indicator-pill').should('contain', 'Open').should('have.class', 'red');
-		})
+			.then((name) => {
+				cy.visit(`/app/communication/${name}`);
+				cy.get('.indicator-pill').should('contain', 'Open').should('have.class', 'red');
+			});
 	});
 });
