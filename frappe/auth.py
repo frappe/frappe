@@ -21,11 +21,40 @@ from urllib.parse import quote
 
 class HTTPRequest:
 	def __init__(self):
-		# Get Environment variables
-		self.domain = frappe.request.host
-		if self.domain and self.domain.startswith('www.'):
-			self.domain = self.domain[4:]
+		# set frappe.local.request_ip
+		self.set_request_ip()
 
+		# load cookies
+		self.set_cookies()
+
+		# set frappe.local.db
+		self.connect()
+
+		# login and start/resume user session
+		self.set_session()
+
+		# set request language
+		self.set_lang()
+
+		# match csrf token from current session
+		self.validate_csrf_token()
+
+		# write out latest cookies
+		frappe.local.cookie_manager.init_cookies()
+
+		# check session status
+		check_session_stopped()
+
+	@property
+	def domain(self):
+		if not getattr(self, "_domain", None):
+			self._domain = frappe.request.host
+			if self._domain and self._domain.startswith('www.'):
+				self._domain = self._domain[4:]
+
+		return self._domain
+
+	def set_request_ip(self):
 		if frappe.get_request_header('X-Forwarded-For'):
 			frappe.local.request_ip = (frappe.get_request_header('X-Forwarded-For').split(",")[0]).strip()
 
@@ -35,32 +64,21 @@ class HTTPRequest:
 		else:
 			frappe.local.request_ip = '127.0.0.1'
 
-		# load cookies
+	def set_cookies(self):
 		frappe.local.cookie_manager = CookieManager()
 
-		# set db
-		self.connect()
-
-		# login
+	def set_session(self):
 		frappe.local.login_manager = LoginManager()
-
-		# language
-		self.set_lang()
-
-		self.validate_csrf_token()
-
-		# write out latest cookies
-		frappe.local.cookie_manager.init_cookies()
-
-		# check status
-		check_session_stopped()
 
 	def validate_csrf_token(self):
 		if frappe.local.request and frappe.local.request.method in ("POST", "PUT", "DELETE"):
-			if not frappe.local.session: return
-			if not frappe.local.session.data.csrf_token \
-				or frappe.local.session.data.device=="mobile" \
-				or frappe.conf.get('ignore_csrf', None):
+			if not frappe.local.session:
+				return
+			if (
+				not frappe.local.session.data.csrf_token
+				or frappe.local.session.data.device == "mobile"
+				or frappe.conf.get('ignore_csrf', None)
+			):
 				# not via boot
 				return
 
@@ -85,10 +103,12 @@ class HTTPRequest:
 		"""get database name from conf"""
 		return conf.db_name
 
-	def connect(self, ac_name = None):
+	def connect(self):
 		"""connect to db, from ac_name or db_name"""
-		frappe.local.db = frappe.database.get_db(user = self.get_db_name(), \
-			password = getattr(conf, 'db_password', ''))
+		frappe.local.db = frappe.database.get_db(
+			user=self.get_db_name(),
+			password=getattr(conf, 'db_password', '')
+		)
 
 class LoginManager:
 	def __init__(self):
