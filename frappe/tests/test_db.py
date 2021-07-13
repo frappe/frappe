@@ -4,15 +4,14 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import unittest
-<<<<<<< HEAD
-=======
-from random import choice
-import datetime
 
->>>>>>> 1e839f0ab1 (test: Add test for frappe.db.get_single_value)
+import datetime
+import unittest
+
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.utils.testutils import clear_custom_fields
+
 
 class TestDB(unittest.TestCase):
 	def test_get_value(self):
@@ -59,7 +58,7 @@ class TestDB(unittest.TestCase):
 			frappe.db.set_value("Print Settings", "Print Settings", fieldname, inp["value"])
 			self.assertEqual(frappe.db.get_single_value("Print Settings", fieldname), inp["value"])
 
-		#teardown 
+		#teardown
 		clear_custom_fields("Print Settings")
 
 	def test_log_touched_tables(self):
