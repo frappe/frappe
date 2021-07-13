@@ -12,43 +12,79 @@ from six import iteritems, text_type, string_types, PY2
 	Translation tools for frappe
 """
 
-import frappe, os, re, io, codecs, json
-from frappe.model.utils import render_include, InvalidIncludePath
-from frappe.utils import strip, strip_html_tags, is_html
-from jinja2 import TemplateError
-import itertools, operator
+import io
+import itertools
+import json
+import operator
+import functools
+import os
+import re
+from csv import reader
+
+import frappe
+from frappe.model.utils import InvalidIncludePath, render_include
+from frappe.utils import is_html, strip, strip_html_tags
+
 
 def guess_language(lang_list=None):
-	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
+	"""Set `frappe.local.lang` from HTTP headers at beginning of request
+
+	Order of priority for setting language:
+	1. Form Dict => _lang
+	2. Cookie => preferred_language
+	3. Request Header => Accept-Language
+	4. User document => language
+	5. System Settings => language
+	"""
+
+	# fetch language from form_dict
+	if frappe.form_dict._lang:
+		language = get_lang_code(
+			frappe.form_dict._lang or get_parent_language(frappe.form_dict._lang)
+		)
+		if language:
+			return language
+
+	lang_set = set(lang_list or get_all_languages() or [])
+
+	# fetch language from cookie
 	preferred_language_cookie = frappe.request.cookies.get('preferred_language')
-	lang_codes = list(frappe.request.accept_languages.values())
 
 	if preferred_language_cookie:
-		lang_codes.append(preferred_language_cookie)
+		if preferred_language_cookie in lang_set:
+			return preferred_language_cookie
 
-	if not lang_codes:
-		return frappe.local.lang
+		parent_language = get_parent_language(language)
+		if parent_language in lang_set:
+			return parent_language
 
-	guess = None
-	if not lang_list:
-		lang_list = get_all_languages() or []
+	# fetch language from request headers
+	accept_language = list(frappe.request.accept_languages.values())
 
-	for l in lang_codes:
-		code = l.strip()
-		if not isinstance(code, text_type):
-			code = text_type(code, 'utf-8')
-		if code in lang_list or code == "en":
-			guess = code
-			break
+	for language in accept_language:
+		if language in lang_set:
+			return language
 
-		# check if parent language (pt) is setup, if variant (pt-BR)
-		if "-" in code:
-			code = code.split("-")[0]
-			if code in lang_list:
-				guess = code
-				break
+		parent_language = get_parent_language(language)
+		if parent_language in lang_set:
+			return parent_language
 
-	return guess or frappe.local.lang
+	# fallback to language set in User or System Settings
+	return frappe.local.lang
+
+
+@functools.lru_cache(maxsize=None)
+def get_parent_language(lang: str) -> str:
+	"""If the passed language is a variant, return its parent
+
+	Eg:
+		1. zh-TW -> zh
+		2. sr-BA -> sr
+	"""
+	is_language_variant = "-" in lang
+	if is_language_variant:
+		return lang[:lang.index("-")]
+
 
 def get_user_lang(user=None):
 	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
@@ -73,7 +109,10 @@ def get_user_lang(user=None):
 	return lang
 
 def get_lang_code(lang):
-	return frappe.db.get_value('Language', {'language_name': lang}) or lang
+	return (
+		frappe.db.get_value("Language", {"name": lang})
+		or frappe.db.get_value("Language", {"language_name": lang})
+	)
 
 def set_default_language(lang):
 	"""Set Global default language"""
