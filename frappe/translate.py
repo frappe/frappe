@@ -35,7 +35,7 @@ from frappe.utils import is_html, strip, strip_html_tags
 
 >>>>>>> c47cbfd2ef (refactor: Set Language in HTTPHeader)
 
-def guess_language(lang_list=None):
+def get_language(lang_list=None):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
