@@ -30,7 +30,7 @@ def set_new_name(doc):
 		doc.name = None
 
 	if getattr(doc, "amended_from", None):
-		_set_amended_name(doc)
+		doc.name = _get_amended_name(doc)
 		return
 
 	elif getattr(doc.meta, "issingle", False):
@@ -199,6 +199,42 @@ def getseries(key, digits):
 
 
 def revert_series_if_last(key, name, doc=None):
+<<<<<<< HEAD
+=======
+	"""
+	Reverts the series for particular naming series:
+	* key is naming series		- SINV-.YYYY-.####
+	* name is actual name		- SINV-2021-0001
+
+	1. This function split the key into two parts prefix (SINV-YYYY) & hashes (####).
+	2. Use prefix to get the current index of that naming series from Series table
+	3. Then revert the current index.
+
+	*For custom naming series:*
+	1. hash can exist anywhere, if it exist in hashes then it take normal flow.
+	2. If hash doesn't exit in hashes, we get the hash from prefix, then update name and prefix accordingly.
+
+	*Example:*
+		1. key = SINV-.YYYY.-
+			* If key doesn't have hash it will add hash at the end
+			* prefix will be SINV-YYYY based on this will get current index from Series table.
+		2. key = SINV-.####.-2021
+			* now prefix = SINV-#### and hashes = 2021 (hash doesn't exist)
+			* will search hash in key then accordingly get prefix = SINV-
+		3. key = ####.-2021
+			* prefix = #### and hashes = 2021 (hash doesn't exist)
+			* will search hash in key then accordingly get prefix = ""
+	"""
+	if hasattr(doc, 'amended_from'):
+		# do not revert if doc is amended, since cancelled docs still exist
+		if doc.docstatus != 2 and doc.amended_from:
+			return
+
+		# for first cancelled doc
+		if doc.docstatus == 2 and not doc.amended_from:
+			name, _ = NameParser.parse_docname(doc.name, sep='-CAN-')
+
+>>>>>>> d459847ae3 (refactor: set amended docname to original docname)
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:
@@ -276,16 +312,9 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 	return value
 
 
-def _set_amended_name(doc):
-	am_id = 1
-	am_prefix = doc.amended_from
-	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
-		am_id = cint(doc.amended_from.split("-")[-1]) + 1
-		am_prefix = "-".join(doc.amended_from.split("-")[:-1])  # except the last hyphen
-
-	doc.name = am_prefix + "-" + str(am_id)
-	return doc.name
-
+def _get_amended_name(doc):
+	name, _ = NameParser(doc).parse_amended_from()
+	return name
 
 def _field_autoname(autoname, doc, skip_slicing=None):
 	"""
@@ -295,7 +324,6 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	fieldname = autoname if skip_slicing else autoname[6:]
 	name = (cstr(doc.get(fieldname)) or "").strip()
 	return name
-
 
 def _prompt_autoname(autoname, doc):
 	"""
@@ -327,3 +355,61 @@ def _format_autoname(autoname, doc):
 	name = re.sub(r"(\{[\w | #]+\})", get_param_value_for_match, autoname_value)
 
 	return name
+
+class NameParser:
+	"""Parse document name and return all the parts of it.
+
+	NOTE: It handles cancellend and amended doc parsing for now. It can be expanded.
+	"""
+	def __init__(self, doc):
+		self.doc = doc
+
+	def parse_name(self):
+		if not hasattr(self.doc, "amended_from"):
+			return (self.doc.name, None, None)
+
+		#If document is cancelled document
+		if hasattr(self.doc, "amended_from") and self.doc.docstatus == 2:
+			return self.parse_docname(self.doc.name, sep='-CAN-')
+		return self.parse_docname(self.doc.name)
+
+	def parse_amended_from(self):
+		if not getattr(self.doc, 'amended_from', None):
+			return (None, None)
+		return self.parse_docname(self.doc.amended_from, '-CAN-')
+
+	@classmethod
+	def parse_docname(cls, name, sep='-'):
+		split_list = name.rsplit(sep, 1)
+
+		if len(split_list) == 1:
+			return (name, None)
+		return (split_list[0], split_list[1])
+
+def get_cancelled_doc_latest_counter(tname, docname):
+	"""Get the latest counter used for cancelled docs of given docname.
+	"""
+	name_prefix = f'{docname}-CAN-'
+
+	rows = frappe.db.sql("""
+		select
+			name
+		from `tab{tname}`
+		where
+			name like %(name_prefix)s and docstatus=2
+	""".format(tname=tname), {'name_prefix': name_prefix+'%'}, as_dict=1)
+
+	if not rows:
+		return -1
+	return max([int(row.name.replace(name_prefix, '') or -1) for row in rows])
+
+def gen_new_name_for_cancelled_doc(doc):
+	"""Generate a new name for cancelled document.
+	"""
+	if getattr(doc, "amended_from", None):
+		name, _ = NameParser(doc).parse_amended_from()
+	else:
+		name = doc.name
+
+	counter = get_cancelled_doc_latest_counter(doc.doctype, name)
+	return f'{name}-CAN-{counter+1}'
