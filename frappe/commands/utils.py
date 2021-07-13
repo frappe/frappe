@@ -767,26 +767,49 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 			frappe.destroy()
 
 
-@click.command('version')
-def get_version():
-	"Show the versions of all the installed apps"
+@click.command("version")
+@click.option("-f", "--format", "output",
+	type=click.Choice(["plain", "table", "json", "legacy"]), help="Output format", default="legacy")
+def get_version(output):
+	"""Show the versions of all the installed apps."""
 	from git import Repo
+	from frappe.utils.commands import render_table
 	from frappe.utils.change_log import get_app_branch
-	frappe.init('')
+
+	frappe.init("")
+	data = []
 
 	for app in sorted(frappe.get_all_apps()):
-		branch_name = get_app_branch(app)
 		module = frappe.get_module(app)
 		app_hooks = frappe.get_module(app + ".hooks")
 		repo = Repo(frappe.get_app_path(app, ".."))
-		branch = repo.head.ref.name
-		commit = repo.head.ref.commit.hexsha[:7]
 
-		if hasattr(app_hooks, '{0}_version'.format(branch_name)):
-			click.echo("{0} {1} {2} ({3})".format(app, getattr(app_hooks, '{0}_version'.format(branch_name)), branch, commit))
+		app_info = frappe._dict()
+		app_info.app = app
+		app_info.branch = get_app_branch(app)
+		app_info.commit = repo.head.object.hexsha[:7]
+		app_info.version = getattr(app_hooks, f"{app_info.branch}_version", None) or module.__version__
 
-		elif hasattr(module, "__version__"):
-			click.echo("{0} {1} {2} ({3})".format(app, module.__version__, branch, commit))
+		data.append(app_info)
+
+	{
+		"legacy": lambda: [
+			click.echo(f"{app_info.app} {app_info.version}")
+			for app_info in data
+		],
+		"plain": lambda: [
+			click.echo(f"{app_info.app} {app_info.version} {app_info.branch} ({app_info.commit})")
+			for app_info in data
+		],
+		"table": lambda: render_table(
+			[["App", "Version", "Branch", "Commit"]] +
+			[
+				[app_info.app, app_info.version, app_info.branch, app_info.commit] 
+				for app_info in data
+			]
+		),
+		"json": lambda: click.echo(json.dumps(data, indent=4)),
+	}[output]()
 
 
 @click.command('rebuild-global-search')
