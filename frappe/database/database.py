@@ -15,7 +15,6 @@ from frappe import _
 from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils import cint
 
 
 class Database(object):
@@ -335,7 +334,7 @@ class Database(object):
 				values[key] = value[1]
 				if isinstance(value[1], (tuple, list)):
 					# value is a list in tuple ("in", ("A", "B"))
-					_rhs = " ({0})".format(", ".join([self.escape(v) for v in value[1]]))
+					_rhs = " ({0})".format(", ".join(self.escape(v) for v in value[1]))
 					del values[key]
 
 			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in", "not like"]:
@@ -556,8 +555,7 @@ class Database(object):
 		if not df:
 			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
 
-		if df.fieldtype in frappe.model.numeric_fieldtypes:
-			val = cint(val)
+		val = cast_fieldtype(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 
@@ -1010,7 +1008,7 @@ class Database(object):
 			:params values: list of list of values
 		"""
 		insert_list = []
-		fields = ", ".join(["`"+field+"`" for field in fields])
+		fields = ", ".join("`"+field+"`" for field in fields)
 
 		for idx, value in enumerate(values):
 			insert_list.append(tuple(value))

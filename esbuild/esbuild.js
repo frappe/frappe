@@ -258,12 +258,17 @@ function get_watch_config() {
 async function clean_dist_folders(apps) {
 	for (let app of apps) {
 		let public_path = get_public_path(app);
-		await fs.promises.rmdir(path.resolve(public_path, "dist", "js"), {
-			recursive: true
-		});
-		await fs.promises.rmdir(path.resolve(public_path, "dist", "css"), {
-			recursive: true
-		});
+		let paths = [
+			path.resolve(public_path, "dist", "js"),
+			path.resolve(public_path, "dist", "css")
+		];
+		for (let target of paths) {
+			if (fs.existsSync(target)) {
+				// rmdir is deprecated in node 16, this will work in both node 14 and 16
+				let rmdir = fs.promises.rm || fs.promises.rmdir;
+				await rmdir(target, { recursive: true });
+			}
+		}
 	}
 }
 

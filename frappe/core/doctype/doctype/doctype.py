@@ -8,7 +8,6 @@ from frappe.cache_manager import clear_user_cache, clear_controller_cache
 
 # imports - module imports
 import frappe
-import frappe.website.render
 from frappe import _
 from frappe.utils import now, cint
 from frappe.model import no_value_fields, default_fields, data_fieldtypes, table_fields, data_field_options
@@ -23,6 +22,7 @@ from frappe.model.docfield import supports_translation
 from frappe.modules.import_file import get_file_path
 from frappe.model.meta import Meta
 from frappe.desk.utils import validate_route_conflict
+from frappe.website.utils import clear_cache
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 class UniqueFieldnameError(frappe.ValidationError): pass
@@ -193,7 +193,7 @@ class DocType(Document):
 
 		self.flags.update_fields_to_fetch_queries = []
 
-		if set(old_fields_to_fetch) != set([df.fieldname for df in new_meta.get_fields_to_fetch()]):
+		if set(old_fields_to_fetch) != set(df.fieldname for df in new_meta.get_fields_to_fetch()):
 			for df in new_meta.get_fields_to_fetch():
 				if df.fieldname not in old_fields_to_fetch:
 					link_fieldname, source_fieldname = df.fetch_from.split('.', 1)
@@ -248,7 +248,7 @@ class DocType(Document):
 				frappe.throw(_('Field "route" is mandatory for Web Views'), title='Missing Field')
 
 			# clear website cache
-			frappe.website.render.clear_cache()
+			clear_cache()
 
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
@@ -550,11 +550,6 @@ class DocType(Document):
 		from frappe.modules.export_file import export_to_files
 		export_to_files(record_list=[['DocType', self.name]], create_init=True)
 
-	def import_doc(self):
-		"""Import from standard folder `[module]/doctype/[name]/[name].json`."""
-		from frappe.modules.import_module import import_from_files
-		import_from_files(record_list=[[self.module, 'doctype', self.name]])
-
 	def make_controller_template(self):
 		"""Make boilerplate controller template."""
 		make_boilerplate("controller._py", self)
@@ -762,7 +757,7 @@ def validate_fields(meta):
 		invalid_fields = ('doctype',)
 		if fieldname in invalid_fields:
 			frappe.throw(_("{0}: Fieldname cannot be one of {1}")
-				.format(docname, ", ".join([frappe.bold(d) for d in invalid_fields])))
+				.format(docname, ", ".join(frappe.bold(d) for d in invalid_fields)))
 
 	def check_unique_fieldname(docname, fieldname):
 		duplicates = list(filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields)))
@@ -996,7 +991,7 @@ def validate_fields(meta):
 			if docfield.options and (docfield.options not in data_field_options):
 				df_str = frappe.bold(_(docfield.label))
 				text_str = _("{0} is an invalid Data field.").format(df_str) + "<br>" * 2 + _("Only Options allowed for Data field are:") + "<br>"
-				df_options_str = "<ul><li>" + "</li><li>".join([_(x) for x in data_field_options]) + "</ul>"
+				df_options_str = "<ul><li>" + "</li><li>".join(_(x) for x in data_field_options) + "</ul>"
 
 				frappe.msgprint(text_str + df_options_str, title="Invalid Data Field", raise_exception=True)
 

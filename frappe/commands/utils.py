@@ -69,14 +69,14 @@ def watch(apps=None):
 def clear_cache(context):
 	"Clear cache, doctype cache and defaults"
 	import frappe.sessions
-	import frappe.website.render
+	from frappe.website.utils import clear_website_cache
 	from frappe.desk.notifications import clear_notifications
 	for site in context.sites:
 		try:
 			frappe.connect(site)
 			frappe.clear_cache()
 			clear_notifications()
-			frappe.website.render.clear_cache()
+			clear_website_cache()
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -86,12 +86,12 @@ def clear_cache(context):
 @pass_context
 def clear_website_cache(context):
 	"Clear website cache"
-	import frappe.website.render
+	from frappe.website.utils import clear_website_cache
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.website.render.clear_cache()
+			clear_website_cache()
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -661,7 +661,7 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
 
 	# run for headless mode
-	run_or_open = 'run --browser firefox --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
+	run_or_open = 'run --browser firefox --record' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
 
@@ -770,19 +770,23 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 @click.command('version')
 def get_version():
 	"Show the versions of all the installed apps"
+	from git import Repo
 	from frappe.utils.change_log import get_app_branch
 	frappe.init('')
 
-	for m in sorted(frappe.get_all_apps()):
-		branch_name = get_app_branch(m)
-		module = frappe.get_module(m)
-		app_hooks = frappe.get_module(m + ".hooks")
+	for app in sorted(frappe.get_all_apps()):
+		branch_name = get_app_branch(app)
+		module = frappe.get_module(app)
+		app_hooks = frappe.get_module(app + ".hooks")
+		repo = Repo(frappe.get_app_path(app, ".."))
+		branch = repo.head.ref.name
+		commit = repo.head.ref.commit.hexsha[:7]
 
 		if hasattr(app_hooks, '{0}_version'.format(branch_name)):
-			print("{0} {1}".format(m, getattr(app_hooks, '{0}_version'.format(branch_name))))
+			click.echo("{0} {1} {2} ({3})".format(app, getattr(app_hooks, '{0}_version'.format(branch_name)), branch, commit))
 
 		elif hasattr(module, "__version__"):
-			print("{0} {1}".format(m, module.__version__))
+			click.echo("{0} {1} {2} ({3})".format(app, module.__version__, branch, commit))
 
 
 @click.command('rebuild-global-search')

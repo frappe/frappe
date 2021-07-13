@@ -110,7 +110,7 @@ class Domain(Document):
 
 			# enable
 			frappe.db.sql('''update `tabPortal Menu Item` set enabled=1
-				where route in ({0})'''.format(', '.join(['"{0}"'.format(d) for d in self.data.allow_sidebar_items])))
+				where route in ({0})'''.format(', '.join('"{0}"'.format(d) for d in self.data.allow_sidebar_items)))
 
 		if self.data.remove_sidebar_items:
 			# disable all
@@ -118,4 +118,4 @@ class Domain(Document):
 
 			# enable
 			frappe.db.sql('''update `tabPortal Menu Item` set enabled=0
-				where route in ({0})'''.format(', '.join(['"{0}"'.format(d) for d in self.data.remove_sidebar_items])))
+				where route in ({0})'''.format(', '.join('"{0}"'.format(d) for d in self.data.remove_sidebar_items)))

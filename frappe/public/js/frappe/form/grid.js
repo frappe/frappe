@@ -210,9 +210,9 @@ export default class Grid {
 
 	delete_all_rows() {
 		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
-			this.frm.doc[this.df.fieldname] = [];
-			$(this.parent).find('.rows').empty();
-			this.grid_rows = [];
+			this.grid_rows.forEach(row => {
+				row.remove();
+			});
 			this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 
 			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
@@ -236,6 +236,10 @@ export default class Grid {
 	}
 
 	refresh_remove_rows_button() {
+		if (this.df.cannot_delete_rows) {
+			return;
+		}
+
 		this.remove_rows_button.toggleClass('hidden',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 		this.remove_all_rows_button.toggleClass('hidden',
