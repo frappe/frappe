@@ -39,7 +39,7 @@ from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.utils import is_html, strip, strip_html_tags
 
 
-def guess_language(lang_list=None):
+def get_language(lang_list=None):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
