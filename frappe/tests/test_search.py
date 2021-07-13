@@ -8,6 +8,48 @@ from frappe.desk.search import search_link
 from frappe.desk.search import search_widget
 
 class TestSearch(unittest.TestCase):
+	def setUp(self):
+		self.tree_doctype_name = 'Test Tree Order'
+
+		# Create Tree doctype
+		self.tree_doc = frappe.get_doc({
+			'doctype': 'DocType',
+			'name': self.tree_doctype_name,
+			'module': 'Custom',
+			'custom': 1,
+			'is_tree': 1,
+			'autoname': 'field:random',
+			'fields': [{
+				'fieldname': 'random',
+				'label': 'Random',
+				'fieldtype': 'Data'
+			}]
+		}).insert()
+		self.tree_doc.search_fields = 'parent_test_tree_order'
+		self.tree_doc.save()
+
+		# Create root for the tree doctype
+		self.parent_doctype_name = 'All Territories'
+		frappe.get_doc(doctype=self.tree_doctype_name, random=self.parent_doctype_name,
+						is_group=1).insert()
+
+		# Create children for the root
+		self.child_doctypes_names = ['USA', 'India', 'Russia', 'China']
+		self.child_doctype_list = []
+		for child_name in self.child_doctypes_names:
+			temp = frappe.get_doc(doctype=self.tree_doctype_name, random=child_name,
+								parent_test_tree_order=self.parent_doctype_name)
+			temp.insert()
+			self.child_doctype_list.append(temp)
+
+	def tearDown(self):
+		# Deleting all the created doctype
+		for child_doctype in self.child_doctype_list:
+			child_doctype.delete()
+		frappe.delete_doc(self.tree_doctype_name, self.parent_doctype_name,
+						force=1, ignore_permissions=True, for_reload=True)
+		self.tree_doc.delete()
+
 	def test_search_field_sanitizer(self):
 		# pass
 		search_link('DocType', 'User', query=None, filters=None, page_length=20, searchfield='name')
@@ -38,6 +80,18 @@ class TestSearch(unittest.TestCase):
 		self.assertRaises(frappe.DataError,
 			search_link, 'DocType', 'Customer', query=None, filters=None,
 			page_length=20, searchfield=';')
+
+	def test_link_field_order(self):
+		# Making a request to the search_link with the tree doctype
+		search_link(doctype=self.tree_doctype_name, txt='all', query=None,
+					filters=None, page_length=20, searchfield=None)
+		result = frappe.response['results']
+
+		# Check whether the result is sorted or not
+		self.assertEquals(self.parent_doctype_name, result[0]['value'])
+
+		# Check whether searching for parent also list out children
+		self.assertEquals(len(result), len(self.child_doctypes_names) + 1)
 
 	#Search for the word "pay", part of the word "pays" (country) in french.
 	def test_link_search_in_foreign_language(self):
