@@ -782,6 +782,7 @@ def get_version(output):
 	"""Show the versions of all the installed apps."""
 	from git import Repo
 	from frappe.utils.commands import render_table
+	from frappe.utils.change_log import get_app_branch
 
 	frappe.init("")
 >>>>>>> d1555263e1 (refactor: suggestions from review)
@@ -803,6 +804,7 @@ def get_version(output):
 
 		app_info = frappe._dict()
 		app_info.app = app
+<<<<<<< HEAD
 		app_info.branch = repo.head.ref.name
 		app_info.commit = repo.head.ref.commit.hexsha[:7]
 <<<<<<< HEAD
@@ -833,6 +835,10 @@ def get_version(output):
 			click.echo(f'{app_info.app} {app_info.version}')
 >>>>>>> ef0a5e904b (feat: different output formats for `bench version`)
 =======
+=======
+		app_info.branch = get_app_branch(app)
+		app_info.commit = repo.head.object.hexsha[:7]
+>>>>>>> 04094110f5 (fix: handle detached head)
 		app_info.version = getattr(app_hooks, f"{app_info.branch}_version", None) or module.__version__
 
 		data.append(app_info)
