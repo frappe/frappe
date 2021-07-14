@@ -263,10 +263,14 @@ frappe.ui.form.Layout = Class.extend({
 				section.addClass("empty-section");
 			}
 		});
+<<<<<<< HEAD
 
 		this.frm && this.frm.dashboard.refresh();
 
 	},
+=======
+	}
+>>>>>>> b4ea6c8890 (fix: dont refresh form dashboard in `layout.refresh_sections` (#13650))
 
 	refresh_fields: function (fields) {
 		let fieldnames = fields.map((field) => {
