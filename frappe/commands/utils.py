@@ -566,9 +566,11 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 	if coverage:
 		from coverage import Coverage
+		from frappe.coverage import STANDARD_INCLUSIONS, STANDARD_EXCLUSIONS, FRAPPE_EXCLUSIONS
 
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
+<<<<<<< HEAD
 		incl = [
 			'*.py',
 		]
@@ -586,12 +588,14 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 			'*/doctype/*/*_dashboard.py',
 			'*/patches/*',
 		]
+=======
+		omit = STANDARD_EXCLUSIONS[:]
+>>>>>>> 2ac1c45c66 (refactor: Maintain common list for Frappe Coverage settings)
 
 		if not app or app == 'frappe':
-			omit.append('*/tests/*')
-			omit.append('*/commands/*')
+			omit.extend(FRAPPE_EXCLUSIONS)
 
-		cov = Coverage(source=[source_path], omit=omit, include=incl)
+		cov = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
