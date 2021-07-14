@@ -62,8 +62,12 @@ def get_language(lang_list: List = None) -> str:
 	lang_set = set(lang_list or get_all_languages() or [])
 
 	# fetch language from cookie
+<<<<<<< HEAD
 >>>>>>> c47cbfd2ef (refactor: Set Language in HTTPHeader)
 	preferred_language_cookie = frappe.request.cookies.get('preferred_language')
+=======
+	preferred_language_cookie = get_preferred_language_cookie()
+>>>>>>> 421220a872 (test: Added tests for frappe.translate.get_language)
 
 	if preferred_language_cookie:
 		if preferred_language_cookie in lang_set:
@@ -846,3 +850,64 @@ def get_translations(source_name):
 			'source_name': source_name
 		}
 	)
+<<<<<<< HEAD
+=======
+
+@frappe.whitelist()
+def get_messages(language, start=0, page_length=100, search_text=''):
+	from frappe.frappeclient import FrappeClient
+	translator = FrappeClient(get_translator_url())
+	translated_dict = translator.post_api('translator.api.get_strings_for_translation', params=locals())
+
+	return translated_dict
+
+
+@frappe.whitelist()
+def get_source_additional_info(source, language=''):
+	from frappe.frappeclient import FrappeClient
+	translator = FrappeClient(get_translator_url())
+	return translator.post_api('translator.api.get_source_additional_info', params=locals())
+
+@frappe.whitelist()
+def get_contributions(language):
+	return frappe.get_all('Translation', fields=['*'], filters={
+		'contributed': 1,
+	})
+
+@frappe.whitelist()
+def get_contribution_status(message_id):
+	from frappe.frappeclient import FrappeClient
+	doc = frappe.get_doc('Translation', message_id)
+	translator = FrappeClient(get_translator_url())
+	contributed_translation = translator.get_api('translator.api.get_contribution_status', params={
+		'translation_id': doc.contribution_docname
+	})
+	return contributed_translation
+
+def get_translator_url():
+	return frappe.get_hooks()['translator_url'][0]
+
+@frappe.whitelist(allow_guest=True)
+def get_all_languages(with_language_name=False):
+	"""Returns all language codes ar, ch etc"""
+	def get_language_codes():
+		return frappe.db.sql_list('select name from tabLanguage')
+
+	def get_all_language_with_name():
+		return frappe.db.get_all('Language', ['language_code', 'language_name'])
+
+	if not frappe.db:
+		frappe.connect()
+
+	if with_language_name:
+		return frappe.cache().get_value('languages_with_name', get_all_language_with_name)
+	else:
+		return frappe.cache().get_value('languages', get_language_codes)
+
+@frappe.whitelist(allow_guest=True)
+def set_preferred_language_cookie(preferred_language):
+	frappe.local.cookie_manager.set_cookie("preferred_language", preferred_language)
+
+def get_preferred_language_cookie():
+	return frappe.request.cookies.get("preferred_language")
+>>>>>>> 421220a872 (test: Added tests for frappe.translate.get_language)
