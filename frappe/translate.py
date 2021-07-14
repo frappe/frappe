@@ -15,13 +15,14 @@ import functools
 import os
 import re
 from csv import reader
+from typing import List, Union
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.utils import is_html, strip, strip_html_tags
 
 
-def get_language(lang_list=None):
+def get_language(lang_list: List = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
@@ -81,7 +82,7 @@ def get_parent_language(lang: str) -> str:
 		return lang[:lang.index("-")]
 
 
-def get_user_lang(user=None):
+def get_user_lang(user: str = None) -> str:
 	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
 	if not user:
 		user = frappe.session.user
@@ -103,7 +104,7 @@ def get_user_lang(user=None):
 
 	return lang
 
-def get_lang_code(lang):
+def get_lang_code(lang: str) -> Union[str, None]:
 	return (
 		frappe.db.get_value("Language", {"name": lang})
 		or frappe.db.get_value("Language", {"language_name": lang})
