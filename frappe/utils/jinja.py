@@ -203,11 +203,12 @@ def web_block(template, values=None, **kwargs):
 def web_blocks(blocks):
 	from frappe import throw, _dict
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
+	from frappe import _
 
 	web_blocks = []
 	for block in blocks:
 		if not block.get('template'):
-			throw('Web Template is not specified')
+			throw(_('Web Template is not specified'))
 
 		doc = _dict({
 			'doctype': 'Web Page Block',
