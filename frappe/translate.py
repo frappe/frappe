@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 """
 	frappe.translate
@@ -69,7 +69,7 @@ def get_language(lang_list: List = None) -> str:
 	return frappe.local.lang
 
 
-@functools.lru_cache(maxsize=None)
+@functools.lru_cache()
 def get_parent_language(lang: str) -> str:
 	"""If the passed language is a variant, return its parent
 
@@ -84,21 +84,17 @@ def get_parent_language(lang: str) -> str:
 
 def get_user_lang(user: str = None) -> str:
 	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
-	if not user:
-		user = frappe.session.user
-
-	# via cache
+	user = user or frappe.session.user
 	lang = frappe.cache().hget("lang", user)
 
 	if not lang:
-
-		# if defined in user profile
-		lang = frappe.db.get_value("User", user, "language")
-		if not lang:
-			lang = frappe.db.get_default("lang")
-
-		if not lang:
-			lang = frappe.local.lang or 'en'
+		# User.language => Session Defaults => frappe.local.lang => 'en'
+		lang = (
+			frappe.db.get_value("User", user, "language")
+			or frappe.db.get_default("lang")
+			or frappe.local.lang
+			or "en"
+		)
 
 		frappe.cache().hset("lang", user, lang)
 
