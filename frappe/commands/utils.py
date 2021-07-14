@@ -770,7 +770,7 @@ def get_version(output):
 		"table": lambda: render_table(
 			[["App", "Version", "Branch", "Commit"]] +
 			[
-				[app_info.app, app_info.version, app_info.branch, app_info.commit] 
+				[app_info.app, app_info.version, app_info.branch, app_info.commit]
 				for app_info in data
 			]
 		),

@@ -15,11 +15,11 @@ import functools
 import os
 import re
 from csv import reader
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
-from frappe.utils import is_html, strip, strip_html_tags
+from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
 
 
 def get_language(lang_list: List = None) -> str:
@@ -558,7 +558,7 @@ def get_all_messages_from_js_files(app_name=None):
 
 	return messages
 
-def get_messages_from_file(path):
+def get_messages_from_file(path: str) -> List[Tuple[str, str, str, str]]:
 	"""Returns a list of transatable strings from a code file
 
 	:param path: path of the code file
@@ -571,7 +571,7 @@ def get_messages_from_file(path):
 
 	frappe.flags.scanned_files.append(path)
 
-	apps_path = get_bench_dir()
+	bench_path = get_bench_path()
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
 			try:
@@ -579,11 +579,12 @@ def get_messages_from_file(path):
 			except Exception:
 				print("Could not scan file for translation: {0}".format(path))
 				return []
-			data = [(os.path.relpath(path, apps_path), message, context, line) \
-				for line, message, context in extract_messages_from_code(file_contents)]
-			return data
+
+			return [
+				(os.path.relpath(path, bench_path), message, context, line)
+				for (line, message, context) in extract_messages_from_code(file_contents)
+			]
 	else:
-		# print "Translate: {0} missing".format(os.path.abspath(path))
 		return []
 
 def extract_messages_from_code(code):
@@ -796,9 +797,6 @@ def deduplicate_messages(messages):
 	for k, g in itertools.groupby(messages, op):
 		ret.append(next(g))
 	return ret
-
-def get_bench_dir():
-	return os.path.join(frappe.__file__, '..', '..', '..', '..')
 
 def rename_language(old_name, new_name):
 	if not frappe.db.exists('Language', new_name):
