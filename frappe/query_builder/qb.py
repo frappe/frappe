@@ -35,6 +35,10 @@ class MariaDB(MySQLQuery,common):
 	def DESC(dt):
 		return f"DESC `tab{dt}`"
 
+	@staticmethod
+	def change_table_type(tb, col, type):
+		return f"ALTER TABLE `{tb}` MODIFY `{col}` {type} NOT NULL"
+
 class Postgres(PostgreSQLQuery,common):
 	postgres_field = {"table_name": "relname", "table_rows": "n_tup_ins"}
 	information_schema_translation = {"tables": "pg_stat_all_tables"}
@@ -67,3 +71,7 @@ class Postgres(PostgreSQLQuery,common):
 	@staticmethod
 	def DESC(dt):
 		return f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = 'tab{dt}'"
+
+	@staticmethod
+	def change_table_type(tb, col, type):
+		return f'ALTER TABLE "{tb}" ALTER COLUMN "{col}" TYPE {type}'
