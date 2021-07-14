@@ -44,7 +44,7 @@ def get_language(lang_list: List = None) -> str:
 	lang_set = set(lang_list or get_all_languages() or [])
 
 	# fetch language from cookie
-	preferred_language_cookie = frappe.request.cookies.get('preferred_language')
+	preferred_language_cookie = get_preferred_language_cookie()
 
 	if preferred_language_cookie:
 		if preferred_language_cookie in lang_set:
@@ -906,3 +906,6 @@ def get_all_languages(with_language_name=False):
 @frappe.whitelist(allow_guest=True)
 def set_preferred_language_cookie(preferred_language):
 	frappe.local.cookie_manager.set_cookie("preferred_language", preferred_language)
+
+def get_preferred_language_cookie():
+	return frappe.request.cookies.get("preferred_language")
