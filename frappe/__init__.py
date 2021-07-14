@@ -1683,7 +1683,7 @@ def get_desk_link(doctype, name):
 	)
 
 def bold(text):
-	return '<b>{0}</b>'.format(text)
+	return '<strong>{0}</strong>'.format(text)
 
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	'''A safer `eval`'''
