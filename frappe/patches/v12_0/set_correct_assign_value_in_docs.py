@@ -1,25 +1,23 @@
 import frappe
 
+
 def execute():
-	frappe.reload_doc('desk', 'doctype', 'todo')
+	frappe.reload_doc("desk", "doctype", "todo")
 
-	query = '''
-		SELECT
-			name, reference_type, reference_name, {} as assignees
-		FROM
-			`tabToDo`
-		WHERE
-			COALESCE(reference_type, '') != '' AND
-			COALESCE(reference_name, '') != '' AND
-			status != 'Cancelled'
-		GROUP BY
-			reference_type, reference_name
-	'''
+	ToDo = frappe.qb.Table("ToDo")
+	assignees = frappe.qb.GROUP_CONCAT("owner").distinct().as_("assignees")
 
-	assignments = frappe.db.multisql({
-		'mariadb': query.format('GROUP_CONCAT(DISTINCT `owner`)'),
-		'postgres': query.format('STRING_AGG(DISTINCT "owner", ",")')
-	}, as_dict=True)
+	q = (
+		frappe.qb.from_(ToDo)
+		.select(ToDo.name, ToDo.reference_type, assignees)
+		.where(frappe.qb.fn.Coalesce(ToDo.reference_type, "") != "")
+		.where(frappe.qb.fn.Coalesce(ToDo.reference_name, "") != "")
+		.where(ToDo.status != "Cancelled")
+		.groupby(ToDo.reference_type, ToDo.reference_name)
+		.get_sql()
+	)
+
+	assignments = frappe.db.sql(q, as_dict=True)
 
 	for doc in assignments:
 		assignments = doc.assignees.split(',')

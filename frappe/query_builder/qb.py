@@ -2,6 +2,7 @@ from pypika import MySQLQuery, Order, PostgreSQLQuery
 from pypika import functions as fn
 from pypika import terms
 from pypika.queries import Schema, Table
+from .custom_functions import GROUP_CONCAT, STRING_AGG
 
 def qb(db_type):
 	if not db_type:
@@ -14,19 +15,25 @@ class common:
 	terms = terms
 	desc = Order.desc
 	Schema = Schema
+	@staticmethod
+	def Table(classname:str, *args, **kwargs):
+		if not classname.startswith("__"):
+			classname = "tab" + classname
+		return Table(classname, *args, **kwargs)
 
-class MariaDB(MySQLQuery,common):
+class MariaDB(common, MySQLQuery,):
 	Field = terms.Field
+	GROUP_CONCAT = GROUP_CONCAT
 
 	def __init__(self) -> None:
 		super().__init__()
-	
+
 	@classmethod
 	def from_(cls, class_name, *args, **kwargs):
 		if isinstance(class_name,str):
 			class_name = "tab"+class_name
 		return super().from_(class_name, *args, **kwargs)
-	
+
 	@staticmethod
 	def rename_table(old_name, new_name):
 		return f"RENAME TABLE `tab{old_name}` TO `tab{new_name}`"
@@ -39,9 +46,11 @@ class MariaDB(MySQLQuery,common):
 	def change_table_type(tb, col, type):
 		return f"ALTER TABLE `{tb}` MODIFY `{col}` {type} NOT NULL"
 
-class Postgres(PostgreSQLQuery,common):
+
+class Postgres(common, PostgreSQLQuery,):
 	postgres_field = {"table_name": "relname", "table_rows": "n_tup_ins"}
 	information_schema_translation = {"tables": "pg_stat_all_tables"}
+	GROUP_CONCAT = STRING_AGG
 
 	def __init__(self) -> None:
 		super().__init__()
@@ -63,11 +72,11 @@ class Postgres(PostgreSQLQuery,common):
 			class_name = "tab" + class_name
 
 		return super().from_(class_name, *args, **kwargs)
-	
+
 	@staticmethod
 	def rename_table(old_name, new_name):
 		return f"ALTER TABLE `tab{old_name}` RENAME TO `tab{new_name}`"
-	
+
 	@staticmethod
 	def DESC(dt):
 		return f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = 'tab{dt}'"
