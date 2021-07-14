@@ -1,4 +1,4 @@
-context('Datetime Validation', () => {
+context('Datetime Field Validation', () => {
 	before(() => {
 		cy.login();
 		cy.visit('/app/communication');
@@ -7,6 +7,7 @@ context('Datetime Validation', () => {
 		});
 	});
 
+	// validating datetime field value when value is set from backend and get validated on form load.
 	it('datetime field form validation', () => {
 		cy.visit('/app/communication');
 		cy.get('a[title="Test Form Communication 1"]').invoke('attr', 'data-name')
