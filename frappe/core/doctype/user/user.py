@@ -49,6 +49,11 @@ class User(Document):
 
 	def after_insert(self):
 		create_notification_settings(self.name)
+<<<<<<< HEAD
+=======
+		frappe.cache().delete_key('users_for_mentions')
+		frappe.cache().delete_key('enabled_users')
+>>>>>>> bd854bb368 (fix: Do not create energy points for disabled users)
 
 	def validate(self):
 		self.check_demo()
@@ -101,6 +106,9 @@ class User(Document):
 		create_contact(self, ignore_mandatory=True)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
+
+		if self.has_value_changed('enabled'):
+			frappe.cache().delete_key('enabled_users')
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -340,6 +348,14 @@ class User(Document):
 		# delete notification settings
 		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
 
+<<<<<<< HEAD
+=======
+		if self.get('allow_in_mentions'):
+			frappe.cache().delete_key('users_for_mentions')
+
+		frappe.cache().delete_key('enabled_users')
+
+>>>>>>> bd854bb368 (fix: Do not create energy points for disabled users)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		self.check_demo()
@@ -1114,3 +1130,18 @@ def generate_keys(user):
 
 		return {"api_secret": api_secret}
 	frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
+<<<<<<< HEAD
+=======
+
+@frappe.whitelist()
+def switch_theme(theme):
+	if theme in ["Dark", "Light"]:
+		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
+
+def get_enabled_users():
+	def _get_enabled_users():
+		enabled_users = frappe.get_all("User", filters={"enabled": "1"}, pluck="name")
+		return enabled_users
+
+	return frappe.cache().get_value("enabled_users", _get_enabled_users)
+>>>>>>> bd854bb368 (fix: Do not create energy points for disabled users)
