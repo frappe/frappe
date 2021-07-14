@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -250,7 +250,6 @@ class Session:
 		data = self.get_session_record()
 
 		if data:
-			# set language
 			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
 			self.user = data.user
 			validate_ip_address(self.user)
