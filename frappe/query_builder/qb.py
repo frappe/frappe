@@ -26,6 +26,10 @@ class MariaDB(MySQLQuery,common):
 		if isinstance(class_name,str):
 			class_name = "tab"+class_name
 		return super().from_(class_name, *args, **kwargs)
+	
+	@staticmethod
+	def rename_table(old_name, new_name):
+		return f"RENAME TABLE `tab{old_name}` TO `tab{new_name}`"
 
 class Postgres(PostgreSQLQuery,common):
 	postgres_field = {"table_name": "relname", "table_rows": "n_tup_ins"}
@@ -51,3 +55,7 @@ class Postgres(PostgreSQLQuery,common):
 			class_name = "tab" + class_name
 
 		return super().from_(class_name, *args, **kwargs)
+	
+	@staticmethod
+	def rename_table(old_name, new_name):
+		return f"ALTER TABLE `tab{old_name}` RENAME TO `tab{new_name}`"
