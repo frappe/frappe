@@ -176,8 +176,8 @@ class CommunicationEmailMixin:
 	def mail_attachments(self, print_format=None, print_html=None):
 		final_attachments = []
 
-		if print_format and print_html:
-			d = {'print_format': print_format, 'print_html': print_html, 'print_format_attachment': 1,
+		if print_format or print_html:
+			d = {'print_format': print_format, 'html': print_html, 'print_format_attachment': 1,
 					'doctype': self.reference_doctype, 'name': self.reference_name}
 			final_attachments.append(d)
 
