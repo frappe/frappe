@@ -31,6 +31,10 @@ class MariaDB(MySQLQuery,common):
 	def rename_table(old_name, new_name):
 		return f"RENAME TABLE `tab{old_name}` TO `tab{new_name}`"
 
+	@staticmethod
+	def DESC(dt):
+		return f"DESC `tab{dt}`"
+
 class Postgres(PostgreSQLQuery,common):
 	postgres_field = {"table_name": "relname", "table_rows": "n_tup_ins"}
 	information_schema_translation = {"tables": "pg_stat_all_tables"}
@@ -59,3 +63,7 @@ class Postgres(PostgreSQLQuery,common):
 	@staticmethod
 	def rename_table(old_name, new_name):
 		return f"ALTER TABLE `tab{old_name}` RENAME TO `tab{new_name}`"
+	
+	@staticmethod
+	def DESC(dt):
+		return f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = 'tab{dt}'"
