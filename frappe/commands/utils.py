@@ -666,6 +666,43 @@ def get_version():
 		elif hasattr(module, "__version__"):
 			print("{0} {1}".format(m, module.__version__))
 
+<<<<<<< HEAD
+=======
+	frappe.init("")
+	data = []
+
+	for app in sorted(frappe.get_all_apps()):
+		module = frappe.get_module(app)
+		app_hooks = frappe.get_module(app + ".hooks")
+		repo = Repo(frappe.get_app_path(app, ".."))
+
+		app_info = frappe._dict()
+		app_info.app = app
+		app_info.branch = get_app_branch(app)
+		app_info.commit = repo.head.object.hexsha[:7]
+		app_info.version = getattr(app_hooks, f"{app_info.branch}_version", None) or module.__version__
+
+		data.append(app_info)
+
+	{
+		"legacy": lambda: [
+			click.echo(f"{app_info.app} {app_info.version}")
+			for app_info in data
+		],
+		"plain": lambda: [
+			click.echo(f"{app_info.app} {app_info.version} {app_info.branch} ({app_info.commit})")
+			for app_info in data
+		],
+		"table": lambda: render_table(
+			[["App", "Version", "Branch", "Commit"]] +
+			[
+				[app_info.app, app_info.version, app_info.branch, app_info.commit]
+				for app_info in data
+			]
+		),
+		"json": lambda: click.echo(json.dumps(data, indent=4)),
+	}[output]()
+>>>>>>> 4959dd02f1 (refactor(minor): frappe.translate.get_messages_from_file)
 
 @click.command('setup-global-help')
 @click.option('--db_type')
