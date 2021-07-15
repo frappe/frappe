@@ -159,7 +159,7 @@ class UserPermissions:
 
         table = builder.get_reflection('tabDocShare')      
 
-        q = select(table.c.share_doctype).where(table.c.user==f"'{self.name}'", table.c.read=="'1'")
+        q = select(table.c.share_doctype).where(table.c.user==f"'{self.name}'", table.c.read=="'1'").distinct()
         query = builder.get_values(q)
         self.shared = frappe.db.sql_list(query)
         self.can_read = list(set(self.can_read + self.shared))
@@ -340,7 +340,7 @@ def reset_simultaneous_sessions(user_limit):
     table = builder.get_reflection('tabUser')
 
     q  = select(table.c.name).where(table.c.name!="'Administrator'", table.c.name!="'Guest'",
-                                        table.c.user_type=="'System User'", table.c.enabled=="'1'").order_by(table.c.creation.desc())
+                                        table.c.user_type=="'System User'", table.c.enabled==1).order_by(table.c.creation.desc())
                                         
     q = builder.get_values(q)
     for user in frappe.db.sql(q):

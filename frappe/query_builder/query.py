@@ -15,10 +15,10 @@ class qb:
 
     def get_values(self, query: str):
         params = query.compile().params
-
         query = str(query)
-
         for key, value in params.items():
+            if isinstance(value, int):
+                value = str(value)
             query = query.replace(":"+key, value)
 
         if self.db_type == 'mariadb':
