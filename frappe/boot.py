@@ -208,7 +208,7 @@ def get_column(doctype):
 def load_translations(bootinfo):
 	messages = frappe.get_lang_dict("boot")
 
-	bootinfo["lang"] = frappe.local.lang
+	bootinfo["lang"] = frappe.lang
 
 	# load translated report names
 	for name in bootinfo.user.all_reports:

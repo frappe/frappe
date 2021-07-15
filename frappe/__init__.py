@@ -130,6 +130,8 @@ error_log = local("error_log")
 debug_log = local("debug_log")
 message_log = local("message_log")
 
+lang = local("lang")
+
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
 if typing.TYPE_CHECKING:
