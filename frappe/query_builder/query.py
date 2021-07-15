@@ -5,9 +5,9 @@ class qb:
         self.db_type = db_type
 
         if self.db_type == 'mariadb':
-            self.engine = sqlalchemy.create_engine(f"mariadb+mariadbconnector://{user}:{password}@127.0.0.1:3306/_e21fc56c1a272b63", echo=True)
+            self.engine = sqlalchemy.create_engine(f"mariadb+mariadbconnector://{user}:{password}@127.0.0.1:3306/_e21fc56c1a272b63")
         if self.db_type == 'postgres':
-            self.engine = sqlalchemy.create_engine(f"postgresql://{user}:{password}@localhost/_9b466094ec991a03", echo=True)
+            self.engine = sqlalchemy.create_engine(f"postgresql://{user}:{password}@localhost/_9b466094ec991a03")
 
 
     def get_reflection(self, table_name):
@@ -18,13 +18,10 @@ class qb:
 
         query = str(query)
 
-        if self.db_type == 'mariadb':
-            for key, value in params.items():
-                key = '%('+key+')s'
-                query = query.replace(key, value)
+        for key, value in params.items():
+            query = query.replace(":"+key, value)
 
-        else:
-            for key, value in params.items():
-                query = query.replace(":"+key, value)
+        if self.db_type == 'mariadb':
+            query = query.replace('"', '`')
 
         return query
