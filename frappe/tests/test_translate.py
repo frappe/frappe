@@ -14,8 +14,7 @@ import frappe
 >>>>>>> 421220a872 (test: Added tests for frappe.translate.get_language)
 import frappe.translate
 from frappe import _
-from frappe.auth import HTTPRequest
-from frappe.translate import get_parent_language
+from frappe.translate import get_language, get_parent_language
 from frappe.utils import set_request
 
 dirname = os.path.dirname(__file__)
@@ -49,10 +48,9 @@ class TestTranslate(unittest.TestCase):
 		frappe.form_dict._lang = first_lang
 
 		with patch.object(frappe.translate, "get_preferred_language_cookie", return_value=second_lang):
-			set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
-			HTTPRequest()
+			return_val = get_language()
 
-		self.assertIn(frappe.local.lang, [first_lang, get_parent_language(first_lang)])
+		self.assertIn(return_val, [first_lang, get_parent_language(first_lang)])
 
 	def test_request_language_resolution_with_cookie(self):
 		"""Test for frappe.translate.get_language
@@ -62,9 +60,9 @@ class TestTranslate(unittest.TestCase):
 
 		with patch.object(frappe.translate, "get_preferred_language_cookie", return_value=second_lang):
 			set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
-			HTTPRequest()
+			return_val = get_language()
 
-		self.assertIn(frappe.local.lang, [second_lang, get_parent_language(second_lang)])
+		self.assertIn(return_val, [second_lang, get_parent_language(second_lang)])
 
 	def test_request_language_resolution_with_request_header(self):
 		"""Test for frappe.translate.get_language
@@ -72,8 +70,8 @@ class TestTranslate(unittest.TestCase):
 		Case 3: frappe.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is
 		"""
 		set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
-		HTTPRequest()
-		self.assertIn(frappe.local.lang, [third_lang, get_parent_language(third_lang)])
+		return_val = get_language()
+		self.assertIn(return_val, [third_lang, get_parent_language(third_lang)])
 
 
 expected_output = [
