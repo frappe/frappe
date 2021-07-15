@@ -8,7 +8,10 @@ from frappe.utils import cint
 from frappe.boot import get_allowed_reports
 from frappe.permissions import get_roles, get_valid_perms
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
+from frappe import qb
 
+builder = qb(frappe.db.db_type, frappe.conf.db_name, frappe.conf.db_password)
+from sqlalchemy import select
 class UserPermissions:
 	"""
 	A user permission object can be accessed as `frappe.get_user()`
@@ -184,10 +187,16 @@ class UserPermissions:
 		return self.can_read
 
 	def load_user(self):
-		d = frappe.db.sql("""select email, first_name, last_name, creation,
-			email_signature, user_type, desk_theme, language,
-			mute_sounds, send_me_a_copy, document_follow_notify
-			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
+
+		table = builder.get_reflection('tabUser')
+		q = select(table.c.email, table.c.first_name, table.c.last_name, table.c.creation,
+		 table.c.email_signature, table.c.user_type,
+		 table.c.desk_theme, table.c.language, table.c.mute_sounds,
+		 table.c.send_me_a_copy, table.c.document_follow_notify).where(table.c.name==f"'{self.name}'")
+	
+		query = builder.get_values(q)
+
+		d = frappe.db.sql(query)[0]
 
 		if not self.can_read:
 			self.build_permissions()
@@ -208,7 +217,12 @@ class UserPermissions:
 		return get_allowed_reports()
 
 def get_user_fullname(user):
-	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabUser` WHERE name=%s", (user,))
+	from sqlalchemy import func
+	table = builder.get_reflection('tabUser')
+	q = select(func.CONCAT_WS("' '", table.c.first_name, table.c.last_name)).where(table.c.name==f"'{user}'")
+	query = builder.get_values(q)
+
+	fullname = frappe.db.sql(query)
 	return fullname and fullname[0][0] or ''
 
 def get_fullname_and_avatar(user):
@@ -314,9 +328,14 @@ def set_last_active_to_now(user):
 
 
 def reset_simultaneous_sessions(user_limit):
-	for user in frappe.db.sql("""select name, simultaneous_sessions from tabUser
-		where name not in ('Administrator', 'Guest') and user_type = 'System User' and enabled=1
-		order by creation desc""", as_dict=1):
+	table = builder.get_reflection('tabUser')
+
+	q  = select(table.c.name).where(table.c.name!="'Administrator'", table.c.name!="'Guest'",
+										table.c.user_type=="'System User'", table.c.enabled=="'1'").order_by(table.c.creation.desc())
+										
+	q = builder.get_values(q)
+	for user in frappe.db.sql(q):
+		
 		if user.simultaneous_sessions < user_limit:
 			user_limit = user_limit - user.simultaneous_sessions
 		else:

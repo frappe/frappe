@@ -27,6 +27,7 @@ import click
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 from .utils.lazy_loader import lazy_import
+from frappe.query_builder.query import qb
 
 # Lazy imports
 faker = lazy_import('faker')
@@ -202,6 +203,7 @@ def init(site, sites_path=None, new_site=False):
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
+	local.qb = qb
 
 	setup_module_map()
 
@@ -219,6 +221,7 @@ def connect(site=None, db_name=None, set_admin_as_user=True):
 		init(site)
 
 	local.db = get_db(user=db_name or local.conf.db_name)
+	local.qb = qb(db_type=local.db.db_type, user=local.conf.db_name, password=local.conf.db_password)
 	if set_admin_as_user:
 		set_user("Administrator")
 
