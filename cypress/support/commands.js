@@ -328,9 +328,25 @@ Cypress.Commands.add('clear_filters', () => {
 });
 
 Cypress.Commands.add('click_modal_primary_button', (btn_name) => {
-	cy.get('.modal-footer > .standard-actions > .btn-primary').contains(btn_name).click();
+	cy.get('.modal-footer > .standard-actions > .btn-primary').contains(btn_name).trigger('click');
 });
 
-// Cypress.Commands.add('click_listview_primary_button', () => {
+Cypress.Commands.add('click_sidebar_button', (btn_no) => {
+	cy.get('.list-group-by-fields > .group-by-field > .btn').eq(btn_no).click();
+});
 
-// });
+Cypress.Commands.add('click_listview_rowitem', (row_no) => {
+	cy.get('.list-row > .level-left > .list-subject > .bold > .ellipsis').eq(row_no).click();
+});
+
+Cypress.Commands.add('click_filter_button', () => {
+	cy.get('.filter-selector > .btn').click();
+});
+
+Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
+	cy.get('.primary-action').contains(btn_name).click();
+});
+
+Cypress.Commands.add('click_timeline_action_btn', (btn_no) => {
+	cy.get('.timeline-content > .timeline-message-box > .justify-between > .actions > .btn').eq(btn_no).first().click();
+});
