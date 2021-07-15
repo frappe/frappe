@@ -323,4 +323,14 @@ Cypress.Commands.add('clear_filters', () => {
 	cy.window().its('cur_list').then(cur_list => {
 		cur_list && cur_list.filter_area && cur_list.filter_area.clear();
 	});
+
+	
 });
+
+Cypress.Commands.add('click_modal_primary_button', (btn_name) => {
+	cy.get('.modal-footer > .standard-actions > .btn-primary').contains(btn_name).click();
+});
+
+// Cypress.Commands.add('click_listview_primary_button', () => {
+
+// });
