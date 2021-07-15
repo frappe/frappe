@@ -49,11 +49,7 @@ class User(Document):
 
 	def after_insert(self):
 		create_notification_settings(self.name)
-<<<<<<< HEAD
-=======
-		frappe.cache().delete_key('users_for_mentions')
 		frappe.cache().delete_key('enabled_users')
->>>>>>> bd854bb368 (fix: Do not create energy points for disabled users)
 
 	def validate(self):
 		self.check_demo()
@@ -347,15 +343,7 @@ class User(Document):
 
 		# delete notification settings
 		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
-
-<<<<<<< HEAD
-=======
-		if self.get('allow_in_mentions'):
-			frappe.cache().delete_key('users_for_mentions')
-
 		frappe.cache().delete_key('enabled_users')
-
->>>>>>> bd854bb368 (fix: Do not create energy points for disabled users)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		self.check_demo()
@@ -1130,13 +1118,6 @@ def generate_keys(user):
 
 		return {"api_secret": api_secret}
 	frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
-<<<<<<< HEAD
-=======
-
-@frappe.whitelist()
-def switch_theme(theme):
-	if theme in ["Dark", "Light"]:
-		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
 
 def get_enabled_users():
 	def _get_enabled_users():
@@ -1144,4 +1125,3 @@ def get_enabled_users():
 		return enabled_users
 
 	return frappe.cache().get_value("enabled_users", _get_enabled_users)
->>>>>>> bd854bb368 (fix: Do not create energy points for disabled users)

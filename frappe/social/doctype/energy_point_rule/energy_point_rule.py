@@ -6,11 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import frappe.cache_manager
-<<<<<<< HEAD
-=======
 from frappe.core.doctype.user.user import get_enabled_users
-from frappe.model import log_types
->>>>>>> bd854bb368 (fix: Do not create energy points for disabled users)
 from frappe.model.document import Document
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import \
