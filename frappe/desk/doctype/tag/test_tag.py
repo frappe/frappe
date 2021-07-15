@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-# -*- coding: utf-8 -*-
-# Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
 from __future__ import unicode_literals
-
-# import frappe
-=======
->>>>>>> ae70502f91 (test: Add test case to validate tag count query)
 import unittest
 import frappe
 
