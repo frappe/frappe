@@ -190,7 +190,7 @@ def get_script(report_name):
 		script = "frappe.query_reports['%s']={}" % report_name
 
 	# load translations
-	if frappe.local.lang != "en":
+	if frappe.lang != "en":
 		send_translations(frappe.get_lang_dict("report", report_name))
 
 	return {
