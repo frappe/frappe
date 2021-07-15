@@ -450,6 +450,7 @@ def get_stats(stats, doctype, filters=[]):
 				filters=filters + [[tag, '!=', '']],
 				group_by=tag,
 				as_list=True,
+				distinct=1,
 			)
 
 			if tag == '_user_tags':
@@ -458,18 +459,22 @@ def get_stats(stats, doctype, filters=[]):
 					fields=[tag, "count(*)"],
 					filters=filters + [[tag, "in", ('', ',')]],
 					as_list=True,
-				)[0][1]
+					group_by=tag,
+					order_by=tag,
+				)
+
+				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
 
 				stats[tag].append([_("No Tags"), no_tag_count])
 			else:
 				stats[tag] = tag_count
 
 		except frappe.db.SQLError:
-			# does not work for child tables
 			pass
-		except frappe.db.InternalError:
+		except frappe.db.InternalError as e:
 			# raised when _user_tags column is added on the fly
 			pass
+
 	return stats
 
 @frappe.whitelist()
