@@ -77,7 +77,7 @@
    "label": "Landing Page"
   },
   {
-   "description": "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",
+   "description": "Link that is the website home page. Standard Links (home, login, products, blog, about, contact)",
    "fieldname": "home_page",
    "fieldtype": "Data",
    "in_list_view": 1,
