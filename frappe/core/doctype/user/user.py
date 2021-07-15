@@ -1121,7 +1121,7 @@ def generate_keys(user):
 
 def get_enabled_users():
 	def _get_enabled_users():
-		enabled_users = frappe.get_all("User", filters={"enabled": "1"}, pluck="name")
+		enabled_users = [d.name for d in frappe.get_all("User", filters={"enabled": "1"})]
 		return enabled_users
 
 	return frappe.cache().get_value("enabled_users", _get_enabled_users)
