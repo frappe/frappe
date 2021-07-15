@@ -342,10 +342,14 @@ class Session:
 
 		self.data['data']['last_updated'] = now
 <<<<<<< HEAD
+<<<<<<< HEAD
 		self.data['data']['lang'] = text_type(frappe.lang)
 =======
 		self.data['data']['lang'] = str(frappe.local.lang)
 >>>>>>> e00aaf8cc4 (BREAKING CHANGE: Drop frappe.lang in favour of frappe.local.lang)
+=======
+		self.data['data']['lang'] = str(frappe.lang)
+>>>>>>> 42b3c17800 (Revert "BREAKING CHANGE: Drop frappe.lang in favour of frappe.local.lang")
 
 		# update session in db
 		last_updated = frappe.cache().hget("last_db_session_update", self.sid)

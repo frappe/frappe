@@ -109,8 +109,13 @@ debug_log = local("debug_log")
 message_log = local("message_log")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 lang = local("lang")
 =======
+=======
+lang = local("lang")
+
+>>>>>>> 42b3c17800 (Revert "BREAKING CHANGE: Drop frappe.lang in favour of frappe.local.lang")
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
 if typing.TYPE_CHECKING:

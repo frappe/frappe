@@ -32,7 +32,7 @@ def getpage():
 	doc = get(page)
 
 	# load translations
-	if frappe.local.lang != "en":
+	if frappe.lang != "en":
 		send_translations(frappe.get_lang_dict("page", page))
 
 	frappe.response.docs.append(doc)
