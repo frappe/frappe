@@ -1527,12 +1527,12 @@ def validate_python_code(string: str, fieldname=None, is_expression: bool = True
 		compile_command(string, symbol="eval" if is_expression else "exec")
 	except SyntaxError as se:
 		line_no = se.lineno - 1 or 0
-		offset = se.offset or 0
+		offset = se.offset - 1 or 0
 		error_line = string if is_expression else string.split("\n")[line_no]
 		msg = (frappe._("{} Invalid python code on line {}")
 				.format(fieldname + ":" if fieldname else "", line_no+1))
-		msg += f"<br><code>{error_line}</code>"
-		msg += f"<br><pre>{' ' * offset}^</pre>"
+		msg += f"<br><pre>{error_line}</pre>"
+		msg += f"<pre>{' ' * offset}^</pre>"
 
 		frappe.throw(msg, title=frappe._("Syntax Error"))
 	except Exception as e:
