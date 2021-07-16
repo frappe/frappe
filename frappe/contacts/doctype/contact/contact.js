@@ -32,11 +32,15 @@ frappe.ui.form.on("Contact", {
 			});
 		}
 		frm.set_query('link_doctype', "links", function() {
+			// company_description to include Company in the filtered options
+
+			let fieldtypes = ["HTML", "Text Editor"];
+			let fieldnames = ["contact_html", "company_description"];
 			return {
 				query: "frappe.contacts.address_and_contact.filter_dynamic_link_doctypes",
 				filters: {
-					fieldtype: "HTML",
-					fieldname: "contact_html",
+					fieldtype: ["in", fieldtypes],
+					fieldname: ["in", fieldnames],
 				}
 			}
 		});
