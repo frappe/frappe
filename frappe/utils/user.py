@@ -159,7 +159,7 @@ class UserPermissions:
 
 		table = builder.get_reflection('tabDocShare')      
 
-		q = select(table.c.share_doctype).where(table.c.user==f"'{self.name}'", table.c.read=="'1'").distinct()
+		q = select(table.c.share_doctype).where(table.c.user==f"'{self.name}'", table.c.read==1).distinct()
 		query = builder.get_values(q)
 		self.shared = frappe.db.sql_list(query)
 		self.can_read = list(set(self.can_read + self.shared))
