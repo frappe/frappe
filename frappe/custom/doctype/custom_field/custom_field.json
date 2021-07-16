@@ -112,7 +112,7 @@
    "label": "Field Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nGeolocation\nHTML\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
+   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nGeolocation\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
    "reqd": 1
   },
   {
@@ -360,7 +360,7 @@
  ],
  "icon": "fa fa-glass",
  "idx": 1,
- "modified": "2020-03-17 21:30:18.102333",
+ "modified": "2021-07-12 04:54:12.042319",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
