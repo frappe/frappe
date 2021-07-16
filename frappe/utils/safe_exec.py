@@ -5,6 +5,7 @@ from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
 import RestrictedPython.Guards
 import frappe
+from frappe import _
 import frappe.utils
 import frappe.utils.data
 from frappe.website.utils import (get_shade, get_toc, get_next_link)
@@ -31,7 +32,7 @@ class NamespaceDict(frappe._dict):
 def safe_exec(script, _globals=None, _locals=None):
 	# script reports must be enabled via site_config.json
 	if not frappe.conf.server_script_enabled:
-		frappe.throw('Please Enable Server Scripts', ServerScriptNotEnabled)
+		frappe.throw(_('Please Enable Server Scripts'), ServerScriptNotEnabled)
 
 	# build globals
 	exec_globals = get_safe_globals()
