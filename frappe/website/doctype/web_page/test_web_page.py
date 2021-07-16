@@ -18,15 +18,6 @@ class TestWebPage(unittest.TestCase):
 		self.assertTrue(PathResolver("test-web-page-1/test-web-page-3").is_valid_path())
 		self.assertFalse(PathResolver("test-web-page-1/test-web-page-Random").is_valid_path())
 
-	def test_base_template(self):
-		content = get_response_content('/_test/_test_custom_base.html')
-
-		# assert the text in base template is rendered
-		self.assertIn('<h1>This is for testing</h1>', content)
-
-		# assert template block rendered
-		self.assertIn('<p>Test content</p>', content)
-
 	def test_content_type(self):
 		web_page = frappe.get_doc(dict(
 			doctype = 'Web Page',
@@ -67,48 +58,3 @@ class TestWebPage(unittest.TestCase):
 			self.assertIn('<div>DocField</div>', content)
 		finally:
 			web_page.delete()
-
-	def test_custom_base_template_path(self):
-		content = get_response_content('/_test/_test_folder/_test_page')
-		# assert the text in base template is rendered
-		self.assertIn('<h1>This is for testing</h1>', content)
-
-		# assert template block rendered
-		self.assertIn('<p>Test content</p>', content)
-
-	def test_json_sidebar_data(self):
-		frappe.flags.look_for_sidebar = False
-		content = get_response_content('/_test/_test_folder/_test_page')
-		self.assertNotIn('Test Sidebar', content)
-		frappe.flags.look_for_sidebar = True
-		content = get_response_content('/_test/_test_folder/_test_page')
-		self.assertIn('Test Sidebar', content)
-		frappe.flags.look_for_sidebar = False
-
-	def test_index_and_next_comment(self):
-		content = get_response_content('/_test/_test_folder')
-		# test if {index} was rendered
-		self.assertIn('<a href="/_test/_test_folder/_test_page"> Test Page</a>', content)
-
-		self.assertIn('<a href="/_test/_test_folder/_test_toc">Test TOC</a>', content)
-
-		content = get_response_content('/_test/_test_folder/_test_page')
-		# test if {next} was rendered
-		self.assertIn('Next: <a class="btn-next" href="/_test/_test_folder/_test_toc">Test TOC</a>', content)
-
-	def test_colocated_assets(self):
-		content = get_response_content('/_test/_test_folder/_test_page')
-		self.assertIn("<script>console.log('test data');</script>", content)
-		self.assertIn("background-color: var(--bg-color);", content)
-
-	def test_breadcrumbs(self):
-		content = get_response_content('/_test/_test_folder/_test_page')
-		self.assertIn('<span itemprop="name">Test TOC</span>', content)
-		self.assertIn('<span itemprop="name"> Test Page</span>', content)
-
-		content = get_response_content('/_test/_test_folder/index')
-		self.assertIn('<span itemprop="name"> Test</span>', content)
-		self.assertIn('<span itemprop="name">Test TOC</span>', content)
-
-	def test_downloadable_file(self):
-		pass

@@ -7,7 +7,6 @@ import frappe.permissions
 import re, csv, os
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint, format_duration
-from frappe.core.doctype.data_import_legacy.importer import get_data_keys
 from frappe.core.doctype.access_log.access_log import make_access_log
 
 reflags = {
@@ -19,6 +18,15 @@ reflags = {
 	"X":re.X,
 	"D": re.DEBUG
 }
+
+def get_data_keys():
+	return frappe._dict({
+		"data_separator": _('Start entering data below this line'),
+		"main_table": _("Table") + ":",
+		"parent_table": _("Parent Table") + ":",
+		"columns": _("Column Name") + ":",
+		"doctype": _("DocType") + ":"
+	})
 
 @frappe.whitelist()
 def export_data(doctype=None, parent_doctype=None, all_doctypes=True, with_data=False,

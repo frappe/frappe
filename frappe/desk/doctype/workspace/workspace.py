@@ -43,12 +43,12 @@ class Workspace(Document):
 
 	def get_link_groups(self):
 		cards = []
-		current_card = {
+		current_card = frappe._dict({
 			"label": "Link",
 			"type": "Card Break",
 			"icon": None,
 			"hidden": False,
-		}
+		})
 
 		card_links = []
 
