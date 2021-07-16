@@ -14,14 +14,6 @@ class qb:
         return sqlalchemy.Table(table_name, sqlalchemy.MetaData(), autoload_with=self.engine)
 
     def get_values(self, query: str):
-        params = query.compile().params
-        query = str(query)
-        for key, value in params.items():
-            if isinstance(value, int):
-                value = str(value)
-            query = query.replace(":"+key, value)
-
-        if self.db_type == 'mariadb':
-            query = query.replace('"', '`')
-
-        return query
+        query = query.compile(compile_kwargs={"literal_binds": True})
+        return str(query)
+        
