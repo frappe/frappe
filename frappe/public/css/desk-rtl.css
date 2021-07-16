@@ -116,3 +116,5 @@ ul.tree-children {
   direction: rtl;
   text-align: right;
 }
+
+div.widget-head div.widget-control{left:0px;} /* By AJD */
