@@ -137,6 +137,9 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
+		"on_update_after_submit": [
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		]
