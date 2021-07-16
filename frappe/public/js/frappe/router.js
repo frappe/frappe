@@ -365,7 +365,7 @@ frappe.router = {
 		if (!route) {
 			route = window.location.pathname + window.location.hash + window.location.search;
 			if (route.includes('app#')) {
-				// to supports v1
+				// to support v1
 				route = window.location.hash;
 			}
 		}
