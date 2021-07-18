@@ -59,13 +59,14 @@ def update_add_node(doc, parent, parent_field):
 
 	# get the last sibling of the parent
 	if parent:
-		left, right = frappe.db.sql("select lft, rgt from `tab{0}` where name=%s"
+		left, right = frappe.db.sql("select lft, rgt from `tab{0}` where name=%s for update"
 			.format(doctype), parent)[0]
 		validate_loop(doc.doctype, doc.name, left, right)
 	else: # root
 		right = frappe.db.sql("""
 			SELECT COALESCE(MAX(rgt), 0) + 1 FROM `tab{0}`
 			WHERE COALESCE(`{1}`, '') = ''
+			FOR UPDATE
 		""".format(doctype, parent_field))[0][0]
 	right = right or 1
 
@@ -91,7 +92,7 @@ def update_move_node(doc, parent_field):
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab{0}`
-			where name = %s""".format(doc.doctype), parent, as_dict=1)[0]
+			where name = %s for update""".format(doc.doctype), parent, as_dict=1)[0]
 
 		validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)
 
@@ -110,7 +111,7 @@ def update_move_node(doc, parent_field):
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab%s`
-			where name = %s""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
+			where name = %s for update""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
 
 
 		# set parent lft, rgt
@@ -130,7 +131,7 @@ def update_move_node(doc, parent_field):
 		new_diff = new_parent.rgt - doc.lft
 	else:
 		# new root
-		max_rgt = frappe.db.sql("""select max(rgt) from `tab{0}`""".format(doc.doctype))[0][0]
+		max_rgt = frappe.db.sql("""select max(rgt) from `tab{0}` for update""".format(doc.doctype))[0][0]
 		new_diff = max_rgt + 1 - doc.lft
 
 	# bring back from dark side
