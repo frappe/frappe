@@ -66,7 +66,6 @@ def update_add_node(doc, parent, parent_field):
 		right = frappe.db.sql("""
 			SELECT COALESCE(MAX(rgt), 0) + 1 FROM `tab{0}`
 			WHERE COALESCE(`{1}`, '') = ''
-			FOR UPDATE
 		""".format(doctype, parent_field))[0][0]
 	right = right or 1
 
