@@ -130,7 +130,7 @@ def update_move_node(doc, parent_field):
 		new_diff = new_parent.rgt - doc.lft
 	else:
 		# new root
-		max_rgt = frappe.db.sql("""select max(rgt) from `tab{0}` for update""".format(doc.doctype))[0][0]
+		max_rgt = frappe.db.sql("""select max(rgt) from `tab{0}`""".format(doc.doctype))[0][0]
 		new_diff = max_rgt + 1 - doc.lft
 
 	# bring back from dark side
