@@ -38,7 +38,8 @@
   "shortcuts",
   "section_break_18",
   "cards_label",
-  "links"
+  "links",
+  "roles"
  ],
  "fields": [
   {
@@ -252,10 +253,16 @@
    "fieldname": "sequence_id",
    "fieldtype": "Int",
    "label": "Sequence Id"
+  },
+  {
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Roles",
+   "options": "Has Role"
   }
  ],
  "links": [],
- "modified": "2021-07-05 17:41:36.272294",
+ "modified": "2021-07-15 14:20:37.623926",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -269,7 +276,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "Workspace Manager",
    "share": 1,
    "write": 1
   },

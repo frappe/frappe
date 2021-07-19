@@ -3,7 +3,6 @@
 # For license information, please see license.txt
 
 import frappe
-import json
 from frappe import _
 from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
@@ -26,8 +25,8 @@ class Workspace(Document):
 			frappe.throw(_("You can only have one default page that extends a particular standard page."))
 
 	def on_update(self):
-		# if disable_saving_as_standard():
-		# 	return
+		if disable_saving_as_standard():
+			return
 
 		if frappe.conf.developer_mode and self.module and self.public:
 			export_to_files(record_list=[['Workspace', self.name]], record_module=self.module)
@@ -159,20 +158,7 @@ def get_report_type(report):
 
 
 @frappe.whitelist()
-def get_pages():
-	has_access = "System Manager" in frappe.get_roles()
-	fields = ['name', 'title', 'icon', 'public', 'parent_page', 'content']
-
-	pages = get_page_list(fields, {'public': 1})
-	private_pages = get_page_list(fields, {'for_user': frappe.session.user})
-
-	if private_pages:
-		pages.extend(private_pages)
-
-	return {'pages': pages, 'has_access': has_access}
-
-@frappe.whitelist()
-def save_page(title, parent, public, sb_items, deleted_pages, new_widgets, blocks, save):
+def save_page(title, parent, public, sb_public_items, sb_private_items, deleted_pages, new_widgets, blocks, save):
 	save = frappe.parse_json(save)
 	public = frappe.parse_json(public)
 	if save: 
@@ -206,20 +192,20 @@ def save_page(title, parent, public, sb_items, deleted_pages, new_widgets, block
 		doc.content = blocks
 		doc.save(ignore_permissions=True)
 
-	if json.loads(new_widgets):
+	if loads(new_widgets):
 		save_new_widget(doc, title, blocks, new_widgets)
 
-	if json.loads(sb_items):
-		sort_pages(json.loads(sb_items))
+	if loads(sb_public_items) or loads(sb_private_items):
+		sort_pages(loads(sb_public_items), loads(sb_private_items))
 
-	if json.loads(deleted_pages):
-		return delete_pages(json.loads(deleted_pages))
+	if loads(deleted_pages):
+		return delete_pages(loads(deleted_pages))
 
 	return {"name": title, "public": public}
 
 def delete_pages(deleted_pages):
 	for page in deleted_pages:
-		if page.get("public") and "System Manager" not in frappe.get_roles():
+		if page.get("public") and "Workspace Manager" not in frappe.get_roles():
 			return {"name": page.get("title"), "public": 1}
 
 		if frappe.db.exists("Workspace", page.get("name")):
@@ -227,17 +213,15 @@ def delete_pages(deleted_pages):
 
 	return {"name": "Home", "public": 1}
 
-def sort_pages(sb_items):
-	public_pages = [page for page in sb_items if page.get('public')=='1']
-	private_pages = [page for page in sb_items if page.get('public')=='0']
-
+def sort_pages(sb_public_items, sb_private_items):
 	wspace_public_pages = get_page_list(['name', 'title'], {'public': 1})
 	wspace_private_pages = get_page_list(['name', 'title'], {'for_user': frappe.session.user})
 
-	sort_page(wspace_private_pages, private_pages)
+	if sb_private_items:
+		sort_page(wspace_private_pages, sb_private_items)
 
-	if "System Manager" in frappe.get_roles():
-		sort_page(wspace_public_pages, public_pages)
+	if sb_public_items and "Workspace Manager" in frappe.get_roles():
+		sort_page(wspace_public_pages, sb_public_items)
 
 def sort_page(wspace_pages, pages):
 	for seq, d in enumerate(pages):

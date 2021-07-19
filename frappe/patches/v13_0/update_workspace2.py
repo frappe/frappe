@@ -24,7 +24,8 @@ def create_content(doc):
 			del doc.charts[doc.charts.index(l)]
 	if doc.shortcuts:
 		invalid_links = []
-		content.append({"type":"spacer","data":{"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
+		if doc.charts:
+			content.append({"type":"spacer","data":{"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
 		content.append({"type":"header","data":{"text":doc.shortcuts_label or _("Your Shortcuts"),"level":4,"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
 		for s in doc.shortcuts:
 			if s.get_invalid_links()[0]:

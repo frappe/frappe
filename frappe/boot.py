@@ -105,8 +105,8 @@ def load_conf_settings(bootinfo):
 		if key in conf: bootinfo[key] = conf.get(key)
 
 def load_desktop_data(bootinfo):
-	from frappe.desk.doctype.workspace.workspace import get_pages
-	bootinfo.allowed_workspaces = get_pages().get('pages')
+	from frappe.desk.desktop import get_wspace_sidebar_items
+	bootinfo.allowed_workspaces = get_wspace_sidebar_items().get('pages')
 	bootinfo.module_page_map = get_controller("Workspace").get_module_page_map()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 

@@ -22,7 +22,8 @@ frappe.views.Workspace = class Workspace {
 		this.page = wrapper.page;
 		this.isReadOnly = true;
 		this.new_page = null;
-		this.sorted_sidebar_items = [];
+		this.sorted_public_items = [];
+		this.sorted_private_items = [];
 		this.deleted_sidebar_items = [];
 		this.current_page = {};
 		this.sidebar_items = {
@@ -30,8 +31,8 @@ frappe.views.Workspace = class Workspace {
 			'private': {}
 		};
 		this.sidebar_categories = [
-			"Public",
-			frappe.user.first_name()
+			'Public',
+			frappe.user.first_name() || 'Private'
 		];
 		this.tools = {
 			header: {
@@ -113,7 +114,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	get_pages() {
-		return frappe.xcall("frappe.desk.doctype.workspace.workspace.get_pages");
+		return frappe.xcall("frappe.desk.desktop.get_wspace_sidebar_items");
 	}
 
 	sidebar_item_container(item) {
@@ -124,7 +125,7 @@ frappe.views.Workspace = class Workspace {
 						href="/app/${item.public ? frappe.router.slug(item.title) : 'private/'+frappe.router.slug(item.title) }"
 						class="item-anchor ${item.is_editable ? "" : "block-click" }" title="${item.title}"
 					>
-						<span>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
+						<span class="sidebar-item-icon" item-icon=${item.icon || "folder-normal"}>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
 						<span class="sidebar-item-label">${item.title}<span>
 					</a>
 					<div class="sidebar-item-control"></div>
@@ -146,7 +147,9 @@ frappe.views.Workspace = class Workspace {
 			this.build_sidebar_section(category, root_pages);
 		});
 
-		this.sidebar.find('.selected')[0].scrollIntoView();
+		// Scroll sidebar to selected page if it is not in viewport.
+		!frappe.dom.is_element_in_viewport(this.sidebar.find('.selected')) 
+			&& this.sidebar.find('.selected')[0].scrollIntoView();
 	}
 
 	build_sidebar_section(title, root_pages) {
@@ -448,26 +451,36 @@ frappe.views.Workspace = class Workspace {
 				animation: 150,
 				fallbackOnBody: true,
 				swapThreshold: 0.65,
-				onEnd: function () {
-					me.prepare_sorted_sidebar();
+				onEnd: function (evt) {
+					let is_public = $(evt.item).attr('item-public') == '1';
+					me.prepare_sorted_sidebar(is_public);
 				}
 			});
 		});
 	}
 
-	prepare_sorted_sidebar() {
-		this.sorted_sidebar_items = [];
-		for (let page of $('.standard-sidebar-section').find('.sidebar-item-container')) {
+	prepare_sorted_sidebar(is_public) {
+		if (is_public) {
+			this.sorted_public_items = this.sort_sidebar(this.sidebar.find('.standard-sidebar-section').first());
+		} else {
+			this.sorted_private_items = this.sort_sidebar(this.sidebar.find('.standard-sidebar-section').last());
+		}
+	}
+
+	sort_sidebar($sidebar_section) {
+		let sorted_items = [];
+		for (let page of $sidebar_section.find('.sidebar-item-container')) {
 			let parent_page = "";
 			if (page.closest('.nested-container').classList.contains('sidebar-child-item')) {
 				parent_page = page.parentElement.parentElement.attributes["item-name"].value;
 			}
-			this.sorted_sidebar_items.push({
+			sorted_items.push({
 				title: page.attributes['item-name'].value,
 				parent_page: parent_page,
 				public: page.attributes['item-public'].value
 			});
 		}
+		return sorted_items;
 	}
 
 	make_blocks_sortable() {
@@ -542,11 +555,16 @@ frappe.views.Workspace = class Workspace {
 					this.show_sidebar_actions();
 					this.make_sidebar_sortable();
 					this.make_blocks_sortable();
-					this.prepare_sorted_sidebar();
+					this.prepare_sorted_sidebar(values.is_public);
 				});
 			}
 		});
 		d.show();
+
+		// to enable focusing on input field when modal is open.
+		d.$wrapper.on('shown.bs.modal', function() {
+			$(document).off('focusin.modal');
+		});
 	}
 
 	validate_page(values) {
@@ -652,7 +670,8 @@ frappe.views.Workspace = class Workspace {
 					title: me.title,
 					parent: me.parent || '',
 					public: me.public || 0,
-					sb_items: me.sorted_sidebar_items,
+					sb_public_items: me.sorted_public_items,
+					sb_private_items: me.sorted_private_items,
 					deleted_pages: me.deleted_sidebar_items,
 					new_widgets: new_widgets,
 					blocks: JSON.stringify(outputData.blocks),
@@ -666,7 +685,8 @@ frappe.views.Workspace = class Workspace {
 						me.title = '';
 						me.parent = '';
 						me.public = false;
-						me.sorted_sidebar_items = [];
+						me.sorted_public_items = [];
+						me.sorted_private_items = [];
 						me.deleted_sidebar_items = [];
 						me.reload();
 					}
