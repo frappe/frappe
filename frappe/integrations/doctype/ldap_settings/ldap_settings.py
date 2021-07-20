@@ -178,13 +178,11 @@ class LDAPSettings(Document):
 
 				fetch_ldap_groups = getattr(user, self.ldap_group_field).values
 
-
 		if ldap_object_class is not None:
 			conn.search(
 				search_base=self.organizational_unit_for_groups,
-				search_filter="(&(objectClass={0})({1}={2}))".format(ldap_object_class,ldap_group_members_attribute, user),
+				search_filter="(&(objectClass={0})({1}={2}))".format(ldap_object_class,ldap_group_members_attribute, frappe.as_unicode(frappe.form_dict.usr)),
 				attributes=ldap_attributes) # Build search query
-
 
 		if len(conn.entries) >= 1:
 
