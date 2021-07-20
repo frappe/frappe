@@ -61,6 +61,12 @@ frappe.views.Workspace = class Workspace {
 					page_data: this.page_data || []
 				}
 			},
+			onboarding: {
+				class: frappe.wspace_block.blocks['onboarding'],
+				config: {
+					page_data: this.page_data || []
+				}
+			},
 			spacer: frappe.wspace_block.blocks['spacer'],
 			spacingTune: frappe.wspace_block.tunes['spacing_tune'],
 		};
@@ -323,6 +329,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
 				this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
+				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.render({ blocks: this.content || [] });
 			});
 		} else {

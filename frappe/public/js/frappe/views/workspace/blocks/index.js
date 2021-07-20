@@ -5,6 +5,7 @@ import Card from "./card";
 import Chart from "./chart";
 import Shortcut from "./shortcut";
 import Spacer from "./spacer";
+import Onboarding from "./onboarding";
 
 // import tunes
 import SpacingTune from "./spacing_tune";
@@ -18,6 +19,7 @@ frappe.wspace_block.blocks = {
 	chart: Chart,
 	shortcut: Shortcut,
 	spacer: Spacer,
+	onboarding: Onboarding,
 };
 
 frappe.wspace_block.tunes = {

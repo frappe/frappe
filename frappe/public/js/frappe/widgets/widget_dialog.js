@@ -124,6 +124,24 @@ class ChartDialog extends WidgetDialog {
 	}
 }
 
+class OnboardingDialog extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		return [
+			{
+				fieldtype: "Link",
+				fieldname: "onboarding_name",
+				label: "Onboarding Name",
+				options: "Module Onboarding",
+				reqd: 1,
+			}
+		];
+	}
+}
+
 class CardDialog extends WidgetDialog {
 	constructor(opts) {
 		super(opts);
@@ -531,6 +549,7 @@ export default function get_dialog_constructor(type) {
 		shortcut: ShortcutDialog,
 		number_card: NumberCardDialog,
 		links: CardDialog,
+		onboarding: OnboardingDialog
 	};
 
 	return widget_map[type] || WidgetDialog;

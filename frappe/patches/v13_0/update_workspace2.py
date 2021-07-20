@@ -13,6 +13,8 @@ def execute():
 
 def create_content(doc):
 	content = []
+	if doc.onboarding:
+		content.append({"type":"onboarding","data":{"onboarding_name":doc.onboarding,"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
 	if doc.charts:
 		invalid_links = []
 		for c in doc.charts:
@@ -55,7 +57,6 @@ def update_wspace(doc, seq, content):
 		doc.title = doc.extends
 		doc.extends = ''
 		doc.category = ''
-		doc.restrict_to_domain = ''
 		doc.onboarding = ''
 		doc.extends_another_page = 0
 		doc.is_default = 0

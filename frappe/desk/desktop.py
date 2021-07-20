@@ -51,8 +51,9 @@ class Workspace:
 		self.allowed_reports = get_allowed_reports(cache=True)
 
 		if not minimal:
-			self.onboarding_doc = self.get_onboarding_doc()
-			self.onboarding = None
+			if self.doc.content:
+				self.onboarding_list = [x['data']['onboarding_name'] for x in loads(self.doc.content) if x['type'] == 'onboarding']
+			self.onboardings = []
 
 			self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
@@ -125,18 +126,18 @@ class Workspace:
 
 		return self.user.allow_modules
 
-	def get_onboarding_doc(self):
+	def get_onboarding_doc(self, onboarding):
 		# Check if onboarding is enabled
 		if not frappe.get_system_settings("enable_onboarding"):
 			return None
 
-		if not self.doc.onboarding:
+		if not self.onboarding_list:
 			return None
 
-		if frappe.db.get_value("Module Onboarding", self.doc.onboarding, "is_complete"):
+		if frappe.db.get_value("Module Onboarding", onboarding, "is_complete"):
 			return None
 
-		doc = frappe.get_doc("Module Onboarding", self.doc.onboarding)
+		doc = frappe.get_doc("Module Onboarding", onboarding)
 
 		# Check if user is allowed
 		allowed_roles = set(doc.get_allowed_roles())
@@ -200,14 +201,9 @@ class Workspace:
 			'items': self.get_shortcuts()
 		}
 
-		if self.onboarding_doc:
-			self.onboarding = {
-				'label': _(self.onboarding_doc.title),
-				'subtitle': _(self.onboarding_doc.subtitle),
-				'success': _(self.onboarding_doc.success_message),
-				'docs_url': self.onboarding_doc.documentation_url,
-				'items': self.get_onboarding_steps()
-			}
+		self.onboardings = {
+			'items': self.get_onboardings()
+		}
 
 	def _doctype_contains_a_record(self, name):
 		exists = self.table_counts.get(name, False)
@@ -336,9 +332,26 @@ class Workspace:
 		return items
 
 	@handle_not_exist
-	def get_onboarding_steps(self):
+	def get_onboardings(self):
+		if self.onboarding_list:
+			for onboarding in self.onboarding_list:
+				onboarding_doc = self.get_onboarding_doc(onboarding)
+				if onboarding_doc:
+					item = {
+						'label':  _(onboarding),
+						'title': _(onboarding_doc.title),
+						'subtitle': _(onboarding_doc.subtitle),
+						'success': _(onboarding_doc.success_message),
+						'docs_url': onboarding_doc.documentation_url,
+						'items': self.get_onboarding_steps(onboarding_doc)
+					}
+					self.onboardings.append(item)
+		return self.onboardings
+
+	@handle_not_exist
+	def get_onboarding_steps(self, onboarding_doc):
 		steps = []
-		for doc in self.onboarding_doc.get_steps():
+		for doc in onboarding_doc.get_steps():
 			step = doc.as_dict().copy()
 			step.label = _(doc.title)
 			if step.action == "Create Entry":
@@ -367,7 +380,7 @@ def get_desktop_page(page):
 			'charts': wspace.charts,
 			'shortcuts': wspace.shortcuts,
 			'cards': wspace.cards,
-			'onboarding': wspace.onboarding,
+			'onboardings': wspace.onboardings,
 			'allow_customization': not wspace.doc.disable_user_customization
 		}
 	except DoesNotExistError:
