@@ -20,6 +20,8 @@ class TestFormatter(unittest.TestCase):
 		self.assertEqual(format(100, df, doc), '₹ 100.00')
 
 		doc.currency = 'USD'
+		print('doc.currency')
+		print(doc.currency)
 		self.assertEqual(format(100, df, doc), "$ 100.00")
 
 		frappe.db.set_default("currency", None)
