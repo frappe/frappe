@@ -126,8 +126,8 @@ class LDAPSettings(Document):
 			user.insert(ignore_permissions=True)
 		# always add default role.
 		user.add_roles(self.default_role)
-		if self.ldap_group_field:
-			self.sync_roles(user, groups)
+		self.sync_roles(user, groups)
+
 		return user
 
 	def get_ldap_attributes(self):
