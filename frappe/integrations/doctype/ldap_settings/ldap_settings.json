@@ -37,7 +37,7 @@
   "local_server_certificate_file",
   "local_ca_certs_file",
   "ldap_custom_settings_section",
-  "ldap_group_object_class",
+  "ldap_group_objectclass",
   "column_break_33",
   "ldap_group_member_attribute",
   "ldap_group_mappings_section",
@@ -239,12 +239,6 @@
    "label": "LDAP Custom Settings"
   },
   {
-   "description": "string value, i.e. group",
-   "fieldname": "ldap_group_object_class",
-   "fieldtype": "Data",
-   "label": "Group Object Class"
-  },
-  {
    "fieldname": "column_break_33",
    "fieldtype": "Column Break"
   },
@@ -261,12 +255,18 @@
    "label": "Directory Server",
    "options": "\nActive Directory\nOpenLDAP\nCustom",
    "reqd": 1
+  },
+  {
+   "description": "string value, i.e. group",
+   "fieldname": "ldap_group_objectclass",
+   "fieldtype": "Data",
+   "label": "Group Object Class"
   }
  ],
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-07-20 15:36:08.639876",
+ "modified": "2021-07-20 15:47:53.174219",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",
