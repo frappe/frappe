@@ -51,14 +51,29 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 				});
 
 		}
+<<<<<<< HEAD
 	},
 	refresh_input: function(e) {
+=======
+
+		this.img_wrapper = $(`<div class="signature-display">
+			<div class="missing-image attach-missing-image">
+				${frappe.utils.icon('restriction', 'md')}</i>
+			</div></div>`)
+			.appendTo(this.wrapper);
+		this.img = $("<img class='img-responsive attach-image-display'>")
+			.appendTo(this.img_wrapper).toggle(false);
+	}
+	refresh_input() {
+		// signature dom is not ready
+		if (!this.body) return;
+>>>>>>> 2a9b9875f9 (fix: Make pad only after dom is ready)
 		// prevent to load the second time
 		this.make_pad();
 		this.$wrapper.find(".control-input").toggle(false);
 		this.set_editable(this.get_status()=="Write");
 		this.load_pad();
-		if(this.get_status()=="Read") {
+		if (this.get_status() == "Read") {
 			$(this.disp_area).toggle(false);
 		}
 	},
