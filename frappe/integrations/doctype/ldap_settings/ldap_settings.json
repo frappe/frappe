@@ -93,7 +93,7 @@
    "reqd": 1
   },
   {
-   "description": "Must include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))",
+   "description": "Must be enclosed in '()' and include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))",
    "fieldname": "ldap_search_string",
    "fieldtype": "Data",
    "label": "LDAP Search String",
@@ -266,7 +266,7 @@
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-07-20 13:17:04.153968",
+ "modified": "2021-07-20 15:36:08.639876",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",

@@ -13,10 +13,17 @@ class LDAPSettings(Document):
 			return
 
 		if not self.flags.ignore_mandatory:
+			if not self.ldap_search_string.startswith('('):
+				self.ldap_search_string = '(' + self.ldap_search_string
+
+			if not self.ldap_search_string.endswith(')'):
+				self.ldap_search_string = self.ldap_search_string + ')'
+
 			if self.ldap_search_string and "{0}" in self.ldap_search_string:
+
 				self.connect_to_ldap(base_dn=self.base_dn, password=self.get_password(raise_exception=False))
 			else:
-				frappe.throw(_("LDAP Search String needs to contian the user placeholder {0}, eg sAMAccountName={0}"))
+				frappe.throw(_("LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"))
 
 	def connect_to_ldap(self, base_dn, password, read_only=True):
 		try:
@@ -204,10 +211,16 @@ class LDAPSettings(Document):
 
 		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False))
 
-		conn.search(
-			search_base=self.organizational_unit,
-			search_filter="{0}".format(user_filter),
-			attributes=ldap_attributes)
+		try:
+			import ldap3
+
+			conn.search(
+				search_base=self.organizational_unit,
+				search_filter="{0}".format(user_filter),
+				attributes=ldap_attributes)
+
+		except ldap3.core.exceptions.LDAPInvalidFilterError:
+			frappe.throw(_("Please use a valid LDAP search filter"), title=_("Misconfigured"))
 
 		if len(conn.entries) == 1 and conn.entries[0]:
 			user = conn.entries[0]
