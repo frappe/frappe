@@ -384,7 +384,7 @@ def get_bench_path():
 	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), '..', '..', '..'))
 
 def get_bench_id():
-	return frappe.local.conf.get('bench_id', 'DefaultBench')
+	return frappe.get_conf().get('bench_id', 'DefaultBench')
 
 def get_site_id(site=None):
 	return f"{site or frappe.local.site}@{get_bench_id()}"

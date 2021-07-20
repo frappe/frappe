@@ -1,8 +1,7 @@
 import redis
 
 import frappe
-from frappe.utils import get_site_id, get_bench_id, random_string
-
+from frappe.utils import get_bench_id, random_string
 
 class RedisQueue:
 	def __init__(self, conn):
@@ -17,9 +16,10 @@ class RedisQueue:
 		return frappe._dict(user_settings) if is_created else {}
 
 	@classmethod
-	def get_connection(cls, username='default', password=None):
-		domain = frappe.local.conf.redis_queue.split("redis://", 1)[-1]
-		url = f"redis://{username}:{password or ''}@{domain}"
+	def get_connection(cls, username=None, password=None):
+		rq_url = frappe.local.conf.redis_queue
+		domain = rq_url.split("redis://", 1)[-1]
+		url = (username and f"redis://{username}:{password or ''}@{domain}") or rq_url
 		conn = redis.from_url(url)
 		conn.ping()
 		return conn
@@ -63,25 +63,21 @@ class RedisQueue:
 		return ['+@all', '-@admin']
 
 	@classmethod
-	def gen_acl_list(cls, reset_passwords=False, set_admin_password=False):
+	def gen_acl_list(cls, set_admin_password=False):
 		"""Generate list of ACL users needed for this branch.
 
 		This list contains default ACL user and the bench ACL user(used by all sites incase of ACL is enabled).
 		"""
-		with frappe.init_site():
-			bench_username = get_bench_id()
-			bench_user_rules = cls.get_acl_key_rules(include_key_prefix=True) + cls.get_acl_command_rules()
-
+		bench_username = get_bench_id()
+		bench_user_rules = cls.get_acl_key_rules(include_key_prefix=True) + cls.get_acl_command_rules()
 		bench_user_rule_str = ' '.join(bench_user_rules).strip()
 		bench_user_password = random_string(20)
-		bench_user_resetpass = (reset_passwords and 'resetpass') or ''
 
 		default_username = 'default'
 		_default_user_password = random_string(20) if set_admin_password else ''
 		default_user_password = '>'+_default_user_password if _default_user_password else 'nopass'
-		default_user_resetpass = (reset_passwords and set_admin_password and 'resetpass') or ''
 
 		return [
-			f'user {default_username} on {default_user_password} {default_user_resetpass} ~* &* +@all',
-			f'user {bench_username} on >{bench_user_password} {bench_user_resetpass} {bench_user_rule_str}'
+			f'user {default_username} on {default_user_password} ~* &* +@all',
+			f'user {bench_username} on >{bench_user_password} {bench_user_rule_str}'
 		], {'bench': (bench_username, bench_user_password), 'default': (default_username, _default_user_password)}
