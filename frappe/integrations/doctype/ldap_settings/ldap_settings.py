@@ -13,10 +13,10 @@ class LDAPSettings(Document):
 			return
 
 		if not self.flags.ignore_mandatory:
-			if self.ldap_search_string and self.ldap_search_string.endswith("={0}"):
+			if self.ldap_search_string and "{0}" in self.ldap_search_string:
 				self.connect_to_ldap(base_dn=self.base_dn, password=self.get_password(raise_exception=False))
 			else:
-				frappe.throw(_("LDAP Search String needs to end with a placeholder, eg sAMAccountName={0}"))
+				frappe.throw(_("LDAP Search String needs to contian the user placeholder {0}, eg sAMAccountName={0}"))
 
 	def connect_to_ldap(self, base_dn, password, read_only=True):
 		try:
@@ -206,7 +206,7 @@ class LDAPSettings(Document):
 
 		conn.search(
 			search_base=self.organizational_unit,
-			search_filter="({0})".format(user_filter),
+			search_filter="{0}".format(user_filter),
 			attributes=ldap_attributes)
 
 		if len(conn.entries) == 1 and conn.entries[0]:
