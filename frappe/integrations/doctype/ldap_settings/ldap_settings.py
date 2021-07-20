@@ -161,8 +161,8 @@ class LDAPSettings(Document):
 
 		elif self.ldap_directory_server.lower() == 'openldap':
 
-			ldap_object_class = 'GroupOfNames'
-			ldap_group_members_attribute = 'member'
+			ldap_object_class = 'posixgroup'
+			ldap_group_members_attribute = 'memberuid'
 
 		elif self.ldap_directory_server.lower() == 'custom':
 
