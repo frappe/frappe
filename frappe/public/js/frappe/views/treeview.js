@@ -1,3 +1,4 @@
+
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
@@ -309,11 +310,14 @@ frappe.views.TreeView = class TreeView {
 
 		this.prepare_fields();
 
-		// the dialog
-		var d = new frappe.ui.Dialog({
-			title: __("New {0}", [__(me.doctype)]),
-			fields: me.fields,
-		});
+		let dialog_opts = {
+			title: __('New {0}',[__(me.doctype)]),
+			fields: me.fields
+		};
+		if (typeof(me.opts.new_node_opts) !== "undefined"){
+			dialog_opts = {...dialog_opts, ...me.opts.new_node_opts};
+		}
+		var d = new frappe.ui.Dialog(dialog_opts);
 
 		var args = $.extend({}, me.args);
 		args["parent_" + me.doctype.toLowerCase().replace(/ /g, "_")] = me.args["parent"];
