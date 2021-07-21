@@ -605,8 +605,7 @@ frappe.Application = Class.extend({
 	setup_copy_doc_listener() {
 		$('body').on('paste', (e) => {
 			try {
-				let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
-				let pasted_data = clipboard_data.getData('Text');
+				let pasted_data = frappe.utils.get_clipboard_data(e);
 				let doc = JSON.parse(pasted_data);
 				if (doc.doctype) {
 					e.preventDefault();
@@ -621,6 +620,7 @@ frappe.Application = Class.extend({
 						let res = frappe.model.with_doctype(doc.doctype, () => {
 							let newdoc = frappe.model.copy_doc(doc);
 							newdoc.__newname = doc.name;
+							delete doc.name;
 							newdoc.idx = null;
 							newdoc.__run_link_triggers = false;
 							frappe.set_route('Form', newdoc.doctype, newdoc.name);

@@ -447,24 +447,36 @@ def get_stats(stats, doctype, filters=[]):
 	for tag in tags:
 		if not tag in columns: continue
 		try:
-			tagcount = frappe.get_list(doctype, fields=[tag, "count(*)"],
-				#filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
-				filters = filters + ["ifnull(`%s`,'')!=''" % tag], group_by = tag, as_list = True)
+			tag_count = frappe.get_list(doctype,
+				fields=[tag, "count(*)"],
+				filters=filters + [[tag, '!=', '']],
+				group_by=tag,
+				as_list=True,
+				distinct=1,
+			)
 
-			if tag=='_user_tags':
-				stats[tag] = scrub_user_tags(tagcount)
-				stats[tag].append([_("No Tags"), frappe.get_list(doctype,
+			if tag == '_user_tags':
+				stats[tag] = scrub_user_tags(tag_count)
+				no_tag_count = frappe.get_list(doctype,
 					fields=[tag, "count(*)"],
-					filters=filters +["({0} = ',' or {0} = '' or {0} is null)".format(tag)], as_list=True)[0][1]])
+					filters=filters + [[tag, "in", ('', ',')]],
+					as_list=True,
+					group_by=tag,
+					order_by=tag,
+				)
+
+				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
+
+				stats[tag].append([_("No Tags"), no_tag_count])
 			else:
-				stats[tag] = tagcount
+				stats[tag] = tag_count
 
 		except frappe.db.SQLError:
-			# does not work for child tables
 			pass
-		except frappe.db.InternalError:
+		except frappe.db.InternalError as e:
 			# raised when _user_tags column is added on the fly
 			pass
+
 	return stats
 
 @frappe.whitelist()

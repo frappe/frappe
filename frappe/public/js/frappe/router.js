@@ -171,8 +171,8 @@ frappe.router = {
 		} else {
 			standard_route = ['List', doctype_route.doctype, frappe.utils.to_title_case(route[2])];
 			if (route[3]) {
-				// calendar / kanban / dashboard name
-				standard_route.push(route[3]);
+				// calendar / kanban / dashboard / folder name
+				standard_route.push(...route.splice(3, route.length));
 			}
 		}
 		return standard_route;
@@ -297,8 +297,8 @@ frappe.router = {
 			if (route[2] && route[2] !== 'list' && !$.isPlainObject(route[2])) {
 				new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
 
-				// calendar / inbox
-				if (route[3]) new_route.push(route[3]);
+				// calendar / inbox / file folder
+				if (route[3]) new_route.push(...route.slice(3, route.length));
 			} else {
 				if ($.isPlainObject(route[2])) {
 					frappe.route_options = route[2];

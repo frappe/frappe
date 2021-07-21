@@ -166,7 +166,7 @@ def validate_url(txt, throw=False, valid_schemes=None):
 
 		Parameters:
 			throw (`bool`): throws a validationError if URL is not valid
-			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this 
 
 		Returns:
 			bool: if `txt` represents a valid URL
@@ -852,11 +852,3 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
-
-def validate_url(url_string):
-	try:
-		result = urlparse(url_string)
-		return result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]
-	except Exception:
-		return False
-

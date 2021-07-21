@@ -370,6 +370,7 @@ def get_desktop_page(page):
 			'allow_customization': not wspace.doc.disable_user_customization
 		}
 	except DoesNotExistError:
+		frappe.log_error(frappe.get_traceback())
 		return {}
 
 @frappe.whitelist()
@@ -453,6 +454,7 @@ def get_custom_report_list(module):
 			"type": "Link",
 			"link_type": "report",
 			"doctype": r.ref_doctype,
+			"dependencies": r.ref_doctype,
 			"is_query_report": 1 if r.report_type in ("Query Report", "Script Report", "Custom Report") else 0,
 			"label": _(r.name),
 			"link_to": r.name,
