@@ -323,12 +323,18 @@ class PersonalDataDeletionRequest(Document):
 
 
 def remove_unverified_record():
-	frappe.db.sql(
-		"""
-		DELETE FROM `tabPersonal Data Deletion Request`
-		WHERE `status` = 'Pending Verification'
-		AND `creation` < (NOW() - INTERVAL '7' DAY)"""
-	)
+
+	frappe.db.delete("Personal Data Deletion Request", {
+		"status": "Pending Verification",
+		"creation": ("<", ["Now()", "-", "INTERVAL 7 DAY"])
+	})
+
+	# frappe.db.sql(
+	# 	"""
+	# 	DELETE FROM `tabPersonal Data Deletion Request`
+	# 	WHERE `status` = 'Pending Verification'
+	# 	AND `creation` < (NOW() - INTERVAL '7' DAY)"""
+	# )
 
 
 @frappe.whitelist(allow_guest=True)
