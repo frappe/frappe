@@ -951,15 +951,25 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype, conditions, debug=False):
+	def delete(self, doctype, conditions=None, debug=False):
 		if conditions:
 			conditions, values = self.build_conditions(conditions)
-			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
+			if doctype.startswith("__"):
+				return self.sql("DELETE FROM `{doctype}` where {conditions}".format(
 				doctype=doctype,
 				conditions=conditions
 			), values, debug=debug)
+			else:
+				return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
+					doctype=doctype,
+					conditions=conditions
+				), values, debug=debug)
+
 		else:
-			frappe.throw(_('No conditions provided'))
+			return self.sql("DELETE FROM `tab{doctype}`".format(
+				doctype=doctype
+			), debug=debug)
+
 
 	def get_last_created(self, doctype):
 		last_record = self.get_all(doctype, ('creation'), limit=1, order_by='creation desc')
