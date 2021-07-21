@@ -16,6 +16,7 @@ import frappe.translate
 import redis
 from urllib.parse import unquote
 from frappe.cache_manager import clear_user_cache
+from frappe.database.database import Database
 
 @frappe.whitelist(allow_guest=True)
 def clear(user=None):
@@ -76,7 +77,6 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 
 def delete_session(sid=None, user=None, reason="Session Expired"):
 	from frappe.core.doctype.activity_log.feed import logout_feed
-
 	frappe.cache().hdel("session", sid)
 	frappe.cache().hdel("last_db_session_update", sid)
 	if sid and not user:
@@ -84,7 +84,8 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 		if user_details: user = user_details[0].get("user")
 
 	logout_feed(user, reason)
-	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
+	frappe.db.delete(doctype="Sessions", conditions={"sid": sid})
+	# frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
 	frappe.db.commit()
 
 def clear_all_sessions(reason=None):

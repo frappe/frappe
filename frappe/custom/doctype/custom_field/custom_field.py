@@ -85,11 +85,15 @@ class CustomField(Document):
 					frappe.bold(self.label)))
 
 		# delete property setter entries
-		frappe.db.sql("""\
-			DELETE FROM `tabProperty Setter`
-			WHERE doc_type = %s
-			AND field_name = %s""",
-				(self.dt, self.fieldname))
+		frappe.db.delete("Property Setter", {
+			"doc_type": self.dt,
+			"field_name": self.fieldname
+		})
+		# frappe.db.sql("""\
+		# 	DELETE FROM `tabProperty Setter`
+		# 	WHERE doc_type = %s
+		# 	AND field_name = %s""",
+		# 		(self.dt, self.fieldname))
 
 		frappe.clear_cache(doctype=self.dt)
 

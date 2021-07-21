@@ -20,8 +20,12 @@ from frappe.core.doctype.doctype.doctype import validate_series
 
 class CustomizeForm(Document):
 	def on_update(self):
-		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
-		frappe.db.sql("delete from `tabCustomize Form Field`")
+		frappe.db.delete("Singles", {
+			"doctype": "Customize Form"
+		})
+		frappe.db.delete("Customize Form Field")
+		# frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
+		# frappe.db.sql("delete from `tabCustomize Form Field`")
 
 	@frappe.whitelist()
 	def fetch_to_customize(self):

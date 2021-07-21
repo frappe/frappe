@@ -151,21 +151,29 @@ def delete_fields(args_dict, delete=0):
 		fields = args_dict[dt]
 		if not fields:
 			continue
-
-		frappe.db.sql("""
-			DELETE FROM `tabDocField`
-			WHERE parent='%s' AND fieldname IN (%s)
-		""" % (dt, ", ".join(["'{}'".format(f) for f in fields])))
+		
+		frappe.db.delete("DocField", {
+			"parent": dt,
+			"fieldname": ("in", ", ".join(["'{}'".format(f) for f in fields]))
+		})
+		# frappe.db.sql("""
+		# 	DELETE FROM `tabDocField`
+		# 	WHERE parent='%s' AND fieldname IN (%s)
+		# """ % (dt, ", ".join(["'{}'".format(f) for f in fields])))
 
 		# Delete the data/column only if delete is specified
 		if not delete:
 			continue
 
 		if frappe.db.get_value("DocType", dt, "issingle"):
-			frappe.db.sql("""
-				DELETE FROM `tabSingles`
-				WHERE doctype='%s' AND field IN (%s)
-			""" % (dt, ", ".join("'{}'".format(f) for f in fields)))
+			frappe.db.delete("Singles", {
+				"doctype": dt,
+				"field": ("in", ", ".join("'{}'".format(f) for f in fields))
+			})
+			# frappe.db.sql("""
+				# DELETE FROM `tabSingles`
+				# WHERE doctype='%s' AND field IN (%s)
+			# """ % (dt, ", ".join("'{}'".format(f) for f in fields)))
 		else:
 			existing_fields = frappe.db.multisql({
 					"mariadb": "DESC `tab%s`" % dt,
