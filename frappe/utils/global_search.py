@@ -23,7 +23,8 @@ def reset():
 	Deletes all data in __global_search
 	:return:
 	"""
-	frappe.db.sql('DELETE FROM `__global_search`')
+	frappe.db.delete("__global_search")
+	# frappe.db.sql('DELETE FROM `__global_search`')
 
 
 def get_doctypes_with_global_search(with_child_tables=True):
@@ -146,9 +147,12 @@ def rebuild_for_doctype(doctype):
 
 
 def delete_global_search_records_for_doctype(doctype):
-	frappe.db.sql('''DELETE
-		FROM `__global_search`
-		WHERE doctype = %s''', doctype, as_dict=True)
+	frappe.db.delete("__global_search", {
+		"doctype": doctype
+	})
+	# frappe.db.sql('''DELETE
+	# 	FROM `__global_search`
+	# 	WHERE doctype = %s''', doctype, as_dict=True)
 
 
 def get_selected_fields(meta, global_search_fields):
@@ -400,10 +404,15 @@ def delete_for_document(doc):
 	:param doc: Deleted document
 	"""
 
-	frappe.db.sql('''DELETE
-		FROM `__global_search`
-		WHERE doctype = %s
-		AND name = %s''', (doc.doctype, doc.name), as_dict=True)
+	frappe.db.delete("__global_search", {
+		"doctype": doc.doctype,
+		"name": doc.name
+	})
+
+	# frappe.db.sql('''DELETE
+	# 	FROM `__global_search`
+	# 	WHERE doctype = %s
+	# 	AND name = %s''', (doc.doctype, doc.name), as_dict=True)
 
 
 @frappe.whitelist()
