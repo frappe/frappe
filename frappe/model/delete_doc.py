@@ -369,8 +369,12 @@ def clear_references(doctype, reference_doctype, reference_name,
 		(reference_doctype, reference_name))
 
 def clear_timeline_references(link_doctype, link_name):
-	frappe.db.sql("""DELETE FROM `tabCommunication Link`
-		WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
+	frappe.db.delete("Communication Link", {
+		"link_doctype": link_doctype,
+		"link_name": link_name
+	})
+	# frappe.db.sql("""DELETE FROM `tabCommunication Link`
+		# WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
 
 def insert_feed(doc):
 	if (

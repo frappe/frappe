@@ -154,7 +154,7 @@ def delete_fields(args_dict, delete=0):
 		
 		frappe.db.delete("DocField", {
 			"parent": dt,
-			"fieldname": ("in", ", ".join(["'{}'".format(f) for f in fields]))
+			"fieldname": ("in", fields)
 		})
 		# frappe.db.sql("""
 		# 	DELETE FROM `tabDocField`
