@@ -17,7 +17,6 @@ from frappe.website.utils import is_signup_disabled
 from frappe.rate_limiter import rate_limit
 from frappe.utils.background_jobs import enqueue
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
-from frappe.database.database import Database
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -382,15 +381,15 @@ class User(Document):
 		# frappe.db.sql("""delete from `tabDocShare` where user=%s""", self.name)
 
 		# delete messages
-		# TODO: CHANGE THIS FROM ABHISHEK KA PYPIKA
-		frappe.db.delete("Communication", {
-            "reference_doctype": "User",
-			"communication_type": ("in", ("Chat", "Notification")),
-        })
-		# frappe.db.sql("""delete from `tabCommunication`
-			# where communication_type in ('Chat', 'Notification')
-			# and reference_doctype='User'
-			# and (reference_name=%s or owner=%s)""", (self.name, self.name))
+		
+		# frappe.db.delete("Communication", {
+        #     "reference_doctype": "User",
+		# 	"communication_type": ("in", ("Chat", "Notification")),
+        # })
+		frappe.db.sql("""delete from `tabCommunication`
+			where communication_type in ('Chat', 'Notification')
+			and reference_doctype='User'
+			and (reference_name=%s or owner=%s)""", (self.name, self.name))
 
 		# unlink contact
 		frappe.db.sql("""update `tabContact`

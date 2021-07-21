@@ -29,9 +29,9 @@ def update_feed(doc, method=None):
 			name = feed.name or doc.name
 			
 			
-			frappe.db.delete(doctype="Activity Log", conditions={"reference_doctype": doctype,
-			 											   "reference_name": name,
-			 											   "link_doctype": name.feed.link_doctype})
+			frappe.db.delete("Activity Log", {"reference_doctype": doctype,
+											  "reference_name": name,
+											  "link_doctype": name.feed.link_doctype})
 			# frappe.db.sql("""delete from `tabActivity Log`
 			# 	where
 			# 		reference_doctype=%s and reference_name=%s

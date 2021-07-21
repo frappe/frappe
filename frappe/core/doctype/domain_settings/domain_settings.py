@@ -34,7 +34,7 @@ class DomainSettings(Document):
 		all_domains = list((frappe.get_hooks('domains') or {}))
 
 		def remove_role(role):
-			frappe.db.delete(doctype="Has Role", conditions={"role": role})
+			frappe.db.delete("Has Role", {"role": role})
 			# frappe.db.sql('delete from `tabHas Role` where role=%s', role)
 			frappe.set_value('Role', role, 'disabled', 1)
 

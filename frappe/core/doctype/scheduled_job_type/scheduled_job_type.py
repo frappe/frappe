@@ -110,7 +110,7 @@ class ScheduledJobType(Document):
 
 	def on_trash(self):
 		
-		frappe.db.delete(doctype="Scheduled Job Log", conditions={
+		frappe.db.delete("Scheduled Job Log", {
 			"scheduled_job_type": self.name
 		})
 		# frappe.db.sql('delete from `tabScheduled Job Log` where scheduled_job_type=%s', self.name)

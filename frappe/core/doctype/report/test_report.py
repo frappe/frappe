@@ -83,7 +83,7 @@ class TestReport(unittest.TestCase):
 	def test_report_permissions(self):
 		
 		frappe.set_user('test@example.com')
-		frappe.db.delete(doctype="Has Role", conditions={
+		frappe.db.delete("Has Role", {
 			"parent": frappe.session.user,
 			"role": "Test Has Role"
 		})
