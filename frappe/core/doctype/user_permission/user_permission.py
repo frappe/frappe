@@ -182,7 +182,11 @@ def clear_user_permissions(user, for_doctype):
 	frappe.only_for('System Manager')
 	total = frappe.db.count('User Permission', filters = dict(user=user, allow=for_doctype))
 	if total:
-		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `user`=%s AND `allow`=%s', (user, for_doctype))
+		frappe.db.delete("User Permission", {
+			"user": user,
+			"allow": for_doctype
+		})
+		# frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `user`=%s AND `allow`=%s', (user, for_doctype))
 		frappe.clear_cache()
 	return total
 
@@ -232,28 +236,50 @@ def insert_user_perm(user, doctype, docname, is_default=0, hide_descendants=0, a
 	user_perm.insert()
 
 def remove_applicable(perm_applied_docs, user, doctype, docname):
+	
 	for applicable_for in perm_applied_docs:
-		frappe.db.sql("""DELETE FROM `tabUser Permission`
-			WHERE `user`=%s
-			AND `applicable_for`=%s
-			AND `allow`=%s
-			AND `for_value`=%s
-		""", (user, applicable_for, doctype, docname))
-
+		frappe.db.delete("User Permission", {
+			"user": user,
+			"applicable_for": applicable_for,
+			"allow": doctype,
+			"for_value": docname
+		})
+		# 
+		# frappe.db.sql("""DELETE FROM `tabUser Permission`
+			# WHERE `user`=%s
+			# AND `applicable_for`=%s
+			# AND `allow`=%s
+			# AND `for_value`=%s
+		# """, (user, applicable_for, doctype, docname))
 def remove_apply_to_all(user, doctype, docname):
-	frappe.db.sql("""DELETE from `tabUser Permission`
-		WHERE `user`=%s
-		AND `apply_to_all_doctypes`=1
-		AND `allow`=%s
-		AND `for_value`=%s
-	""",(user, doctype, docname))
+
+	frappe.db.delete("User Permission", {
+		"user": user,
+		"apply_to_all_doctypes": 1,
+		"allow": doctype,
+		"for_value": docname
+	})
+	# frappe.db.sql("""DELETE from `tabUser Permission`
+	# 	WHERE `user`=%s
+	# 	AND `apply_to_all_doctypes`=1
+	# 	AND `allow`=%s
+	# 	AND `for_value`=%s
+	# """,(user, doctype, docname))
 
 def update_applicable(already_applied, to_apply, user, doctype, docname):
 	for applied in already_applied:
 		if applied not in to_apply:
-			frappe.db.sql("""DELETE FROM `tabUser Permission`
-				WHERE `user`=%s
-				AND `applicable_for`=%s
-				AND `allow`=%s
-				AND `for_value`=%s
-			""",(user, applied, doctype, docname))
+
+			frappe.db.delete("User Permission", {
+				"user": user,
+				"applicable_for": applied,
+				"allow": doctype,
+				"for_value": docname
+			})
+
+			# frappe.db.sql("""DELETE FROM `tabUser Permission`
+			# 	WHERE `user`=%s
+			# 	AND `applicable_for`=%s
+			# 	AND `allow`=%s
+			# 	AND `for_value`=%s
+			# """,(user, applied, doctype, docname))

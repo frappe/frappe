@@ -13,7 +13,6 @@ from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, get_jobs
 
-
 class ScheduledJobType(Document):
 	def autoname(self):
 		self.name = ".".join(self.method.split(".")[-2:])
@@ -110,7 +109,11 @@ class ScheduledJobType(Document):
 		return 'long' if ('Long' in self.frequency) else 'default'
 
 	def on_trash(self):
-		frappe.db.sql('delete from `tabScheduled Job Log` where scheduled_job_type=%s', self.name)
+		
+		frappe.db.delete(doctype="Scheduled Job Log", conditions={
+			"scheduled_job_type": self.name
+		})
+		# frappe.db.sql('delete from `tabScheduled Job Log` where scheduled_job_type=%s', self.name)
 
 
 @frappe.whitelist()

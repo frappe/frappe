@@ -17,7 +17,7 @@ from frappe.website.utils import is_signup_disabled
 from frappe.rate_limiter import rate_limit
 from frappe.utils.background_jobs import enqueue
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
-
+from frappe.database.database import Database
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -367,23 +367,30 @@ class User(Document):
 		if getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
 
-		# delete todos
-		frappe.db.sql("""DELETE FROM `tabToDo` WHERE `owner`=%s""", (self.name,))
+		frappe.db.delete("Todo", {"owner": self.name})
+		# frappe.db.sql("""DELETE FROM `tabToDo` WHERE `owner`=%s""", (self.name,))
 		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
 			(self.name,))
 
 		# delete events
-		frappe.db.sql("""delete from `tabEvent` where owner=%s
-			and event_type='Private'""", (self.name,))
+		frappe.db.delete("Event", {"owner": self.name, "event_type": "Private"})
+		# frappe.db.sql("""delete from `tabEvent` where owner=%s
+			# and event_type='Private'""", (self.name,))
 
 		# delete shares
-		frappe.db.sql("""delete from `tabDocShare` where user=%s""", self.name)
+		frappe.db.delete("DocShare", {"user": self.name})
+		# frappe.db.sql("""delete from `tabDocShare` where user=%s""", self.name)
 
 		# delete messages
-		frappe.db.sql("""delete from `tabCommunication`
-			where communication_type in ('Chat', 'Notification')
-			and reference_doctype='User'
-			and (reference_name=%s or owner=%s)""", (self.name, self.name))
+		# TODO: CHANGE THIS FROM ABHISHEK KA PYPIKA
+		frappe.db.delete("Communication", {
+            "reference_doctype": "User",
+			"communication_type": ("in", ("Chat", "Notification")),
+        })
+		# frappe.db.sql("""delete from `tabCommunication`
+			# where communication_type in ('Chat', 'Notification')
+			# and reference_doctype='User'
+			# and (reference_name=%s or owner=%s)""", (self.name, self.name))
 
 		# unlink contact
 		frappe.db.sql("""update `tabContact`

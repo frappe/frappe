@@ -13,6 +13,7 @@ class LogSettings(Document):
 		self.clear_email_queue()
 
 	def clear_error_logs(self):
+		# frappe.db.delete(doctype="Error Log", conditions="")
 		frappe.db.sql(""" DELETE FROM `tabError Log`
 			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
 		""".format(self.clear_error_log_after))

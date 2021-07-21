@@ -81,9 +81,14 @@ class TestReport(unittest.TestCase):
 		self.assertDictEqual({'name': 'Administrator', 'user_type': 'System User', 'email': 'admin@example.com'}, admin_dict)
 
 	def test_report_permissions(self):
+		
 		frappe.set_user('test@example.com')
-		frappe.db.sql("""delete from `tabHas Role` where parent = %s
-			and role = 'Test Has Role'""", frappe.session.user, auto_commit=1)
+		frappe.db.delete(doctype="Has Role", conditions={
+			"parent": frappe.session.user,
+			"role": "Test Has Role"
+		})
+		# frappe.db.sql("""delete from `tabHas Role` where parent = %s
+			# and role = 'Test Has Role'""", frappe.session.user, auto_commit=1)
 
 		if not frappe.db.exists('Role', 'Test Has Role'):
 			role = frappe.get_doc({
