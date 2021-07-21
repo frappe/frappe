@@ -173,6 +173,7 @@ def clear_outbox(days=None):
 		WHERE `priority`=0 AND `modified` < (NOW() - INTERVAL '{0}' DAY)""".format(days))
 
 	if email_queues:
+		# TODO: email_queues IN frappe.db.sql
 		frappe.db.sql("""DELETE FROM `tabEmail Queue` WHERE `name` IN ({0})""".format(
 			','.join(['%s']*len(email_queues)
 		)), tuple(email_queues))
