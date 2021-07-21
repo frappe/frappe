@@ -47,20 +47,18 @@ $('body').on('click', 'a', function(e) {
 		return;
 	}
 
-	if (href==='') {
+	if (href === '') {
 		return override('/app');
+	}
+
+	if (href.startsWith('#')) {
+		// target startswith "#", this is a v1 style route, so remake it.
+		return override(e.currentTarget.hash);
 	}
 
 	if (frappe.router.is_app_route(e.currentTarget.pathname)) {
 		// target has "/app, this is a v2 style route.
-		if (e.currentTarget.pathname) {
-			return override(e.currentTarget.pathname + e.currentTarget.hash);
-		}
-	} else {
-		// target has "#" ,this is a v1 style route, so remake it.
-		if (e.currentTarget.hash) {
-			return override(e.currentTarget.hash);
-		}
+		return override(e.currentTarget.pathname + e.currentTarget.hash);
 	}
 });
 
