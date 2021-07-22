@@ -8,6 +8,7 @@ import hashlib
 import hmac
 import json
 from time import sleep
+from jinja2 import Template
 
 import requests
 from urllib.parse import urlparse
@@ -133,6 +134,7 @@ def get_webhook_data(doc, webhook):
 
 def validate_json(string):
 	try:
-		json.loads(string)
+		tmpl = Template(string)
+		json.loads(tmpl.render())
 	except (TypeError, ValueError):
-		frappe.throw(_("Request Body consists of an invalid JSON structure"), title=_("Invalid JSON"))
+		frappe.throw(_("Request Body consists of an invalid JSON structure or invalid jinja structure"), title=_("Invalid JSON"))
