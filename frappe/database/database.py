@@ -966,9 +966,15 @@ class Database(object):
 				), values, debug=debug)
 
 		else:
-			return self.sql("DELETE FROM `tab{doctype}`".format(
-				doctype=doctype
-			), debug=debug)
+			if doctype.startwith("__"):
+				return self.sql("DELETE FROM `{doctype}`".format(
+					doctype=doctype
+				), debug=debug)
+
+			else:
+				return self.sql("DELETE FROM `tab{doctype}`".format(
+					doctype=doctype
+				), debug=debug)
 
 
 	def get_last_created(self, doctype):
