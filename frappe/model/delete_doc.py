@@ -64,27 +64,21 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
-
 				frappe.db.delete("Custom Field", {
 					"dt": name
 				})
-
 				frappe.db.delete("Client Script", {
 					"dt": name
 				})
-
 				frappe.db.delete("Property Setter", {
 					"doc_type": name
 				})
-
 				frappe.db.delete("Report", {
 					"ref_doctype": name
 				})
-
 				frappe.db.delete("Custom DocPerm", {
 					"parent": name
 				})
-
 				frappe.db.delete("__global_search", {
 					"doctype": name
 				})

@@ -518,7 +518,7 @@ def reset_perms(doctype):
 	"""Reset permissions for given doctype."""
 	from frappe.desk.notifications import delete_notification_count_for
 	delete_notification_count_for(doctype)
-	frappe.db.delete(doctype="Custom DocPerm", conditions={"parent": doctype})
+	frappe.db.delete("Custom DocPerm", {"parent": doctype})
 
 	# frappe.db.sql("""delete from `tabCustom DocPerm` where parent=%s""", doctype)
 
