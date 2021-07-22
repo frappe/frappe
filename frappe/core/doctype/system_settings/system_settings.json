@@ -13,6 +13,7 @@
   "time_zone",
   "is_first_startup",
   "enable_onboarding",
+  "page_length",
   "setup_complete",
   "date_and_number_format",
   "date_format",
@@ -469,6 +470,12 @@
    "fieldname": "strip_exif_metadata_from_uploaded_images",
    "fieldtype": "Check",
    "label": "Strip EXIF tags from uploaded images"
+  },
+  {
+   "default": "50",
+   "fieldname": "page_length",
+   "fieldtype": "Int",
+   "label": "Page Length"
   }
  ],
  "icon": "fa fa-cog",
