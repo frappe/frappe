@@ -83,10 +83,14 @@ class BaseDocument(object):
 
 	@property
 	def meta(self):
-		if not hasattr(self, "_meta"):
+		if not getattr(self, "_meta", None):
 			self._meta = frappe.get_meta(self.doctype)
 
 		return self._meta
+
+	def __getstate__(self):
+		self._meta = None
+		return self.__dict__
 
 	def update(self, d):
 		""" Update multiple fields of a doctype using a dictionary of key-value pairs.
