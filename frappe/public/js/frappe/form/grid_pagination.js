@@ -6,7 +6,15 @@ export default class GridPagination {
 	}
 
 	setup_pagination() {
-		this.page_length = 50;
+		frappe.db.get_single_value('System Settings', 'page_length')
+			.then((value) => {
+				if(!value){
+					this.page_length = 50;
+				}
+				else{
+					this.page_length = value;
+				}
+		})
 		this.page_index = 1;
 		this.total_pages = Math.ceil(this.grid.data.length/this.page_length);
 
