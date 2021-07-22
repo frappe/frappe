@@ -10,6 +10,5 @@ context('Navigation', () => {
 		cy.get_field('description', 'Text Editor').contains('Test this');
 		cy.go('back');
 		cy.title().should('eq', 'Website');
-		cy.remove_doc('ToDo', 'ABC#123');
 	});
 });
