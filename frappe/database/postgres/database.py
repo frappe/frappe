@@ -298,6 +298,7 @@ class PostgresDatabase(Database):
 def modify_query(query):
 	""""Modifies query according to the requirements of postgres"""
 	# replace ` with " for definitions
+	query = str(query)
 	query = query.replace('`', '"')
 	query = replace_locate_with_strpos(query)
 	# select from requires ""

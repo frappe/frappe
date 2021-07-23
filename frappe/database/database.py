@@ -112,6 +112,7 @@ class Database(object):
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+		query = str(query)
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
