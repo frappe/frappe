@@ -28,7 +28,7 @@ from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 from .utils.lazy_loader import lazy_import
 
-from frappe.query_builder import query_builder
+from frappe.query_builder import get_query_builder
 
 # Lazy imports
 faker = lazy_import('faker')
@@ -205,7 +205,7 @@ def init(site, sites_path=None, new_site=False):
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
-	local.qb = query_builder(local.conf.db_type)
+	local.qb = get_query_builder(local.conf.db_type)
 
 	setup_module_map()
 
