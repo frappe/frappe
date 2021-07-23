@@ -167,7 +167,7 @@ def delete_fields(args_dict, delete=0):
 				"field": ("in", fields),
 			})
 		else:
-			existing_fields = frappe.db.sql(frappe.qb.DESC(dt))
+			existing_fields = frappe.db.DESC(dt)
 			existing_fields = existing_fields and [e[0] for e in existing_fields] or []
 			fields_need_to_delete = set(fields) & set(existing_fields)
 			if not fields_need_to_delete:
