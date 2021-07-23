@@ -1,1 +1,1 @@
-from frappe.query_builder.qb import qb as query_builder
+from frappe.query_builder.builder import get_query_builder
