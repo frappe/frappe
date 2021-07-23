@@ -411,14 +411,16 @@ def search(text, start=0, limit=20, doctype=""):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
 	"""
-	from frappe.desk.doctype.global_search_settings.global_search_settings import get_doctypes_for_global_search
+	from frappe.desk.doctype.global_search_settings.global_search_settings import (
+		get_doctypes_for_global_search,
+	)
 
 	results = []
 	sorted_results = []
 
 	allowed_doctypes = get_doctypes_for_global_search()
 
-	for text in set(text.split('&')):
+	for text in set(text.split("&")):
 		text = text.strip()
 		if not text:
 			continue
@@ -427,21 +429,24 @@ def search(text, start=0, limit=20, doctype=""):
 
 		rank = frappe.qb.Match(global_search.content).Against(text).as_("rank")
 
-		q = (frappe.qb.from_(global_search)
-			.select(global_search.doctype,global_search.name,global_search.content,rank)
+		query = (
+			frappe.qb.from_(global_search)
+			.select(
+				global_search.doctype, global_search.name, global_search.content, rank
+			)
 			.orderby("rank", order=frappe.qb.desc)
-			.limit(limit))
+			.limit(limit)
+		)
 
 		if doctype:
-			q = q.where(global_search.doctype == doctype)
+			query = query.where(global_search.doctype == doctype)
 		elif allowed_doctypes:
-			q = q.where(global_search.doctype.isin(allowed_doctypes))
+			query = query.where(global_search.doctype.isin(allowed_doctypes))
 
-		if int(start) > 0:
-			q = q.offset(int(start))
+		if start > 0:
+			query = query.offset(start)
 
-
-		result = frappe.db.sql(q.get_sql(),as_dict=True)
+		result = frappe.db.sql(query, as_dict=True)
 
 		results.extend(result)
 
@@ -452,7 +457,9 @@ def search(text, start=0, limit=20, doctype=""):
 				try:
 					meta = frappe.get_meta(r.doctype)
 					if meta.image_field:
-						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+						r.image = frappe.db.get_value(
+							r.doctype, r.name, meta.image_field
+						)
 				except Exception:
 					frappe.clear_messages()
 

@@ -141,13 +141,13 @@ def build_table_count_cache():
 		return
 
 	_cache = frappe.cache()
-	name = frappe.qb.Field("table_name").as_("name")
-	count = frappe.qb.Field("table_rows").as_("count")
+	table_name = frappe.qb.Field("table_name").as_("name")
+	table_rows = frappe.qb.Field("table_rows").as_("count")
 	information_schema = frappe.qb.Schema("information_schema")
 
-	q = frappe.qb.from_(information_schema.tables).select(name, count).get_sql()
+	query = frappe.qb.from_(information_schema.tables).select(table_name, table_rows)
 
-	data = frappe.db.sql(q, as_dict=1)
+	data = frappe.db.sql(query, as_dict=1)
 
 	counts = {d.get('name').lstrip('tab'): d.get('count', None) for d in data}
 	_cache.set_value("information_schema:counts", counts)
