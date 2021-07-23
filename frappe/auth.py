@@ -1,6 +1,6 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
-from urllib.parse import quote
+from six.moves.urllib.parse import quote
 
 import frappe
 import frappe.database
@@ -10,7 +10,7 @@ from frappe import _, conf
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.modules.patch_handler import check_session_stopped
 from frappe.sessions import Session, clear_sessions, delete_session
-from frappe.translate import get_language
+from frappe.translate import guess_language
 from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, get_cached_user_pass, should_run_2fa
 from frappe.utils import cint, date_diff, datetime, get_datetime, today
 from frappe.utils.password import check_password
@@ -90,7 +90,7 @@ class HTTPRequest:
 				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
 	def set_lang(self):
-		frappe.local.lang = get_language()
+		frappe.local.lang = guess_language()
 
 	def get_db_name(self):
 		"""get database name from conf"""

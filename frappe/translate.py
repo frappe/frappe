@@ -16,7 +16,6 @@ import io
 import itertools
 import json
 import operator
-import functools
 import os
 import re
 from csv import reader
@@ -26,7 +25,7 @@ from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.utils import is_html, strip, strip_html_tags
 
 
-def get_language(lang_list=None):
+def guess_language(lang_list=None):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
@@ -73,8 +72,7 @@ def get_language(lang_list=None):
 	return frappe.local.lang
 
 
-@functools.lru_cache()
-def get_parent_language(lang: str) -> str:
+def get_parent_language(lang):
 	"""If the passed language is a variant, return its parent
 
 	Eg:
