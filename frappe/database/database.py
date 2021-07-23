@@ -1031,6 +1031,10 @@ class Database(object):
 					), tuple(insert_list))
 				insert_list = []
 
+	@staticmethod
+	def add_tab(table_name: str) -> str:
+		return f"tab{table_name}" if not table_name.startswith("__") else table_name
+
 def enqueue_jobs_after_commit():
 	from frappe.utils.background_jobs import execute_job, get_queue
 
