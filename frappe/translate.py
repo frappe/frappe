@@ -14,12 +14,6 @@ from frappe.utils import cstr
 	Translation tools for frappe
 """
 
-<<<<<<< HEAD
-import frappe, os, re, io, codecs, json
-from frappe.model.utils import render_include, InvalidIncludePath
-from frappe.utils import strip, strip_html_tags, is_html
-import itertools, operator
-=======
 import io
 import itertools
 import json
@@ -34,7 +28,6 @@ import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
 
->>>>>>> c47cbfd2ef (refactor: Set Language in HTTPHeader)
 
 def get_language(lang_list: List = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
@@ -71,19 +64,9 @@ def get_language(lang_list: List = None) -> str:
 	# fetch language from request headers
 	accept_language = list(frappe.request.accept_languages.values())
 
-<<<<<<< HEAD
-	for l in lang_codes:
-		code = l.strip()
-		if not isinstance(code, text_type):
-			code = text_type(code, 'utf-8')
-		if code in lang_list or code == "en":
-			guess = code
-			break
-=======
 	for language in accept_language:
 		if language in lang_set:
 			return language
->>>>>>> c47cbfd2ef (refactor: Set Language in HTTPHeader)
 
 		parent_language = get_parent_language(language)
 		if parent_language in lang_set:

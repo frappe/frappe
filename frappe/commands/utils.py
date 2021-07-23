@@ -570,27 +570,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-<<<<<<< HEAD
-		incl = [
-			'*.py',
-		]
-		omit = [
-			'*.html',
-			'*.js',
-			'*.xml',
-			'*.pyc',
-			'*.css',
-			'*.less',
-			'*.scss',
-			'*.vue',
-			'*/test_*',
-			'*/node_modules/*',
-			'*/doctype/*/*_dashboard.py',
-			'*/patches/*',
-		]
-=======
 		omit = STANDARD_EXCLUSIONS[:]
->>>>>>> 2ac1c45c66 (refactor: Maintain common list for Frappe Coverage settings)
 
 		if not app or app == 'frappe':
 			omit.extend(FRAPPE_EXCLUSIONS)
