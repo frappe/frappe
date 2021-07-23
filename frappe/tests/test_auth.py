@@ -127,20 +127,3 @@ class TestLoginAttemptTracker(unittest.TestCase):
 
 		tracker.add_failure_attempt()
 		self.assertTrue(tracker.is_user_allowed())
-
-class TestFrappeHTTPRequest(unittest.TestCase):
-	# test frappe.auth.HTTPRequest
-	def test_set_language(self):
-		"""Check if language is set on object initialization
-
-		This is a test to ensure that language has changed. To test correctness
-		of frappe.local.lang, check out the tests of frappe.translate.get_language
-		"""
-		lang_before_request = frappe.local.lang
-		random_lang = frappe.get_all("Language", limit=1, pluck="name")[0]
-		set_request(method='POST', path='/')
-		frappe.form_dict._lang = random_lang
-		HTTPRequest()
-		self.assertTrue(hasattr(frappe.local, "lang"))
-		self.assertIsInstance(frappe.local.lang, str)
-		self.assertNotEqual(lang_before_request, frappe.local.lang)
