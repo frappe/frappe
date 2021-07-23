@@ -2,7 +2,7 @@ from pypika import MySQLQuery, Order, PostgreSQLQuery
 from pypika import functions as fn
 from pypika import terms
 from pypika.queries import Schema, Table
-from .custom_functions import GROUP_CONCAT, STRING_AGG
+import frappe.query_builder.custom_functions as SpecialFuncs
 
 def qb(db_type):
 	if not db_type:
@@ -15,6 +15,7 @@ class common:
 	terms = terms
 	desc = Order.desc
 	Schema = Schema
+
 	@staticmethod
 	def Table(classname:str, *args, **kwargs):
 		if not classname.startswith("__"):
@@ -23,7 +24,9 @@ class common:
 
 class MariaDB(common, MySQLQuery,):
 	Field = terms.Field
-	GROUP_CONCAT = GROUP_CONCAT
+	GROUP_CONCAT = SpecialFuncs.GROUP_CONCAT
+	Match = SpecialFuncs.Match
+
 
 	def __init__(self) -> None:
 		super().__init__()
@@ -50,7 +53,8 @@ class MariaDB(common, MySQLQuery,):
 class Postgres(common, PostgreSQLQuery,):
 	postgres_field = {"table_name": "relname", "table_rows": "n_tup_ins"}
 	information_schema_translation = {"tables": "pg_stat_all_tables"}
-	GROUP_CONCAT = STRING_AGG
+	GROUP_CONCAT = SpecialFuncs.STRING_AGG
+	Match = SpecialFuncs.TO_TSVECTOR
 
 	def __init__(self) -> None:
 		super().__init__()

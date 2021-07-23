@@ -433,39 +433,25 @@ def search(text, start=0, limit=20, doctype=""):
 		if not text:
 			continue
 
-		conditions = '1=1'
-		offset = ''
+		global_search = frappe.qb.Table("__global_search")
 
-		mariadb_text = frappe.db.escape('+' + text + '*')
+		rank = frappe.qb.Match(global_search.content).Against(text).as_("rank")
 
-		mariadb_fields = '`doctype`, `name`, `content`, MATCH (`content`) AGAINST ({} IN BOOLEAN MODE) AS rank'.format(mariadb_text)
-		postgres_fields = '`doctype`, `name`, `content`, TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({}) AS rank'.format(frappe.db.escape(text))
-
-		values = {}
+		q = (frappe.qb.from_(global_search)
+			.select(global_search.doctype,global_search.name,global_search.content,rank)
+			.orderby("rank", order=frappe.qb.desc)
+			.limit(limit))
 
 		if doctype:
-			conditions = '`doctype` = %(doctype)s'
-			values['doctype'] = doctype
+			q = q.where(global_search.doctype == doctype)
 		elif allowed_doctypes:
-			conditions = '`doctype` IN %(allowed_doctypes)s'
-			values['allowed_doctypes'] = tuple(allowed_doctypes)
+			q = q.where(global_search.doctype.isin(allowed_doctypes))
 
 		if int(start) > 0:
-			offset = 'OFFSET {}'.format(start)
+			q = q.offset(int(start))
 
-		common_query = """
-				SELECT {fields}
-				FROM `__global_search`
-				WHERE {conditions}
-				ORDER BY rank DESC
-				LIMIT {limit}
-				{offset}
-			"""
 
-		result = frappe.db.multisql({
-				'mariadb': common_query.format(fields=mariadb_fields, conditions=conditions, limit=limit, offset=offset),
-				'postgres': common_query.format(fields=postgres_fields, conditions=conditions, limit=limit, offset=offset)
-			}, values=values, as_dict=True)
+		result = frappe.db.sql(q.get_sql(),as_dict=True)
 
 		results.extend(result)
 
