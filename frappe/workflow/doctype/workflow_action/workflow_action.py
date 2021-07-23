@@ -259,10 +259,13 @@ def is_workflow_action_already_created(doc):
 def clear_workflow_actions(doctype, name):
 	if not (doctype and name):
 		return
-
-	frappe.db.sql('''delete from `tabWorkflow Action`
-		where reference_doctype=%s and reference_name=%s''',
-		(doctype, name))
+	frappe.db.delete("Workflow Action", {
+		"reference_doctype": doctype,
+		"reference_name": name
+	})
+	# frappe.db.sql('''delete from `tabWorkflow Action`
+		# where reference_doctype=%s and reference_name=%s''',
+		# (doctype, name))
 
 def get_doc_workflow_state(doc):
 	workflow_name = get_workflow_name(doc.get('doctype'))

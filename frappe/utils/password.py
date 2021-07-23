@@ -136,8 +136,12 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 
 def delete_all_passwords_for(doctype, name):
 	try:
-		frappe.db.sql("""delete from `__Auth` where `doctype`=%(doctype)s and `name`=%(name)s""",
-			{ 'doctype': doctype, 'name': name })
+		frappe.db.delete("__Auth", {
+			"doctype": doctype,
+			"name": name
+		})
+		# frappe.db.sql("""delete from `__Auth` where `doctype`=%(doctype)s and `name`=%(name)s""",
+			# { 'doctype': doctype, 'name': name })
 	except Exception as e:
 		if not frappe.db.is_missing_column(e):
 			raise

@@ -111,8 +111,10 @@ def before_tests():
 		# don't run before tests if any other app is installed
 		return
 
-	frappe.db.sql("delete from `tabCustom Field`")
-	frappe.db.sql("delete from `tabEvent`")
+	frappe.db.delete("Custom Field")
+	frappe.db.delete("Event")
+	# frappe.db.sql("delete from `tabCustom Field`")
+	# frappe.db.sql("delete from `tabEvent`")
 	frappe.db.commit()
 	frappe.clear_cache()
 

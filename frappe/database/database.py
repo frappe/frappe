@@ -952,7 +952,7 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype: str, filters: Union[Dict, List], debug=False, **kwargs):
+	def delete(self, doctype: str, filters: Union[Dict, List] = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
 		does trigger DocType hooks. Simply runs a DELETE query in the database.
 
@@ -960,13 +960,14 @@ class Database(object):
 		"""
 		if kwargs:
 			filters = filters or kwargs.get("conditions")
-		if not filters:
-			raise TypeError(
-				"No filters passed for `frappe.db.delete`. If you wish to clear the whole "
-				"table, consider using `frappe.db.truncate` instead?"
-			)
+
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
+
+		if not filters:
+			table = doctype if doctype.startswith("__") else f"tab{doctype}"
+			query = f"DELETE FROM `{table}`"
+			return self.sql(query, **kwargs)
 
 		table = doctype if doctype.startswith("__") else f"tab{doctype}"
 		conditions, values = self.build_conditions(filters)
