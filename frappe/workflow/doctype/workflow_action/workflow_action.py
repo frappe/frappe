@@ -20,6 +20,8 @@ class WorkflowAction(Document):
 
 def on_doctype_update():
 	frappe.db.add_index("Workflow Action", ["status", "user"])
+	# compound index for clear_old_workflow_actions and update_completed_workflow_actions
+	frappe.db.add_index("Workflow Action", ["reference_doctype", "reference_name", "user", "status"])
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
