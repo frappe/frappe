@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 import re
 import time
+from typing import Dict, List, Union
 import frappe
 import datetime
 import frappe.defaults
@@ -15,7 +16,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast_fieldtype, get_datetime
+from frappe.utils import now, getdate, cast_fieldtype, get_datetime, get_table_name
 from frappe.model.utils.link_count import flush_local_link_count
 
 # imports - compatibility imports
@@ -960,15 +961,25 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype, conditions, debug=False):
-		if conditions:
-			conditions, values = self.build_conditions(conditions)
-			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
-				doctype=doctype,
-				conditions=conditions
-			), values, debug=debug)
-		else:
-			frappe.throw(_('No conditions provided'))
+	def delete(self, doctype: str, filters: Union[Dict, List] = None, debug=False, **kwargs):
+		"""Delete rows from a table in site which match the passed filters. This
+		does trigger DocType hooks. Simply runs a DELETE query in the database.
+		Doctype name can be passed directly, it will be pre-pended with `tab`.
+		"""
+		values = ()
+		filters = filters or kwargs.get("conditions")
+		table = get_table_name(doctype)
+		query = f"DELETE FROM `{table}`"
+
+		if "debug" not in kwargs:
+			kwargs["debug"] = debug
+
+		if filters:
+			conditions, values = self.build_conditions(filters)
+			query = f"{query} WHERE {conditions}"
+
+		return self.sql(query, values, **kwargs)
+
 
 	def get_last_created(self, doctype):
 		last_record = self.get_all(doctype, ('creation'), limit=1, order_by='creation desc')
