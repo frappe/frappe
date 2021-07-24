@@ -14,13 +14,12 @@ class LDAPSettings(Document):
 			return
 
 		if not self.flags.ignore_mandatory:
-			if not self.ldap_search_string.startswith('('):
-				self.ldap_search_string = '(' + self.ldap_search_string
 
-			if not self.ldap_search_string.endswith(')'):
-				self.ldap_search_string = self.ldap_search_string + ')'
-
-			if self.ldap_search_string and "{0}" in self.ldap_search_string:
+			if self.ldap_search_string.count('(') == self.ldap_search_string.count(')') and \
+				self.ldap_search_string.startswith('(') and \
+				self.ldap_search_string.endswith(')') and \
+				self.ldap_search_string and \
+				"{0}" in self.ldap_search_string:
 
 				self.connect_to_ldap(base_dn=self.base_dn, password=self.get_password(raise_exception=False))
 			else:
