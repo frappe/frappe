@@ -220,21 +220,23 @@ class LDAPSettings(Document):
 				search_filter="{0}".format(user_filter),
 				attributes=ldap_attributes)
 
+			if len(conn.entries) == 1 and conn.entries[0]:
+				user = conn.entries[0]
+
+				groups = self.fetch_ldap_groups(user, conn)
+
+				# only try and connect as the user, once we have their fqdn entry.
+				if conn.rebind(user=user.entry_dn, password=password):
+					return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
+
+			raise ldap3.core.exceptions.LDAPInvalidCredentialsResult # even though nothing foundor failed authentication raise invalid credentials
+
 		except ldap3.core.exceptions.LDAPInvalidFilterError:
 			frappe.throw(_("Please use a valid LDAP search filter"), title=_("Misconfigured"))
 
-		if len(conn.entries) == 1 and conn.entries[0]:
-			user = conn.entries[0]
-
-			groups = self.fetch_ldap_groups(user, conn)
-
-			# only try and connect as the user, once we have their fqdn entry.
-			self.connect_to_ldap(base_dn=user.entry_dn, password=password)
-
-
-			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
-		else:
+		except ldap3.core.exceptions.LDAPInvalidCredentialsResult:
 			frappe.throw(_("Invalid username or password"))
+
 
 	def reset_password(self, user, password, logout_sessions=False):
 		from ldap3 import HASHED_SALTED_SHA, MODIFY_REPLACE
