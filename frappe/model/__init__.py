@@ -168,11 +168,11 @@ def delete_fields(args_dict, delete=0):
 		if frappe.db.get_value("DocType", dt, "issingle"):
 			frappe.db.delete("Singles", {
 				"doctype": dt,
-				"field": ("in", ", ".join("'{}'".format(f) for f in fields))
+				"field": ("in", fields)
 			})
 			# frappe.db.sql("""
-				# DELETE FROM `tabSingles`
-				# WHERE doctype='%s' AND field IN (%s)
+			# DELETE FROM `tabSingles`
+			# WHERE doctype='%s' AND field IN (%s)
 			# """ % (dt, ", ".join("'{}'".format(f) for f in fields)))
 		else:
 			existing_fields = frappe.db.multisql({

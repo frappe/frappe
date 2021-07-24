@@ -278,8 +278,8 @@ def update_applicable(already_applied, to_apply, user, doctype, docname):
 			})
 
 			# frappe.db.sql("""DELETE FROM `tabUser Permission`
-			# 	WHERE `user`=%s
-			# 	AND `applicable_for`=%s
-			# 	AND `allow`=%s
-			# 	AND `for_value`=%s
+			# WHERE `user`=%s
+			# AND `applicable_for`=%s
+			# AND `allow`=%s
+			# AND `for_value`=%s
 			# """,(user, applied, doctype, docname))

@@ -6,7 +6,7 @@ import frappe
 import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
-from frappe.database.database import Database
+
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 

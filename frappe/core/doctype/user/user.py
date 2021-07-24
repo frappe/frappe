@@ -383,9 +383,9 @@ class User(Document):
 		# delete messages
 		
 		# frappe.db.delete("Communication", {
-        #     "reference_doctype": "User",
-		# 	"communication_type": ("in", ("Chat", "Notification")),
-        # })
+		# "reference_doctype": "User",
+		# "communication_type": ("in", ("Chat", "Notification")),
+		# })
 		frappe.db.sql("""delete from `tabCommunication`
 			where communication_type in ('Chat', 'Notification')
 			and reference_doctype='User'

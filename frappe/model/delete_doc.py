@@ -185,7 +185,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 		})
 		# frappe.db.sql("delete from `tabSingles` where `doctype`=%s", name)
 	else:
-		frappe.db.delete(f"{doctype}", {
+		frappe.db.delete(doctype, {
 			"name": name
 		})
 		# frappe.db.sql("delete from `tab{0}` where `name`=%s".format(doctype), name)
@@ -368,7 +368,7 @@ def clear_timeline_references(link_doctype, link_name):
 		"link_name": link_name
 	})
 	# frappe.db.sql("""DELETE FROM `tabCommunication Link`
-		# WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
+	# WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
 
 def insert_feed(doc):
 	if (

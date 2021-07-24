@@ -13,10 +13,10 @@ class LogSettings(Document):
 		self.clear_email_queue()
 
 	def clear_error_logs(self):
-		frappe.db.delete("Error Log", {"creation": ("<", ["NOW()", "-", f"INTERVAL {self.clear_error_log_after} DAY"])})
-		# frappe.db.sql(""" DELETE FROM `tabError Log`
-		# 	WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
-		# """.format(self.clear_error_log_after))
+		# frappe.db.delete("Error Log", {"creation": ("<", ["NOW()", "-", f"INTERVAL {self.clear_error_log_after} DAY"])})
+		frappe.db.sql(""" DELETE FROM `tabError Log`
+			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
+		""".format(self.clear_error_log_after))
 
 	def clear_activity_logs(self):
 		from frappe.core.doctype.activity_log.activity_log import clear_activity_logs

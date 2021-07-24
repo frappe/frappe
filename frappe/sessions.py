@@ -16,7 +16,6 @@ import frappe.translate
 import redis
 from urllib.parse import unquote
 from frappe.cache_manager import clear_user_cache
-from frappe.database.database import Database
 
 @frappe.whitelist(allow_guest=True)
 def clear(user=None):

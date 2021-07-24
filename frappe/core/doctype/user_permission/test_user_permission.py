@@ -14,7 +14,7 @@ class TestUserPermission(unittest.TestCase):
 		frappe.db.delete("User Permission", {
 			"user": ("in", ("test_bulk_creation_update@example.com",
 							"test_user_perm1@example.com",
-						    "nested_doc_user@example.com"))
+							"nested_doc_user@example.com"))
 		})
 
 		# frappe.db.sql("""DELETE FROM `tabUser Permission`
