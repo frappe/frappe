@@ -143,6 +143,60 @@ class LDAPSettings(Document):
 
 		return ldap_attributes
 
+
+	def fetch_ldap_groups(self, user, conn):
+		fetch_ldap_groups = None
+
+		ldap_attributes = ['cn']
+
+		ldap_object_class = None
+		ldap_group_members_attribute = None
+		ldap_group_search_filter = None
+
+
+		if self.ldap_directory_server.lower() == 'active directory':
+
+			ldap_object_class = 'Group'
+			ldap_group_members_attribute = 'member'
+
+
+		elif self.ldap_directory_server.lower() == 'openldap':
+
+			ldap_object_class = 'GroupOfNames'
+			ldap_group_members_attribute = 'member'
+
+		elif self.ldap_directory_server.lower() == 'custom':
+
+			ldap_object_class = self.ldap_group_objectclass
+			ldap_group_members_attribute = self.ldap_group_member_attribute
+
+		else:
+			# NOTE: depreciate this path
+			# this path will be hit for everyone with preconfigured ldap settings. this must be taken into account so as not to break ldap for those users.
+
+			if self.ldap_group_field:
+
+				fetch_ldap_groups = getattr(user, self.ldap_group_field).values
+
+
+		if ldap_object_class is not None:
+			conn.search(
+				search_base=self.organizational_unit_for_groups,
+				search_filter="(&(objectClass={0})({1}={2}))".format(ldap_object_class,ldap_group_members_attribute, user),
+				attributes=ldap_attributes) # Build search query
+
+
+		if len(conn.entries) >= 1:
+
+			fetch_ldap_groups = []
+			for group in conn.entries:
+				fetch_ldap_groups.append(group['cn'].value)
+
+		return fetch_ldap_groups
+
+
+
+
 	def authenticate(self, username, password):
 
 		if not self.enabled:
@@ -163,9 +217,8 @@ class LDAPSettings(Document):
 			# only try and connect as the user, once we have their fqdn entry.
 			self.connect_to_ldap(base_dn=user.entry_dn, password=password)
 
-			groups = None
-			if self.ldap_group_field:
-				groups = getattr(user, self.ldap_group_field).values
+			groups = self.fetch_ldap_groups(user, conn)
+
 			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
 		else:
 			frappe.throw(_("Invalid username or password"))
