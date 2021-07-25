@@ -225,7 +225,7 @@ class LDAPSettings(Document):
 				groups = self.fetch_ldap_groups(user, conn)
 
 				# only try and connect as the user, once we have their fqdn entry.
-				if conn.rebind(user=user.entry_dn, password=password):
+				if user.entry_dn and password and conn.rebind(user=user.entry_dn, password=password):
 					return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
 
 			raise ldap3.core.exceptions.LDAPInvalidCredentialsResult # even though nothing foundor failed authentication raise invalid credentials
