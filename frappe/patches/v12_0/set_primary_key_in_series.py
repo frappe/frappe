@@ -2,7 +2,8 @@ import frappe
 
 def execute():
 	#if current = 0, simply delete the key as it'll be recreated on first entry
-	frappe.db.sql('delete from `tabSeries` where current = 0')
+	frappe.db.delete("Series", {"current": 0})
+
 	duplicate_keys = frappe.db.sql('''
 		SELECT name, max(current) as current
 		from
