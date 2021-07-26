@@ -6,6 +6,12 @@ const conf = get_conf();
 const log = console.log; // eslint-disable-line
 const subscriber = get_redis_subscriber();
 
+// we have a problem here, validating the star-ssl cert on the live.pcgteam.net server
+// therefore this ugly hack. Since we are triggering the call from server side, AND any
+// client DID a successful validation on its end anyhow, its probably still safe enough.
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+log('WARN: SSL disabled by bob')
+
 const io = require("socket.io")(conf.socketio_port, {
 	cors: {
 		// Should be fine since we are ensuring whether hostname and origin are same before adding setting listeners for s socket
