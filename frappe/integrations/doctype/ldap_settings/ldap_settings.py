@@ -164,20 +164,23 @@ class LDAPSettings(Document):
 
 			ldap_object_class = 'Group'
 			ldap_group_members_attribute = 'member'
+			user_search_str = user.entry_dn
 
 
 		elif self.ldap_directory_server.lower() == 'openldap':
 
 			ldap_object_class = 'posixgroup'
 			ldap_group_members_attribute = 'memberuid'
+			user_search_str = getattr(user, self.ldap_username_field).value
 
 		elif self.ldap_directory_server.lower() == 'custom':
 
 			ldap_object_class = self.ldap_group_objectclass
 			ldap_group_members_attribute = self.ldap_group_member_attribute
+			user_search_str = frappe.as_unicode(frappe.form_dict.usr)
 
 		else:
-			# NOTE: depreciate this path
+			# NOTE: depreciate this else path
 			# this path will be hit for everyone with preconfigured ldap settings. this must be taken into account so as not to break ldap for those users.
 
 			if self.ldap_group_field:
@@ -187,7 +190,7 @@ class LDAPSettings(Document):
 		if ldap_object_class is not None:
 			conn.search(
 				search_base=self.organizational_unit_for_groups,
-				search_filter="(&(objectClass={0})({1}={2}))".format(ldap_object_class,ldap_group_members_attribute, frappe.as_unicode(frappe.form_dict.usr)),
+				search_filter="(&(objectClass={0})({1}={2}))".format(ldap_object_class,ldap_group_members_attribute, user_search_str),
 				attributes=ldap_attributes) # Build search query
 
 		if len(conn.entries) >= 1:
@@ -226,6 +229,7 @@ class LDAPSettings(Document):
 
 				# only try and connect as the user, once we have their fqdn entry.
 				if user.entry_dn and password and conn.rebind(user=user.entry_dn, password=password):
+
 					return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
 
 			raise ldap3.core.exceptions.LDAPInvalidCredentialsResult # even though nothing foundor failed authentication raise invalid credentials
