@@ -56,7 +56,7 @@ def enqueue_create_notification(users, doc):
 		'frappe.desk.doctype.notification_log.notification_log.make_notification_logs',
 		doc=doc,
 		users=users,
-		now=frappe.flags.in_test
+		now=frappe.conf.developer_mode or frappe.flags.in_test
 	)
 
 def make_notification_logs(doc, users):
