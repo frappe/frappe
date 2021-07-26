@@ -17,7 +17,6 @@ from frappe import _
 from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils import cint
 
 # imports - compatibility imports
 from six import (
@@ -565,8 +564,7 @@ class Database(object):
 		if not df:
 			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
 
-		if df.fieldtype in frappe.model.numeric_fieldtypes:
-			val = cint(val)
+		val = cast_fieldtype(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 

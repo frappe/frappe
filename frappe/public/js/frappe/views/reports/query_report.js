@@ -1264,7 +1264,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			print_css: print_css,
 			print_settings: print_settings,
 			landscape: landscape,
-			columns: columns
+			columns: columns,
+			lang: frappe.boot.lang,
+			layout_direction: frappe.utils.is_rtl() ? "rtl" : "ltr"
 		});
 
 		frappe.render_pdf(html, print_settings);

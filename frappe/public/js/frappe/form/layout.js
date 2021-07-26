@@ -263,9 +263,6 @@ frappe.ui.form.Layout = Class.extend({
 				section.addClass("empty-section");
 			}
 		});
-
-		this.frm && this.frm.dashboard.refresh();
-
 	},
 
 	refresh_fields: function (fields) {
