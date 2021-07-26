@@ -958,20 +958,17 @@ class Database(object):
 
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
-		if kwargs:
-			filters = filters or kwargs.get("conditions")
+		values = ()
+		filters = filters or kwargs.get("conditions")
+		table = doctype if doctype.startswith("__") else f"tab{doctype}"
+		query = f"DELETE FROM `{table}`"
 
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 
-		if not filters:
-			table = doctype if doctype.startswith("__") else f"tab{doctype}"
-			query = f"DELETE FROM `{table}`"
-			return self.sql(query, **kwargs)
-
-		table = doctype if doctype.startswith("__") else f"tab{doctype}"
-		conditions, values = self.build_conditions(filters)
-		query = f"DELETE FROM `{table}` WHERE {conditions}"
+		if filters:
+			conditions, values = self.build_conditions(filters)
+			query =  f"{query} WHERE {conditions}"
 
 		return self.sql(query, values, **kwargs)
 
