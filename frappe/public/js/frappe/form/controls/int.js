@@ -7,6 +7,7 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 	},
 	make_input: function () {
 		var me = this;
+<<<<<<< HEAD
 		this._super();
 		this.$input
 			// .addClass("text-right")
@@ -20,6 +21,11 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 			});
 	},
 	validate: function (value) {
+=======
+		super.make_input();
+	}
+	validate (value) {
+>>>>>>> 52941e55b1 (fix: no need for focusout in favour of onchange)
 		return this.parse(value);
 	},
 	eval_expression: function (value) {
