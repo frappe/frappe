@@ -74,7 +74,6 @@ class TestWebhook(unittest.TestCase):
 		self.test_user = frappe.new_doc("User")
 		self.test_user.email = "user1@integration.webhooks.test.com"
 		self.test_user.first_name = "user1"
-		self.test_user.insert()
 
 	def tearDown(self) -> None:
 		self.user.delete()
@@ -169,7 +168,15 @@ class TestWebhook(unittest.TestCase):
 		self.assertEqual(data, {"name": self.user.name})
 
 	def test_webhook_req_log_creation(self):
-		user = frappe.get_doc('User', 'user1@integration.webhooks.test.com')
+		if not frappe.db.get_value('User', 'user2@integration.webhooks.test.com'):
+			user = frappe.get_doc({
+				'doctype': 'User', 
+				'email': 'user2@integration.webhooks.test.com',
+				'first_name': 'user2'
+			}).insert()
+		else:
+			user = frappe.get_doc('User', 'user2@integration.webhooks.test.com')
+
 		webhook = frappe.get_doc('Webhook', {'webhook_doctype': 'User'})
 		enqueue_webhook(user, webhook)
 
