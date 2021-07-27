@@ -252,7 +252,7 @@ class DesktopPage {
 				return;
 			}
 			this.refresh();
-		}).finally(this.page.find('.workspace_loading_skeleton').remove);
+		}).finally(() => this.page.find('.workspace_loading_skeleton').remove());
 	}
 
 	refresh() {

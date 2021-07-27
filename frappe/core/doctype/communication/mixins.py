@@ -89,7 +89,7 @@ class CommunicationEmailMixin:
 		return self._final_cc
 
 	def get_mail_cc_with_displayname(self, is_inbound_mail_communcation=False, include_sender = False):
-		cc_list = self.mail_cc(is_inbound_mail_communcation=False, include_sender = False)
+		cc_list = self.mail_cc(is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender = include_sender)
 		return [self.get_email_with_displayname(email) for email in cc_list]
 
 	def mail_bcc(self, is_inbound_mail_communcation=False):
@@ -176,8 +176,8 @@ class CommunicationEmailMixin:
 	def mail_attachments(self, print_format=None, print_html=None):
 		final_attachments = []
 
-		if print_format and print_html:
-			d = {'print_format': print_format, 'print_html': print_html, 'print_format_attachment': 1,
+		if print_format or print_html:
+			d = {'print_format': print_format, 'html': print_html, 'print_format_attachment': 1,
 					'doctype': self.reference_doctype, 'name': self.reference_name}
 			final_attachments.append(d)
 

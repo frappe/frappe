@@ -308,8 +308,6 @@ frappe.ui.form.Layout = class Layout {
 				section.addClass("empty-section");
 			}
 		});
-
-		this.frm && this.frm.dashboard.refresh();
 	}
 
 	refresh_tabs() {
@@ -317,8 +315,9 @@ frappe.ui.form.Layout = class Layout {
 			if (!tab.wrapper.hasClass('hide') || !tab.parent.hasClass('hide')) {
 				tab.parent.removeClass('show hide');
 				tab.wrapper.removeClass('show hide');
-				if (tab.wrapper.find(
-					".form-section:not(.hide-control, .empty-section), .form-dashboard-section:not(.hide-control, .empty-section)"
+				if (
+					tab.wrapper.find(
+						".form-section:not(.hide-control, .empty-section), .form-dashboard-section:not(.hide-control, .empty-section)"
 					).length
 				) {
 					tab.toggle(true);
@@ -622,7 +621,7 @@ frappe.ui.form.Layout = class Layout {
 
 		} else if (expression.substr(0, 5)=='eval:') {
 			try {
-				out = frappe.utils.eval(expression.substr(5), { doc });
+				out = frappe.utils.eval(expression.substr(5), { doc, parent });
 				if (parent && parent.istable && expression.includes('is_submittable')) {
 					out = true;
 				}
