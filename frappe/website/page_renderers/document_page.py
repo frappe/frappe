@@ -56,16 +56,6 @@ class DocumentPage(BaseTemplatePage):
 
 		return build_response(self.path, html, self.http_status_code or 200, self.headers)
 
-	@cache_html
-	def get_html(self):
-		self.doc = frappe.get_doc(self.doctype, self.docname)
-		self.init_context()
-		self.update_context()
-		self.post_process_context()
-		html = frappe.get_template(self.template_path).render(self.context)
-
-		return html
-
 	def update_context(self):
 		self.context.doc = self.doc
 		self.context.update(self.context.doc.as_dict())
