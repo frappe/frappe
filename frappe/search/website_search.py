@@ -38,7 +38,7 @@ class WebsiteSearch(FullTextSearch):
 		self._items_to_index = []
 
 
-		routes = get_static_pages_from_all_apps() + slugs_with_web_view(self._items_to_index )
+		routes = get_static_pages_from_all_apps() + slugs_with_web_view(self._items_to_index)
 
 
 		for i, route in enumerate(routes):
