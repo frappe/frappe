@@ -15,7 +15,7 @@ class TestWebhook(unittest.TestCase):
 		# delete any existing webhooks
 		frappe.db.sql("DELETE FROM tabWebhook")
 		# Delete existing logs if any
-		frappe.db.sql("DELETE FROM `tabWebhook Request Log")
+		frappe.db.sql("DELETE FROM `tabWebhook Request Log`")
 		# create test webhooks
 		cls.create_sample_webhooks()
 
