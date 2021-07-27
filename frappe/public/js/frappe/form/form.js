@@ -12,6 +12,7 @@ import './script_manager';
 import './script_helpers';
 import './sidebar/form_sidebar';
 import './footer/footer';
+import './form_tour';
 
 frappe.ui.form.Controller = class FormController {
 	constructor(opts) {
@@ -150,6 +151,10 @@ frappe.ui.form.Form = class FrappeForm {
 		this.dashboard = new frappe.ui.form.Dashboard({
 			frm: this,
 			parent: $('<div class="form-dashboard">').insertAfter(this.layout.wrapper.find('.form-message'))
+		});
+
+		this.tour = new frappe.ui.form.FormTour({
+			frm: this
 		});
 
 		// workflow state
@@ -765,32 +770,36 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	_cancel(btn, callback, on_error, skip_confirm) {
-		const me = this;
 		const cancel_doc = () => {
 			frappe.validated = true;
-			me.script_manager.trigger("before_cancel").then(() => {
+			this.script_manager.trigger("before_cancel").then(() => {
 				if (!frappe.validated) {
-					return me.handle_save_fail(btn, on_error);
+					return this.handle_save_fail(btn, on_error);
 				}
 
-				var after_cancel = function(r) {
+				const original_name = this.docname;
+				const after_cancel = (r) => {
 					if (r.exc) {
-						me.handle_save_fail(btn, on_error);
+						this.handle_save_fail(btn, on_error);
 					} else {
 						frappe.utils.play_sound("cancel");
-						me.refresh();
 						callback && callback();
-						me.script_manager.trigger("after_cancel");
+						this.script_manager.trigger("after_cancel");
+						frappe.run_serially([
+							() => this.rename_notify(this.doctype, original_name, r.docs[0].name),
+							() => frappe.router.clear_re_route(this.doctype, original_name),
+							() => this.refresh(),
+						]);
 					}
 				};
-				frappe.ui.form.save(me, "cancel", after_cancel, btn);
+				frappe.ui.form.save(this, "cancel", after_cancel, btn);
 			});
 		}
 
 		if (skip_confirm) {
 			cancel_doc();
 		} else {
-			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, me.handle_save_fail(btn, on_error));
+			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, this.handle_save_fail(btn, on_error));
 		}
 	};
 
@@ -812,7 +821,7 @@ frappe.ui.form.Form = class FrappeForm {
 			'docname': this.doc.name
 		}).then(is_amended => {
 			if (is_amended) {
-				frappe.throw(__('This document is already amended, you cannot ammend it again'));
+				frappe.throw(__('This document is already amended, you cannot amend it again'));
 			}
 			this.validate_form_action("Amend");
 			var me = this;
@@ -987,7 +996,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		frappe.re_route[frappe.router.get_sub_path()] = `${encodeURIComponent(frappe.router.slug(this.doctype))}/${encodeURIComponent(name)}`;
-		frappe.set_route('Form', this.doctype, name);
+		!frappe._from_link && frappe.set_route('Form', this.doctype, name);
 	}
 
 	// ACTIONS
@@ -1260,7 +1269,9 @@ frappe.ui.form.Form = class FrappeForm {
 		if (df && df[property] != value) {
 			df[property] = value;
 			if (table_field && table_row_name) {
-				this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name].refresh_field(fieldname);
+				if (this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name]) {
+					this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name].refresh_field(fieldname);
+				}
 			} else {
 				this.refresh_field(fieldname);
 			}
@@ -1604,53 +1615,6 @@ frappe.ui.form.Form = class FrappeForm {
 			$el.removeClass('has-error');
 			$el.find('input, select, textarea').focus();
 		}, 1000);
-	}
-
-	show_tour(on_finish) {
-		const tour_info = frappe.tour[this.doctype];
-
-		if (!Array.isArray(tour_info)) {
-			return;
-		}
-
-		const driver = new frappe.Driver({
-			className: 'frappe-driver',
-			allowClose: false,
-			padding: 10,
-			overlayClickNext: true,
-			keyboardControl: true,
-			nextBtnText: 'Next',
-			prevBtnText: 'Previous',
-			opacity: 0.25
-		});
-
-		this.layout.sections.forEach(section => section.collapse(false));
-
-		let steps = tour_info.map(step => {
-			let field = this.get_docfield(step.fieldname);
-			return {
-				element: `.frappe-control[data-fieldname='${step.fieldname}']`,
-				popover: {
-					title: step.title || field.label,
-					description: step.description,
-					position: step.position || 'bottom'
-				},
-				onNext: () => {
-					const next_condition_satisfied = this.layout.evaluate_depends_on_value(step.next_step_condition || true);
-					if (!next_condition_satisfied) {
-						driver.preventMove();
-					}
-
-					if (!driver.hasNextStep()) {
-						on_finish && on_finish();
-					}
-				}
-			};
-		});
-
-		driver.defineSteps(steps);
-		frappe.router.on('change', () => driver.reset());
-		driver.start();
 	}
 
 	setup_docinfo_change_listener() {

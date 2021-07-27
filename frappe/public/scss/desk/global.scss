@@ -574,3 +574,15 @@ details > summary:focus {
 // 	font-family: 'Octicons';
 // 	content: "\f00b";
 // }
+
+/*rtl:raw:
+.dropdown-menu {
+	right: auto;
+}
+.popover {
+	right: auto;
+}
+.chart-container {
+	direction: ltr;
+}
+*/
