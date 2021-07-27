@@ -32,7 +32,7 @@ jobs:
       - name: Package assets
         run: |
           mkdir -p $GITHUB_WORKSPACE/build
-          tar -cvpzf $GITHUB_WORKSPACE/build/assets.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
+          tar -cvpzf $GITHUB_WORKSPACE/build/assets.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css*
 
       - name: Get release
         id: get_release
