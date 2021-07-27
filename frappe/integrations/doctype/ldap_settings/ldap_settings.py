@@ -21,7 +21,20 @@ class LDAPSettings(Document):
 				self.ldap_search_string and \
 				"{0}" in self.ldap_search_string:
 
-				self.connect_to_ldap(base_dn=self.base_dn, password=self.get_password(raise_exception=False))
+				conn = self.connect_to_ldap(base_dn=self.base_dn, password=self.get_password(raise_exception=False))
+
+				try:
+					if conn.result['type'] == 'bindResponse' and self.base_dn:
+						import ldap3
+
+						conn.search(
+							search_base=self.organizational_unit,
+							search_filter="(objectClass=*)",
+							attributes=self.get_ldap_attributes())
+
+				except ldap3.core.exceptions.LDAPAttributeError as ex:
+					frappe.throw(_("LDAP settings incorrect. validation response was: {0}").format(ex), title=_("Misconfigured"))
+
 			else:
 				frappe.throw(_("LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"))
 
