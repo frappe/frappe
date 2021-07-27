@@ -207,6 +207,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		} else {
 			this.$wrapper.removeClass("fade");
 		}
+
+		this.on_page_show && this.on_page_show(this);
 		this.$wrapper.modal("show");
 
 		this.$wrapper.removeClass("modal-minimize");
