@@ -21,12 +21,21 @@ import operator
 import functools
 import os
 import re
-from csv import reader
 from typing import List, Union, Tuple
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
+
+
+def guess_language(lang_list=None):
+	"""[DEPRECATED] This method is deprecated, use `frappe.translate.get_language` method instead.
+	It will be removed in v14.
+	"""
+	import click
+
+	click.secho(f"{guess_language.__doc__}\n{get_language.__doc__}", fg="yellow")
+	return get_language(lang_list)
 
 
 def get_language(lang_list: List = None) -> str:
