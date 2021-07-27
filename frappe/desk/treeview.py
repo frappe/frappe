@@ -46,17 +46,23 @@ def _get_children(doctype, parent='', ignore_permissions=False):
 
 	meta = frappe.get_meta(doctype)
 
-	return frappe.get_list(
-		doctype,
-		fields=[
+	ctrl = frappe.model.document.get_controller(doctype)
+	fields = [
 			'name as value',
 			'{0} as title'.format(meta.get('title_field') or 'name'),
 			'is_group as expandable'
-		],
+		]
+
+	if hasattr(ctrl, "get_tree_fields"):
+		fields = fields + ctrl.get_tree_fields()
+	result = frappe.get_list(
+		doctype,
+		fields,
 		filters=filters,
-		order_by='name',
+		order_by='lft asc',
 		ignore_permissions=ignore_permissions
 	)
+	return result
 
 @frappe.whitelist()
 def add_node():

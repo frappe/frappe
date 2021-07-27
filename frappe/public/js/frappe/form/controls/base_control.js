@@ -200,7 +200,7 @@ frappe.ui.form.Control = Class.extend({
 				(this.parse ? this.parse(this.get_input_value()) : this.get_input_value()) :
 				undefined;
 		} else {
-			return this.value || undefined;
+			return typeof(this.value) === "undefined" ? undefined : this.value;
 		}
 	},
 	set_model_value: function(value) {

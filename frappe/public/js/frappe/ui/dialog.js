@@ -96,7 +96,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				window.cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
 				me.focus_on_first_input();
-				me.on_page_show && me.on_page_show();
 				$(document).trigger('frappe.ui.Dialog:shown');
 			})
 			.on('scroll', function() {
@@ -190,6 +189,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		} else {
 			this.$wrapper.removeClass('fade');
 		}
+
+		this.on_page_show && this.on_page_show(this);
 		this.$wrapper.modal("show");
 
 		this.$wrapper.removeClass('modal-minimize');
