@@ -27,12 +27,12 @@ class LDAPSettings(Document):
 						import ldap3
 
 						conn.search(
-							search_base=self.organizational_unit,
+							search_base=self.ldap_search_path_user,
 							search_filter="(objectClass=*)",
 							attributes=self.get_ldap_attributes())
 
 						conn.search(
-							search_base=self.organizational_unit_for_groups,
+							search_base=self.ldap_search_path_group,
 							search_filter="(objectClass=*)",
 							attributes=['cn'])
 
@@ -216,7 +216,7 @@ class LDAPSettings(Document):
 
 		if ldap_object_class is not None:
 			conn.search(
-				search_base=self.organizational_unit_for_groups,
+				search_base=self.ldap_search_path_group,
 				search_filter="(&(objectClass={0})({1}={2}))".format(ldap_object_class,ldap_group_members_attribute, user_search_str),
 				attributes=['cn']) # Build search query
 
@@ -245,7 +245,7 @@ class LDAPSettings(Document):
 			import ldap3
 
 			conn.search(
-				search_base=self.organizational_unit,
+				search_base=self.ldap_search_path_user,
 				search_filter="{0}".format(user_filter),
 				attributes=ldap_attributes)
 
@@ -278,7 +278,7 @@ class LDAPSettings(Document):
 			read_only=False)
 
 		if conn.search(
-			search_base=self.organizational_unit,
+			search_base=self.ldap_search_path_user,
 			search_filter=search_filter,
 			attributes=self.get_ldap_attributes()
 		):

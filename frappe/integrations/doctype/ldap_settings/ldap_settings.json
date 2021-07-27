@@ -16,10 +16,10 @@
   "column_break_8",
   "password",
   "ldap_search_and_paths_section",
-  "organizational_unit",
+  "ldap_search_path_user",
   "ldap_search_string",
   "column_break_12",
-  "organizational_unit_for_groups",
+  "ldap_search_path_group",
   "ldap_user_creation_and_mapping_section",
   "ldap_email_field",
   "ldap_username_field",
@@ -75,14 +75,6 @@
    "fieldtype": "Password",
    "in_list_view": 1,
    "label": "Password for Base DN",
-   "reqd": 1
-  },
-  {
-   "description": "i.e. ou=users,dc=example,dc=com",
-   "fieldname": "organizational_unit",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Organizational Unit for Users",
    "reqd": 1
   },
   {
@@ -200,13 +192,6 @@
    "label": "LDAP Auth"
   },
   {
-   "description": "i.e. ou=groups,dc=example,dc=com",
-   "fieldname": "organizational_unit_for_groups",
-   "fieldtype": "Data",
-   "label": "Organizational Unit for Groups",
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_8",
    "fieldtype": "Column Break"
   },
@@ -261,12 +246,27 @@
    "fieldname": "ldap_group_objectclass",
    "fieldtype": "Data",
    "label": "Group Object Class"
+  },
+  {
+   "description": "Requires any valid fdn path. i.e. ou=users,dc=example,dc=com",
+   "fieldname": "ldap_search_path_user",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "LDAP search path for Users",
+   "reqd": 1
+  },
+  {
+   "description": "Requires any valid fdn path. i.e. ou=groups,dc=example,dc=com",
+   "fieldname": "ldap_search_path_group",
+   "fieldtype": "Data",
+   "label": "LDAP search path for Groups",
+   "reqd": 1
   }
  ],
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-07-20 15:47:53.174219",
+ "modified": "2021-07-27 11:51:43.328271",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",
