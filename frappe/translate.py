@@ -587,6 +587,7 @@ def read_csv_file(path):
 	from csv import reader
 
 	if PY2:
+		import codecs
 		with codecs.open(path, 'r', 'utf-8') as msgfile:
 			data = msgfile.read()
 
