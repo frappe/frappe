@@ -31,8 +31,18 @@ class LDAPSettings(Document):
 							search_filter="(objectClass=*)",
 							attributes=self.get_ldap_attributes())
 
+						conn.search(
+							search_base=self.organizational_unit_for_groups,
+							search_filter="(objectClass=*)",
+							attributes=['cn'])
+
 				except ldap3.core.exceptions.LDAPAttributeError as ex:
-					frappe.throw(_("LDAP settings incorrect. validation response was: {0}").format(ex), title=_("Misconfigured"))
+					frappe.throw(_("LDAP settings incorrect. validation response was: {0}").format(ex),
+						title=_("Misconfigured"))
+
+				except ldap3.core.exceptions.LDAPNoSuchObjectResult:
+					frappe.throw(_("Ensure the user and group search paths are correct."),
+						title=_("Misconfigured"))
 
 			else:
 				frappe.throw(_("LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"))
