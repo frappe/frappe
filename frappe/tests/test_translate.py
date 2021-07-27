@@ -1,17 +1,13 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-<<<<<<< HEAD
 from __future__ import unicode_literals
 
-import frappe, unittest, os
-=======
 import os
 import unittest
 from random import choices
 from unittest.mock import patch
 
 import frappe
->>>>>>> 421220a872 (test: Added tests for frappe.translate.get_language)
 import frappe.translate
 from frappe import _
 from frappe.translate import get_language, get_parent_language
