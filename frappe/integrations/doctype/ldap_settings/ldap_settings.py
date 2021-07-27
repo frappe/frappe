@@ -163,9 +163,15 @@ class LDAPSettings(Document):
 
 
 	def fetch_ldap_groups(self, user, conn):
-		fetch_ldap_groups = None
+		import ldap3
 
-		ldap_attributes = ['cn']
+		if type(user) is not ldap3.abstract.entry.Entry:
+			raise TypeError("Invalid type, attribute {0} must be of type '{1}'".format('user', 'ldap3.abstract.entry.Entry'))
+
+		if type(conn) is not ldap3.core.connection.Connection:
+			raise TypeError("Invalid type, attribute {0} must be of type '{1}'".format('conn', 'ldap3.Connection'))
+
+		fetch_ldap_groups = None
 
 		ldap_object_class = None
 		ldap_group_members_attribute = None
@@ -202,7 +208,7 @@ class LDAPSettings(Document):
 			conn.search(
 				search_base=self.organizational_unit_for_groups,
 				search_filter="(&(objectClass={0})({1}={2}))".format(ldap_object_class,ldap_group_members_attribute, user_search_str),
-				attributes=ldap_attributes) # Build search query
+				attributes=['cn']) # Build search query
 
 		if len(conn.entries) >= 1:
 
