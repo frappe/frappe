@@ -157,7 +157,6 @@ class LDAPSettings(Document):
 
 		ldap_object_class = None
 		ldap_group_members_attribute = None
-		ldap_group_search_filter = None
 
 
 		if self.ldap_directory_server.lower() == 'active directory':
