@@ -4,8 +4,6 @@
 import json
 import os
 import sys
-
-from rq import queue
 import frappe
 import frappe.translate
 import frappe.modules.patch_handler
@@ -13,7 +11,6 @@ import frappe.model.sync
 from frappe.utils.fixtures import sync_fixtures
 from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
-from frappe.utils.background_jobs import enqueue
 from frappe.cache_manager import clear_global_cache
 from frappe.desk.notifications import clear_notifications
 from frappe.website.utils import clear_website_cache
@@ -101,7 +98,6 @@ Otherwise, check the server logs and ensure that all the required services are r
 
 		frappe.publish_realtime("version-update")
 		frappe.flags.in_migrate = False
-
 	finally:
 		with open(touched_tables_file, 'w') as f:
 			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
