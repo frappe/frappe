@@ -44,6 +44,11 @@ class LDAPSettings(Document):
 					frappe.throw(_("Ensure the user and group search paths are correct."),
 						title=_("Misconfigured"))
 
+				if self.ldap_directory_server.lower() == 'custom':
+					if not self.ldap_group_member_attribute or not self.ldap_group_mappings_section:
+						frappe.throw(_("Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'LDAP Group Mappings' are entered"),
+						title=_("Misconfigured"))
+
 			else:
 				frappe.throw(_("LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"))
 
