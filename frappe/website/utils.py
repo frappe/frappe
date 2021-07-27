@@ -456,6 +456,7 @@ def build_response(path, data, http_status_code, headers=None):
 	response.status_code = http_status_code
 	response.headers["X-Page-Name"] = path.encode("ascii", errors="xmlcharrefreplace")
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
+
 	add_preload_headers(response)
 	if headers:
 		for key, val in iteritems(headers):
@@ -485,12 +486,11 @@ def set_content_type(response, data, path):
 	return data
 
 def add_preload_headers(response):
-	from bs4 import BeautifulSoup, SoupStrainer
+	from bs4 import BeautifulSoup
 
 	try:
 		preload = []
-		strainer = SoupStrainer(re.compile("script|link"))
-		soup = BeautifulSoup(response.data, "lxml", parse_only=strainer)
+		soup = BeautifulSoup(response.data, "lxml")
 		for elem in soup.find_all('script', src=re.compile(".*")):
 			preload.append(("script", elem.get("src")))
 
