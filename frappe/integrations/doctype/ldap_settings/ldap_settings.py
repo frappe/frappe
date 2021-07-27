@@ -175,7 +175,7 @@ class LDAPSettings(Document):
 
 			ldap_object_class = self.ldap_group_objectclass
 			ldap_group_members_attribute = self.ldap_group_member_attribute
-			user_search_str = frappe.as_unicode(frappe.form_dict.usr)
+			user_search_str = getattr(user, self.ldap_username_field).value
 
 		else:
 			# NOTE: depreciate this else path
