@@ -14,6 +14,8 @@ class TestWebhook(unittest.TestCase):
 	def setUpClass(cls):
 		# delete any existing webhooks
 		frappe.db.sql("DELETE FROM tabWebhook")
+		# Delete existing logs if any
+		frappe.db.sql("DELETE FROM `tabWebhook Request Log")
 		# create test webhooks
 		cls.create_sample_webhooks()
 
@@ -98,6 +100,8 @@ class TestWebhook(unittest.TestCase):
 			frappe.flags.webhooks_executed.get(self.test_user.email)[0], 
 			self.sample_webhooks[0].name
 		)
+
+		self.assertTrue(frappe.db.get_all('Webhook Request Log', pluck='name'))
 
 	def test_validate_doc_events(self):
 		"Test creating a submit-related webhook for a non-submittable DocType"
