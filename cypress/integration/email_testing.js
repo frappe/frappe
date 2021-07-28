@@ -63,5 +63,5 @@ context('Testing Timeline For Email Functionality', () => {
 		cy.get('#page-ToDo > .page-head > .container > .row > .col > .standard-actions > .menu-btn-group > .btn').click();
 		cy.get('.menu-btn-group > .dropdown-menu > li > .grey-link').eq(17).click();
 		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').click();
-    });
+	});
 });
