@@ -111,9 +111,9 @@ def before_tests():
 		# don't run before tests if any other app is installed
 		return
 
-	frappe.db.delete("Custom Field")
-	frappe.db.delete("Event")
-	frappe.db.commit()
+	frappe.db.truncate("Custom Field")
+	frappe.db.truncate("Event")
+
 	frappe.clear_cache()
 
 	# complete setup if missing

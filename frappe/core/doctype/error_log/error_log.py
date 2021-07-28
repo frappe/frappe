@@ -20,4 +20,4 @@ def set_old_logs_as_seen():
 def clear_error_logs():
 	'''Flush all Error Logs'''
 	frappe.only_for('System Manager')
-	frappe.db.delete("Error Log")
+	frappe.db.truncate("Error Log")
