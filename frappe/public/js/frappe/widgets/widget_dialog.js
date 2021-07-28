@@ -75,11 +75,13 @@ class WidgetDialog {
 		this.filters = [];
 
 		if (this.values && this.values.stats_filter) {
-			const filters_json = new Function(`return ${this.values.stats_filter}`)();
-			this.filters = Object.keys(filters_json).map((filter) => {
-				let val = filters_json[filter];
-				return [this.values.link_to, filter, val[0], val[1], false];
-			});
+			let filters = this.values.stats_filter.replace(/]/gi, "]~").split("~,").map(e => e.replace(/([{}~])/gi, "").trim());
+			filters.forEach((arr) => {
+				let filter = `{ ${arr} }`;
+				const filter_json = new Function(`return ${filter}`)();
+				let val = Object.values(filter_json)[0]
+				this.filters.push([this.values.link_to, Object.keys(filter_json)[0], val[0], val[1], false]);
+			})
 		}
 
 		this.filter_group = new frappe.ui.FilterGroup({
@@ -271,19 +273,17 @@ class ShortcutDialog extends WidgetDialog {
 	}
 
 	process_data(data) {
-
 		if (this.dialog.get_value("type") == "DocType" && this.filter_group) {
 			let filters = this.filter_group.get_filters();
 			let stats_filter = null;
 
 			if (filters.length) {
-				stats_filter = {};
 				filters.forEach((arr) => {
-					stats_filter[arr[1]] = [arr[2], arr[3]];
+					let filter = `"${arr[1]}": ["${arr[2]}", "${arr[3]}"]`;
+					stats_filter = stats_filter ? stats_filter + ", " + filter : filter;
 				});
-				stats_filter = JSON.stringify(stats_filter);
 			}
-			data.stats_filter = stats_filter;
+			data.stats_filter = `{ ${stats_filter} }`;
 		}
 
 		data.label = data.label
