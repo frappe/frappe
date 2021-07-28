@@ -650,6 +650,7 @@ class DatabaseQuery(object):
 				else:
 					empty_value_condition = f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''"
 					condition = empty_value_condition + " or "
+					docs.append("")
 
 				for permission in user_permission_values:
 					if not permission.get('applicable_for'):
@@ -671,7 +672,7 @@ class DatabaseQuery(object):
 					values = ", ".join(frappe.db.escape(doc, percent=False) for doc in docs)
 					condition += f"`tab{self.doctype}`.`{df.get('fieldname')}` in ({values})"
 					match_conditions.append(f"({condition})")
-					match_filters[df.get('options')] = docs
+					match_filters[df.get('fieldname')] = ('in', docs)
 
 		if match_conditions:
 			self.match_conditions.append(" and ".join(match_conditions))
