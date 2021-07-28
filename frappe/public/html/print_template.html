@@ -7,7 +7,7 @@
 	<meta name="description" content="">
 	<meta name="author" content="">
 	<title>{{ title }}</title>
-	<link href="{{ include_style("printview.css") }}" rel="stylesheet">
+	{{ frappe.assets.include_style("printview.css", base_url, frappe.utils.is_rtl(lang)) }}
 	<style>
 		{{ print_css }}
 	</style>
