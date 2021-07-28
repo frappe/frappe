@@ -20,4 +20,3 @@ def execute():
 	frappe.db.delete("Singles", {
 		"doctype": "Stripe Settings"
 	})
-	# frappe.db.sql("""DELETE FROM tabSingles WHERE doctype='Stripe Settings'""")

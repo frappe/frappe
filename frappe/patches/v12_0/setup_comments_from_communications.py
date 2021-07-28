@@ -32,4 +32,3 @@ def execute():
 	frappe.db.delete("Communication", {
 		"communication_type": "Comment"
 	})
-	# frappe.db.sql("delete from `tabCommunication` where communication_type = 'Comment'")

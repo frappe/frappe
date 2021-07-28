@@ -39,7 +39,6 @@ class Role(Document):
 
 	def remove_roles(self):
 		frappe.db.delete("Has Role", {"role": self.name})
-		# frappe.db.sql("delete from `tabHas Role` where role = %s", self.name)
 		frappe.clear_cache()
 
 	def on_update(self):

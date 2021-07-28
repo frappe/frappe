@@ -395,11 +395,6 @@ class Document(BaseDocument):
 				"parenttype": self.doctype,
 				"parentfield": fieldname
 			})
-
-			# frappe.db.sql("""delete from `tab{0}` where parent=%s
-			# 	and parenttype=%s and parentfield=%s""".format(df.options),
-			# 	(self.name, self.doctype, fieldname))
-
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
@@ -460,7 +455,6 @@ class Document(BaseDocument):
 		frappe.db.delete("Singles", {
 			"doctype": self.doctype
 		})
-		# frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
 		for field, value in d.items():
 			if field != "doctype":
 				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)

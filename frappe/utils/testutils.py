@@ -15,5 +15,4 @@ def clear_custom_fields(doctype):
 	frappe.db.delete("Custom Field", {
 		"dt": doctype
 	})
-	# frappe.db.sql('delete from `tabCustom Field` where dt=%s', doctype)
 	frappe.clear_cache(doctype=doctype)

@@ -87,9 +87,6 @@ class TestReport(unittest.TestCase):
 			"parent": frappe.session.user,
 			"role": "Test Has Role"
 		})
-		# frappe.db.sql("""delete from `tabHas Role` where parent = %s
-		# and role = 'Test Has Role'""", frappe.session.user, auto_commit=1)
-
 		if not frappe.db.exists('Role', 'Test Has Role'):
 			role = frappe.get_doc({
 				'doctype': 'Role',

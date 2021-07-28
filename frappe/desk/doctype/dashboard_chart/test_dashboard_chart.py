@@ -65,7 +65,6 @@ class TestDashboardChart(unittest.TestCase):
 			frappe.delete_doc('Dashboard Chart', 'Test Empty Dashboard Chart')
 
 		frappe.db.delete("Error Log")
-		# frappe.db.sql('delete from `tabError Log`')
 
 		frappe.get_doc(dict(
 			doctype = 'Dashboard Chart',
@@ -96,7 +95,6 @@ class TestDashboardChart(unittest.TestCase):
 			frappe.delete_doc('Dashboard Chart', 'Test Empty Dashboard Chart 2')
 
 		frappe.db.delete("Error Log")
-		# frappe.db.sql('delete from `tabError Log`')
 
 		# create one data point
 		frappe.get_doc(dict(doctype = 'Error Log', creation = '2018-06-01 00:00:00')).insert()

@@ -21,4 +21,3 @@ def clear_error_logs():
 	'''Flush all Error Logs'''
 	frappe.only_for('System Manager')
 	frappe.db.delete("Error Log")
-	# frappe.db.sql('''DELETE FROM `tabError Log`''')

@@ -341,11 +341,9 @@ def delete_events(ref_type, ref_name, delete_event=False):
 					frappe.db.delete("Event", {
 						"name": participation.parent
 					})
-					# frappe.db.sql("DELETE FROM `tabEvent` WHERE `name` = %(name)s", {'name': participation.parent})
 					frappe.db.delete("Event Participants", {
 						"name": participation.name
 					})
-				# frappe.db.sql("DELETE FROM `tabEvent Participants ` WHERE `name` = %(name)s", {'name': participation.name})
 
 # Close events if ends_on or repeat_till is less than now_datetime
 def set_status_of_events():

@@ -109,13 +109,10 @@ class ScheduledJobType(Document):
 		return 'long' if ('Long' in self.frequency) else 'default'
 
 	def on_trash(self):
-		
 		frappe.db.delete("Scheduled Job Log", {
 			"scheduled_job_type": self.name
 		})
-		# frappe.db.sql('delete from `tabScheduled Job Log` where scheduled_job_type=%s', self.name)
-
-
+		
 @frappe.whitelist()
 def execute_event(doc: str):
 	frappe.only_for("System Manager")

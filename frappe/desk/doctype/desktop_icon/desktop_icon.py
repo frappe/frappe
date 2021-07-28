@@ -200,7 +200,6 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 		frappe.db.delete("Desktop Icon", {
 			"standard": 0
 		})
-		# frappe.db.sql('delete from `tabDesktop Icon` where standard=0')
 
 	# set standard as blocked and hidden if setting first active domain
 	if not frappe.flags.keep_desktop_icons:

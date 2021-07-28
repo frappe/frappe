@@ -367,25 +367,15 @@ class User(Document):
 			frappe.local.login_manager.logout(user=self.name)
 
 		frappe.db.delete("ToDo", {"owner": self.name})
-		# frappe.db.sql("""DELETE FROM `tabToDo` WHERE `owner`=%s""", (self.name,))
 		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
 			(self.name,))
 
 		# delete events
 		frappe.db.delete("Event", {"owner": self.name, "event_type": "Private"})
-		# frappe.db.sql("""delete from `tabEvent` where owner=%s
-			# and event_type='Private'""", (self.name,))
 
 		# delete shares
 		frappe.db.delete("DocShare", {"user": self.name})
-		# frappe.db.sql("""delete from `tabDocShare` where user=%s""", self.name)
-
 		# delete messages
-		
-		# frappe.db.delete("Communication", {
-		# "reference_doctype": "User",
-		# "communication_type": ("in", ("Chat", "Notification")),
-		# })
 		frappe.db.sql("""delete from `tabCommunication`
 			where communication_type in ('Chat', 'Notification')
 			and reference_doctype='User'

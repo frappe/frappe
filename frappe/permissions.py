@@ -520,8 +520,6 @@ def reset_perms(doctype):
 	delete_notification_count_for(doctype)
 	frappe.db.delete("Custom DocPerm", {"parent": doctype})
 
-	# frappe.db.sql("""delete from `tabCustom DocPerm` where parent=%s""", doctype)
-
 def get_linked_doctypes(dt):
 	return list(set([dt] + [d.options for d in
 		frappe.get_meta(dt).get("fields", {

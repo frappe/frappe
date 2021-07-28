@@ -44,12 +44,6 @@ class ToDo(Document):
 			"link_doctype": self.doctype,
 			"link_name": self.name
 		})
-		# frappe.db.sql("""
-		# 	delete from `tabCommunication Link`
-		# 	where link_doctype=%(doctype)s and link_name=%(name)s""", {
-		# 		"doctype": self.doctype, "name": self.name
-		# })
-
 		self.update_in_reference()
 
 	def add_assign_comment(self, text, comment_type):

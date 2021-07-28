@@ -127,7 +127,6 @@ def delete_tags_for_document(doc):
 		"document_type": doc.doctype, 
 		"document_name": doc.name
 	})
-	# frappe.db.sql("""DELETE FROM `tabTag Link` WHERE `document_type`=%s AND `document_name`=%s""", (doc.doctype, doc.name))
 
 def update_tags(doc, tags):
 	"""
@@ -170,7 +169,6 @@ def delete_tag_for_document(dt, dn, tag):
 		"document_name": dn,
 		"tag": tag
 	})
-	# frappe.db.sql("""DELETE FROM `tabTag Link` WHERE `document_type`=%s AND `document_name`=%s AND tag=%s""", (dt, dn, tag))
 
 @frappe.whitelist()
 def get_documents_for_tag(tag):

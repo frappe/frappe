@@ -15,9 +15,6 @@ def execute():
 		frappe.db.delete("Series", {
 			"name": row.name
 		})
-		# frappe.db.sql('delete from `tabSeries` where name = %(key)s', {
-		# 	'key': row.name
-		# })
 		if row.current:
 			frappe.db.sql('insert into `tabSeries`(`name`, `current`) values (%(name)s, %(current)s)', row)
 	frappe.db.commit()

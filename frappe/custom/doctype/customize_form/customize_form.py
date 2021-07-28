@@ -24,9 +24,7 @@ class CustomizeForm(Document):
 			"doctype": "Customize Form"
 		})
 		frappe.db.delete("Customize Form Field")
-		# frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
-		# frappe.db.sql("delete from `tabCustomize Form Field`")
-
+		
 	@frappe.whitelist()
 	def fetch_to_customize(self):
 		self.clear_existing_doc()

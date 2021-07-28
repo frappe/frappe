@@ -15,7 +15,6 @@ def execute():
 		frappe.db.delete("Singles", {
 			"doctype": "Twilio Settings"
 		})
-		# frappe.db.sql("delete from `tabSingles` where `doctype`=%s", 'Twilio Settings')
 
 def twilio_settings_doctype_in_integrations() -> bool:
 	"""Check Twilio Settings doctype exists in integrations module or not.

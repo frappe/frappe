@@ -11,8 +11,3 @@ def execute():
 	frappe.db.delete("Property Setter", {
 		"property": "read_only_onload"
 	})
-
-	# frappe.db.sql('''
-	# 	DELETE from `tabProperty Setter`
-	# 	WHERE property = 'read_only_onload'
-	# ''')

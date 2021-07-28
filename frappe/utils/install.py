@@ -113,8 +113,6 @@ def before_tests():
 
 	frappe.db.delete("Custom Field")
 	frappe.db.delete("Event")
-	# frappe.db.sql("delete from `tabCustom Field`")
-	# frappe.db.sql("delete from `tabEvent`")
 	frappe.db.commit()
 	frappe.clear_cache()
 
