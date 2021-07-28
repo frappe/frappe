@@ -8,8 +8,9 @@ from frappe.query_builder.utils import db_type
 
 def CheckDB(dbtype: db_type) -> Callable:
 	return unittest.skipIf(
-		db_type(frappe.conf.db_type) != dbtype, f"Only runs for{db_type}"
+		db_type(frappe.conf.db_type) != dbtype, f"Only runs for {dbtype.value}"
 	)
+
 
 @CheckDB(dbtype=db_type.MARIADB)
 class TestCustomFunctionsMariaDB(unittest.TestCase):
@@ -33,3 +34,41 @@ class TestCustomFunctionsPostgres(unittest.TestCase):
 		self.assertEqual(
 			"TO_TSVECTOR('Notes') @@ PLAINTO_TSQUERY('text')", query.get_sql()
 		)
+
+
+class TestBuilderBase(object):
+	def test_adding_tabs(self):
+		self.assertEqual("tabNotes", frappe.qb.Table("Notes").get_sql())
+		self.assertEqual("__Auth", frappe.qb.Table("__Auth").get_sql())
+
+
+@CheckDB(dbtype=db_type.MARIADB)
+class TestBuilderMaria(unittest.TestCase, TestBuilderBase):
+	def test_adding_tabs_in_from(self):
+		self.assertEqual(
+			"SELECT * FROM `tabNotes`", frappe.qb.from_("Notes").select("*").get_sql()
+		)
+		self.assertEqual(
+			"SELECT * FROM `__Auth`", frappe.qb.from_("__Auth").select("*").get_sql()
+		)
+
+
+@CheckDB(dbtype=db_type.POSTGRES)
+class TestBuilderPostgres(unittest.TestCase, TestBuilderBase):
+	def test_adding_tabs_in_from(self):
+		self.assertEqual(
+			'SELECT * FROM "tabNotes"', frappe.qb.from_("Notes").select("*").get_sql()
+		)
+		self.assertEqual(
+			'SELECT * FROM "__Auth"', frappe.qb.from_("__Auth").select("*").get_sql()
+		)
+
+	def test_replace_tables(self):
+		info_schema = frappe.qb.Schema("information_schema")
+		self.assertEqual(
+			'SELECT * FROM "pg_stat_all_tables"',
+			frappe.qb.from_(info_schema.tables).select("*").get_sql(),
+		)
+
+	def test_replace_fields_post(self):
+		self.assertEqual("relname", frappe.qb.Field("table_name").get_sql())
