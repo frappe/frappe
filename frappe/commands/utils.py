@@ -551,32 +551,16 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 	if coverage:
 		from coverage import Coverage
+		from frappe.coverage import STANDARD_INCLUSIONS, STANDARD_EXCLUSIONS, FRAPPE_EXCLUSIONS
 
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		incl = [
-			'*.py',
-		]
-		omit = [
-			'*.js',
-			'*.xml',
-			'*.pyc',
-			'*.css',
-			'*.less',
-			'*.scss',
-			'*.vue',
-			'*.html',
-			'*/test_*',
-			'*/node_modules/*',
-			'*/doctype/*/*_dashboard.py',
-			'*/patches/*',
-		]
+		omit = STANDARD_EXCLUSIONS[:]
 
 		if not app or app == 'frappe':
-			omit.append('*/tests/*')
-			omit.append('*/commands/*')
+			omit.extend(FRAPPE_EXCLUSIONS)
 
-		cov = Coverage(source=[source_path], omit=omit, include=incl)
+		cov = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
@@ -786,7 +770,7 @@ def get_version(output):
 		"table": lambda: render_table(
 			[["App", "Version", "Branch", "Commit"]] +
 			[
-				[app_info.app, app_info.version, app_info.branch, app_info.commit] 
+				[app_info.app, app_info.version, app_info.branch, app_info.commit]
 				for app_info in data
 			]
 		),
