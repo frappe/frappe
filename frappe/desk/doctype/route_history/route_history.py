@@ -24,15 +24,14 @@ def flush_old_route_records():
 	for user in users:
 		user = user[0]
 		last_record_to_keep = frappe.db.get_all('Route History',
-			filters={
-				'user': user,
-			},
+			filters={'user': user},
 			limit=1,
 			limit_start=500,
 			fields=['modified'],
-			order_by='modified desc')
+			order_by='modified desc'
+		)
 
 		frappe.db.delete("Route History", {
-			"modified": last_record_to_keep[0].modified,
+			"modified": ("<=", last_record_to_keep[0].modified),
 			"user": user
 		})
