@@ -8,8 +8,8 @@ context('Testing Timeline For Email Functionality', () => {
     it('Adding new ToDo, adding email and verifying timeline content for email attachment, deleting attachment and ToDo', () => {
         //Adding new ToDo
         cy.click_listview_primary_button('Add ToDo');
-        cy.get('.custom-actions > .btn').trigger('click', {delay : 500});
-        cy.get('.row > .section-body > .form-column > form > .frappe-control > .form-group > .control-input-wrapper > .control-input > .ql-container > .ql-editor').eq(0).type('Test ToDo', {force : true});
+        cy.get('.custom-actions > .btn').trigger('click', {delay: 500});
+        cy.get('.row > .section-body > .form-column > form > .frappe-control > .form-group > .control-input-wrapper > .control-input > .ql-container > .ql-editor').eq(0).type('Test ToDo', {force: true});
         cy.wait(200);
         cy.click_listview_primary_button('Save');
         cy.visit('/app/todo');
@@ -17,9 +17,9 @@ context('Testing Timeline For Email Functionality', () => {
 
         //Creating a new email
         cy.get('.timeline-actions > .btn').click();
-        cy.fill_field('recipients','test@example.com','MultiSelect');
+        cy.fill_field('recipients', 'test@example.com', 'MultiSelect');
         cy.get('.modal.show > .modal-dialog > .modal-content > .modal-body > :nth-child(1) > .form-layout > .form-page > :nth-child(3) > .section-body > .form-column > form > [data-fieldtype="Text Editor"] > .form-group > .control-input-wrapper > .control-input > .ql-container > .ql-editor').type('Test Mail');
-        
+
         //Adding attachment to the email
         cy.get('.add-more-attachments > .btn').click();
         cy.get('.mt-2 > .btn > .mt-1').eq(2).click();
@@ -27,13 +27,13 @@ context('Testing Timeline For Email Functionality', () => {
         cy.get('.btn-primary').contains('Upload').click();
 
         //Sending the email
-        cy.click_modal_primary_button('Send',{delay:500});
+        cy.click_modal_primary_button('Send', {delay: 500});
 
         //To check if the sent mail content is shown in the timeline content
-        cy.get('[data-doctype="Communication"] > .timeline-content').should('contain','Test Mail');
+        cy.get('[data-doctype="Communication"] > .timeline-content').should('contain', 'Test Mail');
 
         //To check if the attachment of email is shown in the timeline content
-        cy.get('.timeline-content').should('contain','Added 72402.jpg');
+        cy.get('.timeline-content').should('contain', 'Added 72402.jpg');
 
         //Deleting the sent email
         cy.get('[title="Open Communication"] > .icon').click();
@@ -45,25 +45,23 @@ context('Testing Timeline For Email Functionality', () => {
 
         //Removing the added attachment
         cy.get('.attachment-row > .data-pill > .remove-btn > .icon').click();
-        cy.click_modal_primary_button('Yes',{force:true , delay:300});
+        cy.click_modal_primary_button('Yes', {force: true, delay: 300});
 
         //To check if the removed attachment is shown in the timeline content
-        cy.get('.timeline-content').should('contain','Removed 72402.jpg');
+        cy.get('.timeline-content').should('contain', 'Removed 72402.jpg');
         cy.wait(500);
 
         //To check if the discard button functionality in email is working correctly
         cy.get('.timeline-actions > .btn').click();
-        cy.fill_field('recipients','test@example.com','MultiSelect'); 
+        cy.fill_field('recipients', 'test@example.com', 'MultiSelect'); 
         cy.get('.modal-footer > .standard-actions > .btn-secondary').contains('Discard').click();
         cy.get('.timeline-actions > .btn').click();
-        cy.get_field('recipients','MultiSelect').should('have.value','');
+        cy.get_field('recipients', 'MultiSelect').should('have.value', '');
         cy.get('.modal.show > .modal-dialog > .modal-content > .modal-header > .modal-actions > .btn-modal-close > .icon').click();  
-        
+
         //Deleting the added ToDo
         cy.get('#page-ToDo > .page-head > .container > .row > .col > .standard-actions > .menu-btn-group > .btn').click();
         cy.get('.menu-btn-group > .dropdown-menu > li > .grey-link').eq(17).click();
         cy.get('.modal.show > .modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').click();
     });
-
-    
 });
