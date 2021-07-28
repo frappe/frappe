@@ -54,7 +54,7 @@ class TestReportview(unittest.TestCase):
 
 		# After applying user permission
 		# get as filters
-		self.assertTrue({'Blog Post': ['-test-blog-post-1', '-test-blog-post']} in build_match_conditions(as_condition=False))
+		self.assertTrue({'name': ('in', ['', '-test-blog-post-1', '-test-blog-post'])} in build_match_conditions(as_condition=False))
 		# get as conditions
 		self.assertEqual(build_match_conditions(as_condition=True),
 			"""(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))""")
