@@ -44,5 +44,6 @@ def clear_activity_logs(days=None):
 
 	if not days:
 		days = 90
+
 	frappe.db.sql("""delete from `tabActivity Log` where \
 		creation< (NOW() - INTERVAL '{0}' DAY)""".format(days))

@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2021, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 import frappe, json
@@ -179,14 +178,16 @@ def check_applicable_doc_perm(user, doctype, docname):
 
 @frappe.whitelist()
 def clear_user_permissions(user, for_doctype):
-	frappe.only_for('System Manager')
-	total = frappe.db.count('User Permission', filters = dict(user=user, allow=for_doctype))
+	frappe.only_for("System Manager")
+	total = frappe.db.count("User Permission", {"user": user, "allow": for_doctype})
+
 	if total:
 		frappe.db.delete("User Permission", {
+			"allow": for_doctype,
 			"user": user,
-			"allow": for_doctype
 		})
 		frappe.clear_cache()
+
 	return total
 
 @frappe.whitelist()
@@ -228,37 +229,35 @@ def insert_user_perm(user, doctype, docname, is_default=0, hide_descendants=0, a
 	user_perm.is_default = is_default
 	user_perm.hide_descendants = hide_descendants
 	if applicable:
-		user_perm.applicable_for  = applicable
+		user_perm.applicable_for = applicable
 		user_perm.apply_to_all_doctypes = 0
 	else:
 		user_perm.apply_to_all_doctypes = 1
 	user_perm.insert()
 
 def remove_applicable(perm_applied_docs, user, doctype, docname):
-	
 	for applicable_for in perm_applied_docs:
 		frappe.db.delete("User Permission", {
-			"user": user,
 			"applicable_for": applicable_for,
+			"for_value": docname,
 			"allow": doctype,
-			"for_value": docname
+			"user": user,
 		})
-def remove_apply_to_all(user, doctype, docname):
 
+def remove_apply_to_all(user, doctype, docname):
 	frappe.db.delete("User Permission", {
-		"user": user,
 		"apply_to_all_doctypes": 1,
+		"for_value": docname,
 		"allow": doctype,
-		"for_value": docname
+		"user": user,
 	})
 
 def update_applicable(already_applied, to_apply, user, doctype, docname):
 	for applied in already_applied:
 		if applied not in to_apply:
-
 			frappe.db.delete("User Permission", {
-				"user": user,
 				"applicable_for": applied,
+				"for_value": docname,
 				"allow": doctype,
-				"for_value": docname
+				"user": user,
 			})

@@ -151,11 +151,12 @@ def delete_fields(args_dict, delete=0):
 		fields = args_dict[dt]
 		if not fields:
 			continue
-		
+
 		frappe.db.delete("DocField", {
 			"parent": dt,
-			"fieldname": ("in", fields)
+			"fieldname": ("in", fields),
 		})
+
 		# Delete the data/column only if delete is specified
 		if not delete:
 			continue
@@ -163,7 +164,7 @@ def delete_fields(args_dict, delete=0):
 		if frappe.db.get_value("DocType", dt, "issingle"):
 			frappe.db.delete("Singles", {
 				"doctype": dt,
-				"field": ("in", fields)
+				"field": ("in", fields),
 			})
 		else:
 			existing_fields = frappe.db.multisql({

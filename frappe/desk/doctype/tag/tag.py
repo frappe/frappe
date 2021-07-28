@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
@@ -124,7 +123,7 @@ def delete_tags_for_document(doc):
 		return
 
 	frappe.db.delete("Tag Link", {
-		"document_type": doc.doctype, 
+		"document_type": doc.doctype,
 		"document_name": doc.name
 	})
 

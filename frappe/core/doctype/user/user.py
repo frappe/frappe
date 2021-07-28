@@ -18,6 +18,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils.background_jobs import enqueue
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 
+
 STANDARD_USERS = ("Guest", "Administrator")
 
 
@@ -366,6 +367,7 @@ class User(Document):
 		if getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
 
+		# delete todos
 		frappe.db.delete("ToDo", {"owner": self.name})
 		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
 			(self.name,))

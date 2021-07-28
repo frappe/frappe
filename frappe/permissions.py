@@ -7,9 +7,9 @@ import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
 
+
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
-
 
 
 def check_admin_or_system_manager(user=None):

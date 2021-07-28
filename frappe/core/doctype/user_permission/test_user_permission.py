@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2017, Frappe Technologies and Contributors
-# See license.txt
+# Copyright (c) 2021, Frappe Technologies and Contributors
+# See LICENSE
 from frappe.core.doctype.user_permission.user_permission import add_user_permissions, remove_applicable
 from frappe.permissions import has_user_permission
 from frappe.core.doctype.doctype.test_doctype import new_doctype

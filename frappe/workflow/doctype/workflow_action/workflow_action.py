@@ -139,7 +139,7 @@ def clear_old_workflow_actions(doc, user=None):
 		"user": ("!=", user),
 		"status": "Open"
 	})
-	
+
 def update_completed_workflow_actions(doc, user=None):
 	user = user if user else frappe.session.user
 	frappe.db.sql("""UPDATE `tabWorkflow Action` SET `status`='Completed', `completed_by`=%s

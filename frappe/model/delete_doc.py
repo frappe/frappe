@@ -64,24 +64,14 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
-				frappe.db.delete("Custom Field", {
-					"dt": name
-				})
-				frappe.db.delete("Client Script", {
-					"dt": name
-				})
-				frappe.db.delete("Property Setter", {
-					"doc_type": name
-				})
-				frappe.db.delete("Report", {
-					"ref_doctype": name
-				})
-				frappe.db.delete("Custom DocPerm", {
-					"parent": name
-				})
-				frappe.db.delete("__global_search", {
-					"doctype": name
-				})
+
+				frappe.db.delete("Custom Field", {"dt": name})
+				frappe.db.delete("Client Script", {"dt": name})
+				frappe.db.delete("Property Setter", {"doc_type": name})
+				frappe.db.delete("Report", {"ref_doctype": name})
+				frappe.db.delete("Custom DocPerm", {"parent": name})
+				frappe.db.delete("__global_search", {"doctype": name})
+
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
 			if frappe.conf.developer_mode and not doc.custom and not (
@@ -172,13 +162,9 @@ def update_naming_series(doc):
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:
-		frappe.db.delete("Singles", {
-			"doctype": name
-		})
+		frappe.db.delete("Singles", {"doctype": name})
 	else:
-		frappe.db.delete(doctype, {
-			"name": name
-		})
+		frappe.db.delete(doctype, {"name": name})
 	# get child tables
 	if doc:
 		tables = [d.options for d in doc.meta.get_table_fields()]
@@ -356,7 +342,7 @@ def clear_timeline_references(link_doctype, link_name):
 		"link_doctype": link_doctype,
 		"link_name": link_name
 	})
-	
+
 def insert_feed(doc):
 	if (
 		frappe.flags.in_install

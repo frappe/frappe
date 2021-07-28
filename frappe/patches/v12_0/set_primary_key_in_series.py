@@ -11,6 +11,7 @@ def execute():
 			name
 		having count(name) > 1
 	''', as_dict=True)
+
 	for row in duplicate_keys:
 		frappe.db.delete("Series", {
 			"name": row.name
@@ -18,4 +19,5 @@ def execute():
 		if row.current:
 			frappe.db.sql('insert into `tabSeries`(`name`, `current`) values (%(name)s, %(current)s)', row)
 	frappe.db.commit()
+
 	frappe.db.sql('ALTER table `tabSeries` ADD PRIMARY KEY IF NOT EXISTS (name)')

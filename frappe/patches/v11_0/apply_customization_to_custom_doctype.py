@@ -28,9 +28,8 @@ def execute():
 
 		for prop in property_setters:
 			property_setter_map[prop.field_name] = prop
-			frappe.db.delete("Property Setter", {
-				"name": prop.name
-			})
+			frappe.db.delete("Property Setter", {"name": prop.name})
+
 		meta = frappe.get_meta(doctype.name)
 
 		for df in meta.fields:
@@ -51,7 +50,6 @@ def execute():
 				df = frappe.new_doc('DocField', meta, 'fields')
 				df.update(cf)
 				meta.fields.append(df)
-			frappe.db.delete("Custom Field", {
-				"name": cf.name
-			})
+			frappe.db.delete("Custom Field", {"name": cf.name})
+
 		meta.save()

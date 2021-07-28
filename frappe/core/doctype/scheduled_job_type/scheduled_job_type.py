@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2021, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 import json
@@ -12,6 +11,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, get_jobs
+
 
 class ScheduledJobType(Document):
 	def autoname(self):
@@ -109,10 +109,9 @@ class ScheduledJobType(Document):
 		return 'long' if ('Long' in self.frequency) else 'default'
 
 	def on_trash(self):
-		frappe.db.delete("Scheduled Job Log", {
-			"scheduled_job_type": self.name
-		})
-		
+		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
+
+
 @frappe.whitelist()
 def execute_event(doc: str):
 	frappe.only_for("System Manager")

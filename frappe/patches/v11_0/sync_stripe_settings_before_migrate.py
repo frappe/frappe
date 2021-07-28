@@ -17,6 +17,4 @@ def execute():
 			settings.secret_key = secret_key
 			settings.save(ignore_permissions=True)
 
-	frappe.db.delete("Singles", {
-		"doctype": "Stripe Settings"
-	})
+	frappe.db.delete("Singles", {"doctype": "Stripe Settings"})

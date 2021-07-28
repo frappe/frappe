@@ -330,6 +330,7 @@ def remove_unverified_record():
 		AND `creation` < (NOW() - INTERVAL '7' DAY)"""
 	)
 
+
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email, name, host_name):
 	if not verify_request():

@@ -26,12 +26,15 @@ def update_feed(doc, method=None):
 
 			feed = frappe._dict(feed)
 			doctype = feed.doctype or doc.doctype
-			name = feed.name or doc.name			
+			name = feed.name or doc.name
+
+			# delete earlier feed
 			frappe.db.delete("Activity Log", {
 				"reference_doctype": doctype,
 				"reference_name": name,
 				"link_doctype": feed.link_doctype
 			})
+
 			frappe.get_doc({
 				"doctype": "Activity Log",
 				"reference_doctype": doctype,
