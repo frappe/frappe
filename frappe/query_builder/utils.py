@@ -11,7 +11,6 @@ class db_type(Enum):
 	MARIADB = "mariadb"
 	POSTGRES = "postgres"
 
-
 class ImportMapper:
 	def __init__(self, func_map: Dict[db_type, Callable]) -> None:
 		self.func_map = func_map
@@ -32,7 +31,7 @@ def get_query_builder(type_of_db: Optional[str]) -> Query:
 	Returns:
 		Query: [Query object]
 	"""
-	db = db_type["MARIADB"]
+	db = db_type.MARIADB
 	if type_of_db:
 		db = db_type(type_of_db)
 	selecter = {db_type.MARIADB: MariaDB, db_type.POSTGRES: Postgres}
