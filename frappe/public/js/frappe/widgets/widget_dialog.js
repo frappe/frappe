@@ -79,9 +79,9 @@ class WidgetDialog {
 			filters.forEach((arr) => {
 				let filter = `{ ${arr} }`;
 				const filter_json = new Function(`return ${filter}`)();
-				let val = Object.values(filter_json)[0]
+				let val = Object.values(filter_json)[0];
 				this.filters.push([this.values.link_to, Object.keys(filter_json)[0], val[0], val[1], false]);
-			})
+			});
 		}
 
 		this.filter_group = new frappe.ui.FilterGroup({

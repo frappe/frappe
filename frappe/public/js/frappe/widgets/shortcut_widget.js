@@ -60,16 +60,16 @@ export default class ShortcutWidget extends Widget {
 	}
 
 	get_doctype_filter() {
-		let count_filter = []
+		let count_filter = [];
 
 		if (this.stats_filter) {
 			let filters = this.stats_filter.replace(/]/gi, "]~").split("~,").map(e => e.replace(/([{}~])/gi, "").trim());
 			filters.forEach((arr) => {
 				let filter = `{ ${arr} }`;
 				const filter_json = new Function(`return ${filter}`)();
-				let val = Object.values(filter_json)[0]
+				let val = Object.values(filter_json)[0];
 				count_filter.push([this.link_to, Object.keys(filter_json)[0], val[0], val[1]]);
-			})
+			});
 			return count_filter;
 		}
 
