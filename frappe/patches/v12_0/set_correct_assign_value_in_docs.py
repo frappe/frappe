@@ -5,13 +5,15 @@ def execute():
 	frappe.reload_doc("desk", "doctype", "todo")
 
 	ToDo = frappe.qb.Table("ToDo")
-	assignees = frappe.qb.GROUP_CONCAT("owner").distinct().as_("assignees")
+	from frappe.query_builder.functions import GroupConcat
+	assignees = GroupConcat("owner").distinct().as_("assignees")
 
+	from frappe.query_builder.functions import Coalesce
 	query = (
 		frappe.qb.from_(ToDo)
 		.select(ToDo.name, ToDo.reference_type, assignees)
-		.where(frappe.qb.fn.Coalesce(ToDo.reference_type, "") != "")
-		.where(frappe.qb.fn.Coalesce(ToDo.reference_name, "") != "")
+		.where(Coalesce(ToDo.reference_type, "") != "")
+		.where(Coalesce(ToDo.reference_name, "") != "")
 		.where(ToDo.status != "Cancelled")
 		.groupby(ToDo.reference_type, ToDo.reference_name)
 	)

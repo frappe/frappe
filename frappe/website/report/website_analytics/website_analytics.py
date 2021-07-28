@@ -57,15 +57,20 @@ class WebsiteAnalytics(object):
 
 	def get_data(self):
 		WebPageView = frappe.qb.Table("Web Page View")
-		count_all = frappe.qb.fn.Count("*").as_("count")
+
+		from frappe.query_builder.functions import Count
+
+		count_all = Count("*").as_("count")
 		case = frappe.qb.terms.Case().when(WebPageView.is_unique == "1", "1")
-		count_is_unique = frappe.qb.fn.Count(case).as_("unique_count")
+		count_is_unique = Count(case).as_("unique_count")
+
+		from frappe.query_builder.functions import Coalesce
 
 		curr = (
 			frappe.qb.from_(WebPageView)
 			.select("path", count_all, count_is_unique)
 			.where(
-				frappe.qb.fn.Coalesce(WebPageView.creation, "0001-01-01")[
+				Coalesce(WebPageView.creation, "0001-01-01")[
 					self.filters.from_date : self.filters.to_date
 				]
 			)
