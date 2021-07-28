@@ -437,7 +437,8 @@ def search(text, start=0, limit=20, doctype=""):
 
 		global_search = frappe.qb.Table("__global_search")
 
-		rank = frappe.qb.Match(global_search.content).Against(text).as_("rank")
+		from frappe.query_builder.functions import Match
+		rank = Match(global_search.content).Against(text).as_("rank")
 
 		query = (
 			frappe.qb.from_(global_search)
