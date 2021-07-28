@@ -7,7 +7,11 @@
 	<meta name="description" content="">
 	<meta name="author" content="">
 	<title>{{ title }}</title>
+<<<<<<< HEAD
 	<link href="{{ include_style("printview.css") }}" rel="stylesheet">
+=======
+	<link href="{{ base_url }}{{ frappe.assets.bundled_asset('print.bundle.css', frappe.utils.is_rtl(lang)) }}" rel="stylesheet">
+>>>>>>> 9a28242868 (fix: Report print option)
 	<style>
 		{{ print_css }}
 	</style>
