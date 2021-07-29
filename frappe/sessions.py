@@ -84,7 +84,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 		if user_details: user = user_details[0].get("user")
 
 	logout_feed(user, reason)
-	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
+	frappe.db.delete("Sessions", {"sid": sid})
 	frappe.db.commit()
 
 def clear_all_sessions(reason=None):
