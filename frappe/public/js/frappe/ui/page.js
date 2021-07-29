@@ -597,7 +597,7 @@ frappe.ui.Page = class Page {
 		var me = this;
 		let _action = function () {
 			let btn = $(this);
-			let response = action();
+			let response = action(me, btn);
 			me.btn_disable_enable(btn, response);
 		};
 		if (group) {
