@@ -172,7 +172,7 @@ frappe.router = {
 			if (route[3]) {
 				if (Array.isArray(route)) {
 					// folder
-					standard_route.push(...route.splice(3, route.length));
+					standard_route.push(...route.slice(3, route.length));
 				} else {
 					// calendar / kanban / dashboard name
 					standard_route.push(route[3]);
@@ -304,7 +304,7 @@ frappe.router = {
 				if (route[3]) {
 					if (Array.isArray(route)) {
 						// file folder
-						new_route.push(...route.splice(3, route.length));
+						new_route.push(...route.slice(3, route.length));
 					} else {
 						// calendar / inbox
 						new_route.push(route[3]);
