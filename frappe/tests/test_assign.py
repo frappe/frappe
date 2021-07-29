@@ -3,7 +3,7 @@
 import frappe, unittest
 import frappe.desk.form.assign_to
 from frappe.desk.listview import get_group_by_count
-from frappe.automation.doctype.assignment_rule.test_assignment_rule import make_note
+from frappe.tests import make_note
 
 class TestAssign(unittest.TestCase):
 	def test_assign(self):

@@ -3,7 +3,7 @@
 # See license.txt
 import frappe
 import unittest
-from frappe.utils import random_string
+from frappe.tests import make_note
 from frappe.test_runner import make_test_records
 
 class TestAutoAssign(unittest.TestCase):
@@ -296,17 +296,3 @@ def get_assignment_rule(days, assign=None):
 	)).insert()
 
 	return assignment_rule
-
-def make_note(values=None):
-	note = frappe.get_doc(dict(
-		doctype = 'Note',
-		title = random_string(10),
-		content = random_string(20)
-	))
-
-	if values:
-		note.update(values)
-
-	note.insert()
-
-	return note

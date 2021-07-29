@@ -5,6 +5,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
+from frappe.tests import make_note, make_todo
 
 test_records = frappe.get_test_records('Communication')
 
@@ -202,12 +203,12 @@ class TestCommunication(unittest.TestCase):
 		self.assertIn(("Note", note.name), doc_links)
 
 class TestCommunicationEmailMixin(unittest.TestCase):
-	def new_communication(self, recipients=None, cc=None, bcc=None):
+	def new_communication(self, recipients=None, cc=None, bcc=None, reference_document=None, values=None):
 		recipients = ', '.join(recipients or [])
 		cc = ', '.join(cc or [])
 		bcc = ', '.join(bcc or [])
 
-		comm = frappe.get_doc({
+		d = {
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"communication_medium": "Email",
@@ -215,7 +216,15 @@ class TestCommunicationEmailMixin(unittest.TestCase):
 			"recipients": recipients,
 			"cc": cc,
 			"bcc": bcc
-		}).insert(ignore_permissions=True)
+		}
+
+		if reference_document:
+			d['reference_doctype'] = reference_document.doctype
+			d['reference_name'] = reference_document.name
+
+		d.update(values or {})
+
+		comm = frappe.get_doc(d).insert(ignore_permissions=True)
 		return comm
 
 	def new_user(self, email, **user_data):
@@ -236,12 +245,30 @@ class TestCommunicationEmailMixin(unittest.TestCase):
 	def test_cc(self):
 		to_list = ['to@test.com']
 		cc_list = ['cc+1@test.com', 'cc <cc+2@test.com>', 'to@test.com']
+		task_owner_email = 'test+assignee@test.com'
+
 		user = self.new_user(email='cc+1@test.com', thread_notify=0)
-		comm = self.new_communication(recipients=to_list, cc=cc_list)
+		task_owner = self.new_user(email=task_owner_email, thread_notify=1)
+
+		# Create a sample note
+		note = make_note()
+		todo = make_todo(owner=task_owner_email,
+			reference_type=note.doctype, reference_name=note.name)
+
+		comm = self.new_communication(recipients=to_list, cc=cc_list, reference_document=note)
 		res = comm.get_mail_cc_with_displayname()
 		self.assertCountEqual(res, ['cc <cc+2@test.com>'])
+
+		# Check that task assignees gets a mail while processing an incoming mail
+		del comm._final_cc
+		res = comm.mail_cc(is_inbound_mail_communcation=True)
+		self.assertCountEqual(res, [task_owner_email])
+
 		user.delete()
 		comm.delete()
+		task_owner.delete()
+		note.delete()
+		todo.delete()
 
 	def test_bcc(self):
 		bcc_list = ['bcc+1@test.com', 'cc <bcc+2@test.com>', ]
