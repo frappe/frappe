@@ -440,11 +440,3 @@ frappe.views.TreeView = Class.extend({
 		});
 	}
 });
-
-
-
-
-
-
-
-
