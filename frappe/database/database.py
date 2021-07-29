@@ -968,7 +968,7 @@ class Database(object):
 
 		if filters:
 			conditions, values = self.build_conditions(filters)
-			query =  f"{query} WHERE {conditions}"
+			query = f"{query} WHERE {conditions}"
 
 		return self.sql(query, values, **kwargs)
 
