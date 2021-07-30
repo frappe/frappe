@@ -250,6 +250,15 @@ frappe.ui.form.Layout = Class.extend({
 			// collapse sections
 			this.refresh_section_collapse();
 		}
+<<<<<<< HEAD
+=======
+
+		document.activeElement.focus();
+
+		if (document.activeElement.tagName == 'INPUT') {
+			document.activeElement.select();
+		}
+>>>>>>> f1e881f009 (fix: Focus reset issue due to field refresh)
 	},
 
 	refresh_sections: function() {
