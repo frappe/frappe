@@ -13,7 +13,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import frappe
 from frappe.database.database import Database
 from frappe.database.postgres.schema import PostgresTable
-from frappe.utils import cstr
+from frappe.utils import cstr, get_table_name
 
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
@@ -178,17 +178,17 @@ class PostgresDatabase(Database):
 		return e.pgcode == '22001'
 
 	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
-		old_name = self.add_tab(old_name)
-		new_name = self.add_tab(new_name)
+		old_name = get_table_name(old_name)
+		new_name = get_table_name(new_name)
 		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
 
 	def describe(self, doctype: str)-> Union[List, Tuple]:
-		doctype = self.add_tab(doctype)
-		return self.sql(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{doctype}'")
+		table_name = get_table_name(doctype)
+		return self.sql(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'")
 
 	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
-		table = self.add_tab(table)
-		return self.sql(f'ALTER TABLE "{table}" ALTER COLUMN "{column}" TYPE {type}')
+		table_name = get_table_name(table)
+		return self.sql(f'ALTER TABLE "{table_name}" ALTER COLUMN "{column}" TYPE {type}')
 
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists "__Auth" (

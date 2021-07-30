@@ -3,17 +3,16 @@ from typing import Callable
 
 import frappe
 from frappe.query_builder.functions import GroupConcat, Match
-from frappe.query_builder.utils import db_type
-from frappe.query_builder.functions import GroupConcat, Match
+from frappe.query_builder.utils import db_type_is
 
 
-def CheckDB(dbtype: db_type) -> Callable:
+def run_only_if(dbtype: db_type_is) -> Callable:
 	return unittest.skipIf(
-		db_type(frappe.conf.db_type) != dbtype, f"Only runs for {dbtype.value}"
+		db_type_is(frappe.conf.db_type) != dbtype, f"Only runs for {dbtype.value}"
 	)
 
 
-@CheckDB(dbtype=db_type.MARIADB)
+@run_only_if(db_type_is.MARIADB)
 class TestCustomFunctionsMariaDB(unittest.TestCase):
 	def test_concat(self):
 		self.assertEqual("GROUP_CONCAT('Notes')", GroupConcat("Notes").get_sql())
@@ -25,7 +24,7 @@ class TestCustomFunctionsMariaDB(unittest.TestCase):
 		)
 
 
-@CheckDB(dbtype=db_type.POSTGRES)
+@run_only_if(db_type_is.POSTGRES)
 class TestCustomFunctionsPostgres(unittest.TestCase):
 	def test_concat(self):
 		self.assertEqual("STRING_AGG('Notes',',')", GroupConcat("Notes").get_sql())
@@ -43,7 +42,7 @@ class TestBuilderBase(object):
 		self.assertEqual("__Auth", frappe.qb.Table("__Auth").get_sql())
 
 
-@CheckDB(dbtype=db_type.MARIADB)
+@run_only_if(db_type_is.MARIADB)
 class TestBuilderMaria(unittest.TestCase, TestBuilderBase):
 	def test_adding_tabs_in_from(self):
 		self.assertEqual(
@@ -54,7 +53,7 @@ class TestBuilderMaria(unittest.TestCase, TestBuilderBase):
 		)
 
 
-@CheckDB(dbtype=db_type.POSTGRES)
+@run_only_if(db_type_is.POSTGRES)
 class TestBuilderPostgres(unittest.TestCase, TestBuilderBase):
 	def test_adding_tabs_in_from(self):
 		self.assertEqual(

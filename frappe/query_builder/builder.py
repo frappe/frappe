@@ -1,5 +1,6 @@
 from pypika import MySQLQuery, Order, PostgreSQLQuery, terms
 from pypika.queries import Schema, Table
+from frappe.utils import get_table_name
 
 
 class Base:
@@ -8,10 +9,9 @@ class Base:
 	Schema = Schema
 
 	@staticmethod
-	def Table(class_name: str, *args, **kwargs) -> Table:
-		if not class_name.startswith("__"):
-			class_name = f"tab{class_name}"
-		return Table(class_name, *args, **kwargs)
+	def Table(table_name: str, *args, **kwargs) -> Table:
+		table_name = get_table_name(table_name)
+		return Table(table_name, *args, **kwargs)
 
 
 class MariaDB(Base, MySQLQuery):

@@ -14,7 +14,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.utils import random_string
 from frappe.utils.testutils import clear_custom_fields
 
-from .test_query_builder import CheckDB, db_type
+from .test_query_builder import run_only_if, db_type_is
 
 
 class TestDB(unittest.TestCase):
@@ -194,7 +194,7 @@ class TestDB(unittest.TestCase):
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
 
-@CheckDB(db_type.MARIADB)
+@run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
 	test_table_name = "TestNotes"
 
@@ -238,7 +238,7 @@ class TestDDLCommandsMaria(unittest.TestCase):
 		self.assertIn("varchar(255)", test_table_description[0])
 
 
-@CheckDB(dbtype=db_type.POSTGRES)
+@run_only_if(db_type_is.POSTGRES)
 class TestDDLCommandsPost(unittest.TestCase):
 	test_table_name = "TestNotes"
 
