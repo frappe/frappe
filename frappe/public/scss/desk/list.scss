@@ -205,6 +205,10 @@ input.list-check-all, input.list-row-checkbox {
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
 }
 
+.render-list-checkbox {
+	margin-left: 15px;
+}
+
 .filterable {
 	cursor: pointer;
 }
