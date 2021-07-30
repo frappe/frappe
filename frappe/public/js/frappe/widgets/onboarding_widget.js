@@ -78,6 +78,7 @@ export default class OnboardingWidget extends Widget {
 			"Update Settings": (step) => this.update_settings(step),
 			"View Report": (step) => this.open_report(step),
 			"Go to Page": (step) => this.go_to_page(step),
+			"External Page Link": (step) => this.goto_external_page(step)
 		};
 
 		const toggle_content = () => {
@@ -135,6 +136,7 @@ export default class OnboardingWidget extends Widget {
 
 	go_to_page(step) {
 		this.mark_complete(step);
+		console.log(step.path);
 		frappe.set_route(step.path).then(() => {
 			let message = step.callback_message || __("You can continue with the onboarding after exploring this page");
 			let title = step.callback_title || __("Awesome Work");
@@ -379,6 +381,11 @@ export default class OnboardingWidget extends Widget {
 
 	show_video(step) {
 		frappe.help.show_video(step.video_url, step.title);
+		this.mark_complete(step);
+	}
+
+	goto_external_page(step) {
+		window.open(step.path);
 		this.mark_complete(step);
 	}
 

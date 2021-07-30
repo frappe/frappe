@@ -60,7 +60,7 @@
    "fieldname": "action",
    "fieldtype": "Select",
    "label": "Action",
-   "options": "Create Entry\nUpdate Settings\nShow Form Tour\nView Report\nGo to Page\nWatch Video",
+   "options": "Create Entry\nUpdate Settings\nShow Form Tour\nView Report\nGo to Page\nExternal Page Link\nWatch Video",
    "reqd": 1
   },
   {
@@ -144,12 +144,12 @@
    "label": "Is Single"
   },
   {
-   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "depends_on": "eval: [\"Go to Page\", \"External Page Link\"].includes(doc.action)",
    "description": "Example: #Tree/Account",
    "fieldname": "path",
    "fieldtype": "Data",
    "label": "Path",
-   "mandatory_depends_on": "eval:doc.action == \"Go to Page\""
+   "mandatory_depends_on": "eval: [\"Go to Page\", \"External Page Link\"].includes(doc.action)"
   },
   {
    "depends_on": "eval:doc.action == \"Go to Page\"",
@@ -209,7 +209,7 @@
   }
  ],
  "links": [],
- "modified": "2020-10-30 14:54:06.646513",
+ "modified": "2021-07-30 13:49:18.763179",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Step",
