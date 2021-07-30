@@ -414,6 +414,7 @@ def search(text, start=0, limit=20, doctype=""):
 	from frappe.desk.doctype.global_search_settings.global_search_settings import (
 		get_doctypes_for_global_search,
 	)
+	from frappe.query_builder.functions import Match
 
 	results = []
 	sorted_results = []
@@ -426,10 +427,7 @@ def search(text, start=0, limit=20, doctype=""):
 			continue
 
 		global_search = frappe.qb.Table("__global_search")
-
-		from frappe.query_builder.functions import Match
 		rank = Match(global_search.content).Against(text).as_("rank")
-
 		query = (
 			frappe.qb.from_(global_search)
 			.select(

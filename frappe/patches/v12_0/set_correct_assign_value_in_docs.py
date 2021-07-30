@@ -1,14 +1,12 @@
 import frappe
-
+from frappe.query_builder.functions import GroupConcat, Coalesce
 
 def execute():
 	frappe.reload_doc("desk", "doctype", "todo")
 
 	ToDo = frappe.qb.Table("ToDo")
-	from frappe.query_builder.functions import GroupConcat
 	assignees = GroupConcat("owner").distinct().as_("assignees")
 
-	from frappe.query_builder.functions import Coalesce
 	query = (
 		frappe.qb.from_(ToDo)
 		.select(ToDo.name, ToDo.reference_type, assignees)

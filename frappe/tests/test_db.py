@@ -226,7 +226,7 @@ class TestDDLCommandsMaria(unittest.TestCase):
 	def test_describe(self) -> None:
 		self.assertEqual(
 			(("id", "int(11)", "NO", "PRI", None, ""),),
-			frappe.db.DESC(self.test_table_name),
+			frappe.db.describe(self.test_table_name),
 		)
 
 	def test_change_type(self) -> None:
@@ -268,7 +268,7 @@ class TestDDLCommandsPost(unittest.TestCase):
 		self.test_table_name = new_table_name
 
 	def test_describe(self) -> None:
-		self.assertEqual([("id",)], frappe.db.DESC(self.test_table_name))
+		self.assertEqual([("id",)], frappe.db.describe(self.test_table_name))
 
 	def test_change_type(self) -> None:
 		frappe.db.change_column_type(self.test_table_name, "id", "varchar(255)")

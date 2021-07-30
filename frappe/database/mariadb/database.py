@@ -125,16 +125,16 @@ class MariaDBDatabase(Database):
 	def is_type_datetime(code):
 		return code in (pymysql.DATE, pymysql.DATETIME)
 
-	def rename_table(self, old_name: str, new_name: str) -> Union[List,Tuple]:
+	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
 		old_name = self.add_tab(old_name)
 		new_name = self.add_tab(new_name)
 		return self.sql(f"RENAME TABLE `{old_name}` TO `{new_name}`")
 
-	def DESC(self, doctype: str) -> Union[List,Tuple]:
+	def describe(self, doctype: str) -> Union[List, Tuple]:
 		doctype = self.add_tab(doctype)
 		return self.sql(f"DESC `{doctype}`")
 
-	def change_column_type(self, table: str, column: str, type: str) -> Union[List,Tuple]:
+	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
 		table = self.add_tab(table)
 		return self.sql(f"ALTER TABLE `{table}` MODIFY `{column}` {type} NOT NULL")
 

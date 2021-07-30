@@ -172,16 +172,16 @@ class PostgresDatabase(Database):
 	def is_data_too_long(e):
 		return e.pgcode == '22001'
 
-	def rename_table(self, old_name: str, new_name: str) -> Union[List,Tuple]:
+	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
 		old_name = self.add_tab(old_name)
 		new_name = self.add_tab(new_name)
 		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
 
-	def DESC(self, doctype: str)-> Union[List,Tuple]:
+	def describe(self, doctype: str)-> Union[List, Tuple]:
 		doctype = self.add_tab(doctype)
 		return self.sql(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{doctype}'")
 
-	def change_column_type(self, table: str, column: str, type: str) -> Union[List,Tuple]:
+	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
 		table = self.add_tab(table)
 		return self.sql(f'ALTER TABLE "{table}" ALTER COLUMN "{column}" TYPE {type}')
 
