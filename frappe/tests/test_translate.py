@@ -20,8 +20,19 @@ first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 )
 
 class TestTranslate(unittest.TestCase):
+	guest_sessions_required = [
+		"test_guest_request_language_resolution_with_cookie",
+		"test_guest_request_language_resolution_with_request_header"
+	]
+
+	def setUp(self):
+		if self._testMethodName in self.guest_sessions_required:
+			frappe.set_user("Guest")
+
 	def tearDown(self):
 		frappe.form_dict.pop("_lang", None)
+		if self._testMethodName in self.guest_sessions_required:
+			frappe.set_user("Administrator")
 
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)
@@ -58,16 +69,40 @@ class TestTranslate(unittest.TestCase):
 			set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
 			return_val = get_language()
 
+		self.assertNotIn(return_val, [second_lang, get_parent_language(second_lang)])
+
+	def test_guest_request_language_resolution_with_cookie(self):
+		"""Test for frappe.translate.get_language
+
+		Case 3: frappe.form_dict._lang is not set, but preferred_language cookie is [Guest User]
+		"""
+
+		with patch.object(frappe.translate, "get_preferred_language_cookie", return_value=second_lang):
+			set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
+			return_val = get_language()
+
 		self.assertIn(return_val, [second_lang, get_parent_language(second_lang)])
+
+
+	def test_guest_request_language_resolution_with_request_header(self):
+		"""Test for frappe.translate.get_language
+
+		Case 4: frappe.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is [Guest User]
+		"""
+
+		set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
+		return_val = get_language()
+		self.assertIn(return_val, [third_lang, get_parent_language(third_lang)])
 
 	def test_request_language_resolution_with_request_header(self):
 		"""Test for frappe.translate.get_language
 
-		Case 3: frappe.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is
+		Case 5: frappe.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is
 		"""
+
 		set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
 		return_val = get_language()
-		self.assertIn(return_val, [third_lang, get_parent_language(third_lang)])
+		self.assertNotIn(return_val, [third_lang, get_parent_language(third_lang)])
 
 
 expected_output = [
