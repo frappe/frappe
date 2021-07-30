@@ -927,6 +927,13 @@ def validate_fields(meta):
 		if meta.is_published_field not in fieldname_list:
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
+	def check_website_search_field(meta):
+		if not meta.website_search_field:
+			return
+
+		if meta.website_search_field not in fieldname_list:
+			frappe.throw(_("Website Search Field must be a valid fieldname"), InvalidFieldNameError)
+
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
 			return
@@ -1046,6 +1053,7 @@ def validate_fields(meta):
 	check_title_field(meta)
 	check_timeline_field(meta)
 	check_is_published_field(meta)
+	check_website_search_field(meta)
 	check_sort_field(meta)
 	check_image_field(meta)
 
