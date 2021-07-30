@@ -5,11 +5,13 @@ import frappe
 import json
 
 from frappe.model.document import Document
-from frappe.utils import get_fullname
+from frappe.utils import get_fullname, parse_addr
 
 exclude_from_linked_with = True
 
 class ToDo(Document):
+	DocType = 'ToDo'
+
 	def validate(self):
 		self._assignment = None
 		if self.is_new():
@@ -83,6 +85,13 @@ class ToDo(Document):
 
 			else:
 				raise
+
+	@classmethod
+	def get_owners(cls, filters=None):
+		"""Returns list of owners after applying filters on todo's.
+		"""
+		rows = frappe.get_all(cls.DocType, filters=filters or {}, fields=['owner'])
+		return [parse_addr(row.owner)[1] for row in rows if row.owner]
 
 # NOTE: todo is viewable if a user is an owner, or set as assigned_to value, or has any role that is allowed to access ToDo doctype.
 def on_doctype_update():
