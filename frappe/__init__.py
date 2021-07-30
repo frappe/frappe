@@ -205,7 +205,7 @@ def init(site, sites_path=None, new_site=False):
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
-	local.qb = get_query_builder(local.conf.db_type)
+	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 
 	setup_module_map()
 

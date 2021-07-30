@@ -14,7 +14,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast_fieldtype, get_datetime
+from frappe.utils import now, getdate, cast_fieldtype, get_datetime, get_table_name
 from frappe.model.utils.link_count import flush_local_link_count
 
 
@@ -961,7 +961,7 @@ class Database(object):
 		"""
 		values = ()
 		filters = filters or kwargs.get("conditions")
-		table = doctype if doctype.startswith("__") else f"tab{doctype}"
+		table = get_table_name(doctype)
 		query = f"DELETE FROM `{table}`"
 
 		if "debug" not in kwargs:
@@ -1042,9 +1042,6 @@ class Database(object):
 					), tuple(insert_list))
 				insert_list = []
 
-	@staticmethod
-	def add_tab(table_name: str) -> str:
-		return f"tab{table_name}" if not table_name.startswith("__") else table_name
 
 def enqueue_jobs_after_commit():
 	from frappe.utils.background_jobs import execute_job, get_queue
