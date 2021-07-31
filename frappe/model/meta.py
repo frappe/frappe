@@ -514,10 +514,13 @@ class Meta(Document):
 
 			for group in data.transactions:
 				group = frappe._dict(group)
+
+				# For internal links parent doctype will be the key
+				doctype = link.parent_doctype or link.link_doctype
 				# group found
 				if link.group and group.label == link.group:
-					if link.link_doctype not in group.get('items'):
-						group.get('items').append(link.link_doctype)
+					if doctype not in group.get('items'):
+						group.get('items').append(doctype)
 					link.added = True
 
 			if not link.added:
@@ -526,12 +529,15 @@ class Meta(Document):
 					label = link.group,
 					items = [link.link_doctype]
 				))
-
-			if link.link_fieldname != data.fieldname:
-				if data.fieldname:
-					data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
-				else:
-					data.fieldname = link.link_fieldname
+			
+			if not link.is_child_table:
+				if link.link_fieldname != data.fieldname:
+					if data.fieldname:
+						data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
+					else:
+						data.fieldname = link.link_fieldname
+			elif link.is_child_table:
+				data.internal_links[link.parent_doctype] = [link.table_fieldname, link.link_fieldname]
 
 
 	def get_row_template(self):
