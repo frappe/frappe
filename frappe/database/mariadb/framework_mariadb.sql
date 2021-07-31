@@ -220,6 +220,7 @@ CREATE TABLE `tabDocType` (
   `allow_guest_to_view` int(1) NOT NULL DEFAULT 0,
   `route` varchar(255) DEFAULT NULL,
   `is_published_field` varchar(255) DEFAULT NULL,
+  `website_search_field` varchar(255) DEFAULT NULL,
   `email_append_to` int(1) NOT NULL DEFAULT 0,
   `subject_field` varchar(255) DEFAULT NULL,
   `sender_field` varchar(255) DEFAULT NULL,

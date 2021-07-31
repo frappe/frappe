@@ -67,6 +67,7 @@
     "fast-glob": "^3.2.5",
     "launch-editor": "^2.2.1",
     "md5": "^2.3.0",
+    "rtlcss": "^3.2.1",
     "yargs": "^16.2.0"
   },
   "snyk": true
