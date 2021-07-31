@@ -7,7 +7,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	make_picker() {
 		this.set_date_options();
 		this.set_datepicker();
-		this.set_t_for_today();
+		this.set_hotkeys();
 	}
 	set_formatted_input(value) {
 		super.set_formatted_input(value);
@@ -114,21 +114,147 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	get_now_date() {
 		return frappe.datetime.now_date(true);
 	}
-	set_t_for_today() {
+	set_hotkeys() {
 		var me = this;
 		this.$input.on("keydown", function(e) {
-			if(e.which===84) { // 84 === t
-				if(me.df.fieldtype=='Date') {
-					me.set_value(frappe.datetime.nowdate());
-				} if(me.df.fieldtype=='Datetime') {
-					me.set_value(frappe.datetime.now_datetime());
-				} if(me.df.fieldtype=='Time') {
-					me.set_value(frappe.datetime.now_time());
+			// example: 't' pressed (keyCode 84)
+			// attempts to call function under me.hotkeys[84][<fieldtype>]
+			if (e.which in me.hotkeys) {
+				var keycode = e.which;
+				if (typeof me.hotkeys[keycode] == 'number') {
+					keycode = me.hotkeys[keycode]; // allows reusing of a key's event handler
 				}
-				return false;
+
+				if (me.df.fieldtype in me.hotkeys[keycode]) {
+					if (me.hotkeys[keycode][me.df.fieldtype] instanceof Function) {
+						me.hotkeys[keycode][me.df.fieldtype](me); // direct use
+					} else {
+						me.hotkeys[keycode][me.hotkeys[keycode][me.df.fieldtype]](me); // allows reusing of a key's event handler
+					}
+					return false;
+				}
 			}
 		});
 	}
+	
+	hotkeys = {
+		// Hotkey event handling=================
+		//
+		// // <keycode explanatory comment>
+		// <keyCode>: {
+		//		'<fieldtype>': function(control_instance) { ... }
+		//				OR
+		//		'<fieldtype>': '<other set fieldtype>'
+		// },
+		//
+		//				OR
+		//
+		// // <keycode explanatory comment>
+		// <keyCode>: <other set keyCode>,
+		//
+		//=======================================
+		// For reference:
+		// 		https://intuitglobal.intuit.com/iq/quickbooks/docs/QB_Shortcut_Keys.pdf under "Dates"
+		//=======================================
+		//
+		// 84 === 't' - (t)oday
+		84: {
+			'Date': function(control) {
+				control.set_value(frappe.datetime.nowdate());
+			},
+			'Datetime': function(control) {
+				control.set_value(frappe.datetime.now_datetime());
+			},
+			'Time': function(control) {
+				control.set_value(frappe.datetime.now_time());
+			}
+		},
+		// 89 === 'y' - First day of (y)ear
+		89: {
+			'Date': function(control) {
+				if (frappe.datetime.year_start_of(control.get_value()) === control.get_value()) {
+					control.set_value(frappe.datetime.subtract(control.get_value(), 1, "years"));
+				} else {
+					control.set_value(frappe.datetime.year_start_of(control.get_value()));
+				}
+			},
+			'Datetime': 'Date',
+		},
+		// 82 === 'r' - Last day of yea(r)
+		82: {
+			'Date': function(control) {
+				if (frappe.datetime.year_end_of(control.get_value()) === control.get_value()) {
+					control.set_value(frappe.datetime.add(control.get_value(), 1, "years"));
+				} else {
+					control.set_value(frappe.datetime.year_end_of(control.get_value()));
+				}
+			},
+			'Datetime': 'Date',
+		},
+		// 77 === 'm' - First day of (m)onth
+		77: {
+			'Date': function(control) {
+				if (frappe.datetime.month_start_of(control.get_value()) === control.get_value()) {
+					control.set_value(frappe.datetime.subtract(control.get_value(), 1, "months"));
+				} else {
+					control.set_value(frappe.datetime.month_start_of(control.get_value()));
+				}
+			},
+			'Datetime': 'Date',
+		},
+		// 72 === 'h' - Last day of mont(h)
+		72: {
+			'Date': function(control) {
+				if (frappe.datetime.month_end_of(control.get_value()) === control.get_value()) {
+					control.set_value(frappe.datetime.add(control.get_value(), 1, "months"));
+				} else {
+					control.set_value(frappe.datetime.month_end_of(control.get_value()));
+				}
+			},
+			'Datetime': 'Date',
+		},
+		// 87 === 'w' - First day of (w)eek
+		87: {
+			'Date': function(control) {
+				if (frappe.datetime.week_start_of(control.get_value()) === control.get_value()) {
+					control.set_value(frappe.datetime.subtract(control.get_value(), 1, "weeks"));
+				} else {
+					control.set_value(frappe.datetime.week_start_of(control.get_value()));
+				}
+			},
+			'Datetime': 'Date',
+		},
+		// 75 === 'k' - Last day of wee(k)
+		75: {
+			'Date': function(control) {
+				if (frappe.datetime.week_end_of(control.get_value()) === control.get_value()) {
+					control.set_value(frappe.datetime.add(control.get_value(), 1, "weeks"));
+				} else {
+					control.set_value(frappe.datetime.week_end_of(control.get_value()));
+				}
+			},
+			'Datetime': 'Date',
+		},
+		// 107 === numpad '+' - Next Day
+		107: {
+			'Date': function(control) {
+				control.set_value(frappe.datetime.add_days(control.get_value(), 1));
+			},
+			'Datetime': 'Date',
+		},
+		// 61 === '+'
+		61: 107,
+		// 109 === numpad '-' - Previous Day
+		109: {
+			'Date': function(control) {
+				control.set_value(frappe.datetime.subtract_days(control.get_value(), 1));
+			},
+			'Datetime': 'Date',
+		},
+		// 173 === '-'
+		173: 109,
+	};
+
 	parse(value) {
 		if(value) {
 			return frappe.datetime.user_to_str(value);

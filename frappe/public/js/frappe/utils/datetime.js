@@ -67,43 +67,83 @@ $.extend(frappe.datetime, {
 	},
 
 	add_days: function(d, days) {
-		return moment(d).add(days, "days").format();
+		return frappe.datetime.add(d, days, "days");
 	},
 
 	add_months: function(d, months) {
-		return moment(d).add(months, "months").format();
+		return frappe.datetime.add(d, months, "months");
+	},
+
+	add: function(d, qty, unit) {
+		return moment(d).add(qty, unit).format();
+	},
+
+	subtract: function(d, qty, unit) {
+		return moment(d).subtract(qty, unit).format();
 	},
 
 	week_start: function() {
-		return moment().startOf("week").format();
+		return frappe.datetime.week_start_of(null);
 	},
 
 	week_end: function() {
-		return moment().endOf("week").format();
+		return frappe.datetime.week_end_of(null);
+	},
+
+	week_start_of: function(d) {
+		return moment(d).startOf("week").format();
+	},
+
+	week_end_of: function(d) {
+		return moment(d).endOf("week").format();
 	},
 
 	month_start: function() {
-		return moment().startOf("month").format();
+		return frappe.datetime.month_start_of(null);
 	},
 
 	month_end: function() {
-		return moment().endOf("month").format();
+		return frappe.datetime.month_end_of(null);
+	},
+
+	month_start_of: function(d) {
+		return moment(d).startOf("month").format();
+	},
+
+	month_end_of: function(d) {
+		return moment(d).endOf("month").format();
 	},
 
 	quarter_start: function() {
-		return moment().startOf("quarter").format();
+		return frappe.datetime.quarter_end_of(null);
 	},
 
 	quarter_end: function() {
-		return moment().endOf("quarter").format();
+		return frappe.datetime.quarter_end_of(null);
 	},
 
-	year_start: function(){
-		return moment().startOf("year").format();
+	quarter_start_of: function(d) {
+		return moment(d).startOf("quarter").format();
 	},
 
-	year_end: function(){
-		return moment().endOf("year").format();
+	quarter_end_of: function(d) {
+		return moment(d).endOf("quarter").format();
+	},
+
+	year_start: function() {
+		return frappe.datetime.year_start_of(null);
+	},
+
+	year_end: function() {
+		return frappe.datetime.year_end_of(null);
+	},
+
+	year_start_of: function(d) {
+		return moment(d).startOf("year").format();
+	},
+
+	year_end_of: function(d) {
+		return moment(d).endOf("year").format();
 	},
 
 	get_user_time_fmt: function() {
