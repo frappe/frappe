@@ -1,12 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
-from six import iteritems, text_type, string_types, PY2
-
-from frappe.utils import cstr
-
 """
 	frappe.translate
 	~~~~~~~~~~~~~~~~
@@ -14,67 +7,104 @@ from frappe.utils import cstr
 	Translation tools for frappe
 """
 
-import frappe, os, re, io, codecs, json
-from frappe.model.utils import render_include, InvalidIncludePath
-from frappe.utils import strip, strip_html_tags, is_html
-import itertools, operator
+import io
+import itertools
+import json
+import operator
+import functools
+import os
+import re
+from csv import reader
+from typing import List, Union, Tuple
 
-def guess_language(lang_list=None):
-	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
-	user_preferred_language = frappe.request.cookies.get('preferred_language')
-	is_guest_user = not frappe.session.user or frappe.session.user == 'Guest'
-	if is_guest_user and user_preferred_language:
-		return user_preferred_language
+import frappe
+from frappe.model.utils import InvalidIncludePath, render_include
+from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
 
-	lang_codes = frappe.request.accept_languages.values()
-	if not lang_codes:
-		return frappe.local.lang
 
-	guess = None
-	if not lang_list:
-		lang_list = get_all_languages() or []
+def get_language(lang_list: List = None) -> str:
+	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
-	for l in lang_codes:
-		code = l.strip()
-		if not isinstance(code, text_type):
-			code = text_type(code, 'utf-8')
-		if code in lang_list or code == "en":
-			guess = code
-			break
+	Order of priority for setting language:
+	1. Form Dict => _lang
+	2. Cookie => preferred_language
+	3. Request Header => Accept-Language
+	4. User document => language
+	5. System Settings => language
+	"""
 
-		# check if parent language (pt) is setup, if variant (pt-BR)
-		if "-" in code:
-			code = code.split("-")[0]
-			if code in lang_list:
-				guess = code
-				break
+	# fetch language from form_dict
+	if frappe.form_dict._lang:
+		language = get_lang_code(
+			frappe.form_dict._lang or get_parent_language(frappe.form_dict._lang)
+		)
+		if language:
+			return language
 
-	return guess or frappe.local.lang
+	lang_set = set(lang_list or get_all_languages() or [])
 
-def get_user_lang(user=None):
+	# fetch language from cookie
+	preferred_language_cookie = get_preferred_language_cookie()
+
+	if preferred_language_cookie:
+		if preferred_language_cookie in lang_set:
+			return preferred_language_cookie
+
+		parent_language = get_parent_language(language)
+		if parent_language in lang_set:
+			return parent_language
+
+	# fetch language from request headers
+	accept_language = list(frappe.request.accept_languages.values())
+
+	for language in accept_language:
+		if language in lang_set:
+			return language
+
+		parent_language = get_parent_language(language)
+		if parent_language in lang_set:
+			return parent_language
+
+	# fallback to language set in User or System Settings
+	return frappe.local.lang
+
+
+@functools.lru_cache()
+def get_parent_language(lang: str) -> str:
+	"""If the passed language is a variant, return its parent
+
+	Eg:
+		1. zh-TW -> zh
+		2. sr-BA -> sr
+	"""
+	is_language_variant = "-" in lang
+	if is_language_variant:
+		return lang[:lang.index("-")]
+
+
+def get_user_lang(user: str = None) -> str:
 	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
-	if not user:
-		user = frappe.session.user
-
-	# via cache
+	user = user or frappe.session.user
 	lang = frappe.cache().hget("lang", user)
 
 	if not lang:
-
-		# if defined in user profile
-		lang = frappe.db.get_value("User", user, "language")
-		if not lang:
-			lang = frappe.db.get_default("lang")
-
-		if not lang:
-			lang = frappe.local.lang or 'en'
+		# User.language => Session Defaults => frappe.local.lang => 'en'
+		lang = (
+			frappe.db.get_value("User", user, "language")
+			or frappe.db.get_default("lang")
+			or frappe.local.lang
+			or "en"
+		)
 
 		frappe.cache().hset("lang", user, lang)
 
 	return lang
 
-def get_lang_code(lang):
-	return frappe.db.get_value('Language', {'language_name': lang}) or lang
+def get_lang_code(lang: str) -> Union[str, None]:
+	return (
+		frappe.db.get_value("Language", {"name": lang})
+		or frappe.db.get_value("Language", {"language_name": lang})
+	)
 
 def set_default_language(lang):
 	"""Set Global default language"""
@@ -127,7 +157,7 @@ def get_dict(fortype, name=None):
 		message_dict = make_dict_from_messages(messages, load_user_translation=False)
 		message_dict.update(get_dict_from_hooks(fortype, name))
 		# remove untranslated
-		message_dict = {k:v for k, v in iteritems(message_dict) if k!=v}
+		message_dict = {k: v for k, v in message_dict.items() if k!=v}
 		translation_assets[asset_key] = message_dict
 		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
@@ -283,8 +313,8 @@ def clear_cache():
 def get_messages_for_app(app, deduplicate=True):
 	"""Returns all messages (list) for a specified `app`"""
 	messages = []
-	modules = ", ".join(['"{}"'.format(m.title().replace("_", " ")) \
-		for m in frappe.local.app_modules[app]])
+	modules = ", ".join('"{}"'.format(m.title().replace("_", " ")) \
+		for m in frappe.local.app_modules[app])
 
 	# doctypes
 	if modules:
@@ -389,7 +419,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 	else:
 		fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
 		for fixture in fixtures:
-			if isinstance(fixture, string_types) and fixture == 'Worflow':
+			if isinstance(fixture, str) and fixture == 'Worflow':
 				workflows = frappe.get_all('Workflow')
 				break
 			elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Workflow':
@@ -425,7 +455,7 @@ def get_messages_from_custom_fields(app_name):
 	custom_fields = []
 
 	for fixture in fixtures:
-		if isinstance(fixture, string_types) and fixture == 'Custom Field':
+		if isinstance(fixture, str) and fixture == 'Custom Field':
 			custom_fields = frappe.get_all('Custom Field', fields=['name','label', 'description', 'fieldtype', 'options'])
 			break
 		elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Custom Field':
@@ -528,7 +558,7 @@ def get_all_messages_from_js_files(app_name=None):
 
 	return messages
 
-def get_messages_from_file(path):
+def get_messages_from_file(path: str) -> List[Tuple[str, str, str, str]]:
 	"""Returns a list of transatable strings from a code file
 
 	:param path: path of the code file
@@ -541,7 +571,7 @@ def get_messages_from_file(path):
 
 	frappe.flags.scanned_files.append(path)
 
-	apps_path = get_bench_dir()
+	bench_path = get_bench_path()
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
 			try:
@@ -549,11 +579,12 @@ def get_messages_from_file(path):
 			except Exception:
 				print("Could not scan file for translation: {0}".format(path))
 				return []
-			data = [(os.path.relpath(path, apps_path), message, context, line) \
-				for line, message, context in extract_messages_from_code(file_contents)]
-			return data
+
+			return [
+				(os.path.relpath(path, bench_path), message, context, line)
+				for (line, message, context) in extract_messages_from_code(file_contents)
+			]
 	else:
-		# print "Translate: {0} missing".format(os.path.abspath(path))
 		return []
 
 def extract_messages_from_code(code):
@@ -595,7 +626,7 @@ def is_translatable(m):
 def add_line_number(messages, code):
 	ret = []
 	messages = sorted(messages, key=lambda x: x[0])
-	newlines = [m.start() for m in re.compile('\\n').finditer(code)]
+	newlines = [m.start() for m in re.compile(r'\n').finditer(code)]
 	line = 1
 	newline_i = 0
 	for pos, message, context in messages:
@@ -609,20 +640,11 @@ def read_csv_file(path):
 	"""Read CSV file and return as list of list
 
 	:param path: File path"""
-	from csv import reader
 
-	if PY2:
-		with codecs.open(path, 'r', 'utf-8') as msgfile:
-			data = msgfile.read()
+	with io.open(path, mode='r', encoding='utf-8', newline='') as msgfile:
+		data = reader(msgfile)
+		newdata = [[val for val in row] for row in data]
 
-			# for japanese! #wtf
-			data = data.replace(chr(28), "").replace(chr(29), "")
-			data = reader([r.encode('utf-8') for r in data.splitlines()])
-			newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
-	else:
-		with io.open(path, mode='r', encoding='utf-8', newline='') as msgfile:
-			data = reader(msgfile)
-			newdata = [[ val for val in row ] for row in data]
 	return newdata
 
 def write_csv_file(path, app_messages, lang_dict):
@@ -776,9 +798,6 @@ def deduplicate_messages(messages):
 		ret.append(next(g))
 	return ret
 
-def get_bench_dir():
-	return os.path.join(frappe.__file__, '..', '..', '..', '..')
-
 def rename_language(old_name, new_name):
 	if not frappe.db.exists('Language', new_name):
 		return
@@ -812,7 +831,7 @@ def update_translations_for_source(source=None, translation_dict=None):
 			frappe.delete_doc('Translation', d.name)
 
 	# remaining values are to be inserted
-	for lang, translated_text in iteritems(translation_dict):
+	for lang, translated_text in translation_dict.items():
 		doc = frappe.new_doc('Translation')
 		doc.language = lang
 		doc.source_text = source
@@ -887,3 +906,6 @@ def get_all_languages(with_language_name=False):
 @frappe.whitelist(allow_guest=True)
 def set_preferred_language_cookie(preferred_language):
 	frappe.local.cookie_manager.set_cookie("preferred_language", preferred_language)
+
+def get_preferred_language_cookie():
+	return frappe.request.cookies.get("preferred_language")

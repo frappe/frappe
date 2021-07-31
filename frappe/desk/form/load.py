@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe, json
 import frappe.utils
 import frappe.share
@@ -11,7 +10,7 @@ from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.desk.form.document_follow import is_document_followed
 from frappe import _
-from six.moves.urllib.parse import quote
+from urllib.parse import quote
 
 @frappe.whitelist(allow_guest=True)
 def getdoc(doctype, name, user=None):

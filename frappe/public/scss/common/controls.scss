@@ -166,6 +166,9 @@ select.form-control {
 	.ace_print-margin {
 		background-color: var(--dark-border-color);
 	}
+	.ace_scrollbar {
+		z-index: 3;
+	}
 }
 
 .frappe-control[data-fieldtype="Attach"],
@@ -241,12 +244,31 @@ textarea.form-control {
 
 // rating
 .rating {
+	cursor: pointer;
 	--star-fill: var(--gray-300);
 	.star-hover {
 		--star-fill: var(--yellow-100);
 	}
 	.star-click {
 		--star-fill: var(--yellow-300);
+	}
+
+	.rating-box {
+		background-color: var(--gray-300);
+		border-radius: 5px;
+		font-size: 14px;
+		text-align: center;
+		padding: 2px;
+		cursor: pointer;
+		width: 25px;
+		height: 25px;
+		margin: 4px 2px;
+	}
+	.rating-hover {
+		background-color: var(--yellow-100);
+	}
+	.rating-click {
+		background-color: var(--yellow-300);
 	}
 }
 

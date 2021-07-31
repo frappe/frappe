@@ -5,7 +5,7 @@
 		{% } %}
 			<div class="col-md-4">
 				<div class="form-link-title">
-					<span>{{ reports[i].label }}</span>
+					<span>{{ __(reports[i].label) }}</span>
 				</div>
 				{% for (let j=0; j < reports[i].items.length; j++) { %}
 					{% let report = reports[i].items[j]; %}

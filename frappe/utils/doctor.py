@@ -1,10 +1,8 @@
-from __future__ import unicode_literals, print_function
 import frappe.utils
 from collections import defaultdict
 from rq import Worker, Connection
 from frappe.utils.background_jobs import get_redis_conn, get_queue, get_queue_list
 from frappe.utils.scheduler import is_scheduler_disabled, is_scheduler_inactive
-from six import iteritems
 
 
 def get_workers():
@@ -130,7 +128,7 @@ def doctor(site=None):
 			print("Queue:", queue)
 			print("Number of Jobs: ", job_count[queue])
 			print("Methods:")
-			for method, count in iteritems(jobs_per_queue[queue]):
+			for method, count in jobs_per_queue[queue].items():
 				print("{0} : {1}".format(method, count))
 			print("------------")
 

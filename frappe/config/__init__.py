@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-import json
-from six import iteritems
 import frappe
 from frappe import _
 from frappe.desk.moduleview import (get_data, get_onboard_items, config_exists, get_module_link_items_from_list)
@@ -42,18 +39,13 @@ def get_modules_from_app(app):
 	)
 
 def get_all_empty_tables_by_module():
-	empty_tables = set(r[0] for r in frappe.db.multisql({
-		"mariadb": """
-			SELECT table_name
-			FROM information_schema.tables
-			WHERE table_rows = 0 and table_schema = "{}"
-			""".format(frappe.conf.db_name),
-		"postgres": """
-			SELECT "relname" as "table_name"
-			FROM "pg_stat_all_tables"
-			WHERE n_tup_ins = 0
-		"""
-	}))
+	table_rows = frappe.qb.Field("table_rows")
+	table_name = frappe.qb.Field("table_name")
+	information_schema = frappe.qb.Schema("information_schema")
+
+	query = frappe.qb.from_(information_schema.tables).select(table_name).where(table_rows == 0)
+
+	empty_tables = {r[0] for r in frappe.db.sql(query)}
 
 	results = frappe.get_all("DocType", fields=["name", "module"])
 	empty_tables_by_module = {}

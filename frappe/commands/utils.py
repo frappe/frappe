@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import json
 import os
 import subprocess
@@ -12,6 +10,13 @@ import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import get_bench_path, update_progress_bar, cint
+
+
+DATA_IMPORT_DEPRECATION = click.style(
+	"[DEPRECATED] The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
+	"Use `data-import` command instead to import data via 'Data Import'.",
+	fg="yellow"
+)
 
 
 @click.command('build')
@@ -69,14 +74,14 @@ def watch(apps=None):
 def clear_cache(context):
 	"Clear cache, doctype cache and defaults"
 	import frappe.sessions
-	import frappe.website.render
+	from frappe.website.utils import clear_website_cache
 	from frappe.desk.notifications import clear_notifications
 	for site in context.sites:
 		try:
 			frappe.connect(site)
 			frappe.clear_cache()
 			clear_notifications()
-			frappe.website.render.clear_cache()
+			clear_website_cache()
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -86,12 +91,12 @@ def clear_cache(context):
 @pass_context
 def clear_website_cache(context):
 	"Clear website cache"
-	import frappe.website.render
+	from frappe.website.utils import clear_website_cache
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.website.render.clear_cache()
+			clear_website_cache()
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -222,7 +227,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 
 			if profile:
 				import pstats
-				from six import StringIO
+				from io import StringIO
 
 				pr.disable()
 				s = StringIO()
@@ -350,7 +355,8 @@ def import_doc(context, path, force=False):
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
-@click.command('import-csv')
+
+@click.command('import-csv', help=DATA_IMPORT_DEPRECATION)
 @click.argument('path')
 @click.option('--only-insert', default=False, is_flag=True, help='Do not overwrite existing records')
 @click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
@@ -358,32 +364,8 @@ def import_doc(context, path, force=False):
 @click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
-	"Import CSV using data import"
-	from frappe.core.doctype.data_import_legacy import importer
-	from frappe.utils.csvutils import read_csv_content
-	site = get_site(context)
-
-	if not os.path.exists(path):
-		path = os.path.join('..', path)
-	if not os.path.exists(path):
-		print('Invalid path {0}'.format(path))
-		sys.exit(1)
-
-	with open(path, 'r') as csvfile:
-		content = read_csv_content(csvfile.read())
-
-	frappe.init(site=site)
-	frappe.connect()
-
-	try:
-		importer.upload(content, submit_after_import=submit_after_import, no_email=no_email,
-			ignore_encoding_errors=ignore_encoding_errors, overwrite=not only_insert,
-			via_console=True)
-		frappe.db.commit()
-	except Exception:
-		print(frappe.get_traceback())
-
-	frappe.destroy()
+	click.secho(DATA_IMPORT_DEPRECATION)
+	sys.exit(1)
 
 
 @click.command('data-import')
@@ -569,25 +551,16 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 	if coverage:
 		from coverage import Coverage
+		from frappe.coverage import STANDARD_INCLUSIONS, STANDARD_EXCLUSIONS, FRAPPE_EXCLUSIONS
 
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		omit=[
-			'*.html',
-			'*.js',
-			'*.xml',
-			'*.css',
-			'*.less',
-			'*.scss',
-			'*.vue',
-			'*/doctype/*/*_dashboard.py',
-			'*/patches/*'
-		]
+		omit = STANDARD_EXCLUSIONS[:]
 
 		if not app or app == 'frappe':
-			omit.append('*/commands/*')
+			omit.extend(FRAPPE_EXCLUSIONS)
 
-		cov = Coverage(source=[source_path], omit=omit)
+		cov = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
@@ -654,7 +627,7 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
 
 	# run for headless mode
-	run_or_open = 'run --browser firefox --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
+	run_or_open = 'run --browser firefox --record' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
 
@@ -760,22 +733,49 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 			frappe.destroy()
 
 
-@click.command('version')
-def get_version():
-	"Show the versions of all the installed apps"
+@click.command("version")
+@click.option("-f", "--format", "output",
+	type=click.Choice(["plain", "table", "json", "legacy"]), help="Output format", default="legacy")
+def get_version(output):
+	"""Show the versions of all the installed apps."""
+	from git import Repo
+	from frappe.utils.commands import render_table
 	from frappe.utils.change_log import get_app_branch
-	frappe.init('')
 
-	for m in sorted(frappe.get_all_apps()):
-		branch_name = get_app_branch(m)
-		module = frappe.get_module(m)
-		app_hooks = frappe.get_module(m + ".hooks")
+	frappe.init("")
+	data = []
 
-		if hasattr(app_hooks, '{0}_version'.format(branch_name)):
-			print("{0} {1}".format(m, getattr(app_hooks, '{0}_version'.format(branch_name))))
+	for app in sorted(frappe.get_all_apps()):
+		module = frappe.get_module(app)
+		app_hooks = frappe.get_module(app + ".hooks")
+		repo = Repo(frappe.get_app_path(app, ".."))
 
-		elif hasattr(module, "__version__"):
-			print("{0} {1}".format(m, module.__version__))
+		app_info = frappe._dict()
+		app_info.app = app
+		app_info.branch = get_app_branch(app)
+		app_info.commit = repo.head.object.hexsha[:7]
+		app_info.version = getattr(app_hooks, f"{app_info.branch}_version", None) or module.__version__
+
+		data.append(app_info)
+
+	{
+		"legacy": lambda: [
+			click.echo(f"{app_info.app} {app_info.version}")
+			for app_info in data
+		],
+		"plain": lambda: [
+			click.echo(f"{app_info.app} {app_info.version} {app_info.branch} ({app_info.commit})")
+			for app_info in data
+		],
+		"table": lambda: render_table(
+			[["App", "Version", "Branch", "Commit"]] +
+			[
+				[app_info.app, app_info.version, app_info.branch, app_info.commit]
+				for app_info in data
+			]
+		),
+		"json": lambda: click.echo(json.dumps(data, indent=4)),
+	}[output]()
 
 
 @click.command('rebuild-global-search')
