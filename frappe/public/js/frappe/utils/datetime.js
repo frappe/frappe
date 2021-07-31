@@ -70,6 +70,10 @@ $.extend(frappe.datetime, {
 		return frappe.datetime.add(d, days, "days");
 	},
 
+	subtract_days: function(d, days) {
+		return moment(d).subtract(days, "days").format();
+	},
+
 	add_months: function(d, months) {
 		return frappe.datetime.add(d, months, "months");
 	},
@@ -80,6 +84,10 @@ $.extend(frappe.datetime, {
 
 	subtract: function(d, qty, unit) {
 		return moment(d).subtract(qty, unit).format();
+	},
+
+	subtract_months: function(d, months) {
+		return moment(d).subtract(months, "months").format();
 	},
 
 	week_start: function() {

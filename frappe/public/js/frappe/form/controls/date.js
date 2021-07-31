@@ -172,7 +172,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		// 89 === 'y' - First day of (y)ear
 		89: {
 			'Date': function(control) {
-				if (frappe.datetime.year_start_of(control.get_value()) === control.get_value()) {
+				if (frappe.datetime.get_diff(frappe.datetime.year_start_of(control.get_value()), control.get_value()) === 0) {
 					control.set_value(frappe.datetime.subtract(control.get_value(), 1, "years"));
 				} else {
 					control.set_value(frappe.datetime.year_start_of(control.get_value()));
@@ -183,8 +183,8 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		// 82 === 'r' - Last day of yea(r)
 		82: {
 			'Date': function(control) {
-				if (frappe.datetime.year_end_of(control.get_value()) === control.get_value()) {
-					control.set_value(frappe.datetime.add(control.get_value(), 1, "years"));
+				if (frappe.datetime.get_diff(frappe.datetime.year_end_of(control.get_value()), control.get_value()) === 0) {
+					control.set_value(frappe.datetime.add(control.get_value(), 1, "year"));
 				} else {
 					control.set_value(frappe.datetime.year_end_of(control.get_value()));
 				}
@@ -194,7 +194,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		// 77 === 'm' - First day of (m)onth
 		77: {
 			'Date': function(control) {
-				if (frappe.datetime.month_start_of(control.get_value()) === control.get_value()) {
+				if (frappe.datetime.get_diff(frappe.datetime.month_start_of(control.get_value()), control.get_value()) === 0) {
 					control.set_value(frappe.datetime.subtract(control.get_value(), 1, "months"));
 				} else {
 					control.set_value(frappe.datetime.month_start_of(control.get_value()));
@@ -205,7 +205,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		// 72 === 'h' - Last day of mont(h)
 		72: {
 			'Date': function(control) {
-				if (frappe.datetime.month_end_of(control.get_value()) === control.get_value()) {
+				if (frappe.datetime.get_diff(frappe.datetime.month_end_of(control.get_value()), control.get_value()) === 0) {
 					control.set_value(frappe.datetime.add(control.get_value(), 1, "months"));
 				} else {
 					control.set_value(frappe.datetime.month_end_of(control.get_value()));
@@ -216,7 +216,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		// 87 === 'w' - First day of (w)eek
 		87: {
 			'Date': function(control) {
-				if (frappe.datetime.week_start_of(control.get_value()) === control.get_value()) {
+				if (frappe.datetime.get_diff(frappe.datetime.week_start_of(control.get_value()), control.get_value()) === 0) {
 					control.set_value(frappe.datetime.subtract(control.get_value(), 1, "weeks"));
 				} else {
 					control.set_value(frappe.datetime.week_start_of(control.get_value()));
@@ -227,7 +227,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		// 75 === 'k' - Last day of wee(k)
 		75: {
 			'Date': function(control) {
-				if (frappe.datetime.week_end_of(control.get_value()) === control.get_value()) {
+				if (frappe.datetime.get_diff(frappe.datetime.week_end_of(control.get_value()), control.get_value()) === 0) {
 					control.set_value(frappe.datetime.add(control.get_value(), 1, "weeks"));
 				} else {
 					control.set_value(frappe.datetime.week_end_of(control.get_value()));
