@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import unittest
 from random import choice
+import datetime
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
@@ -47,11 +48,35 @@ class TestDB(unittest.TestCase):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
 
 	def test_get_single_value(self):
-		frappe.db.set_value('System Settings', 'System Settings', 'backup_limit', 5)
-		frappe.db.commit()
+		#setup
+		values_dict = {
+			"Float": 1.5,
+			"Int": 1,
+			"Percent": 55.5,
+			"Currency": 12.5,
+			"Data": "Test",
+			"Date": datetime.datetime.now().date(),
+			"Datetime": datetime.datetime.now(),
+			"Time": datetime.timedelta(hours=9, minutes=45, seconds=10)
+		}
+		test_inputs = [{
+			"fieldtype": fieldtype,
+			"value": value} for fieldtype, value in values_dict.items()]
+		for fieldtype in values_dict.keys():
+			create_custom_field("Print Settings", {
+				"fieldname": f"test_{fieldtype.lower()}",
+				"label": f"Test {fieldtype}",
+				"fieldtype": fieldtype,
+			})
 
-		limit = frappe.db.get_single_value('System Settings', 'backup_limit')
-		self.assertEqual(limit, 5)
+		#test
+		for inp in test_inputs:
+			fieldname = f"test_{inp['fieldtype'].lower()}"
+			frappe.db.set_value("Print Settings", "Print Settings", fieldname, inp["value"])
+			self.assertEqual(frappe.db.get_single_value("Print Settings", fieldname), inp["value"])
+
+		#teardown 
+		clear_custom_fields("Print Settings")
 
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
@@ -134,29 +159,29 @@ class TestDB(unittest.TestCase):
 
 		# Testing read
 		self.assertEqual(list(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])[0], random_field)
-		self.assertEqual(list(frappe.get_all("ToDo", fields=["`{0}` as total".format(random_field)], limit=1)[0])[0], "total")
+		self.assertEqual(list(frappe.get_all("ToDo", fields=[f"`{random_field}` as total"], limit=1)[0])[0], "total")
 
 		# Testing read for distinct and sql functions
 		self.assertEqual(list(
 			frappe.get_all("ToDo",
-				fields=["`{0}` as total".format(random_field)],
+				fields=[f"`{random_field}` as total"],
 				distinct=True,
 				limit=1,
 			)[0]
 		)[0], "total")
 		self.assertEqual(list(
 			frappe.get_all("ToDo",
-			fields=["`{0}`".format(random_field)],
+			fields=[f"`{random_field}`"],
 			distinct=True,
 			limit=1,
 			)[0]
 		)[0], random_field)
 		self.assertEqual(list(
 			frappe.get_all("ToDo",
-				fields=["count(`{0}`)".format(random_field)],
+				fields=[f"count(`{random_field}`)"],
 				limit=1
 			)[0]
-		)[0], "count" if frappe.conf.db_type == "postgres" else "count(`{0}`)".format(random_field))
+		)[0], "count" if frappe.conf.db_type == "postgres" else f"count(`{random_field}`)")
 
 		# Testing update
 		frappe.db.set_value(test_doctype, random_doc, random_field, random_value)

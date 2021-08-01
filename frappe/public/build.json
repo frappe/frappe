@@ -83,11 +83,6 @@
 		"node_modules/plyr/dist/plyr.css",
 		"public/scss/desk.scss"
 	],
-	"css/frappe-rtl.css": [
-		"public/css/bootstrap-rtl.css",
-		"public/css/desk-rtl.css",
-		"public/css/report-rtl.css"
-	],
 	"css/printview.css": [
 		"public/css/bootstrap.css",
 		"public/scss/print.scss"
