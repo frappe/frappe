@@ -15,6 +15,7 @@ export default class FileUploader {
 		allow_multiple,
 		as_dataurl,
 		disable_file_browser,
+		attach_doc_image,
 		frm
 	} = {}) {
 
@@ -24,6 +25,12 @@ export default class FileUploader {
 			this.make_dialog();
 		} else {
 			this.wrapper = wrapper.get ? wrapper.get(0) : wrapper;
+		}
+
+		if (attach_doc_image) {
+			disable_file_browser = true;
+			restrictions.allowed_file_types = ['.jpg', '.png'];
+			this.dialog && this.dialog.footer.addClass('hide');
 		}
 
 		this.$fileuploader = new Vue({
@@ -42,6 +49,7 @@ export default class FileUploader {
 					allow_multiple,
 					as_dataurl,
 					disable_file_browser,
+					attach_doc_image,
 				}
 			})
 		});
@@ -54,6 +62,21 @@ export default class FileUploader {
 				this.dialog.set_secondary_action_label(all_private ? __('Set all public') : __('Set all private'));
 			}
 		}, { deep: true });
+
+		this.uploader.$watch('trigger_upload', (trigger_upload) => {
+			if (trigger_upload) {
+				this.upload_files();
+			}
+		});
+
+		this.uploader.$watch('hide_dialog_footer', (hide_dialog_footer) => {
+			if (hide_dialog_footer) {
+				this.dialog && this.dialog.footer.addClass('hide');
+			}
+			else {
+				this.dialog && this.dialog.footer.removeClass('hide');
+			}
+		});
 
 		if (files && files.length) {
 			this.uploader.add_files(files);

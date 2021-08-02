@@ -40,7 +40,10 @@
 			/>
 			<div v-if="uploaded" v-html="frappe.utils.icon('solid-success', 'lg')"></div>
 			<div v-if="file.failed" v-html="frappe.utils.icon('solid-red', 'lg')"></div>
-			<button v-if="!uploaded && !file.uploading" class="btn" @click="$emit('remove')" v-html="frappe.utils.icon('delete', 'md')"></button>
+			<div class="file-action-buttons">
+				<button v-if="is_cropable" class="btn muted" @click="$emit('toggle_image_cropper')" v-html="frappe.utils.icon('crop', 'md')"></button>
+				<button v-if="!uploaded && !file.uploading" class="btn muted" @click="$emit('remove')" v-html="frappe.utils.icon('delete', 'md')"></button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -88,6 +91,10 @@ export default {
 		},
 		is_image() {
 			return this.file.file_obj.type.startsWith('image');
+		},
+		is_cropable() {
+			let croppable_types = ['image/jpeg', 'image/png'];
+			return !this.uploaded && !this.file.uploading && croppable_types.includes(this.file.file_obj.type);
 		},
 		progress() {
 			let value = Math.round((this.file.progress * 100) / this.file.total);
@@ -172,5 +179,19 @@ export default {
 .file-actions .btn {
 	padding: var(--padding-xs);
 	box-shadow: none;
+}
+
+.file-action-buttons {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.muted {
+	opacity: 0.5;
+	transition: 0.3s;
+}
+
+.muted:hover {
+	opacity: 1;
 }
 </style>

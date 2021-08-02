@@ -699,4 +699,10 @@
 		<path d="M7.971 8.259a1.305 1.305 0 100-2.61 1.305 1.305 0 000 2.61z"></path>
 		</g>
 	</symbol>
+	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-crop">
+		<path d="M23.5 18.07 5.86 18.07 5.86 0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+		<line x1="18.14" y1="18.07" x2="18.14" y2="23.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M8.71 5.93 18.14 5.93 18.14 15.38" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+		<line x1="0.5" y1="5.93" x2="5.86" y2="5.93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
 </svg>
