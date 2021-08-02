@@ -66,7 +66,7 @@ frappe.ui.form.on('DocType', {
 	autoname: function(frm) {
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	}
-})
+});
 
 frappe.ui.form.on("DocField", {
 	form_render(frm, doctype, docname) {
@@ -143,7 +143,7 @@ frappe.ui.form.on("DocField", {
 			});
 		}
 
-		$field_select.on("change", e => {
+		$field_select.on("change", () => {
 			let fetch_from = `${$doctype_select.val()}.${$field_select.val()}`;
 			row.fetch_from = fetch_from;
 			frm.dirty();
