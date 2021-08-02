@@ -927,9 +927,12 @@ def validate_fields(meta):
 	def check_website_search_field(meta):
 		if not meta.website_search_field:
 			return
-
+			
 		if meta.website_search_field not in fieldname_list:
 			frappe.throw(_("Website Search Field must be a valid fieldname"), InvalidFieldNameError)
+		if not 'title' in fieldname_list:
+			frappe.throw(_('Field "title" is mandatory if "Website Search Field" is set.'), title='Missing Field')
+
 
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
