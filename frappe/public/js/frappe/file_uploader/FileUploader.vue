@@ -478,6 +478,10 @@ export default {
 					form_data.append('method', this.method);
 				}
 
+				if (this.attach_doc_image) {
+					form_data.append('optimize', true);
+				}
+
 				xhr.send(form_data);
 			});
 		},

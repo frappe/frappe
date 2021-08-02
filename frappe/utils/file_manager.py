@@ -11,7 +11,7 @@ from frappe import _
 from frappe import conf
 from copy import copy
 from urllib.parse import unquote
-
+from frappe.utils.image import optimize_image
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
@@ -386,6 +386,15 @@ def extract_images_from_html(doc, content):
 		data = match.group(1)
 		data = data.split("data:")[1]
 		headers, content = data.split(",")
+		mtype = headers.split(";")[0]
+
+		if isinstance(content, str):
+			content = content.encode("utf-8")
+		if b"," in content:
+			content = content.split(b",")[1]
+		content = base64.b64decode(content)
+		
+		content = optimize_image(content, mtype)
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
@@ -394,7 +403,6 @@ def extract_images_from_html(doc, content):
 			if not isinstance(filename, str):
 				filename = str(filename, 'utf-8')
 		else:
-			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
 
 		doctype = doc.parenttype if doc.parent else doc.doctype
@@ -405,7 +413,7 @@ def extract_images_from_html(doc, content):
 			name = doc.reference_name
 
 		# TODO fix this
-		file_url = save_file(filename, content, doctype, name, decode=True).get("file_url")
+		file_url = save_file(filename, content, doctype, name, decode=False).get("file_url")
 		if not frappe.flags.has_dataurl:
 			frappe.flags.has_dataurl = True
 
