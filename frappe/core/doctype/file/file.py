@@ -712,7 +712,7 @@ def get_web_image(file_url):
 	try:
 		image = Image.open(StringIO(frappe.safe_decode(r.content)))
 	except:
-		frappe.throw(_("Image link {0} is not valid").format(file_url), IOError)
+		frappe.throw(_("Image link '{0}' is not valid").format(file_url), IOError)
 
 	try:
 		filename, extn = file_url.rsplit("/", 1)[1].rsplit(".", 1)
