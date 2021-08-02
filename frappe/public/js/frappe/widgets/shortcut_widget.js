@@ -63,6 +63,8 @@ export default class ShortcutWidget extends Widget {
 		let count_filter = [];
 
 		if (this.stats_filter) {
+			// converting json string to an array to support multiple filter of same field
+			// e.g status: ['!=', 'Open'], status: ['!=', 'Replied'] 
 			let filters = this.stats_filter.replace(/]/gi, "]~").split("~,").map(e => e.replace(/([{}~])/gi, "").trim());
 			filters.forEach((arr) => {
 				let filter = `{ ${arr} }`;

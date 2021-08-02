@@ -74,6 +74,8 @@ class WidgetDialog {
 
 		this.filters = [];
 
+		// converting json string to an array to support multiple filter of same field
+		// e.g status: ['!=', 'Open'], status: ['!=', 'Replied'] 
 		if (this.values && this.values.stats_filter) {
 			let filters = this.values.stats_filter.replace(/]/gi, "]~").split("~,").map(e => e.replace(/([{}~])/gi, "").trim());
 			filters.forEach((arr) => {
