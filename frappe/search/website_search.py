@@ -95,8 +95,12 @@ def slugs_with_web_view(_items_to_index):
 
 	for doctype in doctype_with_web_views:
 		if doctype.is_published_field:
-			docs = frappe.get_all(doctype.name, filters={doctype.is_published_field: 1}, fields=["route", doctype.website_search_field, 'title'])
 			if doctype.website_search_field:
+				docs = frappe.get_all(
+					doctype.name,
+					filters={doctype.is_published_field: 1},
+					fields=["route", doctype.website_search_field, 'title']
+				)
 				for doc in docs:
 					content = frappe.utils.md_to_html(getattr(doc, doctype.website_search_field))
 					soup = BeautifulSoup(content, "html.parser")
