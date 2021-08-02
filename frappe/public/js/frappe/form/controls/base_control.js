@@ -162,9 +162,7 @@ frappe.ui.form.Control = class BaseControl {
 		let force_value_set = (this.doc && this.doc.__run_link_triggers);
 		let model_value = this.get_model_value();
 
-		if (this.df && this.df.fieldtype == 'Datetime') {
-			model_value = frappe.datetime.get_datetime_as_string(model_value);
-		}
+		model_value = this.parse_model_value && this.parse_model_value(model_value);
 
 		let is_value_same = (model_value === value);
 

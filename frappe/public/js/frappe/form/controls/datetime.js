@@ -36,4 +36,8 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			$tp.$secondsText.prev().css('display', 'none');
 		}
 	}
+
+	parse_model_value(value) {
+		return frappe.datetime.get_datetime_as_string(value);
+	}
 };
