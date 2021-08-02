@@ -170,7 +170,18 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				strict=False)
 
 			if doctype in UNTRANSLATED_DOCTYPES:
-				values = tuple([v for v in list(values) if re.search(re.escape(txt)+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
+				# Filtering the values array so that query is included in very element
+				values = (
+					v for v in values
+					if re.search(
+						f"{re.escape(txt)}.*", _(v.name if as_dict else v[0]), re.IGNORECASE
+					)
+				)
+
+			# Sorting the values array so that relevant results always come first
+			# This will first bring elements on top in which query is a prefix of element
+			# Then it will bring the rest of the elements and sort them in lexicographical order
+			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
 			# remove _relevance from results
 			if as_dict:
@@ -209,6 +220,13 @@ def scrub_custom_query(query, key, txt):
 	if '%s' in query:
 		query = query.replace('%s', ((txt or '') + '%'))
 	return query
+
+def relevance_sorter(key, query, as_dict):
+	value = _(key.name if as_dict else key[0])
+	return (
+		value.lower().startswith(query.lower()) is not True,
+		value
+	)
 
 @wrapt.decorator
 def validate_and_sanitize_search_inputs(fn, instance, args, kwargs):
