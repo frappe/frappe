@@ -399,3 +399,212 @@ def get_html_content_based_on_type(doc, fieldname, content_type):
 			content = ''
 
 		return content
+<<<<<<< HEAD
+=======
+
+
+def clear_cache(path=None):
+	'''Clear website caches
+	:param path: (optional) for the given path'''
+	for key in ('website_generator_routes', 'website_pages',
+		'website_full_index', 'sitemap_routes'):
+		frappe.cache().delete_value(key)
+
+	frappe.cache().delete_value("website_404")
+	if path:
+		frappe.cache().hdel('website_redirects', path)
+		delete_page_cache(path)
+	else:
+		clear_sitemap()
+		frappe.clear_cache("Guest")
+		for key in ('portal_menu_items', 'home_page', 'website_route_rules',
+			'doctypes_with_web_view', 'website_redirects', 'page_context',
+			'website_page'):
+			frappe.cache().delete_value(key)
+
+	for method in frappe.get_hooks("website_clear_cache"):
+		frappe.get_attr(method)(path)
+
+def clear_website_cache(path=None):
+	clear_cache(path)
+
+def clear_sitemap():
+	delete_page_cache("*")
+
+def get_frontmatter(string):
+	"Reference: https://github.com/jonbeebe/frontmatter"
+	frontmatter = ""
+	body = ""
+	result = re.compile(r'^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$', re.S | re.M).search(string)
+	if result:
+		frontmatter = result.group(1)
+		body = result.group(2)
+
+	return {
+		"attributes": yaml.safe_load(frontmatter),
+		"body": body,
+	}
+
+def get_sidebar_items(parent_sidebar, basepath):
+	import frappe.www.list
+	sidebar_items = []
+
+	hooks = frappe.get_hooks('look_for_sidebar_json')
+	look_for_sidebar_json = hooks[0] if hooks else frappe.flags.look_for_sidebar
+
+	if basepath and look_for_sidebar_json:
+		sidebar_items = get_sidebar_items_from_sidebar_file(basepath, look_for_sidebar_json)
+
+	if not sidebar_items and parent_sidebar:
+		sidebar_items = frappe.get_all('Website Sidebar Item',
+			filters=dict(parent=parent_sidebar), fields=['title', 'route', '`group`'],
+			order_by='idx asc')
+
+	if not sidebar_items:
+		sidebar_items = get_portal_sidebar_items()
+
+	return sidebar_items
+
+
+def get_portal_sidebar_items():
+	sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
+	if sidebar_items is None:
+		sidebar_items = []
+		roles = frappe.get_roles()
+		portal_settings = frappe.get_doc('Portal Settings', 'Portal Settings')
+
+		def add_items(sidebar_items, items):
+			for d in items:
+				if d.get('enabled') and ((not d.get('role')) or d.get('role') in roles):
+					sidebar_items.append(d.as_dict() if isinstance(d, Document) else d)
+
+		if not portal_settings.hide_standard_menu:
+			add_items(sidebar_items, portal_settings.get('menu'))
+
+		if portal_settings.custom_menu:
+			add_items(sidebar_items, portal_settings.get('custom_menu'))
+
+		items_via_hooks = frappe.get_hooks('portal_menu_items')
+		if items_via_hooks:
+			for i in items_via_hooks:
+				i['enabled'] = 1
+			add_items(sidebar_items, items_via_hooks)
+
+		frappe.cache().hset('portal_menu_items', frappe.session.user, sidebar_items)
+
+	return sidebar_items
+
+def get_sidebar_items_from_sidebar_file(basepath, look_for_sidebar_json):
+	sidebar_items = []
+	sidebar_json_path = get_sidebar_json_path(basepath, look_for_sidebar_json)
+	if not sidebar_json_path:
+		return sidebar_items
+
+	with open(sidebar_json_path, 'r') as sidebarfile:
+		try:
+			sidebar_json = sidebarfile.read()
+			sidebar_items = json.loads(sidebar_json)
+		except json.decoder.JSONDecodeError:
+			frappe.throw('Invalid Sidebar JSON at ' + sidebar_json_path)
+
+	return sidebar_items
+
+def get_sidebar_json_path(path, look_for=False):
+	'''Get _sidebar.json path from directory path
+		:param path: path of the current diretory
+		:param look_for: if True, look for _sidebar.json going upwards from given path
+		:return: _sidebar.json path
+	'''
+	if os.path.split(path)[1] == 'www' or path == '/' or not path:
+		return ''
+
+	sidebar_json_path = os.path.join(path, '_sidebar.json')
+	if os.path.exists(sidebar_json_path):
+		return sidebar_json_path
+	else:
+		if look_for:
+			return get_sidebar_json_path(os.path.split(path)[0], look_for)
+		else:
+			return ''
+
+def cache_html(func):
+	@wraps(func)
+	def cache_html_decorator(*args, **kwargs):
+		if can_cache():
+			html = None
+			page_cache = frappe.cache().hget("website_page", args[0].path)
+			if page_cache and frappe.local.lang in page_cache:
+				html = page_cache[frappe.local.lang]
+			if html:
+				frappe.local.response.from_cache = True
+				return html
+		html = func(*args, **kwargs)
+		context = args[0].context
+		if can_cache(context.no_cache):
+			page_cache = frappe.cache().hget("website_page", args[0].path) or {}
+			page_cache[frappe.local.lang] = html
+			frappe.cache().hset("website_page", args[0].path, page_cache)
+
+		return html
+
+	return cache_html_decorator
+
+def build_response(path, data, http_status_code, headers=None):
+	# build response
+	response = Response()
+	response.data = set_content_type(response, data, path)
+	response.status_code = http_status_code
+	response.headers["X-Page-Name"] = path.encode("ascii", errors="xmlcharrefreplace")
+	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
+
+	add_preload_headers(response)
+	if headers:
+		for key, val in iteritems(headers):
+			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
+
+	return response
+
+def set_content_type(response, data, path):
+	if isinstance(data, dict):
+		response.mimetype = 'application/json'
+		response.charset = 'utf-8'
+		data = json.dumps(data)
+		return data
+
+	response.mimetype = 'text/html'
+	response.charset = 'utf-8'
+
+	# ignore paths ending with .com to avoid unnecessary download
+	# https://bugs.python.org/issue22347
+	if "." in path and not path.endswith('.com'):
+		content_type, encoding = mimetypes.guess_type(path)
+		if content_type:
+			response.mimetype = content_type
+			if encoding:
+				response.charset = encoding
+
+	return data
+
+def add_preload_headers(response):
+	from bs4 import BeautifulSoup, SoupStrainer
+
+	try:
+		preload = []
+		strainer = SoupStrainer(re.compile("script|link"))
+		soup = BeautifulSoup(response.data, "lxml", parse_only=strainer)
+		for elem in soup.find_all('script', src=re.compile(".*")):
+			preload.append(("script", elem.get("src")))
+
+		for elem in soup.find_all('link', rel="stylesheet"):
+			preload.append(("style", elem.get("href")))
+
+		links = []
+		for _type, link in preload:
+			links.append("<{}>; rel=preload; as={}".format(link, _type))
+
+		if links:
+			response.headers["Link"] = ",".join(links)
+	except Exception:
+		import traceback
+		traceback.print_exc()
+>>>>>>> e87d22b244 (perf: strain html before passing to bs4 (#13785))
