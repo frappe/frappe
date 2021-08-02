@@ -170,13 +170,8 @@ frappe.router = {
 		} else {
 			standard_route = ['List', doctype_route.doctype, frappe.utils.to_title_case(route[2])];
 			if (route[3]) {
-				if (Array.isArray(route)) {
-					// folder
-					standard_route.push(...route.slice(3, route.length));
-				} else {
-					// calendar / kanban / dashboard name
-					standard_route.push(route[3]);
-				}
+				// calendar / kanban / dashboard name / folder
+				standard_route.push(...route.slice(3, route.length));
 			}
 		}
 		return standard_route;
@@ -256,7 +251,7 @@ frappe.router = {
 		// example 1: frappe.set_route('a', 'b', 'c');
 		// example 2: frappe.set_route(['a', 'b', 'c']);
 		// example 3: frappe.set_route('a/b/c');
-		let route = arguments;
+		let route = Array.from(arguments);
 
 		return new Promise(resolve => {
 			route = this.get_route_from_arguments(route);
@@ -308,13 +303,8 @@ frappe.router = {
 				new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
 
 				if (route[3]) {
-					if (Array.isArray(route)) {
-						// file folder
+						// calendar / inbox / file folder
 						new_route.push(...route.slice(3, route.length));
-					} else {
-						// calendar / inbox
-						new_route.push(route[3]);
-					}
 				}
 			} else {
 				if ($.isPlainObject(route[2])) {
