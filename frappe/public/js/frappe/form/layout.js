@@ -253,10 +253,12 @@ frappe.ui.form.Layout = Class.extend({
 <<<<<<< HEAD
 =======
 
-		document.activeElement.focus();
-
-		if (document.activeElement.tagName == 'INPUT') {
-			document.activeElement.select();
+		if (document.activeElement) {
+			document.activeElement.focus();
+	
+			if (document.activeElement.tagName == 'INPUT') {
+				document.activeElement.select();
+			}
 		}
 <<<<<<< HEAD
 >>>>>>> f1e881f009 (fix: Focus reset issue due to field refresh)
