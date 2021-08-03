@@ -328,7 +328,7 @@ Cypress.Commands.add('clear_filters', () => {
 });
 
 Cypress.Commands.add('click_modal_primary_button', (btn_name) => {
-	cy.get('.modal-footer > .standard-actions > .btn-primary').contains(btn_name).trigger('click');
+	cy.get('.modal-footer > .standard-actions > .btn-primary').contains(btn_name).trigger('click', {force: true});
 });
 
 Cypress.Commands.add('click_sidebar_button', (btn_no) => {
@@ -336,7 +336,7 @@ Cypress.Commands.add('click_sidebar_button', (btn_no) => {
 });
 
 Cypress.Commands.add('click_listview_rowitem', (row_no) => {
-	cy.get('.list-row > .level-left > .list-subject > .bold > .ellipsis').eq(row_no).click();
+	cy.get('.list-row > .level-left > .list-subject > .bold > .ellipsis').eq(row_no).click({force: true});
 });
 
 Cypress.Commands.add('click_filter_button', () => {
