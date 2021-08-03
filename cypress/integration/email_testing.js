@@ -47,6 +47,7 @@ context('Testing Timeline For Email Functionality', () => {
 
 		//Removing the added attachment
 		cy.get('.attachment-row > .data-pill > .remove-btn > .icon').click();
+		cy.get('.modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').contains('Yes').click();
 		cy.get('.modal-footer > .standard-actions > .btn-primary').contains('Yes').click();
 
 		//To check if the removed attachment is shown in the timeline content
