@@ -12,6 +12,7 @@ context('Testing Timeline For Email Functionality', () => {
 		cy.get('.row > .section-body > .form-column > form > .frappe-control > .form-group > .control-input-wrapper > .control-input > .ql-container > .ql-editor').eq(0).type('Test ToDo', {force: true});
 		cy.wait(200);
 		cy.click_listview_primary_button('Save');
+		cy.wait(700);
 		cy.visit('/app/todo');
 		//cy.click_listview_rowitem(0);
 		cy.get('.list-row > .level-left > .list-subject > .level-item.ellipsis > .ellipsis').eq(1).click();
