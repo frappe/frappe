@@ -433,6 +433,6 @@ class TestCommands(BaseTestCommands):
 		for output in ["legacy", "plain", "table", "json"]:
 			self.execute(f"bench version -f {output}")
 			self.assertEqual(self.returncode, 0)
-		
+
 		self.execute("bench version -f invalid")
 		self.assertEqual(self.returncode, 2)
