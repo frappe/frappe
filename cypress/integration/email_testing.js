@@ -39,7 +39,7 @@ context('Testing Timeline For Email Functionality', () => {
 		cy.get('.timeline-content').should('contain', 'Added 72402.jpg');
 
 		//Deleting the sent email
-		cy.get('[title="Open Communication"] > .icon').click({force: true});
+		cy.get('[title="Open Communication"] > .icon').first().click({force: true});
 		cy.get('#page-Communication > .page-head > .container > .row > .col > .standard-actions > .menu-btn-group > .btn').click();
 		cy.get('#page-Communication > .page-head > .container > .row > .col > .standard-actions > .menu-btn-group > .dropdown-menu > li > .grey-link').eq(9).click();
 		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').click();

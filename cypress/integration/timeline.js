@@ -15,7 +15,7 @@ context('Testing Timeline Functionality', () => {
 		cy.wait(700);
 		cy.visit('/app/todo');
 		//cy.click_listview_rowitem(0);
-		cy.get('.list-row > .level-left > .list-subject > .bold > .ellipsis').eq(0).click({force: true});
+		cy.get('.list-row > .level-left > .list-subject > .bold > .ellipsis').eq(1).click({force: true});
 
 		//To check if the comment box is initially empty and tying some text into it
 		cy.get('.comment-input-container > .frappe-control > .ql-container > .ql-editor').should('contain', '').type('Testing Timeline');
