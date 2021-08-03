@@ -258,8 +258,12 @@ frappe.ui.form.Layout = Class.extend({
 		if (document.activeElement.tagName == 'INPUT') {
 			document.activeElement.select();
 		}
+<<<<<<< HEAD
 >>>>>>> f1e881f009 (fix: Focus reset issue due to field refresh)
 	},
+=======
+	}
+>>>>>>> da50263c1e (fix: Remove comma)
 
 	refresh_sections: function() {
 		// hide invisible sections
