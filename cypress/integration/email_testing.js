@@ -13,7 +13,8 @@ context('Testing Timeline For Email Functionality', () => {
 		cy.wait(200);
 		cy.click_listview_primary_button('Save');
 		cy.visit('/app/todo');
-		cy.click_listview_rowitem(0);
+		//cy.click_listview_rowitem(0);
+		cy.get('.list-row > .level-left > .list-subject > .level-item.ellipsis > .ellipsis').eq(0).click();
 
 		//Creating a new email
 		cy.get('.timeline-actions > .btn').click();
