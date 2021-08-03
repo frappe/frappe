@@ -46,7 +46,7 @@ context('Testing Timeline Functionality', () => {
 
 		//Deleting the added ToDo
 		cy.get('#page-ToDo > .page-head > .container > .row > .col > .standard-actions > .menu-btn-group > .btn').click({force: true});
-		cy.get('.menu-btn-group > .dropdown-menu > li > .grey-link').eq(17).click();
-		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').contains('Yes').click();
+		cy.get('.menu-btn-group > .dropdown-menu > li > .grey-link').eq(17).click({force: true});
+		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').contains('Yes').click({force: true});
 	});
 });
