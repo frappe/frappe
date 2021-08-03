@@ -1141,7 +1141,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// Add actions as menu item in Mobile View
 			let menu_item_label = group ? `${group} > ${label}` : label;
 			let menu_item = this.page.add_menu_item(menu_item_label, fn, false);
-			menu_item.parent().addClass("hidden-lg");
+			menu_item.parent().addClass("hidden-xl");
 
 			this.custom_buttons[label] = btn;
 		}
