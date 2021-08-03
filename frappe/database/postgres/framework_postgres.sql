@@ -229,6 +229,7 @@ CREATE TABLE "tabDocType" (
   "email_append_to" smallint NOT NULL DEFAULT 0,
   "subject_field" varchar(255) DEFAULT NULL,
   "sender_field" varchar(255) DEFAULT NULL,
+  "show_title_field_in_link" smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;
 

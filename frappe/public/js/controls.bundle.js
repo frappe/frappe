@@ -16,3 +16,4 @@ import "air-datepicker/dist/js/i18n/datepicker.sk.js";
 import "air-datepicker/dist/js/i18n/datepicker.zh.js";
 import "./frappe/ui/capture.js";
 import "./frappe/form/controls/control.js";
+import "./frappe/link_title.js";

@@ -27,6 +27,7 @@
   "autoname",
   "view_settings_section",
   "title_field",
+  "show_title_field_in_link",
   "image_field",
   "default_print_format",
   "column_break_29",
@@ -280,6 +281,12 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_title_field_in_link",
+   "fieldtype": "Check",
+   "label": "Show Title in Link and Table MultiSelect Field"
   }
  ],
  "hide_toolbar": 1,
@@ -288,7 +295,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-06-21 19:01:06.920663",
+ "modified": "2021-08-03 13:43:27.938781",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

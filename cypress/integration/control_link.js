@@ -65,16 +65,49 @@ context('Control Link', () => {
 		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 
 		cy.get('@todos').then(todos => {
-			cy.get('.frappe-control[data-fieldname=link] input').as('input');
-			cy.get('@input').focus();
+			cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
 			cy.wait('@search_link');
-			cy.get('@input').type(todos[0]).blur();
+			cy.get('@input').type(todos[0]);
+			cy.wait('@search_link');
+			cy.get('.frappe-control[data-fieldname=link] ul').should('be.visible');
+			cy.get('.frappe-control[data-fieldname=link] input').type('{enter}', { delay: 100 });
 			cy.wait('@validate_link');
 			cy.get('@input').focus();
 			cy.get('.frappe-control[data-fieldname=link] .link-btn')
 				.should('be.visible')
 				.click();
-			cy.location('pathname').should('eq', `/app/todo/${todos[0]}`);
+			cy.location('hash').should('eq', `#Form/ToDo/${todos[0]}`);
+		});
+	});
+
+	it('show title field in link', () => {
+		get_dialog_with_link().as('dialog');
+
+		cy.server();
+		cy.insert_doc("Property Setter", {
+			property: "show_title_field_in_link",
+			doc_type: "ToDo",
+			value: 1,
+			doctype_or_field: "DocType"
+		}, true);
+		cy.route('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
+
+		cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
+		cy.wait('@search_link');
+		cy.get('@input').type('todo for link');
+		cy.wait('@search_link');
+		cy.get('.frappe-control[data-fieldname=link] ul').should('be.visible');
+		cy.get('.frappe-control[data-fieldname=link] input').type('{enter}', { delay: 100 });
+		cy.get('.frappe-control[data-fieldname=link] input').blur();
+		cy.get('@dialog').then(dialog => {
+			cy.get('@todos').then(todos => {
+				let field = dialog.get_field('link');
+				let value = field.get_value();
+				let label = field.get_label_value();
+
+				expect(value).to.eq(todos[0]);
+				expect(label).to.eq('this is a test todo for link');
+			});
 		});
 	});
 });

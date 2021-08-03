@@ -87,6 +87,7 @@ def get_bootinfo():
 	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
+	bootinfo.doctypes_with_show_link_field_title = doctypes_with_show_link_field_title()
 
 	return bootinfo
 
@@ -324,3 +325,9 @@ def get_desk_settings():
 
 def get_notification_settings():
 	return frappe.get_cached_doc('Notification Settings', frappe.session.user)
+
+def doctypes_with_show_link_field_title():
+	dts = frappe.get_all("DocType", {"show_title_field_in_link": 1})
+	custom_dts = frappe.get_all("Property Setter", {"field_name": "show_title_field_in_link", "value": 1})
+
+	return [d.name for d in dts + custom_dts if d]

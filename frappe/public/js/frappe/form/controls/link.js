@@ -29,12 +29,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			setTimeout(function() {
 				if(me.$input.val() && me.get_options()) {
 					let doctype = me.get_options();
-					let name = me.$input.val();
+					let name = me.get_input_value();
 					me.$link.toggle(true);
 					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
 
 				if(!me.$input.val()) {
+					me.reset_value();
+					me.reset_fetch_values(me.df, me.docname);
 					me.$input.val("").trigger("input");
 				}
 			}, 500);
@@ -69,6 +71,76 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			this.$input_area.find(".link-btn").remove();
 		}
 	}
+	set_formatted_input(value) {
+		super.set_formatted_input();
+		if (!value) return;
+		let doctype = this.get_options();
+		this.set_data_value(frappe.get_link_title(doctype, value) || value, value);
+	}
+	set_data_value(link_display, value) {
+		if (!this.$input) {
+			return;
+		}
+
+		this.$input.val(__(link_display));
+		this.data_value = value;
+	}
+	parse_validate_and_set_in_model(value, label, e) {
+		if (this.parse) value = this.parse(value, label);
+		if (label) {
+			this.label = label;
+			frappe.add_link_title(this.doctype, value, label);
+		}
+
+		return this.validate_and_set_in_model(value, e);
+	}
+	validate_and_set_in_model(value, e) {
+		var me = this;
+		if (this.inside_change_event) {
+			return Promise.resolve();
+		}
+		this.inside_change_event = true;
+		var set = function(value) {
+			me.inside_change_event = false;
+			return frappe.run_serially([
+				() => me.set_model_value(value),
+				() => {
+					me.set_mandatory && me.set_mandatory(value);
+
+					if (me.df.change || me.df.onchange) {
+						// onchange event specified in df
+						frappe.set_link_title(me);
+						return (me.df.change || me.df.onchange).apply(me, [e]);
+					}
+				}
+			]);
+		};
+
+		value = this.validate(value);
+		if (value && value.then) {
+			// got a promise
+			return value.then((value) => set(value));
+		} else {
+			// all clear
+			return set(value);
+		}
+	}
+	get_input_value() {
+		return (this.$input && this.data_value && this.$input.val()) ? this.data_value : "";
+	}
+	get_label_value() {
+		return this.$input ? this.$input.val() : "";
+	}
+	set_input_label(label) {
+		this.$input && this.$input.val(__(label));
+	}
+	reset_value() {
+		if (!this.$input) {
+			return;
+		}
+		this.$input.val("");
+		this.data_value = null;
+	}
 	open_advanced_search() {
 		var doctype = this.get_options();
 		if(!doctype) return;
@@ -98,7 +170,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		// partially entered name field
-		frappe.route_options.name_field = this.get_value();
+		frappe.route_options.name_field = this.get_label_value();
 
 		// reference to calling link
 		frappe._from_link = this;
@@ -120,6 +192,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
+			replace: function (suggestion) {
+				// Override Awesomeplete replace function as it is used to set the input value
+				// https://github.com/LeaVerou/awesomplete/issues/17104#issuecomment-359185403
+				this.input.value = suggestion.label || suggestion.value;
+			},
 			data: function (item) {
 				return {
 					label: item.label || item.value,
@@ -236,9 +313,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				me.selected = false;
 				return;
 			}
-			var value = me.get_input_value();
-			if(value!==me.last_value) {
-				me.parse_validate_and_set_in_model(value);
+			let value = me.get_input_value();
+			let label = me.get_label_value();
+
+			if (value !== me.last_value || me.label !== label) {
+				me.parse_validate_and_set_in_model(value, label);
 			}
 		});
 
@@ -258,14 +337,15 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			// prevent selection on tab
 			var TABKEY = 9;
-			if(e.keyCode === TABKEY) {
+			if (e.keyCode === TABKEY) {
 				e.preventDefault();
 				me.awesomplete.close();
 				return false;
 			}
 
-			if(item.action) {
+			if (item.action) {
 				item.value = "";
+				item.label = "";
 				item.action.apply(me);
 			}
 
@@ -277,13 +357,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				frappe.boot.user.last_selected_values[me.df.options] = item.value;
 			}
 
-			me.parse_validate_and_set_in_model(item.value);
+			me.parse_validate_and_set_in_model(item.value, item.label);
 		});
 
 		this.$input.on("awesomplete-selectcomplete", function(e) {
-			var o = e.originalEvent;
-			if(o.text.value.indexOf("__link_option") !== -1) {
-				me.$input.val("");
+			let o = e.originalEvent;
+			if (o.text.value.indexOf("__link_option") !== -1) {
+				me.reset_value();
+				me.reset_fetch_values(me.df, me.docname);
 			}
 		});
 	}
@@ -452,10 +533,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			this.docname, value);
 	}
 	validate_link_and_fetch(df, doctype, docname, value) {
-		if(value) {
+		let me = this;
+
+		if (value) {
 			return new Promise((resolve) => {
-				var fetch = '';
-				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
+				let fetch = '';
+
+				if (this.frm && this.frm.fetch_dict[df.fieldname]) {
 					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
 				}
 				// if default and no fetch, no need to validate
@@ -465,10 +549,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 				this.fetch_and_validate_link(resolve, df, doctype, docname, value, fetch);
 			});
+		} else {
+			me.reset_value();
+			me.reset_fetch_values(df, docname);
 		}
 	}
-
 	fetch_and_validate_link(resolve, df, doctype, docname, value, fetch) {
+		let me = this;
+
 		frappe.call({
 			method: 'frappe.desk.form.utils.validate_link',
 			type: "GET",
@@ -485,17 +573,26 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					}
 					resolve(r.valid_value);
 				} else {
+					me.reset_value();
+					me.reset_fetch_values(df, docname);
 					resolve("");
 				}
 			}
 		});
 	}
-
 	set_fetch_values(df, docname, fetch_values) {
-		var fl = this.frm.fetch_dict[df.fieldname].fields;
-		for(var i=0; i < fl.length; i++) {
+		let fl = this.frm.fetch_dict[df.fieldname].fields;
+
+		for (var i=0; i < fl.length; i++) {
 			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
 		}
+	}
+	reset_fetch_values(df, docname) {
+		let fields = this.frm && this.frm.fetch_dict && this.frm.fetch_dict[df.fieldname] ? this.frm.fetch_dict[df.fieldname].fields : [];
+
+		fields.forEach(field => {
+			frappe.model.set_value(df.parent, docname, field, null, df.fieldtype);
+		});
 	}
 };
 
