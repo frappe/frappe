@@ -65,12 +65,12 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
 
-				frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
-				frappe.db.sql("delete from `tabClient Script` where dt = %s", name)
-				frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
-				frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
-				frappe.db.sql("delete from `tabCustom DocPerm` where parent=%s", name)
-				frappe.db.sql("delete from `__global_search` where doctype=%s", name)
+				frappe.db.delete("Custom Field", {"dt": name})
+				frappe.db.delete("Client Script", {"dt": name})
+				frappe.db.delete("Property Setter", {"doc_type": name})
+				frappe.db.delete("Report", {"ref_doctype": name})
+				frappe.db.delete("Custom DocPerm", {"parent": name})
+				frappe.db.delete("__global_search", {"doctype": name})
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
@@ -162,10 +162,9 @@ def update_naming_series(doc):
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:
-		frappe.db.sql("delete from `tabSingles` where `doctype`=%s", name)
+		frappe.db.delete("Singles", {"doctype": name})
 	else:
-		frappe.db.sql("delete from `tab{0}` where `name`=%s".format(doctype), name)
-
+		frappe.db.delete(doctype, {"name": name})
 	# get child tables
 	if doc:
 		tables = [d.options for d in doc.meta.get_table_fields()]
@@ -339,8 +338,10 @@ def clear_references(doctype, reference_doctype, reference_name,
 		(reference_doctype, reference_name))
 
 def clear_timeline_references(link_doctype, link_name):
-	frappe.db.sql("""DELETE FROM `tabCommunication Link`
-		WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
+	frappe.db.delete("Communication Link", {
+		"link_doctype": link_doctype,
+		"link_name": link_name
+	})
 
 def insert_feed(doc):
 	if (

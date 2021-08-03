@@ -542,7 +542,7 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
-			field.fields = get_in_list_view_fields(field.options)
+			field.fields = frappe.get_meta(field.options).fields
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Link":
