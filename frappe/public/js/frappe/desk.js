@@ -64,8 +64,6 @@ frappe.Application = class Application {
 			}
 		});
 
-		this.set_rtl();
-
 		// page container
 		this.make_page_container();
 		this.set_route();
@@ -489,16 +487,6 @@ frappe.Application = class Application {
 		}, 100);
 	}
 
-	set_rtl() {
-		if (frappe.utils.is_rtl()) {
-			var ls = document.createElement('link');
-			ls.rel="stylesheet";
-			ls.type = "text/css";
-			ls.href= frappe.assets.bundled_asset("frappe-rtl.bundle.css");
-			document.getElementsByTagName('head')[0].appendChild(ls);
-			$('body').addClass('frappe-rtl');
-		}
-	}
 
 	show_change_log() {
 		var me = this;
