@@ -204,7 +204,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				$(this).removeClass('hidden');
 			}
 		});
-		this.set_open_count();
+		!this.frm.is_new() && this.set_open_count();
 	}
 
 	init_data() {

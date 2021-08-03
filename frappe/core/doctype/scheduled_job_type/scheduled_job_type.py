@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2021, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 import json
@@ -110,7 +109,7 @@ class ScheduledJobType(Document):
 		return 'long' if ('Long' in self.frequency) else 'default'
 
 	def on_trash(self):
-		frappe.db.sql('delete from `tabScheduled Job Log` where scheduled_job_type=%s', self.name)
+		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
 
 
 @frappe.whitelist()
