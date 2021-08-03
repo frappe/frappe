@@ -10,8 +10,9 @@ context('Testing Timeline For Email Functionality', () => {
 		cy.click_listview_primary_button('Add ToDo');
 		cy.get('.custom-actions > .btn').trigger('click', {delay: 500});
 		cy.get('.row > .section-body > .form-column > form > .frappe-control > .form-group > .control-input-wrapper > .control-input > .ql-container > .ql-editor').eq(0).type('Test ToDo', {force: true});
-		cy.wait(200);
-		cy.click_listview_primary_button('Save');
+		cy.wait(500);
+		//cy.click_listview_primary_button('Save');
+		cy.get('.primary-action').contains('Save').click({force: true});
 		cy.wait(700);
 		cy.visit('/app/todo');
 		//cy.click_listview_rowitem(0);
