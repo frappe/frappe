@@ -387,6 +387,14 @@ frappe.views.BaseList = class BaseList {
 		);
 	}
 
+	get_group_by() {
+		let name_field = this.fields && this.fields.filter(f => f[0] == 'name');
+		if (name_field.length == 1) {
+			return frappe.model.get_full_column_name(name_field[0][0], name_field[0][1]);
+		}
+		return null
+	}
+
 	setup_view() {
 		// for child classes
 	}
@@ -417,6 +425,7 @@ frappe.views.BaseList = class BaseList {
 			start: this.start,
 			page_length: this.page_length,
 			view: this.view,
+			group_by: this.get_group_by()
 		};
 	}
 
