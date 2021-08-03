@@ -2,8 +2,6 @@ frappe.ui.form.FormTour = class FormTour {
 	constructor({ frm }) {
 		this.frm = frm;
 		this.driver_steps = [];
-
-		this.init_driver();
 	}
 
 	init_driver() {
@@ -37,11 +35,17 @@ frappe.ui.form.FormTour = class FormTour {
 		if (tour_name) {
 			this.tour = await frappe.db.get_doc('Form Tour', tour_name);
 		} else {
-			this.tour = { steps: frappe.tour[this.frm.doctype] };
+			const doctype_tour_exists = await frappe.db.exists('Form Tour', this.frm.doctype);
+			if (doctype_tour_exists) {
+				this.tour = await frappe.db.get_doc('Form Tour', this.frm.doctype);
+			} else {
+				this.tour = { steps: frappe.tour[this.frm.doctype] };
+			}
 		}
 		
 		if (on_finish) this.on_finish = on_finish;
 
+		this.init_driver();
 		this.build_steps();
 		this.update_driver_steps();
 	}
@@ -232,7 +236,7 @@ frappe.ui.form.FormTour = class FormTour {
 	}
 
 	add_step_to_save() {
-		const page_id = `#page-${this.frm.doctype}`;
+		const page_id = `[id="page-${this.frm.doctype}"]`;
 		const $save_btn = `${page_id} .standard-actions .primary-action`;
 		const save_step = {
 			element: $save_btn,
@@ -244,6 +248,9 @@ frappe.ui.form.FormTour = class FormTour {
 				description: "",
 				position: "left",
 				doneBtnText: __("Save")
+			},
+			onNext: () => {
+				this.frm.save();
 			}
 		};
 		this.driver_steps.push(save_step);

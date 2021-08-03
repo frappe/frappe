@@ -56,6 +56,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		frappe.clear_cache()
 		frappe.utils.scheduler.disable_scheduler()
 		set_test_email_config()
+		frappe.conf.update({'bench_id': 'test_bench', 'use_rq_auth': False})
 
 		if not frappe.flags.skip_before_tests:
 			if verbose:
