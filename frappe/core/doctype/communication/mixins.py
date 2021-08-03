@@ -3,6 +3,7 @@ from frappe import _
 from frappe.core.utils import get_parent_doc
 from frappe.utils import parse_addr, get_formatted_email, get_url
 from frappe.email.doctype.email_account.email_account import EmailAccount
+from frappe.desk.doctype.todo.todo import ToDo
 
 class CommunicationEmailMixin:
 	"""Mixin class to handle communication mails.
@@ -76,6 +77,7 @@ class CommunicationEmailMixin:
 		if is_inbound_mail_communcation:
 			cc.append(self.get_owner())
 			cc = set(cc) - {self.sender_mailid}
+			cc.update(self.get_assignees())
 
 		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
 		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
@@ -200,6 +202,13 @@ class CommunicationEmailMixin:
 			self.mail_bcc(is_inbound_mail_communcation = is_inbound_mail_communcation) + \
 			self.mail_cc(is_inbound_mail_communcation = is_inbound_mail_communcation, include_sender=include_sender)
 		return set(all_ids) - set(final_ids)
+
+	def get_assignees(self):
+		"""Get owners of the reference document.
+		"""
+		filters = {'status': 'Open', 'reference_name': self.reference_name,
+			'reference_type': self.reference_doctype}
+		return ToDo.get_owners(filters)
 
 	@staticmethod
 	def filter_thread_notification_disbled_users(emails):
