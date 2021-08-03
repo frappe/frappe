@@ -201,7 +201,7 @@ Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
 		selector = `[data-fieldname="${fieldname}"] .ace_text-input input:visible`;
 	}
 
-	return cy.get(selector).first();
+	return cy.get(selector);
 });
 
 Cypress.Commands.add('fill_table_field', (tablefieldname, row_idx, fieldname, value, fieldtype = 'Data') => {

@@ -12,7 +12,7 @@ context('Testing Timeline Functionality', () => {
 		cy.get('.row > .section-body > .form-column > form > .frappe-control > .form-group > .control-input-wrapper > .control-input > .ql-container > .ql-editor').eq(0).type('Test ToDo', {force: true});
 		cy.wait(200);
 		cy.get('#page-ToDo > .page-head > .container > .row > .col > .standard-actions > .primary-action').contains('Save').click();
-		cy.wait(500);
+		cy.wait(700);
 		cy.visit('/app/todo');
 		cy.click_listview_rowitem(0);
 
