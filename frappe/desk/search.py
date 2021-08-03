@@ -144,7 +144,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			title_field_query = get_title_field_query(meta)
 
 			# Insert title field query after name
-			formatted_fields.insert(1, title_field_query)
+			if title_field_query:
+				formatted_fields.insert(1, title_field_query)
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
 			formatted_fields.append("""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
@@ -216,7 +217,7 @@ def get_std_fields_list(meta, key):
 def get_title_field_query(meta):
 	title_field = meta.title_field if meta.title_field else None
 	show_title_field_in_link = meta.show_title_field_in_link if meta.show_title_field_in_link else None
-	field = "NULL as `label`"
+	field = None
 
 	if title_field and show_title_field_in_link:
 		field = "`tab{0}`.{1} as `label`".format(meta.name, title_field)
@@ -224,10 +225,13 @@ def get_title_field_query(meta):
 	return field
 
 def build_for_autosuggest(res, doctype, is_query):
+	meta = frappe.get_meta(doctype)
+	title_field = get_title_field_query(meta)
+	_from = 2 if title_field else 1
 	results = []
 	for r in res:
 		r = list(r)
-		if is_query or doctype in (frappe.get_hooks().standard_queries or {}):
+		if not (meta.title_field and meta.show_title_field_in_link) or doctype in (frappe.get_hooks().standard_queries or {}):
 			out = {
 				"value": r[0],
 				"description": ", ".join(unique(cstr(d) for d in r[1:] if d))
@@ -235,8 +239,8 @@ def build_for_autosuggest(res, doctype, is_query):
 		else:
 			out = {
 				"value": r[0],
-				"label": r[1],
-				"description": ", ".join(unique(cstr(d) for d in r[2:] if d))
+				"label": r[1] if title_field else None,
+				"description": ", ".join(unique(cstr(d) for d in r[_from:] if d))
 			}
 
 		results.append(out)
