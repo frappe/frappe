@@ -328,6 +328,14 @@ frappe.views.BaseList = class BaseList {
 		return this.fields.map(f => frappe.model.get_full_column_name(f[0], f[1]));
 	}
 
+	get_group_by() {
+		let name_field = this.fields && this.fields.filter(f => f[0] == 'name');
+		if (name_field.length == 1) {
+			return frappe.model.get_full_column_name(name_field[0][0], name_field[0][1]);
+		}
+		return null
+	}
+
 	setup_view() {
 		// for child classes
 	}
@@ -348,7 +356,12 @@ frappe.views.BaseList = class BaseList {
 			order_by: this.sort_selector.get_sql_string(),
 			start: this.start,
 			page_length: this.page_length,
+<<<<<<< HEAD
 			view: this.view
+=======
+			view: this.view,
+			group_by: this.get_group_by()
+>>>>>>> 62a6f8f4ab (fix: Get unique records from backend for list)
 		};
 	}
 

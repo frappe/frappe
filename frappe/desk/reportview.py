@@ -42,7 +42,145 @@ def get_form_params():
 	):
 		data.pop(param, None)
 
+<<<<<<< HEAD
 	if isinstance(data.get("filters"), string_types):
+=======
+	validate_fields(data)
+	if data.filters:
+		validate_filters(data, data.filters)
+	if data.or_filters:
+		validate_filters(data, data.or_filters)
+
+	data.strict = None
+
+	return data
+
+def validate_fields(data):
+	wildcard = update_wildcard_field_param(data)
+
+	for field in data.fields or []:
+		fieldname = extract_fieldname(field)
+		if is_standard(fieldname):
+			continue
+
+		meta, df = get_meta_and_docfield(fieldname, data)
+
+		if not df:
+			if wildcard:
+				continue
+			else:
+				raise_invalid_field(fieldname)
+
+		# remove the field from the query if the report hide flag is set and current view is Report
+		if df.report_hide and data.view == 'Report':
+			data.fields.remove(field)
+			continue
+
+		if df.fieldname in [_df.fieldname for _df in meta.get_high_permlevel_fields()]:
+			if df.get('permlevel') not in meta.get_permlevel_access(parenttype=data.doctype):
+				data.fields.remove(field)
+
+def validate_filters(data, filters):
+	if isinstance(filters, list):
+		# filters as list
+		for condition in filters:
+			if len(condition)==3:
+				# [fieldname, condition, value]
+				fieldname = condition[0]
+				if is_standard(fieldname):
+					continue
+				meta, df = get_meta_and_docfield(fieldname, data)
+				if not df:
+					raise_invalid_field(condition[0])
+			else:
+				# [doctype, fieldname, condition, value]
+				fieldname = condition[1]
+				if is_standard(fieldname):
+					continue
+				meta = frappe.get_meta(condition[0])
+				if not meta.get_field(fieldname):
+					raise_invalid_field(fieldname)
+
+	else:
+		for fieldname in filters:
+			if is_standard(fieldname):
+				continue
+			meta, df = get_meta_and_docfield(fieldname, data)
+			if not df:
+				raise_invalid_field(fieldname)
+
+def setup_group_by(data):
+	'''Add columns for aggregated values e.g. count(name)'''
+	if data.group_by and data.aggregate_function:
+		if data.aggregate_function.lower() not in ('count', 'sum', 'avg'):
+			frappe.throw(_('Invalid aggregate function'))
+
+		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
+			data.fields.append('{aggregate_function}(`tab{aggregate_on_doctype}`.`{aggregate_on_field}`) AS _aggregate_column'.format(**data))
+		else:
+			raise_invalid_field(data.aggregate_on_field)
+
+		data.pop('aggregate_on_doctype')
+		data.pop('aggregate_on_field')
+		data.pop('aggregate_function')
+
+def raise_invalid_field(fieldname):
+	frappe.throw(_('Field not permitted in query') + ': {0}'.format(fieldname), frappe.DataError)
+
+def is_standard(fieldname):
+	if '.' in fieldname:
+		parenttype, fieldname = get_parenttype_and_fieldname(fieldname, None)
+	return fieldname in default_fields or fieldname in optional_fields
+
+def extract_fieldname(field):
+	for text in (',', '/*', '#'):
+		if text in field:
+			raise_invalid_field(field)
+
+	fieldname = field
+	for sep in (' as ', ' AS '):
+		if sep in fieldname:
+			fieldname = fieldname.split(sep)[0]
+
+	# certain functions allowed, extract the fieldname from the function
+	if (fieldname.startswith('count(')
+		or fieldname.startswith('sum(')
+		or fieldname.startswith('avg(')):
+		if not fieldname.strip().endswith(')'):
+			raise_invalid_field(field)
+		fieldname = fieldname.split('(', 1)[1][:-1]
+
+	return fieldname
+
+def get_meta_and_docfield(fieldname, data):
+	parenttype, fieldname = get_parenttype_and_fieldname(fieldname, data)
+	meta = frappe.get_meta(parenttype)
+	df = meta.get_field(fieldname)
+	return meta, df
+
+def update_wildcard_field_param(data):
+	if ((isinstance(data.fields, str) and data.fields == "*")
+		or (isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*")):
+		data.fields = frappe.db.get_table_columns(data.doctype)
+		return True
+
+	return False
+
+
+def clean_params(data):
+	data.pop('cmd', None)
+	data.pop('data', None)
+	data.pop('ignore_permissions', None)
+	data.pop('view', None)
+	data.pop('user', None)
+
+	if "csrf_token" in data:
+		del data["csrf_token"]
+
+
+def parse_json(data):
+	if isinstance(data.get("filters"), str):
+>>>>>>> 62a6f8f4ab (fix: Get unique records from backend for list)
 		data["filters"] = json.loads(data["filters"])
 	if isinstance(data.get("fields"), string_types):
 		data["fields"] = json.loads(data["fields"])
