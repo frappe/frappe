@@ -506,12 +506,9 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	initialize_new_page() {
-		let parent_pages = this.private_pages.filter(page => !page.parent_page).map(page => page.title);
-
-		if (this.has_access) {
-			parent_pages = this.all_pages.filter(page => !page.parent_page).map(page => page.title);
-		}
-		parent_pages.unshift('');
+		this.public_parent_pages = ['', ...this.public_pages.filter(page => !page.parent_page).map(page => page.title)];
+		this.private_parent_pages = ['', ...this.private_pages.filter(page => !page.parent_page).map(page => page.title)];
+		var me = this;
 		const d = new frappe.ui.Dialog({
 			title: __('Set Title'),
 			fields: [
@@ -525,13 +522,17 @@ frappe.views.Workspace = class Workspace {
 					label: __('Parent'),
 					fieldtype: 'Select',
 					fieldname: 'parent',
-					options: parent_pages
+					options: this.private_parent_pages
 				},
 				{
 					label: __('Public'),
 					fieldtype: 'Check',
 					fieldname: 'is_public',
-					depends_on: `eval:${this.has_access}`
+					depends_on: `eval:${this.has_access}`,
+					onchange: function() {
+						d.set_df_property('parent', 'options', 
+							this.get_value() ? me.public_parent_pages : me.private_parent_pages);
+					}
 				}
 			],
 			primary_action_label: __('Create'),
@@ -567,11 +568,6 @@ frappe.views.Workspace = class Workspace {
 			}
 		});
 		d.show();
-
-		// to enable focusing on input field when modal is open.
-		d.$wrapper.on('shown.bs.modal', function() {
-			$(document).off('focusin.modal');
-		});
 	}
 
 	validate_page(values) {
