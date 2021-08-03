@@ -3,6 +3,7 @@
 """build query for doclistview and return results"""
 
 import frappe.defaults
+from frappe.query_builder.utils import Column
 import frappe.share
 from frappe import _
 import frappe.permissions
@@ -546,8 +547,12 @@ class DatabaseQuery(object):
 				value = flt(f.value)
 				fallback = 0
 
+			if isinstance(f.value, Column):
+				quote = '"' if frappe.conf.db_type == 'postgres' else "`"
+				value = f"{tname}.{quote}{f.value}{quote}"
+
 			# escape value
-			if isinstance(value, str) and not f.operator.lower() == 'between':
+			elif isinstance(value, str) and not f.operator.lower() == 'between':
 				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (

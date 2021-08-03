@@ -4,8 +4,25 @@ from typing import Any, Callable, Dict
 from pypika import Query
 
 import frappe
+
 from .builder import MariaDB, Postgres
 
+
+class Column:
+	"""Represents a Database Column"""
+	def __init__(self, name) -> None:
+		self.name = name
+
+	def __str__(self) -> str:
+		return self.name
+
+class Data:
+	"""Represents a Data value...Specifically non column types"""
+	def __init__(self, name) -> None:
+		self.name = name
+
+	def __str__(self) -> str:
+		return self.name
 
 class db_type_is(Enum):
 	MARIADB = "mariadb"
