@@ -956,6 +956,20 @@ Object.assign(frappe.utils, {
 
 		return $el;
 	},
+	
+	eval(code, context={}) {
+		let variable_names = Object.keys(context);
+		let variables = Object.values(context);
+		code = `let out = ${code}; return out`;
+		try {
+			let expression_function = new Function(...variable_names, code);
+			return expression_function(...variables);
+		} catch (error) {
+			console.log('Error evaluating the following expression:'); // eslint-disable-line no-console
+			console.error(code); // eslint-disable-line no-console
+			throw error;
+		}
+	},
 
 	get_browser() {
 		let ua = navigator.userAgent;
