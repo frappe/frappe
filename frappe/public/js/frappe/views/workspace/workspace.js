@@ -702,6 +702,8 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	reload() {
+		this.$page.prepend(frappe.render_template('workspace_loading_skeleton'));
+		this.$page.find('.codex-editor').addClass('hidden');
 		this.setup_pages();
 		this.undo.readOnly = true;
 	}

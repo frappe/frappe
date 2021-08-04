@@ -107,7 +107,7 @@ export default class Block {
 		let class_name = "col-12";
 		let wrapper = this.wrapper.closest('.ce-block');
 		const col_class = new RegExp(/\bcol-.+?\b/, "g");
-		if (wrapper.className.match(col_class)) {
+		if (wrapper && wrapper.className.match(col_class)) {
 			wrapper.classList.forEach(function (cn) {
 				cn.match(col_class) && (class_name = cn);
 			});
