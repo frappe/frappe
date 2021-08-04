@@ -250,8 +250,6 @@ frappe.ui.form.Layout = Class.extend({
 			// collapse sections
 			this.refresh_section_collapse();
 		}
-<<<<<<< HEAD
-=======
 
 		if (document.activeElement) {
 			document.activeElement.focus();
@@ -260,12 +258,7 @@ frappe.ui.form.Layout = Class.extend({
 				document.activeElement.select();
 			}
 		}
-<<<<<<< HEAD
->>>>>>> f1e881f009 (fix: Focus reset issue due to field refresh)
 	},
-=======
-	}
->>>>>>> da50263c1e (fix: Remove comma)
 
 	refresh_sections: function() {
 		// hide invisible sections
