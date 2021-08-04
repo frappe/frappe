@@ -410,13 +410,12 @@ frappe.views.Workspace = class Workspace {
 		);
 
 		Object.keys(this.blocks).forEach(key => {
-			this.page.add_inner_button(__(this.blocks[key].name), function() {
+			this.page.add_inner_button(__(this.blocks[key].toolbox.title), function() {
 				const index = me.editor.blocks.getBlocksCount() + 1;
-				let currentBlock = me.editor.blocks.getBlockByIndex(index - 1).holder;
 				me.editor.blocks.insert(key, {}, {}, index, true);
 				me.editor.caret.setToLastBlock('start', 0);
-				currentBlock.scrollIntoView();
-			}, __('Add New Block'));
+				$('.ce-block:last-child')[0].scrollIntoView();
+			}, `${frappe.utils.icon('small-add', 'xs')} ${__('Add Block')}`);
 		});
 	}
 
