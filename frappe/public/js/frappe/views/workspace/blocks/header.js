@@ -169,7 +169,7 @@ export default class Header extends Block {
 
 	rendered() {
 		var e = this._element.closest('.ce-block');
-		e.classList.add("col-" + this.col);
+		e.classList.add("col-" + this.get_col());
 		e.classList.add("pt-" + this.pt);
 		e.classList.add("pr-" + this.pr);
 		e.classList.add("pb-" + this.pb);

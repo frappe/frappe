@@ -30,7 +30,7 @@ export default class Block {
 
 	rendered() {
 		var e = this.wrapper.closest('.ce-block');
-		e.classList.add("col-" + this.col);
+		e.classList.add("col-" + this.get_col());
 		e.classList.add("pt-" + this.pt);
 		e.classList.add("pr-" + this.pr);
 		e.classList.add("pb-" + this.pb);
@@ -103,7 +103,7 @@ export default class Block {
 	}
 
 	get_col() {
-		let col = 12;
+		let col = this.col || 12;
 		let class_name = "col-12";
 		let wrapper = this.wrapper.closest('.ce-block');
 		const col_class = new RegExp(/\bcol-.+?\b/, "g");
