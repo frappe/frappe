@@ -195,13 +195,13 @@ Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
 	let selector = `[data-fieldname="${fieldname}"] input:visible`;
 
 	if (fieldtype === 'Text Editor') {
-		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true] input:visible`;
+		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]:visible`;
 	}
 	if (fieldtype === 'Code') {
-		selector = `[data-fieldname="${fieldname}"] .ace_text-input input:visible`;
+		selector = `[data-fieldname="${fieldname}"] .ace_text-input:visible`;
 	}
 
-	return cy.get(selector);
+	return cy.get(selector).first();
 });
 
 Cypress.Commands.add('fill_table_field', (tablefieldname, row_idx, fieldname, value, fieldtype = 'Data') => {
