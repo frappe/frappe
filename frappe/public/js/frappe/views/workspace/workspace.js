@@ -20,6 +20,7 @@ frappe.views.Workspace = class Workspace {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
+		this.blocks = frappe.wspace_block.blocks;
 		this.isReadOnly = true;
 		this.new_page = null;
 		this.sorted_public_items = [];
@@ -36,38 +37,38 @@ frappe.views.Workspace = class Workspace {
 		];
 		this.tools = {
 			header: {
-				class: frappe.wspace_block.blocks['header'],
+				class: this.blocks['header'],
 				inlineToolbar: true
 			},
 			paragraph: {
-				class: frappe.wspace_block.blocks['paragraph'],
+				class: this.blocks['paragraph'],
 				inlineToolbar: true
 			},
 			chart: {
-				class: frappe.wspace_block.blocks['chart'],
+				class: this.blocks['chart'],
 				config: {
 					page_data: this.page_data || []
 				}
 			},
 			card: {
-				class: frappe.wspace_block.blocks['card'],
+				class: this.blocks['card'],
 				config: {
 					page_data: this.page_data || []
 				}
 			},
 			shortcut: {
-				class: frappe.wspace_block.blocks['shortcut'],
+				class: this.blocks['shortcut'],
 				config: {
 					page_data: this.page_data || []
 				}
 			},
 			onboarding: {
-				class: frappe.wspace_block.blocks['onboarding'],
+				class: this.blocks['onboarding'],
 				config: {
 					page_data: this.page_data || []
 				}
 			},
-			spacer: frappe.wspace_block.blocks['spacer'],
+			spacer: this.blocks['spacer'],
 			spacingTune: frappe.wspace_block.tunes['spacing_tune'],
 		};
 
@@ -375,6 +376,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	setup_customization_buttons(is_editable) {
+		let me = this;
 		this.page.clear_primary_action();
 		this.page.clear_secondary_action();
 		this.page.clear_inner_toolbar();
@@ -398,6 +400,7 @@ frappe.views.Workspace = class Workspace {
 			() => {
 				this.page.clear_primary_action();
 				this.page.clear_secondary_action();
+				this.page.clear_inner_toolbar();
 				this.editor.readOnly.toggle();
 				this.isReadOnly = true;
 				this.deleted_sidebar_items = [];
@@ -405,6 +408,16 @@ frappe.views.Workspace = class Workspace {
 				frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 			}
 		);
+
+		Object.keys(this.blocks).forEach(key => {
+			this.page.add_inner_button(__(this.blocks[key].name), function() {
+				const index = me.editor.blocks.getBlocksCount() + 1;
+				let currentBlock = me.editor.blocks.getBlockByIndex(index - 1).holder;
+				me.editor.blocks.insert(key, {}, {}, index, true);
+				me.editor.caret.setToLastBlock('start', 0);
+				currentBlock.scrollIntoView();
+			}, __('Add New Block'));
+		});
 	}
 
 	show_sidebar_actions() {
@@ -683,7 +696,6 @@ frappe.views.Workspace = class Workspace {
 				callback: function(res) {
 					frappe.dom.unfreeze();
 					if (res.message) {
-						frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
 						me.new_page = res.message;
 						me.title = '';
 						me.parent = '';
@@ -692,6 +704,7 @@ frappe.views.Workspace = class Workspace {
 						me.sorted_private_items = [];
 						me.deleted_sidebar_items = [];
 						me.reload();
+						frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
 					}
 				}
 			});
