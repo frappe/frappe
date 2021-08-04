@@ -504,6 +504,9 @@ class Meta(Document):
 		if not data.non_standard_fieldnames:
 			data.non_standard_fieldnames = {}
 
+		if not data.internal_links:
+			data.internal_links = {}
+
 		for link in dashboard_links:
 			link.added = False
 			if link.hidden:
@@ -524,7 +527,7 @@ class Meta(Document):
 				# group not found, make a new group
 				data.transactions.append(dict(
 					label = link.group,
-					items = [link.link_doctype]
+					items = [link.parent_doctype or link.link_doctype]
 				))
 			
 			if not link.is_child_table:
@@ -534,6 +537,8 @@ class Meta(Document):
 					else:
 						data.fieldname = link.link_fieldname
 			elif link.is_child_table:
+				if not data.fieldname:
+					data.fieldname = link.link_fieldname
 				data.internal_links[link.parent_doctype] = [link.table_fieldname, link.link_fieldname]
 
 
