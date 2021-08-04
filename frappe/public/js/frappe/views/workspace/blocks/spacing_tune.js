@@ -34,6 +34,10 @@ export default class SpacingTune {
 
 		// paddingButton.appendChild($.svg('padding', 15, 15));
 		paddingButton.innerHTML = `<svg version="1.1" height="12" x="0px" y="0px" viewBox="-674 379 17 12" style="enable-background:new -674 379 17 12;" xml:space="preserve"><rect x="-666.1" y="379.9" width="1.7" height="10.3"/><polygon points="-657,384.2 -659.9,384.2 -658.8,383.1 -660,381.9 -663.1,385 -660,388.1 -658.8,386.9 -659.9,385.8 -657,385.8 "/><rect x="-671.9" y="379.9" width="4.1" height="1.7"/><rect x="-674" y="384.2" width="6.1" height="1.7"/><rect x="-671.9" y="388.4" width="4.1" height="1.7"/></svg>`;
+		this.api.tooltip.onHover(paddingButton, 'Padding', {
+			placement: 'top',
+			hidingDelay: 500,
+		});
 		this.api.listeners.on(
 			paddingButton,
 			'click',
@@ -43,6 +47,10 @@ export default class SpacingTune {
 
 		// decreaseWidthButton.appendChild($.svg('decrease-width', 15, 15));
 		decreaseWidthButton.innerHTML = `<svg version="1.1" height="10" x="0px" y="0px" viewBox="-674 380 17 10" style="enable-background:new -674 380 17 10;" xml:space="preserve"><path d="M-674,383.9h3.6l-1.7-1.7c-0.4-0.4-0.4-1.2,0-1.6c0.4-0.4,1.1-0.4,1.6,0l3.2,3.2c0.6,0.2,0.8,0.8,0.6,1.4	c-0.1,0.1-0.1,0.3-0.2,0.4l-3.8,3.8c-0.4,0.4-1.1,0.4-1.5,0c-0.4-0.4-0.4-1.1,0-1.5l1.8-1.8h-3.6V383.9z"/><path d="M-657,386.1h-3.6l1.7,1.7c0.4,0.4,0.4,1.2,0,1.6c-0.4,0.4-1.1,0.4-1.6,0l-3.2-3.2c-0.6-0.2-0.8-0.8-0.6-1.4	c0.1-0.1,0.1-0.3,0.2-0.4l3.8-3.8c0.4-0.4,1.1-0.4,1.5,0c0.4,0.4,0.4,1.1,0,1.5l-1.8,1.8h3.6V386.1z"/></svg>`;
+		this.api.tooltip.onHover(decreaseWidthButton, 'Shrink', {
+			placement: 'top',
+			hidingDelay: 500,
+		});
 		this.api.listeners.on(
 			decreaseWidthButton,
 			'click',
@@ -52,6 +60,10 @@ export default class SpacingTune {
 
 		// increaseWidthButton.appendChild();
 		increaseWidthButton.innerHTML = `<svg width="17" height="10" viewBox="0 0 17 10"><path d="M13.568 5.925H4.056l1.703 1.703a1.125 1.125 0 0 1-1.59 1.591L.962 6.014A1.069 1.069 0 0 1 .588 4.26L4.38.469a1.069 1.069 0 0 1 1.512 1.511L4.084 3.787h9.606l-1.85-1.85a1.069 1.069 0 1 1 1.512-1.51l3.792 3.791a1.069 1.069 0 0 1-.475 1.788L13.514 9.16a1.125 1.125 0 0 1-1.59-1.591l1.644-1.644z"/></svg>`;
+		this.api.tooltip.onHover(increaseWidthButton, 'Expand', {
+			placement: 'top',
+			hidingDelay: 500,
+		});
 		this.api.listeners.on(
 			increaseWidthButton,
 			'click',
@@ -88,7 +100,7 @@ export default class SpacingTune {
 			});
 			let parts = className.split('-');
 			let width = parseInt(parts[1]);
-			if (width >= 2) {
+			if (width >= 4) {
 				currentBlockElement.classList.remove('col-'+width);
 				width = width - 1;
 				currentBlockElement.classList.add('col-'+width);
