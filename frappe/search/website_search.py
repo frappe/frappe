@@ -88,13 +88,32 @@ class WebsiteSearch(FullTextSearch):
 def slugs_with_web_view():
 	all_routes = []
 	filters = { "has_web_view": 1, "allow_guest_to_view": 1, "index_web_pages_for_search": 1}
+<<<<<<< HEAD
 	fields = ["name", "is_published_field"]
+=======
+	fields = ["name", "is_published_field", "website_search_field"]
+>>>>>>> e9076a1e33 (fix: Get title only when necessary (#13831))
 	doctype_with_web_views = frappe.get_all("DocType", filters=filters, fields=fields)
 
 	for doctype in doctype_with_web_views:
 		if doctype.is_published_field:
+<<<<<<< HEAD
 			routes = frappe.get_all(doctype.name, filters={doctype.is_published_field: 1}, fields="route")
 			all_routes += [route.route for route in routes]
+=======
+			fields=["route", doctype.website_search_field]
+			filters={doctype.is_published_field: 1},
+			if doctype.website_search_field:
+				docs = frappe.get_all(doctype.name, filters=filters, fields=fields.append("title"))
+				for doc in docs:
+					content = frappe.utils.md_to_html(getattr(doc, doctype.website_search_field))
+					soup = BeautifulSoup(content, "html.parser")
+					text_content = soup.text if soup else ""
+					_items_to_index += [frappe._dict(title=doc.title, content=text_content, path=doc.route)]
+			else:
+				docs = frappe.get_all(doctype.name, filters=filters, fields=fields)
+				all_routes += [route.route for route in docs]
+>>>>>>> e9076a1e33 (fix: Get title only when necessary (#13831))
 
 	return all_routes
 

@@ -950,6 +950,19 @@ def validate_fields(meta):
 		if meta.is_published_field not in fieldname_list:
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
+<<<<<<< HEAD
+=======
+	def check_website_search_field(meta):
+		if not meta.website_search_field:
+			return
+
+		if meta.website_search_field not in fieldname_list:
+			frappe.throw(_("Website Search Field must be a valid fieldname"), InvalidFieldNameError)
+
+		if "title" not in fieldname_list:
+			frappe.throw(_('Field "title" is mandatory if "Website Search Field" is set.'), title=_("Missing Field"))
+
+>>>>>>> e9076a1e33 (fix: Get title only when necessary (#13831))
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
 			return
