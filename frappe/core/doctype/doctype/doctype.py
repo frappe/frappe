@@ -735,6 +735,10 @@ def validate_links_table_fieldnames(meta):
 			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
 			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
+		if link.is_child_table and not meta.get_field(link.table_fieldname):
+			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
+			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
+
 		if link.is_child_table:
 			if not link.parent_doctype:
 				message = _("Row #{0}: Parent DocType is mandatory for internal links").format(index+1)
