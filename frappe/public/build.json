@@ -194,7 +194,8 @@
 		"public/js/frappe/ui/datatable.js",
 		"public/js/frappe/ui/driver.js",
 		"public/js/frappe/ui/plyr.js",
-		"public/js/frappe/barcode_scanner/index.js"
+		"public/js/frappe/barcode_scanner/index.js",
+		"public/js/frappe/scanner"
 	],
 	"js/form.min.js": [
 		"public/js/frappe/form/templates/**.html",
