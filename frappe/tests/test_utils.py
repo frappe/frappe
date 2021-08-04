@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 import unittest
 import frappe
 
@@ -56,14 +54,14 @@ class TestMoney(unittest.TestCase):
 
 		for num in nums_bhd:
 			self.assertEqual(
-				money_in_words(num[0], "BHD"), 
-				num[1], 
+				money_in_words(num[0], "BHD"),
+				num[1],
 				"{0} is not the same as {1}".format(money_in_words(num[0], "BHD"), num[1])
 			)
 
 		for num in nums_ngn:
 			self.assertEqual(
-				money_in_words(num[0], "NGN"), num[1], 
+				money_in_words(num[0], "NGN"), num[1],
 				"{0} is not the same as {1}".format(money_in_words(num[0], "NGN"), num[1])
 			)
 
@@ -139,7 +137,7 @@ class TestValidationUtils(unittest.TestCase):
 		# Valid URLs
 		self.assertTrue(validate_url('https://google.com'))
 		self.assertTrue(validate_url('http://frappe.io', throw=True))
-		
+
 		# Invalid URLs without throw
 		self.assertFalse(validate_url('google.io'))
 		self.assertFalse(validate_url('google.io'))
@@ -152,9 +150,9 @@ class TestValidationUtils(unittest.TestCase):
 		self.assertTrue(validate_url('ftp://frappe.cloud', valid_schemes=['https', 'ftp']))
 		self.assertFalse(validate_url('bolo://frappe.io', valid_schemes=("http", "https", "ftp", "ftps")))
 		self.assertRaises(
-			frappe.ValidationError, 
-			validate_url, 
-			'gopher://frappe.io', 
+			frappe.ValidationError,
+			validate_url,
+			'gopher://frappe.io',
 			valid_schemes='https',
 			throw=True
 		)
@@ -167,16 +165,16 @@ class TestValidationUtils(unittest.TestCase):
 		# Valid addresses
 		self.assertTrue(validate_email_address('someone@frappe.com'))
 		self.assertTrue(validate_email_address('someone@frappe.com, anyone@frappe.io'))
-		
+
 		# Invalid address
 		self.assertFalse(validate_email_address('someone'))
 		self.assertFalse(validate_email_address('someone@----.com'))
 
 		# Invalid with throw
 		self.assertRaises(
-			frappe.InvalidEmailAddressError, 
-			validate_email_address, 
-			'someone.com', 
+			frappe.InvalidEmailAddressError,
+			validate_email_address,
+			'someone.com',
 			throw=True
 		)
 

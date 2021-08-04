@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import string
 import frappe
 from frappe import _
@@ -61,16 +60,16 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 	except frappe.db.DataError as e:
 		if ((frappe.db.db_type == 'mariadb' and e.args[0] == DATA_TOO_LONG) or
 			(frappe.db.db_type == 'postgres' and e.pgcode == STRING_DATA_RIGHT_TRUNCATION)):
-			frappe.throw("Most probably your password is too long.", exc=e)
+			frappe.throw(_("Most probably your password is too long."), exc=e)
 		raise e
 
 
 def remove_encrypted_password(doctype, name, fieldname='password'):
-	frappe.db.sql(
-		'DELETE FROM `__Auth` WHERE doctype = %s and name = %s and fieldname = %s',
-		values=[doctype, name, fieldname]
-	)
-
+	frappe.db.delete("__Auth", {
+		"doctype": doctype,
+		"name": name,
+		"fieldname": fieldname
+	})
 
 def check_password(user, pwd, doctype='User', fieldname='password', delete_tracker_cache=True):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
@@ -132,8 +131,10 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 
 def delete_all_passwords_for(doctype, name):
 	try:
-		frappe.db.sql("""delete from `__Auth` where `doctype`=%(doctype)s and `name`=%(name)s""",
-			{ 'doctype': doctype, 'name': name })
+		frappe.db.delete("__Auth", {
+			"doctype": doctype,
+			"name": name
+		})
 	except Exception as e:
 		if not frappe.db.is_missing_column(e):
 			raise
@@ -157,20 +158,29 @@ def create_auth_table():
 	frappe.db.create_auth_table()
 
 
-def encrypt(pwd):
-	cipher_suite = Fernet(encode(get_encryption_key()))
-	cipher_text = cstr(cipher_suite.encrypt(encode(pwd)))
+def encrypt(txt, encryption_key=None):
+	# Only use Fernet.generate_key().decode() to enter encyption_key value
+
+	try:
+		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))
+	except Exception:
+		# encryption_key is not in 32 url-safe base64-encoded format
+		frappe.throw(_('Encryption key is in invalid format!'))
+
+	cipher_text = cstr(cipher_suite.encrypt(encode(txt)))
 	return cipher_text
 
 
-def decrypt(pwd):
+def decrypt(txt, encryption_key=None):
+	# Only use encryption_key value generated with Fernet.generate_key().decode()
+
 	try:
-		cipher_suite = Fernet(encode(get_encryption_key()))
-		plain_text = cstr(cipher_suite.decrypt(encode(pwd)))
+		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))
+		plain_text = cstr(cipher_suite.decrypt(encode(txt)))
 		return plain_text
 	except InvalidToken:
 		# encryption_key in site_config is changed and not valid
-		frappe.throw(_('Encryption key is invalid, Please check site_config.json'))
+		frappe.throw(_('Encryption key is invalid' + '!' if encryption_key else ', please check site_config.json.'))
 
 
 def get_encryption_key():

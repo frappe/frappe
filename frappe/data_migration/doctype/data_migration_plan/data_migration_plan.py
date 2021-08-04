@@ -2,7 +2,6 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.modules.export_file import export_to_files, create_init_py

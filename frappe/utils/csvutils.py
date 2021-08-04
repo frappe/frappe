@@ -1,14 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, _
 import json
 import csv
-import six
 import requests
-from six import StringIO, text_type, string_types
+from io import StringIO
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
@@ -40,11 +37,11 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
 
-	if not isinstance(fcontent, text_type):
+	if not isinstance(fcontent, str):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
 			try:
-				fcontent = text_type(fcontent, encoding)
+				fcontent = str(fcontent, encoding)
 				decoded = True
 				break
 			except UnicodeDecodeError:
@@ -56,10 +53,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 	fcontent = fcontent.encode("utf-8")
 	content  = [ ]
 	for line in fcontent.splitlines(True):
-		if six.PY2:
-			content.append(line)
-		else:
-			content.append(frappe.safe_decode(line))
+		content.append(frappe.safe_decode(line))
 
 	try:
 		rows = []
@@ -85,7 +79,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 
 @frappe.whitelist()
 def send_csv_to_client(args):
-	if isinstance(args, string_types):
+	if isinstance(args, str):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
@@ -113,8 +107,6 @@ class UnicodeWriter:
 		self.writer = csv.writer(self.queue, quoting=quoting)
 
 	def writerow(self, row):
-		if six.PY2:
-			row = encode(row, self.encoding)
 		self.writer.writerow(row)
 
 	def getvalue(self):

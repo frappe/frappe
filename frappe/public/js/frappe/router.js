@@ -14,11 +14,10 @@ frappe.view_factories = [];
 frappe.route_options = null;
 frappe.route_hooks = {};
 
-$(window).on('hashchange', function() {
+$(window).on('hashchange', function(e) {
 	// v1 style routing, route is in hash
-	if (window.location.hash) {
+	if (window.location.hash && !frappe.router.is_app_route(e.currentTarget.pathname)) {
 		let sub_path = frappe.router.get_sub_path(window.location.hash);
-		window.location.hash = '';
 		frappe.router.push_state(sub_path);
 		return false;
 	}
@@ -48,18 +47,18 @@ $('body').on('click', 'a', function(e) {
 		return;
 	}
 
-	if (href==='') {
+	if (href === '') {
 		return override('/app');
 	}
 
-	// target has "#" ,this is a v1 style route, so remake it.
-	if (e.currentTarget.hash) {
+	if (href && href.startsWith('#')) {
+		// target startswith "#", this is a v1 style route, so remake it.
 		return override(e.currentTarget.hash);
 	}
 
-	// target has "/app, this is a v2 style route.
-	if (e.currentTarget.pathname && frappe.router.is_app_route(e.currentTarget.pathname)) {
-		return override(e.currentTarget.pathname);
+	if (frappe.router.is_app_route(e.currentTarget.pathname)) {
+		// target has "/app, this is a v2 style route.
+		return override(e.currentTarget.pathname + e.currentTarget.hash);
 	}
 });
 
@@ -170,10 +169,8 @@ frappe.router = {
 			standard_route = ['Tree', doctype_route.doctype];
 		} else {
 			standard_route = ['List', doctype_route.doctype, frappe.utils.to_title_case(route[2])];
-			if (route[3]) {
-				// calendar / kanban / dashboard name
-				standard_route.push(route[3]);
-			}
+			// calendar / kanban / dashboard / folder
+			if (route[3]) standard_route.push(...route.slice(3, route.length));
 		}
 		return standard_route;
 	},
@@ -246,7 +243,7 @@ frappe.router = {
 		// example 1: frappe.set_route('a', 'b', 'c');
 		// example 2: frappe.set_route(['a', 'b', 'c']);
 		// example 3: frappe.set_route('a/b/c');
-		let route = arguments;
+		let route = Array.from(arguments);
 
 		return new Promise(resolve => {
 			route = this.get_route_from_arguments(route);
@@ -297,8 +294,8 @@ frappe.router = {
 			if (route[2] && route[2] !== 'list' && !$.isPlainObject(route[2])) {
 				new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
 
-				// calendar / inbox
-				if (route[3]) new_route.push(route[3]);
+				// calendar / inbox / file folder
+				if (route[3]) new_route.push(...route.slice(3, route.length));
 			} else {
 				if ($.isPlainObject(route[2])) {
 					frappe.route_options = route[2];
@@ -349,8 +346,6 @@ frappe.router = {
 	push_state(url) {
 		// change the URL and call the router
 		if (window.location.pathname !== url) {
-			// cleanup any remenants of v1 routing
-			window.location.hash = '';
 
 			// push state so the browser looks fine
 			history.pushState(null, null, url);
@@ -364,7 +359,11 @@ frappe.router = {
 		// return clean sub_path from hash or url
 		// supports both v1 and v2 routing
 		if (!route) {
-			route = window.location.hash || (window.location.pathname + window.location.search);
+			route = window.location.pathname + window.location.hash + window.location.search;
+			if (route.includes('app#')) {
+				// to support v1
+				route = window.location.hash;
+			}
 		}
 
 		return this.strip_prefix(route);

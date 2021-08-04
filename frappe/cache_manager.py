@@ -1,8 +1,6 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe, json
 from frappe.model.document import Document
 from frappe.desk.notifications import (delete_notification_count_for,
@@ -55,7 +53,7 @@ def clear_domain_cache(user=None):
 	cache.delete_value(domain_cache_keys)
 
 def clear_global_cache():
-	from frappe.website.render import clear_cache as clear_website_cache
+	from frappe.website.utils import clear_website_cache
 
 	clear_doctype_cache()
 	clear_website_cache()
@@ -143,17 +141,13 @@ def build_table_count_cache():
 		return
 
 	_cache = frappe.cache()
-	data = frappe.db.multisql({
-		"mariadb": """
-			SELECT 	table_name AS name,
-					table_rows AS count
-			FROM information_schema.tables""",
-		"postgres": """
-			SELECT 	"relname" AS name,
-					"n_tup_ins" AS count
-			FROM "pg_stat_all_tables"
-		"""
-	}, as_dict=1)
+	table_name = frappe.qb.Field("table_name").as_("name")
+	table_rows = frappe.qb.Field("table_rows").as_("count")
+	information_schema = frappe.qb.Schema("information_schema")
+
+	query = frappe.qb.from_(information_schema.tables).select(table_name, table_rows)
+
+	data = frappe.db.sql(query, as_dict=1)
 
 	counts = {d.get('name').lstrip('tab'): d.get('count', None) for d in data}
 	_cache.set_value("information_schema:counts", counts)

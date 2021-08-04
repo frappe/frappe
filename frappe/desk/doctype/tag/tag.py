@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils import unique
@@ -124,7 +122,10 @@ def delete_tags_for_document(doc):
 	if not frappe.db.table_exists("Tag Link"):
 		return
 
-	frappe.db.sql("""DELETE FROM `tabTag Link` WHERE `document_type`=%s AND `document_name`=%s""", (doc.doctype, doc.name))
+	frappe.db.delete("Tag Link", {
+		"document_type": doc.doctype,
+		"document_name": doc.name
+	})
 
 def update_tags(doc, tags):
 	"""
@@ -132,7 +133,7 @@ def update_tags(doc, tags):
 		:param doc: Document to be added to global tags
 	"""
 
-	new_tags = list(set([tag.strip() for tag in tags.split(",") if tag]))
+	new_tags = {tag.strip() for tag in tags.split(",") if tag}
 
 	for tag in new_tags:
 		if not frappe.db.exists("Tag Link", {"parenttype": doc.doctype, "parent": doc.name, "tag": tag}):
@@ -162,7 +163,11 @@ def get_deleted_tags(new_tags, existing_tags):
 	return list(set(existing_tags) - set(new_tags))
 
 def delete_tag_for_document(dt, dn, tag):
-	frappe.db.sql("""DELETE FROM `tabTag Link` WHERE `document_type`=%s AND `document_name`=%s AND tag=%s""", (dt, dn, tag))
+	frappe.db.delete("Tag Link", {
+		"document_type": dt,
+		"document_name": dn,
+		"tag": tag
+	})
 
 @frappe.whitelist()
 def get_documents_for_tag(tag):

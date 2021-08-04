@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 import re
 import redis
@@ -11,7 +9,6 @@ import os
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.html_utils import unescape_html
 from frappe.model.base_document import get_controller
-from six import text_type
 
 def setup_global_search_table():
 	"""
@@ -26,8 +23,7 @@ def reset():
 	Deletes all data in __global_search
 	:return:
 	"""
-	frappe.db.sql('DELETE FROM `__global_search`')
-
+	frappe.db.delete("__global_search")
 
 def get_doctypes_with_global_search(with_child_tables=True):
 	"""
@@ -149,10 +145,9 @@ def rebuild_for_doctype(doctype):
 
 
 def delete_global_search_records_for_doctype(doctype):
-	frappe.db.sql('''DELETE
-		FROM `__global_search`
-		WHERE doctype = %s''', doctype, as_dict=True)
-
+	frappe.db.delete("__global_search", {
+		"doctype": doctype
+	})
 
 def get_selected_fields(meta, global_search_fields):
 	fieldnames = [df.fieldname for df in global_search_fields]
@@ -234,9 +229,6 @@ def update_global_search(doc):
 	if frappe.local.conf.get('disable_global_search'):
 		return
 
-	if frappe.local.conf.get('disable_global_search'):
-		return
-
 	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) \
 		or doc.get("disabled"):
 			return
@@ -310,14 +302,14 @@ def get_routes_to_index():
 
 def add_route_to_global_search(route):
 	from bs4 import BeautifulSoup
-	from frappe.website.render import render_page
+	from frappe.website.serve import get_response_content
 	from frappe.utils import set_request
 	frappe.set_user('Guest')
 	frappe.local.no_cache = True
 
 	try:
 		set_request(method='GET', path=route)
-		content = render_page(route)
+		content = get_response_content(route)
 		soup = BeautifulSoup(content, 'html.parser')
 		page_content = soup.find(class_='page_content')
 		text_content = page_content.text if page_content else ''
@@ -332,7 +324,7 @@ def add_route_to_global_search(route):
 			route=route
 		)
 		sync_value_in_queue(value)
-	except (frappe.PermissionError, frappe.DoesNotExistError, frappe.ValidationError, Exception):
+	except Exception:
 		pass
 
 	frappe.set_user('Administrator')
@@ -348,9 +340,9 @@ def get_formatted_value(value, field):
 
 	if getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]:
 		value = unescape_html(frappe.safe_decode(value))
-		value = (re.subn(r'(?s)<[\s]*(script|style).*?</\1>', '', text_type(value))[0])
+		value = (re.subn(r'(?s)<[\s]*(script|style).*?</\1>', '', str(value))[0])
 		value = ' '.join(value.split())
-	return field.label + " : " + strip_html_tags(text_type(value))
+	return field.label + " : " + strip_html_tags(str(value))
 
 
 def sync_global_search():
@@ -405,12 +397,10 @@ def delete_for_document(doc):
 	been deleted
 	:param doc: Deleted document
 	"""
-
-	frappe.db.sql('''DELETE
-		FROM `__global_search`
-		WHERE doctype = %s
-		AND name = %s''', (doc.doctype, doc.name), as_dict=True)
-
+	frappe.db.delete("__global_search", {
+		"doctype": doc.doctype,
+		"name": doc.name
+	})
 
 @frappe.whitelist()
 def search(text, start=0, limit=20, doctype=""):
@@ -421,51 +411,41 @@ def search(text, start=0, limit=20, doctype=""):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
 	"""
-	from frappe.desk.doctype.global_search_settings.global_search_settings import get_doctypes_for_global_search
+	from frappe.desk.doctype.global_search_settings.global_search_settings import (
+		get_doctypes_for_global_search,
+	)
+	from frappe.query_builder.functions import Match
 
 	results = []
 	sorted_results = []
 
 	allowed_doctypes = get_doctypes_for_global_search()
 
-	for text in set(text.split('&')):
+	for text in set(text.split("&")):
 		text = text.strip()
 		if not text:
 			continue
 
-		conditions = '1=1'
-		offset = ''
-
-		mariadb_text = frappe.db.escape('+' + text + '*')
-
-		mariadb_fields = '`doctype`, `name`, `content`, MATCH (`content`) AGAINST ({} IN BOOLEAN MODE) AS rank'.format(mariadb_text)
-		postgres_fields = '`doctype`, `name`, `content`, TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({}) AS rank'.format(frappe.db.escape(text))
-
-		values = {}
+		global_search = frappe.qb.Table("__global_search")
+		rank = Match(global_search.content).Against(text).as_("rank")
+		query = (
+			frappe.qb.from_(global_search)
+			.select(
+				global_search.doctype, global_search.name, global_search.content, rank
+			)
+			.orderby("rank", order=frappe.qb.desc)
+			.limit(limit)
+		)
 
 		if doctype:
-			conditions = '`doctype` = %(doctype)s'
-			values['doctype'] = doctype
+			query = query.where(global_search.doctype == doctype)
 		elif allowed_doctypes:
-			conditions = '`doctype` IN %(allowed_doctypes)s'
-			values['allowed_doctypes'] = tuple(allowed_doctypes)
+			query = query.where(global_search.doctype.isin(allowed_doctypes))
 
-		if int(start) > 0:
-			offset = 'OFFSET {}'.format(start)
+		if start > 0:
+			query = query.offset(start)
 
-		common_query = """
-				SELECT {fields}
-				FROM `__global_search`
-				WHERE {conditions}
-				ORDER BY rank DESC
-				LIMIT {limit}
-				{offset}
-			"""
-
-		result = frappe.db.multisql({
-				'mariadb': common_query.format(fields=mariadb_fields, conditions=conditions, limit=limit, offset=offset),
-				'postgres': common_query.format(fields=postgres_fields, conditions=conditions, limit=limit, offset=offset)
-			}, values=values, as_dict=True)
+		result = frappe.db.sql(query, as_dict=True)
 
 		results.extend(result)
 
@@ -476,7 +456,9 @@ def search(text, start=0, limit=20, doctype=""):
 				try:
 					meta = frappe.get_meta(r.doctype)
 					if meta.image_field:
-						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+						r.image = frappe.db.get_value(
+							r.doctype, r.name, meta.image_field
+						)
 				except Exception:
 					frappe.clear_messages()
 

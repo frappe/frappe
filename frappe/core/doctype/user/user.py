@@ -1,10 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
 from bs4 import BeautifulSoup
-
 import frappe
 import frappe.share
 import frappe.defaults
@@ -17,7 +13,7 @@ from frappe.utils.password import update_password as _update_password, check_pas
 from frappe.desk.notifications import clear_notifications
 from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings, toggle_notifications
 from frappe.utils.user import get_system_managers
-from frappe.website.utils import is_signup_enabled
+from frappe.website.utils import is_signup_disabled
 from frappe.rate_limiter import rate_limit
 from frappe.utils.background_jobs import enqueue
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
@@ -57,6 +53,7 @@ class User(Document):
 	def after_insert(self):
 		create_notification_settings(self.name)
 		frappe.cache().delete_key('users_for_mentions')
+		frappe.cache().delete_key('enabled_users')
 
 	def validate(self):
 		self.check_demo()
@@ -132,6 +129,9 @@ class User(Document):
 
 		if self.has_value_changed('allow_in_mentions') or self.has_value_changed('user_type'):
 			frappe.cache().delete_key('users_for_mentions')
+
+		if self.has_value_changed('enabled'):
+			frappe.cache().delete_key('enabled_users')
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -368,17 +368,15 @@ class User(Document):
 			frappe.local.login_manager.logout(user=self.name)
 
 		# delete todos
-		frappe.db.sql("""DELETE FROM `tabToDo` WHERE `owner`=%s""", (self.name,))
+		frappe.db.delete("ToDo", {"owner": self.name})
 		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
 			(self.name,))
 
 		# delete events
-		frappe.db.sql("""delete from `tabEvent` where owner=%s
-			and event_type='Private'""", (self.name,))
+		frappe.db.delete("Event", {"owner": self.name, "event_type": "Private"})
 
 		# delete shares
-		frappe.db.sql("""delete from `tabDocShare` where user=%s""", self.name)
-
+		frappe.db.delete("DocShare", {"user": self.name})
 		# delete messages
 		frappe.db.sql("""delete from `tabCommunication`
 			where communication_type in ('Chat', 'Notification')
@@ -395,6 +393,8 @@ class User(Document):
 
 		if self.get('allow_in_mentions'):
 			frappe.cache().delete_key('users_for_mentions')
+
+		frappe.cache().delete_key('enabled_users')
 
 
 	def before_rename(self, old_name, new_name, merge=False):
@@ -843,7 +843,7 @@ def verify_password(password):
 
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name, redirect_to):
-	if not is_signup_enabled():
+	if is_signup_disabled():
 		frappe.throw(_('Sign Up is disabled'), title='Not Allowed')
 
 	user = frappe.db.get("User", {"email": email})
@@ -935,7 +935,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		LIMIT %(page_len)s OFFSET %(start)s
 	""".format(
 			user_type_condition = user_type_condition,
-			standard_users=", ".join([frappe.db.escape(u) for u in STANDARD_USERS]),
+			standard_users=", ".join(frappe.db.escape(u) for u in STANDARD_USERS),
 			key=searchfield,
 			fcond=get_filters_cond(doctype, filters, conditions),
 			mcond=get_match_cond(doctype)
@@ -1234,3 +1234,10 @@ def generate_keys(user):
 def switch_theme(theme):
 	if theme in ["Dark", "Light"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
+
+def get_enabled_users():
+	def _get_enabled_users():
+		enabled_users = frappe.get_all("User", filters={"enabled": "1"}, pluck="name")
+		return enabled_users
+
+	return frappe.cache().get_value("enabled_users", _get_enabled_users)

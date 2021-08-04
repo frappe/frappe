@@ -1,6 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
 import base64
 import binascii
 import json
@@ -83,7 +82,7 @@ def handle():
 				if frappe.local.request.method=="PUT":
 					data = get_request_form_data()
 
-					doc = frappe.get_doc(doctype, name)
+					doc = frappe.get_doc(doctype, name, for_update=True)
 
 					if "flags" in data:
 						del data["flags"]

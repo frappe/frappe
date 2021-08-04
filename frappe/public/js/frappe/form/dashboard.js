@@ -178,7 +178,6 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				return;
 			}
 			this.render_links();
-			this.set_open_count();
 			show = true;
 		}
 
@@ -205,6 +204,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				$(this).removeClass('hidden');
 			}
 		});
+		!this.frm.is_new() && this.set_open_count();
 	}
 
 	init_data() {
