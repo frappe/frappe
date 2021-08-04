@@ -392,7 +392,7 @@ frappe.views.BaseList = class BaseList {
 		if (name_field.length == 1) {
 			return frappe.model.get_full_column_name(name_field[0][0], name_field[0][1]);
 		}
-		return null
+		return null;
 	}
 
 	setup_view() {
