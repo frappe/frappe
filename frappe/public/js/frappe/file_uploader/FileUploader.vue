@@ -285,6 +285,8 @@ export default {
 					let is_image = file.type.startsWith('image');
 					return {
 						file_obj: file,
+						cropper_file: file,
+						crop_box_data: null,
 						name: file.name,
 						doc: null,
 						progress: 0,

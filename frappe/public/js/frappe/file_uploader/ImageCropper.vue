@@ -27,15 +27,17 @@ export default {
 		if (window.FileReader) {
 			let fr = new FileReader();
 			fr.onload = () => (this.src = fr.result);
-			fr.readAsDataURL(this.file.file_obj);
+			fr.readAsDataURL(this.file.cropper_file);
 		}
 		aspect_ratio = this.attach_doc_image ? 1 : NaN;
+		crop_box = this.file.crop_box_data;
 		this.image = this.$refs.image;
 		this.image.onload = () => {
 			this.cropper = new Cropper(this.image, {
 				zoomable: false,
 				scalable: false,
 				viewMode: 1,
+				data: crop_box,
 				aspectRatio: aspect_ratio
 			});
 		};
@@ -47,6 +49,7 @@ export default {
 	},
 	methods: {
 		crop_image() {
+			this.file.crop_box_data = this.cropper.getData();
 			const canvas = this.cropper.getCroppedCanvas();
 			const file_type = this.file.file_obj.type;
 			canvas.toBlob(blob => {

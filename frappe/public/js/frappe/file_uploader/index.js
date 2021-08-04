@@ -72,8 +72,7 @@ export default class FileUploader {
 		this.uploader.$watch('hide_dialog_footer', (hide_dialog_footer) => {
 			if (hide_dialog_footer) {
 				this.dialog && this.dialog.footer.addClass('hide');
-			}
-			else {
+			} else {
 				this.dialog && this.dialog.footer.removeClass('hide');
 			}
 		});
