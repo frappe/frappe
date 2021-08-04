@@ -540,11 +540,7 @@ frappe.ui.form.Layout = Class.extend({
 
 		} else if (expression.substr(0, 5)=='eval:') {
 			try {
-<<<<<<< HEAD
-				out = eval(expression.substr(5));
-=======
 				out = frappe.utils.eval(expression.substr(5), { doc, parent });
->>>>>>> 1f5bcd42ab (fix: incorrect depends on evalutation with parent variables)
 				if (parent && parent.istable && expression.includes('is_submittable')) {
 					out = true;
 				}
