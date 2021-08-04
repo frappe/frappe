@@ -103,3 +103,4 @@ import "./frappe/ui/datatable.js";
 import "./frappe/ui/driver.js";
 import "./frappe/ui/plyr.js";
 import "./frappe/barcode_scanner/index.js";
+import "./frappe/scanner";
