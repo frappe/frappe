@@ -196,7 +196,7 @@ def install_app(context, apps):
 				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
 				exit_code = 1
 			except Exception as err:
-				err_msg = ":\n{}".format(err if str(err) else frappe.get_traceback())
+				err_msg = ": {}\n{}".format(str(err), frappe.get_traceback())
 				print("An error occurred while installing {}{}".format(app, err_msg))
 				exit_code = 1
 
