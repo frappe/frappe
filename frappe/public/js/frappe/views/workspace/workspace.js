@@ -410,7 +410,10 @@ frappe.views.Workspace = class Workspace {
 		);
 
 		Object.keys(this.blocks).forEach(key => {
-			this.page.add_inner_button(__(this.blocks[key].toolbox.title), function() {
+			this.page.add_inner_button(`
+				<span class="block-item-icon">${this.blocks[key].toolbox.icon}</span>
+				<span class="block-item-label">${__(this.blocks[key].toolbox.title)}</span>
+			`, function() {
 				const index = me.editor.blocks.getBlocksCount() + 1;
 				me.editor.blocks.insert(key, {}, {}, index, true);
 				me.editor.caret.setToLastBlock('start', 0);

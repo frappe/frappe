@@ -4,7 +4,7 @@ export default class Onboarding extends Block {
 	static get toolbox() {
 		return {
 			title: 'Onboarding',
-			icon: '<svg width="24" height="24" fill="none"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 11.09v5.455" stroke="#1F272E" fill="none"/><path d="M12.41 7.455a.41.41 0 11-.82 0 .41.41 0 01.82 0z" stroke="#1F272E"/></svg>'
+			icon: '<svg width="24" height="24" viewBox="2 0 20 24" fill="none"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 11.09v5.455" stroke="#1F272E" fill="none"/><path d="M12.41 7.455a.41.41 0 11-.82 0 .41.41 0 01.82 0z" stroke="#1F272E"/></svg>'
 		};
 	}
 
