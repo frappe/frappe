@@ -937,6 +937,22 @@ def unzip_file(name):
 	files = file_obj.unzip()
 	return len(files)
 
+@frappe.whitelist()
+def optimize_saved_image(doc_name):
+	file_doc = frappe.get_doc('File', doc_name)
+	content = file_doc.get_content()
+	content_type = mimetypes.guess_type(file_doc.file_name)[0]
+
+	optimized_content = optimize_image(content, content_type)
+
+	file_path = get_files_path(is_private=file_doc.is_private)
+	file_path = os.path.join(file_path.encode('utf-8'), file_doc.file_name.encode('utf-8'))
+	with open(file_path, 'wb+') as f:
+		f.write(optimized_content)
+
+	file_doc.file_size = len(optimized_content)
+	file_doc.content_hash = get_content_hash(optimized_content)
+	file_doc.save()
 
 @frappe.whitelist()
 def get_attached_images(doctype, names):
