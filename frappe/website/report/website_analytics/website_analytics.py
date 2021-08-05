@@ -1,10 +1,13 @@
 # Copyright (c) 2013, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import frappe
 from datetime import datetime
+
+import frappe
+from frappe.query_builder.functions import Coalesce, Count
 from frappe.utils import getdate
 from frappe.utils.dateutils import get_dates_from_timegrain
+
 
 def execute(filters=None):
 	return WebsiteAnalytics(filters).run()
@@ -56,33 +59,21 @@ class WebsiteAnalytics(object):
 		]
 
 	def get_data(self):
-		pg_query = """
-				SELECT
-					path,
-					COUNT(*) as count,
-					COUNT(CASE WHEN CAST(is_unique as Integer) = 1 THEN 1 END) as unique_count
-				FROM `tabWeb Page View`
-				WHERE  coalesce("tabWeb Page View".creation, '0001-01-01') BETWEEN %s AND %s
-				GROUP BY path
-				ORDER BY count desc
-			"""
+		WebPageView = frappe.qb.Table("Web Page View")
+		count_all = Count("*").as_("count")
+		case = frappe.qb.terms.Case().when(WebPageView.is_unique == "1", "1")
+		count_is_unique = Count(case).as_("unique_count")
 
-		mariadb_query = """
-				SELECT
-					path,
-					COUNT(*) as count,
-					COUNT(CASE WHEN is_unique = 1 THEN 1 END) as unique_count
-				FROM `tabWeb Page View`
-				WHERE creation BETWEEN %s AND %s
-				GROUP BY path
-				ORDER BY count desc
-			"""
-
-		data = frappe.db.multisql({
-				"mariadb": mariadb_query,
-				"postgres": pg_query
-			}, (self.filters.from_date, self.filters.to_date))
-		return data
+		query = (
+			frappe.qb.from_(WebPageView)
+			.select("path", count_all, count_is_unique)
+			.where(
+				Coalesce(WebPageView.creation, "0001-01-01")[self.filters.from_date:self.filters.to_date]
+			)
+			.groupby(WebPageView.path)
+			.orderby("count", Order=frappe.qb.desc)
+		)
+		return frappe.db.sql(query)
 
 	def _get_query_for_mariadb(self):
 		filters_range = self.filters.range

@@ -264,15 +264,16 @@ export default class Grid {
 
 	make_head() {
 		// labels
-		if (!this.header_row) {
-			this.header_row = new GridRow({
-				parent: $(this.parent).find(".grid-heading-row"),
-				parent_df: this.df,
-				docfields: this.docfields,
-				frm: this.frm,
-				grid: this
-			});
+		if (this.header_row) {
+			$(this.parent).find(".grid-heading-row .grid-row").remove();
 		}
+		this.header_row = new GridRow({
+			parent: $(this.parent).find(".grid-heading-row"),
+			parent_df: this.df,
+			docfields: this.docfields,
+			frm: this.frm,
+			grid: this
+		});
 	}
 
 	refresh(force) {
