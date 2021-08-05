@@ -303,6 +303,12 @@ frappe.form.formatters = {
 			<div class="selected-color" style="background-color: ${value}"></div>
 			<span class="color-value">${value}</span>
 		</div>` : '';
+	},
+	Icon: (value) => {
+		return value ? `<div>
+			<div class="selected-icon">${frappe.utils.icon(value, "md")}</div>
+			<span class="icon-value">${value}</span>
+		</div>` : '';
 	}
 };
 

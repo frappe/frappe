@@ -90,7 +90,7 @@
    "label": "Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
+   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
    "reqd": 1,
    "search_index": 1
   },
@@ -487,7 +487,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-10-29 06:09:26.454990",
+ "modified": "2021-07-10 21:56:04.167745",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
