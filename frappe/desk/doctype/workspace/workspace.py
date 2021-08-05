@@ -158,12 +158,13 @@ def get_report_type(report):
 
 
 @frappe.whitelist()
-def save_page(title, parent, public, sb_public_items, sb_private_items, deleted_pages, new_widgets, blocks, save):
+def save_page(title, icon, parent, public, sb_public_items, sb_private_items, deleted_pages, new_widgets, blocks, save):
 	save = frappe.parse_json(save)
 	public = frappe.parse_json(public)
 	if save: 
 		doc = frappe.new_doc('Workspace')
 		doc.title = title
+		doc.icon = icon
 		doc.content = blocks
 		doc.parent_page = parent
 

@@ -206,7 +206,7 @@
   },
   {
    "fieldname": "icon",
-   "fieldtype": "Data",
+   "fieldtype": "Icon",
    "label": "Icon"
   },
   {
@@ -262,7 +262,7 @@
   }
  ],
  "links": [],
- "modified": "2021-07-15 14:20:37.623926",
+ "modified": "2021-08-05 11:49:09.028243",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

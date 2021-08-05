@@ -548,7 +548,15 @@ frappe.views.Workspace = class Workspace {
 						d.set_df_property('parent', 'options', 
 							this.get_value() ? me.public_parent_pages : me.private_parent_pages);
 					}
-				}
+				},
+				{
+					fieldtype: 'Column Break'
+				},
+				{
+					label: __('Icon'),
+					fieldtype: 'Icon',
+					fieldname: 'icon'
+				},
 			],
 			primary_action_label: __('Create'),
 			primary_action: (values) => {
@@ -557,6 +565,7 @@ frappe.views.Workspace = class Workspace {
 				this.initialize_editorjs_undo();
 				this.setup_customization_buttons(true);
 				this.title = values.title;
+				this.icon = values.icon;
 				this.parent = values.parent;
 				this.public = values.is_public;
 				this.editor.render({
@@ -602,10 +611,11 @@ frappe.views.Workspace = class Workspace {
 		return true;
 	}
 
-	add_page_to_sidebar({title, parent, is_public}) {
+	add_page_to_sidebar({title, icon, parent, is_public}) {
 		let $sidebar = $('.standard-sidebar-section');
 		let item = {
 			title: title,
+			icon: icon,
 			parent_page: parent,
 			public: is_public
 		};
@@ -642,7 +652,6 @@ frappe.views.Workspace = class Workspace {
 			$child_section.removeClass('hidden');
 			$item_container.find('.drop-icon use').attr("href", "#icon-small-up");
 		}
-		this.make_sidebar_sortable();
 	}
 
 	initialize_editorjs(blocks) {
@@ -686,6 +695,7 @@ frappe.views.Workspace = class Workspace {
 				method: "frappe.desk.doctype.workspace.workspace.save_page",
 				args: {
 					title: me.title,
+					icon: me.icon || '',
 					parent: me.parent || '',
 					public: me.public || 0,
 					sb_public_items: me.sorted_public_items,
@@ -700,6 +710,7 @@ frappe.views.Workspace = class Workspace {
 					if (res.message) {
 						me.new_page = res.message;
 						me.title = '';
+						me.icon = '';
 						me.parent = '';
 						me.public = false;
 						me.sorted_public_items = [];
