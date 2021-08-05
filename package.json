@@ -52,7 +52,7 @@
     "qz-tray": "^2.0.8",
     "redis": "^3.1.1",
     "showdown": "^1.9.1",
-    "snyk": "^1.518.0",
+    "snyk": "^1.667.0",
     "socket.io": "^2.4.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
@@ -67,6 +67,7 @@
     "fast-glob": "^3.2.5",
     "launch-editor": "^2.2.1",
     "md5": "^2.3.0",
+    "rtlcss": "^3.2.1",
     "yargs": "^16.2.0"
   },
   "snyk": true

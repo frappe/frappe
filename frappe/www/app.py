@@ -6,6 +6,7 @@ import os, re
 import frappe
 from frappe import _
 import frappe.sessions
+from frappe.utils.jinja_globals import is_rtl
 
 def get_context(context):
 	if frappe.session.user == "Guest":
@@ -40,6 +41,8 @@ def get_context(context):
 		"build_version": frappe.utils.get_build_version(),
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
+		"layout_direction": "rtl" if is_rtl() else "ltr",
+		"lang": frappe.local.lang,
 		"sounds": hooks["sounds"],
 		"boot": boot if context.get("for_mobile") else boot_json,
 		"desk_theme": desk_theme or "Light",
