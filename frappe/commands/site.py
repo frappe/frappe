@@ -561,30 +561,54 @@ def move(dest_dir, site):
 	return final_new_path
 
 
-@click.command('set-admin-password')
-@click.argument('admin-password')
+@click.command('set-password')
+@click.argument('user')
+@click.argument('password', required=False)
 @click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
 @pass_context
-def set_admin_password(context, admin_password, logout_all_sessions=False):
+def set_password(context, user, password=None, logout_all_sessions=False):
+	"Set password for a user on a site"
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	for site in context.sites:
+		set_user_password(site, user, password, logout_all_sessions)
+
+
+@click.command('set-admin-password')
+@click.argument('admin-password', required=False)
+@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
+@pass_context
+def set_admin_password(context, admin_password=None, logout_all_sessions=False):
 	"Set Administrator password for a site"
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	for site in context.sites:
+		set_user_password(site, "Administrator", admin_password, logout_all_sessions)
+
+
+def set_user_password(site, user, password, logout_all_sessions=False):
 	import getpass
 	from frappe.utils.password import update_password
 
-	for site in context.sites:
-		try:
-			frappe.init(site=site)
+	try:
+		frappe.init(site=site)
 
-			while not admin_password:
-				admin_password = getpass.getpass("Administrator's password for {0}: ".format(site))
+		while not password:
+			password = getpass.getpass(f"{user}'s password for {site}: ")
 
-			frappe.connect()
-			update_password(user='Administrator', pwd=admin_password, logout_all_sessions=logout_all_sessions)
-			frappe.db.commit()
-			admin_password = None
-		finally:
-			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
+		frappe.connect()
+		if not frappe.db.exists("User", user):
+			print(f"User {user} does not exist")
+			sys.exit(1)
+
+		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
+		frappe.db.commit()
+		password = None
+	finally:
+		frappe.destroy()
+
 
 @click.command('set-last-active-for-user')
 @click.option('--user', help="Setup last active date for user")
@@ -729,6 +753,7 @@ commands = [
 	remove_from_installed_apps,
 	restore,
 	run_patch,
+	set_password,
 	set_admin_password,
 	uninstall,
 	disable_user,
