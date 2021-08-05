@@ -20,6 +20,9 @@
 					<button class="ml-2 btn-reset" @click="$emit('toggle_private')" :title="__('Toggle Public/Private')">
 						<div v-html="private_icon"></div>
 					</button>
+					<button class="ml-2 btn-reset" v-if="is_optimizable" @click="$emit('toggle_optimize')" :title="__('Toggle optimization on/off')">
+						<div v-html="optimize_icon"></div>
+					</button>
 				</span>
 			</div>
 
@@ -83,6 +86,9 @@ export default {
 		private_icon() {
 			return frappe.utils.icon(this.is_private ? 'lock' : 'unlock');
 		},
+		optimize_icon() {
+			return frappe.utils.icon(this.file.optimize ? 'optimized' : 'image');
+		},
 		is_private() {
 			return this.file.doc ? this.file.doc.is_private : this.file.private;
 		},
@@ -91,6 +97,10 @@ export default {
 		},
 		is_image() {
 			return this.file.file_obj.type.startsWith('image');
+		},
+		is_optimizable() {
+			let is_svg = this.file.file_obj.type == 'image/svg+xml';
+			return this.is_image && !is_svg;
 		},
 		is_cropable() {
 			let croppable_types = ['image/jpeg', 'image/png'];

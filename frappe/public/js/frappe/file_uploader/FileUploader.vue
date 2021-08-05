@@ -86,6 +86,7 @@
 					:file="file"
 					@remove="remove_file(file)"
 					@toggle_private="file.private = !file.private"
+					@toggle_optimize="file.optimize = !file.optimize"
 					@toggle_image_cropper="toggle_image_cropper(i)"
 				/>
 			</div>
@@ -287,6 +288,7 @@ export default {
 						file_obj: file,
 						cropper_file: file,
 						crop_box_data: null,
+						optimize: false,
 						name: file.name,
 						doc: null,
 						progress: 0,
@@ -480,7 +482,7 @@ export default {
 					form_data.append('method', this.method);
 				}
 
-				if (this.attach_doc_image) {
+				if (this.attach_doc_image || file.optimize) {
 					form_data.append('optimize', true);
 				}
 

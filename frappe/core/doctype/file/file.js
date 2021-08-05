@@ -26,7 +26,7 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 	var is_raster_image = (/\.(gif|jpg|jpeg|tiff|png)$/i).test(frm.doc.file_url);
 	var is_optimizable = !frm.doc.is_folder && is_raster_image && frm.doc.file_size > 0;
 
-	if(is_optimizable) {
+	if (is_optimizable) {
 		frm.add_custom_button(__("Optimize"), function() {
 			frappe.show_alert(__("Optimizing image..."));
 			frappe.call({
