@@ -494,10 +494,12 @@ def console(context):
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 
-	from IPython.terminal import embed
-	terminal = embed.InteractiveShellEmbed()
-	terminal.extension_manager.load_extension("autoreload")
-	terminal.run_line_magic("autoreload", "2")
+	from IPython.terminal.embed import InteractiveShellEmbed
+
+	terminal = InteractiveShellEmbed()
+	if frappe.conf.developer_mode:
+		terminal.extension_manager.load_extension("autoreload")
+		terminal.run_line_magic("autoreload", "2")
 
 	all_apps = frappe.get_installed_apps()
 	failed_to_import = []
@@ -512,7 +514,7 @@ def console(context):
 	print("Apps in this namespace:\n{}".format(", ".join(all_apps)))
 	if failed_to_import:
 		print("\nFailed to import:\n{}".format(", ".join(failed_to_import)))
-		
+
 	terminal.colors = "neutral"
 	terminal.display_banner = False
 	terminal()
