@@ -20,9 +20,6 @@
 					<button class="ml-2 btn-reset" @click="$emit('toggle_private')" :title="__('Toggle Public/Private')">
 						<div v-html="private_icon"></div>
 					</button>
-					<button class="ml-2 btn-reset" v-if="is_optimizable" @click="$emit('toggle_optimize')" :title="__('Toggle optimization on/off')">
-						<div v-html="optimize_icon"></div>
-					</button>
 				</span>
 			</div>
 
@@ -31,6 +28,7 @@
 					{{ file.file_obj.size | file_size }}
 				</span>
 			</div>
+			<label v-if="is_optimizable" class="optimize-checkbox"><input type="checkbox" @change="$emit('toggle_optimize')">Optimize</label>
 		</div>
 		<div class="file-actions">
 			<ProgressRing
@@ -85,9 +83,6 @@ export default {
 	computed: {
 		private_icon() {
 			return frappe.utils.icon(this.is_private ? 'lock' : 'unlock');
-		},
-		optimize_icon() {
-			return frappe.utils.icon(this.file.optimize ? 'optimized' : 'image');
 		},
 		is_private() {
 			return this.file.doc ? this.file.doc.is_private : this.file.private;
@@ -203,5 +198,13 @@ export default {
 
 .muted:hover {
 	opacity: 1;
+}
+
+.optimize-checkbox {
+	font-size: var(--text-sm);
+	color: var(--text-light);
+	display: flex;
+	align-items: center;
+	padding-top: 0.25rem;
 }
 </style>

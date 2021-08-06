@@ -702,7 +702,4 @@
 	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="icon-crop">
 		<path d="M14.88,11.63H4.33V1.12m7.34,10.51v3.25M6,4.37h5.64V10M1.13,4.37h3.2" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
-	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="icon-optimized">
-		<path d="M4.88,11.91,7.63,9.15m-2.39,0H7.63v2.4m3.49-5.9L8.37,8.41m2.39,0H8.37V6m.94-4.58H3.63A1.31,1.31,0,0,0,2.32,2.75v10.5a1.31,1.31,0,0,0,1.31,1.31h8.74a1.31,1.31,0,0,0,1.31-1.31V5.81Z" stroke-linecap="round" stroke-linejoin="round"/>
-	</symbol>
 </svg>
