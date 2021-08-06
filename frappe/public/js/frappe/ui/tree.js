@@ -116,8 +116,12 @@ frappe.ui.Tree = class {
 			.hide().appendTo(node.parent);
 
 		this.make_icon_and_label(node);
+
 		if(this.toolbar) {
 			node.$toolbar = this.get_toolbar(node).insertAfter(node.$tree_link);
+		}
+		if (typeof(this.after_make_node_element) === "function"){
+			this.after_make_node_element(node)
 		}
 	}
 
