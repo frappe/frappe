@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import frappe
 import unittest
 from .energy_point_log import get_energy_points as _get_energy_points, create_review_points_log, review
@@ -274,6 +272,31 @@ class TestEnergyPointLog(unittest.TestCase):
 		self.assertEqual(points_after_closing_todo, energy_point_of_user + rule_points)
 		self.assertEqual(points_after_reverting_todo, points_after_closing_todo - rule_points)
 		self.assertEqual(points_after_saving_todo_again, points_after_reverting_todo + rule_points)
+
+	def test_energy_points_disabled_user(self):
+		frappe.set_user('test@example.com')
+		user = frappe.get_doc('User', 'test@example.com')
+		user.enabled = 0
+		user.save()
+		todo_point_rule = create_energy_point_rule_for_todo()
+		energy_point_of_user = get_points('test@example.com')
+
+		created_todo = create_a_todo()
+
+		created_todo.status = 'Closed'
+		created_todo.save()
+		points_after_closing_todo = get_points('test@example.com')
+
+		# do not update energy points for disabled user
+		self.assertEqual(points_after_closing_todo, energy_point_of_user)
+
+		user.enabled = 1
+		user.save()
+
+		created_todo.save()
+		points_after_re_saving_todo = get_points('test@example.com')
+		self.assertEqual(points_after_re_saving_todo, energy_point_of_user + todo_point_rule.points)
+
 
 def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom', max_points=None,
 	for_assigned_users=0, field_to_check=None, apply_once=False, user_field='owner'):

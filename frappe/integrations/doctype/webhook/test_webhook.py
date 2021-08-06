@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import unittest
 
 import frappe
-from frappe.integrations.doctype.webhook.webhook import get_webhook_headers, get_webhook_data
+from frappe.integrations.doctype.webhook.webhook import get_webhook_headers, get_webhook_data, enqueue_webhook
 
 
 class TestWebhook(unittest.TestCase):
@@ -14,6 +12,8 @@ class TestWebhook(unittest.TestCase):
 	def setUpClass(cls):
 		# delete any existing webhooks
 		frappe.db.sql("DELETE FROM tabWebhook")
+		# Delete existing logs if any
+		frappe.db.sql("DELETE FROM `tabWebhook Request Log`")
 		# create test webhooks
 		cls.create_sample_webhooks()
 
@@ -86,7 +86,7 @@ class TestWebhook(unittest.TestCase):
 
 		# Insert the user to db
 		self.test_user.insert()
-		
+
 		self.assertTrue("User" in frappe.flags.webhooks)
 		# only 1 hook (enabled) must be queued
 		self.assertEqual(
@@ -95,7 +95,7 @@ class TestWebhook(unittest.TestCase):
 		)
 		self.assertTrue(self.test_user.email in frappe.flags.webhooks_executed)
 		self.assertEqual(
-			frappe.flags.webhooks_executed.get(self.test_user.email)[0], 
+			frappe.flags.webhooks_executed.get(self.test_user.email)[0],
 			self.sample_webhooks[0].name
 		)
 
@@ -164,3 +164,18 @@ class TestWebhook(unittest.TestCase):
 
 		data = get_webhook_data(doc=self.user, webhook=self.webhook)
 		self.assertEqual(data, {"name": self.user.name})
+
+	def test_webhook_req_log_creation(self):
+		if not frappe.db.get_value('User', 'user2@integration.webhooks.test.com'):
+			user = frappe.get_doc({
+				'doctype': 'User', 
+				'email': 'user2@integration.webhooks.test.com',
+				'first_name': 'user2'
+			}).insert()
+		else:
+			user = frappe.get_doc('User', 'user2@integration.webhooks.test.com')
+
+		webhook = frappe.get_doc('Webhook', {'webhook_doctype': 'User'})
+		enqueue_webhook(user, webhook)
+
+		self.assertTrue(frappe.db.get_all('Webhook Request Log', pluck='name'))

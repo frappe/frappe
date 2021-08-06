@@ -1,13 +1,9 @@
-# imports - compatibility imports
-from __future__ import unicode_literals
-
 # imports - standard imports
 import logging
 import os
 from logging.handlers import RotatingFileHandler
 
 # imports - third party imports
-from six import text_type
 
 # imports - module imports
 import frappe
@@ -83,10 +79,10 @@ class SiteContextFilter(logging.Filter):
 	"""This is a filter which injects request information (if available) into the log."""
 
 	def filter(self, record):
-		if "Form Dict" not in text_type(record.msg):
+		if "Form Dict" not in str(record.msg):
 			site = getattr(frappe.local, "site", None)
 			form_dict = getattr(frappe.local, "form_dict", None)
-			record.msg = text_type(record.msg) + "\nSite: {0}\nForm Dict: {1}".format(site, form_dict)
+			record.msg = str(record.msg) + "\nSite: {0}\nForm Dict: {1}".format(site, form_dict)
 			return True
 
 

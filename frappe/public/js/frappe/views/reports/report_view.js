@@ -49,6 +49,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_columns();
 		super.setup_new_doc_event();
 		this.page.main.addClass('report-view');
+		this.page.body[0].style.setProperty('--report-filter-height', this.page.page_form.css('height'));
+		this.page.body.parent().css('margin-bottom', 'unset');
 	}
 
 	toggle_side_bar() {
@@ -410,7 +412,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			x_fields.push({
 				label: col.content,
 				fieldname: col.id,
-				value:  col.id,
+				value: col.id,
 			});
 
 			// numeric values in y
@@ -1024,8 +1026,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			return docfield.fieldtype === 'Date' ? 'right' : 'left';
 		})();
 
+		let id = fieldname;
+
 		// child table column
-		const id = doctype !== this.doctype ? `${doctype}:${fieldname}` : fieldname;
+		if (doctype !== this.doctype && fieldname !== '_aggregate_column') {
+			id = `${doctype}:${fieldname}`;
+		}
 
 		let width = (docfield ? cint(docfield.width) : null) || null;
 		if (this.report_doc) {

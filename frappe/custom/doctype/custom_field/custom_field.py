@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import json
 from frappe.utils import cstr
@@ -86,12 +85,10 @@ class CustomField(Document):
 					frappe.bold(self.label)))
 
 		# delete property setter entries
-		frappe.db.sql("""\
-			DELETE FROM `tabProperty Setter`
-			WHERE doc_type = %s
-			AND field_name = %s""",
-				(self.dt, self.fieldname))
-
+		frappe.db.delete("Property Setter", {
+			"doc_type": self.dt,
+			"field_name": self.fieldname
+		})
 		frappe.clear_cache(doctype=self.dt)
 
 	def validate_insert_after(self, meta):

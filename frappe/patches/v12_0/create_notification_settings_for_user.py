@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings
 

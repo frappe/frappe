@@ -1,8 +1,5 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
 import frappe, os, re, git
 from frappe.utils import touch_file, cstr
 
@@ -69,11 +66,8 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
 		f.write(frappe.as_unicode(gitignore_template.format(app_name = hooks.app_name)))
 
-	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
-		f.write(frappe.as_unicode(setup_template.format(**hooks)))
-
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
-		f.write("frappe")
+		f.write("# frappe -- https://github.com/frappe/frappe is installed via 'bench init'")
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(frappe.as_unicode("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
@@ -84,6 +78,14 @@ def make_boilerplate(dest, app_name):
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
 		f.write(frappe.as_unicode(hooks.app_title))
+
+	# These values could contain quotes and can break string declarations
+	# So escaping them before setting variables in setup.py and hooks.py
+	for key in ("app_publisher", "app_description", "app_license"):
+		hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"")
+
+	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
+		f.write(frappe.as_unicode(setup_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
 		f.write(frappe.as_unicode(hooks_template.format(**hooks)))
@@ -331,18 +333,18 @@ def get_data():
 
 setup_template = """from setuptools import setup, find_packages
 
-with open('requirements.txt') as f:
-	install_requires = f.read().strip().split('\\n')
+with open("requirements.txt") as f:
+	install_requires = f.read().strip().split("\\n")
 
 # get version from __version__ variable in {app_name}/__init__.py
 from {app_name} import __version__ as version
 
 setup(
-	name='{app_name}',
+	name="{app_name}",
 	version=version,
-	description='{app_description}',
-	author='{app_publisher}',
-	author_email='{app_email}',
+	description="{app_description}",
+	author="{app_publisher}",
+	author_email="{app_email}",
 	packages=find_packages(),
 	zip_safe=False,
 	include_package_data=True,
@@ -362,7 +364,6 @@ Configuration for docs
 """
 
 # source_link = "https://github.com/[org_name]/{app_name}"
-# docs_base_url = "https://[org_name].github.io/{app_name}"
 # headline = "App that does everything"
 # sub_heading = "Yes, you got that right the first time, everything"
 

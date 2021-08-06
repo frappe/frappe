@@ -80,7 +80,7 @@ def exists_in_backup(doctypes, file):
 	)
 	with gzip.open(file, "rb") as f:
 		content = f.read().decode("utf8")
-	return all([predicate.format(doctype).lower() in content.lower() for doctype in doctypes])
+	return all(predicate.format(doctype).lower() in content.lower() for doctype in doctypes)
 
 
 class BaseTestCommands(unittest.TestCase):
@@ -355,12 +355,12 @@ class TestCommands(BaseTestCommands):
 		# test 2: bare functionality for single site
 		self.execute("bench --site {site} list-apps")
 		self.assertEqual(self.returncode, 0)
-		list_apps = set([
+		list_apps = set(
 			_x.split()[0] for _x in self.stdout.split("\n")
-		])
+		)
 		doctype = frappe.get_single("Installed Applications").installed_applications
 		if doctype:
-			installed_apps = set([x.app_name for x in doctype])
+			installed_apps = set(x.app_name for x in doctype)
 		else:
 			installed_apps = set(frappe.get_installed_apps())
 		self.assertSetEqual(list_apps, installed_apps)
@@ -426,3 +426,26 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertIn("pong", self.stdout)
 
+	def test_version(self):
+		self.execute("bench version")
+		self.assertEqual(self.returncode, 0)
+
+		for output in ["legacy", "plain", "table", "json"]:
+			self.execute(f"bench version -f {output}")
+			self.assertEqual(self.returncode, 0)
+
+		self.execute("bench version -f invalid")
+		self.assertEqual(self.returncode, 2)
+
+	def test_set_password(self):
+		from frappe.utils.password import check_password
+
+		self.execute("bench --site {site} set-password Administrator test1")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(check_password('Administrator', 'test1'), 'Administrator')
+		# to release the lock taken by check_password
+		frappe.db.commit()
+
+		self.execute("bench --site {site} set-admin-password test2")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(check_password('Administrator', 'test2'), 'Administrator')

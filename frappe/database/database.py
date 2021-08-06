@@ -4,10 +4,9 @@
 # Database Module
 # --------------------
 
-from __future__ import unicode_literals
-
 import re
 import time
+from typing import Dict, List, Union
 import frappe
 import datetime
 import frappe.defaults
@@ -15,17 +14,9 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast_fieldtype, get_datetime
+from frappe.utils import now, getdate, cast_fieldtype, get_datetime, get_table_name
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils import cint
 
-# imports - compatibility imports
-from six import (
-	integer_types,
-	string_types,
-	text_type,
-	iteritems
-)
 
 class Database(object):
 	"""
@@ -113,6 +104,7 @@ class Database(object):
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+		query = str(query)
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
@@ -277,7 +269,7 @@ class Database(object):
 		for r in result:
 			values = []
 			for value in r:
-				if as_utf8 and isinstance(value, text_type):
+				if as_utf8 and isinstance(value, str):
 					value = value.encode('utf-8')
 				values.append(value)
 
@@ -294,7 +286,7 @@ class Database(object):
 		"""Returns true if the first row in the result has a Date, Datetime, Long Int."""
 		if result and result[0]:
 			for v in result[0]:
-				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, integer_types)):
+				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, int)):
 					return True
 				if formatted and isinstance(v, (int, float)):
 					return True
@@ -312,7 +304,7 @@ class Database(object):
 		for r in res:
 			nr = []
 			for val in r:
-				if as_utf8 and isinstance(val, text_type):
+				if as_utf8 and isinstance(val, str):
 					val = val.encode('utf-8')
 				nr.append(val)
 			nres.append(nr)
@@ -344,7 +336,7 @@ class Database(object):
 				values[key] = value[1]
 				if isinstance(value[1], (tuple, list)):
 					# value is a list in tuple ("in", ("A", "B"))
-					_rhs = " ({0})".format(", ".join([self.escape(v) for v in value[1]]))
+					_rhs = " ({0})".format(", ".join(self.escape(v) for v in value[1]))
 					del values[key]
 
 			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in", "not like"]:
@@ -363,7 +355,7 @@ class Database(object):
 			# docname is a number, convert to string
 			filters = str(filters)
 
-		if isinstance(filters, string_types):
+		if isinstance(filters, str):
 			filters = { "name": filters }
 
 		for f in filters:
@@ -428,7 +420,7 @@ class Database(object):
 			user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
-		if cache and isinstance(filters, string_types) and \
+		if cache and isinstance(filters, str) and \
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
@@ -440,7 +432,7 @@ class Database(object):
 		else:
 			fields = fieldname
 			if fieldname!="*":
-				if isinstance(fieldname, string_types):
+				if isinstance(fieldname, str):
 					fields = [fieldname]
 				else:
 					fields = fieldname
@@ -461,7 +453,7 @@ class Database(object):
 			else:
 				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 
-		if cache and isinstance(filters, string_types):
+		if cache and isinstance(filters, str):
 			self.value_cache[(doctype, filters, fieldname)] = out
 
 		return out
@@ -565,8 +557,7 @@ class Database(object):
 		if not df:
 			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
 
-		if df.fieldtype in frappe.model.numeric_fieldtypes:
-			val = cint(val)
+		val = cast_fieldtype(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 
@@ -673,7 +664,7 @@ class Database(object):
 				where field in ({0}) and
 					doctype=%s'''.format(', '.join(['%s']*len(keys))),
 					list(keys) + [dt], debug=debug)
-			for key, value in iteritems(to_update):
+			for key, value in to_update.items():
 				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
@@ -811,7 +802,7 @@ class Database(object):
 
 		:param dt: DocType name.
 		:param dn: Document name or filter dict."""
-		if isinstance(dt, string_types):
+		if isinstance(dt, str):
 			if dt!="DocType" and dt==dn:
 				return True # single always exists (!)
 			try:
@@ -962,15 +953,37 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype, conditions, debug=False):
-		if conditions:
-			conditions, values = self.build_conditions(conditions)
-			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
-				doctype=doctype,
-				conditions=conditions
-			), values, debug=debug)
-		else:
-			frappe.throw(_('No conditions provided'))
+	def delete(self, doctype: str, filters: Union[Dict, List] = None, debug=False, **kwargs):
+		"""Delete rows from a table in site which match the passed filters. This
+		does trigger DocType hooks. Simply runs a DELETE query in the database.
+
+		Doctype name can be passed directly, it will be pre-pended with `tab`.
+		"""
+		values = ()
+		filters = filters or kwargs.get("conditions")
+		table = get_table_name(doctype)
+		query = f"DELETE FROM `{table}`"
+
+		if "debug" not in kwargs:
+			kwargs["debug"] = debug
+
+		if filters:
+			conditions, values = self.build_conditions(filters)
+			query = f"{query} WHERE {conditions}"
+
+		return self.sql(query, values, **kwargs)
+
+	def truncate(self, doctype: str):
+		"""Truncate a table in the database. This runs a DDL command `TRUNCATE TABLE`.
+		This cannot be rolled back.
+
+		Doctype name can be passed directly, it will be pre-pended with `tab`.
+		"""
+		table = doctype if doctype.startswith("__") else f"tab{doctype}"
+		return self.sql_ddl(f"truncate `{table}`")
+
+	def clear_table(self, doctype):
+		return self.truncate(doctype)
 
 	def get_last_created(self, doctype):
 		last_record = self.get_all(doctype, ('creation'), limit=1, order_by='creation desc')
@@ -978,9 +991,6 @@ class Database(object):
 			return get_datetime(last_record[0].creation)
 		else:
 			return None
-
-	def clear_table(self, doctype):
-		self.sql('truncate `tab{}`'.format(doctype))
 
 	def log_touched_tables(self, query, values=None):
 		if values:
@@ -1019,7 +1029,7 @@ class Database(object):
 			:params values: list of list of values
 		"""
 		insert_list = []
-		fields = ", ".join(["`"+field+"`" for field in fields])
+		fields = ", ".join("`"+field+"`" for field in fields)
 
 		for idx, value in enumerate(values):
 			insert_list.append(tuple(value))
@@ -1031,6 +1041,7 @@ class Database(object):
 						values=", ".join(['%s'] * len(insert_list))
 					), tuple(insert_list))
 				insert_list = []
+
 
 def enqueue_jobs_after_commit():
 	from frappe.utils.background_jobs import execute_job, get_queue

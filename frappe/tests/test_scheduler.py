@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from unittest import TestCase
 from dateutil.relativedelta import relativedelta
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs

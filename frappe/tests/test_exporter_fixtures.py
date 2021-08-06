@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 import frappe
 import frappe.defaults
 from frappe.core.doctype.data_import.data_import import export_csv

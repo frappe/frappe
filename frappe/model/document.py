@@ -1,14 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
 import frappe
 import time
 from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
-from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields, table_fields
@@ -18,6 +15,7 @@ from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
+from frappe.utils.data import get_absolute_url
 
 # once_only validation
 # methods
@@ -53,7 +51,7 @@ def get_doc(*args, **kwargs):
 		if isinstance(args[0], BaseDocument):
 			# already a document
 			return args[0]
-		elif isinstance(args[0], string_types):
+		elif isinstance(args[0], str):
 			doctype = args[0]
 
 		elif isinstance(args[0], dict):
@@ -90,7 +88,7 @@ class Document(BaseDocument):
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
-		if args and args[0] and isinstance(args[0], string_types):
+		if args and args[0] and isinstance(args[0], str):
 			# first arugment is doctype
 			if len(args)==1:
 				# single
@@ -392,10 +390,11 @@ class Document(BaseDocument):
 
 		else:
 			# no rows found, delete all rows
-			frappe.db.sql("""delete from `tab{0}` where parent=%s
-				and parenttype=%s and parentfield=%s""".format(df.options),
-				(self.name, self.doctype, fieldname))
-
+			frappe.db.delete(df.options, {
+				"parent": self.name,
+				"parenttype": self.doctype,
+				"parentfield": fieldname
+			})
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
@@ -437,7 +436,7 @@ class Document(BaseDocument):
 		def get_values():
 			values = self.as_dict()
 			# format values
-			for key, value in iteritems(values):
+			for key, value in values.items():
 				if value==None:
 					values[key] = ""
 			return values
@@ -453,8 +452,10 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
-		for field, value in iteritems(d):
+		frappe.db.delete("Singles", {
+			"doctype": self.doctype
+		})
+		for field, value in d.items():
 			if field != "doctype":
 				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
@@ -494,6 +495,7 @@ class Document(BaseDocument):
 		self._validate_selects()
 		self._validate_non_negative()
 		self._validate_length()
+		self._validate_code_fields()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
@@ -1202,8 +1204,8 @@ class Document(BaseDocument):
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
 
 	def get_url(self):
-		"""Returns Desk URL for this document. `/app/Form/{doctype}/{name}`"""
-		return "/app/Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
+		"""Returns Desk URL for this document."""
+		return get_absolute_url(self.doctype, self.name)
 
 	def add_comment(self, comment_type='Comment', text=None, comment_email=None, link_doctype=None, link_name=None, comment_by=None):
 		"""Add a comment to this document.

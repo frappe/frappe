@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe, unittest, json
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
@@ -232,6 +231,32 @@ class TestCustomizeForm(unittest.TestCase):
 		finally:
 			testdt.delete()
 			testdt1.delete()
+
+	def test_custom_internal_links(self):
+		# add a custom internal link
+		frappe.clear_cache()
+		d = self.get_customize_form("User Group")
+
+		d.append('links', dict(link_doctype='User Group Member', parent_doctype='User',
+			link_fieldname='user', table_fieldname='user_group_members', group='Tests', custom=1))
+
+		d.run_method("save_customization")
+
+		frappe.clear_cache()
+		user_group = frappe.get_meta('User Group')
+
+		# check links exist
+		self.assertTrue([d.name for d in user_group.links if d.link_doctype == 'User Group Member'])
+		self.assertTrue([d.name for d in user_group.links if d.parent_doctype == 'User'])
+
+		# remove the link
+		d = self.get_customize_form("User Group")
+		d.links = []
+		d.run_method("save_customization")
+
+		frappe.clear_cache()
+		user_group = frappe.get_meta('Event')
+		self.assertFalse([d.name for d in (user_group.links or []) if d.link_doctype == 'User Group Member'])
 
 	def test_custom_action(self):
 		test_route = '/app/List/DocType'

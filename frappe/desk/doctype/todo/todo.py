@@ -1,16 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import json
 
 from frappe.model.document import Document
-from frappe.utils import get_fullname
+from frappe.utils import get_fullname, parse_addr
 
 exclude_from_linked_with = True
 
 class ToDo(Document):
+	DocType = 'ToDo'
+
 	def validate(self):
 		self._assignment = None
 		if self.is_new():
@@ -40,13 +41,7 @@ class ToDo(Document):
 		self.update_in_reference()
 
 	def on_trash(self):
-		# unlink todo from linked comments
-		frappe.db.sql("""
-			delete from `tabCommunication Link`
-			where link_doctype=%(doctype)s and link_name=%(name)s""", {
-				"doctype": self.doctype, "name": self.name
-		})
-
+		self.delete_communication_links()
 		self.update_in_reference()
 
 	def add_assign_comment(self, text, comment_type):
@@ -54,6 +49,13 @@ class ToDo(Document):
 			return
 
 		frappe.get_doc(self.reference_type, self.reference_name).add_comment(comment_type, text)
+
+	def delete_communication_links(self):
+		# unlink todo from linked comments
+		return frappe.db.delete("Communication Link", {
+			"link_doctype": self.doctype,
+			"link_name": self.name
+		})
 
 	def update_in_reference(self):
 		if not (self.reference_type and self.reference_name):
@@ -85,6 +87,13 @@ class ToDo(Document):
 			else:
 				raise
 
+	@classmethod
+	def get_owners(cls, filters=None):
+		"""Returns list of owners after applying filters on todo's.
+		"""
+		rows = frappe.get_all(cls.DocType, filters=filters or {}, fields=['owner'])
+		return [parse_addr(row.owner)[1] for row in rows if row.owner]
+
 # NOTE: todo is viewable if a user is an owner, or set as assigned_to value, or has any role that is allowed to access ToDo doctype.
 def on_doctype_update():
 	frappe.db.add_index("ToDo", ["reference_type", "reference_name"])
@@ -93,7 +102,7 @@ def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
 	todo_roles = frappe.permissions.get_doctype_roles('ToDo')
-	if 'All' in todo_roles: 
+	if 'All' in todo_roles:
 		todo_roles.remove('All')
 
 	if any(check in todo_roles for check in frappe.get_roles(user)):
@@ -105,7 +114,7 @@ def get_permission_query_conditions(user):
 def has_permission(doc, ptype="read", user=None):
 	user = user or frappe.session.user
 	todo_roles = frappe.permissions.get_doctype_roles('ToDo', ptype)
-	if 'All' in todo_roles: 
+	if 'All' in todo_roles:
 		todo_roles.remove('All')
 
 	if any(check in todo_roles for check in frappe.get_roles(user)):

@@ -3,6 +3,8 @@ name: Server
 on:
   pull_request:
   workflow_dispatch:
+  push:
+    branches: [ develop ]
 
 jobs:
   test:
@@ -88,7 +90,6 @@ jobs:
         env:
           DB: mariadb
           TYPE: server
-
 
       - name: Run Tests
         run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --use-orchestrator --with-coverage
