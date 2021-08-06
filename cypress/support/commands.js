@@ -199,7 +199,7 @@ Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
 		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]:visible`;
 	}
 	if (fieldtype === 'Code') {
-		selector = `[data-fieldname="${fieldname}"] .ace_text-input:visible`;
+		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
 	}
 
 	return cy.get(selector).first();

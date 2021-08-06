@@ -9,6 +9,7 @@ context('Table MultiSelect', () => {
 		cy.new_form('Assignment Rule');
 		cy.fill_field('__newname', name);
 		cy.fill_field('document_type', 'Blog Post');
+		cy.get('.section-head').contains('Assignment Rules').scrollIntoView();
 		cy.fill_field('assign_condition', 'status=="Open"', 'Code');
 		cy.get('input[data-fieldname="users"]').focus().as('input');
 		cy.get('input[data-fieldname="users"] + ul').should('be.visible');
