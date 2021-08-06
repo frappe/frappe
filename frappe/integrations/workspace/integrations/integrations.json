@@ -1,7 +1,7 @@
 {
  "category": "",
  "charts": [],
- "content": "[{\"type\": \"spacer\", \"data\": {\"col\": 12, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"header\", \"data\": {\"text\": \"Reports & Masters\", \"level\": 4, \"col\": 12, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Backup\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Google Services\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Authentication\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Payments\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}]",
+ "content": "[{\"type\": \"header\", \"data\": {\"text\": \"Reports & Masters\", \"level\": 4, \"col\": 12, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Backup\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Google Services\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Authentication\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Payments\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4, \"pt\": 0, \"pr\": 0, \"pb\": 0, \"pl\": 0}}]",
  "creation": "2020-03-02 15:16:18.714190",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
@@ -267,7 +267,7 @@
    "type": "Link"
   }
  ],
- "modified": "2021-07-08 17:36:18.712550",
+ "modified": "2021-08-05 12:16:00.355267",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
@@ -278,6 +278,7 @@
  "pin_to_top": 0,
  "public": 1,
  "restrict_to_domain": "",
+ "roles": [],
  "sequence_id": 15,
  "shortcuts": [],
  "title": "Integrations"

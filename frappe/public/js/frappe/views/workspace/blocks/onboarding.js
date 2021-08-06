@@ -29,6 +29,18 @@ export default class Onboarding extends Block {
 		};
 	}
 
+	rendered() {
+		var e = this.wrapper.closest('.ce-block');
+		if (this.readOnly && !$(this.wrapper).find('.onboarding-widget-box').is(':visible')) {
+			$(e).hide();
+		}
+		e.classList.add("col-" + this.get_col());
+		e.classList.add("pt-" + this.pt);
+		e.classList.add("pr-" + this.pr);
+		e.classList.add("pb-" + this.pb);
+		e.classList.add("pl-" + this.pl);
+	}
+
 	new(block, widget_type = block) {
 		const dialog_class = get_dialog_constructor(widget_type);
 		let block_name = block+'_name';
@@ -103,6 +115,7 @@ export default class Onboarding extends Block {
 		if (!this.readOnly) {
 			this.add_tune_button();
 		}
+		$(this.wrapper).css("padding-bottom", "20px");
 		return this.wrapper;
 	}
 

@@ -524,7 +524,8 @@ export default class OnboardingWidget extends Widget {
 				"dismissed-onboarding",
 				JSON.stringify(dismissed)
 			);
-			this.delete();
+			this.delete(true, true);
+			this.widget.closest('.ce-block').hide();
 		});
 		dismiss.appendTo(this.action_area);
 	}

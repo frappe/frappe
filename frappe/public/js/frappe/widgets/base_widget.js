@@ -142,10 +142,10 @@ export default class Widget {
 		this.subtitle && this.subtitle_field.html(this.subtitle);
 	}
 
-	delete(animate=true) {
+	delete(animate=true, dismissed=false) {
 		let remove_widget = (setup_new) => {
 			this.widget.remove();
-			this.options.on_delete && this.options.on_delete(this.name, setup_new);
+			!dismissed && this.options.on_delete && this.options.on_delete(this.name, setup_new);
 		};
 
 		if (animate) {
