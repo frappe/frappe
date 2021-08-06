@@ -171,13 +171,20 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 	return html
 
 def set_link_titles(doc):
-	# Replaces name with title of link field doctype
+	# Adds name with title of link field doctype to __link_titles
+	if not doc.get("__link_titles"):
+		setattr(doc, "__link_titles", {})
 
 	meta = frappe.get_meta(doc.doctype)
 	set_title_values_for_link_and_dynamic_link_fields(meta, doc)
 	set_title_values_for_table_and_multiselect_fields(meta, doc)
 
-def set_title_values_for_link_and_dynamic_link_fields(meta, doc):
+def set_title_values_for_link_and_dynamic_link_fields(meta, doc, parent_doc=None):
+	if parent_doc and not parent_doc.get("__link_titles"):
+		setattr(parent_doc, "__link_titles", {})
+	elif doc and not doc.get("__link_titles"):
+		setattr(doc, "__link_titles", {})
+
 	for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
 		if not doc.get(field.fieldname):
 			continue
@@ -191,7 +198,10 @@ def set_title_values_for_link_and_dynamic_link_fields(meta, doc):
 			continue
 
 		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
-		setattr(doc, field.fieldname, link_title)
+		if parent_doc:
+			parent_doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
+		elif doc:
+			doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
 
 def set_title_values_for_table_and_multiselect_fields(meta, doc):
 	for field in meta.get_table_fields():
@@ -200,7 +210,7 @@ def set_title_values_for_table_and_multiselect_fields(meta, doc):
 
 		_meta = frappe.get_meta(field.options)
 		for value in doc.get(field.fieldname):
-			set_title_values_for_link_and_dynamic_link_fields(_meta, value)
+			set_title_values_for_link_and_dynamic_link_fields(_meta, value, doc)
 
 def convert_markdown(doc, meta):
 	'''Convert text field values to markdown if necessary'''
