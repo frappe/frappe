@@ -188,7 +188,6 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
 	} else {
 		cy.get('@input').type(value, {waitForAnimations: false, force: true});
 	}
-	cy.get('@input').blur();
 	return cy.get('@input');
 });
 
