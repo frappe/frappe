@@ -550,7 +550,7 @@ class Database(object):
 		"""
 
 		if not doctype in self.value_cache:
-			self.value_cache = self.value_cache[doctype] = {}
+			self.value_cache[doctype] = {}
 
 		if fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
