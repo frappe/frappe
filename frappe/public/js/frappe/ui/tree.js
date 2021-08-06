@@ -134,6 +134,9 @@ frappe.ui.Tree = class {
 		if (this.toolbar) {
 			node.$toolbar = this.get_toolbar(node).insertAfter(node.$tree_link);
 		}
+		if (typeof(this.after_make_node_element) === "function"){
+			this.after_make_node_element(node)
+		}
 	}
 
 	add_node(node, data) {
