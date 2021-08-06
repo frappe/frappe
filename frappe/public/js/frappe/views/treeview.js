@@ -183,7 +183,7 @@ frappe.views.TreeView = class TreeView {
 
 			// array of button props: {label, condition, click, btnClass}
 			toolbar: this.get_toolbar(),
-
+			before_make_node_element: this.opts.before_make_node_element,
 			get_label: this.opts.get_label,
 			on_render: this.opts.onrender,
 			on_get_node: this.opts.on_get_node,

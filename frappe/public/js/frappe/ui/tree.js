@@ -120,6 +120,9 @@ frappe.ui.Tree = class {
 	}
 
 	make_node_element(node) {
+		if (typeof(this.before_make_node_element) === "function"){
+			this.before_make_node_element(node)
+		}
 		node.$tree_link = $('<span class="tree-link">')
 			.attr("data-label", node.label)
 			.data("node", node)
