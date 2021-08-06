@@ -1,4 +1,4 @@
-context('Testing Timeline Functionality', () => {
+context('Timeline', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();

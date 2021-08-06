@@ -1,4 +1,4 @@
-context('Testing Sidebar Functionality', () => {
+context('Sidebar', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
@@ -17,7 +17,7 @@ context('Testing Sidebar Functionality', () => {
 		cy.get('.group-by-item > .dropdown-item').should('contain', 'Me');
 
 		//Assigning a doctype to a user
-		cy.click_listview_rowitem(0);
+		cy.click_listview_row_item(0);
 		cy.get('.form-assignments > .flex > .text-muted').click();
 		cy.get_field('assign_to_me', 'Check').click();
 		cy.get('.modal-footer > .standard-actions > .btn-primary').click();
@@ -46,7 +46,7 @@ context('Testing Sidebar Functionality', () => {
 
 		//To remove the assignment
 		cy.visit('/app/doctype');
-		cy.click_listview_rowitem(0);
+		cy.click_listview_row_item(0);
 		cy.get('.assignments > .avatar-group > .avatar > .avatar-frame').click();
 		cy.get('.remove-btn').click({force: true});
 		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-header > .modal-actions > .btn-modal-close').click();

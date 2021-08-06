@@ -335,7 +335,7 @@ Cypress.Commands.add('click_sidebar_button', (btn_no) => {
 	cy.get('.list-group-by-fields > .group-by-field > .btn').eq(btn_no).click();
 });
 
-Cypress.Commands.add('click_listview_rowitem', (row_no) => {
+Cypress.Commands.add('click_listview_row_item', (row_no) => {
 	cy.get('.list-row > .level-left > .list-subject > .bold > .ellipsis').eq(row_no).click({force: true});
 });
 
