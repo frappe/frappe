@@ -288,7 +288,7 @@ export default {
 						file_obj: file,
 						cropper_file: file,
 						crop_box_data: null,
-						optimize: false,
+						optimize: this.attach_doc_image ? true : false,
 						name: file.name,
 						doc: null,
 						progress: 0,
@@ -482,7 +482,7 @@ export default {
 					form_data.append('method', this.method);
 				}
 
-				if (this.attach_doc_image || file.optimize) {
+				if (file.optimize) {
 					form_data.append('optimize', true);
 				}
 

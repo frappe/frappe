@@ -28,7 +28,7 @@
 					{{ file.file_obj.size | file_size }}
 				</span>
 			</div>
-			<label v-if="is_optimizable" class="optimize-checkbox"><input type="checkbox" @change="$emit('toggle_optimize')">Optimize</label>
+			<label v-if="is_optimizable" class="optimize-checkbox"><input type="checkbox" :checked="optimize" @change="$emit('toggle_optimize')">Optimize</label>
 		</div>
 		<div class="file-actions">
 			<ProgressRing
@@ -59,7 +59,8 @@ export default {
 	},
 	data() {
 		return {
-			src: null
+			src: null,
+			optimize: this.file.optimize
 		}
 	},
 	mounted() {
