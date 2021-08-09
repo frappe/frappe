@@ -51,6 +51,7 @@ frappe.ui.Scanner = class Scanner {
 			)
 			.catch(err => {
 				this.is_alive = false;
+				this.hide_dialog();
 				console.error(err);
 			});
 		this.is_alive = true;
