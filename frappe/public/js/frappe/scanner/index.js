@@ -44,7 +44,7 @@ frappe.ui.Scanner = class Scanner {
 				}
 			)
 			.catch(err => {
-				console.warn(errorMessage);
+				console.error(err);
 			});
 	}
 
