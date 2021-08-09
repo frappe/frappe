@@ -5,6 +5,7 @@ frappe.ui.Scanner = class Scanner {
 		this.dialog = null;
 		this.handler = null;
 		this.options = options;
+		this.is_alive = false;
 
 		if (!("multiple" in this.options)) {
 			this.options.multiple = false;
@@ -37,6 +38,7 @@ frappe.ui.Scanner = class Scanner {
 					}
 					if (!this.options.multiple) {
 						this.stop_scan();
+						this.hide_dialog();
 					}
 				},
 				errorMessage => {
@@ -44,14 +46,18 @@ frappe.ui.Scanner = class Scanner {
 				}
 			)
 			.catch(err => {
+				this.is_alive = false;
 				console.error(err);
 			});
+		this.is_alive = true;
 	}
 
 	stop_scan() {
-		if (this.handler) {
+		if (this.handler && this.is_alive) {
 			this.handler.stop().then(() => {
+				this.is_alive = false;
 				this.$scan_area.empty();
+				this.hide_dialog();
 			});
 		}
 	}
@@ -70,6 +76,9 @@ frappe.ui.Scanner = class Scanner {
 				this.$scan_area.addClass("barcode-scanner");
 				this.scan_area_id = frappe.dom.set_unique_id(this.$scan_area);
 				this.scan();
+			},
+			on_hide: () => {
+				this.stop_scan();
 			}
 		});
 		return dialog;
