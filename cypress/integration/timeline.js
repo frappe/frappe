@@ -1,5 +1,4 @@
 import custom_submittable_doctype from '../fixtures/custom_submittable_doctype';
-const doctype_name = custom_submittable_doctype.name;
 
 context('Timeline', () => {
 	before(() => {
@@ -64,7 +63,7 @@ context('Timeline', () => {
 		cy.click_listview_primary_button('Add Custom Submittable DocType');
 
 		//Adding a new entry for the created custom doctype
-		cy.fill_field('title','Test');
+		cy.fill_field('title', 'Test');
 		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').click();
 		cy.get('.modal-footer > .standard-actions > .btn-primary').contains('Submit').click();
 		cy.visit('/app/custom-submittable-doctype');
@@ -75,21 +74,21 @@ context('Timeline', () => {
 		cy.get('.page-head > .container > .row > .col > .standard-actions > .btn-secondary').contains('Cancel').click({delay: 900});		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').contains('Yes').click();
 		
 		//To check if the cancellation of the documemt is visible in the timeline content
-		cy.get('.timeline-content').should('contain','Administrator cancelled this document');
+		cy.get('.timeline-content').should('contain', 'Administrator cancelled this document');
 
 		//Deleting the document
 		cy.visit('/app/custom-submittable-doctype');
 		cy.get('.list-row > .level-left > .list-subject > .select-like > .list-row-checkbox').eq(0).click();
 		cy.get('.page-head > .container > .row > .col > .standard-actions > .actions-btn-group > .btn').contains('Actions').click();
 		cy.get('.actions-btn-group > .dropdown-menu > li > .grey-link').eq(7).click();
-        cy.click_modal_primary_button('Yes', {force : true, delay: 700});
+		cy.click_modal_primary_button('Yes', {force: true, delay: 700});
 
 		//Deleting the custom doctype
 		cy.visit('/app/doctype');
 		cy.get('.list-row > .level-left > .list-subject > .select-like > .list-row-checkbox').eq(0).click();
 		cy.get('.page-head > .container > .row > .col > .standard-actions > .actions-btn-group > .btn').contains('Actions').click();
 		cy.get('.actions-btn-group > .dropdown-menu > li > .grey-link').eq(5).click();
-        cy.click_modal_primary_button('Yes');
+		cy.click_modal_primary_button('Yes');
 
 	});
 });
