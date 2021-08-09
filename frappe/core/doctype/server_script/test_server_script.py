@@ -111,3 +111,13 @@ class TestServerScript(unittest.TestCase):
 		"""Raise AttributeError if method not found in Namespace"""
 		note = frappe.get_doc({"doctype": "Note", "title": "Test Note: Server Script"})
 		self.assertRaises(AttributeError, note.insert)
+
+	def test_syntax_validation(self):
+		server_script = scripts[0]
+		server_script["script"] = "js || code.?"
+
+		with self.assertRaises(frappe.ValidationError) as se:
+			frappe.get_doc(doctype="Server Script", **server_script).insert()
+
+		self.assertTrue("invalid python code" in str(se.exception).lower(),
+				msg="Python code validation not working")
