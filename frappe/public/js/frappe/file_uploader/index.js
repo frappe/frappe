@@ -28,9 +28,7 @@ export default class FileUploader {
 		}
 
 		if (attach_doc_image) {
-			disable_file_browser = true;
 			restrictions.allowed_file_types = ['.jpg', '.png'];
-			this.dialog && this.dialog.footer.addClass('hide');
 		}
 
 		this.$fileuploader = new Vue({

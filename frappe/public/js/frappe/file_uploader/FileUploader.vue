@@ -218,11 +218,6 @@ export default {
 				}
 			});
 		}
-		if(this.attach_doc_image) {
-			this.allow_web_link = false;
-			this.allow_take_photo = false;
-			this.google_drive_settings.enabled = false;
-		}
 	},
 	watch: {
 		files(newvalue, oldvalue) {
@@ -484,6 +479,11 @@ export default {
 
 				if (file.optimize) {
 					form_data.append('optimize', true);
+				}
+
+				if (this.attach_doc_image) {
+					form_data.append('max_width', 200);
+					form_data.append('max_height', 200);
 				}
 
 				xhr.send(form_data);

@@ -63,11 +63,11 @@ context('FileUploader', () => {
 		});
 
 		cy.get_open_dialog().find('.file-name').should('contain', 'sample_image.jpg');
-		cy.get_open_dialog().find(':nth-child(1) > .file-actions > .file-action-buttons > :nth-child(1)').first().click();
+		cy.get_open_dialog().find('.btn-crop').first().click();
 		cy.get_open_dialog().find('.image-cropper-actions > .btn-primary').should('contain', 'Crop');
 		cy.get_open_dialog().find('.image-cropper-actions > .btn-primary').click();
-		cy.get_open_dialog().find(':nth-child(1) > :nth-child(2) > .optimize-checkbox').first().should('contain', 'Optimize');
-		cy.get_open_dialog().find(':nth-child(1) > :nth-child(2) > .optimize-checkbox').first().click();
+		cy.get_open_dialog().find('.optimize-checkbox').first().should('contain', 'Optimize');
+		cy.get_open_dialog().find('.optimize-checkbox').first().click();
 
 		cy.intercept('POST', '/api/method/upload_file').as('upload_file');
 		cy.get_open_dialog().find('.btn-modal-primary').click();

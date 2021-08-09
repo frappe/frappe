@@ -157,7 +157,15 @@ def upload_file():
 
 		content_type = guess_type(filename)[0]
 		if optimize and content_type.startswith("image/"):
-			content = optimize_image(content, content_type)
+			args = {
+				"content": content,
+				"content_type": content_type
+			}
+			if frappe.form_dict.max_width:
+				args["max_width"] = int(frappe.form_dict.max_width)
+			if frappe.form_dict.max_height:
+				args["max_height"] = int(frappe.form_dict.max_height)
+			content = optimize_image(**args)
 
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
