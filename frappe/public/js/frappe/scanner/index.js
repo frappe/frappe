@@ -34,7 +34,11 @@ frappe.ui.Scanner = class Scanner {
 				{ fps: 10, qrbox: 250 },
 				(decodedText, decodedResult) => {
 					if (this.options.on_scan) {
-						this.options.on_scan(decodedResult);
+						try {
+							this.options.on_scan(decodedResult);
+						} catch (error) {
+							console.error(error);
+						}
 					}
 					if (!this.options.multiple) {
 						this.stop_scan();
