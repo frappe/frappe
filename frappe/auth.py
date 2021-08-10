@@ -154,7 +154,6 @@ class LoginManager:
 		self.get_user_info()
 		self.make_session()
 		self.set_user_info()
-		self.clear_preferred_language()
 
 	def get_user_info(self):
 		self.info = frappe.db.get_value("User", self.user,
