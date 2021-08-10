@@ -34,7 +34,8 @@ data_fieldtypes = (
 	'Color',
 	'Barcode',
 	'Geolocation',
-	'Duration'
+	'Duration',
+	'Icon'
 )
 
 no_value_fields = (
