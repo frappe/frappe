@@ -116,16 +116,16 @@ class BackupGenerator:
 
 	def setup_backup_tables(self):
 		"""Sets self.backup_includes, self.backup_excludes based on passed args"""
-		existing_doctypes = set([x.name for x in frappe.get_all("DocType")])
+		existing_tables = frappe.db.get_tables()
 
 		def get_tables(doctypes):
 			tables = []
 			for doctype in doctypes:
-				if doctype and doctype in existing_doctypes:
-					if doctype.startswith("tab"):
-						tables.append(doctype)
-					else:
-						tables.append("tab" + doctype)
+				if not doctype:
+					continue
+				table = frappe.utils.get_table_name(doctype)
+				if table in existing_tables:
+					tables.append(table)
 			return tables
 
 		passed_tables = {

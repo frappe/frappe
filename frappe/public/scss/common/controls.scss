@@ -1,5 +1,6 @@
 @import "grid";
 @import "color_picker";
+@import "icon_picker";
 @import "datepicker";
 
 // password
@@ -165,6 +166,9 @@ select.form-control {
 	}
 	.ace_print-margin {
 		background-color: var(--dark-border-color);
+	}
+	.ace_scrollbar {
+		z-index: 3;
 	}
 }
 

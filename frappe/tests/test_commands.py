@@ -426,3 +426,26 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertIn("pong", self.stdout)
 
+	def test_version(self):
+		self.execute("bench version")
+		self.assertEqual(self.returncode, 0)
+
+		for output in ["legacy", "plain", "table", "json"]:
+			self.execute(f"bench version -f {output}")
+			self.assertEqual(self.returncode, 0)
+
+		self.execute("bench version -f invalid")
+		self.assertEqual(self.returncode, 2)
+
+	def test_set_password(self):
+		from frappe.utils.password import check_password
+
+		self.execute("bench --site {site} set-password Administrator test1")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(check_password('Administrator', 'test1'), 'Administrator')
+		# to release the lock taken by check_password
+		frappe.db.commit()
+
+		self.execute("bench --site {site} set-admin-password test2")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(check_password('Administrator', 'test2'), 'Administrator')
