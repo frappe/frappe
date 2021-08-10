@@ -22,9 +22,9 @@ export default class SpacingTune {
 		let layoutWrapper = document.createElement('div');
 		layoutWrapper.classList.add(this.CSS.wrapper);
 		let decreaseWidthButton = document.createElement('div');
-		decreaseWidthButton.classList.add(this.CSS.button);
+		decreaseWidthButton.classList.add(this.CSS.button, 'ce-shrink-button');
 		let increaseWidthButton = document.createElement('div');
-		increaseWidthButton.classList.add(this.CSS.button);
+		increaseWidthButton.classList.add(this.CSS.button, 'ce-expand-button');
 
 		layoutWrapper.appendChild(decreaseWidthButton);
 		layoutWrapper.appendChild(increaseWidthButton);

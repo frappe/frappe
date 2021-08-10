@@ -14,35 +14,35 @@ def execute():
 def create_content(doc):
 	content = []
 	if doc.onboarding:
-		content.append({"type":"onboarding","data":{"onboarding_name":doc.onboarding,"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
+		content.append({"type":"onboarding","data":{"onboarding_name":doc.onboarding,"col":12}})
 	if doc.charts:
 		invalid_links = []
 		for c in doc.charts:
 			if c.get_invalid_links()[0]:
 				invalid_links.append(c)
 			else:
-				content.append({"type":"chart","data":{"chart_name":c.label,"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
+				content.append({"type":"chart","data":{"chart_name":c.label,"col":12}})
 		for l in invalid_links:
 			del doc.charts[doc.charts.index(l)]
 	if doc.shortcuts:
 		invalid_links = []
 		if doc.charts:
-			content.append({"type":"spacer","data":{"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
-		content.append({"type":"header","data":{"text":doc.shortcuts_label or _("Your Shortcuts"),"level":4,"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
+			content.append({"type":"spacer","data":{"col":12}})
+		content.append({"type":"header","data":{"text":doc.shortcuts_label or _("Your Shortcuts"),"level":4,"col":12}})
 		for s in doc.shortcuts:
 			if s.get_invalid_links()[0]:
 				invalid_links.append(s)
 			else:
-				content.append({"type":"shortcut","data":{"shortcut_name":s.label,"col":4,"pt":0,"pr":0,"pb":0,"pl":0}})
+				content.append({"type":"shortcut","data":{"shortcut_name":s.label,"col":4}})
 		for l in invalid_links:
 			del doc.shortcuts[doc.shortcuts.index(l)]
 	if doc.links:
 		invalid_links = []
-		content.append({"type":"spacer","data":{"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
-		content.append({"type":"header","data":{"text":doc.cards_label or _("Reports & Masters"),"level":4,"col":12,"pt":0,"pr":0,"pb":0,"pl":0}})
+		content.append({"type":"spacer","data":{"col":12}})
+		content.append({"type":"header","data":{"text":doc.cards_label or _("Reports & Masters"),"level":4,"col":12}})
 		for l in doc.links:
 			if l.type == 'Card Break':
-				content.append({"type":"card","data":{"card_name":l.label,"col":4,"pt":0,"pr":0,"pb":0,"pl":0}})
+				content.append({"type":"card","data":{"card_name":l.label,"col":4}})
 			if l.get_invalid_links()[0]:
 				invalid_links.append(l)
 		for l in invalid_links:
