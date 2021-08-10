@@ -277,7 +277,6 @@ def formatdate(string_date=None, format_string=None):
 
 	date = getdate(string_date)
 	if not format_string:
-<<<<<<< HEAD
 		format_string = get_user_format()
 	format_string = format_string.replace("mm", "MM")
 =======
