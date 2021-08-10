@@ -1730,10 +1730,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_export = () => {
+			return {
+				label: __("Export"),
+				action: () => {
+					const docnames = this.get_checked_items(true);
+
+					bulk_operations.export(doctype, docnames);
+				},
+				standard: true
+			};
+		};
+
 		// bulk edit
 		if (has_editable_fields(doctype)) {
 			actions_menu_items.push(bulk_edit());
 		}
+
+		actions_menu_items.push(bulk_export());
 
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());
