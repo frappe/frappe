@@ -54,4 +54,24 @@ context('FileUploader', () => {
 			.should('have.property', 'file_url', 'https://github.com');
 		cy.get('.modal:visible').should('not.exist');
 	});
+
+	it('should allow cropping and optimization for valid images', () => {
+		open_upload_dialog();
+
+		cy.get_open_dialog().find('.file-upload-area').attachFile('sample_image.jpg', {
+			subjectType: 'drag-n-drop',
+		});
+
+		cy.get_open_dialog().find('.file-name').should('contain', 'sample_image.jpg');
+		cy.get_open_dialog().find('.btn-crop').first().click();
+		cy.get_open_dialog().find('.image-cropper-actions > .btn-primary').should('contain', 'Crop');
+		cy.get_open_dialog().find('.image-cropper-actions > .btn-primary').click();
+		cy.get_open_dialog().find('.optimize-checkbox').first().should('contain', 'Optimize');
+		cy.get_open_dialog().find('.optimize-checkbox').first().click();
+
+		cy.intercept('POST', '/api/method/upload_file').as('upload_file');
+		cy.get_open_dialog().find('.btn-modal-primary').click();
+		cy.wait('@upload_file').its('response.statusCode').should('eq', 200);
+		cy.get('.modal:visible').should('not.exist');
+	});
 });
