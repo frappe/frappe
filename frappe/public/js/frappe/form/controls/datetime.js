@@ -41,7 +41,7 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 =======
 
 	get_model_value() {
-		let value = super.get_model_value()
+		let value = super.get_model_value();
 		return frappe.datetime.get_datetime_as_string(value);
 	}
 };
