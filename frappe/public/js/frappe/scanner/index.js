@@ -26,7 +26,7 @@ frappe.ui.Scanner = class Scanner {
 
 	start_scan() {
 		if (!this.handler) {
-			this.handler = new Html5Qrcode(this.scan_area_id);
+			this.handler = new Html5Qrcode(this.scan_area_id); // eslint-disable-line
 		}
 		this.handler
 			.start(
@@ -37,7 +37,7 @@ frappe.ui.Scanner = class Scanner {
 						try {
 							this.options.on_scan(decodedResult);
 						} catch (error) {
-							console.error(error);
+							console.error(error); // eslint-disable-line
 						}
 					}
 					if (!this.options.multiple) {
@@ -45,14 +45,14 @@ frappe.ui.Scanner = class Scanner {
 						this.hide_dialog();
 					}
 				},
-				errorMessage => {
+				errorMessage => { // eslint-disable-line
 					// parse error, ignore it.
 				}
 			)
 			.catch(err => {
 				this.is_alive = false;
 				this.hide_dialog();
-				console.error(err);
+				console.error(err); // eslint-disable-line
 			});
 		this.is_alive = true;
 	}
