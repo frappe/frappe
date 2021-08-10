@@ -24,10 +24,6 @@ export default class Paragraph extends Block {
 
 		this.data = data;
 		this.col = this.data.col ? this.data.col : "12";
-		this.pt = this.data.pt ? this.data.pt : "0";
-		this.pr = this.data.pr ? this.data.pr : "0";
-		this.pb = this.data.pb ? this.data.pb : "0";
-		this.pl = this.data.pl ? this.data.pl : "0";
 	}
 
 	onKeyUp(e) {
@@ -132,20 +128,12 @@ export default class Paragraph extends Block {
 		return {
 			text: toolsContent.innerText,
 			col: this.get_col(),
-			pt: this.get_padding("t"),
-			pr: this.get_padding("r"),
-			pb: this.get_padding("b"),
-			pl: this.get_padding("l")
 		};
 	}
 
 	rendered() {
 		var e = this._element.closest('.ce-block');
 		e.classList.add("col-" + this.get_col());
-		e.classList.add("pt-" + this.pt);
-		e.classList.add("pr-" + this.pr);
-		e.classList.add("pb-" + this.pb);
-		e.classList.add("pl-" + this.pl);
 	}
 
 	onPaste(event) {

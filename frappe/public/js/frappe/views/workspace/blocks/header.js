@@ -18,10 +18,6 @@ export default class Header extends Block {
 
 		this.data = data;
 		this.col = this.data.col ? this.data.col : "12";
-		this.pt = this.data.pt ? this.data.pt : "0";
-		this.pr = this.data.pr ? this.data.pr : "0";
-		this.pb = this.data.pb ? this.data.pb : "0";
-		this.pl = this.data.pl ? this.data.pl : "0";
 	}
 
 	normalizeData(data) {
@@ -34,10 +30,6 @@ export default class Header extends Block {
 		newData.text = data.text || '';
 		newData.level = parseInt(data.level) || this.defaultLevel.number;
 		newData.col = parseInt(data.col) || 12;
-		newData.pt = parseInt(data.pt) || 0;
-		newData.pr = parseInt(data.pr) || 0;
-		newData.pb = parseInt(data.pb) || 0;
-		newData.pl = parseInt(data.pl) || 0;
 
 		return newData;
 	}
@@ -159,21 +151,13 @@ export default class Header extends Block {
 		return {
 			text: toolsContent.innerText,
 			level: this.currentLevel.number,
-			col: this.get_col(),
-			pt: this.get_padding("t"),
-			pr: this.get_padding("r"),
-			pb: this.get_padding("b"),
-			pl: this.get_padding("l")
+			col: this.get_col()
 		};
 	}
 
 	rendered() {
 		var e = this._element.closest('.ce-block');
 		e.classList.add("col-" + this.get_col());
-		e.classList.add("pt-" + this.pt);
-		e.classList.add("pr-" + this.pr);
-		e.classList.add("pb-" + this.pb);
-		e.classList.add("pl-" + this.pl);
 	}
 
 	static get conversionConfig() {

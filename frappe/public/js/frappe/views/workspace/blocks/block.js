@@ -31,10 +31,6 @@ export default class Block {
 	rendered() {
 		var e = this.wrapper.closest('.ce-block');
 		e.classList.add("col-" + this.get_col());
-		e.classList.add("pt-" + this.pt);
-		e.classList.add("pr-" + this.pr);
-		e.classList.add("pb-" + this.pb);
-		e.classList.add("pl-" + this.pl);
 	}
 
 	new(block, widget_type = block) {
@@ -115,37 +111,5 @@ export default class Block {
 			col = parseInt(parts[1]);
 		}
 		return col;
-	}
-
-	get_padding() {
-		let direction = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "l";
-		let padding = 0;
-		let pad_name = "p" + direction + "-0";
-		let wrapper = this.wrapper.closest('.ce-block');
-		let pad_left = new RegExp(/\pl-.+?\b/, "g");
-		let pad_right = new RegExp(/\pr-.+?\b/, "g");
-		let pad_top = new RegExp(/\pt-.+?\b/, "g");
-		let pad_bottom = new RegExp(/\pb-.+?\b/, "g");
-
-		const get_padding = (pad_direction) => {
-			if (wrapper.className.match(pad_direction)) {
-				wrapper.classList.forEach(function (cn) {
-					cn.match(pad_direction) && (pad_name = cn);
-				});
-				let parts = pad_name.split("-");
-				padding = parseInt(parts[1]);
-			}
-		};
-
-		if ("l" == direction) {
-			get_padding(pad_left);
-		} else if ("r" == direction) {
-			get_padding(pad_right);
-		} else if ("t" == direction) {
-			get_padding(pad_top);
-		} else if ("b" == direction) {
-			get_padding(pad_bottom);
-		}
-		return padding;
 	}
 }

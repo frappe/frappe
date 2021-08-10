@@ -15,10 +15,6 @@ export default class Onboarding extends Block {
 	constructor({ data, api, config, readOnly, block }) {
 		super({ data, api, config, readOnly, block });
 		this.col = this.data.col ? this.data.col : "12";
-		this.pt = this.data.pt ? this.data.pt : "0";
-		this.pr = this.data.pr ? this.data.pr : "0";
-		this.pb = this.data.pb ? this.data.pb : "0";
-		this.pl = this.data.pl ? this.data.pl : "0";
 		this.allow_customization = !this.readOnly;
 		this.options = {
 			allow_sorting: this.allow_customization,
@@ -35,10 +31,6 @@ export default class Onboarding extends Block {
 			$(e).hide();
 		}
 		e.classList.add("col-" + this.get_col());
-		e.classList.add("pt-" + this.pt);
-		e.classList.add("pr-" + this.pr);
-		e.classList.add("pb-" + this.pb);
-		e.classList.add("pl-" + this.pl);
 	}
 
 	new(block, widget_type = block) {
@@ -131,10 +123,6 @@ export default class Onboarding extends Block {
 		return {
 			onboarding_name: blockContent.getAttribute('onboarding_name'),
 			col: this.get_col(),
-			pt: this.get_padding("t"),
-			pr: this.get_padding("r"),
-			pb: this.get_padding("b"),
-			pl: this.get_padding("l"),
 			new: this.new_block_widget
 		};
 	}

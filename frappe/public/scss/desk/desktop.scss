@@ -983,7 +983,15 @@ body {
 	
 			.ce-settings {
 				width: fit-content;
-			
+
+				.ce-settings__button, .cdx-settings-button {
+					color: #707684;
+				}
+
+				.cdx-settings-button--active {
+					color: #388ae5;
+				}
+
 				.cdx-settings-button.disabled{
 					pointer-events: none;
 					opacity: .5

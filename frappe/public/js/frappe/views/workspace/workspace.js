@@ -418,7 +418,7 @@ frappe.views.Workspace = class Workspace {
 				me.editor.blocks.insert(key, {}, {}, index, true);
 				me.editor.caret.setToLastBlock('start', 0);
 				$('.ce-block:last-child')[0].scrollIntoView();
-			}, `${frappe.utils.icon('small-add', 'xs')} ${__('Add Block')}`);
+			}, __('Add Block'));
 		});
 	}
 

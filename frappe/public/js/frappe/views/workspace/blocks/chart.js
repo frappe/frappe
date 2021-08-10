@@ -14,10 +14,6 @@ export default class Chart extends Block {
 	constructor({ data, api, config, readOnly, block }) {
 		super({ data, api, config, readOnly, block });
 		this.col = this.data.col ? this.data.col : "12";
-		this.pt = this.data.pt ? this.data.pt : "0";
-		this.pr = this.data.pr ? this.data.pr : "0";
-		this.pb = this.data.pb ? this.data.pb : "0";
-		this.pl = this.data.pl ? this.data.pl : "0";
 		this.allow_customization = !this.readOnly;
 		this.options = {
 			allow_sorting: this.allow_customization,
@@ -57,10 +53,6 @@ export default class Chart extends Block {
 		return {
 			chart_name: blockContent.getAttribute('chart_name'),
 			col: this.get_col(),
-			pt: this.get_padding("t"),
-			pr: this.get_padding("r"),
-			pb: this.get_padding("b"),
-			pl: this.get_padding("l"),
 			new: this.new_block_widget
 		};
 	}
