@@ -390,10 +390,11 @@ class Document(BaseDocument):
 
 		else:
 			# no rows found, delete all rows
-			frappe.db.sql("""delete from `tab{0}` where parent=%s
-				and parenttype=%s and parentfield=%s""".format(df.options),
-				(self.name, self.doctype, fieldname))
-
+			frappe.db.delete(df.options, {
+				"parent": self.name,
+				"parenttype": self.doctype,
+				"parentfield": fieldname
+			})
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
@@ -451,7 +452,9 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
+		frappe.db.delete("Singles", {
+			"doctype": self.doctype
+		})
 		for field, value in d.items():
 			if field != "doctype":
 				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
@@ -492,6 +495,7 @@ class Document(BaseDocument):
 		self._validate_selects()
 		self._validate_non_negative()
 		self._validate_length()
+		self._validate_code_fields()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
@@ -503,6 +507,7 @@ class Document(BaseDocument):
 			d._validate_selects()
 			d._validate_non_negative()
 			d._validate_length()
+			d._validate_code_fields()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
@@ -1063,7 +1068,10 @@ class Document(BaseDocument):
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 
-		self.load_doc_before_save()
+		# load but do not reload doc_before_save because before_change or on_change might expect it
+		if not self.get_doc_before_save():
+			self.load_doc_before_save()
+
 		# to trigger notification on value change
 		self.run_method('before_change')
 

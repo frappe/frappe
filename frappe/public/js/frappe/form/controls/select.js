@@ -113,6 +113,7 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 				var is_value_null = is_null(v.value);
 				var is_label_null = is_null(v.label);
 				var is_disabled = Boolean(v.disabled);
+				var is_selected = Boolean(v.selected);
 
 				if (is_value_null && is_label_null) {
 					value = v;
@@ -126,6 +127,7 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 			$('<option>').html(cstr(label))
 				.attr('value', value)
 				.prop('disabled', is_disabled)
+				.prop('selected', is_selected)
 				.appendTo(this);
 		}
 		// select the first option

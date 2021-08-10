@@ -92,14 +92,14 @@ def update(doctype, role, permlevel, ptype, value=None):
 	"""Update role permission params
 
 	Args:
-	    doctype (str): Name of the DocType to update params for
-	    role (str): Role to be updated for, eg "Website Manager".
-	    permlevel (int): perm level the provided rule applies to
-	    ptype (str): permission type, example "read", "delete", etc.
-	    value (None, optional): value for ptype, None indicates False
+		doctype (str): Name of the DocType to update params for
+		role (str): Role to be updated for, eg "Website Manager".
+		permlevel (int): perm level the provided rule applies to
+		ptype (str): permission type, example "read", "delete", etc.
+		value (None, optional): value for ptype, None indicates False
 
 	Returns:
-	    str: Refresh flag is permission is updated successfully
+		str: Refresh flag is permission is updated successfully
 	"""
 	frappe.only_for("System Manager")
 	out = update_permission_property(doctype, role, permlevel, ptype, value)
@@ -110,10 +110,9 @@ def remove(doctype, role, permlevel):
 	frappe.only_for("System Manager")
 	setup_custom_perms(doctype)
 
-	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role, permlevel=permlevel))
+	frappe.db.delete("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel})
 
-	frappe.db.sql('delete from `tabCustom DocPerm` where name=%s', name)
-	if not frappe.get_all('Custom DocPerm', dict(parent=doctype)):
+	if not frappe.get_all('Custom DocPerm', {"parent": doctype}):
 		frappe.throw(_('There must be atleast one permission rule.'), title=_('Cannot Remove'))
 
 	validate_permissions_for_doctype(doctype, for_remove=True, alert=True)

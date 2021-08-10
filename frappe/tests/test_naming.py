@@ -137,7 +137,7 @@ class TestNaming(unittest.TestCase):
 		doc.submit()
 		doc.cancel()
 		cancelled_name = doc.name
-		self.assertEqual(cancelled_name, "{}-CAN-0".format(original_name))
+		self.assertEqual(cancelled_name, "{}-CANC-0".format(original_name))
 
 		amended_doc = frappe.copy_doc(doc)
 		amended_doc.docstatus = 0
@@ -147,6 +147,6 @@ class TestNaming(unittest.TestCase):
 
 		amended_doc.submit()
 		amended_doc.cancel()
-		self.assertEqual(amended_doc.name, "{}-CAN-1".format(original_name))
+		self.assertEqual(amended_doc.name, "{}-CANC-1".format(original_name))
 
 		submittable_doctype.delete()
