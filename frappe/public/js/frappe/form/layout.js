@@ -250,6 +250,14 @@ frappe.ui.form.Layout = class Layout {
 			// collapse sections
 			this.refresh_section_collapse();
 		}
+
+		if (document.activeElement) {
+			document.activeElement.focus();
+	
+			if (document.activeElement.tagName == 'INPUT') {
+				document.activeElement.select();
+			}
+		}
 	}
 
 	refresh_sections() {

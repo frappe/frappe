@@ -36,7 +36,13 @@ a {
 }
 
 p {
-	margin: 5px 0 !important;
+	margin: 1em 0 !important;
+}
+
+.with-container {
+	p {
+		margin: 5px 0 !important;
+	}
 }
 
 .ql-editor {
