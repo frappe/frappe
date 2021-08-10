@@ -633,15 +633,13 @@ frappe.views.Workspace = class Workspace {
 		);
 		$sidebar_item.find('.sidebar-item-control .drag-handle').css('margin-right', '8px');
 
+		let $sidebar_section = is_public ? $sidebar[0] : $sidebar[1];
+
 		if (!parent) {
-			if (is_public) {
-				$sidebar_item.appendTo($sidebar[0]);
-			} else {
-				$sidebar.last().removeClass('hidden');
-				$sidebar_item.appendTo($sidebar[1]);
-			}
+			!is_public && $sidebar.last().removeClass('hidden');
+			$sidebar_item.appendTo($sidebar_section);
 		} else {
-			let $item_container = $sidebar.find(`[item-name="${parent}"]`);
+			let $item_container = $($sidebar_section).find(`[item-name="${parent}"]`);
 			let $child_section = $item_container.find('.sidebar-child-item');
 			let $drop_icon = $item_container.find('.drop-icon');
 			if (!$child_section[0]) {
