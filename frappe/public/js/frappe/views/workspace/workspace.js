@@ -386,6 +386,7 @@ frappe.views.Workspace = class Workspace {
 			() => {
 				this.page.clear_primary_action();
 				this.page.clear_secondary_action();
+				this.page.clear_inner_toolbar();
 				this.undo.readOnly = true;
 				this.save_page();
 				this.editor.readOnly.toggle();
