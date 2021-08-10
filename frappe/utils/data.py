@@ -280,7 +280,6 @@ def formatdate(string_date=None, format_string=None):
 		format_string = get_user_format()
 		format_string = get_user_date_format()
 	format_string = format_string.replace("mm", "MM").replace("Y", "y")
->>>>>>> c7ad1be6b8 (fix: format string for formating date)
 	try:
 		formatted_date = babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 	except UnknownLocaleError:
