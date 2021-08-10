@@ -28,7 +28,7 @@ export default class FileUploader {
 		}
 
 		if (attach_doc_image) {
-			restrictions.allowed_file_types = ['.jpg', '.png'];
+			restrictions.allowed_file_types = ['.jpg', '.jpeg', '.png'];
 		}
 
 		this.$fileuploader = new Vue({

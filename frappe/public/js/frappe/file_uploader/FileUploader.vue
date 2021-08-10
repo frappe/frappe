@@ -294,7 +294,7 @@ export default {
 					}
 				});
 			this.files = this.files.concat(files);
-			if(this.attach_doc_image) {
+			if(this.files.length != 0 && this.attach_doc_image) {
 				this.toggle_image_cropper(0);
 			}
 		},
