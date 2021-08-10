@@ -9,8 +9,8 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import get_bench_path, update_progress_bar, cint
-
+from frappe.utils import update_progress_bar, cint
+from frappe.coverage import CodeCoverage
 
 DATA_IMPORT_DEPRECATION = click.style(
 	"[DEPRECATED] The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
@@ -530,52 +530,33 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 		coverage=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None,
 		skip_test_records=False, skip_before_tests=False, failfast=False):
 
-	"Run tests"
-	import frappe.test_runner
-	tests = test
+	with CodeCoverage(coverage, app):
+		import frappe.test_runner
+		tests = test
+		site = get_site(context)
 
-	site = get_site(context)
+		allow_tests = frappe.get_conf(site).allow_tests
 
-	allow_tests = frappe.get_conf(site).allow_tests
+		if not (allow_tests or os.environ.get('CI')):
+			click.secho('Testing is disabled for the site!', bold=True)
+			click.secho('You can enable tests by entering following command:')
+			click.secho('bench --site {0} set-config allow_tests true'.format(site), fg='green')
+			return
 
-	if not (allow_tests or os.environ.get('CI')):
-		click.secho('Testing is disabled for the site!', bold=True)
-		click.secho('You can enable tests by entering following command:')
-		click.secho('bench --site {0} set-config allow_tests true'.format(site), fg='green')
-		return
+		frappe.init(site=site)
 
-	frappe.init(site=site)
+		frappe.flags.skip_before_tests = skip_before_tests
+		frappe.flags.skip_test_records = skip_test_records
 
-	frappe.flags.skip_before_tests = skip_before_tests
-	frappe.flags.skip_test_records = skip_test_records
+		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
+			force=context.force, profile=profile, junit_xml_output=junit_xml_output,
+			ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast)
 
-	if coverage:
-		from coverage import Coverage
-		from frappe.coverage import STANDARD_INCLUSIONS, STANDARD_EXCLUSIONS, FRAPPE_EXCLUSIONS
+		if len(ret.failures) == 0 and len(ret.errors) == 0:
+			ret = 0
 
-		# Generate coverage report only for app that is being tested
-		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		omit = STANDARD_EXCLUSIONS[:]
-
-		if not app or app == 'frappe':
-			omit.extend(FRAPPE_EXCLUSIONS)
-
-		cov = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
-		cov.start()
-
-	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-		ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast)
-
-	if coverage:
-		cov.stop()
-		cov.save()
-
-	if len(ret.failures) == 0 and len(ret.errors) == 0:
-		ret = 0
-
-	if os.environ.get('CI'):
-		sys.exit(ret)
+		if os.environ.get('CI'):
+			sys.exit(ret)
 
 @click.command('run-parallel-tests')
 @click.option('--app', help="For App", default='frappe')
@@ -585,13 +566,14 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 @click.option('--use-orchestrator', is_flag=True, help="Use orchestrator to run parallel tests")
 @pass_context
 def run_parallel_tests(context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False):
-	site = get_site(context)
-	if use_orchestrator:
-		from frappe.parallel_test_runner import ParallelTestWithOrchestrator
-		ParallelTestWithOrchestrator(app, site=site, with_coverage=with_coverage)
-	else:
-		from frappe.parallel_test_runner import ParallelTestRunner
-		ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds, with_coverage=with_coverage)
+	with CodeCoverage(with_coverage, app):
+		site = get_site(context)
+		if use_orchestrator:
+			from frappe.parallel_test_runner import ParallelTestWithOrchestrator
+			ParallelTestWithOrchestrator(app, site=site)
+		else:
+			from frappe.parallel_test_runner import ParallelTestRunner
+			ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
 
 @click.command('run-ui-tests')
 @click.argument('app')
