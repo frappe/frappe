@@ -27,17 +27,18 @@ context('Workspace 2.0', () => {
 	});
 
 	it('Add New Block', () => {
+		cy.wait(500);
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.standard-actions .btn-secondary[data-label=Customize]').click();
 
 		cy.get('.custom-actions .inner-group-button[data-label="Add%20Block"]').click();
 		cy.get('.custom-actions .inner-group-button .dropdown-menu .block-menu-item-label').contains('Heading').click();
-		cy.get(".ce-block:last").type('Header');
+		cy.get(".ce-block:last").find('h2').type('Header');
 		cy.get(".ce-block:last").find('.ce-header').should('exist');
 
 		cy.get('.custom-actions .inner-group-button[data-label="Add%20Block"]').click();
 		cy.get('.custom-actions .inner-group-button .dropdown-menu .block-menu-item-label').contains('Text').click();
-		cy.get(".ce-block:last").type('Paragraph text');
+		cy.get(".ce-block:last").find('.ce-paragraph').type('Paragraph text');
 		cy.get(".ce-block:last").find('.ce-paragraph').should('exist');
 	});
 
