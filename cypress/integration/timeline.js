@@ -1,3 +1,5 @@
+import custom_submittable_doctype from '../fixtures/custom_submittable_doctype';
+
 context('Timeline', () => {
 	before(() => {
 		cy.visit('/login');
@@ -49,5 +51,44 @@ context('Timeline', () => {
 		cy.get('#page-ToDo > .page-head > .container > .row > .col > .standard-actions > .menu-btn-group > .btn').click({force: true});
 		cy.get('.menu-btn-group > .dropdown-menu > li > .grey-link').eq(17).click({force: true});
 		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').contains('Yes').click({force: true});
+	});
+
+	it('Timeline should have submit and cancel activity information', () => {
+		cy.visit('/app/doctype');
+
+		//Creating custom doctype
+		cy.insert_doc('DocType', custom_submittable_doctype, true);
+
+		cy.visit('/app/custom-submittable-doctype');
+		cy.click_listview_primary_button('Add Custom Submittable DocType');
+
+		//Adding a new entry for the created custom doctype
+		cy.fill_field('title', 'Test');
+		cy.get('.modal-footer > .standard-actions > .btn-primary').contains('Save').click();
+		cy.get('.modal-footer > .standard-actions > .btn-primary').contains('Submit').click();
+		cy.visit('/app/custom-submittable-doctype');
+		cy.get('.list-subject > .bold > .ellipsis').eq(0).click();
+
+		//To check if the submission of the documemt is visible in the timeline content
+		cy.get('.timeline-content').should('contain', 'Administrator submitted this document');
+		cy.get('.page-actions > .standard-actions > .btn-secondary').contains('Cancel').click({delay: 900});		
+		cy.get('.modal-footer > .standard-actions > .btn-primary').contains('Yes').click();
+		
+		//To check if the cancellation of the documemt is visible in the timeline content
+		cy.get('.timeline-content').should('contain', 'Administrator cancelled this document');
+
+		//Deleting the document
+		cy.visit('/app/custom-submittable-doctype');
+		cy.get('.list-subject > .select-like > .list-row-checkbox').eq(0).click();
+		cy.get('.page-actions > .standard-actions > .actions-btn-group > .btn').contains('Actions').click();
+		cy.get('.actions-btn-group > .dropdown-menu > li > .grey-link').eq(7).click();
+		cy.click_modal_primary_button('Yes', {force: true, delay: 700});
+
+		//Deleting the custom doctype
+		cy.visit('/app/doctype');
+		cy.get('.list-subject > .select-like > .list-row-checkbox').eq(0).click();
+		cy.get('.page-actions > .standard-actions > .actions-btn-group > .btn').contains('Actions').click();
+		cy.get('.actions-btn-group > .dropdown-menu > li > .grey-link').eq(5).click();
+		cy.click_modal_primary_button('Yes');
 	});
 });
