@@ -3,7 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import frappe
 from frappe import _
@@ -52,8 +52,8 @@ class TokenCache(Document):
 		return self
 
 	def get_expires_in(self):
-		expiry_time = frappe.utils.get_datetime(self.modified) + timedelta(self.expires_in)
-		return (datetime.now() - expiry_time).total_seconds()
+		expiry_time = frappe.utils.get_datetime(self.modified) + timedelta(seconds=self.expires_in)
+		return (expiry_time - frappe.utils.now_datetime()).total_seconds()
 
 	def is_expired(self):
 		return self.get_expires_in() < 0
