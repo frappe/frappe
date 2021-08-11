@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2016-09-22 04:16:48.829658",
  "doctype": "DocType",
  "document_type": "System",
@@ -6,18 +7,24 @@
  "engine": "InnoDB",
  "field_order": [
   "enabled",
-  "ldap_server_url",
+  "ldap_server_settings_section",
+  "ldap_directory_server",
   "column_break_4",
+  "ldap_server_url",
+  "ldap_auth_section",
   "base_dn",
+  "column_break_8",
   "password",
-  "section_break_5",
-  "organizational_unit",
-  "default_role",
+  "ldap_search_and_paths_section",
+  "ldap_search_path_user",
   "ldap_search_string",
+  "column_break_12",
+  "ldap_search_path_group",
+  "ldap_user_creation_and_mapping_section",
   "ldap_email_field",
   "ldap_username_field",
-  "column_break_11",
   "ldap_first_name_field",
+  "column_break_19",
   "ldap_middle_name_field",
   "ldap_last_name_field",
   "ldap_phone_field",
@@ -25,13 +32,18 @@
   "ldap_security",
   "ssl_tls_mode",
   "require_trusted_certificate",
-  "column_break_17",
+  "column_break_27",
   "local_private_key_file",
   "local_server_certificate_file",
   "local_ca_certs_file",
+  "ldap_custom_settings_section",
+  "ldap_group_objectclass",
+  "column_break_33",
+  "ldap_group_member_attribute",
   "ldap_group_mappings_section",
-  "ldap_group_field",
-  "ldap_groups"
+  "default_role",
+  "ldap_groups",
+  "ldap_group_field"
  ],
  "fields": [
   {
@@ -66,18 +78,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "section_break_5",
-   "fieldtype": "Section Break",
-   "label": "LDAP User Creation and Mapping"
-  },
-  {
-   "fieldname": "organizational_unit",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Organizational Unit for Users",
-   "reqd": 1
-  },
-  {
    "fieldname": "default_role",
    "fieldtype": "Link",
    "label": "Default Role on Creation",
@@ -85,6 +85,7 @@
    "reqd": 1
   },
   {
+   "description": "Must be enclosed in '()' and include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))",
    "fieldname": "ldap_search_string",
    "fieldtype": "Data",
    "label": "LDAP Search String",
@@ -101,10 +102,6 @@
    "fieldtype": "Data",
    "label": "LDAP Username Field",
    "reqd": 1
-  },
-  {
-   "fieldname": "column_break_11",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "ldap_first_name_field",
@@ -153,10 +150,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "column_break_17",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "local_private_key_file",
    "fieldtype": "Data",
    "label": "Path to private Key File"
@@ -177,6 +170,7 @@
    "label": "LDAP Group Mappings"
   },
   {
+   "description": "NOTE: This box is due for depreciation. Please re-setup LDAP to work with the newer settings",
    "fieldname": "ldap_group_field",
    "fieldtype": "Data",
    "label": "LDAP Group Field"
@@ -186,11 +180,93 @@
    "fieldtype": "Table",
    "label": "LDAP Group Mappings",
    "options": "LDAP Group Mapping"
+  },
+  {
+   "fieldname": "ldap_server_settings_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP Server Settings"
+  },
+  {
+   "fieldname": "ldap_auth_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP Auth"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ldap_search_and_paths_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP Search and Paths"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ldap_user_creation_and_mapping_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP User Creation and Mapping"
+  },
+  {
+   "fieldname": "column_break_19",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_27",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "These settings are required if 'Custom' LDAP Directory is used",
+   "fieldname": "ldap_custom_settings_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP Custom Settings"
+  },
+  {
+   "fieldname": "column_break_33",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "string value, i.e. member",
+   "fieldname": "ldap_group_member_attribute",
+   "fieldtype": "Data",
+   "label": "LDAP Group Member attribute"
+  },
+  {
+   "description": "Please select the LDAP Directory being used",
+   "fieldname": "ldap_directory_server",
+   "fieldtype": "Select",
+   "label": "Directory Server",
+   "options": "\nActive Directory\nOpenLDAP\nCustom",
+   "reqd": 1
+  },
+  {
+   "description": "string value, i.e. group",
+   "fieldname": "ldap_group_objectclass",
+   "fieldtype": "Data",
+   "label": "Group Object Class"
+  },
+  {
+   "description": "Requires any valid fdn path. i.e. ou=users,dc=example,dc=com",
+   "fieldname": "ldap_search_path_user",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "LDAP search path for Users",
+   "reqd": 1
+  },
+  {
+   "description": "Requires any valid fdn path. i.e. ou=groups,dc=example,dc=com",
+   "fieldname": "ldap_search_path_group",
+   "fieldtype": "Data",
+   "label": "LDAP search path for Groups",
+   "reqd": 1
   }
  ],
  "in_create": 1,
  "issingle": 1,
- "modified": "2019-07-15 06:48:16.562109",
+ "links": [],
+ "modified": "2021-07-27 11:51:43.328271",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",
