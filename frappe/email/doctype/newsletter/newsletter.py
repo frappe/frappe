@@ -341,12 +341,34 @@ def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20
 			'''.format(','.join(['%s'] * len(email_group_list)),
 					limit_page_length, limit_start), email_group_list, as_dict=1)
 
+
 def send_scheduled_email():
 	"""Send scheduled newsletter to the recipients."""
-	scheduled_newsletter = frappe.get_all('Newsletter', filters = {
-		'schedule_send': ('<=', now_datetime()),
-		'email_sent': 0,
-		'schedule_sending': 1
-	}, fields = ['name'], ignore_ifnull=True)
+	scheduled_newsletter = frappe.get_all(
+		"Newsletter",
+		filters={
+			"schedule_send": ("<=", frappe.utils.now_datetime()),
+			"email_sent": False,
+			"schedule_sending": True,
+		},
+		ignore_ifnull=True,
+		pluck="name",
+	)
+
 	for newsletter in scheduled_newsletter:
-		send_newsletter(newsletter.name)
+		try:
+			frappe.get_doc("Newsletter", newsletter).queue_all()
+
+		except Exception:
+			frappe.db.rollback()
+
+			# wasn't able to send emails :(
+			frappe.db.set_value("Newsletter", newsletter, "email_sent", 0)
+			message = (
+				f"Newsletter {newsletter} failed to send"
+				"\n\n"
+				f"Traceback: {frappe.get_traceback()}"
+			)
+			frappe.log_error(title="Send Newsletter", message=message)
+
+		frappe.db.commit()
