@@ -23,7 +23,7 @@ class Newsletter(WebsiteGenerator):
 
 	@property
 	def newsletter_recipients(self) -> List[str]:
-		if getattr(self, "_recipients", None) == None:
+		if getattr(self, "_recipients", None) is None:
 			self._recipients = self.get_recipients()
 		return self._recipients
 
@@ -132,7 +132,7 @@ class Newsletter(WebsiteGenerator):
 			self.scheduled_to_send = len(newsletter_recipients)
 			self.save()
 
-	def get_attachments(self) -> List[Dict[str, str]]:
+	def get_newsletter_attachments(self) -> List[Dict[str, str]]:
 		"""Get list of attachments on current Newsletter
 		"""
 		attachments = []
@@ -149,9 +149,11 @@ class Newsletter(WebsiteGenerator):
 		return attachments
 
 	def send_newsletter(self, emails: List[str]):
+		"""Trigger email generation for `emails` and add it in Email Queue.
+		"""
 		# TODO: get rid of this maybe?
 		message = self.get_message()
-		attachments = self.get_attachments()
+		attachments = self.get_newsletter_attachments()
 		sender = self.send_from or frappe.utils.get_formatted_email(self.owner)
 		args = {"message": message, "name": self.name}
 
@@ -200,7 +202,7 @@ class Newsletter(WebsiteGenerator):
 			pluck="email_group",
 		)
 
-	def get_attachments(self) -> List[Dict]:
+	def get_attachments(self) -> List[Dict[str, str]]:
 		return frappe.get_all(
 			"File",
 			fields=["name", "file_name", "file_url", "is_private"],
