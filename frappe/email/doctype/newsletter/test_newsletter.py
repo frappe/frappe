@@ -24,7 +24,7 @@ emails = [
 class TestNewsletter(unittest.TestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
-		frappe.db.sql("delete from `tabEmail Group Member`")
+		frappe.db.delete("Email Group Member")
 
 		if not frappe.db.exists("Email Group", "_Test Email Group"):
 			frappe.get_doc({"doctype": "Email Group", "title": "_Test Email Group"}).insert()
@@ -66,9 +66,10 @@ class TestNewsletter(unittest.TestCase):
 
 	@staticmethod
 	def send_newsletter(published=0, schedule_send=None):
-		frappe.db.sql("delete from `tabEmail Queue`")
-		frappe.db.sql("delete from `tabEmail Queue Recipient`")
-		frappe.db.sql("delete from `tabNewsletter`")
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Email Queue Recipient")
+		frappe.db.delete("Newsletter")
+
 		newsletter = frappe.get_doc({
 			"doctype": "Newsletter",
 			"subject": "_Test Newsletter",
@@ -78,26 +79,26 @@ class TestNewsletter(unittest.TestCase):
 			"published": published,
 			"schedule_sending": bool(schedule_send),
 			"schedule_send": schedule_send
-		}).insert(ignore_permissions=True)
-
+		})
+		newsletter.insert(ignore_permissions=True)
 		newsletter.append("email_group", {"email_group": "_Test Email Group"})
 		newsletter.save()
+
 		if schedule_send:
 			send_scheduled_email()
-			return
-
-		newsletter.send_emails()
-		return newsletter.name
+		else:
+			newsletter.send_emails()
+			return newsletter.name
 
 	def test_portal(self):
-		self.send_newsletter(1)
+		self.send_newsletter(published=1)
 		frappe.set_user("test1@example.com")
 		newsletters = get_newsletter_list("Newsletter", None, None, 0)
 		self.assertEqual(len(newsletters), 1)
 
 	def test_newsletter_context(self):
 		context = frappe._dict()
-		newsletter_name = self.send_newsletter(1)
+		newsletter_name = self.send_newsletter(published=1)
 		frappe.set_user("test2@example.com")
 		doc = frappe.get_doc("Newsletter", newsletter_name)
 		doc.get_context(context)
