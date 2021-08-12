@@ -43,9 +43,6 @@ class Newsletter(WebsiteGenerator):
 	@frappe.whitelist()
 	def send_emails(self):
 		"""send emails to leads and customers"""
-		self.validate_newsletter_status()
-		self.validate_newsletter_recipients()
-
 		self.queue_all()
 		frappe.msgprint(_("Email queued to {0} recipients").format(len(self.newsletter_recipients)))
 
