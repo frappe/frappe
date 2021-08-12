@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any, Callable, Dict, get_type_hints
+from importlib import import_module
 
 from pypika import Query
 
@@ -19,6 +20,9 @@ class ImportMapper:
 		db = db_type_is(frappe.conf.db_type or "mariadb")
 		return self.func_map[db](*args, **kwds)
 
+class BuilderIdentificationFailed(Exception):
+	def __init__(self):
+		super().__init__("Couldn't guess builder")
 
 def get_query_builder(type_of_db: str) -> Query:
 	"""[return the query builder object]
@@ -33,6 +37,10 @@ def get_query_builder(type_of_db: str) -> Query:
 	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres}
 	return picks[db]
 
+def get_attr(method_string):
+	modulename = '.'.join(method_string.split('.')[:-1])
+	methodname = method_string.split('.')[-1]
+	return getattr(import_module(modulename), methodname)
 
 def patch_query_execute():
 	"""Patch the Query Builder with helper execute method
@@ -43,12 +51,7 @@ def patch_query_execute():
 	def execute_query(query, **kwargs):
 		return frappe.db.sql(query, **kwargs)
 
-	class BuilderIdentificationFailed(Exception):
-		def __init__(self, message=None):
-			message = message or "Couldn't guess builder"
-			super().__init__(message)
-
-	query_class = frappe.get_attr(str(frappe.qb).split("'")[1])
+	query_class = get_attr(str(frappe.qb).split("'")[1])
 	builder_class = get_type_hints(query_class._builder).get('return')
 
 	if not builder_class:
