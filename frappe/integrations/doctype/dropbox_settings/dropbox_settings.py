@@ -261,6 +261,8 @@ def delete_older_backups(dropbox_client, folder_path, to_keep):
 	for f in res.entries:
 		if isinstance(f, dropbox.files.FileMetadata) and 'sql' in f.name:
 			files.append(f)
+		if isinstance(f, dropbox.files.FileMetadata) and 'json' in f.name: 
+ 			files.append(f)
 
 	if len(files) <= to_keep:
 		return
