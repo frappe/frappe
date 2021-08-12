@@ -197,47 +197,69 @@ def nowtime():
 	"""return current time in hh:mm"""
 	return now_datetime().strftime(TIME_FORMAT)
 
-def get_first_day(dt, d_years=0, d_months=0, as_str=False):
+def get_first_day(date=None, d_years=0, d_months=0, as_str=False, dt=None):
 	"""
+	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
 	 Returns the first day of the month for the date specified by date object
 	 Also adds `d_years` and `d_months` if specified
 	"""
-	dt = getdate(dt)
+	date = date or dt
+	date = getdate(date)
 
-	# d_years, d_months are "deltas" to apply to dt
-	overflow_years, month = divmod(dt.month + d_months - 1, 12)
-	year = dt.year + d_years + overflow_years
+	# d_years, d_months are "deltas" to apply to date
+	overflow_years, month = divmod(date.month + d_months - 1, 12)
+	year = date.year + d_years + overflow_years
+	date = datetime.date(year, month + 1, 1)
+	return date.strftime(DATE_FORMAT) if as_str else date
 
-	return datetime.date(year, month + 1, 1).strftime(DATE_FORMAT) if as_str else datetime.date(year, month + 1, 1)
-
-def get_quarter_start(dt, as_str=False):
-	date = getdate(dt)
+def get_quarter_start(date=None, as_str=False, dt=None):
+	"""
+	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	"""
+	date = date or dt
+	date = getdate(date)
 	quarter = (date.month - 1) // 3 + 1
 	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
-def get_first_day_of_week(dt, as_str=False):
-	dt = getdate(dt)
-	date = dt - datetime.timedelta(days=dt.weekday())
-	return date.strftime(DATE_FORMAT) if as_str else date
-
-def get_year_start(dt, as_str=False):
-	dt = getdate(dt)
-	date = datetime.date(dt.year, 1, 1)
-	return date.strftime(DATE_FORMAT) if as_str else date
-
-def get_last_day_of_week(dt):
-	dt = get_first_day_of_week(dt)
-	return dt + datetime.timedelta(days=6)
-
-def get_last_day(dt):
+def get_first_day_of_week(date=None, as_str=False, dt=None):
 	"""
+	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	"""
+	date = date or dt
+	date = getdate(date)
+	date = date - datetime.timedelta(days=date.weekday())
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_year_start(date=None, as_str=False, dt=None):
+	"""
+	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	"""
+	date = date or dt
+	date = getdate(date)
+	date = datetime.date(date.year, 1, 1)
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_last_day_of_week(date=None, as_str=False, dt=None):
+	"""
+	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	"""
+	date = date or dt
+	date = get_first_day_of_week(date)
+	date = date + datetime.timedelta(days=6)
+	return date.strftim(DATE_FORMAT) if as_str else date
+
+def get_last_day(date=None, as_str=False, dt=None):
+	"""
+	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
 	 Returns last day of the month using:
-	 `get_first_day(dt, 0, 1) + datetime.timedelta(-1)`
+	 `get_first_day(date, 0, 1) + datetime.timedelta(-1)`
 	"""
-	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
+	date = date or dt
+	date = get_first_day(date, 0, 1) + datetime.timedelta(-1)
+	return date.strftim(DATE_FORMAT) if as_str else date
 
-def get_quarter_ending(date):
+def get_quarter_ending(date, as_str=False):
 	date = getdate(date)
 
 	# find the earliest quarter ending date that is after
@@ -245,19 +267,18 @@ def get_quarter_ending(date):
 	for month in (3, 6, 9, 12):
 		quarter_end_month = getdate('{}-{}-01'.format(date.year, month))
 		quarter_end_date = getdate(get_last_day(quarter_end_month))
-		if date <= quarter_end_date:
-			date = quarter_end_date
-			break
+		if date > quarter_end_date:
+			continue
 
-	return date
+		return quarter_end_date.strftime(DATE_FORMAT) if as_str else quarter_end_date
 
-def get_year_ending(date):
+def get_year_ending(date, as_str=False):
 	''' returns year ending of the given date '''
 	date = getdate(date)
 	# first day of next year (note year starts from 1)
 	date = add_to_date('{}-01-01'.format(date.year), months = 12)
 	# last day of this month
-	return add_to_date(date, days=-1)
+	return add_to_date(date, days=-1, as_string=as_str)
 
 def get_time(time_str):
 	from dateutil import parser
