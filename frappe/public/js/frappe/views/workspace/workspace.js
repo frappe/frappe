@@ -314,6 +314,9 @@ frappe.views.Workspace = class Workspace {
 			let this_page = pages.filter(p => p.title == page.name)[0];
 			this.setup_actions(page);
 			this.content = this_page && JSON.parse(this_page.content);
+
+			this.add_custom_cards_in_content();
+
 			$('.item-anchor').addClass('disable-click');
 			this.get_data(this_page).then(() => {
 				this.prepare_editorjs();
@@ -321,6 +324,15 @@ frappe.views.Workspace = class Workspace {
 				this.$page.find('.codex-editor').removeClass('hidden');
 				this.$page.find('.workspace-skeleton').remove();
 			});
+		}
+	}
+
+	add_custom_cards_in_content() {
+		let index = -1;
+		this.content.find((item, i) => { if (item.type == 'card') index = i });
+		if (index !== -1) {
+			this.content.splice(index+1, 0, {"type": "card", "data": {"card_name": "Custom Documents", "col": 4}});
+			this.content.splice(index+2, 0, {"type": "card", "data": {"card_name": "Custom Reports", "col": 4}});
 		}
 	}
 
@@ -690,6 +702,12 @@ frappe.views.Workspace = class Workspace {
 				}
 			});
 
+			let blocks = outputData.blocks.filter( 
+				item => item.type != 'card' || 
+				(item.data.card_name !== 'Custom Documents' && 
+				item.data.card_name !== 'Custom Reports')
+			);
+
 			frappe.call({
 				method: "frappe.desk.doctype.workspace.workspace.save_page",
 				args: {
@@ -701,7 +719,7 @@ frappe.views.Workspace = class Workspace {
 					sb_private_items: me.sorted_private_items,
 					deleted_pages: me.deleted_sidebar_items,
 					new_widgets: new_widgets,
-					blocks: JSON.stringify(outputData.blocks),
+					blocks: JSON.stringify(blocks),
 					save: save
 				},
 				callback: function(res) {
