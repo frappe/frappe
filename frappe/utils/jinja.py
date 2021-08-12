@@ -23,7 +23,8 @@ def get_jenv():
 			'resolve_class': resolve_class,
 			'inspect': inspect,
 			'web_blocks': web_blocks,
-			'web_block': web_block
+			'web_block': web_block,
+			'include_style': include_style
 		})
 
 		frappe.local.jenv = jenv
@@ -70,7 +71,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 	:param safe_render: (optional) prevent server side scripting via jinja templating
 	'''
 
-	from frappe import get_traceback, throw
+	from frappe import get_traceback, throw, _
 	from jinja2 import TemplateError
 
 	if not template:
@@ -80,7 +81,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 		return get_jenv().get_template(template).render(context)
 	else:
 		if safe_render and ".__" in template:
-			throw("Illegal template")
+			throw(_("Illegal template"))
 		try:
 			return get_jenv().from_string(template).render(context)
 		except TemplateError:
@@ -202,11 +203,12 @@ def web_block(template, values=None, **kwargs):
 def web_blocks(blocks):
 	from frappe import throw, _dict
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
+	from frappe import _
 
 	web_blocks = []
 	for block in blocks:
 		if not block.get('template'):
-			throw('Web Template is not specified')
+			throw(_('Web Template is not specified'))
 
 		doc = _dict({
 			'doctype': 'Web Page Block',
@@ -228,3 +230,19 @@ def web_blocks(blocks):
 		html += '<script>{}</script>'.format(script)
 
 	return html
+
+
+def include_style(file_name, rtl=None):
+	if rtl is None:
+		rtl = is_rtl()
+
+	if rtl:
+		path = f"/assets/css-rtl/{file_name}"
+	else:
+		path = f"/assets/css/{file_name}"
+	return f'<link type="text/css" rel="stylesheet" href="{path}">'
+
+
+def is_rtl():
+	from frappe import local
+	return local.lang in ["ar", "he", "fa", "ps"]
