@@ -1,18 +1,31 @@
+<<<<<<< HEAD
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 from __future__ import unicode_literals
+=======
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
+>>>>>>> a5010af92a (test: Update tests for Newsletter)
 
 import unittest
 from random import choice
+from typing import Union
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import frappe
-from frappe.email.doctype.newsletter.newsletter import (
-	confirmed_unsubscribe,
-	send_scheduled_email,
+from frappe.desk.form.load import run_onload
+from frappe.email.doctype.newsletter.exceptions import (
+	NewsletterAlreadySentError, NoRecipientFoundError
 )
-from frappe.email.doctype.newsletter.newsletter import get_newsletter_list
+from frappe.email.doctype.newsletter.newsletter import (
+	Newsletter,
+	confirmed_unsubscribe,
+	get_newsletter_list,
+	send_scheduled_email
+)
 from frappe.email.queue import flush
 from frappe.utils import add_days, getdate
+
 
 test_dependencies = ["Email Group"]
 emails = [
@@ -22,14 +35,33 @@ emails = [
 	"test1@example.com",
 ]
 
+def get_dotted_path(obj: type) -> str:
+	klass = obj.__class__
+	module = klass.__module__
+	if module == 'builtins':
+		return klass.__qualname__ # avoid outputs like 'builtins.str'
+	return f"{module}.{klass.__qualname__}"
 
-class TestNewsletter(unittest.TestCase):
+
+class TestNewsletterMixin:
+	@classmethod
+	def setUpclass(self):
+		frappe.db.delete("Newsletter")
+
 	def setUp(self):
 		frappe.set_user("Administrator")
 		frappe.db.delete("Email Group Member")
+		self.setup_email_group()
 
+	def tearDown(self):
+		frappe.db.delete("Newsletter")
+
+	def setup_email_group(self):
 		if not frappe.db.exists("Email Group", "_Test Email Group"):
-			frappe.get_doc({"doctype": "Email Group", "title": "_Test Email Group"}).insert()
+			frappe.get_doc({
+				"doctype": "Email Group",
+				"title": "_Test Email Group"
+			}).insert()
 
 		for email in emails:
 			frappe.get_doc({
@@ -38,6 +70,54 @@ class TestNewsletter(unittest.TestCase):
 				"email_group": "_Test Email Group"
 			}).insert()
 
+	def send_newsletter(self, published=0, schedule_send=None) -> Union[str, None]:
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Email Queue Recipient")
+		frappe.db.delete("Newsletter")
+		newsletter_options = {
+			"published": published,
+			"schedule_sending": bool(schedule_send),
+			"schedule_send": schedule_send
+		}
+		newsletter = self.get_newsletter(**newsletter_options)
+
+		if schedule_send:
+			send_scheduled_email()
+		else:
+			newsletter.send_emails()
+			return newsletter.name
+
+	@staticmethod
+	def get_newsletter(**kwargs) -> "Newsletter":
+		"""Generate and return Newsletter object
+		"""
+		newsletter_content = {
+			"doctype": "Newsletter",
+			"subject": "_Test Newsletter",
+			"send_from": "Test Sender <test_sender@example.com>",
+			"content_type": "Rich Text",
+			"message": "Testing my news.",
+		}
+		newsletter = frappe.get_doc({**newsletter_content, **kwargs})
+		newsletter.append("email_group", {"email_group": "_Test Email Group"})
+
+		newsletter.insert(ignore_permissions=True)
+		newsletter.save()
+		newsletter.reload()
+
+		attached_files = frappe.get_all("File", {
+				"attached_to_doctype": newsletter.doctype,
+				"attached_to_name": newsletter.name,
+			},
+			pluck="name",
+		)
+		for file in attached_files:
+			frappe.delete_doc("File", file)
+
+		return newsletter
+
+
+class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
 	def test_send(self):
 		self.send_newsletter()
 
@@ -66,32 +146,6 @@ class TestNewsletter(unittest.TestCase):
 			if email != to_unsubscribe:
 				self.assertTrue(email in recipients)
 
-	@staticmethod
-	def send_newsletter(published=0, schedule_send=None):
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
-		frappe.db.delete("Newsletter")
-
-		newsletter = frappe.get_doc({
-			"doctype": "Newsletter",
-			"subject": "_Test Newsletter",
-			"send_from": "Test Sender <test_sender@example.com>",
-			"content_type": "Rich Text",
-			"message": "Testing my news.",
-			"published": published,
-			"schedule_sending": bool(schedule_send),
-			"schedule_send": schedule_send
-		})
-		newsletter.insert(ignore_permissions=True)
-		newsletter.append("email_group", {"email_group": "_Test Email Group"})
-		newsletter.save()
-
-		if schedule_send:
-			send_scheduled_email()
-		else:
-			newsletter.send_emails()
-			return newsletter.name
-
 	def test_portal(self):
 		self.send_newsletter(published=1)
 		frappe.set_user("test1@example.com")
@@ -115,3 +169,68 @@ class TestNewsletter(unittest.TestCase):
 		recipients = [e.recipients[0].recipient for e in email_queue_list]
 		for email in emails:
 			self.assertTrue(email in recipients)
+
+	def test_newsletter_test_send(self):
+		"""Test "Test Send" functionality of Newsletter
+		"""
+		newsletter = self.get_newsletter()
+		newsletter.test_email_id = choice(emails)
+		newsletter.test_send()
+
+		self.assertFalse(newsletter.email_sent)
+		newsletter.save = MagicMock()
+		self.assertFalse(newsletter.save.called)
+
+	def test_newsletter_status(self):
+		"""Test for Newsletter's stats on onload event
+		"""
+		newsletter = self.get_newsletter()
+		newsletter.email_sent = True
+		# had to use run_onload as calling .onload directly bought weird errors
+		# like TestNewsletter has no attribute "_TestNewsletter__onload"
+		run_onload(newsletter)
+		self.assertIsInstance(newsletter.get("__onload").status_count, dict)
+
+	def test_already_sent_newsletter(self):
+		newsletter = self.get_newsletter()
+		newsletter.send_emails()
+
+		with self.assertRaises(NewsletterAlreadySentError):
+			newsletter.send_emails()
+
+	def test_newsletter_with_no_recipient(self):
+		newsletter = self.get_newsletter()
+		property_path = f"{get_dotted_path(newsletter)}.newsletter_recipients"
+
+		with patch(property_path, new_callable=PropertyMock) as mock_newsletter_recipients:
+			mock_newsletter_recipients.return_value = []
+			with self.assertRaises(NoRecipientFoundError):
+				newsletter.send_emails()
+
+	def test_send_newsletter_with_attachments(self):
+		newsletter = self.get_newsletter()
+		newsletter.reload()
+		file_attachment = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "test1.txt",
+			"attached_to_doctype": newsletter.doctype,
+			"attached_to_name": newsletter.name,
+			"content": frappe.mock("paragraph")
+		})
+		file_attachment.save()
+		newsletter.send_attachments = True
+		newsletter_attachments = newsletter.get_newsletter_attachments()
+		self.assertEqual(len(newsletter_attachments), 1)
+		self.assertEqual(newsletter_attachments[0]["fid"], file_attachment.name)
+
+	def test_send_scheduled_email_error_handling(self):
+		newsletter = self.get_newsletter(schedule_send=add_days(getdate(), -1))
+		job_path = "frappe.email.doctype.newsletter.newsletter.Newsletter.queue_all"
+		m = MagicMock(side_effect=frappe.OutgoingEmailError)
+
+		with self.assertRaises(frappe.OutgoingEmailError):
+			with patch(job_path, new_callable=m):
+				send_scheduled_email()
+
+		newsletter.reload()
+		self.assertEqual(newsletter.email_sent, 0)
