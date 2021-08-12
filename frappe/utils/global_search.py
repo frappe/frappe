@@ -455,7 +455,7 @@ def search(text, start=0, limit=20, doctype=""):
 		if start > 0:
 			query = query.offset(start)
 
-		result = frappe.db.sql(query, as_dict=True)
+		result = query.run(as_dict=True)
 
 		results.extend(result)
 
