@@ -7,16 +7,14 @@ def execute():
 	ToDo = frappe.qb.DocType("ToDo")
 	assignees = GroupConcat("owner").distinct().as_("assignees")
 
-	query = (
+	assignments = (
 		frappe.qb.from_(ToDo)
 		.select(ToDo.name, ToDo.reference_type, assignees)
 		.where(Coalesce(ToDo.reference_type, "") != "")
 		.where(Coalesce(ToDo.reference_name, "") != "")
 		.where(ToDo.status != "Cancelled")
 		.groupby(ToDo.reference_type, ToDo.reference_name)
-	)
-
-	assignments = frappe.db.sql(query, as_dict=True)
+	).run(as_dict=True)
 
 	for doc in assignments:
 		assignments = doc.assignees.split(",")
