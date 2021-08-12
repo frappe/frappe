@@ -21,7 +21,7 @@ frappe.views.Workspace = class Workspace {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
 		this.blocks = frappe.wspace_block.blocks;
-		this.isReadOnly = true;
+		this.is_read_only = true;
 		this.new_page = null;
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
@@ -356,7 +356,7 @@ frappe.views.Workspace = class Workspace {
 		let pages = page.public ? this.public_pages : this.private_pages;
 		let current_page = pages.filter(p => p.title == page.name)[0];
 
-		if (!this.isReadOnly) {
+		if (!this.is_read_only) {
 			this.setup_customization_buttons(current_page.is_editable);
 			return;
 		}
@@ -367,7 +367,7 @@ frappe.views.Workspace = class Workspace {
 
 		current_page.is_editable && this.page.set_secondary_action(__("Customize"), () => {
 			if (!this.editor || !this.editor.readOnly) return;
-			this.isReadOnly = false;
+			this.is_read_only = false;
 			this.editor.readOnly.toggle();
 			this.editor.isReady.then(() => {
 				this.initialize_editorjs_undo();
@@ -404,7 +404,7 @@ frappe.views.Workspace = class Workspace {
 				this.undo.readOnly = true;
 				this.save_page();
 				this.editor.readOnly.toggle();
-				this.isReadOnly = true;
+				this.is_read_only = true;
 			},
 			null,
 			__("Saving")
@@ -417,7 +417,7 @@ frappe.views.Workspace = class Workspace {
 				this.page.clear_secondary_action();
 				this.page.clear_inner_toolbar();
 				this.editor.readOnly.toggle();
-				this.isReadOnly = true;
+				this.is_read_only = true;
 				this.deleted_sidebar_items = [];
 				this.reload();
 				frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
@@ -595,7 +595,7 @@ frappe.views.Workspace = class Workspace {
 					]
 				}).then(() => {
 					if (this.editor.configuration.readOnly) {
-						this.isReadOnly = false;
+						this.is_read_only = false;
 						this.editor.readOnly.toggle();
 					}
 					this.add_page_to_sidebar(values);
